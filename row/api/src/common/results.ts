@@ -32,6 +32,25 @@ export class ProblemResult extends ActionResult {
   }
 }
 
+/** [ApiController] model-validation failure: 400 with an "errors" map. */
+export class ValidationProblemResult extends ActionResult {
+  readonly status = 400;
+  constructor(readonly errors: Record<string, string[]>) {
+    super();
+  }
+}
+
+/** CreatedAtAction / CreatedAtRoute: 201 with a Location header. */
+export class CreatedResult extends ActionResult {
+  readonly status = 201;
+  constructor(
+    readonly location: string,
+    readonly value: unknown,
+  ) {
+    super();
+  }
+}
+
 export class EmptyResult extends ActionResult {
   constructor(readonly status: number) {
     super();
@@ -90,6 +109,8 @@ const withValue = (status: number, args: unknown[]) => (args.length ? new Object
 
 export const ok = (...value: unknown[]): ActionResult => (value.length ? new ObjectResult(200, value[0]) : new EmptyResult(200));
 export const created = (value?: unknown): ActionResult => new ObjectResult(201, value);
+/** CreatedAtAction(nameof(Get), new { id }, value): Location is the "get" route of the new resource. */
+export const createdAt = (location: string, value: unknown): ActionResult => new CreatedResult(location, value);
 export const accepted = (value?: unknown): ActionResult => new ObjectResult(202, value);
 export const noContent = (): ActionResult => new EmptyResult(204);
 export const badRequest = (...value: unknown[]): ActionResult => withValue(400, value);

@@ -10,6 +10,8 @@ import {
   ObjectResult,
   ProblemResult,
   RedirectResult,
+  ValidationProblemResult,
+  CreatedResult,
   problemDetails,
 } from "./results";
 
@@ -82,6 +84,29 @@ export function writeResult(req: Request, res: Response, result: ActionResult): 
       .status(result.status)
       .type("application/problem+json; charset=utf-8")
       .send(toDotnetJson(problemDetails(result.status, traceIdFor(req))));
+    return;
+  }
+
+  if (result instanceof ValidationProblemResult) {
+    res
+      .status(400)
+      .type("application/problem+json; charset=utf-8")
+      .send(
+        toDotnetJson({
+          type: "https://tools.ietf.org/html/rfc9110#section-15.5.1",
+          title: "One or more validation errors occurred.",
+          status: 400,
+          errors: result.errors,
+          traceId: traceIdFor(req),
+        }),
+      );
+    return;
+  }
+
+  if (result instanceof CreatedResult) {
+    const base = `${req.protocol}://${req.get("host") ?? ""}`;
+    res.setHeader("Location", /^https?:\/\//.test(result.location) ? result.location : base + result.location);
+    writeResult(req, res, new ObjectResult(201, result.value));
     return;
   }
 

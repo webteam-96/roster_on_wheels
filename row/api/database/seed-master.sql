@@ -813,3 +813,8 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
+
+-- ROW lists countries alphabetically (no home country first).
+UPDATE country_master c
+JOIN (SELECT pk_country_id, ROW_NUMBER() OVER (ORDER BY CountryName) AS rn FROM country_master) x USING (pk_country_id)
+SET c.Ordering = x.rn;

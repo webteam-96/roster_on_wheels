@@ -82,7 +82,8 @@ export class AuditMiddleware implements NestMiddleware {
 
   use(req: Request & { user?: CurrentUser }, res: Response, next: NextFunction): void {
     const method = req.method.toUpperCase();
-    const path = req.path;
+    // Inside Nest's mounted middleware req.path is relative to the mount: rebuild the full path.
+    const path = req.baseUrl && req.path === "/" ? req.baseUrl : (req.baseUrl || "") + req.path;
     if ((method !== "POST" && method !== "PUT" && method !== "DELETE") || SKIP_PREFIXES.some((p) => path.toLowerCase().startsWith(p))) {
       next();
       return;

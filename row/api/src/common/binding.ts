@@ -1,4 +1,4 @@
-import { ActionResultError, EmptyResult } from "./results";
+import { ActionResultError, EmptyResult, ValidationProblemResult } from "./results";
 
 /**
  * Model binding as ASP.NET does it for route and query values.
@@ -58,4 +58,19 @@ export function queryDate(value: string | string[] | undefined): string | null {
   if (!m) throw new ActionResultError(new EmptyResult(400));
   const [, y, mo, d, h = "00", mi = "00", s = "00"] = m;
   return `${y}-${mo}-${d} ${h}:${mi}:${s}`;
+}
+
+/**
+ * An action parameter bound from the route without a constraint ("{id}" with
+ * int id): a value that is not an int fails model validation, which
+ * [ApiController] answers with a 400 ProblemDetails naming the field.
+ */
+export function paramInt(value: string | undefined, name = "id"): number {
+  if (value !== undefined && /^\s*-?\d+\s*$/.test(value)) {
+    const n = Number(value);
+    if (n <= 2147483647 && n >= -2147483648) return n;
+  }
+  throw new ActionResultError(
+    new ValidationProblemResult({ [name]: [`The value '${value ?? ""}' is not valid.`] }),
+  );
 }
