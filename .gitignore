@@ -1,0 +1,10 @@
+# Separate repo with credentials — not part of this project
+/reference/
+
+node_modules/
+.next/
+out/
+.env
+.env*.local
+.DS_Store
+*.tsbuildinfo
