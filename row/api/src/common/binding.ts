@@ -74,3 +74,36 @@ export function paramInt(value: string | undefined, name = "id"): number {
     new ValidationProblemResult({ [name]: [`The value '${value ?? ""}' is not valid.`] }),
   );
 }
+
+/**
+ * A date/time from a request body, ready for a DATETIME/DATE column: values
+ * with an offset or "Z" are converted to UTC (ROW stores UTC); values without
+ * one are taken as written. Empty or unparseable -> null.
+ */
+export function dbDateTime(value: unknown): string | null {
+  if (value === null || value === undefined) return null;
+  const s = String(value).trim();
+  if (!s) return null;
+  if (/(Z|[+-]\d{2}:?\d{2})$/i.test(s)) {
+    const d = new Date(s);
+    return isNaN(d.getTime()) ? null : d.toISOString().slice(0, 19).replace("T", " ");
+  }
+  const m = /^(\d{4})-(\d{2})-(\d{2})(?:[T ](\d{2}):(\d{2})(?::(\d{2}))?)?/.exec(s);
+  if (!m) return null;
+  const [, y, mo, d, h = "00", mi = "00", sec = "00"] = m;
+  return `${y}-${mo}-${d} ${h}:${mi}:${sec}`;
+}
+
+/** A calendar date from a request body ("YYYY-MM-DD"), never shifted by a zone. */
+export function dbDate(value: unknown): string | null {
+  if (value === null || value === undefined) return null;
+  const m = /^(\d{4}-\d{2}-\d{2})/.exec(String(value).trim());
+  return m ? m[1] : null;
+}
+
+/** A TimeSpan from a request body ("HH:mm" / "HH:mm:ss") -> "HH:mm:ss", else null. */
+export function dbTime(value: unknown): string | null {
+  if (value === null || value === undefined) return null;
+  const m = /^(\d{1,2}):(\d{2})(?::(\d{2}))?$/.exec(String(value).trim());
+  return m ? `${m[1].padStart(2, "0")}:${m[2]}:${m[3] ?? "00"}` : null;
+}

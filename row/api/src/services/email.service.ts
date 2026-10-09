@@ -170,6 +170,82 @@ ${inner}
     await this.send(email, subject, body);
   }
 
+  /** Support line for the foot of member-facing emails, from the brand; empty when nothing is configured. */
+  private supportLine(): string {
+    const s = Brand.Current.support;
+    const parts = [
+      s.phones.length ? `Helpline${s.hours ? ` (${esc(s.hours)})` : ""}: ${s.phones.map(esc).join(" / ")}` : "",
+      [s.email ? esc(s.email) : "", Brand.Current.domains.adminOrigin ? esc(Brand.Current.domains.adminOrigin.replace(/^https?:\/\//, "")) : ""].filter(Boolean).join(" &nbsp;|&nbsp; "),
+    ].filter(Boolean);
+    return parts.length ? `<p style='color:#64748b; font-size:13px; margin-top:20px;'>\n  ${parts.join("<br/>\n  ")}\n</p>` : "";
+  }
+
+  async sendNewMemberWelcomeEmail(memberEmail: string, memberName: string, clubName: string, districtNumber: string | null, zoneName: string | null, ccEmails: string[] | null): Promise<void> {
+    const b = Brand.Current;
+    const androidUrl = this.config.get("MobileApp:AndroidUrl") ?? "#";
+    const iosUrl = this.config.get("MobileApp:IosUrl") ?? "#";
+    const subject = `${b.productName} — Welcome to ${clubName}`;
+    const contextLine =
+      `<strong>${esc(clubName)}</strong>` +
+      (districtNumber && districtNumber.trim() ? ` (District <strong>${esc(districtNumber)}</strong>` : "") +
+      (zoneName && zoneName.trim() ? `, Zone <strong>${esc(zoneName)}</strong>)` : districtNumber && districtNumber.trim() ? ")" : "");
+    const body = `${emailHeader()}
+<h2 style='color:#1a365d; margin-top:0;'>Welcome, ${esc(memberName)}!</h2>
+<p>You have been added to ${contextLine} on <strong>${esc(b.productName)}</strong>.</p>
+<p>${esc(b.productName)} is the complete solution for <strong>Communication, Public Image and E-Governance</strong> for Rotary clubs and districts.</p>
+
+<h3 style='color:#1a365d; margin-bottom:6px;'>📱 Communication &amp; Directory</h3>
+<ul style='margin-top:4px; color:#334155;'>
+  <li>Digitized Club Directory (call / message / email)</li>
+  <li>Club event notifications with RSVP + reminders</li>
+  <li>Birthday &amp; anniversary reminders</li>
+  <li>Global Rotarian search + Club Locator</li>
+  <li>WhatsApp integration</li>
+  <li>Mass messaging and mass mailing with personalized messages</li>
+</ul>
+
+<h3 style='color:#1a365d; margin-bottom:6px;'>🌐 Public Image &amp; Branding (optional Club Website)</h3>
+<ul style='margin-top:4px; color:#334155;'>
+  <li>Instantly update your website from mobile</li>
+  <li>Showcase projects, events, newsletters</li>
+  <li>Social media integration</li>
+</ul>
+
+<h3 style='color:#1a365d; margin-bottom:6px;'>📊 E-Governance</h3>
+<ul style='margin-top:4px; color:#334155;'>
+  <li>Club Monthly Report generation</li>
+  <li>Digital Attendance register</li>
+  <li>Foundation contribution / Members / Projects / Meeting reports</li>
+</ul>
+
+<div style='margin-top:20px; padding:16px; background:#f7fafc; border:1px solid #e2e8f0; border-radius:8px; text-align:center;'>
+  <p style='margin:0 0 12px; font-weight:bold; color:#1a365d;'>📲 Download the app</p>
+  <a href='${androidUrl}' style='display:inline-block; margin:4px; padding:10px 18px; background:#3182ce; color:white; text-decoration:none; border-radius:6px; font-weight:bold;'>Android</a>
+  <a href='${iosUrl}' style='display:inline-block; margin:4px; padding:10px 18px; background:#1a365d; color:white; text-decoration:none; border-radius:6px; font-weight:bold;'>iOS</a>
+</div>
+
+${this.supportLine()}
+<p>Regards,<br/><strong>Team ${esc(b.productName)}</strong></p>
+${emailFooter()}`;
+    await this.send(memberEmail, subject, body, { ccEmail: ccEmails && ccEmails.length ? ccEmails.join(",") : null });
+  }
+
+  async sendRoleOrMembershipRemovedEmail(toEmail: string, memberName: string, removedFromLabel: string, contextLine: string | null, ccEmails: string[] | null): Promise<void> {
+    const b = Brand.Current;
+    const subject = `${b.productName} — ${removedFromLabel} removed`;
+    const contextHtml = contextLine && contextLine.trim() ? `<p style='color:#475569;'>${esc(contextLine)}</p>` : "";
+    const body = `${emailHeader()}
+<h2 style='color:#1a365d; margin-top:0;'>Access update</h2>
+<p>Dear ${esc(memberName)},</p>
+<p>Your <strong>${esc(removedFromLabel)}</strong> has been removed by an administrator.</p>
+${contextHtml}
+<p>If you believe this was done in error, please contact your club / district administrator.</p>
+${this.supportLine()}
+<p>Regards,<br/><strong>Team ${esc(b.productName)}</strong></p>
+${emailFooter()}`;
+    await this.send(toEmail, subject, body, { ccEmail: ccEmails && ccEmails.length ? ccEmails.join(",") : null });
+  }
+
   /** SendGenericEmailAsync: body is complete HTML supplied by the caller. */
   async sendGenericEmail(toEmail: string, subject: string, htmlBody: string): Promise<void> {
     await this.send(toEmail, subject, htmlBody);
