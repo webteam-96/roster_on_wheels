@@ -3,6 +3,8 @@ import { AppConfig } from "../config/app-config";
 import { Db } from "../database/db.service";
 import { Brand } from "../brand/brand";
 import { InvalidOperationException, HttpRequestException } from "../common/exceptions";
+import { formatDate, formatNumber } from "../common/dotnet-format";
+import { verifyEmail } from "./email-verifier";
 
 /**
  * Port of EmailService.cs. Transactional email goes through Brevo's HTTP API
@@ -246,6 +248,89 @@ ${emailFooter()}`;
     await this.send(toEmail, subject, body, { ccEmail: ccEmails && ccEmails.length ? ccEmails.join(",") : null });
   }
 
+  /**
+   * A project saved with more direct beneficiaries than the limit. The Zonal
+   * Co-ordinator's copy carries Approve / Reject links; everyone else's copy
+   * is for information.
+   */
+  async sendBeneficiaryApprovalEmail(toEmail: string, toName: string, d: BeneficiaryDetail, approveUrl: string | null, rejectUrl: string | null): Promise<void> {
+    const withLinks = !!approveUrl && !!rejectUrl;
+    const title = withLinks ? "Beneficiary Limit Approval Required" : "Beneficiary Limit Sent for Approval";
+    const subject = `${Brand.Current.shortName} - ${withLinks ? "Beneficiary Limit Approval Required" : "Beneficiary Limit Sent for Approval"}`;
+    const intro = withLinks
+      ? "A project has been submitted with direct beneficiaries exceeding the set limit. Your approval is required."
+      : "A project has been submitted with direct beneficiaries exceeding the set limit. It has been sent to the Zonal Co-ordinator for approval. This email is for your information — you will be informed once the Zonal Co-ordinator approves or rejects it.";
+    const actionHtml = withLinks
+      ? `<div style='text-align: center; margin: 30px 0;'>
+                            <a href='${approveUrl}' style='background-color: #38a169; color: white; padding: 14px 32px; text-decoration: none; border-radius: 6px; font-weight: bold; margin-right: 16px; display: inline-block;'>Approve</a>
+                            <a href='${rejectUrl}' style='background-color: #e53e3e; color: white; padding: 14px 32px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;'>Reject</a>
+                        </div>`
+      : "";
+    const body = `
+            ${emailHeader()}
+                        <h2 style='color: #1a365d; margin-top: 0;'>${title}</h2>
+                        <p>Dear ${toName},</p>
+                        <p>${intro}</p>
+                        <h3 style='color: #2d3748; margin-top: 20px;'>Project Details</h3>
+                        ${beneficiaryTable([
+                          ["Project Title", d.projectTitle], ["Description", d.projectDescription ?? "—"], ["Project Date", dmy(d.projectDate)],
+                          ["Project Cost", n2(d.projectCost)], ["Man Hours", opt(d.manHours)], ["Rotarians Involved", opt(d.rotariansInvolved)],
+                          ["Rotaractors Involved", opt(d.rotaractorsInvolved)], ["RCC Involved", opt(d.rccInvolved)],
+                        ])}
+                        <h3 style='color: #2d3748; margin-top: 20px;'>Beneficiary Details</h3>
+                        <div style='background-color: #fff5f5; border: 1px solid #feb2b2; border-radius: 8px; padding: 16px; margin: 12px 0;'>
+                            <p><strong>Set Limit:</strong> ${d.currentLimit}</p>
+                            <p><strong>Requested Beneficiaries:</strong> <span style='color: #e53e3e; font-weight: bold;'>${d.requestedBeneficiaries}</span></p>
+                            <p><strong>Currently Saved As:</strong> ${d.currentLimit} (capped at limit)</p>
+                        </div>
+                        ${photosHtml(d.photoUrls)}
+                        <h3 style='color: #2d3748; margin-top: 20px;'>Club &amp; Admin Details</h3>
+                        ${beneficiaryTable([
+                          ["District", d.districtNumber], ["Club", d.clubName], ["Admin Name", d.requestedByName], ["Admin Mobile", d.requestedByMobile],
+                          ["Admin Email", d.requestedByEmail],
+                        ])}
+                        ${actionHtml}
+                        <p style='color: #718096; font-size: 13px;'>If approved, the beneficiaries will be updated from ${d.currentLimit} to ${d.requestedBeneficiaries}. If rejected, they will remain at ${d.currentLimit}.</p>
+            ${emailFooter()}`;
+    await this.send(toEmail, subject, body);
+  }
+
+  async sendBeneficiaryDecisionEmail(toEmail: string, toName: string, d: BeneficiaryDetail, decision: string, remark: string | null): Promise<void> {
+    const approved = decision === "approved";
+    const color = approved ? "#38a169" : "#e53e3e";
+    const label = approved ? "Approved" : "Rejected";
+    // The co-ordinator may approve a different count on the dashboard; the email link approves the requested count.
+    const approvedCount = d.approvedBeneficiaries ?? d.requestedBeneficiaries;
+    const note = approved
+      ? `The beneficiary count has been updated from <strong>${d.currentLimit}</strong> to <strong>${approvedCount}</strong>.`
+      : `The beneficiary count will remain at <strong>${d.currentLimit}</strong>.`;
+    const remarkHtml = remark && remark.trim()
+      ? `<div style='background-color: #f7fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px; margin: 16px 0;'>
+                <p><strong>Remark from Zonal Co-ordinator:</strong></p>
+                <p>${remark}</p>
+            </div>`
+      : "";
+    const body = `
+            ${emailHeader()}
+                        <h2 style='color: ${color}; margin-top: 0;'>Beneficiary Request ${label}</h2>
+                        <p>Dear ${toName},</p>
+                        <p>The Zonal Co-ordinator has <strong style='color: ${color};'>${decision}</strong> the beneficiary limit request for the following project.</p>
+                        <h3 style='color: #2d3748; margin-top: 20px;'>Project Details</h3>
+                        ${beneficiaryTable([["Project Title", d.projectTitle], ["Description", d.projectDescription ?? "—"], ["Project Date", dmy(d.projectDate)], ["Project Cost", n2(d.projectCost)]])}
+                        <h3 style='color: #2d3748; margin-top: 20px;'>Beneficiary Details</h3>
+                        <div style='background-color: ${approved ? "#f0fff4" : "#fff5f5"}; border: 1px solid ${approved ? "#c6f6d5" : "#feb2b2"}; border-radius: 8px; padding: 16px; margin: 12px 0;'>
+                            <p><strong>Status:</strong> <span style='color: ${color}; font-weight: bold;'>${label}</span></p>
+                            <p><strong>Set Limit:</strong> ${d.currentLimit}</p>
+                            <p><strong>Requested Beneficiaries:</strong> ${d.requestedBeneficiaries}</p>
+                            ${approved ? `<p><strong>Approved Beneficiaries:</strong> ${approvedCount}</p>` : ""}
+                            <p>${note}</p>
+                        </div>
+                        ${remarkHtml}
+                        ${photosHtml(d.photoUrls)}
+            ${emailFooter()}`;
+    await this.send(toEmail, `${Brand.Current.shortName} - Beneficiary Request ${label}`, body);
+  }
+
   /** SendGenericEmailAsync: body is complete HTML supplied by the caller. */
   async sendGenericEmail(toEmail: string, subject: string, htmlBody: string): Promise<void> {
     await this.send(toEmail, subject, htmlBody);
@@ -327,6 +412,177 @@ ${emailFooter()}`;
     }
   }
 
+  /**
+   * SendClubAdminAssignmentEmailAsync: the mailbox is SMTP-verified first so the
+   * Club Leadership log is accurate (throws when rejected); returns the
+   * verifier's warning (e.g. ACCEPT_ALL), null when verified.
+   */
+  async sendClubAdminAssignmentEmail(email: string, memberName: string, mobile: string | null, tempPassword: string | null, designation: string, clubName: string, yearLabel: string): Promise<string | null> {
+    const from = this.config.get("Brevo:SenderEmail") ?? Brand.Current.support.noReplyEmail ?? "";
+    const verify = await verifyEmail(email, from);
+    if (!verify.isValid) throw new InvalidOperationException(`Email verification failed: ${verify.reason}`);
+    const loginUrl = this.loginUrl();
+    const subject = `Rotary Club - You've been assigned as ${designation} (${clubName})`;
+    const credentialsHtml = tempPassword && tempPassword.trim()
+      ? `<div style='background-color: #f7fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px; margin: 16px 0;'>
+                    <p style='margin:0 0 6px 0;'><strong>Login URL:</strong> <a href='${loginUrl}' style='color: #3182ce;'>${loginUrl}</a></p>
+                    ${mobile && mobile.trim() ? `<p style='margin:0 0 6px 0;'><strong>Username (Mobile):</strong> ${mobile}</p>` : ""}
+                    <p style='margin:0 0 6px 0;'><strong>Username (Email):</strong> ${email}</p>
+                    <p style='margin:0;'><strong>Temporary Password:</strong> ${tempPassword}</p>
+                </div>
+                <p style='color: #e53e3e;'><strong>Important:</strong> Please change your password after your first login.</p>`
+      : `<div style='background-color: #f7fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px; margin: 16px 0;'>
+                    <p style='margin:0 0 6px 0;'><strong>Login URL:</strong> <a href='${loginUrl}' style='color: #3182ce;'>${loginUrl}</a></p>
+                    <p style='margin:0;'>Please use your existing credentials to login.</p>
+                </div>`;
+    const row = (k: string, v: string, w = "") =>
+      `<tr>
+                <td style='padding: 8px 12px; border: 1px solid #ddd; background-color: #edf2f7; font-weight: bold;${w}'>${k}</td>
+                <td style='padding: 8px 12px; border: 1px solid #ddd;'>${v}</td>
+            </tr>`;
+    const rolesHtml = `<table style='width: 100%; border-collapse: collapse; margin: 16px 0;'>
+            ${row("Role", "Club Admin", " width: 150px;")}
+            ${row("Designation", designation)}
+            ${row("Club", clubName)}
+            ${row("Rotary Year", yearLabel)}
+        </table>`;
+    const body = this.wrap(`
+                    <h2 style='color: #1a365d; margin-top: 0;'>Club Admin Role Assigned</h2>
+                    <p>Dear ${memberName},</p>
+                    <p>Congratulations! You have been assigned as <strong>${designation}</strong> of <strong>${clubName}</strong> for the Rotary Year <strong>${yearLabel}</strong> and granted <strong>Club Admin</strong> access on the ${esc(Brand.Current.productName)} Admin Portal.</p>
+                    ${rolesHtml}
+                    ${credentialsHtml}
+                    <div style='text-align: center; margin: 24px 0;'>
+                        <a href='${loginUrl}' style='background-color: #3182ce; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold;'>Login Now</a>
+                    </div>`);
+    await this.send(email, subject, body, { throwOnFailure: true });
+    return verify.reason;
+  }
+
+  /** The "Need help?" box: Brand support phones and email (RIZones printed its own staff contacts). */
+  private helpBox(): string {
+    const s = Brand.Current.support;
+    const phones = s.phones.map((p) => `<a href='tel:${p.replace(/[^+\d]/g, "")}' style='color:#3182ce;'>${esc(p)}</a>`).join(" &nbsp;|&nbsp; ");
+    const email = s.email ? `Email: <a href='mailto:${s.email}' style='color:#3182ce;'>${esc(s.email)}</a>` : "";
+    if (!phones && !email) return "";
+    return `<div style='margin-top:20px; padding:16px; background:#f7fafc; border:1px solid #e2e8f0; border-radius:8px;'>
+                <p style='margin:0 0 8px; font-weight:bold; color:#1a365d;'>Need help?</p>
+                <p style='margin:0; color:#4a5568; font-size:14px; line-height:1.7;'>
+                    ${[phones, email].filter((x) => x).join("<br/>")}
+                </p>
+            </div>`;
+  }
+
+  private adminTeam = () => `${esc(Brand.Current.productName)} Admin Team`;
+
+  async sendClubWebsiteReminderEmail(email: string, memberName: string, clubName: string, designation: string, subdomain: string, endDate: string, daysLeft: number, payLink: string | null = null): Promise<void> {
+    const subject = `Renew your club website — ${daysLeft} day(s) left (${clubName})`;
+    const urgency = daysLeft <= 3 ? "#e53e3e" : daysLeft <= 7 ? "#dd6b20" : "#3182ce";
+    const payHtml = !payLink || !payLink.trim()
+      ? `<p>To renew, please get in touch with the ${this.adminTeam()} using the contact details below.</p>`
+      : `<p>Renew now in a few clicks — your payment is secure:</p>
+                 <div style='text-align:center; margin:20px 0;'>
+                     <a href='${payLink}' style='background-color:#3182ce; color:white; padding:14px 28px; text-decoration:none; border-radius:6px; font-weight:bold; font-size:16px;'>Renew Now</a>
+                 </div>
+                 <p style='font-size:13px;color:#718096;'>Or copy this link into your browser:<br/><a href='${payLink}' style='color:#3182ce;word-break:break-all;'>${payLink}</a></p>`;
+    const body = this.wrap(`
+            <h2 style='color: #1a365d; margin-top: 0;'>Your Club Website expires soon</h2>
+            <p>Dear ${memberName},</p>
+            <p>As the <strong>${designation}</strong> of <strong>${clubName}</strong>, this is a reminder that your club website subscription is expiring soon.</p>
+            <div style='background-color: #f7fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px; margin: 16px 0;'>
+                <p style='margin:0 0 6px 0;'><strong>Website:</strong> ${subdomain}</p>
+                <p style='margin:0 0 6px 0;'><strong>Expiry Date:</strong> ${formatDate(endDate, "dd MMM yyyy")}</p>
+                <p style='margin:0; font-size: 18px; color: ${urgency};'><strong>Days Remaining: ${daysLeft}</strong></p>
+            </div>
+            <p>Please renew your subscription to keep your club website active. If the subscription expires, your website will become inaccessible.</p>
+            ${payHtml}
+            <p>Warm regards,<br/>${this.adminTeam()}</p>
+            ${this.helpBox()}`);
+    await this.send(email, subject, body);
+  }
+
+  async sendClubWebsiteActivationEmail(email: string, memberName: string, clubName: string, designation: string, subdomain: string, clientDomain: string | null, startDate: string, endDate: string, ccEmail: string | null = null): Promise<void> {
+    const subject = `Your Club Website is Live — ${clubName}`;
+    let urls = `<p style='margin:0 0 6px 0;'><strong>Website URL:</strong> <a href='https://${subdomain}' style='color:#3182ce;'>https://${subdomain}</a></p>`;
+    if (clientDomain && clientDomain.trim()) urls += `<p style='margin:0 0 6px 0;'><strong>Your Domain:</strong> <a href='https://${clientDomain}' style='color:#3182ce;'>https://${clientDomain}</a></p>`;
+    const body = this.wrap(`
+            <h2 style='color: #1a365d; margin-top: 0;'>Your Club Website is now LIVE!</h2>
+            <p>Dear ${memberName},</p>
+            <p>Congratulations! As the <strong>${designation}</strong> of <strong>${clubName}</strong>, we're pleased to inform you that your club website has been activated.</p>
+            <div style='background-color: #f0fff4; border: 1px solid #9ae6b4; border-radius: 8px; padding: 16px; margin: 16px 0;'>
+                ${urls}
+                <p style='margin:0 0 6px 0;'><strong>Valid From:</strong> ${formatDate(startDate, "dd MMM yyyy")}</p>
+                <p style='margin:0;'><strong>Valid Until:</strong> ${formatDate(endDate, "dd MMM yyyy")}</p>
+            </div>
+            <p>Your website will automatically show content managed from the ${esc(Brand.Current.productName)} portal. Any updates you make to your club profile, members, events, or newsletters will reflect on the website.</p>
+            <p>We will send you renewal reminders before expiry.</p>
+            <p>Warm regards,<br/>${this.adminTeam()}</p>`);
+    await this.send(email, subject, body, { ccEmail });
+  }
+
+  /** Bulk buy/renew reminder with a one-click pay link (amount already resolved per club/year). */
+  async sendClubWebsitePayLinkEmail(email: string, memberName: string, clubName: string, designation: string, orderType: string, totalAmount: number, endDate: string | null, daysLeft: number | null, payLink: string): Promise<void> {
+    const renewal = orderType.toLowerCase() === "renewal";
+    const subject = renewal ? `Renew your Club Website — ${clubName}` : `Get your Club Website — ${clubName}`;
+    const intro = renewal
+      ? "This is a reminder to renew your club website subscription so your site stays live without interruption."
+      : `Your club can have its own professional website, managed straight from the ${esc(Brand.Current.productName)} portal. Get started in a few clicks.`;
+    const expiry = renewal && endDate
+      ? `<p style='margin:0 0 6px 0;'><strong>Current Expiry:</strong> ${formatDate(endDate, "dd MMM yyyy")}${daysLeft !== null ? ` (${daysLeft} day(s) left)` : ""}</p>`
+      : "";
+    const body = this.wrap(`
+            <h2 style='color: #1a365d; margin-top: 0;'>${renewal ? "Renew your Club Website" : "Set up your Club Website"}</h2>
+            <p>Dear ${memberName},</p>
+            <p>As the <strong>${designation}</strong> of <strong>${clubName}</strong>, ${intro}</p>
+            <div style='background-color: #f7fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px; margin: 16px 0;'>
+                ${expiry}
+                <p style='margin:0; font-size: 18px; color:#1a365d;'><strong>Amount Payable: ${formatNumber(totalAmount, "C2")}</strong> <span style='font-size:13px;color:#718096;'>(incl. applicable taxes)</span></p>
+            </div>
+            <div style='text-align: center; margin: 24px 0;'>
+                <a href='${payLink}' style='background-color: #3182ce; color: white; padding: 14px 28px; text-decoration: none; border-radius: 6px; font-weight: bold; font-size:16px;'>${renewal ? "Renew Now" : "Pay & Get Website"}</a>
+            </div>
+            <p style='font-size:13px;color:#718096;'>Or copy this link into your browser:<br/><a href='${payLink}' style='color:#3182ce;word-break:break-all;'>${payLink}</a></p>
+            <p>Payment is secure. This link is unique to your club.</p>
+            <p>Warm regards,<br/>${this.adminTeam()}</p>
+            ${this.helpBox()}`);
+    await this.send(email, subject, body);
+  }
+
+  /** MASS_EMAIL_SENDER_EMAIL: the verified sender for club/district mass emails (configuration, not a literal). */
+  massEmailSenderEmail(): string | null {
+    return this.config.get("Brevo:MassEmailSenderEmail") ?? this.config.get("Brevo:SenderEmail") ?? Brand.Current.support.noReplyEmail ?? null;
+  }
+
+  /** SendMassEmailAsync: straight to Brevo with the sender's display name and reply-to; not logged in email_log. */
+  async sendMassEmail(toEmail: string, subject: string, htmlBody: string, fromName: string | null, replyName: string | null, replyEmail: string | null): Promise<void> {
+    const apiKey = this.config.get("Brevo:ApiKey");
+    if (!apiKey) throw new InvalidOperationException("Brevo:ApiKey is not configured.");
+    const apiUrl = this.config.get("Brevo:ApiUrl") ?? "https://api.brevo.com/v3/smtp/email";
+    const senderEmail = this.massEmailSenderEmail();
+    if (!senderEmail) throw new InvalidOperationException("Brevo:MassEmailSenderEmail is not configured.");
+    const defaultSenderName = this.config.get("Brevo:SenderName") ?? Brand.Current.productName;
+    const payload: Record<string, unknown> = {
+      sender: { name: fromName && fromName.trim() ? fromName.trim() : defaultSenderName, email: senderEmail },
+      to: [{ email: toEmail }],
+      subject,
+      htmlContent: htmlBody,
+    };
+    if (replyEmail && replyEmail.trim()) {
+      payload.replyTo = replyName && replyName.trim() ? { email: replyEmail.trim(), name: replyName.trim() } : { email: replyEmail.trim() };
+    }
+    const resp = await fetch(apiUrl, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Accept: "application/json", "api-key": apiKey },
+      body: JSON.stringify(payload),
+      signal: AbortSignal.timeout(30_000),
+    });
+    const text = await resp.text();
+    if (!resp.ok) {
+      this.log.error(`Brevo mass-email send failed for ${toEmail}: ${resp.status} ${text}`);
+      throw new InvalidOperationException(`Brevo API error ${resp.status}: ${text}`);
+    }
+  }
+
   private async insertPending(to: string, cc: string | null, subject: string, body: string, type: string, clubId: number | null, districtId: number | null): Promise<number | null> {
     try {
       const id = await this.db.session((s) =>
@@ -364,4 +620,44 @@ ${emailFooter()}`;
       this.log.warn(`email_log: MarkFailed failed for id=${logId}: ${(e as Error).message}`);
     }
   }
+}
+
+/** The fields of BeneficiaryApprovalDetailDto the beneficiary emails use. */
+export interface BeneficiaryDetail {
+  projectTitle: string;
+  projectDescription: string | null;
+  projectDate: string | null;
+  projectCost: number | null;
+  manHours: number | null;
+  rotariansInvolved: number | null;
+  rotaractorsInvolved: number | null;
+  rccInvolved: number | null;
+  currentLimit: number;
+  requestedBeneficiaries: number;
+  approvedBeneficiaries: number | null;
+  districtNumber: string;
+  clubName: string;
+  requestedByName: string;
+  requestedByMobile: string;
+  requestedByEmail: string;
+  photoUrls: string[];
+}
+
+const opt = (v: number | null) => (v === null || v === undefined ? "—" : String(v));
+const n2 = (v: number | null) => (v === null || v === undefined ? "—" : formatNumber(v, "N2"));
+const dmy = (v: string | null) => (v ? formatDate(v, "dd-MMM-yyyy") : "—");
+
+function beneficiaryTable(rows: [string, string][]): string {
+  const cell = "padding: 8px; border: 1px solid #e2e8f0;";
+  return `<table style='width: 100%; border-collapse: collapse; margin: 12px 0;'>
+${rows.map(([k, v], i) => `<tr${i % 2 === 0 ? " style='background: #f7fafc;'" : ""}><td style='${cell} font-weight: bold;'>${k}</td><td style='${cell}'>${v}</td></tr>`).join("\n")}
+                        </table>`;
+}
+
+function photosHtml(urls: string[]): string {
+  if (!urls.length) return "";
+  return `<h3 style='color: #2d3748; margin-top: 20px;'>Project Photos</h3>
+                        <div style='margin: 12px 0;'>
+                            ${urls.map((u) => `<img src='${u}' alt='Project Photo' style='max-width: 200px; height: 150px; object-fit: cover; border-radius: 6px; margin: 4px; border: 1px solid #e2e8f0;' />`).join("")}
+                        </div>`;
 }

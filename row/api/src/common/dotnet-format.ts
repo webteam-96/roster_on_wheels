@@ -143,3 +143,12 @@ export function formatNumber(value: number | null | undefined, format = "G"): st
     maximumFractionDigits: maxFrac,
   }).format(n);
 }
+
+/** Math.Round(value, decimals): .NET's default MidpointRounding.ToEven ("banker's rounding"). */
+export function dotnetRound(value: number, decimals = 0): number {
+  const f = 10 ** decimals;
+  const x = value * f;
+  const r = Math.round(x);
+  // A tie (within float noise) goes to the even neighbour.
+  return (Math.abs(x % 1) === 0.5 && r % 2 !== 0 ? r - 1 : r) / f;
+}

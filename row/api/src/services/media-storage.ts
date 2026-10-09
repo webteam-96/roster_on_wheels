@@ -33,3 +33,25 @@ export async function saveWithGuidName(config: AppConfig, file: UploadedFile, ..
 export function lowerExtension(name: string): string {
   return extname(name).toLowerCase();
 }
+
+/** DateTime.Now.ToString("ddMMyyyyhhmmsstt"), server clock. */
+function legacyStamp(now = new Date()): string {
+  const p2 = (n: number) => String(n).padStart(2, "0");
+  const h12 = now.getHours() % 12 || 12;
+  return `${p2(now.getDate())}${p2(now.getMonth() + 1)}${now.getFullYear()}${p2(h12)}${p2(now.getMinutes())}${p2(now.getSeconds())}${now.getHours() < 12 ? "AM" : "PM"}`;
+}
+
+/**
+ * Save as "<prefix><safe original name>_<8 hex><ddMMyyyyhhmmsstt><ext>" under
+ * webRoot/<folder...> (the announcement, document and past-president upload
+ * naming). Returns the file name.
+ */
+export async function saveWithReadableName(config: AppConfig, file: UploadedFile, prefix: string, ...folder: string[]): Promise<string> {
+  const dir = join(webRootPath(config), ...folder);
+  await mkdir(dir, { recursive: true });
+  const ext = extname(file.originalname);
+  const base = file.originalname.slice(0, file.originalname.length - ext.length).replace(/^.*[\/]/, "").replace(/[^A-Za-z0-9-]+/g, "_").replace(/^_+|_+$/g, "") || "file";
+  const fileName = `${prefix}${base}_${randomUUID().replace(/-/g, "").slice(0, 8)}${legacyStamp()}${ext}`;
+  await writeFile(join(dir, fileName), file.buffer);
+  return fileName;
+}

@@ -107,3 +107,16 @@ export function dbTime(value: unknown): string | null {
   const m = /^(\d{1,2}):(\d{2})(?::(\d{2}))?$/.exec(String(value).trim());
   return m ? `${m[1].padStart(2, "0")}:${m[2]}:${m[3] ?? "00"}` : null;
 }
+
+/** A JSON body property by name, any casing (System.Text.Json is case-insensitive). */
+export function bodyField(body: unknown, name: string): unknown {
+  if (!body || typeof body !== "object") return undefined;
+  const lower = name.toLowerCase();
+  return Object.entries(body as Record<string, unknown>).find(([k]) => k.toLowerCase() === lower)?.[1];
+}
+
+/** A List<int> body property; missing or not an array gives []. */
+export function bodyIntList(body: unknown, name: string): number[] {
+  const v = bodyField(body, name);
+  return Array.isArray(v) ? v.map(Number).filter(Number.isFinite).map(Math.trunc) : [];
+}
