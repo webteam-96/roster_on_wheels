@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useFeature } from "@/contexts/BrandContext";
 import { useParams, useSearchParams } from "next/navigation";
 import { getClubReport, getClubReportAvailableYears } from "@/services/api";
 import { exportToCSV } from "@/utils/csvExport";
@@ -52,6 +53,7 @@ function ReportSection({ title, icon: Icon, count, onExport }: { title: string; 
 
 export default function ClubReportPage() {
   const params = useParams();
+  const showBloodGroup = useFeature("member.bloodGroup");
   const searchParams = useSearchParams();
   const clubId = Number(params.id);
   const urlYearId = searchParams.get("yearId");
@@ -243,7 +245,7 @@ export default function ClubReportPage() {
               onExport={() => exportSection(report.members, "Members", [
                 { key: "memberName", label: "Name", width: 25 }, { key: "mobile", label: "Mobile", width: 15 },
                 { key: "email", label: "Email", width: 25 }, { key: "rotaryId", label: "Rotary ID", width: 15 },
-                { key: "joinedDate", label: "Joined", width: 15 }, { key: "bloodGroup", label: "Blood Group", width: 12 },
+                { key: "joinedDate", label: "Joined", width: 15 }, ...(showBloodGroup ? [{ key: "bloodGroup", label: "Blood Group", width: 12 }] : []),
               ])} />
 
             <ReportSection title="TRF Contributions" icon={IndianRupee} count={report.trf?.length || 0}

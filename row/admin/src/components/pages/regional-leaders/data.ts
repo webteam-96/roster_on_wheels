@@ -343,7 +343,7 @@ export const SECTIONS_BY_ZONE: Record<Zone, SectionData[]> = {
       {
         title: "Regional Rotary Foundation Co-Ordinator (RRFC)",
         rows: [
-        { dist: "3120", name: "RRFC Rtn Pramod Kumar" },
+        { dist: "3120", name: "Dr. Pramod Kumar", supporting: "All districts of the zone" },
         ],
       },
       {
@@ -355,11 +355,11 @@ export const SECTIONS_BY_ZONE: Record<Zone, SectionData[]> = {
       {
         title: "Assistant Regional Rotary Foundation Co-Ordinator (ARRFC)",
         rows: [
-        { dist: "3030", name: "PDG Rtn Dr Anand Ashok Jhunjhunuwala", supporting: "3030, 3120" },
-        { dist: "3110", name: "PDG Rtn Pawan Agarwal", supporting: "31103100" },
-        { dist: "3240", name: "PDG Rtn Dr Mohan Shyam Konwar", supporting: "3240 ," },
-        { dist: "3261", name: "PDG Rtn Shashi Varvandkar", supporting: "3261, 3262" },
-        { dist: "3292", name: "MN JHA", supporting: "3292, 3250" },
+        { dist: "3030", name: "Anand Ashok Jhunjhunuwala", supporting: "3030, 3100" },
+        { dist: "3250", name: "Jogesh Gambhir", supporting: "3250, 3262" },
+        { dist: "3240", name: "Mohan Shyam Konwar", supporting: "3240, 3291" },
+        { dist: "3250", name: "Mithilesh Kumar Jha (MK Jha)", supporting: "3292" },
+        { dist: "3262", name: "Shashi Varvandkar", supporting: "3261" },
         ],
       },
       ],
@@ -371,17 +371,17 @@ export const SECTIONS_BY_ZONE: Record<Zone, SectionData[]> = {
       {
         title: "Rotary Membership Co-Ordinator (RMC)",
         rows: [
-        { dist: "3292", name: "RMC Rtn Sanjay Giri" },
+        { dist: "3292", name: "Sanjay Giri", supporting: "All districts of the zone" },
         ],
       },
       {
         title: "Assistant Rotary Membership Co-Ordinator (ARMC)",
         rows: [
-        { dist: "3030", name: "Rajendra Bhamre", supporting: "3030, 3250" },
-        { dist: "3110", name: "Neerav Nimesh Agrawal" },
-        { dist: "3120", name: "Paritosh Bajaj" },
-        { dist: "3240", name: "Udaya Mani Pradhan" },
-        { dist: "3261", name: "Sashank Rastogi" },
+        { dist: "3030", name: "Rajendra Madhukar Bhamre", supporting: "3030, 3250" },
+        { dist: "3261", name: "Shashank Rastogi", supporting: "3261, 3100" },
+        { dist: "3240", name: "Udaya M. Pradhan", supporting: "3240, 3292" },
+        { dist: "3120", name: "Paritosh Bajaj", supporting: "3291, 3120" },
+        { dist: "3110", name: "Neerav Nimesh Agrawal", supporting: "3110, 3262" },
         ],
       },
       ],
@@ -393,7 +393,7 @@ export const SECTIONS_BY_ZONE: Record<Zone, SectionData[]> = {
       {
         title: "Regional Public Image Co-Ordinator (RPIC)",
         rows: [
-        { dist: "3250", name: "RPIC Rtn Bindu Singh" },
+        { dist: "3250", name: "Bindu Singh", supporting: "All districts of the zone" },
         ],
       },
       {
@@ -405,11 +405,11 @@ export const SECTIONS_BY_ZONE: Record<Zone, SectionData[]> = {
       {
         title: "Assistant Regional Public Image Co-Ordinator (ARPIC)",
         rows: [
-        { dist: "3120", name: "PDG Rtn Uttam Kumar Agrawal", supporting: "3100, 3261" },
-        { dist: "3240", name: "PDG Rtn Nilesh Kumar Agarwal", supporting: "3110, 3250" },
-        { dist: "3262", name: "PDG Rtn Yagyansis Mohapatra", supporting: "3291 , 3240" },
-        { dist: "3291", name: "PDG Rtn Prabir Chatterjee", supporting: "3292 , 3030" },
-        { dist: "3261", name: "PDG Rtn Sunil Phatak" },
+        { dist: "3120", name: "Uttam Kumar Agrawal", supporting: "3261, 3100" },
+        { dist: "3240", name: "Nilesh Kumar Agarwal", supporting: "3110, 3250" },
+        { dist: "3291", name: "Prabir Chatterjee", supporting: "3030, 3292" },
+        { dist: "3261", name: "Sunil D. Phatak", supporting: "3120, 3262" },
+        { dist: "3262", name: "Yagyansis Mohapatra", supporting: "3240, 3291" },
         ],
       },
       ],
@@ -421,17 +421,17 @@ export const SECTIONS_BY_ZONE: Record<Zone, SectionData[]> = {
       {
         title: "Endowment & Major Gifts Advisor (E/MGA)",
         rows: [
-        { dist: "3262", name: "E/MGA Rtn Ajay Agarwal" },
+        { dist: "3110", name: "Pawan Agarwal", supporting: "All districts of the zone" },
         ],
       },
       {
         title: "Assistant Endowment & Major Gifts Advisor (AE/MGA)",
         rows: [
-        { dist: "3240", name: "PDG Chandu Kumar Agarwal" },
-        { dist: "3261", name: "PDG Ranjeet Singh Saini" },
-        { dist: "3262", name: "PDG Pravudutta Subudhi" },
-        { dist: "3291", name: "PDG Dr. Krishnendu Gupta" },
-        { dist: "3292", name: "PDG Rtn Rajendra Prasad Dhoju" },
+        { dist: "3292", name: "Rajendra Prasad Dhoju", supporting: "3292" },
+        { dist: "3261", name: "Ranjeet Singh Saini", supporting: "3261" },
+        { dist: "3240", name: "Chandu Kumar Agarwal", supporting: "3240" },
+        { dist: "3262", name: "Pravudutta Subudhi", supporting: "3120, 3250" },
+        { dist: "3291", name: "Dr. Krishnendu Gupta", supporting: "3262, 3291" },
         ],
       },
       ],
@@ -443,17 +443,7 @@ export const SECTIONS_BY_ZONE: Record<Zone, SectionData[]> = {
       {
         title: "End Polio Now Co-ordinator (EPNC)",
         rows: [
-        { dist: "3291", name: "EPNC Rtn Uttam Ganguli" },
-        ],
-      },
-      {
-        title: "Assistant End Polio Now Co-ordinator (AEPNC)",
-        rows: [
-        { dist: "3100", name: "PDG ASHOK GUPTA", supporting: "3100 , 3110" },
-        { dist: "3240", name: "PP RABINDERJIT SINGH PANESAR", supporting: "3240 , 3291" },
-        { dist: "3250", name: "PDG PRATIM BANERJEE", supporting: "3250 , 3292" },
-        { dist: "3120", name: "PDG Rtn Sanjay Agarwal", supporting: "3030, 3120" },
-        { dist: "3030", name: "PDG Dr K Sundar Rajan", supporting: "3261, 3262" },
+        { dist: "3291", name: "Uttam Ganguli", supporting: "All districts of the zone" },
         ],
       },
       ],

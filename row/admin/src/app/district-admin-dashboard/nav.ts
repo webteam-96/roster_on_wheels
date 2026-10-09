@@ -23,7 +23,11 @@ export const DISTRICT_ADMIN_NAV: NavItem[] = [
   // (logos, email subject/body). Amounts, dates, clubs and splits stay SuperAdmin-only.
   { to: "/district-admin-dashboard/club-dues",     label: "District Dues" },
   // Wallet — self-service credit top-up (Razorpay). No moduleKey => always visible.
-  { to: "/district-admin-dashboard/wallet",        label: "Wallet" },
+  { to: "/district-admin-dashboard/wallet",        label: "Wallet",         feature: "modules.wallet" },
+  // Connect the district's own Stripe / PayPal account (instances without split payments).
+  { to: "/district-admin-dashboard/payment-accounts", label: "Payments",    feature: "payments.connect" },
+  // Export or erase a member's data on request.
+  { to: "/district-admin-dashboard/privacy",        label: "Privacy Requests", feature: "privacy.enabled" },
 ];
 
 export const DISTRICT_ADMIN_PAGE_TITLES: Record<string, string> = {
@@ -43,4 +47,6 @@ export const DISTRICT_ADMIN_PAGE_TITLES: Record<string, string> = {
   "/district-admin-dashboard/quick-links/mass-email": "Mass Email",
   "/district-admin-dashboard/club-dues":     "District Dues",
   "/district-admin-dashboard/wallet":        "Wallet & Credits",
+  "/district-admin-dashboard/payment-accounts": "Payment Accounts",
+  "/district-admin-dashboard/privacy":       "Privacy Requests",
 };

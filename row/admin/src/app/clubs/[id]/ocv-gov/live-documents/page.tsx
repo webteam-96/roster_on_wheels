@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useFeature } from "@/contexts/BrandContext";
 import { useParams, useSearchParams } from "next/navigation";
 import { getClub, getMonthlyReportYears, getLiveDocumentsExport } from "@/services/api";
 import { exportToCSV } from "@/utils/csvExport";
@@ -149,6 +150,7 @@ const modules: ModuleItem[] = [
 
 export default function LiveDocumentsPage() {
   const params = useParams();
+  const showBloodGroup = useFeature("member.bloodGroup");
   const searchParams = useSearchParams();
   const clubId = Number(params.id);
   const urlYearId = searchParams.get("yearId");
@@ -189,7 +191,7 @@ export default function LiveDocumentsPage() {
         return;
       }
       const yearLabel = years.find((y: any) => String(y.id) === selectedYearId)?.yearLabel || "";
-      exportToCSV(arr, `${clubName}_${mod.label.replace(/\s+/g, "_")}`, mod.columns, {
+      exportToCSV(arr, `${clubName}_${mod.label.replace(/\s+/g, "_")}`, showBloodGroup ? mod.columns : mod.columns.filter((c) => c.key !== "bloodGroup"), {
         title: `${mod.label} — ${clubName}`,
         subtitle: `Rotary Year: ${yearLabel}`,
       });

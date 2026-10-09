@@ -18,7 +18,7 @@ import Image from "next/image";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { ZoneListItem } from "@/types/zone";
 import { COUNTRIES, DEFAULT_COUNTRY } from "@/constants/countries";
-import { CURRENCY_OPTIONS } from "@/lib/currency";
+import { currencyOptions } from "@/lib/currency";
 
 export default function EditDistrictPage() {
   const router = useRouter();
@@ -227,7 +227,7 @@ export default function EditDistrictPage() {
                       <SelectValue placeholder="Select a default currency" />
                     </SelectTrigger>
                     <SelectContent>
-                      {CURRENCY_OPTIONS.map((c) => (
+                      {currencyOptions().map((c) => (
                         <SelectItem key={c.code} value={c.code}>{c.label}</SelectItem>
                       ))}
                     </SelectContent>

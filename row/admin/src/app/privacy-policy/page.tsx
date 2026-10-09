@@ -1,19 +1,25 @@
 import type { Metadata } from "next";
 import PolicyPageLayout from "@/components/public/PolicyPageLayout";
-import { MERCHANT } from "@/lib/merchantInfo";
+import { merchantFrom } from "@/lib/merchantInfo";
+import { getServerBrand } from "@/lib/brand";
 
-export const metadata: Metadata = {
-  title: "Privacy Policy — Rotary Zones 4, 5, 6, 7 & 8",
-  description:
-    "How the Rotary Zones 4, 5, 6, 7 & 8 administration portal collects, uses, shares, and protects your personal data. DPDPA 2023 compliant.",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const brand = await getServerBrand();
+  return {
+    title: `Privacy Policy — ${brand.productName}`,
+    description:
+      `How the ${brand.productName} administration portal collects, uses, shares, and protects your personal data. DPDPA 2023 compliant.`,
+  };
+}
 
-export default function PrivacyPolicyPage() {
+export default async function PrivacyPolicyPage() {
+  const brand = await getServerBrand();
+  const MERCHANT = merchantFrom(brand);
   return (
     <PolicyPageLayout
       title="Privacy Policy"
       updated="Last updated: 5 June 2026"
-      intro={`This Privacy Policy explains how ${MERCHANT.legalName} ("we") collects, uses, discloses, retains, and protects personal data when you use the Rotary Zones 4, 5, 6, 7 & 8 administration portal ("Platform"). We comply with the Information Technology Act 2000, the Information Technology (Reasonable Security Practices) Rules 2011, the Digital Personal Data Protection Act 2023 ("DPDPA"), and any other applicable Indian data-protection legislation.`}
+      intro={`This Privacy Policy explains how ${MERCHANT.legalName} ("we") collects, uses, discloses, retains, and protects personal data when you use the ${brand.productName} administration portal ("Platform"). We comply with the Information Technology Act 2000, the Information Technology (Reasonable Security Practices) Rules 2011, the Digital Personal Data Protection Act 2023 ("DPDPA"), and any other applicable Indian data-protection legislation.`}
     >
       <section>
         <h2>1. Who We Are</h2>
@@ -204,7 +210,7 @@ export default function PrivacyPolicyPage() {
         <p>
           For any grievance regarding the processing of your personal data,
           please write to our Grievance Officer at{" "}
-          <a href="mailto:grievance@rizones45678.org">grievance@rizones45678.org</a>.
+          <a href={`mailto:${MERCHANT.privacyEmail}`}>{MERCHANT.privacyEmail}</a>.
           See the <a href="/contact-us">Contact Us</a> page for full details.
         </p>
       </section>

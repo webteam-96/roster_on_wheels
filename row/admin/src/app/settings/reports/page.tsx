@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
+import { useFeature } from "@/contexts/BrandContext";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
@@ -682,8 +683,22 @@ const sections: ReportSection[] = [
 
 interface DistrictOption { id: number; districtNumber: string }
 
+// Instance member-field flags: drop blood-group and family columns when off.
+function visibleSections(showBloodGroup: boolean, showFamily: boolean): ReportSection[] {
+  if (showBloodGroup && showFamily) return sections;
+  const keep = (c: ReportColumn) =>
+    (showBloodGroup || (c.key !== "bloodGroup" && c.key !== "familyBloodGroup")) &&
+    (showFamily || !c.key.startsWith("family"));
+  return sections.map((section) => ({
+    ...section,
+    items: section.items.map((it) => ({ ...it, columns: it.columns.filter(keep) })),
+  }));
+}
+
 export default function ReportsPage() {
   const { isSuperAdmin } = useAuth();
+  const showBloodGroup = useFeature("member.bloodGroup");
+  const showFamily = useFeature("member.familyDetails");
   const [years, setYears] = useState<RotaryYear[]>([]);
   const [districts, setDistricts] = useState<DistrictOption[]>([]);
   const [selectedYearId, setSelectedYearId] = useState<string>("all");
@@ -839,7 +854,7 @@ export default function ReportsPage() {
               </CardContent>
             </Card>
 
-            {sections.map((section) => {
+            {visibleSections(showBloodGroup, showFamily).map((section) => {
               const Icon = section.icon;
               return (
                 <Card key={section.id}>

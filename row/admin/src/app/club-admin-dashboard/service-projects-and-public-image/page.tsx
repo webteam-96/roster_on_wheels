@@ -87,10 +87,10 @@ function projectTypeChipStyle(t: string) {
   return "bg-slate-50 text-slate-700 border-slate-200";
 }
 
-// The rupee glyph is India's - a Sri Lankan or Nepali total gets a neutral coin (user 2026-10-05).
+// Dollar currencies get the dollar glyph, every other currency a neutral coin.
 function moneyIcon(code?: string | null) {
   const which = moneyIconName(code);
-  return which === "rupee" ? IndianRupee : which === "dollar" ? DollarSign : Coins;
+  return which === "dollar" ? DollarSign : Coins;
 }
 
 function attendancePercentChip(pct: number) {

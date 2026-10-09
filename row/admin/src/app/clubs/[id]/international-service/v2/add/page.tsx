@@ -34,7 +34,7 @@ import {
   type ClassificationSearchResult,
 } from "@/services/api";
 import { AreaOfFocus, Category, Funding, ProjectPhotoInput } from "@/types/project";
-import { CURRENCY_OPTIONS, getCurrencySymbol, resolveClubDefaultCurrency } from "@/lib/currency";
+import { currencyOptions, getCurrencySymbol, resolveClubDefaultCurrency } from "@/lib/currency";
 import V2FormShell, { useV2ReturnTo } from "@/components/v2/V2FormShell";
 import RotaryLoader from "@/components/RotaryLoader";
 import ErrorAlert from "@/components/ErrorAlert";
@@ -760,7 +760,7 @@ export default function InternationalServiceV2AddPage() {
                 onChange={(e) => setCurrency(e.target.value)}
                 className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-amber-500"
               >
-                {CURRENCY_OPTIONS.map((c) => (
+                {currencyOptions().map((c) => (
                   <option key={c.code} value={c.code}>{c.label}</option>
                 ))}
               </select>

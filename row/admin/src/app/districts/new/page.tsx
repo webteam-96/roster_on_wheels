@@ -19,7 +19,7 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 import { getPhotoUrl } from "@/services/api";
 import { ZoneListItem } from "@/types/zone";
 import { COUNTRIES, DEFAULT_COUNTRY } from "@/constants/countries";
-import { CURRENCY_OPTIONS } from "@/lib/currency";
+import { currencyOptions } from "@/lib/currency";
 
 function NewDistrictForm() {
   const router = useRouter();
@@ -204,7 +204,7 @@ function NewDistrictForm() {
                       <SelectValue placeholder="Select a default currency" />
                     </SelectTrigger>
                     <SelectContent>
-                      {CURRENCY_OPTIONS.map((c) => (
+                      {currencyOptions().map((c) => (
                         <SelectItem key={c.code} value={c.code}>{c.label}</SelectItem>
                       ))}
                     </SelectContent>

@@ -14,6 +14,7 @@
  */
 
 import { useState, useEffect, useCallback } from "react";
+import { useFeature } from "@/contexts/BrandContext";
 import { useParams, useSearchParams, useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 import {
@@ -55,6 +56,7 @@ function formatDate(d: string | null) {
 
 export default function DistrictAdminClubDetailPage() {
   const params = useParams();
+  const showBloodGroup = useFeature("member.bloodGroup");
   const searchParams = useSearchParams();
   const router = useRouter();
 
@@ -526,7 +528,7 @@ export default function DistrictAdminClubDetailPage() {
                                     <span>Rotary ID: {memberDetails[m.id].rotaryId}</span>
                                   </div>
                                 )}
-                                {memberDetails[m.id].bloodGroup && (
+                                {showBloodGroup && memberDetails[m.id].bloodGroup && (
                                   <div className="flex items-center gap-2 text-slate-700">
                                     <span className="text-slate-500">Blood:</span> {memberDetails[m.id].bloodGroup}
                                   </div>

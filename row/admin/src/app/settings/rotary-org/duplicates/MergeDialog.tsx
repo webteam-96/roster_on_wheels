@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { useFeature } from "@/contexts/BrandContext";
 import DateField from "@/components/DateField";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -164,6 +165,8 @@ function FamilyList({ family, onShift, shiftDir }: {
 }
 
 export default function MergeDialog({ pair, onClose, onResolved }: { pair: DupPair; onClose: () => void; onResolved: () => void }) {
+  const showBloodGroup = useFeature("member.bloodGroup");
+  const showFamily = useFeature("member.familyDetails");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -424,7 +427,7 @@ export default function MergeDialog({ pair, onClose, onResolved }: { pair: DupPa
                 <div>Member A</div><div className="text-center">Copy</div><div>Member B</div>
               </div>
               <div className="divide-y">
-                {FIELDS.map((f) => {
+                {FIELDS.filter((f) => showBloodGroup || f.key !== "bloodGroup").map((f) => {
                   const k = f.key as string;
                   const same = (formA[k] || "") === (formB[k] || "");
                   return (
@@ -466,6 +469,7 @@ export default function MergeDialog({ pair, onClose, onResolved }: { pair: DupPa
             </div>
 
             {/* Family */}
+            {showFamily && (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="rounded-lg border p-3 space-y-2">
                 <div className="text-sm font-semibold text-slate-700">Member A — Family</div>
@@ -476,6 +480,7 @@ export default function MergeDialog({ pair, onClose, onResolved }: { pair: DupPa
                 <FamilyList family={familyB} onShift={(i) => shiftFamily("B", i)} shiftDir="left" />
               </div>
             </div>
+            )}
 
             <p className="text-xs text-muted-foreground">
               On merge, the deleted member is soft-deleted; its mobile/email move to the surviving member&apos;s secondary, and all

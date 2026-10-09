@@ -1,6 +1,7 @@
 "use client";
 
 import { MemberListItem } from "@/types/member";
+import { useFeature } from "@/contexts/BrandContext";
 import { getPhotoUrl } from "@/services/api";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -41,6 +42,7 @@ export default function MemberCard({ member, onDelete, isSuperAdmin, isAdmin: is
   const photoUrl = getPhotoUrl(member.profilePhotoPath);
   const roles = memberRoles?.[member.id] || [];
   const isAdmin = roles.includes("Admin");
+  const showBloodGroup = useFeature("member.bloodGroup");
   const isMemberSuperAdmin = roles.includes("SuperAdmin");
 
   return (
@@ -160,7 +162,7 @@ export default function MemberCard({ member, onDelete, isSuperAdmin, isAdmin: is
               </div>
             )}
             <div className="flex gap-2 pt-1">
-              {member.bloodGroup && (
+              {showBloodGroup && member.bloodGroup && (
                 <Badge variant="outline" className="text-xs">
                   {member.bloodGroup}
                 </Badge>

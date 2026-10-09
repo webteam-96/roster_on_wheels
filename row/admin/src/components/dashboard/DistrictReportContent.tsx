@@ -18,6 +18,7 @@
 
 import { useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
+import { useFeature } from "@/contexts/BrandContext";
 import XLSX from "xlsx-js-style";
 import { saveAs } from "file-saver";
 import { fileTimestamp } from "@/lib/dateUtils";
@@ -1214,6 +1215,7 @@ export default function DistrictReportContent({ districtId, initialYearId, servi
   // AG Reports: every "(AG Wise)" row is redundant — the whole report is already this
   // AG, so its AG dropdown would list only them. Hidden rather than left as a no-op.
   const isAgReport = !!agMemberId && agMemberId > 0;
+  const showBloodGroup = useFeature("member.bloodGroup");
   // RI Director "All Districts" mode — fetch + merge every district in the zone.
   const isMulti = Array.isArray(districtIds) && districtIds.length > 0;
   const effectiveDistrictId = districtId ?? 0;
@@ -1379,7 +1381,7 @@ export default function DistrictReportContent({ districtId, initialYearId, servi
     { key: "youthFlag", label: "Youth Flag", width: 10 },
     { key: "dob", label: "DOB", width: 12, format: dayMonth },
     { key: "doa", label: "DOA", width: 12, format: dayMonth },
-    { key: "bloodGroup", label: "Blood Group", width: 12 },
+    ...(showBloodGroup ? [{ key: "bloodGroup", label: "Blood Group", width: 12 }] : []),
     { key: "deviceName", label: "Device Name", width: 14 },
     { key: "downloaded", label: "Downloaded", width: 12 },
     { key: "address", label: "Residence Address", width: 45 },
@@ -1615,6 +1617,7 @@ export default function DistrictReportContent({ districtId, initialYearId, servi
                 members as rows, each with their own blood group + contact. Member row
                 first, then their family beneath. Filter by Blood Group in Excel to find
                 donors fast. District report shows Club Name (no district number). */}
+            {showBloodGroup && (
             <ClubFilterRow
               title="Blood Group"
               icon={Users}
@@ -1633,6 +1636,7 @@ export default function DistrictReportContent({ districtId, initialYearId, servi
               ]}
               onDownload={exportWithFilename}
             />
+            )}
 
             {/* 3. Members (AG wise) — hidden on the AG report (redundant) and when
                 AG-wise reports are suppressed (RI Director). */}

@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
+import { useBrand } from "@/contexts/BrandContext";
 import HeaderAdminDashboardLink from "@/components/HeaderAdminDashboardLink";
 import { getCreditNotifications } from "@/services/api";
 import { Button } from "@/components/ui/button";
@@ -21,6 +22,8 @@ import {
 } from "@/components/ui/popover";
 import { User, LogOut, Key, Settings, Clock, ClipboardList, Bell } from "lucide-react";
 import ChangePasswordDialog from "@/components/ChangePasswordDialog";
+import LanguagePicker from "@/components/LanguagePicker";
+import BrandLogo from "@/components/BrandLogo";
 
 function formatTime(totalSeconds: number): string {
   const h = Math.floor(totalSeconds / 3600);
@@ -38,6 +41,13 @@ interface CreditNotification {
 
 export default function AppHeader() {
   const { user, isAuthenticated, isSuperAdmin, isAdmin, isZonalCoordinator, lastLoginTime, sessionRemaining, logout } = useAuth();
+  const brand = useBrand();
+  // Only the support details the instance has configured.
+  const helpline = [
+    brand.support.phones.length ? `Help line No: ${brand.support.phones.join(" / ")}` : "",
+    brand.support.hours ? `Time: ${brand.support.hours}` : "",
+    brand.support.email ? `Email: ${brand.support.email}` : "",
+  ].filter(Boolean).join(" | ");
   const [changePasswordOpen, setChangePasswordOpen] = useState(false);
   const [notifications, setNotifications] = useState<CreditNotification[]>([]);
   const pathname = usePathname();
@@ -115,22 +125,20 @@ export default function AppHeader() {
 
   return (
     <>
-      <div className="w-full bg-primary-foreground text-primary text-xs py-1 px-8 flex items-center justify-center gap-1 border-b">
-        <span>Help line No: +91 8424064369 / +91 8928755144 | Time: 10.00am to 6.30pm (Monday to Friday) | Email: support@rizones45678.org</span>
-      </div>
+      {helpline && (
+        <div className="w-full bg-primary-foreground text-primary text-xs py-1 px-8 flex items-center justify-center gap-1 border-b">
+          <span>{helpline}</span>
+        </div>
+      )}
       <header className="sticky top-0 z-50 w-full border-b bg-primary text-primary-foreground shadow-sm">
         <div className="flex h-20 items-center justify-between px-8">
           <Link href={homeLink} className="flex items-center">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src="/images/rotary-zone-log-white.png"
-              alt="Rotary"
-              className="h-16 object-contain"
-            />
+            <BrandLogo className="h-16" />
           </Link>
 
 
           <nav className="hidden md:flex items-center gap-1">
+            <LanguagePicker signedIn={isAuthenticated} className="border-white/30 bg-transparent text-primary-foreground" />
             {/* Multi-role SuperAdmin: prominent way BACK to their own operational dashboard. */}
             {isAuthenticated && <HeaderAdminDashboardLink />}
             {isAuthenticated && isSuperAdmin && (

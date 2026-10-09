@@ -18,7 +18,7 @@ import RotaryLoader from "@/components/RotaryLoader";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { useAuth } from "@/contexts/AuthContext";
 import { getDistricts, updateDistrictDefaultCurrency } from "@/services/api";
-import { CURRENCY_OPTIONS } from "@/lib/currency";
+import { currencyOptions } from "@/lib/currency";
 import { DistrictListItem } from "@/types/district";
 
 export default function CurrencySettingsPage() {
@@ -121,7 +121,7 @@ export default function CurrencySettingsPage() {
                         disabled={savingId === d.id}
                         className="w-full px-2.5 py-1.5 text-sm border border-slate-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-primary/50 disabled:opacity-60"
                       >
-                        {CURRENCY_OPTIONS.map((c) => (
+                        {currencyOptions().map((c) => (
                           <option key={c.code} value={c.code}>{c.label}</option>
                         ))}
                       </select>

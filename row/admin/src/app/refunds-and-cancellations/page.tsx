@@ -1,14 +1,19 @@
 ﻿import type { Metadata } from "next";
 import PolicyPageLayout from "@/components/public/PolicyPageLayout";
-import { MERCHANT } from "@/lib/merchantInfo";
+import { merchantFrom } from "@/lib/merchantInfo";
+import { getServerBrand } from "@/lib/brand";
 
-export const metadata: Metadata = {
-  title: "Refunds & Cancellations — Rotary Zones 4, 5, 6, 7 & 8",
-  description:
-    "Refund and cancellation policy for Club Dues, event registrations, project contributions, and Foundation contributions on the Rotary Zones 4-8 portal.",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const brand = await getServerBrand();
+  return {
+    title: `Refunds & Cancellations — ${brand.productName}`,
+    description:
+      `Refund and cancellation policy for Club Dues, event registrations, project contributions, and Foundation contributions on the ${brand.productName} portal.`,
+  };
+}
 
-export default function RefundsPage() {
+export default async function RefundsPage() {
+  const MERCHANT = merchantFrom(await getServerBrand());
   return (
     <PolicyPageLayout
       title="Refunds & Cancellations"

@@ -83,6 +83,9 @@ import {
 import { PphCamp, PphAttendee, PphAttendeeDetail, PphMedicalReading, CreatePphReadingPayload, UpdatePphAttendeePayload, UpdatePphReadingPayload, PphMobileHistory, PphAttendeeReportRow } from "@/types/pphCamp";
 import { TrfFund, TrfContribution } from "@/types/trfContribution";
 import { Weblink, WeblinkTree } from "@/types/weblink";
+import { Brand, BRAND_ENDPOINT } from "@/lib/brand";
+import { AccountOwnerType, ConnectAccountRequest, GatewayCoverage, PaymentAccount } from "@/types/payments";
+import { ConsentStatus, PrivacyRequest } from "@/types/privacy";
 import { SubGroup, SubGroupDetail, SubGroupMember } from "@/types/subGroup";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
@@ -178,6 +181,19 @@ publicApi.interceptors.response.use(
     return Promise.reject(error);
   }
 );
+
+// Instance brand (name, logos, contacts, locale defaults, feature flags). Anonymous;
+// the server caches it for an hour. Callers fall back to DEFAULT_BRAND on any error.
+export async function getPublicBrand(): Promise<Partial<Brand>> {
+  const res = await publicApi.get(BRAND_ENDPOINT);
+  return res.data;
+}
+
+// Store the signed-in member's interface language (ISO code) so it follows them
+// to other browsers and the app (master plan WS2-03).
+export async function updateMyLanguage(language: string): Promise<void> {
+  await api.put("/api/members/me/language", { language });
+}
 
 export async function getCountries(): Promise<Country[]> {
   const response = await api.get("/api/countries");
@@ -7776,4 +7792,57 @@ export async function getClubDuesContent(id: number) {
 export async function updateClubDuesContent(id: number, data: FormData) {
   const res = await api.patch(`/api/club-dues/${id}/content`, data, { headers: { "Content-Type": "multipart/form-data" } });
   return res.data;
+}
+
+// ─── Connected payment accounts (ROW: payments.connect) ──────────────────────
+export async function getPaymentAccounts(ownerType: AccountOwnerType, ownerId: number): Promise<PaymentAccount[]> {
+  const res = await api.get("/api/payments/accounts", { params: { ownerType, ownerId } });
+  return res.data;
+}
+export async function getGatewayCoverage(ownerType: AccountOwnerType, ownerId: number): Promise<GatewayCoverage> {
+  const res = await api.get("/api/payments/coverage", { params: { ownerType, ownerId } });
+  return res.data;
+}
+// The API verifies the keys with a harmless call (Stripe: retrieve account; PayPal: token) before storing.
+export async function connectPaymentAccount(body: ConnectAccountRequest): Promise<PaymentAccount> {
+  const res = await api.post("/api/payments/accounts", body);
+  return res.data;
+}
+export async function reverifyPaymentAccount(id: number): Promise<PaymentAccount> {
+  const res = await api.post(`/api/payments/accounts/${id}/verify`);
+  return res.data;
+}
+export async function setPaymentAccountActive(id: number, isActive: boolean): Promise<PaymentAccount> {
+  const res = await api.put(`/api/payments/accounts/${id}/active`, { isActive });
+  return res.data;
+}
+
+// ─── Privacy: member export, erasure, consent (ROW: privacy.enabled) ─────────
+export async function getPrivacyRequests(districtId: number): Promise<PrivacyRequest[]> {
+  const res = await api.get("/api/privacy/requests", { params: { districtId } });
+  return res.data;
+}
+export async function requestMemberExport(memberId: number): Promise<PrivacyRequest> {
+  const res = await api.post(`/api/privacy/members/${memberId}/export`);
+  return res.data;
+}
+export async function requestMemberErasure(memberId: number, reason: string): Promise<PrivacyRequest> {
+  const res = await api.post(`/api/privacy/members/${memberId}/erase`, { reason });
+  return res.data;
+}
+// Erasure by a District Admin needs a second District Admin's approval.
+export async function approvePrivacyRequest(requestId: number): Promise<PrivacyRequest> {
+  const res = await api.post(`/api/privacy/requests/${requestId}/approve`);
+  return res.data;
+}
+export async function rejectPrivacyRequest(requestId: number): Promise<PrivacyRequest> {
+  const res = await api.post(`/api/privacy/requests/${requestId}/reject`);
+  return res.data;
+}
+export async function getConsentStatus(): Promise<ConsentStatus> {
+  const res = await api.get("/api/privacy/consent");
+  return res.data;
+}
+export async function acceptConsent(policyVersion: string, language: string): Promise<void> {
+  await api.post("/api/privacy/consent", { policyVersion, language });
 }

@@ -11,9 +11,11 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import Image from "next/image";
 import { Menu, X, Phone, Mail, Clock } from "lucide-react";
-import { MERCHANT } from "@/lib/merchantInfo";
+import { merchantFrom } from "@/lib/merchantInfo";
+import { telHref } from "@/lib/brand";
+import { useBrand } from "@/contexts/BrandContext";
+import BrandLogo from "@/components/BrandLogo";
 
 const NAV_LINKS: { label: string; href: string }[] = [
   { label: "Home", href: "/" },
@@ -28,6 +30,8 @@ const BRAND_GOLD = "#F7A81B";
 
 export default function PublicHeader() {
   const [mobileOpen, setMobileOpen] = useState(false);
+  const brand = useBrand();
+  const MERCHANT = merchantFrom(brand);
 
   return (
     <header className="sticky top-0 z-50 bg-white border-b shadow-sm" style={{ borderColor: "rgba(30,58,95,0.08)" }}>
@@ -41,13 +45,16 @@ export default function PublicHeader() {
             <span className="flex items-center gap-1.5">
               <Phone size={12} style={{ color: BRAND_GOLD }} />
               <span className="font-medium">Help line:</span>
-              <a href={`tel:${MERCHANT.phone.replace(/[^+\d]/g, "")}`} className="hover:text-white">{MERCHANT.phone}</a>
-              <span className="text-slate-400">/</span>
-              <a href={`tel:${MERCHANT.phoneSecondary.replace(/[^+\d]/g, "")}`} className="hover:text-white">{MERCHANT.phoneSecondary}</a>
+              {MERCHANT.phones.map((phone, i) => (
+                <span key={phone} className="flex items-center gap-1.5">
+                  {i > 0 && <span className="text-slate-400">/</span>}
+                  <a href={telHref(phone)} className="hover:text-white">{phone}</a>
+                </span>
+              ))}
             </span>
             <span className="hidden sm:flex items-center gap-1.5">
               <Clock size={12} style={{ color: BRAND_GOLD }} />
-              <span>10:00 AM – 6:30 PM (Mon–Fri)</span>
+              <span>{MERCHANT.workingHours}</span>
             </span>
           </div>
           <span className="flex items-center gap-1.5">
@@ -60,16 +67,9 @@ export default function PublicHeader() {
         <div className="flex h-16 items-center justify-between gap-4">
           {/* Brand */}
           <Link href="/" className="flex items-center gap-3 flex-shrink-0">
-            <Image
-              src="/images/rotary-zone-log-blue.png"
-              alt="Rotary Zones 4, 5, 6, 7 & 8"
-              width={130}
-              height={40}
-              className="h-9 w-auto object-contain"
-              priority
-            />
+            <BrandLogo tone="dark" className="h-9 w-auto" textClassName="text-[#1e3a5f]" />
             <span className="hidden lg:inline text-xs font-semibold tracking-wide" style={{ color: BRAND_NAVY }}>
-              Rotary Zones 4 · 5 · 6 · 7 · 8
+              {brand.productName}
             </span>
           </Link>
 

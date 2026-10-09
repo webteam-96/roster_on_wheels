@@ -1,4 +1,5 @@
 import XLSX from "xlsx-js-style";
+import { getActiveBrand } from "@/lib/brand";
 import { fileTimestamp } from "@/lib/dateUtils";
 
 interface CsvColumn {
@@ -215,7 +216,7 @@ export function exportMonthlyPivot(opts: {
   const put = (r: number, c: number, v: any, s: any) => { ws[XLSX.utils.encode_cell({ r, c })] = { v, s }; };
 
   put(row, 0, title, titleStyle); merges.push({ s: { r: row, c: 0 }, e: { r: row, c: colCount - 1 } }); row++;
-  put(row, 0, "Rotary Zones 4, 5, 6, 7 & 8 Admin Portal", subtitleStyle); merges.push({ s: { r: row, c: 0 }, e: { r: row, c: colCount - 1 } }); row++;
+  put(row, 0, `${getActiveBrand().productName} Admin Portal`, subtitleStyle); merges.push({ s: { r: row, c: 0 }, e: { r: row, c: colCount - 1 } }); row++;
   if (subtitle) { put(row, 0, subtitle, subtitleStyle); merges.push({ s: { r: row, c: 0 }, e: { r: row, c: colCount - 1 } }); row++; }
   put(row, 0, `Generated: ${dateStr}  |  Clubs: ${rows.length}`, infoStyle); merges.push({ s: { r: row, c: 0 }, e: { r: row, c: colCount - 1 } }); row++;
   row++; // blank
@@ -418,8 +419,8 @@ export function exportToCSV(
   merges.push({ s: { r: row, c: 0 }, e: { r: row, c: colCount - 1 } });
   row++;
 
-  // Row 1: "Rotary Zones 4, 5, 6, 7 & 8 Admin Portal"
-  ws[XLSX.utils.encode_cell({ r: row, c: 0 })] = { v: "Rotary Zones 4, 5, 6, 7 & 8 Admin Portal", s: subtitleStyle };
+  // Row 1: `${getActiveBrand().productName} Admin Portal`
+  ws[XLSX.utils.encode_cell({ r: row, c: 0 })] = { v: `${getActiveBrand().productName} Admin Portal`, s: subtitleStyle };
   merges.push({ s: { r: row, c: 0 }, e: { r: row, c: colCount - 1 } });
   row++;
 

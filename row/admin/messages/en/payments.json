@@ -1,0 +1,63 @@
+{
+  "accounts": {
+    "title": "Payment accounts",
+    "intro": "Members pay dues and event fees straight into your own account. {brandName} never holds the money and takes no share of it at checkout.",
+    "selectOwner": "Select a district or club to manage its payment accounts.",
+    "loading": "Loading payment accounts…",
+    "coverage": "Available in {country}: {gateways}",
+    "coverageUnknown": "Available gateways: {gateways}",
+    "noCoverage": "No supported payment gateway can receive payments in {country} yet. You can still record payments received offline.",
+    "empty": "No account connected yet. Until one is, dues campaigns and event links cannot take online payments.",
+    "connect": "Connect an account",
+    "status": {
+      "verified": "Verified",
+      "unverified": "Not verified",
+      "inactive": "Inactive"
+    },
+    "verifiedOn": "Verified {date}",
+    "secret": "Key ending {last4}",
+    "webhook": "Webhook URL",
+    "webhookHelp": "Register this address with {gateway} so payments are confirmed even when the payer closes the browser.",
+    "copy": "Copy",
+    "copied": "Copied",
+    "reverify": "Verify again",
+    "deactivate": "Deactivate",
+    "activate": "Activate",
+    "updated": "Account updated."
+  },
+  "connect": {
+    "title": "Connect a payment account",
+    "description": "Paste the keys from your gateway dashboard. They are checked with the gateway before they are saved, and can never be read back.",
+    "gateway": "Gateway",
+    "displayName": "Account name",
+    "displayNamePlaceholder": "e.g. District 7020 dues",
+    "currency": "Currency",
+    "submit": "Verify and connect",
+    "submitting": "Verifying…",
+    "cancel": "Cancel",
+    "success": "{gateway} account connected and verified.",
+    "required": "Fill in every field."
+  },
+  "gateways": {
+    "stripe": "Stripe",
+    "paypal": "PayPal",
+    "cashfree": "Cashfree",
+    "razorpay": "Razorpay"
+  },
+  "fields": {
+    "stripe": {
+      "secretKey": "Restricted secret key",
+      "secretKeyHint": "Starts with rk_live_ (or rk_test_ for testing). Needs write access to Checkout Sessions and Refunds.",
+      "webhookSecret": "Webhook signing secret",
+      "webhookSecretHint": "Starts with whsec_. Shown when you add the webhook endpoint in Stripe."
+    },
+    "paypal": {
+      "clientId": "Client ID",
+      "clientIdHint": "From your PayPal REST app (live, or sandbox for testing).",
+      "clientSecret": "Client secret",
+      "clientSecretHint": "Shown next to the client ID in the PayPal developer dashboard.",
+      "webhookId": "Webhook ID",
+      "webhookIdHint": "The ID PayPal assigns when you add the webhook URL to the app."
+    }
+  }
+}

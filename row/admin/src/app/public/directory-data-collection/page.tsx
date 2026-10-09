@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
+import { useFeature } from "@/contexts/BrandContext";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -73,7 +74,7 @@ export default function PublicDirectoryFormPage() {
   // form
   const [sessionToken, setSessionToken] = useState("");
   const [group, setGroup] = useState<"DC" | "BOD" | "Member" | "">("");
-  const [fields, setFields] = useState<FieldItem[]>([]);
+  const [allFields, setFields] = useState<FieldItem[]>([]);
   const [values, setValues] = useState<Record<string, any>>({});
   const [completion, setCompletion] = useState<{ filled: number; total: number; percent: number; pending: string[] } | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -82,6 +83,13 @@ export default function PublicDirectoryFormPage() {
   // When true, Family fields are hidden in the form AND skipped from the completion calc.
   const [spouseNotApplicable, setSpouseNotApplicable] = useState(false);
   const [hasSpouseFields, setHasSpouseFields] = useState(false);
+  // Instance member-field flags: blood-group fields and the Family section are not
+  // shown, counted or sent when off.
+  const showBloodGroup = useFeature("member.bloodGroup");
+  const showFamily = useFeature("member.familyDetails");
+  const fields = allFields.filter(
+    (f) => (showBloodGroup || f.type !== "bloodgroup") && (showFamily || f.section !== "Family"),
+  );
 
   useEffect(() => {
     if (!urlHash) { setError("Invalid link"); setLoading(false); return; }

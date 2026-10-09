@@ -17,6 +17,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useAuth } from "@/contexts/AuthContext";
+import { useBrand } from "@/contexts/BrandContext";
+import LanguagePicker from "@/components/LanguagePicker";
+import BrandLogo from "@/components/BrandLogo";
 import { login as loginApi, getCountries, resolveDashboardLanding } from "@/services/api";
 import { Country } from "@/types/member";
 import ChangePasswordDialog from "@/components/ChangePasswordDialog";
@@ -33,6 +36,7 @@ function detectInputMode(value: string): InputMode {
 export default function LoginPage() {
   const router = useRouter();
   const { login } = useAuth();
+  const brand = useBrand();
 
   const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
@@ -137,13 +141,9 @@ export default function LoginPage() {
       <Card className="w-full max-w-md overflow-hidden border-t-4" style={{ borderTopColor: "#F7A81B" }}>
         <CardHeader className="text-white rounded-t-none" style={{ backgroundColor: "#0f172a" }}>
           <div className="flex items-center gap-3">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src="/images/rotary-zone-log-white.png"
-              alt="Rotary"
-              className="h-16 object-contain"
-            />
+            <BrandLogo className="h-16" />
             <CardTitle className="text-xl text-white">Sign In</CardTitle>
+            <LanguagePicker className="ml-auto border-white/30 bg-transparent text-white" />
           </div>
         </CardHeader>
         <CardContent className="pt-6">

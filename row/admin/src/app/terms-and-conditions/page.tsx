@@ -1,19 +1,25 @@
 import type { Metadata } from "next";
 import PolicyPageLayout from "@/components/public/PolicyPageLayout";
-import { MERCHANT } from "@/lib/merchantInfo";
+import { merchantFrom } from "@/lib/merchantInfo";
+import { getServerBrand, hostOf } from "@/lib/brand";
 
-export const metadata: Metadata = {
-  title: "Terms & Conditions — Rotary Zones 4, 5, 6, 7 & 8",
-  description:
-    "Terms of use for the Rotary Zones 4, 5, 6, 7 & 8 administration portal — user obligations, payment terms, intellectual property, liability, governing law.",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const brand = await getServerBrand();
+  return {
+    title: `Terms & Conditions — ${brand.productName}`,
+    description:
+      `Terms of use for the ${brand.productName} administration portal — user obligations, payment terms, intellectual property, liability, governing law.`,
+  };
+}
 
-export default function TermsPage() {
+export default async function TermsPage() {
+  const brand = await getServerBrand();
+  const MERCHANT = merchantFrom(brand);
   return (
     <PolicyPageLayout
       title="Terms & Conditions"
       updated="Last updated: 5 June 2026"
-      intro={`These Terms & Conditions ("Terms") govern your access to and use of the Rotary Zones 4, 5, 6, 7 & 8 administration portal hosted at rizones45678.org ("Platform"), operated by ${MERCHANT.legalName} ("we", "us", "our"). By accessing the Platform you agree to be bound by these Terms.`}
+      intro={`These Terms & Conditions ("Terms") govern your access to and use of the ${brand.productName} administration portal hosted at ${hostOf(brand.domains.adminOrigin)} ("Platform"), operated by ${MERCHANT.legalName} ("we", "us", "our"). By accessing the Platform you agree to be bound by these Terms.`}
     >
       <section>
         <h2>1. Acceptance of Terms</h2>

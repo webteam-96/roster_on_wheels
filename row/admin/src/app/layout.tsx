@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { getServerBrand } from "@/lib/brand";
 import { Inter } from "next/font/google";
 import { Suspense } from "react";
 import "./globals.css";
@@ -11,13 +12,15 @@ import NavigationLoader from "@/components/NavigationLoader";
 
 const inter = Inter({ subsets: ["latin"] });
 
-export const metadata: Metadata = {
-  title: "Rotary Zones 4, 5, 6, 7 & 8 - Member Management",
-  description: "Rotary Zones 4, 5, 6, 7 & 8 Member Management System",
-  icons: {
-    icon: "/images/rotary-logo.png",
-  },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const brand = await getServerBrand();
+  return {
+    title: `${brand.productName} - Member Management`,
+    description: `${brand.productName} Member Management System`,
+    ...(brand.faviconUrl ? { icons: { icon: brand.faviconUrl, shortcut: brand.faviconUrl } } : {}),
+    ...(brand.openGraphImageUrl ? { openGraph: { images: [brand.openGraphImageUrl] } } : {}),
+  };
+}
 
 export default function RootLayout({
   children,
@@ -29,10 +32,6 @@ export default function RootLayout({
   // harmless "Extra attributes from the server" warning; scope is the <html> element only.
   return (
     <html lang="en" suppressHydrationWarning>
-      <head>
-        <link rel="icon" href="/images/rotary-logo.png" type="image/png" />
-        <link rel="shortcut icon" href="/images/rotary-logo.png" type="image/png" />
-      </head>
       <body className={`${inter.className} antialiased`}>
         <ClientProviders>
           <RootShell>{children}</RootShell>

@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
+import { useFeature } from "@/contexts/BrandContext";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
@@ -289,8 +290,21 @@ const sections: ReportSection[] = [
 
 interface ClubOpt { clubId: number; clubName: string; clubRotaryId: string; districtNumber: string }
 
+// Instance member-field flags: drop the blood-group columns and the family report when off.
+function visibleSections(showBloodGroup: boolean, showFamily: boolean): ReportSection[] {
+  if (showBloodGroup && showFamily) return sections;
+  return sections.map((sec) => ({
+    ...sec,
+    items: sec.items
+      .filter((it) => showFamily || it.id !== "family-details")
+      .map((it) => (showBloodGroup ? it : { ...it, columns: it.columns.filter((c) => c.key !== "bloodGroup") })),
+  }));
+}
+
 export default function AgReportsPage() {
   const { isAG, isAuthenticated } = useAuth();
+  const showBloodGroup = useFeature("member.bloodGroup");
+  const showFamily = useFeature("member.familyDetails");
 
   const [years, setYears] = useState<RotaryYear[]>([]);
   const [clubs, setClubs] = useState<ClubOpt[]>([]);
@@ -399,7 +413,7 @@ export default function AgReportsPage() {
               </CardContent>
             </Card>
 
-            {sections.map(sec => (
+            {visibleSections(showBloodGroup, showFamily).map(sec => (
               <Card key={sec.id}>
                 <CardHeader className="flex flex-row items-center gap-3">
                   <sec.icon className="h-6 w-6 text-primary" />

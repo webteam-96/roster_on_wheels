@@ -1,3 +1,19 @@
+import createNextIntlPlugin from "next-intl/plugin";
+
+// Translation without locale routing: see src/i18n/config.ts.
+const withNextIntl = createNextIntlPlugin("./src/i18n/request.ts");
+
+// Images may be served from the instance's own API host (NEXT_PUBLIC_API_URL) as well as
+// the RIZones host the existing pattern list already allows.
+function apiImagePattern() {
+  try {
+    const url = new URL(process.env.NEXT_PUBLIC_API_URL || "");
+    return [{ protocol: url.protocol.replace(":", ""), hostname: url.hostname, ...(url.port ? { port: url.port } : {}), pathname: "/**" }];
+  } catch {
+    return [];
+  }
+}
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   output: "standalone",
@@ -25,8 +41,9 @@ const nextConfig = {
         hostname: "rizones45678.org",
         pathname: "/**",
       },
+      ...apiImagePattern(),
     ],
   },
 };
 
-export default nextConfig;
+export default withNextIntl(nextConfig);

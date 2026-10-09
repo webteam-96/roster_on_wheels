@@ -16,6 +16,7 @@
  * across the app still link to it. Migrating those references is a follow-up.
  */
 
+import { useFeature } from "@/contexts/BrandContext";
 import { familyDuplicateError } from "@/lib/familyValidation";
 import { Suspense, useEffect, useState } from "react";
 import DateField from "@/components/DateField";
@@ -242,6 +243,8 @@ function EditMemberV2Form() {
   const [countries, setCountries] = useState<Country[]>([]);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
+  const showBloodGroup = useFeature("member.bloodGroup");
+  const showFamily = useFeature("member.familyDetails");
   const [loading, setLoading] = useState(true);
 
   // COG-only state. Left untouched (and never fetched) for every other club.
@@ -1027,7 +1030,7 @@ function EditMemberV2Form() {
               onChange={(v) => updateField("anniversaryDate", v)}
             />
           </div>
-          {renderSelect("bloodGroup", "Blood Group", BLOOD_GROUPS)}
+          {showBloodGroup && renderSelect("bloodGroup", "Blood Group", BLOOD_GROUPS)}
           {renderSelect("gender", "Gender", GENDERS)}
           {renderSelect("primaryLanguage", "Primary Language", LANGUAGES)}
           {renderCountrySelect("fkSecondaryCountryId", "Secondary Country")}
@@ -1149,6 +1152,7 @@ function EditMemberV2Form() {
       </SectionCard>
 
       {/* 5 — Family */}
+      {showFamily && (
       <SectionCard number={5} icon={Users} title="Family Details" dot="bg-rose-600">
         <div className="flex flex-col sm:flex-row gap-6 items-start mb-4">
           <PhotoUpload
@@ -1221,6 +1225,7 @@ function EditMemberV2Form() {
                       ))}
                     </select>
                   </div>
+                  {showBloodGroup && (
                   <div>
                     <FieldLabel dot="bg-rose-500">Blood Group</FieldLabel>
                     <select
@@ -1234,6 +1239,7 @@ function EditMemberV2Form() {
                       ))}
                     </select>
                   </div>
+                  )}
                   <div>
                     <FieldLabel dot="bg-rose-500">Country</FieldLabel>
                     <select
@@ -1295,6 +1301,7 @@ function EditMemberV2Form() {
           </div>
         )}
       </SectionCard>
+      )}
 
       <SuccessAlert
         open={showSuccess}

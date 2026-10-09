@@ -1,5 +1,6 @@
 "use client";
 
+import { useFeature } from "@/contexts/BrandContext";
 import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { globalMemberSearch, globalMemberSoftDelete, globalMemberUpdateContact } from "@/services/api";
@@ -86,6 +87,8 @@ const skipFields = new Set(["isdeleted", "deleted_by", "deleted_date", "created_
 
 export default function GlobalMemberSearchPage() {
   const { isSuperAdmin } = useAuth();
+  const showBloodGroup = useFeature("member.bloodGroup");
+  const showFamily = useFeature("member.familyDetails");
   const [search, setSearch] = useState("");
   const [results, setResults] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
@@ -344,6 +347,8 @@ export default function GlobalMemberSearchPage() {
                 <div className="bg-muted/30 rounded-lg p-3">
                   {Object.entries(m).map(([key, val]) => {
                     if (skipFields.has(key)) return null;
+                    if (!showBloodGroup && key === "BloodGroup") return null;
+                    if (!showFamily && key === "IsFamilyDetailsVisible") return null;
                     const label = fieldLabels[key] || key.replace(/_/g, " ").replace(/([a-z])([A-Z])/g, "$1 $2");
                     return <InfoRow key={key} label={label} value={val} fieldKey={key} />;
                   })}
