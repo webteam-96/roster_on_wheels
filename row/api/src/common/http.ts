@@ -155,3 +155,9 @@ export class DotnetExpressAdapter extends ExpressAdapter {
     writeResult(req, response, new ObjectResult(200, body));
   }
 }
+
+/** The caller's address as ASP.NET's RemoteIpAddress prints it: an IPv4 client on a dual-stack socket without the "::ffff:" prefix. */
+export function clientIp(raw: string | null | undefined): string | null {
+  if (!raw) return null;
+  return raw.startsWith("::ffff:") && raw.includes(".") ? raw.slice(7) : raw;
+}

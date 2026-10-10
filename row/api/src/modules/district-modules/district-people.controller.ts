@@ -226,13 +226,13 @@ export class DistrictPeopleController {
     return this.db.session(async (conn) => {
       const year = await conn.queryFirstOrDefault("SELECT StartDate, EndDate, IsCurrent FROM rotary_year_master WHERE pk_year_id = @YearId", { YearId: yearId });
       if (!year) return ok([]);
-      const totalClubs = Number(await conn.executeScalar("SELECT COUNT(*) FROM club_master WHERE fk_district_id = @DistrictId AND isdeleted = 0 AND IsActive = 1", { DistrictId: districtId }));
+      const totalClubs = Number(await conn.executeScalar("SELECT COUNT(*) FROM club_master WHERE fk_district_id = @DistrictId AND isdeleted = 0 AND IsActive = 1 AND COALESCE(ClubType,'') <> 'Rotaract Club'", { DistrictId: districtId }));
       const submissions = new Map(
         (
           await conn.query(
             `SELECT r.ReportMonth AS month, COUNT(DISTINCT r.fk_club_id) AS submittedCount
              FROM club_monthly_reports r
-             INNER JOIN club_master c ON c.pk_club_id = r.fk_club_id AND c.fk_district_id = @DistrictId AND c.isdeleted = 0 AND c.IsActive = 1
+             INNER JOIN club_master c ON c.pk_club_id = r.fk_club_id AND c.fk_district_id = @DistrictId AND c.isdeleted = 0 AND c.IsActive = 1 AND COALESCE(c.ClubType,'') <> 'Rotaract Club'
              WHERE r.fk_year_id = @YearId AND r.isdeleted = 0 AND r.IsUploadedToDistrict = 1
              GROUP BY r.ReportMonth`,
             { DistrictId: districtId, YearId: yearId },
@@ -274,7 +274,7 @@ export class DistrictPeopleController {
       const notSubmittedClubs = await conn.query(
         `SELECT c.pk_club_id AS clubId, c.ClubName AS clubName, c.ClubRotaryId AS clubRotaryId, ${ag}
          FROM club_master c
-         WHERE c.fk_district_id = @DistrictId AND c.isdeleted = 0 AND c.IsActive = 1
+         WHERE c.fk_district_id = @DistrictId AND c.isdeleted = 0 AND c.IsActive = 1 AND COALESCE(c.ClubType,'') <> 'Rotaract Club'
            AND c.pk_club_id NOT IN (SELECT r.fk_club_id FROM club_monthly_reports r
                                     WHERE r.fk_year_id = @YearId AND r.ReportMonth = @Month AND r.isdeleted = 0 AND r.IsUploadedToDistrict = 1)
          ORDER BY c.ClubName`,
@@ -343,7 +343,7 @@ export class DistrictPeopleController {
       const clubIds = (
         await conn.query(
           `SELECT c.pk_club_id AS id FROM club_master c
-           WHERE c.fk_district_id = @DistrictId AND c.isdeleted = 0 AND c.IsActive = 1
+           WHERE c.fk_district_id = @DistrictId AND c.isdeleted = 0 AND c.IsActive = 1 AND COALESCE(c.ClubType,'') <> 'Rotaract Club'
              AND c.pk_club_id NOT IN (SELECT r.fk_club_id FROM club_monthly_reports r WHERE r.fk_year_id = @YearId AND r.ReportMonth = @Month AND r.isdeleted = 0)
              AND (@AgMemberId IS NULL OR c.pk_club_id IN (SELECT a.fk_club_id FROM district_ag a
                                                           WHERE a.fk_member_id = @AgMemberId AND a.fk_year_id = @YearId AND a.isdeleted = 0 AND a.is_active = 1))`,
@@ -446,7 +446,7 @@ export class DistrictPeopleController {
         await this.db.query(
           `SELECT c.pk_club_id AS id, c.ClubName AS clubName, c.ClubRotaryId AS clubRotaryId
            FROM club_master c
-           WHERE c.fk_district_id = @DistrictId AND c.isdeleted = 0 AND c.IsActive = 1
+           WHERE c.fk_district_id = @DistrictId AND c.isdeleted = 0 AND c.IsActive = 1 AND COALESCE(c.ClubType,'') <> 'Rotaract Club'
              AND c.pk_club_id NOT IN (SELECT fk_club_id FROM district_club_moderator
                                       WHERE fk_district_id = @DistrictId AND isdeleted = 0 AND (@ExcludeMemberId IS NULL OR fk_member_id != @ExcludeMemberId))
            ORDER BY c.ClubName`,
@@ -685,7 +685,7 @@ export class DistrictPeopleController {
         await this.db.query(
           `SELECT c.pk_club_id AS id, c.ClubName AS clubName, c.ClubRotaryId AS clubRotaryId
            FROM club_master c
-           WHERE c.fk_district_id = @DistrictId AND c.isdeleted = 0 AND c.IsActive = 1
+           WHERE c.fk_district_id = @DistrictId AND c.isdeleted = 0 AND c.IsActive = 1 AND COALESCE(c.ClubType,'') <> 'Rotaract Club'
              AND c.pk_club_id NOT IN (SELECT fk_club_id FROM district_ag
                                       WHERE fk_district_id = @DistrictId AND isdeleted = 0 AND (@YearId IS NULL OR fk_year_id = @YearId)
                                         AND (@ExcludeMemberId IS NULL OR fk_member_id != @ExcludeMemberId))

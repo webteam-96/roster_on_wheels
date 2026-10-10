@@ -7,7 +7,7 @@ import type { CurrentUser } from "../../auth/current-user";
 import { defineDto } from "../../common/dto";
 import { badRequest, notFound, ok, statusCode } from "../../common/results";
 import { InvalidOperationException } from "../../common/exceptions";
-import { bodyField, bodyIntList, paramInt } from "../../common/binding";
+import { bodyField, bodyIntList, paramInt, requireFile } from "../../common/binding";
 import { CLUB_BLOCKED_MESSAGE, isClubDrillReachable } from "../../services/kill-switch.helper";
 import { ClubSiteCachePurger } from "../../services/club-site-cache-purger";
 import { lowerExtension, saveWithGuidName, type UploadedFile as Upload } from "../../services/media-storage";
@@ -256,6 +256,7 @@ export class ClubMenuController {
   @Post("website-data/menu_list/upload-document")
   @UseInterceptors(FileInterceptor("file", { limits: { fileSize: 55 * 1024 * 1024 } }))
   async upload(@Param("clubId") c: string, @UploadedFile() file: Upload | undefined) {
+    requireFile(file);
     const clubId = paramInt(c, "clubId");
     if (!file || file.size === 0) return badRequest({ message: "No file uploaded" });
     if (![".pdf", ".doc", ".docx", ".xls", ".xlsx", ".ppt", ".pptx"].includes(lowerExtension(file.originalname))) {

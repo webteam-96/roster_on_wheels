@@ -26,7 +26,8 @@ export class ZoneService {
                (SELECT COUNT(*) FROM district_master d WHERE d.fk_zone_id = z.pk_zone_id AND d.isdeleted = 0) AS TotalDistricts,
                (SELECT COUNT(*) FROM club_master c
                 JOIN district_master d2 ON d2.pk_district_id = c.fk_district_id AND d2.isdeleted = 0
-                WHERE d2.fk_zone_id = z.pk_zone_id AND c.isdeleted = 0) AS TotalClubs,
+                WHERE d2.fk_zone_id = z.pk_zone_id AND c.isdeleted = 0
+                  AND COALESCE(c.ClubType,'') <> 'Rotaract Club') AS TotalClubs,
                (SELECT COUNT(DISTINCT cm.fk_member_master_profile_id)
                 FROM club_members cm
                 JOIN club_master c2 ON c2.pk_club_id = cm.fk_club_id AND c2.isdeleted = 0

@@ -9,7 +9,7 @@ import { AllowAnonymous, Authorize, User } from "../../auth/decorators";
 import type { CurrentUser } from "../../auth/current-user";
 import { badRequest, notFound, ok, statusCode } from "../../common/results";
 import { InvalidOperationException, KeyNotFoundException } from "../../common/exceptions";
-import { bodyField, bodyIntList, paramInt, queryBool, queryInt, queryString } from "../../common/binding";
+import { bodyField, bodyIntList, paramInt, queryBool, queryInt, queryString, requireFile } from "../../common/binding";
 import { DISTRICT_BLOCKED_MESSAGE, isDistrictDrillReachable } from "../../services/kill-switch.helper";
 import { lowerExtension, type UploadedFile as Upload } from "../../services/media-storage";
 import { EmailService, emailFooter, emailHeader } from "../../services/email.service";
@@ -88,6 +88,7 @@ export class DistrictContentController {
   @Post("api/districts/:districtId/upcoming-events/upload")
   @UseInterceptors(FileInterceptor("file", { limits: { fileSize: MAX_UPLOAD } }))
   async uploadEventImage(@Param("districtId") d: string, @UploadedFile() file: Upload | undefined) {
+    requireFile(file);
     const districtId = paramInt(d, "districtId");
     return DistrictContentController.imageCheck(file) ?? ok({ path: await this.events.uploadImage(districtId, file!) });
   }
@@ -136,6 +137,7 @@ export class DistrictContentController {
   @Post("api/districts/:districtId/announcements/upload")
   @UseInterceptors(FileInterceptor("file", { limits: { fileSize: MAX_UPLOAD } }))
   async uploadAnnouncementImage(@Param("districtId") d: string, @UploadedFile() file: Upload | undefined) {
+    requireFile(file);
     const districtId = paramInt(d, "districtId");
     return DistrictContentController.imageCheck(file) ?? ok({ path: await this.announcements.uploadImage(districtId, file!) });
   }
@@ -191,6 +193,7 @@ export class DistrictContentController {
   @Post("api/districts/:districtId/newsletters/upload")
   @UseInterceptors(FileInterceptor("file", { limits: { fileSize: MAX_UPLOAD } }))
   async uploadNewsletter(@Param("districtId") d: string, @UploadedFile() file: Upload | undefined) {
+    requireFile(file);
     const districtId = paramInt(d, "districtId");
     if (districtId <= 0) return badRequest({ message: "Invalid district id. Files cannot be uploaded without a district context." });
     if (!file || file.size === 0) return badRequest({ message: "No file uploaded" });
@@ -244,6 +247,7 @@ export class DistrictContentController {
   @Post("api/districts/:districtId/documents/upload")
   @UseInterceptors(FileInterceptor("file", { limits: { fileSize: MAX_UPLOAD } }))
   async uploadDocument(@Param("districtId") d: string, @UploadedFile() file: Upload | undefined) {
+    requireFile(file);
     const districtId = paramInt(d, "districtId");
     if (!file || file.size === 0) return badRequest({ message: "No file uploaded" });
     if (file.size > 20 * 1024 * 1024) return badRequest({ message: "File size must be less than 20 MB." });
@@ -727,7 +731,7 @@ export class DistrictContentController {
     }
     return ok(
       await this.db.query(
-        "SELECT pk_club_id AS clubId, ClubName AS clubName, ClubRotaryId AS clubRotaryId FROM club_master WHERE fk_district_id = @DistrictId AND isdeleted = 0 ORDER BY ClubName",
+        "SELECT pk_club_id AS clubId, ClubName AS clubName, ClubRotaryId AS clubRotaryId FROM club_master WHERE fk_district_id = @DistrictId AND isdeleted = 0 AND COALESCE(ClubType,'') <> 'Rotaract Club' ORDER BY ClubName",
         { DistrictId: districtId },
       ),
     );

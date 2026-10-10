@@ -72,6 +72,28 @@ interface YearOption {
  * else the member's first club-admin club) and the year (requested, else the
  * current Rotary year).
  */
+type OngoingRow = { id: number; sr: number; date: string; parentProjectId: number | null };
+
+/**
+ * An entry whose ongoing parent is from an EARLIER year has no parent in the list, so the screen
+ * dropped it while the Projects tile counted it. The earliest such entry per old parent becomes a
+ * top row and later ones nest under it; top rows are then numbered newest first.
+ */
+export function regroupOngoing<T extends OngoingRow>(ongoing: T[]): T[] {
+  const isChild = (o: T) => (o.parentProjectId ?? 0) > 0;
+  const parentIds = new Set(ongoing.filter((o) => !isChild(o)).map((o) => o.id));
+  const groups = new Map<number, T[]>();
+  for (const o of ongoing) if (isChild(o) && !parentIds.has(o.parentProjectId!)) groups.set(o.parentProjectId!, [...(groups.get(o.parentProjectId!) ?? []), o]);
+  for (const grp of groups.values()) {
+    const ordered = [...grp].sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : a.id - b.id));
+    ordered[0].parentProjectId = null;
+    for (const c of ordered.slice(1)) c.parentProjectId = ordered[0].id;
+  }
+  const tops = ongoing.filter((o) => !isChild(o)).sort((a, b) => (a.date < b.date ? 1 : a.date > b.date ? -1 : b.id - a.id));
+  tops.forEach((o, i) => (o.sr = i + 1));
+  return [...tops, ...ongoing.filter(isChild)];
+}
+
 @Injectable()
 export class ClubAdminDashboardService {
   constructor(
@@ -1260,7 +1282,7 @@ export class ClubAdminDashboardService {
       }
     }
     response.oneTimeProjects = oneTime;
-    response.ongoingProjects = ongoing;
+    response.ongoingProjects = regroupOngoing(ongoing as OngoingRow[]);
     response.pendingApprovals = pending;
     response.targetCurrency = targetCurrency;
     Object.assign(response.kpis, { projects: totalProjects, beneficiaries: totalBenef, amountSpent: totalSpent, manHours: totalHours });

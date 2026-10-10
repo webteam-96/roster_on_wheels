@@ -9,7 +9,7 @@ import { lowerExtension, type UploadedFile as Upload } from "../../services/medi
 import { Authorize, User } from "../../auth/decorators";
 import type { CurrentUser } from "../../auth/current-user";
 import { badRequest, conflict, createdAt, noContent, notFound, ok, statusCode } from "../../common/results";
-import { paramInt, queryBool, queryInt, queryString } from "../../common/binding";
+import { paramInt, queryBool, queryInt, queryString, requireFile } from "../../common/binding";
 import { SaveDistrictDto, UpdateDistrictCurrencyDto, type SaveDistrict } from "../../dtos/district.dtos";
 
 const MAX_UPLOAD = 55 * 1024 * 1024;
@@ -120,6 +120,7 @@ export class DistrictsController {
   @Post("upload")
   @UseInterceptors(FileInterceptor("file", { limits: { fileSize: MAX_UPLOAD } }))
   async upload(@UploadedFile() file: Upload | undefined, @User() user: CurrentUser) {
+    requireFile(file);
     if (!this.isSuperAdmin(user)) return statusCode(403, { message: "Only SuperAdmin can upload district logos." });
     if (!file || file.size === 0) return badRequest({ message: "No file uploaded" });
     if (![".jpg", ".jpeg", ".png", ".gif", ".webp"].includes(lowerExtension(file.originalname))) {

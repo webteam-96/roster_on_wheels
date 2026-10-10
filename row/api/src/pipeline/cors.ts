@@ -6,7 +6,7 @@ import type { BrandOptions } from "../brand/brand";
  *  - Default: in Development any origin; otherwise the brand's allowed origin
  *    suffixes (RIZones: rizones45678.org, rizones4567.org and their subdomains)
  *    plus localhost / 127.0.0.1 on any port.
- *  - PublicOpen: any origin, for api/public/club and api/public/club-website
+ *  - PublicOpen: any origin, for api/public/club, api/public/club-website, api/public/ocv-live-documents and the project share routes
  *    (club and district websites on domains that cannot be listed).
  *  - ThirdPartyCors: api/RotaryThirdParty, for the partner's domains plus localhost.
  * All policies allow any header and method, without credentials. A disallowed
@@ -25,7 +25,7 @@ function hostAllowed(origin: string, suffixes: string[]): boolean {
   return suffixes.some((s) => host === s.toLowerCase() || host.endsWith("." + s.toLowerCase()));
 }
 
-const PUBLIC_OPEN = [/^\/api\/public\/club(\/|$)/i, /^\/api\/public\/club-website(\/|$)/i];
+const PUBLIC_OPEN = [/^\/api\/public\/club(\/|$)/i, /^\/api\/public\/club-website(\/|$)/i, /^\/api\/public\/ocv-live-documents(\/|$)/i, /^\/api\/public\/projects\/\d+\/share/i];
 const THIRD_PARTY = /^\/api\/RotaryThirdParty(\/|$)/i;
 
 export function corsMiddleware(brand: BrandOptions, development: boolean) {

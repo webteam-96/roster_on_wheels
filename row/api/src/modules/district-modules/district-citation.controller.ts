@@ -3,8 +3,8 @@ import { Db, type DbCommands, type Row } from "../../database/db.service";
 import { Authorize, User } from "../../auth/decorators";
 import type { CurrentUser } from "../../auth/current-user";
 import { badRequest, file, notFound, ok, statusCode } from "../../common/results";
-import { bodyField, paramInt, queryInt } from "../../common/binding";
-import { dotnetRound } from "../../common/dotnet-format";
+import { bodyField, paramInt, queryInt, requireArrayBody } from "../../common/binding";
+import { dotnetRound, parseInvariantNumber } from "../../common/dotnet-format";
 import { CLUB_BLOCKED_MESSAGE, DISTRICT_BLOCKED_MESSAGE, isClubDrillReachable, isDistrictDrillReachable } from "../../services/kill-switch.helper";
 import { CitationAutoPointsService, isDistrictAwardsEnabled } from "../../services/citation-auto-points.service";
 import { ExcelJS, XLColor, XLSX_CONTENT_TYPE, style, styleRange, thinBorders, toBuffer } from "../../services/xlsx";
@@ -398,7 +398,7 @@ export class DistrictCitationController {
     if (block) return block;
     return this.db.session(async (conn) => {
       const clubs = await conn.query(
-        "SELECT c.pk_club_id AS clubId, c.ClubName AS clubName, c.ClubRotaryId AS clubRotaryId FROM club_master c WHERE c.fk_district_id=@DistrictId AND c.isdeleted=0 AND c.IsActive=1 ORDER BY c.ClubName",
+        "SELECT c.pk_club_id AS clubId, c.ClubName AS clubName, c.ClubRotaryId AS clubRotaryId FROM club_master c WHERE c.fk_district_id=@DistrictId AND c.isdeleted=0 AND c.IsActive=1 AND COALESCE(c.ClubType,'') <> 'Rotaract Club' ORDER BY c.ClubName",
         { DistrictId: districtId },
       );
       const totals = new Map(
@@ -434,7 +434,7 @@ export class DistrictCitationController {
     if (block) return block;
     const p = { DistrictId: districtId, YearId: yearId };
     const data = await this.db.session(async (conn) => {
-      const clubs = await conn.query("SELECT pk_club_id AS clubId, ClubName AS clubName, ClubRotaryId AS clubRotaryId FROM club_master WHERE fk_district_id=@DistrictId AND isdeleted=0 AND IsActive=1 ORDER BY ClubName", p);
+      const clubs = await conn.query("SELECT pk_club_id AS clubId, ClubName AS clubName, ClubRotaryId AS clubRotaryId FROM club_master WHERE fk_district_id=@DistrictId AND isdeleted=0 AND IsActive=1 AND COALESCE(ClubType,'') <> 'Rotaract Club' ORDER BY ClubName", p);
       const questions = await conn.query(
         `SELECT q.pk_id AS id, cc.category_name AS categoryName, a.activity_name AS activityName, q.points AS basePoints
          FROM district_citation_auto_question q
@@ -805,6 +805,7 @@ export class DistrictCitationController {
 
   @Post("api/clubs/:clubId/citation/save-manual")
   async saveManual(@Param("clubId") c: string, @Body() body: unknown, @User() u: CurrentUser) {
+    requireArrayBody(body, "System.Collections.Generic.List`1[RotaryApi.Controllers.DistrictModulesController+ClubManualEntryDto]", "entries");
     const clubId = paramInt(c, "clubId");
     const entries = Array.isArray(body) ? (body as Record<string, unknown>[]) : [];
     if (!entries.length) return ok({ message: "Nothing to save." });
@@ -816,6 +817,9 @@ export class DistrictCitationController {
       if (!(await isDistrictAwardsEnabled(conn, districtId, yearId))) {
         return statusCode(403, { message: "District Awards is currently disabled by the administrator. Point entry is read-only." });
       }
+      // No negative figures, the same rule as the Save button on the club form.
+      if (entries.some((e) => num(f(e, "pointsEarned")) < 0 || num(f(e, "bonusEarned")) < 0 || (parseInvariantNumber(text(e, "answerValue")) ?? 0) < 0))
+        return badRequest({ message: "Points cannot be negative. Please enter 0 or more." });
       for (const e of entries) {
         const qId = int(f(e, "subCriteriaId"));
         const values = { Answer: text(e, "answerValue"), Points: num(f(e, "pointsEarned")), Bonus: num(f(e, "bonusEarned")), UserId: this.userId(u) };

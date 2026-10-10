@@ -152,3 +152,48 @@ export function dotnetRound(value: number, decimals = 0): number {
   // A tie (within float noise) goes to the even neighbour.
   return (Math.abs(x % 1) === 0.5 && r % 2 !== 0 ? r - 1 : r) / f;
 }
+
+/** Milliseconds until the next hour:00 on the wall clock of an IANA zone (a daily job's "run at HH:00 local"). */
+export function msUntilNextHour(timeZone: string, hour: number, now = new Date()): number {
+  const [, H, m, s] = /T(\d{2}):(\d{2}):(\d{2})/.exec(nowIn(timeZone, now))!.map(Number);
+  let secs = hour * 3600 - (H * 3600 + m * 60 + s);
+  if (secs <= 0) secs += 24 * 3600;
+  return secs * 1000 - now.getMilliseconds();
+}
+
+/** DateTime.Now as wall-clock time in an IANA zone ("yyyy-MM-ddTHH:mm:ss"), for formatDate. RIZones used the server's IST clock. */
+export function nowIn(timeZone: string, at = new Date()): string {
+  const p = Object.fromEntries(
+    new Intl.DateTimeFormat("en-US", { timeZone: timeZone || "UTC", hourCycle: "h23", year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", second: "2-digit" })
+      .formatToParts(at).map((x) => [x.type, x.value]),
+  );
+  return `${p.year}-${p.month}-${p.day}T${p.hour}:${p.minute}:${p.second}`;
+}
+
+/** WebUtility.HtmlEncode: < > & " ' as entities, and U+00A0–U+00FF and characters outside the BMP as numeric references. */
+export function htmlEncode(s: string | null | undefined): string {
+  let out = "";
+  for (const ch of s ?? "") {
+    const c = ch.codePointAt(0)!;
+    if (ch === "<") out += "&lt;";
+    else if (ch === ">") out += "&gt;";
+    else if (ch === "&") out += "&amp;";
+    else if (ch === '"') out += "&quot;";
+    else if (ch === "'") out += "&#39;";
+    else if ((c >= 0xa0 && c <= 0xff) || c > 0xffff) out += `&#${c};`;
+    else out += ch;
+  }
+  return out;
+}
+
+/**
+ * decimal.TryParse(s, NumberStyles.Number, CultureInfo.InvariantCulture): optional surrounding
+ * whitespace, a leading or trailing sign, "," group separators in the integer part and one "." decimal point.
+ * Null when it does not parse.
+ */
+export function parseInvariantNumber(s: string | null | undefined): number | null {
+  const m = /^\s*([+-]?)((?:\d|,(?=\d))*\d|(?=\.\d))(?:\.(\d*))?([+-]?)\s*$/.exec(s ?? "");
+  if (!m || (m[1] && m[4])) return null;
+  const n = Number(`${m[2].replace(/,/g, "") || "0"}.${m[3] || "0"}`);
+  return (m[1] || m[4]) === "-" ? -n : n;
+}

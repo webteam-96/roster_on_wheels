@@ -201,7 +201,8 @@ export class TrfContributionsController {
   private static body(body: unknown) {
     const other = bodyField(body, "otherFundName");
     return {
-      trfDate: dbDateTime(bodyField(body, "trfDate")), donorName: String(bodyField(body, "donorName") ?? ""), amountUSD: Number(bodyField(body, "amountUSD") ?? 0),
+      // Non-nullable DateTime: a missing value binds as DateTime.MinValue.
+      trfDate: dbDateTime(bodyField(body, "trfDate")) ?? "0001-01-01 00:00:00", donorName: String(bodyField(body, "donorName") ?? ""), amountUSD: Number(bodyField(body, "amountUSD") ?? 0),
       fundId: Math.trunc(Number(bodyField(body, "fundId") ?? 0)) || 0, otherFundName: other === null || other === undefined ? null : String(other),
     };
   }

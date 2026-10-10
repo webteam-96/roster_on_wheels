@@ -1,10 +1,10 @@
 import { Body, Controller, Get, Param, Post, Query, UploadedFiles, UseInterceptors } from "@nestjs/common";
 import { AnyFilesInterceptor } from "@nestjs/platform-express";
 import { Db, type DbCommands, type Row } from "../../database/db.service";
-import { Authorize, User } from "../../auth/decorators";
+import { Authorize, User, ReadsRequestForm } from "../../auth/decorators";
 import type { CurrentUser } from "../../auth/current-user";
 import { badRequest, file, notFound, ok, statusCode } from "../../common/results";
-import { bodyField, paramInt, queryInt } from "../../common/binding";
+import { bodyField, paramInt, queryInt, requireArrayBody } from "../../common/binding";
 import { DISTRICT_BLOCKED_MESSAGE, isDistrictDrillReachable } from "../../services/kill-switch.helper";
 import type { UploadedFile } from "../../services/media-storage";
 import { ExcelJS, XLSX_CONTENT_TYPE, style, styleRange, thinBorders, toBuffer } from "../../services/xlsx";
@@ -148,6 +148,7 @@ export class ZonalAwardsController {
 
   @Post("api/districts/:districtId/zonal-awards/save-manual")
   async saveManual(@Param("districtId") d: string, @Body() body: unknown, @User() u: CurrentUser, @Query("yearId") y?: string) {
+    requireArrayBody(body, "System.Collections.Generic.List`1[RotaryApi.Controllers.DistrictModulesController+ZonalAwardsManualSaveDto]", "entries");
     const districtId = paramInt(d, "districtId");
     const yearId = queryInt(y, 0);
     const entries = Array.isArray(body) ? (body as Record<string, unknown>[]) : [];
@@ -167,6 +168,7 @@ export class ZonalAwardsController {
 
   /** The Foundation (goal 12) monthly import: one row per question band, one column per district number. */
   @Post("api/zonal-awards/import")
+  @ReadsRequestForm()
   @UseInterceptors(AnyFilesInterceptor({ limits: { fileSize: 55 * 1024 * 1024 } }))
   async importAuto(@Body() body: unknown, @UploadedFiles() files: UploadedFile[] | undefined, @User() u: CurrentUser) {
     const upload = (files ?? []).find((f) => (f as UploadedFile & { fieldname?: string }).fieldname?.toLowerCase() === "file");
@@ -372,6 +374,7 @@ export class ZonalAwardsController {
 
   @Post("api/zones/:zoneId/zone-awards/save")
   async saveZoneAwards(@Param("zoneId") z: string, @Body() body: unknown, @User() u: CurrentUser, @Query("yearId") y?: string) {
+    requireArrayBody(body, "System.Collections.Generic.List`1[RotaryApi.Controllers.DistrictModulesController+ZoneAwardSaveDto]", "entries");
     const zoneId = paramInt(z, "zoneId");
     const yearId = queryInt(y, 0);
     if (!Array.isArray(body)) return badRequest({ message: "No entries supplied." });

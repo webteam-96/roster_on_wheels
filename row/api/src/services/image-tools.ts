@@ -110,3 +110,54 @@ function readDimensions(b: Buffer, ext: string): [number, number] {
     return [0, 0];
   }
 }
+
+export const PHOTO_MAX_EDGE = 2560;
+export const PHOTO_JPEG_QUALITY = 88;
+// shortcut: sharp cannot decode BMP, so BMP uploads are kept as sent (RIZones re-encoded them); add a BMP decoder if that matters.
+const OPTIMIZABLE = [".jpg", ".jpeg", ".png", ".webp", ".bmp"];
+
+/**
+ * Port of PhotoEncoder.cs: longest side capped at 2560 px (never enlarged), the phone's
+ * rotation applied, saved as JPEG 88. PNG/WEBP with real transparency keep their format and
+ * are re-saved only when they had to be shrunk. The new bytes are returned only when clearly
+ * smaller (or shrunk); otherwise, and on any failure, null = keep the original.
+ */
+export async function encodePhoto(original: Buffer, extension: string, quality = PHOTO_JPEG_QUALITY, maxEdge = PHOTO_MAX_EDGE): Promise<{ bytes: Buffer; extension: string; contentType: string; width: number; height: number } | null> {
+  try {
+    const ext = extension.toLowerCase();
+    const meta = await sharp(original, { failOn: "none" }).metadata();
+    if (!meta.width || !meta.height) return null;
+    const resize = Math.max(meta.width, meta.height) > maxEdge;
+    // Only a pixel with alpha < 255 means the transparency must be kept (screenshots often carry an opaque alpha channel).
+    const transparent = !!meta.hasAlpha && (await sharp(original, { failOn: "none" }).stats()).channels[3]?.min < 255;
+    if (transparent && !resize) return null;
+    let pipeline = sharp(original, { failOn: "none" }).rotate();
+    if (resize) pipeline = pipeline.resize({ width: maxEdge, height: maxEdge, fit: "inside", kernel: "mitchell" });
+    let out: { data: Buffer; info: sharp.OutputInfo };
+    let newExt: string, contentType: string;
+    if (!transparent) {
+      out = await pipeline.jpeg({ quality }).toBuffer({ resolveWithObject: true });
+      [newExt, contentType] = [".jpg", "image/jpeg"];
+    } else if (ext === ".webp") {
+      out = await pipeline.webp({ quality }).toBuffer({ resolveWithObject: true });
+      [newExt, contentType] = [".webp", "image/webp"];
+    } else {
+      out = await pipeline.png().toBuffer({ resolveWithObject: true });
+      [newExt, contentType] = [".png", "image/png"];
+    }
+    const worthIt = out.data.length < original.length * 0.9 || (resize && out.data.length < original.length);
+    return worthIt ? { bytes: out.data, extension: newExt, contentType, width: out.info.width, height: out.info.height } : null;
+  } catch {
+    return null; // never fail an upload because of optimisation
+  }
+}
+
+/** Port of PhotoOptimizer.cs: the upload re-saved by encodePhoto (same field, new name/extension), or the original. */
+export async function optimizePhoto<T extends UploadedFile>(file: T): Promise<{ file: T; changed: boolean }> {
+  const ext = extname(file.originalname ?? "").toLowerCase();
+  if (!file.size || !OPTIMIZABLE.includes(ext)) return { file, changed: false };
+  const enc = await encodePhoto(file.buffer, ext);
+  if (!enc) return { file, changed: false };
+  const base = basename(file.originalname, extname(file.originalname)).trim() || "photo";
+  return { file: { ...file, originalname: base + enc.extension, buffer: enc.bytes, size: enc.bytes.length, mimetype: enc.contentType }, changed: true };
+}

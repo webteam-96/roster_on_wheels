@@ -25,9 +25,19 @@ import { ProjectsModule } from "./projects/projects.module";
 import { MonthlyReportsModule } from "./monthly-reports/monthly-reports.module";
 import { ClubLeadershipModule } from "./club-leadership/club-leadership.controller";
 import { ClubWebsitesModule } from "./club-websites/club-websites.module";
+import { ReportsModule } from "./reports/reports.module";
+import { GoalSettingModule } from "./goal-setting/goal-setting.module";
+import { RiDirectorModule } from "./ri-director/ri-director.module";
+import { MobileModule } from "./mobile/mobile.module";
+import { AdminToolsModule } from "./admin-tools/admin-tools.module";
+import { LoginAnnouncementsModule } from "./login-announcements/login-announcements.module";
+import { OcvGovModule } from "./ocv-gov/ocv-gov.module";
+import { PublicSiteModule } from "./public-site/public-site.module";
+import { RotaryOrgSyncModule } from "./rotary-org-sync/rotary-org-sync.module";
+import { ScheduledSendsModule } from "../services/scheduled-sends/scheduled-sends.module";
 
 /**
  * Every ported feature module, registered with the application. Add a module
  * here when its controllers are ported (see PORTING.md for the order).
  */
-export const FEATURE_MODULES: Type[] = [SharedModule, AuthModule, ReferenceModule, ZonesModule, DistrictsModule, ClubsModule, MobileAuthModule, MembersModule, ModulesModule, RolesModule, BoardModule, CreditsModule, ContentModule, MastersModule, ClubGroupsModule, WebsiteDataModule, DashboardsModule, ApprovalsModule, MassEmailsModule, DistrictModulesModule, PphCampsModule, ZonalAwardsModule, ProjectsModule, MonthlyReportsModule, ClubLeadershipModule, ClubWebsitesModule];
+export const FEATURE_MODULES: Type[] = [SharedModule, AuthModule, ReferenceModule, ZonesModule, DistrictsModule, ClubsModule, MobileAuthModule, MembersModule, ModulesModule, RolesModule, BoardModule, CreditsModule, ContentModule, MastersModule, ClubGroupsModule, WebsiteDataModule, DashboardsModule, ApprovalsModule, MassEmailsModule, DistrictModulesModule, PphCampsModule, ZonalAwardsModule, ProjectsModule, MonthlyReportsModule, ClubLeadershipModule, ClubWebsitesModule, ReportsModule, GoalSettingModule, RiDirectorModule, MobileModule, AdminToolsModule, LoginAnnouncementsModule, OcvGovModule, PublicSiteModule, RotaryOrgSyncModule, ScheduledSendsModule];

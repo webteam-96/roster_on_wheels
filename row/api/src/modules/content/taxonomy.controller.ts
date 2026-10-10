@@ -4,7 +4,7 @@ import { TaxonomyService } from "./taxonomy.service";
 import { Authorize, User } from "../../auth/decorators";
 import type { CurrentUser } from "../../auth/current-user";
 import { badRequest, notFound, ok } from "../../common/results";
-import { bodyField, bodyIntList, paramInt, queryBool, queryInt } from "../../common/binding";
+import { bodyField, bodyIntList, paramInt, queryBool, queryInt, requireFile } from "../../common/binding";
 import { ensureWithinLimit, validateImage } from "../../services/image-tools";
 import type { UploadedFile as Upload } from "../../services/media-storage";
 import { SaveAreaOfFocusDto, SaveCategoryDto, SaveSubCategoryDto } from "../../dtos/content.dtos";
@@ -42,6 +42,7 @@ export class TaxonomyController {
   @Post("area-of-focus/upload")
   @UseInterceptors(FileInterceptor("file", { limits: { fileSize: MAX_UPLOAD } }))
   async uploadAreaImage(@UploadedFile() upload: Upload | undefined, @Query("strict") strict?: string) {
+    requireFile(upload);
     const file = await ensureWithinLimit(upload);
     const v = validateImage(file, queryBool(strict, false)!);
     if (!v.ok) return badRequest({ message: v.error });

@@ -6,7 +6,7 @@ import { Authorize, User } from "../../auth/decorators";
 import type { CurrentUser } from "../../auth/current-user";
 import { defineDto } from "../../common/dto";
 import { badRequest, notFound, ok, statusCode } from "../../common/results";
-import { bodyField, bodyIntList, paramInt, queryBool, queryInt } from "../../common/binding";
+import { bodyField, bodyIntList, paramInt, queryBool, queryInt, requireFile } from "../../common/binding";
 import { DISTRICT_BLOCKED_MESSAGE, isDistrictDrillReachable } from "../../services/kill-switch.helper";
 import { lowerExtension, saveWithGuidName, type UploadedFile as Upload } from "../../services/media-storage";
 import { ensureWithinLimit, validateImage } from "../../services/image-tools";
@@ -136,6 +136,7 @@ export class DistrictWebsiteDataController {
   @Post("banners/upload-document")
   @UseInterceptors(FileInterceptor("file", { limits: { fileSize: MAX_UPLOAD } }))
   uploadBannerDocument(@Param("districtId") d: string, @UploadedFile() file: Upload | undefined) {
+    requireFile(file);
     paramInt(d, "districtId");
     return this.uploadDocument(file, "banner");
   }
@@ -143,6 +144,7 @@ export class DistrictWebsiteDataController {
   @Post("banners/upload")
   @UseInterceptors(FileInterceptor("file", { limits: { fileSize: MAX_UPLOAD } }))
   async uploadBanner(@Param("districtId") d: string, @UploadedFile() upload: Upload | undefined, @Query("strict") strict?: string) {
+    requireFile(upload);
     paramInt(d, "districtId");
     const file = await ensureWithinLimit(upload);
     const v = validateImage(file, queryBool(strict, false)!);
@@ -234,6 +236,7 @@ export class DistrictWebsiteDataController {
   @Post("advertisements/upload-document")
   @UseInterceptors(FileInterceptor("file", { limits: { fileSize: MAX_UPLOAD } }))
   uploadAdDocument(@Param("districtId") d: string, @UploadedFile() file: Upload | undefined) {
+    requireFile(file);
     paramInt(d, "districtId");
     return this.uploadDocument(file, "advertisement");
   }
@@ -241,6 +244,7 @@ export class DistrictWebsiteDataController {
   @Post("advertisements/upload")
   @UseInterceptors(FileInterceptor("file", { limits: { fileSize: MAX_UPLOAD } }))
   uploadAd(@Param("districtId") d: string, @UploadedFile() file: Upload | undefined) {
+    requireFile(file);
     paramInt(d, "districtId");
     return this.uploadAny(file, "advertisement", true);
   }
@@ -365,6 +369,7 @@ export class DistrictWebsiteDataController {
   @Post("logo/upload")
   @UseInterceptors(FileInterceptor("file", { limits: { fileSize: MAX_UPLOAD } }))
   async uploadLogo(@Param("districtId") d: string, @UploadedFile() file: Upload | undefined) {
+    requireFile(file);
     const districtId = paramInt(d, "districtId");
     if (!file || file.size === 0) return badRequest({ message: "No file uploaded" });
     if (![".jpg", ".jpeg", ".png", ".gif", ".webp"].includes(lowerExtension(file.originalname))) return badRequest({ message: "Invalid file type. Allowed: jpg, jpeg, png, gif, webp" });
@@ -416,6 +421,7 @@ export class DistrictWebsiteDataController {
   @Post("menus/upload")
   @UseInterceptors(FileInterceptor("file", { limits: { fileSize: MAX_UPLOAD } }))
   uploadMenuDocument(@Param("districtId") d: string, @UploadedFile() file: Upload | undefined) {
+    requireFile(file);
     paramInt(d, "districtId");
     return this.uploadAny(file, "menu", false);
   }
@@ -673,6 +679,7 @@ export class DistrictWebsiteDataController {
   @Post("about/upload-image")
   @UseInterceptors(FileInterceptor("file", { limits: { fileSize: MAX_UPLOAD } }))
   uploadAboutImage(@Param("districtId") d: string, @UploadedFile() file: Upload | undefined) {
+    requireFile(file);
     paramInt(d, "districtId");
     return this.uploadAny(file, "about", false);
   }

@@ -1,4 +1,5 @@
-import { Injectable, Logger } from "@nestjs/common";
+import { Injectable, Logger, OnApplicationBootstrap, OnApplicationShutdown } from "@nestjs/common";
+import { AppConfig } from "../../config/app-config";
 import { Db, type DbCommands, type Row } from "../../database/db.service";
 import { dbDateTime } from "../../common/binding";
 import { YearTableResolver } from "../../services/year-table.resolver";
@@ -225,5 +226,79 @@ export class ZonalAwardsAutoCalculationService {
        ON DUPLICATE KEY UPDATE entered_counts = @C, received_points = @P, modified_date = CURRENT_TIMESTAMP`,
       { Opt: optionId, D: d, Y: y, M: month, C: counts, P: points },
     );
+  }
+}
+
+/**
+ * Port of ZonalAwardsAutoCalculationBackgroundService.cs: 60 s after start-up and
+ * then every 24 hours, recalculates the current year for every active district in
+ * a zone with zonal awards on. Paused unless ZonalAwards:AutoCalcEnabled is true.
+ */
+@Injectable()
+export class ZonalAwardsAutoCalculationWorker implements OnApplicationBootstrap, OnApplicationShutdown {
+  private readonly log = new Logger("ZonalAwardsAutoCalculationBackgroundService");
+  private timers: NodeJS.Timeout[] = [];
+
+  constructor(
+    private readonly db: Db,
+    private readonly config: AppConfig,
+    private readonly calc: ZonalAwardsAutoCalculationService,
+  ) {}
+
+  onApplicationBootstrap() {
+    if (!this.config.backgroundJobsEnabled) return;
+    const run = async () => {
+      try {
+        // Kill-switch: keeps migrated Auto values from being overwritten before they are verified.
+        if (!this.config.getBool("ZonalAwards:AutoCalcEnabled")) {
+          this.log.log("Zonal awards auto calculation is PAUSED (ZonalAwards:AutoCalcEnabled=false). Skipping run.");
+          return;
+        }
+        this.log.log("Zonal awards auto calculation started.");
+        await this.runAllDistricts();
+        this.log.log("Zonal awards auto calculation completed.");
+      } catch (e) {
+        this.log.error(`Error in zonal awards auto calculation: ${(e as Error).message}`);
+      }
+    };
+    this.timers.push(setTimeout(() => {
+      void run();
+      this.timers.push(setInterval(() => void run(), 24 * 60 * 60 * 1000));
+    }, 60_000));
+  }
+
+  onApplicationShutdown() {
+    this.timers.forEach((t) => clearTimeout(t));
+  }
+
+  private async runAllDistricts() {
+    const yearId = await this.db.executeScalar<number>("SELECT pk_year_id FROM rotary_year_master WHERE IsCurrent = 1 LIMIT 1");
+    if (yearId === null || yearId === undefined) {
+      this.log.warn("Zonal awards: no current rotary year set — skipping run.");
+      return;
+    }
+    const hasGoals = Number(await this.db.executeScalar("SELECT COUNT(*) FROM zonal_awards_goal WHERE fk_year_id = @Y AND isdeleted = 0", { Y: yearId }));
+    if (hasGoals === 0) {
+      this.log.log(`Zonal awards: no goals configured for current year ${yearId} — skipping run.`);
+      return;
+    }
+    const districtIds = (await this.db.query(`
+      SELECT d.pk_district_id
+      FROM district_master d
+      INNER JOIN zone_master z ON z.pk_zone_id = d.fk_zone_id
+      WHERE d.isdeleted = 0 AND d.IsActive = 1
+        AND z.isdeleted = 0 AND z.IsActive = 1
+        AND z.IsZonalAwardsEnabled = 1`)).map((r) => Number(r.pk_district_id));
+    if (districtIds.length === 0) {
+      this.log.log("Zonal awards: no active districts in zones with Zonal Awards enabled — skipping run.");
+      return;
+    }
+    for (const districtId of districtIds) {
+      try {
+        await this.calc.calculateForDistrict(districtId, Number(yearId));
+      } catch (e) {
+        this.log.error(`Failed calculating zonal awards for district ${districtId}: ${(e as Error).message}`);
+      }
+    }
   }
 }

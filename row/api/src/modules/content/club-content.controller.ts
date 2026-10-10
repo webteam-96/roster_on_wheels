@@ -8,7 +8,7 @@ import { Db } from "../../database/db.service";
 import { Authorize, User } from "../../auth/decorators";
 import type { CurrentUser } from "../../auth/current-user";
 import { badRequest, notFound, ok, statusCode } from "../../common/results";
-import { paramInt, queryInt, queryString } from "../../common/binding";
+import { paramInt, queryInt, queryString, requireFile } from "../../common/binding";
 import { CLUB_BLOCKED_MESSAGE, isClubDrillReachable } from "../../services/kill-switch.helper";
 import { ClubSiteCachePurger } from "../../services/club-site-cache-purger";
 import { lowerExtension, type UploadedFile as Upload } from "../../services/media-storage";
@@ -53,6 +53,7 @@ export class ClubContentController {
   @Post("announcements/upload")
   @UseInterceptors(FileInterceptor("file", { limits: { fileSize: MAX_UPLOAD } }))
   async uploadAnnouncementImage(@Param("clubId") clubText: string, @UploadedFile() file: Upload | undefined) {
+    requireFile(file);
     const clubId = paramInt(clubText, "clubId");
     if (!file || file.size === 0) return badRequest({ message: "No file uploaded" });
     if (![".jpg", ".jpeg", ".png", ".gif", ".webp"].includes(lowerExtension(file.originalname))) return badRequest({ message: "Invalid file type. Allowed: jpg, jpeg, png, gif, webp" });
@@ -110,6 +111,7 @@ export class ClubContentController {
   @Post("documents/upload")
   @UseInterceptors(FileInterceptor("file", { limits: { fileSize: MAX_UPLOAD } }))
   async uploadDocument(@Param("clubId") clubText: string, @UploadedFile() file: Upload | undefined) {
+    requireFile(file);
     const clubId = paramInt(clubText, "clubId");
     if (!file || file.size === 0) return badRequest({ message: "No file uploaded" });
     if (![".pdf", ".doc", ".docx", ".xls", ".xlsx", ".ppt", ".pptx"].includes(lowerExtension(file.originalname))) {
@@ -165,6 +167,7 @@ export class ClubContentController {
   @Post("upcoming-events/upload")
   @UseInterceptors(FileInterceptor("file", { limits: { fileSize: MAX_UPLOAD } }))
   async uploadEventImage(@Param("clubId") clubText: string, @UploadedFile() file: Upload | undefined) {
+    requireFile(file);
     const clubId = paramInt(clubText, "clubId");
     if (!file || file.size === 0) return badRequest({ message: "No file uploaded" });
     if (![".jpg", ".jpeg", ".png", ".gif", ".webp"].includes(lowerExtension(file.originalname))) return badRequest({ message: "Invalid file type. Allowed: jpg, jpeg, png, gif, webp" });
@@ -229,6 +232,7 @@ export class ClubContentController {
   @Post("newsletters/upload")
   @UseInterceptors(FileInterceptor("file", { limits: { fileSize: MAX_UPLOAD } }))
   async uploadNewsletter(@Param("clubId") clubText: string, @UploadedFile() file: Upload | undefined) {
+    requireFile(file);
     const clubId = paramInt(clubText, "clubId");
     if (clubId <= 0) return badRequest({ message: "Invalid club id. Files cannot be uploaded without a club context." });
     if (!file || file.size === 0) return badRequest({ message: "No file uploaded" });

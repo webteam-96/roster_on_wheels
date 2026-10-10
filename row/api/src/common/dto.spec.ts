@@ -62,3 +62,14 @@ describe("defineDto fills a C# DTO as Dapper would", () => {
     expect(Dto.map(null)).toBeNull();
   });
 });
+
+describe("DTO mapping of DB rows (Dapper parity)", () => {
+  const { defineDto: def } = jest.requireActual("./dto");
+  const D = def({ Code: { type: "string", default: () => "" }, Name: "string", When: "string", Flag: "string", N: "int" });
+  it("keeps initializers for NULL columns and formats DB dates / bools in string properties", () => {
+    expect(D.map({ Code: null, Name: null, When: "2027-06-30T00:00:00", Flag: true, N: null })).toEqual({ code: "", name: null, when: "6/30/2027 12:00:00 AM", flag: "True", n: 0 });
+  });
+  it("leaves request values alone", () => {
+    expect(D.create({ Code: null, When: "2027-06-30T00:00:00", Flag: true })).toMatchObject({ code: null, when: "2027-06-30T00:00:00", flag: "true" });
+  });
+});

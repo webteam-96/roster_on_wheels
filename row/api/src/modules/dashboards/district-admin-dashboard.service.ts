@@ -2,6 +2,8 @@ import { Injectable } from "@nestjs/common";
 import { Db, type DbCommands, type Row } from "../../database/db.service";
 import { ArgumentException, UnauthorizedAccessException } from "../../common/exceptions";
 import { YearTableResolver, type YearTableInfo } from "../../services/year-table.resolver";
+import { RotaryOrgApiClient } from "../../services/rotary-org/rotary-org-api.client";
+import { upsertTerminatedCache } from "../../services/rotary-org/rotary-org-sync.services";
 import { ClubAdminDashboardService, addMonths, int, ymd } from "./club-admin-dashboard.service";
 
 const MONTH_LABELS = ["Jul", "Aug", "Sep", "Oct", "Nov", "Dec", "Jan", "Feb", "Mar", "Apr", "May", "Jun"];
@@ -62,6 +64,7 @@ export class DistrictAdminDashboardService {
   constructor(
     private readonly db: Db,
     private readonly yearTables: YearTableResolver,
+    private readonly rotaryOrg: RotaryOrgApiClient,
   ) {}
 
   // ---- shared resolution ----
@@ -115,7 +118,7 @@ export class DistrictAdminDashboardService {
       districtId,
       districtNumber: str(info.districtNumber) ?? "",
       yearLabel: (await conn.executeScalar<string>("SELECT YearLabel FROM rotary_year_master WHERE pk_year_id = @YearId LIMIT 1", { YearId: yearId })) ?? "",
-      totalClubs: int(await conn.executeScalar("SELECT COUNT(*) FROM club_master WHERE fk_district_id = @DistrictId AND isdeleted = 0", { DistrictId: districtId })),
+      totalClubs: int(await conn.executeScalar("SELECT COUNT(*) FROM club_master WHERE fk_district_id = @DistrictId AND isdeleted = 0 AND COALESCE(ClubType,'') <> 'Rotaract Club'", { DistrictId: districtId })),
     };
   }
 
@@ -413,7 +416,7 @@ export class DistrictAdminDashboardService {
   private static async membershipTabCounts(conn: DbCommands, districtId: number, yearId: number) {
     const p = { DistrictId: districtId, YearId: yearId };
     const scalar = (sql: string) => conn.executeScalar(sql, p).then(int);
-    const totalClubs = await scalar("SELECT COUNT(*) FROM club_master WHERE fk_district_id = @DistrictId AND isdeleted = 0");
+    const totalClubs = await scalar("SELECT COUNT(*) FROM club_master WHERE fk_district_id = @DistrictId AND isdeleted = 0 AND COALESCE(ClubType,'') <> 'Rotaract Club'");
     const bodTotal = await scalar(
       `SELECT COUNT(*) FROM board_of_directors b JOIN club_master c ON c.pk_club_id = b.fk_club_id AND c.isdeleted = 0
        WHERE c.fk_district_id = @DistrictId AND b.isdeleted = 0 AND (@YearId = 0 OR b.fk_year_id = @YearId)`,
@@ -443,7 +446,7 @@ export class DistrictAdminDashboardService {
       ],
       [0, 0],
     );
-    const activeClubs = await scalar("SELECT COUNT(*) FROM club_master WHERE fk_district_id = @DistrictId AND isdeleted = 0 AND IsActive = 1");
+    const activeClubs = await scalar("SELECT COUNT(*) FROM club_master WHERE fk_district_id = @DistrictId AND isdeleted = 0 AND IsActive = 1 AND COALESCE(ClubType,'') <> 'Rotaract Club'");
     const tab = (tabKey: string, tabLabel: string, total: number, active: number, base: number) => ({ tabKey, tabLabel, total, active, participationPercent: pct(active, base) });
     return [
       tab("directors", "Directors", bodTotal, bodClubs, totalClubs),
@@ -581,7 +584,7 @@ export class DistrictAdminDashboardService {
   }
 
   private static async cmrPerClubGrid(conn: DbCommands, districtId: number, yearId: number) {
-    const clubs = await conn.query("SELECT pk_club_id AS clubId, ClubName AS clubName FROM club_master WHERE fk_district_id = @DistrictId AND isdeleted = 0 ORDER BY ClubName", { DistrictId: districtId });
+    const clubs = await conn.query("SELECT pk_club_id AS clubId, ClubName AS clubName FROM club_master WHERE fk_district_id = @DistrictId AND isdeleted = 0 AND COALESCE(ClubType,'') <> 'Rotaract Club' ORDER BY ClubName", { DistrictId: districtId });
     const reports = await conn.query(
       `SELECT r.fk_club_id AS clubId, r.ReportMonth AS month, COALESCE(r.IsUploadedToDistrict, 0) AS uploaded, r.uploaded_to_district_date AS uploadedDate
        FROM club_monthly_reports r
@@ -618,16 +621,17 @@ export class DistrictAdminDashboardService {
                     CASE WHEN COALESCE(SUM(e.points_earned), 0) + COALESCE(SUM(e.bonus_earned), 0) > 0 THEN 1 ELSE 0 END AS qualified
              FROM club_master c
              LEFT JOIN district_citation_club_entry e ON e.fk_club_id = c.pk_club_id AND e.isdeleted = 0 AND (@YearId = 0 OR e.fk_year_id = @YearId)
-             WHERE c.fk_district_id = @DistrictId AND c.isdeleted = 0
+             WHERE c.fk_district_id = @DistrictId AND c.isdeleted = 0 AND COALESCE(c.ClubType,'') <> 'Rotaract Club'
              GROUP BY c.pk_club_id, c.ClubName
              ORDER BY totalScore DESC, c.ClubName`,
             { DistrictId: districtId, YearId: yearId },
           )
         ).map((r) => ({
           clubId: int(r.clubId), clubName: str(r.clubName) ?? "", pointsEarned: int(r.pointsEarned), bonusEarned: int(r.bonusEarned),
-          totalScore: int(r.totalScore), qualified: bool(r.qualified),
+          // totalPoints: the alias the e-governance screen reads (same value as totalScore).
+          totalScore: int(r.totalScore), totalPoints: int(r.totalScore), qualified: bool(r.qualified),
         })),
-      [] as { clubId: number; clubName: string; pointsEarned: number; bonusEarned: number; totalScore: number; qualified: boolean }[],
+      [] as { clubId: number; clubName: string; pointsEarned: number; bonusEarned: number; totalScore: number; totalPoints: number; qualified: boolean }[],
     );
   }
 
@@ -650,11 +654,11 @@ export class DistrictAdminDashboardService {
         top20ClubsByMembers: [] as ClubStat[], clubLeaderboard: [] as unknown[], maleMembers: 0, femaleMembers: 0, honoraryMembers: 0, inactiveMembers: 0,
         phfMembers: 0, majorDonors: 0, fundTypeBreakdown: [] as unknown[],
       };
-      const clubIds = (await conn.query("SELECT pk_club_id FROM club_master WHERE fk_district_id = @DistrictId AND isdeleted = 0", { DistrictId: districtId })).map((r) => int(r.pk_club_id));
+      const clubIds = (await conn.query("SELECT pk_club_id FROM club_master WHERE fk_district_id = @DistrictId AND isdeleted = 0 AND COALESCE(ClubType,'') <> 'Rotaract Club'", { DistrictId: districtId })).map((r) => int(r.pk_club_id));
       if (!clubIds.length) return base;
       const p = { DistrictId: districtId, YearId: yearId };
       const scalar = (sql: string) => conn.executeScalar(sql, p).then(num);
-      const activeClubs = await scalar("SELECT COUNT(*) FROM club_master WHERE fk_district_id = @DistrictId AND isdeleted = 0 AND IsActive = 1");
+      const activeClubs = await scalar("SELECT COUNT(*) FROM club_master WHERE fk_district_id = @DistrictId AND isdeleted = 0 AND IsActive = 1 AND COALESCE(ClubType,'') <> 'Rotaract Club'");
       const totalMembers = await scalar(
         `SELECT COUNT(*) FROM club_members cm
          JOIN club_master c ON c.pk_club_id = cm.fk_club_id AND c.isdeleted = 0
@@ -720,7 +724,7 @@ export class DistrictAdminDashboardService {
                     WHERE cm.fk_club_id = c.pk_club_id AND cm.IsActive = 1 AND cm.isdeleted = 0 AND m.isdeleted = 0 AND cm.IsHonoraryMember = 0) AS members,
                   (SELECT COUNT(*) FROM club_attendance a WHERE a.fk_club_id = c.pk_club_id AND a.isdeleted = 0 AND (@YearId = 0 OR a.fk_year_id = @YearId)) AS meetings
            FROM club_master c
-           WHERE c.fk_district_id = @DistrictId AND c.isdeleted = 0`,
+           WHERE c.fk_district_id = @DistrictId AND c.isdeleted = 0 AND COALESCE(c.ClubType,'') <> 'Rotaract Club'`,
           p,
         )
       ).map((c) => ({
@@ -832,7 +836,7 @@ export class DistrictAdminDashboardService {
                   (SELECT COUNT(*) FROM club_members cm JOIN member_master_profile m ON m.pk_member_master_profile_id = cm.fk_member_master_profile_id
                     WHERE cm.fk_club_id = c.pk_club_id AND cm.IsActive = 1 AND cm.isdeleted = 0 AND m.isdeleted = 0 AND cm.IsHonoraryMember = 0) AS members
            FROM club_master c
-           WHERE c.fk_district_id = @DistrictId AND c.isdeleted = 0
+           WHERE c.fk_district_id = @DistrictId AND c.isdeleted = 0 AND COALESCE(c.ClubType,'') <> 'Rotaract Club'
            ORDER BY members DESC`,
           p,
         )
@@ -1026,7 +1030,7 @@ export class DistrictAdminDashboardService {
                   COALESCE((SELECT COUNT(*) FROM club_attendance a WHERE a.fk_club_id = c.pk_club_id AND a.isdeleted = 0
                             AND (@YearId = 0 OR a.fk_year_id = @YearId)), 0) AS meetingsHeld
            FROM club_master c
-           WHERE c.fk_district_id = @DistrictId AND c.isdeleted = 0
+           WHERE c.fk_district_id = @DistrictId AND c.isdeleted = 0 AND COALESCE(c.ClubType,'') <> 'Rotaract Club'
            ORDER BY c.ClubName`,
           p,
         )
@@ -1222,17 +1226,13 @@ export class DistrictAdminDashboardService {
         [] as ReturnType<typeof DistrictAdminDashboardService.networkRow>[],
       );
       const clubs = (
-        await conn.query("SELECT pk_club_id AS ClubId, ClubName FROM club_master WHERE fk_district_id = @DistrictId AND isdeleted = 0 AND IsActive = 1 ORDER BY ClubName", p)
+        await conn.query("SELECT pk_club_id AS ClubId, ClubName FROM club_master WHERE fk_district_id = @DistrictId AND isdeleted = 0 AND IsActive = 1 AND COALESCE(ClubType,'') <> 'Rotaract Club' ORDER BY ClubName", p)
       ).map((r) => ({ clubId: int(r.ClubId), clubName: str(r.ClubName) ?? "" }));
       return { district: identity, totalTerminated: terminated.length, totalPotential: potential.length, terminatedMembers: terminated, potentialMembers: potential, clubs };
     });
   }
 
-  /**
-   * Live Rotary.org fetch for one club. Needs the Rotary.org API client (ported
-   * with the sync module); until then it answers with the warning the C# gives
-   * when the fetch fails.
-   */
+  /** Live Rotary.org terminated members for one club (written through to the cache), newest termination first, contacts from our profiles. */
   async getLiveTerminated(memberId: number, districtIdIn: number | null, clubId: number | null) {
     const empty = { members: [] as unknown[], clubsQueried: 0, clubsSkippedNoRotaryId: 0, warning: null as string | null };
     return this.db.session(async (conn) => {
@@ -1240,14 +1240,34 @@ export class DistrictAdminDashboardService {
       if (districtId === 0) return { ...empty, warning: "No district admin assignment found." };
       if (clubId === null) return { ...empty, warning: "Pick a specific club to fetch live — browsing all clubs reads from the last-refreshed cache instead." };
       const club = await conn.queryFirstOrDefault(
-        `SELECT pk_club_id AS ClubId, ClubName, ClubRotaryId FROM club_master
-         WHERE fk_district_id = @DistrictId AND isdeleted = 0 AND IsActive = 1 AND pk_club_id = @ClubId`,
+        `SELECT pk_club_id AS ClubId, ClubName, ClubRotaryId, ClubType FROM club_master
+         WHERE fk_district_id = @DistrictId AND isdeleted = 0 AND IsActive = 1 AND pk_club_id = @ClubId AND COALESCE(ClubType,'') <> 'Rotaract Club'`,
         { DistrictId: districtId, ClubId: clubId },
       );
       if (!club) return { ...empty, warning: "Club not found in this district." };
       const rotaryId = Number(String(club.ClubRotaryId ?? "").trim());
       if (!Number.isInteger(rotaryId) || rotaryId <= 0) return { ...empty, clubsSkippedNoRotaryId: 1, warning: `${club.ClubName} is not linked to Rotary.org (missing ClubRotaryId).` };
-      return { ...empty, warning: `Failed to fetch ${club.ClubName} from Rotary.org: the Rotary.org integration is not available on this server yet.` };
+      const clubType = club.ClubType && String(club.ClubType).trim() ? String(club.ClubType) : "Rotary Club";
+      let list;
+      try {
+        list = await this.rotaryOrg.getClubTerminatedMembers(clubType, rotaryId);
+      } catch (e) {
+        return { ...empty, warning: `Failed to fetch ${club.ClubName} from Rotary.org: ${(e as Error).message}` };
+      }
+      await upsertTerminatedCache(conn, rotaryId, list).catch(() => undefined);
+      const rows = list.map((m) => DistrictAdminDashboardService.networkRow([m.firstName, m.middleName, m.lastName].filter((x) => x && x.trim()).join(" "), m.memberType ?? "",
+        String(m.memberId), m.admissionDate?.slice(0, 10) ?? null, m.terminationDate?.slice(0, 10) ?? null, m.terminationReason ?? "", m.memberId % 2147483647, "Terminated",
+        int(club.ClubId), String(club.ClubName ?? ""), null, null));
+      const ids = [...new Set(rows.map((r) => r.memberId).filter(Boolean))];
+      if (ids.length) {
+        const contacts = new Map((await conn.query("SELECT RotaryId, PrimaryMobileNumber AS Mobile, EmailId AS Email FROM member_master_profile WHERE isdeleted = 0 AND RotaryId IN @Ids", { Ids: ids }))
+          .map((r) => [String(r.RotaryId), r]));
+        for (const r of rows) {
+          const c = contacts.get(r.memberId);
+          if (c) { r.mobile = c.Mobile ?? null; r.email = c.Email ?? null; }
+        }
+      }
+      return { ...empty, members: rows.sort((x, y) => String(y.terminationDate ?? "").localeCompare(String(x.terminationDate ?? ""))), clubsQueried: 1 };
     });
   }
 

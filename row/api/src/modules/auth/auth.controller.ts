@@ -1,3 +1,4 @@
+import { clientIp } from "../../common/http";
 import { Body, Controller, Get, Headers, Ip, Post, Query } from "@nestjs/common";
 import { AuthService } from "./auth.service";
 import { Authorize, User } from "../../auth/decorators";
@@ -16,7 +17,7 @@ export class AuthController {
   async login(@Body() body: unknown, @Ip() ip: string, @Headers("user-agent") userAgent?: string) {
     const r = LoginRequestDto.create(body as Record<string, unknown>) as { email: string | null; countryCode: string | null; mobileNumber: string | null; password: string };
     try {
-      return ok(await this.auth.login(r, ip ?? null, userAgent ?? ""));
+      return ok(await this.auth.login(r, clientIp(ip), userAgent ?? ""));
     } catch (e) {
       if (e instanceof UnauthorizedAccessException) return unauthorized({ message: e.message });
       if (e instanceof ArgumentException) return badRequest({ message: e.message });

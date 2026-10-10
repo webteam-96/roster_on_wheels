@@ -11,7 +11,7 @@ import { lowerExtension, type UploadedFile as Upload } from "../../services/medi
 import { Authorize, User } from "../../auth/decorators";
 import type { CurrentUser } from "../../auth/current-user";
 import { badRequest, conflict, createdAt, noContent, notFound, ok, statusCode } from "../../common/results";
-import { paramInt, queryInt, queryString, routeInt } from "../../common/binding";
+import { paramInt, queryInt, queryString, routeInt, requireFile } from "../../common/binding";
 import { AddClubMemberDto, SaveClubDto, UpdateCogDesignationDto } from "../../dtos/club.dtos";
 
 const MAX_UPLOAD = 55 * 1024 * 1024;
@@ -182,6 +182,7 @@ export class ClubsController {
   @Post("upload")
   @UseInterceptors(FileInterceptor("file", { limits: { fileSize: MAX_UPLOAD } }))
   async upload(@UploadedFile() file: Upload | undefined, @User() user: CurrentUser) {
+    requireFile(file);
     if (!this.isSuperAdmin(user)) return statusCode(403, { message: "Only SuperAdmin can upload club logos." });
     if (!file || file.size === 0) return badRequest({ message: "No file uploaded" });
     if (!IMAGE_EXTENSIONS.includes(lowerExtension(file.originalname))) return badRequest({ message: "Invalid file type. Allowed: jpg, jpeg, png, gif, webp" });
@@ -208,6 +209,7 @@ export class ClubsController {
   @Post(":id/upload-club-logo")
   @UseInterceptors(FileInterceptor("file", { limits: { fileSize: MAX_UPLOAD } }))
   async uploadClubLogo(@Param("id") idText: string, @UploadedFile() file: Upload | undefined, @User() user: CurrentUser) {
+    requireFile(file);
     routeInt(idText);
     if (!this.isSuperAdminOrAdmin(user)) return statusCode(403, { message: "Access denied." });
     const err = validateImage(file);
@@ -218,6 +220,7 @@ export class ClubsController {
   @Post(":id/upload-rotary-logo")
   @UseInterceptors(FileInterceptor("file", { limits: { fileSize: MAX_UPLOAD } }))
   async uploadRotaryLogo(@Param("id") idText: string, @UploadedFile() file: Upload | undefined, @User() user: CurrentUser) {
+    requireFile(file);
     const id = routeInt(idText);
     if (!this.isSuperAdminOrAdmin(user)) return statusCode(403, { message: "Access denied." });
     const err = validateImage(file);

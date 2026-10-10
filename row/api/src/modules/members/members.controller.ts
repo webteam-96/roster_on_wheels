@@ -8,7 +8,7 @@ import { User } from "../../auth/decorators";
 import type { CurrentUser } from "../../auth/current-user";
 import { badRequest, conflict, createdAt, noContent, notFound, ok, statusCode } from "../../common/results";
 import { InvalidOperationException } from "../../common/exceptions";
-import { paramInt, queryInt, queryString } from "../../common/binding";
+import { paramInt, queryInt, queryString, requireFile } from "../../common/binding";
 import { lowerExtension, type UploadedFile as Upload } from "../../services/media-storage";
 import { flagsFor, getClubPeerMemberIds, getPrivacyFlags, shouldShowEmail, shouldShowPhone, viewerMemberId } from "../../services/member-privacy.helper";
 import {
@@ -210,6 +210,7 @@ export class MembersController {
   @Post("upload")
   @UseInterceptors(FileInterceptor("file", { limits: { fileSize: MAX_UPLOAD } }))
   async upload(@UploadedFile() file: Upload | undefined, @Query("type") typeText?: string) {
+    requireFile(file);
     const type = (typeText ?? "profile").toLowerCase();
     if (!file || file.size === 0) return badRequest({ message: "No file uploaded" });
     if (!["profile", "family", "familymember"].includes(type)) return badRequest({ message: "Invalid upload type. Use: profile, family, or familymember" });

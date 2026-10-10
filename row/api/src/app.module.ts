@@ -1,8 +1,9 @@
 import { Module, type MiddlewareConsumer, type NestModule } from "@nestjs/common";
-import { APP_FILTER, APP_GUARD, APP_INTERCEPTOR } from "@nestjs/core";
+import { APP_FILTER, APP_GUARD, APP_INTERCEPTOR, APP_PIPE } from "@nestjs/core";
 import { ScheduleModule } from "@nestjs/schedule";
 import { CoreModule } from "./core/core.module";
 import { AuthGuard } from "./auth/auth.guard";
+import { PhotoUploadOptimizePipe } from "./pipeline/photo-upload-optimize.pipe";
 import { DotnetExceptionFilter } from "./common/exception.filter";
 import { MobileJwtRefreshInterceptor } from "./pipeline/mobile-jwt-refresh.interceptor";
 import { AuditMiddleware } from "./pipeline/audit.middleware";
@@ -20,6 +21,7 @@ import { FEATURE_MODULES } from "./modules";
   controllers: [HealthController, PublicBrandController],
   providers: [
     { provide: APP_GUARD, useClass: AuthGuard },
+    { provide: APP_PIPE, useClass: PhotoUploadOptimizePipe },
     { provide: APP_INTERCEPTOR, useClass: MobileJwtRefreshInterceptor },
     { provide: APP_FILTER, useClass: DotnetExceptionFilter },
   ],

@@ -9,7 +9,7 @@ import { Authorize, User } from "../../auth/decorators";
 import type { CurrentUser } from "../../auth/current-user";
 import { badRequest, notFound, ok, statusCode } from "../../common/results";
 import { InvalidOperationException } from "../../common/exceptions";
-import { bodyField, bodyIntList, paramInt, queryBool, queryInt } from "../../common/binding";
+import { bodyField, bodyIntList, paramInt, queryBool, queryInt, requireFile } from "../../common/binding";
 import { CLUB_BLOCKED_MESSAGE, isClubDrillReachable } from "../../services/kill-switch.helper";
 import { ClubSiteCachePurger } from "../../services/club-site-cache-purger";
 import { ensureWithinLimit, validateImage } from "../../services/image-tools";
@@ -65,6 +65,7 @@ export class WebsiteDataController {
   @Post("clubs/:clubId/website-data/about/upload")
   @UseInterceptors(FileInterceptor("file", { limits: { fileSize: MAX_UPLOAD } }))
   async uploadAbout(@Param("clubId") c: string, @UploadedFile() file: Upload | undefined) {
+    requireFile(file);
     paramInt(c, "clubId");
     return checkImage(file) ?? ok({ path: await this.data.upload(file!, "about") });
   }
@@ -242,6 +243,7 @@ export class WebsiteDataController {
   @Post("clubs/:clubId/website-data/banners/upload")
   @UseInterceptors(FileInterceptor("file", { limits: { fileSize: MAX_UPLOAD } }))
   async uploadBanner(@Param("clubId") c: string, @UploadedFile() upload: Upload | undefined, @Query("strict") strict?: string) {
+    requireFile(upload);
     paramInt(c, "clubId");
     const strictMode = queryBool(strict, false)!;
     const file = await ensureWithinLimit(upload);
@@ -254,6 +256,7 @@ export class WebsiteDataController {
   @Post("clubs/:clubId/website-data/banners/upload-document")
   @UseInterceptors(FileInterceptor("file", { limits: { fileSize: MAX_UPLOAD } }))
   async uploadBannerDocument(@Param("clubId") c: string, @UploadedFile() file: Upload | undefined) {
+    requireFile(file);
     paramInt(c, "clubId");
     return checkDocument(file) ?? ok({ path: await this.data.upload(file!, "banner") });
   }
@@ -328,6 +331,7 @@ export class WebsiteDataController {
   @Post("clubs/:clubId/website-data/advertisements/upload-image")
   @UseInterceptors(FileInterceptor("file", { limits: { fileSize: MAX_UPLOAD } }))
   async uploadAdvertImage(@Param("clubId") c: string, @UploadedFile() file: Upload | undefined) {
+    requireFile(file);
     paramInt(c, "clubId");
     const bad = checkImage(file);
     if (bad) return bad;
@@ -338,6 +342,7 @@ export class WebsiteDataController {
   @Post("clubs/:clubId/website-data/advertisements/upload-document")
   @UseInterceptors(FileInterceptor("file", { limits: { fileSize: MAX_UPLOAD } }))
   async uploadAdvertDocument(@Param("clubId") c: string, @UploadedFile() file: Upload | undefined) {
+    requireFile(file);
     paramInt(c, "clubId");
     return checkDocument(file) ?? ok({ path: await this.data.upload(file!, "advertisement") });
   }

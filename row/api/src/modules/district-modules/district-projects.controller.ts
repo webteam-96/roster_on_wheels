@@ -7,7 +7,7 @@ import type { CurrentUser } from "../../auth/current-user";
 import { defineDto } from "../../common/dto";
 import { badRequest, conflict, notFound, ok, statusCode } from "../../common/results";
 import { InvalidOperationException } from "../../common/exceptions";
-import { paramInt, queryBool, queryInt, queryString } from "../../common/binding";
+import { paramInt, queryBool, queryInt, queryString, requireFile } from "../../common/binding";
 import { DISTRICT_BLOCKED_MESSAGE, isDistrictDrillReachable } from "../../services/kill-switch.helper";
 import { YearTableResolver, ensureRotaryYear, type YearTableInfo } from "../../services/year-table.resolver";
 import { saveWithGuidName, type UploadedFile as Upload } from "../../services/media-storage";
@@ -295,6 +295,7 @@ export class DistrictProjectsController {
   @Post("projects/upload")
   @UseInterceptors(FileInterceptor("file", { limits: { fileSize: MAX_UPLOAD } }))
   async uploadProjectPhoto(@Param("districtId") d: string, @UploadedFile() file: Upload | undefined, @Query("strict") strict?: string) {
+    requireFile(file);
     const districtId = paramInt(d, "districtId");
     return this.upload("Project", districtId, file, queryBool(strict, false)!);
   }
@@ -464,6 +465,7 @@ export class DistrictProjectsController {
   @Post("district-events/upload")
   @UseInterceptors(FileInterceptor("file", { limits: { fileSize: MAX_UPLOAD } }))
   async uploadEventPhoto(@Param("districtId") d: string, @UploadedFile() file: Upload | undefined, @Query("strict") strict?: string) {
+    requireFile(file);
     const districtId = paramInt(d, "districtId");
     return this.upload("Event", districtId, file, queryBool(strict, false)!);
   }

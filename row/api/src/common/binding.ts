@@ -76,6 +76,33 @@ export function paramInt(value: string | undefined, name = "id"): number {
 }
 
 /**
+ * Query values ASP.NET treats as implicitly [Required] (non-nullable string / collection parameters, nullable
+ * context on): missing or empty → 400 ValidationProblem naming every missing field, before the action runs.
+ */
+export function requireQuery(fields: Record<string, string | string[] | undefined | null>): void {
+  const errors: Record<string, string[]> = {};
+  for (const [name, v] of Object.entries(fields)) {
+    const value = Array.isArray(v) ? v.filter((x) => x !== "") : v;
+    if (value === undefined || value === null || value === "" || (Array.isArray(value) && value.length === 0)) errors[name] = [`The ${name} field is required.`];
+  }
+  if (Object.keys(errors).length) throw new ActionResultError(new ValidationProblemResult(errors));
+}
+
+/**
+ * A [FromBody] List<T> parameter: anything but a JSON array is a 400 ValidationProblem worded as
+ * System.Text.Json words it (netType = the .NET type name, e.g. "System.Collections.Generic.List`1[...]").
+ */
+export function requireArrayBody(body: unknown, netType: string, param: string): unknown[] {
+  if (Array.isArray(body)) return body;
+  const required = { [param]: [`The ${param} field is required.`] };
+  if (body === undefined || body === null)
+    throw new ActionResultError(new ValidationProblemResult({ "": ["A non-empty request body is required."], ...required }));
+  // The reader stops after the first token: one byte for "{", the token's own length for a scalar.
+  const pos = typeof body === "object" ? 1 : JSON.stringify(body).length;
+  throw new ActionResultError(new ValidationProblemResult({ $: [`The JSON value could not be converted to ${netType}. Path: $ | LineNumber: 0 | BytePositionInLine: ${pos}.`], ...required }));
+}
+
+/**
  * A date/time from a request body, ready for a DATETIME/DATE column: values
  * with an offset or "Z" are converted to UTC (ROW stores UTC); values without
  * one are taken as written. Empty or unparseable -> null.
@@ -119,4 +146,9 @@ export function bodyField(body: unknown, name: string): unknown {
 export function bodyIntList(body: unknown, name: string): number[] {
   const v = bodyField(body, name);
   return Array.isArray(v) ? v.map(Number).filter(Number.isFinite).map(Math.trunc) : [];
+}
+
+/** A non-nullable IFormFile parameter: [ApiController] model validation answers before the action runs. */
+export function requireFile(file: unknown, name = "file"): void {
+  if (!file) throw new ActionResultError(new ValidationProblemResult({ [name]: [`The ${name} field is required.`] }));
 }

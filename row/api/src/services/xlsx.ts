@@ -35,6 +35,33 @@ export function thinBorders(ws: ExcelJS.Worksheet, r1: number, c1: number, r2: n
   for (let r = r1; r <= r2; r++) for (let c = c1; c <= c2; c++) ws.getCell(r, c).border = { top: thin, left: thin, bottom: thin, right: thin };
 }
 
+/** IXLWorksheet.CopyTo(otherWorkbook, name): values, styles, merges, widths, heights and frozen panes. */
+export function copyWorksheet(src: ExcelJS.Worksheet, dst: ExcelJS.Workbook, name: string): ExcelJS.Worksheet {
+  const ws = dst.addWorksheet(name);
+  src.columns?.forEach((col, i) => { if (col.width) ws.getColumn(i + 1).width = col.width; });
+  src.eachRow({ includeEmpty: true }, (row, r) => {
+    const to = ws.getRow(r);
+    if (row.height) to.height = row.height;
+    row.eachCell({ includeEmpty: true }, (cell, c) => {
+      const t = to.getCell(c);
+      t.value = cell.value;
+      t.style = JSON.parse(JSON.stringify(cell.style ?? {}));
+    });
+  });
+  for (const range of (src.model as { merges?: string[] }).merges ?? []) ws.mergeCells(range);
+  if (src.views?.length) ws.views = JSON.parse(JSON.stringify(src.views));
+  return ws;
+}
+
+/** ClosedXML Columns().AdjustToContents(), approximated: each column as wide as its longest text (+2), at least 8. */
+export function fitColumns(ws: ExcelJS.Worksheet) {
+  ws.columns?.forEach((col) => {
+    let w = 8;
+    col.eachCell?.({ includeEmpty: false }, (cell) => { w = Math.max(w, String(cell.text ?? "").length + 2); });
+    col.width = Math.min(w, 100);
+  });
+}
+
 export async function toBuffer(wb: ExcelJS.Workbook): Promise<Buffer> {
   return Buffer.from(await wb.xlsx.writeBuffer());
 }

@@ -1,3 +1,4 @@
+import { clientIp } from "../common/http";
 import { Injectable, Logger, type NestMiddleware } from "@nestjs/common";
 import type { NextFunction, Request, Response } from "express";
 import { Db } from "../database/db.service";
@@ -108,7 +109,7 @@ export class AuditMiddleware implements NestMiddleware {
             EntityId: extractEntityId(path),
             EntityName: isJson ? extractEntityName(req.body) : null,
             Details: `${method} ${path}`,
-            IpAddress: req.ip ?? "",
+            IpAddress: clientIp(req.ip) ?? "",
             UserAgent: userAgent.length > 500 ? userAgent.slice(0, 500) : userAgent,
           },
         )

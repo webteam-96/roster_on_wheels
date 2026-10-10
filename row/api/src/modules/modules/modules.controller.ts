@@ -5,7 +5,7 @@ import { Db } from "../../database/db.service";
 import { Authorize, User } from "../../auth/decorators";
 import type { CurrentUser } from "../../auth/current-user";
 import { badRequest, forbid, notFound, ok, statusCode } from "../../common/results";
-import { paramInt } from "../../common/binding";
+import { paramInt, requireFile } from "../../common/binding";
 import { CLUB_BLOCKED_MESSAGE, DISTRICT_BLOCKED_MESSAGE, isClubDrillReachable, isDistrictDrillReachable } from "../../services/kill-switch.helper";
 import { lowerExtension, type UploadedFile as Upload } from "../../services/media-storage";
 import { SaveModuleCategoryDto, SaveModuleDto, UpdateModuleComingSoonDto, type SaveModule } from "../../dtos/module.dtos";
@@ -70,6 +70,7 @@ export class ModulesController {
   @Post("modules/upload")
   @UseInterceptors(FileInterceptor("file", { limits: { fileSize: MAX_UPLOAD } }))
   async uploadIcon(@UploadedFile() file: Upload | undefined, @User() user: CurrentUser) {
+    requireFile(file);
     if (!this.isSuperAdmin(user)) return statusCode(403, { message: "Only SuperAdmin can upload module icons." });
     if (!file || file.size === 0) return badRequest({ message: "No file uploaded" });
     if (![".jpg", ".jpeg", ".png", ".gif", ".webp", ".svg"].includes(lowerExtension(file.originalname))) {

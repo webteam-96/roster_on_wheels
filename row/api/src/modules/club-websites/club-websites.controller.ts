@@ -4,7 +4,7 @@ import { AppConfig } from "../../config/app-config";
 import { Authorize, User } from "../../auth/decorators";
 import type { CurrentUser } from "../../auth/current-user";
 import { badRequest, content, forbid, notFound, ok } from "../../common/results";
-import { bodyField, bodyIntList, dbDateTime, paramInt, queryBool, queryInt, queryString } from "../../common/binding";
+import { bodyField, bodyIntList, dbDateTime, paramInt, queryBool, queryInt, queryString, requireQuery } from "../../common/binding";
 import { EmailService } from "../../services/email.service";
 import { PleskService } from "../../services/plesk.service";
 import { ClubSiteCachePurger } from "../../services/club-site-cache-purger";
@@ -264,6 +264,7 @@ export class ClubWebsitesController {
 
   @Get("domain-plesk-status")
   async domainPleskStatus(@Query("domain") domain: string | undefined, @User() u: CurrentUser) {
+    requireQuery({ domain });
     if (!this.isSuperAdmin(u)) return forbid();
     if (!domain || !domain.trim()) return badRequest({ message: "domain is required." });
     if (!this.plesk.isConfigured) return ok({ existsInPlesk: false, pleskConfigured: false });
@@ -557,6 +558,7 @@ export class ClubWebsitesController {
 
   @Get("plesk/diagnostic-subdomain")
   async pleskDiagnosticSubdomain(@Query("label") label: string | undefined, @User() u: CurrentUser) {
+    requireQuery({ label });
     if (!this.isSuperAdmin(u)) return forbid();
     if (!this.plesk.isConfigured) return badRequest({ message: "Plesk not configured." });
     if (!label || !label.trim()) return badRequest({ message: "label query param required" });

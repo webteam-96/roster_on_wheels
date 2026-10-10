@@ -1,3 +1,4 @@
+import { formatDate } from "./dotnet-format";
 /**
  * Turning database rows into the JSON the .NET API returns.
  *
@@ -49,7 +50,14 @@ const DEFAULTS: Partial<Record<FieldType, unknown>> = {
   timespan: "00:00:00", guid: "00000000-0000-0000-0000-000000000000",
 };
 
-function convert(value: unknown, type: FieldType): unknown {
+/** A DATE / DATETIME value as the DB layer hands it over ("yyyy-MM-ddTHH:mm:ss[.fff][Z]"). */
+const DB_DATETIME = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?Z?$/;
+
+/**
+ * fromDb: the value came from a query row. Dapper fills a C# string property from a DATETIME with
+ * DateTime.ToString() (the culture's "G" pattern) and from a BIT/TINYINT(1) with "True" / "False".
+ */
+function convert(value: unknown, type: FieldType, fromDb = false): unknown {
   if (value === null || value === undefined) return type.endsWith("?") ? null : DEFAULTS[type] ?? null;
   const base = type.replace("?", "") as FieldType;
   switch (base) {
@@ -64,6 +72,8 @@ function convert(value: unknown, type: FieldType): unknown {
       if (typeof value === "string") return value === "1" || value.toLowerCase() === "true";
       return Number(value) !== 0;
     case "string":
+      if (fromDb && typeof value === "boolean") return value ? "True" : "False";
+      if (fromDb && typeof value === "string" && DB_DATETIME.test(value)) return formatDate(value.replace(/Z$/, ""), "G");
       return typeof value === "string" ? value : String(value);
     default:
       return value;
@@ -100,25 +110,27 @@ export function defineDto<S extends DtoSpec>(spec: S): Dto<S> {
     initial: typeof t === "string" ? undefined : t.default,
   }));
 
-  const build = (find: (lowerProp: string) => { found: boolean; value: unknown }) => {
+  const build = (find: (lowerProp: string) => { found: boolean; value: unknown }, fromDb: boolean) => {
     const out: DtoObject = {};
     for (const f of fields) {
       const hit = find(f.lower);
-      out[f.json] = hit.found ? convert(hit.value, f.type) : f.initial ? f.initial() : convert(undefined, f.type);
+      // Dapper leaves a member untouched when the column is NULL, so a property initializer (= "") survives.
+      const useDefault = !hit.found || (fromDb && (hit.value === null || hit.value === undefined));
+      out[f.json] = !useDefault ? convert(hit.value, f.type, fromDb) : f.initial ? f.initial() : convert(undefined, f.type);
     }
     return out;
   };
 
-  const fromRow = (row: Record<string, unknown>) => {
+  const fromRow = (row: Record<string, unknown>, fromDb: boolean) => {
     const byLower = new Map<string, unknown>();
     for (const [k, v] of Object.entries(row)) if (!byLower.has(k.toLowerCase())) byLower.set(k.toLowerCase(), v);
-    return build((l) => ({ found: byLower.has(l), value: byLower.get(l) }));
+    return build((l) => ({ found: byLower.has(l), value: byLower.get(l) }), fromDb);
   };
 
   return {
     spec,
-    map: (row) => (row ? fromRow(row) : null),
-    mapAll: (rows) => rows.map(fromRow),
-    create: (values) => fromRow(values),
+    map: (row) => (row ? fromRow(row, true) : null),
+    mapAll: (rows) => rows.map((r) => fromRow(r, true)),
+    create: (values) => fromRow(values, false),
   };
 }

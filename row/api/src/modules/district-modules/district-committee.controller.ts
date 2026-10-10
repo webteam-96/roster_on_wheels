@@ -7,7 +7,7 @@ import { Authorize, User } from "../../auth/decorators";
 import type { CurrentUser } from "../../auth/current-user";
 import { defineDto } from "../../common/dto";
 import { badRequest, notFound, ok, statusCode } from "../../common/results";
-import { bodyIntList, paramInt, queryBool, queryInt } from "../../common/binding";
+import { bodyIntList, paramInt, queryBool, queryInt, requireFile } from "../../common/binding";
 import { DISTRICT_BLOCKED_MESSAGE, isDistrictDrillReachable } from "../../services/kill-switch.helper";
 import { DcAutoGroupService } from "../../services/dc-auto-group.service";
 import { saveWithGuidName, type UploadedFile as Upload } from "../../services/media-storage";
@@ -160,6 +160,7 @@ export class DistrictCommitteeController {
   @Post("upload-photo")
   @UseInterceptors(FileInterceptor("file", { limits: { fileSize: MAX_UPLOAD } }))
   async uploadPhoto(@Param("districtId") d: string, @UploadedFile() file: Upload | undefined, @Query("isMember") isMember?: string, @Query("clubId") c?: string) {
+    requireFile(file);
     const districtId = paramInt(d, "districtId");
     const member = queryBool(isMember, false)!;
     const clubId = queryInt(c);

@@ -1,4 +1,4 @@
-import { formatDate, formatNumber, setCulture } from "./dotnet-format";
+import { formatDate, formatNumber, parseInvariantNumber, setCulture } from "./dotnet-format";
 
 describe("C# ToString formats (en-US)", () => {
   beforeAll(() => setCulture("en-US"));
@@ -37,5 +37,20 @@ describe("C# ToString formats (en-US)", () => {
     setCulture("en-IN");
     expect(formatNumber(1234567.5, "N2")).toBe("12,34,567.50");
     setCulture("en-US");
+  });
+});
+
+
+describe("parseInvariantNumber (NumberStyles.Number)", () => {
+  it("parses what decimal.TryParse accepts", () => {
+    expect(parseInvariantNumber(" -5 ")).toBe(-5);
+    expect(parseInvariantNumber("1,234.5")).toBe(1234.5);
+    expect(parseInvariantNumber("3-")).toBe(-3);
+    expect(parseInvariantNumber(".5")).toBe(0.5);
+    expect(parseInvariantNumber("7.")).toBe(7);
+    expect(parseInvariantNumber("+0")).toBe(0);
+  });
+  it("rejects what it does not", () => {
+    for (const s of ["", "abc", "1e5", "--1", "-1-", "1.2.3", null]) expect(parseInvariantNumber(s)).toBeNull();
   });
 });

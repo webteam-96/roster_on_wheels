@@ -59,6 +59,7 @@ export class CitationAutoPointsService implements OnApplicationBootstrap, OnAppl
   ) {}
 
   onApplicationBootstrap() {
+    if (!this.config.backgroundJobsEnabled) return;
     if (!this.config.getBool("CitationAutoPoints:DailyLoopEnabled")) {
       this.log.log("Citation auto-points 24h loop is PAUSED (CitationAutoPoints:DailyLoopEnabled=false).");
       return;

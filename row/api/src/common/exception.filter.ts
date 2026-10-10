@@ -64,6 +64,8 @@ export class DotnetExceptionFilter implements ExceptionFilter {
     const err = error instanceof Error ? error : new Error(String(error));
     const query = req.originalUrl.includes("?") ? req.originalUrl.slice(req.originalUrl.indexOf("?")) : "";
     this.log.error(`Unhandled ${req.method} ${req.path}${query} -> 500`, err.stack);
-    writeResult(req, res, new ObjectResult(500, { message: err.message, type: err.name || "Exception" }));
+    // mysql2 errors carry a SQL state: RIZones reported those as MySqlConnector's MySqlException.
+    const isDbError = typeof (error as { sqlState?: unknown }).sqlState === "string" || typeof (error as { sqlMessage?: unknown }).sqlMessage === "string";
+    writeResult(req, res, new ObjectResult(500, { message: err.message, type: isDbError ? "MySqlException" : err.name || "Exception" }));
   }
 }

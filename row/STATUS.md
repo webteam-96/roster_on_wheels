@@ -1,6 +1,6 @@
 # ROW Build — Status and Handover
 
-Last updated: 2026-10-09 · Branch: `main` · Last code commit: `1adecd4`
+Last updated: 2026-10-09 (session 2) · Branch: `main` · Last code commit: `1adecd4` (session 2 work is uncommitted — commit only when the whole conversion is done)
 
 This is the single place to pick the work back up. It covers what ROW is, how the
 repo is laid out, how to run and test the backend, what is finished, what is left
@@ -38,10 +38,10 @@ Related documents:
 
 | Path | What | State |
 |---|---|---|
-| `row/api` | NestJS backend, port of the RIZones .NET API, MySQL, same schema | **In progress** (~45%) |
+| `row/api` | NestJS backend, port of the RIZones .NET API, MySQL, same schema | **In progress** (~51%) |
 | `row/admin` | Next.js + Tailwind + TypeScript admin portal (from the RIZones admin UI) | Foundation done, cleanup pending |
 | `row/club-website` | Next.js public club website | Foundation done |
-| `row/mobile` | Flutter app (imported from the RIZones app repo) | **Parked** |
+| `row/mobile` | Flutter app (converted from the RIZones app) | Converted to the ROW API; WS10 items pending |
 | `document/` | Plans and design documents | — |
 | `reference/` | RIZones sources for reading only — **gitignored, never commit** | — |
 
@@ -94,6 +94,16 @@ npm run -s lint:rizones             # must report 0 findings (no RIZones names/d
 | `Media__RedirectBaseUrl`, `FrontendUrl`, `Api__BaseUrl`, `ClubSite__UseHttps` | URLs |
 | `Payments__PayLinkKey` | club-website pay links |
 | `Cmr__SubmissionEmailOverride` | send all monthly-report emails to one test address |
+| `DailyStatsReport__Enabled`, `__Hour`, `__Recipients__0..` | daily statistics email |
+| `DistrictPerformanceReport__Enabled`, `__Mode` (Test/Live), `__TestRecipients__0..`, `__TestDistricts__0..`, `__LiveCc__0..`, `__PreviewDate`, `__ExcludedClubNames__0..` | District Performance / RI Director report emails (hour and live days: `Brand__Scope__DistrictReportSendHour`, `__DistrictReportDaysOfMonth__0..`) |
+| `Zoom__AccountId`, `__ClientId`, `__ClientSecret` (`__HostUserId`, `__Timezone`) | website-training Zoom meetings (none = bookings without a link) |
+| `Training__SlotMinutes` (30), `__MaxPerDay` (3), `__MinNoticeDays` (1), `__HorizonDays` (30), `__TeamEmails__0..`, `__BookerCc` | website-training booking rules and notification lists |
+| `MobileApp__DefaultUpdateUrl` | URL stored on a new app version when none is given |
+| `GoalSetting__SplitPilot__Enabled`, `__ClubIds__0..`, `__DistrictIds__0..` | target-split pilot (default: everyone) |
+| `RotaryOrgApi__BaseUrl`, `__Username`, `__Password` | Rotary.org Data Integration API |
+| `BackgroundJobs__Enabled` | **set to `true` on servers**: the background loops (scheduled emails, push, reminders, rollover, credit expiry...). `config/appsettings.json` keeps it `false` for local runs |
+| `Firebase__ServiceAccountAbsolutePath` (or `__ServiceAccountPath`) | push notifications (Firebase service-account JSON; none = push off) |
+| `ZonalAwards__AutoCalcEnabled` | 24 h zonal awards recalculation (off by default) |
 | `CitationAutoPoints__DailyLoopEnabled` | 24 h citation loop (off by default) |
 | `ProjectCount__ZoneNames__0..`, `ProjectCount__ExemptDistrictNumbers__0..` | project-count geography rule |
 
@@ -144,8 +154,10 @@ npm run -s lint:rizones             # must report 0 findings (no RIZones names/d
 
 ## 5. Progress — backend
 
-**53 of 146 controllers ported, about 690 of 1,523 endpoints (≈45%).** Everything ported compiles,
-passes the RIZones lint, and was exercised against a local database.
+**123 of 146 controllers ported, about 1,310 of 1,529 endpoints (≈86%).** What is left is Payments (decision pending) and two RIZones partner feeds that are not to be ported. Everything ported compiles and
+passes the RIZones lint. Session-1 work was exercised against a local database; session-2 work (Reports, Goal Setting)
+(and the admin tools / OCV, public-site and Rotary.org groups) were checked by type check, unit specs and an app boot (DI + route mapping) only — **no local DB was
+available, so the report SQL still needs a run against MySQL.**
 
 ### 5.1 Ported (controller — endpoints)
 
@@ -160,6 +172,13 @@ passes the RIZones lint, and was exercised against a local database.
 | Programmes | Projects 14, ProjectApproval 10, BeneficiaryApproval 5, PphCamps 14, ZonalAwards (14), CreditManagement 8, ClubMassEmails 8 |
 | Reporting | ClubMonthlyReport 12 (Word + PDF + email to district), TrfContributions 11, DistrictCmrEmailSettings 2 |
 | Admin tools | ClubLeadership 10 (+ scheduled email worker), ClubWebsites 24 of 34 (Plesk provisioning, trials, reminders) |
+| Reports (session 2) | Reports 48, ClubReport 9, MobileClubAdminReport 8, DistrictReport 9, MobileDistrictAdminReport 9, DailyStatsReport 2 (+ 06:00 scheduled email), DistrictPerformanceReport 8 (+ DG / RI Director scheduled email) |
+| RI Director (session 2) | RiDirector 53, RiAdminCleanup 2, InternationalPresident 5, DistrictGovernor 9, TrainingAppointment 9 (Zoom) |
+| Mobile (session 2) | MobileDistrictAdminDashboard 17, MobileClubAdminDashboard 15, MobileAgDashboard 10 (web routes shared via base classes), MobileClubAdminPastPresidents 7, MobileVersion 7, MobileDistrictAwards 5, MobileCalendar 4, MobileWeblinks 3, MobileMemberSettings 3, MobileFcm 2, MobileNotifications 1 (bell feed), MobileLoginCheck 1, MobileDistrictCmrEmailSettings 2 (already served) |
+| Admin tools (session 2) | LoginAnnouncement 12 (web + mobile), MemberDuplicate 11, DirectoryDataCollection 11, EmailLog 10, WhatsAppLog 10 of 11, OcvGov 14, PublicOcvLiveDocuments 2, LiveDocumentsExport 1, SuperAdmin 5, DistrictAwardsConfig 5, PushLogs 4, GlobalMemberSearch 4, GlobalSearch 2, FindRotarian 2, WebSso 2, WhatsAppInfo 2, ProjectClassification 2, ClubMemberHonorary 2, DistrictDirectory 1, ClubAnalytics 1, CitationMatrix 1, MassEmailMedia 1 |
+| Public site (session 2) | ClubWebsitePublicData 16, ClubWebsitePublicDataV2 8, ClubGalleryPublic 2, ClubWebsitePublic 1 of 2 (`by-host`), PublicProjectShare 2 (1200×630 card via sharp), PublicProject 1, PublicProjectStats 10, PublicWebsiteDirectory 2, ClubWebsiteTheme 2, DistrictWebsitePublicData 3, DistrictWebsites 14, ClubFinder 10, PublicDirectory 9 |
+| Rotary.org (session 2) | RotaryOrgManualSync 27, RotaryOrgSync 3 (ping / bootstrap / status), RotaryOrgProjectSync 3, RotaryOrgProjectSyncLog 3, ClubRotaryOrgCredentials 2; plus the club-admin live terminated list and the district Rotary Network live fetch / cache refresh job (were stubs) |
+| Goal setting (session 2) | GoalSetting 83, MobileGoalSetting 57, ClubFoundationGoals 3 (service split over `src/modules/goal-setting/goal-*.ts`) |
 
 Shared services already ported (in `src/services/`):
 
@@ -172,18 +191,12 @@ Shared services already ported (in `src/services/`):
 | Club websites | Plesk client, club website activation, menu seeder, website reachability / DNS check, pay-link token, IIS app-pool recycler, cache purger |
 | Files and documents | media storage, image tools, Excel helpers |
 | Lookups and validation | year-table resolver, project date validator, phone normaliser |
+| Reports support (session 2) | directory data-collection fields, club scope (Rotaract) helper, Rotary.org API client (auth + club officers only) |
 
 ### 5.2 Pending (controller — endpoints), in suggested order
 
-**1. Reports** (start here next):
-- Reports 48
-- ClubReport 9
-- DistrictReport 9
-- DistrictPerformanceReport 8
-- MobileClubAdminReport 8
-- MobileDistrictAdminReport 9
-- ClubProfileReport 2
-- DailyStatsReport 2
+**1. Reports** — done except:
+- ClubProfileReport 2 — not ported (RIZones partner integration, PORTING.md §4).
 
 **2. Payments.** These are rebuilt, not ported. RIZones uses Cashfree/Razorpay (India-only); ROW uses Stripe/PayPal.
 - ClubDues 39
@@ -202,84 +215,27 @@ Shared services already ported (in `src/services/`):
 - Wallet 4
 - WalletLinks 8
 - PublicWallet 7
+- PublicClubWebsite 4 and ClubWebsitePublic `renew-link` (pay-link purchase / renewal, see item 7)
 - The 10 deferred ClubWebsites pricing endpoints (`pricing/*`, `default-pricing*`, `pricing/route-account`, `pricing/send-reminders`)
-- Not to port as-is (India-only; replace with Stripe equivalents or drop): CashfreeKyc 9, RazorpayRouteAccounts 7, RouteMaintenance 3
+- Not to port as-is (India-only; replace with Stripe equivalents or drop): CashfreeKyc 9, RazorpayRouteAccounts 7
 
-**3. Goal setting:**
-- GoalSetting 79
-- MobileGoalSetting 53
-- ClubFoundationGoals 3
+**3. Goal setting** — done (session 2).
 
-**4. RI Director:**
-- RiDirector 53
-- RiAdminCleanup 2
-- InternationalPresident 5
-- DistrictGovernor 9
-- TrainingAppointment 9
+**4. RI Director** — done (session 2).
 
-**5. Rotary.org sync.** Needs ROW's own Rotary.org access.
-- RotaryOrgManualSync 27
-- RotaryOrgSync 3
-- RotaryOrgProjectSync 3
-- RotaryOrgProjectSyncLog 3
-- ClubRotaryOrgCredentials 2
-- RotaryThirdParty 1
+**5. Rotary.org sync** — done (session 2). Needs ROW's own Rotary.org access (`RotaryOrgApi:BaseUrl / Username / Password`); without it the endpoints answer with the Rotary.org error and the daily cache refresh stays off. Not ported:
+- RotaryThirdParty 1 — an anonymous partner feed exposing members' phones and emails for three RIZones districts (partner integration, like ClubProfileReport).
+- The member-sweep worker itself (`RotaryOrgSyncWorker.exe`, a separate RIZones program). The sweep / reconcile buttons still launch whatever `RotaryOrgSync:WorkerExePath` points at.
 
-**6. Mobile:**
-- MobileDistrictAdminDashboard 17
-- MobileClubAdminDashboard 15
-- MobileAgDashboard 10
-- MobileClubAdminPastPresidents 7
-- MobileVersion 7
-- MobileDistrictAwards 5
-- MobileCalendar 4
-- MobileWeblinks 3
-- MobileMemberSettings 3
-- MobileFcm 2 (needs a ROW Firebase project)
-- MobileDistrictCmrEmailSettings 2 (routes already served by DistrictCmrEmailSettings — verify and mark done)
-- MobileNotifications 1
-- MobileLoginCheck 1
+**6. Mobile** — done (session 2). Push sending itself (FCM / Firebase) is not part of these endpoints; the app only registers tokens here.
 
-**7. Public site / websites:**
-- ClubWebsitePublicData 16
-- ClubWebsitePublicDataV2 8
-- DistrictWebsites 14
-- PublicProjectStats 10
-- ClubFinder 10
-- PublicDirectory 9
-- PublicClubWebsite 4
-- DistrictWebsitePublicData 3
-- PublicWebsiteDirectory 2
-- PublicProjectShare 2
-- ClubWebsiteTheme 2
-- ClubWebsitePublic 2
-- ClubGalleryPublic 2
-- PublicProject 1
-- PublicOcvLiveDocuments 2
-- LiveDocumentsExport 1
+**7. Public site / websites** — done (session 2), except two Payments-bound endpoints (see item 2):
+- PublicClubWebsite 4 (the pay-link website purchase: quote / subdomain check / Razorpay order / verify).
+- ClubWebsitePublic `renew-link` 1 (mints the website-renewal and wallet top-up pay links).
 
-**8. Admin and other:**
-- LoginAnnouncement 12
-- MemberDuplicate 11
-- DirectoryDataCollection 11
-- EmailLog 10
-- WhatsAppLog 11
-- OcvGov 14
-- SuperAdmin 5
-- DistrictAwardsConfig 5
-- PushLogs 4
-- GlobalMemberSearch 4
-- GlobalSearch 2
-- FindRotarian 2
-- WebSso 2
-- WhatsAppInfo 2
-- ProjectClassification 2
-- ClubMemberHonorary 2
-- DistrictDirectory 1
-- ClubAnalytics 1
-- CitationMatrix 1
-- MassEmailMedia 1
-- India-only, do not port: InteraktWebhook 1, ShrigodaPartner 1
+**8. Admin and other** — done (session 2), except:
+- WhatsAppLog `backfill` — not ported (imported the RIZones Interakt log from a server file; ROW logs its own sends).
+- India-only, do not port: InteraktWebhook 1, ShrigodaPartner 1.
 
 To find the C# source of any of these: `reference/RotaryIndia_Admin_API_Claude/RotaryApi/Controllers/<Name>Controller.cs`.
 
@@ -287,10 +243,29 @@ To find the C# source of any of these: `reference/RotaryIndia_Admin_API_Claude/R
 
 | Status | Services |
 |---|---|
-| Ported | Citation auto-points (24 h, behind a flag), club leadership scheduled emails (30 s), CMR submission mailer |
-| Pending | Club website reminder / auto-expire service, daily stats report email, scheduled communication emails, Rotary.org sync jobs |
+| Ported | Citation auto-points (24 h, behind a flag), club leadership scheduled emails (30 s), CMR submission mailer, daily stats report (behind `DailyStatsReport:Enabled`), district performance + RI Director report (behind `DistrictPerformanceReport:Enabled`) |
+| Ported (session 2) | Rotary.org /clubs cache refresh (daily 08:00 brand time; only with Rotary.org credentials), district terminated-cache refresh job (on demand) |
+| Ported (session 3) | Rotary-year rollover (6 h, first pass at start-up), credit expiry (24 h), zonal awards auto-calculation (24 h, behind `ZonalAwards:AutoCalcEnabled`), club website reminders + auto-expiry (6 h, renewal link off until Payments), push notifications (announcements, events, documents, newsletters, projects, reminders; FCM HTTP v1, needs a Firebase service account) + push-log clean-up, scheduled emails (10 s). All behind `BackgroundJobs:Enabled` (default true), as in RIZones. |
+| Pending | Scheduled WhatsApp sender (open decision 12), the Rotary.org member-sweep worker (separate program) |
+| Not ported (Payments) | Website provisioning (paid orders), Razorpay settlement sync, membership dues reconciliation |
 
 Check `Program.cs` and `Services/*BackgroundService.cs` in the reference for the full list.
+
+## 5a. Backend testing against the .NET API (2026-10-10)
+
+Both APIs ran side by side (local MySQL, synthetic fixture data, the .NET start-up migrations applied, then the same snapshot restored into both databases before every sweep). Every route was called on both and the answers compared; the differences found were fixed in ROW (listed in ROW-CHANGES, "Testing against the .NET API").
+
+| Sweep | Result |
+|---|---|
+| Schema (tables, columns, procedures) after the .NET migrations | identical |
+| Sign-in | identical tokens |
+| GET, 757 routes | 716 identical; the other 41 are expected: brand / time zone / currency, ROW-only endpoints, environment (ports, collation), and report files whose content was compared cell by cell and only the currency symbol differs |
+| POST/PUT/PATCH/DELETE, 481 routes, three ways (JSON `{}`, no body, empty JSON body) | 464 / 478 / 478 identical; the rest are the database name inside MySQL error text, ids shifted by earlier calls in the same sweep (identical on a fresh database), and the daily-stats / District Performance test sends (ROW has no built-in recipients) |
+| Upload endpoints (multipart and JSON) | identical apart from Payments (not ported) and brand text |
+| Background jobs (scheduled emails + reminders, credit deduction and expiry warning, website auto-expire and reminders, year rollover), 3 minutes on seeded data | identical rows written in both databases |
+| Unit tests | 101 pass |
+
+Not covered: real sends (Brevo, Meta WhatsApp, FCM, Rotary.org, Plesk need ROW credentials), Payments, and load. The scratch harness is not in the repo.
 
 ## 6. Progress — web and mobile
 
@@ -301,7 +276,31 @@ Check `Program.cs` and `Services/*BackgroundService.cs` in the reference for the
 
 **Club website (`row/club-website`).** The foundation is committed. It needs the public endpoints from 5.2 item 7.
 
-**Mobile (`row/mobile`).** Imported, parked until the backend is further along. It needs a ROW Firebase project for push.
+**Mobile (`row/mobile`).** Converted to the ROW API (2026-10-10); see `row/mobile/README.md`.
+- API base URL from `--dart-define=API_BASE_URL` (was RIZones' server). Every endpoint the app calls that exists in the .NET API exists in ROW (checked by script); the Payments screens (membership / club dues, event payment links, wallet, website purchase) call endpoints that are not ported and show an error until Payments is (open decision 4).
+- Brand from `GET api/public/brand` at start-up, cached on the device (master plan WS10-02): product name on the splash, login, OTP, welcome, home, app lock, reports and exports; support phones / email / hours on the helpline and support dialogs; terms link; club-site domain. No RIZones name, domain, phone or email is left in the app.
+- Home screen: the four RIZones site pages (websites, leaders, district governors, regional leaders) open the same paths on the brand's web origin and are hidden when the brand has none; the India-only "Rotary News Trust" link, the RIZones partner card (BeyondSure) and RIZones' social-media icons are removed.
+- Native: launcher label and iOS permission texts say "ROW"; the RIZones network-security exception is removed; the launcher icon is a placeholder (the Rotary wheel) until the ROW icon exists.
+- A build without Firebase config files starts with push off (it used to crash at start).
+- Checks: `flutter analyze` (no errors; warnings unchanged from the import), `flutter test` (70 pass). No device build here (no Android SDK / full Xcode on this machine).
+- **Pending (master plan WS10):** currency and number formats (₹ / lakh / crore defaults, `en_IN` grouping) and dates "today" (WS10-04); phone input still assumes India (+91, 10 digits) (WS10-05); payment flows (WS10-06); a ROW Firebase project (WS10-07, decision 6); privacy screens (WS10-08); translation (WS10-03); the final ROW icon and store listings (WS10-09).
+
+## 6a. Upstream drift — synced 2026-10-10 against reference `cb3e678` (2026-10-09 18:56 IST)
+
+The session-1 modules were ported from a RIZones copy of about 2026-10-06 (the 10-05 / 10-06 fixes are in, the 10-07 ones were not). Newer upstream commits cannot be fetched from this machine (the private repo is not visible to the GitHub account here), so `cb3e678` is the newest source.
+
+How the sync was checked: every .NET route against ROW's routes; every user message and SQL column in the .NET code against ROW; every upstream comment dated 2026-10-07 or later; and the side-by-side sweeps re-run with new test data (a Rotaract club, ongoing projects whose parent is in an earlier year).
+
+Brought up to date:
+- Rotaract clubs hidden from district / club screens, lists and counts (`ClubScopeSql`): clubs list, district clubs and totals, zone totals, district admin dashboard (10 queries), district modules (CMR months and month detail, reminders, AG / moderator pickers, all-clubs, citation club points and report).
+- Project list: an ongoing entry whose parent is in an earlier year table is now listed (`eff_parent`), on the project list and the club dashboard's avenue screen.
+- Club citation manual save: negative points are refused.
+- Every uploaded photo is re-saved at most 2560 px, JPEG 88 (`PhotoUploadOptimizeFilter`); ROW used to shrink only photos over 5 MB.
+- New upstream endpoints: `api/app/route-maintenance` (3, the mobile app's per-screen maintenance switch; it had been filed under Payments by mistake) and `api/mobile/club-foundation-goals` (3).
+
+Result: 720 of 760 GET routes and 467 / 481 / 481 of 484 write routes identical, with the same expected differences as section 5a.
+
+To repeat when a newer reference is available: re-clone, then diff the new commits' changed files against `row/api/src` (record the commit here).
 
 ## 7. Deployment (to do)
 
@@ -322,7 +321,9 @@ Details for each are in `row/api/ROW-CHANGES.md`.
 7. **Rotary.org integration.** ROW needs its own access; the live endpoints are pending, and the currency fallback rate is currently 1.
 8. **Zones 4–8 programmes** (citation, zonal awards) are RIZones-specific. Keep them behind `modules.citation`, or drop them for ROW?
 9. **Email verification probe.** SMTP port 25 is usually blocked on servers. Keep the probe, or rely on Brevo bounces?
-10. Several RIZones quirks were kept on purpose, for example district mass emails using club-0 credits, and the password-reset email saying 30 minutes while the token lasts 480. They are listed in ROW-CHANGES.
+10. **OCV Word report — PDFs and Office files are not drawn inline.** RIZones rasterised PDF pages (PDFium) and Office files (LibreOffice). ROW shows a labelled entry and a download link instead (RIZones' own fallback). Rendering them inline needs new dependencies (`pdfjs-dist` + a canvas package, and LibreOffice on the server).
+11. Several RIZones quirks were kept on purpose, for example district mass emails using club-0 credits, and the password-reset email saying 30 minutes while the token lasts 480. They are listed in ROW-CHANGES.
+12. **Scheduled WhatsApp sender.** RIZones sends announcements, events, newsletters, projects and reminders by WhatsApp through Interakt, with its own approved templates (fixed names and bodies, a pilot-club gate, and Interakt's 300-per-minute batching). ROW sends WhatsApp through the Meta Cloud API, and no templates exist in ROW's Meta account yet. Decide the templates (reuse RIZones' names and parameters, or design new ones); the sender is ported once they are approved. Until then, items flagged "send WhatsApp" stay pending.
 
 ## 9. Working rules agreed with the team
 

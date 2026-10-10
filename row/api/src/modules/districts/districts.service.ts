@@ -1,3 +1,4 @@
+import { notRotaract } from "../../services/club-scope.helper";
 import { Injectable } from "@nestjs/common";
 import { Db } from "../../database/db.service";
 import { AppConfig } from "../../config/app-config";
@@ -15,7 +16,7 @@ const LOGO = `CASE
     ELSE CONCAT('/uploads/district/', d.DistrictLogoPath)
   END AS DistrictLogoPath`;
 
-const TOTALS = `(SELECT COUNT(*) FROM club_master c WHERE c.fk_district_id = d.pk_district_id AND c.isdeleted = 0) AS TotalClubs,
+const TOTALS = `(SELECT COUNT(*) FROM club_master c WHERE c.fk_district_id = d.pk_district_id AND c.isdeleted = 0 AND COALESCE(c.ClubType,'') <> 'Rotaract Club') AS TotalClubs,
   (SELECT COUNT(DISTINCT cm.fk_member_master_profile_id)
    FROM club_members cm
    JOIN club_master c2 ON c2.pk_club_id = cm.fk_club_id AND c2.isdeleted = 0
@@ -173,6 +174,7 @@ export class DistrictService {
          WHERE c.fk_district_id = @DistrictId
            AND c.isdeleted = 0
            ${onlyWithMembers}
+           AND ${notRotaract("c")}
          ORDER BY c.ClubName`,
         { DistrictId: districtId },
       ),

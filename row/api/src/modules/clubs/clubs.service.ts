@@ -1,3 +1,4 @@
+import { notRotaract } from "../../services/club-scope.helper";
 import { Injectable, Logger } from "@nestjs/common";
 import { Db, type DbCommands } from "../../database/db.service";
 import { AppConfig } from "../../config/app-config";
@@ -59,7 +60,8 @@ export class ClubService {
         AND (@City IS NULL OR c.City = @City)
         AND (@MeetingDay IS NULL OR c.MeetingDay = @MeetingDay)
         AND (@IsActive IS NULL OR c.IsActive = @IsActive)
-        AND (@ZoneId IS NULL OR d.fk_zone_id = @ZoneId)`;
+        AND (@ZoneId IS NULL OR d.fk_zone_id = @ZoneId)
+        AND ${notRotaract("c")}`;
     const params = {
       Search: search && search.trim() ? search : null, DistrictId: districtId, City: city && city.trim() ? city : null,
       MeetingDay: meetingDay && meetingDay.trim() ? meetingDay : null, IsActive: isActive, ZoneId: zoneId,

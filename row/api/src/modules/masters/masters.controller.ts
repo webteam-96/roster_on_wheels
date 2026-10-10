@@ -7,7 +7,7 @@ import { Db } from "../../database/db.service";
 import { Authorize, User } from "../../auth/decorators";
 import type { CurrentUser } from "../../auth/current-user";
 import { badRequest, notFound, ok, statusCode } from "../../common/results";
-import { paramInt, queryBool, queryInt, queryString } from "../../common/binding";
+import { paramInt, queryBool, queryInt, queryString, requireFile } from "../../common/binding";
 import { CLUB_BLOCKED_MESSAGE, isClubDrillReachable } from "../../services/kill-switch.helper";
 import { ensureWithinLimit, validateImage } from "../../services/image-tools";
 import type { UploadedFile as Upload } from "../../services/media-storage";
@@ -149,6 +149,7 @@ export class MastersController {
   @Post("themes/upload")
   @UseInterceptors(FileInterceptor("file", { limits: { fileSize: MAX_UPLOAD } }))
   async uploadThemeImage(@UploadedFile() upload: Upload | undefined, @User() user: CurrentUser, @Query("strict") strict?: string) {
+    requireFile(upload);
     const strictMode = queryBool(strict, false)!;
     if (!this.isSuperAdmin(user)) return statusCode(403, { message: "Only SuperAdmin can upload theme images." });
     const file = await ensureWithinLimit(upload);

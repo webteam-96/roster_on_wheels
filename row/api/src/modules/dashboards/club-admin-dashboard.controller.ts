@@ -5,21 +5,23 @@ import { Authorize, User } from "../../auth/decorators";
 import type { CurrentUser } from "../../auth/current-user";
 import { forbid, notFound, ok, statusCode } from "../../common/results";
 import { UnauthorizedAccessException } from "../../common/exceptions";
-import { queryInt, queryString } from "../../common/binding";
+import { queryInt, queryString, requireQuery } from "../../common/binding";
+import { RotaryOrgApiClient } from "../../services/rotary-org/rotary-org-api.client";
+import { upsertTerminatedCache } from "../../services/rotary-org/rotary-org-sync.services";
+import { HttpRequestException } from "../../common/exceptions";
 
 const NOT_CONFIGURED = { message: "No club admin assignment found for this user." };
 
-/** Port of ClubAdminDashboardController.cs: api/club-admin-dashboard. Admin or SuperAdmin only. */
-@Controller("api/club-admin-dashboard")
-@Authorize()
-export class ClubAdminDashboardController {
+/** The routes the web and mobile club-admin dashboards share (Admin or SuperAdmin only). */
+abstract class ClubAdminDashboardRoutes {
+  protected abstract readonly notConfigured: { message: string };
   constructor(
-    private readonly dashboard: ClubAdminDashboardService,
-    private readonly db: Db,
+    protected readonly dashboard: ClubAdminDashboardService,
+    protected readonly db: Db,
   ) {}
 
-  private memberId = (u: CurrentUser) => parseInt(u.findFirst("memberId") ?? u.findFirst("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier") ?? "0", 10) || 0;
-  private allowed = (u: CurrentUser) => {
+  protected memberId = (u: CurrentUser) => parseInt(u.findFirst("memberId") ?? u.findFirst("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier") ?? "0", 10) || 0;
+  protected allowed = (u: CurrentUser) => {
     const roles = u.findFirst("roles") ?? "";
     return roles.includes("Admin") || roles.includes("SuperAdmin");
   };
@@ -29,7 +31,7 @@ export class ClubAdminDashboardController {
     if (!this.allowed(user)) return forbid();
     try {
       const r = await work();
-      return r === null ? notFound(NOT_CONFIGURED) : ok(r);
+      return r === null ? notFound(this.notConfigured) : ok(r);
     } catch (e) {
       if (e instanceof UnauthorizedAccessException) return statusCode(403, { message: e.message });
       throw e;
@@ -122,35 +124,78 @@ export class ClubAdminDashboardController {
 
   @Get("service-projects-avenue")
   serviceProjectsAvenue(@User() u: CurrentUser, @Query("avenueKey") avenueKey?: string, @Query("yearId") yearId?: string, @Query("clubId") clubId?: string) {
+    requireQuery({ avenueKey });
     const [y, c] = [queryInt(yearId), queryInt(clubId)];
     return this.run(u, () => this.dashboard.getServiceProjectsAvenueDetail(this.memberId(u), queryString(avenueKey, "")!, y, c));
   }
+}
 
-  /**
-   * Live terminated-member list from Rotary.org. It needs the Rotary.org API
-   * client, which is ported with the Rotary.org sync module; until then the
-   * call answers as the C# does when Rotary.org cannot be reached.
-   */
+/** Port of ClubAdminDashboardController.cs: api/club-admin-dashboard. */
+@Controller("api/club-admin-dashboard")
+@Authorize()
+export class ClubAdminDashboardController extends ClubAdminDashboardRoutes {
+  protected readonly notConfigured = NOT_CONFIGURED;
+
+  constructor(dashboard: ClubAdminDashboardService, db: Db, private readonly rotaryOrg: RotaryOrgApiClient) {
+    super(dashboard, db);
+  }
+
+  /** Live terminated members from Rotary.org (display only), written through to the cache; contacts from our own profiles by Rotary ID. */
   @Get("rotary-org-terminated-members")
   async rotaryOrgTerminated(@User() u: CurrentUser, @Query("clubId") clubIdText?: string) {
     if (!this.allowed(u)) return forbid();
-    let clubId = queryInt(clubIdText, 0);
-    if (clubId === 0) {
-      clubId = Number(
-        (await this.db.executeScalar(
-          `SELECT fk_club_id FROM member_roles
-           WHERE fk_member_master_profile_id = @MemberId AND fk_role_id IN (2, 5)
-             AND IsActive = 1 AND isdeleted = 0 ORDER BY pk_member_role_id ASC LIMIT 1`,
-          { MemberId: this.memberId(u) },
-        )) ?? 0,
-      );
+    try {
+      let clubId = queryInt(clubIdText, 0);
+      if (clubId === 0) {
+        clubId = Number(
+          (await this.db.executeScalar(
+            `SELECT fk_club_id FROM member_roles
+             WHERE fk_member_master_profile_id = @MemberId AND fk_role_id IN (2, 5)
+               AND IsActive = 1 AND isdeleted = 0 ORDER BY pk_member_role_id ASC LIMIT 1`,
+            { MemberId: this.memberId(u) },
+          )) ?? 0,
+        );
+      }
+      if (clubId === 0) return notFound(NOT_CONFIGURED);
+      const meta = await this.db.queryFirstOrDefault("SELECT ClubRotaryId AS clubRotaryId, ClubType AS clubType, ClubName AS clubName FROM club_master WHERE pk_club_id = @Id AND isdeleted = 0 LIMIT 1", { Id: clubId });
+      const rotaryId = String(meta?.clubRotaryId ?? "").trim();
+      if (!/^-?\d+$/.test(rotaryId)) {
+        return ok({ clubId, members: [], warning: "Club is not linked to Rotary.org (missing ClubRotaryId)." });
+      }
+      const rotaryOrgClubId = parseInt(rotaryId, 10);
+      const clubType = meta?.clubType && String(meta.clubType).trim() ? String(meta.clubType) : "Rotary Club";
+      const list = await this.rotaryOrg.getClubTerminatedMembers(clubType, rotaryOrgClubId);
+      // Write-through cache for the district Rotary Network view; a cache failure never fails the live answer.
+      await this.db.session((conn) => upsertTerminatedCache(conn, rotaryOrgClubId, list)).catch(() => undefined);
+      const ids = [...new Set(list.map((m) => String(m.memberId)))];
+      const contacts = new Map(ids.length
+        ? (await this.db.query("SELECT RotaryId AS rotaryId, PrimaryMobileNumber AS mobile, EmailId AS email FROM member_master_profile WHERE isdeleted = 0 AND RotaryId IN @RotaryIds", { RotaryIds: ids }))
+            .map((r) => [String(r.rotaryId), r])
+        : []);
+      const members = list.map((m) => {
+        const c = contacts.get(String(m.memberId));
+        return {
+          id: m.memberId % 2147483647, memberId: String(m.memberId), memberType: m.memberType ?? "", firstName: m.firstName ?? "", middleName: m.middleName ?? "",
+          lastName: m.lastName ?? "", admissionDate: m.admissionDate, terminationDate: m.terminationDate, terminationReason: m.terminationReason ?? "",
+          mobile: c?.mobile ?? null, email: c?.email ?? null,
+        };
+      });
+      return ok({ clubId, clubName: meta?.clubName ?? "", rotaryOrgClubId, clubType, members, totalCount: members.length });
+    } catch (e) {
+      if (e instanceof UnauthorizedAccessException) return statusCode(403, { message: e.message });
+      if (e instanceof HttpRequestException) return statusCode(502, { message: "Rotary.org API call failed.", detail: e.message });
+      throw e;
     }
-    if (clubId === 0) return notFound(NOT_CONFIGURED);
-    const meta = await this.db.queryFirstOrDefault("SELECT ClubRotaryId AS clubRotaryId FROM club_master WHERE pk_club_id = @Id AND isdeleted = 0 LIMIT 1", { Id: clubId });
-    const rotaryId = String(meta?.clubRotaryId ?? "").trim();
-    if (!/^-?\d+$/.test(rotaryId)) {
-      return ok({ clubId, members: [], warning: "Club is not linked to Rotary.org (missing ClubRotaryId)." });
-    }
-    return statusCode(502, { message: "Rotary.org API call failed.", detail: "The Rotary.org integration is not available on this server yet." });
+  }
+}
+
+/** Port of MobileClubAdminDashboardController.cs: the same routes without the Rotary.org terminated list. */
+@Controller("api/mobile/club-admin-dashboard")
+@Authorize()
+export class MobileClubAdminDashboardController extends ClubAdminDashboardRoutes {
+  protected readonly notConfigured = { message: "No club admin assignment found." };
+  // An explicit constructor: the abstract base has no decorator, so Nest has no parameter metadata to inherit.
+  constructor(dashboard: ClubAdminDashboardService, db: Db) {
+    super(dashboard, db);
   }
 }

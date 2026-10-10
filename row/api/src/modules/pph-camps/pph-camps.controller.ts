@@ -5,7 +5,7 @@ import { Authorize, User } from "../../auth/decorators";
 import type { CurrentUser } from "../../auth/current-user";
 import { badRequest, notFound, ok, statusCode } from "../../common/results";
 import { InvalidOperationException, KeyNotFoundException } from "../../common/exceptions";
-import { paramInt } from "../../common/binding";
+import { paramInt, requireQuery } from "../../common/binding";
 import { CLUB_BLOCKED_MESSAGE, DISTRICT_BLOCKED_MESSAGE, isClubDrillReachable, isDistrictDrillReachable } from "../../services/kill-switch.helper";
 import type { UploadedFile } from "../../services/media-storage";
 import { PphCampListDto, PphCampService, bindCampForm, checkCampLogo, parseCampDate, validateReading } from "./pph-camp.service";
@@ -93,6 +93,7 @@ export class PphCampsController extends PphAttendeeEndpoints {
 
   @Get("attendee-history")
   async history(@Param("clubId") c: string, @Query("mobile") mobile?: string) {
+    requireQuery({ mobile });
     const clubId = paramInt(c, "clubId");
     const block = await this.blocked(clubId);
     if (block) return block;
@@ -252,6 +253,7 @@ export class DistrictPphCampsController extends PphAttendeeEndpoints {
 
   @Get("attendee-history")
   async history(@Param("districtId") d: string, @Query("mobile") mobile?: string) {
+    requireQuery({ mobile });
     const districtId = paramInt(d, "districtId");
     const block = await this.blocked(districtId);
     if (block) return block;

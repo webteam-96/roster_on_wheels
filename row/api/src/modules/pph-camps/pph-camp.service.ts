@@ -7,7 +7,7 @@ import { AppConfig } from "../../config/app-config";
 import { defineDto } from "../../common/dto";
 import { bodyField } from "../../common/binding";
 import { formatDate, dotnetRound } from "../../common/dotnet-format";
-import { InvalidOperationException, KeyNotFoundException } from "../../common/exceptions";
+import { FormatException, InvalidOperationException, KeyNotFoundException } from "../../common/exceptions";
 import { ValidationProblemResult } from "../../common/results";
 import { webRootPath, type UploadedFile } from "../../services/media-storage";
 import { CitationRecalcTrigger } from "../../services/citation-recalc.trigger";
@@ -52,7 +52,7 @@ export function bindCampForm(body: unknown): CampForm {
 /** DateTime.Parse: a FormatException (500, or 400 where the caller catches everything) when the text is not a date. */
 export function parseCampDate(text: string): string {
   const parsed = tryParseDate(text);
-  if (!parsed) throw new Error(`String '${text}' was not recognized as a valid DateTime.`);
+  if (!parsed) throw new FormatException(`String '${text}' was not recognized as a valid DateTime.`);
   return parsed;
 }
 const asDotnet = (mysql: string) => mysql.replace(" ", "T");
@@ -73,10 +73,13 @@ export function validateReading(body: unknown, part: "create" | "attendee" | "re
   const s = (n: string) => String(bodyField(body, n) ?? "");
   const n = (k: string) => Number(bodyField(body, k) ?? 0) || 0;
   if (part !== "reading") {
-    if (s("name").length > 200) errors.Name = ["Name must be 200 characters or less."];
-    if (s("mobileNo").length > 20) errors.MobileNo = ["Mobile number must be 20 characters or less."];
-    if (!s("sex")) errors.Sex = ["Sex is required."];
-    if (!s("address")) errors.Address = ["Address is required."];
+    // [Required] fails empty and whitespace-only strings and then skips [StringLength].
+    if (!s("name").trim()) errors.Name = ["Name is required."];
+    else if (s("name").length > 200) errors.Name = ["Name must be 200 characters or less."];
+    if (!s("mobileNo").trim()) errors.MobileNo = ["Mobile number is required."];
+    else if (s("mobileNo").length > 20) errors.MobileNo = ["Mobile number must be 20 characters or less."];
+    if (!s("sex").trim()) errors.Sex = ["Sex is required."];
+    if (!s("address").trim()) errors.Address = ["Address is required."];
   }
   if (part !== "attendee") {
     const range = (key: string, min: number, max: number, message: string) => {
@@ -86,7 +89,7 @@ export function validateReading(body: unknown, part: "create" | "attendee" | "re
     range("age", 1, 150, "Age is required and must be between 1 and 150.");
     if (n("bPSystolic") < 1 || n("bPSystolic") > 400) errors.BPSystolic = ["Systolic blood pressure is required."];
     if (n("bPDiastolic") < 1 || n("bPDiastolic") > 300) errors.BPDiastolic = ["Diastolic blood pressure is required."];
-    if (!s("bloodSugarType")) errors.BloodSugarType = ["Blood sugar type is required."];
+    if (!s("bloodSugarType").trim()) errors.BloodSugarType = ["Blood sugar type is required."];
     range("bloodSugarValue", 1, 2000, "Blood sugar value is required.");
     range("heightCm", 1, 300, "Height (cm) is required.");
     range("weightKg", 1, 500, "Weight (kg) is required.");

@@ -218,18 +218,36 @@ export class ProjectService {
       if (!info) return pagedResult([], 0, page, pageSize);
       const suffix = info.yearLabel.replace(/-/g, "_");
       const params = { ClubId: clubId, ModuleId: moduleId, Offset: (page - 1) * pageSize, PageSize: pageSize, Search: search || null, ProjectType: !projectType || projectType === "all" ? null : projectType };
-      const parentPage = (alias: string) => `SELECT pid FROM (
-            SELECT pk_project_id AS pid FROM \`${info.projectsTable}\`
-            WHERE fk_club_id = @ClubId AND fk_module_id = @ModuleId AND isdeleted = 0 AND (parent_project_id IS NULL OR parent_project_id = 0)
+      // eff_parent: an entry whose ongoing parent lives in an EARLIER year table has no parent row here; the
+      // earliest such entry per old parent becomes the top row and later ones nest under it. Pagination
+      // counts top rows only, and each page also carries everything nested under its top rows.
+      const grp = `base AS (
+            SELECT b.pk_project_id, b.parent_project_id, b.project_date, b.project_type, b.title, b.location,
+                   CASE WHEN COALESCE(b.parent_project_id, 0) = 0 THEN 0
+                        WHEN EXISTS (SELECT 1 FROM \`${info.projectsTable}\` x
+                                     WHERE x.pk_project_id = b.parent_project_id AND x.fk_club_id = b.fk_club_id
+                                       AND x.isdeleted = 0) THEN 0
+                        ELSE 1 END AS orphan
+            FROM \`${info.projectsTable}\` b
+            WHERE b.fk_club_id = @ClubId AND b.fk_module_id = @ModuleId AND b.isdeleted = 0),
+          k AS (
+            SELECT base.*,
+                   CASE WHEN orphan = 0 THEN COALESCE(parent_project_id, 0)
+                        ELSE NULLIF(FIRST_VALUE(pk_project_id) OVER (PARTITION BY orphan, parent_project_id
+                                      ORDER BY project_date, pk_project_id), pk_project_id) END AS eff_parent
+            FROM base),
+          page AS (
+            SELECT pk_project_id AS pid FROM k
+            WHERE COALESCE(eff_parent, 0) = 0
               AND ${TYPE_FILTER}
-              AND (@Search IS NULL OR title LIKE CONCAT('%', @Search, '%') OR location LIKE CONCAT('%', @Search, '%'))
-            ORDER BY project_date DESC, pk_project_id DESC
-            LIMIT @Offset, @PageSize) ${alias}`;
-      // Pagination counts parent rows only; each page also carries the children of its parents.
+              AND (@Search IS NULL OR title LIKE CONCAT('%', @Search, '%') OR location LIKE CONCAT('%', @Search, '%'))`;
       const items = await conn.query(
-        `SELECT p.pk_project_id AS Id, p.fk_club_id AS ClubId, p.fk_module_id AS ModuleId, p.fk_year_id AS YearId, y.YearLabel,
+        `WITH ${grp}
+            ORDER BY project_date DESC, pk_project_id DESC
+            LIMIT @Offset, @PageSize)
+         SELECT p.pk_project_id AS Id, p.fk_club_id AS ClubId, p.fk_module_id AS ModuleId, p.fk_year_id AS YearId, y.YearLabel,
                 CASE WHEN p.project_type = 'ongoing' THEN 'ongoing_repeat' ELSE p.project_type END AS ProjectType,
-                p.parent_project_id AS ParentProjectId, p.ongoing_group_title AS OngoingGroupTitle, p.is_joint_project AS IsJointProject,
+                NULLIF(COALESCE(k.eff_parent, 0), 0) AS ParentProjectId, p.ongoing_group_title AS OngoingGroupTitle, p.is_joint_project AS IsJointProject,
                 p.co_host_name AS CoHostName, p.club_role AS ClubRole, p.title AS Title, p.location AS Location, aof.name AS AreaOfFocusName,
                 p.other_area_of_focus AS OtherAreaOfFocus, cat.name AS CategoryName, p.other_category AS OtherCategory, scat.name AS SubCategoryName,
                 p.other_sub_category AS OtherSubCategory, p.project_date AS ProjectDate, p.project_cost AS ProjectCost, p.Currency AS Currency,
@@ -239,25 +257,18 @@ export class ProjectService {
                 p.EmailSentDate, p.EmailSentCount, p.EmailFailedCount,
                 (SELECT ${photoPathSql(suffix)} FROM \`${info.photosTable}\` pp WHERE pp.fk_project_id = p.pk_project_id AND pp.is_primary = 1 LIMIT 1) AS PrimaryPhotoPath
          FROM \`${info.projectsTable}\` p
+         JOIN k ON k.pk_project_id = p.pk_project_id
+         JOIN (SELECT DISTINCT pid FROM page) pg ON pg.pid = p.pk_project_id OR pg.pid = k.eff_parent
          LEFT JOIN rotary_year_master y ON p.fk_year_id = y.pk_year_id
          LEFT JOIN area_of_focus_master aof ON p.fk_area_of_focus_id = aof.pk_area_of_focus_id
          LEFT JOIN category_master cat ON p.fk_category_id = cat.pk_category_id
          LEFT JOIN sub_category_master scat ON p.fk_sub_category_id = scat.pk_sub_category_id
          LEFT JOIN funding_master f ON p.fk_funding_id = f.pk_funding_id
          WHERE p.fk_club_id = @ClubId AND p.fk_module_id = @ModuleId AND p.isdeleted = 0
-           AND (p.pk_project_id IN (${parentPage("parent_page_ids")}) OR p.parent_project_id IN (${parentPage("parent_page_ids2")}))
          ORDER BY p.project_date DESC, p.pk_project_id DESC`,
         params,
       );
-      const totalCount = Number(
-        await conn.executeScalar(
-          `SELECT COUNT(*) FROM \`${info.projectsTable}\` p
-           WHERE p.fk_club_id = @ClubId AND p.fk_module_id = @ModuleId AND p.isdeleted = 0 AND (p.parent_project_id IS NULL OR p.parent_project_id = 0)
-             AND ${TYPE_FILTER.replace(/project_type/g, "p.project_type")}
-             AND (@Search IS NULL OR p.title LIKE CONCAT('%', @Search, '%') OR p.location LIKE CONCAT('%', @Search, '%'))`,
-          params,
-        ),
-      );
+      const totalCount = Number(await conn.executeScalar(`WITH ${grp}) SELECT COUNT(*) AS TotalCount FROM page`, params));
       return pagedResult(ProjectListDto.mapAll(items), totalCount, page, pageSize);
     });
   }

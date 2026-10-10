@@ -10,16 +10,16 @@ import { queryInt } from "../../common/binding";
 @Controller("api/ag-dashboard")
 @Authorize()
 export class AgDashboardController {
-  constructor(private readonly ag: AgDashboardService) {}
+  constructor(protected readonly ag: AgDashboardService) {}
 
-  private memberId = (u: CurrentUser) =>
+  protected memberId = (u: CurrentUser) =>
     parseInt(u.findFirst("memberId") ?? u.findFirst("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier") ?? "0", 10) || 0;
-  private allowed = (u: CurrentUser) => {
+  protected allowed = (u: CurrentUser) => {
     const roles = u.findFirst("roles") ?? "";
     return roles.includes("AG") || roles.includes("SuperAdmin");
   };
 
-  private async run(u: CurrentUser, work: () => Promise<unknown>) {
+  protected async run(u: CurrentUser, work: () => Promise<unknown>) {
     if (!this.allowed(u)) return forbid();
     try {
       return ok(await work());
@@ -96,3 +96,8 @@ export class AgDashboardController {
     return this.run(u, () => this.ag.getDistrict(this.memberId(u), yearId, clubId, districtId));
   }
 }
+
+/** Port of MobileAgDashboardController.cs: identical routes under api/mobile/ag-dashboard. */
+@Controller("api/mobile/ag-dashboard")
+@Authorize()
+export class MobileAgDashboardController extends AgDashboardController {}

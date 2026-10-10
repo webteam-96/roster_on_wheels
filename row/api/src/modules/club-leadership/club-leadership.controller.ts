@@ -1,3 +1,4 @@
+import { AppConfig } from "../../config/app-config";
 import { Body, Controller, Delete, Get, Injectable, Logger, Module, Param, Post, Query, type OnApplicationBootstrap, type OnApplicationShutdown } from "@nestjs/common";
 import bcrypt from "bcryptjs";
 import { Db, type DbCommands } from "../../database/db.service";
@@ -375,9 +376,11 @@ export class ClubLeadershipEmailWorker implements OnApplicationBootstrap, OnAppl
   constructor(
     private readonly db: Db,
     private readonly email: EmailService,
+    private readonly config: AppConfig,
   ) {}
 
   onApplicationBootstrap() {
+    if (!this.config.backgroundJobsEnabled) return;
     this.log.log("ClubLeadership email background service started.");
     const loop = async () => {
       try {

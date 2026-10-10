@@ -18,13 +18,13 @@ import type { ReportPreview, WordPhoto, WordProject } from "./monthly-report.ser
  * fonts have no Georgia).
  */
 
-const BRAND = "003DA5";
-const LABEL = "44546A";
-const MUTED = "7A7A7A";
-const LINK = "0563C1";
-const DIVIDER = "B9C7DE";
+export const BRAND = "003DA5";
+export const LABEL = "44546A";
+export const MUTED = "7A7A7A";
+export const LINK = "0563C1";
+export const DIVIDER = "B9C7DE";
 const LABEL_BG = "EEF3FB";
-const INK = "222222";
+export const INK = "222222";
 const AVENUES: [string, string][] = [
   ["community_service", "Community Service"], ["vocational_service", "Vocational Service"], ["international_service", "International Service"],
   ["new_generation_service", "New Generation Service"], ["public_image_initiative", "Public Image Initiative"],
@@ -81,7 +81,7 @@ function fmtDateTime(text: string): string {
   return `${DAYS[d.getUTCDay()]}, ${pad(d.getUTCDate())} ${MONTHS_SHORT[d.getUTCMonth()]} ${d.getUTCFullYear()} ${pad(h % 12 || 12)}:${pad(d.getUTCMinutes())}:${pad(d.getUTCSeconds())} ${h < 12 ? "AM" : "PM"}`;
 }
 
-function docUrl(mediaBase: string, path: string | null): string | null {
+export function docUrl(mediaBase: string, path: string | null): string | null {
   if (blank(path)) return null;
   if (/^http/i.test(path!)) return path;
   const base = (mediaBase ?? "").replace(/\/+$/, "");
@@ -128,9 +128,9 @@ function trfRows(s: ReportPreview): string[][] {
 }
 
 /** XmlClean: drop characters XML cannot carry. */
-const xmlClean = (s: string) => s.replace(/[^\u0009\u000A\u000D -퟿-�\u{10000}-\u{10FFFF}]/gu, "");
+export const xmlClean = (s: string) => s.replace(/[^\u0009\u000A\u000D -퟿-�\u{10000}-\u{10FFFF}]/gu, "");
 
-function imageSize(b: Buffer): [number, number] {
+export function imageSize(b: Buffer): [number, number] {
   try {
     if (b.length > 24 && b[0] === 0x89 && b[1] === 0x50 && b[2] === 0x4e && b[3] === 0x47) return [b.readInt32BE(16), b.readInt32BE(20)];
     if (b.length > 4 && b[0] === 0xff && b[1] === 0xd8) {
@@ -156,24 +156,24 @@ function imageSize(b: Buffer): [number, number] {
 
 // ---- Word ----
 
-const run = (text: string, o: { bold?: boolean; italics?: boolean; color?: string; size?: number } = {}) => new TextRun({ text: xmlClean(text), ...o });
-const para = (children: ParagraphChild[], o: Record<string, unknown> = {}) => new Paragraph({ children, ...o });
-const centered = (text: string, size: number, bold = false, color?: string) => para([run(text, { size, bold, color })], { alignment: AlignmentType.CENTER, spacing: { after: 60 } });
-const sectionHeading = (title: string) =>
+export const run = (text: string, o: { bold?: boolean; italics?: boolean; color?: string; size?: number } = {}) => new TextRun({ text: xmlClean(text), ...o });
+export const para = (children: ParagraphChild[], o: Record<string, unknown> = {}) => new Paragraph({ children, ...o });
+export const centered = (text: string, size: number, bold = false, color?: string) => para([run(text, { size, bold, color })], { alignment: AlignmentType.CENTER, spacing: { after: 60 } });
+export const sectionHeading = (title: string) =>
   para([run(title, { bold: true, color: BRAND, size: 30 })], { spacing: { before: 360, after: 120 }, border: { bottom: { style: BorderStyle.SINGLE, size: 6, color: BRAND, space: 4 } } });
-const subHeading = (title: string) => para([run(title, { bold: true, color: BRAND, size: 24 })], { spacing: { before: 240, after: 80 } });
-const mutedText = (text: string) => para([run(text, { italics: true, color: MUTED, size: 20 })]);
+export const subHeading = (title: string) => para([run(title, { bold: true, color: BRAND, size: 24 })], { spacing: { before: 240, after: 80 } });
+export const mutedText = (text: string) => para([run(text, { italics: true, color: MUTED, size: 20 })]);
 const bodyPara = (text: string) => para([run(text, { size: 21 })], { alignment: AlignmentType.BOTH, spacing: { after: 80 } });
-const spacer = () => para([run("")]);
+export const spacer = () => para([run("")]);
 const thin = { style: BorderStyle.SINGLE, size: 2, color: DIVIDER };
-const tableBorders = { top: thin, bottom: thin, left: thin, right: thin, insideHorizontal: thin, insideVertical: thin };
-const cell = (text: string, label: boolean) =>
+export const tableBorders = { top: thin, bottom: thin, left: thin, right: thin, insideHorizontal: thin, insideVertical: thin };
+export const cell = (text: string, label: boolean) =>
   new TableCell({
     shading: label ? { fill: LABEL_BG, type: ShadingType.CLEAR, color: "auto" } : undefined,
     children: [para([run(text ?? "", label ? { bold: true, color: LABEL, size: 19 } : { size: 19 })])],
   });
 
-function fourColTable(rows: string[][]) {
+export function fourColTable(rows: string[][]) {
   return new Table({
     width: { size: 100, type: WidthType.PERCENTAGE }, columnWidths: [2600, 2400, 2600, 2400], layout: TableLayoutType.FIXED, borders: tableBorders,
     rows: rows.map((r) => new TableRow({ children: [cell(r[0], true), cell(r[1], false), cell(r[2], true), cell(r[3], false)] })),
@@ -191,7 +191,7 @@ function gridTable(headers: string[], rows: string[][]) {
   });
 }
 
-type Block = Paragraph | Table;
+export type Block = Paragraph | Table;
 
 function wordItem(blocks: Block[], mediaBase: string, p: WordProject, isMeeting: boolean, index: number) {
   blocks.push(para([run(`${index}.  ${blank(p.title) ? "(untitled)" : p.title}`, { bold: true, color: INK, size: 25 })], { spacing: { before: 220, after: 20 } }));
@@ -247,7 +247,7 @@ function wordSections(blocks: Block[], items: WordProject[], mediaBase: string, 
   }
 }
 
-function wordDocument(blocks: Block[]) {
+export function wordDocument(blocks: Block[]) {
   return Packer.toBuffer(
     new Document({
       styles: { default: { document: { run: { font: "Georgia", size: 22 }, paragraph: { spacing: { after: 120, line: 276 } } } } },

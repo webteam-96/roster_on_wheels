@@ -789,7 +789,7 @@ CREATE TABLE `club_master` (
   `fk_district_id` int NOT NULL,
   `ClubRotaryId` varchar(50) COLLATE utf8mb4_unicode_ci NOT NULL,
   `ClubName` varchar(300) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `Timezone` varchar(100) COLLATE utf8mb4_unicode_ci DEFAULT 'Asia/Kolkata',
+  `Timezone` varchar(100) COLLATE utf8mb4_unicode_ci DEFAULT 'UTC',
   `ClubCharterDate` date DEFAULT NULL,
   `ClubLogoPath` varchar(500) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `ClubWebsite` varchar(500) COLLATE utf8mb4_unicode_ci DEFAULT NULL,

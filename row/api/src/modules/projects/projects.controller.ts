@@ -6,7 +6,7 @@ import { AllowAnonymous, Authorize, User } from "../../auth/decorators";
 import type { CurrentUser } from "../../auth/current-user";
 import { ValidationProblemResult, badRequest, conflict, notFound, ok, statusCode } from "../../common/results";
 import { InvalidOperationException } from "../../common/exceptions";
-import { bodyField, paramInt, queryBool, queryInt, queryString } from "../../common/binding";
+import { bodyField, paramInt, queryBool, queryInt, queryString, requireFile } from "../../common/binding";
 import { CLUB_BLOCKED_MESSAGE, isClubDrillReachable } from "../../services/kill-switch.helper";
 import { ClubSiteCachePurger } from "../../services/club-site-cache-purger";
 import { lowerExtension, type UploadedFile as Upload } from "../../services/media-storage";
@@ -74,6 +74,7 @@ export class ProjectsController {
   async upload(
     @Param("clubId") c: string, @UploadedFile() upload: Upload | undefined, @Query("projectId") pid?: string, @Query("yearId") y?: string, @Query("strict") strict?: string,
   ) {
+    requireFile(upload);
     const clubId = paramInt(c, "clubId");
     const file = await ensureWithinLimit(upload);
     const v = validateImage(file, queryBool(strict, false)!);
@@ -85,6 +86,7 @@ export class ProjectsController {
   @Post("api/clubs/:clubId/projects/upload-document")
   @UseInterceptors(FileInterceptor("file", { limits: { fileSize: MAX_UPLOAD } }))
   async uploadDocument(@Param("clubId") c: string, @UploadedFile() file: Upload | undefined) {
+    requireFile(file);
     const clubId = paramInt(c, "clubId");
     if (!file || file.size === 0) return badRequest({ message: "No file uploaded." });
     if (!DOCUMENT_TYPES.includes(lowerExtension(file.originalname))) return badRequest({ message: "Invalid file type. Allowed: pdf, doc, docx, xls, xlsx, ppt, pptx, txt, png, jpg, jpeg" });

@@ -84,6 +84,11 @@ export class AppConfig {
     return fallback;
   }
 
+  /** BackgroundJobs:Enabled (default true): false keeps the hosted background loops from starting. */
+  get backgroundJobsEnabled(): boolean {
+    return this.getBool("BackgroundJobs:Enabled", true);
+  }
+
   /** The values of an array section (Key:0, Key:1, ...), like GetSection(key).Get<string[]>(). */
   getArray(key: string): string[] {
     const out: string[] = [];

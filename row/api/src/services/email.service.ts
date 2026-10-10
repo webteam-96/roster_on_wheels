@@ -82,6 +82,8 @@ export interface SendOptions {
   clubId?: number | null;
   districtId?: number | null;
   attachment?: { bytes: Buffer; fileName: string } | null;
+  /** Explicit log type; default = classifyEmailType(subject). */
+  emailType?: string;
 }
 
 @Injectable()
@@ -118,6 +120,40 @@ ${inner}
                         </div>
                         <p style='color: #e53e3e;'><strong>Important:</strong> Please change your password after your first login.</p>`);
     await this.send(email, subject, body);
+  }
+
+  /** SendSuperAdminWelcomeEmailAsync: tempPassword null = keep the existing password. */
+  async sendSuperAdminWelcomeEmail(email: string, memberName: string, mobileNumber: string, tempPassword: string | null): Promise<void> {
+    const loginUrl = this.loginUrl();
+    const name = Brand.Current.productName;
+    const passwordLine = tempPassword !== null
+      ? `<p><strong>Temporary Password:</strong> ${tempPassword}</p><p style='color:#e53e3e;'><strong>Important:</strong> Please change your password after your first login.</p>`
+      : "<p><strong>Password:</strong> use your existing password.</p>";
+    const body = this.wrap(`
+                        <h2 style='color:#1a365d; margin-top:0;'>You are now a SuperAdmin</h2>
+                        <p>Dear ${memberName},</p>
+                        <p>You have been granted <strong>SuperAdmin</strong> access to the ${name} Admin Portal.</p>
+                        <p>Here are your login details:</p>
+                        <div style='background-color:#f7fafc; border:1px solid #e2e8f0; border-radius:8px; padding:16px; margin:16px 0;'>
+                            <p><strong>Portal URL:</strong> <a href='${loginUrl}' style='color:#3182ce;'>${loginUrl}</a></p>
+                            <p><strong>Username (Mobile):</strong> ${mobileNumber}</p>
+                            ${passwordLine}
+                        </div>
+                        <div style='text-align:center; margin:24px 0;'>
+                            <a href='${loginUrl}' style='background-color:#3182ce; color:white; padding:12px 24px; text-decoration:none; border-radius:6px; font-weight:bold;'>Login Now</a>
+                        </div>
+                        <p>Please keep these credentials confidential. If you did not expect this access, contact the ${name} team immediately.</p>`);
+    await this.send(email, `${name} - You are now a SuperAdmin`, body);
+  }
+
+  async sendSuperAdminRevokedEmail(email: string, memberName: string): Promise<void> {
+    const name = Brand.Current.productName;
+    const body = this.wrap(`
+                        <h2 style='color:#1a365d; margin-top:0;'>SuperAdmin access removed</h2>
+                        <p>Dear ${memberName},</p>
+                        <p>Your SuperAdmin access to the ${name} Admin Portal has been removed.</p>
+                        <p>You may still have access to other roles you hold in the portal. If you believe this was done in error, please contact the ${name} team.</p>`);
+    await this.send(email, `${name} - SuperAdmin access removed`, body);
   }
 
   async sendZonalCoordinatorEmail(email: string, memberName: string, mobileNumber: string, tempPassword: string, zoneName: string): Promise<void> {
@@ -355,11 +391,25 @@ ${emailFooter()}`;
     });
   }
 
+  /** SendScopedEmailWithAttachmentAsync: CC trimmed, de-duplicated and never the To address; throws on failure. */
+  async sendScopedEmailWithAttachment(toEmail: string, subject: string, htmlBody: string, attachment: Buffer, attachmentFileName: string,
+    ccEmails: string[] | null, clubId: number | null, districtId: number | null, emailType: string): Promise<void> {
+    const cc: string[] = [];
+    for (const c of ccEmails ?? []) {
+      const t = (c ?? "").trim();
+      if (t && t.toLowerCase() !== toEmail.toLowerCase() && !cc.some((x) => x.toLowerCase() === t.toLowerCase())) cc.push(t);
+    }
+    await this.send(toEmail, subject, htmlBody, {
+      ccEmail: cc.length ? cc.join(",") : null, clubId, districtId, emailType,
+      attachment: { bytes: attachment, fileName: attachmentFileName }, throwOnFailure: true,
+    });
+  }
+
   /** The private SendEmailAsync: log Pending, send, log Sent/Failed. Never throws unless asked. */
   async send(toEmail: string, subject: string, htmlBody: string, options: SendOptions = {}): Promise<void> {
     let logId: number | null = null;
     try {
-      logId = await this.insertPending(toEmail, options.ccEmail ?? null, subject, htmlBody, classifyEmailType(subject), options.clubId ?? null, options.districtId ?? null);
+      logId = await this.insertPending(toEmail, options.ccEmail ?? null, subject, htmlBody, options.emailType ?? classifyEmailType(subject), options.clubId ?? null, options.districtId ?? null);
       const messageId = await this.sendViaBrevo(toEmail, subject, htmlBody, options.ccEmail ?? null, options.attachment ?? null);
       await this.markSent(logId, messageId);
       this.log.log(`Email sent to ${toEmail} (Brevo id=${messageId ?? ""})`);
