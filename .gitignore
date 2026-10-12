@@ -8,3 +8,6 @@ out/
 .env*.local
 .DS_Store
 *.tsbuildinfo
+
+# graphify code graphs (large, rebuilt by kb/rebuild.sh)
+graphify-out/

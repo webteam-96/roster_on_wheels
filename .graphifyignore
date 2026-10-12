@@ -1,0 +1,15 @@
+node_modules/
+bin/
+obj/
+dist/
+build/
+.next/
+out/
+.dart_tool/
+wwwroot/
+graphify-out/
+*.min.js
+*.g.dart
+*.freezed.dart
+Pods/
+.gradle/

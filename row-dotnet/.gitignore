@@ -1,0 +1,14 @@
+bin/
+obj/
+logs/
+*.user
+.vs/
+node_modules/
+.next/
+.env
+.env*.local
+api/wwwroot/Documents/
+api/wwwroot/uploads/
+
+# OAuth token caches written by Google.Apis (never commit)
+Google.Apis.Auth.OAuth2.Responses.TokenResponse-*
