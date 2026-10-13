@@ -405,61 +405,9 @@ public partial class DatabaseInitializer
                     }
                 }
 
-                // Migration: consolidate foreign country zones into single "Other Zones" zone.
-                // After --world-ensure created 162 country-named zones (USA, UK, Brazil, etc.), the user
-                // wants them all collapsed into one "Other Zones" bucket. The 10 keep-zones below
-                // stay as-is. Each district keeps its Country column intact for filtering/reporting —
-                // only fk_zone_id changes.
-                try
-                {
-                    var keepZones = new[]
-                    {
-                        "Zone 4", "Zone 5", "Zone 6", "Zone 0", "Zone 7", "TestZone1",
-                        "India", "Nepal", "Sri Lanka", "Taiwan",
-                    };
-
-                    // 1. Ensure "Other Zones" exists (idempotent)
-                    var otherZoneId = await connection.ExecuteScalarAsync<int?>(@"
-                        SELECT pk_zone_id FROM zone_master
-                        WHERE ZoneName = 'Other Zones' AND isdeleted = 0
-                        LIMIT 1");
-                    if (otherZoneId == null || otherZoneId == 0)
-                    {
-                        otherZoneId = await connection.ExecuteScalarAsync<int>(@"
-                            INSERT INTO zone_master (ZoneName, IsActive, created_date, isdeleted)
-                            VALUES ('Other Zones', 1, NOW(), 0);
-                            SELECT LAST_INSERT_ID();");
-                        _logger.LogInformation("Created 'Other Zones' zone (pk={Id}).", otherZoneId);
-                    }
-
-                    // 2. Repoint districts whose zone is NOT in the keep list → "Other Zones"
-                    var repointed = await connection.ExecuteAsync(@"
-                        UPDATE district_master dm
-                        JOIN zone_master zm ON zm.pk_zone_id = dm.fk_zone_id
-                        SET dm.fk_zone_id = @OtherZoneId, dm.modified_date = NOW()
-                        WHERE dm.isdeleted = 0
-                          AND dm.fk_zone_id IS NOT NULL
-                          AND dm.fk_zone_id <> @OtherZoneId
-                          AND zm.ZoneName NOT IN @KeepZones",
-                        new { OtherZoneId = otherZoneId, KeepZones = keepZones });
-                    if (repointed > 0)
-                        _logger.LogInformation("Repointed {Count} district(s) → 'Other Zones'.", repointed);
-
-                    // 3. Soft-delete zones that are NOT in keep list AND NOT 'Other Zones'
-                    var zonesSoftDeleted = await connection.ExecuteAsync(@"
-                        UPDATE zone_master
-                        SET isdeleted = 1, deleted_date = NOW()
-                        WHERE isdeleted = 0
-                          AND ZoneName NOT IN @KeepZones
-                          AND ZoneName <> 'Other Zones'",
-                        new { KeepZones = keepZones });
-                    if (zonesSoftDeleted > 0)
-                        _logger.LogInformation("Soft-deleted {Count} foreign country zones (consolidated into 'Other Zones').", zonesSoftDeleted);
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogWarning("Zone consolidation migration failed (non-fatal): {Message}", ex.Message);
-                }
+                // (Removed for ROW: the original platform consolidated every zone outside its own Zones 4-8 /
+                // India / Nepal / Sri Lanka / Taiwan list into "Other Zones" on each start-up, soft-deleting the rest.
+                // On ROW that would wipe out the real zone structure every time the API restarts.)
 
                 await connection.ExecuteAsync(@"
                     CREATE TABLE IF NOT EXISTS club_master (
@@ -4904,9 +4852,14 @@ public partial class DatabaseInitializer
                 // Seed SuperAdmin if not exists
                 await SeedSuperAdminAsync(connection);
 
+                // Sample zones, districts, clubs and zonal-award questions are the original platform's demo
+                // data (Indian districts and clubs). A real ROW instance starts empty, so they are inserted only
+                // with Database:SeedDemoData=true, like the demo members.
+                var seedDemoData = string.Equals(_configuration["Database:SeedDemoData"], "true", StringComparison.OrdinalIgnoreCase);
+
                 // Seed zones if empty
                 var zoneCount = await connection.ExecuteScalarAsync<int>("SELECT COUNT(*) FROM zone_master WHERE isdeleted = 0");
-                if (zoneCount == 0)
+                if (seedDemoData && zoneCount == 0)
                 {
                     await SeedZonesAsync(connection);
                     _logger.LogInformation("Zone seed data inserted.");
@@ -4936,7 +4889,7 @@ public partial class DatabaseInitializer
 
                 // Seed districts and clubs if empty
                 var districtCount = await connection.ExecuteScalarAsync<int>("SELECT COUNT(*) FROM district_master WHERE isdeleted = 0");
-                if (districtCount == 0)
+                if (seedDemoData && districtCount == 0)
                 {
                     await SeedDistrictsAndClubsAsync(connection);
                     _logger.LogInformation("District and club seed data inserted.");
@@ -4963,7 +4916,7 @@ public partial class DatabaseInitializer
 
                 // Seed Zonal Awards data from old production
                 var zaGoalCount = await connection.ExecuteScalarAsync<int>("SELECT COUNT(*) FROM zonal_awards_goal");
-                if (zaGoalCount == 0)
+                if (seedDemoData && zaGoalCount == 0)
                 {
                     var curYear = await connection.ExecuteScalarAsync<int?>("SELECT pk_year_id FROM rotary_year_master WHERE IsCurrent = 1 LIMIT 1");
                     if (curYear.HasValue)
