@@ -48,8 +48,8 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 import { useAuth } from "@/contexts/AuthContext";
 
 import { currencySymbol } from "@/lib/appFormat";
+import { TEXT_INPUT_REGEX } from "@/lib/textInput";
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
-const ENGLISH_ONLY_REGEX = /^[a-zA-Z0-9\s.,!?;:'"()\-&@#%+=/]*$/;
 
 const TOP_MESSAGE =
   "Please post all the Projects executed by your District. The content posted here will be displayed on the District website.";
@@ -328,8 +328,8 @@ export default function DistrictProjectsV2EditPage() {
   const handleSave = async () => {
     if (!title.trim()) { setErrorMessage("Title is required."); return; }
     if (title.trim().length > 50) { setErrorMessage("Title must be 50 characters or less."); return; }
-    if (!ENGLISH_ONLY_REGEX.test(title)) { setErrorMessage("Title must be in English only."); return; }
-    if (description && !ENGLISH_ONLY_REGEX.test(description)) { setErrorMessage("Description must be in English only."); return; }
+    if (!TEXT_INPUT_REGEX.test(title)) { setErrorMessage("Title cannot contain emoji."); return; }
+    if (description && !TEXT_INPUT_REGEX.test(description)) { setErrorMessage("Description cannot contain emoji."); return; }
     if (!projectDate) { setErrorMessage("Date is required."); return; }
     if (!areaOfFocusId) { setErrorMessage("Area of Focus is required."); return; }
     if (isOthersAof && !otherAreaOfFocus.trim()) { setErrorMessage("Please specify the Area of Focus."); return; }
@@ -450,7 +450,7 @@ export default function DistrictProjectsV2EditPage() {
           <SectionCard number={1} icon={FileText} title="Project Details" dot="bg-blue-600">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="sm:col-span-2">
-                <FieldLabel hint="(English only, max 50 chars)" dot="bg-blue-500">Title</FieldLabel>
+                <FieldLabel hint="(max 50 chars)" dot="bg-blue-500">Title</FieldLabel>
                 <input
                   type="text"
                   value={title}
@@ -461,7 +461,7 @@ export default function DistrictProjectsV2EditPage() {
                 <p className="text-xs text-slate-400 text-right mt-0.5">{title.length}/50</p>
               </div>
               <div className="sm:col-span-2">
-                <FieldLabel hint="(English only, max 1000 chars)" dot="bg-blue-500" required={false}>Description</FieldLabel>
+                <FieldLabel hint="(max 1000 chars)" dot="bg-blue-500" required={false}>Description</FieldLabel>
                 <textarea
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}

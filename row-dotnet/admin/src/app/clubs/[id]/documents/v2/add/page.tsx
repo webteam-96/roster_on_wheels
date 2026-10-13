@@ -29,8 +29,7 @@ import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { useSyncClubIdFromUrl } from "@/hooks/useSyncClubIdFromUrl";
-
-const ENGLISH_ONLY_REGEX = /^[a-zA-Z0-9\s.,!?;:'"()\-&@#%+=/]*$/;
+import { TEXT_INPUT_REGEX } from "@/lib/textInput";
 
 const TOP_MESSAGE = "Upload club documents (constitution, bylaws, forms, attachments). Choose 'View Only' to restrict downloads or 'Downloadable' to let members save the file locally.";
 
@@ -128,7 +127,7 @@ export default function DocumentsV2AddPage() {
 
   const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value;
-    if (ENGLISH_ONLY_REGEX.test(val)) {
+    if (TEXT_INPUT_REGEX.test(val)) {
       setTitle(val);
     }
   };
@@ -237,7 +236,7 @@ export default function DocumentsV2AddPage() {
         <SectionCard number={1} icon={FileText} title="Document Details" dot="bg-blue-600">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="sm:col-span-2">
-              <FieldLabel hint="(max 50 chars, English only)" dot="bg-blue-500">Title</FieldLabel>
+              <FieldLabel hint="(max 50 chars)" dot="bg-blue-500">Title</FieldLabel>
               <input
                 type="text"
                 value={title}

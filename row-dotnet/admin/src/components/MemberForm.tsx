@@ -30,7 +30,7 @@ import { Plus, Trash2, Save, ArrowLeft } from "lucide-react";
 import RotaryLoader from "@/components/RotaryLoader";
 import Link from "next/link";
 import { DayMonthPicker } from "@/components/DayMonthPicker";
-import { MEMBER_NAME_FILTER } from "@/lib/englishText";
+import { MEMBER_NAME_FILTER } from "@/lib/textInput";
 import { familyDuplicateError } from "@/lib/familyValidation";
 
 interface MemberFormProps {

@@ -20,13 +20,12 @@ import RiRecipientPicker, { RiRecipientValue, checkRiCredits } from "@/component
 import WhatsAppRecipientBadge from "@/components/WhatsAppRecipientBadge";
 import ImageCropDialog from "@/components/ImageCropDialog";
 import { useImageCropUpload } from "@/hooks/useImageCropUpload";
+import { TEXT_INPUT_REGEX } from "@/lib/textInput";
 
 // The attached image is shown as a landscape poster on the detail view and is
 // pushed out with WhatsApp/email notifications — locked to 4:3 at 1200×900.
 const IMAGE_ASPECT = 4 / 3;
 const IMAGE_MAX_WIDTH = 1200;
-
-const ENGLISH_ONLY_REGEX = /^[a-zA-Z0-9\s.,!?;:'"()\-&@#%+=/]*$/;
 
 function Req({ children, hint }: { children: React.ReactNode; hint?: string }) {
   return (
@@ -88,11 +87,11 @@ export default function RiDirectorAnnouncementsAddPage() {
 
   const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value;
-    if (ENGLISH_ONLY_REGEX.test(val)) setTitle(val);
+    if (TEXT_INPUT_REGEX.test(val)) setTitle(val);
   };
   const handleDescriptionChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const val = e.target.value;
-    if (ENGLISH_ONLY_REGEX.test(val)) setDescription(val);
+    if (TEXT_INPUT_REGEX.test(val)) setDescription(val);
   };
 
   const handleCroppedImage = async (blob: Blob) => {
@@ -196,12 +195,12 @@ export default function RiDirectorAnnouncementsAddPage() {
         <Section icon={FileText} title="Announcement Details" number={1}>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-1.5 sm:col-span-2">
-              <Req hint="(max 50 chars, English only)">Title</Req>
+              <Req hint="(max 50 chars)">Title</Req>
               <Input value={title} onChange={handleTitleChange} placeholder="Announcement title" maxLength={50} />
               <p className="text-xs text-muted-foreground text-right">{title.length}/50</p>
             </div>
             <div className="space-y-1.5 sm:col-span-2">
-              <OptLabel>Description <span className="text-muted-foreground font-normal text-xs">(max 1000 chars, English only)</span></OptLabel>
+              <OptLabel>Description <span className="text-muted-foreground font-normal text-xs">(max 1000 chars)</span></OptLabel>
               <Textarea value={description} onChange={handleDescriptionChange} placeholder="Describe the announcement..." rows={4} maxLength={1000} />
               <p className="text-xs text-muted-foreground text-right">{description.length}/1000</p>
             </div>

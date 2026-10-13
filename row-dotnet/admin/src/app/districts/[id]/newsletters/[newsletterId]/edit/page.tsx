@@ -24,8 +24,7 @@ import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import WhatsAppRecipientBadge from "@/components/WhatsAppRecipientBadge";
 import { toLocalDateParts } from "@/lib/dateUtils";
-
-const ENGLISH_ONLY_REGEX = /^[a-zA-Z0-9\s.,!?;:'"()\-&@#%+=/]*$/;
+import { TEXT_INPUT_REGEX } from "@/lib/textInput";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
@@ -129,7 +128,7 @@ export default function DistrictNewsletterEditPage() {
 
   const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value;
-    if (ENGLISH_ONLY_REGEX.test(val)) setTitle(val);
+    if (TEXT_INPUT_REGEX.test(val)) setTitle(val);
   };
 
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -218,7 +217,7 @@ export default function DistrictNewsletterEditPage() {
         <Section icon={FileText} title="Newsletter Details" number={1}>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-1.5 sm:col-span-2">
-              <Req hint="(max 50 chars, English only)">Title</Req>
+              <Req hint="(max 50 chars)">Title</Req>
               <Input value={title} onChange={handleTitleChange} placeholder="Newsletter title" maxLength={50} />
               <p className="text-xs text-muted-foreground text-right">{title.length}/50</p>
             </div>

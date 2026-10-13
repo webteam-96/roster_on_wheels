@@ -21,6 +21,7 @@ import WhatsAppRecipientBadge from "@/components/WhatsAppRecipientBadge";
 import { toLocalDateParts } from "@/lib/dateUtils";
 import ImageCropDialog from "@/components/ImageCropDialog";
 import { useImageCropUpload } from "@/hooks/useImageCropUpload";
+import { TEXT_INPUT_REGEX } from "@/lib/textInput";
 
 // The attached image is shown as a landscape poster on the detail view and is
 // pushed out with WhatsApp/email notifications — locked to 4:3 at 1200×900.
@@ -28,7 +29,6 @@ const IMAGE_ASPECT = 4 / 3;
 const IMAGE_MAX_WIDTH = 1200;
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
-const ENGLISH_ONLY_REGEX = /^[a-zA-Z0-9\s.,!?;:'"()\-&@#%+=/]*$/;
 
 function Req({ children, hint }: { children: React.ReactNode; hint?: string }) {
   return (
@@ -213,8 +213,8 @@ export default function RiDirectorAnnouncementsEditPage() {
     }
   };
 
-  const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => { if (ENGLISH_ONLY_REGEX.test(e.target.value)) setTitle(e.target.value); };
-  const handleDescriptionChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => { if (ENGLISH_ONLY_REGEX.test(e.target.value)) setDescription(e.target.value); };
+  const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => { if (TEXT_INPUT_REGEX.test(e.target.value)) setTitle(e.target.value); };
+  const handleDescriptionChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => { if (TEXT_INPUT_REGEX.test(e.target.value)) setDescription(e.target.value); };
 
   if (loading) {
     return (
@@ -240,7 +240,7 @@ export default function RiDirectorAnnouncementsEditPage() {
         <Section icon={FileText} title="Announcement Details" number={1}>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-1.5 sm:col-span-2">
-              <Req hint="(max 50 chars, English only)">Title</Req>
+              <Req hint="(max 50 chars)">Title</Req>
               <Input value={title} onChange={handleTitleChange} maxLength={50} />
               <p className="text-xs text-muted-foreground text-right">{title.length}/50</p>
             </div>
