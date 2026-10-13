@@ -208,7 +208,7 @@ export async function getAreas(
 /**
  * Area-of-focus breakdown scoped to the CURRENT drill-down (state / district),
  * or zone-wide when neither is set — so Area of Focus can be a top-level filter
- * (like rotaryindia.org), not just per-club. Falls back to [] until the
+ * (like example.org), not just per-club. Falls back to [] until the
  * `project-stats/areas` endpoint is deployed; the UI then uses per-club areas.
  */
 export async function getScopeAreas(

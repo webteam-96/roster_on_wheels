@@ -22,6 +22,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Upload, X, RefreshCw, Bell, MessageCircle, FileText, Send } from "lucide-react";
 import EmailTokenChips, { CLUB_DUES_RECEIPT_TOKENS, CLUB_DUES_REMINDER_TOKENS } from "@/components/club-dues/EmailTokenChips";
 
+import { appLocale, currencySymbol } from "@/lib/appFormat";
 // forwardedRef-capable dynamic import so we can reach the Quill editor to insert tokens at the cursor.
 const ReactQuill = dynamic(async () => {
   const { default: RQ } = await import("react-quill-new");
@@ -424,21 +425,21 @@ function ClubsSection({ duesId, onSuccess, onError }: { duesId: number; onSucces
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           <Card><CardContent className="p-4">
             <p className="text-xs text-muted-foreground">Total via Offline</p>
-            <p className="text-2xl font-bold text-primary">₹{summary.offlineAmount.toLocaleString("en-IN")}</p>
+            <p className="text-2xl font-bold text-primary">{currencySymbol()}{summary.offlineAmount.toLocaleString(appLocale())}</p>
             <p className="text-xs text-muted-foreground mt-0.5">{summary.totalMembers} member{summary.totalMembers === 1 ? "" : "s"} · {summary.fullyPaid}/{summary.totalClubs} clubs paid</p>
           </CardContent></Card>
           <Card><CardContent className="p-4">
             <p className="text-xs text-muted-foreground">Total via Online</p>
-            <p className="text-2xl font-bold text-primary">₹{summary.onlineAmount.toLocaleString("en-IN")}</p>
+            <p className="text-2xl font-bold text-primary">{currencySymbol()}{summary.onlineAmount.toLocaleString(appLocale())}</p>
           </CardContent></Card>
           <Card><CardContent className="p-4">
             <p className="text-xs text-muted-foreground">Collected</p>
-            <p className="text-2xl font-bold text-green-600">₹{summary.collectedAmount.toLocaleString("en-IN")}</p>
+            <p className="text-2xl font-bold text-green-600">{currencySymbol()}{summary.collectedAmount.toLocaleString(appLocale())}</p>
             <p className="text-xs text-muted-foreground mt-0.5">{summary.paidMembers} member{summary.paidMembers === 1 ? "" : "s"} · {summary.fullyPaid}/{summary.totalClubs} clubs paid</p>
           </CardContent></Card>
           <Card><CardContent className="p-4">
             <p className="text-xs text-muted-foreground">Pending (Offline)</p>
-            <p className="text-2xl font-bold text-red-600">₹{summary.pendingAmount.toLocaleString("en-IN")}</p>
+            <p className="text-2xl font-bold text-red-600">{currencySymbol()}{summary.pendingAmount.toLocaleString(appLocale())}</p>
             {summary.pending > 0 && <p className="text-xs text-amber-600 mt-0.5">{summary.pending} offline awaiting approval</p>}
           </CardContent></Card>
         </div>
@@ -531,13 +532,13 @@ function ClubsSection({ duesId, onSuccess, onError }: { duesId: number; onSucces
                     {r.hasPendingApproval && <span className="ml-2 text-xs rounded bg-blue-100 text-blue-700 px-1.5 py-0.5">offline pending</span>}
                   </td>
                   <td className="p-3 text-center" title={`${r.paidCount} paid + ${r.unpaidCount} pending`}>{r.paidCount}+{r.unpaidCount}</td>
-                  <td className="p-3 text-right font-medium">{r.paidOnline === true ? "-" : `₹${Number(r.offlineAmount).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}</td>
+                  <td className="p-3 text-right font-medium">{r.paidOnline === true ? "-" : `${currencySymbol()}${Number(r.offlineAmount).toLocaleString(appLocale(), { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}</td>
                   {Array.from({ length: maxOfflineAccountCols }, (_, i) => {
                     const acc = r.paidOnline === true ? undefined : r.offlineAccountBreakdown?.[i];
                     return (
                       <Fragment key={`off-${i}`}>
                         <td className="p-3 text-right whitespace-nowrap">
-                          {acc ? `₹${Number(acc.amount).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : "-"}
+                          {acc ? `${currencySymbol()}${Number(acc.amount).toLocaleString(appLocale(), { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : "-"}
                         </td>
                         <td className="p-3 text-center whitespace-nowrap" title={acc?.accountLabel || ""}>
                           {acc ? (
@@ -549,14 +550,14 @@ function ClubsSection({ duesId, onSuccess, onError }: { duesId: number; onSucces
                       </Fragment>
                     );
                   })}
-                  <td className="p-3 text-right">{r.paidOnline === true ? "-" : `₹${Number(r.offlinePaid).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}</td>
-                  <td className="p-3 text-right font-medium">{r.paidOnline === false ? "-" : `₹${Number(r.onlineAmount).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}</td>
+                  <td className="p-3 text-right">{r.paidOnline === true ? "-" : `${currencySymbol()}${Number(r.offlinePaid).toLocaleString(appLocale(), { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}</td>
+                  <td className="p-3 text-right font-medium">{r.paidOnline === false ? "-" : `${currencySymbol()}${Number(r.onlineAmount).toLocaleString(appLocale(), { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}</td>
                   {Array.from({ length: maxOnlineAccountCols }, (_, i) => {
                     const acc = r.paidOnline === false ? undefined : r.onlineAccountBreakdown?.[i];
                     return (
                       <Fragment key={`on-${i}`}>
                         <td className="p-3 text-right whitespace-nowrap">
-                          {acc ? `₹${Number(acc.amount).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : "-"}
+                          {acc ? `${currencySymbol()}${Number(acc.amount).toLocaleString(appLocale(), { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : "-"}
                         </td>
                         <td className="p-3 text-center whitespace-nowrap" title={acc?.accountLabel || ""}>
                           {acc ? (
@@ -568,8 +569,8 @@ function ClubsSection({ duesId, onSuccess, onError }: { duesId: number; onSucces
                       </Fragment>
                     );
                   })}
-                  <td className="p-3 text-right">{r.paidOnline === false ? "-" : `₹${Number(r.onlinePaid).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}</td>
-                  <td className="p-3 text-right">₹{Number(r.totalPaid).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                  <td className="p-3 text-right">{r.paidOnline === false ? "-" : `${currencySymbol()}${Number(r.onlinePaid).toLocaleString(appLocale(), { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}</td>
+                  <td className="p-3 text-right">{currencySymbol()}{Number(r.totalPaid).toLocaleString(appLocale(), { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
                   <td className="p-3 text-center">{r.paidOnline == null ? "-" : r.paidOnline ? "Online" : "Offline"}</td>
                   <td className="p-3">{r.status}</td>
                   <td className="p-3">
@@ -652,7 +653,7 @@ function OfflineDialog({ duesId, club, onClose, onDone, onError }: { duesId: num
         )}
         {(accounts.length === 0 || accountId) && (
           <p className="text-sm text-muted-foreground">
-            Amount: <b>₹{Number(accounts.length === 0 ? club.unpaidCount * club.offlinePerMemberRate : selectedAccount?.amount ?? 0).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</b>. This marks the club as paid immediately.
+            Amount: <b>{currencySymbol()}{Number(accounts.length === 0 ? club.unpaidCount * club.offlinePerMemberRate : selectedAccount?.amount ?? 0).toLocaleString(appLocale(), { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</b>. This marks the club as paid immediately.
           </p>
         )}
         <div className="space-y-1">
@@ -702,7 +703,7 @@ function ApproveDialog({ club, onClose, onDone, onError }: { club: ClubRow; onCl
           <div className="flex justify-between"><span>Mode</span><b>{MODES[String(details?.transactionType)] || "—"}</b></div>
           {details?.transactionId && <div className="flex justify-between"><span>Reference</span><b>{details.transactionId}</b></div>}
           {details?.remark && <div className="flex justify-between"><span>Remark</span><span>{details.remark}</span></div>}
-          <div className="flex justify-between border-t pt-1"><span>Amount</span><b>₹{Number(details?.amount ?? club.unpaidCount * club.offlinePerMemberRate).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</b></div>
+          <div className="flex justify-between border-t pt-1"><span>Amount</span><b>{currencySymbol()}{Number(details?.amount ?? club.unpaidCount * club.offlinePerMemberRate).toLocaleString(appLocale(), { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</b></div>
         </div>
         <div className="space-y-1">
           <Label>Rejection reason <span className="text-muted-foreground">(required only to reject)</span></Label>

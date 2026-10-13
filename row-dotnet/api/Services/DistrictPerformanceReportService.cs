@@ -28,8 +28,8 @@ namespace RotaryApi.Services;
 //   • Clubs "have set goals" — at least one saved TARGET value (Membership auto-fills live figures).
 //   • District Dues and District Awards sections appear only when the district uses them that year.
 //
-// Schedule — HARD-CODED below (ScheduleOn / ScheduleMode / SendHourIst / recipient arrays), no appsettings:
-//   Mode "Test" (now) → District 3142 + the RI Director all-zones report, daily 7:00 IST, to the two
+// Schedule — HARD-CODED below (ScheduleOn / ScheduleMode / SendHour / recipient arrays), no appsettings:
+//   Mode "Test" (now) → District 3142 + the RI Director all-zones report, daily at the send hour (brand time zone), to the two
 //                       test addresses (first = To, rest = CC).
 //   Mode "Live" (later) → on the 1st & 16th: every district to its District Governor (CC LiveCc; a district
 //                       with no DG email is skipped and LiveCc is told) and the all-zones report to every
@@ -74,13 +74,30 @@ public class DistrictPerformanceReportService : IDistrictPerformanceReportServic
     private readonly int[] _liveDays;
 
     // 5656 test district, 1280 = COG, IFRM India, 999 test; TEST-* districts are excluded in the query too.
-    private static readonly string[] ExemptDistrictNumbers = { "5656", "1280", "IFRM India", "999" };
+    // ROW (as the NestJS edition): zones and exempt districts from Brand:Scope (empty zones = all zones,
+    // empty exempt list = none). The original platform hard-coded its own zones and its own test / COG / partner districts.
+    private static string[] ExemptDistrictNumbers => RotaryApi.Services.Brand.ExemptDistricts;
+    private static string[] ScopeZones => RotaryApi.Services.Brand.Zones.Length > 0 ? RotaryApi.Services.Brand.Zones : new[] { "" };
+    private static int AllZones => RotaryApi.Services.Brand.Zones.Length == 0 ? 1 : 0;
     // Both reports cover the portal's own zones only — Zone 0 and "Other Zones" are out (user 2026-09-18).
-    private static readonly string[] ReportZones = { "Zone 4", "Zone 5", "Zone 6", "Zone 7", "Zone 8" };
+
     // Clubs never counted in either report, whatever district they sit in: the COG past-DG roster club and
-    // every IFRM club (alias c = club_master).
-    private static readonly string ExcludedClubsSql = $"c.pk_club_id <> {CogDesignationHelper.CogClubId} AND c.ClubName NOT LIKE '%IFRM%'";
-    private static readonly CultureInfo InCulture = CultureInfo.GetCultureInfo("en-IN");
+    // every IFRM club (alias c = club_master). Rotaract clubs are never counted either (user 2026-10-08).
+    // ROW: COG from Brand:Scope:CogClubId, name patterns from DistrictPerformanceReport:ExcludedClubNames
+    // (the original platform: its partner programme's "IFRM" clubs). Patterns are plain text, matched with LIKE '%…%'.
+    private static string ExcludedClubsSql =>
+        $"c.pk_club_id <> {CogDesignationHelper.CogClubId}" + string.Concat(RotaryApi.Services.Brand.ExcludedClubNamePatterns
+            .Select(n => $" AND c.ClubName NOT LIKE '%{n.Replace("'", "''").Replace("\\", "\\\\").Replace("%", "\\%").Replace("_", "\\_")}%'"))
+        + $" AND {ClubScopeSql.NotRotaract("c")}";
+    // ROW: numbers in the brand's number locale (the original platform: en-IN lakh / crore grouping).
+    private static CultureInfo InCulture
+    {
+        get
+        {
+            try { return CultureInfo.GetCultureInfo(Brand.NumberLocale); }
+            catch (CultureNotFoundException) { return CultureInfo.InvariantCulture; }
+        }
+    }
 
     // Service avenues counted as PROJECTS (Club Service = meetings, reported separately).
     private static readonly (string Key, string Label)[] ProjectAvenues =
@@ -93,7 +110,7 @@ public class DistrictPerformanceReportService : IDistrictPerformanceReportServic
     };
     private const string ClubServiceKey = "club_service";
     // Goal categories shown in the email body / screen / Summary (the full set is in the Excel sheet).
-    private static readonly HashSet<string> HeadlineGoalCategories = new(StringComparer.OrdinalIgnoreCase) { "Membership", "TRF" };
+    private static readonly HashSet<string> HeadlineGoalCategories = new(StringComparer.OrdinalIgnoreCase) { "Membership", "Foundation" };
     // Goal table % column — shown as a red / amber / green coloured figure (no bar, user 2026-09-18).
     public const string PctHeader = "Percentage Achieved";
     private const string OtherAvenue = "Other";
@@ -125,12 +142,12 @@ public class DistrictPerformanceReportService : IDistrictPerformanceReportServic
 
         // HARD-CODED (user 2026-09-17: no config, hard-code both email ids).
         // LIVE since 2026-09-29 - the user verified both reports and asked for them to go to every
-        // District Governor and RI Director. On the 1st and 16th at 07:00 IST: each district's report
+        // District Governor and RI Director. On the 1st and 16th at the send hour (brand time zone): each district's report
         // to its own DG (CC LiveCc; a district with no DG email is skipped and LiveCc is told), and the
         // all-zones report to every active RI Director (Settings -> RI Director, member_roles role 7).
         _enabled = ScheduleOn;
         _mode = ScheduleMode;
-        _hour = SendHourIst;
+        _hour = SendHour;
         _testDistricts = TestDistrictNumbers;
         _testRecipients = TestRecipientEmails;
         _liveCc = LiveCcEmails;
@@ -139,7 +156,7 @@ public class DistrictPerformanceReportService : IDistrictPerformanceReportServic
 
     public static readonly bool ScheduleOn = true;
     public const string ScheduleMode = "Live";          // "Test" | "Live"
-    public const int SendHourIst = 7;
+    public static int SendHour => Brand.DistrictReportSendHour;
     // The sample districts the rehearsal run mails (see PreviewDate). 3141 is the one the user has
     // been checking against, 3142 is the original test district.
     private static readonly string[] TestDistrictNumbers = { "3141", "3142" };
@@ -185,10 +202,10 @@ public class DistrictPerformanceReportService : IDistrictPerformanceReportServic
             WHERE d.isdeleted = 0 AND d.IsActive = 1
               AND d.DistrictNumber NOT IN @Exempt
               AND d.DistrictNumber NOT LIKE 'TEST%'
-              AND z.ZoneName IN @Zones
+              AND (@AllZones = 1 OR z.ZoneName IN @Zones)
             ORDER BY COALESCE(z.sort_order, 999), z.ZoneName,
                      CAST(d.DistrictNumber AS UNSIGNED), d.DistrictNumber",
-            new { Exempt = ExemptDistrictNumbers, Zones = ReportZones })).ToList();
+            new { Exempt = ExemptDistrictNumbers, Zones = ScopeZones, AllZones })).ToList();
 
     public async Task<PerformanceReportSettingsDto> GetSettingsAsync()
     {
@@ -398,7 +415,7 @@ public class DistrictPerformanceReportService : IDistrictPerformanceReportServic
         DateTime today = DateTime.Today;
         DateTime end = today < year.EndDate.Date ? today : year.EndDate.Date;   // "till date"
         DateTime endExclusive = end.AddDays(1);
-        string currency = CurrencyHelper.Normalize(string.IsNullOrWhiteSpace(district.DefaultCurrency) ? "INR" : district.DefaultCurrency);
+        string currency = CurrencyHelper.Normalize(string.IsNullOrWhiteSpace(district.DefaultCurrency) ? RotaryApi.Services.Brand.DefaultCurrency : district.DefaultCurrency);
 
         var p = new { D = districtId, Y = year.Id, YL = year.Label, S = start, E = end, E1 = endExclusive };
         // Club scope: the district's ACTIVE clubs — active AND synced with Rotary.org (a club that is not synced
@@ -449,6 +466,7 @@ public class DistrictPerformanceReportService : IDistrictPerformanceReportServic
                    COALESCE(SUM(CASE WHEN ClubCharterDate IS NULL OR ClubCharterDate < @S THEN 1 ELSE 0 END), 0) AS BeforeJul1
             FROM club_master
             WHERE fk_district_id = @D AND isdeleted = 1 AND pk_club_id <> " + CogDesignationHelper.CogClubId + @" AND ClubName NOT LIKE '%IFRM%'
+              AND " + ClubScopeSql.NotRotaract("") + @"
               AND IsSyncedFromRotaryOrg = 1
               AND COALESCE(deleted_date, modified_date) >= @S AND COALESCE(deleted_date, modified_date) < @E1", p);
         // Only clubs that WERE counted can be reported as deleted: a club that was never synced with
@@ -742,7 +760,7 @@ public class DistrictPerformanceReportService : IDistrictPerformanceReportServic
 
         // ── Goal Setting ─────────────────────────────────────────────────────────────────────────
         var categories = (await conn.QueryAsync<(int Id, string Name)>(
-            "SELECT pk_category_id AS Id, Name FROM goal_categories WHERE isdeleted = 0 ORDER BY SortOrder, pk_category_id")).ToList();
+            "SELECT pk_category_id AS Id, IF(Name = 'TRF', 'Foundation', Name) AS Name FROM goal_categories WHERE isdeleted = 0 ORDER BY SortOrder, pk_category_id")).ToList();
         foreach (var gs in await conn.QueryAsync<(int ClubId, int CatId)>($@"
             SELECT DISTINCT ge.fk_club_id AS ClubId, gf.fk_category_id AS CatId
             FROM goal_entries ge
@@ -855,7 +873,7 @@ public class DistrictPerformanceReportService : IDistrictPerformanceReportServic
             headlineGoals.Where(g => g.Category.Equals(category, StringComparison.OrdinalIgnoreCase)).ToList();
         List<string> GoalRow(DistrictPerformanceGoalMetric g) => new() { g.Metric, Dec(g.Baseline), Dec(g.Target), Dec(g.Achieved), Pct(g.Pct) };
         // TRF: a fund with no (or zero) "Highest" shows a dash, not 0 (user 2026-09-28).
-        List<string> TrfRow(DistrictPerformanceGoalMetric g) => new() { g.Metric, (g.Baseline ?? 0m) == 0m ? "—" : Dec(g.Baseline), Dec(g.Target), Dec(g.Achieved), Pct(g.Pct) };
+        List<string> TrfRow(DistrictPerformanceGoalMetric g) => new() { g.Metric, (g.Baseline ?? 0m) == 0m ? "—" : Dec(g.Baseline), Dec(g.Target), Dec(g.Achieved), Pct2(g.Pct) };
 
         // ── PART 1 — the district's own work ─────────────────────────────────────────────────────
         string districtPart = $"District {district.DistrictNumber}";
@@ -864,17 +882,17 @@ public class DistrictPerformanceReportService : IDistrictPerformanceReportServic
 
         // Goal Setting — District: the Membership goals are part of the Clubs & Members table (Part 2);
         // TRF stands on its own, with the remaining categories pointed at in the Excel.
-        var trfGoals = GoalRows("TRF");
-        string trfAchievedHeader = goalData.AchievedAsOn.TryGetValue("TRF", out var trfAsOn) ? $"Achieved (as on {trfAsOn})" : "Achieved";
+        var trfGoals = GoalRows("Foundation");
+        string trfAchievedHeader = goalData.AchievedAsOn.TryGetValue("Foundation", out var trfAsOn) ? $"Achieved (as on {trfAsOn})" : "Achieved";
         AddDistrict(new PerformanceReportSection
         {
-            Title = "Goal Setting — District TRF",
+            Title = "Goal Setting — District Foundation",
             // First column heading "Particulars" instead of "Metric" (user 2026-09-28).
             TableHeaders = new() { "Particulars", "Highest", "Target", trfAchievedHeader, PctHeader },
             Intro = "Targets for the year can be set and updated in the Goal Setting module on the ROW portal. "
                   + "Youth Service and Public Image goals are provided in the attached Excel (Goals - District sheet).",
             TableRows = trfGoals.Select(TrfRow).ToList(),
-            Note = trfGoals.Count == 0 ? "The district has not entered TRF goals yet." : null,
+            Note = trfGoals.Count == 0 ? "The district has not entered Foundation goals yet." : null,
         });
 
         // RAG Analysis — the Goal Setting "Healthy Clubs" rule: clubs by active members (honorary not counted).
@@ -1006,7 +1024,7 @@ public class DistrictPerformanceReportService : IDistrictPerformanceReportServic
         var totalMembersGoal = headlineGoals.FirstOrDefault(g =>
             g.Category.Equals("Membership", StringComparison.OrdinalIgnoreCase) && g.Metric.Equals("Total Members", StringComparison.OrdinalIgnoreCase));
         var totalGivingGoal = headlineGoals.FirstOrDefault(g =>
-            g.Category.Equals("TRF", StringComparison.OrdinalIgnoreCase) && g.Metric.Equals("Total Giving", StringComparison.OrdinalIgnoreCase));
+            g.Category.Equals("Foundation", StringComparison.OrdinalIgnoreCase) && g.Metric.Equals("Total Giving", StringComparison.OrdinalIgnoreCase));
         long cmrDue = cmrSubmitted + cmrPending + cmrNotStarted;
         decimal? cmrPct = cmrDue > 0 ? Math.Round((decimal)cmrSubmitted / cmrDue * 100m, 1) : null;
         long projectTotal = avenueTotals.Values.Sum() + districtProjects + districtEvents;   // clubs + the district's own
@@ -1017,12 +1035,12 @@ public class DistrictPerformanceReportService : IDistrictPerformanceReportServic
             new() { Label = "Clubs", Value = N(clubs.Count + nonSynced.Count), Sub = $"{N(clubs.Count)} synced · {N(nonSynced.Count)} not synced" },
             // Figure first, percentage underneath (user 2026-09-18).
             totalGivingGoal == null || (totalGivingGoal.Target ?? 0) <= 0
-                ? new PerformanceReportHighlight { Label = "TRF Total Giving", Value = "—", Sub = "Goal not set yet" }
+                ? new PerformanceReportHighlight { Label = "Foundation Total Giving", Value = "—", Sub = "Goal not set yet" }
                 : new PerformanceReportHighlight
                 {
-                    Label = "TRF Total Giving",
+                    Label = "Foundation Total Giving",
                     Value = Dec(totalGivingGoal.Achieved),
-                    Sub = $"{Pct(totalGivingGoal.Pct)} target of {Dec(totalGivingGoal.Target)}",
+                    Sub = $"{Pct2(totalGivingGoal.Pct)} target of {Dec(totalGivingGoal.Target)}",
                     Percent = totalGivingGoal.Pct ?? 0m,
                 },
             // Service Projects · Total Cost · Beneficiaries · Man Hours together on their own row (user 2026-09-28).
@@ -1065,7 +1083,7 @@ public class DistrictPerformanceReportService : IDistrictPerformanceReportServic
                            + "District (all district figures), All Clubs (one row per club with every module count), Synced and Non-Synced Clubs, "
                            + (ClubGoalsComingSoon
                                ? "Goals - District (Club Goal Setting is coming soon), "
-                               : "Goals - District, Goals - Clubs (one sheet each for Membership, Youth Service, TRF and Public Image), ")
+                               : "Goals - District, Goals - Clubs (one sheet each for Membership, Youth Service, Foundation and Public Image), ")
                            + "Projects Ranking, Club Monthly Report Grid and Club Websites (active).",
             Kpi = new DistrictPerformanceKpi
             {
@@ -1089,10 +1107,10 @@ public class DistrictPerformanceReportService : IDistrictPerformanceReportServic
                 ClubService = clubServiceEntries,
                 Avenues = ProjectAvenues.Select(a => a.Label).Concat(hasOtherAvenue ? new[] { OtherAvenue } : Array.Empty<string>())
                     .ToDictionary(label => label, label => avenueTotals.GetValueOrDefault(label), StringComparer.Ordinal),
-                Foundation = GoalRows("TRF").Where(g => g.Achieved.HasValue)
+                Foundation = GoalRows("Foundation").Where(g => g.Achieved.HasValue)
                     .GroupBy(g => g.Metric, StringComparer.Ordinal)
                     .ToDictionary(g => g.Key, g => g.First().Achieved!.Value, StringComparer.Ordinal),
-                TrfAsOn = goalData.AchievedAsOn.TryGetValue("TRF", out var asOnTrf) ? asOnTrf : null,
+                TrfAsOn = goalData.AchievedAsOn.TryGetValue("Foundation", out var asOnTrf) ? asOnTrf : null,
                 MembershipTarget = totalMembersGoal?.Target,
                 MembershipAchieved = totalMembersGoal?.Achieved,
                 MembershipPct = totalMembersGoal?.Pct,
@@ -1200,7 +1218,7 @@ public class DistrictPerformanceReportService : IDistrictPerformanceReportServic
             Group = foundationGroup,
             Label = f,
             Value = Dec(Fund(k, f)),
-            Sub = f == "Total Giving" && trfTarget > 0 ? $"{Pct(Ratio(trfAchieved, trfTarget))} target of {Dec(trfTarget)}" : "achieved this year",
+            Sub = f == "Total Giving" && trfTarget > 0 ? $"{Pct2(Math.Round(trfAchieved / trfTarget * 100m, 2))} target of {Dec(trfTarget)}" : "achieved this year",
         }));
         highlights.AddRange(avenues.Select(a => new PerformanceReportHighlight
         {
@@ -1785,10 +1803,10 @@ public class DistrictPerformanceReportService : IDistrictPerformanceReportServic
         return v.Value == Math.Truncate(v.Value) ? v.Value.ToString("N0", InCulture) : v.Value.ToString("N2", InCulture);
     }
     private static string Pct(decimal? v) => v.HasValue ? $"{v.Value.ToString("0.#", CultureInfo.InvariantCulture)}%" : "—";
+    // Foundation (TRF): 2 decimals everywhere, same as the Goal Setting screens (user 2026-10-07).
+    private static string Pct2(decimal? v) => v.HasValue ? $"{v.Value.ToString("0.##", CultureInfo.InvariantCulture)}%" : "—";
     private static string Money(decimal v, string currency)
-        => string.Equals(currency, "INR", StringComparison.OrdinalIgnoreCase)
-            ? "₹ " + Math.Round(v, 0).ToString("N0", InCulture)
-            : $"{currency} {Math.Round(v, 0).ToString("N0", InCulture)}";
+        => $"{currency} {Math.Round(v, 0).ToString("N0", InCulture)}";
     private static string MonthName(int month) => CultureInfo.InvariantCulture.DateTimeFormat.GetAbbreviatedMonthName(month);
     private static string SafeFile(string s) => new string(s.Select(ch => char.IsLetterOrDigit(ch) ? ch : '_').ToArray());
     private static string D(DateTime? d) => d.HasValue ? d.Value.ToString("dd MMM yyyy", CultureInfo.InvariantCulture) : "";
@@ -2451,7 +2469,7 @@ public class DistrictPerformanceReportService : IDistrictPerformanceReportServic
                 }
             if (cats.Count == 0) { ytd.CopyTo(wb, baseName); made.Add(baseName); return; }
 
-            string[] preferred = { "Membership", "Youth Service", "TRF", "Public Image" };
+            string[] preferred = { "Membership", "Youth Service", "Foundation", "Public Image" };
             int Rank(string n) { int i = Array.FindIndex(preferred, p => p.Equals(n, StringComparison.OrdinalIgnoreCase)); return i < 0 ? preferred.Length : i; }
             var mergedAll = ytd.MergedRanges.Select(m => (
                 R1: m.RangeAddress.FirstAddress.RowNumber, C1: m.RangeAddress.FirstAddress.ColumnNumber,

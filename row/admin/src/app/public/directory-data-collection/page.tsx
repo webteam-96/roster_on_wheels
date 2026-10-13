@@ -327,7 +327,7 @@ export default function PublicDirectoryFormPage() {
                 <Input
                   value={adminMobile}
                   onChange={(e) => setAdminMobile(e.target.value.replace(/[^\d]/g, ""))}
-                  placeholder="e.g. 9238331991"
+                  placeholder="e.g. 7700900123"
                   inputMode="numeric"
                   autoComplete="username"
                 />
@@ -380,7 +380,7 @@ export default function PublicDirectoryFormPage() {
               <p className="text-sm">We will send an OTP to your registered contact:</p>
               <div className="rounded-md bg-muted p-3 text-sm">
                 <div><b>Name:</b> {masked.name}</div>
-                {masked.hasMobile && <div><b>Mobile:</b> +91 {masked.maskedMobile}</div>}
+                {masked.hasMobile && <div><b>Mobile:</b> {masked.maskedMobile}</div>}
                 {masked.hasEmail && <div><b>Email:</b> {masked.maskedEmail}</div>}
               </div>
               {/* India members get SMS OTP only; outside-India members get Email OTP only —

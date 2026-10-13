@@ -1137,6 +1137,10 @@ public class ReportsController : ControllerBase
         if (districtId.HasValue) { sql += " AND c.fk_district_id = @DistrictId"; p.Add("DistrictId", districtId.Value); }
         sql += " ORDER BY CAST(d.DistrictNumber AS UNSIGNED), d.DistrictNumber, c.ClubName, m.MemberName, f.Relation";
         var rows = await conn.QueryAsync<dynamic>(sql, p);
+        // ROW: with member.familyDetails off the family columns are blanked (MemberDataGuard), so keep one row per member.
+        if (!RotaryApi.Services.Brand.Feature("member.familyDetails"))
+            rows = rows.GroupBy(r => { var d = (IDictionary<string, object?>)r; return $"{d["rotaryId"]}|{d["memberName"]}"; })
+                       .Select(g => g.First()).ToList();
         return Ok(rows);
     }
 

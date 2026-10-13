@@ -17,6 +17,7 @@ import { useParams, useSearchParams } from "next/navigation";
 import { X, Download } from "lucide-react";
 import RotaryLoader from "@/components/RotaryLoader";
 
+import { appLocale } from "@/lib/appFormat";
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
 interface PublicPhoto {
@@ -72,7 +73,7 @@ function fmtDate(s?: string | null): string {
   if (!s) return "";
   const d = new Date(s);
   if (Number.isNaN(d.getTime())) return "";
-  return d.toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" });
+  return d.toLocaleDateString(appLocale(), { day: "2-digit", month: "short", year: "numeric" });
 }
 
 function resolveImageUrl(imagePath: string): string {
@@ -229,7 +230,7 @@ export default function PublicProjectPage() {
               {!isClubService && project.directBeneficiaries != null && project.directBeneficiaries > 0 && (
                 <>
                   <span className="text-slate-300">·</span>
-                  <span>{project.directBeneficiaries.toLocaleString("en-IN")} beneficiaries</span>
+                  <span>{project.directBeneficiaries.toLocaleString(appLocale())} beneficiaries</span>
                 </>
               )}
             </div>

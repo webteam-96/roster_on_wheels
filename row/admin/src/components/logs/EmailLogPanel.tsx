@@ -23,11 +23,12 @@ import { Mail, Search, Filter, RotateCcw, Download, ArrowLeft } from "lucide-rea
 import Link from "next/link";
 import RotaryLoader from "@/components/RotaryLoader";
 
+import { appLocale } from "@/lib/appFormat";
 function fmtDate(d: string | null) {
   if (!d) return "—";
   const dt = new Date(d);
   if (isNaN(dt.getTime()) || dt.getFullYear() < 2000) return "—";
-  return dt.toLocaleString("en-IN", { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" });
+  return dt.toLocaleString(appLocale(), { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" });
 }
 function statusBadge(status: string, error?: string | null) {
   const cls = status === "Sent" ? "bg-emerald-500 hover:bg-emerald-600" : status === "Failed" ? "bg-red-500 hover:bg-red-600" : "bg-amber-500 hover:bg-amber-600";

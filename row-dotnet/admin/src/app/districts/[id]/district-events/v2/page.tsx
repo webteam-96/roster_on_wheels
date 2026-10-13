@@ -43,6 +43,7 @@ import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
 import DistrictAdminShell from "@/components/v2/DistrictAdminShell";
 
+import { appLocale } from "@/lib/appFormat";
 interface EventListItem {
   id: number;
   title: string | null;
@@ -77,7 +78,7 @@ function useSyncDistrictIdFromUrl(): void {
 function fmtDate(s?: string | null): string {
   if (!s) return "—";
   try {
-    return new Date(s).toLocaleDateString("en-IN", {
+    return new Date(s).toLocaleDateString(appLocale(), {
       day: "2-digit",
       month: "short",
       year: "numeric",

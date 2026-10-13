@@ -232,7 +232,7 @@ public class ProjectApprovalController : ControllerBase
       <tr><td>Club</td><td>{(string?)d.clubName}</td></tr>
       <tr><td>District</td><td>{(string?)d.districtNumber}</td></tr>
       <tr><td>Date</td><td>{(d.projectDate != null ? ((DateTime)d.projectDate).ToString("dd MMM yyyy") : "—")}</td></tr>
-      <tr><td>Cost</td><td>{(d.projectCost != null ? $"₹{d.projectCost:N2}" : "—")}</td></tr>
+      <tr><td>Cost</td><td>{(d.projectCost != null ? RotaryApi.Services.Brand.Money(Convert.ToDecimal(d.projectCost)) : "—")}</td></tr>
       <tr><td>Submitted By</td><td>{(string?)d.submittedByName}</td></tr>
     </table>
   </div>

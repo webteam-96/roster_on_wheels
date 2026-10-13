@@ -37,6 +37,7 @@ function stripYearFromBirthAnnivRows<T extends Record<string, unknown>>(rows: T[
 }
 import { exportToCSV } from "@/utils/csvExport";
 
+import { appLocale } from "@/lib/appFormat";
 interface ReportColumn { key: string; label: string; width?: number; hyperlink?: boolean; linkText?: string }
 interface ReportItem {
   id: string;              // unique key
@@ -749,7 +750,7 @@ export default function ReportsPage() {
       if (item.districtScoped && selectedDistrictId !== "all") suffixParts.push(`D${selectedDistrictLabel}`);
       const suffix = suffixParts.length ? `_${suffixParts.join("_")}` : "";
 
-      const subtitleParts: string[] = [`Exported ${new Date().toLocaleString("en-IN")}`];
+      const subtitleParts: string[] = [`Exported ${new Date().toLocaleString(appLocale())}`];
       if (item.yearScoped && selectedYearId !== "all") subtitleParts.push(`Year ${selectedYearLabel}`);
       if (item.districtScoped && selectedDistrictId !== "all") subtitleParts.push(`District ${selectedDistrictLabel}`);
       exportToCSV(rows, `${item.fileName}${suffix}`, item.columns,

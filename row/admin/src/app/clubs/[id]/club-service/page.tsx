@@ -36,6 +36,7 @@ import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import SearchBox from "@/components/SearchBox";
 
+import { appLocale } from "@/lib/appFormat";
 const MEETING_TYPE_LABELS: Record<string, string> = {
   regular: "Regular",
   fellowship: "Fellowship",
@@ -46,7 +47,7 @@ const MEETING_TYPE_LABELS: Record<string, string> = {
 
 const AGREE_MESSAGE = `The data I will enter is for a Meeting / Event conducted by my club. E.g., Installation, Navratri Celebration, Weekly Meetings, Etc.
 
-Please Note: The content posted here will be displayed on the Rotary Zones 4, 5, 6, 7 & 8 Website, District Website, Club Monthly Report & Rotary Zones 4, 5, 6, 7 & 8 Integrated Club Website`;
+Please Note: The content posted here will be displayed on the ROW Website, District Website, Club Monthly Report & ROW Integrated Club Website`;
 
 export default function ClubServicePage() {
   const params = useParams();
@@ -150,7 +151,7 @@ export default function ClubServicePage() {
     return (
       project.title?.toLowerCase().includes(q) ||
       meetingLabel.toLowerCase().includes(q) ||
-      (project.projectDate && new Date(project.projectDate).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" }).toLowerCase().includes(q)) ||
+      (project.projectDate && new Date(project.projectDate).toLocaleDateString(appLocale(), { day: "2-digit", month: "short", year: "numeric" }).toLowerCase().includes(q)) ||
       String(project.attendance ?? "").includes(q) ||
       String(project.attendancePercentage ?? "").includes(q)
     );
@@ -158,7 +159,7 @@ export default function ClubServicePage() {
 
   const formatDate = (dateStr: string | null) => {
     if (!dateStr) return "-";
-    return new Date(dateStr).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" });
+    return new Date(dateStr).toLocaleDateString(appLocale(), { day: "2-digit", month: "short", year: "numeric" });
   };
 
   return (

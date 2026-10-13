@@ -50,6 +50,7 @@ import RotaryLoader from "@/components/RotaryLoader";
 import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";
 
+import { appLocale, currencySymbol } from "@/lib/appFormat";
 interface KycItem {
   id: number;
   vendorId: string;
@@ -78,16 +79,16 @@ interface VendorSplit {
  * The locked, auto-computed DEFAULT settlement account.
  * It doesn't consume the fee — it RECEIVES whatever the other vendors don't take.
  */
-const DEFAULT_SETTLEMENT_VENDOR_ID = "kaizen_metazen_icici";
+const DEFAULT_SETTLEMENT_VENDOR_ID = (process.env.NEXT_PUBLIC_DEFAULT_SETTLEMENT_VENDOR_ID ?? "").toLowerCase();
 
 /**
  * Vendor accounts that must NOT be counted against a member's fee when computing
  * the Balance (Balance = fee − sum of vendor splits). Stored lowercase; compare
  * case-insensitively because the ids in the DB differ in casing
- * (`kaizen_metazen_icici` vs `Kaizen_saraswatbank`).
+ * (the vendor ids come from NEXT_PUBLIC_DEFAULT_SETTLEMENT_VENDOR_ID / NEXT_PUBLIC_PLUG_VENDOR_ID).
  *
  *  1. DEFAULT_SETTLEMENT_VENDOR_ID — see above; it collects the balance.
- *  2. Kaizen_saraswatbank — a tiny "plug" account whose only job is to absorb the
+ *  2. The plug vendor (NEXT_PUBLIC_PLUG_VENDOR_ID) — a tiny "plug" account whose only job is to absorb the
  *     rounding shortfall left in the under-funded default account, so it isn't a
  *     real cost against the fee either. Real example (dues 102, Thane Hills, fee
  *     35,000): A/C1 default = 1,053.07 (locked), A/C2 17,000, A/C3 17,000,
@@ -98,7 +99,7 @@ const DEFAULT_SETTLEMENT_VENDOR_ID = "kaizen_metazen_icici";
  * IMPORTANT: this exclusion is BALANCE MATH ONLY. The saraswat column stays
  * visible and editable everywhere; only the default account keeps its lock.
  */
-const BALANCE_EXCLUDED_VENDOR_IDS = [DEFAULT_SETTLEMENT_VENDOR_ID, "kaizen_saraswatbank"];
+const BALANCE_EXCLUDED_VENDOR_IDS = [DEFAULT_SETTLEMENT_VENDOR_ID, (process.env.NEXT_PUBLIC_PLUG_VENDOR_ID ?? "").toLowerCase()].filter(Boolean);
 
 /** Is this vendor id the locked default settlement account? (case-insensitive) */
 const isDefaultSettlementVendorId = (vendorId?: string | null) =>
@@ -259,7 +260,7 @@ function CreateEditMembershipDuesPage() {
   const [previewReminder, setPreviewReminder] = useState(false);
 
   // Section 8: Google Sheet Email
-  const [googleSheetEmail, setGoogleSheetEmail] = useState("noreply@rizones45678.org");
+  const [googleSheetEmail, setGoogleSheetEmail] = useState("support@example.org");
 
   // Edit mode: track original values for freeze/lock rules
   const [originalFees, setOriginalFees] = useState({ isFees1: false, isFees2: false, isFees3: false });
@@ -457,7 +458,7 @@ function CreateEditMembershipDuesPage() {
         setEmailBody(detail.emailBody || "");
         setEmailReminderSubject(detail.emailReminderSubject || "Payment Reminder");
         setEmailReminderBody(detail.emailReminderBody || "");
-        setGoogleSheetEmail(detail.googleSheetEmail || "noreply@rizones45678.org");
+        setGoogleSheetEmail(detail.googleSheetEmail || "support@example.org");
       } catch { setErrorMessage("Failed to load Club Dues details."); }
       finally { setLoading(false); }
     })();
@@ -570,7 +571,7 @@ function CreateEditMembershipDuesPage() {
           const onlineTotal = feeAmount * (1 + Number(onlineSurchargePercent || 0) / 100);
           const total = amountType === "1" ? onlineTotal : 100;
           if (Math.abs(assigned - total) > 0.01) {
-            return `${ft.label}: Vendor split ${amountType === "1" ? `₹${assigned.toFixed(2)}` : `${assigned.toFixed(2)}%`} does not match ${amountType === "1" ? `₹${total.toFixed(2)}` : `${total.toFixed(2)}%`}. Please adjust vendor amounts.`;
+            return `${ft.label}: Vendor split ${amountType === "1" ? `${currencySymbol()}${assigned.toFixed(2)}` : `${assigned.toFixed(2)}%`} does not match ${amountType === "1" ? `${currencySymbol()}${total.toFixed(2)}` : `${total.toFixed(2)}%`}. Please adjust vendor amounts.`;
           }
         }
         return null;
@@ -1365,7 +1366,7 @@ function CreateEditMembershipDuesPage() {
                         <div key={idx} className={`text-sm px-3 py-1.5 rounded flex items-center gap-2 ${isDefaultVendor ? "bg-muted/70" : "bg-muted"}`}>
                           <span className="text-muted-foreground whitespace-nowrap">{ft?.label || `Fee Type ${split.fkFeeType}`}:</span>
                           {isDefaultVendor ? (
-                            <span className="font-medium">{amountType === "1" ? `₹${split.splitAmount.toFixed(2)}` : `${split.splitAmount}%`}</span>
+                            <span className="font-medium">{amountType === "1" ? `${currencySymbol()}${split.splitAmount.toFixed(2)}` : `${split.splitAmount}%`}</span>
                           ) : (
                             <Input
                               type="number" step="0.01" className="w-24 h-7 text-xs"
@@ -1511,7 +1512,7 @@ function CreateEditMembershipDuesPage() {
     if (!mode) return "\u2014";
     if (date) {
       const d = new Date(date);
-      return `${mode} | ${d.toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" })} ${d.toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" })}`;
+      return `${mode} | ${d.toLocaleDateString(appLocale(), { day: "2-digit", month: "short", year: "numeric" })} ${d.toLocaleTimeString(appLocale(), { hour: "2-digit", minute: "2-digit" })}`;
     }
     return mode;
   };
@@ -2001,7 +2002,7 @@ function CreateEditMembershipDuesPage() {
                               <React.Fragment key={ft.type}>
                                 <TableCell className={frozen ? "bg-gray-100" : ""}>
                                   {frozen ? (
-                                    <span className="text-sm font-medium text-green-600">₹{feeAmt.toFixed(2)}</span>
+                                    <span className="text-sm font-medium text-green-600">{currencySymbol()}{feeAmt.toFixed(2)}</span>
                                   ) : (
                                     <Input type="number" step="0.01" className="w-24 h-8 text-xs"
                                       value={editMemberChanges[`${m.memberFeeId}_fee_${ft.type}`] ?? (feeAmt || "")}
@@ -2017,7 +2018,7 @@ function CreateEditMembershipDuesPage() {
                                     <TableCell key={i} className={`text-xs ${frozen ? "bg-gray-100" : ""}`}>
                                       {frozen || isDefVendor ? (
                                         <div className="flex items-center gap-0.5">
-                                          <span>₹{vAmt.toFixed(2)}</span>
+                                          <span>{currencySymbol()}{vAmt.toFixed(2)}</span>
                                           {isDefVendor && <Lock className="h-3 w-3 text-muted-foreground" />}
                                         </div>
                                       ) : (
@@ -2033,7 +2034,7 @@ function CreateEditMembershipDuesPage() {
                                     mismatch is deliberately not validated, so the alarming red
                                     would be misleading. Unpaid rows keep red/green as before. */}
                                 <TableCell className={`font-medium ${frozen ? "text-muted-foreground bg-gray-100" : Math.abs(balance) > 0.01 ? "text-red-600" : "text-green-600"}`}>
-                                  ₹{balance.toFixed(2)}
+                                  {currencySymbol()}{balance.toFixed(2)}
                                 </TableCell>
                                 <TableCell>
                                   <Badge variant={status === "Paid" ? "default" : status === "Pending" ? "secondary" : status === "N/A" ? "outline" : "destructive"}
@@ -2131,7 +2132,7 @@ function CreateEditMembershipDuesPage() {
                         }</p>
                       )}
                       {(offlineMember?.pendingAmount ?? offlineMember?.PendingAmount) != null && (
-                        <p className="text-sm"><strong>Amount:</strong> ₹{Number(offlineMember.pendingAmount ?? offlineMember.PendingAmount).toFixed(2)}</p>
+                        <p className="text-sm"><strong>Amount:</strong> {currencySymbol()}{Number(offlineMember.pendingAmount ?? offlineMember.PendingAmount).toFixed(2)}</p>
                       )}
                       {(offlineMember?.pendingTransactionType || offlineMember?.PendingTransactionType) && (
                         <p className="text-sm"><strong>Payment Mode:</strong> {offlineMember.pendingTransactionType || offlineMember.PendingTransactionType}</p>
@@ -2143,7 +2144,7 @@ function CreateEditMembershipDuesPage() {
                         <p className="text-sm"><strong>Given To:</strong> {offlineMember.pendingGivenTo || offlineMember.PendingGivenTo}</p>
                       )}
                       {(offlineMember?.pendingPaymentDate || offlineMember?.PendingPaymentDate) && (
-                        <p className="text-sm"><strong>Date:</strong> {new Date(offlineMember.pendingPaymentDate || offlineMember.PendingPaymentDate).toLocaleDateString("en-IN")}</p>
+                        <p className="text-sm"><strong>Date:</strong> {new Date(offlineMember.pendingPaymentDate || offlineMember.PendingPaymentDate).toLocaleDateString(appLocale())}</p>
                       )}
                       {(offlineMember?.pendingRemark || offlineMember?.PendingRemark) && (
                         <p className="text-sm"><strong>Remark:</strong> {offlineMember.pendingRemark || offlineMember.PendingRemark}</p>

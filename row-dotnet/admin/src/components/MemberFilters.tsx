@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { BLOOD_GROUPS, GENDERS } from "@/lib/constants";
+import { useFeature } from "@/contexts/BrandContext";
 import { Search, LayoutGrid, List, X } from "lucide-react";
 
 interface MemberFiltersProps {
@@ -33,6 +34,7 @@ export default function MemberFilters({
   viewMode,
   onViewModeChange,
 }: MemberFiltersProps) {
+  const showBloodGroup = useFeature("member.bloodGroup");
   const hasFilters = search || bloodGroup || gender;
 
   return (
@@ -47,18 +49,20 @@ export default function MemberFilters({
         />
       </div>
       <div className="flex flex-wrap items-center gap-2">
-        <Select value={bloodGroup} onValueChange={onBloodGroupChange}>
-          <SelectTrigger className="w-[140px]">
-            <SelectValue placeholder="Blood Group" />
-          </SelectTrigger>
-          <SelectContent>
-            {BLOOD_GROUPS.map((bg) => (
-              <SelectItem key={bg} value={bg}>
-                {bg}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        {showBloodGroup && (
+          <Select value={bloodGroup} onValueChange={onBloodGroupChange}>
+            <SelectTrigger className="w-[140px]">
+              <SelectValue placeholder="Blood Group" />
+            </SelectTrigger>
+            <SelectContent>
+              {BLOOD_GROUPS.map((bg) => (
+                <SelectItem key={bg} value={bg}>
+                  {bg}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        )}
 
         <Select value={gender} onValueChange={onGenderChange}>
           <SelectTrigger className="w-[120px]">

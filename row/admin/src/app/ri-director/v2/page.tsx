@@ -34,6 +34,7 @@ import DistrictReportContent from "@/components/dashboard/DistrictReportContent"
 import DashboardSwitcher from "@/components/dashboard/DashboardSwitcher";
 import { Menu, X, LogOut, FileText, Layers, MapPin, Building2, Users } from "lucide-react";
 
+import { appLocale } from "@/lib/appFormat";
 const SIDEBAR_BG = "#0f172a";
 const ACTIVE_BG = "#F7A81B";
 const ACTIVE_TEXT = "#1e3a5f";
@@ -150,7 +151,7 @@ export default function RiDirectorV2Page() {
   const sidebarContent = (
     <div className="flex flex-col h-full">
       <div className="px-5 py-5 border-b border-white/10">
-        <Image src="/images/rotary-zone-log-white.png" alt="Rotary" width={140} height={40} className="h-10 w-auto object-contain" priority />
+        <Image src="/images/rotary-white-live.png" alt="Rotary" width={140} height={40} className="h-10 w-auto object-contain" priority />
         <p className="text-xs text-slate-400 mt-2 font-medium">RI Director Dashboard</p>
       </div>
 
@@ -236,7 +237,7 @@ export default function RiDirectorV2Page() {
                   <div className="min-w-0">
                     <p className="text-xs text-slate-500">{t.label}</p>
                     <p className="text-2xl font-bold text-slate-800 tabular-nums leading-tight">
-                      {t.value == null ? "—" : t.value.toLocaleString("en-IN")}
+                      {t.value == null ? "—" : t.value.toLocaleString(appLocale())}
                     </p>
                   </div>
                 </div>

@@ -35,6 +35,7 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 import SearchBox from "@/components/SearchBox";
 import SendStatusBadges from "@/components/SendStatusBadges";
 
+import { appLocale } from "@/lib/appFormat";
 const STATUS_OPTIONS = [
   { value: "Published", label: "Published" },
   { value: "Unpublished", label: "Unpublished" },
@@ -154,7 +155,7 @@ export default function AnnouncementsPage() {
 
   const formatDateTime = (dateStr: string | null) => {
     if (!dateStr) return "-";
-    return new Date(dateStr).toLocaleString("en-IN", { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" });
+    return new Date(dateStr).toLocaleString(appLocale(), { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" });
   };
 
   return (

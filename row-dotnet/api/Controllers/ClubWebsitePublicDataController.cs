@@ -661,7 +661,7 @@ public class ClubWebsitePublicDataController : ControllerBase
         public string? ClubRole { get; set; }
         public string? Funding { get; set; }
         public decimal? ProjectCost { get; set; }
-        public string Currency { get; set; } = "INR";   // this project's own stored currency (project.Currency)
+        public string Currency { get; set; } = RotaryApi.Services.Brand.DefaultCurrency;   // this project's own stored currency (project.Currency)
         public int? DirectBeneficiaries { get; set; }
         public int? ManHours { get; set; }
         public int? RotariansInvolved { get; set; }
@@ -699,7 +699,7 @@ public class ClubWebsitePublicDataController : ControllerBase
         public string? Location { get; set; }
         public string? ProjectDate { get; set; }
         public decimal? ProjectCost { get; set; }
-        public string Currency { get; set; } = "INR";   // this child project's own stored currency (project.Currency)
+        public string Currency { get; set; } = RotaryApi.Services.Brand.DefaultCurrency;   // this child project's own stored currency (project.Currency)
         public int? DirectBeneficiaries { get; set; }
         public int? ManHours { get; set; }
         public int? RotariansInvolved { get; set; }
@@ -737,13 +737,25 @@ public class ClubWebsitePublicDataController : ControllerBase
         }
         else
         {
+            // Project ids repeat across years, even for the same club (29045 is a 2022-23 "Weekly
+            // meeting" and a 2026-27 "Ration Distribution" for club 92). The scan used to take the
+            // OLDEST match silently (2026-10-09). Now: one match -> use it (old share links keep
+            // working); more than one -> ask for yearId instead of guessing.
+            var matches = new List<YearTableInfo>();
             foreach (var t in await _yearTables.GetAllExistingYearTablesAsync(conn))
             {
                 var exists = await conn.ExecuteScalarAsync<int>(
                     $"SELECT COUNT(*) FROM `{t.ProjectsTable}` WHERE pk_project_id = @Id AND fk_club_id = @ClubId AND isdeleted = 0 AND is_active = 1",
                     new { Id = projectId, ClubId = clubId });
-                if (exists > 0) { info = t; break; }
+                if (exists > 0) matches.Add(t);
             }
+            if (matches.Count > 1)
+                return BadRequest(new
+                {
+                    message = $"yearId is required: project {projectId} exists in more than one Rotary year for this club.",
+                    years = matches.Select(m => new { yearId = m.YearId, yearLabel = m.YearLabel }),
+                });
+            info = matches.FirstOrDefault();
         }
         if (info is null) return NotFound();
 
@@ -820,11 +832,22 @@ public class ClubWebsitePublicDataController : ControllerBase
         decimal? sumCost = null;
         int? sumBeneficiaries = null, sumManHours = null, sumRotarians = null, sumRotaractors = null, sumRcc = null;
 
+        // Ongoing AND Ongoing/Repeat parents carry updates (2026-10-09: ongoing_repeat parents came
+        // back with no children though the dashboard shows them - e.g. club 92 project 10851, 4).
         var projectTypeStr = (string?)row.projectType ?? "";
-        if (string.Equals(projectTypeStr, "ongoing", StringComparison.OrdinalIgnoreCase))
+        if (string.Equals(projectTypeStr, "ongoing", StringComparison.OrdinalIgnoreCase)
+            || string.Equals(projectTypeStr, "ongoing_repeat", StringComparison.OrdinalIgnoreCase))
         {
             foreach (var childTable in await _yearTables.GetAllExistingYearTablesAsync(conn))
             {
+                // Ids repeat across years: in ANOTHER year's table, a parent_project_id equal to this
+                // id points at THAT year's own project when one exists for this club - skip it, so a
+                // different project's updates are never listed here.
+                if (childTable.YearId != info.YearId
+                    && await conn.ExecuteScalarAsync<int>(
+                        $"SELECT COUNT(*) FROM `{childTable.ProjectsTable}` WHERE pk_project_id = @Id AND fk_club_id = @ClubId",
+                        new { Id = projectId, ClubId = clubId }) > 0)
+                    continue;
                 var childSuffix = childTable.YearLabel.Replace("-", "_");
                 var childRows = (await conn.QueryAsync<dynamic>($@"
                     SELECT p.pk_project_id  AS id,
@@ -879,7 +902,7 @@ public class ClubWebsitePublicDataController : ControllerBase
                         Location            = (string?)cr.location,
                         ProjectDate         = cr.projectDate is DateTime cpd ? cpd.ToString("yyyy-MM-dd") : null,
                         ProjectCost         = (decimal?)cr.projectCost,
-                        Currency            = (string?)cr.currency ?? "INR",
+                        Currency            = (string?)cr.currency ?? RotaryApi.Services.Brand.DefaultCurrency,
                         DirectBeneficiaries = (int?)cr.directBeneficiaries,
                         ManHours            = (int?)cr.manHours,
                         RotariansInvolved   = (int?)cr.rotariansInvolved,
@@ -930,7 +953,7 @@ public class ClubWebsitePublicDataController : ControllerBase
             ClubRole             = (string?)row.clubRole,
             Funding              = (string?)row.funding,
             ProjectCost          = (decimal?)row.projectCost,
-            Currency             = (string?)row.currency ?? "INR",
+            Currency             = (string?)row.currency ?? RotaryApi.Services.Brand.DefaultCurrency,
             DirectBeneficiaries  = (int?)row.directBeneficiaries,
             ManHours             = (int?)row.manHours,
             RotariansInvolved    = (int?)row.rotariansInvolved,

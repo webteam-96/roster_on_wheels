@@ -3,10 +3,12 @@
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { Building2 } from "lucide-react";
+import { Building2, MessagesSquare } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useAuth } from "@/contexts/AuthContext";
 import GoalSettingPanel from "@/components/dashboard/GoalSettingPanel";
 import GoalTargetSplitPanel from "@/components/dashboard/GoalTargetSplitPanel";
+import DistrictGoalMessages from "@/components/goal-messages/DistrictGoalMessages";
 import { getDistrictGoalForm, saveDistrictGoalForm, lockDistrictGoals, unlockDistrictGoals,
          getDistrictMonthlyGoals, saveDistrictTargetSplit } from "@/services/api";
 import type { GoalMonthlyForm, SaveGoalTargetSplitRequest } from "@/services/api";
@@ -39,6 +41,7 @@ export default function DistrictAdminGoalSettingPage() {
   // Quarterly / month-wise split of the yearly target (user 2026-09-25). Follows whichever category
   // the panel above is showing; the yearly figure itself is only ever edited up there.
   const [catId, setCatId] = useState<number | null>(null);
+  const [msgOpen, setMsgOpen] = useState(false);
   const [monthly, setMonthly] = useState<GoalMonthlyForm | null>(null);
   useEffect(() => {
     if (catId == null || !selectedDistrictId) { setMonthly(null); return; }
@@ -76,11 +79,35 @@ export default function DistrictAdminGoalSettingPage() {
         saveForm={saveForm}
         lockToggle={lockToggle}
         onFormLoaded={onFormLoaded}
-        belowCategories={<GoalTargetSplitPanel form={monthly} onSave={saveSplit} reloadKey={`${catId}-${yearId ?? "cur"}`} />}
+        belowCategories={
+          <div className="flex flex-wrap items-start gap-3">
+            {/* Messages for the category selected above (user 2026-10-09): opens that category's box. */}
+            <button
+              type="button"
+              onClick={() => setMsgOpen(true)}
+              disabled={catId == null}
+              className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg border border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100 disabled:opacity-50"
+            >
+              <MessagesSquare size={14} /> Messages
+            </button>
+            <div className="flex-1 min-w-0">
+              <GoalTargetSplitPanel form={monthly} onSave={saveSplit} reloadKey={`${catId}-${yearId ?? "cur"}`} />
+            </div>
+          </div>
+        }
         reloadKey={yearId ?? "current"}
       />
-      {/* Messaging removed for District Admin — goal-setting messages are only between the oversight
-          roles (RI Director / Zone Co-ordinator / District Assistant). */}
+      {/* District Admin / District Governor -> District Assistant, Zone Co-ordinator, RI Director, for
+          the category selected above (user 2026-10-09). Read-only for them; no replies. */}
+      <Dialog open={msgOpen} onOpenChange={setMsgOpen}>
+        <DialogContent className="max-w-2xl w-[95vw] max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2"><MessagesSquare size={18} className="text-blue-600" /> Messages</DialogTitle>
+          </DialogHeader>
+          <DistrictGoalMessages districtId={threadKey?.districtId ?? selectedDistrictId ?? null}
+            yearId={threadKey?.yearId ?? yearId} initialCategoryId={catId} lockCategory />
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

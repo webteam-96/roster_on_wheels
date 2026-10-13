@@ -37,6 +37,7 @@ if (mode == "--help" || mode == "-h" || mode == "/?" || mode == "/help")
 var config = new ConfigurationBuilder()
     .SetBasePath(AppContext.BaseDirectory)
     .AddJsonFile("appsettings.json", optional: false, reloadOnChange: false)
+    .AddEnvironmentVariables()   // secrets and Brand__* settings come from the environment
     .Build();
 RotaryApi.Services.Brand.Init(config);
 

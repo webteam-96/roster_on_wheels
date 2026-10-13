@@ -11,6 +11,7 @@ import { Calendar, Video } from "lucide-react";
 import { getClubTrainingAppointments } from "@/services/api";
 import TrainingBookingDialog from "./TrainingBookingDialog";
 
+import { appLocale, appTimeZone } from "@/lib/appFormat";
 export default function ClubTrainingSection({ clubId, active }: { clubId: number; active: boolean }) {
   const [appts, setAppts] = useState<any[]>([]);
   const [open, setOpen] = useState(false);
@@ -49,7 +50,7 @@ export default function ClubTrainingSection({ clubId, active }: { clubId: number
         <div className="mt-4 rounded-xl border border-emerald-200 bg-emerald-50/60 p-4 flex items-start justify-between gap-4 flex-wrap">
           <div className="text-sm">
             <div className="font-semibold text-slate-800">Upcoming session</div>
-            <div className="text-slate-600 mt-0.5">{new Date(upcoming.slotStart).toLocaleString("en-IN", { dateStyle: "full", timeStyle: "short" })} (IST)</div>
+            <div className="text-slate-600 mt-0.5">{new Date(upcoming.slotStart).toLocaleString(appLocale(), { dateStyle: "full", timeStyle: "short", timeZone: appTimeZone() })} ({appTimeZone()})</div>
             {upcoming.zoomJoinUrl && (
               <a href={upcoming.zoomJoinUrl} target="_blank" rel="noreferrer" className="mt-1 inline-flex items-center gap-1 text-[#003DA5] font-medium hover:underline">
                 <Video size={14} /> Join Zoom

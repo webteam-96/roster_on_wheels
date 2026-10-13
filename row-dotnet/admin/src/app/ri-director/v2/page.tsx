@@ -34,6 +34,7 @@ import DistrictReportContent from "@/components/dashboard/DistrictReportContent"
 import DashboardSwitcher from "@/components/dashboard/DashboardSwitcher";
 import { Menu, X, LogOut, FileText, Layers, MapPin, Building2, Users } from "lucide-react";
 
+import { appLocale } from "@/lib/appFormat";
 const SIDEBAR_BG = "#0f172a";
 const ACTIVE_BG = "#F7A81B";
 const ACTIVE_TEXT = "#1e3a5f";
@@ -236,7 +237,7 @@ export default function RiDirectorV2Page() {
                   <div className="min-w-0">
                     <p className="text-xs text-slate-500">{t.label}</p>
                     <p className="text-2xl font-bold text-slate-800 tabular-nums leading-tight">
-                      {t.value == null ? "—" : t.value.toLocaleString("en-IN")}
+                      {t.value == null ? "—" : t.value.toLocaleString(appLocale())}
                     </p>
                   </div>
                 </div>

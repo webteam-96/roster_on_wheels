@@ -38,6 +38,7 @@ import SendStatusBadges from "@/components/SendStatusBadges";
 import ClubAdminShell from "@/components/v2/ClubAdminShell";
 import { useSyncClubIdFromUrl } from "@/hooks/useSyncClubIdFromUrl";
 
+import { appLocale } from "@/lib/appFormat";
 const STATUS_OPTIONS = [
   { value: "all",         label: "All" },
   { value: "Published",   label: "Published" },
@@ -63,7 +64,7 @@ function yesNoChip(value: boolean): string {
 function formatDateTime(dateStr: string | null | undefined): string {
   if (!dateStr) return "—";
   try {
-    return new Date(dateStr).toLocaleString("en-IN", {
+    return new Date(dateStr).toLocaleString(appLocale(), {
       day: "2-digit", month: "short", year: "numeric",
       hour: "2-digit", minute: "2-digit",
     });

@@ -3,8 +3,8 @@
 /**
  * Club Admin › Buy / Renew Club Website (Razorpay).
  * --------------------------------------------------------------------------
- * Self-service purchase of the club's public website (rc<name>.rotaryindia.org),
- * ₹10,999 + 18% GST for 12 months. Server is authoritative on price, subdomain
+ * Self-service purchase of the club's public website (rc<name>.example.org),
+ * Yearly price and tax come from the server, which is authoritative on price, subdomain
  * rules, validity and provisioning; on payment the site is auto-provisioned.
  *
  * Flow (New):  subdomain → confirm URL (immutable) → reminder days → pay → result
@@ -18,6 +18,7 @@ import {
   getWebsiteQuote, checkWebsiteSubdomain, createWebsiteOrder, verifyWebsiteOrder,
 } from "@/services/api";
 
+import { appLocale, currencySymbol } from "@/lib/appFormat";
 type Step = "subdomain" | "confirm" | "reminder" | "pay" | "done";
 
 function loadRazorpayScript(): Promise<boolean> {
@@ -31,8 +32,8 @@ function loadRazorpayScript(): Promise<boolean> {
   });
 }
 
-const inr = (n: number) => `₹${Number(n || 0).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-const fmtDate = (s?: string | null) => (s ? new Date(s).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" }) : "—");
+const inr = (n: number) => `${currencySymbol()}${Number(n || 0).toLocaleString(appLocale(), { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+const fmtDate = (s?: string | null) => (s ? new Date(s).toLocaleDateString(appLocale(), { day: "2-digit", month: "short", year: "numeric" }) : "—");
 
 export default function WebsitePurchasePage() {
   const { selectedClubId } = useAuth();
@@ -54,7 +55,7 @@ export default function WebsitePurchasePage() {
   const [result, setResult] = useState<any>(null);
 
   const isRenewal = quote?.orderType === "Renewal";
-  const parentDomain = quote?.parentDomain || "rotaryindia.org";
+  const parentDomain = quote?.parentDomain || "example.org";
   const prefix = quote?.subdomainPrefix || "rc";
   const fullUrl = isRenewal
     ? `${quote?.currentSubdomain || ""}.${parentDomain}`
@@ -122,7 +123,7 @@ export default function WebsitePurchasePage() {
         order_id: order.razorpayOrderId,
         amount: order.amountPaise,
         currency: order.currency,
-        name: "Rotary Zones 4, 5, 6, 7 & 8",
+        name: "ROW",
         description: `${order.orderType === "Renewal" ? "Club website renewal" : "New club website"} — ${order.subdomain}.${parentDomain}`,
         handler: async (resp: any) => {
           try {
@@ -176,7 +177,7 @@ export default function WebsitePurchasePage() {
         <p className="text-sm text-slate-500">
           {isRenewal
             ? "Extend your club website for another year."
-            : "Get your club's own website at rc<name>.rotaryindia.org."}
+            : "Get your club's own website at rc<name>.example.org."}
         </p>
       </div>
 

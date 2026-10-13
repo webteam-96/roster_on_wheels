@@ -4,6 +4,7 @@ import { Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { CheckCircle2, XCircle } from "lucide-react";
 
+import { appLocale, currencySymbol } from "@/lib/appFormat";
 function ThankYouInner() {
   const query = useSearchParams();
   const paid = query.get("paid") === "1";
@@ -17,7 +18,7 @@ function ThankYouInner() {
           <>
             <CheckCircle2 className="h-16 w-16 text-green-600 mx-auto" />
             <h1 className="text-xl font-bold">Payment successful</h1>
-            {amount && <p className="text-lg">₹{Number(amount).toLocaleString("en-IN")}</p>}
+            {amount && <p className="text-lg">{currencySymbol()}{Number(amount).toLocaleString(appLocale())}</p>}
             {club && <p className="text-muted-foreground">{club}</p>}
             <p className="text-sm text-muted-foreground">A receipt has been emailed to the club officer.</p>
           </>

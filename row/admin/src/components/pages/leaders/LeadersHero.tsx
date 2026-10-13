@@ -5,9 +5,9 @@ export function LeadersHero() {
   return (
     <PageBanner
       eyebrow="Our Leadership"
-      subtitle="Visionary leaders guiding Rotary's mission across Zones 4, 5, 6, 7 & 8."
+      subtitle="Visionary leaders guiding Rotary's mission across the zones."
     >
-      Zones 4, 5, 6, 7 &amp; 8 <span className="text-gold">leaders</span>
+      the zones <span className="text-gold">leaders</span>
     </PageBanner>
   );
 }

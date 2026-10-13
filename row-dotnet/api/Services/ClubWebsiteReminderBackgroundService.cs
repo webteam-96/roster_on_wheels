@@ -132,8 +132,8 @@ public class ClubWebsiteReminderBackgroundService : BackgroundService
 
         using var scope = _serviceProvider.CreateScope();
         var emailService = scope.ServiceProvider.GetRequiredService<IEmailService>();
-        var interakt = scope.ServiceProvider.GetRequiredService<IInteraktService>();
-        var waTemplate = _config["Interakt:ClubWebsiteReminderTemplate"];
+        var whatsApp = scope.ServiceProvider.GetRequiredService<IWhatsAppService>();
+        var waTemplate = _config["WhatsApp:ClubWebsiteReminderTemplate"];
         var parentDomain = await conn.ExecuteScalarAsync<string?>(
             "SELECT SettingValue FROM system_settings WHERE SettingKey = 'ClubWebsiteParentDomain' LIMIT 1")
             ?? (_config.GetSection("PleskSettings")["ParentDomain"] ?? RotaryApi.Services.Brand.ClubSiteParentDomain);
@@ -212,7 +212,7 @@ public class ClubWebsiteReminderBackgroundService : BackgroundService
                 {
                     try
                     {
-                        var ok = await interakt.SendWhatsAppWithBodyValuesAsync(lmobile!, waTemplate,
+                        var ok = await whatsApp.SendWhatsAppWithBodyValuesAsync(lmobile!, waTemplate,
                             new[] { lname, websiteUrl, dueDate, payLink });
                         if (ok) sent++; else failed++;
                     }

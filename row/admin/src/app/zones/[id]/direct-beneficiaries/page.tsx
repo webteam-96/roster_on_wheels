@@ -49,6 +49,7 @@ import {
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import Link from "next/link";
 
+import { appLocale } from "@/lib/appFormat";
 interface ApprovalItem {
   id: number;
   projectId: number;
@@ -318,7 +319,7 @@ export default function ZoneDirectBeneficiariesPage() {
                         </TableCell>
                         <TableCell>{getStatusBadge(item.status)}</TableCell>
                         <TableCell className="text-sm">
-                          {new Date(item.createdDate).toLocaleDateString("en-IN", {
+                          {new Date(item.createdDate).toLocaleDateString(appLocale(), {
                             day: "2-digit",
                             month: "short",
                             year: "numeric",
@@ -406,7 +407,7 @@ export default function ZoneDirectBeneficiariesPage() {
                   <h4 className="font-semibold text-base mb-2">Project Details</h4>
                   <div className="grid grid-cols-2 gap-2 bg-muted/30 rounded-lg p-3">
                     <div><span className="text-muted-foreground">Title:</span> <span className="font-medium">{viewDetail.projectTitle}</span></div>
-                    <div><span className="text-muted-foreground">Date:</span> {viewDetail.projectDate ? new Date(viewDetail.projectDate).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" }) : "—"}</div>
+                    <div><span className="text-muted-foreground">Date:</span> {viewDetail.projectDate ? new Date(viewDetail.projectDate).toLocaleDateString(appLocale(), { day: "2-digit", month: "short", year: "numeric" }) : "—"}</div>
                     <div className="col-span-2"><span className="text-muted-foreground">Description:</span> {viewDetail.projectDescription || "—"}</div>
                     <div><span className="text-muted-foreground">Cost:</span> {viewDetail.projectCost != null ? formatMoney(viewDetail.projectCost, viewDetail.currency) : "—"}</div>
                     <div><span className="text-muted-foreground">Man Hours:</span> {viewDetail.manHours ?? "—"}</div>

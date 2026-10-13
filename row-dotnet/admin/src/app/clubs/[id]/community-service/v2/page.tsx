@@ -50,6 +50,7 @@ import { useExtensionStatus } from "@/hooks/useExtensionStatus";
 import { isFlowBotEnabled, AVENUE_LABELS, buildOrgExportFromDetail, triggerAddToOrg } from "@/lib/addToOrg";
 import AddToOrgConfirmDialog from "@/components/AddToOrgConfirmDialog";
 
+import { appLocale } from "@/lib/appFormat";
 const SYNC_API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
 const AGREE_MESSAGE = `The data I will enter is for a Community service project conducted by my club that has benefitted my community. E.g., Heart Surgeries, Tree Plantation, etc.
@@ -468,7 +469,7 @@ export default function CommunityServiceV2Page() {
                           </span>
                         </td>
                         <td className="px-3 py-2 text-slate-600">{aof}</td>
-                        <td className="px-3 py-2 text-right text-slate-600 whitespace-nowrap">{cost > 0 ? `${getCurrencySymbol(p.currency)}${cost.toLocaleString("en-IN")}` : "—"}</td>
+                        <td className="px-3 py-2 text-right text-slate-600 whitespace-nowrap">{cost > 0 ? `${getCurrencySymbol(p.currency)}${cost.toLocaleString(appLocale())}` : "—"}</td>
                         <td className="px-3 py-2 text-right text-slate-600">{benf > 0 ? fmtInt(benf) : "—"}</td>
                         <td className="px-3 py-2 whitespace-nowrap">{renderApprovalBadge(p.approvalStatus)}</td>
                         {canManage && (

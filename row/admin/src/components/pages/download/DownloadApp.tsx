@@ -14,15 +14,15 @@ import { PageBanner } from "@/components/site/PageBanner";
 
 // Official store listings (final links supplied by the client).
 const STORE_LINKS = {
-  googlePlay: "https://play.google.com/store/apps/details?id=com.SampleApp.row&hl=en_IN",
-  appStore: "https://apps.apple.com/jp/app/rotary-zones-4-5-6-7-8/id682238809?l=en-US",
+  googlePlay: process.env.NEXT_PUBLIC_ANDROID_APP_URL ?? "",
+  appStore: process.env.NEXT_PUBLIC_IOS_APP_URL ?? "",
 };
 
 const FEATURES = [
   {
     Icon: Users,
     title: "Club & District Directory",
-    desc: "Every club and district across Zones 4, 5, 6, 7 & 8 — officers, contacts and meeting details in one place.",
+    desc: "Every club and district across the zones — officers, contacts and meeting details in one place.",
   },
   {
     Icon: Search,
@@ -76,7 +76,7 @@ export function DownloadApp() {
       {/* Standard split-serif banner — the shared page-header voice */}
       <PageBanner
         eyebrow="Member Centre"
-        subtitle="Carry Rotary Zones 4, 5, 6, 7 & 8 in your pocket — the directory, events and every club connection, wherever service takes you."
+        subtitle="Carry ROW in your pocket — the directory, events and every club connection, wherever service takes you."
       >
         Download the <span className="text-gold">app</span>
       </PageBanner>
@@ -99,7 +99,7 @@ export function DownloadApp() {
                 Download the <span className="text-azure">app</span>
               </h2>
               <p className="mt-6 max-w-xl text-[15px] leading-relaxed text-ink/75 sm:text-base">
-                Carry Rotary Zones 4, 5, 6, 7 &amp; 8 in your pocket — the directory,
+                Carry ROW in your pocket — the directory,
                 events and every club connection, wherever service takes you.
               </p>
               <div className="mt-8 flex flex-wrap items-center gap-4">
@@ -151,7 +151,7 @@ export function DownloadApp() {
               />
               <Image
                 src="/images/download-app-phone.png"
-                alt="The Rotary Zones 4–8 app home screen on a phone"
+                alt="The ROW app home screen on a phone"
                 width={608}
                 height={942}
                 sizes="(max-width: 1024px) 90vw, 40vw"
@@ -184,8 +184,7 @@ export function DownloadApp() {
               data-animate-delay="0.1"
               className="mt-5 text-base leading-relaxed text-ink/70 sm:text-[17px]"
             >
-              One tap to every club, every district and every Rotarian across Zones
-              4, 5, 6, 7 &amp; 8. Look up a member on the way to a meeting, find the
+              One tap to every club, every district and every Rotarian across the zones. Look up a member on the way to a meeting, find the
               nearest club in a new city, and never miss an announcement again.
             </p>
           </div>

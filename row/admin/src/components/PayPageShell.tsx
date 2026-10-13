@@ -2,7 +2,7 @@
 
 /**
  * Branded wrapper for the PUBLIC (no-login) payment pages (/pay/*). AppHeader hides itself on
- * /pay/ routes, so these pages carry their own Rotary Zones 4,5,6,7 & 8 header + footer.
+ * /pay/ routes, so these pages carry their own ROW header + footer.
  *
  * Design: "Trust & Authority" — full-width Rotary blue (#17458F) navbar with a gold (#F7A81B)
  * accent, the page title in the bar (logo left · title center · secure-payment right), a soft
@@ -11,25 +11,27 @@
 
 import type { ReactNode } from "react";
 import { Lock, ShieldCheck, BadgeCheck } from "lucide-react";
+import { useBrand } from "@/contexts/BrandContext";
 
 const NAVY = "#17458F";
 const NAVY_DARK = "#0F3168";
 const GOLD = "#F7A81B";
 
 export default function PayPageShell({ title, wide, children }: { title?: ReactNode; wide?: boolean; children: ReactNode }) {
+  const { phones, hours, email } = useBrand().support;
   return (
     <div className="min-h-screen flex flex-col bg-slate-50">
       {/* Helpline bar (full width) */}
       <div className="w-full text-white/90 text-[11px] sm:text-xs py-1.5 px-4 text-center" style={{ backgroundColor: NAVY_DARK }}>
-        Help line: +91 84240 64369 / +91 89287 55144
-        <span className="hidden sm:inline"> &nbsp;·&nbsp; 10:00am–6:30pm (Mon–Fri) &nbsp;·&nbsp; support@rizones45678.org</span>
+        {phones.length > 0 && <>Help line: {phones.join(" / ")}</>}
+        <span className="hidden sm:inline">{hours && <> &nbsp;·&nbsp; {hours}</>}{email && <> &nbsp;·&nbsp; {email}</>}</span>
       </div>
 
       {/* Branded navbar (full width) — logo left · title center · secure payment right */}
       <header className="w-full text-white shadow-sm" style={{ background: `linear-gradient(90deg, ${NAVY} 0%, ${NAVY_DARK} 100%)` }}>
         <div className="flex h-16 sm:h-20 items-center gap-3 sm:gap-4 px-4 sm:px-8">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/images/rotary-zone-log-white.png" alt="Rotary Zones 4, 5, 6, 7 & 8" className="h-10 sm:h-14 object-contain shrink-0" />
+          <img src="/images/rotary-white-live.png" alt="ROW" className="h-10 sm:h-14 object-contain shrink-0" />
           <div className="flex-1 min-w-0 text-center">
             {title && <span className="font-semibold text-sm sm:text-lg truncate block">{title}</span>}
           </div>
@@ -59,7 +61,7 @@ export default function PayPageShell({ title, wide, children }: { title?: ReactN
       {/* Footer (full width) */}
       <footer className="w-full text-white/75 text-xs" style={{ backgroundColor: NAVY_DARK }}>
         <div className="px-4 sm:px-8 py-5 flex flex-col sm:flex-row items-center justify-between gap-3">
-          <div className="font-semibold text-white text-sm">Rotary Zones 4, 5, 6, 7 &amp; 8</div>
+          <div className="font-semibold text-white text-sm">ROW</div>
           <nav className="flex flex-wrap justify-center gap-x-4 gap-y-1">
             {[
               ["About", "/about-us"], ["Contact", "/contact-us"], ["Terms", "/terms-and-conditions"],
@@ -70,7 +72,7 @@ export default function PayPageShell({ title, wide, children }: { title?: ReactN
           </nav>
         </div>
         <div className="border-t border-white/10 px-4 sm:px-8 py-3 text-center text-white/60">
-          © {new Date().getFullYear()} Rotary Zones 4, 5, 6, 7 &amp; 8. All rights reserved.
+          © {new Date().getFullYear()} ROW. All rights reserved.
         </div>
       </footer>
     </div>

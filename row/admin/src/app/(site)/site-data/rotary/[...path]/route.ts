@@ -24,7 +24,7 @@ import {
   yearSummary,
 } from "@/lib/projectStatsServer";
 
-const API_BASE = process.env.PROJECTS_API_BASE ?? "https://rizones45678.org/API";
+const API_BASE = process.env.PROJECTS_API_BASE ?? process.env.NEXT_PUBLIC_API_ORIGIN ?? "";
 
 // Only these public path prefixes may be proxied — everything else 404s.
 const ALLOWED_PREFIXES = [

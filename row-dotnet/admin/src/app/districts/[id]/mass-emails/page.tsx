@@ -19,6 +19,7 @@ import RotaryLoader from "@/components/RotaryLoader";
 import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";
 
+import { appLocale } from "@/lib/appFormat";
 interface MassEmailItem {
   id: number; subject: string; status: string; recipientType: number;
   totalRecipients: number; sentCount: number; failedCount: number;
@@ -124,7 +125,7 @@ export default function DistrictMassEmailsPage() {
                       <TableCell className="text-center">{item.status !== "Draft" ? <span className="text-green-600 font-medium">{item.sentCount}</span> : "—"}</TableCell>
                       <TableCell className="text-center">{item.status !== "Draft" ? (item.failedCount > 0 ? <span className="text-red-600 font-medium">{item.failedCount}</span> : "0") : "—"}</TableCell>
                       <TableCell className="text-center">{item.status !== "Draft" ? <span className="text-orange-600 font-medium">{Math.max(0, item.totalRecipients - item.sentCount - item.failedCount)}</span> : "—"}</TableCell>
-                      <TableCell className="text-sm">{item.sentDate ? new Date(item.sentDate).toLocaleDateString("en-IN") : new Date(item.createdDate).toLocaleDateString("en-IN")}</TableCell>
+                      <TableCell className="text-sm">{item.sentDate ? new Date(item.sentDate).toLocaleDateString(appLocale()) : new Date(item.createdDate).toLocaleDateString(appLocale())}</TableCell>
                       {canManage && (
                         <TableCell className="text-right">
                           <DropdownMenu>

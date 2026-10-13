@@ -20,6 +20,7 @@ import { ArrowLeft, RefreshCw, CheckCircle2, XCircle, Clock, Loader2 } from "luc
 import RotaryLoader from "@/components/RotaryLoader";
 import ProtectedRoute from "@/components/ProtectedRoute";
 
+import { appLocale } from "@/lib/appFormat";
 interface Recipient { memberId: number; memberName: string; email: string; status: string; sentDate: string | null; errorMessage: string | null; }
 interface MassEmailDetail {
   id: number; recipientType: number; subgroupName: string | null; fromName: string;
@@ -99,10 +100,10 @@ export default function ClubAdminMassEmailViewPage() {
           <CardHeader><div className="flex items-center justify-between"><CardTitle>{detail.subject}</CardTitle>{statusBadge(detail.status)}</div></CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-              <div><span className="text-muted-foreground">From: </span><span className="font-medium">{detail.fromName}</span><span className="text-muted-foreground"> &lt;communication@rizones45678.org&gt;</span></div>
+              <div><span className="text-muted-foreground">From: </span><span className="font-medium">{detail.fromName}</span><span className="text-muted-foreground"> &lt;support@example.org&gt;</span></div>
               {detail.replyEmail && (<div><span className="text-muted-foreground">Reply To: </span><span className="font-medium">{detail.replyName || detail.replyEmail}</span><span className="text-muted-foreground"> &lt;{detail.replyEmail}&gt;</span></div>)}
               <div><span className="text-muted-foreground">Recipients: </span><span className="font-medium">{detail.totalRecipients} ({recipientLabel(detail.recipientType)}{detail.subgroupName ? ` - ${detail.subgroupName}` : ""})</span></div>
-              <div><span className="text-muted-foreground">Date: </span><span className="font-medium">{detail.sentDate ? new Date(detail.sentDate).toLocaleString("en-IN") : new Date(detail.createdDate).toLocaleString("en-IN")}</span></div>
+              <div><span className="text-muted-foreground">Date: </span><span className="font-medium">{detail.sentDate ? new Date(detail.sentDate).toLocaleString(appLocale()) : new Date(detail.createdDate).toLocaleString(appLocale())}</span></div>
             </div>
             {detail.status !== "Draft" && (
               <div className="grid grid-cols-4 gap-3">
@@ -129,7 +130,7 @@ export default function ClubAdminMassEmailViewPage() {
                     <TableCell className="font-medium">{r.memberName}</TableCell>
                     <TableCell className="text-sm">{r.email || "No email"}</TableCell>
                     <TableCell><div className="flex items-center gap-1.5">{statusIcon(r.status)}<span className="text-sm">{r.status}</span></div></TableCell>
-                    <TableCell className="text-sm">{r.sentDate ? new Date(r.sentDate).toLocaleString("en-IN") : "-"}</TableCell>
+                    <TableCell className="text-sm">{r.sentDate ? new Date(r.sentDate).toLocaleString(appLocale()) : "-"}</TableCell>
                     <TableCell className="text-sm text-red-600 max-w-[200px] truncate">{r.errorMessage || "-"}</TableCell>
                   </TableRow>
                 ))}

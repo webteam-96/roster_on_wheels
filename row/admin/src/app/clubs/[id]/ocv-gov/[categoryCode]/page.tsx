@@ -44,6 +44,7 @@ import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import SearchBox from "@/components/SearchBox";
 
+import { appLocale } from "@/lib/appFormat";
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
 export default function OcvCategoryPage() {
@@ -287,7 +288,7 @@ export default function OcvCategoryPage() {
 
   const formatDateTime = (dateStr: string) => {
     const date = new Date(dateStr);
-    return date.toLocaleDateString("en-IN", {
+    return date.toLocaleDateString(appLocale(), {
       day: "2-digit",
       month: "short",
       year: "numeric",
@@ -518,11 +519,11 @@ export default function OcvCategoryPage() {
                         {isDuesCategory && (
                           <>
                             <TableCell>
-                              {doc.amount != null ? `Rs. ${doc.amount.toLocaleString("en-IN")}` : "-"}
+                              {doc.amount != null ? `Rs. ${doc.amount.toLocaleString(appLocale())}` : "-"}
                             </TableCell>
                             <TableCell>
                               {doc.paidOn
-                                ? new Date(doc.paidOn).toLocaleDateString("en-IN", {
+                                ? new Date(doc.paidOn).toLocaleDateString(appLocale(), {
                                     day: "2-digit",
                                     month: "short",
                                     year: "numeric",

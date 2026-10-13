@@ -51,6 +51,7 @@ import { useSyncClubIdFromUrl } from "@/hooks/useSyncClubIdFromUrl";
 import ImageCropDialog from "@/components/ImageCropDialog";
 import { useImageCropQueue } from "@/hooks/useImageCropQueue";
 
+import { defaultCurrency } from "@/lib/appFormat";
 // Project photos are shown 16:9 on the public site (components/pages/projects/shared.tsx),
 // so the crop is locked to that shape. 1600×900 keeps the widest card retina-sharp.
 const PROJECT_PHOTO_ASPECT = 16 / 9;
@@ -59,7 +60,7 @@ const PROJECT_PHOTO_MAX_WIDTH = 1600;
 const MODULE_KEY = "public_image_initiative";
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
-const TOP_MESSAGE = "Please post all the Public Image Initiatives executed by your club. The content posted here will be displayed in District website, Club Monthly Report & Rotary Zones 4, 5, 6, 7 & 8 integrated Club website.";
+const TOP_MESSAGE = "Please post all the Public Image Initiatives executed by your club. The content posted here will be displayed in District website, Club Monthly Report & ROW integrated Club website.";
 
 const ONGOING_INFO = `Ongoing Project
 
@@ -205,7 +206,7 @@ export default function PublicImageInitiativeV2EditPage() {
 
   const [projectDate, setProjectDate] = useState("");
   const [projectCost, setProjectCost] = useState("");
-  const [currency, setCurrency] = useState("INR");
+  const [currency, setCurrency] = useState(defaultCurrency());
   const [selectedFundingId, setSelectedFundingId] = useState<string>("");
   const [globalGrantNumber, setGlobalGrantNumber] = useState("");
   const [amountSanctioned, setAmountSanctioned] = useState("");
@@ -328,7 +329,7 @@ export default function PublicImageInitiativeV2EditPage() {
 
         setProjectDate(project.projectDate ? project.projectDate.split("T")[0] : "");
         setProjectCost(project.projectCost != null ? String(project.projectCost) : "");
-        setCurrency(project.currency || "INR");
+        setCurrency(project.currency || defaultCurrency());
         if (project.fundingId) setSelectedFundingId(String(project.fundingId));
         setGlobalGrantNumber(project.globalGrantNumber || "");
         setAmountSanctioned(project.amountSanctioned != null ? String(project.amountSanctioned) : "");

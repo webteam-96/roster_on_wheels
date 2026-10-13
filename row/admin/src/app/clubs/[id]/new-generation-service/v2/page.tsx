@@ -44,11 +44,12 @@ import { useExtensionStatus } from "@/hooks/useExtensionStatus";
 import { isFlowBotEnabled, AVENUE_LABELS, buildOrgExportFromDetail, triggerAddToOrg } from "@/lib/addToOrg";
 import AddToOrgConfirmDialog from "@/components/AddToOrgConfirmDialog";
 
+import { currencySymbol } from "@/lib/appFormat";
 const SYNC_API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
 const AGREE_MESSAGE = `The data I will enter is for a New generation Service Project conducted by my club that has benefitted my community. E.g., Formation of an Interact Club, Formation of a Rotaract Club, etc.
 
-Please Note: The content posted here will be displayed on the Rotary Zones 4, 5, 6, 7 & 8 Website, District Website, Club Monthly Report & Rotary Zones 4, 5, 6, 7 & 8 Integrated Club Website`;
+Please Note: The content posted here will be displayed on the ROW Website, District Website, Club Monthly Report & ROW Integrated Club Website`;
 
 function projectTypeChipStyle(t: string): string {
   const lo = (t || "").toLowerCase();
@@ -69,11 +70,11 @@ function shortCurrency(value: number, currency?: string | null): string {
 }
 
 function shortInr(value: number): string {
-  if (!value || value < 1000) return `₹${value || 0}`;
-  if (value >= 10000000) return `₹${(value / 10000000).toFixed(1)}Cr`;
-  if (value >= 100000)   return `₹${(value / 100000).toFixed(1)}L`;
-  if (value >= 1000)     return `₹${(value / 1000).toFixed(1)}K`;
-  return `₹${value}`;
+  if (!value || value < 1000) return `${currencySymbol()}${value || 0}`;
+  if (value >= 10000000) return `${currencySymbol()}${(value / 10000000).toFixed(1)}Cr`;
+  if (value >= 100000)   return `${currencySymbol()}${(value / 100000).toFixed(1)}L`;
+  if (value >= 1000)     return `${currencySymbol()}${(value / 1000).toFixed(1)}K`;
+  return `${currencySymbol()}${value}`;
 }
 
 function exportToCsv(rows: ProjectListItem[], yearLabel: string, clubName: string) {

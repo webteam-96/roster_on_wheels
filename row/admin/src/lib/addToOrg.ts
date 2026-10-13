@@ -57,7 +57,7 @@ export interface OrgExportPhoto {
   caption?: string;
 }
 
-/** Funding class derived from the rizones funding name (drives the SPC grant path). */
+/** Funding class derived from the ROW funding name (drives the SPC grant path). */
 export type FundingClass =
   | "global_grant"
   | "csr"
@@ -105,8 +105,8 @@ export interface OrgExport {
 export const ADD_TO_ORG_WEBSTORE_URL =
   "https://chromewebstore.google.com/detail/ri-flow-bot/ananaeipaokdlobfaokdpdmlloeigljk";
 
-const SITE = "rizones-add-to-org"; // messages we send TO the extension
-const EXT = "rizones-add-to-org-ext"; // messages the extension sends back
+const SITE = "ROW-add-to-org"; // messages we send TO the extension
+const EXT = "ROW-add-to-org-ext"; // messages the extension sends back
 
 /** Resolve true if the extension is installed (it sets a marker + answers PING). */
 export function detectExtension(timeoutMs = 700): Promise<boolean> {

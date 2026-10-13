@@ -1,6 +1,8 @@
 import XLSX from "xlsx-js-style";
+import { getActiveBrand } from "@/lib/brand";
 import { fileTimestamp } from "@/lib/dateUtils";
 
+import { appLocale } from "@/lib/appFormat";
 interface CsvColumn {
   key: string;
   label: string;
@@ -136,7 +138,7 @@ function formatValue(val: any): string {
   if (typeof val === "string" && /^\d{4}-\d{2}-\d{2}T/.test(val)) {
     const d = new Date(val);
     if (!isNaN(d.getTime()) && d.getFullYear() > 2000) {
-      return d.toLocaleString("en-IN", { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" });
+      return d.toLocaleString(appLocale(), { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" });
     }
   }
   return String(val);
@@ -200,7 +202,7 @@ export function exportMonthlyPivot(opts: {
 }) {
   const { filename, title, subtitle, leadCols, groups, rows } = opts;
   const now = new Date();
-  const dateStr = now.toLocaleString("en-IN", { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" });
+  const dateStr = now.toLocaleString(appLocale(), { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" });
 
   // Flatten all columns left→right (lead cols first, then each group's cols).
   const flat: { key: string; width?: number }[] = [
@@ -215,7 +217,7 @@ export function exportMonthlyPivot(opts: {
   const put = (r: number, c: number, v: any, s: any) => { ws[XLSX.utils.encode_cell({ r, c })] = { v, s }; };
 
   put(row, 0, title, titleStyle); merges.push({ s: { r: row, c: 0 }, e: { r: row, c: colCount - 1 } }); row++;
-  put(row, 0, "ROW Admin Portal", subtitleStyle); merges.push({ s: { r: row, c: 0 }, e: { r: row, c: colCount - 1 } }); row++;
+  put(row, 0, `${getActiveBrand().productName} Admin Portal`, subtitleStyle); merges.push({ s: { r: row, c: 0 }, e: { r: row, c: colCount - 1 } }); row++;
   if (subtitle) { put(row, 0, subtitle, subtitleStyle); merges.push({ s: { r: row, c: 0 }, e: { r: row, c: colCount - 1 } }); row++; }
   put(row, 0, `Generated: ${dateStr}  |  Clubs: ${rows.length}`, infoStyle); merges.push({ s: { r: row, c: 0 }, e: { r: row, c: colCount - 1 } }); row++;
   row++; // blank
@@ -401,7 +403,7 @@ export function exportToCSV(
   if (data.length === 0) return;
 
   const now = new Date();
-  const dateStr = now.toLocaleString("en-IN", {
+  const dateStr = now.toLocaleString(appLocale(), {
     day: "2-digit", month: "short", year: "numeric",
     hour: "2-digit", minute: "2-digit",
   });
@@ -418,8 +420,8 @@ export function exportToCSV(
   merges.push({ s: { r: row, c: 0 }, e: { r: row, c: colCount - 1 } });
   row++;
 
-  // Row 1: "ROW Admin Portal"
-  ws[XLSX.utils.encode_cell({ r: row, c: 0 })] = { v: "ROW Admin Portal", s: subtitleStyle };
+  // Row 1: `${getActiveBrand().productName} Admin Portal`
+  ws[XLSX.utils.encode_cell({ r: row, c: 0 })] = { v: `${getActiveBrand().productName} Admin Portal`, s: subtitleStyle };
   merges.push({ s: { r: row, c: 0 }, e: { r: row, c: colCount - 1 } });
   row++;
 

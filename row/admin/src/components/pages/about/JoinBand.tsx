@@ -21,14 +21,13 @@ export function JoinBand() {
             <p className="mt-7 text-[15px] leading-relaxed text-ink/75 sm:text-base">
               Join us on this journey of service and fellowship. Whether you are an
               experienced professional, a community leader, or someone eager to make a
-              positive impact, Rotary Clubs in Zones 4, 5, 6 &amp; 7 welcome you to be
+              positive impact, Rotary Clubs in the zones welcome you to be
               a part of our transformative initiatives that shape a better future for
               all.
             </p>
             <p className="mt-5 text-[15px] leading-relaxed text-ink/75 sm:text-base">
               Discover the joy of service, the strength of community, and the boundless
-              potential for positive change with Rotary Clubs in Zones 4, 5, 6, 7 &amp;
-              8.
+              potential for positive change with Rotary Clubs in the zones.
             </p>
 
             <div className="mt-10 flex flex-wrap items-center gap-x-6 gap-y-5 border-t border-navy-950/10 pt-8">

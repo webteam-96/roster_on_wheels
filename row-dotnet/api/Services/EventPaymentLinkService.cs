@@ -13,20 +13,20 @@ public class EventPaymentLinkService : IEventPaymentLinkService
     private readonly IConfiguration _config;
     private readonly IEmailService _emailService;
     private readonly ISmsService _smsService;
-    private readonly IInteraktService _interaktService;
+    private readonly IWhatsAppService _whatsAppService;
     private readonly IGoogleSheetsService _googleSheetsService;
     private readonly HttpClient _httpClient;
     private readonly ILogger<EventPaymentLinkService> _logger;
 
     public EventPaymentLinkService(IConfiguration config, IEmailService emailService, ISmsService smsService,
-        IInteraktService interaktService, IHttpClientFactory httpClientFactory, IGoogleSheetsService googleSheetsService,
+        IWhatsAppService whatsAppService, IHttpClientFactory httpClientFactory, IGoogleSheetsService googleSheetsService,
         ILogger<EventPaymentLinkService> logger)
     {
         _connStr = config.GetConnectionString("DefaultConnection")!;
         _config = config;
         _emailService = emailService;
         _smsService = smsService;
-        _interaktService = interaktService;
+        _whatsAppService = whatsAppService;
         _googleSheetsService = googleSheetsService;
         _httpClient = httpClientFactory.CreateClient();
         _logger = logger;
@@ -1071,7 +1071,7 @@ public class EventPaymentLinkService : IEventPaymentLinkService
 
         var frontendUrl = _config["FrontendUrl"] ?? "http://localhost:3000";
         var payUrl = $"{frontendUrl}/pay/{member.fk_payment_link_id}";
-        await _interaktService.SendWhatsAppReminderAsync(
+        await _whatsAppService.SendWhatsAppReminderAsync(
             (string)member.Mobile, (string)member.MemberName,
             (string?)member.DistrictNumber ?? "-", (string?)member.ClubName ?? "-",
             (string)(member.LinkTitle ?? "Event"), "Not Received", payUrl);
@@ -1130,7 +1130,7 @@ public class EventPaymentLinkService : IEventPaymentLinkService
             if (string.IsNullOrWhiteSpace(m.Mobile)) continue;
             try
             {
-                await _interaktService.SendWhatsAppReminderAsync(
+                await _whatsAppService.SendWhatsAppReminderAsync(
                     m.Mobile, m.MemberName ?? "Member",
                     m.DistrictNumber ?? "-", m.ClubName ?? "-",
                     link.Title ?? "Event", "Not Received", payUrl);
@@ -1318,13 +1318,11 @@ public class EventPaymentLinkService : IEventPaymentLinkService
         }
         if (!string.IsNullOrWhiteSpace(mobile))
         {
-            // Outside India → WhatsApp (the DLT SMS gateway is India-only). No-ops and returns
-            // false for India / unknown country, so the SMS line below stays exactly as it was.
-            whatsAppSent = await OtpWhatsAppHelper.TrySendOutsideIndiaAsync(
-                conn, _interaktService, _config, _logger, mobile, memberCountryId, otp, "event payment");
+            // WhatsApp when the brand's code policy lists it for the member's country, else SMS.
+            whatsAppSent = await OtpWhatsAppHelper.TrySendAsync(
+                conn, _whatsAppService, _config, _logger, mobile, memberCountryId, otp, "event payment");
 
-            // Fallback: if the WhatsApp send failed we still attempt the SMS that used to be
-            // the only channel here — a failed attempt beats delivering nothing at all.
+            // Fallback: SMS when WhatsApp was not used or failed.
             if (!whatsAppSent)
                 smsSent = await _smsService.SendOtpSmsAsync(mobile, otp);
         }

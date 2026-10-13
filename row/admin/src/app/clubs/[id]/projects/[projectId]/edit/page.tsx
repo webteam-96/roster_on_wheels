@@ -43,6 +43,7 @@ import WhatsAppRecipientBadge from "@/components/WhatsAppRecipientBadge";
 import ImageCropDialog from "@/components/ImageCropDialog";
 import { useImageCropQueue } from "@/hooks/useImageCropQueue";
 
+import { currencySymbol } from "@/lib/appFormat";
 // Project photos are shown 16:9 on the public site (components/pages/projects/shared.tsx),
 // so the crop is locked to that shape. 1600×900 keeps the widest card retina-sharp.
 const PROJECT_PHOTO_ASPECT = 16 / 9;
@@ -58,7 +59,7 @@ const MODULE_LABELS: Record<string, string> = {
 };
 
 const TOP_MESSAGES: Record<string, string> = {
-  community_service: "Please post all the Community Services executed by your club. The content posted here will be displayed in Rotary Zones 4, 5, 6, 7 & 8 Website, District website, Club Monthly Report & Rotary Zones 4, 5, 6, 7 & 8 integrated Club website.",
+  community_service: "Please post all the Community Services executed by your club. The content posted here will be displayed in ROW Website, District website, Club Monthly Report & ROW integrated Club website.",
   club_service: "",
   vocational_service: "",
   international_service: "",
@@ -788,7 +789,7 @@ export default function EditProjectPage() {
                   <div className="space-y-4 pl-5 border-l-2 border-primary/30 ml-2">
                     <div className="flex gap-3 rounded-lg border border-amber-200 bg-amber-50/80 p-3 text-sm text-amber-800">
                       <Info className="h-4 w-4 shrink-0 mt-0.5" />
-                      <p>Project uploaded by co-host Rotary club will be displayed only in the club monthly report & club website (If subscribed through Rotary Zones 4, 5, 6, 7 & 8)</p>
+                      <p>Project uploaded by co-host Rotary club will be displayed only in the club monthly report & club website (If subscribed through ROW)</p>
                     </div>
                     <div className="space-y-1.5">
                       <Req>Name of Co-host Rotary Club / Partner Organisation</Req>
@@ -900,7 +901,7 @@ export default function EditProjectPage() {
         <Section icon={IndianRupee} title="Financial & Impact" number={isClubService ? 3 : 4}>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             <div className="space-y-1.5">
-              <Req>Project Cost (₹)</Req>
+              <Req>Project Cost ({currencySymbol()})</Req>
               <Input type="number" value={projectCost} onChange={(e) => setProjectCost(e.target.value)} placeholder="0" min="0" />
             </div>
             <div className="space-y-1.5">
@@ -926,17 +927,17 @@ export default function EditProjectPage() {
                       onChange={(e) => setGlobalGrantNumber(onlyDigits(e.target.value))} placeholder="e.g., 2434521" />
                   </div>
                   <div className="space-y-1.5">
-                    <Label>Amount Sanctioned (₹)</Label>
+                    <Label>Amount Sanctioned ({currencySymbol()})</Label>
                     <Input inputMode="numeric" pattern="[0-9]*" value={amountSanctioned}
                       onChange={(e) => setAmountSanctioned(onlyDigits(e.target.value))} placeholder="0" />
                   </div>
                   <div className="space-y-1.5">
-                    <Label>Amount Received (₹)</Label>
+                    <Label>Amount Received ({currencySymbol()})</Label>
                     <Input inputMode="numeric" pattern="[0-9]*" value={amountReceived}
                       onChange={(e) => setAmountReceived(onlyDigits(e.target.value))} placeholder="0" />
                   </div>
                   <div className="space-y-1.5">
-                    <Label>Amount spent till date (₹)</Label>
+                    <Label>Amount spent till date ({currencySymbol()})</Label>
                     <Input inputMode="numeric" pattern="[0-9]*" value={amountSpent}
                       onChange={(e) => setAmountSpent(onlyDigits(e.target.value))} placeholder="0" />
                   </div>
@@ -965,12 +966,12 @@ export default function EditProjectPage() {
                       onChange={(e) => setCsrCompanyName(e.target.value)} placeholder="e.g., ABC Industries Pvt Ltd" />
                   </div>
                   <div className="space-y-1.5">
-                    <Req>Amount Sanctioned (₹)</Req>
+                    <Req>Amount Sanctioned ({currencySymbol()})</Req>
                     <Input inputMode="numeric" pattern="[0-9]*" value={amountSanctioned}
                       onChange={(e) => setAmountSanctioned(onlyDigits(e.target.value))} placeholder="0" />
                   </div>
                   <div className="space-y-1.5">
-                    <Req>Amount Received (₹)</Req>
+                    <Req>Amount Received ({currencySymbol()})</Req>
                     <Input inputMode="numeric" pattern="[0-9]*" value={amountReceived}
                       onChange={(e) => setAmountReceived(onlyDigits(e.target.value))} placeholder="0" />
                   </div>
@@ -1185,11 +1186,11 @@ export default function EditProjectPage() {
             <div className="text-sm text-muted-foreground space-y-3 py-2">
               <p className="font-medium text-foreground">Dear Club Leader,</p>
               <p>
-                You have successfully added a project in Rotary Zones 4, 5, 6, 7 &amp; 8. You can check after 10 minutes.
+                You have successfully added a project in ROW. You can check after 10 minutes.
               </p>
               <p>
                 Thank you,<br />
-                <span className="font-medium text-foreground">Team Rotary Zones 4, 5, 6, 7 &amp; 8</span>
+                <span className="font-medium text-foreground">Team ROW</span>
               </p>
             </div>
             <Button

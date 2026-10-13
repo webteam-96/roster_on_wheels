@@ -17,6 +17,7 @@ import { fileTimestamp } from "@/lib/dateUtils";
 import GoalZoneMessages from "@/components/dashboard/GoalZoneMessages";
 import DistrictMonthWiseReport from "@/components/DistrictMonthWiseReport";
 import ClubGoalSettingPanel from "@/components/ClubGoalSettingPanel";
+import DistrictMessagesInbox from "@/components/goal-messages/DistrictMessagesInbox";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import type { GoalDistrictSummaryMatrixDto, GoalSummaryCategoryDto } from "@/types/goalSetting";
@@ -65,6 +66,7 @@ export default function GoalOversightMatrixZoneRole({
   const [msgOpen, setMsgOpen] = useState(false);
   const [hasUnread, setHasUnread] = useState(false);
   const [msgTab, setMsgTab] = useState<string>("");
+  const [msgPane, setMsgPane] = useState<"ri" | "districts">("ri");
   const [monthDistrict, setMonthDistrict] = useState<{ id: number; number: string } | null>(null);
   const [clubDistrict, setClubDistrict] = useState<{ id: number; number: string } | null>(null);   // "Club Goal Setting" → clubs popup
   // All categories side by side made the grid far too wide → show ONE at a time (Membership default).
@@ -77,8 +79,13 @@ export default function GoalOversightMatrixZoneRole({
   useEffect(() => {
     if (!zoneId || !yearId) { setHasUnread(false); return; }
     let cancelled = false;
-    getGoalMessagesHasUnread(zoneId, yearId).then((u) => { if (!cancelled) setHasUnread(u); }).catch(() => {});
-    return () => { cancelled = true; };
+    // Re-check every minute and when the tab gets focus again (2026-10-09): a District Admin / DG
+    // message sent while this page was open used to show its dot only after a reload.
+    const check = () => getGoalMessagesHasUnread(zoneId, yearId).then((u) => { if (!cancelled) setHasUnread(u); }).catch(() => {});
+    check();
+    const timer = window.setInterval(check, 60000);
+    window.addEventListener("focus", check);
+    return () => { cancelled = true; window.clearInterval(timer); window.removeEventListener("focus", check); };
   }, [zoneId, yearId, msgOpen]);
 
   function openMessages() {
@@ -390,7 +397,7 @@ export default function GoalOversightMatrixZoneRole({
 
       {/* Row click → that district's month-wise collection (read-only). */}
       <Dialog open={!!monthDistrict} onOpenChange={(o) => { if (!o) setMonthDistrict(null); }}>
-        <DialogContent className="max-w-5xl w-[96vw] h-[88vh] flex flex-col overflow-hidden">
+        <DialogContent className="max-w-[96vw] sm:max-w-[96vw] w-[96vw] h-[88vh] flex flex-col overflow-hidden">
           <DialogHeader className="shrink-0">
             <div className="flex items-center justify-between gap-3 pr-8">
               <DialogTitle className="flex items-center gap-2">
@@ -439,10 +446,26 @@ export default function GoalOversightMatrixZoneRole({
         <DialogContent className="max-w-4xl w-[95vw] h-[85vh] flex flex-col overflow-hidden">
           <DialogHeader className="shrink-0">
             <DialogTitle className="flex items-center gap-2">
-              <MessagesSquare size={18} className="text-blue-600" /> Message your RI Director{zoneName ? ` — ${zoneName}` : ""}
+              <MessagesSquare size={18} className="text-blue-600" /> Messages{zoneName ? ` — ${zoneName}` : ""}
             </DialogTitle>
           </DialogHeader>
-          {cats.length === 0 ? (
+          {/* "From Districts" (user 2026-10-09): what District Admins / Governors of the districts this
+              role covers wrote - read only. "To RI Director" is the role's own conversation as before. */}
+          <div className="shrink-0 flex gap-2 mt-1">
+            <button onClick={() => setMsgPane("ri")}
+              className={`text-xs font-semibold px-3 py-1.5 rounded-lg border ${msgPane === "ri" ? "bg-blue-600 text-white border-blue-600" : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50"}`}>
+              To RI Director
+            </button>
+            <button onClick={() => setMsgPane("districts")}
+              className={`text-xs font-semibold px-3 py-1.5 rounded-lg border ${msgPane === "districts" ? "bg-blue-600 text-white border-blue-600" : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50"}`}>
+              From Districts
+            </button>
+          </div>
+          {msgPane === "districts" ? (
+            <div className="mt-3 flex-1 min-h-0 overflow-y-auto">
+              {zoneId && yearId ? <DistrictMessagesInbox zoneId={zoneId} yearId={yearId} /> : null}
+            </div>
+          ) : cats.length === 0 ? (
             <p className="text-sm text-slate-400 py-6 text-center">No categories to show for this zone.</p>
           ) : cats.length === 1 ? (
             <div className="mt-1 flex-1 min-h-0 overflow-y-auto">

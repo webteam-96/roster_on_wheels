@@ -199,7 +199,7 @@ public class RotaryOrgManualSyncController : ControllerBase
             {
                 message = $"Cache refreshed: {upserted} clubs from /clubs",
                 lastFetchedUtc = nowUtc,
-                // Auto-refresh is a fixed daily 08:00 IST run — independent of this manual refresh.
+                // Auto-refresh is a fixed daily 08:00 run (brand time zone) — independent of this manual refresh.
                 nextRefreshUtc = ClubCacheRefreshService.GetNextScheduledRunUtc(),
             });
         }
@@ -216,7 +216,7 @@ public class RotaryOrgManualSyncController : ControllerBase
     // The 3 permanently-exempt districts (never treated as sync/non-sync in these overview
     // numbers). Must match NonSyncLoginGuardHelper.ExemptDistrictNumbers /
     // ClubNonSyncCascadeWorker.ExemptDistrictNumbers.
-    private static readonly string[] ExemptDistrictNumbers = { "5656", "1280", "IFRM India" };
+    private static string[] ExemptDistrictNumbers => RotaryApi.Services.Brand.ExemptDistricts;   // ROW: Brand:Scope:ExemptDistricts
 
     // Placeholder catch-all zone (seeded alongside Zone 4/5/6/7) — clubs not in a real zone land
     // here; excluded from the sync overview. No-zone districts (fk_zone_id 0/NULL → blank zone) are
@@ -1507,7 +1507,7 @@ public class RotaryOrgManualSyncController : ControllerBase
 
     // The "COG" catch-all club (pk_club_id) — its members and honorary members are protected
     // from the no-Rotary-ID cleanup (they're legitimately hand-managed, not Rotary.org-sourced).
-    private const int CogClubId = 31598;
+    private static int CogClubId => RotaryApi.Services.Brand.CogClubId;
 
     private static string OrgMemberName(RotaryApi.Services.RotaryOrg.RotaryOrgClubMemberDto m) =>
         string.Join(" ", new[] { m.FirstName, m.MiddleName, m.LastName }

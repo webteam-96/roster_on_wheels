@@ -21,6 +21,7 @@ import RotaryLoader from "@/components/RotaryLoader";
 import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";
 
+import { appLocale } from "@/lib/appFormat";
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 const STATUS_OPTIONS = [{ value: "all", label: "All" }, { value: "Published", label: "Published" }, { value: "Expired", label: "Expired" }, { value: "Unpublished", label: "Unpublished" }];
 
@@ -82,7 +83,7 @@ export default function DistrictDocumentsPage() {
     catch { setDeleteTarget(null); setErrorMessage("Failed to delete document."); }
   };
 
-  const formatDateTime = (dateStr: string | null) => { if (!dateStr) return "-"; return new Date(dateStr).toLocaleString("en-IN", { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" }); };
+  const formatDateTime = (dateStr: string | null) => { if (!dateStr) return "-"; return new Date(dateStr).toLocaleString(appLocale(), { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" }); };
 
   const filteredDocuments = documents.filter((doc) => { if (!searchQuery) return true; const q = searchQuery.toLowerCase(); return (doc.title || "").toLowerCase().includes(q) || (doc.status || "").toLowerCase().includes(q); });
 

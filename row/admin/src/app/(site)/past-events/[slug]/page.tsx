@@ -15,9 +15,9 @@ export function generateStaticParams() {
 
 export function generateMetadata({ params }: { params: { slug: string } }): Metadata {
   const event = getEventBySlug(params.slug);
-  if (!event) return { title: "Event | Rotary Zones 4, 5, 6, 7 & 8" };
+  if (!event) return { title: "Event | ROW" };
   return {
-    title: `${event.title} | Rotary Zones 4, 5, 6, 7 & 8`,
+    title: `${event.title} | ROW`,
     description: `Highlights, recordings and photos from ${event.title} — ${event.date}, ${event.venue}.`,
   };
 }

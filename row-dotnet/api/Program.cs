@@ -38,6 +38,10 @@ builder.Services.AddControllers(o =>
     .AddJsonOptions(options =>
     {
         options.JsonSerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
+        // ROW: blood group and family details are left out of every response while their flags are off.
+        RotaryApi.Privacy.MemberDataGuard.Apply(options.JsonSerializerOptions);
+        // ROW: timestamps carry "Z" when the server runs in UTC (time.emitOffset); see UtcDateTimeConverter.
+        options.JsonSerializerOptions.Converters.Add(new RotaryApi.Services.UtcDateTimeConverter());
     });
 
 // ── Upload size limits (project rule: 5 MB photos / 20 MB documents stored,
@@ -171,6 +175,11 @@ builder.Services.AddSwaggerGen(c =>
 });
 
 builder.Services.AddSingleton<DatabaseInitializer>();
+// ROW privacy (master plan WS7): consent, export, erasure, retention. Behind Brand:Features:privacy.enabled.
+builder.Services.AddSingleton<RotaryApi.Privacy.PrivacyService>();
+// ROW messaging providers (Twilio SMS, Meta WhatsApp), as the NestJS edition; used when Brand:Providers selects them.
+builder.Services.AddSingleton<RotaryApi.Services.TwilioSmsSender>();
+builder.Services.AddSingleton<RotaryApi.Services.MetaWhatsAppSender>();
 builder.Services.AddSingleton<AdminProxyTokenSigner>();
 builder.Services.AddMemoryCache();
 
@@ -260,8 +269,8 @@ builder.Services.AddScoped<ITrfContributionService, TrfContributionService>();
 builder.Services.AddScoped<ICashfreeKycService, CashfreeKycService>();
 builder.Services.AddScoped<IWeblinkService, WeblinkService>();
 builder.Services.AddScoped<ISubGroupService, SubGroupService>();
-builder.Services.AddScoped<ISmsService, SmsService>();
-builder.Services.AddScoped<IInteraktService, InteraktService>();
+builder.Services.AddScoped<ISmsService, TwilioOtpSmsService>();   // ROW: Twilio (the original: India DLT gateway)
+builder.Services.AddScoped<IWhatsAppService, MetaWhatsAppService>();   // ROW: Meta Cloud API (the original: Interakt)
 builder.Services.AddScoped<IEventPaymentLinkService, EventPaymentLinkService>();
 builder.Services.AddScoped<IMembershipDuesService, MembershipDuesService>();
 builder.Services.AddScoped<IClubDuesService, ClubDuesService>();
@@ -286,6 +295,7 @@ builder.Services.AddScoped<IClubMassEmailService, ClubMassEmailService>();
 var enableBackgroundJobs = builder.Configuration.GetValue<bool>("BackgroundJobs:Enabled", true);
 
 if (enableBackgroundJobs) builder.Services.AddHostedService<CreditExpiryBackgroundService>();
+if (enableBackgroundJobs) builder.Services.AddHostedService<RotaryApi.Privacy.PrivacyRetentionBackgroundService>();
 builder.Services.AddSingleton<CitationAutoPointsBackgroundService>();
 if (enableBackgroundJobs) builder.Services.AddHostedService(sp => sp.GetRequiredService<CitationAutoPointsBackgroundService>());
 // Fire-and-forget trigger callable from any write-side service to recompute
@@ -357,6 +367,17 @@ if (!skipInit)
 else
 {
     app.Logger.LogInformation("DatabaseInitializer SKIPPED (Database:SkipInit = true). Toggle off in appsettings if you add new tables/columns.");
+}
+// ROW privacy tables: the consent filter in the email and push senders reads member_consents (WS7-05).
+if (RotaryApi.Privacy.PrivacyService.Enabled)
+{
+    try
+    {
+        await using var privacyConn = new MySqlConnector.MySqlConnection(builder.Configuration.GetConnectionString("DefaultConnection"));
+        await privacyConn.OpenAsync();
+        await RotaryApi.Privacy.PrivacyService.EnsureTablesAsync(privacyConn);
+    }
+    catch (Exception ex) { app.Logger.LogWarning("privacy tables not ensured: {Message}", ex.Message); }
 }
 
 // Goal-setting metadata (the 4 tabs + all fields + the IsHidden/AppliesTo columns) is applied on

@@ -467,16 +467,16 @@ export default function DistrictAdminMembershipPage() {
                                     </Button>
                                   </DropdownMenuTrigger>
                                   <DropdownMenuContent align="end">
-                                    {!member.isSuperAdmin && (
-                                      member.hasDistrictAdminRole ? (
-                                        <DropdownMenuItem onClick={() => handleRemoveAdmin(member.id, member.memberName)}>
-                                          <ShieldOff className="mr-2 h-4 w-4" />Remove Admin
-                                        </DropdownMenuItem>
-                                      ) : (
-                                        <DropdownMenuItem onClick={() => handleMakeAdmin(member.id, member.memberName)}>
-                                          <ShieldCheck className="mr-2 h-4 w-4" />Make Admin
-                                        </DropdownMenuItem>
-                                      )
+                                    {/* A SuperAdmin can also be made this district's Admin (user 2026-10-09) -
+                                        the menu used to be empty on their row. Roles no longer conflict. */}
+                                    {member.hasDistrictAdminRole ? (
+                                      <DropdownMenuItem onClick={() => handleRemoveAdmin(member.id, member.memberName)}>
+                                        <ShieldOff className="mr-2 h-4 w-4" />Remove Admin
+                                      </DropdownMenuItem>
+                                    ) : (
+                                      <DropdownMenuItem onClick={() => handleMakeAdmin(member.id, member.memberName)}>
+                                        <ShieldCheck className="mr-2 h-4 w-4" />Make Admin
+                                      </DropdownMenuItem>
                                     )}
                                   </DropdownMenuContent>
                                 </DropdownMenu>

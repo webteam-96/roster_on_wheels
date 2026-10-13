@@ -50,6 +50,7 @@ import RotaryLoader from "@/components/RotaryLoader";
 import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";
 
+import { appLocale, currencySymbol } from "@/lib/appFormat";
 interface KycItem {
   id: number;
   vendorId: string;
@@ -570,7 +571,7 @@ function CreateEditMembershipDuesPage() {
           const onlineTotal = feeAmount * (1 + Number(onlineSurchargePercent || 0) / 100);
           const total = amountType === "1" ? onlineTotal : 100;
           if (Math.abs(assigned - total) > 0.01) {
-            return `${ft.label}: Vendor split ${amountType === "1" ? `₹${assigned.toFixed(2)}` : `${assigned.toFixed(2)}%`} does not match ${amountType === "1" ? `₹${total.toFixed(2)}` : `${total.toFixed(2)}%`}. Please adjust vendor amounts.`;
+            return `${ft.label}: Vendor split ${amountType === "1" ? `${currencySymbol()}${assigned.toFixed(2)}` : `${assigned.toFixed(2)}%`} does not match ${amountType === "1" ? `${currencySymbol()}${total.toFixed(2)}` : `${total.toFixed(2)}%`}. Please adjust vendor amounts.`;
           }
         }
         return null;
@@ -1365,7 +1366,7 @@ function CreateEditMembershipDuesPage() {
                         <div key={idx} className={`text-sm px-3 py-1.5 rounded flex items-center gap-2 ${isDefaultVendor ? "bg-muted/70" : "bg-muted"}`}>
                           <span className="text-muted-foreground whitespace-nowrap">{ft?.label || `Fee Type ${split.fkFeeType}`}:</span>
                           {isDefaultVendor ? (
-                            <span className="font-medium">{amountType === "1" ? `₹${split.splitAmount.toFixed(2)}` : `${split.splitAmount}%`}</span>
+                            <span className="font-medium">{amountType === "1" ? `${currencySymbol()}${split.splitAmount.toFixed(2)}` : `${split.splitAmount}%`}</span>
                           ) : (
                             <Input
                               type="number" step="0.01" className="w-24 h-7 text-xs"
@@ -1511,7 +1512,7 @@ function CreateEditMembershipDuesPage() {
     if (!mode) return "\u2014";
     if (date) {
       const d = new Date(date);
-      return `${mode} | ${d.toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" })} ${d.toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" })}`;
+      return `${mode} | ${d.toLocaleDateString(appLocale(), { day: "2-digit", month: "short", year: "numeric" })} ${d.toLocaleTimeString(appLocale(), { hour: "2-digit", minute: "2-digit" })}`;
     }
     return mode;
   };
@@ -2001,7 +2002,7 @@ function CreateEditMembershipDuesPage() {
                               <React.Fragment key={ft.type}>
                                 <TableCell className={frozen ? "bg-gray-100" : ""}>
                                   {frozen ? (
-                                    <span className="text-sm font-medium text-green-600">₹{feeAmt.toFixed(2)}</span>
+                                    <span className="text-sm font-medium text-green-600">{currencySymbol()}{feeAmt.toFixed(2)}</span>
                                   ) : (
                                     <Input type="number" step="0.01" className="w-24 h-8 text-xs"
                                       value={editMemberChanges[`${m.memberFeeId}_fee_${ft.type}`] ?? (feeAmt || "")}
@@ -2017,7 +2018,7 @@ function CreateEditMembershipDuesPage() {
                                     <TableCell key={i} className={`text-xs ${frozen ? "bg-gray-100" : ""}`}>
                                       {frozen || isDefVendor ? (
                                         <div className="flex items-center gap-0.5">
-                                          <span>₹{vAmt.toFixed(2)}</span>
+                                          <span>{currencySymbol()}{vAmt.toFixed(2)}</span>
                                           {isDefVendor && <Lock className="h-3 w-3 text-muted-foreground" />}
                                         </div>
                                       ) : (
@@ -2033,7 +2034,7 @@ function CreateEditMembershipDuesPage() {
                                     mismatch is deliberately not validated, so the alarming red
                                     would be misleading. Unpaid rows keep red/green as before. */}
                                 <TableCell className={`font-medium ${frozen ? "text-muted-foreground bg-gray-100" : Math.abs(balance) > 0.01 ? "text-red-600" : "text-green-600"}`}>
-                                  ₹{balance.toFixed(2)}
+                                  {currencySymbol()}{balance.toFixed(2)}
                                 </TableCell>
                                 <TableCell>
                                   <Badge variant={status === "Paid" ? "default" : status === "Pending" ? "secondary" : status === "N/A" ? "outline" : "destructive"}
@@ -2131,7 +2132,7 @@ function CreateEditMembershipDuesPage() {
                         }</p>
                       )}
                       {(offlineMember?.pendingAmount ?? offlineMember?.PendingAmount) != null && (
-                        <p className="text-sm"><strong>Amount:</strong> ₹{Number(offlineMember.pendingAmount ?? offlineMember.PendingAmount).toFixed(2)}</p>
+                        <p className="text-sm"><strong>Amount:</strong> {currencySymbol()}{Number(offlineMember.pendingAmount ?? offlineMember.PendingAmount).toFixed(2)}</p>
                       )}
                       {(offlineMember?.pendingTransactionType || offlineMember?.PendingTransactionType) && (
                         <p className="text-sm"><strong>Payment Mode:</strong> {offlineMember.pendingTransactionType || offlineMember.PendingTransactionType}</p>
@@ -2143,7 +2144,7 @@ function CreateEditMembershipDuesPage() {
                         <p className="text-sm"><strong>Given To:</strong> {offlineMember.pendingGivenTo || offlineMember.PendingGivenTo}</p>
                       )}
                       {(offlineMember?.pendingPaymentDate || offlineMember?.PendingPaymentDate) && (
-                        <p className="text-sm"><strong>Date:</strong> {new Date(offlineMember.pendingPaymentDate || offlineMember.PendingPaymentDate).toLocaleDateString("en-IN")}</p>
+                        <p className="text-sm"><strong>Date:</strong> {new Date(offlineMember.pendingPaymentDate || offlineMember.PendingPaymentDate).toLocaleDateString(appLocale())}</p>
                       )}
                       {(offlineMember?.pendingRemark || offlineMember?.PendingRemark) && (
                         <p className="text-sm"><strong>Remark:</strong> {offlineMember.pendingRemark || offlineMember.PendingRemark}</p>

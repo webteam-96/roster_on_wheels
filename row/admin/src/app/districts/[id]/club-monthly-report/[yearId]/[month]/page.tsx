@@ -23,9 +23,10 @@ import DistrictEgovernanceTabBar from "@/components/dashboard/DistrictEgovernanc
 import DistrictEgovernanceKpis from "@/components/dashboard/DistrictEgovernanceKpis";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
+import { appLocale } from "@/lib/appFormat";
 function formatDate(d: string | null) {
   if (!d) return "-";
-  try { return new Date(d).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" }); } catch { return d; }
+  try { return new Date(d).toLocaleDateString(appLocale(), { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" }); } catch { return d; }
 }
 
 function ReminderStatusBadge({ emailStatus, whatsappStatus, lastDate }: { emailStatus?: string; whatsappStatus?: string; lastDate?: string }) {
@@ -172,7 +173,7 @@ export default function MonthDetailPage() {
 
       const startYear = yr ? new Date(yr.startDate).getFullYear() : new Date().getFullYear();
       const mDate = new Date(month >= 7 ? startYear : startYear + 1, month - 1, 1);
-      setMonthName(mDate.toLocaleDateString("en-IN", { month: "long", year: "numeric" }));
+      setMonthName(mDate.toLocaleDateString(appLocale(), { month: "long", year: "numeric" }));
     } catch (err: any) {
       setErrorMessage(err?.response?.data?.message || err?.response?.data || "Failed to load data.");
     } finally {

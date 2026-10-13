@@ -16,6 +16,7 @@ import RotaryLoader from "@/components/RotaryLoader";
 import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";
 
+import { currencySymbol } from "@/lib/appFormat";
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 const ENGLISH_ONLY_REGEX = /^[a-zA-Z0-9\s.,!?;:'"()\-&@#%+=/]*$/;
 
@@ -248,7 +249,7 @@ export default function DistrictProjectAddPage() {
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="space-y-2"><Label>Date <span className="text-destructive">*</span></Label><DateField value={projectDate} onChange={setProjectDate} /></div>
-              <div className="space-y-2"><Label>Project Cost (₹)</Label><Input type="number" value={projectCost} onChange={e => setProjectCost(e.target.value)} placeholder="0" /></div>
+              <div className="space-y-2"><Label>Project Cost ({currencySymbol()})</Label><Input type="number" value={projectCost} onChange={e => setProjectCost(e.target.value)} placeholder="0" /></div>
               <div className="space-y-2">
                 <Label>Funding</Label>
                 <Select value={fundingId} onValueChange={handleFundingChange}>
@@ -268,15 +269,15 @@ export default function DistrictProjectAddPage() {
                     <Input inputMode="numeric" pattern="[0-9]*" value={globalGrantNumber} onChange={e => setGlobalGrantNumber(onlyDigits(e.target.value))} placeholder="e.g., 2434521" />
                   </div>
                   <div className="space-y-2">
-                    <Label>Amount Sanctioned (₹) <span className="text-destructive">*</span></Label>
+                    <Label>Amount Sanctioned ({currencySymbol()}) <span className="text-destructive">*</span></Label>
                     <Input inputMode="numeric" pattern="[0-9]*" value={amountSanctioned} onChange={e => setAmountSanctioned(onlyDigits(e.target.value))} placeholder="0" />
                   </div>
                   <div className="space-y-2">
-                    <Label>Amount Received (₹) <span className="text-destructive">*</span></Label>
+                    <Label>Amount Received ({currencySymbol()}) <span className="text-destructive">*</span></Label>
                     <Input inputMode="numeric" pattern="[0-9]*" value={amountReceived} onChange={e => setAmountReceived(onlyDigits(e.target.value))} placeholder="0" />
                   </div>
                   <div className="space-y-2">
-                    <Label>Amount spent till date (₹) <span className="text-destructive">*</span></Label>
+                    <Label>Amount spent till date ({currencySymbol()}) <span className="text-destructive">*</span></Label>
                     <Input inputMode="numeric" pattern="[0-9]*" value={amountSpent} onChange={e => setAmountSpent(onlyDigits(e.target.value))} placeholder="0" />
                   </div>
                   <div className="space-y-2 md:col-span-2">
@@ -301,11 +302,11 @@ export default function DistrictProjectAddPage() {
                     <Input value={csrCompanyName} onChange={e => setCsrCompanyName(e.target.value)} placeholder="e.g., ABC Industries Pvt Ltd" />
                   </div>
                   <div className="space-y-2">
-                    <Label>Amount Sanctioned (₹) <span className="text-destructive">*</span></Label>
+                    <Label>Amount Sanctioned ({currencySymbol()}) <span className="text-destructive">*</span></Label>
                     <Input inputMode="numeric" pattern="[0-9]*" value={amountSanctioned} onChange={e => setAmountSanctioned(onlyDigits(e.target.value))} placeholder="0" />
                   </div>
                   <div className="space-y-2">
-                    <Label>Amount Received (₹) <span className="text-destructive">*</span></Label>
+                    <Label>Amount Received ({currencySymbol()}) <span className="text-destructive">*</span></Label>
                     <Input inputMode="numeric" pattern="[0-9]*" value={amountReceived} onChange={e => setAmountReceived(onlyDigits(e.target.value))} placeholder="0" />
                   </div>
                 </div>

@@ -1,5 +1,6 @@
 "use client";
 
+import { useBrand } from "@/contexts/BrandContext";
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
@@ -29,12 +30,13 @@ function detectInputMode(value: string): InputMode {
 
 export default function ForgotPasswordPage() {
   const [identifier, setIdentifier] = useState("");
-  const [countryCode, setCountryCode] = useState("+91");
+  const [countryCode, setCountryCode] = useState("");
   const [countries, setCountries] = useState<Country[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState("");
 
+  const brand = useBrand();
   const inputMode = detectInputMode(identifier);
 
   useEffect(() => {
@@ -42,6 +44,12 @@ export default function ForgotPasswordPage() {
       .then(setCountries)
       .catch(() => {});
   }, []);
+
+  // ROW: the code starts on the brand's default country (none when Brand:Locale:DefaultCountryId is 0).
+  useEffect(() => {
+    const c = countries.find((x) => x.id === brand.locale.defaultCountryId);
+    if (c?.phoneCode) setCountryCode((cur) => cur || c.phoneCode);
+  }, [countries, brand.locale.defaultCountryId]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -70,7 +78,7 @@ export default function ForgotPasswordPage() {
           <div className="flex items-center gap-3">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src="/images/rotary-zone-log-white.png"
+              src="/images/rotary-white-live.png"
               alt="Rotary"
               className="h-16 object-contain"
             />
@@ -113,9 +121,6 @@ export default function ForgotPasswordPage() {
                           {c.phoneCode} - {c.countryName}
                         </SelectItem>
                       ))}
-                      {countries.length === 0 && (
-                        <SelectItem value="+91">+91 - India</SelectItem>
-                      )}
                     </SelectContent>
                   </Select>
                 )}

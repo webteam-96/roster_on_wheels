@@ -71,7 +71,7 @@ function baseLanguage(tag: string | null | undefined): string {
 
 /**
  * First match wins, and the result must be one of the instance's languages.
- * RIZones lists only "en", so RIZones always resolves to English.
+ * ROW lists only "en", so ROW always resolves to English.
  *
  * @param cookie         the NEXT_LOCALE cookie
  * @param memberLanguage the signed-in member's stored language (ISO code)

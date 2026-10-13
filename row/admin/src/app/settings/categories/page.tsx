@@ -306,7 +306,7 @@ export default function CategoriesPage() {
         <AlertModal
           open={!!deleteTarget}
           onOpenChange={(o) => !o && setDeleteTarget(null)}
-          icon={AlertTriangle, Download}
+          icon={AlertTriangle}
           iconClassName="text-destructive"
           title="Delete Category"
           description={<>Are you sure you want to delete <span className="font-semibold text-foreground">{deleteTarget?.name}</span>?</>}

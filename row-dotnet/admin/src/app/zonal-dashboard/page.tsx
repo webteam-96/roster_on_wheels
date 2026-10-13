@@ -72,6 +72,7 @@ import DashboardSwitcher from "@/components/dashboard/DashboardSwitcher";
 import ZoneGoalSettingView from "@/components/dashboard/ZoneGoalSettingView";
 import { Eye, CheckCircle, XCircle, Menu, X, LogOut, FileText, ArrowLeft } from "lucide-react";
 
+import { appLocale } from "@/lib/appFormat";
 interface ZoneInfo {
   zoneId: number;
   zoneName: string;
@@ -640,7 +641,7 @@ function ZonalDashboardInner() {
                             <TableCell className="text-right font-semibold text-red-600">{item.requestedBeneficiaries}</TableCell>
                             <TableCell>{getStatusBadge(item.status)}</TableCell>
                             <TableCell className="text-sm whitespace-nowrap">
-                              {new Date(item.createdDate).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" })}
+                              {new Date(item.createdDate).toLocaleDateString(appLocale(), { day: "2-digit", month: "short", year: "numeric" })}
                             </TableCell>
                             <TableCell>{item.requestedByName}</TableCell>
                             <TableCell>
@@ -696,7 +697,7 @@ function ZonalDashboardInner() {
                 <h4 className="font-semibold text-base mb-2">Project Details</h4>
                 <div className="grid grid-cols-2 gap-2 bg-muted/30 rounded-lg p-3">
                   <div><span className="text-muted-foreground">Title:</span> <span className="font-medium">{viewDetail.projectTitle}</span></div>
-                  <div><span className="text-muted-foreground">Date:</span> {viewDetail.projectDate ? new Date(viewDetail.projectDate).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" }) : "—"}</div>
+                  <div><span className="text-muted-foreground">Date:</span> {viewDetail.projectDate ? new Date(viewDetail.projectDate).toLocaleDateString(appLocale(), { day: "2-digit", month: "short", year: "numeric" }) : "—"}</div>
                   <div className="col-span-2"><span className="text-muted-foreground">Description:</span> {viewDetail.projectDescription || "—"}</div>
                   <div><span className="text-muted-foreground">Cost:</span> {viewDetail.projectCost != null ? formatMoney(viewDetail.projectCost, viewDetail.currency) : "—"}</div>
                   <div><span className="text-muted-foreground">Man Hours:</span> {viewDetail.manHours ?? "—"}</div>
@@ -780,7 +781,7 @@ function ZonalDashboardInner() {
                       <div key={h.approvalId} className="rounded-lg border border-slate-200 p-3">
                         <div className="flex items-center justify-between gap-2">
                           {getStatusBadge(h.status)}
-                          <span className="text-xs text-slate-500 whitespace-nowrap">Submitted {new Date(h.createdDate).toLocaleString("en-IN")}</span>
+                          <span className="text-xs text-slate-500 whitespace-nowrap">Submitted {new Date(h.createdDate).toLocaleString(appLocale())}</span>
                         </div>
                         <div className="mt-1.5 grid grid-cols-2 gap-1 text-xs">
                           <div><span className="text-muted-foreground">Requested:</span> <span className="font-semibold text-red-600">{h.requestedBeneficiaries}</span></div>
@@ -791,7 +792,7 @@ function ZonalDashboardInner() {
                           <p className="mt-1 text-[11px] text-slate-400">
                             {h.status !== "pending" ? `${h.status.charAt(0).toUpperCase() + h.status.slice(1)} ` : ""}
                             {h.respondedByName ? `by ${h.respondedByName} ` : ""}
-                            {h.respondedDate ? `on ${new Date(h.respondedDate).toLocaleString("en-IN")}` : ""}
+                            {h.respondedDate ? `on ${new Date(h.respondedDate).toLocaleString(appLocale())}` : ""}
                           </p>
                         )}
                       </div>

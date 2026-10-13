@@ -70,7 +70,7 @@ export function HighlightCards() {
               className="mt-9 flex flex-wrap items-center gap-3.5"
             >
               <Link
-                href="https://events.rotaryindia.org/"
+                href="https://club.example.org/"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="btn-primary group"

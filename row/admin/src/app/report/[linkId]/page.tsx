@@ -5,6 +5,7 @@ import { useParams } from "next/navigation";
 import { getPublicEventReport } from "@/services/api";
 import { fileTimestamp } from "@/lib/dateUtils";
 
+import { appLocale } from "@/lib/appFormat";
 interface ReportMember {
   srNo: number;
   memberName: string | null;
@@ -39,7 +40,7 @@ interface ReportData {
 function formatDate(dateStr: string | null): string {
   if (!dateStr) return "-";
   const d = new Date(dateStr);
-  return d.toLocaleDateString("en-IN", {
+  return d.toLocaleDateString(appLocale(), {
     day: "2-digit",
     month: "short",
     year: "numeric",
@@ -162,7 +163,7 @@ export default function PublicReportPage() {
       <div className="bg-[#17458F] text-white">
         <div className="max-w-7xl mx-auto px-4 py-6">
           <div className="flex items-center gap-4 mb-4">
-            <img src="/images/rotary-zone-log-white.png" alt="Rotary" className="h-16 object-contain" />
+            <img src="/images/rotary-white-live.png" alt="Rotary" className="h-16 object-contain" />
           </div>
           <h1 className="text-2xl font-bold">{linkDetails.title}</h1>
           {linkDetails.description && (
@@ -176,7 +177,7 @@ export default function PublicReportPage() {
               <span>Club: <strong>{linkDetails.clubName}</strong></span>
             )}
             <span>Total Paid: <strong>{members.length}</strong></span>
-            <span>Total Amount: <strong>Rs. {totalAmount.toLocaleString("en-IN")}</strong></span>
+            <span>Total Amount: <strong>Rs. {totalAmount.toLocaleString(appLocale())}</strong></span>
           </div>
         </div>
       </div>
@@ -238,7 +239,7 @@ export default function PublicReportPage() {
                     <td className="px-3 py-2.5 whitespace-nowrap">{m.mobile || "-"}</td>
                     <td className="px-3 py-2.5 whitespace-nowrap">{m.email || "-"}</td>
                     <td className="px-3 py-2.5 whitespace-nowrap">{m.registrationName || "-"}</td>
-                    <td className="px-3 py-2.5 whitespace-nowrap text-right">Rs. {m.amount.toLocaleString("en-IN")}</td>
+                    <td className="px-3 py-2.5 whitespace-nowrap text-right">Rs. {m.amount.toLocaleString(appLocale())}</td>
                     <td className="px-3 py-2.5 whitespace-nowrap">{formatDate(m.paymentDate)}</td>
                     <td className="px-3 py-2.5 whitespace-nowrap">{m.paidSource || "-"}</td>
                     <td className="px-3 py-2.5 whitespace-nowrap">{m.partnerName || "-"}</td>
@@ -257,7 +258,7 @@ export default function PublicReportPage() {
 
         {members.length > 0 && (
           <div className="mt-4 text-right text-sm text-gray-600">
-            Showing {members.length} paid member{members.length !== 1 ? "s" : ""} | Total: Rs. {totalAmount.toLocaleString("en-IN")}
+            Showing {members.length} paid member{members.length !== 1 ? "s" : ""} | Total: Rs. {totalAmount.toLocaleString(appLocale())}
           </div>
         )}
       </div>

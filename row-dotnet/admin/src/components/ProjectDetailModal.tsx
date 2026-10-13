@@ -20,6 +20,7 @@ import {
 import RotaryLoader from "@/components/RotaryLoader";
 import { CalendarDays, MapPin, Users, Clock4, IndianRupee, Handshake, FileText, Percent } from "lucide-react";
 
+import { appLocale } from "@/lib/appFormat";
 // Agenda / Minutes are served by the API, not the Next app (same base the club-service detail page uses).
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
@@ -28,7 +29,7 @@ function fmtDate(d?: string | null) {
   const dt = new Date(d);
   return isNaN(dt.getTime())
     ? "—"
-    : dt.toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" });
+    : dt.toLocaleDateString(appLocale(), { day: "2-digit", month: "short", year: "numeric" });
 }
 
 function Row({ label, value }: { label: string; value: React.ReactNode }) {

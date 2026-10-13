@@ -24,7 +24,7 @@ namespace RotaryApi.Services;
 public static class NonSyncLoginGuardHelper
 {
     // Must match ClubNonSyncCascadeWorker.ExemptDistrictNumbers.
-    private static readonly string[] ExemptDistrictNumbers = { "5656", "1280", "IFRM India" };
+    private static string[] ExemptDistrictNumbers => RotaryApi.Services.Brand.ExemptDistricts;   // ROW: Brand:Scope:ExemptDistricts
 
     public const string DeniedMessage =
         "Your club is no longer active. Please contact your district administrator.";

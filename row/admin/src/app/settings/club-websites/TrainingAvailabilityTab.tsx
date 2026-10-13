@@ -22,6 +22,7 @@ import {
   type TrainingAvailabilitySettings, type TrainingWeekday, type TrainingHourRange,
 } from "@/services/api";
 
+import { appLocale, appTimeZone } from "@/lib/appFormat";
 // "14:30" → "2:30 PM", for the read-back lines only; the inputs stay 24-hour so they are typable.
 function to12h(hhmm: string) {
   const [h, m] = (hhmm || "").split(":").map(Number);
@@ -150,7 +151,7 @@ export default function TrainingAvailabilityTab() {
       <SuccessAlert open={!!success} title="Success" description={success || ""} onOk={() => setSuccess(null)} />
 
       <p className="text-xs text-slate-500">
-        Slots are {data?.slotMinutes ?? 30} minutes, maximum {data?.maxPerDay ?? 3} trainings a day, times in IST.
+        Slots are {data?.slotMinutes ?? 30} minutes, maximum {data?.maxPerDay ?? 3} trainings a day, times in {appTimeZone()}.
         Anything closed here still shows on the club&apos;s booking screen — greyed out with the reason, never hidden.
       </p>
 
@@ -343,7 +344,7 @@ export default function TrainingAvailabilityTab() {
                   <div className="flex flex-wrap gap-1.5">
                     {[...blockDates].sort().map((d) => (
                       <span key={d} className="inline-flex items-center gap-1 rounded-full bg-[#1e3a5f] text-white text-[11px] px-2 py-0.5">
-                        {new Date(d + "T00:00:00").toLocaleDateString("en-IN", { weekday: "short", day: "2-digit", month: "short" })}
+                        {new Date(d + "T00:00:00").toLocaleDateString(appLocale(), { weekday: "short", day: "2-digit", month: "short" })}
                         <button type="button" onClick={() => setBlockDates((p) => p.filter((x) => x !== d))} className="hover:text-rose-300" aria-label="Remove">
                           <X size={11} />
                         </button>

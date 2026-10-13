@@ -166,7 +166,7 @@ public class AgProjectRowDto
     public string? AreaOfFocus { get; set; }
     public string? Date { get; set; }
     public decimal Cost { get; set; }
-    public string Currency { get; set; } = "INR"; // project's own currency — row shows Cost in this
+    public string Currency { get; set; } = RotaryApi.Services.Brand.DefaultCurrency; // project's own currency — row shows Cost in this
     public int Beneficiaries { get; set; }
     public int ManHours { get; set; }
     public string Funding { get; set; } = "";
@@ -192,7 +192,7 @@ public class AgProjectsResponse
     public int TotalBeneficiaries { get; set; }
     public int TotalManHours { get; set; }
     public decimal TotalCost { get; set; }
-    public string TargetCurrency { get; set; } = "INR"; // currency of TotalCost (district default)
+    public string TargetCurrency { get; set; } = RotaryApi.Services.Brand.DefaultCurrency; // currency of TotalCost (district default)
 }
 
 public class AgCitationClubRowDto

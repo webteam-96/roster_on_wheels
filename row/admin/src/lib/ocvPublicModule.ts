@@ -1,4 +1,4 @@
-// PUBLIC OCV "Live Documents" module — the Rotary admin backend at rizones45678.org/API.
+// PUBLIC OCV "Live Documents" module — the Rotary admin backend at portal.example.org/API.
 // Only the public, unauthenticated endpoint is used:
 //   GET /api/public/ocv-live-documents?clubId=&yearId=&moduleKey=  -> header + projects[]
 // Fetched server-side (no CORS concern; valid TLS). Backed by
@@ -67,7 +67,7 @@ export async function getOcvPublicModule(
 }
 
 /** Absolute backend URL for the module-scoped Word download. In production the public site and
- *  the backend share an origin (rizones45678.org + rizones45678.org/API), so a plain anchor to
+ *  the backend share an origin (portal.example.org + portal.example.org/API), so a plain anchor to
  *  this URL downloads the .docx (the server sends Content-Disposition: attachment). */
 export function ocvModuleWordUrl(clubId: number, yearId: number, moduleKey: string): string {
   return `${API_BASE}/api/public/ocv-live-documents/word?clubId=${clubId}&yearId=${yearId}&moduleKey=${encodeURIComponent(moduleKey)}`;

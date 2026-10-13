@@ -41,6 +41,7 @@ import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { formatMoney } from "@/lib/currency";
 
+import { appLocale } from "@/lib/appFormat";
 const MODULE_LABELS: Record<string, string> = {
   club_service: "Club Service",
   community_service: "Community Service",
@@ -229,7 +230,7 @@ export default function ProjectsPage() {
 
   const formatDate = (dateStr: string | null) => {
     if (!dateStr) return "-";
-    return new Date(dateStr).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" });
+    return new Date(dateStr).toLocaleDateString(appLocale(), { day: "2-digit", month: "short", year: "numeric" });
   };
 
   const renderProjectRow = (project: ProjectListItem, index: number, isChild = false) => {

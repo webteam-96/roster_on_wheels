@@ -15,6 +15,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useAgYearId } from "@/hooks/useAgYearId";
 import { clubWebsiteUrl } from "@/lib/clubWebsite";
 
+import { appLocale } from "@/lib/appFormat";
 const PAGE_SIZE = 20;
 
 /* ── Sync + website pills ─────────────────────────────────────────── */
@@ -130,7 +131,7 @@ function ClubCard({
 /* ── Footer date — falls back to today when API has no lastUpdated ── */
 function formatAsOfDate(): string {
   const d = new Date();
-  return d.toLocaleDateString("en-IN", {
+  return d.toLocaleDateString(appLocale(), {
     day: "numeric", month: "long", year: "numeric",
   });
 }

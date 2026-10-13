@@ -1023,6 +1023,11 @@ public class DistrictModulesController : ControllerBase
         return await AssignDistrictAdmin(districtId, memberId);
     }
 
+    // user 2026-10-08: Rotaract clubs (ClubType = 'Rotaract Club') are listed only for SuperAdmin;
+    // District / Club Admin club lists, counts and reports hide them. Empty string for SuperAdmin.
+    private string NotRotaractUnlessSa(string alias = "c") =>
+        !ClubScopeSql.HideRotaract(UserPermissionHelper.IsSuperAdmin(User)) ? "" : " AND " + ClubScopeSql.NotRotaract(alias);
+
     // ── Clubs of a district, for the District-Admin club switcher dropdown ──────
     // Only a District Admin WITH all-clubs access for this district (or SuperAdmin)
     // may list them. Returns every non-deleted club in the district.
@@ -1042,10 +1047,10 @@ public class DistrictModulesController : ControllerBase
             if (ok == 0)
                 return StatusCode(403, new { message = "You do not have all-clubs access for this district." });
         }
-        var clubs = await connection.QueryAsync<dynamic>(@"
+        var clubs = await connection.QueryAsync<dynamic>($@"
             SELECT pk_club_id AS clubId, ClubName AS clubName, ClubRotaryId AS clubRotaryId
             FROM club_master
-            WHERE fk_district_id = @DistrictId AND isdeleted = 0
+            WHERE fk_district_id = @DistrictId AND isdeleted = 0{NotRotaractUnlessSa("")}
             ORDER BY ClubName",
             new { DistrictId = districtId });
         return Ok(clubs);
@@ -1147,7 +1152,7 @@ public class DistrictModulesController : ControllerBase
             return $@"
                 SELECT p.pk_project_id AS id, p.title, p.description,
                        p.location, p.project_date AS projectDate, p.project_cost AS projectCost,
-                       COALESCE(p.Currency, 'INR') AS currency,
+                       COALESCE(p.Currency, '{RotaryApi.Services.Brand.SqlCurrency}') AS currency,
                        p.direct_beneficiaries AS directBeneficiaries, p.man_hours AS manHours,
                        p.rotarians_involved AS rotariansInvolved, p.rotaractors_involved AS rotaractorsInvolved,
                        p.fk_year_id AS yearId,
@@ -2886,7 +2891,7 @@ public class DistrictModulesController : ControllerBase
             return $@"
                 SELECT p.pk_project_id AS id, p.fk_year_id AS yearId, p.title, p.description, p.location,
                        p.project_date AS projectDate,
-                       p.project_cost AS projectCost, COALESCE(p.Currency, 'INR') AS currency, p.direct_beneficiaries AS directBeneficiaries,
+                       p.project_cost AS projectCost, COALESCE(p.Currency, '{RotaryApi.Services.Brand.SqlCurrency}') AS currency, p.direct_beneficiaries AS directBeneficiaries,
                        p.man_hours AS manHours, p.rotarians_involved AS rotariansInvolved,
                        p.fk_module_id AS moduleId, mm.ModuleName AS moduleName, mm.ModuleKey AS moduleKey,
                        p.fk_area_of_focus_id AS areaOfFocusId, af.name AS areaOfFocusName,
@@ -3009,13 +3014,13 @@ public class DistrictModulesController : ControllerBase
         bool isCurrent = Convert.ToBoolean(year.IsCurrent);
 
         var totalClubs = await conn.ExecuteScalarAsync<int>(
-            "SELECT COUNT(*) FROM club_master WHERE fk_district_id = @DistrictId AND isdeleted = 0 AND IsActive = 1",
+            $"SELECT COUNT(*) FROM club_master WHERE fk_district_id = @DistrictId AND isdeleted = 0 AND IsActive = 1{NotRotaractUnlessSa("")}",
             new { DistrictId = districtId });
 
-        var submissions = (await conn.QueryAsync<dynamic>(@"
+        var submissions = (await conn.QueryAsync<dynamic>($@"
             SELECT r.ReportMonth AS month, COUNT(DISTINCT r.fk_club_id) AS submittedCount
             FROM club_monthly_reports r
-            INNER JOIN club_master c ON c.pk_club_id = r.fk_club_id AND c.fk_district_id = @DistrictId AND c.isdeleted = 0 AND c.IsActive = 1
+            INNER JOIN club_master c ON c.pk_club_id = r.fk_club_id AND c.fk_district_id = @DistrictId AND c.isdeleted = 0 AND c.IsActive = 1{NotRotaractUnlessSa()}
             WHERE r.fk_year_id = @YearId AND r.isdeleted = 0
               AND r.IsUploadedToDistrict = 1   -- submitted = actually uploaded to district (matches month-detail + Submitted Date)
             GROUP BY r.ReportMonth",
@@ -3072,7 +3077,7 @@ public class DistrictModulesController : ControllerBase
             new { DistrictId = districtId, YearId = yearId, Month = month });
 
         // Not submitted clubs — no report row OR a report that isn't uploaded to district (IsUploadedToDistrict NULL/0)
-        var notSubmittedClubs = (await conn.QueryAsync<dynamic>(@"
+        var notSubmittedClubs = (await conn.QueryAsync<dynamic>($@"
             SELECT c.pk_club_id AS clubId, c.ClubName AS clubName, c.ClubRotaryId AS clubRotaryId,
                    (SELECT m2.MemberName FROM district_ag a
                       JOIN member_master_profile m2 ON m2.pk_member_master_profile_id = a.fk_member_id AND m2.isdeleted = 0
@@ -3082,7 +3087,7 @@ public class DistrictModulesController : ControllerBase
                      WHERE a.fk_club_id = c.pk_club_id AND a.fk_year_id = @YearId AND a.isdeleted = 0 AND a.is_active = 1
                      LIMIT 1) AS agMemberId
             FROM club_master c
-            WHERE c.fk_district_id = @DistrictId AND c.isdeleted = 0 AND c.IsActive = 1
+            WHERE c.fk_district_id = @DistrictId AND c.isdeleted = 0 AND c.IsActive = 1{NotRotaractUnlessSa()}
               AND c.pk_club_id NOT IN (
                 SELECT r.fk_club_id FROM club_monthly_reports r
                 WHERE r.fk_year_id = @YearId AND r.ReportMonth = @Month AND r.isdeleted = 0
@@ -3167,7 +3172,7 @@ public class DistrictModulesController : ControllerBase
         var userId = GetUserId();
         var connStr = _connectionString;
         var emailSvc = _emailService;
-        var interaktSvc = HttpContext.RequestServices.GetRequiredService<IInteraktService>();
+        var interaktSvc = HttpContext.RequestServices.GetRequiredService<IWhatsAppService>();
         var creditSvc2 = HttpContext.RequestServices.GetRequiredService<ICreditManagementService>();
 
         _ = Task.Run(async () =>
@@ -3186,10 +3191,12 @@ public class DistrictModulesController : ControllerBase
                 var districtNumber = await conn.ExecuteScalarAsync<string>(
                     "SELECT DistrictNumber FROM district_master WHERE pk_district_id = @Id", new { Id = districtId }) ?? "";
 
+                // user 2026-10-08: Rotaract clubs never get the monthly-report reminder.
                 var notSubmittedClubIds = (await conn.QueryAsync<int>(@"
                     SELECT c.pk_club_id
                     FROM club_master c
                     WHERE c.fk_district_id = @DistrictId AND c.isdeleted = 0 AND c.IsActive = 1
+                      AND COALESCE(c.ClubType,'') <> 'Rotaract Club'
                       AND c.pk_club_id NOT IN (
                         SELECT r.fk_club_id FROM club_monthly_reports r
                         WHERE r.fk_year_id = @YearId AND r.ReportMonth = @Month AND r.isdeleted = 0
@@ -3221,7 +3228,7 @@ public class DistrictModulesController : ControllerBase
                     new { ClubIds = notSubmittedClubIds, YearId = yearId })).ToList();
 
                 var emailService = emailSvc;
-                var interaktService = interaktSvc;
+                var whatsAppService = interaktSvc;
                 var creditService = creditSvc2;
                 int emailSent = 0, whatsAppSent = 0;
 
@@ -3259,7 +3266,7 @@ public class DistrictModulesController : ControllerBase
                     {
                         try
                         {
-                            await interaktService.SendWhatsAppWithBodyValuesAsync(
+                            await whatsAppService.SendWhatsAppWithBodyValuesAsync(
                                 (string)r.mobile, "club_monthly_report",
                                 new[] { (string)r.memberName, monthNameWithYear, districtNumber, (string)r.clubName });
                             waStatus = "sent";
@@ -3325,10 +3332,10 @@ public class DistrictModulesController : ControllerBase
         using var conn = CreateConnection();
         await conn.OpenAsync();
         // Clubs not yet assigned to any moderator (or assigned to the one being edited)
-        var clubs = await conn.QueryAsync<dynamic>(@"
+        var clubs = await conn.QueryAsync<dynamic>($@"
             SELECT c.pk_club_id AS id, c.ClubName AS clubName, c.ClubRotaryId AS clubRotaryId
             FROM club_master c
-            WHERE c.fk_district_id = @DistrictId AND c.isdeleted = 0 AND c.IsActive = 1
+            WHERE c.fk_district_id = @DistrictId AND c.isdeleted = 0 AND c.IsActive = 1{NotRotaractUnlessSa()}
               AND c.pk_club_id NOT IN (
                 SELECT fk_club_id FROM district_club_moderator
                 WHERE fk_district_id = @DistrictId AND isdeleted = 0
@@ -3696,10 +3703,10 @@ public class DistrictModulesController : ControllerBase
         await conn.OpenAsync();
         // "Already-assigned" check is now year-scoped: a club assigned to an AG in
         // 2024-25 is still available for assignment in 2025-26.
-        var clubs = await conn.QueryAsync<dynamic>(@"
+        var clubs = await conn.QueryAsync<dynamic>($@"
             SELECT c.pk_club_id AS id, c.ClubName AS clubName, c.ClubRotaryId AS clubRotaryId
             FROM club_master c
-            WHERE c.fk_district_id = @DistrictId AND c.isdeleted = 0 AND c.IsActive = 1
+            WHERE c.fk_district_id = @DistrictId AND c.isdeleted = 0 AND c.IsActive = 1{NotRotaractUnlessSa()}
               AND c.pk_club_id NOT IN (
                 SELECT fk_club_id FROM district_ag
                 WHERE fk_district_id = @DistrictId AND isdeleted = 0
@@ -4486,9 +4493,9 @@ public class DistrictModulesController : ControllerBase
         using var conn = CreateConnection();
         await conn.OpenAsync();
         // Get all clubs in the district
-        var clubs = (await conn.QueryAsync<dynamic>(@"
+        var clubs = (await conn.QueryAsync<dynamic>($@"
             SELECT c.pk_club_id AS clubId, c.ClubName AS clubName, c.ClubRotaryId AS clubRotaryId
-            FROM club_master c WHERE c.fk_district_id=@DistrictId AND c.isdeleted=0 AND c.IsActive=1
+            FROM club_master c WHERE c.fk_district_id=@DistrictId AND c.isdeleted=0 AND c.IsActive=1{NotRotaractUnlessSa()}
             ORDER BY c.ClubName",
             new { DistrictId = districtId })).ToList();
 
@@ -4542,7 +4549,7 @@ public class DistrictModulesController : ControllerBase
 
         // Get all clubs
         var clubs = (await conn.QueryAsync<dynamic>(
-            "SELECT pk_club_id AS clubId, ClubName AS clubName, ClubRotaryId AS clubRotaryId FROM club_master WHERE fk_district_id=@DistrictId AND isdeleted=0 AND IsActive=1 ORDER BY ClubName",
+            $"SELECT pk_club_id AS clubId, ClubName AS clubName, ClubRotaryId AS clubRotaryId FROM club_master WHERE fk_district_id=@DistrictId AND isdeleted=0 AND IsActive=1{NotRotaractUnlessSa("")} ORDER BY ClubName",
             new { DistrictId = districtId })).ToList();
 
         // Get all auto questions with sub-items
@@ -5478,6 +5485,12 @@ public class DistrictModulesController : ControllerBase
         // read-only — reject the save server-side so it can't be bypassed from the UI.
         if (!await RotaryApi.Services.DistrictAwardsConfigHelper.IsEnabledAsync(conn, districtId, yearId))
             return StatusCode(403, new { message = "District Awards is currently disabled by the administrator. Point entry is read-only." });
+
+        // No negative figures (user 2026-10-08) - same rule as the Save button on the club form.
+        if (entries.Any(e => e.PointsEarned < 0 || e.BonusEarned < 0
+                || (decimal.TryParse(e.AnswerValue, System.Globalization.NumberStyles.Number,
+                        System.Globalization.CultureInfo.InvariantCulture, out var n) && n < 0)))
+            return BadRequest(new { message = "Points cannot be negative. Please enter 0 or more." });
 
         foreach (var e in entries)
         {

@@ -10,6 +10,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { MessagesSquare, Send, Loader2, ChevronLeft, User } from "lucide-react";
 import { getGoalZoneThreadList, getGoalOwnerThreadMessages, postGoalOwnerThreadMessage, setGoalViewAs } from "@/services/api";
 import type { GoalCommentDto, GoalThreadListDto, GoalMessageThreadDto } from "@/types/goalSetting";
+import GoalMessageList from "@/components/goal-messages/GoalMessageList";
 
 export default function GoalZoneMessages({
   categoryId, zoneId, yearId, actingAs, districtId = null, allowObserverPost = true, allOwners = false,
@@ -69,11 +70,11 @@ export default function GoalZoneMessages({
   const loadMessages = useCallback((ownerId: number) => {
     if (categoryId == null || yearId == null) return;
     setLoadingMsgs(true); setError(null);
-    getGoalOwnerThreadMessages(categoryId, yearId, ownerId)
+    getGoalOwnerThreadMessages(categoryId, yearId, ownerId, zoneId)
       .then(setMessages)
       .catch((e) => setError(e?.response?.data?.message || "Failed to load this conversation."))
       .finally(() => setLoadingMsgs(false));
-  }, [categoryId, yearId]);
+  }, [categoryId, yearId, zoneId]);
 
   useEffect(() => { if (active) loadMessages(active.ownerMemberId); else setMessages(null); }, [active, loadMessages]);
   useEffect(() => { if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight; }, [messages]);
@@ -173,7 +174,7 @@ export default function GoalZoneMessages({
                       {t.unreadCount} new
                     </span>
                   )}
-                  <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200 shrink-0">{t.ownerRoleLabel}</span>
+                  <span className={`text-[10px] px-1.5 py-0.5 rounded-full shrink-0 border ${t.isFormer ? "bg-slate-100 text-slate-500 border-slate-200" : "bg-blue-50 text-blue-700 border-blue-200"}`}>{t.ownerRoleLabel}</span>
                   {t.scope && <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-slate-100 text-slate-500 border border-slate-200 shrink-0">{t.scope}</span>}
                 </span>
                 <span className={`block text-xs truncate ${t.unreadCount > 0 ? "text-slate-700 font-medium" : "text-slate-400"}`}>{t.lastMessagePreview ? t.lastMessagePreview : "No messages yet — start the conversation"}</span>
@@ -210,25 +211,9 @@ export default function GoalZoneMessages({
 
       <div ref={scrollRef} className="p-4 space-y-3 flex-1 min-h-[8rem] overflow-y-auto bg-slate-50/40">
         {loadingMsgs && <div className="flex items-center gap-2 text-xs text-slate-400"><Loader2 size={13} className="animate-spin" /> Loading…</div>}
-        {!loadingMsgs && messages && messages.length === 0 && <p className="text-xs text-slate-400 text-center py-6">No messages yet. Start the conversation below.</p>}
-        {!loadingMsgs && messages && messages.map((c) => {
-          const mine = !!c.isMine;
-          return (
-            <div key={c.id} className={`flex flex-col ${mine ? "items-end" : "items-start"}`}>
-              <div className={`flex items-center gap-1.5 mb-0.5 px-1 ${mine ? "flex-row-reverse" : ""}`}>
-                <span className="text-xs font-semibold text-slate-700">{mine ? "You" : c.postedByName}</span>
-                {c.postedByRoleLabel && <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-slate-100 text-slate-500 border border-slate-200">{c.postedByRoleLabel}</span>}
-                {c.districtId ? (
-                  <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200">D {c.districtNumber}</span>
-                ) : c.postedByTier === 2 ? (
-                  <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-slate-50 text-slate-500 border border-slate-200">All districts</span>
-                ) : null}
-              </div>
-              <div className={`max-w-[80%] px-3 py-2 rounded-2xl text-sm whitespace-pre-wrap break-words ${mine ? "bg-blue-600 text-white rounded-br-sm" : "bg-white text-slate-700 border border-slate-200 rounded-bl-sm"}`}>{c.commentText}</div>
-              <span className="text-[10px] text-slate-400 mt-0.5 px-1">{c.createdDate}</span>
-            </div>
-          );
-        })}
+        {!loadingMsgs && messages && (
+          <GoalMessageList messages={messages} emptyText="No messages yet. Start the conversation below." />
+        )}
       </div>
 
       {active?.notice && <p className="px-4 py-2 text-xs text-amber-700 bg-amber-50 border-t border-amber-100">{active.notice}</p>}

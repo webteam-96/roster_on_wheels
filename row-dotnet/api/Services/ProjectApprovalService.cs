@@ -158,7 +158,7 @@ public class ProjectApprovalService : IProjectApprovalService
                         <tr><td style='padding: 6px 0; color: #718096;'>Club</td><td style='padding: 6px 0;'>{(string?)project?.ClubName ?? "—"}</td></tr>
                         <tr><td style='padding: 6px 0; color: #718096;'>District</td><td style='padding: 6px 0;'>{(string?)project?.DistrictNumber ?? "—"}</td></tr>
                         <tr><td style='padding: 6px 0; color: #718096;'>Date</td><td style='padding: 6px 0;'>{(project?.project_date != null ? ((DateTime)project.project_date).ToString("dd MMM yyyy") : "—")}</td></tr>
-                        <tr><td style='padding: 6px 0; color: #718096;'>Cost</td><td style='padding: 6px 0;'>{(project?.project_cost != null ? $"₹{project.project_cost:N2}" : "—")}</td></tr>
+                        <tr><td style='padding: 6px 0; color: #718096;'>Cost</td><td style='padding: 6px 0;'>{(project?.project_cost != null ? Brand.Money(Convert.ToDecimal(project.project_cost)) : "—")}</td></tr>
                         <tr><td style='padding: 6px 0; color: #718096;'>Direct Beneficiaries</td><td style='padding: 6px 0;'>{project?.direct_beneficiaries ?? "—"}</td></tr>
                         <tr><td style='padding: 6px 0; color: #718096;'>Man Hours</td><td style='padding: 6px 0;'>{project?.man_hours ?? "—"}</td></tr>
                         <tr><td style='padding: 6px 0; color: #718096;'>Location</td><td style='padding: 6px 0;'>{(string?)project?.location ?? "—"}</td></tr>
@@ -260,7 +260,7 @@ public class ProjectApprovalService : IProjectApprovalService
         // Verify moderator is assigned to this project's club
         var project = await conn.QueryFirstOrDefaultAsync<ModeratorProjectDetailRow>($@"
             SELECT p.pk_project_id AS ProjectId, p.title AS Title, p.description AS Description, p.project_date AS ProjectDate,
-                   p.project_cost AS ProjectCost, COALESCE(p.Currency, 'INR') AS Currency, p.direct_beneficiaries AS DirectBeneficiaries,
+                   p.project_cost AS ProjectCost, COALESCE(p.Currency, '{RotaryApi.Services.Brand.SqlCurrency}') AS Currency, p.direct_beneficiaries AS DirectBeneficiaries,
                    p.man_hours AS ManHours, p.rotarians_involved AS RotariansInvolved,
                    p.rotaractors_involved AS RotaractorsInvolved,
                    COALESCE(p.rcc_involved,0) AS RccInvolved,
@@ -335,7 +335,7 @@ public class ProjectApprovalService : IProjectApprovalService
         {
             var hit = await conn.QueryFirstOrDefaultAsync<dynamic>($@"
                 SELECT p.pk_project_id AS projectId, p.title, p.description, p.project_date AS projectDate,
-                       p.project_cost AS projectCost, COALESCE(p.Currency, 'INR') AS currency, p.direct_beneficiaries AS directBeneficiaries,
+                       p.project_cost AS projectCost, COALESCE(p.Currency, '{RotaryApi.Services.Brand.SqlCurrency}') AS currency, p.direct_beneficiaries AS directBeneficiaries,
                        p.man_hours AS manHours, p.location, p.approval_status AS approvalStatus,
                        p.approval_remark AS approvalRemark,
                        mm.ModuleName AS moduleName, c.ClubName AS clubName, d.DistrictNumber AS districtNumber,

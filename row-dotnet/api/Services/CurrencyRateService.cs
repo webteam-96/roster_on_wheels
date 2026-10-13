@@ -3,17 +3,19 @@ using Microsoft.Extensions.Caching.Memory;
 
 namespace RotaryApi.Services;
 
-// Live foreign-exchange rates for the four project currencies (INR/NPR/LKR/USD).
-// Rates are fetched from a free, key-less endpoint (open.er-api.com), cached in-memory,
-// and fall back to a static peg table if the API is unreachable so cost aggregation
-// NEVER breaks. All rates are normalised to "INR per 1 unit of currency" — callers
-// convert any→any through INR (see CurrencyHelper.Convert).
+/// <summary>
+/// Live exchange rates for the brand's currencies (same rules as the NestJS edition's currency-rate.service.ts),
+/// from the free, key-less open.er-api.com feed, cached in memory (12 h; 30 min after a failure). Rates are
+/// "units of the brand's default currency per 1 unit of X" (the original platform used INR as that base), as
+/// <see cref="CurrencyHelper.Convert"/> expects. When the feed is unreachable every rate falls back to 1, so
+/// cost totals still render (summed unconverted).
+/// </summary>
 public interface ICurrencyRateService
 {
-    // INR value of one unit of each supported currency, e.g. { INR:1, USD:83.1, NPR:0.62, LKR:0.28 }.
+    /// <summary>Value of one unit of each brand currency in the brand's default currency (the name is the original platform's).</summary>
     Task<IReadOnlyDictionary<string, decimal>> GetInrRatesAsync();
 
-    // One-off convert; for loops prefer GetInrRatesAsync() once + CurrencyHelper.Convert per row.
+    /// <summary>One-off convert; for loops prefer GetInrRatesAsync() once + CurrencyHelper.Convert per row.</summary>
     Task<decimal> ConvertAsync(decimal amount, string? from, string? to);
 }
 
@@ -23,23 +25,10 @@ public class CurrencyRateService : ICurrencyRateService
     private readonly IMemoryCache _cache;
     private readonly ILogger<CurrencyRateService> _log;
 
-    private const string CacheKey = "fx_inr_rates_v1";
+    private const string CacheKey = "fx_brand_rates_v1";
     private static readonly TimeSpan OkTtl = TimeSpan.FromHours(12);
     private static readonly TimeSpan FailTtl = TimeSpan.FromMinutes(30); // retry sooner after a miss
     private static readonly SemaphoreSlim Gate = new(1, 1);
-
-    private static readonly string[] Supported = { "INR", "NPR", "LKR", "USD" };
-
-    // Static fallback: INR value of 1 unit. Used only when the live API is down AND nothing is
-    // cached. NPR is pegged to INR (1.6 NPR = 1 INR); USD/LKR are rough and only a safety net.
-    public static readonly IReadOnlyDictionary<string, decimal> FallbackInr =
-        new Dictionary<string, decimal>(StringComparer.OrdinalIgnoreCase)
-        {
-            ["INR"] = 1m,
-            ["NPR"] = 0.625m,
-            ["LKR"] = 0.28m,
-            ["USD"] = 83m,
-        };
 
     public CurrencyRateService(IHttpClientFactory httpFactory, IMemoryCache cache, ILogger<CurrencyRateService> log)
     {
@@ -47,6 +36,15 @@ public class CurrencyRateService : ICurrencyRateService
         _cache = cache;
         _log = log;
     }
+
+    private static string Base => Brand.DefaultCurrency.ToUpperInvariant();
+
+    private static string[] Supported =>
+        Brand.Currencies.Select(c => c.ToUpperInvariant()).Prepend(Base).Distinct().ToArray();
+
+    /// <summary>Every rate 1: used when the feed is down and nothing is cached.</summary>
+    public static IReadOnlyDictionary<string, decimal> Fallback =>
+        Supported.ToDictionary(c => c, _ => 1m, StringComparer.OrdinalIgnoreCase);
 
     public async Task<IReadOnlyDictionary<string, decimal>> GetInrRatesAsync()
     {
@@ -57,8 +55,8 @@ public class CurrencyRateService : ICurrencyRateService
         try
         {
             if (_cache.TryGetValue(CacheKey, out cached) && cached is not null) return cached;
-            var live = await FetchLiveInrRatesAsync();
-            var rates = live ?? FallbackInr;
+            var live = await FetchLiveRatesAsync();
+            var rates = live ?? Fallback;
             _cache.Set(CacheKey, rates, live is not null ? OkTtl : FailTtl);
             return rates;
         }
@@ -68,28 +66,27 @@ public class CurrencyRateService : ICurrencyRateService
     public async Task<decimal> ConvertAsync(decimal amount, string? from, string? to)
         => CurrencyHelper.Convert(amount, from, to, await GetInrRatesAsync());
 
-    private async Task<IReadOnlyDictionary<string, decimal>?> FetchLiveInrRatesAsync()
+    private async Task<IReadOnlyDictionary<string, decimal>?> FetchLiveRatesAsync()
     {
         try
         {
             var http = _httpFactory.CreateClient();
             http.Timeout = TimeSpan.FromSeconds(8);
-            // Base INR: response.rates[X] = units of X per 1 INR → INR per 1 X = 1 / that.
-            var json = await http.GetStringAsync("https://open.er-api.com/v6/latest/INR");
+            // response.rates[X] = units of X per 1 base → base per 1 X = 1 / that.
+            var json = await http.GetStringAsync($"https://open.er-api.com/v6/latest/{Base}");
             using var doc = JsonDocument.Parse(json);
             var root = doc.RootElement;
             if (root.TryGetProperty("result", out var res) && res.GetString() != "success") return null;
             if (!root.TryGetProperty("rates", out var ratesEl) || ratesEl.ValueKind != JsonValueKind.Object) return null;
 
-            var map = new Dictionary<string, decimal>(StringComparer.OrdinalIgnoreCase) { ["INR"] = 1m };
+            var map = new Dictionary<string, decimal>(StringComparer.OrdinalIgnoreCase) { [Base] = 1m };
             foreach (var code in Supported)
             {
-                if (code == "INR") continue;
-                if (ratesEl.TryGetProperty(code, out var v) && v.ValueKind == JsonValueKind.Number
-                    && v.TryGetDecimal(out var perInr) && perInr > 0m)
-                    map[code] = 1m / perInr;
-                else
-                    map[code] = FallbackInr[code]; // per-currency fallback if the feed omits one
+                if (code == Base) continue;
+                map[code] = ratesEl.TryGetProperty(code, out var v) && v.ValueKind == JsonValueKind.Number
+                            && v.TryGetDecimal(out var perBase) && perBase > 0m
+                    ? 1m / perBase
+                    : 1m; // the feed omitted it: unconverted
             }
             return map;
         }

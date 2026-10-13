@@ -9,7 +9,7 @@
 
 import { NextRequest, NextResponse } from "next/server";
 
-const API_BASE = process.env.PROJECTS_API_BASE ?? "https://rizones45678.org/API";
+const API_BASE = process.env.PROJECTS_API_BASE ?? process.env.NEXT_PUBLIC_API_ORIGIN ?? "";
 
 type ClubWebsite = {
   clubId: number;

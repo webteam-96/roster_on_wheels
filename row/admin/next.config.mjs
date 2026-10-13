@@ -4,7 +4,7 @@ import createNextIntlPlugin from "next-intl/plugin";
 const withNextIntl = createNextIntlPlugin("./src/i18n/request.ts");
 
 // Images may be served from the instance's own API host (NEXT_PUBLIC_API_URL) as well as
-// the RIZones host the existing pattern list already allows.
+// the ROW host the existing pattern list already allows.
 function apiImagePattern() {
   try {
     const url = new URL(process.env.NEXT_PUBLIC_API_URL || "");
@@ -38,7 +38,7 @@ const nextConfig = {
       },
       {
         protocol: "https",
-        hostname: "rizones45678.org",
+        hostname: "portal.example.org",
         pathname: "/**",
       },
       ...apiImagePattern(),

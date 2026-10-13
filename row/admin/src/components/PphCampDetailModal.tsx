@@ -22,12 +22,13 @@ import {
 import RotaryLoader from "@/components/RotaryLoader";
 import { CalendarDays, MapPin, Users } from "lucide-react";
 
+import { appLocale } from "@/lib/appFormat";
 function fmtDate(d?: string | null) {
   if (!d) return "—";
   const dt = new Date(d);
   return isNaN(dt.getTime())
     ? "—"
-    : dt.toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" });
+    : dt.toLocaleDateString(appLocale(), { day: "2-digit", month: "short", year: "numeric" });
 }
 
 function Row({ label, value }: { label: string; value: React.ReactNode }) {

@@ -40,6 +40,7 @@ import WhatsAppRecipientBadge from "@/components/WhatsAppRecipientBadge";
 import ImageCropDialog from "@/components/ImageCropDialog";
 import { useImageCropQueue } from "@/hooks/useImageCropQueue";
 
+import { currencySymbol } from "@/lib/appFormat";
 // Project photos are shown 16:9 on the public site (components/pages/projects/shared.tsx),
 // so the crop is locked to that shape. 1600×900 keeps the widest card retina-sharp.
 const PROJECT_PHOTO_ASPECT = 16 / 9;
@@ -487,7 +488,7 @@ export default function InternationalServiceAddPage() {
         <Section icon={IndianRupee} title="Financial & Impact" number={3}>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             <div className="space-y-1.5">
-              <Req>Project Cost (₹)</Req>
+              <Req>Project Cost ({currencySymbol()})</Req>
               <Input type="number" value={projectCost} onChange={(e) => setProjectCost(e.target.value)} placeholder="0" min="0" />
             </div>
             <div className="space-y-1.5">
@@ -513,17 +514,17 @@ export default function InternationalServiceAddPage() {
                       onChange={(e) => setGlobalGrantNumber(onlyDigits(e.target.value))} placeholder="e.g., 2434521" />
                   </div>
                   <div className="space-y-1.5">
-                    <Label>Amount Sanctioned (₹)</Label>
+                    <Label>Amount Sanctioned ({currencySymbol()})</Label>
                     <Input inputMode="numeric" pattern="[0-9]*" value={amountSanctioned}
                       onChange={(e) => setAmountSanctioned(onlyDigits(e.target.value))} placeholder="0" />
                   </div>
                   <div className="space-y-1.5">
-                    <Label>Amount Received (₹)</Label>
+                    <Label>Amount Received ({currencySymbol()})</Label>
                     <Input inputMode="numeric" pattern="[0-9]*" value={amountReceived}
                       onChange={(e) => setAmountReceived(onlyDigits(e.target.value))} placeholder="0" />
                   </div>
                   <div className="space-y-1.5">
-                    <Label>Amount spent till date (₹)</Label>
+                    <Label>Amount spent till date ({currencySymbol()})</Label>
                     <Input inputMode="numeric" pattern="[0-9]*" value={amountSpent}
                       onChange={(e) => setAmountSpent(onlyDigits(e.target.value))} placeholder="0" />
                   </div>
@@ -552,12 +553,12 @@ export default function InternationalServiceAddPage() {
                       onChange={(e) => setCsrCompanyName(e.target.value)} placeholder="e.g., ABC Industries Pvt Ltd" />
                   </div>
                   <div className="space-y-1.5">
-                    <Req>Amount Sanctioned (₹)</Req>
+                    <Req>Amount Sanctioned ({currencySymbol()})</Req>
                     <Input inputMode="numeric" pattern="[0-9]*" value={amountSanctioned}
                       onChange={(e) => setAmountSanctioned(onlyDigits(e.target.value))} placeholder="0" />
                   </div>
                   <div className="space-y-1.5">
-                    <Req>Amount Received (₹)</Req>
+                    <Req>Amount Received ({currencySymbol()})</Req>
                     <Input inputMode="numeric" pattern="[0-9]*" value={amountReceived}
                       onChange={(e) => setAmountReceived(onlyDigits(e.target.value))} placeholder="0" />
                   </div>

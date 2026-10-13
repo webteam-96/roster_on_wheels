@@ -5,6 +5,7 @@ import { useParams } from "next/navigation";
 import { getPublicClubDuesReport } from "@/services/api";
 import { fileTimestamp, toLocalDateParts } from "@/lib/dateUtils";
 
+import { appLocale, currencySymbol } from "@/lib/appFormat";
 interface ReportClub {
   clubDuesClubId: number;
   clubName: string | null;
@@ -48,7 +49,7 @@ interface ReportData {
 }
 
 function fmtAmt(val: number): string {
-  return Number(val || 0).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  return Number(val || 0).toLocaleString(appLocale(), { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
 // Grouped/localised numbers ("23,600.00") must never reach a CSV cell — the comma splits the row
@@ -214,9 +215,9 @@ export default function ClubDuesReportPage() {
             <span>Clubs: <strong>{totalClubs}</strong></span>
             <span>Fully Paid Clubs: <strong>{fullyPaidClubs}</strong></span>
             <span>Total Members: <strong>{totalMembers}</strong></span>
-            <span>Total Collected: <strong>₹{fmtAmt(totalCollected)}</strong></span>
-            <span>Collected via Offline: <strong>₹{fmtAmt(totalOfflineCollected)}</strong></span>
-            <span>Collected via Online: <strong>₹{fmtAmt(totalOnlineCollected)}</strong></span>
+            <span>Total Collected: <strong>{currencySymbol()}{fmtAmt(totalCollected)}</strong></span>
+            <span>Collected via Offline: <strong>{currencySymbol()}{fmtAmt(totalOfflineCollected)}</strong></span>
+            <span>Collected via Online: <strong>{currencySymbol()}{fmtAmt(totalOnlineCollected)}</strong></span>
           </div>
         </div>
       </div>
@@ -279,15 +280,15 @@ export default function ClubDuesReportPage() {
                       {!c.isSyncedFromRotaryOrg && <span className="ml-2 text-xs rounded bg-amber-100 text-amber-700 px-1.5 py-0.5">non-sync</span>}
                     </td>
                     <td className="px-3 py-2.5 whitespace-nowrap text-center">{c.memberCount}</td>
-                    <td className="px-3 py-2.5 whitespace-nowrap text-right">{offAmounts ? `₹${fmtAmt(offAmounts[0])}` : "-"}</td>
-                    <td className="px-3 py-2.5 whitespace-nowrap text-right">{offAmounts ? `₹${fmtAmt(offAmounts[1])}` : "-"}</td>
-                    <td className="px-3 py-2.5 whitespace-nowrap text-right">{offAmounts ? `₹${fmtAmt(offAmounts[2])}` : "-"}</td>
-                    <td className="px-3 py-2.5 whitespace-nowrap text-right">{offAmounts ? `₹${fmtAmt(offAmounts[3])}` : "-"}</td>
-                    <td className="px-3 py-2.5 whitespace-nowrap text-right">{onAmounts ? `₹${fmtAmt(onAmounts[0])}` : "-"}</td>
-                    <td className="px-3 py-2.5 whitespace-nowrap text-right">{onAmounts ? `₹${fmtAmt(onAmounts[1])}` : "-"}</td>
-                    <td className="px-3 py-2.5 whitespace-nowrap text-right">{onAmounts ? `₹${fmtAmt(onAmounts[2])}` : "-"}</td>
-                    <td className="px-3 py-2.5 whitespace-nowrap text-right">{onAmounts ? `₹${fmtAmt(onAmounts[3])}` : "-"}</td>
-                    <td className="px-3 py-2.5 whitespace-nowrap text-right">₹{fmtAmt(totalPaid(c))}</td>
+                    <td className="px-3 py-2.5 whitespace-nowrap text-right">{offAmounts ? `${currencySymbol()}${fmtAmt(offAmounts[0])}` : "-"}</td>
+                    <td className="px-3 py-2.5 whitespace-nowrap text-right">{offAmounts ? `${currencySymbol()}${fmtAmt(offAmounts[1])}` : "-"}</td>
+                    <td className="px-3 py-2.5 whitespace-nowrap text-right">{offAmounts ? `${currencySymbol()}${fmtAmt(offAmounts[2])}` : "-"}</td>
+                    <td className="px-3 py-2.5 whitespace-nowrap text-right">{offAmounts ? `${currencySymbol()}${fmtAmt(offAmounts[3])}` : "-"}</td>
+                    <td className="px-3 py-2.5 whitespace-nowrap text-right">{onAmounts ? `${currencySymbol()}${fmtAmt(onAmounts[0])}` : "-"}</td>
+                    <td className="px-3 py-2.5 whitespace-nowrap text-right">{onAmounts ? `${currencySymbol()}${fmtAmt(onAmounts[1])}` : "-"}</td>
+                    <td className="px-3 py-2.5 whitespace-nowrap text-right">{onAmounts ? `${currencySymbol()}${fmtAmt(onAmounts[2])}` : "-"}</td>
+                    <td className="px-3 py-2.5 whitespace-nowrap text-right">{onAmounts ? `${currencySymbol()}${fmtAmt(onAmounts[3])}` : "-"}</td>
+                    <td className="px-3 py-2.5 whitespace-nowrap text-right">{currencySymbol()}{fmtAmt(totalPaid(c))}</td>
                     <td className="px-3 py-2.5 whitespace-nowrap text-center">
                       <span className={`text-xs font-medium px-2 py-0.5 rounded ${statusClasses(c.status)}`}>{reportStatus(c.status) || "-"}</span>
                     </td>
@@ -307,7 +308,7 @@ export default function ClubDuesReportPage() {
 
         {clubs.length > 0 && (
           <div className="mt-4 text-right text-sm text-gray-600">
-            Showing {totalClubs} club{totalClubs !== 1 ? "s" : ""} | Fully Paid: {fullyPaidClubs} | Total Members: {totalMembers} | Total Collected: ₹{fmtAmt(totalCollected)}
+            Showing {totalClubs} club{totalClubs !== 1 ? "s" : ""} | Fully Paid: {fullyPaidClubs} | Total Members: {totalMembers} | Total Collected: {currencySymbol()}{fmtAmt(totalCollected)}
           </div>
         )}
       </div>

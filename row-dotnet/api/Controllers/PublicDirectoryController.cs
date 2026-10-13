@@ -23,7 +23,7 @@ public class PublicDirectoryController : ControllerBase
     private readonly IConfiguration _config;
     private readonly IEmailService _email;
     private readonly ISmsService _sms;
-    private readonly IInteraktService _whatsapp;
+    private readonly IWhatsAppService _whatsapp;
     private readonly IWebHostEnvironment _env;
     private readonly ILogger<PublicDirectoryController> _logger;
     private readonly string _apiBase;
@@ -35,7 +35,7 @@ public class PublicDirectoryController : ControllerBase
         IConfiguration config,
         IEmailService email,
         ISmsService sms,
-        IInteraktService whatsapp,
+        IWhatsAppService whatsapp,
         IWebHostEnvironment env,
         ILogger<PublicDirectoryController> logger,
         AdminProxyTokenSigner adminProxySigner,
@@ -213,8 +213,8 @@ public class PublicDirectoryController : ControllerBase
         // actual routing). Exposed here so the form can label the "Send OTP" action
         // correctly instead of offering channels that will now never be used.
         int? countryId = m.countryId == null ? null : (int?)m.countryId;
-        var outsideIndiaDialCode = await OtpWhatsAppHelper.ResolveOutsideIndiaDialCodeAsync(conn, countryId, (string?)m.mobile);
-        var otpChannel = outsideIndiaDialCode != null ? "email" : "sms";
+        // ROW: the first channel of Brand:Providers:OtpPolicy for the member's country (see OtpChannelPolicy).
+        var otpChannel = (await OtpChannelPolicy.ChannelsForAsync(conn, countryId)).FirstOrDefault(c => c is "email" or "sms") ?? "email";
 
         return Ok(new
         {
@@ -270,7 +270,7 @@ public class PublicDirectoryController : ControllerBase
 <p>If you did not request this OTP, please ignore this email.</p>
 {EmailService.EMAIL_FOOTER}";
                 await _email.SendGenericEmailAsync(email, "District Directory — Data Collection OTP", body);
-                _logger.LogInformation("📧 [OTP-EMAIL] ✅ {Name} → {Email} (otp={Otp})", name, email, otp);
+                _logger.LogInformation("[OTP-EMAIL] sent to member {MemberId}", req.MemberId);
                 return true;
             }
             catch (Exception ex)
@@ -290,25 +290,28 @@ public class PublicDirectoryController : ControllerBase
         // gets the "could not send" error below rather than silently switching to
         // the other country's channel. Deliberate, per instruction 2026-08-24:
         // don't reactivate without asking first.
-        var outsideIndiaDialCode = await OtpWhatsAppHelper.ResolveOutsideIndiaDialCodeAsync(conn, countryId, mobile);
-        bool isOutsideIndia = outsideIndiaDialCode != null;
-
-        if (isOutsideIndia)
+        // ROW: channels from Brand:Providers:OtpPolicy for the member's country, in order, until one succeeds.
+        foreach (var channel in await OtpChannelPolicy.ChannelsForAsync(conn, countryId))
         {
-            sentEmail = await TrySendOtpEmailAsync();
-        }
-        else if (!string.IsNullOrWhiteSpace(mobile))
-        {
-            try
+            if (channel == "email")
             {
-                sentSms = await _sms.SendOtpSmsAsync(mobile, otp);
-                if (sentSms) _logger.LogInformation("📱 [OTP-SMS] ✅ {Name} → {Mobile} (otp={Otp})", name, mobile, otp);
-                else _logger.LogWarning("📱 [OTP-SMS] ❌ {Name} → {Mobile} returned false (check SMS gateway)", name, mobile);
+                sentEmail = await TrySendOtpEmailAsync();
             }
-            catch (Exception ex)
+            // The directory form sends SMS only through the configured India gateway ("dlt"); with Twilio it uses email.
+            else if (channel == "sms" && string.Equals(Brand.SmsProvider, "dlt", StringComparison.OrdinalIgnoreCase) && !string.IsNullOrWhiteSpace(mobile))
             {
-                _logger.LogWarning("📱 [OTP-SMS] ❌ {Name} → {Mobile} FAILED: {Error}", name, mobile, ex.Message);
+                try
+                {
+                    sentSms = await _sms.SendOtpSmsAsync(mobile, otp);
+                    if (sentSms) _logger.LogInformation("[OTP-SMS] sent to member {MemberId}", req.MemberId);
+                    else _logger.LogWarning("[OTP-SMS] gateway returned false for member {MemberId}", req.MemberId);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning("[OTP-SMS] failed for member {MemberId}: {Error}", req.MemberId, ex.Message);
+                }
             }
+            if (sentEmail || sentSms) break;
         }
 
         if (!sentEmail && !sentSms && !sentWhatsApp)
@@ -1150,7 +1153,7 @@ public class PublicDirectoryController : ControllerBase
                 {
                     var sent = await _whatsapp.SendWhatsAppWithBodyValuesAsync(p.Mobile, "district_directory_form_incomplete_final", bodyValues);
                     if (sent) _logger.LogInformation("💬 [SUBMIT-WA] ✅ {Name} → {Mobile}", p.Name, p.Mobile);
-                    else _logger.LogWarning("💬 [SUBMIT-WA] ❌ {Name} → {Mobile} returned false (check Interakt template + credits)", p.Name, p.Mobile);
+                    else _logger.LogWarning("💬 [SUBMIT-WA] ❌ {Name} → {Mobile} returned false (check the Meta template and account)", p.Name, p.Mobile);
                 }
                 catch (Exception ex)
                 {

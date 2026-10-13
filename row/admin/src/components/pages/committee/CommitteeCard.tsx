@@ -2,9 +2,9 @@ import Image from "next/image";
 import { ShieldCheck } from "lucide-react";
 
 export type Member = {
-  /** Kept for data fidelity with rotaryindia.org/committee.aspx (unrendered). */
+  /** Kept for data fidelity with example.org/committee.aspx (unrendered). */
   n: string;
-  /** Displayed name, verbatim from rotaryindia.org/committee.aspx. */
+  /** Displayed name, verbatim from example.org/committee.aspx. */
   name: string;
   /** Image alt text (kept from the live page). */
   alt: string;

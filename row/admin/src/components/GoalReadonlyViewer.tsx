@@ -1,6 +1,6 @@
 "use client";
 
-// Goal Setting Overview — the SAME tabbed Membership / TRF / Youth Service / Public Image forms a
+// Goal Setting Overview — the SAME tabbed Membership / Foundation / Youth Service / Public Image forms a
 // District or Club admin sees, but READ ONLY. Pick a year → zone → district → (optionally) a club,
 // and the read-only GoalSettingPanel below shows that entity's goals exactly as its own admin would.
 //
@@ -166,7 +166,7 @@ export default function GoalReadonlyViewer({
     <div className="space-y-4">
       <div className="rounded-xl border border-slate-200 bg-white p-4">
         <div className="text-sm font-semibold text-slate-800">Goal Setting — read-only view</div>
-        <p className="text-xs text-slate-500 mt-0.5 mb-3">Pick a district or club to see its Membership / TRF / Youth Service / Public Image goals. Changing the year keeps your selection and just refreshes the figures below.</p>
+        <p className="text-xs text-slate-500 mt-0.5 mb-3">Pick a district or club to see its Membership / Foundation / Youth Service / Public Image goals. Changing the year keeps your selection and just refreshes the figures below.</p>
         {/* Plain selects in reading order: Zone → District → Club → Year. */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
           <label className="flex flex-col gap-1 text-xs text-slate-500">

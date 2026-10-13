@@ -231,7 +231,7 @@ public class CountrySyncWorker
                             ROW_as_vendor_selected, AddedByCountrySync,
                             created_date, isdeleted
                         ) VALUES (
-                            @DistrictPk, @ClubRotaryId, @ClubName, 'Asia/Kolkata',
+                            @DistrictPk, @ClubRotaryId, @ClubName, @Tz,
                             @CharterDate, @MeetingDay, @MeetingFromTime, @MeetingAddress,
                             @Country, @State, @City, @PinCode,
                             @ActiveFrom, @ActiveTo,
@@ -242,6 +242,7 @@ public class CountrySyncWorker
                         )",
                         new
                         {
+                            Tz = RotaryApi.Services.Brand.DefaultTimeZone,   // ROW: the brand's zone (the original: Asia/Kolkata)
                             DistrictPk = localDistrictPk,
                             ClubRotaryId = rotaryId,
                             ClubName = clubName,

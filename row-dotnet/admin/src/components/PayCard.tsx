@@ -7,11 +7,14 @@
  */
 
 import { Mail, Phone, ShieldCheck, Zap } from "lucide-react";
-import { BRAND } from "@/lib/brand";
+import { useBrand } from "@/contexts/BrandContext";
+import { getActiveBrand, telHref } from "@/lib/brand";
 
-/** Support details from the brand (NEXT_PUBLIC_SUPPORT_*) — the same as the help line in PayPageShell. */
-export const SUPPORT_EMAIL = BRAND.supportEmail;
-export const SUPPORT_PHONE = BRAND.supportPhone;
+/** Real support details — these mirror the help line in PayPageShell. */
+/** First support phone of the instance brand ("" when none is configured). */
+export function supportPhone(): string {
+  return getActiveBrand().support.phones[0] ?? "";
+}
 
 /** Card with a navy icon chip, title and optional one-line subtitle. */
 export function PayCard({
@@ -64,22 +67,24 @@ export function PayTrustRows({ activationNote }: { activationNote: string }) {
 
 /** Support contact card for the right rail. */
 export function PayHelpCard() {
+  const { email, phones } = useBrand().support;
+  const phone = phones[0] ?? "";
   return (
     <PayCard title="Need help?">
       <p className="text-[13px] text-slate-500">Contact our support team for any assistance.</p>
       <div className="mt-3.5 space-y-2.5">
-        <a href={`mailto:${SUPPORT_EMAIL}`} className="flex items-center gap-3 text-[13px] text-slate-700 hover:text-[#17458F]">
+        {email && <a href={`mailto:${email}`} className="flex items-center gap-3 text-[13px] text-slate-700 hover:text-[#17458F]">
           <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-blue-50 text-[#17458F]">
             <Mail className="h-3.5 w-3.5" />
           </span>
-          <span className="min-w-0 truncate">{SUPPORT_EMAIL}</span>
-        </a>
-        <a href={`tel:${SUPPORT_PHONE.replace(/\s/g, "")}`} className="flex items-center gap-3 text-[13px] text-slate-700 hover:text-[#17458F]">
+          <span className="min-w-0 truncate">{email}</span>
+        </a>}
+        {phone && <a href={telHref(phone)} className="flex items-center gap-3 text-[13px] text-slate-700 hover:text-[#17458F]">
           <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-blue-50 text-[#17458F]">
             <Phone className="h-3.5 w-3.5" />
           </span>
-          <span>{SUPPORT_PHONE}</span>
-        </a>
+          <span>{phone}</span>
+        </a>}
       </div>
     </PayCard>
   );

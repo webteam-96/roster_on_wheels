@@ -108,38 +108,38 @@ const PRICING: {
 }[] = [
   {
     service: "Annual Club Dues",
-    range: "₹1,000 – ₹15,000",
+    range: "Set by the club",
     unit: "per member · per Rotary year",
     description: "Set independently by each Rotary club. Includes RI dues, district dues, and club dues.",
   },
   {
     service: "Event Registration",
-    range: "₹100 – ₹50,000",
+    range: "Set by the organiser",
     unit: "per registration",
     description: "Varies by event (club fellowship, district conference, training, fundraiser). Set by the organiser.",
   },
   {
     service: "Project Contribution",
-    range: "₹100 onward",
-    unit: "per contribution · any amount in INR",
-    description: "Voluntary contribution to a service project. Minimum ₹100; no upper cap.",
+    range: "Any amount",
+    unit: "per contribution",
+    description: "Voluntary contribution to a service project. No upper cap.",
   },
   {
     service: "Foundation Contribution",
-    range: "₹100 onward",
-    unit: "per contribution · any amount in INR",
-    description: "Voluntary contribution to The Rotary Foundation. Minimum ₹100; no upper cap.",
+    range: "Any amount",
+    unit: "per contribution",
+    description: "Voluntary contribution to The Rotary Foundation. No upper cap.",
   },
   {
     service: "Platform Fee",
-    range: "₹0",
-    unit: "no platform fee",
-    description: "We do not levy a separate platform fee. Standard Cashfree payment-gateway charges apply on each transaction.",
+    range: "Shown at checkout",
+    unit: "per transaction",
+    description: "Any platform fee and the payment provider's charges are shown before you pay.",
   },
 ];
 
 const FEATURES = [
-  { icon: Globe, title: "Multi-Zone, Multi-District", body: "One unified portal serving every Rotary club across Zones 4, 5, 6, 7 & 8." },
+  { icon: Globe, title: "Multi-Zone, Multi-District", body: "One unified portal serving every Rotary club across the zones." },
   { icon: Users, title: "Role-Based Access", body: "Club Admins, Assistant Governors, District Admins, RI Directors — each sees what they need." },
   { icon: ShieldCheck, title: "Secure by Default", body: "JWT-secured sessions, HTTPS only, encrypted at rest, regular backups." },
   { icon: FileCheck, title: "Statutory Reports", body: "Auto-generated reports aligned with Rotary International and Indian regulatory requirements." },
@@ -216,8 +216,8 @@ export default function PublicLanding() {
               <div className="relative">
                 <div className="absolute inset-0 rounded-full" style={{ background: "radial-gradient(circle, rgba(247,168,27,0.25) 0%, transparent 70%)", transform: "scale(1.4)" }} />
                 <Image
-                  src="/images/rotary-zone-log-white.png"
-                  alt="Rotary Zones 4, 5, 6, 7 & 8 emblem"
+                  src="/images/rotary-white-live.png"
+                  alt="ROW emblem"
                   width={420}
                   height={420}
                   className="relative z-10 object-contain drop-shadow-2xl"
@@ -237,14 +237,14 @@ export default function PublicLanding() {
               About the Platform
             </h2>
             <p className="mt-3 text-base text-slate-600 max-w-2xl mx-auto">
-              Rotary Zones 4, 5, 6, 7 &amp; 8 span the majority of Indian Rotary
+              ROW span the majority of Indian Rotary
               districts. This portal is the canonical digital infrastructure
               for clubs, members, and the Multi-District Initiative.
             </p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {[
-              { icon: Award, title: "Who We Are", body: "An initiative by the Multi-District team representing Rotary clubs across Zones 4, 5, 6, 7 & 8 in India — operated for the benefit of clubs and their members." },
+              { icon: Award, title: "Who We Are", body: "An initiative by the Multi-District team representing Rotary clubs across the zones in India — operated for the benefit of clubs and their members." },
               { icon: HandHeart, title: "What We Do", body: "Provide secure digital tools for member management, event administration, project documentation, and online collection of dues, fees, and contributions in INR." },
               { icon: Building2, title: "Who We Serve", body: "Rotary club Presidents, Secretaries, Treasurers, Directors, Members; District Governors, Assistant Governors, District Admins; Rotary International Directors." },
             ].map((b) => (

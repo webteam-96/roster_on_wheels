@@ -15,6 +15,7 @@ import RotaryLoader from "@/components/RotaryLoader";
 import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";
 
+import { appLocale } from "@/lib/appFormat";
 export default function DistrictEventsPage() {
   const params = useParams();
   const router = useRouter();
@@ -118,7 +119,7 @@ export default function DistrictEventsPage() {
                     <TableRow key={item.id}>
                       <TableCell>{(page - 1) * 20 + idx + 1}</TableCell>
                       <TableCell className="font-medium">{item.title}</TableCell>
-                      <TableCell>{item.eventDate ? new Date(item.eventDate).toLocaleDateString("en-IN") : "—"}</TableCell>
+                      <TableCell>{item.eventDate ? new Date(item.eventDate).toLocaleDateString(appLocale()) : "—"}</TableCell>
                       <TableCell>
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild><Button variant="ghost" size="icon"><MoreHorizontal className="h-4 w-4" /></Button></DropdownMenuTrigger>

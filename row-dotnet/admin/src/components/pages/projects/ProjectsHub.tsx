@@ -23,7 +23,6 @@ import {
   parseTime,
   rotaryYearOf,
   titleCase,
-  usdCompact,
   type CardData,
   type SampleProject,
 } from "@/components/pages/projects/shared";
@@ -55,6 +54,7 @@ import {
   type SummaryStat,
 } from "@/lib/projectStats";
 
+import { currencySymbol } from "@/lib/appFormat";
 const PAGE_SIZE = 50;
 
 /* Search pacing. Both exist because one project search costs the API a scan across
@@ -71,62 +71,6 @@ function searchRank(query: string, title: string) {
   const q = query.trim().toLowerCase();
   const t = title.trim().toLowerCase();
   return t === q ? 0 : t.includes(q) ? 1 : 2;
-}
-
-/* ——— ₹ → $ conversion for the stat strip ———
-   The $ line derives from the SAME rupee total the tile shows, so it moves
-   whenever that number moves. The rate itself is a live mid-market figure
-   fetched at most once a day (localStorage-cached, module-memoized) with a
-   bundled fallback for offline / blocked fetches. */
-const FALLBACK_INR_PER_USD = 88;
-const FX_CACHE_KEY = "rotary-inr-per-usd-v1";
-const FX_CACHE_MS = 24 * 60 * 60 * 1000;
-let fxPromise: Promise<number> | null = null;
-
-function getInrPerUsd(): Promise<number> {
-  if (!fxPromise) {
-    fxPromise = (async () => {
-      try {
-        const cached = window.localStorage.getItem(FX_CACHE_KEY);
-        if (cached) {
-          const { rate, at } = JSON.parse(cached) as { rate: number; at: number };
-          if (rate > 0 && Date.now() - at < FX_CACHE_MS) return rate;
-        }
-      } catch {
-        /* corrupt/blocked storage — fall through to the fetch */
-      }
-      try {
-        const res = await fetch("https://open.er-api.com/v6/latest/USD");
-        const rate = res.ok ? Number((await res.json())?.rates?.INR) : NaN;
-        if (rate > 0) {
-          try {
-            window.localStorage.setItem(FX_CACHE_KEY, JSON.stringify({ rate, at: Date.now() }));
-          } catch {
-            /* private mode / quota — cache is best-effort */
-          }
-          return rate;
-        }
-      } catch {
-        /* offline or blocked — the fallback still gives a sane figure */
-      }
-      return FALLBACK_INR_PER_USD;
-    })();
-  }
-  return fxPromise;
-}
-
-function useInrPerUsd(): number {
-  const [rate, setRate] = useState(FALLBACK_INR_PER_USD);
-  useEffect(() => {
-    let stale = false;
-    getInrPerUsd().then((r) => {
-      if (!stale) setRate(r);
-    });
-    return () => {
-      stale = true;
-    };
-  }, []);
-  return rate;
 }
 
 /** The four browsable dimensions, plus "" for "no card grid open". */
@@ -516,7 +460,6 @@ function SampleHub({
   const shown = isScoped ? filteredStats : TOTALS;
   const cost = inrParts(shown.inr);
   const hours = inrParts(shown.manHours);
-  const inrPerUsd = useInrPerUsd();
   const plus = isScoped ? "" : "+";
 
   /* Removable filter chips */
@@ -762,9 +705,9 @@ function SampleHub({
               label: "Invested in service",
               target: cost.target,
               decimals: cost.decimals,
-              prefix: "₹",
+              prefix: currencySymbol(),
               suffix: cost.suffix,
-              sub: shown.inr > 0 ? usdCompact(shown.inr / inrPerUsd) : undefined,
+              sub: undefined,   // ROW: one currency (the original added a $ line under the ₹ total)
               wide: true,
             },
             {
@@ -1285,7 +1228,6 @@ function LiveHub({ overview, initialArea }: { overview: Overview; initialArea?: 
     : summaryKey !== null && summaryKey !== filterKey;
   const cost = inrParts(shown.inr);
   const hours = inrParts(shown.hours);
-  const inrPerUsd = useInrPerUsd();
 
   /* Removable filter chips — labels resolved from the fetched option lists */
   const districtNo = (
@@ -1583,9 +1525,9 @@ function LiveHub({ overview, initialArea }: { overview: Overview; initialArea?: 
               label: "Invested in service",
               target: cost.target,
               decimals: cost.decimals,
-              prefix: "₹",
+              prefix: currencySymbol(),
               suffix: cost.suffix,
-              sub: shown.inr > 0 ? usdCompact(shown.inr / inrPerUsd) : undefined,
+              sub: undefined,   // ROW: one currency (the original added a $ line under the ₹ total)
               wide: true,
             },
             {

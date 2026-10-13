@@ -82,7 +82,7 @@ export default function WebsiteProvisioningToast() {
   const provisioning = order.status === "Provisioning";
   const active = order.status === "Active";
   const failed = order.status === "ActivationFailed";
-  const host = `${order.subdomain}.rotaryindia.org`;
+  const host = `${order.subdomain}.example.org`;
 
   const dismiss = () => { rememberDismissed(order.websiteOrderId); stopPolling(); setOrder(null); };
 

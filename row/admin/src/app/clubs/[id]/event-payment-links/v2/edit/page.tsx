@@ -46,6 +46,7 @@ import RotaryLoader from "@/components/RotaryLoader";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { useSyncClubIdFromUrl } from "@/hooks/useSyncClubIdFromUrl";
 
+import { appLocale, currencySymbol } from "@/lib/appFormat";
 interface Registration { id: number; registrationName: string; amount: number; }
 interface VendorSplit {
   id: number;
@@ -779,7 +780,7 @@ export default function EventPaymentLinkV2EditPage() {
                         <tr key={r.id} className="hover:bg-blue-50/40">
                           <td className="px-3 py-2 font-medium text-slate-800">{r.registrationName}</td>
                           <td className="px-3 py-2 text-right tabular-nums text-slate-700">
-                            ₹{(r.amount || 0).toLocaleString("en-IN")}
+                            {currencySymbol()}{(r.amount || 0).toLocaleString(appLocale())}
                           </td>
                           <td className="px-3 py-2 text-right">
                             <button

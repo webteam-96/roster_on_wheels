@@ -37,6 +37,7 @@ import ClubAdminShell from "@/components/v2/ClubAdminShell";
 import { useSyncClubIdFromUrl } from "@/hooks/useSyncClubIdFromUrl";
 import SendStatusBadges from "@/components/SendStatusBadges";
 
+import { appLocale } from "@/lib/appFormat";
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
 const STATUS_OPTIONS = [
@@ -70,7 +71,7 @@ function typeChipStyle(type: string): string {
 function formatDateTime(s: string | null | undefined): string {
   if (!s) return "—";
   try {
-    return new Date(s).toLocaleString("en-IN", {
+    return new Date(s).toLocaleString(appLocale(), {
       day: "2-digit", month: "short", year: "numeric",
       hour: "2-digit", minute: "2-digit",
     });

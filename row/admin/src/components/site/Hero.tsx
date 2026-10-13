@@ -9,7 +9,7 @@ const STRIP = ["Service Above Self", "People of Action", "One Fellowship", "Est.
 
 /**
  * ORBIT hero, space register — deep blue-to-black sky with golden stars,
- * bold cream statement left, the living emblem right: Zones 4–8 in constant
+ * bold cream statement left, the living emblem right: the zones in constant
  * motion around the golden wheel.
  */
 export function Hero() {
@@ -41,7 +41,7 @@ export function Hero() {
         <div className="flex flex-col items-center">
           <span data-animate="rule" className="rule-gold" />
           <p data-animate="up" className="eyebrow-light mt-4">
-            Rotary International · Zones 4, 5, 6, 7 &amp; 8
+            Rotary International · the zones
           </p>
           <h1
             data-animate="up"
@@ -58,7 +58,7 @@ export function Hero() {
             data-animate-delay="0.18"
             className="mt-6 max-w-xl text-[15px] leading-relaxed text-cream/75 sm:text-base"
           >
-            180,000 people of action across Zones 4, 5, 6, 7 &amp; 8 — building
+            180,000 people of action across the zones — building
             schools, clean water, health and peace where they&apos;re needed most.
           </p>
           <div

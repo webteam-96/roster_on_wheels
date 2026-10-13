@@ -1,5 +1,5 @@
 /**
- * Instance brand: everything that differs between RIZones and ROW on screen
+ * Instance brand: everything on screen that differs from one instance to another
  * (name, logos, support contacts, locale defaults, legal links, feature flags).
  *
  * The API serves the instance's brand at GET /api/public/brand (master plan
@@ -171,7 +171,7 @@ export function getActiveBrand(): Brand {
   return activeBrand;
 }
 
-/** A flag missing from the brand takes its RIZones default; an unknown flag is off. */
+/** A flag missing from the brand takes its ROW default; an unknown flag is off. */
 export function isFeatureOn(brand: Brand, key: string): boolean {
   if (key in brand.features) return brand.features[key];
   if (key in FEATURE_DEFAULTS) return FEATURE_DEFAULTS[key];
@@ -181,12 +181,12 @@ export function isFeatureOn(brand: Brand, key: string): boolean {
   return false;
 }
 
-/** "+91 8424064369" -> "tel:+918424064369" */
+/** "" -> "tel:" */
 export function telHref(phone: string): string {
   return `tel:${phone.replace(/[^\d+]/g, "")}`;
 }
 
-/** Host name of a URL, for display ("https://rizones45678.org" -> "rizones45678.org"). */
+/** Host name of a URL, for display ("https://portal.example.org" -> "portal.example.org"). */
 export function hostOf(url: string): string {
   try {
     return new URL(url).host;

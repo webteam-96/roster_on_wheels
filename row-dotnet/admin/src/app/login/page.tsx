@@ -17,6 +17,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useAuth } from "@/contexts/AuthContext";
+import { useBrand } from "@/contexts/BrandContext";
+import LanguagePicker from "@/components/LanguagePicker";
+import BrandLogo from "@/components/BrandLogo";
 import { login as loginApi, getCountries, resolveDashboardLanding } from "@/services/api";
 import { Country } from "@/types/member";
 import ChangePasswordDialog from "@/components/ChangePasswordDialog";
@@ -33,10 +36,11 @@ function detectInputMode(value: string): InputMode {
 export default function LoginPage() {
   const router = useRouter();
   const { login } = useAuth();
+  const brand = useBrand();
 
   const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
-  const [countryCode, setCountryCode] = useState("+91");
+  const [countryCode, setCountryCode] = useState("");
   const [countries, setCountries] = useState<Country[]>([]);
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -56,10 +60,16 @@ export default function LoginPage() {
     if (remembered) {
       const data = JSON.parse(remembered);
       setIdentifier(data.identifier || "");
-      setCountryCode(data.countryCode || "+91");
+      setCountryCode(data.countryCode || "");
       setRememberMe(true);
     }
   }, []);
+
+  // ROW: the code starts on the brand's default country (none when Brand:Locale:DefaultCountryId is 0).
+  useEffect(() => {
+    const c = countries.find((x) => x.id === brand.locale.defaultCountryId);
+    if (c?.phoneCode) setCountryCode((cur) => cur || c.phoneCode);
+  }, [countries, brand.locale.defaultCountryId]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -137,13 +147,9 @@ export default function LoginPage() {
       <Card className="w-full max-w-md overflow-hidden border-t-4" style={{ borderTopColor: "#F7A81B" }}>
         <CardHeader className="text-white rounded-t-none" style={{ backgroundColor: "#0f172a" }}>
           <div className="flex items-center gap-3">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src="/images/rotary-white-live.png"
-              alt="Rotary"
-              className="h-16 object-contain"
-            />
+            <BrandLogo className="h-16" />
             <CardTitle className="text-xl text-white">Sign In</CardTitle>
+            <LanguagePicker className="ml-auto border-white/30 bg-transparent text-white" />
           </div>
         </CardHeader>
         <CardContent className="pt-6">
@@ -170,7 +176,7 @@ export default function LoginPage() {
                             {code} - {names}
                           </SelectItem>
                         ))
-                      : <SelectItem value="+91">+91 - India</SelectItem>
+                      : null
                     }
                   </SelectContent>
                 </Select>

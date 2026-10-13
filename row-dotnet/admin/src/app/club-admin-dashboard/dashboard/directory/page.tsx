@@ -10,6 +10,7 @@ import {
 import RotaryLoader from "@/components/RotaryLoader";
 import type { LucideIcon } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import { useFeature } from "@/contexts/BrandContext";
 import { getClubAdminDashboardDirectory, getMember, getPhotoUrl, assignRole, removeRole, setClubMemberHonorary } from "@/services/api";
 import type {
   ClubAdminDashboardDirectoryResponse,
@@ -20,6 +21,7 @@ import KpiCard from "@/components/dashboard/KpiCard";
 import { fmtInt } from "@/components/dashboard/formatters";
 import { formatBirthAnniversary } from "@/lib/dateUtils";
 
+import { appLocale } from "@/lib/appFormat";
 const PAGE_SIZE_OPTIONS = [10, 20, 50, 100] as const;
 const DEFAULT_PAGE_SIZE = 20;
 const PAGE_SIZE_STORAGE_KEY = "directory_page_size";
@@ -36,7 +38,7 @@ function initials(name: string): string {
 function fmtDate(d: string | null | undefined): string {
   if (!d) return "—";
   try {
-    return new Date(d).toLocaleDateString("en-IN", {
+    return new Date(d).toLocaleDateString(appLocale(), {
       day: "2-digit", month: "short", year: "numeric",
     });
   } catch {
@@ -461,6 +463,9 @@ function MemberDetailModal({
     }
   };
 
+  const showBloodGroup = useFeature("member.bloodGroup");
+  const showFamily = useFeature("member.familyDetails");
+
   // Fetch full profile for richer fields (birthDate, anniversary, bloodGroup, etc.)
   useEffect(() => {
     let cancelled = false;
@@ -578,7 +583,7 @@ function MemberDetailModal({
           {/* Personal Details */}
           <Section title="Personal Details" dotColor="bg-emerald-500">
             <DetailField icon={Users}   label="Gender"      value={gender} />
-            <DetailField icon={Droplet} label="Blood Group" value={bloodGroup} />
+            {showBloodGroup && <DetailField icon={Droplet} label="Blood Group" value={bloodGroup} />}
             <DetailField icon={Cake}    label="Birth Date"  value={birthDate} />
             <DetailField icon={Heart}   label="Anniversary" value={anniversary} />
           </Section>
@@ -656,7 +661,7 @@ function MemberDetailModal({
           )}
 
           {/* Family */}
-          {profile?.familyMembers && profile.familyMembers.length > 0 && (
+          {showFamily && profile?.familyMembers && profile.familyMembers.length > 0 && (
             <section>
               <div className="flex items-center gap-1.5 mb-2.5">
                 <span className="w-1.5 h-1.5 rounded-full bg-pink-500" />
@@ -674,8 +679,8 @@ function MemberDetailModal({
                     <div className="min-w-0 flex-1">
                       <p className="font-semibold text-slate-700 truncate">{f.name} <span className="font-normal text-slate-500">· {f.relation}</span></p>
                       <p className="text-slate-500 truncate">{[f.phoneNumber && `${f.countryPhoneCode ?? ""} ${f.phoneNumber}`.trim(), f.emailId].filter(Boolean).join(" · ") || "—"}</p>
-                      {(f.birthDate || f.bloodGroup) && (
-                        <p className="text-slate-400 text-[11px]">{[f.bloodGroup, f.birthDate && `Birthday ${formatBirthAnniversary(f.birthDate)}`].filter(Boolean).join(" · ")}</p>
+                      {(f.birthDate || (showBloodGroup && f.bloodGroup)) && (
+                        <p className="text-slate-400 text-[11px]">{[showBloodGroup && f.bloodGroup, f.birthDate && `Birthday ${formatBirthAnniversary(f.birthDate)}`].filter(Boolean).join(" · ")}</p>
                       )}
                     </div>
                   </div>

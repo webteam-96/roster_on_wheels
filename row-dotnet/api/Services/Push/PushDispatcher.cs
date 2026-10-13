@@ -33,14 +33,14 @@ public static class PushDispatcher
                     JOIN club_master c ON c.pk_club_id = cm.fk_club_id AND c.fk_district_id = @DistrictId AND c.isdeleted = 0 AND c.IsActive = 1
                     JOIN district_master d ON d.pk_district_id = c.fk_district_id AND d.isdeleted = 0 AND d.IsActive = 1
                     JOIN zone_master z ON z.pk_zone_id = d.fk_zone_id AND z.isdeleted = 0 AND z.IsActive = 1
-                    WHERE m.isdeleted = 0 AND m.LastDeviceToken IS NOT NULL AND TRIM(m.LastDeviceToken) <> '' AND m.LastDeviceToken <> '0'"
+                    WHERE m.isdeleted = 0 AND m.LastDeviceToken IS NOT NULL AND TRIM(m.LastDeviceToken) <> '' AND m.LastDeviceToken <> '0'" + RotaryApi.Privacy.PrivacyConsent.BroadcastFilter()
                 : @"SELECT DISTINCT m.pk_member_master_profile_id AS memberId, m.LastDeviceToken AS fcmToken
                     FROM member_master_profile m
                     JOIN club_members cm ON cm.fk_member_master_profile_id = m.pk_member_master_profile_id AND cm.fk_club_id = @ClubId AND cm.IsActive = 1 AND cm.isdeleted = 0
                     JOIN club_master c ON c.pk_club_id = cm.fk_club_id AND c.isdeleted = 0 AND c.IsActive = 1
                     JOIN district_master d ON d.pk_district_id = c.fk_district_id AND d.isdeleted = 0 AND d.IsActive = 1
                     JOIN zone_master z ON z.pk_zone_id = d.fk_zone_id AND z.isdeleted = 0 AND z.IsActive = 1
-                    WHERE m.isdeleted = 0 AND m.LastDeviceToken IS NOT NULL AND TRIM(m.LastDeviceToken) <> '' AND m.LastDeviceToken <> '0'",
+                    WHERE m.isdeleted = 0 AND m.LastDeviceToken IS NOT NULL AND TRIM(m.LastDeviceToken) <> '' AND m.LastDeviceToken <> '0'" + RotaryApi.Privacy.PrivacyConsent.BroadcastFilter(),
             new { ClubId = clubId, DistrictId = districtId })).ToList();
 
         var tokenToMember = new Dictionary<string, int>(StringComparer.Ordinal);

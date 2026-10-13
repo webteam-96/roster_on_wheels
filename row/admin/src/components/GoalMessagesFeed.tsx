@@ -1,15 +1,16 @@
 "use client";
 
 // RI Director / SuperAdmin read-only messages for the Goal Overview "Messages" popup.
-// Shows a clickable ROSTER of every Zone Co-ordinator + District Assistant in the zone (filtered by
-// category + district). Each row shows their message count or "No message yet". Clicking a person opens
-// their message thread (each message with district + date & time). Read-only. Filters + Download live in
-// the parent popup.
+// A ROSTER of every Zone Co-ordinator + District Assistant in the zone (filtered by category +
+// district) on the left - each with their message count, unread badge or "No message yet" - and the
+// selected person's messages on the right (user 2026-10-09: two-pane read screen, the same message
+// look as the District Admin inbox). Read-only. Filters + Download live in the parent popup.
 
 import { useEffect, useState } from "react";
-import { Loader2, MessagesSquare, User, ChevronLeft } from "lucide-react";
+import { Loader2, MessagesSquare, Search, ChevronLeft } from "lucide-react";
 import { getGoalMessageRoster, getGoalOwnerThreadMessages } from "@/services/api";
 import type { GoalMessageOwnerDto, GoalCommentDto } from "@/types/goalSetting";
+import GoalMessageList, { Chip, RoleChip } from "@/components/goal-messages/GoalMessageList";
 
 export default function GoalMessagesFeed({
   zoneId, yearId, categoryId, districtId,
@@ -25,11 +26,10 @@ export default function GoalMessagesFeed({
   const [active, setActive] = useState<GoalMessageOwnerDto | null>(null);
   const [messages, setMessages] = useState<GoalCommentDto[] | null>(null);
   const [loadingMsgs, setLoadingMsgs] = useState(false);
-  // "Unread only" (user 2026-09-29): a zone can hold a long list, and the reader usually wants just
-  // the people who have written something new. A pure view filter - it never marks anything read.
+  // "Unread only" (user 2026-09-29): a pure view filter - it never marks anything read.
   const [unreadOnly, setUnreadOnly] = useState(false);
+  const [q, setQ] = useState("");
 
-  // Load the roster whenever the zone/filters change. Reset any open thread.
   useEffect(() => {
     setActive(null); setMessages(null); setUnreadOnly(false);
     if (!zoneId || !yearId) { setRoster([]); return; }
@@ -42,121 +42,112 @@ export default function GoalMessagesFeed({
     return () => { cancelled = true; };
   }, [zoneId, yearId, categoryId, districtId]);
 
-  // Open one owner's thread.
   function openOwner(o: GoalMessageOwnerDto) {
-    // Opening the thread is what stamps it read on the server, so clear its badge here as well -
-    // otherwise the count would still be sitting there when the reader comes back to the list.
+    // Opening the thread stamps it read on the server - clear its badge here too.
     setRoster((prev) => prev && prev.map((x) =>
       x.memberId === o.memberId && x.categoryId === o.categoryId ? { ...x, unreadCount: 0 } : x));
     setActive(o); setMessages(null); setLoadingMsgs(true);
-    getGoalOwnerThreadMessages(o.categoryId, yearId, o.memberId)
+    // zoneId: so a former seat-holder's conversation opens (and is marked read) for this zone.
+    getGoalOwnerThreadMessages(o.categoryId, yearId, o.memberId, zoneId)
       .then((m) => setMessages(districtId ? m.filter((x) => (x.districtId ?? 0) === districtId) : m))
       .catch(() => setMessages([]))
       .finally(() => setLoadingMsgs(false));
   }
 
   if (loading) {
-    return <div className="flex items-center gap-2 text-xs text-slate-400 py-6 justify-center"><Loader2 size={14} className="animate-spin" /> Loading…</div>;
+    return <div className="flex items-center gap-2 text-xs text-slate-400 py-10 justify-center"><Loader2 size={14} className="animate-spin" /> Loading…</div>;
   }
   if (error) return <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">{error}</div>;
 
-  // ── One owner's message thread ──
-  if (active) {
-    return (
-      <div className="space-y-3">
-        <button onClick={() => { setActive(null); setMessages(null); }} className="inline-flex items-center gap-1 text-xs font-semibold text-blue-600 hover:text-blue-800">
-          <ChevronLeft size={14} /> Back to list
-        </button>
-        <div className="rounded-xl border border-slate-200 bg-gradient-to-r from-blue-50 to-white px-4 py-2.5">
-          <div className="flex items-center gap-2 flex-wrap">
-            <span className="text-sm font-semibold text-slate-800">{active.name}</span>
-            <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200">{active.roleLabel}</span>
-            <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-slate-100 text-slate-600 border border-slate-200">{active.categoryName}</span>
-            {active.districts && <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">{active.districts}</span>}
-          </div>
-        </div>
-        {loadingMsgs ? (
-          <div className="flex items-center gap-2 text-xs text-slate-400 py-6 justify-center"><Loader2 size={14} className="animate-spin" /> Loading…</div>
-        ) : !messages || messages.length === 0 ? (
-          <p className="text-sm text-slate-400 text-center py-8">No message yet.</p>
-        ) : (
-          <div className="space-y-2.5">
-            {messages.map((c) => (
-              <div key={c.id} className="rounded-xl border border-slate-200 bg-white px-4 py-3">
-                <div className="flex items-center gap-2 flex-wrap mb-1">
-                  <span className="text-sm font-semibold text-slate-800">{c.postedByName}</span>
-                  {c.postedByRoleLabel && <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-slate-100 text-slate-500 border border-slate-200">{c.postedByRoleLabel}</span>}
-                  {c.districtId ? <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">{c.districtNumber}</span>
-                    : c.postedByTier === 2 ? <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-slate-50 text-slate-500 border border-slate-200">All districts</span> : null}
-                  <span className="ml-auto text-[10px] text-slate-400">{c.createdDate}</span>
-                </div>
-                <div className="text-sm text-slate-700 whitespace-pre-wrap break-words">{c.commentText}</div>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-    );
-  }
-
-  // ── Roster (clickable) ──
-  // One row per person, even when the DB holds more than one active seat for them. The API groups
-  // them now; this is the second guard, because duplicate rows here share a React key and React then
-  // leaves the old rows behind in the page every time the thread opens and closes (user 2026-09-29).
+  // One row per person even when the DB holds more than one active seat for them (duplicate keys
+  // would leave stale rows behind - user 2026-09-29).
   const people = (roster ?? []).filter(
     (o, i, all) => all.findIndex((x) => x.memberId === o.memberId && x.categoryId === o.categoryId) === i);
   const unreadTotal = people.filter((o) => (o.unreadCount ?? 0) > 0).length;
-  const shown = unreadOnly ? people.filter((o) => (o.unreadCount ?? 0) > 0) : people;
+  const term = q.trim().toLowerCase();
+  const shown = people
+    .filter((o) => !unreadOnly || (o.unreadCount ?? 0) > 0)
+    .filter((o) => !term || `${o.name} ${o.roleLabel} ${o.categoryName} ${o.districts ?? ""}`.toLowerCase().includes(term));
 
   if (people.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-12 text-center text-slate-400">
+      <div className="flex flex-col items-center justify-center py-14 text-center text-slate-400">
         <MessagesSquare size={26} className="mb-2 text-slate-300" />
         <p className="text-sm">No messages yet.</p>
       </div>
     );
   }
+
+  const list = (
+    <div className="flex flex-col min-h-0 h-full">
+      <div className="p-2.5 border-b border-slate-100 space-y-2">
+        <div className="relative">
+          <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" />
+          <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search name, district…"
+            className="w-full pl-7 pr-2 py-1.5 text-xs border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" />
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="text-[11px] text-slate-500">{people.length} conversation{people.length === 1 ? "" : "s"}</span>
+          <label className="ml-auto inline-flex items-center gap-1.5 text-[11px] text-slate-600 cursor-pointer select-none">
+            <input type="checkbox" checked={unreadOnly} onChange={(e) => setUnreadOnly(e.target.checked)} className="h-3.5 w-3.5 accent-red-500" />
+            Unread only{unreadTotal > 0 && <span className="text-red-600 font-semibold">({unreadTotal})</span>}
+          </label>
+        </div>
+      </div>
+      <div className="flex-1 min-h-0 overflow-y-auto divide-y divide-slate-100">
+        {shown.length === 0 && <p className="px-3 py-4 text-xs text-slate-400">Nothing matches.</p>}
+        {shown.map((o, i) => {
+          const isActive = active?.memberId === o.memberId && active?.categoryId === o.categoryId;
+          const unread = o.unreadCount ?? 0;
+          return (
+            <button key={`${o.memberId}-${o.categoryId}-${i}`} onClick={() => openOwner(o)}
+              className={`w-full text-left px-3 py-2.5 ${isActive ? "bg-blue-50" : "hover:bg-slate-50"}`}>
+              <div className="flex items-center gap-1.5 min-w-0">
+                <span className={`text-sm truncate ${unread > 0 ? "font-bold text-slate-900" : "font-semibold text-slate-800"}`}>{o.name}</span>
+                {unread > 0 && <span className="ml-auto shrink-0 text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-red-500 text-white">{unread} new</span>}
+              </div>
+              <div className="flex items-center gap-1 mt-1 flex-wrap">
+                <RoleChip role={o.isFormer ? o.roleLabel : o.roleLabel} />
+                <Chip tone="blue">{o.categoryName}</Chip>
+                {o.districts && <Chip tone="green">{o.districts}</Chip>}
+              </div>
+              <p className={`text-[11px] mt-1 ${unread > 0 ? "text-slate-700 font-medium" : "text-slate-400"}`}>
+                {o.messageCount > 0 ? `${o.messageCount} message${o.messageCount === 1 ? "" : "s"}` : "No message yet"}
+              </p>
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+
+  const pane = active ? (
+    <div className="flex flex-col min-h-0 h-full">
+      <div className="px-4 py-2.5 border-b border-slate-100 bg-gradient-to-r from-blue-50 to-white flex items-center gap-2 flex-wrap">
+        <button onClick={() => { setActive(null); setMessages(null); }} className="md:hidden inline-flex items-center gap-1 text-xs font-semibold text-blue-600"><ChevronLeft size={14} /> Back</button>
+        <span className="text-sm font-semibold text-slate-800">{active.name}</span>
+        <RoleChip role={active.roleLabel} />
+        <Chip tone="blue">{active.categoryName}</Chip>
+        {active.districts && <Chip tone="green">{active.districts}</Chip>}
+        <span className="ml-auto text-[10px] text-slate-400">Read only</span>
+      </div>
+      <div className="flex-1 min-h-0 overflow-y-auto p-4 bg-slate-50/40">
+        {loadingMsgs ? (
+          <div className="flex items-center justify-center gap-2 text-xs text-slate-400 py-8"><Loader2 size={14} className="animate-spin" /> Loading…</div>
+        ) : <GoalMessageList messages={messages ?? []} emptyText="No message yet." />}
+      </div>
+    </div>
+  ) : (
+    <div className="h-full flex flex-col items-center justify-center text-slate-400 text-sm p-6 text-center">
+      <MessagesSquare size={26} className="mb-2 text-slate-300" />
+      Select a person on the left to read their messages.
+    </div>
+  );
+
   return (
-    <div className="rounded-xl border border-slate-200 bg-white overflow-hidden">
-      <div className="px-4 py-2.5 border-b border-slate-100 flex items-center gap-2 bg-gradient-to-r from-blue-50 to-white">
-        <span className="text-xs font-semibold text-slate-700">{people.length} conversation{people.length === 1 ? "" : "s"}</span>
-        <label className="ml-auto inline-flex items-center gap-1.5 text-[11px] text-slate-600 cursor-pointer select-none">
-          <input
-            type="checkbox"
-            checked={unreadOnly}
-            onChange={(e) => setUnreadOnly(e.target.checked)}
-            className="h-3.5 w-3.5 accent-red-500 cursor-pointer"
-          />
-          Unread only{unreadTotal > 0 && <span className="text-red-600 font-semibold">({unreadTotal})</span>}
-        </label>
-      </div>
-      <div className="divide-y divide-slate-100">
-      {unreadOnly && shown.length === 0 && (
-        <div className="px-4 py-4 text-xs text-slate-400">No unread messages.</div>
-      )}
-      {shown.map((o, i) => (
-        <button key={`${o.memberId}-${o.categoryId}-${i}`} onClick={() => openOwner(o)} className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-slate-50/70">
-          <span className="h-9 w-9 rounded-full bg-slate-100 flex items-center justify-center shrink-0"><User size={16} className="text-slate-500" /></span>
-          <span className="flex-1 min-w-0">
-            <span className="flex items-center gap-2 flex-wrap">
-              <span className={`text-sm truncate ${(o.unreadCount ?? 0) > 0 ? "font-bold text-slate-900" : "font-semibold text-slate-800"}`}>{o.name}</span>
-              {(o.unreadCount ?? 0) > 0 && (
-                <span
-                  className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-red-500 text-white shrink-0"
-                  title={`${o.unreadCount} new message${o.unreadCount === 1 ? "" : "s"}`}
-                >
-                  {o.unreadCount} new
-                </span>
-              )}
-              <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200">{o.roleLabel}</span>
-              <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-slate-100 text-slate-600 border border-slate-200">{o.categoryName}</span>
-              {o.districts && <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">{o.districts}</span>}
-            </span>
-            <span className={`block text-xs mt-0.5 ${(o.unreadCount ?? 0) > 0 ? "text-slate-700 font-medium" : "text-slate-400"}`}>{o.messageCount > 0 ? `${o.messageCount} message${o.messageCount === 1 ? "" : "s"} — click to read` : "No message yet"}</span>
-          </span>
-        </button>
-      ))}
-      </div>
+    <div className="rounded-xl border border-slate-200 bg-white overflow-hidden h-[60vh] min-h-[360px] grid md:grid-cols-[300px_1fr]">
+      <div className={`${active ? "hidden md:flex" : "flex"} flex-col min-h-0 border-r border-slate-100`}>{list}</div>
+      <div className={`${active ? "flex" : "hidden md:flex"} flex-col min-h-0`}>{pane}</div>
     </div>
   );
 }

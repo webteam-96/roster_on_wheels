@@ -14,6 +14,7 @@ import { useCallback, useEffect, useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { getTrainingAvailability, bookTrainingAppointment, rescheduleTrainingAppointment } from "@/services/api";
 
+import { appLocale, appTimeZone } from "@/lib/appFormat";
 type Props = {
   open: boolean;
   onOpenChange: (o: boolean) => void;
@@ -92,7 +93,7 @@ export default function TrainingBookingDialog({ open, onOpenChange, clubId, mode
             <div className="text-3xl">📅</div>
             <div className="font-semibold text-slate-800">{mode === "reschedule" ? "Training rescheduled" : "Training booked!"}</div>
             {done.slotStart && (
-              <p className="text-sm text-slate-600">{new Date(done.slotStart).toLocaleString("en-IN", { dateStyle: "full", timeStyle: "short" })} (IST)</p>
+              <p className="text-sm text-slate-600">{new Date(done.slotStart).toLocaleString(appLocale(), { dateStyle: "full", timeStyle: "short", timeZone: appTimeZone() })} ({appTimeZone()})</p>
             )}
             {done.zoomJoinUrl ? (
               <a href={done.zoomJoinUrl} target="_blank" rel="noreferrer" className="inline-block text-[#003DA5] font-semibold hover:underline break-all">Join Zoom meeting →</a>
@@ -142,7 +143,7 @@ export default function TrainingBookingDialog({ open, onOpenChange, clubId, mode
             </div>
             <div>
               <p className="text-xs text-slate-500 mb-2">
-                Select a 30-minute slot (IST). Greyed-out times are already booked or blocked by the training team.
+                Select a 30-minute slot ({appTimeZone()}). Greyed-out times are already booked or blocked by the training team.
               </p>
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                 {slotsForDay.map((sl) => (

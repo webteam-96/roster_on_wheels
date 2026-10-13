@@ -16,6 +16,7 @@ import type {
 } from "@/types/goalSetting";
 import SuccessAlert from "@/components/SuccessAlert";
 
+import { appLocale } from "@/lib/appFormat";
 type FieldBuffer = { text: string; bool: boolean };
 
 // Achieved-this-year fields now render as their OWN read-only row (e.g. "Achieved New Clubs"),
@@ -43,10 +44,21 @@ const SYSTEM_FILLED_REFERENCE = new Set<string>([
   // admin edits only Goal Amount (Target) and Goal % Achieved, so those two are NOT listed here.
   "club_af_per_capita", "club_annual_fund_ytd", "club_polioplus_ytd",
   "club_other_funds_ytd", "club_endowment_ytd", "club_total_ytd",
+  // Youth Service -> Rotaract / Interact "Clubs Achieved" come from the Rotary.org file import (2026-10-08).
+  // They are Target-role fields, so the check in isFieldEditable runs before the role test.
+  "rotaract_clubs_achieved", "interact_clubs_achieved",
 ]);
 
+// District form only: "Existing Rotaract / Interact Clubs as on July 1st" come from the Rotary.org
+// files (2026-10-08); the club form still types its own. Rotaractors (July 1st + Achieved) come from
+// the same Rotaract file (2026-10-09).
+const DISTRICT_SYSTEM_FILLED = new Set<string>(["rotaract_existing_clubs", "interact_existing_clubs",
+  "rotaract_existing_members", "rotaract_members_achieved"]);
+
 // A field is user-editable when it's a Target, or a Reference that the system does NOT auto-fill.
-function isFieldEditable(f: GoalFieldWithValueDto): boolean {
+function isFieldEditable(f: GoalFieldWithValueDto, isDistrict = false): boolean {
+  if (SYSTEM_FILLED_REFERENCE.has(f.fieldKey)) return false;
+  if (isDistrict && DISTRICT_SYSTEM_FILLED.has(f.fieldKey)) return false;
   if (f.fieldRole === "Target") return true;
   if (f.fieldRole === "Reference") return !SYSTEM_FILLED_REFERENCE.has(f.fieldKey);
   return false; // Computed — always derived, never typed
@@ -66,8 +78,8 @@ const PCT_RULES: PctRule[] = [
   { pct: "clubs_percentage_achievement", target: "new_clubs",         achieved: "new_clubs_achieved",         baseline: "total_clubs",            mode: "growth" },
   { pct: "percentage_increase",          target: "new_members",       achieved: "new_members_achieved",       baseline: "total_members",          mode: "growth" },
   { pct: "women_percentage_achievement", target: "new_women_members", achieved: "new_women_members_achieved", baseline: "existing_women_members", mode: "growth" },
-  // TRF (district). Total Giving % is locked since 2026-10-06; the server rounds it to a whole number
-  // and caps it at 0-100 ("ratioWhole"), and Achieved is the four funds added up.
+  // TRF (district). Total Giving % is locked since 2026-10-06; the server caps it at 0-100 and keeps
+  // 2 decimals like every TRF % (2026-10-07) ("ratioWhole" = capped), and Achieved is the four funds added up.
   { pct: "annual_fund_pct", target: "annual_fund_target", achieved: "annual_fund_achieved", baseline: "", mode: "ratio" },
   { pct: "polio_plus_pct",  target: "polio_plus_target",  achieved: "polio_plus_achieved",  baseline: "", mode: "ratio" },
   { pct: "endowment_pct",   target: "endowment_target",   achieved: "endowment_achieved",   baseline: "", mode: "ratio" },
@@ -101,7 +113,7 @@ function livePercentages(fields: GoalFieldWithValueDto[], buffers: Record<number
     if (r.mode === "ratio") {
       pct = tgt > 0 ? (ach / tgt) * 100 : 0;
     } else if (r.mode === "ratioWhole") {
-      pct = tgt > 0 ? Math.round(Math.max(0, Math.min(100, (ach / tgt) * 100))) : 0;
+      pct = tgt > 0 ? Math.max(0, Math.min(100, (ach / tgt) * 100)) : 0;
     } else if (r.mode === "growth") {
       const base = num(r.baseline);
       const planned = tgt - base;
@@ -272,7 +284,7 @@ export default function GoalSettingPanel({
     if (t === "") return undefined;              // blank = not decided yet
     const tgt = Number(t);
     if (Number.isNaN(tgt) || tgt >= floor) return undefined;
-    return `Cannot be less than ${floor.toLocaleString("en-IN")} — you already have that much`;
+    return `Cannot be less than ${floor.toLocaleString(appLocale())} — you already have that much`;
   }
 
   async function handleSave() {
@@ -292,7 +304,7 @@ export default function GoalSettingPanel({
     if (tooLow.length > 0) {
       setError(
         tooLow
-          .map((x) => `${x.f.groupName}: target ${x.tgt.toLocaleString("en-IN")} cannot be less than the ${x.floor.toLocaleString("en-IN")} you already have.`)
+          .map((x) => `${x.f.groupName}: target ${x.tgt.toLocaleString(appLocale())} cannot be less than the ${x.floor.toLocaleString(appLocale())} you already have.`)
           .join(" "),
       );
       return;
@@ -463,7 +475,7 @@ export default function GoalSettingPanel({
                         <GoalFieldInput
                           field={f}
                           buffer={f.fieldId in livePct ? { text: livePct[f.fieldId], bool: false } : buffers[f.fieldId]}
-                          disabled={!isEditable || saving || !isFieldEditable(f)}
+                          disabled={!isEditable || saving || !isFieldEditable(f, !!form && !form.clubId)}
                           onText={(v) => setText(f.fieldId, v)}
                           onBool={(v) => setBool(f.fieldId, v)}
                           achieved={f.fieldKey in achievedByTarget ? achievedByTarget[f.fieldKey] : undefined}

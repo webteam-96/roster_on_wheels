@@ -1,6 +1,6 @@
 namespace RotaryApi.Services;
 
-// Fires the District Performance Report + the RI Director (all zones) report once a day at 7:00 IST.
+// Fires the District Performance Report + the RI Director (all zones) report once a day at Brand:Scope DistrictReportSendHour (default 7:00) in the brand's time zone.
 // Schedule / recipients are HARD-CODED in DistrictPerformanceReportService (no appsettings):
 //   Test (now) → District 3142 + the all-zones report, every day, to the two test addresses.
 //   Live (later) → only on the 1st & 16th: each district to its DG, the all-zones report to the RI Directors.
@@ -19,9 +19,9 @@ public class DistrictPerformanceReportBackgroundService : BackgroundService
     {
         _scopeFactory = scopeFactory;
         _logger = logger;
-        // Hard-coded in DistrictPerformanceReportService (user 2026-09-17): ON, every morning at 7:00 IST.
+        // Hard-coded in DistrictPerformanceReportService (user 2026-09-17): ON, every morning at the brand's send hour.
         _enabled = DistrictPerformanceReportService.ScheduleOn;
-        _hour = DistrictPerformanceReportService.SendHourIst;
+        _hour = DistrictPerformanceReportService.SendHour;
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -37,9 +37,9 @@ public class DistrictPerformanceReportBackgroundService : BackgroundService
         catch (TaskCanceledException) { return; }
         try
         {
-            var ist = ResolveIst();
-            var nowIst = TimeZoneInfo.ConvertTime(DateTimeOffset.UtcNow, ist);
-            if (nowIst.Hour >= _hour) await RunAsync(catchUp: true, stoppingToken);
+            var zone = BrandZone();
+            var nowLocal = TimeZoneInfo.ConvertTime(DateTimeOffset.UtcNow, zone);
+            if (nowLocal.Hour >= _hour) await RunAsync(catchUp: true, stoppingToken);
         }
         catch (Exception ex) { _logger.LogError(ex, "District performance report catch-up run failed."); }
 
@@ -67,21 +67,13 @@ public class DistrictPerformanceReportBackgroundService : BackgroundService
 
     private TimeSpan TimeUntilNextRun()
     {
-        var ist = ResolveIst();
-        var nowIst = TimeZoneInfo.ConvertTime(DateTimeOffset.UtcNow, ist);
-        var runToday = new DateTimeOffset(nowIst.Year, nowIst.Month, nowIst.Day, _hour, 0, 0, nowIst.Offset);
-        var next = nowIst < runToday ? runToday : runToday.AddDays(1);
-        var delay = next - nowIst;
+        var zone = BrandZone();
+        var nowLocal = TimeZoneInfo.ConvertTime(DateTimeOffset.UtcNow, zone);
+        var runToday = new DateTimeOffset(nowLocal.Year, nowLocal.Month, nowLocal.Day, _hour, 0, 0, nowLocal.Offset);
+        var next = nowLocal < runToday ? runToday : runToday.AddDays(1);
+        var delay = next - nowLocal;
         return delay < TimeSpan.Zero ? TimeSpan.Zero : delay;
     }
 
-    private static TimeZoneInfo ResolveIst()
-    {
-        foreach (var id in new[] { "India Standard Time", "Asia/Kolkata" })
-        {
-            try { return TimeZoneInfo.FindSystemTimeZoneById(id); }
-            catch { /* try next */ }
-        }
-        return TimeZoneInfo.CreateCustomTimeZone("IST", TimeSpan.FromMinutes(330), "IST", "IST");
-    }
+    private static TimeZoneInfo BrandZone() => Brand.TimeZone;
 }

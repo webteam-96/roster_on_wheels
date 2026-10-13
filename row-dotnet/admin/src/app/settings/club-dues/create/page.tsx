@@ -24,6 +24,7 @@ import Link from "next/link";
 import { ArrowLeft, ArrowRight, ChevronsUpDown, Check, Plus, X, Save, Upload } from "lucide-react";
 import EmailTokenChips, { CLUB_DUES_RECEIPT_TOKENS, CLUB_DUES_REMINDER_TOKENS } from "@/components/club-dues/EmailTokenChips";
 
+import { currencySymbol } from "@/lib/appFormat";
 // forwardedRef-capable dynamic import so we can reach the Quill editor to insert tokens at the cursor.
 const ReactQuill = dynamic(async () => {
   const { default: RQ } = await import("react-quill-new");
@@ -370,17 +371,17 @@ function CreateClubDuesInner() {
         if (isOnline && (!onlineRate || Number(onlineRate) <= 0)) return "Enter an online per-member rate.";
         if (isOnline && onlineFilledRows.length > 0) {
           if (amountType === "2" && Math.abs(onlineSplitTotal - 100) > 0.01) return "Online percentage split must total exactly 100%.";
-          if (amountType === "1" && Math.abs(onlineSplitTotal - Number(onlineRate)) > 0.01) return `Online amount split must total exactly the online rate (₹${onlineRate}).`;
+          if (amountType === "1" && Math.abs(onlineSplitTotal - Number(onlineRate)) > 0.01) return `Online amount split must total exactly the online rate (${currencySymbol()}${onlineRate}).`;
         }
         if (isOffline && offlineFilledRows.length > 0) {
           if (amountType === "2" && Math.abs(offlineSplitTotal - 100) > 0.01) return "Offline percentage split must total exactly 100%.";
-          if (amountType === "1" && Math.abs(offlineSplitTotal - Number(offlineRate)) > 0.01) return `Offline amount split must total exactly the offline rate (₹${offlineRate}).`;
+          if (amountType === "1" && Math.abs(offlineSplitTotal - Number(offlineRate)) > 0.01) return `Offline amount split must total exactly the offline rate (${currencySymbol()}${offlineRate}).`;
         }
       } else {
         if (!rate || Number(rate) <= 0) return "Enter a per-member rate.";
         if (isOnline && filledRows.length > 0) {
           if (amountType === "2" && Math.abs(splitTotal - 100) > 0.01) return "Percentage split must total exactly 100%.";
-          if (amountType === "1" && Math.abs(splitTotal - Number(rate)) > 0.01) return `Amount split must total exactly the per-member rate (₹${rate}).`;
+          if (amountType === "1" && Math.abs(splitTotal - Number(rate)) > 0.01) return `Amount split must total exactly the per-member rate (${currencySymbol()}${rate}).`;
         }
       }
     }
@@ -388,15 +389,15 @@ function CreateClubDuesInner() {
       if (independent) {
         if (selectedOnlineVendors.length > 0) {
           const bad = clubsList.find((c) => !clubOnlineBalanced(c));
-          if (bad) return `"${bad.clubName}" online split is off by ${amountType === "2" ? `${clubOnlineBalance(bad)}%` : `₹${clubOnlineBalance(bad)}`}. Every club's online balance must be 0 before continuing.`;
+          if (bad) return `"${bad.clubName}" online split is off by ${amountType === "2" ? `${clubOnlineBalance(bad)}%` : `${currencySymbol()}${clubOnlineBalance(bad)}`}. Every club's online balance must be 0 before continuing.`;
         }
         if (selectedOfflineVendors.length > 0) {
           const bad = clubsList.find((c) => !clubOfflineBalanced(c));
-          if (bad) return `"${bad.clubName}" offline split is off by ${amountType === "2" ? `${clubOfflineBalance(bad)}%` : `₹${clubOfflineBalance(bad)}`}. Every club's offline balance must be 0 before continuing.`;
+          if (bad) return `"${bad.clubName}" offline split is off by ${amountType === "2" ? `${clubOfflineBalance(bad)}%` : `${currencySymbol()}${clubOfflineBalance(bad)}`}. Every club's offline balance must be 0 before continuing.`;
         }
       } else if (selectedVendors.length > 0) {
         const bad = clubsList.find((c) => !clubBalanced(c));
-        if (bad) return `"${bad.clubName}" split is off by ${amountType === "2" ? `${clubBalance(bad)}%` : `₹${clubBalance(bad)}`}. Every club's balance must be 0 (${amountType === "2" ? "splits total 100%" : "splits total the club rate"}) before continuing.`;
+        if (bad) return `"${bad.clubName}" split is off by ${amountType === "2" ? `${clubBalance(bad)}%` : `${currencySymbol()}${clubBalance(bad)}`}. Every club's balance must be 0 (${amountType === "2" ? "splits total 100%" : "splits total the club rate"}) before continuing.`;
       }
     }
     return null;
@@ -657,7 +658,7 @@ function CreateClubDuesInner() {
               </SelectContent>
             </Select>
             <div className="w-28">
-              <Input type="number" value={row.value} onChange={(e) => updateRow(i, "value", e.target.value)} placeholder={amountType === "2" ? "%" : "₹"} />
+              <Input type="number" value={row.value} onChange={(e) => updateRow(i, "value", e.target.value)} placeholder={amountType === "2" ? "%" : currencySymbol()} />
             </div>
             <Button type="button" variant="ghost" size="icon" onClick={() => removeRow(i)} disabled={rows.length === 1}><X className="h-4 w-4" /></Button>
           </div>
@@ -666,12 +667,12 @@ function CreateClubDuesInner() {
           <Button type="button" variant="outline" size="sm" onClick={addRow}><Plus className="mr-1 h-4 w-4" />Add account</Button>
           {filled.length > 0 && (
             <span className={`text-sm ${ok ? "text-green-600" : "text-red-600"}`}>
-              Total: {amountType === "2" ? `${total}% / 100%` : `₹${total} / ₹${rateVal || 0}`}
+              Total: {amountType === "2" ? `${total}% / 100%` : `${currencySymbol()}${total} / ${currencySymbol()}${rateVal || 0}`}
             </span>
           )}
         </div>
         <p className="text-xs text-muted-foreground">
-          {amountType === "2" ? "Percentages must total 100%." : `Amounts must total the per-member rate (₹${rateVal || 0}).`} Leave all empty to send the full amount to the main account.
+          {amountType === "2" ? "Percentages must total 100%." : `Amounts must total the per-member rate (${currencySymbol()}${rateVal || 0}).`} Leave all empty to send the full amount to the main account.
         </p>
       </div>
     </div>
@@ -706,7 +707,7 @@ function CreateClubDuesInner() {
         {isOffline && (
           <div className="space-y-4 rounded-md border p-3">
             <div className="space-y-2 max-w-xs">
-              <Label>Offline per-member Rate (₹)<span className="text-destructive ml-1">*</span></Label>
+              <Label>Offline per-member Rate ({currencySymbol()})<span className="text-destructive ml-1">*</span></Label>
               <Input type="number" value={offlineRate} onChange={(e) => setOfflineRate(e.target.value)} placeholder="e.g. 100" />
             </div>
             {renderVendorSection("Offline Split", offlineVendorRows, updateOfflineRow, addOfflineRow, removeOfflineRow, offlineFilledRows, offlineSplitTotal, offlineSplitOk, offlineRate)}
@@ -732,7 +733,7 @@ function CreateClubDuesInner() {
         {isOnline && (
           <div className="space-y-4 rounded-md border p-3">
             <div className="space-y-2 max-w-xs">
-              <Label>Online per-member Rate (₹)<span className="text-destructive ml-1">*</span></Label>
+              <Label>Online per-member Rate ({currencySymbol()})<span className="text-destructive ml-1">*</span></Label>
               <Input type="number" value={onlineRate} onChange={(e) => setOnlineRate(e.target.value)} placeholder="e.g. 103" />
             </div>
             {renderVendorSection("Online Split (Razorpay Route)", onlineVendorRows, updateOnlineRow, addOnlineRow, removeOnlineRow, onlineFilledRows, onlineSplitTotal, onlineSplitOk, onlineRate)}
@@ -748,7 +749,7 @@ function CreateClubDuesInner() {
       <CardContent className="space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-xl">
           <div className="space-y-2">
-            <Label>Per-member Rate (₹)<span className="text-destructive ml-1">*</span></Label>
+            <Label>Per-member Rate ({currencySymbol()})<span className="text-destructive ml-1">*</span></Label>
             <Input type="number" value={rate} onChange={(e) => setRate(e.target.value)} placeholder="e.g. 100" />
             <p className="text-xs text-muted-foreground">Default for all clubs; override per club in the next step.</p>
           </div>
@@ -805,7 +806,7 @@ function CreateClubDuesInner() {
                     </SelectContent>
                   </Select>
                   <div className="w-28">
-                    <Input type="number" value={row.value} onChange={(e) => updateRow(i, "value", e.target.value)} placeholder={amountType === "2" ? "%" : "₹"} />
+                    <Input type="number" value={row.value} onChange={(e) => updateRow(i, "value", e.target.value)} placeholder={amountType === "2" ? "%" : currencySymbol()} />
                   </div>
                   <Button type="button" variant="ghost" size="icon" onClick={() => removeRow(i)} disabled={vendorRows.length === 1}><X className="h-4 w-4" /></Button>
                 </div>
@@ -814,12 +815,12 @@ function CreateClubDuesInner() {
                 <Button type="button" variant="outline" size="sm" onClick={addRow}><Plus className="mr-1 h-4 w-4" />Add account</Button>
                 {filledRows.length > 0 && (
                   <span className={`text-sm ${splitOk ? "text-green-600" : "text-red-600"}`}>
-                    Total: {amountType === "2" ? `${splitTotal}% / 100%` : `₹${splitTotal} / ₹${rate || 0}`}
+                    Total: {amountType === "2" ? `${splitTotal}% / 100%` : `${currencySymbol()}${splitTotal} / ${currencySymbol()}${rate || 0}`}
                   </span>
                 )}
               </div>
               <p className="text-xs text-muted-foreground">
-                {amountType === "2" ? "Percentages must total 100%." : `Amounts must total the per-member rate (₹${rate || 0}).`} Leave all empty to send the full amount to the main account.
+                {amountType === "2" ? "Percentages must total 100%." : `Amounts must total the per-member rate (${currencySymbol()}${rate || 0}).`} Leave all empty to send the full amount to the main account.
               </p>
             </div>
           </div>
@@ -877,16 +878,16 @@ function CreateClubDuesInner() {
                 <tr>
                   <th className="p-2">Club</th>
                   <th className="p-2 text-center">Members</th>
-                  {isOffline && <th className="p-2 w-24">Offline Rate (₹)</th>}
+                  {isOffline && <th className="p-2 w-24">Offline Rate ({currencySymbol()})</th>}
                   {isOffline && selectedOfflineVendors.map((sv, idx) => {
                     const acc = routeAccounts.find((x) => String(x.id) === sv.routeAccountId);
-                    return <th key={`off-${sv.routeAccountId}`} className="p-2 w-24 whitespace-nowrap">Off: {acc?.name || `A/C${idx + 1}`}<span className="text-muted-foreground font-normal"> ({amountType === "2" ? "%" : "₹"})</span></th>;
+                    return <th key={`off-${sv.routeAccountId}`} className="p-2 w-24 whitespace-nowrap">Off: {acc?.name || `A/C${idx + 1}`}<span className="text-muted-foreground font-normal"> ({amountType === "2" ? "%" : currencySymbol()})</span></th>;
                   })}
                   {isOffline && selectedOfflineVendors.length > 0 && <th className="p-2 w-24 text-right">Off. Balance</th>}
-                  {isOnline && <th className="p-2 w-24">Online Rate (₹)</th>}
+                  {isOnline && <th className="p-2 w-24">Online Rate ({currencySymbol()})</th>}
                   {isOnline && selectedOnlineVendors.map((sv, idx) => {
                     const acc = routeAccounts.find((x) => String(x.id) === sv.routeAccountId);
-                    return <th key={`on-${sv.routeAccountId}`} className="p-2 w-24 whitespace-nowrap">On: {acc?.name || `A/C${idx + 1}`}<span className="text-muted-foreground font-normal"> ({amountType === "2" ? "%" : "₹"})</span></th>;
+                    return <th key={`on-${sv.routeAccountId}`} className="p-2 w-24 whitespace-nowrap">On: {acc?.name || `A/C${idx + 1}`}<span className="text-muted-foreground font-normal"> ({amountType === "2" ? "%" : currencySymbol()})</span></th>;
                   })}
                   {isOnline && selectedOnlineVendors.length > 0 && <th className="p-2 w-24 text-right">On. Balance</th>}
                 </tr>
@@ -905,7 +906,7 @@ function CreateClubDuesInner() {
                     ))}
                     {isOffline && selectedOfflineVendors.length > 0 && (
                       <td className={`p-2 text-right font-semibold ${clubOfflineBalanced(c) ? "text-green-600" : "text-red-600"}`}>
-                        {amountType === "2" ? `${clubOfflineBalance(c)}%` : `₹${clubOfflineBalance(c)}`}
+                        {amountType === "2" ? `${clubOfflineBalance(c)}%` : `${currencySymbol()}${clubOfflineBalance(c)}`}
                       </td>
                     )}
                     {isOnline && <td className="p-2"><Input type="number" className="h-8" value={clubOnlineOverrides[c.id] ?? onlineRate} onChange={(e) => setClubOnlineOverrides((p) => ({ ...p, [c.id]: e.target.value }))} /></td>}
@@ -917,7 +918,7 @@ function CreateClubDuesInner() {
                     ))}
                     {isOnline && selectedOnlineVendors.length > 0 && (
                       <td className={`p-2 text-right font-semibold ${clubOnlineBalanced(c) ? "text-green-600" : "text-red-600"}`}>
-                        {amountType === "2" ? `${clubOnlineBalance(c)}%` : `₹${clubOnlineBalance(c)}`}
+                        {amountType === "2" ? `${clubOnlineBalance(c)}%` : `${currencySymbol()}${clubOnlineBalance(c)}`}
                       </td>
                     )}
                   </tr>
@@ -936,7 +937,7 @@ function CreateClubDuesInner() {
       <CardHeader><CardTitle>Club List — per-club rate{selectedVendors.length > 0 ? " & split" : ""}</CardTitle></CardHeader>
       <CardContent>
         <p className="text-sm text-muted-foreground mb-3">
-          Every club in the district (synced &amp; non-synced) is included, defaulting to ₹{rate || 0}/member{selectedVendors.length > 0 ? " and the campaign split" : ""}. Change any club to override just that one — the split columns route that club&apos;s payment across the accounts you picked in Payment &amp; Split ({amountType === "2" ? "must total 100%" : `must total the club rate`}). You can also edit this later on the Clubs page.
+          Every club in the district (synced &amp; non-synced) is included, defaulting to {currencySymbol()}{rate || 0}/member{selectedVendors.length > 0 ? " and the campaign split" : ""}. Change any club to override just that one — the split columns route that club&apos;s payment across the accounts you picked in Payment &amp; Split ({amountType === "2" ? "must total 100%" : `must total the club rate`}). You can also edit this later on the Clubs page.
         </p>
         {selectedVendors.length > 0 && clubsList.some((c) => !clubBalanced(c)) && (
           <p className="mb-3 text-sm rounded bg-red-50 text-red-700 border border-red-200 p-2">
@@ -952,10 +953,10 @@ function CreateClubDuesInner() {
                 <tr>
                   <th className="p-2">Club</th>
                   <th className="p-2 text-center">Members</th>
-                  <th className="p-2 w-24">Rate (₹)</th>
+                  <th className="p-2 w-24">Rate ({currencySymbol()})</th>
                   {selectedVendors.map((sv, idx) => {
                     const acc = routeAccounts.find((x) => String(x.id) === sv.routeAccountId);
-                    return <th key={sv.routeAccountId} className="p-2 w-24 whitespace-nowrap">{acc?.name || `A/C${idx + 1}`}<span className="text-muted-foreground font-normal"> ({amountType === "2" ? "%" : "₹"})</span></th>;
+                    return <th key={sv.routeAccountId} className="p-2 w-24 whitespace-nowrap">{acc?.name || `A/C${idx + 1}`}<span className="text-muted-foreground font-normal"> ({amountType === "2" ? "%" : currencySymbol()})</span></th>;
                   })}
                   {selectedVendors.length > 0 && <th className="p-2 w-24 text-right">Balance</th>}
                 </tr>
@@ -974,7 +975,7 @@ function CreateClubDuesInner() {
                     ))}
                     {selectedVendors.length > 0 && (
                       <td className={`p-2 text-right font-semibold ${clubBalanced(c) ? "text-green-600" : "text-red-600"}`}>
-                        {amountType === "2" ? `${clubBalance(c)}%` : `₹${clubBalance(c)}`}
+                        {amountType === "2" ? `${clubBalance(c)}%` : `${currencySymbol()}${clubBalance(c)}`}
                       </td>
                     )}
                   </tr>

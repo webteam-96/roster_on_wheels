@@ -18,6 +18,7 @@ import RotaryLoader from "@/components/RotaryLoader";
 import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";
 
+import { appLocale } from "@/lib/appFormat";
 const actionColors: Record<string, string> = {
   Create: "bg-green-500 hover:bg-green-600",
   Update: "bg-blue-500 hover:bg-blue-600",
@@ -40,7 +41,7 @@ function formatDate(d: string | null) {
   if (!d) return "—";
   const dt = new Date(d);
   if (isNaN(dt.getTime()) || dt.getFullYear() < 2000) return "—";
-  return dt.toLocaleString("en-IN", { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit", second: "2-digit" });
+  return dt.toLocaleString(appLocale(), { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit", second: "2-digit" });
 }
 
 export default function AuditLogPage() {

@@ -22,11 +22,12 @@ import RotaryLoader from "@/components/RotaryLoader";
 import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";
 
+import { appLocale } from "@/lib/appFormat";
 function formatDate(d: string | null) {
   if (!d) return "—";
   const dt = new Date(d);
   if (isNaN(dt.getTime()) || dt.getFullYear() < 2000) return "—";
-  return dt.toLocaleString("en-IN", { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" });
+  return dt.toLocaleString(appLocale(), { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" });
 }
 
 function statusBadge(status: string) {

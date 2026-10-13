@@ -135,6 +135,7 @@ public class GlobalSearchController : ControllerBase
                    c.fk_district_id AS districtId,
                    c.ClubRotaryId AS clubRotaryId,
                    COALESCE(c.IsSyncedFromRotaryOrg, 0) AS isSyncedFromRotaryOrg,
+                   COALESCE(NULLIF(c.ClubType, ''), 'Rotary Club') AS clubType,
                    (SELECT cw.Subdomain
                       FROM club_websites cw
                       WHERE cw.fk_club_id = c.pk_club_id

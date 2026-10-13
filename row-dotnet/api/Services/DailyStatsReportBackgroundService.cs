@@ -1,6 +1,6 @@
 namespace RotaryApi.Services;
 
-// Fires the daily statistics report (DailyStatsReportService) once a day at 06:00 IST.
+// Fires the daily statistics report (DailyStatsReportService) once a day at 06:00 in the brand's time zone (Brand:Locale:DefaultTimeZone).
 // Config (appsettings "DailyStatsReport"): Enabled (default true), Hour (default 6, 0–23).
 // The service itself suppresses the real email when running against a remote DB (dev machine),
 // so this can stay enabled everywhere and only actually mails from the production server.
@@ -52,25 +52,16 @@ public class DailyStatsReportBackgroundService : BackgroundService
         }
     }
 
-    // Delay until the next _hour:00 in India Standard Time.
+    // Delay until the next _hour:00 in the brand's time zone.
     private TimeSpan TimeUntilNextRun()
     {
-        var ist = ResolveIst();
-        var nowIst = TimeZoneInfo.ConvertTime(DateTimeOffset.UtcNow, ist);
-        var runToday = new DateTimeOffset(nowIst.Year, nowIst.Month, nowIst.Day, _hour, 0, 0, nowIst.Offset);
-        var next = nowIst < runToday ? runToday : runToday.AddDays(1);
-        var delay = next - nowIst;
+        var zone = BrandZone();
+        var nowLocal = TimeZoneInfo.ConvertTime(DateTimeOffset.UtcNow, zone);
+        var runToday = new DateTimeOffset(nowLocal.Year, nowLocal.Month, nowLocal.Day, _hour, 0, 0, nowLocal.Offset);
+        var next = nowLocal < runToday ? runToday : runToday.AddDays(1);
+        var delay = next - nowLocal;
         return delay < TimeSpan.Zero ? TimeSpan.Zero : delay;
     }
 
-    private static TimeZoneInfo ResolveIst()
-    {
-        foreach (var id in new[] { "India Standard Time", "Asia/Kolkata" })
-        {
-            try { return TimeZoneInfo.FindSystemTimeZoneById(id); }
-            catch { /* try next */ }
-        }
-        // Last resort: a fixed +05:30 offset zone.
-        return TimeZoneInfo.CreateCustomTimeZone("IST", TimeSpan.FromMinutes(330), "IST", "IST");
-    }
+    private static TimeZoneInfo BrandZone() => Brand.TimeZone;
 }

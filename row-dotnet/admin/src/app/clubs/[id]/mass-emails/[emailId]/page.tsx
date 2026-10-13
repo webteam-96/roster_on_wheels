@@ -20,6 +20,7 @@ import RotaryLoader from "@/components/RotaryLoader";
 import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";
 
+import { appLocale } from "@/lib/appFormat";
 interface MassEmailDetail {
   id: number; fkClubId: number; recipientType: number; fkSubgroupId: number | null;
   subgroupName: string | null; fromName: string; replyName: string | null;
@@ -172,8 +173,8 @@ export default function MassEmailViewPage() {
                 <span className="text-muted-foreground">Date: </span>
                 <span className="font-medium">
                   {detail.sentDate
-                    ? new Date(detail.sentDate).toLocaleString("en-IN")
-                    : new Date(detail.createdDate).toLocaleString("en-IN")}
+                    ? new Date(detail.sentDate).toLocaleString(appLocale())
+                    : new Date(detail.createdDate).toLocaleString(appLocale())}
                 </span>
               </div>
               {detail.status !== "Draft" && (
@@ -240,7 +241,7 @@ export default function MassEmailViewPage() {
                         </div>
                       </TableCell>
                       <TableCell className="text-sm">
-                        {r.sentDate ? new Date(r.sentDate).toLocaleString("en-IN") : "-"}
+                        {r.sentDate ? new Date(r.sentDate).toLocaleString(appLocale()) : "-"}
                       </TableCell>
                       <TableCell className="text-sm text-red-600 max-w-[200px] truncate">
                         {r.errorMessage || "-"}

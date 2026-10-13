@@ -95,6 +95,20 @@ public class ClubWebsitePublicDataV2Controller : ControllerBase
         public int SortOrder { get; set; }
     }
 
+    // ROW (as the NestJS edition): one cost bucket per brand currency plus "other" (the original platform: INR / USD / NPR / LKR).
+    private static IEnumerable<string> ImpactCurrencies() =>
+        RotaryApi.Services.Brand.Currencies.Select(c => c.Trim().ToUpperInvariant())
+            .Where(c => System.Text.RegularExpressions.Regex.IsMatch(c, "^[A-Z]{3}$")).Distinct();
+
+    private static string ImpactCostBuckets()
+    {
+        var cs = ImpactCurrencies().ToList();
+        var parts = cs.Select(c => $"SUM(CASE WHEN curr='{c}' THEN cost ELSE 0 END) AS `cost_{c}`").ToList();
+        var other = cs.Count > 0 ? $"curr NOT IN ({string.Join(",", cs.Select(c => $"'{c}'"))}) OR curr IS NULL" : "1=1";
+        parts.Add($"SUM(CASE WHEN {other} THEN cost ELSE 0 END) AS cost__other");
+        return string.Join(",\n                   ", parts);
+    }
+
     [HttpGet("{clubId:int}/v2/banners")]
     public async Task<ActionResult<IEnumerable<BannerDto>>> GetBannersV2(int clubId, [FromQuery] int? yearId)
     {
@@ -211,7 +225,7 @@ public class ClubWebsitePublicDataV2Controller : ControllerBase
         public string? YearLabel { get; set; }                 // null when lifetime totals
         public int ProjectCount { get; set; }
         public decimal TotalProjectCost { get; set; }
-        public string Currency { get; set; } = "INR";          // club's district DefaultCurrency — currency of TotalProjectCost
+        public string Currency { get; set; } = RotaryApi.Services.Brand.DefaultCurrency;          // club's district DefaultCurrency — currency of TotalProjectCost
         public long TotalManHours { get; set; }
         public long TotalDirectBeneficiaries { get; set; }
         public decimal TotalTrfUsd { get; set; }               // sum of trf_contributions.AmountUSD — always USD, unrelated to Currency above
@@ -224,14 +238,13 @@ public class ClubWebsitePublicDataV2Controller : ControllerBase
         await conn.OpenAsync();
         if (!await IsClubServiceableAsync(conn, clubId)) return NotFound();
 
-        // district_master.DefaultCurrency is backfilled to 'INR' for every district
-        // (DatabaseInitializer), so this is never null in practice.
+        // A district without DefaultCurrency uses the brand's currency.
         var currency = await conn.ExecuteScalarAsync<string?>(@"
             SELECT d.DefaultCurrency
             FROM club_master c
             JOIN district_master d ON d.pk_district_id = c.fk_district_id
             WHERE c.pk_club_id = @ClubId",
-            new { ClubId = clubId }) ?? "INR";
+            new { ClubId = clubId }) ?? RotaryApi.Services.Brand.DefaultCurrency;
 
         // Year-wise tables to scan. If yearId is given, that one table; else
         // every existing year-wise table (UNION ALL'd into a single SELECT so
@@ -263,7 +276,7 @@ public class ClubWebsitePublicDataV2Controller : ControllerBase
         // module keys, all types — so impact.projectCount stays consistent with the list.
         var legs = string.Join(" UNION ALL ", tables.Select(t => $@"
             SELECT COALESCE(p.project_cost, 0)         AS cost,
-                   CONVERT(COALESCE(p.Currency, 'INR') USING utf8mb4) AS curr,
+                   CONVERT(COALESCE(p.Currency, '{RotaryApi.Services.Brand.SqlCurrency}') USING utf8mb4) AS curr,
                    COALESCE(p.man_hours, 0)            AS hours,
                    COALESCE(p.direct_beneficiaries, 0) AS beneficiaries,
                    1 AS cnt
@@ -276,10 +289,7 @@ public class ClubWebsitePublicDataV2Controller : ControllerBase
               AND mm.ModuleKey IN ('community_service','vocational_service','international_service','new_generation_service','public_image_initiative','club_service')"));
 
         var row = await conn.QueryFirstOrDefaultAsync<dynamic>($@"
-            SELECT SUM(CASE WHEN curr='USD' THEN cost ELSE 0 END) AS costUsd,
-                   SUM(CASE WHEN curr='NPR' THEN cost ELSE 0 END) AS costNpr,
-                   SUM(CASE WHEN curr='LKR' THEN cost ELSE 0 END) AS costLkr,
-                   SUM(CASE WHEN curr NOT IN ('USD','NPR','LKR') THEN cost ELSE 0 END) AS costInr,
+            SELECT {ImpactCostBuckets()},
                    SUM(hours)         AS totalHours,
                    SUM(beneficiaries) AS totalBeneficiaries,
                    SUM(cnt)           AS projectCount
@@ -291,11 +301,11 @@ public class ClubWebsitePublicDataV2Controller : ControllerBase
         if (row != null)
         {
             var rates = await _fx.GetInrRatesAsync();
-            totalCostConverted =
-                  RotaryApi.Services.CurrencyHelper.Convert(Convert.ToDecimal(row.costInr ?? 0m), "INR", currency, rates)
-                + RotaryApi.Services.CurrencyHelper.Convert(Convert.ToDecimal(row.costUsd ?? 0m), "USD", currency, rates)
-                + RotaryApi.Services.CurrencyHelper.Convert(Convert.ToDecimal(row.costNpr ?? 0m), "NPR", currency, rates)
-                + RotaryApi.Services.CurrencyHelper.Convert(Convert.ToDecimal(row.costLkr ?? 0m), "LKR", currency, rates);
+            var d = (IDictionary<string, object?>)row;
+            decimal Val(string k) => d.TryGetValue(k, out var v) && v is not null and not DBNull ? Convert.ToDecimal(v) : 0m;
+            // "other" (no or unknown currency) is taken as the brand's default currency.
+            totalCostConverted = RotaryApi.Services.CurrencyHelper.Convert(Val("cost__other"), RotaryApi.Services.Brand.DefaultCurrency, currency, rates)
+                + ImpactCurrencies().Sum(c => RotaryApi.Services.CurrencyHelper.Convert(Val($"cost_{c}"), c, currency, rates));
         }
 
         // TRF lives in a single non-partitioned table — separate aggregate.
@@ -440,7 +450,7 @@ public class ClubWebsitePublicDataV2Controller : ControllerBase
         public string? Pincode { get; set; }
         public decimal? Latitude { get; set; }
         public decimal? Longitude { get; set; }
-        public string Currency { get; set; } = "INR";   // club's district DefaultCurrency
+        public string Currency { get; set; } = RotaryApi.Services.Brand.DefaultCurrency;   // club's district DefaultCurrency
     }
     public class ContactRow { public int YearId { get; set; } public string Email { get; set; } = ""; public string Phone { get; set; } = ""; }
     public class SocialRow  { public string Platform { get; set; } = ""; public string LinkUrl { get; set; } = ""; }
@@ -525,7 +535,7 @@ public class ClubWebsitePublicDataV2Controller : ControllerBase
             Pincode         = (string?)about.pincode,
             Latitude        = (decimal?)about.latitude,
             Longitude       = (decimal?)about.longitude,
-            Currency        = (string?)about.currency ?? "INR",
+            Currency        = (string?)about.currency ?? RotaryApi.Services.Brand.DefaultCurrency,
         });
     }
 
@@ -720,7 +730,7 @@ public class ClubWebsitePublicDataV2Controller : ControllerBase
         public int? ParentProjectId { get; set; }    // null for main projects; set on repeat-instance children
         public int ChildCount { get; set; }          // # of repeat-instance children under this project
         public string? PrimaryPhotoPath { get; set; }
-        public string Currency { get; set; } = "INR"; // this project's own stored currency (project.Currency)
+        public string Currency { get; set; } = RotaryApi.Services.Brand.DefaultCurrency; // this project's own stored currency (project.Currency)
         public string? CreatedDate { get; set; }
         public string? ModifiedDate { get; set; }
     }
@@ -836,7 +846,7 @@ public class ClubWebsitePublicDataV2Controller : ControllerBase
             AreaOfFocus      = (string?)r.AreaOfFocus,
             Category         = (string?)r.Category,
             ProjectType      = (string?)r.ProjectType,
-            Currency         = (string?)r.Currency ?? "INR",
+            Currency         = (string?)r.Currency ?? RotaryApi.Services.Brand.DefaultCurrency,
             ParentProjectId  = r.ParentProjectId == null ? (int?)null : Convert.ToInt32(r.ParentProjectId),
             ChildCount       = r.ChildCount == null ? 0 : Convert.ToInt32(r.ChildCount),
             PrimaryPhotoPath = (string?)r.PrimaryPhotoPath,

@@ -122,7 +122,7 @@ export default function ClubMembershipDuesPage() {
               <h3 className="text-2xl font-bold text-primary">Collect 100% of Your Club Dues Without a Single Follow-up Call</h3>
               <p className="text-muted-foreground">Club dues collection has not been set up for this club yet. Click below to learn more about our automated dues collection system.</p>
             </div>
-            <Button size="lg" className="text-lg px-8 py-6" onClick={() => window.open("https://membership.rotaryindia.org/", "_blank")}>
+            <Button size="lg" className="text-lg px-8 py-6" onClick={() => window.open("https://club.example.org/", "_blank")}>
               Learn More
             </Button>
           </div>

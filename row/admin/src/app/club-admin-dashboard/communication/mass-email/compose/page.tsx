@@ -227,7 +227,7 @@ export default function ClubAdminComposeMassEmailPage() {
           <CardContent className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2"><Label>From Name *</Label><Input value={fromName} onChange={(e) => setFromName(e.target.value)} placeholder="e.g. Rotary Club of..." /></div>
-              <div className="space-y-2"><Label>Sender Email</Label><Input value="communication@rizones45678.org" disabled className="bg-muted" /></div>
+              <div className="space-y-2"><Label>Sender Email</Label><Input value="support@example.org" disabled className="bg-muted" /></div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2"><Label>Reply Name</Label><Input value={replyName} onChange={(e) => setReplyName(e.target.value)} placeholder="Optional" /></div>

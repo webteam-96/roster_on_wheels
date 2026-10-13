@@ -12,6 +12,7 @@ import type {
   FoundationGoalListResponse, FoundationGoalDto, FoundationGoalYearRow,
 } from "@/types/clubAdminDashboard";
 
+import { currencySymbol } from "@/lib/appFormat";
 type FormState = {
   apf: string;
   polio: string;
@@ -24,7 +25,7 @@ const EMPTY_FORM: FormState = { apf: "", polio: "", endowment: "", other: "", re
 
 function formatUsd(value: number, currency: string = "USD"): string {
   if (!isFinite(value) || value <= 0) return currency === "USD" ? "$0" : `${currency} 0`;
-  const symbol = currency === "USD" ? "$" : (currency === "INR" ? "₹" : `${currency} `);
+  const symbol = currencySymbol(currency);
   return `${symbol}${value.toLocaleString("en-US", { maximumFractionDigits: 0 })}`;
 }
 
@@ -153,7 +154,7 @@ export default function FoundationGoalsCard() {
   if (!data) return null;
 
   const currency = selection?.currency ?? "USD";
-  const symbol   = currency === "USD" ? "$" : (currency === "INR" ? "₹" : currency);
+  const symbol   = currencySymbol(currency);
 
   return (
     <div className="space-y-4">
@@ -368,7 +369,7 @@ function PastGoalsList({
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 p-4">
         {past.map((g) => {
-          const sym = g.currency === "USD" ? "$" : g.currency === "INR" ? "₹" : `${g.currency} `;
+          const sym = currencySymbol(g.currency);
           const total = g.apfGoal + g.polioPlusGoal + g.endowmentFundGoal + g.otherGoal;
           const yearRow = years.find((y) => y.yearId === g.yearId);
           return (

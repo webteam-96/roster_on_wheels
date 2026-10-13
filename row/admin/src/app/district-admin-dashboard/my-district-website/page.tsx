@@ -80,10 +80,10 @@ export default function MyDistrictWebsitePage() {
       try {
         // Pull the district's website subdomain/URL from the district_websites
         // table (via /api/districts/{id}/website-status). Prefers ClientDomain
-        // if configured, else falls back to {Subdomain}.rotaryindia.org
+        // if configured, else falls back to {Subdomain}.example.org
         // resolved on the backend.
         const ws = await getDistrictWebsiteStatus(districtId).catch(() => null);
-        // visitUrl comes back like "https://rid3142.rotaryindia.org/" — for
+        // visitUrl comes back like "https://club.example.org/" — for
         // display, strip the scheme AND any trailing slash. We re-add https://
         // on the <a href>. Note: some district_websites rows store the FULL
         // URL (with scheme + slash) in both Subdomain and ClientDomain

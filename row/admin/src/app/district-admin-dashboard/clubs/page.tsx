@@ -166,7 +166,7 @@ function ClubTableDA({
                     // A custom client domain wins; otherwise resolve the subdomain via the
                     // shared helper so this matches the club-admin / AG / global-search
                     // screens. The helper strips any protocol/slash/parent-domain junk (some
-                    // clubs store a FULL host like "rcx.rotaryindia.org" in Subdomain) before
+                    // clubs store a FULL host like "club.example.org" in Subdomain) before
                     // rebuilding, so we never double-append a parent domain.
                     const clientDomain = club.websiteClientDomain?.trim();
                     const url = clientDomain

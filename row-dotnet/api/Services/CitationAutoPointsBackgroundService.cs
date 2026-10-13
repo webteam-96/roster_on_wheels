@@ -171,6 +171,7 @@ public class CitationAutoPointsBackgroundService : BackgroundService
                         await SaveAutoEntry(conn, districtId, yearId, clubId, (int)q.id, null, count.ToString(), earned, bonus);
                         entryCount++;
                     }
+                    else await RetireMainEntry(conn, districtId, yearId, clubId, (int)q.id);
 
                     // Sub items
                     foreach (var sub in qSubs)
@@ -299,6 +300,7 @@ public class CitationAutoPointsBackgroundService : BackgroundService
                 (decimal earned, decimal bonus) = CalculatePoints(count, (decimal)q.points, (bool)Convert.ToBoolean(q.isBonus), (decimal)q.bonusPoints, (int)q.minBonus, (int)q.maxBonus);
                 await SaveAutoEntry(conn, districtId, yearId, clubId, (int)q.id, null, count.ToString(), earned, bonus);
             }
+            else await RetireMainEntry(conn, districtId, yearId, clubId, (int)q.id);
 
             foreach (var sub in qSubs)
             {
@@ -495,6 +497,17 @@ public class CitationAutoPointsBackgroundService : BackgroundService
 
         return (earned, bonus);
     }
+
+    // The question-level row is only written while the question has no sub-items or its own points.
+    // When the district later adds sub-items and sets the question to 0, the row written before stayed
+    // with its old points (user 2026-10-08: Vocational Service showed as an extra "—" row worth 4 on
+    // the club screen though the district setup has no such line). Soft-delete it.
+    private static async Task RetireMainEntry(MySqlConnection conn, int districtId, int yearId, int clubId, int questionId)
+        => await conn.ExecuteAsync(
+            @"UPDATE district_citation_club_entry SET isdeleted = 1, modified_date = NOW()
+              WHERE fk_district_id=@DistrictId AND fk_year_id=@YearId AND fk_club_id=@ClubId
+                AND entry_type='auto' AND fk_question_id=@QId AND fk_sub_question_id IS NULL AND isdeleted=0",
+            new { DistrictId = districtId, YearId = yearId, ClubId = clubId, QId = questionId });
 
     private async Task SaveAutoEntry(MySqlConnection conn, int districtId, int yearId, int clubId, int questionId, int? subQuestionId, string countValue, decimal pointsEarned, decimal bonusEarned)
     {

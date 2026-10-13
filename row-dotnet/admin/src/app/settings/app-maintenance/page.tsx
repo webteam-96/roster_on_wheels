@@ -46,6 +46,7 @@ import {
   type AppRouteMaintenanceRow,
 } from "@/services/api";
 
+import { appLocale } from "@/lib/appFormat";
 // ---------------------------------------------------------------------------
 // Static catalog — verbatim from the spec. Keys MUST match the backend seed
 // (the unique RouteKey is the join). Groups drive the UI section order.
@@ -286,7 +287,7 @@ function fmtDate(d: string | null): string {
   if (!d) return "—";
   const dt = new Date(d);
   if (isNaN(dt.getTime()) || dt.getFullYear() < 2000) return "—";
-  return dt.toLocaleString("en-IN", {
+  return dt.toLocaleString(appLocale(), {
     day: "2-digit", month: "short", year: "numeric",
     hour: "2-digit", minute: "2-digit",
   });

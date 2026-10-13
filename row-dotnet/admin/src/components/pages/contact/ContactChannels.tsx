@@ -3,14 +3,16 @@
 import { useEffect, useState } from "react";
 import { ArrowUpRight, Check, Copy } from "lucide-react";
 
+import { appTimeZone } from "@/lib/appFormat";
+import { getActiveBrand } from "@/lib/brand";
 /* Verbatim contact data from the live site — do not edit. */
 const EMAIL = "support@example.org";
 const PHONE_NUMBERS = ["", ""];
 
-/** Mon–Fri 10:00–18:30 IST — the helpline hours published on the live site. */
-function isOpenNowIST(): boolean {
+/** Mon–Fri 10:00–18:30 in the brand time zone — the helpline hours. */
+function isOpenNow(): boolean {
   const parts = new Intl.DateTimeFormat("en-GB", {
-    timeZone: "Asia/Kolkata",
+    timeZone: appTimeZone(),
     weekday: "short",
     hour: "2-digit",
     minute: "2-digit",
@@ -27,8 +29,8 @@ function isOpenNowIST(): boolean {
 function OpenChip() {
   const [open, setOpen] = useState<boolean | null>(null);
   useEffect(() => {
-    setOpen(isOpenNowIST());
-    const t = setInterval(() => setOpen(isOpenNowIST()), 60_000);
+    setOpen(isOpenNow());
+    const t = setInterval(() => setOpen(isOpenNow()), 60_000);
     return () => clearInterval(t);
   }, []);
   if (open === null) return null;
@@ -139,7 +141,7 @@ export function ContactChannels() {
       ))}
       <ChannelRow
         label="Helpline hours"
-        value="Mon – Fri, 10:00 – 18:30 IST"
+        value={getActiveBrand().support.hours || "—"}
         figure
         note="Closed on weekends and public holidays — email us instead."
         chip={<OpenChip />}

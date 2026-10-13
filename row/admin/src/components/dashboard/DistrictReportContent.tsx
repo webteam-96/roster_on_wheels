@@ -46,6 +46,7 @@ import {
 import Link from "next/link";
 import RotaryLoader from "@/components/RotaryLoader";
 
+import { appLocale } from "@/lib/appFormat";
 // RI Director "All Districts" mode. Fetches one report per district in the zone
 // and concatenates every section array into a single payload so the existing
 // per-section Download buttons emit ONE combined file (all districts, all clubs).
@@ -1352,7 +1353,7 @@ export default function DistrictReportContent({ districtId, initialYearId, servi
     if (!v) return "";
     const d = new Date(v);
     if (isNaN(d.getTime())) return String(v);
-    return d.toLocaleString("en-IN", { day: "2-digit", month: "short" });
+    return d.toLocaleString(appLocale(), { day: "2-digit", month: "short" });
   };
 
   // DD/MM/YYYY — for the Joining Date column.
@@ -1419,6 +1420,8 @@ export default function DistrictReportContent({ districtId, initialYearId, servi
     { key: "typeOfProject", label: "Type of Project", width: 18 },
     { key: "clubRole", label: "Club Role", width: 16 },
     { key: "coHostName", label: "Co-host", width: 18 },
+    // Area of Focus was missing - only Category / Sub Category showed (user 2026-10-07).
+    { key: "areaOfFocus", label: "Area of Focus", width: 22 },
     { key: "category", label: "Category", width: 20 },
     { key: "subCategory", label: "Sub Category", width: 18 },
     { key: "projectDate", label: "Date", width: 14, format: ddmmyyyy },
@@ -1654,7 +1657,7 @@ export default function DistrictReportContent({ districtId, initialYearId, servi
 
             {/* 4. Members (Active users in Rotary Zones App) — club dropdown */}
             <ClubFilterRow
-              title="Members (Active users in Rotary Zones 4, 5, 6, 7 & 8 App)"
+              title="Members (Active users in ROW App)"
               icon={Users}
               rows={report.appUsers || []}
               clubs={clubsDropdown}

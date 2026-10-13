@@ -1,5 +1,6 @@
 import type { DbCommands } from "../../database/db.service";
 import { Brand } from "../../brand/brand";
+import { broadcastConsentFilter } from "../privacy-consent";
 
 /**
  * Shared by the scheduled email (and WhatsApp) senders: scope, recipients, the
@@ -46,7 +47,8 @@ export async function resolveRecipients(
   conn: DbCommands, contactColumn: string, scope: string, clubId: number, districtId: number | null,
   target: string | null, zoneIdsStr: string | null, districtIdsStr: string | null, subgroupIdsStr: string | null,
 ): Promise<Recipient[]> {
-  const has = `m.${contactColumn} IS NOT NULL AND m.${contactColumn} <> ''`;
+  // Members who withdrew or never gave consent are skipped when ROW privacy is on (WS7-05).
+  const has = `m.${contactColumn} IS NOT NULL AND m.${contactColumn} <> ''${broadcastConsentFilter()}`;
   const select = `SELECT DISTINCT m.pk_member_master_profile_id AS memberId, m.MemberName AS memberName, m.${contactColumn} AS contact`;
   const map = (rows: Record<string, unknown>[]) =>
     rows.map((r) => ({ memberId: Number(r.memberId), memberName: String(r.memberName ?? ""), contact: String(r.contact ?? "") }));

@@ -3,7 +3,7 @@
 /**
  * SuperAdmin → Rotary.org → "Check Member Matched or not".
  *
- * Pick a district → list its SYNC clubs → compare the rizones member count (left,
+ * Pick a district → list its SYNC clubs → compare the ROW member count (left,
  * club_members isdeleted=0 — same set the sweep reconciles) against the LIVE
  * Rotary.org count (right = /Active + /Honorary, NOT the /clubs number). Clubs
  * whose counts differ are highlighted and sorted to the top; each mismatch gets a
@@ -38,7 +38,7 @@ interface ClubRow {
   clubRotaryId: string;
   clubName: string;
   clubType: string;
-  rizonesCount: number;
+  localCount: number;
   org: OrgCount | null;   // null until loaded
   orgLoading: boolean;
 }
@@ -98,7 +98,7 @@ export default function MemberMatchPage() {
         clubRotaryId: String(c.clubRotaryId ?? ""),
         clubName: c.clubName || "",
         clubType: c.clubType || "Rotary Club",
-        rizonesCount: Number(c.rizonesCount ?? 0),
+        localCount: Number(c.localCount ?? 0),
         org: null,
         orgLoading: true,
       }));
@@ -167,10 +167,10 @@ export default function MemberMatchPage() {
 
   // Sort: loaded mismatches first (biggest gap on top), then matched, then still-loading.
   const sortedClubs = useMemo(() => {
-    const diffOf = (c: ClubRow) => c.org ? Math.abs(c.rizonesCount - c.org.orgTotal) : -1;
+    const diffOf = (c: ClubRow) => c.org ? Math.abs(c.localCount - c.org.orgTotal) : -1;
     const rank = (c: ClubRow) => {
       if (!c.org) return 2;                                  // still loading → bottom
-      return c.rizonesCount !== c.org.orgTotal ? 0 : 1;      // mismatch → top, matched → middle
+      return c.localCount !== c.org.orgTotal ? 0 : 1;      // mismatch → top, matched → middle
     };
     return [...clubs].sort((a, b) => {
       const ra = rank(a), rb = rank(b);
@@ -181,7 +181,7 @@ export default function MemberMatchPage() {
   }, [clubs]);
 
   const loadedCount = clubs.filter((c) => c.org).length;
-  const mismatchCount = clubs.filter((c) => c.org && c.rizonesCount !== c.org.orgTotal).length;
+  const mismatchCount = clubs.filter((c) => c.org && c.localCount !== c.org.orgTotal).length;
 
   if (!isSuperAdmin) {
     return (
@@ -205,7 +205,7 @@ export default function MemberMatchPage() {
           <div>
             <h2 className="text-2xl font-bold tracking-tight text-primary">Check Member Matched or not</h2>
             <p className="text-muted-foreground text-base">
-              rizones vs Rotary.org member count per sync club. Rotary.org count is live (Active + Honorary).
+              ROW vs Rotary.org member count per sync club. Rotary.org count is live (Active + Honorary).
             </p>
           </div>
         </div>
@@ -254,7 +254,7 @@ export default function MemberMatchPage() {
                   <TableRow>
                     <TableHead className="w-10">#</TableHead>
                     <TableHead>Club</TableHead>
-                    <TableHead className="text-center">rizones</TableHead>
+                    <TableHead className="text-center">ROW</TableHead>
                     <TableHead className="text-center">Rotary.org (A+H)</TableHead>
                     <TableHead className="text-center">Diff</TableHead>
                     <TableHead className="text-right">Action</TableHead>
@@ -263,8 +263,8 @@ export default function MemberMatchPage() {
                 <TableBody>
                   {sortedClubs.map((c, idx) => {
                     const loaded = !!c.org;
-                    const mismatch = loaded && c.rizonesCount !== c.org!.orgTotal;
-                    const diff = loaded ? c.rizonesCount - c.org!.orgTotal : 0;
+                    const mismatch = loaded && c.localCount !== c.org!.orgTotal;
+                    const diff = loaded ? c.localCount - c.org!.orgTotal : 0;
                     return (
                       <TableRow key={c.clubId} className={mismatch ? "bg-red-50 hover:bg-red-100/70" : ""}>
                         <TableCell className="text-muted-foreground">{idx + 1}</TableCell>
@@ -272,7 +272,7 @@ export default function MemberMatchPage() {
                           <div className="font-medium">{c.clubName}</div>
                           <div className="text-xs text-muted-foreground">RID {c.clubRotaryId}</div>
                         </TableCell>
-                        <TableCell className="text-center font-semibold">{c.rizonesCount}</TableCell>
+                        <TableCell className="text-center font-semibold">{c.localCount}</TableCell>
                         <TableCell className="text-center">
                           {c.orgLoading ? (
                             <Loader2 className="mx-auto h-4 w-4 animate-spin text-muted-foreground" />
@@ -326,7 +326,7 @@ export default function MemberMatchPage() {
             club={diffFor}
             onClose={() => setDiffFor(null)}
             onSoftDeleted={(clubId, n) => {
-              setClubs((prev) => prev.map((c) => c.clubId === clubId ? { ...c, rizonesCount: Math.max(0, c.rizonesCount - n) } : c));
+              setClubs((prev) => prev.map((c) => c.clubId === clubId ? { ...c, localCount: Math.max(0, c.localCount - n) } : c));
               setSuccess(`${n} no-Rotary-ID member(s) soft-deleted.`);
             }}
             onError={setError}
@@ -347,7 +347,7 @@ interface DiffMemberAdd { rotaryId: string; name: string; isHonorary: boolean }
 interface DiffMemberRemove { memberId: number; rotaryId: string; name: string }
 interface DiffMemberNoRid { memberId: number; name: string; honorary: boolean; inCog: boolean; willSoftDelete: boolean; keepReason: string | null }
 interface DiffData {
-  clubName: string; rizonesCount: number; orgCount: number;
+  clubName: string; localCount: number; orgCount: number;
   toAdd: DiffMemberAdd[]; toRemove: DiffMemberRemove[]; noRotaryId: DiffMemberNoRid[]; error?: string;
 }
 
@@ -388,7 +388,7 @@ function DiffDialog({ club, onClose, onSoftDeleted, onError }: {
         <div>
           <h3 className="text-lg font-semibold">{club.clubName}</h3>
           {data && !data.error && (
-            <p className="text-sm text-muted-foreground">rizones <b>{data.rizonesCount}</b> vs Rotary.org <b>{data.orgCount}</b> — here&apos;s exactly who differs.</p>
+            <p className="text-sm text-muted-foreground">ROW <b>{data.localCount}</b> vs Rotary.org <b>{data.orgCount}</b> — here&apos;s exactly who differs.</p>
           )}
         </div>
 

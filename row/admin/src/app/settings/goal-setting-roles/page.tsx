@@ -8,7 +8,7 @@ import {
   sendGoalRoleAssignmentEmails, downloadGoalRoleAssignments,
   changeGoalRoleAssignment, sendGoalRoleCredentials, getAssignedDirectorZones, addGoalRoleHolder,
   getZones, getDistricts,
-  getRotaryYears, importGoalFoundationMonthly, importGoalFoundationClub,
+  getRotaryYears, importGoalFoundationMonthly, importGoalFoundationClub, importGoalDistrictMembership,
   downloadGoalFoundationSample, downloadGoalFoundationClubSample, convertGoalFoundationClubFile,
   getGoalDesignations, searchGoalZoneMembers, searchGoalMembers,
 } from "@/services/api";
@@ -193,6 +193,14 @@ export default function GoalSettingRolesPage() {
   // Convert Rotary.org's raw MCR into our import file (synced clubs only, 2 decimals) - download only.
   const [cfConverting, setCfConverting] = useState(false);
   const convertInputRef = useRef<HTMLInputElement>(null);
+
+  // District Membership import (user 2026-10-08): two Rotary.org files; the month comes from the file.
+  const [dmMembers, setDmMembers] = useState<File | null>(null);
+  const [dmGender, setDmGender] = useState<File | null>(null);
+  const [dmRotaract, setDmRotaract] = useState<File | null>(null);
+  const [dmInteract, setDmInteract] = useState<File | null>(null);
+  const [dmImporting, setDmImporting] = useState(false);
+  const [dmResult, setDmResult] = useState<GoalFoundationImportResultDto | null>(null);
 
   const load = useCallback(async () => {
     try {
@@ -769,6 +777,18 @@ export default function GoalSettingRolesPage() {
     } finally { setCfImporting(false); }
   };
 
+  const handleMembershipImport = async () => {
+    if (!impYearId) { setErrorMessage("Select a year."); return; }
+    if (!dmMembers || !dmGender) { setErrorMessage("Choose both Rotary.org files."); return; }
+    setDmImporting(true); setDmResult(null);
+    try {
+      const res = await importGoalDistrictMembership(Number(impYearId), dmMembers, dmGender, dmRotaract, dmInteract);
+      setDmResult(res); setSuccessMessage(res.message || "Import complete.");
+    } catch (err: any) {
+      setErrorMessage(err?.response?.data?.message || "Import failed.");
+    } finally { setDmImporting(false); }
+  };
+
   if (loading) {
     return (
       <ProtectedRoute>
@@ -810,6 +830,7 @@ export default function GoalSettingRolesPage() {
           <TabsList>
             <TabsTrigger value="import">District Foundation Import</TabsTrigger>
             <TabsTrigger value="clubimport">Club Foundation Import</TabsTrigger>
+            <TabsTrigger value="membershipimport">District Membership Import</TabsTrigger>
             <TabsTrigger value="roles">Role Assign</TabsTrigger>
           </TabsList>
 
@@ -824,7 +845,7 @@ export default function GoalSettingRolesPage() {
               Foundation Benchmark Import (Till-Date)
             </CardTitle>
             <p className="text-sm text-muted-foreground">
-              Upload the official Rizones district Foundation Excel (fields as rows, districts as columns).
+              Upload the official ROW district Foundation Excel (fields as rows, districts as columns).
               Only the 10 Foundation metrics are read into each field&apos;s <span className="font-medium">Achieved</span> value
               per district; other rows are ignored and any non-numeric characters in a cell are stripped. Re-importing overwrites with the latest figures.
             </p>
@@ -996,6 +1017,74 @@ export default function GoalSettingRolesPage() {
                             </tbody>
                           </table>
                         </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* ── DISTRICT MEMBERSHIP IMPORT TAB (user 2026-10-08) ── */}
+          <TabsContent value="membershipimport" className="space-y-6 mt-0">
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base flex items-center gap-2">
+                  <FileSpreadsheet className="h-4 w-4 text-emerald-600" />
+                  District Membership Import (Rotary.org)
+                </CardTitle>
+                <p className="text-sm text-muted-foreground">
+                  Upload the two Rotary.org files as downloaded. From <span className="font-medium">Rotary_Comparison_to_1_July</span>:
+                  Clubs and Members on 1 July and on the report date. From <span className="font-medium">Members Admitted by Gender</span>:
+                  women admitted minus women terminated (Rotary sheets only). Women on 1 July is the system&apos;s own count, fixed at the first import.
+                  The month is taken from the report date (e.g. 30 September 2026 = Sep); earlier months stay blank.
+                  Optional third file <span className="font-medium">Rotaract_Comparison_to_1_July</span>: fills Youth Service &rarr; Rotaract
+                  &ldquo;Existing Clubs&rdquo;, &ldquo;Clubs Achieved&rdquo;, &ldquo;No. of Rotaractors as on July 1st&rdquo; and &ldquo;Rotaractors Achieved&rdquo;. Optional <span className="font-medium">Interact_Statistics</span>:
+                  fills Youth Service &rarr; Interact &ldquo;Clubs Achieved&rdquo; (Total Active Clubs, sheet By District). Percentages are worked out as usual.
+                  Only our districts (Zones 4-7) are written.
+                </p>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div>
+                    <label className="text-xs font-medium text-muted-foreground mb-1 block">Rotary Year</label>
+                    <Select value={impYearId} onValueChange={(v) => { setImpYearId(v); setDmResult(null); }}>
+                      <SelectTrigger><SelectValue placeholder="Select year" /></SelectTrigger>
+                      <SelectContent>
+                        {years.map((y) => (
+                          <SelectItem key={y.id} value={String(y.id)}>{y.yearLabel}{y.isCurrent ? " (Current)" : ""}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <label className="text-xs font-medium text-muted-foreground mb-1 block">Rotary Comparison to 1 July</label>
+                    <Input type="file" accept=".xlsx" onChange={(e) => { setDmMembers(e.target.files?.[0] || null); setDmResult(null); }} />
+                  </div>
+                  <div>
+                    <label className="text-xs font-medium text-muted-foreground mb-1 block">Members Admitted by Gender</label>
+                    <Input type="file" accept=".xlsx" onChange={(e) => { setDmGender(e.target.files?.[0] || null); setDmResult(null); }} />
+                  </div>
+                  <div>
+                    <label className="text-xs font-medium text-muted-foreground mb-1 block">Rotaract Comparison to 1 July (optional)</label>
+                    <Input type="file" accept=".xlsx" onChange={(e) => { setDmRotaract(e.target.files?.[0] || null); setDmResult(null); }} />
+                  </div>
+                  <div>
+                    <label className="text-xs font-medium text-muted-foreground mb-1 block">Interact Statistics (optional)</label>
+                    <Input type="file" accept=".xlsx" onChange={(e) => { setDmInteract(e.target.files?.[0] || null); setDmResult(null); }} />
+                  </div>
+                </div>
+                <Button onClick={handleMembershipImport} disabled={dmImporting || !dmMembers || !dmGender || !impYearId}>
+                  {dmImporting ? <RotaryLoader size="sm" /> : <><Upload className="h-4 w-4 mr-2" />Import</>}
+                </Button>
+                {dmResult && (
+                  <div className="rounded-lg border p-3 bg-muted/30 text-sm space-y-2">
+                    <div className="font-medium">{dmResult.message}</div>
+                    {dmResult.skippedRows.length > 0 && (
+                      <div className="rounded border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">
+                        {dmResult.skippedRows.map((s, i) => (
+                          <div key={i}>District {s.districtNumber}: {s.reason}</div>
+                        ))}
                       </div>
                     )}
                   </div>

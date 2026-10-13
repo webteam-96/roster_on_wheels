@@ -38,7 +38,7 @@ export default async function TermsPage() {
         <p>
           The Platform is intended for use by members and office-bearers of
           Rotary clubs in Rotary International Districts that fall within
-          Zones 4, 5, 6, 7 and 8 (as defined by Rotary International), authorised
+          the zones (as defined by Rotary International), authorised
           representatives of those districts, and persons making voluntary
           contributions to Rotary projects, events, or The Rotary Foundation.
         </p>

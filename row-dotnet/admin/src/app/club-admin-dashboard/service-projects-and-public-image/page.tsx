@@ -36,6 +36,7 @@ import type {
 import KpiCard from "@/components/dashboard/KpiCard";
 import { fmtInt, fmtInr, fmtDate } from "@/components/dashboard/formatters";
 
+import { defaultCurrency } from "@/lib/appFormat";
 // Base URL the RI Flow-Bot export uses to build absolute photo URLs for the extension.
 const SYNC_API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
@@ -87,10 +88,10 @@ function projectTypeChipStyle(t: string) {
   return "bg-slate-50 text-slate-700 border-slate-200";
 }
 
-// The rupee glyph is India's - a Sri Lankan or Nepali total gets a neutral coin (user 2026-10-05).
+// Dollar currencies get the dollar glyph, every other currency a neutral coin.
 function moneyIcon(code?: string | null) {
   const which = moneyIconName(code);
-  return which === "rupee" ? IndianRupee : which === "dollar" ? DollarSign : Coins;
+  return which === "dollar" ? DollarSign : Coins;
 }
 
 function attendancePercentChip(pct: number) {
@@ -100,7 +101,7 @@ function attendancePercentChip(pct: number) {
 }
 
 // Compact money — INR by default; currency-aware totals/rows pass the district or project currency.
-const shortInr = (value: number): string => shortMoney(value, "INR");
+const shortInr = (value: number): string => shortMoney(value, defaultCurrency());
 
 // Whitelist guard — keeps URL params safe when reading ?tab=
 function isAvenueTab(v: string | null): v is AvenueTab {

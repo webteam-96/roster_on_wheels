@@ -238,3 +238,15 @@ Both APIs ran side by side on the same scratch database (fixture data, the .NET 
 
 - **Photo uploads**: every uploaded JPEG / PNG / WEBP is re-saved at most 2560 px, JPEG quality 88 (transparent logos keep their format and are re-saved only when shrunk), as RIZones' global upload filter does. ROW uses sharp instead of SkiaSharp, so the bytes differ slightly (same size and dimensions in testing). BMP uploads are kept as sent (sharp cannot read BMP; RIZones re-encoded them).
 - Rotaract clubs hidden, `eff_parent` project grouping, the negative-points check on the club citation form, `route-maintenance` and the mobile foundation goals endpoints: ported as-is (see STATUS 6a).
+
+## Session 3 (2026-10-12)
+
+- **Privacy (ROW-only, `privacy.enabled`):** new `api/privacy/*` and `PUT api/members/me/language` (see STATUS 6b). Not in RIZones.
+  - Erasure anonymises instead of deleting where the schema forbids hard deletes (`trg_prevent_hard_delete_*` on member, address, family, club rows): personal columns blanked, row soft-deleted. Rows that record events (payments, attendance, projects) stay, pointing at "Erased member".
+  - Export links are signed (HMAC with `Privacy:LinkKey`, else the JWT secret) and expire after 7 days, because the admin opens them with a plain link. Files are kept under `Privacy:ExportRoot` (default `App_Data/privacy-exports`), outside the web root.
+  - Tombstone hash = SHA-256(`Brand:Privacy:TombstoneSalt`, else the JWT secret, + Rotary id). The worker must get the same salt from the same environment variables.
+  - Announcements, events, newsletters and other broadcast content by email and push go only to members who accepted the current policy (once `Brand:Legal:PolicyVersion` is set). One-time codes and receipts are not affected.
+  - The policy pages carry RIZones' Indian texts (DPDPA); ROW needs counsel's texts (Q6). The `/cookies` page lists the storage keys the admin really uses.
+- **Rotary-year rollover** also creates the current year's `rotary_projects_*` / `rotary_project_photos_*` tables (RIZones created them on the first save or by a one-off script, so a new database could not list projects).
+- **`sync_exception_log.inserted`** (written by the sweep worker, read by the sync-exceptions screen) added to `schema-drift.sql`; RIZones never created it in code.
+- **Rotary.org summary key** `rotaryIndia` is `local` (no client read it; same name as in the .NET edition).

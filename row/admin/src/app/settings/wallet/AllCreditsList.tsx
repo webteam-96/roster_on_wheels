@@ -25,12 +25,13 @@ import {
   type WalletCreditEntryRow,
 } from "@/services/api";
 
+import { appLocale, currencySymbol } from "@/lib/appFormat";
 const PAGE_SIZE = 50;
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
-const inr = (n: number | null) => (n == null ? "—" : `₹${Number(n).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`);
-const fmtDate = (s?: string | null) => (s ? new Date(s).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" }) : "—");
-const fmtDateTime = (s?: string | null) => (s ? new Date(s).toLocaleString("en-IN", { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" }) : "—");
+const inr = (n: number | null) => (n == null ? "—" : `${currencySymbol()}${Number(n).toLocaleString(appLocale(), { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`);
+const fmtDate = (s?: string | null) => (s ? new Date(s).toLocaleDateString(appLocale(), { day: "2-digit", month: "short", year: "numeric" }) : "—");
+const fmtDateTime = (s?: string | null) => (s ? new Date(s).toLocaleString(appLocale(), { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" }) : "—");
 
 function creditsText(r: WalletCreditEntryRow): string {
   if (r.credits == null) return "Not recorded";
@@ -231,10 +232,10 @@ export default function AllCreditsList({ refreshKey = 0 }: { refreshKey?: number
       {!loading && rows.length > 0 && (
         <div className="flex flex-wrap gap-2 text-xs">
           <span className="rounded-md border bg-amber-50 border-amber-200 px-2.5 py-1 text-amber-800">
-            Offline: WhatsApp <b>{totals.offlineWa.toLocaleString("en-IN")}</b> · Email <b>{totals.offlineEmail.toLocaleString("en-IN")}</b>
+            Offline: WhatsApp <b>{totals.offlineWa.toLocaleString(appLocale())}</b> · Email <b>{totals.offlineEmail.toLocaleString(appLocale())}</b>
           </span>
           <span className="rounded-md border bg-blue-50 border-blue-200 px-2.5 py-1 text-blue-800">
-            Online: WhatsApp <b>{totals.onlineWa.toLocaleString("en-IN")}</b> · Email <b>{totals.onlineEmail.toLocaleString("en-IN")}</b> · Paid <b>{inr(totals.onlineAmount)}</b>
+            Online: WhatsApp <b>{totals.onlineWa.toLocaleString(appLocale())}</b> · Email <b>{totals.onlineEmail.toLocaleString(appLocale())}</b> · Paid <b>{inr(totals.onlineAmount)}</b>
           </span>
           <span className="rounded-md border px-2.5 py-1 text-muted-foreground">{rows.length} entries</span>
         </div>

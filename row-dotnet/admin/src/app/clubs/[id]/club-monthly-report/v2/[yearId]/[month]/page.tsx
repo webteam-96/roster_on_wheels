@@ -52,6 +52,7 @@ import LoadingLink from "@/components/v2/LoadingLink";
 import ClubAdminShell from "@/components/v2/ClubAdminShell";
 import { useSyncClubIdFromUrl } from "@/hooks/useSyncClubIdFromUrl";
 
+import { appLocale } from "@/lib/appFormat";
 // ── Constants (parity with v1) ─────────────────────────────────────────────
 
 const STEPS = [
@@ -104,7 +105,7 @@ const MONTH_NAMES = [
 function formatDate(dateStr: string | null) {
   if (!dateStr) return "-";
   try {
-    return new Date(dateStr).toLocaleDateString("en-IN", {
+    return new Date(dateStr).toLocaleDateString(appLocale(), {
       day: "2-digit", month: "short", year: "numeric",
     });
   } catch {

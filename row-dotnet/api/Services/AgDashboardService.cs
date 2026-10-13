@@ -42,7 +42,7 @@ public class AgDashboardService : IAgDashboardService
     // Cost totals convert into this; per-project rows keep their own currency.
     private static async Task<string> ResolveDistrictTargetCurrencyAsync(MySqlConnection conn, int anyClubId)
     {
-        if (anyClubId <= 0) return "INR";
+        if (anyClubId <= 0) return RotaryApi.Services.Brand.DefaultCurrency;
         var row = await conn.QueryFirstOrDefaultAsync<dynamic>(@"
             SELECT d.DefaultCurrency AS DefaultCurrency, d.Country AS Country
             FROM club_master c
@@ -1352,7 +1352,7 @@ public class AgDashboardService : IAgDashboardService
                               COALESCE(aof.name,'') AS areaOfFocus,
                               COALESCE(cat.name,'') AS category,
                               COALESCE(p.project_cost, 0) AS cost,
-                              COALESCE(p.Currency, 'INR') AS currency,
+                              COALESCE(p.Currency, '{RotaryApi.Services.Brand.SqlCurrency}') AS currency,
                               COALESCE(p.direct_beneficiaries, 0) AS beneficiaries,
                               (COALESCE(p.rotarians_involved,0) + COALESCE(p.rotaractors_involved,0)) AS rotarians,
                               COALESCE(p.man_hours, 0) AS manHours,
@@ -1380,7 +1380,7 @@ public class AgDashboardService : IAgDashboardService
                               COALESCE(aof.name,'') AS areaOfFocus,
                               COALESCE(cat.name,'') AS category,
                               COALESCE(p.project_cost, 0) AS cost,
-                              COALESCE(p.Currency, 'INR') AS currency,
+                              COALESCE(p.Currency, '{RotaryApi.Services.Brand.SqlCurrency}') AS currency,
                               COALESCE(p.direct_beneficiaries, 0) AS beneficiaries,
                               (COALESCE(p.rotarians_involved,0) + COALESCE(p.rotaractors_involved,0)) AS rotarians,
                               0 AS manHours,

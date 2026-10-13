@@ -1,14 +1,19 @@
 ﻿import type { Metadata } from "next";
 import PolicyPageLayout from "@/components/public/PolicyPageLayout";
-import { MERCHANT } from "@/lib/merchantInfo";
+import { merchantFrom } from "@/lib/merchantInfo";
+import { getServerBrand } from "@/lib/brand";
 
-export const metadata: Metadata = {
-  title: "About Us — ROW",
-  description:
-    "About the ROW administration platform — who we are, what we do, and the values that guide us.",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const brand = await getServerBrand();
+  return {
+    title: `About Us — ${brand.productName}`,
+    description:
+      `About the ${brand.productName} administration platform — who we are, what we do, and the values that guide us.`,
+  };
+}
 
-export default function AboutPage() {
+export default async function AboutPage() {
+  const MERCHANT = merchantFrom(await getServerBrand());
   return (
     <PolicyPageLayout
       title="About Us"

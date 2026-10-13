@@ -12,7 +12,7 @@ import {
 } from "@/components/pages/leaders/data";
 
 export const metadata: Metadata = {
-  title: "Our Leaders | Rotary Zones 4, 5, 6, 7 & 8",
+  title: "Our Leaders | ROW",
   description:
     "Visionary leaders guiding Rotary's mission across India, Sri Lanka, Nepal, Maldives & Bhutan.",
 };
@@ -105,7 +105,7 @@ export default function OurLeadersPage() {
             <div className="min-w-0 flex-1">
               <div data-animate="rule" className="rule-gold" />
               <p data-animate="up" data-animate-duration="0.7" className="eyebrow mt-3.5">
-                Zones 4, 5, 6, 7 &amp; 8
+                the zones
               </p>
               <h2
                 data-animate="up"

@@ -5,24 +5,16 @@ namespace RotaryApi.Services.RotaryOrg;
 
 public class ClubCacheRefreshService : IClubCacheRefreshService
 {
-    // Auto-refresh runs ONCE a day at 08:00 India time. Single source of truth for the schedule;
+    // Auto-refresh runs ONCE a day at 08:00 in the brand's time zone. Single source of truth for the schedule;
     // the background service and the "next auto-refresh" display both use GetNextScheduledRunUtc().
     private static readonly TimeSpan ScheduledLocalTime = new(8, 0, 0); // 08:00
 
-    private static TimeZoneInfo IndiaTimeZone()
-    {
-        try { return TimeZoneInfo.FindSystemTimeZoneById("India Standard Time"); }   // Windows
-        catch
-        {
-            try { return TimeZoneInfo.FindSystemTimeZoneById("Asia/Kolkata"); }      // Linux/IANA
-            catch { return TimeZoneInfo.Utc; }
-        }
-    }
+    private static TimeZoneInfo BrandZone() => Brand.TimeZone;
 
-    // The next 08:00 India-time occurrence, returned in UTC (Kind=Utc so it serialises with a 'Z').
+    // The next 08:00 in the brand time zone, returned in UTC (Kind=Utc so it serialises with a 'Z').
     public static DateTime GetNextScheduledRunUtc(DateTime? fromUtc = null)
     {
-        var tz = IndiaTimeZone();
+        var tz = BrandZone();
         var nowUtc = fromUtc ?? DateTime.UtcNow;
         var nowLocal = TimeZoneInfo.ConvertTimeFromUtc(nowUtc, tz);
         var todayRun = nowLocal.Date + ScheduledLocalTime;               // today 08:00 local
@@ -45,7 +37,7 @@ public class ClubCacheRefreshService : IClubCacheRefreshService
     {
         var sw = System.Diagnostics.Stopwatch.StartNew();
 
-        // One bulk /clubs call (all India clubs). GetClubsAsync throws on a non-200; a 200 with an
+        // One bulk /clubs call (all clubs in scope). GetClubsAsync throws on a non-200; a 200 with an
         // EMPTY body deserialises to an empty list — that's the dangerous case handled below.
         var orgAll = await _api.GetClubsAsync(ct);
 
@@ -79,7 +71,7 @@ public class ClubCacheRefreshService : IClubCacheRefreshService
                     Name = c.ClubName,
                     Type = c.ClubType,
                     District = c.DistrictId?.ToString() ?? "",
-                    Country = c.ClubCountry ?? "India",
+                    Country = c.ClubCountry,   // ROW: a club with no country is stored with none (the original assumed India)
                     MemberCount = c.MemberCount,
                     Now = nowUtc,
                 });

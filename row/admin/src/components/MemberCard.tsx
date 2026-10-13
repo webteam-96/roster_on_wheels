@@ -43,7 +43,6 @@ export default function MemberCard({ member, onDelete, isSuperAdmin, isAdmin: is
   const roles = memberRoles?.[member.id] || [];
   const isAdmin = roles.includes("Admin");
   const showBloodGroup = useFeature("member.bloodGroup");
-  const isMemberSuperAdmin = roles.includes("SuperAdmin");
 
   return (
     <Card className="overflow-hidden hover:shadow-xl hover:-translate-y-1 transition-all duration-200 border-primary/20 cursor-pointer group">
@@ -110,7 +109,7 @@ export default function MemberCard({ member, onDelete, isSuperAdmin, isAdmin: is
                       Delete
                     </DropdownMenuItem>
                   )}
-                  {(isSuperAdmin || isLoggedInAdmin) && !isMemberSuperAdmin && (
+                  {(isSuperAdmin || isLoggedInAdmin) && (   /* SuperAdmin members can be made Admin too (2026-10-09) */
                     <>
                       <DropdownMenuSeparator />
                       {isAdmin ? (

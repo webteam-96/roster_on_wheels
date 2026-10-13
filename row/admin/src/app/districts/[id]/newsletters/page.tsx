@@ -22,6 +22,7 @@ import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import SendStatusBadges from "@/components/SendStatusBadges";
 
+import { appLocale } from "@/lib/appFormat";
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 const STATUS_OPTIONS = [{ value: "all", label: "All" }, { value: "Published", label: "Published" }, { value: "Expired", label: "Expired" }, { value: "Unpublished", label: "Unpublished" }];
 
@@ -92,7 +93,7 @@ export default function DistrictNewslettersPage() {
     catch { setDeleteTarget(null); setErrorMessage("Failed to delete newsletter."); }
   };
 
-  const formatDateTime = (dateStr: string | null) => { if (!dateStr) return "-"; return new Date(dateStr).toLocaleString("en-IN", { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" }); };
+  const formatDateTime = (dateStr: string | null) => { if (!dateStr) return "-"; return new Date(dateStr).toLocaleString(appLocale(), { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" }); };
 
   const filteredNewsletters = newsletters.filter((nl) => { if (!searchQuery) return true; const q = searchQuery.toLowerCase(); return (nl.title || "").toLowerCase().includes(q) || (nl.status || "").toLowerCase().includes(q); });
 

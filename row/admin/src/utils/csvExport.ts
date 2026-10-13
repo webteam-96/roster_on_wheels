@@ -2,6 +2,7 @@ import XLSX from "xlsx-js-style";
 import { getActiveBrand } from "@/lib/brand";
 import { fileTimestamp } from "@/lib/dateUtils";
 
+import { appLocale } from "@/lib/appFormat";
 interface CsvColumn {
   key: string;
   label: string;
@@ -137,7 +138,7 @@ function formatValue(val: any): string {
   if (typeof val === "string" && /^\d{4}-\d{2}-\d{2}T/.test(val)) {
     const d = new Date(val);
     if (!isNaN(d.getTime()) && d.getFullYear() > 2000) {
-      return d.toLocaleString("en-IN", { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" });
+      return d.toLocaleString(appLocale(), { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" });
     }
   }
   return String(val);
@@ -201,7 +202,7 @@ export function exportMonthlyPivot(opts: {
 }) {
   const { filename, title, subtitle, leadCols, groups, rows } = opts;
   const now = new Date();
-  const dateStr = now.toLocaleString("en-IN", { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" });
+  const dateStr = now.toLocaleString(appLocale(), { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" });
 
   // Flatten all columns left→right (lead cols first, then each group's cols).
   const flat: { key: string; width?: number }[] = [
@@ -402,7 +403,7 @@ export function exportToCSV(
   if (data.length === 0) return;
 
   const now = new Date();
-  const dateStr = now.toLocaleString("en-IN", {
+  const dateStr = now.toLocaleString(appLocale(), {
     day: "2-digit", month: "short", year: "numeric",
     hour: "2-digit", minute: "2-digit",
   });

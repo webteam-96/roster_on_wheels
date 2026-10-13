@@ -19,10 +19,10 @@ import { useAuth } from "@/contexts/AuthContext";
 import { ArrowLeft, Plus, Smartphone, Loader2 } from "lucide-react";
 import { getMobileVersions, createMobileVersion } from "@/services/api";
 
-const DEFAULT_URL = "https://itunes.apple.com/in/app/viewSoftwareUpdate/id682238809?mt=8";
+const DEFAULT_URL = process.env.NEXT_PUBLIC_IOS_APP_URL ?? "";
 // Default store URLs — pre-filled but fully editable in the Add dialog.
-const DEFAULT_PLAY_STORE_URL = "https://play.google.com/store/apps/details?id=com.SampleApp.row";
-const DEFAULT_APP_STORE_URL = "https://apps.apple.com/us/app/rotary-zones-4-5-6-7-8/id682238809";
+const DEFAULT_PLAY_STORE_URL = process.env.NEXT_PUBLIC_ANDROID_APP_URL ?? "";
+const DEFAULT_APP_STORE_URL = process.env.NEXT_PUBLIC_IOS_APP_URL ?? "";
 
 export default function MobileVersionPage() {
   const { isSuperAdmin } = useAuth();

@@ -12,6 +12,7 @@ import RotaryLoader from "@/components/RotaryLoader";
 import { formatBirthAnniversary } from "@/lib/dateUtils";
 import { useFeature } from "@/contexts/BrandContext";
 
+import { appLocale } from "@/lib/appFormat";
 interface MemberDetailDialogProps {
   memberId: number | null;
   open: boolean;
@@ -38,7 +39,7 @@ export default function MemberDetailDialog({ memberId, open, onClose }: MemberDe
 
   const formatDate = (d: string | null) => {
     if (!d) return "—";
-    try { return new Date(d).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" }); } catch { return "—"; }
+    try { return new Date(d).toLocaleDateString(appLocale(), { day: "2-digit", month: "short", year: "numeric" }); } catch { return "—"; }
   };
 
   return (

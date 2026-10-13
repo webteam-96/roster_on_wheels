@@ -19,6 +19,7 @@ import RotaryLoader from "@/components/RotaryLoader";
 import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";
 
+import { appLocale } from "@/lib/appFormat";
 const STATUS_OPTIONS = [
   { value: "all", label: "All" },
   { value: "Draft", label: "Draft" },
@@ -112,7 +113,7 @@ export default function RiDirectorMassEmailsPage() {
   };
 
   const totalPages = Math.ceil(totalCount / pageSize);
-  const formatDateTime = (s: string | null) => s ? new Date(s).toLocaleString("en-IN", { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" }) : "-";
+  const formatDateTime = (s: string | null) => s ? new Date(s).toLocaleString(appLocale(), { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" }) : "-";
 
   return (
     <ProtectedRoute>

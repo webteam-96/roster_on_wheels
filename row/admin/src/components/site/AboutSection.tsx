@@ -66,7 +66,7 @@ export function AboutSection() {
             className="flex flex-col rounded-[24px] bg-porcelain p-7 ring-1 ring-navy-950/[0.06] lg:col-span-5 lg:row-span-2 lg:p-9"
           >
             <p className="text-[15px] leading-relaxed text-ink/75 sm:text-base">
-              We are a vibrant network of Rotary Clubs across Zones 4, 5, 6, 7 &amp; 8.
+              We are a vibrant network of Rotary Clubs across the zones.
               Rooted in the spirit of &ldquo;Service Above Self&rdquo;,
               we bring together leaders, professionals, and community members to connect
               passion with purpose.

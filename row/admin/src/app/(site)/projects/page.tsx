@@ -6,9 +6,9 @@ import { SAMPLE_PROJECTS } from "@/components/pages/projects/sampleProjects";
 import { driftedOverview, getSnapshot } from "@/lib/projectStatsServer";
 
 export const metadata: Metadata = {
-  title: "Projects | Rotary Zones 4, 5, 6, 7 & 8",
+  title: "Projects | ROW",
   description:
-    "Service on the ground across Rotary Zones 4, 5, 6, 7 & 8 — browse club projects by state, district, club and area of focus.",
+    "Service on the ground across ROW — browse club projects by state, district, club and area of focus.",
 };
 
 // The overview is handed down from the server-side snapshot (src/lib/statsCache.ts), so

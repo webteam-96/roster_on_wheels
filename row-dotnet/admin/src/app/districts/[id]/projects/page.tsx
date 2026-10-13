@@ -17,6 +17,7 @@ import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { formatMoney } from "@/lib/currency";
 
+import { appLocale, currencySymbol } from "@/lib/appFormat";
 export default function DistrictProjectsPage() {
   const params = useParams();
   const router = useRouter();
@@ -113,7 +114,7 @@ export default function DistrictProjectsPage() {
                     <TableHead className="text-primary-foreground">Sr.</TableHead>
                     <TableHead className="text-primary-foreground">Title</TableHead>
                     <TableHead className="text-primary-foreground">Date</TableHead>
-                    <TableHead className="text-primary-foreground text-right">Cost (₹)</TableHead>
+                    <TableHead className="text-primary-foreground text-right">Cost ({currencySymbol()})</TableHead>
                     <TableHead className="text-primary-foreground text-center">Beneficiaries</TableHead>
                     <TableHead className="text-primary-foreground">Area of Focus</TableHead>
                     <TableHead className="text-primary-foreground w-12"></TableHead>
@@ -124,7 +125,7 @@ export default function DistrictProjectsPage() {
                     <TableRow key={item.id}>
                       <TableCell>{(page - 1) * 20 + idx + 1}</TableCell>
                       <TableCell className="font-medium">{item.title}</TableCell>
-                      <TableCell>{item.projectDate ? new Date(item.projectDate).toLocaleDateString("en-IN") : "—"}</TableCell>
+                      <TableCell>{item.projectDate ? new Date(item.projectDate).toLocaleDateString(appLocale()) : "—"}</TableCell>
                       <TableCell className="text-right">{item.projectCost ? formatMoney(item.projectCost, item.currency) : "—"}</TableCell>
                       <TableCell className="text-center">{item.directBeneficiaries || "—"}</TableCell>
                       <TableCell>{item.areaOfFocusName || "—"}</TableCell>

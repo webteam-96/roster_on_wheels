@@ -198,7 +198,7 @@ public class ClubSyncService : IClubSyncService
                                 ROW_as_vendor_selected,
                                 created_date, isdeleted
                             ) VALUES (
-                                @DistrictPk, @ClubRotaryId, @ClubName, 'Asia/Kolkata',
+                                @DistrictPk, @ClubRotaryId, @ClubName, @Tz,
                                 @CharterDate, @MeetingDay, @MeetingFromTime, @MeetingAddress,
                                 @Country, @State, @City, @PinCode,
                                 @ActiveFrom, @ActiveTo,
@@ -209,6 +209,7 @@ public class ClubSyncService : IClubSyncService
                             )",
                             new
                             {
+                                Tz = RotaryApi.Services.Brand.DefaultTimeZone,   // ROW: the brand's zone (the original: Asia/Kolkata)
                                 DistrictPk = localDistrictId,
                                 ClubRotaryId = clubRotaryIdStr,
                                 ClubName = detail.ClubName ?? club.ClubName,

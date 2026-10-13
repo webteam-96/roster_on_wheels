@@ -6,7 +6,7 @@ namespace RotaryApi.Services;
 
 // Zoom Server-to-Server OAuth. Registered as a singleton so the access token (valid ~1h) is
 // cached and shared across requests. All times are sent in the configured IANA timezone
-// (Asia/Kolkata) with a naive start_time, so Zoom interprets them as local wall-clock.
+// (default: the brand time zone) with a naive start_time, so Zoom interprets them as local wall-clock.
 public class ZoomMeetingService : IZoomMeetingService
 {
     private readonly IHttpClientFactory _httpFactory;
@@ -27,7 +27,7 @@ public class ZoomMeetingService : IZoomMeetingService
     private string BaseUrl => (_config["Zoom:BaseUrl"] ?? "https://api.zoom.us/v2").TrimEnd('/');
     private string OAuthUrl => _config["Zoom:OAuthUrl"] ?? "https://zoom.us/oauth/token";
     private string HostUserId => _config["Zoom:HostUserId"] ?? "me";
-    private string Timezone => _config["Zoom:Timezone"] ?? "Asia/Kolkata";
+    private string Timezone => _config["Zoom:Timezone"] ?? Brand.DefaultTimeZone;
 
     private static bool Present(string? v) =>
         !string.IsNullOrWhiteSpace(v) && !v.Contains("PLACEHOLDER", StringComparison.OrdinalIgnoreCase);

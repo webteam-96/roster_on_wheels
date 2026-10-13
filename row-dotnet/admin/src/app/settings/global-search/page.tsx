@@ -269,6 +269,7 @@ export default function GlobalSearchPage() {
               // Once ANY row is navigating, dim everything else so the SA
               // can't queue up extra clicks while the first one's still loading.
               const isOtherNavigating = navigatingKey != null && !isNavigating && !isNavigatingNew;
+              const isRotaract = row.type === "club" && row.clubType === "Rotaract Club";
               // The row itself opens the new dashboard; this icon is the way back to the old one.
               const dashboardIcon = row.type === "zone" ? null : (
                 <button
@@ -398,6 +399,12 @@ export default function GlobalSearchPage() {
                             ) : (
                               <span className="text-slate-500">No website</span>
                             )}
+                          </span>
+                          <span>
+                            Type:&nbsp;
+                            <span className={isRotaract ? "text-pink-600 font-medium" : "text-slate-700 font-medium"}>
+                              {row.clubType || "Rotary Club"}
+                            </span>
                           </span>
                           {dashboardIcon}
                         </div>

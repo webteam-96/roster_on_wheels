@@ -35,6 +35,7 @@ import ErrorAlert from "@/components/ErrorAlert";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { useSyncClubIdFromUrl } from "@/hooks/useSyncClubIdFromUrl";
 
+import { currencySymbol } from "@/lib/appFormat";
 interface EventMember {
   id: number;
   memberName?: string;
@@ -185,7 +186,7 @@ export default function EventMembersV2Page() {
                 <td className="px-3 py-2 text-slate-700 max-w-[180px] truncate">{m.email || "—"}</td>
                 <td className="px-3 py-2 text-slate-700">{m.registrationType || "—"}</td>
                 <td className="px-3 py-2 text-right tabular-nums text-slate-700">
-                  {m.amount ? `₹${m.amount.toFixed(2)}` : "—"}
+                  {m.amount ? `${currencySymbol()}${m.amount.toFixed(2)}` : "—"}
                 </td>
                 {isPaidTab && (
                   <td className="px-3 py-2 text-xs text-slate-500 whitespace-nowrap">

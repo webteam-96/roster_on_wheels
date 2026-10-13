@@ -34,20 +34,32 @@ public class PublicProjectStatsController : ControllerBase
 
     // Per-currency cost buckets computed in a single scan; summed into one INR total in C#
     // (public/all-zones figures are INR-canonical). Selected in place of SUM(u.ProjectCost).
-    private const string CostBuckets = @"
-                   COALESCE(SUM(CASE WHEN u.Currency='USD' THEN u.ProjectCost ELSE 0 END),0) AS costUsd,
-                   COALESCE(SUM(CASE WHEN u.Currency='NPR' THEN u.ProjectCost ELSE 0 END),0) AS costNpr,
-                   COALESCE(SUM(CASE WHEN u.Currency='LKR' THEN u.ProjectCost ELSE 0 END),0) AS costLkr,
-                   COALESCE(SUM(CASE WHEN u.Currency NOT IN ('USD','NPR','LKR') THEN u.ProjectCost ELSE 0 END),0) AS costInr";
+    // ROW (as the NestJS edition): one cost bucket per brand currency plus "other", each converted into the
+    // brand's default currency (the original platform: fixed INR / USD / NPR / LKR buckets, everything else counted as INR).
+    private static IEnumerable<string> BucketCurrencies =>
+        Brand.Currencies.Select(c => c.Trim().ToUpperInvariant()).Where(c => System.Text.RegularExpressions.Regex.IsMatch(c, "^[A-Z]{3}$")).Distinct();
 
-    private async Task<decimal> ToInrCostAsync(dynamic row)
+    private static string CostBuckets
     {
-        var r = await _fx.GetInrRatesAsync();
-        return (decimal)row.costInr
-             + CurrencyHelper.Convert((decimal)row.costUsd, "USD", "INR", r)
-             + CurrencyHelper.Convert((decimal)row.costNpr, "NPR", "INR", r)
-             + CurrencyHelper.Convert((decimal)row.costLkr, "LKR", "INR", r);
+        get
+        {
+            var cs = BucketCurrencies.ToList();
+            var parts = cs.Select(c => $"COALESCE(SUM(CASE WHEN u.Currency='{c}' THEN u.ProjectCost ELSE 0 END),0) AS `cost_{c}`").ToList();
+            var other = cs.Count > 0 ? $"u.Currency NOT IN ({string.Join(",", cs.Select(c => $"'{c}'"))}) OR u.Currency IS NULL" : "1=1";
+            parts.Add($"COALESCE(SUM(CASE WHEN {other} THEN u.ProjectCost ELSE 0 END),0) AS cost__other");
+            return string.Join(",\n                   ", parts);
+        }
     }
+
+    /// <summary>A row's cost buckets as one amount in the brand's default currency ("other" is taken as already in it).</summary>
+    private static decimal ToDefaultCost(object row, IReadOnlyDictionary<string, decimal> rates)
+    {
+        var d = (IDictionary<string, object?>)row;
+        decimal Val(string k) => d.TryGetValue(k, out var v) && v is not null and not DBNull ? Convert.ToDecimal(v) : 0m;
+        return BucketCurrencies.Aggregate(Val("cost__other"), (sum, c) => sum + CurrencyHelper.Convert(Val($"cost_{c}"), c, Brand.DefaultCurrency, rates));
+    }
+
+    private async Task<decimal> ToInrCostAsync(dynamic row) => ToDefaultCost((object)row, await _fx.GetInrRatesAsync());
 
     // The 5 project avenues (club_service is a meeting, excluded from the projects feed) and
     // the club → district → zone chain. BOTH come from ProjectCountFilter, which is also what
@@ -167,7 +179,7 @@ public class PublicProjectStatsController : ControllerBase
             SELECT p.pk_project_id AS Id, p.fk_year_id AS YearId, '{t.YearLabel}' AS YearLabel,
                    CONVERT(p.title USING utf8mb4) AS Title, p.project_date AS ProjectDate,
                    COALESCE(p.project_cost, 0) AS ProjectCost,
-                   CONVERT(COALESCE(p.Currency, 'INR') USING utf8mb4) AS Currency,
+                   CONVERT(COALESCE(p.Currency, '{RotaryApi.Services.Brand.SqlCurrency}') USING utf8mb4) AS Currency,
                    COALESCE(p.direct_beneficiaries, 0) AS DirectBeneficiaries,
                    COALESCE(p.man_hours, 0) AS ManHours, COALESCE(p.rotarians_involved, 0) AS Rotarians,
                    COALESCE(p.fk_area_of_focus_id, 0) AS AreaId,
@@ -252,10 +264,7 @@ public class PublicProjectStatsController : ControllerBase
             long n = Convert.ToInt64(r.totalProjects);
             if (n <= 0) continue;                       // a year table with nothing visible
             var label = (string)r.yearLabel;
-            decimal cost = Convert.ToDecimal(r.costInr)
-                + CurrencyHelper.Convert(Convert.ToDecimal(r.costUsd), "USD", "INR", rates)
-                + CurrencyHelper.Convert(Convert.ToDecimal(r.costNpr), "NPR", "INR", rates)
-                + CurrencyHelper.Convert(Convert.ToDecimal(r.costLkr), "LKR", "INR", rates);
+            decimal cost = ToDefaultCost((object)r, rates);
             long ben = Convert.ToInt64(r.totalBeneficiaries);
 
             totalProjects += n;

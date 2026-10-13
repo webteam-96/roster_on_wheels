@@ -105,9 +105,9 @@ export default function ClubWebsiteDataPage() {
                     <p>These modules are inactive until a club website is created for your club.</p>
                     <p>
                       For assistance, please contact support:
-                      {" "}<span className="font-medium">+91 8424064369</span> / <span className="font-medium">+91 8928755144</span>
+                      {" "}<span className="font-medium"></span> / <span className="font-medium"></span>
                       {" "}(Mon&ndash;Fri, 10:00 AM &ndash; 6:30 PM)
-                      {" "}or email <a href="mailto:support@rizones45678.org" className="font-medium underline">support@rizones45678.org</a>.
+                      {" "}or email <a href="mailto:support@example.org" className="font-medium underline">support@example.org</a>.
                     </p>
                   </div>
                 )}

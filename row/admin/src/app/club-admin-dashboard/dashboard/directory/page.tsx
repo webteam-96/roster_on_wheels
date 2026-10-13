@@ -21,6 +21,7 @@ import KpiCard from "@/components/dashboard/KpiCard";
 import { fmtInt } from "@/components/dashboard/formatters";
 import { formatBirthAnniversary } from "@/lib/dateUtils";
 
+import { appLocale } from "@/lib/appFormat";
 const PAGE_SIZE_OPTIONS = [10, 20, 50, 100] as const;
 const DEFAULT_PAGE_SIZE = 20;
 const PAGE_SIZE_STORAGE_KEY = "directory_page_size";
@@ -37,7 +38,7 @@ function initials(name: string): string {
 function fmtDate(d: string | null | undefined): string {
   if (!d) return "—";
   try {
-    return new Date(d).toLocaleDateString("en-IN", {
+    return new Date(d).toLocaleDateString(appLocale(), {
       day: "2-digit", month: "short", year: "numeric",
     });
   } catch {

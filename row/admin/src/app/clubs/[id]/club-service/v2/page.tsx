@@ -50,7 +50,7 @@ const MEETING_TYPE_LABELS: Record<string, string> = {
 
 const AGREE_MESSAGE = `The data I will enter is for a Meeting / Event conducted by my club. E.g., Installation, Navratri Celebration, Weekly Meetings, Etc.
 
-Please Note: The content posted here will be displayed on the Rotary Zones 4, 5, 6, 7 & 8 Website, District Website, Club Monthly Report & Rotary Zones 4, 5, 6, 7 & 8 Integrated Club Website`;
+Please Note: The content posted here will be displayed on the ROW Website, District Website, Club Monthly Report & ROW Integrated Club Website`;
 
 function meetingTypeChipStyle(t: string): string {
   switch ((t || "").toLowerCase()) {

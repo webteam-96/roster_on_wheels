@@ -1,5 +1,5 @@
--- Columns and indexes the ported API uses that RIZones never creates in code
--- (DatabaseInitializer / SQL patches): they were added by hand to the RIZones
+-- Columns and indexes the ported API uses that ROW never creates in code
+-- (DatabaseInitializer / SQL patches): they were added by hand to the ROW
 -- production database. Apply after schema.sql. Every statement is idempotent.
 
 DELIMITER //
@@ -36,5 +36,14 @@ CALL row_add_column_if_missing('club_website_advertisement', 'link_url', 'VARCHA
 CALL row_add_column_if_missing('club_master', 'ClubCode', 'VARCHAR(50) NULL AFTER ClubName');
 -- RotaryOrgSyncWorker member sweep / sync-exceptions screen: did the member still land (1) or not (0).
 CALL row_add_column_if_missing('sync_exception_log', 'inserted', 'TINYINT(1) NOT NULL DEFAULT 0 AFTER fk_member_master_profile_id');
+
+-- Global member search: committee memberships looked up by member (upstream 2026-10-08).
+SET @has_idx := (SELECT COUNT(*) FROM information_schema.statistics
+                 WHERE table_schema = DATABASE() AND table_name = 'district_committee_group_member'
+                   AND index_name = 'idx_dcgm_member');
+SET @sql := IF(@has_idx = 0, 'ALTER TABLE district_committee_group_member ADD INDEX idx_dcgm_member (fk_member_id)', 'SELECT 1');
+PREPARE stmt FROM @sql;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
 
 DROP PROCEDURE row_add_column_if_missing;

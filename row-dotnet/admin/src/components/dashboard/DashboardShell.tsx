@@ -22,6 +22,8 @@ import DashboardSwitcher from "./DashboardSwitcher";
 import ComingSoonStub from "./ComingSoonStub";
 import ScopePicker from "./ScopePicker";
 import { useComingSoonModules } from "@/hooks/useComingSoonModules";
+import { useBrand } from "@/contexts/BrandContext";
+import { isFeatureOn } from "@/lib/brand";
 
 export interface NavItem {
   to: string;
@@ -42,6 +44,10 @@ export interface NavItem {
    *  Treasurer). The consuming layout resolves officer status and filters these out
    *  for everyone else BEFORE passing `nav` to the shell. */
   officerOnly?: boolean;
+  /** Instance feature flag (lib/brand.ts FEATURE_DEFAULTS). When the flag is off the
+   *  item is hidden for everyone, SuperAdmin included, and its URL shows a notice.
+   *  Unlike moduleKey (per district/club), this is an instance-wide switch. */
+  feature?: string;
 }
 
 export interface DashboardShellProps {
@@ -157,9 +163,11 @@ export default function DashboardShell({
 
   // SuperAdmin sees everything regardless of Coming Soon flags — matches the
   // existing pattern on the old club dashboard.
+  const brandInfo = useBrand();
+  const instanceNav = nav.filter((n) => !n.feature || isFeatureOn(brandInfo, n.feature));
   const visibleNav = isSuperAdmin
-    ? nav
-    : nav.filter((n) => !n.superAdminOnly && (!n.moduleKey || !comingSoonByKey[n.moduleKey]?.isComingSoon));
+    ? instanceNav
+    : instanceNav.filter((n) => !n.superAdminOnly && (!n.moduleKey || !comingSoonByKey[n.moduleKey]?.isComingSoon));
 
   // Does the CURRENT route map to a module that's Coming Soon? If so, render
   // the stub in place of the page content (covers users who hit a deep link
@@ -459,7 +467,14 @@ export default function DashboardShell({
         </header>
 
         <main className="flex-1 overflow-y-auto p-6">
-          {currentIsComingSoon && currentItem ? (
+          {currentItem?.feature && !isFeatureOn(brandInfo, currentItem.feature) ? (
+            <div className="flex min-h-[60vh] items-center justify-center text-center">
+              <div className="max-w-md rounded-2xl border bg-white p-8 shadow-sm">
+                <h2 className="text-xl font-bold text-slate-800">{currentItem.label}</h2>
+                <p className="mt-3 text-sm text-slate-600">This section is not available on {brandInfo.productName}.</p>
+              </div>
+            </div>
+          ) : currentIsComingSoon && currentItem ? (
             <ComingSoonStub
               moduleName={currentItem.label}
               comingSoonDate={currentComingSoonDate}

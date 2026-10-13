@@ -36,7 +36,7 @@ public class ClubNonSyncCascadeWorker
     private static readonly string[] TargetCountries = { "India", "Sri Lanka", "Nepal" };
 
     // Districts that must NEVER be cascaded (system/internal). Matched on district_master.DistrictNumber.
-    private static readonly string[] ExemptDistrictNumbers = { "5656", "1280", "IFRM India" };
+    private static string[] ExemptDistrictNumbers => RotaryApi.Services.Brand.ExemptDistricts;   // ROW: Brand:Scope:ExemptDistricts
 
     private readonly IRotaryOrgApiClient _api;
     private readonly EmailReportSender _emailSender;

@@ -6,7 +6,7 @@ import { ContactChannels } from "@/components/pages/contact/ContactChannels";
 import { SupportFeatures } from "@/components/pages/contact/SupportFeatures";
 
 export const metadata: Metadata = {
-  title: "Contact Us | Rotary Zones 4, 5, 6, 7 & 8",
+  title: "Contact Us | ROW",
   description:
     "We are here to help you. Reach out to us for any queries or support.",
 };
@@ -58,10 +58,10 @@ export default function ContactUsPage() {
               <h3 className="mt-5 font-display text-lg font-[450] tracking-tight text-navy-950">
                 Rotary International
                 <br />
-                Zones 4, 5, 6, 7 &amp; 8
+                the zones
               </h3>
               <p className="mt-2 text-[14px] leading-relaxed text-muted">
-                Serving clubs and districts across Zones 4, 5, 6, 7 &amp; 8.
+                Serving clubs and districts across the zones.
               </p>
               <a
                 href={MAPS_URL}

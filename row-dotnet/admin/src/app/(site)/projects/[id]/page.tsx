@@ -98,7 +98,7 @@ export default async function ProjectDetailPage({
   const area = p.areaOfFocus?.trim() || null;
 
   /* NUMBER ROW — the three persuasive figures, one ruled ledger row.
-     Cost carries the project's OWN currency (₹ INR when unset); the counter
+     Cost carries the project's OWN currency (the brand's when unset); the counter
      animates the full amount, matching the People/Man-hours cells beside it. */
   const costSymbol = getCurrencySymbol(p.currency);
   const numberRow = [

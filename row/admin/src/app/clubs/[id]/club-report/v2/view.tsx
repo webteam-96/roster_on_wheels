@@ -535,7 +535,7 @@ export function ClubReportV2PageImpl({ clubId: propClubId, embedded = false, yea
 
                 {/* 1. Mobile-app active users (LastDeviceName populated) */}
                 <SectionRow
-                  title="Members (Active users in Rotary Zones 4, 5, 6, 7 & 8 App)"
+                  title="Members (Active users in ROW App)"
                   icon={Users}
                   count={report.appUsers?.length || 0}
                   onExport={() =>

@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { getCurrencySymbol } from "@/lib/currency";
 
+import { appLocale } from "@/lib/appFormat";
 /* -- Section wrapper with icon + title -- */
 function Section({ icon: Icon, title, children, number }: {
   icon: React.ElementType;
@@ -49,7 +50,7 @@ function DetailRow({ label, value }: { label: string; value: React.ReactNode }) 
 }
 
 function formatDate(dateStr: string): string {
-  return new Date(dateStr).toLocaleDateString("en-IN", {
+  return new Date(dateStr).toLocaleDateString(appLocale(), {
     day: "2-digit",
     month: "short",
     year: "numeric",
@@ -57,7 +58,7 @@ function formatDate(dateStr: string): string {
 }
 
 function formatCost(cost: number, currency?: string | null): string {
-  return `${getCurrencySymbol(currency)}${cost.toLocaleString("en-IN")}`;
+  return `${getCurrencySymbol(currency)}${cost.toLocaleString(appLocale())}`;
 }
 
 export default function PublicImageInitiativeViewPage() {
@@ -229,16 +230,16 @@ export default function PublicImageInitiativeViewPage() {
             {project.globalPartnerClubsDistricts && <DetailRow label="Global Partner Clubs/Districts" value={project.globalPartnerClubsDistricts} />}
             {project.csrCompanyName && <DetailRow label="CSR Company" value={project.csrCompanyName} />}
             {project.manHours != null && (
-              <DetailRow label="Man Hours" value={project.manHours.toLocaleString("en-IN")} />
+              <DetailRow label="Man Hours" value={project.manHours.toLocaleString(appLocale())} />
             )}
             {project.rotariansInvolved != null && (
-              <DetailRow label="Rotarians Involved" value={project.rotariansInvolved.toLocaleString("en-IN")} />
+              <DetailRow label="Rotarians Involved" value={project.rotariansInvolved.toLocaleString(appLocale())} />
             )}
             {project.rccInvolved != null && (
-              <DetailRow label="RCC Involved" value={project.rccInvolved.toLocaleString("en-IN")} />
+              <DetailRow label="RCC Involved" value={project.rccInvolved.toLocaleString(appLocale())} />
             )}
             {project.rotaractorsInvolved != null && (
-              <DetailRow label="Rotaractors Involved" value={project.rotaractorsInvolved.toLocaleString("en-IN")} />
+              <DetailRow label="Rotaractors Involved" value={project.rotaractorsInvolved.toLocaleString(appLocale())} />
             )}
           </div>
         </Section>

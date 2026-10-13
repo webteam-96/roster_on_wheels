@@ -9,7 +9,7 @@ using MySqlConnector;
 namespace RotaryApi.Controllers;
 
 // SuperAdmin WhatsApp Delivery Report — mirrors EmailLogController. One row per recipient
-// per broadcast, with submit status (Sent/Failed) and, once the Interakt delivery webhook
+// per broadcast, with submit status (Sent/Failed) and, once a delivery webhook
 // fires, Delivered/Read/Failed. Filters: date range, recipient (mobile/name), title,
 // status, club, district, and broadcast type.
 [ApiController]
@@ -139,7 +139,7 @@ public class WhatsAppLogController : ControllerBase
         using var wb = new XLWorkbook();
         var ws = wb.Worksheets.Add("WhatsApp Log");
         string[] headers = { "Sent At", "Status", "Recipient Name", "Mobile", "Title", "Type",
-            "Club", "District", "Template", "Interakt Msg Id", "HTTP", "Error", "Delivered At" };
+            "Club", "District", "Template", "Message Id", "HTTP", "Error", "Delivered At" };
         for (int i = 0; i < headers.Length; i++)
         {
             var cell = ws.Cell(1, i + 1);
@@ -205,7 +205,7 @@ public class WhatsAppLogController : ControllerBase
 
     // ── One-time backfill from server log files ──────────────────────────
     // Past broadcasts (sent before per-recipient logging existed) aren't in whatsapp_log.
-    // InteraktService logged every send as: "WhatsApp reminder to {Phone}: {Status} - {Body}".
+    // The original WhatsApp service logged every send as: "WhatsApp reminder to {Phone}: {Status} - {Body}".
     // This parses those lines from a log file/folder into whatsapp_log rows so a historical
     // send (e.g. a specific announcement) becomes visible in the report.
     //
@@ -497,7 +497,7 @@ public class WhatsAppLogController : ControllerBase
         using var wb = new XLWorkbook();
         var ws = wb.Worksheets.Add("WhatsApp Log");
         string[] headers = { "Sent At", "Status", "Recipient Name", "Mobile", "Title", "Type",
-            "Club", "District", "Template", "Interakt Msg Id", "HTTP", "Error", "Delivered At" };
+            "Club", "District", "Template", "Message Id", "HTTP", "Error", "Delivered At" };
         for (int i = 0; i < headers.Length; i++)
         {
             var cell = ws.Cell(1, i + 1);

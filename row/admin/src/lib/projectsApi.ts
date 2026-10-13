@@ -1,9 +1,9 @@
-// Live projects API — the Rotary admin backend at rizones45678.org/API.
+// Live projects API — the Rotary admin backend at portal.example.org/API.
 // Only the public, unauthenticated endpoints are used:
 //   GET /api/public/projects/{id}  -> full project detail + photos
 // Fetched server-side (no CORS concern; valid TLS).
 
-const API_BASE = process.env.PROJECTS_API_BASE || "https://rizones45678.org/API";
+const API_BASE = process.env.PROJECTS_API_BASE || process.env.NEXT_PUBLIC_API_ORIGIN || "";
 
 export type ProjectPhoto = { imagePath: string; description: string | null; isPrimary: boolean };
 

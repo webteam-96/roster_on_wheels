@@ -31,7 +31,7 @@ export async function generateMetadata(): Promise<Metadata> {
   return {
     title: `${brand.productName} | Service Above Self`,
     description:
-      "Rotary Zones 4, 5, 6, 7 & 8 unite clubs across India, Sri Lanka, Nepal, Maldives & Bhutan to serve communities and transform lives.",
+      "ROW unite clubs across India, Sri Lanka, Nepal, Maldives & Bhutan to serve communities and transform lives.",
   };
 }
 

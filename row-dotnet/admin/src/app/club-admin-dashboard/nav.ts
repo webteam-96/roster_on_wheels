@@ -30,7 +30,9 @@ export const CLUB_ADMIN_NAV: NavItem[] = [
   // Payment Links removed from sidebar per user request (still reachable via
   // /club-admin-dashboard/payment-links if anyone bookmarked it).
   // Wallet — self-service credit top-up (Razorpay). No moduleKey => always visible.
-  { to: "/club-admin-dashboard/wallet",                              label: "Wallet" },
+  { to: "/club-admin-dashboard/wallet",                              label: "Wallet",                     feature: "modules.wallet" },
+  // Connect the club's own Stripe / PayPal account (instances without split payments).
+  { to: "/club-admin-dashboard/payment-accounts",                    label: "Payments",                   feature: "payments.connect" },
 ];
 
 // Page titles per route. Top-level keys are the canonical paths; old paths kept
@@ -62,4 +64,5 @@ export const CLUB_ADMIN_PAGE_TITLES: Record<string, string> = {
   "/club-admin-dashboard/website":                                     "My Club Website",
   "/club-admin-dashboard/payments":                                    "Club Dues",
   "/club-admin-dashboard/wallet":                                      "Wallet & Credits",
+  "/club-admin-dashboard/payment-accounts":                            "Payment Accounts",
 };

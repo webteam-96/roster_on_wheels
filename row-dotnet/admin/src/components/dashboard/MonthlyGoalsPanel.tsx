@@ -16,10 +16,11 @@ import { saveAs } from "file-saver";
 import { monthlyFieldLabel } from "@/lib/goalCategories";
 
 import SuccessAlert from "@/components/SuccessAlert";
+import { appLocale } from "@/lib/appFormat";
 const fmt = (v: number | null | undefined, currency: boolean) => {
   if (v == null) return "—";
   // Whole numbers only, everywhere in Goal Setting (user 2026-09-29).
-  const s = Number(v).toLocaleString("en-IN", { maximumFractionDigits: 0 });
+  const s = Number(v).toLocaleString(appLocale(), { maximumFractionDigits: 0 });
   return currency ? `$${s}` : s;
 };
 

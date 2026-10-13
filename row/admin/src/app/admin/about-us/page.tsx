@@ -17,14 +17,14 @@ export default async function AboutPage() {
   return (
     <PolicyPageLayout
       title="About Us"
-      intro="An integrated administration platform serving Rotary clubs across Zones 4, 5, 6, 7 & 8 in India."
+      intro="An integrated administration platform serving Rotary clubs across the zones in India."
     >
       <section>
         <h2>Who We Are</h2>
         <p>
           {MERCHANT.legalName} is the technology initiative that operates this
           Platform. It serves Rotary International&apos;s Districts grouped
-          under Zones 4, 5, 6, 7 and 8 — covering a substantial portion of
+          under the zones — covering a substantial portion of
           Rotary&apos;s activity across the Indian subcontinent.
         </p>
       </section>
@@ -48,7 +48,7 @@ export default async function AboutPage() {
       <section>
         <h2>Who We Serve</h2>
         <ul>
-          <li>Members of Rotary clubs across Zones 4-8 in India;</li>
+          <li>Members of Rotary clubs across the zones in India;</li>
           <li>Club Presidents, Secretaries, Treasurers, Directors, and other office-bearers;</li>
           <li>District Governors, District Administrators, Assistant Governors;</li>
           <li>Rotary International Directors and Rotary Foundation administrators;</li>

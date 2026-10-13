@@ -52,6 +52,7 @@ import type { AnnouncementListItem } from "@/types/announcement";
 import type { DocumentListItem } from "@/types/document";
 import type { NewsletterListItem } from "@/types/newsletter";
 
+import { appLocale } from "@/lib/appFormat";
 // Return to the SAME communication tab the user launched the add/edit from
 // (e.g. edit an announcement → come back to the Announcements tab, not the default).
 const returnQs = (tab: string) => `?returnTo=${encodeURIComponent(`/club-admin-dashboard/communication?tab=${tab}`)}`;
@@ -75,7 +76,7 @@ function fmtDateTime(s: string | null | undefined): string {
   if (!s) return "—";
   const d = new Date(s);
   if (isNaN(d.getTime())) return s;
-  return d.toLocaleString("en-IN", {
+  return d.toLocaleString(appLocale(), {
     day: "2-digit", month: "short", year: "numeric",
     hour: "2-digit", minute: "2-digit",
   });
@@ -85,7 +86,7 @@ function fmtDate(s: string | null | undefined): string {
   if (!s) return "—";
   const d = new Date(s);
   if (isNaN(d.getTime())) return s;
-  return d.toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" });
+  return d.toLocaleDateString(appLocale(), { day: "2-digit", month: "short", year: "numeric" });
 }
 
 function statusChipStyle(status: string): string {

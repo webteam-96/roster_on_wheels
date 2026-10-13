@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
+import { useFeature } from "@/contexts/BrandContext";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
@@ -36,6 +37,7 @@ function stripYearFromBirthAnnivRows<T extends Record<string, unknown>>(rows: T[
 }
 import { exportToCSV } from "@/utils/csvExport";
 
+import { appLocale } from "@/lib/appFormat";
 interface ReportColumn { key: string; label: string; width?: number; hyperlink?: boolean; linkText?: string }
 interface ReportItem {
   id: string;              // unique key
@@ -682,8 +684,22 @@ const sections: ReportSection[] = [
 
 interface DistrictOption { id: number; districtNumber: string }
 
+// Instance member-field flags: drop blood-group and family columns when off.
+function visibleSections(showBloodGroup: boolean, showFamily: boolean): ReportSection[] {
+  if (showBloodGroup && showFamily) return sections;
+  const keep = (c: ReportColumn) =>
+    (showBloodGroup || (c.key !== "bloodGroup" && c.key !== "familyBloodGroup")) &&
+    (showFamily || !c.key.startsWith("family"));
+  return sections.map((section) => ({
+    ...section,
+    items: section.items.map((it) => ({ ...it, columns: it.columns.filter(keep) })),
+  }));
+}
+
 export default function ReportsPage() {
   const { isSuperAdmin } = useAuth();
+  const showBloodGroup = useFeature("member.bloodGroup");
+  const showFamily = useFeature("member.familyDetails");
   const [years, setYears] = useState<RotaryYear[]>([]);
   const [districts, setDistricts] = useState<DistrictOption[]>([]);
   const [selectedYearId, setSelectedYearId] = useState<string>("all");
@@ -734,7 +750,7 @@ export default function ReportsPage() {
       if (item.districtScoped && selectedDistrictId !== "all") suffixParts.push(`D${selectedDistrictLabel}`);
       const suffix = suffixParts.length ? `_${suffixParts.join("_")}` : "";
 
-      const subtitleParts: string[] = [`Exported ${new Date().toLocaleString("en-IN")}`];
+      const subtitleParts: string[] = [`Exported ${new Date().toLocaleString(appLocale())}`];
       if (item.yearScoped && selectedYearId !== "all") subtitleParts.push(`Year ${selectedYearLabel}`);
       if (item.districtScoped && selectedDistrictId !== "all") subtitleParts.push(`District ${selectedDistrictLabel}`);
       exportToCSV(rows, `${item.fileName}${suffix}`, item.columns,
@@ -839,7 +855,7 @@ export default function ReportsPage() {
               </CardContent>
             </Card>
 
-            {sections.map((section) => {
+            {visibleSections(showBloodGroup, showFamily).map((section) => {
               const Icon = section.icon;
               return (
                 <Card key={section.id}>

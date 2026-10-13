@@ -25,6 +25,7 @@ import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import RotaryLoader from "@/components/RotaryLoader";
 
+import { currencySymbol } from "@/lib/appFormat";
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
 interface Registration { id: number; registrationName: string; amount: number; }
@@ -401,7 +402,7 @@ function OfflinePaymentContent() {
               <SelectContent>
                 {registrations.map(r => (
                   <SelectItem key={r.id} value={String(r.id)}>
-                    {r.registrationName} - ₹{r.amount?.toFixed(2)}
+                    {r.registrationName} - {currencySymbol()}{r.amount?.toFixed(2)}
                   </SelectItem>
                 ))}
               </SelectContent>

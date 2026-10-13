@@ -34,7 +34,7 @@ import {
 import ClassificationAssist from "@/components/projects/ClassificationAssist";
 import { consumeProjectSwitchDraft } from "@/lib/projectDraft";
 import { AreaOfFocus, Category, Funding, ProjectPhotoInput } from "@/types/project";
-import { CURRENCY_OPTIONS, getCurrencySymbol, resolveClubDefaultCurrency } from "@/lib/currency";
+import { currencyOptions, getCurrencySymbol, resolveClubDefaultCurrency } from "@/lib/currency";
 import V2FormShell, { useV2ReturnTo } from "@/components/v2/V2FormShell";
 import RotaryLoader from "@/components/RotaryLoader";
 import SuccessAlert from "@/components/SuccessAlert";
@@ -53,6 +53,7 @@ import { isFlowBotEnabled, triggerAddToOrg, fileToDataUrl, type OrgExport, type 
 import ImageCropDialog from "@/components/ImageCropDialog";
 import { useImageCropQueue } from "@/hooks/useImageCropQueue";
 
+import { currencySymbol, defaultCurrency } from "@/lib/appFormat";
 // Project photos are shown 16:9 on the public site (components/pages/projects/shared.tsx),
 // so the crop is locked to that shape. 1600×900 keeps the widest card retina-sharp.
 const PROJECT_PHOTO_ASPECT = 16 / 9;
@@ -168,7 +169,7 @@ export default function VocationalServiceV2AddPage() {
 
   const [projectDate, setProjectDate] = useState("");
   const [projectCost, setProjectCost] = useState("");
-  const [currency, setCurrency] = useState("INR");
+  const [currency, setCurrency] = useState(defaultCurrency());
   const [selectedFundingId, setSelectedFundingId] = useState<string>("");
   // Funding-conditional fields (Global Grant / CSR). Cleared when funding option changes.
   const [globalGrantNumber, setGlobalGrantNumber] = useState("");
@@ -775,7 +776,7 @@ export default function VocationalServiceV2AddPage() {
                 onChange={(e) => setCurrency(e.target.value)}
                 className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-amber-500"
               >
-                {CURRENCY_OPTIONS.map((c) => (
+                {currencyOptions().map((c) => (
                   <option key={c.code} value={c.code}>{c.label}</option>
                 ))}
               </select>
@@ -862,13 +863,13 @@ export default function VocationalServiceV2AddPage() {
                       className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500" />
                   </div>
                   <div>
-                    <FieldLabel dot="bg-amber-500">Amount Sanctioned (₹)</FieldLabel>
+                    <FieldLabel dot="bg-amber-500">Amount Sanctioned ({currencySymbol()})</FieldLabel>
                     <input inputMode="numeric" pattern="[0-9]*" value={amountSanctioned}
                       onChange={(e) => setAmountSanctioned(onlyDigits(e.target.value))} placeholder="0"
                       className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500" />
                   </div>
                   <div>
-                    <FieldLabel dot="bg-amber-500">Amount Received (₹)</FieldLabel>
+                    <FieldLabel dot="bg-amber-500">Amount Received ({currencySymbol()})</FieldLabel>
                     <input inputMode="numeric" pattern="[0-9]*" value={amountReceived}
                       onChange={(e) => setAmountReceived(onlyDigits(e.target.value))} placeholder="0"
                       className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500" />

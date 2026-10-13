@@ -68,7 +68,7 @@ function getMessageFallback({ namespace, key }: { namespace?: string; key: strin
  * Holds the current locale, loads `common`, `errors` and the namespaces of the
  * current route group, and provides them to useTranslations(). The locale comes
  * from the NEXT_LOCALE cookie, then the browser, then the instance default, and
- * is always one of the instance's languages (RIZones: English only).
+ * is always one of the instance's languages (ROW: English only).
  */
 export function IntlProvider({ children }: { children: React.ReactNode }) {
   const brand = useBrand();

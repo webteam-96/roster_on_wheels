@@ -140,7 +140,7 @@ public interface IGoalSettingService
     // filterDistrictId: null = every owner (ZC + all DAs, e.g. reports); 0 = ZC only (zone chosen, no
     // district); >0 = only the District Assistant(s) covering that district.
     Task<GoalThreadListDto> GetGoalZoneThreadListAsync(int memberId, int categoryId, int zoneId, int yearId, string? actingAs = null, int? filterDistrictId = null);
-    Task<List<GoalCommentDto>> GetGoalOwnerThreadMessagesAsync(int memberId, int categoryId, int yearId, int ownerMemberId);
+    Task<List<GoalCommentDto>> GetGoalOwnerThreadMessagesAsync(int memberId, int categoryId, int yearId, int ownerMemberId, int? zoneId = null);
     Task<GoalCommentDto> PostGoalOwnerThreadMessageAsync(int memberId, int categoryId, int yearId, int ownerMemberId, string text, int districtId = 0);
     // Goal messages report (zone), filterable by category (0=all) + district (0=all). RI/ZC/SuperAdmin.
     Task<byte[]?> BuildGoalMessagesReportExcelAsync(int memberId, int zoneId, int yearId, int categoryId, int districtId);
@@ -157,6 +157,10 @@ public interface IGoalSettingService
     // Club Foundation import — every district's clubs from one Rotary MCR Excel (matched globally
     // by Club No = ClubRotaryId). Year only; no district selection.
     Task<GoalFoundationImportResultDto> ImportFoundationClubAsync(int memberId, int yearId, Stream excelStream, int month = 0);
+    Task<GoalDistrictMessagesDto> GetDistrictMessagesAsync(int memberId, int categoryId, int districtId, int yearId);
+    Task<GoalCommentDto> PostDistrictMessageAsync(int memberId, int categoryId, int districtId, int yearId, string text);
+    Task<List<GoalDistrictConversationDto>> GetDistrictMessageInboxAsync(int memberId, int zoneId, int yearId, int categoryId, int districtId);
+    Task<GoalFoundationImportResultDto> ImportDistrictMembershipAsync(int memberId, int yearId, Stream membersStream, string membersFileName, Stream genderStream, Stream? rotaractStream = null, string? rotaractFileName = null, Stream? interactStream = null);
     Task<byte[]> BuildFoundationSampleExcelAsync();
     // Club Foundation sample (MCR layout, one row per current synced club, 0 baseline).
     Task<byte[]> BuildFoundationClubSampleExcelAsync();

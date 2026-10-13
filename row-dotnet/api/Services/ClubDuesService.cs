@@ -19,18 +19,18 @@ public class ClubDuesService : IClubDuesService
     private readonly string _connStr;
     private readonly IConfiguration _config;
     private readonly IEmailService _emailService;
-    private readonly IInteraktService _interaktService;
+    private readonly IWhatsAppService _whatsAppService;
     private readonly IGoogleSheetsService _googleSheetsService;
     private readonly HttpClient _httpClient;
     private readonly ILogger<ClubDuesService> _logger;
 
-    public ClubDuesService(IConfiguration config, IEmailService emailService, IInteraktService interaktService,
+    public ClubDuesService(IConfiguration config, IEmailService emailService, IWhatsAppService whatsAppService,
         IGoogleSheetsService googleSheetsService, IHttpClientFactory httpClientFactory, ILogger<ClubDuesService> logger)
     {
         _connStr = config.GetConnectionString("DefaultConnection")!;
         _config = config;
         _emailService = emailService;
-        _interaktService = interaktService;
+        _whatsAppService = whatsAppService;
         _googleSheetsService = googleSheetsService;
         _httpClient = httpClientFactory.CreateClient();
         _logger = logger;
@@ -410,7 +410,9 @@ public class ClubDuesService : IClubDuesService
 
         // 1) Ensure a club_dues_clubs row for every club in the district (sync + non-sync).
         var clubs = (await conn.QueryAsync<dynamic>(@"
-            SELECT pk_club_id AS ClubId FROM club_master WHERE fk_district_id=@DistrictId AND isdeleted=0",
+            SELECT pk_club_id AS ClubId FROM club_master WHERE fk_district_id=@DistrictId AND isdeleted=0
+              AND COALESCE(ClubType,'') <> 'Rotaract Club'   -- user 2026-10-08: Rotaract clubs owe no district dues
+            ",
             new { DistrictId = districtId })).ToList();
         foreach (var c in clubs)
         {
@@ -518,6 +520,7 @@ public class ClubDuesService : IClubDuesService
             FROM club_dues_clubs cc
             JOIN club_master c ON c.pk_club_id = cc.fk_club_id
             WHERE cc.fk_club_dues_id=@DuesId AND cc.isdeleted=0
+              AND COALESCE(c.ClubType,'') <> 'Rotaract Club'   -- user 2026-10-08: Rotaract clubs never listed
               AND (@Search IS NULL OR @Search='' OR c.ClubName LIKE CONCAT('%',@Search,'%'))
               AND (@IncludeNonSynced = 1 OR COALESCE(c.IsSyncedFromRotaryOrg,0) = 1)
             ORDER BY c.ClubName";
@@ -1616,7 +1619,7 @@ own separate approval request.</p>
         return false;
     }
 
-    // ── WhatsApp reminders (Interakt) ───────────────────────────
+    // ── WhatsApp reminders ─────────────────────────────────────
     // Templates: updated_row_district_dues_collection (bank details on) /
     // updated_row_district_dues_collection_no_bank_details (off).
     public async Task SendReminderWhatsAppAsync(int duesId, int clubId)
@@ -1689,7 +1692,7 @@ own separate approval request.</p>
                 ? new[] { name, clubName, purpose, status, payUrl,
                           (string?)info.OfflineBankName ?? "-", (string?)info.OfflineAccountNumber ?? "-", (string?)info.OfflineIfscCode ?? "-" }
                 : new[] { name, clubName, purpose, status, payUrl };
-            try { await _interaktService.SendWhatsAppWithBodyValuesAsync(mobile, template, values); }
+            try { await _whatsAppService.SendWhatsAppWithBodyValuesAsync(mobile, template, values); }
             catch (Exception ex) { _logger.LogError(ex, "Club dues WhatsApp failed for club {Club} mobile {Mobile}", clubId, mobile); }
         }
     }

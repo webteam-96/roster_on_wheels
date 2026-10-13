@@ -48,7 +48,7 @@ export function isYouthAge(dob: string | null, flag: boolean | null, todayIso: s
 /**
  * Port of RotaryOrgManualSyncController.cs: SuperAdmin compares clubs and members with Rotary.org and adds / edits /
  * deletes them one by one (soft deletes), reviews sync exceptions, and starts the member-sweep worker.
- * JSON keys keep their RIZones names (indiaClubs, onlyIndia, rotaryIndia …) for the existing admin screens.
+ * JSON keys keep their RIZones names (indiaClubs, onlyIndia …) for the existing admin screens; the unused count key "rotaryIndia" is "local", as in the .NET edition.
  */
 @Controller("api/admin/rotary-org-manual-sync")
 @Authorize()
@@ -103,7 +103,7 @@ export class RotaryOrgManualSyncController {
       return ok({
         districtNumber, indiaClubs, orgClubs, lastFetchedUtc: orgRows.length ? utcZ(orgRows[0].lastFetchedUtc) : null, nextRefreshUtc: ClubCacheRefreshService.nextScheduledRunUtc(),
         counts: {
-          rotaryIndia: indiaClubs.length, rotaryOrg: orgClubs.length, matched: [...localIds].filter((id) => orgIds.has(id)).length,
+          local: indiaClubs.length, rotaryOrg: orgClubs.length, matched: [...localIds].filter((id) => orgIds.has(id)).length,
           onlyIndia: indiaClubs.filter((c) => !c.clubRotaryId || !String(c.clubRotaryId).trim() || !orgIds.has(String(c.clubRotaryId).trim().toLowerCase())).length,
           onlyOrg: orgClubs.filter((c) => !localIds.has(String(c.rotaryClubId))).length,
         },
@@ -456,7 +456,7 @@ export class RotaryOrgManualSyncController {
       return ok({
         clubId, clubName: club.name, rotaryClubId, indiaMembers, orgMembers, lastFetchedUtc: orgRows.length ? utcZ(orgRows[0].lastFetchedUtc) : null,
         counts: {
-          rotaryIndia: indiaMembers.length, rotaryOrg: orgMembers.length, matched: [...localIds].filter((id) => orgIds.has(id)).length,
+          local: indiaMembers.length, rotaryOrg: orgMembers.length, matched: [...localIds].filter((id) => orgIds.has(id)).length,
           onlyIndia: indiaMembers.filter((m) => !m.rotaryId || !String(m.rotaryId).trim() || !orgIds.has(String(m.rotaryId).trim().toLowerCase())).length,
           onlyOrg: orgMembers.filter((m) => !localIds.has(String(m.rotaryMemberId))).length,
         },

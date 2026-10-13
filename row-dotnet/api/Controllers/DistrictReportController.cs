@@ -30,6 +30,11 @@ public class DistrictReportController : ControllerBase
 
     private MySqlConnection CreateConnection() => new(_connectionString);
 
+    // user 2026-10-08: Rotaract clubs (ClubType = 'Rotaract Club') appear in these district reports
+    // only for SuperAdmin. Every report narrows to clubIds first, so filtering there covers it all.
+    private string NotRotaractUnlessSa(string alias = "c") =>
+        !ClubScopeSql.HideRotaract(UserPermissionHelper.IsSuperAdmin(User)) ? "" : " AND " + ClubScopeSql.NotRotaract(alias);
+
     // The currency a district's project-cost totals are expressed in (its DefaultCurrency, or a
     // country-based guess). Per-project rows keep their own currency; totals convert into this.
     private static async Task<string> ResolveDistrictCurrencyAsync(MySqlConnection conn, int districtId)
@@ -86,7 +91,7 @@ public class DistrictReportController : ControllerBase
         DateTime? yrStart = year?.startDate, yrEnd = year?.endDate;
 
         var clubIds = (await conn.QueryAsync<int>(
-            "SELECT pk_club_id FROM club_master WHERE fk_district_id = @D AND isdeleted = 0",
+            $"SELECT pk_club_id FROM club_master WHERE fk_district_id = @D AND isdeleted = 0{NotRotaractUnlessSa("")}",
             new { D = districtId })).ToList();
 
         // AG scope: narrow the district's clubs to this AG's clubs. Everything downstream
@@ -110,7 +115,7 @@ public class DistrictReportController : ControllerBase
             projects = (await conn.QueryAsync<dynamic>($@"
                 SELECT p.pk_project_id AS id, p.fk_club_id AS clubId, p.title, p.description, p.project_date AS projectDate,
                        p.project_cost AS projectCost, p.project_cost AS amountSpent,
-                       COALESCE(p.Currency, 'INR') AS currency,
+                       COALESCE(p.Currency, '{RotaryApi.Services.Brand.SqlCurrency}') AS currency,
                        p.direct_beneficiaries AS directBeneficiaries,
                        p.man_hours AS manHours, p.rotarians_involved AS rotariansInvolved,
                        p.rotaractors_involved AS rotaractorsInvolved,
@@ -394,6 +399,8 @@ public class DistrictReportController : ControllerBase
             WHERE cm.IsActive = 1 AND cm.isdeleted = 0 AND cm.fk_club_id IN ({clubIdCsv})
               AND COALESCE(f.BloodGroup,'') <> ''
             ORDER BY sortClub, sortName, sortFamily, personName", p)).ToList();
+        // ROW: the blood-group call list follows member.bloodGroup (off on ROW).
+        if (!RotaryApi.Services.Brand.Feature("member.bloodGroup")) bloodGroups.Clear();
 
         // TRF across all district clubs
         var trf = (await conn.QueryAsync<dynamic>($@"
@@ -1159,7 +1166,7 @@ public class DistrictReportController : ControllerBase
         else
         {
             var clubIds = (await conn.QueryAsync<int>(
-                "SELECT pk_club_id FROM club_master WHERE fk_district_id = @D AND isdeleted = 0",
+                $"SELECT pk_club_id FROM club_master WHERE fk_district_id = @D AND isdeleted = 0{NotRotaractUnlessSa("")}",
                 new { D = districtId })).ToList();
             if (agClubIds != null) clubIds = clubIds.Where(id => agClubIds.Contains(id)).ToList();
             var clubIdCsv = clubIds.Count > 0 ? string.Join(",", clubIds) : "0";
@@ -1209,7 +1216,7 @@ public class DistrictReportController : ControllerBase
         else
         {
             var clubIds = (await conn.QueryAsync<int>(
-                "SELECT pk_club_id FROM club_master WHERE fk_district_id = @D AND isdeleted = 0",
+                $"SELECT pk_club_id FROM club_master WHERE fk_district_id = @D AND isdeleted = 0{NotRotaractUnlessSa("")}",
                 new { D = districtId })).ToList();
             if (agClubIds != null) clubIds = clubIds.Where(id => agClubIds.Contains(id)).ToList();
             var clubIdCsv = clubIds.Count > 0 ? string.Join(",", clubIds) : "0";
@@ -1360,7 +1367,7 @@ public class DistrictReportController : ControllerBase
                 new { Ag = agMemberId.Value, YearId = yearId })).ToList();
         else
             clubIds = (await conn.QueryAsync<int>(
-                "SELECT pk_club_id FROM club_master WHERE fk_district_id = @D AND isdeleted = 0",
+                $"SELECT pk_club_id FROM club_master WHERE fk_district_id = @D AND isdeleted = 0{NotRotaractUnlessSa("")}",
                 new { D = districtId })).ToList();
 
         if (clubIds.Count == 0) return Ok(new { districtNumber = "", clubs = new List<object>() });
@@ -1448,7 +1455,7 @@ public class DistrictReportController : ControllerBase
             $@"SELECT c.pk_club_id AS clubPk, c.ClubName AS clubName, c.ClubRotaryId AS clubRotaryId,
                      COALESCE(NULLIF(c.ClubType,''),'Rotary Club') AS clubType
               FROM club_master c
-              WHERE c.fk_district_id = @D AND c.isdeleted = 0
+              WHERE c.fk_district_id = @D AND c.isdeleted = 0{NotRotaractUnlessSa()}
                 AND c.ClubRotaryId IS NOT NULL AND c.ClubRotaryId <> ''
                 AND (@ClubId IS NULL OR c.pk_club_id = @ClubId)
                 {agFilterRi}
@@ -1533,7 +1540,7 @@ public class DistrictReportController : ControllerBase
         using var conn = CreateConnection();
         await conn.OpenAsync();
         var clubIds = (await conn.QueryAsync<int>(
-            "SELECT pk_club_id FROM club_master WHERE fk_district_id = @D AND isdeleted = 0",
+            $"SELECT pk_club_id FROM club_master WHERE fk_district_id = @D AND isdeleted = 0{NotRotaractUnlessSa("")}",
             new { D = districtId })).ToList();
         var clubIdCsv = clubIds.Count > 0 ? string.Join(",", clubIds) : "0";
 
@@ -1687,7 +1694,7 @@ public class DistrictReportController : ControllerBase
                 ON p.fk_club_id = c.pk_club_id
                AND p.isdeleted = 0
                AND p.fk_module_id IN (SELECT pk_module_id FROM module_master WHERE ModuleKey <> 'club_service')
-            WHERE c.fk_district_id = @D AND c.isdeleted = 0 {agFilter}
+            WHERE c.fk_district_id = @D AND c.isdeleted = 0{NotRotaractUnlessSa()} {agFilter}
             GROUP BY c.pk_club_id, d.DistrictNumber, c.ClubName
             ORDER BY c.ClubName",
             new { D = districtId });

@@ -702,7 +702,7 @@ public class AgReportsController : ControllerBase
                 WHERE c.pk_club_id IN @ClubIds AND f.isdeleted = 0
                 ORDER BY c.ClubName, m.MemberName, f.Name",
                 new { ClubIds = clubIds });
-            return Ok(rows);
+            return Ok(RotaryApi.Services.Brand.Feature("member.familyDetails") ? rows : Enumerable.Empty<dynamic>());  // ROW: off by default
         }
     }
 }

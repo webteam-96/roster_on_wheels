@@ -51,12 +51,13 @@ import { useSyncClubIdFromUrl } from "@/hooks/useSyncClubIdFromUrl";
 import ImageCropDialog from "@/components/ImageCropDialog";
 import { useImageCropQueue } from "@/hooks/useImageCropQueue";
 
+import { defaultCurrency } from "@/lib/appFormat";
 // Project photos are shown 16:9 on the public site (components/pages/projects/shared.tsx),
 // so the crop is locked to that shape. 1600×900 keeps the widest card retina-sharp.
 const PROJECT_PHOTO_ASPECT = 16 / 9;
 const PROJECT_PHOTO_MAX_WIDTH = 1600;
 
-const TOP_MESSAGE = "Please post all the Vocational services executed by your club. The content posted here will be displayed in District website, Club Monthly Report & Rotary Zones 4, 5, 6, 7 & 8 integrated Club website.";
+const TOP_MESSAGE = "Please post all the Vocational services executed by your club. The content posted here will be displayed in District website, Club Monthly Report & ROW integrated Club website.";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
@@ -161,7 +162,7 @@ export default function VocationalServiceV2EditPage() {
 
   const [projectDate, setProjectDate] = useState("");
   const [projectCost, setProjectCost] = useState("");
-  const [currency, setCurrency] = useState("INR");
+  const [currency, setCurrency] = useState(defaultCurrency());
   const [selectedFundingId, setSelectedFundingId] = useState<string>("");
   // Funding-conditional fields (Global Grant / CSR). Cleared when funding option changes.
   const [globalGrantNumber, setGlobalGrantNumber] = useState("");
@@ -259,7 +260,7 @@ export default function VocationalServiceV2EditPage() {
 
         setProjectDate(project.projectDate ? project.projectDate.split("T")[0] : "");
         setProjectCost(project.projectCost != null ? String(project.projectCost) : "");
-        setCurrency(project.currency || "INR");
+        setCurrency(project.currency || defaultCurrency());
         if (project.fundingId) setSelectedFundingId(String(project.fundingId));
         // Pre-fill funding-conditional fields
         setGlobalGrantNumber(project.globalGrantNumber || "");
@@ -931,8 +932,8 @@ export default function VocationalServiceV2EditPage() {
             </DialogHeader>
             <div className="text-sm text-muted-foreground space-y-3 py-2">
               <p className="font-medium text-foreground">Dear Club Leader,</p>
-              <p>You have successfully updated a project in Rotary Zones 4, 5, 6, 7 &amp; 8. You can check after 10 minutes.</p>
-              <p>Thank you,<br /><span className="font-medium text-foreground">Team Rotary Zones 4, 5, 6, 7 &amp; 8</span></p>
+              <p>You have successfully updated a project in ROW. You can check after 10 minutes.</p>
+              <p>Thank you,<br /><span className="font-medium text-foreground">Team ROW</span></p>
             </div>
             <Button className="w-full" onClick={() => { setShowProjectSuccess(false); setSuccessMessage(null); navigateAfterSave(); }}>OK</Button>
           </DialogContent>

@@ -21,6 +21,7 @@ import { ZoneListItem } from "@/types/zone";
 import { COUNTRIES, DEFAULT_COUNTRY } from "@/constants/countries";
 import { currencyOptions } from "@/lib/currency";
 
+import { defaultCurrency as instanceCurrency } from "@/lib/appFormat";
 function NewDistrictForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -36,7 +37,7 @@ function NewDistrictForm() {
   const [zoneName, setZoneName] = useState("");
   const [zones, setZones] = useState<ZoneListItem[]>([]);
   const [country, setCountry] = useState<string>(DEFAULT_COUNTRY);
-  const [defaultCurrency, setDefaultCurrency] = useState<string>("INR");
+  const [defaultCurrency, setDefaultCurrency] = useState<string>(instanceCurrency());
   const [showSuccess, setShowSuccess] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 

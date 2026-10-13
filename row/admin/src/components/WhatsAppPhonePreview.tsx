@@ -22,7 +22,7 @@ export default function WhatsAppPhonePreview({
   body,
   imageUrl,
   documentName,
-  businessName = "Rizones45678",
+  businessName = "ROW",
   caption,
 }: WhatsAppPhonePreviewProps) {
   const now = new Date();

@@ -5,7 +5,7 @@ using RotaryApi.Services;
 namespace RotaryApi.Controllers;
 
 // Manual trigger for the daily statistics report (SuperAdmin only) — lets an admin send it
-// on demand for testing/verification instead of waiting for the 06:00 IST schedule. On a dev
+// on demand for testing/verification instead of waiting for the 06:00 brand-time schedule. On a dev
 // machine (remote DB) the service suppresses the real email and only logs the computed counts.
 [ApiController]
 [Authorize]

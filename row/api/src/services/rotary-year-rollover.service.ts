@@ -3,6 +3,7 @@ import { Db } from "../database/db.service";
 import { AppConfig } from "../config/app-config";
 import { Brand } from "../brand/brand";
 import { nowIn } from "../common/dotnet-format";
+import { ensureYearTablesExist } from "./year-table.resolver";
 
 /** The Rotary year (July to June) a wall-clock date ("yyyy-MM-dd...") falls in. */
 export function rotaryYearOf(date: string) {
@@ -47,6 +48,9 @@ export class RotaryYearRolloverService implements OnApplicationBootstrap, OnAppl
          VALUES (@Label, @Start, @End, 1)`,
         { Label: label, Start: startDate, End: endDate },
       );
+      // ROW: projects live in one table per Rotary year, otherwise created on the year's first save.
+      // Create the current year's tables here so a new database can list projects before anyone adds one.
+      await ensureYearTablesExist(conn, label);
       const alreadyCurrent = await conn.executeScalar<string>("SELECT YearLabel FROM rotary_year_master WHERE IsCurrent = 1 LIMIT 1");
       if (alreadyCurrent === label) return;
       await conn.execute("UPDATE rotary_year_master SET IsCurrent = 0 WHERE IsCurrent = 1");

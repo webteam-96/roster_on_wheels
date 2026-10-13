@@ -53,6 +53,7 @@ import SuccessAlert from "@/components/SuccessAlert";
 import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";
 
+import { appLocale } from "@/lib/appFormat";
 function TrfIcon() {
   return (
     <svg
@@ -235,7 +236,7 @@ export default function TrfContributionPage() {
     if (!dateStr) return "-";
     try {
       const d = new Date(dateStr);
-      return d.toLocaleDateString("en-IN", {
+      return d.toLocaleDateString(appLocale(), {
         day: "2-digit",
         month: "short",
         year: "numeric",

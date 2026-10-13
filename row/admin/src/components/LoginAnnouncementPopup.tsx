@@ -39,6 +39,7 @@ export default function LoginAnnouncementPopup() {
       pathname.startsWith("/forgot-password") ||
       pathname.startsWith("/reset-password") ||
       pathname.startsWith("/privacy-policy") ||
+      pathname.startsWith("/cookies") ||
       pathname.startsWith("/refunds-and-cancellations") ||
       pathname.startsWith("/pay");
     if (isPublicPage) return;

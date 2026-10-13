@@ -157,7 +157,7 @@ public sealed class ProjectCountFilter
     // Rule 5 — the organisation is ROW. "Zone 0" (the placeholder) and
     // "Other Zones" are not part of it, and these three districts never count anywhere.
     public static readonly string[] IndiaZoneNames = { "Zone 4", "Zone 5", "Zone 6", "Zone 7", "Zone 8" };
-    public static readonly string[] ExemptDistrictNumbers = { "5656", "1280", "IFRM India" };
+    public static string[] ExemptDistrictNumbers => RotaryApi.Services.Brand.ExemptDistricts;   // ROW: Brand:Scope:ExemptDistricts
 
     private static string ZoneList => "'" + string.Join("','", IndiaZoneNames) + "'";
     private static string ExemptList => "'" + string.Join("','", ExemptDistrictNumbers) + "'";

@@ -9,7 +9,7 @@ import { getGovernors, governorPhotoUrl } from "@/lib/districtGovernors";
 import { DGCard } from "./DGCard";
 import { DEFAULT_YEAR, GOVERNORS, type Governor } from "./data";
 
-const ARCHIVE_URL = "https://rotaryindia.org/";
+const ARCHIVE_URL = "https://club.example.org/";
 
 /** District number → zone, reusing the frozen website-directory data. */
 const ZONE_BY_DISTRICT: Record<string, string> = Object.fromEntries(
@@ -100,7 +100,7 @@ export function DistrictGovernors() {
         eyebrow="Leadership Directory"
         subtitle={
           <>
-            Meet the District Governors leading Rotary across Zones 4, 5, 6, 7 &amp; 8 &mdash;
+            Meet the District Governors leading Rotary across the zones &mdash;
             direct phone and email contacts for all{" "}
             <span className="figure">{roster.length}</span> districts.
           </>
@@ -181,7 +181,7 @@ export function DistrictGovernors() {
               rel="noopener noreferrer"
               className="inline-flex items-center gap-1.5 rounded-sm text-[13px] font-medium text-muted transition-colors duration-200 hover:text-navy-950 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold-dark"
             >
-              Archive on rotaryindia.org
+              Archive on example.org
               <ArrowUpRight className="h-3.5 w-3.5" aria-hidden />
             </a>
           </div>

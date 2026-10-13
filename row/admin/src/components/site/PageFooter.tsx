@@ -9,9 +9,8 @@ import {
 
 // Only socials with real destinations — dead icons erode trust.
 const SOCIALS = [
-  { label: "Facebook", href: "https://facebook.com/rotaryindia1.org", Icon: FacebookIcon },
-  { label: "Instagram", href: "https://instagram.com/rizones4567", Icon: InstagramIcon },
-  { label: "YouTube", href: "https://youtube.com/@rizones4567", Icon: YoutubeIcon },
+  { label: "Instagram", href: "https://instagram.com/ROW", Icon: InstagramIcon },
+  { label: "YouTube", href: "https://youtube.com/@ROW", Icon: YoutubeIcon },
 ];
 
 const QUICK_LINKS = [
@@ -27,7 +26,7 @@ const RESOURCES = [
   { label: "Download App", href: "/download" },
   { label: "Zonal Events", href: "/past-events" },
   { label: "Upcoming Events", href: "/events" },
-  { label: "Admin Login", href: "https://rizones45678.org/login" },
+  { label: "Admin Login", href: "/login" },
 ];
 
 /**

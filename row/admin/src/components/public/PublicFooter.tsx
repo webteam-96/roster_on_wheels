@@ -28,6 +28,7 @@ const POLICY_LINKS = [
   { label: "Terms & Conditions", href: "/terms-and-conditions" },
   { label: "Refunds & Cancellations", href: "/refunds-and-cancellations" },
   { label: "Privacy Policy", href: "/privacy-policy" },
+  { label: "Cookies", href: "/cookies" },
 ];
 
 const QUICK_LINKS = [

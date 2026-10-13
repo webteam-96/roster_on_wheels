@@ -7,7 +7,7 @@ using Microsoft.Extensions.Logging;
 // Greetings Worker — daily birthday & anniversary greetings
 //
 //   --send   Find every active member whose BIRTHDAY or wedding ANNIVERSARY is
-//            today and send a WhatsApp (Interakt approved template) and/or email
+//            today and send a WhatsApp (approved Meta template) and/or email
 //            (Brevo) greeting per the per-club and per-district Greetings config.
 //            Club AND district both send (a member covered by both gets one each).
 //            Each send deducts 1 from the source's club/district credits
@@ -45,6 +45,7 @@ if (mode is "--help" or "-h" or "/?" or "/help")
 var config = new ConfigurationBuilder()
     .SetBasePath(AppContext.BaseDirectory)
     .AddJsonFile("appsettings.json", optional: false, reloadOnChange: false)
+    .AddEnvironmentVariables()   // secrets and Brand__* settings come from the environment
     .Build();
 RotaryApi.Services.Brand.Init(config);
 
@@ -70,22 +71,24 @@ services.AddSingleton<BrevoEmailSender>(sp =>
         senderName: brevo["SenderName"] ?? "ROW",
         senderEmail: brevo["SenderEmail"] ?? RotaryApi.Services.Brand.NoReplyEmail);
 });
-services.AddSingleton<InteraktWhatsAppSender>(sp =>
+services.AddSingleton<MetaWhatsAppSender>(sp =>
 {
-    var ia = config.GetSection("Interakt");
-    return new InteraktWhatsAppSender(
-        sp.GetRequiredService<IHttpClientFactory>().CreateClient("interakt"),
-        sp.GetRequiredService<ILogger<InteraktWhatsAppSender>>(),
-        apiKey: ia["ApiKey"] ?? throw new InvalidOperationException("Interakt:ApiKey missing"),
-        baseUrl: ia["BaseUrl"] ?? "https://api.interakt.ai/v1/public/message/",
-        langCode: ia["LanguageCode"] ?? "en");
+    var meta = config.GetSection("Brand:Providers:MetaWhatsApp");
+    return new MetaWhatsAppSender(
+        sp.GetRequiredService<IHttpClientFactory>().CreateClient("whatsapp"),
+        sp.GetRequiredService<ILogger<MetaWhatsAppSender>>(),
+        connString,
+        token: meta["AccessToken"] ?? "",
+        phoneNumberId: meta["PhoneNumberId"] ?? "",
+        apiVersion: meta["ApiVersion"] ?? "",
+        langCode: config["WhatsApp:LanguageCode"] ?? "");
 });
 services.AddSingleton<FirebasePushSender>();
 services.AddSingleton<GreetingsJob>(sp => new GreetingsJob(
     connString,
     sp.GetRequiredService<ILogger<GreetingsJob>>(),
     sp.GetRequiredService<BrevoEmailSender>(),
-    sp.GetRequiredService<InteraktWhatsAppSender>(),
+    sp.GetRequiredService<MetaWhatsAppSender>(),
     sp.GetRequiredService<FirebasePushSender>(),
     sp.GetRequiredService<GreetingsOptions>()));
 

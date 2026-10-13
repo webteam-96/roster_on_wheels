@@ -726,6 +726,8 @@ import type {
   GoalThreadListDto,
   GoalMessageRowDto,
   GoalMessageOwnerDto,
+  GoalDistrictMessagesDto,
+  GoalDistrictConversationDto,
   GoalDesignationDto,
   CreateGoalDesignationRequest,
   GoalFoundationImportResultDto,
@@ -789,6 +791,23 @@ export async function importGoalFoundationClub(
   fd.append("YearId", String(yearId));
   fd.append("Month", String(month));
   const r = await api.post("/api/goal-setting/foundation-import/club", fd, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
+  return r.data;
+}
+
+// District Membership import (SuperAdmin, 2026-27 on): Rotary.org "Comparison to 1 July" (clubs +
+// members) and "Members Admitted by Gender" (women). The month is read from the members file's date.
+export async function importGoalDistrictMembership(
+  yearId: number, membersFile: File, genderFile: File, rotaractFile?: File | null, interactFile?: File | null,
+): Promise<GoalFoundationImportResultDto> {
+  const fd = new FormData();
+  fd.append("MembersFile", membersFile);
+  fd.append("GenderFile", genderFile);
+  if (rotaractFile) fd.append("RotaractFile", rotaractFile);   // optional: Youth Service Rotaract Clubs Achieved
+  if (interactFile) fd.append("InteractFile", interactFile);   // optional: Interact_Statistics -> Interact Clubs Achieved
+  fd.append("YearId", String(yearId));
+  const r = await api.post("/api/goal-setting/membership-import", fd, {
     headers: { "Content-Type": "multipart/form-data" },
   });
   return r.data;
@@ -1211,7 +1230,7 @@ export async function sendGoalRoleAssignmentEmails(zoneId?: number | null): Prom
   });
   return r.data;
 }
-// ── Goal Setting "Observe as" (SuperAdmin observer only, mobile 9821130855) ───────────────────
+// ── Goal Setting "Observe as" (flagged SuperAdmin observers only) ───────────────────
 // Module-level override: when the observer picks an RI Director / ZC on /goal-oversight, every
 // goal-setting oversight+messaging call carries ?asMemberId so the backend serves THAT person's
 // view. The backend ignores asMemberId unless the caller is the gated observer, so this is inert
@@ -1340,8 +1359,9 @@ export async function getGoalMessagesHasUnread(zoneId: number, yearId: number): 
 export async function markGoalMessagesSeen(zoneId: number, yearId: number): Promise<void> {
   await api.post(`/api/goal-setting/messages/mark-seen`, null, { params: withViewAs({ zoneId, yearId }) });
 }
-export async function getGoalOwnerThreadMessages(categoryId: number, yearId: number, ownerMemberId: number): Promise<GoalCommentDto[]> {
-  const r = await api.get(`/api/goal-setting/owner-thread/${categoryId}/${ownerMemberId}`, { params: withViewAs({ yearId }) });
+export async function getGoalOwnerThreadMessages(categoryId: number, yearId: number, ownerMemberId: number, zoneId?: number | null): Promise<GoalCommentDto[]> {
+  // zoneId: the RI Director's zone, so a former seat-holder's box opens (2026-10-07).
+  const r = await api.get(`/api/goal-setting/owner-thread/${categoryId}/${ownerMemberId}`, { params: withViewAs({ yearId, ...(zoneId ? { zoneId } : {}) }) });
   return r.data;
 }
 export async function postGoalOwnerThreadMessage(categoryId: number, yearId: number, ownerMemberId: number, commentText: string, districtId = 0): Promise<GoalCommentDto> {
@@ -1361,6 +1381,21 @@ export async function getGoalMessagesList(zoneId: number, yearId: number, catego
   return r.data;
 }
 // Roster of ZC/DA in the zone — shown when a filter has no messages ("each ZC/DA · No message yet").
+// District Admin / District Governor messages (2026-10-09): the district writes per category; the
+// District Assistant, Zone Co-ordinator, RI Director and SuperAdmin read. GET marks it read for readers.
+export async function getDistrictGoalMessages(categoryId: number, districtId: number, yearId: number): Promise<GoalDistrictMessagesDto> {
+  const r = await api.get(`/api/goal-setting/district-messages/${categoryId}/${districtId}`, { params: withViewAs({ yearId }) });
+  return r.data;
+}
+export async function postDistrictGoalMessage(categoryId: number, districtId: number, yearId: number, commentText: string): Promise<GoalCommentDto> {
+  const r = await api.post(`/api/goal-setting/district-messages/${categoryId}/${districtId}`, { commentText }, { params: { yearId } });
+  return r.data;
+}
+export async function getDistrictGoalMessageInbox(zoneId: number, yearId: number, categoryId = 0, districtId = 0): Promise<GoalDistrictConversationDto[]> {
+  const r = await api.get(`/api/goal-setting/district-messages/inbox`, { params: withViewAs({ zoneId, yearId, categoryId, districtId }) });
+  return r.data;
+}
+
 export async function getGoalMessageRoster(zoneId: number, yearId: number, categoryId = 0, districtId = 0): Promise<GoalMessageOwnerDto[]> {
   const params = withViewAs({ zoneId, yearId, categoryId, districtId });
   const r = await api.get(`/api/goal-setting/messages/roster`, { params });
@@ -3698,7 +3733,7 @@ export async function downloadOcvReportWord(
 }
 
 // OCV Excel (.xls): server-generated HTML-table workbook that exactly matches the legacy
-// rotaryindia.org "OCVList….xls" — header block + one row per document-type across all
+// example.org "OCVList….xls" — header block + one row per document-type across all
 // categories with "Download Here" hyperlinks + Live Documents + Newsletters sections.
 export async function downloadOcvReportExcel(
   clubId: number,
@@ -5941,7 +5976,7 @@ export async function uploadRiDirectorNewsletterFile(file: File) {
 }
 
 // Mass-email rich-text body image host. Returns { url } — an ABSOLUTE public URL
-// (e.g. https://rizones45678.org/API/uploads/mass-email/<file>) that email clients
+// (e.g. https://portal.example.org/API/uploads/mass-email/<file>) that email clients
 // can load. Used by RichTextEditor's image button instead of inline base64.
 export async function uploadMassEmailImage(file: File | Blob, filename = "image.png"): Promise<{ url: string }> {
   const fd = new FormData();
@@ -7240,10 +7275,10 @@ export async function refreshMembersCache(clubId: number) {
   return data;
 }
 
-// ── Member Match (district → sync clubs → rizones vs Rotary.org counts) ──
+// ── Member Match (district → sync clubs → ROW vs Rotary.org counts) ──
 export async function getDistrictSyncClubsForMatch(districtId: number) {
   const { data } = await api.get("/api/admin/rotary-org-manual-sync/members/district-clubs", { params: { districtId } });
-  return data; // { items: [{ clubId, clubRotaryId, clubName, clubType, rizonesCount }] }
+  return data; // { items: [{ clubId, clubRotaryId, clubName, clubType, localCount }] }
 }
 export async function getClubOrgMemberCount(clubId: number) {
   const { data } = await api.get("/api/admin/rotary-org-manual-sync/members/club-org-count", { params: { clubId } });
@@ -7262,7 +7297,7 @@ export async function reconcileDistrictMembers(districtId: number) {
   const { data } = await api.post("/api/admin/rotary-org-manual-sync/members/reconcile-district", { districtId });
   return data; // { started, pid, message }
 }
-// Per-member diff for a club: { clubName, rizonesCount, orgCount, toAdd[], toRemove[], noRotaryId[], error? }
+// Per-member diff for a club: { clubName, localCount, orgCount, toAdd[], toRemove[], noRotaryId[], error? }
 export async function getClubMemberDiff(clubId: number) {
   const { data } = await api.get("/api/admin/rotary-org-manual-sync/members/club-diff", { params: { clubId } });
   return data;
@@ -7272,8 +7307,8 @@ export async function softDeleteClubMemberLinks(clubId: number, memberIds: numbe
   const { data } = await api.post("/api/admin/rotary-org-manual-sync/members/soft-delete-club-links", { clubId, memberIds });
   return data; // { softDeleted, message }
 }
-// Clubs page: mark a rizones club synced (flag=1) + full member sweep — for clubs that are
-// sync on Rotary.org but show non-sync in rizones.
+// Clubs page: mark a ROW club synced (flag=1) + full member sweep — for clubs that are
+// sync on Rotary.org but show non-sync in ROW.
 export async function markClubSynced(clubId: number) {
   const { data } = await api.post("/api/admin/rotary-org-manual-sync/clubs/mark-synced", { clubId });
   return data;
@@ -7547,8 +7582,9 @@ export interface GlobalSearchRow {
   districtId: number | null;   // set only for type=club
   // Club-only extras (zone/district rows leave these null)
   isSyncedFromRotaryOrg?: number | null;   // 1 = yes, 0 = no
-  clubWebsiteSubdomain?: string | null;    // subdomain prefix; full URL = `${subdomain}.rizones45678.org`
+  clubWebsiteSubdomain?: string | null;    // subdomain prefix; full URL = `${subdomain}.portal.example.org`
   clubWebsiteStatus?: string | null;       // 'active' | 'expired' | 'none' — drives the Website pill
+  clubType?: string | null;                // 'Rotary Club' | 'Rotaract Club'
   memberCount?: number | null;            // clubs: club members; zones + districts: total active members
   clubRotaryId?: string | null;            // club rows only; districts/zones leave this null
   // Zone AND district rollups (clubs leave these null)

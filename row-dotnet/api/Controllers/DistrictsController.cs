@@ -75,7 +75,8 @@ public class DistrictsController : ControllerBase
         if (!await IsDistrictDrillReachableAsync(id))
             return StatusCode(403, new { message = "This district or its zone is inactive. Reactivate it first to access its clubs." });
 
-        var clubs = await _districtService.GetClubsAsync(id, hasMembers);
+        var clubs = await _districtService.GetClubsAsync(id, hasMembers,
+            excludeRotaract: ClubScopeSql.HideRotaract(UserPermissionHelper.IsSuperAdmin(User)));   // user 2026-10-08
         return Ok(clubs);
     }
 

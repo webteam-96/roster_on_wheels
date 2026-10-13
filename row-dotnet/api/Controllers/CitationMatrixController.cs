@@ -56,6 +56,9 @@ public class CitationMatrixController : ControllerBase
             new { Id = resolvedYearId });
 
         var clubFilter = clubId.HasValue && clubId.Value > 0 ? " AND pk_club_id = @ClubId" : "";
+        // user 2026-10-08: Rotaract clubs only for SuperAdmin.
+        if (RotaryApi.Services.ClubScopeSql.HideRotaract(RotaryApi.Services.UserPermissionHelper.IsSuperAdmin(User)))
+            clubFilter += " AND " + RotaryApi.Services.ClubScopeSql.NotRotaract("");
         var clubs = (await conn.QueryAsync<dynamic>($@"
             SELECT pk_club_id AS clubId, ClubName AS clubName
             FROM club_master

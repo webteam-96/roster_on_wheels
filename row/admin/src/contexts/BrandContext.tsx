@@ -20,7 +20,7 @@ function readCached(): Brand | null {
 /**
  * Renders children at once with the defaults (or this session's cached brand),
  * then swaps in the instance brand when /api/public/brand answers. Fetched once
- * per browser session. A failed fetch keeps the defaults, which are RIZones.
+ * per browser session. A failed fetch keeps the defaults, which are ROW.
  */
 export function BrandProvider({ children }: { children: React.ReactNode }) {
   const [brand, setBrand] = useState<Brand>(DEFAULT_BRAND);

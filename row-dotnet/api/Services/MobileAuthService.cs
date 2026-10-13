@@ -13,7 +13,9 @@ public class MobileAuthService : IMobileAuthService
     private readonly IConfiguration _configuration;
     private readonly IEmailService _emailService;
     private readonly ISmsService _smsService;
-    private readonly IInteraktService _interaktService;
+    private readonly IWhatsAppService _whatsAppService;
+    private readonly TwilioSmsSender _twilio;
+    private readonly MetaWhatsAppSender _metaWhatsApp;
     private readonly ILogger<MobileAuthService> _logger;
     private readonly string _connectionString;
 
@@ -31,13 +33,17 @@ public class MobileAuthService : IMobileAuthService
         IConfiguration configuration,
         IEmailService emailService,
         ISmsService smsService,
-        IInteraktService interaktService,
+        IWhatsAppService whatsAppService,
+        TwilioSmsSender twilio,
+        MetaWhatsAppSender metaWhatsApp,
         ILogger<MobileAuthService> logger)
     {
         _configuration = configuration;
         _emailService = emailService;
         _smsService = smsService;
-        _interaktService = interaktService;
+        _whatsAppService = whatsAppService;
+        _twilio = twilio;
+        _metaWhatsApp = metaWhatsApp;
         _logger = logger;
         _connectionString = configuration.GetConnectionString("DefaultConnection")!;
     }
@@ -262,33 +268,28 @@ public class MobileAuthService : IMobileAuthService
 
         if (!isTestAccount)
         {
-            // India = SMS OTP only, outside India = Email OTP only (business rule,
-            // 2026-08-24). Previously every login sent email AND (SMS for India /
-            // WhatsApp outside India) together; email is now dropped for India, and
-            // WhatsApp is not used for India at all — SMS is the sole India channel.
-            //
-            // NOTE: no cross-country fallback — a member missing all contact info for
-            // their country's channel (e.g. an India member with no mobile on file)
-            // gets the "failed to send" error below rather than silently switching to
-            // the other country's channel. Deliberate, per instruction 2026-08-24:
-            // don't reactivate without asking first.
-            var outsideIndiaDialCode = await OtpWhatsAppHelper.ResolveOutsideIndiaDialCodeAsync(conn, memberCountryId, targetMobile);
-            bool isOutsideIndia = outsideIndiaDialCode != null;
-
-            if (isOutsideIndia)
+            // ROW: channels from Brand:Providers:OtpPolicy for the member's country, in order, until one
+            // succeeds (the original platform's India = SMS / elsewhere = email is the policy {"IN":["sms"],"*":["email"]}).
+            foreach (var channel in await OtpChannelPolicy.ChannelsForAsync(conn, memberCountryId))
             {
-                sentEmail = await TrySendLoginOtpEmailAsync();
-            }
-            else if (!string.IsNullOrWhiteSpace(targetMobile))
-            {
-                try
+                if (channel == "email")
                 {
-                    sentSms = await _smsService.SendOtpSmsAsync(targetMobile, otp);
+                    sentEmail = await TrySendLoginOtpEmailAsync();
                 }
-                catch (Exception ex)
+                else if (channel == "sms" && !string.IsNullOrWhiteSpace(targetMobile))
                 {
-                    _logger.LogError(ex, "Failed to send mobile login OTP SMS to {Mobile}", targetMobile);
+                    var e164 = RowPhone.ToE164(targetMobile, await RowPhone.DialCodeAsync(conn, memberCountryId));
+                    if (e164 != null)
+                        sentSms = await _twilio.SendAsync(e164, $"{otp} is your {Brand.ShortName} login code. It expires in {OtpExpiryMinutes} minutes.");
                 }
+                else if (channel == "whatsapp" && !string.IsNullOrWhiteSpace(targetMobile))
+                {
+                    // Same authentication template as the NestJS edition: "otp", body {{1}} = code, copy-code button.
+                    var e164 = RowPhone.ToE164(targetMobile, await RowPhone.DialCodeAsync(conn, memberCountryId));
+                    if (e164 != null)
+                        sentWhatsApp = await _metaWhatsApp.SendTemplateAsync(e164, "otp", Brand.DefaultLanguage, new[] { otp }, otp);
+                }
+                if (sentEmail || sentSms || sentWhatsApp) break;
             }
 
             if (!sentEmail && !sentSms && !sentWhatsApp)

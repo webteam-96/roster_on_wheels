@@ -321,7 +321,7 @@ export default function AreaOfFocusPage() {
         <AlertModal
           open={!!deleteTarget}
           onOpenChange={(o) => !o && setDeleteTarget(null)}
-          icon={AlertTriangle, Download}
+          icon={AlertTriangle}
           iconClassName="text-destructive"
           title="Delete Area of Focus"
           description={<>Are you sure you want to delete <span className="font-semibold text-foreground">{deleteTarget?.name}</span>?</>}

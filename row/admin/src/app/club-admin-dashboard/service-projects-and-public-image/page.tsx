@@ -36,6 +36,7 @@ import type {
 import KpiCard from "@/components/dashboard/KpiCard";
 import { fmtInt, fmtInr, fmtDate } from "@/components/dashboard/formatters";
 
+import { defaultCurrency } from "@/lib/appFormat";
 // Base URL the RI Flow-Bot export uses to build absolute photo URLs for the extension.
 const SYNC_API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
@@ -100,7 +101,7 @@ function attendancePercentChip(pct: number) {
 }
 
 // Compact money — INR by default; currency-aware totals/rows pass the district or project currency.
-const shortInr = (value: number): string => shortMoney(value, "INR");
+const shortInr = (value: number): string => shortMoney(value, defaultCurrency());
 
 // Whitelist guard — keeps URL params safe when reading ?tab=
 function isAvenueTab(v: string | null): v is AvenueTab {

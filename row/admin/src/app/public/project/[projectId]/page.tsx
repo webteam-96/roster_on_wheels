@@ -2,7 +2,7 @@
 
 /**
  * Public, no-auth project page — shareable URL pattern:
- *   https://rizones45678.org/public/project/{projectId}?year={yearId}
+ *   https://portal.example.org/public/project/{projectId}?year={yearId}
  *
  * The "Photos" hyperlink in every District / Club Report Excel export points
  * here. Anyone with the link can view the project's title, description,
@@ -17,6 +17,7 @@ import { useParams, useSearchParams } from "next/navigation";
 import { X, Download } from "lucide-react";
 import RotaryLoader from "@/components/RotaryLoader";
 
+import { appLocale } from "@/lib/appFormat";
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
 interface PublicPhoto {
@@ -72,7 +73,7 @@ function fmtDate(s?: string | null): string {
   if (!s) return "";
   const d = new Date(s);
   if (Number.isNaN(d.getTime())) return "";
-  return d.toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" });
+  return d.toLocaleDateString(appLocale(), { day: "2-digit", month: "short", year: "numeric" });
 }
 
 function resolveImageUrl(imagePath: string): string {
@@ -177,7 +178,7 @@ export default function PublicProjectPage() {
         <div className="max-w-5xl mx-auto px-4 py-3 flex items-center gap-3">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src="/images/rotary-zone-log-white.png"
+            src="/images/rotary-white-live.png"
             alt="Rotary"
             className="h-14 object-contain"
           />
@@ -229,7 +230,7 @@ export default function PublicProjectPage() {
               {!isClubService && project.directBeneficiaries != null && project.directBeneficiaries > 0 && (
                 <>
                   <span className="text-slate-300">·</span>
-                  <span>{project.directBeneficiaries.toLocaleString("en-IN")} beneficiaries</span>
+                  <span>{project.directBeneficiaries.toLocaleString(appLocale())} beneficiaries</span>
                 </>
               )}
             </div>
@@ -353,7 +354,7 @@ export default function PublicProjectPage() {
 
       <footer className="w-full mt-10 py-5 border-t border-slate-200 bg-white">
         <div className="max-w-5xl mx-auto px-4 text-center text-xs text-slate-500">
-          Rotary Zones 4, 5, 6, 7 &amp; 8 &mdash; rizones45678.org
+          ROW &mdash; portal.example.org
         </div>
       </footer>
 

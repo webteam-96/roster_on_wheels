@@ -12,6 +12,7 @@
  */
 
 import { useEffect, useMemo, useState } from "react";
+import { useFeature } from "@/contexts/BrandContext";
 import { useParams, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import {
@@ -164,6 +165,7 @@ const MODULES: ModuleItem[] = [
 
 export default function LiveDocumentsV2Page() {
   useSyncClubIdFromUrl();
+  const showBloodGroup = useFeature("member.bloodGroup");
   const params = useParams();
   const searchParams = useSearchParams();
   const clubId = Number(params.id);
@@ -235,7 +237,7 @@ export default function LiveDocumentsV2Page() {
         setDownloading(null);
         return;
       }
-      exportToCSV(arr, `${clubName}_${mod.label.replace(/\s+/g, "_")}`, mod.columns, {
+      exportToCSV(arr, `${clubName}_${mod.label.replace(/\s+/g, "_")}`, showBloodGroup ? mod.columns : mod.columns.filter((c) => c.key !== "bloodGroup"), {
         title: `${mod.label} — ${clubName}`,
         subtitle: `Rotary Year: ${yearLabel}`,
       });

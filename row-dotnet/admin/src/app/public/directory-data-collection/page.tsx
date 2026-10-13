@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
+import { useFeature } from "@/contexts/BrandContext";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -73,7 +74,7 @@ export default function PublicDirectoryFormPage() {
   // form
   const [sessionToken, setSessionToken] = useState("");
   const [group, setGroup] = useState<"DC" | "BOD" | "Member" | "">("");
-  const [fields, setFields] = useState<FieldItem[]>([]);
+  const [allFields, setFields] = useState<FieldItem[]>([]);
   const [values, setValues] = useState<Record<string, any>>({});
   const [completion, setCompletion] = useState<{ filled: number; total: number; percent: number; pending: string[] } | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -82,6 +83,13 @@ export default function PublicDirectoryFormPage() {
   // When true, Family fields are hidden in the form AND skipped from the completion calc.
   const [spouseNotApplicable, setSpouseNotApplicable] = useState(false);
   const [hasSpouseFields, setHasSpouseFields] = useState(false);
+  // Instance member-field flags: blood-group fields and the Family section are not
+  // shown, counted or sent when off.
+  const showBloodGroup = useFeature("member.bloodGroup");
+  const showFamily = useFeature("member.familyDetails");
+  const fields = allFields.filter(
+    (f) => (showBloodGroup || f.type !== "bloodgroup") && (showFamily || f.section !== "Family"),
+  );
 
   useEffect(() => {
     if (!urlHash) { setError("Invalid link"); setLoading(false); return; }
@@ -372,7 +380,7 @@ export default function PublicDirectoryFormPage() {
               <p className="text-sm">We will send an OTP to your registered contact:</p>
               <div className="rounded-md bg-muted p-3 text-sm">
                 <div><b>Name:</b> {masked.name}</div>
-                {masked.hasMobile && <div><b>Mobile:</b> +91 {masked.maskedMobile}</div>}
+                {masked.hasMobile && <div><b>Mobile:</b> {masked.maskedMobile}</div>}
                 {masked.hasEmail && <div><b>Email:</b> {masked.maskedEmail}</div>}
               </div>
               {/* India members get SMS OTP only; outside-India members get Email OTP only —

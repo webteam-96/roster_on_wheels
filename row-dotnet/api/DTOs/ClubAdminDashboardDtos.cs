@@ -82,7 +82,7 @@ public class ClubAdminFundMetric
     public string Id { get; set; } = "";
     public string Name { get; set; } = "";
     public decimal Value { get; set; }
-    public string Unit { get; set; } = ""; // "$" / "INR" / ""
+    public string Unit { get; set; } = ""; // a currency code / "%" / ""
 }
 
 public class ClubAdminFoundationResponse
@@ -129,7 +129,7 @@ public class ClubAdminProjectRow
     public string? Category { get; set; }
     public string? Date { get; set; }
     public decimal Cost { get; set; }
-    public string Currency { get; set; } = "INR"; // the project's own currency — row shows Cost in this
+    public string Currency { get; set; } = RotaryApi.Services.Brand.DefaultCurrency; // the project's own currency — row shows Cost in this
     public int Beneficiaries { get; set; }
     public string? Funding { get; set; }
     public string ApprovalStatus { get; set; } = "";
@@ -142,7 +142,7 @@ public class ClubAdminAvenueResponse
     public List<ClubAdminProjectRow> Projects { get; set; } = new();
     public int TotalProjects { get; set; }
     public decimal TotalCost { get; set; }
-    public string TargetCurrency { get; set; } = "INR"; // currency of TotalCost (district default)
+    public string TargetCurrency { get; set; } = RotaryApi.Services.Brand.DefaultCurrency; // currency of TotalCost (district default)
     public int TotalBeneficiaries { get; set; }
 }
 
@@ -430,7 +430,7 @@ public class ServiceProjectsOverviewResponse
     public List<ClubAdminYearOption> AvailableYears { get; set; } = new();
     public ServiceProjectsOverviewKpis Kpis { get; set; } = new();
     // Currency the TotalCost KPI and per-avenue Cost subtotals are expressed in (district default).
-    public string TargetCurrency { get; set; } = "INR";
+    public string TargetCurrency { get; set; } = RotaryApi.Services.Brand.DefaultCurrency;
     public List<ServiceProjectsAvenueSummaryRow> Avenues { get; set; } = new();
     public List<ServiceProjectsPendingFixRow> PendingItems { get; set; } = new();
 }
@@ -474,7 +474,7 @@ public class ServiceProjectsProjectRow
     public string Title { get; set; } = "";
     public string Type { get; set; } = "";         // "One-time" | "Recurring" | "Annual"
     public decimal Cost { get; set; }
-    public string Currency { get; set; } = "INR";  // the project's own currency — the list shows Cost in this
+    public string Currency { get; set; } = RotaryApi.Services.Brand.DefaultCurrency;  // the project's own currency — the list shows Cost in this
     public int DirectBeneficiaries { get; set; }
     public int ManHours { get; set; }
     public string? Beneficiary { get; set; }
@@ -514,7 +514,7 @@ public class ServiceProjectsAvenueDetailResponse
     public ServiceProjectsAvenueKpis Kpis { get; set; } = new();
     // Currency the AmountSpent KPI is expressed in (the club's district default). Per-project rows
     // keep their own Currency; foreign-currency costs are converted into this for the total.
-    public string TargetCurrency { get; set; } = "INR";
+    public string TargetCurrency { get; set; } = RotaryApi.Services.Brand.DefaultCurrency;
     public List<ServiceProjectsMeetingRow> Meetings { get; set; } = new();
     public List<ServiceProjectsProjectRow> OneTimeProjects { get; set; } = new();
     public List<ServiceProjectsProjectRow> OngoingProjects { get; set; } = new();

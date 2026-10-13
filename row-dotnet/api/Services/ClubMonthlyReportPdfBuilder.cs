@@ -170,7 +170,7 @@ public static class ClubMonthlyReportPdfBuilder
             if (!string.IsNullOrWhiteSpace(p.CategoryName)) facts.Add(("Category", p.CategoryName!));
             if (!string.IsNullOrWhiteSpace(p.SubCategoryName)) facts.Add(("Sub-Category", p.SubCategoryName!));
             if (!string.IsNullOrWhiteSpace(p.Location)) facts.Add(("Location", p.Location!));
-            if (p.ProjectCost is > 0) facts.Add(("Cost", "₹ " + p.ProjectCost!.Value.ToString("N0", CultureInfo.InvariantCulture)));
+            if (p.ProjectCost is > 0) facts.Add(("Cost", RotaryApi.Services.Brand.Money(p.ProjectCost!.Value, null, 0)));
             if (!string.IsNullOrWhiteSpace(p.FundingName)) facts.Add(("Funding", p.FundingName!));
             if (p.DirectBeneficiaries is > 0) facts.Add(("Beneficiaries", p.DirectBeneficiaries!.Value.ToString()));
             if (p.ManHours is > 0) facts.Add(("Man-hours", p.ManHours!.Value.ToString()));

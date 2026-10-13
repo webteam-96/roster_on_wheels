@@ -2,7 +2,7 @@
  * Build a club-website URL from the stored subdomain.
  *
  * Some clubs have garbage in club_websites.Subdomain ("https//rcthanehills/",
- * "rcthanehills.rotaryindia.org/", etc), so strip protocol prefixes, stray slashes
+ * "club.example.org/", etc), so strip protocol prefixes, stray slashes
  * and any trailing parent-domain suffix down to the bare subdomain.
  *
  * Mirrors the local helper in settings/global-search/page.tsx — kept identical so the
@@ -15,9 +15,9 @@ export function clubWebsiteUrl(raw: string | null | undefined): string | null {
     .replace(/^https?:?\/+/i, "")
     .replace(/^\/+/, "")
     .replace(/\/+$/, "")
-    .replace(/\.(rotaryindia|rizones4567|rizones45678)\.org$/i, "")
+    .replace(/\.(ROW|ROW|ROW)\.org$/i, "")
     .trim()
     .toLowerCase();
   if (!sub) return null;
-  return `https://${sub}.rotaryindia.org`;
+  return `https://${sub}.example.org`;
 }

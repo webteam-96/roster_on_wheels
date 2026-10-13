@@ -5,7 +5,7 @@ using MySqlConnector;
 namespace RotaryApi.Services;
 
 // Daily statistics report — a background service (DailyStatsReportBackgroundService) fires this
-// once a day at 06:00 IST. It emails a counts table (HTML body) + a multi-sheet Excel attachment
+// once a day at 06:00 in the brand's time zone. It emails a counts table (HTML body) + a multi-sheet Excel attachment
 // (Sync-club list, Non-sync-club list, District-wise summary, Project breakdown) to the recipients.
 //
 // Scope: the organisation is ROW (ROW). All headline club/member numbers are
@@ -71,10 +71,14 @@ public class DailyStatsReportService : IDailyStatsReportService
     private readonly string[] _recipients;
     private readonly bool _suppressLocalDev;
 
-    private static readonly string[] ExemptDistrictNumbers = { "5656", "1280", "IFRM India" };
+    // ROW (as the NestJS edition): zones and exempt districts from Brand:Scope (empty zones = all zones,
+    // empty exempt list = none). The original platform hard-coded its own zones and its own test / COG / partner districts.
+    private static string[] ExemptDistrictNumbers => RotaryApi.Services.Brand.ExemptDistricts;
+    private static string[] ScopeZones => RotaryApi.Services.Brand.Zones.Length > 0 ? RotaryApi.Services.Brand.Zones : new[] { "" };
+    private static int AllZones => RotaryApi.Services.Brand.Zones.Length == 0 ? 1 : 0;
     private const string Zone0 = "Zone 0";
     // The five ROW zones this organisation covers. Everything else = "Other Zones".
-    private static readonly string[] IndiaZoneNames = { "Zone 4", "Zone 5", "Zone 6", "Zone 7", "Zone 8" };
+
 
     // The avenues of service + Public Image (module keys), in display order. Project counts split by these.
     private static readonly (string Key, string Label)[] Avenues =
@@ -152,9 +156,9 @@ public class DailyStatsReportService : IDailyStatsReportService
 
         // Zone-scope params. Everything is scoped to the 5 ROW zones (the zones); exempt
         // districts + inactive districts are out everywhere.
-        var pIndia = new { Exempt = ExemptDistrictNumbers, Zones = IndiaZoneNames };
+        var pIndia = new { Exempt = ExemptDistrictNumbers, Zones = ScopeZones, AllZones };
 
-        const string indiaZoneClause = "z.ZoneName IN @Zones";
+        const string indiaZoneClause = "(@AllZones = 1 OR z.ZoneName IN @Zones)";
 
         // ── Current year + module ids ─────────────────────────────────────────
         var year = await conn.QueryFirstOrDefaultAsync<dynamic>(
@@ -241,7 +245,7 @@ public class DailyStatsReportService : IDailyStatsReportService
         // sheets tie out exactly to the preview: Sync/Non-Sync club sheet row counts == headline club
         // counts, and the District Summary sync/non-sync TOTALs == headline. (Exempt + inactive
         // districts, Other Zones and null-zone districts are all excluded here too.)
-        var pExcel = new { Exempt = ExemptDistrictNumbers, Zones = IndiaZoneNames };
+        var pExcel = new { Exempt = ExemptDistrictNumbers, Zones = ScopeZones, AllZones };
         var summary = (await conn.QueryAsync<SyncSummaryRow>(@"
             SELECT z.ZoneName AS ZoneName, d.DistrictNumber AS DistrictNumber,
                    CAST(SUM(c.IsSyncedFromRotaryOrg = 1) AS SIGNED) AS SyncClubs,
@@ -255,11 +259,11 @@ public class DailyStatsReportService : IDailyStatsReportService
             JOIN zone_master z ON z.pk_zone_id = d.fk_zone_id
             LEFT JOIN club_master c ON c.fk_district_id = d.pk_district_id AND c.isdeleted = 0
             WHERE d.isdeleted = 0 AND d.DistrictNumber NOT IN @Exempt AND d.IsActive = 1
-              AND z.ZoneName IN @Zones
+              AND (@AllZones = 1 OR z.ZoneName IN @Zones)
             GROUP BY d.pk_district_id, z.ZoneName, d.DistrictNumber
             HAVING (SyncClubs + NonSyncClubs) > 0
             ORDER BY z.ZoneName, CAST(d.DistrictNumber AS UNSIGNED), d.DistrictNumber",
-            new { Exempt = ExemptDistrictNumbers, Zones = IndiaZoneNames })).ToList();
+            new { Exempt = ExemptDistrictNumbers, Zones = ScopeZones, AllZones })).ToList();
 
         const string clubListSql = @"
             SELECT z.ZoneName AS ZoneName, d.DistrictNumber AS DistrictNumber, c.ClubName AS ClubName,
@@ -272,7 +276,7 @@ public class DailyStatsReportService : IDailyStatsReportService
             JOIN district_master d ON d.pk_district_id = c.fk_district_id
             JOIN zone_master z ON z.pk_zone_id = d.fk_zone_id
             WHERE c.isdeleted = 0 AND d.DistrictNumber NOT IN @Exempt AND d.IsActive = 1
-              AND z.ZoneName IN @Zones AND {0}
+              AND (@AllZones = 1 OR z.ZoneName IN @Zones) AND {0}
             ORDER BY z.ZoneName, CAST(d.DistrictNumber AS UNSIGNED), d.DistrictNumber, c.ClubName";
         var syncList = (await conn.QueryAsync<SyncClubRow>(
             string.Format(clubListSql, "c.IsSyncedFromRotaryOrg = 1"), pExcel)).ToList();
@@ -284,7 +288,7 @@ public class DailyStatsReportService : IDailyStatsReportService
         {
             ("Total Sync Clubs (the zones)", syncClubs),
             ("Total Members (the zones)", totalMembers),
-            ("Total Non-Sync Clubs (the zones, excl. 5656 / COG / IFRM)", nonSyncClubs),
+            ("Total Non-Sync Clubs (excluding exempt districts)", nonSyncClubs),
             ($"Total Newsletters ({curYearLabel})", newslettersCurYear),
             ($"Total Project Photos — {curYearLabel}", photosCurYear),
             ("Total Project Photos — All Years", photosAllYears),
@@ -378,9 +382,9 @@ public class DailyStatsReportService : IDailyStatsReportService
                 JOIN `{projTable}` p ON p.pk_project_id = pp.fk_project_id
                 JOIN club_master c ON c.pk_club_id = p.fk_club_id AND c.isdeleted = 0 AND c.IsSyncedFromRotaryOrg = 1
                 JOIN district_master d ON d.pk_district_id = c.fk_district_id AND d.DistrictNumber NOT IN @Exempt AND d.IsActive = 1
-                JOIN zone_master z ON z.pk_zone_id = d.fk_zone_id AND z.ZoneName IN @Zones
+                JOIN zone_master z ON z.pk_zone_id = d.fk_zone_id AND (@AllZones = 1 OR z.ZoneName IN @Zones)
                 WHERE COALESCE(p.isdeleted, 0) = 0",
-                new { Exempt = ExemptDistrictNumbers, Zones = IndiaZoneNames });
+                new { Exempt = ExemptDistrictNumbers, Zones = ScopeZones, AllZones });
         }
         catch (Exception ex) { _logger.LogWarning(ex, "Daily report: photo count failed for {Table}", photoTable); return 0; }
     }

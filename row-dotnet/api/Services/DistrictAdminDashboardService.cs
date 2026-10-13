@@ -135,9 +135,10 @@ public class DistrictAdminDashboardService : IDistrictAdminDashboardService
             SELECT YearLabel FROM rotary_year_master WHERE pk_year_id = @YearId LIMIT 1",
             new { YearId = yearId }) ?? "";
 
+        // user 2026-10-08: Rotaract clubs hidden from District Admin screens (counts + lists).
         var totalClubs = await conn.ExecuteScalarAsync<int>(@"
             SELECT COUNT(*) FROM club_master
-            WHERE fk_district_id = @DistrictId AND isdeleted = 0",
+            WHERE fk_district_id = @DistrictId AND isdeleted = 0 AND COALESCE(ClubType,'') <> 'Rotaract Club'",
             new { DistrictId = districtId });
 
         return new DistrictAdminIdentityDto
@@ -155,7 +156,7 @@ public class DistrictAdminDashboardService : IDistrictAdminDashboardService
     {
         var rows = await conn.QueryAsync<int>(@"
             SELECT pk_club_id FROM club_master
-            WHERE fk_district_id = @DistrictId AND isdeleted = 0",
+            WHERE fk_district_id = @DistrictId AND isdeleted = 0 AND COALESCE(ClubType,'') <> 'Rotaract Club'",
             new { DistrictId = districtId });
         return rows.ToList();
     }
@@ -178,7 +179,7 @@ public class DistrictAdminDashboardService : IDistrictAdminDashboardService
 
         int activeClubs = await conn.ExecuteScalarAsync<int>(@"
             SELECT COUNT(*) FROM club_master
-            WHERE fk_district_id = @DistrictId AND isdeleted = 0 AND IsActive = 1",
+            WHERE fk_district_id = @DistrictId AND isdeleted = 0 AND IsActive = 1 AND COALESCE(ClubType,'') <> 'Rotaract Club'",
             new { DistrictId = districtId });
 
         // Honorary members are never counted as part of "Total Members" (business rule
@@ -279,7 +280,7 @@ public class DistrictAdminDashboardService : IDistrictAdminDashboardService
                    (SELECT COUNT(*) FROM club_members cm JOIN member_master_profile m ON m.pk_member_master_profile_id = cm.fk_member_master_profile_id WHERE cm.fk_club_id = c.pk_club_id AND cm.IsActive = 1 AND cm.isdeleted = 0 AND m.isdeleted = 0 AND cm.IsHonoraryMember = 0) AS members,
                    (SELECT COUNT(*) FROM club_attendance a WHERE a.fk_club_id = c.pk_club_id AND a.isdeleted = 0 AND (@YearId = 0 OR a.fk_year_id = @YearId)) AS meetings
             FROM club_master c
-            WHERE c.fk_district_id = @DistrictId AND c.isdeleted = 0",
+            WHERE c.fk_district_id = @DistrictId AND c.isdeleted = 0 AND COALESCE(c.ClubType,'') <> 'Rotaract Club'",
             new { DistrictId = districtId, YearId = resolvedYearId })).ToList();
 
         var perClubTrf = (await conn.QueryAsync<(int clubId, decimal totalUsd)>(@"
@@ -524,7 +525,7 @@ public class DistrictAdminDashboardService : IDistrictAdminDashboardService
                    (SELECT COUNT(*) FROM club_members cm JOIN member_master_profile m ON m.pk_member_master_profile_id = cm.fk_member_master_profile_id WHERE cm.fk_club_id = c.pk_club_id AND cm.IsActive = 1 AND cm.isdeleted = 0 AND m.isdeleted = 0 AND cm.IsHonoraryMember = 0) AS members,
                    0 AS meetings, 0 AS projects, 0 AS trfInr
             FROM club_master c
-            WHERE c.fk_district_id = @DistrictId AND c.isdeleted = 0
+            WHERE c.fk_district_id = @DistrictId AND c.isdeleted = 0 AND COALESCE(c.ClubType,'') <> 'Rotaract Club'
             ORDER BY members DESC",
             new { DistrictId = districtId })).ToList();
 
@@ -851,7 +852,7 @@ public class DistrictAdminDashboardService : IDistrictAdminDashboardService
                              AND (@YearId = 0 OR a.fk_year_id = @YearId)), 0) AS meetingsHeld,
                    0 AS avgAttendance
             FROM club_master c
-            WHERE c.fk_district_id = @DistrictId AND c.isdeleted = 0
+            WHERE c.fk_district_id = @DistrictId AND c.isdeleted = 0 AND COALESCE(c.ClubType,'') <> 'Rotaract Club'
             ORDER BY c.ClubName",
             new { DistrictId = districtId, YearId = resolvedYearId })).ToList();
 
@@ -1194,7 +1195,7 @@ public class DistrictAdminDashboardService : IDistrictAdminDashboardService
         var clubs = (await conn.QueryAsync<DistrictAdminRotaryNetworkClubOption>(@"
             SELECT pk_club_id AS ClubId, ClubName AS ClubName
             FROM club_master
-            WHERE fk_district_id = @DistrictId AND isdeleted = 0 AND IsActive = 1
+            WHERE fk_district_id = @DistrictId AND isdeleted = 0 AND IsActive = 1 AND COALESCE(ClubType,'') <> 'Rotaract Club'
             ORDER BY ClubName",
             new { DistrictId = districtId })).ToList();
 
@@ -1259,7 +1260,7 @@ public class DistrictAdminDashboardService : IDistrictAdminDashboardService
         var club = await conn.QueryFirstOrDefaultAsync<(int ClubId, string ClubName, string? ClubRotaryId, string? ClubType)>(@"
             SELECT pk_club_id AS ClubId, ClubName, ClubRotaryId, ClubType
             FROM club_master
-            WHERE fk_district_id = @DistrictId AND isdeleted = 0 AND IsActive = 1 AND pk_club_id = @ClubId",
+            WHERE fk_district_id = @DistrictId AND isdeleted = 0 AND IsActive = 1 AND pk_club_id = @ClubId AND COALESCE(ClubType,'') <> 'Rotaract Club'",
             new { DistrictId = districtId, ClubId = clubId });
         if (club.ClubId == 0)
             return new DistrictAdminLiveTerminatedResponse { Warning = "Club not found in this district." };
@@ -1801,7 +1802,7 @@ public class DistrictAdminDashboardService : IDistrictAdminDashboardService
               AND (@YearId = 0 OR b.fk_year_id = @YearId)",
             new { DistrictId = districtId, YearId = yearId });
         int totalDistrictClubs = await conn.ExecuteScalarAsync<int>(@"
-            SELECT COUNT(*) FROM club_master WHERE fk_district_id = @DistrictId AND isdeleted = 0",
+            SELECT COUNT(*) FROM club_master WHERE fk_district_id = @DistrictId AND isdeleted = 0 AND COALESCE(ClubType,'') <> 'Rotaract Club'",
             new { DistrictId = districtId });
         tabs.Add(new DistrictAdminMembershipTabCount
         {
@@ -1879,7 +1880,7 @@ public class DistrictAdminDashboardService : IDistrictAdminDashboardService
 
         int activeClubsAll = await conn.ExecuteScalarAsync<int>(@"
             SELECT COUNT(*) FROM club_master
-            WHERE fk_district_id = @DistrictId AND isdeleted = 0 AND IsActive = 1",
+            WHERE fk_district_id = @DistrictId AND isdeleted = 0 AND IsActive = 1 AND COALESCE(ClubType,'') <> 'Rotaract Club'",
             new { DistrictId = districtId });
         tabs.Add(new DistrictAdminMembershipTabCount
         {
@@ -2228,7 +2229,7 @@ public class DistrictAdminDashboardService : IDistrictAdminDashboardService
     {
         var clubs = (await conn.QueryAsync<(int clubId, string clubName)>(@"
             SELECT pk_club_id, ClubName FROM club_master
-            WHERE fk_district_id = @DistrictId AND isdeleted = 0
+            WHERE fk_district_id = @DistrictId AND isdeleted = 0 AND COALESCE(ClubType,'') <> 'Rotaract Club'
             ORDER BY ClubName",
             new { DistrictId = districtId })).ToList();
 
@@ -2292,7 +2293,7 @@ public class DistrictAdminDashboardService : IDistrictAdminDashboardService
                 LEFT JOIN pph_camps pc ON pc.fk_club_id = c.pk_club_id AND pc.isdeleted = 0
                     AND (@HasRange = 0 OR (pc.CampDate >= @Start AND pc.CampDate <= @End))
                 LEFT JOIN pph_camp_attendance pa ON pa.fk_camp_id = pc.pk_camp_id
-                WHERE c.fk_district_id = @DistrictId AND c.isdeleted = 0
+                WHERE c.fk_district_id = @DistrictId AND c.isdeleted = 0 AND COALESCE(c.ClubType,'') <> 'Rotaract Club'
                 GROUP BY c.pk_club_id, c.ClubName
                 ORDER BY campCount DESC, c.ClubName",
                 new
@@ -2323,7 +2324,7 @@ public class DistrictAdminDashboardService : IDistrictAdminDashboardService
                 LEFT JOIN district_citation_club_entry e ON e.fk_club_id = c.pk_club_id
                     AND e.isdeleted = 0
                     AND (@YearId = 0 OR e.fk_year_id = @YearId)
-                WHERE c.fk_district_id = @DistrictId AND c.isdeleted = 0
+                WHERE c.fk_district_id = @DistrictId AND c.isdeleted = 0 AND COALESCE(c.ClubType,'') <> 'Rotaract Club'
                 GROUP BY c.pk_club_id, c.ClubName
                 ORDER BY totalScore DESC, c.ClubName",
                 new { DistrictId = districtId, YearId = yearId });

@@ -46,6 +46,7 @@ import { useExtensionStatus } from "@/hooks/useExtensionStatus";
 import { isFlowBotEnabled, AVENUE_LABELS, buildOrgExportFromDetail, triggerAddToOrg } from "@/lib/addToOrg";
 import AddToOrgConfirmDialog from "@/components/AddToOrgConfirmDialog";
 
+import { appLocale } from "@/lib/appFormat";
 const SYNC_API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
 const AGREE_MESSAGE = `The data I will enter is for a International Service project conducted by my club that has benefitted my community. E.g., Rotary Youth Exchange, Rotary Friendship Exchange, etc.
@@ -436,7 +437,7 @@ export default function InternationalServiceV2Page() {
                           {r.areaOfFocusName || r.otherAreaOfFocus || "—"}
                         </td>
                         <td className="px-3 py-2 text-right text-slate-600 whitespace-nowrap">
-                          {r.projectCost && r.projectCost > 0 ? `${getCurrencySymbol(r.currency)}${r.projectCost.toLocaleString("en-IN")}` : "—"}
+                          {r.projectCost && r.projectCost > 0 ? `${getCurrencySymbol(r.currency)}${r.projectCost.toLocaleString(appLocale())}` : "—"}
                         </td>
                         <td className="px-3 py-2 text-right text-slate-600">
                           {r.directBeneficiaries && r.directBeneficiaries > 0 ? fmtInt(r.directBeneficiaries) : "—"}

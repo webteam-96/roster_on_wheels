@@ -1,41 +1,19 @@
-export const fmtInt = (n: number | null | undefined): string =>
-  (n ?? 0).toLocaleString("en-IN");
+import { appFormat } from "@/lib/appFormat";
 
-export const fmtInr = (n: number | null | undefined): string => {
-  if (n == null) return "₹0";
-  return "₹" + Math.round(n).toLocaleString("en-IN");
-};
+// Dashboard formatters, following the instance's locale and currency (lib/appFormat).
+export const fmtInt = (n: number | null | undefined): string => appFormat().number(n ?? 0);
 
-export const fmtInrShort = (n: number | null | undefined): string => {
-  if (!n) return "₹0";
-  if (n >= 10_000_000) return `₹${(n / 10_000_000).toFixed(1)}Cr`;
-  if (n >= 100_000) return `₹${(n / 100_000).toFixed(1)}L`;
-  if (n >= 1_000) return `₹${(n / 1_000).toFixed(1)}K`;
-  return `₹${n.toFixed(0)}`;
-};
+/** Whole-number money in the instance currency (kept under its old name for existing callers). */
+export const fmtInr = (n: number | null | undefined): string => appFormat().money(Math.round(n ?? 0));
 
-// USD formatters — TRF / Foundation amounts are stored and shown in USD (no conversion).
-export const fmtUsd = (n: number | null | undefined): string => {
-  if (n == null) return "$0";
-  return "$" + n.toLocaleString("en-US", { maximumFractionDigits: 2 });
-};
+export const fmtInrShort = (n: number | null | undefined): string => appFormat().moneyShort(n ?? 0);
 
-export const fmtUsdShort = (n: number | null | undefined): string => {
-  if (!n) return "$0";
-  if (n >= 1_000_000) return `$${(n / 1_000_000).toFixed(1)}M`;
-  if (n >= 1_000) return `$${(n / 1_000).toFixed(1)}K`;
-  return `$${n.toFixed(0)}`;
-};
+// TRF / Foundation amounts are stored and shown in USD (no conversion).
+export const fmtUsd = (n: number | null | undefined): string => appFormat().money(n ?? 0, "USD");
 
-export const fmtDate = (s?: string | null): string => {
-  if (!s) return "—";
-  try {
-    const d = new Date(s);
-    return d.toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" });
-  } catch {
-    return s;
-  }
-};
+export const fmtUsdShort = (n: number | null | undefined): string => appFormat().moneyShort(n ?? 0, "USD");
+
+export const fmtDate = (s?: string | null): string => (s ? appFormat().date(s) || s : "—");
 
 export const truncate = (s: string, n = 14): string =>
   s.length > n ? s.slice(0, n - 1) + "…" : s;

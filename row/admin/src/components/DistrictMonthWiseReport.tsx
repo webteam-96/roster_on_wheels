@@ -25,6 +25,26 @@ function pctAchieved(baseline: number | null | undefined, target: number | null 
   return `${(Math.round(p * 100) / 100).toString()}%`;
 }
 
+// Running monthly TARGET (user 2026-10-09) - same rule as the "Month wise" Excel sheet: the year's
+// growth (Target − As on July 1st; the Target itself for Foundation) split over the months in whole
+// numbers, the whole leftover in the LAST month (June), as a running total. 122 → 135: Jul 123 …
+// May 133, Jun 135; 10 → 13: Jul–May 10, Jun 13. A split the admin saved (pilot) is used as it is.
+function runningTargets(f: GoalMonthlyForm["fields"][number], months: { month: number }[]): (number | null)[] {
+  const start = f.baseline ?? 0;
+  const saved = !f.targetsAreSuggested && Object.values(f.monthlyTargets ?? {}).some((v) => v != null);
+  let shares: number[];
+  if (saved) shares = months.map((mo) => f.monthlyTargets?.[mo.month] ?? 0);
+  else if (f.annualTarget != null && months.length > 0) {
+    const growth = Math.round(f.annualTarget - start);
+    if (growth <= 0) return months.map(() => f.annualTarget);
+    const each = Math.floor(growth / months.length);
+    const extra = growth - each * months.length;
+    shares = months.map((_, i) => each + (i === months.length - 1 ? extra : 0));
+  } else return months.map(() => null);
+  let run = start;
+  return shares.map((x) => (run += x));
+}
+
 // `categoryId` = the category the district list behind the popup is showing. Given it, the popup
 // reports that one category only, instead of stacking all four (user 2026-09-21).
 export default function DistrictMonthWiseReport(
@@ -71,18 +91,27 @@ export default function DistrictMonthWiseReport(
             ) : (
               <div className="overflow-x-auto border border-t-0 border-slate-200 rounded-b-lg">
                 <table className="text-xs border-collapse w-full whitespace-nowrap">
+                  {/* Every month has a Target | Achieved pair (user 2026-10-09); metrics stay one row each. */}
                   <thead>
                     <tr style={{ backgroundColor: "#274b73" }} className="text-white">
-                      <th className="px-2 py-1.5 text-left sticky left-0 z-10" style={{ backgroundColor: "#274b73" }}>Particulars</th>
-                      <th className="px-2 py-1.5 text-right">As on July 1st</th>
-                      <th className="px-2 py-1.5 text-right">Target</th>
-                      {months.map((mo) => <th key={mo.month} className={`px-2 py-1.5 text-right ${mo.isAvailable ? "" : "text-white/40"}`}>{mo.label}</th>)}
-                      <th className="px-2 py-1.5 text-right">Achieved</th>
-                      <th className="px-2 py-1.5 text-right">% Achievement</th>
+                      <th rowSpan={2} className="px-2 py-1.5 text-left sticky left-0 z-10" style={{ backgroundColor: "#274b73" }}>Particulars</th>
+                      <th rowSpan={2} className="px-2 py-1.5 text-right">As on July 1st</th>
+                      <th rowSpan={2} className="px-2 py-1.5 text-right">Target</th>
+                      {months.map((mo) => <th key={mo.month} colSpan={2} className={`px-2 py-1 text-center border-l border-white/20 ${mo.isAvailable ? "" : "text-white/50"}`}>{mo.label}</th>)}
+                      <th rowSpan={2} className="px-2 py-1.5 text-right border-l border-white/20">Achieved</th>
+                      <th rowSpan={2} className="px-2 py-1.5 text-right">% Achievement</th>
+                    </tr>
+                    <tr style={{ backgroundColor: "#335d8a" }} className="text-white/90 text-[10px]">
+                      {months.map((mo) => [
+                        <th key={`${mo.month}t`} className="px-2 py-1 text-right font-medium border-l border-white/20">Target</th>,
+                        <th key={`${mo.month}a`} className="px-2 py-1 text-right font-medium">Achieved</th>,
+                      ])}
                     </tr>
                   </thead>
                   <tbody>
-                    {form.fields.map((f) => {
+                    {/* Membership's yearly-only rows (RED / AMBER / GREEN + the 3 Summary totals) have
+                        nothing month-wise - hidden here (user 2026-10-09); the YTD screens keep them. */}
+                    {form.fields.filter((f) => !(f.monthlyTracked === false && c.name.toLowerCase() === "membership")).map((f) => {
                       // Annual-only field (baseline, RAG, Summary, Total Giving, Youth "Existing/Total",
                       // Public Image Other Points + Suggestions): show its value, leave the months empty.
                       if (f.monthlyTracked === false) {
@@ -91,7 +120,7 @@ export default function DistrictMonthWiseReport(
                             <td className="px-2 py-1.5 font-medium text-slate-800 sticky left-0 z-10 bg-white">{monthlyFieldLabel(f)}</td>
                             <td className="px-2 py-1.5 text-right text-slate-500">—</td>
                             <td className="px-2 py-1.5 text-right text-slate-700 whitespace-pre-line">{f.displayText ?? fmt(f.annualTarget)}</td>
-                            {months.map((mo) => <td key={mo.month} className="px-2 py-1.5" />)}
+                            {months.map((mo) => <td key={mo.month} colSpan={2} className="px-2 py-1.5 border-l border-slate-100" />)}
                             <td className="px-2 py-1.5 text-right text-slate-400">—</td>
                             <td className="px-2 py-1.5 text-right text-slate-400">—</td>
                           </tr>
@@ -107,12 +136,16 @@ export default function DistrictMonthWiseReport(
                         last = run;
                         return run;
                       });
+                      const tgts = runningTargets(f, months);
                       return (
                         <tr key={f.fieldId} className="border-b border-slate-100 hover:bg-slate-50">
                           <td className="px-2 py-1.5 font-medium text-slate-800 sticky left-0 z-10 bg-white">{monthlyFieldLabel(f)}</td>
                           <td className="px-2 py-1.5 text-right text-slate-500">{fmt(f.baseline)}</td>
                           <td className="px-2 py-1.5 text-right text-slate-700">{fmt(f.annualTarget)}</td>
-                          {cells.map((v, j) => <td key={j} className="px-2 py-1.5 text-right text-slate-700">{v === null ? "—" : fmt(v)}</td>)}
+                          {cells.map((v, j) => [
+                            <td key={`${j}t`} className="px-2 py-1.5 text-right text-slate-500 border-l border-slate-100">{fmt(tgts[j])}</td>,
+                            <td key={`${j}a`} className="px-2 py-1.5 text-right text-slate-800">{v === null ? "—" : fmt(v)}</td>,
+                          ])}
                           <td className="px-2 py-1.5 text-right font-semibold text-slate-800">{last === null ? "—" : fmt(last)}</td>
                           <td className="px-2 py-1.5 text-right font-semibold text-emerald-700">{pctAchieved(f.baseline, f.annualTarget, last)}</td>
                         </tr>

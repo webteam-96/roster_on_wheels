@@ -53,7 +53,7 @@ public class PublicProjectController : ControllerBase
             SELECT p.pk_project_id AS id, p.title, p.description,
                    p.project_date AS projectDate,
                    p.project_cost AS projectCost,
-                   COALESCE(p.Currency, 'INR') AS currency,
+                   COALESCE(p.Currency, '{RotaryApi.Services.Brand.SqlCurrency}') AS currency,
                    p.direct_beneficiaries AS directBeneficiaries,
                    p.man_hours AS manHours,
                    p.rotarians_involved AS rotariansInvolved,

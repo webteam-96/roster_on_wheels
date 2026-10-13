@@ -23,6 +23,7 @@ import {
   type PerformanceReportSettings,
 } from "@/services/api";
 
+import { appLocale, appTimeZone } from "@/lib/appFormat";
 const PCT_HEADER = "Percentage Achieved";
 
 // Text columns align left, numbers right: the first column, plus the club name in "#"-ranked tables.
@@ -202,7 +203,7 @@ export default function DistrictPerformanceReportPage() {
   const sendRuns = (() => {
     const by = new Map<string, { date: string; sent: number; skipped: number; failed: number }>();
     for (const r of sendRows) {
-      const d = new Date(r.createdDate).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" });
+      const d = new Date(r.createdDate).toLocaleDateString(appLocale(), { day: "2-digit", month: "short", year: "numeric" });
       const g = by.get(d) ?? { date: d, sent: 0, skipped: 0, failed: 0 };
       if (r.status === "Sent") g.sent++;
       else if (r.status === "Failed") g.failed++;
@@ -351,8 +352,8 @@ export default function DistrictPerformanceReportPage() {
   const scheduleText = !settings ? "" : !settings.scheduleEnabled
     ? "Automatic sending is OFF — nothing is emailed on a schedule. Use the buttons below to check the report."
     : settings.mode === "Live"
-      ? `LIVE — on day ${settings.liveDays.join(" & ")} of each month at ${settings.hour}:00 IST, every district's report goes to its District Governor (CC ${settings.liveCc.join(", ")}).`
-      : `TEST — every morning at ${settings.hour}:00 IST: District ${settings.testDistricts.join(", ")} report + RI Director report (all zones) to ${settings.testRecipients.join(", ")}.`;
+      ? `LIVE — on day ${settings.liveDays.join(" & ")} of each month at ${settings.hour}:00 (${appTimeZone()}), every district's report goes to its District Governor (CC ${settings.liveCc.join(", ")}).`
+      : `TEST — every morning at ${settings.hour}:00 (${appTimeZone()}): District ${settings.testDistricts.join(", ")} report + RI Director report (all zones) to ${settings.testRecipients.join(", ")}.`;
 
   return (
     <ProtectedRoute>
@@ -561,7 +562,7 @@ export default function DistrictPerformanceReportPage() {
                 <tbody className="divide-y divide-slate-100">
                   {sendPageRows.map((r) => (
                     <tr key={r.id}>
-                      <td className="px-3 py-1.5 text-slate-600 whitespace-nowrap">{new Date(r.createdDate).toLocaleString("en-IN")}</td>
+                      <td className="px-3 py-1.5 text-slate-600 whitespace-nowrap">{new Date(r.createdDate).toLocaleString(appLocale())}</td>
                       <td className="px-3 py-1.5 text-slate-700">{r.districtNumber ?? "All zones"}</td>
                       <td className="px-3 py-1.5 text-slate-600">{r.runType}</td>
                       <td className="px-3 py-1.5 text-slate-600">{r.toEmail ?? "—"}{r.ccEmails ? ` (cc ${r.ccEmails})` : ""}</td>

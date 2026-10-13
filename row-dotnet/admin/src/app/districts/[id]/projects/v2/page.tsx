@@ -39,6 +39,7 @@ import ErrorAlert from "@/components/ErrorAlert";
 import Pagination from "@/components/Pagination";
 import { formatMoney } from "@/lib/currency";
 
+import { appLocale, currencySymbol } from "@/lib/appFormat";
 // Inline mirror of useSyncClubIdFromUrl for district scope. Kept here (not a
 // shared hook) until a second v2 district page needs it.
 function useSyncDistrictIdFromUrl(): void {
@@ -254,7 +255,7 @@ export default function DistrictProjectsV2Page() {
                       <th className="px-3 py-2.5 text-left w-10">Sr</th>
                       <th className="px-3 py-2.5 text-left">Title</th>
                       <th className="px-3 py-2.5 text-left">Date</th>
-                      <th className="px-3 py-2.5 text-right">Cost (₹)</th>
+                      <th className="px-3 py-2.5 text-right">Cost ({currencySymbol()})</th>
                       <th className="px-3 py-2.5 text-center">Beneficiaries</th>
                       <th className="px-3 py-2.5 text-left">Area of Focus</th>
                       <th className="px-3 py-2.5 text-right w-16">Edit</th>
@@ -270,7 +271,7 @@ export default function DistrictProjectsV2Page() {
                         </td>
                         <td className="px-3 py-2 text-slate-600 whitespace-nowrap">
                           {item.projectDate
-                            ? new Date(item.projectDate).toLocaleDateString("en-IN")
+                            ? new Date(item.projectDate).toLocaleDateString(appLocale())
                             : "—"}
                         </td>
                         <td className="px-3 py-2 text-right text-slate-600 whitespace-nowrap">

@@ -33,6 +33,7 @@ import {
   ArrowLeft, Send, Pencil, Trash2, CheckCircle2, XCircle, Clock, Loader2, AlertTriangle,
 } from "lucide-react";
 
+import { appLocale } from "@/lib/appFormat";
 const BASE = "/district-admin-dashboard/quick-links/mass-email";
 
 function withSearch(base: string, extra: Record<string, string | null | undefined>) {
@@ -185,7 +186,7 @@ export default function DistrictAdminMassEmailDetailPage() {
               <div><span className="text-slate-500">From: </span><span className="font-medium text-slate-800">{detail.fromName}</span></div>
               {detail.replyEmail && <div><span className="text-slate-500">Reply To: </span><span className="font-medium text-slate-800">{detail.replyName || detail.replyEmail} &lt;{detail.replyEmail}&gt;</span></div>}
               <div><span className="text-slate-500">Recipients: </span><span className="font-medium text-slate-800">{detail.totalRecipients} ({getRecipientTypeLabel(detail.recipientType)}{detail.subgroupName ? ` - ${detail.subgroupName}` : ""})</span></div>
-              <div><span className="text-slate-500">Date: </span><span className="font-medium text-slate-800">{detail.sentDate ? new Date(detail.sentDate).toLocaleString("en-IN") : new Date(detail.createdDate).toLocaleString("en-IN")}</span></div>
+              <div><span className="text-slate-500">Date: </span><span className="font-medium text-slate-800">{detail.sentDate ? new Date(detail.sentDate).toLocaleString(appLocale()) : new Date(detail.createdDate).toLocaleString(appLocale())}</span></div>
             </div>
 
             {!isDraft && (
@@ -237,7 +238,7 @@ export default function DistrictAdminMassEmailDetailPage() {
                     <TableCell className="font-medium text-slate-800">{r.memberName}</TableCell>
                     <TableCell className="text-sm text-slate-600">{r.email || "No email"}</TableCell>
                     <TableCell><div className="flex items-center gap-1.5">{getStatusIcon(r.status)}<span className="text-sm text-slate-700">{r.status}</span></div></TableCell>
-                    <TableCell className="text-sm text-slate-600">{r.sentDate ? new Date(r.sentDate).toLocaleString("en-IN") : "-"}</TableCell>
+                    <TableCell className="text-sm text-slate-600">{r.sentDate ? new Date(r.sentDate).toLocaleString(appLocale()) : "-"}</TableCell>
                     <TableCell className="text-sm text-red-600 max-w-[200px] truncate">{r.errorMessage || "-"}</TableCell>
                   </TableRow>
                 ))}

@@ -11,19 +11,20 @@
 
 import type { ReactNode } from "react";
 import { Lock, ShieldCheck, BadgeCheck } from "lucide-react";
-import { BRAND } from "@/lib/brand";
+import { useBrand } from "@/contexts/BrandContext";
 
 const NAVY = "#17458F";
 const NAVY_DARK = "#0F3168";
 const GOLD = "#F7A81B";
 
 export default function PayPageShell({ title, wide, children }: { title?: ReactNode; wide?: boolean; children: ReactNode }) {
+  const { phones, hours, email } = useBrand().support;
   return (
     <div className="min-h-screen flex flex-col bg-slate-50">
       {/* Helpline bar (full width) */}
       <div className="w-full text-white/90 text-[11px] sm:text-xs py-1.5 px-4 text-center" style={{ backgroundColor: NAVY_DARK }}>
-        {BRAND.supportPhone && <>Help line: {BRAND.supportPhone}</>}
-        <span className="hidden sm:inline">{BRAND.supportHours && <> &nbsp;·&nbsp; {BRAND.supportHours}</>}{BRAND.supportEmail && <> &nbsp;·&nbsp; {BRAND.supportEmail}</>}</span>
+        {phones.length > 0 && <>Help line: {phones.join(" / ")}</>}
+        <span className="hidden sm:inline">{hours && <> &nbsp;·&nbsp; {hours}</>}{email && <> &nbsp;·&nbsp; {email}</>}</span>
       </div>
 
       {/* Branded navbar (full width) — logo left · title center · secure payment right */}

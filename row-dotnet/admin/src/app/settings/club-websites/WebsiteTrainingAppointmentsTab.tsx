@@ -10,6 +10,7 @@ import { Video, RefreshCw } from "lucide-react";
 import { getAllTrainingAppointments } from "@/services/api";
 import TrainingBookingDialog from "@/components/training/TrainingBookingDialog";
 
+import { appLocale, appTimeZone } from "@/lib/appFormat";
 export default function WebsiteTrainingAppointmentsTab() {
   const [rows, setRows] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -24,7 +25,7 @@ export default function WebsiteTrainingAppointmentsTab() {
 
   useEffect(() => { load(); }, [load]);
 
-  const fmt = (s?: string) => (s ? new Date(s).toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" }) : "—");
+  const fmt = (s?: string) => (s ? new Date(s).toLocaleString(appLocale(), { dateStyle: "medium", timeStyle: "short" }) : "—");
 
   return (
     <div className="space-y-4">
@@ -43,7 +44,7 @@ export default function WebsiteTrainingAppointmentsTab() {
           <thead className="bg-slate-50 text-slate-600">
             <tr>
               <th className="text-left px-4 py-2.5 font-medium">Club</th>
-              <th className="text-left px-4 py-2.5 font-medium">Date &amp; time (IST)</th>
+              <th className="text-left px-4 py-2.5 font-medium">Date &amp; time ({appTimeZone()})</th>
               <th className="text-left px-4 py-2.5 font-medium">Status</th>
               <th className="text-left px-4 py-2.5 font-medium">Booked by</th>
               <th className="text-left px-4 py-2.5 font-medium">Zoom</th>

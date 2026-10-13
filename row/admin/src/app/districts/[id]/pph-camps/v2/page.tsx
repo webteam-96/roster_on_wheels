@@ -40,6 +40,7 @@ import {
   ArrowLeft, Plus, Search, Edit3, Trash2, AlertTriangle, Users, ImageIcon, FolderOpen, Info, Download, Loader2,
 } from "lucide-react";
 
+import { appLocale } from "@/lib/appFormat";
 function useSyncDistrictIdFromUrl(): void {
   const params = useParams();
   const rawId = params?.id;
@@ -134,7 +135,7 @@ export default function DistrictPphCampsV2Page() {
   };
 
   const formatDate = (dateStr: string | null) =>
-    dateStr ? new Date(dateStr).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" }) : "-";
+    dateStr ? new Date(dateStr).toLocaleDateString(appLocale(), { day: "2-digit", month: "short", year: "numeric" }) : "-";
 
   const filteredCamps = camps.filter((camp) => {
     if (!search) return true;

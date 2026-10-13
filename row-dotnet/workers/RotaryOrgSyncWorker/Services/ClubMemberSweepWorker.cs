@@ -721,14 +721,8 @@ public class ClubMemberSweepWorker
         return digits.Length < 10 ? "" : digits.Substring(digits.Length - 10);
     }
 
-    // Real Indian mobile = a clean 10-digit number (after +91/formatting) starting 6-9.
-    // Deliberately STRICTER than LooksLikeRealMobile so landlines (e.g. 2836222322) are NOT salvaged —
-    // matches the audit's `[6-9][0-9]{9}$` check so buckets line up exactly.
-    private static bool IsSalvageableMobile(string? raw)
-    {
-        var last10 = Last10Digits(raw);
-        return last10.Length == 10 && last10[0] >= '6' && last10[0] <= '9';
-    }
+    // ROW: the country-agnostic shape check (the original accepted only Indian mobiles: 10 digits starting 6-9).
+    private static bool IsSalvageableMobile(string? raw) => LooksLikeRealMobile(raw) && Last10Digits(raw).Length > 0;
 
     /// <summary>
     /// No-RotaryId DEDUP. In synced clubs (except 3 exempt districts), a member with no RotaryId is a
@@ -1078,6 +1072,8 @@ public class ClubMemberSweepWorker
         {
             await using var dbConn = CreateConnection();
             await dbConn.OpenAsync(ct);
+            // Members erased on request are never re-added or refilled (master plan WS7-04).
+            var tombstones = await TombstoneCheck.LoadAsync(dbConn, _config);
 
             // Load synced clubs — optionally filtered by --club-id or --districts.
             // Districts use DistrictNumber (the public 4-digit code like 3233), not the PK.
@@ -1288,6 +1284,10 @@ public class ClubMemberSweepWorker
 
                     // Skip members not in our retry set (failed-list mode only)
                     if (allowedMemberIds != null && !allowedMemberIds.Contains(rid))
+                        continue;
+
+                    // Erased at the member's request: leave them out of ROW entirely.
+                    if (tombstones.IsErased(rid))
                         continue;
 
                     try

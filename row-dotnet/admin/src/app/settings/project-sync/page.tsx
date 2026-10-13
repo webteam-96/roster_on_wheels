@@ -18,18 +18,19 @@ import RotaryLoader from "@/components/RotaryLoader";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { ArrowLeft, RefreshCw, Search, Filter, X } from "lucide-react";
 
+import { appLocale } from "@/lib/appFormat";
 function formatDate(d: string | null) {
   if (!d) return "—";
   const dt = new Date(d);
   if (isNaN(dt.getTime()) || dt.getFullYear() < 2000) return "—";
-  return dt.toLocaleString("en-IN", { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" });
+  return dt.toLocaleString(appLocale(), { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" });
 }
 
 function formatDay(d: string | null) {
   if (!d) return "—";
   const dt = new Date(d);
   if (isNaN(dt.getTime()) || dt.getFullYear() < 2000) return "—";
-  return dt.toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" });
+  return dt.toLocaleDateString(appLocale(), { day: "2-digit", month: "short", year: "numeric" });
 }
 
 function statusBadge(status: string) {

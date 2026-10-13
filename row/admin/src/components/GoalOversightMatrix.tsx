@@ -15,6 +15,8 @@ import GoalZoneMessages from "@/components/dashboard/GoalZoneMessages";
 import DistrictMonthWiseReport from "@/components/DistrictMonthWiseReport";
 import ClubGoalSettingPanel from "@/components/ClubGoalSettingPanel";
 import GoalMessagesFeed from "@/components/GoalMessagesFeed";
+import DistrictMessagesInbox from "@/components/goal-messages/DistrictMessagesInbox";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import type { GoalDistrictSummaryMatrixDto, GoalSummaryCategoryDto } from "@/types/goalSetting";
 import { isAnnualOnlyCategory } from "@/lib/goalCategories";
@@ -89,8 +91,13 @@ export default function GoalOversightMatrix({
   useEffect(() => {
     if (!showMessages || !zoneId || !yearId) { setHasUnread(false); return; }
     let cancelled = false;
-    getGoalMessagesHasUnread(zoneId, yearId).then((u) => { if (!cancelled) setHasUnread(u); }).catch(() => {});
-    return () => { cancelled = true; };
+    // Re-check every minute and when the tab gets focus again (2026-10-09): a District Admin / DG
+    // message sent while this page was open used to show its dot only after a reload.
+    const check = () => getGoalMessagesHasUnread(zoneId, yearId).then((u) => { if (!cancelled) setHasUnread(u); }).catch(() => {});
+    check();
+    const timer = window.setInterval(check, 60000);
+    window.addEventListener("focus", check);
+    return () => { cancelled = true; window.clearInterval(timer); window.removeEventListener("focus", check); };
   }, [showMessages, zoneId, yearId, msgOpen]);
 
   function openMessages() {
@@ -176,7 +183,7 @@ export default function GoalOversightMatrix({
     <div className="space-y-4">
       <div className="rounded-xl border border-slate-200 bg-white p-4">
         <div className="text-sm font-semibold text-slate-800">{title} — districts (read-only)</div>
-        <p className="text-xs text-slate-500 mt-0.5 mb-3">Pick a zone to see every district&apos;s Membership / TRF / Youth Service / Public Image progress. Click a district row to see its messages.</p>
+        <p className="text-xs text-slate-500 mt-0.5 mb-3">Pick a zone to see every district&apos;s Membership / Foundation / Youth Service / Public Image progress. Click a district row to see its messages.</p>
         <div className="flex flex-wrap gap-3">
           <label className="flex flex-col gap-1 text-xs text-slate-500">
             Zone
@@ -408,7 +415,7 @@ export default function GoalOversightMatrix({
 
       {/* Row click → that district's month-wise collection (read-only), category tabs inside the panel. */}
       <Dialog open={!!monthDistrict} onOpenChange={(o) => { if (!o) setMonthDistrict(null); }}>
-        <DialogContent className="max-w-5xl w-[96vw] h-[88vh] flex flex-col overflow-hidden">
+        <DialogContent className="max-w-[96vw] sm:max-w-[96vw] w-[96vw] h-[88vh] flex flex-col overflow-hidden">
           <DialogHeader className="shrink-0">
             <div className="flex items-center justify-between gap-3 pr-8">
               <DialogTitle className="flex items-center gap-2">
@@ -486,9 +493,22 @@ export default function GoalOversightMatrix({
               {rptBusy ? <Loader2 size={13} className="animate-spin" /> : <Download size={13} />} Download report
             </button>
           </div>
+          {/* Two sources (user 2026-10-09): District Admins / Governors writing up the chain, and the
+              Zone Co-ordinators / District Assistants. Both honour the Category + District filter above. */}
           <div className="mt-3 flex-1 min-h-0 overflow-y-auto">
             {zoneId && yearId ? (
-              <GoalMessagesFeed zoneId={zoneId} yearId={yearId} categoryId={rptCat} districtId={rptDistrict} />
+              <Tabs defaultValue="zcda" className="flex flex-col">
+                <TabsList className="self-start">
+                  <TabsTrigger value="zcda">Zone Co-ordinators &amp; Assistants</TabsTrigger>
+                  <TabsTrigger value="districts">From Districts</TabsTrigger>
+                </TabsList>
+                <TabsContent value="zcda" className="mt-3">
+                  <GoalMessagesFeed zoneId={zoneId} yearId={yearId} categoryId={rptCat} districtId={rptDistrict} />
+                </TabsContent>
+                <TabsContent value="districts" className="mt-3">
+                  <DistrictMessagesInbox zoneId={zoneId} yearId={yearId} categoryId={rptCat} districtId={rptDistrict} />
+                </TabsContent>
+              </Tabs>
             ) : (
               <p className="text-sm text-slate-400 py-6 text-center">Select a zone to see its messages.</p>
             )}

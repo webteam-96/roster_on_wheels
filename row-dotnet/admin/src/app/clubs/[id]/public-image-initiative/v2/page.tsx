@@ -51,6 +51,7 @@ import { useExtensionStatus } from "@/hooks/useExtensionStatus";
 import { isFlowBotEnabled, AVENUE_LABELS, buildOrgExportFromDetail, triggerAddToOrg } from "@/lib/addToOrg";
 import AddToOrgConfirmDialog from "@/components/AddToOrgConfirmDialog";
 
+import { currencySymbol } from "@/lib/appFormat";
 const SYNC_API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
 const MODULE_KEY = "public_image_initiative";
@@ -78,13 +79,12 @@ function shortCurrency(value: number, currency?: string | null): string {
   return `${symbol}${value}`;
 }
 
-// Short rupee (₹4.9L style)
+// Short amount in the brand's currency ($4.9M style; the original used lakh / crore)
 function shortInr(value: number): string {
-  if (!value || value < 1000) return `₹${value || 0}`;
-  if (value >= 10000000) return `₹${(value / 10000000).toFixed(1)}Cr`;
-  if (value >= 100000)   return `₹${(value / 100000).toFixed(1)}L`;
-  if (value >= 1000)     return `₹${(value / 1000).toFixed(1)}K`;
-  return `₹${value}`;
+  if (!value || value < 1000) return `${currencySymbol()}${value || 0}`;
+  if (value >= 1e9) return `${currencySymbol()}${(value / 1e9).toFixed(1)}B`;
+  if (value >= 1e6) return `${currencySymbol()}${(value / 1e6).toFixed(1)}M`;
+  return `${currencySymbol()}${(value / 1000).toFixed(1)}K`;
 }
 
 function exportToCsv(rows: ProjectListItem[], yearLabel: string, clubName: string) {

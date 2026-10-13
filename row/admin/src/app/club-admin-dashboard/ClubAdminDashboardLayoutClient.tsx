@@ -8,7 +8,7 @@ import DashboardYearSelector from "@/components/dashboard/DashboardYearSelector"
 import DashboardYearFooterText from "@/components/dashboard/DashboardYearFooterText";
 import ClubAdminTopbarStatus from "@/components/dashboard/ClubAdminTopbarStatus";
 import { useAuth } from "@/contexts/AuthContext";
-import { ClubAdminDashboardCacheProvider } from "@/contexts/ClubAdminDashboardCacheContext";
+import { ClubAdminDashboardCacheProvider, useClubAdminCache } from "@/contexts/ClubAdminDashboardCacheContext";
 import { getClubDuesOfficerClubs } from "@/services/api";
 import { CLUB_ADMIN_NAV, CLUB_ADMIN_PAGE_TITLES } from "./nav";
 
@@ -28,28 +28,25 @@ function getInitials(name = "") {
 
 export default function ClubAdminDashboardLayoutClient({ children }: { children: ReactNode }) {
   const pathname = usePathname() || "/club-admin-dashboard";
-  const { user } = useAuth();
+  const { user, selectedClubId } = useAuth();
   const name = user?.name ?? "Club Admin";
   const initials = getInitials(name);
   const title = CLUB_ADMIN_PAGE_TITLES[pathname] ?? "Club Dashboard";
   const showYearSelector = !HIDE_YEAR_SELECTOR_PATHS.has(pathname);
 
-  // Officer-only nav items (District Dues) are shown only to members who are a
-  // President / Secretary / Treasurer of an active club-dues campaign. Resolved
-  // once via the officer endpoint; hidden until confirmed so non-officers never
-  // see it flash in. Server re-enforces access on every officer endpoint.
-  const [isOfficer, setIsOfficer] = useState(false);
+  // Officer-only nav items (District Dues) are shown only when the signed-in member is a
+  // President / Secretary / Treasurer of THE CLUB OPEN ON THIS DASHBOARD and that club's
+  // district has an active dues campaign (user 2026-10-08: it used to follow the person, so an
+  // officer of club A saw District Dues while viewing club B). Hidden until confirmed so
+  // non-officers never see it flash in. Server re-enforces access on every officer endpoint.
+  const [officerClubIds, setOfficerClubIds] = useState<number[]>([]);
   useEffect(() => {
     let alive = true;
     getClubDuesOfficerClubs()
-      .then((rows) => { if (alive) setIsOfficer(Array.isArray(rows) && rows.length > 0); })
-      .catch(() => { if (alive) setIsOfficer(false); });
+      .then((rows) => { if (alive) setOfficerClubIds(Array.isArray(rows) ? rows.map((r) => r.clubId) : []); })
+      .catch(() => { if (alive) setOfficerClubIds([]); });
     return () => { alive = false; };
   }, []);
-  const nav = useMemo(
-    () => (isOfficer ? CLUB_ADMIN_NAV : CLUB_ADMIN_NAV.filter((n) => !n.officerOnly)),
-    [isOfficer]
-  );
 
   return (
     <DashboardGuard kind="club-admin">
@@ -57,28 +54,54 @@ export default function ClubAdminDashboardLayoutClient({ children }: { children:
           call useSearchParams() internally. */}
       <Suspense fallback={null}>
         <ClubAdminDashboardCacheProvider>
-          <DashboardShell
-            brand="Club Dashboard"
-            identityLabel="Signed in"
-            identityName={name}
-            identityRole="Club Admin"
-            initials={initials || "CA"}
-            nav={nav}
-            footerText={<DashboardYearFooterText />}
-            pageTitle={title}
-            variant="dot"
-            switcherKind="club-admin"
-            topbarCenter={
-              <>
-                <ClubAdminTopbarStatus />
-                {showYearSelector && <DashboardYearSelector />}
-              </>
-            }
+          <ClubAdminShell
+            name={name}
+            initials={initials}
+            title={title}
+            showYearSelector={showYearSelector}
+            officerClubIds={officerClubIds}
+            selectedClubId={selectedClubId}
           >
             {children}
-          </DashboardShell>
+          </ClubAdminShell>
         </ClubAdminDashboardCacheProvider>
       </Suspense>
     </DashboardGuard>
+  );
+}
+
+// Inside the cache provider so the open club (overview) is known when no club is picked yet.
+function ClubAdminShell({ name, initials, title, showYearSelector, officerClubIds, selectedClubId, children }: {
+  name: string; initials: string; title: string; showYearSelector: boolean;
+  officerClubIds: number[]; selectedClubId: number | null; children: ReactNode;
+}) {
+  const { overview } = useClubAdminCache();
+  const openClubId = selectedClubId ?? overview?.club?.clubId ?? null;
+  const isOfficer = openClubId != null && officerClubIds.includes(openClubId);
+  const nav = useMemo(
+    () => (isOfficer ? CLUB_ADMIN_NAV : CLUB_ADMIN_NAV.filter((n) => !n.officerOnly)),
+    [isOfficer]
+  );
+  return (
+    <DashboardShell
+      brand="Club Dashboard"
+      identityLabel="Signed in"
+      identityName={name}
+      identityRole="Club Admin"
+      initials={initials || "CA"}
+      nav={nav}
+      footerText={<DashboardYearFooterText />}
+      pageTitle={title}
+      variant="dot"
+      switcherKind="club-admin"
+      topbarCenter={
+        <>
+          <ClubAdminTopbarStatus />
+          {showYearSelector && <DashboardYearSelector />}
+        </>
+      }
+    >
+      {children}
+    </DashboardShell>
   );
 }

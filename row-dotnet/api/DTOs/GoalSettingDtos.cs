@@ -327,6 +327,36 @@ public class GoalCommentDto
     // districts"). ZC / RI messages are zone-wide → 0. DistrictNumber is null for 0.
     public int DistrictId { get; set; }
     public string? DistrictNumber { get; set; }
+    // District Admin / DG messages (2026-10-09): the category they are about.
+    public string? CategoryName { get; set; }
+}
+
+// District Admin / District Governor messages to the oversight chain (user 2026-10-09). Read-only
+// for the District Assistant, Zone Co-ordinator, RI Director and SuperAdmin; nobody replies.
+public class GoalDistrictMessagesDto
+{
+    public int DistrictId { get; set; }
+    public string? DistrictNumber { get; set; }
+    public int CategoryId { get; set; }
+    public string CategoryName { get; set; } = "";
+    public bool CanPost { get; set; }            // the viewer is this district's Admin / DG
+    public string? PosterRole { get; set; }      // "District Admin" / "District Governor"
+    public string? Notice { get; set; }
+    public List<GoalCommentDto> Messages { get; set; } = new();
+}
+
+public class GoalDistrictConversationDto
+{
+    public int DistrictId { get; set; }
+    public string? DistrictNumber { get; set; }
+    public int CategoryId { get; set; }
+    public string CategoryName { get; set; } = "";
+    public int MessageCount { get; set; }
+    public int UnreadCount { get; set; }
+    public string? LastFrom { get; set; }
+    public string? LastFromRole { get; set; }
+    public string? LastPreview { get; set; }
+    public string? LastDate { get; set; }
 }
 
 // A district option for the District Assistant's "message about which district" picker.
@@ -346,6 +376,7 @@ public class GoalMessageOwnerDto
     public string RoleLabel { get; set; } = "";     // "Zone Co-ordinator" | "District Assistant"
     public string CategoryName { get; set; } = "";
     public string? Districts { get; set; }           // DA's covered district numbers (comma-joined); null for ZC
+    public bool IsFormer { get; set; }               // no longer holds the seat - old conversation, read-only (2026-10-07)
     public int MessageCount { get; set; }
     // How many of those the reader has NOT opened yet (their own messages never count) - drives the
     // per-person red badge and the "Unread only" filter in the RI Director / SuperAdmin popup.
@@ -383,6 +414,9 @@ public class GoalMessageThreadDto
     // Messages in THIS conversation the viewer has not seen yet, written by somebody else
     // (user 2026-09-25). 0 = nothing new. Each box clears on its own when it is opened.
     public int UnreadCount { get; set; }
+    // A person who no longer holds a seat here: their old conversation stays readable (read-only)
+    // so the RI Director can open it and the red dot can clear (2026-10-07).
+    public bool IsFormer { get; set; }
     public string? CounterpartyName { get; set; }       // RI Director name (shown to the DA/ZC)
     public bool CanPost { get; set; }
     public string? Notice { get; set; }                 // e.g. "No RI Director assigned for this zone yet."
@@ -556,6 +590,10 @@ public class GoalMonthlyFieldDto
     // AnnualTarget above is still the single figure the club typed. These 12 must add up to it
     // exactly. A quarter is never stored: QuarterlyTargets is the sum of each quarter's 3 months.
     public Dictionary<int, decimal?> MonthlyTargets { get; set; } = new();  // month(7..6) -> target
+    // The same split as a RUNNING total from July 1st (user 2026-10-09: month-wise Target | Achieved):
+    // As on July 1st (0 for Foundation) + every month's share up to that month. 122 -> 135 gives
+    // Jul 123 ... May 133, Jun 135 (the leftover sits in June). Used by the mobile app; the web works it out itself.
+    public Dictionary<int, decimal?> MonthlyTargetsRunning { get; set; } = new();
     public Dictionary<int, decimal?> QuarterlyTargets { get; set; } = new();// quarter(1..4) -> target
     public Dictionary<int, decimal?> QuarterlyAchieved { get; set; } = new();// quarter(1..4) -> collected
     public decimal TargetTotal { get; set; }                      // sum of the 12 monthly targets

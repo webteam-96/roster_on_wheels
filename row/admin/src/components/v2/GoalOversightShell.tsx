@@ -60,7 +60,7 @@ export default function GoalOversightShell({
       {/* Logo */}
       <div className="px-5 py-5 border-b border-white/10">
         <Image
-          src="/images/rotary-zone-log-white.png"
+          src="/images/rotary-white-live.png"
           alt="Rotary"
           width={140}
           height={40}

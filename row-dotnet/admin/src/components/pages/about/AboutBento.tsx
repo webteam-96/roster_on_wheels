@@ -1,5 +1,6 @@
 import Image from "next/image";
 
+import { appLocale } from "@/lib/appFormat";
 const TICKER = [
   "Service Above Self",
   "Uniting Clubs",
@@ -73,7 +74,7 @@ export function AboutBento() {
                   data-counter-suffix={s.suffix}
                   className="figure text-[clamp(1.4rem,1.8vw,1.8rem)] leading-none"
                 >
-                  {s.count.toLocaleString("en-IN")}
+                  {s.count.toLocaleString(appLocale())}
                   {s.suffix}
                 </p>
                 <p className="mt-1.5 text-[10px] font-semibold uppercase tracking-[0.16em] text-white/70">

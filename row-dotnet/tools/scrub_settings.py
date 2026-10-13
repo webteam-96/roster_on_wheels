@@ -42,6 +42,9 @@ def main(root):
         raw = open(f, encoding="utf-8-sig").read()
         data = json.loads(raw)
         clean = scrub(data)
+        # A RIZones testing switch that returns the one-time code in the API response: always off.
+        if isinstance(clean.get("MobileOtp"), dict) and "ReturnDebugOtp" in clean["MobileOtp"]:
+            clean["MobileOtp"]["ReturnDebugOtp"] = False
         open(f, "w", encoding="utf-8").write(json.dumps(clean, indent=2, ensure_ascii=False) + "\n")
         print("scrubbed", os.path.relpath(f, root))
 

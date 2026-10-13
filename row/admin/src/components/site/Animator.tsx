@@ -5,6 +5,7 @@ import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useGSAP } from "@gsap/react";
 
+import { appLocale } from "@/lib/appFormat";
 gsap.registerPlugin(useGSAP, ScrollTrigger);
 
 /** Starting offsets for each reveal preset. Elements animate FROM these TO rest. */
@@ -48,7 +49,7 @@ type CounterRun = {
 
 /** Format a number the way it was authored (en-IN grouping preserved via toLocaleString). */
 function formatCount(value: number, decimals: number) {
-  return value.toLocaleString("en-IN", {
+  return value.toLocaleString(appLocale(), {
     minimumFractionDigits: decimals,
     maximumFractionDigits: decimals,
   });

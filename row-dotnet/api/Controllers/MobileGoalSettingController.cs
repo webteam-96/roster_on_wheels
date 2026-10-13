@@ -341,7 +341,7 @@ public class MobileGoalSettingController : ControllerBase
     {
         if (!IsSuperAdminRole()) return Forbid();
         var r = await _service.GetOverviewMatrixAsync(zoneId, categoryId, yearId);
-        return r == null ? NotFound(new { message = "Invalid zone or year." }) : Ok(WithoutSuggestionRows(r));
+        return r == null ? NotFound(new { message = "Invalid zone or year." }) : Ok(WithoutYouthPct(WithoutSuggestionRows(r)));
     }
 
     // ── Role-scoped Overview matrix — for a goal oversight role (RI Director / ZC / DA) on a zone
@@ -353,7 +353,7 @@ public class MobileGoalSettingController : ControllerBase
         try
         {
             var r = await _service.GetScopedOverviewMatrixAsync(GetMemberId(), zoneId, categoryId, yearId);
-            return r == null ? NotFound(new { message = "Invalid zone or year." }) : Ok(WithoutSuggestionRows(r));
+            return r == null ? NotFound(new { message = "Invalid zone or year." }) : Ok(WithoutYouthPct(WithoutSuggestionRows(r)));
         }
         catch (UnauthorizedAccessException ex) { return ForbidWithMessage(ex.Message); }
     }
@@ -364,6 +364,15 @@ public class MobileGoalSettingController : ControllerBase
     private static GoalOverviewMatrixDto WithoutSuggestionRows(GoalOverviewMatrixDto m)
     {
         m.Rows = m.Rows.Where(r => !string.Equals(r.GroupName, "Suggestions", StringComparison.OrdinalIgnoreCase)).ToList();
+        return m;
+    }
+
+    // Youth Service: no Achievement(%) rows in the oversight overview (user 2026-10-09) - same as the
+    // web grid for the RI Director / ZC / District Assistant. The District Admin's own form keeps them.
+    private static GoalOverviewMatrixDto WithoutYouthPct(GoalOverviewMatrixDto m)
+    {
+        if (string.Equals(m.CategoryName, "Youth Service", StringComparison.OrdinalIgnoreCase))
+            m.Rows = m.Rows.Where(r => r.DataType != "Percentage").ToList();
         return m;
     }
 
@@ -547,6 +556,37 @@ public class MobileGoalSettingController : ControllerBase
         catch (InvalidOperationException ex) { return BadRequest(new { message = ex.Message }); }
     }
 
+    // ── District Admin / District Governor messages (user 2026-10-09), same as web ──
+    // The district side writes about one category; the District Assistant, Zone Co-ordinator, RI
+    // Director and SuperAdmin read (no replies). GET marks the conversation read for readers.
+    [HttpGet("district-messages/{categoryId:int}/{districtId:int}")]
+    public async Task<ActionResult<GoalDistrictMessagesDto>> GetDistrictMessages(
+        [FromRoute] int categoryId, [FromRoute] int districtId, [FromQuery] int yearId)
+    {
+        try { return Ok(await _service.GetDistrictMessagesAsync(GetMemberId(), categoryId, districtId, yearId)); }
+        catch (UnauthorizedAccessException ex) { return ForbidWithMessage(ex.Message); }
+    }
+
+    [HttpPost("district-messages/{categoryId:int}/{districtId:int}")]
+    public async Task<ActionResult<GoalCommentDto>> PostDistrictMessage(
+        [FromRoute] int categoryId, [FromRoute] int districtId, [FromQuery] int yearId, [FromBody] PostGoalCommentRequest request)
+    {
+        try { return Ok(await _service.PostDistrictMessageAsync(GetMemberId(), categoryId, districtId, yearId, request.CommentText)); }
+        catch (UnauthorizedAccessException ex) { return ForbidWithMessage(ex.Message); }
+        catch (InvalidOperationException ex) { return BadRequest(new { message = ex.Message }); }
+    }
+
+    // Readers' inbox: every District Admin / DG conversation the caller may read in a zone.
+    [HttpGet("district-messages/inbox")]
+    public async Task<ActionResult<List<GoalDistrictConversationDto>>> GetDistrictMessageInbox(
+        [FromQuery] int zoneId, [FromQuery] int yearId, [FromQuery] int categoryId = 0, [FromQuery] int districtId = 0)
+        => Ok(await _service.GetDistrictMessageInboxAsync(GetMemberId(), zoneId, yearId, categoryId, districtId));
+
+    // Red dot for the Messages button (includes unread District Admin / DG messages).
+    [HttpGet("messages/has-unread")]
+    public async Task<ActionResult<object>> GetHasUnreadMessages([FromQuery] int zoneId, [FromQuery] int yearId)
+        => Ok(new { hasUnread = await _service.HasUnreadZoneMessagesAsync(GetMemberId(), zoneId, yearId) });
+
     // ── Zone-based messaging (RI Director dashboard): ZC + DA message boxes for one (category, zone) ──
     [HttpGet("zone-threads/{categoryId:int}/{zoneId:int}")]
     public async Task<ActionResult<GoalThreadListDto>> GetZoneThreadList(
@@ -555,9 +595,9 @@ public class MobileGoalSettingController : ControllerBase
 
     [HttpGet("owner-thread/{categoryId:int}/{ownerMemberId:int}")]
     public async Task<ActionResult<List<GoalCommentDto>>> GetOwnerThreadMessages(
-        [FromRoute] int categoryId, [FromRoute] int ownerMemberId, [FromQuery] int yearId)
+        [FromRoute] int categoryId, [FromRoute] int ownerMemberId, [FromQuery] int yearId, [FromQuery] int? zoneId = null)
     {
-        try { return Ok(await _service.GetGoalOwnerThreadMessagesAsync(GetMemberId(), categoryId, yearId, ownerMemberId)); }
+        try { return Ok(await _service.GetGoalOwnerThreadMessagesAsync(GetMemberId(), categoryId, yearId, ownerMemberId, zoneId)); }
         catch (UnauthorizedAccessException ex) { return ForbidWithMessage(ex.Message); }
     }
 

@@ -184,7 +184,7 @@ public class ClubSyncWorker
                                 ROW_as_vendor_selected,
                                 created_date, isdeleted
                             ) VALUES (
-                                @DistrictPk, @ClubRotaryId, @ClubName, 'Asia/Kolkata',
+                                @DistrictPk, @ClubRotaryId, @ClubName, @Tz,
                                 @CharterDate, @MeetingDay, @MeetingFromTime, @MeetingAddress,
                                 @Country, @State, @City, @PinCode,
                                 @ActiveFrom, @ActiveTo,
@@ -195,6 +195,7 @@ public class ClubSyncWorker
                             )",
                             new
                             {
+                                Tz = RotaryApi.Services.Brand.DefaultTimeZone,   // ROW: the brand's zone (the original: Asia/Kolkata)
                                 DistrictPk = localDistrictId,
                                 ClubRotaryId = clubRotaryIdStr,
                                 ClubName = detail.ClubName ?? club.ClubName,
@@ -480,6 +481,20 @@ public class ClubSyncWorker
                 WHERE ClubRotaryId IS NOT NULL AND ClubRotaryId <> ''"))
                 .ToDictionary(x => x.clubRotaryId, StringComparer.OrdinalIgnoreCase);
 
+            // Tag Rotaract clubs (user 2026-10-08): /clubs also lists them; they stay in the DB and
+            // SuperAdmin sees them, but District / Club Admin screens hide ClubType='Rotaract Club'.
+            var rotaractIds = allSyncClubs
+                .Where(c => string.Equals(c.ClubType?.Trim(), "Rotaract Club", StringComparison.OrdinalIgnoreCase))
+                .Select(c => c.ClubId.ToString()).ToList();
+            if (rotaractIds.Count > 0)
+            {
+                var tagged = await dbConn.ExecuteAsync(@"
+                    UPDATE club_master SET ClubType = 'Rotaract Club'
+                    WHERE ClubRotaryId IN @Ids AND (ClubType IS NULL OR ClubType <> 'Rotaract Club')",
+                    new { Ids = rotaractIds });
+                if (tagged > 0) Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Tagged {tagged} club(s) as Rotaract");
+            }
+
             // Find:
             //  - missing: not in DB at all → INSERT
             //  - misMarked: in DB but IsSyncedFromRotaryOrg = 0 → UPDATE to mark as sync (these were
@@ -631,20 +646,22 @@ public class ClubSyncWorker
                             ActiveFromDate, ActiveToDate,
                             IsAutomaticMeetingReminder, IsFamilyLogin, IsActive,
                             IsSyncedFromRotaryOrg, LastSyncedFromRotaryOrg,
-                            ROW_as_vendor_selected,
+                            ROW_as_vendor_selected, ClubType,
                             created_date, isdeleted
                         ) VALUES (
-                            @DistrictPk, @ClubRotaryId, @ClubName, 'Asia/Kolkata',
+                            @DistrictPk, @ClubRotaryId, @ClubName, @Tz,
                             @CharterDate, @MeetingDay, @MeetingFromTime, @MeetingAddress,
                             @Country, @State, @City, @PinCode,
                             @ActiveFrom, @ActiveTo,
                             1, 0, 1,
                             1, NOW(),
-                            1,
+                            1, @ClubType,
                             NOW(), 0
                         )",
                         new
                         {
+                            Tz = RotaryApi.Services.Brand.DefaultTimeZone,   // ROW: the brand's zone (the original: Asia/Kolkata)
+                            ClubType = string.IsNullOrWhiteSpace(club.ClubType) ? null : club.ClubType.Trim(),
                             DistrictPk = localDistrictId,
                             ClubRotaryId = clubRotaryIdStr,
                             ClubName = (detail.ClubName ?? club.ClubName ?? "").Length > 200 ? (detail.ClubName ?? club.ClubName ?? "").Substring(0, 200) : (detail.ClubName ?? club.ClubName),
@@ -950,7 +967,7 @@ public class ClubSyncWorker
                                 ROW_as_vendor_selected,
                                 created_date, isdeleted
                             ) VALUES (
-                                @DistrictPk, @ClubRotaryId, @ClubName, 'Asia/Kolkata',
+                                @DistrictPk, @ClubRotaryId, @ClubName, @Tz,
                                 @CharterDate, @MeetingDay, @MeetingFromTime, @MeetingAddress,
                                 @Country, @State, @City, @PinCode,
                                 @ActiveFrom, @ActiveTo,
@@ -961,6 +978,7 @@ public class ClubSyncWorker
                             )",
                             new
                             {
+                                Tz = RotaryApi.Services.Brand.DefaultTimeZone,   // ROW: the brand's zone (the original: Asia/Kolkata)
                                 DistrictPk = localDistrictId,
                                 ClubRotaryId = clubRotaryIdStr,
                                 ClubName = detail.ClubName ?? club.ClubName,

@@ -1,6 +1,7 @@
 import type { DbCommands } from "../../database/db.service";
 import { Brand } from "../../brand/brand";
 import type { FirebasePushService } from "./firebase-push.service";
+import { broadcastConsentFilter } from "../privacy-consent";
 
 /**
  * Port of PushDispatcher.cs: the helpers shared by the content push workers.
@@ -24,7 +25,7 @@ export async function resolveClubDistrictTokens(conn: DbCommands, clubId: number
     `SELECT DISTINCT m.pk_member_master_profile_id AS memberId, m.LastDeviceToken AS fcmToken
     FROM member_master_profile m
     ${join}
-    WHERE m.isdeleted = 0 AND m.LastDeviceToken IS NOT NULL AND TRIM(m.LastDeviceToken) <> '' AND m.LastDeviceToken <> '0'${extraWhere}`,
+    WHERE m.isdeleted = 0 AND m.LastDeviceToken IS NOT NULL AND TRIM(m.LastDeviceToken) <> '' AND m.LastDeviceToken <> '0'${extraWhere}${broadcastConsentFilter()}`,
     { ClubId: clubId, DistrictId: districtId },
   );
   const tokenToMember = new Map<string, number>();

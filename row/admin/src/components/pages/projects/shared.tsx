@@ -11,31 +11,23 @@ import { ArrowUpRight, ChevronLeft, ChevronRight, X } from "lucide-react";
 import { CardMedia } from "@/components/pages/projects/CardMedia";
 import type { Project } from "@/lib/projectsApi";
 
+import { appLocale, currencySymbol } from "@/lib/appFormat";
 /* ——— Formatting ——— */
 
-export const fmt = (n: number) => n.toLocaleString("en-IN");
+export const fmt = (n: number) => n.toLocaleString(appLocale());
 
-/** ₹ value in Indian units — { target, decimals, suffix } for data-counter + display. */
+/** A value in compact units — { target, decimals, suffix } for data-counter + display (K / M / B; the original used lakh / crore). */
 export function inrParts(n: number): { target: number; decimals: number; suffix: string } {
-  if (n >= 1e7) {
-    const decimals = n >= 1e9 ? 0 : 1;
-    return { target: Number((n / 1e7).toFixed(decimals)), decimals, suffix: " Cr" };
-  }
-  if (n >= 1e5) return { target: Number((n / 1e5).toFixed(1)), decimals: 1, suffix: " L" };
+  if (n >= 1e9) return { target: Number((n / 1e9).toFixed(1)), decimals: 1, suffix: " B" };
+  if (n >= 1e6) return { target: Number((n / 1e6).toFixed(1)), decimals: 1, suffix: " M" };
+  if (n >= 1e4) return { target: Number((n / 1e3).toFixed(0)), decimals: 0, suffix: " K" };
   return { target: n, decimals: 0, suffix: "" };
 }
 
-/** Compact Indian-unit rupees — the ONE ₹ voice across every projects surface. */
+/** Compact amount in the brand's currency — the one money voice across every projects surface. */
 export function inrCompact(n: number): string {
   const p = inrParts(n);
-  return `₹${p.target.toLocaleString("en-IN", { maximumFractionDigits: p.decimals })}${p.suffix}`;
-}
-
-/** Compact US-unit dollars — the $ companion line under a ₹ figure. */
-export function usdCompact(n: number): string {
-  const [div, suffix, decimals] =
-    n >= 1e9 ? [1e9, " B", 1] : n >= 1e6 ? [1e6, " M", 1] : n >= 1e3 ? [1e3, " K", 0] : [1, "", 0];
-  return `$${(n / div).toLocaleString("en-US", { maximumFractionDigits: decimals })}${suffix}`;
+  return `${currencySymbol()}${p.target.toLocaleString(appLocale(), { maximumFractionDigits: p.decimals })}${p.suffix}`;
 }
 
 /** Epoch millis for a project's done-date, or null when missing / unparseable. */
@@ -48,7 +40,7 @@ export function parseTime(d: string | null): number | null {
 
 export function niceDate(t: number | null): string | null {
   if (t === null) return null;
-  return new Date(t).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" });
+  return new Date(t).toLocaleDateString(appLocale(), { day: "numeric", month: "short", year: "numeric" });
 }
 
 /** Rotary year (July–June) label for a timestamp, e.g. "2025-2026". */
@@ -244,7 +236,7 @@ export function StatStrip({
       {stats.map((s, i) => {
         const display =
           (s.prefix ?? "") +
-          s.target.toLocaleString("en-IN", { maximumFractionDigits: s.decimals ?? 0 }) +
+          s.target.toLocaleString(appLocale(), { maximumFractionDigits: s.decimals ?? 0 }) +
           (s.suffix ?? "");
         /* Hairline dividers that make each tile its own cell of the box:
            stacked (1-col) = a line above every tile but the first; sm 2-col =

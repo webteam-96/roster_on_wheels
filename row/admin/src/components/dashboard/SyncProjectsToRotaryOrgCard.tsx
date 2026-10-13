@@ -95,7 +95,7 @@ export default function SyncProjectsToRotaryOrgCard({ clubId }: { clubId: number
           </div>
           <div className="min-w-0 flex-1">
             <div className="text-sm font-semibold text-slate-800">Sync Projects to Rotary.org</div>
-            <div className="text-xs text-slate-500">RIZones 4,5,6,7 &amp; 8 -&gt; Rotary.org</div>
+            <div className="text-xs text-slate-500">ROW -&gt; Rotary.org</div>
           </div>
           <span className="hidden shrink-0 text-xs font-semibold text-blue-600 sm:block">Manage setup</span>
         </button>

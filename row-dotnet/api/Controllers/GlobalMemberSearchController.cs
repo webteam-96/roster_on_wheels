@@ -77,186 +77,204 @@ public class GlobalMemberSearchController : ControllerBase
             LIMIT 50",
             new { Search = $"%{search.Trim()}%" })).ToList();
 
+        // One query per kind of detail for ALL members shown (was ~16 queries PER member - 800 for a
+        // common name, which passed the 30 s client timeout; user 2026-10-08). Each row carries __mid
+        // (its member id), which is removed again before the row is returned, so the JSON is unchanged.
+        var ids = members.Select(m => (int)m.pk_member_master_profile_id).ToArray();
+        async Task<ILookup<int, dynamic>> BatchAsync(string sql)
+        {
+            if (ids.Length == 0) return Array.Empty<(int, dynamic)>().ToLookup(x => x.Item1, x => x.Item2);
+            var rows = await conn.QueryAsync<dynamic>(sql, new { Ids = ids });
+            return rows.Select(r =>
+            {
+                var d = (IDictionary<string, object>)r;
+                int id = Convert.ToInt32(d["__mid"]);
+                d.Remove("__mid");
+                return (Id: id, Row: (dynamic)r);
+            }).ToLookup(x => x.Id, x => x.Row);
+        }
+
+
+        // Club memberships
+        var clubsBy = await BatchAsync(@"
+            SELECT cm.fk_member_master_profile_id AS __mid, c.pk_club_id AS clubId, c.ClubName AS clubName, c.ClubRotaryId AS clubRotaryId,
+                   c.City AS city, c.State AS state,
+                   d.pk_district_id AS districtId, d.DistrictNumber AS districtNumber,
+                   z.pk_zone_id AS zoneId, z.ZoneName AS zoneName,
+                   " + CogDesignationHelper.JoinedDateExpr("cm") + @" AS joinedDate, cm.IsActive AS isActive,
+               " + CogDesignationHelper.SelectColumns("cm") + @",
+                   cm.TerminationDate AS terminationDate, cm.TerminationReason AS terminationReason
+            FROM club_members cm
+            JOIN club_master c ON c.pk_club_id = cm.fk_club_id AND c.isdeleted = 0
+            JOIN district_master d ON d.pk_district_id = c.fk_district_id
+            LEFT JOIN zone_master z ON z.pk_zone_id = d.fk_zone_id
+            WHERE cm.fk_member_master_profile_id IN @Ids AND cm.isdeleted = 0
+            ORDER BY cm.IsActive DESC, c.ClubName");
+
+        // Roles
+        var rolesBy = await BatchAsync(@"
+            SELECT mr.fk_member_master_profile_id AS __mid, r.RoleName AS roleName,
+                   CASE
+                       WHEN r.RoleName = 'Admin' AND mr.fk_district_id > 0 AND (mr.fk_club_id IS NULL OR mr.fk_club_id = 0) THEN 'District Admin'
+                       WHEN r.RoleName = 'Admin' AND mr.fk_club_id > 0 THEN 'Club Admin'
+                       ELSE r.RoleName
+                   END AS displayRole,
+                   mr.fk_club_id AS clubId, mr.fk_district_id AS districtId, mr.fk_zone_id AS zoneId,
+                   mr.IsActive AS isActive
+            FROM member_roles mr
+            JOIN roles r ON r.pk_role_id = mr.fk_role_id
+            WHERE mr.fk_member_master_profile_id IN @Ids AND mr.isdeleted = 0 AND mr.IsActive = 1");
+
+        // BOD designations (all years)
+        var designationsBy = await BatchAsync(@"
+            SELECT b.fk_member_master_profile_id AS __mid, dm.designation_name AS designationName, c.ClubName AS clubName,
+                   y.YearLabel AS yearLabel, y.IsCurrent AS isCurrent
+            FROM board_of_directors b
+            JOIN designation_master dm ON dm.pk_designation_id = b.fk_designation_id
+            JOIN club_master c ON c.pk_club_id = b.fk_club_id
+            JOIN rotary_year_master y ON y.pk_year_id = b.fk_year_id
+            WHERE b.fk_member_master_profile_id IN @Ids AND b.isdeleted = 0
+            ORDER BY y.pk_year_id DESC, dm.sort_order");
+
+        // District Committee member entries
+        var districtCommitteeBy = await BatchAsync(@"
+            SELECT dcm.fk_member_id AS __mid, dcm.district_designation AS designation, dcm.district_remark AS remark,
+                   d.DistrictNumber AS districtNumber, y.YearLabel AS yearLabel
+            FROM district_committee_member dcm
+            JOIN district_master d ON d.pk_district_id = dcm.fk_district_id
+            JOIN rotary_year_master y ON y.pk_year_id = dcm.fk_year_id
+            WHERE dcm.fk_member_id IN @Ids AND dcm.isdeleted = 0
+            ORDER BY y.pk_year_id DESC");
+
+        // Group Committee member entries
+        var groupCommitteeBy = await BatchAsync(@"
+            SELECT gm.fk_member_id AS __mid, gm.district_designation AS designation, gm.district_remark AS remark,
+                   g.group_name AS groupName, d.DistrictNumber AS districtNumber, y.YearLabel AS yearLabel
+            FROM district_committee_group_member gm
+            JOIN district_committee_group g ON g.id = gm.fk_group_id
+            JOIN district_master d ON d.pk_district_id = g.fk_district_id
+            JOIN rotary_year_master y ON y.pk_year_id = g.fk_year_id
+            WHERE gm.fk_member_id IN @Ids AND gm.isdeleted = 0
+            ORDER BY y.pk_year_id DESC");
+
+        // Sub Group Committee member entries
+        var subGroupCommitteeBy = await BatchAsync(@"
+            SELECT sgm.fk_member_id AS __mid, sgm.district_designation AS designation, sgm.district_remark AS remark,
+                   sg.sub_group_name AS subGroupName, g.group_name AS groupName,
+                   d.DistrictNumber AS districtNumber, y.YearLabel AS yearLabel
+            FROM district_committee_sub_group_member sgm
+            JOIN district_committee_sub_group sg ON sg.id = sgm.fk_sub_group_id
+            JOIN district_committee_group g ON g.id = sg.fk_group_id
+            JOIN district_master d ON d.pk_district_id = g.fk_district_id
+            JOIN rotary_year_master y ON y.pk_year_id = g.fk_year_id
+            WHERE sgm.fk_member_id IN @Ids AND sgm.isdeleted = 0
+            ORDER BY y.pk_year_id DESC");
+
+        // District Governor entries
+        var districtGovernorBy = await BatchAsync(@"
+            SELECT dg.fk_member_id AS __mid, d.DistrictNumber AS districtNumber, y.YearLabel AS yearLabel
+            FROM district_governors dg
+            JOIN district_master d ON d.pk_district_id = dg.fk_district_id
+            JOIN rotary_year_master y ON y.pk_year_id = dg.fk_year_id
+            WHERE dg.fk_member_id IN @Ids AND dg.isdeleted = 0
+            ORDER BY y.pk_year_id DESC");
+
+        // Past Presidents
+        var pastPresidentBy = await BatchAsync(@"
+            SELECT pp.fk_member_master_profile_id AS __mid, c.ClubName AS clubName, y.YearLabel AS yearLabel
+            FROM past_presidents pp
+            JOIN club_master c ON c.pk_club_id = pp.fk_club_id
+            JOIN rotary_year_master y ON y.pk_year_id = pp.fk_year_id
+            WHERE pp.fk_member_master_profile_id IN @Ids AND pp.isdeleted = 0
+            ORDER BY y.pk_year_id DESC");
+
+        // Assistant Governor assignments (one per club/year). member_roles carries the 'AG'
+        // role flag; this table carries WHICH club + year the member is AG for.
+        var assistantGovernorBy = await BatchAsync(@"
+            SELECT ag.fk_member_id AS __mid, c.ClubName AS clubName, d.DistrictNumber AS districtNumber,
+                   y.YearLabel AS yearLabel, y.IsCurrent AS isCurrent
+            FROM district_ag ag
+            JOIN club_master c ON c.pk_club_id = ag.fk_club_id
+            JOIN district_master d ON d.pk_district_id = ag.fk_district_id
+            LEFT JOIN rotary_year_master y ON y.pk_year_id = ag.fk_year_id
+            WHERE ag.fk_member_id IN @Ids AND ag.isdeleted = 0
+            ORDER BY y.pk_year_id DESC");
+
+        // Club Moderator assignments (which club the member moderates; no year dimension).
+        var clubModeratorBy = await BatchAsync(@"
+            SELECT cmod.fk_member_id AS __mid, c.ClubName AS clubName, d.DistrictNumber AS districtNumber, cmod.is_active AS isActive
+            FROM district_club_moderator cmod
+            JOIN club_master c ON c.pk_club_id = cmod.fk_club_id
+            JOIN district_master d ON d.pk_district_id = cmod.fk_district_id
+            WHERE cmod.fk_member_id IN @Ids AND cmod.isdeleted = 0
+            ORDER BY c.ClubName");
+
+        // Club-level sub-groups / committees (includes CP/CS auto-groups) — year-wise.
+        var clubSubGroupsBy = await BatchAsync(@"
+            SELECT sgm.fk_member_master_profile_id AS __mid, sg.GroupName AS groupName, c.ClubName AS clubName,
+                   y.YearLabel AS yearLabel, y.IsCurrent AS isCurrent
+            FROM sub_group_members sgm
+            JOIN sub_groups sg ON sg.pk_sub_group_id = sgm.fk_sub_group_id AND sg.isdeleted = 0
+            JOIN club_master c ON c.pk_club_id = sg.fk_club_id
+            LEFT JOIN rotary_year_master y ON y.pk_year_id = sg.fk_year_id
+            WHERE sgm.fk_member_master_profile_id IN @Ids AND sgm.isdeleted = 0
+            ORDER BY y.pk_year_id DESC");
+
+        // ── Tier 2: transactional participation ──
+
+        // Events the member registered/paid for (event payment links).
+        var eventsBy = await BatchAsync(@"
+            SELECT epm.fk_member_profile_id AS __mid, el.Title AS eventTitle, epm.Amount AS amount, epm.IsPaid AS isPaid,
+                   epm.PaymentDate AS paymentDate, epm.ClubName AS clubName,
+                   epm.DistrictNumber AS districtNumber
+            FROM event_payment_members epm
+            JOIN event_payment_links el ON el.pk_id = epm.fk_payment_link_id
+            WHERE epm.fk_member_profile_id IN @Ids AND epm.isdeleted = 0
+            ORDER BY epm.created_date DESC");
+
+        // Membership dues instalments billed to / paid by the member.
+        var membershipDuesBy = await BatchAsync(@"
+            SELECT dp.fk_member_profile_id AS __mid, COALESCE(NULLIF(md.Purpose, ''), 'Membership Dues') AS purpose,
+                   md.RotaryYear AS rotaryYear, c.ClubName AS clubName,
+                   dp.FeeType AS feeType, dp.Amount AS amount, dp.IsPaid AS isPaid,
+                   dp.PaymentStatus AS paymentStatus, dp.PaymentDate AS paymentDate
+            FROM membership_dues_payments dp
+            JOIN membership_dues md ON md.pk_membership_dues_id = dp.fk_membership_dues_id
+            JOIN club_master c ON c.pk_club_id = md.fk_club_id
+            WHERE dp.fk_member_profile_id IN @Ids AND dp.isdeleted = 0
+            ORDER BY dp.created_date DESC");
+
+        // District Directory data-collection submissions by/for the member (no isdeleted column).
+        var directorySubmissionsBy = await BatchAsync(@"
+            SELECT dsl.fk_member_id AS __mid, d.DistrictNumber AS districtNumber, y.YearLabel AS yearLabel,
+                   dsl.GroupType AS groupType, dsl.CompletedCount AS completedCount,
+                   dsl.TotalCount AS totalCount, dsl.SubmittedAt AS submittedAt
+            FROM district_directory_submission_log dsl
+            JOIN district_directory_config cfg ON cfg.pk_id = dsl.fk_config_id
+            JOIN district_master d ON d.pk_district_id = cfg.fk_district_id
+            LEFT JOIN rotary_year_master y ON y.pk_year_id = cfg.fk_year_id
+            WHERE dsl.fk_member_id IN @Ids
+            ORDER BY dsl.SubmittedAt DESC");
+
         var result = new List<object>();
 
         foreach (var member in members)
         {
             int memberId = (int)member.pk_member_master_profile_id;
-
-            // Club memberships
-            var clubs = await conn.QueryAsync<dynamic>(@"
-                SELECT c.pk_club_id AS clubId, c.ClubName AS clubName, c.ClubRotaryId AS clubRotaryId,
-                       c.City AS city, c.State AS state,
-                       d.pk_district_id AS districtId, d.DistrictNumber AS districtNumber,
-                       z.pk_zone_id AS zoneId, z.ZoneName AS zoneName,
-                       " + CogDesignationHelper.JoinedDateExpr("cm") + @" AS joinedDate, cm.IsActive AS isActive,
-                   " + CogDesignationHelper.SelectColumns("cm") + @",
-                       cm.TerminationDate AS terminationDate, cm.TerminationReason AS terminationReason
-                FROM club_members cm
-                JOIN club_master c ON c.pk_club_id = cm.fk_club_id AND c.isdeleted = 0
-                JOIN district_master d ON d.pk_district_id = c.fk_district_id
-                LEFT JOIN zone_master z ON z.pk_zone_id = d.fk_zone_id
-                WHERE cm.fk_member_master_profile_id = @Id AND cm.isdeleted = 0
-                ORDER BY cm.IsActive DESC, c.ClubName",
-                new { Id = memberId });
-
-            // Roles
-            var roles = await conn.QueryAsync<dynamic>(@"
-                SELECT r.RoleName AS roleName,
-                       CASE
-                           WHEN r.RoleName = 'Admin' AND mr.fk_district_id > 0 AND (mr.fk_club_id IS NULL OR mr.fk_club_id = 0) THEN 'District Admin'
-                           WHEN r.RoleName = 'Admin' AND mr.fk_club_id > 0 THEN 'Club Admin'
-                           ELSE r.RoleName
-                       END AS displayRole,
-                       mr.fk_club_id AS clubId, mr.fk_district_id AS districtId, mr.fk_zone_id AS zoneId,
-                       mr.IsActive AS isActive
-                FROM member_roles mr
-                JOIN roles r ON r.pk_role_id = mr.fk_role_id
-                WHERE mr.fk_member_master_profile_id = @Id AND mr.isdeleted = 0 AND mr.IsActive = 1",
-                new { Id = memberId });
-
-            // BOD designations (all years)
-            var designations = await conn.QueryAsync<dynamic>(@"
-                SELECT dm.designation_name AS designationName, c.ClubName AS clubName,
-                       y.YearLabel AS yearLabel, y.IsCurrent AS isCurrent
-                FROM board_of_directors b
-                JOIN designation_master dm ON dm.pk_designation_id = b.fk_designation_id
-                JOIN club_master c ON c.pk_club_id = b.fk_club_id
-                JOIN rotary_year_master y ON y.pk_year_id = b.fk_year_id
-                WHERE b.fk_member_master_profile_id = @Id AND b.isdeleted = 0
-                ORDER BY y.pk_year_id DESC, dm.sort_order",
-                new { Id = memberId });
-
-            // District Committee member entries
-            var districtCommittee = await conn.QueryAsync<dynamic>(@"
-                SELECT dcm.district_designation AS designation, dcm.district_remark AS remark,
-                       d.DistrictNumber AS districtNumber, y.YearLabel AS yearLabel
-                FROM district_committee_member dcm
-                JOIN district_master d ON d.pk_district_id = dcm.fk_district_id
-                JOIN rotary_year_master y ON y.pk_year_id = dcm.fk_year_id
-                WHERE dcm.fk_member_id = @Id AND dcm.isdeleted = 0
-                ORDER BY y.pk_year_id DESC",
-                new { Id = memberId });
-
-            // Group Committee member entries
-            var groupCommittee = await conn.QueryAsync<dynamic>(@"
-                SELECT gm.district_designation AS designation, gm.district_remark AS remark,
-                       g.group_name AS groupName, d.DistrictNumber AS districtNumber, y.YearLabel AS yearLabel
-                FROM district_committee_group_member gm
-                JOIN district_committee_group g ON g.id = gm.fk_group_id
-                JOIN district_master d ON d.pk_district_id = g.fk_district_id
-                JOIN rotary_year_master y ON y.pk_year_id = g.fk_year_id
-                WHERE gm.fk_member_id = @Id AND gm.isdeleted = 0
-                ORDER BY y.pk_year_id DESC",
-                new { Id = memberId });
-
-            // Sub Group Committee member entries
-            var subGroupCommittee = await conn.QueryAsync<dynamic>(@"
-                SELECT sgm.district_designation AS designation, sgm.district_remark AS remark,
-                       sg.sub_group_name AS subGroupName, g.group_name AS groupName,
-                       d.DistrictNumber AS districtNumber, y.YearLabel AS yearLabel
-                FROM district_committee_sub_group_member sgm
-                JOIN district_committee_sub_group sg ON sg.id = sgm.fk_sub_group_id
-                JOIN district_committee_group g ON g.id = sg.fk_group_id
-                JOIN district_master d ON d.pk_district_id = g.fk_district_id
-                JOIN rotary_year_master y ON y.pk_year_id = g.fk_year_id
-                WHERE sgm.fk_member_id = @Id AND sgm.isdeleted = 0
-                ORDER BY y.pk_year_id DESC",
-                new { Id = memberId });
-
-            // District Governor entries
-            var districtGovernor = await conn.QueryAsync<dynamic>(@"
-                SELECT d.DistrictNumber AS districtNumber, y.YearLabel AS yearLabel
-                FROM district_governors dg
-                JOIN district_master d ON d.pk_district_id = dg.fk_district_id
-                JOIN rotary_year_master y ON y.pk_year_id = dg.fk_year_id
-                WHERE dg.fk_member_id = @Id AND dg.isdeleted = 0
-                ORDER BY y.pk_year_id DESC",
-                new { Id = memberId });
-
-            // Past Presidents
-            var pastPresident = await conn.QueryAsync<dynamic>(@"
-                SELECT c.ClubName AS clubName, y.YearLabel AS yearLabel
-                FROM past_presidents pp
-                JOIN club_master c ON c.pk_club_id = pp.fk_club_id
-                JOIN rotary_year_master y ON y.pk_year_id = pp.fk_year_id
-                WHERE pp.fk_member_master_profile_id = @Id AND pp.isdeleted = 0
-                ORDER BY y.pk_year_id DESC",
-                new { Id = memberId });
-
-            // Assistant Governor assignments (one per club/year). member_roles carries the 'AG'
-            // role flag; this table carries WHICH club + year the member is AG for.
-            var assistantGovernor = await conn.QueryAsync<dynamic>(@"
-                SELECT c.ClubName AS clubName, d.DistrictNumber AS districtNumber,
-                       y.YearLabel AS yearLabel, y.IsCurrent AS isCurrent
-                FROM district_ag ag
-                JOIN club_master c ON c.pk_club_id = ag.fk_club_id
-                JOIN district_master d ON d.pk_district_id = ag.fk_district_id
-                LEFT JOIN rotary_year_master y ON y.pk_year_id = ag.fk_year_id
-                WHERE ag.fk_member_id = @Id AND ag.isdeleted = 0
-                ORDER BY y.pk_year_id DESC",
-                new { Id = memberId });
-
-            // Club Moderator assignments (which club the member moderates; no year dimension).
-            var clubModerator = await conn.QueryAsync<dynamic>(@"
-                SELECT c.ClubName AS clubName, d.DistrictNumber AS districtNumber, cmod.is_active AS isActive
-                FROM district_club_moderator cmod
-                JOIN club_master c ON c.pk_club_id = cmod.fk_club_id
-                JOIN district_master d ON d.pk_district_id = cmod.fk_district_id
-                WHERE cmod.fk_member_id = @Id AND cmod.isdeleted = 0
-                ORDER BY c.ClubName",
-                new { Id = memberId });
-
-            // Club-level sub-groups / committees (includes CP/CS auto-groups) — year-wise.
-            var clubSubGroups = await conn.QueryAsync<dynamic>(@"
-                SELECT sg.GroupName AS groupName, c.ClubName AS clubName,
-                       y.YearLabel AS yearLabel, y.IsCurrent AS isCurrent
-                FROM sub_group_members sgm
-                JOIN sub_groups sg ON sg.pk_sub_group_id = sgm.fk_sub_group_id AND sg.isdeleted = 0
-                JOIN club_master c ON c.pk_club_id = sg.fk_club_id
-                LEFT JOIN rotary_year_master y ON y.pk_year_id = sg.fk_year_id
-                WHERE sgm.fk_member_master_profile_id = @Id AND sgm.isdeleted = 0
-                ORDER BY y.pk_year_id DESC",
-                new { Id = memberId });
-
-            // ── Tier 2: transactional participation ──
-
-            // Events the member registered/paid for (event payment links).
-            var events = await conn.QueryAsync<dynamic>(@"
-                SELECT el.Title AS eventTitle, epm.Amount AS amount, epm.IsPaid AS isPaid,
-                       epm.PaymentDate AS paymentDate, epm.ClubName AS clubName,
-                       epm.DistrictNumber AS districtNumber
-                FROM event_payment_members epm
-                JOIN event_payment_links el ON el.pk_id = epm.fk_payment_link_id
-                WHERE epm.fk_member_profile_id = @Id AND epm.isdeleted = 0
-                ORDER BY epm.created_date DESC",
-                new { Id = memberId });
-
-            // Membership dues instalments billed to / paid by the member.
-            var membershipDues = await conn.QueryAsync<dynamic>(@"
-                SELECT COALESCE(NULLIF(md.Purpose, ''), 'Membership Dues') AS purpose,
-                       md.RotaryYear AS rotaryYear, c.ClubName AS clubName,
-                       dp.FeeType AS feeType, dp.Amount AS amount, dp.IsPaid AS isPaid,
-                       dp.PaymentStatus AS paymentStatus, dp.PaymentDate AS paymentDate
-                FROM membership_dues_payments dp
-                JOIN membership_dues md ON md.pk_membership_dues_id = dp.fk_membership_dues_id
-                JOIN club_master c ON c.pk_club_id = md.fk_club_id
-                WHERE dp.fk_member_profile_id = @Id AND dp.isdeleted = 0
-                ORDER BY dp.created_date DESC",
-                new { Id = memberId });
-
-            // District Directory data-collection submissions by/for the member (no isdeleted column).
-            var directorySubmissions = await conn.QueryAsync<dynamic>(@"
-                SELECT d.DistrictNumber AS districtNumber, y.YearLabel AS yearLabel,
-                       dsl.GroupType AS groupType, dsl.CompletedCount AS completedCount,
-                       dsl.TotalCount AS totalCount, dsl.SubmittedAt AS submittedAt
-                FROM district_directory_submission_log dsl
-                JOIN district_directory_config cfg ON cfg.pk_id = dsl.fk_config_id
-                JOIN district_master d ON d.pk_district_id = cfg.fk_district_id
-                LEFT JOIN rotary_year_master y ON y.pk_year_id = cfg.fk_year_id
-                WHERE dsl.fk_member_id = @Id
-                ORDER BY dsl.SubmittedAt DESC",
-                new { Id = memberId });
+            var clubs = clubsBy[memberId];
+            var roles = rolesBy[memberId];
+            var designations = designationsBy[memberId];
+            var districtCommittee = districtCommitteeBy[memberId];
+            var groupCommittee = groupCommitteeBy[memberId];
+            var subGroupCommittee = subGroupCommitteeBy[memberId];
+            var districtGovernor = districtGovernorBy[memberId];
+            var pastPresident = pastPresidentBy[memberId];
+            var assistantGovernor = assistantGovernorBy[memberId];
+            var clubModerator = clubModeratorBy[memberId];
+            var clubSubGroups = clubSubGroupsBy[memberId];
+            var events = eventsBy[memberId];
+            var membershipDues = membershipDuesBy[memberId];
+            var directorySubmissions = directorySubmissionsBy[memberId];
 
             result.Add(new
             {

@@ -32,6 +32,7 @@ import {
   type WalletReportRow,
 } from "@/services/api";
 
+import { appLocale, currencySymbol, todayLocal } from "@/lib/appFormat";
 type ReportKey = "club-website" | "whatsapp" | "email" | "district-whatsapp" | "district-email";
 
 const REPORT_OPTIONS: { key: ReportKey; label: string }[] = [
@@ -50,9 +51,9 @@ const FETCHERS: Record<ReportKey, typeof getWalletClubWebsiteReport> = {
   "district-email": getWalletDistrictEmailReport,
 };
 
-const inr = (n: number | null) => (n == null ? "—" : `₹${Number(n).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`);
-const fmtDate = (s?: string | null) => (s ? new Date(s).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" }) : "—");
-const fmtDateTime = (s?: string | null) => (s ? new Date(s).toLocaleString("en-IN", { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" }) : "—");
+const inr = (n: number | null) => (n == null ? "—" : `${currencySymbol()}${Number(n).toLocaleString(appLocale(), { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`);
+const fmtDate = (s?: string | null) => (s ? new Date(s).toLocaleDateString(appLocale(), { day: "2-digit", month: "short", year: "numeric" }) : "—");
+const fmtDateTime = (s?: string | null) => (s ? new Date(s).toLocaleString(appLocale(), { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" }) : "—");
 
 function todayMinus(days: number): string {
   const d = new Date();
@@ -109,7 +110,7 @@ export default function WalletReportsTab() {
   const reportLabel = REPORT_OPTIONS.find((r) => r.key === reportKey)?.label || "Report";
 
   const handleExport = () => {
-    exportToCSV(rows.map((r, i) => ({ srNo: i + 1, ...r })), `${reportKey}-purchases-${new Date().toISOString().slice(0, 10)}`, [
+    exportToCSV(rows.map((r, i) => ({ srNo: i + 1, ...r })), `${reportKey}-purchases-${todayLocal()}`, [
       { key: "srNo", label: "Sr No" },
       ...(isDistrict ? [] : [{ key: "districtNumber", label: "District No" }]),
       { key: "clubName", label: entityLabel },

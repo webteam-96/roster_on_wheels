@@ -101,8 +101,9 @@ function GoalBar({
   const pct = target === 0 ? 0 : Math.min((value / target) * 100, 150);
   const clamp = Math.min(pct, 100);
   const color = pct >= 100 ? "#059669" : pct >= 60 ? "#D97706" : "#DC2626";
-  const display = unit === "INR" ? fmtInr(value) : unit === "%" ? `${value.toFixed(1)}%` : value.toString();
-  const targetDisplay = unit === "INR" ? fmtInr(target) : unit === "%" ? `${target}%` : target.toString();
+  const isMoney = /^[A-Z]{3}$/.test(unit ?? "");   // a currency code (the original: only "INR")
+  const display = isMoney ? fmtInr(value) : unit === "%" ? `${value.toFixed(1)}%` : value.toString();
+  const targetDisplay = isMoney ? fmtInr(target) : unit === "%" ? `${target}%` : target.toString();
 
   return (
     <div>

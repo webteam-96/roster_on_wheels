@@ -53,6 +53,7 @@ import { isFlowBotEnabled, triggerAddToOrg, fileToDataUrl, type OrgExport, type 
 import ImageCropDialog from "@/components/ImageCropDialog";
 import { useImageCropQueue } from "@/hooks/useImageCropQueue";
 
+import { defaultCurrency } from "@/lib/appFormat";
 // Project photos are shown 16:9 on the public site (components/pages/projects/shared.tsx),
 // so the crop is locked to that shape. 1600×900 keeps the widest card retina-sharp.
 const PROJECT_PHOTO_ASPECT = 16 / 9;
@@ -63,11 +64,11 @@ const PROJECT_PHOTO_MAX_WIDTH = 1600;
 // API origin for building full photo URLs handed to the Add-to-Org extension.
 const ADD_TO_ORG_API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
-const TOP_MESSAGE = "Please post all the International Services executed by your club. The content posted here will be displayed in District website, Club Monthly Report & Rotary Zones 4, 5, 6, 7 & 8 integrated Club website.";
+const TOP_MESSAGE = "Please post all the International Services executed by your club. The content posted here will be displayed in District website, Club Monthly Report & ROW integrated Club website.";
 
 const AGREE_MESSAGE = `The data I will enter is for a International Service project conducted by my club that has benefitted my community. E.g., Rotary Youth Exchange, Rotary Friendship Exchange, etc.
 
-Please Note: The content posted here will be displayed on the Rotary Zones 4, 5, 6, 7 & 8 Website, District Website, Club Monthly Report & Rotary Zones 4, 5, 6, 7 & 8 Integrated Club Website`;
+Please Note: The content posted here will be displayed on the ROW Website, District Website, Club Monthly Report & ROW Integrated Club Website`;
 
 type PhotoItem = {
   id: string;
@@ -182,7 +183,7 @@ export default function InternationalServiceV2AddPage() {
 
   const [projectDate, setProjectDate] = useState("");
   const [projectCost, setProjectCost] = useState("");
-  const [currency, setCurrency] = useState("INR");
+  const [currency, setCurrency] = useState(defaultCurrency());
   const [selectedFundingId, setSelectedFundingId] = useState<string>("");
   const [globalGrantNumber, setGlobalGrantNumber] = useState("");
   const [amountSanctioned, setAmountSanctioned] = useState("");
@@ -1021,8 +1022,8 @@ export default function InternationalServiceV2AddPage() {
             </DialogHeader>
             <div className="text-sm text-muted-foreground space-y-3 py-2">
               <p className="font-medium text-foreground">Dear Club Leader,</p>
-              <p>You have successfully added a project in Rotary Zones 4, 5, 6, 7 &amp; 8. You can check after 10 minutes.</p>
-              <p>Thank you,<br /><span className="font-medium text-foreground">Team Rotary Zones 4, 5, 6, 7 &amp; 8</span></p>
+              <p>You have successfully added a project in ROW. You can check after 10 minutes.</p>
+              <p>Thank you,<br /><span className="font-medium text-foreground">Team ROW</span></p>
             </div>
             <button
               type="button"

@@ -96,7 +96,7 @@ export function AreasOfFocus() {
             data-animate-delay="0.16"
             className="max-w-md text-[15px] leading-relaxed text-muted"
           >
-            The causes Rotary Zones 4, 5, 6, 7 &amp; 8 champion to create lasting change —
+            The causes ROW champion to create lasting change —
             locally and around the world.
           </p>
         </div>

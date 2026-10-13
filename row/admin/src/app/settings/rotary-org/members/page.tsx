@@ -345,7 +345,7 @@ export default function RotaryOrgMembersPage() {
         {!loading && data && (
           <>
             <div className="flex flex-wrap gap-2 items-center">
-              <Badge variant="secondary">India: {data.counts.rotaryIndia}</Badge>
+              <Badge variant="secondary">India: {data.counts.ROW}</Badge>
               <Badge variant="secondary">Rotary.org: {data.counts.rotaryOrg}</Badge>
               <Badge className="bg-green-100 text-green-800 border-green-300">Matched: {data.counts.matched}</Badge>
               <Badge className="bg-yellow-100 text-yellow-800 border-yellow-300">Only India: {data.counts.onlyIndia}</Badge>
@@ -367,7 +367,7 @@ export default function RotaryOrgMembersPage() {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead className="w-1/2 border-r bg-muted/40">Rotary Zones 4, 5, 6, 7 & 8</TableHead>
+                      <TableHead className="w-1/2 border-r bg-muted/40">ROW</TableHead>
                       <TableHead className="w-1/2">Rotary.org</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -459,7 +459,7 @@ export default function RotaryOrgMembersPage() {
           <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>Member Comparison & Edit</DialogTitle>
-              <DialogDescription>Click ⬅ to copy a value from Rotary.org into Rotary Zones 4, 5, 6, 7 & 8.</DialogDescription>
+              <DialogDescription>Click ⬅ to copy a value from Rotary.org into ROW.</DialogDescription>
             </DialogHeader>
             {editTarget && (
               <div className="space-y-3">
@@ -467,7 +467,7 @@ export default function RotaryOrgMembersPage() {
                   <div className="col-span-3">Field</div>
                   <div className="col-span-4">Rotary.org</div>
                   <div className="col-span-1 text-center">Copy</div>
-                  <div className="col-span-4">Rotary Zones 4, 5, 6, 7 & 8 (editable)</div>
+                  <div className="col-span-4">ROW (editable)</div>
                 </div>
 
                 <PopupSection

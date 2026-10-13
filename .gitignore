@@ -11,3 +11,6 @@ out/
 
 # graphify code graphs (large, rebuilt by kb/rebuild.sh)
 graphify-out/
+
+__pycache__/
+*.pyc

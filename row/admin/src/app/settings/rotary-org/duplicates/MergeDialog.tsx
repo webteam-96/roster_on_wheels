@@ -14,6 +14,7 @@ import {
   type DupPair, type DupProfile, type DupClub, type DupRole, type DupFamily,
 } from "@/services/api";
 
+import { appLocale } from "@/lib/appFormat";
 type Side = "A" | "B";
 
 // Editable profile fields (key must match backend UpdatableColumns camelCase).
@@ -48,7 +49,7 @@ const fmtDate = (v: string | null | undefined) => {
   if (!s) return "";
   const d = new Date(s);
   if (isNaN(d.getTime()) || d.getFullYear() < 1901) return "";
-  return d.toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" });
+  return d.toLocaleDateString(appLocale(), { day: "2-digit", month: "short", year: "numeric" });
 };
 const toForm = (p: DupProfile): Record<string, string> => {
   const f: Record<string, string> = {};

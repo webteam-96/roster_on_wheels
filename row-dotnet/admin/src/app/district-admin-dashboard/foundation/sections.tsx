@@ -35,6 +35,7 @@ import ErrorAlert from "@/components/ErrorAlert";
 import Pagination from "@/components/Pagination";
 import { formatMoney } from "@/lib/currency";
 
+import { appLocale, currencySymbol } from "@/lib/appFormat";
 const PAGE_SIZE = 15;
 
 // ── helpers ──────────────────────────────────────────────────────────────
@@ -42,7 +43,7 @@ const PAGE_SIZE = 15;
 function fmtDate(s?: string | null): string {
   if (!s) return "—";
   try {
-    return new Date(s).toLocaleDateString("en-IN", {
+    return new Date(s).toLocaleDateString(appLocale(), {
       day: "2-digit", month: "short", year: "numeric",
     });
   } catch { return s; }
@@ -168,7 +169,7 @@ export function DistrictProjectsSection({
                   <th className="px-3 py-2.5 text-left w-10">Sr</th>
                   <th className="px-3 py-2.5 text-left">Title</th>
                   <th className="px-3 py-2.5 text-left">Date</th>
-                  <th className="px-3 py-2.5 text-right">Cost (₹)</th>
+                  <th className="px-3 py-2.5 text-right">Cost ({currencySymbol()})</th>
                   <th className="px-3 py-2.5 text-center">Beneficiaries</th>
                   <th className="px-3 py-2.5 text-left">Area of Focus</th>
                   <th className="px-3 py-2.5 text-right w-16">Edit</th>

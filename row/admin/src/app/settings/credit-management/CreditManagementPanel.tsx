@@ -28,6 +28,7 @@ import RotaryLoader from "@/components/RotaryLoader";
 import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";
 
+import { appLocale } from "@/lib/appFormat";
 interface DistrictOption { id: number; districtNumber: string; }
 interface ClubOption { id: number; clubName: string; clubCode: string; }
 interface CreditItem {
@@ -505,7 +506,7 @@ export default function CreditManagementPanel({ embedded = false, onChanged }: {
                             <TableCell className="text-right text-green-600 font-medium">+{item.creditCount - item.previousCount > 0 ? item.creditCount - item.previousCount : item.creditCount}</TableCell>
                             <TableCell className="text-right font-bold">{item.remaining}</TableCell>
                             <TableCell className="text-right">{item.usedCount}</TableCell>
-                            <TableCell className="text-sm">{new Date(item.toDate).toLocaleDateString("en-IN")}</TableCell>
+                            <TableCell className="text-sm">{new Date(item.toDate).toLocaleDateString(appLocale())}</TableCell>
                             <TableCell className="text-sm">{item.transactionId || "\u2014"}</TableCell>
                             <TableCell>
                               {item.proofDocumentPath ? (
@@ -513,8 +514,8 @@ export default function CreditManagementPanel({ embedded = false, onChanged }: {
                                   target="_blank" className="text-xs text-blue-600 hover:underline">View</a>
                               ) : "\u2014"}
                             </TableCell>
-                            <TableCell className="text-sm">{new Date(item.createdDate).toLocaleString("en-IN", { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })}</TableCell>
-                            <TableCell className="text-sm">{item.lastUsedDate ? new Date(item.lastUsedDate).toLocaleString("en-IN", { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" }) : "—"}</TableCell>
+                            <TableCell className="text-sm">{new Date(item.createdDate).toLocaleString(appLocale(), { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })}</TableCell>
+                            <TableCell className="text-sm">{item.lastUsedDate ? new Date(item.lastUsedDate).toLocaleString(appLocale(), { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" }) : "—"}</TableCell>
                             <TableCell>
                               {item.isExpired ? (
                                 <Badge variant="destructive">Expired</Badge>
@@ -632,7 +633,7 @@ export default function CreditManagementPanel({ embedded = false, onChanged }: {
                         historyItems.map((item) => (
                           <TableRow key={item.id}>
                             <TableCell className="text-sm whitespace-nowrap">
-                              {new Date(item.createdDate).toLocaleString("en-IN", { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })}
+                              {new Date(item.createdDate).toLocaleString(appLocale(), { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })}
                             </TableCell>
                             <TableCell>{item.districtNumber || "\u2014"}</TableCell>
                             <TableCell>{item.clubName || "\u2014"}</TableCell>

@@ -224,7 +224,7 @@ export default function ClubMembershipDuesV2Page() {
               </div>
               <button
                 type="button"
-                onClick={() => window.open("https://membership.rotaryindia.org/", "_blank")}
+                onClick={() => window.open("https://club.example.org/", "_blank")}
                 className="inline-flex items-center gap-2 text-sm font-semibold px-5 py-2.5 rounded-lg bg-blue-600 text-white hover:bg-blue-700"
               >
                 Learn More

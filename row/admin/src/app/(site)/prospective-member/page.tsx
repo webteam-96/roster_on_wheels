@@ -7,9 +7,9 @@ import { ChapterRail } from "@/components/motion/ChapterRail";
 import { ProspectiveForm } from "@/components/pages/prospective/ProspectiveForm";
 
 export const metadata: Metadata = {
-  title: "Prospective Member | Rotary Zones 4, 5, 6, 7 & 8",
+  title: "Prospective Member | ROW",
   description:
-    "Interested in joining Rotary? Fill in your details below to become a part of Rotary Zones 4, 5, 6, 7 & 8.",
+    "Interested in joining Rotary? Fill in your details below to become a part of ROW.",
 };
 
 /** How the enquiry travels — the quiet three-step primer above the form. */
@@ -122,7 +122,7 @@ export default function ProspectiveMemberPage() {
               club.
             </p>
             <p className="microlabel mt-8">
-              Zones 4, 5, 6, 7 &amp; 8 — India, Sri Lanka, Nepal, Maldives &amp; Bhutan
+              the zones — India, Sri Lanka, Nepal, Maldives &amp; Bhutan
             </p>
           </div>
         </div>

@@ -4,7 +4,7 @@ import { PageBanner } from "@/components/site/PageBanner";
 import { SiteFooter } from "@/components/site/SiteFooter";
 
 export const metadata: Metadata = {
-  title: "International & National Websites | Rotary Zones 4, 5, 6, 7 & 8",
+  title: "International & National Websites | ROW",
   description:
     "Explore the official Rotary International and Rotary News platforms to stay informed and connected with Rotary worldwide.",
 };

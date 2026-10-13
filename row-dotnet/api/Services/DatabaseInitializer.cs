@@ -352,15 +352,15 @@ public partial class DatabaseInitializer
                 // "not yet configured" — frontend falls back to the old country-based guess for these.
                 await AddColumnIfNotExists(connection, "district_master", "DefaultCurrency", "VARCHAR(5) NULL AFTER Country");
 
-                // Default every district to INR (per explicit product decision — the SuperAdmin
-                // manages exceptions from Settings → Currency). Idempotent: only touches NULLs, so a
+                // Default every district to the brand's currency (the SuperAdmin manages exceptions
+                // from Settings → Currency). Idempotent: only touches NULLs, so a
                 // district a SuperAdmin already set explicitly is never overwritten.
                 try
                 {
                     var currencyBackfilled = await connection.ExecuteAsync(
-                        "UPDATE district_master SET DefaultCurrency = 'INR' WHERE DefaultCurrency IS NULL");
+                        "UPDATE district_master SET DefaultCurrency = @C WHERE DefaultCurrency IS NULL", new { C = Brand.SqlCurrency });
                     if (currencyBackfilled > 0)
-                        _logger.LogInformation("Backfilled district_master.DefaultCurrency to INR for {Count} rows.", currencyBackfilled);
+                        _logger.LogInformation("Backfilled district_master.DefaultCurrency to {Currency} for {Count} rows.", Brand.SqlCurrency, currencyBackfilled);
                 }
                 catch (MySqlException ex)
                 {
@@ -467,7 +467,7 @@ public partial class DatabaseInitializer
                         fk_district_id INT NOT NULL,
                         ClubRotaryId VARCHAR(50) NOT NULL UNIQUE,
                         ClubName VARCHAR(300) NOT NULL,
-                        Timezone VARCHAR(100) DEFAULT 'Asia/Kolkata',
+                        Timezone VARCHAR(100) DEFAULT 'UTC',
                         ClubCharterDate DATE NULL,
                         ClubLogoPath VARCHAR(500),
                         ClubWebsite VARCHAR(500),
@@ -1958,9 +1958,9 @@ public partial class DatabaseInitializer
                 // Rotary.org's own Address.LastUpdated timestamp for the meeting-info snapshot we've
                 // applied — lets the nightly country sync tell whether Rotary.org has something newer
                 // than what we already stored (distinct from LastSyncedFromRotaryOrg, which is OUR clock).
-                // Stored in IST (converted from Rotary.org's UTC-offset timestamp), NOT UTC, so it reads
-                // consistently with every other timestamp in this table (created_date/modified_date/
-                // LastSyncedFromRotaryOrg are all server-local via MySQL NOW(), and the server is IST).
+                // Stored in server-local time like every other timestamp in this table (created_date/
+                // modified_date/LastSyncedFromRotaryOrg via MySQL NOW()). The "Ist" in the column name is
+                // historical (the original servers ran on India time); the schema keeps the name.
                 await AddColumnIfNotExists(connection, "club_master", "RotaryOrgAddressLastUpdatedIst", "DATETIME NULL");
                 // Club-level contact info from Rotary.org's country-sync search results (ClubWebsite
                 // already existed for manual admin edits; country-sync now also populates both for
@@ -3993,7 +3993,7 @@ public partial class DatabaseInitializer
                         UNIQUE KEY uk_gfim (fk_year_id, Scope, PeriodMonth)
                     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
                 // First run only: seed the pattern that was hardcoded until now (Mon-Fri 11:30-12:30
-                // and 14:30-17:30 IST), so the screens open with today's behaviour, not an empty week.
+                // and 14:30-17:30 in the brand time zone), so the screens open with today's behaviour, not an empty week.
                 var hasWeekly = await connection.ExecuteScalarAsync<int>(
                     "SELECT COUNT(*) FROM training_weekly_hours");
                 if (hasWeekly == 0)
@@ -4871,7 +4871,7 @@ public partial class DatabaseInitializer
 
                 // Per-recipient WhatsApp send/delivery log (mirrors email_log). One row per
                 // recipient per broadcast: submit status (Sent/Failed) written at send time,
-                // upgraded to Delivered/Read/Failed by the Interakt delivery webhook.
+                // upgraded to Delivered/Read/Failed by a delivery webhook (column name kept from the original schema).
                 await connection.ExecuteAsync(@"
                     CREATE TABLE IF NOT EXISTS whatsapp_log (
                         pk_id BIGINT AUTO_INCREMENT PRIMARY KEY,
@@ -5569,11 +5569,10 @@ public partial class DatabaseInitializer
 
                 // Multi-currency Project Cost — every year-wise rotary_projects table gets a
                 // Currency column. New table creates already include it (YearTableResolver);
-                // this loop backfills existing tables. Existing rows default to 'INR' (safe:
-                // every project created before this feature was implicitly INR).
+                // this loop backfills existing tables. Existing rows default to the brand's currency.
                 foreach (var tbl in projectsYearTables)
                 {
-                    await AddColumnIfNotExists(connection, tbl, "Currency", "VARCHAR(5) NOT NULL DEFAULT 'INR'");
+                    await AddColumnIfNotExists(connection, tbl, "Currency", $"VARCHAR(5) NOT NULL DEFAULT '{Brand.SqlCurrency}'");
                 }
 
                 // App Route Maintenance — SuperAdmin switchboard for the mobile
@@ -6954,17 +6953,19 @@ public partial class DatabaseInitializer
     // "Yet to Sponsor" counts Rotary clubs district-wide → District-only.
     private static readonly (string Group, string Key, string Label, string DataType, string? Unit, string Role, string? Compute, int Sort)[] YouthFields =
     {
+        // Order (user 2026-10-09): each part reads start -> plan -> result - clubs (existing, proposed,
+        // achieved, %), then Rotaractors (as on July 1st, proposed, achieved, %).
         ("Rotaract", "rotaract_existing_clubs", "Existing Rotaract Clubs as on July 1st", "Integer", "nos", "Reference", null, 1),
-        ("Rotaract", "rotaract_existing_members", "No. of Rotaractors as on July 1st", "Integer", "nos", "Reference", null, 2),
-        ("Rotaract", "rotaract_new_clubs_target", "Proposed New Rotaract Clubs", "Integer", "nos", "Target", null, 3),
-        ("Rotaract", "rotaract_new_members_target", "Proposed New Rotaractors", "Integer", "nos", "Target", null, 4),
+        ("Rotaract", "rotaract_existing_members", "No. of Rotaractors as on July 1st", "Integer", "nos", "Reference", null, 6),
+        ("Rotaract", "rotaract_new_clubs_target", "Proposed New Rotaract Clubs", "Integer", "nos", "Target", null, 2),
+        ("Rotaract", "rotaract_new_members_target", "Proposed New Rotaractors", "Integer", "nos", "Target", null, 7),
         // The computed "Total …" rows are the CLUB page's view (existing + proposed). The DISTRICT page
         // instead gets a typed "Achieved" + an auto "Percentage Achieved", mirroring Membership
         // (user request 2026-09-16) — hence the separate District-only keys below. Scope is set in
         // districtOnlyFieldKeys / clubOnlyFieldKeys, so neither page sees the other's rows.
-        ("Rotaract", "rotaract_total_clubs", "Total Clubs", "Integer", "nos", "Computed", "rotaract_existing_clubs + rotaract_new_clubs_target", 5),
-        ("Rotaract", "rotaract_clubs_achieved", "Clubs Achieved", "Integer", "nos", "Target", null, 6),
-        ("Rotaract", "rotaract_clubs_pct", "Percentage Achieved", "Percentage", "%", "Computed", null, 7),
+        ("Rotaract", "rotaract_total_clubs", "Total Clubs", "Integer", "nos", "Computed", "rotaract_existing_clubs + rotaract_new_clubs_target", 3),
+        ("Rotaract", "rotaract_clubs_achieved", "Clubs Achieved", "Integer", "nos", "Target", null, 4),
+        ("Rotaract", "rotaract_clubs_pct", "Percentage Achieved", "Percentage", "%", "Computed", null, 5),
         ("Rotaract", "rotaract_total_members", "Total Rotaractors", "Integer", "nos", "Computed", "rotaract_existing_members + rotaract_new_members_target", 8),
         ("Rotaract", "rotaract_members_achieved", "Rotaractors Achieved", "Integer", "nos", "Target", null, 9),
         ("Rotaract", "rotaract_members_pct", "Rotaractors Percentage Achieved", "Percentage", "%", "Computed", null, 10),

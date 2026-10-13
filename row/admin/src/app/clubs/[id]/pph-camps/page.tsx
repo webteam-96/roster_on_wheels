@@ -54,6 +54,7 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 import ImageCropDialog from "@/components/ImageCropDialog";
 import { useImageCropUpload } from "@/hooks/useImageCropUpload";
 
+import { appLocale } from "@/lib/appFormat";
 // The camp logo fills a landscape header tile on the camp cards — locked to
 // 16:9 at 1200×675.
 const LOGO_ASPECT = 16 / 9;
@@ -235,7 +236,7 @@ export default function PphCampsPage() {
 
   const formatDate = (dateStr: string | null) => {
     if (!dateStr) return "-";
-    return new Date(dateStr).toLocaleDateString("en-IN", {
+    return new Date(dateStr).toLocaleDateString(appLocale(), {
       day: "2-digit",
       month: "short",
       year: "numeric",

@@ -16,6 +16,7 @@ import {
   IndianRupee, Camera, Star,
 } from "lucide-react";
 
+import { appLocale } from "@/lib/appFormat";
 const MODULE_LABELS: Record<string, string> = {
   club_service: "Club Service",
   community_service: "Community Service",
@@ -58,7 +59,7 @@ function DetailRow({ label, value }: { label: string; value: React.ReactNode }) 
 }
 
 function formatDate(dateStr: string): string {
-  return new Date(dateStr).toLocaleDateString("en-IN", {
+  return new Date(dateStr).toLocaleDateString(appLocale(), {
     day: "2-digit",
     month: "short",
     year: "numeric",
@@ -265,19 +266,19 @@ export default function ViewProjectPage() {
               <DetailRow label="CSR Company" value={project.csrCompanyName} />
             )}
             {project.directBeneficiaries != null && (
-              <DetailRow label="Direct Beneficiaries" value={project.directBeneficiaries.toLocaleString("en-IN")} />
+              <DetailRow label="Direct Beneficiaries" value={project.directBeneficiaries.toLocaleString(appLocale())} />
             )}
             {project.manHours != null && (
-              <DetailRow label="Man Hours" value={project.manHours.toLocaleString("en-IN")} />
+              <DetailRow label="Man Hours" value={project.manHours.toLocaleString(appLocale())} />
             )}
             {project.rotariansInvolved != null && (
-              <DetailRow label="Rotarians Involved" value={project.rotariansInvolved.toLocaleString("en-IN")} />
+              <DetailRow label="Rotarians Involved" value={project.rotariansInvolved.toLocaleString(appLocale())} />
             )}
             {project.rccInvolved != null && (
-              <DetailRow label="RCC Involved" value={project.rccInvolved.toLocaleString("en-IN")} />
+              <DetailRow label="RCC Involved" value={project.rccInvolved.toLocaleString(appLocale())} />
             )}
             {project.rotaractorsInvolved != null && (
-              <DetailRow label="Rotaractors Involved" value={project.rotaractorsInvolved.toLocaleString("en-IN")} />
+              <DetailRow label="Rotaractors Involved" value={project.rotaractorsInvolved.toLocaleString(appLocale())} />
             )}
           </div>
         </Section>

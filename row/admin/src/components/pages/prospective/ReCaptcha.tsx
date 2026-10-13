@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from "react";
 
-/* The live site's key (domain-locked to rotaryindia.org) is used on production
+/* The live site's key (domain-locked to example.org) is used on production
  * builds; everywhere else Google's official always-pass TEST key keeps the
  * widget functional on localhost. Override with NEXT_PUBLIC_RECAPTCHA_SITE_KEY. */
 const LIVE_KEY = "6LdVpUUqAAAAAPzyZVYm5DKDyugGPBJf1d4ESOxM";

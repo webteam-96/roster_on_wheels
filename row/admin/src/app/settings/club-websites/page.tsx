@@ -41,6 +41,7 @@ import {
 } from "@/services/api";
 import { exportToCSV } from "@/utils/csvExport";
 
+import { appLocale, currencySymbol } from "@/lib/appFormat";
 type Row = {
   id: number; clubId: number; clubName: string; clubRotaryId: string;
   districtNumber: string; subdomain: string; clientDomain: string | null;
@@ -83,9 +84,9 @@ function validateLabel(value: string, required: boolean): string | null {
 function sanitizeLabelInput(value: string): string { return (value || "").toLowerCase(); }
 function sanitizeDomainInput(value: string): string { return (value || "").toLowerCase(); }
 
-// Given a full subdomain like "rcmumbai.rizones45678.org" and parent "rizones45678.org",
+// Given a full subdomain like "club.example.org" and parent "portal.example.org",
 // return just the label "rcmumbai". If parent doesn't match the suffix (e.g. legacy/imported
-// rows like "rctcv.rotaryindia.org" whose parent has since changed), fall back to taking
+// rows like "club.example.org" whose parent has since changed), fall back to taking
 // just the first label so the row stays editable — saving will re-suffix with the current
 // parent. Returning the full dotted value would fail label validation and lock the row.
 function splitSubdomain(full: string, parentDomain: string): string {
@@ -135,7 +136,7 @@ export default function ClubWebsitesPage() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [defaultReminderDays, setDefaultReminderDays] = useState<number>(15);
-  const [parentDomain, setParentDomain] = useState<string>("rizones45678.org");
+  const [parentDomain, setParentDomain] = useState<string>("portal.example.org");
   const [serverIp, setServerIp] = useState<string>("");
 
   // Add/Edit dialog
@@ -538,7 +539,7 @@ export default function ClubWebsitesPage() {
   };
 
   const doForceCleanPlesk = async () => {
-    const label = prompt("Enter subdomain label or full FQDN to force-delete from Plesk\n(examples: 'rcc2' or 'rcc2.rizones45678.org')\n\nThis removes from Plesk only. Our DB is not touched.\nYour shared ClubWebsite folder is protected.");
+    const label = prompt("Enter subdomain label or full FQDN to force-delete from Plesk\n(examples: 'rcc2' or 'club.example.org')\n\nThis removes from Plesk only. Our DB is not touched.\nYour shared ClubWebsite folder is protected.");
     if (!label?.trim()) return;
     if (!confirm(`Force-delete '${label.trim()}' from Plesk?\n\nOnly removes from Plesk/IIS — ClubWebsite folder is protected.`)) return;
     try {
@@ -688,7 +689,7 @@ export default function ClubWebsitesPage() {
         { key: "advertisementCount", label: "Advertisements", width: 14 },
         { key: "projectCount", label: "Projects", width: 10 },
       ],
-      { title: "Club Websites", subtitle: `Exported ${new Date().toLocaleDateString("en-IN")}` });
+      { title: "Club Websites", subtitle: `Exported ${new Date().toLocaleDateString(appLocale())}` });
     // No success alert: the file lands in Downloads, which is confirmation enough (user 2026-09-29).
   };
 
@@ -717,7 +718,7 @@ export default function ClubWebsitesPage() {
         { key: "advertisementCount", label: "Advertisements", width: 14 },
         { key: "projectCount", label: "Projects", width: 10 },
       ],
-      { title: "Club Websites — Third party Domains", subtitle: `Exported ${new Date().toLocaleDateString("en-IN")}` });
+      { title: "Club Websites — Third party Domains", subtitle: `Exported ${new Date().toLocaleDateString(appLocale())}` });
     // No success alert here either - see the note in exportExcel.
   };
 
@@ -969,8 +970,8 @@ export default function ClubWebsitesPage() {
                         )}
                       </TableCell>
                       <TableCell className="text-xs">{r.themeName || "—"}</TableCell>
-                      <TableCell className="text-xs">{r.startDate ? new Date(r.startDate).toLocaleDateString("en-IN") : "—"}</TableCell>
-                      <TableCell className="text-xs">{r.endDate ? new Date(r.endDate).toLocaleDateString("en-IN") : "—"}</TableCell>
+                      <TableCell className="text-xs">{r.startDate ? new Date(r.startDate).toLocaleDateString(appLocale()) : "—"}</TableCell>
+                      <TableCell className="text-xs">{r.endDate ? new Date(r.endDate).toLocaleDateString(appLocale()) : "—"}</TableCell>
                       <TableCell>
                         <div className="flex flex-col items-start gap-1">
                           {statusBadge(r.status, r.daysLeft)}
@@ -1303,10 +1304,10 @@ export default function ClubWebsitesPage() {
                       {clubHistory.map((h: any) => (
                         <TableRow key={h.id}>
                           <TableCell className="font-mono text-xs">{h.subdomain}</TableCell>
-                          <TableCell className="text-xs">{h.startDate ? new Date(h.startDate).toLocaleDateString("en-IN") : "—"}</TableCell>
-                          <TableCell className="text-xs">{h.endDate ? new Date(h.endDate).toLocaleDateString("en-IN") : "—"}</TableCell>
+                          <TableCell className="text-xs">{h.startDate ? new Date(h.startDate).toLocaleDateString(appLocale()) : "—"}</TableCell>
+                          <TableCell className="text-xs">{h.endDate ? new Date(h.endDate).toLocaleDateString(appLocale()) : "—"}</TableCell>
                           <TableCell><Badge variant="outline">{h.status}</Badge></TableCell>
-                          <TableCell className="text-xs">{h.amountPaid ? `₹${Number(h.amountPaid).toLocaleString("en-IN")}` : "—"}</TableCell>
+                          <TableCell className="text-xs">{h.amountPaid ? `${currencySymbol()}${Number(h.amountPaid).toLocaleString(appLocale())}` : "—"}</TableCell>
                         </TableRow>
                       ))}
                     </TableBody>
@@ -1339,7 +1340,7 @@ export default function ClubWebsitesPage() {
                 <TableBody>
                   {logs.map((l: any) => (
                     <TableRow key={l.id}>
-                      <TableCell className="text-xs">{new Date(l.performedDate).toLocaleString("en-IN")}</TableCell>
+                      <TableCell className="text-xs">{new Date(l.performedDate).toLocaleString(appLocale())}</TableCell>
                       <TableCell><Badge variant="outline">{l.action}</Badge></TableCell>
                       <TableCell className="text-xs">{l.performedByName || (l.performedBy === 0 ? "System" : "—")}</TableCell>
                       <TableCell className="text-xs">{l.details || "—"}</TableCell>
@@ -1435,7 +1436,7 @@ export default function ClubWebsitesPage() {
             <div className="space-y-4">
               <div>
                 <Label>Parent Domain</Label>
-                <Input value={settingsParent} onChange={(e) => setSettingsParent(sanitizeDomainInput(e.target.value))} placeholder="e.g., rizones45678.org" />
+                <Input value={settingsParent} onChange={(e) => setSettingsParent(sanitizeDomainInput(e.target.value))} placeholder="e.g., portal.example.org" />
                 <p className="text-xs text-muted-foreground mt-1">All club subdomains are created under this domain. Changing this does not rewrite existing records.</p>
               </div>
               <div>

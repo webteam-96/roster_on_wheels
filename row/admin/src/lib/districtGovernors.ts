@@ -17,8 +17,8 @@ export type ApiGovernor = {
 
 // Portraits live on the production admin host (the local dev API has no
 // Documents folder), so photo URLs always resolve against production.
-const PHOTO_BASE = "https://rizones45678.org/API";
-const ALLOWED_PHOTO_HOSTS = ["rizones45678.org", "rotaryindia.org"];
+const PHOTO_BASE = process.env.NEXT_PUBLIC_API_ORIGIN ?? "";
+const ALLOWED_PHOTO_HOSTS = ["portal.example.org", "example.org"];
 
 /** Live roster for a Rotary year (omit yearId for the current year). [] on failure. */
 export async function getGovernors(yearId?: number): Promise<ApiGovernor[]> {

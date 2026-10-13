@@ -10,7 +10,9 @@ import { User, Mail, Phone, MapPin, Calendar, Heart, Globe, Briefcase, Users, Id
 import Image from "next/image";
 import RotaryLoader from "@/components/RotaryLoader";
 import { formatBirthAnniversary } from "@/lib/dateUtils";
+import { useFeature } from "@/contexts/BrandContext";
 
+import { appLocale } from "@/lib/appFormat";
 interface MemberDetailDialogProps {
   memberId: number | null;
   open: boolean;
@@ -20,6 +22,8 @@ interface MemberDetailDialogProps {
 export default function MemberDetailDialog({ memberId, open, onClose }: MemberDetailDialogProps) {
   const [member, setMember] = useState<Member | null>(null);
   const [loading, setLoading] = useState(false);
+  const showBloodGroup = useFeature("member.bloodGroup");
+  const showFamily = useFeature("member.familyDetails");
 
   useEffect(() => {
     if (!open || !memberId) { setMember(null); return; }
@@ -35,7 +39,7 @@ export default function MemberDetailDialog({ memberId, open, onClose }: MemberDe
 
   const formatDate = (d: string | null) => {
     if (!d) return "—";
-    try { return new Date(d).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" }); } catch { return "—"; }
+    try { return new Date(d).toLocaleDateString(appLocale(), { day: "2-digit", month: "short", year: "numeric" }); } catch { return "—"; }
   };
 
   return (
@@ -61,7 +65,7 @@ export default function MemberDetailDialog({ memberId, open, onClose }: MemberDe
                   <div className="flex flex-wrap gap-1 mt-1">
                     {member.rotaryId && <Badge variant="secondary" className="text-xs"><IdCard className="h-3 w-3 mr-1" />{member.rotaryId}</Badge>}
                     {member.gender && <Badge variant="outline" className="text-xs">{member.gender}</Badge>}
-                    {member.bloodGroup && <Badge variant="outline" className="text-xs text-red-600 border-red-200">{member.bloodGroup}</Badge>}
+                    {showBloodGroup && member.bloodGroup && <Badge variant="outline" className="text-xs text-red-600 border-red-200">{member.bloodGroup}</Badge>}
                     {member.isYouth && <Badge className="text-xs bg-blue-500">Youth</Badge>}
                   </div>
                 </div>
@@ -124,7 +128,7 @@ export default function MemberDetailDialog({ memberId, open, onClose }: MemberDe
             )}
 
             {/* Family */}
-            {member.familyMembers && member.familyMembers.length > 0 && (
+            {showFamily && member.familyMembers && member.familyMembers.length > 0 && (
               <Section icon={<Users className="h-4 w-4" />} title="Family Members">
                 {member.familyMembers.map((fm) => (
                   <div key={fm.id} className="col-span-2 flex items-center gap-3 rounded-lg border p-3">
@@ -138,7 +142,7 @@ export default function MemberDetailDialog({ memberId, open, onClose }: MemberDe
                     <div className="flex-1 min-w-0 text-sm">
                       <p className="font-medium">{fm.name} <Badge variant="outline" className="text-xs ml-1">{fm.relation}</Badge></p>
                       <p className="text-muted-foreground text-xs">
-                        {[fm.phoneNumber && `${fm.countryPhoneCode} ${fm.phoneNumber}`, fm.emailId, fm.bloodGroup && `Blood: ${fm.bloodGroup}`, fm.birthDate && `DOB: ${formatBirthAnniversary(fm.birthDate)}`].filter(Boolean).join(" | ")}
+                        {[fm.phoneNumber && `${fm.countryPhoneCode} ${fm.phoneNumber}`, fm.emailId, showBloodGroup && fm.bloodGroup && `Blood: ${fm.bloodGroup}`, fm.birthDate && `DOB: ${formatBirthAnniversary(fm.birthDate)}`].filter(Boolean).join(" | ")}
                       </p>
                     </div>
                   </div>

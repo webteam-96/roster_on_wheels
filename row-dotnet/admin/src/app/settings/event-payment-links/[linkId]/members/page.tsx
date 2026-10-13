@@ -31,6 +31,7 @@ import { useRouter } from "next/navigation";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import SearchBox from "@/components/SearchBox";
 
+import { currencySymbol } from "@/lib/appFormat";
 interface EventMember {
   id: number;
   memberName?: string;
@@ -240,7 +241,7 @@ export default function EventMembersPage() {
                 <TableCell>{m.mobile || "-"}</TableCell>
                 <TableCell className="max-w-[150px] truncate">{m.email || "-"}</TableCell>
                 <TableCell>{m.registrationType || "-"}</TableCell>
-                <TableCell>{m.amount ? `₹${m.amount.toFixed(2)}` : "-"}</TableCell>
+                <TableCell>{m.amount ? `${currencySymbol()}${m.amount.toFixed(2)}` : "-"}</TableCell>
                 {isPaidTab && <TableCell className="text-sm">{m.paymentDate ? new Date(m.paymentDate).toLocaleDateString() : "-"}</TableCell>}
                 {isPaidTab && <TableCell className="text-sm">
                   {m.isOnline ? (

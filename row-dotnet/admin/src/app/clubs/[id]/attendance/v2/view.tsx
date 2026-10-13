@@ -35,6 +35,7 @@ import ClubAdminShell from "@/components/v2/ClubAdminShell";
 import { fileTimestamp } from "@/lib/dateUtils";
 import { useSyncClubIdFromUrl } from "@/hooks/useSyncClubIdFromUrl";
 
+import { appLocale } from "@/lib/appFormat";
 function attendancePercentChip(pct: number): string {
   if (pct >= 75) return "bg-emerald-100 text-emerald-700";
   if (pct >= 50) return "bg-amber-100 text-amber-700";
@@ -63,7 +64,7 @@ function totalAttendees(item: AttendanceListItem): number {
 function formatDateTime(dateStr: string | null): string {
   if (!dateStr) return "—";
   try {
-    return new Date(dateStr).toLocaleString("en-IN", {
+    return new Date(dateStr).toLocaleString(appLocale(), {
       day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit",
     });
   } catch {

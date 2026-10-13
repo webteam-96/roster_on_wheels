@@ -35,6 +35,7 @@ import KpiCard from "@/components/dashboard/KpiCard";
 import { fmtInt, fmtDate } from "@/components/dashboard/formatters";
 import ClubTrainingSection from "@/components/training/ClubTrainingSection";
 
+import { appLocale } from "@/lib/appFormat";
 // ───────────────────────────────────────────────────────────────────────────
 // Status chip config
 
@@ -204,7 +205,7 @@ function externalHref(url: string | null) {
 function fmtShortDate(s?: string | null) {
   if (!s) return "—";
   try {
-    return new Date(s).toLocaleDateString("en-IN", { day: "2-digit", month: "short" });
+    return new Date(s).toLocaleDateString(appLocale(), { day: "2-digit", month: "short" });
   } catch {
     return "—";
   }
@@ -344,7 +345,7 @@ export default function ClubAdminMyClubWebsitePage() {
           <p className="text-sm font-semibold text-slate-700 mb-1">Your club website is not yet set up</p>
           <p className="text-xs text-slate-500 max-w-md mx-auto mb-4">
             Get your club its own website at rc&lt;name&gt;.example.org — manage banners, menus,
-            events and more. ₹10,999 + GST for a full year.
+            events and more, renewed yearly.
           </p>
           <Link
             href="/club-admin-dashboard/website-purchase"

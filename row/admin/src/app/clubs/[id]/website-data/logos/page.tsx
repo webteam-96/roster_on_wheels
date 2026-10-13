@@ -42,6 +42,32 @@ const ROTARY_ASPECT = 300 / 80;     // 3.75 : 1 — horizontal banner
 const CLUB_MAX_OUTPUT   = 900;      // 900×900
 const ROTARY_MAX_WIDTH  = 900;      // 900×240 (height derives from ROTARY_ASPECT)
 
+// A short club name puts "Club of …" on a second line, so the Rotary logo is taller than 3.75:1 and
+// the locked crop box (zoom can't go below 100%) cut its bottom off (user 2026-10-08). Before the
+// crop window opens, the image is padded with transparent space to 3.75:1 at its own resolution -
+// at 100% the WHOLE logo shows, and the admin can still crop/zoom as before. Wider images are padded
+// top/bottom the same way.
+function padToAspect(file: File, aspect: number): Promise<File> {
+  return new Promise((resolve) => {
+    const url = URL.createObjectURL(file);
+    const img = new Image();
+    img.onload = () => {
+      const iw = img.naturalWidth, ih = img.naturalHeight;
+      const w = Math.max(iw, Math.round(ih * aspect));
+      const h = Math.max(ih, Math.round(w / aspect));
+      const canvas = document.createElement("canvas");
+      canvas.width = w; canvas.height = h;
+      const ctx = canvas.getContext("2d");
+      URL.revokeObjectURL(url);
+      if (!ctx || (w === iw && h === ih)) { resolve(file); return; }   // already the right shape
+      ctx.drawImage(img, Math.round((w - iw) / 2), Math.round((h - ih) / 2));
+      canvas.toBlob((b) => resolve(b ? new File([b], file.name.replace(/\.[^.]+$/, "") + ".png", { type: "image/png" }) : file), "image/png");
+    };
+    img.onerror = () => { URL.revokeObjectURL(url); resolve(file); };   // let the normal checks report it
+    img.src = url;
+  });
+}
+
 export default function ClubWebsiteLogosPage() {
   const params = useParams();
   const searchParams = useSearchParams();
@@ -200,7 +226,11 @@ export default function ClubWebsiteLogosPage() {
                   type="file"
                   accept="image/*"
                   className="hidden"
-                  onChange={(e) => { const f = e.target.files?.[0]; if (f) rotaryCrop.startCrop(f); e.target.value = ""; }}
+                  onChange={async (e) => {
+                    const f = e.target.files?.[0];
+                    e.target.value = "";
+                    if (f) rotaryCrop.startCrop(f.type.startsWith("image/") ? await padToAspect(f, ROTARY_ASPECT) : f);
+                  }}
                 />
                 <Button variant="outline" onClick={() => rotaryFileInputRef.current?.click()} disabled={saving !== null}>
                   <Upload className="h-4 w-4 mr-2" />{rotaryLogoUrl ? "Change" : "Upload"} Rotary Logo

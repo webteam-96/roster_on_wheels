@@ -30,6 +30,7 @@ import {
   testDistrictPleskConnection, listDistrictPleskSubdomains, forceDeleteDistrictPleskSubdomain,
 } from "@/services/api";
 
+import { appLocale } from "@/lib/appFormat";
 type Row = {
   id: number;
   districtId: number;
@@ -66,11 +67,11 @@ function validateLabel(value: string, required: boolean): string | null {
 function sanitizeLabelInput(value: string): string { return (value || "").toLowerCase(); }
 function sanitizeDomainInput(value: string): string { return (value || "").toLowerCase(); }
 
-const PARENT_DOMAIN = "rizones45678.org";
+const PARENT_DOMAIN = "portal.example.org";
 
 function splitSubdomain(full: string): string {
   // If stored value doesn't end with the current parent (legacy/imported rows like
-  // "rcd.rotaryindia.org"), fall back to just the first label so the row stays editable.
+  // "club.example.org"), fall back to just the first label so the row stays editable.
   const suffix = `.${PARENT_DOMAIN}`;
   const v = full.toLowerCase();
   if (v.endsWith(suffix)) return v.slice(0, -suffix.length);
@@ -342,7 +343,7 @@ export default function DistrictWebsitesPage() {
         { key: "status", label: "Status", width: 15 },
         { key: "notes", label: "Notes", width: 40 },
       ],
-      { title: "District Websites", subtitle: `Exported ${new Date().toLocaleDateString("en-IN")}` });
+      { title: "District Websites", subtitle: `Exported ${new Date().toLocaleDateString(appLocale())}` });
     setSuccessMessage("Exported.");
   };
 
@@ -605,7 +606,7 @@ export default function DistrictWebsitesPage() {
                 <TableBody>
                   {logs.map((l: any) => (
                     <TableRow key={l.id}>
-                      <TableCell className="text-xs whitespace-nowrap">{l.performedDate ? new Date(l.performedDate).toLocaleString("en-IN") : "—"}</TableCell>
+                      <TableCell className="text-xs whitespace-nowrap">{l.performedDate ? new Date(l.performedDate).toLocaleString(appLocale()) : "—"}</TableCell>
                       <TableCell className="text-xs">{l.performedByName || "—"}</TableCell>
                       <TableCell className="text-xs font-mono">{l.action}</TableCell>
                       <TableCell className="text-xs">{l.details || "—"}</TableCell>

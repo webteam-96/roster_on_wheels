@@ -41,6 +41,7 @@ import {
 } from "@/services/api";
 import { exportToCSV } from "@/utils/csvExport";
 
+import { appLocale, currencySymbol } from "@/lib/appFormat";
 type Row = {
   id: number; clubId: number; clubName: string; clubRotaryId: string;
   districtNumber: string; subdomain: string; clientDomain: string | null;
@@ -688,7 +689,7 @@ export default function ClubWebsitesPage() {
         { key: "advertisementCount", label: "Advertisements", width: 14 },
         { key: "projectCount", label: "Projects", width: 10 },
       ],
-      { title: "Club Websites", subtitle: `Exported ${new Date().toLocaleDateString("en-IN")}` });
+      { title: "Club Websites", subtitle: `Exported ${new Date().toLocaleDateString(appLocale())}` });
     // No success alert: the file lands in Downloads, which is confirmation enough (user 2026-09-29).
   };
 
@@ -717,7 +718,7 @@ export default function ClubWebsitesPage() {
         { key: "advertisementCount", label: "Advertisements", width: 14 },
         { key: "projectCount", label: "Projects", width: 10 },
       ],
-      { title: "Club Websites — Third party Domains", subtitle: `Exported ${new Date().toLocaleDateString("en-IN")}` });
+      { title: "Club Websites — Third party Domains", subtitle: `Exported ${new Date().toLocaleDateString(appLocale())}` });
     // No success alert here either - see the note in exportExcel.
   };
 
@@ -969,8 +970,8 @@ export default function ClubWebsitesPage() {
                         )}
                       </TableCell>
                       <TableCell className="text-xs">{r.themeName || "—"}</TableCell>
-                      <TableCell className="text-xs">{r.startDate ? new Date(r.startDate).toLocaleDateString("en-IN") : "—"}</TableCell>
-                      <TableCell className="text-xs">{r.endDate ? new Date(r.endDate).toLocaleDateString("en-IN") : "—"}</TableCell>
+                      <TableCell className="text-xs">{r.startDate ? new Date(r.startDate).toLocaleDateString(appLocale()) : "—"}</TableCell>
+                      <TableCell className="text-xs">{r.endDate ? new Date(r.endDate).toLocaleDateString(appLocale()) : "—"}</TableCell>
                       <TableCell>
                         <div className="flex flex-col items-start gap-1">
                           {statusBadge(r.status, r.daysLeft)}
@@ -1303,10 +1304,10 @@ export default function ClubWebsitesPage() {
                       {clubHistory.map((h: any) => (
                         <TableRow key={h.id}>
                           <TableCell className="font-mono text-xs">{h.subdomain}</TableCell>
-                          <TableCell className="text-xs">{h.startDate ? new Date(h.startDate).toLocaleDateString("en-IN") : "—"}</TableCell>
-                          <TableCell className="text-xs">{h.endDate ? new Date(h.endDate).toLocaleDateString("en-IN") : "—"}</TableCell>
+                          <TableCell className="text-xs">{h.startDate ? new Date(h.startDate).toLocaleDateString(appLocale()) : "—"}</TableCell>
+                          <TableCell className="text-xs">{h.endDate ? new Date(h.endDate).toLocaleDateString(appLocale()) : "—"}</TableCell>
                           <TableCell><Badge variant="outline">{h.status}</Badge></TableCell>
-                          <TableCell className="text-xs">{h.amountPaid ? `₹${Number(h.amountPaid).toLocaleString("en-IN")}` : "—"}</TableCell>
+                          <TableCell className="text-xs">{h.amountPaid ? `${currencySymbol()}${Number(h.amountPaid).toLocaleString(appLocale())}` : "—"}</TableCell>
                         </TableRow>
                       ))}
                     </TableBody>
@@ -1339,7 +1340,7 @@ export default function ClubWebsitesPage() {
                 <TableBody>
                   {logs.map((l: any) => (
                     <TableRow key={l.id}>
-                      <TableCell className="text-xs">{new Date(l.performedDate).toLocaleString("en-IN")}</TableCell>
+                      <TableCell className="text-xs">{new Date(l.performedDate).toLocaleString(appLocale())}</TableCell>
                       <TableCell><Badge variant="outline">{l.action}</Badge></TableCell>
                       <TableCell className="text-xs">{l.performedByName || (l.performedBy === 0 ? "System" : "—")}</TableCell>
                       <TableCell className="text-xs">{l.details || "—"}</TableCell>

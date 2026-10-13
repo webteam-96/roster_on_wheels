@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import RotaryLoader from "@/components/RotaryLoader";
 
+import { appLocale, currencySymbol } from "@/lib/appFormat";
 declare global { interface Window { Razorpay?: any } }
 
 function PayInner() {
@@ -121,14 +122,14 @@ function PayInner() {
           <>
             <div className="rounded-lg border p-4 space-y-2">
               <div className="flex justify-between text-sm"><span>Members</span><span>{data.memberCount}</span></div>
-              <div className="flex justify-between text-sm"><span>Rate / member</span><span>₹{data.perMemberRate}</span></div>
+              <div className="flex justify-between text-sm"><span>Rate / member</span><span>{currencySymbol()}{data.perMemberRate}</span></div>
               {data.onlineAmountOwed !== data.amountOwed ? (
                 <>
-                  <div className="flex justify-between font-bold text-lg border-t pt-2"><span>Offline amount</span><span>₹{Number(data.amountOwed).toLocaleString("en-IN")}</span></div>
-                  <div className="flex justify-between text-sm font-semibold"><span>Online amount{data.onlineSurchargePercent > 0 ? <span className="font-normal text-muted-foreground"> (+{data.onlineSurchargePercent}%)</span> : null}</span><span>₹{Number(data.onlineAmountOwed).toLocaleString("en-IN")}</span></div>
+                  <div className="flex justify-between font-bold text-lg border-t pt-2"><span>Offline amount</span><span>{currencySymbol()}{Number(data.amountOwed).toLocaleString(appLocale())}</span></div>
+                  <div className="flex justify-between text-sm font-semibold"><span>Online amount{data.onlineSurchargePercent > 0 ? <span className="font-normal text-muted-foreground"> (+{data.onlineSurchargePercent}%)</span> : null}</span><span>{currencySymbol()}{Number(data.onlineAmountOwed).toLocaleString(appLocale())}</span></div>
                 </>
               ) : (
-                <div className="flex justify-between font-bold text-lg border-t pt-2"><span>Amount due</span><span>₹{Number(data.amountOwed).toLocaleString("en-IN")}</span></div>
+                <div className="flex justify-between font-bold text-lg border-t pt-2"><span>Amount due</span><span>{currencySymbol()}{Number(data.amountOwed).toLocaleString(appLocale())}</span></div>
               )}
             </div>
             {data.isPending && (
@@ -149,7 +150,7 @@ function PayInner() {
 
             {(data.modeOfPayment === 1 || data.modeOfPayment === 3) && (
               <Button className="w-full" onClick={payOnline} disabled={paying}>
-                {paying && <RotaryLoader size="sm" />}Pay ₹{Number(data.onlineAmountOwed).toLocaleString("en-IN")} online
+                {paying && <RotaryLoader size="sm" />}Pay {currencySymbol()}{Number(data.onlineAmountOwed).toLocaleString(appLocale())} online
               </Button>
             )}
             {(data.modeOfPayment === 2 || data.modeOfPayment === 3) && !offlineLocked && (
@@ -205,7 +206,7 @@ function OfflineForm({ duesId, clubId, token, accounts, onDone, onError }: { due
       )}
       {accountId && selectedAccount && (
         <p className="text-sm text-muted-foreground">
-          Amount: <b>₹{Number(selectedAccount.amount).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</b>.
+          Amount: <b>{currencySymbol()}{Number(selectedAccount.amount).toLocaleString(appLocale(), { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</b>.
         </p>
       )}
       <div className="space-y-1">

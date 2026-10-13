@@ -19,6 +19,7 @@ import RotaryLoader from "@/components/RotaryLoader";
 import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";
 
+import { appLocale } from "@/lib/appFormat";
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 const STATUS_OPTIONS = [
   { value: "all", label: "All" },
@@ -77,7 +78,7 @@ export default function Page() {
   };
 
   const totalPages = Math.ceil(totalCount / pageSize);
-  const fmt = (s: string | null) => s ? new Date(s).toLocaleString("en-IN", { day: "2-digit", month: "short", year: "numeric" }) : "-";
+  const fmt = (s: string | null) => s ? new Date(s).toLocaleString(appLocale(), { day: "2-digit", month: "short", year: "numeric" }) : "-";
 
   return (
     <ProtectedRoute>

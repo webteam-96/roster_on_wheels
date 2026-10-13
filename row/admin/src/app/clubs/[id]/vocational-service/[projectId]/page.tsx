@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { getCurrencySymbol } from "@/lib/currency";
 
+import { appLocale } from "@/lib/appFormat";
 function Section({ icon: Icon, title, number, children }: {
   icon: React.ElementType; title: string; number: number; children: React.ReactNode;
 }) {
@@ -41,11 +42,11 @@ function DetailRow({ label, value }: { label: string; value: React.ReactNode }) 
 }
 
 function formatDate(dateStr: string): string {
-  return new Date(dateStr).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" });
+  return new Date(dateStr).toLocaleDateString(appLocale(), { day: "2-digit", month: "short", year: "numeric" });
 }
 
 function formatCost(cost: number, currency?: string | null): string {
-  return `${getCurrencySymbol(currency)}${cost.toLocaleString("en-IN")}`;
+  return `${getCurrencySymbol(currency)}${cost.toLocaleString(appLocale())}`;
 }
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
@@ -156,10 +157,10 @@ export default function VocationalServiceViewPage() {
             {project.hostClubsDistricts && <DetailRow label="Host Clubs/Districts" value={project.hostClubsDistricts} />}
             {project.globalPartnerClubsDistricts && <DetailRow label="Global Partner Clubs/Districts" value={project.globalPartnerClubsDistricts} />}
             {project.csrCompanyName && <DetailRow label="CSR Company" value={project.csrCompanyName} />}
-            {project.directBeneficiaries != null && <DetailRow label="Direct Beneficiaries" value={project.directBeneficiaries.toLocaleString("en-IN")} />}
-            {project.manHours != null && <DetailRow label="Man Hours" value={project.manHours.toLocaleString("en-IN")} />}
-            {project.rotariansInvolved != null && <DetailRow label="Rotarians Involved" value={project.rotariansInvolved.toLocaleString("en-IN")} />}
-            {project.rotaractorsInvolved != null && <DetailRow label="Rotaractors Involved" value={project.rotaractorsInvolved.toLocaleString("en-IN")} />}
+            {project.directBeneficiaries != null && <DetailRow label="Direct Beneficiaries" value={project.directBeneficiaries.toLocaleString(appLocale())} />}
+            {project.manHours != null && <DetailRow label="Man Hours" value={project.manHours.toLocaleString(appLocale())} />}
+            {project.rotariansInvolved != null && <DetailRow label="Rotarians Involved" value={project.rotariansInvolved.toLocaleString(appLocale())} />}
+            {project.rotaractorsInvolved != null && <DetailRow label="Rotaractors Involved" value={project.rotaractorsInvolved.toLocaleString(appLocale())} />}
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {project.projectCost != null && <DetailRow label="Project Cost" value={formatCost(project.projectCost, project.currency)} />}
@@ -172,10 +173,10 @@ export default function VocationalServiceViewPage() {
             {project.hostClubsDistricts && <DetailRow label="Host Clubs/Districts" value={project.hostClubsDistricts} />}
             {project.globalPartnerClubsDistricts && <DetailRow label="Global Partner Clubs/Districts" value={project.globalPartnerClubsDistricts} />}
             {project.csrCompanyName && <DetailRow label="CSR Company" value={project.csrCompanyName} />}
-            {project.directBeneficiaries != null && <DetailRow label="Direct Beneficiaries" value={project.directBeneficiaries.toLocaleString("en-IN")} />}
-            {project.manHours != null && <DetailRow label="Man Hours" value={project.manHours.toLocaleString("en-IN")} />}
-            {project.rotariansInvolved != null && <DetailRow label="Rotarians Involved" value={project.rotariansInvolved.toLocaleString("en-IN")} />}
-            {project.rccInvolved != null && <DetailRow label="RCC Involved" value={project.rccInvolved.toLocaleString("en-IN")} />}
+            {project.directBeneficiaries != null && <DetailRow label="Direct Beneficiaries" value={project.directBeneficiaries.toLocaleString(appLocale())} />}
+            {project.manHours != null && <DetailRow label="Man Hours" value={project.manHours.toLocaleString(appLocale())} />}
+            {project.rotariansInvolved != null && <DetailRow label="Rotarians Involved" value={project.rotariansInvolved.toLocaleString(appLocale())} />}
+            {project.rccInvolved != null && <DetailRow label="RCC Involved" value={project.rccInvolved.toLocaleString(appLocale())} />}
           </div>
         </Section>
 

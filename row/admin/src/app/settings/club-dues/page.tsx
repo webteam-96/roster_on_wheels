@@ -13,6 +13,7 @@ import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
 import { Plus, Search, Power, PowerOff, FileSpreadsheet, Trash2 } from "lucide-react";
 
+import { appLocale, currencySymbol } from "@/lib/appFormat";
 interface ClubDuesRow {
   id: number;
   districtNumber?: string;
@@ -112,7 +113,7 @@ export default function ClubDuesListPage() {
                     <td className={`px-4 py-3 font-medium ${faint}`}>District {r.districtNumber}</td>
                     <td className={`px-4 py-3 ${faint}`}>{r.rotaryYear}</td>
                     <td className={`px-4 py-3 text-muted-foreground ${faint}`}>{r.purpose || "District Dues"}</td>
-                    <td className={`px-4 py-3 text-right font-medium ${faint}`}>₹{Number(r.collectedAmount).toLocaleString("en-IN")}</td>
+                    <td className={`px-4 py-3 text-right font-medium ${faint}`}>{currencySymbol()}{Number(r.collectedAmount).toLocaleString(appLocale())}</td>
                     <td className="px-4 py-3">
                       <span className={`text-xs rounded-full px-2 py-1 ${r.isActive ? "bg-green-100 text-green-700" : "bg-muted text-muted-foreground"}`}>
                         {r.isActive ? "Active" : "Inactive"}

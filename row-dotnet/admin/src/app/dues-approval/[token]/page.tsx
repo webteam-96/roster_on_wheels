@@ -11,20 +11,21 @@ import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { CheckCircle2, XCircle, Loader2, AlertTriangle, ShieldCheck, Mail, Building2, Calendar, IndianRupee, FileText, Receipt } from "lucide-react";
 
+import { appLocale, currencySymbol } from "@/lib/appFormat";
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
 function formatDate(d: string | null | undefined): string {
   if (!d) return "—";
   const dt = new Date(d);
   if (isNaN(dt.getTime())) return "—";
-  return dt.toLocaleString("en-IN", { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" });
+  return dt.toLocaleString(appLocale(), { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" });
 }
 
 function formatAmount(n: number | string | null | undefined): string {
   if (n === null || n === undefined) return "—";
   const v = Number(n);
   if (isNaN(v)) return String(n);
-  return `₹${v.toLocaleString("en-IN", { maximumFractionDigits: 2 })}`;
+  return `${currencySymbol()}${v.toLocaleString(appLocale(), { maximumFractionDigits: 2 })}`;
 }
 
 export default function PublicDuesApprovalPage() {

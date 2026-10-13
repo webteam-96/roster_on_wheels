@@ -39,7 +39,7 @@ import ClassificationAssist from "@/components/projects/ClassificationAssist";
 import {
   AreaOfFocus, Category, Funding, OngoingProject, ProjectPhotoInput,
 } from "@/types/project";
-import { CURRENCY_OPTIONS, getCurrencySymbol, moneyIconName } from "@/lib/currency";
+import { currencyOptions, getCurrencySymbol, moneyIconName } from "@/lib/currency";
 import V2FormShell, { useV2ReturnTo } from "@/components/v2/V2FormShell";
 import RotaryLoader from "@/components/RotaryLoader";
 import SuccessAlert from "@/components/SuccessAlert";
@@ -51,6 +51,7 @@ import { useSyncClubIdFromUrl } from "@/hooks/useSyncClubIdFromUrl";
 import ImageCropDialog from "@/components/ImageCropDialog";
 import { useImageCropQueue } from "@/hooks/useImageCropQueue";
 
+import { defaultCurrency } from "@/lib/appFormat";
 // Project photos are shown 16:9 on the public site (components/pages/projects/shared.tsx),
 // so the crop is locked to that shape. 1600×900 keeps the widest card retina-sharp.
 const PROJECT_PHOTO_ASPECT = 16 / 9;
@@ -136,7 +137,7 @@ function RadioPill({ checked, onChange, label, disabled }: { checked: boolean; o
 // The rupee glyph is India's - Sri Lanka and Nepal get a neutral coin (user 2026-10-05).
 function moneyIcon(code?: string | null) {
   const which = moneyIconName(code);
-  return which === "rupee" ? IndianRupee : which === "dollar" ? DollarSign : Coins;
+  return which === "dollar" ? DollarSign : Coins;
 }
 
 export default function PublicImageInitiativeV2EditPage() {
@@ -205,7 +206,7 @@ export default function PublicImageInitiativeV2EditPage() {
 
   const [projectDate, setProjectDate] = useState("");
   const [projectCost, setProjectCost] = useState("");
-  const [currency, setCurrency] = useState("INR");
+  const [currency, setCurrency] = useState(defaultCurrency());
   const [selectedFundingId, setSelectedFundingId] = useState<string>("");
   const [globalGrantNumber, setGlobalGrantNumber] = useState("");
   const [amountSanctioned, setAmountSanctioned] = useState("");
@@ -328,7 +329,7 @@ export default function PublicImageInitiativeV2EditPage() {
 
         setProjectDate(project.projectDate ? project.projectDate.split("T")[0] : "");
         setProjectCost(project.projectCost != null ? String(project.projectCost) : "");
-        setCurrency(project.currency || "INR");
+        setCurrency(project.currency || defaultCurrency());
         if (project.fundingId) setSelectedFundingId(String(project.fundingId));
         setGlobalGrantNumber(project.globalGrantNumber || "");
         setAmountSanctioned(project.amountSanctioned != null ? String(project.amountSanctioned) : "");
@@ -814,7 +815,7 @@ export default function PublicImageInitiativeV2EditPage() {
                 onChange={(e) => setCurrency(e.target.value)}
                 className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
               >
-                {CURRENCY_OPTIONS.map((c) => (
+                {currencyOptions().map((c) => (
                   <option key={c.code} value={c.code}>{c.label}</option>
                 ))}
               </select>

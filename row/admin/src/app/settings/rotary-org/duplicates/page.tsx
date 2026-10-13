@@ -14,6 +14,7 @@ import { getDuplicateList, getAllDuplicates, saveDuplicateRemark, getMergeHistor
 import { exportToCSV } from "@/utils/csvExport";
 import MergeDialog from "./MergeDialog";
 
+import { appLocale } from "@/lib/appFormat";
 const PAGE_SIZE = 20;
 type FilterType = "all" | "mobile" | "email" | "both";
 
@@ -230,7 +231,7 @@ export default function DuplicatesPage() {
               </Button>
             )}
             <span className="text-sm text-muted-foreground">
-              {loading ? "Loading…" : merged ? `${history.length} merge${history.length === 1 ? "" : "s"}` : `${total.toLocaleString("en-IN")} pair${total === 1 ? "" : "s"}`}
+              {loading ? "Loading…" : merged ? `${history.length} merge${history.length === 1 ? "" : "s"}` : `${total.toLocaleString(appLocale())} pair${total === 1 ? "" : "s"}`}
             </span>
           </div>
         </div>
@@ -258,7 +259,7 @@ export default function DuplicatesPage() {
                     ) : (
                       history.map((h) => (
                         <tr key={h.id} className="border-b hover:bg-slate-50/60">
-                          <td className="py-3 px-4 align-top text-slate-600">{h.mergedOn ? new Date(h.mergedOn).toLocaleString("en-IN") : "—"}</td>
+                          <td className="py-3 px-4 align-top text-slate-600">{h.mergedOn ? new Date(h.mergedOn).toLocaleString(appLocale()) : "—"}</td>
                           <td className="py-3 px-4 align-top"><MemberCell rid={h.keptRid} name={h.keptName} club={null} /></td>
                           <td className="py-3 px-4 align-top">
                             <MemberCell rid={h.deletedRid} name={h.deletedName} club={h.deletedMobile ? `📱 ${h.deletedMobile}` : null} />

@@ -31,7 +31,7 @@ export default function GoalOversightPage() {
   // dashboard to that role so a multi-role person sees each role's view separately.
   const actingAs = searchParams.get("as"); // "ri-director" | "zone-coordinator" | "district-assistant" | null
 
-  // Observer "view as": the member whose oversight we're observing.
+  // Observer "view as" (flagged SuperAdmins only): the member whose oversight we're observing.
   // Set the module-level override DURING RENDER so child fetch-effects (which run before the parent
   // effect) already carry ?asMemberId. Backend ignores it unless the caller is the gated observer.
   const viewAsMemberId = searchParams.get("asMemberId") ? Number(searchParams.get("asMemberId")) : null;

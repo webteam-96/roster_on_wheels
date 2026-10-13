@@ -1,6 +1,7 @@
 "use client";
 
 import { MemberListItem } from "@/types/member";
+import { useFeature } from "@/contexts/BrandContext";
 import { getPhotoUrl } from "@/services/api";
 import {
   Table,
@@ -42,6 +43,7 @@ export default function MemberTable({
   onAssignAdmin,
   onRemoveAdmin,
 }: MemberTableProps) {
+  const showBloodGroup = useFeature("member.bloodGroup");
   const getRoleBadges = (memberId: number) => {
     const roles = memberRoles?.[memberId] || [];
     return (
@@ -75,7 +77,7 @@ export default function MemberTable({
             <TableHead className="hidden md:table-cell text-primary-foreground text-base font-semibold">City</TableHead>
             <TableHead className="hidden sm:table-cell text-primary-foreground text-base font-semibold">Phone</TableHead>
             <TableHead className="hidden lg:table-cell text-primary-foreground text-base font-semibold">Email</TableHead>
-            <TableHead className="hidden sm:table-cell text-primary-foreground text-base font-semibold">Blood Group</TableHead>
+            {showBloodGroup && <TableHead className="hidden sm:table-cell text-primary-foreground text-base font-semibold">Blood Group</TableHead>}
             <TableHead className="w-12 text-primary-foreground"></TableHead>
           </TableRow>
         </TableHeader>
@@ -84,7 +86,6 @@ export default function MemberTable({
             const photoUrl = getPhotoUrl(member.profilePhotoPath);
             const roles = memberRoles?.[member.id] || [];
             const isAdmin = roles.includes("Admin");
-            const isMemberSuperAdmin = roles.includes("SuperAdmin");
 
             return (
               <TableRow key={member.id} className="cursor-pointer hover:bg-primary/5 transition-colors" onClick={() => window.location.href = `/members/edit/${member.id}`}>
@@ -140,13 +141,15 @@ export default function MemberTable({
                 <TableCell className="hidden lg:table-cell">
                   {member.emailId || "-"}
                 </TableCell>
-                <TableCell className="hidden sm:table-cell">
-                  {member.bloodGroup ? (
-                    <Badge variant="outline">{member.bloodGroup}</Badge>
-                  ) : (
-                    "-"
-                  )}
-                </TableCell>
+                {showBloodGroup && (
+                  <TableCell className="hidden sm:table-cell">
+                    {member.bloodGroup ? (
+                      <Badge variant="outline">{member.bloodGroup}</Badge>
+                    ) : (
+                      "-"
+                    )}
+                  </TableCell>
+                )}
                 <TableCell>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
@@ -170,7 +173,7 @@ export default function MemberTable({
                           Delete
                         </DropdownMenuItem>
                       )}
-                      {(isSuperAdmin || isLoggedInAdmin) && !isMemberSuperAdmin && (
+                      {(isSuperAdmin || isLoggedInAdmin) && (   /* SuperAdmin members can be made Admin too (2026-10-09) */
                         <>
                           <DropdownMenuSeparator />
                           {isAdmin ? (

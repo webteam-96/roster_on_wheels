@@ -44,8 +44,9 @@ import {
   type WebsiteDefaultPricing,
 } from "@/services/api";
 
-const inr = (n: number) => `₹${Number(n || 0).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-const fmtDate = (s?: string | null) => (s ? new Date(s).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" }) : "—");
+import { appLocale, currencySymbol, todayLocal } from "@/lib/appFormat";
+const inr = (n: number) => `${currencySymbol()}${Number(n || 0).toLocaleString(appLocale(), { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+const fmtDate = (s?: string | null) => (s ? new Date(s).toLocaleDateString(appLocale(), { day: "2-digit", month: "short", year: "numeric" }) : "—");
 
 type EditState = {
   open: boolean;
@@ -191,7 +192,7 @@ export default function PricingRemindersTab() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `club-credit-balances-${new Date().toISOString().slice(0, 10)}.csv`;
+    a.download = `club-credit-balances-${todayLocal()}.csv`;
     a.click();
     URL.revokeObjectURL(url);
   };
@@ -400,7 +401,7 @@ export default function PricingRemindersTab() {
       {commonLinks && (
         <div className="rounded-xl border border-slate-200 bg-white p-4">
           <div className="text-sm font-medium text-slate-700">Shareable links — any club</div>
-          <p className="text-[11px] text-slate-400 mt-0.5 mb-3">Each opens a search: the club leader picks their club, sees its status, and pays. Copy &amp; share.</p>
+          <p className="text-[11px] text-slate-400 mt-0.5 mb-3">Each opens a search: the club leader picks their club, sees its status, and pays. Copy &amp; share. These links have no expiry.</p>
           <div className="flex flex-wrap gap-2">
             {([["Club Website", "website"], ["WhatsApp Credits", "whatsapp"], ["Email Credits", "email"]] as const).map(([label, kind]) => {
               const key = `common:${kind}`;
@@ -521,7 +522,10 @@ export default function PricingRemindersTab() {
               <th className="text-right px-3 py-2.5 font-medium">Total</th>
               <th className="text-left px-3 py-2.5 font-medium">Gateway</th>
               <th className="text-left px-3 py-2.5 font-medium">President / Secretary</th>
-              <th className="text-right px-3 py-2.5 font-medium">Copy links</th>
+              <th className="text-right px-3 py-2.5 font-medium">
+                Copy links
+                <div className="text-[10px] font-normal text-slate-400">Valid for 30 days</div>
+              </th>
             </tr>
           </thead>
           <tbody>
@@ -757,8 +761,8 @@ export default function PricingRemindersTab() {
                       <div className="font-medium text-slate-800">{r.clubName}</div>
                       <div className="text-xs text-slate-400">D{r.districtNumber}</div>
                     </td>
-                    <td className="px-3 py-2 text-right whitespace-nowrap">{r.whatsappBalance.toLocaleString("en-IN")}</td>
-                    <td className="px-3 py-2 text-right whitespace-nowrap">{r.emailBalance.toLocaleString("en-IN")}</td>
+                    <td className="px-3 py-2 text-right whitespace-nowrap">{r.whatsappBalance.toLocaleString(appLocale())}</td>
+                    <td className="px-3 py-2 text-right whitespace-nowrap">{r.emailBalance.toLocaleString(appLocale())}</td>
                     <td className="px-3 py-2 text-xs text-slate-600">
                       <div className="font-medium text-slate-700">{r.presidentName || "—"}</div>
                       <div>{r.presidentMobile || ""}</div>

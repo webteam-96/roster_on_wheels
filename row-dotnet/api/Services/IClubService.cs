@@ -4,7 +4,7 @@ namespace RotaryApi.Services;
 
 public interface IClubService
 {
-    Task<PagedResult<ClubListDto>> GetAllAsync(int page, int pageSize, string? search, int? districtId, string? city, string? meetingDay, int? isActive, int? zoneId = null);
+    Task<PagedResult<ClubListDto>> GetAllAsync(int page, int pageSize, string? search, int? districtId, string? city, string? meetingDay, int? isActive, int? zoneId = null, bool excludeRotaract = false);
     Task<ClubDetailDto?> GetByIdAsync(int id);
     Task<int> CreateAsync(CreateClubDto dto, int createdBy);
     Task UpdateAsync(int id, UpdateClubDto dto, int modifiedBy);

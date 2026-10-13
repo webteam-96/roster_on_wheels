@@ -51,13 +51,14 @@ import { useExtensionStatus } from "@/hooks/useExtensionStatus";
 import { isFlowBotEnabled, AVENUE_LABELS, buildOrgExportFromDetail, triggerAddToOrg } from "@/lib/addToOrg";
 import AddToOrgConfirmDialog from "@/components/AddToOrgConfirmDialog";
 
+import { currencySymbol } from "@/lib/appFormat";
 const SYNC_API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
 const MODULE_KEY = "public_image_initiative";
 
 const AGREE_MESSAGE = `The data I will enter is for a Public Image Initiative conducted by my club. E.g., Hoardings, Marathons, Rotary Stories on News Papers / Radio / TV ads, etc.
 
-Please Note: The content posted here will be displayed on the Rotary Zones 4, 5, 6, 7 & 8 Website, District Website, Club Monthly Report & Rotary Zones 4, 5, 6, 7 & 8 Integrated Club Website`;
+Please Note: The content posted here will be displayed on the ROW Website, District Website, Club Monthly Report & ROW Integrated Club Website`;
 
 // Type chip colors mirror the Club Admin dashboard NonClubAvenueSection palette.
 function projectTypeChipStyle(t: string): string {
@@ -78,13 +79,12 @@ function shortCurrency(value: number, currency?: string | null): string {
   return `${symbol}${value}`;
 }
 
-// Short rupee (₹4.9L style)
+// Short amount in the brand's currency ($4.9M style; the original used lakh / crore)
 function shortInr(value: number): string {
-  if (!value || value < 1000) return `₹${value || 0}`;
-  if (value >= 10000000) return `₹${(value / 10000000).toFixed(1)}Cr`;
-  if (value >= 100000)   return `₹${(value / 100000).toFixed(1)}L`;
-  if (value >= 1000)     return `₹${(value / 1000).toFixed(1)}K`;
-  return `₹${value}`;
+  if (!value || value < 1000) return `${currencySymbol()}${value || 0}`;
+  if (value >= 1e9) return `${currencySymbol()}${(value / 1e9).toFixed(1)}B`;
+  if (value >= 1e6) return `${currencySymbol()}${(value / 1e6).toFixed(1)}M`;
+  return `${currencySymbol()}${(value / 1000).toFixed(1)}K`;
 }
 
 function exportToCsv(rows: ProjectListItem[], yearLabel: string, clubName: string) {

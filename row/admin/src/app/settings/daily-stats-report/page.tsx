@@ -12,6 +12,7 @@ import {
   type DailyStatsBreakdown,
 } from "@/services/api";
 
+import { appLocale, appTimeZone, todayLocal } from "@/lib/appFormat";
 // SuperAdmin test/trigger page for the daily statistics report. Preview the counts, download the
 // Excel, or send the email now. On a dev machine the "Send" is suppressed server-side (logs only);
 // Preview + Download work everywhere for local testing before going live.
@@ -44,7 +45,7 @@ export default function DailyStatsReportPage() {
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `Rizones45678_Daily_Stats_${new Date().toISOString().slice(0, 10)}.xlsx`;
+      a.download = `ROW_Daily_Stats_${todayLocal()}.xlsx`;
       document.body.appendChild(a); a.click(); a.remove();
       URL.revokeObjectURL(url);
     } catch (e: any) {
@@ -76,7 +77,7 @@ export default function DailyStatsReportPage() {
           </div>
           <div>
             <h1 className="text-xl font-semibold text-slate-800">Daily Statistics Report</h1>
-            <p className="text-xs text-slate-500">Auto-emailed daily at 6:00 AM IST to the configured recipients. Test it here first.</p>
+            <p className="text-xs text-slate-500">Auto-emailed daily at 6:00 AM ({appTimeZone()}) to the configured recipients. Test it here first.</p>
           </div>
         </div>
 
@@ -109,7 +110,7 @@ export default function DailyStatsReportPage() {
                 {counts.map((c, i) => (
                   <tr key={i} className={i % 2 ? "bg-slate-50/50" : ""}>
                     <td className="px-4 py-2 text-slate-700">{c.metric}</td>
-                    <td className="px-4 py-2 text-right font-semibold text-slate-900 tabular-nums">{Number(c.count).toLocaleString("en-IN")}</td>
+                    <td className="px-4 py-2 text-right font-semibold text-slate-900 tabular-nums">{Number(c.count).toLocaleString(appLocale())}</td>
                   </tr>
                 ))}
               </tbody>
@@ -134,16 +135,16 @@ export default function DailyStatsReportPage() {
                   {b.rows.map((r, i) => (
                     <tr key={i} className={i % 2 ? "bg-slate-50/50" : ""}>
                       <td className="px-4 py-2 text-slate-700">{r.avenue}</td>
-                      <td className="px-4 py-2 text-right tabular-nums text-slate-700">{Number(r.oneTime).toLocaleString("en-IN")}</td>
-                      <td className="px-4 py-2 text-right tabular-nums text-slate-700">{Number(r.ongoing).toLocaleString("en-IN")}</td>
-                      <td className="px-4 py-2 text-right font-semibold tabular-nums text-slate-900">{Number(r.total).toLocaleString("en-IN")}</td>
+                      <td className="px-4 py-2 text-right tabular-nums text-slate-700">{Number(r.oneTime).toLocaleString(appLocale())}</td>
+                      <td className="px-4 py-2 text-right tabular-nums text-slate-700">{Number(r.ongoing).toLocaleString(appLocale())}</td>
+                      <td className="px-4 py-2 text-right font-semibold tabular-nums text-slate-900">{Number(r.total).toLocaleString(appLocale())}</td>
                     </tr>
                   ))}
                   <tr className="bg-slate-100 font-semibold text-slate-900">
                     <td className="px-4 py-2">TOTAL</td>
-                    <td className="px-4 py-2 text-right tabular-nums">{b.rows.reduce((s, r) => s + Number(r.oneTime), 0).toLocaleString("en-IN")}</td>
-                    <td className="px-4 py-2 text-right tabular-nums">{b.rows.reduce((s, r) => s + Number(r.ongoing), 0).toLocaleString("en-IN")}</td>
-                    <td className="px-4 py-2 text-right tabular-nums">{b.rows.reduce((s, r) => s + Number(r.total), 0).toLocaleString("en-IN")}</td>
+                    <td className="px-4 py-2 text-right tabular-nums">{b.rows.reduce((s, r) => s + Number(r.oneTime), 0).toLocaleString(appLocale())}</td>
+                    <td className="px-4 py-2 text-right tabular-nums">{b.rows.reduce((s, r) => s + Number(r.ongoing), 0).toLocaleString(appLocale())}</td>
+                    <td className="px-4 py-2 text-right tabular-nums">{b.rows.reduce((s, r) => s + Number(r.total), 0).toLocaleString(appLocale())}</td>
                   </tr>
                 </tbody>
               </table>

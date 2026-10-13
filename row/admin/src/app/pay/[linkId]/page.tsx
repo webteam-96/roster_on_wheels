@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/select";
 import { AlertCircle, CheckCircle2, Loader2 } from "lucide-react";
 
+import { currencySymbol } from "@/lib/appFormat";
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
 // Build a hidden form and submit it as POST. Used to send the proxy params in
@@ -295,7 +296,7 @@ export default function PublicPaymentPage() {
       const result = await createPublicEventOrder(linkId, payload);
       setStep("paying");
 
-      // Preferred path: redirect to the shared Cashfree proxy on kaizeninfotech.com
+      // Preferred path: redirect to the shared Cashfree proxy on example.org
       // (which Cashfree has whitelisted). The proxy renders the SDK + handles the return.
       // POST instead of GET — the long `return_url=https%3A%2F%2F...` query string
       // triggers WAF/ModSecurity open-redirect rules; POST body bypasses URL-based filters.
@@ -553,7 +554,7 @@ export default function PublicPaymentPage() {
                   <SelectTrigger><SelectValue placeholder="Select registration" /></SelectTrigger>
                   <SelectContent>
                     {eventLink.registrations.map(r => (
-                      <SelectItem key={r.id} value={String(r.id)}>{r.registrationName} - ₹{r.amount.toFixed(2)}</SelectItem>
+                      <SelectItem key={r.id} value={String(r.id)}>{r.registrationName} - {currencySymbol()}{r.amount.toFixed(2)}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
@@ -561,7 +562,7 @@ export default function PublicPaymentPage() {
 
               {selectedReg && (
                 <div className="p-3 bg-blue-50 rounded-lg border border-blue-200">
-                  <p className="text-lg font-semibold text-blue-800">Amount: ₹{selectedReg.amount.toFixed(2)}</p>
+                  <p className="text-lg font-semibold text-blue-800">Amount: {currencySymbol()}{selectedReg.amount.toFixed(2)}</p>
                 </div>
               )}
 
@@ -630,7 +631,7 @@ export default function PublicPaymentPage() {
               {submitError && <p className="text-sm text-destructive">{submitError}</p>}
 
               <Button onClick={handleSubmitPayment} disabled={submitting || !selectedRegId} className="w-full" size="lg">
-                {submitting ? <><Loader2 className="h-4 w-4 animate-spin mr-2" />Processing...</> : `Pay ₹${selectedReg?.amount.toFixed(2) || "0.00"}`}
+                {submitting ? <><Loader2 className="h-4 w-4 animate-spin mr-2" />Processing...</> : `Pay ${currencySymbol()}${selectedReg?.amount.toFixed(2) || "0.00"}`}
               </Button>
             </CardContent>
           </Card>

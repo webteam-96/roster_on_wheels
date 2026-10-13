@@ -42,6 +42,7 @@ import DistrictEgovernanceTabBar from "@/components/dashboard/DistrictEgovernanc
 import DistrictEgovernanceKpis from "@/components/dashboard/DistrictEgovernanceKpis";
 import { useSyncClubIdFromUrl } from "@/hooks/useSyncClubIdFromUrl";
 
+import { appLocale } from "@/lib/appFormat";
 // ── Types ───────────────────────────────────────────────────────────────────
 // Citation responses are loosely typed in the v1 API, so we mirror that shape
 // with permissive `any`-shaped helpers rather than introducing a new type file.
@@ -61,7 +62,13 @@ const DEFAULT_BACK = "/club-admin-dashboard/e-governance";
 // rendering AND the points calculation always pick a branch.
 // Indian-style thousand grouping, no decimals (points are integers everywhere).
 function fmtPts(n: number) {
-  return Math.round(Number(n) || 0).toLocaleString("en-IN");
+  return Math.round(Number(n) || 0).toLocaleString(appLocale());
+}
+
+// A typed number answer below zero (blank / "-" alone are not negative figures).
+function isNegativeAnswer(value: string | undefined): boolean {
+  const v = (value ?? "").trim();
+  return v !== "" && v !== "-" && Number(v) < 0;
 }
 
 function normalizeAnswerType(sc: { answerType?: unknown; options?: unknown }): "number" | "yesno" | "choose_one" {
@@ -98,6 +105,8 @@ export function ClubCitationV2View({ clubId: propClubId, embedded = false, readO
   const [savingManual, setSavingManual] = useState(false);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  // The first negative answer: after the error is closed, the page scrolls to it and focuses it.
+  const [focusAfterError, setFocusAfterError] = useState<number | null>(null);
   const [activeTab, setActiveTab] = useState<"auto" | "manual">("auto");
 
   const [citationData, setCitationData] = useState<any>(null);
@@ -209,6 +218,24 @@ export function ClubCitationV2View({ clubId: propClubId, embedded = false, readO
   };
 
   const handleSaveManual = async () => {
+    // Number answers cannot be negative (user 2026-10-08) - name every question that has one.
+    const negative: string[] = [];
+    let firstId: number | null = null;
+    for (const mc of citationData?.manualQuestions || []) {
+      for (const sc of (mc.subCriteria || [])) {
+        if (normalizeAnswerType(sc) !== "number") continue;
+        if (isNegativeAnswer(manualAnswers[sc.id]?.value)) {
+          negative.push(sc.title || `Question ${sc.id}`);
+          if (firstId == null) firstId = sc.id;
+        }
+      }
+    }
+    if (negative.length > 0) {
+      setFocusAfterError(firstId);
+      setErrorMessage(`Points cannot be negative. Please enter 0 or more for: ${negative.join(", ")}. `
+        + `The ${negative.length === 1 ? "box is" : "boxes are"} marked in red.`);
+      return;
+    }
     setSavingManual(true);
     try {
       const entries = Object.entries(manualAnswers).map(([id, ans]) => ({
@@ -221,8 +248,8 @@ export function ClubCitationV2View({ clubId: propClubId, embedded = false, readO
       await saveClubManualEntries(clubId, entries);
       setSuccessMessage("Manual entries saved.");
       await fetchData();
-    } catch {
-      setErrorMessage("Failed to save.");
+    } catch (e: any) {
+      setErrorMessage(e?.response?.data?.message || "Failed to save.");
     } finally {
       setSavingManual(false);
     }
@@ -283,7 +310,20 @@ export function ClubCitationV2View({ clubId: propClubId, embedded = false, readO
           open={!!errorMessage}
           title="Error"
           description={errorMessage || ""}
-          onOk={() => setErrorMessage(null)}
+          onOk={() => {
+            setErrorMessage(null);
+            // Take the user straight to the first negative box (long district question lists).
+            if (focusAfterError != null) {
+              const id = focusAfterError;
+              setFocusAfterError(null);
+              setTimeout(() => {
+                const el = document.getElementById(`award-answer-${id}`) as HTMLInputElement | null;
+                el?.scrollIntoView({ behavior: "smooth", block: "center" });
+                el?.focus({ preventScroll: true });
+                el?.select();
+              }, 50);
+            }
+          }}
         />
 
         {/* District Awards disabled for this year → read-only notice (entry is also API-blocked). */}
@@ -633,9 +673,10 @@ function ManualRow({
     ? "bg-emerald-50 text-emerald-700 border-emerald-200"
     : "bg-slate-50 text-slate-500 border-slate-200";
   const normalizedType = normalizeAnswerType(sc);
+  const negative = normalizedType === "number" && isNegativeAnswer(answer.value);
 
   return (
-    <div className="rounded-xl border border-slate-200 p-3 hover:border-blue-200 transition">
+    <div className={`rounded-xl border p-3 transition ${negative ? "border-red-400 bg-red-50/40" : "border-slate-200 hover:border-blue-200"}`}>
       <div className="flex items-start justify-between gap-3 mb-2">
         <div className="min-w-0">
           <p className="text-sm font-medium text-slate-800">{sc.title}</p>
@@ -649,18 +690,24 @@ function ManualRow({
 
       {normalizedType === "number" && (
         <div className="flex items-center gap-3 flex-wrap">
+          {/* Plain text box with a numeric keypad: no up/down arrows and no scroll-wheel changes -
+              the club types the figure (user 2026-10-08). Non-digits are still stripped below. */}
           <input
-            type="number"
-            step="1"
+            id={`award-answer-${sc.id}`}
+            type="text"
+            inputMode="numeric"
+            aria-invalid={negative}
             value={answer.value}
             onChange={(e) => onChange(sc.id, e.target.value.replace(/[^0-9-]/g, ""), sc)}
             disabled={!canManage}
             placeholder="0"
-            className="w-32 px-3 py-1.5 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-slate-50 disabled:text-slate-500 disabled:cursor-not-allowed"
+            className={`w-32 px-3 py-1.5 text-sm border rounded-lg focus:outline-none focus:ring-2 disabled:bg-slate-50 disabled:text-slate-500 disabled:cursor-not-allowed ${
+              negative ? "border-red-500 text-red-700 focus:ring-red-400" : "border-slate-200 focus:ring-blue-500"}`}
           />
           <span className="text-xs text-slate-500">
             × {fmtInt(Number(sc.points))}{sc.isBonus ? ` · bonus ${fmtInt(Number(sc.bonusPoints))}` : ""}
           </span>
+          {negative && <span className="w-full text-xs font-medium text-red-600">Points cannot be negative - enter 0 or more.</span>}
         </div>
       )}
 

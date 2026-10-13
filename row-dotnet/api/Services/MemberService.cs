@@ -32,6 +32,9 @@ public class MemberService : IMemberService
     // callers (older mobile builds, older Excel imports) may send real years.
     // Normalizing on every write guarantees the column converges to 1900 over
     // time regardless of the caller.
+    /// <summary>A country id, or null when none was chosen (0). Same as the NestJS edition's countryOrNull.</summary>
+    private static int? CountryOrNull(int id) => id > 0 ? id : null;
+
     private static DateTime? NormalizeBirthAnnivYear(DateTime? d)
     {
         if (d == null) return null;
@@ -139,7 +142,7 @@ public class MemberService : IMemberService
                     WHERE pk_member_family_details_id = @Id AND fk_member_master_profile_id = @MemberId",
                     new
                     {
-                        fm.Id, MemberId = memberId, fm.Name, fm.Relation, fm.BloodGroup, fm.FkCountryId,
+                        fm.Id, MemberId = memberId, fm.Name, fm.Relation, fm.BloodGroup, FkCountryId = CountryOrNull(fm.FkCountryId),
                         fm.PhoneNumber, fm.EmailId,
                         BirthDate = NormalizeBirthAnnivYear(fm.BirthDate),
                         AnniversaryDate = NormalizeBirthAnnivYear(fm.AnniversaryDate),
@@ -488,13 +491,13 @@ public class MemberService : IMemberService
                         Id = softDeletedId.Value,
                         dto.MemberName,
                         dto.ProfilePhotoPath,
-                        dto.FkPrimaryCountryId,
+                        FkPrimaryCountryId = CountryOrNull(dto.FkPrimaryCountryId),
                         dto.PrimaryMobileNumber,
                         dto.EmailId,
                         BirthDate = NormalizeBirthAnnivYear(dto.BirthDate),
                         AnniversaryDate = NormalizeBirthAnnivYear(dto.AnniversaryDate),
                         dto.BloodGroup,
-                        dto.FkSecondaryCountryId,
+                        FkSecondaryCountryId = CountryOrNull(dto.FkSecondaryCountryId),
                         dto.SecondaryMobileNumber,
                         dto.IsPersonalDetailsVisible,
                         dto.Gender,
@@ -661,12 +664,12 @@ public class MemberService : IMemberService
                 );
                 SELECT LAST_INSERT_ID();",
                 new {
-                    dto.MemberName, dto.ProfilePhotoPath, dto.FkPrimaryCountryId, dto.PrimaryMobileNumber,
+                    dto.MemberName, dto.ProfilePhotoPath, FkPrimaryCountryId = CountryOrNull(dto.FkPrimaryCountryId), dto.PrimaryMobileNumber,
                     dto.EmailId,
                     BirthDate       = NormalizeBirthAnnivYear(dto.BirthDate),
                     AnniversaryDate = NormalizeBirthAnnivYear(dto.AnniversaryDate),
                     dto.BloodGroup,
-                    dto.FkSecondaryCountryId, dto.SecondaryMobileNumber,
+                    FkSecondaryCountryId = CountryOrNull(dto.FkSecondaryCountryId), dto.SecondaryMobileNumber,
                     IsPersonalDetailsVisible = dto.IsPersonalDetailsVisible ? 1 : 0,
                     dto.Gender, dto.PrimaryLanguage,
                     IsYouth = dto.IsYouth ? 1 : 0,
@@ -829,12 +832,12 @@ public class MemberService : IMemberService
                 WHERE pk_member_master_profile_id = @Id AND isdeleted = 0",
                 new {
                     Id = id,
-                    dto.MemberName, dto.ProfilePhotoPath, dto.FkPrimaryCountryId, dto.PrimaryMobileNumber,
+                    dto.MemberName, dto.ProfilePhotoPath, FkPrimaryCountryId = CountryOrNull(dto.FkPrimaryCountryId), dto.PrimaryMobileNumber,
                     dto.EmailId,
                     BirthDate       = NormalizeBirthAnnivYear(dto.BirthDate),
                     AnniversaryDate = NormalizeBirthAnnivYear(dto.AnniversaryDate),
                     dto.BloodGroup,
-                    dto.FkSecondaryCountryId, dto.SecondaryMobileNumber,
+                    FkSecondaryCountryId = CountryOrNull(dto.FkSecondaryCountryId), dto.SecondaryMobileNumber,
                     IsPersonalDetailsVisible = dto.IsPersonalDetailsVisible ? 1 : 0,
                     dto.Gender, dto.PrimaryLanguage,
                     IsYouth = dto.IsYouth ? 1 : 0,
@@ -955,7 +958,7 @@ public class MemberService : IMemberService
             new {
                 addr.FkMemberMasterProfileId,
                 addr.AddressType,
-                addr.FkCountryId,
+                FkCountryId = CountryOrNull(addr.FkCountryId),
                 addr.PhoneNumber,
                 addr.Address,
                 addr.State,
@@ -1000,7 +1003,7 @@ public class MemberService : IMemberService
                 p_Name = fm.Name,
                 p_Relation = fm.Relation,
                 p_BloodGroup = fm.BloodGroup,
-                p_FkCountryId = fm.FkCountryId,
+                p_FkCountryId = CountryOrNull(fm.FkCountryId),
                 p_PhoneNumber = fm.PhoneNumber,
                 p_EmailId = fm.EmailId,
                 p_BirthDate = NormalizeBirthAnnivYear(fm.BirthDate),

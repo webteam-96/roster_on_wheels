@@ -60,7 +60,7 @@ export default function RotaryOrgClubsPage() {
   // worker runs; per-club member-sync buttons were removed in favour of this single top action.
   const [reconciling, setReconciling] = useState(false);
   const [diffFor, setDiffFor] = useState<any>(null);                     // club for the per-member diff popup
-  const [showOrgOnly, setShowOrgOnly] = useState(false);                 // popup: synced on Rotary.org but not in Rizones
+  const [showOrgOnly, setShowOrgOnly] = useState(false);                 // popup: synced on Rotary.org but not in ROW
 
   useEffect(() => {
     (async () => {
@@ -128,7 +128,7 @@ export default function RotaryOrgClubsPage() {
     finally { setBusyKey(null); }
   };
 
-  // Club is sync on Rotary.org but not marked synced in rizones → flip flag + full member sweep.
+  // Club is sync on Rotary.org but not marked synced in ROW → flip flag + full member sweep.
   const onMarkSynced = async (india: any) => {
     if (!india?.clubId) return;
     setBusyKey(`sync-${india.clubId}`);
@@ -216,7 +216,7 @@ export default function RotaryOrgClubsPage() {
     try {
       const r = await reconcileDistrictMembers(Number(districtId));
       setSuccess(r?.message || "Member reconcile started for this district's mismatched clubs. Only those clubs refresh as it runs — no need to click again.");
-      // Poll ONLY the mismatched clubs. Each club's diff gives BOTH fresh counts (rizones + live
+      // Poll ONLY the mismatched clubs. Each club's diff gives BOTH fresh counts (ROW + live
       // Rotary.org) in one call; we patch just that club and drop it once it reconciles. All other
       // clubs are left completely untouched.
       const pending = new Set<number>(targets);
@@ -229,7 +229,7 @@ export default function RotaryOrgClubsPage() {
             const d = await getClubMemberDiff(cid);
             if (d && !d.error) {
               setData((prev: any) => prev
-                ? { ...prev, indiaClubs: (prev.indiaClubs || []).map((c: any) => c.clubId === cid ? { ...c, memberCount: d.rizonesCount } : c) }
+                ? { ...prev, indiaClubs: (prev.indiaClubs || []).map((c: any) => c.clubId === cid ? { ...c, memberCount: d.localCount } : c) }
                 : prev);
               setLiveOrg((p) => ({ ...p, [cid]: { total: d.orgCount, loading: false } }));
               if ((d.toAdd?.length ?? 0) === 0 && (d.toRemove?.length ?? 0) === 0) pending.delete(cid);
@@ -260,7 +260,7 @@ export default function RotaryOrgClubsPage() {
   //   1. Sync clubs      — IsSyncedFromRotaryOrg = 1 (full data: members/BOD)
   //   2. Non-sync clubs  — everything not fully synced, SYNCABLE ones on top:
   //        - SYNCABLE (ClubRotaryId present in /clubs): a Sync button pulls the club + members into
-  //          Rizones. Includes /clubs clubs not yet in Rizones at all (india = null → Sync = add+sync).
+  //          ROW. Includes /clubs clubs not yet in ROW at all (india = null → Sync = add+sync).
   //        - search-only (present only on /Clubs/search, NOT in /clubs): display-only, no button.
   type Row = { key: string; india: any | null; org: any | null; status: "matched" | "onlyIndia" | "onlyOrg"; syncable?: boolean };
 
@@ -287,15 +287,15 @@ export default function RotaryOrgClubsPage() {
       if (Number(i.isSynced) === 1) {
         syncRows.push({ key: `i-${i.clubId}`, india: i, org, status: org ? "matched" : "onlyIndia" });
       } else {
-        // Non-sync club that IS already in Rizones → display-only, NEVER a Sync button (your rule:
-        // the Sync button is only for clubs in /clubs that are NOT yet in Rizones). Search-only clubs
+        // Non-sync club that IS already in ROW → display-only, NEVER a Sync button (your rule:
+        // the Sync button is only for clubs in /clubs that are NOT yet in ROW). Search-only clubs
         // aren't in /clubs, so synthesize their org side for display.
         if (!org && rid) org = { rotaryClubId: i.clubRotaryId, clubName: i.clubName, memberCount: null, _searchOnly: true };
         nonSyncRows.push({ key: `i-${i.clubId}`, india: i, org, status: "matched" });
       }
     }
-    // Clubs in /clubs (synced on Rotary.org) but NOT in Rizones → these get the Sync button and sit on
-    // TOP of the Non-sync list. Sync = add the club + all its members into Rizones.
+    // Clubs in /clubs (synced on Rotary.org) but NOT in ROW → these get the Sync button and sit on
+    // TOP of the Non-sync list. Sync = add the club + all its members into ROW.
     for (const o of (data.orgClubs || [])) {
       const rid = String(o.rotaryClubId);
       if (!usedOrg.has(rid)) nonSyncRows.push({ key: `o-${rid}`, india: null, org: o, status: "onlyOrg", syncable: true });
@@ -303,7 +303,7 @@ export default function RotaryOrgClubsPage() {
     const byName = (a: Row, b: Row) =>
       (a.india?.clubName || a.org?.clubName || "").toLowerCase()
         .localeCompare((b.india?.clubName || b.org?.clubName || "").toLowerCase());
-    // Absolute member-count gap between Rizones and the LIVE Rotary.org count (0 when matched or not
+    // Absolute member-count gap between ROW and the LIVE Rotary.org count (0 when matched or not
     // yet loaded). While a club's live count is still loading it counts as 0 (stays put until loaded).
     const memberGap = (r: Row) => {
       const oc = orgCountOf(r);
@@ -329,8 +329,8 @@ export default function RotaryOrgClubsPage() {
     return !oc.loading && r.india?.memberCount != null && oc.count != null && r.india.memberCount !== oc.count;
   }).length;
 
-  // Sync a club fully into Rizones: rizones non-sync club → flip + member sweep; /clubs club not in
-  // Rizones → add it + sync. Only ever called for syncable rows (ClubRotaryId is in /clubs).
+  // Sync a club fully into ROW: ROW non-sync club → flip + member sweep; /clubs club not in
+  // ROW → add it + sync. Only ever called for syncable rows (ClubRotaryId is in /clubs).
   const onSyncClub = async (row: Row) => {
     const key = row.india ? `sync-${row.india.clubId}` : `add-${row.org.rotaryClubId}`;
     setBusyKey(key);
@@ -372,14 +372,14 @@ export default function RotaryOrgClubsPage() {
                   )}
                 </div>
               ) : row.org ? (
-                // Club not yet in Rizones (syncable /clubs club) — still show its name + Rotary ID on the
-                // left so the row reads cleanly (it's the same club; Sync will add it to Rizones).
+                // Club not yet in ROW (syncable /clubs club) — still show its name + Rotary ID on the
+                // left so the row reads cleanly (it's the same club; Sync will add it to ROW).
                 <div className="min-w-0">
                   <p className="font-medium truncate">{row.org.clubName}</p>
                   <p className="text-xs text-muted-foreground">ID: {row.org.rotaryClubId}</p>
                 </div>
               ) : (
-                <span className="text-xs text-muted-foreground italic">— not in Rizones —</span>
+                <span className="text-xs text-muted-foreground italic">— not in ROW —</span>
               )}
             </div>
           </div>
@@ -403,7 +403,7 @@ export default function RotaryOrgClubsPage() {
                         {diff != null && diff !== 0 && (
                           <span
                             className="text-red-600 font-semibold ml-1 cursor-pointer underline decoration-dotted"
-                            onClick={() => row.india && setDiffFor({ clubId: row.india.clubId, clubName: row.india.clubName, clubRotaryId: String(row.india.clubRotaryId ?? ""), rizonesCount: row.india.memberCount ?? 0, orgCount: oc.count })}
+                            onClick={() => row.india && setDiffFor({ clubId: row.india.clubId, clubName: row.india.clubName, clubRotaryId: String(row.india.clubRotaryId ?? ""), localCount: row.india.memberCount ?? 0, orgCount: oc.count })}
                             title="Click to see which members differ and what Sync will do"
                           >
                             ({diff > 0 ? "+" : ""}{diff})
@@ -426,7 +426,7 @@ export default function RotaryOrgClubsPage() {
               })() : row.syncable ? (
                 <Button size="sm" variant="outline" onClick={() => onSyncClub(row)}
                   disabled={busyKey === (row.india ? `sync-${row.india.clubId}` : `add-${row.org.rotaryClubId}`)}
-                  title="Present in Rotary.org /clubs — sync this club and all its members into Rizones">
+                  title="Present in Rotary.org /clubs — sync this club and all its members into ROW">
                   {busyKey === (row.india ? `sync-${row.india.clubId}` : `add-${row.org.rotaryClubId}`)
                     ? <Loader2 className="h-3 w-3 mr-1 animate-spin" /> : <RefreshCw className="h-3 w-3 mr-1" />}Sync
                 </Button>
@@ -451,7 +451,7 @@ export default function RotaryOrgClubsPage() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className="w-1/2 border-r bg-muted/40">Rotary Zones 4, 5, 6, 7 &amp; 8</TableHead>
+              <TableHead className="w-1/2 border-r bg-muted/40">ROW</TableHead>
               <TableHead className="w-1/2">Rotary.org</TableHead>
             </TableRow>
           </TableHeader>
@@ -504,9 +504,9 @@ export default function RotaryOrgClubsPage() {
               <span
                 className={`inline-flex items-center rounded-md border border-blue-300 bg-blue-100 text-blue-800 text-sm px-3 py-1 ${groups.nonSyncRows.filter((r) => !r.india).length > 0 ? "cursor-pointer underline decoration-dotted hover:bg-blue-200" : ""}`}
                 onClick={() => groups.nonSyncRows.filter((r) => !r.india).length > 0 && setShowOrgOnly(true)}
-                title="Click to see the clubs synced on Rotary.org but not yet in Rizones"
+                title="Click to see the clubs synced on Rotary.org but not yet in ROW"
               >
-                In Rotary.org, not in Rizones:<b className="ml-1">{groups.nonSyncRows.filter((r) => !r.india).length}</b>
+                In Rotary.org, not in ROW:<b className="ml-1">{groups.nonSyncRows.filter((r) => !r.india).length}</b>
               </span>
               <span className="inline-flex items-center rounded-md border border-yellow-300 bg-yellow-100 text-yellow-800 text-sm px-3 py-1">Not sync clubs:<b className="ml-1">{groups.nonSyncRows.filter((r) => r.india && !r.syncable).length}</b></span>
               <span className="inline-flex items-center rounded-md border border-red-300 bg-red-100 text-red-800 text-sm px-3 py-1">Member mismatch:<b className="ml-1">{mismatchCount}</b></span>
@@ -561,7 +561,7 @@ export default function RotaryOrgClubsPage() {
           <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>Club Comparison & Edit</DialogTitle>
-              <DialogDescription>Click the ⬅ icon to copy a value from Rotary.org into the editable Rotary Zones 4, 5, 6, 7 & 8 field.</DialogDescription>
+              <DialogDescription>Click the ⬅ icon to copy a value from Rotary.org into the editable ROW field.</DialogDescription>
             </DialogHeader>
             {editTarget && (
               <div className="space-y-3">
@@ -569,7 +569,7 @@ export default function RotaryOrgClubsPage() {
                   <div className="col-span-3">Field</div>
                   <div className="col-span-4">Rotary.org (read-only)</div>
                   <div className="col-span-1 text-center">Copy</div>
-                  <div className="col-span-4">Rotary Zones 4, 5, 6, 7 & 8 (edit)</div>
+                  <div className="col-span-4">ROW (edit)</div>
                 </div>
                 {[
                   { key: "clubName", label: "Club Name", orgValue: editTarget.org?.clubName },
@@ -627,11 +627,11 @@ export default function RotaryOrgClubsPage() {
         {showOrgOnly && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" onClick={() => setShowOrgOnly(false)}>
             <div className="bg-background rounded-lg shadow-lg w-full max-w-lg max-h-[85vh] overflow-y-auto p-5 space-y-3" onClick={(e) => e.stopPropagation()}>
-              <h3 className="text-lg font-semibold">Synced on Rotary.org, not yet in Rizones</h3>
-              <p className="text-sm text-muted-foreground">In Rotary.org <code>/clubs</code> but missing from Rizones. Click Sync to add + sync each.</p>
+              <h3 className="text-lg font-semibold">Synced on Rotary.org, not yet in ROW</h3>
+              <p className="text-sm text-muted-foreground">In Rotary.org <code>/clubs</code> but missing from ROW. Click Sync to add + sync each.</p>
               {(() => {
                 const list = groups.nonSyncRows.filter((r) => !r.india);
-                if (list.length === 0) return <p className="text-sm text-muted-foreground">None — Rizones matches Rotary.org.</p>;
+                if (list.length === 0) return <p className="text-sm text-muted-foreground">None — ROW matches Rotary.org.</p>;
                 return (
                   <ul className="divide-y rounded-md border">
                     {list.map((r, i) => (
@@ -676,12 +676,12 @@ interface DiffMemberAdd { rotaryId: string; name: string; isHonorary: boolean }
 interface DiffMemberRemove { memberId: number; rotaryId: string; name: string }
 interface DiffMemberNoRid { memberId: number; name: string; honorary: boolean; inCog: boolean; willSoftDelete: boolean; keepReason: string | null }
 interface DiffData {
-  clubName: string; rizonesCount: number; orgCount: number;
+  clubName: string; localCount: number; orgCount: number;
   toAdd: DiffMemberAdd[]; toRemove: DiffMemberRemove[]; noRotaryId: DiffMemberNoRid[]; error?: string;
 }
 
 function MemberDiffDialog({ club, onClose, onSoftDeleted, onError }: {
-  club: { clubId: number; clubName: string; clubRotaryId: string; rizonesCount: number };
+  club: { clubId: number; clubName: string; clubRotaryId: string; localCount: number };
   onClose: () => void; onSoftDeleted: (n: number) => void; onError: (m: string) => void;
 }) {
   const [data, setData] = useState<DiffData | null>(null);
@@ -716,7 +716,7 @@ function MemberDiffDialog({ club, onClose, onSoftDeleted, onError }: {
         <div>
           <h3 className="text-lg font-semibold">{club.clubName}</h3>
           {data && !data.error && (
-            <p className="text-sm text-muted-foreground">rizones <b>{data.rizonesCount}</b> vs Rotary.org <b>{data.orgCount}</b> — here&apos;s exactly who differs.</p>
+            <p className="text-sm text-muted-foreground">ROW <b>{data.localCount}</b> vs Rotary.org <b>{data.orgCount}</b> — here&apos;s exactly who differs.</p>
           )}
         </div>
         {loading ? (

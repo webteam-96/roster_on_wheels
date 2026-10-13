@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
+import { useAuth } from "@/contexts/AuthContext";
+import { useClubAdminCache } from "@/contexts/ClubAdminDashboardCacheContext";
 import {
   getClubDuesOfficerClubs, getClubDuesOfficerSnapshot, payClubDuesOfficer,
   verifyClubDuesOfficer, getClubDuesOfficerPayLink, recordClubDuesOfficerOffline,
@@ -15,6 +17,7 @@ import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
 import { Link2, RefreshCw } from "lucide-react";
 
+import { appLocale, currencySymbol } from "@/lib/appFormat";
 declare global { interface Window { Razorpay?: any } }
 
 interface OfficerClub {
@@ -31,6 +34,11 @@ export default function ClubAdminClubDuesPage() {
   const [loading, setLoading] = useState(true);
   const [success, setSuccess] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  // Only the club open on this dashboard (user 2026-10-08): an officer of another club
+  // must not see that club's dues while viewing this one.
+  const { selectedClubId } = useAuth();
+  const { overview } = useClubAdminCache();
+  const openClubId = selectedClubId ?? overview?.club?.clubId ?? null;
 
   useEffect(() => {
     (async () => {
@@ -41,6 +49,7 @@ export default function ClubAdminClubDuesPage() {
   }, []);
 
   if (loading) return <div className="flex justify-center py-20"><RotaryLoader size="lg" /></div>;
+  const shown = openClubId ? clubs.filter((c) => c.clubId === openClubId) : [];
 
   return (
     <div className="space-y-5">
@@ -49,13 +58,13 @@ export default function ClubAdminClubDuesPage() {
         <p className="text-muted-foreground text-base">Pay your club&apos;s district dues. Amount due = unpaid members × rate.</p>
       </div>
 
-      {clubs.length === 0 ? (
+      {shown.length === 0 ? (
         <Card><CardContent className="p-8 text-center text-muted-foreground">
-          No active district dues campaign for your club, or you are not a club office bearer.
+          No active district dues campaign for this club, or you are not its office bearer.
         </CardContent></Card>
       ) : (
         <div className="grid gap-4 md:grid-cols-2">
-          {clubs.map((c) => (
+          {shown.map((c) => (
             <ClubDuesCard key={`${c.duesId}-${c.clubId}`} club={c} onSuccess={setSuccess} onError={setError} />
           ))}
         </div>
@@ -153,14 +162,14 @@ function ClubDuesCard({ club, onSuccess, onError }: { club: OfficerClub; onSucce
               <div className="flex justify-between text-sm"><span>Members</span><span>{data.memberCount}</span></div>
               <div className="flex justify-between text-sm"><span>Paid</span><span className="text-green-600">{data.paidCount}</span></div>
               <div className="flex justify-between text-sm"><span>Unpaid</span><span className="text-red-600">{data.unpaidCount}</span></div>
-              <div className="flex justify-between text-sm"><span>Rate / member</span><span>₹{data.perMemberRate}</span></div>
+              <div className="flex justify-between text-sm"><span>Rate / member</span><span>{currencySymbol()}{data.perMemberRate}</span></div>
               {data.onlineAmountOwed !== data.amountOwed ? (
                 <>
-                  <div className="flex justify-between font-bold text-base border-t pt-2"><span>Offline amount</span><span>₹{Number(data.amountOwed).toLocaleString("en-IN")}</span></div>
-                  <div className="flex justify-between text-sm font-semibold"><span>Online amount{data.onlineSurchargePercent > 0 ? <span className="font-normal text-muted-foreground"> (+{data.onlineSurchargePercent}%)</span> : null}</span><span>₹{Number(data.onlineAmountOwed).toLocaleString("en-IN")}</span></div>
+                  <div className="flex justify-between font-bold text-base border-t pt-2"><span>Offline amount</span><span>{currencySymbol()}{Number(data.amountOwed).toLocaleString(appLocale())}</span></div>
+                  <div className="flex justify-between text-sm font-semibold"><span>Online amount{data.onlineSurchargePercent > 0 ? <span className="font-normal text-muted-foreground"> (+{data.onlineSurchargePercent}%)</span> : null}</span><span>{currencySymbol()}{Number(data.onlineAmountOwed).toLocaleString(appLocale())}</span></div>
                 </>
               ) : (
-                <div className="flex justify-between font-bold text-base border-t pt-2"><span>Amount due</span><span>₹{Number(data.amountOwed).toLocaleString("en-IN")}</span></div>
+                <div className="flex justify-between font-bold text-base border-t pt-2"><span>Amount due</span><span>{currencySymbol()}{Number(data.amountOwed).toLocaleString(appLocale())}</span></div>
               )}
             </div>
             {data.isPending && <p className="text-xs text-amber-600 text-center">An offline payment is already awaiting approval.</p>}
@@ -174,7 +183,7 @@ function ClubDuesCard({ club, onSuccess, onError }: { club: OfficerClub; onSucce
             <div className="flex flex-col gap-2">
               {(data.modeOfPayment === 1 || data.modeOfPayment === 3) && (
                 <Button onClick={payOnline} disabled={paying}>
-                  {paying && <RotaryLoader size="sm" />}Pay ₹{Number(data.onlineAmountOwed).toLocaleString("en-IN")} online
+                  {paying && <RotaryLoader size="sm" />}Pay {currencySymbol()}{Number(data.onlineAmountOwed).toLocaleString(appLocale())} online
                 </Button>
               )}
               {(data.modeOfPayment === 2 || data.modeOfPayment === 3) && (
@@ -238,7 +247,7 @@ function OfflineForm({ duesId, clubId, amountOwed, onDone, onError }: { duesId: 
       )}
       {(accounts.length === 0 || accountId) && (
         <p className="text-sm text-muted-foreground">
-          Amount: <b>₹{Number(accounts.length === 0 ? amountOwed : selectedAccount?.amount ?? 0).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</b>.
+          Amount: <b>{currencySymbol()}{Number(accounts.length === 0 ? amountOwed : selectedAccount?.amount ?? 0).toLocaleString(appLocale(), { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</b>.
         </p>
       )}
       <div className="space-y-1">

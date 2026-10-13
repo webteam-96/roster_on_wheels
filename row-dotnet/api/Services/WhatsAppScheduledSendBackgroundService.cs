@@ -7,7 +7,7 @@ namespace RotaryApi.Services;
 /// <summary>
 /// Periodically scans Announcement / UpcomingEvent / Newsletter / Project records where
 /// IsSendWhatsapp=1 AND WhatsAppSentDate IS NULL AND (PublishDate|PublishDateTime) has passed,
-/// then sends WhatsApp messages to recipients via Interakt using the right template per scope.
+/// then sends WhatsApp messages to recipients via the Meta Cloud API using the right template per scope.
 /// Credits were already deducted at save; the scheduler only sends and marks sent.
 /// </summary>
 public class WhatsAppScheduledSendBackgroundService : BackgroundService
@@ -20,10 +20,10 @@ public class WhatsAppScheduledSendBackgroundService : BackgroundService
     private const int PollIntervalSeconds = 5;
     private const int MaxConcurrencyPerRecord = 10;
 
-    // Interakt rate limit: 300 messages/minute. We send in chunks of BulkBatchSize, then pause
+    // Provider rate limit, default 300 messages/minute. We send in chunks of BulkBatchSize, then pause
     // BulkBatchIntervalSeconds before the next chunk, so we never trip "Rate limit exceeded".
-    // Configurable in appsettings (Interakt:BulkBatchSize / BulkBatchIntervalSeconds) so the
-    // ceiling can be raised without a code change if Interakt lifts the limit.
+    // Configurable in appsettings (WhatsApp:BulkBatchSize / BulkBatchIntervalSeconds) so the
+    // ceiling can be raised without a code change if the account tier allows more.
     private readonly int _batchSize;
     private readonly int _batchIntervalSeconds;
     // Transient-failure auto-retry (429 / 5xx / network) — a bad number (400) is NOT retried.
@@ -46,7 +46,7 @@ public class WhatsAppScheduledSendBackgroundService : BackgroundService
     //     600 − AnnouncementStaticChars − (memberName + sourceName + title + imageUrl + imageUrl)
     //
     // ASSUMPTION — the approved body text is NOT in this repo or the database (grep finds only the
-    // template NAMES; there is no template table). It lives solely in the Interakt/Meta template
+    // template NAMES; there is no template table). It lives solely in the Meta template
     // manager. The skeleton below is a best-effort reconstruction used ONLY to size the static
     // text; all three announcement templates share the same 6-parameter shape, so one figure
     // covers club/district/RI. When the exact approved body is available, paste it in verbatim
@@ -95,8 +95,8 @@ public class WhatsAppScheduledSendBackgroundService : BackgroundService
         _logger = logger;
         _config = config;
         _connectionString = config.GetConnectionString("DefaultConnection")!;
-        _batchSize = Math.Max(1, config.GetValue("Interakt:BulkBatchSize", 300));
-        _batchIntervalSeconds = Math.Max(0, config.GetValue("Interakt:BulkBatchIntervalSeconds", 60));
+        _batchSize = Math.Max(1, config.GetValue("WhatsApp:BulkBatchSize", 300));
+        _batchIntervalSeconds = Math.Max(0, config.GetValue("WhatsApp:BulkBatchIntervalSeconds", 60));
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -778,9 +778,9 @@ public class WhatsAppScheduledSendBackgroundService : BackgroundService
         int sent = 0, failed = 0;
         var logRows = new System.Collections.Concurrent.ConcurrentBag<object>();
         using var scope = _scopeFactory.CreateScope();
-        var interakt = scope.ServiceProvider.GetRequiredService<IInteraktService>();
+        var whatsApp = scope.ServiceProvider.GetRequiredService<IWhatsAppService>();
 
-        // Throttle: send in chunks of _batchSize (Interakt's per-minute cap), pausing
+        // Throttle: send in chunks of _batchSize (the provider's per-minute cap), pausing
         // _batchIntervalSeconds between chunks so we never trip the rate limit. Each message
         // auto-retries transient failures (429/5xx/network) up to MaxSendRetries.
         int totalChunks = (recipients.Count + _batchSize - 1) / _batchSize;
@@ -796,7 +796,7 @@ public class WhatsAppScheduledSendBackgroundService : BackgroundService
                     try
                     {
                         bodyValues = mapBodyValues(r);
-                        var outcome = await SendWithRetryAsync(interakt, r.Mobile, templateName, bodyValues, ct, headerValues);
+                        var outcome = await SendWithRetryAsync(whatsApp, r.Mobile, templateName, bodyValues, ct, headerValues);
                         if (outcome.Ok) Interlocked.Increment(ref sent);
                         else Interlocked.Increment(ref failed);
                         if (logCtx != null) logRows.Add(BuildLogRow(logCtx, r, templateName, bodyValues, outcome));
@@ -826,13 +826,13 @@ public class WhatsAppScheduledSendBackgroundService : BackgroundService
     // Sends one message, auto-retrying transient failures (429 rate-limit, 5xx, network/timeout=0)
     // with a short back-off. A 400 (bad number/template) is permanent and returned immediately.
     private async Task<WhatsAppSendOutcome> SendWithRetryAsync(
-        IInteraktService interakt, string mobile, string template, string[] bodyValues, CancellationToken ct,
+        IWhatsAppService whatsApp, string mobile, string template, string[] bodyValues, CancellationToken ct,
         string[]? headerValues = null)
     {
         WhatsAppSendOutcome outcome = new(false, 0, null, null);
         for (int attempt = 0; attempt <= MaxSendRetries; attempt++)
         {
-            outcome = await interakt.SendWhatsAppDetailedAsync(mobile, template, bodyValues, headerValues: headerValues);
+            outcome = await whatsApp.SendWhatsAppDetailedAsync(mobile, template, bodyValues, headerValues: headerValues);
             if (outcome.Ok) return outcome;
             bool retryable = outcome.HttpStatus == 429 || outcome.HttpStatus == 0 || outcome.HttpStatus >= 500;
             if (!retryable || attempt == MaxSendRetries) return outcome;

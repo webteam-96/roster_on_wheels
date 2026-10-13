@@ -6,7 +6,7 @@ public class Club
     public int FkDistrictId { get; set; }
     public string ClubRotaryId { get; set; } = string.Empty;
     public string ClubName { get; set; } = string.Empty;
-    public string Timezone { get; set; } = "Asia/Kolkata";
+    public string Timezone { get; set; } = RotaryApi.Services.Brand.DefaultTimeZone;
     public DateTime? ClubCharterDate { get; set; }
     public string? ClubLogoPath { get; set; }
     public string? ClubWebsite { get; set; }

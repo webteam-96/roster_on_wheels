@@ -24,7 +24,7 @@ public class ClubService : IClubService
 
     private MySqlConnection CreateConnection() => new(_connectionString);
 
-    public async Task<PagedResult<ClubListDto>> GetAllAsync(int page, int pageSize, string? search, int? districtId, string? city, string? meetingDay, int? isActive, int? zoneId = null)
+    public async Task<PagedResult<ClubListDto>> GetAllAsync(int page, int pageSize, string? search, int? districtId, string? city, string? meetingDay, int? isActive, int? zoneId = null, bool excludeRotaract = false)
     {
         // Inline SQL (was sp_club_get_all_paginated / sp_club_get_all_count).
         // Switched 2026-07-03 to add IsSyncedFromRotaryOrg to the listing —
@@ -51,6 +51,8 @@ public class ClubService : IClubService
               AND (@MeetingDay IS NULL OR c.MeetingDay = @MeetingDay)
               AND (@IsActive IS NULL OR c.IsActive = @IsActive)
               AND (@ZoneId IS NULL OR d.fk_zone_id = @ZoneId)";
+        // user 2026-10-08: Rotaract clubs hidden from everyone except SuperAdmin.
+        if (excludeRotaract) whereSql += " AND " + ClubScopeSql.NotRotaract("c");
 
         var countSql = $@"
             SELECT COUNT(*)
@@ -468,7 +470,7 @@ public class ClubService : IClubService
                          AND fd.isdeleted = 0
                          AND fd.Name LIKE CONCAT('%', @FamilyMemberName, '%')
                    ))
-              AND (@Year IS NULL OR @ClubId <> 31598
+              AND (@Year IS NULL OR @ClubId <> " + CogDesignationHelper.CogClubId + @"
                    OR " + CogDesignationHelper.YearStartSql("cm") + @" = CAST(@Year AS CHAR))",
             new
             {
@@ -507,11 +509,11 @@ public class ClubService : IClubService
                 MAX(CASE WHEN r.RoleName = 'Admin' AND mr.fk_club_id = @ClubId AND mr.IsActive = 1 THEN 1 ELSE 0 END) AS HasAdminRole,
                 /* COG (club 31598) only: surface each member's designation (past-DG label held in
                    club_members.Designation). Gated on @ClubId, so every other club returns NULL as before. */
-                MAX(CASE WHEN @ClubId = 31598 THEN cm.Designation END) AS Designation,
+                MAX(CASE WHEN @ClubId = " + CogDesignationHelper.CogClubId + @" THEN cm.Designation END) AS Designation,
                 /* COG only: the same label split into its two structured parts so the mobile app
                    can render 'District 3292' + '2025-26' instead of the raw free-text string. */
-                MAX(CASE WHEN @ClubId = 31598 THEN " + CogDesignationHelper.DistrictSql("cm") + @" END) AS CogDistrictNumber,
-                MAX(CASE WHEN @ClubId = 31598 THEN " + CogDesignationHelper.YearStartSql("cm") + @" END) AS CogYearStart
+                MAX(CASE WHEN @ClubId = " + CogDesignationHelper.CogClubId + @" THEN " + CogDesignationHelper.DistrictSql("cm") + @" END) AS CogDistrictNumber,
+                MAX(CASE WHEN @ClubId = " + CogDesignationHelper.CogClubId + @" THEN " + CogDesignationHelper.YearStartSql("cm") + @" END) AS CogYearStart
             FROM member_master_profile m
             JOIN club_members cm ON cm.fk_member_master_profile_id = m.pk_member_master_profile_id
             LEFT JOIN club_master c ON c.pk_club_id = cm.fk_club_id
@@ -550,7 +552,7 @@ public class ClubService : IClubService
                          AND fd.isdeleted = 0
                          AND fd.Name LIKE CONCAT('%', @FamilyMemberName, '%')
                    ))
-              AND (@Year IS NULL OR @ClubId <> 31598
+              AND (@Year IS NULL OR @ClubId <> " + CogDesignationHelper.CogClubId + @"
                    OR " + CogDesignationHelper.YearStartSql("cm") + @" = CAST(@Year AS CHAR))
             GROUP BY m.pk_member_master_profile_id, m.MemberName, m.ProfilePhotoPath,
                      m.EmailId, m.PrimaryMobileNumber, m.RotaryId,
@@ -559,7 +561,7 @@ public class ClubService : IClubService
                      cm.JoinedDate, cm.pk_club_member_id, cm.IsActive, cm.IsHonoraryMember
             ORDER BY
                 CASE
-                    WHEN @ClubId = 31598 THEN 0
+                    WHEN @ClubId = " + CogDesignationHelper.CogClubId + @" THEN 0
                     WHEN MAX(CASE WHEN r.RoleName = 'Admin' THEN 1 ELSE 0 END) = 1 THEN 0
                     WHEN m.PrimaryMobileNumber IS NULL OR m.PrimaryMobileNumber = '' THEN 1
                     ELSE 2
@@ -567,7 +569,7 @@ public class ClubService : IClubService
                 -- COG (club 31598): most recent designation year first (e.g. 3142 Dg 2018 - 19
                 -- extracts 2018). Extracted from the free-text label since there's no structured
                 -- year column; NULL/unparseable designations sort last, not first.
-                CASE WHEN @ClubId = 31598
+                CASE WHEN @ClubId = " + CogDesignationHelper.CogClubId + @"
                      THEN COALESCE(-CAST(MAX(" + CogDesignationHelper.YearStartSql("cm") + @") AS SIGNED), 999999)
                      ELSE 0
                 END,

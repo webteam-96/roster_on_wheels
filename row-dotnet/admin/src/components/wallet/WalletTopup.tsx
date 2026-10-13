@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { getClubCreditBalance, getDistrictCreditBalance, createWalletTopupOrder, verifyWalletTopup } from "@/services/api";
 
+import { appLocale, currencySymbol } from "@/lib/appFormat";
 // Client-side pricing MIRRORS the server (server is authoritative on the actual credit + charge).
 const PRICING = {
   WhatsApp: { rate: 1, min: 1000, label: "WhatsApp" },
@@ -24,7 +25,7 @@ function loadRazorpayScript(): Promise<boolean> {
   });
 }
 
-const inr = (n: number) => `₹${n.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+const inr = (n: number) => `${currencySymbol()}${n.toLocaleString(appLocale(), { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
 export default function WalletTopup({ scope, clubId, districtId }: { scope: Scope; clubId?: number | null; districtId?: number | null }) {
   const [balance, setBalance] = useState<any>(null);
@@ -64,7 +65,7 @@ export default function WalletTopup({ scope, clubId, districtId }: { scope: Scop
   async function handlePay() {
     setError(null); setSuccess(null);
     if (!scopeId) { setError("Could not determine your club/district."); return; }
-    if (belowMin) { setError(`Minimum top-up for ${cfg.label} is ₹${cfg.min}.`); return; }
+    if (belowMin) { setError(`Minimum top-up for ${cfg.label} is ${currencySymbol()}${cfg.min}.`); return; }
     setBusy(true);
     try {
       const order = await createWalletTopupOrder({
@@ -155,7 +156,7 @@ export default function WalletTopup({ scope, clubId, districtId }: { scope: Scop
 
         {/* Amount */}
         <div className="space-y-1.5">
-          <label className="text-sm font-medium text-gray-700">Amount (₹) <span className="text-gray-400">— minimum ₹{cfg.min}</span></label>
+          <label className="text-sm font-medium text-gray-700">Amount ({currencySymbol()}) <span className="text-gray-400">— minimum {currencySymbol()}{cfg.min}</span></label>
           <input
             type="number"
             min={cfg.min}
@@ -164,12 +165,12 @@ export default function WalletTopup({ scope, clubId, districtId }: { scope: Scop
             onChange={(e) => setAmount(e.target.value)}
             className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-[#17458f] focus:outline-none"
           />
-          {belowMin && amount !== "" && <p className="text-xs text-red-600">Minimum for {cfg.label} is ₹{cfg.min}.</p>}
+          {belowMin && amount !== "" && <p className="text-xs text-red-600">Minimum for {cfg.label} is {currencySymbol()}{cfg.min}.</p>}
         </div>
 
         {/* Breakdown */}
         <div className="rounded-lg bg-gray-50 border border-gray-200 p-4 text-sm space-y-1.5">
-          <div className="flex justify-between"><span className="text-gray-600">Credits you'll receive</span><span className="font-semibold">{credits.toLocaleString("en-IN")} {creditType}</span></div>
+          <div className="flex justify-between"><span className="text-gray-600">Credits you'll receive</span><span className="font-semibold">{credits.toLocaleString(appLocale())} {creditType}</span></div>
           <div className="flex justify-between"><span className="text-gray-600">Amount</span><span>{inr(amt)}</span></div>
           <div className="flex justify-between"><span className="text-gray-600">GST ({GST_PERCENT}%)</span><span>{inr(gst)}</span></div>
           <div className="flex justify-between border-t border-gray-200 pt-1.5 font-semibold text-[#17458f]"><span>Total payable</span><span>{inr(total)}</span></div>

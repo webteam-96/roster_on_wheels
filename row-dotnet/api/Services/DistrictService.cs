@@ -82,7 +82,7 @@ public class DistrictService : IDistrictService
                 z.ZoneName,
                 d.Country,
                 d.DefaultCurrency,
-                (SELECT COUNT(*) FROM club_master c WHERE c.fk_district_id = d.pk_district_id AND c.isdeleted = 0) AS TotalClubs,
+                (SELECT COUNT(*) FROM club_master c WHERE c.fk_district_id = d.pk_district_id AND c.isdeleted = 0 AND COALESCE(c.ClubType,'') <> 'Rotaract Club') AS TotalClubs,
                 (SELECT COUNT(DISTINCT cm.fk_member_master_profile_id)
                  FROM club_members cm
                  JOIN club_master c2 ON c2.pk_club_id = cm.fk_club_id AND c2.isdeleted = 0
@@ -133,7 +133,7 @@ public class DistrictService : IDistrictService
                 z.ZoneName,
                 d.Country,
                 d.DefaultCurrency,
-                (SELECT COUNT(*) FROM club_master c WHERE c.fk_district_id = d.pk_district_id AND c.isdeleted = 0) AS TotalClubs,
+                (SELECT COUNT(*) FROM club_master c WHERE c.fk_district_id = d.pk_district_id AND c.isdeleted = 0 AND COALESCE(c.ClubType,'') <> 'Rotaract Club') AS TotalClubs,
                 (SELECT COUNT(DISTINCT cm.fk_member_master_profile_id)
                  FROM club_members cm
                  JOIN club_master c2 ON c2.pk_club_id = cm.fk_club_id AND c2.isdeleted = 0
@@ -251,7 +251,7 @@ public class DistrictService : IDistrictService
             commandType: CommandType.StoredProcedure);
     }
 
-    public async Task<IEnumerable<ClubListDto>> GetClubsAsync(int districtId, bool? hasMembers = null)
+    public async Task<IEnumerable<ClubListDto>> GetClubsAsync(int districtId, bool? hasMembers = null, bool excludeRotaract = false)
     {
         using var connection = CreateConnection();
         await connection.OpenAsync();
@@ -261,7 +261,8 @@ public class DistrictService : IDistrictService
         // touching the SP (SYSTEM_USER privilege issue blocks SP updates on this DB).
         if (hasMembers == true)
         {
-            var sql = @"
+            // user 2026-10-08: Rotaract clubs hidden from everyone except SuperAdmin.
+            var sql = $@"
                 SELECT
                     c.pk_club_id AS Id,
                     c.fk_district_id AS FkDistrictId,
@@ -282,6 +283,7 @@ public class DistrictService : IDistrictService
                 WHERE c.fk_district_id = @DistrictId
                   AND c.isdeleted = 0
                   AND EXISTS (SELECT 1 FROM club_members cm JOIN member_master_profile m ON m.pk_member_master_profile_id = cm.fk_member_master_profile_id WHERE cm.fk_club_id = c.pk_club_id AND cm.IsActive = 1 AND cm.isdeleted = 0 AND m.isdeleted = 0)
+                  {(excludeRotaract ? "AND " + ClubScopeSql.NotRotaract("c") : "")}
                 ORDER BY c.ClubName";
             return await connection.QueryAsync<ClubListDto>(sql, new { DistrictId = districtId });
         }
@@ -290,7 +292,7 @@ public class DistrictService : IDistrictService
         // CORRECTLY filtered member count. Inline SQL instead of sp_district_get_clubs — that SP
         // does NOT filter club_members.isdeleted=0 (and can't be updated: SYSTEM_USER privilege),
         // so a non-sync club whose members were soft-deleted kept showing a stale member count.
-        var allSql = @"
+        var allSql = $@"
             SELECT
                 c.pk_club_id AS Id,
                 c.fk_district_id AS FkDistrictId,
@@ -310,6 +312,7 @@ public class DistrictService : IDistrictService
             FROM club_master c
             WHERE c.fk_district_id = @DistrictId
               AND c.isdeleted = 0
+              {(excludeRotaract ? "AND " + ClubScopeSql.NotRotaract("c") : "")}
             ORDER BY c.ClubName";
         return await connection.QueryAsync<ClubListDto>(allSql, new { DistrictId = districtId });
     }

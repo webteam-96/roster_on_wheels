@@ -98,6 +98,9 @@ def main(root):
             if ext not in TEXT or n == "package-lock.json":
                 continue
             p = os.path.join(d, n)
+            # This edition's own README describes where the code came from; never rewrite it.
+            if os.path.abspath(p) == os.path.abspath(os.path.join(root, "README.md")):
+                continue
             try:
                 src = open(p, encoding="utf-8").read()
             except UnicodeDecodeError:

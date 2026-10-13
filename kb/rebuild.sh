@@ -13,6 +13,8 @@ PARTS=(
   "row-admin:row/admin"
   "row-club-website:row/club-website"
   "row-mobile:row/mobile"
+  "dotnet-api:row-dotnet/api"
+  "dotnet-workers:row-dotnet/workers"
   "ref-api:$REF"
   "ref-mobile:reference/rotary_zones_45678_flutter"
 )

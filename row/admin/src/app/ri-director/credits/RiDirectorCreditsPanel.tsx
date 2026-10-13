@@ -22,6 +22,7 @@ import RotaryLoader from "@/components/RotaryLoader";
 import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";
 
+import { appLocale } from "@/lib/appFormat";
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
 function BalanceCard({ title, balance, total, used, icon: Icon, color }: {
@@ -119,7 +120,7 @@ export default function RiDirectorCreditsPanel({ embedded = false }: { embedded?
     finally { setSaving(false); }
   };
 
-  const fmt = (s: string | null) => s ? new Date(s).toLocaleDateString("en-IN") : "-";
+  const fmt = (s: string | null) => s ? new Date(s).toLocaleDateString(appLocale()) : "-";
 
   if (loading) return <ProtectedRoute><div className="flex items-center justify-center py-20"><RotaryLoader size="lg" /></div></ProtectedRoute>;
 
@@ -178,7 +179,7 @@ export default function RiDirectorCreditsPanel({ embedded = false }: { embedded?
                       <TableCell>{c.transactionId || "-"}</TableCell>
                       <TableCell>{c.proofDocumentPath ? <a href={`${API_URL}${c.proofDocumentPath}`} target="_blank" rel="noreferrer" className="text-blue-600 hover:underline text-sm">View</a> : "-"}</TableCell>
                       <TableCell>{fmt(c.createdDate)}</TableCell>
-                      <TableCell>{c.lastUsedDate ? new Date(c.lastUsedDate).toLocaleString("en-IN", { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" }) : "-"}</TableCell>
+                      <TableCell>{c.lastUsedDate ? new Date(c.lastUsedDate).toLocaleString(appLocale(), { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" }) : "-"}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
@@ -202,7 +203,7 @@ export default function RiDirectorCreditsPanel({ embedded = false }: { embedded?
                 <TableBody>
                   {history.length === 0 ? <TableRow><TableCell colSpan={7} className="text-center py-6">No usage yet.</TableCell></TableRow> : history.map((h: any) => (
                     <TableRow key={h.id}>
-                      <TableCell>{h.createdDate ? new Date(h.createdDate).toLocaleString("en-IN") : "-"}</TableCell>
+                      <TableCell>{h.createdDate ? new Date(h.createdDate).toLocaleString(appLocale()) : "-"}</TableCell>
                       <TableCell><span className={`inline-flex px-2 py-0.5 rounded-full text-xs ${h.creditType === "Email" ? "bg-blue-100 text-blue-700" : "bg-green-100 text-green-700"}`}>{h.creditType}</span></TableCell>
                       <TableCell>{h.source}</TableCell>
                       <TableCell className="max-w-xs truncate" title={h.sourceDetail}>{h.sourceDetail || "-"}</TableCell>

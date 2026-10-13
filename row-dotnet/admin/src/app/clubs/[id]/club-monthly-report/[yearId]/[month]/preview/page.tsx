@@ -17,6 +17,7 @@ import ErrorAlert from "@/components/ErrorAlert";
 import SuccessAlert from "@/components/SuccessAlert";
 import ProtectedRoute from "@/components/ProtectedRoute";
 
+import { appLocale } from "@/lib/appFormat";
 const MEETING_TYPE_LABELS: Record<string, string> = {
   regular: "Regular",
   fellowship: "Fellowship",
@@ -54,7 +55,7 @@ function formatReportDate(dateStr: string | null): string {
 function formatDate(dateStr: string | null): string {
   if (!dateStr) return "-";
   const d = new Date(dateStr);
-  return d.toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" });
+  return d.toLocaleDateString(appLocale(), { day: "2-digit", month: "short", year: "numeric" });
 }
 
 function MonthlyReportPreviewPage() {

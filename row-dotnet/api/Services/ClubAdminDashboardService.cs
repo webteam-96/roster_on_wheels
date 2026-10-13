@@ -629,7 +629,7 @@ public class ClubAdminDashboardService : IClubAdminDashboardService
                           COALESCE(aof.name, '') AS category,
                           p.project_date AS projectDate,
                           COALESCE(p.project_cost, 0) AS cost,
-                          COALESCE(p.Currency, 'INR') AS currency,
+                          COALESCE(p.Currency, '{RotaryApi.Services.Brand.SqlCurrency}') AS currency,
                           COALESCE(p.direct_beneficiaries, 0) AS beneficiaries,
                           COALESCE(f.name, 'Self Funded') AS funding,
                           COALESCE(p.approval_status, '') AS approvalStatus
@@ -1600,7 +1600,7 @@ public class ClubAdminDashboardService : IClubAdminDashboardService
                           p.pk_project_id AS projectId,
                           COALESCE(p.title, '') AS title,
                           COALESCE(p.project_cost, 0) AS cost,
-                          COALESCE(p.Currency, 'INR') AS currency,
+                          COALESCE(p.Currency, '{RotaryApi.Services.Brand.SqlCurrency}') AS currency,
                           COALESCE(p.direct_beneficiaries, 0) AS beneficiaries,
                           COALESCE(p.man_hours, 0) AS manHours,
                           COALESCE(p.attendance, 0) AS attendance,
@@ -1904,7 +1904,7 @@ public class ClubAdminDashboardService : IClubAdminDashboardService
                           COALESCE(p.title, '') AS title,
                           COALESCE(p.project_type, 'one_time') AS projectType,
                           COALESCE(p.project_cost, 0) AS cost,
-                          COALESCE(p.Currency, 'INR') AS currency,
+                          COALESCE(p.Currency, '{RotaryApi.Services.Brand.SqlCurrency}') AS currency,
                           COALESCE(p.direct_beneficiaries, 0) AS beneficiaries,
                           COALESCE(p.man_hours, 0) AS manHours,
                           COALESCE(p.approval_status, '') AS approvalStatus,
@@ -2001,6 +2001,26 @@ public class ClubAdminDashboardService : IClubAdminDashboardService
                 }
             }
         }
+
+        // An entry this year whose ongoing parent is from an EARLIER year (e.g. "BLS Demo for
+        // Electricians at Jeppu" under 2025-26 "Save a Life - CPR Training") had no parent in this
+        // list, so the screen dropped it while the Projects tile counted it (7 vs 6, user 2026-10-07).
+        // The earliest such entry per old parent becomes the top row; later ones nest under it.
+        var parentIds = ongoing.Where(o => !(o.ParentProjectId is int p0 && p0 > 0)).Select(o => o.Id).ToHashSet();
+        foreach (var grp in ongoing.Where(o => o.ParentProjectId is int p1 && p1 > 0 && !parentIds.Contains(p1))
+                                   .GroupBy(o => o.ParentProjectId!.Value).ToList())
+        {
+            var ordered = grp.OrderBy(o => o.Date).ThenBy(o => o.Id).ToList();
+            var head = ordered[0];
+            head.ParentProjectId = null;
+            foreach (var c in ordered.Skip(1)) c.ParentProjectId = head.Id;
+        }
+        // Re-number the top rows, newest first like the rest of the list.
+        int srO = 0;
+        var tops = ongoing.Where(o => !(o.ParentProjectId is int p2 && p2 > 0))
+                          .OrderByDescending(o => o.Date).ThenByDescending(o => o.Id).ToList();
+        foreach (var o in tops) o.Sr = ++srO;
+        ongoing = tops.Concat(ongoing.Where(o => o.ParentProjectId is int p3 && p3 > 0)).ToList();
 
         response.OneTimeProjects = oneTime;
         response.OngoingProjects = ongoing;

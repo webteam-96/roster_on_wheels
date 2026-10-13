@@ -41,6 +41,7 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 import ProjectDetailModal from "@/components/ProjectDetailModal";
 import { formatMoney } from "@/lib/currency";
 
+import { appLocale } from "@/lib/appFormat";
 function formatTime(t: string | null) {
   if (!t) return "";
   return t.substring(0, 5);
@@ -48,7 +49,7 @@ function formatTime(t: string | null) {
 function formatDate(d: string | null) {
   if (!d) return "";
   try {
-    return new Date(d).toLocaleDateString("en-IN", {
+    return new Date(d).toLocaleDateString(appLocale(), {
       day: "2-digit", month: "short", year: "numeric",
     });
   } catch { return d; }

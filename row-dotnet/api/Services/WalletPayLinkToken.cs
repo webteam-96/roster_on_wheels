@@ -33,9 +33,11 @@ public static class WalletPayLinkToken
         public long ExpiryUnix { get; init; }
     }
 
-    public static string Generate(IConfiguration config, string scope, string purpose, int entityId, int? lifetimeDays = null)
+    // neverExpires (user 2026-10-09): the Club Wallet's common pick-a-club links carry expiry 0 = no
+    // expiry. Safe: no club and no amount is baked in - the payer picks the club, the server prices it.
+    public static string Generate(IConfiguration config, string scope, string purpose, int entityId, int? lifetimeDays = null, bool neverExpires = false)
     {
-        var expiry = DateTimeOffset.UtcNow.AddDays(lifetimeDays ?? DefaultLifetimeDays).ToUnixTimeSeconds();
+        var expiry = neverExpires ? 0L : DateTimeOffset.UtcNow.AddDays(lifetimeDays ?? DefaultLifetimeDays).ToUnixTimeSeconds();
         var json = JsonSerializer.Serialize(new { s = scope, p = purpose, e = entityId, x = expiry });
         var plaintext = Encoding.UTF8.GetBytes(json);
 
@@ -120,7 +122,7 @@ public static class WalletPayLinkToken
             return false;
         }
 
-        if (DateTimeOffset.FromUnixTimeSeconds(payload.ExpiryUnix) < DateTimeOffset.UtcNow)
+        if (payload.ExpiryUnix > 0 && DateTimeOffset.FromUnixTimeSeconds(payload.ExpiryUnix) < DateTimeOffset.UtcNow)
         {
             error = "This payment link has expired. Please ask the Rotary office for a fresh link.";
             return false;

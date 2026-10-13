@@ -24,7 +24,7 @@ export function AboutStory() {
           <div className="rule-gold" aria-hidden />
           <p className="eyebrow mt-3.5">About Us</p>
           <p className="mt-7 text-[17px] leading-relaxed text-ink/85 first-letter:float-left first-letter:mr-3 first-letter:mt-1 first-letter:font-display first-letter:text-6xl first-letter:font-[560] first-letter:leading-[0.8] first-letter:text-navy-950 sm:text-lg">
-            Welcome to Rotary Clubs in Zones 4, 5, 6, 7 &amp; 8, where service,
+            Welcome to Rotary Clubs in the zones, where service,
             diversity, and community spirit converge to make a lasting impact on our
             region and beyond. With a
             rich history dating back several decades, Rotary has become an integral

@@ -1,19 +1,25 @@
 import type { Metadata } from "next";
 import PolicyPageLayout from "@/components/public/PolicyPageLayout";
-import { MERCHANT } from "@/lib/merchantInfo";
+import { merchantFrom } from "@/lib/merchantInfo";
+import { getServerBrand, telHref } from "@/lib/brand";
 
-export const metadata: Metadata = {
-  title: "Contact Us — ROW",
-  description:
-    "How to reach the ROW administration portal. Email, phone, postal address, support hours, and grievance officer.",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const brand = await getServerBrand();
+  return {
+    title: `Contact Us — ${brand.productName}`,
+    description:
+      `How to reach the ${brand.productName} administration portal. Email, phone, postal address, support hours, and grievance officer.`,
+  };
+}
 
-export default function ContactUsPage() {
+export default async function ContactUsPage() {
+  const brand = await getServerBrand();
+  const MERCHANT = merchantFrom(brand);
   return (
     <PolicyPageLayout
       title="Contact Us"
       updated="Last updated: 5 June 2026"
-      intro="We are here to help. Reach the ROW administration team through any of the channels below."
+      intro={`We are here to help. Reach the ${brand.productName} administration team through any of the channels below.`}
     >
       <section>
         <h2>Primary Contact</h2>
@@ -27,9 +33,12 @@ export default function ContactUsPage() {
           </li>
           <li>
             <strong>Help line:</strong>{" "}
-            <a href={`tel:${MERCHANT.phone.replace(/[^+\d]/g, "")}`}>{MERCHANT.phone}</a>{" "}
-            /{" "}
-            <a href={`tel:${MERCHANT.phoneSecondary.replace(/[^+\d]/g, "")}`}>{MERCHANT.phoneSecondary}</a>
+            {MERCHANT.phones.map((phone, i) => (
+              <span key={phone}>
+                {i > 0 && " / "}
+                <a href={telHref(phone)}>{phone}</a>
+              </span>
+            ))}
           </li>
           <li>
             <strong>Working hours:</strong> {MERCHANT.workingHours}
@@ -41,14 +50,12 @@ export default function ContactUsPage() {
         <h2>Registered Address</h2>
         <address style={{ fontStyle: "normal" }}>
           {MERCHANT.legalName}
-          <br />
-          {MERCHANT.address.line1}
-          <br />
-          {MERCHANT.address.line2}
-          <br />
-          PIN {MERCHANT.address.pin}
-          <br />
-          India
+          {MERCHANT.addressLines.map((line) => (
+            <span key={line}>
+              <br />
+              {line}
+            </span>
+          ))}
         </address>
       </section>
 
@@ -93,7 +100,7 @@ export default function ContactUsPage() {
           </li>
           <li>
             <strong>Email:</strong>{" "}
-            <a href={`mailto:support@example.org`}>support@example.org</a>
+            <a href={`mailto:${MERCHANT.privacyEmail}`}>{MERCHANT.privacyEmail}</a>
           </li>
           <li>
             <strong>Address:</strong> Same as the registered address above.

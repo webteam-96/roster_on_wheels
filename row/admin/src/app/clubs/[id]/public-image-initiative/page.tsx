@@ -39,9 +39,10 @@ import RotaryLoader from "@/components/RotaryLoader";
 import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";
 
+import { appLocale } from "@/lib/appFormat";
 const AGREE_MESSAGE = `The data I will enter is for a Public Image Initiative conducted by my club. E.g., Hoardings, Marathons, Rotary Stories on News Papers / Radio / TV ads, etc.
 
-Please Note: The content posted here will be displayed on the Rotary Zones 4, 5, 6, 7 & 8 Website, District Website, Club Monthly Report & Rotary Zones 4, 5, 6, 7 & 8 Integrated Club Website`;
+Please Note: The content posted here will be displayed on the ROW Website, District Website, Club Monthly Report & ROW Integrated Club Website`;
 
 export default function PublicImageInitiativePage() {
   const params = useParams();
@@ -181,7 +182,7 @@ export default function PublicImageInitiativePage() {
 
   const formatDate = (dateStr: string | null) => {
     if (!dateStr) return "-";
-    return new Date(dateStr).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" });
+    return new Date(dateStr).toLocaleDateString(appLocale(), { day: "2-digit", month: "short", year: "numeric" });
   };
 
   const renderProjectRow = (project: ProjectListItem, index: number, isChild = false) => {
@@ -232,7 +233,7 @@ export default function PublicImageInitiativePage() {
         <TableCell>{project.areaOfFocusName || project.otherAreaOfFocus || "-"}</TableCell>
         <TableCell>{formatDate(project.projectDate)}</TableCell>
         <TableCell>{project.location || "-"}</TableCell>
-        <TableCell className="text-right">{project.projectCost?.toLocaleString("en-IN") || "-"}</TableCell>
+        <TableCell className="text-right">{project.projectCost?.toLocaleString(appLocale()) || "-"}</TableCell>
         <TableCell>
           {project.approvalStatus === "pending" ? <Badge className="bg-amber-500 text-white text-xs"><Clock className="h-3 w-3 mr-1" />Pending</Badge>
            : project.approvalStatus === "approved" ? <Badge className="bg-green-600 text-white text-xs"><CheckCircle2 className="h-3 w-3 mr-1" />Approved</Badge>

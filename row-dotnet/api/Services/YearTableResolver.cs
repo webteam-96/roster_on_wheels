@@ -160,7 +160,7 @@ public class YearTableResolver : IYearTableResolver
                 other_sub_category VARCHAR(100) NULL,
                 project_date DATE NULL,
                 project_cost DECIMAL(15,2) NULL,
-                Currency VARCHAR(5) NOT NULL DEFAULT 'INR',
+                Currency VARCHAR(5) NOT NULL DEFAULT '{Brand.SqlCurrency}',
                 fk_funding_id INT NULL,
                 direct_beneficiaries INT NULL,
                 man_hours INT NULL,

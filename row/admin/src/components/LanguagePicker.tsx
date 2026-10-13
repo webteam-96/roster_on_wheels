@@ -10,7 +10,7 @@ import { cn } from "@/lib/utils";
 
 /**
  * Lists the instance's languages by their own names. Renders nothing when the
- * instance has a single language (RIZones). When signed in, the choice is also
+ * instance has a single language (ROW). When signed in, the choice is also
  * stored on the member so it follows them to other devices.
  */
 export default function LanguagePicker({ className, signedIn = false }: { className?: string; signedIn?: boolean }) {

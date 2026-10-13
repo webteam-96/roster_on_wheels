@@ -15,6 +15,7 @@ import {
   FileUp, ExternalLink,
 } from "lucide-react";
 
+import { appLocale } from "@/lib/appFormat";
 const MEETING_TYPE_LABELS: Record<string, string> = {
   regular: "Regular",
   fellowship: "Fellowship",
@@ -49,7 +50,7 @@ function DetailRow({ label, value }: { label: string; value: React.ReactNode }) 
 }
 
 function formatDate(dateStr: string): string {
-  return new Date(dateStr).toLocaleDateString("en-IN", {
+  return new Date(dateStr).toLocaleDateString(appLocale(), {
     day: "2-digit", month: "short", year: "numeric",
   });
 }

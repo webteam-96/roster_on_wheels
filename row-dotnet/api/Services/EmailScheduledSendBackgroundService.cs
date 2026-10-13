@@ -397,7 +397,7 @@ public class EmailScheduledSendBackgroundService : BackgroundService
                   AND d.IsActive = 1 AND d.isdeleted = 0
                   AND z.IsActive = 1 AND z.isdeleted = 0
                   AND m.isdeleted = 0
-                  AND m.EmailId IS NOT NULL AND m.EmailId <> ''",
+                  AND m.EmailId IS NOT NULL AND m.EmailId <> ''" + RotaryApi.Privacy.PrivacyConsent.BroadcastFilter(),
                 new { Id = clubId })).ToList();
         }
         if (scope == "district")
@@ -415,7 +415,7 @@ public class EmailScheduledSendBackgroundService : BackgroundService
                   AND d.IsActive = 1 AND d.isdeleted = 0
                   AND z.IsActive = 1 AND z.isdeleted = 0
                   AND m.isdeleted = 0
-                  AND m.EmailId IS NOT NULL AND m.EmailId <> ''",
+                  AND m.EmailId IS NOT NULL AND m.EmailId <> ''" + RotaryApi.Privacy.PrivacyConsent.BroadcastFilter(),
                 new { Id = districtId ?? 0 })).ToList();
         }
         return await ResolveRiRecipientsAsync(conn, target ?? "all", zoneIdsStr, districtIdsStr, subgroupIdsStr);
@@ -438,7 +438,7 @@ public class EmailScheduledSendBackgroundService : BackgroundService
                              AND d.IsActive = 1 AND d.isdeleted = 0
                              AND z.IsActive = 1 AND z.isdeleted = 0
                              AND m.isdeleted = 0
-                             AND m.EmailId IS NOT NULL AND m.EmailId <> ''";
+                             AND m.EmailId IS NOT NULL AND m.EmailId <> ''" + RotaryApi.Privacy.PrivacyConsent.BroadcastFilter();
         object? prm;
         string filter;
         switch (target.ToLowerInvariant())
@@ -464,7 +464,7 @@ public class EmailScheduledSendBackgroundService : BackgroundService
                     JOIN sub_groups sg ON sg.pk_sub_group_id = sm.fk_sub_group_id AND sg.Scope = 'ri' AND sg.isdeleted = 0
                     JOIN member_master_profile m ON m.pk_member_master_profile_id = sm.fk_member_master_profile_id
                     WHERE sm.fk_sub_group_id IN @Ids AND sm.isdeleted = 0 AND m.isdeleted = 0
-                      AND m.EmailId IS NOT NULL AND m.EmailId <> ''",
+                      AND m.EmailId IS NOT NULL AND m.EmailId <> ''" + RotaryApi.Privacy.PrivacyConsent.BroadcastFilter(),
                     new { Ids = sgids })).ToList();
             default:
                 filter = "";

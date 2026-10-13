@@ -57,7 +57,7 @@ const settingsCards: SettingsCard[] = [
   },
   {
     title: "Daily Statistics Report",
-    description: "Preview / download / send the daily stats email (sync & non-sync clubs, members, projects, photos) — auto-sent 6 AM IST",
+    description: "Preview / download / send the daily stats email (sync & non-sync clubs, members, projects, photos) — auto-sent daily at 6 AM",
     icon: FileBarChart,
     href: "/settings/daily-stats-report",
   },
@@ -125,7 +125,7 @@ const settingsCards: SettingsCard[] = [
   },
   {
     title: "Rotary.org",
-    description: "Manually sync clubs and members between Rotary Zones 4, 5, 6, 7 & 8 and Rotary.org",
+    description: "Manually sync clubs and members between ROW and Rotary.org",
     icon: Globe,
     href: "/settings/rotary-org",
   },

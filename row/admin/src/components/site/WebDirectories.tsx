@@ -7,14 +7,14 @@ type Directory = { label: string; desc: string; href: string; Icon: LucideIcon; 
 const DIRECTORIES: Directory[] = [
   {
     label: "International & National Websites",
-    desc: "Rotary International, My Rotary, The Rotary Foundation, Rotary India and Rotary News — every official platform, gathered in one place.",
+    desc: "Rotary International, My Rotary, The Rotary Foundation, ROW and Rotary News — every official platform, gathered in one place.",
     href: "/international-national",
     Icon: Globe,
     cta: "Explore the platforms",
   },
   {
     label: "District & Club Websites",
-    desc: "Find any District or Club website across Zones 4, 5, 6, 7 & 8 — search by district, state or city.",
+    desc: "Find any District or Club website across the zones — search by district, state or city.",
     href: "/websites",
     Icon: Building2,
     cta: "Browse the directory",

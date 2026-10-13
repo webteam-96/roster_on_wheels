@@ -267,7 +267,7 @@ function DistrictComposeContent() {
             </div>
             <div className="space-y-2">
               <Label>Sender Email</Label>
-              <Input value="communication@rizones45678.org" disabled className="bg-muted" />
+              <Input value="support@example.org" disabled className="bg-muted" />
             </div>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

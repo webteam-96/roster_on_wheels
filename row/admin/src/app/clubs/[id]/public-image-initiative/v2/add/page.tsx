@@ -54,6 +54,7 @@ import { isFlowBotEnabled, triggerAddToOrg, fileToDataUrl, type OrgExport, type 
 import ImageCropDialog from "@/components/ImageCropDialog";
 import { useImageCropQueue } from "@/hooks/useImageCropQueue";
 
+import { defaultCurrency } from "@/lib/appFormat";
 // Project photos are shown 16:9 on the public site (components/pages/projects/shared.tsx),
 // so the crop is locked to that shape. 1600×900 keeps the widest card retina-sharp.
 const PROJECT_PHOTO_ASPECT = 16 / 9;
@@ -66,11 +67,11 @@ const ADD_TO_ORG_API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:
 
 const MODULE_KEY = "public_image_initiative";
 
-const TOP_MESSAGE = "Please post all the Public Image Initiatives executed by your club. The content posted here will be displayed in District website, Club Monthly Report & Rotary Zones 4, 5, 6, 7 & 8 integrated Club website.";
+const TOP_MESSAGE = "Please post all the Public Image Initiatives executed by your club. The content posted here will be displayed in District website, Club Monthly Report & ROW integrated Club website.";
 
 const AGREE_MESSAGE = `The data I will enter is for a Public Image Initiative conducted by my club. E.g., Hoardings, Marathons, Rotary Stories on News Papers / Radio / TV ads, etc.
 
-Please Note: The content posted here will be displayed on the Rotary Zones 4, 5, 6, 7 & 8 Website, District Website, Club Monthly Report & Rotary Zones 4, 5, 6, 7 & 8 Integrated Club Website`;
+Please Note: The content posted here will be displayed on the ROW Website, District Website, Club Monthly Report & ROW Integrated Club Website`;
 
 const ONGOING_INFO = `Ongoing Project
 
@@ -220,7 +221,7 @@ export default function PublicImageInitiativeV2AddPage() {
 
   const [projectDate, setProjectDate] = useState("");
   const [projectCost, setProjectCost] = useState("");
-  const [currency, setCurrency] = useState("INR");
+  const [currency, setCurrency] = useState(defaultCurrency());
   const [selectedFundingId, setSelectedFundingId] = useState<string>("");
   // Funding-conditional fields (Global Grant / CSR). Cleared when funding option changes.
   const [globalGrantNumber, setGlobalGrantNumber] = useState("");
@@ -805,7 +806,7 @@ export default function PublicImageInitiativeV2AddPage() {
                 <div className="mt-4 pl-5 border-l-2 border-blue-200 ml-2 space-y-3">
                   <div className="flex gap-2 rounded-lg border border-amber-200 bg-amber-50 p-2.5 text-xs text-amber-800">
                     <Info className="h-4 w-4 shrink-0 mt-0.5" />
-                    <p>Project uploaded by co-host Rotary club will be displayed only in the club monthly report &amp; club website (If subscribed through Rotary Zones 4, 5, 6, 7 &amp; 8)</p>
+                    <p>Project uploaded by co-host Rotary club will be displayed only in the club monthly report &amp; club website (If subscribed through ROW)</p>
                   </div>
                   <div>
                     <FieldLabel dot="bg-blue-500">Name of Co-host Rotary Club / Partner Organisation</FieldLabel>
@@ -1214,8 +1215,8 @@ export default function PublicImageInitiativeV2AddPage() {
             </DialogHeader>
             <div className="text-sm text-muted-foreground space-y-3 py-2">
               <p className="font-medium text-foreground">Dear Club Leader,</p>
-              <p>You have successfully added a project in Rotary Zones 4, 5, 6, 7 &amp; 8. You can check after 10 minutes.</p>
-              <p>Thank you,<br /><span className="font-medium text-foreground">Team Rotary Zones 4, 5, 6, 7 &amp; 8</span></p>
+              <p>You have successfully added a project in ROW. You can check after 10 minutes.</p>
+              <p>Thank you,<br /><span className="font-medium text-foreground">Team ROW</span></p>
             </div>
             <Button className="w-full" onClick={() => { setShowProjectSuccess(false); setSuccessMessage(null); navigateAfterSave(); }}>OK</Button>
           </DialogContent>

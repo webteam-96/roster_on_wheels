@@ -21,7 +21,7 @@ const NAV: NavItem[] = [
   { label: "About", href: "/about-us" },
   { label: "Projects", href: "/projects" },
   {
-    label: "Rotary Zones 4, 5, 6, 7 & 8",
+    label: "ROW",
     children: [
       { label: "Our Leaders", href: "/our-leaders" },
       { label: "Web Committee", href: "/committee" },
@@ -30,7 +30,7 @@ const NAV: NavItem[] = [
     ],
   },
   { label: "Zonal Events", href: "/past-events" },
-  { label: "User Manual", href: "https://digitals-private-organization.gitbook.io/rizones45678.org" },
+  { label: "User Manual", href: "https://digitals-private-organization.gitbook.io/portal.example.org" },
   {
     label: "Member Centre",
     children: [
@@ -46,9 +46,8 @@ const ADMIN_LOGIN_URL = "/login";
 
 // Socials live in the mobile sheet foot (and the footer) — TopBar retired.
 const SOCIALS = [
-  { label: "Facebook", href: "https://facebook.com/rotaryindia1.org", Icon: FacebookIcon },
-  { label: "Instagram", href: "https://instagram.com/rizones4567", Icon: InstagramIcon },
-  { label: "YouTube", href: "https://youtube.com/@rizones4567", Icon: YoutubeIcon },
+  { label: "Instagram", href: "https://instagram.com/ROW", Icon: InstagramIcon },
+  { label: "YouTube", href: "https://youtube.com/@ROW", Icon: YoutubeIcon },
 ];
 
 /**

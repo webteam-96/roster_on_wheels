@@ -20,12 +20,13 @@ import {
   Globe, ShieldCheck, Megaphone, Link2, CheckCircle2, Lock, Check, AlertTriangle,
 } from "lucide-react";
 import PayPageShell from "@/components/PayPageShell";
-import { PayCard as Card, PayHelpCard, PayBenefits, PayTrustRows, SUPPORT_PHONE } from "@/components/PayCard";
+import { PayCard as Card, PayHelpCard, PayBenefits, PayTrustRows, supportPhone } from "@/components/PayCard";
 import {
   getPublicClubWebsite, checkPublicClubWebsiteSubdomain,
   createPublicClubWebsiteOrder, verifyPublicClubWebsiteOrder,
 } from "@/services/api";
 
+import { appLocale, currencySymbol } from "@/lib/appFormat";
 type Step = "subdomain" | "confirm" | "pay" | "done";
 
 const BENEFITS = [
@@ -45,8 +46,8 @@ function loadRazorpayScript(): Promise<boolean> {
   });
 }
 
-const inr = (n: number) => `₹${Number(n || 0).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-const fmtDate = (s?: string | null) => (s ? new Date(s).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" }) : "—");
+const inr = (n: number) => `${currencySymbol()}${Number(n || 0).toLocaleString(appLocale(), { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+const fmtDate = (s?: string | null) => (s ? new Date(s).toLocaleDateString(appLocale(), { day: "2-digit", month: "short", year: "numeric" }) : "—");
 
 export default function PublicClubWebsitePayPage() {
   const params = useParams();
@@ -67,7 +68,7 @@ export default function PublicClubWebsitePayPage() {
   const [result, setResult] = useState<any>(null);
 
   const isRenewal = info?.orderType === "Renewal";
-  const parentDomain = info?.parentDomain || "rotaryindia.org";
+  const parentDomain = info?.parentDomain || "example.org";
   const prefix = info?.subdomainPrefix || "rc";
 
   const loadInfo = useCallback(async () => {
@@ -122,7 +123,7 @@ export default function PublicClubWebsitePayPage() {
         order_id: order.razorpayOrderId,
         amount: order.amountPaise,
         currency: order.currency,
-        name: "Rotary Zones 4, 5, 6, 7 & 8",
+        name: "ROW",
         description: `Club website ${order.orderType} — ${order.clubName || `${order.subdomain}.${parentDomain}`}`,
         handler: async (resp: any) => {
           try {
@@ -167,7 +168,7 @@ export default function PublicClubWebsitePayPage() {
       <div className="mx-auto max-w-lg rounded-2xl border border-red-200 bg-red-50 p-8 text-center shadow-sm">
         <h1 className="text-lg font-bold text-red-800">This link doesn&apos;t work</h1>
         <p className="mt-2 text-sm text-red-700">{loadError}</p>
-        <p className="mt-4 text-xs text-red-600">Ask your district team for a fresh link, or call {SUPPORT_PHONE}.</p>
+        <p className="mt-4 text-xs text-red-600">Ask your district team for a fresh link, {supportPhone() ? <> or call {supportPhone()}</> : null}.</p>
       </div>
     </PayPageShell>
   );

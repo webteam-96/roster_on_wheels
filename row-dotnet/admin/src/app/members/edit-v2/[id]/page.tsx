@@ -16,6 +16,7 @@
  * across the app still link to it. Migrating those references is a follow-up.
  */
 
+import { useFeature } from "@/contexts/BrandContext";
 import { familyDuplicateError } from "@/lib/familyValidation";
 import { Suspense, useEffect, useState } from "react";
 import DateField from "@/components/DateField";
@@ -85,9 +86,9 @@ const emptyFamilyMember: Omit<FamilyMember, "id" | "fkMemberMasterProfileId"> = 
   name: "",
   relation: "",
   bloodGroup: "",
-  fkCountryId: 1,
-  country: "India",
-  countryPhoneCode: "+91",
+  fkCountryId: 0,
+  country: "",
+  countryPhoneCode: "",
   phoneNumber: "",
   emailId: "",
   birthDate: null,
@@ -97,9 +98,9 @@ const emptyFamilyMember: Omit<FamilyMember, "id" | "fkMemberMasterProfileId"> = 
 
 const emptyResidentialAddress: Partial<MemberAddress> = {
   addressType: "Residential",
-  fkCountryId: 1,
-  country: "India",
-  countryPhoneCode: "+91",
+  fkCountryId: 0,
+  country: "",
+  countryPhoneCode: "",
   phoneNumber: "",
   address: "",
   state: "",
@@ -112,9 +113,9 @@ const emptyResidentialAddress: Partial<MemberAddress> = {
 
 const emptyBusinessAddress: Partial<MemberAddress> = {
   addressType: "Business",
-  fkCountryId: 1,
-  country: "India",
-  countryPhoneCode: "+91",
+  fkCountryId: 0,
+  country: "",
+  countryPhoneCode: "",
   phoneNumber: "",
   address: "",
   state: "",
@@ -128,17 +129,17 @@ const emptyBusinessAddress: Partial<MemberAddress> = {
 const defaultFormData: Partial<Member> = {
   memberName: "",
   profilePhotoPath: null,
-  fkPrimaryCountryId: 1,
-  primaryCountry: "India",
-  primaryCountryPhoneCode: "+91",
+  fkPrimaryCountryId: 0,
+  primaryCountry: "",
+  primaryCountryPhoneCode: "",
   primaryMobileNumber: "",
   emailId: "",
   birthDate: null,
   anniversaryDate: null,
   bloodGroup: "",
-  fkSecondaryCountryId: 1,
-  secondaryCountry: "India",
-  secondaryCountryPhoneCode: "+91",
+  fkSecondaryCountryId: 0,
+  secondaryCountry: "",
+  secondaryCountryPhoneCode: "",
   secondaryMobileNumber: "",
   isPersonalDetailsVisible: true,
   gender: "",
@@ -242,6 +243,8 @@ function EditMemberV2Form() {
   const [countries, setCountries] = useState<Country[]>([]);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
+  const showBloodGroup = useFeature("member.bloodGroup");
+  const showFamily = useFeature("member.familyDetails");
   const [loading, setLoading] = useState(true);
 
   // COG-only state. Left untouched (and never fetched) for every other club.
@@ -318,17 +321,7 @@ function EditMemberV2Form() {
       return;
     }
     Promise.all([
-      getCountries().catch(() => [
-        {
-          id: 1,
-          countryName: "India",
-          countryCode: "IN",
-          phoneCode: "+91",
-          gmtOpt: "+",
-          gmtTime: "05:30",
-          ordering: 1,
-        } as Country,
-      ]),
+      getCountries().catch(() => [] as Country[]),
       getMember(memberId, paramClubId ? parseInt(paramClubId) || undefined : undefined).catch((err: unknown) => {
         const axiosErr = err as { response?: { data?: { message?: string } } };
         setErrorMessage(axiosErr?.response?.data?.message || "Failed to load member.");
@@ -405,15 +398,15 @@ function EditMemberV2Form() {
       setFormData((prev) => ({
         ...prev,
         fkPrimaryCountryId: id,
-        primaryCountry: country?.countryName || "India",
-        primaryCountryPhoneCode: country?.phoneCode || "+91",
+        primaryCountry: country?.countryName || "",
+        primaryCountryPhoneCode: country?.phoneCode || "",
       }));
     } else {
       setFormData((prev) => ({
         ...prev,
         fkSecondaryCountryId: id,
-        secondaryCountry: country?.countryName || "India",
-        secondaryCountryPhoneCode: country?.phoneCode || "+91",
+        secondaryCountry: country?.countryName || "",
+        secondaryCountryPhoneCode: country?.phoneCode || "",
       }));
     }
   };
@@ -439,8 +432,8 @@ function EditMemberV2Form() {
       addresses[idx] = {
         ...addresses[idx],
         fkCountryId: id,
-        country: country?.countryName || "India",
-        countryPhoneCode: country?.phoneCode || "+91",
+        country: country?.countryName || "",
+        countryPhoneCode: country?.phoneCode || "",
       };
     } else {
       const base = type === "Residential" ? { ...emptyResidentialAddress } : { ...emptyBusinessAddress };
@@ -449,8 +442,8 @@ function EditMemberV2Form() {
         id: 0,
         fkMemberMasterProfileId: 0,
         fkCountryId: id,
-        country: country?.countryName || "India",
-        countryPhoneCode: country?.phoneCode || "+91",
+        country: country?.countryName || "",
+        countryPhoneCode: country?.phoneCode || "",
       } as MemberAddress);
     }
     updateField("addresses", addresses);
@@ -475,8 +468,8 @@ function EditMemberV2Form() {
     members[index] = {
       ...members[index],
       fkCountryId: id,
-      country: country?.countryName || "India",
-      countryPhoneCode: country?.phoneCode || "+91",
+      country: country?.countryName || "",
+      countryPhoneCode: country?.phoneCode || "",
     };
     updateField("familyMembers", members);
   };
@@ -1027,7 +1020,7 @@ function EditMemberV2Form() {
               onChange={(v) => updateField("anniversaryDate", v)}
             />
           </div>
-          {renderSelect("bloodGroup", "Blood Group", BLOOD_GROUPS)}
+          {showBloodGroup && renderSelect("bloodGroup", "Blood Group", BLOOD_GROUPS)}
           {renderSelect("gender", "Gender", GENDERS)}
           {renderSelect("primaryLanguage", "Primary Language", LANGUAGES)}
           {renderCountrySelect("fkSecondaryCountryId", "Secondary Country")}
@@ -1149,6 +1142,7 @@ function EditMemberV2Form() {
       </SectionCard>
 
       {/* 5 — Family */}
+      {showFamily && (
       <SectionCard number={5} icon={Users} title="Family Details" dot="bg-rose-600">
         <div className="flex flex-col sm:flex-row gap-6 items-start mb-4">
           <PhotoUpload
@@ -1221,6 +1215,7 @@ function EditMemberV2Form() {
                       ))}
                     </select>
                   </div>
+                  {showBloodGroup && (
                   <div>
                     <FieldLabel dot="bg-rose-500">Blood Group</FieldLabel>
                     <select
@@ -1234,6 +1229,7 @@ function EditMemberV2Form() {
                       ))}
                     </select>
                   </div>
+                  )}
                   <div>
                     <FieldLabel dot="bg-rose-500">Country</FieldLabel>
                     <select
@@ -1295,6 +1291,7 @@ function EditMemberV2Form() {
           </div>
         )}
       </SectionCard>
+      )}
 
       <SuccessAlert
         open={showSuccess}

@@ -431,7 +431,7 @@ public static class OcvReportWordBuilder
 
         // File name and upload date are intentionally NOT shown per the restructured OCV report.
         var facts = new List<(string, string)>();
-        if (d.Amount is > 0) facts.Add(("Amount", "₹ " + d.Amount!.Value.ToString("N2", CultureInfo.InvariantCulture)));
+        if (d.Amount is > 0) facts.Add(("Amount", Brand.Money(d.Amount!.Value)));
         if (d.PaidOn.HasValue) facts.Add(("Paid On", d.PaidOn.Value.ToString("dd MMM yyyy", CultureInfo.InvariantCulture)));
         InlineFacts(body, facts);
 

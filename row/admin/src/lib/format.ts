@@ -9,7 +9,7 @@
  *  - "YYYY-MM-DD" (a calendar date: birthday, project date). Shown as that date
  *    in every zone, never shifted.
  *  - a timestamp. With an offset ("…+05:30", "…Z") it is converted to the
- *    district's zone. Without one ("2026-09-30T14:00:00", RIZones today) it is
+ *    district's zone. Without one ("2026-09-30T14:00:00", ROW today) it is
  *    instance time and shown as written, whatever the viewer's own clock says.
  */
 
@@ -197,7 +197,7 @@ export function rotaryYearOf(date: string | Date): string {
 
 /**
  * The locale numbers and dates use: the brand's number locale while the
- * interface is in English (RIZones keeps en-IN grouping, 1,00,000), otherwise
+ * interface is in English (ROW keeps en-IN grouping, 1,00,000), otherwise
  * the interface language.
  */
 export function numberLocaleFor(interfaceLocale: string, brandNumberLocale: string): string {

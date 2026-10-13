@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import DateField from "@/components/DateField";
-import { useFeature } from "@/contexts/BrandContext";
+import { useBrand, useFeature } from "@/contexts/BrandContext";
 import { Country, Member, MemberAddress, FamilyMember } from "@/types/member";
 import { getCountries } from "@/services/api";
 import { Input } from "@/components/ui/input";
@@ -77,9 +77,9 @@ const emptyFamilyMember: Omit<FamilyMember, "id" | "fkMemberMasterProfileId"> = 
   name: "",
   relation: "",
   bloodGroup: "",
-  fkCountryId: 1,
-  country: "India",
-  countryPhoneCode: "+91",
+  fkCountryId: 0,
+  country: "",
+  countryPhoneCode: "",
   phoneNumber: "",
   emailId: "",
   birthDate: null,
@@ -89,9 +89,9 @@ const emptyFamilyMember: Omit<FamilyMember, "id" | "fkMemberMasterProfileId"> = 
 
 const emptyResidentialAddress: Partial<MemberAddress> = {
   addressType: "Residential",
-  fkCountryId: 1,
-  country: "India",
-  countryPhoneCode: "+91",
+  fkCountryId: 0,
+  country: "",
+  countryPhoneCode: "",
   phoneNumber: "",
   address: "",
   state: "",
@@ -104,9 +104,9 @@ const emptyResidentialAddress: Partial<MemberAddress> = {
 
 const emptyBusinessAddress: Partial<MemberAddress> = {
   addressType: "Business",
-  fkCountryId: 1,
-  country: "India",
-  countryPhoneCode: "+91",
+  fkCountryId: 0,
+  country: "",
+  countryPhoneCode: "",
   phoneNumber: "",
   address: "",
   state: "",
@@ -120,17 +120,17 @@ const emptyBusinessAddress: Partial<MemberAddress> = {
 const defaultFormData: Partial<Member> = {
   memberName: "",
   profilePhotoPath: null,
-  fkPrimaryCountryId: 1,
-  primaryCountry: "India",
-  primaryCountryPhoneCode: "+91",
+  fkPrimaryCountryId: 0,
+  primaryCountry: "",
+  primaryCountryPhoneCode: "",
   primaryMobileNumber: "",
   emailId: "",
   birthDate: null,
   anniversaryDate: null,
   bloodGroup: "",
-  fkSecondaryCountryId: 1,
-  secondaryCountry: "India",
-  secondaryCountryPhoneCode: "+91",
+  fkSecondaryCountryId: 0,
+  secondaryCountry: "",
+  secondaryCountryPhoneCode: "",
   secondaryMobileNumber: "",
   isPersonalDetailsVisible: true,
   // Honorary is per-club (cm.IsHonoraryMember) and only meaningful on CREATE
@@ -207,8 +207,21 @@ export default function MemberForm({
   useEffect(() => {
     getCountries()
       .then(setCountries)
-      .catch(() => setCountries([{ id: 1, countryName: "India", countryCode: "IN", phoneCode: "+91", gmtOpt: "+", gmtTime: "05:30", ordering: 1 }]));
+      .catch(() => setCountries([]));
   }, []);
+
+  // ROW: a new member starts in the brand's default country (Brand:Locale:DefaultCountryId); none when it is 0.
+  const brand = useBrand();
+  useEffect(() => {
+    const c = countries.find((x) => x.id === brand.locale.defaultCountryId);
+    if (!c) return;
+    setFormData((p) => (p.fkPrimaryCountryId ? p : {
+      ...p,
+      fkPrimaryCountryId: c.id, primaryCountry: c.countryName, primaryCountryPhoneCode: c.phoneCode,
+      fkSecondaryCountryId: p.fkSecondaryCountryId || c.id, secondaryCountry: p.secondaryCountry || c.countryName,
+      secondaryCountryPhoneCode: p.secondaryCountryPhoneCode || c.phoneCode,
+    }));
+  }, [countries, brand.locale.defaultCountryId]);
 
   const resAddr = getAddress(formData.addresses as MemberAddress[], "Residential");
   const busAddr = getAddress(formData.addresses as MemberAddress[], "Business");
@@ -231,15 +244,15 @@ export default function MemberForm({
       setFormData((prev) => ({
         ...prev,
         fkPrimaryCountryId: id,
-        primaryCountry: country?.countryName || "India",
-        primaryCountryPhoneCode: country?.phoneCode || "+91",
+        primaryCountry: country?.countryName || "",
+        primaryCountryPhoneCode: country?.phoneCode || "",
       }));
     } else {
       setFormData((prev) => ({
         ...prev,
         fkSecondaryCountryId: id,
-        secondaryCountry: country?.countryName || "India",
-        secondaryCountryPhoneCode: country?.phoneCode || "+91",
+        secondaryCountry: country?.countryName || "",
+        secondaryCountryPhoneCode: country?.phoneCode || "",
       }));
     }
   };
@@ -265,8 +278,8 @@ export default function MemberForm({
       addresses[idx] = {
         ...addresses[idx],
         fkCountryId: id,
-        country: country?.countryName || "India",
-        countryPhoneCode: country?.phoneCode || "+91",
+        country: country?.countryName || "",
+        countryPhoneCode: country?.phoneCode || "",
       };
     } else {
       const base = type === "Residential" ? { ...emptyResidentialAddress } : { ...emptyBusinessAddress };
@@ -275,8 +288,8 @@ export default function MemberForm({
         id: 0,
         fkMemberMasterProfileId: 0,
         fkCountryId: id,
-        country: country?.countryName || "India",
-        countryPhoneCode: country?.phoneCode || "+91",
+        country: country?.countryName || "",
+        countryPhoneCode: country?.phoneCode || "",
       } as MemberAddress);
     }
     updateField("addresses", addresses);
@@ -301,8 +314,8 @@ export default function MemberForm({
     members[index] = {
       ...members[index],
       fkCountryId: id,
-      country: country?.countryName || "India",
-      countryPhoneCode: country?.phoneCode || "+91",
+      country: country?.countryName || "",
+      countryPhoneCode: country?.phoneCode || "",
     };
     updateField("familyMembers", members);
   };
@@ -599,7 +612,7 @@ export default function MemberForm({
                   {isReadOnly ? (
                     <div className="space-y-2">
                       <Label className="text-sm font-semibold text-foreground">Country</Label>
-                      <Input value={formData.primaryCountry || "India"} readOnly className="bg-muted" />
+                      <Input value={formData.primaryCountry || ""} readOnly className="bg-muted" />
                     </div>
                   ) : renderCountrySelect("fkPrimaryCountryId", "Country")}
                 </div>

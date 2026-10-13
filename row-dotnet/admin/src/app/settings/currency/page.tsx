@@ -18,9 +18,10 @@ import RotaryLoader from "@/components/RotaryLoader";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { useAuth } from "@/contexts/AuthContext";
 import { getDistricts, updateDistrictDefaultCurrency } from "@/services/api";
-import { CURRENCY_OPTIONS } from "@/lib/currency";
+import { currencyOptions } from "@/lib/currency";
 import { DistrictListItem } from "@/types/district";
 
+import { defaultCurrency } from "@/lib/appFormat";
 export default function CurrencySettingsPage() {
   const { isSuperAdmin } = useAuth();
   const [rows, setRows] = useState<DistrictListItem[]>([]);
@@ -116,12 +117,12 @@ export default function CurrencySettingsPage() {
                     <td className="px-4 py-2 text-slate-600 whitespace-nowrap">{d.country || "—"}</td>
                     <td className="px-4 py-2">
                       <select
-                        value={d.defaultCurrency || "INR"}
+                        value={d.defaultCurrency || defaultCurrency()}
                         onChange={(e) => handleChange(d, e.target.value)}
                         disabled={savingId === d.id}
                         className="w-full px-2.5 py-1.5 text-sm border border-slate-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-primary/50 disabled:opacity-60"
                       >
-                        {CURRENCY_OPTIONS.map((c) => (
+                        {currencyOptions().map((c) => (
                           <option key={c.code} value={c.code}>{c.label}</option>
                         ))}
                       </select>

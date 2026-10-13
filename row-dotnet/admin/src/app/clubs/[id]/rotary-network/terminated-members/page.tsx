@@ -18,6 +18,7 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 import SearchBox from "@/components/SearchBox";
 import * as XLSX from "xlsx-js-style";
 
+import { appLocale } from "@/lib/appFormat";
 export default function TerminatedMembersPage() {
   const params = useParams();
   const clubId = Number(params.id);
@@ -78,7 +79,7 @@ export default function TerminatedMembersPage() {
 
   const formatDate = (dateStr: string | null) => {
     if (!dateStr) return "-";
-    return new Date(dateStr).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" });
+    return new Date(dateStr).toLocaleDateString(appLocale(), { day: "2-digit", month: "short", year: "numeric" });
   };
 
   const handleExportExcel = async () => {

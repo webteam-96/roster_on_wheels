@@ -42,7 +42,7 @@ function routeFor(row: ResultRow): string {
 }
 
 // Some clubs have garbage stored in clubWebsiteSubdomain ("https//rcthanehills/",
-// "rcthanehills.rotaryindia.org/", etc) — strip protocol prefixes, leading/trailing
+// "club.example.org/", etc) — strip protocol prefixes, leading/trailing
 // slashes, and any trailing parent-domain suffix so we end up with the bare subdomain.
 function clubWebsiteUrl(raw: string | null | undefined): string | null {
   if (!raw) return null;
@@ -51,21 +51,21 @@ function clubWebsiteUrl(raw: string | null | undefined): string | null {
     .replace(/^https?:?\/+/i, "")
     .replace(/^\/+/, "")
     .replace(/\/+$/, "")
-    .replace(/\.(rotaryindia|rizones4567|rizones45678)\.org$/i, "")
+    .replace(/\.(ROW|ROW|ROW)\.org$/i, "")
     .trim()
     .toLowerCase();
   if (!sub) return null;
-  return `https://${sub}.rotaryindia.org`;
+  return `https://${sub}.example.org`;
 }
 
-// District sites store a FULL url ("https://rid3141.rotaryindia.org/"), not a bare subdomain like
+// District sites store a FULL url ("https://club.example.org/"), not a bare subdomain like
 // the club ones - so take it as it is. A bare word still gets the parent domain appended, and a
-// custom domain ("rid3141.org") is left alone instead of being turned into rid3141.org.rotaryindia.org.
+// custom domain ("rid3141.org") is left alone instead of being turned into club.example.org.
 function districtWebsiteUrl(raw: string | null | undefined): string | null {
   if (!raw) return null;
   const v = raw.trim().replace(/^https?:?\/+/i, "").replace(/^\/+/, "").replace(/\/+$/, "").trim().toLowerCase();
   if (!v) return null;
-  return v.includes(".") ? `https://${v}` : `https://${v}.rotaryindia.org`;
+  return v.includes(".") ? `https://${v}` : `https://${v}.example.org`;
 }
 
 function badge(type: ResultRow["type"]) {
@@ -269,6 +269,7 @@ export default function GlobalSearchPage() {
               // Once ANY row is navigating, dim everything else so the SA
               // can't queue up extra clicks while the first one's still loading.
               const isOtherNavigating = navigatingKey != null && !isNavigating && !isNavigatingNew;
+              const isRotaract = row.type === "club" && row.clubType === "Rotaract Club";
               // The row itself opens the new dashboard; this icon is the way back to the old one.
               const dashboardIcon = row.type === "zone" ? null : (
                 <button
@@ -398,6 +399,12 @@ export default function GlobalSearchPage() {
                             ) : (
                               <span className="text-slate-500">No website</span>
                             )}
+                          </span>
+                          <span>
+                            Type:&nbsp;
+                            <span className={isRotaract ? "text-pink-600 font-medium" : "text-slate-700 font-medium"}>
+                              {row.clubType || "Rotary Club"}
+                            </span>
                           </span>
                           {dashboardIcon}
                         </div>

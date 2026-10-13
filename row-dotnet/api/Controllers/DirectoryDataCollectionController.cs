@@ -18,7 +18,7 @@ public class DirectoryDataCollectionController : ControllerBase
 {
     private readonly string _connectionString;
     private readonly IEmailService _email;
-    private readonly IInteraktService _whatsapp;
+    private readonly IWhatsAppService _whatsapp;
     private readonly ILogger<DirectoryDataCollectionController> _logger;
     private readonly IConfiguration _config;
     private readonly string _apiBase;
@@ -26,7 +26,7 @@ public class DirectoryDataCollectionController : ControllerBase
     public DirectoryDataCollectionController(
         IConfiguration config,
         IEmailService email,
-        IInteraktService whatsapp,
+        IWhatsAppService whatsapp,
         ILogger<DirectoryDataCollectionController> logger)
     {
         _connectionString = config.GetConnectionString("DefaultConnection")!;
@@ -398,7 +398,7 @@ public class DirectoryDataCollectionController : ControllerBase
                         {
                             var sent = await _whatsapp.SendWhatsAppWithBodyValuesAsync(m.Mobile, "district_directory_form_incomplete_final", bodyValues);
                             if (sent) { waOk++; _logger.LogInformation("💬 [WHATSAPP] ✅ {Member} → {Mobile} ({Group}, {Pending}/{Total} pending)", m.Name, m.Mobile, group, pending.Count, total); }
-                            else { waFail++; _logger.LogWarning("💬 [WHATSAPP] ❌ {Member} → {Mobile} returned false (check Interakt template + credits)", m.Name, m.Mobile); }
+                            else { waFail++; _logger.LogWarning("💬 [WHATSAPP] ❌ {Member} → {Mobile} returned false (check the Meta template and account)", m.Name, m.Mobile); }
                         }
                         catch (Exception ex)
                         {

@@ -58,6 +58,7 @@ import {
 } from "@/components/ui/dialog";
 import { useSyncClubIdFromUrl } from "@/hooks/useSyncClubIdFromUrl";
 
+import { appLocale } from "@/lib/appFormat";
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
 const CATEGORY_VISUAL: Record<
@@ -83,7 +84,7 @@ function formatBytes(bytes: number): string {
 function formatDateTime(s: string | null | undefined): string {
   if (!s) return "—";
   try {
-    return new Date(s).toLocaleString("en-IN", {
+    return new Date(s).toLocaleString(appLocale(), {
       day: "2-digit", month: "short", year: "numeric",
       hour: "2-digit", minute: "2-digit", hour12: true,
     });
@@ -93,7 +94,7 @@ function formatDateTime(s: string | null | undefined): string {
 function formatDate(s: string | null | undefined): string {
   if (!s) return "—";
   try {
-    return new Date(s).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" });
+    return new Date(s).toLocaleDateString(appLocale(), { day: "2-digit", month: "short", year: "numeric" });
   } catch { return s; }
 }
 
@@ -572,7 +573,7 @@ export function OcvCategoryV2View({
                         <td className="px-3 py-2 text-slate-500 tabular-nums">{formatBytes(doc.fileSize)}</td>
                         {isDues && (
                           <td className="px-3 py-2 text-slate-700 tabular-nums">
-                            {doc.amount != null ? `Rs. ${doc.amount.toLocaleString("en-IN")}` : "—"}
+                            {doc.amount != null ? `Rs. ${doc.amount.toLocaleString(appLocale())}` : "—"}
                           </td>
                         )}
                         {isDues && (

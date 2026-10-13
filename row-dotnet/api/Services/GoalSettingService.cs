@@ -104,7 +104,7 @@ public class GoalSettingService : IGoalSettingService
         using var conn = CreateConnection();
         await conn.OpenAsync();
         var rows = await conn.QueryAsync<dynamic>(
-            "SELECT pk_category_id AS id, Name AS name, SortOrder AS sortOrder FROM goal_categories WHERE isdeleted = 0 ORDER BY SortOrder");
+            "SELECT pk_category_id AS id, IF(Name = 'TRF', 'Foundation', Name) AS name, SortOrder AS sortOrder FROM goal_categories WHERE isdeleted = 0 ORDER BY SortOrder");
         return rows.Select(r => new GoalCategoryDto
         {
             Id = Convert.ToInt32(r.id),
@@ -281,7 +281,9 @@ public class GoalSettingService : IGoalSettingService
                 if (yr.e != null) yearEnd = (DateTime)yr.e;
             }
 
-            if (hasMembership && entityType == "District")
+            // From 2026-27 the district's Clubs / Members / Women (July 1st + Achieved) come from the
+            // Rotary.org Excel import (user 2026-10-08) - no live counting; the stored figures show.
+            if (hasMembership && entityType == "District" && !IsDistrictMembershipImported(entityType, yearStart))
             {
                 liveClubs = await LiveDistrictClubCountAsync(conn, districtId, yearStart);
                 liveMembers = await LiveDistrictMemberCountAsync(conn, districtId, yearStart);
@@ -355,7 +357,7 @@ public class GoalSettingService : IGoalSettingService
                 var tgTarget = list.FirstOrDefault(f => f.FieldKey == "total_contributions_target")?.NumericValue ?? 0m;
                 var tgAch = tgAchieved?.NumericValue ?? 0m;
                 tgPct.NumericValue = tgTarget > 0m
-                    ? Math.Round(Math.Max(0m, Math.Min(100m, tgAch / tgTarget * 100m)), 0, MidpointRounding.AwayFromZero)
+                    ? Math.Round(Math.Max(0m, Math.Min(100m, tgAch / tgTarget * 100m)), 2, MidpointRounding.AwayFromZero)
                     : 0m;
             }
         }
@@ -382,7 +384,7 @@ public class GoalSettingService : IGoalSettingService
                 var ctTarget = list.FirstOrDefault(f => f.FieldKey == "club_total_target")?.NumericValue ?? 0m;
                 var ctAch = clubTotal?.NumericValue ?? 0m;
                 clubTotalPct.NumericValue = ctTarget > 0m
-                    ? Math.Round(Math.Max(0m, Math.Min(100m, ctAch / ctTarget * 100m)), 0, MidpointRounding.AwayFromZero)
+                    ? Math.Round(Math.Max(0m, Math.Min(100m, ctAch / ctTarget * 100m)), 2, MidpointRounding.AwayFromZero)
                     : 0m;
             }
         }
@@ -421,7 +423,8 @@ public class GoalSettingService : IGoalSettingService
             if (string.IsNullOrEmpty(baseKey))
             {
                 // TRF/Foundation: no July-1st baseline (Achieved starts at 0) → % of the target amount raised.
-                pct = tgt > 0m ? Math.Round(ach / tgt * 100m, 0, MidpointRounding.AwayFromZero) : 0m;
+                // 2 decimals, like the month-wise panel (user 2026-10-07: 3.35% there, 3% here).
+                pct = tgt > 0m ? Math.Round(ach / tgt * 100m, 2, MidpointRounding.AwayFromZero) : 0m;
             }
             else
             {
@@ -484,6 +487,8 @@ public class GoalSettingService : IGoalSettingService
             Set("new_club_members_computed", womenAdded);
         }
         // Last, once every figure above is in place: the lowest value each target may be saved with.
+        // Applies to District Membership from 2026-27 too (user 2026-10-09: the check must stay; low
+        // targets were corrected once in the data - Clubs July 1st +10%, Members +3%).
         ApplyTargetFloors(list);
         return list;
     }
@@ -751,7 +756,15 @@ public class GoalSettingService : IGoalSettingService
         "major_donors_achieved", "csr_achieved", "total_giving_achieved", "total_giving_pct",
         "club_af_per_capita", "club_annual_fund_ytd", "club_polioplus_ytd",
         "club_other_funds_ytd", "club_endowment_ytd", "club_total_ytd",
+        // Youth Service -> Rotaract "Clubs Achieved" comes from the Rotaract file import (2026-10-08).
+        "rotaract_clubs_achieved", "interact_clubs_achieved",
     };
+
+    // Locked on the DISTRICT form only - the club Youth Service form still types its own (2026-10-08):
+    // the district's "Existing Rotaract / Interact Clubs as on July 1st" come from the Rotary.org files.
+    // Rotaractors (July 1st + Achieved) too, from the same Rotaract file (user 2026-10-09).
+    private static readonly HashSet<string> DistrictSystemFilledFieldKeys = new(StringComparer.Ordinal)
+        { "rotaract_existing_clubs", "interact_existing_clubs", "rotaract_existing_members", "rotaract_members_achieved" };
 
     // Month-wise Foundation figures come from the imports only; admins cannot type them.
     private static readonly HashSet<string> ImportedMonthlyFieldKeys = new(StringComparer.Ordinal)
@@ -778,6 +791,7 @@ public class GoalSettingService : IGoalSettingService
             // Imported / system-filled figures are never taken from a form save (web or mobile) -
             // the same list the web form shows read-only. They only change through the imports.
             if (SystemFilledFieldKeys.Contains((string)def.fieldKey)) continue;
+            if (entityType == "District" && DistrictSystemFilledFieldKeys.Contains((string)def.fieldKey)) continue;
 
             await conn.ExecuteAsync(@"
                 INSERT INTO goal_entries (fk_field_id, fk_year_id, EntityType, fk_club_id, fk_district_id,
@@ -857,7 +871,7 @@ public class GoalSettingService : IGoalSettingService
 
     private static async Task<string> GetCategoryNameAsync(MySqlConnection conn, int categoryId)
         => await conn.ExecuteScalarAsync<string>(
-            "SELECT Name FROM goal_categories WHERE pk_category_id = @Id AND isdeleted = 0",
+            "SELECT IF(Name = 'TRF', 'Foundation', Name) FROM goal_categories WHERE pk_category_id = @Id AND isdeleted = 0",
             new { Id = categoryId }) ?? "";
 
     // ── Quarterly / month-wise TARGETS (user 2026-09-25) ────────────────────────────────────────
@@ -1193,10 +1207,10 @@ public class GoalSettingService : IGoalSettingService
 
     // The existing-figure fields: the July 1st baseline and the live "Achieved" total. TRF's "Highest"
     // is deliberately NOT one of them - that is a historical best, not what the district holds today.
+    // User 2026-10-09: the floor is the "as on July 1st" figure ONLY - "Achieved" no longer raises it.
     private static bool IsExistingFigure(GoalFieldWithValueDto f) =>
         f.FieldRole == "Reference" &&
-        (f.FieldLabel.Contains("as on July 1st", StringComparison.OrdinalIgnoreCase)
-         || f.FieldLabel.Trim().Equals("Achieved", StringComparison.OrdinalIgnoreCase));
+        f.FieldLabel.Contains("as on July 1st", StringComparison.OrdinalIgnoreCase);
 
     // The lowest legal value for one field, with the figure it came from (for the message).
     // 0 for anything that is not a current-year target, and for targets whose metric has no
@@ -1432,13 +1446,21 @@ public class GoalSettingService : IGoalSettingService
     {
         // TRF / Foundation follows the import, not the month-wise rows (user 2026-10-01).
         var categoryName = await GetCategoryNameAsync(conn, categoryId);
-        if (string.Equals(categoryName, "TRF", StringComparison.OrdinalIgnoreCase))
+        if (IsTrfCategory(categoryName))
             return await FoundationAsOnAsync(conn, yearId, entityType);
 
         var yr = await conn.QueryFirstOrDefaultAsync<dynamic>(
             "SELECT StartDate AS s, EndDate AS e FROM rotary_year_master WHERE pk_year_id = @Y AND isdeleted = 0", new { Y = yearId });
         if (yr == null || yr.s == null) return null;
         DateTime start = (DateTime)yr.s;
+        // District Membership (2026-27 on) is imported too: its date is the latest month imported.
+        if (IsDistrictMembershipImported(entityType, start)
+            && string.Equals(categoryName, "Membership", StringComparison.OrdinalIgnoreCase))
+            return await FoundationAsOnAsync(conn, yearId, MembershipImportScope);
+        // Youth Service: annual only now - its "as on" is the Rotaract/Interact import, never old month-wise rows.
+        if (IsDistrictMembershipImported(entityType, start)
+            && string.Equals(categoryName, "Youth Service", StringComparison.OrdinalIgnoreCase))
+            return await FoundationAsOnAsync(conn, yearId, YouthImportScope);
         var monthsWithData = (await conn.QueryAsync<int>(@"
             SELECT DISTINCT m.PeriodMonth
             FROM goal_entries_monthly m
@@ -1477,12 +1499,22 @@ public class GoalSettingService : IGoalSettingService
         var categoryName = await GetCategoryNameAsync(conn, categoryId);
         // TRF / Foundation months run only up to the latest month IMPORTED (user 2026-10-06: imported
         // till Sep -> show Jul, Aug, Sep; Oct stays blank like a future month). Membership is unchanged.
-        if (string.Equals(categoryName, "TRF", StringComparison.OrdinalIgnoreCase))
+        if (IsTrfCategory(categoryName))
         {
             var lastIdx = await FoundationImportedThroughIndexAsync(conn, yearId, entityType, start.Month);
             if (lastIdx != null)
                 foreach (var mo in months)
                     if (((mo.Month - start.Month) + 12) % 12 > lastIdx.Value) mo.IsAvailable = false;
+        }
+        // District Membership (2026-27 on): only the months the Rotary.org import covered carry a figure.
+        // First import is "1 Jul to 30 Sep" -> Jul and Aug stay blank, Sep holds the value (user 2026-10-08).
+        bool membershipImported = IsDistrictMembershipImported(entityType, start)
+            && string.Equals(categoryName, "Membership", StringComparison.OrdinalIgnoreCase);
+        if (membershipImported)
+        {
+            var imported = await MembershipImportedMonthsAsync(conn, yearId);
+            foreach (var mo in months)
+                if (!imported.Contains(mo.Month)) mo.IsAvailable = false;
         }
 
         // Collected (monthly) fields of THIS category that apply to this entity level.
@@ -1571,7 +1603,9 @@ public class GoalSettingService : IGoalSettingService
 
         // Membership month-wise is AUTO-derived from the sync's charter/join dates (not stored snapshots):
         // baseline = before Jul 1; each month = clubs chartered / members joined that month; Total = Σ additions.
-        await ApplyMembershipDateBucketsAsync(conn, fields, months, entityType, clubId, districtId, start);
+        // District from 2026-27: the imported figures instead (baseline = stored "as on July 1st").
+        if (membershipImported) await ApplyImportedMembershipAsync(conn, fields, months, yearId, districtId);
+        else await ApplyMembershipDateBucketsAsync(conn, fields, months, entityType, clubId, districtId, start);
 
         // AFTER the buckets, never before: they REPLACE Monthly with the real per-month additions and
         // set the July-1st Baseline. Computing the quarterly figures earlier was reading the stored
@@ -1582,6 +1616,15 @@ public class GoalSettingService : IGoalSettingService
             monthTargetByField.TryGetValue(fld.FieldId, out var savedTargets);
             ApplyTargetSplit(fld, months, savedTargets);
             RoundToWhole(fld);
+            if (fld.MonthlyTargets.Values.Any(v => v.HasValue))
+            {
+                decimal run = fld.Baseline ?? 0m;
+                foreach (var mo in months)
+                {
+                    run += fld.MonthlyTargets.TryGetValue(mo.Month, out var t) && t.HasValue ? t.Value : 0m;
+                    fld.MonthlyTargetsRunning[mo.Month] = run;
+                }
+            }
         }
 
         // Every OTHER field of the category, listed with its value but with EMPTY month cells: the July-1
@@ -1607,7 +1650,7 @@ public class GoalSettingService : IGoalSettingService
         }
         // TRF Total Giving is rebuilt as a FULL metric for the reports (see ComputeCategoryMetricsAsync),
         // so its Highest and Target must not ALSO be listed here as loose annual rows.
-        if (string.Equals(categoryName, "TRF", StringComparison.OrdinalIgnoreCase))
+        if (IsTrfCategory(categoryName))
         {
             haveKeys.Add("total_contributions_highest");
             haveKeys.Add("total_contributions_target");
@@ -1675,6 +1718,428 @@ public class GoalSettingService : IGoalSettingService
     // The 3 Membership monthly metrics that are auto-derived from ClubCharterDate / club_members.JoinedDate.
     private static readonly HashSet<string> MembershipMonthlyKeys = new(StringComparer.Ordinal)
         { "new_clubs_achieved", "new_members_achieved", "new_women_members_achieved" };
+
+    // ── District Membership from the Rotary.org Excel (user 2026-10-08) ──────────────────────────
+    // From 2026-27 a DISTRICT's Clubs / Members / Women "as on July 1st" and Achieved are no longer
+    // counted live from the synced clubs - they come from the SuperAdmin import of Rotary.org's
+    // "Comparison to 1 July" (clubs + members) and "Members Admitted by Gender" files, so the
+    // website matches Rotary.org exactly. Clubs and earlier years keep the live counting. RAG and
+    // Targets are untouched.
+    private static readonly DateTime MembershipImportFromYearStart = new(2026, 7, 1);
+    private const string MembershipImportScope = "Membership";   // goal_foundation_import_months.Scope
+    private const string YouthImportScope = "Youth";             // Youth Service -> Rotaract / Interact Clubs Achieved
+
+    private static bool IsDistrictMembershipImported(string entityType, DateTime? yearStart)
+        => entityType == "District" && yearStart.HasValue && yearStart.Value >= MembershipImportFromYearStart;
+
+    // The months a Membership import covered (calendar month numbers). Empty when none / table missing.
+    private static async Task<HashSet<int>> MembershipImportedMonthsAsync(MySqlConnection conn, int yearId)
+    {
+        try
+        {
+            return (await conn.QueryAsync<int>(@"
+                SELECT PeriodMonth FROM goal_foundation_import_months
+                WHERE fk_year_id = @Y AND Scope = @S AND isdeleted = 0",
+                new { Y = yearId, S = MembershipImportScope })).ToHashSet();
+        }
+        catch (MySqlException) { return new HashSet<int>(); }
+    }
+
+    // Imported mode of ApplyMembershipDateBucketsAsync: baseline = the stored "as on July 1st" figure,
+    // each imported month = what was added in it (stored by the import), every other month blank.
+    private static async Task ApplyImportedMembershipAsync(
+        MySqlConnection conn, List<GoalMonthlyFieldDto> fields, List<GoalMonthPeriodDto> months, int yearId, int districtId)
+    {
+        if (!fields.Any(f => MembershipMonthlyKeys.Contains(f.FieldKey))) return;
+        var baselines = (await conn.QueryAsync<(string k, decimal? v)>(@"
+            SELECT f.FieldKey AS k, e.NumericValue AS v
+            FROM goal_fields f
+            JOIN goal_entries e ON e.fk_field_id = f.pk_field_id AND e.fk_year_id = @Y AND e.EntityType = 'District'
+                               AND e.fk_club_id = 0 AND e.fk_district_id = @D AND e.isdeleted = 0
+            WHERE f.isdeleted = 0 AND f.FieldKey IN @Keys",
+            new { Y = yearId, D = districtId, Keys = MembershipBaselineKey.Values.ToArray() }))
+            .GroupBy(x => x.k).ToDictionary(g => g.Key, g => g.First().v, StringComparer.Ordinal);
+        foreach (var f in fields.Where(x => MembershipMonthlyKeys.Contains(x.FieldKey)))
+        {
+            f.Baseline = MembershipBaselineKey.TryGetValue(f.FieldKey, out var bk) && baselines.TryGetValue(bk, out var b) ? b : null;
+            var monthly = new Dictionary<int, decimal?>();
+            decimal total = 0m;
+            foreach (var mo in months)
+            {
+                decimal? v = mo.IsAvailable && f.Monthly.TryGetValue(mo.Month, out var mv) ? mv : null;
+                monthly[mo.Month] = v;
+                total += v ?? 0m;
+            }
+            f.Monthly = monthly;
+            f.Total = total;
+        }
+    }
+
+    // Every sheet of an .xlsx as (name, cells by (row, col) -> text). Plain OpenXML on purpose:
+    // Rotary.org's exports carry pictures with duplicate ids, which ClosedXML refuses to open.
+    private static List<(string Name, Dictionary<(int R, int C), string> Cells)> ReadXlsxGrids(Stream stream)
+    {
+        using var doc = DocumentFormat.OpenXml.Packaging.SpreadsheetDocument.Open(stream, false);
+        var wbp = doc.WorkbookPart ?? throw new InvalidOperationException("Not an Excel (.xlsx) file.");
+        var sst = wbp.SharedStringTablePart?.SharedStringTable?
+            .Elements<DocumentFormat.OpenXml.Spreadsheet.SharedStringItem>().Select(i => i.InnerText).ToList() ?? new List<string>();
+        var list = new List<(string, Dictionary<(int, int), string>)>();
+        foreach (var sheet in wbp.Workbook.Sheets?.Elements<DocumentFormat.OpenXml.Spreadsheet.Sheet>()
+                              ?? Enumerable.Empty<DocumentFormat.OpenXml.Spreadsheet.Sheet>())
+        {
+            if (sheet.Id?.Value == null || wbp.GetPartById(sheet.Id.Value) is not DocumentFormat.OpenXml.Packaging.WorksheetPart wsp) continue;
+            var cells = new Dictionary<(int, int), string>();
+            foreach (var c in wsp.Worksheet.Descendants<DocumentFormat.OpenXml.Spreadsheet.Cell>())
+            {
+                var reference = c.CellReference?.Value;
+                if (string.IsNullOrEmpty(reference)) continue;
+                int col = 0, i = 0;
+                for (; i < reference.Length && char.IsLetter(reference[i]); i++) col = col * 26 + (char.ToUpperInvariant(reference[i]) - 'A' + 1);
+                if (!int.TryParse(reference.AsSpan(i), out var row)) continue;
+                string v = c.CellValue?.Text ?? c.InlineString?.InnerText ?? "";
+                if (c.DataType?.Value == DocumentFormat.OpenXml.Spreadsheet.CellValues.SharedString
+                    && int.TryParse(v, out var si) && si >= 0 && si < sst.Count) v = sst[si];
+                cells[(row, col)] = v.Trim();
+            }
+            list.Add((sheet.Name?.Value ?? "", cells));
+        }
+        return list;
+    }
+
+    // Rotary.org "Comparison to 1 July" (Rotary or Rotaract - same layout): per district, "# Club" and
+    // "# Member" on 1 July and on the report date, plus that date ("30 September 2026").
+    private static (Dictionary<string, (int Jul1Clubs, int Jul1Members, int Clubs, int Members)> Rows, DateTime AsOf)
+        ParseComparisonFile(Stream stream, string what, DateTime start, DateTime end)
+    {
+        static int? Num(string? t)
+        {
+            if (string.IsNullOrWhiteSpace(t)) return null;
+            if (decimal.TryParse(t.Replace(",", ""), System.Globalization.NumberStyles.Any,
+                    System.Globalization.CultureInfo.InvariantCulture, out var d)) return (int)Math.Round(d);
+            return null;
+        }
+        static bool IsDistrictNo(string? t) => !string.IsNullOrEmpty(t) && t.All(char.IsDigit);
+
+        var members = new Dictionary<string, (int Jul1Clubs, int Jul1Members, int Clubs, int Members)>(StringComparer.Ordinal);
+        DateTime asOf;
+        {
+            var cells = ReadXlsxGrids(stream).FirstOrDefault().Cells
+                ?? throw new InvalidOperationException($"{what} file has no sheet.");
+            string At(int r, int c) => cells.TryGetValue((r, c), out var v) ? v : "";
+            int hdr = 0, dCol = 0; var clubCols = new List<int>(); var memCols = new List<int>();
+            foreach (var r in cells.Keys.Select(k => k.R).Distinct().Where(r => r <= 30).OrderBy(r => r))
+            {
+                var row = cells.Where(k => k.Key.R == r).OrderBy(k => k.Key.C).ToList();
+                dCol = row.FirstOrDefault(k => k.Value.Equals("District", StringComparison.OrdinalIgnoreCase)).Key.C;
+                clubCols = row.Where(k => k.Value.Equals("# Club", StringComparison.OrdinalIgnoreCase)).Select(k => k.Key.C).ToList();
+                memCols = row.Where(k => k.Value.Equals("# Member", StringComparison.OrdinalIgnoreCase)).Select(k => k.Key.C).ToList();
+                if (dCol > 0 && clubCols.Count >= 2 && memCols.Count >= 2) { hdr = r; break; }
+            }
+            if (hdr == 0)
+                throw new InvalidOperationException($"{what} file: could not find the District / # Club / # Member header. Upload Rotary.org's \"Comparison to 1 July\" file.");
+
+            // The report date sits above the second "# Club" column ("30 September 2026").
+            DateTime? found = null;
+            for (int r = hdr - 1; r >= 1 && found == null; r--)
+            {
+                var t = At(r, clubCols[1]).Replace("*", "").Trim();
+                if (t.Length == 0) continue;
+                if (DateTime.TryParse(t, System.Globalization.CultureInfo.InvariantCulture,
+                        System.Globalization.DateTimeStyles.None, out var d)) found = d;
+                else if (double.TryParse(t, System.Globalization.NumberStyles.Any,
+                        System.Globalization.CultureInfo.InvariantCulture, out var oa) && oa > 30000 && oa < 80000)
+                    found = DateTime.FromOADate(oa);   // a real Excel date cell
+            }
+            if (found == null) throw new InvalidOperationException($"{what} file: could not read the report date (e.g. \"30 September 2026\").");
+            asOf = found.Value.Date;
+            if (asOf < start || asOf > end)
+                throw new InvalidOperationException($"{what} file is dated {asOf:d MMM yyyy}, which is not in the selected Rotary year.");
+
+            foreach (var r in cells.Keys.Select(k => k.R).Distinct().Where(r => r > hdr))
+            {
+                var dn = At(r, dCol);
+                if (!IsDistrictNo(dn)) continue;   // "# of Districts:" / blank rows
+                members[dn] = (Num(At(r, clubCols[0])) ?? 0, Num(At(r, memCols[0])) ?? 0,
+                               Num(At(r, clubCols[1])) ?? 0, Num(At(r, memCols[1])) ?? 0);
+            }
+        }
+        return (members, asOf);
+    }
+
+    // Rotary.org "Interact_Statistics": sheet "By District" - District · Total Active Clubs · … with
+    // "AS OF 30-September-2026" above the header. Returns per district the active Interact clubs now and
+    // on 1 July (= now - "Change in Clubs from End of Previous Rotary Year"), plus the date.
+    private static (Dictionary<string, (int Now, int Jul1)> Rows, DateTime AsOf) ParseInteractStatistics(Stream stream)
+    {
+        var sheet = ReadXlsxGrids(stream).FirstOrDefault(x => x.Name.Trim().Equals("By District", StringComparison.OrdinalIgnoreCase));
+        if (sheet.Cells == null)
+            throw new InvalidOperationException("Interact file: sheet \"By District\" not found. Upload Rotary.org's \"Interact_Statistics\" file.");
+        var cells = sheet.Cells;
+        DateTime? asOf = null; int hdr = 0, dCol = 0, tCol = 0, yCol = 0;
+        foreach (var r in cells.Keys.Select(k => k.R).Distinct().Where(r => r <= 30).OrderBy(r => r))
+        {
+            var row = cells.Where(k => k.Key.R == r).ToList();
+            foreach (var kv in row)
+            {
+                var t = kv.Value;
+                if (asOf == null && t.StartsWith("AS OF", StringComparison.OrdinalIgnoreCase)
+                    && DateTime.TryParseExact(t.Substring(5).Trim(), new[] { "d-MMMM-yyyy", "dd-MMMM-yyyy", "d-MMM-yyyy" },
+                        System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out var d))
+                    asOf = d.Date;
+            }
+            dCol = row.FirstOrDefault(k => k.Value.Equals("District", StringComparison.OrdinalIgnoreCase)).Key.C;
+            tCol = row.FirstOrDefault(k => k.Value.Equals("Total Active Clubs", StringComparison.OrdinalIgnoreCase)).Key.C;
+            yCol = row.FirstOrDefault(k => k.Value.Contains("Previous Rotary Year", StringComparison.OrdinalIgnoreCase)).Key.C;
+            if (dCol > 0 && tCol > 0 && yCol > 0) { hdr = r; break; }
+        }
+        if (hdr == 0) throw new InvalidOperationException("Interact file: District / Total Active Clubs / Change from End of Previous Rotary Year header not found on \"By District\".");
+        if (asOf == null) throw new InvalidOperationException("Interact file: could not read the \"AS OF\" date.");
+        static int? N(Dictionary<(int R, int C), string> cs, int r, int c)
+            => cs.TryGetValue((r, c), out var t) && decimal.TryParse(t, System.Globalization.NumberStyles.Any,
+                   System.Globalization.CultureInfo.InvariantCulture, out var n) ? (int)Math.Round(n) : null;
+        var rows = new Dictionary<string, (int Now, int Jul1)>(StringComparer.Ordinal);
+        foreach (var r in cells.Keys.Select(k => k.R).Distinct().Where(r => r > hdr))
+        {
+            var dn = cells.TryGetValue((r, dCol), out var dv) ? dv : "";
+            if (string.IsNullOrEmpty(dn) || !dn.All(char.IsDigit)) continue;
+            var now = N(cells, r, tCol);
+            if (now == null) continue;
+            rows[dn] = (now.Value, now.Value - (N(cells, r, yCol) ?? 0));
+        }
+        return (rows, asOf.Value);
+    }
+
+    // SuperAdmin import. `membersStream` = Rotary.org "Comparison to 1 July" (ROTARY clubs - the
+    // Rotaract file has the same layout and is refused by name); `genderStream` = "Members Admitted by
+    // Gender" (Admitted_Rotary + Terminated_Rotary sheets). The data month is read from the members
+    // file's date heading ("30 September 2026"). Only our own districts (Zones 1-9, not Zone 0 / Other
+    // Zones) are written; everything else in the files is ignored.
+    //   Clubs   : July 1st = "# Club" on 1 July,   Achieved = "# Club" on the report date.
+    //   Members : July 1st = "# Member" on 1 July, Achieved = "# Member" on the report date.
+    //   Women   : July 1st = our system's count on 1 July (Rotary gives no women total), frozen at the
+    //             first import of the year; Achieved = that + women admitted - women terminated.
+    // Month-wise: the month stores what was added since the previous imported month.
+    public async Task<GoalFoundationImportResultDto> ImportDistrictMembershipAsync(
+        int memberId, int yearId, Stream membersStream, string membersFileName, Stream genderStream,
+        Stream? rotaractStream = null, string? rotaractFileName = null, Stream? interactStream = null)
+    {
+        if (rotaractStream != null && !(rotaractFileName ?? "").Contains("rotaract", StringComparison.OrdinalIgnoreCase))
+            throw new InvalidOperationException("The third file must be Rotary.org's Rotaract \"Comparison to 1 July\" file (its name contains \"Rotaract\").");
+        if (!string.IsNullOrEmpty(membersFileName) && membersFileName.Contains("rotaract", StringComparison.OrdinalIgnoreCase))
+            throw new InvalidOperationException("This is the Rotaract file. Upload the Rotary \"Comparison to 1 July\" file.");
+
+        using var conn = CreateConnection();
+        await conn.OpenAsync();
+        var yr = await conn.QueryFirstOrDefaultAsync<dynamic>(
+            "SELECT StartDate AS s, EndDate AS e FROM rotary_year_master WHERE pk_year_id = @Y AND isdeleted = 0", new { Y = yearId });
+        if (yr == null || yr.s == null) throw new InvalidOperationException("Invalid Rotary year.");
+        DateTime start = (DateTime)yr.s;
+        DateTime end = yr.e != null ? (DateTime)yr.e : start.AddYears(1).AddDays(-1);
+        if (start < MembershipImportFromYearStart)
+            throw new InvalidOperationException("Membership import is used from Rotary year 2026-27 onwards.");
+
+        static int? Num(string? t)
+        {
+            if (string.IsNullOrWhiteSpace(t)) return null;
+            if (decimal.TryParse(t.Replace(",", ""), System.Globalization.NumberStyles.Any,
+                    System.Globalization.CultureInfo.InvariantCulture, out var d)) return (int)Math.Round(d);
+            return null;
+        }
+        static bool IsDistrictNo(string? t) => !string.IsNullOrEmpty(t) && t.All(char.IsDigit);
+
+        // ── File 1: clubs + members by district ──
+        var (members, asOf) = ParseComparisonFile(membersStream, "Members", start, end);
+        int month = asOf.Month;
+
+        // ── File 3 (optional): Rotaract clubs + Rotaractors, July 1st and now (clubs 2026-10-08, Rotaractors 2026-10-09) ──
+        Dictionary<string, (int Jul1Clubs, int Jul1Members, int Clubs, int Members)>? rotaract = null;
+        if (rotaractStream != null)
+        {
+            var (rows, racAsOf) = ParseComparisonFile(rotaractStream, "Rotaract", start, end);
+            if (racAsOf != asOf)
+                throw new InvalidOperationException($"The Rotaract file is dated {racAsOf:d MMM yyyy} but the Rotary file {asOf:d MMM yyyy} - download both for the same date.");
+            rotaract = rows;
+        }
+        // Youth Service fields the two optional files fill (user 2026-10-08): Clubs Achieved, and the
+        // "Existing … Clubs as on July 1st" so the Percentage Achieved has a correct base too.
+        var youthIds = (await conn.QueryAsync<(string k, int id)>(@"
+            SELECT FieldKey AS k, pk_field_id AS id FROM goal_fields WHERE isdeleted = 0 AND FieldKey IN @Keys",
+            new { Keys = new[] { "rotaract_clubs_achieved", "rotaract_existing_clubs", "rotaract_existing_members", "rotaract_members_achieved",
+                                 "interact_clubs_achieved", "interact_existing_clubs" } }))
+            .GroupBy(x => x.k).ToDictionary(g => g.Key, g => g.First().id, StringComparer.Ordinal);
+        foreach (var k in (rotaract != null ? new[] { "rotaract_clubs_achieved", "rotaract_existing_clubs", "rotaract_existing_members", "rotaract_members_achieved" } : Array.Empty<string>()))
+            if (!youthIds.ContainsKey(k)) throw new InvalidOperationException($"Youth Service field '{k}' is missing.");
+        int racWritten = 0;
+
+        // ── File 4 (optional): Interact_Statistics, sheet "By District" - Interact "Clubs Achieved" ──
+        Dictionary<string, (int Now, int Jul1)>? interact = null;
+        if (interactStream != null)
+        {
+            var (rows, intAsOf) = ParseInteractStatistics(interactStream);
+            if (intAsOf != asOf)
+                throw new InvalidOperationException($"The Interact file is as of {intAsOf:d MMM yyyy} but the Rotary file {asOf:d MMM yyyy} - download both for the same date.");
+            interact = rows;
+        }
+        foreach (var k in (interact != null ? new[] { "interact_clubs_achieved", "interact_existing_clubs" } : Array.Empty<string>()))
+            if (!youthIds.ContainsKey(k)) throw new InvalidOperationException($"Youth Service field '{k}' is missing.");
+        async Task UpsertDistrictAsync(int fieldId, int districtId, decimal value) => await conn.ExecuteAsync(@"
+            INSERT INTO goal_entries (fk_field_id, fk_year_id, EntityType, fk_club_id, fk_district_id, NumericValue, created_by, created_date, isdeleted)
+            VALUES (@F, @Y, 'District', 0, @D, @V, @By, NOW(), 0)
+            ON DUPLICATE KEY UPDATE NumericValue = VALUES(NumericValue), modified_by = @By, modified_date = NOW(), isdeleted = 0",
+            new { F = fieldId, Y = yearId, D = districtId, V = value, By = memberId });
+        int intWritten = 0;
+
+        // ── File 2: women admitted / terminated by district (Rotary sheets only, never Rotaract) ──
+        var womenIn = new Dictionary<string, int>(StringComparer.Ordinal);
+        var womenOut = new Dictionary<string, int>(StringComparer.Ordinal);
+        {
+            var sheets = ReadXlsxGrids(genderStream);
+            void ReadSheet(string word, Dictionary<string, int> into)
+            {
+                var sh = sheets.FirstOrDefault(x =>
+                    x.Name.Contains(word, StringComparison.OrdinalIgnoreCase)
+                    && x.Name.Contains("rotary", StringComparison.OrdinalIgnoreCase)
+                    && !x.Name.Contains("rotaract", StringComparison.OrdinalIgnoreCase));
+                if (sh.Cells == null)
+                    throw new InvalidOperationException($"Gender file: sheet \"{word}_Rotary\" not found. Upload Rotary.org's \"Members Admitted by Gender\" file.");
+                var cells = sh.Cells;
+                int hdr = 0, dCol = 0, fCol = 0;
+                foreach (var r in cells.Keys.Select(k => k.R).Distinct().Where(r => r <= 30).OrderBy(r => r))
+                {
+                    var row = cells.Where(k => k.Key.R == r).OrderBy(k => k.Key.C).ToList();
+                    dCol = row.FirstOrDefault(k => k.Value.Equals("District", StringComparison.OrdinalIgnoreCase)).Key.C;
+                    fCol = row.FirstOrDefault(k => k.Value.Equals("Female", StringComparison.OrdinalIgnoreCase)).Key.C;
+                    if (dCol > 0 && fCol > 0) { hdr = r; break; }
+                }
+                if (hdr == 0) throw new InvalidOperationException($"Gender file: District / Female header not found on sheet \"{sh.Name}\".");
+                foreach (var r in cells.Keys.Select(k => k.R).Distinct().Where(r => r > hdr))
+                {
+                    var dn = cells.TryGetValue((r, dCol), out var dv) ? dv : "";
+                    if (!IsDistrictNo(dn)) continue;
+                    into[dn] = (into.TryGetValue(dn, out var sum) ? sum : 0) + (Num(cells.TryGetValue((r, fCol), out var fv) ? fv : null) ?? 0);
+                }
+            }
+            ReadSheet("Admitted", womenIn);
+            ReadSheet("Terminated", womenOut);
+        }
+
+        // Our districts only.
+        var districts = (await conn.QueryAsync<(int id, string num)>(@"
+            SELECT d.pk_district_id AS id, d.DistrictNumber AS num
+            FROM district_master d
+            JOIN zone_master z ON z.pk_zone_id = d.fk_zone_id
+            WHERE d.isdeleted = 0 AND z.isdeleted = 0
+              AND z.ZoneName LIKE 'Zone %' AND z.ZoneName <> 'Zone 0'
+            ORDER BY CAST(d.DistrictNumber AS UNSIGNED)")).ToList();
+
+        var keys = new[] { "total_clubs", "new_clubs_achieved", "total_members", "new_members_achieved",
+                           "existing_women_members", "new_women_members_achieved" };
+        var fieldIds = (await conn.QueryAsync<(string k, int id)>(@"
+            SELECT f.FieldKey AS k, f.pk_field_id AS id FROM goal_fields f
+            JOIN goal_categories c ON c.pk_category_id = f.fk_category_id AND c.Name = 'Membership'
+            WHERE f.isdeleted = 0 AND f.FieldKey IN @Keys", new { Keys = keys }))
+            .GroupBy(x => x.k).ToDictionary(g => g.Key, g => g.First().id, StringComparer.Ordinal);
+        foreach (var k in keys)
+            if (!fieldIds.ContainsKey(k)) throw new InvalidOperationException($"Membership field '{k}' is missing.");
+
+        // Earlier imported months of this year: the month stores only what was added since them.
+        var importedBefore = await MembershipImportedMonthsAsync(conn, yearId);
+        bool firstImport = importedBefore.Count == 0;
+        int Idx(int m) => ((m - start.Month) + 12) % 12;
+        var priorMonths = importedBefore.Where(m => Idx(m) < Idx(month)).ToArray();
+        var prior = new Dictionary<(int FieldId, int DistrictId), decimal>();
+        if (priorMonths.Length > 0)
+            foreach (var pr in await conn.QueryAsync<(int f, int d, decimal s)>(@"
+                SELECT fk_field_id AS f, fk_district_id AS d, COALESCE(SUM(NumericValue), 0) AS s
+                FROM goal_entries_monthly
+                WHERE fk_year_id = @Y AND EntityType = 'District' AND fk_club_id = 0 AND isdeleted = 0
+                  AND PeriodMonth IN @Ms AND fk_field_id IN @Fs
+                GROUP BY fk_field_id, fk_district_id",
+                new { Y = yearId, Ms = priorMonths, Fs = fieldIds.Values.ToArray() }))
+                prior[(pr.f, pr.d)] = pr.s;
+
+        // Women on July 1st: frozen at the first import; later imports reuse the stored figure.
+        var storedWomen = firstImport ? new Dictionary<int, decimal>() : (await conn.QueryAsync<(int d, decimal v)>(@"
+            SELECT fk_district_id AS d, NumericValue AS v FROM goal_entries
+            WHERE fk_field_id = @F AND fk_year_id = @Y AND EntityType = 'District' AND fk_club_id = 0
+              AND isdeleted = 0 AND NumericValue IS NOT NULL",
+            new { F = fieldIds["existing_women_members"], Y = yearId })).ToDictionary(x => x.d, x => x.v);
+
+        var result = new GoalFoundationImportResultDto { YearId = yearId };
+        foreach (var (did, num) in districts)
+        {
+            if (!members.TryGetValue(num.Trim(), out var m))
+            {
+                result.SkippedRows.Add(new GoalFoundationImportSkippedRowDto { DistrictNumber = num, Reason = "Not in the Rotary.org members file - left unchanged." });
+                continue;
+            }
+            decimal womenJul1 = storedWomen.TryGetValue(did, out var sw)
+                ? sw : await LiveDistrictWomenCountAsync(conn, did, start);
+            womenIn.TryGetValue(num.Trim(), out var wi);
+            womenOut.TryGetValue(num.Trim(), out var wo);
+
+            var annual = new (string Key, decimal Value)[]
+            {
+                ("total_clubs", m.Jul1Clubs), ("new_clubs_achieved", m.Clubs),
+                ("total_members", m.Jul1Members), ("new_members_achieved", m.Members),
+                ("existing_women_members", womenJul1), ("new_women_members_achieved", womenJul1 + wi - wo),
+            };
+            foreach (var (key, value) in annual)
+            {
+                await conn.ExecuteAsync(@"
+                    INSERT INTO goal_entries (fk_field_id, fk_year_id, EntityType, fk_club_id, fk_district_id, NumericValue, created_by, created_date, isdeleted)
+                    VALUES (@F, @Y, 'District', 0, @D, @V, @By, NOW(), 0)
+                    ON DUPLICATE KEY UPDATE NumericValue = VALUES(NumericValue), modified_by = @By, modified_date = NOW(), isdeleted = 0",
+                    new { F = fieldIds[key], Y = yearId, D = did, V = value, By = memberId });
+                result.ValuesWritten++;
+            }
+            foreach (var (achKey, baseKey) in MembershipBaselineKey)
+            {
+                int fid = fieldIds[achKey];
+                decimal ach = annual.First(a => a.Key == achKey).Value, bas = annual.First(a => a.Key == baseKey).Value;
+                prior.TryGetValue((fid, did), out var before);
+                await conn.ExecuteAsync(@"
+                    INSERT INTO goal_entries_monthly (fk_field_id, fk_year_id, EntityType, fk_club_id, fk_district_id, PeriodMonth, NumericValue, created_by, created_date, isdeleted)
+                    VALUES (@F, @Y, 'District', 0, @D, @M, @V, @By, NOW(), 0)
+                    ON DUPLICATE KEY UPDATE NumericValue = VALUES(NumericValue), modified_by = @By, modified_date = NOW(), isdeleted = 0",
+                    new { F = fid, Y = yearId, D = did, M = month, V = ach - bas - before, By = memberId });
+            }
+            result.ImportedDistricts++;
+        }
+        // Rotaract clubs + Rotaractors (July 1st and Achieved), for our districts in the Rotaract file.
+        if (rotaract != null)
+        {
+            foreach (var (did, num) in districts)
+            {
+                if (!rotaract.TryGetValue(num.Trim(), out var rc)) continue;
+                await UpsertDistrictAsync(youthIds["rotaract_existing_clubs"], did, rc.Jul1Clubs);
+                await UpsertDistrictAsync(youthIds["rotaract_clubs_achieved"], did, rc.Clubs);
+                await UpsertDistrictAsync(youthIds["rotaract_existing_members"], did, rc.Jul1Members);
+                await UpsertDistrictAsync(youthIds["rotaract_members_achieved"], did, rc.Members);
+                racWritten++;
+            }
+        }
+        // Interact Clubs Achieved, for our districts in Interact_Statistics "By District".
+        if (interact != null)
+        {
+            foreach (var (did, num) in districts)
+            {
+                if (!interact.TryGetValue(num.Trim(), out var ic)) continue;
+                await UpsertDistrictAsync(youthIds["interact_existing_clubs"], did, ic.Jul1);
+                await UpsertDistrictAsync(youthIds["interact_clubs_achieved"], did, ic.Now);
+                intWritten++;
+            }
+        }
+        if (rotaract != null || interact != null)
+            await RecordFoundationImportMonthAsync(conn, yearId, YouthImportScope, month, memberId);
+        await RecordFoundationImportMonthAsync(conn, yearId, MembershipImportScope, month, memberId);
+
+        result.Message = $"Membership as on {asOf:d MMM yyyy}: {result.ImportedDistricts} district(s) updated"
+                       + (result.SkippedRows.Count > 0 ? $", {result.SkippedRows.Count} not in the file" : "")
+                       + (rotaract != null ? $"; Rotaract clubs + Rotaractors (July 1st + Achieved) set for {racWritten} district(s)" : "")
+                       + (interact != null ? $"; Interact clubs (July 1st + Achieved) set for {intWritten} district(s)" : "") + ".";
+        return result;
+    }
 
     // Overwrite the 3 Membership monthly fields with date-derived buckets + an "As on Jul 1" baseline.
     // Baseline + Σ(months) reconciles to the active total; null charter/join dates fold into the baseline
@@ -2126,7 +2591,7 @@ public class GoalSettingService : IGoalSettingService
                 s1.Cell(r, 1).Value = MonthlyMetricLabel(f);
                 s1.Cell(r, 2).Value = (double)f.Total;
                 if (f.AnnualTarget.HasValue) s1.Cell(r, 3).Value = (double)f.AnnualTarget.Value;
-                if (f.AnnualTarget is > 0m) s1.Cell(r, 4).Value = (double)Math.Round(f.Total / f.AnnualTarget.Value * 100m, 0, MidpointRounding.AwayFromZero);
+                if (f.AnnualTarget is > 0m) s1.Cell(r, 4).Value = (double)Math.Round(f.Total / f.AnnualTarget.Value * 100m, IsTrfCategory(form.CategoryName) ? 2 : 0, MidpointRounding.AwayFromZero);
                 r++;
             }
         }
@@ -2252,7 +2717,7 @@ public class GoalSettingService : IGoalSettingService
             "SELECT DistrictNumber FROM district_master WHERE pk_district_id = @Id", new { Id = districtId }) ?? "";
         var wb = await RenderEntityWorkbookAsync(conn, "District", 0, districtId, resolvedYearId,
             $"District {num}", $"Rotary Year {yearLabel}   ·   Generated {DateTime.Now:dd MMM yyyy, hh:mm tt}", isEditable,
-            await OversightCategoryFilterAsync(conn, memberId));
+            await OversightCategoryFilterAsync(conn, memberId), dropYouthPct: true);
         return wb == null ? null : SaveAndDispose(wb);
     }
 
@@ -2314,6 +2779,7 @@ public class GoalSettingService : IGoalSettingService
 
     private sealed class GoalMetricComputed
     {
+        public bool TwoDecimalPct;         // TRF / Foundation: every % shown with 2 decimals (user 2026-10-07)
         public string Label = "";
         public string GroupName = "";      // metric group ("New Clubs" / "Total Members" / "Women Membership")
         public string BaselineLabel = "";  // exact "as on July 1st" field label, matches the district admin form
@@ -2340,6 +2806,7 @@ public class GoalSettingService : IGoalSettingService
         // untouched; these are that year spread over the months, and each quarter's share of it.
         public decimal? SplitBase;  // what the split totals: Target - Baseline for Membership, Target for TRF
         public Dictionary<int, decimal?> MonthlyTargets = new();    // month 7..6
+        public bool TargetsSuggested;      // MonthlyTargets is the auto spread, not a split the admin saved
         public Dictionary<int, decimal?> QuarterlyTargets = new();  // quarter 1..4
         public Dictionary<int, decimal?> QuarterlyAchieved = new(); // quarter 1..4
     }
@@ -2369,7 +2836,13 @@ public class GoalSettingService : IGoalSettingService
         return f.Total;   // TRF (YTD deltas) / Youth / Public Image (activity counts) → sum.
     }
 
-    private static decimal? ComputePct(decimal? baseline, decimal? target, decimal? achieved, bool membership)
+    // The Foundation category is stored as "TRF" but SHOWN as "Foundation" in Goal Setting (user
+    // 2026-10-09) - every name read for display returns "Foundation", so checks accept both.
+    private static bool IsTrfCategory(string? name) =>
+        string.Equals(name, "TRF", StringComparison.OrdinalIgnoreCase)
+        || string.Equals(name, "Foundation", StringComparison.OrdinalIgnoreCase);
+
+    private static decimal? ComputePct(decimal? baseline, decimal? target, decimal? achieved, bool membership, int decimals = 1)
     {
         if (target is null || target.Value <= 0m) return 0m;           // no target → 0%
         decimal ach = achieved ?? 0m;
@@ -2380,7 +2853,7 @@ public class GoalSettingService : IGoalSettingService
             if (planned <= 0m) return 0m;
             return Math.Max(0m, Math.Min(100m, Math.Round((ach - b) / planned * 100m, 1)));
         }
-        return Math.Max(0m, Math.Min(100m, Math.Round(ach / target.Value * 100m, 1)));
+        return Math.Max(0m, Math.Min(100m, Math.Round(ach / target.Value * 100m, decimals)));
     }
 
     // One category's metric rows for one entity, with baseline / target / achieved / % resolved.
@@ -2436,9 +2909,10 @@ public class GoalSettingService : IGoalSettingService
                 BaselineLabel = baselineLabel,
                 Baseline = f.Baseline ?? baseline ?? highestVal, HasBaseline = hasBaseline || trfHighest,
                 BaselineIsReferenceOnly = trfHighest, Target = target,
-                Achieved = achieved, Pct = ComputePct(baseline, target, achieved, hasBaseline),
+                Achieved = achieved, Pct = ComputePct(baseline, target, achieved, hasBaseline, IsTrfCategory(form.CategoryName) ? 2 : 1),
+                TwoDecimalPct = IsTrfCategory(form.CategoryName),
                 MonthTotal = f.Total, Monthly = f.Monthly,
-                MonthlyTargets = f.MonthlyTargets, QuarterlyTargets = f.QuarterlyTargets,
+                MonthlyTargets = f.MonthlyTargets, TargetsSuggested = f.TargetsAreSuggested, QuarterlyTargets = f.QuarterlyTargets,
                 QuarterlyAchieved = f.QuarterlyAchieved, SplitBase = f.SplitBase,
                 ClosedMonths = closedMonths,
             });
@@ -2449,7 +2923,7 @@ public class GoalSettingService : IGoalSettingService
         // (2026-09-16 request). Append it here as a FULL metric built from the annual values, so every
         // report renders it exactly like the other funds: Highest · Target · Achieved · Percentage Achieved.
         // MonthlyTracked = true only so the YTD sheet keeps it; its month cells are empty by design.
-        if (string.Equals(form.CategoryName, "TRF", StringComparison.OrdinalIgnoreCase)
+        if (IsTrfCategory(form.CategoryName)
             && !rows.Any(x => x.FieldKey == "total_giving_achieved"))
         {
             decimal? TgVal(string key) => live.TryGetValue(key, out var v) ? v : null;
@@ -2466,6 +2940,7 @@ public class GoalSettingService : IGoalSettingService
                 Target = TgVal("total_contributions_target"),
                 Achieved = TgVal("total_giving_achieved"),
                 Pct = TgVal("total_giving_pct"),
+                TwoDecimalPct = true,
                 MonthTotal = 0m,
                 Monthly = form.Months.ToDictionary(m => m.Month, _ => (decimal?)null),
                 ClosedMonths = closedMonths,
@@ -2539,9 +3014,10 @@ public class GoalSettingService : IGoalSettingService
         if (v.HasValue) cell.Value = (double)v.Value; else cell.Value = "—";
         cell.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
     }
-    private static void SetPctCell(IXLCell cell, decimal? v)
+    private static void SetPctCell(IXLCell cell, decimal? v, bool twoDecimals = false)
     {
-        if (v.HasValue) { cell.Value = (double)v.Value; cell.Style.NumberFormat.Format = "0\"%\""; }
+        // TRF: 2 decimals (3.35%); a whole figure stays whole (0%, 100%) - same as the screens.
+        if (v.HasValue) { cell.Value = (double)v.Value; cell.Style.NumberFormat.Format = twoDecimals && v.Value != decimal.Truncate(v.Value) ? "0.00\"%\"" : "0\"%\""; }
         else cell.Value = "—";
         cell.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
     }
@@ -2599,7 +3075,7 @@ public class GoalSettingService : IGoalSettingService
     // caller can append a Messages sheet before saving. Null when the entity has no goal data.
     private async Task<XLWorkbook?> RenderEntityWorkbookAsync(
         MySqlConnection conn, string entityType, int clubId, int districtId, int yearId,
-        string entityTitle, string subtitle, bool autoFillLive, HashSet<int>? onlyCategoryIds = null)
+        string entityTitle, string subtitle, bool autoFillLive, HashSet<int>? onlyCategoryIds = null, bool dropYouthPct = false)
     {
         // The month the Foundation import covers, for the TRF "Achieved" heading below.
         var trfAsOn = await FoundationAsOnAsync(conn, yearId, entityType);
@@ -2612,6 +3088,7 @@ public class GoalSettingService : IGoalSettingService
             if (rows.Count > 0) perCat.Add((string.IsNullOrEmpty(name) ? cat.Name : name, rows, months));
         }
         if (perCat.Count == 0) return null;
+        if (dropYouthPct) DropYouthPct(perCat);
         var months0 = perCat.First(p => p.Months.Count > 0).Months;
 
         var wb = new XLWorkbook();
@@ -2646,11 +3123,16 @@ public class GoalSettingService : IGoalSettingService
         // ── Sheet 3 — Month wise (Achieved per month only; the yearly Target is NOT shown here — it
         //    belongs to the YTD sheet. Month-wise is purely the monthly collected/added values + Total) ──
         var s2 = wb.Worksheets.Add("Month wise");
-        int totalCols = 1 + 1 + 1 + months0.Count;   // Metric · As on Jul 1 · Target · <months>
+        // District (user 2026-10-09): every month carries a Target | Achieved pair, metrics are rows -
+        // the same grid as the Month-wise popup. Clubs keep the row-per-figure layout below.
+        bool grid = entityType == "District";
+        int totalCols = grid ? 1 + 1 + 1 + 2 * months0.Count + 2     // Metric · Jul 1 · Target · <month T|A> · Achieved · %
+                             : 1 + 1 + 1 + months0.Count;            // Metric · As on Jul 1 · Target · <months>
         s2.Column(1).Width = 30;
         r = 1;
         RenderTitleBand(s2, totalCols, entityTitle, subtitle + "   ·   Month wise", ref r);
-        WriteMonthBlock(s2, perCat, totalCols, ref r);
+        if (grid) WriteMonthGridBlock(s2, perCat, ref r);
+        else WriteMonthBlock(s2, perCat, totalCols, ref r);
         s2.PageSetup.PageOrientation = XLPageOrientation.Landscape;
         s2.PageSetup.FitToPages(1, 0);
         s2.PageSetup.Margins.Top = 0.5; s2.PageSetup.Margins.Bottom = 0.5;
@@ -2674,8 +3156,22 @@ public class GoalSettingService : IGoalSettingService
             if (rows.Count > 0) perCat.Add((string.IsNullOrEmpty(name) ? cat.Name : name, rows, months));
         }
         if (perCat.Count == 0) return null;
-        var months0 = perCat.First(p => p.Months.Count > 0).Months;
+        var months0 = UnionMonths(perCat.Select(p => p.Months));
         return (perCat, months0);
+    }
+
+    // One month header shared by several categories: a month is open when ANY category has it open.
+    // (Taking the first category's months let District Membership - blank until imported - blank the
+    // Jul/Aug of every other category. Per-category gaps still show through each row's ClosedMonths.)
+    private static List<GoalMonthPeriodDto> UnionMonths(IEnumerable<List<GoalMonthPeriodDto>> lists)
+    {
+        var all = lists.Where(l => l.Count > 0).ToList();
+        if (all.Count == 0) return new List<GoalMonthPeriodDto>();
+        return all[0].Select(mo => new GoalMonthPeriodDto
+        {
+            Month = mo.Month, Label = mo.Label, CalendarYear = mo.CalendarYear,
+            IsAvailable = all.Any(l => l.Any(x => x.Month == mo.Month && x.IsAvailable)),
+        }).ToList();
     }
 
     // Write one entity's YTD (Till Date) category tables onto sheet `s` starting at row `r`; advances r.
@@ -2719,7 +3215,7 @@ public class GoalSettingService : IGoalSettingService
                 if (hasBase) { SetNumCell(s.Cell(r, cc), m.Baseline); cc++; }
                 SetNumCell(s.Cell(r, cc), m.Target); cc++;
                 SetNumCell(s.Cell(r, cc), m.Achieved); cc++;
-                SetPctCell(s.Cell(r, cc), m.Pct);
+                SetPctCell(s.Cell(r, cc), m.Pct, m.TwoDecimalPct);
                 BorderRow(s, r, cols); r++;
             }
             r++; // spacer
@@ -2806,8 +3302,8 @@ public class GoalSettingService : IGoalSettingService
                     // "385%" reads like a fault. Month-wise and Quarter only - the yearly screens keep
                     // showing the true figure.
                     decimal? pct = (qt.HasValue && qt.Value != 0m && qa.HasValue)
-                        ? Math.Min(100m, Math.Round(qa.Value / qt.Value * 100m, 0, MidpointRounding.AwayFromZero)) : (decimal?)null;
-                    SetPctCell(s.Cell(r, c), pct);
+                        ? Math.Min(100m, Math.Round(qa.Value / qt.Value * 100m, m.TwoDecimalPct ? 2 : 0, MidpointRounding.AwayFromZero)) : (decimal?)null;
+                    SetPctCell(s.Cell(r, c), pct, m.TwoDecimalPct);
                     c++;
                 }
                 BorderRow(s, r, blockCols); r++;
@@ -2892,7 +3388,102 @@ public class GoalSettingService : IGoalSettingService
                 c = 1; s.Cell(r, c).Value = "  Achievement(%)"; c++;
                 if (hasBase) c++;
                 c++;
-                foreach (var v in cum) { SetPctCell(s.Cell(r, c), v.HasValue ? PctAtMonth(m, v.Value) : (decimal?)null); c++; }
+                foreach (var v in cum) { SetPctCell(s.Cell(r, c), v.HasValue ? PctAtMonth(m, v.Value) : (decimal?)null, m.TwoDecimalPct); c++; }
+                BorderRow(s, r, blockCols); r++;
+            }
+            r++; // spacer between categories
+        }
+    }
+
+    // Running monthly TARGET (user 2026-10-09): the year's growth (Target - As on July 1st; the Target
+    // itself for Foundation) split over the 12 months in whole numbers, the whole leftover in the LAST
+    // month (June), shown as a running total from July 1st. 122 -> 135: Jul 123 ... May 133, Jun 135;
+    // 10 -> 13: Jul..May 10, Jun 13. A split the admin saved (pilot) is used as it is.
+    private static Dictionary<int, decimal?> RunningMonthTargets(GoalMetricComputed m, List<GoalMonthPeriodDto> months)
+    {
+        var outv = new Dictionary<int, decimal?>();
+        decimal start = m.BaselineIsReferenceOnly ? 0m : (m.Baseline ?? 0m);
+        bool saved = !m.TargetsSuggested && m.MonthlyTargets.Values.Any(v => v.HasValue);
+        List<decimal> shares;
+        if (saved)
+            shares = months.Select(mo => m.MonthlyTargets.TryGetValue(mo.Month, out var v) && v.HasValue ? v.Value : 0m).ToList();
+        else if (m.Target.HasValue && months.Count > 0)
+        {
+            decimal growth = Math.Round(m.Target.Value - start, 0, MidpointRounding.AwayFromZero);
+            if (growth <= 0m) { foreach (var mo in months) outv[mo.Month] = m.Target; return outv; }
+            decimal each = Math.Floor(growth / months.Count);
+            decimal extra = growth - each * months.Count;
+            shares = months.Select((_, i) => each + (i == months.Count - 1 ? extra : 0m)).ToList();
+        }
+        else { foreach (var mo in months) outv[mo.Month] = null; return outv; }
+        decimal run = start;
+        for (int i = 0; i < months.Count; i++) { run += shares[i]; outv[months[i].Month] = run; }
+        return outv;
+    }
+
+    // District Month wise sheet as a grid (user 2026-10-09): header row 1 = months (each spanning two
+    // columns), row 2 = Target | Achieved under every month; one row per metric. Annual-only rows keep
+    // their single value and empty month cells.
+    private void WriteMonthGridBlock(IXLWorksheet s, List<(string Name, List<GoalMetricComputed> Rows, List<GoalMonthPeriodDto> Months)> perCat, ref int r)
+    {
+        foreach (var (name, rows, months) in perCat)
+        {
+            if (IsAnnualOnlyCategory(name)) continue;
+            int blockCols = 3 + 2 * months.Count + 2;
+            RenderSectionBand(s, blockCols, name, ref r);
+            int hr = r;   // header row (a ref parameter cannot be used inside the local function)
+            void TallHeader(int col, string txt)
+            {
+                int r = hr;
+                var hc = s.Cell(r, col); hc.Value = txt; StyleHeaderCell(hc); StyleHeaderCell(s.Cell(r + 1, col));
+                s.Range(r, col, r + 1, col).Merge().Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
+            }
+            TallHeader(1, "Particulars");
+            TallHeader(2, "As on Jul 1 / Value");
+            TallHeader(3, TargetHeader(name));
+            int c = 4;
+            foreach (var mo in months)
+            {
+                var hc = s.Cell(r, c); hc.Value = mo.Label; StyleHeaderCell(hc); StyleHeaderCell(s.Cell(r, c + 1));
+                s.Range(r, c, r, c + 1).Merge().Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+                var t = s.Cell(r + 1, c); t.Value = "Target"; StyleHeaderCell(t);
+                var a = s.Cell(r + 1, c + 1); a.Value = "Achieved"; StyleHeaderCell(a);
+                c += 2;
+            }
+            TallHeader(c, "Achieved"); c++;
+            TallHeader(c, "% Achievement");
+            BorderRow(s, r, blockCols); BorderRow(s, r + 1, blockCols);
+            r += 2;
+
+            foreach (var m in rows)
+            {
+                // Membership's yearly-only rows (RED / AMBER / GREEN + the 3 Summary totals) have nothing
+                // month-wise - hidden here (user 2026-10-09); the YTD sheet still lists them.
+                if (!m.MonthlyTracked && name.Equals("Membership", StringComparison.OrdinalIgnoreCase)) continue;
+                s.Cell(r, 1).Value = QualifiedLabel(m, rows);
+                if (!m.MonthlyTracked)
+                {
+                    if (m.DisplayText != null) { var dc = s.Cell(r, 3); dc.Value = m.DisplayText; dc.Style.Alignment.WrapText = true; }
+                    else SetNumCell(s.Cell(r, 3), m.Target ?? m.Baseline);
+                    BorderRow(s, r, blockCols); r++;
+                    continue;
+                }
+                SetNumCell(s.Cell(r, 2), m.BaselineIsReferenceOnly || !m.HasBaseline ? null : m.Baseline);
+                SetNumCell(s.Cell(r, 3), m.Target);
+                var tgt = RunningMonthTargets(m, months);
+                decimal run = m.BaselineIsReferenceOnly ? 0m : (m.Baseline ?? 0m);
+                decimal? last = null;
+                c = 4;
+                foreach (var mo in months)
+                {
+                    SetNumCell(s.Cell(r, c), tgt.TryGetValue(mo.Month, out var tv) ? tv : null);
+                    decimal? ach = null;
+                    if (mo.IsAvailable) { run += (m.Monthly.TryGetValue(mo.Month, out var v) && v.HasValue) ? v.Value : 0m; ach = run; last = run; }
+                    SetNumCell(s.Cell(r, c + 1), ach);
+                    c += 2;
+                }
+                var ac = s.Cell(r, c); SetNumCell(ac, last); ac.Style.Font.Bold = true; c++;
+                SetPctCell(s.Cell(r, c), last.HasValue ? PctAtMonth(m, last.Value) : (decimal?)null, m.TwoDecimalPct);
                 BorderRow(s, r, blockCols); r++;
             }
             r++; // spacer between categories
@@ -2916,7 +3507,7 @@ public class GoalSettingService : IGoalSettingService
         }
         // TRF had no cap here while the Membership branch above always had one, so a fund that beat
         // its target printed 118% on the Month-wise sheet. Capped to match (user 2026-09-25).
-        return target > 0m ? Math.Min(100m, Math.Round(cumAchieved / target * 100m, 0, MidpointRounding.AwayFromZero)) : (decimal?)null;
+        return target > 0m ? Math.Min(100m, Math.Round(cumAchieved / target * 100m, m.TwoDecimalPct ? 2 : 0, MidpointRounding.AwayFromZero)) : (decimal?)null;
     }
 
     // ── ALL CLUBS in a district — one workbook (2 sheets: YTD + Month wise) with every club's goals
@@ -2927,7 +3518,9 @@ public class GoalSettingService : IGoalSettingService
         using var conn = CreateConnection();
         await conn.OpenAsync();
         var districtId = await ResolveDistrictIdAsync(conn, memberId, requestedDistrictId);
-        return await BuildAllClubsMonthlyExcelCoreAsync(conn, districtId, yearId, await DaCategoryFilterAsync(conn, memberId));
+        // user 2026-10-08: Rotaract clubs hidden from the District Admin's goal screens (SuperAdmin keeps them).
+        return await BuildAllClubsMonthlyExcelCoreAsync(conn, districtId, yearId, await DaCategoryFilterAsync(conn, memberId),
+            excludeRotaract: ClubScopeSql.HideRotaract(await ClubAdminAccessHelper.IsSuperAdminAsync(conn, memberId)));
     }
 
     // Goal-oversight "View clubs" popup: the all-clubs "Club Goal Setting" report for ANY district in
@@ -2942,7 +3535,7 @@ public class GoalSettingService : IGoalSettingService
     }
 
     private async Task<byte[]?> BuildAllClubsMonthlyExcelCoreAsync(MySqlConnection conn, int districtId, int? yearId,
-        HashSet<int>? onlyCategoryIds = null)
+        HashSet<int>? onlyCategoryIds = null, bool excludeRotaract = false)
     {
         if (districtId == 0) return null;
         var (resolvedYearId, yearLabel, isEditable) = await ResolveYearAsync(conn, yearId);
@@ -2950,7 +3543,8 @@ public class GoalSettingService : IGoalSettingService
         var num = await conn.ExecuteScalarAsync<string>(
             "SELECT DistrictNumber FROM district_master WHERE pk_district_id = @Id", new { Id = districtId }) ?? "";
         var clubs = (await conn.QueryAsync<(int Id, string Name)>(
-            "SELECT pk_club_id AS Id, ClubName AS Name FROM club_master WHERE fk_district_id = @D AND isdeleted = 0 AND IsActive = 1 ORDER BY ClubName",
+            "SELECT pk_club_id AS Id, ClubName AS Name FROM club_master WHERE fk_district_id = @D AND isdeleted = 0 AND IsActive = 1"
+            + (excludeRotaract ? " AND " + ClubScopeSql.NotRotaract("") : "") + " ORDER BY ClubName",
             new { D = districtId })).ToList();
         if (clubs.Count == 0) return null;
 
@@ -3024,7 +3618,7 @@ public class GoalSettingService : IGoalSettingService
             }
             // "Achieved (as on …)" per category — the same date the district's Goal Setting form shows.
             foreach (var cat in await conn.QueryAsync<(int Id, string Name)>(
-                "SELECT pk_category_id AS Id, Name FROM goal_categories WHERE isdeleted = 0"))
+                "SELECT pk_category_id AS Id, IF(Name = 'TRF', 'Foundation', Name) AS Name FROM goal_categories WHERE isdeleted = 0"))
             {
                 var asOn = await AchievedAsOnAsync(conn, cat.Id, resolvedYearId, "District", 0, districtId);
                 if (asOn != null) result.AchievedAsOn[cat.Name] = asOn;
@@ -3038,7 +3632,7 @@ public class GoalSettingService : IGoalSettingService
             var wb = await RenderEntityWorkbookAsync(conn, "District", 0, districtId, resolvedYearId,
                 $"District {num}", $"Rotary Year {yearLabel}   ·   Generated {DateTime.Now:dd MMM yyyy, hh:mm tt}", isEditable);
             result.DistrictWorkbook = wb == null ? null : SaveAndDispose(wb);
-            result.ClubsWorkbook = await BuildAllClubsMonthlyExcelCoreAsync(conn, districtId, resolvedYearId);
+            result.ClubsWorkbook = await BuildAllClubsMonthlyExcelCoreAsync(conn, districtId, resolvedYearId, excludeRotaract: true);   // DG email
         }
         return result;
     }
@@ -3161,7 +3755,7 @@ public class GoalSettingService : IGoalSettingService
                     if (lbls[i].HasBaseline) { SetNumCell(s1.Cell(r, cc), m?.Baseline); cc++; }
                     SetNumCell(s1.Cell(r, cc), m?.Target); cc++;
                     SetNumCell(s1.Cell(r, cc), m?.Achieved); cc++;
-                    SetPctCell(s1.Cell(r, cc), m?.Pct);
+                    SetPctCell(s1.Cell(r, cc), m?.Pct, m?.TwoDecimalPct == true);
                     col += cols;
                 }
             }
@@ -3355,6 +3949,7 @@ public class GoalSettingService : IGoalSettingService
         foreach (var (name, data) in computed)
         {
             if (data == null) continue;
+            DropYouthPct(data.Value.PerCat);   // oversight report: no Youth Service % (user 2026-10-09)
             rowData.Add((name, data.Value.PerCat));
             if (months0.Count == 0) months0 = data.Value.Months0;
         }
@@ -3405,6 +4000,26 @@ public class GoalSettingService : IGoalSettingService
                     rng.Style.Alignment.Vertical = XLAlignmentVerticalValues.Top;
                     r++;
                 }
+            }
+        }
+        // District-side messages (District Admin / DG, user 2026-10-09) the downloader may read.
+        using (var dconn = CreateConnection())
+        {
+            await dconn.OpenAsync();
+            foreach (var m in await DistrictSideReportRowsAsync(dconn, memberId, yearId, 0, 0, districtId))
+            {
+                if (!cats.Any(x => x.Id == m.CategoryId)) continue;
+                any = true;
+                ws.Cell(r, 1).Value = m.CategoryName;
+                ws.Cell(r, 2).Value = $"District {m.DistrictNumber} ({m.FromRole})";
+                ws.Cell(r, 3).Value = $"{m.FromRole} · {m.FromName}";
+                ws.Cell(r, 4).Value = m.Text; ws.Cell(r, 4).Style.Alignment.WrapText = true;
+                ws.Cell(r, 5).Value = m.Created.ToString("yyyy-MM-dd HH:mm");
+                var drng = ws.Range(r, 1, r, 5);
+                drng.Style.Border.OutsideBorder = XLBorderStyleValues.Thin; drng.Style.Border.InsideBorder = XLBorderStyleValues.Thin;
+                drng.Style.Border.OutsideBorderColor = RepBorder; drng.Style.Border.InsideBorderColor = RepBorder;
+                drng.Style.Alignment.Vertical = XLAlignmentVerticalValues.Top;
+                r++;
             }
         }
         if (!any) { ws.Range(r, 1, r, 5).Merge(); var c = ws.Cell(r, 1); c.Value = "No messages."; c.Style.Font.Italic = true; c.Style.Font.FontColor = XLColor.FromHtml("#94a3b8"); r++; }
@@ -3571,7 +4186,7 @@ public class GoalSettingService : IGoalSettingService
                     if (labels[i].HasBaseline) { SetNumCell(s1.Cell(r, c), m?.Baseline); c++; }
                     SetNumCell(s1.Cell(r, c), m?.Target); c++;
                     SetNumCell(s1.Cell(r, c), m?.Achieved); c++;
-                    SetPctCell(s1.Cell(r, c), m?.Pct); c++;
+                    SetPctCell(s1.Cell(r, c), m?.Pct, m?.TwoDecimalPct == true); c++;
                 }
                 BorderRow(s1, r, width); r++;
             }
@@ -3627,7 +4242,7 @@ public class GoalSettingService : IGoalSettingService
         }
 
         // ── Sheet 3 — Month wise, flat (District × Category × Metric) ──
-        var months0 = computed.Values.Select(v => v.Months).FirstOrDefault(m => m.Count > 0) ?? new List<GoalMonthPeriodDto>();
+        var months0 = UnionMonths(computed.Values.Select(v => v.Months));
         var s2 = wb.Worksheets.Add("Month wise");
         int totalCols = 3 + 1 + months0.Count + 1;   // District · Category · Metric · As on Jul 1 · <months> · Total
         s2.Column(1).Width = 12; s2.Column(2).Width = 16; s2.Column(3).Width = 26;
@@ -3720,6 +4335,26 @@ public class GoalSettingService : IGoalSettingService
                     rng.Style.Alignment.Vertical = XLAlignmentVerticalValues.Top;
                     r++;
                 }
+            }
+        }
+        // District-side messages (District Admin / DG, user 2026-10-09) the downloader may read.
+        using (var dconn = CreateConnection())
+        {
+            await dconn.OpenAsync();
+            foreach (var m in await DistrictSideReportRowsAsync(dconn, memberId, yearId, zoneId, 0, 0))
+            {
+                if (!cats.Any(x => x.Id == m.CategoryId)) continue;
+                any = true;
+                ws.Cell(r, 1).Value = m.CategoryName;
+                ws.Cell(r, 2).Value = $"District {m.DistrictNumber} ({m.FromRole})";
+                ws.Cell(r, 3).Value = $"{m.FromRole} · {m.FromName}";
+                ws.Cell(r, 4).Value = m.Text; ws.Cell(r, 4).Style.Alignment.WrapText = true;
+                ws.Cell(r, 5).Value = m.Created.ToString("yyyy-MM-dd HH:mm");
+                var drng = ws.Range(r, 1, r, 5);
+                drng.Style.Border.OutsideBorder = XLBorderStyleValues.Thin; drng.Style.Border.InsideBorder = XLBorderStyleValues.Thin;
+                drng.Style.Border.OutsideBorderColor = RepBorder; drng.Style.Border.InsideBorderColor = RepBorder;
+                drng.Style.Alignment.Vertical = XLAlignmentVerticalValues.Top;
+                r++;
             }
         }
         if (!any) { ws.Range(r, 1, r, 5).Merge(); var c = ws.Cell(r, 1); c.Value = "No messages."; c.Style.Font.Italic = true; c.Style.Font.FontColor = XLColor.FromHtml("#94a3b8"); r++; }
@@ -3874,7 +4509,8 @@ public class GoalSettingService : IGoalSettingService
         using var conn = CreateConnection();
         await conn.OpenAsync();
         var districtId = await ResolveDistrictIdAsync(conn, memberId, requestedDistrictId);
-        return await BuildDistrictClubsGoalMatrixCoreAsync(conn, categoryId, districtId, yearId);
+        return await BuildDistrictClubsGoalMatrixCoreAsync(conn, categoryId, districtId, yearId,
+            excludeRotaract: ClubScopeSql.HideRotaract(await ClubAdminAccessHelper.IsSuperAdminAsync(conn, memberId)));   // user 2026-10-08
     }
 
     // Goal-oversight (RI Director / ZC / DA / observer) variant: validate the district against the
@@ -3889,7 +4525,7 @@ public class GoalSettingService : IGoalSettingService
         return await BuildDistrictClubsGoalMatrixCoreAsync(conn, categoryId, districtId, yearId);
     }
 
-    private async Task<GoalClubMatrixDto> BuildDistrictClubsGoalMatrixCoreAsync(MySqlConnection conn, int categoryId, int districtId, int? yearId)
+    private async Task<GoalClubMatrixDto> BuildDistrictClubsGoalMatrixCoreAsync(MySqlConnection conn, int categoryId, int districtId, int? yearId, bool excludeRotaract = false)
     {
         var result = new GoalClubMatrixDto { CategoryId = categoryId };
         if (districtId == 0) return result;
@@ -3902,7 +4538,8 @@ public class GoalSettingService : IGoalSettingService
 
         var clubs = (await conn.QueryAsync<(int Id, string Name)>(
             @"SELECT pk_club_id AS Id, ClubName AS Name FROM club_master
-              WHERE fk_district_id = @D AND isdeleted = 0 AND IsActive = 1 ORDER BY ClubName",
+              WHERE fk_district_id = @D AND isdeleted = 0 AND IsActive = 1"
+            + (excludeRotaract ? " AND " + ClubScopeSql.NotRotaract("") : "") + " ORDER BY ClubName",
             new { D = districtId })).ToList();
 
         bool columnsSet = false;
@@ -3963,7 +4600,8 @@ public class GoalSettingService : IGoalSettingService
         using var conn = CreateConnection();
         await conn.OpenAsync();
         var districtId = await ResolveDistrictIdAsync(conn, memberId, requestedDistrictId);
-        return await BuildDistrictClubsMonthlyMatrixCoreAsync(conn, categoryId, districtId, yearId);
+        return await BuildDistrictClubsMonthlyMatrixCoreAsync(conn, categoryId, districtId, yearId,
+            excludeRotaract: ClubScopeSql.HideRotaract(await ClubAdminAccessHelper.IsSuperAdminAsync(conn, memberId)));   // user 2026-10-08
     }
 
     // Goal-oversight variant (goal-scope validated, not district-admin) — for the "Club Goal Setting" popup.
@@ -3976,7 +4614,7 @@ public class GoalSettingService : IGoalSettingService
         return await BuildDistrictClubsMonthlyMatrixCoreAsync(conn, categoryId, districtId, yearId);
     }
 
-    private async Task<GoalClubMonthlyMatrixDto> BuildDistrictClubsMonthlyMatrixCoreAsync(MySqlConnection conn, int categoryId, int districtId, int? yearId)
+    private async Task<GoalClubMonthlyMatrixDto> BuildDistrictClubsMonthlyMatrixCoreAsync(MySqlConnection conn, int categoryId, int districtId, int? yearId, bool excludeRotaract = false)
     {
         var result = new GoalClubMonthlyMatrixDto { CategoryId = categoryId };
         if (districtId == 0) return result;
@@ -3991,7 +4629,8 @@ public class GoalSettingService : IGoalSettingService
 
         var clubs = (await conn.QueryAsync<(int Id, string Name)>(
             @"SELECT pk_club_id AS Id, ClubName AS Name FROM club_master
-              WHERE fk_district_id = @D AND isdeleted = 0 AND IsActive = 1 ORDER BY ClubName",
+              WHERE fk_district_id = @D AND isdeleted = 0 AND IsActive = 1"
+            + (excludeRotaract ? " AND " + ClubScopeSql.NotRotaract("") : "") + " ORDER BY ClubName",
             new { D = districtId })).ToList();
 
         // The per-club monthly form is the slow part, and a big district has 100+ clubs — building them
@@ -4255,7 +4894,7 @@ public class GoalSettingService : IGoalSettingService
             // TRF's reference column is "Highest" — a comparison figure, NOT a July-1st baseline. Without
             // this flag SummaryPct subtracts it like a Membership baseline, so every TRF % read 0% (when
             // Target > Highest) or "—" (when Target < Highest). TRF is always Achieved ÷ Target × 100.
-            bool trfRatioPct = string.Equals(m.CategoryName, "TRF", StringComparison.OrdinalIgnoreCase);
+            bool trfRatioPct = IsTrfCategory(m.CategoryName);
             foreach (var (gname, grows) in byGroup)
             {
                 var targetRow = grows.FirstOrDefault(x => x.HasTarget);
@@ -4282,7 +4921,12 @@ public class GoalSettingService : IGoalSettingService
                 else
                 {
                     foreach (var r in grows)
+                    {
+                        // Youth Service: no Achievement(%) columns for the oversight roles (user 2026-10-09);
+                        // the District Admin's own form keeps them.
+                        if (IsYouthCategory(m.CategoryName) && r.DataType == "Percentage") continue;
                         groups.Add((gname, ReportLabel(r.Label), r, r, r, RagBandOf(r.MetricKey, r.Label), true, null));
+                    }
                 }
             }
 
@@ -4354,7 +4998,7 @@ public class GoalSettingService : IGoalSettingService
                     {
                         AsOnJul1 = baseStr, Target = tgtStr, Achieved = achStr,
                         // TRF passes no baseline → plain Achieved ÷ Target (see trfRatioPct above).
-                        Pct = FormatPct(SummaryPct(trfRatioPct ? (decimal?)null : bn, tn, an)),
+                        Pct = FormatPct(SummaryPct(trfRatioPct ? (decimal?)null : bn, tn, an, trfRatioPct ? 2 : 0)),
                     });
                     var a = acc[i];
                     if (bn.HasValue) { a.Base += bn.Value; a.Any = true; a.HasBase = true; }
@@ -4385,13 +5029,13 @@ public class GoalSettingService : IGoalSettingService
                     continue;
                 }
                 // Same rule for the TOTAL row: TRF's "Highest" must not be subtracted like a baseline.
-                bool totalsTrf = string.Equals(c.Name, "TRF", StringComparison.OrdinalIgnoreCase);
+                bool totalsTrf = IsTrfCategory(c.Name);
                 c.Totals.Add(new GoalSummaryCellDto
                 {
                     AsOnJul1 = a.HasBase ? FormatMonthlyNumber(a.Base) : null,
                     Target = FormatMonthlyNumber(a.Tgt),
                     Achieved = FormatMonthlyNumber(a.Ach),
-                    Pct = FormatPct(SummaryPct(a.HasBase && !totalsTrf ? a.Base : (decimal?)null, a.Tgt, a.Ach)),
+                    Pct = FormatPct(SummaryPct(a.HasBase && !totalsTrf ? a.Base : (decimal?)null, a.Tgt, a.Ach, totalsTrf ? 2 : 0)),
                 });
             }
         }
@@ -4401,7 +5045,8 @@ public class GoalSettingService : IGoalSettingService
     // % for the district overview: Membership metrics (which have a July-1 baseline) use progress on the
     // PLANNED increase = (achieved − baseline) / (target − baseline); others use achieved / target. Matches
     // the district admin form (e.g. New Clubs 141→154, achieved 142 → 7.69%).
-    private static decimal? SummaryPct(decimal? baseline, decimal? target, decimal? achieved)
+    // decimals: TRF 2 (3.35%, same as the month-wise panel - user 2026-10-07), everything else 0.
+    private static decimal? SummaryPct(decimal? baseline, decimal? target, decimal? achieved, int decimals = 0)
     {
         if (target is null || target.Value <= 0m) return null;
         decimal ach = achieved ?? 0m;
@@ -4411,9 +5056,19 @@ public class GoalSettingService : IGoalSettingService
             if (planned <= 0m) return null;
             return Math.Max(0m, Math.Min(100m, Math.Round((ach - baseline.Value) / planned * 100m, 0, MidpointRounding.AwayFromZero)));
         }
-        return Math.Max(0m, Math.Min(100m, Math.Round(ach / target.Value * 100m, 0, MidpointRounding.AwayFromZero)));
+        return Math.Max(0m, Math.Min(100m, Math.Round(ach / target.Value * 100m, decimals, MidpointRounding.AwayFromZero)));
     }
     private static string? FormatPct(decimal? p) => p.HasValue ? p.Value.ToString("0.##") + "%" : null;
+
+    private static bool IsYouthCategory(string? name) => string.Equals(name, "Youth Service", StringComparison.OrdinalIgnoreCase);
+
+    // Oversight reports (RI Director / ZC / District Assistant, user 2026-10-09): Youth Service without
+    // its Achievement(%) columns. The District Admin's own exports are not passed through this.
+    private static void DropYouthPct(List<(string Name, List<GoalMetricComputed> Rows, List<GoalMonthPeriodDto> Months)> perCat)
+    {
+        foreach (var (name, rows, _) in perCat)
+            if (IsYouthCategory(name)) rows.RemoveAll(x => x.FieldKey.EndsWith("_pct", StringComparison.Ordinal));
+    }
 
     // Shorter wording for the OVERVIEW grid + every Excel report ONLY. The district / club admin Goal
     // Setting forms keep the seeded labels untouched — this is display text, never stored.
@@ -4437,7 +5092,7 @@ public class GoalSettingService : IGoalSettingService
     // the import covers - the same date the Goal Setting screens show (user 2026-10-01). Every other
     // category keeps the plain heading; so does TRF when nothing has been imported yet.
     private static string AchievedHeader(string? categoryName, string? trfAsOn)
-        => string.Equals(categoryName, "TRF", StringComparison.OrdinalIgnoreCase) && !string.IsNullOrWhiteSpace(trfAsOn)
+        => IsTrfCategory(categoryName) && !string.IsNullOrWhiteSpace(trfAsOn)
             ? $"Achieved (as on {trfAsOn})"
             : "Achieved";
 
@@ -4689,7 +5344,7 @@ public class GoalSettingService : IGoalSettingService
                    COALESCE(NULLIF(m.MemberName, ''), a.MemberNameText) AS memberName,
                    a.RoleType AS roleType, a.AssignmentName AS assignmentName,
                    a.RoleTitle AS roleTitle, a.Avenue AS avenue,
-                   a.fk_category_id AS categoryId, c.Name AS categoryName,
+                   a.fk_category_id AS categoryId, IF(c.Name = 'TRF', 'Foundation', c.Name) AS categoryName,
                    a.fk_zone_id AS zoneId, z.ZoneName AS zoneName,
                    a.HomeDistrictId AS homeDistrictId, hd.DistrictNumber AS homeDistrictNumber,
                    a.DgYear AS dgYear, a.SupportingText AS supportingText,
@@ -5452,7 +6107,7 @@ public class GoalSettingService : IGoalSettingService
         var info = await conn.QueryFirstOrDefaultAsync<dynamic>(@"
             SELECT a.fk_member_id AS memberId, a.IsActive AS isActive, a.RoleType AS roleType,
                    a.RoleTitle AS roleTitle, a.AssignmentName AS assignmentName,
-                   c.Name AS categoryName, z.ZoneName AS zoneName
+                   IF(c.Name = 'TRF', 'Foundation', c.Name) AS categoryName, z.ZoneName AS zoneName
             FROM goal_role_assignments a
             LEFT JOIN goal_categories c ON c.pk_category_id = a.fk_category_id
             LEFT JOIN zone_master z ON z.pk_zone_id = a.fk_zone_id
@@ -6009,8 +6664,17 @@ public class GoalSettingService : IGoalSettingService
     }
 
     // One thread's messages, oldest first, each with its writer + district.
-    private static async Task<List<GoalCommentDto>> SeatThreadMessagesAsync(
+    private static Task<List<GoalCommentDto>> SeatThreadMessagesAsync(
         MySqlConnection conn, int viewerMemberId, DynamicParameters p, bool hasSeats, string extraWhere = "")
+        => CommentsWhereAsync(conn, viewerMemberId, p,
+            $"c.fk_category_id=@C AND c.fk_year_id=@Y AND c.isdeleted=0 {extraWhere} AND {SeatThreadFilterSql(hasSeats)}");
+
+    // Messages by id (param @Ids), oldest first - the RI Director's box (RiZoneBoxesAsync).
+    private static Task<List<GoalCommentDto>> MessagesByIdsAsync(MySqlConnection conn, int viewerMemberId, DynamicParameters p)
+        => CommentsWhereAsync(conn, viewerMemberId, p, "c.pk_id IN @Ids AND c.isdeleted=0");
+
+    private static async Task<List<GoalCommentDto>> CommentsWhereAsync(
+        MySqlConnection conn, int viewerMemberId, DynamicParameters p, string where)
     {
         var rows = await conn.QueryAsync<dynamic>($@"
             SELECT c.pk_id AS id, c.CommentText AS commentText, c.PostedByMemberId AS postedByMemberId,
@@ -6019,8 +6683,8 @@ public class GoalSettingService : IGoalSettingService
                    DATE_FORMAT(c.created_date,'%Y-%m-%d %H:%i') AS createdDate
             FROM goal_comments c LEFT JOIN member_master_profile m ON m.pk_member_master_profile_id=c.PostedByMemberId
             LEFT JOIN district_master dm ON dm.pk_district_id = c.fk_district_id
-            WHERE c.fk_category_id=@C AND c.fk_year_id=@Y AND c.isdeleted=0 {extraWhere} AND {SeatThreadFilterSql(hasSeats)}
-            ORDER BY c.created_date ASC", p);
+            WHERE {where}
+            ORDER BY c.created_date ASC, c.pk_id ASC", p);
         var list = new List<GoalCommentDto>();
         foreach (var r in rows)
         {
@@ -6159,7 +6823,7 @@ public class GoalSettingService : IGoalSettingService
                    'AllDistrictsOneCategoryOneZone' AS RoleType,
                    'Zone Co-ordinator' AS RoleLabel,
                    COALESCE(z.ZoneName, '') AS ZoneNames,
-                   c.Name AS CategoryName
+                   IF(c.Name = 'TRF', 'Foundation', c.Name) AS CategoryName
             FROM goal_role_assignments a
             JOIN member_master_profile m ON m.pk_member_master_profile_id = a.fk_member_id AND m.isdeleted = 0
             LEFT JOIN zone_master z ON z.pk_zone_id = a.fk_zone_id
@@ -6179,7 +6843,7 @@ public class GoalSettingService : IGoalSettingService
                            FROM goal_role_assignment_districts ad
                            JOIN district_master dm ON dm.pk_district_id = ad.fk_district_id
                           WHERE ad.fk_assignment_id = a.pk_id))) AS ZoneNames,
-                   c.Name AS CategoryName
+                   IF(c.Name = 'TRF', 'Foundation', c.Name) AS CategoryName
             FROM goal_role_assignments a
             JOIN member_master_profile m ON m.pk_member_master_profile_id = a.fk_member_id AND m.isdeleted = 0
             LEFT JOIN zone_master z ON z.pk_zone_id = a.fk_zone_id
@@ -6397,6 +7061,109 @@ public class GoalSettingService : IGoalSettingService
         return isRd > 0;
     }
 
+    // ── RI Director / SuperAdmin conversations: ONE definition (user 2026-10-07) ─────────────────
+    // The list, the opened conversation and the red dot all read these boxes, so the dot can only
+    // count what the list can open. Before this the dot counted every message of the zone while the
+    // list only showed current seat-holders' seats, so three kinds of message lit it for ever:
+    //   * people who no longer hold a seat (their box vanished, their messages kept counting);
+    //   * messages a CURRENT seat-holder posted under an earlier seat of theirs;
+    //   * "All districts" (district 0) messages of a revoked seat nobody inherited.
+    // Now: each current owner's box = their seats' messages (as before) PLUS any other message of the
+    // zone they own that no box shows; whatever is left belongs to someone with no seat any more and
+    // becomes a read-only "Former ..." box (only on the full list, not a district-filtered one).
+    private sealed class RiZoneMsg
+    {
+        public long Id; public int Owner; public int PostedBy; public DateTime Created; public string Text = "";
+        public int District;
+    }
+    private sealed class RiZoneBox
+    {
+        public int OwnerId; public string Label = ""; public string Scope = ""; public bool IsFormer;
+        public List<RiZoneMsg> Msgs = new();
+    }
+
+    private const string RiZoneMsgColumns =
+        "c.pk_id AS Id, c.ThreadOwnerMemberId AS Owner, c.PostedByMemberId AS PostedBy, c.created_date AS Created, c.CommentText AS Text, c.fk_district_id AS District";
+
+    private static async Task<List<RiZoneBox>> RiZoneBoxesAsync(
+        MySqlConnection conn, int categoryId, int zoneId, int yearId, int? filterDistrictId)
+    {
+        var boxes = new List<RiZoneBox>();
+        var covered = new HashSet<long>();
+        foreach (var (ownerId, label, scope) in await ZoneThreadOwnersAsync(conn, categoryId, zoneId, filterDistrictId))
+        {
+            var seats = await ActiveMessageSeatIdsAsync(conn, ownerId, categoryId);
+            var msgs = (await conn.QueryAsync<RiZoneMsg>($@"
+                SELECT {RiZoneMsgColumns} FROM goal_comments c
+                WHERE c.fk_category_id=@C AND c.fk_year_id=@Y AND c.isdeleted=0 AND {SeatThreadFilterSql(seats.Count > 0)}",
+                SeatThreadParams(categoryId, yearId, seats, ownerId))).ToList();
+            foreach (var m in msgs) covered.Add(m.Id);
+            boxes.Add(new RiZoneBox { OwnerId = ownerId, Label = label, Scope = scope, Msgs = msgs });
+        }
+
+        // Every message of the zone the boxes above do not show yet.
+        var rest = (await conn.QueryAsync<RiZoneMsg>($@"
+            SELECT {RiZoneMsgColumns} FROM goal_comments c
+            WHERE c.fk_category_id=@C AND c.fk_year_id=@Y AND c.fk_zone_id=@Z
+              AND c.ThreadOwnerMemberId > 0 AND c.isdeleted=0",
+            new { C = categoryId, Y = yearId, Z = zoneId }))
+            .Where(m => !covered.Contains(m.Id)).ToList();
+
+        foreach (var g in rest.GroupBy(m => m.Owner))
+        {
+            var own = boxes.FirstOrDefault(b => b.OwnerId == g.Key);
+            if (own != null) { own.Msgs.AddRange(g); continue; }      // a current owner's earlier seat
+            if (filterDistrictId != null) continue;                    // former boxes only on the full list
+            var last = await conn.QueryFirstOrDefaultAsync<dynamic>(@"
+                SELECT RoleTitle AS t, RoleType AS rt FROM goal_role_assignments
+                WHERE fk_member_id=@O AND fk_category_id=@C AND fk_zone_id=@Z
+                  AND RoleType IN ('AllDistrictsOneCategoryOneZone','FewDistrictsOneCategoryOneZone')
+                ORDER BY pk_id DESC LIMIT 1", new { O = g.Key, C = categoryId, Z = zoneId });
+            string role = (last?.t as string)
+                ?? ((last?.rt as string) == "AllDistrictsOneCategoryOneZone" ? "Zone Co-ordinator" : "District Assistant");
+            boxes.Add(new RiZoneBox
+            {
+                OwnerId = g.Key, Label = $"Former {role}", Scope = "No longer holds this seat",
+                IsFormer = true, Msgs = g.ToList(),
+            });
+        }
+        foreach (var b in boxes) b.Msgs.Sort((a, c) => a.Created != c.Created ? a.Created.CompareTo(c.Created) : a.Id.CompareTo(c.Id));
+        return boxes;
+    }
+
+    private static async Task<DateTime?> ThreadLastSeenAsync(MySqlConnection conn, int viewerMemberId, int ownerMemberId, int categoryId, int yearId)
+        => await conn.ExecuteScalarAsync<DateTime?>(@"
+            SELECT last_seen_date FROM goal_message_thread_seen
+            WHERE fk_member_id=@M AND ThreadOwnerMemberId=@O AND fk_category_id=@C AND fk_year_id=@Y",
+            new { M = viewerMemberId, O = ownerMemberId, C = categoryId, Y = yearId });
+
+    private static int RiBoxUnread(RiZoneBox box, int viewerMemberId, DateTime? lastSeen)
+        => box.Msgs.Count(m => m.PostedBy != viewerMemberId && (lastSeen == null || m.Created > lastSeen.Value));
+
+    private async Task<GoalMessageThreadDto> RiBoxToDtoAsync(MySqlConnection conn, RiZoneBox box, int viewerMemberId, int categoryId, int yearId)
+    {
+        var last = box.Msgs.LastOrDefault();
+        return new GoalMessageThreadDto
+        {
+            OwnerMemberId = box.OwnerId, OwnerName = await MemberNameAsync(conn, box.OwnerId),
+            OwnerRoleLabel = box.Label, Scope = box.Scope, IsMine = box.OwnerId == viewerMemberId,
+            IsFormer = box.IsFormer,
+            MessageCount = box.Msgs.Count,
+            UnreadCount = RiBoxUnread(box, viewerMemberId, await ThreadLastSeenAsync(conn, viewerMemberId, box.OwnerId, categoryId, yearId)),
+            LastMessagePreview = last?.Text, LastMessageDate = last?.Created.ToString("yyyy-MM-dd HH:mm"),
+            CanPost = false,   // RI Director / SuperAdmin are read-only
+        };
+    }
+
+    // The RI Director over a zone, or a SuperAdmin.
+    private static async Task<bool> SeesWholeZoneAsync(MySqlConnection conn, int memberId, int zoneId)
+        => await ClubAdminAccessHelper.IsSuperAdminAsync(conn, memberId)
+        || await conn.ExecuteScalarAsync<int>(@"
+            SELECT COUNT(*) FROM goal_role_assignments a
+            JOIN goal_role_assignment_zones z ON z.fk_assignment_id = a.pk_id
+            WHERE a.RoleType='AllCategoryAllDistrictsFewZones' AND a.IsActive=1 AND a.isdeleted=0
+              AND a.fk_member_id=@M AND z.fk_zone_id=@Z", new { M = memberId, Z = zoneId }) > 0;
+
     // Which roles the caller holds for (category, zone). One person may hold several (e.g. RI
     // Director AND ZC AND DA of the same zone). `actingAs` (from the switcher: "ri-director" /
     // "zone-coordinator" / "district-assistant") forces that view when they hold it; otherwise the
@@ -6423,26 +7190,27 @@ public class GoalSettingService : IGoalSettingService
         // The "seen" marker is now PER CONVERSATION (goal_message_thread_seen), so the dot no longer
         // disappears for every box the moment one of them is opened - it stays until each one with
         // something new has actually been read.
-        bool seesWholeZone = await ClubAdminAccessHelper.IsSuperAdminAsync(conn, memberId)
-            || await conn.ExecuteScalarAsync<int>(@"
-                SELECT COUNT(*) FROM goal_role_assignments a
-                JOIN goal_role_assignment_zones z ON z.fk_assignment_id = a.pk_id
-                WHERE a.RoleType='AllCategoryAllDistrictsFewZones' AND a.IsActive=1 AND a.isdeleted=0
-                  AND a.fk_member_id=@M AND z.fk_zone_id=@Z", new { M = memberId, Z = zoneId }) > 0;
+        // District Admin / DG messages the viewer may read and has not opened (user 2026-10-09).
+        if (await HasUnreadDistrictSideAsync(conn, memberId, zoneId, yearId)) return true;
+
+        bool seesWholeZone = await SeesWholeZoneAsync(conn, memberId, zoneId);
 
         int cnt;
         if (seesWholeZone)
         {
-            // Zone of the message's seat — includes messages of people who have since left the role.
-            cnt = await conn.ExecuteScalarAsync<int>(
-                @"SELECT COUNT(*) FROM goal_comments c
-                  LEFT JOIN goal_message_thread_seen s
-                         ON s.fk_member_id = @M AND s.ThreadOwnerMemberId = c.ThreadOwnerMemberId
-                        AND s.fk_category_id = c.fk_category_id AND s.fk_year_id = c.fk_year_id
-                  WHERE c.fk_zone_id=@Z AND c.ThreadOwnerMemberId>0 AND c.fk_year_id=@Y AND c.isdeleted=0
-                    AND c.PostedByMemberId <> @M
-                    AND (s.last_seen_date IS NULL OR c.created_date > s.last_seen_date)",
-                new { Z = zoneId, Y = yearId, M = memberId });
+            // RI Director / SuperAdmin (2026-10-07): exactly the boxes their Messages list shows - every
+            // category that has messages in the zone, every box (current + former) - and lit only while
+            // one of them has something unread. Opening that box is what clears it.
+            var cats = (await conn.QueryAsync<int>(@"
+                SELECT DISTINCT fk_category_id FROM goal_comments
+                WHERE fk_zone_id=@Z AND fk_year_id=@Y AND ThreadOwnerMemberId>0 AND isdeleted=0",
+                new { Z = zoneId, Y = yearId })).ToList();
+            foreach (var cat in cats)
+                foreach (var box in await RiZoneBoxesAsync(conn, cat, zoneId, yearId, null))
+                    if (box.Msgs.Count > 0
+                        && RiBoxUnread(box, memberId, await ThreadLastSeenAsync(conn, memberId, box.OwnerId, cat, yearId)) > 0)
+                        return true;
+            return false;
         }
         else
         {
@@ -6466,6 +7234,239 @@ public class GoalSettingService : IGoalSettingService
         }
         return cnt > 0;
     }
+
+    // ── District-side messages (user 2026-10-09) ────────────────────────────────────────────────
+    // A District Admin or the District Governor writes to the oversight chain about one category.
+    // Read-only for everyone above: the District Assistant covering that district + category, the
+    // Zone Co-ordinator of the zone + category, the RI Director of the zone, and SuperAdmin. Nobody
+    // replies. Stored in goal_comments with PostedByTier = 1 and ThreadOwnerMemberId = -districtId:
+    // every existing ZC/DA query keeps "ThreadOwnerMemberId > 0" (or matches a member id), so these
+    // never appear inside a ZC/DA conversation. The same negative key drives goal_message_thread_seen.
+    private const int DistrictSideTier = 1;
+    private static int DistrictThreadKey(int districtId) => -districtId;
+
+    // "District Governor" / "District Admin" for a member writing about this district, else null.
+    private static async Task<string?> DistrictSidePosterRoleAsync(MySqlConnection conn, int memberId, int districtId, int yearId)
+    {
+        if (memberId <= 0 || districtId <= 0) return null;
+        if (await conn.ExecuteScalarAsync<int>(@"
+                SELECT COUNT(*) FROM district_governors
+                WHERE fk_member_id = @M AND fk_district_id = @D AND fk_year_id = @Y AND COALESCE(isdeleted,0) = 0",
+                new { M = memberId, D = districtId, Y = yearId }) > 0)
+            return "District Governor";
+        if (await conn.ExecuteScalarAsync<int>(@"
+                SELECT COUNT(*) FROM member_roles
+                WHERE fk_member_master_profile_id = @M AND fk_role_id = 2 AND fk_district_id = @D
+                  AND COALESCE(fk_club_id,0) = 0 AND IsActive = 1 AND isdeleted = 0",
+                new { M = memberId, D = districtId }) > 0)
+            return "District Admin";
+        return null;
+    }
+
+    // Rows of goal_comments c (district-side) the viewer may READ, as SQL. SuperAdmin -> everything.
+    // RI Director: the zones of their seat. Zone Co-ordinator: their zone + category (or every
+    // category when the ZC role carries no category). District Assistant: their districts + category.
+    // The district's own Admin / DG see their district.
+    private const string DistrictSideScopeSql = @"(
+        EXISTS (SELECT 1 FROM goal_role_assignments a
+                WHERE a.fk_member_id = @Viewer AND a.IsActive = 1 AND a.isdeleted = 0 AND (
+                     (a.RoleType = 'AllCategoryAllDistrictsFewZones'
+                      AND EXISTS (SELECT 1 FROM goal_role_assignment_zones z WHERE z.fk_assignment_id = a.pk_id AND z.fk_zone_id = c.fk_zone_id))
+                  OR (a.RoleType = 'AllDistrictsOneCategoryOneZone' AND a.fk_zone_id = c.fk_zone_id AND a.fk_category_id = c.fk_category_id)
+                  OR (a.RoleType = 'FewDistrictsOneCategoryOneZone' AND a.fk_category_id = c.fk_category_id
+                      AND EXISTS (SELECT 1 FROM goal_role_assignment_districts d WHERE d.fk_assignment_id = a.pk_id AND d.fk_district_id = c.fk_district_id))))
+     OR EXISTS (SELECT 1 FROM member_roles r
+                WHERE r.fk_member_master_profile_id = @Viewer AND r.IsActive = 1 AND r.isdeleted = 0
+                  AND ((r.fk_role_id = 2 AND r.fk_district_id = c.fk_district_id AND COALESCE(r.fk_club_id,0) = 0)
+                       OR (r.fk_role_id = 4 AND r.fk_zone_id = c.fk_zone_id)))
+     OR EXISTS (SELECT 1 FROM district_governors g
+                WHERE g.fk_member_id = @Viewer AND g.fk_district_id = c.fk_district_id AND g.fk_year_id = c.fk_year_id AND COALESCE(g.isdeleted,0) = 0))";
+
+    private static string DistrictSideFilter(bool isSuper) =>
+        $"c.PostedByTier = {DistrictSideTier} AND c.ThreadOwnerMemberId < 0 AND c.isdeleted = 0"
+        + (isSuper ? "" : " AND " + DistrictSideScopeSql);
+
+    private sealed class DistrictSideRow
+    {
+        public long Id { get; set; }
+        public int CategoryId { get; set; }
+        public string CategoryName { get; set; } = "";
+        public int CategorySort { get; set; }
+        public int DistrictId { get; set; }
+        public string? DistrictNumber { get; set; }
+        public int ZoneId { get; set; }
+        public int YearId { get; set; }
+        public int PostedBy { get; set; }
+        public string FromName { get; set; } = "";
+        public string Text { get; set; } = "";
+        public DateTime Created { get; set; }
+        public string? FromRole { get; set; }   // filled after the query
+    }
+
+    private static async Task<List<DistrictSideRow>> DistrictSideRowsAsync(
+        MySqlConnection conn, int viewer, bool isSuper, int yearId, int zoneId, int categoryId, int districtId)
+    {
+        var rows = (await conn.QueryAsync<DistrictSideRow>($@"
+            SELECT c.pk_id AS Id, c.fk_category_id AS CategoryId,
+                   IF(cat.Name = 'TRF', 'Foundation', cat.Name) AS CategoryName, cat.SortOrder AS CategorySort,
+                   c.fk_district_id AS DistrictId, dm.DistrictNumber AS DistrictNumber, c.fk_zone_id AS ZoneId,
+                   c.fk_year_id AS YearId, c.PostedByMemberId AS PostedBy, COALESCE(m.MemberName,'') AS FromName,
+                   c.CommentText AS Text, c.created_date AS Created
+            FROM goal_comments c
+            JOIN goal_categories cat ON cat.pk_category_id = c.fk_category_id AND cat.isdeleted = 0
+            LEFT JOIN member_master_profile m ON m.pk_member_master_profile_id = c.PostedByMemberId
+            LEFT JOIN district_master dm ON dm.pk_district_id = c.fk_district_id
+            WHERE c.fk_year_id = @Y AND {DistrictSideFilter(isSuper)}
+              AND (@Z = 0 OR c.fk_zone_id = @Z) AND (@Cat = 0 OR c.fk_category_id = @Cat) AND (@D = 0 OR c.fk_district_id = @D)
+            ORDER BY c.created_date, c.pk_id",
+            new { Viewer = viewer, Y = yearId, Z = zoneId, Cat = categoryId, D = districtId })).ToList();
+        // The writer's role on the district (DG wins); a writer who has since left the post keeps the
+        // plain "District Admin" label.
+        var roleCache = new Dictionary<(int, int, int), string>();
+        foreach (var r in rows)
+        {
+            var key = (r.PostedBy, r.DistrictId, r.YearId);
+            if (!roleCache.TryGetValue(key, out var role))
+                roleCache[key] = role = await DistrictSidePosterRoleAsync(conn, r.PostedBy, r.DistrictId, r.YearId) ?? "District Admin";
+            r.FromRole = role;
+        }
+        return rows;
+    }
+
+    private static async Task<DateTime?> DistrictSideLastSeenAsync(MySqlConnection conn, int viewer, int districtId, int categoryId, int yearId)
+        => await conn.ExecuteScalarAsync<DateTime?>(@"
+            SELECT last_seen_date FROM goal_message_thread_seen
+            WHERE fk_member_id = @M AND ThreadOwnerMemberId = @O AND fk_category_id = @C AND fk_year_id = @Y",
+            new { M = viewer, O = DistrictThreadKey(districtId), C = categoryId, Y = yearId });
+
+    private static async Task MarkDistrictSideSeenAsync(MySqlConnection conn, int viewer, int districtId, int categoryId, int yearId)
+    {
+        if (viewer <= 0 || districtId <= 0) return;
+        await conn.ExecuteAsync(@"
+            INSERT INTO goal_message_thread_seen (fk_member_id, ThreadOwnerMemberId, fk_category_id, fk_year_id, last_seen_date)
+            VALUES (@M, @O, @C, @Y, NOW())
+            ON DUPLICATE KEY UPDATE last_seen_date = NOW()",
+            new { M = viewer, O = DistrictThreadKey(districtId), C = categoryId, Y = yearId });
+    }
+
+    private static GoalCommentDto ToCommentDto(DistrictSideRow r, int viewer) => new()
+    {
+        Id = r.Id, CommentText = r.Text, PostedByMemberId = r.PostedBy, PostedByName = r.FromName,
+        PostedByTier = DistrictSideTier, PostedByRoleLabel = r.FromRole, IsMine = r.PostedBy == viewer,
+        CreatedDate = r.Created.ToString("yyyy-MM-dd HH:mm"), DistrictId = r.DistrictId, DistrictNumber = r.DistrictNumber,
+        CategoryName = r.CategoryName,
+    };
+
+    // One district + category conversation. The district's Admin / DG can write (CanPost); every
+    // other permitted viewer reads, and opening it marks it read for them.
+    public async Task<GoalDistrictMessagesDto> GetDistrictMessagesAsync(int memberId, int categoryId, int districtId, int yearId)
+    {
+        using var conn = CreateConnection();
+        await conn.OpenAsync();
+        bool isSuper = await ClubAdminAccessHelper.IsSuperAdminAsync(conn, memberId);
+        var posterRole = await DistrictSidePosterRoleAsync(conn, memberId, districtId, yearId);
+        var rows = await DistrictSideRowsAsync(conn, memberId, isSuper, yearId, 0, categoryId, districtId);
+        if (!isSuper && posterRole == null && rows.Count == 0
+            && !await CanReadDistrictSideAsync(conn, memberId, categoryId, districtId, yearId))
+            throw new UnauthorizedAccessException("You cannot view this district's messages.");
+        if (posterRole == null) await MarkDistrictSideSeenAsync(conn, memberId, districtId, categoryId, yearId);
+        var dnum = await conn.ExecuteScalarAsync<string?>("SELECT DistrictNumber FROM district_master WHERE pk_district_id=@D", new { D = districtId });
+        var catName = await conn.ExecuteScalarAsync<string?>(
+            "SELECT IF(Name = 'TRF', 'Foundation', Name) FROM goal_categories WHERE pk_category_id=@C", new { C = categoryId }) ?? "";
+        var zoneId = await DistrictZoneIdAsync(conn, districtId) ?? 0;
+        string? notice = null;
+        if (posterRole != null && await ResolveRiDirectorForZoneAsync(conn, zoneId) == null)
+            notice = "No RI Director is assigned over your zone yet - your message will still reach the District Assistant and Zone Co-ordinator.";
+        return new GoalDistrictMessagesDto
+        {
+            DistrictId = districtId, DistrictNumber = dnum, CategoryId = categoryId, CategoryName = catName,
+            CanPost = posterRole != null, PosterRole = posterRole, Notice = notice,
+            Messages = rows.Select(r => ToCommentDto(r, memberId)).ToList(),
+        };
+    }
+
+    // Can this viewer read the district+category conversation (used when it has no messages yet).
+    private static async Task<bool> CanReadDistrictSideAsync(MySqlConnection conn, int viewer, int categoryId, int districtId, int yearId)
+    {
+        var zoneId = await DistrictZoneIdAsync(conn, districtId) ?? 0;
+        // Evaluate the same scope rule against a virtual row for this district / category / zone.
+        return await conn.ExecuteScalarAsync<int>($@"
+            SELECT COUNT(*) FROM (SELECT @Cat AS fk_category_id, @D AS fk_district_id, @Z AS fk_zone_id, @Y AS fk_year_id) c
+            WHERE {DistrictSideScopeSql}",
+            new { Viewer = viewer, Cat = categoryId, D = districtId, Z = zoneId, Y = yearId }) > 0;
+    }
+
+    public async Task<GoalCommentDto> PostDistrictMessageAsync(int memberId, int categoryId, int districtId, int yearId, string text)
+    {
+        if (string.IsNullOrWhiteSpace(text)) throw new InvalidOperationException("Message cannot be empty.");
+        if (text.Trim().Length > 4000) throw new InvalidOperationException("Message is too long (max 4000 characters).");
+        using var conn = CreateConnection();
+        await conn.OpenAsync();
+        var role = await DistrictSidePosterRoleAsync(conn, memberId, districtId, yearId)
+            ?? throw new UnauthorizedAccessException("Only this district's District Admin or District Governor can send a message here.");
+        var catOk = await conn.ExecuteScalarAsync<int>(
+            "SELECT COUNT(*) FROM goal_categories WHERE pk_category_id=@C AND isdeleted=0", new { C = categoryId });
+        if (catOk == 0) throw new InvalidOperationException("Unknown category.");
+        var zoneId = await DistrictZoneIdAsync(conn, districtId) ?? 0;
+        var trimmed = text.Trim();
+        var id = await conn.ExecuteScalarAsync<long>(@"
+            INSERT INTO goal_comments (fk_category_id, fk_district_id, fk_club_id, fk_year_id, ThreadOwnerMemberId, fk_assignment_id, fk_zone_id, CommentText, PostedByMemberId, PostedByTier, created_date, isdeleted)
+            VALUES (@C, @D, 0, @Y, @O, 0, @Z, @Text, @M, @Tier, NOW(), 0); SELECT LAST_INSERT_ID();",
+            new { C = categoryId, D = districtId, Y = yearId, O = DistrictThreadKey(districtId), Z = zoneId, Text = trimmed, M = memberId, Tier = DistrictSideTier });
+        return new GoalCommentDto
+        {
+            Id = id, CommentText = trimmed, PostedByMemberId = memberId, PostedByName = await MemberNameAsync(conn, memberId),
+            PostedByTier = DistrictSideTier, PostedByRoleLabel = role, IsMine = true,
+            CreatedDate = DateTime.Now.ToString("yyyy-MM-dd HH:mm"), DistrictId = districtId,
+            DistrictNumber = await conn.ExecuteScalarAsync<string?>("SELECT DistrictNumber FROM district_master WHERE pk_district_id=@D", new { D = districtId }),
+        };
+    }
+
+    // Inbox for the readers (RI Director / ZC / District Assistant / SuperAdmin): one row per district +
+    // category that has district-side messages the viewer may read, newest first, with unread counts.
+    public async Task<List<GoalDistrictConversationDto>> GetDistrictMessageInboxAsync(int memberId, int zoneId, int yearId, int categoryId, int districtId)
+    {
+        using var conn = CreateConnection();
+        await conn.OpenAsync();
+        bool isSuper = await ClubAdminAccessHelper.IsSuperAdminAsync(conn, memberId);
+        var rows = await DistrictSideRowsAsync(conn, memberId, isSuper, yearId, zoneId, categoryId, districtId);
+        var result = new List<GoalDistrictConversationDto>();
+        foreach (var g in rows.GroupBy(r => (r.DistrictId, r.CategoryId)))
+        {
+            var last = g.OrderBy(r => r.Created).ThenBy(r => r.Id).Last();
+            var seen = await DistrictSideLastSeenAsync(conn, memberId, g.Key.DistrictId, g.Key.CategoryId, yearId);
+            result.Add(new GoalDistrictConversationDto
+            {
+                DistrictId = g.Key.DistrictId, DistrictNumber = last.DistrictNumber, CategoryId = g.Key.CategoryId,
+                CategoryName = last.CategoryName, MessageCount = g.Count(),
+                UnreadCount = g.Count(r => r.PostedBy != memberId && (seen == null || r.Created > seen.Value)),
+                LastFrom = last.FromName, LastFromRole = last.FromRole, LastPreview = last.Text,
+                LastDate = last.Created.ToString("yyyy-MM-dd HH:mm"),
+            });
+        }
+        return result.OrderByDescending(x => x.LastDate).ToList();
+    }
+
+    // Red dot: any district-side message in the zone the viewer may read and has not seen.
+    private static async Task<bool> HasUnreadDistrictSideAsync(MySqlConnection conn, int memberId, int zoneId, int yearId)
+    {
+        bool isSuper = await ClubAdminAccessHelper.IsSuperAdminAsync(conn, memberId);
+        return await conn.ExecuteScalarAsync<int>($@"
+            SELECT COUNT(*) FROM goal_comments c
+            LEFT JOIN goal_message_thread_seen s
+                   ON s.fk_member_id = @Viewer AND s.ThreadOwnerMemberId = c.ThreadOwnerMemberId
+                  AND s.fk_category_id = c.fk_category_id AND s.fk_year_id = c.fk_year_id
+            WHERE c.fk_zone_id = @Z AND c.fk_year_id = @Y AND {DistrictSideFilter(isSuper)}
+              AND c.PostedByMemberId <> @Viewer
+              AND (s.last_seen_date IS NULL OR c.created_date > s.last_seen_date)",
+            new { Viewer = memberId, Z = zoneId, Y = yearId }) > 0;
+    }
+
+    // Excel: district-side rows the viewer may read, as (category, district, role, from, message, date).
+    private static async Task<List<DistrictSideRow>> DistrictSideReportRowsAsync(
+        MySqlConnection conn, int memberId, int yearId, int zoneId, int categoryId, int districtId)
+        => await DistrictSideRowsAsync(conn, memberId, await ClubAdminAccessHelper.IsSuperAdminAsync(conn, memberId),
+            yearId, zoneId, categoryId, districtId);
 
     public async Task MarkZoneMessagesSeenAsync(int memberId, int zoneId, int yearId)
     {
@@ -6539,10 +7540,11 @@ public class GoalSettingService : IGoalSettingService
             // filterDistrictId narrows the list: 0 → the Zone Co-ordinator only; >0 → that district's DA(s) only.
             // Only owners who have messaged are listed — except for the gated observer, who needs every box
             // to start a conversation AS that owner.
-            foreach (var (ownerId, label, scope) in await ZoneThreadOwnersAsync(conn, categoryId, zoneId, filterDistrictId))
+            // The same boxes the red dot counts (RiZoneBoxesAsync), incl. read-only "Former ..." ones.
+            foreach (var box in await RiZoneBoxesAsync(conn, categoryId, zoneId, yearId, filterDistrictId))
             {
-                var t = await Build(ownerId, label, scope, false);
-                if (t.MessageCount > 0 || result.CanObservePost) result.Threads.Add(t);
+                if (box.Msgs.Count == 0 && !(result.CanObservePost && !box.IsFormer)) continue;
+                result.Threads.Add(await RiBoxToDtoAsync(conn, box, memberId, categoryId, yearId));
             }
         }
         else
@@ -6569,10 +7571,35 @@ public class GoalSettingService : IGoalSettingService
         return result;
     }
 
-    public async Task<List<GoalCommentDto>> GetGoalOwnerThreadMessagesAsync(int memberId, int categoryId, int yearId, int ownerMemberId)
+    public async Task<List<GoalCommentDto>> GetGoalOwnerThreadMessagesAsync(int memberId, int categoryId, int yearId, int ownerMemberId, int? zoneId = null)
     {
         using var conn = CreateConnection();
         await conn.OpenAsync();
+
+        // RI Director / SuperAdmin opening someone else's box: read the SAME box the list and the red dot
+        // use (RiZoneBoxesAsync), so a former seat-holder's box opens and gets marked read too. The zone
+        // comes from the screen; callers that don't send it (mobile) fall back to the owner's seat zone,
+        // then to the zone of the owner's latest message.
+        if (memberId != ownerMemberId)
+        {
+            int z = zoneId ?? 0;
+            if (z <= 0) z = await OwnerZoneAsync(conn, ownerMemberId, categoryId) ?? 0;
+            if (z <= 0) z = await conn.ExecuteScalarAsync<int?>(@"
+                SELECT fk_zone_id FROM goal_comments
+                WHERE ThreadOwnerMemberId=@O AND fk_category_id=@C AND fk_year_id=@Y AND isdeleted=0 AND fk_zone_id > 0
+                ORDER BY created_date DESC LIMIT 1", new { O = ownerMemberId, C = categoryId, Y = yearId }) ?? 0;
+            if (z > 0 && await SeesWholeZoneAsync(conn, memberId, z))
+            {
+                var ids = (await RiZoneBoxesAsync(conn, categoryId, z, yearId, null))
+                    .Where(b => b.OwnerId == ownerMemberId).SelectMany(b => b.Msgs).Select(m => m.Id).Distinct().ToList();
+                await MarkThreadSeenAsync(conn, memberId, ownerMemberId, categoryId, yearId);
+                if (ids.Count == 0) return new List<GoalCommentDto>();
+                var p = new DynamicParameters();
+                p.Add("Ids", ids);
+                return await MessagesByIdsAsync(conn, memberId, p);
+            }
+        }
+
         if (!await CanAccessOwnerThreadAsync(conn, memberId, categoryId, ownerMemberId))
             throw new UnauthorizedAccessException("You do not have access to this message thread.");
         // The owner's seats → their own messages PLUS those of earlier holders of the same seat/districts.
@@ -6653,7 +7680,7 @@ public class GoalSettingService : IGoalSettingService
 
         // By the message's seat zone — messages stay visible after their writer leaves the role.
         var rows = await conn.QueryAsync<dynamic>(@"
-            SELECT c.pk_id AS id, c.fk_category_id AS catId, cat.Name AS catName,
+            SELECT c.pk_id AS id, c.fk_category_id AS catId, IF(cat.Name = 'TRF', 'Foundation', cat.Name) AS catName,
                    c.fk_district_id AS did, dm.DistrictNumber AS dnum,
                    c.PostedByTier AS tier, COALESCE(m.MemberName,'') AS fromName,
                    c.CommentText AS msg, DATE_FORMAT(c.created_date,'%Y-%m-%d %H:%i') AS dt
@@ -6702,7 +7729,7 @@ public class GoalSettingService : IGoalSettingService
         // category + zone (a re-created assignment leaves the old row active). Without this the same
         // person came back once per seat - the popup showed them 2-4 times over (user 2026-09-29).
         var zcs = await conn.QueryAsync<dynamic>(@"
-            SELECT a.fk_member_id AS mid, a.fk_category_id AS catId, COALESCE(m.MemberName,'') AS name, cat.Name AS catName
+            SELECT a.fk_member_id AS mid, a.fk_category_id AS catId, COALESCE(m.MemberName,'') AS name, IF(cat.Name = 'TRF', 'Foundation', cat.Name) AS catName
             FROM goal_role_assignments a
             JOIN member_master_profile m ON m.pk_member_master_profile_id=a.fk_member_id AND m.isdeleted=0
             JOIN goal_categories cat ON cat.pk_category_id=a.fk_category_id AND cat.isdeleted=0
@@ -6723,7 +7750,7 @@ public class GoalSettingService : IGoalSettingService
 
         // District Assistants (their covered districts; narrowed to one district if filtered).
         var das = await conn.QueryAsync<dynamic>(@"
-            SELECT a.fk_member_id AS mid, a.fk_category_id AS catId, COALESCE(m.MemberName,'') AS name, cat.Name AS catName,
+            SELECT a.fk_member_id AS mid, a.fk_category_id AS catId, COALESCE(m.MemberName,'') AS name, IF(cat.Name = 'TRF', 'Foundation', cat.Name) AS catName,
                    GROUP_CONCAT(DISTINCT dm.DistrictNumber ORDER BY dm.DistrictNumber SEPARATOR ', ') AS districts
             FROM goal_role_assignments a
             JOIN member_master_profile m ON m.pk_member_master_profile_id=a.fk_member_id AND m.isdeleted=0
@@ -6744,6 +7771,55 @@ public class GoalSettingService : IGoalSettingService
                 Name = (string)r.name, RoleLabel = "District Assistant", CategoryName = (string)r.catName, Districts = r.districts as string,
                 MessageCount = cnt, UnreadCount = await RosterUnreadCountAsync(conn, memberId, mid, cid, yearId, districtId) });
         }
+
+        // People who NO LONGER hold a seat (user 2026-10-07, Zone 0): their messages light the red dot
+        // (RiZoneBoxesAsync), but this list only had current seat-holders, so those conversations
+        // could never be opened and the dot never cleared. Listed read-only as "Former ...", for the
+        // viewers the dot covers that way (SuperAdmin / RI Director of the zone).
+        if (await SeesWholeZoneAsync(conn, memberId, zoneId))
+        {
+            var catIds = categoryId > 0 ? new List<int> { categoryId }
+                : (await conn.QueryAsync<int>(@"
+                    SELECT DISTINCT c.fk_category_id FROM goal_comments c
+                    JOIN goal_categories cat ON cat.pk_category_id=c.fk_category_id AND cat.isdeleted=0
+                    WHERE c.fk_zone_id=@Z AND c.fk_year_id=@Y AND c.ThreadOwnerMemberId>0 AND c.isdeleted=0",
+                    new { Z = zoneId, Y = yearId })).ToList();
+            foreach (var cid in catIds)
+            {
+                var catName = await conn.ExecuteScalarAsync<string?>(
+                    "SELECT IF(Name = 'TRF', 'Foundation', Name) FROM goal_categories WHERE pk_category_id=@C", new { C = cid }) ?? "";
+                var boxes = await RiZoneBoxesAsync(conn, cid, zoneId, yearId, null);
+
+                // Current seat-holders: count what their conversation actually OPENS (the box also holds
+                // messages from the person's own earlier seats - e.g. Siddhesh's old "D-1212 SJ"), so the
+                // row's count and red badge match the thread and clear when it is opened.
+                foreach (var row in result.Where(x => x.CategoryId == cid && !x.IsFormer))
+                {
+                    var own = boxes.Where(b => b.OwnerId == row.MemberId && !b.IsFormer).SelectMany(b => b.Msgs)
+                        .GroupBy(m => m.Id).Select(g => g.First())
+                        .Where(m => districtId <= 0 || m.District == districtId).ToList();
+                    if (own.Count == 0) continue;
+                    var seen = await ThreadLastSeenAsync(conn, memberId, row.MemberId, cid, yearId);
+                    row.MessageCount = own.Count;
+                    row.UnreadCount = own.Count(m => m.PostedBy != memberId && (seen == null || m.Created > seen.Value));
+                }
+
+                foreach (var box in boxes.Where(b => b.IsFormer))
+                {
+                    if (result.Any(x => x.MemberId == box.OwnerId && x.CategoryId == cid)) continue;
+                    var msgs = districtId > 0 ? box.Msgs.Where(m => m.District == districtId).ToList() : box.Msgs;
+                    if (msgs.Count == 0) continue;
+                    var lastSeen = await ThreadLastSeenAsync(conn, memberId, box.OwnerId, cid, yearId);
+                    result.Add(new GoalMessageOwnerDto
+                    {
+                        MemberId = box.OwnerId, CategoryId = cid, Name = await MemberNameAsync(conn, box.OwnerId),
+                        RoleLabel = box.Label, CategoryName = catName, Districts = null, IsFormer = true,
+                        MessageCount = msgs.Count,
+                        UnreadCount = msgs.Count(m => m.PostedBy != memberId && (lastSeen == null || m.Created > lastSeen.Value)),
+                    });
+                }
+            }
+        }
         return result;
     }
 
@@ -6762,7 +7838,7 @@ public class GoalSettingService : IGoalSettingService
 
         // By the message's seat zone — messages stay in the report after their writer leaves the role.
         var rows = (await conn.QueryAsync<dynamic>(@"
-            SELECT cat.Name AS catName, cat.SortOrder AS catSort,
+            SELECT IF(cat.Name = 'TRF', 'Foundation', cat.Name) AS catName, cat.SortOrder AS catSort,
                    c.fk_district_id AS did, dm.DistrictNumber AS dnum,
                    c.PostedByTier AS tier, COALESCE(m.MemberName,'') AS fromName,
                    c.CommentText AS msg, DATE_FORMAT(c.created_date,'%d %b %Y, %h:%i %p') AS dt, c.created_date AS raw
@@ -6791,19 +7867,25 @@ public class GoalSettingService : IGoalSettingService
         string[] hs = { "Sr No", "Category", "District", "Role", "From", "Message", "Date & Time" };
         for (int c = 0; c < hs.Length; c++) { var cell = ws.Cell(r, c + 1); cell.Value = hs[c]; StyleHeaderCell(cell); }
         r++;
+        // One list: the ZC / DA conversations above + the District Admin / DG messages (user 2026-10-09).
+        var all = rows.Select(x => (Sort: Convert.ToInt32(x.catSort), Cat: (string)x.catName,
+                Did: x.did == null ? 0 : Convert.ToInt32(x.did), Dnum: x.dnum as string,
+                Role: TierRoleLabel(Convert.ToInt32(x.tier)), From: (string)x.fromName, Msg: (string)x.msg,
+                Dt: x.dt as string ?? "", Raw: (DateTime)x.raw)).ToList();
+        foreach (var d in await DistrictSideReportRowsAsync(conn, memberId, yearId, zoneId, categoryId, districtId))
+            all.Add((d.CategorySort, d.CategoryName, d.DistrictId, d.DistrictNumber, d.FromRole ?? "District Admin",
+                d.FromName, d.Text, d.Created.ToString("dd MMM yyyy, hh:mm tt"), d.Created));
         int sr = 1;
-        foreach (var row in rows)
+        foreach (var row in all.OrderBy(x => x.Sort).ThenBy(x => x.Raw))
         {
-            int did = row.did == null ? 0 : Convert.ToInt32(row.did);
-            int tier = Convert.ToInt32(row.tier);
             ws.Cell(r, 1).Value = sr++;
-            ws.Cell(r, 2).Value = (string)row.catName;
-            ws.Cell(r, 3).Value = did > 0 ? (row.dnum as string ?? did.ToString()) : "All districts";
-            ws.Cell(r, 4).Value = TierRoleLabel(tier);
-            ws.Cell(r, 5).Value = (string)row.fromName;
-            ws.Cell(r, 6).Value = (string)row.msg;
+            ws.Cell(r, 2).Value = row.Cat;
+            ws.Cell(r, 3).Value = row.Did > 0 ? (row.Dnum ?? row.Did.ToString()) : "All districts";
+            ws.Cell(r, 4).Value = row.Role;
+            ws.Cell(r, 5).Value = row.From;
+            ws.Cell(r, 6).Value = row.Msg;
             ws.Cell(r, 6).Style.Alignment.WrapText = true;
-            ws.Cell(r, 7).Value = row.dt as string ?? "";
+            ws.Cell(r, 7).Value = row.Dt;
             r++;
         }
         if (sr == 1) ws.Cell(r, 1).Value = "No messages for this filter.";

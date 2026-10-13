@@ -4,9 +4,9 @@ import Link from "next/link";
 import { ArrowLeft, PlayCircle, BookOpen, Sparkles } from "lucide-react";
 
 export const metadata: Metadata = {
-  title: "Tutorials — Rotary Zones 4, 5, 6, 7 & 8",
+  title: "Tutorials — ROW",
   description:
-    "Step-by-step video guides and walkthroughs for the Rotary Zones 4, 5, 6, 7 & 8 administration platform. Coming soon.",
+    "Step-by-step video guides and walkthroughs for the ROW administration platform. Coming soon.",
 };
 
 const BRAND_NAVY = "#1e3a5f";
@@ -49,8 +49,8 @@ export default function TutorialPage() {
                     style={{ background: `radial-gradient(circle, ${BRAND_GOLD} 0%, transparent 70%)` }}
                   />
                   <Image
-                    src="/images/rotary-zone-log-blue.png"
-                    alt="Rotary Zones 4, 5, 6, 7 & 8"
+                    src="/images/rotary-masterbrand.png"
+                    alt="ROW"
                     width={320}
                     height={100}
                     className="relative h-20 sm:h-24 w-auto object-contain"
@@ -59,7 +59,7 @@ export default function TutorialPage() {
                 </div>
                 <p className="text-xs sm:text-sm font-semibold tracking-[0.2em] uppercase"
                    style={{ color: BRAND_NAVY }}>
-                  Rotary Zones 4 · 5 · 6 · 7 · 8
+                  ROW · 5 · 6 · 7 · 8
                 </p>
               </div>
 
@@ -90,7 +90,7 @@ export default function TutorialPage() {
               </h1>
               <p className="max-w-2xl text-base sm:text-lg text-slate-600 leading-relaxed mb-10">
                 Step-by-step video walkthroughs and written guides for every module of the
-                Rotary Zones 4, 5, 6, 7 &amp; 8 administration platform are on the way.
+                ROW administration platform are on the way.
                 Check back shortly.
               </p>
 

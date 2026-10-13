@@ -20,6 +20,7 @@ import {
   fmtInt, fmtInr, fmtInrShort, ROTARY_BLUE, ROTARY_GOLD, ROTARY_TEAL, ROTARY_GREEN, CLUB_PALETTE, truncate,
 } from "@/components/dashboard/formatters";
 
+import { appLocale } from "@/lib/appFormat";
 // Wave 13A2: backend sends `goalsCitations` per club but the shared TS type
 // hasn't been regenerated yet — extend it locally so we can render the GCs
 // column without breaking the contract type.
@@ -169,7 +170,7 @@ export default function AgMembershipPage() {
   // "Data as of" — backend has not yet exposed a timestamp on this endpoint;
   // fall back to "today" with a Pending chip so it's obvious to the AG that
   // this is not authoritative until Wave 13A2 ships the real field.
-  const dataAsOf = new Date().toLocaleDateString("en-IN", {
+  const dataAsOf = new Date().toLocaleDateString(appLocale(), {
     day: "numeric", month: "long", year: "numeric",
   });
 

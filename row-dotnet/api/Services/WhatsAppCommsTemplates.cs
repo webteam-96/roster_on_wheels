@@ -9,7 +9,7 @@ namespace RotaryApi.Services;
 public sealed record WhatsAppCommsMessage(string Template, string[]? HeaderValues, Func<string, string[]> BodyFor);
 
 /// <summary>
-/// Club / District Upcoming Event and Announcement WhatsApp messages on the new approved Interakt
+/// Club / District Upcoming Event and Announcement WhatsApp messages on the approved Meta
 /// templates (2026-09-17). When the item has an image, the IMAGE-header template is used and the image
 /// URL goes in the header; otherwise the no-image template. The image URL is never part of the text.
 ///

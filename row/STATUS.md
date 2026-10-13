@@ -1,6 +1,6 @@
 # ROW Build — Status and Handover
 
-Last updated: 2026-10-09 (session 2) · Branch: `main` · Last code commit: `1adecd4` (session 2 work is uncommitted — commit only when the whole conversion is done)
+Last updated: 2026-10-13 (session 4) · Branch: `main` · Last commit: `2ca5608` (ROW .NET edition, knowledge base); session-3 web, privacy and .NET work is uncommitted
 
 This is the single place to pick the work back up. It covers what ROW is, how the
 repo is laid out, how to run and test the backend, what is finished, what is left
@@ -38,10 +38,12 @@ Related documents:
 
 | Path | What | State |
 |---|---|---|
-| `row/api` | NestJS backend, port of the RIZones .NET API, MySQL, same schema | **In progress** (~51%) |
-| `row/admin` | Next.js + Tailwind + TypeScript admin portal (from the RIZones admin UI) | Foundation done, cleanup pending |
-| `row/club-website` | Next.js public club website | Foundation done |
+| `row/api` | NestJS backend, port of the RIZones .NET API, MySQL, same schema | **~86% of .NET routes**; Payments pending (decision 4); privacy module done |
+| `row/admin` | Next.js + Tailwind + TypeScript admin portal (from the RIZones admin UI) | RIZones content and India formats removed (tasks A, B); task C waits for Payments |
+| `row/club-website` | Next.js public club website | Converted (no RIZones literals, locale and currency from settings) |
 | `row/mobile` | Flutter app (converted from the RIZones app) | Converted to the ROW API; WS10 items pending |
+| `row-dotnet/` | **Second ROW edition on the original stack** (ASP.NET Core API, the same Next.js admin and club website, .NET workers). See `row-dotnet/README.md` | Rebranded; brand, privacy and member-data flags as in NestJS; India-specific providers / time still RIZones |
+| `kb/` | Knowledge base: generated RIZones-vs-ROW diffs, document index, testing record, tools | Rebuild with `bash kb/rebuild.sh` |
 | `document/` | Plans and design documents | — |
 | `reference/` | RIZones sources for reading only — **gitignored, never commit** | — |
 
@@ -246,7 +248,7 @@ To find the C# source of any of these: `reference/RotaryIndia_Admin_API_Claude/R
 | Ported | Citation auto-points (24 h, behind a flag), club leadership scheduled emails (30 s), CMR submission mailer, daily stats report (behind `DailyStatsReport:Enabled`), district performance + RI Director report (behind `DistrictPerformanceReport:Enabled`) |
 | Ported (session 2) | Rotary.org /clubs cache refresh (daily 08:00 brand time; only with Rotary.org credentials), district terminated-cache refresh job (on demand) |
 | Ported (session 3) | Rotary-year rollover (6 h, first pass at start-up), credit expiry (24 h), zonal awards auto-calculation (24 h, behind `ZonalAwards:AutoCalcEnabled`), club website reminders + auto-expiry (6 h, renewal link off until Payments), push notifications (announcements, events, documents, newsletters, projects, reminders; FCM HTTP v1, needs a Firebase service account) + push-log clean-up, scheduled emails (10 s). All behind `BackgroundJobs:Enabled` (default true), as in RIZones. |
-| Pending | Scheduled WhatsApp sender (open decision 12), the Rotary.org member-sweep worker (separate program) |
+| Pending | WhatsApp removal (ROW has no WhatsApp, on hold), the Rotary.org member-sweep worker (separate program) |
 | Not ported (Payments) | Website provisioning (paid orders), Razorpay settlement sync, membership dues reconciliation |
 
 Check `Program.cs` and `Services/*BackgroundService.cs` in the reference for the full list.
@@ -269,12 +271,14 @@ Not covered: real sends (Brevo, Meta WhatsApp, FCM, Rotary.org, Plesk need ROW c
 
 ## 6. Progress — web and mobile
 
-**Admin portal (`row/admin`).** The foundation is committed. Three tasks remain:
-- **A.** Strip RIZones public-site content; add a `/cookies` page.
-- **B.** Replace ₹ / INR / `en-IN` / IST literals with the `useFormat` helper; fix the "today" date bug.
+**Admin portal (`row/admin`).** Tasks A and B are done (session 3, 2026-10-12); C waits for Payments:
+- **A (done).** RIZones public-site data emptied (leaders, governors, committee, events, club-website list, project statistics), people's photos / PDFs / video removed, logo lockups replaced by ROW lockups, a neutral brand-driven footer, pay-page help lines from the brand, the vendor's Cashfree settlement ids from `NEXT_PUBLIC_*_VENDOR_ID`, a factual `/cookies` page (public, linked from the footer). Identity lint (`row-dotnet/tools/check-rizones.mjs`): 0.
+- **B (done).** `kb/tools/locale_codemod.py`: 325 `en-IN` locale arguments → `appLocale()`, 240 ₹ → `currencySymbol()`, "today" → `todayLocal()`; INR defaults → `defaultCurrency()`; IST labels → the brand time zone. Left on purpose: ₹ / INR inside Cashfree / Razorpay checkout code, wallet and website-purchase pricing (Payments, flags off on ROW), the public landing page (site off) and the policy texts (counsel).
 - **C.** Wire the pay pages to `checkout.ts` (Stripe/PayPal); hide the Cashfree/Razorpay screens.
+- Also: `rizonesCount` → `localCount`; the goal-split pilot reads `NEXT_PUBLIC_GOAL_SPLIT_PILOT_*` (none = everyone, as the API); the six type errors inherited from RIZones fixed. `tsc` 0 errors, 27 tests, production build 201 pages.
+- **The privacy policy, terms and refund pages are RIZones' Indian legal texts with the names changed** (DPDPA, IT Act). ROW needs counsel's texts (master plan Q6).
 
-**Club website (`row/club-website`).** The foundation is committed. It needs the public endpoints from 5.2 item 7.
+**Club website (`row/club-website`).** Converted (session 3): admin-login link and support fallback from settings (`NEXT_PUBLIC_ADMIN_LOGIN_URL` / `NEXT_PUBLIC_PORTAL_ORIGIN`, `NEXT_PUBLIC_SUPPORT_*`), image hosts from settings, dates in `NEXT_PUBLIC_NUMBER_LOCALE`, project costs in each project's own currency. `tsc` 0, build 11 pages.
 
 **Mobile (`row/mobile`).** Converted to the ROW API (2026-10-10); see `row/mobile/README.md`.
 - API base URL from `--dart-define=API_BASE_URL` (was RIZones' server). Every endpoint the app calls that exists in the .NET API exists in ROW (checked by script); the Payments screens (membership / club dues, event payment links, wallet, website purchase) call endpoints that are not ported and show an error until Payments is (open decision 4).
@@ -302,9 +306,47 @@ Result: 720 of 760 GET routes and 467 / 481 / 481 of 484 write routes identical,
 
 To repeat when a newer reference is available: re-clone, then diff the new commits' changed files against `row/api/src` (record the commit here).
 
+### 6a-2. Admin portal and .NET edition synced to `cb3e678` (2026-10-12)
+
+The reference repo was pulled again (no commits after `cb3e678`). The NestJS API already had these two
+upstream commits (goal-setting district messages, membership / youth import, month-wise target grid,
+Rotaract out of district counts, mobile goal-setting parity); the admin portal did not. Three-way merged:
+- **Admin portal** (`row/admin`, copied to `row-dotnet/admin`): 22 changed files and 4 new components
+  (`goal-messages/*`, `ClubFoundationAchievedCard`). One conflict (`MemberCard.tsx`, kept ROW's blood-group
+  flag). Their 4 new API calls all exist in the NestJS API. Identity lint 0, locale codemod found nothing new,
+  tsc 0, vitest 27, build 201 pages.
+- **.NET API and sync worker**: 29 changed files and `ClubScopeSql.cs`. One conflict
+  (`DistrictPerformanceReportService.cs`: ROW's configurable exclusions kept, upstream's Rotaract exclusion
+  added).
+- **Schema** (both editions): upstream's `idx_dcgm_member` index (global member search) in `schema.sql` and
+  `schema-drift.sql`. Upstream's three data-fix scripts are RIZones data and were not applied.
+- **Result**: the 379 parameterless GET routes give the same status on both APIs, route by route
+  (238 × 2xx, 140 × 4xx, 1 × 5xx — the Rotary.org ping without credentials).
+
+## 6b. Session 3 (2026-10-12): privacy, schema gaps, .NET edition
+
+- **Privacy (master plan WS7), `src/modules/privacy/`:** consent at first sign-in after a policy change (`GET/POST api/privacy/consent`, withdraw), member data export as a ZIP behind a signed 7-day link, erasure (SuperAdmin directly; a District Admin's request needs a second District Admin) driven by the personal-data registry (`personal-data-registry.ts`, Appendix G, checked against the live schema), tombstone so the Rotary.org sweep never re-adds an erased member, registry audit (`GET api/privacy/registry/unlisted`, 0 unlisted on the ROW schema), daily retention job, and `PUT api/members/me/language`. Broadcast email and push skip members without consent (`services/privacy-consent.ts`). Behind `privacy.enabled`; consent only once `Brand:Legal:PolicyVersion` is set. `kb/tools/privacy_e2e.py`: 26 checks pass on both editions.
+- **Schema gaps found on an empty database:** the current Rotary year's project tables are created by the rollover job at start-up; `sync_exception_log.inserted` is in `schema-drift.sql`.
+- **The Rotary.org member-sweep worker** is shared: the NestJS API launches `RotaryOrgSync:WorkerExePath`, which can point at the rebranded worker in `row-dotnet/workers/RotaryOrgSyncWorker` (it writes to the same schema and now honours the erasure tombstone). No TypeScript port.
+- **Fresh-database test** (MySQL 8.0.46, schema + drift + seed): 379 parameterless GET routes give 237 × 2xx, 141 × 4xx, 1 × 5xx (Rotary.org ping without credentials) on NestJS; the .NET edition answers the same apart from the routes newer upstream added.
+- Unit tests: 121 (114 pass, 7 skipped).
+
+## 6c. Session 4 (2026-10-13): no India-specific behaviour, no WhatsApp
+
+- **ROW is not for India.** The .NET edition and the shared admin no longer assume India outside Payments:
+  currency fallbacks and amounts in the brand's currency, schedules and new clubs in the brand's time zone,
+  phone numbers per member country, SMS through Twilio (DLT gateway and Interakt removed), no default country
+  (details: `row/PENDING-WORK.md` §14, `row-dotnet/README.md`).
+- **ROW has no WhatsApp.** Removing it from both editions, the admin and mobile is on hold until the go-ahead
+  (`row/PENDING-WORK.md` §7). Open decision 12 (Meta templates) no longer applies.
+- **Tests:** both APIs on fresh databases answer all 382 parameterless GET routes with the same status class
+  (`kb/tools/get_sweep.py`); builds, type checks, admin tests and identity lints clean (`kb/testing.md`).
+
 ## 7. Deployment (to do)
 
-1. Write `web.config` files for `row/api`, `row/admin` and `row/club-website`: HttpPlatformHandler running `node`, `%HTTP_PLATFORM_PORT%`, Node 22, stdout logs.
+Hosting is undecided (IIS / Windows Server or AWS, 2026-10-12). Until it is decided no new deployment files are written. If IIS:
+
+1. Write `web.config` files for `row/api`, `row/admin` and `row/club-website`: HttpPlatformHandler running `node`, `%HTTP_PLATFORM_PORT%`, Node 22, stdout logs (the .NET edition's admin and club-website `web.config` files are a model).
 2. Write an IIS deployment guide: install HttpPlatformHandler and URL Rewrite, set up app pools (No Managed Code), set environment variables per site, add SSL bindings.
 3. For club websites, decide between Plesk and IIS-native provisioning (see 8).
 
@@ -323,7 +365,7 @@ Details for each are in `row/api/ROW-CHANGES.md`.
 9. **Email verification probe.** SMTP port 25 is usually blocked on servers. Keep the probe, or rely on Brevo bounces?
 10. **OCV Word report — PDFs and Office files are not drawn inline.** RIZones rasterised PDF pages (PDFium) and Office files (LibreOffice). ROW shows a labelled entry and a download link instead (RIZones' own fallback). Rendering them inline needs new dependencies (`pdfjs-dist` + a canvas package, and LibreOffice on the server).
 11. Several RIZones quirks were kept on purpose, for example district mass emails using club-0 credits, and the password-reset email saying 30 minutes while the token lasts 480. They are listed in ROW-CHANGES.
-12. **Scheduled WhatsApp sender.** RIZones sends announcements, events, newsletters, projects and reminders by WhatsApp through Interakt, with its own approved templates (fixed names and bodies, a pilot-club gate, and Interakt's 300-per-minute batching). ROW sends WhatsApp through the Meta Cloud API, and no templates exist in ROW's Meta account yet. Decide the templates (reuse RIZones' names and parameters, or design new ones); the sender is ported once they are approved. Until then, items flagged "send WhatsApp" stay pending.
+12. **Closed 2026-10-13: ROW has no WhatsApp** (removal on hold, `PENDING-WORK.md` §7). Earlier note: **Scheduled WhatsApp sender.** RIZones sends announcements, events, newsletters, projects and reminders by WhatsApp through Interakt, with its own approved templates (fixed names and bodies, a pilot-club gate, and Interakt's 300-per-minute batching). ROW sends WhatsApp through the Meta Cloud API, and no templates exist in ROW's Meta account yet. Decide the templates (reuse RIZones' names and parameters, or design new ones); the sender is ported once they are approved. Until then, items flagged "send WhatsApp" stay pending.
 
 ## 9. Working rules agreed with the team
 

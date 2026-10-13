@@ -33,6 +33,7 @@ import { fmtInt } from "@/components/dashboard/formatters";
 import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
 
+import { appLocale } from "@/lib/appFormat";
 interface EventPaymentLinkRow {
   id: number;
   formType: number;
@@ -267,7 +268,7 @@ export default function ClubAdminPaymentLinksPage() {
                       </span>
                     </td>
                     <td className="px-4 py-2.5 text-xs text-slate-500 whitespace-nowrap">
-                      {new Date(item.createdDate).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" })}
+                      {new Date(item.createdDate).toLocaleDateString(appLocale(), { day: "2-digit", month: "short", year: "numeric" })}
                     </td>
                     <td className="px-4 py-2.5 text-center">
                       <div className="flex items-center justify-center gap-1.5">

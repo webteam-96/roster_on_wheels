@@ -22,6 +22,7 @@ import AlertModal from "@/components/AlertModal";
 import RotaryLoader from "@/components/RotaryLoader";
 import { Plus, MoreHorizontal, Eye, Pencil, Trash2, Send, Mail, AlertTriangle } from "lucide-react";
 
+import { appLocale } from "@/lib/appFormat";
 const BASE = "/club-admin-dashboard/communication/mass-email";
 const RETURN_TO = "/club-admin-dashboard/communication?tab=massemail";
 
@@ -147,7 +148,7 @@ export default function MassEmailSection({ clubId }: { clubId: number }) {
                     <TableCell className="text-sm text-slate-700">{item.totalRecipients} <span className="text-slate-400">({recipientLabel(item.recipientType)})</span></TableCell>
                     <TableCell className="text-center text-sm">{item.status !== "Draft" ? <span className="text-emerald-600 font-medium">{item.sentCount}</span> : <span className="text-slate-400">—</span>}</TableCell>
                     <TableCell className="text-center text-sm">{item.status !== "Draft" ? (item.failedCount > 0 ? <span className="text-red-600 font-medium">{item.failedCount}</span> : <span className="text-slate-500">0</span>) : <span className="text-slate-400">—</span>}</TableCell>
-                    <TableCell className="text-sm text-slate-600">{new Date(item.createdDate).toLocaleDateString("en-IN")}</TableCell>
+                    <TableCell className="text-sm text-slate-600">{new Date(item.createdDate).toLocaleDateString(appLocale())}</TableCell>
                     {canManage && (
                       <TableCell className="text-right">
                         <DropdownMenu>

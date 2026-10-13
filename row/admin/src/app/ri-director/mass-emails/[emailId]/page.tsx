@@ -14,6 +14,7 @@ import RotaryLoader from "@/components/RotaryLoader";
 import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";
 
+import { appLocale } from "@/lib/appFormat";
 function StatusBadge({ status }: { status: string }) {
   const colors: Record<string, string> = {
     Pending: "bg-gray-100 text-gray-700",
@@ -124,7 +125,7 @@ export default function Page() {
                   <TableCell>{r.memberName}</TableCell>
                   <TableCell>{r.email}</TableCell>
                   <TableCell className="text-center"><StatusBadge status={r.status} /></TableCell>
-                  <TableCell>{r.sentDate ? new Date(r.sentDate).toLocaleString("en-IN") : "-"}</TableCell>
+                  <TableCell>{r.sentDate ? new Date(r.sentDate).toLocaleString(appLocale()) : "-"}</TableCell>
                 </TableRow>
               ))}
             </TableBody>

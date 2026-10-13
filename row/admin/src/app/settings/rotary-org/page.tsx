@@ -9,6 +9,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { ArrowLeft, Building2, Users, Download, Loader2, Copy } from "lucide-react";
 import { getRotaryOrgSyncSummary, downloadClubSyncReport, getDuplicateCount, getClubSyncDistricts } from "@/services/api";
 
+import { appLocale } from "@/lib/appFormat";
 export default function RotaryOrgPage() {
   const { isSuperAdmin } = useAuth();
   const [summary, setSummary] = useState<{
@@ -65,7 +66,7 @@ export default function RotaryOrgPage() {
     );
   }
 
-  const fmt = (n: number | undefined) => (n == null ? "—" : n.toLocaleString("en-IN"));
+  const fmt = (n: number | undefined) => (n == null ? "—" : n.toLocaleString(appLocale()));
 
   return (
     <ProtectedRoute>
@@ -89,7 +90,7 @@ export default function RotaryOrgPage() {
                   <Building2 className="h-7 w-7" />
                 </div>
                 <h3 className="text-lg font-semibold text-primary">Club Sync</h3>
-                <p className="text-sm text-muted-foreground">Compare and manually sync clubs between Rotary Zones 4, 5, 6, 7 &amp; 8 and Rotary.org by district</p>
+                <p className="text-sm text-muted-foreground">Compare and manually sync clubs between ROW and Rotary.org by district</p>
               </Link>
 
               {/* Counts */}
@@ -138,7 +139,7 @@ export default function RotaryOrgPage() {
                   <Users className="h-7 w-7" />
                 </div>
                 <h3 className="text-lg font-semibold text-primary">Member Sync</h3>
-                <p className="text-sm text-muted-foreground">Compare and manually sync members between Rotary Zones 4, 5, 6, 7 &amp; 8 and Rotary.org by club</p>
+                <p className="text-sm text-muted-foreground">Compare and manually sync members between ROW and Rotary.org by club</p>
               </Link>
 
               <div className="w-full mt-1">
@@ -164,7 +165,7 @@ export default function RotaryOrgPage() {
                 <p className="text-sm text-muted-foreground">Members sharing a mobile or email (one holds it as primary, the other as secondary) — compare side-by-side, then merge or keep both.</p>
                 {dupCount && (
                   <div className="flex flex-wrap items-center justify-center gap-2 mt-1">
-                    <span className="rounded-full bg-rose-50 border border-rose-200 text-rose-700 text-xs font-semibold px-2.5 py-0.5">{dupCount.total.toLocaleString("en-IN")} to review</span>
+                    <span className="rounded-full bg-rose-50 border border-rose-200 text-rose-700 text-xs font-semibold px-2.5 py-0.5">{dupCount.total.toLocaleString(appLocale())} to review</span>
                     <span className="rounded-full bg-slate-50 border border-slate-200 text-slate-600 text-xs px-2.5 py-0.5">Mobile {dupCount.mobile}</span>
                     <span className="rounded-full bg-slate-50 border border-slate-200 text-slate-600 text-xs px-2.5 py-0.5">Email {dupCount.email}</span>
                     <span className="rounded-full bg-slate-50 border border-slate-200 text-slate-600 text-xs px-2.5 py-0.5">Both {dupCount.both}</span>

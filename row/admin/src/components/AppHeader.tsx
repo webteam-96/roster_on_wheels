@@ -25,6 +25,7 @@ import ChangePasswordDialog from "@/components/ChangePasswordDialog";
 import LanguagePicker from "@/components/LanguagePicker";
 import BrandLogo from "@/components/BrandLogo";
 
+import { appLocale } from "@/lib/appFormat";
 function formatTime(totalSeconds: number): string {
   const h = Math.floor(totalSeconds / 3600);
   const m = Math.floor((totalSeconds % 3600) / 60);
@@ -75,6 +76,7 @@ export default function AppHeader() {
     "/terms-and-conditions",
     "/refunds-and-cancellations",
     "/privacy-policy",
+    "/cookies",
     "/about-us",
     "/tutorial",
   ];
@@ -195,7 +197,7 @@ export default function AppHeader() {
                         <div key={i} className="border-b last:border-0 px-4 py-3 bg-orange-50">
                           <p className="text-sm text-orange-800">
                             <span className="font-medium">Warning: </span>
-                            {n.creditType} credits expiring on {new Date(n.expiryDate).toLocaleDateString("en-IN")} ({n.daysLeft} day{n.daysLeft !== 1 ? "s" : ""} left). {n.remainingCredits} credit{n.remainingCredits !== 1 ? "s" : ""} remaining.
+                            {n.creditType} credits expiring on {new Date(n.expiryDate).toLocaleDateString(appLocale())} ({n.daysLeft} day{n.daysLeft !== 1 ? "s" : ""} left). {n.remainingCredits} credit{n.remainingCredits !== 1 ? "s" : ""} remaining.
                           </p>
                         </div>
                       ))}
@@ -215,7 +217,7 @@ export default function AppHeader() {
                   {lastLoginTime && (
                     <>
                       <div className="px-2 py-1.5 text-xs text-muted-foreground">
-                        Last login: {new Date(lastLoginTime).toLocaleString("en-IN", {
+                        Last login: {new Date(lastLoginTime).toLocaleString(appLocale(), {
                           day: "2-digit",
                           month: "short",
                           year: "numeric",

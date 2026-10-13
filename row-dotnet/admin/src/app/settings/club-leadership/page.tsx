@@ -24,6 +24,7 @@ import {
 } from "@/services/api";
 import { exportToCSV } from "@/utils/csvExport";
 
+import { appLocale } from "@/lib/appFormat";
 type Row = {
   clubId: number; clubName: string; clubRotaryId: string;
   presidentMemberId: number | null; presidentName: string | null;
@@ -431,12 +432,12 @@ export default function ClubLeadershipPage() {
                             {expandedScheduleId === s.id ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
                           </Button>
                         </TableCell>
-                        <TableCell>{new Date(s.scheduleDateTime).toLocaleString("en-IN")}</TableCell>
+                        <TableCell>{new Date(s.scheduleDateTime).toLocaleString(appLocale())}</TableCell>
                         <TableCell><Badge variant={s.status === "Completed" ? "default" : s.status === "Failed" ? "destructive" : "secondary"}>{s.status}</Badge></TableCell>
                         <TableCell>{s.totalRecipients}</TableCell>
                         <TableCell className="text-green-600">{s.sentCount}</TableCell>
                         <TableCell className="text-red-600">{s.failedCount}</TableCell>
-                        <TableCell>{s.processedDate ? new Date(s.processedDate).toLocaleString("en-IN") : "—"}</TableCell>
+                        <TableCell>{s.processedDate ? new Date(s.processedDate).toLocaleString(appLocale()) : "—"}</TableCell>
                         <TableCell>
                           {s.status === "Pending" && (
                             <Button size="sm" variant="ghost" className="h-7 text-red-600 hover:text-red-700 hover:bg-red-50" onClick={() => deleteSchedule(s.id)}>
@@ -476,7 +477,7 @@ export default function ClubLeadershipPage() {
                                              l.status === "Failed" ? <Badge variant="destructive"><XCircle className="mr-1 h-3 w-3" />Failed</Badge> :
                                              <Badge variant="secondary"><Clock className="mr-1 h-3 w-3" />{l.status}</Badge>}
                                           </TableCell>
-                                          <TableCell className="text-xs">{l.sentDate ? new Date(l.sentDate).toLocaleString("en-IN") : "—"}</TableCell>
+                                          <TableCell className="text-xs">{l.sentDate ? new Date(l.sentDate).toLocaleString(appLocale()) : "—"}</TableCell>
                                           <TableCell className={`text-xs ${l.status === "Failed" ? "text-red-600" : "text-muted-foreground"}`}>{l.errorMessage || "—"}</TableCell>
                                         </TableRow>
                                       );
@@ -557,12 +558,12 @@ export default function ClubLeadershipPage() {
                           </TableCell>
                           <TableCell className="font-medium">D{s.districtNumber || s.districtId}</TableCell>
                           <TableCell>{s.yearLabel || "—"}</TableCell>
-                          <TableCell>{new Date(s.scheduleDateTime).toLocaleString("en-IN")}</TableCell>
+                          <TableCell>{new Date(s.scheduleDateTime).toLocaleString(appLocale())}</TableCell>
                           <TableCell><Badge variant={s.status === "Completed" ? "default" : s.status === "Failed" ? "destructive" : "secondary"}>{s.status}</Badge></TableCell>
                           <TableCell className="text-right">{s.totalRecipients}</TableCell>
                           <TableCell className="text-right text-green-600">{s.sentCount}</TableCell>
                           <TableCell className="text-right text-red-600">{s.failedCount}</TableCell>
-                          <TableCell className="text-xs">{s.processedDate ? new Date(s.processedDate).toLocaleString("en-IN") : "—"}</TableCell>
+                          <TableCell className="text-xs">{s.processedDate ? new Date(s.processedDate).toLocaleString(appLocale()) : "—"}</TableCell>
                           <TableCell>
                             {s.status === "Pending" && (
                               <Button size="sm" variant="ghost" className="h-7 text-red-600 hover:text-red-700 hover:bg-red-50" onClick={() => deleteSchedule(s.id)}>
@@ -602,7 +603,7 @@ export default function ClubLeadershipPage() {
                                              l.status === "Failed" ? <Badge variant="destructive"><XCircle className="mr-1 h-3 w-3" />Failed</Badge> :
                                              <Badge variant="secondary"><Clock className="mr-1 h-3 w-3" />{l.status}</Badge>}
                                           </TableCell>
-                                          <TableCell className="text-xs">{l.sentDate ? new Date(l.sentDate).toLocaleString("en-IN") : "—"}</TableCell>
+                                          <TableCell className="text-xs">{l.sentDate ? new Date(l.sentDate).toLocaleString(appLocale()) : "—"}</TableCell>
                                           <TableCell className={`text-xs ${l.status === "Failed" ? "text-red-600" : "text-muted-foreground"}`}>{l.errorMessage || "—"}</TableCell>
                                         </TableRow>);
                                       })}

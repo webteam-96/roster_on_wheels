@@ -29,6 +29,7 @@ import {
   type LoginAnnouncementFilters, type LoginAnnouncementFilterValue,
 } from "@/utils/loginAnnouncementRoles";
 
+import { appLocale } from "@/lib/appFormat";
 // Read an image file, downscale to a sane max width and re-compress, and return a
 // data: URL. Embedding inline (base64) keeps the announcement self-contained — no
 // upload endpoint, no host/media-routing juggling, no broken links for any viewer.
@@ -618,8 +619,8 @@ export default function LoginAnnouncementPage() {
                     </div>
                     <div className="border rounded-lg p-4 bg-muted/30 prose prose-sm max-w-none [&_img]:max-w-full [&_img]:h-auto" dangerouslySetInnerHTML={{ __html: item.content }} />
                     <p className="text-xs text-muted-foreground mt-2">
-                      Created: {new Date(item.createdDate).toLocaleString("en-IN", { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })}
-                      {item.modifiedDate && ` · Modified: ${new Date(item.modifiedDate).toLocaleString("en-IN", { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })}`}
+                      Created: {new Date(item.createdDate).toLocaleString(appLocale(), { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })}
+                      {item.modifiedDate && ` · Modified: ${new Date(item.modifiedDate).toLocaleString(appLocale(), { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })}`}
                     </p>
                   </CardContent>
                 </Card>

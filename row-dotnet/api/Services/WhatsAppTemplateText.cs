@@ -3,7 +3,7 @@ using System.Text.RegularExpressions;
 namespace RotaryApi.Services;
 
 /// <summary>
-/// Shared text-fitting rules for WhatsApp (Interakt / Meta) template body parameters.
+/// Shared text-fitting rules for WhatsApp (Meta) template body parameters.
 ///
 /// WHY: a rendered template body has a hard character budget (600 for this project). That budget
 /// covers the WHOLE rendered message — the template's own static text PLUS every substituted
@@ -13,7 +13,7 @@ namespace RotaryApi.Services;
 /// COMPUTED from what is left after everything else is substituted.
 ///
 /// Meta rules this encodes:
-///   • A body PARAMETER may not contain newlines, tabs, or 4+ consecutive spaces — Interakt
+///   • A body PARAMETER may not contain newlines, tabs, or 4+ consecutive spaces — Meta
 ///     rejects the whole send. (Same rule the GreetingsWorker follows.) Everything here is
 ///     collapsed to single spaces BEFORE it is measured or cut, so the measured length is the
 ///     length that actually goes on the wire.
@@ -32,7 +32,7 @@ public static class WhatsAppTemplateText
 
     /// <summary>
     /// Floor: if the computed budget for the free-text field falls below this, the field is
-    /// dropped entirely (InteraktService substitutes "-") rather than emitting a useless
+    /// dropped entirely (MetaWhatsAppService substitutes "-") rather than emitting a useless
     /// few-word stub or busting <see cref="MaxBodyChars"/>. Only reachable when the fixed
     /// fields (name + club + title + image URLs) already eat almost the whole budget.
     /// </summary>
@@ -58,7 +58,7 @@ public static class WhatsAppTemplateText
 
     /// <summary>
     /// Whitespace-collapse only — no HTML stripping. This mirrors exactly what
-    /// <see cref="InteraktService.SendWhatsAppWithBodyValuesAsync"/> does to every value it is
+    /// <see cref="MetaWhatsAppService.SendWhatsAppDetailedAsync"/> does to every value it is
     /// handed, so it is the right measure for parameters we do NOT own (member name, club name,
     /// title, image URL).
     /// </summary>
@@ -100,7 +100,7 @@ public static class WhatsAppTemplateText
 
     /// <summary>
     /// 600 − the template's static text − every OTHER substituted parameter, each measured the way
-    /// InteraktService will actually put it on the wire (whitespace collapsed; a blank value is
+    /// MetaWhatsAppService will actually put it on the wire (whitespace collapsed; a blank value is
     /// sent as "-", so it still costs 1 character). Can return ≤ 0 when the fixed fields alone
     /// already fill the body.
     /// </summary>

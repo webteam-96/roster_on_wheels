@@ -37,6 +37,7 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 import { ArrowLeft, Save, Send, Loader2, Users } from "lucide-react";
 import RichTextEditor from "@/components/RichTextEditor";
 
+import { appLocale } from "@/lib/appFormat";
 const BASE = "/district-admin-dashboard/quick-links/mass-email";
 
 function withSearch(base: string, extra: Record<string, string | null | undefined>) {
@@ -88,7 +89,7 @@ export default function DistrictAdminMassEmailComposePage() {
   const [emailRemaining, setEmailRemaining] = useState<number | null>(null);
   // Sender email fetched from API so the compose UI always shows the exact
   // From-address Brevo will use (configured server-side, not hardcoded).
-  const [senderEmail, setSenderEmail] = useState<string>("communication@rizones45678.org");
+  const [senderEmail, setSenderEmail] = useState<string>("support@example.org");
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
@@ -364,12 +365,12 @@ export default function DistrictAdminMassEmailComposePage() {
               >
                 <span>
                   Email credits remaining:{" "}
-                  <span className="font-semibold">{emailRemaining.toLocaleString("en-IN")}</span>
+                  <span className="font-semibold">{emailRemaining.toLocaleString(appLocale())}</span>
                 </span>
                 <span className="text-xs">
                   {insufficientCredits
                     ? `Need ${recipientCount.membersWithEmail - emailRemaining} more to send`
-                    : `${(emailRemaining - recipientCount.membersWithEmail).toLocaleString("en-IN")} credits will remain after send`}
+                    : `${(emailRemaining - recipientCount.membersWithEmail).toLocaleString(appLocale())} credits will remain after send`}
                 </span>
               </div>
             )}

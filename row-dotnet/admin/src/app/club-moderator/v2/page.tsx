@@ -28,6 +28,7 @@ import ErrorAlert from "@/components/ErrorAlert";
 import { formatMoney } from "@/lib/currency";
 import { CheckCircle2, XCircle, Clock, MoreHorizontal, FileText } from "lucide-react";
 
+import { appLocale } from "@/lib/appFormat";
 interface YearSummary {
   yearId: number;
   yearLabel: string;
@@ -312,9 +313,9 @@ export default function ClubModeratorV2Page() {
                       <td className="px-4 py-2.5">{statusBadge(p.approvalStatus)}</td>
                       <td className="px-4 py-2.5 text-sm whitespace-nowrap">
                         {normalizeStatus(p.approvalStatus) === "approved" ? (
-                          <span className="text-green-700">{p.approvalDate ? new Date(p.approvalDate).toLocaleString("en-IN") : "—"}</span>
+                          <span className="text-green-700">{p.approvalDate ? new Date(p.approvalDate).toLocaleString(appLocale()) : "—"}</span>
                         ) : normalizeStatus(p.approvalStatus) === "rejected" ? (
-                          <span className="text-red-700">{p.approvalDate ? new Date(p.approvalDate).toLocaleString("en-IN") : "—"}</span>
+                          <span className="text-red-700">{p.approvalDate ? new Date(p.approvalDate).toLocaleString(appLocale()) : "—"}</span>
                         ) : (
                           <span className="text-slate-400">—</span>
                         )}

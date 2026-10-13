@@ -41,6 +41,7 @@ import ErrorAlert from "@/components/ErrorAlert";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { useAuth } from "@/contexts/AuthContext";
 
+import { currencySymbol } from "@/lib/appFormat";
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 const ENGLISH_ONLY_REGEX = /^[a-zA-Z0-9\s.,!?;:'"()\-&@#%+=/]*$/;
 
@@ -455,7 +456,7 @@ export default function DistrictProjectsV2AddPage() {
                 <DateField value={projectDate} onChange={setProjectDate} className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" />
               </div>
               <div>
-                <FieldLabel dot="bg-blue-500" required={false}>Project Cost (₹)</FieldLabel>
+                <FieldLabel dot="bg-blue-500" required={false}>Project Cost ({currencySymbol()})</FieldLabel>
                 <input
                   type="number"
                   value={projectCost}
@@ -496,7 +497,7 @@ export default function DistrictProjectsV2AddPage() {
                   />
                 </div>
                 <div>
-                  <FieldLabel dot="bg-violet-500">Amount Sanctioned (₹)</FieldLabel>
+                  <FieldLabel dot="bg-violet-500">Amount Sanctioned ({currencySymbol()})</FieldLabel>
                   <input
                     inputMode="numeric"
                     pattern="[0-9]*"
@@ -507,7 +508,7 @@ export default function DistrictProjectsV2AddPage() {
                   />
                 </div>
                 <div>
-                  <FieldLabel dot="bg-violet-500">Amount Received (₹)</FieldLabel>
+                  <FieldLabel dot="bg-violet-500">Amount Received ({currencySymbol()})</FieldLabel>
                   <input
                     inputMode="numeric"
                     pattern="[0-9]*"
@@ -518,7 +519,7 @@ export default function DistrictProjectsV2AddPage() {
                   />
                 </div>
                 <div>
-                  <FieldLabel dot="bg-violet-500">Amount spent till date (₹)</FieldLabel>
+                  <FieldLabel dot="bg-violet-500">Amount spent till date ({currencySymbol()})</FieldLabel>
                   <input
                     inputMode="numeric"
                     pattern="[0-9]*"
@@ -567,7 +568,7 @@ export default function DistrictProjectsV2AddPage() {
                   />
                 </div>
                 <div>
-                  <FieldLabel dot="bg-amber-500">Amount Sanctioned (₹)</FieldLabel>
+                  <FieldLabel dot="bg-amber-500">Amount Sanctioned ({currencySymbol()})</FieldLabel>
                   <input
                     inputMode="numeric"
                     pattern="[0-9]*"
@@ -578,7 +579,7 @@ export default function DistrictProjectsV2AddPage() {
                   />
                 </div>
                 <div>
-                  <FieldLabel dot="bg-amber-500">Amount Received (₹)</FieldLabel>
+                  <FieldLabel dot="bg-amber-500">Amount Received ({currencySymbol()})</FieldLabel>
                   <input
                     inputMode="numeric"
                     pattern="[0-9]*"

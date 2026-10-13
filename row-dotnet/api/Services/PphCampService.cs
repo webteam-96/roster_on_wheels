@@ -497,7 +497,7 @@ public class PphCampService : IPphCampService
     public async Task<PphMobileHistoryDto> GetAttendeeHistoryByMobileAsync(string mobile)
     {
         // Normalize to digits only, then take the last 10 (Indian national number length),
-        // mirroring the mobile-matching convention used elsewhere (Interakt/webhook).
+        // mirroring the mobile-matching convention used elsewhere (WhatsApp sends).
         var digits = new string((mobile ?? "").Where(char.IsDigit).ToArray());
         var last10 = digits.Length >= 10 ? digits[^10..] : digits;
 

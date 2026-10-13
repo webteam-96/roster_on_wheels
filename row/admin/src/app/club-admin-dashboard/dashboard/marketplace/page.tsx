@@ -133,7 +133,7 @@ function MarketplaceImpl() {
           <h2 className="text-base font-bold text-slate-800">Rotary Web Marketplace</h2>
           <p className="text-xs text-slate-500 mt-0.5">{data.platformUrl}</p>
           <p className="text-sm text-slate-600 mt-3 max-w-2xl mx-auto">
-            The Rotary Zones 4, 5, 6, 7 & 8 Web Marketplace is an external platform for clubs to list and discover
+            The ROW Web Marketplace is an external platform for clubs to list and discover
             member businesses, services, products, and social enterprises. Click below to open your
             club&apos;s marketplace portal.
           </p>

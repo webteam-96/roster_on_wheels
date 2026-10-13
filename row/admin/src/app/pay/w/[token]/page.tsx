@@ -21,13 +21,14 @@ import {
   CheckCircle2, ShieldCheck, Zap, Lock, Check,
 } from "lucide-react";
 import PayPageShell from "@/components/PayPageShell";
-import { PayCard as Card, PayHelpCard, PayBenefits, PayTrustRows, SUPPORT_PHONE } from "@/components/PayCard";
+import { PayCard as Card, PayHelpCard, PayBenefits, PayTrustRows, supportPhone } from "@/components/PayCard";
 import {
   getPublicWallet, searchPublicWallet, getPublicWalletEntity, getPublicWalletQuote,
   resolvePublicWalletWebsiteToken, createPublicWalletOrder, verifyPublicWalletOrder,
   type PublicWalletInfo, type PublicWalletSearchResult, type PublicWalletQuote,
 } from "@/services/api";
 
+import { appLocale, currencySymbol } from "@/lib/appFormat";
 const PRESETS = [500, 1000, 2000, 5000];
 const POPULAR = 1000;                         // the tile carrying the "Popular" flag
 
@@ -82,9 +83,9 @@ function loadRazorpayScript(): Promise<boolean> {
   });
 }
 
-const inr = (n: number) => `₹${Number(n || 0).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-const fmtDate = (s?: string | null) => (s ? new Date(s).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" }) : "—");
-const num = (n?: number | null) => Number(n ?? 0).toLocaleString("en-IN");
+const inr = (n: number) => `${currencySymbol()}${Number(n || 0).toLocaleString(appLocale(), { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+const fmtDate = (s?: string | null) => (s ? new Date(s).toLocaleDateString(appLocale(), { day: "2-digit", month: "short", year: "numeric" }) : "—");
+const num = (n?: number | null) => Number(n ?? 0).toLocaleString(appLocale());
 
 export default function PublicWalletPayPage() {
   const params = useParams();
@@ -213,7 +214,7 @@ export default function PublicWalletPayPage() {
         order_id: order.razorpayOrderId,
         amount: order.amountPaise,
         currency: order.currency,
-        name: "Rotary Zones 4, 5, 6, 7 & 8",
+        name: "ROW",
         description: `${creditLabel} credits — ${entity.entityName}`,
         handler: async (resp: any) => {
           try {
@@ -298,7 +299,7 @@ export default function PublicWalletPayPage() {
         <h1 className="text-lg font-bold text-red-800">This link doesn&apos;t work</h1>
         <p className="mt-2 text-sm text-red-700">{loadError}</p>
         <p className="mt-4 text-xs text-red-600">
-          Ask your district team for a fresh link, or call {SUPPORT_PHONE}.
+          Ask your district team for a fresh link, {supportPhone() ? <> or call {supportPhone()}</> : null}.
         </p>
       </div>
     );
@@ -501,7 +502,7 @@ export default function PublicWalletPayPage() {
 
                   <div className="mt-5">
                     <label htmlFor="wallet-amount" className="text-xs font-medium text-slate-500">
-                      Or enter an amount (₹)
+                      Or enter an amount ({currencySymbol()})
                     </label>
                     <input
                       id="wallet-amount" type="number" min={0} value={amount}

@@ -53,6 +53,7 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 import ClubAdminShell from "@/components/v2/ClubAdminShell";
 import { useSyncClubIdFromUrl } from "@/hooks/useSyncClubIdFromUrl";
 
+import { appLocale, currencySymbol } from "@/lib/appFormat";
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
 // WhatsApp brand SVG (no emoji per design rules; lucide has no WhatsApp icon)
@@ -111,10 +112,10 @@ function PendingDetailsPanel({ details }: { details: any }) {
     );
   };
   const dateStr = details.paymentDate
-    ? new Date(details.paymentDate).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" })
+    ? new Date(details.paymentDate).toLocaleDateString(appLocale(), { day: "2-digit", month: "short", year: "numeric" })
     : null;
   const amountStr = details.amount != null
-    ? `₹${Number(details.amount).toLocaleString("en-IN", { maximumFractionDigits: 2 })}`
+    ? `${currencySymbol()}${Number(details.amount).toLocaleString(appLocale(), { maximumFractionDigits: 2 })}`
     : null;
   const attachUrl = details.attachment
     ? (String(details.attachment).startsWith("/") ? `${API_BASE_URL}${details.attachment}` : `${API_BASE_URL}/${details.attachment}`)
@@ -305,7 +306,7 @@ export default function ClubMembershipDuesV2MembersPage() {
       : ft === 3 ? (m.semi2PaymentDate ?? m.Semi2PaymentDate)
       : null;
     if (!mode) return null;
-    const dateStr = date ? new Date(date).toLocaleDateString("en-IN") : "";
+    const dateStr = date ? new Date(date).toLocaleDateString(appLocale()) : "";
     if (mode === "Payment Gateway") {
       return (
         <span title={`Online${dateStr ? " · " + dateStr : ""}`}
@@ -936,7 +937,7 @@ export default function ClubMembershipDuesV2MembersPage() {
                                   <span className="text-slate-400">N/A</span>
                                 ) : (
                                   <div className="flex flex-col items-center gap-1">
-                                    <span className="text-slate-700">₹{getDisplayFeeAmount(m, ft.type).toLocaleString("en-IN")}</span>
+                                    <span className="text-slate-700">{currencySymbol()}{getDisplayFeeAmount(m, ft.type).toLocaleString(appLocale())}</span>
                                     {statusChip(st)}
                                     {st === "Paid" && getPaymentChannelIcon(m, ft.type)}
                                   </div>
@@ -1093,7 +1094,7 @@ export default function ClubMembershipDuesV2MembersPage() {
                   )}
                   {(offlineMember.pendingAmount || offlineMember.PendingAmount) && (
                     <p className="text-sm">
-                      <strong>Amount:</strong> ₹
+                      <strong>Amount:</strong> {currencySymbol()}
                       {offlineMember.pendingAmount || offlineMember.PendingAmount}
                     </p>
                   )}
@@ -1114,7 +1115,7 @@ export default function ClubMembershipDuesV2MembersPage() {
                       <strong>Date:</strong>{" "}
                       {new Date(
                         offlineMember.pendingPaymentDate || offlineMember.PendingPaymentDate
-                      ).toLocaleDateString("en-IN")}
+                      ).toLocaleDateString(appLocale())}
                     </p>
                   )}
                   {(offlineMember.pendingRemark || offlineMember.PendingRemark) && (
@@ -1174,10 +1175,10 @@ export default function ClubMembershipDuesV2MembersPage() {
                       <p className="text-sm"><strong>Transaction ID:</strong> {offlineOnlineView.txnId}</p>
                     )}
                     {offlineOnlineView.amount > 0 && (
-                      <p className="text-sm"><strong>Amount:</strong> ₹{offlineOnlineView.amount.toLocaleString("en-IN")}</p>
+                      <p className="text-sm"><strong>Amount:</strong> {currencySymbol()}{offlineOnlineView.amount.toLocaleString(appLocale())}</p>
                     )}
                     {offlineOnlineView.date && (
-                      <p className="text-sm"><strong>Date:</strong> {new Date(offlineOnlineView.date).toLocaleDateString("en-IN")}</p>
+                      <p className="text-sm"><strong>Date:</strong> {new Date(offlineOnlineView.date).toLocaleDateString(appLocale())}</p>
                     )}
                     <p className="text-sm"><strong>Status:</strong> Paid (Online)</p>
                     <p className="text-xs text-emerald-700 mt-1">Gateway payments can't be edited offline — viewing only.</p>

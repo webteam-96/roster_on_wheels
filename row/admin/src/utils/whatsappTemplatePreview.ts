@@ -15,7 +15,7 @@ export const WA_MEMBER_NAME_PLACEHOLDER = "{Member Name}";
 // so the Details shown here are exactly what members receive.
 const WA_NAME_RESERVE_CHARS = 40;
 
-// rizones45678_club_upcoming_event_image_updated / rizones45678_club_upcoming_event_no_image_updated
+// row_club_upcoming_event_image_updated / row_club_upcoming_event_no_image_updated
 const CLUB_UPCOMING_EVENT_TEMPLATE = `Dear Rtn. {{1}},
 
 You are invited to attend the upcoming event organised by RC {{2}}:
@@ -30,9 +30,9 @@ Venue: {{6}}
 
 Registration Link (if applicable): {{7}}
 
-This is an automated message from Rizones45678.org. For further details, please contact your Club Admin.`;
+This is an automated message from ROW. For further details, please contact your Club Admin.`;
 
-// rizones45678_district_upcoming_event_image_updated / rizones45678_district_upcoming_event_no_image_updated
+// row_district_upcoming_event_image_updated / row_district_upcoming_event_no_image_updated
 const DISTRICT_UPCOMING_EVENT_TEMPLATE = `Dear Rtn. {{1}},
 
 You are invited to attend the upcoming event organized by RI District {{2}}:
@@ -47,7 +47,7 @@ Venue: {{6}}
 
 Registration Link (if applicable): {{7}}
 
-This is an automated message from Rizones45678.org. For further details, please contact your District Admin.`;
+This is an automated message from ROW. For further details, please contact your District Admin.`;
 
 const collapse = (v?: string | null) => (v ?? "").replace(/\s+/g, " ").trim();
 const orDash = (v?: string | null) => collapse(v) || "-";
@@ -92,7 +92,7 @@ export function formatWhatsAppEventDate(value?: string | null) {
   return `${pad(d.getDate())} ${months[d.getMonth()]} ${d.getFullYear()} ${pad(h)}:${pad(d.getMinutes())} ${d.getHours() < 12 ? "AM" : "PM"}`;
 }
 
-// rizones45678_club_announcement_image_updated / rizones45678_club_announcement_no_image_updated
+// row_club_announcement_image_updated / row_club_announcement_no_image_updated
 const CLUB_ANNOUNCEMENT_TEMPLATE = `Dear Rtn. {{1}},
 
 Your Club {{2}} has shared an announcement for your information.
@@ -101,9 +101,9 @@ Title: {{3}}
 
 Details: {{4}}
 
-This is an automated notification from Rizones45678.org. For any queries regarding this announcement, please contact your Club Admin.`;
+This is an automated notification from ROW. For any queries regarding this announcement, please contact your Club Admin.`;
 
-// rizones45678_district_announcement_image_updated / rizones45678_district_announcement_no_image_updated
+// row_district_announcement_image_updated / row_district_announcement_no_image_updated
 const DISTRICT_ANNOUNCEMENT_TEMPLATE = `Dear Rtn. {{1}},
 
 Your District {{2}} has shared an announcement for your information.
@@ -112,7 +112,7 @@ Title: {{3}}
 
 Details: {{4}}
 
-This is an automated notification from Rizones45678.org. For any queries regarding this announcement, please contact your District Admin.`;
+This is an automated notification from ROW. For any queries regarding this announcement, please contact your District Admin.`;
 
 const bareDistrictNumber = (districtName: string) => districtName.replace(/^\s*District\s+/i, "");
 
@@ -171,27 +171,27 @@ export function renderDistrictUpcomingEventWhatsApp(input: Omit<ClubUpcomingEven
 // Two templates, picked by what the newsletter carries. Neither has a free-text field, so nothing
 // is ever shortened — only the 50-character title and the link vary.
 
-// rizones45678_newsletter_link_updated_2i
+// row_newsletter_link_updated_2i
 const CLUB_NEWSLETTER_LINK_TEMPLATE = `Dear Rtn. {{1}},
 
-This is to inform you that a new newsletter from RC {{2}} is available on Rizones45678.org.
+This is to inform you that a new newsletter from RC {{2}} is available on ROW.
 
 Newsletter Title: {{3}}
 
 View Newsletter: {{4}}
 
-This is an automated notification from Rizones45678.org. For any queries regarding this newsletter, please contact your Club Leader.`;
+This is an automated notification from ROW. For any queries regarding this newsletter, please contact your Club Leader.`;
 
-// rizones45678_newsletter_pdf_updated — the PDF itself rides in the template's document header.
+// row_newsletter_pdf_updated — the PDF itself rides in the template's document header.
 const CLUB_NEWSLETTER_PDF_TEMPLATE = `Dear Rtn. {{1}},
 
-This is to inform you that a new newsletter from RC {{2}} is available on Rizones45678.org.
+This is to inform you that a new newsletter from RC {{2}} is available on ROW.
 
 Newsletter Title: {{3}}
 
 Please check the attachment for the newsletter.
 
-This is an automated notification from Rizones45678.org. For any queries regarding this newsletter, please contact your Club Leader.`;
+This is an automated notification from ROW. For any queries regarding this newsletter, please contact your Club Leader.`;
 
 /** Message body exactly as the club Newsletter WhatsApp template will render it. */
 export function renderClubNewsletterWhatsApp(input: {

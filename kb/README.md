@@ -7,7 +7,7 @@ Start here instead of re-reading source code. It has two parts:
 
 ## Code graphs
 
-Six codebases, built locally with tree-sitter (`--code-only`, no LLM, no API cost):
+Eight codebases, built locally with tree-sitter (`--code-only`, no LLM, no API cost):
 
 | Tag | Path | Graph |
 |---|---|---|
@@ -15,10 +15,12 @@ Six codebases, built locally with tree-sitter (`--code-only`, no LLM, no API cos
 | row-admin | `row/admin` (Next.js admin portal) | `graphify-out/parts/row-admin/...` |
 | row-club-website | `row/club-website` (Next.js public club site) | `graphify-out/parts/row-club-website/...` |
 | row-mobile | `row/mobile` (Flutter) | `graphify-out/parts/row-mobile/...` |
+| dotnet-api | `row-dotnet/api` (.NET edition API) | `graphify-out/parts/dotnet-api/...` |
+| dotnet-workers | `row-dotnet/workers` (.NET edition workers, shared by both editions) | `graphify-out/parts/dotnet-workers/...` |
 | ref-api | `reference/RotaryIndia_Admin_API_Claude` (RIZones .NET API **plus** `rotary-frontend`, `club-website`, workers) | `graphify-out/parts/ref-api/...` |
 | ref-mobile | `reference/rotary_zones_45678_flutter` (RIZones Flutter) | `graphify-out/parts/ref-mobile/...` |
 
-`graphify-out/graph.json` is all six merged; every node has `repo` set to the tag above.
+`graphify-out/graph.json` is all eight merged; every node has `repo` set to the tag above.
 Query one codebase to avoid mixing ROW and RIZones results:
 
 ```bash
@@ -45,28 +47,25 @@ After changing code: `bash kb/rebuild.sh` (about 2 minutes; graphify extraction 
 
 Hand-maintained: `testing.md` (how to run every check, dated results) and the findings below.
 
-## Where things stand (2026-10-12, main @ eca1661)
+## Where things stand (2026-10-13, session 4)
 
-Authoritative progress and decisions: `row/STATUS.md`, `row/api/ROW-CHANGES.md`, `row/api/PORTING.md`.
+Authoritative progress and decisions: `row/STATUS.md`, `row/api/ROW-CHANGES.md`, `row/PENDING-WORK.md`;
+the .NET edition: `row-dotnet/README.md`.
 
-| Codebase | State | Evidence |
-|---|---|---|
-| row/api | 85% of .NET routes; everything missing is Payments (ClubDues, MembershipDues, EventPaymentLinks, Wallet, WebsiteBilling, public/mobile dues, ClubWebsites pricing) or deliberately not ported (Cashfree, Razorpay, Interakt, partner feeds) | `api-routes-diff.md` |
-| row/mobile | 35 of 400 files changed from RIZones (API base URL, brand, icons, home screen); currency/phone/payments (WS10) pending | `mobile-diff.md` |
-| row/admin | 57 of 882 files changed; mostly still the RIZones UI (STATUS §6 tasks A–C not started) | `admin-diff.md` |
-| row/club-website | **0 of 65 files changed**: an unmodified copy of the RIZones club website (still has `rotaryindia.org`, `rizones45678.org` literals) | `club-website-diff.md` |
+| Codebase | State |
+|---|---|
+| row/api (NestJS) | 85% of .NET routes (missing = Payments, decision 4, plus excluded partner feeds); privacy module, schema gaps fixed |
+| row/admin | RIZones content and India formats removed (tasks A, B); pay pages wait for Payments; policy texts need counsel |
+| row/club-website | converted |
+| row/mobile | on the ROW API and brand; formats, phone input, privacy screens pending (no Flutter SDK here) |
+| row-dotnet (.NET edition) | RIZones API + workers rebranded, same admin / club website as row/; brand, flags, privacy, member-data guard, currency, time zone, phone and SMS behaviour as NestJS; only Payments still India (Cashfree / Razorpay) |
+| WhatsApp | ROW has none (2026-10-13); removal from both editions, admin and mobile on hold (`row/PENDING-WORK.md` §7) |
 
-Findings not in STATUS yet:
-
-- `reference/RotaryIndia_Admin_API_Claude` on this machine is at `64a7cd86` (2026-10-07), older than the
-  `cb3e678` (2026-10-09) STATUS says ROW was synced to. The 10 ROW-only goal-setting routes
-  (`district-messages/*`, `membership-import`, mobile `messages/has-unread`) come from that newer upstream.
-  Diffs against the local reference under-count upstream changes made after 10-07.
-- row/admin calls `/api/privacy/*` (consent, export, erase, requests) and `/api/members/me/language`.
-  Neither RIZones nor the ROW API has them: ROW-only UI with no backend yet.
-- row/admin still reads `rizonesCount` (API renamed it `localCount`) and `utils/goalSplitPilot.ts` has RIZones ids.
-- row/mobile: 130 of the 200 `ApiConstants` entries are never referenced as `ApiConstants.x` (dead
-  RIZones carry-over; some screens build paths inline instead). Several are paths no API has
-  (`/api/clubs/$id/banners`, `rni-camp`, ...). `role_management_screen.dart` calls `/api/admin/roles`, which
-  neither API serves (RIZones bug, kept).
-- row/admin type check: 6 errors, all inherited unchanged from RIZones; builds ignore TS errors.
+Notes:
+- `reference/RotaryIndia_Admin_API_Claude` is at `cb3e678c` (2026-10-09, pulled 2026-10-12), the commit
+  both editions are synced to; `reference/rotary_zones_45678_flutter` is at `1c3cb0d` (2026-09-24), unchanged.
+- `kb/tools/get_sweep.py` calls every parameterless GET on both APIs and compares the status codes;
+  `kb/tools/privacy_e2e.py` tests the privacy API of either edition; `kb/tools/locale_codemod.py` is the
+  admin locale codemod (rerun it on a refreshed RIZones frontend).
+- Test databases live in the local Docker container `row-dotnet-mysql` (port 3318): `row_dotnet` and
+  `row_nest_test`, throwaway fixtures only.

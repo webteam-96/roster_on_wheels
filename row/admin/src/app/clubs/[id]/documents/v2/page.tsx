@@ -34,11 +34,12 @@ import ErrorAlert from "@/components/ErrorAlert";
 import ClubAdminShell from "@/components/v2/ClubAdminShell";
 import { useSyncClubIdFromUrl } from "@/hooks/useSyncClubIdFromUrl";
 
+import { appLocale } from "@/lib/appFormat";
 function fmtDateTime(s?: string | null): string {
   if (!s) return "—";
   try {
     const d = new Date(s);
-    return d.toLocaleString("en-IN", {
+    return d.toLocaleString(appLocale(), {
       day: "2-digit",
       month: "short",
       year: "numeric",

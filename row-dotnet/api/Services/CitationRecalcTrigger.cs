@@ -41,13 +41,13 @@ public class CitationRecalcTrigger : ICitationRecalcTrigger
 
     public void TriggerForClub(int clubId)
     {
-        if (clubId <= 0) return;
+        if (clubId <= 0 || !Brand.Feature("modules.citation")) return;   // ROW: zonal programmes off by flag
         _ = Task.Run(async () => await RecalcClubAsync(clubId));
     }
 
     public void TriggerForDistrictAllClubs(int districtId)
     {
-        if (districtId <= 0) return;
+        if (districtId <= 0 || !Brand.Feature("modules.citation")) return;
         _ = Task.Run(async () =>
         {
             try

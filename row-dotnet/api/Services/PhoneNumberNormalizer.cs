@@ -10,18 +10,18 @@ namespace RotaryApi.Services;
 /// </summary>
 public static class PhoneNumberNormalizer
 {
-    // "+<1-4 digits>" followed by at least one space / dash / dot, e.g. "+91 7700900123", "+94-771234567".
+    // "+<1-4 digits>" followed by at least one space / dash / dot, e.g. "+44 7700900123", "+94-771234567".
     private static readonly Regex SeparatedCode = new(@"^\+\d{1,4}[\s\-.]+", RegexOptions.Compiled);
 
     /// <param name="number">Raw number as received.</param>
-    /// <param name="phoneCode">The chosen country's PhoneCode (e.g. "+91"). Needed to strip a code with no
-    /// separator ("+917700900123") — without it we can't tell a 1-digit code from a 3-digit one.</param>
+    /// <param name="phoneCode">The chosen country's PhoneCode (e.g. "+44"). Needed to strip a code with no
+    /// separator ("+447700900123") — without it we can't tell a 1-digit code from a 3-digit one.</param>
     /// <returns>The number without the code, or the trimmed input unchanged when no code is present.</returns>
     public static string? StripCountryCode(string? number, string? phoneCode)
     {
         if (string.IsNullOrWhiteSpace(number)) return number;
         var n = number.Trim();
-        // A few legacy rows carry the code twice ("+91 +91 77009 00124") — peel up to 3 layers.
+        // A few legacy rows carry the code twice ("+44 +44 7700 900124") — peel up to 3 layers.
         for (var i = 0; i < 3 && n.StartsWith('+'); i++)
         {
             var next = StripOnce(n, phoneCode);

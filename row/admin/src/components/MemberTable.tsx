@@ -86,7 +86,6 @@ export default function MemberTable({
             const photoUrl = getPhotoUrl(member.profilePhotoPath);
             const roles = memberRoles?.[member.id] || [];
             const isAdmin = roles.includes("Admin");
-            const isMemberSuperAdmin = roles.includes("SuperAdmin");
 
             return (
               <TableRow key={member.id} className="cursor-pointer hover:bg-primary/5 transition-colors" onClick={() => window.location.href = `/members/edit/${member.id}`}>
@@ -174,7 +173,7 @@ export default function MemberTable({
                           Delete
                         </DropdownMenuItem>
                       )}
-                      {(isSuperAdmin || isLoggedInAdmin) && !isMemberSuperAdmin && (
+                      {(isSuperAdmin || isLoggedInAdmin) && (   /* SuperAdmin members can be made Admin too (2026-10-09) */
                         <>
                           <DropdownMenuSeparator />
                           {isAdmin ? (

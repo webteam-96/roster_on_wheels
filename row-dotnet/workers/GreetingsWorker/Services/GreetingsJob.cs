@@ -8,7 +8,7 @@ namespace GreetingsWorker.Services;
 //   • Club greetings  → each active club whose greeting config is enabled greets its members.
 //   • District greetings → each active district whose config is enabled greets members across its clubs.
 //   • "Send both": a member covered by an enabled club AND district gets one greeting from each.
-//   • Channels per config: WhatsApp (Interakt approved template) and/or Email (Brevo).
+//   • Channels per config: WhatsApp (approved Meta template) and/or Email (Brevo).
 //   • Credits: each send deducts 1 from the source's club/district credits (unless DeductCredits=false).
 //   • Idempotency: greeting_send_log keys on (member, occasion, channel, sourceType, sourceId, date),
 //     so a re-run never double-sends; a prior 'failed'/'skipped' entry is retried.
@@ -17,12 +17,12 @@ public class GreetingsJob
     private readonly string _conn;
     private readonly ILogger<GreetingsJob> _log;
     private readonly BrevoEmailSender _email;
-    private readonly InteraktWhatsAppSender _wa;
+    private readonly MetaWhatsAppSender _wa;
     private readonly FirebasePushSender _push;
     private readonly GreetingsOptions _opt;
 
     public GreetingsJob(string connectionString, ILogger<GreetingsJob> log,
-        BrevoEmailSender email, InteraktWhatsAppSender wa, FirebasePushSender push, GreetingsOptions opt)
+        BrevoEmailSender email, MetaWhatsAppSender wa, FirebasePushSender push, GreetingsOptions opt)
     {
         _conn = connectionString;
         _log = log;
@@ -449,7 +449,7 @@ public class GreetingsJob
                     await LogAsync(conn, m.MemberId, occasion, ChWhatsApp, sourceType, cfg.SourceId, "skipped", "no WhatsApp credits", stats);
                 else if (_dryRun)
                 {
-                    var preview = InteraktWhatsAppSender.CleanTemplateValue(waMessage, dropForeignScripts: true);
+                    var preview = MetaWhatsAppSender.CleanTemplateValue(waMessage, dropForeignScripts: true);
                     if (preview.Length > 320) preview = preview[..320] + "…";
                     Console.WriteLine($"[DRY] WhatsApp {occasion} -> {m.MemberName} ({m.Mobile}) via {sourceType} '{cfg.SourceName}': \"{preview}\"");
                     stats.WhatsAppSent++;
@@ -460,7 +460,7 @@ public class GreetingsJob
                     var ok = await _wa.SendTemplateAsync(m.Mobile!, template!, new[] { m.MemberName ?? "Rotarian", waMessage, cfg.SourceName });
                     if (ok && _opt.DeductCredits)
                         await DeductCreditAsync(conn, cfg.SourceId, cfg.IsDistrict, ChWhatsApp, 1, $"{occasion} WhatsApp to {m.MemberName} ({sourceType} {cfg.SourceName})", m.MemberId);
-                    await LogAsync(conn, m.MemberId, occasion, ChWhatsApp, sourceType, cfg.SourceId, ok ? "sent" : "failed", ok ? null : "Interakt send failed", stats);
+                    await LogAsync(conn, m.MemberId, occasion, ChWhatsApp, sourceType, cfg.SourceId, ok ? "sent" : "failed", ok ? null : "WhatsApp send failed", stats);
                 }
             }
         }

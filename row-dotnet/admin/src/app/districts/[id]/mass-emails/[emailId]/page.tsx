@@ -16,6 +16,7 @@ import RotaryLoader from "@/components/RotaryLoader";
 import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";
 
+import { appLocale } from "@/lib/appFormat";
 interface MassEmailDetail {
   id: number; recipientType: number; fkSubgroupId: number | null;
   subgroupName: string | null; fromName: string; replyName: string | null;
@@ -87,7 +88,7 @@ export default function DistrictMassEmailViewPage() {
               <div><span className="text-muted-foreground">From: </span><span className="font-medium">{detail.fromName}</span></div>
               {detail.replyEmail && <div><span className="text-muted-foreground">Reply To: </span><span className="font-medium">{detail.replyName || detail.replyEmail} &lt;{detail.replyEmail}&gt;</span></div>}
               <div><span className="text-muted-foreground">Recipients: </span><span className="font-medium">{detail.totalRecipients} ({getRecipientTypeLabel(detail.recipientType)}{detail.subgroupName ? ` - ${detail.subgroupName}` : ""})</span></div>
-              <div><span className="text-muted-foreground">Date: </span><span className="font-medium">{detail.sentDate ? new Date(detail.sentDate).toLocaleString("en-IN") : new Date(detail.createdDate).toLocaleString("en-IN")}</span></div>
+              <div><span className="text-muted-foreground">Date: </span><span className="font-medium">{detail.sentDate ? new Date(detail.sentDate).toLocaleString(appLocale()) : new Date(detail.createdDate).toLocaleString(appLocale())}</span></div>
               {detail.status !== "Draft" && (
                 <div className="grid grid-cols-4 gap-3 mt-3">
                   <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-center"><p className="text-2xl font-bold text-blue-700">{detail.totalRecipients}</p><p className="text-xs text-blue-600">Total</p></div>
@@ -112,7 +113,7 @@ export default function DistrictMassEmailViewPage() {
                       <TableCell className="font-medium">{r.memberName}</TableCell>
                       <TableCell className="text-sm">{r.email || "No email"}</TableCell>
                       <TableCell><div className="flex items-center gap-1.5">{getStatusIcon(r.status)}<span className="text-sm">{r.status}</span></div></TableCell>
-                      <TableCell className="text-sm">{r.sentDate ? new Date(r.sentDate).toLocaleString("en-IN") : "-"}</TableCell>
+                      <TableCell className="text-sm">{r.sentDate ? new Date(r.sentDate).toLocaleString(appLocale()) : "-"}</TableCell>
                       <TableCell className="text-sm text-red-600 max-w-[200px] truncate">{r.errorMessage || "-"}</TableCell>
                     </TableRow>
                   ))

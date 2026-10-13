@@ -23,14 +23,14 @@ public class MembershipDuesService : IMembershipDuesService
     private readonly IConfiguration _config;
     private readonly IEmailService _emailService;
     private readonly ISmsService _smsService;
-    private readonly IInteraktService _interaktService;
+    private readonly IWhatsAppService _whatsAppService;
     private readonly IGoogleSheetsService _googleSheetsService;
     private readonly ICreditManagementService _creditService;
     private readonly HttpClient _httpClient;
     private readonly ILogger<MembershipDuesService> _logger;
 
     public MembershipDuesService(IConfiguration config, IEmailService emailService, ISmsService smsService,
-        IInteraktService interaktService, IHttpClientFactory httpClientFactory, IGoogleSheetsService googleSheetsService,
+        IWhatsAppService whatsAppService, IHttpClientFactory httpClientFactory, IGoogleSheetsService googleSheetsService,
         ICreditManagementService creditService,
         ILogger<MembershipDuesService> logger)
     {
@@ -38,7 +38,7 @@ public class MembershipDuesService : IMembershipDuesService
         _config = config;
         _emailService = emailService;
         _smsService = smsService;
-        _interaktService = interaktService;
+        _whatsAppService = whatsAppService;
         _googleSheetsService = googleSheetsService;
         _creditService = creditService;
         _httpClient = httpClientFactory.CreateClient();
@@ -2319,7 +2319,7 @@ public class MembershipDuesService : IMembershipDuesService
 
         // Club Dues has one reminder template — unlike District Dues it always includes the
         // bank-details block; bank fields fall back to "-" when not configured, same as before.
-        await _interaktService.SendWhatsAppWithBodyValuesAsync(
+        await _whatsAppService.SendWhatsAppWithBodyValuesAsync(
             (string)data.PrimaryMobileNumber, "updated_row_club_membership_dues_collection",
             new[] { (string)data.MemberName, (string?)data.ClubName ?? "-",
                     (string)(data.Purpose ?? "Club Dues"), "Not Received", payUrl,
@@ -2394,7 +2394,7 @@ public class MembershipDuesService : IMembershipDuesService
             try
             {
                 // Same single always-with-bank template as the individual reminder.
-                await _interaktService.SendWhatsAppWithBodyValuesAsync(
+                await _whatsAppService.SendWhatsAppWithBodyValuesAsync(
                     (string)m.PrimaryMobileNumber, "updated_row_club_membership_dues_collection",
                     new[] { (string)m.MemberName, (string?)m.ClubName ?? "-",
                             (string)(dues.Purpose ?? "Club Dues"), "Not Received", payUrl,
@@ -2684,13 +2684,11 @@ public class MembershipDuesService : IMembershipDuesService
         }
         if (!string.IsNullOrWhiteSpace(mobile))
         {
-            // Outside India → WhatsApp (the DLT SMS gateway is India-only). No-ops and returns
-            // false for India / unknown country, so the SMS line below stays exactly as it was.
-            whatsAppSent = await OtpWhatsAppHelper.TrySendOutsideIndiaAsync(
-                conn, _interaktService, _config, _logger, mobile, memberCountryId, otp, "club dues payment");
+            // WhatsApp when the brand's code policy lists it for the member's country, else SMS.
+            whatsAppSent = await OtpWhatsAppHelper.TrySendAsync(
+                conn, _whatsAppService, _config, _logger, mobile, memberCountryId, otp, "club dues payment");
 
-            // Fallback: if the WhatsApp send failed we still attempt the SMS that used to be
-            // the only channel here — a failed attempt beats delivering nothing at all.
+            // Fallback: SMS when WhatsApp was not used or failed.
             if (!whatsAppSent)
                 smsSent = await _smsService.SendOtpSmsAsync(mobile, otp);
         }

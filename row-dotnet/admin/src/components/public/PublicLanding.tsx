@@ -108,33 +108,33 @@ const PRICING: {
 }[] = [
   {
     service: "Annual Club Dues",
-    range: "₹1,000 – ₹15,000",
+    range: "Set by the club",
     unit: "per member · per Rotary year",
     description: "Set independently by each Rotary club. Includes RI dues, district dues, and club dues.",
   },
   {
     service: "Event Registration",
-    range: "₹100 – ₹50,000",
+    range: "Set by the organiser",
     unit: "per registration",
     description: "Varies by event (club fellowship, district conference, training, fundraiser). Set by the organiser.",
   },
   {
     service: "Project Contribution",
-    range: "₹100 onward",
-    unit: "per contribution · any amount in INR",
-    description: "Voluntary contribution to a service project. Minimum ₹100; no upper cap.",
+    range: "Any amount",
+    unit: "per contribution",
+    description: "Voluntary contribution to a service project. No upper cap.",
   },
   {
     service: "Foundation Contribution",
-    range: "₹100 onward",
-    unit: "per contribution · any amount in INR",
-    description: "Voluntary contribution to The Rotary Foundation. Minimum ₹100; no upper cap.",
+    range: "Any amount",
+    unit: "per contribution",
+    description: "Voluntary contribution to The Rotary Foundation. No upper cap.",
   },
   {
     service: "Platform Fee",
-    range: "₹0",
-    unit: "no platform fee",
-    description: "We do not levy a separate platform fee. Standard Cashfree payment-gateway charges apply on each transaction.",
+    range: "Shown at checkout",
+    unit: "per transaction",
+    description: "Any platform fee and the payment provider's charges are shown before you pay.",
   },
 ];
 

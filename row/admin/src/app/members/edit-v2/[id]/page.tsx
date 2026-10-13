@@ -86,9 +86,9 @@ const emptyFamilyMember: Omit<FamilyMember, "id" | "fkMemberMasterProfileId"> = 
   name: "",
   relation: "",
   bloodGroup: "",
-  fkCountryId: 1,
-  country: "India",
-  countryPhoneCode: "+91",
+  fkCountryId: 0,
+  country: "",
+  countryPhoneCode: "",
   phoneNumber: "",
   emailId: "",
   birthDate: null,
@@ -98,9 +98,9 @@ const emptyFamilyMember: Omit<FamilyMember, "id" | "fkMemberMasterProfileId"> = 
 
 const emptyResidentialAddress: Partial<MemberAddress> = {
   addressType: "Residential",
-  fkCountryId: 1,
-  country: "India",
-  countryPhoneCode: "+91",
+  fkCountryId: 0,
+  country: "",
+  countryPhoneCode: "",
   phoneNumber: "",
   address: "",
   state: "",
@@ -113,9 +113,9 @@ const emptyResidentialAddress: Partial<MemberAddress> = {
 
 const emptyBusinessAddress: Partial<MemberAddress> = {
   addressType: "Business",
-  fkCountryId: 1,
-  country: "India",
-  countryPhoneCode: "+91",
+  fkCountryId: 0,
+  country: "",
+  countryPhoneCode: "",
   phoneNumber: "",
   address: "",
   state: "",
@@ -129,17 +129,17 @@ const emptyBusinessAddress: Partial<MemberAddress> = {
 const defaultFormData: Partial<Member> = {
   memberName: "",
   profilePhotoPath: null,
-  fkPrimaryCountryId: 1,
-  primaryCountry: "India",
-  primaryCountryPhoneCode: "+91",
+  fkPrimaryCountryId: 0,
+  primaryCountry: "",
+  primaryCountryPhoneCode: "",
   primaryMobileNumber: "",
   emailId: "",
   birthDate: null,
   anniversaryDate: null,
   bloodGroup: "",
-  fkSecondaryCountryId: 1,
-  secondaryCountry: "India",
-  secondaryCountryPhoneCode: "+91",
+  fkSecondaryCountryId: 0,
+  secondaryCountry: "",
+  secondaryCountryPhoneCode: "",
   secondaryMobileNumber: "",
   isPersonalDetailsVisible: true,
   gender: "",
@@ -321,17 +321,7 @@ function EditMemberV2Form() {
       return;
     }
     Promise.all([
-      getCountries().catch(() => [
-        {
-          id: 1,
-          countryName: "India",
-          countryCode: "IN",
-          phoneCode: "+91",
-          gmtOpt: "+",
-          gmtTime: "05:30",
-          ordering: 1,
-        } as Country,
-      ]),
+      getCountries().catch(() => [] as Country[]),
       getMember(memberId, paramClubId ? parseInt(paramClubId) || undefined : undefined).catch((err: unknown) => {
         const axiosErr = err as { response?: { data?: { message?: string } } };
         setErrorMessage(axiosErr?.response?.data?.message || "Failed to load member.");
@@ -408,15 +398,15 @@ function EditMemberV2Form() {
       setFormData((prev) => ({
         ...prev,
         fkPrimaryCountryId: id,
-        primaryCountry: country?.countryName || "India",
-        primaryCountryPhoneCode: country?.phoneCode || "+91",
+        primaryCountry: country?.countryName || "",
+        primaryCountryPhoneCode: country?.phoneCode || "",
       }));
     } else {
       setFormData((prev) => ({
         ...prev,
         fkSecondaryCountryId: id,
-        secondaryCountry: country?.countryName || "India",
-        secondaryCountryPhoneCode: country?.phoneCode || "+91",
+        secondaryCountry: country?.countryName || "",
+        secondaryCountryPhoneCode: country?.phoneCode || "",
       }));
     }
   };
@@ -442,8 +432,8 @@ function EditMemberV2Form() {
       addresses[idx] = {
         ...addresses[idx],
         fkCountryId: id,
-        country: country?.countryName || "India",
-        countryPhoneCode: country?.phoneCode || "+91",
+        country: country?.countryName || "",
+        countryPhoneCode: country?.phoneCode || "",
       };
     } else {
       const base = type === "Residential" ? { ...emptyResidentialAddress } : { ...emptyBusinessAddress };
@@ -452,8 +442,8 @@ function EditMemberV2Form() {
         id: 0,
         fkMemberMasterProfileId: 0,
         fkCountryId: id,
-        country: country?.countryName || "India",
-        countryPhoneCode: country?.phoneCode || "+91",
+        country: country?.countryName || "",
+        countryPhoneCode: country?.phoneCode || "",
       } as MemberAddress);
     }
     updateField("addresses", addresses);
@@ -478,8 +468,8 @@ function EditMemberV2Form() {
     members[index] = {
       ...members[index],
       fkCountryId: id,
-      country: country?.countryName || "India",
-      countryPhoneCode: country?.phoneCode || "+91",
+      country: country?.countryName || "",
+      countryPhoneCode: country?.phoneCode || "",
     };
     updateField("familyMembers", members);
   };

@@ -36,7 +36,7 @@ import type {
   YearRef,
 } from "@/lib/projectStats";
 
-const API_BASE = process.env.PROJECTS_API_BASE ?? "https://rizones45678.org/API";
+const API_BASE = process.env.PROJECTS_API_BASE ?? process.env.NEXT_PUBLIC_API_ORIGIN ?? "";
 const STATS = `${API_BASE}/api/public/project-stats`;
 
 /** Swallows a rejection from a fire-and-forget call. Nothing awaits these, and an

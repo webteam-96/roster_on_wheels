@@ -1,5 +1,6 @@
 "use client";
 
+import { useFeature } from "@/contexts/BrandContext";
 import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { globalMemberSearch, globalMemberSoftDelete, globalMemberUpdateContact } from "@/services/api";
@@ -17,6 +18,7 @@ import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { formatBirthAnniversary } from "@/lib/dateUtils";
 
+import { appLocale, currencySymbol } from "@/lib/appFormat";
 // Field keys (case-insensitive) that should display DD-MM only — project rule.
 const BIRTH_ANNIV_KEYS = new Set(["birthdate", "anniversarydate"]);
 
@@ -31,7 +33,7 @@ function InfoRow({ label, value, fieldKey }: { label: string; value: any; fieldK
     value = formatBirthAnniversary(value);
   } else if (typeof value === "string" && /^\d{4}-\d{2}-\d{2}T/.test(value)) {
     const d = new Date(value);
-    if (!isNaN(d.getTime()) && d.getFullYear() > 1970) value = d.toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" });
+    if (!isNaN(d.getTime()) && d.getFullYear() > 1970) value = d.toLocaleDateString(appLocale(), { day: "2-digit", month: "short", year: "numeric" });
   }
   return (
     <div className="flex gap-2 py-1.5 border-b border-dashed border-gray-100 last:border-0">
@@ -86,6 +88,8 @@ const skipFields = new Set(["isdeleted", "deleted_by", "deleted_date", "created_
 
 export default function GlobalMemberSearchPage() {
   const { isSuperAdmin } = useAuth();
+  const showBloodGroup = useFeature("member.bloodGroup");
+  const showFamily = useFeature("member.familyDetails");
   const [search, setSearch] = useState("");
   const [results, setResults] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
@@ -344,6 +348,8 @@ export default function GlobalMemberSearchPage() {
                 <div className="bg-muted/30 rounded-lg p-3">
                   {Object.entries(m).map(([key, val]) => {
                     if (skipFields.has(key)) return null;
+                    if (!showBloodGroup && key === "BloodGroup") return null;
+                    if (!showFamily && key === "IsFamilyDetailsVisible") return null;
                     const label = fieldLabels[key] || key.replace(/_/g, " ").replace(/([a-z])([A-Z])/g, "$1 $2");
                     return <InfoRow key={key} label={label} value={val} fieldKey={key} />;
                   })}
@@ -367,8 +373,8 @@ export default function GlobalMemberSearchPage() {
                           District {c.districtNumber} &rarr; {c.clubName}
                           {c.city && ` (${c.city}${c.state ? `, ${c.state}` : ""})`}
                         </div>
-                        {c.joinedDate && <div className="text-xs text-muted-foreground">Joined: {new Date(c.joinedDate).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" })}</div>}
-                        {c.terminationDate && <div className="text-xs text-red-500">Terminated: {new Date(c.terminationDate).toLocaleDateString("en-IN")} — {c.terminationReason}</div>}
+                        {c.joinedDate && <div className="text-xs text-muted-foreground">Joined: {new Date(c.joinedDate).toLocaleDateString(appLocale(), { day: "2-digit", month: "short", year: "numeric" })}</div>}
+                        {c.terminationDate && <div className="text-xs text-red-500">Terminated: {new Date(c.terminationDate).toLocaleDateString(appLocale())} — {c.terminationReason}</div>}
                       </div>
                     ))}
                   </div>
@@ -505,9 +511,9 @@ export default function GlobalMemberSearchPage() {
                     {r.events.map((e: any, i: number) => (
                       <div key={i} className="text-sm flex items-center gap-2 flex-wrap">
                         <span className="font-medium">{e.eventTitle || "Event"}</span>
-                        {e.amount != null && <span className="text-xs text-muted-foreground">₹{Number(e.amount).toLocaleString("en-IN")}</span>}
+                        {e.amount != null && <span className="text-xs text-muted-foreground">{currencySymbol()}{Number(e.amount).toLocaleString(appLocale())}</span>}
                         <Badge className={e.isPaid ? "bg-green-500 text-xs text-white" : "bg-amber-500 text-xs text-white"}>{e.isPaid ? "Paid" : "Unpaid"}</Badge>
-                        {e.paymentDate && <span className="text-xs text-muted-foreground">{new Date(e.paymentDate).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" })}</span>}
+                        {e.paymentDate && <span className="text-xs text-muted-foreground">{new Date(e.paymentDate).toLocaleDateString(appLocale(), { day: "2-digit", month: "short", year: "numeric" })}</span>}
                         {e.clubName && <span className="text-xs text-muted-foreground">— {e.clubName}</span>}
                       </div>
                     ))}
@@ -522,7 +528,7 @@ export default function GlobalMemberSearchPage() {
                       <div key={i} className="text-sm flex items-center gap-2 flex-wrap">
                         {d.rotaryYear && <Badge variant="secondary" className="text-xs">{d.rotaryYear}</Badge>}
                         <span className="font-medium">{d.purpose}</span>
-                        {d.amount != null && <span className="text-xs text-muted-foreground">₹{Number(d.amount).toLocaleString("en-IN")}</span>}
+                        {d.amount != null && <span className="text-xs text-muted-foreground">{currencySymbol()}{Number(d.amount).toLocaleString(appLocale())}</span>}
                         <Badge className={d.isPaid ? "bg-green-500 text-xs text-white" : "bg-amber-500 text-xs text-white"}>{d.isPaid ? "Paid" : (d.paymentStatus || "Pending")}</Badge>
                         <span className="text-xs text-muted-foreground">— {d.clubName}</span>
                       </div>
@@ -540,7 +546,7 @@ export default function GlobalMemberSearchPage() {
                         District {ds.districtNumber}
                         {ds.groupType && <span className="text-xs text-muted-foreground">({ds.groupType})</span>}
                         {ds.totalCount > 0 && <span className="text-xs text-muted-foreground">{ds.completedCount}/{ds.totalCount} fields</span>}
-                        {ds.submittedAt && <span className="text-xs text-muted-foreground">{new Date(ds.submittedAt).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" })}</span>}
+                        {ds.submittedAt && <span className="text-xs text-muted-foreground">{new Date(ds.submittedAt).toLocaleDateString(appLocale(), { day: "2-digit", month: "short", year: "numeric" })}</span>}
                       </div>
                     ))}
                   </div>

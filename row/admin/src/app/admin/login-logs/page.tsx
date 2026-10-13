@@ -29,6 +29,7 @@ import Pagination from "@/components/Pagination";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { Search, ArrowLeft, CheckCircle, XCircle, Monitor, FileSearch } from "lucide-react";
 
+import { appLocale } from "@/lib/appFormat";
 export default function LoginLogsPage() {
   const { isSuperAdmin } = useAuth();
   const router = useRouter();
@@ -209,7 +210,7 @@ export default function LoginLogsPage() {
                         </TableCell>
                         <TableCell className="text-sm">{log.emailOrMobile || "—"}</TableCell>
                         <TableCell className="text-sm whitespace-nowrap">
-                          {new Date(log.loginTime).toLocaleString("en-IN", {
+                          {new Date(log.loginTime).toLocaleString(appLocale(), {
                             day: "2-digit",
                             month: "short",
                             year: "numeric",

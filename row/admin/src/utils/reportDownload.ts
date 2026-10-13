@@ -4,6 +4,7 @@ import autoTable from "jspdf-autotable";
 import { Document, Packer, Paragraph, Table as DocxTable, TableRow as DocxTableRow, TableCell as DocxTableCell, TextRun, HeadingLevel, WidthType, BorderStyle, AlignmentType } from "docx";
 import { saveAs } from "file-saver";
 
+import { appLocale, currencySymbol } from "@/lib/appFormat";
 const PROJECT_LABELS: Record<string, string> = {
   community_service: "Community Service",
   vocational_service: "Vocational Service",
@@ -23,7 +24,7 @@ const MEETING_TYPE_LABELS: Record<string, string> = {
 function formatDate(dateStr: string | null): string {
   if (!dateStr) return "-";
   const d = new Date(dateStr);
-  return d.toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" });
+  return d.toLocaleDateString(appLocale(), { day: "2-digit", month: "short", year: "numeric" });
 }
 
 function formatDateTime(dateStr: string | null): string {
@@ -343,7 +344,7 @@ export function generatePDFBase64(report: MonthlyReportPreview): string {
       const base = [i + 1, p.title, formatDate(p.projectDate)];
       if (isCommunityService) base.push(p.areaOfFocusName || "-", p.categoryName || "-", p.subCategoryName || "-");
       else base.push(p.categoryName || "-", p.subCategoryName || "-");
-      base.push(p.projectCost != null ? `₹${p.projectCost}` : "-", p.directBeneficiaries ?? "-", p.manHours ?? "-", p.rotariansInvolved ?? "-", p.rotaractorsInvolved ?? "-");
+      base.push(p.projectCost != null ? `${currencySymbol()}${p.projectCost}` : "-", p.directBeneficiaries ?? "-", p.manHours ?? "-", p.rotariansInvolved ?? "-", p.rotaractorsInvolved ?? "-");
       return base;
     });
     autoTable(doc, { startY: y, head, body, theme: "grid", styles: { fontSize: 7, cellPadding: 1.5 } });

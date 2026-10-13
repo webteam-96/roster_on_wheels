@@ -651,7 +651,7 @@ public class EmailService : IEmailService
             <p>As the <strong>{designation}</strong> of <strong>{clubName}</strong>, {intro}</p>
             <div style='background-color: #f7fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px; margin: 16px 0;'>
                 {expiryLine}
-                <p style='margin:0; font-size: 18px; color:#1a365d;'><strong>Amount Payable: ₹{totalAmount:N2}</strong> <span style='font-size:13px;color:#718096;'>(incl. GST)</span></p>
+                <p style='margin:0; font-size: 18px; color:#1a365d;'><strong>Amount Payable: {Brand.Money(totalAmount)}</strong> <span style='font-size:13px;color:#718096;'>(incl. tax)</span></p>
             </div>
             <div style='text-align: center; margin: 24px 0;'>
                 <a href='{payLink}' style='background-color: #3182ce; color: white; padding: 14px 28px; text-decoration: none; border-radius: 6px; font-weight: bold; font-size:16px;'>{(renewal ? "Renew Now" : "Pay & Get Website")}</a>

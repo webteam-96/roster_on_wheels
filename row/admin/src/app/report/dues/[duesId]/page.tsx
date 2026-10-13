@@ -5,6 +5,7 @@ import { useParams } from "next/navigation";
 import { getPublicMembershipDuesReport, exportPublicMembershipDuesReport } from "@/services/api";
 import { fileTimestamp } from "@/lib/dateUtils";
 
+import { appLocale } from "@/lib/appFormat";
 interface ReportMember {
   memberName: string | null;
   categoryType: string | null;
@@ -40,7 +41,7 @@ interface ReportData {
 }
 
 function fmtAmt(val: number): string {
-  return val.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  return val.toLocaleString(appLocale(), { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
 // Renders the 5 columns (Amt, Settled, Mode, Date, Status) of a fee-type
@@ -164,7 +165,7 @@ export default function PublicDuesReportPage() {
       <div className="bg-[#17458F] text-white">
         <div className="max-w-7xl mx-auto px-4 py-6">
           <div className="flex items-center gap-4 mb-4">
-            <img src="/images/rotary-zone-log-white.png" alt="Rotary" className="h-16 object-contain" />
+            <img src="/images/rotary-white-live.png" alt="Rotary" className="h-16 object-contain" />
           </div>
           <h1 className="text-2xl font-bold">{data.purpose}</h1>
           {data.rotaryYear && (

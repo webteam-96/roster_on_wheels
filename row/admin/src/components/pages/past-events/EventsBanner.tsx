@@ -2,8 +2,9 @@ import { PageBanner } from "@/components/site/PageBanner";
 import { EVENTS } from "./data";
 
 export function EventsBanner() {
-  const first = EVENTS[EVENTS.length - 1].badge.year;
-  const last = EVENTS[0].badge.year;
+  // The archive can be empty (an instance with no past events yet).
+  const first = EVENTS[EVENTS.length - 1]?.badge.year ?? "";
+  const last = EVENTS[0]?.badge.year ?? "";
   return (
     <PageBanner
       eyebrow="Zonal Archive"

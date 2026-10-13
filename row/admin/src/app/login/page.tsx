@@ -40,7 +40,7 @@ export default function LoginPage() {
 
   const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
-  const [countryCode, setCountryCode] = useState("+91");
+  const [countryCode, setCountryCode] = useState("");
   const [countries, setCountries] = useState<Country[]>([]);
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -60,10 +60,16 @@ export default function LoginPage() {
     if (remembered) {
       const data = JSON.parse(remembered);
       setIdentifier(data.identifier || "");
-      setCountryCode(data.countryCode || "+91");
+      setCountryCode(data.countryCode || "");
       setRememberMe(true);
     }
   }, []);
+
+  // ROW: the code starts on the brand's default country (none when Brand:Locale:DefaultCountryId is 0).
+  useEffect(() => {
+    const c = countries.find((x) => x.id === brand.locale.defaultCountryId);
+    if (c?.phoneCode) setCountryCode((cur) => cur || c.phoneCode);
+  }, [countries, brand.locale.defaultCountryId]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -170,7 +176,7 @@ export default function LoginPage() {
                             {code} - {names}
                           </SelectItem>
                         ))
-                      : <SelectItem value="+91">+91 - India</SelectItem>
+                      : null
                     }
                   </SelectContent>
                 </Select>

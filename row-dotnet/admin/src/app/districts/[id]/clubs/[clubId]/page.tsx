@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { useFeature } from "@/contexts/BrandContext";
 import { useParams } from "next/navigation";
 import {
   getClubInfoForDistrict, getClubMembers, getClubMemberDetail, getBoardOfDirectors, getBoardYearsByClub,
@@ -25,17 +26,19 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 import ProjectDetailModal from "@/components/ProjectDetailModal";
 import { formatMoney } from "@/lib/currency";
 
+import { appLocale } from "@/lib/appFormat";
 function formatTime(t: string | null) {
   if (!t) return "";
   return t.substring(0, 5);
 }
 function formatDate(d: string | null) {
   if (!d) return "";
-  try { return new Date(d).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" }); } catch { return d; }
+  try { return new Date(d).toLocaleDateString(appLocale(), { day: "2-digit", month: "short", year: "numeric" }); } catch { return d; }
 }
 
 export default function ClubDetailViewPage() {
   const params = useParams();
+  const showBloodGroup = useFeature("member.bloodGroup");
   const districtId = Number(params.id);
   const clubId = Number(params.clubId);
 
@@ -350,7 +353,7 @@ export default function ClubDetailViewPage() {
                               {memberDetails[m.id].rotaryId && (
                                 <div className="flex items-center gap-2"><Award className="h-3.5 w-3.5 text-muted-foreground" /><span>Rotary ID: {memberDetails[m.id].rotaryId}</span></div>
                               )}
-                              {memberDetails[m.id].bloodGroup && (
+                              {showBloodGroup && memberDetails[m.id].bloodGroup && (
                                 <div className="flex items-center gap-2"><span className="text-muted-foreground">Blood:</span> {memberDetails[m.id].bloodGroup}</div>
                               )}
                               {memberDetails[m.id].businessPhone && (

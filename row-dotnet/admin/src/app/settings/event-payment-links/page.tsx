@@ -21,6 +21,7 @@ import { useRouter } from "next/navigation";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import SearchBox from "@/components/SearchBox";
 
+import { appLocale } from "@/lib/appFormat";
 interface PaymentLink {
   id: number;
   formType: number;
@@ -389,14 +390,14 @@ export default function EventPaymentLinksPage() {
                         <TableCell className="text-xs">{s.memberName || s.member_name || "-"}</TableCell>
                         <TableCell className="font-mono text-xs">{s.orderId || s.order_id || "-"}</TableCell>
                         <TableCell>{s.vendorName || s.vendor_name || s.vendorId || s.vendor_id || "-"}</TableCell>
-                        <TableCell className="text-right">{s.amount != null ? `\u20B9${Number(s.amount).toLocaleString("en-IN", { minimumFractionDigits: 2 })}` : "-"}</TableCell>
+                        <TableCell className="text-right">{s.amount != null ? `\u20B9${Number(s.amount).toLocaleString(appLocale(), { minimumFractionDigits: 2 })}` : "-"}</TableCell>
                         <TableCell>
                           <span className={`text-xs font-medium px-2 py-0.5 rounded ${s.status === "SETTLED" || s.status === "SUCCESS" ? "bg-green-100 text-green-700" : s.status === "PENDING" ? "bg-yellow-100 text-yellow-700" : "bg-gray-100 text-gray-700"}`}>
                             {s.status || "-"}
                           </span>
                         </TableCell>
                         <TableCell className="font-mono text-xs">{s.utr || s.utrNumber || "-"}</TableCell>
-                        <TableCell className="text-xs">{s.settlementTime || s.settlement_time ? new Date(s.settlementTime || s.settlement_time).toLocaleString("en-IN") : "-"}</TableCell>
+                        <TableCell className="text-xs">{s.settlementTime || s.settlement_time ? new Date(s.settlementTime || s.settlement_time).toLocaleString(appLocale()) : "-"}</TableCell>
                         <TableCell className="text-xs">{s.paidSource || s.paid_source || "-"}</TableCell>
                         <TableCell className="text-center">
                           <span className={`text-xs font-medium px-2 py-0.5 rounded ${s.isWebhookReceived ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-700"}`}>

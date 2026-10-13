@@ -27,7 +27,7 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  // suppressHydrationWarning on <html>: the "rizones-add-to-org-ext" browser extension injects
+  // suppressHydrationWarning on <html>: the "ROW-add-to-org-ext" browser extension injects
   // data-add-to-org-ext on <html> before hydration (see lib/addToOrg.ts). This silences the
   // harmless "Extra attributes from the server" warning; scope is the <html> element only.
   return (

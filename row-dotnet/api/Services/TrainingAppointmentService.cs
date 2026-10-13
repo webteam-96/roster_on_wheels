@@ -6,7 +6,7 @@ using RotaryApi.DTOs;
 namespace RotaryApi.Services;
 
 // Books/reschedules website-training appointments. Slots are 30 min, Mon–Fri, in configured
-// windows (default 11:30–12:30 + 14:30–17:30 IST), max 3/day GLOBALLY. Each booking creates a
+// windows (default 11:30–12:30 + 14:30–17:30 in the brand's time zone), max 3/day GLOBALLY. Each booking creates a
 // Zoom meeting; reschedule updates the same meeting's time. Booking is serialized per-day with a
 // SELECT … FOR UPDATE so the daily cap and per-slot uniqueness hold under concurrency.
 public class TrainingAppointmentService : ITrainingAppointmentService
@@ -42,14 +42,9 @@ public class TrainingAppointmentService : ITrainingAppointmentService
     }
     private string[] TeamEmails() => _config.GetSection("Training:TeamEmails").Get<string[]>() ?? Array.Empty<string>();
 
-    private static readonly TimeZoneInfo Ist = ResolveIst();
-    private static TimeZoneInfo ResolveIst()
-    {
-        foreach (var id in new[] { "India Standard Time", "Asia/Kolkata" })
-            try { return TimeZoneInfo.FindSystemTimeZoneById(id); } catch { /* try next */ }
-        return TimeZoneInfo.CreateCustomTimeZone("IST", TimeSpan.FromHours(5.5), "IST", "IST");
-    }
-    private static DateTime IstNow() => TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, Ist);
+    private static readonly TimeZoneInfo Zone = BrandZone();
+    private static TimeZoneInfo BrandZone() => Brand.TimeZone;
+    private static DateTime LocalNow() => TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, Zone);
 
     // ── active subscription gate ──────────────────────────────────────────────
     public async Task<bool> HasActiveWebsiteAsync(int clubId)
@@ -70,7 +65,7 @@ public class TrainingAppointmentService : ITrainingAppointmentService
     // carries only the open times, so anything already reading this response is unaffected.
     public async Task<AvailabilityResponseDto> GetAvailabilityAsync()
     {
-        var today = IstNow().Date;
+        var today = LocalNow().Date;
         var start = today.AddDays(MinNoticeDays());
         var end = today.AddDays(HorizonDays());
         int maxPerDay = MaxPerDay();
@@ -213,7 +208,7 @@ public class TrainingAppointmentService : ITrainingAppointmentService
             return (false, default, "Invalid date/time.");
         slot = new DateTime(slot.Year, slot.Month, slot.Day, slot.Hour, slot.Minute, 0);
 
-        var today = IstNow().Date;
+        var today = LocalNow().Date;
         if (slot.Date < today.AddDays(MinNoticeDays()) || slot.Date > today.AddDays(HorizonDays()))
             return (false, slot, "That date is outside the booking window.");
         return (true, slot, null);
@@ -423,7 +418,7 @@ public class TrainingAppointmentService : ITrainingAppointmentService
             {
                 var body = $@"<p>Hi {bookerName},</p>
 <p>Your website training session for <strong>{clubName}</strong> has been {verb} for:</p>
-<p style=""font-size:16px""><strong>{when} (IST)</strong></p>
+<p style=""font-size:16px""><strong>{when} ({Brand.TimeZoneLabel})</strong></p>
 {linkHtml}
 <p>Please join a few minutes early. If you need to change the time, use the Reschedule option in your dashboard.</p>";
                 await SendSafe(bookerEmail, $"Website Training {(isReschedule ? "Rescheduled" : "Confirmed")} — {when}", body,
@@ -433,7 +428,7 @@ public class TrainingAppointmentService : ITrainingAppointmentService
             // 2. FYI to all active club admins (skips the booker via the de-dupe set).
             var adminBody = $@"<p>A website training session for <strong>{clubName}</strong> has been {verb}:</p>
 <ul>
-  <li><strong>When:</strong> {when} (IST)</li>
+  <li><strong>When:</strong> {when} ({Brand.TimeZoneLabel})</li>
   <li><strong>Booked by:</strong> {bookerName}</li>
 </ul>
 {linkHtml}
@@ -445,7 +440,7 @@ public class TrainingAppointmentService : ITrainingAppointmentService
             var teamBody = $@"<p>A website training appointment was {verb}:</p>
 <ul>
   <li><strong>Club:</strong> {clubName}</li>
-  <li><strong>When:</strong> {when} (IST)</li>
+  <li><strong>When:</strong> {when} ({Brand.TimeZoneLabel})</li>
   <li><strong>Booked by:</strong> {bookerName}</li>
 </ul>
 {linkHtml}";
@@ -512,7 +507,7 @@ public class TrainingAppointmentService : ITrainingAppointmentService
         }
 
         // Overrides from today forward - past ones are history and only clutter the screen.
-        var today = IstNow().Date;
+        var today = LocalNow().Date;
         var rows = (await conn.QueryAsync<(int pk, DateTime dt, bool allDay, TimeSpan? st, TimeSpan? en, string? reason)>(
             @"SELECT pk_id, OverrideDate, IsUnavailableAllDay, StartTime, EndTime, Reason
               FROM training_date_overrides
@@ -595,7 +590,7 @@ public class TrainingAppointmentService : ITrainingAppointmentService
         {
             if (!DateTime.TryParse(one, CultureInfo.InvariantCulture, DateTimeStyles.None, out var d))
                 throw new InvalidOperationException($"\"{one}\" is not a valid date.");
-            if (d.Date < IstNow().Date) throw new InvalidOperationException($"{d:dd MMM yyyy} has already passed.");
+            if (d.Date < LocalNow().Date) throw new InvalidOperationException($"{d:dd MMM yyyy} has already passed.");
             if (!dates.Contains(d.Date)) dates.Add(d.Date);
         }
         if (dates.Count == 0) throw new InvalidOperationException("Pick at least one date.");

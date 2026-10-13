@@ -83,6 +83,9 @@ import {
 import { PphCamp, PphAttendee, PphAttendeeDetail, PphMedicalReading, CreatePphReadingPayload, UpdatePphAttendeePayload, UpdatePphReadingPayload, PphMobileHistory, PphAttendeeReportRow } from "@/types/pphCamp";
 import { TrfFund, TrfContribution } from "@/types/trfContribution";
 import { Weblink, WeblinkTree } from "@/types/weblink";
+import { Brand, BRAND_ENDPOINT } from "@/lib/brand";
+import { AccountOwnerType, ConnectAccountRequest, GatewayCoverage, PaymentAccount } from "@/types/payments";
+import { ConsentStatus, PrivacyRequest } from "@/types/privacy";
 import { SubGroup, SubGroupDetail, SubGroupMember } from "@/types/subGroup";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
@@ -178,6 +181,19 @@ publicApi.interceptors.response.use(
     return Promise.reject(error);
   }
 );
+
+// Instance brand (name, logos, contacts, locale defaults, feature flags). Anonymous;
+// the server caches it for an hour. Callers fall back to DEFAULT_BRAND on any error.
+export async function getPublicBrand(): Promise<Partial<Brand>> {
+  const res = await publicApi.get(BRAND_ENDPOINT);
+  return res.data;
+}
+
+// Store the signed-in member's interface language (ISO code) so it follows them
+// to other browsers and the app (master plan WS2-03).
+export async function updateMyLanguage(language: string): Promise<void> {
+  await api.put("/api/members/me/language", { language });
+}
 
 export async function getCountries(): Promise<Country[]> {
   const response = await api.get("/api/countries");
@@ -710,6 +726,8 @@ import type {
   GoalThreadListDto,
   GoalMessageRowDto,
   GoalMessageOwnerDto,
+  GoalDistrictMessagesDto,
+  GoalDistrictConversationDto,
   GoalDesignationDto,
   CreateGoalDesignationRequest,
   GoalFoundationImportResultDto,
@@ -773,6 +791,23 @@ export async function importGoalFoundationClub(
   fd.append("YearId", String(yearId));
   fd.append("Month", String(month));
   const r = await api.post("/api/goal-setting/foundation-import/club", fd, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
+  return r.data;
+}
+
+// District Membership import (SuperAdmin, 2026-27 on): Rotary.org "Comparison to 1 July" (clubs +
+// members) and "Members Admitted by Gender" (women). The month is read from the members file's date.
+export async function importGoalDistrictMembership(
+  yearId: number, membersFile: File, genderFile: File, rotaractFile?: File | null, interactFile?: File | null,
+): Promise<GoalFoundationImportResultDto> {
+  const fd = new FormData();
+  fd.append("MembersFile", membersFile);
+  fd.append("GenderFile", genderFile);
+  if (rotaractFile) fd.append("RotaractFile", rotaractFile);   // optional: Youth Service Rotaract Clubs Achieved
+  if (interactFile) fd.append("InteractFile", interactFile);   // optional: Interact_Statistics -> Interact Clubs Achieved
+  fd.append("YearId", String(yearId));
+  const r = await api.post("/api/goal-setting/membership-import", fd, {
     headers: { "Content-Type": "multipart/form-data" },
   });
   return r.data;
@@ -1195,7 +1230,7 @@ export async function sendGoalRoleAssignmentEmails(zoneId?: number | null): Prom
   });
   return r.data;
 }
-// ── Goal Setting "Observe as" (SuperAdmin observer only, flagged SuperAdmin) ───────────────────
+// ── Goal Setting "Observe as" (flagged SuperAdmin observers only) ───────────────────
 // Module-level override: when the observer picks an RI Director / ZC on /goal-oversight, every
 // goal-setting oversight+messaging call carries ?asMemberId so the backend serves THAT person's
 // view. The backend ignores asMemberId unless the caller is the gated observer, so this is inert
@@ -1324,8 +1359,9 @@ export async function getGoalMessagesHasUnread(zoneId: number, yearId: number): 
 export async function markGoalMessagesSeen(zoneId: number, yearId: number): Promise<void> {
   await api.post(`/api/goal-setting/messages/mark-seen`, null, { params: withViewAs({ zoneId, yearId }) });
 }
-export async function getGoalOwnerThreadMessages(categoryId: number, yearId: number, ownerMemberId: number): Promise<GoalCommentDto[]> {
-  const r = await api.get(`/api/goal-setting/owner-thread/${categoryId}/${ownerMemberId}`, { params: withViewAs({ yearId }) });
+export async function getGoalOwnerThreadMessages(categoryId: number, yearId: number, ownerMemberId: number, zoneId?: number | null): Promise<GoalCommentDto[]> {
+  // zoneId: the RI Director's zone, so a former seat-holder's box opens (2026-10-07).
+  const r = await api.get(`/api/goal-setting/owner-thread/${categoryId}/${ownerMemberId}`, { params: withViewAs({ yearId, ...(zoneId ? { zoneId } : {}) }) });
   return r.data;
 }
 export async function postGoalOwnerThreadMessage(categoryId: number, yearId: number, ownerMemberId: number, commentText: string, districtId = 0): Promise<GoalCommentDto> {
@@ -1345,6 +1381,21 @@ export async function getGoalMessagesList(zoneId: number, yearId: number, catego
   return r.data;
 }
 // Roster of ZC/DA in the zone — shown when a filter has no messages ("each ZC/DA · No message yet").
+// District Admin / District Governor messages (2026-10-09): the district writes per category; the
+// District Assistant, Zone Co-ordinator, RI Director and SuperAdmin read. GET marks it read for readers.
+export async function getDistrictGoalMessages(categoryId: number, districtId: number, yearId: number): Promise<GoalDistrictMessagesDto> {
+  const r = await api.get(`/api/goal-setting/district-messages/${categoryId}/${districtId}`, { params: withViewAs({ yearId }) });
+  return r.data;
+}
+export async function postDistrictGoalMessage(categoryId: number, districtId: number, yearId: number, commentText: string): Promise<GoalCommentDto> {
+  const r = await api.post(`/api/goal-setting/district-messages/${categoryId}/${districtId}`, { commentText }, { params: { yearId } });
+  return r.data;
+}
+export async function getDistrictGoalMessageInbox(zoneId: number, yearId: number, categoryId = 0, districtId = 0): Promise<GoalDistrictConversationDto[]> {
+  const r = await api.get(`/api/goal-setting/district-messages/inbox`, { params: withViewAs({ zoneId, yearId, categoryId, districtId }) });
+  return r.data;
+}
+
 export async function getGoalMessageRoster(zoneId: number, yearId: number, categoryId = 0, districtId = 0): Promise<GoalMessageOwnerDto[]> {
   const params = withViewAs({ zoneId, yearId, categoryId, districtId });
   const r = await api.get(`/api/goal-setting/messages/roster`, { params });
@@ -7533,6 +7584,7 @@ export interface GlobalSearchRow {
   isSyncedFromRotaryOrg?: number | null;   // 1 = yes, 0 = no
   clubWebsiteSubdomain?: string | null;    // subdomain prefix; full URL = `${subdomain}.portal.example.org`
   clubWebsiteStatus?: string | null;       // 'active' | 'expired' | 'none' — drives the Website pill
+  clubType?: string | null;                // 'Rotary Club' | 'Rotaract Club'
   memberCount?: number | null;            // clubs: club members; zones + districts: total active members
   clubRotaryId?: string | null;            // club rows only; districts/zones leave this null
   // Zone AND district rollups (clubs leave these null)
@@ -7776,4 +7828,57 @@ export async function getClubDuesContent(id: number) {
 export async function updateClubDuesContent(id: number, data: FormData) {
   const res = await api.patch(`/api/club-dues/${id}/content`, data, { headers: { "Content-Type": "multipart/form-data" } });
   return res.data;
+}
+
+// ─── Connected payment accounts (ROW: payments.connect) ──────────────────────
+export async function getPaymentAccounts(ownerType: AccountOwnerType, ownerId: number): Promise<PaymentAccount[]> {
+  const res = await api.get("/api/payments/accounts", { params: { ownerType, ownerId } });
+  return res.data;
+}
+export async function getGatewayCoverage(ownerType: AccountOwnerType, ownerId: number): Promise<GatewayCoverage> {
+  const res = await api.get("/api/payments/coverage", { params: { ownerType, ownerId } });
+  return res.data;
+}
+// The API verifies the keys with a harmless call (Stripe: retrieve account; PayPal: token) before storing.
+export async function connectPaymentAccount(body: ConnectAccountRequest): Promise<PaymentAccount> {
+  const res = await api.post("/api/payments/accounts", body);
+  return res.data;
+}
+export async function reverifyPaymentAccount(id: number): Promise<PaymentAccount> {
+  const res = await api.post(`/api/payments/accounts/${id}/verify`);
+  return res.data;
+}
+export async function setPaymentAccountActive(id: number, isActive: boolean): Promise<PaymentAccount> {
+  const res = await api.put(`/api/payments/accounts/${id}/active`, { isActive });
+  return res.data;
+}
+
+// ─── Privacy: member export, erasure, consent (ROW: privacy.enabled) ─────────
+export async function getPrivacyRequests(districtId: number): Promise<PrivacyRequest[]> {
+  const res = await api.get("/api/privacy/requests", { params: { districtId } });
+  return res.data;
+}
+export async function requestMemberExport(memberId: number): Promise<PrivacyRequest> {
+  const res = await api.post(`/api/privacy/members/${memberId}/export`);
+  return res.data;
+}
+export async function requestMemberErasure(memberId: number, reason: string): Promise<PrivacyRequest> {
+  const res = await api.post(`/api/privacy/members/${memberId}/erase`, { reason });
+  return res.data;
+}
+// Erasure by a District Admin needs a second District Admin's approval.
+export async function approvePrivacyRequest(requestId: number): Promise<PrivacyRequest> {
+  const res = await api.post(`/api/privacy/requests/${requestId}/approve`);
+  return res.data;
+}
+export async function rejectPrivacyRequest(requestId: number): Promise<PrivacyRequest> {
+  const res = await api.post(`/api/privacy/requests/${requestId}/reject`);
+  return res.data;
+}
+export async function getConsentStatus(): Promise<ConsentStatus> {
+  const res = await api.get("/api/privacy/consent");
+  return res.data;
+}
+export async function acceptConsent(policyVersion: string, language: string): Promise<void> {
+  await api.post("/api/privacy/consent", { policyVersion, language });
 }

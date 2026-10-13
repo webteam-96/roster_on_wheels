@@ -1,6 +1,7 @@
 "use client";
 
 import { MemberListItem } from "@/types/member";
+import { useFeature } from "@/contexts/BrandContext";
 import { getPhotoUrl } from "@/services/api";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -41,7 +42,7 @@ export default function MemberCard({ member, onDelete, isSuperAdmin, isAdmin: is
   const photoUrl = getPhotoUrl(member.profilePhotoPath);
   const roles = memberRoles?.[member.id] || [];
   const isAdmin = roles.includes("Admin");
-  const isMemberSuperAdmin = roles.includes("SuperAdmin");
+  const showBloodGroup = useFeature("member.bloodGroup");
 
   return (
     <Card className="overflow-hidden hover:shadow-xl hover:-translate-y-1 transition-all duration-200 border-primary/20 cursor-pointer group">
@@ -108,7 +109,7 @@ export default function MemberCard({ member, onDelete, isSuperAdmin, isAdmin: is
                       Delete
                     </DropdownMenuItem>
                   )}
-                  {(isSuperAdmin || isLoggedInAdmin) && !isMemberSuperAdmin && (
+                  {(isSuperAdmin || isLoggedInAdmin) && (   /* SuperAdmin members can be made Admin too (2026-10-09) */
                     <>
                       <DropdownMenuSeparator />
                       {isAdmin ? (
@@ -160,7 +161,7 @@ export default function MemberCard({ member, onDelete, isSuperAdmin, isAdmin: is
               </div>
             )}
             <div className="flex gap-2 pt-1">
-              {member.bloodGroup && (
+              {showBloodGroup && member.bloodGroup && (
                 <Badge variant="outline" className="text-xs">
                   {member.bloodGroup}
                 </Badge>

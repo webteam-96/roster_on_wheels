@@ -85,7 +85,7 @@ export default function MobileLoginCheckPage() {
               <Input
                 value={mobile}
                 onChange={(e) => setMobile(e.target.value)}
-                placeholder="e.g. 9821130855"
+                placeholder="e.g. 7700900123"
                 onKeyDown={(e) => {
                   if (e.key === "Enter") onCheck();
                 }}

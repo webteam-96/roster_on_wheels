@@ -11,6 +11,7 @@
  */
 
 import { useEffect, useMemo, useState } from "react";
+import { useFeature } from "@/contexts/BrandContext";
 import ClubGoalComingSoon from "@/components/ClubGoalComingSoon";
 import { CLUB_GOAL_SETTING_COMING_SOON } from "@/lib/clubGoalSetting";
 import { useParams, useSearchParams } from "next/navigation";
@@ -177,6 +178,8 @@ export function ClubReportV2PageImpl({ clubId: propClubId, embedded = false, yea
   const params = useParams();
   const searchParams = useSearchParams();
   const clubId = propClubId ?? Number(params.id);
+  const showBloodGroup = useFeature("member.bloodGroup");
+  const showFamily = useFeature("member.familyDetails");
 
   // ── ?returnTo= and ?yearId= ────────────────────────────────────────────
   const urlReturnTo = searchParams.get("returnTo") || "";
@@ -596,7 +599,7 @@ export function ClubReportV2PageImpl({ clubId: propClubId, embedded = false, yea
                       { key: "youthFlag",       label: "Youth Flag",        width: 10 },
                       { key: "dob",             label: "DOB",               width: 14 },
                       { key: "doa",             label: "DOA",               width: 14 },
-                      { key: "bloodGroup",      label: "Blood Group",       width: 12 },
+                      ...(showBloodGroup ? [{ key: "bloodGroup",      label: "Blood Group",       width: 12 }] : []),
                       { key: "deviceName",      label: "Device Name",       width: 14 },
                       { key: "downloaded",      label: "Downloaded",        width: 12 },
                       { key: "rotaryId",        label: "Rotary Id",         width: 14 },
@@ -619,6 +622,7 @@ export function ClubReportV2PageImpl({ clubId: propClubId, embedded = false, yea
                     their first family row) and leave them BLANK on the member's remaining
                     family rows, so the member block reads once but the sheet stays a single
                     filterable table. DOB/DOA/Family dates = day + short month only. */}
+                {showFamily && (
                 <SectionRow
                   title="Family details"
                   icon={Users}
@@ -663,15 +667,17 @@ export function ClubReportV2PageImpl({ clubId: propClubId, embedded = false, yea
                       { key: "familyEmail",       label: "Family EmailId",       width: 30 },
                       { key: "familyDob",         label: "Family DOB",           width: 14 },
                       { key: "familyAnniversary", label: "Family Anniversary",   width: 16 },
-                      { key: "familyBloodGroup",  label: "Family Blood Group",   width: 14 },
+                      ...(showBloodGroup ? [{ key: "familyBloodGroup",  label: "Family Blood Group",   width: 14 }] : []),
                     ]);
                   }}
                 />
+                )}
 
                 {/* 4b. Blood Group — emergency call-list: every member AND their family
                     members as rows, each with their own blood group + contact. Member row
                     first, then their family beneath. Filter by Blood Group in Excel to find
                     donors fast. Club report omits District Number + Club Name. */}
+                {showBloodGroup && (
                 <SectionRow
                   title="Blood Group"
                   icon={Users}
@@ -687,6 +693,7 @@ export function ClubReportV2PageImpl({ clubId: propClubId, embedded = false, yea
                     ])
                   }
                 />
+                )}
 
                 {/* 5–7. Data Collection reports — render ONLY when this club's
                     district has an active district_directory_config for the

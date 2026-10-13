@@ -4,13 +4,13 @@ public class UpdateMemberDto
 {
     public string MemberName { get; set; } = string.Empty;
     public string? ProfilePhotoPath { get; set; }
-    public int FkPrimaryCountryId { get; set; } = 1;
+    public int FkPrimaryCountryId { get; set; }   // ROW: no default country (the original: 1 = India)
     public string? PrimaryMobileNumber { get; set; }
     public string? EmailId { get; set; }
     public DateTime? BirthDate { get; set; }
     public DateTime? AnniversaryDate { get; set; }
     public string? BloodGroup { get; set; }
-    public int FkSecondaryCountryId { get; set; } = 1;
+    public int FkSecondaryCountryId { get; set; }   // ROW: no default country (the original: 1 = India)
     public string? SecondaryMobileNumber { get; set; }
     public bool IsPersonalDetailsVisible { get; set; } = true;
     public string? Gender { get; set; }

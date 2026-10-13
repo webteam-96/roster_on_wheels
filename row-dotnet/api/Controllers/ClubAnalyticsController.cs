@@ -103,8 +103,8 @@ public class ClubAnalyticsController : ControllerBase
                    {Bod("Club Secretary", "m.EmailId")} AS secretaryEmail
             FROM club_master c
             JOIN district_master d ON d.pk_district_id = c.fk_district_id
-            WHERE {clubFilter} AND c.isdeleted = 0 AND COALESCE(c.IsActive, 1) = 1
-            ORDER BY d.DistrictNumber, c.ClubName";
+            WHERE {clubFilter} AND c.isdeleted = 0 AND COALESCE(c.IsActive, 1) = 1{(!ClubScopeSql.HideRotaract(IsSuperAdmin()) ? "" : " AND " + ClubScopeSql.NotRotaract("c"))}
+            ORDER BY d.DistrictNumber, c.ClubName";   // user 2026-10-08: Rotaract only for SuperAdmin
 
         var rows = (await conn.QueryAsync<dynamic>(sql,
             new { Y = yr, Club = clubId ?? 0, Dist = districtId ?? 0, YearLabel = yearLabel })).ToList();

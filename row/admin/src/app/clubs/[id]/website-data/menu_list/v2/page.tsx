@@ -58,7 +58,7 @@ function linkTypeChipStyle(value: string): string {
 // link-value. Returns null for types that don't make sense to "open" (page,
 // html — those are internal site routes, not standalone resources). For
 // document/file uploads, prepend the API base if the stored path is relative
-// (e.g. "/Documents/menu/123.pdf" → "https://rizones45678.org/API/Documents/menu/123.pdf").
+// (e.g. "/Documents/menu/123.pdf" → "https://portal.example.org/API/Documents/menu/123.pdf").
 function resolveOpenUrl(linkType: string, linkValue: string | null | undefined): string | null {
   if (!linkValue || !linkValue.trim()) return null;
   const v = linkValue.trim();

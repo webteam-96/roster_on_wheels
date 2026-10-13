@@ -96,13 +96,13 @@ interface MemberDuesStatus {
 
 type Step = "search" | "otp" | "fees" | "payment" | "offline" | "paying";
 
-// Mask mobile: "8828291924" -> "88****1924"
+// Mask mobile: "7700900123" -> "77****0123"
 function maskMobile(mobile?: string): string {
   if (!mobile || mobile.length < 6) return mobile || "";
   return mobile.slice(0, 2) + "****" + mobile.slice(-4);
 }
 
-// Mask email: "connect@kaizeninfotech.com" -> "con****@kaizeninfotech.com"
+// Mask email: "support@example.org" -> "con****@example.org"
 function maskEmail(email?: string): string {
   if (!email) return "";
   const atIdx = email.indexOf("@");
@@ -190,7 +190,7 @@ export default function MembershipDuesPaymentPage() {
         // process.env.NEXT_PUBLIC_API_BASE_URL was a typo of the actual var name
         // (NEXT_PUBLIC_API_URL, no "BASE_"). The wrong-name lookup returned ""
         // so the fetch hit `/api/...` on the frontend host instead of
-        // `https://rizones45678.org/API/api/...`, producing a 404 that the
+        // `https://portal.example.org/API/api/...`, producing a 404 that the
         // catch reported as "Token verification failed".
         const res = await fetch(
           `${API_BASE_URL}/api/public/membership-dues/${duesId}/verify-mobile-token?memberId=${tokenMemberId}&token=${encodeURIComponent(tokenValue)}`
@@ -337,7 +337,7 @@ export default function MembershipDuesPaymentPage() {
       const result = await createMembershipDuesPaymentOrder(duesId, payload);
       setStep("paying");
 
-      // Preferred path: redirect to the shared Cashfree proxy on kaizeninfotech.com
+      // Preferred path: redirect to the shared Cashfree proxy on example.org
       // (which Cashfree has whitelisted). The proxy renders the SDK + handles the return.
       // POST instead of GET — the long `return_url=https%3A%2F%2F...` query string
       // triggers WAF/ModSecurity open-redirect rules; POST body bypasses URL-based filters.

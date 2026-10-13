@@ -53,7 +53,9 @@ public class ClubsController : ControllerBase
         [FromQuery] int? isActive = null,
         [FromQuery] int? zoneId = null)
     {
-        var result = await _clubService.GetAllAsync(page, pageSize, search, districtId, city, meetingDay, isActive, zoneId);
+        // user 2026-10-08: Rotaract clubs only for SuperAdmin (District / Club Admin screens hide them).
+        var result = await _clubService.GetAllAsync(page, pageSize, search, districtId, city, meetingDay, isActive, zoneId,
+            excludeRotaract: ClubScopeSql.HideRotaract(UserPermissionHelper.IsSuperAdmin(User)));
         return Ok(result);
     }
 
@@ -110,7 +112,7 @@ public class ClubsController : ControllerBase
 
     // The "COG" catch-all club — its member rows carry a past-DG label in
     // club_members.Designation ("3292 Dg 2025 - 26") instead of a real classification.
-    private const int CogClubId = 31598;
+    private static int CogClubId => RotaryApi.Services.Brand.CogClubId;
 
     // Current district + Rotary year for one COG member, so the member edit form can
     // pre-fill the two pickers. Open to any authenticated user — same access model as

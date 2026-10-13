@@ -49,6 +49,7 @@ import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import SearchBox from "@/components/SearchBox";
 
+import { appLocale, currencySymbol } from "@/lib/appFormat";
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
 // Read-only preview of the member's submitted offline payment, shown inside
@@ -65,10 +66,10 @@ function PendingDetailsPanel({ details }: { details: any }) {
     );
   };
   const dateStr = details.paymentDate
-    ? new Date(details.paymentDate).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" })
+    ? new Date(details.paymentDate).toLocaleDateString(appLocale(), { day: "2-digit", month: "short", year: "numeric" })
     : null;
   const amountStr = details.amount != null
-    ? `₹${Number(details.amount).toLocaleString("en-IN", { maximumFractionDigits: 2 })}`
+    ? `${currencySymbol()}${Number(details.amount).toLocaleString(appLocale(), { maximumFractionDigits: 2 })}`
     : null;
   const attachUrl = details.attachment
     ? (String(details.attachment).startsWith("/") ? `${API_BASE_URL}${details.attachment}` : `${API_BASE_URL}/${details.attachment}`)
@@ -314,7 +315,7 @@ export default function MembershipDuesMembersPage() {
 
   const formatCurrency = (val: number | undefined) => {
     if (val === undefined || val === null) return "-";
-    return `\u20B9${val.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    return `\u20B9${val.toLocaleString(appLocale(), { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
   };
 
   const rowBgClass = (m: DuesMember) => {
@@ -884,7 +885,7 @@ export default function MembershipDuesMembersPage() {
       : ft === 3 ? (m.semi2PaymentDate ?? m.Semi2PaymentDate)
       : null;
     if (!mode) return null;
-    const dateStr = date ? new Date(date).toLocaleDateString("en-IN") : "";
+    const dateStr = date ? new Date(date).toLocaleDateString(appLocale()) : "";
     if (mode === "Payment Gateway") {
       return (
         <span title={`Online${dateStr ? " · " + dateStr : ""}`}
@@ -1256,10 +1257,10 @@ export default function MembershipDuesMembersPage() {
                     <p className="text-sm"><strong>Transaction ID:</strong> {offlineOnlineView.txnId}</p>
                   )}
                   {offlineOnlineView.amount > 0 && (
-                    <p className="text-sm"><strong>Amount:</strong> ₹{offlineOnlineView.amount.toLocaleString("en-IN")}</p>
+                    <p className="text-sm"><strong>Amount:</strong> {currencySymbol()}{offlineOnlineView.amount.toLocaleString(appLocale())}</p>
                   )}
                   {offlineOnlineView.date && (
-                    <p className="text-sm"><strong>Date:</strong> {new Date(offlineOnlineView.date).toLocaleDateString("en-IN")}</p>
+                    <p className="text-sm"><strong>Date:</strong> {new Date(offlineOnlineView.date).toLocaleDateString(appLocale())}</p>
                   )}
                   <p className="text-sm"><strong>Status:</strong> Paid (Online)</p>
                   <p className="text-xs text-emerald-700 mt-1">Gateway payments can't be edited offline — viewing only.</p>

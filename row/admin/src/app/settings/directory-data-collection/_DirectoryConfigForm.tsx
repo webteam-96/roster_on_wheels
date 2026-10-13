@@ -228,7 +228,7 @@ export default function DirectoryConfigForm({ mode, configId }: Props) {
             {/* Row 2: First Mobile (left) | Second Mobile (right) */}
             <div>
               <Label className="mb-1 block">First Contact Mobile <span className="text-red-500">*</span></Label>
-              <Input value={firstContactMobile} onChange={(e) => setFirstContactMobile(e.target.value)} placeholder="e.g. 9238331991" />
+              <Input value={firstContactMobile} onChange={(e) => setFirstContactMobile(e.target.value)} placeholder="e.g. 7700900123" />
             </div>
             <div>
               <Label className="mb-1 block">Second Contact Mobile</Label>

@@ -7,6 +7,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { CheckCircle2, XCircle, Loader2 } from "lucide-react";
 
+import { currencySymbol } from "@/lib/appFormat";
 export default function ThankYouPage() {
   const params = useParams();
   const searchParams = useSearchParams();
@@ -119,7 +120,7 @@ export default function ThankYouPage() {
                 {result.amount != null && (
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Amount</span>
-                    <span className="font-semibold text-green-700">₹{result.amount.toFixed(2)}</span>
+                    <span className="font-semibold text-green-700">{currencySymbol()}{result.amount.toFixed(2)}</span>
                   </div>
                 )}
                 {result.paymentDate && (

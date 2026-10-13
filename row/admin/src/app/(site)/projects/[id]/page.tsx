@@ -38,7 +38,7 @@ export async function generateMetadata({
   const yearId = parseYearId(searchParams);
   const data = await getProjectDetail(id, yearId);
   const title = data?.project.title?.trim();
-  const pageTitle = title ? `${title} | Rotary Projects` : "Project | Rotary Zones 4, 5, 6, 7 & 8";
+  const pageTitle = title ? `${title} | Rotary Projects` : "Project | ROW";
   if (!data) return { title: pageTitle };
 
   // OpenGraph / Twitter tags point at the API-generated 1200x630 card, so a link pasted
@@ -98,7 +98,7 @@ export default async function ProjectDetailPage({
   const area = p.areaOfFocus?.trim() || null;
 
   /* NUMBER ROW — the three persuasive figures, one ruled ledger row.
-     Cost carries the project's OWN currency (₹ INR when unset); the counter
+     Cost carries the project's OWN currency (the brand's when unset); the counter
      animates the full amount, matching the People/Man-hours cells beside it. */
   const costSymbol = getCurrencySymbol(p.currency);
   const numberRow = [

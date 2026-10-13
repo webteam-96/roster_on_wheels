@@ -19,7 +19,7 @@ namespace RotaryApi.Services;
 /// </summary>
 public static class CogDesignationHelper
 {
-    public const int CogClubId = 31598;
+    public static int CogClubId => RotaryApi.Services.Brand.CogClubId;   // ROW: Brand:Scope:CogClubId (0 = none)
 
     public static bool IsCog(int clubId) => clubId == CogClubId;
 

@@ -20,6 +20,7 @@ import { ZoneListItem } from "@/types/zone";
 import { COUNTRIES, DEFAULT_COUNTRY } from "@/constants/countries";
 import { currencyOptions } from "@/lib/currency";
 
+import { defaultCurrency as instanceCurrency } from "@/lib/appFormat";
 export default function EditDistrictPage() {
   const router = useRouter();
   const params = useParams();
@@ -38,7 +39,7 @@ export default function EditDistrictPage() {
   const [zoneName, setZoneName] = useState("");
   const [zones, setZones] = useState<ZoneListItem[]>([]);
   const [country, setCountry] = useState<string>(DEFAULT_COUNTRY);
-  const [defaultCurrency, setDefaultCurrency] = useState<string>("INR");
+  const [defaultCurrency, setDefaultCurrency] = useState<string>(instanceCurrency());
   const [showSuccess, setShowSuccess] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
@@ -51,7 +52,7 @@ export default function EditDistrictPage() {
         setIsActive(district.isActive);
         setZoneId(district.fkZoneId ? String(district.fkZoneId) : "");
         setCountry(district.country || DEFAULT_COUNTRY);
-        setDefaultCurrency(district.defaultCurrency || "INR");
+        setDefaultCurrency(district.defaultCurrency || instanceCurrency());
 
         if (paramZoneId) {
           const z = await getZone(parseInt(paramZoneId));

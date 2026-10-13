@@ -15,6 +15,7 @@ import { Label } from "@/components/ui/label";
 import ErrorAlert from "@/components/ErrorAlert";
 import { getWalletDistricts, type WalletDistrictRow } from "@/services/api";
 
+import { appLocale } from "@/lib/appFormat";
 export default function DistrictWalletTab() {
   const [search, setSearch] = useState("");
   const [rows, setRows] = useState<WalletDistrictRow[]>([]);
@@ -109,8 +110,8 @@ export default function DistrictWalletTab() {
             ) : rows.map((r) => (
               <tr key={r.districtId} className="border-t border-slate-100 hover:bg-slate-50/60">
                 <td className="px-3 py-2 font-medium text-slate-800">District {r.districtNumber}</td>
-                <td className="px-3 py-2 text-right whitespace-nowrap">{r.whatsappBalance.toLocaleString("en-IN")}</td>
-                <td className="px-3 py-2 text-right whitespace-nowrap">{r.emailBalance.toLocaleString("en-IN")}</td>
+                <td className="px-3 py-2 text-right whitespace-nowrap">{r.whatsappBalance.toLocaleString(appLocale())}</td>
+                <td className="px-3 py-2 text-right whitespace-nowrap">{r.emailBalance.toLocaleString(appLocale())}</td>
                 <td className="px-3 py-2 text-right whitespace-nowrap">
                   <div className="inline-flex items-center gap-0.5">
                     {([["WA", "whatsapp", r.whatsappPayLink], ["Email", "email", r.emailPayLink]] as const).map(([lbl, kind, url]) => {

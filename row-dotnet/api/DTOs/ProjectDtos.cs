@@ -23,7 +23,7 @@ public class ProjectListDto
     public string? OtherSubCategory { get; set; }
     public DateTime? ProjectDate { get; set; }
     public decimal? ProjectCost { get; set; }
-    public string Currency { get; set; } = "INR";
+    public string Currency { get; set; } = RotaryApi.Services.Brand.DefaultCurrency;
     public string? FundingName { get; set; }
     public int? DirectBeneficiaries { get; set; }
     public string? MeetingType { get; set; }
@@ -69,7 +69,7 @@ public class ProjectDetailDto
     public string? OtherSubCategory { get; set; }
     public DateTime? ProjectDate { get; set; }
     public decimal? ProjectCost { get; set; }
-    public string Currency { get; set; } = "INR";
+    public string Currency { get; set; } = RotaryApi.Services.Brand.DefaultCurrency;
     public int? FundingId { get; set; }
     public string? FundingName { get; set; }
     public int? DirectBeneficiaries { get; set; }

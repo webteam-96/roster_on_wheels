@@ -40,7 +40,7 @@ public class ClubDetailDto
     public string DistrictNumber { get; set; } = string.Empty;
     public string ClubRotaryId { get; set; } = string.Empty;
     public string ClubName { get; set; } = string.Empty;
-    public string Timezone { get; set; } = "Asia/Kolkata";
+    public string Timezone { get; set; } = RotaryApi.Services.Brand.DefaultTimeZone;
     public DateTime? ClubCharterDate { get; set; }
     public string? ClubLogoPath { get; set; }
     public string? ClubWebsite { get; set; }
@@ -78,7 +78,7 @@ public class CreateClubDto
     public int FkDistrictId { get; set; }
     public string ClubRotaryId { get; set; } = string.Empty;
     public string ClubName { get; set; } = string.Empty;
-    public string Timezone { get; set; } = "Asia/Kolkata";
+    public string Timezone { get; set; } = RotaryApi.Services.Brand.DefaultTimeZone;
     public DateTime? ClubCharterDate { get; set; }
     public string? ClubLogoPath { get; set; }
     public string? ClubWebsite { get; set; }
@@ -104,7 +104,7 @@ public class UpdateClubDto
     public int FkDistrictId { get; set; }
     public string ClubRotaryId { get; set; } = string.Empty;
     public string ClubName { get; set; } = string.Empty;
-    public string Timezone { get; set; } = "Asia/Kolkata";
+    public string Timezone { get; set; } = RotaryApi.Services.Brand.DefaultTimeZone;
     public DateTime? ClubCharterDate { get; set; }
     public string? ClubLogoPath { get; set; }
     public string? ClubWebsite { get; set; }

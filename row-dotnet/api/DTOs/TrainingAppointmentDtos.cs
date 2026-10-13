@@ -7,7 +7,7 @@
 // wondering where the time went.
 public class AvailabilitySlotDto
 {
-    public string Time { get; set; } = "";            // "HH:mm" (IST)
+    public string Time { get; set; } = "";            // "HH:mm" (brand time zone)
     public bool IsOpen { get; set; }
     public string Status { get; set; } = "open";      // "open" | "booked" | "blocked" | "dayFull"
     public string? Reason { get; set; }               // shown on the disabled slot
@@ -86,7 +86,7 @@ public class SaveTrainingOverrideRequest
 public class BookAppointmentDto
 {
     public int ClubId { get; set; }
-    public string SlotStart { get; set; } = "";       // "yyyy-MM-ddTHH:mm" (IST wall-clock)
+    public string SlotStart { get; set; } = "";       // "yyyy-MM-ddTHH:mm" (brand time zone wall-clock)
     public string? Notes { get; set; }
 }
 

@@ -158,7 +158,7 @@ public class ClubReportController : ControllerBase
         {
             projects = (await conn.QueryAsync<dynamic>($@"
                 SELECT p.pk_project_id AS id, p.title, p.description, p.project_date AS projectDate,
-                       p.project_cost AS projectCost, COALESCE(p.Currency, 'INR') AS currency, p.direct_beneficiaries AS directBeneficiaries,
+                       p.project_cost AS projectCost, COALESCE(p.Currency, '{RotaryApi.Services.Brand.SqlCurrency}') AS currency, p.direct_beneficiaries AS directBeneficiaries,
                        p.man_hours AS manHours, p.rotarians_involved AS rotariansInvolved,
                        p.rotaractors_involved AS rotaractorsInvolved,
                        COALESCE(p.rcc_involved,0) AS rccInvolved, p.location,
@@ -439,6 +439,10 @@ public class ClubReportController : ControllerBase
               AND COALESCE(f.BloodGroup,'') <> ''
             ORDER BY sortName, sortFamily, personName",
             new { ClubId = clubId });
+
+        // ROW: family and blood-group lists follow member.familyDetails / member.bloodGroup (off on ROW).
+        if (!RotaryApi.Services.Brand.Feature("member.familyDetails")) family = Enumerable.Empty<dynamic>();
+        if (!RotaryApi.Services.Brand.Feature("member.bloodGroup")) bloodGroups = Enumerable.Empty<dynamic>();
 
         // ── CLUBS SUBSECTION REPORTS ────────────────────────────────────
         // Each report mirrors the column set of its legacy example.org

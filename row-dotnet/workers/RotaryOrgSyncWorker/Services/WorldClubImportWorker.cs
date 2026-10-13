@@ -306,7 +306,7 @@ public class WorldClubImportWorker
                     if (!dryRun)
                     {
                         // Only existing columns; NULL where Rotary.org sends nothing. Timezone written
-                        // NULL explicitly (column default is Asia/Kolkata). NO default modules.
+                        // NULL explicitly (not the column default). NO default modules.
                         await dbConn.ExecuteAsync(@"
                             INSERT INTO club_master (
                                 fk_district_id, ClubRotaryId, ClubName, ClubType, Timezone,

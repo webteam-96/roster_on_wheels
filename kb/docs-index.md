@@ -65,9 +65,25 @@ open the file for the text. Do not edit by hand.
   -   19. Gates
   - … 15 more headings
 
-## row (39 documents)
+## row (40 documents)
 
-- **row/STATUS.md** (26 KB)
+- **row/PENDING-WORK.md** (15 KB)
+  - ROW — Pending Work and Why
+  -   1. Summary
+  -   2. Payments (largest backend gap)
+  -   3. Admin portal (`row/admin`)
+  -   4. Club website (`row/club-website`)
+  -   5. Mobile app (`row/mobile`)
+  -   6. Privacy (WS7)
+  -   7. WhatsApp: removal on hold
+  -   8. Deployment on IIS
+  -   9. Testing gaps
+  -   10. Reference copy is behind (resolved 2026-10-12)
+  -   11. Excluded on purpose (not pending work, listed so nobody re-opens them)
+  -   12. Open decisions that hold work back
+  -   13. Suggested order
+  -   14. The .NET edition (`row-dotnet/`)
+- **row/STATUS.md** (31 KB)
   - ROW Build — Status and Handover
   -   1. What ROW is
   -   2. Repository layout
@@ -79,6 +95,8 @@ open the file for the text. Do not edit by hand.
   -   5a. Backend testing against the .NET API (2026-10-10)
   -   6. Progress — web and mobile
   -   6a. Upstream drift — synced 2026-10-10 against reference `cb3e678` (2026-10-09 18:56 IST)
+  -   6b. Session 3 (2026-10-12): privacy, schema gaps, .NET edition
+  -   6c. Session 4 (2026-10-13): no India-specific behaviour, no WhatsApp
   -   7. Deployment (to do)
   -   8. Open decisions (owner: product / company)
   -   9. Working rules agreed with the team
@@ -99,7 +117,7 @@ open the file for the text. Do not edit by hand.
   -   5. Background services and workers
   -   6. Order of work
   -   7. Definition of done for a ported controller
-- **row/api/ROW-CHANGES.md** (25 KB)
+- **row/api/ROW-CHANGES.md** (27 KB)
   - ROW changes to consider later
   -   Security and privacy
   -   Providers
@@ -117,6 +135,7 @@ open the file for the text. Do not edit by hand.
   -   Testing against the .NET API (2026-10-10)
   -   Background services (2026-10-10)
   -   Upstream sync (2026-10-10, reference cb3e678)
+  -   Session 3 (2026-10-12)
 - **row/club-website/README.md** (2 KB)
   - Club Website
   -   Phases

@@ -32,6 +32,7 @@ import RotaryLoader from "@/components/RotaryLoader";
 import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";
 
+import { currencySymbol } from "@/lib/appFormat";
 interface Registration { tempId: number; id?: number; registrationName: string; amount: number; }
 interface VendorSplit { fkRegistrationTempId: number; fkRegistrationId?: number; fkKycId: number; vendorId?: string; vendorName?: string; splitAmount: number; }
 interface Designation { id?: number; designationName: string; }
@@ -130,7 +131,7 @@ function CreateEditPaymentLinkPage() {
   const [emailReminderBody, setEmailReminderBody] = useState("");
   const [previewReceipt, setPreviewReceipt] = useState(false);
   const [previewReminder, setPreviewReminder] = useState(false);
-  const [googleSheetEmail, setGoogleSheetEmail] = useState("noreply@rizones45678.org");
+  const [googleSheetEmail, setGoogleSheetEmail] = useState("support@example.org");
 
   // Files
   const [logoFile, setLogoFile] = useState<File | null>(null);
@@ -292,7 +293,7 @@ function CreateEditPaymentLinkPage() {
         setEmailBody(detail.emailBody || "");
         setEmailReminderSubject(detail.emailReminderSubject || "");
         setEmailReminderBody(detail.emailReminderBody || "");
-        setGoogleSheetEmail(detail.googleSheetEmail || "noreply@rizones45678.org");
+        setGoogleSheetEmail(detail.googleSheetEmail || "support@example.org");
 
         // Load registrations with tempId = actual id for edit mode
         const regs: Registration[] = (detail.registrations || []).map((r: any) => ({
@@ -376,7 +377,7 @@ function CreateEditPaymentLinkPage() {
           const total = regSplits.reduce((sum, s) => sum + s.splitAmount, 0);
           const target = amountType === "1" ? reg.amount : 100;
           if (Math.abs(total - target) > 0.01) {
-            return `Splits for "${reg.registrationName}" must total ${amountType === "1" ? `₹${reg.amount.toFixed(2)}` : "100%"}. Current: ${amountType === "1" ? `₹${total.toFixed(2)}` : `${total.toFixed(1)}%`}`;
+            return `Splits for "${reg.registrationName}" must total ${amountType === "1" ? `${currencySymbol()}${reg.amount.toFixed(2)}` : "100%"}. Current: ${amountType === "1" ? `${currencySymbol()}${total.toFixed(2)}` : `${total.toFixed(1)}%`}`;
           }
           if (regSplits.some(s => !s.fkKycId)) {
             return `All vendor splits for "${reg.registrationName}" must have a vendor selected.`;
@@ -861,7 +862,7 @@ function CreateEditPaymentLinkPage() {
             ) : registrations.map(reg => (
               <TableRow key={reg.tempId}>
                 <TableCell>{reg.registrationName}</TableCell>
-                <TableCell>{amountType === "1" ? `₹${reg.amount.toFixed(2)}` : `${reg.amount}%`}</TableCell>
+                <TableCell>{amountType === "1" ? `${currencySymbol()}${reg.amount.toFixed(2)}` : `${reg.amount}%`}</TableCell>
                 <TableCell className="flex gap-1">
                   <Button variant="ghost" size="icon" onClick={() => handleEditReg(reg)}><Pencil className="h-4 w-4 text-blue-600" /></Button>
                   <Button variant="ghost" size="icon" onClick={() => handleDeleteReg(reg.tempId)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
@@ -943,10 +944,10 @@ function CreateEditPaymentLinkPage() {
                 return (
                   <TableRow key={reg.tempId}>
                     <TableCell className="font-medium">{reg.registrationName}</TableCell>
-                    <TableCell>{amountType === "1" ? `₹${reg.amount.toFixed(2)}` : "100%"}</TableCell>
-                    <TableCell>{amountType === "1" ? `₹${total.toFixed(2)}` : `${total.toFixed(1)}%`}</TableCell>
+                    <TableCell>{amountType === "1" ? `${currencySymbol()}${reg.amount.toFixed(2)}` : "100%"}</TableCell>
+                    <TableCell>{amountType === "1" ? `${currencySymbol()}${total.toFixed(2)}` : `${total.toFixed(1)}%`}</TableCell>
                     <TableCell className={remaining > 0.01 ? "text-red-600 font-medium" : "text-green-600 font-medium"}>
-                      {amountType === "1" ? `₹${remaining.toFixed(2)}` : `${remaining.toFixed(1)}%`}
+                      {amountType === "1" ? `${currencySymbol()}${remaining.toFixed(2)}` : `${remaining.toFixed(1)}%`}
                     </TableCell>
                     <TableCell>{isValid ? <Check className="h-4 w-4 text-green-600" /> : <span className="text-red-600 text-xs">Incomplete</span>}</TableCell>
                   </TableRow>
@@ -1004,7 +1005,7 @@ function CreateEditPaymentLinkPage() {
                   {registrations.map(reg => (
                     <TableRow key={reg.tempId}>
                       <TableCell className="font-medium">{reg.registrationName}</TableCell>
-                      <TableCell>{amountType === "1" ? `₹${reg.amount.toFixed(2)}` : "100%"}</TableCell>
+                      <TableCell>{amountType === "1" ? `${currencySymbol()}${reg.amount.toFixed(2)}` : "100%"}</TableCell>
                       <TableCell>
                         <Input
                           type="number"
@@ -1050,7 +1051,7 @@ function CreateEditPaymentLinkPage() {
                       return (
                         <div key={idx} className="text-sm bg-muted px-3 py-1.5 rounded">
                           <span className="text-muted-foreground">{reg?.registrationName}: </span>
-                          <span className="font-medium">{amountType === "1" ? `₹${split.splitAmount.toFixed(2)}` : `${split.splitAmount}%`}</span>
+                          <span className="font-medium">{amountType === "1" ? `${currencySymbol()}${split.splitAmount.toFixed(2)}` : `${split.splitAmount}%`}</span>
                         </div>
                       );
                     })}

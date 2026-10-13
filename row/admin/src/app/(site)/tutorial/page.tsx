@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import { ComingSoon } from "@/components/site/ComingSoon";
 
 export const metadata: Metadata = {
-  title: "Tutorial | Rotary Zones 4, 5, 6, 7 & 8",
-  description: "Tutorials and guides for the Rotary Zones 4, 5, 6, 7 & 8 platform — coming soon.",
+  title: "Tutorial | ROW",
+  description: "Tutorials and guides for the ROW platform — coming soon.",
 };
 
 export default function TutorialPage() {

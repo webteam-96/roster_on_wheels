@@ -24,6 +24,7 @@ import ErrorAlert from "@/components/ErrorAlert";
 import AlertModal from "@/components/AlertModal";
 import { ArrowLeft, RefreshCw, Download, Bell, Link2, Check, ChevronLeft, ChevronRight, MessageCircle, Receipt, Pencil, Split, Plus, X, FileText, Send } from "lucide-react";
 
+import { appLocale, currencySymbol } from "@/lib/appFormat";
 interface AccountBreakdown {
   fkRouteAccountId: number;
   accountLabel: string | null;
@@ -201,11 +202,11 @@ export default function ClubDuesClubsPage() {
             </CardContent></Card>
             <Card><CardContent className="p-4">
               <p className="text-xs text-muted-foreground">Total members</p>
-              <p className="text-2xl font-bold text-primary">{summary.totalMembers.toLocaleString("en-IN")}</p>
+              <p className="text-2xl font-bold text-primary">{summary.totalMembers.toLocaleString(appLocale())}</p>
             </CardContent></Card>
             <Card><CardContent className="p-4">
               <p className="text-xs text-muted-foreground">Collected</p>
-              <p className="text-2xl font-bold text-primary">₹{summary.collected.toLocaleString("en-IN")}</p>
+              <p className="text-2xl font-bold text-primary">{currencySymbol()}{summary.collected.toLocaleString(appLocale())}</p>
             </CardContent></Card>
           </div>
         )}
@@ -291,13 +292,13 @@ export default function ClubDuesClubsPage() {
                           )}
                         </div>
                       </td>
-                      <td className="p-3 text-right font-medium">{r.paidOnline === true ? "-" : `₹${Number(r.offlineAmount).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}</td>
+                      <td className="p-3 text-right font-medium">{r.paidOnline === true ? "-" : `${currencySymbol()}${Number(r.offlineAmount).toLocaleString(appLocale(), { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}</td>
                       {Array.from({ length: maxOfflineAccountCols }, (_, i) => {
                         const acc = r.paidOnline === true ? undefined : r.offlineAccountBreakdown?.[i];
                         return (
                           <Fragment key={`off-${i}`}>
                             <td className="p-3 text-right whitespace-nowrap">
-                              {acc ? `₹${Number(acc.amount).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : "-"}
+                              {acc ? `${currencySymbol()}${Number(acc.amount).toLocaleString(appLocale(), { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : "-"}
                             </td>
                             <td className="p-3 text-center whitespace-nowrap" title={acc?.accountLabel || ""}>
                               {acc ? (
@@ -309,7 +310,7 @@ export default function ClubDuesClubsPage() {
                           </Fragment>
                         );
                       })}
-                      <td className="p-3 text-right">{r.paidOnline === true ? "-" : `₹${Number(r.offlinePaid).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}</td>
+                      <td className="p-3 text-right">{r.paidOnline === true ? "-" : `${currencySymbol()}${Number(r.offlinePaid).toLocaleString(appLocale(), { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}</td>
                       <td className="p-3 text-right">
                         <div className="flex items-center justify-end gap-1">
                           <Input className="h-8 w-20" type="number" value={onlineRateEdits[r.clubDuesClubId] ?? String(r.onlinePerMemberRate)}
@@ -319,13 +320,13 @@ export default function ClubDuesClubsPage() {
                           )}
                         </div>
                       </td>
-                      <td className="p-3 text-right font-medium">{r.paidOnline === false ? "-" : `₹${Number(r.onlineAmount).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}</td>
+                      <td className="p-3 text-right font-medium">{r.paidOnline === false ? "-" : `${currencySymbol()}${Number(r.onlineAmount).toLocaleString(appLocale(), { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}</td>
                       {Array.from({ length: maxOnlineAccountCols }, (_, i) => {
                         const acc = r.paidOnline === false ? undefined : r.onlineAccountBreakdown?.[i];
                         return (
                           <Fragment key={`on-${i}`}>
                             <td className="p-3 text-right whitespace-nowrap">
-                              {acc ? `₹${Number(acc.amount).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : "-"}
+                              {acc ? `${currencySymbol()}${Number(acc.amount).toLocaleString(appLocale(), { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : "-"}
                             </td>
                             <td className="p-3 text-center whitespace-nowrap" title={acc?.accountLabel || ""}>
                               {acc ? (
@@ -337,8 +338,8 @@ export default function ClubDuesClubsPage() {
                           </Fragment>
                         );
                       })}
-                      <td className="p-3 text-right">{r.paidOnline === false ? "-" : `₹${Number(r.onlinePaid).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}</td>
-                      <td className="p-3 text-right">₹{Number(r.totalPaid).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                      <td className="p-3 text-right">{r.paidOnline === false ? "-" : `${currencySymbol()}${Number(r.onlinePaid).toLocaleString(appLocale(), { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}</td>
+                      <td className="p-3 text-right">{currencySymbol()}{Number(r.totalPaid).toLocaleString(appLocale(), { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
                       <td className="p-3 text-center">{r.paidOnline == null ? "-" : r.paidOnline ? "Online" : "Offline"}</td>
                       <td className="p-3">{r.status}</td>
                       <td className="p-3 whitespace-nowrap">
@@ -505,7 +506,7 @@ function OfflineDialog({ duesId, club, editPaymentId, onClose, onDone, onError }
       )}
       {!isEdit && (accounts.length === 0 || accountId) && (
         <p className="text-sm text-muted-foreground">
-          Amount: <b>₹{Number(accounts.length === 0 ? club.unpaidCount * club.offlinePerMemberRate : selectedAccount?.amount ?? 0).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</b>.
+          Amount: <b>{currencySymbol()}{Number(accounts.length === 0 ? club.unpaidCount * club.offlinePerMemberRate : selectedAccount?.amount ?? 0).toLocaleString(appLocale(), { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</b>.
         </p>
       )}
       <div className="space-y-2">
@@ -548,7 +549,7 @@ function SplitDialog({ duesId, club, isOnline, routeAccounts, onClose, onDone, o
   const update = (i: number, f: "routeAccountId" | "value", v: string) => setRows((p) => p.map((r, idx) => (idx === i ? { ...r, [f]: v } : r)));
 
   const save = async () => {
-    if (filled.length > 0 && !ok) { onError(amountType === "2" ? "Percentages must total 100%." : `Amounts must total ₹${rate}.`); return; }
+    if (filled.length > 0 && !ok) { onError(amountType === "2" ? "Percentages must total 100%." : `Amounts must total ${currencySymbol()}${rate}.`); return; }
     setBusy(true);
     try {
       const vendors = filled.map((r) => {
@@ -568,7 +569,7 @@ function SplitDialog({ duesId, club, isOnline, routeAccounts, onClose, onDone, o
 
   return (
     <Modal title={`${isOnline ? "Online" : "Offline"} split — ${club.clubName}`} onClose={onClose}>
-      <p className="text-sm text-muted-foreground">Overrides the campaign&apos;s {isOnline ? "online" : "offline"} split for this club only (rate ₹{rate}/member). Clear all to use the campaign default.</p>
+      <p className="text-sm text-muted-foreground">Overrides the campaign&apos;s {isOnline ? "online" : "offline"} split for this club only (rate {currencySymbol()}{rate}/member). Clear all to use the campaign default.</p>
       <div className="flex items-center justify-between">
         <Label>Split by</Label>
         <div className="inline-flex rounded-md border overflow-hidden text-sm">
@@ -584,13 +585,13 @@ function SplitDialog({ duesId, club, isOnline, routeAccounts, onClose, onDone, o
               {routeAccounts.map((a) => <SelectItem key={a.id} value={String(a.id)}>••••{a.bankAccountLast4 || "----"} · IFSC {a.bankIfsc || "N/A"} — {a.name}</SelectItem>)}
             </SelectContent>
           </Select>
-          <div className="w-24"><Input type="number" value={row.value} onChange={(e) => update(i, "value", e.target.value)} placeholder={amountType === "2" ? "%" : "₹"} /></div>
+          <div className="w-24"><Input type="number" value={row.value} onChange={(e) => update(i, "value", e.target.value)} placeholder={amountType === "2" ? "%" : currencySymbol()} /></div>
           <Button variant="ghost" size="icon" onClick={() => setRows((p) => (p.length > 1 ? p.filter((_, idx) => idx !== i) : p))} disabled={rows.length === 1}><X className="h-4 w-4" /></Button>
         </div>
       ))}
       <div className="flex items-center justify-between">
         <Button variant="outline" size="sm" onClick={() => setRows((p) => [...p, { routeAccountId: "", value: "" }])}><Plus className="mr-1 h-4 w-4" />Add</Button>
-        {filled.length > 0 && <span className={`text-sm ${ok ? "text-green-600" : "text-red-600"}`}>Total: {amountType === "2" ? `${total}% / 100%` : `₹${total} / ₹${rate}`}</span>}
+        {filled.length > 0 && <span className={`text-sm ${ok ? "text-green-600" : "text-red-600"}`}>Total: {amountType === "2" ? `${total}% / 100%` : `${currencySymbol()}${total} / ${currencySymbol()}${rate}`}</span>}
       </div>
       <div className="flex gap-2 justify-end">
         <Button variant="outline" onClick={onClose}>Cancel</Button>
@@ -622,7 +623,7 @@ function ApproveDialog({ club, onClose, onDone, onError }: { club: ClubRow; onCl
   return (
     <Modal title={`Review offline payment — ${club.clubName}`} onClose={onClose}>
       <p className="text-sm text-muted-foreground">
-        Amount: <b>₹{Number(detail?.amount ?? club.unpaidCount * club.offlinePerMemberRate).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</b>{" "}
+        Amount: <b>{currencySymbol()}{Number(detail?.amount ?? club.unpaidCount * club.offlinePerMemberRate).toLocaleString(appLocale(), { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</b>{" "}
         for {detail?.memberCountCovered ?? club.unpaidCount} member(s).
       </p>
       <p className="text-sm text-muted-foreground">Account: <b>{detail?.accountLabel || "-"}</b></p>

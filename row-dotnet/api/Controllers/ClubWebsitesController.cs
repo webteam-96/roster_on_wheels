@@ -17,7 +17,7 @@ public class ClubWebsitesController : ControllerBase
     private readonly IConfiguration _config;
     private readonly IEmailService _emailService;
     private readonly ISmsService _sms;
-    private readonly IInteraktService _interakt;
+    private readonly IWhatsAppService _whatsAppService;
     private readonly PleskService _plesk;
     private readonly IClubSiteCachePurger _purger;
     private readonly IClubWebsiteActivationService _activation;
@@ -27,14 +27,14 @@ public class ClubWebsitesController : ControllerBase
     private readonly string _pleskParentDomain;
     private readonly bool _useHttps;
 
-    public ClubWebsitesController(IConfiguration config, IEmailService emailService, ISmsService sms, IInteraktService interakt, PleskService plesk, IClubSiteCachePurger purger, IClubWebsiteActivationService activation, IDnsPointingChecker dns,
+    public ClubWebsitesController(IConfiguration config, IEmailService emailService, ISmsService sms, IWhatsAppService whatsApp, PleskService plesk, IClubSiteCachePurger purger, IClubWebsiteActivationService activation, IDnsPointingChecker dns,
         IYearTableResolver years, IProjectCountRules countRules)
     {
         _connectionString = config.GetConnectionString("DefaultConnection")!;
         _config = config;
         _emailService = emailService;
         _sms = sms;
-        _interakt = interakt;
+        _whatsAppService = whatsApp;
         _plesk = plesk;
         _purger = purger;
         _activation = activation;
@@ -1190,7 +1190,7 @@ public class ClubWebsitesController : ControllerBase
     }
 
     // ══════════════ Per-club, per-Rotary-year pricing + gateway + bulk pay-link reminders ══════════════
-    // A club_website_pricing row for (club, year) overrides the config default (₹10,999 / 18% / normal).
+    // A club_website_pricing row for (club, year) overrides the config default (price / tax % / gateway).
     // Rule: GST 0% => gateway MUST be 'route' with an active linked account. Reminders carry an encrypted
     // pay link; the amount is always re-resolved server-side (WebsiteBillingService.ResolveConfig) so the
     // client can never influence the price.
@@ -1424,7 +1424,7 @@ public class ClubWebsitesController : ControllerBase
         decimal pRenewal = req?.RenewalAmount ?? cur.RenewalAmount;
         decimal pGst = req?.GstPercent ?? cur.GstPercent;
 
-        string Inr(decimal v) => "₹" + v.ToString("N2", System.Globalization.CultureInfo.GetCultureInfo("en-IN"));
+        string Inr(decimal v) => RotaryApi.Services.Brand.Money(v);
         string Row(string label, decimal oldBase, decimal oldGst, decimal newBase, decimal newGst)
         {
             bool changed = oldBase != newBase || oldGst != newGst;
@@ -1694,12 +1694,13 @@ public class ClubWebsitesController : ControllerBase
                 secretaryName = (string?)r.secretaryName, secretaryMobile = (string?)r.secretaryMobile, secretaryEmail = (string?)r.secretaryEmail
             };
         });
-        // Common (pick-a-club) links shown at the top of the Club Wallet tab — no club baked in.
+        // Common (pick-a-club) links shown at the top of the Club Wallet tab — no club baked in, no
+        // expiry (user 2026-10-09). The per-club links above keep their 30 days.
         var commonLinks = new
         {
-            website = $"{frontend}/pay/w/{WalletPayLinkToken.Generate(_config, "club", "website", 0)}",
-            whatsapp = $"{frontend}/pay/w/{WalletPayLinkToken.Generate(_config, "club", "whatsapp", 0)}",
-            email = $"{frontend}/pay/w/{WalletPayLinkToken.Generate(_config, "club", "email", 0)}",
+            website = $"{frontend}/pay/w/{WalletPayLinkToken.Generate(_config, "club", "website", 0, neverExpires: true)}",
+            whatsapp = $"{frontend}/pay/w/{WalletPayLinkToken.Generate(_config, "club", "whatsapp", 0, neverExpires: true)}",
+            email = $"{frontend}/pay/w/{WalletPayLinkToken.Generate(_config, "club", "email", 0, neverExpires: true)}",
         };
         return Ok(new { items, total, page, pageSize, yearId = yr, routeAll = await GetRouteAllAsync(conn), commonLinks });
     }
@@ -1763,7 +1764,7 @@ public class ClubWebsitesController : ControllerBase
 
         int userId = GetUserId();
         var frontend = (_config["FrontendUrl"] ?? RotaryApi.Services.Brand.PortalOrigin).TrimEnd('/');
-        var waTemplate = _config["Interakt:ClubWebsiteReminderTemplate"];
+        var waTemplate = _config["WhatsApp:ClubWebsiteReminderTemplate"];
         var parentDomain = await conn.ExecuteScalarAsync<string?>(
             "SELECT SettingValue FROM system_settings WHERE SettingKey = 'ClubWebsiteParentDomain' LIMIT 1")
             ?? (_config.GetSection("PleskSettings")["ParentDomain"] ?? RotaryApi.Services.Brand.ClubSiteParentDomain);
@@ -1850,7 +1851,7 @@ public class ClubWebsitesController : ControllerBase
                 {
                     try
                     {
-                        var ok = await _interakt.SendWhatsAppWithBodyValuesAsync(rc.mobile!, waTemplate,
+                        var ok = await _whatsAppService.SendWhatsAppWithBodyValuesAsync(rc.mobile!, waTemplate,
                             new[] { rc.name, websiteUrl, dueDate, link });
                         if (ok) { whatsappSent++; anySent = true; } else failed++;
                     }

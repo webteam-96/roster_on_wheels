@@ -1599,7 +1599,8 @@ CREATE TABLE `district_committee_group_member` (
   `modified_by` int DEFAULT NULL,
   `modified_date` datetime DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
   `isdeleted` int DEFAULT '0',
-  PRIMARY KEY (`id`)
+  PRIMARY KEY (`id`),
+  KEY `idx_dcgm_member` (`fk_member_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;

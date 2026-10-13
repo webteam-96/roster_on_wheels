@@ -784,9 +784,9 @@ public class GoalSettingController : ControllerBase
 
     [HttpGet("owner-thread/{categoryId:int}/{ownerMemberId:int}")]
     public async Task<ActionResult<List<GoalCommentDto>>> GetOwnerThreadMessages(
-        [FromRoute] int categoryId, [FromRoute] int ownerMemberId, [FromQuery] int yearId, [FromQuery] int? asMemberId = null)
+        [FromRoute] int categoryId, [FromRoute] int ownerMemberId, [FromQuery] int yearId, [FromQuery] int? asMemberId = null, [FromQuery] int? zoneId = null)
     {
-        try { return Ok(await _service.GetGoalOwnerThreadMessagesAsync(await EffectiveMemberIdAsync(asMemberId), categoryId, yearId, ownerMemberId)); }
+        try { return Ok(await _service.GetGoalOwnerThreadMessagesAsync(await EffectiveMemberIdAsync(asMemberId), categoryId, yearId, ownerMemberId, zoneId)); }
         catch (UnauthorizedAccessException ex) { return ForbidWithMessage(ex.Message); }
     }
 
@@ -798,6 +798,32 @@ public class GoalSettingController : ControllerBase
         catch (UnauthorizedAccessException ex) { return ForbidWithMessage(ex.Message); }
         catch (InvalidOperationException ex) { return BadRequest(new { message = ex.Message }); }
     }
+
+    // ── District Admin / District Governor messages (user 2026-10-09) ──
+    // The district side writes about one category; the District Assistant, Zone Co-ordinator, RI
+    // Director and SuperAdmin read (no replies). GET marks the conversation read for readers.
+    [HttpGet("district-messages/{categoryId:int}/{districtId:int}")]
+    public async Task<ActionResult<GoalDistrictMessagesDto>> GetDistrictMessages(
+        [FromRoute] int categoryId, [FromRoute] int districtId, [FromQuery] int yearId, [FromQuery] int? asMemberId = null)
+    {
+        try { return Ok(await _service.GetDistrictMessagesAsync(await EffectiveMemberIdAsync(asMemberId), categoryId, districtId, yearId)); }
+        catch (UnauthorizedAccessException ex) { return ForbidWithMessage(ex.Message); }
+    }
+
+    [HttpPost("district-messages/{categoryId:int}/{districtId:int}")]
+    public async Task<ActionResult<GoalCommentDto>> PostDistrictMessage(
+        [FromRoute] int categoryId, [FromRoute] int districtId, [FromQuery] int yearId, [FromBody] PostGoalCommentRequest request)
+    {
+        // Never "view as": a message is always written by the logged-in person.
+        try { return Ok(await _service.PostDistrictMessageAsync(GetMemberId(), categoryId, districtId, yearId, request.CommentText)); }
+        catch (UnauthorizedAccessException ex) { return ForbidWithMessage(ex.Message); }
+        catch (InvalidOperationException ex) { return BadRequest(new { message = ex.Message }); }
+    }
+
+    [HttpGet("district-messages/inbox")]
+    public async Task<ActionResult<List<GoalDistrictConversationDto>>> GetDistrictMessageInbox(
+        [FromQuery] int zoneId, [FromQuery] int yearId, [FromQuery] int categoryId = 0, [FromQuery] int districtId = 0, [FromQuery] int? asMemberId = null)
+        => Ok(await _service.GetDistrictMessageInboxAsync(await EffectiveMemberIdAsync(asMemberId), zoneId, yearId, categoryId, districtId));
 
     // ── On-screen unified messages list (RI popup): all messages in a zone, filterable by category
     //    (0=all) + district (0=all). RI Director / ZC / SuperAdmin; honours observer view-as. ──
@@ -880,6 +906,37 @@ public class GoalSettingController : ControllerBase
         {
             using var stream = form.File.OpenReadStream();
             return Ok(await _service.ImportFoundationClubAsync(GetMemberId(), form.YearId, stream, form.Month));
+        }
+        catch (InvalidOperationException ex) { return BadRequest(new { message = ex.Message }); }
+        catch (Exception ex) { return BadRequest(new { message = $"Failed to read the Excel file: {ex.Message}" }); }
+    }
+
+    // District Membership import (SuperAdmin, user 2026-10-08): Rotary.org "Comparison to 1 July"
+    // (clubs + members) + "Members Admitted by Gender" (women). The month comes from the file's date.
+    public class MembershipImportForm
+    {
+        public IFormFile? MembersFile { get; set; }
+        public IFormFile? GenderFile { get; set; }
+        public IFormFile? RotaractFile { get; set; }   // optional: Youth Service -> Rotaract Clubs Achieved
+        public IFormFile? InteractFile { get; set; }   // optional: Interact_Statistics -> Interact Clubs Achieved
+        public int YearId { get; set; }
+    }
+
+    [HttpPost("membership-import")]
+    [RequestSizeLimit(30_000_000)]
+    public async Task<ActionResult<GoalFoundationImportResultDto>> ImportDistrictMembership([FromForm] MembershipImportForm form)
+    {
+        if (!IsSuperAdminRole()) return Forbid();
+        if (form.MembersFile == null || form.MembersFile.Length == 0 || form.GenderFile == null || form.GenderFile.Length == 0)
+            return BadRequest(new { message = "Upload both files: the Rotary \"Comparison to 1 July\" file and the \"Members Admitted by Gender\" file." });
+        try
+        {
+            using var members = form.MembersFile.OpenReadStream();
+            using var gender = form.GenderFile.OpenReadStream();
+            using var rotaract = form.RotaractFile != null && form.RotaractFile.Length > 0 ? form.RotaractFile.OpenReadStream() : null;
+            using var interact = form.InteractFile != null && form.InteractFile.Length > 0 ? form.InteractFile.OpenReadStream() : null;
+            return Ok(await _service.ImportDistrictMembershipAsync(GetMemberId(), form.YearId, members, form.MembersFile.FileName, gender,
+                rotaract, form.RotaractFile?.FileName, interact));
         }
         catch (InvalidOperationException ex) { return BadRequest(new { message = ex.Message }); }
         catch (Exception ex) { return BadRequest(new { message = $"Failed to read the Excel file: {ex.Message}" }); }

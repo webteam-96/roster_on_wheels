@@ -36,6 +36,7 @@ import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import SearchBox from "@/components/SearchBox";
 
+import { appLocale } from "@/lib/appFormat";
 const MEETING_TYPE_LABELS: Record<string, string> = {
   regular: "Regular",
   fellowship: "Fellowship",
@@ -150,7 +151,7 @@ export default function ClubServicePage() {
     return (
       project.title?.toLowerCase().includes(q) ||
       meetingLabel.toLowerCase().includes(q) ||
-      (project.projectDate && new Date(project.projectDate).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" }).toLowerCase().includes(q)) ||
+      (project.projectDate && new Date(project.projectDate).toLocaleDateString(appLocale(), { day: "2-digit", month: "short", year: "numeric" }).toLowerCase().includes(q)) ||
       String(project.attendance ?? "").includes(q) ||
       String(project.attendancePercentage ?? "").includes(q)
     );
@@ -158,7 +159,7 @@ export default function ClubServicePage() {
 
   const formatDate = (dateStr: string | null) => {
     if (!dateStr) return "-";
-    return new Date(dateStr).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" });
+    return new Date(dateStr).toLocaleDateString(appLocale(), { day: "2-digit", month: "short", year: "numeric" });
   };
 
   return (

@@ -256,6 +256,33 @@ export interface GoalCommentDto {
   // District this message is about (DA tags each message; 0 = "All districts"). Zone-wide → 0.
   districtId?: number;
   districtNumber?: string | null;
+  // District Admin / DG messages (2026-10-09): the category they are about.
+  categoryName?: string | null;
+}
+
+// District Admin / District Governor messages to the oversight chain (2026-10-09). Read-only above.
+export interface GoalDistrictMessagesDto {
+  districtId: number;
+  districtNumber: string | null;
+  categoryId: number;
+  categoryName: string;
+  canPost: boolean;            // the viewer is this district's Admin / DG
+  posterRole: string | null;   // "District Admin" | "District Governor"
+  notice: string | null;
+  messages: GoalCommentDto[];
+}
+
+export interface GoalDistrictConversationDto {
+  districtId: number;
+  districtNumber: string | null;
+  categoryId: number;
+  categoryName: string;
+  messageCount: number;
+  unreadCount: number;
+  lastFrom: string | null;
+  lastFromRole: string | null;
+  lastPreview: string | null;
+  lastDate: string | null;
 }
 
 export interface GoalMessageDistrictDto {
@@ -270,6 +297,7 @@ export interface GoalMessageOwnerDto {
   roleLabel: string;
   categoryName: string;
   districts?: string | null;
+  isFormer?: boolean;   // no longer holds the seat - old conversation, read-only
   messageCount: number;
   unreadCount: number;
 }
@@ -299,6 +327,8 @@ export interface GoalMessageThreadDto {
   messageCount: number;
   // Messages in THIS conversation the viewer has not read yet, written by somebody else.
   unreadCount: number;
+  // No longer holds a seat here - the old conversation stays readable (read-only).
+  isFormer?: boolean;
   counterpartyName: string | null;
   canPost: boolean;
   notice: string | null;

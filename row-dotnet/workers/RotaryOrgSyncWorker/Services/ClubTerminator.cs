@@ -41,7 +41,7 @@ public class ClubTerminator
 {
     // Districts that must NEVER be reconciled/terminated (manually-managed, not on Rotary.org).
     // Matched on district_master.DistrictNumber. Mirrors ClubNonSyncCascadeWorker.
-    private static readonly string[] ExemptDistrictNumbers = { "5656", "1280", "IFRM India" };
+    private static string[] ExemptDistrictNumbers => RotaryApi.Services.Brand.ExemptDistricts;   // ROW: Brand:Scope:ExemptDistricts
 
     private readonly IRotaryOrgApiClient _api;
     private readonly EmailReportSender _emailSender;

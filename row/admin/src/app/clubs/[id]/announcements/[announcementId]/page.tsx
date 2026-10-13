@@ -14,6 +14,7 @@ import {
   ArrowLeft, Pencil, FileText, Bell, Calendar,
 } from "lucide-react";
 
+import { appLocale } from "@/lib/appFormat";
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
 function Section({ icon: Icon, title, number, children }: {
@@ -55,7 +56,7 @@ function StatusBadge({ status }: { status: string }) {
 }
 
 function formatDateTime(dateStr: string): string {
-  return new Date(dateStr).toLocaleString("en-IN", {
+  return new Date(dateStr).toLocaleString(appLocale(), {
     day: "2-digit", month: "short", year: "numeric",
     hour: "2-digit", minute: "2-digit",
   });

@@ -1,24 +1,21 @@
-// Host of the ROW portal / API for next/image (NEXT_PUBLIC_PORTAL_ORIGIN, e.g. https://portal.example.org).
-const portalHost = (() => {
-  try { return new URL(process.env.NEXT_PUBLIC_PORTAL_ORIGIN ?? "").hostname; } catch { return ""; }
-})();
+import createNextIntlPlugin from "next-intl/plugin";
 
-// The public marketing pages carried the previous owner's content (people, events, story). Until ROW has its
-// own public content they redirect to the sign-in page; set NEXT_PUBLIC_PUBLIC_SITE=true to serve them.
-const CONTENT_PAGES = [
-  "/", "/about-us", "/committee", "/contact-us", "/district-governors", "/events", "/past-events",
-  "/international-national", "/our-leaders", "/regional-leaders", "/download",
-];
+// Translation without locale routing: see src/i18n/config.ts.
+const withNextIntl = createNextIntlPlugin("./src/i18n/request.ts");
+
+// Images may be served from the instance's own API host (NEXT_PUBLIC_API_URL) as well as
+// the ROW host the existing pattern list already allows.
+function apiImagePattern() {
+  try {
+    const url = new URL(process.env.NEXT_PUBLIC_API_URL || "");
+    return [{ protocol: url.protocol.replace(":", ""), hostname: url.hostname, ...(url.port ? { port: url.port } : {}), pathname: "/**" }];
+  } catch {
+    return [];
+  }
+}
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  async redirects() {
-    if (process.env.NEXT_PUBLIC_PUBLIC_SITE === "true") return [];
-    return CONTENT_PAGES.flatMap((source) => [
-      { source, destination: "/login", permanent: false },
-      ...(source === "/" ? [] : [{ source: `${source}/:path*`, destination: "/login", permanent: false }]),
-    ]);
-  },
   output: "standalone",
   experimental: {
     missingSuspenseWithCSRBailout: false,
@@ -39,9 +36,14 @@ const nextConfig = {
         port: "5000",
         pathname: "/**",
       },
-      ...(portalHost ? [{ protocol: "https", hostname: portalHost, pathname: "/**" }] : []),
+      {
+        protocol: "https",
+        hostname: "portal.example.org",
+        pathname: "/**",
+      },
+      ...apiImagePattern(),
     ],
   },
 };
 
-export default nextConfig;
+export default withNextIntl(nextConfig);

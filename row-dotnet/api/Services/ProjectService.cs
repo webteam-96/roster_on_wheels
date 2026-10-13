@@ -127,15 +127,47 @@ public class ProjectService : IProjectService
 
         // Note: parent_project_id JOIN dropped — parent may live in a different year table.
         // Frontend can fetch parent separately via GET by (parentYearId, parentId) when needed.
+        //
+        // eff_parent (user 2026-10-07, "project count showing 7 but listing shows 6"): an entry whose
+        // ongoing parent is in an EARLIER year table has no parent row here, so it was never listed
+        // (144 entries / 68 clubs in 2026-27) while the counts included it. The earliest such entry
+        // per old parent now acts as the top row (eff_parent 0); later ones nest under it.
+        // Same rule as ClubAdminDashboardService.LoadAvenueProjectsAsync (web dashboard + mobile).
+        var grp = $@"base AS (
+                       SELECT b.pk_project_id, b.parent_project_id, b.project_date, b.project_type, b.title, b.location,
+                              CASE WHEN COALESCE(b.parent_project_id, 0) = 0 THEN 0
+                                   WHEN EXISTS (SELECT 1 FROM `{info.ProjectsTable}` x
+                                                WHERE x.pk_project_id = b.parent_project_id AND x.fk_club_id = b.fk_club_id
+                                                  AND x.isdeleted = 0) THEN 0
+                                   ELSE 1 END AS orphan
+                       FROM `{info.ProjectsTable}` b
+                       WHERE b.fk_club_id = @ClubId AND b.fk_module_id = @ModuleId AND b.isdeleted = 0),
+                     k AS (
+                       SELECT base.*,
+                              CASE WHEN orphan = 0 THEN COALESCE(parent_project_id, 0)
+                                   ELSE NULLIF(FIRST_VALUE(pk_project_id) OVER (PARTITION BY orphan, parent_project_id
+                                                 ORDER BY project_date, pk_project_id), pk_project_id) END AS eff_parent
+                       FROM base),
+                     page AS (
+                       SELECT pk_project_id AS pid FROM k
+                       WHERE COALESCE(eff_parent, 0) = 0
+                         AND (@ProjectType IS NULL
+                              OR project_type = @ProjectType
+                              OR (@ProjectType = 'ongoing_repeat' AND project_type = 'ongoing')
+                              OR (@ProjectType = 'ongoing' AND project_type = 'ongoing_repeat'))
+                         AND (@Search IS NULL OR title LIKE CONCAT('%', @Search, '%') OR location LIKE CONCAT('%', @Search, '%'))";
         using var multi = await conn.QueryMultipleAsync(
-            $@"SELECT p.pk_project_id AS Id,
+            $@"WITH {grp}
+                       ORDER BY project_date DESC, pk_project_id DESC
+                       LIMIT @Offset, @PageSize)
+               SELECT p.pk_project_id AS Id,
                       p.fk_club_id AS ClubId,
                       p.fk_module_id AS ModuleId,
                       p.fk_year_id AS YearId,
                       y.YearLabel,
                       -- Legacy rows store ongoing; new rows store ongoing_repeat. Normalise on the wire.
                       CASE WHEN p.project_type = 'ongoing' THEN 'ongoing_repeat' ELSE p.project_type END AS ProjectType,
-                      p.parent_project_id AS ParentProjectId,
+                      NULLIF(COALESCE(k.eff_parent, 0), 0) AS ParentProjectId,
                       p.ongoing_group_title AS OngoingGroupTitle,
                       p.is_joint_project AS IsJointProject,
                       p.co_host_name AS CoHostName,
@@ -172,65 +204,24 @@ public class ProjectService : IProjectService
                                 '/', pp.image_path)
                        FROM `{info.PhotosTable}` pp
                        WHERE pp.fk_project_id = p.pk_project_id AND pp.is_primary = 1 LIMIT 1) AS PrimaryPhotoPath
+               /* Pagination applies to TOP rows only: `page` holds exactly @PageSize top-row ids;
+                  this then fetches those rows PLUS everything nested under them (eff_parent). */
                FROM `{info.ProjectsTable}` p
+               JOIN k ON k.pk_project_id = p.pk_project_id
+               JOIN (SELECT DISTINCT pid FROM page) pg ON pg.pid = p.pk_project_id OR pg.pid = k.eff_parent
                LEFT JOIN rotary_year_master y ON p.fk_year_id = y.pk_year_id
                LEFT JOIN area_of_focus_master aof ON p.fk_area_of_focus_id = aof.pk_area_of_focus_id
                LEFT JOIN category_master cat ON p.fk_category_id = cat.pk_category_id
                LEFT JOIN sub_category_master scat ON p.fk_sub_category_id = scat.pk_sub_category_id
                LEFT JOIN funding_master f ON p.fk_funding_id = f.pk_funding_id
-               /* Pagination must apply to PARENT rows only. The parent_page subquery
-                  selects exactly @PageSize parent IDs for this page; the outer WHERE then
-                  fetches those parents PLUS all their children so the expand-arrow has rows.
-                  Wrapped in another SELECT because MySQL forbids LIMIT inside an IN subquery. */
                WHERE p.fk_club_id = @ClubId
                  AND p.fk_module_id = @ModuleId
                  AND p.isdeleted = 0
-                 AND (
-                   p.pk_project_id IN (
-                     SELECT pid FROM (
-                       SELECT pk_project_id AS pid FROM `{info.ProjectsTable}`
-                       WHERE fk_club_id = @ClubId AND fk_module_id = @ModuleId AND isdeleted = 0
-                         AND (parent_project_id IS NULL OR parent_project_id = 0)
-                         AND (@ProjectType IS NULL
-                              OR project_type = @ProjectType
-                              OR (@ProjectType = 'ongoing_repeat' AND project_type = 'ongoing')
-                              OR (@ProjectType = 'ongoing' AND project_type = 'ongoing_repeat'))
-                         AND (@Search IS NULL OR title LIKE CONCAT('%', @Search, '%') OR location LIKE CONCAT('%', @Search, '%'))
-                       ORDER BY project_date DESC, pk_project_id DESC
-                       LIMIT @Offset, @PageSize
-                     ) parent_page_ids
-                   )
-                   OR
-                   p.parent_project_id IN (
-                     SELECT pid FROM (
-                       SELECT pk_project_id AS pid FROM `{info.ProjectsTable}`
-                       WHERE fk_club_id = @ClubId AND fk_module_id = @ModuleId AND isdeleted = 0
-                         AND (parent_project_id IS NULL OR parent_project_id = 0)
-                         AND (@ProjectType IS NULL
-                              OR project_type = @ProjectType
-                              OR (@ProjectType = 'ongoing_repeat' AND project_type = 'ongoing')
-                              OR (@ProjectType = 'ongoing' AND project_type = 'ongoing_repeat'))
-                         AND (@Search IS NULL OR title LIKE CONCAT('%', @Search, '%') OR location LIKE CONCAT('%', @Search, '%'))
-                       ORDER BY project_date DESC, pk_project_id DESC
-                       LIMIT @Offset, @PageSize
-                     ) parent_page_ids2
-                   )
-                 )
                ORDER BY p.project_date DESC, p.pk_project_id DESC;
 
-               /* Total count is PARENTS-ONLY so pagination reflects what the user sees as rows. */
-               SELECT COUNT(*) AS TotalCount
-               FROM `{info.ProjectsTable}` p
-               WHERE p.fk_club_id = @ClubId
-                 AND p.fk_module_id = @ModuleId
-                 AND p.isdeleted = 0
-                 AND (p.parent_project_id IS NULL OR p.parent_project_id = 0)
-                 AND (@ProjectType IS NULL
-                      OR p.project_type = @ProjectType
-                      OR (@ProjectType = 'ongoing_repeat' AND p.project_type = 'ongoing')
-                      OR (@ProjectType = 'ongoing' AND p.project_type = 'ongoing_repeat'))
-                 AND (@Search IS NULL OR p.title LIKE CONCAT('%', @Search, '%')
-                      OR p.location LIKE CONCAT('%', @Search, '%'));",
+               /* Total count is TOP rows only so pagination reflects what the user sees as rows. */
+               WITH {grp})
+               SELECT COUNT(*) AS TotalCount FROM page;",
             new { ClubId = clubId, ModuleId = moduleId, Offset = offset, PageSize = pageSize, Search = searchParam, ProjectType = typeParam });
 
         var items = (await multi.ReadAsync<ProjectListDto>()).ToList();

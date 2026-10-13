@@ -5,9 +5,9 @@ import { UpcomingEventCard } from "@/components/pages/events/UpcomingEventCard";
 import { UPCOMING_EVENTS } from "@/components/pages/events/data";
 
 export const metadata: Metadata = {
-  title: "Upcoming Events | Rotary Zones 4, 5, 6, 7 & 8",
+  title: "Upcoming Events | ROW",
   description:
-    "Institutes, summits and conclaves coming up across Rotary Zones 4, 5, 6, 7 & 8 — dates, venues and how to register.",
+    "Institutes, summits and conclaves coming up across ROW — dates, venues and how to register.",
 };
 
 export default function EventsPage() {

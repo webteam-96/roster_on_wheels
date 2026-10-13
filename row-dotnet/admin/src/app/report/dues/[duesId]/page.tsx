@@ -5,6 +5,7 @@ import { useParams } from "next/navigation";
 import { getPublicMembershipDuesReport, exportPublicMembershipDuesReport } from "@/services/api";
 import { fileTimestamp } from "@/lib/dateUtils";
 
+import { appLocale } from "@/lib/appFormat";
 interface ReportMember {
   memberName: string | null;
   categoryType: string | null;
@@ -40,7 +41,7 @@ interface ReportData {
 }
 
 function fmtAmt(val: number): string {
-  return val.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  return val.toLocaleString(appLocale(), { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
 // Renders the 5 columns (Amt, Settled, Mode, Date, Status) of a fee-type
