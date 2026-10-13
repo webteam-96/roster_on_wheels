@@ -151,7 +151,7 @@ export default function RiDirectorV2Page() {
   const sidebarContent = (
     <div className="flex flex-col h-full">
       <div className="px-5 py-5 border-b border-white/10">
-        <Image src="/images/rotary-white-live.png" alt="Rotary" width={140} height={40} className="h-10 w-auto object-contain" priority />
+        <Image src="/brand/row-logo-badge.png" alt="Roster On Wheels" width={140} height={40} className="h-10 w-auto object-contain" priority />
         <p className="text-xs text-slate-400 mt-2 font-medium">RI Director Dashboard</p>
       </div>
 

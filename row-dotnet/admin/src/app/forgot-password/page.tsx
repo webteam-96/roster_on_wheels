@@ -78,8 +78,8 @@ export default function ForgotPasswordPage() {
           <div className="flex items-center gap-3">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src="/images/rotary-white-live.png"
-              alt="Rotary"
+              src="/brand/row-logo-badge.png"
+              alt="Roster On Wheels"
               className="h-16 object-contain"
             />
             <div>

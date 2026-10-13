@@ -178,8 +178,8 @@ export default function PublicProjectPage() {
         <div className="max-w-5xl mx-auto px-4 py-3 flex items-center gap-3">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src="/images/rotary-white-live.png"
-            alt="Rotary"
+            src="/brand/row-logo-badge.png"
+            alt="Roster On Wheels"
             className="h-14 object-contain"
           />
           <div className="text-white">

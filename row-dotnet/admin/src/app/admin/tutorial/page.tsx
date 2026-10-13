@@ -49,7 +49,7 @@ export default function TutorialPage() {
                     style={{ background: `radial-gradient(circle, ${BRAND_GOLD} 0%, transparent 70%)` }}
                   />
                   <Image
-                    src="/images/rotary-masterbrand.png"
+                    src="/brand/row-logo.png"
                     alt="ROW"
                     width={320}
                     height={100}

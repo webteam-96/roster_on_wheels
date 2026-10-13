@@ -25,7 +25,7 @@ export function Logo({
       aria-label="ROW — Home"
     >
       <Image
-        src={tone === "brand" ? "/images/rotary-masterbrand.png" : "/images/rotary-masterbrand-white.png"}
+        src={tone === "brand" ? "/brand/row-logo.png" : "/brand/row-logo-badge.png"}
         alt="ROW"
         width={905}
         height={295}

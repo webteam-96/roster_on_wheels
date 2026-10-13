@@ -355,7 +355,7 @@ export default function PublicPaymentPage() {
         <Card className="mb-6">
           <CardContent className="pt-6">
             <div className="flex items-center gap-4 mb-4">
-              <img src={eventLink.purposeLogo ? `${API_BASE_URL}${eventLink.purposeLogo}` : "/images/rotary-logo.png"} alt="Logo" className="h-16 w-16 object-contain rounded" />
+              <img src={eventLink.purposeLogo ? `${API_BASE_URL}${eventLink.purposeLogo}` : "/brand/row-mark.png"} alt="Logo" className="h-16 w-16 object-contain rounded" />
               <div>
                 <h1 className="text-2xl font-bold text-primary">{eventLink.title}</h1>
                 {eventLink.description && <p className="text-muted-foreground mt-1">{eventLink.description}</p>}

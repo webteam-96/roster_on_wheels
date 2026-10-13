@@ -97,10 +97,11 @@ export const DEFAULT_BRAND: Brand = {
   instanceCode: "ROW",
   productName: "Roster On Wheels",
   shortName: "ROW",
-  logoUrl: "",
-  logoDarkUrl: "",
+  // ROW logo shipped with the portal: on a white card for dark backgrounds, transparent for light ones.
+  logoUrl: "/brand/row-logo-badge.png",
+  logoDarkUrl: "/brand/row-logo.png",
   faviconUrl: "",
-  openGraphImageUrl: "",
+  openGraphImageUrl: "/brand/row-logo-badge.png",
   support: {
     email: "",
     phones: [],

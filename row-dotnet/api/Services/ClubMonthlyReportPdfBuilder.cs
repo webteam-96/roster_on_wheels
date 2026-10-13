@@ -64,7 +64,10 @@ public static class ClubMonthlyReportPdfBuilder
                 {
                     col.Spacing(4);
 
-                    // Title
+                    // ROW logo, then the title
+                    var logo = BrandAssets.PdfLogo;
+                    if (logo != null)
+                        col.Item().PaddingBottom(6).AlignCenter().Height(50).Image(logo).FitHeight();
                     col.Item().AlignCenter().Text($"Club Monthly Report — {s.MonthName} {s.YearLabel}").Bold().FontSize(17).FontColor("#111111");
                     if (s.UploadedToDistrictDate.HasValue)
                         col.Item().AlignCenter().Text($"Uploaded to District: {FmtDateTime(s.UploadedToDistrictDate.Value)}").FontSize(10).FontColor(Muted);

@@ -216,7 +216,7 @@ export default function PublicLanding() {
               <div className="relative">
                 <div className="absolute inset-0 rounded-full" style={{ background: "radial-gradient(circle, rgba(247,168,27,0.25) 0%, transparent 70%)", transform: "scale(1.4)" }} />
                 <Image
-                  src="/images/rotary-white-live.png"
+                  src="/brand/row-logo-badge.png"
                   alt="ROW emblem"
                   width={420}
                   height={420}

@@ -176,6 +176,7 @@ public static class OcvReportWordBuilder
             var body = new Body();
             uint imgId = 1;
 
+            if (WordBrandLogo.Paragraph(main) is { } logo) body.Append(logo);
             body.Append(Centered($"Rotary Club of {data.ClubName}", 34, bold: true));
             body.Append(Centered("Governor's Official Visit (OCV) Report", 28, bold: true, colorHex: BrandBlueHex));
             body.Append(Centered($"Rotary Year {data.YearLabel}", 22, colorHex: MutedHex));
@@ -327,6 +328,7 @@ public static class OcvReportWordBuilder
             var body = new Body();
             uint imgId = 1;
 
+            if (WordBrandLogo.Paragraph(main) is { } logo) body.Append(logo);
             body.Append(Centered($"Rotary Club of {data.ClubName}", 34, bold: true));
             body.Append(Centered("Governor's Official Visit (OCV) Report", 28, bold: true, colorHex: BrandBlueHex));
             body.Append(Centered(moduleLabel, 24, bold: true, colorHex: LabelHex));

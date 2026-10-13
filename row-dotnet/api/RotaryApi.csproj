@@ -1,9 +1,10 @@
-<Project Sdk="Microsoft.NET.Sdk.Web">
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+    <UserSecretsId>15a6eeda-1899-4604-9910-98a757f176f1</UserSecretsId>
   </PropertyGroup>
 
   <!--
@@ -26,6 +27,12 @@
     <EmbeddedResource Remove="publish-deploy/**" />
     <EmbeddedResource Remove="publish-output/**" />
     <EmbeddedResource Remove="publish/**" />
+  </ItemGroup>
+
+  <!-- ROW logo for PDF reports, built into the API so a PDF never depends on a download. -->
+  <ItemGroup>
+    <EmbeddedResource Include="Resources/Brand/row-logo.png" LogicalName="Brand.row-logo.png" />
+    <EmbeddedResource Include="Resources/Brand/row-logo-badge.png" LogicalName="Brand.row-logo-badge.png" />
   </ItemGroup>
 
   <ItemGroup>
