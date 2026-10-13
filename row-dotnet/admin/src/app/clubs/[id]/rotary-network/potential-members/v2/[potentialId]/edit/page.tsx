@@ -195,14 +195,14 @@ export default function PotentialMembersV2EditPage() {
               />
             </div>
             <div>
-              <FieldLabel dot="bg-emerald-500" hint="(e.g. +91 98765 43210)">Mobile Number</FieldLabel>
+              <FieldLabel dot="bg-emerald-500" hint="(e.g. +1 555 123 4567)">Mobile Number</FieldLabel>
               <div className="relative">
                 <Phone className="absolute left-2 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400" />
                 <input
                   type="text"
                   value={mobile}
                   onChange={(e) => setMobile(e.target.value)}
-                  placeholder="+91 98765 43210"
+                  placeholder="+1 555 123 4567"
                   className="w-full pl-7 pr-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
                 />
               </div>

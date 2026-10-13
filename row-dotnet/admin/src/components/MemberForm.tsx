@@ -759,7 +759,7 @@ export default function MemberForm({
                 </div>
                 {renderAddrInput("Residential", resAddr, "state", "State")}
                 {renderAddrInput("Residential", resAddr, "city", "City")}
-                {renderAddrInput("Residential", resAddr, "pinCode", "PIN Code")}
+                {renderAddrInput("Residential", resAddr, "pinCode", "Postal code")}
               </div>
             </CardContent>
           </Card>
@@ -790,7 +790,7 @@ export default function MemberForm({
                 </div>
                 {renderAddrInput("Business", busAddr, "state", "State")}
                 {renderAddrInput("Business", busAddr, "city", "City")}
-                {renderAddrInput("Business", busAddr, "pinCode", "PIN Code")}
+                {renderAddrInput("Business", busAddr, "pinCode", "Postal code")}
               </div>
             </CardContent>
           </Card>

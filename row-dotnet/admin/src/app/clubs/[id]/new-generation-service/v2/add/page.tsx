@@ -818,7 +818,7 @@ export default function NewGenerationServiceV2AddPage() {
                     <input
                       type="text" value={hostClubsDistricts}
                       onChange={(e) => setHostClubsDistricts(e.target.value)}
-                      placeholder="e.g., RC Pune, RC Mumbai"
+                      placeholder="e.g., RC Chicago, RC Paris"
                       className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500"
                     />
                   </div>
@@ -845,7 +845,7 @@ export default function NewGenerationServiceV2AddPage() {
                     <input
                       type="text" value={csrCompanyName}
                       onChange={(e) => setCsrCompanyName(e.target.value)}
-                      placeholder="e.g., ABC Industries Pvt Ltd"
+                      placeholder="e.g., ABC Industries Ltd"
                       className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500"
                     />
                   </div>

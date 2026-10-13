@@ -78,6 +78,7 @@ function NewDistrictForm() {
     const missing: string[] = [];
     if (!zoneId) missing.push("Zone");
     if (!districtNumber.trim()) missing.push("District Number");
+    if (!country) missing.push("Country");
     if (missing.length > 0) {
       setErrorMessage(`Please fill in: ${missing.join(", ")}.`);
       return;
@@ -195,7 +196,7 @@ function NewDistrictForm() {
                       ))}
                     </SelectContent>
                   </Select>
-                  <p className="text-xs text-muted-foreground">Defaults to India</p>
+                  <p className="text-xs text-muted-foreground">Country is required</p>
                 </div>
 
                 <div className="space-y-2">

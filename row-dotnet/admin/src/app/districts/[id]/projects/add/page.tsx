@@ -282,7 +282,7 @@ export default function DistrictProjectAddPage() {
                   </div>
                   <div className="space-y-2 md:col-span-2">
                     <Label>Host Clubs/Districts <span className="text-destructive">*</span></Label>
-                    <Input value={hostClubsDistricts} onChange={e => setHostClubsDistricts(e.target.value)} placeholder="e.g., RC Pune, RC Mumbai" />
+                    <Input value={hostClubsDistricts} onChange={e => setHostClubsDistricts(e.target.value)} placeholder="e.g., RC Chicago, RC Paris" />
                   </div>
                   <div className="space-y-2 md:col-span-2">
                     <Label>Global Partner Clubs/Districts <span className="text-destructive">*</span></Label>
@@ -299,7 +299,7 @@ export default function DistrictProjectAddPage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2 md:col-span-2">
                     <Label>Name of the CSR Company <span className="text-destructive">*</span></Label>
-                    <Input value={csrCompanyName} onChange={e => setCsrCompanyName(e.target.value)} placeholder="e.g., ABC Industries Pvt Ltd" />
+                    <Input value={csrCompanyName} onChange={e => setCsrCompanyName(e.target.value)} placeholder="e.g., ABC Industries Ltd" />
                   </div>
                   <div className="space-y-2">
                     <Label>Amount Sanctioned ({currencySymbol()}) <span className="text-destructive">*</span></Label>

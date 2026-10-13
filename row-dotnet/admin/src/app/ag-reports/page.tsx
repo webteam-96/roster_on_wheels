@@ -149,7 +149,7 @@ const sections: ReportSection[] = [
           { key: "address", label: "Address", width: 40 },
           { key: "city", label: "City", width: 16 },
           { key: "state", label: "State", width: 16 },
-          { key: "pinCode", label: "Pincode", width: 10 },
+          { key: "pinCode", label: "Postal code", width: 10 },
           { key: "phoneNumber", label: "Phone", width: 14 },
           { key: "businessName", label: "Business Name", width: 24 },
           { key: "designation", label: "Designation", width: 20 },

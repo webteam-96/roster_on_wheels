@@ -279,7 +279,7 @@ export default function DistrictProjectEditPage() {
                 <div className="space-y-2"><Label>Amount Sanctioned ({currencySymbol()}) <span className="text-destructive">*</span></Label><Input inputMode="numeric" pattern="[0-9]*" value={amountSanctioned} onChange={e => setAmountSanctioned(onlyDigits(e.target.value))} placeholder="0" /></div>
                 <div className="space-y-2"><Label>Amount Received ({currencySymbol()}) <span className="text-destructive">*</span></Label><Input inputMode="numeric" pattern="[0-9]*" value={amountReceived} onChange={e => setAmountReceived(onlyDigits(e.target.value))} placeholder="0" /></div>
                 <div className="space-y-2"><Label>Amount spent till date ({currencySymbol()}) <span className="text-destructive">*</span></Label><Input inputMode="numeric" pattern="[0-9]*" value={amountSpent} onChange={e => setAmountSpent(onlyDigits(e.target.value))} placeholder="0" /></div>
-                <div className="space-y-2 md:col-span-2"><Label>Host Clubs/Districts <span className="text-destructive">*</span></Label><Input value={hostClubsDistricts} onChange={e => setHostClubsDistricts(e.target.value)} placeholder="e.g., RC Pune, RC Mumbai" /></div>
+                <div className="space-y-2 md:col-span-2"><Label>Host Clubs/Districts <span className="text-destructive">*</span></Label><Input value={hostClubsDistricts} onChange={e => setHostClubsDistricts(e.target.value)} placeholder="e.g., RC Chicago, RC Paris" /></div>
                 <div className="space-y-2 md:col-span-2"><Label>Global Partner Clubs/Districts <span className="text-destructive">*</span></Label><Input value={globalPartnerClubsDistricts} onChange={e => setGlobalPartnerClubsDistricts(e.target.value)} placeholder="e.g., RC Tokyo" /></div>
               </div>
             </div>
@@ -290,7 +290,7 @@ export default function DistrictProjectEditPage() {
             <div className="space-y-3 border-l-4 border-primary bg-primary/5 rounded-md p-4">
               <h4 className="text-sm font-semibold text-primary">CSR Details</h4>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2 md:col-span-2"><Label>Name of the CSR Company <span className="text-destructive">*</span></Label><Input value={csrCompanyName} onChange={e => setCsrCompanyName(e.target.value)} placeholder="e.g., ABC Industries Pvt Ltd" /></div>
+                <div className="space-y-2 md:col-span-2"><Label>Name of the CSR Company <span className="text-destructive">*</span></Label><Input value={csrCompanyName} onChange={e => setCsrCompanyName(e.target.value)} placeholder="e.g., ABC Industries Ltd" /></div>
                 <div className="space-y-2"><Label>Amount Sanctioned ({currencySymbol()}) <span className="text-destructive">*</span></Label><Input inputMode="numeric" pattern="[0-9]*" value={amountSanctioned} onChange={e => setAmountSanctioned(onlyDigits(e.target.value))} placeholder="0" /></div>
                 <div className="space-y-2"><Label>Amount Received ({currencySymbol()}) <span className="text-destructive">*</span></Label><Input inputMode="numeric" pattern="[0-9]*" value={amountReceived} onChange={e => setAmountReceived(onlyDigits(e.target.value))} placeholder="0" /></div>
               </div>

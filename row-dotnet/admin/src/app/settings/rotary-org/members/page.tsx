@@ -541,7 +541,7 @@ export default function RotaryOrgMembersPage() {
                     { key: "resAddress", label: "Address", orgValue: formatAddr(orgHomeAddr) },
                     { key: "resCity", label: "City", orgValue: orgHomeAddr?.city },
                     { key: "resState", label: "State", orgValue: orgHomeAddr?.state },
-                    { key: "resPinCode", label: "Pin Code", orgValue: orgHomeAddr?.postalCode },
+                    { key: "resPinCode", label: "Postal code", orgValue: orgHomeAddr?.postalCode },
                   ]}
                 />
                 {orgHomeAddr?.country && (
@@ -556,7 +556,7 @@ export default function RotaryOrgMembersPage() {
                     { key: "busAddress", label: "Address", orgValue: formatAddr(orgBusinessAddr) },
                     { key: "busCity", label: "City", orgValue: orgBusinessAddr?.city },
                     { key: "busState", label: "State", orgValue: orgBusinessAddr?.state },
-                    { key: "busPinCode", label: "Pin Code", orgValue: orgBusinessAddr?.postalCode },
+                    { key: "busPinCode", label: "Postal code", orgValue: orgBusinessAddr?.postalCode },
                   ]}
                 />
                 {orgBusinessAddr?.country && (

@@ -16,8 +16,8 @@ type Props = {
   onConfirm: (lat: number, lng: number) => void;
 };
 
-const DEFAULT_CENTER: [number, number] = [20.5937, 78.9629]; // India centroid
-const DEFAULT_ZOOM = 5;
+const DEFAULT_CENTER: [number, number] = [20, 0]; // whole world: ROW clubs are on every continent
+const DEFAULT_ZOOM = 2;
 const PICKED_ZOOM = 15;
 
 export default function MapPicker({ open, onOpenChange, initialLat, initialLng, onConfirm }: Props) {
@@ -223,7 +223,7 @@ export default function MapPicker({ open, onOpenChange, initialLat, initialLng, 
           <div className="flex gap-2">
             <div className="flex-1 flex gap-2">
               <Input
-                placeholder="Search city / address (e.g., 'Mumbai' or '123 MG Road, Bangalore')"
+                placeholder="Search city / address (e.g., 'Paris' or '1 Main Street, Toronto')"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); searchAddress(); } }}

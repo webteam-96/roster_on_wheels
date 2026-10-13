@@ -45,7 +45,7 @@ export default function EditClubPage() {
     fkDistrictId: 0, clubRotaryId: "", clubName: "",
     clubCharterDate: "", clubLogoPath: null as string | null, clubWebsite: "",
     meetingDay: "", meetingFromTime: "", meetingToTime: "", meetingAddress: "",
-    country: "India", state: "", city: "", pincode: "",
+    country: "", state: "", city: "", pincode: "",
     latitude: null as number | null, longitude: null as number | null,
     activeFromDate: "", activeToDate: "",
     isAutomaticMeetingReminder: true, isFamilyLogin: false, isActive: true,
@@ -67,7 +67,7 @@ export default function EditClubPage() {
           meetingFromTime: club.meetingFromTime ? String(club.meetingFromTime).substring(0, 5) : "",
           meetingToTime: club.meetingToTime ? String(club.meetingToTime).substring(0, 5) : "",
           meetingAddress: club.meetingAddress || "",
-          country: club.country || "India",
+          country: club.country || "",
           state: club.state || "",
           city: club.city || "",
           pincode: club.pincode || "",
@@ -122,7 +122,6 @@ export default function EditClubPage() {
     if (!form.country.trim()) missing.push("Country");
     if (!form.state) missing.push("State");
     if (!form.city.trim()) missing.push("City");
-    if (!form.pincode.trim()) missing.push("Pincode");
     if (!form.activeFromDate) missing.push("Active From Date");
     if (!form.activeToDate) missing.push("Active To Date");
     if (missing.length > 0) {
@@ -218,7 +217,7 @@ export default function EditClubPage() {
                 <div className="space-y-2"><Label>Country<span className="text-destructive ml-1">*</span></Label><Input value={form.country} onChange={(e) => updateForm("country", e.target.value)} required /><p className="text-xs text-muted-foreground">Country is required</p></div>
                 <div className="space-y-2"><Label>State<span className="text-destructive ml-1">*</span></Label><Input value={form.state} onChange={(e) => updateForm("state", e.target.value)} required placeholder="Enter state" /><p className="text-xs text-muted-foreground">State is required</p></div>
                 <div className="space-y-2"><Label>City<span className="text-destructive ml-1">*</span></Label><Input value={form.city} onChange={(e) => updateForm("city", e.target.value)} required /><p className="text-xs text-muted-foreground">City is required</p></div>
-                <div className="space-y-2"><Label>Pincode<span className="text-destructive ml-1">*</span></Label><Input value={form.pincode} onChange={(e) => updateForm("pincode", e.target.value)} required /><p className="text-xs text-muted-foreground">Pincode is required</p></div>
+                <div className="space-y-2"><Label>Postal code</Label><Input value={form.pincode} onChange={(e) => updateForm("pincode", e.target.value)} maxLength={12} /><p className="text-xs text-muted-foreground">Optional</p></div>
               </div>
               <div className="border-t pt-4">
                 <div className="flex items-center justify-between mb-2">
@@ -229,8 +228,8 @@ export default function EditClubPage() {
                   <Button type="button" variant="outline" onClick={() => setMapOpen(true)}><MapPin className="mr-2 h-4 w-4" />Pick on Map</Button>
                 </div>
                 <div className="grid gap-4 sm:grid-cols-2">
-                  <div className="space-y-2"><Label>Latitude</Label><Input type="number" step="0.0000001" value={form.latitude ?? ""} onChange={(e) => updateForm("latitude", e.target.value === "" ? null : parseFloat(e.target.value))} placeholder="e.g., 19.0760" /></div>
-                  <div className="space-y-2"><Label>Longitude</Label><Input type="number" step="0.0000001" value={form.longitude ?? ""} onChange={(e) => updateForm("longitude", e.target.value === "" ? null : parseFloat(e.target.value))} placeholder="e.g., 72.8777" /></div>
+                  <div className="space-y-2"><Label>Latitude</Label><Input type="number" step="0.0000001" value={form.latitude ?? ""} onChange={(e) => updateForm("latitude", e.target.value === "" ? null : parseFloat(e.target.value))} placeholder="e.g., 48.8566" /></div>
+                  <div className="space-y-2"><Label>Longitude</Label><Input type="number" step="0.0000001" value={form.longitude ?? ""} onChange={(e) => updateForm("longitude", e.target.value === "" ? null : parseFloat(e.target.value))} placeholder="e.g., 2.3522" /></div>
                 </div>
               </div>
             </CardContent></Card>

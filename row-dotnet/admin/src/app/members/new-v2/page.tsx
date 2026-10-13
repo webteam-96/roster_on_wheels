@@ -912,7 +912,7 @@ function AddMemberV2Form() {
           </div>
           {renderAddrInput("Residential", resAddr, "state", "State")}
           {renderAddrInput("Residential", resAddr, "city", "City")}
-          {renderAddrInput("Residential", resAddr, "pinCode", "PIN Code")}
+          {renderAddrInput("Residential", resAddr, "pinCode", "Postal code")}
         </div>
       </SectionCard>
 
@@ -938,7 +938,7 @@ function AddMemberV2Form() {
           </div>
           {renderAddrInput("Business", busAddr, "state", "State", "text", "bg-amber-500")}
           {renderAddrInput("Business", busAddr, "city", "City", "text", "bg-amber-500")}
-          {renderAddrInput("Business", busAddr, "pinCode", "PIN Code", "text", "bg-amber-500")}
+          {renderAddrInput("Business", busAddr, "pinCode", "Postal code", "text", "bg-amber-500")}
         </div>
       </SectionCard>
 
