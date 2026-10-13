@@ -14,3 +14,10 @@ graphify-out/
 
 __pycache__/
 *.pyc
+
+# Club website and mobile app are not published to this repo
+/row/club-website/
+/row-dotnet/club-website/
+/row/mobile/
+/kb/club-website-diff.md
+/kb/mobile-diff.md
