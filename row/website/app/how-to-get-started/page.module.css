@@ -1,0 +1,34 @@
+/* How to Get Started: only what the shared kit does not already cover. */
+
+/* ---------- Six simple steps: numbered cards, each with its icon, three across with an arrow to the next ---------- */
+.steps :global(.ksteps) { max-width: none; gap: 16px; }
+@media (min-width: 640px) { .steps :global(.ksteps) { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (min-width: 1024px) { .steps :global(.ksteps) { grid-template-columns: repeat(3, minmax(0, 1fr)); column-gap: 36px; row-gap: 20px; } }
+.steps :global(.kstep) {
+  position: relative;
+  grid-template-columns: 52px minmax(0, 1fr); align-items: center; align-content: start; row-gap: 18px;
+  padding: 22px 24px 26px; border-radius: 28px; box-shadow: var(--shadow-soft);
+}
+.steps :global(.kstep__icon) { justify-self: end; }
+.steps :global(.kstep p) { grid-column: 1 / -1; font-size: 1.0625rem; line-height: 1.5; }
+.steps :global(.kstep__t) { display: block; margin-bottom: 4px; font-size: 1.25rem; }
+/* a small gold arrow in the gap to the next card on the same row */
+@media (min-width: 1024px) {
+  .steps :global(.kstep:not(:nth-child(3n)):not(:last-child))::after {
+    content: ""; position: absolute; top: 38px; right: -32px; width: 28px; height: 16px;
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 28 16' fill='none' stroke='%23F7A81B' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 8h20M17 3l5 5-5 5'/%3E%3C/svg%3E") center / contain no-repeat;
+  }
+}
+
+/* ---------- A heading and one short paragraph beside a picture (psec--split); the My Rotary one leads ---------- */
+.statement :global(.lead-p) { margin-bottom: 0; font-size: clamp(1.1875rem, 1.05rem + .5vw, 1.5rem); line-height: 1.5; }
+.cta { margin-top: clamp(24px, 3vw, 32px); }
+@media (min-width: 1100px) { .flip :global(.psec__aside) { order: -1; } }
+
+.art { display: block; width: min(100%, 460px); height: auto; overflow: visible; }
+.arrow { fill: none; stroke: var(--marigold); stroke-width: 4; stroke-linecap: round; stroke-linejoin: round; }
+/* the doc's own words inside the pictures */
+.word { font: 650 15px/1 var(--font-display); fill: var(--ink); }
+.row { font: 700 15px/1 var(--font-display); fill: var(--azure); }
+.chip { font: 650 11.5px/1 var(--font-body); fill: var(--ink); }
+.pill { font: 650 12px/1 var(--font-body); fill: var(--ink); text-anchor: middle; }

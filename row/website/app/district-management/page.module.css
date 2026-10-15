@@ -1,0 +1,31 @@
+/* District Management: only what the shared kit does not already cover. */
+
+/* Hero hub. The two-line core name stays inside its circle at every width; beside the copy (1100px+) the
+   column is ~400-520px, so the core, gap and fan tighten and every spoke label keeps to one line. */
+.heroHub :global(.hub__name) { font-size: clamp(.75rem, .45rem + .7vw, 1.0625rem); }
+@media (min-width: 1100px) {
+  .heroHub:global(.hub) { column-gap: clamp(24px, 2.4vw, 44px); --fan: clamp(14px, 2.2vw, 36px); }
+  .heroHub :global(.hub__core) { width: clamp(108px, 9.5vw, 150px); }
+  .heroHub :global(.hub__mark) { width: clamp(24px, 2.4vw, 40px); }
+}
+
+/* Keeping the district informed: the three cards beside the phone, one per row (1100px+), each icon beside its words */
+@media (min-width: 1100px) {
+  .split :global(.psec__main .kgrid) { grid-template-columns: minmax(0, 1fr); }
+}
+.split :global(.kcard) { display: grid; grid-template-columns: auto minmax(0, 1fr); column-gap: 18px; align-items: start; }
+.split :global(.kcard__icon) { grid-row: span 2; margin: 0; }
+@media (max-width: 479px) { /* small phones: the icon above the words, which then get the card's full width */
+  .split :global(.kcard) { display: block; }
+  .split :global(.kcard__icon) { margin-bottom: 14px; }
+}
+.informed { display: block; width: min(100%, 408px); height: auto; overflow: visible; }
+
+/* District dues and website: beside the receipts the two long cards stack in one column */
+@media (min-width: 1100px) {
+  .duesSection :global(.kgrid) { grid-template-columns: minmax(0, 1fr); }
+}
+.dues { width: min(100%, 500px); padding: clamp(16px, 2.5vw, 28px) clamp(12px, 2vw, 24px) 8px; border-radius: 32px; background: var(--ink); box-shadow: var(--shadow-lift); }
+.dues svg { display: block; width: 100%; height: auto; }
+.way { font: 650 12px/1 var(--font-body); fill: var(--ink); text-anchor: middle; }
+.cta { margin-top: clamp(28px, 4vw, 40px); }

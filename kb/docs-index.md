@@ -82,7 +82,34 @@ open the file for the text. Do not edit by hand.
   -   11. Excluded on purpose (not pending work, listed so nobody re-opens them)
   -   12. Open decisions that hold work back
   -   13. Suggested order
-  -   14. The .NET edition (`row-dotnet/`)
+  -   14. The .NET backend (`row/api` + `row/workers`)
+- **row/README.md** (11 KB)
+  - ROW (Next.js + ASP.NET Core)
+  -   What makes it ROW
+  -   Database
+  -   Run locally
+  -   Configuration (set per server as environment variables; never commit values)
+  -   Checks
+  -   Refreshing from a newer RIZones copy
+- **row/ROW-CHANGES.md** (27 KB)
+  - ROW changes to consider later
+  -   Security and privacy
+  -   Providers
+  -   Data and time
+  -   Ported with gaps
+  -   Behaviour quirks kept from RIZones
+  -   Reports (ported 2026-10-09)
+  -   Goal Setting (ported 2026-10-10)
+  -   District Performance Report (ported 2026-10-10)
+  -   RI Director group (ported 2026-10-10)
+  -   Mobile group (ported 2026-10-10)
+  -   Admin tools and OCV group (ported 2026-10-10)
+  -   Public site group (ported 2026-10-10)
+  -   Rotary.org group (ported 2026-10-10)
+  -   Testing against the .NET API (2026-10-10)
+  -   Background services (2026-10-10)
+  -   Upstream sync (2026-10-10, reference cb3e678)
+  -   Session 3 (2026-10-12)
 - **row/STATUS.md** (31 KB)
   - ROW Build — Status and Handover
   -   1. What ROW is
@@ -108,34 +135,6 @@ open the file for the text. Do not edit by hand.
   - or
   -   Learn More
   -   Deploy on Vercel
-- **row/api/PORTING.md** (9 KB)
-  - Porting the RIZones .NET API to ROW (NestJS)
-  -   1. Layout
-  -   2. Controllers
-  -   3. Data access
-  -   4. What ROW changes while porting
-  -   5. Background services and workers
-  -   6. Order of work
-  -   7. Definition of done for a ported controller
-- **row/api/ROW-CHANGES.md** (27 KB)
-  - ROW changes to consider later
-  -   Security and privacy
-  -   Providers
-  -   Data and time
-  -   Ported with gaps
-  -   Behaviour quirks kept from RIZones
-  -   Reports (ported 2026-10-09)
-  -   Goal Setting (ported 2026-10-10)
-  -   District Performance Report (ported 2026-10-10)
-  -   RI Director group (ported 2026-10-10)
-  -   Mobile group (ported 2026-10-10)
-  -   Admin tools and OCV group (ported 2026-10-10)
-  -   Public site group (ported 2026-10-10)
-  -   Rotary.org group (ported 2026-10-10)
-  -   Testing against the .NET API (2026-10-10)
-  -   Background services (2026-10-10)
-  -   Upstream sync (2026-10-10, reference cb3e678)
-  -   Session 3 (2026-10-12)
 - **row/club-website/README.md** (2 KB)
   - Club Website
   -   Phases

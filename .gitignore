@@ -17,7 +17,9 @@ __pycache__/
 
 # Club website and mobile app are not published to this repo
 /row/club-website/
-/row-dotnet/club-website/
 /row/mobile/
 /kb/club-website-diff.md
 /kb/mobile-diff.md
+
+# Local MySQL instance for dev (not committed)
+/.localdb/

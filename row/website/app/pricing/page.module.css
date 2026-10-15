@@ -1,0 +1,108 @@
+/* /pricing: only what the shared kit (components/kit.tsx) does not cover. Global classes are reached with
+   :global() under a local class, so these rules outrank globals.css by specificity, not by load order. */
+
+/* ---------- What’s included: one price card, the fee on Royal Blue beside the checklist ---------- */
+.plan {
+  display: grid;
+  margin-top: clamp(24px, 3vw, 40px);
+  border-radius: 32px;
+  background: #fff;
+  color: var(--ink);
+  box-shadow: var(--shadow-lift);
+  overflow: clip; /* not hidden: a scroll container would freeze the ticks' view timeline */
+}
+@media (min-width: 1100px) {
+  .plan { grid-template-columns: minmax(0, 4fr) minmax(0, 8fr); }
+}
+
+.fee {
+  position: relative; isolation: isolate; overflow: clip;
+  container-type: inline-size; /* the amount scales with this block, never past it */
+  display: flex; flex-wrap: wrap; align-items: flex-end; gap: 20px 32px;
+  margin: 0;
+  padding: clamp(28px, 4vw, 48px);
+  background: var(--azure); color: #fff;
+}
+@media (min-width: 1100px) {
+  .fee { flex-direction: column; flex-wrap: nowrap; align-items: flex-start; justify-content: center; }
+}
+.feeLabel { max-width: 17ch; font: 600 clamp(1.1875rem, 1.05rem + .5vw, 1.5rem)/1.25 var(--font-display); letter-spacing: -.015em; text-wrap: balance; }
+.amount { display: inline-flex; align-items: flex-start; gap: .08em; font: 600 clamp(5rem, 46cqi, 10rem)/.8 var(--font-display); letter-spacing: -.06em; }
+.cur { margin-top: .2em; font-size: .26em; letter-spacing: .02em; color: var(--marigold); } /* 4.6:1 on Royal Blue, at 30px+ */
+
+/* text-free rings round a point just outside the bottom-right corner, clear of the left-aligned amount; the gold
+   one turns when the card is hovered */
+.fee::before, .fee::after { content: ""; position: absolute; z-index: -1; border-radius: 50%; pointer-events: none; }
+.fee::before { right: -110px; bottom: -110px; width: 200px; aspect-ratio: 1; border: 2px solid rgba(255, 255, 255, .18); box-shadow: 0 0 0 44px rgba(255, 255, 255, .05); }
+.fee::after { right: -72px; bottom: -72px; width: 124px; aspect-ratio: 1; border: 3px dashed rgba(247, 168, 27, .8); transition: rotate 1.2s var(--ease-spring); }
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  .plan:hover .fee::after { rotate: 45deg; }
+}
+
+.inc { padding: clamp(24px, 4vw, 48px); }
+.incLabel { margin: 0 0 12px; font: 600 clamp(1.1875rem, 1.1rem + .4vw, 1.4375rem)/1.3 var(--font-display); letter-spacing: -.015em; }
+.list { list-style: none; display: grid; grid-template-columns: minmax(0, 1fr); gap: 10px 14px; }
+@media (min-width: 720px) {
+  .list { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+.list li {
+  display: grid; grid-template-columns: 42px minmax(0, 1fr); gap: 14px; align-items: center;
+  padding: 10px 16px 10px 10px; border-radius: 18px; background: var(--cream-2);
+  font-size: 1.0625rem; font-weight: 550; line-height: 1.35;
+}
+.icon { display: grid; place-items: center; width: 42px; height: 42px; border-radius: 13px; background: var(--c); }
+.icon svg { width: 22px; height: 22px; fill: none; stroke: var(--on-c); stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; }
+.list li:nth-child(6n+4) .icon svg { stroke: var(--azure); } /* Sky Blue: Royal Blue lines, as on the home page */
+
+/* ---------- Heading beside its content on wide screens (district pricing) ---------- */
+@media (min-width: 1024px) {
+  .split :global(.psec__main) {
+    display: grid;
+    grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+    column-gap: 64px;
+    align-items: start;
+  }
+  .split :global(.psec__main > .h2) { margin-bottom: 0; }
+  .split :global(.lead-p) { margin-top: 20px; } /* level with the heading's top */
+}
+.split :global(.lead-p) { font-size: clamp(1.1875rem, 1.06rem + .45vw, 1.4375rem); line-height: 1.5; margin-bottom: clamp(24px, 3vw, 36px); }
+
+/* ---------- What your club will pay: one card per club size, a small figure for every ten members ---------- */
+.sizes { list-style: none; display: grid; gap: 16px; margin-top: clamp(24px, 3vw, 40px); }
+@media (min-width: 560px) { .sizes { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (min-width: 1024px) { .sizes { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 20px; } }
+.size {
+  display: flex; flex-direction: column; gap: 24px;
+  padding: clamp(20px, 2.4vw, 28px); border-radius: 28px;
+  background: #fff; color: var(--ink); box-shadow: inset 0 0 0 1px var(--line), var(--shadow-soft);
+  transition: translate var(--t-ui) var(--ease-out), box-shadow var(--t-ui) var(--ease-out);
+}
+.size:hover { translate: 0 -4px; box-shadow: inset 0 0 0 1px var(--line), var(--shadow-lift); }
+.size:last-child { background: var(--azure); color: #fff; box-shadow: var(--shadow-lift); }
+.crowd { display: flex; flex-wrap: wrap; align-content: flex-start; gap: 6px; max-width: 176px; min-height: 66px; }
+.crowd i { display: grid; place-items: center; width: 30px; height: 30px; border-radius: 50%; background: var(--sky); color: var(--azure); }
+.crowd i:nth-child(even) { background: #FDE7B8; color: var(--ink); }
+.size:last-child .crowd i { background: rgba(255, 255, 255, .16); color: #fff; }
+.size:last-child .crowd i:nth-child(even) { background: var(--marigold); color: var(--ink); }
+.crowd svg { width: 20px; height: 20px; fill: currentColor; }
+.terms { display: grid; margin: 0; }
+.terms dt { font: 600 .875rem/1.3 var(--font-body); color: var(--ink-soft); }
+.size:last-child .terms dt { color: rgba(255, 255, 255, .78); }
+.terms dd { margin: 4px 0 16px; }
+.terms dd:last-child { margin-bottom: 0; }
+.members { font: 600 1.25rem/1.2 var(--font-display); letter-spacing: -.01em; }
+.price { font: 650 clamp(1.875rem, 1.4rem + 1.2vw, 2.5rem)/1 var(--font-display); letter-spacing: -.035em; color: var(--azure); white-space: nowrap; }
+.size:last-child .price { color: #fff; }
+
+/* ---------- Scroll-linked touch where supported (static elsewhere and under reduced motion): each icon pops as its
+   row rises out of the bottom fifth of the screen. Longhands only: the shorthand resets animation-timeline. ---------- */
+@media (prefers-reduced-motion: no-preference) {
+  @supports (animation-timeline: view()) {
+    .icon { animation-name: tick-in; animation-timing-function: linear; animation-fill-mode: both; animation-timeline: view(); animation-range: entry 100% cover 20%; }
+  }
+}
+@keyframes tick-in {
+  from { scale: 0; rotate: -60deg; }
+  70% { scale: 1.15; rotate: 6deg; }
+  to { scale: 1; rotate: 0deg; }
+}

@@ -1,0 +1,48 @@
+/* /club-management only. Global Fellowship classes are reached with :global() under a local class,
+   so these rules outrank globals.css by specificity, not by load order. */
+
+/* Hero hub: beside the copy its column is ~400-520px (the home page gives it ~520-680px), so the threads and
+   the fan tighten there and every label stays on one line. */
+@media (min-width: 1100px) {
+  .heroHub:global(.hub) { column-gap: clamp(32px, 4vw, 72px); --fan: clamp(16px, 3vw, 48px); }
+}
+
+/* Section tiles: a fixed measure, the demo centred in the colour */
+.visual { width: min(100%, 520px); min-height: clamp(240px, 24vw, 320px); }
+.visual :global(.tile__demo) { margin-bottom: auto; }
+
+/* Doc words inside the mock-ups */
+.label { font-size: .875rem; font-weight: 650; color: var(--ink-soft); }
+.report :global(.grant__kicker) { text-transform: none; letter-spacing: 0; } /* the doc's words as written */
+.web :global(.lang-pill__track span) { white-space: nowrap; }
+
+/* Cards beside a tile (1100px+): the cards take the wider column, one card per row */
+@media (min-width: 1100px) {
+  .split:global(.psec--split) :global(.psec__inner) { grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); }
+  .split :global(.psec__main .kgrid) { grid-template-columns: minmax(0, 1fr); }
+  /* zig-zag: every other tile comes first (reading order stays heading first) */
+  .flip:global(.psec--split) :global(.psec__inner) { grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); }
+  .flip :global(.psec__aside) { order: -1; }
+}
+
+/* Four cards: two by two from 640px, never three and one */
+@media (min-width: 640px) {
+  .quad :global(.psec__main .kgrid) { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+/* Three cards on two columns: the third takes the whole row instead of leaving a hole beside it */
+@media (min-width: 640px) and (max-width: 1023px) {
+  .trio :global(.kcard):nth-child(3) { grid-column: 1 / -1; }
+}
+
+/* Closing band: heading left, paragraph and demo button right, bottoms aligned */
+@media (min-width: 1024px) {
+  .closing :global(.psec__main) {
+    display: grid;
+    grid-template-columns: minmax(0, 6fr) minmax(0, 5fr);
+    column-gap: 64px;
+    align-items: end;
+  }
+  .closing :global(.psec__main .h2) { grid-row: 1 / 3; }
+  .closing :global(.psec__main .lead-p), .closing :global(.psec__main .demo__ctas) { grid-column: 2; }
+}

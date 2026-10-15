@@ -1,0 +1,25 @@
+/* /faq only: the hero art, its one-time motion, and the questions' reading column. Globals are reached through local classes. */
+
+/* The art sits beside the heading on wide screens; stacked under it, it would push the questions below a phone's first screen. */
+@media (width < 1100px) {
+  .hero :global(.phero__visual) { display: none; }
+}
+.art { width: min(100%, 460px); height: auto; overflow: visible; }
+
+/* A member asks, then ROW answers: each bubble springs out of its speaker, then the answer's lines write in. Once, under 3s. */
+.pop { transform-box: fill-box; animation: faq-pop .7s var(--ease-spring) both; }
+.ask { transform-origin: 0 100%; animation-delay: .6s; }
+.answer { transform-origin: 100% 100%; animation-delay: 1.2s; }
+.line { transform-box: fill-box; transform-origin: 0 50%; animation: faq-write .55s var(--ease-out) both; }
+.line:nth-of-type(1) { animation-delay: 1.65s; }
+.line:nth-of-type(2) { animation-delay: 1.77s; }
+.line:nth-of-type(3) { animation-delay: 1.89s; }
+@keyframes faq-pop { from { opacity: 0; transform: scale(.3); } }
+@keyframes faq-write { from { transform: scaleX(0); } }
+@media (prefers-reduced-motion: reduce) {
+  .pop, .line { animation: none; }
+}
+
+/* One calm reading column, starting close under the hero (whose own bottom padding does most of the spacing) */
+.list { padding-block: clamp(16px, 3vw, 24px) var(--section-pad); }
+.list :global(.faq__list) { max-width: 880px; }

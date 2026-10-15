@@ -1,6 +1,11 @@
 # ROW Build — Status and Handover
 
-Last updated: 2026-10-13 (session 4) · Branch: `main` · Last commit: `2ca5608` (ROW .NET edition, knowledge base); session-3 web, privacy and .NET work is uncommitted
+Last updated: 2026-10-15 (session 5) · Branch: `main`
+
+> **Stack finalized 2026-10-15: Next.js frontend + ASP.NET Core (.NET) backend.** The NestJS port of the API
+> was deleted and the former `row-dotnet/` edition was promoted to the main `row/` folder, so there is now a
+> single edition. Dated session history below predates this and still mentions the NestJS edition where it
+> existed at the time.
 
 This is the single place to pick the work back up. It covers what ROW is, how the
 repo is laid out, how to run and test the backend, what is finished, what is left
@@ -12,8 +17,8 @@ Related documents:
 |---|---|
 | `document/ROW-Master-Development-Plan.md` | The overall plan (work streams WS1–WS6) |
 | `document/2026-09-30-row-build-*.md` | Design decisions for the build |
-| `row/api/PORTING.md` | How a RIZones C# controller is converted to NestJS (conventions, helpers) |
-| `row/api/ROW-CHANGES.md` | Where ROW differs from RIZones, and RIZones quirks kept on purpose that ROW should revisit |
+| `row/README.md` | The project README: stack, folders, ROW behaviour, config keys, checks |
+| `row/ROW-CHANGES.md` | Where ROW differs from RIZones, and RIZones quirks kept on purpose that ROW should revisit |
 
 ---
 
@@ -26,23 +31,23 @@ Related documents:
   credentials or India-only integrations (Cashfree, Razorpay, Interakt, DLT SMS, GST, ₹/IST).
 - The two products have no runtime connection.
 - Backend rule agreed with the team: **port RIZones behaviour as-is, quirks included**, then
-  change it as ROW work starts. Anything that looks wrong goes in `row/api/ROW-CHANGES.md`
+  change it as ROW work starts. Anything that looks wrong goes in `row/ROW-CHANGES.md`
   instead of being "fixed" silently.
 - Brand-specific values (product name, domains, support contacts, currency, providers) come from
-  configuration (`src/brand/brand.ts`, `Brand.Current`), never literals.
-- Deployment target (company decision): **IIS on Windows Server**. Both Next.js apps and the
-  NestJS API run as Node 22 processes behind IIS using **HttpPlatformHandler** (or URL Rewrite + ARR).
-  Do **not** use iisnode.
+  configuration (`Brand.Current` / `api/Services/Brand.cs`), never literals.
+- Deployment target is not finalized (IIS on Windows Server was the default; AWS is under consideration as
+  of 2026-10-12). Keep the code hosting-neutral. The .NET API and workers run as ASP.NET Core; the two
+  Next.js apps ship their IIS `web.config` files for the Windows option.
 
 ## 2. Repository layout
 
 | Path | What | State |
 |---|---|---|
-| `row/api` | NestJS backend, port of the RIZones .NET API, MySQL, same schema | **~86% of .NET routes**; Payments pending (decision 4); privacy module done |
+| `row/api` | ASP.NET Core (.NET) backend, the RIZones API rebranded to ROW, MySQL, same schema | Rebranded; brand, privacy, member-data flags, currency, time zone, phone/SMS in; Payments still India (decision 4) |
+| `row/workers` | .NET worker programs (AwardsAutoCalc, Greetings, RotaryOrgSync) | Rebranded; same ROW behaviour as the API |
 | `row/admin` | Next.js + Tailwind + TypeScript admin portal (from the RIZones admin UI) | RIZones content and India formats removed (tasks A, B); task C waits for Payments |
 | `row/club-website` | Next.js public club website | Converted (no RIZones literals, locale and currency from settings) |
-| `row/mobile` | Flutter app (converted from the RIZones app) | Converted to the ROW API; WS10 items pending |
-| `row-dotnet/` | **Second ROW edition on the original stack** (ASP.NET Core API, the same Next.js admin and club website, .NET workers). See `row-dotnet/README.md` | Rebranded; brand, privacy and member-data flags as in NestJS; India-specific providers / time still RIZones |
+| `row/mobile` | Flutter app (converted from the RIZones app) | Converted to the ROW API; WS10 items pending. Keep as-is — in-scope decision deferred (2026-10-15) |
 | `kb/` | Knowledge base: generated RIZones-vs-ROW diffs, document index, testing record, tools | Rebuild with `bash kb/rebuild.sh` |
 | `document/` | Plans and design documents | — |
 | `reference/` | RIZones sources for reading only — **gitignored, never commit** | — |
@@ -272,7 +277,7 @@ Not covered: real sends (Brevo, Meta WhatsApp, FCM, Rotary.org, Plesk need ROW c
 ## 6. Progress — web and mobile
 
 **Admin portal (`row/admin`).** Tasks A and B are done (session 3, 2026-10-12); C waits for Payments:
-- **A (done).** RIZones public-site data emptied (leaders, governors, committee, events, club-website list, project statistics), people's photos / PDFs / video removed, logo lockups replaced by ROW lockups, a neutral brand-driven footer, pay-page help lines from the brand, the vendor's Cashfree settlement ids from `NEXT_PUBLIC_*_VENDOR_ID`, a factual `/cookies` page (public, linked from the footer). Identity lint (`row-dotnet/tools/check-rizones.mjs`): 0.
+- **A (done).** RIZones public-site data emptied (leaders, governors, committee, events, club-website list, project statistics), people's photos / PDFs / video removed, logo lockups replaced by ROW lockups, a neutral brand-driven footer, pay-page help lines from the brand, the vendor's Cashfree settlement ids from `NEXT_PUBLIC_*_VENDOR_ID`, a factual `/cookies` page (public, linked from the footer). Identity lint (`row/tools/check-rizones.mjs`): 0.
 - **B (done).** `kb/tools/locale_codemod.py`: 325 `en-IN` locale arguments → `appLocale()`, 240 ₹ → `currencySymbol()`, "today" → `todayLocal()`; INR defaults → `defaultCurrency()`; IST labels → the brand time zone. Left on purpose: ₹ / INR inside Cashfree / Razorpay checkout code, wallet and website-purchase pricing (Payments, flags off on ROW), the public landing page (site off) and the policy texts (counsel).
 - **C.** Wire the pay pages to `checkout.ts` (Stripe/PayPal); hide the Cashfree/Razorpay screens.
 - Also: `rizonesCount` → `localCount`; the goal-split pilot reads `NEXT_PUBLIC_GOAL_SPLIT_PILOT_*` (none = everyone, as the API); the six type errors inherited from RIZones fixed. `tsc` 0 errors, 27 tests, production build 201 pages.
@@ -311,7 +316,7 @@ To repeat when a newer reference is available: re-clone, then diff the new commi
 The reference repo was pulled again (no commits after `cb3e678`). The NestJS API already had these two
 upstream commits (goal-setting district messages, membership / youth import, month-wise target grid,
 Rotaract out of district counts, mobile goal-setting parity); the admin portal did not. Three-way merged:
-- **Admin portal** (`row/admin`, copied to `row-dotnet/admin`): 22 changed files and 4 new components
+- **Admin portal** (`row/admin`, copied to `row/admin`): 22 changed files and 4 new components
   (`goal-messages/*`, `ClubFoundationAchievedCard`). One conflict (`MemberCard.tsx`, kept ROW's blood-group
   flag). Their 4 new API calls all exist in the NestJS API. Identity lint 0, locale codemod found nothing new,
   tsc 0, vitest 27, build 201 pages.
@@ -327,7 +332,7 @@ Rotaract out of district counts, mobile goal-setting parity); the admin portal d
 
 - **Privacy (master plan WS7), `src/modules/privacy/`:** consent at first sign-in after a policy change (`GET/POST api/privacy/consent`, withdraw), member data export as a ZIP behind a signed 7-day link, erasure (SuperAdmin directly; a District Admin's request needs a second District Admin) driven by the personal-data registry (`personal-data-registry.ts`, Appendix G, checked against the live schema), tombstone so the Rotary.org sweep never re-adds an erased member, registry audit (`GET api/privacy/registry/unlisted`, 0 unlisted on the ROW schema), daily retention job, and `PUT api/members/me/language`. Broadcast email and push skip members without consent (`services/privacy-consent.ts`). Behind `privacy.enabled`; consent only once `Brand:Legal:PolicyVersion` is set. `kb/tools/privacy_e2e.py`: 26 checks pass on both editions.
 - **Schema gaps found on an empty database:** the current Rotary year's project tables are created by the rollover job at start-up; `sync_exception_log.inserted` is in `schema-drift.sql`.
-- **The Rotary.org member-sweep worker** is shared: the NestJS API launches `RotaryOrgSync:WorkerExePath`, which can point at the rebranded worker in `row-dotnet/workers/RotaryOrgSyncWorker` (it writes to the same schema and now honours the erasure tombstone). No TypeScript port.
+- **The Rotary.org member-sweep worker** is shared: the NestJS API launches `RotaryOrgSync:WorkerExePath`, which can point at the rebranded worker in `row/workers/RotaryOrgSyncWorker` (it writes to the same schema and now honours the erasure tombstone). No TypeScript port.
 - **Fresh-database test** (MySQL 8.0.46, schema + drift + seed): 379 parameterless GET routes give 237 × 2xx, 141 × 4xx, 1 × 5xx (Rotary.org ping without credentials) on NestJS; the .NET edition answers the same apart from the routes newer upstream added.
 - Unit tests: 121 (114 pass, 7 skipped).
 
@@ -336,7 +341,7 @@ Rotaract out of district counts, mobile goal-setting parity); the admin portal d
 - **ROW is not for India.** The .NET edition and the shared admin no longer assume India outside Payments:
   currency fallbacks and amounts in the brand's currency, schedules and new clubs in the brand's time zone,
   phone numbers per member country, SMS through Twilio (DLT gateway and Interakt removed), no default country
-  (details: `row/PENDING-WORK.md` §14, `row-dotnet/README.md`).
+  (details: `row/PENDING-WORK.md` §14, `row/README.md`).
 - **ROW has no WhatsApp.** Removing it from both editions, the admin and mobile is on hold until the go-ahead
   (`row/PENDING-WORK.md` §7). Open decision 12 (Meta templates) no longer applies.
 - **Tests:** both APIs on fresh databases answer all 382 parameterless GET routes with the same status class
@@ -352,7 +357,7 @@ Hosting is undecided (IIS / Windows Server or AWS, 2026-10-12). Until it is deci
 
 ## 8. Open decisions (owner: product / company)
 
-Details for each are in `row/api/ROW-CHANGES.md`.
+Details for each are in `row/ROW-CHANGES.md`.
 
 1. **The Members API is open without sign-in**, as in RIZones. Decide whether to lock it down.
 2. **PPH health data** (blood group, medical info) needs a HIPAA/GDPR/PIPEDA review. AG and committee screens also show blood group and spouse data.

@@ -1,0 +1,83 @@
+/* About Us: only what the shared kit (components/kit.tsx) does not already cover. */
+
+/* ---------- Hero: the printed roster book turns into the ROW app ---------- */
+.art { width: min(100%, 624px); height: auto; overflow: visible; }
+.disc { fill: var(--sky); }
+.dots { fill: none; stroke: rgba(27, 44, 66, .18); stroke-width: 3; stroke-linecap: round; stroke-dasharray: .01 12; }
+/* the book */
+.board { fill: var(--azure); }
+.edge { fill: #DCE5EF; }
+.page, .paper, .label { fill: #fff; }
+.head { fill: var(--azure); }
+.photo { fill: var(--stone); }
+.name { fill: rgba(27, 44, 66, .6); }
+.num { fill: #CBD5E1; }
+.pen { fill: none; stroke: var(--ink); stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+.ribbon { fill: var(--marigold); }
+.hinge { stroke: rgba(0, 0, 0, .22); stroke-width: 3; stroke-linecap: round; }
+.emblem { fill: none; stroke: var(--marigold); stroke-width: 6; }
+.note { fill: var(--coral); }
+.fold { fill: rgba(27, 44, 66, .14); }
+.arrow { fill: none; stroke: var(--marigold); stroke-width: 4; stroke-linecap: round; stroke-linejoin: round; }
+/* the phone */
+.signal { stroke: var(--ink); stroke-width: 3; stroke-linecap: round; }
+.field, .row { fill: var(--cream-2); }
+.faint { fill: rgba(27, 44, 66, .16); }
+.lens { fill: none; stroke: var(--ink-soft); stroke-width: 2.2; stroke-linecap: round; }
+.avatar { fill: var(--c); }
+.call { fill: var(--mint); }
+.glyph { fill: none; stroke: #fff; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+.tick { fill: var(--mint); stroke: var(--cream); stroke-width: 4; }
+.tickMark { fill: none; stroke: #fff; stroke-width: 3.2; stroke-linecap: round; stroke-linejoin: round; }
+/* Last frame: the book is shut and its rows are in the phone, so the open page, the flying rows and the note are
+   gone. lib/row-fx.js brings them back to play the story. */
+.art [data-book-right], .flyer { visibility: hidden; }
+
+/* ---------- The three statements: a heading and one short paragraph, read large ---------- */
+.statement :global(.lead-p) { margin-bottom: 0; font-size: clamp(1.1875rem, 1.05rem + .5vw, 1.5rem); line-height: 1.5; }
+.cta { margin-top: clamp(24px, 3vw, 32px); }
+
+/* Where we are today: heading left, paragraph right on wide screens, the home page's counter wheels below */
+@media (min-width: 1024px) {
+  .today :global(.psec__main) { display: grid; grid-template-columns: minmax(0, 6fr) minmax(0, 5fr); column-gap: 64px; align-items: start; }
+  .today :global(.lead-p) { margin-top: 20px; } /* level with the heading's top */
+}
+.today :global(.proof) { grid-column: 1 / -1; padding: clamp(40px, 5vw, 64px) 0 0; }
+.today :global(.proof > .container) { width: auto; } /* already inside the section's container */
+
+/* The team and what we believe: the words beside a picture (psec--split); the belief picture leads on wide screens */
+@media (min-width: 1100px) { .flip :global(.psec__aside) { order: -1; } }
+
+/* ---------- Pictures for the team and what we believe (the home page's card art: flat, white cards, round avatars) ---------- */
+.team { position: relative; width: min(100%, 480px); }
+.team svg, .believe { display: block; width: 100%; height: auto; overflow: visible; }
+.believe { width: min(100%, 480px); }
+.teamLogo { position: absolute; left: 50%; top: 50%; width: 27%; translate: -50% -50%; }
+.teamLogo :global(.logo) { display: block; width: 100%; height: auto; }
+.teamDisc { fill: #fff; opacity: .5; }
+.orbit { fill: none; stroke: var(--azure); stroke-opacity: .35; stroke-width: 3; stroke-linecap: round; stroke-dasharray: 2 10; }
+.plate { fill: #fff; }
+.plateShade { fill: var(--ink); opacity: .08; }
+.year { fill: var(--marigold); }
+.member { fill: var(--c); stroke: #fff; stroke-width: 6; }
+.memberSm { stroke-width: 4; }
+.personHead { fill: var(--on-c); }
+.card { fill: #fff; }
+.cardShade { fill: var(--ink); opacity: .1; }
+.cardShadeDark { fill: #0B2350; opacity: .45; }
+.tile { fill: var(--c); }
+.tileIcon { fill: none; stroke: var(--on-c); stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+.bar { fill: var(--ink); opacity: .75; }
+.barSoft { fill: var(--ink); opacity: .2; }
+.check { fill: var(--c); }
+.checkMark { fill: none; stroke: #fff; stroke-width: 2.8; stroke-linecap: round; stroke-linejoin: round; }
+.watch { fill: var(--marigold); stroke: #fff; stroke-width: 6; }
+.watchIcon { fill: none; stroke: var(--ink); stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
+.halo { fill: #fff; opacity: .12; }
+.heart { fill: var(--marigold); }
+.shine { fill: none; stroke: #fff; stroke-width: 4; stroke-linecap: round; opacity: .7; }
+
+/* the hero picture gets its full width, so its phone is the site's one phone size (240px wide, components/art.tsx) */
+@media (min-width: 1100px) {
+  :global(.phero--visual .phero__inner):has(.art) { grid-template-columns: minmax(0, 1fr) minmax(0, 624px); }
+}

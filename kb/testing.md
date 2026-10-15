@@ -4,17 +4,19 @@ Hand-maintained. Add a dated row whenever a check is run; keep the newest first.
 
 ## How to run each check
 
+Stack finalized 2026-10-15: Next.js + .NET. The NestJS backend was deleted; the .NET edition is now `row/`.
+The dated results below are kept as history and still mention the NestJS edition where it existed at the time.
+
 | Codebase | Command (from the folder) | Notes |
 |---|---|---|
-| row/api | `npx tsc --noEmit -p tsconfig.json` | type check |
-| row/api | `npm run -s lint:rizones` | must be 0 findings |
-| row/api | `npx jest` | unit specs; `db.integration.spec.ts` is skipped without a database |
-| row/api | `bash kb/rebuild.sh --no-graphs` (repo root) | boots the API, dumps the route table, regenerates the diffs |
+| row/api | `dotnet build` | ASP.NET Core API; also `for w in ../workers/*/; do (cd $w && dotnet build); done` |
+| row (identity) | `node tools/check-rizones.mjs` | RIZones identity lint, must be 0; `--india` lists India behaviour still to convert |
+| row/api | `bash kb/rebuild.sh --no-graphs` (repo root) | extracts the .NET route table statically and regenerates the diffs (no server boot) |
 | row/admin | `npx vitest run` | unit tests |
 | row/admin | `npx tsc --noEmit -p tsconfig.json` | builds ignore TS errors (`next.config` `ignoreBuildErrors`) |
 | row/club-website | `npm install` then `npm run build` | no tests; dependencies not installed on this machine |
 | row/mobile | `flutter analyze`, `flutter test` | Flutter SDK is not installed on this machine (2026-10-12) |
-| both APIs | `python -I kb/tools/get_sweep.py <nest base> <dotnet base> <jwt secret>` | every parameterless GET on both, status compared; start both on fresh test databases (Docker `row-dotnet-mysql`, port 3318) with the same `JwtSettings__Secret` |
+| API vs RIZones | `python -I kb/tools/get_sweep.py <row api base> <rizones base> <jwt secret>` | every parameterless GET on both, status compared; fresh test databases (Docker `row-dotnet-mysql`, port 3318), same `JwtSettings__Secret` |
 
 ## Results
 

@@ -1,5 +1,10 @@
 # ROW — Pending Work and Why
 
+> **Stack finalized 2026-10-15: Next.js + ASP.NET Core (.NET).** The NestJS API was deleted and the former
+> `row-dotnet/` edition is now the single edition under `row/`. Items below that tracked the NestJS edition or
+> edition parity (notably §12) are moot; §14 (India-specific behaviour) now applies to the one `.NET` backend.
+> Mobile scope is deferred (decide later, 2026-10-15).
+
 Written 2026-10-12 against `main` @ `eca1661`; **updated the same day after session 3** (admin, club website, privacy and the .NET edition, §3, §4, §6, §14) **and on 2026-10-13 (session 4: India-specific behaviour removed, ROW has no WhatsApp, §7, §14)**. Each item below says what is left, **why it is still
 pending**, and what unblocks it. Evidence comes from the generated comparisons in `kb/` (rerun with
 `bash kb/rebuild.sh`) and from `row/STATUS.md`. Task ids (WS…) refer to
@@ -29,7 +34,7 @@ Every pending item has one of four reasons:
 | 9 | Reference refresh | local copy 2 days behind | External | Access to the private RIZones repo from this machine |
 | 10 | Excluded RIZones items | 8 controllers / features | Excluded | Nothing; replace with ROW equivalents where needed |
 | 11 | Open product decisions | 12 | Decision | Product / company owners |
-| 12 | .NET edition (`row-dotnet`) ROW behaviour | Payments only (§14) | Done except Payments | Payments (decision 4) |
+| 12 | ~~.NET edition parity~~ (now the only edition) | n/a — superseded by the 2026-10-15 stack decision | Resolved | — |
 
 ## 2. Payments (largest backend gap)
 
@@ -195,7 +200,7 @@ reach the private repo. As a result, `kb/` diffs against the local copy show 10 
 
 ## 12. Open decisions that hold work back
 
-Full details are in `row/STATUS.md` §8 and `row/api/ROW-CHANGES.md`.
+Full details are in `row/STATUS.md` §8 and `row/ROW-CHANGES.md`.
 
 | # | Decision | Holds back |
 |---|---|---|
@@ -229,11 +234,11 @@ Full details are in `row/STATUS.md` §8 and `row/api/ROW-CHANGES.md`.
 4. **Policy texts** from counsel (Q6) for the privacy, terms, refund and cookie pages.
 5. **Real-provider tests, load tests, pilot** (WS11).
 
-## 14. The .NET edition (`row-dotnet/`)
+## 14. The .NET backend (`row/api` + `row/workers`)
 
-A second ROW edition on RIZones' original stack (ASP.NET Core API and workers) with the same admin and club
-website as the NestJS edition. **Done:** rebrand (identity lint 0), brand endpoint and flags with the same
-keys as NestJS, member-data guard, privacy module, schema gaps, workers on environment variables.
+The ROW backend: the RIZones ASP.NET Core API and workers rebranded, with the Next.js admin and club
+website. **Done:** rebrand (identity lint 0), brand endpoint and flags, member-data guard, privacy module,
+schema gaps, workers on environment variables.
 
 **Also done (session 3, later):** currency (brand currencies, per-currency buckets), report scope (COG, exempt
 districts, zones, excluded names), one-time-code policy with Twilio / Meta senders, UTC timestamps on a UTC server,

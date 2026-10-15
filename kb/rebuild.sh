@@ -9,12 +9,11 @@ G="${GRAPHIFY:-$HOME/.local/bin/graphify.exe}"
 command -v "$G" >/dev/null 2>&1 || G=graphify
 REF=reference/RotaryIndia_Admin_API_Claude
 PARTS=(
-  "row-api:row/api"
-  "row-admin:row/admin"
-  "row-club-website:row/club-website"
-  "row-mobile:row/mobile"
-  "dotnet-api:row-dotnet/api"
-  "dotnet-workers:row-dotnet/workers"
+  "api:row/api"
+  "workers:row/workers"
+  "admin:row/admin"
+  "club-website:row/club-website"
+  "mobile:row/mobile"
   "ref-api:$REF"
   "ref-mobile:reference/rotary_zones_45678_flutter"
 )
@@ -33,14 +32,10 @@ if [[ "${1:-}" != "--no-graphs" ]]; then
   "$G" merge-graphs "${graphs[@]}" --out graphify-out/graph.json
 fi
 
-# ROW API route table: boot the built API once (no database needed) and keep the "Mapped" lines.
-( cd row/api && npm run -s build )
-( cd row/api && APP_ENVIRONMENT=Development PORT=5999 BackgroundJobs__Enabled=false \
-  ConnectionStrings__DefaultConnection="Server=127.0.0.1;Port=1;Database=x;User=x;Password=x" \
-  JwtSettings__Secret=kb-route-dump-secret-0123456789abcdef \
-  timeout 40 node dist/main.js 2>&1 || true ) | sed 's/\x1b\[[0-9;]*m//g' | grep "Mapped {" > kb/row-api-routes.log
+# ROW API route table: extracted statically from the .NET controllers (no server boot).
+python -I kb/tools/dotnet_route_log.py row/api/Controllers kb/row-api-routes.log
 
-python -I kb/tools/route_diff.py "$REF/RotaryApi/Controllers" kb/row-api-routes.log kb/api-routes-diff.md
+# Frontend/mobile diffs: which RIZones API paths each client calls that the ROW API serves.
 python -I kb/tools/app_diff.py "Mobile app" reference/rotary_zones_45678_flutter row/mobile kb/row-api-routes.log kb/mobile-diff.md .dart
 python -I kb/tools/app_diff.py "Admin portal" "$REF/rotary-frontend" row/admin kb/row-api-routes.log kb/admin-diff.md .ts,.tsx,.js,.jsx,.mjs,.css
 python -I kb/tools/app_diff.py "Club website" "$REF/club-website" row/club-website kb/row-api-routes.log kb/club-website-diff.md .ts,.tsx,.js,.jsx,.mjs,.css
