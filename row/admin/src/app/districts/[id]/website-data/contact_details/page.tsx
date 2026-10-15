@@ -181,7 +181,7 @@ export default function DistrictContactDetailsPage() {
             <DialogHeader><DialogTitle>{editing ? "Edit Contact Detail" : "Add Contact Detail"}</DialogTitle><DialogDescription>{editing ? "Update the contact detail." : "Enter email and phone."}</DialogDescription></DialogHeader>
             <div className="space-y-4 py-2">
               <div className="space-y-2"><Label>Email *</Label><Input type="email" placeholder="email@example.com" value={formEmail} onChange={e => setFormEmail(e.target.value)} /></div>
-              <div className="space-y-2"><Label>Phone *</Label><Input placeholder="+91 98765 43210" value={formPhone} onChange={e => setFormPhone(e.target.value)} /></div>
+              <div className="space-y-2"><Label>Phone *</Label><Input placeholder="+1 555 123 4567" value={formPhone} onChange={e => setFormPhone(e.target.value)} /></div>
               <div className="space-y-2"><Label>Status</Label><Select value={formIsActive} onValueChange={setFormIsActive}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="1">Active</SelectItem><SelectItem value="0">Inactive</SelectItem></SelectContent></Select></div>
             </div>
             <DialogFooter>

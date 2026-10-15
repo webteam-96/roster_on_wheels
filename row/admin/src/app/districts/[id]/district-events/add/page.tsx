@@ -16,6 +16,7 @@ import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import ImageCropDialog from "@/components/ImageCropDialog";
 import { useImageCropUpload } from "@/hooks/useImageCropUpload";
+import { TEXT_INPUT_REGEX } from "@/lib/textInput";
 
 // Event photos render as landscape tiles here and in the district website
 // gallery — locked to 4:3 at 1200×900.
@@ -23,7 +24,6 @@ const PHOTO_ASPECT = 4 / 3;
 const PHOTO_MAX_WIDTH = 1200;
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
-const ENGLISH_ONLY_REGEX = /^[a-zA-Z0-9\s.,!?;:'"()\-&@#%+=/]*$/;
 
 export default function DistrictEventAddPage() {
   const params = useParams();
@@ -62,8 +62,8 @@ export default function DistrictEventAddPage() {
   const handleSave = async () => {
     if (!title.trim()) { setErrorMessage("Title is required."); return; }
     if (title.trim().length > 50) { setErrorMessage("Title must be 50 characters or less."); return; }
-    if (!ENGLISH_ONLY_REGEX.test(title)) { setErrorMessage("Title must be in English only."); return; }
-    if (description && !ENGLISH_ONLY_REGEX.test(description)) { setErrorMessage("Description must be in English only."); return; }
+    if (!TEXT_INPUT_REGEX.test(title)) { setErrorMessage("Title cannot contain emoji."); return; }
+    if (description && !TEXT_INPUT_REGEX.test(description)) { setErrorMessage("Description cannot contain emoji."); return; }
     if (description && description.length > 1000) { setErrorMessage("Description must be 1000 characters or less."); return; }
     if (!eventDate) { setErrorMessage("Date is required."); return; }
     if (photos.length === 0) { setErrorMessage("At least one photo is required."); return; }
@@ -109,12 +109,12 @@ export default function DistrictEventAddPage() {
 
         <Card><CardHeader><CardTitle>Event Details</CardTitle></CardHeader><CardContent className="space-y-4">
           <div className="space-y-2">
-            <Label>Title <span className="text-destructive">*</span> <span className="text-muted-foreground text-xs">(English only, max 50 chars)</span></Label>
+            <Label>Title <span className="text-destructive">*</span> <span className="text-muted-foreground text-xs">(max 50 chars)</span></Label>
             <Input value={title} onChange={e => setTitle(e.target.value)} maxLength={50} placeholder="Event title" />
             <p className="text-xs text-muted-foreground text-right">{title.length}/50</p>
           </div>
           <div className="space-y-2">
-            <Label>Description <span className="text-muted-foreground text-xs">(English only, max 1000 chars)</span></Label>
+            <Label>Description <span className="text-muted-foreground text-xs">(max 1000 chars)</span></Label>
             <Textarea value={description} onChange={e => setDescription(e.target.value)} maxLength={1000} rows={4} placeholder="Event description" />
             <p className="text-xs text-muted-foreground text-right">{description.length}/1000</p>
           </div>

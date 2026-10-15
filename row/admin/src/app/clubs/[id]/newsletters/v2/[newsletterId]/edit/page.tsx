@@ -37,7 +37,7 @@ import { useSyncClubIdFromUrl } from "@/hooks/useSyncClubIdFromUrl";
 import WhatsAppPhonePreview from "@/components/WhatsAppPhonePreview";
 import { isWhatsAppPilotClub } from "@/utils/whatsappPilot";
 import { renderClubNewsletterWhatsApp } from "@/utils/whatsappTemplatePreview";
-const ENGLISH_ONLY_REGEX = /^[a-zA-Z0-9\s.,!?;:'"()\-&@#%+=/]*$/;
+import { TEXT_INPUT_REGEX } from "@/lib/textInput";
 
 const TOP_MESSAGE = "Edit publish window, attachment or notification options. Existing past dates remain valid unless you change them.";
 
@@ -173,7 +173,7 @@ export default function NewslettersV2EditPage() {
 
   const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value;
-    if (ENGLISH_ONLY_REGEX.test(val)) {
+    if (TEXT_INPUT_REGEX.test(val)) {
       setTitle(val);
     }
   };
@@ -281,7 +281,7 @@ export default function NewslettersV2EditPage() {
         <SectionCard number={1} icon={FileText} title="Newsletter Details" dot="bg-blue-600">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="sm:col-span-2">
-              <FieldLabel hint="(max 50 chars, English only)" dot="bg-blue-500">Title</FieldLabel>
+              <FieldLabel hint="(max 50 chars)" dot="bg-blue-500">Title</FieldLabel>
               <input
                 type="text"
                 value={title}

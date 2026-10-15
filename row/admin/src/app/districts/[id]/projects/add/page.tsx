@@ -17,8 +17,8 @@ import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";
 
 import { currencySymbol } from "@/lib/appFormat";
+import { TEXT_INPUT_REGEX } from "@/lib/textInput";
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
-const ENGLISH_ONLY_REGEX = /^[a-zA-Z0-9\s.,!?;:'"()\-&@#%+=/]*$/;
 
 export default function DistrictProjectAddPage() {
   const params = useParams();
@@ -122,8 +122,8 @@ export default function DistrictProjectAddPage() {
   const handleSave = async () => {
     if (!title.trim()) { setErrorMessage("Title is required."); return; }
     if (title.trim().length > 50) { setErrorMessage("Title must be 50 characters or less."); return; }
-    if (!ENGLISH_ONLY_REGEX.test(title)) { setErrorMessage("Title must be in English only."); return; }
-    if (description && !ENGLISH_ONLY_REGEX.test(description)) { setErrorMessage("Description must be in English only."); return; }
+    if (!TEXT_INPUT_REGEX.test(title)) { setErrorMessage("Title cannot contain emoji."); return; }
+    if (description && !TEXT_INPUT_REGEX.test(description)) { setErrorMessage("Description cannot contain emoji."); return; }
     if (description && description.length > 1000) { setErrorMessage("Description must be 1000 characters or less."); return; }
     if (!projectDate) { setErrorMessage("Date is required."); return; }
     if (!areaOfFocusId) { setErrorMessage("Area of Focus is required."); return; }
@@ -202,12 +202,12 @@ export default function DistrictProjectAddPage() {
           <CardHeader><CardTitle>Project Details</CardTitle></CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <Label>Title <span className="text-destructive">*</span> <span className="text-muted-foreground text-xs">(English only, max 50 chars)</span></Label>
+              <Label>Title <span className="text-destructive">*</span> <span className="text-muted-foreground text-xs">(max 50 chars)</span></Label>
               <Input value={title} onChange={e => setTitle(e.target.value)} maxLength={50} placeholder="Project title" />
               <p className="text-xs text-muted-foreground text-right">{title.length}/50</p>
             </div>
             <div className="space-y-2">
-              <Label>Description <span className="text-muted-foreground text-xs">(English only, max 1000 chars)</span></Label>
+              <Label>Description <span className="text-muted-foreground text-xs">(max 1000 chars)</span></Label>
               <Textarea value={description} onChange={e => setDescription(e.target.value)} maxLength={1000} rows={4} placeholder="Project description" />
               <p className="text-xs text-muted-foreground text-right">{description.length}/1000</p>
             </div>
@@ -282,7 +282,7 @@ export default function DistrictProjectAddPage() {
                   </div>
                   <div className="space-y-2 md:col-span-2">
                     <Label>Host Clubs/Districts <span className="text-destructive">*</span></Label>
-                    <Input value={hostClubsDistricts} onChange={e => setHostClubsDistricts(e.target.value)} placeholder="e.g., RC Pune, RC Mumbai" />
+                    <Input value={hostClubsDistricts} onChange={e => setHostClubsDistricts(e.target.value)} placeholder="e.g., RC Chicago, RC Paris" />
                   </div>
                   <div className="space-y-2 md:col-span-2">
                     <Label>Global Partner Clubs/Districts <span className="text-destructive">*</span></Label>
@@ -299,7 +299,7 @@ export default function DistrictProjectAddPage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2 md:col-span-2">
                     <Label>Name of the CSR Company <span className="text-destructive">*</span></Label>
-                    <Input value={csrCompanyName} onChange={e => setCsrCompanyName(e.target.value)} placeholder="e.g., ABC Industries Pvt Ltd" />
+                    <Input value={csrCompanyName} onChange={e => setCsrCompanyName(e.target.value)} placeholder="e.g., ABC Industries Ltd" />
                   </div>
                   <div className="space-y-2">
                     <Label>Amount Sanctioned ({currencySymbol()}) <span className="text-destructive">*</span></Label>

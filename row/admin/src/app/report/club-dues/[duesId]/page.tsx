@@ -206,7 +206,7 @@ export default function ClubDuesReportPage() {
         <div className="max-w-7xl mx-auto px-4 py-6">
           <div className="flex items-center gap-4 mb-4">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/images/rotary-white-live.png" alt="Rotary" className="h-16 object-contain" />
+            <img src="/brand/row-logo-badge.png" alt="Roster On Wheels" className="h-16 object-contain" />
           </div>
           <h1 className="text-2xl font-bold">{dues.purpose || "District Dues"} — Report</h1>
           {dues.rotaryYear && <p className="mt-1 text-white/80 text-sm">Rotary Year: {dues.rotaryYear}</p>}

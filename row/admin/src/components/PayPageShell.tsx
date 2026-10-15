@@ -31,7 +31,7 @@ export default function PayPageShell({ title, wide, children }: { title?: ReactN
       <header className="w-full text-white shadow-sm" style={{ background: `linear-gradient(90deg, ${NAVY} 0%, ${NAVY_DARK} 100%)` }}>
         <div className="flex h-16 sm:h-20 items-center gap-3 sm:gap-4 px-4 sm:px-8">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/images/rotary-white-live.png" alt="ROW" className="h-10 sm:h-14 object-contain shrink-0" />
+          <img src="/brand/row-logo-badge.png" alt="ROW" className="h-10 sm:h-14 object-contain shrink-0" />
           <div className="flex-1 min-w-0 text-center">
             {title && <span className="font-semibold text-sm sm:text-lg truncate block">{title}</span>}
           </div>

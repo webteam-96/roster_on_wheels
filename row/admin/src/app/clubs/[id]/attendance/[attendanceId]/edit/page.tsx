@@ -40,7 +40,7 @@ import RotaryLoader from "@/components/RotaryLoader";
 import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";
 
-import { sanitizeEnglishText } from "@/lib/englishText";
+import { sanitizeText } from "@/lib/textInput";
 
 function Req({ children, hint }: { children: React.ReactNode; hint?: string }) {
   return (
@@ -181,11 +181,11 @@ export default function AttendanceEditPage() {
   // Clean rather than reject: text pasted from a web page or Word carries curly quotes and
   // dashes, and silently dropping the whole change made a paste look like it did nothing.
   const handleEventNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setEventName(sanitizeEnglishText(e.target.value));
+    setEventName(sanitizeText(e.target.value));
   };
 
   const handleDescriptionChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    setDescription(sanitizeEnglishText(e.target.value));
+    setDescription(sanitizeText(e.target.value));
   };
 
   // Member selection helpers
@@ -265,12 +265,12 @@ export default function AttendanceEditPage() {
         <Section icon={FileText} title="Event Details" number={1}>
           <div className="grid grid-cols-1 gap-4">
             <div className="space-y-1.5">
-              <Req hint="(max 500 chars, English only)">Event Name</Req>
+              <Req hint="(max 500 chars)">Event Name</Req>
               <Input value={eventName} onChange={handleEventNameChange} placeholder="Event name" maxLength={500} />
               <p className="text-xs text-muted-foreground text-right">{eventName.length}/500</p>
             </div>
             <div className="space-y-1.5">
-              <Req hint="(max 10000 chars, English only)">Description</Req>
+              <Req hint="(max 10000 chars)">Description</Req>
               <Textarea value={description} onChange={handleDescriptionChange} placeholder="Describe the event..." rows={4} maxLength={10000} />
               <p className="text-xs text-muted-foreground text-right">{description.length}/10000</p>
             </div>

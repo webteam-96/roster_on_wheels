@@ -967,7 +967,7 @@ export default function CommunityServiceV2EditPage() {
                   <div className="md:col-span-2">
                     <FieldLabel dot="bg-amber-500">Host Clubs/Districts</FieldLabel>
                     <input type="text" value={hostClubsDistricts}
-                      onChange={(e) => setHostClubsDistricts(e.target.value)} placeholder="e.g., RC Pune, RC Mumbai"
+                      onChange={(e) => setHostClubsDistricts(e.target.value)} placeholder="e.g., RC Chicago, RC Paris"
                       className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500" />
                   </div>
                   <div className="md:col-span-2">
@@ -988,7 +988,7 @@ export default function CommunityServiceV2EditPage() {
                   <div className="md:col-span-2">
                     <FieldLabel dot="bg-amber-500">Name of the CSR Company</FieldLabel>
                     <input type="text" value={csrCompanyName}
-                      onChange={(e) => setCsrCompanyName(e.target.value)} placeholder="e.g., ABC Industries Pvt Ltd"
+                      onChange={(e) => setCsrCompanyName(e.target.value)} placeholder="e.g., ABC Industries Ltd"
                       className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500" />
                   </div>
                   <div>

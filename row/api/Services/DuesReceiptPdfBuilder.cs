@@ -12,9 +12,9 @@ namespace RotaryApi.Services;
 // e-mail does not already show.
 //
 // The e-mail header pulls a REMOTE logo image (club logo, else the shared
-// ROW brand logo). This builder renders the organisation name as text
-// instead — a PDF generated inside a request must not depend on an outbound
-// HTTP fetch that can stall or fail. Colours/wording are unchanged.
+// ROW brand logo). This builder uses the ROW logo built into the API
+// (BrandAssets) instead — a PDF generated inside a request must not depend on
+// an outbound HTTP fetch that can stall or fail. Colours/wording are unchanged.
 public static class DuesReceiptPdfBuilder
 {
     private static bool _licensed;
@@ -56,10 +56,16 @@ public static class DuesReceiptPdfBuilder
                     .FontFamily("Arial", "Segoe UI", "Nirmala UI")
                     .FontSize(10).FontColor(Ink).LineHeight(1.35f));
 
-                // ── Header band (mirrors the e-mail's navy bar) ──
-                page.Header().Background(Navy).PaddingVertical(14).PaddingHorizontal(20)
-                    .AlignCenter().Text(r.OrganisationName)
-                    .FontColor(Colors.White).Bold().FontSize(15);
+                // ── Header band (mirrors the e-mail's navy bar): ROW logo, then the organisation name ──
+                var logo = BrandAssets.PdfLogoOnDark;
+                page.Header().Background(Navy).PaddingVertical(12).PaddingHorizontal(20).Column(h =>
+                {
+                    h.Spacing(6);
+                    if (logo != null)
+                        h.Item().AlignCenter().Height(48).Image(logo).FitHeight();
+                    h.Item().AlignCenter().Text(r.OrganisationName)
+                        .FontColor(Colors.White).Bold().FontSize(15);
+                });
 
                 page.Content().PaddingTop(16).Column(col =>
                 {

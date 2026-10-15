@@ -38,6 +38,8 @@ public static class Brand
     // ── Look ─────────────────────────────────────────────────────────────────────────────────
     public static string LogoUrl { get; private set; } = "";
     public static string LogoDarkUrl { get; private set; } = "";
+    /// <summary>Optional file path of a PNG/JPEG logo for PDF reports; empty = the ROW logo built into the API.</summary>
+    public static string PdfLogoPath { get; private set; } = "";
     public static string FaviconUrl { get; private set; } = "";
     public static string OpenGraphImageUrl { get; private set; } = "";
 
@@ -168,6 +170,7 @@ public static class Brand
 
         LogoUrl = Str("Look:LogoUrl", LogoUrl);
         LogoDarkUrl = Str("Look:LogoDarkUrl", LogoDarkUrl);
+        PdfLogoPath = Str("Look:PdfLogoPath", PdfLogoPath);
         FaviconUrl = Str("Look:FaviconUrl", FaviconUrl);
         OpenGraphImageUrl = Str("Look:OpenGraphImageUrl", OpenGraphImageUrl);
 
@@ -251,7 +254,7 @@ public static class Brand
 
     /// <summary>Logo for email headers: Brand:Look:LogoUrl, else the white ROW lockup served by the portal; empty when neither is set.</summary>
     public static string EmailLogoUrl =>
-        LogoUrl.Length > 0 ? AbsoluteFromPortal(LogoUrl) : PortalOrigin.Length > 0 ? PortalOrigin + "/images/rotary-white-live.png" : "";
+        LogoUrl.Length > 0 ? AbsoluteFromPortal(LogoUrl) : PortalOrigin.Length > 0 ? PortalOrigin + "/brand/row-logo-badge.png" : "";
 
     private static string AbsoluteFromPortal(string url) =>
         url.StartsWith("http", StringComparison.OrdinalIgnoreCase) || PortalOrigin.Length == 0 ? url : PortalOrigin + "/" + url.TrimStart('/');

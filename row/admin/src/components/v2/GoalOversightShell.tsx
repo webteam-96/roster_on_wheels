@@ -60,8 +60,8 @@ export default function GoalOversightShell({
       {/* Logo */}
       <div className="px-5 py-5 border-b border-white/10">
         <Image
-          src="/images/rotary-white-live.png"
-          alt="Rotary"
+          src="/brand/row-logo-badge.png"
+          alt="Roster On Wheels"
           width={140}
           height={40}
           className="h-10 w-auto object-contain"

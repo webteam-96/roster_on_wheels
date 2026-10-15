@@ -1,6 +1,8 @@
 bin/
 obj/
 logs/
+# ...but not the admin's log-viewer components (source code, not runtime logs)
+!admin/src/components/logs/
 *.user
 .vs/
 node_modules/

@@ -19,6 +19,7 @@ import WhatsAppRecipientBadge from "@/components/WhatsAppRecipientBadge";
 import { toLocalDateParts } from "@/lib/dateUtils";
 import ImageCropDialog from "@/components/ImageCropDialog";
 import { useImageCropUpload } from "@/hooks/useImageCropUpload";
+import { TEXT_INPUT_REGEX } from "@/lib/textInput";
 
 // The attached image is shown as a landscape poster on the detail view and is
 // pushed out with WhatsApp/email notifications — locked to 4:3 at 1200×900.
@@ -26,7 +27,6 @@ const IMAGE_ASPECT = 4 / 3;
 const IMAGE_MAX_WIDTH = 1200;
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
-const ENGLISH_ONLY_REGEX = /^[a-zA-Z0-9\s.,!?;:'"()\-&@#%+=/]*$/;
 
 function Req({ children }: { children: React.ReactNode }) { return <Label className="text-sm font-semibold">{children}<span className="text-destructive ml-0.5">*</span></Label>; }
 function OptLabel({ children }: { children: React.ReactNode }) { return <Label className="text-sm font-semibold">{children}</Label>; }
@@ -173,8 +173,8 @@ export default function RiDirectorUpcomingEventsEditPage() {
 
         <Section icon={CalendarClock} title="Event Details" number={1}>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="sm:col-span-2 space-y-1.5"><Req>Title</Req><Input value={title} onChange={(e) => ENGLISH_ONLY_REGEX.test(e.target.value) && setTitle(e.target.value)} maxLength={50} /></div>
-            <div className="sm:col-span-2 space-y-1.5"><OptLabel>Description</OptLabel><Textarea value={description} onChange={(e) => ENGLISH_ONLY_REGEX.test(e.target.value) && setDescription(e.target.value)} rows={4} maxLength={1000} /></div>
+            <div className="sm:col-span-2 space-y-1.5"><Req>Title</Req><Input value={title} onChange={(e) => TEXT_INPUT_REGEX.test(e.target.value) && setTitle(e.target.value)} maxLength={50} /></div>
+            <div className="sm:col-span-2 space-y-1.5"><OptLabel>Description</OptLabel><Textarea value={description} onChange={(e) => TEXT_INPUT_REGEX.test(e.target.value) && setDescription(e.target.value)} rows={4} maxLength={1000} /></div>
             <div className="sm:col-span-2 space-y-2">
               <OptLabel>Image</OptLabel>
               {imagePreview ? (

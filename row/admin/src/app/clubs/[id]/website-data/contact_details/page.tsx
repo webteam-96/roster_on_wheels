@@ -356,7 +356,7 @@ export default function ContactDetailsPage() {
               <div className="space-y-2">
                 <Label>Phone *</Label>
                 <Input
-                  placeholder="+91 98765 43210"
+                  placeholder="+1 555 123 4567"
                   value={formPhone}
                   onChange={(e) => setFormPhone(e.target.value)}
                 />

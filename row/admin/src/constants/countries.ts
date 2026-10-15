@@ -189,4 +189,5 @@ export const COUNTRIES: string[] = [
   "Zimbabwe",
 ];
 
-export const DEFAULT_COUNTRY = "India";
+// No default: ROW districts are in many countries, so the admin must choose one.
+export const DEFAULT_COUNTRY = "";

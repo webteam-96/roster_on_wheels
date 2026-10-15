@@ -47,7 +47,7 @@ export default function WhatsAppPhonePreview({
           <div className="flex items-center gap-2 bg-[#075e54] px-2 pb-2.5 pt-1 text-white">
             <ChevronLeft className="h-5 w-5 shrink-0" />
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/images/rotary-wheel-gold.png" alt="" className="h-8 w-8 shrink-0 rounded-full bg-white object-contain p-0.5" />
+            <img src="/brand/row-mark.png" alt="" className="h-8 w-8 shrink-0 rounded-full bg-white object-contain p-0.5" />
             <div className="min-w-0 flex-1 leading-tight">
               <p className="truncate text-sm font-semibold">{businessName}</p>
               <p className="text-[11px] opacity-80">online</p>

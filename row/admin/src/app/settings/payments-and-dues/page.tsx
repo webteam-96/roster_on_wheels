@@ -3,17 +3,12 @@
 import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, CreditCard, Shirt, LinkIcon, BadgeDollarSign, Building2 } from "lucide-react";
+import { ArrowLeft, Shirt, LinkIcon, BadgeDollarSign, Building2 } from "lucide-react";
 import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";
 
+// Cashfree KYC is not offered on ROW (India-only payment provider).
 const cards = [
-  {
-    title: "Cashfree KYC",
-    description: "Manage Cashfree vendor KYC settings",
-    icon: CreditCard,
-    href: "/settings/cashfree-kyc",
-  },
   {
     title: "Shirt & Food Preference Master",
     description: "Manage t-shirt sizes & food preferences",

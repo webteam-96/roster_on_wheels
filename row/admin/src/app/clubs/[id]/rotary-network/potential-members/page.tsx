@@ -329,7 +329,7 @@ export default function PotentialMembersPage() {
               <div className="space-y-2">
                 <Label>Mobile Number</Label>
                 <Input
-                  placeholder="+91 98765 43210"
+                  placeholder="+1 555 123 4567"
                   value={formMobile}
                   onChange={(e) => setFormMobile(e.target.value)}
                 />

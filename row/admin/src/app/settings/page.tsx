@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { LayoutGrid, Settings, Calendar, Globe, Palette, Target, Layers, GitBranch, Wallet, Users, CreditCard, Shirt, LinkIcon, BadgeDollarSign, Coins, Trophy, Crown, History, Megaphone, Search, UserCog2, MonitorSmartphone, UserCircle2, FileBarChart, ClipboardList, ShieldCheck, Bell, Smartphone, Wrench, Mail, MessageCircle, RefreshCw, X, type LucideIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import ProtectedRoute from "@/components/ProtectedRoute";
+import { useFeature } from "@/contexts/BrandContext";
 import RotaryLoader from "@/components/RotaryLoader";
 
 interface SettingsCard {
@@ -271,13 +272,22 @@ const settingsCards: SettingsCard[] = [
 
 // Hidden cards (page still exists, just not listed). Email & WhatsApp Credits: everything it
 // opened now lives in Settings › Wallet (Offline / Online / RI Director Credits buttons).
-const HIDDEN_HREFS = new Set<string>(["/settings/email-whatsapp-credits"]);
+// Never on ROW: Razorpay Route is an India-only payout provider.
+const HIDDEN_HREFS = new Set<string>(["/settings/email-whatsapp-credits", "/settings/razorpay-route-accounts"]);
 
 export default function SettingsPage() {
   const { isSuperAdmin } = useAuth();
   const router = useRouter();
   const [query, setQuery] = useState("");
   const [navigatingHref, setNavigatingHref] = useState<string | null>(null);
+  const walletOn = useFeature("modules.wallet");
+  const zonalAwardsOn = useFeature("modules.zonalAwards");
+  // Modules switched off for this instance are hidden as well.
+  const hidden = new Set<string>([
+    ...HIDDEN_HREFS,
+    ...(walletOn ? [] : ["/settings/wallet"]),
+    ...(zonalAwardsOn ? [] : ["/settings/zonal-awards"]),
+  ]);
 
   // Pinned quick-access modules — always shown as small cards in one row above the listing (in this
   // exact order), and removed from the main (searchable) listing below.
@@ -290,13 +300,13 @@ export default function SettingsPage() {
     "/settings/payments-and-dues",
   ];
   const pinnedCards = PINNED_HREFS
-    .map((href) => settingsCards.find((c) => c.href === href && !HIDDEN_HREFS.has(c.href)))
+    .map((href) => settingsCards.find((c) => c.href === href && !hidden.has(c.href)))
     .filter((c): c is SettingsCard => !!c);
   const pinnedSet = new Set(PINNED_HREFS);
 
   const q = query.trim().toLowerCase();
   const filtered = settingsCards
-    .filter((c) => !HIDDEN_HREFS.has(c.href))
+    .filter((c) => !hidden.has(c.href))
     .filter((c) => !pinnedSet.has(c.href))
     .filter((c) => !q || c.title.toLowerCase().includes(q) || c.description.toLowerCase().includes(q))
     .sort((a, b) => a.title.localeCompare(b.title));

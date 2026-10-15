@@ -30,7 +30,7 @@ import { Plus, Trash2, Save, ArrowLeft } from "lucide-react";
 import RotaryLoader from "@/components/RotaryLoader";
 import Link from "next/link";
 import { DayMonthPicker } from "@/components/DayMonthPicker";
-import { MEMBER_NAME_FILTER } from "@/lib/englishText";
+import { MEMBER_NAME_FILTER } from "@/lib/textInput";
 import { familyDuplicateError } from "@/lib/familyValidation";
 
 interface MemberFormProps {
@@ -759,7 +759,7 @@ export default function MemberForm({
                 </div>
                 {renderAddrInput("Residential", resAddr, "state", "State")}
                 {renderAddrInput("Residential", resAddr, "city", "City")}
-                {renderAddrInput("Residential", resAddr, "pinCode", "PIN Code")}
+                {renderAddrInput("Residential", resAddr, "pinCode", "Postal code")}
               </div>
             </CardContent>
           </Card>
@@ -790,7 +790,7 @@ export default function MemberForm({
                 </div>
                 {renderAddrInput("Business", busAddr, "state", "State")}
                 {renderAddrInput("Business", busAddr, "city", "City")}
-                {renderAddrInput("Business", busAddr, "pinCode", "PIN Code")}
+                {renderAddrInput("Business", busAddr, "pinCode", "Postal code")}
               </div>
             </CardContent>
           </Card>

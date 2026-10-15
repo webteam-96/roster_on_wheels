@@ -531,7 +531,7 @@ export default function InternationalServiceAddPage() {
                   <div className="space-y-1.5 md:col-span-2">
                     <Req>Host Clubs/Districts</Req>
                     <Input type="text" value={hostClubsDistricts}
-                      onChange={(e) => setHostClubsDistricts(e.target.value)} placeholder="e.g., RC Pune, RC Mumbai" />
+                      onChange={(e) => setHostClubsDistricts(e.target.value)} placeholder="e.g., RC Chicago, RC Paris" />
                   </div>
                   <div className="space-y-1.5 md:col-span-2">
                     <Req>Global Partner Clubs/Districts</Req>
@@ -550,7 +550,7 @@ export default function InternationalServiceAddPage() {
                   <div className="space-y-1.5 md:col-span-2">
                     <Req>Name of the CSR Company</Req>
                     <Input type="text" value={csrCompanyName}
-                      onChange={(e) => setCsrCompanyName(e.target.value)} placeholder="e.g., ABC Industries Pvt Ltd" />
+                      onChange={(e) => setCsrCompanyName(e.target.value)} placeholder="e.g., ABC Industries Ltd" />
                   </div>
                   <div className="space-y-1.5">
                     <Req>Amount Sanctioned ({currencySymbol()})</Req>

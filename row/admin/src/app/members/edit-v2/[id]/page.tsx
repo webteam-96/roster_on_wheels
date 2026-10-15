@@ -67,7 +67,7 @@ import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { DayMonthPicker } from "@/components/DayMonthPicker";
-import { MEMBER_NAME_FILTER } from "@/lib/englishText";
+import { MEMBER_NAME_FILTER } from "@/lib/textInput";
 
 /* ----- helpers ----- */
 
@@ -1111,7 +1111,7 @@ function EditMemberV2Form() {
           </div>
           {renderAddrInput("Residential", resAddr, "state", "State")}
           {renderAddrInput("Residential", resAddr, "city", "City")}
-          {renderAddrInput("Residential", resAddr, "pinCode", "PIN Code")}
+          {renderAddrInput("Residential", resAddr, "pinCode", "Postal code")}
         </div>
       </SectionCard>
 
@@ -1137,7 +1137,7 @@ function EditMemberV2Form() {
           </div>
           {renderAddrInput("Business", busAddr, "state", "State", "text", "bg-amber-500")}
           {renderAddrInput("Business", busAddr, "city", "City", "text", "bg-amber-500")}
-          {renderAddrInput("Business", busAddr, "pinCode", "PIN Code", "text", "bg-amber-500")}
+          {renderAddrInput("Business", busAddr, "pinCode", "Postal code", "text", "bg-amber-500")}
         </div>
       </SectionCard>
 

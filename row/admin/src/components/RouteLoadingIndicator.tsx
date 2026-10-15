@@ -72,11 +72,11 @@ export default function RouteLoadingIndicator() {
       <div className="fixed inset-0 z-[99] flex items-center justify-center bg-background/60 backdrop-blur-sm">
         <div className="flex flex-col items-center gap-3">
           <Image
-            src="/images/rotary-logo.png"
+            src="/brand/row-mark.png"
             alt="Loading"
             width={64}
             height={64}
-            className="animate-spin"
+            className="animate-pulse"
             unoptimized
           />
           <p className="text-sm text-muted-foreground font-medium">Loading...</p>

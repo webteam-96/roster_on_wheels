@@ -219,7 +219,7 @@ export default function DirectoryConfigForm({ mode, configId }: Props) {
             {/* Row 1: First Name (left) | Second Name (right) */}
             <div>
               <Label className="mb-1 block">First Contact Name <span className="text-red-500">*</span></Label>
-              <Input value={firstContactName} onChange={(e) => setFirstContactName(e.target.value)} placeholder="e.g. Rtn Rohit Kakar" />
+              <Input value={firstContactName} onChange={(e) => setFirstContactName(e.target.value)} placeholder="e.g. Rtn Jane Smith" />
             </div>
             <div>
               <Label className="mb-1 block">Second Contact Name</Label>

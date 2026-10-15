@@ -57,6 +57,7 @@ public static class ClubMonthlyReportWordBuilder
             uint imgId = 1;
 
             // ── Summary (familiar layout) ──
+            if (WordBrandLogo.Paragraph(main) is { } logo) body.Append(logo);
             body.Append(Centered($"Club Monthly Report — {s.MonthName} {s.YearLabel}", 32, bold: true));
             if (s.UploadedToDistrictDate.HasValue)
                 body.Append(Centered($"Uploaded to District: {FormatDateTime(s.UploadedToDistrictDate.Value)}", 22, bold: true, colorHex: MutedHex));
@@ -152,6 +153,7 @@ public static class ClubMonthlyReportWordBuilder
             var body = new Body();
             uint imgId = 1;
 
+            if (WordBrandLogo.Paragraph(main) is { } logo) body.Append(logo);
             body.Append(Centered($"Rotary Club of {clubName}", 34, bold: true));
             body.Append(Centered($"Annual Report — RY {yearLabel}", 28, bold: true, colorHex: BrandBlueHex));
             Spacer(body);

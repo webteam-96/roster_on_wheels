@@ -34,7 +34,7 @@ public static class ClubReportWordBuilder
             var main = doc.AddMainDocumentPart();
             var body = new Body();
 
-            AppendHeader(body, clubName, yearLabel, membershipStrength);
+            AppendHeader(main, body, clubName, yearLabel, membershipStrength);
 
             foreach (var section in sections)
             {
@@ -63,7 +63,7 @@ public static class ClubReportWordBuilder
             var main = doc.AddMainDocumentPart();
             var body = new Body();
 
-            AppendHeader(body, clubName, yearLabel, membershipStrength);
+            AppendHeader(main, body, clubName, yearLabel, membershipStrength);
             AppendSectionHeading(body, "Club Service");
             AppendMeetingsTable(body, meetings);
 
@@ -75,8 +75,9 @@ public static class ClubReportWordBuilder
     }
 
     // ── Header (title block) ────────────────────────────────────────────
-    private static void AppendHeader(Body body, string clubName, string yearLabel, int membershipStrength)
+    private static void AppendHeader(MainDocumentPart main, Body body, string clubName, string yearLabel, int membershipStrength)
     {
+        if (WordBrandLogo.Paragraph(main) is { } logo) body.Append(logo);
         body.Append(CenteredText($"Rotary Club of {clubName}", sizeHalfPt: 32, bold: true));
         body.Append(CenteredText($"Annual Report — RY {yearLabel}", sizeHalfPt: 28, bold: true, colorHex: BrandBlueHex));
         body.Append(CenteredText($"Name of Club: Rotary Club of {clubName}", sizeHalfPt: 30, bold: true));

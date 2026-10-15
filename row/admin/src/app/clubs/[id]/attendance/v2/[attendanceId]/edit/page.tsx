@@ -38,7 +38,7 @@ import ErrorAlert from "@/components/ErrorAlert";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { useSyncClubIdFromUrl } from "@/hooks/useSyncClubIdFromUrl";
 
-import { sanitizeEnglishText } from "@/lib/englishText";
+import { sanitizeText } from "@/lib/textInput";
 
 type AnnItem = { tempId: string; annName: string };
 type AnnetItem = { tempId: string; annetName: string };
@@ -201,11 +201,11 @@ export default function AttendanceV2EditPage() {
   // Clean rather than reject: text pasted from a web page or Word carries curly quotes and
   // dashes, and silently dropping the whole change made a paste look like it did nothing.
   const handleEventNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setEventName(sanitizeEnglishText(e.target.value));
+    setEventName(sanitizeText(e.target.value));
   };
 
   const handleDescriptionChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    setDescription(sanitizeEnglishText(e.target.value));
+    setDescription(sanitizeText(e.target.value));
   };
 
   const toggleMember = (id: number) => {
@@ -284,7 +284,7 @@ export default function AttendanceV2EditPage() {
         <SectionCard number={1} icon={FileText} title="Event Details" dot="bg-blue-600">
           <div className="grid grid-cols-1 gap-4">
             <div>
-              <FieldLabel hint="(max 500 chars, English only)" dot="bg-blue-500">Event Name</FieldLabel>
+              <FieldLabel hint="(max 500 chars)" dot="bg-blue-500">Event Name</FieldLabel>
               <input
                 type="text"
                 value={eventName}
@@ -296,7 +296,7 @@ export default function AttendanceV2EditPage() {
               <p className="text-xs text-slate-400 text-right mt-0.5">{eventName.length}/500</p>
             </div>
             <div>
-              <FieldLabel hint="(max 10000 chars, English only)" dot="bg-blue-500">Description</FieldLabel>
+              <FieldLabel hint="(max 10000 chars)" dot="bg-blue-500">Description</FieldLabel>
               <textarea
                 value={description}
                 onChange={handleDescriptionChange}

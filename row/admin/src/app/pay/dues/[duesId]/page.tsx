@@ -450,7 +450,7 @@ export default function MembershipDuesPaymentPage() {
           <CardContent className="pt-6">
             <div className="flex flex-col items-center text-center mb-4">
               <img
-                src={duesInfo.purposeLogo ? `${API_BASE_URL}${duesInfo.purposeLogo}` : "/images/rotary-logo.png"}
+                src={duesInfo.purposeLogo ? `${API_BASE_URL}${duesInfo.purposeLogo}` : "/brand/row-mark.png"}
                 alt="Logo"
                 className="h-40 sm:h-56 w-auto max-w-full object-contain rounded mb-2"
               />

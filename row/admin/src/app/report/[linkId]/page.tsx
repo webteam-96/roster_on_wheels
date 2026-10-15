@@ -163,7 +163,7 @@ export default function PublicReportPage() {
       <div className="bg-[#17458F] text-white">
         <div className="max-w-7xl mx-auto px-4 py-6">
           <div className="flex items-center gap-4 mb-4">
-            <img src="/images/rotary-white-live.png" alt="Rotary" className="h-16 object-contain" />
+            <img src="/brand/row-logo-badge.png" alt="Roster On Wheels" className="h-16 object-contain" />
           </div>
           <h1 className="text-2xl font-bold">{linkDetails.title}</h1>
           {linkDetails.description && (

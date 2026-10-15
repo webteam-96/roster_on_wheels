@@ -44,13 +44,13 @@ import { renderDistrictUpcomingEventWhatsApp } from "@/utils/whatsappTemplatePre
 import { useAuth } from "@/contexts/AuthContext";
 import ImageCropDialog from "@/components/ImageCropDialog";
 import { useImageCropUpload } from "@/hooks/useImageCropUpload";
+import { TEXT_INPUT_REGEX } from "@/lib/textInput";
 
 // The attached image is shown as a landscape poster on the detail view and is
 // pushed out with WhatsApp/email notifications — locked to 4:3 at 1200×900.
 const IMAGE_ASPECT = 4 / 3;
 const IMAGE_MAX_WIDTH = 1200;
 
-const ENGLISH_ONLY_REGEX = /^[a-zA-Z0-9\s.,!?;:'"()\-&@#%+=/]*$/;
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
 const TOP_MESSAGE =
@@ -223,14 +223,14 @@ export default function DistrictUpcomingEventsV2EditPage() {
 
   const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value;
-    if (ENGLISH_ONLY_REGEX.test(val)) {
+    if (TEXT_INPUT_REGEX.test(val)) {
       setTitle(val);
     }
   };
 
   const handleDescriptionChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const val = e.target.value;
-    if (ENGLISH_ONLY_REGEX.test(val)) {
+    if (TEXT_INPUT_REGEX.test(val)) {
       setDescription(val);
     }
   };
@@ -398,7 +398,7 @@ export default function DistrictUpcomingEventsV2EditPage() {
           <SectionCard number={1} icon={FileText} title="Event Details" dot="bg-blue-600">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="sm:col-span-2">
-                <FieldLabel hint="(max 50 chars, English only)" dot="bg-blue-500">Title</FieldLabel>
+                <FieldLabel hint="(max 50 chars)" dot="bg-blue-500">Title</FieldLabel>
                 <input
                   type="text"
                   value={title}
@@ -410,7 +410,7 @@ export default function DistrictUpcomingEventsV2EditPage() {
                 <p className="text-xs text-slate-400 text-right mt-0.5">{title.length}/50</p>
               </div>
               <div className="sm:col-span-2">
-                <FieldLabel hint="(max 450 chars, English only)" dot="bg-blue-500" required={false}>Description</FieldLabel>
+                <FieldLabel hint="(max 450 chars)" dot="bg-blue-500" required={false}>Description</FieldLabel>
                 <textarea
                   value={description}
                   onChange={handleDescriptionChange}

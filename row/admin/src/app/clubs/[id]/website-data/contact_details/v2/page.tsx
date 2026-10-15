@@ -408,7 +408,7 @@ export default function ContactDetailsV2Page() {
                   <Phone size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" />
                   <input
                     type="text"
-                    placeholder="+91 98765 43210"
+                    placeholder="+1 555 123 4567"
                     value={formPhone}
                     disabled={!canManage || saving}
                     onChange={(e) => setFormPhone(e.target.value)}

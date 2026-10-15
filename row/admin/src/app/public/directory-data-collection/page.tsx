@@ -219,7 +219,7 @@ export default function PublicDirectoryFormPage() {
     if (f.type === "address-bulk") {
       try {
         const p = raw ? JSON.parse(raw) : {};
-        return !!(p.Address && p.City && p.State && p.PinCode);
+        return !!(p.Address && p.City && p.State);
       } catch { return false; }
     }
     return !!(raw && String(raw).trim());
@@ -239,9 +239,9 @@ export default function PublicDirectoryFormPage() {
       let p: any = {};
       try { p = JSON.parse(raw); } catch { continue; }
       const anyFilled = !!(p.Address || p.City || p.State || p.PinCode || p.PhoneNumber || p.BusinessEmailId || p.Designation);
-      const allCore = !!(p.Address && p.City && p.State && p.PinCode);
+      const allCore = !!(p.Address && p.City && p.State);
       if (anyFilled && !allCore) {
-        errs.push(`${f.label}: please fill Address, City, State and PinCode — or clear all fields.`);
+        errs.push(`${f.label}: please fill Address, City and State — or clear all fields.`);
       }
     }
     return errs;
@@ -484,7 +484,7 @@ export default function PublicDirectoryFormPage() {
                       const currentCountry = getAddressSub(f.key, "CountryId");
                       const currentCountryStr = currentCountry ? String(currentCountry) : "";
                       const currentState = getAddressSub(f.key, "State");
-                      // Live validation: if any sub-field has a value, ALL core (Address/City/State/PinCode) must be filled
+                      // Live validation: if any sub-field has a value, ALL core (Address/City/State) must be filled; postal code is optional (not every country has one)
                       let p: any = {};
                       try { p = values[f.key] ? JSON.parse(values[f.key]) : {}; } catch {}
                       const anyFilled = !!(p.Address || p.City || p.State || p.PinCode || p.PhoneNumber || p.BusinessEmailId || p.Designation);
@@ -492,7 +492,6 @@ export default function PublicDirectoryFormPage() {
                         !p.Address ? "Address" : null,
                         !p.City ? "City" : null,
                         !p.State ? "State" : null,
-                        !p.PinCode ? "PinCode" : null,
                       ].filter(Boolean) as string[];
                       const showValidationErr = anyFilled && missing.length > 0;
                       const invCls = "border-red-400 ring-1 ring-red-300";
@@ -515,7 +514,7 @@ export default function PublicDirectoryFormPage() {
                                 placeholder="Enter state"
                               />
                             </div>
-                            <div><Label>Pincode <span className="text-red-500">*</span></Label><Input type="text" className={showValidationErr && !p.PinCode ? invCls : ""} value={getAddressSub(f.key, "PinCode")} onChange={(e) => setAddressSubField(f.key, "PinCode", e.target.value.replace(/[^0-9]/g, ""))} /></div>
+                            <div><Label>Postal code</Label><Input type="text" maxLength={12} value={getAddressSub(f.key, "PinCode")} onChange={(e) => setAddressSubField(f.key, "PinCode", e.target.value.replace(/[^p{L}p{N} -]/gu, ""))} /></div>
                             <div>
                               <Label>Country</Label>
                               <Select value={currentCountryStr || undefined} onValueChange={(v) => setAddressSubField(f.key, "CountryId", v)}>

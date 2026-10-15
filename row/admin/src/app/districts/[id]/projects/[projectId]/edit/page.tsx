@@ -17,8 +17,8 @@ import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";
 
 import { currencySymbol } from "@/lib/appFormat";
+import { TEXT_INPUT_REGEX } from "@/lib/textInput";
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
-const ENGLISH_ONLY_REGEX = /^[a-zA-Z0-9\s.,!?;:'"()\-&@#%+=/]*$/;
 
 export default function DistrictProjectEditPage() {
   const params = useParams();
@@ -173,8 +173,8 @@ export default function DistrictProjectEditPage() {
   const handleSave = async () => {
     if (!title.trim()) { setErrorMessage("Title is required."); return; }
     if (title.trim().length > 50) { setErrorMessage("Title must be 50 characters or less."); return; }
-    if (!ENGLISH_ONLY_REGEX.test(title)) { setErrorMessage("Title must be in English only."); return; }
-    if (description && !ENGLISH_ONLY_REGEX.test(description)) { setErrorMessage("Description must be in English only."); return; }
+    if (!TEXT_INPUT_REGEX.test(title)) { setErrorMessage("Title cannot contain emoji."); return; }
+    if (description && !TEXT_INPUT_REGEX.test(description)) { setErrorMessage("Description cannot contain emoji."); return; }
     if (!projectDate) { setErrorMessage("Date is required."); return; }
     if (!areaOfFocusId) { setErrorMessage("Area of Focus is required."); return; }
     if (isOthersAof && !otherAreaOfFocus.trim()) { setErrorMessage("Please specify the Area of Focus."); return; }
@@ -256,8 +256,8 @@ export default function DistrictProjectEditPage() {
         <div className="flex gap-3 rounded-lg border border-blue-200 bg-blue-50/80 p-3 text-sm text-blue-800"><Info className="h-4 w-4 shrink-0 mt-0.5" /><p>Please post all the Projects executed by your District. The content posted here will be displayed on the District website.</p></div>
 
         <Card><CardHeader><CardTitle>Project Details</CardTitle></CardHeader><CardContent className="space-y-4">
-          <div className="space-y-2"><Label>Title <span className="text-destructive">*</span> <span className="text-muted-foreground text-xs">(English only, max 50 chars)</span></Label><Input value={title} onChange={e => setTitle(e.target.value)} maxLength={50} /><p className="text-xs text-muted-foreground text-right">{title.length}/50</p></div>
-          <div className="space-y-2"><Label>Description <span className="text-muted-foreground text-xs">(English only, max 1000 chars)</span></Label><Textarea value={description} onChange={e => setDescription(e.target.value)} maxLength={1000} rows={4} /><p className="text-xs text-muted-foreground text-right">{description.length}/1000</p></div>
+          <div className="space-y-2"><Label>Title <span className="text-destructive">*</span> <span className="text-muted-foreground text-xs">(max 50 chars)</span></Label><Input value={title} onChange={e => setTitle(e.target.value)} maxLength={50} /><p className="text-xs text-muted-foreground text-right">{title.length}/50</p></div>
+          <div className="space-y-2"><Label>Description <span className="text-muted-foreground text-xs">(max 1000 chars)</span></Label><Textarea value={description} onChange={e => setDescription(e.target.value)} maxLength={1000} rows={4} /><p className="text-xs text-muted-foreground text-right">{description.length}/1000</p></div>
           <div className="space-y-2"><Label>Location</Label><Input value={location} onChange={e => setLocation(e.target.value)} /></div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="space-y-2"><Label>Area of Focus <span className="text-destructive">*</span></Label><Select value={areaOfFocusId} onValueChange={setAreaOfFocusId}><SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger><SelectContent>{areasOfFocus.map(a => <SelectItem key={a.id} value={String(a.id)}>{a.name}</SelectItem>)}</SelectContent></Select>{isOthersAof && <Input value={otherAreaOfFocus} onChange={e => setOtherAreaOfFocus(e.target.value)} placeholder="Specify Area of Focus" className="mt-2" />}</div>
@@ -279,7 +279,7 @@ export default function DistrictProjectEditPage() {
                 <div className="space-y-2"><Label>Amount Sanctioned ({currencySymbol()}) <span className="text-destructive">*</span></Label><Input inputMode="numeric" pattern="[0-9]*" value={amountSanctioned} onChange={e => setAmountSanctioned(onlyDigits(e.target.value))} placeholder="0" /></div>
                 <div className="space-y-2"><Label>Amount Received ({currencySymbol()}) <span className="text-destructive">*</span></Label><Input inputMode="numeric" pattern="[0-9]*" value={amountReceived} onChange={e => setAmountReceived(onlyDigits(e.target.value))} placeholder="0" /></div>
                 <div className="space-y-2"><Label>Amount spent till date ({currencySymbol()}) <span className="text-destructive">*</span></Label><Input inputMode="numeric" pattern="[0-9]*" value={amountSpent} onChange={e => setAmountSpent(onlyDigits(e.target.value))} placeholder="0" /></div>
-                <div className="space-y-2 md:col-span-2"><Label>Host Clubs/Districts <span className="text-destructive">*</span></Label><Input value={hostClubsDistricts} onChange={e => setHostClubsDistricts(e.target.value)} placeholder="e.g., RC Pune, RC Mumbai" /></div>
+                <div className="space-y-2 md:col-span-2"><Label>Host Clubs/Districts <span className="text-destructive">*</span></Label><Input value={hostClubsDistricts} onChange={e => setHostClubsDistricts(e.target.value)} placeholder="e.g., RC Chicago, RC Paris" /></div>
                 <div className="space-y-2 md:col-span-2"><Label>Global Partner Clubs/Districts <span className="text-destructive">*</span></Label><Input value={globalPartnerClubsDistricts} onChange={e => setGlobalPartnerClubsDistricts(e.target.value)} placeholder="e.g., RC Tokyo" /></div>
               </div>
             </div>
@@ -290,7 +290,7 @@ export default function DistrictProjectEditPage() {
             <div className="space-y-3 border-l-4 border-primary bg-primary/5 rounded-md p-4">
               <h4 className="text-sm font-semibold text-primary">CSR Details</h4>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2 md:col-span-2"><Label>Name of the CSR Company <span className="text-destructive">*</span></Label><Input value={csrCompanyName} onChange={e => setCsrCompanyName(e.target.value)} placeholder="e.g., ABC Industries Pvt Ltd" /></div>
+                <div className="space-y-2 md:col-span-2"><Label>Name of the CSR Company <span className="text-destructive">*</span></Label><Input value={csrCompanyName} onChange={e => setCsrCompanyName(e.target.value)} placeholder="e.g., ABC Industries Ltd" /></div>
                 <div className="space-y-2"><Label>Amount Sanctioned ({currencySymbol()}) <span className="text-destructive">*</span></Label><Input inputMode="numeric" pattern="[0-9]*" value={amountSanctioned} onChange={e => setAmountSanctioned(onlyDigits(e.target.value))} placeholder="0" /></div>
                 <div className="space-y-2"><Label>Amount Received ({currencySymbol()}) <span className="text-destructive">*</span></Label><Input inputMode="numeric" pattern="[0-9]*" value={amountReceived} onChange={e => setAmountReceived(onlyDigits(e.target.value))} placeholder="0" /></div>
               </div>
