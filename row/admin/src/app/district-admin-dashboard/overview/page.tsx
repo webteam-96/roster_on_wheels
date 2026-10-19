@@ -31,7 +31,7 @@ import { getDistrictAwardsConfig } from "@/services/api";
 import {
   Users, Building2, Heart, Award, Loader2, Search, AlertTriangle,
   ChevronLeft, ChevronRight,
-} from "lucide-react";
+} from "@/components/icons";
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell,
@@ -257,7 +257,7 @@ function Donut({
             stroke="none"
           >
             <Cell fill={color} />
-            <Cell fill="#f1f5f9" />
+            <Cell fill="#edf4fb" />
           </Pie>
         </PieChart>
       </ResponsiveContainer>
@@ -288,11 +288,11 @@ function Donut({
 /*  Avenue colours (Service Projects card)                             */
 /* ------------------------------------------------------------------ */
 const AVENUE_COLOR: Record<string, string> = {
-  community_service: "#2563EB",       // blue
+  community_service: "#0067C8",       // blue
   vocational_service: "#10B981",      // emerald
-  new_generation_service: "#8B5CF6",  // violet
-  public_image_initiative: "#F59E0B", // amber
-  international_service: "#0EA5E9",   // sky
+  new_generation_service: "#2A3F5C",  // ink-2
+  public_image_initiative: "#F7A81B", // amber
+  international_service: "#17458F",   // azure
 };
 
 /* ------------------------------------------------------------------ */
@@ -300,12 +300,12 @@ const AVENUE_COLOR: Record<string, string> = {
 /*  since the fund list is dynamic (trf_fund_master).                  */
 /* ------------------------------------------------------------------ */
 const FUND_COLORS = [
-  "#F59E0B", // amber   — first fund (usually Annual)
-  "#8B5CF6", // violet  — PHF / Endowment
-  "#EAB308", // yellow  — Major Donors
+  "#F7A81B", // amber   — first fund (usually Annual)
+  "#17458F", // azure   — PHF / Endowment
+  "#2A3F5C", // ink-2   — Major Donors
   "#10B981", // emerald
-  "#0EA5E9", // sky
-  "#EC4899", // pink
+  "#0067C8", // mint
+  "#A9C6EA", // lilac
   "#EF4444", // rose    — Others
 ];
 
@@ -314,10 +314,10 @@ const FUND_COLORS = [
 /* ------------------------------------------------------------------ */
 const CATEGORY_DOT_COLORS = [
   "#10B981", // emerald — Membership Growth
-  "#F59E0B", // amber — Service Projects
-  "#F59E0B",
-  "#F59E0B",
-  "#F59E0B",
+  "#F7A81B", // amber — Service Projects
+  "#F7A81B",
+  "#F7A81B",
+  "#F7A81B",
 ];
 
 /* ------------------------------------------------------------------ */
@@ -496,11 +496,11 @@ export default function DistrictAdminOverviewPage() {
             </span>
             <span className="text-xs text-slate-500">total members</span>
           </div>
-          <MetricRow label="Active"   value={fmtInt(active)}   percent={(active / memMax) * 100}   color="#2563EB" />
-          <MetricRow label="Male"     value={fmtInt(male)}     percent={(male / memMax) * 100}     color="#3B82F6" />
-          <MetricRow label="Female"   value={fmtInt(female)}   percent={(female / memMax) * 100}   color="#EC4899" />
-          <MetricRow label="Honorary" value={fmtInt(honorary)} percent={(honorary / memMax) * 100} color="#8B5CF6" />
-          <MetricRow label="Inactive" value={fmtInt(inactive)} percent={(inactive / memMax) * 100} color="#94A3B8" />
+          <MetricRow label="Active"   value={fmtInt(active)}   percent={(active / memMax) * 100}   color="#10B981" />
+          <MetricRow label="Male"     value={fmtInt(male)}     percent={(male / memMax) * 100}     color="#17458F" />
+          <MetricRow label="Female"   value={fmtInt(female)}   percent={(female / memMax) * 100}   color="#F7A81B" />
+          <MetricRow label="Honorary" value={fmtInt(honorary)} percent={(honorary / memMax) * 100} color="#0067C8" />
+          <MetricRow label="Inactive" value={fmtInt(inactive)} percent={(inactive / memMax) * 100} color="#8796AA" />
         </Panel>
 
         {/* TRF Contribution -------------------------------------------- */}
@@ -533,7 +533,7 @@ export default function DistrictAdminOverviewPage() {
           ) : (
             <div>
               {fundRows.map((row, i) => {
-                const name = row.fundName ?? "—";
+                const name = row.fundName ?? "–";
                 const amt = row.amountInr ?? 0;
                 const color = FUND_COLORS[i % FUND_COLORS.length];
                 return (
@@ -574,7 +574,7 @@ export default function DistrictAdminOverviewPage() {
               />
               {avenues.map((row, i) => {
                 const key = (row.avenueKey ?? "").toLowerCase();
-                const label = row.avenueName ?? row.name ?? row.avenueKey ?? "—";
+                const label = row.avenueName ?? row.name ?? row.avenueKey ?? "–";
                 const count = row.completed ?? row.current ?? 0;
                 const color = AVENUE_COLOR[key] ?? ROTARY_BLUE;
                 return (
@@ -608,7 +608,7 @@ export default function DistrictAdminOverviewPage() {
           <div className="mb-4 flex flex-col items-center">
             <Donut
               percent={100}
-              color="#1e3a5f"
+              color="#17458f"
               size={130}
               thickness={12}
               centerTop={fmtInt(citationPoints)}
@@ -620,8 +620,8 @@ export default function DistrictAdminOverviewPage() {
           ) : (
             <ul className="space-y-1.5">
               {categories.map((row, i) => {
-                const dotColor = CATEGORY_DOT_COLORS[i] ?? "#1e3a5f";
-                const name = row.categoryName ?? row.category ?? "—";
+                const dotColor = CATEGORY_DOT_COLORS[i] ?? "#17458f";
+                const name = row.categoryName ?? row.category ?? "–";
                 const pts = row.pointsEarned ?? row.points ?? 0;
                 return (
                   <li
@@ -653,7 +653,7 @@ export default function DistrictAdminOverviewPage() {
         {/* Top 20 Clubs — vertical bar chart -------------------------- */}
         <div className="lg:col-span-2 bg-white rounded-lg border border-slate-200 shadow-sm">
           <div className="px-5 pt-4 pb-2">
-            <h3 className="text-sm font-semibold text-slate-800">Top 10 Clubs — Member Count</h3>
+            <h3 className="text-sm font-semibold text-slate-800">Top 10 Clubs: Member Count</h3>
             <p className="text-[11px] text-slate-500 mt-0.5">Members by club (highest first)</p>
           </div>
           <div className="px-2 pb-3">
@@ -679,7 +679,7 @@ export default function DistrictAdminOverviewPage() {
                     angle={0}
                   />
                   <YAxis
-                    tick={{ fontSize: 10, fill: "#94a3b8" }}
+                    tick={{ fontSize: 10, fill: "#8796aa" }}
                     axisLine={false}
                     tickLine={false}
                     width={30}
@@ -690,7 +690,7 @@ export default function DistrictAdminOverviewPage() {
                     labelFormatter={(_, p) => p?.[0]?.payload?.fullName ?? ""}
                     formatter={(v) => [fmtInt(Number(v)), "Members"]}
                   />
-                  <Bar dataKey="members" fill="#1E40AF" radius={[2, 2, 0, 0]} />
+                  <Bar dataKey="members" fill="#0067C8" radius={[2, 2, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             )}
@@ -734,7 +734,7 @@ export default function DistrictAdminOverviewPage() {
                     >
                       <span className="text-slate-500 tabular-nums w-5 text-right">{rank}</span>
                       <span className="flex-1 min-w-0 text-slate-800 truncate">
-                        {c.clubName ?? "—"}
+                        {c.clubName ?? "–"}
                       </span>
                       <span
                         className={`font-semibold tabular-nums ${

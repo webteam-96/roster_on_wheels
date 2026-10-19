@@ -11,7 +11,7 @@ import RotaryLoader from "@/components/RotaryLoader";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
-import { Plus, Search, Power, PowerOff, FileSpreadsheet, Trash2 } from "lucide-react";
+import { Plus, Search, Power, PowerOff, FileSpreadsheet, Trash2 } from "@/components/icons";
 
 import { appLocale, currencySymbol } from "@/lib/appFormat";
 interface ClubDuesRow {

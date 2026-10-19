@@ -33,7 +33,7 @@ import { CLUB_GOAL_SETTING_COMING_SOON } from "@/lib/clubGoalSetting";
 import MonthlyGoalsPanel from "@/components/dashboard/MonthlyGoalsPanel";
 import GoalTargetSplitPanel from "@/components/dashboard/GoalTargetSplitPanel";
 import GoalZoneMessages from "@/components/dashboard/GoalZoneMessages";
-import { Download, Loader2 } from "lucide-react";
+import { Download, Loader2 } from "@/components/icons";
 import { saveAs } from "file-saver";
 import { fileTimestamp } from "@/lib/dateUtils";
 
@@ -165,7 +165,7 @@ export default function GoalReadonlyViewer({
   return (
     <div className="space-y-4">
       <div className="rounded-xl border border-slate-200 bg-white p-4">
-        <div className="text-sm font-semibold text-slate-800">Goal Setting — read-only view</div>
+        <div className="text-sm font-semibold text-slate-800">Goal Setting: read-only view</div>
         <p className="text-xs text-slate-500 mt-0.5 mb-3">Pick a district or club to see its Membership / Foundation / Youth Service / Public Image goals. Changing the year keeps your selection and just refreshes the figures below.</p>
         {/* Plain selects in reading order: Zone → District → Club → Year. */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
@@ -245,7 +245,7 @@ export default function GoalReadonlyViewer({
               fetchForm={fetchMonthly}
               readOnly
               activeCategoryId={viewCatId}
-              title={clubId ? "Month-wise Collection — Club (read only)" : "Month-wise Collection — District (read only)"}
+              title={clubId ? "Month-wise Collection: Club (read only)" : "Month-wise Collection: District (read only)"}
               reloadKey={`${districtId}-${clubId ?? "d"}-${yearId}`}
             />
           )}

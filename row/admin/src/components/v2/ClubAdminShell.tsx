@@ -47,7 +47,7 @@ import { ReactNode, Suspense, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import Image from "next/image";
-import { Menu, X, LogOut } from "lucide-react";
+import { Menu, X, LogOut } from "@/components/icons";
 import HelplineBar from "@/components/v2/HelplineBar";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
@@ -63,9 +63,9 @@ import ScopePicker from "@/components/dashboard/ScopePicker";
 import { useComingSoonModules } from "@/hooks/useComingSoonModules";
 import { CLUB_ADMIN_NAV } from "@/app/club-admin-dashboard/nav";
 
-const SIDEBAR_BG = "#0f172a";
-const ACTIVE_BG = "#F7A81B";
-const ACTIVE_TEXT = "#1e3a5f";
+const SIDEBAR_BG = "#FCFDFE";
+const ACTIVE_BG = "#17458F";
+const ACTIVE_TEXT = "#FCFDFE";
 
 const BRAND = "Club Dashboard";
 const IDENTITY_LABEL = "Signed in";
@@ -174,23 +174,23 @@ function ClubAdminShellInner({
   const sidebarContent = (
     <div className="flex flex-col h-full">
       {/* Logo */}
-      <div className="px-5 py-5 border-b border-white/10">
+      <div className="px-5 py-5 border-b border-[color:var(--row-line)]">
         <Image
-          src="/brand/row-logo-badge.png"
+          src="/brand/row-logo.png"
           alt="Roster On Wheels"
-          width={140}
-          height={40}
-          className="h-10 w-auto object-contain"
+          width={220}
+          height={95}
+          className="w-full max-w-[188px] h-auto object-contain"
           priority
         />
-        <p className="text-xs text-slate-400 mt-2 font-medium">{BRAND}</p>
+        <p className="text-xs text-muted-foreground mt-2 font-medium">{BRAND}</p>
       </div>
 
       {/* Identity card */}
-      <div className="px-3 py-3 border-b border-white/10">
+      <div className="px-3 py-3 border-b border-[color:var(--row-line)]">
         <div
           className="flex items-center gap-2.5 rounded-lg px-3 py-2.5"
-          style={{ backgroundColor: "rgba(255,255,255,0.07)" }}
+          style={{ backgroundColor: "rgba(27,44,66,0.05)" }}
         >
           <Avatar className="h-9 w-9 rounded-md flex-shrink-0">
             <AvatarFallback
@@ -201,18 +201,18 @@ function ClubAdminShellInner({
             </AvatarFallback>
           </Avatar>
           <div className="min-w-0">
-            <p className="text-white text-sm font-semibold truncate">{identityName}</p>
-            <p className="text-slate-400 text-xs truncate">{IDENTITY_ROLE}</p>
+            <p className="text-foreground text-sm font-semibold truncate">{identityName}</p>
+            <p className="text-muted-foreground text-xs truncate">{IDENTITY_ROLE}</p>
           </div>
         </div>
-        <p className="text-[10px] text-slate-500 mt-2 px-1 tracking-wide uppercase">
+        <p className="text-[10px] text-muted-foreground mt-2 px-1 tracking-wide uppercase">
           {IDENTITY_LABEL}
         </p>
       </div>
 
       {/* Nav */}
       <ScrollArea className="flex-1 px-2 py-4">
-        <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest px-3 pb-2">
+        <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest px-3 pb-2">
           Navigation
         </p>
         <nav className="flex flex-col gap-0.5">
@@ -227,7 +227,7 @@ function ClubAdminShellInner({
                   "flex items-center gap-2.5 px-3 py-2.5 mx-0.5 my-0.5 rounded-lg text-sm font-medium transition-all duration-150",
                   isActive
                     ? "font-semibold shadow-sm"
-                    : "text-slate-300 hover:text-white hover:bg-white/10"
+                    : "text-foreground/70 hover:text-foreground hover:bg-muted"
                 )}
                 style={
                   isActive
@@ -240,7 +240,7 @@ function ClubAdminShellInner({
                     this shell. */}
                 <span
                   className="w-1.5 h-1.5 rounded-full flex-shrink-0"
-                  style={{ background: isActive ? ACTIVE_TEXT : "#475569" }}
+                  style={{ background: isActive ? ACTIVE_TEXT : "#5E93D6" }}
                 />
                 <span className="truncate">{label}</span>
               </Link>
@@ -249,22 +249,22 @@ function ClubAdminShellInner({
         </nav>
       </ScrollArea>
 
-      <Separator className="bg-white/10 mx-3" />
+      <Separator className="bg-[color:var(--row-line)] mx-3" />
 
       {/* Footer + switcher + logout */}
       <div className="px-3 py-3 space-y-2">
         <DashboardSwitcher currentKind="club-admin" onNavigate={() => setOpen(false)} />
         <button
           onClick={() => logout()}
-          className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-xs font-medium text-slate-300 hover:text-white hover:bg-white/10 transition-all"
+          className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-xs font-medium text-foreground/70 hover:text-foreground hover:bg-muted transition-all"
         >
           <LogOut size={14} />
           <span>Sign Out</span>
         </button>
-        <p className="text-slate-500 text-[11px] text-center tracking-widest uppercase">
+        <p className="text-muted-foreground text-[11px] text-center tracking-widest uppercase">
           {/* Reads ?yearId= from the URL so the footer follows whatever year the
               topbar selector is currently showing on this V2 page. */}
-          <Suspense fallback={<>Rotary Year —</>}>
+          <Suspense fallback={<>Rotary Year , </>}>
             <DashboardYearFooterText />
           </Suspense>
         </p>
@@ -279,7 +279,7 @@ function ClubAdminShellInner({
     >
       {/* Desktop sidebar */}
       <aside
-        className="hidden lg:flex flex-col w-60 flex-shrink-0"
+        className="hidden lg:flex flex-col w-60 flex-shrink-0 border-r border-[color:var(--row-line)]"
         style={{ background: SIDEBAR_BG }}
       >
         {sidebarContent}
@@ -297,7 +297,7 @@ function ClubAdminShellInner({
             style={{ background: SIDEBAR_BG }}
           >
             <button
-              className="absolute top-3 right-3 text-slate-400 hover:text-white"
+              className="absolute top-3 right-3 text-slate-400 hover:text-foreground"
               onClick={() => setOpen(false)}
             >
               <X size={20} />

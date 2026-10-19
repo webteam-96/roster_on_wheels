@@ -25,7 +25,7 @@ export default function DashboardYearFooterText() {
     let cancelled = false;
     getRotaryYears()
       .then((data) => { if (!cancelled) setYears(data || []); })
-      .catch(() => { /* leave empty — footer will fall back to placeholder */ });
+      .catch(() => { /* leave empty: footer will fall back to placeholder */ });
     return () => { cancelled = true; };
   }, []);
 
@@ -33,7 +33,7 @@ export default function DashboardYearFooterText() {
   const urlYearId = urlYearStr ? parseInt(urlYearStr, 10) : null;
   const match = urlYearId ? years.find((y) => y.id === urlYearId) : null;
   const current = years.find((y) => y.isCurrent);
-  const label = match?.yearLabel || current?.yearLabel || "—";
+  const label = match?.yearLabel || current?.yearLabel || "–";
 
   return <>Rotary Year {label}</>;
 }

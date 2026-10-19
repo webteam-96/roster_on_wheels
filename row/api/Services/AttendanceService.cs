@@ -36,6 +36,8 @@ public class AttendanceService : IAttendanceService
                 a.fk_year_id AS YearId,
                 a.EventName,
                 a.EventDateTime,
+                a.MeetingMode,
+                a.MeetingLink,
                 (SELECT COUNT(*) FROM club_attendance_members m WHERE m.fk_attendance_id = a.pk_attendance_id) AS MembersCount,
                 (SELECT COUNT(*) FROM club_attendance_anns n WHERE n.fk_attendance_id = a.pk_attendance_id) AS AnnsCount,
                 (SELECT COUNT(*) FROM club_attendance_annets t WHERE t.fk_attendance_id = a.pk_attendance_id) AS AnnetsCount,
@@ -83,7 +85,9 @@ public class AttendanceService : IAttendanceService
                 fk_year_id AS YearId,
                 EventName,
                 Description,
-                EventDateTime
+                EventDateTime,
+                MeetingMode,
+                MeetingLink
               FROM club_attendance
               WHERE pk_attendance_id = @Id AND isdeleted = 0",
             new { Id = id });
@@ -129,6 +133,7 @@ public class AttendanceService : IAttendanceService
         // every subsequent command must explicitly pass that transaction. GetRotaryYearIdAsync doesn't,
         // and MySqlConnector throws "The transaction associated with this command is not the
         // connection's active transaction" when it sees a command without the txn parameter.
+        var (mode, link) = NormalizeMeeting(dto.MeetingMode, dto.MeetingLink);
         var yearId = await GetRotaryYearIdAsync(connection, dto.EventDateTime);
 
         using var transaction = await connection.BeginTransactionAsync();
@@ -137,8 +142,8 @@ public class AttendanceService : IAttendanceService
         {
             // Insert main attendance record
             var attendanceId = await connection.ExecuteScalarAsync<int>(
-                @"INSERT INTO club_attendance (fk_club_id, fk_year_id, EventName, Description, EventDateTime, created_by, created_date)
-                  VALUES (@ClubId, @YearId, @EventName, @Description, @EventDateTime, @CreatedBy, NOW());
+                @"INSERT INTO club_attendance (fk_club_id, fk_year_id, EventName, Description, EventDateTime, MeetingMode, MeetingLink, created_by, created_date)
+                  VALUES (@ClubId, @YearId, @EventName, @Description, @EventDateTime, @MeetingMode, @MeetingLink, @CreatedBy, NOW());
                   SELECT LAST_INSERT_ID();",
                 new
                 {
@@ -147,6 +152,8 @@ public class AttendanceService : IAttendanceService
                     dto.EventName,
                     dto.Description,
                     dto.EventDateTime,
+                    MeetingMode = mode,
+                    MeetingLink = link,
                     CreatedBy = createdBy
                 },
                 transaction);
@@ -165,10 +172,16 @@ public class AttendanceService : IAttendanceService
         }
     }
 
-    public async Task UpdateAsync(int id, UpdateAttendanceDto dto, int modifiedBy)
+    public async Task<bool> UpdateAsync(int clubId, int id, UpdateAttendanceDto dto, int modifiedBy)
     {
+        var (mode, link) = NormalizeMeeting(dto.MeetingMode, dto.MeetingLink);
         using var connection = CreateConnection();
         await connection.OpenAsync();
+        var owned = await connection.ExecuteScalarAsync<int>(
+            "SELECT COUNT(*) FROM club_attendance WHERE pk_attendance_id = @Id AND fk_club_id = @ClubId AND isdeleted = 0",
+            new { Id = id, ClubId = clubId });
+        if (owned == 0) return false;
+
         using var transaction = await connection.BeginTransactionAsync();
 
         try
@@ -179,12 +192,17 @@ public class AttendanceService : IAttendanceService
                     EventName = @EventName,
                     Description = @Description,
                     EventDateTime = @EventDateTime,
+                    MeetingMode = @MeetingMode,
+                    MeetingLink = @MeetingLink,
                     modified_by = @ModifiedBy,
                     modified_date = NOW()
-                  WHERE pk_attendance_id = @Id AND isdeleted = 0",
+                  WHERE pk_attendance_id = @Id AND fk_club_id = @ClubId AND isdeleted = 0",
                 new
                 {
                     Id = id,
+                    ClubId = clubId,
+                    MeetingMode = mode,
+                    MeetingLink = link,
                     dto.EventName,
                     dto.Description,
                     dto.EventDateTime,
@@ -204,6 +222,7 @@ public class AttendanceService : IAttendanceService
             await InsertSubRecordsAsync(connection, transaction, id, dto.MemberIds, dto.Anns, dto.Annets, dto.Visitors, dto.Rotarians, dto.Delegates);
 
             await transaction.CommitAsync();
+            return true;
         }
         catch
         {
@@ -212,23 +231,39 @@ public class AttendanceService : IAttendanceService
         }
     }
 
-    public async Task DeleteAsync(int id, int deletedBy)
+    public async Task<bool> DeleteAsync(int clubId, int id, int deletedBy)
     {
         using var connection = CreateConnection();
         await connection.OpenAsync();
         // Capture the club ID before soft-delete so we can recalc citation
         // points for that club.
         int clubFk = await connection.ExecuteScalarAsync<int>(
-            "SELECT fk_club_id FROM club_attendance WHERE pk_attendance_id = @Id",
-            new { Id = id });
+            "SELECT fk_club_id FROM club_attendance WHERE pk_attendance_id = @Id AND fk_club_id = @ClubId AND isdeleted = 0",
+            new { Id = id, ClubId = clubId });
+        if (clubFk == 0) return false;
         await connection.ExecuteAsync(
             @"UPDATE club_attendance SET
                 isdeleted = 1,
                 deleted_by = @DeletedBy,
                 deleted_date = NOW()
-              WHERE pk_attendance_id = @Id",
-            new { Id = id, DeletedBy = deletedBy });
-        if (clubFk > 0) _citationRecalc.TriggerForClub(clubFk);
+              WHERE pk_attendance_id = @Id AND fk_club_id = @ClubId",
+            new { Id = id, ClubId = clubId, DeletedBy = deletedBy });
+        _citationRecalc.TriggerForClub(clubFk);
+        return true;
+    }
+
+    private static readonly string[] MeetingModes = { "in_person", "online", "hybrid" };
+
+    /// Validates meeting mode and link (ROW Wave 1): unknown modes and non-https links are refused;
+    /// an in-person meeting keeps no link.
+    internal static (string Mode, string? Link) NormalizeMeeting(string? mode, string? link)
+    {
+        var m = string.IsNullOrWhiteSpace(mode) ? "in_person" : mode.Trim().ToLowerInvariant();
+        if (!MeetingModes.Contains(m)) throw new ArgumentException("Meeting mode must be in_person, online or hybrid.");
+        var l = string.IsNullOrWhiteSpace(link) || m == "in_person" ? null : link.Trim();
+        if (l != null && (l.Length > 1000 || !Uri.TryCreate(l, UriKind.Absolute, out var u) || u.Scheme != Uri.UriSchemeHttps))
+            throw new ArgumentException("The meeting link must be an https:// address.");
+        return (m, l);
     }
 
     public async Task<List<object>> GetYearsAsync(int clubId)

@@ -24,7 +24,7 @@ import ErrorAlert from "@/components/ErrorAlert";
 import AlertModal from "@/components/AlertModal";
 import {
   ArrowLeft, Plus, MoreHorizontal, Eye, Pencil, Trash2, Send, Loader2, MailPlus, AlertTriangle,
-} from "lucide-react";
+} from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
 import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";
@@ -215,15 +215,15 @@ export default function MassEmailsPage() {
                           <span className="text-sm">{item.totalRecipients} ({getRecipientTypeLabel(item.recipientType)})</span>
                         </TableCell>
                         <TableCell className="text-center">
-                          {item.status !== "Draft" ? <span className="text-green-600 font-medium">{item.sentCount}</span> : "—"}
+                          {item.status !== "Draft" ? <span className="text-green-600 font-medium">{item.sentCount}</span> : "–"}
                         </TableCell>
                         <TableCell className="text-center">
-                          {item.status !== "Draft" ? (item.failedCount > 0 ? <span className="text-red-600 font-medium">{item.failedCount}</span> : "0") : "—"}
+                          {item.status !== "Draft" ? (item.failedCount > 0 ? <span className="text-red-600 font-medium">{item.failedCount}</span> : "0") : "–"}
                         </TableCell>
                         <TableCell className="text-center">
                           {item.status !== "Draft" ? (
                             <span className="text-orange-600 font-medium">{item.totalRecipients - item.sentCount - item.failedCount > 0 ? item.totalRecipients - item.sentCount - item.failedCount : 0}</span>
-                          ) : "—"}
+                          ) : "–"}
                         </TableCell>
                         <TableCell className="text-sm">
                           {item.sentDate

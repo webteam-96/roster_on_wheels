@@ -1,4 +1,4 @@
-import { CalendarClock, Sparkles } from "lucide-react";
+import { CalendarClock, Sparkles } from "@/components/icons";
 import { fmtDate } from "@/components/dashboard/formatters";
 
 interface ComingSoonStubProps {
@@ -8,16 +8,16 @@ interface ComingSoonStubProps {
 
 export default function ComingSoonStub({ moduleName, comingSoonDate }: ComingSoonStubProps) {
   const dateLabel = comingSoonDate ? fmtDate(comingSoonDate) : null;
-  const hasDate = !!dateLabel && dateLabel !== "—";
+  const hasDate = !!dateLabel && dateLabel !== "–";
   return (
     <div className="flex items-center justify-center min-h-[60vh]">
-      <div className="max-w-md w-full rounded-2xl border border-amber-200 bg-gradient-to-br from-amber-50 via-white to-amber-50 p-8 text-center shadow-sm">
+      <div className="max-w-md w-full rounded-2xl border border-amber-200 bg-amber-50 p-8 text-center shadow-sm">
         <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-amber-100">
           <Sparkles size={26} className="text-amber-600" />
         </div>
         <h2 className="text-xl font-bold text-slate-800">{moduleName}</h2>
         <p className="text-sm font-semibold text-amber-700 mt-1 uppercase tracking-wider">
-          {hasDate ? `Coming Soon — Launches on ${dateLabel}` : "Coming Soon"}
+          {hasDate ? `Coming Soon: Launches on ${dateLabel}` : "Coming Soon"}
         </p>
         <p className="text-sm text-slate-600 mt-4">
           The new version is rolling out one room at a time. This room&apos;s still getting painted.

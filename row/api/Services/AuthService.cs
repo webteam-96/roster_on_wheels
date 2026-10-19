@@ -282,7 +282,9 @@ public class AuthService : IAuthService
         }
     }
 
-    public async Task<object> ForgotPasswordAsync(ForgotPasswordRequestDto request)
+    /// <param name="anyMember">true for the mobile app, where every member signs in with a password;
+    /// false keeps the web portal rule (admin and goal roles only).</param>
+    public async Task<object> ForgotPasswordAsync(ForgotPasswordRequestDto request, bool anyMember = false)
     {
         using var connection = CreateConnection();
         await connection.OpenAsync();
@@ -325,7 +327,7 @@ public class AuthService : IAuthService
                 AND r.RoleName IN ('Admin', 'SuperAdmin', 'ZonalCoordinator', 'RIDirector', 'AG', 'ClubModerator')",
             new { Id = memberId });
 
-        if ((roleCount == 0 && !await GoalLoginHelper.HasActiveGoalRoleAsync(connection, memberId))
+        if ((!anyMember && roleCount == 0 && !await GoalLoginHelper.HasActiveGoalRoleAsync(connection, memberId))
             || string.IsNullOrWhiteSpace(memberEmail))
             return new { message = "If the account exists, a reset link has been sent to the registered email." };
 
@@ -372,6 +374,14 @@ public class AuthService : IAuthService
 
         // Hash new password
         var newHash = BCrypt.Net.BCrypt.HashPassword(request.NewPassword);
+
+        // A member who never had a password (mobile sign-up via "Forgot password") gets a credentials row.
+        await connection.ExecuteAsync(@"
+            INSERT INTO member_credentials (fk_member_master_profile_id, PasswordHash, IsTemporaryPassword)
+            SELECT @Id, @Hash, 0 FROM DUAL
+            WHERE NOT EXISTS (SELECT 1 FROM member_credentials
+                              WHERE fk_member_master_profile_id = @Id AND IsActive = 1 AND isdeleted = 0)",
+            new { Id = memberId, Hash = newHash });
 
         // Update member_credentials
         await connection.ExecuteAsync(

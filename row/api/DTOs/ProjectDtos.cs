@@ -139,7 +139,6 @@ public class CreateProjectDto
     // Rotary Community Corps members involved - optional, 0 when nothing was entered. Always sits
     // next to RotaractorsInvolved (user 2026-10-05).
     public int? RccInvolved { get; set; }
-    public bool SendWhatsapp { get; set; }
     public bool SendEmail { get; set; }
     public string? MeetingType { get; set; }
     public string? AgendaDocument { get; set; }
@@ -187,7 +186,6 @@ public class UpdateProjectDto
     // Rotary Community Corps members involved - optional, 0 when nothing was entered. Always sits
     // next to RotaractorsInvolved (user 2026-10-05).
     public int? RccInvolved { get; set; }
-    public bool SendWhatsapp { get; set; }
     public bool SendEmail { get; set; }
     public string? MeetingType { get; set; }
     public string? AgendaDocument { get; set; }

@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, BarChart3, Download, Loader2, Mail, RefreshCw } from "lucide-react";
+import { ArrowLeft, BarChart3, Download, Loader2, Mail, RefreshCw } from "@/components/icons";
 import {
   getDailyStatsReportCounts,
   downloadDailyStatsReportExcel,
@@ -54,7 +54,7 @@ export default function DailyStatsReportPage() {
   };
 
   const sendNow = async () => {
-    if (!confirm("Send the daily statistics email now to the configured recipients?\n(On a dev machine no real email is sent — it only logs the counts.)")) return;
+    if (!confirm("Send the daily statistics email now to the configured recipients?\n(On a dev machine no real email is sent. It only logs the counts.)")) return;
     setSending(true); setMsg(null);
     try {
       const r = await sendDailyStatsReportNow();
@@ -120,7 +120,7 @@ export default function DailyStatsReportPage() {
 
         {breakdowns.map((b, bi) => (
           <div key={bi} className="bg-white rounded-xl border border-slate-200 overflow-hidden">
-            <div className="px-4 py-2.5 border-b border-slate-100 text-sm font-medium text-slate-700">{b.title} — by Avenue</div>
+            <div className="px-4 py-2.5 border-b border-slate-100 text-sm font-medium text-slate-700">{b.title}: by Avenue</div>
             <div className="overflow-x-auto">
               <table className="min-w-full text-sm">
                 <thead>

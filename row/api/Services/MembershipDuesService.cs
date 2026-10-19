@@ -22,23 +22,18 @@ public class MembershipDuesService : IMembershipDuesService
     private readonly string _connStr;
     private readonly IConfiguration _config;
     private readonly IEmailService _emailService;
-    private readonly ISmsService _smsService;
-    private readonly IWhatsAppService _whatsAppService;
     private readonly IGoogleSheetsService _googleSheetsService;
     private readonly ICreditManagementService _creditService;
     private readonly HttpClient _httpClient;
     private readonly ILogger<MembershipDuesService> _logger;
 
-    public MembershipDuesService(IConfiguration config, IEmailService emailService, ISmsService smsService,
-        IWhatsAppService whatsAppService, IHttpClientFactory httpClientFactory, IGoogleSheetsService googleSheetsService,
+    public MembershipDuesService(IConfiguration config, IEmailService emailService, IHttpClientFactory httpClientFactory, IGoogleSheetsService googleSheetsService,
         ICreditManagementService creditService,
         ILogger<MembershipDuesService> logger)
     {
         _connStr = config.GetConnectionString("DefaultConnection")!;
         _config = config;
         _emailService = emailService;
-        _smsService = smsService;
-        _whatsAppService = whatsAppService;
         _googleSheetsService = googleSheetsService;
         _creditService = creditService;
         _httpClient = httpClientFactory.CreateClient();
@@ -2263,150 +2258,6 @@ public class MembershipDuesService : IMembershipDuesService
         // Club Dues emails are free — no credit deduction
     }
 
-    public async Task SendReminderWhatsAppAsync(int memberFeeId, int feeType)
-    {
-        using var conn = GetConnection();
-        var data = await conn.QueryFirstOrDefaultAsync<dynamic>(@"
-            SELECT f.pk_id, m.MemberName, m.PrimaryMobileNumber,
-                   md.pk_membership_dues_id AS DuesId, md.fk_club_id AS ClubId, md.Purpose, md.RotaryYear, md.ModeOfPayment,
-                   md.IsShowBankInReceipt,
-                   md.Fees1Text, md.Fees2Text, md.Fees3Text,
-                   md.IsFees1, md.IsFees2, md.IsFees3,
-                   md.OfflineBankName, md.OfflineAccountNumber, md.OfflineIfscCode,
-                   f.AnnualAmount, f.Semi1Amount, f.Semi2Amount,
-                   d.DistrictNumber, c.ClubName
-            FROM membership_dues_member_fees f
-            JOIN member_master_profile m ON f.fk_member_profile_id = m.pk_member_master_profile_id
-            JOIN membership_dues md ON f.fk_membership_dues_id = md.pk_membership_dues_id
-            JOIN club_members cm ON cm.fk_member_master_profile_id = f.fk_member_profile_id
-                AND cm.fk_club_id = md.fk_club_id
-                AND cm.IsActive = 1
-                AND COALESCE(cm.isdeleted, 0) = 0
-                AND COALESCE(cm.IsHonoraryMember, 0) = 0
-            LEFT JOIN district_master d ON md.fk_district_id = d.pk_district_id
-            LEFT JOIN club_master c ON md.fk_club_id = c.pk_club_id
-            WHERE f.pk_id=@Id AND f.isdeleted=0", new { Id = memberFeeId });
-        // Same honorary-exclusion guard as SendReminderEmailAsync above.
-        if (data == null || string.IsNullOrWhiteSpace((string?)data.PrimaryMobileNumber)) return;
-
-        // Determine which fee types to send
-        var feeTypes = new List<int>();
-        if (feeType > 0) { feeTypes.Add(feeType); }
-        else
-        {
-            if (Convert.ToBoolean(data.IsFees1)) feeTypes.Add(1);
-            if (Convert.ToBoolean(data.IsFees2)) feeTypes.Add(2);
-            if (Convert.ToBoolean(data.IsFees3)) feeTypes.Add(3);
-        }
-
-        int curMonth = await conn.ExecuteScalarAsync<int>("SELECT MONTH(NOW())");
-        decimal totalUnpaid = 0;
-        foreach (var ft in feeTypes)
-        {
-            var isPaid = await conn.ExecuteScalarAsync<int>(@"
-                SELECT COUNT(*) FROM membership_dues_payments
-                WHERE fk_member_fee_id=@FeeId AND FeeType=@FeeType AND IsPaid=1 AND isdeleted=0",
-                new { FeeId = memberFeeId, FeeType = ft });
-            if (isPaid > 0) continue;
-            // Calendar-window gate: Semi 2 only Jan–Jun (see IsFeeTypeRemindable).
-            if (!IsFeeTypeRemindable(ft, curMonth)) continue;
-            totalUnpaid += ft switch { 1 => (decimal)data.AnnualAmount, 2 => (decimal)data.Semi1Amount, 3 => (decimal)data.Semi2Amount, _ => 0 };
-        }
-        if (totalUnpaid <= 0) return;
-
-        var frontendUrl = _config["FrontendUrl"] ?? "http://localhost:3000";
-        var payUrl = $"{frontendUrl}/pay/dues/{(int)data.DuesId}";
-
-        // Club Dues has one reminder template — unlike District Dues it always includes the
-        // bank-details block; bank fields fall back to "-" when not configured, same as before.
-        await _whatsAppService.SendWhatsAppWithBodyValuesAsync(
-            (string)data.PrimaryMobileNumber, "updated_row_club_membership_dues_collection",
-            new[] { (string)data.MemberName, (string?)data.ClubName ?? "-",
-                    (string)(data.Purpose ?? "Club Dues"), "Not Received", payUrl,
-                    (string?)data.OfflineBankName ?? "-", (string?)data.OfflineAccountNumber ?? "-", (string?)data.OfflineIfscCode ?? "-" });
-
-        // Club Dues WhatsApp is free — no credit deduction
-    }
-
-    public async Task BulkSendReminderWhatsAppAsync(int duesId)
-    {
-        using var conn = GetConnection();
-        var dues = await conn.QueryFirstOrDefaultAsync<dynamic>(@"
-            SELECT pk_membership_dues_id, fk_club_id AS ClubId, Purpose, RotaryYear, IsFees1, IsFees2, IsFees3, ModeOfPayment,
-                   IsShowBankInReceipt, OfflineBankName, OfflineAccountNumber, OfflineIfscCode
-            FROM membership_dues WHERE pk_membership_dues_id=@Id AND isdeleted=0", new { Id = duesId });
-        if (dues == null) return;
-
-        // Same honorary exclusion as the bulk email reminder above — this query used to have
-        // no club_members join at all, so honorary members' permanently-unpaid fee rows kept
-        // triggering WhatsApp reminders too.
-        var members = await conn.QueryAsync<dynamic>(@"
-            SELECT f.pk_id AS FeeId, m.MemberName, m.PrimaryMobileNumber,
-                   f.AnnualAmount, f.Semi1Amount, f.Semi2Amount,
-                   d.DistrictNumber, c.ClubName
-            FROM membership_dues_member_fees f
-            JOIN member_master_profile m ON f.fk_member_profile_id = m.pk_member_master_profile_id
-                AND m.isdeleted = 0
-            JOIN membership_dues md ON f.fk_membership_dues_id = md.pk_membership_dues_id
-            JOIN club_members cm ON cm.fk_member_master_profile_id = f.fk_member_profile_id
-                AND cm.fk_club_id = md.fk_club_id
-                AND cm.IsActive = 1
-                AND COALESCE(cm.isdeleted, 0) = 0
-                AND COALESCE(cm.IsHonoraryMember, 0) = 0
-            LEFT JOIN district_master d ON md.fk_district_id = d.pk_district_id
-            LEFT JOIN club_master c ON md.fk_club_id = c.pk_club_id
-            WHERE f.fk_membership_dues_id=@DuesId AND f.isdeleted=0",
-            new { DuesId = duesId });
-
-        var frontendUrl = _config["FrontendUrl"] ?? "http://localhost:3000";
-        var payUrl = $"{frontendUrl}/pay/dues/{duesId}";
-        int sentCount = 0;
-        int clubId = (int)dues.ClubId;
-        int curMonth = await conn.ExecuteScalarAsync<int>("SELECT MONTH(NOW())");
-
-        foreach (var m in members)
-        {
-            if (string.IsNullOrWhiteSpace((string?)m.PrimaryMobileNumber)) continue;
-
-            // Check paid status with N/A logic
-            var feeId = (int)m.FeeId;
-            var annualPaidWA = await conn.ExecuteScalarAsync<int>(
-                "SELECT COUNT(*) FROM membership_dues_payments WHERE fk_member_fee_id=@FeeId AND FeeType=1 AND IsPaid=1 AND isdeleted=0", new { FeeId = feeId });
-            var semi1PaidWA = await conn.ExecuteScalarAsync<int>(
-                "SELECT COUNT(*) FROM membership_dues_payments WHERE fk_member_fee_id=@FeeId AND FeeType=2 AND IsPaid=1 AND isdeleted=0", new { FeeId = feeId });
-            var semi2PaidWA = await conn.ExecuteScalarAsync<int>(
-                "SELECT COUNT(*) FROM membership_dues_payments WHERE fk_member_fee_id=@FeeId AND FeeType=3 AND IsPaid=1 AND isdeleted=0", new { FeeId = feeId });
-
-            // If Annual paid → all N/A, skip
-            if (annualPaidWA > 0) continue;
-
-            decimal totalOutstanding = 0;
-            // Calendar-window gate: Semi 2 only Jan–Jun (see IsFeeTypeRemindable). Annual + Semi 1 all year.
-            if ((bool)dues.IsFees1 && semi1PaidWA == 0)
-                totalOutstanding += (decimal)m.AnnualAmount;
-            if ((bool)dues.IsFees2 && semi1PaidWA == 0)
-                totalOutstanding += (decimal)m.Semi1Amount;
-            if ((bool)dues.IsFees3 && semi2PaidWA == 0 && IsFeeTypeRemindable(3, curMonth))
-                totalOutstanding += (decimal)m.Semi2Amount;
-
-            if (totalOutstanding <= 0) continue;
-
-            try
-            {
-                // Same single always-with-bank template as the individual reminder.
-                await _whatsAppService.SendWhatsAppWithBodyValuesAsync(
-                    (string)m.PrimaryMobileNumber, "updated_row_club_membership_dues_collection",
-                    new[] { (string)m.MemberName, (string?)m.ClubName ?? "-",
-                            (string)(dues.Purpose ?? "Club Dues"), "Not Received", payUrl,
-                            (string?)dues.OfflineBankName ?? "-", (string?)dues.OfflineAccountNumber ?? "-", (string?)dues.OfflineIfscCode ?? "-" });
-                sentCount++;
-            }
-            catch { /* skip failed */ }
-        }
-
-        // Club Dues WhatsApp is free — no credit deduction
-    }
-
     // ═══════════════════════════════════════════════════════════════
     //  GOOGLE SHEETS
     // ═══════════════════════════════════════════════════════════════
@@ -2682,24 +2533,13 @@ public class MembershipDuesService : IMembershipDuesService
             }
             catch { /* skip if email fails */ }
         }
-        if (!string.IsNullOrWhiteSpace(mobile))
-        {
-            // WhatsApp when the brand's code policy lists it for the member's country, else SMS.
-            whatsAppSent = await OtpWhatsAppHelper.TrySendAsync(
-                conn, _whatsAppService, _config, _logger, mobile, memberCountryId, otp, "club dues payment");
-
-            // Fallback: SMS when WhatsApp was not used or failed.
-            if (!whatsAppSent)
-                smsSent = await _smsService.SendOtpSmsAsync(mobile, otp);
-        }
+        // ROW sends no SMS or WhatsApp: the code goes by email only.
 
         return emailSent || smsSent || whatsAppSent;
     }
 
     public async Task<bool> VerifyOtpAsync(int duesId, VerifyOtpRequestDto dto)
     {
-        // Default OTP bypass for testing
-        if (dto.OtpCode == "111111") return true;
 
         using var conn = GetConnection();
 

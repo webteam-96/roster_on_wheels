@@ -3,7 +3,7 @@
 /**
  * Club Admin Dashboard › Wallet tab
  * --------------------------------------------------------------------------
- * Self-service credit top-up (Razorpay). Club admins buy WhatsApp / Email
+ * Self-service credit top-up (Razorpay). Club admins buy email
  * notification credits for their own club. Scope + clubId come from the
  * selected club in AuthContext; the actual charge + credit are computed and
  * applied server-side (see RotaryApi WalletController / WalletService).

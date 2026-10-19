@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { Button } from "@/components/ui/button";
-import { AlertTriangle, ArrowLeft, Building2, Check, Download, Eye, FileBarChart, Globe2, Loader2, Mail, Printer } from "lucide-react";
+import { AlertTriangle, ArrowLeft, Building2, Check, Download, Eye, FileBarChart, Globe2, Loader2, Mail, Printer } from "@/components/icons";
 import { fileTimestamp } from "@/lib/dateUtils";
 import {
   getDistrictPerformanceReportSettings,
@@ -31,11 +31,11 @@ const isTextCol = (headers: string[] | null | undefined, i: number) =>
   i === 0 || (i === 1 && !!headers && headers[0] === "#");
 
 // Same progress colours as the email: under 30% red, under 60% amber, otherwise green.
-const ragColor = (pct: number) => (pct < 30 ? "#dc2626" : pct < 60 ? "#d97706" : "#16a34a");
+const ragColor = (pct: number) => (pct < 30 ? "#dc2626" : pct < 60 ? "#e59a10" : "#16a34a");
 
 // RAG Analysis band rows ("RED (10 – 25)") in their own colour.
 const bandColor = (text: string) =>
-  text.startsWith("RED") ? "#dc2626" : text.startsWith("AMBER") ? "#d97706" : text.startsWith("GREEN") ? "#16a34a" : null;
+  text.startsWith("RED") ? "#dc2626" : text.startsWith("AMBER") ? "#e59a10" : text.startsWith("GREEN") ? "#16a34a" : null;
 
 // % columns show the figure only (no bar), coloured red / amber / green.
 const isPctCol = (header: string | undefined) => !!header && (header === PCT_HEADER || header.endsWith("%"));
@@ -49,14 +49,14 @@ const ZONE_TOTAL = "Zone total";
 function openPrintWindow(): Window | null {
   const w = window.open("", "_blank");
   if (!w) return null;
-  w.document.write("<p style='font-family:Arial,sans-serif;color:#334155;padding:24px'>Preparing the report…</p>");
+  w.document.write("<p style='font-family:Arial,sans-serif;color:#2A3F5C;padding:24px'>Preparing the report…</p>");
   return w;
 }
 
 function writePrintDoc(w: Window, html: string, title: string) {
   const head = `<head><meta charset="utf-8"><title>${title}</title><style>
       @page { margin: 10mm; }
-      html, body { background: #ffffff !important; }
+      html, body { background: #fcfdfe !important; }
       * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
     </style><script>window.onload=function(){setTimeout(function(){window.focus();window.print();},350);}</script></head>`;
   w.document.open();
@@ -79,7 +79,7 @@ function ReportBody({ highlights, sections, scopeNote, tilesPerRow = 3 }: { high
                       {highlights.filter((h) => (h.group ?? "") === group).map((h, hi) => (
                         <div key={hi} className={`bg-white rounded-xl border border-slate-200 p-3 ${h.newRow ? "md:col-start-1" : ""}`}>
                           <div className="text-[10px] uppercase tracking-wide text-slate-500 whitespace-nowrap">{h.label}</div>
-                          <div className="text-2xl font-bold tabular-nums" style={{ color: h.percent != null ? ragColor(h.percent) : "#1a365d" }}>{h.value}</div>
+                          <div className="text-2xl font-bold tabular-nums" style={{ color: h.percent != null ? ragColor(h.percent) : "#17458f" }}>{h.value}</div>
                           {h.sub && <div className="text-xs text-slate-500">{h.sub}</div>}
                         </div>
                       ))}
@@ -97,7 +97,7 @@ function ReportBody({ highlights, sections, scopeNote, tilesPerRow = 3 }: { high
               return (
             <div key={part || pi} className="space-y-3">
               {part && (
-                <div className="rounded-xl bg-[#1a365d] px-4 py-3 mt-2">
+                <div className="rounded-xl bg-azure px-4 py-3 mt-2">
                   <div className="text-[10px] uppercase tracking-widest text-blue-200">Part {pi + 1}</div>
                   <div className="text-lg font-bold text-white">{part}</div>
                   {partSections[0]?.partSubtitle && <div className="text-xs text-slate-300">{partSections[0].partSubtitle}</div>}
@@ -108,7 +108,7 @@ function ReportBody({ highlights, sections, scopeNote, tilesPerRow = 3 }: { high
                 const wide = !!s.tableRows && s.tableRows.length > 0 && (s.tableHeaders?.length ?? 0) > 3;
                 return (
                   <div key={si} className={`bg-white rounded-xl border border-slate-200 overflow-hidden ${wide ? "md:col-span-2" : ""}`}>
-                    <div className="px-4 py-2.5 bg-[#1F4E79] text-white text-sm font-medium">{s.title}</div>
+                    <div className="px-4 py-2.5 bg-azure text-white text-sm font-medium">{s.title}</div>
                     {s.intro && <div className="px-4 py-2 text-xs italic text-slate-700 border-b border-slate-100">{s.intro}</div>}
                     {s.items.length > 0 && (
                       <table className="w-full table-fixed text-sm">
@@ -342,7 +342,7 @@ export default function DistrictPerformanceReportPage() {
       const r = zoneReport?.html ? zoneReport : await getZonePerformanceReportView();
       if (!zoneReport?.html) setZoneReport(r);
       if (!r.html) throw new Error("The report could not be prepared for printing.");
-      writePrintDoc(w, r.html, "RI Director Report — All Zones");
+      writePrintDoc(w, r.html, "RI Director Report: All Zones");
     } catch (e: any) {
       w.close();
       setZoneMsg({ kind: "err", text: e?.response?.data?.message || e?.message || "Failed to build the RI Director report." });
@@ -350,10 +350,10 @@ export default function DistrictPerformanceReportPage() {
   };
 
   const scheduleText = !settings ? "" : !settings.scheduleEnabled
-    ? "Automatic sending is OFF — nothing is emailed on a schedule. Use the buttons below to check the report."
+    ? "Automatic sending is OFF. Nothing is emailed on a schedule. Use the buttons below to check the report."
     : settings.mode === "Live"
-      ? `LIVE — on day ${settings.liveDays.join(" & ")} of each month at ${settings.hour}:00 (${appTimeZone()}), every district's report goes to its District Governor (CC ${settings.liveCc.join(", ")}).`
-      : `TEST — every morning at ${settings.hour}:00 (${appTimeZone()}): District ${settings.testDistricts.join(", ")} report + RI Director report (all zones) to ${settings.testRecipients.join(", ")}.`;
+      ? `LIVE: on day ${settings.liveDays.join(" & ")} of each month at ${settings.hour}:00 (${appTimeZone()}), every district's report goes to its District Governor (CC ${settings.liveCc.join(", ")}).`
+      : `TEST: every morning at ${settings.hour}:00 (${appTimeZone()}): District ${settings.testDistricts.join(", ")} report + RI Director report (all zones) to ${settings.testRecipients.join(", ")}.`;
 
   return (
     <ProtectedRoute>
@@ -368,7 +368,7 @@ export default function DistrictPerformanceReportPage() {
           </div>
           <div>
             <h1 className="text-xl font-semibold text-slate-800">Performance Report</h1>
-            <p className="text-xs text-slate-500">RI Director and District Governor progress reports — current Rotary year, 1 July to today.</p>
+            <p className="text-xs text-slate-500">RI Director and District Governor progress reports: current Rotary year, 1 July to today.</p>
           </div>
         </div>
 
@@ -396,12 +396,12 @@ export default function DistrictPerformanceReportPage() {
                   onClick={() => setTab(key)}
                   className={`flex items-center gap-3 rounded-xl border-2 px-4 py-3 text-left transition cursor-pointer ${
                     active
-                      ? "border-[#1F4E79] bg-[#1F4E79] text-white shadow-md"
-                      : "border-slate-300 bg-white text-slate-700 hover:border-[#1F4E79] hover:bg-slate-50 hover:shadow-sm"
+                      ? "border-azure bg-azure text-white shadow-md"
+                      : "border-slate-300 bg-white text-slate-700 hover:border-azure hover:bg-slate-50 hover:shadow-sm"
                   }`}
                 >
                   <span className={`h-9 w-9 shrink-0 rounded-lg flex items-center justify-center ${active ? "bg-white/15" : "bg-slate-100"}`}>
-                    <Icon className={`h-5 w-5 ${active ? "text-white" : "text-[#1F4E79]"}`} />
+                    <Icon className={`h-5 w-5 ${active ? "text-white" : "text-azure"}`} />
                   </span>
                   <span className="min-w-0">
                     <span className="block text-sm font-semibold">{label}</span>
@@ -427,7 +427,7 @@ export default function DistrictPerformanceReportPage() {
             >
               {districts.map((d) => (
                 <option key={d.districtId} value={d.districtId}>
-                  {d.districtNumber}{d.zoneName ? ` — ${d.zoneName}` : ""}
+                  {d.districtNumber}{d.zoneName ? `: ${d.zoneName}` : ""}
                 </option>
               ))}
             </select>
@@ -469,7 +469,7 @@ export default function DistrictPerformanceReportPage() {
               ) : (
                 <div className="mt-2 inline-flex items-center gap-1.5 text-sm text-amber-700">
                   <AlertTriangle className="h-4 w-4" />
-                  No District Governor email on record — this district would be skipped when the report goes live.
+                  No District Governor email on record. This district would be skipped when the report goes live.
                 </div>
               )}
             </div>
@@ -487,7 +487,7 @@ export default function DistrictPerformanceReportPage() {
         {tab === "ri" && (
         <div className="space-y-4">
           <p className="text-xs text-slate-500">
-            Every district, zone-wise — the same figures as each district&apos;s report. Building it takes a minute or two.
+            Every district, zone-wise: the same figures as each district&apos;s report. Building it takes a minute or two.
           </p>
           <div className="flex flex-wrap gap-2">
             <Button variant="outline" onClick={zoneView} disabled={zoneViewing}>
@@ -515,12 +515,12 @@ export default function DistrictPerformanceReportPage() {
           {zoneReport && (
             <div className="space-y-4">
               <div className="bg-white rounded-xl border border-slate-200 p-4">
-                <div className="text-base font-semibold text-slate-800">{zoneReport.reportKicker} — {zoneReport.reportTitle}</div>
+                <div className="text-base font-semibold text-slate-800">{zoneReport.reportKicker}: {zoneReport.reportTitle}</div>
                 <div className="text-xs text-slate-500">{zoneReport.reportSubtitle}</div>
               </div>
               <ReportBody highlights={zoneReport.highlights} sections={zoneReport.sections} scopeNote={zoneReport.scopeNote} />
               <p className="text-xs text-slate-500">
-                The Excel adds All Districts — every district in one row with every district and club figure, with zone totals.
+                The Excel adds All Districts: every district in one row with every district and club figure, with zone totals.
               </p>
             </div>
           )}
@@ -565,7 +565,7 @@ export default function DistrictPerformanceReportPage() {
                       <td className="px-3 py-1.5 text-slate-600 whitespace-nowrap">{new Date(r.createdDate).toLocaleString(appLocale())}</td>
                       <td className="px-3 py-1.5 text-slate-700">{r.districtNumber ?? "All zones"}</td>
                       <td className="px-3 py-1.5 text-slate-600">{r.runType}</td>
-                      <td className="px-3 py-1.5 text-slate-600">{r.toEmail ?? "—"}{r.ccEmails ? ` (cc ${r.ccEmails})` : ""}</td>
+                      <td className="px-3 py-1.5 text-slate-600">{r.toEmail ?? "–"}{r.ccEmails ? ` (cc ${r.ccEmails})` : ""}</td>
                       <td className={`px-3 py-1.5 font-medium ${r.status === "Sent" ? "text-emerald-700" : r.status === "Failed" ? "text-rose-700" : "text-amber-700"}`} title={r.message ?? ""}>
                         {r.status}
                       </td>

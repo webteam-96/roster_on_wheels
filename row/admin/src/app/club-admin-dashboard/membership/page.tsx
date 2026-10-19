@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Users, UserPlus, Mars, Venus, Search } from "lucide-react";
+import { Users, UserPlus, Mars, Venus, Search } from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
 import {
   AreaChart, Area, CartesianGrid, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend,
@@ -58,22 +58,22 @@ export default function ClubAdminMembershipPage() {
             <AreaChart data={data.monthlyTrend}>
               <defs>
                 <linearGradient id="grMaleMb" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#0891b2" stopOpacity={0.3} />
-                  <stop offset="100%" stopColor="#0891b2" stopOpacity={0} />
+                  <stop offset="0%" stopColor="#17458F" stopOpacity={0.3} />
+                  <stop offset="100%" stopColor="#17458F" stopOpacity={0} />
                 </linearGradient>
                 <linearGradient id="grFemaleMb" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#e11d48" stopOpacity={0.3} />
-                  <stop offset="100%" stopColor="#e11d48" stopOpacity={0} />
+                  <stop offset="0%" stopColor="#F7A81B" stopOpacity={0.3} />
+                  <stop offset="100%" stopColor="#F7A81B" stopOpacity={0} />
                 </linearGradient>
               </defs>
-              <CartesianGrid vertical={false} stroke="#f1f5f9" />
-              <XAxis dataKey="month" tick={{ fontSize: 11, fill: "#94a3b8" }} />
-              <YAxis tick={{ fontSize: 11, fill: "#94a3b8" }} width={28} />
+              <CartesianGrid vertical={false} stroke="#edf4fb" />
+              <XAxis dataKey="month" tick={{ fontSize: 11, fill: "#8796aa" }} />
+              <YAxis tick={{ fontSize: 11, fill: "#8796aa" }} width={28} />
               <Tooltip contentStyle={{ fontSize: 12, borderRadius: 6 }} />
               <Legend wrapperStyle={{ fontSize: 11 }} />
-              <Area type="monotone" dataKey="male" name="Male" stroke="#0891b2" fill="url(#grMaleMb)" strokeWidth={2} />
-              <Area type="monotone" dataKey="female" name="Female" stroke="#e11d48" fill="url(#grFemaleMb)" strokeWidth={2} />
-              <Area type="monotone" dataKey="honorary" name="Honorary" stroke="#9333ea" fill="transparent" strokeWidth={2} />
+              <Area type="monotone" dataKey="male" name="Male" stroke="#17458F" fill="url(#grMaleMb)" strokeWidth={2} />
+              <Area type="monotone" dataKey="female" name="Female" stroke="#F7A81B" fill="url(#grFemaleMb)" strokeWidth={2} />
+              <Area type="monotone" dataKey="honorary" name="Honorary" stroke="#0067C8" fill="transparent" strokeWidth={2} />
             </AreaChart>
           </ResponsiveContainer>
         </div>
@@ -99,8 +99,8 @@ export default function ClubAdminMembershipPage() {
                 {data.recentJoiners.map((m) => (
                   <tr key={m.memberId} className="hover:bg-blue-50/40">
                     <td className="px-4 py-2 font-medium text-slate-800">{m.name}</td>
-                    <td className="px-4 py-2 text-slate-600 text-xs">{m.email ?? "—"}</td>
-                    <td className="px-4 py-2 text-slate-600 text-xs">{m.mobile ?? "—"}</td>
+                    <td className="px-4 py-2 text-slate-600 text-xs">{m.email ?? "–"}</td>
+                    <td className="px-4 py-2 text-slate-600 text-xs">{m.mobile ?? "–"}</td>
                     <td className="px-4 py-2 text-slate-600 text-xs">{fmtDate(m.joinedDate)}</td>
                   </tr>
                 ))}
@@ -143,10 +143,10 @@ export default function ClubAdminMembershipPage() {
               {filtered.map((m) => (
                 <tr key={m.memberId} className="hover:bg-blue-50/40">
                   <td className="px-4 py-2 font-medium text-slate-800">{m.name}</td>
-                  <td className="px-4 py-2 text-slate-600 text-xs">{m.rotaryId ?? "—"}</td>
-                  <td className="px-4 py-2 text-slate-600 text-xs">{m.email ?? "—"}</td>
-                  <td className="px-4 py-2 text-slate-600 text-xs">{m.mobile ?? "—"}</td>
-                  <td className="px-4 py-2 text-slate-600 text-xs">{m.gender ?? "—"}</td>
+                  <td className="px-4 py-2 text-slate-600 text-xs">{m.rotaryId ?? "–"}</td>
+                  <td className="px-4 py-2 text-slate-600 text-xs">{m.email ?? "–"}</td>
+                  <td className="px-4 py-2 text-slate-600 text-xs">{m.mobile ?? "–"}</td>
+                  <td className="px-4 py-2 text-slate-600 text-xs">{m.gender ?? "–"}</td>
                   <td className="px-4 py-2 text-slate-600 text-xs">{fmtDate(m.joinedDate)}</td>
                 </tr>
               ))}

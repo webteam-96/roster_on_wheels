@@ -19,7 +19,7 @@ import {
   Briefcase, Users, IndianRupee, Loader2, Search, Plus, Edit3, Trash2,
   Download, ArrowLeft, AlertTriangle, Info, Phone, Mail, BadgeAlert,
   Clock, CheckCircle2, XCircle, Puzzle,
-} from "lucide-react";
+} from "@/components/icons";
 import {
   getClub,
   getModules,
@@ -67,7 +67,7 @@ function projectTypeLabel(t: string): string {
   if (lo === "one_time") return "One Time";
   if (lo === "ongoing") return "Ongoing";
   if (lo === "annual") return "Annual";
-  if (!t) return "—";
+  if (!t) return "–";
   return t.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
@@ -218,7 +218,7 @@ export default function InternationalServiceV2Page() {
   const handleSearch = () => { setPage(1); setSearch(searchInput); };
   const clearSearch = () => { setSearchInput(""); setSearch(""); setPage(1); };
 
-  const yearLabel = years.find((y) => y.id === selectedYearId)?.yearLabel ?? "—";
+  const yearLabel = years.find((y) => y.id === selectedYearId)?.yearLabel ?? "–";
 
   const router = useRouter();
   const handleAddClick = () => setShowAgreeDialog(true);
@@ -275,7 +275,7 @@ export default function InternationalServiceV2Page() {
             <div>
               <h1 className="text-lg font-semibold text-slate-800">International Service</h1>
               <p className="text-xs text-slate-500 mt-0.5">
-                RY {yearLabel} · {clubName || "—"}
+                RY {yearLabel} · {clubName || "–"}
               </p>
             </div>
           </div>
@@ -427,20 +427,20 @@ export default function InternationalServiceV2Page() {
                       <tr key={r.id} className="hover:bg-blue-50/40">
                         <td className="px-3 py-2 text-slate-500">{i + 1}</td>
                         <td className="px-3 py-2 text-slate-700 whitespace-nowrap">{fmtDate(r.projectDate)}</td>
-                        <td className="px-3 py-2 font-medium text-slate-800">{r.title || "—"}</td>
+                        <td className="px-3 py-2 font-medium text-slate-800">{r.title || "–"}</td>
                         <td className="px-3 py-2">
                           <span className={`inline-flex items-center text-xs font-medium px-2 py-0.5 rounded-full border ${projectTypeChipStyle(r.projectType || "")}`}>
                             {typeLabel}
                           </span>
                         </td>
                         <td className="px-3 py-2 text-slate-600">
-                          {r.areaOfFocusName || r.otherAreaOfFocus || "—"}
+                          {r.areaOfFocusName || r.otherAreaOfFocus || "–"}
                         </td>
                         <td className="px-3 py-2 text-right text-slate-600 whitespace-nowrap">
-                          {r.projectCost && r.projectCost > 0 ? `${getCurrencySymbol(r.currency)}${r.projectCost.toLocaleString(appLocale())}` : "—"}
+                          {r.projectCost && r.projectCost > 0 ? `${getCurrencySymbol(r.currency)}${r.projectCost.toLocaleString(appLocale())}` : "–"}
                         </td>
                         <td className="px-3 py-2 text-right text-slate-600">
-                          {r.directBeneficiaries && r.directBeneficiaries > 0 ? fmtInt(r.directBeneficiaries) : "—"}
+                          {r.directBeneficiaries && r.directBeneficiaries > 0 ? fmtInt(r.directBeneficiaries) : "–"}
                         </td>
                         <td className="px-3 py-2">
                           {r.approvalStatus === "pending" ? (
@@ -456,7 +456,7 @@ export default function InternationalServiceV2Page() {
                               <XCircle size={10} /> Rejected
                             </span>
                           ) : (
-                            <span className="text-slate-400">—</span>
+                            <span className="text-slate-400">, </span>
                           )}
                         </td>
                         {canManage && (

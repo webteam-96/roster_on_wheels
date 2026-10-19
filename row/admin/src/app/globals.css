@@ -9,32 +9,55 @@
 }
 
 @layer base {
+  /* design.md §6 focus ring: ink, 3px, offset 3px */
+  :focus-visible { outline: 3px solid #1B2C42; outline-offset: 3px; }
+  /* ROW "Fellowship" design tokens (see row/website/design.md).
+     azure = Rotary Royal Blue (primary), marigold = gold accent, cream page, ink text. */
   :root {
-    --background: 210 20% 98%;
-    --foreground: 222 47% 11%;
-    --card: 0 0% 100%;
-    --card-foreground: 222 47% 11%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 222 47% 11%;
-    --primary: 213 74% 33%;
+    --background: 210 38% 98%;      /* cream  #F7F9FC */
+    --foreground: 214 42% 18%;      /* ink    #1B2C42 */
+    --card: 210 50% 99%;            /* #FCFDFE, no pure white (FRONTEND-RULES #3) */
+    --card-foreground: 214 42% 18%;
+    --popover: 210 50% 99%;
+    --popover-foreground: 214 42% 18%;
+    --primary: 215 72% 33%;         /* azure  #17458F */
     --primary-foreground: 0 0% 100%;
-    --secondary: 43 96% 56%;
-    --secondary-foreground: 222 47% 11%;
-    --muted: 210 20% 96%;
-    --muted-foreground: 215 16% 47%;
-    --accent: 210 20% 96%;
-    --accent-foreground: 222 47% 11%;
-    --destructive: 0 84% 60%;
+    --secondary: 38 93% 54%;        /* marigold #F7A81B */
+    --secondary-foreground: 214 42% 18%;
+    --muted: 210 60% 96%;           /* cream-2 #EDF4FB */
+    --muted-foreground: 215 16% 47%;/* ink-soft #64748B */
+    --accent: 210 65% 89%;          /* sky #CFE2F6 (subtle hover) */
+    --accent-foreground: 214 42% 18%;
+    --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 100%;
-    --border: 214 32% 91%;
-    --input: 214 32% 91%;
-    --ring: 213 74% 33%;
-    --chart-1: 213 74% 33%;
-    --chart-2: 43 96% 56%;
-    --chart-3: 197 37% 24%;
-    --chart-4: 43 74% 66%;
-    --chart-5: 27 87% 67%;
-    --radius: 0.5rem;
+    --border: 214 30% 88%;
+    --input: 214 30% 86%;
+    --ring: 214 42% 18%;            /* focus ring = ink, per design.md */
+    --chart-1: 215 72% 33%;         /* azure */
+    --chart-2: 38 93% 54%;          /* marigold */
+    --chart-3: 209 100% 39%;        /* mint */
+    --chart-4: 38 100% 68%;         /* coral */
+    --chart-5: 213 48% 67%;         /* lilac */
+    --radius: 0.85rem;
+
+    /* Fellowship extras for custom components (hex, per design.md) */
+    --row-cream: #F7F9FC;
+    --row-cream-2: #EDF4FB;
+    --row-ink: #1B2C42;
+    --row-ink-soft: #64748B;
+    --row-azure: #17458F;
+    --row-mint: #0067C8;
+    --row-marigold: #F7A81B;
+    --row-coral: #FFC65C;
+    --row-sky: #CFE2F6;
+    --row-lilac: #A9C6EA;
+    --row-line: rgba(27, 44, 66, .12);
+    --row-panel-r: 1.75rem;
+    /* rings, not drop shadows (FRONTEND-RULES #18) */
+    --shadow-soft: 0 0 0 1px rgba(27,44,66,.12);
+    --shadow-lift: 0 0 0 2px rgba(27,44,66,.22);
+    --ease-out: cubic-bezier(.22,1,.36,1);
+    --ease-spring: cubic-bezier(.34,1.56,.64,1);
   }
   .dark {
     --background: 222 47% 11%;
@@ -189,7 +212,7 @@
 
   /* MANDATORY for every number in a data context — tabular figures never jitter. */
   .figure {
-    font-family: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+    font-family: var(--font-body), ui-sans-serif, system-ui, sans-serif;
     font-weight: 600;
     font-feature-settings: "tnum" 1;
     letter-spacing: -0.03em;
@@ -213,16 +236,16 @@
 
   .card-dark,
   .card {
-    @apply rounded-2xl bg-white shadow-soft ring-1 ring-navy-950/[0.08];
+    @apply rounded-2xl bg-white ring-1 ring-navy-950/[0.08];
   }
   .card-dark-hover,
   .card-hover {
-    @apply transition-all duration-300 ease-out-expo hover:-translate-y-1 hover:shadow-lift hover:ring-gold/50;
+    @apply transition-all duration-300 ease-out-expo hover:-translate-y-1 hover:ring-gold/50;
   }
 
   /* Dark glass panel — caption blocks over photos / dark-band overlays */
   .glass-dark {
-    @apply rounded-2xl bg-midnight/70 ring-1 ring-cream/[0.12] backdrop-blur-md;
+    @apply rounded-2xl bg-midnight/90 ring-1 ring-cream/[0.12];
   }
   .caption-block {
     @apply glass-dark max-w-[280px] p-5;
@@ -230,17 +253,17 @@
 
   /* Floating light-glass panel — pulled-up filter consoles (use with -mt-16) */
   .console-glass {
-    @apply rounded-2xl bg-paper/[0.72] shadow-lift ring-1 ring-navy-950/[0.10] backdrop-blur-[16px];
+    @apply rounded-2xl bg-paper ring-1 ring-navy-950/[0.10];
   }
 
   /* Light tinted band with warm wash */
   .section-glow {
-    @apply relative overflow-hidden bg-paper-200 bg-glow-warm-light;
+    @apply relative overflow-hidden bg-paper-200;
   }
 
   /* True dark band (event band, footer) */
   .section-dark {
-    @apply relative overflow-hidden bg-midnight-800 bg-glow-warm text-cream;
+    @apply relative overflow-hidden bg-midnight-800 text-cream;
   }
 
   /* ——— Photo grade — use on the wrapper of ALL photography ——— */
@@ -256,7 +279,7 @@
     content: "";
     position: absolute;
     inset: 0;
-    background: linear-gradient(to top, rgba(6, 19, 46, 0.34) 0%, transparent 34%);
+    background: rgba(19, 32, 51, 0.16); /* flat scrim, no gradient (FRONTEND-RULES #1) */
     opacity: 1;
     pointer-events: none;
     transition: opacity 600ms cubic-bezier(0.16, 1, 0.3, 1);
@@ -378,21 +401,19 @@
 
   /* Gold glow — DARK bands only (fails contrast on paper) */
   .text-glow-gold {
-    color: #fbb420;
-    text-shadow: 0 0 28px rgba(251, 180, 32, 0.45);
+    color: #F7A81B;
   }
   /* Accent words in LIGHT sections */
   .text-accent-gold {
-    color: #a96d00;
-    text-shadow: 0 0 22px rgba(251, 180, 32, 0.35);
+    color: #B97A0B;
   }
 
   /* Editorial italic serif accent — max ONE accent word/phrase per viewport.
      Usage: <em className="accent-serif text-accent-gold">lasting impact</em> */
   .accent-serif {
-    font-family: var(--font-fraunces), Georgia, serif;
-    font-style: italic;
-    font-weight: 400;
+    font-family: var(--font-display), sans-serif;
+    font-style: normal;
+    font-weight: 600;
     letter-spacing: -0.01em;
   }
   /* LEGACY — outlined ghost lettering retired as decoration; still used by the
@@ -408,17 +429,14 @@
   /* Banner headings live on light paper: callers' gold accent spans render
      contrast-safe deep gold with the serif italic accent voice. */
   .banner-title :where(.text-gold) {
-    color: #a96d00;
-    font-family: var(--font-fraunces), serif;
-    font-style: italic;
-    font-weight: 450;
+    color: #B97A0B;
+    font-family: var(--font-display), sans-serif;
+    font-style: normal;
+    font-weight: 600;
     letter-spacing: -0.01em;
   }
   .text-gradient-gold {
-    background-image: linear-gradient(100deg, #fcc03f 0%, #fbb420 45%, #f59e0b 100%);
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
+    color: #F7A81B;
   }
 
   /* ——— Scroll cue (lives on the dark hero) ——— */
@@ -438,10 +456,8 @@
   .g-border {
     position: relative;
     border-radius: 1rem;
-    background:
-      linear-gradient(#ffffff, #ffffff) padding-box,
-      linear-gradient(135deg, rgba(10, 87, 168, 0.45), rgba(251, 180, 32, 0.55)) border-box;
-    border: 1px solid transparent;
+    background: #FCFDFE;
+    border: 1px solid rgba(27, 44, 66, 0.12);
   }
 
   /* Shine sweep on hover — for primary CTAs and feature tiles */
@@ -455,8 +471,7 @@
     inset: -150% auto -150% -60%;
     width: 40%;
     transform: rotate(18deg) translateX(-220%);
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.5), transparent);
-    transition: transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+    display: none; /* shine sweep retired: decorative gradient (FRONTEND-RULES #1) */
     pointer-events: none;
   }
   .shine:hover::after {
@@ -465,12 +480,10 @@
 
   /* LEGACY — dot-grid pattern accents; remove after page migration */
   .dots {
-    background-image: radial-gradient(rgba(0, 26, 68, 0.13) 1px, transparent 1.4px);
-    background-size: 18px 18px;
+    background-image: none; /* dot grids retired (FRONTEND-RULES #16) */
   }
   .dots-light {
-    background-image: radial-gradient(rgba(237, 241, 247, 0.22) 1px, transparent 1.4px);
-    background-size: 18px 18px;
+    background-image: none;
   }
 
   /* Ticker strip (infinite marquee, pauses on hover) */

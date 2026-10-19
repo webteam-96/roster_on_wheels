@@ -11,7 +11,7 @@
  *     Upcoming Events · Active Announcements · Newsletters
  *     · Shared Documents · Greetings Today
  *
- *   Row 2 - Tab strip (navy #1e3a5f + gold #F7A81B pills — same visual as
+ *   Row 2 - Tab strip (navy #17458f + gold #F7A81B pills — same visual as
  *   service-projects-and-public-image):
  *     Upcoming Events | Announcements | Shared Documents | Newsletters | Greetings
  *
@@ -36,7 +36,7 @@ import {
   Folder,
   PartyPopper,
   Pencil,
-} from "lucide-react";
+} from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
 import { useDistrictAdminCache } from "@/contexts/DistrictAdminDashboardCacheContext";
 import KpiCard from "@/components/dashboard/KpiCard";
@@ -126,14 +126,14 @@ export default function DistrictAdminCommunicationPage() {
         />
         <KpiCard
           title="Documents"
-          value={documentsCount === null ? "—" : fmtInt(documentsCount)}
+          value={documentsCount === null ? "–" : fmtInt(documentsCount)}
           subtitle="Available to members"
           icon={Folder}
           color="gold"
         />
         <KpiCard
           title="Greetings Today"
-          value={greetingsTodayCount === null ? "—" : fmtInt(greetingsTodayCount)}
+          value={greetingsTodayCount === null ? "–" : fmtInt(greetingsTodayCount)}
           subtitle="Birthdays & anniversaries"
           icon={PartyPopper}
           color="red"
@@ -174,7 +174,7 @@ function initials(name: string): string {
 }
 
 function fmtGreetingDate(s: string | null | undefined): string {
-  if (!s) return "—";
+  if (!s) return "–";
   // Backend returns either "MM-DD" or "YYYY-MM-DD".
   const mmdd = s.length === 5 ? s : s.slice(5);
   const [m, d] = mmdd.split("-").map((x) => parseInt(x, 10));
@@ -257,7 +257,7 @@ function GreetingsSection({
               <div className="min-w-0 flex-1">
                 <p className="text-sm font-medium text-slate-800 truncate">{g.name}</p>
                 <p className="text-[11px] text-slate-500 truncate">
-                  {g.clubName ?? "—"}
+                  {g.clubName ?? "–"}
                 </p>
               </div>
               <div className="text-right flex-shrink-0">

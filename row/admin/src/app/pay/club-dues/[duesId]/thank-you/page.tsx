@@ -2,7 +2,7 @@
 
 import { Suspense } from "react";
 import { useSearchParams } from "next/navigation";
-import { CheckCircle2, XCircle } from "lucide-react";
+import { CheckCircle2, XCircle } from "@/components/icons";
 
 import { appLocale, currencySymbol } from "@/lib/appFormat";
 function ThankYouInner() {

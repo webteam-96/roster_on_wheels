@@ -12,8 +12,8 @@
  *   - LIST-ONLY view: viewMode/grid toggle removed, table only
  *
  * Palette:
- *   Navy   #1e3a5f  — primary buttons, table header, toggle active bg
- *   Navy H #152a44  — button hover
+ *   Navy   #17458f  — primary buttons, table header, toggle active bg
+ *   Navy H #1b2c42  — button hover
  *   Gold   #F7A81B  — accent underline on table header
  *   Slate  text/backgrounds/rings
  */
@@ -42,7 +42,7 @@ import ErrorAlert from "@/components/ErrorAlert";
 import {
   Building2, AlertCircle, ArrowLeft, Search,
   MoreHorizontal, Pencil, Trash2,
-} from "lucide-react";
+} from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import DistrictMembershipTabBar from "@/components/dashboard/DistrictMembershipTabBar";
@@ -74,8 +74,8 @@ function ClubTableDA({
       <Table>
         <TableHeader>
           <TableRow
-            className="hover:opacity-100 border-b-2 border-[#F7A81B]"
-            style={{ backgroundColor: "#1e3a5f" }}
+            className="hover:opacity-100 border-b-2 border-marigold"
+            style={{ backgroundColor: "#17458f" }}
           >
             <TableHead className="w-12 text-white/90"></TableHead>
             <TableHead className="text-white text-xs font-semibold uppercase tracking-wide">Club Name</TableHead>
@@ -186,7 +186,7 @@ function ClubTableDA({
                         target="_blank"
                         rel="noopener noreferrer"
                         onClick={(e) => e.stopPropagation()}
-                        className="text-[11px] font-medium text-[#1e3a5f] underline decoration-slate-300 hover:decoration-[#1e3a5f] break-all"
+                        className="text-[11px] font-medium text-ink underline decoration-slate-300 hover:decoration-azure break-all"
                         title={url}
                       >
                         {host}
@@ -336,23 +336,23 @@ export default function DistrictAdminClubsPage() {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               onKeyDown={handleKeyDown}
-              className="pl-9 border-slate-200 bg-white focus:border-[#1e3a5f] focus:ring-[#1e3a5f]/20 text-sm"
+              className="pl-9 border-slate-200 bg-white focus:border-azure focus:ring-azure/20 text-sm"
             />
           </div>
           <div className="flex items-center gap-2">
             <Button
               onClick={handleSearch}
               size="sm"
-              className="bg-[#1e3a5f] hover:bg-[#152a44] text-white"
+              className="bg-azure hover:bg-mint-ink text-white"
             >
               <Search className="mr-2 h-4 w-4" />Search
             </Button>
             {/* Total Clubs — highlighted, next to search. */}
-            <div className="inline-flex items-center gap-1.5 rounded-lg bg-[#F7A81B] px-3 py-1.5 shadow-sm">
-              <span className="text-base font-bold leading-none tabular-nums text-[#1e3a5f]">
-                {data ? data.totalCount.toLocaleString() : "—"}
+            <div className="inline-flex items-center gap-1.5 rounded-lg bg-marigold px-3 py-1.5 shadow-sm">
+              <span className="text-base font-bold leading-none tabular-nums text-ink">
+                {data ? data.totalCount.toLocaleString() : "–"}
               </span>
-              <span className="text-xs font-semibold text-[#1e3a5f]">Total Clubs</span>
+              <span className="text-xs font-semibold text-ink">Total Clubs</span>
             </div>
           </div>
         </div>

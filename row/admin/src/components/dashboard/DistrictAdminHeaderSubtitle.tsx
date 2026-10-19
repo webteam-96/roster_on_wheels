@@ -35,8 +35,8 @@ export default function DistrictAdminHeaderSubtitle() {
   const urlYearId = urlYearStr ? parseInt(urlYearStr, 10) : null;
   const match = urlYearId ? years.find((y) => y.id === urlYearId) : null;
   const current = years.find((y) => y.isCurrent);
-  const yearLabel = match?.yearLabel || current?.yearLabel || "—";
-  const districtLabel = selectedDistrict?.number ?? "—";
+  const yearLabel = match?.yearLabel || current?.yearLabel || "–";
+  const districtLabel = selectedDistrict?.number ?? "–";
   const resolvedYearId = match?.id ?? current?.id ?? null;
 
   // District Governor for THIS district + the selected Rotary year (year-wise).
@@ -61,7 +61,7 @@ export default function DistrictAdminHeaderSubtitle() {
     <span className="inline-flex items-center gap-1.5 flex-wrap align-middle">
       <span>RY {yearLabel} · District {districtLabel}</span>
       {governor && (
-        <span className="inline-flex items-center gap-1 rounded-full bg-[#F7A81B] px-2 py-0.5 text-[11px] font-bold leading-none text-[#1e3a5f] shadow-sm">
+        <span className="inline-flex items-center gap-1 rounded-full bg-marigold px-2 py-0.5 text-[11px] font-bold leading-none text-ink shadow-sm">
           DG: {governor}
         </span>
       )}

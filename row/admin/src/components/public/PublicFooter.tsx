@@ -14,13 +14,13 @@
  */
 
 import Link from "next/link";
-import { Mail, Phone, MapPin, ShieldCheck, Lock } from "lucide-react";
+import { Mail, Phone, MapPin, ShieldCheck, Lock } from "@/components/icons";
 import { merchantFrom } from "@/lib/merchantInfo";
 import { telHref } from "@/lib/brand";
 import { useBrand } from "@/contexts/BrandContext";
 import BrandLogo from "@/components/BrandLogo";
 
-const BRAND_NAVY = "#1e3a5f";
+const BRAND_NAVY = "#17458f";
 const BRAND_GOLD = "#F7A81B";
 
 const POLICY_LINKS = [
@@ -53,7 +53,7 @@ export default function PublicFooter() {
           {/* Brand column */}
           <div className="lg:col-span-1">
             <div className="flex items-center gap-3 mb-4">
-              <BrandLogo className="h-10 w-auto" textClassName="text-white" />
+              <BrandLogo tone="light" className="h-10 w-auto" textClassName="text-white" />
             </div>
             <p className="text-sm text-slate-300 leading-relaxed">
               Integrated administration platform serving the Rotary clubs of{" "}

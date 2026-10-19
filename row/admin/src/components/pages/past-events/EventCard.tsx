@@ -1,6 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight, MapPin } from "lucide-react";
+import { ArrowRight, MapPin } from "@/components/icons";
 import { SpotlightCard } from "@/components/motion/SpotlightCard";
 import { eventSlug, type EventItem } from "./data";
 
@@ -81,7 +81,7 @@ export function FlagshipCard({ event }: { event: EventItem }) {
         </div>
         <div className="flex flex-col justify-between gap-6 p-6 sm:flex-row sm:items-end lg:p-8">
           <div>
-            <p className="eyebrow">Flagship — Rotary Institute</p>
+            <p className="eyebrow">Flagship: Rotary Institute</p>
             <h2 className="mt-3 max-w-2xl font-display text-heading font-[450] tracking-[-0.02em] text-navy-950">
               {event.title}
             </h2>

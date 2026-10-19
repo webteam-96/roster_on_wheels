@@ -10,12 +10,17 @@ import {
   PSEUDO_LOCALE,
   namespacesFor,
   resolveLocale,
+  isMachineTranslated,
 } from "@/i18n/config";
-import { fillBrandName, loadMessages, type Messages } from "@/i18n/messages";
+import { fillBrandName, loadMessages, loadRawMessages, type Messages } from "@/i18n/messages";
+import { WORLD_LANGUAGE_CODES } from "@/i18n/worldLanguages";
+import { translateCatalog } from "@/i18n/translateCatalog";
 import englishCommon from "../../messages/en/common.json";
 import englishErrors from "../../messages/en/errors.json";
 
 const PSEUDO_ALLOWED = process.env.NODE_ENV !== "production";
+
+const WORLD_SET = new Set<string>(WORLD_LANGUAGE_CODES);
 
 // Bundled so the server render and the first client paint already have English
 // text; route namespaces and other languages load afterwards.
@@ -79,10 +84,17 @@ export function IntlProvider({ children }: { children: React.ReactNode }) {
   const [messages, setMessages] = useState<Messages>(() => fillBrandName(ENGLISH_BASE, brand.productName));
 
   // Resolve once the brand (and its language list) is known, and again if it changes.
+  // A locale the user explicitly picked (cookie) wins even if it is not a brand language —
+  // any world language is allowed and filled in by machine translation.
   useEffect(() => {
-    setLocaleState(
-      resolveLocale(readCookie(LOCALE_COOKIE), null, navigator.languages ?? [], defaultLanguage, languages, PSEUDO_ALLOWED),
-    );
+    const cookie = readCookie(LOCALE_COOKIE);
+    if (cookie && (WORLD_SET.has(cookie) || (PSEUDO_ALLOWED && cookie === PSEUDO_LOCALE))) {
+      setLocaleState(cookie);
+    } else {
+      setLocaleState(
+        resolveLocale(cookie, null, navigator.languages ?? [], defaultLanguage, languages, PSEUDO_ALLOWED),
+      );
+    }
   }, [defaultLanguage, languages]);
 
   const namespaces = useMemo(() => namespacesFor(pathname), [pathname]);
@@ -90,10 +102,19 @@ export function IntlProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     let cancelled = false;
-    const source = locale === PSEUDO_LOCALE ? PSEUDO_LOCALE : locale;
-    loadMessages(source, namespaces, brand.productName).then((m) => {
+    const set = (m: Messages) => {
       if (!cancelled) setMessages(m);
-    });
+    };
+    if (!isMachineTranslated(locale)) {
+      const source = locale === PSEUDO_LOCALE ? PSEUDO_LOCALE : locale;
+      loadMessages(source, namespaces, brand.productName).then(set);
+    } else {
+      // Machine-translated locale: show English at once, then swap in the translation.
+      loadRawMessages(DEFAULT_LOCALE, namespaces).then((english) => {
+        set(fillBrandName(english, brand.productName));
+        translateCatalog(english, locale).then((translated) => set(fillBrandName(translated, brand.productName)));
+      });
+    }
     return () => {
       cancelled = true;
     };
@@ -113,10 +134,12 @@ export function IntlProvider({ children }: { children: React.ReactNode }) {
   const control = useMemo<LocaleControl>(
     () => ({
       locale,
-      available: PSEUDO_ALLOWED && languages.length > 0 ? [...languages, PSEUDO_LOCALE] : languages,
+      // Any world language is selectable (not limited to the brand's region); languages
+      // without static message files are machine-translated. Pseudo stays dev-only.
+      available: PSEUDO_ALLOWED ? [...WORLD_LANGUAGE_CODES, PSEUDO_LOCALE] : [...WORLD_LANGUAGE_CODES],
       setLocale,
     }),
-    [locale, languages, setLocale],
+    [locale, setLocale],
   );
 
   return (

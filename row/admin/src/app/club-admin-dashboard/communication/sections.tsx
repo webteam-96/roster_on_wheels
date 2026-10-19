@@ -27,7 +27,7 @@ import {
   Plus, Search, Filter, MoreHorizontal, Pencil, Trash2, Eye,
   AlertTriangle, Loader2, ExternalLink, Bell,
   Repeat, ImageIcon, Link as LinkIcon, MapPin, Calendar,
-} from "lucide-react";
+} from "@/components/icons";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle,
 } from "@/components/ui/dialog";
@@ -73,7 +73,7 @@ const PAGE_SIZE_FETCH = 15;
 // ── helpers ──────────────────────────────────────────────────────────────
 
 function fmtDateTime(s: string | null | undefined): string {
-  if (!s) return "—";
+  if (!s) return "–";
   const d = new Date(s);
   if (isNaN(d.getTime())) return s;
   return d.toLocaleString(appLocale(), {
@@ -83,7 +83,7 @@ function fmtDateTime(s: string | null | undefined): string {
 }
 
 function fmtDate(s: string | null | undefined): string {
-  if (!s) return "—";
+  if (!s) return "–";
   const d = new Date(s);
   if (isNaN(d.getTime())) return s;
   return d.toLocaleDateString(appLocale(), { day: "2-digit", month: "short", year: "numeric" });
@@ -101,7 +101,7 @@ function statusChipStyle(status: string): string {
 function StatusChip({ status }: { status: string }) {
   return (
     <span className={`inline-flex items-center text-[10px] font-semibold px-1.5 py-0.5 rounded-full border ${statusChipStyle(status)}`}>
-      {status || "—"}
+      {status || "–"}
     </span>
   );
 }
@@ -275,7 +275,7 @@ function DetailModal({
               close X (right-4 top-4) so long titles + the status chip can't
               overlap it. */}
           <DialogTitle className="flex items-start gap-3 flex-wrap pr-8">
-            <span className="min-w-0 flex-1 break-words">{title || "—"}</span>
+            <span className="min-w-0 flex-1 break-words">{title || "–"}</span>
             {status && (
               <span className="flex-shrink-0">
                 <StatusChip status={status} />
@@ -301,7 +301,7 @@ function DetailModal({
                 className={`min-w-0 ${f.full ? "sm:col-span-2" : ""}`}
               >
                 <p className="text-[10px] uppercase text-slate-400 font-semibold tracking-wide">{f.label}</p>
-                <div className="text-sm text-slate-800 mt-0.5 break-words">{f.value ?? "—"}</div>
+                <div className="text-sm text-slate-800 mt-0.5 break-words">{f.value ?? "–"}</div>
               </div>
             ))}
           </div>
@@ -426,7 +426,7 @@ export function UpcomingEventsSection({ clubId }: { clubId: number }) {
                   className="min-w-0 flex-1 cursor-pointer"
                   onClick={() => openView(e)}
                 >
-                  <p className="text-sm font-medium text-slate-800 truncate">{e.title || "—"}</p>
+                  <p className="text-sm font-medium text-slate-800 truncate">{e.title || "–"}</p>
                   <div className="mt-0.5 flex items-center gap-2 text-[11px] text-slate-500 flex-wrap">
                     <span>{fmtDate(e.eventDate)}</span>
                     <StatusChip status={e.status} />
@@ -462,27 +462,25 @@ export function UpcomingEventsSection({ clubId }: { clubId: number }) {
         imagePath={viewItem?.imagePath}
         status={viewItem?.status}
         fields={detailLoading || !viewDetail ? [
-          { label: "Description", value: viewItem?.description ?? "—", full: true },
+          { label: "Description", value: viewItem?.description ?? "–", full: true },
           { label: "Event Date", value: fmtDateTime(viewItem?.eventDate) },
           { label: "Publish Date", value: fmtDateTime(viewItem?.publishDate) },
           { label: "Expiry Date", value: fmtDateTime(viewItem?.expiryDate) },
-          { label: "Venue", value: viewItem?.eventVenue || "—" },
+          { label: "Venue", value: viewItem?.eventVenue || "–" },
           { label: "Registration Link", value: viewItem?.registrationLink
               ? <a href={viewItem.registrationLink} target="_blank" rel="noreferrer" className="text-blue-600 underline inline-flex items-center gap-1">Open <ExternalLink size={11}/></a>
-              : "—" },
-          { label: "Send WhatsApp", value: viewItem?.isSendWhatsapp ? "Yes" : "No" },
+              : "–" },
           { label: "Repeat Notification", value: viewItem?.isRepeatNotification ? "Yes" : "No" },
           ...(detailLoading ? [{ label: "Loading full details…", value: <Loader2 className="animate-spin h-4 w-4 text-slate-400" />, full: true }] : []),
         ] : [
-          { label: "Description", value: viewDetail.description ?? "—", full: true },
+          { label: "Description", value: viewDetail.description ?? "–", full: true },
           { label: "Event Date", value: fmtDateTime(viewDetail.eventDate) },
           { label: "Publish Date", value: fmtDateTime(viewDetail.publishDate) },
           { label: "Expiry Date", value: fmtDateTime(viewDetail.expiryDate) },
-          { label: "Venue", value: viewDetail.eventVenue || "—" },
+          { label: "Venue", value: viewDetail.eventVenue || "–" },
           { label: "Registration Link", value: viewDetail.registrationLink
               ? <a href={viewDetail.registrationLink} target="_blank" rel="noreferrer" className="text-blue-600 underline inline-flex items-center gap-1">Open <ExternalLink size={11}/></a>
-              : "—" },
-          { label: "Send WhatsApp", value: viewDetail.isSendWhatsapp ? "Yes" : "No" },
+              : "–" },
           { label: "Repeat Notification", value: viewDetail.isRepeatNotification ? "Yes" : "No" },
           { label: "Reminders", full: true, value: viewDetail.reminders.length === 0
               ? "None"
@@ -608,7 +606,7 @@ export function AnnouncementsSection({ clubId }: { clubId: number }) {
                     </div>
                   )}
                   <div className="min-w-0 flex-1">
-                    <p className="text-sm font-medium text-slate-800 truncate">{a.title || "—"}</p>
+                    <p className="text-sm font-medium text-slate-800 truncate">{a.title || "–"}</p>
                     <div className="mt-0.5 flex items-center gap-2 text-[11px] text-slate-500 flex-wrap">
                       <span>{fmtDate(a.publishDateTime)}</span>
                       <StatusChip status={a.status} />
@@ -645,11 +643,10 @@ export function AnnouncementsSection({ clubId }: { clubId: number }) {
         imagePath={viewItem?.imagePath}
         status={viewItem?.status}
         fields={[
-          { label: "Description", value: viewItem?.description ?? "—", full: true },
+          { label: "Description", value: viewItem?.description ?? "–", full: true },
           { label: "Publish Date", value: fmtDateTime(viewItem?.publishDateTime) },
           { label: "Expiry Date", value: fmtDateTime(viewItem?.expiryDateTime) },
           { label: "Display on Banner", value: viewItem?.isDisplayOnBanner ? "Yes" : "No" },
-          { label: "Send WhatsApp", value: viewItem?.isSendWhatsapp ? "Yes" : "No" },
           { label: "Repeat Notification", value: viewItem?.isRepeatNotification ? "Yes" : "No" },
           { label: "Reminder Count", value: viewItem?.reminderCount ?? 0 },
         ]}
@@ -759,7 +756,7 @@ export function DocumentsSection({ clubId }: { clubId: number }) {
                   className="min-w-0 flex-1 cursor-pointer"
                   onClick={() => setViewItem(d)}
                 >
-                  <p className="text-sm font-medium text-slate-800 truncate">{d.title || "—"}</p>
+                  <p className="text-sm font-medium text-slate-800 truncate">{d.title || "–"}</p>
                   <div className="mt-0.5 flex items-center gap-2 text-[11px] text-slate-500 flex-wrap">
                     <span>{fmtDate(d.publishDateTime)}</span>
                     <StatusChip status={d.status} />
@@ -796,13 +793,13 @@ export function DocumentsSection({ clubId }: { clubId: number }) {
         title={viewItem?.title || ""}
         status={viewItem?.status}
         fields={[
-          { label: "Original File Name", value: viewItem?.originalFileName || "—", full: true },
-          { label: "Access Type", value: viewItem?.accessType?.replace(/_/g, " ") || "—" },
+          { label: "Original File Name", value: viewItem?.originalFileName || "–", full: true },
+          { label: "Access Type", value: viewItem?.accessType?.replace(/_/g, " ") || "–" },
           { label: "Publish Date", value: fmtDateTime(viewItem?.publishDateTime) },
           { label: "Expiry Date", value: fmtDateTime(viewItem?.expiryDateTime) },
           { label: "File", full: true, value: viewItem?.filePath
               ? <a href={getPhotoUrl(viewItem.filePath) || "#"} target="_blank" rel="noreferrer" className="text-blue-600 underline inline-flex items-center gap-1">Open file <ExternalLink size={11}/></a>
-              : "—" },
+              : "–" },
         ]}
       />
 
@@ -926,7 +923,7 @@ export function NewslettersSection({ clubId }: { clubId: number }) {
                     <FileText size={14} />
                   </div>
                   <div className="min-w-0 flex-1">
-                    <p className="text-sm font-medium text-slate-800 truncate">{n.title || "—"}</p>
+                    <p className="text-sm font-medium text-slate-800 truncate">{n.title || "–"}</p>
                     <div className="mt-0.5 flex items-center gap-2 text-[11px] text-slate-500 flex-wrap">
                       <span>{fmtDate(n.publishDateTime)}</span>
                       <StatusChip status={n.status} />
@@ -963,8 +960,7 @@ export function NewslettersSection({ clubId }: { clubId: number }) {
         title={viewItem?.title || ""}
         status={viewItem?.status}
         fields={[
-          { label: "Attachment Type", value: viewItem?.attachmentType || "—" },
-          { label: "Send WhatsApp", value: viewItem?.isSendWhatsapp ? "Yes" : "No" },
+          { label: "Attachment Type", value: viewItem?.attachmentType || "–" },
           { label: "Publish Date", value: fmtDateTime(viewItem?.publishDateTime) },
           { label: "Expiry Date", value: fmtDateTime(viewItem?.expiryDateTime) },
           {
@@ -973,10 +969,10 @@ export function NewslettersSection({ clubId }: { clubId: number }) {
             value: viewItem?.attachmentType === "file"
               ? (viewItem.filePath
                   ? <a href={getPhotoUrl(viewItem.filePath) || "#"} target="_blank" rel="noreferrer" className="text-blue-600 underline inline-flex items-center gap-1">Open file <ExternalLink size={11}/></a>
-                  : "—")
+                  : "–")
               : (viewItem?.linkUrl
                   ? <a href={viewItem.linkUrl} target="_blank" rel="noreferrer" className="text-blue-600 underline inline-flex items-center gap-1">{viewItem.linkUrl} <ExternalLink size={11}/></a>
-                  : "—"),
+                  : "–"),
           },
         ]}
       />

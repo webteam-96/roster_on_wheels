@@ -1,14 +1,9 @@
 "use client";
 
 import { ReactNode, useEffect, useState } from "react";
-import Link from "next/link";
 import { usePathname } from "next/navigation";
-import Image from "next/image";
-import { Menu, X, LogOut, ArrowLeft, type LucideIcon } from "lucide-react";
+import { Menu, X, ArrowLeft, type LucideIcon } from "@/components/icons";
 import HelplineBar from "@/components/v2/HelplineBar";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Separator } from "@/components/ui/separator";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
   useAuth,
   useSelectedClub,
@@ -18,7 +13,7 @@ import {
   useAgDistricts,
 } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
-import DashboardSwitcher from "./DashboardSwitcher";
+import Sidebar from "./Sidebar";
 import ComingSoonStub from "./ComingSoonStub";
 import ScopePicker from "./ScopePicker";
 import { useComingSoonModules } from "@/hooks/useComingSoonModules";
@@ -77,9 +72,11 @@ export interface DashboardShellProps {
   children: ReactNode;
 }
 
-const SIDEBAR_BG = "#0f172a";
-const ACTIVE_BG = "#F7A81B";
-const ACTIVE_TEXT = "#1e3a5f";
+// ROW "Fellowship": a light sidebar so the full-colour ROW mark sits on its natural
+// white surface; azure (Rotary Royal Blue) marks the selected item.
+const SIDEBAR_BG = "#FCFDFE";
+const ACTIVE_BG = "#17458F";
+const ACTIVE_TEXT = "#FCFDFE";
 
 export default function DashboardShell({
   brand,
@@ -200,120 +197,25 @@ export default function DashboardShell({
   // event, but a parent-re-render-triggered remount of the switcher.
   // Storing the JSX as a value (not a component) keeps the element type
   // stable across renders, so React reconciles instead of remounts.
-  const sidebarContent = (
-    <div className="flex flex-col h-full">
-      {/* Logo */}
-      <div className="px-5 py-5 border-b border-white/10">
-        <Image
-          src="/brand/row-logo-badge.png"
-          alt="Roster On Wheels"
-          width={140}
-          height={40}
-          className="h-10 w-auto object-contain"
-          priority
-        />
-        <p className="text-xs text-slate-400 mt-2 font-medium">{brand}</p>
-      </div>
-
-      {/* Identity card */}
-      <div className="px-3 py-3 border-b border-white/10">
-        <div
-          className="flex items-center gap-2.5 rounded-lg px-3 py-2.5"
-          style={{ backgroundColor: "rgba(255,255,255,0.07)" }}
-        >
-          <Avatar className="h-9 w-9 rounded-md flex-shrink-0">
-            <AvatarFallback
-              className="text-xs font-bold rounded-md"
-              style={{ background: ACTIVE_BG, color: ACTIVE_TEXT }}
-            >
-              {initials}
-            </AvatarFallback>
-          </Avatar>
-          <div className="min-w-0">
-            <p className="text-white text-sm font-semibold truncate">{identityName}</p>
-            {/* Role label — normally the dashboard's own role (District Admin / Club Admin /
-                AG), untouched for those logins. In the SuperAdmin global-search flow the SA is
-                only borrowing this dashboard, so show their real role instead. */}
-            <p className="text-slate-400 text-xs truncate">
-              {fromSuperAdminSearch ? "Super Admin" : identityRole}
-            </p>
-          </div>
-        </div>
-        <p className="text-[10px] text-slate-500 mt-2 px-1 tracking-wide uppercase">
-          {identityLabel}
-        </p>
-      </div>
-
-      {/* Nav */}
-      <ScrollArea className="flex-1 px-2 py-4">
-        <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest px-3 pb-2">
-          Navigation
-        </p>
-        <nav className="flex flex-col gap-0.5">
-          {visibleNav.map(({ to, label, icon: Icon }) => {
-            const isActive = pathname === to || pathname?.startsWith(to + "/");
-            return (
-              <Link
-                key={to}
-                href={to}
-                onClick={() => setOpen(false)}
-                className={cn(
-                  "flex items-center gap-2.5 px-3 py-2.5 mx-0.5 my-0.5 rounded-lg text-sm font-medium transition-all duration-150",
-                  isActive
-                    ? "font-semibold shadow-sm"
-                    : "text-slate-300 hover:text-white hover:bg-white/10"
-                )}
-                style={
-                  isActive
-                    ? { backgroundColor: ACTIVE_BG, color: ACTIVE_TEXT }
-                    : undefined
-                }
-              >
-                {variant === "icon" && Icon ? (
-                  <Icon size={17} className="flex-shrink-0" />
-                ) : (
-                  <span
-                    className="w-1.5 h-1.5 rounded-full flex-shrink-0"
-                    style={{ background: isActive ? ACTIVE_TEXT : "#475569" }}
-                  />
-                )}
-                {/* Wrap rather than ellipsis: the only labels long enough to need it are
-                    the 31-char "Service Projects & Public Image" entries, which were being
-                    cut to "…Publi…". Everything else is <=19 chars and still fits one line.
-                    Labels use non-breaking spaces to control WHERE the break lands. */}
-                <span className="min-w-0 leading-tight">{label}</span>
-              </Link>
-            );
-          })}
-        </nav>
-      </ScrollArea>
-
-      <Separator className="bg-white/10 mx-3" />
-
-      {/* Footer + switcher + logout.
-          In the SuperAdmin global-search flow we hide BOTH the club list and the role/dashboard
-          switcher — the SA is only borrowing this one club/district, so those lists are noise
-          (and confusing). They return via the Back to Search button instead. Normal District /
-          Club / AG logins are unaffected: fromSuperAdminSearch is false for them. */}
-      <div className="px-3 py-3 space-y-2">
-        {!fromSuperAdminSearch && switcherTop && (
-          <div className="pb-3 mb-1 border-b border-white/10">{switcherTop}</div>
-        )}
-        {!fromSuperAdminSearch && switcherKind && (
-          <DashboardSwitcher currentKind={switcherKind} onNavigate={() => setOpen(false)} />
-        )}
-        <button
-          onClick={() => logout()}
-          className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-xs font-medium text-slate-300 hover:text-white hover:bg-white/10 transition-all"
-        >
-          <LogOut size={14} />
-          <span>Sign Out</span>
-        </button>
-        <p className="text-slate-500 text-[11px] text-center tracking-widest uppercase">
-          {footerText}
-        </p>
-      </div>
-    </div>
+  // A <Sidebar> ELEMENT stored as a value (stable module-level component type), so
+  // React reconciles instead of remounting the DashboardSwitcher — see the note above.
+  const sidebar = (
+    <Sidebar
+      brand={brand}
+      identityName={identityName}
+      identityRole={fromSuperAdminSearch ? "Super Admin" : identityRole}
+      identityLabel={identityLabel}
+      initials={initials}
+      nav={visibleNav}
+      pathname={pathname}
+      variant={variant}
+      footerText={footerText}
+      switcherTop={switcherTop}
+      switcherKind={switcherKind}
+      fromSuperAdminSearch={fromSuperAdminSearch}
+      onNavigate={() => setOpen(false)}
+      onSignOut={() => logout()}
+    />
   );
 
   return (
@@ -323,10 +225,10 @@ export default function DashboardShell({
     >
       {/* Desktop sidebar */}
       <aside
-        className="hidden lg:flex flex-col w-60 flex-shrink-0"
+        className="hidden lg:flex flex-col w-60 flex-shrink-0 border-r border-[color:var(--row-line)]"
         style={{ background: SIDEBAR_BG }}
       >
-        {sidebarContent}
+        {sidebar}
       </aside>
 
       {/* Mobile overlay */}
@@ -341,12 +243,12 @@ export default function DashboardShell({
             style={{ background: SIDEBAR_BG }}
           >
             <button
-              className="absolute top-3 right-3 text-slate-400 hover:text-white"
+              className="absolute top-3 right-3 text-muted-foreground hover:text-foreground"
               onClick={() => setOpen(false)}
             >
               <X size={20} />
             </button>
-            {sidebarContent}
+            {sidebar}
           </aside>
         </div>
       )}
@@ -368,19 +270,6 @@ export default function DashboardShell({
             >
               <Menu size={20} />
             </button>
-            {/* Back — only for the SuperAdmin global-search flow. Deliberately loud: it's the
-                SA's only way out of a borrowed dashboard, so it must not be missable. */}
-            {fromSuperAdminSearch && (
-              <button
-                onClick={handleBack}
-                title="Back to search"
-                className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold shadow-sm ring-1 ring-black/5 hover:brightness-95 active:brightness-90 transition-all flex-shrink-0"
-                style={{ background: ACTIVE_BG, color: ACTIVE_TEXT }}
-              >
-                <ArrowLeft size={16} strokeWidth={2.5} />
-                <span>Back to Search</span>
-              </button>
-            )}
             <div className="min-w-0">
               <p className="text-slate-800 font-semibold text-base leading-tight truncate">
                 {pageTitle}
@@ -399,7 +288,8 @@ export default function DashboardShell({
                 • ag:              Year picker → District picker
                   (user request 2026-07-03 — "first rotary year then district")
               Hidden on mobile so the picker stays the prominent control. */}
-          <div className="hidden md:flex items-center gap-3 flex-1 justify-end">
+          <div className="flex items-center gap-3 flex-1 justify-end min-w-0">
+            <div className="hidden md:flex items-center gap-3">
           {topbarStart}
           {switcherKind === "club-admin" ? (
             <>
@@ -463,6 +353,20 @@ export default function DashboardShell({
           ) : (
             <>{topbarCenter}</>
           )}
+            </div>
+            {/* Back — SuperAdmin global-search flow only. Right corner so it's the clear
+                way out of a borrowed dashboard; stays visible on mobile. */}
+            {fromSuperAdminSearch && (
+              <button
+                onClick={handleBack}
+                title="Back to search"
+                className="flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold shadow-sm ring-1 ring-black/5 hover:brightness-95 active:brightness-90 transition-all flex-shrink-0"
+                style={{ background: ACTIVE_BG, color: ACTIVE_TEXT }}
+              >
+                <ArrowLeft size={16} strokeWidth={2.5} />
+                <span>Back to Search</span>
+              </button>
+            )}
           </div>
         </header>
 

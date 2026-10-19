@@ -35,11 +35,11 @@ import ErrorAlert from "@/components/ErrorAlert";
 import {
   ArrowLeft, Upload, X, Star, Info, Search,
   FileText, MapPin, Target, IndianRupee, Camera, Send,
-} from "lucide-react";
+} from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
 import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";
-import WhatsAppRecipientBadge from "@/components/WhatsAppRecipientBadge";
+import RecipientBadge from "@/components/RecipientBadge";
 import ImageCropDialog from "@/components/ImageCropDialog";
 import { useImageCropQueue } from "@/hooks/useImageCropQueue";
 
@@ -95,7 +95,7 @@ function Section({ icon: Icon, title, children, number }: {
 }) {
   return (
     <div className="relative bg-white rounded-xl border shadow-sm overflow-hidden">
-      <div className="flex items-center gap-3 px-5 py-3.5 bg-gradient-to-r from-primary/5 to-transparent border-b">
+      <div className="flex items-center gap-3 px-5 py-3.5 bg-primary/5 border-b">
         <div className="flex items-center justify-center h-8 w-8 rounded-full bg-primary text-primary-foreground text-sm font-bold shrink-0">
           {number}
         </div>
@@ -228,7 +228,6 @@ export default function EditProjectPage() {
   const [rotariansInvolved, setRotariansInvolved] = useState("");
   const [rotaractorsInvolved, setRotaractorsInvolved] = useState("");
   const [rccInvolved, setRccInvolved] = useState("");
-  const [sendWhatsapp, setSendWhatsapp] = useState(false);
   const [sendEmail, setSendEmail] = useState(false);
   const [beneficiariesLimit, setBeneficiariesLimit] = useState<number>(0);
   const [showBeneficiaryConfirm, setShowBeneficiaryConfirm] = useState(false);
@@ -366,7 +365,6 @@ export default function EditProjectPage() {
         setRotariansInvolved(project.rotariansInvolved != null ? String(project.rotariansInvolved) : "");
         setRotaractorsInvolved(project.rotaractorsInvolved != null ? String(project.rotaractorsInvolved) : "");
         setRccInvolved(project.rccInvolved != null ? String(project.rccInvolved) : "");
-        setSendWhatsapp(project.sendWhatsapp);
         setSendEmail(project.sendEmail ?? false);
 
         // Photos — load existing
@@ -590,7 +588,6 @@ export default function EditProjectPage() {
       rotariansInvolved: rotariansInvolved ? Number(rotariansInvolved) : null,
       rotaractorsInvolved: rotaractorsInvolved ? Number(rotaractorsInvolved) : null,
       rccInvolved: rccInvolved ? Number(rccInvolved) : null,
-      sendWhatsapp,
       sendEmail,
       photos: photoInputs,
     };
@@ -1090,18 +1087,7 @@ export default function EditProjectPage() {
           </div>
         </Section>
 
-        {/* ── WhatsApp + Bottom Save ── */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pt-2">
-          <label className="flex items-center gap-2.5 cursor-pointer select-none">
-            <input
-              type="checkbox"
-              checked={sendWhatsapp}
-              onChange={(e) => setSendWhatsapp(e.target.checked)}
-              className="accent-primary h-4 w-4"
-            />
-            <span className="text-sm font-medium">Send WhatsApp notification</span>
-            {sendWhatsapp && <WhatsAppRecipientBadge scope="club" clubId={clubId} />}
-          </label>
           <label className="flex items-center gap-2.5 cursor-pointer select-none">
             <input
               type="checkbox"
@@ -1110,7 +1096,7 @@ export default function EditProjectPage() {
               className="accent-primary h-4 w-4"
             />
             <span className="text-sm font-medium">Send Email notification</span>
-            {sendEmail && <WhatsAppRecipientBadge scope="club" clubId={clubId} channel="email" />}
+            {sendEmail && <RecipientBadge scope="club" clubId={clubId} />}
           </label>
 
           <div className="flex gap-3">
@@ -1123,11 +1109,6 @@ export default function EditProjectPage() {
             </Button>
           </div>
         </div>
-        {sendWhatsapp && hasModerator && (
-          <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded px-3 py-2 mt-2">
-            Note: This project will go for approval to moderator. WhatsApp will be sent after moderator approves.
-          </p>
-        )}
         {sendEmail && hasModerator && (
           <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded px-3 py-2 mt-2">
             Note: This project will go for approval to moderator. Email will be sent after moderator approves.

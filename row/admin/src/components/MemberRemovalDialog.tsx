@@ -9,7 +9,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { AlertTriangle, Loader2 } from "lucide-react";
+import { AlertTriangle, Loader2 } from "@/components/icons";
 import { MemberRemovalPreview } from "@/types/memberRemoval";
 
 interface Props {
@@ -55,20 +55,20 @@ export default function MemberRemovalDialog({ open, loading, preview, onConfirm,
                   This is the member&apos;s ONLY club.
                 </p>
                 <p className="text-destructive/80 mt-1">
-                  Profile will be fully deactivated — login will be blocked on web and mobile.
+                  Profile will be fully deactivated: login will be blocked on web and mobile.
                 </p>
               </div>
             ) : (
               <div className="rounded-md border border-amber-300/50 bg-amber-50 p-3">
                 <p className="font-semibold text-amber-900">
-                  Member belongs to other clubs — profile will stay active.
+                  Member belongs to other clubs: profile will stay active.
                 </p>
               </div>
             )}
 
             {/* Other clubs */}
             {preview.otherClubs.length > 0 && (
-              <Section title={`Other clubs (kept) — ${preview.otherClubs.length}`}>
+              <Section title={`Other clubs (kept): ${preview.otherClubs.length}`}>
                 <ul className="list-disc ml-5 space-y-0.5">
                   {preview.otherClubs.map((c) => (
                     <li key={c.clubId}>{c.clubName}</li>
@@ -79,7 +79,7 @@ export default function MemberRemovalDialog({ open, loading, preview, onConfirm,
 
             {/* Roles in this club */}
             {preview.rolesInThisClub.length > 0 && (
-              <Section title={`Roles in this club (will be removed) — ${preview.rolesInThisClub.length}`}>
+              <Section title={`Roles in this club (will be removed): ${preview.rolesInThisClub.length}`}>
                 <div className="flex flex-wrap gap-1.5">
                   {preview.rolesInThisClub.map((r) => (
                     <span key={r} className="px-2 py-0.5 rounded bg-blue-50 text-blue-700 text-xs border border-blue-200">{r}</span>
@@ -90,7 +90,7 @@ export default function MemberRemovalDialog({ open, loading, preview, onConfirm,
 
             {/* All roles (full picture) */}
             {preview.allRoleNames.length > 0 && (
-              <Section title={`All current roles — ${preview.allRoleNames.length}`}>
+              <Section title={`All current roles: ${preview.allRoleNames.length}`}>
                 <div className="flex flex-wrap gap-1.5">
                   {preview.allRoleNames.map((r) => (
                     <span key={r} className="px-2 py-0.5 rounded bg-slate-100 text-slate-700 text-xs">{r}</span>
@@ -106,12 +106,12 @@ export default function MemberRemovalDialog({ open, loading, preview, onConfirm,
 
             {/* BOD */}
             {preview.bodEntries.length > 0 && (
-              <Section title={`Board of Directors (will be removed) — ${preview.bodEntries.length}`}>
+              <Section title={`Board of Directors (will be removed): ${preview.bodEntries.length}`}>
                 <ul className="space-y-0.5">
                   {preview.bodEntries.map((b, i) => (
                     <li key={i}>
                       <span className="font-medium">{b.designationName}</span>
-                      <span className="text-muted-foreground"> — {b.yearLabel}</span>
+                      <span className="text-muted-foreground">: {b.yearLabel}</span>
                     </li>
                   ))}
                 </ul>
@@ -120,13 +120,13 @@ export default function MemberRemovalDialog({ open, loading, preview, onConfirm,
 
             {/* District Committee (level-1) */}
             {(preview.dcCommitteeMemberships?.length ?? 0) > 0 && (
-              <Section title={`District Committee (will be removed) — ${preview.dcCommitteeMemberships!.length}`}>
+              <Section title={`District Committee (will be removed): ${preview.dcCommitteeMemberships!.length}`}>
                 <ul className="space-y-0.5">
                   {preview.dcCommitteeMemberships!.map((c, i) => (
                     <li key={i}>
                       <span className="font-medium">{c.designation || "Member"}</span>
-                      {c.yearLabel ? <span className="text-muted-foreground"> — {c.yearLabel}</span> : null}
-                      {c.districtNumber ? <span className="text-muted-foreground"> — D{c.districtNumber}</span> : null}
+                      {c.yearLabel ? <span className="text-muted-foreground">: {c.yearLabel}</span> : null}
+                      {c.districtNumber ? <span className="text-muted-foreground">: D{c.districtNumber}</span> : null}
                     </li>
                   ))}
                 </ul>
@@ -135,12 +135,12 @@ export default function MemberRemovalDialog({ open, loading, preview, onConfirm,
 
             {/* DC Groups */}
             {preview.dcGroupMemberships.length > 0 && (
-              <Section title={`District Committee Groups (will be removed) — ${preview.dcGroupMemberships.length}`}>
+              <Section title={`District Committee Groups (will be removed): ${preview.dcGroupMemberships.length}`}>
                 <ul className="space-y-0.5">
                   {preview.dcGroupMemberships.map((g, i) => (
                     <li key={i}>
                       <span className="font-medium">{g.groupName}</span>
-                      {g.districtNumber ? <span className="text-muted-foreground"> — D{g.districtNumber}</span> : null}
+                      {g.districtNumber ? <span className="text-muted-foreground">: D{g.districtNumber}</span> : null}
                     </li>
                   ))}
                 </ul>
@@ -149,12 +149,12 @@ export default function MemberRemovalDialog({ open, loading, preview, onConfirm,
 
             {/* Sub-groups */}
             {preview.subGroupMemberships.length > 0 && (
-              <Section title={`Sub-groups (will be removed) — ${preview.subGroupMemberships.length}`}>
+              <Section title={`Sub-groups (will be removed): ${preview.subGroupMemberships.length}`}>
                 <ul className="space-y-0.5">
                   {preview.subGroupMemberships.map((s, i) => (
                     <li key={i}>
                       <span className="font-medium">{s.subGroupName}</span>
-                      {s.districtNumber ? <span className="text-muted-foreground"> — D{s.districtNumber}</span> : null}
+                      {s.districtNumber ? <span className="text-muted-foreground">: D{s.districtNumber}</span> : null}
                     </li>
                   ))}
                 </ul>

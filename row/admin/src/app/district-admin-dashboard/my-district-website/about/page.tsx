@@ -13,7 +13,7 @@
  *   - districtId from useAuth().selectedDistrictId (no /districts/[id] param).
  *   - Back / Save / Cancel honour ?returnTo=; fallback to the my-district-website
  *     landing.  ?yearId= is preserved forward on Back navigation.
- *   - Design palette: navy #1e3a5f, gold #F7A81B, slate 800/600/500,
+ *   - Design palette: navy #17458f, gold #F7A81B, slate 800/600/500,
  *     rounded-2xl white cards to match the landing + membership tab pages.
  *
  * Preserved features:
@@ -29,11 +29,11 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import dynamic from "next/dynamic";
-import type { LucideIcon } from "lucide-react";
+import type { LucideIcon } from "@/components/icons";
 import {
   ArrowLeft, FileText, Plus, Pencil, Trash2, AlertTriangle,
   Eye, EyeOff, Info, Loader2, CheckCircle2, Lock, Hash, Activity, Sparkles,
-} from "lucide-react";
+} from "@/components/icons";
 import {
   getDistrictAbout, createDistrictAbout, updateDistrictAbout, deleteDistrictAbout,
   uploadDistrictAboutImage, getDistrict,
@@ -268,7 +268,7 @@ export default function DistrictAdminAboutPage() {
               <ArrowLeft className="h-4 w-4" />
             </button>
             <div>
-              <h2 className="text-2xl font-bold tracking-tight text-[#1e3a5f]">
+              <h2 className="text-2xl font-bold tracking-tight text-ink">
                 {districtName ? `${districtName} · About` : "About"}
               </h2>
               <p className="text-slate-500 text-sm mt-0.5">
@@ -301,7 +301,7 @@ export default function DistrictAdminAboutPage() {
         {!loading && !canManage && (
           <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-2 text-xs text-slate-600">
             <span className="inline-flex items-center gap-1">
-              <Lock size={12} /> Read only — only SuperAdmin or Admin can edit the About content.
+              <Lock size={12} /> Read only. Only SuperAdmin or Admin can edit the About content.
             </span>
           </div>
         )}
@@ -309,8 +309,8 @@ export default function DistrictAdminAboutPage() {
         {/* Empty state — no record yet */}
         {!loading && !about && (
           <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-            <div className="px-5 py-3 border-b border-slate-100 flex items-center gap-2 bg-gradient-to-r from-[#1e3a5f]/5 to-white">
-              <div className="w-9 h-9 rounded-lg bg-[#1e3a5f]/10 text-[#1e3a5f] flex items-center justify-center">
+            <div className="px-5 py-3 border-b border-slate-100 flex items-center gap-2 bg-azure/5">
+              <div className="w-9 h-9 rounded-lg bg-azure/10 text-ink flex items-center justify-center">
                 <Sparkles size={18} />
               </div>
               <div>
@@ -332,7 +332,7 @@ export default function DistrictAdminAboutPage() {
                 <button
                   type="button"
                   onClick={openAddDialog}
-                  className="mt-5 inline-flex items-center gap-1 text-sm font-semibold px-4 py-1.5 rounded-lg bg-[#1e3a5f] text-white hover:bg-[#152a44]"
+                  className="mt-5 inline-flex items-center gap-1 text-sm font-semibold px-4 py-1.5 rounded-lg bg-azure text-white hover:bg-mint-ink"
                 >
                   <Plus size={14} /> Add About
                 </button>
@@ -348,9 +348,9 @@ export default function DistrictAdminAboutPage() {
           <>
             {/* Preview card */}
             <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-              <div className="px-5 py-3 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-gradient-to-r from-[#1e3a5f]/5 to-white">
+              <div className="px-5 py-3 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-azure/5">
                 <div className="flex items-center gap-2">
-                  <div className="w-9 h-9 rounded-lg bg-[#1e3a5f]/10 text-[#1e3a5f] flex items-center justify-center">
+                  <div className="w-9 h-9 rounded-lg bg-azure/10 text-ink flex items-center justify-center">
                     <FileText size={18} />
                   </div>
                   <div>
@@ -370,7 +370,7 @@ export default function DistrictAdminAboutPage() {
                     <button
                       type="button"
                       onClick={openEditDialog}
-                      className="inline-flex items-center gap-1 text-xs font-semibold px-3 py-1.5 rounded-lg bg-[#1e3a5f] text-white hover:bg-[#152a44]"
+                      className="inline-flex items-center gap-1 text-xs font-semibold px-3 py-1.5 rounded-lg bg-azure text-white hover:bg-mint-ink"
                     >
                       <Pencil size={13} /> Edit
                     </button>
@@ -450,7 +450,7 @@ export default function DistrictAdminAboutPage() {
                 <select
                   value={formIsActive}
                   onChange={(e) => setFormIsActive(e.target.value)}
-                  className="w-40 px-3 py-1.5 text-sm border border-slate-200 rounded-lg bg-white focus:outline-none focus:border-[#1e3a5f] focus:ring-2 focus:ring-[#1e3a5f]/20"
+                  className="w-40 px-3 py-1.5 text-sm border border-slate-200 rounded-lg bg-white focus:outline-none focus:border-azure focus:ring-2 focus:ring-azure/20"
                 >
                   <option value="1">Active</option>
                   <option value="0">Inactive</option>
@@ -470,7 +470,7 @@ export default function DistrictAdminAboutPage() {
                 type="button"
                 onClick={handleSave}
                 disabled={saving || formCharOver}
-                className="inline-flex items-center gap-1 text-sm font-semibold px-4 py-1.5 rounded-lg bg-[#1e3a5f] text-white hover:bg-[#152a44] disabled:opacity-50"
+                className="inline-flex items-center gap-1 text-sm font-semibold px-4 py-1.5 rounded-lg bg-azure text-white hover:bg-mint-ink disabled:opacity-50"
               >
                 {saving ? <Loader2 className="animate-spin" size={14} /> : null}
                 {saving ? "Saving…" : editing ? "Update" : "Add"}
@@ -507,9 +507,9 @@ function KpiTile({
   color: "navy" | "emerald" | "gold" | "slate";
 }) {
   const palette = {
-    navy:    { bg: "bg-[#1e3a5f]/10", fg: "text-[#1e3a5f]" },
+    navy:    { bg: "bg-azure/10", fg: "text-ink" },
     emerald: { bg: "bg-emerald-100",  fg: "text-emerald-700" },
-    gold:    { bg: "bg-[#F7A81B]/15", fg: "text-[#B0720B]" },
+    gold:    { bg: "bg-marigold/15", fg: "text-yellow-700" },
     slate:   { bg: "bg-slate-100",    fg: "text-slate-600" },
   }[color];
   return (

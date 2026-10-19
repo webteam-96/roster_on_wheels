@@ -8,7 +8,7 @@ import {
   updateCommitteeGroup, deleteCommitteeGroup, getRotaryYears, getDistrict, reorderCommitteeGroups,
 } from "@/services/api";
 import { useDragSort } from "@/hooks/useDragSort";
-import { GripVertical } from "lucide-react";
+import { GripVertical } from "@/components/icons";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -21,7 +21,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
 import AlertModal from "@/components/AlertModal";
-import { ArrowLeft, Plus, Pencil, Trash2, AlertTriangle, UsersRound, Users, MoreHorizontal, Layers, Lock, Search, X } from "lucide-react";
+import { ArrowLeft, Plus, Pencil, Trash2, AlertTriangle, UsersRound, Users, MoreHorizontal, Layers, Lock, Search, X } from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
 import Link from "next/link";
 import Pagination from "@/components/Pagination";
@@ -278,7 +278,7 @@ export default function GroupCommitteePage() {
                       </DropdownMenu>
                     )}
                     {isAutoManagedGroup(g.groupName) && (
-                      <Badge variant="secondary" className="flex items-center gap-1" title="Auto-managed by BOD — edit via Board of Directors">
+                      <Badge variant="secondary" className="flex items-center gap-1" title="Auto-managed by BOD: edit via Board of Directors">
                         <Lock className="h-3 w-3" />Auto
                       </Badge>
                     )}

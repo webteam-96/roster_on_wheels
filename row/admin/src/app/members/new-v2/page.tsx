@@ -26,7 +26,7 @@ import Image from "next/image";
 import {
   User, Share2, Home, Briefcase, Users, Plus, Trash2, Info,
   Search, Mail, Phone, IdCard, UserPlus, ArrowLeft,
-} from "lucide-react";
+} from "@/components/icons";
 import { createMember, getCountries, getMembers, addClubMember, getPhotoUrl } from "@/services/api";
 import { Country, Member, MemberAddress, FamilyMember, MemberListItem } from "@/types/member";
 import {
@@ -152,7 +152,7 @@ function SectionCard({
 }) {
   return (
     <div className="rounded-xl border border-slate-200 overflow-hidden mb-4">
-      <div className="flex items-center gap-3 px-4 py-2.5 bg-gradient-to-r from-slate-50 to-white border-b border-slate-100">
+      <div className="flex items-center gap-3 px-4 py-2.5 bg-slate-50 border-b border-slate-100">
         <div className={`flex items-center justify-center h-7 w-7 rounded-full text-white text-xs font-bold ${dot}`}>
           {number}
         </div>

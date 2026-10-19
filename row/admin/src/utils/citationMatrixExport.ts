@@ -404,7 +404,7 @@ export function exportCitationMatrixVertical(
       rowHeights[r] = { hpt: 18 }; r++;
     }
 
-    ws[addr(r, 0)] = { v: `${cat.name} — Subtotal`, t: "s", s: totalRowLabelStyle };
+    ws[addr(r, 0)] = { v: `${cat.name}: Subtotal`, t: "s", s: totalRowLabelStyle };
     if (compact) ws[addr(r, 1)] = { v: catTotal, t: "n", s: totalRowCellStyle };
     else { ws[addr(r, 1)] = { v: "", t: "s", s: totalRowCellStyle }; ws[addr(r, 2)] = { v: "", t: "s", s: totalRowCellStyle }; ws[addr(r, 3)] = { v: catTotal, t: "n", s: totalRowCellStyle }; }
     rowHeights[r] = { hpt: 20 }; r++;

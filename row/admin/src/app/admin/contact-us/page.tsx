@@ -6,7 +6,7 @@ import { getServerBrand, telHref } from "@/lib/brand";
 export async function generateMetadata(): Promise<Metadata> {
   const brand = await getServerBrand();
   return {
-    title: `Contact Us — ${brand.productName}`,
+    title: `Contact Us | ${brand.productName}`,
     description:
       `How to reach the ${brand.productName} administration portal. Email, phone, postal address, support hours, and grievance officer.`,
   };

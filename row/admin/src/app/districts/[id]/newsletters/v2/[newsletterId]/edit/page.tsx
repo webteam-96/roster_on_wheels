@@ -22,7 +22,7 @@ import DateField from "@/components/DateField";
 import { useParams, useSearchParams } from "next/navigation";
 import {
   Upload, X, FileText, Bell, Link2, FileUp, Info, Calendar,
-} from "lucide-react";
+} from "@/components/icons";
 import {
   getDistrict,
   getDistrictNewsletter,
@@ -37,7 +37,7 @@ import RotaryLoader from "@/components/RotaryLoader";
 import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
 import ProtectedRoute from "@/components/ProtectedRoute";
-import WhatsAppRecipientBadge from "@/components/WhatsAppRecipientBadge";
+import RecipientBadge from "@/components/RecipientBadge";
 import { toLocalDateParts } from "@/lib/dateUtils";
 import { useAuth } from "@/contexts/AuthContext";
 import { TEXT_INPUT_REGEX } from "@/lib/textInput";
@@ -64,7 +64,7 @@ function SectionCard({
 }: { number: number; icon: React.ElementType; title: string; dot: string; children: React.ReactNode }) {
   return (
     <div className="rounded-xl border border-slate-200 overflow-hidden mb-4">
-      <div className="flex items-center gap-3 px-4 py-2.5 bg-gradient-to-r from-slate-50 to-white border-b border-slate-100">
+      <div className="flex items-center gap-3 px-4 py-2.5 bg-slate-50 border-b border-slate-100">
         <div className={`flex items-center justify-center h-7 w-7 rounded-full text-white text-xs font-bold ${dot}`}>{number}</div>
         <Icon className="h-4 w-4 text-slate-500" />
         <h3 className="text-sm font-semibold text-slate-800">{title}</h3>
@@ -138,7 +138,6 @@ export default function DistrictNewslettersV2EditPage() {
   const [filePath, setFilePath] = useState<string | null>(null);
   const [fileName, setFileName] = useState<string | null>(null);
   const [fileUploading, setFileUploading] = useState(false);
-  const [isSendWhatsapp, setIsSendWhatsapp] = useState(false);
   const [isSendEmail, setIsSendEmail] = useState(false);
 
   // Track original dates to allow existing past dates without validation error.
@@ -168,7 +167,6 @@ export default function DistrictNewslettersV2EditPage() {
           const parts = nl.filePath.split("/");
           setFileName(parts[parts.length - 1]);
         }
-        setIsSendWhatsapp(nl.isSendWhatsapp);
         setIsSendEmail(nl.isSendEmail ?? false);
 
         if (nl.publishDateTime) {
@@ -261,7 +259,6 @@ export default function DistrictNewslettersV2EditPage() {
         attachmentType,
         linkUrl: attachmentType === "link" ? linkUrl.trim() : null,
         filePath: attachmentType === "file" ? filePath : null,
-        isSendWhatsapp,
         isSendEmail,
         yearId,
       });
@@ -421,19 +418,6 @@ export default function DistrictNewslettersV2EditPage() {
 
           {/* 4. Notification */}
           <SectionCard number={4} icon={Bell} title="Notification Settings" dot="bg-emerald-600">
-            {/* WhatsApp notify checkbox hidden 2026-09-07 per request — re-enable later. Value still submits (default off). */}
-            {false && (
-            <label className="flex items-center gap-3 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={isSendWhatsapp}
-                onChange={(e) => setIsSendWhatsapp(e.target.checked)}
-                className="h-4 w-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500"
-              />
-              <span className="text-sm font-medium text-slate-700">Notify members via WhatsApp</span>
-              {isSendWhatsapp && <WhatsAppRecipientBadge scope="district" districtId={districtId} />}
-            </label>
-            )}
             <label className="flex items-center gap-3 cursor-pointer mt-3">
               <input
                 type="checkbox"
@@ -442,7 +426,7 @@ export default function DistrictNewslettersV2EditPage() {
                 className="h-4 w-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500"
               />
               <span className="text-sm font-medium text-slate-700">Notify members via Email</span>
-              {isSendEmail && <WhatsAppRecipientBadge scope="district" districtId={districtId} channel="email" />}
+              {isSendEmail && <RecipientBadge scope="district" districtId={districtId} />}
             </label>
           </SectionCard>
 

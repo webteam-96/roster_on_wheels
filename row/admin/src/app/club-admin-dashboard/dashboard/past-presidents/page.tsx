@@ -10,7 +10,7 @@
 import { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { Award, Plus, Edit3, Trash2, AlertTriangle } from "lucide-react";
+import { Award, Plus, Edit3, Trash2, AlertTriangle } from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
 import KpiCard from "@/components/dashboard/KpiCard";
 import { fmtInt } from "@/components/dashboard/formatters";

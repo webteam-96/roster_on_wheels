@@ -17,7 +17,7 @@
 import { useEffect, useState, useCallback } from "react";
 import GoalTargetSplitPanel from "@/components/dashboard/GoalTargetSplitPanel";
 import { getDistrictMonthlyGoalsScoped, type GoalMonthlyForm } from "@/services/api";
-import { Building2, AlertCircle, ArrowLeft, CheckCircle2, Circle, Lock } from "lucide-react";
+import { Building2, AlertCircle, ArrowLeft, CheckCircle2, Circle, Lock } from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
 import GoalSettingPanel from "@/components/dashboard/GoalSettingPanel";
 import {
@@ -146,7 +146,7 @@ export default function ZoneGoalSettingView({ zoneId }: { zoneId?: number }) {
               onClick={() => setActiveCategoryId(c.id)}
               className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition ${
                 activeCategoryId === c.id
-                  ? "bg-[#1e3a5f] text-white"
+                  ? "bg-azure text-white"
                   : "bg-white border border-slate-200 text-slate-600 hover:bg-slate-100"
               }`}
             >
@@ -180,7 +180,7 @@ export default function ZoneGoalSettingView({ zoneId }: { zoneId?: number }) {
         <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b-2 border-[#F7A81B]" style={{ backgroundColor: "#1e3a5f" }}>
+              <tr className="border-b-2 border-marigold" style={{ backgroundColor: "#17458f" }}>
                 <th className="text-left px-4 py-2.5 text-white text-xs font-semibold uppercase tracking-wide">District</th>
                 <th className="text-left px-4 py-2.5 text-white text-xs font-semibold uppercase tracking-wide">Status</th>
                 <th className="text-left px-4 py-2.5 text-white text-xs font-semibold uppercase tracking-wide">Last Updated</th>
@@ -213,7 +213,7 @@ export default function ZoneGoalSettingView({ zoneId }: { zoneId?: number }) {
                     </div>
                   </td>
                   <td className="px-4 py-2.5 text-slate-500 text-xs">
-                    {d.lastUpdatedDate || "—"}
+                    {d.lastUpdatedDate || "–"}
                   </td>
                 </tr>
               ))}

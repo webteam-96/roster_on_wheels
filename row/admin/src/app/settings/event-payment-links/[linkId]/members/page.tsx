@@ -2,11 +2,7 @@
 
 import { useState, useCallback, useEffect } from "react";
 import { useParams } from "next/navigation";
-import {
-  getEventMembers, sendEventReceipt, sendEventReminderEmail,
-  sendEventReminderWhatsApp, bulkReminderEmail, bulkReminderWhatsApp, exportEventMembers,
-  getEventPaymentLinkDetail,
-} from "@/services/api";
+import { getEventMembers, sendEventReceipt, sendEventReminderEmail, bulkReminderEmail, exportEventMembers, getEventPaymentLinkDetail } from "@/services/api";
 import { fileTimestamp } from "@/lib/dateUtils";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -24,7 +20,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
-import { ArrowLeft, Download, Mail, MessageSquare, MoreHorizontal, Receipt, CreditCard, Pencil, Paperclip, Send } from "lucide-react";
+import { ArrowLeft, Download, Mail, MoreHorizontal, Receipt, CreditCard, Pencil, Paperclip, Send } from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -160,10 +156,6 @@ export default function EventMembersPage() {
     } catch { setErrorMessage("Failed to send reminder."); }
   };
 
-  const handleSendReminderWhatsApp = (memberId: number) => {
-    sendEventReminderWhatsApp(memberId).catch(() => {});
-    setSuccessMessage("Sending WhatsApp reminder in background...");
-  };
 
   const handleBulkEmail = async () => {
     setBulkSending(true);
@@ -174,10 +166,6 @@ export default function EventMembersPage() {
     finally { setBulkSending(false); }
   };
 
-  const handleBulkWhatsApp = () => {
-    bulkReminderWhatsApp(linkId).catch(() => {});
-    setSuccessMessage("Sending bulk WhatsApp reminders in background...");
-  };
 
   const handleExport = async () => {
     try {
@@ -271,7 +259,6 @@ export default function EventMembersPage() {
                         <>
                           <DropdownMenuItem onClick={() => router.push(`/settings/event-payment-links/${linkId}/offline-payment?memberId=${m.fkMemberProfileId}&memberName=${encodeURIComponent(m.memberName || "")}&mobile=${encodeURIComponent(m.mobile || "")}&email=${encodeURIComponent(m.email || "")}&districtNumber=${encodeURIComponent(m.districtNumber || "")}&clubName=${encodeURIComponent(m.clubName || "")}`)}><CreditCard className="h-4 w-4 mr-2" />Record Offline Payment</DropdownMenuItem>
                           <DropdownMenuItem onClick={() => openRemarkDialog("reminder", m.id)}><Mail className="h-4 w-4 mr-2" />Send Reminder Email</DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => handleSendReminderWhatsApp(m.id)}><MessageSquare className="h-4 w-4 mr-2" />Send WhatsApp Reminder</DropdownMenuItem>
                         </>
                       )}
                     </DropdownMenuContent>
@@ -330,9 +317,6 @@ export default function EventMembersPage() {
               <div className="flex gap-2">
                 <Button variant="outline" size="sm" onClick={() => openRemarkDialog("reminder", undefined, true)} disabled={bulkSending}>
                   <Mail className="h-4 w-4 mr-1" />Bulk Email
-                </Button>
-                <Button variant="outline" size="sm" onClick={handleBulkWhatsApp} disabled={bulkSending}>
-                  <MessageSquare className="h-4 w-4 mr-1" />Bulk WhatsApp
                 </Button>
               </div>
             )}

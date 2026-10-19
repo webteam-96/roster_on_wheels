@@ -14,7 +14,7 @@ import RotaryLoader from "@/components/RotaryLoader";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import ImageCropDialog from "@/components/ImageCropDialog";
 import { useImageCropUpload } from "@/hooks/useImageCropUpload";
-import { ArrowLeft, Camera, Save, UserCircle2 } from "lucide-react";
+import { ArrowLeft, Camera, Save, UserCircle2 } from "@/components/icons";
 import { RotaryYear } from "@/types/rotaryYear";
 import {
   getRotaryYears,

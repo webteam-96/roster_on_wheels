@@ -11,7 +11,7 @@
  *     useParams — because this route has no [id] segment.
  *   - Back / Cancel navigate via goBack() honouring ?returnTo=; falls back
  *     to /district-admin-dashboard/my-district-website. yearId is preserved.
- *   - Palette shifted to the V2 DA dashboard tokens (navy #1e3a5f, gold
+ *   - Palette shifted to the V2 DA dashboard tokens (navy #17458f, gold
  *     #F7A81B underline, slate typography, rounded-2xl bg-white cards,
  *     slate-tuned inputs).
  *
@@ -67,7 +67,7 @@ import {
   ArrowLeft, Plus, Pencil, Trash2, MoreHorizontal,
   AlertTriangle, ExternalLink, Eye, EyeOff, ChevronDown, ChevronRight,
   GripVertical, List, Upload, X, FileText, PlusCircle,
-} from "lucide-react";
+} from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import SearchBox from "@/components/SearchBox";
@@ -121,7 +121,7 @@ function LinkTypeBadgeWithView({ linkType, linkValue, className }: {
           target="_blank"
           rel="noopener noreferrer"
           title="Open uploaded file / link in a new tab"
-          className="inline-flex items-center justify-center w-6 h-6 rounded text-slate-500 hover:text-[#1e3a5f] hover:bg-slate-100"
+          className="inline-flex items-center justify-center w-6 h-6 rounded text-slate-500 hover:text-ink hover:bg-slate-100"
         >
           <ExternalLink size={13} />
         </a>
@@ -524,7 +524,7 @@ export default function DistrictAdminMenuListPage() {
                   onChange={handleFileUpload}
                   disabled={uploading}
                 />
-                <div className="flex items-center gap-2 p-3 border-2 border-dashed border-slate-200 rounded-md hover:border-[#1e3a5f]/40 hover:bg-slate-50 transition-colors">
+                <div className="flex items-center gap-2 p-3 border-2 border-dashed border-slate-200 rounded-md hover:border-azure/40 hover:bg-slate-50 transition-colors">
                   <Upload className="h-4 w-4 text-slate-500" />
                   <span className="text-sm text-slate-500">
                     {uploading ? "Uploading..." : "Click to upload document"}
@@ -542,7 +542,7 @@ export default function DistrictAdminMenuListPage() {
       <div className="space-y-2">
         <Label className="text-slate-600 text-sm">Link Value *</Label>
         <Input
-          className="border-slate-200 bg-white focus:border-[#1e3a5f] focus:ring-[#1e3a5f]/20"
+          className="border-slate-200 bg-white focus:border-azure focus:ring-azure/20"
           placeholder={formLinkType === "external" ? "https://..." : "Enter page name (e.g., About Us)"}
           value={formLinkValue}
           onChange={(e) => setFormLinkValue(e.target.value)}
@@ -579,7 +579,7 @@ export default function DistrictAdminMenuListPage() {
         <TableCell>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-500 hover:text-[#1e3a5f] hover:bg-slate-100">
+              <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-500 hover:text-ink hover:bg-slate-100">
                 <MoreHorizontal className="h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
@@ -630,7 +630,7 @@ export default function DistrictAdminMenuListPage() {
           {canManage && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-500 hover:text-[#1e3a5f] hover:bg-slate-100">
+                <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-500 hover:text-ink hover:bg-slate-100">
                   <MoreHorizontal className="h-4 w-4" />
                 </Button>
               </DropdownMenuTrigger>
@@ -678,10 +678,10 @@ export default function DistrictAdminMenuListPage() {
                 <ArrowLeft className="h-4 w-4" />
               </Button>
               <div>
-                <h2 className="text-2xl font-bold tracking-tight text-[#1e3a5f]">
+                <h2 className="text-2xl font-bold tracking-tight text-ink">
                   {districtNumber ? `District ${districtNumber} - Menu List` : "Menu List"}
                 </h2>
-                <div className="h-0.5 w-16 bg-[#F7A81B] rounded mt-1.5" />
+                <div className="h-0.5 w-16 bg-marigold rounded mt-1.5" />
                 <p className="text-sm text-slate-500 mt-1.5">Manage website navigation menus</p>
               </div>
             </div>
@@ -689,7 +689,7 @@ export default function DistrictAdminMenuListPage() {
               <Button
                 onClick={openAddMenuDialog}
                 disabled={menus.length >= 9}
-                className="bg-[#1e3a5f] hover:bg-[#152a44] text-white disabled:bg-slate-300 disabled:text-slate-500"
+                className="bg-azure hover:bg-mint-ink text-white disabled:bg-slate-300 disabled:text-slate-500"
               >
                 <Plus className="mr-2 h-4 w-4" />Add Menu
               </Button>
@@ -718,7 +718,7 @@ export default function DistrictAdminMenuListPage() {
               }
             >
               {menus.length}/9 Menus
-              {menus.length > 9 && " · Over limit — please delete extras"}
+              {menus.length > 9 && " · Over limit. Please delete extras"}
             </Badge>
           </div>
         )}
@@ -765,7 +765,7 @@ export default function DistrictAdminMenuListPage() {
                     <div className="bg-white rounded-2xl border border-slate-200 shadow-sm" {...dragHandlers}>
                       <div className="p-4">
                         <div className="flex items-center gap-3">
-                          <button onClick={() => toggleExpand(menu.id)} className="flex-shrink-0 text-slate-500 hover:text-[#1e3a5f]">
+                          <button onClick={() => toggleExpand(menu.id)} className="flex-shrink-0 text-slate-500 hover:text-ink">
                             {isExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
                           </button>
                           <div className="flex-1 min-w-0">
@@ -788,7 +788,7 @@ export default function DistrictAdminMenuListPage() {
                           {canManage && (
                             <DropdownMenu>
                               <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-500 hover:text-[#1e3a5f] hover:bg-slate-100">
+                                <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-500 hover:text-ink hover:bg-slate-100">
                                   <MoreHorizontal className="h-4 w-4" />
                                 </Button>
                               </DropdownMenuTrigger>
@@ -847,7 +847,7 @@ export default function DistrictAdminMenuListPage() {
             <div className="hidden sm:block bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
               <Table>
                 <TableHeader>
-                  <TableRow className="bg-[#1e3a5f] hover:bg-[#1e3a5f]">
+                  <TableRow className="bg-azure hover:bg-azure">
                     <TableHead className="text-white text-base font-semibold">Menu Name</TableHead>
                     <TableHead className="w-32 text-white text-base font-semibold">Link Type</TableHead>
                     <TableHead className="w-24 text-white text-base font-semibold">Status</TableHead>
@@ -869,7 +869,7 @@ export default function DistrictAdminMenuListPage() {
                           <TableCell>
                             <button
                               onClick={() => toggleExpand(menu.id)}
-                              className="flex items-center gap-2 font-medium text-slate-800 hover:text-[#1e3a5f]"
+                              className="flex items-center gap-2 font-medium text-slate-800 hover:text-ink"
                             >
                               {isExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
                               {menu.menuName}
@@ -901,7 +901,7 @@ export default function DistrictAdminMenuListPage() {
                             <TableCell>
                               <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
-                                  <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-500 hover:text-[#1e3a5f] hover:bg-slate-100">
+                                  <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-500 hover:text-ink hover:bg-slate-100">
                                     <MoreHorizontal className="h-4 w-4" />
                                   </Button>
                                 </DropdownMenuTrigger>
@@ -987,7 +987,7 @@ export default function DistrictAdminMenuListPage() {
                   {dialogMode === "menu" ? "Menu Name" : "Sub-Menu Name"} *
                 </Label>
                 <Input
-                  className="border-slate-200 bg-white focus:border-[#1e3a5f] focus:ring-[#1e3a5f]/20"
+                  className="border-slate-200 bg-white focus:border-azure focus:ring-azure/20"
                   placeholder={dialogMode === "menu" ? "Enter menu name" : "Enter sub-menu name"}
                   value={formName}
                   onChange={(e) => setFormName(e.target.value)}
@@ -998,7 +998,7 @@ export default function DistrictAdminMenuListPage() {
               <div className="space-y-2">
                 <Label className="text-slate-600 text-sm">Link Type *</Label>
                 <Select value={formLinkType} onValueChange={(val) => { setFormLinkType(val); setFormLinkValue(""); }}>
-                  <SelectTrigger className="border-slate-200 bg-white focus:border-[#1e3a5f] focus:ring-[#1e3a5f]/20">
+                  <SelectTrigger className="border-slate-200 bg-white focus:border-azure focus:ring-azure/20">
                     <SelectValue placeholder="Select link type" />
                   </SelectTrigger>
                   <SelectContent>
@@ -1018,7 +1018,7 @@ export default function DistrictAdminMenuListPage() {
               <div className="space-y-2">
                 <Label className="text-slate-600 text-sm">Sort Order</Label>
                 <Input
-                  className="border-slate-200 bg-white focus:border-[#1e3a5f] focus:ring-[#1e3a5f]/20"
+                  className="border-slate-200 bg-white focus:border-azure focus:ring-azure/20"
                   type="number"
                   min={1}
                   value={formSortOrder}
@@ -1030,7 +1030,7 @@ export default function DistrictAdminMenuListPage() {
               <div className="space-y-2">
                 <Label className="text-slate-600 text-sm">Status</Label>
                 <Select value={formIsActive} onValueChange={setFormIsActive}>
-                  <SelectTrigger className="border-slate-200 bg-white focus:border-[#1e3a5f] focus:ring-[#1e3a5f]/20">
+                  <SelectTrigger className="border-slate-200 bg-white focus:border-azure focus:ring-azure/20">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -1052,7 +1052,7 @@ export default function DistrictAdminMenuListPage() {
               <Button
                 onClick={handleSave}
                 disabled={saving || !formName.trim()}
-                className="bg-[#1e3a5f] hover:bg-[#152a44] text-white disabled:bg-slate-300 disabled:text-slate-500"
+                className="bg-azure hover:bg-mint-ink text-white disabled:bg-slate-300 disabled:text-slate-500"
               >
                 {saving ? "Saving..." : (editingMenu || editingSubMenu) ? "Update" : "Add"}
               </Button>

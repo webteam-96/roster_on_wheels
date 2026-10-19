@@ -6,7 +6,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
-import { ArrowLeft, Smartphone, Search, CheckCircle2, XCircle, AlertCircle, Loader2, User } from "lucide-react";
+import { ArrowLeft, Smartphone, Search, CheckCircle2, XCircle, AlertCircle, Loader2, User } from "@/components/icons";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { checkMobileLogin, type MobileLoginCheckResult } from "@/services/api";
 
@@ -132,8 +132,8 @@ export default function MobileLoginCheckPage() {
                 <div>
                   <div className="font-semibold">
                     {result.allowed
-                      ? "Allowed — mobile login would proceed"
-                      : "Not allowed — mobile login would be blocked"}
+                      ? "Allowed: mobile login would proceed"
+                      : "Not allowed: mobile login would be blocked"}
                   </div>
                   {result.reason && (
                     <div className="text-sm mt-1 opacity-90">{result.reason}</div>
@@ -190,11 +190,11 @@ export default function MobileLoginCheckPage() {
                                 {c.clubName}{" "}
                                 <span className="text-xs text-slate-400">#{c.clubId}</span>
                               </td>
-                              <td className="px-3 py-2 text-slate-700">{c.clubCode ?? "—"}</td>
+                              <td className="px-3 py-2 text-slate-700">{c.clubCode ?? "–"}</td>
                               <td className="px-3 py-2 text-slate-700">
-                                {c.districtNumber ?? "—"}
+                                {c.districtNumber ?? "–"}
                               </td>
-                              <td className="px-3 py-2 text-slate-700">{c.zoneName ?? "—"}</td>
+                              <td className="px-3 py-2 text-slate-700">{c.zoneName ?? "–"}</td>
                             </tr>
                           ))}
                         </tbody>

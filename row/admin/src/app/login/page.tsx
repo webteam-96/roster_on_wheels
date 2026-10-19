@@ -3,73 +3,39 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff } from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { useAuth } from "@/contexts/AuthContext";
-import { useBrand } from "@/contexts/BrandContext";
 import LanguagePicker from "@/components/LanguagePicker";
 import BrandLogo from "@/components/BrandLogo";
-import { login as loginApi, getCountries, resolveDashboardLanding } from "@/services/api";
-import { Country } from "@/types/member";
+import { login as loginApi, resolveDashboardLanding } from "@/services/api";
 import ChangePasswordDialog from "@/components/ChangePasswordDialog";
-
-type InputMode = "unknown" | "email" | "mobile";
-
-function detectInputMode(value: string): InputMode {
-  if (!value) return "unknown";
-  const first = value[0];
-  if (first === "+" || /\d/.test(first)) return "mobile";
-  return "email";
-}
 
 export default function LoginPage() {
   const router = useRouter();
   const { login } = useAuth();
-  const brand = useBrand();
 
   const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
-  const [countryCode, setCountryCode] = useState("");
-  const [countries, setCountries] = useState<Country[]>([]);
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const [showChangePassword, setShowChangePassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
 
-  const inputMode = detectInputMode(identifier);
-
   useEffect(() => {
-    getCountries()
-      .then(setCountries)
-      .catch(() => {});
-
     // Restore remembered login details
     const remembered = localStorage.getItem("remember_me");
     if (remembered) {
       const data = JSON.parse(remembered);
       setIdentifier(data.identifier || "");
-      setCountryCode(data.countryCode || "");
       setRememberMe(true);
     }
   }, []);
-
-  // ROW: the code starts on the brand's default country (none when Brand:Locale:DefaultCountryId is 0).
-  useEffect(() => {
-    const c = countries.find((x) => x.id === brand.locale.defaultCountryId);
-    if (c?.phoneCode) setCountryCode((cur) => cur || c.phoneCode);
-  }, [countries, brand.locale.defaultCountryId]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -77,16 +43,12 @@ export default function LoginPage() {
     setIsLoading(true);
 
     try {
-      const payload =
-        inputMode === "mobile"
-          ? { countryCode, mobileNumber: identifier, password }
-          : { email: identifier, password };
-
-      const response = await loginApi(payload);
+      // ROW signs in by email only.
+      const response = await loginApi({ email: identifier.trim(), password });
 
       // Save or clear remember me
       if (rememberMe) {
-        localStorage.setItem("remember_me", JSON.stringify({ identifier, countryCode }));
+        localStorage.setItem("remember_me", JSON.stringify({ identifier }));
       } else {
         localStorage.removeItem("remember_me");
       }
@@ -143,57 +105,29 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="flex min-h-[80vh] items-center justify-center bg-slate-50">
-      <Card className="w-full max-w-md overflow-hidden border-t-4" style={{ borderTopColor: "#F7A81B" }}>
-        <CardHeader className="text-white rounded-t-none" style={{ backgroundColor: "#0f172a" }}>
-          <div className="flex items-center gap-3">
-            <BrandLogo className="h-16" />
-            <CardTitle className="text-xl text-white">Sign In</CardTitle>
-            <LanguagePicker className="ml-auto border-white/30 bg-transparent text-white" />
+    <div className="flex min-h-screen items-center justify-center bg-background px-4 py-10">
+      {/* The logo artwork has a white field, so it sits on the light card itself: no dark band, no plate. */}
+      <Card className="w-full max-w-md overflow-hidden rounded-[var(--row-panel-r)] border border-[color:var(--row-line)] shadow-none">
+        <CardHeader className="gap-6 px-7 pb-2 pt-7">
+          <div className="flex items-start justify-between gap-3">
+            <BrandLogo className="h-14" />
+            <LanguagePicker />
           </div>
+          <CardTitle className="font-display text-3xl font-semibold tracking-tight text-foreground">Sign In</CardTitle>
         </CardHeader>
-        <CardContent className="pt-6">
+        <CardContent className="px-7 pb-7 pt-6">
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="identifier">Email or Mobile Number</Label>
-              {inputMode === "mobile" && (
-                <Select value={countryCode} onValueChange={setCountryCode}>
-                  <SelectTrigger className="mb-2">
-                    <SelectValue placeholder="Country code" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {countries.length > 0
-                      ? Array.from(
-                          countries
-                            .filter((c) => c.phoneCode)
-                            .reduce((map, c) => {
-                              if (!map.has(c.phoneCode)) map.set(c.phoneCode, c.countryName);
-                              else map.set(c.phoneCode, map.get(c.phoneCode) + ", " + c.countryName);
-                              return map;
-                            }, new Map<string, string>())
-                        ).map(([code, names]) => (
-                          <SelectItem key={code} value={code}>
-                            {code} - {names}
-                          </SelectItem>
-                        ))
-                      : null
-                    }
-                  </SelectContent>
-                </Select>
-              )}
+              <Label htmlFor="identifier">Email</Label>
               <Input
                 id="identifier"
-                type="text"
-                placeholder="Enter email or mobile number"
+                type="email"
+                autoComplete="email"
+                placeholder="Enter your email"
                 value={identifier}
                 onChange={(e) => setIdentifier(e.target.value)}
                 required
               />
-              {inputMode === "unknown" && identifier === "" && (
-                <p className="text-xs text-muted-foreground">
-                  Start typing: digits for mobile, letters for email
-                </p>
-              )}
             </div>
 
             <div className="space-y-2">
@@ -235,8 +169,7 @@ export default function LoginPage() {
               </label>
               <Link
                 href="/forgot-password"
-                className="text-sm font-medium hover:underline"
-                style={{ color: "#1e3a5f" }}
+                className="text-sm font-semibold text-primary hover:underline"
               >
                 Forgot Password?
               </Link>
@@ -246,12 +179,7 @@ export default function LoginPage() {
               <p className="text-sm text-destructive">{error}</p>
             )}
 
-            <Button
-              type="submit"
-              className="w-full font-semibold hover:opacity-90"
-              style={{ backgroundColor: "#F7A81B", color: "#1e3a5f" }}
-              disabled={isLoading}
-            >
+            <Button type="submit" size="lg" className="w-full" disabled={isLoading}>
               {isLoading && <RotaryLoader size="sm" />}
               Sign In
             </Button>

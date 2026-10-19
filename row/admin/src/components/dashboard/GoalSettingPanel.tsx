@@ -7,7 +7,7 @@
 // club/district endpoint + id — this component has no opinion on entity type.
 
 import { Fragment, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
-import { Loader2, Save, Lock, LockOpen, Info, Plus, Trash2, ExternalLink, Globe, Link2 } from "lucide-react";
+import { Loader2, Save, Lock, LockOpen, Info, Plus, Trash2, ExternalLink, Globe, Link2 } from "@/components/icons";
 import LoadingButton from "@/components/v2/LoadingButton";
 import { getGoalCategories, getClubWebsiteStatus, getClubSocialLinks } from "@/services/api";
 import type { ClubSocialLink } from "@/types/socialLink";
@@ -284,7 +284,7 @@ export default function GoalSettingPanel({
     if (t === "") return undefined;              // blank = not decided yet
     const tgt = Number(t);
     if (Number.isNaN(tgt) || tgt >= floor) return undefined;
-    return `Cannot be less than ${floor.toLocaleString(appLocale())} — you already have that much`;
+    return `Cannot be less than ${floor.toLocaleString(appLocale())}. You already have that much`;
   }
 
   async function handleSave() {
@@ -373,7 +373,7 @@ export default function GoalSettingPanel({
           button that is easy to miss (user 2026-09-29). The quarterly / month-wise popups do the
           same, and they close themselves as well. */}
       <SuccessAlert open={!!success} title="Saved" description={success ?? ""} onOk={() => setSuccess(null)} />
-      <div className="px-5 py-3 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-gradient-to-r from-blue-50 to-white">
+      <div className="px-5 py-3 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-blue-50">
         <div>
           <h3 className="text-sm font-semibold text-slate-800">{title}</h3>
           <p className="text-xs text-slate-500">
@@ -455,7 +455,7 @@ export default function GoalSettingPanel({
                   {groupName === "Summary" && <SummaryInfo fields={fields} />}
                   {groupName === "RAG Analysis" && (
                     <span className="text-xs font-normal text-slate-500">
-                      (Healthy Clubs by active members per club — RED: 10–25 · AMBER: 26–40 · GREEN: 41+)
+                      (Healthy Clubs by active members per club: RED: 10–25 · AMBER: 26–40 · GREEN: 41+)
                     </span>
                   )}
                 </h4>
@@ -552,7 +552,7 @@ function ClubFoundationTable({
           onChange(parts.length > 2 ? `${parts[0]}.${parts.slice(1).join("")}` : raw);
         }}
         className={`w-full ${prefix ? "pl-6" : "pl-2.5"} ${suffix ? "pr-7" : "pr-2.5"} py-1.5 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-slate-50 disabled:text-slate-500`}
-        placeholder={disabled ? "—" : "0"}
+        placeholder={disabled ? "–" : "0"}
       />
       {suffix && <span className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 text-sm">{suffix}</span>}
     </div>
@@ -686,7 +686,7 @@ function SuggestionsList({
   // Read-only: just list the non-empty suggestions.
   if (!editable) {
     const filled = slots.map((s, i) => ({ s, v: valueAt(i) })).filter((x) => x.v.trim() !== "");
-    if (filled.length === 0) return <div className="py-3 text-sm text-slate-400">—</div>;
+    if (filled.length === 0) return <div className="py-3 text-sm text-slate-400">, </div>;
     return (
       <ol className="list-decimal pl-5 py-2 space-y-1.5">
         {filled.map(({ s, v }) => <li key={s.fieldId} className="text-sm text-slate-700 leading-snug">{v}</li>)}

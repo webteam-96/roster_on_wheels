@@ -14,7 +14,7 @@
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Image from "next/image";
-import { User, Search, UserCircle, Award, Calendar, UserPlus, Info } from "lucide-react";
+import { User, Search, UserCircle, Award, Calendar, UserPlus, Info } from "@/components/icons";
 import {
   getClub,
   getDesignations,
@@ -58,7 +58,7 @@ function SectionCard({
   // explicitly so the gradient still hugs the rounded card.
   return (
     <div className={`rounded-xl border border-slate-200 mb-4 ${allowOverflow ? "" : "overflow-hidden"}`}>
-      <div className={`flex items-center gap-3 px-4 py-2.5 bg-gradient-to-r from-slate-50 to-white border-b border-slate-100 ${allowOverflow ? "rounded-t-xl" : ""}`}>
+      <div className={`flex items-center gap-3 px-4 py-2.5 bg-slate-50 border-b border-slate-100 ${allowOverflow ? "rounded-t-xl" : ""}`}>
         <div className={`flex items-center justify-center h-7 w-7 rounded-full text-white text-xs font-bold ${dot}`}>{number}</div>
         <Icon className="h-4 w-4 text-slate-500" />
         <h3 className="text-sm font-semibold text-slate-800">{title}</h3>

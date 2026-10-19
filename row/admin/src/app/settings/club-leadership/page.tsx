@@ -14,7 +14,7 @@ import ErrorAlert from "@/components/ErrorAlert";
 import SuccessAlert from "@/components/SuccessAlert";
 import RotaryLoader from "@/components/RotaryLoader";
 import ProtectedRoute from "@/components/ProtectedRoute";
-import { ArrowLeft, Pencil, Download, Send, Clock, CheckCircle2, XCircle, User, ShieldCheck, Loader2, ListTree, ChevronDown, ChevronRight, Trash2 } from "lucide-react";
+import { ArrowLeft, Pencil, Download, Send, Clock, CheckCircle2, XCircle, User, ShieldCheck, Loader2, ListTree, ChevronDown, ChevronRight, Trash2 } from "@/components/icons";
 import {
   getDistricts, getRotaryYears,
   getClubLeadership, getClubLeadershipMembers, upsertClubLeadership,
@@ -180,7 +180,7 @@ export default function ClubLeadershipPage() {
         { key: "secretaryMobile", label: "Secretary Mobile", width: 15 },
         { key: "secretaryEmail", label: "Secretary Email", width: 25 },
       ],
-      { title: `Club Leadership — District ${dist?.districtNumber || ""}`, subtitle: `Year: ${yr?.yearLabel || ""}` });
+      { title: `Club Leadership | District ${dist?.districtNumber || ""}`, subtitle: `Year: ${yr?.yearLabel || ""}` });
     setSuccessMessage("Exported.");
   };
 
@@ -350,7 +350,7 @@ export default function ClubLeadershipPage() {
                   {filteredRows.map(r => {
                     // Phase 4 kill-switch: row is "chain inactive" when its club, district, or zone is inactive.
                     const chainInactive = r.chainActive === 0;
-                    const inactiveTitle = chainInactive ? "Inactive — reactivate from Clubs/Districts page" : undefined;
+                    const inactiveTitle = chainInactive ? "Inactive: reactivate from Clubs/Districts page" : undefined;
                     return (
                     <TableRow key={r.clubId}>
                       <TableCell className="align-top">
@@ -367,13 +367,13 @@ export default function ClubLeadershipPage() {
                               {r.presidentName}
                               {!!r.presidentIsAdmin && <CheckCircle2 className="h-4 w-4 text-green-600" />}
                             </div>
-                            <div className="text-xs text-muted-foreground">{r.presidentMobile || "—"} · {r.presidentEmail || "—"}</div>
+                            <div className="text-xs text-muted-foreground">{r.presidentMobile || "–"} · {r.presidentEmail || "–"}</div>
                             <div className="flex gap-1 mt-1">
                               <Button size="sm" variant="outline" className="h-7" onClick={() => openEdit(r.clubId, r.clubName, "President", r.presidentMemberId)}><Pencil className="mr-1 h-3 w-3" />Change</Button>
                               <Button size="sm" variant={r.presidentIsAdmin ? "secondary" : "default"} className={`h-7 ${r.presidentIsAdmin ? "bg-green-100 text-green-800 hover:bg-green-200 border border-green-300" : ""}`} disabled={makingAdmin === `${r.clubId}-President` || !r.presidentEmail || chainInactive} title={chainInactive ? inactiveTitle : undefined} onClick={() => makeAdmin(r.clubId, r.presidentMemberId!, "President")}>
                                 {makingAdmin === `${r.clubId}-President` ? <Loader2 className="mr-1 h-3 w-3 animate-spin" /> :
                                  r.presidentIsAdmin ? <CheckCircle2 className="mr-1 h-3 w-3" /> : <ShieldCheck className="mr-1 h-3 w-3" />}
-                                {r.presidentIsAdmin ? "Already Admin — Resend" : "Make Admin"}
+                                {r.presidentIsAdmin ? "Already Admin: Resend" : "Make Admin"}
                               </Button>
                             </div>
                           </div>
@@ -388,13 +388,13 @@ export default function ClubLeadershipPage() {
                               {r.secretaryName}
                               {!!r.secretaryIsAdmin && <CheckCircle2 className="h-4 w-4 text-green-600" />}
                             </div>
-                            <div className="text-xs text-muted-foreground">{r.secretaryMobile || "—"} · {r.secretaryEmail || "—"}</div>
+                            <div className="text-xs text-muted-foreground">{r.secretaryMobile || "–"} · {r.secretaryEmail || "–"}</div>
                             <div className="flex gap-1 mt-1">
                               <Button size="sm" variant="outline" className="h-7" onClick={() => openEdit(r.clubId, r.clubName, "Secretary", r.secretaryMemberId)}><Pencil className="mr-1 h-3 w-3" />Change</Button>
                               <Button size="sm" variant={r.secretaryIsAdmin ? "secondary" : "default"} className={`h-7 ${r.secretaryIsAdmin ? "bg-green-100 text-green-800 hover:bg-green-200 border border-green-300" : ""}`} disabled={makingAdmin === `${r.clubId}-Secretary` || !r.secretaryEmail || chainInactive} title={chainInactive ? inactiveTitle : undefined} onClick={() => makeAdmin(r.clubId, r.secretaryMemberId!, "Secretary")}>
                                 {makingAdmin === `${r.clubId}-Secretary` ? <Loader2 className="mr-1 h-3 w-3 animate-spin" /> :
                                  r.secretaryIsAdmin ? <CheckCircle2 className="mr-1 h-3 w-3" /> : <ShieldCheck className="mr-1 h-3 w-3" />}
-                                {r.secretaryIsAdmin ? "Already Admin — Resend" : "Make Admin"}
+                                {r.secretaryIsAdmin ? "Already Admin: Resend" : "Make Admin"}
                               </Button>
                             </div>
                           </div>
@@ -437,7 +437,7 @@ export default function ClubLeadershipPage() {
                         <TableCell>{s.totalRecipients}</TableCell>
                         <TableCell className="text-green-600">{s.sentCount}</TableCell>
                         <TableCell className="text-red-600">{s.failedCount}</TableCell>
-                        <TableCell>{s.processedDate ? new Date(s.processedDate).toLocaleString(appLocale()) : "—"}</TableCell>
+                        <TableCell>{s.processedDate ? new Date(s.processedDate).toLocaleString(appLocale()) : "–"}</TableCell>
                         <TableCell>
                           {s.status === "Pending" && (
                             <Button size="sm" variant="ghost" className="h-7 text-red-600 hover:text-red-700 hover:bg-red-50" onClick={() => deleteSchedule(s.id)}>
@@ -477,8 +477,8 @@ export default function ClubLeadershipPage() {
                                              l.status === "Failed" ? <Badge variant="destructive"><XCircle className="mr-1 h-3 w-3" />Failed</Badge> :
                                              <Badge variant="secondary"><Clock className="mr-1 h-3 w-3" />{l.status}</Badge>}
                                           </TableCell>
-                                          <TableCell className="text-xs">{l.sentDate ? new Date(l.sentDate).toLocaleString(appLocale()) : "—"}</TableCell>
-                                          <TableCell className={`text-xs ${l.status === "Failed" ? "text-red-600" : "text-muted-foreground"}`}>{l.errorMessage || "—"}</TableCell>
+                                          <TableCell className="text-xs">{l.sentDate ? new Date(l.sentDate).toLocaleString(appLocale()) : "–"}</TableCell>
+                                          <TableCell className={`text-xs ${l.status === "Failed" ? "text-red-600" : "text-muted-foreground"}`}>{l.errorMessage || "–"}</TableCell>
                                         </TableRow>
                                       );
                                     })}
@@ -501,7 +501,7 @@ export default function ClubLeadershipPage() {
         <Dialog open={editOpen} onOpenChange={setEditOpen}>
           <DialogContent className="max-w-md">
             <DialogHeader>
-              <DialogTitle>Select {editRole} — {editClubName}</DialogTitle>
+              <DialogTitle>Select {editRole}: {editClubName}</DialogTitle>
             </DialogHeader>
             <Input placeholder="Search member..." value={memberSearch} onChange={(e) => setMemberSearch(e.target.value)} />
             <div className="max-h-80 overflow-y-auto border rounded">
@@ -512,7 +512,7 @@ export default function ClubLeadershipPage() {
                   <input type="radio" name="member" value={m.memberId} checked={selectedMemberId === String(m.memberId)} onChange={() => setSelectedMemberId(String(m.memberId))} className="mt-1" />
                   <div className="flex-1">
                     <div className="font-medium text-sm">{m.memberName}</div>
-                    <div className="text-xs text-muted-foreground">{m.mobile || "—"} · {m.email || "—"}</div>
+                    <div className="text-xs text-muted-foreground">{m.mobile || "–"} · {m.email || "–"}</div>
                   </div>
                 </label>
               ))}
@@ -557,13 +557,13 @@ export default function ClubLeadershipPage() {
                             </Button>
                           </TableCell>
                           <TableCell className="font-medium">D{s.districtNumber || s.districtId}</TableCell>
-                          <TableCell>{s.yearLabel || "—"}</TableCell>
+                          <TableCell>{s.yearLabel || "–"}</TableCell>
                           <TableCell>{new Date(s.scheduleDateTime).toLocaleString(appLocale())}</TableCell>
                           <TableCell><Badge variant={s.status === "Completed" ? "default" : s.status === "Failed" ? "destructive" : "secondary"}>{s.status}</Badge></TableCell>
                           <TableCell className="text-right">{s.totalRecipients}</TableCell>
                           <TableCell className="text-right text-green-600">{s.sentCount}</TableCell>
                           <TableCell className="text-right text-red-600">{s.failedCount}</TableCell>
-                          <TableCell className="text-xs">{s.processedDate ? new Date(s.processedDate).toLocaleString(appLocale()) : "—"}</TableCell>
+                          <TableCell className="text-xs">{s.processedDate ? new Date(s.processedDate).toLocaleString(appLocale()) : "–"}</TableCell>
                           <TableCell>
                             {s.status === "Pending" && (
                               <Button size="sm" variant="ghost" className="h-7 text-red-600 hover:text-red-700 hover:bg-red-50" onClick={() => deleteSchedule(s.id)}>
@@ -603,8 +603,8 @@ export default function ClubLeadershipPage() {
                                              l.status === "Failed" ? <Badge variant="destructive"><XCircle className="mr-1 h-3 w-3" />Failed</Badge> :
                                              <Badge variant="secondary"><Clock className="mr-1 h-3 w-3" />{l.status}</Badge>}
                                           </TableCell>
-                                          <TableCell className="text-xs">{l.sentDate ? new Date(l.sentDate).toLocaleString(appLocale()) : "—"}</TableCell>
-                                          <TableCell className={`text-xs ${l.status === "Failed" ? "text-red-600" : "text-muted-foreground"}`}>{l.errorMessage || "—"}</TableCell>
+                                          <TableCell className="text-xs">{l.sentDate ? new Date(l.sentDate).toLocaleString(appLocale()) : "–"}</TableCell>
+                                          <TableCell className={`text-xs ${l.status === "Failed" ? "text-red-600" : "text-muted-foreground"}`}>{l.errorMessage || "–"}</TableCell>
                                         </TableRow>);
                                       })}
                                     </TableBody>

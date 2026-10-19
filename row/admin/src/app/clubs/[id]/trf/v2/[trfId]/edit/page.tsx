@@ -14,7 +14,7 @@
 
 import { useEffect, useState } from "react";
 import { useParams, useSearchParams } from "next/navigation";
-import { Info, FileText, DollarSign, Calendar } from "lucide-react";
+import { Info, FileText, DollarSign, Calendar } from "@/components/icons";
 import {
   getClub,
   getMonthlyReportYears,
@@ -51,7 +51,7 @@ function SectionCard({
 }: { number: number; icon: React.ElementType; title: string; dot: string; children: React.ReactNode }) {
   return (
     <div className="rounded-xl border border-slate-200 overflow-hidden mb-4">
-      <div className="flex items-center gap-3 px-4 py-2.5 bg-gradient-to-r from-slate-50 to-white border-b border-slate-100">
+      <div className="flex items-center gap-3 px-4 py-2.5 bg-slate-50 border-b border-slate-100">
         <div className={`flex items-center justify-center h-7 w-7 rounded-full text-white text-xs font-bold ${dot}`}>{number}</div>
         <Icon className="h-4 w-4 text-slate-500" />
         <h3 className="text-sm font-semibold text-slate-800">{title}</h3>
@@ -148,7 +148,7 @@ export default function TrfV2EditPage() {
 
   const selectedFund = funds.find((f) => f.id === fundId);
   const yearObj = years.find((y) => y.id === yearId);
-  const yearLabel = yearObj?.yearLabel ?? "—";
+  const yearLabel = yearObj?.yearLabel ?? "–";
 
   // Lock the TRF date to the CMR month when isFromCmrMonth. yearLabel is
   // "YYYY-YY"; calendar year for the locked month = startYear when month >= 7
@@ -338,7 +338,7 @@ export default function TrfV2EditPage() {
             </div>
             <div className="flex items-end">
               <p className="text-xs text-slate-500">
-                Currency is fixed to <span className="font-semibold text-slate-700">USD</span> — TRF reports
+                Currency is fixed to <span className="font-semibold text-slate-700">USD</span>: TRF reports
                 to Rotary International in USD.
               </p>
             </div>

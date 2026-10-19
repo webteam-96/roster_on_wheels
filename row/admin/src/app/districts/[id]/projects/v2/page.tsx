@@ -22,7 +22,7 @@ import { useParams, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import {
   ArrowLeft, Plus, Search, Edit3, Trash2, AlertTriangle, Loader2, FolderKanban,
-} from "lucide-react";
+} from "@/components/icons";
 import {
   getDistrict,
   getDistrictProjects,
@@ -170,7 +170,7 @@ export default function DistrictProjectsV2Page() {
     <ProtectedRoute>
       <DistrictAdminShell
         pageTitle="District Projects"
-        pageSubtitle={districtName || "—"}
+        pageSubtitle={districtName || "–"}
         activeNavHref="/district-admin-dashboard/foundation"
       >
         <div className="space-y-5">
@@ -187,7 +187,7 @@ export default function DistrictProjectsV2Page() {
               <div>
                 <h1 className="text-lg font-semibold text-slate-800">District Projects</h1>
                 <p className="text-xs text-slate-500 mt-0.5">
-                  Post all the Projects executed by your District · {districtName || "—"}
+                  Post all the Projects executed by your District · {districtName || "–"}
                 </p>
               </div>
             </div>
@@ -267,23 +267,23 @@ export default function DistrictProjectsV2Page() {
                       <tr key={item.id} className="hover:bg-blue-50/40">
                         <td className="px-3 py-2 text-slate-500">{(page - 1) * PAGE_SIZE + i + 1}</td>
                         <td className="px-3 py-2 font-medium text-slate-800">
-                          {item.title || "—"}
+                          {item.title || "–"}
                         </td>
                         <td className="px-3 py-2 text-slate-600 whitespace-nowrap">
                           {item.projectDate
                             ? new Date(item.projectDate).toLocaleDateString(appLocale())
-                            : "—"}
+                            : "–"}
                         </td>
                         <td className="px-3 py-2 text-right text-slate-600 whitespace-nowrap">
                           {item.projectCost
                             ? formatMoney(item.projectCost, item.currency)
-                            : "—"}
+                            : "–"}
                         </td>
                         <td className="px-3 py-2 text-center text-slate-600">
-                          {item.directBeneficiaries ?? "—"}
+                          {item.directBeneficiaries ?? "–"}
                         </td>
                         <td className="px-3 py-2 text-slate-600">
-                          {item.areaOfFocusName || "—"}
+                          {item.areaOfFocusName || "–"}
                         </td>
                         <td className="px-3 py-2 text-right">
                           <Link

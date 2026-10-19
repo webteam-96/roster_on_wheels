@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { Search, SearchX, RotateCcw } from "lucide-react";
+import { Search, SearchX, RotateCcw } from "@/components/icons";
 import { PageBanner } from "@/components/site/PageBanner";
 import { SiteFooter } from "@/components/site/SiteFooter";
 import { DistrictCard } from "./DistrictCard";
@@ -281,7 +281,7 @@ export function Websites() {
                 No districts match your filters
               </p>
               <p className="mt-2 max-w-sm text-[14px] leading-relaxed text-muted">
-                Try a different district number, state or city — or clear the
+                Try a different district number, state or city: or clear the
                 filters below.
               </p>
               <button type="button" onClick={reset} className="btn-ghost mt-6">

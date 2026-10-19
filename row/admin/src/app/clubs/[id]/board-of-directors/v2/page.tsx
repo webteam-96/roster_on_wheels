@@ -18,7 +18,7 @@ import Image from "next/image";
 import {
   Users, Crown, HandHeart, TrendingUp, Loader2, Search, Plus, Edit3, Trash2,
   ArrowLeft, AlertTriangle, Download, GripVertical, User,
-} from "lucide-react";
+} from "@/components/icons";
 import {
   getClub,
   getBoardOfDirectors,
@@ -178,7 +178,7 @@ export default function BoardOfDirectorsV2Page() {
     );
   }, [records, search]);
 
-  const yearLabel = filterYears.find((y) => y.id === selectedYearId)?.yearLabel ?? "—";
+  const yearLabel = filterYears.find((y) => y.id === selectedYearId)?.yearLabel ?? "–";
 
   // Aggregate KPIs from the current year's records.
   const boardMembers = records.length;
@@ -240,7 +240,7 @@ export default function BoardOfDirectorsV2Page() {
             <div>
               <h1 className="text-lg font-semibold text-slate-800">Board of Directors</h1>
               <p className="text-xs text-slate-500 mt-0.5">
-                RY {yearLabel} · {clubName || "—"}
+                RY {yearLabel} · {clubName || "–"}
               </p>
             </div>
           </div>
@@ -260,7 +260,7 @@ export default function BoardOfDirectorsV2Page() {
             <div>
               <h3 className="text-sm font-semibold text-slate-800">Board of Directors</h3>
               <p className="text-xs text-slate-500 mt-0.5">
-                {clubName || "—"} · executive board roster
+                {clubName || "–"} · executive board roster
               </p>
             </div>
             <div className="flex flex-wrap items-center gap-2">
@@ -354,7 +354,7 @@ export default function BoardOfDirectorsV2Page() {
                         </td>
                         <td className="px-3 py-2">
                           <span className={`inline-flex items-center text-xs font-medium px-2 py-0.5 rounded-full border ${designationChipStyle(r.designationName)}`}>
-                            {r.designationName || "—"}
+                            {r.designationName || "–"}
                           </span>
                         </td>
                         {canManage && (

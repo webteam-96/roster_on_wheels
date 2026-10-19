@@ -474,28 +474,12 @@ public class MembershipDuesController : ControllerBase
         return Ok(new { message = "Reminder email is being sent." });
     }
 
-    [HttpPost("{id}/members/{memberFeeId}/reminder-whatsapp")]
-    public ActionResult SendReminderWhatsApp(int id, int memberFeeId, [FromQuery] int feeType)
-    {
-        if (!IsSuperAdminOrAdmin()) return StatusCode(403, new { message = "Access denied." });
-        _ = Task.Run(async () => { try { await _service.SendReminderWhatsAppAsync(memberFeeId, feeType); } catch { } });
-        return Ok(new { message = "WhatsApp reminder is being sent." });
-    }
-
     [HttpPost("{id}/bulk-reminder-email")]
     public ActionResult BulkSendReminderEmail(int id, [FromBody] BulkDuesReminderDto? dto = null)
     {
         if (!IsSuperAdminOrAdmin()) return StatusCode(403, new { message = "Access denied." });
         _ = Task.Run(async () => { try { await _service.BulkSendReminderEmailAsync(id, dto?.Remark); } catch { } });
         return Ok(new { message = "Bulk email reminders are being sent in background." });
-    }
-
-    [HttpPost("{id}/bulk-reminder-whatsapp")]
-    public ActionResult BulkSendReminderWhatsApp(int id)
-    {
-        if (!IsSuperAdminOrAdmin()) return StatusCode(403, new { message = "Access denied." });
-        _ = Task.Run(async () => { try { await _service.BulkSendReminderWhatsAppAsync(id); } catch { } });
-        return Ok(new { message = "Bulk WhatsApp reminders are being sent in background." });
     }
 
     // ── Settlements ───────────────────────────────────────────────

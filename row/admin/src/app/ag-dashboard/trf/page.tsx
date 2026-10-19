@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import {
   Heart, DollarSign, TrendingUp, Award, BarChart2, Trophy, PieChart,
-} from "lucide-react";
+} from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
@@ -22,7 +22,7 @@ import {
 // The TS type doesn't yet expose it, so we read it via a narrow widening cast.
 type AgClubTrfWithPct = AgClubTrf & { percentOfAgTotal?: number };
 
-const MEDALS = ["🥇", "🥈", "🥉"];
+const MEDALS = ["1st", "2nd", "3rd"];
 
 type SortField = "name" | "annual" | "polio" | "endowment" | "other" | "total";
 
@@ -120,7 +120,7 @@ export default function AgTrfPage() {
       {/* ── Hero banner ───────────────────────────────────────────────── */}
       <SectionHeader
         title="The Rotary Foundation Giving"
-        subtitle={`Charitable contributions · RY ${data.ag.yearLabel || "—"} · AG: ${data.ag.name || "—"}`}
+        subtitle={`Charitable contributions · RY ${data.ag.yearLabel || "–"} · AG: ${data.ag.name || "–"}`}
         icon={Heart}
       />
 
@@ -160,7 +160,7 @@ export default function AgTrfPage() {
       <div
         className="rounded-2xl p-6 text-white relative overflow-hidden shadow-md"
         style={{
-          background: `linear-gradient(135deg, #1E40AF 0%, ${ROTARY_BLUE} 35%, #C2410C 75%, ${ROTARY_GOLD} 100%)`,
+          background: ROTARY_BLUE,
         }}
       >
         {/* decorative blur dots */}
@@ -178,8 +178,8 @@ export default function AgTrfPage() {
               {fmtUsd(data.totals.totalInr)}
             </p>
             <p className="text-blue-50 text-sm mt-1">
-              AG: {data.ag.name || "—"} · {data.clubs.length} club{data.clubs.length === 1 ? "" : "s"}
-              {" · RY "}{data.ag.yearLabel || "—"}
+              AG: {data.ag.name || "–"} · {data.clubs.length} club{data.clubs.length === 1 ? "" : "s"}
+              {" · RY "}{data.ag.yearLabel || "–"}
             </p>
           </div>
           <div className="hidden md:block text-right">
@@ -207,7 +207,7 @@ export default function AgTrfPage() {
           ) : (
             <ResponsiveContainer width="100%" height={320}>
               <BarChart data={stacked} margin={{ top: 4, right: 16, left: 10, bottom: 60 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" vertical={false} />
+                <CartesianGrid strokeDasharray="3 3" stroke="#d5dee8" vertical={false} />
                 <XAxis
                   dataKey="name"
                   tick={{ fontSize: 11, fill: "#64748b" }}
@@ -254,7 +254,7 @@ export default function AgTrfPage() {
                   className="flex items-center gap-3 py-3 px-1 hover:bg-slate-50 rounded-lg transition-colors"
                 >
                   <span className="w-7 text-center text-lg leading-none">
-                    {i < 3 ? MEDALS[i] : <span className="text-sm font-bold text-slate-400">#{i + 1}</span>}
+                    {i < 3 ? <span className="text-sm font-bold text-marigold">{MEDALS[i]}</span> : <span className="text-sm font-bold text-slate-400">#{i + 1}</span>}
                   </span>
                   <div className="flex-1 min-w-0">
                     <p className="font-medium text-slate-800 text-sm truncate">{club.clubName}</p>
@@ -274,7 +274,7 @@ export default function AgTrfPage() {
           <div className="flex items-center gap-2">
             <PieChart size={18} className="text-blue-700" />
             <h3 className="text-base font-semibold text-slate-800 tracking-wide">
-              MY CLUBS TRF SUMMARY <span className="text-slate-400 font-normal">— Per-club contribution</span>
+              MY CLUBS TRF SUMMARY <span className="text-slate-400 font-normal">,  Per-club contribution</span>
             </h3>
           </div>
           <span className="text-xs text-slate-400">
@@ -298,7 +298,7 @@ export default function AgTrfPage() {
                     className="h-full rounded-full transition-all"
                     style={{
                       width: `${Math.min(100, Math.max(2, pct))}%`,
-                      background: `linear-gradient(90deg, ${ROTARY_BLUE} 0%, #1D4ED8 100%)`,
+                      background: ROTARY_BLUE,
                     }}
                   />
                   {pct >= 8 && (
@@ -329,7 +329,7 @@ export default function AgTrfPage() {
                   className="h-full rounded-full"
                   style={{
                     width: "100%",
-                    background: `linear-gradient(90deg, ${ROTARY_GOLD} 0%, #D97706 100%)`,
+                    background: ROTARY_GOLD,
                   }}
                 />
                 <span
@@ -386,16 +386,16 @@ export default function AgTrfPage() {
                   <tr key={club.clubId} className="hover:bg-blue-50/40">
                     <td className="px-3 py-2.5 font-medium text-slate-800">{club.clubName}</td>
                     <td className="px-3 py-2.5 text-right tabular-nums text-slate-600">
-                      {club.trf.annualInr > 0 ? fmtUsd(club.trf.annualInr) : <span className="text-slate-300">—</span>}
+                      {club.trf.annualInr > 0 ? fmtUsd(club.trf.annualInr) : <span className="text-slate-300">, </span>}
                     </td>
                     <td className="px-3 py-2.5 text-right tabular-nums text-slate-600">
-                      {club.trf.polioInr > 0 ? fmtUsd(club.trf.polioInr) : <span className="text-slate-300">—</span>}
+                      {club.trf.polioInr > 0 ? fmtUsd(club.trf.polioInr) : <span className="text-slate-300">, </span>}
                     </td>
                     <td className="px-3 py-2.5 text-right tabular-nums text-slate-600">
-                      {club.trf.endowment > 0 ? fmtUsd(club.trf.endowment) : <span className="text-slate-300">—</span>}
+                      {club.trf.endowment > 0 ? fmtUsd(club.trf.endowment) : <span className="text-slate-300">, </span>}
                     </td>
                     <td className="px-3 py-2.5 text-right tabular-nums text-slate-600">
-                      {club.trf.others > 0 ? fmtUsd(club.trf.others) : <span className="text-slate-300">—</span>}
+                      {club.trf.others > 0 ? fmtUsd(club.trf.others) : <span className="text-slate-300">, </span>}
                     </td>
                     <td className="px-3 py-2.5 text-right tabular-nums font-semibold text-blue-700">
                       {fmtUsd(club.trf.totalInr)}
@@ -410,10 +410,10 @@ export default function AgTrfPage() {
                 <td className="px-3 py-3 text-right font-bold tabular-nums">{fmtUsd(data.totals.annualInr)}</td>
                 <td className="px-3 py-3 text-right font-bold tabular-nums">{fmtUsd(data.totals.polioInr)}</td>
                 <td className="px-3 py-3 text-right font-bold tabular-nums">
-                  {data.totals.endowment > 0 ? fmtUsd(data.totals.endowment) : <span className="text-slate-400">—</span>}
+                  {data.totals.endowment > 0 ? fmtUsd(data.totals.endowment) : <span className="text-slate-400">, </span>}
                 </td>
                 <td className="px-3 py-3 text-right font-bold tabular-nums">
-                  {data.totals.others > 0 ? fmtUsd(data.totals.others) : <span className="text-slate-400">—</span>}
+                  {data.totals.others > 0 ? fmtUsd(data.totals.others) : <span className="text-slate-400">, </span>}
                 </td>
                 <td className="px-3 py-3 text-right font-bold tabular-nums" style={{ color: ROTARY_GOLD }}>
                   {fmtUsd(data.totals.totalInr)}

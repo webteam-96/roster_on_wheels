@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { useParams, useSearchParams, useRouter } from "next/navigation";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft } from "@/components/icons";
 import GoalSettingPanel from "@/components/dashboard/GoalSettingPanel";
 import GoalTargetSplitPanel from "@/components/dashboard/GoalTargetSplitPanel";
 import { getClubGoalForm, saveClubGoalForm, lockClubGoals, unlockClubGoals,

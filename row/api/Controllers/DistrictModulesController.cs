@@ -3150,7 +3150,6 @@ public class DistrictModulesController : ControllerBase
     public class SendReportReminderDto
     {
         public bool SendEmail { get; set; }
-        public bool SendWhatsApp { get; set; }
         // When set, only clubs allocated to this AG (district_ag.fk_member_id) are targeted.
         public int? AgMemberId { get; set; }
     }
@@ -3158,7 +3157,7 @@ public class DistrictModulesController : ControllerBase
     [HttpPost("api/districts/{districtId}/club-monthly-report/send-reminder/{yearId}/{month}")]
     public async Task<ActionResult> SendReportReminder(int districtId, int yearId, int month, [FromBody] SendReportReminderDto dto)
     {
-        if (!dto.SendEmail && !dto.SendWhatsApp)
+        if (!dto.SendEmail)
             return BadRequest(new { message = "Select at least email or WhatsApp." });
 
         // Check DISTRICT credit balance before sending (not club).
@@ -3166,13 +3165,10 @@ public class DistrictModulesController : ControllerBase
         var bal = await creditSvc.GetDistrictCreditBalanceAsync(districtId);
         if (dto.SendEmail && bal.EmailRemaining <= 0)
             return BadRequest(new { message = "No email credits available." });
-        if (dto.SendWhatsApp && bal.WhatsAppRemaining <= 0)
-            return BadRequest(new { message = "No WhatsApp credits available." });
 
         var userId = GetUserId();
         var connStr = _connectionString;
         var emailSvc = _emailService;
-        var interaktSvc = HttpContext.RequestServices.GetRequiredService<IWhatsAppService>();
         var creditSvc2 = HttpContext.RequestServices.GetRequiredService<ICreditManagementService>();
 
         _ = Task.Run(async () =>
@@ -3228,7 +3224,6 @@ public class DistrictModulesController : ControllerBase
                     new { ClubIds = notSubmittedClubIds, YearId = yearId })).ToList();
 
                 var emailService = emailSvc;
-                var whatsAppService = interaktSvc;
                 var creditService = creditSvc2;
                 int emailSent = 0, whatsAppSent = 0;
 
@@ -3262,18 +3257,6 @@ public class DistrictModulesController : ControllerBase
                         catch { emailStatus = "failed"; }
                     }
 
-                    if (dto.SendWhatsApp && !string.IsNullOrEmpty((string?)r.mobile))
-                    {
-                        try
-                        {
-                            await whatsAppService.SendWhatsAppWithBodyValuesAsync(
-                                (string)r.mobile, "club_monthly_report",
-                                new[] { (string)r.memberName, monthNameWithYear, districtNumber, (string)r.clubName });
-                            waStatus = "sent";
-                            whatsAppSent++;
-                        }
-                        catch { waStatus = "failed"; }
-                    }
 
                     // Log reminder status
                     await conn.ExecuteAsync(@"

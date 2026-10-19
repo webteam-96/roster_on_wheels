@@ -10,7 +10,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import {
   ArrowLeft, Search, Globe, Building, MapPin, LayoutDashboard, AlertCircle,
   Loader2, Inbox, ChevronRight,
-} from "lucide-react";
+} from "@/components/icons";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { globalSearchAll, type GlobalSearchResult, type GlobalSearchRow } from "@/services/api";
 
@@ -220,7 +220,7 @@ export default function GlobalSearchPage() {
                 id="zdc-search-input"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                placeholder="Type at least 2 characters — zone name, district number, or club name"
+                placeholder="Type at least 2 characters: zone name, district number, or club name"
                 className="pl-10"
                 autoFocus
               />

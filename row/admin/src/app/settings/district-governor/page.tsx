@@ -20,7 +20,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
 import AlertModal from "@/components/AlertModal";
-import { ArrowLeft, Plus, Pencil, Trash2, AlertTriangle, Crown, Search, X, Camera } from "lucide-react";
+import { ArrowLeft, Plus, Pencil, Trash2, AlertTriangle, Crown, Search, X, Camera } from "@/components/icons";
 import ImageCropDialog from "@/components/ImageCropDialog";
 import { useImageCropUpload } from "@/hooks/useImageCropUpload";
 import RotaryLoader from "@/components/RotaryLoader";
@@ -395,7 +395,7 @@ export default function DistrictGovernorPage() {
                             size="icon"
                             className="text-destructive"
                             disabled={rowInactive}
-                            title={rowInactive ? "Inactive — reactivate from Districts page" : undefined}
+                            title={rowInactive ? "Inactive: reactivate from Districts page" : undefined}
                             onClick={() => setDeleteTarget(item)}
                           >
                             <Trash2 className="h-4 w-4" />

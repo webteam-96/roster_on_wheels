@@ -11,7 +11,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { BLOOD_GROUPS, GENDERS } from "@/lib/constants";
 import { useFeature } from "@/contexts/BrandContext";
-import { Search, LayoutGrid, List, X } from "lucide-react";
+import { Search, LayoutGrid, List, X } from "@/components/icons";
 
 interface MemberFiltersProps {
   search: string;

@@ -17,7 +17,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
-import { ArrowLeft, Upload, Download, History, FileSpreadsheet, Trophy, Save } from "lucide-react";
+import { ArrowLeft, Upload, Download, History, FileSpreadsheet, Trophy, Save } from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
 import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";
@@ -284,7 +284,7 @@ export default function ZonalAwardsSettingsPage() {
                             >
                               <SelectTrigger className="h-9"><SelectValue placeholder="Select district" /></SelectTrigger>
                               <SelectContent>
-                                <SelectItem value="none">— None —</SelectItem>
+                                <SelectItem value="none">,  None , </SelectItem>
                                 {(zoneAwardsData.districts || []).map((d: any) => (
                                   <SelectItem key={d.id} value={String(d.id)}>{d.DistrictNumber || d.districtNumber}</SelectItem>
                                 ))}
@@ -306,7 +306,7 @@ export default function ZonalAwardsSettingsPage() {
                       <Button
                         onClick={handleSaveZoneAwards}
                         disabled={savingZoneAwards || zoneInactive}
-                        title={zoneInactive ? "Inactive — reactivate from Zones page" : undefined}
+                        title={zoneInactive ? "Inactive: reactivate from Zones page" : undefined}
                       >
                         {savingZoneAwards ? <><RotaryLoader size="sm" /><span className="ml-2">Saving...</span></> : <><Save className="h-4 w-4 mr-2" />Save Zone Awards</>}
                       </Button>
@@ -342,11 +342,11 @@ export default function ZonalAwardsSettingsPage() {
                                 );
                                 return (
                                   <TableCell key={o.id} className="text-center">
-                                    {hasIt ? <span className="text-green-600 font-semibold">{o.points}</span> : <span className="text-muted-foreground">—</span>}
+                                    {hasIt ? <span className="text-green-600 font-semibold">{o.points}</span> : <span className="text-muted-foreground">, </span>}
                                   </TableCell>
                                 );
                               })}
-                              <TableCell className="text-center font-bold text-primary">{rowTotal || "—"}</TableCell>
+                              <TableCell className="text-center font-bold text-primary">{rowTotal || "–"}</TableCell>
                             </TableRow>
                           );
                         })}
@@ -389,7 +389,7 @@ export default function ZonalAwardsSettingsPage() {
               </div>
             </div>
             <p className="text-xs text-muted-foreground">
-              Excel format (Foundation only): Col A = Sr, B = RowKey (hidden — do not edit), C = Foundation Question, D = Input Type,
+              Excel format (Foundation only): Col A = Sr, B = RowKey (hidden. Do not edit), C = Foundation Question, D = Input Type,
               E onwards = District Numbers (only shown for districts in zones where Zonal Awards is enabled).
               Count rows: enter a number. Yes/No rows: enter <b>Yes</b> or <b>No</b>. Empty cells are skipped; 0/No clears existing.
             </p>

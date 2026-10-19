@@ -24,7 +24,7 @@ import {
   Briefcase, Users, IndianRupee, Clock4, Loader2, Search, Plus, Edit3, Trash2,
   Download, ArrowLeft, AlertTriangle, Info, ChevronDown, ChevronRight,
   Clock, CheckCircle2, XCircle, Eye, X, Puzzle,
-} from "lucide-react";
+} from "@/components/icons";
 import {
   getClub,
   getModules,
@@ -254,7 +254,7 @@ export default function PublicImageInitiativeV2Page() {
   const handleSearchSubmit = () => { setPage(1); setSearch(searchInput); };
   const clearSearch = () => { setSearchInput(""); setSearch(""); setPage(1); };
 
-  const yearLabel = years.find((y) => y.id === selectedYearId)?.yearLabel ?? "—";
+  const yearLabel = years.find((y) => y.id === selectedYearId)?.yearLabel ?? "–";
 
   // Aggregate KPIs from the current year's projects (parents + children — every row counts).
   const totalProjects = projects.length;
@@ -348,13 +348,13 @@ export default function PublicImageInitiativeV2Page() {
         <td className="px-3 py-2">
           <div className="flex items-center gap-2">
             {isChild && <span className="text-slate-400 ml-2">&#8627;</span>}
-            <span className="font-medium text-slate-800">{project.title || "—"}</span>
+            <span className="font-medium text-slate-800">{project.title || "–"}</span>
           </div>
         </td>
         <td className="px-3 py-2">{typeChip}</td>
-        <td className="px-3 py-2 text-slate-600">{project.areaOfFocusName || project.otherAreaOfFocus || "—"}</td>
-        <td className="px-3 py-2 text-slate-600">{project.location || "—"}</td>
-        <td className="px-3 py-2 text-right text-slate-600 whitespace-nowrap">{project.projectCost ? shortCurrency(Number(project.projectCost), project.currency) : "—"}</td>
+        <td className="px-3 py-2 text-slate-600">{project.areaOfFocusName || project.otherAreaOfFocus || "–"}</td>
+        <td className="px-3 py-2 text-slate-600">{project.location || "–"}</td>
+        <td className="px-3 py-2 text-right text-slate-600 whitespace-nowrap">{project.projectCost ? shortCurrency(Number(project.projectCost), project.currency) : "–"}</td>
         <td className="px-3 py-2">{approvalChip(project.approvalStatus)}</td>
         {canManage && (
           <td className="px-3 py-2 text-right">
@@ -434,7 +434,7 @@ export default function PublicImageInitiativeV2Page() {
             <div>
               <h1 className="text-lg font-semibold text-slate-800">Public Image Initiative</h1>
               <p className="text-xs text-slate-500 mt-0.5">
-                RY {yearLabel} &middot; {clubName || "—"}
+                RY {yearLabel} &middot; {clubName || "–"}
               </p>
             </div>
           </div>

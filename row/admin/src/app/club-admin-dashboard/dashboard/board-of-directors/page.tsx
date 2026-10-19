@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import {
   Users, Search, Plus, ExternalLink, Edit3, Trash2,
-} from "lucide-react";
+} from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
 import { useAuth } from "@/contexts/AuthContext";
 import { getClubAdminDashboardBod, deleteBoardDirector } from "@/services/api";
@@ -124,7 +124,7 @@ export default function DashboardBodPage() {
       {/* Cards "Executive Roles", "Service Chairs", "Growth & Outreach" removed
           per user request (2026-06-12). Only Board Members retained. */}
       <div className="grid grid-cols-1 gap-4 max-w-md">
-        <KpiCard title="Board Members" value={fmtInt(data.boardMembers)} subtitle={`RY ${data.selectedYearLabel || "—"}`} icon={Users} color="blue" />
+        <KpiCard title="Board Members" value={fmtInt(data.boardMembers)} subtitle={`RY ${data.selectedYearLabel || "–"}`} icon={Users} color="blue" />
       </div>
 
       <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
@@ -192,11 +192,11 @@ export default function DashboardBodPage() {
                   </td>
                   <td className="px-3 py-2">
                     <span className={`inline-flex items-center text-xs font-medium px-2 py-0.5 rounded-full border ${designationChipStyle(r.designation)}`}>
-                      {r.designation || "—"}
+                      {r.designation || "–"}
                     </span>
                   </td>
-                  <td className="px-3 py-2 text-xs text-slate-600 whitespace-nowrap">{r.mobile ?? "—"}</td>
-                  <td className="px-3 py-2 text-xs text-slate-600">{r.email ?? "—"}</td>
+                  <td className="px-3 py-2 text-xs text-slate-600 whitespace-nowrap">{r.mobile ?? "–"}</td>
+                  <td className="px-3 py-2 text-xs text-slate-600">{r.email ?? "–"}</td>
                   <td className="px-3 py-2 text-right">
                     <Link
                       href={`/clubs/${clubId}/board-of-directors/v2/${r.id}/edit?returnTo=${returnTo}`}

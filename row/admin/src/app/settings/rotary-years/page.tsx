@@ -12,7 +12,7 @@ import {
 import ErrorAlert from "@/components/ErrorAlert";
 import SuccessAlert from "@/components/SuccessAlert";
 import AlertModal from "@/components/AlertModal";
-import { ArrowLeft, Calendar, Plus } from "lucide-react";
+import { ArrowLeft, Calendar, Plus } from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
 import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";
@@ -129,7 +129,7 @@ export default function RotaryYearsPage() {
                 <div key={yr.id} className="flex items-center justify-between border rounded-md p-3">
                   <div>
                     <p className="font-medium">{yr.yearLabel}</p>
-                    <p className="text-xs text-muted-foreground">{yr.startDate} — {yr.endDate}</p>
+                    <p className="text-xs text-muted-foreground">{yr.startDate}: {yr.endDate}</p>
                   </div>
                   {yr.isCurrent && <Badge variant="default">Current</Badge>}
                 </div>

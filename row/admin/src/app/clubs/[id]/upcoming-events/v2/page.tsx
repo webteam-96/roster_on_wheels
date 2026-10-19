@@ -14,9 +14,9 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import {
-  Calendar, CheckCircle2, Clock, MessageSquare, Loader2, Search, Plus,
+  Calendar, CheckCircle2, Clock, Loader2, Search, Plus,
   Trash2, ArrowLeft, AlertTriangle, X, MoreHorizontal, Eye, Pencil,
-} from "lucide-react";
+} from "@/components/icons";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
@@ -55,14 +55,8 @@ function statusChipStyle(status: string): string {
   }
 }
 
-function yesNoChip(value: boolean): string {
-  return value
-    ? "bg-blue-50 text-blue-700 border-blue-200"
-    : "bg-slate-50 text-slate-500 border-slate-200";
-}
-
 function formatDateTime(dateStr: string | null | undefined): string {
-  if (!dateStr) return "—";
+  if (!dateStr) return "–";
   try {
     return new Date(dateStr).toLocaleString(appLocale(), {
       day: "2-digit", month: "short", year: "numeric",
@@ -120,7 +114,6 @@ export default function UpcomingEventsV2Page() {
   const [kpiTotal, setKpiTotal] = useState(0);
   const [kpiPublished, setKpiPublished] = useState(0);
   const [kpiExpired, setKpiExpired] = useState(0);
-  const [kpiWhatsapp, setKpiWhatsapp] = useState(0);
 
   const [deleteTarget, setDeleteTarget] = useState<UpcomingEventListItem | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
@@ -182,22 +175,6 @@ export default function UpcomingEventsV2Page() {
       setKpiTotal(totalRes.totalCount);
       setKpiPublished(publishedRes.totalCount);
       setKpiExpired(expiredRes.totalCount);
-
-      // WhatsApp aggregate — page through to avoid the 500-row cap.
-      const WA_PAGE = 500;
-      let waCount = 0;
-      let pageNo = 1;
-      let seen = 0;
-      const total = totalRes.totalCount;
-      while (seen < total) {
-        const chunk = await getUpcomingEvents(clubId, pageNo, WA_PAGE, undefined, undefined);
-        if (!chunk.items.length) break;
-        waCount += chunk.items.filter((e) => e.isSendWhatsapp).length;
-        seen += chunk.items.length;
-        pageNo += 1;
-        if (pageNo > 50) break;
-      }
-      setKpiWhatsapp(waCount);
     } catch {
       // leave previous KPI values in place on transient errors
     }
@@ -247,18 +224,17 @@ export default function UpcomingEventsV2Page() {
             <div>
               <h1 className="text-lg font-semibold text-slate-800">Upcoming Events</h1>
               <p className="text-xs text-slate-500 mt-0.5">
-                {clubName || "—"} · Manage upcoming events
+                {clubName || "–"} · Manage upcoming events
               </p>
             </div>
           </div>
         </div>
 
         {/* KPI row */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <KpiCard title="Total Events" value={fmtInt(kpiTotal)}     subtitle="All-time"           icon={Calendar}       color="blue" />
           <KpiCard title="Published"    value={fmtInt(kpiPublished)} subtitle="Active in window"   icon={CheckCircle2}   color="green" />
           <KpiCard title="Expired"      value={fmtInt(kpiExpired)}   subtitle="Past expiry"        icon={Clock}          color="red" />
-          <KpiCard title="WhatsApp"     value={fmtInt(kpiWhatsapp)}  subtitle="Sent via WhatsApp"  icon={MessageSquare}  color="gold" />
         </div>
 
         {/* Table card */}
@@ -328,7 +304,6 @@ export default function UpcomingEventsV2Page() {
                     <th className="px-3 py-2.5 text-left">Event Date</th>
                     <th className="px-3 py-2.5 text-left">Publish Date</th>
                     <th className="px-3 py-2.5 text-left">Expiry Date</th>
-                    <th className="px-3 py-2.5 text-center">WhatsApp</th>
                     {canManage && <th className="px-3 py-2.5 text-right w-12"></th>}
                   </tr>
                 </thead>
@@ -357,23 +332,18 @@ export default function UpcomingEventsV2Page() {
                                 className="h-10 w-10 rounded object-cover border border-slate-200"
                               />
                             )}
-                            <span>{e.title || "—"}</span>
+                            <span>{e.title || "–"}</span>
                           </div>
                         </td>
                         <td className="px-3 py-2">
                           <span className={`inline-flex items-center text-xs font-medium px-2 py-0.5 rounded-full border ${statusChipStyle(e.status)}`}>
-                            {e.status || "—"}
+                            {e.status || "–"}
                           </span>
                           <SendStatusBadges item={e} />
                         </td>
                         <td className="px-3 py-2 text-slate-600 whitespace-nowrap">{formatDateTime(e.eventDate)}</td>
                         <td className="px-3 py-2 text-slate-600 whitespace-nowrap">{formatDateTime(e.publishDate)}</td>
                         <td className="px-3 py-2 text-slate-600 whitespace-nowrap">{formatDateTime(e.expiryDate)}</td>
-                        <td className="px-3 py-2 text-center">
-                          <span className={`inline-flex items-center text-[11px] font-medium px-2 py-0.5 rounded-full border ${yesNoChip(e.isSendWhatsapp)}`}>
-                            {e.isSendWhatsapp ? "Yes" : "No"}
-                          </span>
-                        </td>
                         {canManage && (
                           <td className="px-3 py-2 text-right">
                             <DropdownMenu>

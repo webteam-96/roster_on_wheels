@@ -29,7 +29,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
-import { ArrowLeft, Search, UserPlus, UserMinus, Target, Upload, FileSpreadsheet, AlertTriangle, CheckCircle2, Settings2, Mail, Download, UserCog, Plus, X } from "lucide-react";
+import { ArrowLeft, Search, UserPlus, UserMinus, Target, Upload, FileSpreadsheet, AlertTriangle, CheckCircle2, Settings2, Mail, Download, UserCog, Plus, X } from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import MemberContactCardDialog from "@/components/MemberContactCardDialog";
@@ -91,7 +91,7 @@ function MemberPicker({
     );
   }
   if (!global && zoneIds.length === 0) {
-    return <p className="text-xs text-amber-600">Select the zone(s) first — then this zone&apos;s members load here.</p>;
+    return <p className="text-xs text-amber-600">Select the zone(s) first. Then this zone&apos;s members load here.</p>;
   }
   return (
     <div>
@@ -120,7 +120,7 @@ function MemberPicker({
                     onClick={() => { onSelect({ id: m.id, name: clubDist ? `${m.memberName} (${clubDist})` : m.memberName }); setQ(""); setRows([]); }}
                   >
                     <TableCell className="font-medium text-blue-700">{m.memberName}</TableCell>
-                    <TableCell className="text-sm text-muted-foreground">{clubDist || "—"}</TableCell>
+                    <TableCell className="text-sm text-muted-foreground">{clubDist || "–"}</TableCell>
                     <TableCell className="text-sm">{m.emailId}</TableCell>
                   </TableRow>
                 );
@@ -315,7 +315,7 @@ export default function GoalSettingRolesPage() {
       const created = await createGoalRoleAssignment({
         memberId: riMember.id, memberNameText: null,
         roleType: RI as GoalRoleType,
-        assignmentName: `${des.title} — ${riZoneIds.map(zoneNameOf).join(", ")}`,
+        assignmentName: `${des.title}: ${riZoneIds.map(zoneNameOf).join(", ")}`,
         roleTitle: des.title, avenue: des.avenue,
         categoryId: null, zoneId: null, districtIds: null, zoneIds: riZoneIds,
         homeDistrictId: null, dgYear: null, supportingText: null,
@@ -337,7 +337,7 @@ export default function GoalSettingRolesPage() {
       await createGoalRoleAssignment({
         memberId: pcZcMember.id, memberNameText: null,
         roleType: ZC as GoalRoleType,
-        assignmentName: `${des.title} — ${zoneNameOf(Number(pcZone))} · ${pcAvenue}`,
+        assignmentName: `${des.title}: ${zoneNameOf(Number(pcZone))} · ${pcAvenue}`,
         roleTitle: des.title, avenue: des.avenue,
         categoryId: des.defaultCategoryId ?? null, zoneId: Number(pcZone),
         districtIds: null, zoneIds: null,
@@ -359,7 +359,7 @@ export default function GoalSettingRolesPage() {
       await createGoalRoleAssignment({
         memberId: pcDaMember.id, memberNameText: null,
         roleType: DA as GoalRoleType,
-        assignmentName: `${des.title} — ${zoneNameOf(Number(pcZone))} · ${pcAvenue}`,
+        assignmentName: `${des.title}: ${zoneNameOf(Number(pcZone))} · ${pcAvenue}`,
         roleTitle: des.title, avenue: des.avenue,
         categoryId: des.defaultCategoryId ?? null, zoneId: Number(pcZone),
         districtIds: pcDaDistrictIds, zoneIds: null,
@@ -404,7 +404,7 @@ export default function GoalSettingRolesPage() {
     setAddingHolder(true);
     try {
       await addGoalRoleHolder(addHolderTarget.id, { memberId: addHolderMember.id });
-      setSuccessMessage(`${addHolderMember.name} added — both now hold this role. No email was sent.`);
+      setSuccessMessage(`${addHolderMember.name} added: both now hold this role. No email was sent.`);
       setAddHolderTarget(null); setAddHolderMember(null);
       await load();
     } catch (err: any) {
@@ -557,7 +557,7 @@ export default function GoalSettingRolesPage() {
               )}
               <Button variant="ghost" size="sm" className={`${h} ${tone}`} disabled={credId === p.id}
                       onClick={() => handleSendCredentials(p.id)}
-                      title={p.roleEmailSentDate ? `Email again — last sent ${p.roleEmailSentDate}` : "Email the role mail (link, username, password)"}>
+                      title={p.roleEmailSentDate ? `Email again: last sent ${p.roleEmailSentDate}` : "Email the role mail (link, username, password)"}>
                 {credId === p.id ? <RotaryLoader size="sm" /> : <Mail className={ic} />}
               </Button>
             </span>
@@ -818,7 +818,7 @@ export default function GoalSettingRolesPage() {
             <Link href="/settings"><ArrowLeft className="h-4 w-4" /></Link>
           </Button>
           <div className="flex-1">
-            <h2 className="text-2xl font-bold tracking-tight text-primary">Goal Setting — Oversight Roles</h2>
+            <h2 className="text-2xl font-bold tracking-tight text-primary">Goal Setting: Oversight Roles</h2>
             <p className="text-muted-foreground text-base">Add an RI Director, then click Build to assign its Zone Co-ordinators and District Assistants per category.</p>
           </div>
         </div>
@@ -882,7 +882,7 @@ export default function GoalSettingRolesPage() {
                 {importing ? <RotaryLoader size="sm" /> : <><Upload className="h-4 w-4 mr-2" />Import</>}
               </Button>
               <Button variant="outline" onClick={handleDownloadDistrictSample} disabled={dlSample !== ""}
-                title="Download the district sample in the exact upload format — all current districts as columns, 0 baseline">
+                title="Download the district sample in the exact upload format: all current districts as columns, 0 baseline">
                 {dlSample === "district" ? <RotaryLoader size="sm" /> : <><Download className="h-4 w-4 mr-2" />Download Sample</>}
               </Button>
             </div>
@@ -909,7 +909,7 @@ export default function GoalSettingRolesPage() {
                           {importResult.skippedRows.map((s, i) => (
                             <TableRow key={i}>
                               <TableCell>{s.row}</TableCell>
-                              <TableCell className="font-medium">{s.districtNumber || "—"}</TableCell>
+                              <TableCell className="font-medium">{s.districtNumber || "–"}</TableCell>
                               <TableCell className="text-sm text-muted-foreground">{s.reason}</TableCell>
                             </TableRow>
                           ))}
@@ -918,7 +918,7 @@ export default function GoalSettingRolesPage() {
                     </div>
                   </div>
                 ) : (
-                  <div className="text-sm text-emerald-700">All rows imported — no skipped rows.</div>
+                  <div className="text-sm text-emerald-700">All rows imported. No skipped rows.</div>
                 )}
               </div>
             )}
@@ -937,7 +937,7 @@ export default function GoalSettingRolesPage() {
                 </CardTitle>
                 <p className="text-sm text-muted-foreground">
                   Pick a year, then upload the Rotary <span className="font-medium">Monthly Contribution Report (MCR)</span> Excel.
-                  The file lists <span className="font-medium">every district's clubs</span> — each club is matched by <span className="font-medium">Club No = Club Rotary ID</span> and has its Foundation goals filled: Goal Amount &amp; Goal % Achieved
+                  The file lists <span className="font-medium">every district's clubs</span>: each club is matched by <span className="font-medium">Club No = Club Rotary ID</span> and has its Foundation goals filled: Goal Amount &amp; Goal % Achieved
                   (the club can edit these) and the AF Per Capita / Annual Fund / PolioPlus / Other / Endowment / Total figures (read-only).
                   Wrong-format files are rejected (the bad column is named); non-numeric characters are ignored; any Club No not found in the system is skipped and listed below.
                 </p>
@@ -974,7 +974,7 @@ export default function GoalSettingRolesPage() {
                     {cfImporting ? <RotaryLoader size="sm" /> : <><Upload className="h-4 w-4 mr-2" />Import</>}
                   </Button>
                   <Button variant="outline" onClick={handleDownloadClubSample} disabled={dlSample !== ""}
-                    title="Download the club sample in the exact MCR format — one row per current synced club, 0 baseline">
+                    title="Download the club sample in the exact MCR format: one row per current synced club, 0 baseline">
                     {dlSample === "club" ? <RotaryLoader size="sm" /> : <><Download className="h-4 w-4 mr-2" />Download Sample</>}
                   </Button>
                   <input ref={convertInputRef} type="file" accept=".xlsx" className="hidden"
@@ -993,7 +993,7 @@ export default function GoalSettingRolesPage() {
                     {cfResult.skippedRows.length > 0 && (
                       <div className="rounded border border-amber-200 bg-amber-50">
                         <div className="px-3 py-2 text-xs font-semibold text-amber-800 border-b border-amber-200">
-                          {cfResult.skippedRows.length} club row(s) skipped — Club No not found in the system
+                          {cfResult.skippedRows.length} club row(s) skipped: Club No not found in the system
                         </div>
                         <div className="max-h-64 overflow-auto">
                           <table className="w-full text-xs">
@@ -1009,8 +1009,8 @@ export default function GoalSettingRolesPage() {
                               {cfResult.skippedRows.map((s, i) => (
                                 <tr key={i} className="border-t border-amber-100">
                                   <td className="px-3 py-1 tabular-nums">{s.row}</td>
-                                  <td className="px-3 py-1 tabular-nums">{s.clubNo || "—"}</td>
-                                  <td className="px-3 py-1">{s.clubName || "—"}</td>
+                                  <td className="px-3 py-1 tabular-nums">{s.clubNo || "–"}</td>
+                                  <td className="px-3 py-1">{s.clubName || "–"}</td>
                                   <td className="px-3 py-1 text-amber-800">{s.reason}</td>
                                 </tr>
                               ))}
@@ -1104,9 +1104,9 @@ export default function GoalSettingRolesPage() {
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
-              <label className="text-xs font-semibold text-slate-700 mb-1.5 block">Zones <span className="font-normal text-muted-foreground">— tick one or more (only free zones show)</span></label>
+              <label className="text-xs font-semibold text-slate-700 mb-1.5 block">Zones <span className="font-normal text-muted-foreground">,  tick one or more (only free zones show)</span></label>
               {freeDirectorZones.length === 0 ? (
-                <p className="text-xs text-amber-600">No free zones — every zone already has a director. Revoke one below to free it.</p>
+                <p className="text-xs text-amber-600">No free zones: every zone already has a director. Revoke one below to free it.</p>
               ) : (
                 <div className="flex flex-wrap gap-2">
                   {freeDirectorZones.map((z) => {
@@ -1122,7 +1122,7 @@ export default function GoalSettingRolesPage() {
               )}
             </div>
             <div>
-              <label className="text-xs font-semibold text-slate-700 mb-1.5 block">Member <span className="font-normal text-muted-foreground">— search ANY member (need not belong to the zone)</span></label>
+              <label className="text-xs font-semibold text-slate-700 mb-1.5 block">Member <span className="font-normal text-muted-foreground">,  search ANY member (need not belong to the zone)</span></label>
               <MemberPicker selected={riMember} onSelect={setRiMember} onClear={() => setRiMember(null)} zoneIds={riZoneIds} global placeholder="Search any member by name / email / mobile…" />
             </div>
             <div className="flex justify-end border-t pt-3">
@@ -1176,7 +1176,7 @@ export default function GoalSettingRolesPage() {
                 {exportingRoles ? <RotaryLoader size="sm" /> : (
                   <><Download className="h-4 w-4 mr-2" />
                     {filterZoneId != null
-                      ? `Export — ${zoneNameOf(filterZoneId)} (${filteredAssignments.length})`
+                      ? `Export: ${zoneNameOf(filterZoneId)} (${filteredAssignments.length})`
                       : `Export all roles (${filteredAssignments.length})`}
                   </>
                 )}
@@ -1194,7 +1194,7 @@ export default function GoalSettingRolesPage() {
                 {sendingEmails ? <RotaryLoader size="sm" /> : (
                   <><Mail className="h-4 w-4 mr-2" />
                     {filterZoneId != null
-                      ? `Send role emails — ${zoneNameOf(filterZoneId)} (${emailRecipientCount})`
+                      ? `Send role emails: ${zoneNameOf(filterZoneId)} (${emailRecipientCount})`
                       : `Send role emails to all (${emailRecipientCount})`}
                   </>
                 )}
@@ -1222,10 +1222,10 @@ export default function GoalSettingRolesPage() {
                       <Target className="h-4 w-4 shrink-0" />
                       <div className="min-w-0">
                         <div className="flex flex-wrap items-center gap-1 font-semibold leading-tight">
-                          <span>RI Director —</span>
+                          <span>RI Director , </span>
                           {holdersInline(seat, false, true)}
                         </div>
-                        <div className="text-[11px] text-blue-100">Zones: {(d.zoneNames || []).join(", ") || "—"}</div>
+                        <div className="text-[11px] text-blue-100">Zones: {(d.zoneNames || []).join(", ") || "–"}</div>
                       </div>
                       <div className="ml-auto flex gap-2 shrink-0">
                         <Button size="sm" variant="secondary" onClick={() => openBuild(d.id)}><Settings2 className="h-4 w-4 mr-1" />Build</Button>
@@ -1262,7 +1262,7 @@ export default function GoalSettingRolesPage() {
                                       {holdersInline(z.zcs, true)}
                                     </div>
                                   ) : (
-                                    <div className="text-xs text-muted-foreground">Zone {z.zoneName} — no Zone Co-ordinator yet</div>
+                                    <div className="text-xs text-muted-foreground">Zone {z.zoneName}. No Zone Co-ordinator yet</div>
                                   )}
                                   {/* His District Assistants (ARC/ARPIC/ARRFC…) nested under him */}
                                   {/* District Assistants grouped by their DISTRICT SET — each set is one
@@ -1292,7 +1292,7 @@ export default function GoalSettingRolesPage() {
                         const catId = avenueCategoryId(av);
                         return !activeAssignments.some((a) => (a.roleType === ZC || a.roleType === DA) && a.zoneId != null && dZoneIds.includes(a.zoneId) && a.categoryId === catId);
                       }) && (
-                        <div className="px-4 py-3 text-xs text-muted-foreground">No co-ordinators yet — click <span className="font-medium">Build</span> to add them.</div>
+                        <div className="px-4 py-3 text-xs text-muted-foreground">No co-ordinators yet. Click <span className="font-medium">Build</span> to add them.</div>
                       )}
                     </div>
                   </div>
@@ -1309,18 +1309,18 @@ export default function GoalSettingRolesPage() {
               <DialogTitle className="flex items-center gap-2"><UserCog className="h-4 w-4 text-blue-600" />Change member</DialogTitle>
               <p className="text-xs text-muted-foreground">
                 {changeTarget?.roleType === RI ? "RI Director" : changeTarget?.roleType === ZC ? (changeTarget?.roleTitle || "Zone Co-ordinator") : (changeTarget?.roleTitle || "District Assistant")}
-                {" · currently "}{memberLink(changeTarget?.memberId, changeTarget?.memberName ?? "")}. No email is sent — replacing keeps everyone below.
+                {" · currently "}{memberLink(changeTarget?.memberId, changeTarget?.memberName ?? "")}. No email is sent: replacing keeps everyone below.
               </p>
             </DialogHeader>
             {changeTarget && (
               <div className="space-y-4">
                 <div>
-                  <label className="text-xs font-semibold text-slate-700 mb-1.5 block">New member <span className="font-normal text-muted-foreground">— search ANY member</span></label>
+                  <label className="text-xs font-semibold text-slate-700 mb-1.5 block">New member <span className="font-normal text-muted-foreground">,  search ANY member</span></label>
                   <MemberPicker selected={changeMember} onSelect={setChangeMember} onClear={() => setChangeMember(null)} zoneIds={[]} global placeholder="Search any member by name / email / mobile…" />
                 </div>
                 {changeTarget.roleType === RI && (
                   <div>
-                    <label className="text-xs font-semibold text-slate-700 mb-1.5 block">Zones <span className="font-normal text-muted-foreground">— tick one or more (zones held by another director are hidden)</span></label>
+                    <label className="text-xs font-semibold text-slate-700 mb-1.5 block">Zones <span className="font-normal text-muted-foreground">,  tick one or more (zones held by another director are hidden)</span></label>
                     <div className="flex flex-wrap gap-2">
                       {visibleZones.filter((z) => !changeTakenZones.includes(z.id)).map((z) => {
                         const checked = changeZoneIds.includes(z.id);
@@ -1337,7 +1337,7 @@ export default function GoalSettingRolesPage() {
                 )}
                 {changeTarget.roleType === DA && changeTarget.zoneId != null && (
                   <div>
-                    <label className="text-xs font-semibold text-slate-700 mb-1.5 block">Districts <span className="font-normal text-muted-foreground">— in {zoneNameOf(changeTarget.zoneId)}</span></label>
+                    <label className="text-xs font-semibold text-slate-700 mb-1.5 block">Districts <span className="font-normal text-muted-foreground">,  in {zoneNameOf(changeTarget.zoneId)}</span></label>
                     <div className="flex flex-wrap gap-2">
                       {districtsOfZone(changeTarget.zoneId).map((d) => {
                         const checked = changeDistrictIds.includes(d.id);
@@ -1382,10 +1382,10 @@ export default function GoalSettingRolesPage() {
                   <div>{memberLink(addHolderTarget.memberId, addHolderTarget.memberName)}</div>
                   <div className="text-xs text-muted-foreground mt-1">
                     {addHolderTarget.roleType === RI
-                      ? `Zones: ${(addHolderTarget.zoneNames || []).join(", ") || "—"}`
+                      ? `Zones: ${(addHolderTarget.zoneNames || []).join(", ") || "–"}`
                       : addHolderTarget.roleType === ZC
-                        ? `Zone ${addHolderTarget.zoneName ?? "—"} · ${addHolderTarget.categoryName ?? addHolderTarget.avenue ?? ""}`
-                        : `Zone ${addHolderTarget.zoneName ?? "—"} · D ${(addHolderTarget.districtNumbers || []).join(", ") || "—"}`}
+                        ? `Zone ${addHolderTarget.zoneName ?? "–"} · ${addHolderTarget.categoryName ?? addHolderTarget.avenue ?? ""}`
+                        : `Zone ${addHolderTarget.zoneName ?? "–"} · D ${(addHolderTarget.districtNumbers || []).join(", ") || "–"}`}
                   </div>
                 </div>
                 <div>
@@ -1399,7 +1399,7 @@ export default function GoalSettingRolesPage() {
                     placeholder="Search any member by name / email / mobile…"
                   />
                   <p className="text-xs text-muted-foreground mt-2">
-                    Both people will hold this role. No email is sent now — use the ✉ icon or the
+                    Both people will hold this role. No email is sent now. Use the email icon or the
                     &quot;Send role emails&quot; button when you are ready.
                   </p>
                 </div>
@@ -1457,7 +1457,7 @@ export default function GoalSettingRolesPage() {
                   <>
                     {/* Zone Co-ordinator */}
                     <div className="rounded-lg border p-3 bg-muted/20">
-                      <div className="text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wide">Zone Co-ordinator — {pcAvenue} · {zoneNameOf(Number(pcZone))}</div>
+                      <div className="text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wide">Zone Co-ordinator: {pcAvenue} · {zoneNameOf(Number(pcZone))}</div>
                       {existingZc ? (
                         <div className="flex items-center gap-2 text-sm">
                           <CheckCircle2 className="h-4 w-4 text-emerald-600" />
@@ -1482,15 +1482,15 @@ export default function GoalSettingRolesPage() {
 
                     {/* District Assistant — needs a ZC first */}
                     <div className="rounded-lg border p-3 bg-muted/20">
-                      <div className="text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wide">District Assistants — {pcAvenue} · {zoneNameOf(Number(pcZone))}</div>
+                      <div className="text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wide">District Assistants: {pcAvenue} · {zoneNameOf(Number(pcZone))}</div>
                       {!existingZc ? (
-                        <p className="text-xs text-amber-600">Add the Zone Co-ordinator above first — a District Assistant sits under a co-ordinator.</p>
+                        <p className="text-xs text-amber-600">Add the Zone Co-ordinator above first: a District Assistant sits under a co-ordinator.</p>
                       ) : (
                         <div className="space-y-2">
                           <div>
                             <div className="text-xs text-muted-foreground mb-1">Districts <span className="text-[11px]">(only free districts show)</span></div>
                             <div className="flex flex-wrap gap-2 border rounded-lg p-2 max-h-32 overflow-y-auto bg-white">
-                              {daFreeDistricts.length === 0 && <span className="text-xs text-muted-foreground">No free districts — the rest already have a District Assistant for this category.</span>}
+                              {daFreeDistricts.length === 0 && <span className="text-xs text-muted-foreground">No free districts: the rest already have a District Assistant for this category.</span>}
                               {daFreeDistricts.map((d) => {
                                 const checked = pcDaDistrictIds.includes(d.id);
                                 return (

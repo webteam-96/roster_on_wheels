@@ -25,7 +25,7 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import ErrorAlert from "@/components/ErrorAlert";
 import SuccessAlert from "@/components/SuccessAlert";
-import { ArrowLeft, Download, FileSpreadsheet, FolderOpen, Users, Calendar } from "lucide-react";
+import { ArrowLeft, Download, FileSpreadsheet, FolderOpen, Users, Calendar } from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
 import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";
@@ -108,7 +108,6 @@ const modules: ModuleItem[] = [
   { key: "announcements", label: "Announcements", group: "club", columns: [
     { key: "title", label: "Title", width: 25 }, { key: "description", label: "Description", width: 30 },
     { key: "publishDate", label: "Publish Date", width: 18 }, { key: "expiryDate", label: "Expiry Date", width: 18 },
-    { key: "status", label: "Status", width: 12 }, { key: "isSendWhatsapp", label: "WhatsApp", width: 10 },
   ]},
   { key: "upcoming_events", label: "Upcoming Events", group: "club", columns: [
     { key: "title", label: "Title", width: 25 }, { key: "eventDate", label: "Event Date", width: 18 },
@@ -192,7 +191,7 @@ export default function LiveDocumentsPage() {
       }
       const yearLabel = years.find((y: any) => String(y.id) === selectedYearId)?.yearLabel || "";
       exportToCSV(arr, `${clubName}_${mod.label.replace(/\s+/g, "_")}`, showBloodGroup ? mod.columns : mod.columns.filter((c) => c.key !== "bloodGroup"), {
-        title: `${mod.label} — ${clubName}`,
+        title: `${mod.label} | ${clubName}`,
         subtitle: `Rotary Year: ${yearLabel}`,
       });
       setSuccessMessage(`${mod.label} downloaded.`);
@@ -220,7 +219,7 @@ export default function LiveDocumentsPage() {
             </Button>
             <div>
               <h2 className="text-2xl font-bold tracking-tight text-primary">Live Documents</h2>
-              <p className="text-muted-foreground text-base">{clubName} — Download Excel reports module-wise</p>
+              <p className="text-muted-foreground text-base">{clubName}: Download Excel reports module-wise</p>
             </div>
           </div>
           {!loading && years.length > 0 && (

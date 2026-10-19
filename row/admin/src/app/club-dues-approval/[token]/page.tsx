@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import RotaryLoader from "@/components/RotaryLoader";
-import { CheckCircle2, XCircle } from "lucide-react";
+import { CheckCircle2, XCircle } from "@/components/icons";
 
 import { appLocale, currencySymbol } from "@/lib/appFormat";
 const MODES: Record<string, string> = { "1": "Cash", "2": "Cheque", "3": "NEFT", "4": "UPI", "5": "Other" };
@@ -48,7 +48,7 @@ export default function ClubDuesApprovalPage() {
   return (
     <div className="min-h-screen bg-muted/30 flex items-center justify-center p-4">
       <div className="bg-background rounded-xl shadow-lg w-full max-w-md p-6 space-y-5">
-        <h1 className="text-xl font-bold text-primary text-center">District Dues — Approval</h1>
+        <h1 className="text-xl font-bold text-primary text-center">District Dues: Approval</h1>
         {result ? (
           <div className="text-center py-6 space-y-2">
             {/* Icon derives from the outcome message so it works for both a fresh

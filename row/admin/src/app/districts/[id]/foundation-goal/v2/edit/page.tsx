@@ -41,7 +41,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useParams, useSearchParams } from "next/navigation";
 import {
   Calendar, Target, IndianRupee, Heart, Sparkles, ClipboardList, Info,
-} from "lucide-react";
+} from "@/components/icons";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   getDistrictFoundationGoal,
@@ -99,7 +99,7 @@ function SectionCard({
 }: { number: number; icon: React.ElementType; title: string; dot: string; children: React.ReactNode }) {
   return (
     <div className="rounded-xl border border-slate-200 mb-4 overflow-hidden">
-      <div className="flex items-center gap-3 px-4 py-2.5 bg-gradient-to-r from-slate-50 to-white border-b border-slate-100">
+      <div className="flex items-center gap-3 px-4 py-2.5 bg-slate-50 border-b border-slate-100">
         <div className={`flex items-center justify-center h-7 w-7 rounded-full text-white text-xs font-bold ${dot}`}>{number}</div>
         <Icon className="h-4 w-4 text-slate-500" />
         <h3 className="text-sm font-semibold text-slate-800">{title}</h3>
@@ -571,7 +571,7 @@ export default function DistrictFoundationGoalV2EditPage() {
                             Raised so far (INR)
                           </label>
                           <div className="rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700 tabular-nums">
-                            {raised == null ? "—" : fmtInr(raised)}
+                            {raised == null ? "–" : fmtInr(raised)}
                           </div>
                         </div>
                       </div>
@@ -633,7 +633,7 @@ export default function DistrictFoundationGoalV2EditPage() {
                                 <span>{a.label}</span>
                                 {unresolved && (
                                   <span className="text-[10px] text-rose-600 font-normal">
-                                    Module not found — cannot save this row
+                                    Module not found: cannot save this row
                                   </span>
                                 )}
                               </div>
@@ -658,7 +658,7 @@ export default function DistrictFoundationGoalV2EditPage() {
                             </td>
                             <td className="px-3 py-2 text-right tabular-nums">
                               {pct == null ? (
-                                <span className="text-slate-300">—</span>
+                                <span className="text-slate-300">, </span>
                               ) : (
                                 <span className={`font-semibold ${pct >= 100 ? "text-emerald-700" : pct >= 60 ? "text-blue-700" : pct >= 30 ? "text-amber-700" : "text-rose-700"}`}>
                                   {pct}%

@@ -68,7 +68,7 @@ import {
   IndianRupee,
   Loader2,
   ExternalLink,
-} from "lucide-react";
+} from "@/components/icons";
 import {
   getClub,
   getMonthlyReportYears,
@@ -358,7 +358,7 @@ function DistrictAdminEGovClubDetailInner() {
 
   /* ---------------------------------------------------------- shell wrap */
   const pageTitle = clubName
-    ? `${clubName} — E-Governance Detail`
+    ? `${clubName}: E-Governance Detail`
     : "E-Governance Detail";
   const pageSubtitle = selectedYear
     ? `RY ${selectedYear.yearLabel}`
@@ -384,7 +384,7 @@ function DistrictAdminEGovClubDetailInner() {
             </LoadingLink>
             <div>
               <h1 className="text-lg font-semibold text-slate-800">
-                {clubName || "Club"} — E-Governance Detail
+                {clubName || "Club"}: E-Governance Detail
               </h1>
               <p className="text-xs text-slate-500 mt-0.5">
                 Per-month CMR submission and citation overview
@@ -656,12 +656,12 @@ function ExpandedDetail({
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
         <Field
           label="Submitted Date"
-          value={submittedDate ? fmtDate(submittedDate) : "—"}
+          value={submittedDate ? fmtDate(submittedDate) : "–"}
           icon={Calendar}
         />
         <Field
           label="Assistant Governor"
-          value={d.assistantGovernor || "—"}
+          value={d.assistantGovernor || "–"}
           icon={Users}
         />
         <Field

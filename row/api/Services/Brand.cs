@@ -57,11 +57,6 @@ public static class Brand
 
     // ── Providers ────────────────────────────────────────────────────────────────────────────
     public static string[] PaymentProviders { get; private set; } = { "stripe", "paypal" };
-    public static string WhatsAppProvider { get; private set; } = "meta";
-    public static string SmsProvider { get; private set; } = "twilio";
-    /// <summary>OTP channels per country group ("*" = every other country), in order of preference.</summary>
-    public static IReadOnlyDictionary<string, string[]> OtpPolicy { get; private set; } =
-        new Dictionary<string, string[]> { ["*"] = new[] { "email", "whatsapp", "sms" } };
 
     // ── Scope ────────────────────────────────────────────────────────────────────────────────
     public static string[] Zones { get; private set; } = Array.Empty<string>();
@@ -121,8 +116,6 @@ public static class Brand
     public static string[] ReportRecipients { get; private set; } = Array.Empty<string>();
     /// <summary>Member who is made SuperAdmin at start-up if present (bootstrap); empty = none.</summary>
     public static string SuperAdminEmail { get; private set; } = "";
-    /// <summary>Prefix of the WhatsApp template names registered for this instance.</summary>
-    public static string WhatsAppTemplatePrefix { get; private set; } = "row";
 
     // ── Derived values used across the code ──────────────────────────────────────────────────
     /// <summary>Host of the admin portal, e.g. "portal.example.org".</summary>
@@ -184,12 +177,6 @@ public static class Brand
         DefaultCountryId = Num("Locale:DefaultCountryId", DefaultCountryId);
 
         PaymentProviders = Arr("Providers:Payments", PaymentProviders);
-        WhatsAppProvider = Str("Providers:WhatsApp", WhatsAppProvider);
-        SmsProvider = Str("Providers:Sms", SmsProvider);
-        var otp = config.GetSection("Brand:Providers:OtpPolicy").GetChildren().ToList();
-        if (otp.Count > 0)
-            OtpPolicy = otp.ToDictionary(c => c.Key == "*" ? "*" : c.Key.ToUpperInvariant(),
-                c => c.GetChildren().Select(x => x.Value ?? "").Where(v => v.Length > 0).ToArray());
 
         Zones = Arr("Scope:Zones", Zones);
         PulledZoneNames = Arr("Scope:PulledZoneNames", PulledZoneNames);
@@ -224,7 +211,6 @@ public static class Brand
         ExcludedClubNamePatterns = config.GetSection("DistrictPerformanceReport:ExcludedClubNames").GetChildren()
             .Select(c => c.Value?.Trim() ?? "").Where(v => v.Length > 0).ToArray();
         SuperAdminEmail = Str("SuperAdminEmail", SuperAdminEmail);
-        WhatsAppTemplatePrefix = Str("WhatsAppTemplatePrefix", WhatsAppTemplatePrefix);
     }
 
     /// <summary>The configured flag, else the ROW default; an unknown flag is off.</summary>
@@ -316,8 +302,6 @@ public static class Brand
         return c + " ";
     });
 
-    /// <summary>Full WhatsApp template name for this instance, e.g. "row_otp".</summary>
-    public static string Template(string name) => $"{WhatsAppTemplatePrefix}_{name}";
 
     /// <summary>The non-secret brand for GET api/public/brand (same JSON as the NestJS edition).</summary>
     public static object PublicView() => new

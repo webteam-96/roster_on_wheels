@@ -1,8 +1,8 @@
-import { AlertTriangle, Info } from "lucide-react";
+import { AlertTriangle, Info } from "@/components/icons";
 
 /**
  * Greetings Settings (club + district) — explains the 1-July pause rule.
- * GreetingsWorker skips every channel (WhatsApp, email, push, digest) for a club/district whose custom
+ * GreetingsWorker skips every channel (email, push, digest) for a club/district whose custom
  * message was not saved for the current Rotary year, so last year's DG / President names never go out.
  */
 export default function GreetingPauseNotice({ paused, reviewedYear, currentYear }: {

@@ -16,7 +16,7 @@ import { useParams, useSearchParams } from "next/navigation";
 import {
   Loader2, Search, Edit3, Users, ExternalLink, Copy, FileBarChart,
   Link2, CheckCircle2, XCircle, BadgeCheck,
-} from "lucide-react";
+} from "@/components/icons";
 import { getEventPaymentLinks } from "@/services/api";
 import { useAuth } from "@/contexts/AuthContext";
 import ClubAdminShell from "@/components/v2/ClubAdminShell";
@@ -268,7 +268,7 @@ export default function EventPaymentLinksV2ListingPage() {
                                 </button>
                               </div>
                             ) : (
-                              <span className="text-xs text-slate-300">—</span>
+                              <span className="text-xs text-slate-300">, </span>
                             )}
                           </td>
                           <td className="px-3 py-2 text-center">

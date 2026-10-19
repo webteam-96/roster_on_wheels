@@ -17,7 +17,7 @@ import { useParams } from "next/navigation";
 import {
   FileText, Users, UserPlus, UserCheck, Globe, Award,
   Plus, X, Pencil, Search,
-} from "lucide-react";
+} from "@/components/icons";
 import {
   getClub,
   getAttendance,
@@ -39,6 +39,8 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 import { useSyncClubIdFromUrl } from "@/hooks/useSyncClubIdFromUrl";
 
 import { sanitizeText } from "@/lib/textInput";
+import MeetingModeFields from "@/components/attendance/MeetingModeFields";
+import { meetingPayload, validateMeeting, type MeetingMode } from "@/lib/meeting";
 
 type AnnItem = { tempId: string; annName: string };
 type AnnetItem = { tempId: string; annetName: string };
@@ -67,7 +69,7 @@ function SectionCard({
 }: { number: number; icon: React.ElementType; title: string; dot: string; children: React.ReactNode }) {
   return (
     <div className="rounded-xl border border-slate-200 overflow-hidden mb-4">
-      <div className="flex items-center gap-3 px-4 py-2.5 bg-gradient-to-r from-slate-50 to-white border-b border-slate-100">
+      <div className="flex items-center gap-3 px-4 py-2.5 bg-slate-50 border-b border-slate-100">
         <div className={`flex items-center justify-center h-7 w-7 rounded-full text-white text-xs font-bold ${dot}`}>{number}</div>
         <Icon className="h-4 w-4 text-slate-500" />
         <h3 className="text-sm font-semibold text-slate-800">{title}</h3>
@@ -110,6 +112,8 @@ export default function AttendanceV2EditPage() {
   const [eventName, setEventName] = useState("");
   const [description, setDescription] = useState("");
   const [eventDateTime, setEventDateTime] = useState("");
+  const [meetingMode, setMeetingMode] = useState<MeetingMode>("in_person");
+  const [meetingLink, setMeetingLink] = useState("");
 
   // Section 2: Sub-records
   const [selectedMemberIds, setSelectedMemberIds] = useState<number[]>([]);
@@ -150,6 +154,8 @@ export default function AttendanceV2EditPage() {
         setDescription(detail.description || "");
 
         // Format eventDateTime as YYYY-MM-DDTHH:mm for datetime-local input.
+        setMeetingMode((detail.meetingMode as MeetingMode) ?? "in_person");
+        setMeetingLink(detail.meetingLink ?? "");
         if (detail.eventDateTime) {
           const dt = new Date(detail.eventDateTime);
           const yyyy = dt.getFullYear();
@@ -228,6 +234,8 @@ export default function AttendanceV2EditPage() {
     if (!description.trim()) { setErrorMessage("Description is required."); return; }
     if (description.trim().length > 10000) { setErrorMessage("Description must be 10000 characters or less."); return; }
     if (!eventDateTime) { setErrorMessage("Event Date & Time is required."); return; }
+    const meetingError = validateMeeting(meetingMode, meetingLink);
+    if (meetingError) { setErrorMessage(meetingError); return; }
 
     setSaving(true);
     try {
@@ -235,6 +243,7 @@ export default function AttendanceV2EditPage() {
         eventName: eventName.trim(),
         description: description.trim(),
         eventDateTime: eventDateTime + ":00",
+        ...meetingPayload(meetingMode, meetingLink),
         memberIds: selectedMemberIds,
         anns:    anns.map((a)   => ({ annName: a.annName })),
         annets:  annets.map((a) => ({ annetName: a.annetName })),
@@ -316,6 +325,7 @@ export default function AttendanceV2EditPage() {
                 className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
+            <MeetingModeFields mode={meetingMode} link={meetingLink} onModeChange={setMeetingMode} onLinkChange={setMeetingLink} />
           </div>
         </SectionCard>
 

@@ -20,7 +20,7 @@ import type { Area, MediaSize } from "react-easy-crop";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import RotaryLoader from "@/components/RotaryLoader";
-import { Image as ImageIcon, RectangleHorizontal, RectangleVertical, Save, Square, X, ZoomIn, ZoomOut } from "lucide-react";
+import { Image as ImageIcon, RectangleHorizontal, RectangleVertical, Save, Square, X, ZoomIn, ZoomOut } from "@/components/icons";
 import { getCroppedImageBlob, deriveOutputSize, probeNaturalZoom } from "@/lib/imageCrop";
 
 /** Shapes offered by the in-dialog selector when `allowOrientation` is on. */
@@ -229,7 +229,7 @@ export default function ImageCropDialog({
           </p>
           {belowMin && (
             <p className="text-xs font-medium text-amber-600">
-              Crop is only {projectedWidth}px wide — this needs at least {minOutputWidth}px for a clean, non-blurry display.
+              Crop is only {projectedWidth}px wide. This needs at least {minOutputWidth}px for a clean, non-blurry display.
               Zoom out, reposition, or upload a larger source image.
             </p>
           )}

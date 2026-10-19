@@ -1,4 +1,4 @@
-import { ArrowUpRight, Camera, Play } from "lucide-react";
+import { ArrowUpRight, Camera, Play } from "@/components/icons";
 import { YoutubeIcon } from "@/components/icons/SocialIcons";
 
 export type EventButtonData = {

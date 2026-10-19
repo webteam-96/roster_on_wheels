@@ -40,7 +40,7 @@ import SearchBox from "@/components/SearchBox";
 import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
 import AlertModal from "@/components/AlertModal";
-import { ArrowLeft, Plus, Pencil, Trash2, MoreHorizontal, Users, User, Search, AlertTriangle, GripVertical } from "lucide-react";
+import { ArrowLeft, Plus, Pencil, Trash2, MoreHorizontal, Users, User, Search, AlertTriangle, GripVertical } from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
 import Link from "next/link";
 import Image from "next/image";

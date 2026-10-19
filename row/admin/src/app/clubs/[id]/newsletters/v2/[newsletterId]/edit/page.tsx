@@ -16,7 +16,7 @@ import DateField from "@/components/DateField";
 import { useParams } from "next/navigation";
 import {
   Upload, X, FileText, Bell, Link2, FileUp, Info, Calendar,
-} from "lucide-react";
+} from "@/components/icons";
 import {
   getClub,
   getNewsletter,
@@ -30,13 +30,10 @@ import RotaryLoader from "@/components/RotaryLoader";
 import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
 import ProtectedRoute from "@/components/ProtectedRoute";
-import WhatsAppRecipientBadge from "@/components/WhatsAppRecipientBadge";
+import RecipientBadge from "@/components/RecipientBadge";
 import { toLocalDateParts } from "@/lib/dateUtils";
 import { useSyncClubIdFromUrl } from "@/hooks/useSyncClubIdFromUrl";
 
-import WhatsAppPhonePreview from "@/components/WhatsAppPhonePreview";
-import { isWhatsAppPilotClub } from "@/utils/whatsappPilot";
-import { renderClubNewsletterWhatsApp } from "@/utils/whatsappTemplatePreview";
 import { TEXT_INPUT_REGEX } from "@/lib/textInput";
 
 const TOP_MESSAGE = "Edit publish window, attachment or notification options. Existing past dates remain valid unless you change them.";
@@ -61,7 +58,7 @@ function SectionCard({
 }: { number: number; icon: React.ElementType; title: string; dot: string; children: React.ReactNode }) {
   return (
     <div className="rounded-xl border border-slate-200 overflow-hidden mb-4">
-      <div className="flex items-center gap-3 px-4 py-2.5 bg-gradient-to-r from-slate-50 to-white border-b border-slate-100">
+      <div className="flex items-center gap-3 px-4 py-2.5 bg-slate-50 border-b border-slate-100">
         <div className={`flex items-center justify-center h-7 w-7 rounded-full text-white text-xs font-bold ${dot}`}>{number}</div>
         <Icon className="h-4 w-4 text-slate-500" />
         <h3 className="text-sm font-semibold text-slate-800">{title}</h3>
@@ -96,8 +93,6 @@ export default function NewslettersV2EditPage() {
   useSyncClubIdFromUrl();
   const params = useParams();
   const clubId = Number(params.id);
-  // Newsletter WhatsApp is live for the pilot club only for now.
-  const whatsAppPilot = isWhatsAppPilotClub(clubId);
   const newsletterId = Number(params.newsletterId);
   const { navigateAfterSave } = useV2ReturnTo(`/clubs/${clubId}/newsletters/v2`);
 
@@ -115,7 +110,6 @@ export default function NewslettersV2EditPage() {
   const [filePath, setFilePath] = useState<string | null>(null);
   const [fileName, setFileName] = useState<string | null>(null);
   const [fileUploading, setFileUploading] = useState(false);
-  const [isSendWhatsapp, setIsSendWhatsapp] = useState(false);
   const [isSendEmail, setIsSendEmail] = useState(false);
 
   // Track original dates to allow existing past dates without validation error.
@@ -145,7 +139,6 @@ export default function NewslettersV2EditPage() {
           const parts = nl.filePath.split("/");
           setFileName(parts[parts.length - 1]);
         }
-        setIsSendWhatsapp(nl.isSendWhatsapp);
         setIsSendEmail(nl.isSendEmail ?? false);
 
         if (nl.publishDateTime) {
@@ -231,7 +224,6 @@ export default function NewslettersV2EditPage() {
         attachmentType,
         linkUrl: attachmentType === "link" ? linkUrl.trim() : null,
         filePath: attachmentType === "file" ? filePath : null,
-        isSendWhatsapp,
         isSendEmail,
       });
       setSuccessMessage("Newsletter updated successfully.");
@@ -274,8 +266,7 @@ export default function NewslettersV2EditPage() {
           </div>
         }
       >
-        {/* With "Send through WhatsApp" ticked, the form shares the row with a phone preview. */}
-        <div className={whatsAppPilot && isSendWhatsapp ? "lg:grid lg:grid-cols-[minmax(0,1fr)_320px] lg:items-start lg:gap-6" : ""}>
+        <div className="">
         <div className="min-w-0">
         {/* 1. Newsletter Details */}
         <SectionCard number={1} icon={FileText} title="Newsletter Details" dot="bg-blue-600">
@@ -378,20 +369,6 @@ export default function NewslettersV2EditPage() {
 
         {/* 4. Notification */}
         <SectionCard number={4} icon={Bell} title="Notification Settings" dot="bg-emerald-600">
-          {/* WhatsApp pilot: shown only for Thane City View while the newsletter templates are new
-              (utils/whatsappPilot). Every other club still saves with WhatsApp off. */}
-          {whatsAppPilot && (
-          <label className="flex items-center gap-3 cursor-pointer">
-            <input
-              type="checkbox"
-              checked={isSendWhatsapp}
-              onChange={(e) => setIsSendWhatsapp(e.target.checked)}
-              className="h-4 w-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500"
-            />
-            <span className="text-sm font-medium text-slate-700">Send through WhatsApp</span>
-            {isSendWhatsapp && <WhatsAppRecipientBadge scope="club" clubId={clubId} />}
-          </label>
-          )}
           <label className="flex items-center gap-3 cursor-pointer mt-3">
             <input
               type="checkbox"
@@ -400,27 +377,11 @@ export default function NewslettersV2EditPage() {
               className="h-4 w-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500"
             />
             <span className="text-sm font-medium text-slate-700">Notify members via Email</span>
-            {isSendEmail && <WhatsAppRecipientBadge scope="club" clubId={clubId} channel="email" />}
+            {isSendEmail && <RecipientBadge scope="club" clubId={clubId} />}
           </label>
         </SectionCard>
         </div>
 
-        {whatsAppPilot && isSendWhatsapp && (
-          <aside className="mt-2 lg:mt-0 lg:sticky lg:top-4">
-            <WhatsAppPhonePreview
-              documentName={attachmentType === "file" ? (fileName || "newsletter.pdf") : null}
-              body={renderClubNewsletterWhatsApp({
-                clubName,
-                title,
-                attachmentType: attachmentType === "file" ? "file" : "link",
-                linkUrl,
-              })}
-              caption={attachmentType === "file"
-                ? "Sent with the PDF attached."
-                : "Sent with the link in the message."}
-            />
-          </aside>
-        )}
         </div>
 
         <SuccessAlert

@@ -7,7 +7,7 @@
 // all their assigned districts). Clicking a district row opens that district's messages below.
 
 import { Fragment, useCallback, useEffect, useMemo, useState } from "react";
-import { Loader2, Download, MessagesSquare, Calendar, Building2 } from "lucide-react";
+import { Loader2, Download, MessagesSquare, Calendar, Building2 } from "@/components/icons";
 import { saveAs } from "file-saver";
 import { getDistrictSummaryMatrix, downloadGoalDistrictReport, downloadGoalOversightDistrictReport, getGoalMessagesHasUnread, markGoalMessagesSeen, getDistrictMonthlyGoals, downloadGoalMessagesReport } from "@/services/api";
 import { fileTimestamp } from "@/lib/dateUtils";
@@ -182,7 +182,7 @@ export default function GoalOversightMatrix({
   return (
     <div className="space-y-4">
       <div className="rounded-xl border border-slate-200 bg-white p-4">
-        <div className="text-sm font-semibold text-slate-800">{title} — districts (read-only)</div>
+        <div className="text-sm font-semibold text-slate-800">{title}: districts (read-only)</div>
         <p className="text-xs text-slate-500 mt-0.5 mb-3">Pick a zone to see every district&apos;s Membership / Foundation / Youth Service / Public Image progress. Click a district row to see its messages.</p>
         <div className="flex flex-wrap gap-3">
           <label className="flex flex-col gap-1 text-xs text-slate-500">
@@ -252,7 +252,7 @@ export default function GoalOversightMatrix({
         )}
         {showRagLegend && (
           <p className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-slate-500">
-            <span className="font-semibold text-slate-600">RAG — clubs by active members:</span>
+            <span className="font-semibold text-slate-600">RAG: clubs by active members:</span>
             <span className="inline-flex items-center gap-1"><span className="h-2.5 w-2.5 rounded-sm bg-red-500" /> Red 10–25</span>
             <span className="inline-flex items-center gap-1"><span className="h-2.5 w-2.5 rounded-sm bg-amber-500" /> Amber 26–40</span>
             <span className="inline-flex items-center gap-1"><span className="h-2.5 w-2.5 rounded-sm bg-emerald-500" /> Green 41+</span>
@@ -273,9 +273,9 @@ export default function GoalOversightMatrix({
             <table className="text-sm border-collapse w-full">
               <thead>
                 {/* Tier 1 — category (spans all its metric×4 columns). */}
-                <tr className="border-b border-[#F7A81B]" style={{ backgroundColor: "#1e3a5f" }}>
-                  <th rowSpan={3} className="sticky left-0 z-20 bg-[#1e3a5f] text-left px-4 py-2 text-white text-xs font-semibold uppercase tracking-wide border-r border-white/20">District</th>
-                  <th rowSpan={3} className="bg-[#1e3a5f] text-center px-3 py-2 text-white text-[11px] font-semibold uppercase tracking-wide border-r border-white/20 whitespace-normal break-words min-w-[92px] max-w-[110px]">Club Goal Setting</th>
+                <tr className="border-b border-marigold" style={{ backgroundColor: "#17458f" }}>
+                  <th rowSpan={3} className="sticky left-0 z-20 bg-azure text-left px-4 py-2 text-white text-xs font-semibold uppercase tracking-wide border-r border-white/20">District</th>
+                  <th rowSpan={3} className="bg-azure text-center px-3 py-2 text-white text-[11px] font-semibold uppercase tracking-wide border-r border-white/20 whitespace-normal break-words min-w-[92px] max-w-[110px]">Club Goal Setting</th>
                   {shownCats.map((c) => (
                     <th key={c.categoryId} colSpan={Math.max(1, catColSpan(c))} className="px-3 py-2 text-white text-xs font-semibold uppercase tracking-wide text-center border-l border-white/20">
                       {c.name}
@@ -283,7 +283,7 @@ export default function GoalOversightMatrix({
                   ))}
                 </tr>
                 {/* Tier 2 — metric group (New Clubs / Total Members / Women …). */}
-                <tr style={{ backgroundColor: "#22405f" }}>
+                <tr style={{ backgroundColor: "#17458f" }}>
                   {shownCats.map((c) => (
                     <Fragment key={c.categoryId}>
                       {groupSegments(c).map((seg, si) => (
@@ -293,7 +293,7 @@ export default function GoalOversightMatrix({
                   ))}
                 </tr>
                 {/* Tier 3 — the four fields (exact form labels). */}
-                <tr style={{ backgroundColor: "#274b73" }}>
+                <tr style={{ backgroundColor: "#17458f" }}>
                   {shownCats.map((c) => (
                     <Fragment key={c.categoryId}>
                       {c.metrics.map((mt, mi) => isSingle(mt) ? (
@@ -352,16 +352,16 @@ export default function GoalOversightMatrix({
                           {c.metrics.map((mt, mi) => {
                             const cell = cells[mi];
                             if (isSingle(mt)) return (
-                              <td key={mi} className={`px-3 py-2 text-center font-semibold border-l border-slate-100 whitespace-pre-line ${mt.ragBand ? (RAG_CELL[mt.ragBand] ?? "") : "text-slate-800"}`}>{cell?.value ?? "—"}</td>
+                              <td key={mi} className={`px-3 py-2 text-center font-semibold border-l border-slate-100 whitespace-pre-line ${mt.ragBand ? (RAG_CELL[mt.ragBand] ?? "") : "text-slate-800"}`}>{cell?.value ?? "–"}</td>
                             );
                             return (
                               <Fragment key={mi}>
                                 {mt.hasBaseline !== false && (
-                                  <td className="px-3 py-2 text-right text-slate-500 whitespace-nowrap border-l border-slate-100">{cell?.asOnJul1 ?? "—"}</td>
+                                  <td className="px-3 py-2 text-right text-slate-500 whitespace-nowrap border-l border-slate-100">{cell?.asOnJul1 ?? "–"}</td>
                                 )}
-                                <td className={`px-3 py-2 text-right text-slate-700 whitespace-nowrap ${mt.hasBaseline === false ? "border-l border-slate-100" : ""}`}>{cell?.target ?? "—"}</td>
-                                <td className="px-3 py-2 text-right text-slate-700 whitespace-nowrap">{cell?.achieved ?? "—"}</td>
-                                <td className="px-3 py-2 text-right font-medium text-slate-800 whitespace-nowrap">{cell?.pct ?? "—"}</td>
+                                <td className={`px-3 py-2 text-right text-slate-700 whitespace-nowrap ${mt.hasBaseline === false ? "border-l border-slate-100" : ""}`}>{cell?.target ?? "–"}</td>
+                                <td className="px-3 py-2 text-right text-slate-700 whitespace-nowrap">{cell?.achieved ?? "–"}</td>
+                                <td className="px-3 py-2 text-right font-medium text-slate-800 whitespace-nowrap">{cell?.pct ?? "–"}</td>
                               </Fragment>
                             );
                           })}
@@ -383,17 +383,17 @@ export default function GoalOversightMatrix({
                             <td key={mi} className={`px-3 py-2 text-center font-semibold border-l border-slate-100 ${mt.ragBand ? (RAG_CELL[mt.ragBand] ?? "") : "text-slate-800"}`}>
                               {/* Suggestions (text) and percentage columns carry no total - the API
                                   sends none, and adding them up would be meaningless. */}
-                              {mt.notSummable ? "" : (t?.value ?? "—")}
+                              {mt.notSummable ? "" : (t?.value ?? "–")}
                             </td>
                           );
                           return (
                             <Fragment key={mi}>
                               {mt.hasBaseline !== false && (
-                                <td className="px-3 py-2 text-right text-slate-700 border-l border-slate-100">{t?.asOnJul1 ?? "—"}</td>
+                                <td className="px-3 py-2 text-right text-slate-700 border-l border-slate-100">{t?.asOnJul1 ?? "–"}</td>
                               )}
-                              <td className={`px-3 py-2 text-right text-slate-800 ${mt.hasBaseline === false ? "border-l border-slate-100" : ""}`}>{t?.target ?? "—"}</td>
-                              <td className="px-3 py-2 text-right text-slate-800">{t?.achieved ?? "—"}</td>
-                              <td className="px-3 py-2 text-right text-slate-800">{t?.pct ?? "—"}</td>
+                              <td className={`px-3 py-2 text-right text-slate-800 ${mt.hasBaseline === false ? "border-l border-slate-100" : ""}`}>{t?.target ?? "–"}</td>
+                              <td className="px-3 py-2 text-right text-slate-800">{t?.achieved ?? "–"}</td>
+                              <td className="px-3 py-2 text-right text-slate-800">{t?.pct ?? "–"}</td>
                             </Fragment>
                           );
                         })}
@@ -419,7 +419,7 @@ export default function GoalOversightMatrix({
           <DialogHeader className="shrink-0">
             <div className="flex items-center justify-between gap-3 pr-8">
               <DialogTitle className="flex items-center gap-2">
-                <Calendar size={18} className="text-blue-600" /> Month-wise Collection — District {monthDistrict?.number}
+                <Calendar size={18} className="text-blue-600" /> Month-wise Collection: District {monthDistrict?.number}
               </DialogTitle>
               {monthDistrict && (
                 <button
@@ -447,7 +447,7 @@ export default function GoalOversightMatrix({
         <DialogContent className="max-w-6xl w-[97vw] h-[90vh] flex flex-col overflow-hidden">
           <DialogHeader className="shrink-0">
             <DialogTitle className="flex items-center gap-2">
-              <Building2 size={18} className="text-blue-600" /> Club Goal Setting — District {clubDistrict?.number}
+              <Building2 size={18} className="text-blue-600" /> Club Goal Setting: District {clubDistrict?.number}
             </DialogTitle>
           </DialogHeader>
           <div className="flex-1 min-h-0 overflow-hidden">
@@ -463,7 +463,7 @@ export default function GoalOversightMatrix({
         <DialogContent className="max-w-4xl w-[95vw] h-[85vh] flex flex-col overflow-hidden">
           <DialogHeader className="shrink-0">
             <DialogTitle className="flex items-center gap-2">
-              <MessagesSquare size={18} className="text-blue-600" /> Messages{zoneName ? ` — ${zoneName}` : ""}
+              <MessagesSquare size={18} className="text-blue-600" /> Messages{zoneName ? `: ${zoneName}` : ""}
             </DialogTitle>
           </DialogHeader>
           {/* Report filter bar: pick category (all/one) + district (all/one) → download an Excel of all

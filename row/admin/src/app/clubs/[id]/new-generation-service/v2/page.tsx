@@ -18,7 +18,7 @@ import {
   Briefcase, Users, IndianRupee, Clock4, Loader2, Search, Plus, Edit3, Trash2,
   Download, ArrowLeft, AlertTriangle, Info, BadgeAlert, Eye,
   Clock, CheckCircle2, XCircle, ChevronLeft, ChevronRight, Puzzle,
-} from "lucide-react";
+} from "@/components/icons";
 import {
   getClub,
   getModules,
@@ -216,7 +216,7 @@ export default function NewGenerationServiceV2Page() {
   const handleSearch = () => { setPage(1); setSearch(searchInput.trim()); };
   const clearSearch = () => { setSearchInput(""); setSearch(""); setPage(1); };
 
-  const yearLabel = years.find((y) => y.id === selectedYearId)?.yearLabel ?? "—";
+  const yearLabel = years.find((y) => y.id === selectedYearId)?.yearLabel ?? "–";
 
   // KPIs computed from the current page only (server pagination means we don't
   // hold the full year in memory). `totalProjects` uses totalCount from the API
@@ -288,7 +288,7 @@ export default function NewGenerationServiceV2Page() {
             <div>
               <h1 className="text-lg font-semibold text-slate-800">New Generation Service</h1>
               <p className="text-xs text-slate-500 mt-0.5">
-                RY {yearLabel} · {clubName || "—"}
+                RY {yearLabel} · {clubName || "–"}
               </p>
             </div>
           </div>
@@ -427,24 +427,24 @@ export default function NewGenerationServiceV2Page() {
                 </thead>
                 <tbody className="divide-y divide-slate-100">
                   {filtered.map((m, i) => {
-                    const typeLabel = m.projectType || "—";
+                    const typeLabel = m.projectType || "–";
                     return (
                       <tr key={m.id} className="hover:bg-blue-50/40">
                         <td className="px-3 py-2 text-slate-500">{i + 1}</td>
                         <td className="px-3 py-2 text-slate-700 whitespace-nowrap">{fmtDate(m.projectDate)}</td>
-                        <td className="px-3 py-2 font-medium text-slate-800">{m.title || "—"}</td>
-                        <td className="px-3 py-2 text-slate-600">{m.areaOfFocusName || m.otherAreaOfFocus || "—"}</td>
+                        <td className="px-3 py-2 font-medium text-slate-800">{m.title || "–"}</td>
+                        <td className="px-3 py-2 text-slate-600">{m.areaOfFocusName || m.otherAreaOfFocus || "–"}</td>
                         <td className="px-3 py-2">
                           <span className={`inline-flex items-center text-xs font-medium px-2 py-0.5 rounded-full border ${projectTypeChipStyle(typeLabel)}`}>
                             {typeLabel}
                           </span>
                         </td>
-                        <td className="px-3 py-2 text-slate-600">{m.location || "—"}</td>
+                        <td className="px-3 py-2 text-slate-600">{m.location || "–"}</td>
                         <td className="px-3 py-2 text-right text-slate-600 whitespace-nowrap">
-                          {m.projectCost && m.projectCost > 0 ? shortCurrency(Number(m.projectCost), m.currency) : "—"}
+                          {m.projectCost && m.projectCost > 0 ? shortCurrency(Number(m.projectCost), m.currency) : "–"}
                         </td>
                         <td className="px-3 py-2 text-right text-slate-600">
-                          {m.directBeneficiaries && m.directBeneficiaries > 0 ? fmtInt(m.directBeneficiaries) : "—"}
+                          {m.directBeneficiaries && m.directBeneficiaries > 0 ? fmtInt(m.directBeneficiaries) : "–"}
                         </td>
                         <td className="px-3 py-2">
                           {m.approvalStatus === "pending" ? (
@@ -460,7 +460,7 @@ export default function NewGenerationServiceV2Page() {
                               <XCircle size={11} /> Rejected
                             </span>
                           ) : (
-                            <span className="text-xs text-slate-400">—</span>
+                            <span className="text-xs text-slate-400">, </span>
                           )}
                         </td>
                         <td className="px-3 py-2 text-right">
@@ -517,7 +517,7 @@ export default function NewGenerationServiceV2Page() {
                     <tr>
                       <td
                         colSpan={8 /* Sr, Date, Title, Category, Type, Location, Cost, Direct Benf */
-                          + 1 /* View — always visible */
+                          + 1 /* View: always visible */
                           + 1
                           + (canManage ? 2 /* Edit, Delete */ : 0)
                           + (isBotEnabled && installed === true ? 1 : 0)}

@@ -3,7 +3,7 @@
 /**
  * District Admin Dashboard › Wallet tab
  * --------------------------------------------------------------------------
- * Self-service credit top-up (Razorpay). District admins buy WhatsApp / Email
+ * Self-service credit top-up (Razorpay). District admins buy email
  * notification credits for the district pool (fk_club_id = 0). Scope +
  * districtId come from the selected district in AuthContext; the charge +
  * credit are computed and applied server-side.

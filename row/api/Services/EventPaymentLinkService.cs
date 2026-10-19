@@ -12,21 +12,16 @@ public class EventPaymentLinkService : IEventPaymentLinkService
     private readonly string _connStr;
     private readonly IConfiguration _config;
     private readonly IEmailService _emailService;
-    private readonly ISmsService _smsService;
-    private readonly IWhatsAppService _whatsAppService;
     private readonly IGoogleSheetsService _googleSheetsService;
     private readonly HttpClient _httpClient;
     private readonly ILogger<EventPaymentLinkService> _logger;
 
-    public EventPaymentLinkService(IConfiguration config, IEmailService emailService, ISmsService smsService,
-        IWhatsAppService whatsAppService, IHttpClientFactory httpClientFactory, IGoogleSheetsService googleSheetsService,
+    public EventPaymentLinkService(IConfiguration config, IEmailService emailService, IHttpClientFactory httpClientFactory, IGoogleSheetsService googleSheetsService,
         ILogger<EventPaymentLinkService> logger)
     {
         _connStr = config.GetConnectionString("DefaultConnection")!;
         _config = config;
         _emailService = emailService;
-        _smsService = smsService;
-        _whatsAppService = whatsAppService;
         _googleSheetsService = googleSheetsService;
         _httpClient = httpClientFactory.CreateClient();
         _logger = logger;
@@ -1058,25 +1053,6 @@ public class EventPaymentLinkService : IEventPaymentLinkService
         await _emailService.SendGenericEmailAsync((string)member.Email, subject, body);
     }
 
-    public async Task SendReminderWhatsAppAsync(int memberPaymentId)
-    {
-        using var conn = GetConnection();
-        var member = await conn.QueryFirstOrDefaultAsync<dynamic>(@"
-            SELECT pm.MemberName, pm.Mobile, pm.DistrictNumber, pm.ClubName, pm.fk_payment_link_id, l.Title AS LinkTitle, r.Amount AS RegAmount
-            FROM event_payment_members pm
-            JOIN event_payment_links l ON pm.fk_payment_link_id = l.pk_id
-            LEFT JOIN event_payment_registrations r ON pm.fk_registration_id = r.pk_id
-            WHERE pm.pk_id=@Id", new { Id = memberPaymentId });
-        if (member == null || string.IsNullOrWhiteSpace((string?)member.Mobile)) return;
-
-        var frontendUrl = _config["FrontendUrl"] ?? "http://localhost:3000";
-        var payUrl = $"{frontendUrl}/pay/{member.fk_payment_link_id}";
-        await _whatsAppService.SendWhatsAppReminderAsync(
-            (string)member.Mobile, (string)member.MemberName,
-            (string?)member.DistrictNumber ?? "-", (string?)member.ClubName ?? "-",
-            (string)(member.LinkTitle ?? "Event"), "Not Received", payUrl);
-    }
-
     public async Task BulkSendReminderEmailAsync(int linkId, string? extraRemark = null)
     {
         var unpaidMembers = await GetMembersAsync(linkId, false, null);
@@ -1110,30 +1086,6 @@ public class EventPaymentLinkService : IEventPaymentLinkService
                     <p>Thank you,<br/>ROW</p>
                 {EmailService.EMAIL_FOOTER}";
                 await _emailService.SendGenericEmailAsync(m.Email, subject, body);
-            }
-            catch { /* skip failed */ }
-        }
-    }
-
-    public async Task BulkSendReminderWhatsAppAsync(int linkId)
-    {
-        var unpaidMembers = await GetMembersAsync(linkId, false, null);
-        var link = await GetPaymentLinkDetailAsync(linkId);
-        if (link == null) return;
-
-        var frontendUrl = _config["FrontendUrl"] ?? "http://localhost:3000";
-        var payUrl = $"{frontendUrl}/pay/{linkId}";
-        var regAmount = link.Registrations.FirstOrDefault()?.Amount ?? 0;
-
-        foreach (var m in unpaidMembers)
-        {
-            if (string.IsNullOrWhiteSpace(m.Mobile)) continue;
-            try
-            {
-                await _whatsAppService.SendWhatsAppReminderAsync(
-                    m.Mobile, m.MemberName ?? "Member",
-                    m.DistrictNumber ?? "-", m.ClubName ?? "-",
-                    link.Title ?? "Event", "Not Received", payUrl);
             }
             catch { /* skip failed */ }
         }
@@ -1316,24 +1268,13 @@ public class EventPaymentLinkService : IEventPaymentLinkService
             }
             catch { /* skip if email fails */ }
         }
-        if (!string.IsNullOrWhiteSpace(mobile))
-        {
-            // WhatsApp when the brand's code policy lists it for the member's country, else SMS.
-            whatsAppSent = await OtpWhatsAppHelper.TrySendAsync(
-                conn, _whatsAppService, _config, _logger, mobile, memberCountryId, otp, "event payment");
-
-            // Fallback: SMS when WhatsApp was not used or failed.
-            if (!whatsAppSent)
-                smsSent = await _smsService.SendOtpSmsAsync(mobile, otp);
-        }
+        // ROW sends no SMS or WhatsApp: the code goes by email only.
 
         return emailSent || smsSent || whatsAppSent;
     }
 
     public async Task<bool> VerifyOtpAsync(int linkId, VerifyOtpRequestDto dto)
     {
-        // Default OTP bypass for testing
-        if (dto.OtpCode == "111111") return true;
 
         using var conn = GetConnection();
 

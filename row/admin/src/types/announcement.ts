@@ -7,14 +7,10 @@ export interface AnnouncementListItem {
   publishDateTime: string;
   expiryDateTime: string;
   isDisplayOnBanner: boolean;
-  isSendWhatsapp: boolean;
   isSendEmail: boolean;
   isRepeatNotification: boolean;
   status: string;
   reminderCount: number;
-  whatsAppSentDate?: string | null;
-  whatsAppSentCount?: number;
-  whatsAppFailedCount?: number;
   emailSentDate?: string | null;
   emailSentCount?: number;
   emailFailedCount?: number;
@@ -29,7 +25,6 @@ export interface AnnouncementDetail {
   publishDateTime: string;
   expiryDateTime: string;
   isDisplayOnBanner: boolean;
-  isSendWhatsapp: boolean;
   isSendEmail: boolean;
   isRepeatNotification: boolean;
   status: string;
@@ -48,7 +43,6 @@ export interface CreateAnnouncementRequest {
   publishDateTime: string;
   expiryDateTime: string;
   isDisplayOnBanner: boolean;
-  isSendWhatsapp: boolean;
   isSendEmail: boolean;
   isRepeatNotification: boolean;
   reminders: string[] | null;
@@ -61,7 +55,6 @@ export interface UpdateAnnouncementRequest {
   publishDateTime: string;
   expiryDateTime: string;
   isDisplayOnBanner: boolean;
-  isSendWhatsapp: boolean;
   isSendEmail: boolean;
   isRepeatNotification: boolean;
   reminders: string[] | null;

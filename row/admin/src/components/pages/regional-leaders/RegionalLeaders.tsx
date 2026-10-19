@@ -19,7 +19,7 @@ export function RegionalLeaders() {
       {/* Standard split-serif banner — no counts. */}
       <PageBanner
         eyebrow="ROW"
-        subtitle="The coordinators, advisors and plan leads guiding Rotary's Action Plan — with a direct line to every one of them."
+        subtitle="The coordinators, advisors and plan leads guiding Rotary's Action Plan: with a direct line to every one of them."
       >
         Regional <span className="text-gold">Leaders</span>
       </PageBanner>

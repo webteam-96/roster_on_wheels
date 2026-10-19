@@ -1,6 +1,6 @@
 "use client";
 
-import { Globe } from "lucide-react";
+import { Globe } from "@/components/icons";
 import { useTranslations } from "next-intl";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useLocaleControl } from "@/i18n/IntlProvider";
@@ -29,11 +29,12 @@ export default function LanguagePicker({ className, signedIn = false }: { classN
 
   return (
     <Select value={locale} onValueChange={change}>
-      <SelectTrigger aria-label={t("choose")} className={cn("h-9 w-auto min-w-[8rem] gap-2", className)}>
+      {/* Language names are always shown in their own language: never machine-translate them. */}
+      <SelectTrigger data-no-translate aria-label={t("choose")} className={cn("h-9 w-auto min-w-[8rem] gap-2", className)}>
         <Globe className="h-4 w-4 shrink-0 opacity-70" aria-hidden />
         <SelectValue />
       </SelectTrigger>
-      <SelectContent>
+      <SelectContent data-no-translate>
         {available.map((code) => (
           <SelectItem key={code} value={code} lang={code}>
             {nativeLanguageName(code)}

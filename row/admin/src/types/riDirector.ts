@@ -2,9 +2,6 @@ export interface RiCreditBalance {
   emailTotal: number;
   emailUsed: number;
   emailBalance: number;
-  whatsappTotal: number;
-  whatsappUsed: number;
-  whatsappBalance: number;
 }
 
 export interface RiDirectorContext {

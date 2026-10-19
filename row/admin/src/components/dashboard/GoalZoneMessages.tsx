@@ -7,7 +7,7 @@
 // Every (zone × category) conversation is separate. Chat UI matches the old admin message box.
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { MessagesSquare, Send, Loader2, ChevronLeft, User } from "lucide-react";
+import { MessagesSquare, Send, Loader2, ChevronLeft, User } from "@/components/icons";
 import { getGoalZoneThreadList, getGoalOwnerThreadMessages, postGoalOwnerThreadMessage, setGoalViewAs } from "@/services/api";
 import type { GoalCommentDto, GoalThreadListDto, GoalMessageThreadDto } from "@/types/goalSetting";
 import GoalMessageList from "@/components/goal-messages/GoalMessageList";
@@ -140,7 +140,7 @@ export default function GoalZoneMessages({
   if (isRiView && !active) {
     return (
       <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
-        <div className="px-5 py-3 border-b border-slate-100 flex items-center gap-2 bg-gradient-to-r from-blue-50 to-white">
+        <div className="px-5 py-3 border-b border-slate-100 flex items-center gap-2 bg-blue-50">
           <MessagesSquare size={16} className="text-blue-600" />
           <h3 className="text-sm font-semibold text-slate-800">Messages</h3>
           {canObservePost && <span className="ml-auto text-[11px] text-amber-700">Click a person to send a message as them</span>}
@@ -177,7 +177,7 @@ export default function GoalZoneMessages({
                   <span className={`text-[10px] px-1.5 py-0.5 rounded-full shrink-0 border ${t.isFormer ? "bg-slate-100 text-slate-500 border-slate-200" : "bg-blue-50 text-blue-700 border-blue-200"}`}>{t.ownerRoleLabel}</span>
                   {t.scope && <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-slate-100 text-slate-500 border border-slate-200 shrink-0">{t.scope}</span>}
                 </span>
-                <span className={`block text-xs truncate ${t.unreadCount > 0 ? "text-slate-700 font-medium" : "text-slate-400"}`}>{t.lastMessagePreview ? t.lastMessagePreview : "No messages yet — start the conversation"}</span>
+                <span className={`block text-xs truncate ${t.unreadCount > 0 ? "text-slate-700 font-medium" : "text-slate-400"}`}>{t.lastMessagePreview ? t.lastMessagePreview : "No messages yet: start the conversation"}</span>
               </span>
               {t.messageCount > 0 && <span className={`text-[10px] shrink-0 ${t.unreadCount > 0 ? "text-slate-600 font-medium" : "text-slate-400"}`}>{t.lastMessageDate}</span>}
             </button>
@@ -195,7 +195,7 @@ export default function GoalZoneMessages({
 
   return (
     <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden flex flex-col max-h-[70vh]">
-      <div className="px-4 py-3 border-b border-slate-100 flex items-center gap-2 bg-gradient-to-r from-blue-50 to-white">
+      <div className="px-4 py-3 border-b border-slate-100 flex items-center gap-2 bg-blue-50">
         {isRiView && (
           <button
             onClick={backToList}

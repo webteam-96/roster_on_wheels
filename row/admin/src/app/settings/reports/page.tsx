@@ -11,7 +11,7 @@ import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
 import RotaryLoader from "@/components/RotaryLoader";
 import ProtectedRoute from "@/components/ProtectedRoute";
-import { ArrowLeft, Download, Loader2, Map, Building, Users, Settings as SettingsIcon, UserCheck, BarChart3 } from "lucide-react";
+import { ArrowLeft, Download, Loader2, Map, Building, Users, Settings as SettingsIcon, UserCheck, BarChart3 } from "@/components/icons";
 import { saveAs } from "file-saver";
 import { useAuth } from "@/contexts/AuthContext";
 import { RotaryYear } from "@/types/rotaryYear";
@@ -165,7 +165,7 @@ const sections: ReportSection[] = [
           { key: "bonusEarned", label: "Bonus", width: 12 },
           { key: "totalPoints", label: "Total", width: 12 },
         ] },
-      { id: "members-full-details", title: "Members — Full Details + Family", endpoint: "members-full-details", fileName: "Members_Full_Details", districtScoped: true,
+      { id: "members-full-details", title: "Members | Full Details + Family", endpoint: "members-full-details", fileName: "Members_Full_Details", districtScoped: true,
         columns: [
           { key: "districtNumber", label: "District", width: 12 },
           { key: "clubName", label: "Club", width: 30 },
@@ -190,7 +190,7 @@ const sections: ReportSection[] = [
           { key: "familyAnniversaryDate", label: "Family Anniversary", width: 15 },
           { key: "familyBloodGroup", label: "Family Blood Grp", width: 14 },
         ] },
-      { id: "members-contact-summary", title: "Members — Contact Summary", endpoint: "members-contact-summary", fileName: "Members_Contact", districtScoped: true,
+      { id: "members-contact-summary", title: "Members | Contact Summary", endpoint: "members-contact-summary", fileName: "Members_Contact", districtScoped: true,
         columns: [
           { key: "zoneName", label: "Zone", width: 20 },
           { key: "districtNumber", label: "District", width: 12 },
@@ -199,7 +199,7 @@ const sections: ReportSection[] = [
           { key: "mobile", label: "Mobile", width: 18 },
           { key: "email", label: "Email", width: 30 },
         ] },
-      { id: "mobile-app-users", title: "Members — Mobile App Users", endpoint: "mobile-app-users", fileName: "Mobile_App_Users", districtScoped: true,
+      { id: "mobile-app-users", title: "Members | Mobile App Users", endpoint: "mobile-app-users", fileName: "Mobile_App_Users", districtScoped: true,
         columns: [
           { key: "zoneName", label: "Zone", width: 20 },
           { key: "districtNumber", label: "District", width: 12 },
@@ -215,7 +215,7 @@ const sections: ReportSection[] = [
           { key: "lastVisit", label: "Last Visit", width: 18 },
           { key: "lastLogout", label: "Last Logout", width: 18 },
         ] },
-      { id: "members-addresses", title: "Members — Addresses (Res + Business)", endpoint: "members-addresses", fileName: "Members_Addresses", districtScoped: true,
+      { id: "members-addresses", title: "Members | Addresses (Res + Business)", endpoint: "members-addresses", fileName: "Members_Addresses", districtScoped: true,
         columns: [
           { key: "districtNumber", label: "District", width: 12 },
           { key: "clubName", label: "Club", width: 30 },
@@ -375,7 +375,6 @@ const sections: ReportSection[] = [
           { key: "expiryDate", label: "Expiry", width: 18 },
           { key: "status", label: "Status", width: 12 },
           { key: "displayBanner", label: "On Banner", width: 10 },
-          { key: "sendWhatsApp", label: "WhatsApp", width: 10 },
         ] },
       { id: "club-upcoming-events", title: "Club Upcoming Events", endpoint: "club-upcoming-events", fileName: "Club_Upcoming_Events", yearScoped: true, districtScoped: true,
         columns: [

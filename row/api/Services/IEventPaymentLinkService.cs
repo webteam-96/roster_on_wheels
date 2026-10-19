@@ -46,9 +46,7 @@ public interface IEventPaymentLinkService
     Task<dynamic?> GetMemberPaymentAsync(int memberPaymentId);
     Task SendReceiptEmailAsync(int memberPaymentId, string? extraRemark = null);
     Task SendReminderEmailAsync(int memberPaymentId, string? extraRemark = null);
-    Task SendReminderWhatsAppAsync(int memberPaymentId);
     Task BulkSendReminderEmailAsync(int linkId, string? extraRemark = null);
-    Task BulkSendReminderWhatsAppAsync(int linkId);
     Task<byte[]> ExportMembersExcelAsync(int linkId, bool isPaid);
 
     // Public

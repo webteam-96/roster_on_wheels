@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowRight, BookOpen, HeartPulse, Droplets, Leaf, type LucideIcon } from "lucide-react";
+import { ArrowRight, BookOpen, HeartPulse, Droplets, Leaf, type LucideIcon } from "@/components/icons";
 
 type Area = {
   Icon: LucideIcon;

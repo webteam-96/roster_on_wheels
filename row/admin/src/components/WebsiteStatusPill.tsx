@@ -1,6 +1,6 @@
 "use client";
 
-import { Globe, ExternalLink } from "lucide-react";
+import { Globe, ExternalLink } from "@/components/icons";
 import type { WebsiteStatusInfo } from "@/services/api";
 
 const PILL = "flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-sm font-medium";
@@ -53,7 +53,7 @@ export default function WebsiteStatusPill({
     return (
       <a href={status.visitUrl} target="_blank" rel="noopener noreferrer"
          className={`${PILL} bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100`}
-         title="Trial site — purchase to keep it live after the trial">
+         title="Trial site: purchase to keep it live after the trial">
         <Globe className="h-3.5 w-3.5" />
         <span>Visit Website · Trial: {dayLabel} left</span>
         <ExternalLink className="h-3 w-3" />
@@ -63,8 +63,8 @@ export default function WebsiteStatusPill({
 
   // Non-live states → informational (not clickable)
   const info: Record<string, string> = {
-    expired: "Website expired — renew to restore",
-    trial_expired: "Website inactive — purchase to activate",
+    expired: "Website expired: renew to restore",
+    trial_expired: "Website inactive: purchase to activate",
     not_configured: "No website yet",
   };
   const text = info[status.status] ?? "No website yet";

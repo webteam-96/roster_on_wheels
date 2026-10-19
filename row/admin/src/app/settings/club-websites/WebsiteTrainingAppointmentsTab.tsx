@@ -6,7 +6,7 @@
  */
 
 import { useCallback, useEffect, useState } from "react";
-import { Video, RefreshCw } from "lucide-react";
+import { Video, RefreshCw } from "@/components/icons";
 import { getAllTrainingAppointments } from "@/services/api";
 import TrainingBookingDialog from "@/components/training/TrainingBookingDialog";
 
@@ -25,7 +25,7 @@ export default function WebsiteTrainingAppointmentsTab() {
 
   useEffect(() => { load(); }, [load]);
 
-  const fmt = (s?: string) => (s ? new Date(s).toLocaleString(appLocale(), { dateStyle: "medium", timeStyle: "short" }) : "—");
+  const fmt = (s?: string) => (s ? new Date(s).toLocaleString(appLocale(), { dateStyle: "medium", timeStyle: "short" }) : "–");
 
   return (
     <div className="space-y-4">
@@ -63,13 +63,13 @@ export default function WebsiteTrainingAppointmentsTab() {
                 <td className="px-4 py-2.5">
                   <span className={`inline-block rounded-full px-2 py-0.5 text-xs font-medium ${r.status === "Cancelled" ? "bg-slate-100 text-slate-500" : "bg-emerald-50 text-emerald-700"}`}>{r.status}</span>
                 </td>
-                <td className="px-4 py-2.5 text-slate-600">{r.bookedByName || "—"}</td>
+                <td className="px-4 py-2.5 text-slate-600">{r.bookedByName || "–"}</td>
                 <td className="px-4 py-2.5">
                   {r.zoomJoinUrl ? (
-                    <a href={r.zoomJoinUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-[#003DA5] hover:underline">
+                    <a href={r.zoomJoinUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-azure hover:underline">
                       <Video size={14} /> Join
                     </a>
-                  ) : <span className="text-slate-400">—</span>}
+                  ) : <span className="text-slate-400">, </span>}
                 </td>
                 <td className="px-4 py-2.5 text-right">
                   <button onClick={() => setResc({ id: r.id, clubId: r.clubId })}

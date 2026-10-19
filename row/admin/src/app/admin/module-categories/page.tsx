@@ -27,7 +27,7 @@ import {
 import DeleteDialog from "@/components/DeleteDialog";
 import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
-import { Plus, Pencil, Trash2, AlertCircle, ArrowLeft, FolderOpen } from "lucide-react";
+import { Plus, Pencil, Trash2, AlertCircle, ArrowLeft, FolderOpen } from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
 import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";

@@ -3,26 +3,26 @@
 import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Coins } from "lucide-react";
+import { ArrowLeft, Coins } from "@/components/icons";
 import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";
 
 const cards = [
   {
     title: "Credit Management",
-    description: "Manage email & WhatsApp credits for clubs & districts",
+    description: "Manage email credits for clubs & districts",
     icon: Coins,
     href: "/settings/credit-management",
   },
   {
     title: "RI Director Credits",
-    description: "Manage email & WhatsApp credits for RI Director",
+    description: "Manage email credits for RI Director",
     icon: Coins,
     href: "/ri-director/credits",
   },
 ];
 
-export default function EmailWhatsAppCreditsPage() {
+export default function EmailCreditsPage() {
   const { isSuperAdmin } = useAuth();
 
   if (!isSuperAdmin) {
@@ -44,8 +44,8 @@ export default function EmailWhatsAppCreditsPage() {
             <Link href="/settings"><ArrowLeft className="h-4 w-4" /></Link>
           </Button>
           <div>
-            <h2 className="text-2xl font-bold tracking-tight text-primary">Email & WhatsApp Credits</h2>
-            <p className="text-muted-foreground text-base">Manage email and WhatsApp credits across clubs, districts and RI Director</p>
+            <h2 className="text-2xl font-bold tracking-tight text-primary">Email Credits</h2>
+            <p className="text-muted-foreground text-base">Manage email credits across clubs, districts and RI Director</p>
           </div>
         </div>
 

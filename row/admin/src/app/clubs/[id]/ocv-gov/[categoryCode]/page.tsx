@@ -37,7 +37,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { ArrowLeft, Upload, Pencil, Trash2, Download, Eye } from "lucide-react";
+import { ArrowLeft, Upload, Pencil, Trash2, Download, Eye } from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
 import ErrorAlert from "@/components/ErrorAlert";
 import Link from "next/link";

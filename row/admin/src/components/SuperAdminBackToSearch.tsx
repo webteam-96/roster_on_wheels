@@ -2,7 +2,7 @@
 
 import { usePathname, useRouter } from "next/navigation";
 import { useAuth, decodeJwt } from "@/contexts/AuthContext";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft } from "@/components/icons";
 
 // A floating shortcut back to Global Search, shown ONLY to a SuperAdmin who has drilled into a
 // District / Club / Zone / AG / Club-Moderator dashboard (those pages otherwise have no way back to

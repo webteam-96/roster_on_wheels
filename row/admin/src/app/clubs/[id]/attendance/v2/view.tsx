@@ -16,7 +16,7 @@ import Link from "next/link";
 import {
   CalendarDays, Users, Activity, Loader2, Search, Plus, Edit3, Trash2,
   Download, ArrowLeft, AlertTriangle, Layers, ChevronLeft, ChevronRight,
-} from "lucide-react";
+} from "@/components/icons";
 import {
   getClub,
   getAttendanceList,
@@ -62,7 +62,7 @@ function totalAttendees(item: AttendanceListItem): number {
 }
 
 function formatDateTime(dateStr: string | null): string {
-  if (!dateStr) return "—";
+  if (!dateStr) return "–";
   try {
     return new Date(dateStr).toLocaleString(appLocale(), {
       day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit",
@@ -266,7 +266,7 @@ export function AttendanceV2View({ clubId: propClubId, embedded = false }: { clu
   // Server-side search drives the table — local memo is just a pass-through.
   const filtered: AttendanceListItem[] = records;
 
-  const yearLabel = years.find((y) => y.id === selectedYearId)?.yearLabel ?? "—";
+  const yearLabel = years.find((y) => y.id === selectedYearId)?.yearLabel ?? "–";
   const totalPages = Math.max(1, Math.ceil(totalCount / PAGE_SIZE));
 
   const handleSearchSubmit = () => {
@@ -314,7 +314,7 @@ export function AttendanceV2View({ clubId: propClubId, embedded = false }: { clu
             <div>
               <h1 className="text-lg font-semibold text-slate-800">Attendance</h1>
               <p className="text-xs text-slate-500 mt-0.5">
-                RY {yearLabel} · {clubName || "—"}
+                RY {yearLabel} · {clubName || "–"}
               </p>
             </div>
           </div>
@@ -421,7 +421,14 @@ export function AttendanceV2View({ clubId: propClubId, embedded = false }: { clu
                     return (
                       <tr key={r.id} className="hover:bg-blue-50/40">
                         <td className="px-3 py-2 text-slate-500">{(page - 1) * PAGE_SIZE + i + 1}</td>
-                        <td className="px-3 py-2 font-medium text-slate-800">{r.eventName || "—"}</td>
+                        <td className="px-3 py-2 font-medium text-slate-800">
+                          {r.eventName || "–"}
+                          {r.meetingMode && r.meetingMode !== "in_person" && (
+                            <span className="ml-2 rounded-full bg-cream-2 px-2 py-0.5 text-xs font-medium text-azure">
+                              {r.meetingMode === "online" ? "Online" : "Hybrid"}
+                            </span>
+                          )}
+                        </td>
                         <td className="px-3 py-2 text-slate-700 whitespace-nowrap">{fmtDate(r.eventDateTime)}</td>
                         <td className="px-3 py-2">
                           <span className={`inline-flex items-center text-xs font-medium px-2 py-0.5 rounded-full border ${evt.cls}`}>
@@ -429,7 +436,7 @@ export function AttendanceV2View({ clubId: propClubId, embedded = false }: { clu
                           </span>
                         </td>
                         <td className="px-3 py-2 text-slate-600">
-                          {r.membersCount}/{memberCount || "—"} <span className="text-slate-400 text-xs">· {total} total</span>
+                          {r.membersCount}/{memberCount || "–"} <span className="text-slate-400 text-xs">· {total} total</span>
                         </td>
                         <td className="px-3 py-2">
                           <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${attendancePercentChip(pct)}`}>

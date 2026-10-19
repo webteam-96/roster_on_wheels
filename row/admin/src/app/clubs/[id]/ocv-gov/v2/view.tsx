@@ -34,8 +34,8 @@ import {
   BarChart3,
   Loader2,
   ChevronRight,
-} from "lucide-react";
-import type { LucideIcon } from "lucide-react";
+} from "@/components/icons";
+import type { LucideIcon } from "@/components/icons";
 import { getClub, getMonthlyReportYears } from "@/services/api";
 import type { ReportYear } from "@/types/clubMonthlyReport";
 import ProtectedRoute from "@/components/ProtectedRoute";
@@ -231,7 +231,7 @@ export function OcvGovV2View({ clubId: propClubId, embedded = false, yearId: glo
     if (globalYearId != null) setSelectedYearId(globalYearId);
   }, [globalYearId]);
 
-  const yearLabel = years.find((y) => y.id === selectedYearId)?.yearLabel ?? "—";
+  const yearLabel = years.find((y) => y.id === selectedYearId)?.yearLabel ?? "–";
 
   function buildHref(card: OcvCard): string {
     const yid = selectedYearId ?? "";
@@ -303,7 +303,7 @@ export function OcvGovV2View({ clubId: propClubId, embedded = false, yearId: glo
         {!loading && (
           <>
             {/* Context banner */}
-            <div className="rounded-2xl border border-slate-200 bg-gradient-to-br from-[#003DA5]/[0.04] to-white p-5">
+            <div className="rounded-2xl border border-slate-200 bg-azure/[0.04] p-5">
               <div className="flex items-start justify-between gap-3 flex-wrap">
                 <div>
                   <p className="text-xs font-medium text-slate-500 uppercase tracking-wide">RY {yearLabel}</p>
@@ -340,7 +340,7 @@ export function OcvGovV2View({ clubId: propClubId, embedded = false, yearId: glo
                   const Icon = card.icon;
                   const href = buildHref(card);
                   const cardCls =
-                    "group relative rounded-xl border border-slate-200 bg-gradient-to-br " +
+                    "group relative rounded-xl border border-slate-200" +
                     card.gradient +
                     " p-4 transition ring-1 ring-transparent " +
                     card.ring +

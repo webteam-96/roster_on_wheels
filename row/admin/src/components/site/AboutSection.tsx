@@ -1,6 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight } from "@/components/icons";
 import { SpotlightCard } from "@/components/motion/SpotlightCard";
 
 const POINTS = [
@@ -48,7 +48,7 @@ export function AboutSection() {
               sizes="(max-width: 1024px) 100vw, 58vw"
               className="object-cover"
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-midnight/70 via-transparent to-transparent" />
+            <div className="absolute inset-0 bg-midnight/70" />
             <div className="absolute bottom-6 left-6 right-6 flex items-end justify-between gap-4">
               <p className="font-display text-xl font-[450] leading-tight text-cream sm:text-2xl">
                 United in service.

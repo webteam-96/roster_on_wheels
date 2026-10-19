@@ -31,7 +31,7 @@ import AlertModal from "@/components/AlertModal";
 import {
   ArrowLeft, Plus, Pencil, Trash2,
   AlertTriangle, Eye, EyeOff, Phone, Mail,
-} from "lucide-react";
+} from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
 import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";

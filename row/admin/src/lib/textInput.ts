@@ -3,8 +3,7 @@
 // ROW is used in eight languages (English, French, German, Italian, Japanese, Korean, Portuguese,
 // Spanish — master plan section 1.3), so these fields take letters of ANY language: accents (é, ñ,
 // ß, ç), Japanese and Korean script, digits, punctuation and symbols such as € or ₹.
-// Emoji are the one thing refused: they do not print in the PDF and Word reports and break
-// WhatsApp / SMS templates.
+// Emoji are the one thing refused: they do not print in the PDF and Word reports.
 //
 // This replaces the old ENGLISH_ONLY_REGEX (A–Z only), which was copied into each form and silently
 // dropped every keystroke outside English.

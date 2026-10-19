@@ -40,6 +40,8 @@ public class RiDirectorController : ControllerBase
     [HttpPost("api/ri-director/credits")]
     public async Task<ActionResult> AddCredit([FromForm] RiAddCreditDto dto, IFormFile? proofDocument = null)
     {
+        // ROW has no WhatsApp: email is the only credit that can be granted.
+        if (dto.CreditType != "Email") return BadRequest(new { message = "Invalid credit type." });
         var id = await _ri.AddCreditAsync(dto, proofDocument, GetUserId(), _env);
         return Ok(new { id });
     }

@@ -1,6 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import { Calendar, MapPin, ArrowRight } from "lucide-react";
+import { Calendar, MapPin, ArrowRight } from "@/components/icons";
 
 /**
  * Home "International Upcoming Event" — light-register feature card:
@@ -16,7 +16,7 @@ export function HighlightCards() {
           <div className="media-grade relative min-h-[300px] lg:min-h-[480px]">
             <Image
               src="/images/event-colombo-hd.jpg"
-              alt="Colombo skyline at night — Sri Lanka Rotary Institute 2026 host city"
+              alt="Colombo skyline at night: Sri Lanka Rotary Institute 2026 host city"
               fill
               sizes="(max-width: 1024px) 100vw, 55vw"
               data-parallax="0.1"

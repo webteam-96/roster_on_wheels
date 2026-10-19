@@ -20,7 +20,7 @@ import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
 import AlertModal from "@/components/AlertModal";
 import RotaryLoader from "@/components/RotaryLoader";
-import { Plus, MoreHorizontal, Eye, Pencil, Trash2, Send, Mail, AlertTriangle } from "lucide-react";
+import { Plus, MoreHorizontal, Eye, Pencil, Trash2, Send, Mail, AlertTriangle } from "@/components/icons";
 
 import { appLocale } from "@/lib/appFormat";
 const BASE = "/club-admin-dashboard/communication/mass-email";
@@ -89,17 +89,17 @@ export default function MassEmailSection({ clubId }: { clubId: number }) {
     };
     return <Badge variant="outline" className={map[status] || map.Draft}>{status}</Badge>;
   };
-  const recipientLabel = (t: number) => (t === 1 ? "All Members" : t === 2 ? "Subgroup" : t === 3 ? "Selected" : "—");
+  const recipientLabel = (t: number) => (t === 1 ? "All Members" : t === 2 ? "Subgroup" : t === 3 ? "Selected" : "–");
   const totalPages = Math.ceil(totalCount / pageSize);
 
   return (
     <div className="space-y-4">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-2 text-slate-700">
-          <Mail className="h-4 w-4" /><span className="text-sm font-semibold">Mass Email — send bulk emails to club members</span>
+          <Mail className="h-4 w-4" /><span className="text-sm font-semibold">Mass Email: send bulk emails to club members</span>
         </div>
         {canManage && (
-          <Button onClick={() => go(`${BASE}/compose`)} className="bg-[#1e3a5f] hover:bg-[#152a44] text-white">
+          <Button onClick={() => go(`${BASE}/compose`)} className="bg-azure hover:bg-mint-ink text-white">
             <Plus className="mr-2 h-4 w-4" />New Email
           </Button>
         )}
@@ -128,7 +128,7 @@ export default function MassEmailSection({ clubId }: { clubId: number }) {
           <div className="overflow-x-auto">
             <Table>
               <TableHeader>
-                <TableRow className="hover:opacity-100 border-b-2 border-[#F7A81B]" style={{ backgroundColor: "#1e3a5f" }}>
+                <TableRow className="hover:opacity-100 border-b-2 border-marigold" style={{ backgroundColor: "#17458f" }}>
                   <TableHead className="text-white text-xs font-semibold uppercase tracking-wide">Subject</TableHead>
                   <TableHead className="text-white text-xs font-semibold uppercase tracking-wide">Status</TableHead>
                   <TableHead className="text-white text-xs font-semibold uppercase tracking-wide">Recipients</TableHead>
@@ -146,8 +146,8 @@ export default function MassEmailSection({ clubId }: { clubId: number }) {
                     <TableCell className="font-semibold text-slate-800 max-w-[250px] truncate">{item.subject}</TableCell>
                     <TableCell>{statusBadge(item.status)}</TableCell>
                     <TableCell className="text-sm text-slate-700">{item.totalRecipients} <span className="text-slate-400">({recipientLabel(item.recipientType)})</span></TableCell>
-                    <TableCell className="text-center text-sm">{item.status !== "Draft" ? <span className="text-emerald-600 font-medium">{item.sentCount}</span> : <span className="text-slate-400">—</span>}</TableCell>
-                    <TableCell className="text-center text-sm">{item.status !== "Draft" ? (item.failedCount > 0 ? <span className="text-red-600 font-medium">{item.failedCount}</span> : <span className="text-slate-500">0</span>) : <span className="text-slate-400">—</span>}</TableCell>
+                    <TableCell className="text-center text-sm">{item.status !== "Draft" ? <span className="text-emerald-600 font-medium">{item.sentCount}</span> : <span className="text-slate-400">, </span>}</TableCell>
+                    <TableCell className="text-center text-sm">{item.status !== "Draft" ? (item.failedCount > 0 ? <span className="text-red-600 font-medium">{item.failedCount}</span> : <span className="text-slate-500">0</span>) : <span className="text-slate-400">, </span>}</TableCell>
                     <TableCell className="text-sm text-slate-600">{new Date(item.createdDate).toLocaleDateString(appLocale())}</TableCell>
                     {canManage && (
                       <TableCell className="text-right">
@@ -189,7 +189,7 @@ export default function MassEmailSection({ clubId }: { clubId: number }) {
         title="Delete Email" description="Delete this draft email? This cannot be undone."
         confirmLabel={processing ? "Deleting..." : "Delete"} confirmClassName="bg-red-600 text-white hover:bg-red-700"
         cancelLabel="Cancel" onConfirm={handleDelete} onCancel={() => setDeleteId(null)} />
-      <AlertModal open={!!sendId} onOpenChange={(o) => !o && setSendId(null)} icon={Send} iconClassName="text-[#1e3a5f]"
+      <AlertModal open={!!sendId} onOpenChange={(o) => !o && setSendId(null)} icon={Send} iconClassName="text-ink"
         title="Send Email" description="Send this email to all recipients now?"
         confirmLabel={processing ? "Sending..." : "Send"} cancelLabel="Cancel" onConfirm={handleSend} onCancel={() => setSendId(null)} />
       <SuccessAlert open={!!successMessage} title="Success" description={successMessage || ""} onOk={() => setSuccessMessage(null)} />

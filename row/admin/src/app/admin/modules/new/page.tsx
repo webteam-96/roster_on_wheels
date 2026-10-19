@@ -18,7 +18,7 @@ import {
 } from "@/components/ui/select";
 import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
-import { ArrowLeft, Upload, X } from "lucide-react";
+import { ArrowLeft, Upload, X } from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
 import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";
@@ -254,7 +254,7 @@ export default function NewModulePage() {
                   </div>
                   <p className="text-xs text-muted-foreground">
                     Checked: the module is added to every district and/or club (per the Module Level above).
-                    Unchecked: it is created but assigned to no one — use this for a scoped module you will
+                    Unchecked: it is created but assigned to no one. Use this for a scoped module you will
                     hand-pick (e.g. Club Dues for district 5656 only), then assign it from that district / club.
                   </p>
                 </div>

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, ArrowUpRight } from "lucide-react";
+import { ArrowLeft, ArrowUpRight } from "@/components/icons";
 import { SiteFooter } from "@/components/site/SiteFooter";
 import { Filmstrip } from "@/components/motion/Filmstrip";
 import { CardMedia } from "@/components/pages/projects/CardMedia";
@@ -42,7 +42,7 @@ export async function generateMetadata({
   if (!data) return { title: pageTitle };
 
   // OpenGraph / Twitter tags point at the API-generated 1200x630 card, so a link pasted
-  // into WhatsApp / Facebook / LinkedIn / X unfurls with a preview instead of a bare URL.
+  // into messaging and social app unfurls with a preview instead of a bare URL.
   const p = data.project;
   const club = p.clubName?.trim();
   const byline = [club ? `Rotary Club of ${club}` : null, p.districtNumber ? `RI District ${p.districtNumber}` : null]

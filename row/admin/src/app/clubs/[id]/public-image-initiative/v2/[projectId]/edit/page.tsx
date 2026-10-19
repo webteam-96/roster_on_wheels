@@ -20,7 +20,7 @@ import DateField from "@/components/DateField";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import {
   Upload, X, Star, Info, FileText, MapPin, Target, IndianRupee, Coins, DollarSign, Camera, Search,
-} from "lucide-react";
+} from "@/components/icons";
 import {
   getClub,
   getModules,
@@ -104,7 +104,7 @@ function SectionCard({
 }: { number: number; icon: React.ElementType; title: string; dot: string; children: React.ReactNode; locked?: boolean }) {
   return (
     <div className="rounded-xl border border-slate-200 overflow-hidden mb-4">
-      <div className="flex items-center gap-3 px-4 py-2.5 bg-gradient-to-r from-slate-50 to-white border-b border-slate-100">
+      <div className="flex items-center gap-3 px-4 py-2.5 bg-slate-50 border-b border-slate-100">
         <div className={`flex items-center justify-center h-7 w-7 rounded-full text-white text-xs font-bold ${dot}`}>{number}</div>
         <Icon className="h-4 w-4 text-slate-500" />
         <h3 className="text-sm font-semibold text-slate-800">{title}</h3>
@@ -219,7 +219,6 @@ export default function PublicImageInitiativeV2EditPage() {
   const [rotariansInvolved, setRotariansInvolved] = useState("");
   const [rotaractorsInvolved, setRotaractorsInvolved] = useState("");
   const [rccInvolved, setRccInvolved] = useState("");
-  const [sendWhatsapp, setSendWhatsapp] = useState(false);
   const [sendEmail, setSendEmail] = useState(false);
 
   const [photos, setPhotos] = useState<PhotoItem[]>([]);
@@ -342,7 +341,6 @@ export default function PublicImageInitiativeV2EditPage() {
         setRotariansInvolved(project.rotariansInvolved != null ? String(project.rotariansInvolved) : "");
         setRotaractorsInvolved(project.rotaractorsInvolved != null ? String(project.rotaractorsInvolved) : "");
         setRccInvolved(project.rccInvolved != null ? String(project.rccInvolved) : "");
-        setSendWhatsapp(project.sendWhatsapp);
         setSendEmail(project.sendEmail ?? false);
 
         setPhotos(project.photos.map((p) => ({
@@ -536,7 +534,6 @@ export default function PublicImageInitiativeV2EditPage() {
       rotariansInvolved: rotariansInvolved ? Number(rotariansInvolved) : null,
       rotaractorsInvolved: rotaractorsInvolved ? Number(rotaractorsInvolved) : null,
       rccInvolved: rccInvolved ? Number(rccInvolved) : null,
-      sendWhatsapp,
       sendEmail,
       photos: photoInputs,
     };
@@ -1000,26 +997,12 @@ export default function PublicImageInitiativeV2EditPage() {
             <label className="flex items-center gap-2 cursor-pointer select-none">
               <input
                 type="checkbox"
-                checked={sendWhatsapp}
-                onChange={(e) => setSendWhatsapp(e.target.checked)}
-                className="accent-blue-600 h-4 w-4"
-              />
-              <span className="text-sm font-medium text-slate-700">Send WhatsApp notification</span>
-            </label>
-            <label className="flex items-center gap-2 cursor-pointer select-none">
-              <input
-                type="checkbox"
                 checked={sendEmail}
                 onChange={(e) => setSendEmail(e.target.checked)}
                 className="accent-blue-600 h-4 w-4"
               />
               <span className="text-sm font-medium text-slate-700">Send Email notification</span>
             </label>
-            {sendWhatsapp && hasModerator && (
-              <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded px-3 py-2 mt-2">
-                Note: This project will go for approval to moderator. WhatsApp will be sent after moderator approves.
-              </p>
-            )}
             {sendEmail && hasModerator && (
               <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded px-3 py-2 mt-2">
                 Note: This project will go for approval to moderator. Email will be sent after moderator approves.

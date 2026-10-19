@@ -19,7 +19,7 @@ import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { formatMoney } from "@/lib/currency";
-import { CheckCircle2, XCircle, Clock, MoreHorizontal, ArrowLeft, Building2, FileText } from "lucide-react";
+import { CheckCircle2, XCircle, Clock, MoreHorizontal, ArrowLeft, Building2, FileText } from "@/components/icons";
 import Link from "next/link";
 
 interface YearSummary {
@@ -321,7 +321,7 @@ export default function ClubModeratorPage() {
                         </div>
                       </TableCell>
                       <TableCell className="hidden md:table-cell text-sm text-muted-foreground">{p.moduleName}</TableCell>
-                      <TableCell className="hidden md:table-cell text-sm">{p.projectDate ? new Date(p.projectDate).toLocaleDateString() : "—"}</TableCell>
+                      <TableCell className="hidden md:table-cell text-sm">{p.projectDate ? new Date(p.projectDate).toLocaleDateString() : "–"}</TableCell>
                       <TableCell>{statusBadge(p.approvalStatus)}</TableCell>
                       <TableCell onClick={(e) => e.stopPropagation()}>
                         {normalizeStatus(p.approvalStatus) === "pending" && (
@@ -407,16 +407,16 @@ export default function ClubModeratorPage() {
                 {/* Project Info */}
                 <div className="grid grid-cols-2 gap-x-6 gap-y-2 text-sm rounded-lg border p-4 bg-muted/30">
                   <div><span className="text-muted-foreground">Club:</span> <span className="font-medium">{detailProject.clubName}</span></div>
-                  <div><span className="text-muted-foreground">District:</span> <span className="font-medium">{detailProject.districtNumber || "—"}</span></div>
+                  <div><span className="text-muted-foreground">District:</span> <span className="font-medium">{detailProject.districtNumber || "–"}</span></div>
                   <div><span className="text-muted-foreground">Module:</span> <span className="font-medium">{detailProject.moduleName}</span></div>
                   <div><span className="text-muted-foreground">Type:</span> <span className="font-medium">{detailProject.projectType === "ongoing_repeat" ? "Ongoing/Repeat" : "One Time"}</span></div>
-                  <div><span className="text-muted-foreground">Date:</span> {detailProject.projectDate ? new Date(detailProject.projectDate).toLocaleDateString() : "—"}</div>
-                  <div><span className="text-muted-foreground">Cost:</span> {detailProject.projectCost != null ? formatMoney(Number(detailProject.projectCost), detailProject.currency) : "—"}</div>
-                  <div><span className="text-muted-foreground">Beneficiaries:</span> {detailProject.directBeneficiaries ?? "—"}</div>
-                  <div><span className="text-muted-foreground">Man Hours:</span> {detailProject.manHours ?? "—"}</div>
-                  <div><span className="text-muted-foreground">Rotarians:</span> {detailProject.rotariansInvolved ?? "—"}</div>
-                  <div><span className="text-muted-foreground">Rotaractors:</span> {detailProject.rotaractorsInvolved ?? "—"}</div>
-                  <div><span className="text-muted-foreground">RCC:</span> {detailProject.rccInvolved ?? "—"}</div>
+                  <div><span className="text-muted-foreground">Date:</span> {detailProject.projectDate ? new Date(detailProject.projectDate).toLocaleDateString() : "–"}</div>
+                  <div><span className="text-muted-foreground">Cost:</span> {detailProject.projectCost != null ? formatMoney(Number(detailProject.projectCost), detailProject.currency) : "–"}</div>
+                  <div><span className="text-muted-foreground">Beneficiaries:</span> {detailProject.directBeneficiaries ?? "–"}</div>
+                  <div><span className="text-muted-foreground">Man Hours:</span> {detailProject.manHours ?? "–"}</div>
+                  <div><span className="text-muted-foreground">Rotarians:</span> {detailProject.rotariansInvolved ?? "–"}</div>
+                  <div><span className="text-muted-foreground">Rotaractors:</span> {detailProject.rotaractorsInvolved ?? "–"}</div>
+                  <div><span className="text-muted-foreground">RCC:</span> {detailProject.rccInvolved ?? "–"}</div>
                   {detailProject.location && <div className="col-span-2"><span className="text-muted-foreground">Location:</span> {detailProject.location}</div>}
                   {detailProject.areaOfFocusName && <div className="col-span-2"><span className="text-muted-foreground">Area of Focus:</span> {detailProject.areaOfFocusName}</div>}
                   {detailProject.categoryName && <div><span className="text-muted-foreground">Category:</span> {detailProject.categoryName}</div>}
@@ -461,11 +461,11 @@ export default function ClubModeratorPage() {
                       )}
                     </div>
                     <div className="text-sm">
-                      <p className="font-semibold">{detailProject.adminName || "—"}</p>
-                      <p className="text-muted-foreground">{[detailProject.adminEmail, detailProject.adminMobile].filter(Boolean).join(" | ") || "—"}</p>
+                      <p className="font-semibold">{detailProject.adminName || "–"}</p>
+                      <p className="text-muted-foreground">{[detailProject.adminEmail, detailProject.adminMobile].filter(Boolean).join(" | ") || "–"}</p>
                     </div>
                   </div>
-                  <p className="text-xs text-muted-foreground mt-2">Submitted on {detailProject.createdDate ? new Date(detailProject.createdDate).toLocaleDateString() : "—"}</p>
+                  <p className="text-xs text-muted-foreground mt-2">Submitted on {detailProject.createdDate ? new Date(detailProject.createdDate).toLocaleDateString() : "–"}</p>
                 </div>
 
                 {/* Approval Remark */}

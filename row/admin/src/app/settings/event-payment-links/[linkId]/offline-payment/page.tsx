@@ -20,7 +20,7 @@ import {
 import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { ArrowLeft, Save, Paperclip, Eye } from "lucide-react";
+import { ArrowLeft, Save, Paperclip, Eye } from "@/components/icons";
 import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import RotaryLoader from "@/components/RotaryLoader";

@@ -18,7 +18,7 @@ import Link from "next/link";
 import {
   DollarSign, TrendingUp, Heart, Award, Globe, Loader2, Search, Plus, Edit3, Trash2,
   ArrowLeft, AlertTriangle,
-} from "lucide-react";
+} from "@/components/icons";
 import {
   getClub,
   getMonthlyReportYears,
@@ -165,7 +165,7 @@ export function TrfV2View({ clubId: propClubId, embedded = false, yearId: global
     });
   }, [contributions, search]);
 
-  const yearLabel = years.find((y) => y.id === selectedYearId)?.yearLabel ?? "—";
+  const yearLabel = years.find((y) => y.id === selectedYearId)?.yearLabel ?? "–";
 
   const totalContrib = contributions.reduce((sum, c) => sum + (c.amountUSD || 0), 0);
   const sumWhere = (pred: (t: string) => boolean) =>
@@ -215,7 +215,7 @@ export function TrfV2View({ clubId: propClubId, embedded = false, yearId: global
               <div>
                 <h1 className="text-lg font-semibold text-slate-800">TRF Contributions</h1>
                 <p className="text-xs text-slate-500 mt-0.5">
-                  RY {yearLabel} · {clubName || "—"}
+                  RY {yearLabel} · {clubName || "–"}
                 </p>
               </div>
             </div>
@@ -223,7 +223,7 @@ export function TrfV2View({ clubId: propClubId, embedded = false, yearId: global
 
           <div
             className="rounded-xl p-5 text-white"
-            style={{ background: `linear-gradient(135deg, ${ROTARY_BLUE} 0%, #1e5fb5 100%)` }}
+            style={{ background: ROTARY_BLUE }}
           >
             <div className="flex items-center gap-3 mb-2">
               <Heart className="h-5 w-5" />
@@ -309,11 +309,11 @@ export function TrfV2View({ clubId: propClubId, embedded = false, yearId: global
               </thead>
               <tbody className="divide-y divide-slate-100">
                 {paginatedFiltered.map((c, i) => {
-                  const fundLabel = c.fundType === "Others" ? (c.otherFundName || "Others") : (c.fundType || "—");
+                  const fundLabel = c.fundType === "Others" ? (c.otherFundName || "Others") : (c.fundType || "–");
                   return (
                     <tr key={c.id} className="hover:bg-blue-50/40">
                       <td className="px-3 py-2 text-slate-500">{pageStart + i + 1}</td>
-                      <td className="px-3 py-2 font-medium text-slate-800">{c.donorName || "—"}</td>
+                      <td className="px-3 py-2 font-medium text-slate-800">{c.donorName || "–"}</td>
                       <td className="px-3 py-2">
                         <span className={`inline-flex items-center text-xs font-medium px-2 py-0.5 rounded-full border ${fundChipStyle(fundLabel)}`}>
                           {fundLabel}

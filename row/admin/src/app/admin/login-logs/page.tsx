@@ -27,7 +27,7 @@ import {
 import RotaryLoader from "@/components/RotaryLoader";
 import Pagination from "@/components/Pagination";
 import ProtectedRoute from "@/components/ProtectedRoute";
-import { Search, ArrowLeft, CheckCircle, XCircle, Monitor, FileSearch } from "lucide-react";
+import { Search, ArrowLeft, CheckCircle, XCircle, Monitor, FileSearch } from "@/components/icons";
 
 import { appLocale } from "@/lib/appFormat";
 export default function LoginLogsPage() {
@@ -206,9 +206,9 @@ export default function LoginLogsPage() {
                           )}
                         </TableCell>
                         <TableCell className="font-medium">
-                          {log.memberName || "—"}
+                          {log.memberName || "–"}
                         </TableCell>
-                        <TableCell className="text-sm">{log.emailOrMobile || "—"}</TableCell>
+                        <TableCell className="text-sm">{log.emailOrMobile || "–"}</TableCell>
                         <TableCell className="text-sm whitespace-nowrap">
                           {new Date(log.loginTime).toLocaleString(appLocale(), {
                             day: "2-digit",
@@ -219,9 +219,9 @@ export default function LoginLogsPage() {
                             second: "2-digit",
                           })}
                         </TableCell>
-                        <TableCell className="text-sm font-mono">{log.ipAddress || "—"}</TableCell>
+                        <TableCell className="text-sm font-mono">{log.ipAddress || "–"}</TableCell>
                         <TableCell className="text-sm text-red-600">
-                          {log.failureReason || "—"}
+                          {log.failureReason || "–"}
                         </TableCell>
                         <TableCell>
                           {log.userAgent ? (
@@ -229,7 +229,7 @@ export default function LoginLogsPage() {
                               <Monitor className="h-3 w-3 shrink-0" />
                               {extractBrowser(log.userAgent)}
                             </span>
-                          ) : "—"}
+                          ) : "–"}
                         </TableCell>
                       </TableRow>
                     ))}

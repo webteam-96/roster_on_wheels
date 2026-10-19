@@ -3,7 +3,7 @@
 /**
  * SuperAdmin › Wallet › Reports.
  * --------------------------------------------------------------------------
- * Purchase-history reports (Club Website / WhatsApp credits / Email credits): who bought what,
+ * Purchase-history reports (Club Website / Email credits): who bought what,
  * for how much, whether/when it settled, which account it settled to, and who to contact
  * (current-year President + Secretary for the club at the time of purchase).
  *
@@ -14,7 +14,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import DateField from "@/components/DateField";
-import { Download, Loader2, Search } from "lucide-react";
+import { Download, Loader2, Search } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -25,35 +25,29 @@ import { exportToCSV } from "@/utils/csvExport";
 import {
   getDistricts,
   getWalletClubWebsiteReport,
-  getWalletWhatsAppReport,
   getWalletEmailReport,
-  getWalletDistrictWhatsAppReport,
   getWalletDistrictEmailReport,
   type WalletReportRow,
 } from "@/services/api";
 
 import { appLocale, currencySymbol, todayLocal } from "@/lib/appFormat";
-type ReportKey = "club-website" | "whatsapp" | "email" | "district-whatsapp" | "district-email";
+type ReportKey = "club-website" | "email" | "district-email";
 
 const REPORT_OPTIONS: { key: ReportKey; label: string }[] = [
   { key: "club-website", label: "Club Website Purchases" },
-  { key: "whatsapp", label: "WhatsApp Credit Purchases (Club)" },
   { key: "email", label: "Email Credit Purchases (Club)" },
-  { key: "district-whatsapp", label: "WhatsApp Credit Purchases (District)" },
   { key: "district-email", label: "Email Credit Purchases (District)" },
 ];
 
 const FETCHERS: Record<ReportKey, typeof getWalletClubWebsiteReport> = {
   "club-website": getWalletClubWebsiteReport,
-  whatsapp: getWalletWhatsAppReport,
   email: getWalletEmailReport,
-  "district-whatsapp": getWalletDistrictWhatsAppReport,
   "district-email": getWalletDistrictEmailReport,
 };
 
-const inr = (n: number | null) => (n == null ? "—" : `${currencySymbol()}${Number(n).toLocaleString(appLocale(), { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`);
-const fmtDate = (s?: string | null) => (s ? new Date(s).toLocaleDateString(appLocale(), { day: "2-digit", month: "short", year: "numeric" }) : "—");
-const fmtDateTime = (s?: string | null) => (s ? new Date(s).toLocaleString(appLocale(), { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" }) : "—");
+const inr = (n: number | null) => (n == null ? "–" : `${currencySymbol()}${Number(n).toLocaleString(appLocale(), { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`);
+const fmtDate = (s?: string | null) => (s ? new Date(s).toLocaleDateString(appLocale(), { day: "2-digit", month: "short", year: "numeric" }) : "–");
+const fmtDateTime = (s?: string | null) => (s ? new Date(s).toLocaleString(appLocale(), { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" }) : "–");
 
 function todayMinus(days: number): string {
   const d = new Date();
@@ -78,7 +72,7 @@ export default function WalletReportsTab() {
       try {
         const res = await getDistricts(1, 9999, undefined, 1);
         setDistricts(((res as any).items || []).sort((a: any, b: any) => String(a.districtNumber).localeCompare(String(b.districtNumber), undefined, { numeric: true })));
-      } catch { /* non-critical — district filter just stays empty */ }
+      } catch { /* non-critical: district filter just stays empty */ }
     })();
   }, []);
 
@@ -216,25 +210,25 @@ export default function WalletReportsTab() {
               {rows.map((r, i) => (
                 <tr key={i} className="hover:bg-blue-50/40">
                   <td className="px-3 py-2 text-slate-600 whitespace-nowrap">{i + 1}</td>
-                  {!isDistrict && <td className="px-3 py-2 text-slate-600 whitespace-nowrap">{r.districtNumber || "—"}</td>}
+                  {!isDistrict && <td className="px-3 py-2 text-slate-600 whitespace-nowrap">{r.districtNumber || "–"}</td>}
                   <td className="px-3 py-2 font-medium text-slate-800 whitespace-nowrap">{r.clubName}</td>
                   <td className="px-3 py-2 text-slate-600 whitespace-nowrap">{fmtDate(r.purchaseDate)}</td>
                   <td className="px-3 py-2 text-right text-slate-700 whitespace-nowrap">{inr(r.purchaseAmount)}</td>
-                  {showCredits && <td className="px-3 py-2 text-right text-slate-600">{r.creditsPurchased ?? "—"}</td>}
+                  {showCredits && <td className="px-3 py-2 text-right text-slate-600">{r.creditsPurchased ?? "–"}</td>}
                   <td className="px-3 py-2 text-right text-slate-600 whitespace-nowrap">{inr(r.settlementAmount)}</td>
                   <td className="px-3 py-2 text-slate-600 whitespace-nowrap">
                     {r.settlementDate ? fmtDateTime(r.settlementDate) : <span className="text-amber-600">Pending</span>}
                   </td>
-                  <td className="px-3 py-2 text-slate-500 whitespace-nowrap font-mono text-xs">{r.razorpayTransactionId || "—"}</td>
+                  <td className="px-3 py-2 text-slate-500 whitespace-nowrap font-mono text-xs">{r.razorpayTransactionId || "–"}</td>
                   <td className="px-3 py-2 text-slate-600 whitespace-nowrap">
-                    <div>{r.presidentName || "—"}</div>
+                    <div>{r.presidentName || "–"}</div>
                     {(r.presidentMobile || r.presidentEmail) && (
                       <div className="text-xs text-slate-400">{[r.presidentMobile, r.presidentEmail].filter(Boolean).join(" · ")}</div>
                     )}
                   </td>
                   {!isDistrict && (
                     <td className="px-3 py-2 text-slate-600 whitespace-nowrap">
-                      <div>{r.secretaryName || "—"}</div>
+                      <div>{r.secretaryName || "–"}</div>
                       {(r.secretaryMobile || r.secretaryEmail) && (
                         <div className="text-xs text-slate-400">{[r.secretaryMobile, r.secretaryEmail].filter(Boolean).join(" · ")}</div>
                       )}

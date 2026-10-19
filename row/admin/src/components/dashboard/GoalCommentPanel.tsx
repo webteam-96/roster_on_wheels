@@ -7,7 +7,7 @@
 // each bubble carrying the sender's name + leadership role label + timestamp.
 
 import { useEffect, useRef, useState } from "react";
-import { MessagesSquare, Send, Loader2 } from "lucide-react";
+import { MessagesSquare, Send, Loader2 } from "@/components/icons";
 import { getGoalComments, postGoalComment } from "@/services/api";
 import type { GoalCommentDto } from "@/types/goalSetting";
 
@@ -80,7 +80,7 @@ export default function GoalCommentPanel({
 
   return (
     <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden flex flex-col max-h-[70vh]">
-      <div className="px-5 py-3 border-b border-slate-100 flex items-center gap-2 bg-gradient-to-r from-blue-50 to-white">
+      <div className="px-5 py-3 border-b border-slate-100 flex items-center gap-2 bg-blue-50">
         <MessagesSquare size={16} className="text-blue-600" />
         <h3 className="text-sm font-semibold text-slate-800">{title}</h3>
         {clubId > 0 && (

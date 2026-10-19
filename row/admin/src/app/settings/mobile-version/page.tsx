@@ -16,7 +16,7 @@ import ErrorAlert from "@/components/ErrorAlert";
 import RotaryLoader from "@/components/RotaryLoader";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { useAuth } from "@/contexts/AuthContext";
-import { ArrowLeft, Plus, Smartphone, Loader2 } from "lucide-react";
+import { ArrowLeft, Plus, Smartphone, Loader2 } from "@/components/icons";
 import { getMobileVersions, createMobileVersion } from "@/services/api";
 
 const DEFAULT_URL = process.env.NEXT_PUBLIC_IOS_APP_URL ?? "";
@@ -84,7 +84,7 @@ export default function MobileVersionPage() {
               </h2>
               <p className="text-muted-foreground text-base">
                 Add a new version to make it the live version. The newest row is automatically active and all previous rows are deactivated.
-                To correct a mistake, simply add a new version — no edit or delete option is provided by design.
+                To correct a mistake, simply add a new version. No edit or delete option is provided by design.
               </p>
             </div>
           </div>
@@ -117,7 +117,7 @@ export default function MobileVersionPage() {
                           <Badge variant="secondary">Optional</Badge>
                         )}
                       </TableCell>
-                      <TableCell className="max-w-[300px] truncate" title={row.message}>{row.message || "—"}</TableCell>
+                      <TableCell className="max-w-[300px] truncate" title={row.message}>{row.message || "–"}</TableCell>
                       <TableCell>
                         {row.isActive ? (
                           <Badge className="bg-green-600 text-white">ACTIVE</Badge>
@@ -125,10 +125,10 @@ export default function MobileVersionPage() {
                           <Badge variant="outline">Inactive</Badge>
                         )}
                       </TableCell>
-                      <TableCell className="text-xs">{row.createdDate ? new Date(row.createdDate).toLocaleString() : "—"}</TableCell>
+                      <TableCell className="text-xs">{row.createdDate ? new Date(row.createdDate).toLocaleString() : "–"}</TableCell>
                     </TableRow>
                   ))}
-                  {rows.length === 0 && <TableRow><TableCell colSpan={5} className="text-center text-muted-foreground py-8">No versions yet — click Add Version</TableCell></TableRow>}
+                  {rows.length === 0 && <TableRow><TableCell colSpan={5} className="text-center text-muted-foreground py-8">No versions yet. Click Add Version</TableCell></TableRow>}
                 </TableBody>
               </Table>
             </CardContent>
@@ -151,7 +151,7 @@ export default function MobileVersionPage() {
               </div>
               <div>
                 <Label>Message (shown in popup)</Label>
-                <Textarea value={form.message} onChange={(e) => setForm({ ...form, message: e.target.value })} placeholder="Critical bug fixes — please update" />
+                <Textarea value={form.message} onChange={(e) => setForm({ ...form, message: e.target.value })} placeholder="Critical bug fixes. Please update" />
               </div>
               <div>
                 <Label>Play Store URL (Android)</Label>
@@ -164,7 +164,7 @@ export default function MobileVersionPage() {
               <div>
                 <Label>URL (legacy)</Label>
                 <Input value={form.url} onChange={(e) => setForm({ ...form, url: e.target.value })} />
-                <p className="text-xs text-muted-foreground mt-1">Default iTunes update viewer — leave as-is unless instructed.</p>
+                <p className="text-xs text-muted-foreground mt-1">Default iTunes update viewer. Leave as-is unless instructed.</p>
               </div>
               <div className="flex items-center justify-between rounded border p-3">
                 <div>

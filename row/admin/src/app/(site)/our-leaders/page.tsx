@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Image from "next/image";
-import { ChevronDown, FileDown, Play } from "lucide-react";
+import { ChevronDown, FileDown, Play } from "@/components/icons";
 import { SiteFooter } from "@/components/site/SiteFooter";
 import { ChapterRail } from "@/components/motion/ChapterRail";
 import { LeadersHero } from "@/components/pages/leaders/LeadersHero";

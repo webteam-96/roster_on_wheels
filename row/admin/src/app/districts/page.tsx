@@ -13,7 +13,7 @@ import Pagination from "@/components/Pagination";
 import DeleteDialog from "@/components/DeleteDialog";
 import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
-import { Plus, MapPin, AlertCircle, ArrowLeft, Search } from "lucide-react";
+import { Plus, MapPin, AlertCircle, ArrowLeft, Search } from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
 import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";

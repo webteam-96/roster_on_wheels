@@ -27,7 +27,6 @@ public class UpdateGreetingSettingsDto
     public bool IsEnableBirthdayNotification { get; set; }
     public string? AnniversaryGreeting { get; set; }
     public bool IsEnableAnniversaryNotification { get; set; }
-    public bool IsGreetingSendWhatsapp { get; set; }
     public bool IsEnableBirthdayEmail { get; set; }
     public string? BirthdayEmailFrom { get; set; }
     public string? BirthdayEmailSubject { get; set; }
@@ -66,7 +65,6 @@ public class UpdateDistrictGreetingSettingsDto
     public bool IsEnableBirthdayNotification { get; set; }
     public string? AnniversaryGreeting { get; set; }
     public bool IsEnableAnniversaryNotification { get; set; }
-    public bool IsGreetingSendWhatsapp { get; set; }
     public bool IsGreetingSendEmail { get; set; }
     public bool IsGreetingSendPush { get; set; }
     public bool IsEnableBirthdayEmail { get; set; }

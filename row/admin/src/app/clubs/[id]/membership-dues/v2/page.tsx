@@ -23,7 +23,7 @@ import Link from "next/link";
 import {
   ArrowLeft, Pencil, FileSpreadsheet, Users, Search,
   Wallet, CheckCircle2, AlertCircle, ExternalLink, Copy, X,
-} from "lucide-react";
+} from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
 import {
   getMembershipDuesList, exportMembershipDuesReport, getClub,
@@ -196,7 +196,7 @@ export default function ClubMembershipDuesV2Page() {
               <div>
                 <h1 className="text-lg font-semibold text-slate-800">Club Dues</h1>
                 <p className="text-xs text-slate-500 mt-0.5">
-                  {clubName || "—"} · View &amp; manage member dues collection
+                  {clubName || "–"} · View &amp; manage member dues collection
                 </p>
               </div>
             </div>
@@ -312,8 +312,8 @@ export default function ClubMembershipDuesV2Page() {
                       ) : filtered.map((item, idx) => (
                         <tr key={item.id} className="hover:bg-blue-50/40">
                           <td className="px-3 py-2 text-slate-500">{idx + 1}</td>
-                          <td className="px-3 py-2 text-slate-700 whitespace-nowrap">{item.rotaryYear || "—"}</td>
-                          <td className="px-3 py-2 font-medium text-slate-800">{item.purpose || "—"}</td>
+                          <td className="px-3 py-2 text-slate-700 whitespace-nowrap">{item.rotaryYear || "–"}</td>
+                          <td className="px-3 py-2 font-medium text-slate-800">{item.purpose || "–"}</td>
                           <td className="px-3 py-2 text-center">
                             <span className="inline-flex items-center text-xs font-semibold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
                               {fmtInt(item.paidCount)}
@@ -423,7 +423,7 @@ export default function ClubMembershipDuesV2Page() {
                                 </button>
                               </div>
                             ) : (
-                              <span className="text-slate-300">—</span>
+                              <span className="text-slate-300">, </span>
                             )}
                           </td>
                         </tr>

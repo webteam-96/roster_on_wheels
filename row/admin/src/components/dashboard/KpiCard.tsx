@@ -1,5 +1,5 @@
 import { ReactNode } from "react";
-import { type LucideIcon } from "lucide-react";
+import { type LucideIcon } from "@/components/icons";
 
 type KpiColor = "blue" | "gold" | "green" | "purple" | "red" | "teal";
 

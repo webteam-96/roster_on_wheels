@@ -12,12 +12,11 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
-import { ArrowLeft, Save, Upload, X, Users2 } from "lucide-react";
+import { ArrowLeft, Save, Upload, X, Users2 } from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
 import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";
-import RiRecipientPicker, { RiRecipientValue, checkRiCredits } from "@/components/RiRecipientPicker";
-import WhatsAppRecipientBadge from "@/components/WhatsAppRecipientBadge";
+import RiRecipientPicker, { RiRecipientValue } from "@/components/RiRecipientPicker";
 import { toLocalDateParts } from "@/lib/dateUtils";
 
 export default function RiNewsletterForm({ newsletterId }: { newsletterId?: number }) {
@@ -35,7 +34,6 @@ export default function RiNewsletterForm({ newsletterId }: { newsletterId?: numb
   const [attachmentType, setAttachmentType] = useState<"link" | "pdf">("link");
   const [linkUrl, setLinkUrl] = useState("");
   const [filePath, setFilePath] = useState("");
-  const [isSendWhatsapp, setIsSendWhatsapp] = useState(false);
   const [recipient, setRecipient] = useState<RiRecipientValue>({ target: "all", zoneIds: [], districtIds: [], subgroupIds: [] });
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
@@ -50,7 +48,6 @@ export default function RiNewsletterForm({ newsletterId }: { newsletterId?: numb
       setAttachmentType((d.attachmentType as any) || "link");
       setLinkUrl(d.linkUrl || "");
       setFilePath(d.filePath || "");
-      setIsSendWhatsapp(!!d.isSendWhatsapp);
       const setDT = (s: string, setD: (v: string) => void, setT: (v: string) => void) => {
         const { date, time } = toLocalDateParts(s);
         setD(date); setT(time);
@@ -104,10 +101,6 @@ export default function RiNewsletterForm({ newsletterId }: { newsletterId?: numb
     const expiryDT = new Date(`${expiryDate}T${expiryTime}:00`);
     if (expiryDT < publishDT) { setErrorMessage("Expiry must be after publish."); return; }
 
-    if (isSendWhatsapp) {
-      const c = await checkRiCredits("whatsapp", recipient.target, recipient.zoneIds, recipient.districtIds, recipient.subgroupIds);
-      if (!c.ok) { setErrorMessage(c.message); return; }
-    }
 
     setSaving(true);
     try {
@@ -118,7 +111,6 @@ export default function RiNewsletterForm({ newsletterId }: { newsletterId?: numb
         attachmentType,
         linkUrl: attachmentType === "link" ? linkUrl.trim() : null,
         filePath: attachmentType === "pdf" ? filePath : null,
-        isSendWhatsapp,
         recipientTarget: recipient.target,
         recipientZoneIds: recipient.zoneIds,
         recipientDistrictIds: recipient.districtIds,
@@ -198,14 +190,9 @@ export default function RiNewsletterForm({ newsletterId }: { newsletterId?: numb
               <Users2 className="h-4 w-4 text-primary" />
               <h3 className="font-semibold">Recipients</h3>
             </div>
-            <RiRecipientPicker value={recipient} onChange={setRecipient} channel="whatsapp" checkCredits={isSendWhatsapp} />
+            <RiRecipientPicker value={recipient} onChange={setRecipient} />
           </div>
 
-          <label className="flex items-center gap-3 mt-4 cursor-pointer">
-            <input type="checkbox" checked={isSendWhatsapp} onChange={(e) => setIsSendWhatsapp(e.target.checked)} className="h-4 w-4" />
-            <span className="text-sm font-medium">Send through WhatsApp</span>
-            {isSendWhatsapp && <WhatsAppRecipientBadge scope="ri" target={recipient.target} zoneIds={recipient.zoneIds} districtIds={recipient.districtIds} subgroupIds={recipient.subgroupIds} />}
-          </label>
 
           <div className="flex justify-end pt-4">
             <Button onClick={handleSave} disabled={saving} size="lg"><Save className="mr-2 h-4 w-4" />{saving ? <RotaryLoader size="sm" /> : (isEdit ? "Update" : "Save")}</Button>

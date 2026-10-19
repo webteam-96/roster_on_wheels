@@ -71,24 +71,11 @@ services.AddSingleton<BrevoEmailSender>(sp =>
         senderName: brevo["SenderName"] ?? "ROW",
         senderEmail: brevo["SenderEmail"] ?? RotaryApi.Services.Brand.NoReplyEmail);
 });
-services.AddSingleton<MetaWhatsAppSender>(sp =>
-{
-    var meta = config.GetSection("Brand:Providers:MetaWhatsApp");
-    return new MetaWhatsAppSender(
-        sp.GetRequiredService<IHttpClientFactory>().CreateClient("whatsapp"),
-        sp.GetRequiredService<ILogger<MetaWhatsAppSender>>(),
-        connString,
-        token: meta["AccessToken"] ?? "",
-        phoneNumberId: meta["PhoneNumberId"] ?? "",
-        apiVersion: meta["ApiVersion"] ?? "",
-        langCode: config["WhatsApp:LanguageCode"] ?? "");
-});
 services.AddSingleton<FirebasePushSender>();
 services.AddSingleton<GreetingsJob>(sp => new GreetingsJob(
     connString,
     sp.GetRequiredService<ILogger<GreetingsJob>>(),
     sp.GetRequiredService<BrevoEmailSender>(),
-    sp.GetRequiredService<MetaWhatsAppSender>(),
     sp.GetRequiredService<FirebasePushSender>(),
     sp.GetRequiredService<GreetingsOptions>()));
 

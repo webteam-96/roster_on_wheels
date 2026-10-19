@@ -64,7 +64,6 @@ public class CreateUpcomingEventDto
     public DateTime ExpiryDate { get; set; }
     public string? EventVenue { get; set; }
     public string? RegistrationLink { get; set; }
-    public bool IsSendWhatsapp { get; set; }
     public bool IsSendEmail { get; set; }
     public bool IsRepeatNotification { get; set; }
     public List<DateTime>? Reminders { get; set; }
@@ -84,7 +83,6 @@ public class UpdateUpcomingEventDto
     public DateTime ExpiryDate { get; set; }
     public string? EventVenue { get; set; }
     public string? RegistrationLink { get; set; }
-    public bool IsSendWhatsapp { get; set; }
     public bool IsSendEmail { get; set; }
     public bool IsRepeatNotification { get; set; }
     public List<DateTime>? Reminders { get; set; }

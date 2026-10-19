@@ -1,6 +1,6 @@
 "use client";
 
-import { Search } from "lucide-react";
+import { Search } from "@/components/icons";
 
 /**
  * The projects search box. Type a subject — "blood donation", "tree plantation"

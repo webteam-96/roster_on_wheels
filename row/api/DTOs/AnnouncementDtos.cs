@@ -59,7 +59,6 @@ public class CreateAnnouncementDto
     public DateTime PublishDateTime { get; set; }
     public DateTime ExpiryDateTime { get; set; }
     public bool IsDisplayOnBanner { get; set; }
-    public bool IsSendWhatsapp { get; set; }
     public bool IsSendEmail { get; set; }
     public bool IsRepeatNotification { get; set; }
     public List<DateTime>? Reminders { get; set; }
@@ -77,7 +76,6 @@ public class UpdateAnnouncementDto
     public DateTime PublishDateTime { get; set; }
     public DateTime ExpiryDateTime { get; set; }
     public bool IsDisplayOnBanner { get; set; }
-    public bool IsSendWhatsapp { get; set; }
     public bool IsSendEmail { get; set; }
     public bool IsRepeatNotification { get; set; }
     public List<DateTime>? Reminders { get; set; }

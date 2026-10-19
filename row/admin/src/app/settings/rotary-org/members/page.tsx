@@ -16,7 +16,7 @@ import AlertModal from "@/components/AlertModal";
 import RotaryLoader from "@/components/RotaryLoader";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { useAuth } from "@/contexts/AuthContext";
-import { ArrowLeft, AlertTriangle, Plus, Trash2, Eye, ArrowRightCircle, RefreshCw, Loader2 } from "lucide-react";
+import { ArrowLeft, AlertTriangle, Plus, Trash2, Eye, ArrowRightCircle, RefreshCw, Loader2 } from "@/components/icons";
 import {
   getDistricts, getDistrictClubs, compareMembers, addMemberFromOrg,
   updateMemberManual, deleteMemberFromClubManual, getMemberOrgDetail,
@@ -42,7 +42,7 @@ function FieldRowComponent({
     <div className="grid grid-cols-12 gap-2 items-center">
       <div className="col-span-3 text-xs">{row.label}</div>
       <div className="col-span-4 text-xs bg-muted p-2 rounded text-muted-foreground truncate" title={row.orgValue || ""}>
-        {row.orgValue || "—"}
+        {row.orgValue || "–"}
       </div>
       <div className="col-span-1 flex justify-center">
         <Button variant="ghost" size="icon" disabled={!row.orgValue} onClick={onCopy} title="Copy from Rotary.org">
@@ -357,7 +357,7 @@ export default function RotaryOrgMembersPage() {
               )}
               {!data.lastFetchedUtc && data.counts.rotaryOrg === 0 && (
                 <span className="text-xs text-amber-600 ml-auto">
-                  Cache empty for this club — click "Refresh from Rotary.org".
+                  Cache empty for this club. Click "Refresh from Rotary.org".
                 </span>
               )}
             </div>
@@ -377,11 +377,11 @@ export default function RotaryOrgMembersPage() {
                         row.status === "matched" ? "bg-green-50" :
                         row.status === "onlyIndia" ? "bg-yellow-50" :
                         "bg-blue-50";
-                      const formatDate = (d: any) => d ? String(d).substring(0, 10) : "—";
+                      const formatDate = (d: any) => d ? String(d).substring(0, 10) : "–";
                       const Field = ({ label, value }: { label: string; value: any }) => (
                         <div className="flex gap-2 text-xs">
                           <span className="text-muted-foreground w-20 flex-shrink-0">{label}:</span>
-                          <span className="truncate" title={String(value || "")}>{value || "—"}</span>
+                          <span className="truncate" title={String(value || "")}>{value || "–"}</span>
                         </div>
                       );
                       const indiaResAddress = row.india ? [row.india.resAddress, row.india.resCity, row.india.resState, row.india.resPinCode].filter(Boolean).join(", ") : "";
@@ -412,7 +412,7 @@ export default function RotaryOrgMembersPage() {
                                 <Field label="Business" value={indiaBusAddress} />
                               </div>
                             ) : (
-                              <span className="text-xs text-muted-foreground italic">— not in India —</span>
+                              <span className="text-xs text-muted-foreground italic">,  not in India , </span>
                             )}
                           </TableCell>
                           <TableCell className="align-top">
@@ -440,7 +440,7 @@ export default function RotaryOrgMembersPage() {
                                 <Field label="Member Type" value={row.org.memberType} />
                               </div>
                             ) : (
-                              <span className="text-xs text-muted-foreground italic">— not on Rotary.org —</span>
+                              <span className="text-xs text-muted-foreground italic">,  not on Rotary.org , </span>
                             )}
                           </TableCell>
                         </TableRow>
@@ -459,7 +459,7 @@ export default function RotaryOrgMembersPage() {
           <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>Member Comparison & Edit</DialogTitle>
-              <DialogDescription>Click ⬅ to copy a value from Rotary.org into ROW.</DialogDescription>
+              <DialogDescription>Click the left-arrow icon to copy a value from Rotary.org into ROW.</DialogDescription>
             </DialogHeader>
             {editTarget && (
               <div className="space-y-3">

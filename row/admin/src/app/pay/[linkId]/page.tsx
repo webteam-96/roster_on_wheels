@@ -13,7 +13,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
-import { AlertCircle, CheckCircle2, Loader2 } from "lucide-react";
+import { AlertCircle, CheckCircle2, Loader2 } from "@/components/icons";
 
 import { currencySymbol } from "@/lib/appFormat";
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
@@ -349,7 +349,7 @@ export default function PublicPaymentPage() {
   const selectedReg = eventLink.registrations.find(r => r.id === Number(selectedRegId));
 
   return (
-    <div className="min-h-screen bg-gray-50" style={{ backgroundImage: eventLink.backgroundImage ? `url(${API_BASE_URL}${eventLink.backgroundImage})` : "linear-gradient(135deg, #667eea 0%, #764ba2 100%)", backgroundSize: "cover", backgroundPosition: "center" }}>
+    <div className="min-h-screen bg-gray-50" style={{ backgroundImage: eventLink.backgroundImage ? `url(${API_BASE_URL}${eventLink.backgroundImage})` : "none", backgroundSize: "cover", backgroundPosition: "center" }}>
       <div className="max-w-2xl mx-auto py-8 px-4">
         {/* Header */}
         <Card className="mb-6">
@@ -481,7 +481,7 @@ export default function PublicPaymentPage() {
                           </div>
                         )}
                       </div>
-                      <p className="text-xs text-muted-foreground mt-1">Type 2+ characters — matches appear automatically.</p>
+                      <p className="text-xs text-muted-foreground mt-1">Type 2+ characters. Matches appear automatically.</p>
                     </div>
                   )}
 

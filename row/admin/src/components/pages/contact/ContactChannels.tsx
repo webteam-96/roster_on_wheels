@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { ArrowUpRight, Check, Copy } from "lucide-react";
+import { ArrowUpRight, Check, Copy } from "@/components/icons";
 
 import { appTimeZone } from "@/lib/appFormat";
 import { getActiveBrand } from "@/lib/brand";
@@ -141,9 +141,9 @@ export function ContactChannels() {
       ))}
       <ChannelRow
         label="Helpline hours"
-        value={getActiveBrand().support.hours || "—"}
+        value={getActiveBrand().support.hours || "–"}
         figure
-        note="Closed on weekends and public holidays — email us instead."
+        note="Closed on weekends and public holidays: email us instead."
         chip={<OpenChip />}
       />
     </div>

@@ -14,7 +14,7 @@
  */
 
 import { useCallback, useEffect, useState } from "react";
-import { CalendarX2, Clock, Loader2, Plus, Save, Trash2, X, AlertTriangle } from "lucide-react";
+import { CalendarX2, Clock, Loader2, Plus, Save, Trash2, X, AlertTriangle } from "@/components/icons";
 import ErrorAlert from "@/components/ErrorAlert";
 import SuccessAlert from "@/components/SuccessAlert";
 import {
@@ -152,19 +152,19 @@ export default function TrainingAvailabilityTab() {
 
       <p className="text-xs text-slate-500">
         Slots are {data?.slotMinutes ?? 30} minutes, maximum {data?.maxPerDay ?? 3} trainings a day, times in {appTimeZone()}.
-        Anything closed here still shows on the club&apos;s booking screen — greyed out with the reason, never hidden.
+        Anything closed here still shows on the club&apos;s booking screen: greyed out with the reason, never hidden.
       </p>
 
       {/* ── 1. the repeating week ── */}
       <div className="rounded-xl border border-slate-200 bg-white overflow-hidden">
-        <div className="px-4 sm:px-5 py-3 border-b border-slate-100 bg-gradient-to-r from-blue-50 to-white flex flex-wrap items-center gap-2">
+        <div className="px-4 sm:px-5 py-3 border-b border-slate-100 bg-blue-50 flex flex-wrap items-center gap-2">
           <Clock size={16} className="text-blue-600" />
           <h3 className="text-sm font-semibold text-slate-800">Working hours</h3>
           <span className="text-xs text-slate-400">the normal week</span>
           <button
             onClick={saveWeek}
             disabled={saving}
-            className="ml-auto inline-flex items-center gap-1.5 h-8 rounded-lg bg-[#1e3a5f] px-3 text-xs font-semibold text-white hover:bg-[#17304e] disabled:opacity-40"
+            className="ml-auto inline-flex items-center gap-1.5 h-8 rounded-lg bg-azure px-3 text-xs font-semibold text-white hover:bg-mint-ink disabled:opacity-40"
           >
             {saving ? <Loader2 size={13} className="animate-spin" /> : <Save size={13} />} Save hours
           </button>
@@ -240,7 +240,7 @@ export default function TrainingAvailabilityTab() {
 
       {/* ── 2. one-off blocked dates ── */}
       <div className="rounded-xl border border-slate-200 bg-white overflow-hidden">
-        <div className="px-4 sm:px-5 py-3 border-b border-slate-100 bg-gradient-to-r from-amber-50 to-white flex flex-wrap items-center gap-2">
+        <div className="px-4 sm:px-5 py-3 border-b border-slate-100 bg-amber-50 flex flex-wrap items-center gap-2">
           <CalendarX2 size={16} className="text-amber-600" />
           <h3 className="text-sm font-semibold text-slate-800">Blocked dates</h3>
           <span className="text-xs text-slate-400">days the team is away, or free only part of the day</span>
@@ -261,7 +261,7 @@ export default function TrainingAvailabilityTab() {
                   <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">Select the dates to block</p>
                   {blockDates.length > 0 && (
                     <>
-                      <span className="text-[11px] font-semibold text-[#1e3a5f]">{blockDates.length} selected</span>
+                      <span className="text-[11px] font-semibold text-ink">{blockDates.length} selected</span>
                       <button type="button" onClick={() => setBlockDates([])} className="text-[11px] text-slate-500 hover:text-rose-600 underline">
                         clear
                       </button>
@@ -312,7 +312,7 @@ export default function TrainingAvailabilityTab() {
                           title={blocked ? "Already blocked" : past ? "Past date" : "Click to select, click again to remove"}
                           className={`relative h-11 rounded-lg text-sm ${
                             picked
-                              ? "bg-[#1e3a5f] text-white font-semibold"
+                              ? "bg-azure text-white font-semibold"
                               : past
                               ? "text-slate-300 cursor-not-allowed"
                               : blocked
@@ -330,7 +330,7 @@ export default function TrainingAvailabilityTab() {
                   </div>
                 </div>
                 <p className="mt-2 text-[11px] text-slate-400">
-                  Click any number of dates — click again to unselect.
+                  Click any number of dates. Click again to unselect.
                   <span className="inline-block h-2 w-2 rounded-full bg-amber-500 align-middle mx-1" />
                   already blocked · past dates cannot be picked
                 </p>
@@ -343,7 +343,7 @@ export default function TrainingAvailabilityTab() {
                 ) : (
                   <div className="flex flex-wrap gap-1.5">
                     {[...blockDates].sort().map((d) => (
-                      <span key={d} className="inline-flex items-center gap-1 rounded-full bg-[#1e3a5f] text-white text-[11px] px-2 py-0.5">
+                      <span key={d} className="inline-flex items-center gap-1 rounded-full bg-azure text-white text-[11px] px-2 py-0.5">
                         {new Date(d + "T00:00:00").toLocaleDateString(appLocale(), { weekday: "short", day: "2-digit", month: "short" })}
                         <button type="button" onClick={() => setBlockDates((p) => p.filter((x) => x !== d))} className="hover:text-rose-300" aria-label="Remove">
                           <X size={11} />
@@ -360,7 +360,7 @@ export default function TrainingAvailabilityTab() {
 
             {!allDay && (
               <div className="space-y-2">
-                <p className="text-xs text-slate-500">Hours the team IS free that day — everything outside these is blocked:</p>
+                <p className="text-xs text-slate-500">Hours the team IS free that day: everything outside these is blocked:</p>
                 {blockRanges.map((r, i) => (
                   <div key={i} className="flex items-center gap-2 flex-wrap">
                     <input
@@ -399,7 +399,7 @@ export default function TrainingAvailabilityTab() {
               <button
                 onClick={saveBlock} disabled={saving || blockDates.length === 0}
                 title={blockDates.length > 0 ? undefined : "Pick at least one date on the calendar"}
-                className="inline-flex items-center gap-1.5 h-9 rounded-lg bg-[#1e3a5f] px-4 text-xs font-semibold text-white hover:bg-[#17304e] disabled:opacity-40"
+                className="inline-flex items-center gap-1.5 h-9 rounded-lg bg-azure px-4 text-xs font-semibold text-white hover:bg-mint-ink disabled:opacity-40"
               >
                 {saving ? <Loader2 size={13} className="animate-spin" /> : <Save size={13} />}
                 {blockDates.length > 1 ? `Save ${blockDates.length} dates` : "Save date"}
@@ -432,7 +432,7 @@ export default function TrainingAvailabilityTab() {
                 {o.bookedCount > 0 && (
                   <span
                     className="inline-flex items-center gap-1 text-[11px] font-medium text-amber-800 bg-amber-50 border border-amber-200 rounded-full px-2 py-0.5"
-                    title="These were booked before the block. They are NOT cancelled — move them by hand if they clash."
+                    title="These were booked before the block. They are NOT cancelled: move them by hand if they clash."
                   >
                     <AlertTriangle size={12} /> {o.bookedCount} already booked
                   </span>

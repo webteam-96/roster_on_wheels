@@ -11,7 +11,7 @@ import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
 import RotaryLoader from "@/components/RotaryLoader";
 import ProtectedRoute from "@/components/ProtectedRoute";
-import { ArrowLeft, Download, Loader2, Building, Users } from "lucide-react";
+import { ArrowLeft, Download, Loader2, Building, Users } from "@/components/icons";
 import { useAuth } from "@/contexts/AuthContext";
 import { RotaryYear } from "@/types/rotaryYear";
 import { getAgMyYears, fetchAgReport, getAgMyClubs } from "@/services/api";
@@ -112,7 +112,7 @@ const sections: ReportSection[] = [
           { key: "bloodGroup", label: "Blood", width: 10 },
           { key: "joinedDate", label: "Joined", width: 14 },
         ] },
-      { id: "members-full-details", title: "Members — Full Details", endpoint: "members-full-details", fileName: "MyClubs_Members_Full",
+      { id: "members-full-details", title: "Members | Full Details", endpoint: "members-full-details", fileName: "MyClubs_Members_Full",
         columns: [
           { key: "clubName", label: "Club", width: 28 },
           { key: "memberName", label: "Name", width: 28 },
@@ -133,7 +133,7 @@ const sections: ReportSection[] = [
           { key: "youtube", label: "Youtube", width: 24 },
           { key: "website", label: "Website", width: 24 },
         ] },
-      { id: "members-contact-summary", title: "Members — Contact Summary", endpoint: "members-contact-summary", fileName: "MyClubs_Contact_Summary",
+      { id: "members-contact-summary", title: "Members | Contact Summary", endpoint: "members-contact-summary", fileName: "MyClubs_Contact_Summary",
         columns: [
           { key: "clubName", label: "Club", width: 28 },
           { key: "memberName", label: "Name", width: 28 },
@@ -141,7 +141,7 @@ const sections: ReportSection[] = [
           { key: "secondaryMobile", label: "Secondary Mobile", width: 16 },
           { key: "email", label: "Email", width: 30 },
         ] },
-      { id: "members-addresses", title: "Members — Addresses", endpoint: "members-addresses", fileName: "MyClubs_Addresses",
+      { id: "members-addresses", title: "Members | Addresses", endpoint: "members-addresses", fileName: "MyClubs_Addresses",
         columns: [
           { key: "clubName", label: "Club", width: 28 },
           { key: "memberName", label: "Name", width: 28 },
@@ -401,7 +401,7 @@ export default function AgReportsPage() {
                   </Select>
                 </div>
                 <div>
-                  <Label className="mb-1 block">Club (optional — narrow to one club)</Label>
+                  <Label className="mb-1 block">Club (optional: narrow to one club)</Label>
                   <Select value={clubId} onValueChange={setClubId}>
                     <SelectTrigger><SelectValue placeholder="All My Clubs" /></SelectTrigger>
                     <SelectContent>

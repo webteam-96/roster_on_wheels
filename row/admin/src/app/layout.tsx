@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { getServerBrand } from "@/lib/brand";
-import { Inter } from "next/font/google";
+import { Bricolage_Grotesque, Figtree } from "next/font/google";
 import { Suspense } from "react";
 import "./globals.css";
 import { Toaster } from "@/components/ui/toaster";
@@ -10,7 +10,9 @@ import PasteLimitGuard from "@/components/PasteLimitGuard";
 import NetworkStatusBanner from "@/components/NetworkStatusBanner";
 import NavigationLoader from "@/components/NavigationLoader";
 
-const inter = Inter({ subsets: ["latin"] });
+// design.md §2: Figtree body, Bricolage Grotesque display. Tailwind's font-sans / font-display read these vars.
+const body = Figtree({ subsets: ["latin"], variable: "--font-body", display: "swap" });
+const display = Bricolage_Grotesque({ subsets: ["latin"], axes: ["opsz"], variable: "--font-display", display: "swap" });
 
 export async function generateMetadata(): Promise<Metadata> {
   const brand = await getServerBrand();
@@ -31,8 +33,8 @@ export default function RootLayout({
   // data-add-to-org-ext on <html> before hydration (see lib/addToOrg.ts). This silences the
   // harmless "Extra attributes from the server" warning; scope is the <html> element only.
   return (
-    <html lang="en" suppressHydrationWarning>
-      <body className={`${inter.className} antialiased`}>
+    <html lang="en" className={`${body.variable} ${display.variable}`} suppressHydrationWarning>
+      <body className="font-sans antialiased">
         <ClientProviders>
           <RootShell>{children}</RootShell>
           <PasteLimitGuard />

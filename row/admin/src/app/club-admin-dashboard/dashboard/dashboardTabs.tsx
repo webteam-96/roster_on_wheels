@@ -18,7 +18,7 @@ const DASHBOARD_TABS: DashboardTab[] = [
 ];
 
 const ACTIVE_BG = "#F7A81B";
-const ACTIVE_TEXT = "#1e3a5f";
+const ACTIVE_TEXT = "#17458f";
 
 // Visual mirrors the AvenueTabBar in
 // /club-admin-dashboard/service-projects-and-public-image — same navy container,
@@ -30,7 +30,7 @@ export default function DashboardTabs() {
     <div className="overflow-x-auto mb-5">
       <div
         className="inline-flex items-center gap-1 rounded-xl p-1.5"
-        style={{ backgroundColor: "#1e3a5f" }}
+        style={{ backgroundColor: "#17458f" }}
       >
         {DASHBOARD_TABS.map((tab) => {
           const isActive = pathname === tab.href || pathname.startsWith(tab.href + "/");

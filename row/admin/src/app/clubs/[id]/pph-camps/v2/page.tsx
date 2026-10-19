@@ -20,7 +20,7 @@ import Link from "next/link";
 import {
   Activity, Users, Image as ImageIcon, CalendarClock, Loader2, Search, Plus,
   Edit3, Trash2, ArrowLeft, AlertTriangle, Download,
-} from "lucide-react";
+} from "@/components/icons";
 import {
   getClub,
   getPphCamps,
@@ -90,7 +90,7 @@ export default function PphCampsV2Page() {
       exportPphAttendeeReport(rows, {
         filename: "PPH_Camp_Attendees_Club",
         title: "PPH Camp Attendee Report",
-        subtitle: `${clubName || "Club"} — all attendee entries (club-wise)`,
+        subtitle: `${clubName || "Club"}: all attendee entries (club-wise)`,
       });
     } catch (err: unknown) {
       const e = err as { response?: { data?: { message?: string } } };
@@ -224,7 +224,7 @@ export default function PphCampsV2Page() {
             <div>
               <h1 className="text-lg font-semibold text-slate-800">PPH Camps</h1>
               <p className="text-xs text-slate-500 mt-0.5">
-                {clubName || "—"} · Preventive Public Health Camps
+                {clubName || "–"} · Preventive Public Health Camps
               </p>
             </div>
           </div>
@@ -326,9 +326,9 @@ export default function PphCampsV2Page() {
                   {filtered.map((c, i) => (
                     <tr key={c.id} className="hover:bg-blue-50/40">
                       <td className="px-3 py-2 text-slate-500">{i + 1}</td>
-                      <td className="px-3 py-2 font-medium text-slate-800">{c.title || "—"}</td>
-                      <td className="px-3 py-2 text-slate-600 whitespace-nowrap">{c.campDate ? fmtDate(c.campDate) : "—"}</td>
-                      <td className="px-3 py-2 text-slate-600 max-w-xs truncate">{c.address || "—"}</td>
+                      <td className="px-3 py-2 font-medium text-slate-800">{c.title || "–"}</td>
+                      <td className="px-3 py-2 text-slate-600 whitespace-nowrap">{c.campDate ? fmtDate(c.campDate) : "–"}</td>
+                      <td className="px-3 py-2 text-slate-600 max-w-xs truncate">{c.address || "–"}</td>
                       <td className="px-3 py-2 text-slate-700 tabular-nums">{fmtInt(c.attendanceCount)}</td>
                       <td className="px-3 py-2">
                         <span className={`inline-flex items-center text-xs font-medium px-2 py-0.5 rounded-full border ${activeChipStyle(c.isActive)}`}>

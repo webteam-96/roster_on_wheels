@@ -6,7 +6,7 @@ import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import {
   Briefcase, Users, IndianRupee, Coins, DollarSign, Clock4, CalendarDays, Search,
   Plus, Edit3, Trash2, Eye, Phone, Mail, BadgeAlert, Puzzle,
-  Clock, CheckCircle2, XCircle, ChevronDown, ChevronRight, AlertTriangle, RotateCcw } from "lucide-react";
+  Clock, CheckCircle2, XCircle, ChevronDown, ChevronRight, AlertTriangle, RotateCcw } from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
 import ProjectDetailModal from "@/components/ProjectDetailModal";
 import PphCampDetailModal from "@/components/PphCampDetailModal";
@@ -263,7 +263,7 @@ function PageHeader({ club }: { club: ServiceProjectsOverviewResponse["club"] })
 // ── Horizontal tab bar ─────────────────────────────────────────────────
 
 function AvenueTabBar({ active, onChange }: { active: AvenueTab; onChange: (k: AvenueTab) => void }) {
-  // Tab bar bg = #1e3a5f (navy blue — same tone the sidebar uses as ACTIVE_TEXT).
+  // Tab bar bg = #17458f (navy blue — same tone the sidebar uses as ACTIVE_TEXT).
   // Inactive tabs = white, active tab = Rotary gold (#F7A81B) with navy text.
   // Container wraps to its own content width (not the whole page); tab font is
   // sized so the labels are easily readable.
@@ -271,7 +271,7 @@ function AvenueTabBar({ active, onChange }: { active: AvenueTab; onChange: (k: A
     <div className="overflow-x-auto">
       <div
         className="inline-flex items-center gap-1 rounded-xl p-1.5"
-        style={{ backgroundColor: "#1e3a5f" }}
+        style={{ backgroundColor: "#17458f" }}
       >
         {AVENUE_TABS.map((t) => {
           const isActive = active === t.key;
@@ -286,7 +286,7 @@ function AvenueTabBar({ active, onChange }: { active: AvenueTab; onChange: (k: A
               }`}
               style={
                 isActive
-                  ? { backgroundColor: "#F7A81B", color: "#1e3a5f" }
+                  ? { backgroundColor: "#F7A81B", color: "#17458f" }
                   : undefined
               }
             >
@@ -338,9 +338,9 @@ function OverviewSection({ overview }: { overview: ServiceProjectsOverviewRespon
                     </span>
                   </td>
                   <td className="px-4 py-2 text-right font-medium text-slate-800">{fmtInt(a.projects)}</td>
-                  <td className="px-4 py-2 text-right text-slate-600">{a.beneficiaries > 0 ? fmtInt(a.beneficiaries) : "—"}</td>
-                  <td className="px-4 py-2 text-right text-slate-600">{a.cost > 0 ? shortMoney(Number(a.cost), overview.targetCurrency) : "—"}</td>
-                  <td className="px-4 py-2 text-right text-slate-600">{a.manHours > 0 ? fmtInt(a.manHours) : "—"}</td>
+                  <td className="px-4 py-2 text-right text-slate-600">{a.beneficiaries > 0 ? fmtInt(a.beneficiaries) : "–"}</td>
+                  <td className="px-4 py-2 text-right text-slate-600">{a.cost > 0 ? shortMoney(Number(a.cost), overview.targetCurrency) : "–"}</td>
+                  <td className="px-4 py-2 text-right text-slate-600">{a.manHours > 0 ? fmtInt(a.manHours) : "–"}</td>
                 </tr>
               ))}
             </tbody>
@@ -451,7 +451,7 @@ function ClubServiceSection({
       {/* Club Service KPIs — "Avg Attendance Stayed" and "Members on Roll"
           removed per user request 2026-06-12 (item #10). */}
       <div className="grid grid-cols-2 lg:grid-cols-2 gap-4">
-        <KpiCard title="Meetings Held"   value={fmtInt(k.meetingsHeld ?? 0)}                           subtitle={`RY ${data.selectedYearLabel || "—"}`} icon={CalendarDays} color="blue" />
+        <KpiCard title="Meetings Held"   value={fmtInt(k.meetingsHeld ?? 0)}                           subtitle={`RY ${data.selectedYearLabel || "–"}`} icon={CalendarDays} color="blue" />
         <KpiCard title="Avg Attendance"  value={`${Math.round(Number(k.avgAttendancePercent ?? 0))}%`} subtitle="Across meetings"                       icon={Users}        color="green" />
       </div>
 
@@ -490,12 +490,12 @@ function ClubServiceSection({
                   <td className="px-3 py-2 text-slate-700 whitespace-nowrap">{fmtDate(m.date)}</td>
                   <td className="px-3 py-2">
                     <span className="inline-flex items-center text-xs font-medium px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200">
-                      {m.meetingType || "—"}
+                      {m.meetingType || "–"}
                     </span>
                   </td>
-                  <td className="px-3 py-2 text-slate-700">{m.title || "—"}</td>
+                  <td className="px-3 py-2 text-slate-700">{m.title || "–"}</td>
                   <td className="px-3 py-2 text-slate-600" title={`${m.attendance} of ${m.membersOnRoll || 0} ${m.attendanceBase || "Total Members"}`}>
-                    {m.attendance}/{m.membersOnRoll || "—"}
+                    {m.attendance}/{m.membersOnRoll || "–"}
                     {m.attendanceBase === "BOD Members" && (
                       <span className="ml-1 text-[10px] text-slate-400">BOD</span>
                     )}
@@ -588,7 +588,7 @@ function ClubServiceSection({
         title="Delete Meeting"
         description={<>
           Are you sure you want to delete this meeting
-          {deleteTarget?.title ? <> — <span className="font-semibold text-foreground">{deleteTarget.title}</span></> : null}?
+          {deleteTarget?.title ? <>: <span className="font-semibold text-foreground">{deleteTarget.title}</span></> : null}?
           This action cannot be undone.
         </>}
         confirmLabel="Delete"
@@ -700,7 +700,7 @@ function NonClubAvenueSection({
     try {
       await togglePphCampActive(clubId, r.id);
       await onRefresh();
-    } catch { /* ignore — state stays as-is */ }
+    } catch { /* ignore: state stays as-is */ }
     finally { setTogglingId(null); }
   };
 
@@ -828,7 +828,7 @@ function NonClubAvenueSection({
             {showTypeFilter && (
               <div
                 className="inline-flex rounded-lg overflow-hidden text-xs p-1 gap-1"
-                style={{ backgroundColor: "#1e3a5f" }}
+                style={{ backgroundColor: "#17458f" }}
               >
                 <button
                   onClick={() => setSubTab("one_time")}
@@ -837,7 +837,7 @@ function NonClubAvenueSection({
                   }`}
                   style={
                     subTab === "one_time"
-                      ? { backgroundColor: "#F7A81B", color: "#1e3a5f" }
+                      ? { backgroundColor: "#F7A81B", color: "#17458f" }
                       : undefined
                   }
                 >
@@ -850,7 +850,7 @@ function NonClubAvenueSection({
                   }`}
                   style={
                     subTab === "ongoing"
-                      ? { backgroundColor: "#F7A81B", color: "#1e3a5f" }
+                      ? { backgroundColor: "#F7A81B", color: "#17458f" }
                       : undefined
                   }
                 >
@@ -950,10 +950,10 @@ function NonClubAvenueSection({
                             alt=""
                             className="h-8 w-8 rounded object-cover border border-slate-200 shrink-0"
                           />
-                          <span>{r.title || "—"}</span>
+                          <span>{r.title || "–"}</span>
                         </span>
                       ) : (
-                        r.title || "—"
+                        r.title || "–"
                       )}
                     </td>
                     {showTypeFilter && (
@@ -985,9 +985,9 @@ function NonClubAvenueSection({
                     )}
                     {data.avenueKey !== "pph_camp" && (
                       <>
-                        <td className="px-3 py-2 text-right text-slate-600 whitespace-nowrap">{r.cost > 0 ? shortMoney(Number(r.cost), r.currency) : "—"}</td>
-                        <td className="px-3 py-2 text-right text-slate-600">{r.directBeneficiaries > 0 ? fmtInt(r.directBeneficiaries) : "—"}</td>
-                        <td className="px-3 py-2 text-right text-slate-600">{r.manHours > 0 ? fmtInt(r.manHours) : "—"}</td>
+                        <td className="px-3 py-2 text-right text-slate-600 whitespace-nowrap">{r.cost > 0 ? shortMoney(Number(r.cost), r.currency) : "–"}</td>
+                        <td className="px-3 py-2 text-right text-slate-600">{r.directBeneficiaries > 0 ? fmtInt(r.directBeneficiaries) : "–"}</td>
+                        <td className="px-3 py-2 text-right text-slate-600">{r.manHours > 0 ? fmtInt(r.manHours) : "–"}</td>
                       </>
                     )}
                     <td className="px-3 py-2 whitespace-nowrap">
@@ -996,7 +996,7 @@ function NonClubAvenueSection({
                           type="button"
                           onClick={() => handleToggleActive(r)}
                           disabled={togglingId === r.id}
-                          title={r.isActive ? "Active — click to set Inactive" : "Inactive — click to set Active"}
+                          title={r.isActive ? "Active. Click to set Inactive" : "Inactive. Click to set Active"}
                           className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors disabled:opacity-50 ${r.isActive ? "bg-emerald-500" : "bg-slate-300"}`}
                         >
                           <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${r.isActive ? "translate-x-4" : "translate-x-0.5"}`} />
@@ -1084,7 +1084,7 @@ function NonClubAvenueSection({
                             <Puzzle size={12} /> Sync
                           </button>
                         ) : (
-                          <span className="text-xs text-slate-300">—</span>
+                          <span className="text-xs text-slate-300">, </span>
                         )}
                       </td>
                     )}
@@ -1098,7 +1098,7 @@ function NonClubAvenueSection({
                     <td className="px-3 py-2 text-slate-400"></td>
                     <td className="px-3 py-2 text-slate-600 whitespace-nowrap">{fmtDate(c.date)}</td>
                     <td className="px-3 py-2 text-slate-700">
-                      <span className="text-slate-400 mr-1">↳</span>{c.title || "—"}
+                      <span className="text-slate-400 mr-1">↳</span>{c.title || "–"}
                     </td>
                     {showTypeFilter && (
                       <td className="px-3 py-2">
@@ -1107,9 +1107,9 @@ function NonClubAvenueSection({
                         </span>
                       </td>
                     )}
-                    <td className="px-3 py-2 text-right text-slate-500 whitespace-nowrap">{c.cost > 0 ? shortMoney(Number(c.cost), c.currency) : "—"}</td>
-                    <td className="px-3 py-2 text-right text-slate-500">{c.directBeneficiaries > 0 ? fmtInt(c.directBeneficiaries) : "—"}</td>
-                    <td className="px-3 py-2 text-right text-slate-500">{c.manHours > 0 ? fmtInt(c.manHours) : "—"}</td>
+                    <td className="px-3 py-2 text-right text-slate-500 whitespace-nowrap">{c.cost > 0 ? shortMoney(Number(c.cost), c.currency) : "–"}</td>
+                    <td className="px-3 py-2 text-right text-slate-500">{c.directBeneficiaries > 0 ? fmtInt(c.directBeneficiaries) : "–"}</td>
+                    <td className="px-3 py-2 text-right text-slate-500">{c.manHours > 0 ? fmtInt(c.manHours) : "–"}</td>
                     <td className="px-3 py-2 whitespace-nowrap">
                       <ApprovalStatusChip status={c.approvalStatus} />
                     </td>
@@ -1167,7 +1167,7 @@ function NonClubAvenueSection({
                             <Puzzle size={12} /> Sync
                           </button>
                         ) : (
-                          <span className="text-xs text-slate-300">—</span>
+                          <span className="text-xs text-slate-300">, </span>
                         )}
                       </td>
                     )}
@@ -1229,7 +1229,7 @@ function NonClubAvenueSection({
         title="Delete Project"
         description={<>
           Are you sure you want to delete this project
-          {deleteTarget?.title ? <> — <span className="font-semibold text-foreground">{deleteTarget.title}</span></> : null}?
+          {deleteTarget?.title ? <>: <span className="font-semibold text-foreground">{deleteTarget.title}</span></> : null}?
           This action cannot be undone.
         </>}
         confirmLabel="Delete"
@@ -1346,7 +1346,7 @@ function ApprovalStatusChip({ status }: { status: string | null | undefined }) {
       </span>
     );
   }
-  return <span className="text-slate-300 text-xs">—</span>;
+  return <span className="text-slate-300 text-xs">, </span>;
 }
 
 function YearSelect({

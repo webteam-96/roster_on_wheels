@@ -3,12 +3,7 @@
 import { useEffect, useRef, useState, useCallback, Fragment } from "react";
 import dynamic from "next/dynamic";
 import "react-quill-new/dist/quill.snow.css";
-import {
-  getClubDuesMyDistrict, getClubDuesContent, updateClubDuesContent,
-  getClubDuesClubs, approveClubDuesPayment, getClubDuesOfflineDetails, sendClubDuesTestEmail,
-  sendClubDuesReminder, bulkClubDuesReminder, sendClubDuesWhatsApp, bulkClubDuesWhatsApp,
-  clubDuesAssetUrl, recordClubDuesOffline, getClubDuesOfflineAccounts, ClubDuesOfflineAccountOption,
-} from "@/services/api";
+import { getClubDuesMyDistrict, getClubDuesContent, updateClubDuesContent, getClubDuesClubs, approveClubDuesPayment, getClubDuesOfflineDetails, sendClubDuesTestEmail, sendClubDuesReminder, bulkClubDuesReminder, clubDuesAssetUrl, recordClubDuesOffline, getClubDuesOfflineAccounts, ClubDuesOfflineAccountOption } from "@/services/api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -19,7 +14,7 @@ import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
 import AlertModal from "@/components/AlertModal";
 import { useAuth } from "@/contexts/AuthContext";
-import { Upload, X, RefreshCw, Bell, MessageCircle, FileText, Send } from "lucide-react";
+import { Upload, X, RefreshCw, Bell, FileText, Send } from "@/components/icons";
 import EmailTokenChips, { CLUB_DUES_RECEIPT_TOKENS, CLUB_DUES_REMINDER_TOKENS } from "@/components/club-dues/EmailTokenChips";
 
 import { appLocale, currencySymbol } from "@/lib/appFormat";
@@ -278,7 +273,7 @@ export default function DistrictAdminClubDuesPage() {
               <Card>
                 <CardHeader><CardTitle>Email content</CardTitle></CardHeader>
                 <CardContent className="space-y-4">
-                  <p className="text-xs text-muted-foreground">Click a chip to insert a value (e.g. club name, amount) into your text — it&apos;s filled in when the email is sent. If you don&apos;t add an amount/members value, a summary is appended for you.</p>
+                  <p className="text-xs text-muted-foreground">Click a chip to insert a value (e.g. club name, amount) into your text. It&apos;s filled in when the email is sent. If you don&apos;t add an amount/members value, a summary is appended for you.</p>
                   <div className="space-y-2 max-w-md"><Label>Email CC</Label><Input value={emailCC} onChange={(e) => setEmailCC(e.target.value)} placeholder="cc@example.com, another@example.com" /></div>
 
                   <div className="rounded-md border p-3 space-y-3">
@@ -352,9 +347,9 @@ function ClubsSection({ duesId, onSuccess, onError }: { duesId: number; onSucces
   const [search, setSearch] = useState("");
   const [approveFor, setApproveFor] = useState<ClubRow | null>(null);
   const [offlineFor, setOfflineFor] = useState<ClubRow | null>(null);
-  const [bulkBusy, setBulkBusy] = useState<"email" | "whatsapp" | null>(null);
-  const [rowBusy, setRowBusy] = useState<string | null>(null); // `${clubId}-email|whatsapp`
-  const [bulkConfirmChannel, setBulkConfirmChannel] = useState<"email" | "whatsapp" | null>(null);
+  const [bulkBusy, setBulkBusy] = useState<"email" | null>(null);
+  const [rowBusy, setRowBusy] = useState<string | null>(null); // `${clubId}-email`
+  const [bulkConfirmChannel, setBulkConfirmChannel] = useState<"email" | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -370,22 +365,10 @@ function ClubsSection({ duesId, onSuccess, onError }: { duesId: number; onSucces
     catch (e: any) { onError(e?.response?.data?.message || "Failed to send email reminders."); }
     finally { setBulkBusy(null); }
   };
-  const whatsappAll = async () => {
-    setBulkBusy("whatsapp");
-    try { await bulkClubDuesWhatsApp(duesId); onSuccess("WhatsApp reminders sent to all unpaid clubs."); }
-    catch (e: any) { onError(e?.response?.data?.message || "Failed to send WhatsApp reminders."); }
-    finally { setBulkBusy(null); }
-  };
   const emailClub = async (r: ClubRow) => {
     setRowBusy(`${r.fkClubId}-email`);
     try { await sendClubDuesReminder(duesId, r.fkClubId); onSuccess(`Email reminder sent to ${r.clubName}.`); }
     catch (e: any) { onError(e?.response?.data?.message || "Failed to send reminder."); }
-    finally { setRowBusy(null); }
-  };
-  const whatsappClub = async (r: ClubRow) => {
-    setRowBusy(`${r.fkClubId}-whatsapp`);
-    try { await sendClubDuesWhatsApp(duesId, r.fkClubId); onSuccess(`WhatsApp reminder sent to ${r.clubName}.`); }
-    catch (e: any) { onError(e?.response?.data?.message || "Failed to send WhatsApp."); }
     finally { setRowBusy(null); }
   };
 
@@ -465,23 +448,20 @@ function ClubsSection({ duesId, onSuccess, onError }: { duesId: number; onSucces
         <Button variant="outline" size="sm" onClick={() => setBulkConfirmChannel("email")} disabled={bulkBusy !== null}>
           {bulkBusy === "email" ? <RotaryLoader size="sm" /> : <Bell className="mr-2 h-4 w-4" />}Email all
         </Button>
-        <Button variant="outline" size="sm" onClick={() => setBulkConfirmChannel("whatsapp")} disabled={bulkBusy !== null}>
-          {bulkBusy === "whatsapp" ? <RotaryLoader size="sm" /> : <MessageCircle className="mr-2 h-4 w-4" />}WhatsApp all
-        </Button>
       </div>
-
       <AlertModal
         open={!!bulkConfirmChannel}
         icon={Send}
-        iconClassName={bulkConfirmChannel === "whatsapp" ? "text-green-600" : "text-orange-600"}
-        title={`Send ${bulkConfirmChannel === "whatsapp" ? "WhatsApp" : "Email"} Reminder to All Clubs`}
-        description={`Send a ${bulkConfirmChannel === "whatsapp" ? "WhatsApp" : "email"} reminder to every unpaid club in this campaign? This cannot be undone.`}
+        iconClassName="text-orange-600"
+        title="Send Email Reminder to All Clubs"
+        description="Send an email reminder to every unpaid club in this campaign? This cannot be undone."
         confirmLabel="Send"
-        confirmClassName={bulkConfirmChannel === "whatsapp" ? "bg-green-600 text-white hover:bg-green-700" : "bg-orange-600 text-white hover:bg-orange-700"}
-        onConfirm={() => { const c = bulkConfirmChannel; setBulkConfirmChannel(null); if (c === "whatsapp") whatsappAll(); else if (c === "email") emailAll(); }}
+        confirmClassName="bg-orange-600 text-white hover:bg-orange-700"
+        onConfirm={() => { setBulkConfirmChannel(null); emailAll(); }}
         cancelLabel="Cancel"
         onCancel={() => setBulkConfirmChannel(null)}
       />
+
 
       <Card>
         <CardContent className="p-0 overflow-x-auto">
@@ -522,7 +502,7 @@ function ClubsSection({ duesId, onSuccess, onError }: { duesId: number; onSucces
                     <span className="ml-2 text-xs rounded bg-amber-100 text-amber-700 px-1.5 py-0.5" title="This club is not synced from Rotary.org">Non-sync</span>
                   </td>
                   <td colSpan={10 + maxOfflineAccountCols * 2 + maxOnlineAccountCols * 2} className="p-3 text-sm italic text-amber-700">
-                    This club is not synced from Rotary.org, so it has no members to bill — sync this club first to track its dues.
+                    This club is not synced from Rotary.org, so it has no members to bill: sync this club first to track its dues.
                   </td>
                 </tr>
               ) : (
@@ -579,9 +559,6 @@ function ClubsSection({ duesId, onSuccess, onError }: { duesId: number; onSucces
                       <Button size="sm" variant="outline" disabled={r.status === "Fully Paid"} onClick={() => setOfflineFor(r)}>Offline</Button>
                       <Button size="sm" variant="ghost" title="Send email reminder" disabled={rowBusy === `${r.fkClubId}-email`} onClick={() => emailClub(r)}>
                         {rowBusy === `${r.fkClubId}-email` ? <RotaryLoader size="sm" /> : <Bell className="h-4 w-4" />}
-                      </Button>
-                      <Button size="sm" variant="ghost" title="Send WhatsApp reminder" disabled={rowBusy === `${r.fkClubId}-whatsapp`} onClick={() => whatsappClub(r)}>
-                        {rowBusy === `${r.fkClubId}-whatsapp` ? <RotaryLoader size="sm" /> : <MessageCircle className="h-4 w-4" />}
                       </Button>
                     </div>
                   </td>
@@ -641,7 +618,7 @@ function OfflineDialog({ duesId, club, onClose, onDone, onError }: { duesId: num
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" onClick={onClose}>
       <div className="bg-background rounded-lg shadow-lg w-full max-w-md p-5 space-y-4" onClick={(e) => e.stopPropagation()}>
-        <h3 className="text-lg font-semibold">Record offline payment — {club.clubName}</h3>
+        <h3 className="text-lg font-semibold">Record offline payment: {club.clubName}</h3>
         {accounts.length > 0 && (
           <div className="space-y-1">
             <Label>Account</Label>
@@ -696,11 +673,11 @@ function ApproveDialog({ club, onClose, onDone, onError }: { club: ClubRow; onCl
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" onClick={onClose}>
       <div className="bg-background rounded-lg shadow-lg w-full max-w-md p-5 space-y-4" onClick={(e) => e.stopPropagation()}>
-        <h3 className="text-lg font-semibold">Review offline payment — {club.clubName}</h3>
+        <h3 className="text-lg font-semibold">Review offline payment: {club.clubName}</h3>
         <div className="rounded-lg border p-3 space-y-1 text-sm">
           <div className="flex justify-between"><span>Members covered</span><b>{details?.memberCountCovered ?? club.unpaidCount}</b></div>
           <div className="flex justify-between"><span>Account</span><b>{details?.accountLabel || "-"}</b></div>
-          <div className="flex justify-between"><span>Mode</span><b>{MODES[String(details?.transactionType)] || "—"}</b></div>
+          <div className="flex justify-between"><span>Mode</span><b>{MODES[String(details?.transactionType)] || "–"}</b></div>
           {details?.transactionId && <div className="flex justify-between"><span>Reference</span><b>{details.transactionId}</b></div>}
           {details?.remark && <div className="flex justify-between"><span>Remark</span><span>{details.remark}</span></div>}
           <div className="flex justify-between border-t pt-1"><span>Amount</span><b>{currencySymbol()}{Number(details?.amount ?? club.unpaidCount * club.offlinePerMemberRate).toLocaleString(appLocale(), { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</b></div>

@@ -27,7 +27,7 @@ import {
 } from "@/components/ui/dialog";
 import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
-import { Plus, Pencil, Trash2, AlertCircle, ArrowLeft, Package, Download, Clock, Loader2 } from "lucide-react";
+import { Plus, Pencil, Trash2, AlertCircle, ArrowLeft, Package, Download, Clock, Loader2 } from "@/components/icons";
 import { exportToCSV } from "@/utils/csvExport";
 import RotaryLoader from "@/components/RotaryLoader";
 import Link from "next/link";
@@ -112,7 +112,7 @@ export default function ModulesPage() {
         isComingSoon: csIsComingSoon,
         comingSoonDate: csIsComingSoon ? new Date(csDate).toISOString() : null,
       });
-      setSuccessMessage(`${csTarget.moduleName} — Coming Soon ${csIsComingSoon ? "enabled" : "disabled"}.`);
+      setSuccessMessage(`${csTarget.moduleName}: Coming Soon ${csIsComingSoon ? "enabled" : "disabled"}.`);
       closeCsDialog();
       await fetchModules();
     } catch {
@@ -300,7 +300,7 @@ export default function ModulesPage() {
                             {formatCsDate(cs.comingSoonDate) || "Coming Soon"}
                           </Badge>
                         ) : (
-                          <span className="text-muted-foreground text-xs">—</span>
+                          <span className="text-muted-foreground text-xs">, </span>
                         )}
                         <Button variant="outline" size="sm" className="h-7 px-2" onClick={() => openCsDialog(mod)} title="Edit Coming Soon">
                           <Clock className="h-3 w-3 mr-1" />Edit
@@ -373,7 +373,7 @@ export default function ModulesPage() {
         <Dialog open={!!csTarget} onOpenChange={(o) => { if (!o) closeCsDialog(); }}>
           <DialogContent className="max-w-md">
             <DialogHeader>
-              <DialogTitle>Coming Soon — {csTarget?.moduleName}</DialogTitle>
+              <DialogTitle>Coming Soon: {csTarget?.moduleName}</DialogTitle>
               <DialogDescription>
                 When enabled, non-SuperAdmin users will see this module&apos;s card greyed out with the date below; SuperAdmin sees the module as normal.
               </DialogDescription>

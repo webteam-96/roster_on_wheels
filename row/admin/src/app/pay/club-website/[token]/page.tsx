@@ -18,7 +18,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import {
   Globe, ShieldCheck, Megaphone, Link2, CheckCircle2, Lock, Check, AlertTriangle,
-} from "lucide-react";
+} from "@/components/icons";
 import PayPageShell from "@/components/PayPageShell";
 import { PayCard as Card, PayHelpCard, PayBenefits, PayTrustRows, supportPhone } from "@/components/PayCard";
 import {
@@ -47,7 +47,7 @@ function loadRazorpayScript(): Promise<boolean> {
 }
 
 const inr = (n: number) => `${currencySymbol()}${Number(n || 0).toLocaleString(appLocale(), { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-const fmtDate = (s?: string | null) => (s ? new Date(s).toLocaleDateString(appLocale(), { day: "2-digit", month: "short", year: "numeric" }) : "—");
+const fmtDate = (s?: string | null) => (s ? new Date(s).toLocaleDateString(appLocale(), { day: "2-digit", month: "short", year: "numeric" }) : "–");
 
 export default function PublicClubWebsitePayPage() {
   const params = useParams();
@@ -124,7 +124,7 @@ export default function PublicClubWebsitePayPage() {
         amount: order.amountPaise,
         currency: order.currency,
         name: "ROW",
-        description: `Club website ${order.orderType} — ${order.clubName || `${order.subdomain}.${parentDomain}`}`,
+        description: `Club website ${order.orderType}: ${order.clubName || `${order.subdomain}.${parentDomain}`}`,
         handler: async (resp: any) => {
           try {
             const v = await verifyPublicClubWebsiteOrder(token, {
@@ -157,7 +157,7 @@ export default function PublicClubWebsitePayPage() {
   if (loadingInfo) return (
     <PayPageShell wide>
       <div className="py-24 text-center">
-        <div className="mx-auto h-8 w-8 animate-spin rounded-full border-2 border-slate-200 border-t-[#17458F]" />
+        <div className="mx-auto h-8 w-8 animate-spin rounded-full border-2 border-slate-200 border-t-azure" />
         <p className="mt-4 text-sm text-slate-500">Loading…</p>
       </div>
     </PayPageShell>
@@ -191,7 +191,7 @@ export default function PublicClubWebsitePayPage() {
         <p className="mt-4 text-sm text-slate-600">{info.purchaseBlockedReason || "Renewal opens closer to expiry."}</p>
         {info.currentSubdomain && (
           <a href={`https://${info.currentSubdomain}.${parentDomain}`} target="_blank" rel="noreferrer"
-            className="mt-5 inline-flex items-center gap-2 break-all font-semibold text-[#17458F] hover:underline">
+            className="mt-5 inline-flex items-center gap-2 break-all font-semibold text-azure hover:underline">
             <Link2 className="h-4 w-4 shrink-0" />
             {info.currentSubdomain}.{parentDomain}
           </a>
@@ -217,7 +217,7 @@ export default function PublicClubWebsitePayPage() {
             </p>
             {result.visitUrl && (
               <a href={result.visitUrl} target="_blank" rel="noreferrer"
-                className="mt-5 inline-flex items-center gap-2 break-all rounded-xl border border-[#17458F]/25 bg-blue-50/70 px-4 py-3 font-semibold text-[#17458F] hover:underline">
+                className="mt-5 inline-flex items-center gap-2 break-all rounded-xl border border-azure/25 bg-blue-50/70 px-4 py-3 font-semibold text-azure hover:underline">
                 <Link2 className="h-4 w-4 shrink-0" />
                 {result.visitUrl}
               </a>
@@ -266,8 +266,8 @@ export default function PublicClubWebsitePayPage() {
           </div>
         </dl>
         <div className="mt-4 flex items-baseline justify-between gap-3 border-t border-slate-200 pt-4">
-          <span className="text-sm font-bold text-[#17458F]">Total payable</span>
-          <span className="text-lg font-bold tabular-nums text-[#17458F]">{inr(info.totalAmount)}</span>
+          <span className="text-sm font-bold text-azure">Total payable</span>
+          <span className="text-lg font-bold tabular-nums text-azure">{inr(info.totalAmount)}</span>
         </div>
         <PayTrustRows activationNote="Your site is set up as soon as payment succeeds." />
       </Card>
@@ -287,10 +287,10 @@ export default function PublicClubWebsitePayPage() {
         {/* ── Left: the payer's path ─────────────────────────────────────── */}
         <div className="space-y-5">
           <header>
-            <h1 className="text-3xl font-bold tracking-tight text-[#17458F] sm:text-[2.5rem] sm:leading-[1.1]">
+            <h1 className="text-3xl font-bold tracking-tight text-azure sm:text-[2.5rem] sm:leading-[1.1]">
               {info?.clubName || "Club website"}
             </h1>
-            <div className="mt-3 h-1 w-16 rounded-full bg-[#F7A81B]" />
+            <div className="mt-3 h-1 w-16 rounded-full bg-marigold" />
             <p className="mt-4 text-sm text-slate-600">
               {isRenewal ? "Renew your club's website and keep it online." : "Set up your club's website and get it online."}
             </p>
@@ -304,12 +304,12 @@ export default function PublicClubWebsitePayPage() {
                 <li key={s.key} className="flex items-center gap-2">
                   <span className={`flex h-6 w-6 items-center justify-center rounded-full text-[11px] font-bold ${
                     done ? "bg-emerald-600 text-white"
-                      : current ? "bg-[#17458F] text-white"
+                      : current ? "bg-azure text-white"
                       : "bg-slate-200 text-slate-500"
                   }`}>
                     {done ? <Check className="h-3.5 w-3.5" strokeWidth={3} /> : i + 1}
                   </span>
-                  <span className={current ? "text-[#17458F]" : done ? "text-slate-600" : "text-slate-400"}>{s.label}</span>
+                  <span className={current ? "text-azure" : done ? "text-slate-600" : "text-slate-400"}>{s.label}</span>
                   {i < steps.length - 1 && <span className="mx-1 h-px w-6 bg-slate-200" />}
                 </li>
               );
@@ -319,7 +319,7 @@ export default function PublicClubWebsitePayPage() {
           {/* Step: subdomain (New only) */}
           {step === "subdomain" && (
             <Card icon={Globe} title="Choose your website address" subtitle="Lowercase letters and numbers only, 3–30 characters.">
-              <div className="flex items-stretch overflow-hidden rounded-xl border border-slate-300 transition focus-within:border-[#17458F] focus-within:ring-2 focus-within:ring-[#17458F]/20">
+              <div className="flex items-stretch overflow-hidden rounded-xl border border-slate-300 transition focus-within:border-azure focus-within:ring-2 focus-within:ring-azure/20">
                 <span className="flex items-center border-r border-slate-200 bg-slate-50 px-3 text-sm text-slate-500">{prefix}</span>
                 <input
                   autoFocus value={subInput} onChange={(e) => setSubInput(sanitize(e.target.value))}
@@ -345,7 +345,7 @@ export default function PublicClubWebsitePayPage() {
 
               <button
                 type="button" disabled={!subValid} onClick={() => setStep("confirm")}
-                className="mt-5 w-full rounded-xl bg-gradient-to-r from-[#17458F] to-[#0F3168] py-3.5 text-sm font-bold text-white shadow-sm transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto sm:px-8"
+                className="mt-5 w-full rounded-xl bg-azure py-3.5 text-sm font-bold text-white shadow-sm transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto sm:px-8"
               >
                 Continue
               </button>
@@ -356,8 +356,8 @@ export default function PublicClubWebsitePayPage() {
           {step === "confirm" && (
             <Card icon={Link2} title="Confirm your website address">
               <p className="text-[13px] text-slate-500">Your website address {isRenewal ? "is" : "will be"}</p>
-              <div className="mt-3 rounded-xl border border-[#17458F]/25 bg-blue-50/70 px-4 py-5 text-center">
-                <span className="break-all text-xl font-extrabold tracking-tight text-[#17458F] sm:text-2xl">{siteAddress}</span>
+              <div className="mt-3 rounded-xl border border-azure/25 bg-blue-50/70 px-4 py-5 text-center">
+                <span className="break-all text-xl font-extrabold tracking-tight text-azure sm:text-2xl">{siteAddress}</span>
               </div>
 
               {!isRenewal && (
@@ -370,7 +370,7 @@ export default function PublicClubWebsitePayPage() {
                     <input
                       type="checkbox" checked={confirmChecked}
                       onChange={(e) => setConfirmChecked(e.target.checked)}
-                      className="h-4 w-4 rounded border-slate-300 text-[#17458F] focus:ring-[#17458F]"
+                      className="h-4 w-4 rounded border-slate-300 text-azure focus:ring-azure"
                     />
                     The address above is correct.
                   </label>
@@ -386,7 +386,7 @@ export default function PublicClubWebsitePayPage() {
                 )}
                 <button
                   type="button" disabled={!isRenewal && !confirmChecked} onClick={() => setStep("pay")}
-                  className="flex-1 rounded-xl bg-gradient-to-r from-[#17458F] to-[#0F3168] py-3.5 text-sm font-bold text-white shadow-sm transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50 sm:order-2"
+                  className="flex-1 rounded-xl bg-azure py-3.5 text-sm font-bold text-white shadow-sm transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50 sm:order-2"
                 >
                   Confirm and continue
                 </button>
@@ -417,8 +417,8 @@ export default function PublicClubWebsitePayPage() {
                   </div>
                 </dl>
                 <div className="mt-3 flex items-baseline justify-between gap-3 border-t border-slate-200 pt-3">
-                  <span className="font-bold text-[#17458F]">Total payable</span>
-                  <span className="text-base font-bold tabular-nums text-[#17458F]">{inr(info.totalAmount)}</span>
+                  <span className="font-bold text-azure">Total payable</span>
+                  <span className="text-base font-bold tabular-nums text-azure">{inr(info.totalAmount)}</span>
                 </div>
               </div>
 
@@ -435,7 +435,7 @@ export default function PublicClubWebsitePayPage() {
                 </button>
                 <button
                   type="button" disabled={busy} onClick={handlePay}
-                  className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#17458F] to-[#0F3168] py-4 text-sm font-bold text-white shadow-sm transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-60 sm:order-2"
+                  className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-azure py-4 text-sm font-bold text-white shadow-sm transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-60 sm:order-2"
                 >
                   <Lock className="h-4 w-4" />
                   {busy ? "Processing…" : `Pay ${inr(info.totalAmount)}`}

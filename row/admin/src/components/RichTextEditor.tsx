@@ -194,7 +194,7 @@ export default function RichTextEditor({ value, onChange, placeholder, height = 
       target = img;
       overlay = document.createElement("div");
       overlay.style.cssText =
-        "position:absolute;box-sizing:border-box;border:1.5px solid #1e3a5f;" +
+        "position:absolute;box-sizing:border-box;border:1.5px solid #17458f;" +
         "pointer-events:none;z-index:20;";
       HANDLES.forEach((h) => {
         const dot = document.createElement("div");
@@ -207,7 +207,7 @@ export default function RichTextEditor({ value, onChange, placeholder, height = 
           w: "left:-5px;top:50%;transform:translateY(-50%);",
         };
         dot.style.cssText =
-          "position:absolute;width:10px;height:10px;background:#1e3a5f;border:1px solid #fff;" +
+          "position:absolute;width:10px;height:10px;background:#17458f;border:1px solid #fcfdfe;" +
           "border-radius:2px;pointer-events:auto;cursor:" + cursorFor[h] + ";" + pos[h];
         dot.addEventListener("mousedown", (e) => startDrag(e, h));
         overlay!.appendChild(dot);
@@ -215,14 +215,14 @@ export default function RichTextEditor({ value, onChange, placeholder, height = 
       // Align toolbar (Left / Center / Right) — the email-safe way to reposition.
       const bar = document.createElement("div");
       bar.style.cssText =
-        "position:absolute;top:-32px;left:0;display:flex;gap:3px;background:#1e3a5f;" +
+        "position:absolute;top:-32px;left:0;display:flex;gap:3px;background:#17458f;" +
         "padding:3px;border-radius:6px;pointer-events:auto;z-index:21;box-shadow:0 1px 4px rgba(0,0,0,.25);";
       ([["left", "Left"], ["center", "Center"], ["right", "Right"]] as const).forEach(([al, label]) => {
         const b = document.createElement("button");
         b.type = "button";
         b.textContent = label;
         b.style.cssText =
-          "font-size:11px;font-weight:600;color:#fff;background:transparent;border:0;" +
+          "font-size:11px;font-weight:600;color:#fcfdfe;background:transparent;border:0;" +
           "padding:2px 7px;border-radius:4px;cursor:pointer;";
         b.addEventListener("mouseenter", () => (b.style.background = "rgba(255,255,255,.18)"));
         b.addEventListener("mouseleave", () => (b.style.background = "transparent"));

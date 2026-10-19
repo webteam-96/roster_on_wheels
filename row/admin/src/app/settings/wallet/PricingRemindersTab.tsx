@@ -5,7 +5,7 @@
  * --------------------------------------------------------------------------
  * Set a per-club price (Amount + GST %) and payment gateway (Razorpay Normal or
  * Razorpay Route), per Rotary year, for one club or a whole district (batch). Then
- * bulk-send buy/renew reminders (email + WhatsApp) carrying an encrypted pay link to
+ * bulk-send buy/renew reminders (email) carrying an encrypted pay link to
  * each club's current-year President + Secretary.
  *
  * Rule: GST 0% requires the Route gateway with an active linked account (enforced here
@@ -14,7 +14,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import DateField from "@/components/DateField";
-import { RefreshCw, Loader2, Send, Pencil, Layers, Copy, Check, Wallet, Download } from "lucide-react";
+import { RefreshCw, Loader2, Send, Pencil, Layers, Copy, Check, Wallet, Download } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -46,7 +46,7 @@ import {
 
 import { appLocale, currencySymbol, todayLocal } from "@/lib/appFormat";
 const inr = (n: number) => `${currencySymbol()}${Number(n || 0).toLocaleString(appLocale(), { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-const fmtDate = (s?: string | null) => (s ? new Date(s).toLocaleDateString(appLocale(), { day: "2-digit", month: "short", year: "numeric" }) : "—");
+const fmtDate = (s?: string | null) => (s ? new Date(s).toLocaleDateString(appLocale(), { day: "2-digit", month: "short", year: "numeric" }) : "–");
 
 type EditState = {
   open: boolean;
@@ -93,7 +93,6 @@ export default function PricingRemindersTab() {
   const [copiedKey, setCopiedKey] = useState<string | null>(null);       // which copy button just fired
   const [commonLinks, setCommonLinks] = useState<WalletCommonLinks | null>(null);
 
-  // "Check balance" popup — clubs with a live WhatsApp OR Email credit balance.
   const [balanceOpen, setBalanceOpen] = useState(false);
   const [balanceRows, setBalanceRows] = useState<WalletClubBalanceRow[]>([]);
   const [balanceLoading, setBalanceLoading] = useState(false);
@@ -176,14 +175,14 @@ export default function PricingRemindersTab() {
 
   const downloadBalancesCsv = () => {
     const esc = (v: unknown) => `"${String(v ?? "").replace(/"/g, '""')}"`;
-    const header = ["Club", "District", "WhatsApp Balance", "Email Balance",
+    const header = ["Club", "District", "Email Balance",
       "President", "President Mobile", "President Email",
       "Secretary", "Secretary Mobile", "Secretary Email"];
     const lines = [header.map(esc).join(",")];
     for (const r of balanceRows) {
       lines.push([
         r.clubName, r.districtNumber ? `District ${r.districtNumber}` : "",
-        r.whatsappBalance, r.emailBalance,
+        r.emailBalance,
         r.presidentName, r.presidentMobile, r.presidentEmail,
         r.secretaryName, r.secretaryMobile, r.secretaryEmail,
       ].map(esc).join(","));
@@ -368,7 +367,7 @@ export default function PricingRemindersTab() {
     setErrorMessage(null);
     try {
       const res = await sendClubWebsiteReminders(Array.from(selected), Number(yearId));
-      let msg = `Reminders: ${res.clubsProcessed} club(s) processed — ${res.emailsSent} email(s), ${res.whatsappSent} WhatsApp, ${res.failed} failed.`;
+      let msg = `Reminders: ${res.clubsProcessed} club(s) processed: ${res.emailsSent} email(s), ${res.failed} failed.`;
       if (res.skipped?.length) msg += ` Skipped ${res.skipped.length}: ` + res.skipped.slice(0, 5).map((s) => `${s.clubName} (${s.reason})`).join("; ");
       setSuccessMessage(msg);
     } catch (e: any) {
@@ -389,7 +388,7 @@ export default function PricingRemindersTab() {
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <h2 className="text-lg font-semibold text-slate-800">Club Wallet</h2>
-          <p className="text-sm text-slate-500">Club-website pricing &amp; pay-link reminders, plus shareable WhatsApp/Email credit top-up links.</p>
+          <p className="text-sm text-slate-500">Club-website pricing &amp; pay-link reminders, plus shareable email credit top-up links.</p>
         </div>
         <Button variant="outline" onClick={openDefaultEdit} className="shrink-0">
           <Pencil className="h-4 w-4 mr-1.5" /> Default Amount of Club Website
@@ -400,10 +399,10 @@ export default function PricingRemindersTab() {
       {/* Common (pick-a-club) shareable links — open a search, payer picks their club, sees status, pays. */}
       {commonLinks && (
         <div className="rounded-xl border border-slate-200 bg-white p-4">
-          <div className="text-sm font-medium text-slate-700">Shareable links — any club</div>
+          <div className="text-sm font-medium text-slate-700">Shareable links: any club</div>
           <p className="text-[11px] text-slate-400 mt-0.5 mb-3">Each opens a search: the club leader picks their club, sees its status, and pays. Copy &amp; share. These links have no expiry.</p>
           <div className="flex flex-wrap gap-2">
-            {([["Club Website", "website"], ["WhatsApp Credits", "whatsapp"], ["Email Credits", "email"]] as const).map(([label, kind]) => {
+            {([["Club Website", "website"], ["Email Credits", "email"]] as const).map(([label, kind]) => {
               const key = `common:${kind}`;
               return (
                 <Button key={kind} variant="outline" size="sm" onClick={() => copyText(key, commonLinks[kind])}>
@@ -441,7 +440,7 @@ export default function PricingRemindersTab() {
           {routeAll
             ? <><span className="font-medium text-indigo-600">All</span> club-website payments settle to this one linked account (per-club gateway is overridden).</>
             : <>Only clubs whose gateway is <span className="font-medium">Route</span> settle to this one linked account.</>}
-          {routeAccounts.length === 0 && <> No active accounts yet — add one in Settings → Razorpay Route Accounts.</>}
+          {routeAccounts.length === 0 && <> No active accounts yet: add one in Settings → Razorpay Route Accounts.</>}
         </p>
       </div>
 
@@ -538,7 +537,7 @@ export default function PricingRemindersTab() {
                 <td className="px-3 py-2 align-top"><Checkbox checked={selected.has(r.clubId)} onCheckedChange={() => toggleOne(r.clubId)} /></td>
                 <td className="px-3 py-2">
                   <div className="font-medium text-slate-800">{r.clubName}</div>
-                  <div className="text-xs text-slate-400">D{r.districtNumber} · {r.clubRotaryId || "—"}</div>
+                  <div className="text-xs text-slate-400">D{r.districtNumber} · {r.clubRotaryId || "–"}</div>
                 </td>
                 <td className="px-3 py-2">
                   <span className={`inline-block rounded px-1.5 py-0.5 text-xs ${r.orderType === "Renewal" ? "bg-amber-50 text-amber-700" : "bg-emerald-50 text-emerald-700"}`}>{r.orderType}</span>
@@ -556,12 +555,12 @@ export default function PricingRemindersTab() {
                   <span className={`text-xs ${(routeAll || r.gatewayType === "route") ? "text-indigo-700" : "text-slate-600"}`}>{gatewayLabel(r)}</span>
                 </td>
                 <td className="px-3 py-2 text-xs text-slate-600">
-                  <div>{r.presidentName || "—"} {r.presidentMobile ? `· ${r.presidentMobile}` : ""}</div>
-                  <div className="text-slate-400">{r.secretaryName || "—"} {r.secretaryMobile ? `· ${r.secretaryMobile}` : ""}</div>
+                  <div>{r.presidentName || "–"} {r.presidentMobile ? `· ${r.presidentMobile}` : ""}</div>
+                  <div className="text-slate-400">{r.secretaryName || "–"} {r.secretaryMobile ? `· ${r.secretaryMobile}` : ""}</div>
                 </td>
                 <td className="px-3 py-2 text-right whitespace-nowrap">
                   <div className="inline-flex items-center gap-0.5">
-                    {([["Web", "website", r.payLink], ["WA", "whatsapp", r.whatsappPayLink], ["Email", "email", r.emailPayLink]] as const).map(([lbl, kind, url]) => {
+                    {([["Web", "website", r.payLink], ["Email", "email", r.emailPayLink]] as const).map(([lbl, kind, url]) => {
                       const key = `row:${r.clubId}:${kind}`;
                       return (
                         <Button key={kind} variant="ghost" size="sm" className="h-7 px-2 text-xs" title={`Copy ${lbl} link`} onClick={() => copyText(key, url)}>
@@ -583,13 +582,13 @@ export default function PricingRemindersTab() {
         <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle>
-              {edit.mode === "single" ? `Price — ${edit.clubName}` :
+              {edit.mode === "single" ? `Price: ${edit.clubName}` :
                 selected.size > 0 ? `Set price for ${selected.size} selected club(s)` :
                 `Set price for entire district`}
             </DialogTitle>
             {edit.mode === "batch" && defPricing && (
               <p className="text-xs text-slate-500 mt-1">
-                Pre-filled with the system default — New <span className="font-medium text-slate-700">{inr(defPricing.newAmount)}</span> · Renewal <span className="font-medium text-slate-700">{inr(defPricing.renewalAmount)}</span> (+{defPricing.gstPercent}% GST). Change below to override for this district.
+                Pre-filled with the system default: New <span className="font-medium text-slate-700">{inr(defPricing.newAmount)}</span> · Renewal <span className="font-medium text-slate-700">{inr(defPricing.renewalAmount)}</span> (+{defPricing.gstPercent}% GST). Change below to override for this district.
               </p>
             )}
           </DialogHeader>
@@ -669,7 +668,7 @@ export default function PricingRemindersTab() {
       <Dialog open={defOpen} onOpenChange={(o) => !o && setDefOpen(false)}>
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle>Default pricing — system-wide</DialogTitle>
+            <DialogTitle>Default pricing: system-wide</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <p className="text-xs text-slate-500">These prices apply to every club that has no district- or club-specific override. Saving requires an OTP sent to the authorised approver.</p>
@@ -710,7 +709,7 @@ export default function PricingRemindersTab() {
               </div>
               {defOtpInfo
                 ? <p className="text-[11px] text-emerald-600">{defOtpInfo}</p>
-                : <p className="text-[11px] text-slate-400">Click “Send OTP” — a code goes to the authorised approver to confirm the change.</p>}
+                : <p className="text-[11px] text-slate-400">Click “Send OTP”: a code goes to the authorised approver to confirm the change.</p>}
             </div>
           </div>
           <DialogFooter>
@@ -722,7 +721,7 @@ export default function PricingRemindersTab() {
         </DialogContent>
       </Dialog>
 
-      {/* Check balance — clubs with a live WhatsApp OR Email credit balance */}
+      {/* Check balance — clubs with a live email credit balance */}
       <Dialog open={balanceOpen} onOpenChange={setBalanceOpen}>
         <DialogContent className="max-w-5xl">
           <DialogHeader>
@@ -732,7 +731,7 @@ export default function PricingRemindersTab() {
           </DialogHeader>
           <div className="flex items-center justify-between gap-3">
             <p className="text-xs text-slate-500">
-              Clubs where WhatsApp <span className="font-medium">or</span> Email credits are &gt; 0.
+              Clubs where email credits are &gt; 0.
               {balanceRows.length > 0 && <> {balanceRows.length} club(s).</>}
             </p>
             <Button variant="outline" size="sm" onClick={downloadBalancesCsv} disabled={balanceLoading || balanceRows.length === 0}>
@@ -744,7 +743,6 @@ export default function PricingRemindersTab() {
               <thead className="bg-slate-50 text-slate-600 sticky top-0">
                 <tr>
                   <th className="text-left px-3 py-2 font-medium">Club</th>
-                  <th className="text-right px-3 py-2 font-medium">WhatsApp</th>
                   <th className="text-right px-3 py-2 font-medium">Email</th>
                   <th className="text-left px-3 py-2 font-medium">President</th>
                   <th className="text-left px-3 py-2 font-medium">Secretary</th>
@@ -752,24 +750,23 @@ export default function PricingRemindersTab() {
               </thead>
               <tbody>
                 {balanceLoading ? (
-                  <tr><td colSpan={5} className="px-3 py-10 text-center text-slate-400"><Loader2 className="h-5 w-5 animate-spin inline" /></td></tr>
+                  <tr><td colSpan={4} className="px-3 py-10 text-center text-slate-400"><Loader2 className="h-5 w-5 animate-spin inline" /></td></tr>
                 ) : balanceRows.length === 0 ? (
-                  <tr><td colSpan={5} className="px-3 py-10 text-center text-slate-400">No clubs with a credit balance.</td></tr>
+                  <tr><td colSpan={4} className="px-3 py-10 text-center text-slate-400">No clubs with a credit balance.</td></tr>
                 ) : balanceRows.map((r) => (
                   <tr key={r.clubId} className="border-t border-slate-100 align-top">
                     <td className="px-3 py-2">
                       <div className="font-medium text-slate-800">{r.clubName}</div>
                       <div className="text-xs text-slate-400">D{r.districtNumber}</div>
                     </td>
-                    <td className="px-3 py-2 text-right whitespace-nowrap">{r.whatsappBalance.toLocaleString(appLocale())}</td>
                     <td className="px-3 py-2 text-right whitespace-nowrap">{r.emailBalance.toLocaleString(appLocale())}</td>
                     <td className="px-3 py-2 text-xs text-slate-600">
-                      <div className="font-medium text-slate-700">{r.presidentName || "—"}</div>
+                      <div className="font-medium text-slate-700">{r.presidentName || "–"}</div>
                       <div>{r.presidentMobile || ""}</div>
                       <div className="text-slate-400 break-all">{r.presidentEmail || ""}</div>
                     </td>
                     <td className="px-3 py-2 text-xs text-slate-600">
-                      <div className="font-medium text-slate-700">{r.secretaryName || "—"}</div>
+                      <div className="font-medium text-slate-700">{r.secretaryName || "–"}</div>
                       <div>{r.secretaryMobile || ""}</div>
                       <div className="text-slate-400 break-all">{r.secretaryEmail || ""}</div>
                     </td>

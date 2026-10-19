@@ -29,6 +29,16 @@ RotaryApi.Services.Brand.Init(builder.Configuration);
 
 // Add services to the container. The convention opens CORS (PublicOpen policy) on every controller
 // routed under api/public — see PublicCorsControllerConvention.
+// Per-IP limit for the public sign-in endpoints marked [EnableRateLimiting("auth")]: 10 a minute.
+// shortcut: partitions by the connecting IP; behind a reverse proxy add ForwardedHeaders first, or every client shares one bucket.
+builder.Services.AddRateLimiter(o =>
+{
+    o.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+    o.AddPolicy("auth", ctx => System.Threading.RateLimiting.RateLimitPartition.GetFixedWindowLimiter(
+        ctx.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+        _ => new System.Threading.RateLimiting.FixedWindowRateLimiterOptions { PermitLimit = 10, Window = TimeSpan.FromMinutes(1) }));
+});
+
 builder.Services.AddControllers(o =>
     {
         o.Conventions.Add(new RotaryApi.Services.PublicCorsControllerConvention());
@@ -177,9 +187,6 @@ builder.Services.AddSwaggerGen(c =>
 builder.Services.AddSingleton<DatabaseInitializer>();
 // ROW privacy (master plan WS7): consent, export, erasure, retention. Behind Brand:Features:privacy.enabled.
 builder.Services.AddSingleton<RotaryApi.Privacy.PrivacyService>();
-// ROW messaging providers (Twilio SMS, Meta WhatsApp), as the NestJS edition; used when Brand:Providers selects them.
-builder.Services.AddSingleton<RotaryApi.Services.TwilioSmsSender>();
-builder.Services.AddSingleton<RotaryApi.Services.MetaWhatsAppSender>();
 builder.Services.AddSingleton<AdminProxyTokenSigner>();
 builder.Services.AddMemoryCache();
 
@@ -269,8 +276,6 @@ builder.Services.AddScoped<ITrfContributionService, TrfContributionService>();
 builder.Services.AddScoped<ICashfreeKycService, CashfreeKycService>();
 builder.Services.AddScoped<IWeblinkService, WeblinkService>();
 builder.Services.AddScoped<ISubGroupService, SubGroupService>();
-builder.Services.AddScoped<ISmsService, TwilioOtpSmsService>();   // ROW: Twilio (the original: India DLT gateway)
-builder.Services.AddScoped<IWhatsAppService, MetaWhatsAppService>();   // ROW: Meta Cloud API (the original: Interakt)
 builder.Services.AddScoped<IEventPaymentLinkService, EventPaymentLinkService>();
 builder.Services.AddScoped<IMembershipDuesService, MembershipDuesService>();
 builder.Services.AddScoped<IClubDuesService, ClubDuesService>();
@@ -289,9 +294,9 @@ builder.Services.AddSingleton<IZoomMeetingService, ZoomMeetingService>();
 builder.Services.AddScoped<ITrainingAppointmentService, TrainingAppointmentService>();
 builder.Services.AddScoped<IClubMassEmailService, ClubMassEmailService>();
 
-// Background jobs (WhatsApp/email/push senders + auto-calc) run automatically on startup and act on
+// Background jobs (email/push senders + auto-calc) run automatically on startup and act on
 // live DB data. Set "BackgroundJobs:Enabled": false in local appsettings so running against production
-// data (e.g. claude1) does NOT fire real WhatsApp/emails/push. Defaults to true (servers).
+// data (e.g. claude1) does NOT fire real emails/push. Defaults to true (servers).
 var enableBackgroundJobs = builder.Configuration.GetValue<bool>("BackgroundJobs:Enabled", true);
 
 if (enableBackgroundJobs) builder.Services.AddHostedService<CreditExpiryBackgroundService>();
@@ -308,7 +313,6 @@ builder.Services.AddScoped<IProjectApprovalService, ProjectApprovalService>();
 builder.Services.AddScoped<IClubRotaryOrgCredentialService, ClubRotaryOrgCredentialService>();
 builder.Services.AddScoped<IAuditLogService, AuditLogService>();
 builder.Services.AddScoped<IRiDirectorService, RiDirectorService>();
-if (enableBackgroundJobs) builder.Services.AddHostedService<WhatsAppScheduledSendBackgroundService>();
 if (enableBackgroundJobs) builder.Services.AddHostedService<EmailScheduledSendBackgroundService>();
 if (enableBackgroundJobs) builder.Services.AddHostedService<ClubLeadershipEmailBackgroundService>();
 if (enableBackgroundJobs) builder.Services.AddHostedService<ClubWebsiteReminderBackgroundService>();
@@ -622,12 +626,16 @@ if (!string.IsNullOrEmpty(pathBase))
 {
     app.UsePathBase(pathBase);
 }
-app.UseSwagger();
-app.UseSwaggerUI(c =>
+// API docs only in Development (or Swagger:Enabled=true): no public endpoint map in production.
+if (app.Environment.IsDevelopment() || builder.Configuration.GetValue<bool>("Swagger:Enabled"))
 {
-    c.SwaggerEndpoint("v1/swagger.json", "ROW API v1");
-    c.RoutePrefix = "swagger";
-});
+    app.UseSwagger();
+    app.UseSwaggerUI(c =>
+    {
+        c.SwaggerEndpoint("v1/swagger.json", "ROW API v1");
+        c.RoutePrefix = "swagger";
+    });
+}
 // Convert InvalidOperationException (business-rule violations) into 400 with JSON body.
 // Log every other unhandled exception with full stack so we can diagnose 500s from the API log.
 app.Use(async (ctx, next) =>
@@ -647,14 +655,19 @@ app.Use(async (ctx, next) =>
         {
             ctx.Response.StatusCode = 500;
             ctx.Response.ContentType = "application/json";
-            await ctx.Response.WriteAsJsonAsync(new { message = ex.Message, type = ex.GetType().Name });
+            // Details only in Development; production shows a generic message (details are in the log above).
+            await ctx.Response.WriteAsJsonAsync(app.Environment.IsDevelopment()
+                ? new { message = ex.Message, type = ex.GetType().Name }
+                : new { message = "Something went wrong. Please try again.", type = "ServerError" });
         }
     }
 });
 
 app.UseCors();
+app.UseRateLimiter();
 app.UseAuthentication();
 app.UseAuthorization();
+app.UseMiddleware<RotaryApi.Services.ScopeWriteGuardMiddleware>(); // club/district writes need a role for that club/district
 app.UseMiddleware<RotaryApi.Services.MobileJwtRefreshMiddleware>();
 app.UseMiddleware<RotaryApi.Services.AuditMiddleware>();
 app.UseResponseCaching();

@@ -73,7 +73,7 @@ export default function BackToAdminDashboard() {
         if (cancelled) return;
         if (r?.available && r.available.length > 0) setAvailable(r.available);
       })
-      .catch(() => { /* keep cached — button just hides if nothing operational */ });
+      .catch(() => { /* keep cached: button just hides if nothing operational */ });
     return () => { cancelled = true; };
   }, [isSuperAdminLogin]);
 
@@ -88,7 +88,7 @@ export default function BackToAdminDashboard() {
   // 2026-09-25: the full "Switch dashboard" list (every role the member holds), not a single
   // jump back to one dashboard. Opens upward from the bottom-left corner.
   return (
-    <div className="fixed bottom-5 left-5 z-40 w-64 rounded-xl p-1.5 shadow-lg ring-1 ring-black/10" style={{ backgroundColor: "#1e293b" }}>
+    <div className="fixed bottom-5 left-5 z-40 w-64 rounded-xl p-1.5 shadow-lg ring-1 ring-black/10" style={{ backgroundColor: "#1b2c42" }}>
       <Suspense fallback={null}>
         <DashboardSwitcher currentKind="super-admin" />
       </Suspense>

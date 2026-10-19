@@ -15,7 +15,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
-import { ArrowLeft, Save, ChevronDown, ChevronRight, Trophy } from "lucide-react";
+import { ArrowLeft, Save, ChevronDown, ChevronRight, Trophy } from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
 import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";
@@ -619,19 +619,19 @@ export function DistrictZonalAwardsView({ districtId: propDistrictId, embedded =
 
         {/* Summary Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <Card className="border-blue-200 bg-gradient-to-br from-blue-50 to-blue-100/50">
+          <Card className="border-blue-200 bg-blue-50">
             <CardContent className="p-5 text-center">
               <p className="text-sm text-blue-600 font-medium mb-1">Auto Generated Points</p>
               <p className="text-4xl font-bold text-blue-800">{totalAuto.toFixed(0)}</p>
             </CardContent>
           </Card>
-          <Card className="border-green-200 bg-gradient-to-br from-green-50 to-green-100/50">
+          <Card className="border-green-200 bg-green-50">
             <CardContent className="p-5 text-center">
               <p className="text-sm text-green-600 font-medium mb-1">Manual Points</p>
               <p className="text-4xl font-bold text-green-800">{totalManual.toFixed(0)}</p>
             </CardContent>
           </Card>
-          <Card className="border-amber-200 bg-gradient-to-br from-amber-50 to-amber-100/50">
+          <Card className="border-amber-200 bg-amber-50">
             <CardContent className="p-5 text-center">
               <p className="text-sm text-amber-600 font-medium mb-1">Total Points</p>
               <p className="text-4xl font-bold text-amber-800">{grandTotal.toFixed(0)}</p>
@@ -696,9 +696,9 @@ export function DistrictZonalAwardsView({ districtId: propDistrictId, embedded =
                           <TableCell className="pl-8 text-sm">{opt.label}</TableCell>
                           <TableCell className="text-sm text-muted-foreground">{opt.pointsLabel}</TableCell>
                           <TableCell className="text-center">
-                            {isSelected ? <Badge variant="default" className="text-xs">Selected</Badge> : <span className="text-muted-foreground">—</span>}
+                            {isSelected ? <Badge variant="default" className="text-xs">Selected</Badge> : <span className="text-muted-foreground">, </span>}
                           </TableCell>
-                          <TableCell className="text-center font-medium">{isSelected ? opt.points : "—"}</TableCell>
+                          <TableCell className="text-center font-medium">{isSelected ? opt.points : "–"}</TableCell>
                         </TableRow>
                       );
                     }

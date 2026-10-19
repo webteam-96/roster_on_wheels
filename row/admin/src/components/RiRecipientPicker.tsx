@@ -6,7 +6,7 @@ import {
   getRiDirectorRecipientCount, getRiDirectorCreditBalance,
   getRiDirectorSubGroups, getRiDirectorSubGroupYears,
 } from "@/services/api";
-import { Users, Globe, MapPin, Users2, MessageCircle, MessageSquare, AlertTriangle, CheckCircle2 } from "lucide-react";
+import { Users, Globe, MapPin, Users2, MessageSquare, AlertTriangle, CheckCircle2 } from "@/components/icons";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 export type RecipientTarget = "all" | "zones" | "districts" | "subgroups";
@@ -22,7 +22,7 @@ export interface RiRecipientValue {
 interface Props {
   value: RiRecipientValue;
   onChange: (v: RiRecipientValue) => void;
-  channel?: "email" | "whatsapp";
+  channel?: "email";
   checkCredits?: boolean;
 }
 
@@ -64,7 +64,7 @@ export default function RiRecipientPicker({ value, onChange, channel = "email", 
   const refreshBalance = useCallback(async () => {
     try {
       const b = await getRiDirectorCreditBalance();
-      setBalance(channel === "whatsapp" ? b.whatsappBalance : b.emailBalance);
+      setBalance(b.emailBalance);
     } catch { setBalance(null); }
   }, [channel]);
 
@@ -85,8 +85,8 @@ export default function RiRecipientPicker({ value, onChange, channel = "email", 
   };
 
   const insufficient = checkCredits && count !== null && balance !== null && count > balance;
-  const ChannelIcon = channel === "whatsapp" ? MessageCircle : MessageSquare;
-  const channelLabel = channel === "whatsapp" ? "WhatsApp" : "Email";
+  const ChannelIcon = MessageSquare;
+  const channelLabel = "Email";
 
   return (
     <div className="space-y-4">
@@ -208,25 +208,4 @@ export default function RiRecipientPicker({ value, onChange, channel = "email", 
       </div>
     </div>
   );
-}
-
-/**
- * Helper: check if enough credits exist for the current selection.
- */
-export async function checkRiCredits(
-  channel: "email" | "whatsapp",
-  target: RecipientTarget,
-  zoneIds: number[],
-  districtIds: number[],
-  subgroupIds: number[] = []
-): Promise<{ ok: boolean; required: number; available: number; message: string }> {
-  const [count, bal] = await Promise.all([
-    getRiDirectorRecipientCount(channel, target, zoneIds, districtIds, subgroupIds).catch(() => 0),
-    getRiDirectorCreditBalance().catch(() => null),
-  ]);
-  const available = channel === "whatsapp" ? (bal?.whatsappBalance ?? 0) : (bal?.emailBalance ?? 0);
-  const label = channel === "whatsapp" ? "WhatsApp" : "Email";
-  if (count === 0) return { ok: false, required: 0, available, message: `No recipients found. Check your selection.` };
-  if (count > available) return { ok: false, required: count, available, message: `Insufficient ${label} credits. Required: ${count}, Available: ${available}.` };
-  return { ok: true, required: count, available, message: `${count} ${label} credit(s) will be deducted.` };
 }

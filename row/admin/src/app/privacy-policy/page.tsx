@@ -6,7 +6,7 @@ import { getServerBrand } from "@/lib/brand";
 export async function generateMetadata(): Promise<Metadata> {
   const brand = await getServerBrand();
   return {
-    title: `Privacy Policy — ${brand.productName}`,
+    title: `Privacy Policy | ${brand.productName}`,
     description:
       `How the ${brand.productName} administration portal collects, uses, shares, and protects your personal data. DPDPA 2023 compliant.`,
   };
@@ -37,7 +37,7 @@ export default async function PrivacyPolicyPage() {
         <ul>
           <li>Name, mobile number, email address, date of birth, gender;</li>
           <li>Postal address, city, state, PIN;</li>
-          <li>Rotary identifiers — club name, club ID, district number, Rotary ID, designation, member type;</li>
+          <li>Rotary identifiers: club name, club ID, district number, Rotary ID, designation, member type;</li>
           <li>Photographs of you (for the member directory and project documentation);</li>
           <li>Family-member details where you choose to add them.</li>
         </ul>
@@ -45,7 +45,7 @@ export default async function PrivacyPolicyPage() {
         <ul>
           <li>Sign-in events (date, time, source IP, device user-agent);</li>
           <li>Audit log of administrative actions performed under your account;</li>
-          <li>Cookies and similar technologies — strictly necessary cookies for session management.</li>
+          <li>Cookies and similar technologies: strictly necessary cookies for session management.</li>
         </ul>
         <h3>2.3 Payment data</h3>
         <p>
@@ -63,11 +63,11 @@ export default async function PrivacyPolicyPage() {
         <p>We process personal data only for one or more of the following purposes:</p>
         <ul>
           <li><strong>Account creation and authentication</strong> (consent / contract);</li>
-          <li><strong>Service delivery</strong> — managing membership, projects, events, communications (contract);</li>
-          <li><strong>Payment processing</strong> — collecting dues, registration fees, contributions (contract);</li>
-          <li><strong>Statutory and Rotary International reporting</strong> — semi-annual reports, club annual returns (legal obligation);</li>
-          <li><strong>Security &amp; fraud prevention</strong> — audit logs, abuse detection (legitimate interest);</li>
-          <li><strong>Service improvement and support</strong> — aggregated analytics, troubleshooting (legitimate interest);</li>
+          <li><strong>Service delivery</strong>: managing membership, projects, events, communications (contract);</li>
+          <li><strong>Payment processing</strong>: collecting dues, registration fees, contributions (contract);</li>
+          <li><strong>Statutory and Rotary International reporting</strong>: semi-annual reports, club annual returns (legal obligation);</li>
+          <li><strong>Security &amp; fraud prevention</strong>: audit logs, abuse detection (legitimate interest);</li>
+          <li><strong>Service improvement and support</strong>: aggregated analytics, troubleshooting (legitimate interest);</li>
           <li><strong>Communications</strong> from your club / district / RI about programmes, events, and reminders (consent / legitimate interest).</li>
         </ul>
       </section>
@@ -77,22 +77,22 @@ export default async function PrivacyPolicyPage() {
         <p>We share personal data only with:</p>
         <ul>
           <li>
-            <strong>Your Rotary club and district officials</strong> — who require the data for legitimate Rotary administrative functions;
+            <strong>Your Rotary club and district officials</strong>: who require the data for legitimate Rotary administrative functions;
           </li>
           <li>
-            <strong>Rotary International</strong> and its regional bodies — for statutory member-status reporting;
+            <strong>Rotary International</strong> and its regional bodies: for statutory member-status reporting;
           </li>
           <li>
-            <strong>Cashfree Payments India Pvt. Ltd.</strong> — payment gateway; subject to Cashfree&apos;s own privacy policy;
+            <strong>Cashfree Payments India Pvt. Ltd.</strong>: payment gateway; subject to Cashfree&apos;s own privacy policy;
           </li>
           <li>
-            <strong>Email and SMS service providers</strong> — strictly to deliver transactional and Rotary-related communications;
+            <strong>Email and SMS service providers</strong>: strictly to deliver transactional and Rotary-related communications;
           </li>
           <li>
-            <strong>Cloud hosting providers and managed-service partners</strong> — bound by confidentiality and security obligations under written contract;
+            <strong>Cloud hosting providers and managed-service partners</strong>: bound by confidentiality and security obligations under written contract;
           </li>
           <li>
-            <strong>Law-enforcement and regulatory authorities</strong> — only when legally required.
+            <strong>Law-enforcement and regulatory authorities</strong>. Only when legally required.
           </li>
         </ul>
         <p>

@@ -34,12 +34,14 @@ import {
   X,
   Pencil,
   Search,
-} from "lucide-react";
+} from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
 import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";
 
 import { sanitizeText } from "@/lib/textInput";
+import MeetingModeFields from "@/components/attendance/MeetingModeFields";
+import { meetingPayload, validateMeeting, type MeetingMode } from "@/lib/meeting";
 
 function Req({ children, hint }: { children: React.ReactNode; hint?: string }) {
   return (
@@ -88,6 +90,8 @@ export default function AttendanceAddPage() {
   const [eventName, setEventName] = useState("");
   const [description, setDescription] = useState("");
   const [eventDateTime, setEventDateTime] = useState("");
+  const [meetingMode, setMeetingMode] = useState<MeetingMode>("in_person");
+  const [meetingLink, setMeetingLink] = useState("");
 
   // Section 2: Attendance sub-records
   const [selectedMemberIds, setSelectedMemberIds] = useState<number[]>([]);
@@ -177,6 +181,8 @@ export default function AttendanceAddPage() {
     if (!description.trim()) { setErrorMessage("Description is required."); return; }
     if (description.trim().length > 10000) { setErrorMessage("Description must be 10000 characters or less."); return; }
     if (!eventDateTime) { setErrorMessage("Event Date & Time is required."); return; }
+    const meetingError = validateMeeting(meetingMode, meetingLink);
+    if (meetingError) { setErrorMessage(meetingError); return; }
 
     setSaving(true);
     try {
@@ -184,6 +190,7 @@ export default function AttendanceAddPage() {
         eventName: eventName.trim(),
         description: description.trim(),
         eventDateTime: eventDateTime + ":00",
+        ...meetingPayload(meetingMode, meetingLink),
         memberIds: selectedMemberIds,
         anns: anns.map((a) => ({ annName: a.annName })),
         annets: annets.map((a) => ({ annetName: a.annetName })),
@@ -245,6 +252,7 @@ export default function AttendanceAddPage() {
               <Req>Event Date & Time</Req>
               <Input type="datetime-local" value={eventDateTime} onChange={(e) => setEventDateTime(e.target.value)} />
             </div>
+            <MeetingModeFields mode={meetingMode} link={meetingLink} onModeChange={setMeetingMode} onLinkChange={setMeetingLink} />
           </div>
         </Section>
 

@@ -18,7 +18,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { useParams } from "next/navigation";
-import { Info, User, Search, Crown, Calendar, UserPlus, Camera as ImageIcon } from "lucide-react";
+import { Info, User, Search, Crown, Calendar, UserPlus, Camera as ImageIcon } from "@/components/icons";
 import Image from "next/image";
 import {
   getClub,
@@ -65,7 +65,7 @@ function SectionCard({
 }: { number: number; icon: React.ElementType; title: string; dot: string; children: React.ReactNode }) {
   return (
     <div className="rounded-xl border border-slate-200 mb-4">
-      <div className="flex items-center gap-3 px-4 py-2.5 bg-gradient-to-r from-slate-50 to-white border-b border-slate-100 rounded-t-xl">
+      <div className="flex items-center gap-3 px-4 py-2.5 bg-slate-50 border-b border-slate-100 rounded-t-xl">
         <div className={`flex items-center justify-center h-7 w-7 rounded-full text-white text-xs font-bold ${dot}`}>{number}</div>
         <Icon className="h-4 w-4 text-slate-500" />
         <h3 className="text-sm font-semibold text-slate-800">{title}</h3>

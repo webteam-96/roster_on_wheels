@@ -7,7 +7,7 @@ import { WebsiteDataModule } from "@/types/websiteDataModule";
 import { getClub, getWebsiteDataModules, getClubHasWebsite } from "@/services/api";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { ArrowLeft, AlertCircle, Globe } from "lucide-react";
+import { ArrowLeft, AlertCircle, Globe } from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
 import ModuleIcon from "@/components/ModuleIcon";
 import ProtectedRoute from "@/components/ProtectedRoute";

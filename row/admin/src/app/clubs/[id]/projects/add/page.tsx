@@ -33,11 +33,11 @@ import ErrorAlert from "@/components/ErrorAlert";
 import {
   ArrowLeft, Upload, X, Star, Info, Search,
   FileText, MapPin, Target, IndianRupee, Camera, Send,
-} from "lucide-react";
+} from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
 import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";
-import WhatsAppRecipientBadge from "@/components/WhatsAppRecipientBadge";
+import RecipientBadge from "@/components/RecipientBadge";
 import AddToOrgStatus from "@/components/AddToOrgStatus";
 import { useExtensionStatus } from "@/hooks/useExtensionStatus";
 import { isFlowBotEnabled, triggerAddToOrg, type OrgExport, type FundingClass } from "@/lib/addToOrg";
@@ -103,7 +103,7 @@ function Section({ icon: Icon, title, children, number }: {
 }) {
   return (
     <div className="relative bg-white rounded-xl border shadow-sm overflow-hidden">
-      <div className="flex items-center gap-3 px-5 py-3.5 bg-gradient-to-r from-primary/5 to-transparent border-b">
+      <div className="flex items-center gap-3 px-5 py-3.5 bg-primary/5 border-b">
         <div className="flex items-center justify-center h-8 w-8 rounded-full bg-primary text-primary-foreground text-sm font-bold shrink-0">
           {number}
         </div>
@@ -230,7 +230,6 @@ export default function AddProjectPage() {
   const [rotariansInvolved, setRotariansInvolved] = useState("");
   const [rotaractorsInvolved, setRotaractorsInvolved] = useState("");
   const [rccInvolved, setRccInvolved] = useState("");
-  const [sendWhatsapp, setSendWhatsapp] = useState(false);
   const [sendEmail, setSendEmail] = useState(false);
   const [beneficiariesLimit, setBeneficiariesLimit] = useState<number>(0);
   const [showBeneficiaryConfirm, setShowBeneficiaryConfirm] = useState(false);
@@ -536,7 +535,6 @@ export default function AddProjectPage() {
       rotariansInvolved: rotariansInvolved ? Number(rotariansInvolved) : null,
       rotaractorsInvolved: rotaractorsInvolved ? Number(rotaractorsInvolved) : null,
       rccInvolved: rccInvolved ? Number(rccInvolved) : null,
-      sendWhatsapp,
       sendEmail,
       photos: photoInputs,
     };
@@ -575,7 +573,7 @@ export default function AddProjectPage() {
       // dialog (the extension needs the page to stay) and hand the project off.
       if (addToOrgAfterSaveRef.current) {
         addToOrgAfterSaveRef.current = false;
-        setSuccessMessage("Project saved — opening Add to Org…");
+        setSuccessMessage("Project saved: opening Add to Org…");
         triggerAddToOrg(result?.id ?? null, buildOrgExport(), clubId);
       } else {
         setShowProjectSuccess(true);
@@ -1079,18 +1077,7 @@ export default function AddProjectPage() {
           </div>
         </Section>
 
-        {/* ── WhatsApp + Bottom Save ── */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pt-2">
-          <label className="flex items-center gap-2.5 cursor-pointer select-none">
-            <input
-              type="checkbox"
-              checked={sendWhatsapp}
-              onChange={(e) => setSendWhatsapp(e.target.checked)}
-              className="accent-primary h-4 w-4"
-            />
-            <span className="text-sm font-medium">Send WhatsApp notification</span>
-            {sendWhatsapp && <WhatsAppRecipientBadge scope="club" clubId={clubId} />}
-          </label>
           <label className="flex items-center gap-2.5 cursor-pointer select-none">
             <input
               type="checkbox"
@@ -1099,7 +1086,7 @@ export default function AddProjectPage() {
               className="accent-primary h-4 w-4"
             />
             <span className="text-sm font-medium">Send Email notification</span>
-            {sendEmail && <WhatsAppRecipientBadge scope="club" clubId={clubId} channel="email" />}
+            {sendEmail && <RecipientBadge scope="club" clubId={clubId} />}
           </label>
 
           {/* RI Flow-Bot status — visible only for test club + community service. */}
@@ -1130,11 +1117,6 @@ export default function AddProjectPage() {
             </Button>
           </div>
         </div>
-        {sendWhatsapp && hasModerator && (
-          <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded px-3 py-2 mt-2">
-            Note: This project will go for approval to moderator. WhatsApp will be sent after moderator approves.
-          </p>
-        )}
         {sendEmail && hasModerator && (
           <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded px-3 py-2 mt-2">
             Note: This project will go for approval to moderator. Email will be sent after moderator approves.

@@ -10,7 +10,7 @@
 import { useEffect, useState } from "react";
 import { useAuth, decodeJwt } from "@/contexts/AuthContext";
 import { resolveDashboardLanding, type DashboardEntry } from "@/services/api";
-import { LayoutDashboard } from "lucide-react";
+import { LayoutDashboard } from "@/components/icons";
 
 const OPERATIONAL_ORDER = ["district-admin", "club-admin", "ri-director", "zonal-coordinator", "ag", "club-moderator"];
 

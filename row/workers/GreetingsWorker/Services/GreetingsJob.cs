@@ -17,17 +17,15 @@ public class GreetingsJob
     private readonly string _conn;
     private readonly ILogger<GreetingsJob> _log;
     private readonly BrevoEmailSender _email;
-    private readonly MetaWhatsAppSender _wa;
     private readonly FirebasePushSender _push;
     private readonly GreetingsOptions _opt;
 
     public GreetingsJob(string connectionString, ILogger<GreetingsJob> log,
-        BrevoEmailSender email, MetaWhatsAppSender wa, FirebasePushSender push, GreetingsOptions opt)
+        BrevoEmailSender email, FirebasePushSender push, GreetingsOptions opt)
     {
         _conn = connectionString;
         _log = log;
         _email = email;
-        _wa = wa;
         _push = push;
         _opt = opt;
     }
@@ -436,34 +434,7 @@ public class GreetingsJob
                                     isBirthday ? _opt.DefaultBirthdayEmailSubject : _opt.DefaultAnniversaryEmailSubject);
         var emailBody = Coalesce(isBirthday ? cfg.BirthdayEmailMessage : cfg.AnniversaryEmailMessage, waBase) + signature;
 
-        // WhatsApp
-        if (notifyOn && cfg.SendWhatsApp)
-        {
-            if (string.IsNullOrWhiteSpace(template))
-                await LogAsync(conn, m.MemberId, occasion, ChWhatsApp, sourceType, cfg.SourceId, "skipped", "WhatsApp template not configured (appsettings Greetings)", stats);
-            else if (string.IsNullOrWhiteSpace(m.Mobile))
-                await LogAsync(conn, m.MemberId, occasion, ChWhatsApp, sourceType, cfg.SourceId, "skipped", "no mobile number", stats);
-            else if (_dryRun || !await AlreadySentAsync(conn, m.MemberId, occasion, ChWhatsApp, sourceType, cfg.SourceId))
-            {
-                if (_opt.DeductCredits && await RemainingCreditsAsync(conn, cfg.SourceId, cfg.IsDistrict, ChWhatsApp) < 1)
-                    await LogAsync(conn, m.MemberId, occasion, ChWhatsApp, sourceType, cfg.SourceId, "skipped", "no WhatsApp credits", stats);
-                else if (_dryRun)
-                {
-                    var preview = MetaWhatsAppSender.CleanTemplateValue(waMessage, dropForeignScripts: true);
-                    if (preview.Length > 320) preview = preview[..320] + "…";
-                    Console.WriteLine($"[DRY] WhatsApp {occasion} -> {m.MemberName} ({m.Mobile}) via {sourceType} '{cfg.SourceName}': \"{preview}\"");
-                    stats.WhatsAppSent++;
-                }
-                else
-                {
-                    // bodyValues order = {{1}} name, {{2}} message, {{3}} club/district name
-                    var ok = await _wa.SendTemplateAsync(m.Mobile!, template!, new[] { m.MemberName ?? "Rotarian", waMessage, cfg.SourceName });
-                    if (ok && _opt.DeductCredits)
-                        await DeductCreditAsync(conn, cfg.SourceId, cfg.IsDistrict, ChWhatsApp, 1, $"{occasion} WhatsApp to {m.MemberName} ({sourceType} {cfg.SourceName})", m.MemberId);
-                    await LogAsync(conn, m.MemberId, occasion, ChWhatsApp, sourceType, cfg.SourceId, ok ? "sent" : "failed", ok ? null : "WhatsApp send failed", stats);
-                }
-            }
-        }
+        // ROW has no WhatsApp (2026-10-19): greetings go by email and push only.
 
         // Email
         if (emailOn && cfg.SendEmailChannel)

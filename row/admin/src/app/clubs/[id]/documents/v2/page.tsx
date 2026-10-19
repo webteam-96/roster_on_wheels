@@ -16,7 +16,7 @@ import Link from "next/link";
 import {
   FileText, ShieldCheck, Eye, Download, Loader2, Search, Plus, Edit3, Trash2,
   ArrowLeft, AlertTriangle,
-} from "lucide-react";
+} from "@/components/icons";
 import {
   getClub,
   getDocuments,
@@ -36,7 +36,7 @@ import { useSyncClubIdFromUrl } from "@/hooks/useSyncClubIdFromUrl";
 
 import { appLocale } from "@/lib/appFormat";
 function fmtDateTime(s?: string | null): string {
-  if (!s) return "—";
+  if (!s) return "–";
   try {
     const d = new Date(s);
     return d.toLocaleString(appLocale(), {
@@ -232,7 +232,7 @@ export default function DocumentsV2Page() {
             <div>
               <h1 className="text-lg font-semibold text-slate-800">Documents</h1>
               <p className="text-xs text-slate-500 mt-0.5">
-                Constitution, bylaws, forms &amp; attachments · {clubName || "—"}
+                Constitution, bylaws, forms &amp; attachments · {clubName || "–"}
               </p>
             </div>
           </div>
@@ -320,7 +320,7 @@ export default function DocumentsV2Page() {
                       <td className="px-3 py-2 text-slate-500">{(page - 1) * pageSize + i + 1}</td>
                       <td className="px-3 py-2 font-medium text-slate-800">
                         <div className="flex flex-col">
-                          <span>{d.title || "—"}</span>
+                          <span>{d.title || "–"}</span>
                           {d.originalFileName && (
                             <span className="text-xs text-slate-400 truncate max-w-[280px]">{d.originalFileName}</span>
                           )}
@@ -333,7 +333,7 @@ export default function DocumentsV2Page() {
                       </td>
                       <td className="px-3 py-2">
                         <span className={`inline-flex items-center text-xs font-medium px-2 py-0.5 rounded-full border ${statusChipStyle(d.status)}`}>
-                          {d.status || "—"}
+                          {d.status || "–"}
                         </span>
                       </td>
                       <td className="px-3 py-2 text-slate-600 whitespace-nowrap">{fmtDateTime(d.publishDateTime)}</td>
@@ -361,7 +361,7 @@ export default function DocumentsV2Page() {
                             </a>
                           )
                         ) : (
-                          <span className="text-slate-300">—</span>
+                          <span className="text-slate-300">, </span>
                         )}
                       </td>
                       {canManage && (
@@ -375,7 +375,7 @@ export default function DocumentsV2Page() {
                               <Edit3 size={13} />
                             </Link>
                           ) : (
-                            <span className="text-slate-300">—</span>
+                            <span className="text-slate-300">, </span>
                           )}
                         </td>
                       )}

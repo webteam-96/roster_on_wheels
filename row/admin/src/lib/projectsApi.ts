@@ -43,7 +43,7 @@ export function photoUrl(imagePath: string): string {
 
 /** Absolute URL of the API-generated 1200x630 social-preview card for a project.
  *  Used as the og:image / twitter:image on the public project page so a pasted link
- *  unfurls with a preview in WhatsApp, Facebook, LinkedIn and X.
+ *  unfurls with a preview in messaging and social apps.
  *  Backed by GET /api/public/projects/{id}/share-image.png (PublicProjectShareController). */
 export function shareImageUrl(id: number, yearId?: number): string {
   const q = yearId ? `?yearId=${yearId}` : "";

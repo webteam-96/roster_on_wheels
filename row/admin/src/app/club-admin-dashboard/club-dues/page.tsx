@@ -15,7 +15,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import RotaryLoader from "@/components/RotaryLoader";
 import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
-import { Link2, RefreshCw } from "lucide-react";
+import { Link2, RefreshCw } from "@/components/icons";
 
 import { appLocale, currencySymbol } from "@/lib/appFormat";
 declare global { interface Window { Razorpay?: any } }
@@ -109,7 +109,7 @@ function ClubDuesCard({ club, onSuccess, onError }: { club: OfficerClub; onSucce
         amount: res.amountPaise,
         currency: "INR",
         name: data?.purpose || "District Dues",
-        description: `${data?.clubName || club.clubName} — District ${data?.districtNumber || club.districtNumber}`,
+        description: `${data?.clubName || club.clubName}: District ${data?.districtNumber || club.districtNumber}`,
         prefill: { name: res.customerName || "", email: res.customerEmail || "", contact: res.customerPhone || "" },
         handler: async (r: any) => {
           try {
@@ -137,7 +137,7 @@ function ClubDuesCard({ club, onSuccess, onError }: { club: OfficerClub; onSucce
     try {
       const res = await getClubDuesOfficerPayLink(club.duesId, club.clubId);
       await navigator.clipboard.writeText(res.url);
-      onSuccess("Pay link copied — this link stays active and does not expire.");
+      onSuccess("Pay link copied. This link stays active and does not expire.");
     } catch { onError("Failed to generate link."); }
   };
 

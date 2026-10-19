@@ -18,18 +18,18 @@ import ErrorAlert from "@/components/ErrorAlert";
 import {
   ArrowLeft, Upload, X,
   FileText, Send, Bell, Plus, Trash2,
-} from "lucide-react";
+} from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
 import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";
-import WhatsAppRecipientBadge from "@/components/WhatsAppRecipientBadge";
+import RecipientBadge from "@/components/RecipientBadge";
 import { toLocalDateParts } from "@/lib/dateUtils";
 import ImageCropDialog from "@/components/ImageCropDialog";
 import { useImageCropUpload } from "@/hooks/useImageCropUpload";
 import { TEXT_INPUT_REGEX } from "@/lib/textInput";
 
 // The attached image is shown as a landscape poster on the detail view and is
-// pushed out with WhatsApp/email notifications — locked to 4:3 at 1200×900.
+// pushed out with email notifications — locked to 4:3 at 1200×900.
 const IMAGE_ASPECT = 4 / 3;
 const IMAGE_MAX_WIDTH = 1200;
 
@@ -91,7 +91,6 @@ export default function DistrictAnnouncementEditPage() {
   const [expiryDate, setExpiryDate] = useState("");
   const [expiryTime, setExpiryTime] = useState("");
   const [isDisplayOnBanner, setIsDisplayOnBanner] = useState(false);
-  const [isSendWhatsapp, setIsSendWhatsapp] = useState(false);
   const [isSendEmail, setIsSendEmail] = useState(false);
   const [isRepeatNotification, setIsRepeatNotification] = useState(false);
   const [reminders, setReminders] = useState<ReminderItem[]>([]);
@@ -138,7 +137,6 @@ export default function DistrictAnnouncementEditPage() {
         }
 
         setIsDisplayOnBanner(ann.isDisplayOnBanner);
-        setIsSendWhatsapp(ann.isSendWhatsapp);
         setIsSendEmail(ann.isSendEmail ?? false);
         setIsRepeatNotification(ann.isRepeatNotification);
 
@@ -239,7 +237,6 @@ export default function DistrictAnnouncementEditPage() {
         publishDateTime: publishDTStr,
         expiryDateTime: expiryDTStr,
         isDisplayOnBanner,
-        isSendWhatsapp,
         isSendEmail,
         isRepeatNotification,
         reminders: reminderStrings,
@@ -333,18 +330,10 @@ export default function DistrictAnnouncementEditPage() {
               <span className="text-sm font-medium">Is Display On Banner</span>
             </label>
             )}
-            {/* WhatsApp notify checkbox hidden 2026-09-07 per request — re-enable later. Value still submits (default off). */}
-            {false && (
-            <label className="flex items-center gap-3 cursor-pointer">
-              <input type="checkbox" checked={isSendWhatsapp} onChange={(e) => setIsSendWhatsapp(e.target.checked)} className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary" />
-              <span className="text-sm font-medium">Notify members via WhatsApp</span>
-              {isSendWhatsapp && <WhatsAppRecipientBadge scope="district" districtId={districtId} reminderCount={reminders.length} />}
-            </label>
-            )}
             <label className="flex items-center gap-3 cursor-pointer">
               <input type="checkbox" checked={isSendEmail} onChange={(e) => setIsSendEmail(e.target.checked)} className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary" />
               <span className="text-sm font-medium">Notify members via Email</span>
-              {isSendEmail && <WhatsAppRecipientBadge scope="district" districtId={districtId} reminderCount={reminders.length} channel="email" />}
+              {isSendEmail && <RecipientBadge scope="district" districtId={districtId} reminderCount={reminders.length} />}
             </label>
             <label className="flex items-center gap-3 cursor-pointer">
               <input type="checkbox" checked={isRepeatNotification} onChange={(e) => { setIsRepeatNotification(e.target.checked); if (!e.target.checked) setReminders([]); }} className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary" />

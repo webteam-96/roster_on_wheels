@@ -3,7 +3,7 @@
 import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { uploadPhoto, getPhotoUrl } from "@/services/api";
-import { Camera, User } from "lucide-react";
+import { Camera, User } from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
 import Image from "next/image";
 import { PHOTO_MAX_MB, HARD_CAP_MB } from "@/lib/uploadValidate";

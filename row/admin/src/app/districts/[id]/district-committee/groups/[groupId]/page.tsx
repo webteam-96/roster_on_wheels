@@ -9,7 +9,7 @@ import {
   getCommitteeGroupById, reorderGroupMembers, reorderSubGroups,
 } from "@/services/api";
 import { useDragSort } from "@/hooks/useDragSort";
-import { GripVertical } from "lucide-react";
+import { GripVertical } from "@/components/icons";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -23,7 +23,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
 import AlertModal from "@/components/AlertModal";
-import { ArrowLeft, Plus, Pencil, Trash2, AlertTriangle, Users, Layers, Search, X, Upload, MoreHorizontal, Lock } from "lucide-react";
+import { ArrowLeft, Plus, Pencil, Trash2, AlertTriangle, Users, Layers, Search, X, Upload, MoreHorizontal, Lock } from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
 import Link from "next/link";
 import Pagination from "@/components/Pagination";
@@ -304,7 +304,7 @@ export default function GroupDetailPage() {
             <div className="flex items-center gap-2">
               <h2 className="text-2xl font-bold tracking-tight text-primary">{groupName || "Group"}</h2>
               {isAutoManaged && (
-                <Badge variant="secondary" className="flex items-center gap-1" title="Auto-managed by BOD — members are added/removed via Board of Directors">
+                <Badge variant="secondary" className="flex items-center gap-1" title="Auto-managed by BOD: members are added/removed via Board of Directors">
                   <Lock className="h-3 w-3" />Auto
                 </Badge>
               )}

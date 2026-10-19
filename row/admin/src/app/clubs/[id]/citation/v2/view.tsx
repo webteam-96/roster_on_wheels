@@ -22,7 +22,7 @@ import Link from "next/link";
 import {
   Award, Calculator, RefreshCw, Save, ArrowLeft, Loader2, Trophy,
   CheckCircle2, FileText,
-} from "lucide-react";
+} from "@/components/icons";
 import {
   getClub,
   getClubCitation,
@@ -363,7 +363,7 @@ export function ClubCitationV2View({ clubId: propClubId, embedded = false, readO
         {/* ── Summary gradient band ───────────────────────────────────── */}
         <div
           className="rounded-xl p-5 text-white"
-          style={{ background: `linear-gradient(135deg, ${ROTARY_BLUE} 0%, #1e5fb5 100%)` }}
+          style={{ background: ROTARY_BLUE }}
         >
           <div className="flex items-center gap-3 mb-2">
             <Trophy className="h-5 w-5" />
@@ -553,7 +553,7 @@ function AutoPointsPanel({
                   // "Area of Focus → Category → Sub Category" (CASE in the
                   // /api/clubs/{id}/citation SQL). Fall back to the raw
                   // sub_item_name then the type when nothing else is set.
-                  const subItemText = e.subItemDisplay || e.subItemName || e.subItemType || "—";
+                  const subItemText = e.subItemDisplay || e.subItemName || e.subItemType || "–";
                   // Per-unit base points: prefer the sub-item's base if this
                   // row is for a sub-item, else the question's base.
                   const basePts = Number(
@@ -564,12 +564,12 @@ function AutoPointsPanel({
                   return (
                     <tr key={e.id ?? i} className="hover:bg-blue-50/40">
                       <td className="px-3 py-2 text-slate-500">{i + 1}</td>
-                      <td className="px-3 py-2 font-medium text-slate-800">{e.categoryName || "—"}</td>
-                      <td className="px-3 py-2 text-slate-700">{e.activityName || "—"}</td>
+                      <td className="px-3 py-2 font-medium text-slate-800">{e.categoryName || "–"}</td>
+                      <td className="px-3 py-2 text-slate-700">{e.activityName || "–"}</td>
                       <td className="px-3 py-2 text-slate-600 whitespace-normal break-words">{subItemText}</td>
                       <td className="px-3 py-2 text-right tabular-nums text-slate-700">{fmtPts(basePts)}</td>
-                      <td className="px-3 py-2 text-center text-slate-700 tabular-nums">{e.answerValue || "—"}</td>
-                      <td className="px-3 py-2 text-right tabular-nums text-amber-700">{bns > 0 ? fmtPts(bns) : "—"}</td>
+                      <td className="px-3 py-2 text-center text-slate-700 tabular-nums">{e.answerValue || "–"}</td>
+                      <td className="px-3 py-2 text-right tabular-nums text-amber-700">{bns > 0 ? fmtPts(bns) : "–"}</td>
                       <td className="px-3 py-2 text-right font-semibold tabular-nums text-blue-700">{fmtPts(pts + bns)}</td>
                     </tr>
                   );
@@ -619,7 +619,7 @@ function ManualPointsPanel({
     <div className="space-y-4">
       {categories.map((mc) => (
         <div key={mc.criteriaId} className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
-          <div className="px-5 py-3 border-b border-slate-100 bg-gradient-to-r from-blue-50 to-white flex items-center gap-2">
+          <div className="px-5 py-3 border-b border-slate-100 bg-blue-50 flex items-center gap-2">
             <div className="w-7 h-7 rounded-lg bg-blue-100 text-blue-700 flex items-center justify-center">
               <Award size={14} />
             </div>

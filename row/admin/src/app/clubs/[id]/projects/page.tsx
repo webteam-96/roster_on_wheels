@@ -35,7 +35,7 @@ import {
   MoreHorizontal, FolderOpen, AlertTriangle, Info,
   ChevronDown, ChevronRight,
   Clock, CheckCircle2, XCircle,
-} from "lucide-react";
+} from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
 import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";

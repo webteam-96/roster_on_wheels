@@ -12,7 +12,7 @@
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, Award } from "lucide-react";
+import { ArrowLeft, Award } from "@/components/icons";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import RotaryLoader from "@/components/RotaryLoader";
 import SectionHeader from "@/components/dashboard/SectionHeader";

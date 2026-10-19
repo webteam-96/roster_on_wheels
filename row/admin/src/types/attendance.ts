@@ -4,6 +4,8 @@ export interface AttendanceListItem {
   yearId: number;
   eventName: string;
   eventDateTime: string;
+  meetingMode?: string;
+  meetingLink?: string | null;
   membersCount: number;
   annsCount: number;
   annetsCount: number;
@@ -54,6 +56,8 @@ export interface AttendanceDetail {
   eventName: string;
   description: string;
   eventDateTime: string;
+  meetingMode?: string;
+  meetingLink?: string | null;
   members: AttendanceMember[];
   anns: AttendanceAnn[];
   annets: AttendanceAnnet[];
@@ -66,6 +70,8 @@ export interface CreateAttendanceRequest {
   eventName: string;
   description: string;
   eventDateTime: string;
+  meetingMode?: string;
+  meetingLink?: string | null;
   memberIds: number[];
   anns: { annName: string }[];
   annets: { annetName: string }[];
@@ -78,6 +84,8 @@ export interface UpdateAttendanceRequest {
   eventName: string;
   description: string;
   eventDateTime: string;
+  meetingMode?: string;
+  meetingLink?: string | null;
   memberIds: number[];
   anns: { annName: string }[];
   annets: { annetName: string }[];

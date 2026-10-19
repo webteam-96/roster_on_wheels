@@ -13,25 +13,25 @@ export const fmtUsd = (n: number | null | undefined): string => appFormat().mone
 
 export const fmtUsdShort = (n: number | null | undefined): string => appFormat().moneyShort(n ?? 0, "USD");
 
-export const fmtDate = (s?: string | null): string => (s ? appFormat().date(s) || s : "—");
+export const fmtDate = (s?: string | null): string => (s ? appFormat().date(s) || s : "–");
 
 export const truncate = (s: string, n = 14): string =>
   s.length > n ? s.slice(0, n - 1) + "…" : s;
 
 // Brand colours from the design repo
-export const ROTARY_BLUE = "#003DA5";
+export const ROTARY_BLUE = "#17458F";
 export const ROTARY_GOLD = "#F7A81B";
-export const ROTARY_TEAL = "#00A9CE";
-export const POLIO_PURPLE = "#7C3AED";
+export const ROTARY_TEAL = "#0067C8";
+export const POLIO_PURPLE = "#2A3F5C"; // Fellowship ink-2: the palette has no purple
 export const ROTARY_GREEN = "#059669";
 
 export const CLUB_PALETTE = [
-  "#003DA5",
+  "#17458F",
   "#F7A81B",
   "#10B981",
   "#EF4444",
-  "#7C3AED",
-  "#0EA5E9",
-  "#F59E0B",
-  "#EC4899",
+  "#0067C8",
+  "#A9C6EA",
+  "#2A3F5C",
+  "#FFC65C",
 ];

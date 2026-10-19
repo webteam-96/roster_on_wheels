@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { useAuth } from "@/contexts/AuthContext";
-import { ArrowLeft, Loader2, Smartphone, Mail, ChevronLeft, ChevronRight, Search, X, Download, StickyNote, Pencil } from "lucide-react";
+import { ArrowLeft, Loader2, Smartphone, Mail, ChevronLeft, ChevronRight, Search, X, Download, StickyNote, Pencil } from "@/components/icons";
 import { getDuplicateList, getAllDuplicates, saveDuplicateRemark, getMergeHistory, revertMerge, type DupPair, type MergeHistoryRow } from "@/services/api";
 import { exportToCSV } from "@/utils/csvExport";
 import MergeDialog from "./MergeDialog";
@@ -40,8 +40,8 @@ function TypeBadge({ matchTypes }: { matchTypes: string }) {
 function MemberCell({ rid, name, club }: { rid: string | null; name: string | null; club: string | null }) {
   return (
     <div className="min-w-0">
-      <div className="font-medium text-slate-800 truncate">{name || "—"}</div>
-      <div className="text-xs text-muted-foreground">RID {rid || "—"}{club ? ` · ${club}` : ""}</div>
+      <div className="font-medium text-slate-800 truncate">{name || "–"}</div>
+      <div className="text-xs text-muted-foreground">RID {rid || "–"}{club ? ` · ${club}` : ""}</div>
     </div>
   );
 }
@@ -121,14 +121,14 @@ export default function DuplicatesPage() {
 
   const handleRevert = async (h: MergeHistoryRow) => {
     if (!window.confirm(
-      `Revert this merge?\n\nRestore "${h.deletedName || "—"}" (RID ${h.deletedRid || "—"}) as a separate member. ` +
+      `Revert this merge?\n\nRestore "${h.deletedName || "–"}" (RID ${h.deletedRid || "–"}) as a separate member. ` +
       `Its profile, clubs and family are restored from the backup. Continue?`
     )) return;
     setReverting(h.id);
     try {
       const r = await revertMerge(h.keptId, h.deletedId);
       await load();
-      window.alert(r.rolesNote ? `Reverted — member restored.\n\nNote: ${r.rolesNote}` : "Reverted — member restored.");
+      window.alert(r.rolesNote ? `Reverted: member restored.\n\nNote: ${r.rolesNote}` : "Reverted: member restored.");
     } catch {
       window.alert("Revert failed. Please try again.");
     } finally {
@@ -175,7 +175,7 @@ export default function DuplicatesPage() {
           <div>
             <h2 className="text-2xl font-bold tracking-tight text-primary">Duplicate Mobile / Email</h2>
             <p className="text-muted-foreground text-base">
-              Members sharing a mobile or email — one holds it as primary, the other as secondary. Review each pair, then merge or keep both.
+              Members sharing a mobile or email: one holds it as primary, the other as secondary. Review each pair, then merge or keep both.
             </p>
           </div>
         </div>
@@ -219,9 +219,9 @@ export default function DuplicatesPage() {
             variant={merged ? "default" : "outline"}
             size="sm"
             onClick={() => { setMerged((m) => !m); setPage(1); }}
-            title="Recent merges — undo an accidental merge"
+            title="Recent merges: undo an accidental merge"
           >
-            {merged ? "◀ Back to duplicates" : "Merged (Undo)"}
+            {merged ? "Back to duplicates" : "Merged (Undo)"}
           </Button>
           <div className="ml-auto flex items-center gap-3">
             {!merged && (
@@ -259,10 +259,10 @@ export default function DuplicatesPage() {
                     ) : (
                       history.map((h) => (
                         <tr key={h.id} className="border-b hover:bg-slate-50/60">
-                          <td className="py-3 px-4 align-top text-slate-600">{h.mergedOn ? new Date(h.mergedOn).toLocaleString(appLocale()) : "—"}</td>
+                          <td className="py-3 px-4 align-top text-slate-600">{h.mergedOn ? new Date(h.mergedOn).toLocaleString(appLocale()) : "–"}</td>
                           <td className="py-3 px-4 align-top"><MemberCell rid={h.keptRid} name={h.keptName} club={null} /></td>
                           <td className="py-3 px-4 align-top">
-                            <MemberCell rid={h.deletedRid} name={h.deletedName} club={h.deletedMobile ? `📱 ${h.deletedMobile}` : null} />
+                            <MemberCell rid={h.deletedRid} name={h.deletedName} club={h.deletedMobile ? h.deletedMobile : null} />
                           </td>
                           <td className="py-3 px-4 align-top">
                             {h.deletedStillGone ? (
@@ -387,7 +387,7 @@ export default function DuplicatesPage() {
           {remarkTarget && (
             <div className="space-y-2 text-sm">
               <p className="text-xs text-muted-foreground">
-                {remarkTarget.nameA || "—"} (RID {remarkTarget.ridA || "—"}) &amp; {remarkTarget.nameB || "—"} (RID {remarkTarget.ridB || "—"})
+                {remarkTarget.nameA || "–"} (RID {remarkTarget.ridA || "–"}) &amp; {remarkTarget.nameB || "–"} (RID {remarkTarget.ridB || "–"})
               </p>
               <textarea
                 value={remarkText}

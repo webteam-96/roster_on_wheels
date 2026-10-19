@@ -29,7 +29,7 @@ import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
 import RotaryLoader from "@/components/RotaryLoader";
 import ProtectedRoute from "@/components/ProtectedRoute";
-import { ArrowLeft, Loader2, Link2 } from "lucide-react";
+import { ArrowLeft, Loader2, Link2 } from "@/components/icons";
 
 const ReactQuill = dynamic(() => import("react-quill-new"), { ssr: false });
 import "react-quill-new/dist/quill.snow.css";
@@ -190,7 +190,7 @@ export default function EditWebLinkPage() {
             <ArrowLeft className="h-4 w-4" />
           </Button>
           <div className="flex items-center gap-3 min-w-0">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[#1e3a5f]/10 text-[#1e3a5f]">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-azure/10 text-ink">
               <Link2 size={20} />
             </div>
             <div className="min-w-0">
@@ -214,7 +214,7 @@ export default function EditWebLinkPage() {
             <div className="space-y-2">
               <Label className="text-slate-700 text-sm font-medium">Title *</Label>
               <Input
-                className="border-slate-200 bg-white focus:border-[#1e3a5f] focus:ring-[#1e3a5f]/20"
+                className="border-slate-200 bg-white focus:border-azure focus:ring-azure/20"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 placeholder="Web link title"
@@ -233,7 +233,7 @@ export default function EditWebLinkPage() {
               {logoPreviewUrl ? (
                 <div className="space-y-1">
                   <img src={logoPreviewUrl} alt="New logo preview" className="h-20 w-20 rounded object-cover border border-slate-200" />
-                  <p className="text-[11px] text-emerald-600">New logo — will replace on save</p>
+                  <p className="text-[11px] text-emerald-600">New logo: will replace on save</p>
                 </div>
               ) : existingLogo ? (
                 <div className="space-y-1">
@@ -256,7 +256,7 @@ export default function EditWebLinkPage() {
                 {bannerPreviewUrl ? (
                   <div className="space-y-1">
                     <img src={bannerPreviewUrl} alt="New banner preview" className="h-24 w-full max-w-md rounded object-cover border border-slate-200" />
-                    <p className="text-[11px] text-emerald-600">New banner — will replace on save</p>
+                    <p className="text-[11px] text-emerald-600">New banner: will replace on save</p>
                   </div>
                 ) : existingBanner ? (
                   <div className="space-y-1">
@@ -278,7 +278,7 @@ export default function EditWebLinkPage() {
               <div className="space-y-2">
                 <Label className="text-slate-700 text-sm font-medium">Link Type</Label>
                 <Select value={linkType} onValueChange={setLinkType}>
-                  <SelectTrigger className="border-slate-200 bg-white focus:border-[#1e3a5f] focus:ring-[#1e3a5f]/20">
+                  <SelectTrigger className="border-slate-200 bg-white focus:border-azure focus:ring-azure/20">
                     <SelectValue placeholder="Select link type" />
                   </SelectTrigger>
                   <SelectContent>
@@ -292,7 +292,7 @@ export default function EditWebLinkPage() {
               <div className="space-y-2">
                 <Label className="text-slate-700 text-sm font-medium">URL</Label>
                 <Input
-                  className="border-slate-200 bg-white focus:border-[#1e3a5f] focus:ring-[#1e3a5f]/20"
+                  className="border-slate-200 bg-white focus:border-azure focus:ring-azure/20"
                   value={linkUrl}
                   onChange={(e) => setLinkUrl(e.target.value)}
                   placeholder="https://example.com"
@@ -304,7 +304,7 @@ export default function EditWebLinkPage() {
               <div className="space-y-2">
                 <Label className="text-slate-700 text-sm font-medium">PDF File</Label>
                 {existingPdf && !pdf && (
-                  <a href={mediaUrl(existingPdf)} target="_blank" rel="noopener noreferrer" className="text-xs text-[#1e3a5f] hover:underline block">
+                  <a href={mediaUrl(existingPdf)} target="_blank" rel="noopener noreferrer" className="text-xs text-ink hover:underline block">
                     {existingPdf.split("/").pop()}
                   </a>
                 )}
@@ -322,7 +322,7 @@ export default function EditWebLinkPage() {
               <div className="space-y-2">
                 <Label className="text-slate-700 text-sm font-medium">YouTube Video Link</Label>
                 <Input
-                  className="border-slate-200 bg-white focus:border-[#1e3a5f] focus:ring-[#1e3a5f]/20"
+                  className="border-slate-200 bg-white focus:border-azure focus:ring-azure/20"
                   value={youtubeUrl}
                   onChange={(e) => setYoutubeUrl(e.target.value)}
                   placeholder="https://youtube.com/watch?v=..."
@@ -334,7 +334,7 @@ export default function EditWebLinkPage() {
               <div className="space-y-2">
                 <Label className="text-slate-700 text-sm font-medium">Button Text</Label>
                 <Input
-                  className="border-slate-200 bg-white focus:border-[#1e3a5f] focus:ring-[#1e3a5f]/20"
+                  className="border-slate-200 bg-white focus:border-azure focus:ring-azure/20"
                   value={buttonText}
                   onChange={(e) => setButtonText(e.target.value)}
                   placeholder="e.g. Read More"
@@ -347,7 +347,7 @@ export default function EditWebLinkPage() {
               <Input
                 type="number"
                 min={0}
-                className="border-slate-200 bg-white focus:border-[#1e3a5f] focus:ring-[#1e3a5f]/20 max-w-[160px]"
+                className="border-slate-200 bg-white focus:border-azure focus:ring-azure/20 max-w-[160px]"
                 value={sortOrder}
                 onChange={(e) => setSortOrder(Number(e.target.value))}
               />
@@ -370,7 +370,7 @@ export default function EditWebLinkPage() {
               <Button
                 onClick={handleSave}
                 disabled={saving}
-                className="bg-[#1e3a5f] hover:bg-[#152a44] text-white"
+                className="bg-azure hover:bg-mint-ink text-white"
               >
                 {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 Update

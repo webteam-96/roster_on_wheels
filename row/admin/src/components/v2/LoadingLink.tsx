@@ -30,7 +30,7 @@ import {
   type MouseEvent,
   type ReactNode,
 } from "react";
-import { Loader2 } from "lucide-react";
+import { Loader2 } from "@/components/icons";
 
 type AnchorProps = Omit<AnchorHTMLAttributes<HTMLAnchorElement>, keyof LinkProps>;
 

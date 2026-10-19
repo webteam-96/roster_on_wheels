@@ -24,7 +24,7 @@
 import { useEffect, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import { useParams } from "next/navigation";
-import { FileText, ImageIcon, Mail, Upload } from "lucide-react";
+import { FileText, ImageIcon, Mail, Upload } from "@/components/icons";
 import {
   getMembershipDuesDetail, updateMembershipDuesBasic,
 } from "@/services/api";
@@ -63,7 +63,7 @@ function SectionCard({
 }: { number: number; icon: React.ElementType; title: string; dot: string; children: React.ReactNode }) {
   return (
     <div className="rounded-xl border border-slate-200 overflow-hidden mb-4">
-      <div className="flex items-center gap-3 px-4 py-2.5 bg-gradient-to-r from-slate-50 to-white border-b border-slate-100">
+      <div className="flex items-center gap-3 px-4 py-2.5 bg-slate-50 border-b border-slate-100">
         <div className={`flex items-center justify-center h-7 w-7 rounded-full text-white text-xs font-bold ${dot}`}>
           {number}
         </div>
@@ -305,7 +305,7 @@ export default function ClubMembershipDuesV2EditPage() {
                   value={description}
                   onChange={setDescription}
                   modules={quillModules}
-                  placeholder="Description (optional) — supports bold/italic/sizes/colors/etc."
+                  placeholder="Description (optional): supports bold/italic/sizes/colors/etc."
                 />
               </div>
             </div>
@@ -378,7 +378,7 @@ Transaction ID : ****`}</pre>
                   value={emailBody}
                   onChange={setEmailBody}
                   modules={quillModules}
-                  placeholder="Email body — supports bold/italic/sizes/colors/etc."
+                  placeholder="Email body: supports bold/italic/sizes/colors/etc."
                 />
               </div>
               <div>
@@ -409,7 +409,7 @@ Click on the link : ****`}</pre>
                   value={emailReminderBody}
                   onChange={setEmailReminderBody}
                   modules={quillModules}
-                  placeholder="Reminder body — supports bold/italic/sizes/colors/etc."
+                  placeholder="Reminder body: supports bold/italic/sizes/colors/etc."
                 />
               </div>
             </div>

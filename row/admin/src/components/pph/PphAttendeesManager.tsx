@@ -74,7 +74,7 @@ import {
   AlertTriangle,
   History,
   Building2,
-} from "lucide-react";
+} from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
 import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";
@@ -487,7 +487,7 @@ export default function PphAttendeesManager({ scope, scopeId, campId, backHref, 
       const newReg = result?.history?.[0]?.registrationNo;
       setAddOpen(false);
       setSuccessMessage(
-        `${matchedAttendee ? "New reading added to existing attendee" : "Attendee and reading added successfully"}${newReg ? ` — Reg ${newReg}` : ""}.`
+        `${matchedAttendee ? "New reading added to existing attendee" : "Attendee and reading added successfully"}${newReg ? `: Reg ${newReg}` : ""}.`
       );
       fetchData();
     } catch (err: unknown) {
@@ -774,7 +774,7 @@ export default function PphAttendeesManager({ scope, scopeId, campId, backHref, 
                 <Label htmlFor="add-mobile">Mobile No <span className="text-destructive">*</span></Label>
                 <Input id="add-mobile" value={addForm.mobileNo} onChange={(e) => onAddField("mobileNo", e.target.value)} placeholder="Mobile number (unique per camp)" />
                 {matchedAttendee && (
-                  <p className="text-xs text-amber-600 font-medium">Existing attendee &quot;{matchedAttendee.name}&quot; — this adds a NEW reading to them. Person details are locked (edit them from the attendee row).</p>
+                  <p className="text-xs text-amber-600 font-medium">Existing attendee &quot;{matchedAttendee.name}&quot;. This adds a NEW reading to them. Person details are locked (edit them from the attendee row).</p>
                 )}
                 {addHistoryLoading && (
                   <p className="text-xs text-muted-foreground">Checking participation history…</p>
@@ -784,7 +784,7 @@ export default function PphAttendeesManager({ scope, scopeId, campId, backHref, 
                     <div className="flex items-start justify-between gap-2">
                       <p className="text-xs font-semibold text-sky-900 flex items-center gap-1.5">
                         <Building2 className="h-3.5 w-3.5 shrink-0" />
-                        This mobile has attended before — {addHistory.totalEntries} entr{addHistory.totalEntries === 1 ? "y" : "ies"} across {addHistory.groupCount} club{addHistory.groupCount === 1 ? "" : "s"}.
+                        This mobile has attended before: {addHistory.totalEntries} entr{addHistory.totalEntries === 1 ? "y" : "ies"} across {addHistory.groupCount} club{addHistory.groupCount === 1 ? "" : "s"}.
                       </p>
                       <Button type="button" variant="outline" size="sm" className="h-7 text-xs shrink-0" onClick={() => openMobileHistory(addForm.mobileNo)}>
                         View history
@@ -800,7 +800,7 @@ export default function PphAttendeesManager({ scope, scopeId, campId, backHref, 
                         </p>
                       ) : null;
                     })()}
-                    <p className="mt-1 text-[11px] text-sky-800">Informational only — please still fill in the details below.</p>
+                    <p className="mt-1 text-[11px] text-sky-800">Informational only. Please still fill in the details below.</p>
                   </div>
                 )}
               </div>
@@ -912,7 +912,7 @@ export default function PphAttendeesManager({ scope, scopeId, campId, backHref, 
         <Dialog open={historyOpen} onOpenChange={(o) => { if (!o) setHistoryOpen(false); }}>
           <DialogContent className="sm:max-w-[760px] max-h-[90vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle>{detail ? `${detail.attendee.name} — Medical History` : "Medical History"}</DialogTitle>
+              <DialogTitle>{detail ? `${detail.attendee.name}: Medical History` : "Medical History"}</DialogTitle>
               <DialogDescription>
                 {detail ? `${detail.attendee.mobileNo} · ${detail.attendee.sex || "-"} · ${detail.history.length} reading(s)` : "Loading..."}
               </DialogDescription>
@@ -974,7 +974,7 @@ export default function PphAttendeesManager({ scope, scopeId, campId, backHref, 
               <DialogTitle>Participation &amp; Medical History</DialogTitle>
               <DialogDescription>
                 {mobileHistoryMobile
-                  ? `Mobile ${mobileHistoryMobile} — every camp visit across all clubs, district camps and years, with all medical readings.`
+                  ? `Mobile ${mobileHistoryMobile}: every camp visit across all clubs, district camps and years, with all medical readings.`
                   : "Loading…"}
               </DialogDescription>
             </DialogHeader>
@@ -1050,7 +1050,7 @@ export default function PphAttendeesManager({ scope, scopeId, campId, backHref, 
         <Dialog open={editReadingOpen} onOpenChange={(o) => { if (!o) setEditReadingOpen(false); }}>
           <DialogContent className="sm:max-w-[560px] max-h-[90vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle>Edit Reading{editingReading?.registrationNo ? ` — ${editingReading.registrationNo}` : ""}</DialogTitle>
+              <DialogTitle>Edit Reading{editingReading?.registrationNo ? `: ${editingReading.registrationNo}` : ""}</DialogTitle>
               <DialogDescription>Update this medical reading. A new reading is not created (the registration number stays the same).</DialogDescription>
             </DialogHeader>
             <div className="space-y-4 py-2">

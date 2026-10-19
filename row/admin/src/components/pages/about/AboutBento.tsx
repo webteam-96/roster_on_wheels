@@ -33,7 +33,7 @@ export function AboutBento() {
           {/* Headline tile — 7×2 on sky */}
           <div
             data-animate="up"
-            className="flex flex-col justify-center rounded-[24px] bg-[#E3EEFA] p-7 sm:col-span-2 sm:p-10 lg:col-span-7 lg:row-span-2 lg:p-14"
+            className="flex flex-col justify-center rounded-[24px] bg-blue-100 p-7 sm:col-span-2 sm:p-10 lg:col-span-7 lg:row-span-2 lg:p-14"
           >
             <p className="eyebrow">About Us · Since 1920</p>
             {/* h2 — the PageBanner above owns the page's one h1 */}
@@ -42,7 +42,7 @@ export function AboutBento() {
               <span className="text-azure">Zones 4,&nbsp;5,&nbsp;6,&nbsp;7&nbsp;&amp;&nbsp;8</span>
             </h2>
             <p className="mt-6 max-w-xl text-[15px] leading-relaxed text-ink/75 sm:text-base">
-              Service, diversity and community spirit — uniting clubs, inspiring
+              Service, diversity and community spirit: uniting clubs, inspiring
               leaders, transforming lives.
             </p>
           </div>

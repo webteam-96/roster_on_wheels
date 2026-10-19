@@ -20,7 +20,7 @@ import SearchBox from "@/components/SearchBox";
 import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
 import AlertModal from "@/components/AlertModal";
-import { ArrowLeft, Plus, Pencil, Trash2, MoreHorizontal, Users, User, Search, AlertTriangle, X, Eye } from "lucide-react";
+import { ArrowLeft, Plus, Pencil, Trash2, MoreHorizontal, Users, User, Search, AlertTriangle, X, Eye } from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
 import Link from "next/link";
 import Image from "next/image";
@@ -230,7 +230,7 @@ export default function DistrictSubGroupsPage() {
                               <div key={member.memberId} className="flex items-center gap-2 px-3 py-2 hover:bg-accent transition-colors cursor-pointer border-b last:border-b-0" onClick={() => toggleMember(member.memberId)}>
                                 <Checkbox checked={selectedMemberIds.has(member.memberId)} onCheckedChange={() => toggleMember(member.memberId)} onClick={(e) => e.stopPropagation()} />
                                 <div className="relative h-7 w-7 flex-shrink-0 overflow-hidden rounded-full bg-muted">{photoUrl ? <Image src={photoUrl} alt={member.memberName} fill className="object-cover" unoptimized /> : <div className="flex h-full w-full items-center justify-center bg-primary/10 text-primary"><User className="h-3.5 w-3.5" /></div>}</div>
-                                <div className="flex-1 min-w-0"><p className="text-sm font-medium truncate">{member.memberName}</p><p className="text-xs text-muted-foreground truncate">{[member.clubName, member.mobileNumber, member.email].filter(Boolean).join(" | ") || "—"}</p></div>
+                                <div className="flex-1 min-w-0"><p className="text-sm font-medium truncate">{member.memberName}</p><p className="text-xs text-muted-foreground truncate">{[member.clubName, member.mobileNumber, member.email].filter(Boolean).join(" | ") || "–"}</p></div>
                               </div>
                             );
                           })
@@ -274,7 +274,7 @@ export default function DistrictSubGroupsPage() {
               viewGroup ? <div className="flex-1 overflow-y-auto space-y-1">{viewGroup.members.map((member: any) => { const photoUrl = getPhotoUrl(member.profilePhotoPath); return (
                 <div key={member.memberId} className="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-accent transition-colors">
                   <div className="relative h-9 w-9 flex-shrink-0 overflow-hidden rounded-full bg-muted">{photoUrl ? <Image src={photoUrl} alt={member.memberName} fill className="object-cover" unoptimized /> : <div className="flex h-full w-full items-center justify-center bg-primary/10 text-primary"><User className="h-4 w-4" /></div>}</div>
-                  <div className="flex-1 min-w-0"><p className="text-sm font-semibold text-primary truncate">{member.memberName}</p><p className="text-xs text-muted-foreground truncate">{[member.clubName, member.mobileNumber, member.email].filter(Boolean).join(" | ") || "—"}</p></div>
+                  <div className="flex-1 min-w-0"><p className="text-sm font-semibold text-primary truncate">{member.memberName}</p><p className="text-xs text-muted-foreground truncate">{[member.clubName, member.mobileNumber, member.email].filter(Boolean).join(" | ") || "–"}</p></div>
                 </div>); })}</div> : null}
           </DialogContent>
         </Dialog>

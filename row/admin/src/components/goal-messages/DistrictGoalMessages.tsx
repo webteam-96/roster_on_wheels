@@ -5,7 +5,7 @@
 // category, and the RI Director. They only read - nobody replies here.
 
 import { useEffect, useRef, useState } from "react";
-import { Loader2, MessagesSquare, Send } from "lucide-react";
+import { Loader2, MessagesSquare, Send } from "@/components/icons";
 import { getGoalCategories, getDistrictGoalMessages, postDistrictGoalMessage } from "@/services/api";
 import type { GoalDistrictMessagesDto } from "@/types/goalSetting";
 import GoalMessageList from "./GoalMessageList";
@@ -69,7 +69,7 @@ export default function DistrictGoalMessages({
 
   return (
     <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
-      <div className="px-5 py-3 border-b border-slate-100 bg-gradient-to-r from-blue-50 to-white">
+      <div className="px-5 py-3 border-b border-slate-100 bg-blue-50">
         <div className="flex items-center gap-2">
           <MessagesSquare size={16} className="text-blue-600" />
           <h3 className="text-sm font-semibold text-slate-800">{lockCategory && catName ? `${catName} Messages` : "Messages"}</h3>

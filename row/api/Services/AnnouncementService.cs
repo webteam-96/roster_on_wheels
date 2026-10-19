@@ -137,18 +137,6 @@ public class AnnouncementService : IAnnouncementService
         int refundEntityIdForCheck = districtId ?? clubId;
         int reminderCount = dto.Reminders?.Count ?? 0;
         int totalCreditsNeeded = 0;
-        if (dto.IsSendWhatsapp && refundEntityIdForCheck > 0)
-        {
-            memberCountForCheck = await CountRecipientsAsync(connection, clubId, districtId);
-            totalCreditsNeeded = memberCountForCheck * (1 + reminderCount);
-            if (totalCreditsNeeded > 0)
-            {
-                using var scope = _scopeFactory.CreateScope();
-                var creditSvc = scope.ServiceProvider.GetRequiredService<ICreditManagementService>();
-                if (!await creditSvc.HasSufficientCreditsAsync(refundEntityIdForCheck, "WhatsApp", totalCreditsNeeded))
-                    throw new InvalidOperationException($"Insufficient WhatsApp credits. Need {totalCreditsNeeded} credit(s) for {memberCountForCheck} members × {1 + reminderCount} sends. Please uncheck 'Send through WhatsApp' to save without WhatsApp notification, or reduce reminders, or purchase more credits.");
-            }
-        }
 
         // Pre-check Email credits BEFORE insert (parity with WhatsApp; counts members with an email).
         if (dto.IsSendEmail && refundEntityIdForCheck > 0)
@@ -182,7 +170,7 @@ public class AnnouncementService : IAnnouncementService
             dto.PublishDateTime,
             dto.ExpiryDateTime,
             IsDisplayOnBanner = dto.IsDisplayOnBanner ? 1 : 0,
-            IsSendWhatsapp = dto.IsSendWhatsapp ? 1 : 0,
+            IsSendWhatsapp = 0,
             IsSendEmail = dto.IsSendEmail ? 1 : 0,
             IsRepeatNotification = dto.IsRepeatNotification ? 1 : 0,
             CreatedBy = createdBy
@@ -276,8 +264,8 @@ public class AnnouncementService : IAnnouncementService
         int clubIdForCheck = prior != null ? (int)prior.fk_club_id : 0;
         int? districtIdForCheck = prior != null && prior.fk_district_id != null ? (int?)prior.fk_district_id : null;
         int refundEntityIdForCheck = districtIdForCheck ?? clubIdForCheck;
-        bool newlyTurnedOn = dto.IsSendWhatsapp && !priorWhatsapp && !alreadySent;
-        bool resendOnDateChange = dto.IsSendWhatsapp && alreadySent && dto.PublishDateTime > DateTime.Now;
+        bool newlyTurnedOn = false && !priorWhatsapp && !alreadySent;
+        bool resendOnDateChange = false && alreadySent && dto.PublishDateTime > DateTime.Now;
         int reminderCount = dto.Reminders?.Count ?? 0;
         if ((newlyTurnedOn || resendOnDateChange) && refundEntityIdForCheck > 0)
         {
@@ -321,7 +309,7 @@ public class AnnouncementService : IAnnouncementService
                 p_PublishDateTime = dto.PublishDateTime,
                 p_ExpiryDateTime = dto.ExpiryDateTime,
                 p_IsDisplayOnBanner = dto.IsDisplayOnBanner ? 1 : 0,
-                p_IsSendWhatsapp = dto.IsSendWhatsapp ? 1 : 0,
+                p_IsSendWhatsapp = 0,
                 p_IsRepeatNotification = dto.IsRepeatNotification ? 1 : 0,
                 p_ModifiedBy = modifiedBy
             },

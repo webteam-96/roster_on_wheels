@@ -15,7 +15,7 @@ import { useFeature } from "@/contexts/BrandContext";
 import ClubGoalComingSoon from "@/components/ClubGoalComingSoon";
 import { CLUB_GOAL_SETTING_COMING_SOON } from "@/lib/clubGoalSetting";
 import { useParams, useSearchParams } from "next/navigation";
-import { ArrowLeft, MessageCircle, Mail } from "lucide-react";
+import { ArrowLeft, MessageCircle, Mail } from "@/components/icons";
 import Link from "next/link";
 import ClubAdminShell from "@/components/v2/ClubAdminShell";
 import { getCitationMatrix, getClub } from "@/services/api";
@@ -140,7 +140,7 @@ import {
   UserCircle,
   Users,
   type LucideIcon,
-} from "lucide-react";
+} from "@/components/icons";
 import { getClubReport, getClubReportAvailableYears, downloadClubReportWord, getClubDcAllMembers, getClubDcBod, getClubDcDc, getClubAttendanceMatrix, downloadOcvReportExcel, downloadOcvReportWord, downloadClubAnalyticsClub, downloadClubGoalExcel, getClubAdminDashboardRotaryNetwork, getRotaryOrgTerminatedMembers } from "@/services/api";
 import { saveAs } from "file-saver";
 import { fileTimestamp } from "@/lib/dateUtils";
@@ -323,7 +323,7 @@ export function ClubReportV2PageImpl({ clubId: propClubId, embedded = false, yea
       `${clubName || "Club"}_${sectionName.replace(/\s+/g, "_")}`,
       columns,
       {
-        title: `${sectionName} — ${clubName}`,
+        title: `${sectionName} | ${clubName}`,
         subtitle: `Rotary Year: ${yearLabel}`,
       },
     );
@@ -410,7 +410,7 @@ export function ClubReportV2PageImpl({ clubId: propClubId, embedded = false, yea
             </Link>
             <SectionHeader
               title="Club Report"
-              subtitle={`${clubName || "—"}${yearLabel ? ` · RY ${yearLabel}` : ""} — comprehensive club activity report`}
+              subtitle={`${clubName || "–"}${yearLabel ? ` · RY ${yearLabel}` : ""}: comprehensive club activity report`}
               icon={BarChart3}
             />
           </div>
@@ -447,17 +447,13 @@ export function ClubReportV2PageImpl({ clubId: propClubId, embedded = false, yea
                 done on DistrictReportContent so the export-only workflow
                 isn't blocked by stat-card rendering. */}
 
-            {/* ── Communication logs (WhatsApp / Email delivery) — opened from Reports ── */}
             {embedded && (
               <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden mb-4">
                 <div className="px-5 py-3 border-b border-slate-100">
                   <h3 className="text-sm font-semibold text-slate-800">Communication Logs</h3>
-                  <p className="text-xs text-slate-500 mt-0.5">Delivery status of WhatsApp &amp; Email sent to your club&apos;s members</p>
+                  <p className="text-xs text-slate-500 mt-0.5">Delivery status of email sent to your club&apos;s members</p>
                 </div>
                 <div className="p-4 flex flex-wrap gap-3">
-                  <Link href="/club-admin-dashboard/whatsapp-log" className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-2 rounded-lg border border-slate-200 text-slate-700 hover:bg-emerald-50 hover:text-emerald-700 hover:border-emerald-200">
-                    <MessageCircle size={14} /> WhatsApp Log
-                  </Link>
                   <Link href="/club-admin-dashboard/email-log" className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-2 rounded-lg border border-slate-200 text-slate-700 hover:bg-blue-50 hover:text-blue-700 hover:border-blue-200">
                     <Mail size={14} /> Email Log
                   </Link>
@@ -1210,7 +1206,7 @@ function WordReportRow({
   return (
     <li className="flex items-center justify-between gap-3 px-5 py-3 hover:bg-blue-50/40">
       <div className="flex items-center gap-3 min-w-0">
-        <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#003DA5]/10 text-[#003DA5] ring-1 ring-blue-100 shrink-0">
+        <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-azure/10 text-azure ring-1 ring-blue-100 shrink-0">
           <Icon size={16} />
         </div>
         <div className="min-w-0">
@@ -1237,7 +1233,7 @@ function OcvClubReportRow({ clubId, yearId, clubName, yearLabel }: {
   return (
     <li className="flex items-center justify-between gap-3 px-5 py-3 hover:bg-blue-50/40">
       <div className="flex items-center gap-3 min-w-0">
-        <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#003DA5]/10 text-[#003DA5] ring-1 ring-blue-100 shrink-0">
+        <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-azure/10 text-azure ring-1 ring-blue-100 shrink-0">
           <Crown size={16} />
         </div>
         <div className="min-w-0">
@@ -1468,7 +1464,7 @@ function AvenueOfServiceRow({
     if (avenue === "club_service") {
       const rows = attendance.map(meetingToClubService);
       exportToCSV(rows, `${clubSafe}_Club_Service`, clubServiceCols, {
-        title: `Club Service — ${clubName}`,
+        title: `Club Service | ${clubName}`,
         subtitle: `Rotary Year: ${yearLabel}`,
       });
       return;
@@ -1480,7 +1476,7 @@ function AvenueOfServiceRow({
         .flat()
         .map(projectToWide);
       exportToCSV([...meetingRows, ...projectRows], `${clubSafe}_All_Avenue_of_service_Projects`, projectColsWide, {
-        title: `All Avenues of Service — ${clubName}`,
+        title: `All Avenues of Service | ${clubName}`,
         subtitle: `Rotary Year: ${yearLabel}`,
       });
       return;
@@ -1489,7 +1485,7 @@ function AvenueOfServiceRow({
     const projects = (projectsByModule[avenue] || []).map(projectToWide);
     const cols = avenue === "community_service" ? projectColsWide : projectColsNarrow;
     exportToCSV(projects, `${clubSafe}_${labelSafe}`, cols, {
-      title: `${AVENUE_LABELS[avenue]} — ${clubName}`,
+      title: `${AVENUE_LABELS[avenue]} | ${clubName}`,
       subtitle: `Rotary Year: ${yearLabel}`,
     });
   };
@@ -1497,7 +1493,7 @@ function AvenueOfServiceRow({
   return (
     <li className={`flex items-center justify-between gap-3 px-5 py-3 ${hasData ? "hover:bg-blue-50/40" : ""}`}>
       <div className="flex items-center gap-3 min-w-0">
-        <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#003DA5]/10 text-[#003DA5] ring-1 ring-blue-100 shrink-0">
+        <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-azure/10 text-azure ring-1 ring-blue-100 shrink-0">
           <Award size={16} />
         </div>
         <div className="min-w-0">
@@ -1576,7 +1572,7 @@ function BodSectionRow({
         { key: "autoManual", label: "Auto_Manual",   width: 14 },
       ],
       {
-        title: `Board of Directors — ${clubName}`,
+        title: `Board of Directors | ${clubName}`,
         subtitle: `Rotary Year: ${yearLabel}${designation === "__all__" ? "" : ` · ${designation}`}`,
       },
     );
@@ -1585,7 +1581,7 @@ function BodSectionRow({
   return (
     <li className={`flex items-center justify-between gap-3 px-5 py-3 ${hasData ? "hover:bg-blue-50/40" : ""}`}>
       <div className="flex items-center gap-3 min-w-0">
-        <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#003DA5]/10 text-[#003DA5] ring-1 ring-blue-100 shrink-0">
+        <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-azure/10 text-azure ring-1 ring-blue-100 shrink-0">
           <UserCircle size={16} />
         </div>
         <div className="min-w-0">
@@ -1657,7 +1653,7 @@ function SectionRow({
       }`}
     >
       <div className="flex items-center gap-3 min-w-0">
-        <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#003DA5]/10 text-[#003DA5] ring-1 ring-blue-100 shrink-0">
+        <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-azure/10 text-azure ring-1 ring-blue-100 shrink-0">
           <Icon size={16} />
         </div>
         <div className="min-w-0">

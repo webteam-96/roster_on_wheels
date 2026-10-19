@@ -15,13 +15,10 @@ import { useState, useCallback, useEffect, useMemo } from "react";
 import { useParams, useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import {
-  ArrowLeft, Download, Mail, MessageSquare, Receipt, CreditCard,
+  ArrowLeft, Download, Mail, Receipt, CreditCard,
   Loader2, Search, Users, CheckCircle2, XCircle, IndianRupee,
-} from "lucide-react";
-import {
-  getEventMembers, sendEventReceipt, sendEventReminderEmail,
-  sendEventReminderWhatsApp, bulkReminderEmail, bulkReminderWhatsApp, exportEventMembers,
-} from "@/services/api";
+} from "@/components/icons";
+import { getEventMembers, sendEventReceipt, sendEventReminderEmail, bulkReminderEmail, exportEventMembers } from "@/services/api";
 import { fileTimestamp } from "@/lib/dateUtils";
 import { useAuth } from "@/contexts/AuthContext";
 import ClubAdminShell from "@/components/v2/ClubAdminShell";
@@ -181,16 +178,16 @@ export default function EventMembersV2Page() {
               </tr>
             ) : members.map((m) => (
               <tr key={m.id} className="hover:bg-blue-50/40">
-                <td className="px-3 py-2 font-medium text-slate-800">{m.memberName || "—"}</td>
-                <td className="px-3 py-2 text-slate-700 whitespace-nowrap">{m.mobile || "—"}</td>
-                <td className="px-3 py-2 text-slate-700 max-w-[180px] truncate">{m.email || "—"}</td>
-                <td className="px-3 py-2 text-slate-700">{m.registrationType || "—"}</td>
+                <td className="px-3 py-2 font-medium text-slate-800">{m.memberName || "–"}</td>
+                <td className="px-3 py-2 text-slate-700 whitespace-nowrap">{m.mobile || "–"}</td>
+                <td className="px-3 py-2 text-slate-700 max-w-[180px] truncate">{m.email || "–"}</td>
+                <td className="px-3 py-2 text-slate-700">{m.registrationType || "–"}</td>
                 <td className="px-3 py-2 text-right tabular-nums text-slate-700">
-                  {m.amount ? `${currencySymbol()}${m.amount.toFixed(2)}` : "—"}
+                  {m.amount ? `${currencySymbol()}${m.amount.toFixed(2)}` : "–"}
                 </td>
                 {isPaidTab && (
                   <td className="px-3 py-2 text-xs text-slate-500 whitespace-nowrap">
-                    {m.paymentDate ? new Date(m.paymentDate).toLocaleDateString() : "—"}
+                    {m.paymentDate ? new Date(m.paymentDate).toLocaleDateString() : "–"}
                   </td>
                 )}
                 {isPaidTab && (
@@ -244,20 +241,6 @@ export default function EventMembersV2Page() {
                           className="inline-flex items-center gap-1 text-xs font-medium px-2 py-1 rounded border border-slate-200 text-slate-700 hover:bg-slate-50 disabled:opacity-50"
                         >
                           <Mail size={12} /> Email
-                        </LoadingButton>
-                        <LoadingButton
-                          onAction={async () => {
-                            try {
-                              await sendEventReminderWhatsApp(m.id);
-                              setSuccessMessage("WhatsApp reminder sent.");
-                            } catch {
-                              setErrorMessage("Failed to send WhatsApp.");
-                            }
-                          }}
-                          loadingLabel="Sending…"
-                          className="inline-flex items-center gap-1 text-xs font-medium px-2 py-1 rounded border border-slate-200 text-slate-700 hover:bg-slate-50 disabled:opacity-50"
-                        >
-                          <MessageSquare size={12} /> WhatsApp
                         </LoadingButton>
                       </>
                     )}
@@ -353,24 +336,6 @@ export default function EventMembersV2Page() {
                         className="inline-flex items-center gap-1 text-xs font-medium px-2.5 py-1.5 rounded-lg border border-slate-200 text-slate-700 hover:bg-slate-50 disabled:opacity-50"
                       >
                         <Mail size={12} /> Bulk Email
-                      </LoadingButton>
-                      <LoadingButton
-                        onAction={async () => {
-                          setBulkSending(true);
-                          try {
-                            await bulkReminderWhatsApp(linkId);
-                            setSuccessMessage("Bulk WhatsApp sent.");
-                          } catch {
-                            setErrorMessage("Failed to send bulk WhatsApp.");
-                          } finally {
-                            setBulkSending(false);
-                          }
-                        }}
-                        forcePending={bulkSending}
-                        loadingLabel="Sending…"
-                        className="inline-flex items-center gap-1 text-xs font-medium px-2.5 py-1.5 rounded-lg border border-slate-200 text-slate-700 hover:bg-slate-50 disabled:opacity-50"
-                      >
-                        <MessageSquare size={12} /> Bulk WhatsApp
                       </LoadingButton>
                     </>
                   )}

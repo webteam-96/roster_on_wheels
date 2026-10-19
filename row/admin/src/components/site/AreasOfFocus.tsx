@@ -9,7 +9,7 @@ import {
   Droplet,
   ArrowUpRight,
   type LucideIcon,
-} from "lucide-react";
+} from "@/components/icons";
 
 type Area = { label: string; desc: string; Icon: LucideIcon; color: string; rgb: string };
 
@@ -96,7 +96,7 @@ export function AreasOfFocus() {
             data-animate-delay="0.16"
             className="max-w-md text-[15px] leading-relaxed text-muted"
           >
-            The causes ROW champion to create lasting change —
+            The causes ROW champion to create lasting change , 
             locally and around the world.
           </p>
         </div>

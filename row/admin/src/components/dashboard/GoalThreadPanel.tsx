@@ -9,7 +9,7 @@
 // Everything is server-enforced; this just renders what the thread API returns.
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { MessagesSquare, Send, Loader2, ChevronLeft, User } from "lucide-react";
+import { MessagesSquare, Send, Loader2, ChevronLeft, User } from "@/components/icons";
 import { getGoalThreadList, getGoalThreadMessages, postGoalThreadMessage } from "@/services/api";
 import type { GoalCommentDto, GoalThreadListDto, GoalMessageThreadDto } from "@/types/goalSetting";
 
@@ -90,7 +90,7 @@ export default function GoalThreadPanel({
       return (
         <div className="bg-white rounded-2xl border border-slate-200 px-5 py-4 text-xs text-slate-400">
           <MessagesSquare size={15} className="inline mr-1.5 text-blue-600" />
-          No District Assistants or Zone Co-ordinators are assigned here yet — no message threads.
+          No District Assistants or Zone Co-ordinators are assigned here yet. No message threads.
         </div>
       );
     }
@@ -103,7 +103,7 @@ export default function GoalThreadPanel({
   if (isRiView && !activeOwner) {
     return (
       <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
-        <div className="px-5 py-3 border-b border-slate-100 flex items-center gap-2 bg-gradient-to-r from-blue-50 to-white">
+        <div className="px-5 py-3 border-b border-slate-100 flex items-center gap-2 bg-blue-50">
           <MessagesSquare size={16} className="text-blue-600" />
           <h3 className="text-sm font-semibold text-slate-800">Messages</h3>
           <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200">
@@ -128,7 +128,7 @@ export default function GoalThreadPanel({
                   </span>
                 </span>
                 <span className="block text-xs text-slate-400 truncate">
-                  {t.lastMessagePreview ? t.lastMessagePreview : "No messages yet — start the conversation"}
+                  {t.lastMessagePreview ? t.lastMessagePreview : "No messages yet: start the conversation"}
                 </span>
               </span>
               {t.messageCount > 0 && (
@@ -149,7 +149,7 @@ export default function GoalThreadPanel({
 
   return (
     <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden flex flex-col max-h-[70vh]">
-      <div className="px-5 py-3 border-b border-slate-100 flex items-center gap-2 bg-gradient-to-r from-blue-50 to-white">
+      <div className="px-5 py-3 border-b border-slate-100 flex items-center gap-2 bg-blue-50">
         {isRiView && (
           <button onClick={() => setActiveOwner(null)} className="text-slate-500 hover:text-slate-700" title="Back to conversations">
             <ChevronLeft size={16} />

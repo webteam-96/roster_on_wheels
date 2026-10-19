@@ -26,7 +26,7 @@ export default function PolicyPageLayout({ title, updated, intro, children }: Pr
       <PublicHeader />
       <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-16">
         <header className="mb-10">
-          <h1 className="text-3xl sm:text-4xl font-bold tracking-tight" style={{ color: "#1e3a5f" }}>
+          <h1 className="text-3xl sm:text-4xl font-bold tracking-tight" style={{ color: "#17458f" }}>
             {title}
           </h1>
           {updated && (

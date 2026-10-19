@@ -18,7 +18,7 @@
 
 import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Search, Sparkles, Loader2, Check, ArrowRightLeft, Lock } from "lucide-react";
+import { Search, Sparkles, Loader2, Check, ArrowRightLeft, Lock } from "@/components/icons";
 import {
   searchProjectClassifications,
   suggestProjectClassification,
@@ -160,7 +160,7 @@ export default function ClassificationAssist({
             Click to get AI suggestions and unlock the search &amp; dropdowns below.
           </p>
           {needText && (
-            <p className="mt-1 text-xs text-amber-600">Add a title and a longer description first for AI suggestions — the fields below are now unlocked.</p>
+            <p className="mt-1 text-xs text-amber-600">Add a title and a longer description first for AI suggestions: the fields below are now unlocked.</p>
           )}
         </div>
       ) : (
@@ -174,7 +174,7 @@ export default function ClassificationAssist({
             {loading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Sparkles className="h-3.5 w-3.5" />}
             Auto-Suggest Category
           </button>
-          {aiStatus === "error" && <span className="text-xs text-rose-600">AI unavailable — use the search or dropdowns.</span>}
+          {aiStatus === "error" && <span className="text-xs text-rose-600">AI unavailable. Use the search or dropdowns.</span>}
           {needText && <span className="text-xs text-amber-600">Add a longer description for AI suggestions.</span>}
         </div>
       )}
@@ -189,7 +189,7 @@ export default function ClassificationAssist({
           onChange={(e) => onQueryChange(e.target.value)}
           onFocus={() => setOpen(true)}
           onBlur={() => setTimeout(() => setOpen(false), 150)}
-          placeholder={unlocked ? "Type to search all three levels…" : "Locked — use Auto-Suggest above first"}
+          placeholder={unlocked ? "Type to search all three levels…" : "Locked. Use Auto-Suggest above first"}
           className="w-full pl-9 pr-3 py-2 text-sm border border-slate-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-violet-500 disabled:bg-slate-50"
         />
         {unlocked && open && query.trim().length > 0 && (
@@ -220,7 +220,7 @@ export default function ClassificationAssist({
       {matches.length > 0 && (
         <div className="mt-2 rounded-lg border border-violet-200 bg-violet-50/60 p-2.5">
           <div className="flex items-center gap-1.5 text-[11px] font-semibold text-violet-700 mb-1.5">
-            <Sparkles className="h-3.5 w-3.5" /> AI suggestion{matches.length > 1 ? "s" : ""} — review &amp; select
+            <Sparkles className="h-3.5 w-3.5" /> AI suggestion{matches.length > 1 ? "s" : ""}: review &amp; select
           </div>
           <div className="space-y-1.5">
             {matches.map((r, i) => {
@@ -257,7 +257,7 @@ export default function ClassificationAssist({
           <span>
             Better fit: <span className="font-semibold">{better.moduleName}</span>
             {(better.categoryName || better.areaOfFocusName) && <> <span className="text-amber-400">›</span> {better.categoryName || better.areaOfFocusName}</>}
-            <span className="text-amber-500"> — switch &amp; carry over</span>
+            <span className="text-amber-500">: switch &amp; carry over</span>
           </span>
         </button>
       )}

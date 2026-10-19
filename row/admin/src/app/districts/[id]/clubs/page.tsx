@@ -13,7 +13,7 @@ import ClubTable from "@/components/ClubTable";
 import DeleteDialog from "@/components/DeleteDialog";
 import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
-import { Building2, AlertCircle, ArrowLeft, LayoutGrid, List, Search, Plus } from "lucide-react";
+import { Building2, AlertCircle, ArrowLeft, LayoutGrid, List, Search, Plus } from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
 import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";

@@ -9,7 +9,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
 import AlertModal from "@/components/AlertModal";
-import { ArrowLeft, Send, Pencil, RotateCw } from "lucide-react";
+import { ArrowLeft, Send, Pencil, RotateCw } from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
 import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";
@@ -145,7 +145,7 @@ export default function Page() {
                 <div>Required Email credits: <span className="font-semibold">{data.totalRecipients}</span></div>
                 <div>Available balance: <span className={`font-semibold ${emailBalance !== null && data.totalRecipients > emailBalance ? "text-destructive" : "text-green-700"}`}>{emailBalance === null ? "..." : emailBalance}</span></div>
                 {emailBalance !== null && data.totalRecipients > emailBalance && (
-                  <div className="text-destructive font-medium mt-1">⚠️ Insufficient credits. Send blocked.</div>
+                  <div className="text-destructive font-medium mt-1">Insufficient credits. Send blocked.</div>
                 )}
               </div>
             </div>

@@ -12,7 +12,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { ArrowLeft, Calendar, Download, Eye, FileSpreadsheet } from "lucide-react";
+import { ArrowLeft, Calendar, Download, Eye, FileSpreadsheet } from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
 import ErrorAlert from "@/components/ErrorAlert";
 import Link from "next/link";
@@ -136,10 +136,10 @@ export default function OcvReportPage() {
       module: item.categoryName,
       documentType: item.typeName,
       status: item.isUploaded ? "Uploaded" : "Not Uploaded",
-      fileName: item.originalFileName || "—",
-      amount: (item as any).amount || "—",
-      paidOn: (item as any).paidOn || "—",
-      uploadDate: (item as any).createdDate || "—",
+      fileName: item.originalFileName || "–",
+      amount: (item as any).amount || "–",
+      paidOn: (item as any).paidOn || "–",
+      uploadDate: (item as any).createdDate || "–",
       viewLink: item.isUploaded && item.filePath ? `${API_BASE_URL}${item.filePath}` : "",
     }));
     // Second section: Live Documents — the SAME module snapshots the Word report renders,
@@ -154,7 +154,7 @@ export default function OcvReportPage() {
       { key: "fileName", label: "File Name", width: 30 },
       { key: "viewLink", label: "View Document", width: 20, hyperlink: true },
     ], {
-      title: `OCV Report — ${clubName}`,
+      title: `OCV Report | ${clubName}`,
       subtitle: `Rotary Year: ${yearLabel}`,
       extraTable: {
         title: OCV_LIVE_DOCUMENTS_TITLE,
@@ -180,7 +180,7 @@ export default function OcvReportPage() {
             </Button>
             <div>
               <h2 className="text-2xl font-bold tracking-tight text-primary">OCV Report</h2>
-              <p className="text-muted-foreground text-base">{clubName} — Document compliance report</p>
+              <p className="text-muted-foreground text-base">{clubName}: Document compliance report</p>
             </div>
           </div>
         </div>
@@ -285,7 +285,7 @@ export default function OcvReportPage() {
                           )}
                         </TableCell>
                         <TableCell className="text-sm text-muted-foreground max-w-[200px] truncate">
-                          {item.originalFileName || "—"}
+                          {item.originalFileName || "–"}
                         </TableCell>
                         <TableCell className="text-center">
                           {item.isUploaded && item.filePath ? (
@@ -298,7 +298,7 @@ export default function OcvReportPage() {
                               </Button>
                             </div>
                           ) : (
-                            <span className="text-muted-foreground">—</span>
+                            <span className="text-muted-foreground">, </span>
                           )}
                         </TableCell>
                       </TableRow>

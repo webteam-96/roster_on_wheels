@@ -16,7 +16,7 @@ import AlertModal from "@/components/AlertModal";
 import RotaryLoader from "@/components/RotaryLoader";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { useAuth } from "@/contexts/AuthContext";
-import { ArrowLeft, AlertTriangle, Plus, Trash2, Eye, ArrowRightCircle, RefreshCw, Loader2, CheckCircle2 } from "lucide-react";
+import { ArrowLeft, AlertTriangle, Plus, Trash2, Eye, ArrowRightCircle, RefreshCw, Loader2, CheckCircle2 } from "@/components/icons";
 import {
   getDistricts, compareClubs, addClubFromOrg, updateClubManual,
   deleteClubManualSync, getClubOrgDetail, refreshClubsCache, markClubSynced,
@@ -215,7 +215,7 @@ export default function RotaryOrgClubsPage() {
     setReconciling(true);
     try {
       const r = await reconcileDistrictMembers(Number(districtId));
-      setSuccess(r?.message || "Member reconcile started for this district's mismatched clubs. Only those clubs refresh as it runs — no need to click again.");
+      setSuccess(r?.message || "Member reconcile started for this district's mismatched clubs. Only those clubs refresh as it runs. No need to click again.");
       // Poll ONLY the mismatched clubs. Each club's diff gives BOTH fresh counts (ROW + live
       // Rotary.org) in one call; we patch just that club and drop it once it reconciles. All other
       // clubs are left completely untouched.
@@ -234,7 +234,7 @@ export default function RotaryOrgClubsPage() {
               setLiveOrg((p) => ({ ...p, [cid]: { total: d.orgCount, loading: false } }));
               if ((d.toAdd?.length ?? 0) === 0 && (d.toRemove?.length ?? 0) === 0) pending.delete(cid);
             }
-          } catch { /* transient — retry next tick */ }
+          } catch { /* transient: retry next tick */ }
         }));
         if (pending.size > 0 && attempts < MAX) window.setTimeout(tick, 20000);
         else setReconciling(false);
@@ -359,7 +359,7 @@ export default function RotaryOrgClubsPage() {
                 <div className="flex items-start justify-between gap-2">
                   <div className="min-w-0">
                     <p className="font-medium truncate">{row.india.clubName}</p>
-                    <p className="text-xs text-muted-foreground">ID: {row.india.clubRotaryId || "—"} · Members: {row.india.memberCount ?? 0}</p>
+                    <p className="text-xs text-muted-foreground">ID: {row.india.clubRotaryId || "–"} · Members: {row.india.memberCount ?? 0}</p>
                   </div>
                   {/* Actions only for SYNC clubs. Non-sync clubs are display-only (no view/edit/delete). */}
                   {Number(row.india.isSynced) === 1 && (
@@ -379,7 +379,7 @@ export default function RotaryOrgClubsPage() {
                   <p className="text-xs text-muted-foreground">ID: {row.org.rotaryClubId}</p>
                 </div>
               ) : (
-                <span className="text-xs text-muted-foreground italic">— not in ROW —</span>
+                <span className="text-xs text-muted-foreground italic">,  not in ROW , </span>
               )}
             </div>
           </div>
@@ -422,18 +422,18 @@ export default function RotaryOrgClubsPage() {
                 if (oc.loading) return null;   // still checking the live count
                 const mismatch = row.india.memberCount != null && oc.count != null && row.india.memberCount !== oc.count;
                 if (!mismatch) return <span className="inline-flex items-center gap-1 text-emerald-600 text-sm"><CheckCircle2 className="h-4 w-4" />Matched</span>;
-                return <span className="inline-flex items-center gap-1 text-red-600 text-sm" title="Member count differs — use the “Sync mismatched clubs” button at the top to reconcile all of them."><AlertTriangle className="h-4 w-4" />Mismatch</span>;
+                return <span className="inline-flex items-center gap-1 text-red-600 text-sm" title="Member count differs. Use the “Sync mismatched clubs” button at the top to reconcile all of them."><AlertTriangle className="h-4 w-4" />Mismatch</span>;
               })() : row.syncable ? (
                 <Button size="sm" variant="outline" onClick={() => onSyncClub(row)}
                   disabled={busyKey === (row.india ? `sync-${row.india.clubId}` : `add-${row.org.rotaryClubId}`)}
-                  title="Present in Rotary.org /clubs — sync this club and all its members into ROW">
+                  title="Present in Rotary.org /clubs: sync this club and all its members into ROW">
                   {busyKey === (row.india ? `sync-${row.india.clubId}` : `add-${row.org.rotaryClubId}`)
                     ? <Loader2 className="h-3 w-3 mr-1 animate-spin" /> : <RefreshCw className="h-3 w-3 mr-1" />}Sync
                 </Button>
               ) : null}
             </div>
           ) : (
-            <span className="text-xs text-muted-foreground italic">— not on Rotary.org —</span>
+            <span className="text-xs text-muted-foreground italic">,  not on Rotary.org , </span>
           )}
         </TableCell>
       </TableRow>
@@ -513,7 +513,7 @@ export default function RotaryOrgClubsPage() {
               {/* One bulk action: reconcile ONLY the mismatched sync clubs in THIS district. Freezes while running. */}
               {mismatchCount > 0 && (
                 <Button size="sm" onClick={onReconcileDistrict} disabled={reconciling}
-                  title="Reconcile members for every mismatched club in this district — adds missing, removes departed (member profiles are kept).">
+                  title="Reconcile members for every mismatched club in this district: adds missing, removes departed (member profiles are kept).">
                   {reconciling ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <RefreshCw className="h-4 w-4 mr-2" />}
                   {reconciling ? "Reconciling…" : `Sync ${mismatchCount} mismatched club${mismatchCount === 1 ? "" : "s"}`}
                 </Button>
@@ -532,7 +532,7 @@ export default function RotaryOrgClubsPage() {
               )}
               {!data.lastFetchedUtc && data.counts.rotaryOrg === 0 && (
                 <span className="text-xs text-amber-600 ml-auto">
-                  Cache empty — click "Refresh from Rotary.org" to populate.
+                  Cache empty. Click "Refresh from Rotary.org" to populate.
                 </span>
               )}
             </div>
@@ -540,7 +540,7 @@ export default function RotaryOrgClubsPage() {
             <div className="space-y-4">
               <Section
                 title="Sync clubs"
-                subtitle="full data — members & BOD synced from Rotary.org"
+                subtitle="full data: members & BOD synced from Rotary.org"
                 color="bg-green-50"
                 rows={groups.syncRows}
                 empty="No sync clubs in this district"
@@ -561,7 +561,7 @@ export default function RotaryOrgClubsPage() {
           <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>Club Comparison & Edit</DialogTitle>
-              <DialogDescription>Click the ⬅ icon to copy a value from Rotary.org into the editable ROW field.</DialogDescription>
+              <DialogDescription>Click the left-arrow icon to copy a value from Rotary.org into the editable ROW field.</DialogDescription>
             </DialogHeader>
             {editTarget && (
               <div className="space-y-3">
@@ -582,7 +582,7 @@ export default function RotaryOrgClubsPage() {
                 ].map((row) => (
                   <div key={row.key} className="grid grid-cols-12 gap-2 items-center">
                     <div className="col-span-3 text-sm">{row.label}</div>
-                    <div className="col-span-4 text-sm bg-muted p-2 rounded text-muted-foreground truncate" title={row.orgValue || ""}>{row.orgValue || "—"}</div>
+                    <div className="col-span-4 text-sm bg-muted p-2 rounded text-muted-foreground truncate" title={row.orgValue || ""}>{row.orgValue || "–"}</div>
                     <div className="col-span-1 flex justify-center">
                       <Button variant="ghost" size="icon" disabled={!row.orgValue} onClick={() => copyFromOrg(row.key, row.orgValue)} title="Copy from Rotary.org">
                         <ArrowRightCircle className="h-4 w-4" />
@@ -631,7 +631,7 @@ export default function RotaryOrgClubsPage() {
               <p className="text-sm text-muted-foreground">In Rotary.org <code>/clubs</code> but missing from ROW. Click Sync to add + sync each.</p>
               {(() => {
                 const list = groups.nonSyncRows.filter((r) => !r.india);
-                if (list.length === 0) return <p className="text-sm text-muted-foreground">None — ROW matches Rotary.org.</p>;
+                if (list.length === 0) return <p className="text-sm text-muted-foreground">None: ROW matches Rotary.org.</p>;
                 return (
                   <ul className="divide-y rounded-md border">
                     {list.map((r, i) => (
@@ -716,7 +716,7 @@ function MemberDiffDialog({ club, onClose, onSoftDeleted, onError }: {
         <div>
           <h3 className="text-lg font-semibold">{club.clubName}</h3>
           {data && !data.error && (
-            <p className="text-sm text-muted-foreground">ROW <b>{data.localCount}</b> vs Rotary.org <b>{data.orgCount}</b> — here&apos;s exactly who differs.</p>
+            <p className="text-sm text-muted-foreground">ROW <b>{data.localCount}</b> vs Rotary.org <b>{data.orgCount}</b>: here&apos;s exactly who differs.</p>
           )}
         </div>
         {loading ? (
@@ -726,7 +726,7 @@ function MemberDiffDialog({ club, onClose, onSoftDeleted, onError }: {
         ) : (
           <div className="space-y-4 text-sm">
             <section>
-              <p className="font-medium text-emerald-700">On Rotary.org, missing here — added when you Sync ({data.toAdd.length})</p>
+              <p className="font-medium text-emerald-700">On Rotary.org, missing here: added when you Sync ({data.toAdd.length})</p>
               {data.toAdd.length === 0 ? <p className="text-xs text-muted-foreground">None.</p> : (
                 <ul className="mt-1 divide-y rounded-md border">
                   {data.toAdd.map((m) => (
@@ -739,7 +739,7 @@ function MemberDiffDialog({ club, onClose, onSoftDeleted, onError }: {
               )}
             </section>
             <section>
-              <p className="font-medium text-amber-700">Left Rotary.org — removed when you Sync ({data.toRemove.length})</p>
+              <p className="font-medium text-amber-700">Left Rotary.org: removed when you Sync ({data.toRemove.length})</p>
               {data.toRemove.length === 0 ? <p className="text-xs text-muted-foreground">None.</p> : (
                 <ul className="mt-1 divide-y rounded-md border">
                   {data.toRemove.map((m) => (
@@ -760,7 +760,7 @@ function MemberDiffDialog({ club, onClose, onSoftDeleted, onError }: {
                       <span>{m.name || "(no name)"}</span>
                       {m.willSoftDelete
                         ? <Badge variant="destructive" className="text-[10px]">will soft-delete</Badge>
-                        : <Badge variant="secondary" className="text-[10px]">kept — {m.keepReason}</Badge>}
+                        : <Badge variant="secondary" className="text-[10px]">kept: {m.keepReason}</Badge>}
                     </li>
                   ))}
                 </ul>

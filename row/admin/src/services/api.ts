@@ -1805,91 +1805,13 @@ export async function exportScopedEmailLog(base: string, filter: Omit<EmailLogFi
   return res.data as Blob;
 }
 
-// ── WhatsApp Log (SuperAdmin) ────────────────────────────────────────────
-export interface WhatsAppLogFilter {
-  page?: number;
-  pageSize?: number;
-  from?: string;
-  to?: string;
-  recipient?: string;
-  title?: string;
-  status?: string;
-  club?: string;
-  district?: string;
-  waType?: string;
-}
 
-export interface WhatsAppLogItem {
-  id: number;
-  recipientMobile: string;
-  recipientName: string | null;
-  templateName: string | null;
-  whatsAppType: string | null;
-  sourceId: number | null;
-  title: string | null;
-  status: string;
-  interaktMessageId: string | null;
-  httpStatus: number | null;
-  errorMessage: string | null;
-  sentAt: string;
-  deliveredAt: string | null;
-  clubName: string | null;
-  districtNumber: string | null;
-}
 
-export interface WhatsAppLogDetail extends WhatsAppLogItem {
-  bodyPreview: string | null;
-}
 
-export async function getWhatsAppLog(filter: WhatsAppLogFilter = {}) {
-  const { data } = await api.get("/api/whatsapp-log", { params: filter });
-  return data as {
-    items: WhatsAppLogItem[];
-    total: number;
-    page: number;
-    pageSize: number;
-    totalPages: number;
-  };
-}
 
-export async function getWhatsAppLogDetail(id: number) {
-  const { data } = await api.get(`/api/whatsapp-log/${id}`);
-  return data as WhatsAppLogDetail;
-}
 
-export async function getWhatsAppLogSummary() {
-  const { data } = await api.get("/api/whatsapp-log/summary");
-  return data as {
-    last24h: number;
-    last7d: number;
-    last30d: number;
-    totalSent: number;
-    totalDelivered: number;
-    totalFailed: number;
-    totalAll: number;
-  };
-}
 
-// Export the current filtered result set to XLSX (all matching rows, not just the page).
-export async function exportWhatsAppLog(filter: Omit<WhatsAppLogFilter, "page" | "pageSize"> = {}) {
-  const res = await api.get("/api/whatsapp-log/export", { params: filter, responseType: "blob" });
-  return res.data as Blob;
-}
 
-// Club/District-scoped WhatsApp log (for the Club/District Admin dashboards — locked server-side
-// to that club/district). `base` is "club/{id}" or "district/{id}".
-export async function getScopedWhatsAppLog(base: string, filter: WhatsAppLogFilter = {}) {
-  const { data } = await api.get(`/api/whatsapp-log/${base}`, { params: filter });
-  return data as { items: WhatsAppLogItem[]; total: number; page: number; pageSize: number; totalPages: number };
-}
-export async function getScopedWhatsAppLogSummary(base: string) {
-  const { data } = await api.get(`/api/whatsapp-log/${base}/summary`);
-  return data as { last24h: number; last7d: number; last30d: number; totalSent: number; totalDelivered: number; totalFailed: number; totalAll: number };
-}
-export async function exportScopedWhatsAppLog(base: string, filter: Omit<WhatsAppLogFilter, "page" | "pageSize"> = {}) {
-  const res = await api.get(`/api/whatsapp-log/${base}/export`, { params: filter, responseType: "blob" });
-  return res.data as Blob;
-}
 
 // Zone APIs
 export async function getZones(
@@ -4158,16 +4080,8 @@ export async function sendEventReminderEmail(memberPaymentId: number, remark?: s
   const res = await api.post(`/api/event-payment-links/members/${memberPaymentId}/send-reminder-email`, { remark });
   return res.data;
 }
-export async function sendEventReminderWhatsApp(memberPaymentId: number) {
-  const res = await api.post(`/api/event-payment-links/members/${memberPaymentId}/send-reminder-whatsapp`);
-  return res.data;
-}
 export async function bulkReminderEmail(linkId: number, remark?: string) {
   const res = await api.post(`/api/event-payment-links/${linkId}/members/bulk-reminder-email`, { remark });
-  return res.data;
-}
-export async function bulkReminderWhatsApp(linkId: number) {
-  const res = await api.post(`/api/event-payment-links/${linkId}/members/bulk-reminder-whatsapp`);
   return res.data;
 }
 export async function exportEventMembers(linkId: number, isPaid: boolean) {
@@ -4318,16 +4232,8 @@ export async function sendMembershipDuesReminder(duesId: number, memberFeeId: nu
   const res = await api.post(`/api/membership-dues/${duesId}/members/${memberFeeId}/reminder-email`, data);
   return res.data;
 }
-export async function sendMembershipDuesReminderWhatsApp(duesId: number, memberFeeId: number, feeType: number) {
-  const res = await api.post(`/api/membership-dues/${duesId}/members/${memberFeeId}/reminder-whatsapp?feeType=${feeType}`);
-  return res.data;
-}
 export async function bulkMembershipDuesReminderEmail(duesId: number, data?: { remark?: string }) {
   const res = await api.post(`/api/membership-dues/${duesId}/bulk-reminder-email`, data);
-  return res.data;
-}
-export async function bulkMembershipDuesReminderWhatsApp(duesId: number) {
-  const res = await api.post(`/api/membership-dues/${duesId}/bulk-reminder-whatsapp`);
   return res.data;
 }
 export async function createMembershipDuesGoogleSheet(id: number) {
@@ -4560,17 +4466,15 @@ export async function getCreditNotifications() {
   return res.data;
 }
 export interface ChannelRecipientInfo {
-  recipientCount: number;
-  whatsAppRemaining: number;
   emailRecipientCount: number;
   emailRemaining: number;
 }
-export async function getClubWhatsAppInfo(clubId: number): Promise<ChannelRecipientInfo> {
-  const res = await api.get(`/api/whatsapp-info/club/${clubId}`);
+export async function getClubRecipientInfo(clubId: number): Promise<ChannelRecipientInfo> {
+  const res = await api.get(`/api/recipient-info/club/${clubId}`);
   return res.data;
 }
-export async function getDistrictWhatsAppInfo(districtId: number): Promise<ChannelRecipientInfo> {
-  const res = await api.get(`/api/whatsapp-info/district/${districtId}`);
+export async function getDistrictRecipientInfo(districtId: number): Promise<ChannelRecipientInfo> {
+  const res = await api.get(`/api/recipient-info/district/${districtId}`);
   return res.data;
 }
 export async function getCreditUsageHistory(params?: Record<string, any>) {
@@ -5387,7 +5291,7 @@ export async function getDistrictReportMonthDetail(districtId: number, yearId: n
   const res = await api.get(`/api/districts/${districtId}/club-monthly-report/month-detail/${yearId}/${month}`);
   return res.data;
 }
-export async function sendReportReminder(districtId: number, yearId: number, month: number, data: { sendEmail: boolean; sendWhatsApp: boolean; agMemberId?: number | null }) {
+export async function sendReportReminder(districtId: number, yearId: number, month: number, data: { sendEmail: boolean; agMemberId?: number | null }) {
   const res = await api.post(`/api/districts/${districtId}/club-monthly-report/send-reminder/${yearId}/${month}`, data);
   return res.data;
 }
@@ -5791,7 +5695,7 @@ export async function uploadRiDirectorAnnouncementImage(file: File) {
 }
 
 export async function getRiDirectorRecipientCount(
-  channel: "email" | "whatsapp",
+  channel: "email",
   target: "all" | "zones" | "districts" | "subgroups",
   zoneIds?: number[], districtIds?: number[], subgroupIds?: number[]
 ) {
@@ -6260,11 +6164,11 @@ export interface ClubWebsitePricingRow {
   isCustom: boolean; baseAmount: number; renewalAmount: number; gstPercent: number; totalAmount: number; renewalTotalAmount: number;
   gatewayType: string; routeAccountId: number | null; routeAccountName: string | null;
   payLink: string;                                    // club-website pay link
-  whatsappPayLink: string; emailPayLink: string;       // Wallet credit top-up links (Club Wallet's 3 copy options)
+  emailPayLink: string;                               // Wallet email-credit top-up link
   presidentName: string | null; presidentMobile: string | null; presidentEmail: string | null;
   secretaryName: string | null; secretaryMobile: string | null; secretaryEmail: string | null;
 }
-export interface WalletCommonLinks { website: string; whatsapp: string; email: string }
+export interface WalletCommonLinks { website: string; email: string }
 export interface ClubWebsitePricingResponse {
   items: ClubWebsitePricingRow[]; total: number; page: number; pageSize: number; yearId: number;
   commonLinks: WalletCommonLinks;
@@ -6312,7 +6216,7 @@ export async function saveWebsiteDefaultPricing(payload: { newAmount: number; re
 }
 
 export interface SendRemindersResult {
-  clubsProcessed: number; emailsSent: number; whatsappSent: number; failed: number;
+  clubsProcessed: number; emailsSent: number; failed: number;
   skipped: { clubId: number; clubName: string; reason: string }[];
 }
 export async function sendClubWebsiteReminders(clubIds: number[], yearId?: number): Promise<SendRemindersResult> {
@@ -6333,21 +6237,21 @@ export async function setClubWebsiteRouteAccount(routeAccountId: number | null, 
 // ── District Wallet (SuperAdmin): per-district credit balances + copy links + reminders ──
 export interface WalletDistrictRow {
   districtId: number; districtNumber: string | null;
-  whatsappBalance: number; emailBalance: number;
-  whatsappPayLink: string; emailPayLink: string;
+  emailBalance: number;
+  emailPayLink: string;
 }
 export interface WalletDistrictsResponse {
   items: WalletDistrictRow[];
-  commonLinks: { whatsapp: string; email: string };
+  commonLinks: { email: string };
 }
 export async function getWalletDistricts(search?: string): Promise<WalletDistrictsResponse> {
   const { data } = await api.get(`/api/admin/wallet/districts`, { params: search ? { search } : {} });
   return data;
 }
-// Clubs with a live WhatsApp OR Email credit balance > 0 (+ President/Secretary contacts) — Check balance popup.
+// Clubs with a live email credit balance > 0 (+ President/Secretary contacts) — Check balance popup.
 export interface WalletClubBalanceRow {
   clubId: number; clubName: string | null; districtNumber: string | null;
-  whatsappBalance: number; emailBalance: number;
+  emailBalance: number;
   presidentName: string | null; presidentMobile: string | null; presidentEmail: string | null;
   secretaryName: string | null; secretaryMobile: string | null; secretaryEmail: string | null;
 }
@@ -6356,7 +6260,7 @@ export async function getWalletClubBalances(): Promise<WalletClubBalanceRow[]> {
   return data;
 }
 
-// ── Wallet › Reports tab: Club Website / WhatsApp / Email purchase history ──
+// ── Wallet › Reports tab: Club Website / Email purchase history ──
 export interface WalletReportRow {
   districtNumber: string | null;
   clubName: string; purchaseDate: string; purchaseAmount: number;
@@ -6375,16 +6279,8 @@ export async function getWalletClubWebsiteReport(f: WalletReportFilters): Promis
   const { data } = await api.get(`/api/admin/wallet/reports/club-website`, { params: f });
   return data;
 }
-export async function getWalletWhatsAppReport(f: WalletReportFilters): Promise<WalletReportRow[]> {
-  const { data } = await api.get(`/api/admin/wallet/reports/whatsapp`, { params: f });
-  return data;
-}
 export async function getWalletEmailReport(f: WalletReportFilters): Promise<WalletReportRow[]> {
   const { data } = await api.get(`/api/admin/wallet/reports/email`, { params: f });
-  return data;
-}
-export async function getWalletDistrictWhatsAppReport(f: WalletReportFilters): Promise<WalletReportRow[]> {
-  const { data } = await api.get(`/api/admin/wallet/reports/district-whatsapp`, { params: f });
   return data;
 }
 export async function getWalletDistrictEmailReport(f: WalletReportFilters): Promise<WalletReportRow[]> {
@@ -6392,7 +6288,7 @@ export async function getWalletDistrictEmailReport(f: WalletReportFilters): Prom
   return data;
 }
 
-// Wallet page combined list: every WhatsApp/Email credit given Offline (Super Admin) or bought Online.
+// Wallet page combined list: every email credit given Offline (Super Admin) or bought Online.
 export interface WalletCreditEntryRow {
   source: "Offline" | "Online";
   entryType: string;              // Added | Edited | Purchased | Earlier entry
@@ -6506,15 +6402,15 @@ export async function verifyPublicClubWebsiteOrder(token: string, payload: { web
   return data;
 }
 
-// ── Public (open) Wallet pay page — WhatsApp/Email credit top-ups + common pick-a-club/district links ──
+// ── Public (open) Wallet pay page — email credit top-ups + common pick-a-club/district links ──
 export interface PublicWalletStatus {
-  whatsAppRemaining: number; emailRemaining: number;
+  emailRemaining: number;
   websiteOrderType: string | null; websiteSubdomain: string | null;
   websiteCurrentEndDate: string | null; websiteNewEndDate: string | null;
   websiteCanPurchase: boolean; websitePurchaseBlockedReason: string | null;
 }
 export interface PublicWalletInfo {
-  scope: "club" | "district"; purpose: "website" | "whatsapp" | "email";
+  scope: "club" | "district"; purpose: "website" | "email";
   entityId: number; requiresPick: boolean;
   entityName: string | null; districtNumber: string | null;
   status: PublicWalletStatus | null;
@@ -6993,7 +6889,6 @@ export interface DirectoryConfigListRow {
   createdDate: string;
   modifiedDate: string | null;
   sendEmail?: number;      // 0 = email disabled for this district
-  sendWhatsapp?: number;   // 0 = whatsapp disabled for this district
   isActive?: number;       // 1 = public link open, 0 = closed ("Link is closed")
 }
 
@@ -7023,7 +6918,6 @@ export async function createDirectoryConfig(payload: {
   bodFields: string[];
   memberFields: string[];
   sendEmail?: boolean;
-  sendWhatsapp?: boolean;
 }) {
   const { data } = await api.post("/api/admin/directory-config", payload);
   return data;
@@ -7040,7 +6934,6 @@ export async function updateDirectoryConfig(id: number, payload: {
   bodFields: string[];
   memberFields: string[];
   sendEmail?: boolean;
-  sendWhatsapp?: boolean;
 }) {
   const { data } = await api.put(`/api/admin/directory-config/${id}`, payload);
   return data;
@@ -7057,7 +6950,7 @@ export async function toggleDirectoryConfigActive(id: number): Promise<{ id: num
   return data;
 }
 
-export async function sendDirectoryReminders(id: number, channel: "email" | "whatsapp" | "both") {
+export async function sendDirectoryReminders(id: number, channel: "email") {
   const { data } = await api.post(`/api/admin/directory-config/${id}/send-reminders`, null, { params: { channel } });
   return data;
 }
@@ -7703,14 +7596,6 @@ export async function sendClubDuesReminder(id: number, clubId: number, remark?: 
 }
 export async function bulkClubDuesReminder(id: number, remark?: string) {
   const res = await api.post(`/api/club-dues/${id}/reminder`, { remark });
-  return res.data;
-}
-export async function sendClubDuesWhatsApp(id: number, clubId: number) {
-  const res = await api.post(`/api/club-dues/${id}/clubs/${clubId}/whatsapp`);
-  return res.data;
-}
-export async function bulkClubDuesWhatsApp(id: number) {
-  const res = await api.post(`/api/club-dues/${id}/whatsapp`);
   return res.data;
 }
 export function getClubDuesExportUrl(id: number) {

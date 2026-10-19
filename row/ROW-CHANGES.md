@@ -6,6 +6,20 @@ unless marked "done"; decide them when the area is worked on.
 
 ## Security and privacy
 
+- **Club / district writes are role-checked** (done 2026-10-19). `ScopeWriteGuardMiddleware` refuses (403) any
+  write under `api/clubs/{id}` or `api/districts/{id}` unless the caller manages that club/district (SuperAdmin,
+  RIDirector, the club's Admin / ClubModerator / AG, a district Admin with all-clubs access, the district's Admin,
+  the zone's ZonalCoordinator), and limits RI Director, master-data and mass-email-media writes to their roles.
+  Roles come from `member_roles` on every write. E2E: `kb/tools/scope_write_guard_e2e.py`. Not covered: endpoints
+  that take the club/district id in the body or query string (they rely on their own checks); review those next.
+- **Swagger only in Development** (or `Swagger:Enabled=true`), and unhandled errors return a generic message
+  outside Development (done 2026-10-19).
+- **Mobile sign-in is email + password for every member** (done 2026-10-19). RIZones members signed in to the
+  app with a mobile-number OTP and only admins had passwords. New `POST api/mobile/auth/login` (same session,
+  guards and device record as verify-otp, via the shared `IssueSessionAsync`; generic "Invalid email or password.";
+  lockout 5 / 15 min as the web) and `POST api/mobile/auth/forgot-password` (any member; same reset link as the
+  web, which now creates the member's first password). Both are rate-limited per IP (`auth` policy, 10 a minute).
+  E2E: `kb/tools/mobile_password_login_e2e.py`. The OTP endpoints remain but the app no longer uses them.
 - **Members API is anonymous** (`api/members` has no `[Authorize]` in RIZones):
   anyone can list members, read and overwrite push tokens. Ported as-is.
   Strongly recommended: require sign-in.
@@ -250,3 +264,11 @@ Both APIs ran side by side on the same scratch database (fixture data, the .NET 
 - **Rotary-year rollover** also creates the current year's `rotary_projects_*` / `rotary_project_photos_*` tables (RIZones created them on the first save or by a one-off script, so a new database could not list projects).
 - **`sync_exception_log.inserted`** (written by the sweep worker, read by the sync-exceptions screen) added to `schema-drift.sql`; RIZones never created it in code.
 - **Rotary.org summary key** `rotaryIndia` is `local` (no client read it; same name as in the .NET edition).
+
+## 2026-10-19 — WhatsApp and SMS removed (ROW is in-app + email only)
+- API: WhatsApp/SMS services, controllers, log/info endpoints, Twilio/Meta config and the mobile OTP endpoints (incl. the TestAccount OTP path) are gone. WhatsApp credit grants (offline + RI Director), WhatsApp wallet top-ups and pay links, and WhatsApp directory reminders are refused (400). Email recipient estimate moved to `GET /api/recipient-info/{club|district}/{id}`.
+- Workers: GreetingsWorker sends email and push only.
+- Admin: every WhatsApp toggle, reminder button, log page, credit card, report and badge removed; `/settings/email-whatsapp-credits` renamed `/settings/email-credits`; `WhatsAppRecipientBadge` replaced by email-only `RecipientBadge`.
+- Mobile: WhatsApp compose toggles, reminder actions, wallet type, contact buttons (wa.me), social-link type and icon asset removed.
+- Kept on purpose: DB columns named after WhatsApp (no destructive migration).
+- Test: `python kb/tools/no_whatsapp_e2e.py`.

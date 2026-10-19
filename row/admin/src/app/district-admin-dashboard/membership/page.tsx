@@ -26,7 +26,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import {
   Users, UserPlus, UserMinus, Loader2,
   Search, User, MoreHorizontal, ShieldCheck, ShieldOff, X,
-} from "lucide-react";
+} from "@/components/icons";
 import { useDistrictAdminCache } from "@/contexts/DistrictAdminDashboardCacheContext";
 import { useAuth } from "@/contexts/AuthContext";
 import KpiCard from "@/components/dashboard/KpiCard";
@@ -298,13 +298,13 @@ export default function DistrictAdminMembershipPage() {
           <div className="flex items-center justify-between gap-3 flex-wrap">
             <TabsList
               className="h-auto flex-wrap gap-1 p-1.5"
-              style={{ backgroundColor: "#1e3a5f" }}
+              style={{ backgroundColor: "#17458f" }}
             >
               {(Object.keys(TAB_LABELS) as TabKey[]).map((k) => (
                 <TabsTrigger
                   key={k}
                   value={k}
-                  className="text-sm font-semibold px-3.5 py-1.5 rounded-md text-white hover:bg-white/10 data-[state=active]:bg-[#F7A81B] data-[state=active]:text-[#1e3a5f] data-[state=active]:shadow-sm"
+                  className="text-sm font-semibold px-3.5 py-1.5 rounded-md text-white hover:bg-white/10 data-[state=active]:bg-marigold data-[state=active]:text-ink data-[state=active]:shadow-sm"
                 >
                   {TAB_LABELS[k]}
                 </TabsTrigger>
@@ -322,21 +322,21 @@ export default function DistrictAdminMembershipPage() {
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <KpiCard
                 title="Total Members"
-                value={kpisPending ? "—" : fmtInt(kpiTotal)}
+                value={kpisPending ? "–" : fmtInt(kpiTotal)}
                 subtitle={kpisPending ? "Pending" : "District-wide"}
                 icon={Users}
                 color="blue"
               />
               <KpiCard
                 title="New This Year"
-                value={kpisPending ? "—" : fmtInt(kpiNewThisYear)}
+                value={kpisPending ? "–" : fmtInt(kpiNewThisYear)}
                 subtitle={kpisPending ? "Pending" : `RY ${data.district.yearLabel}`}
                 icon={UserPlus}
                 color="teal"
               />
               <KpiCard
                 title="Terminated"
-                value={kpisPending ? "—" : fmtInt(kpiTerminated)}
+                value={kpisPending ? "–" : fmtInt(kpiTerminated)}
                 subtitle={kpisPending ? "Pending" : `RY ${data.district.yearLabel}`}
                 icon={UserMinus}
                 color="red"
@@ -352,14 +352,14 @@ export default function DistrictAdminMembershipPage() {
                   value={dirSearch}
                   onChange={(e) => setDirSearch(e.target.value)}
                   onKeyDown={handleDirKeyDown}
-                  className="pl-9 border-slate-200 bg-white focus:border-[#1e3a5f] focus:ring-[#1e3a5f]/20 text-sm"
+                  className="pl-9 border-slate-200 bg-white focus:border-azure focus:ring-azure/20 text-sm"
                 />
               </div>
               <div className="flex flex-wrap items-center gap-2">
                 <Button
                   onClick={handleDirSearch}
                   size="sm"
-                  className="bg-[#1e3a5f] hover:bg-[#152a44] text-white"
+                  className="bg-azure hover:bg-mint-ink text-white"
                 >
                   <Search className="mr-2 h-4 w-4" />
                   Search
@@ -397,8 +397,8 @@ export default function DistrictAdminMembershipPage() {
                   <Table>
                     <TableHeader>
                       <TableRow
-                        className="hover:opacity-100 border-b-2 border-[#F7A81B]"
-                        style={{ backgroundColor: "#1e3a5f" }}
+                        className="hover:opacity-100 border-b-2 border-marigold"
+                        style={{ backgroundColor: "#17458f" }}
                       >
                         <TableHead className="w-12 text-white/90"></TableHead>
                         <TableHead className="text-white text-xs font-semibold uppercase tracking-wide">Member Name</TableHead>
@@ -431,10 +431,10 @@ export default function DistrictAdminMembershipPage() {
                               </div>
                             </TableCell>
                             <TableCell className="font-semibold text-slate-800">{member.memberName}</TableCell>
-                            <TableCell className="hidden md:table-cell text-slate-600 text-sm">{member.rotaryId || "—"}</TableCell>
-                            <TableCell className="hidden md:table-cell text-slate-600 text-sm">{member.emailId || "—"}</TableCell>
-                            <TableCell className="hidden lg:table-cell text-slate-600 text-sm">{member.primaryMobileNumber || "—"}</TableCell>
-                            <TableCell className="hidden lg:table-cell text-sm text-slate-500">{member.clubName || "—"}</TableCell>
+                            <TableCell className="hidden md:table-cell text-slate-600 text-sm">{member.rotaryId || "–"}</TableCell>
+                            <TableCell className="hidden md:table-cell text-slate-600 text-sm">{member.emailId || "–"}</TableCell>
+                            <TableCell className="hidden lg:table-cell text-slate-600 text-sm">{member.primaryMobileNumber || "–"}</TableCell>
+                            <TableCell className="hidden lg:table-cell text-sm text-slate-500">{member.clubName || "–"}</TableCell>
                             <TableCell>
                               <div className="flex flex-wrap gap-1">
                                 {(() => {

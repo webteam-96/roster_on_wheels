@@ -23,7 +23,7 @@ import {
 import AlertModal from "@/components/AlertModal";
 import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
-import { UserPlus } from "lucide-react";
+import { UserPlus } from "@/components/icons";
 
 type Level = "committee" | "group" | "subgroup";
 
@@ -84,7 +84,7 @@ export default function NonSyncRemovedCommitteeMembers({
   return (
     <div className="mt-6 rounded-lg border border-amber-200 bg-amber-50/60 p-4">
       <div className="mb-3">
-        <h3 className="text-sm font-semibold text-amber-800">Removed — club no longer syncing</h3>
+        <h3 className="text-sm font-semibold text-amber-800">Removed: club no longer syncing</h3>
         <p className="text-xs text-amber-700">
           These members were removed because their club is no longer synced with Rotary.org.
           You can re-add them to this committee as a non-member.
@@ -116,7 +116,7 @@ export default function NonSyncRemovedCommitteeMembers({
             <button
               type="button"
               onClick={() => setAddTarget(m)}
-              className="inline-flex shrink-0 items-center gap-1 rounded-md bg-[#1e3a5f] px-3 py-1.5 text-xs font-medium text-white hover:bg-[#16304f]"
+              className="inline-flex shrink-0 items-center gap-1 rounded-md bg-azure px-3 py-1.5 text-xs font-medium text-white hover:bg-mint-ink"
             >
               <UserPlus className="h-3.5 w-3.5" /> Add as non-member
             </button>
@@ -128,14 +128,14 @@ export default function NonSyncRemovedCommitteeMembers({
         open={!!addTarget}
         onOpenChange={(o) => !o && setAddTarget(null)}
         icon={UserPlus}
-        iconClassName="text-[#1e3a5f]"
+        iconClassName="text-ink"
         title="Add as non-member"
         description={
           `This member is deleted from this club because this club is non-sync. ` +
           `Do you want to add ${addTarget?.name || "this member"} as non-member?`
         }
         confirmLabel={busy ? "Adding…" : "Add as non-member"}
-        confirmClassName="bg-[#1e3a5f] text-white hover:bg-[#16304f]"
+        confirmClassName="bg-azure text-white hover:bg-mint-ink"
         onConfirm={handleConfirmAdd}
         cancelLabel="Cancel"
         onCancel={() => setAddTarget(null)}

@@ -15,7 +15,7 @@
 import { useEffect, useMemo, useState } from "react";
 import {
   Trophy, Users, Briefcase, Calendar, Star, ArrowUpDown, ArrowUp, ArrowDown,
-} from "lucide-react";
+} from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell,
@@ -35,10 +35,10 @@ import {
 type LeaderTone = "blue" | "purple" | "green" | "gold";
 
 const TONE_GRADIENT: Record<LeaderTone, string> = {
-  blue:   `linear-gradient(135deg, ${ROTARY_BLUE} 0%, #0052cc 100%)`,
-  purple: `linear-gradient(135deg, ${POLIO_PURPLE} 0%, #9333ea 100%)`,
-  green:  `linear-gradient(135deg, ${ROTARY_GREEN} 0%, #10b981 100%)`,
-  gold:   `linear-gradient(135deg, ${ROTARY_GOLD} 0%, #f59e0b 100%)`,
+  blue:   ROTARY_BLUE,
+  purple: POLIO_PURPLE,
+  green:  ROTARY_GREEN,
+  gold:   ROTARY_GOLD,
 };
 
 function LeaderCard({
@@ -212,7 +212,7 @@ export default function AgDistrictPage() {
         <h1 className="text-2xl font-bold" style={{ color: ROTARY_BLUE }}>Club Performance Comparison</h1>
         <p className="text-sm text-gray-500 mt-1">How your {data.clubs.length} clubs compare across key metrics</p>
         <p className="text-xs text-gray-400 mt-0.5">
-          AG: {data.ag.name || "—"} · District {data.ag.districtNumber || "—"} · RY {data.ag.yearLabel || "—"}
+          AG: {data.ag.name || "–"} · District {data.ag.districtNumber || "–"} · RY {data.ag.yearLabel || "–"}
         </p>
       </div>
 
@@ -322,16 +322,16 @@ export default function AgDistrictPage() {
                 <h3 className="text-sm font-semibold text-gray-600 mb-3">{titles[key]}</h3>
                 <ResponsiveContainer width="100%" height={240}>
                   <BarChart data={chartData} margin={{ top: 8, right: 16, left: 8, bottom: 40 }}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" vertical={false} />
+                    <CartesianGrid strokeDasharray="3 3" stroke="#edf4fb" vertical={false} />
                     <XAxis
                       dataKey="name"
-                      tick={{ fontSize: 11, fill: "#555" }}
+                      tick={{ fontSize: 11, fill: "#4A5A70" }}
                       angle={-25}
                       textAnchor="end"
                       interval={0}
                       height={60}
                     />
-                    <YAxis tick={{ fontSize: 11, fill: "#888" }} tickLine={false} axisLine={false} />
+                    <YAxis tick={{ fontSize: 11, fill: "#8796AA" }} tickLine={false} axisLine={false} />
                     <Tooltip
                       formatter={(v) => key === "trfTotalInr" ? fmtUsd(Number(v)) : fmtInt(Number(v))}
                       contentStyle={{ fontSize: 12, borderRadius: 8 }}
@@ -357,9 +357,9 @@ export default function AgDistrictPage() {
           <div className="border border-gray-200 shadow-sm rounded-xl bg-white p-4">
             <ResponsiveContainer width="100%" height={420}>
               <RadarChart data={radarPoints} margin={{ top: 16, right: 40, bottom: 16, left: 40 }}>
-                <PolarGrid stroke="#e5e7eb" />
-                <PolarAngleAxis dataKey="metric" tick={{ fontSize: 12, fill: "#374151", fontWeight: 600 }} />
-                <PolarRadiusAxis angle={90} domain={[0, 100]} tick={{ fontSize: 10, fill: "#9ca3af" }} tickCount={5} />
+                <PolarGrid stroke="#d5dee8" />
+                <PolarAngleAxis dataKey="metric" tick={{ fontSize: 12, fill: "#2A3F5C", fontWeight: 600 }} />
+                <PolarRadiusAxis angle={90} domain={[0, 100]} tick={{ fontSize: 10, fill: "#8796aa" }} tickCount={5} />
                 {data.clubs.map((c, idx) => (
                   <Radar
                     key={c.clubId}
@@ -383,7 +383,7 @@ export default function AgDistrictPage() {
       <section>
         <div
           className="rounded-xl shadow-sm border-0 p-6"
-          style={{ background: `linear-gradient(135deg, ${ROTARY_BLUE} 0%, #0052cc 100%)` }}
+          style={{ background: ROTARY_BLUE }}
         >
           <p className="text-white text-xs uppercase tracking-widest font-semibold mb-4 opacity-80">
             AG Group Combined Totals

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Image from "next/image";
-import { Mail, Phone } from "lucide-react";
+import { Mail, Phone } from "@/components/icons";
 import type { Governor } from "./data";
 
 const PREFIX = /^(Dr|PRID|PDG|PP|Rtn|Mr|Mrs|Ms|RID|Sir)\.?$/i;
@@ -35,7 +35,7 @@ export function DGCard({ dg }: { dg: Governor }) {
           {dg.photo && !err ? (
             <Image
               src={dg.photo}
-              alt={`${dg.name} — District Governor, RI District ${dg.district}`}
+              alt={`${dg.name}: District Governor, RI District ${dg.district}`}
               fill
               sizes="56px"
               onError={() => setErr(true)}
@@ -64,7 +64,7 @@ export function DGCard({ dg }: { dg: Governor }) {
           {dg.mobile && (
             <a
               href={`tel:${dg.mobile}`}
-              aria-label={`Call ${dg.name} — ${dg.mobile}`}
+              aria-label={`Call ${dg.name}: ${dg.mobile}`}
               title={dg.mobile}
               className={ICON_BTN}
             >
@@ -74,7 +74,7 @@ export function DGCard({ dg }: { dg: Governor }) {
           {dg.email && (
             <a
               href={`mailto:${dg.email}`}
-              aria-label={`Email ${dg.name} — ${dg.email}`}
+              aria-label={`Email ${dg.name}: ${dg.email}`}
               title={dg.email}
               className={ICON_BTN}
             >

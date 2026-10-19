@@ -10,7 +10,7 @@
 import { useEffect, useState } from "react";
 import KpiCard from "@/components/dashboard/KpiCard";
 import { getDistrictAdminEGovernance } from "@/services/api";
-import { FileSpreadsheet, HeartPulse, Award } from "lucide-react";
+import { FileSpreadsheet, HeartPulse, Award } from "@/components/icons";
 
 // Session-lived cache (per district+year) so the tiles repaint INSTANTLY with the
 // last-known values on every mount — no flash to empty when navigating between the
@@ -43,7 +43,7 @@ export default function DistrictEgovernanceKpis({ districtId, yearId }: { distri
       <KpiCard title="PPH Camps" value={String(ppsCamps)} subtitle="District-wide" icon={HeartPulse} color="purple" />
       <KpiCard
         title="Avg Awards Score"
-        value={avgCitationScore == null ? "—" : `${Math.round(avgCitationScore)}/1000`}
+        value={avgCitationScore == null ? "–" : `${Math.round(avgCitationScore)}/1000`}
         subtitle={avgCitationScore == null ? "Pending" : "All clubs"}
         icon={Award}
         color="gold"

@@ -42,7 +42,7 @@ import AlertModal from "@/components/AlertModal";
 import {
   ArrowLeft, Plus, Pencil, Trash2, MoreHorizontal, Users, User,
   Search, AlertTriangle, X, Eye,
-} from "lucide-react";
+} from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
 import Link from "next/link";
 import Image from "next/image";
@@ -545,7 +545,7 @@ export default function SubGroupsPage() {
                 {editingGroup ? (
                   <div className="px-3 py-2 border rounded-md bg-muted text-sm">
                     {allRotaryYears.find((y) => y.id === editingGroup.yearId)?.yearLabel ||
-                     allYears.find((y) => String(y.id) === selectedYearId)?.yearLabel || "—"}
+                     allYears.find((y) => String(y.id) === selectedYearId)?.yearLabel || "–"}
                   </div>
                 ) : (
                   <Select value={dialogYearId} onValueChange={setDialogYearId}>
@@ -640,7 +640,7 @@ export default function SubGroupsPage() {
                                 <div className="flex-1 min-w-0">
                                   <p className="text-sm font-medium truncate">{member.memberName}</p>
                                   <p className="text-xs text-muted-foreground truncate">
-                                    {[member.mobileNumber, member.email].filter(Boolean).join(" | ") || "—"}
+                                    {[member.mobileNumber, member.email].filter(Boolean).join(" | ") || "–"}
                                   </p>
                                 </div>
                               </div>
@@ -751,7 +751,7 @@ export default function SubGroupsPage() {
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-semibold text-primary truncate">{member.memberName}</p>
                         <p className="text-xs text-muted-foreground truncate">
-                          {[member.mobileNumber, member.email].filter(Boolean).join(" | ") || "—"}
+                          {[member.mobileNumber, member.email].filter(Boolean).join(" | ") || "–"}
                         </p>
                       </div>
                     </div>

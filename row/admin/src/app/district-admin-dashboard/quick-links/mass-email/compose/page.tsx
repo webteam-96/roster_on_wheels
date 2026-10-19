@@ -14,7 +14,7 @@
  *     font/size, bold/italic/underline, colour, alignment, lists, link and image.
  *     The image button inlines a base64 data-URI (no upload endpoint); Brevo sends
  *     the editor HTML as-is via htmlContent.
- *   - Design palette: navy #1e3a5f, gold #F7A81B, slate borders/text.
+ *   - Design palette: navy #17458f, gold #F7A81B, slate borders/text.
  */
 
 import { useState, useEffect, useCallback } from "react";
@@ -34,7 +34,7 @@ import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
 import RotaryLoader from "@/components/RotaryLoader";
 import ProtectedRoute from "@/components/ProtectedRoute";
-import { ArrowLeft, Save, Send, Loader2, Users } from "lucide-react";
+import { ArrowLeft, Save, Send, Loader2, Users } from "@/components/icons";
 import RichTextEditor from "@/components/RichTextEditor";
 
 import { appLocale } from "@/lib/appFormat";
@@ -127,7 +127,7 @@ export default function DistrictAdminMassEmailComposePage() {
     load();
   }, [districtId]);
 
-  // Fetch district email/whatsapp credit balance so we can validate before
+  // Fetch district email credit balance so we can validate before
   // sending. Server-side check exists too (throws "Insufficient Email
   // credits…"); this just makes the UX obvious rather than surprising the
   // admin at Send-time.
@@ -277,14 +277,14 @@ export default function DistrictAdminMassEmailComposePage() {
             <ArrowLeft className="h-4 w-4" />
           </Button>
           <div>
-            <h2 className="text-2xl font-bold tracking-tight text-[#1e3a5f]">{editId ? "Edit Mass Email" : "Compose Mass Email"}</h2>
+            <h2 className="text-2xl font-bold tracking-tight text-ink">{editId ? "Edit Mass Email" : "Compose Mass Email"}</h2>
             <p className="text-slate-500 text-sm mt-0.5">{districtName}</p>
           </div>
         </div>
 
         {/* Recipients */}
         <div className="rounded-2xl border border-slate-200 shadow-sm bg-white overflow-hidden">
-          <div className="px-5 py-3 border-b border-slate-100 bg-gradient-to-r from-[#1e3a5f]/5 to-white">
+          <div className="px-5 py-3 border-b border-slate-100 bg-azure/5">
             <h3 className="text-sm font-semibold text-slate-800">Select Recipients</h3>
           </div>
           <div className="p-5 space-y-4">
@@ -301,7 +301,7 @@ export default function DistrictAdminMassEmailComposePage() {
                     value={opt.value}
                     checked={recipientType === opt.value}
                     onChange={() => { setRecipientType(opt.value); setSelectedClubIds(new Set()); setSelectedSubgroupIds(new Set()); }}
-                    className="accent-[#1e3a5f]"
+                    className="accent-azure"
                   />
                   <span className="text-sm text-slate-700">{opt.label}</span>
                 </label>
@@ -326,7 +326,7 @@ export default function DistrictAdminMassEmailComposePage() {
                 <select
                   value={selectedYearId}
                   onChange={(e) => { setSelectedYearId(e.target.value); setSelectedSubgroupIds(new Set()); }}
-                  className="h-10 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm w-full md:w-64 focus:outline-none focus:border-[#1e3a5f] focus:ring-2 focus:ring-[#1e3a5f]/20"
+                  className="h-10 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm w-full md:w-64 focus:outline-none focus:border-azure focus:ring-2 focus:ring-azure/20"
                 >
                   {rotaryYears.map((y) => <option key={y.id} value={String(y.id)}>{y.yearLabel}</option>)}
                 </select>
@@ -346,10 +346,10 @@ export default function DistrictAdminMassEmailComposePage() {
               </div>
             )}
 
-            <div className="flex items-center gap-2 rounded-lg bg-[#1e3a5f]/5 px-3 py-2 text-sm text-slate-700">
-              <Users size={15} className="text-[#1e3a5f]" />
+            <div className="flex items-center gap-2 rounded-lg bg-azure/5 px-3 py-2 text-sm text-slate-700">
+              <Users size={15} className="text-ink" />
               Estimated recipients:{" "}
-              <span className="font-semibold text-[#1e3a5f]">
+              <span className="font-semibold text-ink">
                 {recipientCount.membersWithEmail}
               </span>
             </div>
@@ -379,14 +379,14 @@ export default function DistrictAdminMassEmailComposePage() {
 
         {/* Email Details */}
         <div className="rounded-2xl border border-slate-200 shadow-sm bg-white overflow-hidden">
-          <div className="px-5 py-3 border-b border-slate-100 bg-gradient-to-r from-[#1e3a5f]/5 to-white">
+          <div className="px-5 py-3 border-b border-slate-100 bg-azure/5">
             <h3 className="text-sm font-semibold text-slate-800">Email Details</h3>
           </div>
           <div className="p-5 space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label className="text-slate-700 text-sm font-medium">From Name *</Label>
-                <Input className="border-slate-200 bg-white focus:border-[#1e3a5f] focus:ring-[#1e3a5f]/20" value={fromName} onChange={(e) => setFromName(e.target.value)} placeholder="e.g. Rotary District..." />
+                <Input className="border-slate-200 bg-white focus:border-azure focus:ring-azure/20" value={fromName} onChange={(e) => setFromName(e.target.value)} placeholder="e.g. Rotary District..." />
               </div>
               <div className="space-y-2">
                 <Label className="text-slate-700 text-sm font-medium">Sender Email</Label>
@@ -396,16 +396,16 @@ export default function DistrictAdminMassEmailComposePage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label className="text-slate-700 text-sm font-medium">Reply Name</Label>
-                <Input className="border-slate-200 bg-white focus:border-[#1e3a5f] focus:ring-[#1e3a5f]/20" value={replyName} onChange={(e) => setReplyName(e.target.value)} placeholder="Optional" />
+                <Input className="border-slate-200 bg-white focus:border-azure focus:ring-azure/20" value={replyName} onChange={(e) => setReplyName(e.target.value)} placeholder="Optional" />
               </div>
               <div className="space-y-2">
                 <Label className="text-slate-700 text-sm font-medium">Reply Email</Label>
-                <Input className="border-slate-200 bg-white focus:border-[#1e3a5f] focus:ring-[#1e3a5f]/20" value={replyEmail} onChange={(e) => setReplyEmail(e.target.value)} placeholder="Optional" type="email" />
+                <Input className="border-slate-200 bg-white focus:border-azure focus:ring-azure/20" value={replyEmail} onChange={(e) => setReplyEmail(e.target.value)} placeholder="Optional" type="email" />
               </div>
             </div>
             <div className="space-y-2">
               <Label className="text-slate-700 text-sm font-medium">Subject *</Label>
-              <Input className="border-slate-200 bg-white focus:border-[#1e3a5f] focus:ring-[#1e3a5f]/20" value={subject} onChange={(e) => setSubject(e.target.value)} placeholder="Email subject" />
+              <Input className="border-slate-200 bg-white focus:border-azure focus:ring-azure/20" value={subject} onChange={(e) => setSubject(e.target.value)} placeholder="Email subject" />
             </div>
             <div className="space-y-2">
               <Label className="text-slate-700 text-sm font-medium">Email Body *</Label>
@@ -425,7 +425,7 @@ export default function DistrictAdminMassEmailComposePage() {
               Save Draft
             </Button>
             <Button
-              className="bg-[#1e3a5f] hover:bg-[#152a44] text-white"
+              className="bg-azure hover:bg-mint-ink text-white"
               onClick={() => handleSave(false)}
               disabled={saving || insufficientCredits || recipientCount.membersWithEmail === 0}
               title={

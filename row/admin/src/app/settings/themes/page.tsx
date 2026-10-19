@@ -26,7 +26,7 @@ import {
 import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
 import AlertModal from "@/components/AlertModal";
-import { ArrowLeft, Plus, Pencil, Trash2, MoreHorizontal, Palette, AlertTriangle, Upload, X } from "lucide-react";
+import { ArrowLeft, Plus, Pencil, Trash2, MoreHorizontal, Palette, AlertTriangle, Upload, X } from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
 import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";
@@ -259,7 +259,7 @@ export default function ThemesPage() {
                         {theme.description ? (
                           <span className="line-clamp-2 text-sm text-muted-foreground" title={theme.description}>{theme.description}</span>
                         ) : (
-                          <span className="text-muted-foreground text-sm">—</span>
+                          <span className="text-muted-foreground text-sm">, </span>
                         )}
                       </TableCell>
                       <TableCell>

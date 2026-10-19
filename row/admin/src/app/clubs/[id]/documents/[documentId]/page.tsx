@@ -12,7 +12,7 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 import Link from "next/link";
 import {
   ArrowLeft, Pencil, FileText, Calendar, FileUp, ExternalLink, Download,
-} from "lucide-react";
+} from "@/components/icons";
 
 import { appLocale } from "@/lib/appFormat";
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
@@ -22,7 +22,7 @@ function Section({ icon: Icon, title, number, children }: {
 }) {
   return (
     <div className="relative bg-white rounded-xl border shadow-sm overflow-hidden">
-      <div className="flex items-center gap-3 px-5 py-3.5 bg-gradient-to-r from-primary/5 to-transparent border-b">
+      <div className="flex items-center gap-3 px-5 py-3.5 bg-primary/5 border-b">
         <div className="flex items-center justify-center h-8 w-8 rounded-full bg-primary text-primary-foreground text-sm font-bold shrink-0">{number}</div>
         <Icon className="h-5 w-5 text-primary shrink-0" />
         <h3 className="text-base font-semibold text-foreground">{title}</h3>

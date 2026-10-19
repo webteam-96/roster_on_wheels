@@ -27,7 +27,6 @@ export const SOCIAL_PLATFORMS = [
   { value: "twitter", label: "Twitter / X" },
   { value: "linkedin", label: "LinkedIn" },
   { value: "youtube", label: "YouTube" },
-  { value: "whatsapp", label: "WhatsApp" },
   { value: "telegram", label: "Telegram" },
   { value: "pinterest", label: "Pinterest" },
   { value: "threads", label: "Threads" },

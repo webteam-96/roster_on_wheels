@@ -9,7 +9,7 @@
  */
 
 import { useCallback, useEffect, useState } from "react";
-import { ArrowLeft, BadgeDollarSign, Check, Loader2, Search } from "lucide-react";
+import { ArrowLeft, BadgeDollarSign, Check, Loader2, Search } from "@/components/icons";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -113,8 +113,8 @@ export default function CurrencySettingsPage() {
                 {rows.map((d) => (
                   <tr key={d.id} className="hover:bg-blue-50/40">
                     <td className="px-4 py-2 font-medium text-slate-800 whitespace-nowrap">District {d.districtNumber}</td>
-                    <td className="px-4 py-2 text-slate-600 whitespace-nowrap">{d.zoneName || "—"}</td>
-                    <td className="px-4 py-2 text-slate-600 whitespace-nowrap">{d.country || "—"}</td>
+                    <td className="px-4 py-2 text-slate-600 whitespace-nowrap">{d.zoneName || "–"}</td>
+                    <td className="px-4 py-2 text-slate-600 whitespace-nowrap">{d.country || "–"}</td>
                     <td className="px-4 py-2">
                       <select
                         value={d.defaultCurrency || defaultCurrency()}

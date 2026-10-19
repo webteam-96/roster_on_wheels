@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useReducedMotion } from "framer-motion";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight } from "@/components/icons";
 import Galaxy from "@/components/motion/Galaxy";
 
 const STRIP = ["Service Above Self", "People of Action", "One Fellowship", "Est. 1920"];
@@ -16,11 +16,6 @@ export function Hero() {
   const reduce = useReducedMotion();
   return (
     <section className="relative flex min-h-[calc(100svh-var(--chrome-h))] flex-col overflow-hidden bg-midnight text-cream">
-      {/* Space backdrop — royal-blue breath top-right, black shade below */}
-      <div
-        aria-hidden
-        className="absolute inset-0 bg-[radial-gradient(56rem_36rem_at_75%_-10%,rgba(10,87,168,0.35),transparent_62%),radial-gradient(44rem_30rem_at_-10%_110%,rgba(251,180,32,0.08),transparent_58%),linear-gradient(to_bottom,rgba(2,6,18,0),rgba(2,6,18,0.55))]"
-      />
       {/* Galaxy star field (React Bits, WebGL) — tuned toward golden stars */}
       <div aria-hidden className="absolute inset-0">
         <Galaxy
@@ -58,7 +53,7 @@ export function Hero() {
             data-animate-delay="0.18"
             className="mt-6 max-w-xl text-[15px] leading-relaxed text-cream/75 sm:text-base"
           >
-            180,000 people of action across the zones — building
+            180,000 people of action across the zones: building
             schools, clean water, health and peace where they&apos;re needed most.
           </p>
           <div

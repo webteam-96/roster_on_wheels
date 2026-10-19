@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Upload, X, FileText, Link as LinkIcon } from "lucide-react";
+import { Upload, X, FileText, Link as LinkIcon } from "@/components/icons";
 
 /**
  * Shared "Document OR Link" field for club/district banners & advertisements.
@@ -103,7 +103,7 @@ export default function DocumentOrLinkField({
           </div>
         </>
       )}
-      <p className="text-xs text-slate-400">Optional. Attach a document <b>or</b> paste a link — not both.</p>
+      <p className="text-xs text-slate-400">Optional. Attach a document <b>or</b> paste a link. Not both.</p>
     </div>
   );
 }

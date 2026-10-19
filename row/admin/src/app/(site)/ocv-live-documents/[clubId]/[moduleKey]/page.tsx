@@ -24,7 +24,7 @@ export async function generateMetadata({
   const data = await getOcvPublicModule(clubId, yearId, params.moduleKey);
   if (!data) return { title: "Live Documents | Rotary" };
   return {
-    title: `${data.header.moduleLabel} — ${data.header.clubDisplayName} | Rotary`,
+    title: `${data.header.moduleLabel} | ${data.header.clubDisplayName} | Rotary`,
     description: `${data.header.moduleLabel} projects for ${data.header.clubDisplayName}, Rotary Year ${data.header.yearLabel}.`,
   };
 }
@@ -52,12 +52,12 @@ export default async function OcvLiveDocumentsPage({
     .replace(/\//g, "-");
 
   const details: { label: string; value: string }[] = [
-    { label: "Zone", value: header.zoneName || "—" },
-    { label: "District Number", value: header.districtNumber || "—" },
-    { label: "Club ID", value: header.clubRotaryId || "—" },
-    { label: "President", value: header.presidentName || "—" },
-    { label: "Assistant Governor", value: header.assistantGovernorName || "—" },
-    { label: "Report Generated", value: header.generatedAt || "—" },
+    { label: "Zone", value: header.zoneName || "–" },
+    { label: "District Number", value: header.districtNumber || "–" },
+    { label: "Club ID", value: header.clubRotaryId || "–" },
+    { label: "President", value: header.presidentName || "–" },
+    { label: "Assistant Governor", value: header.assistantGovernorName || "–" },
+    { label: "Report Generated", value: header.generatedAt || "–" },
   ];
 
   return (

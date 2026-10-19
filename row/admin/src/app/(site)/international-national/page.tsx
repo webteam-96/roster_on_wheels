@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { ArrowUpRight, ExternalLink } from "lucide-react";
+import { ArrowUpRight, ExternalLink } from "@/components/icons";
 import { PageBanner } from "@/components/site/PageBanner";
 import { SiteFooter } from "@/components/site/SiteFooter";
 
@@ -26,14 +26,14 @@ const GROUPS: { label: string; note: string; sites: Site[] }[] = [
       {
         name: "Rotary International",
         monogram: "RI",
-        desc: "The official home of the movement — 1.4 million members, 46,000+ clubs, and the global initiatives, programs, and impact stories that define Rotary worldwide.",
+        desc: "The official home of the movement: 1.4 million members, 46,000+ clubs, and the global initiatives, programs, and impact stories that define Rotary worldwide.",
         href: "https://www.rotary.org",
         domain: "rotary.org",
       },
       {
         name: "The Rotary Foundation",
         monogram: "TRF",
-        desc: "The charitable engine of Rotary — funding grants, PolioPlus, peace fellowships, and projects in every area of focus.",
+        desc: "The charitable engine of Rotary: funding grants, PolioPlus, peace fellowships, and projects in every area of focus.",
         href: "https://www.rotary.org/en/about-rotary/rotary-foundation",
         domain: "rotary.org",
       },
@@ -46,7 +46,7 @@ const GROUPS: { label: string; note: string; sites: Site[] }[] = [
       {
         name: "Rotary News Online",
         monogram: "RN",
-        desc: "The latest news, features, and stories from the Rotary community — covering projects, people, and milestones across our region, every day.",
+        desc: "The latest news, features, and stories from the Rotary community: covering projects, people, and milestones across our region, every day.",
         href: "https://www.rotarynewsonline.org",
         domain: "rotarynewsonline.org",
       },
@@ -59,7 +59,7 @@ const GROUPS: { label: string; note: string; sites: Site[] }[] = [
       {
         name: "Rotary Fellowships",
         monogram: "RF",
-        desc: "International groups of Rotary members who share a hobby, profession, or passion — connecting people across clubs and borders through common interests.",
+        desc: "International groups of Rotary members who share a hobby, profession, or passion: connecting people across clubs and borders through common interests.",
         href: "https://www.rotary.org/en/our-programs/more-fellowships",
         domain: "rotary.org",
       },
@@ -77,7 +77,7 @@ export default function InternationalNationalPage() {
       {/* Standard split-serif banner — the shared page-header voice */}
       <PageBanner
         eyebrow="Beyond the Zones"
-        subtitle="The official platforms that carry Rotary's story past our zones — from the global home of the movement to the newsroom that follows it every day."
+        subtitle="The official platforms that carry Rotary's story past our zones: from the global home of the movement to the newsroom that follows it every day."
       >
         One Rotary, <span className="text-gold">connected worldwide</span>
       </PageBanner>
@@ -92,7 +92,7 @@ export default function InternationalNationalPage() {
             {/* Headline tile — 7×2 on sky */}
             <div
               data-animate="up"
-              className="flex flex-col justify-center rounded-[24px] bg-[#E3EEFA] p-7 sm:col-span-2 sm:p-10 lg:col-span-7 lg:row-span-2 lg:p-14"
+              className="flex flex-col justify-center rounded-[24px] bg-blue-100 p-7 sm:col-span-2 sm:p-10 lg:col-span-7 lg:row-span-2 lg:p-14"
             >
               <p className="eyebrow">Beyond the Zones</p>
               {/* h2 — the PageBanner above owns the page's one h1 */}
@@ -100,7 +100,7 @@ export default function InternationalNationalPage() {
                 One Rotary, <span className="text-azure">connected worldwide</span>
               </h2>
               <p className="mt-6 max-w-xl text-[15px] leading-relaxed text-ink/75 sm:text-base">
-                The official platforms that carry Rotary&apos;s story past our zones —
+                The official platforms that carry Rotary&apos;s story past our zones , 
                 from the global home of the movement to the newsroom that follows it
                 every day.
               </p>

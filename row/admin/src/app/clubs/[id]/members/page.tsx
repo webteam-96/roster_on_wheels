@@ -24,7 +24,7 @@ import Pagination from "@/components/Pagination";
 import MemberRemovalDialog from "@/components/MemberRemovalDialog";
 import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
-import { ArrowLeft, Search, User, Users, Plus, MoreVertical, MoreHorizontal, Pencil, Trash2, ShieldCheck, ShieldOff, Mail, Phone, IdCard, Calendar, LayoutGrid, List, X, MapPin } from "lucide-react";
+import { ArrowLeft, Search, User, Users, Plus, MoreVertical, MoreHorizontal, Pencil, Trash2, ShieldCheck, ShieldOff, Mail, Phone, IdCard, Calendar, LayoutGrid, List, X, MapPin } from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
 import Link from "next/link";
 import Image from "next/image";
@@ -295,7 +295,7 @@ export default function ClubMembersPage() {
             <div>
               <h2 className="text-2xl font-bold tracking-tight text-primary">{clubName} - Members</h2>
               <p className="text-muted-foreground text-base">
-                {isCog ? "Search by name or mobile number — use Advanced Filters below for everything else" : "Search by member name, email, or Rotary ID"}
+                {isCog ? "Search by name or mobile number. Use Advanced Filters below for everything else" : "Search by member name, email, or Rotary ID"}
               </p>
               {data && (data.memberCount != null || data.honoraryCount != null) && (
                 <div className="mt-1 flex items-center gap-3 text-sm">

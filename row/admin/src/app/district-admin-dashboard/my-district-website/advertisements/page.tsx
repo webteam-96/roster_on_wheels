@@ -55,7 +55,7 @@ import AlertModal from "@/components/AlertModal";
 import {
   ArrowLeft, Plus, Pencil, Trash2, MoreHorizontal, ImageIcon,
   AlertTriangle, Upload, X, Eye, EyeOff, FileText, ExternalLink, GripVertical,
-} from "lucide-react";
+} from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import SearchBox from "@/components/SearchBox";
@@ -274,7 +274,7 @@ export default function DistrictAdminDashboardAdvertisementsPage() {
               <ArrowLeft className="h-4 w-4" />
             </Button>
             <div>
-              <h2 className="text-2xl font-bold tracking-tight text-[#1e3a5f]">
+              <h2 className="text-2xl font-bold tracking-tight text-ink">
                 {districtNumber ? `District ${districtNumber} - Advertisements` : "Advertisements"}
               </h2>
               <p className="text-slate-600 text-base">Manage district website advertisements by year</p>
@@ -284,7 +284,7 @@ export default function DistrictAdminDashboardAdvertisementsPage() {
             <Button
               onClick={openAddDialog}
               disabled={!selectedYearId}
-              className="bg-[#1e3a5f] hover:bg-[#152a44] text-white"
+              className="bg-azure hover:bg-mint-ink text-white"
             >
               <Plus className="mr-2 h-4 w-4" />Add Advertisement
             </Button>
@@ -300,7 +300,7 @@ export default function DistrictAdminDashboardAdvertisementsPage() {
             {/* Year Select removed — top-bar ?yearId= drives filter now. */}
             <div className="hidden">
               <Select value={selectedYearId} onValueChange={setSelectedYearId}>
-                <SelectTrigger className="border-slate-200 bg-white focus:border-[#1e3a5f] focus:ring-[#1e3a5f]/20">
+                <SelectTrigger className="border-slate-200 bg-white focus:border-azure focus:ring-azure/20">
                   <SelectValue placeholder="Select year" />
                 </SelectTrigger>
                 <SelectContent>
@@ -317,7 +317,7 @@ export default function DistrictAdminDashboardAdvertisementsPage() {
                 variant={activeCount >= maxActive ? "destructive" : "secondary"}
                 className={activeCount >= maxActive
                   ? "bg-red-100 text-red-700 border border-red-200"
-                  : "bg-white text-[#1e3a5f] border border-slate-200"}
+                  : "bg-white text-ink border border-slate-200"}
               >
                 {activeCount}/{maxActive} Active
               </Badge>
@@ -429,8 +429,8 @@ export default function DistrictAdminDashboardAdvertisementsPage() {
               <Table>
                 <TableHeader>
                   <TableRow
-                    className="hover:opacity-100 border-b-2 border-[#F7A81B]"
-                    style={{ backgroundColor: "#1e3a5f" }}
+                    className="hover:opacity-100 border-b-2 border-marigold"
+                    style={{ backgroundColor: "#17458f" }}
                   >
                     <TableHead className="w-24 text-white text-xs font-semibold uppercase tracking-wide">Thumbnail</TableHead>
                     <TableHead className="text-white text-xs font-semibold uppercase tracking-wide">Description</TableHead>
@@ -462,7 +462,7 @@ export default function DistrictAdminDashboardAdvertisementsPage() {
                             <Button
                               variant="ghost"
                               size="sm"
-                              className="h-7 gap-1 text-[#1e3a5f] hover:text-[#152a44] hover:bg-slate-100"
+                              className="h-7 gap-1 text-ink hover:text-ink hover:bg-slate-100"
                               onClick={() => handleViewDocument(ad.documentPath!)}
                             >
                               <FileText className="h-3.5 w-3.5" /><span className="text-xs">View</span>
@@ -533,7 +533,7 @@ export default function DistrictAdminDashboardAdvertisementsPage() {
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogContent className="max-w-2xl w-[95vw] max-h-[90vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle className="text-[#1e3a5f]">
+              <DialogTitle className="text-ink">
                 {editingAd ? "Edit Advertisement" : "Add Advertisement"}
               </DialogTitle>
               <DialogDescription>
@@ -595,7 +595,7 @@ export default function DistrictAdminDashboardAdvertisementsPage() {
                   onChange={(e) => setFormDescription(e.target.value.slice(0, 500))}
                   rows={2}
                   maxLength={500}
-                  className="border-slate-200 bg-white focus:border-[#1e3a5f] focus:ring-[#1e3a5f]/20"
+                  className="border-slate-200 bg-white focus:border-azure focus:ring-azure/20"
                 />
                 <p className="text-xs text-slate-500 text-right">{formDescription.length}/500</p>
               </div>
@@ -603,7 +603,7 @@ export default function DistrictAdminDashboardAdvertisementsPage() {
               <div className="space-y-2">
                 <Label className="text-slate-500 text-xs font-semibold uppercase tracking-wide">Status</Label>
                 <Select value={formIsActive} onValueChange={setFormIsActive}>
-                  <SelectTrigger className="border-slate-200 bg-white focus:border-[#1e3a5f] focus:ring-[#1e3a5f]/20">
+                  <SelectTrigger className="border-slate-200 bg-white focus:border-azure focus:ring-azure/20">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -617,7 +617,7 @@ export default function DistrictAdminDashboardAdvertisementsPage() {
                 <div className="space-y-2">
                   <Label className="text-slate-500 text-xs font-semibold uppercase tracking-wide">Rotary Year</Label>
                   <Select value={formYearId} onValueChange={setFormYearId}>
-                    <SelectTrigger className="border-slate-200 bg-white focus:border-[#1e3a5f] focus:ring-[#1e3a5f]/20">
+                    <SelectTrigger className="border-slate-200 bg-white focus:border-azure focus:ring-azure/20">
                       <SelectValue placeholder="Select a year" />
                     </SelectTrigger>
                     <SelectContent>
@@ -643,7 +643,7 @@ export default function DistrictAdminDashboardAdvertisementsPage() {
               <Button
                 onClick={handleSave}
                 disabled={saving || !formImagePath}
-                className="bg-[#1e3a5f] hover:bg-[#152a44] text-white"
+                className="bg-azure hover:bg-mint-ink text-white"
               >
                 {saving ? "Saving..." : editingAd ? "Update" : "Add"}
               </Button>

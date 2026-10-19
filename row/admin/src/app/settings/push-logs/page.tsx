@@ -15,7 +15,7 @@ import ErrorAlert from "@/components/ErrorAlert";
 import RotaryLoader from "@/components/RotaryLoader";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { useAuth } from "@/contexts/AuthContext";
-import { ArrowLeft, RefreshCw, Eye, Send, Loader2, Bell, AlertTriangle } from "lucide-react";
+import { ArrowLeft, RefreshCw, Eye, Send, Loader2, Bell, AlertTriangle } from "@/components/icons";
 import { getRecentPushLogs, getPushRecipients, getStuckPushes, sendPushNow } from "@/services/api";
 
 export default function PushLogsPage() {
@@ -155,7 +155,7 @@ export default function PushLogsPage() {
                             </TableCell>
                             <TableCell className="font-medium max-w-[300px] truncate" title={row.title}>{row.title}</TableCell>
                             <TableCell className="text-xs">{row.districtId ? `District ${row.districtId}` : `Club ${row.clubId}`}</TableCell>
-                            <TableCell className="text-xs">{row.pushedAt ? new Date(row.pushedAt).toLocaleString() : "—"}</TableCell>
+                            <TableCell className="text-xs">{row.pushedAt ? new Date(row.pushedAt).toLocaleString() : "–"}</TableCell>
                             <TableCell className="text-center text-green-600 font-medium">{row.totalSent || 0}</TableCell>
                             <TableCell className="text-center text-destructive font-medium">{row.totalFailed || 0}</TableCell>
                             <TableCell className="text-center">{row.totalRecipients || 0}</TableCell>
@@ -183,7 +183,7 @@ export default function PushLogsPage() {
 
             <TabsContent value="stuck" className="space-y-4">
               <p className="text-sm text-muted-foreground">
-                Items where Publish date has passed but push has not fired yet. Click "Send Now" to queue them — fires within 60 sec in background.
+                Items where Publish date has passed but push has not fired yet. Click "Send Now" to queue them: fires within 60 sec in background.
               </p>
               <Card>
                 <CardContent className="p-0">
@@ -205,7 +205,7 @@ export default function PushLogsPage() {
                             <TableCell><Badge variant="outline">{row.type}</Badge></TableCell>
                             <TableCell className="font-medium max-w-[300px] truncate" title={row.title}>{row.title}</TableCell>
                             <TableCell className="text-xs">{row.districtId ? `District ${row.districtId}` : `Club ${row.clubId}`}</TableCell>
-                            <TableCell className="text-xs">{row.publishDate ? new Date(row.publishDate).toLocaleString() : "—"}</TableCell>
+                            <TableCell className="text-xs">{row.publishDate ? new Date(row.publishDate).toLocaleString() : "–"}</TableCell>
                             <TableCell className="text-right">
                               <Button size="sm" onClick={() => onSendNow(row)} disabled={sendingId === key}>
                                 {sendingId === key ? <Loader2 className="h-3 w-3 mr-1 animate-spin" /> : <Send className="h-3 w-3 mr-1" />}
@@ -215,7 +215,7 @@ export default function PushLogsPage() {
                           </TableRow>
                         );
                       })}
-                      {stuck.length === 0 && <TableRow><TableCell colSpan={5} className="text-center text-muted-foreground py-8">All clear — no stuck pushes</TableCell></TableRow>}
+                      {stuck.length === 0 && <TableRow><TableCell colSpan={5} className="text-center text-muted-foreground py-8">All clear. No stuck pushes</TableCell></TableRow>}
                     </TableBody>
                   </Table>
                 </CardContent>
@@ -228,7 +228,7 @@ export default function PushLogsPage() {
         <Dialog open={!!recipientsTarget} onOpenChange={(o) => !o && setRecipientsTarget(null)}>
           <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle>Recipients — {recipientsTarget?.title}</DialogTitle>
+              <DialogTitle>Recipients: {recipientsTarget?.title}</DialogTitle>
             </DialogHeader>
             {loadingRecipients ? (
               <div className="flex justify-center py-8"><RotaryLoader size="lg" /></div>
@@ -248,14 +248,14 @@ export default function PushLogsPage() {
                   {recipientRows.map((r: any, i: number) => (
                     <TableRow key={i} className={r.status === "Failed" ? "bg-red-50" : ""}>
                       <TableCell className="font-medium">{r.memberName}</TableCell>
-                      <TableCell className="text-xs">{r.mobile || "—"}</TableCell>
-                      <TableCell className="text-xs">{r.email || "—"}</TableCell>
+                      <TableCell className="text-xs">{r.mobile || "–"}</TableCell>
+                      <TableCell className="text-xs">{r.email || "–"}</TableCell>
                       <TableCell>
                         <Badge className={r.status === "Sent" ? "bg-green-100 text-green-800 border-green-300" : "bg-red-100 text-red-800 border-red-300"}>
                           {r.status}
                         </Badge>
                       </TableCell>
-                      <TableCell className="text-xs">{r.sentAt ? new Date(r.sentAt).toLocaleString() : "—"}</TableCell>
+                      <TableCell className="text-xs">{r.sentAt ? new Date(r.sentAt).toLocaleString() : "–"}</TableCell>
                       <TableCell className="text-xs text-destructive max-w-[300px] truncate" title={r.errorMessage}>{r.errorMessage || ""}</TableCell>
                     </TableRow>
                   ))}

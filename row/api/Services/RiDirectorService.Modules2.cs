@@ -298,12 +298,6 @@ public partial class RiDirectorService
 
     public async Task<int> CreateNewsletterAsync(RiCreateNewsletterDto dto, int createdBy)
     {
-        if (dto.IsSendWhatsapp)
-        {
-            var count = await GetRecipientCountAsync("whatsapp", dto.RecipientTarget ?? "all", dto.RecipientZoneIds, dto.RecipientDistrictIds, dto.RecipientSubgroupIds);
-            if (count > 0 && !await HasSufficientCreditsAsync("WhatsApp", count))
-                throw new InvalidOperationException($"Insufficient WhatsApp credits. Need {count} credit(s).");
-        }
 
         using var conn = CreateConnection();
         await conn.OpenAsync();
@@ -323,7 +317,7 @@ public partial class RiDirectorService
             {
                 dto.Title, dto.PublishDateTime, dto.ExpiryDateTime,
                 dto.AttachmentType, dto.LinkUrl, dto.FilePath,
-                IsSendWhatsapp = dto.IsSendWhatsapp ? 1 : 0,
+                IsSendWhatsapp = 0,
                 IsSendEmail = dto.IsSendEmail ? 1 : 0,
                 RecipientTarget = dto.RecipientTarget ?? "all",
                 RecipientZoneIds = dto.RecipientZoneIds != null && dto.RecipientZoneIds.Length > 0 ? string.Join(",", dto.RecipientZoneIds) : null,
@@ -332,12 +326,6 @@ public partial class RiDirectorService
                 U = createdBy
             });
 
-        if (dto.IsSendWhatsapp)
-        {
-            var count = await GetRecipientCountAsync("whatsapp", dto.RecipientTarget ?? "all", dto.RecipientZoneIds, dto.RecipientDistrictIds, dto.RecipientSubgroupIds);
-            if (count > 0)
-                await DeductCreditWithHistoryAsync("WhatsApp", count, "RiNewsletter", id, $"Newsletter WhatsApp: {dto.Title}", createdBy);
-        }
 
         return id;
     }
@@ -353,12 +341,6 @@ public partial class RiDirectorService
             new { Id = id });
         bool priorWhatsapp = prior != null && Convert.ToBoolean(prior.IsSendWhatsapp);
 
-        if (dto.IsSendWhatsapp && !priorWhatsapp)
-        {
-            var count = await GetRecipientCountAsync("whatsapp", dto.RecipientTarget ?? "all", dto.RecipientZoneIds, dto.RecipientDistrictIds, dto.RecipientSubgroupIds);
-            if (count > 0 && !await HasSufficientCreditsAsync("WhatsApp", count))
-                throw new InvalidOperationException($"Insufficient WhatsApp credits. Need {count} credit(s).");
-        }
 
         await conn.ExecuteAsync(@"
             UPDATE newsletters
@@ -373,7 +355,7 @@ public partial class RiDirectorService
                 Id = id,
                 dto.Title, dto.PublishDateTime, dto.ExpiryDateTime,
                 dto.AttachmentType, dto.LinkUrl, dto.FilePath,
-                IsSendWhatsapp = dto.IsSendWhatsapp ? 1 : 0,
+                IsSendWhatsapp = 0,
                 IsSendEmail = dto.IsSendEmail ? 1 : 0,
                 RecipientTarget = dto.RecipientTarget ?? "all",
                 RecipientZoneIds = dto.RecipientZoneIds != null && dto.RecipientZoneIds.Length > 0 ? string.Join(",", dto.RecipientZoneIds) : null,
@@ -382,12 +364,6 @@ public partial class RiDirectorService
                 U = modifiedBy
             });
 
-        if (dto.IsSendWhatsapp && !priorWhatsapp)
-        {
-            var count = await GetRecipientCountAsync("whatsapp", dto.RecipientTarget ?? "all", dto.RecipientZoneIds, dto.RecipientDistrictIds, dto.RecipientSubgroupIds);
-            if (count > 0)
-                await DeductCreditWithHistoryAsync("WhatsApp", count, "RiNewsletter", id, $"Newsletter WhatsApp: {dto.Title}", modifiedBy);
-        }
     }
 
     public async Task DeleteNewsletterAsync(int id, int deletedBy)

@@ -10,7 +10,7 @@ import { toast } from "@/hooks/use-toast";
  * truncated by the browser SILENTLY when the admin PASTES more than N characters. Typing is fine
  * (it just stops at N, visibly), but on paste the admin sees no signal — they believe all 700
  * pasted characters were saved when only the first 450 were, and the cut text then shows up half
- * in WhatsApp/email. This mounts ONCE (in the root layout) and listens for paste on the document
+ * in email. This mounts ONCE (in the root layout) and listens for paste on the document
  * in the CAPTURE phase — i.e. BEFORE the browser inserts + truncates the text. If the paste would
  * overflow the target field's maxLength, it shows a toast telling the admin the text was shortened.
  *
@@ -45,7 +45,7 @@ export default function PasteLimitGuard() {
           title: `Text shortened to ${max} characters`,
           description:
             `You pasted ${cut} character(s) more than this field allows. Only the first ${max} ` +
-            `were kept — please review, as the rest will NOT be saved or sent.`,
+            `were kept. Please review, as the rest will NOT be saved or sent.`,
         });
       }
     }

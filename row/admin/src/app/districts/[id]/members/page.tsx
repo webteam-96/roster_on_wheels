@@ -20,7 +20,7 @@ import {
 import Pagination from "@/components/Pagination";
 import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
-import { ArrowLeft, Search, User, Users, MoreVertical, MoreHorizontal, ShieldCheck, ShieldOff, Mail, Phone, IdCard, Calendar, LayoutGrid, List, X, Eye, Building2 } from "lucide-react";
+import { ArrowLeft, Search, User, Users, MoreVertical, MoreHorizontal, ShieldCheck, ShieldOff, Mail, Phone, IdCard, Calendar, LayoutGrid, List, X, Eye, Building2 } from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
 import Link from "next/link";
 import Image from "next/image";

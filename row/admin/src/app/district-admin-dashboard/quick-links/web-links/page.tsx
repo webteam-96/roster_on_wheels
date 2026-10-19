@@ -15,7 +15,7 @@
  *     the tree, else falls back to the Quick Links landing.
  *   - Web Links are NOT year-wise (same as V1) — yearId is only forwarded so
  *     the shell top-bar year picker stays in sync; never filtered on.
- *   - Palette: navy #1e3a5f / gold #F7A81B / slate tokens; rounded-2xl cards.
+ *   - Palette: navy #17458f / gold #F7A81B / slate tokens; rounded-2xl cards.
  */
 
 import { useState, useEffect, useCallback } from "react";
@@ -45,7 +45,7 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 import {
   ArrowLeft, Plus, Pencil, Trash2, MoreHorizontal, FolderOpen,
   AlertTriangle, ChevronRight, ChevronDown, Link2, Folder, ExternalLink,
-} from "lucide-react";
+} from "@/components/icons";
 
 const WEB_LINKS_BASE = "/district-admin-dashboard/quick-links/web-links";
 
@@ -225,22 +225,22 @@ export default function DistrictAdminWebLinksPage() {
               <ArrowLeft className="h-4 w-4" />
             </Button>
             <div className="flex items-start gap-3 min-w-0">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[#1e3a5f]/10 text-[#1e3a5f]">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-azure/10 text-ink">
                 <Link2 size={20} />
               </div>
               <div className="min-w-0">
                 <h1 className="text-lg font-bold text-slate-800 leading-tight">Web Links</h1>
                 {breadcrumb.length > 0 ? (
                   <div className="mt-1 flex items-center gap-1 flex-wrap text-xs">
-                    <button onClick={() => navTo(null)} className="text-slate-500 hover:text-[#1e3a5f] hover:underline">Home</button>
+                    <button onClick={() => navTo(null)} className="text-slate-500 hover:text-ink hover:underline">Home</button>
                     {breadcrumb.map((item, index) => (
                       <span key={item.id} className="flex items-center gap-1">
                         <ChevronRight className="h-3 w-3 text-slate-400" />
                         <button
                           onClick={() => navTo(item.id)}
                           className={index === breadcrumb.length - 1
-                            ? "font-semibold text-[#1e3a5f]"
-                            : "text-slate-500 hover:text-[#1e3a5f] hover:underline"}
+                            ? "font-semibold text-ink"
+                            : "text-slate-500 hover:text-ink hover:underline"}
                         >
                           {item.title}
                         </button>
@@ -254,7 +254,7 @@ export default function DistrictAdminWebLinksPage() {
             </div>
           </div>
           {canManage && (
-            <Button onClick={goAdd} className="bg-[#1e3a5f] hover:bg-[#152a44] text-white shrink-0">
+            <Button onClick={goAdd} className="bg-azure hover:bg-mint-ink text-white shrink-0">
               <Plus className="mr-2 h-4 w-4" />Add Link
             </Button>
           )}
@@ -293,7 +293,7 @@ export default function DistrictAdminWebLinksPage() {
               <div className="rounded-2xl border border-slate-200 shadow-sm overflow-hidden bg-white">
                 <Table>
                   <TableHeader>
-                    <TableRow className="hover:opacity-100 border-b-2 border-[#F7A81B]" style={{ backgroundColor: "#1e3a5f" }}>
+                    <TableRow className="hover:opacity-100 border-b-2 border-marigold" style={{ backgroundColor: "#17458f" }}>
                       <TableHead className="w-12 text-white text-xs font-semibold uppercase tracking-wide">#</TableHead>
                       <TableHead className="text-white text-xs font-semibold uppercase tracking-wide">Title</TableHead>
                       <TableHead className="w-28 text-white text-xs font-semibold uppercase tracking-wide">Type</TableHead>
@@ -314,7 +314,7 @@ export default function DistrictAdminWebLinksPage() {
                               <button
                                 type="button"
                                 onClick={() => navTo(w.id)}
-                                className="inline-flex items-center gap-2 text-[#1e3a5f] hover:underline text-left"
+                                className="inline-flex items-center gap-2 text-ink hover:underline text-left"
                                 title="Open folder"
                               >
                                 <Folder className="h-4 w-4 shrink-0 text-amber-500" />
@@ -325,7 +325,7 @@ export default function DistrictAdminWebLinksPage() {
                               <button
                                 type="button"
                                 onClick={() => openTarget(w)}
-                                className="inline-flex items-center gap-2 text-[#1e3a5f] hover:underline text-left"
+                                className="inline-flex items-center gap-2 text-ink hover:underline text-left"
                                 title="Open link"
                               >
                                 {w.title}

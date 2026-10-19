@@ -174,7 +174,6 @@ public class RiCreateNewsletterDto
     public string AttachmentType { get; set; } = "link"; // link | pdf
     public string? LinkUrl { get; set; }
     public string? FilePath { get; set; }
-    public bool IsSendWhatsapp { get; set; }
     public bool IsSendEmail { get; set; }
     public string? RecipientTarget { get; set; }
     public int[]? RecipientZoneIds { get; set; }

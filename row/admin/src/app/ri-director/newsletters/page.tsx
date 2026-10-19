@@ -14,7 +14,7 @@ import Pagination from "@/components/Pagination";
 import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
 import AlertModal from "@/components/AlertModal";
-import { ArrowLeft, Search, X, Plus, Pencil, Trash2, MoreHorizontal, FolderOpen, AlertTriangle, ExternalLink } from "lucide-react";
+import { ArrowLeft, Search, X, Plus, Pencil, Trash2, MoreHorizontal, FolderOpen, AlertTriangle, ExternalLink } from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
 import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";
@@ -28,7 +28,7 @@ function StatusBadge({ status }: { status: string }) {
   return <span className={`inline-flex px-2 py-0.5 rounded-full text-xs ${colors[status] || "bg-gray-100 text-gray-700"}`}>{status}</span>;
 }
 
-interface Item { id: number; title: string; publishDateTime: string; expiryDateTime: string; attachmentType: string; linkUrl: string | null; filePath: string | null; isSendWhatsapp: boolean; status: string; }
+interface Item { id: number; title: string; publishDateTime: string; expiryDateTime: string; attachmentType: string; linkUrl: string | null; filePath: string | null; status: string; }
 
 export default function Page() {
   const router = useRouter();
@@ -108,7 +108,6 @@ export default function Page() {
                   <TableHead className="text-primary-foreground font-semibold">Title</TableHead>
                   <TableHead className="text-primary-foreground font-semibold">Attachment</TableHead>
                   <TableHead className="text-primary-foreground font-semibold">Publish</TableHead>
-                  <TableHead className="text-primary-foreground font-semibold text-center">WhatsApp</TableHead>
                   <TableHead className="text-primary-foreground font-semibold text-center">Status</TableHead>
                   {canManage && <TableHead className="w-12" />}
                 </TableRow>
@@ -122,7 +121,6 @@ export default function Page() {
                       <TableCell className="font-medium">{n.title}</TableCell>
                       <TableCell>{url ? <a href={url} target="_blank" rel="noreferrer" className="text-blue-600 hover:underline inline-flex items-center gap-1 text-sm">{n.attachmentType} <ExternalLink className="h-3 w-3" /></a> : n.attachmentType}</TableCell>
                       <TableCell>{fmt(n.publishDateTime)}</TableCell>
-                      <TableCell className="text-center"><span className={`inline-flex px-2 py-0.5 rounded-full text-xs ${n.isSendWhatsapp ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-500"}`}>{n.isSendWhatsapp ? "Yes" : "No"}</span></TableCell>
                       <TableCell className="text-center"><StatusBadge status={n.status} /></TableCell>
                       {canManage && (
                         <TableCell>

@@ -19,7 +19,7 @@
 import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
-import { Zap, Link2, Users, Mail } from "lucide-react";
+import { Zap, Link2, Users, Mail } from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
 
 type ModuleKey = "web-links" | "sub-groups" | "mass-email";
@@ -61,7 +61,7 @@ export default function QuickLinksPage() {
     <div className="space-y-6">
       <div className="flex items-start justify-between flex-wrap gap-4">
         <div className="flex items-start gap-3 min-w-0">
-          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#1e3a5f]/10 text-[#1e3a5f]">
+          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-azure/10 text-ink">
             <Zap size={20} />
           </div>
           <div className="min-w-0">

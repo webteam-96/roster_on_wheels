@@ -5,7 +5,7 @@
  *
  * Same data semantics as v1: identical API calls, identical fee-type
  * resolution, identical offline-payment dialog, identical reject /
- * approve / receipt / reminder flows, identical bulk-email + bulk-WhatsApp
+ * approve / receipt / reminder flows, identical bulk-email
  * handlers.
  *
  * Only the presentation differs (ClubAdminShell chrome, KPI tiles, dense
@@ -22,17 +22,9 @@ import Link from "next/link";
 import {
   ArrowLeft, Mail, FileText, Users, CheckCircle2,
   AlertCircle, Clock, Search, X, Globe, Banknote,
-} from "lucide-react";
+} from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
-import {
-  getMembershipDuesMembers, getMembershipDuesDetail,
-  recordMembershipDuesOffline, approveMembershipDuesPayment,
-  getMembershipDuesOfflineDetails, updateMembershipDuesOffline,
-  deleteMembershipDuesPayment,
-  sendMembershipDuesReceipt, sendMembershipDuesReminder,
-  sendMembershipDuesReminderWhatsApp,
-  bulkMembershipDuesReminderEmail, bulkMembershipDuesReminderWhatsApp,
-} from "@/services/api";
+import { getMembershipDuesMembers, getMembershipDuesDetail, recordMembershipDuesOffline, approveMembershipDuesPayment, getMembershipDuesOfflineDetails, updateMembershipDuesOffline, deleteMembershipDuesPayment, sendMembershipDuesReceipt, sendMembershipDuesReminder, bulkMembershipDuesReminderEmail } from "@/services/api";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -56,12 +48,6 @@ import { useSyncClubIdFromUrl } from "@/hooks/useSyncClubIdFromUrl";
 import { appLocale, currencySymbol } from "@/lib/appFormat";
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
-// WhatsApp brand SVG (no emoji per design rules; lucide has no WhatsApp icon)
-const WhatsAppIcon = ({ className = "h-4 w-4" }: { className?: string }) => (
-  <svg viewBox="0 0 24 24" fill="currentColor" className={className}>
-    <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
-  </svg>
-);
 
 function statusChip(status: string): React.ReactElement {
   switch (status) {
@@ -210,7 +196,7 @@ export default function ClubMembershipDuesV2MembersPage() {
       ? (detail?.fees1Text || "Annual")
       : ft === 2 ? (detail?.fees2Text || "Semi 1")
       : ft === 3 ? (detail?.fees3Text || "Semi 2")
-      : "—";
+      : "–";
     return {
       memberName: m.memberName ?? m.MemberName,
       feeTypeLabel,
@@ -682,14 +668,6 @@ export default function ClubMembershipDuesV2MembersPage() {
     }
   };
 
-  const handleWhatsAppReminder = async (memberFeeId: number, feeType: number) => {
-    try {
-      await sendMembershipDuesReminderWhatsApp(duesId, memberFeeId, feeType);
-      setSuccessMessage("WhatsApp reminder sent!");
-    } catch (e: any) {
-      setErrorMessage(e?.response?.data?.message || "Failed to send.");
-    }
-  };
 
   // ── Receipt — same as v1, with per-row loading state ──
   // Tracks which memberFeeId is currently sending so we can show a Rotary
@@ -712,7 +690,6 @@ export default function ClubMembershipDuesV2MembersPage() {
 
   // ── Bulk reminders — confirm-then-send (no remark UI; user requested simple OK/Cancel) ──
   const [bulkEmailConfirmOpen, setBulkEmailConfirmOpen] = useState(false);
-  const [bulkWhatsAppConfirmOpen, setBulkWhatsAppConfirmOpen] = useState(false);
 
   const handleBulkEmailReminder = async () => {
     try {
@@ -724,15 +701,6 @@ export default function ClubMembershipDuesV2MembersPage() {
     }
   };
 
-  const handleBulkWhatsAppReminder = async () => {
-    try {
-      await bulkMembershipDuesReminderWhatsApp(duesId);
-      setSuccessMessage("Bulk WhatsApp reminders sent!");
-      setBulkWhatsAppConfirmOpen(false);
-    } catch (e: any) {
-      setErrorMessage(e?.response?.data?.message || "Failed.");
-    }
-  };
 
   // ── KPI aggregates (across all members for visible filter set) ──
   const totalMembers = members.length;
@@ -787,7 +755,7 @@ export default function ClubMembershipDuesV2MembersPage() {
                 <h1 className="text-lg font-semibold text-slate-800">
                   {detail?.purpose || "Club Dues"} – Members
                 </h1>
-                <p className="text-xs text-slate-500 mt-0.5">{pageSubtitle || "—"}</p>
+                <p className="text-xs text-slate-500 mt-0.5">{pageSubtitle || "–"}</p>
               </div>
             </div>
           </div>
@@ -849,14 +817,6 @@ export default function ClubMembershipDuesV2MembersPage() {
                 >
                   <Mail size={13} /> Click here to send Email reminders to all unpaid members
                 </button>
-                <button
-                  type="button"
-                  onClick={() => setBulkWhatsAppConfirmOpen(true)}
-                  title="Click here to send whatsapp reminders to all unpaid members"
-                  className="inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1.5 rounded-lg border border-emerald-200 text-emerald-700 bg-emerald-50 hover:bg-emerald-100"
-                >
-                  <WhatsAppIcon className="h-3.5 w-3.5" /> Click here to send whatsapp reminders to all unpaid members
-                </button>
               </div>
             </div>
 
@@ -910,7 +870,7 @@ export default function ClubMembershipDuesV2MembersPage() {
                           <td className="px-3 py-2 text-slate-500">{globalIdx}</td>
                           <td className="px-3 py-2 font-medium text-slate-800 whitespace-nowrap">
                             <div className="flex items-center gap-1.5 flex-wrap">
-                              <span>{m.memberName || "—"}</span>
+                              <span>{m.memberName || "–"}</span>
                               {m.isNewMember && (
                                 <span className="inline-flex items-center text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-emerald-100 text-emerald-700 border border-emerald-200">
                                   New
@@ -923,7 +883,7 @@ export default function ClubMembershipDuesV2MembersPage() {
                               )}
                             </div>
                           </td>
-                          <td className="px-3 py-2 text-slate-600">{m.categoryType || "—"}</td>
+                          <td className="px-3 py-2 text-slate-600">{m.categoryType || "–"}</td>
 
                           {/* Fee Amount (the ONE true base amount, INR
                               comma-formatted — sum matches the dashboard's
@@ -974,18 +934,6 @@ export default function ClubMembershipDuesV2MembersPage() {
                                   }}
                                 >
                                   <Mail size={14} />
-                                </button>
-                                <button
-                                  type="button"
-                                  className="inline-flex items-center justify-center w-7 h-7 rounded-lg text-emerald-600 hover:bg-emerald-50"
-                                  title="Send WhatsApp Reminder"
-                                  onClick={() => {
-                                    if (window.confirm(`Send WhatsApp reminder to ${m.memberName || "this member"}?`)) {
-                                      handleWhatsAppReminder(m.memberFeeId, 0);
-                                    }
-                                  }}
-                                >
-                                  <WhatsAppIcon className="h-3.5 w-3.5" />
                                 </button>
                               </div>
                             )}
@@ -1162,7 +1110,7 @@ export default function ClubMembershipDuesV2MembersPage() {
                   {offlineUpdatePaymentId > 0 && (
                     <p className="text-xs text-amber-700 mt-1">
                       {offlineUpdateIsApproved
-                        ? "Editing a paid offline payment — status stays Approved."
+                        ? "Editing a paid offline payment: status stays Approved."
                         : "Saving will approve this payment and email the receipt to the member. If CP/Secretary later clicks Approve/Reject from their email, they'll see “already approved”."}
                     </p>
                   )}
@@ -1181,7 +1129,7 @@ export default function ClubMembershipDuesV2MembersPage() {
                       <p className="text-sm"><strong>Date:</strong> {new Date(offlineOnlineView.date).toLocaleDateString(appLocale())}</p>
                     )}
                     <p className="text-sm"><strong>Status:</strong> Paid (Online)</p>
-                    <p className="text-xs text-emerald-700 mt-1">Gateway payments can't be edited offline — viewing only.</p>
+                    <p className="text-xs text-emerald-700 mt-1">Gateway payments can't be edited offline: viewing only.</p>
                   </div>
                 ) : (
                   <>
@@ -1277,7 +1225,7 @@ export default function ClubMembershipDuesV2MembersPage() {
                         <Input
                           value={offlineApprovalRemark}
                           onChange={(e) => setOfflineApprovalRemark(e.target.value)}
-                          placeholder="Optional — appears on receipt email"
+                          placeholder="Optional: appears on receipt email"
                         />
                       </div>
                     )}
@@ -1341,7 +1289,7 @@ export default function ClubMembershipDuesV2MembersPage() {
                   <Textarea
                     value={approveRemark}
                     onChange={(e) => setApproveRemark(e.target.value)}
-                    placeholder="Optional remark — will appear on the receipt email if provided"
+                    placeholder="Optional remark: will appear on the receipt email if provided"
                   />
                 </div>
                 <Button onClick={handleApproveSubmit} className="w-full bg-green-600 hover:bg-green-700">
@@ -1391,21 +1339,6 @@ export default function ClubMembershipDuesV2MembersPage() {
             </DialogContent>
           </Dialog>
 
-          {/* Bulk WhatsApp confirm — simple OK/Cancel */}
-          <Dialog open={bulkWhatsAppConfirmOpen} onOpenChange={setBulkWhatsAppConfirmOpen}>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Send Bulk WhatsApp Reminders</DialogTitle>
-              </DialogHeader>
-              <div className="space-y-4">
-                <p className="text-sm text-slate-700">Do you want to send Whatsapp to all unpaid members?</p>
-                <div className="flex justify-end gap-2">
-                  <Button variant="outline" onClick={() => setBulkWhatsAppConfirmOpen(false)}>Cancel</Button>
-                  <Button onClick={handleBulkWhatsAppReminder}>Send</Button>
-                </div>
-              </div>
-            </DialogContent>
-          </Dialog>
 
           {/* Individual Email Reminder Remark Dialog — EXACT logic from v1 */}
           <Dialog open={emailRemarkDialogOpen} onOpenChange={setEmailRemarkDialogOpen}>

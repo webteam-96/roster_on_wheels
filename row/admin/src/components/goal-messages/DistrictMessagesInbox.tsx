@@ -6,7 +6,7 @@
 // right. Opening a conversation marks it read.
 
 import { useEffect, useState } from "react";
-import { Loader2, Inbox, Search, ChevronLeft } from "lucide-react";
+import { Loader2, Inbox, Search, ChevronLeft } from "@/components/icons";
 import { getDistrictGoalMessageInbox, getDistrictGoalMessages } from "@/services/api";
 import type { GoalDistrictConversationDto, GoalDistrictMessagesDto } from "@/types/goalSetting";
 import GoalMessageList, { Chip, RoleChip } from "./GoalMessageList";
@@ -108,7 +108,7 @@ export default function DistrictMessagesInbox({
 
   const pane = active ? (
     <div className="flex flex-col min-h-0 h-full">
-      <div className="px-4 py-2.5 border-b border-slate-100 bg-gradient-to-r from-blue-50 to-white flex items-center gap-2 flex-wrap">
+      <div className="px-4 py-2.5 border-b border-slate-100 bg-blue-50 flex items-center gap-2 flex-wrap">
         <button onClick={() => { setActive(null); setThread(null); }} className="md:hidden inline-flex items-center gap-1 text-xs font-semibold text-blue-600"><ChevronLeft size={14} /> Back</button>
         <span className="text-sm font-semibold text-slate-800">District {active.districtNumber}</span>
         <Chip tone="blue">{active.categoryName}</Chip>

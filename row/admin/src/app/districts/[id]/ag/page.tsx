@@ -18,7 +18,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogD
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
-import { ArrowLeft, Plus, Pencil, Trash2, AlertTriangle, UserCog, Search, Building2, Calendar, X } from "lucide-react";
+import { ArrowLeft, Plus, Pencil, Trash2, AlertTriangle, UserCog, Search, Building2, Calendar, X } from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
 import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";
@@ -428,7 +428,7 @@ export default function AGPage() {
                             <p className="text-sm font-medium">{r.name}</p>
                             <p className="text-xs text-muted-foreground">{r.mobile} | {r.clubName}</p>
                             {r.ineligibleReason && (
-                              <p className="text-xs text-rose-600 font-medium flex items-center gap-1">⛔ {r.ineligibleReason}</p>
+                              <p className="text-xs text-rose-600 font-medium flex items-center gap-1"><AlertTriangle className="h-4 w-4 shrink-0" aria-hidden /> {r.ineligibleReason}</p>
                             )}
                           </div>
                         </div>

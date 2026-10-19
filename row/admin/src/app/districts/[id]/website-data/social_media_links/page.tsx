@@ -36,7 +36,7 @@ import AlertModal from "@/components/AlertModal";
 import {
   ArrowLeft, Plus, Pencil, Trash2, MoreHorizontal,
   AlertTriangle, Eye, EyeOff, ExternalLink, Share2, GripVertical,
-} from "lucide-react";
+} from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
 import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";
@@ -48,9 +48,8 @@ function getPlatformLabel(value: string): string {
 
 function getPlatformIcon(platform: string) {
   const colors: Record<string, string> = {
-    facebook: "bg-blue-600", instagram: "bg-gradient-to-br from-purple-500 to-pink-500",
+    facebook: "bg-blue-600", instagram: "bg-purple-500",
     twitter: "bg-black", linkedin: "bg-blue-700", youtube: "bg-red-600",
-    whatsapp: "bg-green-500", telegram: "bg-sky-500", pinterest: "bg-red-700",
     threads: "bg-black", googleplus: "bg-red-500", website: "bg-gray-600",
   };
   const bg = colors[platform] || "bg-primary";

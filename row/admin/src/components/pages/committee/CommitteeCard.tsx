@@ -1,5 +1,5 @@
 import Image from "next/image";
-import { ShieldCheck } from "lucide-react";
+import { ShieldCheck } from "@/components/icons";
 
 export type Member = {
   /** Kept for data fidelity with example.org/committee.aspx (unrendered). */

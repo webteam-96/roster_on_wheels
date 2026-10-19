@@ -1,4 +1,5 @@
 "use client";
+import { Check, Hourglass } from "@/components/icons";
 
 /**
  * Global top-right notification card for club-website provisioning.
@@ -52,7 +53,7 @@ export default function WebsiteProvisioningToast() {
         if (!s) return;
         setOrder(s);
         if (s.status === "Active" || s.status === "ActivationFailed") stopPolling();
-      } catch { /* transient — keep polling */ }
+      } catch { /* transient. Keep polling */ }
     }, 4000);
   }, [stopPolling]);
 
@@ -89,10 +90,10 @@ export default function WebsiteProvisioningToast() {
   return (
     <div className="fixed top-4 right-4 z-[100] w-80 max-w-[calc(100vw-2rem)] rounded-xl border bg-white shadow-lg p-4 text-sm">
       <div className="flex items-start gap-3">
-        <div className={`mt-0.5 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg ${active ? "bg-emerald-50 text-emerald-600" : failed ? "bg-amber-50 text-amber-600" : "bg-blue-50 text-[#003DA5]"}`}>
+        <div className={`mt-0.5 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg ${active ? "bg-emerald-50 text-emerald-600" : failed ? "bg-amber-50 text-amber-600" : "bg-blue-50 text-azure"}`}>
           {provisioning ? (
-            <span className="h-4 w-4 animate-spin rounded-full border-2 border-[#003DA5] border-t-transparent" />
-          ) : active ? "✓" : "⏳"}
+            <span className="h-4 w-4 animate-spin rounded-full border-2 border-azure border-t-transparent" />
+          ) : active ? <Check className="h-4 w-4" aria-hidden /> : <Hourglass className="h-4 w-4" aria-hidden />}
         </div>
         <div className="min-w-0 flex-1">
           <div className="font-semibold text-slate-800">
@@ -100,11 +101,11 @@ export default function WebsiteProvisioningToast() {
           </div>
           <div className="mt-0.5 break-all text-xs text-slate-500">{host}</div>
           {provisioning && (
-            <p className="mt-1.5 text-xs text-slate-500">You can safely leave this page — we&apos;ll email you when it&apos;s ready.</p>
+            <p className="mt-1.5 text-xs text-slate-500">You can safely leave this page. We&apos;ll email you when it&apos;s ready.</p>
           )}
           {active && order.visitUrl && (
             <a href={order.visitUrl} target="_blank" rel="noreferrer"
-              className="mt-1.5 inline-block text-xs font-semibold text-[#003DA5] hover:underline">Open website →</a>
+              className="mt-1.5 inline-block text-xs font-semibold text-azure hover:underline">Open website →</a>
           )}
           {failed && (
             <p className="mt-1.5 text-xs text-slate-500">Setup is taking a little longer than usual. We&apos;ll email you as soon as it&apos;s live.</p>

@@ -7,7 +7,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, ArrowRight, ArrowLeft, X, Plus, ShieldCheck, Users } from "lucide-react";
+import { Loader2, ArrowRight, ArrowLeft, X, Plus, ShieldCheck, Users } from "@/components/icons";
 import {
   getDuplicatePair, resolveDuplicate, dismissDuplicate,
   getDuplicateDistricts, getDuplicateClubs,
@@ -127,7 +127,7 @@ function RoleChips({ roles, onShift, shiftDir }: {
             <button type="button" title="Move to Member A" className="hover:text-blue-600" onClick={() => onShift(i)}><ArrowLeft className="h-3 w-3" /></button>
           )}
           <span className="font-semibold">{r.source}</span>
-          <span className="opacity-80">{r.label || "—"}{r.context ? ` · ${r.context}` : ""}{r.year ? ` · ${r.year}` : ""}</span>
+          <span className="opacity-80">{r.label || "–"}{r.context ? ` · ${r.context}` : ""}{r.year ? ` · ${r.year}` : ""}</span>
           {onShift && shiftDir === "right" && (
             <button type="button" title="Move to Member B" className="hover:text-blue-600" onClick={() => onShift(i)}><ArrowRight className="h-3 w-3" /></button>
           )}
@@ -151,9 +151,9 @@ function FamilyList({ family, onShift, shiftDir }: {
             <button type="button" title="Move to Member A" className="text-slate-400 hover:text-blue-600 shrink-0" onClick={() => onShift(i)}><ArrowLeft className="h-3.5 w-3.5" /></button>
           )}
           <div className="flex-1 min-w-0">
-            <div className="truncate font-medium">{f.name || "—"}{f.relation ? <span className="text-muted-foreground font-normal"> · {f.relation}</span> : null}</div>
+            <div className="truncate font-medium">{f.name || "–"}{f.relation ? <span className="text-muted-foreground font-normal"> · {f.relation}</span> : null}</div>
             <div className="truncate text-muted-foreground">
-              {[f.phoneNumber, fmtDate(f.birthDate) ? `DOB ${fmtDate(f.birthDate)}` : ""].filter(Boolean).join(" · ") || "—"}
+              {[f.phoneNumber, fmtDate(f.birthDate) ? `DOB ${fmtDate(f.birthDate)}` : ""].filter(Boolean).join(" · ") || "–"}
             </div>
           </div>
           {onShift && shiftDir === "right" && (
@@ -287,9 +287,9 @@ export default function MergeDialog({ pair, onClose, onResolved }: { pair: DupPa
     const delProf = keepSide === "A" ? profB : profA;
     // HIGH-ALERT confirmation — merge permanently soft-deletes one member.
     const confirmed = window.confirm(
-      `⚠️ HIGH ALERT — MERGE & DELETE\n\n` +
-      `KEEP:   ${keepProf.memberName || "—"} (RID ${keepProf.rotaryId || "—"})\n` +
-      `DELETE: ${delProf.memberName || "—"} (RID ${delProf.rotaryId || "—"})\n\n` +
+      `HIGH ALERT: MERGE & DELETE\n\n` +
+      `KEEP:   ${keepProf.memberName || "–"} (RID ${keepProf.rotaryId || "–"})\n` +
+      `DELETE: ${delProf.memberName || "–"} (RID ${delProf.rotaryId || "–"})\n\n` +
       `The DELETE member will be removed and its clubs, roles & family moved to the KEEP member. ` +
       `This can be undone later from "Merged (Undo)", but please confirm.\n\nProceed with the merge?`
     );
@@ -361,11 +361,11 @@ export default function MergeDialog({ pair, onClose, onResolved }: { pair: DupPa
     <>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="rounded-lg border p-3 space-y-2">
-          <div className="flex items-center gap-1.5 text-sm font-semibold text-slate-700"><Users className="h-4 w-4" /> Member A — Clubs</div>
+          <div className="flex items-center gap-1.5 text-sm font-semibold text-slate-700"><Users className="h-4 w-4" /> Member A: Clubs</div>
           <ClubList rows={clubsA} setRows={setClubsA} title="" onShift={(i) => shiftClub("A", i)} shiftDir="right" />
         </div>
         <div className="rounded-lg border p-3 space-y-2">
-          <div className="flex items-center gap-1.5 text-sm font-semibold text-slate-700"><Users className="h-4 w-4" /> Member B — Clubs</div>
+          <div className="flex items-center gap-1.5 text-sm font-semibold text-slate-700"><Users className="h-4 w-4" /> Member B: Clubs</div>
           <ClubList rows={clubsB} setRows={setClubsB} title="" onShift={(i) => shiftClub("B", i)} shiftDir="left" />
         </div>
       </div>
@@ -396,7 +396,7 @@ export default function MergeDialog({ pair, onClose, onResolved }: { pair: DupPa
     <label className={`flex items-center gap-2 rounded-lg border-2 px-3 py-2 cursor-pointer ${keepSide === side ? "border-green-500 bg-green-50" : "border-slate-200"}`}>
       <input type="radio" name="keep" checked={keepSide === side} onChange={() => setKeepSide(side)} />
       <div className="min-w-0">
-        <div className="font-semibold text-slate-800 truncate">{prof?.memberName || "—"} <span className="text-xs font-normal text-muted-foreground">RID {prof?.rotaryId || "—"}</span></div>
+        <div className="font-semibold text-slate-800 truncate">{prof?.memberName || "–"} <span className="text-xs font-normal text-muted-foreground">RID {prof?.rotaryId || "–"}</span></div>
         <div className="text-xs font-medium">{keepSide === null ? <span className="text-slate-500">Select to keep</span> : keepSide === side ? <span className="text-green-700">✓ KEEP this record</span> : <span className="text-rose-600">Will be deleted</span>}</div>
       </div>
     </label>
@@ -460,11 +460,11 @@ export default function MergeDialog({ pair, onClose, onResolved }: { pair: DupPa
             {/* Roles */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="rounded-lg border p-3 space-y-2">
-                <div className="text-sm font-semibold text-slate-700">Member A — Roles</div>
+                <div className="text-sm font-semibold text-slate-700">Member A: Roles</div>
                 <RoleChips roles={rolesA} onShift={(i) => shiftRole("A", i)} shiftDir="right" />
               </div>
               <div className="rounded-lg border p-3 space-y-2">
-                <div className="text-sm font-semibold text-slate-700">Member B — Roles</div>
+                <div className="text-sm font-semibold text-slate-700">Member B: Roles</div>
                 <RoleChips roles={rolesB} onShift={(i) => shiftRole("B", i)} shiftDir="left" />
               </div>
             </div>
@@ -473,11 +473,11 @@ export default function MergeDialog({ pair, onClose, onResolved }: { pair: DupPa
             {showFamily && (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="rounded-lg border p-3 space-y-2">
-                <div className="text-sm font-semibold text-slate-700">Member A — Family</div>
+                <div className="text-sm font-semibold text-slate-700">Member A: Family</div>
                 <FamilyList family={familyA} onShift={(i) => shiftFamily("A", i)} shiftDir="right" />
               </div>
               <div className="rounded-lg border p-3 space-y-2">
-                <div className="text-sm font-semibold text-slate-700">Member B — Family</div>
+                <div className="text-sm font-semibold text-slate-700">Member B: Family</div>
                 <FamilyList family={familyB} onShift={(i) => shiftFamily("B", i)} shiftDir="left" />
               </div>
             </div>
@@ -486,7 +486,7 @@ export default function MergeDialog({ pair, onClose, onResolved }: { pair: DupPa
             <p className="text-xs text-muted-foreground">
               On merge, the deleted member is soft-deleted; its mobile/email move to the surviving member&apos;s secondary, and all
               its clubs, roles &amp; family above transfer to the survivor. A before-state backup is saved. Use <b>Save &amp; Keep Both</b> for a
-              legitimate shared contact (e.g. husband &amp; wife) — the two records are kept separate, any fields you edited are saved to each
+              legitimate shared contact (e.g. husband &amp; wife): the two records are kept separate, any fields you edited are saved to each
               member&apos;s own record (never mixed), and the pair stops showing.
             </p>
 

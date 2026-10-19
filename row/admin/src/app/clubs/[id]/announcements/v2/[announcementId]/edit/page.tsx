@@ -17,7 +17,7 @@ import DateField from "@/components/DateField";
 import { useParams } from "next/navigation";
 import {
   Upload, X, Plus, Trash2, FileText, Bell, Image as ImageIcon,
-} from "lucide-react";
+} from "@/components/icons";
 import {
   getClub,
   getAnnouncement,
@@ -30,10 +30,7 @@ import RotaryLoader from "@/components/RotaryLoader";
 import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
 import ProtectedRoute from "@/components/ProtectedRoute";
-import WhatsAppRecipientBadge from "@/components/WhatsAppRecipientBadge";
-import WhatsAppPhonePreview from "@/components/WhatsAppPhonePreview";
-import { renderClubAnnouncementWhatsApp } from "@/utils/whatsappTemplatePreview";
-import { isWhatsAppPilotClub } from "@/utils/whatsappPilot";
+import RecipientBadge from "@/components/RecipientBadge";
 import { toLocalDateParts } from "@/lib/dateUtils";
 import { useSyncClubIdFromUrl } from "@/hooks/useSyncClubIdFromUrl";
 import ImageCropDialog from "@/components/ImageCropDialog";
@@ -41,7 +38,7 @@ import { useImageCropUpload } from "@/hooks/useImageCropUpload";
 import { TEXT_INPUT_REGEX } from "@/lib/textInput";
 
 // The attached image is shown as a landscape poster on the detail view and is
-// pushed out with WhatsApp/email notifications — locked to 4:3 at 1200×900.
+// pushed out with email notifications — locked to 4:3 at 1200×900.
 const IMAGE_ASPECT = 4 / 3;
 const IMAGE_MAX_WIDTH = 1200;
 
@@ -67,7 +64,7 @@ function SectionCard({
 }: { number: number; icon: React.ElementType; title: string; dot: string; children: React.ReactNode }) {
   return (
     <div className="rounded-xl border border-slate-200 overflow-hidden mb-4">
-      <div className="flex items-center gap-3 px-4 py-2.5 bg-gradient-to-r from-slate-50 to-white border-b border-slate-100">
+      <div className="flex items-center gap-3 px-4 py-2.5 bg-slate-50 border-b border-slate-100">
         <div className={`flex items-center justify-center h-7 w-7 rounded-full text-white text-xs font-bold ${dot}`}>{number}</div>
         <Icon className="h-4 w-4 text-slate-500" />
         <h3 className="text-sm font-semibold text-slate-800">{title}</h3>
@@ -87,7 +84,6 @@ export default function AnnouncementsV2EditPage() {
   useSyncClubIdFromUrl();
   const params = useParams();
   const clubId = Number(params.id);
-  const whatsAppPilot = isWhatsAppPilotClub(clubId);
   const announcementId = Number(params.announcementId);
   const { navigateAfterSave } = useV2ReturnTo(`/clubs/${clubId}/announcements/v2`);
 
@@ -105,7 +101,6 @@ export default function AnnouncementsV2EditPage() {
   const [expiryDate, setExpiryDate] = useState("");
   const [expiryTime, setExpiryTime] = useState("");
   const [isDisplayOnBanner, setIsDisplayOnBanner] = useState(false);
-  const [isSendWhatsapp, setIsSendWhatsapp] = useState(false);
   const [isSendEmail, setIsSendEmail] = useState(false);
   const [isRepeatNotification, setIsRepeatNotification] = useState(false);
   const [reminders, setReminders] = useState<ReminderItem[]>([]);
@@ -150,7 +145,6 @@ export default function AnnouncementsV2EditPage() {
         }
 
         setIsDisplayOnBanner(ann.isDisplayOnBanner);
-        setIsSendWhatsapp(ann.isSendWhatsapp);
         setIsSendEmail(ann.isSendEmail ?? false);
         setIsRepeatNotification(ann.isRepeatNotification);
 
@@ -264,7 +258,6 @@ export default function AnnouncementsV2EditPage() {
         publishDateTime: publishDTStr,
         expiryDateTime: expiryDTStr,
         isDisplayOnBanner,
-        isSendWhatsapp,
         isSendEmail,
         isRepeatNotification,
         reminders: reminderStrings,
@@ -303,8 +296,7 @@ export default function AnnouncementsV2EditPage() {
         saveLabel="Update Announcement"
         onSave={handleSave}
       >
-        {/* With WhatsApp ticked, the form shares the row with a phone preview of the message. */}
-        <div className={whatsAppPilot && isSendWhatsapp ? "lg:grid lg:grid-cols-[minmax(0,1fr)_320px] lg:items-start lg:gap-6" : ""}>
+        <div className="">
         <div className="min-w-0">
         {/* 1. Announcement Details */}
         <SectionCard number={1} icon={FileText} title="Announcement Details" dot="bg-blue-600">
@@ -420,19 +412,6 @@ export default function AnnouncementsV2EditPage() {
               <span className="text-sm font-medium text-slate-700">Display on Banner</span>
             </label>
             )}
-            {/* WhatsApp pilot: shown only for Thane City View until the new templates go live (utils/whatsappPilot). */}
-            {whatsAppPilot && (
-            <label className="flex items-center gap-3 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={isSendWhatsapp}
-                onChange={(e) => setIsSendWhatsapp(e.target.checked)}
-                className="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
-              />
-              <span className="text-sm font-medium text-slate-700">Notify members via WhatsApp</span>
-              {isSendWhatsapp && <WhatsAppRecipientBadge scope="club" clubId={clubId} reminderCount={reminders.length} />}
-            </label>
-            )}
             <label className="flex items-center gap-3 cursor-pointer">
               <input
                 type="checkbox"
@@ -441,7 +420,7 @@ export default function AnnouncementsV2EditPage() {
                 className="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
               />
               <span className="text-sm font-medium text-slate-700">Notify members via Email</span>
-              {isSendEmail && <WhatsAppRecipientBadge scope="club" clubId={clubId} reminderCount={reminders.length} channel="email" />}
+              {isSendEmail && <RecipientBadge scope="club" clubId={clubId} reminderCount={reminders.length} />}
             </label>
             <label className="flex items-center gap-3 cursor-pointer">
               <input
@@ -490,17 +469,6 @@ export default function AnnouncementsV2EditPage() {
         </SectionCard>
         </div>
 
-        {whatsAppPilot && isSendWhatsapp && (
-          <aside className="mt-2 lg:mt-0 lg:sticky lg:top-4">
-            <WhatsAppPhonePreview
-              imageUrl={imagePreview}
-              body={renderClubAnnouncementWhatsApp({ clubName, title, description })}
-              caption={imagePreview
-                ? "Sent with the image. Details are shortened automatically if the message is too long."
-                : "Sent without an image. Details are shortened automatically if the message is too long."}
-            />
-          </aside>
-        )}
         </div>
 
         <ImageCropDialog

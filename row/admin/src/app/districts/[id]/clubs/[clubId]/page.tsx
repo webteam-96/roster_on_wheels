@@ -18,7 +18,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import {
   ArrowLeft, Users, Newspaper, CalendarDays, FolderKanban, Building2, MapPin, Clock,
   Calendar, Globe, Phone, Mail, Briefcase, Award, ChevronDown, ChevronUp, FileText, ExternalLink,
-} from "lucide-react";
+} from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
 import SendStatusBadges from "@/components/SendStatusBadges";
 import Link from "next/link";

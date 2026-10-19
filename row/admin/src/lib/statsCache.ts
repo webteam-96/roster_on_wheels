@@ -92,7 +92,7 @@ export async function writeSnapshot(data: unknown): Promise<WriteResult> {
     // NOT throw: every caller invokes this from a fire-and-forget path, so an
     // unhandled rejection here would take the whole Node process down over a
     // permissions mistake. Degrade to "no cache" instead — slow, but serving.
-    console.error("[statsCache] snapshot write failed — running uncached:", err);
+    console.error("[statsCache] snapshot write failed: running uncached:", err);
     return "io-error";
   }
 }

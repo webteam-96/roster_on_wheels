@@ -15,12 +15,12 @@
  *     memory rule: one set per district, fk_year_id filled with current year
  *     on create but never filtered on read; no year filter UI here).
  *   - Visual chrome refreshed to the dashboard palette:
- *       Navy  #1e3a5f  (headings, primary buttons, table header)
+ *       Navy  #17458f  (headings, primary buttons, table header)
  *       Gold  #F7A81B  (underline accent on table header)
  *       Slate 200/500/800 (borders / muted text / body)
  *       rounded-2xl border border-slate-200 shadow-sm bg-white cards
- *       inputs border-slate-200 bg-white focus:border-[#1e3a5f]
- *              focus:ring-[#1e3a5f]/20
+ *       inputs border-slate-200 bg-white focus:border-azure
+ *              focus:ring-azure/20
  *
  * All state hooks, dialogs, dropdowns, service calls, validations, table
  * columns, delete confirmation, drag-sort, active-toggle and search
@@ -62,7 +62,7 @@ import AlertModal from "@/components/AlertModal";
 import {
   ArrowLeft, Plus, Pencil, Trash2, MoreHorizontal,
   AlertTriangle, Eye, EyeOff, ExternalLink, Share2, GripVertical,
-} from "lucide-react";
+} from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import SearchBox from "@/components/SearchBox";
@@ -73,12 +73,11 @@ function getPlatformLabel(value: string): string {
 
 function getPlatformIcon(platform: string) {
   const colors: Record<string, string> = {
-    facebook: "bg-blue-600", instagram: "bg-gradient-to-br from-purple-500 to-pink-500",
+    facebook: "bg-blue-600", instagram: "bg-purple-500",
     twitter: "bg-black", linkedin: "bg-blue-700", youtube: "bg-red-600",
-    whatsapp: "bg-green-500", telegram: "bg-sky-500", pinterest: "bg-red-700",
     threads: "bg-black", googleplus: "bg-red-500", website: "bg-gray-600",
   };
-  const bg = colors[platform] || "bg-[#1e3a5f]";
+  const bg = colors[platform] || "bg-azure";
   const initial = getPlatformLabel(platform).charAt(0).toUpperCase();
   return (
     <div className={`h-8 w-8 rounded-full ${bg} flex items-center justify-center text-white text-xs font-bold flex-shrink-0`}>
@@ -283,7 +282,7 @@ export default function DistrictAdminSocialLinksPage() {
               <ArrowLeft className="h-4 w-4" />
             </Button>
             <div>
-              <h2 className="text-2xl font-bold tracking-tight text-[#1e3a5f]">
+              <h2 className="text-2xl font-bold tracking-tight text-ink">
                 {districtNumber ? `District ${districtNumber} - Social Media Links` : "Social Media Links"}
               </h2>
               <p className="text-slate-500 text-sm mt-0.5">Manage district social media links</p>
@@ -292,7 +291,7 @@ export default function DistrictAdminSocialLinksPage() {
           {canManage && (
             <Button
               onClick={openAddDialog}
-              className="bg-[#1e3a5f] hover:bg-[#152a44] text-white"
+              className="bg-azure hover:bg-mint-ink text-white"
             >
               <Plus className="mr-2 h-4 w-4" />Add Link
             </Button>
@@ -425,8 +424,8 @@ export default function DistrictAdminSocialLinksPage() {
                   <Table>
                     <TableHeader>
                       <TableRow
-                        className="hover:opacity-100 border-b-2 border-[#F7A81B]"
-                        style={{ backgroundColor: "#1e3a5f" }}
+                        className="hover:opacity-100 border-b-2 border-marigold"
+                        style={{ backgroundColor: "#17458f" }}
                       >
                         <TableHead className="w-12 text-white/90"></TableHead>
                         <TableHead className="text-white text-xs font-semibold uppercase tracking-wide">Platform</TableHead>
@@ -453,7 +452,7 @@ export default function DistrictAdminSocialLinksPage() {
                           <TableCell>
                             <button
                               onClick={() => handleOpenLink(link.linkUrl)}
-                              className="text-[#1e3a5f] hover:underline text-sm truncate block max-w-xs text-left"
+                              className="text-ink hover:underline text-sm truncate block max-w-xs text-left"
                             >
                               {link.linkUrl}
                             </button>
@@ -533,7 +532,7 @@ export default function DistrictAdminSocialLinksPage() {
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogContent className="max-w-md">
             <DialogHeader>
-              <DialogTitle className="text-[#1e3a5f]">
+              <DialogTitle className="text-ink">
                 {editingLink ? "Edit Social Link" : "Add Social Link"}
               </DialogTitle>
               <DialogDescription className="text-slate-500">
@@ -546,7 +545,7 @@ export default function DistrictAdminSocialLinksPage() {
               <div className="space-y-2">
                 <Label className="text-slate-700 text-sm font-medium">Social Media Platform *</Label>
                 <Select value={formPlatform} onValueChange={setFormPlatform}>
-                  <SelectTrigger className="border-slate-200 bg-white focus:border-[#1e3a5f] focus:ring-[#1e3a5f]/20">
+                  <SelectTrigger className="border-slate-200 bg-white focus:border-azure focus:ring-azure/20">
                     <SelectValue placeholder="Select a platform" />
                   </SelectTrigger>
                   <SelectContent>
@@ -559,7 +558,7 @@ export default function DistrictAdminSocialLinksPage() {
               <div className="space-y-2">
                 <Label className="text-slate-700 text-sm font-medium">Link URL *</Label>
                 <Input
-                  className="border-slate-200 bg-white focus:border-[#1e3a5f] focus:ring-[#1e3a5f]/20"
+                  className="border-slate-200 bg-white focus:border-azure focus:ring-azure/20"
                   placeholder="https://..."
                   value={formLinkUrl}
                   onChange={(e) => setFormLinkUrl(e.target.value)}
@@ -568,7 +567,7 @@ export default function DistrictAdminSocialLinksPage() {
               <div className="space-y-2">
                 <Label className="text-slate-700 text-sm font-medium">Status</Label>
                 <Select value={formIsActive} onValueChange={setFormIsActive}>
-                  <SelectTrigger className="border-slate-200 bg-white focus:border-[#1e3a5f] focus:ring-[#1e3a5f]/20">
+                  <SelectTrigger className="border-slate-200 bg-white focus:border-azure focus:ring-azure/20">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -590,7 +589,7 @@ export default function DistrictAdminSocialLinksPage() {
               <Button
                 onClick={handleSave}
                 disabled={saving || !formPlatform || !formLinkUrl.trim()}
-                className="bg-[#1e3a5f] hover:bg-[#152a44] text-white"
+                className="bg-azure hover:bg-mint-ink text-white"
               >
                 {saving ? "Saving..." : editingLink ? "Update" : "Add"}
               </Button>

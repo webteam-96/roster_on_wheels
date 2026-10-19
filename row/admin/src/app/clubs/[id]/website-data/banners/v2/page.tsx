@@ -18,7 +18,7 @@ import Image from "next/image";
 import {
   ImageIcon, CheckCircle2, EyeOff, Loader2, Search, Plus,
   Edit3, Trash2, ArrowLeft, AlertTriangle, GripVertical, Eye,
-} from "lucide-react";
+} from "@/components/icons";
 import {
   getClub,
   getClubBanners,
@@ -160,7 +160,7 @@ export default function BannerPhotosV2Page() {
     );
   }, [records, search]);
 
-  const yearLabel = filterYears.find((y) => y.id === selectedYearId)?.yearLabel ?? "—";
+  const yearLabel = filterYears.find((y) => y.id === selectedYearId)?.yearLabel ?? "–";
 
   // Aggregate KPIs from the current year's records.
   const totalBanners = records.length;
@@ -232,7 +232,7 @@ export default function BannerPhotosV2Page() {
             <div>
               <h1 className="text-lg font-semibold text-slate-800">Banner Photos</h1>
               <p className="text-xs text-slate-500 mt-0.5">
-                RY {yearLabel} · {clubName || "—"}
+                RY {yearLabel} · {clubName || "–"}
               </p>
             </div>
           </div>
@@ -251,7 +251,7 @@ export default function BannerPhotosV2Page() {
             <div>
               <h3 className="text-sm font-semibold text-slate-800">Banner Records</h3>
               <p className="text-xs text-slate-500 mt-0.5">
-                {clubName || "—"} · website banner photos
+                {clubName || "–"} · website banner photos
               </p>
             </div>
             <div className="flex flex-wrap items-center gap-2">

@@ -3,14 +3,14 @@
 /**
  * DistrictAdminTopbarStatus
  * --------------------------------------------------------------------------
- * Persistent header widget for the District Admin dashboard — WhatsApp / Email
+ * Persistent header widget for the District Admin dashboard — email
  * credit balances, mirroring the club-admin ClubAdminTopbarStatus. Balances come
  * from the district credit wallet (getClubCreditBalance, which is district-scoped
- * here → emailRemaining / whatsAppRemaining).
+ * here → emailRemaining).
  */
 
 import { useEffect, useState } from "react";
-import { Mail, MessageCircle } from "lucide-react";
+import { Mail } from "@/components/icons";
 import { getDistrictCreditBalance } from "@/services/api";
 import { fmtInt } from "@/components/dashboard/formatters";
 import { useAuth } from "@/contexts/AuthContext";
@@ -19,12 +19,12 @@ const CHIP =
   "inline-flex items-center gap-1.5 h-9 px-3 rounded-md border text-sm font-medium whitespace-nowrap";
 
 // Session cache so the chips repaint instantly (no flash) as you navigate.
-const balCache = new Map<number, { email: number; whatsApp: number }>();
+const balCache = new Map<number, { email: number }>();
 
 export default function DistrictAdminTopbarStatus({ districtId: districtIdProp }: { districtId?: number | null } = {}) {
   const { selectedDistrictId } = useAuth();
   const districtId = districtIdProp ?? selectedDistrictId;
-  const [bal, setBal] = useState<{ email: number; whatsApp: number } | null>(
+  const [bal, setBal] = useState<{ email: number } | null>(
     () => (districtId ? balCache.get(districtId) ?? null : null),
   );
 
@@ -36,7 +36,7 @@ export default function DistrictAdminTopbarStatus({ districtId: districtIdProp }
     const load = () => {
       getDistrictCreditBalance(districtId)
         .then((b: any) => {
-          const v = { email: b?.emailRemaining ?? 0, whatsApp: b?.whatsAppRemaining ?? 0 };
+          const v = { email: b?.emailRemaining ?? 0 };
           balCache.set(districtId, v);
           if (alive) setBal(v);
         })
@@ -52,10 +52,6 @@ export default function DistrictAdminTopbarStatus({ districtId: districtIdProp }
 
   return (
     <div className="hidden lg:flex items-center gap-2">
-      <span className={`${CHIP} bg-green-50 border-green-200 text-green-700`} title="Available WhatsApp credits">
-        <MessageCircle className="h-3.5 w-3.5" />
-        WhatsApp <span className="tabular-nums">{fmtInt(bal.whatsApp)}</span>
-      </span>
       <span className={`${CHIP} bg-blue-50 border-blue-200 text-blue-700`} title="Available Email credits">
         <Mail className="h-3.5 w-3.5" />
         Email <span className="tabular-nums">{fmtInt(bal.email)}</span>

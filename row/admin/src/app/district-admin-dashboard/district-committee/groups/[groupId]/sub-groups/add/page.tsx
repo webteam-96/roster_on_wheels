@@ -25,7 +25,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
-import { ArrowLeft, Plus, Pencil, Trash2, Users, Search, X, Upload } from "lucide-react";
+import { ArrowLeft, Plus, Pencil, Trash2, Users, Search, X, Upload } from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import DistrictMembershipTabBar from "@/components/dashboard/DistrictMembershipTabBar";
@@ -228,8 +228,8 @@ export default function DistrictAdminDashboardSubGroupAddPage() {
             <ArrowLeft className="h-4 w-4" />
           </Button>
           <div>
-            <h2 className="text-2xl font-bold tracking-tight text-[#1e3a5f]">Add Sub Group</h2>
-            <p className="text-slate-600 text-sm">{groupName ? `Under ${groupName} — ` : ""}Create a sub-group and add at least one member</p>
+            <h2 className="text-2xl font-bold tracking-tight text-ink">Add Sub Group</h2>
+            <p className="text-slate-600 text-sm">{groupName ? `Under ${groupName}: ` : ""}Create a sub-group and add at least one member</p>
           </div>
         </div>
 
@@ -242,17 +242,17 @@ export default function DistrictAdminDashboardSubGroupAddPage() {
                 <div className="space-y-2 max-w-md">
                   <Label className="text-slate-500 text-xs font-semibold uppercase tracking-wide">Sub-Group Name *</Label>
                   <Input value={subGroupName} onChange={(e) => setSubGroupName(e.target.value)} placeholder="Enter sub-group name"
-                    className="border-slate-200 bg-white focus:border-[#1e3a5f] focus:ring-[#1e3a5f]/20" />
+                    className="border-slate-200 bg-white focus:border-azure focus:ring-azure/20" />
                 </div>
               </CardContent>
             </Card>
 
             <div className="space-y-3">
               <div className="flex items-center justify-between">
-                <h3 className="text-lg font-semibold text-[#1e3a5f] flex items-center gap-2">
+                <h3 className="text-lg font-semibold text-ink flex items-center gap-2">
                   <Users className="h-5 w-5" />Members <span className="text-slate-400 font-normal">({staged.length})</span>
                 </h3>
-                <Button onClick={openAddMemberDialog} className="bg-[#1e3a5f] hover:bg-[#152a44] text-white">
+                <Button onClick={openAddMemberDialog} className="bg-azure hover:bg-mint-ink text-white">
                   <Plus className="mr-2 h-4 w-4" />Add Member
                 </Button>
               </div>
@@ -318,7 +318,7 @@ export default function DistrictAdminDashboardSubGroupAddPage() {
             <div className="flex items-center justify-end gap-2 pt-2">
               <Button variant="outline" onClick={goBack} disabled={saving} className="border-slate-200 text-slate-700 hover:bg-slate-50">Cancel</Button>
               <Button onClick={handleSave} disabled={saving || !subGroupName.trim() || staged.length === 0}
-                className="bg-[#1e3a5f] hover:bg-[#152a44] text-white">
+                className="bg-azure hover:bg-mint-ink text-white">
                 {saving ? "Saving..." : "Save Sub Group"}
               </Button>
             </div>

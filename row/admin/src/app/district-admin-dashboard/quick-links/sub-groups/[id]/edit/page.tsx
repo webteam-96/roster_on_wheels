@@ -13,7 +13,7 @@
  *     not the top-bar year (moving a group across years is out of scope).
  *   - Save / Cancel / Back honour ?returnTo=, else the Quick Links Sub Groups
  *     listing (with yearId preserved).
- *   - Navy #1e3a5f / gold #F7A81B / slate palette.
+ *   - Navy #17458f / gold #F7A81B / slate palette.
  */
 
 import { useState, useEffect, useMemo, useCallback } from "react";
@@ -39,7 +39,7 @@ import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
 import RotaryLoader from "@/components/RotaryLoader";
 import ProtectedRoute from "@/components/ProtectedRoute";
-import { ArrowLeft, Search, X, User } from "lucide-react";
+import { ArrowLeft, Search, X, User } from "@/components/icons";
 
 function withSearch(base: string, extra: Record<string, string | null | undefined>) {
   const p = new URLSearchParams();
@@ -186,8 +186,8 @@ export default function DistrictAdminEditSubGroupPage() {
             <ArrowLeft className="h-4 w-4" />
           </Button>
           <div>
-            <h2 className="text-2xl font-bold tracking-tight text-[#1e3a5f]">Edit Sub Group</h2>
-            <div className="h-0.5 w-16 bg-[#F7A81B] rounded mt-1.5" />
+            <h2 className="text-2xl font-bold tracking-tight text-ink">Edit Sub Group</h2>
+            <div className="h-0.5 w-16 bg-marigold rounded mt-1.5" />
             <p className="text-sm text-slate-500 mt-1.5">Update the group name and manage members</p>
           </div>
         </div>
@@ -200,7 +200,7 @@ export default function DistrictAdminEditSubGroupPage() {
               <div className="space-y-2">
                 <Label className="text-slate-700 text-sm font-medium">Group Name *</Label>
                 <Input
-                  className="border-slate-200 bg-white focus:border-[#1e3a5f] focus:ring-[#1e3a5f]/20"
+                  className="border-slate-200 bg-white focus:border-azure focus:ring-azure/20"
                   placeholder="Enter group name"
                   value={groupName}
                   onChange={(e) => setGroupName(e.target.value)}
@@ -209,7 +209,7 @@ export default function DistrictAdminEditSubGroupPage() {
               <div className="space-y-2">
                 <Label className="text-slate-700 text-sm font-medium">Rotary Year *</Label>
                 <Select value={selectedYearId} onValueChange={setSelectedYearId}>
-                  <SelectTrigger className="border-slate-200 bg-white focus:border-[#1e3a5f] focus:ring-[#1e3a5f]/20">
+                  <SelectTrigger className="border-slate-200 bg-white focus:border-azure focus:ring-azure/20">
                     <SelectValue placeholder="Select year" />
                   </SelectTrigger>
                   <SelectContent>
@@ -239,7 +239,7 @@ export default function DistrictAdminEditSubGroupPage() {
                         placeholder="Search..."
                         value={memberSearchQuery}
                         onChange={(e) => setMemberSearchQuery(e.target.value)}
-                        className="pl-8 h-8 text-sm border-slate-200 bg-white focus:border-[#1e3a5f] focus:ring-[#1e3a5f]/20"
+                        className="pl-8 h-8 text-sm border-slate-200 bg-white focus:border-azure focus:ring-azure/20"
                       />
                       {memberSearchQuery && (
                         <Button variant="ghost" size="icon" className="absolute right-1 top-1/2 -translate-y-1/2 h-5 w-5" onClick={() => setMemberSearchQuery("")}>
@@ -283,7 +283,7 @@ export default function DistrictAdminEditSubGroupPage() {
                               {photoUrl ? (
                                 <Image src={photoUrl} alt={member.memberName} fill className="object-cover" unoptimized />
                               ) : (
-                                <div className="flex h-full w-full items-center justify-center bg-[#1e3a5f]/10 text-[#1e3a5f]">
+                                <div className="flex h-full w-full items-center justify-center bg-azure/10 text-ink">
                                   <User className="h-3.5 w-3.5" />
                                 </div>
                               )}
@@ -291,7 +291,7 @@ export default function DistrictAdminEditSubGroupPage() {
                             <div className="flex-1 min-w-0">
                               <p className="text-sm font-medium text-slate-800 truncate">{member.memberName}</p>
                               <p className="text-xs text-slate-500 truncate">
-                                {[member.clubName, member.mobileNumber, member.email].filter(Boolean).join(" | ") || "—"}
+                                {[member.clubName, member.mobileNumber, member.email].filter(Boolean).join(" | ") || "–"}
                               </p>
                             </div>
                           </div>
@@ -319,7 +319,7 @@ export default function DistrictAdminEditSubGroupPage() {
                               {photoUrl ? (
                                 <Image src={photoUrl} alt={member.memberName} fill className="object-cover" unoptimized />
                               ) : (
-                                <div className="flex h-full w-full items-center justify-center bg-[#1e3a5f]/10 text-[#1e3a5f]">
+                                <div className="flex h-full w-full items-center justify-center bg-azure/10 text-ink">
                                   <User className="h-3.5 w-3.5" />
                                 </div>
                               )}
@@ -344,7 +344,7 @@ export default function DistrictAdminEditSubGroupPage() {
               <Button
                 onClick={handleSave}
                 disabled={saving || !groupName.trim() || !selectedYearId || selectedMemberIds.size === 0}
-                className="bg-[#1e3a5f] hover:bg-[#152a44] text-white disabled:bg-slate-300 disabled:text-slate-500"
+                className="bg-azure hover:bg-mint-ink text-white disabled:bg-slate-300 disabled:text-slate-500"
               >
                 {saving ? "Saving..." : "Update"}
               </Button>

@@ -38,7 +38,7 @@ import {
   Folder,
   PartyPopper,
   Pencil,
-} from "lucide-react";
+} from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
 import { useClubAdminCache } from "@/contexts/ClubAdminDashboardCacheContext";
 import KpiCard from "@/components/dashboard/KpiCard";
@@ -159,14 +159,14 @@ export default function ClubAdminCommunicationPage() {
         />
         <KpiCard
           title="Documents"
-          value={documentsCount === null ? "—" : fmtInt(documentsCount)}
+          value={documentsCount === null ? "–" : fmtInt(documentsCount)}
           subtitle="Available to members"
           icon={Folder}
           color="gold"
         />
         <KpiCard
           title="Greetings Today"
-          value={greetingsTodayCount === null ? "—" : fmtInt(greetingsTodayCount)}
+          value={greetingsTodayCount === null ? "–" : fmtInt(greetingsTodayCount)}
           subtitle="Birthdays & anniversaries"
           icon={PartyPopper}
           color="red"
@@ -206,7 +206,7 @@ function CommTabBar({ active, onChange }: { active: CommTab; onChange: (k: CommT
     <div className="overflow-x-auto">
       <div
         className="inline-flex items-center gap-1 rounded-xl p-1.5"
-        style={{ backgroundColor: "#1e3a5f" }}
+        style={{ backgroundColor: "#17458f" }}
       >
         {COMM_TABS.map((t) => {
           const isActive = active === t.key;
@@ -219,7 +219,7 @@ function CommTabBar({ active, onChange }: { active: CommTab; onChange: (k: CommT
               }`}
               style={
                 isActive
-                  ? { backgroundColor: "#F7A81B", color: "#1e3a5f" }
+                  ? { backgroundColor: "#F7A81B", color: "#17458f" }
                   : undefined
               }
             >
@@ -315,7 +315,7 @@ function GreetingsColumn({
               </span>
               <div className="min-w-0 flex-1">
                 <p className="text-sm font-medium text-slate-800 truncate">{r.name}</p>
-                <p className="text-[11px] text-slate-500 truncate">{r.mobile || "—"}</p>
+                <p className="text-[11px] text-slate-500 truncate">{r.mobile || "–"}</p>
               </div>
               <span className={`text-[10px] font-semibold uppercase shrink-0 ${
                 r.kind === "birthday" ? "text-blue-600" : "text-pink-600"

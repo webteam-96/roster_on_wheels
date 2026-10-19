@@ -15,7 +15,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, Plus, Pencil, Trash2, Loader2, RefreshCw, RotateCw } from "lucide-react";
+import { ArrowLeft, Plus, Pencil, Trash2, Loader2, RefreshCw, RotateCw } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -241,7 +241,7 @@ export default function RazorpayRouteAccountsPage() {
             <Link href="/settings" className="inline-flex items-center gap-1 text-sm text-slate-500 hover:text-slate-700 mb-1">
               <ArrowLeft className="h-4 w-4" /> Settings
             </Link>
-            <h1 className="text-2xl font-bold text-[#003DA5]">Razorpay Route Accounts</h1>
+            <h1 className="text-2xl font-bold text-azure">Razorpay Route Accounts</h1>
             <p className="text-sm text-slate-500">Linked accounts (acc_…) that club-website payments can be routed to. Adding one creates it on Razorpay.</p>
           </div>
           <div className="flex gap-2">
@@ -283,7 +283,7 @@ export default function RazorpayRouteAccountsPage() {
                   <td className="px-4 py-2.5">
                     {r.bankAccountLast4
                       ? <div><span className="font-mono text-slate-700">•••• {r.bankAccountLast4}</span>{r.bankIfsc && <div className="text-xs text-slate-400 font-mono">{r.bankIfsc}</div>}</div>
-                      : <span className="text-slate-300" title="Add via the edit (✎) dialog — Razorpay doesn't expose it for accounts created in their dashboard">—</span>}
+                      : <span className="text-slate-300" title="Add via the edit (✎) dialog: Razorpay doesn't expose it for accounts created in their dashboard">, </span>}
                   </td>
                   <td className="px-4 py-2.5">{statusBadge(r.status)}</td>
                   <td className="px-4 py-2.5">
@@ -343,7 +343,7 @@ export default function RazorpayRouteAccountsPage() {
                   </Field>
                 </div>
                 <p className="text-[11px] text-slate-400">
-                  The PAN must match the business type — a company PAN (4th letter C) for private/public limited, an
+                  The PAN must match the business type: a company PAN (4th letter C) for private/public limited, an
                   individual PAN (4th letter P) for individual/proprietorship, etc.
                 </p>
               </div>
@@ -356,7 +356,7 @@ export default function RazorpayRouteAccountsPage() {
                   <Input value={form.bankIfsc} onChange={(e) => set("bankIfsc", e.target.value.toUpperCase())} className="font-mono" />
                 </Field>
               </div>
-              <Field label="Beneficiary name (optional — defaults to account name)">
+              <Field label="Beneficiary name (optional: defaults to account name)">
                 <Input value={form.bankBeneficiaryName} onChange={(e) => set("bankBeneficiaryName", e.target.value)} />
               </Field>
               <Field label="Notes (optional)">
@@ -392,7 +392,7 @@ export default function RazorpayRouteAccountsPage() {
                 className="text-center text-lg tracking-[0.5em] font-mono"
                 autoFocus
               />
-              <button type="button" onClick={resendOtp} disabled={sendingOtp} className="text-xs text-[#003DA5] hover:underline disabled:opacity-50">
+              <button type="button" onClick={resendOtp} disabled={sendingOtp} className="text-xs text-azure hover:underline disabled:opacity-50">
                 {sendingOtp ? "Resending…" : "Resend OTP"}
               </button>
             </div>
@@ -485,7 +485,7 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 // Razorpay activation status → coloured badge. activated/active = green, rejected/suspended = red,
 // needs_clarification = amber, everything else (created/under_review/…) = neutral.
 function statusBadge(status: string | null) {
-  if (!status) return <span className="text-xs text-slate-400">—</span>;
+  if (!status) return <span className="text-xs text-slate-400">, </span>;
   const s = status.toLowerCase();
   const label = status.replace(/_/g, " ");
   if (s === "activated" || s === "active")

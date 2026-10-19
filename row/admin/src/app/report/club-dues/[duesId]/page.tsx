@@ -175,7 +175,7 @@ export default function ClubDuesReportPage() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#17458F] mx-auto"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-azure mx-auto"></div>
           <p className="mt-4 text-gray-600">Loading report...</p>
         </div>
       </div>
@@ -202,13 +202,16 @@ export default function ClubDuesReportPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <div className="bg-[#17458F] text-white">
+      {/* Logo on a light bar: the transparent mark, never a white plate on blue. */}
+      <div className="border-b border-[color:var(--row-line)] bg-white">
+        <div className="max-w-7xl mx-auto px-4 py-3">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/brand/row-logo.png" alt="Roster On Wheels" className="h-12 object-contain" />
+        </div>
+      </div>
+      <div className="bg-azure text-white">
         <div className="max-w-7xl mx-auto px-4 py-6">
-          <div className="flex items-center gap-4 mb-4">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/brand/row-logo-badge.png" alt="Roster On Wheels" className="h-16 object-contain" />
-          </div>
-          <h1 className="text-2xl font-bold">{dues.purpose || "District Dues"} — Report</h1>
+          <h1 className="text-2xl font-bold">{dues.purpose || "District Dues"}: Report</h1>
           {dues.rotaryYear && <p className="mt-1 text-white/80 text-sm">Rotary Year: {dues.rotaryYear}</p>}
           <div className="mt-3 flex flex-wrap gap-4 text-sm text-white/90">
             {dues.districtNumber && <span>District: <strong>{dues.districtNumber}</strong></span>}
@@ -226,7 +229,7 @@ export default function ClubDuesReportPage() {
       <div className="max-w-7xl mx-auto px-4 py-4 flex justify-end">
         <button
           onClick={() => downloadCSV(dues.purpose || "District Dues", clubs)}
-          className="inline-flex items-center gap-2 px-4 py-2 bg-[#17458F] text-white rounded-md hover:bg-[#0f3470] transition-colors text-sm font-medium"
+          className="inline-flex items-center gap-2 px-4 py-2 bg-azure text-white rounded-md hover:bg-mint-ink transition-colors text-sm font-medium"
         >
           <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
@@ -242,7 +245,7 @@ export default function ClubDuesReportPage() {
         <div className="bg-white rounded-lg shadow overflow-x-auto">
           <table className="min-w-full text-sm">
             <thead>
-              <tr className="bg-[#17458F] text-white">
+              <tr className="bg-azure text-white">
                 <th className="px-3 py-3 text-left font-medium whitespace-nowrap">Sr.No</th>
                 <th className="px-3 py-3 text-left font-medium whitespace-nowrap">Club</th>
                 <th className="px-3 py-3 text-center font-medium whitespace-nowrap">Members</th>

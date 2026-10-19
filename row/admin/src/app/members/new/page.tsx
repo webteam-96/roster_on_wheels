@@ -13,7 +13,7 @@ import { Member, MemberListItem } from "@/types/member";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
-import { ArrowLeft, Search, User, Plus, Mail, Phone, IdCard, UserPlus } from "lucide-react";
+import { ArrowLeft, Search, User, Plus, Mail, Phone, IdCard, UserPlus } from "@/components/icons";
 import Image from "next/image";
 import Link from "next/link";
 

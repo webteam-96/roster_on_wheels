@@ -17,6 +17,13 @@ export const PSEUDO_LOCALE = "en-XA";
 export const DEFAULT_LOCALE = "en";
 export const LOCALE_COOKIE = "NEXT_LOCALE";
 
+/** Locales with hand-written files under messages/. Every other picked language is machine-translated. */
+export const MESSAGE_LOCALES: readonly string[] = [DEFAULT_LOCALE];
+
+export function isMachineTranslated(locale: string): boolean {
+  return locale !== PSEUDO_LOCALE && !MESSAGE_LOCALES.includes(locale);
+}
+
 /** Loaded on every route. */
 // privacy: the consent dialog can open on any route.
 export const BASE_NAMESPACES = ["common", "errors", "privacy"] as const;

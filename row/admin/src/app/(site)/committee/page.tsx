@@ -6,7 +6,7 @@ import { CommitteeCard, type Member } from "@/components/pages/committee/Committ
 export const metadata: Metadata = {
   title: "Committee | ROW",
   description:
-    "ROW Web Committee — the advisors and members behind the website of ROW.",
+    "ROW Web Committee: the advisors and members behind the website of ROW.",
 };
 
 /* Content verbatim from example.org/committee.aspx — do not edit names,
@@ -67,7 +67,7 @@ export default function CommitteePage() {
       {/* Standard split-serif banner — text only, no portrait cluster. */}
       <PageBanner
         eyebrow="ROW"
-        subtitle="Five advisors and a six-member team behind portal.example.org — the website of ROW."
+        subtitle="Five advisors and a six-member team behind portal.example.org: the website of ROW."
       >
         The Web <span className="text-gold">Committee</span>
       </PageBanner>

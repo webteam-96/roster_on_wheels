@@ -68,7 +68,7 @@ import {
   FolderTree,
   Loader2,
   Image as ImageIcon,
-} from "lucide-react";
+} from "@/components/icons";
 
 const ReactQuill = dynamic(() => import("react-quill-new"), { ssr: false });
 import "react-quill-new/dist/quill.snow.css";

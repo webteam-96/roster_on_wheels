@@ -46,4 +46,34 @@ PREPARE stmt FROM @sql;
 EXECUTE stmt;
 DEALLOCATE PREPARE stmt;
 
+-- Meeting mode on meeting records (ROW Wave 1, build spec 3.17).
+CALL row_add_column_if_missing('club_attendance', 'MeetingMode', "VARCHAR(20) NOT NULL DEFAULT 'in_person' AFTER EventDateTime");
+CALL row_add_column_if_missing('club_attendance', 'MeetingLink', 'VARCHAR(1000) NULL AFTER MeetingMode');
+
 DROP PROCEDURE row_add_column_if_missing;
+
+-- audit_log is append-only (ROW Wave 1, build spec 3.14). No deletes; the only allowed update is
+-- privacy erasure blanking member_name / ip_address. Same SQL as DatabaseInitializer.
+DROP TRIGGER IF EXISTS trg_audit_log_no_delete;
+DROP TRIGGER IF EXISTS trg_audit_log_no_update;
+DELIMITER ;;
+CREATE TRIGGER trg_audit_log_no_delete BEFORE DELETE ON audit_log
+FOR EACH ROW
+BEGIN
+    SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'audit_log is append-only.';
+END;;
+CREATE TRIGGER trg_audit_log_no_update BEFORE UPDATE ON audit_log
+FOR EACH ROW
+BEGIN
+    IF NOT (NEW.pk_audit_id <=> OLD.pk_audit_id
+        AND NEW.fk_member_master_profile_id <=> OLD.fk_member_master_profile_id
+        AND NEW.role_name <=> OLD.role_name AND NEW.action <=> OLD.action
+        AND NEW.entity_type <=> OLD.entity_type AND NEW.entity_id <=> OLD.entity_id
+        AND NEW.entity_name <=> OLD.entity_name AND NEW.details <=> OLD.details
+        AND NEW.user_agent <=> OLD.user_agent AND NEW.created_date <=> OLD.created_date
+        AND (NEW.member_name IS NULL OR NEW.member_name <=> OLD.member_name)
+        AND (NEW.ip_address IS NULL OR NEW.ip_address <=> OLD.ip_address)) THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'audit_log is append-only.';
+    END IF;
+END;;
+DELIMITER ;

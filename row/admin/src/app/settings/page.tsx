@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { LayoutGrid, Settings, Calendar, Globe, Palette, Target, Layers, GitBranch, Wallet, Users, CreditCard, Shirt, LinkIcon, BadgeDollarSign, Coins, Trophy, Crown, History, Megaphone, Search, UserCog2, MonitorSmartphone, UserCircle2, FileBarChart, ClipboardList, ShieldCheck, Bell, Smartphone, Wrench, Mail, MessageCircle, RefreshCw, X, type LucideIcon } from "lucide-react";
+import { LayoutGrid, Settings, Calendar, Globe, Palette, Target, Layers, GitBranch, Wallet, Users, CreditCard, Shirt, LinkIcon, BadgeDollarSign, Coins, Trophy, Crown, History, Megaphone, Search, UserCog2, MonitorSmartphone, UserCircle2, FileBarChart, ClipboardList, ShieldCheck, Bell, Smartphone, Wrench, Mail, MessageCircle, RefreshCw, X, type LucideIcon } from "@/components/icons";
 import { useRouter } from "next/navigation";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { useFeature } from "@/contexts/BrandContext";
@@ -34,7 +34,7 @@ const settingsCards: SettingsCard[] = [
   },
   {
     title: "Global Search",
-    description: "Search zones, districts or clubs and jump straight to the dashboard — empty on load, results appear as you type",
+    description: "Search zones, districts or clubs and jump straight to the dashboard: empty on load, results appear as you type",
     icon: Search,
     href: "/settings/global-search",
   },
@@ -46,25 +46,25 @@ const settingsCards: SettingsCard[] = [
   },
   {
     title: "Mobile Login Check",
-    description: "Diagnostic: enter a mobile number to see if it can login on the mobile app and what clubs would appear — no OTP sent",
+    description: "Diagnostic: enter a mobile number to see if it can login on the mobile app and what clubs would appear. No OTP sent",
     icon: Smartphone,
     href: "/settings/mobile-login-check",
   },
   {
     title: "App Maintenance",
-    description: "Toggle mobile app routes / tabs under maintenance — global kill switch + per-route message + back-by date",
+    description: "Toggle mobile app routes / tabs under maintenance: global kill switch + per-route message + back-by date",
     icon: Wrench,
     href: "/settings/app-maintenance",
   },
   {
     title: "Daily Statistics Report",
-    description: "Preview / download / send the daily stats email (sync & non-sync clubs, members, projects, photos) — auto-sent daily at 6 AM",
+    description: "Preview / download / send the daily stats email (sync & non-sync clubs, members, projects, photos): auto-sent daily at 6 AM",
     icon: FileBarChart,
     href: "/settings/daily-stats-report",
   },
   {
     title: "Performance Report",
-    description: "RI Director (all districts, zone-wise) and DG (per district) progress reports — view, download the Excel, send a test email",
+    description: "RI Director (all districts, zone-wise) and DG (per district) progress reports: view, download the Excel, send a test email",
     icon: FileBarChart,
     href: "/settings/district-performance-report",
   },
@@ -76,15 +76,9 @@ const settingsCards: SettingsCard[] = [
   },
   {
     title: "Email Log",
-    description: "Every email sent via Brevo — OTP, credentials, mass emails, citations. Click any row for the full HTML body.",
+    description: "Every email sent via Brevo: OTP, credentials, mass emails, citations. Click any row for the full HTML body.",
     icon: Mail,
     href: "/settings/email-log",
-  },
-  {
-    title: "WhatsApp Log",
-    description: "Every WhatsApp message sent via Interakt — Sent / Delivered / Failed per recipient.",
-    icon: MessageCircle,
-    href: "/settings/whatsapp-log",
   },
   {
     title: "Push Notification Logs",
@@ -132,7 +126,7 @@ const settingsCards: SettingsCard[] = [
   },
   {
     title: "Project Sync",
-    description: "Rotary.org project sync log per club — who clicked Sync, whether it was published, and every reset",
+    description: "Rotary.org project sync log per club: who clicked Sync, whether it was published, and every reset",
     icon: RefreshCw,
     href: "/settings/project-sync",
   },
@@ -140,7 +134,7 @@ const settingsCards: SettingsCard[] = [
   // ─── Tier 3: Admin / Setup (less frequent) ────────────────────────────────────
   {
     title: "Super Admin Role Config",
-    description: "Promote or remove SuperAdmin access — OTP-gated by the approver on record",
+    description: "Promote or remove SuperAdmin access: OTP-gated by the approver on record",
     icon: ShieldCheck,
     href: "/settings/super-admin-role-config",
   },
@@ -151,7 +145,7 @@ const settingsCards: SettingsCard[] = [
     href: "/settings/ri-director",
   },
   {
-    title: "Goal Setting — Oversight Roles",
+    title: "Goal Setting | Oversight Roles",
     description: "Assign zone/category-scoped Goal Setting oversight roles (view, lock, comment)",
     icon: Target,
     href: "/settings/goal-setting-roles",
@@ -182,7 +176,7 @@ const settingsCards: SettingsCard[] = [
   },
   {
     title: "Wallet",
-    description: "WhatsApp & Email credits (Offline, Online, RI Director) and club-website pricing & pay-link reminders",
+    description: "Email credits (Offline, Online, RI Director) and club-website pricing & pay-link reminders",
     icon: Wallet,
     href: "/settings/wallet",
   },
@@ -257,23 +251,23 @@ const settingsCards: SettingsCard[] = [
     href: "/settings/payments-and-dues",
   },
   {
-    title: "Email & WhatsApp Credits",
+    title: "Email Credits",
     description: "Manage credits for clubs, districts and RI Director",
     icon: Coins,
-    href: "/settings/email-whatsapp-credits",
+    href: "/settings/email-credits",
   },
   {
     title: "Currency",
-    description: "Set each district's default currency for project-add forms — every district defaults to INR",
+    description: "Set each district's default currency for project-add forms: every district defaults to INR",
     icon: BadgeDollarSign,
     href: "/settings/currency",
   },
 ];
 
-// Hidden cards (page still exists, just not listed). Email & WhatsApp Credits: everything it
+// Hidden cards (page still exists, just not listed). Email Credits: everything it
 // opened now lives in Settings › Wallet (Offline / Online / RI Director Credits buttons).
 // Never on ROW: Razorpay Route is an India-only payout provider.
-const HIDDEN_HREFS = new Set<string>(["/settings/email-whatsapp-credits", "/settings/razorpay-route-accounts"]);
+const HIDDEN_HREFS = new Set<string>(["/settings/email-credits", "/settings/razorpay-route-accounts"]);
 
 export default function SettingsPage() {
   const { isSuperAdmin } = useAuth();
@@ -296,7 +290,6 @@ export default function SettingsPage() {
     "/settings/global-member-search",
     "/settings/rotary-org",
     "/settings/email-log",
-    "/settings/whatsapp-log",
     "/settings/payments-and-dues",
   ];
   const pinnedCards = PINNED_HREFS
@@ -390,7 +383,7 @@ export default function SettingsPage() {
                   <thead className="bg-slate-50 text-xs uppercase text-slate-500">
                     <tr>
                       <th className="px-4 py-3 text-left w-12">#</th>
-                      <th className="px-4 py-3 text-left w-16">Icon</th>
+                      <th className="px-4 py-3 text-left w-16"><span className="sr-only">Icon</span></th>
                       <th className="px-4 py-3 text-left">Title</th>
                     </tr>
                   </thead>

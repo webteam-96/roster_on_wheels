@@ -29,7 +29,7 @@ import { useParams, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import {
   ArrowLeft, Loader2, Search, Plus, Edit3, Download,
-} from "lucide-react";
+} from "@/components/icons";
 import { getClub, getTerminatedMembers } from "@/services/api";
 import { TerminatedMember } from "@/types/club";
 import { useAuth } from "@/contexts/AuthContext";
@@ -119,7 +119,7 @@ export default function TerminatedMembersV2Page() {
     let cancelled = false;
     getClub(clubId)
       .then((club) => { if (!cancelled) setClubName(club.clubName); })
-      .catch(() => { /* ignore — listing still works */ });
+      .catch(() => { /* ignore: listing still works */ });
     return () => { cancelled = true; };
   }, [clubId]);
 
@@ -189,7 +189,7 @@ export default function TerminatedMembersV2Page() {
             <div>
               <h1 className="text-lg font-semibold text-slate-800">Terminated Members</h1>
               <p className="text-xs text-slate-500 mt-0.5">
-                Members terminated or resigned from the club · {clubName || "—"}
+                Members terminated or resigned from the club · {clubName || "–"}
               </p>
             </div>
           </div>
@@ -201,7 +201,7 @@ export default function TerminatedMembersV2Page() {
             <div>
               <h3 className="text-sm font-semibold text-slate-800">Terminated Member Records</h3>
               <p className="text-xs text-slate-500 mt-0.5">
-                {clubName || "—"} · ordered by termination date
+                {clubName || "–"} · ordered by termination date
               </p>
             </div>
             <div className="flex flex-wrap items-center gap-2">
@@ -268,10 +268,10 @@ export default function TerminatedMembersV2Page() {
                     return (
                       <tr key={r.id} className="hover:bg-blue-50/40">
                         <td className="px-3 py-2 text-slate-500">{(page - 1) * PAGE_SIZE + i + 1}</td>
-                        <td className="px-3 py-2 text-xs text-slate-600 whitespace-nowrap">{r.rotaryId || "—"}</td>
-                        <td className="px-3 py-2 text-slate-800 font-medium">{n.first || "—"}</td>
-                        <td className="px-3 py-2 text-slate-600">{n.middle || "—"}</td>
-                        <td className="px-3 py-2 text-slate-800 font-medium">{n.last || "—"}</td>
+                        <td className="px-3 py-2 text-xs text-slate-600 whitespace-nowrap">{r.rotaryId || "–"}</td>
+                        <td className="px-3 py-2 text-slate-800 font-medium">{n.first || "–"}</td>
+                        <td className="px-3 py-2 text-slate-600">{n.middle || "–"}</td>
+                        <td className="px-3 py-2 text-slate-800 font-medium">{n.last || "–"}</td>
                         <td className="px-3 py-2 text-xs text-slate-600 whitespace-nowrap">{fmtDate(r.joinedDate)}</td>
                         <td className="px-3 py-2 text-xs text-slate-600 whitespace-nowrap">{fmtDate(r.terminationDate)}</td>
                         <td className="px-3 py-2">
@@ -280,7 +280,7 @@ export default function TerminatedMembersV2Page() {
                               {r.terminationReason}
                             </span>
                           ) : (
-                            <span className="text-xs text-slate-400">—</span>
+                            <span className="text-xs text-slate-400">, </span>
                           )}
                         </td>
                         {canManage && (

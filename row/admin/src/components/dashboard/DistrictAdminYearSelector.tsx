@@ -15,7 +15,7 @@
 
 import { useEffect, useState, useRef } from "react";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
-import { ChevronDown, Calendar } from "lucide-react";
+import { ChevronDown, Calendar } from "@/components/icons";
 import { useAuth } from "@/contexts/AuthContext";
 import { getRotaryYears } from "@/services/api";
 import type { RotaryYear } from "@/types/rotaryYear";

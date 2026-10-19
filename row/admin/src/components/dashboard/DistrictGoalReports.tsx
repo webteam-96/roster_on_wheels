@@ -7,7 +7,7 @@
 import { useEffect, useState } from "react";
 import ClubGoalComingSoon from "@/components/ClubGoalComingSoon";
 import { CLUB_GOAL_SETTING_COMING_SOON } from "@/lib/clubGoalSetting";
-import { Download, BarChart3 } from "lucide-react";
+import { Download, BarChart3 } from "@/components/icons";
 import { saveAs } from "file-saver";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";

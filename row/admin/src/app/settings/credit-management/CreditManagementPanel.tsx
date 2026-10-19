@@ -7,7 +7,7 @@ import {
   getCreditList, addCredit, updateCredit, deleteCredit, getDistricts, getDistrictClubs, getCreditUsageHistory,
 } from "@/services/api";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { Pencil, Trash2 } from "lucide-react";
+import { Pencil, Trash2 } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -22,7 +22,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
-import { ArrowLeft, Plus, Loader2, Download } from "lucide-react";
+import { ArrowLeft, Plus, Loader2, Download } from "@/components/icons";
 import { exportToCSV } from "@/utils/csvExport";
 import RotaryLoader from "@/components/RotaryLoader";
 import Link from "next/link";
@@ -45,7 +45,7 @@ interface UsageHistoryItem {
 }
 
 /**
- * Offline credit entry (Super Admin gives WhatsApp/Email credits by hand) — the former
+ * Offline credit entry (Super Admin gives email credits by hand) — the former
  * /settings/credit-management page, now shown inside Settings › Wallet under "Offline".
  * `embedded` hides the page header; `onChanged` lets Wallet refresh its combined list.
  */
@@ -57,10 +57,8 @@ export default function CreditManagementPanel({ embedded = false, onChanged }: {
   const [clubs, setClubs] = useState<ClubOption[]>([]);
   const [formDistrictId, setFormDistrictId] = useState("");
   const [formClubId, setFormClubId] = useState("");
-  const [formCreditType, setFormCreditType] = useState("Email");
+  const formCreditType = "Email";
   const [formCreditCount, setFormCreditCount] = useState("");
-  const [formWhatsAppCount, setFormWhatsAppCount] = useState("");
-  const [formEmailCount, setFormEmailCount] = useState("");
   const [formToDate, setFormToDate] = useState("");
   const [formTransactionId, setFormTransactionId] = useState("");
   const [formPaymentDate, setFormPaymentDate] = useState("");
@@ -245,26 +243,16 @@ export default function CreditManagementPanel({ embedded = false, onChanged }: {
       setErrorMessage("District and Expiry Date are required.");
       return;
     }
-    if (formCreditType === "Both") {
-      if (!formEmailCount || !formWhatsAppCount) {
-        setErrorMessage("Please enter both Email and WhatsApp credit counts.");
-        return;
-      }
-    } else if (!formCreditCount) {
+    if (!formCreditCount) {
       setErrorMessage("Please enter credit count.");
       return;
     }
 
     setSubmitting(true);
     try {
-      if (formCreditType === "Both") {
-        await addCredit(buildFormData("Email", formEmailCount));
-        await addCredit(buildFormData("WhatsApp", formWhatsAppCount));
-      } else {
         await addCredit(buildFormData(formCreditType, formCreditCount));
-      }
       setSuccessMessage("Credits added successfully. Confirmation email sent to admin.");
-      setFormClubId(""); setFormCreditCount(""); setFormEmailCount(""); setFormWhatsAppCount("");
+      setFormClubId(""); setFormCreditCount("");
       setFormToDate("");
       setFormTransactionId(""); setFormPaymentDate(""); setFormProofDocument(null);
       fetchCredits();
@@ -304,11 +292,11 @@ export default function CreditManagementPanel({ embedded = false, onChanged }: {
         {!embedded && (
         <div className="flex items-center gap-3">
           <Button variant="outline" size="icon" asChild>
-            <Link href="/settings/email-whatsapp-credits"><ArrowLeft className="h-4 w-4" /></Link>
+            <Link href="/settings/email-credits"><ArrowLeft className="h-4 w-4" /></Link>
           </Button>
           <div>
             <h2 className="text-2xl font-bold tracking-tight text-primary">Credit Management</h2>
-            <p className="text-muted-foreground text-base">Manage email and WhatsApp credits for clubs</p>
+            <p className="text-muted-foreground text-base">Manage email credits for clubs</p>
           </div>
         </div>
         )}
@@ -330,7 +318,7 @@ export default function CreditManagementPanel({ embedded = false, onChanged }: {
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label>Club <span className="text-muted-foreground text-xs">(optional — leave blank for district-level)</span></Label>
+                <Label>Club <span className="text-muted-foreground text-xs">(optional. Leave blank for district-level)</span></Label>
                 <Select value={formClubId} onValueChange={setFormClubId} disabled={!formDistrictId}>
                   <SelectTrigger><SelectValue placeholder="All Clubs (District Level)" /></SelectTrigger>
                   <SelectContent>
@@ -341,36 +329,12 @@ export default function CreditManagementPanel({ embedded = false, onChanged }: {
                   </SelectContent>
                 </Select>
               </div>
-              <div className="space-y-2">
-                <Label>Credit Type *</Label>
-                <div className="flex gap-4 pt-2">
-                  {["Email", "WhatsApp", "Both"].map((t) => (
-                    <label key={t} className="flex items-center gap-2 cursor-pointer">
-                      <input type="radio" name="creditType" value={t} checked={formCreditType === t} onChange={() => setFormCreditType(t)} className="accent-primary" />
-                      <span className="text-sm">{t}</span>
-                    </label>
-                  ))}
-                </div>
-              </div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              {formCreditType === "Both" ? (
-                <>
-                  <div className="space-y-2">
-                    <Label>Email Count *</Label>
-                    <Input type="number" value={formEmailCount} onChange={(e) => setFormEmailCount(e.target.value)} placeholder="e.g. 50" min="1" />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>WhatsApp Count *</Label>
-                    <Input type="number" value={formWhatsAppCount} onChange={(e) => setFormWhatsAppCount(e.target.value)} placeholder="e.g. 100" min="1" />
-                  </div>
-                </>
-              ) : (
                 <div className="space-y-2">
                   <Label>Credit Count *</Label>
                   <Input type="number" value={formCreditCount} onChange={(e) => setFormCreditCount(e.target.value)} placeholder="e.g. 500" min="1" />
                 </div>
-              )}
               <div className="space-y-2">
                 <Label>Expiry Date *</Label>
                 <DateField value={formToDate} onChange={setFormToDate} />
@@ -433,7 +397,6 @@ export default function CreditManagementPanel({ embedded = false, onChanged }: {
                     <SelectContent>
                       <SelectItem value="all">All Types</SelectItem>
                       <SelectItem value="Email">Email</SelectItem>
-                      <SelectItem value="WhatsApp">WhatsApp</SelectItem>
                     </SelectContent>
                   </Select>
                   <Select value={filterStatus} onValueChange={(v) => { setFilterStatus(v === "all" ? "" : v); setPage(1); }}>
@@ -515,7 +478,7 @@ export default function CreditManagementPanel({ embedded = false, onChanged }: {
                               ) : "\u2014"}
                             </TableCell>
                             <TableCell className="text-sm">{new Date(item.createdDate).toLocaleString(appLocale(), { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })}</TableCell>
-                            <TableCell className="text-sm">{item.lastUsedDate ? new Date(item.lastUsedDate).toLocaleString(appLocale(), { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" }) : "—"}</TableCell>
+                            <TableCell className="text-sm">{item.lastUsedDate ? new Date(item.lastUsedDate).toLocaleString(appLocale(), { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" }) : "–"}</TableCell>
                             <TableCell>
                               {item.isExpired ? (
                                 <Badge variant="destructive">Expired</Badge>
@@ -538,7 +501,7 @@ export default function CreditManagementPanel({ embedded = false, onChanged }: {
                                   )}
                                 </div>
                               ) : (
-                                <span className="text-xs text-muted-foreground">—</span>
+                                <span className="text-xs text-muted-foreground">, </span>
                               )}
                             </TableCell>
                           </TableRow>
@@ -595,7 +558,6 @@ export default function CreditManagementPanel({ embedded = false, onChanged }: {
                     <SelectContent>
                       <SelectItem value="all">All Types</SelectItem>
                       <SelectItem value="Email">Email</SelectItem>
-                      <SelectItem value="WhatsApp">WhatsApp</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>

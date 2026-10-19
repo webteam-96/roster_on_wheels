@@ -25,7 +25,7 @@ import Image from "next/image";
 import {
   User, Share2, Home, Briefcase, Users, Plus, Trash2, Info,
   Search, Mail, Phone, IdCard, UserPlus, ArrowLeft,
-} from "lucide-react";
+} from "@/components/icons";
 import { createMember, getCountries, getMembers, addClubMember, getPhotoUrl, getMember, updateMember, getClubMemberHonorary, setClubMemberHonorary, getDistricts, getRotaryYears, getCogDesignation, updateCogDesignation } from "@/services/api";
 import { useAuth } from "@/contexts/AuthContext";
 import SearchableCombo from "@/components/SearchableCombo";
@@ -176,7 +176,7 @@ function SectionCard({
 }) {
   return (
     <div className="rounded-xl border border-slate-200 overflow-hidden mb-4">
-      <div className="flex items-center gap-3 px-4 py-2.5 bg-gradient-to-r from-slate-50 to-white border-b border-slate-100">
+      <div className="flex items-center gap-3 px-4 py-2.5 bg-slate-50 border-b border-slate-100">
         <div className={`flex items-center justify-center h-7 w-7 rounded-full text-white text-xs font-bold ${dot}`}>
           {number}
         </div>
@@ -343,7 +343,7 @@ function EditMemberV2Form() {
             try {
               const h = await getClubMemberHonorary(clubIdNum, memberId);
               memWithHonorary = { ...mem, isHonoraryMember: !!h.isHonorary };
-            } catch { /* non-fatal — checkbox stays false */ }
+            } catch { /* non-fatal: checkbox stays false */ }
           }
         }
         setFormData(memWithHonorary);
@@ -369,7 +369,7 @@ function EditMemberV2Form() {
       .catch(() => {});
     getCogDesignation(COG_CLUB_ID, memberId)
       .then((v) => { setCogDistrict(v.districtNumber || ""); setCogYear(v.yearLabel || ""); })
-      .catch(() => { /* non-fatal — pickers just start empty */ });
+      .catch(() => { /* non-fatal: pickers just start empty */ });
   }, [isCog, memberId]);
 
   const resAddr = getAddress(formData.addresses as MemberAddress[], "Residential");
@@ -926,7 +926,7 @@ function EditMemberV2Form() {
       title="Edit Member"
       subtitle={
         isAllReadOnly
-          ? "View-only — your role does not allow editing this profile"
+          ? "View-only: your role does not allow editing this profile"
           : isAdminPartial
           ? "Update member details (some identity fields are read-only)"
           : "Update member details"
@@ -1065,7 +1065,7 @@ function EditMemberV2Form() {
               />
               Honorary Member (this club)
               {!isSuperAdmin && (
-                <span className="text-[10px] italic font-normal">— SuperAdmin only</span>
+                <span className="text-[10px] italic font-normal">,  SuperAdmin only</span>
               )}
             </label>
           )}

@@ -38,7 +38,7 @@ import RotaryLoader from "@/components/RotaryLoader";
 import { Switch } from "@/components/ui/switch";
 import {
   ArrowLeft, Plus, Search, Edit3, Trash2, AlertTriangle, Users, ImageIcon, FolderOpen, Info, Download, Loader2,
-} from "lucide-react";
+} from "@/components/icons";
 
 import { appLocale } from "@/lib/appFormat";
 function useSyncDistrictIdFromUrl(): void {
@@ -80,7 +80,7 @@ export default function DistrictPphCampsV2Page() {
       exportPphAttendeeReport(rows, {
         filename: "PPH_Camp_Attendees_District",
         title: "PPH Camp Attendee Report",
-        subtitle: `${districtName || "District"} — all attendee entries across clubs (club-wise)`,
+        subtitle: `${districtName || "District"}: all attendee entries across clubs (club-wise)`,
       });
     } catch (err: any) {
       setErrorMessage(err?.response?.data?.message || err?.response?.data || "Failed to download attendee report.");
@@ -151,7 +151,7 @@ export default function DistrictPphCampsV2Page() {
     <ProtectedRoute>
       <DistrictAdminShell
         pageTitle="PPH Camps"
-        pageSubtitle={districtName || "—"}
+        pageSubtitle={districtName || "–"}
         activeNavHref="/district-admin-dashboard/egovernance"
       >
         <div className="space-y-5">

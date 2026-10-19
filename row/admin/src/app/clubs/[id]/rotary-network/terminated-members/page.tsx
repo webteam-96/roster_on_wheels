@@ -11,7 +11,7 @@ import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
 import Pagination from "@/components/Pagination";
-import { ArrowLeft, Search, UserX, X, Download } from "lucide-react";
+import { ArrowLeft, Search, UserX, X, Download } from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
 import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";

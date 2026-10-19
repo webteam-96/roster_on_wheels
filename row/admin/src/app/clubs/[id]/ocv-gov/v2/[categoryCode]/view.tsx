@@ -33,8 +33,8 @@ import Link from "next/link";
 import {
   ArrowLeft, Upload, Search, FileText, Banknote, ShieldCheck, Gift,
   FilePlus2, IndianRupee, Eye, Download, Edit3, Trash2, Loader2, AlertTriangle, FolderUp,
-} from "lucide-react";
-import type { LucideIcon } from "lucide-react";
+} from "@/components/icons";
+import type { LucideIcon } from "@/components/icons";
 import {
   getOcvCategories,
   getOcvDocumentTypes,
@@ -65,12 +65,12 @@ const CATEGORY_VISUAL: Record<
   string,
   { icon: LucideIcon; accent: string; bg: string; tint: string }
 > = {
-  static_documents:     { icon: FileText,    accent: "text-blue-600",    bg: "bg-blue-50",    tint: "from-blue-50/60" },
-  financial_documents:  { icon: Banknote,    accent: "text-emerald-600", bg: "bg-emerald-50", tint: "from-emerald-50/60" },
-  trust_documents:      { icon: ShieldCheck, accent: "text-violet-600",  bg: "bg-violet-50",  tint: "from-violet-50/60" },
-  grants:               { icon: Gift,        accent: "text-amber-600",   bg: "bg-amber-50",   tint: "from-amber-50/60" },
-  additional_documents: { icon: FilePlus2,   accent: "text-teal-600",    bg: "bg-teal-50",    tint: "from-teal-50/60" },
-  dues:                 { icon: IndianRupee, accent: "text-rose-600",    bg: "bg-rose-50",    tint: "from-rose-50/60" },
+  static_documents:     { icon: FileText,    accent: "text-blue-600",    bg: "bg-blue-50",    tint: "bg-blue-50/60" },
+  financial_documents:  { icon: Banknote,    accent: "text-emerald-600", bg: "bg-emerald-50", tint: "bg-emerald-50/60" },
+  trust_documents:      { icon: ShieldCheck, accent: "text-violet-600",  bg: "bg-violet-50",  tint: "bg-violet-50/60" },
+  grants:               { icon: Gift,        accent: "text-amber-600",   bg: "bg-amber-50",   tint: "bg-amber-50/60" },
+  additional_documents: { icon: FilePlus2,   accent: "text-teal-600",    bg: "bg-teal-50",    tint: "bg-teal-50/60" },
+  dues:                 { icon: IndianRupee, accent: "text-rose-600",    bg: "bg-rose-50",    tint: "bg-rose-50/60" },
 };
 
 function formatBytes(bytes: number): string {
@@ -82,7 +82,7 @@ function formatBytes(bytes: number): string {
 }
 
 function formatDateTime(s: string | null | undefined): string {
-  if (!s) return "—";
+  if (!s) return "–";
   try {
     return new Date(s).toLocaleString(appLocale(), {
       day: "2-digit", month: "short", year: "numeric",
@@ -92,7 +92,7 @@ function formatDateTime(s: string | null | undefined): string {
 }
 
 function formatDate(s: string | null | undefined): string {
-  if (!s) return "—";
+  if (!s) return "–";
   try {
     return new Date(s).toLocaleDateString(appLocale(), { day: "2-digit", month: "short", year: "numeric" });
   } catch { return s; }
@@ -411,7 +411,7 @@ export function OcvCategoryV2View({
         {/* Upload card */}
         {!loading && category && (
           <div className={`bg-white rounded-2xl border border-slate-200 overflow-hidden`}>
-            <div className={`px-5 py-3 border-b border-slate-100 bg-gradient-to-r ${visual.tint} to-white`}>
+            <div className={`px-5 py-3 border-b border-slate-100 ${visual.tint}`}>
               <h2 className="text-sm font-semibold text-slate-800">Upload a document</h2>
               <p className="text-xs text-slate-500 mt-0.5">
                 Allowed file types: PDF, DOC, DOCX, XLS, XLSX, JPG, JPEG, PNG, GIF.
@@ -565,7 +565,7 @@ export function OcvCategoryV2View({
                       <tr key={doc.id} className="hover:bg-blue-50/40">
                         <td className="px-3 py-2 text-slate-500">{i + 1}</td>
                         <td className="px-3 py-2 font-medium text-slate-800">
-                          {doc.customTypeName ? `${doc.typeName} — ${doc.customTypeName}` : doc.typeName}
+                          {doc.customTypeName ? `${doc.typeName}: ${doc.customTypeName}` : doc.typeName}
                         </td>
                         <td className="px-3 py-2 text-slate-600 max-w-[240px] truncate" title={doc.originalFileName}>
                           {doc.originalFileName}
@@ -573,7 +573,7 @@ export function OcvCategoryV2View({
                         <td className="px-3 py-2 text-slate-500 tabular-nums">{formatBytes(doc.fileSize)}</td>
                         {isDues && (
                           <td className="px-3 py-2 text-slate-700 tabular-nums">
-                            {doc.amount != null ? `Rs. ${doc.amount.toLocaleString(appLocale())}` : "—"}
+                            {doc.amount != null ? `Rs. ${doc.amount.toLocaleString(appLocale())}` : "–"}
                           </td>
                         )}
                         {isDues && (

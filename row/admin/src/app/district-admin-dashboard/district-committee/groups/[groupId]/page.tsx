@@ -13,7 +13,7 @@ import {
   getCommitteeGroupById, reorderGroupMembers, reorderSubGroups, updateCommitteeGroup,
 } from "@/services/api";
 import { useDragSort } from "@/hooks/useDragSort";
-import { GripVertical } from "lucide-react";
+import { GripVertical } from "@/components/icons";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -25,7 +25,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogD
 import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
 import AlertModal from "@/components/AlertModal";
-import { ArrowLeft, Plus, Pencil, Trash2, AlertTriangle, Users, Layers, Search, X, Upload, Lock } from "lucide-react";
+import { ArrowLeft, Plus, Pencil, Trash2, AlertTriangle, Users, Layers, Search, X, Upload, Lock } from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
 import Pagination from "@/components/Pagination";
 import NonSyncRemovedCommitteeMembers from "@/components/dashboard/NonSyncRemovedCommitteeMembers";
@@ -334,28 +334,28 @@ export default function DistrictAdminDashboardGroupDetailPage() {
                     onChange={(e) => setNameDraft(e.target.value)}
                     onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); saveRename(); } if (e.key === "Escape") setEditingName(false); }}
                     autoFocus
-                    className="h-9 w-72 text-lg font-bold text-[#1e3a5f]"
+                    className="h-9 w-72 text-lg font-bold text-ink"
                     placeholder="Group name"
                   />
-                  <Button size="sm" onClick={saveRename} disabled={savingName || !nameDraft.trim()} className="bg-[#1e3a5f] hover:bg-[#152a44] text-white">
+                  <Button size="sm" onClick={saveRename} disabled={savingName || !nameDraft.trim()} className="bg-azure hover:bg-mint-ink text-white">
                     {savingName ? "Saving..." : "Save"}
                   </Button>
                   <Button size="sm" variant="outline" onClick={() => setEditingName(false)} disabled={savingName} className="border-slate-200 text-slate-700 hover:bg-slate-50">Cancel</Button>
                 </div>
               ) : (
                 <>
-                  <h2 className="text-2xl font-bold tracking-tight text-[#1e3a5f]">
-                    District Committee — {groupName || "Group"}
+                  <h2 className="text-2xl font-bold tracking-tight text-ink">
+                    District Committee: {groupName || "Group"}
                   </h2>
                   {canManage && !isAutoManaged && (
-                    <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-500 hover:text-[#1e3a5f] hover:bg-slate-100" onClick={startRename} title="Rename group">
+                    <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-500 hover:text-ink hover:bg-slate-100" onClick={startRename} title="Rename group">
                       <Pencil className="h-4 w-4" />
                     </Button>
                   )}
                 </>
               )}
               {isAutoManaged && (
-                <Badge variant="secondary" className="flex items-center gap-1" title="Auto-managed by BOD — members are added/removed via Board of Directors">
+                <Badge variant="secondary" className="flex items-center gap-1" title="Auto-managed by BOD: members are added/removed via Board of Directors">
                   <Lock className="h-3 w-3" />Auto
                 </Badge>
               )}
@@ -374,7 +374,7 @@ export default function DistrictAdminDashboardGroupDetailPage() {
           <div className="space-y-8">
             {/* ---- Members ---- */}
             <div className="space-y-4">
-              <h3 className="text-lg font-semibold text-[#1e3a5f] flex items-center gap-2">
+              <h3 className="text-lg font-semibold text-ink flex items-center gap-2">
                 <Users className="h-5 w-5" />Members <span className="text-slate-400 font-normal">({memberTotalCount})</span>
               </h3>
               <div className="flex items-center gap-3 flex-wrap">
@@ -396,7 +396,7 @@ export default function DistrictAdminDashboardGroupDetailPage() {
                 <Button variant="outline" size="sm" onClick={runMemberSearch} type="button">Search</Button>
                 {canManageMembers && (
                   <div className="ml-auto">
-                    <Button onClick={openAddMemberDialog} className="bg-[#1e3a5f] hover:bg-[#152a44] text-white"><Plus className="mr-2 h-4 w-4" />Add Member</Button>
+                    <Button onClick={openAddMemberDialog} className="bg-azure hover:bg-mint-ink text-white"><Plus className="mr-2 h-4 w-4" />Add Member</Button>
                   </div>
                 )}
               </div>
@@ -484,11 +484,11 @@ export default function DistrictAdminDashboardGroupDetailPage() {
             {/* ---- Sub Groups (stacked below members; add on top, table with edit/delete/sort) ---- */}
             <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <h3 className="text-lg font-semibold text-[#1e3a5f] flex items-center gap-2">
+                <h3 className="text-lg font-semibold text-ink flex items-center gap-2">
                   <Layers className="h-5 w-5" />Sub Groups <span className="text-slate-400 font-normal">({subGroups.length})</span>
                 </h3>
                 {canManage && (
-                  <Button onClick={() => router.push(`/district-admin-dashboard/district-committee/groups/${groupId}/sub-groups/add${backQs ? `?${backQs}` : ""}`)} className="bg-[#1e3a5f] hover:bg-[#152a44] text-white"><Plus className="mr-2 h-4 w-4" />Add Sub Group</Button>
+                  <Button onClick={() => router.push(`/district-admin-dashboard/district-committee/groups/${groupId}/sub-groups/add${backQs ? `?${backQs}` : ""}`)} className="bg-azure hover:bg-mint-ink text-white"><Plus className="mr-2 h-4 w-4" />Add Sub Group</Button>
                 )}
               </div>
               {subGroups.length === 0 ? (
@@ -518,7 +518,7 @@ export default function DistrictAdminDashboardGroupDetailPage() {
                           <td className="px-4 py-2.5 text-slate-500 tabular-nums">{idx + 1}</td>
                           <td className="px-4 py-2.5">
                             <div className="flex items-center gap-2.5">
-                              {navigatingSubGroupId === sg.id ? <RotaryLoader size="sm" /> : <Layers className="h-5 w-5 text-[#1e3a5f] flex-shrink-0" />}
+                              {navigatingSubGroupId === sg.id ? <RotaryLoader size="sm" /> : <Layers className="h-5 w-5 text-ink flex-shrink-0" />}
                               <span className="font-medium text-slate-800">{sg.subGroupName}</span>
                             </div>
                           </td>
@@ -527,7 +527,7 @@ export default function DistrictAdminDashboardGroupDetailPage() {
                             <div className="flex items-center justify-end gap-1">
                               {canManage && (
                                 <>
-                                  <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-500 hover:text-[#1e3a5f] hover:bg-slate-100" onClick={() => { setNavigatingSubGroupId(sg.id); router.push(`/district-admin-dashboard/district-committee/groups/${groupId}/sub-groups/${sg.id}${backQs ? `?${backQs}` : ""}`); }}>
+                                  <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-500 hover:text-ink hover:bg-slate-100" onClick={() => { setNavigatingSubGroupId(sg.id); router.push(`/district-admin-dashboard/district-committee/groups/${groupId}/sub-groups/${sg.id}${backQs ? `?${backQs}` : ""}`); }}>
                                     <Pencil className="h-4 w-4" />
                                   </Button>
                                   <Button variant="ghost" size="icon" className="h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-50" onClick={() => setDeleteSubGroupTarget(sg)}>

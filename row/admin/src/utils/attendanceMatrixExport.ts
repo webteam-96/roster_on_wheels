@@ -128,7 +128,7 @@ export function exportAttendanceMatrix(
 
   // Row 1 — subtitle.
   ws[addr(1, 0)] = {
-    v: `Attendance Report (Member Wise)${yearLabel ? ` — RY ${yearLabel}` : ""}`,
+    v: `Attendance Report (Member Wise)${yearLabel ? `: RY ${yearLabel}` : ""}`,
     t: "s",
     s: subtitleStyle,
   };

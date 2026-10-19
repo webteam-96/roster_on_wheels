@@ -13,7 +13,7 @@ import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
 import RotaryLoader from "@/components/RotaryLoader";
 import ProtectedRoute from "@/components/ProtectedRoute";
-import { ArrowLeft, Save } from "lucide-react";
+import { ArrowLeft, Save } from "@/components/icons";
 import {
   getRotaryYears, getDistricts,
   getDirectoryFieldMetadata, getDirectoryConfig,
@@ -51,7 +51,6 @@ export default function DirectoryConfigForm({ mode, configId }: Props) {
   const [isSecondContactPasswordSet, setIsSecondContactPasswordSet] = useState(false);
   // Per-district notification toggles — default ON (send). Gate reminders + post-submit confirmation (never OTP).
   const [sendEmail, setSendEmail] = useState(true);
-  const [sendWhatsapp, setSendWhatsapp] = useState(true);
 
   const [dcSet, setDcSet] = useState<Set<string>>(new Set());
   const [bodSet, setBodSet] = useState<Set<string>>(new Set());
@@ -80,7 +79,6 @@ export default function DirectoryConfigForm({ mode, configId }: Props) {
           setIsFirstContactPasswordSet(Boolean(cfg.isFirstContactPasswordSet));
           setIsSecondContactPasswordSet(Boolean(cfg.isSecondContactPasswordSet));
           setSendEmail(cfg.sendEmail == null ? true : !!cfg.sendEmail);
-          setSendWhatsapp(cfg.sendWhatsapp == null ? true : !!cfg.sendWhatsapp);
           setDcSet(new Set(cfg.dcFields ?? []));
           setBodSet(new Set(cfg.bodFields ?? []));
           setMemberSet(new Set(cfg.memberFields ?? []));
@@ -126,7 +124,6 @@ export default function DirectoryConfigForm({ mode, configId }: Props) {
         bodFields: Array.from(bodSet),
         memberFields: Array.from(memberSet),
         sendEmail,
-        sendWhatsapp,
       };
       if (mode === "create") {
         await createDirectoryConfig(payload);
@@ -146,7 +143,7 @@ export default function DirectoryConfigForm({ mode, configId }: Props) {
   const renderGroup = (title: string, set: Set<string>, setter: (s: Set<string>) => void) => (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
-        <CardTitle className="text-base">{title} — select fields</CardTitle>
+        <CardTitle className="text-base">{title}: select fields</CardTitle>
         <div className="flex gap-2">
           <Button size="sm" variant="outline" onClick={() => selectAll(setter)}>Select All</Button>
           <Button size="sm" variant="outline" onClick={() => clearAll(setter)}>Clear All</Button>
@@ -240,7 +237,7 @@ export default function DirectoryConfigForm({ mode, configId }: Props) {
                 First Contact Password
                 {mode === "edit" && (
                   <span className={`ml-2 text-xs ${isFirstContactPasswordSet ? "text-emerald-600" : "text-muted-foreground"}`}>
-                    {isFirstContactPasswordSet ? "(set — leave blank to keep)" : "(not set)"}
+                    {isFirstContactPasswordSet ? "(set. Leave blank to keep)" : "(not set)"}
                   </span>
                 )}
               </Label>
@@ -257,7 +254,7 @@ export default function DirectoryConfigForm({ mode, configId }: Props) {
                 Second Contact Password
                 {mode === "edit" && (
                   <span className={`ml-2 text-xs ${isSecondContactPasswordSet ? "text-emerald-600" : "text-muted-foreground"}`}>
-                    {isSecondContactPasswordSet ? "(set — leave blank to keep)" : "(not set)"}
+                    {isSecondContactPasswordSet ? "(set. Leave blank to keep)" : "(not set)"}
                   </span>
                 )}
               </Label>
@@ -288,15 +285,6 @@ export default function DirectoryConfigForm({ mode, configId }: Props) {
                 className="h-4 w-4 rounded border-slate-300"
               />
               <span className="text-sm font-medium">Send Email</span>
-            </label>
-            <label className="flex w-fit items-center gap-3 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={sendWhatsapp}
-                onChange={(e) => setSendWhatsapp(e.target.checked)}
-                className="h-4 w-4 rounded border-slate-300"
-              />
-              <span className="text-sm font-medium">Send WhatsApp</span>
             </label>
           </CardContent>
         </Card>

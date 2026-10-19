@@ -8,7 +8,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
-import { Download, Loader2, Plus, RefreshCw, Search, ShieldAlert } from "lucide-react";
+import { Download, Loader2, Plus, RefreshCw, Search, ShieldAlert } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";

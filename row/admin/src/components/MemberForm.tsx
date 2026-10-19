@@ -26,7 +26,7 @@ import {
   LANGUAGES,
   RELATIONS,
 } from "@/lib/constants";
-import { Plus, Trash2, Save, ArrowLeft } from "lucide-react";
+import { Plus, Trash2, Save, ArrowLeft } from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
 import Link from "next/link";
 import { DayMonthPicker } from "@/components/DayMonthPicker";
@@ -690,7 +690,7 @@ export default function MemberForm({
                       Honorary Member (this club)
                       {!isSuperAdmin && (
                         <span className="ml-1 text-[10px] italic font-normal text-muted-foreground">
-                          — SuperAdmin only
+                         : SuperAdmin only
                         </span>
                       )}
                     </Label>

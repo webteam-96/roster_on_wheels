@@ -11,7 +11,7 @@ import {
 import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
 import AlertModal from "@/components/AlertModal";
-import { ArrowLeft, Plus, Pencil, Trash2, Users, AlertTriangle, FileSpreadsheet, Download, RefreshCw, BarChart3 } from "lucide-react";
+import { ArrowLeft, Plus, Pencil, Trash2, Users, AlertTriangle, FileSpreadsheet, Download, RefreshCw, BarChart3 } from "@/components/icons";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle,
 } from "@/components/ui/dialog";

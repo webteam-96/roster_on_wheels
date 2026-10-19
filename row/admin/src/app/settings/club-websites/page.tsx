@@ -25,7 +25,7 @@ import {
   ArrowLeft, Plus, Pencil, Trash2, Power, PowerOff, Send, FileText, Download,
   CheckCircle2, Clock, AlertTriangle, XCircle, Globe, Settings as SettingsIcon,
   RotateCw, Server, Loader2, Lock, Wrench, ChevronDown, Zap, Sparkles,
-} from "lucide-react";
+} from "@/components/icons";
 import {
   getDistricts, getThemes,
   getClubWebsites, getClubWebsiteLogs, getClubWebsiteHistory,
@@ -419,7 +419,7 @@ export default function ClubWebsitesPage() {
         setSuccessMessage("Deactivated.");
       } else {
         await activateClubWebsite(r.id);
-        setSuccessMessage("Activated — welcome email sent to Pres/Sec.");
+        setSuccessMessage("Activated: welcome email sent to Pres/Sec.");
       }
       await loadRows();
     } catch (err: any) {
@@ -448,7 +448,7 @@ export default function ClubWebsitesPage() {
       if (res.skippedPurchased > 0) parts.push(`${res.skippedPurchased} skipped (already purchased)`);
       if (res.notFound > 0) parts.push(`${res.notFound} not found`);
       parts.push(`emails: ${res.emailsSent}/${res.emailsTotal}`);
-      setSuccessMessage(`Bulk trial done — ${parts.join(", ")}.`);
+      setSuccessMessage(`Bulk trial done: ${parts.join(", ")}.`);
       setSelectedIds(new Set());
       await loadRows();
     } catch (err: any) {
@@ -508,7 +508,7 @@ export default function ClubWebsitesPage() {
       "Recycle all club website IIS app pools?\n\n" +
       "Use this ONLY after deploying new club-website code so every pool picks up the new build.\n" +
       "Public club sites will be briefly slow (cold start) during recycle.\n\n" +
-      "DO NOT use this for normal theme/banner/project changes — those auto-refresh without recycling.\n\n" +
+      "DO NOT use this for normal theme/banner/project changes: those auto-refresh without recycling.\n\n" +
       "Continue?"
     )) return;
     setRecyclingPools(true);
@@ -518,7 +518,7 @@ export default function ClubWebsitesPage() {
         setErrorMessage(`Recycle failed: ${res.error}`);
       } else if (res.permissionDenied) {
         setErrorMessage(
-          `Recycled ${res.recycled}/${res.totalPools} pools. ${res.failed} failed — most likely a permission issue. ` +
+          `Recycled ${res.recycled}/${res.totalPools} pools. ${res.failed} failed: most likely a permission issue. ` +
           `The API's IIS app pool identity needs permission to run appcmd.exe (add it to Administrators or grant IIS management rights).`
         );
       } else if (res.failed > 0) {
@@ -541,7 +541,7 @@ export default function ClubWebsitesPage() {
   const doForceCleanPlesk = async () => {
     const label = prompt("Enter subdomain label or full FQDN to force-delete from Plesk\n(examples: 'rcc2' or 'club.example.org')\n\nThis removes from Plesk only. Our DB is not touched.\nYour shared ClubWebsite folder is protected.");
     if (!label?.trim()) return;
-    if (!confirm(`Force-delete '${label.trim()}' from Plesk?\n\nOnly removes from Plesk/IIS — ClubWebsite folder is protected.`)) return;
+    if (!confirm(`Force-delete '${label.trim()}' from Plesk?\n\nOnly removes from Plesk/IIS: ClubWebsite folder is protected.`)) return;
     try {
       const res = await forceDeletePleskSubdomain(label.trim());
       setSuccessMessage(res?.message || "Done.");
@@ -606,7 +606,7 @@ export default function ClubWebsitesPage() {
     setBusyId(`${id}-rem`);
     try {
       const res = await sendClubWebsiteReminder(id);
-      setSuccessMessage(`Reminder — sent: ${res.sent}, failed: ${res.failed}.`);
+      setSuccessMessage(`Reminder: sent: ${res.sent}, failed: ${res.failed}.`);
       await loadRows();
     } catch (err: any) {
       setErrorMessage(err?.response?.data?.message || "Send failed.");
@@ -718,7 +718,7 @@ export default function ClubWebsitesPage() {
         { key: "advertisementCount", label: "Advertisements", width: 14 },
         { key: "projectCount", label: "Projects", width: 10 },
       ],
-      { title: "Club Websites — Third party Domains", subtitle: `Exported ${new Date().toLocaleDateString(appLocale())}` });
+      { title: "Club Websites | Third party Domains", subtitle: `Exported ${new Date().toLocaleDateString(appLocale())}` });
     // No success alert here either - see the note in exportExcel.
   };
 
@@ -750,7 +750,7 @@ export default function ClubWebsitesPage() {
                 </p>
                 <p className="text-sm text-muted-foreground mt-1">
                   {busyId.endsWith("-del")
-                    ? "Removing subdomain from Plesk + IIS and deleting the portal record. Please wait — do not close this tab."
+                    ? "Removing subdomain from Plesk + IIS and deleting the portal record. Please wait. Do not close this tab."
                     : busyId.endsWith("-force")
                     ? "Updating status and sending emails."
                     : "Creating subdomain in Plesk, provisioning SSL, and sending welcome email. This may take up to 30 seconds."}
@@ -800,7 +800,7 @@ export default function ClubWebsitesPage() {
               variant="outline"
               onClick={doRecycleAllPools}
               disabled={recyclingPools}
-              title="Recycle every IIS app pool whose name contains the parent domain. Use AFTER a code deploy so all pools pick up the new build in one shot. Theme/banner/project changes auto-refresh — don't need this."
+              title="Recycle every IIS app pool whose name contains the parent domain. Use AFTER a code deploy so all pools pick up the new build in one shot. Theme/banner/project changes auto-refresh. Don't need this."
             >
               {recyclingPools
                 ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Recycling all pools…</>
@@ -911,7 +911,7 @@ export default function ClubWebsitesPage() {
                   {filteredRows.map(r => {
                     // Phase 4 kill-switch: row is "chain inactive" when its club, district, or zone is inactive.
                     const chainInactive = r.chainActive === 0;
-                    const inactiveTitle = chainInactive ? "Inactive — reactivate from Clubs/Districts page" : undefined;
+                    const inactiveTitle = chainInactive ? "Inactive: reactivate from Clubs/Districts page" : undefined;
                     const subUrl = toVisitUrl(r.subdomain, parentDomain);
                     const clientUrl = r.clientDomain ? toVisitUrl(r.clientDomain) : null;
                     return (
@@ -969,9 +969,9 @@ export default function ClubWebsitesPage() {
                           </div>
                         )}
                       </TableCell>
-                      <TableCell className="text-xs">{r.themeName || "—"}</TableCell>
-                      <TableCell className="text-xs">{r.startDate ? new Date(r.startDate).toLocaleDateString(appLocale()) : "—"}</TableCell>
-                      <TableCell className="text-xs">{r.endDate ? new Date(r.endDate).toLocaleDateString(appLocale()) : "—"}</TableCell>
+                      <TableCell className="text-xs">{r.themeName || "–"}</TableCell>
+                      <TableCell className="text-xs">{r.startDate ? new Date(r.startDate).toLocaleDateString(appLocale()) : "–"}</TableCell>
+                      <TableCell className="text-xs">{r.endDate ? new Date(r.endDate).toLocaleDateString(appLocale()) : "–"}</TableCell>
                       <TableCell>
                         <div className="flex flex-col items-start gap-1">
                           {statusBadge(r.status, r.daysLeft)}
@@ -996,7 +996,7 @@ export default function ClubWebsitesPage() {
                               <Button size="sm" variant="default" className="h-7 bg-blue-600 hover:bg-blue-700" onClick={() => doRetry(r.id)} disabled={busyId === `${r.id}-retry` || chainInactive} title={chainInactive ? inactiveTitle : "Retry Plesk activation"}>
                                 {busyId === `${r.id}-retry` ? <Loader2 className="h-3 w-3 animate-spin" /> : <RotateCw className="h-3 w-3" />}
                               </Button>
-                              <Button size="sm" variant="outline" className="h-7 text-amber-700" onClick={() => doForceActivate(r.id)} disabled={busyId === `${r.id}-force` || chainInactive} title={chainInactive ? inactiveTitle : "Force Activate (skip Plesk — manual setup required)"}>
+                              <Button size="sm" variant="outline" className="h-7 text-amber-700" onClick={() => doForceActivate(r.id)} disabled={busyId === `${r.id}-force` || chainInactive} title={chainInactive ? inactiveTitle : "Force Activate (skip Plesk: manual setup required)"}>
                                 {busyId === `${r.id}-force` ? <Loader2 className="h-3 w-3 animate-spin" /> : <AlertTriangle className="h-3 w-3" />}
                               </Button>
                             </>
@@ -1012,7 +1012,7 @@ export default function ClubWebsitesPage() {
                           <Button size="sm" variant="outline" className="h-7" onClick={() => viewLogs(r.id)} title="View activity log (all changes, activations, reminders)">
                             <FileText className="h-3 w-3" />
                           </Button>
-                          <Button size="sm" variant="ghost" className="h-7 text-red-600" onClick={() => doDelete(r.id)} disabled={busyId === `${r.id}-del` || chainInactive} title={chainInactive ? inactiveTitle : "Delete website — removes from Plesk + portal"}>
+                          <Button size="sm" variant="ghost" className="h-7 text-red-600" onClick={() => doDelete(r.id)} disabled={busyId === `${r.id}-del` || chainInactive} title={chainInactive ? inactiveTitle : "Delete website: removes from Plesk + portal"}>
                             {busyId === `${r.id}-del` ? <Loader2 className="h-3 w-3 animate-spin" /> : <Trash2 className="h-3 w-3" />}
                           </Button>
                           <Button size="sm" variant="ghost" className="h-7 text-red-400" onClick={() => doDeleteDbOnly(r.id)} disabled={busyId === `${r.id}-del` || chainInactive} title={chainInactive ? inactiveTitle : "Delete portal record only (keep Plesk subdomain intact)"}>
@@ -1089,7 +1089,7 @@ export default function ClubWebsitesPage() {
                   const isFrozen = editingId !== null && currentStatus && currentStatus !== "Inactive";
                   return (
                     <>
-                      <Label>Subdomain * {isFrozen && <span className="text-xs text-muted-foreground">(frozen — cannot change after activation)</span>}</Label>
+                      <Label>Subdomain * {isFrozen && <span className="text-xs text-muted-foreground">(frozen: cannot change after activation)</span>}</Label>
                       <div className="flex items-stretch">
                         <Input
                           placeholder="rcmumbai"
@@ -1147,18 +1147,18 @@ export default function ClubWebsitesPage() {
                       <div className="font-mono text-[11px] bg-background border rounded p-2 leading-5">
                         <div>Type: <strong>A</strong></div>
                         <div>Host / Name: <strong>@</strong> (and <strong>www</strong> if you use it)</div>
-                        <div>Value / Points to: <strong>{serverIp || "—"}</strong></div>
+                        <div>Value / Points to: <strong>{serverIp || "–"}</strong></div>
                       </div>
                       <div className="flex items-center gap-2 flex-wrap">
                         <Button type="button" size="sm" variant="outline" className="h-7" onClick={runDomainCheck} disabled={domainCheck.status === "checking"}>
                           {domainCheck.status === "checking" ? "Checking…" : "Check pointing"}
                         </Button>
                         {domainCheck.status === "pass" && (
-                          <span className="text-green-700">✓ Points to our server ({serverIp}) — you can save now.</span>
+                          <span className="text-green-700">✓ Points to our server ({serverIp}). You can save now.</span>
                         )}
                         {domainCheck.status === "fail" && (
                           <span className="text-red-600">
-                            ✗ Not pointing yet{domainCheck.ips.length ? ` — found: ${domainCheck.ips.join(", ")}` : " — no A record found"}
+                            ✗ Not pointing yet{domainCheck.ips.length ? `: found: ${domainCheck.ips.join(", ")}` : ". No A record found"}
                           </span>
                         )}
                       </div>
@@ -1182,7 +1182,7 @@ export default function ClubWebsitesPage() {
                 {!formThemeId && <p className="text-xs text-red-600 mt-1">Required.</p>}
               </div>
               <div>
-                <Label>Reminder Days (override) — default {defaultReminderDays}</Label>
+                <Label>Reminder Days (override): default {defaultReminderDays}</Label>
                 <Input type="number" min="1" max="180" placeholder={`Default ${defaultReminderDays}`} value={formReminderDays} onChange={(e) => setFormReminderDays(e.target.value)} />
               </div>
               <div>
@@ -1257,7 +1257,7 @@ export default function ClubWebsitesPage() {
                   value={formMode === "trial" ? "" : formAmount}
                   onChange={(e) => setFormAmount(e.target.value)}
                   disabled={formMode === "trial"}
-                  placeholder={formMode === "trial" ? "—" : ""}
+                  placeholder={formMode === "trial" ? "–" : ""}
                 />
               </div>
               <div>
@@ -1266,7 +1266,7 @@ export default function ClubWebsitesPage() {
                   value={formMode === "trial" ? "" : formTransactionId}
                   onChange={(e) => setFormTransactionId(e.target.value)}
                   disabled={formMode === "trial"}
-                  placeholder={formMode === "trial" ? "—" : ""}
+                  placeholder={formMode === "trial" ? "–" : ""}
                 />
               </div>
               <div>
@@ -1276,7 +1276,7 @@ export default function ClubWebsitesPage() {
               <div>
                 <Label className={formMode === "trial" ? "text-muted-foreground" : ""}>Payment Mode</Label>
                 <Input
-                  placeholder={formMode === "trial" ? "—" : "UPI / Cheque / Bank Transfer"}
+                  placeholder={formMode === "trial" ? "–" : "UPI / Cheque / Bank Transfer"}
                   value={formMode === "trial" ? "" : formPaymentMode}
                   onChange={(e) => setFormPaymentMode(e.target.value)}
                   disabled={formMode === "trial"}
@@ -1304,10 +1304,10 @@ export default function ClubWebsitesPage() {
                       {clubHistory.map((h: any) => (
                         <TableRow key={h.id}>
                           <TableCell className="font-mono text-xs">{h.subdomain}</TableCell>
-                          <TableCell className="text-xs">{h.startDate ? new Date(h.startDate).toLocaleDateString(appLocale()) : "—"}</TableCell>
-                          <TableCell className="text-xs">{h.endDate ? new Date(h.endDate).toLocaleDateString(appLocale()) : "—"}</TableCell>
+                          <TableCell className="text-xs">{h.startDate ? new Date(h.startDate).toLocaleDateString(appLocale()) : "–"}</TableCell>
+                          <TableCell className="text-xs">{h.endDate ? new Date(h.endDate).toLocaleDateString(appLocale()) : "–"}</TableCell>
                           <TableCell><Badge variant="outline">{h.status}</Badge></TableCell>
-                          <TableCell className="text-xs">{h.amountPaid ? `${currencySymbol()}${Number(h.amountPaid).toLocaleString(appLocale())}` : "—"}</TableCell>
+                          <TableCell className="text-xs">{h.amountPaid ? `${currencySymbol()}${Number(h.amountPaid).toLocaleString(appLocale())}` : "–"}</TableCell>
                         </TableRow>
                       ))}
                     </TableBody>
@@ -1342,8 +1342,8 @@ export default function ClubWebsitesPage() {
                     <TableRow key={l.id}>
                       <TableCell className="text-xs">{new Date(l.performedDate).toLocaleString(appLocale())}</TableCell>
                       <TableCell><Badge variant="outline">{l.action}</Badge></TableCell>
-                      <TableCell className="text-xs">{l.performedByName || (l.performedBy === 0 ? "System" : "—")}</TableCell>
-                      <TableCell className="text-xs">{l.details || "—"}</TableCell>
+                      <TableCell className="text-xs">{l.performedByName || (l.performedBy === 0 ? "System" : "–")}</TableCell>
+                      <TableCell className="text-xs">{l.details || "–"}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
@@ -1389,7 +1389,7 @@ export default function ClubWebsitesPage() {
               <div className="flex justify-center py-12"><RotaryLoader size="lg" /></div>
             ) : (
               <>
-                <p className="text-xs text-muted-foreground mb-2">Copy this full output and paste it back in chat — it shows exactly how Plesk represents this subdomain and which endpoint exposes cert properties.</p>
+                <p className="text-xs text-muted-foreground mb-2">Copy this full output and paste it back in chat. It shows exactly how Plesk represents this subdomain and which endpoint exposes cert properties.</p>
                 <Textarea readOnly value={sslDiagText} className="font-mono text-xs h-[60vh]" onFocus={(e) => e.currentTarget.select()} />
               </>
             )}

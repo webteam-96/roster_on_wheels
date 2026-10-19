@@ -79,7 +79,6 @@ export const FEATURE_DEFAULTS: Readonly<Record<string, boolean>> = {
   "masters.editable": false,
   "documents.strictGlyphs": true,
   "sync.conditionalProfiles": true,
-  "whatsapp.purposeCallback": true,
   "modules.citation": false,
   "modules.zonalAwards": false,
   "modules.wallet": false,
@@ -98,7 +97,7 @@ export const DEFAULT_BRAND: Brand = {
   productName: "Roster On Wheels",
   shortName: "ROW",
   // ROW logo shipped with the portal: on a white card for dark backgrounds, transparent for light ones.
-  logoUrl: "/brand/row-logo-badge.png",
+  logoUrl: "/brand/row-logo-inverse.png", // all-white reversed lockup for dark surfaces
   logoDarkUrl: "/brand/row-logo.png",
   faviconUrl: "",
   openGraphImageUrl: "/brand/row-logo-badge.png",

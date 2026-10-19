@@ -18,11 +18,11 @@ import ErrorAlert from "@/components/ErrorAlert";
 import {
   ArrowLeft, Upload, X,
   FileText, Send, Bell, Link2, FileUp,
-} from "lucide-react";
+} from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
 import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";
-import WhatsAppRecipientBadge from "@/components/WhatsAppRecipientBadge";
+import RecipientBadge from "@/components/RecipientBadge";
 import { TEXT_INPUT_REGEX } from "@/lib/textInput";
 
 function Req({ children, hint }: { children: React.ReactNode; hint?: string }) {
@@ -72,7 +72,6 @@ export default function NewslettersAddPage() {
   const [filePath, setFilePath] = useState<string | null>(null);
   const [fileName, setFileName] = useState<string | null>(null);
   const [fileUploading, setFileUploading] = useState(false);
-  const [isSendWhatsapp, setIsSendWhatsapp] = useState(false);
   const [isSendEmail, setIsSendEmail] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -155,7 +154,6 @@ export default function NewslettersAddPage() {
         attachmentType,
         linkUrl: attachmentType === "link" ? linkUrl.trim() : null,
         filePath: attachmentType === "file" ? filePath : null,
-        isSendWhatsapp,
         isSendEmail,
       });
       setSuccessMessage("Newsletter created successfully.");
@@ -281,19 +279,6 @@ export default function NewslettersAddPage() {
         {/* 3. Notification Settings */}
         <Section icon={Bell} title="Notification Settings" number={3}>
           <div className="space-y-4">
-            {/* WhatsApp notify checkbox hidden 2026-09-07 per request — re-enable later. Value still submits (default off). */}
-            {false && (
-            <label className="flex items-center gap-3 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={isSendWhatsapp}
-                onChange={(e) => setIsSendWhatsapp(e.target.checked)}
-                className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
-              />
-              <span className="text-sm font-medium">Notify members via WhatsApp</span>
-              {isSendWhatsapp && <WhatsAppRecipientBadge scope="club" clubId={clubId} />}
-            </label>
-            )}
             <label className="flex items-center gap-3 cursor-pointer">
               <input
                 type="checkbox"
@@ -302,7 +287,7 @@ export default function NewslettersAddPage() {
                 className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
               />
               <span className="text-sm font-medium">Notify members via Email</span>
-              {isSendEmail && <WhatsAppRecipientBadge scope="club" clubId={clubId} channel="email" />}
+              {isSendEmail && <RecipientBadge scope="club" clubId={clubId} />}
             </label>
           </div>
         </Section>

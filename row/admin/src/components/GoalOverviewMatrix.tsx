@@ -9,7 +9,7 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import RotaryLoader from "@/components/RotaryLoader";
-import { LayoutGrid } from "lucide-react";
+import { LayoutGrid } from "@/components/icons";
 
 // SuperAdmin read-only overview: pick a year + zone + category, then see every district in
 // that zone side-by-side, one row per metric, each cell showing Target and/or Achieved.
@@ -31,7 +31,7 @@ export default function GoalOverviewMatrix({
 
   useEffect(() => {
     (async () => {
-      try { setCategories(await getGoalOversightCategories()); } catch { /* ignore — grid just won't offer categories */ }
+      try { setCategories(await getGoalOversightCategories()); } catch { /* ignore: grid just won't offer categories */ }
     })();
   }, []);
 
@@ -82,7 +82,7 @@ export default function GoalOverviewMatrix({
 
           {/* Zone radios */}
           <div>
-            <label className="text-xs font-semibold text-slate-700 mb-1.5 block">Zone <span className="font-normal text-muted-foreground">— pick one</span></label>
+            <label className="text-xs font-semibold text-slate-700 mb-1.5 block">Zone <span className="font-normal text-muted-foreground">,  pick one</span></label>
             {zones.length === 0 ? (
               <p className="text-xs text-muted-foreground">No zones available.</p>
             ) : (
@@ -102,7 +102,7 @@ export default function GoalOverviewMatrix({
 
           {/* Category radios */}
           <div>
-            <label className="text-xs font-semibold text-slate-700 mb-1.5 block">Category <span className="font-normal text-muted-foreground">— pick one</span></label>
+            <label className="text-xs font-semibold text-slate-700 mb-1.5 block">Category <span className="font-normal text-muted-foreground">,  pick one</span></label>
             {categories.length === 0 ? (
               <p className="text-xs text-muted-foreground">Loading categories…</p>
             ) : (
@@ -170,22 +170,22 @@ export default function GoalOverviewMatrix({
                               {row.hasReference && (
                                 <span className="text-xs">
                                   <span className="text-muted-foreground">Total: </span>
-                                  <span className="font-semibold text-blue-700">{cell.total ?? "—"}</span>
+                                  <span className="font-semibold text-blue-700">{cell.total ?? "–"}</span>
                                 </span>
                               )}
                               {row.hasTarget && (
                                 <span className="text-xs">
                                   <span className="text-muted-foreground">Target: </span>
-                                  <span className="font-semibold text-slate-800">{cell.target ?? "—"}</span>
+                                  <span className="font-semibold text-slate-800">{cell.target ?? "–"}</span>
                                 </span>
                               )}
                               {row.hasAchieved && (
                                 <span className="text-xs">
                                   <span className="text-muted-foreground">Achieved: </span>
-                                  <span className="font-semibold text-emerald-700">{cell.achieved ?? "—"}</span>
+                                  <span className="font-semibold text-emerald-700">{cell.achieved ?? "–"}</span>
                                 </span>
                               )}
-                              {!row.hasReference && !row.hasTarget && !row.hasAchieved && <span className="text-muted-foreground">—</span>}
+                              {!row.hasReference && !row.hasTarget && !row.hasAchieved && <span className="text-muted-foreground">, </span>}
                             </div>
                           </td>
                         ))}

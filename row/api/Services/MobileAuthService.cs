@@ -1,3 +1,4 @@
+using System.Data;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
@@ -12,38 +13,22 @@ public class MobileAuthService : IMobileAuthService
 {
     private readonly IConfiguration _configuration;
     private readonly IEmailService _emailService;
-    private readonly ISmsService _smsService;
-    private readonly IWhatsAppService _whatsAppService;
-    private readonly TwilioSmsSender _twilio;
-    private readonly MetaWhatsAppSender _metaWhatsApp;
     private readonly ILogger<MobileAuthService> _logger;
     private readonly string _connectionString;
 
-    // Mobile JWT settings
-    // 10-year expiry per user 2026-07-10. Every mobile/OTP JWT stays valid
-    // for 10 years so external integrations (web-directory partners) don't
-    // need to re-auth. Regular mobile app users benefit too — no forced
-    // re-login every 30 days. To revoke a specific compromised token there
-    // is no per-token revocation; rotating JwtSettings.Secret in
-    // appsettings.json invalidates ALL tokens (nuclear option).
-    private const int MobileJwtDays = 3650;
+    // Mobile JWT lifetime (ROW 2026-10-19): 90 days, the same as MobileJwtRefreshMiddleware, which re-issues the
+    // token daily for active users. RIZones issued 10-year tokens that could not be revoked one by one; a lost
+    // phone's token now expires 90 days after its last use.
+    private const int MobileJwtDays = 90;
     private const int OtpExpiryMinutes = 5;
 
     public MobileAuthService(
         IConfiguration configuration,
         IEmailService emailService,
-        ISmsService smsService,
-        IWhatsAppService whatsAppService,
-        TwilioSmsSender twilio,
-        MetaWhatsAppSender metaWhatsApp,
         ILogger<MobileAuthService> logger)
     {
         _configuration = configuration;
         _emailService = emailService;
-        _smsService = smsService;
-        _whatsAppService = whatsAppService;
-        _twilio = twilio;
-        _metaWhatsApp = metaWhatsApp;
         _logger = logger;
         _connectionString = configuration.GetConnectionString("DefaultConnection")!;
     }
@@ -51,346 +36,61 @@ public class MobileAuthService : IMobileAuthService
     private MySqlConnection CreateConnection() => new(_connectionString);
 
     // ══════════════════════════════════════════════════════════════
-    // Request OTP
+    // Password login (email + password, every member; ROW 2026-10-19)
     // ══════════════════════════════════════════════════════════════
-    public async Task<MobileRequestOtpResponse> RequestOtpAsync(MobileRequestOtpDto dto)
+
+    // Compared against when no account matches, so a wrong email costs the same BCrypt time as a wrong password.
+    private static readonly string DummyHash = BCrypt.Net.BCrypt.HashPassword("row-timing-equaliser");
+
+    public async Task<MobileVerifyOtpResponse> LoginWithPasswordAsync(MobilePasswordLoginDto dto)
     {
-        if (string.IsNullOrWhiteSpace(dto.Identifier))
-            throw new ArgumentException("Identifier is required.");
+        const string invalid = "Invalid email or password.";
+        var email = (dto.Email ?? "").Trim();
+        if (email.Length == 0 || string.IsNullOrEmpty(dto.Password))
+            throw new ArgumentException("Email and password are required.");
 
         using var conn = CreateConnection();
         await conn.OpenAsync();
 
-        var identifier = dto.Identifier.Trim();
-        bool isEmail = identifier.Contains('@');
-        var loginType = (dto.LoginType ?? "member").ToLowerInvariant();
-
-        // If mobile number, require country id
-        if (!isEmail && !dto.CountryId.HasValue)
-            throw new InvalidOperationException("Country ID is required for mobile number login.");
-
-        // ── Resolve the target (member or family) ──
-        int? memberId = null;
-        int? familyMemberId = null;
-        string? targetEmail = null;
-        string? targetMobile = null;
-        int? memberCountryId = null;
-        string memberName = "";
-
-        if (loginType == "family")
+        var member = await conn.QueryFirstOrDefaultAsync<dynamic>(
+            "sp_auth_get_member_by_email", new { p_Email = email }, commandType: CommandType.StoredProcedure);
+        var cred = member == null ? null : await conn.QueryFirstOrDefaultAsync<dynamic>(
+            "sp_auth_get_credentials", new { p_MemberId = (int)member.Id }, commandType: CommandType.StoredProcedure);
+        if (cred == null)
         {
-            // Family member lookup
-            dynamic? fam = null;
-            if (isEmail)
-            {
-                fam = await conn.QueryFirstOrDefaultAsync<dynamic>(@"
-                    SELECT pk_member_family_details_id AS id, fk_member_master_profile_id AS memberId, Name,
-                           EmailId, PhoneNumber, fk_country_id AS countryId
-                    FROM member_family_details
-                    WHERE EmailId = @Id AND isdeleted = 0
-                    ORDER BY pk_member_family_details_id ASC LIMIT 1",
-                    new { Id = identifier });
-            }
-            else
-            {
-                fam = await conn.QueryFirstOrDefaultAsync<dynamic>(@"
-                    SELECT pk_member_family_details_id AS id, fk_member_master_profile_id AS memberId, Name,
-                           EmailId, PhoneNumber, fk_country_id AS countryId
-                    FROM member_family_details
-                    WHERE PhoneNumber = @Id AND fk_country_id = @CId AND isdeleted = 0
-                    ORDER BY pk_member_family_details_id ASC LIMIT 1",
-                    new { Id = identifier, CId = dto.CountryId });
-            }
-
-            if (fam == null)
-                throw new KeyNotFoundException("No family member found with this identifier.");
-
-            // NOTE: cross-flow block intentionally removed (2026-06-13). A registered
-            // Rotarian whose mobile/email is ALSO recorded as another Rotarian's
-            // family member (e.g. spouse who is themselves a Rotarian) is allowed
-            // to choose Family Login and land in the spouse's family-mode view.
-            // They can still log in as themselves separately via Member Login.
-
-            familyMemberId = (int)fam.id;
-            memberId = (int)fam.memberId;
-            targetEmail = (string?)fam.EmailId;
-            targetMobile = (string?)fam.PhoneNumber;
-            memberCountryId = fam.countryId == null ? null : (int?)fam.countryId;
-            memberName = (string)fam.Name ?? "";
-        }
-        else
-        {
-            // Member (rotarian) lookup
-            dynamic? member = null;
-            if (isEmail)
-            {
-                member = await conn.QueryFirstOrDefaultAsync<dynamic>(@"
-                    SELECT pk_member_master_profile_id AS id, MemberName, EmailId, PrimaryMobileNumber,
-                           fk_primary_country_id AS countryId
-                    FROM member_master_profile
-                    WHERE EmailId = @Id AND isdeleted = 0
-                    ORDER BY pk_member_master_profile_id ASC LIMIT 1",
-                    new { Id = identifier });
-            }
-            else
-            {
-                member = await conn.QueryFirstOrDefaultAsync<dynamic>(@"
-                    SELECT pk_member_master_profile_id AS id, MemberName, EmailId, PrimaryMobileNumber,
-                           fk_primary_country_id AS countryId
-                    FROM member_master_profile
-                    WHERE PrimaryMobileNumber = @Id AND fk_primary_country_id = @CId AND isdeleted = 0
-                    ORDER BY pk_member_master_profile_id ASC LIMIT 1",
-                    new { Id = identifier, CId = dto.CountryId });
-            }
-
-            if (member == null)
-                throw new KeyNotFoundException("No rotarian found with this mobile/email.");
-
-            memberId = (int)member.id;
-            targetEmail = (string?)member.EmailId;
-            targetMobile = (string?)member.PrimaryMobileNumber;
-            memberCountryId = member.countryId == null ? null : (int?)member.countryId;
-            memberName = (string)member.MemberName ?? "";
-
-            // Non-sync cascade login guard — block early (before sending OTP) if the member's
-            // only club went non-sync. Family-login path is still covered at VerifyOtp.
-            await NonSyncLoginGuardHelper.EnsureCanLoginAsync(conn, memberId.Value);
-
-            // SuperAdmin policy on mobile:
-            //   - SA is a web-only role (no mobile dashboard surface).
-            //   - But a member who is SA + also Admin/ClubModerator/AG/RID/ZC/Member
-            //     can use mobile via that *other* role. Mobile session strips SA.
-            //   - SA-only (no other role + no club membership) → still web-only.
-            var isSuperAdmin = await conn.ExecuteScalarAsync<int>(@"
-                SELECT COUNT(*) FROM member_roles mr
-                JOIN roles r ON r.pk_role_id = mr.fk_role_id
-                WHERE mr.fk_member_master_profile_id = @MemberId
-                  AND r.RoleName = 'SuperAdmin'
-                  AND mr.IsActive = 1 AND mr.isdeleted = 0",
-                new { MemberId = memberId.Value });
-
-            if (isSuperAdmin > 0)
-            {
-                var hasOtherUsableRole = await conn.ExecuteScalarAsync<int>(@"
-                    SELECT
-                        (SELECT COUNT(*) FROM member_roles mr
-                         JOIN roles r ON r.pk_role_id = mr.fk_role_id
-                         WHERE mr.fk_member_master_profile_id = @MemberId
-                           AND r.RoleName <> 'SuperAdmin'
-                           AND mr.IsActive = 1 AND mr.isdeleted = 0)
-                      + (SELECT COUNT(*) FROM club_members
-                         WHERE fk_member_master_profile_id = @MemberId
-                           AND IsActive = 1 AND isdeleted = 0)",
-                    new { MemberId = memberId.Value });
-
-                if (hasOtherUsableRole == 0)
-                    throw new UnauthorizedAccessException("SuperAdmin cannot login on mobile. Please use the web portal.");
-            }
-
-            // Kill-switch: block if user's entire club→district→zone chain is inactive.
-            // RID is global — exempt. SA users on mobile go through this check as the
-            // non-SA role they're logging in as (consistent with stripping SA from the session).
-            var isRid = await conn.ExecuteScalarAsync<int>(@"
-                SELECT COUNT(*) FROM member_roles mr
-                JOIN roles r ON r.pk_role_id = mr.fk_role_id
-                WHERE mr.fk_member_master_profile_id = @MemberId
-                  AND r.RoleName = 'RIDirector'
-                  AND mr.IsActive = 1 AND mr.isdeleted = 0",
-                new { MemberId = memberId.Value });
-            if (isRid == 0)
-            {
-                var hasActiveChain = await conn.ExecuteScalarAsync<int>(@"
-                    SELECT COUNT(*)
-                    FROM club_members cm
-                    JOIN club_master c ON c.pk_club_id = cm.fk_club_id
-                    JOIN district_master d ON d.pk_district_id = c.fk_district_id
-                    JOIN zone_master z ON z.pk_zone_id = d.fk_zone_id
-                    WHERE cm.fk_member_master_profile_id = @MemberId
-                      AND cm.IsActive = 1 AND cm.isdeleted = 0
-                      AND c.IsActive = 1 AND c.isdeleted = 0
-                      AND d.IsActive = 1 AND d.isdeleted = 0
-                      AND z.IsActive = 1 AND z.isdeleted = 0",
-                    new { MemberId = memberId.Value });
-                if (hasActiveChain == 0)
-                    throw new UnauthorizedAccessException("Your zone, district, or club is currently inactive. Please contact your administrator.");
-            }
+            BCrypt.Net.BCrypt.Verify(dto.Password, DummyHash);
+            throw new UnauthorizedAccessException(invalid);
         }
 
-        // ── Play Store review test account ──
-        // A fixed mobile number reserved for the Play Store review team. When logging in
-        // with this exact mobile number, do NOT send any real OTP — a fixed OTP (e.g. 666666)
-        // is stored and accepted. Configured in appsettings (TestAccount:Mobile / TestAccount:Otp).
-        var testMobile = _configuration["TestAccount:Mobile"];
-        var testOtp = _configuration["TestAccount:Otp"];
-        bool isTestAccount = !isEmail
-            && !string.IsNullOrWhiteSpace(testMobile)
-            && !string.IsNullOrWhiteSpace(testOtp)
-            && identifier == testMobile.Trim();
+        int memberId = (int)member!.Id;
+        int credId = (int)cred.Id;
+        int failed = cred.FailedLoginAttempts != null ? Convert.ToInt32(cred.FailedLoginAttempts) : 0;
+        DateTime? lockoutEnd = cred.LockoutEndTime as DateTime?;
+        // Same lockout as the web login: 5 wrong passwords lock the account for 15 minutes.
+        if (failed >= 5 && lockoutEnd != null && lockoutEnd > DateTime.UtcNow)
+            throw new UnauthorizedAccessException("Account is locked due to multiple failed login attempts. Please try again later.");
 
-        // ── Generate OTP ──
-        var otp = isTestAccount ? testOtp!.Trim() : GenerateOtp();
-        // Test account OTP never effectively expires (far-future) so reviewers can use it anytime.
-        var expiresAt = isTestAccount
-            ? DateTime.UtcNow.AddYears(10)
-            : DateTime.UtcNow.AddMinutes(OtpExpiryMinutes);
-
-        // ── Send OTP ──
-        bool sentEmail = false;
-        bool sentSms = false;
-        bool sentWhatsApp = false;
-
-        async Task<bool> TrySendLoginOtpEmailAsync()
+        if (!BCrypt.Net.BCrypt.Verify(dto.Password, (string)cred.PasswordHash))
         {
-            if (string.IsNullOrWhiteSpace(targetEmail)) return false;
-            try
-            {
-                var subject = "Rotary Mobile App - Login OTP";
-                var body = $@"{EmailService.EMAIL_HEADER}
-                    <h2 style='color: #1a365d; margin-top: 0;'>Mobile App Login OTP</h2>
-                    <p>Dear {memberName},</p>
-                    <p>Your one-time password (OTP) to login to the Rotary mobile app is:</p>
-                    <div style='background-color: #f7fafc; border: 2px solid #3182ce; border-radius: 8px; padding: 20px; margin: 16px 0; text-align: center;'>
-                        <p style='font-size: 32px; font-weight: bold; color: #1a365d; letter-spacing: 8px; margin: 0;'>{otp}</p>
-                    </div>
-                    <p style='color: #e53e3e;'><strong>This OTP is valid for {OtpExpiryMinutes} minutes.</strong></p>
-                    <p>If you did not request this OTP, please ignore this email.</p>
-                    {EmailService.EMAIL_FOOTER}";
-
-                await _emailService.SendGenericEmailAsync(targetEmail, subject, body);
-                return true;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Failed to send mobile login OTP email to {Email}", targetEmail);
-                return false;
-            }
+            failed++;
+            await conn.ExecuteAsync("sp_auth_update_failed_login",
+                new { p_CredId = credId, p_Attempts = failed, p_Lockout = failed >= 5 ? DateTime.UtcNow.AddMinutes(15) : (DateTime?)null },
+                commandType: CommandType.StoredProcedure);
+            throw new UnauthorizedAccessException(invalid);
         }
 
-        if (!isTestAccount)
+        await conn.ExecuteAsync("sp_auth_update_success_login", new { p_CredId = credId }, commandType: CommandType.StoredProcedure);
+
+        return await IssueSessionAsync(conn, memberId, null, "member", new MobileVerifyOtpDto
         {
-            // ROW: channels from Brand:Providers:OtpPolicy for the member's country, in order, until one
-            // succeeds (the original platform's India = SMS / elsewhere = email is the policy {"IN":["sms"],"*":["email"]}).
-            foreach (var channel in await OtpChannelPolicy.ChannelsForAsync(conn, memberCountryId))
-            {
-                if (channel == "email")
-                {
-                    sentEmail = await TrySendLoginOtpEmailAsync();
-                }
-                else if (channel == "sms" && !string.IsNullOrWhiteSpace(targetMobile))
-                {
-                    var e164 = RowPhone.ToE164(targetMobile, await RowPhone.DialCodeAsync(conn, memberCountryId));
-                    if (e164 != null)
-                        sentSms = await _twilio.SendAsync(e164, $"{otp} is your {Brand.ShortName} login code. It expires in {OtpExpiryMinutes} minutes.");
-                }
-                else if (channel == "whatsapp" && !string.IsNullOrWhiteSpace(targetMobile))
-                {
-                    // Same authentication template as the NestJS edition: "otp", body {{1}} = code, copy-code button.
-                    var e164 = RowPhone.ToE164(targetMobile, await RowPhone.DialCodeAsync(conn, memberCountryId));
-                    if (e164 != null)
-                        sentWhatsApp = await _metaWhatsApp.SendTemplateAsync(e164, "otp", Brand.DefaultLanguage, new[] { otp }, otp);
-                }
-                if (sentEmail || sentSms || sentWhatsApp) break;
-            }
-
-            if (!sentEmail && !sentSms && !sentWhatsApp)
-                throw new InvalidOperationException("Failed to send OTP via email or SMS. Please try again.");
-        }
-
-        // ── Store OTP ──
-        await conn.ExecuteAsync(@"
-            INSERT INTO mobile_login_otp
-                (fk_member_master_profile_id, fk_family_member_id, login_type, identifier, country_id,
-                 otp_code, expires_at, sent_email, sent_sms, sent_whatsapp)
-            VALUES (@MemberId, @FamilyId, @LoginType, @Identifier, @CountryId,
-                    @Otp, @ExpiresAt, @SentEmail, @SentSms, @SentWhatsApp)",
-            new
-            {
-                MemberId = memberId,
-                FamilyId = familyMemberId,
-                LoginType = loginType,
-                Identifier = identifier,
-                CountryId = dto.CountryId,
-                Otp = otp,
-                ExpiresAt = expiresAt,
-                SentEmail = sentEmail ? 1 : 0,
-                SentSms = sentSms ? 1 : 0,
-                SentWhatsApp = sentWhatsApp ? 1 : 0
-            });
-
-        // TEMPORARY testing aid — echo the OTP in the response when the
-        // MobileOtp:ReturnDebugOtp flag is set. Flip the flag to false in
-        // appsettings.json to remove the debug echo. The flag is the ONLY
-        // gate; never echo unconditionally.
-        var returnDebugOtp = _configuration.GetValue<bool>("MobileOtp:ReturnDebugOtp");
-
-        return new MobileRequestOtpResponse
-        {
-            Message = "OTP sent successfully.",
-            SentEmail = sentEmail,
-            SentSms = sentSms,
-            SentWhatsApp = sentWhatsApp,
-            OtpExpiresInSeconds = OtpExpiryMinutes * 60,
-            DebugOtp = returnDebugOtp ? otp : null,
-        };
+            Imei = dto.Imei, DeviceToken = dto.DeviceToken, DeviceName = dto.DeviceName, AppVersion = dto.AppVersion,
+        });
     }
 
-    // ══════════════════════════════════════════════════════════════
-    // Verify OTP
-    // ══════════════════════════════════════════════════════════════
-    public async Task<MobileVerifyOtpResponse> VerifyOtpAsync(MobileVerifyOtpDto dto)
+    // Login guards, device session and the mobile JWT, shared by OTP and password sign-in.
+    private async Task<MobileVerifyOtpResponse> IssueSessionAsync(
+        MySqlConnection conn, int memberId, int? familyMemberId, string loginType, MobileVerifyOtpDto dto)
     {
-        if (string.IsNullOrWhiteSpace(dto.Otp))
-            throw new ArgumentException("OTP is required.");
-
-        using var conn = CreateConnection();
-        await conn.OpenAsync();
-
-        var identifier = dto.Identifier.Trim();
-        var loginType = (dto.LoginType ?? "member").ToLowerInvariant();
-
-        // Find latest un-used OTP for this identifier
-        var otpRow = await conn.QueryFirstOrDefaultAsync<dynamic>(@"
-            SELECT pk_otp_id AS id, fk_member_master_profile_id AS memberId,
-                   fk_family_member_id AS familyId, otp_code, attempts, max_attempts, expires_at
-            FROM mobile_login_otp
-            WHERE identifier = @Id AND login_type = @LoginType AND is_used = 0
-            ORDER BY pk_otp_id DESC LIMIT 1",
-            new { Id = identifier, LoginType = loginType });
-
-        if (otpRow == null)
-            throw new InvalidOperationException("No OTP request found. Please request a new OTP.");
-
-        var otpId = (int)otpRow.id;
-        var storedOtp = (string)otpRow.otp_code;
-        var attempts = (int)otpRow.attempts;
-        var maxAttempts = (int)otpRow.max_attempts;
-        var expiresAt = (DateTime)otpRow.expires_at;
-
-        if (DateTime.UtcNow > expiresAt)
-        {
-            await conn.ExecuteAsync("UPDATE mobile_login_otp SET is_used = 1 WHERE pk_otp_id = @Id", new { Id = otpId });
-            throw new InvalidOperationException("OTP has expired. Please request a new one.");
-        }
-
-        if (attempts >= maxAttempts)
-        {
-            await conn.ExecuteAsync("UPDATE mobile_login_otp SET is_used = 1 WHERE pk_otp_id = @Id", new { Id = otpId });
-            throw new InvalidOperationException("Maximum OTP attempts exceeded. Please request a new one.");
-        }
-
-        if (storedOtp != dto.Otp.Trim())
-        {
-            await conn.ExecuteAsync(
-                "UPDATE mobile_login_otp SET attempts = attempts + 1 WHERE pk_otp_id = @Id",
-                new { Id = otpId });
-            throw new InvalidOperationException($"Invalid OTP. {maxAttempts - attempts - 1} attempts remaining.");
-        }
-
-        // Mark used
-        await conn.ExecuteAsync("UPDATE mobile_login_otp SET is_used = 1 WHERE pk_otp_id = @Id", new { Id = otpId });
-
-        int memberId = (int)otpRow.memberId;
-        int? familyMemberId = otpRow.familyId == null ? null : (int?)otpRow.familyId;
 
         // Non-sync cascade login guard — deny if the member's only club went non-sync
         // (no active club_members, not in an exempt district, no global SA/ZC/RID role).

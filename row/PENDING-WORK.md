@@ -97,16 +97,21 @@ renewal pages, which wait for Payments (§2).
 
 35 of 400 files changed (`kb/mobile-diff.md`).
 
+**2026-10-19 (Flutter 3.47.7 now at `C:\srclutter`; plan `docs/superpowers/plans/2026-10-19-mobile-row-conversion.md`).** Done:
+unused RIZones `ApiConstants` removed (119) and the dead role-management screen; money and number formats follow the brand
+locale and currency (no ₹, lakh/crore or ÷84 conversion); no India phone defaults; sign-in is **email + password for every
+member** (new `api/mobile/auth/login` + `forgot-password`, rate-limited; OTP screens removed); privacy consent dialog and
+"My data" (export, withdraw); "Foundation" tabs renamed "Projects / Events"; splash vendor logo and RIZones zone line removed.
+`flutter analyze` 0 errors, `flutter test` 82/82.
+
 | Item | Why pending |
 |---|---|
-| WS10-04 currency / number / date formats (₹, lakh / crore, `en_IN`, "today") — 43 files | Not started: Flutter is not installed on this machine, so Dart changes could not even be analysed or tested here |
-| WS10-05 phone input assumes India (+91, 10 digits) | Not started; needs an international phone field and E.164 storage (the API already normalises) |
-| WS10-06 payment flows (18 files with Cashfree / Razorpay) | Waits for Payments (§2) |
-| WS10-07 push notifications | External: needs a ROW Firebase project (open decision 6); the API side is ported |
-| WS10-08 privacy screens | The backend now exists (§6); not started in the app |
-| WS10-03 translation | Not started |
-| WS10-09 store listings | External: needs store accounts and listing content (the ROW icon is now in place) |
-| Device builds / `flutter test` | No Android SDK or Flutter on this machine; last run (2026-10-10) was 70 tests passing |
+| WS10-06 payment flows (Razorpay checkout, 18 files) | Rebuild on Stripe (decided 2026-10-19), Wave 2 of `docs/superpowers/plans/2026-10-19-row-build-spec-plan.md` |
+| WS10-07 push notifications | External: needs a ROW Firebase project (open decision 6) |
+| WS10-03 translation | Not started (build spec item 3, Wave 1) |
+| WS10-09 store listings and app IDs | Decision: iOS bundle ID is `com.kaizen.row`, Android applicationId is the placeholder `com.SampleApp.row` |
+| WhatsApp screens | ROW has no WhatsApp or SMS (2026-10-19); removal in Wave 1 |
+| Version control | `row/mobile` is ignored by the repo and is not a repository itself: changes are not tracked anywhere |
 
 Clean-up, not urgent: 130 of the 200 `ApiConstants` entries are unused RIZones carry-over, and
 `role_management_screen.dart` calls `/api/admin/roles`, which neither API has (a RIZones bug).

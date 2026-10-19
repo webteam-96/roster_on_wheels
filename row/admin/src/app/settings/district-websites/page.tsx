@@ -20,7 +20,7 @@ import {
   ArrowLeft, Plus, Pencil, Trash2, Power, PowerOff, FileText, Download,
   CheckCircle2, Clock, AlertTriangle, XCircle, Globe,
   RotateCw, Server, Loader2, Lock, Wrench, ChevronDown,
-} from "lucide-react";
+} from "@/components/icons";
 import { exportToCSV } from "@/utils/csvExport";
 import {
   getDistrictWebsites, getDistrictWebsiteLogs, getAvailableDistrictsForWebsite,
@@ -296,7 +296,7 @@ export default function DistrictWebsitesPage() {
   const doForceCleanPlesk = async () => {
     const label = prompt(`Enter subdomain label or full FQDN to force-delete from Plesk\n(examples: 'd3131' or 'd3131.${PARENT_DOMAIN}')\n\nThis removes from Plesk only. DB not touched.\nShared DistrictWebsite folder is protected.`);
     if (!label?.trim()) return;
-    if (!confirm(`Force-delete '${label.trim()}' from Plesk?\n\nOnly removes from Plesk/IIS — DistrictWebsite folder is protected.`)) return;
+    if (!confirm(`Force-delete '${label.trim()}' from Plesk?\n\nOnly removes from Plesk/IIS: DistrictWebsite folder is protected.`)) return;
     try {
       const res = await forceDeleteDistrictPleskSubdomain(label.trim());
       setSuccessMessage(res?.message || "Done.");
@@ -444,7 +444,7 @@ export default function DistrictWebsitesPage() {
                   {filtered.map((r) => {
                     // Phase 4 kill-switch: row is "chain inactive" when its district or zone is inactive.
                     const chainInactive = r.chainActive === 0;
-                    const inactiveTitle = chainInactive ? "Inactive — reactivate from Districts page" : undefined;
+                    const inactiveTitle = chainInactive ? "Inactive: reactivate from Districts page" : undefined;
                     return (
                     <TableRow key={r.id}>
                       <TableCell className="font-medium">
@@ -467,7 +467,7 @@ export default function DistrictWebsitesPage() {
                               {r.clientDomain}
                             </a>
                           ) : r.clientDomain
-                        ) : "—"}
+                        ) : "–"}
                       </TableCell>
                       <TableCell>{statusBadge(r.status)}</TableCell>
                       <TableCell>
@@ -481,7 +481,7 @@ export default function DistrictWebsitesPage() {
                               <Button size="sm" variant="default" className="h-7 bg-blue-600 hover:bg-blue-700" onClick={() => doRetry(r.id)} disabled={busyId === `${r.id}-retry` || chainInactive} title={chainInactive ? inactiveTitle : "Retry Plesk activation"}>
                                 {busyId === `${r.id}-retry` ? <Loader2 className="h-3 w-3 animate-spin" /> : <RotateCw className="h-3 w-3" />}
                               </Button>
-                              <Button size="sm" variant="outline" className="h-7 text-amber-700" onClick={() => doForceActivate(r.id)} disabled={busyId === `${r.id}-force` || chainInactive} title={chainInactive ? inactiveTitle : "Force Activate (skip Plesk — manual setup required)"}>
+                              <Button size="sm" variant="outline" className="h-7 text-amber-700" onClick={() => doForceActivate(r.id)} disabled={busyId === `${r.id}-force` || chainInactive} title={chainInactive ? inactiveTitle : "Force Activate (skip Plesk: manual setup required)"}>
                                 {busyId === `${r.id}-force` ? <Loader2 className="h-3 w-3 animate-spin" /> : <AlertTriangle className="h-3 w-3" />}
                               </Button>
                             </>
@@ -494,7 +494,7 @@ export default function DistrictWebsitesPage() {
                           <Button size="sm" variant="outline" className="h-7" onClick={() => viewLogs(r.id)} title="View activity log">
                             <FileText className="h-3 w-3" />
                           </Button>
-                          <Button size="sm" variant="ghost" className="h-7 text-red-600" onClick={() => doDelete(r.id)} disabled={busyId === `${r.id}-del` || chainInactive} title={chainInactive ? inactiveTitle : "Delete website — removes from Plesk + portal"}>
+                          <Button size="sm" variant="ghost" className="h-7 text-red-600" onClick={() => doDelete(r.id)} disabled={busyId === `${r.id}-del` || chainInactive} title={chainInactive ? inactiveTitle : "Delete website: removes from Plesk + portal"}>
                             {busyId === `${r.id}-del` ? <Loader2 className="h-3 w-3 animate-spin" /> : <Trash2 className="h-3 w-3" />}
                           </Button>
                           <Button size="sm" variant="ghost" className="h-7 text-red-400" onClick={() => doDeleteDbOnly(r.id)} disabled={busyId === `${r.id}-del` || chainInactive} title={chainInactive ? inactiveTitle : "Delete portal record only (keep Plesk subdomain intact)"}>
@@ -540,7 +540,7 @@ export default function DistrictWebsitesPage() {
                 <div>
                   <Label>District</Label>
                   <div className="text-sm p-2 bg-muted rounded">
-                    {rows.find(r => r.id === editingId)?.districtNumber || "—"}
+                    {rows.find(r => r.id === editingId)?.districtNumber || "–"}
                   </div>
                 </div>
               )}
@@ -606,10 +606,10 @@ export default function DistrictWebsitesPage() {
                 <TableBody>
                   {logs.map((l: any) => (
                     <TableRow key={l.id}>
-                      <TableCell className="text-xs whitespace-nowrap">{l.performedDate ? new Date(l.performedDate).toLocaleString(appLocale()) : "—"}</TableCell>
-                      <TableCell className="text-xs">{l.performedByName || "—"}</TableCell>
+                      <TableCell className="text-xs whitespace-nowrap">{l.performedDate ? new Date(l.performedDate).toLocaleString(appLocale()) : "–"}</TableCell>
+                      <TableCell className="text-xs">{l.performedByName || "–"}</TableCell>
                       <TableCell className="text-xs font-mono">{l.action}</TableCell>
-                      <TableCell className="text-xs">{l.details || "—"}</TableCell>
+                      <TableCell className="text-xs">{l.details || "–"}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>

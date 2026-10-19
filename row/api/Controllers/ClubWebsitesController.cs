@@ -16,8 +16,6 @@ public class ClubWebsitesController : ControllerBase
     private readonly string _connectionString;
     private readonly IConfiguration _config;
     private readonly IEmailService _emailService;
-    private readonly ISmsService _sms;
-    private readonly IWhatsAppService _whatsAppService;
     private readonly PleskService _plesk;
     private readonly IClubSiteCachePurger _purger;
     private readonly IClubWebsiteActivationService _activation;
@@ -27,14 +25,12 @@ public class ClubWebsitesController : ControllerBase
     private readonly string _pleskParentDomain;
     private readonly bool _useHttps;
 
-    public ClubWebsitesController(IConfiguration config, IEmailService emailService, ISmsService sms, IWhatsAppService whatsApp, PleskService plesk, IClubSiteCachePurger purger, IClubWebsiteActivationService activation, IDnsPointingChecker dns,
+    public ClubWebsitesController(IConfiguration config, IEmailService emailService, PleskService plesk, IClubSiteCachePurger purger, IClubWebsiteActivationService activation, IDnsPointingChecker dns,
         IYearTableResolver years, IProjectCountRules countRules)
     {
         _connectionString = config.GetConnectionString("DefaultConnection")!;
         _config = config;
         _emailService = emailService;
-        _sms = sms;
-        _whatsAppService = whatsApp;
         _plesk = plesk;
         _purger = purger;
         _activation = activation;
@@ -1462,11 +1458,7 @@ public class ClubWebsitesController : ControllerBase
 {EmailService.EMAIL_FOOTER}";
 
         bool smsOk = false, emailOk = false;
-        if (mobile != "")
-        {
-            try { smsOk = await _sms.SendOtpSmsAsync(mobile, otp); }
-            catch (Exception ex) { /* logged by SMS service */ _ = ex; }
-        }
+        // ROW sends no SMS: the code goes by email only.
         if (email != "")
         {
             try { await _emailService.SendGenericEmailAsync(email, emailSubject, emailBody); emailOk = true; }
@@ -1764,7 +1756,6 @@ public class ClubWebsitesController : ControllerBase
 
         int userId = GetUserId();
         var frontend = (_config["FrontendUrl"] ?? RotaryApi.Services.Brand.PortalOrigin).TrimEnd('/');
-        var waTemplate = _config["WhatsApp:ClubWebsiteReminderTemplate"];
         var parentDomain = await conn.ExecuteScalarAsync<string?>(
             "SELECT SettingValue FROM system_settings WHERE SettingKey = 'ClubWebsiteParentDomain' LIMIT 1")
             ?? (_config.GetSection("PleskSettings")["ParentDomain"] ?? RotaryApi.Services.Brand.ClubSiteParentDomain);
@@ -1843,17 +1834,6 @@ public class ClubWebsitesController : ControllerBase
                     {
                         await _emailService.SendClubWebsitePayLinkEmailAsync(rc.email!, rc.name, clubName, rc.designation, orderType, total, endDate, daysLeft, link);
                         emailsSent++; anySent = true;
-                    }
-                    catch { failed++; }
-                }
-                // The WhatsApp template is a RENEWAL reminder (website + due date) — send only for existing sites.
-                if (hasSite && !string.IsNullOrWhiteSpace(rc.mobile) && !string.IsNullOrWhiteSpace(waTemplate))
-                {
-                    try
-                    {
-                        var ok = await _whatsAppService.SendWhatsAppWithBodyValuesAsync(rc.mobile!, waTemplate,
-                            new[] { rc.name, websiteUrl, dueDate, link });
-                        if (ok) { whatsappSent++; anySent = true; } else failed++;
                     }
                     catch { failed++; }
                 }

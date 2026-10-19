@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import {
   UserMinus, UserPlus, Search, Plus, Edit3, Trash2, Construction,
-} from "lucide-react";
+} from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
 import { getClubAdminDashboardRotaryNetwork, deletePotentialMember, getRotaryOrgTerminatedMembers } from "@/services/api";
 import { useAuth } from "@/contexts/AuthContext";
@@ -24,7 +24,7 @@ function DashboardRotaryNetworkComingSoonStub() {
       <div className="rounded-full bg-amber-100 p-5 mb-5">
         <Construction className="h-10 w-10 text-amber-600" />
       </div>
-      <h2 className="text-2xl font-bold text-slate-800 mb-2">Rotary Network — Coming Soon</h2>
+      <h2 className="text-2xl font-bold text-slate-800 mb-2">Rotary Network: Coming Soon</h2>
       <p className="text-slate-500 max-w-md text-sm">
         Terminated members (live from Rotary.org) and potential members will
         appear here once the integration is finalised.
@@ -264,7 +264,7 @@ export function DashboardRotaryNetworkView({ embedded = false }: { embedded?: bo
           <div className="flex flex-wrap items-center gap-2">
             <div
               className="inline-flex items-center gap-1 rounded-lg p-1 text-sm"
-              style={{ backgroundColor: "#1e3a5f" }}
+              style={{ backgroundColor: "#17458f" }}
             >
               <button
                 onClick={() => handleViewChange("terminated")}
@@ -273,7 +273,7 @@ export function DashboardRotaryNetworkView({ embedded = false }: { embedded?: bo
                 }`}
                 style={
                   view === "terminated"
-                    ? { backgroundColor: "#F7A81B", color: "#1e3a5f" }
+                    ? { backgroundColor: "#F7A81B", color: "#17458f" }
                     : undefined
                 }
               >
@@ -286,7 +286,7 @@ export function DashboardRotaryNetworkView({ embedded = false }: { embedded?: bo
                 }`}
                 style={
                   view === "potential"
-                    ? { backgroundColor: "#F7A81B", color: "#1e3a5f" }
+                    ? { backgroundColor: "#F7A81B", color: "#17458f" }
                     : undefined
                 }
               >
@@ -354,17 +354,17 @@ export function DashboardRotaryNetworkView({ embedded = false }: { embedded?: bo
                 return (
                   <tr key={`${view}-${r.id}`} className="hover:bg-blue-50/40">
                     <td className="px-3 py-2 text-xs text-slate-600">{index + 1}</td>
-                    <td className="px-3 py-2 text-xs text-slate-600">{r.memberId || "—"}</td>
+                    <td className="px-3 py-2 text-xs text-slate-600">{r.memberId || "–"}</td>
                     <td className="px-3 py-2">
                       <span className="inline-flex items-center text-xs font-medium px-2 py-0.5 rounded-full border bg-slate-50 text-slate-700 border-slate-200">
-                        {r.memberType || "—"}
+                        {r.memberType || "–"}
                       </span>
                     </td>
-                    <td className="px-3 py-2 text-slate-800 font-medium">{r.firstName || "—"}</td>
-                    <td className="px-3 py-2 text-slate-600">{r.middleName || "—"}</td>
-                    <td className="px-3 py-2 text-slate-800 font-medium">{r.lastName || "—"}</td>
-                    <td className="px-3 py-2 text-xs text-slate-600 whitespace-nowrap">{r.mobile || "—"}</td>
-                    <td className="px-3 py-2 text-xs text-slate-600">{r.email || "—"}</td>
+                    <td className="px-3 py-2 text-slate-800 font-medium">{r.firstName || "–"}</td>
+                    <td className="px-3 py-2 text-slate-600">{r.middleName || "–"}</td>
+                    <td className="px-3 py-2 text-slate-800 font-medium">{r.lastName || "–"}</td>
+                    <td className="px-3 py-2 text-xs text-slate-600 whitespace-nowrap">{r.mobile || "–"}</td>
+                    <td className="px-3 py-2 text-xs text-slate-600">{r.email || "–"}</td>
                     <td className="px-3 py-2 text-xs text-slate-600 whitespace-nowrap">{fmtDate(r.admissionDate)}</td>
                     {view === "terminated" && (
                       <>
@@ -375,13 +375,13 @@ export function DashboardRotaryNetworkView({ embedded = false }: { embedded?: bo
                               {r.terminationReason}
                             </span>
                           ) : (
-                            <span className="text-xs text-slate-400">—</span>
+                            <span className="text-xs text-slate-400">, </span>
                           )}
                         </td>
                       </>
                     )}
                     {view === "potential" && (
-                      <td className="px-3 py-2 text-xs text-slate-600 max-w-xs truncate" title={r.notes || undefined}>{r.notes || "—"}</td>
+                      <td className="px-3 py-2 text-xs text-slate-600 max-w-xs truncate" title={r.notes || undefined}>{r.notes || "–"}</td>
                     )}
                     {/* Actions cell (Edit + Delete) is rendered only for Potential
                         members — Terminated members are read-only on this screen. */}

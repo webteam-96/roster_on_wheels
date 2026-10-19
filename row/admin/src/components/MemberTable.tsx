@@ -20,7 +20,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { MoreHorizontal, Pencil, Trash2, User, Shield, ShieldOff } from "lucide-react";
+import { MoreHorizontal, Pencil, Trash2, User, Shield, ShieldOff } from "@/components/icons";
 import Image from "next/image";
 import Link from "next/link";
 

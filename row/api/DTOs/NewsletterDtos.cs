@@ -48,7 +48,6 @@ public class CreateNewsletterDto
     public string AttachmentType { get; set; } = "link";
     public string? LinkUrl { get; set; }
     public string? FilePath { get; set; }
-    public bool IsSendWhatsapp { get; set; }
     public bool IsSendEmail { get; set; }
 }
 
@@ -60,6 +59,5 @@ public class UpdateNewsletterDto
     public string AttachmentType { get; set; } = "link";
     public string? LinkUrl { get; set; }
     public string? FilePath { get; set; }
-    public bool IsSendWhatsapp { get; set; }
     public bool IsSendEmail { get; set; }
 }

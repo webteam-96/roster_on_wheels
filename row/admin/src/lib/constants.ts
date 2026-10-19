@@ -1,21 +1,10 @@
+import { WORLD_LANGUAGE_NAMES } from "@/i18n/worldLanguages";
+
 export const BLOOD_GROUPS = ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"];
 export const GENDERS = ["Male", "Female", "Other"];
-// A member's primary language: ROW's eight launch languages (master plan section 1.3), then the
-// next most common among Rotarians outside India, then Other.
-export const LANGUAGES = [
-  "English",
-  "French",
-  "German",
-  "Italian",
-  "Japanese",
-  "Korean",
-  "Portuguese",
-  "Spanish",
-  "Chinese",
-  "Dutch",
-  "Arabic",
-  "Other",
-];
+// A member's primary language: any world language (not limited to the brand's region),
+// rendered from i18n/worldLanguages, then "Other".
+export const LANGUAGES = [...WORLD_LANGUAGE_NAMES, "Other"];
 // Family relations — alphabetical, no "Other"/"Others" fallback. Spouse is
 // kept (gender-neutral) — Husband/Wife intentionally NOT included; the old
 // project used only Spouse and we're keeping that convention. If the user

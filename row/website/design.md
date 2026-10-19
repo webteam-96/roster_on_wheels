@@ -55,11 +55,10 @@ a second token set, don't hard-code hex anywhere.
 
 ## 2. Typography
 
-- **Family:** Inter, with the optical-size (`opsz`) axis so headings render as *Inter Display*.
-  - `--font-display: var(--font-inter), "Inter Display", "Inter", system-ui, sans-serif`
-  - `--font-body: var(--font-inter), "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif`
-  - (The CSS header comment mentions Bricolage Grotesque / Figtree — that was an earlier concept; the
-    shipped implementation is Inter. Use Inter.)
+- **Family:** **Bricolage Grotesque** (display, with its `opsz` axis) and **Figtree** (body). Inter, Geist and Space Grotesk are banned by the project's FRONTEND-RULES gate.
+  - `--font-display: var(--font-bricolage), "Bricolage Grotesque", system-ui, sans-serif`
+  - `--font-body: var(--font-figtree), "Figtree", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif`
+  - (Switched from Inter on 2026-10-19 to meet FRONTEND-RULES #7. Both fonts are SIL OFL, on Google Fonts.)
 - **Body:** weight 400, size `--fs-body` = `clamp(1.125rem, 1.08rem + .2vw, 1.1875rem)`, line-height **1.55**.
 - **Display / H2:** `--fs-h2` = `clamp(2.125rem, 1.35rem + 3.1vw, 4.25rem)`, weight **600**, line-height **.98**,
   letter-spacing **-.035em**, `text-wrap: balance`. (`.h2` class.)
@@ -69,7 +68,7 @@ a second token set, don't hard-code hex anywhere.
 Headlines are tight and large; body is comfortable and a touch oversized. Keep the negative tracking on
 display text and the near-1 line-height — that compact headline is a signature of the look.
 
-> **Flutter port:** bundle Inter (variable). Map H2/H3/body to `TextTheme` entries with the weights,
+> **Flutter port:** bundle Figtree and Bricolage Grotesque (variable TTFs). Map H2/H3/body to `TextTheme` entries with the weights,
 > heights and letter-spacing above. Use `clamp`-equivalent responsive sizing (scale by width) for display.
 
 ---
@@ -87,9 +86,11 @@ display text and the near-1 line-height — that compact headline is a signature
 
 Radii: panels `--panel-r` (32–48px); buttons are full pills (`999px`); small tiles/icon wells ~12–20px.
 
-Shadows (two levels, soft and blue-tinted — never a hard grey drop shadow):
-- `--shadow-soft: 0 1px 2px rgba(27,44,66,.06), 0 12px 32px -12px rgba(27,44,66,.22)`
-- `--shadow-lift: 0 2px 6px rgba(27,44,66,.06), 0 28px 56px -20px rgba(27,44,66,.34)`
+Separation (FRONTEND-RULES #18: no drop shadows as default separation). The two tokens are rings, not drop shadows:
+- `--shadow-soft: 0 0 0 1px var(--line)`
+- `--shadow-lift: 0 0 0 2px rgba(27,44,66,.22)` (hover/raised state)
+
+Separate surfaces with a 1px `--line` border or a tonal step (cream ↔ cream-2). No blurred drop shadows, no colour gradients.
 
 Breakpoints (max-width unless noted): **≤479** (small phone), **≤519/≤767** (phone), **≤1023** (tablet/burger
 nav), **≥1024** (desktop, inline nav), **≥1280** (wide). The primary switch is **1024px**: nav goes inline,
@@ -186,17 +187,18 @@ the shared component contract across platforms.
 ## 7. Porting checklist
 
 **Mobile app (Flutter, `row/mobile`)**
-1. Add Inter (variable) and build a `TextTheme` from §2.
+1. Bundle Figtree + Bricolage Grotesque (variable) and build a `TextTheme` from §2.
 2. Define a `RowColors` class (the §1 hexes) and a `RowTone` enum → `(fill, onFill)`.
-3. Define `RowRadii`, `RowSpacing`, `RowShadows`, `RowMotion` (durations + curves) from §3–§4.
+3. Define `RowRadii`, `RowSpacing`, `RowMotion` (durations + curves) from §3–§4. No shadow tokens: cards use elevation 0 + a `--line` border.
 4. Build the shared widgets from §5 (PillButton with optional arrow chip, ToneCard, Steps with counter,
    Faq accordion, Stat with wheel). Keep text as parameters.
 5. Honour platform reduce-motion; ship correct static layout first.
 
 **ROW web application / admin (`row/admin`, Tailwind + Next.js)**
 1. Put the §1 tokens on `:root` as CSS custom properties and map them into the Tailwind theme (colours,
-   radii, shadows, fontFamily). Reuse the exact token names.
+   radii, fontFamily; shadow utilities resolve to none). Reuse the exact token names.
 2. Reuse the button, card, section, FAQ and table specs from §5 so the portal matches the marketing site.
+   Icons: no Lucide (FRONTEND-RULES #12). Admin uses Phosphor through one `components/icons.ts` module.
 3. Keep the brand-balance rule (gold = accents, azure = fields) and the focus-ring spec.
 4. The admin is denser than the marketing site: keep the tokens and components, tighten `--section-pad`
    and panel radii for application screens rather than inventing new values.

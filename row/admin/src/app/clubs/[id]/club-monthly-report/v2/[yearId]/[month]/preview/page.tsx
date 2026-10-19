@@ -19,7 +19,7 @@ import { useParams, useRouter, useSearchParams } from "next/navigation";
 import {
   ArrowLeft, Upload, Calendar, DollarSign, Users, FolderOpen,
   FileText, Info,
-} from "lucide-react";
+} from "@/components/icons";
 import {
   getMonthlyReportPreview,
   uploadMonthlyReportToDistrict,
@@ -80,7 +80,7 @@ function SectionCard({
 }: { icon: React.ElementType; title: string; children: React.ReactNode }) {
   return (
     <div className="rounded-2xl border border-slate-200 bg-white overflow-hidden print:shadow-none print:rounded-none">
-      <div className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-slate-50 to-white border-b border-slate-100">
+      <div className="flex items-center gap-2 px-4 py-2.5 bg-slate-50 border-b border-slate-100">
         <Icon className="h-4 w-4 text-slate-500" />
         <h3 className="text-sm font-semibold text-slate-800">{title}</h3>
       </div>
@@ -232,7 +232,7 @@ function ClubMonthlyReportV2PreviewInner() {
       {/* Report header card */}
       <SectionCard
         icon={FileText}
-        title={`Club Monthly Report — ${report.monthName} ${report.yearLabel}`}
+        title={`Club Monthly Report: ${report.monthName} ${report.yearLabel}`}
       >
         <p className="text-xs text-slate-500 mb-3">{formatReportDate(report.reportDate)}</p>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-2">
@@ -442,7 +442,7 @@ function ClubMonthlyReportV2PreviewInner() {
         <Info size={14} className="text-amber-700 mt-0.5 shrink-0" />
         <p className="text-xs text-amber-800">
           <strong>Note:</strong> Agenda, MOM added in meetings &amp; photographs added in Club
-          Meetings will not be shared to the District — only the content displayed here will be
+          Meetings will not be shared to the District. Only the content displayed here will be
           shared to the District.
         </p>
       </div>

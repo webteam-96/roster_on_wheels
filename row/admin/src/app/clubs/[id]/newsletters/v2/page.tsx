@@ -17,7 +17,7 @@ import Link from "next/link";
 import {
   Newspaper, FileText, Archive, Link2, Loader2, Search, Plus, Edit3, Trash2,
   Download, ExternalLink, ArrowLeft, AlertTriangle,
-} from "lucide-react";
+} from "@/components/icons";
 import {
   getClub,
   getNewsletters,
@@ -69,7 +69,7 @@ function typeChipStyle(type: string): string {
 }
 
 function formatDateTime(s: string | null | undefined): string {
-  if (!s) return "—";
+  if (!s) return "–";
   try {
     return new Date(s).toLocaleString(appLocale(), {
       day: "2-digit", month: "short", year: "numeric",
@@ -184,7 +184,7 @@ export default function NewslettersV2Page() {
     });
   }, [newsletters, typeFilter]);
 
-  const yearLabel = years.find((y) => y.id === selectedYearId)?.yearLabel ?? "—";
+  const yearLabel = years.find((y) => y.id === selectedYearId)?.yearLabel ?? "–";
 
   // Aggregate KPIs: Total reflects the server year-total; breakdowns reflect the
   // currently loaded page (server-side paging + filters limit what we can sum here).
@@ -231,7 +231,7 @@ export default function NewslettersV2Page() {
             <div>
               <h1 className="text-lg font-semibold text-slate-800">Newsletters</h1>
               <p className="text-xs text-slate-500 mt-0.5">
-                RY {yearLabel} · {clubName || "—"}
+                RY {yearLabel} · {clubName || "–"}
               </p>
             </div>
           </div>
@@ -373,7 +373,7 @@ export default function NewslettersV2Page() {
                       <tr key={nl.id} className="hover:bg-blue-50/40">
                         <td className="px-3 py-2 text-slate-500">{(page - 1) * pageSize + i + 1}</td>
                         <td className="px-3 py-2 font-medium text-slate-800">
-                          {nl.title || "—"}
+                          {nl.title || "–"}
                         </td>
                         <td className="px-3 py-2">
                           <span className={`inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full border ${typeChipStyle(nl.attachmentType)}`}>
@@ -387,7 +387,7 @@ export default function NewslettersV2Page() {
                         <td className="px-3 py-2 text-slate-500">{yearLabel}</td>
                         <td className="px-3 py-2">
                           <span className={`inline-flex items-center text-xs font-medium px-2 py-0.5 rounded-full border ${statusChipStyle(nl.status)}`}>
-                            {nl.status || "—"}
+                            {nl.status || "–"}
                           </span>
                           <div className="mt-1"><SendStatusBadges item={nl} /></div>
                         </td>
@@ -414,7 +414,7 @@ export default function NewslettersV2Page() {
                               <Download size={13} />
                             </a>
                           ) : (
-                            <span className="text-slate-300">—</span>
+                            <span className="text-slate-300">, </span>
                           )}
                         </td>
                         {canManage && (
@@ -428,7 +428,7 @@ export default function NewslettersV2Page() {
                                 <Edit3 size={13} />
                               </Link>
                             ) : (
-                              <span className="text-slate-300">—</span>
+                              <span className="text-slate-300">, </span>
                             )}
                           </td>
                         )}

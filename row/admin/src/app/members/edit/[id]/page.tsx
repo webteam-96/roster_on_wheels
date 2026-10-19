@@ -9,7 +9,7 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 import { getMember, updateMember, getClubMemberHonorary, setClubMemberHonorary } from "@/services/api";
 import { useAuth } from "@/contexts/AuthContext";
 import { Member } from "@/types/member";
-import { AlertCircle } from "lucide-react";
+import { AlertCircle } from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";

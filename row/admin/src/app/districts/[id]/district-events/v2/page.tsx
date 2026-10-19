@@ -25,7 +25,7 @@ import Link from "next/link";
 import {
   Calendar, CalendarDays, Loader2, Search, Plus, Edit3, Trash2,
   ArrowLeft, AlertTriangle,
-} from "lucide-react";
+} from "@/components/icons";
 import {
   getDistrict,
   getDistrictEventsList,
@@ -76,7 +76,7 @@ function useSyncDistrictIdFromUrl(): void {
 }
 
 function fmtDate(s?: string | null): string {
-  if (!s) return "—";
+  if (!s) return "–";
   try {
     return new Date(s).toLocaleDateString(appLocale(), {
       day: "2-digit",
@@ -177,7 +177,7 @@ export default function DistrictEventsV2Page() {
 
   const currentYearLabel = useMemo(() => {
     const y = years.find((x) => String(x.id) === yearId);
-    return y ? y.yearLabel : "—";
+    return y ? y.yearLabel : "–";
   }, [years, yearId]);
 
   const handleDelete = async () => {
@@ -219,7 +219,7 @@ export default function DistrictEventsV2Page() {
               <div>
                 <h1 className="text-lg font-semibold text-slate-800">District Events</h1>
                 <p className="text-xs text-slate-500 mt-0.5">
-                  Post all the events executed by your district · {districtName || "—"}
+                  Post all the events executed by your district · {districtName || "–"}
                 </p>
               </div>
             </div>
@@ -298,7 +298,7 @@ export default function DistrictEventsV2Page() {
                     {items.map((item, i) => (
                       <tr key={item.id} className="hover:bg-blue-50/40">
                         <td className="px-3 py-2 text-slate-500">{(page - 1) * pageSize + i + 1}</td>
-                        <td className="px-3 py-2 font-medium text-slate-800">{item.title || "—"}</td>
+                        <td className="px-3 py-2 font-medium text-slate-800">{item.title || "–"}</td>
                         <td className="px-3 py-2 text-slate-600 whitespace-nowrap">{fmtDate(item.eventDate)}</td>
                         <td className="px-3 py-2 text-right">
                           <Link

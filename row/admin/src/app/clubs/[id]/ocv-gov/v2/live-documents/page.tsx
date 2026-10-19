@@ -17,7 +17,7 @@ import { useParams, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import {
   ArrowLeft, Calendar, Download, FileSpreadsheet, FolderOpen, Users, Loader2, Search,
-} from "lucide-react";
+} from "@/components/icons";
 import { getClub, getMonthlyReportYears, getLiveDocumentsExport } from "@/services/api";
 import type { ReportYear } from "@/types/clubMonthlyReport";
 import { exportToCSV } from "@/utils/csvExport";
@@ -123,7 +123,6 @@ const MODULES: ModuleItem[] = [
   { key: "announcements", label: "Announcements", group: "club", columns: [
     { key: "title", label: "Title", width: 25 }, { key: "description", label: "Description", width: 30 },
     { key: "publishDate", label: "Publish Date", width: 18 }, { key: "expiryDate", label: "Expiry Date", width: 18 },
-    { key: "status", label: "Status", width: 12 }, { key: "isSendWhatsapp", label: "WhatsApp", width: 10 },
   ]},
   { key: "upcoming_events", label: "Upcoming Events", group: "club", columns: [
     { key: "title", label: "Title", width: 25 }, { key: "eventDate", label: "Event Date", width: 18 },
@@ -212,7 +211,7 @@ export default function LiveDocumentsV2Page() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [clubId]);
 
-  const yearLabel = years.find((y) => y.id === selectedYearId)?.yearLabel ?? "—";
+  const yearLabel = years.find((y) => y.id === selectedYearId)?.yearLabel ?? "–";
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -238,7 +237,7 @@ export default function LiveDocumentsV2Page() {
         return;
       }
       exportToCSV(arr, `${clubName}_${mod.label.replace(/\s+/g, "_")}`, showBloodGroup ? mod.columns : mod.columns.filter((c) => c.key !== "bloodGroup"), {
-        title: `${mod.label} — ${clubName}`,
+        title: `${mod.label} | ${clubName}`,
         subtitle: `Rotary Year: ${yearLabel}`,
       });
       setSuccessMessage(`${mod.label} downloaded.`);
@@ -272,7 +271,7 @@ export default function LiveDocumentsV2Page() {
             <div className="min-w-0">
               <h1 className="text-lg font-semibold text-slate-800 leading-tight">Live Documents</h1>
               <p className="text-xs text-slate-500 mt-0.5">
-                {clubName || "—"} · Download Excel snapshots module-wise
+                {clubName || "–"} · Download Excel snapshots module-wise
               </p>
             </div>
           </div>

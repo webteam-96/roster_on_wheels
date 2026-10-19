@@ -3,7 +3,7 @@
 /**
  * Public (open, no-login) Wallet pay page.
  * --------------------------------------------------------------------------
- * Reached from the SuperAdmin's encrypted Wallet links (/pay/w/{token}). Handles WhatsApp/Email
+ * Reached from the SuperAdmin's encrypted Wallet links (/pay/w/{token}). Handles email
  * credit top-ups (club + district) inline, and hands website links back to the club-website flow.
  * "Common" links carry no entity — the payer smart-searches and picks their club/district first
  * (search stays visible; the selection shows below with a "Change" option). Credit pricing
@@ -17,9 +17,9 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import {
-  Search, MessageCircle, Mail, Globe, Megaphone, BarChart3,
+  Search, Mail, Globe, Megaphone, BarChart3,
   CheckCircle2, ShieldCheck, Zap, Lock, Check,
-} from "lucide-react";
+} from "@/components/icons";
 import PayPageShell from "@/components/PayPageShell";
 import { PayCard as Card, PayHelpCard, PayBenefits, PayTrustRows, supportPhone } from "@/components/PayCard";
 import {
@@ -37,17 +37,6 @@ const POPULAR = 1000;                         // the tile carrying the "Popular"
  * and the accent icon change, so a club officer always meets the same shape of page.
  */
 const COPY = {
-  whatsapp: {
-    icon: MessageCircle,
-    landingTitle: "WhatsApp credits",
-    lede: "Recharge your club's WhatsApp credits and stay connected.",
-    topUpTitle: "Top up WhatsApp credits",
-    benefits: [
-      { icon: MessageCircle, text: "Stay connected with members on WhatsApp" },
-      { icon: Zap, text: "Credits are added the moment payment succeeds" },
-      { icon: Megaphone, text: "Reach every member with one message" },
-    ],
-  },
   email: {
     icon: Mail,
     landingTitle: "Email credits",
@@ -84,7 +73,7 @@ function loadRazorpayScript(): Promise<boolean> {
 }
 
 const inr = (n: number) => `${currencySymbol()}${Number(n || 0).toLocaleString(appLocale(), { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-const fmtDate = (s?: string | null) => (s ? new Date(s).toLocaleDateString(appLocale(), { day: "2-digit", month: "short", year: "numeric" }) : "—");
+const fmtDate = (s?: string | null) => (s ? new Date(s).toLocaleDateString(appLocale(), { day: "2-digit", month: "short", year: "numeric" }) : "–");
 const num = (n?: number | null) => Number(n ?? 0).toLocaleString(appLocale());
 
 export default function PublicWalletPayPage() {
@@ -111,12 +100,12 @@ export default function PublicWalletPayPage() {
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<any>(null);
 
-  const purpose = link?.purpose;                       // "website" | "whatsapp" | "email"
-  const isCredit = purpose === "whatsapp" || purpose === "email";
-  const creditLabel = purpose === "email" ? "Email" : "WhatsApp";
+  const purpose = link?.purpose;                       // "website" | "email"
+  const isCredit = purpose === "email";
+  const creditLabel = "Email";
   const isCommon = !!link?.requiresPick;               // link carries no entity — payer must pick
   const status = entity?.status || null;
-  const copy = COPY[(purpose as keyof typeof COPY) || "whatsapp"] ?? COPY.whatsapp;
+  const copy = COPY[(purpose as keyof typeof COPY) || "email"] ?? COPY.email;
   const PurposeIcon = copy.icon;
   const entityWord = link?.scope === "district" ? "district" : "club";
   // GST rate is server config, so derive the percentage from the amounts rather than hardcoding it.
@@ -215,7 +204,7 @@ export default function PublicWalletPayPage() {
         amount: order.amountPaise,
         currency: order.currency,
         name: "ROW",
-        description: `${creditLabel} credits — ${entity.entityName}`,
+        description: `${creditLabel} credits: ${entity.entityName}`,
         handler: async (resp: any) => {
           try {
             const v = await verifyPublicWalletOrder(token, {
@@ -273,8 +262,8 @@ export default function PublicWalletPayPage() {
             </div>
           </dl>
           <div className="mt-4 flex items-baseline justify-between gap-3 border-t border-slate-200 pt-4">
-            <span className="text-sm font-bold text-[#17458F]">Total payable</span>
-            <span className="text-lg font-bold tabular-nums text-[#17458F]">{inr(quote.totalAmount)}</span>
+            <span className="text-sm font-bold text-azure">Total payable</span>
+            <span className="text-lg font-bold tabular-nums text-azure">{inr(quote.totalAmount)}</span>
           </div>
           <PayTrustRows activationNote="Credits are added as soon as payment succeeds." />
         </Card>
@@ -289,7 +278,7 @@ export default function PublicWalletPayPage() {
   if (loadingInfo) {
     body = (
       <div className="py-24 text-center">
-        <div className="mx-auto h-8 w-8 animate-spin rounded-full border-2 border-slate-200 border-t-[#17458F]" />
+        <div className="mx-auto h-8 w-8 animate-spin rounded-full border-2 border-slate-200 border-t-azure" />
         <p className="mt-4 text-sm text-slate-500">Loading…</p>
       </div>
     );
@@ -315,9 +304,8 @@ export default function PublicWalletPayPage() {
           <span className="font-semibold text-slate-900">{entity?.entityName}</span>.
         </p>
         {result.newBalance && (
-          <div className="mt-6 grid grid-cols-2 gap-3 text-left">
+          <div className="mt-6 grid grid-cols-1 gap-3 text-left">
             {[
-              ["WhatsApp credits", result.newBalance.whatsAppRemaining],
               ["Email credits", result.newBalance.emailRemaining],
             ].map(([label, val]) => (
               <div key={String(label)} className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
@@ -336,10 +324,10 @@ export default function PublicWalletPayPage() {
         <div className="space-y-5">
           {/* Header — club name once it's known, otherwise the purpose. Gold rule ties it to Rotary. */}
           <header className="relative overflow-hidden">
-            <h1 className="text-3xl font-bold tracking-tight text-[#17458F] sm:text-[2.5rem] sm:leading-[1.1]">
+            <h1 className="text-3xl font-bold tracking-tight text-azure sm:text-[2.5rem] sm:leading-[1.1]">
               {entity?.entityName || copy.landingTitle}
             </h1>
-            <div className="mt-3 h-1 w-16 rounded-full bg-[#F7A81B]" />
+            <div className="mt-3 h-1 w-16 rounded-full bg-marigold" />
             <p className="mt-4 text-sm text-slate-600">
               {entity ? copy.lede : `Find your ${entityWord} to check its balance and continue.`}
             </p>
@@ -358,7 +346,7 @@ export default function PublicWalletPayPage() {
                   autoFocus value={term} onChange={(e) => setTerm(e.target.value)}
                   aria-label={`Search by ${entityWord} name`}
                   placeholder={entityWord === "district" ? "Search by district number…" : "Search by club name…"}
-                  className="w-full rounded-xl border border-slate-300 bg-white py-3 pl-10 pr-3 text-sm outline-none transition focus:border-[#17458F] focus:ring-2 focus:ring-[#17458F]/20"
+                  className="w-full rounded-xl border border-slate-300 bg-white py-3 pl-10 pr-3 text-sm outline-none transition focus:border-azure focus:ring-2 focus:ring-azure/20"
                 />
               </div>
 
@@ -389,17 +377,17 @@ export default function PublicWalletPayPage() {
               )}
 
               {entity && (
-                <div className="mt-3 flex items-center justify-between gap-3 rounded-xl border border-[#17458F]/25 bg-blue-50/70 px-4 py-3">
+                <div className="mt-3 flex items-center justify-between gap-3 rounded-xl border border-azure/25 bg-blue-50/70 px-4 py-3">
                   <div className="min-w-0">
-                    <div className="text-[11px] font-semibold uppercase tracking-wide text-[#17458F]/70">
+                    <div className="text-[11px] font-semibold uppercase tracking-wide text-azure/70">
                       Selected {entityWord}
                     </div>
-                    <div className="truncate text-[15px] font-bold text-[#17458F]">{entity.entityName}</div>
+                    <div className="truncate text-[15px] font-bold text-azure">{entity.entityName}</div>
                   </div>
                   <div className="flex shrink-0 items-center gap-2">
                     <CheckCircle2 className="h-5 w-5 text-emerald-600" />
                     <button type="button" onClick={clearEntity}
-                      className="text-[13px] font-semibold text-[#17458F] hover:underline">
+                      className="text-[13px] font-semibold text-azure hover:underline">
                       Change
                     </button>
                   </div>
@@ -424,10 +412,6 @@ export default function PublicWalletPayPage() {
                     </div>
                   )}
                   <div className="flex justify-between gap-3">
-                    <dt className="text-slate-600">WhatsApp credits</dt>
-                    <dd className="font-semibold tabular-nums text-slate-900">{num(status.whatsAppRemaining)}</dd>
-                  </div>
-                  <div className="flex justify-between gap-3">
                     <dt className="text-slate-600">Email credits</dt>
                     <dd className="font-semibold tabular-nums text-slate-900">{num(status.emailRemaining)}</dd>
                   </div>
@@ -445,7 +429,7 @@ export default function PublicWalletPayPage() {
                 <Card icon={Globe} title="Club website">
                   {status.websiteCanPurchase === false ? (
                     <p className="text-sm text-slate-600">
-                      {status.websitePurchaseBlockedReason || "This website is active with plenty of time left — nothing to pay yet."}
+                      {status.websitePurchaseBlockedReason || "This website is active with plenty of time left. Nothing to pay yet."}
                     </p>
                   ) : (
                     <>
@@ -455,7 +439,7 @@ export default function PublicWalletPayPage() {
                           : "Set up a new website for this club."}
                       </p>
                       <button onClick={handleWebsite} disabled={busy}
-                        className="mt-4 w-full rounded-xl bg-gradient-to-r from-[#17458F] to-[#0F3168] py-3.5 text-sm font-bold text-white shadow-sm transition hover:brightness-110 disabled:opacity-60">
+                        className="mt-4 w-full rounded-xl bg-azure py-3.5 text-sm font-bold text-white shadow-sm transition hover:brightness-110 disabled:opacity-60">
                         {busy ? "Loading…" : "Continue to website purchase →"}
                       </button>
                     </>
@@ -475,23 +459,23 @@ export default function PublicWalletPayPage() {
                           aria-pressed={selected}
                           className={`relative rounded-xl border px-2 pb-3 pt-3.5 text-center transition ${
                             selected
-                              ? "border-[#17458F] bg-blue-50/70 ring-1 ring-[#17458F]"
+                              ? "border-azure bg-blue-50/70 ring-1 ring-azure"
                               : "border-slate-200 bg-white hover:border-slate-300"
                           }`}
                         >
                           {amt === POPULAR && (
-                            <span className="absolute -top-2 left-1/2 -translate-x-1/2 rounded-full bg-[#17458F] px-2 py-0.5 text-[9px] font-bold uppercase tracking-wide text-white">
+                            <span className="absolute -top-2 left-1/2 -translate-x-1/2 rounded-full bg-azure px-2 py-0.5 text-[9px] font-bold uppercase tracking-wide text-white">
                               Popular
                             </span>
                           )}
-                          <div className={`text-sm font-bold ${selected ? "text-[#17458F]" : "text-slate-900"}`}>
+                          <div className={`text-sm font-bold ${selected ? "text-azure" : "text-slate-900"}`}>
                             {inr(amt)}
                           </div>
                           <div className="mt-0.5 text-[11px] text-slate-500">
                             {presetCredits[amt] != null ? `${num(presetCredits[amt])} credits` : "…"}
                           </div>
                           <span className={`mx-auto mt-2 block h-4 w-4 rounded-full border-2 ${
-                            selected ? "border-[#17458F] bg-[#17458F]" : "border-slate-300"
+                            selected ? "border-azure bg-azure" : "border-slate-300"
                           }`}>
                             {selected && <Check className="h-3 w-3 text-white" strokeWidth={3.5} />}
                           </span>
@@ -507,7 +491,7 @@ export default function PublicWalletPayPage() {
                     <input
                       id="wallet-amount" type="number" min={0} value={amount}
                       onChange={(e) => setAmount(e.target.value)}
-                      className="mt-1.5 w-full rounded-xl border border-slate-300 px-3.5 py-3 text-sm outline-none transition focus:border-[#17458F] focus:ring-2 focus:ring-[#17458F]/20"
+                      className="mt-1.5 w-full rounded-xl border border-slate-300 px-3.5 py-3 text-sm outline-none transition focus:border-azure focus:ring-2 focus:ring-azure/20"
                     />
                   </div>
 
@@ -531,8 +515,8 @@ export default function PublicWalletPayPage() {
                           </div>
                         </dl>
                         <div className="mt-3 flex items-baseline justify-between gap-3 border-t border-slate-200 pt-3">
-                          <span className="font-bold text-[#17458F]">Total payable</span>
-                          <span className="text-base font-bold tabular-nums text-[#17458F]">{inr(quote.totalAmount)}</span>
+                          <span className="font-bold text-azure">Total payable</span>
+                          <span className="text-base font-bold tabular-nums text-azure">{inr(quote.totalAmount)}</span>
                         </div>
                       </>
                     ) : (
@@ -542,7 +526,7 @@ export default function PublicWalletPayPage() {
 
                   <button
                     onClick={handleCreditPay} disabled={busy || !quote || !!quote?.error}
-                    className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#17458F] to-[#0F3168] py-4 text-sm font-bold text-white shadow-sm transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-60"
+                    className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl bg-azure py-4 text-sm font-bold text-white shadow-sm transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-60"
                   >
                     <Lock className="h-4 w-4" />
                     {busy ? "Processing…" : `Pay ${quote && !quote.error ? inr(quote.totalAmount) : ""}`}

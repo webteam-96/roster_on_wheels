@@ -12,7 +12,7 @@
 import { useEffect, useState, useCallback, useMemo } from "react";
 import { isAnnualOnlyCategory } from "@/lib/goalCategories";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Building2, AlertCircle, ArrowLeft, Search, Table2, CalendarDays, Download, Loader2 } from "lucide-react";
+import { Building2, AlertCircle, ArrowLeft, Search, Table2, CalendarDays, Download, Loader2 } from "@/components/icons";
 import { saveAs } from "file-saver";
 import RotaryLoader from "@/components/RotaryLoader";
 import ProtectedRoute from "@/components/ProtectedRoute";
@@ -30,14 +30,14 @@ const RAG_STYLE: Record<string, { dot: string; label: string; text: string; cell
   Amber: { dot: "bg-amber-500", label: "Amber", text: "text-amber-700", cell: "bg-amber-500 text-white" },
   Green: { dot: "bg-emerald-500", label: "Green", text: "text-emerald-700", cell: "bg-emerald-500 text-white" },
   SuperGreen: { dot: "bg-emerald-600", label: "Super Green", text: "text-emerald-800", cell: "bg-emerald-600 text-white" },
-  None: { dot: "bg-slate-300", label: "—", text: "text-slate-400", cell: "bg-slate-100 text-slate-400" },
+  None: { dot: "bg-slate-300", label: "–", text: "text-slate-400", cell: "bg-slate-100 text-slate-400" },
 };
 
 // A metric label alone is ambiguous — "Achieved" exists 3x in Membership and 11x in TRF. Show the
 // group in front whenever the same label appears more than once in the list (user 2026-09-21).
 function metricLabel(f: { groupName?: string; fieldLabel: string; unit: string | null }, all: { fieldLabel: string }[]) {
   const repeated = all.filter((x) => x.fieldLabel === f.fieldLabel).length > 1;
-  const name = repeated && f.groupName ? `${f.groupName} — ${f.fieldLabel}` : f.fieldLabel;
+  const name = repeated && f.groupName ? `${f.groupName}: ${f.fieldLabel}` : f.fieldLabel;
   return `${name}${f.unit ? ` (${f.unit})` : ""}`;
 }
 
@@ -221,7 +221,7 @@ export default function DistrictAdminGoalClubsPage() {
                   onClick={() => setActiveCategoryId(c.id)}
                   className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition ${
                     activeCategoryId === c.id
-                      ? "bg-[#1e3a5f] text-white"
+                      ? "bg-azure text-white"
                       : "bg-white border border-slate-200 text-slate-600 hover:bg-slate-100"
                   }`}
                 >
@@ -234,7 +234,7 @@ export default function DistrictAdminGoalClubsPage() {
           <div className="inline-flex rounded-lg border border-slate-200 bg-white p-0.5">
             <button
               onClick={() => setView("goals")}
-              className={`inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold rounded-md transition ${view === "goals" ? "bg-[#1e3a5f] text-white" : "text-slate-600 hover:bg-slate-100"}`}
+              className={`inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold rounded-md transition ${view === "goals" ? "bg-azure text-white" : "text-slate-600 hover:bg-slate-100"}`}
             >
               <Table2 size={13} /> Goals
             </button>
@@ -242,7 +242,7 @@ export default function DistrictAdminGoalClubsPage() {
             {!annualOnly && (
             <button
               onClick={() => setView("monthly")}
-              className={`inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold rounded-md transition ${view === "monthly" ? "bg-[#1e3a5f] text-white" : "text-slate-600 hover:bg-slate-100"}`}
+              className={`inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold rounded-md transition ${view === "monthly" ? "bg-azure text-white" : "text-slate-600 hover:bg-slate-100"}`}
             >
               <CalendarDays size={13} /> Month-wise
             </button>
@@ -319,8 +319,8 @@ export default function DistrictAdminGoalClubsPage() {
             <div className="overflow-x-auto">
               <table className="text-sm border-collapse">
                 <thead>
-                  <tr className="border-b border-[#F7A81B]" style={{ backgroundColor: "#1e3a5f" }}>
-                    <th rowSpan={2} className="sticky left-0 z-20 bg-[#1e3a5f] text-left px-4 py-2 text-white text-xs font-semibold uppercase tracking-wide border-r border-white/20">Club</th>
+                  <tr className="border-b border-marigold" style={{ backgroundColor: "#17458f" }}>
+                    <th rowSpan={2} className="sticky left-0 z-20 bg-azure text-left px-4 py-2 text-white text-xs font-semibold uppercase tracking-wide border-r border-white/20">Club</th>
                     {isMembership && (
                       <th rowSpan={2} className="px-3 py-2 text-white text-xs font-semibold uppercase tracking-wide border-r border-white/20 text-left">RAG</th>
                     )}
@@ -330,7 +330,7 @@ export default function DistrictAdminGoalClubsPage() {
                       </th>
                     ))}
                   </tr>
-                  <tr style={{ backgroundColor: "#274b73" }}>
+                  <tr style={{ backgroundColor: "#17458f" }}>
                     {columns.map((col) => (
                       <th key={col.fieldKey} className="px-3 py-1.5 text-white text-[11px] font-medium text-right whitespace-nowrap border-l border-white/10">
                         {col.fieldLabel}{col.unit ? ` (${col.unit})` : ""}
@@ -361,7 +361,7 @@ export default function DistrictAdminGoalClubsPage() {
                         )}
                         {columns.map((col) => (
                           <td key={col.fieldKey} className="px-3 py-2 text-right text-slate-700 whitespace-nowrap border-l border-slate-50">
-                            {row.values[col.fieldKey] ?? "—"}
+                            {row.values[col.fieldKey] ?? "–"}
                           </td>
                         ))}
                       </tr>
@@ -377,13 +377,13 @@ export default function DistrictAdminGoalClubsPage() {
         {view === "monthly" && !loading && !error && monthly && monthly.clubs.length > 0 && selectedMetric && (
           <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
             <div className="px-4 py-2 border-b border-slate-100 text-[11px] text-slate-500">
-              <span className="font-semibold text-slate-600">{selectedMetric.groupName ? `${selectedMetric.groupName} — ${selectedMetric.fieldLabel}` : selectedMetric.fieldLabel}</span> collected per month{monthly.yearLabel ? ` · RY ${monthly.yearLabel}` : ""} — future months of the current year show &ldquo;—&rdquo;.
+              <span className="font-semibold text-slate-600">{selectedMetric.groupName ? `${selectedMetric.groupName}: ${selectedMetric.fieldLabel}` : selectedMetric.fieldLabel}</span> collected per month{monthly.yearLabel ? ` · RY ${monthly.yearLabel}` : ""}: future months of the current year show &ldquo;, &rdquo;.
             </div>
             <div className="overflow-x-auto">
               <table className="text-sm border-collapse">
                 <thead>
-                  <tr className="border-b border-[#F7A81B]" style={{ backgroundColor: "#1e3a5f" }}>
-                    <th className="sticky left-0 z-20 bg-[#1e3a5f] text-left px-4 py-2 text-white text-xs font-semibold uppercase tracking-wide border-r border-white/20">Club</th>
+                  <tr className="border-b border-marigold" style={{ backgroundColor: "#17458f" }}>
+                    <th className="sticky left-0 z-20 bg-azure text-left px-4 py-2 text-white text-xs font-semibold uppercase tracking-wide border-r border-white/20">Club</th>
                     {monthly.months.map((m) => (
                       <th key={m.month} className={`px-3 py-2 text-[11px] font-semibold uppercase tracking-wide text-right border-l border-white/10 whitespace-nowrap ${m.isAvailable ? "text-white" : "text-white/40"}`}>
                         {m.label}
@@ -409,11 +409,11 @@ export default function DistrictAdminGoalClubsPage() {
                         </td>
                         {monthly.months.map((m) => (
                           <td key={m.month} className="px-3 py-2 text-right text-slate-700 whitespace-nowrap border-l border-slate-50">
-                            {byMonth[m.month] ?? "—"}
+                            {byMonth[m.month] ?? "–"}
                           </td>
                         ))}
                         <td className="px-3 py-2 text-right font-semibold text-slate-800 whitespace-nowrap border-l border-slate-100">
-                          {row.totals[selectedMetric.fieldKey] ?? "—"}
+                          {row.totals[selectedMetric.fieldKey] ?? "–"}
                         </td>
                       </tr>
                     );

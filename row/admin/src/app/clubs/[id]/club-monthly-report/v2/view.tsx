@@ -18,7 +18,7 @@ import { useParams, useSearchParams } from "next/navigation";
 import {
   ArrowLeft, Calendar, ClipboardList, CheckCircle2, Clock, AlertCircle,
   Plus, Pencil, FileText, FileSpreadsheet, Loader2, BarChart3,
-} from "lucide-react";
+} from "@/components/icons";
 import {
   getMonthlyReportYears,
   getMonthlyReportMonths,
@@ -199,7 +199,7 @@ export function ClubMonthlyReportV2View({ clubId: propClubId, embedded = false, 
               Club Monthly Reports
             </h1>
             <p className="text-xs text-slate-500 mt-0.5">
-              {clubName || "—"}
+              {clubName || "–"}
               {selectedYear ? ` · RY ${selectedYear.yearLabel}` : ""}
             </p>
           </div>

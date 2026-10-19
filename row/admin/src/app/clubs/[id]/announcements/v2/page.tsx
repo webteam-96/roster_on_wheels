@@ -16,7 +16,7 @@ import Link from "next/link";
 import {
   Megaphone, CheckCircle2, Clock, Image as ImageIcon, Loader2, Search, Plus,
   Trash2, ArrowLeft, AlertTriangle, X, MoreHorizontal, Eye, Pencil,
-} from "lucide-react";
+} from "@/components/icons";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
@@ -62,7 +62,7 @@ function yesNoChip(value: boolean): string {
 }
 
 function formatDateTime(dateStr: string | null | undefined): string {
-  if (!dateStr) return "—";
+  if (!dateStr) return "–";
   try {
     return new Date(dateStr).toLocaleString(appLocale(), {
       day: "2-digit", month: "short", year: "numeric",
@@ -256,7 +256,7 @@ export default function AnnouncementsV2Page() {
             <div>
               <h1 className="text-lg font-semibold text-slate-800">Announcements</h1>
               <p className="text-xs text-slate-500 mt-0.5">
-                {clubName || "—"} · Broadcast messages to members
+                {clubName || "–"} · Broadcast messages to members
               </p>
             </div>
           </div>
@@ -337,7 +337,6 @@ export default function AnnouncementsV2Page() {
                     <th className="px-3 py-2.5 text-left">Publish Date</th>
                     <th className="px-3 py-2.5 text-left">Expiry Date</th>
                     <th className="px-3 py-2.5 text-center">Banner</th>
-                    <th className="px-3 py-2.5 text-center">WhatsApp</th>
                     {canManage && <th className="px-3 py-2.5 text-right w-12"></th>}
                   </tr>
                 </thead>
@@ -366,12 +365,12 @@ export default function AnnouncementsV2Page() {
                                 className="h-10 w-10 rounded object-cover border border-slate-200"
                               />
                             )}
-                            <span>{a.title || "—"}</span>
+                            <span>{a.title || "–"}</span>
                           </div>
                         </td>
                         <td className="px-3 py-2">
                           <span className={`inline-flex items-center text-xs font-medium px-2 py-0.5 rounded-full border ${statusChipStyle(a.status)}`}>
-                            {a.status || "—"}
+                            {a.status || "–"}
                           </span>
                           <SendStatusBadges item={a} />
                         </td>
@@ -380,11 +379,6 @@ export default function AnnouncementsV2Page() {
                         <td className="px-3 py-2 text-center">
                           <span className={`inline-flex items-center text-[11px] font-medium px-2 py-0.5 rounded-full border ${yesNoChip(a.isDisplayOnBanner)}`}>
                             {a.isDisplayOnBanner ? "Yes" : "No"}
-                          </span>
-                        </td>
-                        <td className="px-3 py-2 text-center">
-                          <span className={`inline-flex items-center text-[11px] font-medium px-2 py-0.5 rounded-full border ${yesNoChip(a.isSendWhatsapp)}`}>
-                            {a.isSendWhatsapp ? "Yes" : "No"}
                           </span>
                         </td>
                         {canManage && (

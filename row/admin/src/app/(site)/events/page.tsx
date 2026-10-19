@@ -7,7 +7,7 @@ import { UPCOMING_EVENTS } from "@/components/pages/events/data";
 export const metadata: Metadata = {
   title: "Upcoming Events | ROW",
   description:
-    "Institutes, summits and conclaves coming up across ROW — dates, venues and how to register.",
+    "Institutes, summits and conclaves coming up across ROW: dates, venues and how to register.",
 };
 
 export default function EventsPage() {
@@ -15,7 +15,7 @@ export default function EventsPage() {
     <>
       <PageBanner
         eyebrow="What's next"
-        subtitle="Institutes, summits and conclaves coming up across the zones — save the dates and register."
+        subtitle="Institutes, summits and conclaves coming up across the zones: save the dates and register."
       >
         Upcoming <span className="text-gold">Events</span>
       </PageBanner>
@@ -37,7 +37,7 @@ export default function EventsPage() {
                 No events scheduled yet
               </p>
               <p className="mt-2 text-sm leading-relaxed text-muted">
-                Check back soon — new institutes and summits are added here as they&apos;re announced.
+                Check back soon: new institutes and summits are added here as they&apos;re announced.
               </p>
             </div>
           )}

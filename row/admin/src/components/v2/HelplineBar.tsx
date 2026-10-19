@@ -6,7 +6,7 @@
  * the public site's header strip.
  */
 
-import { Phone, Clock, Mail } from "lucide-react";
+import { Phone, Clock, Mail } from "@/components/icons";
 import { useBrand } from "@/contexts/BrandContext";
 import { telHref } from "@/lib/brand";
 
@@ -15,7 +15,7 @@ export default function HelplineBar() {
   const { phones, hours, email } = brand.support;
   if (!phones.length && !hours && !email) return null;
   return (
-    <div className="w-full text-white" style={{ backgroundColor: "#0f172a" }}>
+    <div className="w-full text-white" style={{ backgroundColor: "#0b1422" }}>
       <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-center gap-x-5 gap-y-1 px-4 py-1.5 text-[11px] font-medium sm:text-xs">
         {[
           phones.length > 0 && (

@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
-import { ArrowLeft, Pencil, Users, MoreHorizontal, Copy } from "lucide-react";
+import { ArrowLeft, Pencil, Users, MoreHorizontal, Copy } from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
 import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";

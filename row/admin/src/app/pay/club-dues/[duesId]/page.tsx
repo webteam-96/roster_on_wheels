@@ -62,7 +62,7 @@ function PayInner() {
         amount: res.amountPaise,
         currency: "INR",
         name: data.purpose || "District Dues",
-        description: `${data.clubName} — District ${data.districtNumber}`,
+        description: `${data.clubName}: District ${data.districtNumber}`,
         prefill: { name: res.customerName || "", email: res.customerEmail || "", contact: res.customerPhone || "" },
         handler: async (r: any) => {
           try {
@@ -136,7 +136,7 @@ function PayInner() {
               <div className="rounded-md border border-amber-200 bg-amber-50 p-3 text-sm text-amber-700">
                 <span className="font-medium">An offline payment for your club is already submitted and awaiting verification.</span>{" "}
                 {offlineLocked
-                  ? "The District Treasurer will approve or reject it — please don't submit it again. If it is rejected you'll be able to resubmit from this page."
+                  ? "The District Treasurer will approve or reject it. Please don't submit it again. If it is rejected you'll be able to resubmit from this page."
                   : "If you deposited into another of your club's accounts, you can still submit that one separately."}
               </div>
             )}

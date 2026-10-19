@@ -46,9 +46,7 @@ public class WalletService : IWalletService
     private (int RatePaise, decimal MinAmount) PricingFor(string creditType)
     {
         var p = _config.GetSection("Razorpay:Pricing");
-        return creditType == "Email"
-            ? (p.GetValue("EmailRatePaise", 30), p.GetValue("EmailMinAmount", 500m))
-            : (p.GetValue("WhatsAppRatePaise", 100), p.GetValue("WhatsAppMinAmount", 1000m));
+        return (p.GetValue("EmailRatePaise", 30), p.GetValue("EmailMinAmount", 500m));
     }
     private int GstPercent() => _config.GetValue("Razorpay:GstPercent", 18);
 
@@ -57,7 +55,8 @@ public class WalletService : IWalletService
 
     private Priced Compute(string creditType, decimal baseAmount)
     {
-        if (creditType != "WhatsApp" && creditType != "Email")
+        // ROW has no WhatsApp (2026-10-19): email credits are the only top-up.
+        if (creditType != "Email")
             return new Priced(false, "Invalid credit type.", 0, 0, 0, baseAmount, 0, 0, 0, 0);
         var (ratePaise, min) = PricingFor(creditType);
         if (baseAmount < min)

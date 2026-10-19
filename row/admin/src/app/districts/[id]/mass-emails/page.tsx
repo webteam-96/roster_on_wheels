@@ -14,7 +14,7 @@ import SearchBox from "@/components/SearchBox";
 import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
 import AlertModal from "@/components/AlertModal";
-import { ArrowLeft, Plus, MoreHorizontal, Eye, Pencil, Trash2, Send, MailPlus, AlertTriangle } from "lucide-react";
+import { ArrowLeft, Plus, MoreHorizontal, Eye, Pencil, Trash2, Send, MailPlus, AlertTriangle } from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
 import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";
@@ -122,9 +122,9 @@ export default function DistrictMassEmailsPage() {
                       <TableCell className="font-medium max-w-[250px] truncate">{item.subject}</TableCell>
                       <TableCell>{getStatusBadge(item.status)}</TableCell>
                       <TableCell><span className="text-sm">{item.totalRecipients} ({getRecipientTypeLabel(item.recipientType)})</span></TableCell>
-                      <TableCell className="text-center">{item.status !== "Draft" ? <span className="text-green-600 font-medium">{item.sentCount}</span> : "—"}</TableCell>
-                      <TableCell className="text-center">{item.status !== "Draft" ? (item.failedCount > 0 ? <span className="text-red-600 font-medium">{item.failedCount}</span> : "0") : "—"}</TableCell>
-                      <TableCell className="text-center">{item.status !== "Draft" ? <span className="text-orange-600 font-medium">{Math.max(0, item.totalRecipients - item.sentCount - item.failedCount)}</span> : "—"}</TableCell>
+                      <TableCell className="text-center">{item.status !== "Draft" ? <span className="text-green-600 font-medium">{item.sentCount}</span> : "–"}</TableCell>
+                      <TableCell className="text-center">{item.status !== "Draft" ? (item.failedCount > 0 ? <span className="text-red-600 font-medium">{item.failedCount}</span> : "0") : "–"}</TableCell>
+                      <TableCell className="text-center">{item.status !== "Draft" ? <span className="text-orange-600 font-medium">{Math.max(0, item.totalRecipients - item.sentCount - item.failedCount)}</span> : "–"}</TableCell>
                       <TableCell className="text-sm">{item.sentDate ? new Date(item.sentDate).toLocaleDateString(appLocale()) : new Date(item.createdDate).toLocaleDateString(appLocale())}</TableCell>
                       {canManage && (
                         <TableCell className="text-right">

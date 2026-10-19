@@ -14,7 +14,7 @@ export function FooterBottomBar() {
       <div className="container-rotary flex flex-col items-center justify-between gap-5 py-6 text-center lg:flex-row lg:text-left">
         <div>
           <p className="text-xs leading-relaxed text-cream/45">
-            © {new Date().getFullYear()} {legalName || brand.productName}. {brand.shortName} — {brand.productName}.
+            © {new Date().getFullYear()} {legalName || brand.productName}. {brand.shortName}: {brand.productName}.
           </p>
           <p className="mt-2 flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-[12px] text-cream/50 lg:justify-start">
             <Link href={brand.legal.privacyUrl} className="transition-colors hover:text-cream">

@@ -8,7 +8,7 @@ import {
   getDistrict, getPhotoUrl, getCommitteeGroups, getCommitteeSubGroups, reorderSubGroupMembers,
 } from "@/services/api";
 import { useDragSort } from "@/hooks/useDragSort";
-import { GripVertical } from "lucide-react";
+import { GripVertical } from "@/components/icons";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -20,7 +20,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogD
 import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
 import AlertModal from "@/components/AlertModal";
-import { ArrowLeft, Plus, Pencil, Trash2, AlertTriangle, Users, Search, X, Upload } from "lucide-react";
+import { ArrowLeft, Plus, Pencil, Trash2, AlertTriangle, Users, Search, X, Upload } from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
 import NonSyncRemovedCommitteeMembers from "@/components/dashboard/NonSyncRemovedCommitteeMembers";
 import ImageCropDialog from "@/components/ImageCropDialog";

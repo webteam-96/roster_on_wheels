@@ -90,6 +90,8 @@ public class CreditManagementController : ControllerBase
     public async Task<ActionResult> AddCredit([FromForm] AddCreditDto dto, IFormFile? proofDocument)
     {
         if (!IsSuperAdmin()) return Forbid();
+        // ROW has no WhatsApp: email is the only credit that can be granted.
+        if (dto.CreditType != "Email") return BadRequest(new { message = "Invalid credit type." });
 
         if (proofDocument != null && proofDocument.Length > 0)
         {

@@ -9,7 +9,7 @@ import {
   sendRiDirectorMassEmail, getRiDirectorCreditBalance, getRiDirectorRecipientCount,
 } from "@/services/api";
 import AlertModal from "@/components/AlertModal";
-import { AlertTriangle, Send } from "lucide-react";
+import { AlertTriangle, Send } from "@/components/icons";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -18,7 +18,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent } from "@/components/ui/card";
 import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
-import { ArrowLeft, Save, Users2, Mail } from "lucide-react";
+import { ArrowLeft, Save, Users2, Mail } from "@/components/icons";
 // Note: AlertTriangle, Send are imported above
 import RotaryLoader from "@/components/RotaryLoader";
 import Link from "next/link";
@@ -343,10 +343,10 @@ export default function RiMassEmailCompose({ emailId }: { emailId?: number }) {
                 <div>Required Email credits: <span className="font-semibold">{recipientCount}</span></div>
                 <div>Available balance: <span className={`font-semibold ${emailBalance !== null && recipientCount > emailBalance ? "text-destructive" : "text-green-700"}`}>{emailBalance === null ? "..." : emailBalance}</span></div>
                 {emailBalance !== null && recipientCount > emailBalance && (
-                  <div className="text-destructive font-medium mt-1">⚠️ Insufficient credits. Send blocked.</div>
+                  <div className="text-destructive font-medium mt-1">Insufficient credits. Send blocked.</div>
                 )}
                 {recipientCount === 0 && (
-                  <div className="text-destructive font-medium mt-1">⚠️ No recipients found for your selection.</div>
+                  <div className="text-destructive font-medium mt-1">No recipients found for your selection.</div>
                 )}
               </div>
             </div>

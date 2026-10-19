@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { ChevronDown, ExternalLink, MapPin } from "lucide-react";
+import { ChevronDown, ExternalLink, MapPin } from "@/components/icons";
 import { RotaryWheel } from "@/components/icons/RotaryWheel";
 import { cn } from "@/lib/utils";
 import type { District } from "./data";

@@ -1,7 +1,7 @@
 "use client";
 
 import AlertModal from "@/components/AlertModal";
-import { AlertTriangle } from "lucide-react";
+import { AlertTriangle } from "@/components/icons";
 
 interface DeleteDialogProps {
   open: boolean;

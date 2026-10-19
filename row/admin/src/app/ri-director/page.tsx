@@ -8,9 +8,9 @@ import { RiDirectorContext } from "@/types/riDirector";
 import { Card, CardContent } from "@/components/ui/card";
 import {
   Megaphone, CalendarClock, Mail, Link2, Users2, FileText,
-  Newspaper, BarChart3, MessageSquare, MessageCircle,
+  Newspaper, BarChart3, MessageSquare,
   Globe, Building2, Crown, MapPin,
-} from "lucide-react";
+} from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
 import ProtectedRoute from "@/components/ProtectedRoute";
 
@@ -116,8 +116,7 @@ export default function RiDirectorDashboardPage() {
           </div>
           <div className="flex items-center gap-2">
             <button onClick={() => router.push("/ri-director/credits")} className="flex items-center gap-2" title="Manage Credits">
-              <CreditBadge title="Email Credits" balance={ctx?.credits.emailBalance ?? 0} icon={MessageSquare} color="bg-gradient-to-br from-sky-500 to-blue-600" />
-              <CreditBadge title="WhatsApp Credits" balance={ctx?.credits.whatsappBalance ?? 0} icon={MessageCircle} color="bg-gradient-to-br from-emerald-500 to-green-600" />
+              <CreditBadge title="Email Credits" balance={ctx?.credits.emailBalance ?? 0} icon={MessageSquare} color="bg-sky-500" />
             </button>
           </div>
         </div>

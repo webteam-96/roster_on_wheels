@@ -33,7 +33,7 @@ export default function DistrictAdminDashboardCommitteeLandingPage() {
         <div className="border-t border-slate-200" />
 
         {/* 2. Group District Committee listing (its own Add + Search). Groups drill into sub-groups. */}
-        <h2 className="text-lg font-bold tracking-tight text-[#1e3a5f]">Group District Committee</h2>
+        <h2 className="text-lg font-bold tracking-tight text-ink">Group District Committee</h2>
         <GroupCommitteeView embedded />
       </div>
     </ProtectedRoute>

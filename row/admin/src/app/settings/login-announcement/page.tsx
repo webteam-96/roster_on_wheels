@@ -15,8 +15,7 @@ import ErrorAlert from "@/components/ErrorAlert";
 import AlertModal from "@/components/AlertModal";
 import {
   ArrowLeft, Plus, Pencil, Trash2, Megaphone, Eye, EyeOff, AlertTriangle, Users, Filter, MessageSquare,
-  Globe, Wallet, Landmark, Building2, MessageCircle, Mail, Info, Check, MapPin, Map as MapIcon, Search,
-} from "lucide-react";
+  Globe, Wallet, Landmark, Building2, Mail, Info, Check, MapPin, Map as MapIcon, Search, Camera, ArrowRight } from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
 import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";
@@ -65,7 +64,6 @@ const FILTER_ICONS: Record<string, React.ElementType> = {
   clubDues: Wallet,
   districtDues: Landmark,
   districtWebsite: Building2,
-  whatsappCredits: MessageCircle,
   emailCredits: Mail,
 };
 
@@ -374,7 +372,7 @@ export default function LoginAnnouncementPage() {
       (im as HTMLImageElement).style.outline = "";
       (im as HTMLImageElement).style.outlineOffset = "";
     });
-    if (img) { img.style.outline = "2px solid #2563eb"; img.style.outlineOffset = "2px"; }
+    if (img) { img.style.outline = "2px solid #0067c8"; img.style.outlineOffset = "2px"; }
   };
 
   // Click an image in the editor to select it; click elsewhere to deselect.
@@ -513,7 +511,7 @@ export default function LoginAnnouncementPage() {
   };
   const locationPhrase = describeLocationSelection({ zoneIds, districtIds, clubIds }, locationNames);
   const locationSubtitle = locationCount === 0
-    ? "No location filter — all zones, districts and clubs"
+    ? "No location filter: all zones, districts and clubs"
     : clubIds.length > 0
       ? `Only the ${clubIds.length} selected club${clubIds.length === 1 ? "" : "s"}`
       : districtIds.length > 0
@@ -533,7 +531,7 @@ export default function LoginAnnouncementPage() {
             </Button>
             <div>
               <h2 className="text-2xl font-bold tracking-tight text-primary">Login Announcement</h2>
-              <p className="text-muted-foreground text-base">Show a popup to selected roles after login — optionally filtered by purchases and location</p>
+              <p className="text-muted-foreground text-base">Show a popup to selected roles after login: optionally filtered by purchases and location</p>
             </div>
           </div>
           <Button onClick={openAdd}><Plus className="mr-2 h-4 w-4" />Add Announcement</Button>
@@ -693,7 +691,7 @@ export default function LoginAnnouncementPage() {
                 number={2}
                 icon={Filter}
                 title="Filter by purchase (optional)"
-                subtitle={activeFilterCount === 0 ? "No filter — every selected role sees it" : `${activeFilterCount} filter${activeFilterCount === 1 ? "" : "s"} applied · users must match all`}
+                subtitle={activeFilterCount === 0 ? "No filter: every selected role sees it" : `${activeFilterCount} filter${activeFilterCount === 1 ? "" : "s"} applied · users must match all`}
                 action={activeFilterCount > 0 ? (
                   <Button type="button" variant="ghost" size="sm" className="h-7 text-xs" onClick={() => setTargetFilters({})}>Clear filters</Button>
                 ) : undefined}
@@ -785,7 +783,7 @@ export default function LoginAnnouncementPage() {
                 </div>
                 <p className="mt-3 text-xs text-muted-foreground">
                   Selecting zones narrows the district list; selecting districts loads their clubs. The most specific level you pick
-                  applies — <strong>clubs</strong>, otherwise <strong>districts</strong>, otherwise <strong>zones</strong>.
+                  applies: <strong>clubs</strong>, otherwise <strong>districts</strong>, otherwise <strong>zones</strong>.
                 </p>
               </StepSection>
 
@@ -813,7 +811,7 @@ export default function LoginAnnouncementPage() {
                     <span className="w-px bg-border mx-1" />
                     {/* Upload a photo from the computer (embedded inline, aspect-locked) */}
                     <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleImageFile} />
-                    <Button type="button" variant="ghost" size="sm" onClick={() => fileInputRef.current?.click()} title="Upload Photo">📷 Photo</Button>
+                    <Button type="button" variant="ghost" size="sm" onClick={() => fileInputRef.current?.click()} title="Upload Photo"><Camera className="mr-1 h-4 w-4" aria-hidden />Photo</Button>
                     <Button type="button" variant="ghost" size="sm" onClick={() => {
                       const url = prompt("Enter image URL:");
                       if (url) insertImageHtml(url);
@@ -840,9 +838,9 @@ export default function LoginAnnouncementPage() {
                       <Button type="button" variant="ghost" size="sm" onClick={() => resizeSelectedImg(+10)} title="Larger">Larger +</Button>
                       <span className="w-px bg-blue-200 mx-1 self-stretch" />
                       <span className="text-blue-700">Move:</span>
-                      <Button type="button" variant="ghost" size="sm" onClick={() => alignSelectedImg("left")} title="Align left">⬅ Left</Button>
+                      <Button type="button" variant="ghost" size="sm" onClick={() => alignSelectedImg("left")} title="Align left"><ArrowLeft className="mr-1 h-4 w-4" aria-hidden />Left</Button>
                       <Button type="button" variant="ghost" size="sm" onClick={() => alignSelectedImg("center")} title="Center">◎ Center</Button>
-                      <Button type="button" variant="ghost" size="sm" onClick={() => alignSelectedImg("right")} title="Align right">Right ➡</Button>
+                      <Button type="button" variant="ghost" size="sm" onClick={() => alignSelectedImg("right")} title="Align right">Right<ArrowRight className="ml-1 h-4 w-4" aria-hidden /></Button>
                     </div>
                   )}
                   {/* Editor */}
@@ -854,7 +852,7 @@ export default function LoginAnnouncementPage() {
                     suppressContentEditableWarning
                   />
                   <p className="text-xs text-muted-foreground pt-2">
-                    <strong>📷 Photo:</strong> upload up to <strong>8&nbsp;MB</strong> — auto-resized to <strong>800&nbsp;px</strong> max
+                    <strong>Photo:</strong> upload up to <strong>8&nbsp;MB</strong>: auto-resized to <strong>800&nbsp;px</strong> max
                     width &amp; compressed. <strong>Click an image</strong> to resize (Smaller/Larger, keeps aspect) or move it
                     (Left/Center/Right). Recommended: a landscape banner around <strong>800×400&nbsp;px</strong>.
                   </p>

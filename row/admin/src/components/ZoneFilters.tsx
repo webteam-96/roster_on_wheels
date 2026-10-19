@@ -5,7 +5,7 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { Search, LayoutGrid, List, X } from "lucide-react";
+import { Search, LayoutGrid, List, X } from "@/components/icons";
 
 interface ZoneFiltersProps {
   search: string;

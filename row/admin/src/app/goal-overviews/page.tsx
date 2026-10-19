@@ -15,7 +15,7 @@ import GoalOversightMatrix from "@/components/GoalOversightMatrix";
 import GoalOversightMatrixZoneRole from "@/components/GoalOversightMatrixZoneRole";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Lock, LockOpen } from "lucide-react";
+import { Lock, LockOpen } from "@/components/icons";
 import {
   getMyGoalAssignments, getGoalOversightCategories, getScopedDistrictsGoalList,
   getCurrentRotaryYear, getRotaryYears, bulkLockGoalDistricts,
@@ -186,7 +186,7 @@ export default function GoalOversightPage() {
           {bulkAssignment && (
             <Card>
               <CardHeader>
-                <CardTitle className="text-base flex items-center gap-2"><Lock className="h-4 w-4" /> Bulk Lock — all your zones, all categories</CardTitle>
+                <CardTitle className="text-base flex items-center gap-2"><Lock className="h-4 w-4" /> Bulk Lock: all your zones, all categories</CardTitle>
               </CardHeader>
               <CardContent className="flex items-center gap-3">
                 <Button size="sm" disabled={bulkLocking} onClick={() => handleBulkLock(true)} className="bg-amber-500 hover:bg-amber-600">

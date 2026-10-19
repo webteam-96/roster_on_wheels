@@ -12,7 +12,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import ErrorAlert from "@/components/ErrorAlert";
-import { ArrowLeft, History, Search, Filter, RotateCcw, Download } from "lucide-react";
+import { ArrowLeft, History, Search, Filter, RotateCcw, Download } from "@/components/icons";
 import { exportToCSV } from "@/utils/csvExport";
 import RotaryLoader from "@/components/RotaryLoader";
 import Link from "next/link";
@@ -38,9 +38,9 @@ function todayStr() {
 }
 
 function formatDate(d: string | null) {
-  if (!d) return "—";
+  if (!d) return "–";
   const dt = new Date(d);
-  if (isNaN(dt.getTime()) || dt.getFullYear() < 2000) return "—";
+  if (isNaN(dt.getTime()) || dt.getFullYear() < 2000) return "–";
   return dt.toLocaleString(appLocale(), { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit", second: "2-digit" });
 }
 
@@ -226,11 +226,11 @@ export default function AuditLogPage() {
                 <TableBody>
                   {items.map((log: any) => (
                     <TableRow key={log.id}>
-                      <TableCell className="text-xs whitespace-nowrap">{log.districtNumber || "—"}</TableCell>
-                      <TableCell className="text-xs max-w-[160px] truncate" title={log.clubName || ""}>{log.clubName || "—"}</TableCell>
+                      <TableCell className="text-xs whitespace-nowrap">{log.districtNumber || "–"}</TableCell>
+                      <TableCell className="text-xs max-w-[160px] truncate" title={log.clubName || ""}>{log.clubName || "–"}</TableCell>
                       <TableCell className="text-xs font-medium">{log.entityType}</TableCell>
-                      <TableCell className="text-sm font-medium">{log.memberName || "—"}</TableCell>
-                      <TableCell><Badge variant="secondary" className="text-xs">{log.roleName || "—"}</Badge></TableCell>
+                      <TableCell className="text-sm font-medium">{log.memberName || "–"}</TableCell>
+                      <TableCell><Badge variant="secondary" className="text-xs">{log.roleName || "–"}</Badge></TableCell>
                       <TableCell>
                         <Badge className={`text-xs text-white ${actionColors[log.action] || "bg-gray-500"}`}>
                           {log.action}
@@ -238,12 +238,12 @@ export default function AuditLogPage() {
                       </TableCell>
                       <TableCell className="text-xs whitespace-nowrap">{formatDate(log.createdDate)}</TableCell>
                       <TableCell className="text-sm max-w-[200px] truncate" title={log.entityName}>
-                        {log.entityName || (log.entityId ? `#${log.entityId}` : "—")}
+                        {log.entityName || (log.entityId ? `#${log.entityId}` : "–")}
                       </TableCell>
                       <TableCell className="text-xs max-w-[250px] truncate font-mono text-muted-foreground" title={log.details || ""}>
-                        {log.details || "—"}
+                        {log.details || "–"}
                       </TableCell>
-                      <TableCell className="text-xs text-muted-foreground">{log.ipAddress || "—"}</TableCell>
+                      <TableCell className="text-xs text-muted-foreground">{log.ipAddress || "–"}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
@@ -256,7 +256,7 @@ export default function AuditLogPage() {
         {totalPages > 1 && (
           <div className="flex items-center justify-between">
             <p className="text-sm text-muted-foreground">
-              Page {page} of {totalPages} — {totalCount} entries
+              Page {page} of {totalPages}: {totalCount} entries
             </p>
             <div className="flex gap-2">
               <Button variant="outline" size="sm" disabled={page <= 1 || loading} onClick={() => fetchLogs(page - 1)}>Previous</Button>

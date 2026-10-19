@@ -26,11 +26,11 @@ import ErrorAlert from "@/components/ErrorAlert";
 import {
   ArrowLeft, Upload, X, Star, Info,
   FileText, Camera, Send, Calendar, Users, FileUp,
-} from "lucide-react";
+} from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
 import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";
-import WhatsAppRecipientBadge from "@/components/WhatsAppRecipientBadge";
+import RecipientBadge from "@/components/RecipientBadge";
 import ImageCropDialog from "@/components/ImageCropDialog";
 import { useImageCropQueue } from "@/hooks/useImageCropQueue";
 
@@ -365,7 +365,6 @@ export default function ClubServiceAddPage() {
         minutesDocument,
         attendance: Number(attendance),
         attendancePercentage: attendancePercentage ? Number(attendancePercentage) : null,
-        sendWhatsapp: false,
         sendEmail,
         photos: photoInputs,
       } as any);
@@ -556,7 +555,7 @@ export default function ClubServiceAddPage() {
           <label className="flex items-center gap-2.5 cursor-pointer select-none">
             <input type="checkbox" checked={sendEmail} onChange={(e) => setSendEmail(e.target.checked)} className="accent-blue-600 h-4 w-4" />
             <span className="text-sm font-medium">Send Email notification</span>
-            {sendEmail && <WhatsAppRecipientBadge scope="club" clubId={clubId} channel="email" />}
+            {sendEmail && <RecipientBadge scope="club" clubId={clubId} />}
           </label>
         </div>
 

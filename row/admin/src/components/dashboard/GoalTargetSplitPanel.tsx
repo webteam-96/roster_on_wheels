@@ -20,7 +20,7 @@
 // oversight role passes readOnly and gets the same popup without inputs or a Save button.
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { CalendarRange, CalendarDays, Loader2, Save, Check, AlertCircle, X } from "lucide-react";
+import { CalendarRange, CalendarDays, Loader2, Save, Check, AlertCircle, X } from "@/components/icons";
 import type { GoalMonthlyForm, SaveGoalTargetSplitRequest } from "@/services/api";
 import { isGoalSplitPilot } from "@/utils/goalSplitPilot";
 import SuccessAlert from "@/components/SuccessAlert";
@@ -171,11 +171,11 @@ export default function GoalTargetSplitPanel({
             <div className="flex items-center gap-2 sm:gap-3 px-3 sm:px-6 py-3 sm:py-4 bg-white rounded-t-2xl border-b border-slate-200">
               {open === "quarter" ? <CalendarRange size={18} className="text-blue-600" /> : <CalendarDays size={18} className="text-blue-600" />}
               <div>
-                <h3 className="text-sm sm:text-base font-bold text-[#1e3a5f]">
-                  {open === "quarter" ? "Quarterly" : "Month-wise"} — {form.categoryName}
+                <h3 className="text-sm sm:text-base font-bold text-ink">
+                  {open === "quarter" ? "Quarterly" : "Month-wise"}: {form.categoryName}
                 </h3>
                 <p className="text-xs text-slate-500">
-                  {form.entityName} · RY {form.yearLabel} — the yearly target split{canEdit ? "; change any box, the row must still total the year" : " (read only)"}
+                  {form.entityName} · RY {form.yearLabel}: the yearly target split{canEdit ? "; change any box, the row must still total the year" : " (read only)"}
                 </p>
               </div>
               <button onClick={() => setOpen(null)} className="ml-auto text-slate-400 hover:text-slate-700" aria-label="Close">
@@ -185,7 +185,7 @@ export default function GoalTargetSplitPanel({
 
             {anySuggested && canEdit && (
               <div className="px-3 sm:px-6 py-2 text-xs text-amber-800 bg-amber-50 border-b border-amber-100">
-                These are a suggested even split of the yearly target — change them however you like
+                These are a suggested even split of the yearly target: change them however you like
                 (0, 1, 10, 1 is fine) as long as each section still totals its yearly target. Nothing is
                 stored until you press Save.
               </div>
@@ -200,7 +200,7 @@ export default function GoalTargetSplitPanel({
                 return (
                   <div key={f.fieldId} className="bg-white rounded-xl border border-slate-200 overflow-hidden">
                     <div className="px-3 sm:px-5 py-2.5 sm:py-3 border-b-2 border-amber-300 flex flex-wrap items-center gap-x-3 gap-y-1.5">
-                      <h4 className="text-sm font-bold text-[#1e3a5f]">{f.groupName || f.fieldLabel}</h4>
+                      <h4 className="text-sm font-bold text-ink">{f.groupName || f.fieldLabel}</h4>
                       <span className="text-xs text-slate-500">{f.fieldLabel}</span>
                       <span className="sm:ml-auto text-xs text-slate-500">
                         Target for the Current year
@@ -268,7 +268,7 @@ export default function GoalTargetSplitPanel({
                             <td className="px-3 sm:px-5 py-2.5 text-slate-600 sticky left-0 bg-white border-r border-slate-100">Achieved</td>
                             {slots.map((s) => {
                               const a = achievedAt(f.fieldId, s);
-                              return <td key={s} className="px-2 sm:px-3 py-2.5 text-right tabular-nums text-slate-700">{a ?? "—"}</td>;
+                              return <td key={s} className="px-2 sm:px-3 py-2.5 text-right tabular-nums text-slate-700">{a ?? "–"}</td>;
                             })}
                           </tr>
 
@@ -284,7 +284,7 @@ export default function GoalTargetSplitPanel({
                                 : null;
                               return (
                                 <td key={s} className="px-2 sm:px-3 py-2.5 text-right tabular-nums text-slate-700">
-                                  {pct != null ? `${pct}%` : "—"}
+                                  {pct != null ? `${pct}%` : "–"}
                                 </td>
                               );
                             })}
@@ -305,7 +305,7 @@ export default function GoalTargetSplitPanel({
                     onClick={save}
                     disabled={saving || !allMatch}
                     title={allMatch ? undefined : "Every section must total its yearly target before this can be saved"}
-                    className="inline-flex items-center gap-1.5 h-9 rounded-lg bg-[#1e3a5f] px-4 text-xs font-semibold text-white hover:bg-[#17304e] disabled:opacity-40"
+                    className="inline-flex items-center gap-1.5 h-9 rounded-lg bg-azure px-4 text-xs font-semibold text-white hover:bg-mint-ink disabled:opacity-40"
                   >
                     {saving ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />} Save
                   </button>

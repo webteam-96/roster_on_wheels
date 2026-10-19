@@ -6,7 +6,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Plus, Info } from "lucide-react";
+import { Plus, Info } from "@/components/icons";
 import AlertModal from "@/components/AlertModal";
 import RotaryLoader from "@/components/RotaryLoader";
 

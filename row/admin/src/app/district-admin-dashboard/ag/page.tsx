@@ -16,7 +16,7 @@
  * listing, all years for form), 400ms debounced member search, edit-mode
  * force-include of assigned clubs, club-search filter, save reconciliation,
  * deleteAGByMember with year, permission gating (SA || Admin), palette
- * (#1e3a5f navy, #F7A81B gold, slate typography), rounded-2xl cards, all
+ * (#17458f navy, #F7A81B gold, slate typography), rounded-2xl cards, all
  * dialogs and alerts.
  * ---------------------------------------------------------------------------
  */
@@ -38,7 +38,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogD
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
-import { ArrowLeft, Plus, Pencil, Trash2, AlertTriangle, UserCog, Search, Building2, Calendar } from "lucide-react";
+import { ArrowLeft, Plus, Pencil, Trash2, AlertTriangle, UserCog, Search, Building2, Calendar } from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import DistrictMembershipTabBar from "@/components/dashboard/DistrictMembershipTabBar";
@@ -351,7 +351,7 @@ export default function DistrictAdminAGPage() {
               {canManage && (
                 <Button
                   onClick={openAddDialog}
-                  className="bg-[#1e3a5f] hover:bg-[#152a44] text-white"
+                  className="bg-azure hover:bg-mint-ink text-white"
                 >
                   <Plus className="mr-2 h-4 w-4" />Add AG
                 </Button>
@@ -395,7 +395,7 @@ export default function DistrictAdminAGPage() {
                       ) : (
                         <div
                           className="w-12 h-12 rounded-full flex items-center justify-center text-lg font-bold text-white shrink-0"
-                          style={{ backgroundColor: "#1e3a5f" }}
+                          style={{ backgroundColor: "#17458f" }}
                         >
                           {ag.memberName?.charAt(0)}
                         </div>
@@ -411,7 +411,7 @@ export default function DistrictAdminAGPage() {
                           variant="ghost"
                           size="icon"
                           onClick={() => openEditDialog(ag)}
-                          className="text-slate-500 hover:text-[#1e3a5f] hover:bg-slate-100"
+                          className="text-slate-500 hover:text-ink hover:bg-slate-100"
                           aria-label="Edit"
                         >
                           <Pencil className="h-4 w-4" />
@@ -435,7 +435,7 @@ export default function DistrictAdminAGPage() {
                         variant="outline"
                         className="text-xs py-1 px-2.5 border-slate-200 bg-slate-50 text-slate-700 font-medium"
                       >
-                        <Building2 className="h-3.5 w-3.5 mr-1.5 text-[#1e3a5f]" />{c.clubName}
+                        <Building2 className="h-3.5 w-3.5 mr-1.5 text-ink" />{c.clubName}
                       </Badge>
                     ))}
                   </div>
@@ -461,7 +461,7 @@ export default function DistrictAdminAGPage() {
               <div className="space-y-2">
                 <Label className="text-slate-600 text-sm">Rotary Year *</Label>
                 <Select value={formYearId} onValueChange={handleFormYearChange}>
-                  <SelectTrigger className="border-slate-200 bg-white focus:border-[#1e3a5f] focus:ring-[#1e3a5f]/20">
+                  <SelectTrigger className="border-slate-200 bg-white focus:border-azure focus:ring-azure/20">
                     <SelectValue placeholder="Select year" />
                   </SelectTrigger>
                   <SelectContent>
@@ -479,7 +479,7 @@ export default function DistrictAdminAGPage() {
                   <div className="relative">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
                     <Input
-                      className="pl-9 border-slate-200 bg-white focus:border-[#1e3a5f] focus:ring-[#1e3a5f]/20"
+                      className="pl-9 border-slate-200 bg-white focus:border-azure focus:ring-azure/20"
                       placeholder="Search by name, mobile, email..."
                       value={memberSearch}
                       onChange={(e) => handleMemberSearch(e.target.value)}
@@ -523,7 +523,7 @@ export default function DistrictAdminAGPage() {
                   ) : (
                     <div
                       className="w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold text-white"
-                      style={{ backgroundColor: "#1e3a5f" }}
+                      style={{ backgroundColor: "#17458f" }}
                     >
                       {formMemberName?.charAt(0)}
                     </div>
@@ -544,7 +544,7 @@ export default function DistrictAdminAGPage() {
                   <div className="relative">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
                     <Input
-                      className="pl-9 border-slate-200 bg-white focus:border-[#1e3a5f] focus:ring-[#1e3a5f]/20"
+                      className="pl-9 border-slate-200 bg-white focus:border-azure focus:ring-azure/20"
                       placeholder="Search clubs..."
                       value={clubSearchQuery}
                       onChange={(e) => setClubSearchQuery(e.target.value)}
@@ -561,14 +561,14 @@ export default function DistrictAdminAGPage() {
                             key={c.id}
                             className={`flex items-center gap-3 px-3 py-2 cursor-pointer border-b border-slate-100 last:border-b-0 transition-colors ${
                               formSelectedClubIds.has(c.id)
-                                ? "bg-[#1e3a5f]/5 hover:bg-[#1e3a5f]/10"
+                                ? "bg-azure/5 hover:bg-azure/10"
                                 : "hover:bg-slate-50"
                             }`}
                             onClick={() => toggleClub(c.id)}
                           >
                             <Checkbox
                               checked={formSelectedClubIds.has(c.id)}
-                              className="border-slate-300 data-[state=checked]:bg-[#1e3a5f] data-[state=checked]:border-[#1e3a5f]"
+                              className="border-slate-300 data-[state=checked]:bg-azure data-[state=checked]:border-azure"
                             />
                             <div className="flex-1 min-w-0">
                               <p className="text-sm font-medium text-slate-800 truncate">{c.clubName}</p>
@@ -594,7 +594,7 @@ export default function DistrictAdminAGPage() {
               <Button
                 onClick={handleSave}
                 disabled={saving || !formYearId || !formMemberId || formSelectedClubIds.size === 0}
-                className="bg-[#1e3a5f] hover:bg-[#152a44] text-white"
+                className="bg-azure hover:bg-mint-ink text-white"
               >
                 {saving ? "Saving..." : editing ? "Update" : "Add"}
               </Button>

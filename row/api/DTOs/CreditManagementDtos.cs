@@ -4,7 +4,7 @@ public class AddCreditDto
 {
     public int FkDistrictId { get; set; }
     public int FkClubId { get; set; }
-    public string CreditType { get; set; } = "Email"; // Email or WhatsApp
+    public string CreditType { get; set; } = "Email"; // Email is the only credit type in ROW
     public int CreditCount { get; set; }
     public DateTime ToDate { get; set; }
     // Transaction details (optional)

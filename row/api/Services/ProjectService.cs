@@ -366,22 +366,6 @@ public class ProjectService : IProjectService
 
         // Pre-check WhatsApp credits BEFORE insert
         int memberCountForCheck = 0;
-        if (dto.SendWhatsapp && clubId > 0)
-        {
-            memberCountForCheck = await conn.ExecuteScalarAsync<int>(
-                @"SELECT COUNT(*) FROM club_members cm
-                  JOIN member_master_profile m ON m.pk_member_master_profile_id = cm.fk_member_master_profile_id
-                  WHERE cm.fk_club_id = @Id AND cm.IsActive = 1 AND cm.isdeleted = 0 AND m.isdeleted = 0
-                    AND m.PrimaryMobileNumber IS NOT NULL AND m.PrimaryMobileNumber <> ''",
-                new { Id = clubId });
-            if (memberCountForCheck > 0)
-            {
-                using var preScope = _scopeFactory.CreateScope();
-                var creditSvc = preScope.ServiceProvider.GetRequiredService<ICreditManagementService>();
-                if (!await creditSvc.HasSufficientCreditsAsync(clubId, "WhatsApp", memberCountForCheck))
-                    throw new InvalidOperationException($"Insufficient WhatsApp credits. Need {memberCountForCheck} credit(s).");
-            }
-        }
 
         // Pre-check Email credits BEFORE insert (parity with WhatsApp; counts members with an email).
         if (dto.SendEmail && clubId > 0)
@@ -467,7 +451,7 @@ public class ProjectService : IProjectService
                 DirectBeneficiaries = dto.DirectBeneficiaries, ManHours = dto.ManHours,
                 RotariansInvolved = dto.RotariansInvolved, RotaractorsInvolved = dto.RotaractorsInvolved,
                 RccInvolved = dto.RccInvolved ?? 0,
-                SendWhatsapp = dto.SendWhatsapp, SendEmail = dto.SendEmail, MeetingType = dto.MeetingType,
+                SendWhatsapp = false, SendEmail = dto.SendEmail, MeetingType = dto.MeetingType,
                 AgendaDocument = dto.AgendaDocument, MinutesDocument = dto.MinutesDocument,
                 Attendance = dto.Attendance, AttendancePercentage = dto.AttendancePercentage,
                 GlobalGrantNumber = ggNumber, AmountSanctioned = amtSanc,
@@ -569,7 +553,7 @@ public class ProjectService : IProjectService
             $@"SELECT fk_club_id, send_whatsapp FROM `{info.ProjectsTable}` WHERE pk_project_id = @Id AND isdeleted = 0",
             new { Id = id });
         int clubIdForCheck = prior != null ? (int)prior.fk_club_id : 0;
-        bool shouldSend = dto.SendWhatsapp;
+        bool shouldSend = false;
         if (shouldSend && clubIdForCheck > 0)
         {
             int memberCountForCheck = await conn.ExecuteScalarAsync<int>(
@@ -682,7 +666,7 @@ public class ProjectService : IProjectService
                 DirectBeneficiaries = dto.DirectBeneficiaries, ManHours = dto.ManHours,
                 RotariansInvolved = dto.RotariansInvolved, RotaractorsInvolved = dto.RotaractorsInvolved,
                 RccInvolved = dto.RccInvolved ?? 0,
-                SendWhatsapp = dto.SendWhatsapp, SendEmail = dto.SendEmail, MeetingType = dto.MeetingType,
+                SendWhatsapp = false, SendEmail = dto.SendEmail, MeetingType = dto.MeetingType,
                 AgendaDocument = dto.AgendaDocument, MinutesDocument = dto.MinutesDocument,
                 Attendance = dto.Attendance, AttendancePercentage = dto.AttendancePercentage,
                 GlobalGrantNumber = ggNumber, AmountSanctioned = amtSanc,
@@ -696,7 +680,7 @@ public class ProjectService : IProjectService
         // the updated project. Leaving a box UNchecked sends nothing (flag=0) — that already worked.
         // Projects have no publish date, so a checked edit re-sends on the next scheduler run (WhatsApp
         // still respects approval). Credits were pre-checked above and are deducted at send time.
-        if (dto.SendWhatsapp)
+        if (false)
             await conn.ExecuteAsync(
                 $"UPDATE `{info.ProjectsTable}` SET WhatsAppSentDate = NULL, WhatsAppSentCount = 0, WhatsAppFailedCount = 0 WHERE pk_project_id = @Id AND isdeleted = 0",
                 new { Id = id });
@@ -861,7 +845,7 @@ public class ProjectService : IProjectService
                     DirectBeneficiaries = dto.DirectBeneficiaries, ManHours = dto.ManHours,
                     RotariansInvolved = dto.RotariansInvolved, RotaractorsInvolved = dto.RotaractorsInvolved,
                     RccInvolved = dto.RccInvolved ?? 0,
-                    SendWhatsapp = dto.SendWhatsapp, SendEmail = dto.SendEmail, MeetingType = dto.MeetingType,
+                    SendWhatsapp = false, SendEmail = dto.SendEmail, MeetingType = dto.MeetingType,
                     AgendaDocument = dto.AgendaDocument, MinutesDocument = dto.MinutesDocument,
                     Attendance = dto.Attendance, AttendancePercentage = dto.AttendancePercentage,
                     GlobalGrantNumber = ggNumber, AmountSanctioned = amtSanc,

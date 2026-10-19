@@ -23,7 +23,7 @@ import {
   ArrowLeft, AlertTriangle, ChevronDown, ChevronRight, Edit3, ExternalLink, Eye, EyeOff,
   GripVertical, Layers, List, Loader2, Pencil, Plus, PlusCircle, Search,
   Shield, Star, Trash2, TrendingUp,
-} from "lucide-react";
+} from "@/components/icons";
 import {
   deleteClubMenu, deleteClubSubMenu, getClub, getClubMenus, getClubSubMenus,
   reorderMenusBulk, reorderSubMenusBulk, setClubMenuActive, updateClubMenu, updateClubSubMenu,
@@ -335,7 +335,7 @@ export default function MenuListV2Page() {
             <div>
               <h1 className="text-lg font-semibold text-slate-800">Menu List</h1>
               <p className="text-xs text-slate-500 mt-0.5">
-                Website navigation · {clubName || "—"}
+                Website navigation · {clubName || "–"}
               </p>
             </div>
           </div>
@@ -603,13 +603,13 @@ function Row(props: RowProps) {
               <PlusCircle className="h-3.5 w-3.5" /> Add
             </Link>
           ) : (
-            <span className="text-slate-300 text-xs">—</span>
+            <span className="text-slate-300 text-xs">, </span>
           )}
         </td>
         {canManage && (
           <td className="px-3 py-2 text-right">
             {isHomeMenu(menu) ? (
-              <span className="text-slate-300 text-xs" title="Home menu is always active">—</span>
+              <span className="text-slate-300 text-xs" title="Home menu is always active">, </span>
             ) : (
             <button
               type="button"
@@ -626,7 +626,7 @@ function Row(props: RowProps) {
         {canManage && (
           <td className="px-3 py-2 text-right">
             {isHomeMenu(menu) ? (
-              <span className="text-slate-300 text-xs" title="Home menu cannot be edited">—</span>
+              <span className="text-slate-300 text-xs" title="Home menu cannot be edited">, </span>
             ) : (
             <Link
               href={editHref}
@@ -652,7 +652,7 @@ function Row(props: RowProps) {
                 <Trash2 size={13} />
               </button>
             ) : (
-              <span className="text-slate-300 text-xs" title="Default menus cannot be deleted">—</span>
+              <span className="text-slate-300 text-xs" title="Default menus cannot be deleted">, </span>
             )}
           </td>
         )}

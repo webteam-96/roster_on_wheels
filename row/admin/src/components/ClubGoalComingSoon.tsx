@@ -3,7 +3,7 @@
 // The placeholder shown wherever Club Goal Setting used to appear (user 2026-10-01).
 // One component so every surface reads identically — see lib/clubGoalSetting.ts for the switch.
 
-import { Clock } from "lucide-react";
+import { Clock } from "@/components/icons";
 import { CLUB_GOAL_COMING_SOON_TEXT, CLUB_GOAL_COMING_SOON_TITLE } from "@/lib/clubGoalSetting";
 
 export default function ClubGoalComingSoon({ compact = false }: { compact?: boolean }) {

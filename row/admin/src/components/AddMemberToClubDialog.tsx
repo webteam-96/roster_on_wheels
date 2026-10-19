@@ -10,7 +10,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Search, User, Check } from "lucide-react";
+import { Search, User, Check } from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
 import Image from "next/image";
 

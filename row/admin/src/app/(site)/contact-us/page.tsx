@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { MapPin, ArrowUpRight } from "lucide-react";
+import { MapPin, ArrowUpRight } from "@/components/icons";
 import { PageBanner } from "@/components/site/PageBanner";
 import { SiteFooter } from "@/components/site/SiteFooter";
 import { ContactChannels } from "@/components/pages/contact/ContactChannels";
@@ -21,7 +21,7 @@ export default function ContactUsPage() {
     <>
       <PageBanner
         eyebrow="Get in Touch"
-        subtitle="One call or email away, every working day — for membership, events and anything in between."
+        subtitle="One call or email away, every working day: for membership, events and anything in between."
       >
         Contact <span className="text-gold">Us</span>
       </PageBanner>

@@ -26,7 +26,7 @@ import {
 import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
 import AlertModal from "@/components/AlertModal";
-import { ArrowLeft, Plus, Pencil, Trash2, MoreHorizontal, Settings, AlertTriangle, GripVertical, Download } from "lucide-react";
+import { ArrowLeft, Plus, Pencil, Trash2, MoreHorizontal, Settings, AlertTriangle, GripVertical, Download } from "@/components/icons";
 import { exportToCSV } from "@/utils/csvExport";
 import RotaryLoader from "@/components/RotaryLoader";
 import Link from "next/link";
@@ -269,7 +269,7 @@ export default function DesignationsPage() {
                                 className="text-destructive"
                                 disabled={inUse}
                                 onClick={() => { if (!inUse) setDeleteTarget(des); }}
-                                title={inUse ? `Cannot delete — ${bodCount} BOD member${bodCount === 1 ? "" : "s"} assigned` : undefined}
+                                title={inUse ? `Cannot delete: ${bodCount} BOD member${bodCount === 1 ? "" : "s"} assigned` : undefined}
                               >
                                 <Trash2 className="mr-2 h-4 w-4" />Delete
                               </DropdownMenuItem>

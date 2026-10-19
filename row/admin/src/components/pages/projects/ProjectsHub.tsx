@@ -1469,7 +1469,7 @@ function LiveHub({ overview, initialArea }: { overview: Overview; initialArea?: 
                 ) : (
                   browseTab === "clubs" && (
                     <p className="text-[13px] text-muted">
-                      There are thousands of clubs across the zones — type a club&rsquo;s name
+                      There are thousands of clubs across the zones: type a club&rsquo;s name
                       into the search box above, or pick a district to list its clubs here.
                     </p>
                   )

@@ -5,7 +5,7 @@ import { getServerBrand } from "@/lib/brand";
 export async function generateMetadata(): Promise<Metadata> {
   const brand = await getServerBrand();
   return {
-    title: `Cookies and browser storage — ${brand.productName}`,
+    title: `Cookies and browser storage | ${brand.productName}`,
     description: `What the ${brand.productName} portal stores in your browser and why.`,
   };
 }
@@ -26,7 +26,7 @@ export default async function CookiesPage() {
         <h2>1. Cookie</h2>
         <ul>
           <li>
-            <strong>NEXT_LOCALE</strong> — the language you chose in the portal, so pages open in that language next time.
+            <strong>NEXT_LOCALE</strong>: the language you chose in the portal, so pages open in that language next time.
             Strictly necessary for the language setting; kept until you change the language or clear your browser data.
           </li>
         </ul>
@@ -35,19 +35,19 @@ export default async function CookiesPage() {
       <section>
         <h2>2. Local storage (kept until you sign out or clear browser data)</h2>
         <ul>
-          <li><strong>auth_token, session_expiry, session_duration_ms</strong> — your signed-in session and when it ends. Strictly necessary.</li>
-          <li><strong>dashboard_available_v2, modules_coming_soon, da_active_club</strong> — which dashboards and modules you can open, and the club you last worked on, so the menu loads without waiting.</li>
-          <li><strong>dashboard-theme, directory_page_size</strong> — display preferences you chose.</li>
-          <li><strong>rotary-project-stats-overview-v1</strong> — cached public project statistics, so the projects page loads faster.</li>
+          <li><strong>auth_token, session_expiry, session_duration_ms</strong>: your signed-in session and when it ends. Strictly necessary.</li>
+          <li><strong>dashboard_available_v2, modules_coming_soon, da_active_club</strong>: which dashboards and modules you can open, and the club you last worked on, so the menu loads without waiting.</li>
+          <li><strong>dashboard-theme, directory_page_size</strong>: display preferences you chose.</li>
+          <li><strong>rotary-project-stats-overview-v1</strong>: cached public project statistics, so the projects page loads faster.</li>
         </ul>
       </section>
 
       <section>
         <h2>3. Session storage (cleared when you close the tab)</h2>
         <ul>
-          <li><strong>brand_v1</strong> — the portal&apos;s name, logo and contact details for this visit.</li>
-          <li><strong>dashboardYearPicked, agDashboardYearPicked, club_dash_return_to</strong> — the Rotary year and page you were on, so the dashboard keeps your place.</li>
-          <li><strong>rotary:projectSwitchDraft</strong> — an unsaved project form while you switch between project types.</li>
+          <li><strong>brand_v1</strong>: the portal&apos;s name, logo and contact details for this visit.</li>
+          <li><strong>dashboardYearPicked, agDashboardYearPicked, club_dash_return_to</strong>: the Rotary year and page you were on, so the dashboard keeps your place.</li>
+          <li><strong>rotary:projectSwitchDraft</strong>: an unsaved project form while you switch between project types.</li>
         </ul>
       </section>
 

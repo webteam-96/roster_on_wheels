@@ -13,7 +13,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
-import { ArrowLeft, Save, Upload, Eye } from "lucide-react";
+import { ArrowLeft, Save, Upload, Eye } from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
 import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";
@@ -185,7 +185,7 @@ export default function ClubMembershipDuesEditPage() {
                 value={description}
                 onChange={setDescription}
                 modules={quillModules}
-                placeholder="Description (optional) — supports bold/italic/sizes/colors/etc."
+                placeholder="Description (optional): supports bold/italic/sizes/colors/etc."
               />
             </div>
           </CardContent>
@@ -234,7 +234,7 @@ Transaction ID : ****`}</pre>
                 value={emailBody}
                 onChange={setEmailBody}
                 modules={quillModules}
-                placeholder="Email body — supports bold/italic/sizes/colors/etc."
+                placeholder="Email body: supports bold/italic/sizes/colors/etc."
               />
             </div>
             <div>
@@ -259,7 +259,7 @@ Click on the link : ****`}</pre>
                 value={emailReminderBody}
                 onChange={setEmailReminderBody}
                 modules={quillModules}
-                placeholder="Reminder body — supports bold/italic/sizes/colors/etc."
+                placeholder="Reminder body: supports bold/italic/sizes/colors/etc."
               />
             </div>
           </CardContent>

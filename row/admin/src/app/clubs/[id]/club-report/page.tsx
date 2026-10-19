@@ -10,7 +10,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import ErrorAlert from "@/components/ErrorAlert";
 import SuccessAlert from "@/components/SuccessAlert";
-import { ArrowLeft, Calendar, Download, FileSpreadsheet, BarChart3, Users, Megaphone, CalendarClock, Newspaper, FileText, CheckSquare, Award, UserCircle, IndianRupee } from "lucide-react";
+import { ArrowLeft, Calendar, Download, FileSpreadsheet, BarChart3, Users, Megaphone, CalendarClock, Newspaper, FileText, CheckSquare, Award, UserCircle, IndianRupee } from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
 import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";
@@ -100,7 +100,7 @@ export default function ClubReportPage() {
   const exportSection = (data: any[], sectionName: string, columns: { key: string; label: string; width?: number; hyperlink?: boolean; linkText?: string }[]) => {
     if (!data || data.length === 0) return;
     exportToCSV(data, `${clubName}_${sectionName.replace(/\s+/g, "_")}`, columns, {
-      title: `${sectionName} — ${clubName}`,
+      title: `${sectionName} | ${clubName}`,
       subtitle: `Rotary Year: ${yearLabel}`,
     });
     setSuccessMessage(`${sectionName} exported.`);
@@ -122,7 +122,7 @@ export default function ClubReportPage() {
             </Button>
             <div>
               <h2 className="text-2xl font-bold tracking-tight text-primary">Club Report</h2>
-              <p className="text-muted-foreground text-base">{clubName} — Comprehensive club activity report</p>
+              <p className="text-muted-foreground text-base">{clubName}: Comprehensive club activity report</p>
             </div>
           </div>
           {years.length > 0 && (
@@ -149,7 +149,7 @@ export default function ClubReportPage() {
             <div>
               <h3 className="text-sm font-semibold text-primary mb-3 flex items-center gap-2">
                 <BarChart3 className="h-4 w-4" />
-                Summary — {yearLabel}
+                Summary: {yearLabel}
               </h3>
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
                 <StatCard icon={Award} label="Projects" value={report.summary.totalProjects} color="bg-blue-500" />

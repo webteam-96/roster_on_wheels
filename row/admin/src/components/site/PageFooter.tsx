@@ -43,7 +43,7 @@ export function PageFooter() {
       {/* Gold hairline + soft royal glow — quiet nod to the hero sky */}
       <div
         aria-hidden
-        className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-gold/40 to-transparent"
+        className="absolute inset-x-0 top-0 h-px bg-transparent"
       />
       <div
         aria-hidden

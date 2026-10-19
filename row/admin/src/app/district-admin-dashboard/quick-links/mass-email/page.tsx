@@ -13,7 +13,7 @@
  *     the same filters applied.
  *   - ?yearId= (top-bar year) is forwarded through every navigation even
  *     though mass emails are NOT year-scoped.
- *   - Design palette: navy #1e3a5f, gold #F7A81B, slate borders/text,
+ *   - Design palette: navy #17458f, gold #F7A81B, slate borders/text,
  *     rounded-2xl white cards, navy table header w/ gold underline.
  */
 
@@ -36,7 +36,7 @@ import RotaryLoader from "@/components/RotaryLoader";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import {
   ArrowLeft, Plus, MoreHorizontal, Eye, Pencil, Trash2, Send, Mail, AlertTriangle,
-} from "lucide-react";
+} from "@/components/icons";
 
 import { appLocale } from "@/lib/appFormat";
 const BASE = "/district-admin-dashboard/quick-links/mass-email";
@@ -133,7 +133,7 @@ export default function DistrictAdminMassEmailListPage() {
   };
 
   const getRecipientTypeLabel = (type: number) => {
-    switch (type) { case 1: return "All Members"; case 2: return "Clubs"; case 3: return "Subgroups"; default: return "—"; }
+    switch (type) { case 1: return "All Members"; case 2: return "Clubs"; case 3: return "Subgroups"; default: return "–"; }
   };
 
   const totalPages = Math.ceil(totalCount / pageSize);
@@ -156,11 +156,11 @@ export default function DistrictAdminMassEmailListPage() {
               <ArrowLeft className="h-4 w-4" />
             </Button>
             <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#1e3a5f]/10 text-[#1e3a5f]">
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-azure/10 text-ink">
                 <Mail size={20} />
               </div>
               <div>
-                <h2 className="text-2xl font-bold tracking-tight text-[#1e3a5f]">
+                <h2 className="text-2xl font-bold tracking-tight text-ink">
                   {districtNumber ? `District ${districtNumber} · Mass Email` : "Mass Email"}
                 </h2>
                 <p className="text-slate-500 text-sm mt-0.5">Send bulk emails to district members</p>
@@ -170,7 +170,7 @@ export default function DistrictAdminMassEmailListPage() {
           {canManage && (
             <Button
               onClick={() => router.push(withSearch(`${BASE}/compose`, { returnTo: selfReturn, yearId }))}
-              className="bg-[#1e3a5f] hover:bg-[#152a44] text-white"
+              className="bg-azure hover:bg-mint-ink text-white"
             >
               <Plus className="mr-2 h-4 w-4" />New Email
             </Button>
@@ -184,7 +184,7 @@ export default function DistrictAdminMassEmailListPage() {
               value={statusFilter || "all"}
               onValueChange={(v) => { setStatusFilter(v === "all" ? "" : v); setPage(1); }}
             >
-              <SelectTrigger className="border-slate-200 bg-white focus:border-[#1e3a5f] focus:ring-[#1e3a5f]/20">
+              <SelectTrigger className="border-slate-200 bg-white focus:border-azure focus:ring-azure/20">
                 <SelectValue placeholder="All Statuses" />
               </SelectTrigger>
               <SelectContent>
@@ -207,7 +207,7 @@ export default function DistrictAdminMassEmailListPage() {
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
-                  <TableRow className="hover:opacity-100 border-b-2 border-[#F7A81B]" style={{ backgroundColor: "#1e3a5f" }}>
+                  <TableRow className="hover:opacity-100 border-b-2 border-marigold" style={{ backgroundColor: "#17458f" }}>
                     <TableHead className="text-white text-xs font-semibold uppercase tracking-wide">Subject</TableHead>
                     <TableHead className="text-white text-xs font-semibold uppercase tracking-wide">Status</TableHead>
                     <TableHead className="text-white text-xs font-semibold uppercase tracking-wide">Recipients</TableHead>
@@ -227,8 +227,8 @@ export default function DistrictAdminMassEmailListPage() {
                       <TableCell className="font-semibold text-slate-800 max-w-[250px] truncate">{item.subject}</TableCell>
                       <TableCell>{getStatusBadge(item.status)}</TableCell>
                       <TableCell className="text-sm text-slate-700">{item.totalRecipients} <span className="text-slate-400">({getRecipientTypeLabel(item.recipientType)})</span></TableCell>
-                      <TableCell className="text-center text-sm">{item.status !== "Draft" ? <span className="text-emerald-600 font-medium">{item.sentCount}</span> : <span className="text-slate-400">—</span>}</TableCell>
-                      <TableCell className="text-center text-sm">{item.status !== "Draft" ? (item.failedCount > 0 ? <span className="text-red-600 font-medium">{item.failedCount}</span> : <span className="text-slate-500">0</span>) : <span className="text-slate-400">—</span>}</TableCell>
+                      <TableCell className="text-center text-sm">{item.status !== "Draft" ? <span className="text-emerald-600 font-medium">{item.sentCount}</span> : <span className="text-slate-400">, </span>}</TableCell>
+                      <TableCell className="text-center text-sm">{item.status !== "Draft" ? (item.failedCount > 0 ? <span className="text-red-600 font-medium">{item.failedCount}</span> : <span className="text-slate-500">0</span>) : <span className="text-slate-400">, </span>}</TableCell>
                       <TableCell className="text-sm text-slate-600">{new Date(item.createdDate).toLocaleDateString(appLocale())}</TableCell>
                       {canManage && (
                         <TableCell className="text-right">
@@ -297,7 +297,7 @@ export default function DistrictAdminMassEmailListPage() {
         open={!!sendId}
         onOpenChange={(o) => !o && setSendId(null)}
         icon={Send}
-        iconClassName="text-[#1e3a5f]"
+        iconClassName="text-ink"
         title="Send Email"
         description="Send this email to all recipients now?"
         confirmLabel={processing ? "Sending..." : "Send"}

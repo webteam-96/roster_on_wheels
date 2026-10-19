@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/table";
 import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
-import { ArrowLeft, Pencil, FileSpreadsheet, Users } from "lucide-react";
+import { ArrowLeft, Pencil, FileSpreadsheet, Users } from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
 import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";

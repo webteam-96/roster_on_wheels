@@ -139,18 +139,6 @@ public class UpcomingEventService : IUpcomingEventService
         int refundEntityIdForCheck = districtId ?? clubId;
         int reminderCount = dto.Reminders?.Count ?? 0;
         int totalCreditsNeeded = 0;
-        if (dto.IsSendWhatsapp && refundEntityIdForCheck > 0)
-        {
-            memberCountForCheck = await CountRecipientsAsync(connection, clubId, districtId);
-            totalCreditsNeeded = memberCountForCheck * (1 + reminderCount);
-            if (totalCreditsNeeded > 0)
-            {
-                using var scope = _scopeFactory.CreateScope();
-                var creditSvc = scope.ServiceProvider.GetRequiredService<ICreditManagementService>();
-                if (!await creditSvc.HasSufficientCreditsAsync(refundEntityIdForCheck, "WhatsApp", totalCreditsNeeded))
-                    throw new InvalidOperationException($"Insufficient WhatsApp credits. Need {totalCreditsNeeded} credit(s) for {memberCountForCheck} members × {1 + reminderCount} sends. Please uncheck 'Send through WhatsApp' to save without WhatsApp notification, or reduce reminders, or purchase more credits.");
-            }
-        }
 
         // Pre-check Email credits BEFORE insert (parity with WhatsApp; counts members with an email).
         if (dto.IsSendEmail && refundEntityIdForCheck > 0)
@@ -186,7 +174,7 @@ public class UpcomingEventService : IUpcomingEventService
             dto.ExpiryDate,
             dto.EventVenue,
             dto.RegistrationLink,
-            IsSendWhatsapp = dto.IsSendWhatsapp ? 1 : 0,
+            IsSendWhatsapp = 0,
             IsSendEmail = dto.IsSendEmail ? 1 : 0,
             IsRepeatNotification = dto.IsRepeatNotification ? 1 : 0,
             CreatedBy = createdBy
@@ -276,9 +264,9 @@ public class UpcomingEventService : IUpcomingEventService
         int clubIdForCheck = prior != null ? (int)prior.fk_club_id : 0;
         int? districtIdForCheck = prior != null && prior.fk_district_id != null ? (int?)prior.fk_district_id : null;
         int refundEntityIdForCheck = districtIdForCheck ?? clubIdForCheck;
-        bool newlyTurnedOn = dto.IsSendWhatsapp && !priorWhatsapp && !alreadySent;
+        bool newlyTurnedOn = false && !priorWhatsapp && !alreadySent;
         // Re-send if already sent AND new publish date is still in the future (user wants resend)
-        bool resendOnDateChange = dto.IsSendWhatsapp && alreadySent && dto.PublishDate > DateTime.Now;
+        bool resendOnDateChange = false && alreadySent && dto.PublishDate > DateTime.Now;
         int reminderCount = dto.Reminders?.Count ?? 0;
         if ((newlyTurnedOn || resendOnDateChange) && refundEntityIdForCheck > 0)
         {
@@ -334,7 +322,7 @@ public class UpcomingEventService : IUpcomingEventService
                 Id = id, dto.Title, dto.Description, dto.ImagePath,
                 dto.EventDate, dto.PublishDate, dto.ExpiryDate,
                 dto.EventVenue, dto.RegistrationLink,
-                IsSendWhatsapp = dto.IsSendWhatsapp ? 1 : 0,
+                IsSendWhatsapp = 0,
                 IsSendEmail = dto.IsSendEmail ? 1 : 0,
                 IsRepeatNotification = dto.IsRepeatNotification ? 1 : 0,
                 ModifiedBy = modifiedBy

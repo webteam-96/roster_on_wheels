@@ -22,7 +22,7 @@ import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import {
   FolderKanban, Calendar, Search, Plus, Edit3, Trash2, Loader2, AlertTriangle,
-} from "lucide-react";
+} from "@/components/icons";
 import {
   getDistrictProjects,
   deleteDistrictProject,
@@ -41,7 +41,7 @@ const PAGE_SIZE = 15;
 // ── helpers ──────────────────────────────────────────────────────────────
 
 function fmtDate(s?: string | null): string {
-  if (!s) return "—";
+  if (!s) return "–";
   try {
     return new Date(s).toLocaleDateString(appLocale(), {
       day: "2-digit", month: "short", year: "numeric",
@@ -180,15 +180,15 @@ export function DistrictProjectsSection({
                 {items.map((item, i) => (
                   <tr key={item.id} className="hover:bg-blue-50/40">
                     <td className="px-3 py-2 text-slate-500">{(page - 1) * PAGE_SIZE + i + 1}</td>
-                    <td className="px-3 py-2 font-medium text-slate-800">{item.title || "—"}</td>
+                    <td className="px-3 py-2 font-medium text-slate-800">{item.title || "–"}</td>
                     <td className="px-3 py-2 text-slate-600 whitespace-nowrap">{fmtDate(item.projectDate)}</td>
                     <td className="px-3 py-2 text-right text-slate-600 whitespace-nowrap">
                       {item.projectCost != null
                         ? formatMoney(item.projectCost, item.currency)
-                        : "—"}
+                        : "–"}
                     </td>
-                    <td className="px-3 py-2 text-center text-slate-600">{item.directBeneficiaries ?? "—"}</td>
-                    <td className="px-3 py-2 text-slate-600">{item.areaOfFocusName || "—"}</td>
+                    <td className="px-3 py-2 text-center text-slate-600">{item.directBeneficiaries ?? "–"}</td>
+                    <td className="px-3 py-2 text-slate-600">{item.areaOfFocusName || "–"}</td>
                     <td className="px-3 py-2 text-right">
                       <Link
                         href={`/districts/${districtId}/projects/v2/${item.id}/edit?yearId=${yearId}${returnTo ? `&returnTo=${encodeURIComponent(returnTo)}` : ""}`}
@@ -383,7 +383,7 @@ export function DistrictEventsSection({
                 {items.map((item, i) => (
                   <tr key={item.id} className="hover:bg-blue-50/40">
                     <td className="px-3 py-2 text-slate-500">{(page - 1) * PAGE_SIZE + i + 1}</td>
-                    <td className="px-3 py-2 font-medium text-slate-800">{item.title || "—"}</td>
+                    <td className="px-3 py-2 font-medium text-slate-800">{item.title || "–"}</td>
                     <td className="px-3 py-2 text-slate-600 whitespace-nowrap">{fmtDate(item.eventDate)}</td>
                     <td className="px-3 py-2 text-right">
                       <Link

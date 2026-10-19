@@ -12,7 +12,7 @@ import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
 import RotaryLoader from "@/components/RotaryLoader";
 import ProtectedRoute from "@/components/ProtectedRoute";
-import { ArrowLeft, Plus, Trash2, Search, ShieldCheck, AlertTriangle, Loader2 } from "lucide-react";
+import { ArrowLeft, Plus, Trash2, Search, ShieldCheck, AlertTriangle, Loader2, Phone, Mail, Building2 } from "@/components/icons";
 import { useAuth } from "@/contexts/AuthContext";
 import {
   listSuperAdmins,
@@ -185,7 +185,7 @@ export default function SuperAdminRoleConfigPage() {
             <h2 className="text-2xl font-bold tracking-tight text-primary flex items-center gap-2">
               <ShieldCheck className="h-6 w-6" /> Super Admin Role Config
             </h2>
-            <p className="text-muted-foreground text-sm">Add or remove SuperAdmin access — OTP-gated by the approver on record.</p>
+            <p className="text-muted-foreground text-sm">Add or remove SuperAdmin access: OTP-gated by the approver on record.</p>
           </div>
           <Button onClick={openAdd}><Plus className="h-4 w-4 mr-2" /> Add SuperAdmin</Button>
         </div>
@@ -218,10 +218,10 @@ export default function SuperAdminRoleConfigPage() {
                       return (
                         <tr key={r.memberId} className={isSelf ? "bg-primary/5" : ""}>
                           <td className="px-3 py-2 font-medium">{r.memberName}{isSelf && <Badge variant="outline" className="ml-2 text-xs">You</Badge>}</td>
-                          <td className="px-3 py-2">{r.mobile ?? "—"}</td>
-                          <td className="px-3 py-2">{r.email ?? "—"}</td>
-                          <td className="px-3 py-2">{r.promotedOn ? new Date(r.promotedOn).toLocaleDateString() : "—"}</td>
-                          <td className="px-3 py-2">{r.promotedByName ?? "—"}</td>
+                          <td className="px-3 py-2">{r.mobile ?? "–"}</td>
+                          <td className="px-3 py-2">{r.email ?? "–"}</td>
+                          <td className="px-3 py-2">{r.promotedOn ? new Date(r.promotedOn).toLocaleDateString() : "–"}</td>
+                          <td className="px-3 py-2">{r.promotedByName ?? "–"}</td>
                           <td className="px-3 py-2 text-center">
                             <label className="inline-flex items-center justify-center gap-2 cursor-pointer">
                               <input
@@ -279,10 +279,10 @@ export default function SuperAdminRoleConfigPage() {
                     <button key={c.memberId} onClick={() => pickCandidate(c)} className="w-full text-left p-3 hover:bg-muted/40 transition-colors">
                       <div className="font-medium">{c.memberName}</div>
                       <div className="text-xs text-muted-foreground flex flex-wrap gap-x-3 gap-y-0.5 mt-0.5">
-                        {c.mobile && <span>📞 {c.mobile}</span>}
-                        {c.email && <span>✉️ {c.email}</span>}
+                        {c.mobile && <span className="inline-flex items-center gap-1"><Phone className="h-3.5 w-3.5" aria-hidden />{c.mobile}</span>}
+                        {c.email && <span className="inline-flex items-center gap-1"><Mail className="h-3.5 w-3.5" aria-hidden />{c.email}</span>}
                         {c.rotaryId && <span>RID {c.rotaryId}</span>}
-                        {c.clubName && <span>🏢 {c.clubName}</span>}
+                        {c.clubName && <span className="inline-flex items-center gap-1"><Building2 className="h-3.5 w-3.5" aria-hidden />{c.clubName}</span>}
                         {c.districtNumber && <span>D {c.districtNumber}</span>}
                         {c.zoneName && <span>Zone {c.zoneName}</span>}
                       </div>
@@ -304,7 +304,7 @@ export default function SuperAdminRoleConfigPage() {
                   <div className="bg-amber-50 border border-amber-300 rounded-md p-4 flex gap-3">
                     <AlertTriangle className="h-6 w-6 text-amber-600 shrink-0" />
                     <div className="text-sm space-y-2">
-                      <div className="font-medium text-amber-800">Role conflict — confirm before promoting</div>
+                      <div className="font-medium text-amber-800">Role conflict: confirm before promoting</div>
                       <div className="text-amber-700">
                         <strong>{selected.memberName}</strong> currently has: <strong>{all.join(", ")}</strong>
                       </div>
@@ -315,7 +315,7 @@ export default function SuperAdminRoleConfigPage() {
                       {toKeep.length > 0 && (
                         <div className="text-green-700">
                           <strong>Will stay:</strong> {toKeep.join(", ")} <br />
-                          <span className="text-xs">(SuperAdmin is web-only — these keep the member's mobile-app access)</span>
+                          <span className="text-xs">(SuperAdmin is web-only: these keep the member's mobile-app access)</span>
                         </div>
                       )}
                     </div>

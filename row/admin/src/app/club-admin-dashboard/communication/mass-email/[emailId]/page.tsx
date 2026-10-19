@@ -16,7 +16,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
 import AlertModal from "@/components/AlertModal";
-import { ArrowLeft, RefreshCw, CheckCircle2, XCircle, Clock, Loader2 } from "lucide-react";
+import { ArrowLeft, RefreshCw, CheckCircle2, XCircle, Clock, Loader2 } from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
 import ProtectedRoute from "@/components/ProtectedRoute";
 
@@ -85,12 +85,12 @@ export default function ClubAdminMassEmailViewPage() {
           <div className="flex items-center gap-3">
             <Button variant="outline" size="icon" onClick={() => router.push(returnTo)} aria-label="Back"><ArrowLeft className="h-4 w-4" /></Button>
             <div>
-              <h2 className="text-2xl font-bold tracking-tight text-[#1e3a5f]">Mass Email Detail</h2>
+              <h2 className="text-2xl font-bold tracking-tight text-ink">Mass Email Detail</h2>
               <p className="text-slate-500 text-sm mt-0.5">{clubName}</p>
             </div>
           </div>
           {canManage && detail.status === "Failed" && (
-            <Button onClick={() => setConfirmRetry(true)} disabled={retrying} className="bg-[#1e3a5f] hover:bg-[#152a44] text-white">
+            <Button onClick={() => setConfirmRetry(true)} disabled={retrying} className="bg-azure hover:bg-mint-ink text-white">
               {retrying ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <RefreshCw className="h-4 w-4 mr-2" />}Retry Failed
             </Button>
           )}
@@ -140,7 +140,7 @@ export default function ClubAdminMassEmailViewPage() {
         </Card>
       </div>
 
-      <AlertModal open={confirmRetry} icon={RefreshCw} iconClassName="text-[#1e3a5f]" title="Retry Failed Emails"
+      <AlertModal open={confirmRetry} icon={RefreshCw} iconClassName="text-ink" title="Retry Failed Emails"
         description="This will retry sending to all failed recipients. Credits will be deducted." confirmLabel="Retry" cancelLabel="Cancel"
         onConfirm={handleRetry} onCancel={() => setConfirmRetry(false)} />
       <SuccessAlert open={!!successMessage} title="Success" description={successMessage || ""} onOk={() => setSuccessMessage(null)} />

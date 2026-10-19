@@ -17,7 +17,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
-import { ArrowLeft, Plus, Upload, MessageSquare, MessageCircle, History } from "lucide-react";
+import { ArrowLeft, Plus, Upload, MessageSquare, History } from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
 import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";
@@ -30,7 +30,7 @@ function BalanceCard({ title, balance, total, used, icon: Icon, color }: {
 }) {
   return (
     <Card>
-      <CardContent className={`p-5 bg-gradient-to-br ${color} rounded-lg text-white`}>
+      <CardContent className={`p-5 ${color} rounded-lg text-white`}>
         <div className="flex items-center justify-between mb-2">
           <h3 className="font-semibold flex items-center gap-2"><Icon className="h-5 w-5" />{title}</h3>
         </div>
@@ -60,7 +60,7 @@ export default function RiDirectorCreditsPanel({ embedded = false }: { embedded?
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [saving, setSaving] = useState(false);
 
-  const [creditType, setCreditType] = useState<"Email" | "WhatsApp">("Email");
+  const [creditType, setCreditType] = useState<"Email">("Email");
   const [creditCount, setCreditCount] = useState("");
   const [fromDate, setFromDate] = useState(new Date().toISOString().split("T")[0]);
   const [toDate, setToDate] = useState(new Date(Date.now() + 365 * 86400000).toISOString().split("T")[0]);
@@ -130,10 +130,10 @@ export default function RiDirectorCreditsPanel({ embedded = false }: { embedded?
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           {embedded ? <div /> : (
           <div className="flex items-center gap-3">
-            <Button variant="outline" size="icon" asChild><Link href={isSuperAdmin ? "/settings/email-whatsapp-credits" : "/ri-director"}><ArrowLeft className="h-4 w-4" /></Link></Button>
+            <Button variant="outline" size="icon" asChild><Link href={isSuperAdmin ? "/settings/email-credits" : "/ri-director"}><ArrowLeft className="h-4 w-4" /></Link></Button>
             <div>
               <h2 className="text-2xl font-bold tracking-tight text-primary">RI Director - Credit Management</h2>
-              <p className="text-muted-foreground">Manage Email and WhatsApp credit pool</p>
+              <p className="text-muted-foreground">Manage Email credit pool</p>
             </div>
           </div>
           )}
@@ -141,8 +141,7 @@ export default function RiDirectorCreditsPanel({ embedded = false }: { embedded?
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <BalanceCard title="Email Credits" balance={balance?.emailBalance || 0} total={balance?.emailTotal || 0} used={balance?.emailUsed || 0} icon={MessageSquare} color="from-sky-500 to-blue-600" />
-          <BalanceCard title="WhatsApp Credits" balance={balance?.whatsappBalance || 0} total={balance?.whatsappTotal || 0} used={balance?.whatsappUsed || 0} icon={MessageCircle} color="from-emerald-500 to-green-600" />
+          <BalanceCard title="Email Credits" balance={balance?.emailBalance || 0} total={balance?.emailTotal || 0} used={balance?.emailUsed || 0} icon={MessageSquare} color="bg-sky-500" />
         </div>
 
         <Tabs defaultValue="credits">
@@ -228,7 +227,6 @@ export default function RiDirectorCreditsPanel({ embedded = false }: { embedded?
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="Email">Email</SelectItem>
-                    <SelectItem value="WhatsApp">WhatsApp</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

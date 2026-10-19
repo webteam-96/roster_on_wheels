@@ -1,53 +1,33 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowLeft, PlayCircle, BookOpen, Sparkles } from "lucide-react";
+import { ArrowLeft, PlayCircle, BookOpen, Sparkles } from "@/components/icons";
 
 export const metadata: Metadata = {
-  title: "Tutorials — ROW",
+  title: "Tutorials | ROW",
   description:
     "Step-by-step video guides and walkthroughs for the ROW administration platform. Coming soon.",
 };
 
-const BRAND_NAVY = "#1e3a5f";
+const BRAND_NAVY = "#17458f";
 const BRAND_GOLD = "#F7A81B";
 
 export default function TutorialPage() {
   return (
     <div className="min-h-screen flex flex-col bg-white">
       <main className="flex-1 relative overflow-hidden flex items-center">
-        {/* Soft decorative background — navy/gold ambient blobs */}
-        <div aria-hidden className="pointer-events-none absolute inset-0">
-          <div
-            className="absolute -top-32 -left-24 w-[420px] h-[420px] rounded-full blur-3xl opacity-30"
-            style={{ background: `radial-gradient(circle, ${BRAND_NAVY} 0%, transparent 70%)` }}
-          />
-          <div
-            className="absolute top-40 -right-32 w-[480px] h-[480px] rounded-full blur-3xl opacity-25"
-            style={{ background: `radial-gradient(circle, ${BRAND_GOLD} 0%, transparent 70%)` }}
-          />
-          <div
-            className="absolute -bottom-40 left-1/3 w-[520px] h-[520px] rounded-full blur-3xl opacity-20"
-            style={{ background: `radial-gradient(circle, ${BRAND_NAVY} 0%, transparent 70%)` }}
-          />
-        </div>
 
         <section className="relative w-full max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16 lg:py-20">
           {/* Hero card */}
-          <div className="relative bg-white/80 backdrop-blur-sm border rounded-3xl shadow-xl overflow-hidden"
+          <div className="relative bg-white border rounded-3xl overflow-hidden"
                style={{ borderColor: "rgba(30,58,95,0.10)" }}>
             {/* Top accent strip */}
-            <div className="h-1.5 w-full" style={{ background: `linear-gradient(90deg, ${BRAND_NAVY}, ${BRAND_GOLD}, ${BRAND_NAVY})` }} />
+            <div className="h-1.5 w-full" style={{ background: BRAND_GOLD }} />
 
             <div className="px-6 sm:px-12 lg:px-16 py-12 sm:py-16 lg:py-20 flex flex-col items-center text-center">
               {/* Logo */}
               <div className="mb-8 sm:mb-10 flex flex-col items-center gap-4">
                 <div className="relative">
-                  <div
-                    aria-hidden
-                    className="absolute -inset-6 rounded-full blur-2xl opacity-40"
-                    style={{ background: `radial-gradient(circle, ${BRAND_GOLD} 0%, transparent 70%)` }}
-                  />
                   <Image
                     src="/brand/row-logo.png"
                     alt="ROW"
@@ -78,7 +58,7 @@ export default function TutorialPage() {
                   <span className="relative inline-flex rounded-full h-2 w-2" style={{ background: BRAND_GOLD }} />
                 </span>
                 <Sparkles size={14} style={{ color: BRAND_GOLD }} />
-                <span>Tutorials — Coming Soon</span>
+                <span>Tutorials: Coming Soon</span>
               </div>
 
               {/* Headline */}

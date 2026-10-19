@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import {
   Award, Target, TrendingUp, Star, BarChart2, Trophy,
-} from "lucide-react";
+} from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
@@ -45,9 +45,9 @@ const CITATION_CATEGORIES: Array<{ key: keyof CitCat; label: string; color: stri
   { key: "membership",  label: "Membership",    color: CLUB_PALETTE[0] },
   { key: "trf",         label: "TRF",           color: CLUB_PALETTE[1] },
   { key: "service",     label: "Service",       color: CLUB_PALETTE[2] },
-  { key: "publicImage", label: "Public Image",  color: "#F59E0B" },
-  { key: "youth",       label: "Youth",         color: "#8B5CF6" },
-  { key: "foundation",  label: "Foundation",    color: "#EC4899" },
+  { key: "publicImage", label: "Public Image",  color: CLUB_PALETTE[4] },
+  { key: "youth",       label: "Youth",         color: CLUB_PALETTE[5] },
+  { key: "foundation",  label: "Foundation",    color: CLUB_PALETTE[6] },
 ];
 type CitCat = { membership: number; trf: number; service: number; publicImage: number; youth: number; foundation: number };
 
@@ -100,7 +100,7 @@ function GoalBar({
   }
   const pct = target === 0 ? 0 : Math.min((value / target) * 100, 150);
   const clamp = Math.min(pct, 100);
-  const color = pct >= 100 ? "#059669" : pct >= 60 ? "#D97706" : "#DC2626";
+  const color = pct >= 100 ? "#059669" : pct >= 60 ? "#E59A10" : "#DC2626";
   const isMoney = /^[A-Z]{3}$/.test(unit ?? "");   // a currency code (the original: only "INR")
   const display = isMoney ? fmtInr(value) : unit === "%" ? `${value.toFixed(1)}%` : value.toString();
   const targetDisplay = isMoney ? fmtInr(target) : unit === "%" ? `${target}%` : target.toString();
@@ -170,9 +170,9 @@ function MonthlyChart({
       ) : (
         <ResponsiveContainer width="100%" height={300}>
           <LineChart data={flat} margin={{ top: 4, right: 16, left: 0, bottom: 4 }}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
+            <CartesianGrid strokeDasharray="3 3" stroke="#edf4fb" vertical={false} />
             <XAxis dataKey="month" tick={{ fontSize: 11, fill: "#64748b" }} />
-            <YAxis tick={{ fontSize: 11, fill: "#94a3b8" }} />
+            <YAxis tick={{ fontSize: 11, fill: "#8796aa" }} />
             <Tooltip contentStyle={{ borderRadius: 10, fontSize: 12 }} />
             <Legend iconType="circle" wrapperStyle={{ fontSize: 11, paddingTop: 12 }} />
             {clubNames.map((name, i) => (
@@ -271,7 +271,7 @@ export default function AgExcellencePage() {
   // "Total Scoring Club" tile shows the top club's citation total (matches
   // mock value e.g. 14,200) rather than the club name.
   const totalScoringClubPts = data.topScoringClub?.total ?? 0;
-  const totalScoringClubName = data.topScoringClub?.clubName ?? "—";
+  const totalScoringClubName = data.topScoringClub?.clubName ?? "–";
 
   const monthlyDataMap = {
     projects: data.monthlyProjects,
@@ -283,7 +283,7 @@ export default function AgExcellencePage() {
     <div className="space-y-8 pb-10">
       <SectionHeader
         title="Goals & Club Excellence"
-        subtitle={`District Awards scores, goal tracking, and award status — RY ${data.ag.yearLabel || "—"}`}
+        subtitle={`District Awards scores, goal tracking, and award status: RY ${data.ag.yearLabel || "–"}`}
         icon={Award}
       />
 
@@ -328,15 +328,15 @@ export default function AgExcellencePage() {
 
         <div className="bg-white rounded-2xl border border-slate-200 p-5">
           <h3 className="text-base font-semibold text-slate-800 mb-1">District Awards Scores by Club</h3>
-          <p className="text-xs text-slate-400 mb-4">Stacked bar — each colour is a scoring category</p>
+          <p className="text-xs text-slate-400 mb-4">Stacked bar: each colour is a scoring category</p>
           {citationBarData.length === 0 ? (
             <p className="text-xs text-slate-400">No citation data yet.</p>
           ) : (
             <ResponsiveContainer width="100%" height={320}>
               <BarChart data={citationBarData} barSize={56}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#edf4fb" />
                 <XAxis dataKey="name" tick={{ fontSize: 11, fill: "#64748b" }} />
-                <YAxis tick={{ fontSize: 11, fill: "#94a3b8" }} />
+                <YAxis tick={{ fontSize: 11, fill: "#8796aa" }} />
                 <Tooltip
                   formatter={(v, n) => [Number(v).toLocaleString(), String(n)] as [string, string]}
                   contentStyle={{ borderRadius: 10, fontSize: 12 }}
@@ -410,7 +410,7 @@ export default function AgExcellencePage() {
           <h2 className="text-base font-semibold text-slate-800">Goals Achievement Grid</h2>
         </div>
         <p className="text-xs text-slate-400 mb-4 ml-7">
-          Progress vs Rotary targets —{" "}
+          Progress vs Rotary targets , {" "}
           <span className="text-green-600 font-semibold">green</span> = achieved,
           <span className="text-amber-500 font-semibold"> amber</span> = on track,
           <span className="text-red-500 font-semibold"> red</span> = behind
@@ -482,7 +482,7 @@ export default function AgExcellencePage() {
             // when `awardStatusIsPending` flag is set (or no rows arrived).
             <div className="p-8 text-center">
               <PendingChip label="Pending" />
-              <p className="text-sm text-slate-600 mt-3">Award status — data entry needed.</p>
+              <p className="text-sm text-slate-600 mt-3">Award status: data entry needed.</p>
               <p className="text-xs text-slate-400 mt-1">
                 Award statuses will appear here once club_award_status rows are populated for this RY.
               </p>
@@ -536,7 +536,7 @@ export default function AgExcellencePage() {
         </div>
         <div
           className="rounded-xl p-1.5 inline-flex gap-1 mb-4"
-          style={{ backgroundColor: "#1e3a5f" }}
+          style={{ backgroundColor: "#17458f" }}
         >
           {(["projects", "meetings", "trf"] as const).map((m) => {
             const isActive = metric === m;
@@ -549,7 +549,7 @@ export default function AgExcellencePage() {
                 }`}
                 style={
                   isActive
-                    ? { backgroundColor: "#F7A81B", color: "#1e3a5f" }
+                    ? { backgroundColor: "#F7A81B", color: "#17458f" }
                     : undefined
                 }
               >
@@ -561,7 +561,7 @@ export default function AgExcellencePage() {
         <MonthlyChart
           data={monthlyDataMap[metric]}
           title={`Monthly ${metric === "projects" ? "Service Projects" : metric === "meetings" ? "Meetings" : "TRF"}`}
-          subtitle={`RY ${data.ag.yearLabel || "—"} · All clubs compared`}
+          subtitle={`RY ${data.ag.yearLabel || "–"} · All clubs compared`}
           clubNames={clubNames}
         />
       </section>

@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import { Search } from "lucide-react";
+import { Search } from "@/components/icons";
 import { PageBanner } from "@/components/site/PageBanner";
 import { SiteFooter } from "@/components/site/SiteFooter";
 import {
@@ -86,7 +86,7 @@ export function ProjectsExplorer({ projects }: { projects: ExploreProject[] }) {
             <span className="mx-1.5 text-gold-deep">›</span> Explore
           </>
         }
-        subtitle="A visual selection of real Rotary projects, straight from live field reports — browse by cause, district, or search."
+        subtitle="A visual selection of real Rotary projects, straight from live field reports: browse by cause, district, or search."
         rightSlot={
           <div className="lg:text-right">
             <p

@@ -5,7 +5,7 @@ import { useParams } from "next/navigation";
 import Link from "next/link";
 import {
   ArrowLeft, Users, Calendar, Briefcase, Heart,
-} from "lucide-react";
+} from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, Legend,
@@ -60,7 +60,7 @@ export default function AgClubDetailPage() {
       <div>
         <h1 className="text-xl font-bold text-slate-800">{summary.clubName}</h1>
         <p className="text-sm text-slate-500 mt-0.5">
-          District {summary.districtNumber || "—"} · President: {summary.presidentName || "—"}
+          District {summary.districtNumber || "–"} · President: {summary.presidentName || "–"}
           {summary.projectRank ? ` · District rank #${summary.projectRank}` : ""}
         </p>
       </div>
@@ -80,7 +80,7 @@ export default function AgClubDetailPage() {
           ) : (
             <ResponsiveContainer width="100%" height={260}>
               <LineChart data={monthly} margin={{ top: 8, right: 16, left: 0, bottom: 4 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+                <CartesianGrid strokeDasharray="3 3" stroke="#edf4fb" />
                 <XAxis dataKey="month" tick={{ fontSize: 10, fill: "#64748b" }} />
                 <YAxis tick={{ fontSize: 10, fill: "#64748b" }} width={32} />
                 <Tooltip contentStyle={{ fontSize: 12, borderRadius: 8 }} />
@@ -107,7 +107,7 @@ export default function AgClubDetailPage() {
                 ]}
                 margin={{ top: 8, right: 16, left: 0, bottom: 4 }}
               >
-                <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
+                <CartesianGrid strokeDasharray="3 3" stroke="#edf4fb" vertical={false} />
                 <XAxis dataKey="name" tick={{ fontSize: 11, fill: "#64748b" }} />
                 <YAxis tickFormatter={(v) => fmtInrShort(v)} tick={{ fontSize: 10, fill: "#64748b" }} width={60} />
                 <Tooltip formatter={(v) => fmtInr(Number(v))} contentStyle={{ fontSize: 12, borderRadius: 8 }} />
@@ -142,9 +142,9 @@ export default function AgClubDetailPage() {
                   <tr key={i} className="border-t border-slate-100 hover:bg-slate-50">
                     <td className="px-4 py-2 text-xs text-slate-600 whitespace-nowrap">{fmtDate(p.date)}</td>
                     <td className="px-4 py-2 font-medium text-slate-800">{p.title}</td>
-                    <td className="px-4 py-2 text-xs text-slate-600">{p.category || "—"}</td>
-                    <td className="px-4 py-2 text-right tabular-nums text-slate-700">{p.cost > 0 ? formatMoney(p.cost, p.currency) : "—"}</td>
-                    <td className="px-4 py-2 text-right tabular-nums text-slate-700">{p.beneficiaries > 0 ? fmtInt(p.beneficiaries) : "—"}</td>
+                    <td className="px-4 py-2 text-xs text-slate-600">{p.category || "–"}</td>
+                    <td className="px-4 py-2 text-right tabular-nums text-slate-700">{p.cost > 0 ? formatMoney(p.cost, p.currency) : "–"}</td>
+                    <td className="px-4 py-2 text-right tabular-nums text-slate-700">{p.beneficiaries > 0 ? fmtInt(p.beneficiaries) : "–"}</td>
                   </tr>
                 ))}
               </tbody>

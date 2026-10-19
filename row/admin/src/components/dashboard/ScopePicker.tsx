@@ -22,7 +22,7 @@
  */
 
 import { useState, useEffect, useRef } from "react";
-import { ChevronDown, Check } from "lucide-react";
+import { ChevronDown, Check } from "@/components/icons";
 import { cn } from "@/lib/utils";
 
 export interface ScopePickerItem {

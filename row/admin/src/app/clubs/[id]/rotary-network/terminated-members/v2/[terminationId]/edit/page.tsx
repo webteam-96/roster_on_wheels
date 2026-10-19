@@ -22,7 +22,7 @@ import DateField from "@/components/DateField";
 import { useParams } from "next/navigation";
 import {
   Info, User, Calendar, MessageSquare, UserMinus, AlertTriangle,
-} from "lucide-react";
+} from "@/components/icons";
 import { getClub, getTerminatedMembers } from "@/services/api";
 import { TerminatedMember } from "@/types/club";
 import V2FormShell, { useV2ReturnTo } from "@/components/v2/V2FormShell";
@@ -59,7 +59,7 @@ function SectionCard({
 }: { number: number; icon: React.ElementType; title: string; dot: string; children: React.ReactNode }) {
   return (
     <div className="rounded-xl border border-slate-200 overflow-hidden mb-4">
-      <div className="flex items-center gap-3 px-4 py-2.5 bg-gradient-to-r from-slate-50 to-white border-b border-slate-100">
+      <div className="flex items-center gap-3 px-4 py-2.5 bg-slate-50 border-b border-slate-100">
         <div className={`flex items-center justify-center h-7 w-7 rounded-full text-white text-xs font-bold ${dot}`}>{number}</div>
         <Icon className="h-4 w-4 text-slate-500" />
         <h3 className="text-sm font-semibold text-slate-800">{title}</h3>
@@ -204,7 +204,7 @@ export default function TerminatedMembersV2EditPage() {
         title="Edit Termination"
         subtitle={clubName}
         defaultBack={`/clubs/${clubId}/rotary-network/terminated-members/v2`}
-        saving={true /* keeps the primary button disabled — see comment below */}
+        saving={true /* keeps the primary button disabled. See comment below */}
         saveLabel="Save (pending API)"
         onSave={handleSave}
         banner={

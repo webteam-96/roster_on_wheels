@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowUpRight, Hourglass } from "lucide-react";
+import { ArrowUpRight, Hourglass } from "@/components/icons";
 import { PageBanner } from "@/components/site/PageBanner";
 import { PageFooter } from "@/components/site/PageFooter";
 
@@ -38,7 +38,7 @@ export function ComingSoon({
             </h2>
             <p className="mx-auto mt-4 max-w-md text-[15px] leading-relaxed text-muted">
               {message ??
-                `The ${title}${accent ? " " + accent : ""} section is under construction. We're working hard to bring it to you — please check back soon.`}
+                `The ${title}${accent ? " " + accent : ""} section is under construction. We're working hard to bring it to you. Please check back soon.`}
             </p>
 
             {!hideLinks && (

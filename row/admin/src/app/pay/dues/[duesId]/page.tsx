@@ -16,7 +16,7 @@ import { Textarea } from "@/components/ui/textarea";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
-import { AlertCircle, CheckCircle2, Loader2, Upload, Clock, XCircle } from "lucide-react";
+import { AlertCircle, CheckCircle2, Loader2, Upload, Clock, XCircle } from "@/components/icons";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
@@ -435,7 +435,7 @@ export default function MembershipDuesPaymentPage() {
       style={{
         backgroundImage: duesInfo.backgroundImage
           ? `url(${API_BASE_URL}${duesInfo.backgroundImage})`
-          : "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+          : "none",
         backgroundSize: "cover",
         backgroundPosition: "center",
       }}
@@ -550,7 +550,7 @@ export default function MembershipDuesPaymentPage() {
                     </div>
                   )}
                 </div>
-                <p className="text-xs text-muted-foreground mt-1">Type 2+ characters — matches appear automatically.</p>
+                <p className="text-xs text-muted-foreground mt-1">Type 2+ characters. Matches appear automatically.</p>
               </div>
 
               {selectedMember && (

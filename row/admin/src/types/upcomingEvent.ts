@@ -9,14 +9,10 @@ export interface UpcomingEventListItem {
   expiryDate: string;
   eventVenue: string | null;
   registrationLink: string | null;
-  isSendWhatsapp: boolean;
   isSendEmail: boolean;
   isRepeatNotification: boolean;
   status: string;
   reminderCount: number;
-  whatsAppSentDate?: string | null;
-  whatsAppSentCount?: number;
-  whatsAppFailedCount?: number;
   emailSentDate?: string | null;
   emailSentCount?: number;
   emailFailedCount?: number;
@@ -33,7 +29,6 @@ export interface UpcomingEventDetail {
   expiryDate: string;
   eventVenue: string | null;
   registrationLink: string | null;
-  isSendWhatsapp: boolean;
   isSendEmail: boolean;
   isRepeatNotification: boolean;
   status: string;
@@ -54,7 +49,6 @@ export interface CreateUpcomingEventRequest {
   expiryDate: string;
   eventVenue: string | null;
   registrationLink: string | null;
-  isSendWhatsapp: boolean;
   isSendEmail: boolean;
   isRepeatNotification: boolean;
   reminders: string[] | null;
@@ -69,7 +63,6 @@ export interface UpdateUpcomingEventRequest {
   expiryDate: string;
   eventVenue: string | null;
   registrationLink: string | null;
-  isSendWhatsapp: boolean;
   isSendEmail: boolean;
   isRepeatNotification: boolean;
   reminders: string[] | null;

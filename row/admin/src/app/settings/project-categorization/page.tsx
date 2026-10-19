@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Target, Layers, GitBranch, Download } from "lucide-react";
+import { ArrowLeft, Target, Layers, GitBranch, Download } from "@/components/icons";
 import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { getModules, getAreasOfFocus, getCategories, getSubCategories } from "@/services/api";
@@ -47,19 +47,19 @@ export default function ProjectCategorizationPage() {
       for (const mod of projectModules) {
         const areas = await getAreasOfFocus(mod.id);
         if (areas.length === 0) {
-          rows.push({ projectType: mod.moduleName, areaOfFocus: "—", category: "—", subCategory: "—", active: "Yes" });
+          rows.push({ projectType: mod.moduleName, areaOfFocus: "–", category: "–", subCategory: "–", active: "Yes" });
           continue;
         }
         for (const aof of areas) {
           const cats = await getCategories(aof.id);
           if (cats.length === 0) {
-            rows.push({ projectType: mod.moduleName, areaOfFocus: aof.name, category: "—", subCategory: "—", active: aof.isActive ? "Yes" : "No" });
+            rows.push({ projectType: mod.moduleName, areaOfFocus: aof.name, category: "–", subCategory: "–", active: aof.isActive ? "Yes" : "No" });
             continue;
           }
           for (const cat of cats) {
             const subs = await getSubCategories(cat.id);
             if (subs.length === 0) {
-              rows.push({ projectType: mod.moduleName, areaOfFocus: aof.name, category: cat.name, subCategory: "—", active: cat.isActive ? "Yes" : "No" });
+              rows.push({ projectType: mod.moduleName, areaOfFocus: aof.name, category: cat.name, subCategory: "–", active: cat.isActive ? "Yes" : "No" });
               continue;
             }
             for (const sub of subs) {

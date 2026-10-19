@@ -5,7 +5,7 @@ import Link from "next/link";
 import {
   Search, Users, Calendar, Briefcase, IndianRupee, User as UserIcon,
   ChevronLeft, ChevronRight,
-} from "lucide-react";
+} from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
 import { getAgDashboardClubs } from "@/services/api";
 import type { AgClubsResponse, AgClubSummary } from "@/types/agDashboard";
@@ -71,9 +71,9 @@ function ClubCard({
         </div>
       )}
       <div className={`rounded-lg border bg-white p-3 shadow-sm transition-all h-full ${
-        navigating ? "border-[#003DA5]/40" : "border-slate-200 hover:border-[#003DA5]/40 hover:shadow-md"
+        navigating ? "border-azure/40" : "border-slate-200 hover:border-azure/40 hover:shadow-md"
       }`}>
-        <h3 className="text-sm font-bold text-slate-800 leading-tight group-hover:text-[#003DA5] transition-colors">
+        <h3 className="text-sm font-bold text-slate-800 leading-tight group-hover:text-azure transition-colors">
           {club.clubName}
         </h3>
         <div className="flex flex-wrap items-center gap-1 mt-1.5">
@@ -88,7 +88,7 @@ function ClubCard({
               target="_blank"
               rel="noopener noreferrer"
               onClick={(e) => e.stopPropagation()}
-              className="text-[10px] font-medium text-[#003DA5] hover:underline truncate max-w-full"
+              className="text-[10px] font-medium text-azure hover:underline truncate max-w-full"
             >
               {websiteUrl.replace(/^https:\/\//, "")}
             </a>
@@ -215,7 +215,7 @@ export default function AgClubsPage() {
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Search clubs..."
-          className="w-full pl-9 pr-8 py-2 text-sm border border-slate-300 rounded-lg bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-[#003DA5] focus:border-[#003DA5]"
+          className="w-full pl-9 pr-8 py-2 text-sm border border-slate-300 rounded-lg bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-azure focus:border-azure"
         />
         {search && (
           <button

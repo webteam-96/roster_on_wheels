@@ -6,9 +6,9 @@ import {
   Users, BadgeCheck, Crown, Search, Eye, X, Pencil,
   Mail, Phone, IdCard, Cake, Heart, Droplet, Briefcase, CalendarDays,
   UserCircle2, UserSquare2, ShieldCheck, ShieldOff, MapPin,
-} from "lucide-react";
+} from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
-import type { LucideIcon } from "lucide-react";
+import type { LucideIcon } from "@/components/icons";
 import { useAuth } from "@/contexts/AuthContext";
 import { useFeature } from "@/contexts/BrandContext";
 import { getClubAdminDashboardDirectory, getMember, getPhotoUrl, assignRole, removeRole, setClubMemberHonorary } from "@/services/api";
@@ -36,13 +36,13 @@ function initials(name: string): string {
 }
 
 function fmtDate(d: string | null | undefined): string {
-  if (!d) return "—";
+  if (!d) return "–";
   try {
     return new Date(d).toLocaleDateString(appLocale(), {
       day: "2-digit", month: "short", year: "numeric",
     });
   } catch {
-    return "—";
+    return "–";
   }
 }
 
@@ -77,7 +77,7 @@ function MemberRow({
           <img src={getPhotoUrl(row.photoPath)} alt={row.name} className="w-9 h-9 rounded-full object-cover border border-slate-200" />
         ) : (
           <div className="w-9 h-9 rounded-full bg-slate-200 text-slate-600 text-xs font-semibold flex items-center justify-center">
-            {initials(row.name) || "—"}
+            {initials(row.name) || "–"}
           </div>
         )}
       </td>
@@ -98,8 +98,8 @@ function MemberRow({
           <p className="text-xs text-slate-500">{row.designation}</p>
         )}
       </td>
-      <td className="px-4 py-2 text-xs text-slate-600 whitespace-nowrap">{row.mobile ?? "—"}</td>
-      <td className="px-4 py-2 text-xs text-slate-600">{row.email ?? "—"}</td>
+      <td className="px-4 py-2 text-xs text-slate-600 whitespace-nowrap">{row.mobile ?? "–"}</td>
+      <td className="px-4 py-2 text-xs text-slate-600">{row.email ?? "–"}</td>
       <td className="px-4 py-2 w-24 text-right">
         <div className="inline-flex items-center gap-1.5">
           <button
@@ -198,7 +198,7 @@ export default function DashboardDirectoryPage() {
   const handleRemoveAdmin = async (row: ClubAdminDashboardDirectoryMemberRow) => {
     const clubId = data?.club?.clubId;
     if (!clubId) return;
-    if (!window.confirm(`Remove Admin role from ${row.name} for ${data?.club?.clubName ?? "this club"}?\n\nThis only affects this club — admin access in other clubs (if any) is preserved.`)) return;
+    if (!window.confirm(`Remove Admin role from ${row.name} for ${data?.club?.clubName ?? "this club"}?\n\nThis only affects this club: admin access in other clubs (if any) is preserved.`)) return;
     try {
       setMakeAdminId(row.memberId);
       await removeRole({ memberId: row.memberId, roleId: 2, clubId });
@@ -473,7 +473,7 @@ function MemberDetailModal({
     setProfileError(null);
     getMember(row.memberId)
       .then((m) => { if (!cancelled) setProfile(m); })
-      .catch(() => { if (!cancelled) setProfileError("Could not load extended profile — showing summary only."); })
+      .catch(() => { if (!cancelled) setProfileError("Could not load extended profile: showing summary only."); })
       .finally(() => { if (!cancelled) setProfileLoading(false); });
     return () => { cancelled = true; };
   }, [row.memberId]);
@@ -492,11 +492,11 @@ function MemberDetailModal({
 
   const mobile = profile?.primaryMobileNumber
     ? `${profile.primaryCountryPhoneCode ?? ""} ${profile.primaryMobileNumber}`.trim()
-    : (row.mobile ?? "—");
-  const email      = profile?.emailId    ?? row.email   ?? "—";
-  const rotaryId   = profile?.rotaryId   ?? row.rotaryId ?? "—";
-  const gender     = profile?.gender     ?? row.gender   ?? "—";
-  const bloodGroup = profile?.bloodGroup ?? "—";
+    : (row.mobile ?? "–");
+  const email      = profile?.emailId    ?? row.email   ?? "–";
+  const rotaryId   = profile?.rotaryId   ?? row.rotaryId ?? "–";
+  const gender     = profile?.gender     ?? row.gender   ?? "–";
+  const bloodGroup = profile?.bloodGroup ?? "–";
   // Project rule: birthdays & anniversaries display DD-MM only — year is stored
   // in the DB and available in edit forms, but never shown on read surfaces.
   const birthDate  = formatBirthAnniversary(profile?.birthDate);
@@ -528,7 +528,7 @@ function MemberDetailModal({
               />
             ) : (
               <div className="w-14 h-14 rounded-full bg-slate-100 text-slate-600 text-base font-semibold flex items-center justify-center border-2 border-blue-100 flex-shrink-0">
-                {initials(row.name) || "—"}
+                {initials(row.name) || "–"}
               </div>
             )}
             <div className="min-w-0">
@@ -593,7 +593,7 @@ function MemberDetailModal({
             <DetailField
               icon={Briefcase}
               label="Designation"
-              value={row.designation || "—"}
+              value={row.designation || "–"}
             />
             <DetailField
               icon={CalendarDays}
@@ -649,7 +649,7 @@ function MemberDetailModal({
                       <MapPin size={12} className="text-slate-400" />
                       <span className="font-semibold text-slate-700">{a.addressType}</span>
                     </div>
-                    <p className="text-slate-600">{[a.address, a.city, a.state, a.pinCode, a.country].filter(Boolean).join(", ") || "—"}</p>
+                    <p className="text-slate-600">{[a.address, a.city, a.state, a.pinCode, a.country].filter(Boolean).join(", ") || "–"}</p>
                     {a.phoneNumber && <p className="text-slate-500 mt-0.5">Phone: {`${a.countryPhoneCode ?? ""} ${a.phoneNumber}`.trim()}</p>}
                     {a.businessName && <p className="text-slate-500 mt-0.5">Business: {a.businessName}</p>}
                     {a.businessEmailId && <p className="text-slate-500">Email: {a.businessEmailId}</p>}
@@ -678,7 +678,7 @@ function MemberDetailModal({
                     )}
                     <div className="min-w-0 flex-1">
                       <p className="font-semibold text-slate-700 truncate">{f.name} <span className="font-normal text-slate-500">· {f.relation}</span></p>
-                      <p className="text-slate-500 truncate">{[f.phoneNumber && `${f.countryPhoneCode ?? ""} ${f.phoneNumber}`.trim(), f.emailId].filter(Boolean).join(" · ") || "—"}</p>
+                      <p className="text-slate-500 truncate">{[f.phoneNumber && `${f.countryPhoneCode ?? ""} ${f.phoneNumber}`.trim(), f.emailId].filter(Boolean).join(" · ") || "–"}</p>
                       {(f.birthDate || (showBloodGroup && f.bloodGroup)) && (
                         <p className="text-slate-400 text-[11px]">{[showBloodGroup && f.bloodGroup, f.birthDate && `Birthday ${formatBirthAnniversary(f.birthDate)}`].filter(Boolean).join(" · ")}</p>
                       )}
@@ -739,7 +739,7 @@ function DetailField({
         <span>{label}</span>
       </div>
       <p className="text-sm text-slate-800 font-medium mt-0.5 break-words">
-        {value || "—"}
+        {value || "–"}
       </p>
     </div>
   );

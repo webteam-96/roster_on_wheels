@@ -31,7 +31,7 @@ import { Badge } from "@/components/ui/badge";
 import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { ArrowLeft, Search, UserPlus, UserMinus, Crown, Mail, Building2, MapPin, Phone, AtSign, X } from "lucide-react";
+import { ArrowLeft, Search, UserPlus, UserMinus, Crown, Mail, Building2, MapPin, Phone, AtSign, X } from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
 import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";
@@ -243,15 +243,15 @@ export default function RIDirectorManagementPage() {
                         <button
                           type="button"
                           onClick={() => openProfile(d.memberId)}
-                          className="text-left text-[#003DA5] hover:underline font-medium"
+                          className="text-left text-azure hover:underline font-medium"
                           title="View profile, clubs and districts"
                         >
                           {d.memberName}
                         </button>
                       </TableCell>
                       <TableCell className="text-sm">{d.email}</TableCell>
-                      <TableCell className="text-sm">{d.mobile || "—"}</TableCell>
-                      <TableCell className="text-sm">{d.assignedDate ? new Date(d.assignedDate).toLocaleDateString() : "—"}</TableCell>
+                      <TableCell className="text-sm">{d.mobile || "–"}</TableCell>
+                      <TableCell className="text-sm">{d.assignedDate ? new Date(d.assignedDate).toLocaleDateString() : "–"}</TableCell>
                       <TableCell className="text-sm">
                         {sent ? (
                           <Badge variant="secondary" className="text-xs">
@@ -333,7 +333,7 @@ export default function RIDirectorManagementPage() {
                           <TableCell>
                             <div className="flex flex-wrap gap-1">
                               {roles.length === 0 ? (
-                                <span className="text-xs text-muted-foreground">—</span>
+                                <span className="text-xs text-muted-foreground">, </span>
                               ) : (
                                 /* Other roles are shown for information only - they no longer block
                                    the assignment, so nothing here is painted as an error. */

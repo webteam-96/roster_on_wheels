@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/dialog";
 import { ADD_TO_ORG_WEBSTORE_URL } from "@/lib/addToOrg";
 import { getClubRotaryOrgCredentials, saveClubRotaryOrgCredentials } from "@/services/api";
-import { Puzzle, Chrome, RefreshCw, PlayCircle, Eye, EyeOff, Pencil, KeyRound } from "lucide-react";
+import { Puzzle, Chrome, RefreshCw, PlayCircle, Eye, EyeOff, Pencil, KeyRound } from "@/components/icons";
 
 // YouTube video ID of the install-walkthrough clip (unlisted is fine). Set to "" to
 // hide the video block entirely. YouTube embeds stream reliably with no share/quota
@@ -87,7 +87,7 @@ export default function AddToOrgInstallDialog({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Puzzle className="h-5 w-5 text-blue-600" />
-            Sync Projects to Rotary.org — Setup
+            Sync Projects to Rotary.org: Setup
           </DialogTitle>
           <DialogDescription>
             The free RI Flow-Bot browser extension copies your projects into Rotary
@@ -118,7 +118,7 @@ export default function AddToOrgInstallDialog({
             <ol className="space-y-2.5 text-sm text-slate-700">
               <li className="flex gap-2.5">
                 <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-blue-100 text-xs font-bold text-blue-700">1</span>
-                <span>Click <strong>Install Extension</strong> below — the Chrome Web Store opens in a new tab.</span>
+                <span>Click <strong>Install Extension</strong> below: the Chrome Web Store opens in a new tab.</span>
               </li>
               <li className="flex gap-2.5">
                 <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-blue-100 text-xs font-bold text-blue-700">2</span>
@@ -126,7 +126,7 @@ export default function AddToOrgInstallDialog({
               </li>
               <li className="flex gap-2.5">
                 <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-blue-100 text-xs font-bold text-blue-700">3</span>
-                <span>Come back to this page and <strong>refresh</strong> — you&apos;re set.</span>
+                <span>Come back to this page and <strong>refresh</strong>. You&apos;re set.</span>
               </li>
             </ol>
 

@@ -7,7 +7,7 @@
 
 import { useState, useEffect } from "react";
 import { isAnnualOnlyCategory } from "@/lib/goalCategories";
-import { Loader2, Save, Download } from "lucide-react";
+import { Loader2, Save, Download } from "@/components/icons";
 import LoadingButton from "@/components/v2/LoadingButton";
 import { getGoalCategories, downloadDistrictMonthlyExcel, downloadClubMonthlyExcel, type GoalMonthlyForm, type SaveGoalMonthlyRequest } from "@/services/api";
 import type { GoalCategoryDto } from "@/types/goalSetting";
@@ -18,7 +18,7 @@ import { monthlyFieldLabel } from "@/lib/goalCategories";
 import SuccessAlert from "@/components/SuccessAlert";
 import { appLocale } from "@/lib/appFormat";
 const fmt = (v: number | null | undefined, currency: boolean) => {
-  if (v == null) return "—";
+  if (v == null) return "–";
   // Whole numbers only, everywhere in Goal Setting (user 2026-09-29).
   const s = Number(v).toLocaleString(appLocale(), { maximumFractionDigits: 0 });
   return currency ? `$${s}` : s;
@@ -156,7 +156,7 @@ export default function MonthlyGoalsPanel({
       {/* Saving is confirmed by an alert, like the goal panel and the target-split popups
           (user 2026-09-29) — the old green line beside the button was too easy to miss. */}
       <SuccessAlert open={!!success} title="Saved" description={success ?? ""} onOk={() => setSuccess(null)} />
-      <div className="px-3 sm:px-5 py-3 border-b border-slate-100 bg-gradient-to-r from-blue-50 to-white">
+      <div className="px-3 sm:px-5 py-3 border-b border-slate-100 bg-blue-50">
         <h3 className="text-sm font-semibold text-slate-800">{title}</h3>
         <p className="text-xs text-slate-500">{form ? `${form.entityName} · RY ${form.yearLabel}` : ""}</p>
       </div>
@@ -263,7 +263,7 @@ export default function MonthlyGoalsPanel({
                         <tr key={fl.fieldId} className="border-b border-slate-100 hover:bg-slate-50/60">
                           <td className="sticky left-0 z-10 bg-white px-3 py-2 font-medium text-slate-700 border-r">{label}</td>
                           {showBaseline && (
-                            <td className="text-right px-3 py-2 font-semibold border-r bg-amber-50/60 whitespace-pre-line text-slate-700">{fl.displayText ?? (fl.annualTarget != null ? fmt(fl.annualTarget, currency) : "—")}</td>
+                            <td className="text-right px-3 py-2 font-semibold border-r bg-amber-50/60 whitespace-pre-line text-slate-700">{fl.displayText ?? (fl.annualTarget != null ? fmt(fl.annualTarget, currency) : "–")}</td>
                           )}
                           {form.months.map((m) => <td key={m.month} className="px-3 py-2" />)}
                           <td className="text-right px-3 py-2 border-l bg-slate-50" />
@@ -282,7 +282,7 @@ export default function MonthlyGoalsPanel({
                       <tr key={fl.fieldId} className="border-b border-slate-100 hover:bg-slate-50/60">
                         <td className="sticky left-0 z-10 bg-white px-3 py-2 font-medium text-slate-700 border-r">{label}</td>
                         {showBaseline && (
-                          <td className="text-right px-3 py-2 font-semibold border-r bg-amber-50/60 whitespace-nowrap text-slate-700">{fl.baseline != null ? fmt(fl.baseline, currency) : "—"}</td>
+                          <td className="text-right px-3 py-2 font-semibold border-r bg-amber-50/60 whitespace-nowrap text-slate-700">{fl.baseline != null ? fmt(fl.baseline, currency) : "–"}</td>
                         )}
                         {cum.map((cm) => (
                           <td key={cm.month} className="text-right px-3 py-2 whitespace-nowrap text-slate-600">{cm.value != null ? fmt(cm.value, currency) : ""}</td>

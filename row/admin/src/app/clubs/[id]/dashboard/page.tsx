@@ -6,11 +6,11 @@ import { ClubDashboard, ModuleComingSoonInfo } from "@/types/module";
 import { WeblinkTree } from "@/types/weblink";
 import { getClubDashboard, getWeblinkTree, getClubCreditBalance, getModulesComingSoon, getClubWebsiteStatus, getClubPendingOfflineApprovals, type WebsiteStatusInfo } from "@/services/api";
 import AlertModal from "@/components/AlertModal";
-import { ClipboardCheck } from "lucide-react";
+import { ClipboardCheck } from "@/components/icons";
 import WebsiteStatusPill from "@/components/WebsiteStatusPill";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, AlertCircle, Building2, Settings, ExternalLink, FileText, ChevronDown, ChevronUp, Image as ImageIcon, Mail, MessageCircle } from "lucide-react";
+import { ArrowLeft, AlertCircle, Building2, Settings, ExternalLink, FileText, ChevronDown, ChevronUp, Image as ImageIcon, Mail} from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
 import DashboardModuleGrid from "@/components/DashboardModuleGrid";
 import { useRouter } from "next/navigation";
@@ -35,7 +35,7 @@ export default function ClubDashboardPage() {
   const [navigatingModule, setNavigatingModule] = useState<string | null>(null);
   const [weblinkTree, setWeblinkTree] = useState<WeblinkTree[]>([]);
   const [expandedWeblinks, setExpandedWeblinks] = useState<Set<number>>(new Set());
-  const [creditBalance, setCreditBalance] = useState<{ emailRemaining: number; whatsAppRemaining: number } | null>(null);
+  const [creditBalance, setCreditBalance] = useState<{ emailRemaining: number } | null>(null);
   const [websiteStatus, setWebsiteStatus] = useState<WebsiteStatusInfo | null>(null);
   const [comingSoonList, setComingSoonList] = useState<ModuleComingSoonInfo[]>([]);
   const [pendingApprovals, setPendingApprovals] = useState<Array<{ duesId: number; purpose: string; pendingCount: number }>>([]);
@@ -334,10 +334,6 @@ export default function ClubDashboardPage() {
                   <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-sm font-medium ${creditBalance.emailRemaining > 0 ? "bg-blue-50 border-blue-200 text-blue-700" : "bg-red-50 border-red-200 text-red-600"}`}>
                     <Mail className="h-3.5 w-3.5" />
                     <span>Email: {creditBalance.emailRemaining}</span>
-                  </div>
-                  <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-sm font-medium ${creditBalance.whatsAppRemaining > 0 ? "bg-green-50 border-green-200 text-green-700" : "bg-red-50 border-red-200 text-red-600"}`}>
-                    <MessageCircle className="h-3.5 w-3.5" />
-                    <span>WhatsApp: {creditBalance.whatsAppRemaining}</span>
                   </div>
                 </>
               )}

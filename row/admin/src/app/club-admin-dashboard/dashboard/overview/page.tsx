@@ -4,8 +4,8 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   Users, Heart, Briefcase, Award, AlertCircle, Calendar,
-  BadgeCheck, Crown, UserCircle2, UserSquare2, Mail, MessageCircle, ClipboardCheck,
-} from "lucide-react";
+  BadgeCheck, Crown, UserCircle2, UserSquare2, Mail, ClipboardCheck,
+} from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
 import {
   AreaChart, Area, CartesianGrid, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend,
@@ -42,7 +42,7 @@ export default function ClubAdminDashboardOverviewPage() {
           setPendingApprovals(list);
           setPendingDialogOpen(true);
         }
-      } catch { /* silently ignore — popup is a nudge */ }
+      } catch { /* silently ignore: popup is a nudge */ }
     })();
     return () => { cancelled = true; };
   }, [clubIdForPending, canManage]);
@@ -98,15 +98,6 @@ export default function ClubAdminDashboardOverviewPage() {
           </span>
         </div>
         <div className="w-px h-5 bg-slate-300 hidden sm:block" />
-        {/* WhatsApp + Email credit chips per user request 2026-06-12 (item #16).
-            Available balance = SUM(CreditCount - UsedCount) on active, unexpired credit batches. */}
-        <div className="flex items-center gap-1.5 min-w-0" title="Available WhatsApp credits">
-          <MessageCircle className="h-3.5 w-3.5 text-green-600" />
-          <span className="text-xs font-semibold text-slate-700 whitespace-nowrap">
-            WhatsApp: <span className="tabular-nums">{fmtInt(data.club.whatsAppCreditBalance ?? 0)}</span>
-          </span>
-        </div>
-        <div className="w-px h-5 bg-slate-300 hidden sm:block" />
         <div className="flex items-center gap-1.5 min-w-0" title="Available Email credits">
           <Mail className="h-3.5 w-3.5 text-blue-600" />
           <span className="text-xs font-semibold text-slate-700 whitespace-nowrap">
@@ -150,9 +141,9 @@ export default function ClubAdminDashboardOverviewPage() {
           <p className="text-3xl font-extrabold text-slate-900 tabular-nums">{data.totalMembers} <span className="text-xs text-slate-400 font-normal">total members</span></p>
           <div className="mt-3 space-y-2">
             {[
-              { label: "Male", value: data.maleMembers, color: "#0891b2" },
-              { label: "Female", value: data.femaleMembers, color: "#e11d48" },
-              { label: "Honorary", value: data.honoraryMembers, color: "#9333ea" },
+              { label: "Male", value: data.maleMembers, color: "#17458F" },
+              { label: "Female", value: data.femaleMembers, color: "#F7A81B" },
+              { label: "Honorary", value: data.honoraryMembers, color: "#0067C8" },
             ].map((s) => (
               <div key={s.label}>
                 <div className="flex justify-between mb-0.5">
@@ -172,9 +163,9 @@ export default function ClubAdminDashboardOverviewPage() {
           <p className="text-xs text-slate-500 mb-3">By fund type · RY {data.club.yearLabel}</p>
           {[
             { label: "Annual Fund", val: data.trfAnnualFund, color: ROTARY_BLUE },
-            { label: "Polio Fund", val: data.trfPolioFund, color: "#9333ea" },
-            { label: "Endowment", val: data.trfEndowment, color: "#e11d48" },
-            { label: "Major Donors", val: data.trfMajorDonors, color: "#ca8a04", suffix: " donors" },
+            { label: "Polio Fund", val: data.trfPolioFund, color: "#F7A81B" },
+            { label: "Endowment", val: data.trfEndowment, color: "#0067C8" },
+            { label: "Major Donors", val: data.trfMajorDonors, color: "#2A3F5C", suffix: " donors" },
             { label: "Contributors", val: data.phfContributors, color: "#16a34a", suffix: " members" },
           ].map((r) => (
             <div key={r.label} className="mb-2.5">
@@ -246,7 +237,7 @@ export default function ClubAdminDashboardOverviewPage() {
 
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-4">
         <div className="xl:col-span-2 rounded-xl border border-slate-200 bg-white p-5">
-          <h3 className="text-sm font-semibold text-slate-800 mb-1">Membership — Monthly Growth</h3>
+          <h3 className="text-sm font-semibold text-slate-800 mb-1">Membership: Monthly Growth</h3>
           <p className="text-xs text-slate-500 mb-3">New joiners by month · RY {data.club.yearLabel}</p>
           {data.memberGrowth.length === 0 ? (
             <p className="text-xs text-slate-400">No data.</p>
@@ -255,22 +246,22 @@ export default function ClubAdminDashboardOverviewPage() {
               <AreaChart data={data.memberGrowth}>
                 <defs>
                   <linearGradient id="grMale" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#0891b2" stopOpacity={0.3} />
-                    <stop offset="100%" stopColor="#0891b2" stopOpacity={0} />
+                    <stop offset="0%" stopColor="#17458F" stopOpacity={0.3} />
+                    <stop offset="100%" stopColor="#17458F" stopOpacity={0} />
                   </linearGradient>
                   <linearGradient id="grFemale" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#e11d48" stopOpacity={0.3} />
-                    <stop offset="100%" stopColor="#e11d48" stopOpacity={0} />
+                    <stop offset="0%" stopColor="#F7A81B" stopOpacity={0.3} />
+                    <stop offset="100%" stopColor="#F7A81B" stopOpacity={0} />
                   </linearGradient>
                 </defs>
-                <CartesianGrid vertical={false} stroke="#f1f5f9" />
-                <XAxis dataKey="month" tick={{ fontSize: 11, fill: "#94a3b8" }} />
-                <YAxis tick={{ fontSize: 11, fill: "#94a3b8" }} width={28} />
+                <CartesianGrid vertical={false} stroke="#edf4fb" />
+                <XAxis dataKey="month" tick={{ fontSize: 11, fill: "#8796aa" }} />
+                <YAxis tick={{ fontSize: 11, fill: "#8796aa" }} width={28} />
                 <Tooltip contentStyle={{ fontSize: 12, borderRadius: 6 }} />
                 <Legend wrapperStyle={{ fontSize: 11 }} />
-                <Area type="monotone" dataKey="male" name="Male" stroke="#0891b2" fill="url(#grMale)" strokeWidth={2} />
-                <Area type="monotone" dataKey="female" name="Female" stroke="#e11d48" fill="url(#grFemale)" strokeWidth={2} />
-                <Area type="monotone" dataKey="honorary" name="Honorary" stroke="#9333ea" fill="transparent" strokeWidth={2} />
+                <Area type="monotone" dataKey="male" name="Male" stroke="#17458F" fill="url(#grMale)" strokeWidth={2} />
+                <Area type="monotone" dataKey="female" name="Female" stroke="#F7A81B" fill="url(#grFemale)" strokeWidth={2} />
+                <Area type="monotone" dataKey="honorary" name="Honorary" stroke="#0067C8" fill="transparent" strokeWidth={2} />
               </AreaChart>
             </ResponsiveContainer>
           )}

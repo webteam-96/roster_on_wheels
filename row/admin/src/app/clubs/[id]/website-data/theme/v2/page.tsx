@@ -16,7 +16,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useParams, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
-import { ArrowLeft, Check, Palette, AlertCircle, Loader2, CheckCircle2, Sparkles, Eye, Lock } from "lucide-react";
+import { ArrowLeft, Check, Palette, AlertCircle, Loader2, CheckCircle2, Sparkles, Eye, Lock } from "@/components/icons";
 import { Club } from "@/types/club";
 import { Theme } from "@/types/theme";
 import {
@@ -140,10 +140,10 @@ export default function ChangeThemeV2Page() {
             </Link>
             <div>
               <h1 className="text-lg font-semibold text-slate-800">
-                {club ? `${club.clubName} — Theme` : "Theme"}
+                {club ? `${club.clubName}: Theme` : "Theme"}
               </h1>
               <p className="text-xs text-slate-500 mt-0.5">
-                Pick the look of your public club website. The switch is instant — the public site refreshes within ~5 minutes.
+                Pick the look of your public club website. The switch is instant: the public site refreshes within ~5 minutes.
               </p>
             </div>
           </div>
@@ -181,7 +181,7 @@ export default function ChangeThemeV2Page() {
         {!loading && hasWebsite && !canManage && (
           <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-2 text-xs text-slate-600">
             <span className="inline-flex items-center gap-1">
-              <Lock size={12} /> Read only — only SuperAdmin or Admin can change the theme.
+              <Lock size={12} /> Read only. Only SuperAdmin or Admin can change the theme.
             </span>
           </div>
         )}
@@ -189,7 +189,7 @@ export default function ChangeThemeV2Page() {
         {/* Theme gallery */}
         {!loading && hasWebsite && (
           <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
-            <div className="px-5 py-3 border-b border-slate-100 flex items-center gap-2 bg-gradient-to-r from-blue-50 to-white">
+            <div className="px-5 py-3 border-b border-slate-100 flex items-center gap-2 bg-blue-50">
               <div className="w-9 h-9 rounded-lg bg-blue-100 text-blue-700 flex items-center justify-center">
                 <Sparkles size={18} />
               </div>
@@ -255,7 +255,7 @@ export default function ChangeThemeV2Page() {
                         </div>
                       </div>
                     ) : (
-                      <div className="w-full aspect-[16/10] bg-gradient-to-br from-slate-100 to-slate-200 flex items-center justify-center">
+                      <div className="w-full aspect-[16/10] bg-slate-100 flex items-center justify-center">
                         <Palette className="h-10 w-10 text-slate-400" />
                       </div>
                     )}
@@ -331,7 +331,7 @@ export default function ChangeThemeV2Page() {
             <>
               The public website will switch to{" "}
               <span className="font-semibold text-foreground">{confirmTheme?.themeName}</span>.
-              All content stays the same — only the look changes. The new theme appears on the public site within ~5 minutes.
+              All content stays the same. Only the look changes. The new theme appears on the public site within ~5 minutes.
               {(() => {
                 if (!confirmTheme) return null;
                 const blurb = confirmTheme.description || THEME_PREVIEW[themeKey(confirmTheme.themeName)]?.tagline;

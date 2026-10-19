@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { ArrowUpRight } from "lucide-react";
+import { ArrowUpRight } from "@/components/icons";
 import Link from "next/link";
 import { PageBanner } from "@/components/site/PageBanner";
 import { SiteFooter } from "@/components/site/SiteFooter";
@@ -16,7 +16,7 @@ export const metadata: Metadata = {
 const STEPS = [
   {
     title: "Submit your details",
-    desc: "Two minutes — who you are and the club you'd like to join.",
+    desc: "Two minutes: who you are and the club you'd like to join.",
   },
   {
     title: "Club review",
@@ -65,7 +65,7 @@ export default function ProspectiveMemberPage() {
               data-animate-duration="0.7"
               className="mt-6 text-[17px] leading-relaxed text-muted"
             >
-              Tell us a little about yourself and who pointed you our way — the club
+              Tell us a little about yourself and who pointed you our way: the club
               nearest you will take it from there. No fees. No obligation.
             </p>
             <Link
@@ -117,12 +117,12 @@ export default function ProspectiveMemberPage() {
           >
             <div className="rule-gold mx-auto" aria-hidden />
             <p className="mx-auto mt-8 max-w-3xl font-display text-heading font-[340] tracking-[-0.02em] text-navy-950">
-              Every Rotary story starts the same way — with{" "}
+              Every Rotary story starts the same way: with{" "}
               <em className="accent-serif text-accent-gold">one hello</em> at a local
               club.
             </p>
             <p className="microlabel mt-8">
-              the zones — India, Sri Lanka, Nepal, Maldives &amp; Bhutan
+              the zones: India, Sri Lanka, Nepal, Maldives &amp; Bhutan
             </p>
           </div>
         </div>

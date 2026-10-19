@@ -24,7 +24,7 @@ import Link from "next/link";
 import {
   ArrowLeft, Info, Mail, ListChecks, Wallet, BadgeCheck,
   Save, Loader2, Plus, Edit3, Trash2, AlertTriangle, X,
-} from "lucide-react";
+} from "@/components/icons";
 import {
   getEventPaymentLinkDetail, updateEventPaymentLink,
   getEventRegistrations, saveEventRegistration, updateEventRegistration, deleteEventRegistration,
@@ -78,7 +78,7 @@ function FieldLabel({ children, hint, required = false }: { children: React.Reac
 function SectionCard({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div className="rounded-xl border border-slate-200 overflow-hidden">
-      <div className="px-4 py-2.5 bg-gradient-to-r from-slate-50 to-white border-b border-slate-100">
+      <div className="px-4 py-2.5 bg-slate-50 border-b border-slate-100">
         <h3 className="text-sm font-semibold text-slate-800">{title}</h3>
       </div>
       <div className="p-4 space-y-4">{children}</div>

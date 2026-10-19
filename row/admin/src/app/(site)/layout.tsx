@@ -1,28 +1,10 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { getServerBrand, isFeatureOn } from "@/lib/brand";
-import { Inter, Fraunces } from "next/font/google";
 import { SiteHeader } from "@/components/site/SiteHeader";
 import { Animator } from "@/components/site/Animator";
 import { PageTransition } from "@/components/motion/PageTransition";
 import { ScrollToTop } from "@/components/motion/ScrollToTop";
-
-const inter = Inter({
-  subsets: ["latin"],
-  weight: ["400", "500", "600"],
-  variable: "--font-inter",
-  display: "swap",
-});
-
-/** Editorial serif for display headings + italic accents — Fraunces variable
- *  (upright + italic) with the optical-size axis; weights via font-[340/450/560]. */
-const fraunces = Fraunces({
-  subsets: ["latin"],
-  style: ["normal", "italic"],
-  axes: ["opsz"],
-  variable: "--font-fraunces",
-  display: "swap",
-});
 
 // The description is this site's content, not brand: an instance without its own
 // public content turns the site off with the site.public flag (below).
@@ -44,7 +26,7 @@ export default async function SiteLayout({ children }: { children: React.ReactNo
   // site.public off (ROW until its public content exists): the public pages send visitors to sign-in.
   if (!isFeatureOn(await getServerBrand(), "site.public")) redirect("/login");
   return (
-    <div className={`${inter.variable} ${fraunces.variable} site-shell flex min-h-screen flex-col`}>
+    <div className="site-shell flex min-h-screen flex-col">
       {/* If JavaScript is unavailable, never leave reveal elements hidden. */}
       <noscript>
         <style>{`.site-shell [data-animate]{opacity:1 !important;transform:none !important;filter:none !important}`}</style>

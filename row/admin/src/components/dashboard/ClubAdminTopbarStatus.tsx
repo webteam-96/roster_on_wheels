@@ -3,7 +3,7 @@
 /**
  * ClubAdminTopbarStatus
  * --------------------------------------------------------------------------
- * Persistent header widget for the Club Admin Dashboard — WhatsApp/Email
+ * Persistent header widget for the Club Admin Dashboard — email
  * credit balances + a website status CTA, visible on every tab (not just
  * Overview) since it reads from the shared dashboard cache.
  *
@@ -15,7 +15,7 @@
  */
 
 import Link from "next/link";
-import { Mail, MessageCircle, Globe, ExternalLink } from "lucide-react";
+import { Mail, Globe, ExternalLink } from "@/components/icons";
 import { useClubAdminCache } from "@/contexts/ClubAdminDashboardCacheContext";
 import { fmtInt } from "@/components/dashboard/formatters";
 
@@ -58,10 +58,6 @@ export default function ClubAdminTopbarStatus() {
     <div className="hidden lg:flex items-center gap-2">
       {club && (
         <>
-          <span className={`${CHIP} bg-green-50 border-green-200 text-green-700`} title="Available WhatsApp credits">
-            <MessageCircle className="h-3.5 w-3.5" />
-            WhatsApp <span className="tabular-nums">{fmtInt(club.whatsAppCreditBalance ?? 0)}</span>
-          </span>
           <span className={`${CHIP} bg-blue-50 border-blue-200 text-blue-700`} title="Available Email credits">
             <Mail className="h-3.5 w-3.5" />
             Email <span className="tabular-nums">{fmtInt(club.emailCreditBalance ?? 0)}</span>

@@ -6,7 +6,6 @@ export interface GreetingSettings {
   isEnableBirthdayNotification: boolean;
   anniversaryGreeting: string | null;
   isEnableAnniversaryNotification: boolean;
-  isGreetingSendWhatsapp: boolean;
   isEnableBirthdayEmail: boolean;
   birthdayEmailFrom: string | null;
   birthdayEmailSubject: string | null;
@@ -22,7 +21,6 @@ export interface UpdateGreetingSettingsRequest {
   isEnableBirthdayNotification: boolean;
   anniversaryGreeting: string | null;
   isEnableAnniversaryNotification: boolean;
-  isGreetingSendWhatsapp: boolean;
   isEnableBirthdayEmail: boolean;
   birthdayEmailFrom: string | null;
   birthdayEmailSubject: string | null;

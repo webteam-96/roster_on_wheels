@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
-import { Calendar as CalendarIcon, ChevronDown, X } from "lucide-react";
+import { Calendar as CalendarIcon, ChevronDown, X } from "@/components/icons";
 
 // Project rule: birthday and anniversary collect ONLY day + month. Year is never
 // asked from the user; backend always stores year=1900 (placeholder). On display

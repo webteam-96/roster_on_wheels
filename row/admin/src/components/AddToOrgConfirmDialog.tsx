@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter,
 } from "@/components/ui/dialog";
-import { Send, AlertTriangle } from "lucide-react";
+import { Send, AlertTriangle } from "@/components/icons";
 
 /**
  * Post-save "Add To Rotary Org" prompt.
@@ -35,14 +35,14 @@ export default function AddToOrgConfirmDialog({
         <div className="rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm text-slate-600">
           The RI Flow-Bot extension opens the Service Project Center in a new tab and
           fills the wizard from this project. You review the highlighted notes and
-          publish. It only creates a new project — it never edits or deletes existing
+          publish. It only creates a new project. It never edits or deletes existing
           Rotary.org projects.
         </div>
 
         <div className="flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">
           <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5" />
           <span>
-            If this project has already been added to rotary.org, do not proceed —
+            If this project has already been added to rotary.org, do not proceed , 
             this will create a duplicate project on the Rotary.org portal.
           </span>
         </div>

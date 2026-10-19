@@ -26,7 +26,7 @@ import {
   type MouseEvent,
   type ReactNode,
 } from "react";
-import { Loader2 } from "lucide-react";
+import { Loader2 } from "@/components/icons";
 
 export interface LoadingButtonProps
   extends Omit<ButtonHTMLAttributes<HTMLButtonElement>, "onClick"> {

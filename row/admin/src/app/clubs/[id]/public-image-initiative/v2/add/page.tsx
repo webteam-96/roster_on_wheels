@@ -18,7 +18,7 @@ import DateField from "@/components/DateField";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import {
   Upload, X, Star, Info, FileText, MapPin, Target, IndianRupee, Coins, DollarSign, Camera, Search,
-} from "lucide-react";
+} from "@/components/icons";
 import {
   getClub,
   getModules,
@@ -115,7 +115,7 @@ function SectionCard({
 }: { number: number; icon: React.ElementType; title: string; dot: string; children: React.ReactNode }) {
   return (
     <div className="rounded-xl border border-slate-200 overflow-hidden mb-4">
-      <div className="flex items-center gap-3 px-4 py-2.5 bg-gradient-to-r from-slate-50 to-white border-b border-slate-100">
+      <div className="flex items-center gap-3 px-4 py-2.5 bg-slate-50 border-b border-slate-100">
         <div className={`flex items-center justify-center h-7 w-7 rounded-full text-white text-xs font-bold ${dot}`}>{number}</div>
         <Icon className="h-4 w-4 text-slate-500" />
         <h3 className="text-sm font-semibold text-slate-800">{title}</h3>
@@ -235,7 +235,6 @@ export default function PublicImageInitiativeV2AddPage() {
   const [rotariansInvolved, setRotariansInvolved] = useState("");
   const [rotaractorsInvolved, setRotaractorsInvolved] = useState("");
   const [rccInvolved, setRccInvolved] = useState("");
-  const [sendWhatsapp, setSendWhatsapp] = useState(false);
   const [sendEmail, setSendEmail] = useState(false);
 
   const [photos, setPhotos] = useState<PhotoItem[]>([]);
@@ -389,7 +388,7 @@ export default function PublicImageInitiativeV2AddPage() {
     manHours, rotariansInvolved, rotaractorsInvolved,
     projectType, ongoingSubType, ongoingGroupTitle, isJointProject, coHostName, clubRole,
     globalGrantNumber, amountSanctioned, amountReceived, amountSpent,
-    hostClubsDistricts, globalPartnerClubsDistricts, csrCompanyName, sendWhatsapp, sendEmail,
+    hostClubsDistricts, globalPartnerClubsDistricts, csrCompanyName, sendEmail,
     photos: photos.filter((p) => p.imagePath && !p.uploading)
       .map((p) => ({ imagePath: p.imagePath, description: p.description, isPrimary: p.isPrimary })),
   });
@@ -426,7 +425,6 @@ export default function PublicImageInitiativeV2AddPage() {
     if (f.hostClubsDistricts != null) setHostClubsDistricts(str("hostClubsDistricts"));
     if (f.globalPartnerClubsDistricts != null) setGlobalPartnerClubsDistricts(str("globalPartnerClubsDistricts"));
     if (f.csrCompanyName != null) setCsrCompanyName(str("csrCompanyName"));
-    if (typeof f.sendWhatsapp === "boolean") setSendWhatsapp(f.sendWhatsapp);
     if (typeof f.sendEmail === "boolean") setSendEmail(f.sendEmail);
     if (Array.isArray(f.photos)) {
       setPhotos((f.photos as Array<{ imagePath: string; description?: string; isPrimary?: boolean }>)
@@ -612,7 +610,6 @@ export default function PublicImageInitiativeV2AddPage() {
       rotariansInvolved: rotariansInvolved ? Number(rotariansInvolved) : null,
       rotaractorsInvolved: rotaractorsInvolved ? Number(rotaractorsInvolved) : null,
       rccInvolved: rccInvolved ? Number(rccInvolved) : null,
-      sendWhatsapp,
       sendEmail,
       photos: photoInputs,
     };
@@ -1136,17 +1133,7 @@ export default function PublicImageInitiativeV2AddPage() {
             <p className="text-xs text-slate-400">JPG, JPEG, PNG, GIF, WEBP &middot; up to 5 MB &middot; auto-compressed if larger</p>
           </div>
 
-          {/* WhatsApp toggle */}
           <div className="mt-4 pt-3 border-t border-slate-100">
-            <label className="flex items-center gap-2 cursor-pointer select-none">
-              <input
-                type="checkbox"
-                checked={sendWhatsapp}
-                onChange={(e) => setSendWhatsapp(e.target.checked)}
-                className="accent-blue-600 h-4 w-4"
-              />
-              <span className="text-sm font-medium text-slate-700">Send WhatsApp notification</span>
-            </label>
             <label className="flex items-center gap-2 cursor-pointer select-none mt-2">
               <input
                 type="checkbox"
@@ -1156,11 +1143,6 @@ export default function PublicImageInitiativeV2AddPage() {
               />
               <span className="text-sm font-medium text-slate-700">Send Email notification</span>
             </label>
-            {sendWhatsapp && hasModerator && (
-              <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded px-3 py-2 mt-2">
-                Note: This project will go for approval to moderator. WhatsApp will be sent after moderator approves.
-              </p>
-            )}
             {sendEmail && hasModerator && (
               <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded px-3 py-2 mt-2">
                 Note: This project will go for approval to moderator. Email will be sent after moderator approves.

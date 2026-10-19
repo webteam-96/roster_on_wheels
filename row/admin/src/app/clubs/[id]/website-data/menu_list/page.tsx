@@ -48,7 +48,7 @@ import {
   ArrowLeft, Plus, Pencil, Trash2, MoreHorizontal,
   AlertTriangle, ExternalLink, Eye, EyeOff, ChevronDown, ChevronRight,
   GripVertical, List, Upload, X, FileText, PlusCircle,
-} from "lucide-react";
+} from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
 import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";

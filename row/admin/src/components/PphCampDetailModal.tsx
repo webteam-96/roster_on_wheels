@@ -20,19 +20,19 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import RotaryLoader from "@/components/RotaryLoader";
-import { CalendarDays, MapPin, Users } from "lucide-react";
+import { CalendarDays, MapPin, Users } from "@/components/icons";
 
 import { appLocale } from "@/lib/appFormat";
 function fmtDate(d?: string | null) {
-  if (!d) return "—";
+  if (!d) return "–";
   const dt = new Date(d);
   return isNaN(dt.getTime())
-    ? "—"
+    ? "–"
     : dt.toLocaleDateString(appLocale(), { day: "2-digit", month: "short", year: "numeric" });
 }
 
 function Row({ label, value }: { label: string; value: React.ReactNode }) {
-  if (value === null || value === undefined || value === "" || value === "—") return null;
+  if (value === null || value === undefined || value === "" || value === "–") return null;
   return (
     <div className="text-sm">
       <span className="text-slate-500">{label}: </span>

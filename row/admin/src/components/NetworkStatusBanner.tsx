@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { WifiOff, Wifi } from "lucide-react";
+import { WifiOff, Wifi } from "@/components/icons";
 
 /**
  * Global "network down" indicator (web only).
@@ -62,7 +62,7 @@ export default function NetworkStatusBanner() {
         </>
       ) : (
         <>
-          <WifiOff className="h-4 w-4" /> You are offline — check your internet connection.
+          <WifiOff className="h-4 w-4" /> You are offline. Check your internet connection.
         </>
       )}
     </div>

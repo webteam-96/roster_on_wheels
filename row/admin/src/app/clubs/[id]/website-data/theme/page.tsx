@@ -18,7 +18,7 @@ import { Badge } from "@/components/ui/badge";
 import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
 import AlertModal from "@/components/AlertModal";
-import { ArrowLeft, Check, Palette, AlertCircle } from "lucide-react";
+import { ArrowLeft, Check, Palette, AlertCircle } from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
 import Image from "next/image";
 import ProtectedRoute from "@/components/ProtectedRoute";
@@ -110,7 +110,7 @@ export default function ChangeThemePage() {
               {club ? `${club.clubName} - Theme` : "Theme"}
             </h2>
             <p className="text-muted-foreground text-base">
-              Pick the look of your public club website. The switch is instant — the public site refreshes within 5 minutes.
+              Pick the look of your public club website. The switch is instant: the public site refreshes within 5 minutes.
             </p>
           </div>
         </div>
@@ -178,7 +178,7 @@ export default function ChangeThemePage() {
                         </div>
                       </div>
                     ) : (
-                      <div className="w-full aspect-[16/10] bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center">
+                      <div className="w-full aspect-[16/10] bg-gray-100 flex items-center justify-center">
                         <Palette className="h-10 w-10 text-gray-400" />
                       </div>
                     )}
@@ -222,7 +222,7 @@ export default function ChangeThemePage() {
             <>
               The public website will switch to{" "}
               <span className="font-semibold text-foreground">{confirmTheme?.themeName}</span>.
-              All content stays the same — only the look changes. The new theme appears on the public site within ~5 minutes.
+              All content stays the same. Only the look changes. The new theme appears on the public site within ~5 minutes.
               {(() => {
                 if (!confirmTheme) return null;
                 const blurb = confirmTheme.description || THEME_PREVIEW[themeKey(confirmTheme.themeName)]?.tagline;

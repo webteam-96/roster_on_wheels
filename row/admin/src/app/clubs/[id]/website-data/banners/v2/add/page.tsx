@@ -16,7 +16,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useParams } from "next/navigation";
 import Image from "next/image";
-import { Upload, X, ImageIcon, FileText, Calendar, ToggleLeft } from "lucide-react";
+import { Upload, X, ImageIcon, FileText, Calendar, ToggleLeft } from "@/components/icons";
 import {
   getClub,
   getRotaryYears,
@@ -67,7 +67,7 @@ function SectionCard({
 }: { number: number; icon: React.ElementType; title: string; dot: string; children: React.ReactNode }) {
   return (
     <div className="rounded-xl border border-slate-200 overflow-hidden mb-4">
-      <div className="flex items-center gap-3 px-4 py-2.5 bg-gradient-to-r from-slate-50 to-white border-b border-slate-100">
+      <div className="flex items-center gap-3 px-4 py-2.5 bg-slate-50 border-b border-slate-100">
         <div className={`flex items-center justify-center h-7 w-7 rounded-full text-white text-xs font-bold ${dot}`}>{number}</div>
         <Icon className="h-4 w-4 text-slate-500" />
         <h3 className="text-sm font-semibold text-slate-800">{title}</h3>
@@ -340,7 +340,7 @@ export default function BannerPhotosV2AddPage() {
 
         {/* 5. Document or Link (optional) */}
         <SectionCard number={5} icon={FileText} title="Document or Link (optional)" dot="bg-amber-600">
-          <FieldLabel dot="bg-amber-500" hint="(document or link — not both)">Attached Document / Link</FieldLabel>
+          <FieldLabel dot="bg-amber-500" hint="(document or link. Not both)">Attached Document / Link</FieldLabel>
           <DocumentOrLinkField
             value={{ documentPath, documentName, linkUrl }}
             onChange={(v) => { setDocumentPath(v.documentPath); setDocumentName(v.documentName); setLinkUrl(v.linkUrl); }}

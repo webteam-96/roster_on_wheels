@@ -1,4 +1,4 @@
-import { Headset, Clock, Users } from "lucide-react";
+import { Headset, Clock, Users } from "@/components/icons";
 
 const FEATURES = [
   {

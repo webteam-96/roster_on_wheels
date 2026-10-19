@@ -41,11 +41,11 @@ import {
   Globe,
   FileCheck,
   HeartHandshake,
-} from "lucide-react";
+} from "@/components/icons";
 import PublicHeader from "./PublicHeader";
 import PublicFooter from "./PublicFooter";
 
-const BRAND_NAVY = "#1e3a5f";
+const BRAND_NAVY = "#17458f";
 const BRAND_GOLD = "#F7A81B";
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -90,7 +90,7 @@ const SERVICES: {
     icon: BarChart3,
     title: "Reports & Analytics",
     description:
-      "Dashboards for club admins, assistant governors, district admins, and RI Directors. Membership trends, project impact, fund flows — all derived from live data.",
+      "Dashboards for club admins, assistant governors, district admins, and RI Directors. Membership trends, project impact, fund flows: all derived from live data.",
     accent: "green",
   },
 ];
@@ -140,7 +140,7 @@ const PRICING: {
 
 const FEATURES = [
   { icon: Globe, title: "Multi-Zone, Multi-District", body: "One unified portal serving every Rotary club across the zones." },
-  { icon: Users, title: "Role-Based Access", body: "Club Admins, Assistant Governors, District Admins, RI Directors — each sees what they need." },
+  { icon: Users, title: "Role-Based Access", body: "Club Admins, Assistant Governors, District Admins, RI Directors | each sees what they need." },
   { icon: ShieldCheck, title: "Secure by Default", body: "JWT-secured sessions, HTTPS only, encrypted at rest, regular backups." },
   { icon: FileCheck, title: "Statutory Reports", body: "Auto-generated reports aligned with Rotary International and Indian regulatory requirements." },
   { icon: LineChart, title: "Live Dashboards", body: "Membership, projects, events, and fund flows visualised in real time." },
@@ -168,10 +168,9 @@ export default function PublicLanding() {
         aria-labelledby="hero-title"
         className="relative overflow-hidden"
         style={{
-          background: `linear-gradient(135deg, ${BRAND_NAVY} 0%, #1e5fb5 50%, #2a72c2 100%)`,
+          background: BRAND_NAVY,
         }}
       >
-        <div className="absolute inset-0 opacity-10 pointer-events-none" style={{ background: "radial-gradient(circle at 20% 50%, rgba(247,168,27,0.4) 0%, transparent 50%), radial-gradient(circle at 80% 20%, rgba(255,255,255,0.2) 0%, transparent 40%)" }} />
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 lg:py-24">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 items-center">
             <div className="text-white">
@@ -185,7 +184,7 @@ export default function PublicLanding() {
               <p className="mt-5 text-base sm:text-lg text-slate-200 leading-relaxed max-w-xl">
                 The integrated administration platform for Rotary clubs across
                 Western, Northern, Central and Southern India. Membership,
-                projects, events, foundation contributions — managed in one
+                projects, events, foundation contributions: managed in one
                 place with secure INR payments through Cashfree.
               </p>
               <div className="mt-7 flex flex-wrap gap-3">
@@ -214,13 +213,12 @@ export default function PublicLanding() {
 
             <div className="hidden lg:flex items-center justify-center">
               <div className="relative">
-                <div className="absolute inset-0 rounded-full" style={{ background: "radial-gradient(circle, rgba(247,168,27,0.25) 0%, transparent 70%)", transform: "scale(1.4)" }} />
                 <Image
-                  src="/brand/row-logo-badge.png"
+                  src="/brand/row-logo-inverse.png"
                   alt="ROW emblem"
                   width={420}
                   height={420}
-                  className="relative z-10 object-contain drop-shadow-2xl"
+                  className="relative z-10 object-contain"
                   priority
                 />
               </div>
@@ -244,7 +242,7 @@ export default function PublicLanding() {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {[
-              { icon: Award, title: "Who We Are", body: "An initiative by the Multi-District team representing Rotary clubs across the zones in India — operated for the benefit of clubs and their members." },
+              { icon: Award, title: "Who We Are", body: "An initiative by the Multi-District team representing Rotary clubs across the zones in India | operated for the benefit of clubs and their members." },
               { icon: HandHeart, title: "What We Do", body: "Provide secure digital tools for member management, event administration, project documentation, and online collection of dues, fees, and contributions in INR." },
               { icon: Building2, title: "Who We Serve", body: "Rotary club Presidents, Secretaries, Treasurers, Directors, Members; District Governors, Assistant Governors, District Admins; Rotary International Directors." },
             ].map((b) => (

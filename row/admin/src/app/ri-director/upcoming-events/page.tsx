@@ -15,7 +15,7 @@ import SendStatusBadges from "@/components/SendStatusBadges";
 import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
 import AlertModal from "@/components/AlertModal";
-import { ArrowLeft, Search, X, Plus, Pencil, Trash2, MoreHorizontal, FolderOpen, AlertTriangle } from "lucide-react";
+import { ArrowLeft, Search, X, Plus, Pencil, Trash2, MoreHorizontal, FolderOpen, AlertTriangle } from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
 import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";
@@ -47,8 +47,8 @@ interface EventItem {
   publishDate: string;
   expiryDate: string;
   eventVenue: string | null;
-  isSendWhatsapp: boolean;
   status: string;
+  isSendEmail?: boolean;
 }
 
 export default function RiDirectorUpcomingEventsPage() {
@@ -139,7 +139,6 @@ export default function RiDirectorUpcomingEventsPage() {
                   <TableHead className="text-primary-foreground font-semibold">Title</TableHead>
                   <TableHead className="text-primary-foreground font-semibold">Event</TableHead>
                   <TableHead className="text-primary-foreground font-semibold">Venue</TableHead>
-                  <TableHead className="text-primary-foreground font-semibold text-center">WhatsApp</TableHead>
                   <TableHead className="text-primary-foreground font-semibold text-center">Status</TableHead>
                   {canManage && <TableHead className="w-12" />}
                 </TableRow>
@@ -151,7 +150,6 @@ export default function RiDirectorUpcomingEventsPage() {
                     <TableCell><div className="flex items-center gap-2">{e.imagePath && <img src={`${API_URL}${e.imagePath}`} alt="" className="h-10 w-10 rounded object-cover" />}<span className="font-medium">{e.title}</span></div></TableCell>
                     <TableCell>{formatDateTime(e.eventDate)}</TableCell>
                     <TableCell>{e.eventVenue || "-"}</TableCell>
-                    <TableCell className="text-center"><span className={`inline-flex px-2 py-0.5 rounded-full text-xs ${e.isSendWhatsapp ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-500"}`}>{e.isSendWhatsapp ? "Yes" : "No"}</span></TableCell>
                     <TableCell className="text-center"><StatusBadge status={e.status} /><SendStatusBadges item={e} /></TableCell>
                     {canManage && (
                       <TableCell>

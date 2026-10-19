@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { Puzzle, Zap, ExternalLink } from "lucide-react";
+import { Puzzle, Zap, ExternalLink } from "@/components/icons";
 import { useExtensionStatus } from "@/hooks/useExtensionStatus";
 import { isFlowBotEnabled, ADD_TO_ORG_WEBSTORE_URL } from "@/lib/addToOrg";
 import { getClubRotaryOrgCredentials } from "@/services/api";

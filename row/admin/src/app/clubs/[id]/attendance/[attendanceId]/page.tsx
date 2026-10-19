@@ -17,7 +17,7 @@ import Link from "next/link";
 import {
   ArrowLeft, Pencil, CalendarDays, Users, UserCheck, UserPlus,
   Globe, Award, ChevronDown, ChevronUp,
-} from "lucide-react";
+} from "@/components/icons";
 
 import { appLocale } from "@/lib/appFormat";
 function formatDateTime(dateStr: string): string {

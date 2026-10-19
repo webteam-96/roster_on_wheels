@@ -15,7 +15,7 @@ import Pagination from "@/components/Pagination";
 import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
 import AlertModal from "@/components/AlertModal";
-import { ArrowLeft, Search, X, Plus, Pencil, Trash2, MoreHorizontal, FolderOpen, AlertTriangle } from "lucide-react";
+import { ArrowLeft, Search, X, Plus, Pencil, Trash2, MoreHorizontal, FolderOpen, AlertTriangle } from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
 import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";
@@ -148,7 +148,6 @@ export default function RiDirectorAnnouncementsPage() {
                   <TableHead className="text-primary-foreground text-base font-semibold">Title</TableHead>
                   <TableHead className="text-primary-foreground text-base font-semibold">Publish</TableHead>
                   <TableHead className="text-primary-foreground text-base font-semibold">Expiry</TableHead>
-                  <TableHead className="text-primary-foreground text-base font-semibold text-center">WhatsApp</TableHead>
                   <TableHead className="text-primary-foreground text-base font-semibold text-center">Status</TableHead>
                   {canManage && <TableHead className="w-12 text-primary-foreground"></TableHead>}
                 </TableRow>
@@ -165,11 +164,6 @@ export default function RiDirectorAnnouncementsPage() {
                     </TableCell>
                     <TableCell>{formatDateTime(ann.publishDateTime)}</TableCell>
                     <TableCell>{formatDateTime(ann.expiryDateTime)}</TableCell>
-                    <TableCell className="text-center">
-                      <span className={`inline-flex px-2 py-0.5 rounded-full text-xs ${ann.isSendWhatsapp ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-500"}`}>
-                        {ann.isSendWhatsapp ? "Yes" : "No"}
-                      </span>
-                    </TableCell>
                     <TableCell className="text-center"><StatusBadge status={ann.status} /><SendStatusBadges item={ann} /></TableCell>
                     {canManage && (
                       <TableCell>

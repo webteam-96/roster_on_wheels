@@ -3,7 +3,7 @@
 import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Shirt, LinkIcon, BadgeDollarSign, Building2 } from "lucide-react";
+import { ArrowLeft, Shirt, LinkIcon, BadgeDollarSign, Building2 } from "@/components/icons";
 import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";
 

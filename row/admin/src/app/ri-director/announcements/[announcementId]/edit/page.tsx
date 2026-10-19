@@ -12,19 +12,19 @@ import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
 import {
   ArrowLeft, Upload, X, FileText, Send, Bell, Plus, Trash2, Users2,
-} from "lucide-react";
+} from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
 import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";
-import RiRecipientPicker, { RiRecipientValue, checkRiCredits } from "@/components/RiRecipientPicker";
-import WhatsAppRecipientBadge from "@/components/WhatsAppRecipientBadge";
+import RiRecipientPicker, { RiRecipientValue } from "@/components/RiRecipientPicker";
+import RecipientBadge from "@/components/RecipientBadge";
 import { toLocalDateParts } from "@/lib/dateUtils";
 import ImageCropDialog from "@/components/ImageCropDialog";
 import { useImageCropUpload } from "@/hooks/useImageCropUpload";
 import { TEXT_INPUT_REGEX } from "@/lib/textInput";
 
 // The attached image is shown as a landscape poster on the detail view and is
-// pushed out with WhatsApp/email notifications — locked to 4:3 at 1200×900.
+// pushed out with email notifications — locked to 4:3 at 1200×900.
 const IMAGE_ASPECT = 4 / 3;
 const IMAGE_MAX_WIDTH = 1200;
 
@@ -75,7 +75,6 @@ export default function RiDirectorAnnouncementsEditPage() {
   const [expiryDate, setExpiryDate] = useState("");
   const [expiryTime, setExpiryTime] = useState("");
   const [isDisplayOnBanner, setIsDisplayOnBanner] = useState(false);
-  const [isSendWhatsapp, setIsSendWhatsapp] = useState(false);
   const [isSendEmail, setIsSendEmail] = useState(false);
   const [isRepeatNotification, setIsRepeatNotification] = useState(false);
   const [reminders, setReminders] = useState<ReminderItem[]>([]);
@@ -106,7 +105,6 @@ export default function RiDirectorAnnouncementsEditPage() {
         setExpiryTime(time);
       }
       setIsDisplayOnBanner(!!d.isDisplayOnBanner);
-      setIsSendWhatsapp(!!d.isSendWhatsapp);
       setIsSendEmail(d.isSendEmail ?? false);
       setIsRepeatNotification(!!d.isRepeatNotification);
       const parseIds = (s: string | null | undefined): number[] =>
@@ -181,10 +179,6 @@ export default function RiDirectorAnnouncementsEditPage() {
     if (recipient.target === "districts" && recipient.districtIds.length === 0) { setErrorMessage("Select at least one district."); return; }
     if (recipient.target === "subgroups" && recipient.subgroupIds.length === 0) { setErrorMessage("Select at least one sub group."); return; }
 
-    if (isSendWhatsapp) {
-      const c = await checkRiCredits("whatsapp", recipient.target, recipient.zoneIds, recipient.districtIds, recipient.subgroupIds);
-      if (!c.ok) { setErrorMessage(c.message); return; }
-    }
 
     setSaving(true);
     try {
@@ -195,7 +189,6 @@ export default function RiDirectorAnnouncementsEditPage() {
         publishDateTime: `${publishDate}T${publishTime}:00`,
         expiryDateTime: `${expiryDate}T${expiryTime}:00`,
         isDisplayOnBanner,
-        isSendWhatsapp,
         isSendEmail,
         isRepeatNotification,
         reminders: reminderStrings,
@@ -276,7 +269,7 @@ export default function RiDirectorAnnouncementsEditPage() {
         </Section>
 
         <Section icon={Users2} title="Recipients" number={2}>
-          <RiRecipientPicker value={recipient} onChange={setRecipient} channel="whatsapp" checkCredits={isSendWhatsapp} />
+          <RiRecipientPicker value={recipient} onChange={setRecipient} />
         </Section>
 
         <Section icon={Bell} title="Display & Notification Settings" number={3}>
@@ -289,14 +282,9 @@ export default function RiDirectorAnnouncementsEditPage() {
             </label>
             )}
             <label className="flex items-center gap-3 cursor-pointer">
-              <input type="checkbox" checked={isSendWhatsapp} onChange={(e) => setIsSendWhatsapp(e.target.checked)} className="h-4 w-4 rounded" />
-              <span className="text-sm font-medium">Notify members via WhatsApp</span>
-              {isSendWhatsapp && <WhatsAppRecipientBadge scope="ri" target={recipient.target} zoneIds={recipient.zoneIds} districtIds={recipient.districtIds} subgroupIds={recipient.subgroupIds} reminderCount={reminders.length} />}
-            </label>
-            <label className="flex items-center gap-3 cursor-pointer">
               <input type="checkbox" checked={isSendEmail} onChange={(e) => setIsSendEmail(e.target.checked)} className="h-4 w-4 rounded" />
               <span className="text-sm font-medium">Notify members via Email</span>
-              {isSendEmail && <WhatsAppRecipientBadge scope="ri" target={recipient.target} zoneIds={recipient.zoneIds} districtIds={recipient.districtIds} subgroupIds={recipient.subgroupIds} reminderCount={reminders.length} channel="email" />}
+              {isSendEmail && <RecipientBadge scope="ri" target={recipient.target} zoneIds={recipient.zoneIds} districtIds={recipient.districtIds} subgroupIds={recipient.subgroupIds} reminderCount={reminders.length} />}
             </label>
             <label className="flex items-center gap-3 cursor-pointer">
               <input type="checkbox" checked={isRepeatNotification} onChange={(e) => { setIsRepeatNotification(e.target.checked); if (!e.target.checked) setReminders([]); }} className="h-4 w-4 rounded" />

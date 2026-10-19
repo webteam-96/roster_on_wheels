@@ -47,7 +47,7 @@ import {
   ImageIcon,
   Download,
   Loader2,
-} from "lucide-react";
+} from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
 import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";
@@ -284,7 +284,7 @@ export default function PphCampsPage() {
                   exportPphAttendeeReport(rows, {
                     filename: "PPH_Camp_Attendees_Club",
                     title: "PPH Camp Attendee Report",
-                    subtitle: `${clubName || "Club"} — all attendee entries (club-wise)`,
+                    subtitle: `${clubName || "Club"}: all attendee entries (club-wise)`,
                   });
                 } catch (err: any) {
                   setErrorMessage(err?.response?.data?.message || err?.response?.data || "Failed to download attendee report.");

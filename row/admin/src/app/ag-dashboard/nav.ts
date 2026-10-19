@@ -4,7 +4,7 @@ import {
   Briefcase,
   BarChart3,
   FileText,
-} from "lucide-react";
+} from "@/components/icons";
 import type { NavItem } from "@/components/dashboard/DashboardShell";
 
 // moduleKey values map to module_master.ModuleKey rows. When a module is set

@@ -6,21 +6,21 @@
 
 import { useEffect, useState } from "react";
 import { isAnnualOnlyCategory } from "@/lib/goalCategories";
-import { Loader2 } from "lucide-react";
+import { Loader2 } from "@/components/icons";
 import { getGoalOversightCategories, getDistrictMonthlyGoalsScoped, type GoalMonthlyForm } from "@/services/api";
 import { monthlyFieldLabel } from "@/lib/goalCategories";
 
 const fmt = (v: number | null | undefined) =>
-  v === null || v === undefined ? "—" : String(Math.round(v));   // whole numbers only (user 2026-09-29)
+  v === null || v === undefined ? "–" : String(Math.round(v));   // whole numbers only (user 2026-09-29)
 
 // % Achievement, same formula as the District Goal Setting report / oversight matrix:
 // membership metrics (have a baseline) → (achieved − baseline)/(target − baseline); others → achieved/target.
 function pctAchieved(baseline: number | null | undefined, target: number | null | undefined, achieved: number | null): string {
-  if (achieved === null || target === null || target === undefined) return "—";
+  if (achieved === null || target === null || target === undefined) return "–";
   const b = baseline ?? null;
   const denom = b === null ? target : target - b;
   const numer = b === null ? achieved : achieved - b;
-  if (!denom) return "—";
+  if (!denom) return "–";
   const p = (numer / denom) * 100;
   return `${(Math.round(p * 100) / 100).toString()}%`;
 }
@@ -85,7 +85,7 @@ export default function DistrictMonthWiseReport(
         const months = form?.months ?? [];
         return (
           <div key={c.id}>
-            <div className="text-sm font-semibold text-white px-3 py-1.5 rounded-t-lg" style={{ backgroundColor: "#1e3a5f" }}>{c.name}</div>
+            <div className="text-sm font-semibold text-white px-3 py-1.5 rounded-t-lg" style={{ backgroundColor: "#17458f" }}>{c.name}</div>
             {!form || form.fields.length === 0 ? (
               <div className="border border-t-0 border-slate-200 rounded-b-lg px-3 py-4 text-xs text-slate-400">No month-wise data for this category.</div>
             ) : (
@@ -93,15 +93,15 @@ export default function DistrictMonthWiseReport(
                 <table className="text-xs border-collapse w-full whitespace-nowrap">
                   {/* Every month has a Target | Achieved pair (user 2026-10-09); metrics stay one row each. */}
                   <thead>
-                    <tr style={{ backgroundColor: "#274b73" }} className="text-white">
-                      <th rowSpan={2} className="px-2 py-1.5 text-left sticky left-0 z-10" style={{ backgroundColor: "#274b73" }}>Particulars</th>
+                    <tr style={{ backgroundColor: "#17458f" }} className="text-white">
+                      <th rowSpan={2} className="px-2 py-1.5 text-left sticky left-0 z-10" style={{ backgroundColor: "#17458f" }}>Particulars</th>
                       <th rowSpan={2} className="px-2 py-1.5 text-right">As on July 1st</th>
                       <th rowSpan={2} className="px-2 py-1.5 text-right">Target</th>
                       {months.map((mo) => <th key={mo.month} colSpan={2} className={`px-2 py-1 text-center border-l border-white/20 ${mo.isAvailable ? "" : "text-white/50"}`}>{mo.label}</th>)}
                       <th rowSpan={2} className="px-2 py-1.5 text-right border-l border-white/20">Achieved</th>
                       <th rowSpan={2} className="px-2 py-1.5 text-right">% Achievement</th>
                     </tr>
-                    <tr style={{ backgroundColor: "#335d8a" }} className="text-white/90 text-[10px]">
+                    <tr style={{ backgroundColor: "#17458f" }} className="text-white/90 text-[10px]">
                       {months.map((mo) => [
                         <th key={`${mo.month}t`} className="px-2 py-1 text-right font-medium border-l border-white/20">Target</th>,
                         <th key={`${mo.month}a`} className="px-2 py-1 text-right font-medium">Achieved</th>,
@@ -118,11 +118,11 @@ export default function DistrictMonthWiseReport(
                         return (
                           <tr key={f.fieldId} className="border-b border-slate-100 hover:bg-slate-50">
                             <td className="px-2 py-1.5 font-medium text-slate-800 sticky left-0 z-10 bg-white">{monthlyFieldLabel(f)}</td>
-                            <td className="px-2 py-1.5 text-right text-slate-500">—</td>
+                            <td className="px-2 py-1.5 text-right text-slate-500">, </td>
                             <td className="px-2 py-1.5 text-right text-slate-700 whitespace-pre-line">{f.displayText ?? fmt(f.annualTarget)}</td>
                             {months.map((mo) => <td key={mo.month} colSpan={2} className="px-2 py-1.5 border-l border-slate-100" />)}
-                            <td className="px-2 py-1.5 text-right text-slate-400">—</td>
-                            <td className="px-2 py-1.5 text-right text-slate-400">—</td>
+                            <td className="px-2 py-1.5 text-right text-slate-400">, </td>
+                            <td className="px-2 py-1.5 text-right text-slate-400">, </td>
                           </tr>
                         );
                       }
@@ -144,9 +144,9 @@ export default function DistrictMonthWiseReport(
                           <td className="px-2 py-1.5 text-right text-slate-700">{fmt(f.annualTarget)}</td>
                           {cells.map((v, j) => [
                             <td key={`${j}t`} className="px-2 py-1.5 text-right text-slate-500 border-l border-slate-100">{fmt(tgts[j])}</td>,
-                            <td key={`${j}a`} className="px-2 py-1.5 text-right text-slate-800">{v === null ? "—" : fmt(v)}</td>,
+                            <td key={`${j}a`} className="px-2 py-1.5 text-right text-slate-800">{v === null ? "–" : fmt(v)}</td>,
                           ])}
-                          <td className="px-2 py-1.5 text-right font-semibold text-slate-800">{last === null ? "—" : fmt(last)}</td>
+                          <td className="px-2 py-1.5 text-right font-semibold text-slate-800">{last === null ? "–" : fmt(last)}</td>
                           <td className="px-2 py-1.5 text-right font-semibold text-emerald-700">{pctAchieved(f.baseline, f.annualTarget, last)}</td>
                         </tr>
                       );

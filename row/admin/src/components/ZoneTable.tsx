@@ -10,7 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { MoreHorizontal, Pencil, Trash2, Globe, MapPin, Building2, Users, UserCheck, Trophy } from "lucide-react";
+import { MoreHorizontal, Pencil, Trash2, Globe, MapPin, Building2, Users, UserCheck, Trophy } from "@/components/icons";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import RotaryLoader from "@/components/RotaryLoader";
@@ -83,7 +83,7 @@ export default function ZoneTable({ zones, onDelete, onCoordinator, onToggleZona
                 {zone.coordinatorName ? (
                   <span className="text-primary font-medium text-sm">{zone.coordinatorName}</span>
                 ) : (
-                  <span className="text-muted-foreground text-sm">—</span>
+                  <span className="text-muted-foreground text-sm">, </span>
                 )}
               </TableCell>
               <TableCell>

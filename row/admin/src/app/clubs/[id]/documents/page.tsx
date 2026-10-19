@@ -29,7 +29,7 @@ import AlertModal from "@/components/AlertModal";
 import {
   ArrowLeft, Search, X, Plus, Pencil, Trash2, Eye,
   MoreHorizontal, FolderOpen, AlertTriangle, Info, Download,
-} from "lucide-react";
+} from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
 import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";

@@ -12,7 +12,7 @@ import { ScrubMarquee } from "@/components/motion/ScrubMarquee";
 export const metadata: Metadata = {
   title: "About Rotary Clubs in the zones | ROW",
   description:
-    "Rotary Clubs in the zones unite approximately 1,80,000 Rotarians across India, Sri Lanka, Nepal, Maldives and Bhutan — serving communities in the spirit of Service Above Self.",
+    "Rotary Clubs in the zones unite approximately 1,80,000 Rotarians across India, Sri Lanka, Nepal, Maldives and Bhutan: serving communities in the spirit of Service Above Self.",
 };
 
 export default function AboutUsPage() {
@@ -21,7 +21,7 @@ export default function AboutUsPage() {
       {/* Standard split-serif banner — the shared page-header voice */}
       <PageBanner
         eyebrow="About Us · Since 1920"
-        subtitle="Service, diversity and community spirit — uniting clubs, inspiring leaders and transforming lives across five nations."
+        subtitle="Service, diversity and community spirit: uniting clubs, inspiring leaders and transforming lives across five nations."
       >
         About Rotary in <span className="text-gold">the zones</span>
       </PageBanner>

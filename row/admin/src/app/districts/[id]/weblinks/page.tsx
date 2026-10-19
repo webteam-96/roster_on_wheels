@@ -24,7 +24,7 @@ import SearchBox from "@/components/SearchBox";
 import RotaryLoader from "@/components/RotaryLoader";
 import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";
-import { ArrowLeft, Plus, Pencil, Trash2, MoreHorizontal, FolderOpen, AlertTriangle, ChevronRight, FolderTree, Loader2, Image as ImageIcon } from "lucide-react";
+import { ArrowLeft, Plus, Pencil, Trash2, MoreHorizontal, FolderOpen, AlertTriangle, ChevronRight, FolderTree, Loader2, Image as ImageIcon } from "@/components/icons";
 
 const ReactQuill = dynamic(() => import("react-quill-new"), { ssr: false });
 import "react-quill-new/dist/quill.snow.css";

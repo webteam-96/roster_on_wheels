@@ -29,7 +29,7 @@ import SearchBox from "@/components/SearchBox";
 import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
 import AlertModal from "@/components/AlertModal";
-import { Plus, Pencil, Trash2, MoreHorizontal, Users, User, Search, AlertTriangle, X, Eye } from "lucide-react";
+import { Plus, Pencil, Trash2, MoreHorizontal, Users, User, Search, AlertTriangle, X, Eye } from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
 import Image from "next/image";
 
@@ -243,10 +243,10 @@ export default function SubGroupsSection({ clubId }: { clubId: number }) {
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-2 text-slate-700">
           <Users className="h-4 w-4" />
-          <span className="text-sm font-semibold">Subgroups — organise members into groups (used as Mass Email / WhatsApp recipient lists)</span>
+          <span className="text-sm font-semibold">Subgroups: organise members into groups (used as Mass email recipient lists)</span>
         </div>
         {canManage && !loading && selectedYearId && (
-          <Button onClick={openAddDialog} className="bg-[#1e3a5f] hover:bg-[#152a44] text-white">
+          <Button onClick={openAddDialog} className="bg-azure hover:bg-mint-ink text-white">
             <Plus className="mr-2 h-4 w-4" />Add Sub Group
           </Button>
         )}
@@ -326,7 +326,7 @@ export default function SubGroupsSection({ clubId }: { clubId: number }) {
           <div className="hidden sm:block rounded-md border">
             <Table>
               <TableHeader>
-                <TableRow className="hover:opacity-100" style={{ backgroundColor: "#1e3a5f" }}>
+                <TableRow className="hover:opacity-100" style={{ backgroundColor: "#17458f" }}>
                   <TableHead className="text-white text-base font-semibold">Group Name</TableHead>
                   <TableHead className="text-white text-base font-semibold text-center">Members</TableHead>
                   <TableHead className="w-12 text-white"></TableHead>
@@ -377,7 +377,7 @@ export default function SubGroupsSection({ clubId }: { clubId: number }) {
               {editingGroup ? (
                 <div className="px-3 py-2 border rounded-md bg-muted text-sm">
                   {allRotaryYears.find((y) => y.id === editingGroup.yearId)?.yearLabel ||
-                    allYears.find((y) => String(y.id) === selectedYearId)?.yearLabel || "—"}
+                    allYears.find((y) => String(y.id) === selectedYearId)?.yearLabel || "–"}
                 </div>
               ) : (
                 <Select value={dialogYearId} onValueChange={setDialogYearId}>
@@ -432,7 +432,7 @@ export default function SubGroupsSection({ clubId }: { clubId: number }) {
                               </div>
                               <div className="flex-1 min-w-0">
                                 <p className="text-sm font-medium truncate">{member.memberName}</p>
-                                <p className="text-xs text-muted-foreground truncate">{[member.mobileNumber, member.email].filter(Boolean).join(" | ") || "—"}</p>
+                                <p className="text-xs text-muted-foreground truncate">{[member.mobileNumber, member.email].filter(Boolean).join(" | ") || "–"}</p>
                               </div>
                             </div>
                           );
@@ -472,7 +472,7 @@ export default function SubGroupsSection({ clubId }: { clubId: number }) {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setDialogOpen(false)} disabled={saving}>Cancel</Button>
-            <Button onClick={handleSave} disabled={saving || !groupName.trim()} className="bg-[#1e3a5f] hover:bg-[#152a44] text-white">
+            <Button onClick={handleSave} disabled={saving || !groupName.trim()} className="bg-azure hover:bg-mint-ink text-white">
               {saving ? "Saving..." : editingGroup ? "Update" : "Create"}
             </Button>
           </DialogFooter>
@@ -503,7 +503,7 @@ export default function SubGroupsSection({ clubId }: { clubId: number }) {
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-semibold text-primary truncate">{member.memberName}</p>
-                      <p className="text-xs text-muted-foreground truncate">{[member.mobileNumber, member.email].filter(Boolean).join(" | ") || "—"}</p>
+                      <p className="text-xs text-muted-foreground truncate">{[member.mobileNumber, member.email].filter(Boolean).join(" | ") || "–"}</p>
                     </div>
                   </div>
                 );

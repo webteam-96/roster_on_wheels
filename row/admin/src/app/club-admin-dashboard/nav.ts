@@ -13,7 +13,7 @@ export const CLUB_ADMIN_NAV: NavItem[] = [
   // instead of only /overview/. Clicking the link still lands on /overview
   // via the redirect page at app/club-admin-dashboard/dashboard/page.tsx.
   { to: "/club-admin-dashboard/dashboard",                           label: "Dashboard" },
-  { to: "/club-admin-dashboard/foundation",                          label: "Foundation",                       moduleKey: "trf_contribution" },
+  { to: "/club-admin-dashboard/foundation",                          label: "Projects / Events",                       moduleKey: "trf_contribution" },
   { to: "/club-admin-dashboard/membership",                          label: "Membership",                       moduleKey: "directory" },
   { to: "/club-admin-dashboard/service-projects-and-public-image",   label: "Service Projects & Public Image",  moduleKey: "community_service" },
   { to: "/club-admin-dashboard/e-governance",                        label: "E-Governance",                     moduleKey: "reports" },
@@ -47,7 +47,7 @@ export const CLUB_ADMIN_PAGE_TITLES: Record<string, string> = {
   "/club-admin-dashboard/dashboard/past-presidents":                   "Club Dashboard - Past Presidents",
   "/club-admin-dashboard/dashboard/marketplace":                       "Club Dashboard - Marketplace",
   "/club-admin-dashboard/dashboard/rotary-network":                    "Club Dashboard - Rotary Network",
-  "/club-admin-dashboard/foundation":                                  "Foundation - The Rotary Foundation",
+  "/club-admin-dashboard/foundation":                                  "Projects / Events",
   "/club-admin-dashboard/membership":                                  "Membership",
   "/club-admin-dashboard/service-projects-and-public-image":           "Service Projects & Public Image",
   "/club-admin-dashboard/e-governance":                                "E-Governance & Reporting",

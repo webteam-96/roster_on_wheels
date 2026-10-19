@@ -14,7 +14,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
-import { ArrowLeft, CheckCircle2, XCircle, Send, Mail, MessageCircle, Building2, AlertTriangle, RefreshCw, FileText, FileSpreadsheet, Loader2 } from "lucide-react";
+import { ArrowLeft, CheckCircle2, XCircle, Send, Mail, Building2, AlertTriangle, RefreshCw, FileText, FileSpreadsheet, Loader2 } from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
 import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";
@@ -29,18 +29,12 @@ function formatDate(d: string | null) {
   try { return new Date(d).toLocaleDateString(appLocale(), { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" }); } catch { return d; }
 }
 
-function ReminderStatusBadge({ emailStatus, whatsappStatus, lastDate }: { emailStatus?: string; whatsappStatus?: string; lastDate?: string }) {
-  if (!emailStatus && !whatsappStatus) return <span className="text-xs text-muted-foreground">Not Sent</span>;
+function ReminderStatusBadge({ emailStatus, lastDate }: { emailStatus?: string; lastDate?: string }) {
   return (
     <div className="flex flex-col gap-0.5">
       {emailStatus && emailStatus !== "not_sent" && (
         <Badge variant={emailStatus === "sent" ? "default" : "destructive"} className="text-xs w-fit">
           <Mail className="h-3 w-3 mr-1" />{emailStatus === "sent" ? "Email Sent" : "Email Failed"}
-        </Badge>
-      )}
-      {whatsappStatus && whatsappStatus !== "not_sent" && (
-        <Badge variant={whatsappStatus === "sent" ? "default" : "destructive"} className="text-xs w-fit bg-green-600">
-          <MessageCircle className="h-3 w-3 mr-1" />{whatsappStatus === "sent" ? "WA Sent" : "WA Failed"}
         </Badge>
       )}
       {lastDate && <span className="text-xs text-muted-foreground">{formatDate(lastDate)}</span>}
@@ -74,7 +68,6 @@ export default function MonthDetailPage() {
   const [submitted, setSubmitted] = useState<any[]>([]);
   const [notSubmitted, setNotSubmitted] = useState<any[]>([]);
   const [emailBalance, setEmailBalance] = useState(0);
-  const [whatsAppBalance, setWhatsAppBalance] = useState(0);
   const [loading, setLoading] = useState(true);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -82,7 +75,6 @@ export default function MonthDetailPage() {
   // Reminder dialog
   const [reminderOpen, setReminderOpen] = useState(false);
   const [sendEmail, setSendEmail] = useState(false);
-  const [sendWhatsApp, setSendWhatsApp] = useState(false);
   const [sending, setSending] = useState(false);
 
   // View toggle (Submitted / Not Submitted) + AG filter.
@@ -148,11 +140,8 @@ export default function MonthDetailPage() {
     try {
       const balance = await getDistrictCreditBalance(districtId);
       const eb = balance.emailRemaining || 0;
-      const wb = balance.whatsAppRemaining || 0;
       setEmailBalance(eb);
-      setWhatsAppBalance(wb);
       setSendEmail(eb > 0);
-      setSendWhatsApp(wb > 0);
     } catch {}
   };
 
@@ -184,15 +173,15 @@ export default function MonthDetailPage() {
   useEffect(() => { fetchData(); fetchCredits(); }, [districtId, yearId, month]);
 
   const handleSendReminder = async () => {
-    if (!sendEmail && !sendWhatsApp) {
-      setErrorMessage("Select at least Email or WhatsApp.");
+    if (!sendEmail) {
+      setErrorMessage("Select Email to send reminders.");
       return;
     }
     setSending(true);
     try {
       // AG selected → send only to that AG's not-submitted clubs; "All" → every not-submitted club.
       const result = await sendReportReminder(districtId, yearId, month, {
-        sendEmail, sendWhatsApp,
+        sendEmail,
         agMemberId: agId === "all" ? null : Number(agId),
       });
       setReminderOpen(false);
@@ -205,20 +194,13 @@ export default function MonthDetailPage() {
   };
 
   const noEmailCredits = emailBalance <= 0;
-  const noWhatsAppCredits = whatsAppBalance <= 0;
 
-  // Count how many emails & WhatsApp will be sent — for the AG-filtered set that
+  // Count how many emails will be sent — for the AG-filtered set that
   // the send will actually target (all not-submitted when AG = All).
   const emailCount = filteredNotSubmitted.reduce((count: number, c: any) => {
     let n = 0;
     if (c.presidentEmail) n++;
     if (c.secretaryEmail) n++;
-    return count + n;
-  }, 0);
-  const whatsAppCount = filteredNotSubmitted.reduce((count: number, c: any) => {
-    let n = 0;
-    if (c.presidentMobile) n++;
-    if (c.secretaryMobile) n++;
     return count + n;
   }, 0);
 
@@ -368,7 +350,7 @@ export default function MonthDetailPage() {
                               ) : <span className="text-xs text-muted-foreground">-</span>}
                             </TableCell>
                             <TableCell>
-                              <ReminderStatusBadge emailStatus={c.lastEmailStatus} whatsappStatus={c.lastWhatsappStatus} lastDate={c.lastReminderDate} />
+                              <ReminderStatusBadge emailStatus={c.lastEmailStatus} lastDate={c.lastReminderDate} />
                             </TableCell>
                           </TableRow>
                         ))}
@@ -468,18 +450,6 @@ export default function MonthDetailPage() {
                 </p>
               )}
 
-              <div className="flex items-center space-x-3">
-                <Checkbox id="sendWhatsApp" checked={sendWhatsApp} onCheckedChange={(v) => setSendWhatsApp(!!v)} disabled={noWhatsAppCredits} />
-                <Label htmlFor="sendWhatsApp" className={`flex items-center gap-2 cursor-pointer ${noWhatsAppCredits ? "opacity-50" : ""}`}>
-                  <MessageCircle className="h-4 w-4 text-green-600" />Send WhatsApp Reminder <span className="text-muted-foreground font-normal">({whatsAppCount} messages)</span>
-                </Label>
-              </div>
-              {noWhatsAppCredits && (
-                <p className="text-xs text-red-500 flex items-center gap-1 ml-7">
-                  <AlertTriangle className="h-3 w-3" />Your WhatsApp balance is low. No WhatsApp credits available.
-                </p>
-              )}
-
               <div className="rounded-lg border p-3 space-y-2">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2 text-sm">
@@ -487,18 +457,13 @@ export default function MonthDetailPage() {
                     <span>Email Balance:</span>
                     <strong className={emailBalance > 0 ? "text-blue-700" : "text-red-600"}>{emailBalance}</strong>
                   </div>
-                  <div className="flex items-center gap-2 text-sm">
-                    <MessageCircle className="h-4 w-4 text-green-600" />
-                    <span>WhatsApp Balance:</span>
-                    <strong className={whatsAppBalance > 0 ? "text-green-700" : "text-red-600"}>{whatsAppBalance}</strong>
-                  </div>
                 </div>
                 <p className="text-xs text-muted-foreground">Reminders will be sent in background. Click Refresh to check status.</p>
               </div>
             </div>
             <DialogFooter>
               <Button variant="outline" onClick={() => setReminderOpen(false)} disabled={sending}>Cancel</Button>
-              <Button onClick={handleSendReminder} disabled={sending || (!sendEmail && !sendWhatsApp)} className="bg-amber-600 hover:bg-amber-700">
+              <Button onClick={handleSendReminder} disabled={sending || !sendEmail} className="bg-amber-600 hover:bg-amber-700">
                 {sending ? "Sending..." : "Send Reminder"}
               </Button>
             </DialogFooter>

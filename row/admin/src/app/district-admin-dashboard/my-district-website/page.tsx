@@ -27,7 +27,7 @@ import { getDistrictWebsiteStatus } from "@/services/api";
 import {
   AlertCircle, ImageIcon, Megaphone, Share2, Phone, List, Info,
   Globe, ExternalLink,
-} from "lucide-react";
+} from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
 
 type ModuleKey = "banners" | "advertisements" | "social-media-links" | "contact-details" | "menu-list" | "about";
@@ -115,7 +115,7 @@ export default function MyDistrictWebsitePage() {
           Back button removed on user's request 2026-07-04.               */}
       <div className="flex items-start justify-between flex-wrap gap-4">
         <div className="flex items-start gap-3 min-w-0">
-          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#1e3a5f]/10 text-[#1e3a5f]">
+          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-azure/10 text-ink">
             <Globe size={20} />
           </div>
           <div className="min-w-0">
@@ -126,7 +126,7 @@ export default function MyDistrictWebsitePage() {
                   href={`https://${publicUrl}`}
                   target="_blank"
                   rel="noreferrer"
-                  className="text-xs font-medium text-[#1e3a5f] hover:underline inline-flex items-center gap-1"
+                  className="text-xs font-medium text-ink hover:underline inline-flex items-center gap-1"
                 >
                   {publicUrl}
                   <ExternalLink size={12} />
@@ -194,12 +194,12 @@ export default function MyDistrictWebsitePage() {
           inline <iframe>. */}
       {!loading && !error && publicUrl && (
         <div className="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
-          <div className="flex items-center gap-2 px-4 py-2.5 border-b border-slate-100 bg-gradient-to-r from-slate-50 to-white">
-            <Globe size={16} className="text-[#1e3a5f]" />
+          <div className="flex items-center gap-2 px-4 py-2.5 border-b border-slate-100 bg-slate-50">
+            <Globe size={16} className="text-ink" />
             <h3 className="text-sm font-semibold text-slate-800">District Website</h3>
           </div>
           <div className="flex flex-col items-center justify-center gap-4 px-6 py-12 text-center">
-            <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-[#1e3a5f]/10 text-[#1e3a5f]">
+            <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-azure/10 text-ink">
               <Globe size={30} />
             </div>
             <div>
@@ -208,7 +208,7 @@ export default function MyDistrictWebsitePage() {
                 href={`https://${publicUrl}`}
                 target="_blank"
                 rel="noreferrer"
-                className="text-xs font-medium text-[#1e3a5f] hover:underline"
+                className="text-xs font-medium text-ink hover:underline"
               >
                 {publicUrl}
               </a>
@@ -217,7 +217,7 @@ export default function MyDistrictWebsitePage() {
               href={`https://${publicUrl}`}
               target="_blank"
               rel="noreferrer"
-              className="inline-flex items-center gap-2 rounded-lg bg-[#1e3a5f] px-5 py-2.5 text-sm font-semibold text-white hover:bg-[#152a44]"
+              className="inline-flex items-center gap-2 rounded-lg bg-azure px-5 py-2.5 text-sm font-semibold text-white hover:bg-mint-ink"
             >
               Open District Website <ExternalLink size={15} />
             </a>

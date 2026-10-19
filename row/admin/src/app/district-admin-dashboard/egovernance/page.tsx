@@ -52,7 +52,7 @@ import {
   Download,
   FileText,
   ChevronLeft,
-} from "lucide-react";
+} from "@/components/icons";
 import { useMemo, useState, useEffect } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useDistrictAdminCache } from "@/contexts/DistrictAdminDashboardCacheContext";
@@ -64,7 +64,7 @@ import { DistrictZonalAwardsView } from "@/app/districts/[id]/zonal-awards/view"
 import { DistrictRotaryNetworkView } from "@/app/district-admin-dashboard/rotary-network/view";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { getDistrictCmrEmailSettings, saveDistrictCmrEmailSettings } from "@/services/api";
-import { Mail, Settings } from "lucide-react";
+import { Mail, Settings } from "@/components/icons";
 import {
   Dialog,
   DialogContent,
@@ -284,14 +284,14 @@ export default function DistrictAdminEGovernancePage() {
           <div className="px-5 pt-3">
             <TabsList
               className="h-auto w-full justify-start sm:w-auto p-1.5 gap-1"
-              style={{ backgroundColor: "#1e3a5f" }}
+              style={{ backgroundColor: "#17458f" }}
             >
-              <TabsTrigger value="cmr" className="text-sm font-semibold px-3.5 py-1.5 rounded-md text-white hover:bg-white/10 data-[state=active]:bg-[#F7A81B] data-[state=active]:text-[#1e3a5f] data-[state=active]:shadow-sm">Club Monthly Report</TabsTrigger>
-              <TabsTrigger value="pps" className="text-sm font-semibold px-3.5 py-1.5 rounded-md text-white hover:bg-white/10 data-[state=active]:bg-[#F7A81B] data-[state=active]:text-[#1e3a5f] data-[state=active]:shadow-sm">PPH Camp</TabsTrigger>
-              <TabsTrigger value="zonal" className="text-sm font-semibold px-3.5 py-1.5 rounded-md text-white hover:bg-white/10 data-[state=active]:bg-[#F7A81B] data-[state=active]:text-[#1e3a5f] data-[state=active]:shadow-sm">Zonal Awards</TabsTrigger>
-              <TabsTrigger value="citation" className="text-sm font-semibold px-3.5 py-1.5 rounded-md text-white hover:bg-white/10 data-[state=active]:bg-[#F7A81B] data-[state=active]:text-[#1e3a5f] data-[state=active]:shadow-sm">District Awards</TabsTrigger>
-              <TabsTrigger value="network" className="text-sm font-semibold px-3.5 py-1.5 rounded-md text-white hover:bg-white/10 data-[state=active]:bg-[#F7A81B] data-[state=active]:text-[#1e3a5f] data-[state=active]:shadow-sm">Rotary Network</TabsTrigger>
-              <TabsTrigger value="reports" className="text-sm font-semibold px-3.5 py-1.5 rounded-md text-white hover:bg-white/10 data-[state=active]:bg-[#F7A81B] data-[state=active]:text-[#1e3a5f] data-[state=active]:shadow-sm">Reports</TabsTrigger>
+              <TabsTrigger value="cmr" className="text-sm font-semibold px-3.5 py-1.5 rounded-md text-white hover:bg-white/10 data-[state=active]:bg-marigold data-[state=active]:text-ink data-[state=active]:shadow-sm">Club Monthly Report</TabsTrigger>
+              <TabsTrigger value="pps" className="text-sm font-semibold px-3.5 py-1.5 rounded-md text-white hover:bg-white/10 data-[state=active]:bg-marigold data-[state=active]:text-ink data-[state=active]:shadow-sm">PPH Camp</TabsTrigger>
+              <TabsTrigger value="zonal" className="text-sm font-semibold px-3.5 py-1.5 rounded-md text-white hover:bg-white/10 data-[state=active]:bg-marigold data-[state=active]:text-ink data-[state=active]:shadow-sm">Zonal Awards</TabsTrigger>
+              <TabsTrigger value="citation" className="text-sm font-semibold px-3.5 py-1.5 rounded-md text-white hover:bg-white/10 data-[state=active]:bg-marigold data-[state=active]:text-ink data-[state=active]:shadow-sm">District Awards</TabsTrigger>
+              <TabsTrigger value="network" className="text-sm font-semibold px-3.5 py-1.5 rounded-md text-white hover:bg-white/10 data-[state=active]:bg-marigold data-[state=active]:text-ink data-[state=active]:shadow-sm">Rotary Network</TabsTrigger>
+              <TabsTrigger value="reports" className="text-sm font-semibold px-3.5 py-1.5 rounded-md text-white hover:bg-white/10 data-[state=active]:bg-marigold data-[state=active]:text-ink data-[state=active]:shadow-sm">Reports</TabsTrigger>
             </TabsList>
           </div>
 
@@ -481,7 +481,7 @@ function CmrEmailSettingsButton({ districtId }: { districtId: number }) {
       <DialogTrigger asChild>
         <button
           type="button"
-          title="Club Monthly Report — Submission Email settings"
+          title="Club Monthly Report: Submission Email settings"
           aria-label="Submission email settings"
           className="inline-flex items-center justify-center h-7 w-7 rounded-md text-slate-500 hover:bg-slate-100 hover:text-slate-700"
         >
@@ -492,7 +492,7 @@ function CmrEmailSettingsButton({ districtId }: { districtId: number }) {
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-base">
             <Mail className="h-4 w-4 text-slate-500" />
-            Club Monthly Report — Submission Email
+            Club Monthly Report: Submission Email
           </DialogTitle>
           <DialogDescription className="text-[12px]">
             Applies to every club in this district for the selected year, when a club uploads its CMR to the district.
@@ -611,7 +611,7 @@ function MonthlySummary({
           <div className="flex items-center gap-1.5">
             <CmrEmailSettingsButton districtId={districtId} />
             <h4 className="text-sm font-semibold text-slate-800">
-              District Summary — By Month
+              District Summary: By Month
             </h4>
           </div>
           <p className="text-[11px] text-slate-500 mt-0.5">
@@ -973,7 +973,7 @@ function PpsCampTab({ rows, districtId }: { rows: ApiPpsCampRow[] | undefined; d
                   {fmtInt(r.campsHeld)}
                 </td>
                 <td className="px-4 py-2 text-right tabular-nums text-slate-700">
-                  {r.beneficiaries == null ? "—" : fmtInt(r.beneficiaries)}
+                  {r.beneficiaries == null ? "–" : fmtInt(r.beneficiaries)}
                 </td>
               </tr>
             ))}

@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { ArrowLeft, Hammer } from "lucide-react";
+import { ArrowLeft, Hammer } from "@/components/icons";
 import ProtectedRoute from "@/components/ProtectedRoute";
 
 export default function RiModuleStub({ title, phase }: { title: string; phase: string }) {

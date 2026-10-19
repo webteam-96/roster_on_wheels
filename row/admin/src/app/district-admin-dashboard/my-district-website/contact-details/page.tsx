@@ -10,11 +10,11 @@
  * so the top-bar year filter stays in sync across sub-pages.
  *
  * Design palette matches sibling DA dashboard pages:
- *   navy #1e3a5f (headings + primary buttons)
+ *   navy #17458f (headings + primary buttons)
  *   gold #F7A81B (underline accents)
  *   slate 800/600/500 for text
  *   rounded-2xl border border-slate-200 shadow-sm bg-white for cards
- *   inputs border-slate-200 bg-white focus:border-[#1e3a5f]
+ *   inputs border-slate-200 bg-white focus:border-azure
  *
  * Every V1 behaviour is preserved: fetch available years + rotary years,
  * year picker, single-contact per-year card, add/edit dialog, activate /
@@ -38,7 +38,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
 import AlertModal from "@/components/AlertModal";
-import { ArrowLeft, Plus, Pencil, Trash2, AlertTriangle, Eye, EyeOff, Phone, Mail } from "lucide-react";
+import { ArrowLeft, Plus, Pencil, Trash2, AlertTriangle, Eye, EyeOff, Phone, Mail } from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
 import ProtectedRoute from "@/components/ProtectedRoute";
 
@@ -220,7 +220,7 @@ export default function DistrictAdminContactDetailsPage() {
               <ArrowLeft className="h-4 w-4" />
             </button>
             <div>
-              <h2 className="text-2xl font-bold tracking-tight text-[#1e3a5f]">
+              <h2 className="text-2xl font-bold tracking-tight text-ink">
                 {districtName ? `${districtName} · Contact Details` : "Contact Details"}
               </h2>
               <p className="text-slate-500 text-sm mt-0.5">
@@ -231,7 +231,7 @@ export default function DistrictAdminContactDetailsPage() {
           {canManage && !contact && !loading && !loadingContact && selectedYearId && (
             <Button
               onClick={openAddDialog}
-              className="bg-[#1e3a5f] hover:bg-[#152a44] text-white"
+              className="bg-azure hover:bg-mint-ink text-white"
             >
               <Plus className="mr-2 h-4 w-4" />Add Contact
             </Button>
@@ -267,7 +267,7 @@ export default function DistrictAdminContactDetailsPage() {
         {!loading && !loadingContact && contact && (
           <div className="max-w-lg rounded-2xl border border-slate-200 shadow-sm bg-white overflow-hidden">
             {/* Gold accent strip */}
-            <div className="h-1 bg-[#F7A81B]" />
+            <div className="h-1 bg-marigold" />
             <div className="p-6 space-y-5">
               <div className="flex items-center justify-between">
                 <Badge
@@ -313,8 +313,8 @@ export default function DistrictAdminContactDetailsPage() {
               </div>
               <div className="space-y-4">
                 <div className="flex items-center gap-3">
-                  <div className="h-10 w-10 rounded-full bg-[#1e3a5f]/10 flex items-center justify-center flex-shrink-0">
-                    <Mail className="h-4 w-4 text-[#1e3a5f]" />
+                  <div className="h-10 w-10 rounded-full bg-azure/10 flex items-center justify-center flex-shrink-0">
+                    <Mail className="h-4 w-4 text-ink" />
                   </div>
                   <div className="min-w-0">
                     <p className="text-xs uppercase tracking-wide text-slate-500 font-semibold">Email</p>
@@ -322,8 +322,8 @@ export default function DistrictAdminContactDetailsPage() {
                   </div>
                 </div>
                 <div className="flex items-center gap-3">
-                  <div className="h-10 w-10 rounded-full bg-[#1e3a5f]/10 flex items-center justify-center flex-shrink-0">
-                    <Phone className="h-4 w-4 text-[#1e3a5f]" />
+                  <div className="h-10 w-10 rounded-full bg-azure/10 flex items-center justify-center flex-shrink-0">
+                    <Phone className="h-4 w-4 text-ink" />
                   </div>
                   <div className="min-w-0">
                     <p className="text-xs uppercase tracking-wide text-slate-500 font-semibold">Phone</p>
@@ -339,7 +339,7 @@ export default function DistrictAdminContactDetailsPage() {
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogContent className="max-w-md">
             <DialogHeader>
-              <DialogTitle className="text-[#1e3a5f]">
+              <DialogTitle className="text-ink">
                 {editing ? "Edit Contact Detail" : "Add Contact Detail"}
               </DialogTitle>
               <DialogDescription>
@@ -354,7 +354,7 @@ export default function DistrictAdminContactDetailsPage() {
                   placeholder="email@example.com"
                   value={formEmail}
                   onChange={e => setFormEmail(e.target.value)}
-                  className="border-slate-200 bg-white focus:border-[#1e3a5f] focus:ring-[#1e3a5f]/20"
+                  className="border-slate-200 bg-white focus:border-azure focus:ring-azure/20"
                 />
               </div>
               <div className="space-y-2">
@@ -363,13 +363,13 @@ export default function DistrictAdminContactDetailsPage() {
                   placeholder="+1 555 123 4567"
                   value={formPhone}
                   onChange={e => setFormPhone(e.target.value)}
-                  className="border-slate-200 bg-white focus:border-[#1e3a5f] focus:ring-[#1e3a5f]/20"
+                  className="border-slate-200 bg-white focus:border-azure focus:ring-azure/20"
                 />
               </div>
               <div className="space-y-2">
                 <Label>Status</Label>
                 <Select value={formIsActive} onValueChange={setFormIsActive}>
-                  <SelectTrigger className="border-slate-200 bg-white focus:border-[#1e3a5f] focus:ring-[#1e3a5f]/20">
+                  <SelectTrigger className="border-slate-200 bg-white focus:border-azure focus:ring-azure/20">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -391,7 +391,7 @@ export default function DistrictAdminContactDetailsPage() {
               <Button
                 onClick={handleSave}
                 disabled={saving || !formEmail.trim() || !formPhone.trim()}
-                className="bg-[#1e3a5f] hover:bg-[#152a44] text-white"
+                className="bg-azure hover:bg-mint-ink text-white"
               >
                 {saving ? "Saving..." : editing ? "Update" : "Add"}
               </Button>

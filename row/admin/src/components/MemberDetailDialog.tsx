@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { getMember, getPhotoUrl } from "@/services/api";
 import { Member } from "@/types/member";
-import { User, Mail, Phone, MapPin, Calendar, Heart, Globe, Briefcase, Users, IdCard, Award, Building2 } from "lucide-react";
+import { User, Mail, Phone, MapPin, Calendar, Heart, Globe, Briefcase, Users, IdCard, Award, Building2 } from "@/components/icons";
 import Image from "next/image";
 import RotaryLoader from "@/components/RotaryLoader";
 import { formatBirthAnniversary } from "@/lib/dateUtils";
@@ -38,8 +38,8 @@ export default function MemberDetailDialog({ memberId, open, onClose }: MemberDe
   const familyPhotoUrl = member?.familyPhotoPath ? getPhotoUrl(member.familyPhotoPath) : null;
 
   const formatDate = (d: string | null) => {
-    if (!d) return "—";
-    try { return new Date(d).toLocaleDateString(appLocale(), { day: "2-digit", month: "short", year: "numeric" }); } catch { return "—"; }
+    if (!d) return "–";
+    try { return new Date(d).toLocaleDateString(appLocale(), { day: "2-digit", month: "short", year: "numeric" }); } catch { return "–"; }
   };
 
   return (
@@ -167,7 +167,7 @@ function Section({ icon, title, children }: { icon: React.ReactNode; title: stri
 }
 
 function Field({ label, value }: { label: string; value: string | null | undefined }) {
-  if (!value || value === "—") return null;
+  if (!value || value === "–") return null;
   return (
     <div className="text-sm">
       <span className="text-muted-foreground">{label}: </span>

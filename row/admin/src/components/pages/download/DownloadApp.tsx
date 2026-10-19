@@ -7,7 +7,7 @@ import {
   ShieldCheck,
   Smartphone,
   Users,
-} from "lucide-react";
+} from "@/components/icons";
 import Image from "next/image";
 import { AppleIcon } from "@/components/icons/SocialIcons";
 import { PageBanner } from "@/components/site/PageBanner";
@@ -22,7 +22,7 @@ const FEATURES = [
   {
     Icon: Users,
     title: "Club & District Directory",
-    desc: "Every club and district across the zones — officers, contacts and meeting details in one place.",
+    desc: "Every club and district across the zones: officers, contacts and meeting details in one place.",
   },
   {
     Icon: Search,
@@ -32,7 +32,7 @@ const FEATURES = [
   {
     Icon: Bell,
     title: "Events & Announcements",
-    desc: "Zone institutes, district conferences and club programmes — with announcements delivered as they happen.",
+    desc: "Zone institutes, district conferences and club programmes: with announcements delivered as they happen.",
   },
   {
     Icon: MapPin,
@@ -42,12 +42,12 @@ const FEATURES = [
   {
     Icon: ShieldCheck,
     title: "Secure Member Login",
-    desc: "Sign in with your mobile number, validated by your own club — members only, no passwords to remember.",
+    desc: "Sign in with your mobile number, validated by your own club: members only, no passwords to remember.",
   },
   {
     Icon: Smartphone,
     title: "Light & Fast",
-    desc: "Built for everyday use on Android and iOS — quick to install, easy on data, simple to navigate.",
+    desc: "Built for everyday use on Android and iOS: quick to install, easy on data, simple to navigate.",
   },
 ];
 
@@ -56,17 +56,17 @@ const STEPS = [
   {
     n: "01",
     title: "Install the app",
-    desc: "Free on Google Play and the App Store — a light download on any phone.",
+    desc: "Free on Google Play and the App Store: a light download on any phone.",
   },
   {
     n: "02",
     title: "Verify your number",
-    desc: "Sign in with the mobile number your club has on record — no passwords.",
+    desc: "Sign in with the mobile number your club has on record. No passwords.",
   },
   {
     n: "03",
     title: "Explore the zones",
-    desc: "The full directory, events and announcements — with you everywhere.",
+    desc: "The full directory, events and announcements: with you everywhere.",
   },
 ];
 
@@ -76,7 +76,7 @@ export function DownloadApp() {
       {/* Standard split-serif banner — the shared page-header voice */}
       <PageBanner
         eyebrow="Member Centre"
-        subtitle="Carry ROW in your pocket — the directory, events and every club connection, wherever service takes you."
+        subtitle="Carry ROW in your pocket: the directory, events and every club connection, wherever service takes you."
       >
         Download the <span className="text-gold">app</span>
       </PageBanner>
@@ -91,7 +91,7 @@ export function DownloadApp() {
             {/* Headline tile — 7 cols on sky */}
             <div
               data-animate="up"
-              className="flex flex-col justify-center rounded-[24px] bg-[#E3EEFA] p-7 sm:col-span-2 sm:p-10 lg:col-span-7 lg:p-14"
+              className="flex flex-col justify-center rounded-[24px] bg-blue-100 p-7 sm:col-span-2 sm:p-10 lg:col-span-7 lg:p-14"
             >
               <p className="eyebrow">Member Centre</p>
               {/* h2 — the PageBanner above owns the page's one h1 */}
@@ -99,7 +99,7 @@ export function DownloadApp() {
                 Download the <span className="text-azure">app</span>
               </h2>
               <p className="mt-6 max-w-xl text-[15px] leading-relaxed text-ink/75 sm:text-base">
-                Carry ROW in your pocket — the directory,
+                Carry ROW in your pocket: the directory,
                 events and every club connection, wherever service takes you.
               </p>
               <div className="mt-8 flex flex-wrap items-center gap-4">
@@ -143,7 +143,7 @@ export function DownloadApp() {
             {/* Phone tile — 5 cols; the cut-out mockup floats on a light sky panel */}
             <div
               data-animate="up"
-              className="relative flex items-center justify-center overflow-hidden rounded-[24px] bg-[#E3EEFA] p-6 sm:col-span-2 lg:col-span-5 lg:p-8"
+              className="relative flex items-center justify-center overflow-hidden rounded-[24px] bg-blue-100 p-6 sm:col-span-2 lg:col-span-5 lg:p-8"
             >
               <div
                 aria-hidden
@@ -233,7 +233,7 @@ export function DownloadApp() {
               data-animate-delay="0.1"
               className="mt-4 text-[15px] leading-relaxed text-ink/70 sm:text-base"
             >
-              Everything a member reaches for between meetings — searchable, secure and
+              Everything a member reaches for between meetings: searchable, secure and
               a tap away.
             </p>
           </div>

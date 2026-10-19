@@ -14,7 +14,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { useParams, useSearchParams } from "next/navigation";
-import { X, Download } from "lucide-react";
+import { X, Download } from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
 
 import { appLocale } from "@/lib/appFormat";
@@ -174,19 +174,18 @@ export default function PublicProjectPage() {
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col">
-      <header className="w-full" style={{ backgroundColor: "#0f172a" }}>
+      <header className="w-full border-b border-[color:var(--row-line)] bg-white">
         <div className="max-w-5xl mx-auto px-4 py-3 flex items-center gap-3">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src="/brand/row-logo-badge.png"
+            src="/brand/row-logo.png"
             alt="Roster On Wheels"
             className="h-14 object-contain"
           />
-          <div className="text-white">
-            <p className="text-2xl sm:text-3xl font-semibold">{isClubService ? "Club Service" : "Project Gallery"}</p>
+          <div className="text-foreground">
+            <p className="font-display text-2xl sm:text-3xl font-semibold tracking-tight">{isClubService ? "Club Service" : "Project Gallery"}</p>
           </div>
         </div>
-        <div style={{ height: 4, backgroundColor: "#F7A81B" }} />
       </header>
 
       <main className="flex-1 w-full max-w-5xl mx-auto px-4 py-6">

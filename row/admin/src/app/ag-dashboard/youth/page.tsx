@@ -10,7 +10,7 @@ import {
  
   ChevronUp,
   ChevronDown,
-} from "lucide-react";
+} from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
 import {
   BarChart,
@@ -43,7 +43,7 @@ import {
 
 const NEW_GEN_COLOR = ROTARY_GOLD;
 const VOCATIONAL_COLOR = ROTARY_BLUE;
-const INTERNATIONAL_COLOR = "#9333ea";
+const INTERNATIONAL_COLOR = "#2A3F5C";
 
 type SortKey =
   | "clubName"
@@ -142,7 +142,7 @@ function ClubDetailCard({
     <Card className="overflow-hidden border-slate-200 shadow-sm">
       <CardHeader
         className="text-white py-3 px-4"
-        style={{ background: `linear-gradient(135deg, ${ROTARY_BLUE} 0%, #0052cc 100%)` }}
+        style={{ background: ROTARY_BLUE }}
       >
         <CardTitle className="text-sm font-semibold flex items-center justify-between gap-2">
           <span className="truncate">{club.clubName}</span>
@@ -292,7 +292,7 @@ export default function AgYouthPage() {
 
   const clubCount = data.clubs.length;
   const totalMembers = data.clubs.reduce((s, c) => s + c.members, 0);
-  const yearLabel = data.ag.yearLabel || "—";
+  const yearLabel = data.ag.yearLabel || "–";
 
   // Top 4 clubs by total projects for the detail cards row.
   const topDetailClubs = [...data.clubs]
@@ -303,7 +303,7 @@ export default function AgYouthPage() {
     <div className="space-y-8">
       <SectionHeader
         title="Youth & New Generation Services"
-        subtitle={`New generation service activities across all ${clubCount} clubs — Rotary Year ${yearLabel}`}
+        subtitle={`New generation service activities across all ${clubCount} clubs: Rotary Year ${yearLabel}`}
         icon={Star}
       />
 
@@ -379,7 +379,7 @@ export default function AgYouthPage() {
               data={chartData}
               margin={{ top: 8, right: 24, left: 0, bottom: 50 }}
             >
-              <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+              <CartesianGrid strokeDasharray="3 3" stroke="#edf4fb" />
               <XAxis
                 dataKey="name"
                 tick={{ fontSize: 11, fill: "#64748b" }}
@@ -516,7 +516,7 @@ export default function AgYouthPage() {
                           : "font-semibold text-slate-800"
                       }`}
                     >
-                      {row.newGenerationService || "—"}
+                      {row.newGenerationService || "–"}
                     </td>
                     <td
                       className={`px-4 py-2.5 text-center tabular-nums ${
@@ -525,7 +525,7 @@ export default function AgYouthPage() {
                           : "font-semibold text-slate-800"
                       }`}
                     >
-                      {row.vocationalService || "—"}
+                      {row.vocationalService || "–"}
                     </td>
                     <td
                       className={`px-4 py-2.5 text-center tabular-nums ${
@@ -534,14 +534,14 @@ export default function AgYouthPage() {
                           : "font-semibold text-slate-800"
                       }`}
                     >
-                      {row.internationalService || "—"}
+                      {row.internationalService || "–"}
                     </td>
                     <td
                       className={`px-4 py-2.5 text-center font-bold tabular-nums ${
                         isZero ? "text-slate-300" : "text-amber-700"
                       }`}
                     >
-                      {row.totalProjects || "—"}
+                      {row.totalProjects || "–"}
                     </td>
                     <td className="px-4 py-2.5 text-center text-slate-600 tabular-nums">
                       {row.members}

@@ -14,7 +14,7 @@
 
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
-import { Share2, Link2, ToggleRight } from "lucide-react";
+import { Share2, Link2, ToggleRight } from "@/components/icons";
 import {
   getClub,
   getClubSocialLinks,
@@ -49,7 +49,7 @@ function SectionCard({
 }: { number: number; icon: React.ElementType; title: string; dot: string; children: React.ReactNode }) {
   return (
     <div className="rounded-xl border border-slate-200 mb-4 overflow-hidden">
-      <div className="flex items-center gap-3 px-4 py-2.5 bg-gradient-to-r from-slate-50 to-white border-b border-slate-100">
+      <div className="flex items-center gap-3 px-4 py-2.5 bg-slate-50 border-b border-slate-100">
         <div className={`flex items-center justify-center h-7 w-7 rounded-full text-white text-xs font-bold ${dot}`}>{number}</div>
         <Icon className="h-4 w-4 text-slate-500" />
         <h3 className="text-sm font-semibold text-slate-800">{title}</h3>
@@ -208,8 +208,8 @@ export default function SocialMediaLinksV2EditPage() {
             onChange={(e) => setFormIsActive(e.target.value)}
             className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 bg-white"
           >
-            <option value="1">Active — shown on public website</option>
-            <option value="0">Inactive — hidden</option>
+            <option value="1">Active: shown on public website</option>
+            <option value="0">Inactive: hidden</option>
           </select>
         </SectionCard>
 

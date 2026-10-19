@@ -4,7 +4,7 @@ import { RegionalLeaders } from "@/components/pages/regional-leaders/RegionalLea
 export const metadata: Metadata = {
   title: "Regional Leaders | ROW",
   description:
-    "Directory of Rotary's regional leaders across the zones — Action Plan Champions, Foundation, Membership, Public Image, E/MGA, EPNC and Polio plan leads with direct phone and email contacts.",
+    "Directory of Rotary's regional leaders across the zones: Action Plan Champions, Foundation, Membership, Public Image, E/MGA, EPNC and Polio plan leads with direct phone and email contacts.",
 };
 
 export default function RegionalLeadersPage() {

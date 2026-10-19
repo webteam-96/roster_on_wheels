@@ -6,7 +6,7 @@
  * same card shell, same reassurance rail, same support details.
  */
 
-import { Mail, Phone, ShieldCheck, Zap } from "lucide-react";
+import { Mail, Phone, ShieldCheck, Zap } from "@/components/icons";
 import { useBrand } from "@/contexts/BrandContext";
 import { getActiveBrand, telHref } from "@/lib/brand";
 
@@ -28,7 +28,7 @@ export function PayCard({
       {title && (
         <div className="mb-4 flex items-start gap-3">
           {Icon && (
-            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#17458F] text-white">
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-azure text-white">
               <Icon className="h-5 w-5" />
             </span>
           )}
@@ -55,7 +55,7 @@ export function PayTrustRows({ activationNote }: { activationNote: string }) {
         </div>
       </div>
       <div className="flex items-start gap-3">
-        <Zap className="mt-0.5 h-4 w-4 shrink-0 text-[#F7A81B]" />
+        <Zap className="mt-0.5 h-4 w-4 shrink-0 text-marigold" />
         <div>
           <div className="text-[13px] font-semibold text-slate-800">Instant activation</div>
           <p className="text-[12px] text-slate-500">{activationNote}</p>
@@ -73,14 +73,14 @@ export function PayHelpCard() {
     <PayCard title="Need help?">
       <p className="text-[13px] text-slate-500">Contact our support team for any assistance.</p>
       <div className="mt-3.5 space-y-2.5">
-        {email && <a href={`mailto:${email}`} className="flex items-center gap-3 text-[13px] text-slate-700 hover:text-[#17458F]">
-          <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-blue-50 text-[#17458F]">
+        {email && <a href={`mailto:${email}`} className="flex items-center gap-3 text-[13px] text-slate-700 hover:text-azure">
+          <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-blue-50 text-azure">
             <Mail className="h-3.5 w-3.5" />
           </span>
           <span className="min-w-0 truncate">{email}</span>
         </a>}
-        {phone && <a href={telHref(phone)} className="flex items-center gap-3 text-[13px] text-slate-700 hover:text-[#17458F]">
-          <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-blue-50 text-[#17458F]">
+        {phone && <a href={telHref(phone)} className="flex items-center gap-3 text-[13px] text-slate-700 hover:text-azure">
+          <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-blue-50 text-azure">
             <Phone className="h-3.5 w-3.5" />
           </span>
           <span>{phone}</span>
@@ -96,7 +96,7 @@ export function PayBenefits({ items }: { items: readonly { icon: React.Component
     <ul className="space-y-3.5">
       {items.map(({ icon: Bi, text }) => (
         <li key={text} className="flex items-start gap-3">
-          <span className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-blue-50 text-[#17458F]">
+          <span className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-blue-50 text-azure">
             <Bi className="h-3.5 w-3.5" />
           </span>
           <span className="text-[13px] leading-snug text-slate-600">{text}</span>

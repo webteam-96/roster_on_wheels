@@ -14,16 +14,16 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import ErrorAlert from "@/components/ErrorAlert";
-import { ArrowLeft, Mail, Search, Filter, RotateCcw, Eye, Download } from "lucide-react";
+import { ArrowLeft, Mail, Search, Filter, RotateCcw, Eye, Download } from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
 import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";
 
 import { appLocale } from "@/lib/appFormat";
 function formatDate(d: string | null) {
-  if (!d) return "—";
+  if (!d) return "–";
   const dt = new Date(d);
-  if (isNaN(dt.getTime()) || dt.getFullYear() < 2000) return "—";
+  if (isNaN(dt.getTime()) || dt.getFullYear() < 2000) return "–";
   return dt.toLocaleString(appLocale(), { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" });
 }
 
@@ -36,7 +36,7 @@ function statusBadge(status: string) {
 }
 
 function typeBadge(type: string | null) {
-  if (!type) return <span className="text-slate-400">—</span>;
+  if (!type) return <span className="text-slate-400">, </span>;
   const palette: Record<string, string> = {
     "OTP":                        "bg-blue-100   text-blue-700   border-blue-200",
     "Data Collection":            "bg-cyan-100   text-cyan-700   border-cyan-200",
@@ -252,7 +252,7 @@ export default function EmailLogPage() {
                         <TableCell className="text-xs">{formatDate(it.sentAt)}</TableCell>
                         <TableCell>{statusBadge(it.status)}</TableCell>
                         <TableCell className="text-xs break-all">{it.recipientEmail}</TableCell>
-                        <TableCell className="text-sm">{it.subject ?? "—"}</TableCell>
+                        <TableCell className="text-sm">{it.subject ?? "–"}</TableCell>
                         <TableCell>{typeBadge(it.emailType)}</TableCell>
                         <TableCell className="text-right"><Button size="sm" variant="ghost"><Eye className="h-4 w-4" /></Button></TableCell>
                       </TableRow>

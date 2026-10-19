@@ -17,7 +17,7 @@ import Link from "next/link";
 import {
   ArrowLeft, Calendar, Download, Eye, FileSpreadsheet, FileText, Loader2,
   CheckCircle2, AlertCircle, BarChart3,
-} from "lucide-react";
+} from "@/components/icons";
 import {
   getClub, getMonthlyReportYears, getOcvReport, downloadOcvDocumentBlob,
   downloadOcvReportWord, downloadOcvReportExcel,
@@ -248,7 +248,7 @@ export default function OcvReportV2Page() {
             <div className="min-w-0">
               <h1 className="text-lg font-semibold text-slate-800 leading-tight">OCV Report</h1>
               <p className="text-xs text-slate-500 mt-0.5">
-                {clubName || "—"} · Document compliance overview
+                {clubName || "–"} · Document compliance overview
               </p>
             </div>
           </div>
@@ -280,7 +280,7 @@ export default function OcvReportV2Page() {
           <KpiCard
             title="Total Types"
             value={fmtInt(filteredItems.length)}
-            subtitle={yearLabel ? `RY ${yearLabel}` : "—"}
+            subtitle={yearLabel ? `RY ${yearLabel}` : "–"}
             icon={FileText}
             color="blue"
           />
@@ -458,7 +458,7 @@ export default function OcvReportV2Page() {
                               )}
                             </td>
                             <td className="px-3 py-2 text-sm text-slate-600 max-w-[260px] truncate" title={it.originalFileName || ""}>
-                              {it.originalFileName || "—"}
+                              {it.originalFileName || "–"}
                             </td>
                             <td className="px-3 py-2 text-right">
                               {it.isUploaded && it.filePath ? (
@@ -481,7 +481,7 @@ export default function OcvReportV2Page() {
                                   </button>
                                 </div>
                               ) : (
-                                <span className="text-slate-300 text-xs">—</span>
+                                <span className="text-slate-300 text-xs">, </span>
                               )}
                             </td>
                           </tr>

@@ -23,7 +23,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import RichTextEditor from "@/components/RichTextEditor";
 import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
-import { ArrowLeft, Save, Send, Loader2, X, Search, Mail } from "lucide-react";
+import { ArrowLeft, Save, Send, Loader2, X, Search, Mail } from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
 import ProtectedRoute from "@/components/ProtectedRoute";
 
@@ -156,9 +156,9 @@ export default function ClubAdminComposeMassEmailPage() {
         <div className="flex items-center gap-3">
           <Button variant="outline" size="icon" onClick={() => router.push(returnTo)} aria-label="Back"><ArrowLeft className="h-4 w-4" /></Button>
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#1e3a5f]/10 text-[#1e3a5f]"><Mail size={20} /></div>
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-azure/10 text-ink"><Mail size={20} /></div>
             <div>
-              <h2 className="text-2xl font-bold tracking-tight text-[#1e3a5f]">{editId ? "Edit Mass Email" : "Compose Mass Email"}</h2>
+              <h2 className="text-2xl font-bold tracking-tight text-ink">{editId ? "Edit Mass Email" : "Compose Mass Email"}</h2>
               <p className="text-slate-500 text-sm mt-0.5">{clubName}</p>
             </div>
           </div>
@@ -171,7 +171,7 @@ export default function ClubAdminComposeMassEmailPage() {
               {[{ value: "1", label: "All Members" }, { value: "2", label: "Subgroup" }, { value: "3", label: "Select Members" }].map((opt) => (
                 <label key={opt.value} className="flex items-center gap-2 cursor-pointer">
                   <input type="radio" name="recipientType" value={opt.value} checked={recipientType === opt.value}
-                    onChange={() => { setRecipientType(opt.value); setSelectedSubgroupIds(new Set()); setSelectedMemberIds(new Set()); }} className="accent-[#1e3a5f]" />
+                    onChange={() => { setRecipientType(opt.value); setSelectedSubgroupIds(new Set()); setSelectedMemberIds(new Set()); }} className="accent-azure" />
                   <span className="text-sm">{opt.label}</span>
                 </label>
               ))}
@@ -249,7 +249,7 @@ export default function ClubAdminComposeMassEmailPage() {
               <Button variant="outline" onClick={() => handleSave(true)} disabled={saving}>
                 {saving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Save className="h-4 w-4 mr-2" />}Save as Draft
               </Button>
-              <Button onClick={() => handleSave(false)} disabled={saving || insufficientCredits || recipientCount.membersWithEmail === 0} className="bg-[#1e3a5f] hover:bg-[#152a44] text-white">
+              <Button onClick={() => handleSave(false)} disabled={saving || insufficientCredits || recipientCount.membersWithEmail === 0} className="bg-azure hover:bg-mint-ink text-white">
                 {saving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Send className="h-4 w-4 mr-2" />}Send to {recipientCount.membersWithEmail} member{recipientCount.membersWithEmail !== 1 ? "s" : ""}
               </Button>
               <Button variant="ghost" className="text-destructive" onClick={() => router.push(returnTo)}><X className="h-4 w-4 mr-2" />Discard</Button>

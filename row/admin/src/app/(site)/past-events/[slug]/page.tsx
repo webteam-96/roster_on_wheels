@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowLeft, ArrowRight, CalendarDays, MapPin } from "lucide-react";
+import { ArrowLeft, ArrowRight, CalendarDays, MapPin } from "@/components/icons";
 import { SiteFooter } from "@/components/site/SiteFooter";
 import { ButtonGroup } from "@/components/pages/past-events/parts";
 import { MahabsAccordion } from "@/components/pages/past-events/MahabsCard";
@@ -18,7 +18,7 @@ export function generateMetadata({ params }: { params: { slug: string } }): Meta
   if (!event) return { title: "Event | ROW" };
   return {
     title: `${event.title} | ROW`,
-    description: `Highlights, recordings and photos from ${event.title} — ${event.date}, ${event.venue}.`,
+    description: `Highlights, recordings and photos from ${event.title}: ${event.date}, ${event.venue}.`,
   };
 }
 
@@ -108,7 +108,7 @@ export default function EventDetailPage({ params }: { params: { slug: string } }
               className="mt-3 text-[15px] leading-relaxed text-muted"
             >
               {isMahabs
-                ? "Session recordings from all three days, plus the TRF seminar and dinner — hosted on the event's YouTube channel."
+                ? "Session recordings from all three days, plus the TRF seminar and dinner: hosted on the event's YouTube channel."
                 : "Every recording and photo gallery from this event, on its original platform."}
             </p>
             <div className="mt-8">

@@ -27,7 +27,7 @@ import { useParams, useSearchParams } from "next/navigation";
 import {
   ArrowLeft, Phone, Mail, Calendar, CheckCircle2, ShieldCheck, Save,
   Trash2, Plus, Loader2, Eye, EyeOff, AlertTriangle,
-} from "lucide-react";
+} from "@/components/icons";
 import { useSyncClubIdFromUrl } from "@/hooks/useSyncClubIdFromUrl";
 
 import {
@@ -273,11 +273,11 @@ export default function ContactDetailsV2Page() {
 
   // ===== KPIs =====
   const yearLabel = useMemo(() => {
-    if (!selectedYearId) return "—";
+    if (!selectedYearId) return "–";
     const fromData = dataYears.find((y) => String(y.id) === selectedYearId);
     if (fromData) return fromData.yearLabel;
     const fromAll = allYears.find((y) => String(y.id) === selectedYearId);
-    return fromAll?.yearLabel ?? "—";
+    return fromAll?.yearLabel ?? "–";
   }, [selectedYearId, dataYears, allYears]);
 
   const totalYearsCovered = dataYears.length;
@@ -324,7 +324,7 @@ export default function ContactDetailsV2Page() {
             <div>
               <h1 className="text-lg font-semibold text-slate-800">Contact Details</h1>
               <p className="text-xs text-slate-500 mt-0.5">
-                RY {yearLabel} · {clubName || "—"}
+                RY {yearLabel} · {clubName || "–"}
               </p>
             </div>
           </div>
@@ -341,14 +341,14 @@ export default function ContactDetailsV2Page() {
         {/* Form / record card */}
         <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
           {/* Header bar */}
-          <div className="px-5 py-3 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-gradient-to-r from-blue-50 to-white">
+          <div className="px-5 py-3 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-blue-50">
             <div className="flex items-center gap-2">
               <div className="w-9 h-9 rounded-lg bg-blue-100 text-blue-700 flex items-center justify-center">
                 <Phone size={18} />
               </div>
               <div>
                 <h3 className="text-sm font-semibold text-slate-800">Public Contact Details</h3>
-                <p className="text-xs text-slate-500">One contact per Rotary year · {clubName || "—"}</p>
+                <p className="text-xs text-slate-500">One contact per Rotary year · {clubName || "–"}</p>
               </div>
             </div>
             <div className="flex flex-wrap items-center gap-2">

@@ -17,7 +17,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useParams, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, Image as ImageIcon, Upload } from "lucide-react";
+import { ArrowLeft, Image as ImageIcon, Upload } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { getClubLogos, setClubLogos, uploadClubLogoFile, uploadRotaryLogoFile, getPhotoUrl } from "@/services/api";
@@ -165,8 +165,8 @@ export default function ClubWebsiteLogosPage() {
           <div>
             <h2 className="text-2xl font-bold text-primary">Logos</h2>
             <p className="text-muted-foreground">
-              <strong>Club Logo</strong> — square (1:1), saved at 900×900 for retina.{" "}
-              <strong>Rotary Logo</strong> — horizontal (3.75:1), saved at 900×240 to fit the website's 300×80 header slot.
+              <strong>Club Logo</strong>: square (1:1), saved at 900×900 for retina.{" "}
+              <strong>Rotary Logo</strong>: horizontal (3.75:1), saved at 900×240 to fit the website's 300×80 header slot.
             </p>
           </div>
         </div>

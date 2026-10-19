@@ -39,7 +39,7 @@ export const OCV_LIVE_DOCUMENTS_TITLE = "Live Documents";
  */
 export function ocvLiveDocumentsNote(now: Date = new Date()): string {
   const asOn = now.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" });
-  return `Current data as on ${asOn}. These modules are not uploaded files — the rows below are read live from the club's records.`;
+  return `Current data as on ${asOn}. These modules are not uploaded files: the rows below are read live from the club's records.`;
 }
 
 /**

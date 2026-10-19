@@ -12,7 +12,7 @@ import {
   getPhotoUrl, getCommitteeSubGroups, reorderSubGroupMembers, updateCommitteeSubGroup,
 } from "@/services/api";
 import { useDragSort } from "@/hooks/useDragSort";
-import { GripVertical } from "lucide-react";
+import { GripVertical } from "@/components/icons";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -24,7 +24,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogD
 import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
 import AlertModal from "@/components/AlertModal";
-import { ArrowLeft, Plus, Pencil, Trash2, AlertTriangle, Users, Search, X, Upload } from "lucide-react";
+import { ArrowLeft, Plus, Pencil, Trash2, AlertTriangle, Users, Search, X, Upload } from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
 import NonSyncRemovedCommitteeMembers from "@/components/dashboard/NonSyncRemovedCommitteeMembers";
 
@@ -256,21 +256,21 @@ export default function DistrictAdminDashboardSubGroupDetailPage() {
                     onChange={(e) => setNameDraft(e.target.value)}
                     onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); saveRename(); } if (e.key === "Escape") setEditingName(false); }}
                     autoFocus
-                    className="h-9 w-72 text-lg font-bold text-[#1e3a5f]"
+                    className="h-9 w-72 text-lg font-bold text-ink"
                     placeholder="Sub-group name"
                   />
-                  <Button size="sm" onClick={saveRename} disabled={savingName || !nameDraft.trim()} className="bg-[#1e3a5f] hover:bg-[#152a44] text-white">
+                  <Button size="sm" onClick={saveRename} disabled={savingName || !nameDraft.trim()} className="bg-azure hover:bg-mint-ink text-white">
                     {savingName ? "Saving..." : "Save"}
                   </Button>
                   <Button size="sm" variant="outline" onClick={() => setEditingName(false)} disabled={savingName} className="border-slate-200 text-slate-700 hover:bg-slate-50">Cancel</Button>
                 </div>
               ) : (
                 <>
-                  <h2 className="text-2xl font-bold tracking-tight text-[#1e3a5f]">
-                    District Committee — {subGroupName || "Sub Group"}
+                  <h2 className="text-2xl font-bold tracking-tight text-ink">
+                    District Committee: {subGroupName || "Sub Group"}
                   </h2>
                   {canManage && (
-                    <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-500 hover:text-[#1e3a5f] hover:bg-slate-100" onClick={startRename} title="Rename sub-group">
+                    <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-500 hover:text-ink hover:bg-slate-100" onClick={startRename} title="Rename sub-group">
                       <Pencil className="h-4 w-4" />
                     </Button>
                   )}
@@ -285,11 +285,11 @@ export default function DistrictAdminDashboardSubGroupDetailPage() {
         {!loading && (
           <>
             <div className="flex items-center justify-between">
-              <h3 className="text-lg font-semibold text-[#1e3a5f] flex items-center gap-2">
+              <h3 className="text-lg font-semibold text-ink flex items-center gap-2">
                 <Users className="h-5 w-5" />Members <span className="text-slate-400 font-normal">({members.length})</span>
               </h3>
               {canManage && (
-                <Button onClick={openAddDialog} className="bg-[#1e3a5f] hover:bg-[#152a44] text-white"><Plus className="mr-2 h-4 w-4" />Add Member</Button>
+                <Button onClick={openAddDialog} className="bg-azure hover:bg-mint-ink text-white"><Plus className="mr-2 h-4 w-4" />Add Member</Button>
               )}
             </div>
 

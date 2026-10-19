@@ -16,20 +16,20 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import ErrorAlert from "@/components/ErrorAlert";
 import RotaryLoader from "@/components/RotaryLoader";
 import ProtectedRoute from "@/components/ProtectedRoute";
-import { ArrowLeft, RefreshCw, Search, Filter, X } from "lucide-react";
+import { ArrowLeft, RefreshCw, Search, Filter, X } from "@/components/icons";
 
 import { appLocale } from "@/lib/appFormat";
 function formatDate(d: string | null) {
-  if (!d) return "—";
+  if (!d) return "–";
   const dt = new Date(d);
-  if (isNaN(dt.getTime()) || dt.getFullYear() < 2000) return "—";
+  if (isNaN(dt.getTime()) || dt.getFullYear() < 2000) return "–";
   return dt.toLocaleString(appLocale(), { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" });
 }
 
 function formatDay(d: string | null) {
-  if (!d) return "—";
+  if (!d) return "–";
   const dt = new Date(d);
-  if (isNaN(dt.getTime()) || dt.getFullYear() < 2000) return "—";
+  if (isNaN(dt.getTime()) || dt.getFullYear() < 2000) return "–";
   return dt.toLocaleDateString(appLocale(), { day: "2-digit", month: "short", year: "numeric" });
 }
 
@@ -174,7 +174,7 @@ export default function ProjectSyncPage() {
                         }}
                       >
                         <div className="font-medium">{s.clubName}</div>
-                        <div className="text-xs text-slate-500">District {s.districtNumber ?? "—"}</div>
+                        <div className="text-xs text-slate-500">District {s.districtNumber ?? "–"}</div>
                       </button>
                     ))}
                   </div>
@@ -235,11 +235,11 @@ export default function ProjectSyncPage() {
                             <div className="font-medium">{r.title || `Project #${r.projectId}`}</div>
                             <div className="text-xs text-slate-500">{formatDay(r.projectDate)}</div>
                           </TableCell>
-                          <TableCell className="whitespace-nowrap">{r.yearLabel ?? "—"}</TableCell>
-                          <TableCell>{r.areaOfFocus ?? "—"}</TableCell>
+                          <TableCell className="whitespace-nowrap">{r.yearLabel ?? "–"}</TableCell>
+                          <TableCell>{r.areaOfFocus ?? "–"}</TableCell>
                           <TableCell>{statusBadge(r.status)}</TableCell>
                           <TableCell className="whitespace-nowrap">{formatDate(r.lastSyncClickedAt)}</TableCell>
-                          <TableCell>{r.lastSyncClickedBy ?? "—"}</TableCell>
+                          <TableCell>{r.lastSyncClickedBy ?? "–"}</TableCell>
                           <TableCell className="whitespace-nowrap">{formatDate(r.publishedAt)}</TableCell>
                           <TableCell className="text-right">{r.syncClicks}</TableCell>
                         </TableRow>
@@ -286,7 +286,7 @@ export default function ProjectSyncPage() {
                         <TableRow key={h.id}>
                           <TableCell className="whitespace-nowrap">{formatDate(h.createdDate)}</TableCell>
                           <TableCell>{ACTION_LABEL[h.action] ?? h.action}</TableCell>
-                          <TableCell>{h.memberName ?? (h.action === "published" ? "Extension" : "—")}</TableCell>
+                          <TableCell>{h.memberName ?? (h.action === "published" ? "Extension" : "–")}</TableCell>
                         </TableRow>
                       ))}
                     </TableBody>

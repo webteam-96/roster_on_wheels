@@ -6,6 +6,28 @@ import type { Config } from "tailwindcss";
 // website's `text-muted` colour is supplied by overriding the `--muted` CSS
 // var inside the `.site-shell` wrapper (see (site) globals), so neither app
 // restyles the other.
+// ROW "Fellowship" (row/website/design.md). Tailwind's default hue scales are remapped onto the
+// Fellowship palette so the thousands of existing `bg-blue-700` / `text-slate-800` classes follow the
+// brand without page edits. green/emerald/red/rose/amber stay stock: they carry status meaning.
+const fellowshipBlue = {
+  50: "#F3F8FD", 100: "#EDF4FB", 200: "#CFE2F6", 300: "#A9C6EA", 400: "#5E93D6", 500: "#0067C8",
+  600: "#1F56A8", 700: "#17458F", 800: "#0B3F7A", 900: "#12376F", 950: "#0A2547",
+};
+const fellowshipNeutral = {
+  50: "#F7F9FC", 100: "#EDF4FB", 200: "#D5DEE8", 300: "#B7C3D2", 400: "#8796AA", 500: "#64748B",
+  600: "#4A5A70", 700: "#2A3F5C", 800: "#1B2C42", 900: "#132033", 950: "#0B1422",
+};
+const marigold = {
+  50: "#FFF8EA", 100: "#FFEFCC", 200: "#FFE0A0", 300: "#FFD27A", 400: "#FFC65C", 500: "#F7A81B",
+  600: "#E59A10", 700: "#B97A0B", 800: "#8A5B08", 900: "#5E3E06", 950: "#3A2604",
+};
+const blueFamily = Object.fromEntries(
+  ["blue", "indigo", "sky", "cyan", "teal", "violet", "purple", "fuchsia", "pink"].map((k) => [k, fellowshipBlue]),
+);
+const neutralFamily = Object.fromEntries(
+  ["slate", "gray", "zinc", "neutral", "stone"].map((k) => [k, fellowshipNeutral]),
+);
+
 const config: Config = {
     darkMode: ["class"],
     content: [
@@ -16,6 +38,11 @@ const config: Config = {
   theme: {
   	extend: {
   		colors: {
+  			...blueFamily,
+  			...neutralFamily,
+  			yellow: marigold,
+  			orange: marigold,
+  			white: "#FCFDFE", // FRONTEND-RULES #3: `bg-white` surfaces are off-white
   			// ── admin (shadcn) ──
   			background: 'hsl(var(--background))',
   			foreground: 'hsl(var(--foreground))',
@@ -59,40 +86,42 @@ const config: Config = {
   			},
   			// ── public website palette ──
   			paper: {
-  				DEFAULT: "#FDFDFB",
-  				200: "#F6F7F4",
-  				300: "#E8EDF6",
+  				DEFAULT: "#FCFDFE",
+  				200: "#F7F9FC",
+  				300: "#EDF4FB",
   			},
-  			porcelain: "#EFF1EC",
+  			porcelain: "#EDF4FB",
   			midnight: {
-  				DEFAULT: "#06132E",
-  				800: "#0B1D42",
-  				700: "#101D3F",
+  				DEFAULT: "#132033",
+  				800: "#1B2C42",
+  				700: "#2A3F5C",
   			},
-  			cream: "#EDF1F7",
-  			navy: {
-  				50: "#EEF3FB",
-  				100: "#DCE7F7",
-  				600: "#0A57A8",
-  				700: "#083A87",
-  				800: "#00317B",
-  				900: "#002B6C",
-  				950: "#001A44",
-  			},
-  			azure: "#0067C8",
+  			cream: "#F7F9FC",
+  			"cream-2": "#EDF4FB",
+  			navy: fellowshipBlue,
+  			azure: "#17458F",
+  			mint: "#0067C8",
+  			"mint-ink": "#0B3F7A",
+  			marigold: "#F7A81B",
+  			coral: "#FFC65C",
+  			lilac: "#A9C6EA",
+  			"sky-tone": "#CFE2F6",
+  			"stone-tone": "#D5DEE8",
+  			line: "rgba(27,44,66,.12)",
+  			"ink-soft": "#64748B",
   			royal: {
-  				DEFAULT: "#0A57A8",
-  				light: "#3E8DDD",
-  				dark: "#0B4EA0",
+  				DEFAULT: "#17458F",
+  				light: "#0067C8",
+  				dark: "#12376F",
   			},
   			gold: {
-  				DEFAULT: "#FBB420",
-  				light: "#FCC03F",
-  				dark: "#EDA80C",
-  				deep: "#A96D00",
+  				DEFAULT: "#F7A81B",
+  				light: "#FFC65C",
+  				dark: "#E59A10",
+  				deep: "#B97A0B",
   			},
-  			page: "#F6F8FC",
-  			ink: "#1F2937",
+  			page: "#F7F9FC",
+  			ink: "#1B2C42",
   			// NOTE: `muted` intentionally NOT redefined here (see header comment)
   		},
   		borderRadius: {
@@ -101,8 +130,9 @@ const config: Config = {
   			sm: 'calc(var(--radius) - 4px)'
   		},
   		fontFamily: {
-  			sans: ["var(--font-inter)", "ui-sans-serif", "system-ui", "sans-serif"],
-  			display: ["var(--font-fraunces)", "Georgia", "serif"],
+  			// Figtree body, Bricolage Grotesque display (design.md §2).
+  			sans: ["var(--font-body)", "Figtree", "ui-sans-serif", "system-ui", "sans-serif"],
+  			display: ["var(--font-display)", "Bricolage Grotesque", "ui-sans-serif", "system-ui", "sans-serif"],
   		},
   		fontSize: {
   			"display-1": ["clamp(3.4rem,7.5vw,6.5rem)", { lineHeight: "1.05" }],
@@ -111,35 +141,19 @@ const config: Config = {
   			giant: ["clamp(4rem,9vw,7.5rem)", { lineHeight: "1" }],
   		},
   		boxShadow: {
-  			card: "0 1px 2px rgba(31,26,10,0.05), 0 10px 30px -14px rgba(31,26,10,0.16)",
-  			"card-lg": "0 2px 6px rgba(31,26,10,0.06), 0 26px 52px -22px rgba(31,26,10,0.24)",
-  			soft: "0 1px 2px rgba(31,26,10,0.05), 0 10px 30px -14px rgba(31,26,10,0.16)",
-  			lift: "0 2px 6px rgba(31,26,10,0.06), 0 24px 48px -18px rgba(31,26,10,0.24)",
-  			"glow-gold": "0 0 40px -6px rgba(251,180,32,0.45)",
-  			"glow-gold-sm": "0 0 24px -6px rgba(251,180,32,0.5)",
-  			"glow-royal": "0 12px 40px -10px rgba(10,87,168,0.35)",
-  			"card-pop": "0 1px 2px rgba(2,32,71,0.04), 0 16px 40px -16px rgba(2,32,71,0.18)",
+  			// FRONTEND-RULES #18: no drop shadows as separation. Every shadow utility draws nothing;
+  			// separate with `border-line` or a tonal step. `ring-line` is the one deliberate outline.
+  			sm: "none", DEFAULT: "none", md: "none", lg: "none", xl: "none", "2xl": "none", inner: "none",
+  			card: "none", "card-lg": "none", soft: "none", lift: "none", "card-pop": "none",
+  			"glow-gold": "none", "glow-gold-sm": "none", "glow-royal": "none",
+  			"ring-line": "0 0 0 1px rgba(27,44,66,.12)",
   		},
   		backgroundImage: {
-  			"glow-warm":
-  				"radial-gradient(56rem 36rem at 78% -10%, rgba(251,180,32,0.13), transparent 60%), radial-gradient(44rem 30rem at -10% 110%, rgba(10,87,168,0.22), transparent 58%)",
-  			"glow-warm-light":
-  				"radial-gradient(56rem 36rem at 82% -10%, rgba(251,180,32,0.10), transparent 60%), radial-gradient(44rem 30rem at -10% 110%, rgba(10,87,168,0.07), transparent 58%)",
-  			"royal-sheen": "linear-gradient(120deg, #0A57A8 0%, #1E6FBE 55%, #3E8DDD 100%)",
-  			"gold-sheen": "linear-gradient(120deg, #EDA80C 0%, #FBB420 60%, #FCC03F 100%)",
-  			"mesh-light":
-  				"radial-gradient(42rem 28rem at 12% -8%, rgba(62,141,221,0.14), transparent 60%), radial-gradient(38rem 26rem at 95% 12%, rgba(251,180,32,0.13), transparent 62%), radial-gradient(30rem 22rem at 55% 110%, rgba(10,87,168,0.08), transparent 60%)",
-  			"glow-gold-corner":
-  				"radial-gradient(40rem 28rem at 0% 100%, rgba(251,180,32,0.12), transparent 62%)",
-  			"glow-royal":
-  				"radial-gradient(48rem 32rem at 100% 0%, rgba(62,141,221,0.14), transparent 60%)",
-  			"hero-radial":
-  				"radial-gradient(52rem 32rem at 82% -12%, rgba(30,111,190,0.25), transparent 62%), radial-gradient(40rem 28rem at -8% 108%, rgba(251,180,32,0.10), transparent 60%)",
-  			"gold-radial":
-  				"radial-gradient(36rem 22rem at 88% 8%, rgba(251,180,32,0.14), transparent 65%)",
-  			"hero-fade":
-  				"linear-gradient(90deg, #06132E 0%, rgba(6,19,46,0.85) 34%, rgba(6,19,46,0.45) 60%, rgba(6,19,46,0) 82%)",
-  			"event-card": "linear-gradient(135deg, #0B4EA0 0%, #1E6FBE 100%)",
+  			// FRONTEND-RULES #1/#15: no gradients or glow orbs. Old utility names kept so pages still compile.
+  			...Object.fromEntries(
+  				["glow-warm", "glow-warm-light", "royal-sheen", "gold-sheen", "mesh-light", "glow-gold-corner",
+  				 "glow-royal", "hero-radial", "gold-radial", "hero-fade", "event-card"].map((k) => [k, "none"]),
+  			),
   		},
   		keyframes: {
   			"fade-up": {

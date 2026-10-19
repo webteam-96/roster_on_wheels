@@ -12,7 +12,7 @@
  *     Delete. Draft edit/send/delete + Failed retry all funnel through send/delete.
  *   - ?yearId= is forwarded through every navigation.
  *   - Body is rendered as HTML (rich text from the quill compose editor).
- *   - Design palette: navy #1e3a5f, gold #F7A81B, slate borders/text.
+ *   - Design palette: navy #17458f, gold #F7A81B, slate borders/text.
  */
 
 import { useState, useEffect } from "react";
@@ -31,7 +31,7 @@ import RotaryLoader from "@/components/RotaryLoader";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import {
   ArrowLeft, Send, Pencil, Trash2, CheckCircle2, XCircle, Clock, Loader2, AlertTriangle,
-} from "lucide-react";
+} from "@/components/icons";
 
 import { appLocale } from "@/lib/appFormat";
 const BASE = "/district-admin-dashboard/quick-links/mass-email";
@@ -122,7 +122,7 @@ export default function DistrictAdminMassEmailDetailPage() {
     }
   };
   const getRecipientTypeLabel = (type: number) => {
-    switch (type) { case 1: return "All Members"; case 2: return "Clubs"; case 3: return "Subgroups"; default: return "—"; }
+    switch (type) { case 1: return "All Members"; case 2: return "Clubs"; case 3: return "Subgroups"; default: return "–"; }
   };
 
   if (!districtId) return null;
@@ -147,7 +147,7 @@ export default function DistrictAdminMassEmailDetailPage() {
               <ArrowLeft className="h-4 w-4" />
             </Button>
             <div>
-              <h2 className="text-2xl font-bold tracking-tight text-[#1e3a5f]">Mass Email Detail</h2>
+              <h2 className="text-2xl font-bold tracking-tight text-ink">Mass Email Detail</h2>
               <p className="text-slate-500 text-sm mt-0.5">{districtName}</p>
             </div>
           </div>
@@ -160,7 +160,7 @@ export default function DistrictAdminMassEmailDetailPage() {
               >
                 <Pencil className="h-4 w-4 mr-2" />Edit
               </Button>
-              <Button className="bg-[#1e3a5f] hover:bg-[#152a44] text-white" onClick={() => setConfirmSend(true)} disabled={processing}>
+              <Button className="bg-azure hover:bg-mint-ink text-white" onClick={() => setConfirmSend(true)} disabled={processing}>
                 {processing ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Send className="h-4 w-4 mr-2" />}Send
               </Button>
               <Button
@@ -177,7 +177,7 @@ export default function DistrictAdminMassEmailDetailPage() {
 
         {/* Summary card */}
         <div className="rounded-2xl border border-slate-200 shadow-sm bg-white overflow-hidden">
-          <div className="px-5 py-3 border-b border-slate-100 flex items-center justify-between gap-3 bg-gradient-to-r from-[#1e3a5f]/5 to-white">
+          <div className="px-5 py-3 border-b border-slate-100 flex items-center justify-between gap-3 bg-azure/5">
             <h3 className="text-sm font-semibold text-slate-800 truncate">{detail.subject}</h3>
             {getStatusBadge(detail.status)}
           </div>
@@ -216,13 +216,13 @@ export default function DistrictAdminMassEmailDetailPage() {
 
         {/* Recipients table */}
         <div className="rounded-2xl border border-slate-200 shadow-sm bg-white overflow-hidden">
-          <div className="px-5 py-3 border-b border-slate-100 bg-gradient-to-r from-[#1e3a5f]/5 to-white">
+          <div className="px-5 py-3 border-b border-slate-100 bg-azure/5">
             <h3 className="text-sm font-semibold text-slate-800">Recipients ({detail.recipients.length})</h3>
           </div>
           <div className="overflow-x-auto">
             <Table>
               <TableHeader>
-                <TableRow className="hover:opacity-100 border-b-2 border-[#F7A81B]" style={{ backgroundColor: "#1e3a5f" }}>
+                <TableRow className="hover:opacity-100 border-b-2 border-marigold" style={{ backgroundColor: "#17458f" }}>
                   <TableHead className="text-white text-xs font-semibold uppercase tracking-wide">Name</TableHead>
                   <TableHead className="text-white text-xs font-semibold uppercase tracking-wide">Email</TableHead>
                   <TableHead className="text-white text-xs font-semibold uppercase tracking-wide">Status</TableHead>
@@ -252,7 +252,7 @@ export default function DistrictAdminMassEmailDetailPage() {
         open={confirmSend}
         onOpenChange={(o) => !o && setConfirmSend(false)}
         icon={Send}
-        iconClassName="text-[#1e3a5f]"
+        iconClassName="text-ink"
         title="Send Email"
         description="Send this email to all recipients now?"
         confirmLabel="Send"

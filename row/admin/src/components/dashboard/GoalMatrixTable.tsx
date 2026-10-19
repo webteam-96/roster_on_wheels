@@ -40,12 +40,12 @@ export default function GoalMatrixTable({ matrix }: { matrix: GoalOverviewMatrix
                   <td key={cell.districtId} className="px-3 py-2 align-top border-b border-r text-center">
                     <div className="flex flex-col gap-0.5 items-center">
                       {row.hasTarget && (
-                        <span className="text-xs"><span className="text-slate-400">Target: </span><span className="font-semibold text-slate-800">{cell.target ?? "—"}</span></span>
+                        <span className="text-xs"><span className="text-slate-400">Target: </span><span className="font-semibold text-slate-800">{cell.target ?? "–"}</span></span>
                       )}
                       {row.hasAchieved && (
-                        <span className="text-xs"><span className="text-slate-400">Achieved: </span><span className="font-semibold text-emerald-700">{cell.achieved ?? "—"}</span></span>
+                        <span className="text-xs"><span className="text-slate-400">Achieved: </span><span className="font-semibold text-emerald-700">{cell.achieved ?? "–"}</span></span>
                       )}
-                      {!row.hasTarget && !row.hasAchieved && <span className="text-slate-400">—</span>}
+                      {!row.hasTarget && !row.hasAchieved && <span className="text-slate-400">, </span>}
                     </div>
                   </td>
                 ))}

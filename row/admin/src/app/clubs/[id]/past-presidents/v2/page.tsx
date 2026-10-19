@@ -17,7 +17,7 @@ import Link from "next/link";
 import {
   ArrowLeft, Crown, Users, UserCheck, UserX, CalendarRange, CalendarClock, Loader2,
   Search, Plus, Edit3, Trash2, User, AlertTriangle,
-} from "lucide-react";
+} from "@/components/icons";
 import {
   getClub,
   getClubMembers,
@@ -160,10 +160,10 @@ export default function PastPresidentsV2ListingPage() {
     return s.size;
   }, [records]);
   const mostRecentYear = useMemo(() => {
-    if (records.length === 0) return "—";
+    if (records.length === 0) return "–";
     return [...records]
       .map((r) => r.yearLabel || "")
-      .sort((a, b) => b.localeCompare(a))[0] || "—";
+      .sort((a, b) => b.localeCompare(a))[0] || "–";
   }, [records]);
 
   const handleDelete = async () => {
@@ -200,7 +200,7 @@ export default function PastPresidentsV2ListingPage() {
             <div>
               <h1 className="text-lg font-semibold text-slate-800">Past Presidents</h1>
               <p className="text-xs text-slate-500 mt-0.5">
-                Historical record of club presidents · {clubName || "—"}
+                Historical record of club presidents · {clubName || "–"}
               </p>
             </div>
           </div>
@@ -251,7 +251,7 @@ export default function PastPresidentsV2ListingPage() {
             <div>
               <h3 className="text-sm font-semibold text-slate-800">Past President Records</h3>
               <p className="text-xs text-slate-500 mt-0.5">
-                {clubName || "—"} · ordered by Rotary year
+                {clubName || "–"} · ordered by Rotary year
               </p>
             </div>
             <div className="flex flex-wrap items-center gap-2">
@@ -423,7 +423,7 @@ export default function PastPresidentsV2ListingPage() {
                         <td className="px-3 py-2 font-medium text-slate-800">{r.memberName}</td>
                         <td className="px-3 py-2 text-slate-700 whitespace-nowrap">{r.yearLabel}</td>
                         <td className="px-3 py-2 text-xs text-slate-500 whitespace-nowrap">
-                          {r.memberId != null ? `#${r.memberId}` : "—"}
+                          {r.memberId != null ? `#${r.memberId}` : "–"}
                         </td>
                         <td className="px-3 py-2">
                           <div className="flex items-center gap-1.5 flex-wrap">

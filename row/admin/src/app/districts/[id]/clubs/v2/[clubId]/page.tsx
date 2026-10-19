@@ -8,7 +8,7 @@
  * `src/app/district-admin-dashboard/membership/page.tsx`.
  *
  * Palette:
- *   Navy #1e3a5f, Hover #152a44, Gold #F7A81B, Slate text.
+ *   Navy #17458f, Hover #1b2c42, Gold #F7A81B, Slate text.
  *
  * URL params:
  *   ?returnTo=... — Back button target; falls back to V2 listing (module
@@ -35,7 +35,7 @@ import {
   ArrowLeft, Users, Newspaper, CalendarDays, FolderKanban, Building2,
   MapPin, Clock, Calendar, Globe, Phone, Mail, Briefcase, Award,
   ChevronDown, ChevronUp, FileText, ExternalLink,
-} from "lucide-react";
+} from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
 import SendStatusBadges from "@/components/SendStatusBadges";
 import ProtectedRoute from "@/components/ProtectedRoute";
@@ -255,8 +255,8 @@ export default function ClubDetailViewV2Page() {
                 />
               ) : (
                 <div
-                  className="w-24 h-24 rounded-2xl flex items-center justify-center border-b-2 border-[#F7A81B]"
-                  style={{ backgroundColor: "#1e3a5f" }}
+                  className="w-24 h-24 rounded-2xl flex items-center justify-center border-b-2 border-marigold"
+                  style={{ backgroundColor: "#17458f" }}
                 >
                   <Building2 className="h-10 w-10 text-white" />
                 </div>
@@ -264,7 +264,7 @@ export default function ClubDetailViewV2Page() {
             </div>
             <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 text-sm">
               <div className="flex items-center gap-2">
-                <Award className="h-4 w-4 text-[#1e3a5f] flex-shrink-0" />
+                <Award className="h-4 w-4 text-ink flex-shrink-0" />
                 <div>
                   <span className="text-slate-500">Rotary ID:</span>{" "}
                   <strong className="text-slate-800">{club.clubRotaryId}</strong>
@@ -272,7 +272,7 @@ export default function ClubDetailViewV2Page() {
               </div>
               {club.meetingDay && (
                 <div className="flex items-center gap-2">
-                  <Calendar className="h-4 w-4 text-[#1e3a5f] flex-shrink-0" />
+                  <Calendar className="h-4 w-4 text-ink flex-shrink-0" />
                   <div>
                     <span className="text-slate-500">Meeting:</span>{" "}
                     <strong className="text-slate-800">{club.meetingDay}</strong>
@@ -281,7 +281,7 @@ export default function ClubDetailViewV2Page() {
               )}
               {(club.meetingFromTime || club.meetingToTime) && (
                 <div className="flex items-center gap-2">
-                  <Clock className="h-4 w-4 text-[#1e3a5f] flex-shrink-0" />
+                  <Clock className="h-4 w-4 text-ink flex-shrink-0" />
                   <div>
                     <span className="text-slate-500">Time:</span>{" "}
                     <strong className="text-slate-800">
@@ -293,7 +293,7 @@ export default function ClubDetailViewV2Page() {
               )}
               {club.meetingAddress && (
                 <div className="flex items-center gap-2 sm:col-span-2">
-                  <MapPin className="h-4 w-4 text-[#1e3a5f] flex-shrink-0" />
+                  <MapPin className="h-4 w-4 text-ink flex-shrink-0" />
                   <div>
                     <span className="text-slate-500">Venue:</span>{" "}
                     <span className="text-slate-700">{club.meetingAddress}</span>
@@ -302,7 +302,7 @@ export default function ClubDetailViewV2Page() {
               )}
               {(club.city || club.state) && (
                 <div className="flex items-center gap-2">
-                  <MapPin className="h-4 w-4 text-[#1e3a5f] flex-shrink-0" />
+                  <MapPin className="h-4 w-4 text-ink flex-shrink-0" />
                   <div className="text-slate-700">
                     {[club.city, club.state].filter(Boolean).join(", ")}
                     {club.pincode ? ` - ${club.pincode}` : ""}
@@ -311,7 +311,7 @@ export default function ClubDetailViewV2Page() {
               )}
               {club.clubCharterDate && (
                 <div className="flex items-center gap-2">
-                  <CalendarDays className="h-4 w-4 text-[#1e3a5f] flex-shrink-0" />
+                  <CalendarDays className="h-4 w-4 text-ink flex-shrink-0" />
                   <div>
                     <span className="text-slate-500">Charter:</span>{" "}
                     <span className="text-slate-700">{formatDate(club.clubCharterDate)}</span>
@@ -320,19 +320,19 @@ export default function ClubDetailViewV2Page() {
               )}
               {club.clubWebsite && (
                 <div className="flex items-center gap-2 min-w-0">
-                  <Globe className="h-4 w-4 text-[#1e3a5f] flex-shrink-0" />
+                  <Globe className="h-4 w-4 text-ink flex-shrink-0" />
                   <a
                     href={club.clubWebsite.startsWith("http") ? club.clubWebsite : `https://${club.clubWebsite}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-[#1e3a5f] underline truncate"
+                    className="text-ink underline truncate"
                   >
                     {club.clubWebsite}
                   </a>
                 </div>
               )}
               <div className="flex items-center gap-2">
-                <Users className="h-4 w-4 text-[#1e3a5f] flex-shrink-0" />
+                <Users className="h-4 w-4 text-ink flex-shrink-0" />
                 <div>
                   <strong className="text-slate-800">{club.totalMembers}</strong>{" "}
                   <span className="text-slate-500">Rotarians</span>
@@ -357,23 +357,23 @@ export default function ClubDetailViewV2Page() {
           <Tabs value={activeTab} onValueChange={setActiveTab}>
             <TabsList
               className="h-auto flex-wrap gap-1 p-1.5"
-              style={{ backgroundColor: "#1e3a5f" }}
+              style={{ backgroundColor: "#17458f" }}
             >
               <TabsTrigger
                 value="members"
-                className="text-sm font-semibold px-3.5 py-1.5 rounded-md text-white hover:bg-white/10 data-[state=active]:bg-[#F7A81B] data-[state=active]:text-[#1e3a5f] data-[state=active]:shadow-sm"
+                className="text-sm font-semibold px-3.5 py-1.5 rounded-md text-white hover:bg-white/10 data-[state=active]:bg-marigold data-[state=active]:text-ink data-[state=active]:shadow-sm"
               >
                 <Users className="h-4 w-4 mr-2" />Rotarians &amp; BOD
               </TabsTrigger>
               <TabsTrigger
                 value="communication"
-                className="text-sm font-semibold px-3.5 py-1.5 rounded-md text-white hover:bg-white/10 data-[state=active]:bg-[#F7A81B] data-[state=active]:text-[#1e3a5f] data-[state=active]:shadow-sm"
+                className="text-sm font-semibold px-3.5 py-1.5 rounded-md text-white hover:bg-white/10 data-[state=active]:bg-marigold data-[state=active]:text-ink data-[state=active]:shadow-sm"
               >
                 <Newspaper className="h-4 w-4 mr-2" />Communication
               </TabsTrigger>
               <TabsTrigger
                 value="projects"
-                className="text-sm font-semibold px-3.5 py-1.5 rounded-md text-white hover:bg-white/10 data-[state=active]:bg-[#F7A81B] data-[state=active]:text-[#1e3a5f] data-[state=active]:shadow-sm"
+                className="text-sm font-semibold px-3.5 py-1.5 rounded-md text-white hover:bg-white/10 data-[state=active]:bg-marigold data-[state=active]:text-ink data-[state=active]:shadow-sm"
               >
                 <FolderKanban className="h-4 w-4 mr-2" />Projects
               </TabsTrigger>
@@ -388,7 +388,7 @@ export default function ClubDetailViewV2Page() {
                     size="sm"
                     className={`rounded-none ${
                       memberFilter === "rotarians"
-                        ? "bg-[#1e3a5f] text-white hover:bg-[#152a44] hover:text-white"
+                        ? "bg-azure text-white hover:bg-mint-ink hover:text-white"
                         : "text-slate-600 hover:bg-slate-100"
                     }`}
                     onClick={() => setMemberFilter("rotarians")}
@@ -400,7 +400,7 @@ export default function ClubDetailViewV2Page() {
                     size="sm"
                     className={`rounded-none ${
                       memberFilter === "bod"
-                        ? "bg-[#1e3a5f] text-white hover:bg-[#152a44] hover:text-white"
+                        ? "bg-azure text-white hover:bg-mint-ink hover:text-white"
                         : "text-slate-600 hover:bg-slate-100"
                     }`}
                     onClick={() => setMemberFilter("bod")}
@@ -410,7 +410,7 @@ export default function ClubDetailViewV2Page() {
                 </div>
                 {memberFilter === "bod" && bodYears.length > 0 && (
                   <Select value={bodYearId} onValueChange={setBodYearId}>
-                    <SelectTrigger className="w-40 border-slate-200 bg-white focus:border-[#1e3a5f] focus:ring-[#1e3a5f]/20">
+                    <SelectTrigger className="w-40 border-slate-200 bg-white focus:border-azure focus:ring-azure/20">
                       <SelectValue placeholder="Year" />
                     </SelectTrigger>
                     <SelectContent>
@@ -440,7 +440,7 @@ export default function ClubDetailViewV2Page() {
                     <div
                       key={m.id}
                       className={`rounded-2xl border shadow-sm bg-white cursor-pointer transition-all hover:shadow-md ${
-                        expandedMemberId === m.id ? "border-[#1e3a5f]/40 shadow-md" : "border-slate-200"
+                        expandedMemberId === m.id ? "border-azure/40 shadow-md" : "border-slate-200"
                       }`}
                       onClick={() => toggleMemberDetail(m.id)}
                     >
@@ -614,7 +614,7 @@ export default function ClubDetailViewV2Page() {
                   {/* Events */}
                   <div>
                     <h3 className="text-base font-semibold mb-3 flex items-center gap-2 text-slate-800">
-                      <CalendarDays className="h-5 w-5 text-[#1e3a5f]" />Upcoming Events
+                      <CalendarDays className="h-5 w-5 text-ink" />Upcoming Events
                     </h3>
                     {events.length === 0 ? (
                       <p className="text-slate-500 text-sm py-4">No upcoming events.</p>
@@ -668,7 +668,7 @@ export default function ClubDetailViewV2Page() {
                   {/* Newsletters */}
                   <div>
                     <h3 className="text-base font-semibold mb-3 flex items-center gap-2 text-slate-800">
-                      <Newspaper className="h-5 w-5 text-[#1e3a5f]" />Newsletters
+                      <Newspaper className="h-5 w-5 text-ink" />Newsletters
                     </h3>
                     {newsletters.length === 0 ? (
                       <p className="text-slate-500 text-sm py-4">No newsletters.</p>
@@ -680,10 +680,10 @@ export default function ClubDetailViewV2Page() {
                             className="rounded-2xl border border-slate-200 shadow-sm bg-white hover:shadow-md transition-all p-4"
                           >
                             <div className="flex items-start gap-3">
-                              <div className="w-10 h-10 rounded-xl bg-[#1e3a5f]/10 flex items-center justify-center flex-shrink-0">
+                              <div className="w-10 h-10 rounded-xl bg-azure/10 flex items-center justify-center flex-shrink-0">
                                 {nl.attachmentType === "file"
-                                  ? <FileText className="h-5 w-5 text-[#1e3a5f]" />
-                                  : <ExternalLink className="h-5 w-5 text-[#1e3a5f]" />}
+                                  ? <FileText className="h-5 w-5 text-ink" />
+                                  : <ExternalLink className="h-5 w-5 text-ink" />}
                               </div>
                               <div className="flex-1 min-w-0">
                                 <p className="font-semibold text-sm truncate text-slate-800">{nl.title}</p>
@@ -707,7 +707,7 @@ export default function ClubDetailViewV2Page() {
                                 href={getPhotoUrl(nl.filePath)}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="text-xs text-[#1e3a5f] underline mt-2 inline-block"
+                                className="text-xs text-ink underline mt-2 inline-block"
                               >
                                 View PDF
                               </a>
@@ -717,7 +717,7 @@ export default function ClubDetailViewV2Page() {
                                 href={nl.linkUrl}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="text-xs text-[#1e3a5f] underline mt-2 inline-block"
+                                className="text-xs text-ink underline mt-2 inline-block"
                               >
                                 Open Link
                               </a>
@@ -736,7 +736,7 @@ export default function ClubDetailViewV2Page() {
               <div className="flex items-center gap-4 flex-wrap">
                 {projectYears.length > 0 && (
                   <Select value={projectYearId} onValueChange={setProjectYearId}>
-                    <SelectTrigger className="w-48 border-slate-200 bg-white focus:border-[#1e3a5f] focus:ring-[#1e3a5f]/20">
+                    <SelectTrigger className="w-48 border-slate-200 bg-white focus:border-azure focus:ring-azure/20">
                       <SelectValue placeholder="Select year" />
                     </SelectTrigger>
                     <SelectContent>
@@ -749,7 +749,7 @@ export default function ClubDetailViewV2Page() {
                   </Select>
                 )}
                 <Select value={projectModuleFilter} onValueChange={setProjectModuleFilter}>
-                  <SelectTrigger className="w-56 border-slate-200 bg-white focus:border-[#1e3a5f] focus:ring-[#1e3a5f]/20">
+                  <SelectTrigger className="w-56 border-slate-200 bg-white focus:border-azure focus:ring-azure/20">
                     <SelectValue placeholder="Avenue of Service" />
                   </SelectTrigger>
                   <SelectContent>
@@ -803,7 +803,7 @@ export default function ClubDetailViewV2Page() {
                           {(p.areaOfFocusName || p.otherAreaOfFocus) && (
                             <Badge
                               variant="outline"
-                              className="text-[10px] border-[#1e3a5f]/20 bg-[#1e3a5f]/5 text-[#1e3a5f]"
+                              className="text-[10px] border-azure/20 bg-azure/5 text-ink"
                             >
                               {p.areaOfFocusName || p.otherAreaOfFocus}
                             </Badge>

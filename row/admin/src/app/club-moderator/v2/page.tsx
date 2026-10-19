@@ -26,7 +26,7 @@ import RotaryLoader from "@/components/RotaryLoader";
 import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
 import { formatMoney } from "@/lib/currency";
-import { CheckCircle2, XCircle, Clock, MoreHorizontal, FileText } from "lucide-react";
+import { CheckCircle2, XCircle, Clock, MoreHorizontal, FileText } from "@/components/icons";
 
 import { appLocale } from "@/lib/appFormat";
 interface YearSummary {
@@ -219,9 +219,9 @@ export default function ClubModeratorV2Page() {
             <button
               type="button"
               onClick={() => { setStatusFilter("all"); setPage(1); }}
-              className={`rounded-2xl border bg-white p-4 text-center shadow-sm transition hover:shadow-md ${statusFilter === "all" ? "border-[#1e3a5f] ring-1 ring-[#1e3a5f]/30" : "border-slate-200"}`}
+              className={`rounded-2xl border bg-white p-4 text-center shadow-sm transition hover:shadow-md ${statusFilter === "all" ? "border-azure ring-1 ring-azure/30" : "border-slate-200"}`}
             >
-              <p className="text-2xl font-bold text-[#1e3a5f] tabular-nums">{currentSummary.totalCount}</p>
+              <p className="text-2xl font-bold text-ink tabular-nums">{currentSummary.totalCount}</p>
               <p className="text-sm font-medium text-slate-500">Total</p>
             </button>
           </div>
@@ -305,19 +305,19 @@ export default function ClubModeratorV2Page() {
                       <td className="px-4 py-2.5 text-slate-500 tabular-nums">{(page - 1) * 20 + i + 1}</td>
                       <td className="px-4 py-2.5 font-medium text-slate-800">{p.clubName}</td>
                       <td className="px-4 py-2.5">
-                        <p className="font-medium text-[#1e3a5f]">{p.title}</p>
+                        <p className="font-medium text-ink">{p.title}</p>
                         <p className="text-xs text-slate-500">by {p.createdByName}</p>
                       </td>
                       <td className="px-4 py-2.5 hidden md:table-cell text-sm text-slate-500">{p.moduleName}</td>
-                      <td className="px-4 py-2.5 hidden md:table-cell text-sm text-slate-600 whitespace-nowrap">{p.projectDate ? new Date(p.projectDate).toLocaleDateString() : "—"}</td>
+                      <td className="px-4 py-2.5 hidden md:table-cell text-sm text-slate-600 whitespace-nowrap">{p.projectDate ? new Date(p.projectDate).toLocaleDateString() : "–"}</td>
                       <td className="px-4 py-2.5">{statusBadge(p.approvalStatus)}</td>
                       <td className="px-4 py-2.5 text-sm whitespace-nowrap">
                         {normalizeStatus(p.approvalStatus) === "approved" ? (
-                          <span className="text-green-700">{p.approvalDate ? new Date(p.approvalDate).toLocaleString(appLocale()) : "—"}</span>
+                          <span className="text-green-700">{p.approvalDate ? new Date(p.approvalDate).toLocaleString(appLocale()) : "–"}</span>
                         ) : normalizeStatus(p.approvalStatus) === "rejected" ? (
-                          <span className="text-red-700">{p.approvalDate ? new Date(p.approvalDate).toLocaleString(appLocale()) : "—"}</span>
+                          <span className="text-red-700">{p.approvalDate ? new Date(p.approvalDate).toLocaleString(appLocale()) : "–"}</span>
                         ) : (
-                          <span className="text-slate-400">—</span>
+                          <span className="text-slate-400">, </span>
                         )}
                       </td>
                       <td className="px-4 py-2.5 text-right" onClick={(e) => e.stopPropagation()}>
@@ -350,7 +350,7 @@ export default function ClubModeratorV2Page() {
         <Dialog open={!!actionDialog} onOpenChange={(open) => { if (!open) { setActionDialog(null); setActionRemark(""); } }}>
           <DialogContent className="sm:max-w-md">
             <DialogHeader>
-              <DialogTitle className="flex items-center gap-2 text-[#1e3a5f]">
+              <DialogTitle className="flex items-center gap-2 text-ink">
                 {actionDialog?.type === "approve" ? <CheckCircle2 className="h-5 w-5 text-green-600" /> : <XCircle className="h-5 w-5 text-red-600" />}
                 {actionDialog?.type === "approve" ? "Approve" : "Reject"} Project
               </DialogTitle>
@@ -390,30 +390,30 @@ export default function ClubModeratorV2Page() {
         <Dialog open={!!detailProject || detailLoading} onOpenChange={(open) => { if (!open) { setDetailProject(null); setDetailLoading(false); } }}>
           <DialogContent className="sm:max-w-2xl max-h-[85vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle className="text-[#1e3a5f]">Project Details</DialogTitle>
+              <DialogTitle className="text-ink">Project Details</DialogTitle>
             </DialogHeader>
             {detailLoading ? (
               <div className="flex justify-center py-10"><RotaryLoader size="lg" /></div>
             ) : detailProject && (
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
-                  <h3 className="font-semibold text-lg text-[#1e3a5f]">{detailProject.title}</h3>
+                  <h3 className="font-semibold text-lg text-ink">{detailProject.title}</h3>
                   {statusBadge(detailProject.approvalStatus)}
                 </div>
 
                 {/* Project Info */}
                 <div className="grid grid-cols-2 gap-x-6 gap-y-2 text-sm rounded-lg border border-slate-200 p-4 bg-slate-50">
                   <div><span className="text-slate-500">Club:</span> <span className="font-medium">{detailProject.clubName}</span></div>
-                  <div><span className="text-slate-500">District:</span> <span className="font-medium">{detailProject.districtNumber || "—"}</span></div>
+                  <div><span className="text-slate-500">District:</span> <span className="font-medium">{detailProject.districtNumber || "–"}</span></div>
                   <div><span className="text-slate-500">Module:</span> <span className="font-medium">{detailProject.moduleName}</span></div>
                   <div><span className="text-slate-500">Type:</span> <span className="font-medium">{detailProject.projectType === "ongoing_repeat" ? "Ongoing/Repeat" : "One Time"}</span></div>
-                  <div><span className="text-slate-500">Date:</span> {detailProject.projectDate ? new Date(detailProject.projectDate).toLocaleDateString() : "—"}</div>
-                  <div><span className="text-slate-500">Cost:</span> {detailProject.projectCost != null ? formatMoney(Number(detailProject.projectCost), detailProject.currency) : "—"}</div>
-                  <div><span className="text-slate-500">Beneficiaries:</span> {detailProject.directBeneficiaries ?? "—"}</div>
-                  <div><span className="text-slate-500">Man Hours:</span> {detailProject.manHours ?? "—"}</div>
-                  <div><span className="text-slate-500">Rotarians:</span> {detailProject.rotariansInvolved ?? "—"}</div>
-                  <div><span className="text-slate-500">Rotaractors:</span> {detailProject.rotaractorsInvolved ?? "—"}</div>
-                  <div><span className="text-slate-500">RCC:</span> {detailProject.rccInvolved ?? "—"}</div>
+                  <div><span className="text-slate-500">Date:</span> {detailProject.projectDate ? new Date(detailProject.projectDate).toLocaleDateString() : "–"}</div>
+                  <div><span className="text-slate-500">Cost:</span> {detailProject.projectCost != null ? formatMoney(Number(detailProject.projectCost), detailProject.currency) : "–"}</div>
+                  <div><span className="text-slate-500">Beneficiaries:</span> {detailProject.directBeneficiaries ?? "–"}</div>
+                  <div><span className="text-slate-500">Man Hours:</span> {detailProject.manHours ?? "–"}</div>
+                  <div><span className="text-slate-500">Rotarians:</span> {detailProject.rotariansInvolved ?? "–"}</div>
+                  <div><span className="text-slate-500">Rotaractors:</span> {detailProject.rotaractorsInvolved ?? "–"}</div>
+                  <div><span className="text-slate-500">RCC:</span> {detailProject.rccInvolved ?? "–"}</div>
                   {detailProject.location && <div className="col-span-2"><span className="text-slate-500">Location:</span> {detailProject.location}</div>}
                   {detailProject.areaOfFocusName && <div className="col-span-2"><span className="text-slate-500">Area of Focus:</span> {detailProject.areaOfFocusName}</div>}
                   {detailProject.categoryName && <div><span className="text-slate-500">Category:</span> {detailProject.categoryName}</div>}
@@ -452,17 +452,17 @@ export default function ClubModeratorV2Page() {
                       {detailProject.adminPhoto ? (
                         <Image src={getPhotoUrl(detailProject.adminPhoto) || ""} alt={detailProject.adminName} fill className="object-cover" unoptimized />
                       ) : (
-                        <div className="flex h-full w-full items-center justify-center bg-[#1e3a5f]/10 text-[#1e3a5f] text-sm font-bold">
+                        <div className="flex h-full w-full items-center justify-center bg-azure/10 text-ink text-sm font-bold">
                           {(detailProject.adminName || "?")[0]}
                         </div>
                       )}
                     </div>
                     <div className="text-sm">
-                      <p className="font-semibold">{detailProject.adminName || "—"}</p>
-                      <p className="text-slate-500">{[detailProject.adminEmail, detailProject.adminMobile].filter(Boolean).join(" | ") || "—"}</p>
+                      <p className="font-semibold">{detailProject.adminName || "–"}</p>
+                      <p className="text-slate-500">{[detailProject.adminEmail, detailProject.adminMobile].filter(Boolean).join(" | ") || "–"}</p>
                     </div>
                   </div>
-                  <p className="text-xs text-slate-500 mt-2">Submitted on {detailProject.createdDate ? new Date(detailProject.createdDate).toLocaleDateString() : "—"}</p>
+                  <p className="text-xs text-slate-500 mt-2">Submitted on {detailProject.createdDate ? new Date(detailProject.createdDate).toLocaleDateString() : "–"}</p>
                 </div>
 
                 {/* Approval Remark */}

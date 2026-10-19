@@ -132,8 +132,6 @@ public class ClubWebsiteReminderBackgroundService : BackgroundService
 
         using var scope = _serviceProvider.CreateScope();
         var emailService = scope.ServiceProvider.GetRequiredService<IEmailService>();
-        var whatsApp = scope.ServiceProvider.GetRequiredService<IWhatsAppService>();
-        var waTemplate = _config["WhatsApp:ClubWebsiteReminderTemplate"];
         var parentDomain = await conn.ExecuteScalarAsync<string?>(
             "SELECT SettingValue FROM system_settings WHERE SettingKey = 'ClubWebsiteParentDomain' LIMIT 1")
             ?? (_config.GetSection("PleskSettings")["ParentDomain"] ?? RotaryApi.Services.Brand.ClubSiteParentDomain);
@@ -206,17 +204,6 @@ public class ClubWebsiteReminderBackgroundService : BackgroundService
                         sent++;
                     }
                     catch (Exception ex) { failed++; _logger.LogError(ex, "Website reminder email failed for {Email}", lemail); }
-                }
-                // WhatsApp renewal template: [name, websiteUrl, dueDate, payLink].
-                if (!string.IsNullOrWhiteSpace(lmobile) && !string.IsNullOrWhiteSpace(waTemplate))
-                {
-                    try
-                    {
-                        var ok = await whatsApp.SendWhatsAppWithBodyValuesAsync(lmobile!, waTemplate,
-                            new[] { lname, websiteUrl, dueDate, payLink });
-                        if (ok) sent++; else failed++;
-                    }
-                    catch (Exception ex) { failed++; _logger.LogWarning(ex, "Website reminder WhatsApp failed for {Mobile}", lmobile); }
                 }
             }
 

@@ -33,7 +33,7 @@ import {
   ArrowLeft, Search, X, Plus, Pencil, Trash2, Eye,
   MoreHorizontal, FolderOpen, AlertTriangle, Info,
   Clock, CheckCircle2, XCircle,
-} from "lucide-react";
+} from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
 import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";

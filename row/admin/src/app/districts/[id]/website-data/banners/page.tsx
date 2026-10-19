@@ -42,7 +42,7 @@ import AlertModal from "@/components/AlertModal";
 import {
   ArrowLeft, Plus, Pencil, Trash2, MoreHorizontal, ImageIcon,
   AlertTriangle, Upload, X, Eye, EyeOff, GripVertical,
-} from "lucide-react";
+} from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
 import Link from "next/link";
 import Image from "next/image";

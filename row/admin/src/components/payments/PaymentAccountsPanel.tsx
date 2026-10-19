@@ -10,7 +10,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
-import { Check, Copy, Loader2, Plus, ShieldCheck, ShieldAlert, PowerOff, Power, RefreshCw, Info } from "lucide-react";
+import { Check, Copy, Loader2, Plus, ShieldCheck, ShieldAlert, PowerOff, Power, RefreshCw, Info } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -371,7 +371,7 @@ export default function PaymentAccountsPanel({ ownerType, ownerId }: { ownerType
           <Info className="mt-0.5 h-4 w-4 shrink-0" />
           <span>
             {gateways.length === 0
-              ? t("accounts.noCoverage", { country: coverage.countryName ?? coverage.countryIso ?? "—" })
+              ? t("accounts.noCoverage", { country: coverage.countryName ?? coverage.countryIso ?? "–" })
               : coverage.countryName
                 ? t("accounts.coverage", { country: coverage.countryName, gateways: gatewayList })
                 : t("accounts.coverageUnknown", { gateways: gatewayList })}

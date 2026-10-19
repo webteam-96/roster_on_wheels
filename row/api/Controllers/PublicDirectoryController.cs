@@ -22,8 +22,6 @@ public class PublicDirectoryController : ControllerBase
     private readonly string _connectionString;
     private readonly IConfiguration _config;
     private readonly IEmailService _email;
-    private readonly ISmsService _sms;
-    private readonly IWhatsAppService _whatsapp;
     private readonly IWebHostEnvironment _env;
     private readonly ILogger<PublicDirectoryController> _logger;
     private readonly string _apiBase;
@@ -34,8 +32,6 @@ public class PublicDirectoryController : ControllerBase
     public PublicDirectoryController(
         IConfiguration config,
         IEmailService email,
-        ISmsService sms,
-        IWhatsAppService whatsapp,
         IWebHostEnvironment env,
         ILogger<PublicDirectoryController> logger,
         AdminProxyTokenSigner adminProxySigner,
@@ -44,8 +40,6 @@ public class PublicDirectoryController : ControllerBase
         _connectionString = config.GetConnectionString("DefaultConnection")!;
         _config = config;
         _email = email;
-        _sms = sms;
-        _whatsapp = whatsapp;
         _env = env;
         _logger = logger;
         // Same fallback chain as _publicFrontendBase. Without this, image URLs
@@ -296,20 +290,6 @@ public class PublicDirectoryController : ControllerBase
             if (channel == "email")
             {
                 sentEmail = await TrySendOtpEmailAsync();
-            }
-            // The directory form sends SMS only through the configured India gateway ("dlt"); with Twilio it uses email.
-            else if (channel == "sms" && string.Equals(Brand.SmsProvider, "dlt", StringComparison.OrdinalIgnoreCase) && !string.IsNullOrWhiteSpace(mobile))
-            {
-                try
-                {
-                    sentSms = await _sms.SendOtpSmsAsync(mobile, otp);
-                    if (sentSms) _logger.LogInformation("[OTP-SMS] sent to member {MemberId}", req.MemberId);
-                    else _logger.LogWarning("[OTP-SMS] gateway returned false for member {MemberId}", req.MemberId);
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogWarning("[OTP-SMS] failed for member {MemberId}: {Error}", req.MemberId, ex.Message);
-                }
             }
             if (sentEmail || sentSms) break;
         }
@@ -1123,47 +1103,6 @@ public class PublicDirectoryController : ControllerBase
                 _logger.LogInformation("📧 [SUBMIT-EMAIL] ⏭ {Name} — skipped (no email on profile)", p.Name);
             }
 
-            if (p.SendWhatsapp && p.Pending.Count == 0)
-            {
-                // Fully complete — the only approved WhatsApp template for this flow
-                // ("district_directory_form_incomplete_final") is worded around an
-                // incomplete submission, so sending it here would tell a member who just
-                // finished 100% of their fields that their entry is incomplete. Skip
-                // WhatsApp for complete submissions; the email confirmation (built as
-                // dynamic HTML, not a fixed template) already reports 100% correctly.
-                // Mirrors the skip SendRemindersBackgroundAsync already does for the
-                // reminder batch (DirectoryDataCollectionController).
-                _logger.LogInformation("💬 [SUBMIT-WA] ⏭ {Name} — skipped (submission complete, no matching WhatsApp template)", p.Name);
-            }
-            else if (p.SendWhatsapp && !string.IsNullOrWhiteSpace(p.Mobile))
-            {
-                var pendingList = string.Join("\n", p.Pending.Select((x, i) => $"{i + 1}) {x}"));
-                var bodyValues = new[]
-                {
-                    p.Name,                           // {{1}} Member Name
-                    p.YearLabel,                      // {{2}} Rotary Year
-                    p.DistrictNumber,                 // {{3}} District Number
-                    p.Pending.Count.ToString(),       // {{4}} Pending count
-                    p.Total.ToString(),               // {{5}} Total fields
-                    pendingList,                      // {{6}} Pending list
-                    p.Url,                            // {{7}} Link
-                    p.ContactText,                    // {{8}} Contact details
-                };
-                try
-                {
-                    var sent = await _whatsapp.SendWhatsAppWithBodyValuesAsync(p.Mobile, "district_directory_form_incomplete_final", bodyValues);
-                    if (sent) _logger.LogInformation("💬 [SUBMIT-WA] ✅ {Name} → {Mobile}", p.Name, p.Mobile);
-                    else _logger.LogWarning("💬 [SUBMIT-WA] ❌ {Name} → {Mobile} returned false (check the Meta template and account)", p.Name, p.Mobile);
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogWarning("💬 [SUBMIT-WA] ❌ {Name} → {Mobile} FAILED: {Error}", p.Name, p.Mobile, ex.Message);
-                }
-            }
-            else
-            {
-                _logger.LogInformation("💬 [SUBMIT-WA] ⏭ {Name} — skipped (no mobile on profile)", p.Name);
-            }
         }
         catch (Exception ex) { _logger.LogError(ex, "SendSubmitConfirmationAsync failed"); }
     }

@@ -1,7 +1,7 @@
 "use client";
 
-import * as LucideIcons from "lucide-react";
-import { LucideProps } from "lucide-react";
+import * as LucideIcons from "@/components/icons";
+import { LucideProps } from "@/components/icons";
 import { getPhotoUrl } from "@/services/api";
 
 interface ModuleIconProps extends Omit<LucideProps, "name"> {

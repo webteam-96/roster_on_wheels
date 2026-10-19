@@ -119,17 +119,6 @@ export const LOGIN_ANNOUNCEMENT_FILTERS: LoginAnnouncementFilterDef[] = [
     options: PURCHASE_OPTIONS,
   },
   {
-    key: "whatsappCredits",
-    label: "WhatsApp Credits",
-    hint: "Club credits, or district credits for District Admins / AGs",
-    phrases: {
-      purchased: "they have WhatsApp credits left",
-      not_purchased: "they have no WhatsApp credits",
-      expired: "",
-    },
-    options: PURCHASE_OPTIONS,
-  },
-  {
     key: "emailCredits",
     label: "Email Credits",
     hint: "Club credits, or district credits for District Admins / AGs",
@@ -179,7 +168,7 @@ export function describeLocationSelection(
 // Plain-English summary, e.g. "Shows to Club Admin in Zone 4, only where their club has no live website."
 export function describeLoginAnnouncementAudience(roles: string[], filters: LoginAnnouncementFilters, locationPhrase?: string): string {
   const who = roles.length === 0
-    ? "nobody yet — select at least one role"
+    ? "nobody yet: select at least one role"
     : roles.includes(ALL_ROLES_KEY)
       ? "everyone who logs in (except Family Login)"
       : joinWithAnd(roles.map(loginAnnouncementRoleLabel));

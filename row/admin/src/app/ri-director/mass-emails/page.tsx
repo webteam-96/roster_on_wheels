@@ -14,7 +14,7 @@ import Pagination from "@/components/Pagination";
 import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
 import AlertModal from "@/components/AlertModal";
-import { ArrowLeft, Search, X, Plus, Pencil, Trash2, MoreHorizontal, FolderOpen, AlertTriangle, Send, Eye, RotateCw } from "lucide-react";
+import { ArrowLeft, Search, X, Plus, Pencil, Trash2, MoreHorizontal, FolderOpen, AlertTriangle, Send, Eye, RotateCw } from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
 import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";
@@ -213,7 +213,7 @@ export default function RiDirectorMassEmailsPage() {
                 <div>Required Email credits: <span className="font-semibold">{sendTarget?.totalRecipients ?? 0}</span></div>
                 <div>Available balance: <span className={`font-semibold ${sendBalance !== null && sendTarget && sendTarget.totalRecipients > sendBalance ? "text-destructive" : "text-green-700"}`}>{sendBalance === null ? "..." : sendBalance}</span></div>
                 {sendBalance !== null && sendTarget && sendTarget.totalRecipients > sendBalance && (
-                  <div className="text-destructive font-medium mt-1">⚠️ Insufficient credits. Send blocked.</div>
+                  <div className="text-destructive font-medium mt-1">Insufficient credits. Send blocked.</div>
                 )}
               </div>
             </div>

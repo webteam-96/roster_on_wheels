@@ -17,7 +17,7 @@ import Link from "next/link";
 import {
   Share2, CheckCircle2, EyeOff, Link2, Loader2, Search, Plus, Edit3, Trash2,
   ArrowLeft, AlertTriangle, Download, GripVertical, ExternalLink,
-} from "lucide-react";
+} from "@/components/icons";
 import {
   getClub,
   getClubSocialLinks,
@@ -48,7 +48,6 @@ function platformChipStyle(platform: string): string {
     case "twitter":    return "bg-slate-100 text-slate-800 border-slate-200";
     case "linkedin":   return "bg-sky-50 text-sky-700 border-sky-200";
     case "youtube":    return "bg-rose-50 text-rose-700 border-rose-200";
-    case "whatsapp":   return "bg-emerald-50 text-emerald-700 border-emerald-200";
     case "telegram":   return "bg-cyan-50 text-cyan-700 border-cyan-200";
     case "pinterest":  return "bg-red-50 text-red-700 border-red-200";
     case "threads":    return "bg-zinc-100 text-zinc-800 border-zinc-200";
@@ -61,11 +60,10 @@ function platformChipStyle(platform: string): string {
 function platformIconBg(platform: string): string {
   const map: Record<string, string> = {
     facebook: "bg-blue-600",
-    instagram: "bg-gradient-to-br from-purple-500 to-pink-500",
+    instagram: "bg-purple-500",
     twitter: "bg-black",
     linkedin: "bg-blue-700",
     youtube: "bg-red-600",
-    whatsapp: "bg-green-500",
     telegram: "bg-sky-500",
     pinterest: "bg-red-700",
     threads: "bg-black",
@@ -222,7 +220,7 @@ export default function SocialMediaLinksV2Page() {
             <div>
               <h1 className="text-lg font-semibold text-slate-800">Social Media Links</h1>
               <p className="text-xs text-slate-500 mt-0.5">
-                {clubName || "—"} · public social-handle directory
+                {clubName || "–"} · public social-handle directory
               </p>
             </div>
           </div>
@@ -242,7 +240,7 @@ export default function SocialMediaLinksV2Page() {
             <div>
               <h3 className="text-sm font-semibold text-slate-800">Social Media Links</h3>
               <p className="text-xs text-slate-500 mt-0.5">
-                {clubName || "—"} · shown on the public club website
+                {clubName || "–"} · shown on the public club website
               </p>
             </div>
             <div className="flex flex-wrap items-center gap-2">

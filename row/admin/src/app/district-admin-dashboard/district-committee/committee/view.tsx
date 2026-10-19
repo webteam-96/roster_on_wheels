@@ -18,7 +18,7 @@ import {
   uploadCommitteePhoto, getRotaryYears, getDistrict, getPhotoUrl, reorderCommitteeMembers,
 } from "@/services/api";
 import { useDragSort } from "@/hooks/useDragSort";
-import { GripVertical } from "lucide-react";
+import { GripVertical } from "@/components/icons";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -30,7 +30,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
 import AlertModal from "@/components/AlertModal";
-import { ArrowLeft, Plus, Pencil, Trash2, AlertTriangle, Users, Search, X, Upload } from "lucide-react";
+import { ArrowLeft, Plus, Pencil, Trash2, AlertTriangle, Users, Search, X, Upload } from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
 import Pagination from "@/components/Pagination";
 import NonSyncRemovedCommitteeMembers from "@/components/dashboard/NonSyncRemovedCommitteeMembers";
@@ -366,7 +366,7 @@ export function CommitteeMembersView({ embedded = false }: { embedded?: boolean 
                 <ArrowLeft className="h-4 w-4" />
               </Button>
               <div>
-                <h2 className="text-2xl font-bold tracking-tight text-[#1e3a5f]">
+                <h2 className="text-2xl font-bold tracking-tight text-ink">
                   {districtName ? `${districtName} - District Committee` : "District Committee"}
                 </h2>
                 <p className="text-slate-600 text-sm">Manage committee members</p>
@@ -383,7 +383,7 @@ export function CommitteeMembersView({ embedded = false }: { embedded?: boolean 
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
               <Input
-                className="pl-9 pr-8 border-slate-200 bg-white focus:border-[#1e3a5f] focus:ring-[#1e3a5f]/20"
+                className="pl-9 pr-8 border-slate-200 bg-white focus:border-azure focus:ring-azure/20"
                 placeholder="Search by name, mobile, email, club..."
                 value={searchDraft}
                 onChange={(e) => setSearchDraft(e.target.value)}
@@ -400,7 +400,7 @@ export function CommitteeMembersView({ embedded = false }: { embedded?: boolean 
                 size="sm"
                 onClick={handleSearch}
                 type="button"
-                className="bg-[#1e3a5f] hover:bg-[#152a44] text-white"
+                className="bg-azure hover:bg-mint-ink text-white"
               >
                 <Search className="mr-2 h-4 w-4" />Search
               </Button>
@@ -419,7 +419,7 @@ export function CommitteeMembersView({ embedded = false }: { embedded?: boolean 
                 <Button
                   size="sm"
                   onClick={openAddDialog}
-                  className="bg-[#1e3a5f] hover:bg-[#152a44] text-white"
+                  className="bg-azure hover:bg-mint-ink text-white"
                 >
                   <Plus className="mr-2 h-4 w-4" />Add Committee Member
                 </Button>
@@ -446,8 +446,8 @@ export function CommitteeMembersView({ embedded = false }: { embedded?: boolean 
             <Table>
               <TableHeader>
                 <TableRow
-                  className="hover:opacity-100 border-b-2 border-[#F7A81B]"
-                  style={{ backgroundColor: "#1e3a5f" }}
+                  className="hover:opacity-100 border-b-2 border-marigold"
+                  style={{ backgroundColor: "#17458f" }}
                 >
                   <TableHead className="w-12 text-white text-xs font-semibold uppercase tracking-wide">#</TableHead>
                   <TableHead className="text-white text-xs font-semibold uppercase tracking-wide">Photo</TableHead>
@@ -489,7 +489,7 @@ export function CommitteeMembersView({ embedded = false }: { embedded?: boolean 
                     {canManage && (
                       <TableCell className="text-right">
                         <div className="flex items-center justify-end gap-1">
-                          <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-500 hover:text-[#1e3a5f] hover:bg-slate-100" onClick={() => openEditDialog(m)}><Pencil className="h-4 w-4" /></Button>
+                          <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-500 hover:text-ink hover:bg-slate-100" onClick={() => openEditDialog(m)}><Pencil className="h-4 w-4" /></Button>
                           <Button variant="ghost" size="icon" className="h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-50" onClick={() => setDeleteTarget(m)}><Trash2 className="h-4 w-4" /></Button>
                         </div>
                       </TableCell>
@@ -515,7 +515,7 @@ export function CommitteeMembersView({ embedded = false }: { embedded?: boolean 
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle className="text-[#1e3a5f]">{editing ? "Edit Committee Member" : "Add Committee Member"}</DialogTitle>
+              <DialogTitle className="text-ink">{editing ? "Edit Committee Member" : "Add Committee Member"}</DialogTitle>
               <DialogDescription>{editing ? "Update the member details." : "Search for a member or add a non-member."}</DialogDescription>
             </DialogHeader>
             <div className="space-y-4 py-2">
@@ -523,7 +523,7 @@ export function CommitteeMembersView({ embedded = false }: { embedded?: boolean 
               <div className="space-y-2">
                 <Label className="text-slate-500 text-xs font-semibold uppercase tracking-wide">Rotary Year *</Label>
                 <Select value={formYearId} onValueChange={setFormYearId}>
-                  <SelectTrigger className="border-slate-200 bg-white focus:border-[#1e3a5f] focus:ring-[#1e3a5f]/20">
+                  <SelectTrigger className="border-slate-200 bg-white focus:border-azure focus:ring-azure/20">
                     <SelectValue placeholder="Select year" />
                   </SelectTrigger>
                   <SelectContent>
@@ -543,7 +543,7 @@ export function CommitteeMembersView({ embedded = false }: { embedded?: boolean 
                       <div className="relative flex-1">
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
                         <Input
-                          className="pl-9 border-slate-200 bg-white focus:border-[#1e3a5f] focus:ring-[#1e3a5f]/20"
+                          className="pl-9 border-slate-200 bg-white focus:border-azure focus:ring-azure/20"
                           placeholder="Search by name, mobile, email..."
                           value={memberSearch}
                           onChange={(e) => handleMemberSearch(e.target.value)}
@@ -590,7 +590,7 @@ export function CommitteeMembersView({ embedded = false }: { embedded?: boolean 
                   value={formName}
                   onChange={(e) => setFormName(e.target.value)}
                   disabled={formIsMember && !!formMemberId}
-                  className="border-slate-200 bg-white focus:border-[#1e3a5f] focus:ring-[#1e3a5f]/20"
+                  className="border-slate-200 bg-white focus:border-azure focus:ring-azure/20"
                 />
               </div>
 
@@ -601,7 +601,7 @@ export function CommitteeMembersView({ embedded = false }: { embedded?: boolean 
                   value={formMobile}
                   onChange={(e) => setFormMobile(e.target.value)}
                   disabled={formIsMember && !!formMemberId}
-                  className="border-slate-200 bg-white focus:border-[#1e3a5f] focus:ring-[#1e3a5f]/20"
+                  className="border-slate-200 bg-white focus:border-azure focus:ring-azure/20"
                 />
               </div>
 
@@ -613,7 +613,7 @@ export function CommitteeMembersView({ embedded = false }: { embedded?: boolean 
                   value={formEmail}
                   onChange={(e) => setFormEmail(e.target.value)}
                   disabled={formIsMember && !!formMemberId}
-                  className="border-slate-200 bg-white focus:border-[#1e3a5f] focus:ring-[#1e3a5f]/20"
+                  className="border-slate-200 bg-white focus:border-azure focus:ring-azure/20"
                 />
               </div>
 
@@ -623,7 +623,7 @@ export function CommitteeMembersView({ embedded = false }: { embedded?: boolean 
                 <Input
                   value={formDesignation}
                   onChange={(e) => setFormDesignation(e.target.value)}
-                  className="border-slate-200 bg-white focus:border-[#1e3a5f] focus:ring-[#1e3a5f]/20"
+                  className="border-slate-200 bg-white focus:border-azure focus:ring-azure/20"
                 />
               </div>
 
@@ -635,7 +635,7 @@ export function CommitteeMembersView({ embedded = false }: { embedded?: boolean 
                     <Input
                       value={formClubName}
                       disabled
-                      className="border-slate-200 bg-white focus:border-[#1e3a5f] focus:ring-[#1e3a5f]/20"
+                      className="border-slate-200 bg-white focus:border-azure focus:ring-azure/20"
                     />
                   </div>
                 ) : null
@@ -646,7 +646,7 @@ export function CommitteeMembersView({ embedded = false }: { embedded?: boolean 
                     value={formClubName}
                     onChange={(e) => setFormClubName(e.target.value)}
                     placeholder="Enter club name"
-                    className="border-slate-200 bg-white focus:border-[#1e3a5f] focus:ring-[#1e3a5f]/20"
+                    className="border-slate-200 bg-white focus:border-azure focus:ring-azure/20"
                   />
                 </div>
               )}
@@ -657,7 +657,7 @@ export function CommitteeMembersView({ embedded = false }: { embedded?: boolean 
                 <Input
                   value={formRemark}
                   onChange={(e) => setFormRemark(e.target.value)}
-                  className="border-slate-200 bg-white focus:border-[#1e3a5f] focus:ring-[#1e3a5f]/20"
+                  className="border-slate-200 bg-white focus:border-azure focus:ring-azure/20"
                 />
               </div>
 
@@ -697,7 +697,7 @@ export function CommitteeMembersView({ embedded = false }: { embedded?: boolean 
               <Button
                 onClick={handleSave}
                 disabled={saving || !formName.trim() || !formYearId}
-                className="bg-[#1e3a5f] hover:bg-[#152a44] text-white"
+                className="bg-azure hover:bg-mint-ink text-white"
               >
                 {saving ? "Saving..." : editing ? "Update" : "Add"}
               </Button>

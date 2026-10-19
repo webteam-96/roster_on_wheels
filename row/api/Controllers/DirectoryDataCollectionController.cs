@@ -18,7 +18,6 @@ public class DirectoryDataCollectionController : ControllerBase
 {
     private readonly string _connectionString;
     private readonly IEmailService _email;
-    private readonly IWhatsAppService _whatsapp;
     private readonly ILogger<DirectoryDataCollectionController> _logger;
     private readonly IConfiguration _config;
     private readonly string _apiBase;
@@ -26,12 +25,10 @@ public class DirectoryDataCollectionController : ControllerBase
     public DirectoryDataCollectionController(
         IConfiguration config,
         IEmailService email,
-        IWhatsAppService whatsapp,
         ILogger<DirectoryDataCollectionController> logger)
     {
         _connectionString = config.GetConnectionString("DefaultConnection")!;
         _email = email;
-        _whatsapp = whatsapp;
         _logger = logger;
         _config = config;
         // Image URLs embedded in reminder emails were resolving to localhost:5000
@@ -154,7 +151,6 @@ public class DirectoryDataCollectionController : ControllerBase
         // Per-district notification toggles — gate the reminder batch + the post-submit confirmation
         // Email / WhatsApp for this district. OTP is NOT affected. Default true (send).
         public bool SendEmail { get; set; } = true;
-        public bool SendWhatsapp { get; set; } = true;
     }
 
     [HttpPost]
@@ -206,7 +202,7 @@ public class DirectoryDataCollectionController : ControllerBase
                 Bod = DirectoryDataCollectionFields.SerializeKeys(req.BodFields),
                 Mem = DirectoryDataCollectionFields.SerializeKeys(req.MemberFields),
                 SendEmail = req.SendEmail,
-                SendWhatsapp = req.SendWhatsapp,
+                SendWhatsapp = false,
                 UserId = userId
             });
 
@@ -260,7 +256,7 @@ public class DirectoryDataCollectionController : ControllerBase
                 Bod = DirectoryDataCollectionFields.SerializeKeys(req.BodFields),
                 Mem = DirectoryDataCollectionFields.SerializeKeys(req.MemberFields),
                 SendEmail = req.SendEmail,
-                SendWhatsapp = req.SendWhatsapp,
+                SendWhatsapp = false,
                 UserId = GetUserId()
             });
 
@@ -305,13 +301,13 @@ public class DirectoryDataCollectionController : ControllerBase
         return Ok(new { id, isActive, message = isActive == 1 ? "Link enabled." : "Link disabled — the public form now shows \"Link is closed\"." });
     }
 
-    // Send Email / WhatsApp reminders to every member with <100% completion for their group
+    // Send email reminders to every member with <100% completion for their group
     [HttpPost("{id:int}/send-reminders")]
-    public async Task<ActionResult> SendReminders(int id, [FromQuery] string channel = "both")
+    public async Task<ActionResult> SendReminders(int id, [FromQuery] string channel = "email")
     {
         if (!IsSuperAdmin()) return Forbid();
-        if (channel != "email" && channel != "whatsapp" && channel != "both")
-            return BadRequest(new { message = "channel must be email|whatsapp|both" });
+        if (channel != "email")
+            return BadRequest(new { message = "channel must be email" });
 
         using var conn = CreateConnection();
         await conn.OpenAsync();
@@ -376,34 +372,6 @@ public class DirectoryDataCollectionController : ControllerBase
                         {
                             emailFail++;
                             _logger.LogWarning("📧 [EMAIL] ❌ {Member} → {Email} FAILED: {Error}", m.Name, m.Email, ex.Message);
-                        }
-                    }
-                    if (channel is "whatsapp" or "both" && cfg.SendWhatsapp != 0 && !string.IsNullOrWhiteSpace(m.Mobile))
-                    {
-                        var pendingList = string.Join("\n", pending.Select((p, i) => $"{i + 1}) {p}"));
-                        var contactText = DirectoryDataCollectionFields.BuildContactText(
-                            cfg.FirstContactName, cfg.FirstContactMobile, cfg.SecondContactName, cfg.SecondContactMobile);
-                        var bodyValues = new[]
-                        {
-                            m.Name ?? "",                         // {{1}} Member Name
-                            cfg.YearLabel,                         // {{2}} Rotary Year
-                            cfg.DistrictNumber,                    // {{3}} District Number
-                            pending.Count.ToString(),              // {{4}} Pending fields count
-                            total.ToString(),                      // {{5}} Total fields count
-                            pendingList,                           // {{6}} Pending fields list
-                            url,                                   // {{7}} Link
-                            contactText,                           // {{8}} Contact details
-                        };
-                        try
-                        {
-                            var sent = await _whatsapp.SendWhatsAppWithBodyValuesAsync(m.Mobile, "district_directory_form_incomplete_final", bodyValues);
-                            if (sent) { waOk++; _logger.LogInformation("💬 [WHATSAPP] ✅ {Member} → {Mobile} ({Group}, {Pending}/{Total} pending)", m.Name, m.Mobile, group, pending.Count, total); }
-                            else { waFail++; _logger.LogWarning("💬 [WHATSAPP] ❌ {Member} → {Mobile} returned false (check the Meta template and account)", m.Name, m.Mobile); }
-                        }
-                        catch (Exception ex)
-                        {
-                            waFail++;
-                            _logger.LogWarning("💬 [WHATSAPP] ❌ {Member} → {Mobile} FAILED: {Error}", m.Name, m.Mobile, ex.Message);
                         }
                     }
                 }

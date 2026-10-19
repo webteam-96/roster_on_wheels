@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Search } from "lucide-react";
+import { Search } from "@/components/icons";
 import { EventCard, FlagshipCard } from "./EventCard";
 import { EVENTS, eventSlug, type EventItem } from "./data";
 

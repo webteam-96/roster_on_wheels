@@ -7,8 +7,8 @@
  * mirroring `src/app/district-admin-dashboard/membership/page.tsx`.
  *
  * Palette:
- *   Navy   #1e3a5f  — primary buttons, table header, toggle active bg
- *   Navy H #152a44  — button hover
+ *   Navy   #17458f  — primary buttons, table header, toggle active bg
+ *   Navy H #1b2c42  — button hover
  *   Gold   #F7A81B  — accent underline on table header, view toggle active
  *   Slate  text/backgrounds/rings
  *
@@ -42,7 +42,7 @@ import { formatMeetingTime12Hour } from "@/lib/dateUtils";
 import {
   Building2, AlertCircle, ArrowLeft, LayoutGrid, List, Search, Plus,
   MoreVertical, MoreHorizontal, Pencil, Trash2, Users, MapPin, Calendar, X,
-} from "lucide-react";
+} from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import Pagination from "@/components/Pagination";
@@ -91,8 +91,8 @@ function ClubCardV2({
 
       {/* Header band — navy w/ gold underline */}
       <div
-        className="flex items-center gap-3 p-4 border-b-2 border-[#F7A81B] text-white"
-        style={{ backgroundColor: "#1e3a5f" }}
+        className="flex items-center gap-3 p-4 border-b-2 border-marigold text-white"
+        style={{ backgroundColor: "#17458f" }}
       >
         <div className="relative h-14 w-14 flex-shrink-0 overflow-hidden rounded-full bg-white/15 ring-1 ring-white/30">
           {logoUrl ? (
@@ -213,8 +213,8 @@ function ClubTableV2({
       <Table>
         <TableHeader>
           <TableRow
-            className="hover:opacity-100 border-b-2 border-[#F7A81B]"
-            style={{ backgroundColor: "#1e3a5f" }}
+            className="hover:opacity-100 border-b-2 border-marigold"
+            style={{ backgroundColor: "#17458f" }}
           >
             <TableHead className="w-12 text-white/90"></TableHead>
             <TableHead className="text-white text-xs font-semibold uppercase tracking-wide">Club Name</TableHead>
@@ -425,7 +425,7 @@ export default function DistrictClubsV2Page() {
               </Button>
               <div>
                 <h2 className="text-xl font-bold tracking-tight text-slate-800">
-                  {districtNumber ? `District ${districtNumber} — Clubs` : "Clubs"}
+                  {districtNumber ? `District ${districtNumber}: Clubs` : "Clubs"}
                 </h2>
                 <p className="text-slate-500 text-sm">Clubs in this district</p>
               </div>
@@ -434,7 +434,7 @@ export default function DistrictClubsV2Page() {
               <Button
                 asChild
                 size="sm"
-                className="bg-[#1e3a5f] hover:bg-[#152a44] text-white"
+                className="bg-azure hover:bg-mint-ink text-white"
               >
                 <Link href={`/clubs/new?districtId=${districtId}`}>
                   <Plus className="mr-2 h-4 w-4" />Add Club
@@ -453,14 +453,14 @@ export default function DistrictClubsV2Page() {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               onKeyDown={handleKeyDown}
-              className="pl-9 border-slate-200 bg-white focus:border-[#1e3a5f] focus:ring-[#1e3a5f]/20 text-sm"
+              className="pl-9 border-slate-200 bg-white focus:border-azure focus:ring-azure/20 text-sm"
             />
           </div>
           <div className="flex items-center gap-2">
             <Button
               onClick={handleSearch}
               size="sm"
-              className="bg-[#1e3a5f] hover:bg-[#152a44] text-white"
+              className="bg-azure hover:bg-mint-ink text-white"
             >
               <Search className="mr-2 h-4 w-4" />Search
             </Button>
@@ -470,7 +470,7 @@ export default function DistrictClubsV2Page() {
                 size="icon"
                 className={`h-9 w-9 rounded-none ${
                   viewMode === "grid"
-                    ? "bg-[#1e3a5f] text-white hover:bg-[#152a44] hover:text-white"
+                    ? "bg-azure text-white hover:bg-mint-ink hover:text-white"
                     : "text-slate-600 hover:bg-slate-100"
                 }`}
                 onClick={() => setViewMode("grid")}
@@ -482,7 +482,7 @@ export default function DistrictClubsV2Page() {
                 size="icon"
                 className={`h-9 w-9 rounded-none ${
                   viewMode === "table"
-                    ? "bg-[#1e3a5f] text-white hover:bg-[#152a44] hover:text-white"
+                    ? "bg-azure text-white hover:bg-mint-ink hover:text-white"
                     : "text-slate-600 hover:bg-slate-100"
                 }`}
                 onClick={() => setViewMode("table")}
@@ -502,7 +502,7 @@ export default function DistrictClubsV2Page() {
               placeholder="Filter clubs..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-9 pr-8 border-slate-200 bg-white focus:border-[#1e3a5f] focus:ring-[#1e3a5f]/20 text-sm"
+              className="pl-9 pr-8 border-slate-200 bg-white focus:border-azure focus:ring-azure/20 text-sm"
             />
             {searchQuery && (
               <Button

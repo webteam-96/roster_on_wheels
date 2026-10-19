@@ -12,7 +12,7 @@ export default function GlobalError({
       <body>
         <div style={{ padding: "2rem", textAlign: "center" }}>
           <h2>Something went wrong!</h2>
-          <p style={{ color: "#666", marginTop: "0.5rem" }}>{error.message}</p>
+          <p style={{ color: "#64748B", marginTop: "0.5rem" }}>{error.message}</p>
           <button
             onClick={() => reset()}
             style={{

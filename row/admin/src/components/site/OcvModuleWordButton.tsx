@@ -5,7 +5,7 @@
 // anchor that gives no feedback), then triggers the browser download.
 
 import { useState } from "react";
-import { Download, Loader2 } from "lucide-react";
+import { Download, Loader2 } from "@/components/icons";
 
 export function OcvModuleWordButton({ wordUrl, fileName }: { wordUrl: string; fileName: string }) {
   const [loading, setLoading] = useState(false);

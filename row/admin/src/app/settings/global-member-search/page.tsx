@@ -12,7 +12,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import ErrorAlert from "@/components/ErrorAlert";
 import SuccessAlert from "@/components/SuccessAlert";
-import { ArrowLeft, Search, User, Building, Shield, Award, Crown, Users, Briefcase, X, Pencil, Trash2, Calendar, CreditCard, ClipboardList } from "lucide-react";
+import { ArrowLeft, Search, User, Building, Shield, Award, Crown, Users, Briefcase, X, Pencil, Trash2, Calendar, CreditCard, ClipboardList } from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
 import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";
@@ -264,12 +264,12 @@ export default function GlobalMemberSearchPage() {
                         <TableCell>{pageStart + idx + 1}</TableCell>
                         <TableCell>
                           {r.clubs?.slice(0, 2).map((c: any, i: number) => (
-                            <div key={i} className="text-xs">{c.zoneName || "—"}</div>
+                            <div key={i} className="text-xs">{c.zoneName || "–"}</div>
                           ))}
                         </TableCell>
                         <TableCell>
                           {r.clubs?.slice(0, 2).map((c: any, i: number) => (
-                            <div key={i} className="text-xs">{c.districtNumber || "—"}</div>
+                            <div key={i} className="text-xs">{c.districtNumber || "–"}</div>
                           ))}
                         </TableCell>
                         <TableCell>
@@ -279,9 +279,9 @@ export default function GlobalMemberSearchPage() {
                           {r.clubs?.length > 2 && <div className="text-xs text-muted-foreground">+{r.clubs.length - 2} more</div>}
                         </TableCell>
                         <TableCell className="font-medium">{mem.MemberName}</TableCell>
-                        <TableCell className="text-sm">{mem.PrimaryMobileNumber || "—"}</TableCell>
-                        <TableCell className="text-sm">{mem.EmailId || "—"}</TableCell>
-                        <TableCell><Badge variant="outline" className="text-xs">{mem.RotaryId || "—"}</Badge></TableCell>
+                        <TableCell className="text-sm">{mem.PrimaryMobileNumber || "–"}</TableCell>
+                        <TableCell className="text-sm">{mem.EmailId || "–"}</TableCell>
+                        <TableCell><Badge variant="outline" className="text-xs">{mem.RotaryId || "–"}</Badge></TableCell>
                         <TableCell>
                           {r.roles?.map((role: any, i: number) => (
                             <Badge key={i} variant="secondary" className="text-xs mr-1">{role.displayRole}</Badge>
@@ -374,7 +374,7 @@ export default function GlobalMemberSearchPage() {
                           {c.city && ` (${c.city}${c.state ? `, ${c.state}` : ""})`}
                         </div>
                         {c.joinedDate && <div className="text-xs text-muted-foreground">Joined: {new Date(c.joinedDate).toLocaleDateString(appLocale(), { day: "2-digit", month: "short", year: "numeric" })}</div>}
-                        {c.terminationDate && <div className="text-xs text-red-500">Terminated: {new Date(c.terminationDate).toLocaleDateString(appLocale())} — {c.terminationReason}</div>}
+                        {c.terminationDate && <div className="text-xs text-red-500">Terminated: {new Date(c.terminationDate).toLocaleDateString(appLocale())}: {c.terminationReason}</div>}
                       </div>
                     ))}
                   </div>
@@ -388,7 +388,7 @@ export default function GlobalMemberSearchPage() {
                       <div key={i} className="flex items-center gap-2 text-sm">
                         <Badge variant={d.isCurrent ? "default" : "secondary"} className="text-xs">{d.yearLabel}</Badge>
                         <span className="font-medium">{d.designationName}</span>
-                        <span className="text-xs text-muted-foreground">— {d.clubName}</span>
+                        <span className="text-xs text-muted-foreground">,  {d.clubName}</span>
                       </div>
                     ))}
                   </div>
@@ -401,7 +401,7 @@ export default function GlobalMemberSearchPage() {
                     {r.districtCommittee.map((d: any, i: number) => (
                       <div key={i} className="text-sm">
                         <Badge variant="secondary" className="text-xs mr-2">{d.yearLabel}</Badge>
-                        District {d.districtNumber} — {d.designation || "Member"}
+                        District {d.districtNumber}: {d.designation || "Member"}
                         {d.remark && <span className="text-xs text-muted-foreground ml-2">({d.remark})</span>}
                       </div>
                     ))}
@@ -415,7 +415,7 @@ export default function GlobalMemberSearchPage() {
                     {r.groupCommittee.map((g: any, i: number) => (
                       <div key={i} className="text-sm">
                         <Badge variant="secondary" className="text-xs mr-2">{g.yearLabel}</Badge>
-                        {g.groupName} — {g.designation || "Member"}
+                        {g.groupName}: {g.designation || "Member"}
                         <span className="text-xs text-muted-foreground ml-2">(District {g.districtNumber})</span>
                       </div>
                     ))}
@@ -429,7 +429,7 @@ export default function GlobalMemberSearchPage() {
                     {r.subGroupCommittee.map((sg: any, i: number) => (
                       <div key={i} className="text-sm">
                         <Badge variant="secondary" className="text-xs mr-2">{sg.yearLabel}</Badge>
-                        {sg.groupName} &rarr; {sg.subGroupName} — {sg.designation || "Member"}
+                        {sg.groupName} &rarr; {sg.subGroupName}: {sg.designation || "Member"}
                         <span className="text-xs text-muted-foreground ml-2">(District {sg.districtNumber})</span>
                       </div>
                     ))}
@@ -468,7 +468,7 @@ export default function GlobalMemberSearchPage() {
                   <div className="bg-muted/30 rounded-lg p-3 space-y-1">
                     {r.assistantGovernor.map((ag: any, i: number) => (
                       <div key={i} className="text-sm">
-                        <Badge variant={ag.isCurrent ? "default" : "secondary"} className="text-xs mr-2">{ag.yearLabel || "—"}</Badge>
+                        <Badge variant={ag.isCurrent ? "default" : "secondary"} className="text-xs mr-2">{ag.yearLabel || "–"}</Badge>
                         {ag.clubName}
                         <span className="text-xs text-muted-foreground ml-2">(District {ag.districtNumber})</span>
                       </div>
@@ -496,9 +496,9 @@ export default function GlobalMemberSearchPage() {
                   <div className="bg-muted/30 rounded-lg p-3 space-y-1">
                     {r.clubSubGroups.map((sg: any, i: number) => (
                       <div key={i} className="text-sm">
-                        <Badge variant={sg.isCurrent ? "default" : "secondary"} className="text-xs mr-2">{sg.yearLabel || "—"}</Badge>
+                        <Badge variant={sg.isCurrent ? "default" : "secondary"} className="text-xs mr-2">{sg.yearLabel || "–"}</Badge>
                         {sg.groupName}
-                        <span className="text-xs text-muted-foreground ml-2">— {sg.clubName}</span>
+                        <span className="text-xs text-muted-foreground ml-2">,  {sg.clubName}</span>
                       </div>
                     ))}
                   </div>
@@ -514,7 +514,7 @@ export default function GlobalMemberSearchPage() {
                         {e.amount != null && <span className="text-xs text-muted-foreground">{currencySymbol()}{Number(e.amount).toLocaleString(appLocale())}</span>}
                         <Badge className={e.isPaid ? "bg-green-500 text-xs text-white" : "bg-amber-500 text-xs text-white"}>{e.isPaid ? "Paid" : "Unpaid"}</Badge>
                         {e.paymentDate && <span className="text-xs text-muted-foreground">{new Date(e.paymentDate).toLocaleDateString(appLocale(), { day: "2-digit", month: "short", year: "numeric" })}</span>}
-                        {e.clubName && <span className="text-xs text-muted-foreground">— {e.clubName}</span>}
+                        {e.clubName && <span className="text-xs text-muted-foreground">,  {e.clubName}</span>}
                       </div>
                     ))}
                   </div>
@@ -530,7 +530,7 @@ export default function GlobalMemberSearchPage() {
                         <span className="font-medium">{d.purpose}</span>
                         {d.amount != null && <span className="text-xs text-muted-foreground">{currencySymbol()}{Number(d.amount).toLocaleString(appLocale())}</span>}
                         <Badge className={d.isPaid ? "bg-green-500 text-xs text-white" : "bg-amber-500 text-xs text-white"}>{d.isPaid ? "Paid" : (d.paymentStatus || "Pending")}</Badge>
-                        <span className="text-xs text-muted-foreground">— {d.clubName}</span>
+                        <span className="text-xs text-muted-foreground">,  {d.clubName}</span>
                       </div>
                     ))}
                   </div>
@@ -560,7 +560,7 @@ export default function GlobalMemberSearchPage() {
         <Dialog open={!!editing} onOpenChange={(o) => { if (!o) setEditing(null); }}>
           <DialogContent className="max-w-md">
             <DialogHeader>
-              <DialogTitle>Edit Contact{editing?.MemberName ? ` — ${editing.MemberName}` : ""}</DialogTitle>
+              <DialogTitle>Edit Contact{editing?.MemberName ? `: ${editing.MemberName}` : ""}</DialogTitle>
             </DialogHeader>
             <div className="space-y-4 py-2">
               <div>

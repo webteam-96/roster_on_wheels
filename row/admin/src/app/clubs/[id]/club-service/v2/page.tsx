@@ -16,7 +16,7 @@ import Link from "next/link";
 import {
   CalendarDays, Users, Loader2, Search, Plus, Edit3, Trash2,
   Download, ArrowLeft, AlertTriangle, Info,
-} from "lucide-react";
+} from "@/components/icons";
 import {
   getClub,
   getModules,
@@ -185,7 +185,7 @@ export default function ClubServiceV2Page() {
   const handleSearch = () => { setPage(1); setSearch(searchInput); };
   const totalPages = Math.ceil(totalCount / pageSize);
 
-  const yearLabel = years.find((y) => y.id === selectedYearId)?.yearLabel ?? "—";
+  const yearLabel = years.find((y) => y.id === selectedYearId)?.yearLabel ?? "–";
 
   // Aggregate KPIs from the current page's meetings.
   const meetingsHeld = projects.length;
@@ -235,7 +235,7 @@ export default function ClubServiceV2Page() {
             <div>
               <h1 className="text-lg font-semibold text-slate-800">Club Service Meetings</h1>
               <p className="text-xs text-slate-500 mt-0.5">
-                RY {yearLabel} · {clubName || "—"}
+                RY {yearLabel} · {clubName || "–"}
               </p>
             </div>
           </div>
@@ -330,7 +330,7 @@ export default function ClubServiceV2Page() {
                 </thead>
                 <tbody className="divide-y divide-slate-100">
                   {projects.map((m, i) => {
-                    const meetingLabel = MEETING_TYPE_LABELS[m.meetingType || ""] || m.meetingType || "—";
+                    const meetingLabel = MEETING_TYPE_LABELS[m.meetingType || ""] || m.meetingType || "–";
                     const pct = Number(m.attendancePercentage ?? 0);
                     return (
                       <tr key={m.id} className="hover:bg-blue-50/40">
@@ -351,7 +351,7 @@ export default function ClubServiceV2Page() {
                                 className="h-10 w-10 rounded object-cover"
                               />
                             )}
-                            <span>{m.title || "—"}</span>
+                            <span>{m.title || "–"}</span>
                           </div>
                         </td>
                         <td className="px-3 py-2 text-slate-600">
@@ -359,7 +359,7 @@ export default function ClubServiceV2Page() {
                               membersOnRoll field and the current club count is
                               misleading for past years / BOD meetings. v1 just
                               showed the raw attendance value. */}
-                          {m.attendance ?? "—"}
+                          {m.attendance ?? "–"}
                         </td>
                         <td className="px-3 py-2">
                           <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${attendancePercentChip(pct)}`}>

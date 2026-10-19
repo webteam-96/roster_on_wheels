@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
 import AlertModal from "@/components/AlertModal";
-import { ArrowLeft, Plus, MoreHorizontal, Pencil, Trash2, Search } from "lucide-react";
+import { ArrowLeft, Plus, MoreHorizontal, Pencil, Trash2, Search } from "@/components/icons";
 import { Input } from "@/components/ui/input";
 import RotaryLoader from "@/components/RotaryLoader";
 import Link from "next/link";
@@ -119,7 +119,7 @@ export default function DistrictEventsPage() {
                     <TableRow key={item.id}>
                       <TableCell>{(page - 1) * 20 + idx + 1}</TableCell>
                       <TableCell className="font-medium">{item.title}</TableCell>
-                      <TableCell>{item.eventDate ? new Date(item.eventDate).toLocaleDateString(appLocale()) : "—"}</TableCell>
+                      <TableCell>{item.eventDate ? new Date(item.eventDate).toLocaleDateString(appLocale()) : "–"}</TableCell>
                       <TableCell>
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild><Button variant="ghost" size="icon"><MoreHorizontal className="h-4 w-4" /></Button></DropdownMenuTrigger>

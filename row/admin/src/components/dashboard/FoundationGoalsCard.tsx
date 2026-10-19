@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import {
   Target, Save, Trash2, Lock, Loader2, Pencil, Plus, CheckCircle2,
-} from "lucide-react";
+} from "@/components/icons";
 import {
   getFoundationGoalsList, saveFoundationGoal, deleteFoundationGoal,
 } from "@/services/api";
@@ -89,7 +89,7 @@ export default function FoundationGoalsCard() {
 
   const selection = data?.currentSelection ?? null;
   const isEditable = !!selection?.isEditable;
-  const yearLabel  = selection?.yearLabel || "—";
+  const yearLabel  = selection?.yearLabel || "–";
 
   const totalGoal = useMemo(() => {
     return toNumber(form.apf) + toNumber(form.polio) + toNumber(form.endowment) + toNumber(form.other);
@@ -159,7 +159,7 @@ export default function FoundationGoalsCard() {
   return (
     <div className="space-y-4">
       <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
-        <div className="px-5 py-3 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-gradient-to-r from-blue-50 to-white">
+        <div className="px-5 py-3 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-blue-50">
           <div className="flex items-center gap-2">
             <div className="w-9 h-9 rounded-lg bg-blue-100 text-blue-700 flex items-center justify-center">
               <Target size={18} />

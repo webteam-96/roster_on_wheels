@@ -18,22 +18,22 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import RotaryLoader from "@/components/RotaryLoader";
-import { CalendarDays, MapPin, Users, Clock4, IndianRupee, Handshake, FileText, Percent } from "lucide-react";
+import { CalendarDays, MapPin, Users, Clock4, IndianRupee, Handshake, FileText, Percent } from "@/components/icons";
 
 import { appLocale } from "@/lib/appFormat";
 // Agenda / Minutes are served by the API, not the Next app (same base the club-service detail page uses).
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
 function fmtDate(d?: string | null) {
-  if (!d) return "—";
+  if (!d) return "–";
   const dt = new Date(d);
   return isNaN(dt.getTime())
-    ? "—"
+    ? "–"
     : dt.toLocaleDateString(appLocale(), { day: "2-digit", month: "short", year: "numeric" });
 }
 
 function Row({ label, value }: { label: string; value: React.ReactNode }) {
-  if (value === null || value === undefined || value === "" || value === "—") return null;
+  if (value === null || value === undefined || value === "" || value === "–") return null;
   return (
     <div className="text-sm">
       <span className="text-slate-500">{label}: </span>
@@ -124,7 +124,7 @@ export default function ProjectDetailModal({
             <div className="flex flex-wrap gap-2">
               {detail.yearLabel && <span className="text-[11px] font-medium px-2 py-0.5 rounded-full bg-slate-100 text-slate-700">RY {detail.yearLabel}</span>}
               {detail.projectType && <span className="text-[11px] font-medium px-2 py-0.5 rounded-full bg-blue-50 text-blue-700">{detail.projectType === "one_time" ? "One-time" : "Ongoing / Repeat"}</span>}
-              {areaOfFocus && <span className="text-[11px] font-medium px-2 py-0.5 rounded-full bg-[#1e3a5f]/5 text-[#1e3a5f] border border-[#1e3a5f]/15">{areaOfFocus}</span>}
+              {areaOfFocus && <span className="text-[11px] font-medium px-2 py-0.5 rounded-full bg-azure/5 text-ink border border-azure/15">{areaOfFocus}</span>}
             </div>
 
             {/* Key info */}

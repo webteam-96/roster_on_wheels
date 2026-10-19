@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { CheckCircle2 } from "lucide-react";
+import { CheckCircle2 } from "@/components/icons";
 import { ReCaptcha } from "./ReCaptcha";
 import {
   getDistrictWebsites,
@@ -259,7 +259,7 @@ export function ProspectiveForm() {
       <Chapter
         id="district-club"
         title="Your district & club"
-        hint="The Rotary district you live in and the club you'd like to join — the club validates your enquiry locally."
+        hint="The Rotary district you live in and the club you'd like to join: the club validates your enquiry locally."
       >
         <div className="grid grid-cols-1 gap-x-6 gap-y-6 sm:grid-cols-2">
           <div className="group">
@@ -323,7 +323,7 @@ export function ProspectiveForm() {
                 </option>
                 {clubs.map((c) => (
                   <option key={c.clubId} value={c.clubName}>
-                    {c.city ? `${c.clubName} — ${c.city}` : c.clubName}
+                    {c.city ? `${c.clubName}: ${c.city}` : c.clubName}
                   </option>
                 ))}
               </select>

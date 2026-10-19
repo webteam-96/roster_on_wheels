@@ -7,7 +7,7 @@ export const DISTRICT_ADMIN_NAV: NavItem[] = [
   { to: "/district-admin-dashboard/overview",      label: "Overview" },
   { to: "/district-admin-dashboard/membership",    label: "Membership",     moduleKey: "directory" },
   // Rotary Network moved into the E-Governance tab strip (after District Awards).
-  { to: "/district-admin-dashboard/foundation",    label: "Foundation",     moduleKey: "trf_contribution" },
+  { to: "/district-admin-dashboard/foundation",    label: "Projects / Events",     moduleKey: "trf_contribution" },
   { to: "/district-admin-dashboard/communication", label: "Communication",  moduleKey: "announcements" },
   { to: "/district-admin-dashboard/egovernance",   label: "E-Governance",   moduleKey: "reports" },
   { to: "/district-admin-dashboard/goal-setting",  label: "Goal Setting",   moduleKey: "goal_setting" },
@@ -35,7 +35,7 @@ export const DISTRICT_ADMIN_PAGE_TITLES: Record<string, string> = {
   "/district-admin-dashboard/overview":      "District Dashboard",
   "/district-admin-dashboard/membership":    "Membership",
   "/district-admin-dashboard/rotary-network": "Rotary Network",
-  "/district-admin-dashboard/foundation":    "Foundation",
+  "/district-admin-dashboard/foundation":    "Projects / Events",
   "/district-admin-dashboard/communication": "Communication",
   "/district-admin-dashboard/egovernance":   "E-Governance & Reporting",
   "/district-admin-dashboard/goal-setting":  "Goal Setting",

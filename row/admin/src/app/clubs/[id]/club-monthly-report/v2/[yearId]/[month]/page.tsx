@@ -25,7 +25,7 @@ import Link from "next/link";
 import {
   ArrowLeft, ArrowRight, Plus, Pencil, Trash2, Calendar, DollarSign,
   FolderOpen, Users, FileText, CheckCircle2, Loader2, ChevronDown, RefreshCw,
-} from "lucide-react";
+} from "@/components/icons";
 import {
   initMonthlyReport,
   getMonthlyReport,
@@ -120,7 +120,7 @@ function SectionCard({
 }: { icon: React.ElementType; title: string; action?: React.ReactNode; children: React.ReactNode }) {
   return (
     <div className="rounded-xl border border-slate-200 overflow-hidden">
-      <div className="flex items-center justify-between gap-3 px-4 py-2.5 bg-gradient-to-r from-slate-50 to-white border-b border-slate-100">
+      <div className="flex items-center justify-between gap-3 px-4 py-2.5 bg-slate-50 border-b border-slate-100">
         <div className="flex items-center gap-2">
           <Icon className="h-4 w-4 text-slate-500" />
           <h3 className="text-sm font-semibold text-slate-800">{title}</h3>
@@ -507,7 +507,7 @@ function ClubMonthlyReportV2WizardInner() {
           <div>
             <h1 className="text-lg font-semibold text-slate-800">Monthly Report</h1>
             <p className="text-xs text-slate-500 mt-0.5">
-              {clubName || "—"} · {MONTH_NAMES[month] || `Month ${month}`}
+              {clubName || "–"} · {MONTH_NAMES[month] || `Month ${month}`}
             </p>
           </div>
         </div>
@@ -924,7 +924,7 @@ function ClubMonthlyReportV2WizardInner() {
           }
         >
           <p className="text-xs text-slate-500 mb-5">
-            Auto-filled from the club&apos;s member records — last-month count (as at the 1st),
+            Auto-filled from the club&apos;s member records: last-month count (as at the 1st),
             plus joins and terminations dated within this month. Adjust if needed; the current
             count auto-calculates below.
           </p>

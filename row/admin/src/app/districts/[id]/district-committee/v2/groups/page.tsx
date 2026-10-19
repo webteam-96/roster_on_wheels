@@ -23,7 +23,7 @@ import {
   updateCommitteeGroup, deleteCommitteeGroup, getRotaryYears, getDistrict, reorderCommitteeGroups,
 } from "@/services/api";
 import { useDragSort } from "@/hooks/useDragSort";
-import { GripVertical } from "lucide-react";
+import { GripVertical } from "@/components/icons";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -35,7 +35,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
 import AlertModal from "@/components/AlertModal";
-import { ArrowLeft, Plus, Pencil, Trash2, AlertTriangle, UsersRound, Users, MoreHorizontal, Layers, Lock, Search, X } from "lucide-react";
+import { ArrowLeft, Plus, Pencil, Trash2, AlertTriangle, UsersRound, Users, MoreHorizontal, Layers, Lock, Search, X } from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
 import Pagination from "@/components/Pagination";
 import ProtectedRoute from "@/components/ProtectedRoute";
@@ -207,7 +207,7 @@ export default function GroupCommitteeV2Page() {
               <ArrowLeft className="h-4 w-4" />
             </Button>
             <div>
-              <h2 className="text-2xl font-bold tracking-tight text-[#1e3a5f]">
+              <h2 className="text-2xl font-bold tracking-tight text-ink">
                 {districtName ? `${districtName} - Group Committee` : "Group Committee"}
               </h2>
               <p className="text-slate-600 text-base">Manage groups with members and sub-groups</p>
@@ -216,7 +216,7 @@ export default function GroupCommitteeV2Page() {
           {canManage && !loading && selectedYearId && (
             <Button
               onClick={openAddDialog}
-              className="bg-[#1e3a5f] hover:bg-[#152a44] text-white"
+              className="bg-azure hover:bg-mint-ink text-white"
             >
               <Plus className="mr-2 h-4 w-4" />Add Group
             </Button>
@@ -229,7 +229,7 @@ export default function GroupCommitteeV2Page() {
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center bg-slate-50 p-4 rounded-2xl border border-slate-200">
             <div className="w-full sm:w-48">
               <Select value={selectedYearId} onValueChange={setSelectedYearId}>
-                <SelectTrigger className="border-slate-200 bg-white focus:border-[#1e3a5f] focus:ring-[#1e3a5f]/20">
+                <SelectTrigger className="border-slate-200 bg-white focus:border-azure focus:ring-azure/20">
                   <SelectValue placeholder="Select year" />
                 </SelectTrigger>
                 <SelectContent>
@@ -242,7 +242,7 @@ export default function GroupCommitteeV2Page() {
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
               <Input
-                className="pl-9 pr-8 border-slate-200 bg-white focus:border-[#1e3a5f] focus:ring-[#1e3a5f]/20"
+                className="pl-9 pr-8 border-slate-200 bg-white focus:border-azure focus:ring-azure/20"
                 placeholder="Search by group name..."
                 value={searchDraft}
                 onChange={(e) => setSearchDraft(e.target.value)}
@@ -259,7 +259,7 @@ export default function GroupCommitteeV2Page() {
                 size="sm"
                 onClick={handleSearch}
                 type="button"
-                className="bg-[#1e3a5f] hover:bg-[#152a44] text-white"
+                className="bg-azure hover:bg-mint-ink text-white"
               >
                 <Search className="mr-2 h-4 w-4" />Search
               </Button>
@@ -295,7 +295,7 @@ export default function GroupCommitteeV2Page() {
             {groups.map((g: any, idx: number) => (
               <div
                 key={g.id}
-                className={`cursor-pointer rounded-2xl border border-slate-200 shadow-sm bg-white transition-all hover:shadow-md hover:border-[#1e3a5f]/30 ${navigatingId === g.id ? "opacity-70 pointer-events-none" : ""}`}
+                className={`cursor-pointer rounded-2xl border border-slate-200 shadow-sm bg-white transition-all hover:shadow-md hover:border-azure/30 ${navigatingId === g.id ? "opacity-70 pointer-events-none" : ""}`}
                 onClick={() => {
                   setNavigatingId(g.id);
                   router.push(`/districts/${districtId}/district-committee/groups/${g.id}`);
@@ -309,7 +309,7 @@ export default function GroupCommitteeV2Page() {
                       </div>
                     )}
                     <div className="flex items-center gap-3 flex-1">
-                      {navigatingId === g.id ? <RotaryLoader size="sm" /> : <UsersRound className="h-8 w-8 text-[#1e3a5f] flex-shrink-0" />}
+                      {navigatingId === g.id ? <RotaryLoader size="sm" /> : <UsersRound className="h-8 w-8 text-ink flex-shrink-0" />}
                       <div>
                         <p className="font-semibold text-slate-800">{g.groupName}</p>
                         <p className="text-xs text-slate-500">{g.yearLabel}</p>
@@ -340,7 +340,7 @@ export default function GroupCommitteeV2Page() {
                       <Badge
                         variant="secondary"
                         className="flex items-center gap-1 bg-slate-100 text-slate-600 border border-slate-200"
-                        title="Auto-managed by BOD — edit via Board of Directors"
+                        title="Auto-managed by BOD: edit via Board of Directors"
                       >
                         <Lock className="h-3 w-3" />Auto
                       </Badge>
@@ -368,7 +368,7 @@ export default function GroupCommitteeV2Page() {
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogContent className="max-w-md">
             <DialogHeader>
-              <DialogTitle className="text-[#1e3a5f]">{editingGroup ? "Edit Group" : "Add Group"}</DialogTitle>
+              <DialogTitle className="text-ink">{editingGroup ? "Edit Group" : "Add Group"}</DialogTitle>
               <DialogDescription>{editingGroup ? "Update group name." : "Enter group name."}</DialogDescription>
             </DialogHeader>
             <div className="space-y-4 py-2">
@@ -378,13 +378,13 @@ export default function GroupCommitteeV2Page() {
                   value={formGroupName}
                   onChange={(e) => setFormGroupName(e.target.value)}
                   placeholder="Enter group name"
-                  className="border-slate-200 bg-white focus:border-[#1e3a5f] focus:ring-[#1e3a5f]/20"
+                  className="border-slate-200 bg-white focus:border-azure focus:ring-azure/20"
                 />
               </div>
               <div className="space-y-2">
                 <Label className="text-slate-500 text-xs font-semibold uppercase tracking-wide">Rotary Year *</Label>
                 <Select value={formYearId} onValueChange={setFormYearId}>
-                  <SelectTrigger className="border-slate-200 bg-white focus:border-[#1e3a5f] focus:ring-[#1e3a5f]/20">
+                  <SelectTrigger className="border-slate-200 bg-white focus:border-azure focus:ring-azure/20">
                     <SelectValue placeholder="Select year" />
                   </SelectTrigger>
                   <SelectContent>
@@ -407,7 +407,7 @@ export default function GroupCommitteeV2Page() {
               <Button
                 onClick={handleSave}
                 disabled={saving || !formGroupName.trim() || !formYearId}
-                className="bg-[#1e3a5f] hover:bg-[#152a44] text-white"
+                className="bg-azure hover:bg-mint-ink text-white"
               >
                 {saving ? "Saving..." : editingGroup ? "Update" : "Add"}
               </Button>

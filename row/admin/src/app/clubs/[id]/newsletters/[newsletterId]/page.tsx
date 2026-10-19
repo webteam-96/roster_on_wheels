@@ -12,7 +12,7 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 import Link from "next/link";
 import {
   ArrowLeft, Pencil, FileText, Bell, Calendar, Link2, FileUp, ExternalLink, Download,
-} from "lucide-react";
+} from "@/components/icons";
 
 import { appLocale } from "@/lib/appFormat";
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
@@ -22,7 +22,7 @@ function Section({ icon: Icon, title, number, children }: {
 }) {
   return (
     <div className="relative bg-white rounded-xl border shadow-sm overflow-hidden">
-      <div className="flex items-center gap-3 px-5 py-3.5 bg-gradient-to-r from-primary/5 to-transparent border-b">
+      <div className="flex items-center gap-3 px-5 py-3.5 bg-primary/5 border-b">
         <div className="flex items-center justify-center h-8 w-8 rounded-full bg-primary text-primary-foreground text-sm font-bold shrink-0">{number}</div>
         <Icon className="h-5 w-5 text-primary shrink-0" />
         <h3 className="text-base font-semibold text-foreground">{title}</h3>
@@ -206,7 +206,6 @@ export default function NewsletterViewPage() {
         {/* 4. Notification Settings */}
         <Section icon={Bell} title="Notification Settings" number={4}>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <DetailRow label="Send WhatsApp" value={newsletter.isSendWhatsapp ? "Yes" : "No"} />
             <DetailRow label="Send Email" value={newsletter.isSendEmail ? "Yes" : "No"} />
           </div>
         </Section>

@@ -21,7 +21,7 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
 import Link from "next/link";
-import { ArrowLeft, ArrowRight, ChevronsUpDown, Check, Plus, X, Save, Upload } from "lucide-react";
+import { ArrowLeft, ArrowRight, ChevronsUpDown, Check, Plus, X, Save, Upload } from "@/components/icons";
 import EmailTokenChips, { CLUB_DUES_RECEIPT_TOKENS, CLUB_DUES_REMINDER_TOKENS } from "@/components/club-dues/EmailTokenChips";
 
 import { currencySymbol } from "@/lib/appFormat";
@@ -612,7 +612,7 @@ function CreateClubDuesInner() {
         <div className="space-y-2">
           <Label>Description</Label>
           <ReactQuill theme="snow" value={purposeDescription} onChange={setPurposeDescription} modules={quillModules}
-            placeholder="Description (optional) — bold / italic / sizes / colors / lists / links" />
+            placeholder="Description (optional): bold / italic / sizes / colors / lists / links" />
         </div>
       </CardContent>
     </Card>
@@ -694,7 +694,7 @@ function CreateClubDuesInner() {
           </Select>
         </div>
         <p className="text-xs text-muted-foreground max-w-2xl">
-          Online and Offline are fully independent — each has its own per-member rate and account split. A club only needs <b>one</b> of them fully paid to be marked Paid.
+          Online and Offline are fully independent: each has its own per-member rate and account split. A club only needs <b>one</b> of them fully paid to be marked Paid.
         </p>
         <div className="flex items-center gap-2">
           <Label>Split by</Label>
@@ -712,9 +712,9 @@ function CreateClubDuesInner() {
             </div>
             {renderVendorSection("Offline Split", offlineVendorRows, updateOfflineRow, addOfflineRow, removeOfflineRow, offlineFilledRows, offlineSplitTotal, offlineSplitOk, offlineRate)}
             <div className="space-y-2 max-w-md">
-              <Label>Approver email — District Treasurer</Label>
+              <Label>Approver email: District Treasurer</Label>
               <Input type="email" value={approverEmail} onChange={(e) => setApproverEmail(e.target.value)} placeholder="treasurer@example.com" />
-              <p className="text-xs text-muted-foreground">Used only when a club submits an <b>offline</b> payment — the approve/reject email is sent here.</p>
+              <p className="text-xs text-muted-foreground">Used only when a club submits an <b>offline</b> payment: the approve/reject email is sent here.</p>
             </div>
             <div className="flex items-center gap-2">
               <input type="checkbox" id="showBankInd" checked={showBankInReceipt} onChange={(e) => setShowBankInReceipt(e.target.checked)} className="h-4 w-4" />
@@ -831,9 +831,9 @@ function CreateClubDuesInner() {
             <h3 className="font-semibold text-base mb-2">Offline Payment</h3>
             <div className="space-y-4">
               <div className="space-y-2 max-w-md">
-                <Label>Approver email — District Treasurer</Label>
+                <Label>Approver email: District Treasurer</Label>
                 <Input type="email" value={approverEmail} onChange={(e) => setApproverEmail(e.target.value)} placeholder="treasurer@example.com" />
-                <p className="text-xs text-muted-foreground">Used only when a club submits an <b>offline</b> payment — the approve/reject email is sent here.</p>
+                <p className="text-xs text-muted-foreground">Used only when a club submits an <b>offline</b> payment: the approve/reject email is sent here.</p>
               </div>
               <div className="flex items-center gap-2">
                 <input type="checkbox" id="showBank" checked={showBankInReceipt} onChange={(e) => setShowBankInReceipt(e.target.checked)} className="h-4 w-4" />
@@ -858,7 +858,7 @@ function CreateClubDuesInner() {
 
   const renderClubsIndependent = () => (
     <Card>
-      <CardHeader><CardTitle>Club List — per-club rate &amp; split</CardTitle></CardHeader>
+      <CardHeader><CardTitle>Club List: per-club rate &amp; split</CardTitle></CardHeader>
       <CardContent>
         <p className="text-sm text-muted-foreground mb-3">
           Every club in the district (synced &amp; non-synced) is included, defaulting to the campaign&apos;s Online/Offline rates and splits. Change any club to override just that one. You can also edit this later on the Clubs page.
@@ -866,7 +866,7 @@ function CreateClubDuesInner() {
         {((selectedOnlineVendors.length > 0 && clubsList.some((c) => !clubOnlineBalanced(c))) ||
           (selectedOfflineVendors.length > 0 && clubsList.some((c) => !clubOfflineBalanced(c)))) && (
           <p className="mb-3 text-sm rounded bg-red-50 text-red-700 border border-red-200 p-2">
-            Some clubs&apos; splits don&apos;t balance (Balance ≠ 0). Fix the red rows — every Balance must be <b>0</b> before you can continue.
+            Some clubs&apos; splits don&apos;t balance (Balance ≠ 0). Fix the red rows: every Balance must be <b>0</b> before you can continue.
           </p>
         )}
         {clubsLoading ? (
@@ -934,14 +934,14 @@ function CreateClubDuesInner() {
 
   const renderClubsLegacy = () => (
     <Card>
-      <CardHeader><CardTitle>Club List — per-club rate{selectedVendors.length > 0 ? " & split" : ""}</CardTitle></CardHeader>
+      <CardHeader><CardTitle>Club List: per-club rate{selectedVendors.length > 0 ? " & split" : ""}</CardTitle></CardHeader>
       <CardContent>
         <p className="text-sm text-muted-foreground mb-3">
-          Every club in the district (synced &amp; non-synced) is included, defaulting to {currencySymbol()}{rate || 0}/member{selectedVendors.length > 0 ? " and the campaign split" : ""}. Change any club to override just that one — the split columns route that club&apos;s payment across the accounts you picked in Payment &amp; Split ({amountType === "2" ? "must total 100%" : `must total the club rate`}). You can also edit this later on the Clubs page.
+          Every club in the district (synced &amp; non-synced) is included, defaulting to {currencySymbol()}{rate || 0}/member{selectedVendors.length > 0 ? " and the campaign split" : ""}. Change any club to override just that one: the split columns route that club&apos;s payment across the accounts you picked in Payment &amp; Split ({amountType === "2" ? "must total 100%" : `must total the club rate`}). You can also edit this later on the Clubs page.
         </p>
         {selectedVendors.length > 0 && clubsList.some((c) => !clubBalanced(c)) && (
           <p className="mb-3 text-sm rounded bg-red-50 text-red-700 border border-red-200 p-2">
-            Some clubs&apos; splits don&apos;t balance (Balance ≠ 0). Fix the red rows — every Balance must be <b>0</b> before you can continue.
+            Some clubs&apos; splits don&apos;t balance (Balance ≠ 0). Fix the red rows: every Balance must be <b>0</b> before you can continue.
           </p>
         )}
         {clubsLoading ? (
@@ -1027,7 +1027,7 @@ function CreateClubDuesInner() {
         </div>
         <div>
           <h3 className="font-semibold text-base mb-2">Email</h3>
-          <p className="text-xs text-muted-foreground mb-3">Click a chip to insert a value (e.g. club name, amount) into your text — it&apos;s filled in automatically when the email is sent. If you don&apos;t add an amount/members value, a summary is appended for you.</p>
+          <p className="text-xs text-muted-foreground mb-3">Click a chip to insert a value (e.g. club name, amount) into your text. It&apos;s filled in automatically when the email is sent. If you don&apos;t add an amount/members value, a summary is appended for you.</p>
           <div className="space-y-4">
             <div className="space-y-2 max-w-md"><Label>Email CC</Label><Input value={emailCC} onChange={(e) => setEmailCC(e.target.value)} placeholder="cc@example.com, another@example.com" /></div>
 
@@ -1065,7 +1065,7 @@ function CreateClubDuesInner() {
               <div className="space-y-1">
                 <Label>Google Sheet share email</Label>
                 <Input type="email" value={googleSheetEmail} onChange={(e) => setGoogleSheetEmail(e.target.value)} placeholder="support@example.org" />
-                <p className="text-xs text-muted-foreground">A Google Sheet can be created for this campaign from the District Dues list — enter an email to share editor access.</p>
+                <p className="text-xs text-muted-foreground">A Google Sheet can be created for this campaign from the District Dues list: enter an email to share editor access.</p>
               </div>
             </div>
 

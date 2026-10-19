@@ -11,7 +11,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { MoreVertical, Pencil, Trash2, MapPin, Building2, Users, Globe, UserCheck, Trophy } from "lucide-react";
+import { MoreVertical, Pencil, Trash2, MapPin, Building2, Users, Globe, UserCheck, Trophy } from "@/components/icons";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import RotaryLoader from "@/components/RotaryLoader";

@@ -1,7 +1,7 @@
 "use client";
 
 import AlertModal from "@/components/AlertModal";
-import { AlertCircle } from "lucide-react";
+import { AlertCircle } from "@/components/icons";
 
 interface ErrorAlertProps {
   open: boolean;

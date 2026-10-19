@@ -23,7 +23,7 @@ import Link from "next/link";
 import {
   HeartHandshake, Users, IndianRupee, Loader2, Search, Plus, Edit3, Trash2,
   Download, ArrowLeft, AlertTriangle, Info, BadgeAlert, Clock, CheckCircle2, XCircle, Puzzle,
-} from "lucide-react";
+} from "@/components/icons";
 import {
   getClub,
   getModules,
@@ -74,7 +74,7 @@ function projectTypeLabel(t: string | null | undefined): string {
   if (lo === "ongoing_instance") return "Recurring";
   if (lo === "ongoing_repeat")  return "Ongoing/Repeat";
   if (lo === "annual")          return "Annual";
-  return t || "—";
+  return t || "–";
 }
 
 function isPendingStatus(s: string | null | undefined): boolean {
@@ -217,7 +217,7 @@ export default function CommunityServiceV2Page() {
     [projects]
   );
 
-  const yearLabel = years.find((y) => y.id === selectedYearId)?.yearLabel ?? "—";
+  const yearLabel = years.find((y) => y.id === selectedYearId)?.yearLabel ?? "–";
 
   // KPI tiles — page-scoped totals (totalCount is full DB count; KPIs reflect
   // what's loaded into the current page). v1 also doesn't aggregate across the
@@ -283,7 +283,7 @@ export default function CommunityServiceV2Page() {
         <XCircle className="h-3 w-3" /> Rejected
       </span>
     );
-    return <span className="text-slate-400 text-xs">—</span>;
+    return <span className="text-slate-400 text-xs">, </span>;
   };
 
   return (
@@ -307,7 +307,7 @@ export default function CommunityServiceV2Page() {
             <div>
               <h1 className="text-lg font-semibold text-slate-800">Community Service Projects</h1>
               <p className="text-xs text-slate-500 mt-0.5">
-                RY {yearLabel} · {clubName || "—"}
+                RY {yearLabel} · {clubName || "–"}
               </p>
             </div>
           </div>
@@ -457,20 +457,20 @@ export default function CommunityServiceV2Page() {
                   {visibleRows.map((p, i) => {
                     const cost = Number(p.projectCost ?? 0);
                     const benf = Number(p.directBeneficiaries ?? 0);
-                    const aof = p.areaOfFocusName || p.otherAreaOfFocus || "—";
+                    const aof = p.areaOfFocusName || p.otherAreaOfFocus || "–";
                     return (
                       <tr key={p.id} className="hover:bg-blue-50/40">
                         <td className="px-3 py-2 text-slate-500">{(page - 1) * PAGE_SIZE + i + 1}</td>
                         <td className="px-3 py-2 text-slate-700 whitespace-nowrap">{fmtDate(p.projectDate)}</td>
-                        <td className="px-3 py-2 font-medium text-slate-800">{p.title || "—"}</td>
+                        <td className="px-3 py-2 font-medium text-slate-800">{p.title || "–"}</td>
                         <td className="px-3 py-2">
                           <span className={`inline-flex items-center text-xs font-medium px-2 py-0.5 rounded-full border ${projectTypeChipStyle(p.projectType)}`}>
                             {projectTypeLabel(p.projectType)}
                           </span>
                         </td>
                         <td className="px-3 py-2 text-slate-600">{aof}</td>
-                        <td className="px-3 py-2 text-right text-slate-600 whitespace-nowrap">{cost > 0 ? `${getCurrencySymbol(p.currency)}${cost.toLocaleString(appLocale())}` : "—"}</td>
-                        <td className="px-3 py-2 text-right text-slate-600">{benf > 0 ? fmtInt(benf) : "—"}</td>
+                        <td className="px-3 py-2 text-right text-slate-600 whitespace-nowrap">{cost > 0 ? `${getCurrencySymbol(p.currency)}${cost.toLocaleString(appLocale())}` : "–"}</td>
+                        <td className="px-3 py-2 text-right text-slate-600">{benf > 0 ? fmtInt(benf) : "–"}</td>
                         <td className="px-3 py-2 whitespace-nowrap">{renderApprovalBadge(p.approvalStatus)}</td>
                         {canManage && (
                           <td className="px-3 py-2 text-right">

@@ -18,7 +18,7 @@
 import { useCallback, useMemo, type ReactNode } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { ArrowLeft, Save, X, Send } from "lucide-react";
+import { ArrowLeft, Save, X, Send } from "@/components/icons";
 import LoadingButton from "./LoadingButton";
 
 export interface V2FormShellProps {
@@ -41,7 +41,7 @@ export interface V2FormShellProps {
   hideFooter?: boolean;
   /** Color classes for the primary Save button. Defaults to the generic blue used
    *  across most v2 forms; pass brand classes to match a section's theme (e.g. the
-   *  Foundation pages use the gold #F7A81B / navy #1e3a5f dashboard accent). */
+   *  Foundation pages use the gold #F7A81B / navy #17458f dashboard accent). */
   saveTone?: string;
 }
 

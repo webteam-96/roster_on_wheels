@@ -67,15 +67,12 @@ public class WalletLinksController : ControllerBase
             {
                 districtId = id,
                 districtNumber = (string?)d.number,
-                whatsappBalance = bal.WhatsAppRemaining,
                 emailBalance = bal.EmailRemaining,
-                whatsappPayLink = Link("whatsapp", id),
                 emailPayLink = Link("email", id),
             });
         }
         var commonLinks = new
         {
-            whatsapp = $"{Frontend()}/pay/w/{WalletPayLinkToken.Generate(_config, "district", "whatsapp", 0)}",
             email = $"{Frontend()}/pay/w/{WalletPayLinkToken.Generate(_config, "district", "email", 0)}",
         };
         return Ok(new { items, commonLinks });

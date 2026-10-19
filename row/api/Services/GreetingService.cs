@@ -96,7 +96,7 @@ public class GreetingService : IGreetingService
                 dto.IsEnableBirthdayNotification,
                 dto.AnniversaryGreeting,
                 dto.IsEnableAnniversaryNotification,
-                dto.IsGreetingSendWhatsapp,
+                IsGreetingSendWhatsapp = false,
                 dto.IsEnableBirthdayEmail,
                 dto.BirthdayEmailFrom,
                 dto.BirthdayEmailSubject,
@@ -153,7 +153,7 @@ public class GreetingService : IGreetingService
                 DistrictId = districtId,
                 dto.BirthdayGreeting, dto.IsEnableBirthdayNotification,
                 dto.AnniversaryGreeting, dto.IsEnableAnniversaryNotification,
-                dto.IsGreetingSendWhatsapp, dto.IsGreetingSendEmail, dto.IsGreetingSendPush,
+                IsGreetingSendWhatsapp = false, dto.IsGreetingSendEmail, dto.IsGreetingSendPush,
                 dto.IsEnableBirthdayEmail, dto.BirthdayEmailFrom, dto.BirthdayEmailSubject, dto.BirthdayEmailMessage,
                 dto.IsEnableAnniversaryEmail, dto.AnniversaryEmailFrom, dto.AnniversaryEmailSubject, dto.AnniversaryEmailMessage,
                 ModifiedBy = modifiedBy

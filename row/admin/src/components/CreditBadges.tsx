@@ -1,12 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { MessageSquare, MessageCircle } from "lucide-react";
+import { MessageSquare } from "@/components/icons";
 import { getClubCreditBalance, getDistrictCreditBalance } from "@/services/api";
 
 interface Balance {
   emailRemaining: number;
-  whatsAppRemaining: number;
 }
 
 function Badge({ icon: Icon, title, value, color }: { icon: React.ElementType; title: string; value: number; color: string }) {
@@ -39,8 +38,7 @@ export default function CreditBadges({ scope, entityId }: { scope: "club" | "dis
 
   return (
     <div className="flex items-center gap-2">
-      <Badge icon={MessageSquare} title="Email Credits" value={bal.emailRemaining ?? 0} color="bg-gradient-to-br from-sky-500 to-blue-600" />
-      <Badge icon={MessageCircle} title="WhatsApp Credits" value={bal.whatsAppRemaining ?? 0} color="bg-gradient-to-br from-emerald-500 to-green-600" />
+      <Badge icon={MessageSquare} title="Email Credits" value={bal.emailRemaining ?? 0} color="bg-sky-500" />
     </div>
   );
 }

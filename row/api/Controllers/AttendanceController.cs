@@ -40,21 +40,25 @@ public class AttendanceController : ControllerBase
     [HttpPost("api/clubs/{clubId}/attendance")]
     public async Task<ActionResult> Create(int clubId, [FromBody] CreateAttendanceDto dto)
     {
-        var id = await _service.CreateAsync(clubId, dto, GetUserId());
-        return Ok(new { id });
+        try { return Ok(new { id = await _service.CreateAsync(clubId, dto, GetUserId()) }); }
+        catch (ArgumentException ex) { return BadRequest(new { message = ex.Message }); }
     }
 
     [HttpPut("api/clubs/{clubId}/attendance/{id}")]
     public async Task<ActionResult> Update(int clubId, int id, [FromBody] UpdateAttendanceDto dto)
     {
-        await _service.UpdateAsync(id, dto, GetUserId());
+        try
+        {
+            if (!await _service.UpdateAsync(clubId, id, dto, GetUserId())) return NotFound(new { message = "Attendance record not found." });
+        }
+        catch (ArgumentException ex) { return BadRequest(new { message = ex.Message }); }
         return Ok(new { message = "Attendance updated successfully." });
     }
 
     [HttpDelete("api/clubs/{clubId}/attendance/{id}")]
     public async Task<ActionResult> Delete(int clubId, int id)
     {
-        await _service.DeleteAsync(id, GetUserId());
+        if (!await _service.DeleteAsync(clubId, id, GetUserId())) return NotFound(new { message = "Attendance record not found." });
         return Ok(new { message = "Attendance deleted successfully." });
     }
 

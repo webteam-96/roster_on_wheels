@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import GoalTargetSplitPanel from "@/components/dashboard/GoalTargetSplitPanel";
 import { getDistrictMonthlyGoalsScoped, type GoalMonthlyForm } from "@/services/api";
 import { useParams, useSearchParams, useRouter } from "next/navigation";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft } from "@/components/icons";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import GoalOversightShell from "@/components/v2/GoalOversightShell";
 import GoalSettingPanel from "@/components/dashboard/GoalSettingPanel";
@@ -33,7 +33,7 @@ export default function GoalOversightDistrictDetailPage() {
     let cancelled = false;
     Promise.all([getMyGoalAssignments(), getGoalOversightCategories()])
       .then(([a, cats]) => { if (!cancelled) { setAssignments(a); setAllCategories(cats); } })
-      .catch(() => { /* nav is best-effort — the page still works without the sidebar list */ });
+      .catch(() => { /* nav is best-effort: the page still works without the sidebar list */ });
     return () => { cancelled = true; };
   }, []);
 
@@ -93,7 +93,7 @@ export default function GoalOversightDistrictDetailPage() {
             </button>
             <div>
               <h2 className="text-sm font-semibold text-slate-800">District Goals</h2>
-              <p className="text-xs text-slate-500">Oversight view — you can review goals, lock/unlock, and message.</p>
+              <p className="text-xs text-slate-500">Oversight view. You can review goals, lock/unlock, and message.</p>
             </div>
           </div>
 

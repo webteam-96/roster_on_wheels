@@ -1,4 +1,5 @@
 "use client";
+import { CheckCircle2, AlertTriangle } from "@/components/icons";
 
 /**
  * Club Admin › Buy / Renew Club Website (Razorpay).
@@ -33,7 +34,7 @@ function loadRazorpayScript(): Promise<boolean> {
 }
 
 const inr = (n: number) => `${currencySymbol()}${Number(n || 0).toLocaleString(appLocale(), { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-const fmtDate = (s?: string | null) => (s ? new Date(s).toLocaleDateString(appLocale(), { day: "2-digit", month: "short", year: "numeric" }) : "—");
+const fmtDate = (s?: string | null) => (s ? new Date(s).toLocaleDateString(appLocale(), { day: "2-digit", month: "short", year: "numeric" }) : "–");
 
 export default function WebsitePurchasePage() {
   const { selectedClubId } = useAuth();
@@ -124,7 +125,7 @@ export default function WebsitePurchasePage() {
         amount: order.amountPaise,
         currency: order.currency,
         name: "ROW",
-        description: `${order.orderType === "Renewal" ? "Club website renewal" : "New club website"} — ${order.subdomain}.${parentDomain}`,
+        description: `${order.orderType === "Renewal" ? "Club website renewal" : "New club website"}: ${order.subdomain}.${parentDomain}`,
         handler: async (resp: any) => {
           try {
             const v = await verifyWebsiteOrder({
@@ -145,7 +146,7 @@ export default function WebsitePurchasePage() {
           }
         },
         modal: { ondismiss: () => setBusy(false) },
-        theme: { color: "#003DA5" },
+        theme: { color: "#17458F" },
       });
       rzp.on("payment.failed", () => { setError("Payment failed. Please try again."); setBusy(false); });
       rzp.open();
@@ -163,8 +164,8 @@ export default function WebsitePurchasePage() {
   if (quote && quote.canPurchase === false) return (
     <div className="max-w-2xl mx-auto p-6">
       <div className="rounded-xl border bg-white p-6 text-center space-y-3">
-        <div className="text-3xl">✅</div>
-        <h1 className="text-lg font-semibold text-[#003DA5]">Your club website is active</h1>
+        <CheckCircle2 className="h-8 w-8 text-green-600" aria-hidden />
+        <h1 className="text-lg font-semibold text-azure">Your club website is active</h1>
         <p className="text-sm text-slate-600">{quote.purchaseBlockedReason || "Renewal opens closer to expiry."}</p>
       </div>
     </div>
@@ -173,7 +174,7 @@ export default function WebsitePurchasePage() {
   return (
     <div className="max-w-2xl mx-auto p-6 space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-[#003DA5]">{isRenewal ? "Renew Club Website" : "Buy Club Website"}</h1>
+        <h1 className="text-2xl font-bold text-azure">{isRenewal ? "Renew Club Website" : "Buy Club Website"}</h1>
         <p className="text-sm text-slate-500">
           {isRenewal
             ? "Extend your club website for another year."
@@ -192,14 +193,14 @@ export default function WebsitePurchasePage() {
         <div className="flex justify-between"><span className="text-slate-600">New expiry after payment</span><span className="font-medium">{fmtDate(quote.newEndDate)}</span></div>
         <div className="flex justify-between"><span className="text-slate-600">Website ({quote.validityMonths} months)</span><span>{inr(quote.baseAmount)}</span></div>
         <div className="flex justify-between"><span className="text-slate-600">GST ({quote.gstPercent}%)</span><span>{inr(quote.gstAmount)}</span></div>
-        <div className="flex justify-between border-t pt-1.5 font-semibold text-[#003DA5]"><span>Total payable</span><span>{inr(quote.totalAmount)}</span></div>
+        <div className="flex justify-between border-t pt-1.5 font-semibold text-azure"><span>Total payable</span><span>{inr(quote.totalAmount)}</span></div>
       </div>
 
       {/* Step: subdomain (New only) */}
       {step === "subdomain" && (
         <div className="rounded-xl border bg-white p-5 space-y-4">
           <div className="font-semibold text-slate-800">Choose your website address</div>
-          <div className="flex items-stretch rounded-lg border border-slate-300 overflow-hidden focus-within:ring-2 focus-within:ring-[#003DA5]">
+          <div className="flex items-stretch rounded-lg border border-slate-300 overflow-hidden focus-within:ring-2 focus-within:ring-azure">
             <span className="flex items-center px-3 bg-slate-50 text-slate-500 text-sm border-r">{prefix}</span>
             <input
               autoFocus
@@ -224,7 +225,7 @@ export default function WebsitePurchasePage() {
             type="button"
             disabled={!subValid}
             onClick={() => setStep("confirm")}
-            className="px-6 py-2.5 rounded-lg bg-[#003DA5] text-white font-medium disabled:opacity-50"
+            className="px-6 py-2.5 rounded-lg bg-azure text-white font-medium disabled:opacity-50"
           >
             Continue
           </button>
@@ -233,13 +234,13 @@ export default function WebsitePurchasePage() {
 
       {/* Step: confirm (hyper-focused, New only) */}
       {step === "confirm" && (
-        <div className="rounded-xl border-2 border-[#003DA5] bg-white p-6 space-y-5 text-center">
+        <div className="rounded-xl border-2 border-azure bg-white p-6 space-y-5 text-center">
           <div className="text-sm text-slate-500">Your website address will be</div>
-          <div className="text-2xl sm:text-3xl font-extrabold text-[#003DA5] break-all tracking-tight">
+          <div className="text-2xl sm:text-3xl font-extrabold text-azure break-all tracking-tight">
             {prefix}{subInput}.{parentDomain}
           </div>
           <div className="rounded-lg bg-amber-50 border border-amber-300 text-amber-800 text-sm p-3 font-medium">
-            ⚠️ Please check this carefully. Once created, this address <span className="underline">cannot be changed</span>.
+            <AlertTriangle className="mr-1 inline h-4 w-4 align-[-2px]" aria-hidden />Please check this carefully. Once created, this address <span className="underline">cannot be changed</span>.
           </div>
           <label className="flex items-center justify-center gap-2 text-sm text-slate-700">
             <input type="checkbox" checked={confirmChecked} onChange={(e) => setConfirmChecked(e.target.checked)} />
@@ -249,7 +250,7 @@ export default function WebsitePurchasePage() {
             <button type="button" onClick={() => { setConfirmChecked(false); setStep("subdomain"); }}
               className="px-5 py-2.5 rounded-lg border border-slate-300 text-slate-700 font-medium">Back</button>
             <button type="button" disabled={!confirmChecked} onClick={() => setStep("reminder")}
-              className="px-6 py-2.5 rounded-lg bg-[#003DA5] text-white font-medium disabled:opacity-50">Confirm &amp; Continue</button>
+              className="px-6 py-2.5 rounded-lg bg-azure text-white font-medium disabled:opacity-50">Confirm &amp; Continue</button>
           </div>
         </div>
       )}
@@ -266,7 +267,7 @@ export default function WebsitePurchasePage() {
             <input
               type="number" min={1} max={90} value={reminderDays}
               onChange={(e) => setReminderDays(e.target.value)}
-              className="w-32 rounded-lg border border-slate-300 px-3 py-2 outline-none focus:ring-2 focus:ring-[#003DA5]"
+              className="w-32 rounded-lg border border-slate-300 px-3 py-2 outline-none focus:ring-2 focus:ring-azure"
             />
             {!reminderValid && reminderDays !== "" && <p className="text-xs text-red-600">Enter a value between 1 and 90 days.</p>}
           </div>
@@ -276,7 +277,7 @@ export default function WebsitePurchasePage() {
                 className="px-5 py-2.5 rounded-lg border border-slate-300 text-slate-700 font-medium">Back</button>
             )}
             <button type="button" disabled={!reminderValid} onClick={() => setStep("pay")}
-              className="px-6 py-2.5 rounded-lg bg-[#003DA5] text-white font-medium disabled:opacity-50">Continue to Payment</button>
+              className="px-6 py-2.5 rounded-lg bg-azure text-white font-medium disabled:opacity-50">Continue to Payment</button>
           </div>
         </div>
       )}
@@ -289,14 +290,14 @@ export default function WebsitePurchasePage() {
             <div className="flex justify-between"><span className="text-slate-600">Website</span><span className="font-medium">{isRenewal ? quote.currentSubdomain : prefix + subInput}.{parentDomain}</span></div>
             <div className="flex justify-between"><span className="text-slate-600">Valid until</span><span>{fmtDate(quote.newEndDate)}</span></div>
             <div className="flex justify-between"><span className="text-slate-600">Reminder</span><span>{rem} days before expiry</span></div>
-            <div className="flex justify-between border-t pt-1 font-semibold text-[#003DA5]"><span>Total payable</span><span>{inr(quote.totalAmount)}</span></div>
+            <div className="flex justify-between border-t pt-1 font-semibold text-azure"><span>Total payable</span><span>{inr(quote.totalAmount)}</span></div>
           </div>
           {error && <div className="rounded-lg bg-red-50 border border-red-200 text-red-700 text-sm p-3">{error}</div>}
           <div className="flex gap-3">
             <button type="button" onClick={() => setStep("reminder")}
               className="px-5 py-2.5 rounded-lg border border-slate-300 text-slate-700 font-medium">Back</button>
             <button type="button" disabled={busy} onClick={handlePay}
-              className="px-6 py-2.5 rounded-lg bg-[#003DA5] text-white font-medium disabled:opacity-50">
+              className="px-6 py-2.5 rounded-lg bg-azure text-white font-medium disabled:opacity-50">
               {busy ? "Processing…" : `Pay ${inr(quote.totalAmount)} with Razorpay`}
             </button>
           </div>
@@ -307,26 +308,26 @@ export default function WebsitePurchasePage() {
       {/* Step: done */}
       {step === "done" && result && (
         <div className="rounded-xl border bg-white p-6 space-y-4 text-center">
-          <div className="text-4xl">🎉</div>
+          <CheckCircle2 className="h-10 w-10 text-green-600" aria-hidden />
           <div className="text-lg font-semibold text-slate-800">Payment successful</div>
           {result.provisionStatus === "Active" ? (
             <>
               <p className="text-sm text-slate-600">Your website is live{result.endDate ? ` until ${fmtDate(result.endDate)}` : ""}:</p>
               {result.visitUrl && (
                 <a href={result.visitUrl} target="_blank" rel="noreferrer"
-                  className="inline-block text-[#003DA5] font-semibold hover:underline break-all">{result.visitUrl}</a>
+                  className="inline-block text-azure font-semibold hover:underline break-all">{result.visitUrl}</a>
               )}
             </>
           ) : (
             <p className="text-sm text-slate-600">
               Your website <span className="font-medium">{isRenewal ? quote.currentSubdomain : prefix + subInput}.{parentDomain}</span> is
-              being set up in the background. You can safely leave this page — a notification will appear at the top-right and
+              being set up in the background. You can safely leave this page: a notification will appear at the top-right and
               we&apos;ll <span className="font-medium">email you</span> as soon as it&apos;s live.
             </p>
           )}
           <div>
             <button type="button" onClick={() => router.push("/club-admin-dashboard/my-club-website")}
-              className="px-6 py-2.5 rounded-lg bg-[#003DA5] text-white font-medium">Go to My Club Website</button>
+              className="px-6 py-2.5 rounded-lg bg-azure text-white font-medium">Go to My Club Website</button>
           </div>
         </div>
       )}

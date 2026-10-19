@@ -44,7 +44,7 @@ import {
   Pencil,
   Trash2,
   Calendar,
-} from "lucide-react";
+} from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
 import Pagination from "@/components/Pagination";
 import SearchBox from "@/components/SearchBox";

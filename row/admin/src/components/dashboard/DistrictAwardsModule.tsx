@@ -68,7 +68,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
 import AlertModal from "@/components/AlertModal";
-import { Plus, Pencil, Trash2, Save, AlertTriangle, FolderOpen, Download, Trophy, Eye, FileText, Sparkles, ClipboardList, ListChecks, ArrowLeft, RotateCcw } from "lucide-react";
+import { Plus, Pencil, Trash2, Save, AlertTriangle, FolderOpen, Download, Trophy, Eye, FileText, Sparkles, ClipboardList, ListChecks, ArrowLeft, RotateCcw } from "@/components/icons";
 import { ClubCitationV2View } from "@/app/clubs/[id]/citation/v2/view";
 import RotaryLoader from "@/components/RotaryLoader";
 import KpiCard from "@/components/dashboard/KpiCard";
@@ -246,7 +246,7 @@ export default function DistrictAwardsModule({ districtId }: { districtId: numbe
     try {
       await setDistrictAwardsConfig(districtId, selectedYearId, next);
       setAwardsEnabled(next);
-      setSuccessMessage(next ? "District Awards enabled — clubs can enter points." : "District Awards disabled — clubs are now read-only.");
+      setSuccessMessage(next ? "District Awards enabled: clubs can enter points." : "District Awards disabled: clubs are now read-only.");
     } catch {
       setErrorMessage("Failed to update District Awards status.");
     } finally {
@@ -761,7 +761,7 @@ export default function DistrictAwardsModule({ districtId }: { districtId: numbe
                                 return (
                                   <p key={s.id} className="text-xs text-slate-600">
                                     <span className="font-medium text-slate-700">{typeLabel}{typeLabel ? ": " : ""}{lineage}</span>
-                                    {" "}— Points: <span className="tabular-nums font-semibold">{fmtInt(Math.round(Number(s.points) || 0))}</span>
+                                    {" "},  Points: <span className="tabular-nums font-semibold">{fmtInt(Math.round(Number(s.points) || 0))}</span>
                                     {s.isBonus ? <> &middot; Bonus: <span className="tabular-nums font-semibold text-amber-700">{fmtInt(Math.round(Number(s.bonusPoints) || 0))}</span></> : null}
                                   </p>
                                 );
@@ -812,9 +812,9 @@ export default function DistrictAwardsModule({ districtId }: { districtId: numbe
                                 <div key={sc.id} className="text-xs text-slate-600">
                                   <span className="font-medium text-slate-700">{sc.subCriteriaTitle}</span>
                                   <span className="text-slate-400"> ({sc.answerType})</span>
-                                  {sc.answerType === "number" && <span> — Points: <span className="tabular-nums font-semibold">{fmtInt(Math.round(Number(sc.points) || 0))}</span>{sc.isBonus ? <> &middot; Bonus: <span className="tabular-nums font-semibold text-amber-700">{fmtInt(Math.round(Number(sc.bonusPoints) || 0))}</span></> : null}</span>}
-                                  {sc.answerType === "yesno" && <span> — Base Points: <span className="tabular-nums font-semibold">{fmtInt(Math.round(Number(sc.points) || 0))}</span></span>}
-                                  {sc.answerType === "choose_one" && sc.options && <span> — {fmtInt(sc.options.length)} options</span>}
+                                  {sc.answerType === "number" && <span>: Points: <span className="tabular-nums font-semibold">{fmtInt(Math.round(Number(sc.points) || 0))}</span>{sc.isBonus ? <> &middot; Bonus: <span className="tabular-nums font-semibold text-amber-700">{fmtInt(Math.round(Number(sc.bonusPoints) || 0))}</span></> : null}</span>}
+                                  {sc.answerType === "yesno" && <span>: Base Points: <span className="tabular-nums font-semibold">{fmtInt(Math.round(Number(sc.points) || 0))}</span></span>}
+                                  {sc.answerType === "choose_one" && sc.options && <span>: {fmtInt(sc.options.length)} options</span>}
                                 </div>
                               ))}
                             </div>
@@ -878,7 +878,7 @@ export default function DistrictAwardsModule({ districtId }: { districtId: numbe
                             <TableCell className="font-semibold tabular-nums text-slate-700">
                               <span className="inline-flex items-center gap-1">
                                 {fmtInt(i + 1)}
-                                {isTop3 && <Trophy className="h-3.5 w-3.5" style={{ color: i === 0 ? "#F7A81B" : i === 1 ? "#9CA3AF" : "#B45309" }} />}
+                                {isTop3 && <Trophy className="h-3.5 w-3.5" style={{ color: i === 0 ? "#F7A81B" : i === 1 ? "#8796AA" : "#B97A0B" }} />}
                               </span>
                             </TableCell>
                             <TableCell className="font-medium text-slate-800">{c.clubName}</TableCell>

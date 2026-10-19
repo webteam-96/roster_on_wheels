@@ -1,5 +1,5 @@
 import Image from "next/image";
-import { FileDown, MapPin, Play } from "lucide-react";
+import { FileDown, MapPin, Play } from "@/components/icons";
 import type { LeaderProfileData } from "./data";
 
 /**

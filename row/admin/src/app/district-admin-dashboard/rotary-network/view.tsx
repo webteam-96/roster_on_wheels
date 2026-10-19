@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
-import { UserMinus, UserPlus, Search, X, RefreshCw, Eye, Download } from "lucide-react";
+import { UserMinus, UserPlus, Search, X, RefreshCw, Eye, Download } from "@/components/icons";
 import * as XLSX from "xlsx-js-style";
 import RotaryLoader from "@/components/RotaryLoader";
 import {
@@ -300,7 +300,7 @@ export function DistrictRotaryNetworkView({ embedded = false }: { embedded?: boo
             <div className="flex items-center justify-between">
               <span className="font-medium">
                 {total > 0
-                  ? `Refreshing from Rotary.org — ${done} of ${total} clubs (runs in the background — safe to leave this page)`
+                  ? `Refreshing from Rotary.org: ${done} of ${total} clubs (runs in the background: safe to leave this page)`
                   : "Starting refresh from Rotary.org…"}
               </span>
               {total > 0 && <span className="font-semibold">{pct}%</span>}
@@ -332,7 +332,7 @@ export function DistrictRotaryNetworkView({ embedded = false }: { embedded?: boo
                 type="button"
                 onClick={handleRefreshFromRotaryOrg}
                 disabled={refreshing}
-                title="Warms the cache for every linked club in the district, a few at a time — safe to leave running in the background."
+                title="Warms the cache for every linked club in the district, a few at a time: safe to leave running in the background."
                 className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg border border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100 disabled:opacity-50"
               >
                 <RefreshCw size={13} className={refreshing ? "animate-spin" : undefined} />
@@ -358,18 +358,18 @@ export function DistrictRotaryNetworkView({ embedded = false }: { embedded?: boo
                 <Download size={13} /> Download as Excel
               </button>
             )}
-            <div className="inline-flex items-center gap-1 rounded-lg p-1 text-sm" style={{ backgroundColor: "#1e3a5f" }}>
+            <div className="inline-flex items-center gap-1 rounded-lg p-1 text-sm" style={{ backgroundColor: "#17458f" }}>
               <button
                 onClick={() => handleViewChange("terminated")}
                 className={`px-3 py-1.5 font-semibold rounded-md transition ${view === "terminated" ? "shadow-sm" : "text-white hover:bg-white/10"}`}
-                style={view === "terminated" ? { backgroundColor: "#F7A81B", color: "#1e3a5f" } : undefined}
+                style={view === "terminated" ? { backgroundColor: "#F7A81B", color: "#17458f" } : undefined}
               >
                 Terminated Members
               </button>
               <button
                 onClick={() => handleViewChange("potential")}
                 className={`px-3 py-1.5 font-semibold rounded-md transition ${view === "potential" ? "shadow-sm" : "text-white hover:bg-white/10"}`}
-                style={view === "potential" ? { backgroundColor: "#F7A81B", color: "#1e3a5f" } : undefined}
+                style={view === "potential" ? { backgroundColor: "#F7A81B", color: "#17458f" } : undefined}
               >
                 Potential Members
               </button>
@@ -513,18 +513,18 @@ export function DistrictRotaryNetworkView({ embedded = false }: { embedded?: boo
               {rows.map((r, index) => (
                 <tr key={`${view}-${r.id}`} className="hover:bg-blue-50/40">
                   <td className="px-3 py-2 text-xs text-slate-600">{index + 1}</td>
-                  <td className="px-3 py-2 text-slate-800 font-medium whitespace-nowrap">{r.clubName || "—"}</td>
-                  <td className="px-3 py-2 text-xs text-slate-600">{r.memberId || "—"}</td>
+                  <td className="px-3 py-2 text-slate-800 font-medium whitespace-nowrap">{r.clubName || "–"}</td>
+                  <td className="px-3 py-2 text-xs text-slate-600">{r.memberId || "–"}</td>
                   <td className="px-3 py-2">
                     <span className="inline-flex items-center text-xs font-medium px-2 py-0.5 rounded-full border bg-slate-50 text-slate-700 border-slate-200">
-                      {r.memberType || "—"}
+                      {r.memberType || "–"}
                     </span>
                   </td>
-                  <td className="px-3 py-2 text-slate-800 font-medium">{r.firstName || "—"}</td>
-                  <td className="px-3 py-2 text-slate-600">{r.middleName || "—"}</td>
-                  <td className="px-3 py-2 text-slate-800 font-medium">{r.lastName || "—"}</td>
-                  <td className="px-3 py-2 text-xs text-slate-600 whitespace-nowrap">{r.mobile || "—"}</td>
-                  <td className="px-3 py-2 text-xs text-slate-600">{r.email || "—"}</td>
+                  <td className="px-3 py-2 text-slate-800 font-medium">{r.firstName || "–"}</td>
+                  <td className="px-3 py-2 text-slate-600">{r.middleName || "–"}</td>
+                  <td className="px-3 py-2 text-slate-800 font-medium">{r.lastName || "–"}</td>
+                  <td className="px-3 py-2 text-xs text-slate-600 whitespace-nowrap">{r.mobile || "–"}</td>
+                  <td className="px-3 py-2 text-xs text-slate-600">{r.email || "–"}</td>
                   <td className="px-3 py-2 text-xs text-slate-600 whitespace-nowrap">{fmtDate(r.admissionDate)}</td>
                   {view === "terminated" && (
                     <>
@@ -535,13 +535,13 @@ export function DistrictRotaryNetworkView({ embedded = false }: { embedded?: boo
                             {r.terminationReason}
                           </span>
                         ) : (
-                          <span className="text-xs text-slate-400">—</span>
+                          <span className="text-xs text-slate-400">, </span>
                         )}
                       </td>
                     </>
                   )}
                   {view === "potential" && (
-                    <td className="px-3 py-2 text-xs text-slate-600 max-w-xs truncate" title={r.notes || undefined}>{r.notes || "—"}</td>
+                    <td className="px-3 py-2 text-xs text-slate-600 max-w-xs truncate" title={r.notes || undefined}>{r.notes || "–"}</td>
                   )}
                 </tr>
               ))}

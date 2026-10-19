@@ -9,20 +9,20 @@ import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { CheckCircle2, XCircle, Loader2, AlertTriangle, ShieldCheck, Mail, Building2, Calendar, IndianRupee, FileText, Receipt } from "lucide-react";
+import { CheckCircle2, XCircle, Loader2, AlertTriangle, ShieldCheck, Mail, Building2, Calendar, IndianRupee, FileText, Receipt } from "@/components/icons";
 
 import { appLocale, currencySymbol } from "@/lib/appFormat";
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
 function formatDate(d: string | null | undefined): string {
-  if (!d) return "—";
+  if (!d) return "–";
   const dt = new Date(d);
-  if (isNaN(dt.getTime())) return "—";
+  if (isNaN(dt.getTime())) return "–";
   return dt.toLocaleString(appLocale(), { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" });
 }
 
 function formatAmount(n: number | string | null | undefined): string {
-  if (n === null || n === undefined) return "—";
+  if (n === null || n === undefined) return "–";
   const v = Number(n);
   if (isNaN(v)) return String(n);
   return `${currencySymbol()}${v.toLocaleString(appLocale(), { maximumFractionDigits: 2 })}`;
@@ -189,9 +189,9 @@ export default function PublicDuesApprovalPage() {
     <div className="min-h-screen bg-slate-50 py-8 px-4">
       <div className="max-w-2xl mx-auto space-y-5">
         {/* Brand strip */}
-        <div className="bg-[#1a365d] text-white text-center py-3 rounded-lg shadow-sm">
+        <div className="bg-azure text-white text-center py-3 rounded-lg shadow-sm">
           <h1 className="text-base font-semibold">ROW</h1>
-          <p className="text-xs opacity-80">Club Dues — Offline Payment Approval</p>
+          <p className="text-xs opacity-80">Club Dues: Offline Payment Approval</p>
         </div>
 
         {/* Status banner */}
@@ -204,7 +204,7 @@ export default function PublicDuesApprovalPage() {
                   {alreadyHandled ? "This payment was already approved" : "Payment approved"}
                 </p>
                 <p className="text-xs text-emerald-800 mt-1">
-                  on {formatDate(handled.approvedOn)} by <strong>{handled.approvedByName || "—"}</strong>
+                  on {formatDate(handled.approvedOn)} by <strong>{handled.approvedByName || "–"}</strong>
                   {handled.approvalSource ? <> · via {handled.approvalSource}</> : null}
                 </p>
                 {handled.approvalRemark && (
@@ -223,7 +223,7 @@ export default function PublicDuesApprovalPage() {
                   {alreadyHandled ? "This payment was already rejected" : "Payment rejected"}
                 </p>
                 <p className="text-xs text-red-800 mt-1">
-                  on {formatDate(handled.rejectedOn)} by <strong>{handled.rejectedByName || "—"}</strong>
+                  on {formatDate(handled.rejectedOn)} by <strong>{handled.rejectedByName || "–"}</strong>
                   {handled.rejectionSource ? <> · via {handled.rejectionSource}</> : null}
                 </p>
                 {handled.rejectionReason && (
@@ -237,7 +237,7 @@ export default function PublicDuesApprovalPage() {
         {/* Payment details */}
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="flex items-center gap-2 text-[#1a365d]">
+            <CardTitle className="flex items-center gap-2 text-azure">
               <Receipt className="h-5 w-5" />
               Payment Details
             </CardTitle>
@@ -246,21 +246,21 @@ export default function PublicDuesApprovalPage() {
             <dl className="grid grid-cols-1 sm:grid-cols-2 gap-y-2.5 gap-x-6">
               <div>
                 <dt className="text-xs text-slate-500">Member</dt>
-                <dd className="font-medium">{member.name || "—"}</dd>
+                <dd className="font-medium">{member.name || "–"}</dd>
                 <dd className="text-xs text-slate-500">{member.email || ""}</dd>
               </div>
               <div>
                 <dt className="text-xs text-slate-500 flex items-center gap-1"><Building2 className="h-3 w-3" /> Club</dt>
-                <dd className="font-medium">{club.name || "—"}</dd>
-                <dd className="text-xs text-slate-500">District {club.districtNumber || "—"} · RY {dues.rotaryYear || "—"}</dd>
+                <dd className="font-medium">{club.name || "–"}</dd>
+                <dd className="text-xs text-slate-500">District {club.districtNumber || "–"} · RY {dues.rotaryYear || "–"}</dd>
               </div>
               <div>
                 <dt className="text-xs text-slate-500">Purpose</dt>
-                <dd className="font-medium">{dues.purpose || "—"}</dd>
+                <dd className="font-medium">{dues.purpose || "–"}</dd>
               </div>
               <div>
                 <dt className="text-xs text-slate-500">Fee Type</dt>
-                <dd className="font-medium">{dues.feeLabel || "—"}</dd>
+                <dd className="font-medium">{dues.feeLabel || "–"}</dd>
               </div>
               <div>
                 <dt className="text-xs text-slate-500 flex items-center gap-1"><IndianRupee className="h-3 w-3" /> Amount</dt>
@@ -272,7 +272,7 @@ export default function PublicDuesApprovalPage() {
               </div>
               <div>
                 <dt className="text-xs text-slate-500">Payment Mode</dt>
-                <dd className="font-medium">{dues.transactionType || "—"}</dd>
+                <dd className="font-medium">{dues.transactionType || "–"}</dd>
               </div>
               {dues.transactionId && (
                 <div>
@@ -321,14 +321,14 @@ export default function PublicDuesApprovalPage() {
         {/* Actor card */}
         <Card className="border-slate-200">
           <CardContent className="p-4 flex items-start gap-3">
-            <ShieldCheck className="h-5 w-5 text-[#1a365d] mt-0.5 shrink-0" />
+            <ShieldCheck className="h-5 w-5 text-azure mt-0.5 shrink-0" />
             <div className="text-sm text-slate-700">
               <p>
-                Signed in as <strong>{actor.name || "—"}</strong>{" "}
+                Signed in as <strong>{actor.name || "–"}</strong>{" "}
                 {actor.designation && <Badge variant="outline" className="ml-1">{actor.designation}</Badge>}
               </p>
               <p className="text-xs text-slate-500 flex items-center gap-1 mt-0.5">
-                <Mail className="h-3 w-3" /> {actor.email || "—"}
+                <Mail className="h-3 w-3" /> {actor.email || "–"}
               </p>
               <p className="text-xs text-slate-500 mt-1">
                 Your action will be recorded against your name in the audit log.
@@ -385,7 +385,7 @@ export default function PublicDuesApprovalPage() {
                 rows={3}
                 value={approveRemark}
                 onChange={(e) => setApproveRemark(e.target.value)}
-                placeholder="Optional remark — will appear on the receipt email if provided"
+                placeholder="Optional remark: will appear on the receipt email if provided"
               />
             </div>
             {actionError && <p className="text-xs text-red-700">{actionError}</p>}

@@ -366,21 +366,6 @@ public class EventPaymentLinksController : ControllerBase
         }
     }
 
-    [HttpPost("members/{memberPaymentId}/send-reminder-whatsapp")]
-    public async Task<ActionResult> SendReminderWhatsApp(int memberPaymentId)
-    {
-        if (!IsSuperAdminOrAdmin()) return StatusCode(403, new { message = "Access denied." });
-        try
-        {
-            await _service.SendReminderWhatsAppAsync(memberPaymentId);
-            return Ok(new { message = "WhatsApp reminder sent." });
-        }
-        catch (Exception ex)
-        {
-            return StatusCode(500, new { message = $"Failed: {ex.Message}" });
-        }
-    }
-
     [HttpPost("{linkId}/members/bulk-reminder-email")]
     public async Task<ActionResult> BulkReminderEmail(int linkId, [FromBody] SendEmailRemarkDto? dto = null)
     {
@@ -389,21 +374,6 @@ public class EventPaymentLinksController : ControllerBase
         {
             await _service.BulkSendReminderEmailAsync(linkId, dto?.Remark);
             return Ok(new { message = "Bulk email reminders sent." });
-        }
-        catch (Exception ex)
-        {
-            return StatusCode(500, new { message = $"Failed: {ex.Message}" });
-        }
-    }
-
-    [HttpPost("{linkId}/members/bulk-reminder-whatsapp")]
-    public async Task<ActionResult> BulkReminderWhatsApp(int linkId)
-    {
-        if (!IsSuperAdminOrAdmin()) return StatusCode(403, new { message = "Access denied." });
-        try
-        {
-            await _service.BulkSendReminderWhatsAppAsync(linkId);
-            return Ok(new { message = "Bulk WhatsApp reminders sent." });
         }
         catch (Exception ex)
         {

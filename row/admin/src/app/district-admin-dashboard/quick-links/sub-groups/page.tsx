@@ -16,7 +16,7 @@
  *     listing URL) + yearId. Back honours ?returnTo=, else the Quick Links
  *     landing.
  *   - Member list per group is shown via inline expand (no separate route).
- *   - Navy #1e3a5f / gold #F7A81B / slate palette, rounded-2xl bg-white cards.
+ *   - Navy #17458f / gold #F7A81B / slate palette, rounded-2xl bg-white cards.
  */
 
 import { useState, useEffect, useCallback } from "react";
@@ -41,7 +41,7 @@ import SearchBox from "@/components/SearchBox";
 import {
   ArrowLeft, Plus, Pencil, Trash2, Users, User,
   AlertTriangle, ChevronDown, ChevronRight, CalendarClock,
-} from "lucide-react";
+} from "@/components/icons";
 
 function withSearch(base: string, extra: Record<string, string | null | undefined>) {
   const p = new URLSearchParams();
@@ -143,18 +143,18 @@ export default function DistrictAdminSubGroupsPage() {
               <ArrowLeft className="h-4 w-4" />
             </Button>
             <div className="flex items-center gap-3">
-              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#1e3a5f]/10 text-[#1e3a5f]">
+              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-azure/10 text-ink">
                 <Users size={22} />
               </div>
               <div>
-                <h2 className="text-2xl font-bold tracking-tight text-[#1e3a5f]">Sub Groups</h2>
-                <div className="h-0.5 w-16 bg-[#F7A81B] rounded mt-1.5" />
+                <h2 className="text-2xl font-bold tracking-tight text-ink">Sub Groups</h2>
+                <div className="h-0.5 w-16 bg-marigold rounded mt-1.5" />
                 <p className="text-sm text-slate-500 mt-1.5">Manage district sub groups and their members</p>
               </div>
             </div>
           </div>
           {canManage && yearId && (
-            <Button onClick={goAdd} className="bg-[#1e3a5f] hover:bg-[#152a44] text-white">
+            <Button onClick={goAdd} className="bg-azure hover:bg-mint-ink text-white">
               <Plus className="mr-2 h-4 w-4" />Add Sub Group
             </Button>
           )}
@@ -210,7 +210,7 @@ export default function DistrictAdminSubGroupsPage() {
                         <div key={group.id} className="rounded-2xl border border-slate-200 shadow-sm bg-white overflow-hidden">
                           <div className="p-4">
                             <div className="flex items-start gap-3">
-                              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#1e3a5f]/10 text-[#1e3a5f]">
+                              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-azure/10 text-ink">
                                 <Users className="h-5 w-5" />
                               </div>
                               <div className="flex-1 min-w-0">
@@ -270,7 +270,7 @@ export default function DistrictAdminSubGroupsPage() {
                                           {photoUrl ? (
                                             <Image src={photoUrl} alt={member.memberName} fill className="object-cover" unoptimized />
                                           ) : (
-                                            <div className="flex h-full w-full items-center justify-center bg-[#1e3a5f]/10 text-[#1e3a5f]">
+                                            <div className="flex h-full w-full items-center justify-center bg-azure/10 text-ink">
                                               <User className="h-4 w-4" />
                                             </div>
                                           )}
@@ -278,7 +278,7 @@ export default function DistrictAdminSubGroupsPage() {
                                         <div className="flex-1 min-w-0">
                                           <p className="text-sm font-medium text-slate-800 truncate">{member.memberName}</p>
                                           <p className="text-xs text-slate-500 truncate">
-                                            {[member.clubName, member.mobileNumber, member.email].filter(Boolean).join(" | ") || "—"}
+                                            {[member.clubName, member.mobileNumber, member.email].filter(Boolean).join(" | ") || "–"}
                                           </p>
                                         </div>
                                       </div>

@@ -10,11 +10,11 @@
  */
 
 import type { ReactNode } from "react";
-import { Lock, ShieldCheck, BadgeCheck } from "lucide-react";
+import { Lock, ShieldCheck, BadgeCheck } from "@/components/icons";
 import { useBrand } from "@/contexts/BrandContext";
 
 const NAVY = "#17458F";
-const NAVY_DARK = "#0F3168";
+const NAVY_DARK = "#0B3F7A";
 const GOLD = "#F7A81B";
 
 export default function PayPageShell({ title, wide, children }: { title?: ReactNode; wide?: boolean; children: ReactNode }) {
@@ -27,25 +27,22 @@ export default function PayPageShell({ title, wide, children }: { title?: ReactN
         <span className="hidden sm:inline">{hours && <> &nbsp;·&nbsp; {hours}</>}{email && <> &nbsp;·&nbsp; {email}</>}</span>
       </div>
 
-      {/* Branded navbar (full width) — logo left · title center · secure payment right */}
-      <header className="w-full text-white shadow-sm" style={{ background: `linear-gradient(90deg, ${NAVY} 0%, ${NAVY_DARK} 100%)` }}>
+      {/* Branded navbar (full width): logo left, title center, secure payment right. Light bar so the
+          transparent logo sits on its own field. */}
+      <header className="w-full border-b border-[color:var(--row-line)] bg-white text-foreground">
         <div className="flex h-16 sm:h-20 items-center gap-3 sm:gap-4 px-4 sm:px-8">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/brand/row-logo-badge.png" alt="ROW" className="h-10 sm:h-14 object-contain shrink-0" />
+          <img src="/brand/row-logo.png" alt="ROW" className="h-10 sm:h-14 object-contain shrink-0" />
           <div className="flex-1 min-w-0 text-center">
             {title && <span className="font-semibold text-sm sm:text-lg truncate block">{title}</span>}
           </div>
-          <div className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-3 py-1.5 text-xs font-medium ring-1 ring-white/20 shrink-0">
+          <div className="inline-flex items-center gap-1.5 rounded-full bg-[color:var(--row-cream-2)] px-3 py-1.5 text-xs font-medium shrink-0">
             <Lock className="h-3.5 w-3.5" style={{ color: GOLD }} />
             <span className="hidden sm:inline">Secure payment</span>
           </div>
         </div>
       </header>
-      {/* Gold accent rule */}
-      <div className="w-full h-1" style={{ backgroundColor: GOLD }} />
-
-      {/* Content — soft branded gradient so the page never feels empty */}
-      <main className="flex-1 w-full bg-gradient-to-b from-blue-50/70 via-slate-50 to-slate-50">
+      <main className="flex-1 w-full bg-background">
         <div className={`${wide ? "max-w-6xl" : "max-w-xl"} mx-auto px-4 pt-8 sm:pt-10 pb-12`}>{children}</div>
       </main>
 
@@ -54,7 +51,7 @@ export default function PayPageShell({ title, wide, children }: { title?: ReactN
         <div className="px-4 sm:px-8 py-4 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-xs text-slate-500">
           <span className="inline-flex items-center gap-1.5"><ShieldCheck className="h-4 w-4 text-emerald-600" /> 256-bit SSL encrypted</span>
           <span className="inline-flex items-center gap-1.5"><Lock className="h-4 w-4 text-slate-500" /> Secured by Razorpay</span>
-          <span className="inline-flex items-center gap-1.5"><BadgeCheck className="h-4 w-4" style={{ color: NAVY }} /> Official Rotary Zones portal</span>
+          <span className="inline-flex items-center gap-1.5"><BadgeCheck className="h-4 w-4" style={{ color: NAVY }} /> Roster On Wheels</span>
         </div>
       </div>
 

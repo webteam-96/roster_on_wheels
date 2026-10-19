@@ -13,7 +13,6 @@ export interface ClubAdminIdentity {
   /** Available (active, unexpired, unused) Email credits — surfaced on the
    *  Overview hero next to the Rotary.org Sync chip. */
   emailCreditBalance: number;
-  whatsAppCreditBalance: number;
 }
 
 export interface ClubAdminAvenueRow { avenue: string; completed: number; }

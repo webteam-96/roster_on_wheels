@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import {
   Briefcase, Users, Clock, IndianRupee, ChevronLeft, ChevronRight, Search,
   CheckCircle2, XCircle, X,
-} from "lucide-react";
+} from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, LabelList,
@@ -61,7 +61,7 @@ function ClubChip({ name, index }: { name: string; index: number }) {
 }
 
 function CategoryChip({ category }: { category: string | null | undefined }) {
-  if (!category) return <span className="text-slate-300 text-xs">—</span>;
+  if (!category) return <span className="text-slate-300 text-xs">, </span>;
   return (
     <span
       className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium bg-slate-100 text-slate-700 whitespace-nowrap"
@@ -100,7 +100,7 @@ function ApprovalStatusChip({ status }: { status: string | null | undefined }) {
       </span>
     );
   }
-  return <span className="text-slate-300 text-xs">—</span>;
+  return <span className="text-slate-300 text-xs">, </span>;
 }
 
 function FundingChip({ funding }: { funding: string }) {
@@ -112,7 +112,7 @@ function FundingChip({ funding }: { funding: string }) {
   else if (f.includes("sponsor"))          cls = "bg-purple-50 text-purple-700 border-purple-200";
   return (
     <span className={`inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium border ${cls} whitespace-nowrap`}>
-      {funding || "—"}
+      {funding || "–"}
     </span>
   );
 }
@@ -169,7 +169,7 @@ function ProjectDetailModal({
     return () => { cancelled = true; };
   }, [row.projectId, row.yearId, yearId, districtId]);
 
-  const dash = <span className="text-slate-300">—</span>;
+  const dash = <span className="text-slate-300">, </span>;
   // Fall back to the list row while the detail loads, so the popup is never empty.
   const d = detail;
 
@@ -236,7 +236,7 @@ function ProjectDetailModal({
               <DetailField label="Project Type">{d?.projectType || dash}</DetailField>
               <DetailField label="Joint Project">
                 {d?.isJointProject
-                  ? `Yes${d.coHostName ? ` — with ${d.coHostName}` : ""}${d.clubRole ? ` (${d.clubRole})` : ""}`
+                  ? `Yes${d.coHostName ? `: with ${d.coHostName}` : ""}${d.clubRole ? ` (${d.clubRole})` : ""}`
                   : "No"}
               </DetailField>
               <DetailField label="Approval Status">
@@ -424,7 +424,7 @@ export default function AgProjectsPage() {
 
   const clubsList = Array.from(new Set(data.projects.map((p) => p.clubName)));
   const peakMonthly = Math.max(0, ...monthlyData.map((d) => d.projects));
-  const yearLabel = data.ag?.yearLabel || "—";
+  const yearLabel = data.ag?.yearLabel || "–";
   const manHoursDisplay = rootManHoursPending ? "Pending" : fmtInt(data.totalManHours);
 
   return (
@@ -475,15 +475,15 @@ export default function AgProjectsPage() {
           ) : (
             <ResponsiveContainer width="100%" height={Math.max(220, clubBarData.length * 50)}>
               <BarChart data={clubBarData} layout="vertical" margin={{ top: 4, right: 56, left: 8, bottom: 4 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" horizontal={false} />
+                <CartesianGrid strokeDasharray="3 3" stroke="#edf4fb" horizontal={false} />
                 <XAxis type="number" tick={{ fontSize: 11, fill: "#64748b" }} allowDecimals={false} />
-                <YAxis type="category" dataKey="name" width={180} tick={{ fontSize: 11, fill: "#475569" }} />
+                <YAxis type="category" dataKey="name" width={180} tick={{ fontSize: 11, fill: "#4A5A70" }} />
                 <Tooltip contentStyle={{ fontSize: 12, borderRadius: 8 }} />
                 <Bar dataKey="projects" radius={[0, 4, 4, 0]} barSize={22}>
                   {clubBarData.map((_, idx) => (
                     <Cell key={idx} fill={idx === 0 ? ROTARY_GOLD : ROTARY_BLUE} />
                   ))}
-                  <LabelList dataKey="projects" position="right" style={{ fontSize: 11, fill: "#475569", fontWeight: 600 }} />
+                  <LabelList dataKey="projects" position="right" style={{ fontSize: 11, fill: "#4A5A70", fontWeight: 600 }} />
                 </Bar>
               </BarChart>
             </ResponsiveContainer>
@@ -498,7 +498,7 @@ export default function AgProjectsPage() {
           ) : (
             <ResponsiveContainer width="100%" height={260}>
               <BarChart data={monthlyData} margin={{ top: 16, right: 16, left: 0, bottom: 4 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
+                <CartesianGrid strokeDasharray="3 3" stroke="#edf4fb" vertical={false} />
                 <XAxis dataKey="month" tick={{ fontSize: 11, fill: "#64748b" }} />
                 <YAxis tick={{ fontSize: 11, fill: "#64748b" }} allowDecimals={false} />
                 <Tooltip contentStyle={{ fontSize: 12, borderRadius: 8 }} />
@@ -506,7 +506,7 @@ export default function AgProjectsPage() {
                   {monthlyData.map((entry, idx) => (
                     <Cell key={idx} fill={entry.projects === peakMonthly && peakMonthly > 0 ? ROTARY_GOLD : ROTARY_BLUE} />
                   ))}
-                  <LabelList dataKey="projects" position="top" style={{ fontSize: 10, fill: "#475569", fontWeight: 600 }} />
+                  <LabelList dataKey="projects" position="top" style={{ fontSize: 10, fill: "#4A5A70", fontWeight: 600 }} />
                 </Bar>
               </BarChart>
             </ResponsiveContainer>
@@ -525,21 +525,21 @@ export default function AgProjectsPage() {
         ) : (
           <ResponsiveContainer width="100%" height={Math.max(240, categoryData.length * 40)}>
             <BarChart data={categoryData} layout="vertical" margin={{ top: 4, right: 56, left: 8, bottom: 4 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" horizontal={false} />
+              <CartesianGrid strokeDasharray="3 3" stroke="#edf4fb" horizontal={false} />
               <XAxis type="number" tick={{ fontSize: 11, fill: "#64748b" }} allowDecimals={false} />
               <YAxis
                 type="category"
                 dataKey="name"
                 width={240}
-                tick={{ fontSize: 11, fill: "#475569" }}
+                tick={{ fontSize: 11, fill: "#4A5A70" }}
                 tickFormatter={(v: string) => (v.length > 30 ? v.slice(0, 28) + "…" : v)}
               />
               <Tooltip contentStyle={{ fontSize: 12, borderRadius: 8 }} />
               <Bar dataKey="count" radius={[0, 4, 4, 0]} barSize={20}>
                 {categoryData.map((_, idx) => (
-                  <Cell key={idx} fill={idx === 0 ? ROTARY_GOLD : idx < 3 ? "#1a6bde" : ROTARY_BLUE} />
+                  <Cell key={idx} fill={idx === 0 ? ROTARY_GOLD : idx < 3 ? "#0067c8" : ROTARY_BLUE} />
                 ))}
-                <LabelList dataKey="count" position="right" style={{ fontSize: 11, fill: "#475569", fontWeight: 600 }} />
+                <LabelList dataKey="count" position="right" style={{ fontSize: 11, fill: "#4A5A70", fontWeight: 600 }} />
               </Bar>
             </BarChart>
           </ResponsiveContainer>
@@ -550,7 +550,7 @@ export default function AgProjectsPage() {
       <div className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
         <div className="px-5 py-4 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div>
-            <h3 className="text-sm font-semibold text-slate-800">All Projects — Detailed View</h3>
+            <h3 className="text-sm font-semibold text-slate-800">All Projects: Detailed View</h3>
             <p className="text-[11px] text-slate-500 mt-0.5">
               Showing {sortedRows.length === 0 ? 0 : (safePage - 1) * PAGE_SIZE + 1}
               –{Math.min(safePage * PAGE_SIZE, sortedRows.length)} of {sortedRows.length} project
@@ -623,10 +623,10 @@ export default function AgProjectsPage() {
                       </span>
                     </td>
                     <td className="px-3 py-2.5 text-right text-slate-700 whitespace-nowrap tabular-nums">
-                      {row.cost > 0 ? formatMoney(row.cost, row.currency) : <span className="text-slate-300">—</span>}
+                      {row.cost > 0 ? formatMoney(row.cost, row.currency) : <span className="text-slate-300">, </span>}
                     </td>
                     <td className="px-3 py-2.5 text-right text-slate-700 tabular-nums">
-                      {row.beneficiaries > 0 ? fmtInt(row.beneficiaries) : <span className="text-slate-300">—</span>}
+                      {row.beneficiaries > 0 ? fmtInt(row.beneficiaries) : <span className="text-slate-300">, </span>}
                     </td>
                     <td className="px-3 py-2.5 text-right tabular-nums">
                       {isManHoursPending(row) ? (
@@ -634,7 +634,7 @@ export default function AgProjectsPage() {
                       ) : row.manHours > 0 ? (
                         <span className="text-slate-700">{fmtInt(row.manHours)}</span>
                       ) : (
-                        <span className="text-slate-300">—</span>
+                        <span className="text-slate-300">, </span>
                       )}
                     </td>
                     <td className="px-3 py-2.5">
@@ -671,8 +671,8 @@ export default function AgProjectsPage() {
                       ? <PendingCell />
                       : fmtInt(pageRows.reduce((s, r) => s + (isManHoursPending(r) ? 0 : r.manHours || 0), 0))}
                   </td>
-                  <td className="px-3 py-3 text-slate-400">—</td>
-                  <td className="px-3 py-3 text-slate-400">—</td>
+                  <td className="px-3 py-3 text-slate-400">, </td>
+                  <td className="px-3 py-3 text-slate-400">, </td>
                 </tr>
               </tfoot>
             )}

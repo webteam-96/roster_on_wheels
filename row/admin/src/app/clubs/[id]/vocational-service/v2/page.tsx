@@ -16,7 +16,7 @@ import Link from "next/link";
 import {
   Briefcase, Users, IndianRupee, Loader2, Search, Plus, Edit3, Trash2, Eye,
   Download, ArrowLeft, AlertTriangle, Info, BadgeAlert, Clock, CheckCircle2, XCircle, Puzzle,
-} from "lucide-react";
+} from "@/components/icons";
 import {
   getClub,
   getModules,
@@ -64,7 +64,7 @@ function projectTypeLabel(t: string | null | undefined): string {
   if (lo === "ongoing_parent")  return "Ongoing";
   if (lo === "ongoing_instance") return "Recurring";
   if (lo === "annual")          return "Annual";
-  return t || "—";
+  return t || "–";
 }
 
 function isPendingStatus(s: string | null | undefined): boolean {
@@ -200,7 +200,7 @@ export default function VocationalServiceV2Page() {
     [projects]
   );
 
-  const yearLabel = years.find((y) => y.id === selectedYearId)?.yearLabel ?? "—";
+  const yearLabel = years.find((y) => y.id === selectedYearId)?.yearLabel ?? "–";
   const totalPages = Math.ceil(totalCount / pageSize);
 
   // KPI: Projects uses totalCount (full year). Beneficiaries / Cost reflect the
@@ -268,7 +268,7 @@ export default function VocationalServiceV2Page() {
             <div>
               <h1 className="text-lg font-semibold text-slate-800">Vocational Service</h1>
               <p className="text-xs text-slate-500 mt-0.5">
-                RY {yearLabel} · {clubName || "—"}
+                RY {yearLabel} · {clubName || "–"}
               </p>
             </div>
           </div>
@@ -406,14 +406,14 @@ export default function VocationalServiceV2Page() {
                       <tr key={p.id} className="hover:bg-blue-50/40">
                         <td className="px-3 py-2 text-slate-500">{sno}</td>
                         <td className="px-3 py-2 text-slate-700 whitespace-nowrap">{fmtDate(p.projectDate)}</td>
-                        <td className="px-3 py-2 font-medium text-slate-800">{p.title || "—"}</td>
+                        <td className="px-3 py-2 font-medium text-slate-800">{p.title || "–"}</td>
                         <td className="px-3 py-2">
                           <span className={`inline-flex items-center text-xs font-medium px-2 py-0.5 rounded-full border ${projectTypeChipStyle(p.projectType)}`}>
                             {projectTypeLabel(p.projectType)}
                           </span>
                         </td>
-                        <td className="px-3 py-2 text-right text-slate-600 whitespace-nowrap">{cost > 0 ? `${getCurrencySymbol(p.currency)}${cost.toLocaleString(appLocale())}` : "—"}</td>
-                        <td className="px-3 py-2 text-right text-slate-600">{benf > 0 ? fmtInt(benf) : "—"}</td>
+                        <td className="px-3 py-2 text-right text-slate-600 whitespace-nowrap">{cost > 0 ? `${getCurrencySymbol(p.currency)}${cost.toLocaleString(appLocale())}` : "–"}</td>
+                        <td className="px-3 py-2 text-right text-slate-600">{benf > 0 ? fmtInt(benf) : "–"}</td>
                         <td className="px-3 py-2">
                           {p.approvalStatus === "pending" ? (
                             <span className="inline-flex items-center gap-1 text-[10px] font-medium px-2 py-0.5 rounded-full bg-amber-500 text-white">

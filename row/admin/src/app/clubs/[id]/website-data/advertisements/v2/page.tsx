@@ -29,7 +29,7 @@ import {
   Megaphone, CheckCircle2, EyeOff, FileText as FileTextIcon, Loader2, Search, Plus,
   Edit3, Trash2, ArrowLeft, AlertTriangle, GripVertical, Image as ImageIcon,
   ExternalLink, Eye,
-} from "lucide-react";
+} from "@/components/icons";
 import {
   getClub,
   getClubAdvertisements,
@@ -175,7 +175,7 @@ export default function AdvertisementsV2Page() {
     );
   }, [records, search]);
 
-  const yearLabel = dataYears.find((y) => y.id === selectedYearId)?.yearLabel ?? "—";
+  const yearLabel = dataYears.find((y) => y.id === selectedYearId)?.yearLabel ?? "–";
 
   // Aggregate KPIs for the current year's records.
   const totalAds = records.length;
@@ -243,7 +243,7 @@ export default function AdvertisementsV2Page() {
             <div>
               <h1 className="text-lg font-semibold text-slate-800">Advertisements</h1>
               <p className="text-xs text-slate-500 mt-0.5">
-                RY {yearLabel} · {clubName || "—"}
+                RY {yearLabel} · {clubName || "–"}
               </p>
             </div>
           </div>
@@ -345,7 +345,7 @@ export default function AdvertisementsV2Page() {
                               <ExternalLink size={12} /> View
                             </button>
                           ) : (
-                            <span className="text-xs text-slate-400">—</span>
+                            <span className="text-xs text-slate-400">, </span>
                           )}
                         </td>
                         <td className="px-3 py-2">

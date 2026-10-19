@@ -1,4 +1,5 @@
 "use client";
+import { CalendarCheck } from "@/components/icons";
 
 /**
  * Calendly-style training slot picker. Left = the days in the booking window (with open-slot
@@ -90,18 +91,18 @@ export default function TrainingBookingDialog({ open, onOpenChange, clubId, mode
 
         {done ? (
           <div className="py-4 text-center space-y-3">
-            <div className="text-3xl">📅</div>
+            <CalendarCheck className="h-8 w-8 text-azure" aria-hidden />
             <div className="font-semibold text-slate-800">{mode === "reschedule" ? "Training rescheduled" : "Training booked!"}</div>
             {done.slotStart && (
               <p className="text-sm text-slate-600">{new Date(done.slotStart).toLocaleString(appLocale(), { dateStyle: "full", timeStyle: "short", timeZone: appTimeZone() })} ({appTimeZone()})</p>
             )}
             {done.zoomJoinUrl ? (
-              <a href={done.zoomJoinUrl} target="_blank" rel="noreferrer" className="inline-block text-[#003DA5] font-semibold hover:underline break-all">Join Zoom meeting →</a>
+              <a href={done.zoomJoinUrl} target="_blank" rel="noreferrer" className="inline-block text-azure font-semibold hover:underline break-all">Join Zoom meeting →</a>
             ) : (
               <p className="text-xs text-slate-500">Your Zoom link will be shared shortly by email.</p>
             )}
             <div>
-              <button onClick={() => onOpenChange(false)} className="mt-2 px-5 py-2 rounded-lg bg-[#003DA5] text-white text-sm font-medium">Done</button>
+              <button onClick={() => onOpenChange(false)} className="mt-2 px-5 py-2 rounded-lg bg-azure text-white text-sm font-medium">Done</button>
             </div>
           </div>
         ) : loading ? (
@@ -123,10 +124,10 @@ export default function TrainingBookingDialog({ open, onOpenChange, clubId, mode
                     onClick={() => { setSelectedDate(d.date); setSelectedSlot(null); }}
                     className={`w-full text-left px-3 py-2 rounded-lg text-sm border ${
                       selectedDate === d.date
-                        ? "bg-[#003DA5] text-white border-[#003DA5]"
+                        ? "bg-azure text-white border-azure"
                         : closed
                         ? "bg-slate-50 border-slate-200 text-slate-400 cursor-not-allowed line-through decoration-slate-300"
-                        : "bg-white border-slate-200 hover:border-[#003DA5]/40"
+                        : "bg-white border-slate-200 hover:border-azure/40"
                     }`}
                   >
                     {d.dayLabel}
@@ -154,10 +155,10 @@ export default function TrainingBookingDialog({ open, onOpenChange, clubId, mode
                     onClick={() => setSelectedSlot(sl.time)}
                     className={`px-2 py-2 rounded-lg text-sm border ${
                       selectedSlot === sl.time
-                        ? "bg-[#003DA5] text-white border-[#003DA5]"
+                        ? "bg-azure text-white border-azure"
                         : !sl.isOpen
                         ? "bg-slate-50 border-slate-200 text-slate-400 cursor-not-allowed"
-                        : "bg-white border-slate-200 hover:border-[#003DA5]/40"
+                        : "bg-white border-slate-200 hover:border-azure/40"
                     }`}
                   >
                     <span className={sl.isOpen ? "" : "line-through decoration-slate-300"}>{to12h(sl.time)}</span>
@@ -178,7 +179,7 @@ export default function TrainingBookingDialog({ open, onOpenChange, clubId, mode
               <div className="mt-4 flex justify-end gap-2">
                 <button onClick={() => onOpenChange(false)} className="px-4 py-2 rounded-lg border border-slate-300 text-sm">Cancel</button>
                 <button disabled={!selectedSlot || busy} onClick={confirm}
-                  className="px-5 py-2 rounded-lg bg-[#003DA5] text-white text-sm font-medium disabled:opacity-50">
+                  className="px-5 py-2 rounded-lg bg-azure text-white text-sm font-medium disabled:opacity-50">
                   {busy ? "Please wait…" : mode === "reschedule" ? "Reschedule" : "Confirm booking"}
                 </button>
               </div>

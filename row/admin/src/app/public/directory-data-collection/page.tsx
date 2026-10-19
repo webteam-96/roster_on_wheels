@@ -1,4 +1,5 @@
 "use client";
+import { Lock, RefreshCw } from "@/components/icons";
 
 import React, { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
@@ -241,7 +242,7 @@ export default function PublicDirectoryFormPage() {
       const anyFilled = !!(p.Address || p.City || p.State || p.PinCode || p.PhoneNumber || p.BusinessEmailId || p.Designation);
       const allCore = !!(p.Address && p.City && p.State);
       if (anyFilled && !allCore) {
-        errs.push(`${f.label}: please fill Address, City and State — or clear all fields.`);
+        errs.push(`${f.label}: please fill Address, City and State: or clear all fields.`);
       }
     }
     return errs;
@@ -274,10 +275,10 @@ export default function PublicDirectoryFormPage() {
   // Disabled by the district admin → the public link is closed. Big red message, no form.
   if (cfg?.closed) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50 flex items-center justify-center px-4">
+      <div className="min-h-screen bg-blue-50 flex items-center justify-center px-4">
         <Card className="max-w-lg w-full border-red-200 shadow-lg">
           <CardContent className="py-14 text-center space-y-4">
-            <div className="text-5xl">🔒</div>
+            <Lock className="h-12 w-12 text-slate-400" aria-hidden />
             <h1 className="text-4xl md:text-5xl font-extrabold text-red-600 tracking-tight">Link is closed</h1>
             <p className="text-base text-muted-foreground">
               This directory data-collection link is currently closed
@@ -292,11 +293,11 @@ export default function PublicDirectoryFormPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50 py-8 px-4">
+    <div className="min-h-screen bg-blue-50 py-8 px-4">
       <div className="max-w-3xl mx-auto space-y-4">
         <Card>
           <CardHeader className="text-center">
-            <CardTitle className="text-2xl text-primary">District Directory — Data Collection</CardTitle>
+            <CardTitle className="text-2xl text-primary">District Directory: Data Collection</CardTitle>
             {cfg && <p className="text-muted-foreground">District <b>{cfg.districtNumber}</b> &middot; Year <b>{cfg.yearLabel}</b></p>}
           </CardHeader>
           {cfg && (cfg.firstContactName || cfg.secondContactName) && (
@@ -352,7 +353,7 @@ export default function PublicDirectoryFormPage() {
 
         {step === "search" && (
           <Card>
-            <CardHeader><CardTitle className="text-lg">Step 1 — Find your name</CardTitle></CardHeader>
+            <CardHeader><CardTitle className="text-lg">Step 1: Find your name</CardTitle></CardHeader>
             <CardContent className="space-y-3">
               <Input placeholder="Type your name (min 2 chars)" value={query} onChange={(e) => setQuery(e.target.value)} />
               {results.length > 0 && (
@@ -375,7 +376,7 @@ export default function PublicDirectoryFormPage() {
 
         {step === "masked" && masked && (
           <Card>
-            <CardHeader><CardTitle className="text-lg">Step 2 — Confirm your identity</CardTitle></CardHeader>
+            <CardHeader><CardTitle className="text-lg">Step 2: Confirm your identity</CardTitle></CardHeader>
             <CardContent className="space-y-3">
               <p className="text-sm">We will send an OTP to your registered contact:</p>
               <div className="rounded-md bg-muted p-3 text-sm">
@@ -392,13 +393,13 @@ export default function PublicDirectoryFormPage() {
                   masked.hasMobile ? (
                     <Button onClick={() => requestOtp("both")} disabled={sendingOtp}>Send OTP via SMS</Button>
                   ) : (
-                    <p className="text-sm text-destructive">No mobile number on file — SMS OTP can&apos;t be sent. Please contact the district team.</p>
+                    <p className="text-sm text-destructive">No mobile number on file: SMS OTP can&apos;t be sent. Please contact the district team.</p>
                   )
                 ) : (
                   masked.hasEmail ? (
                     <Button onClick={() => requestOtp("both")} disabled={sendingOtp}>Send OTP via Email</Button>
                   ) : (
-                    <p className="text-sm text-destructive">No email on file — Email OTP can&apos;t be sent. Please contact the district team.</p>
+                    <p className="text-sm text-destructive">No email on file: Email OTP can&apos;t be sent. Please contact the district team.</p>
                   )
                 )}
               </div>
@@ -409,7 +410,7 @@ export default function PublicDirectoryFormPage() {
 
         {step === "otp" && (
           <Card>
-            <CardHeader><CardTitle className="text-lg">Step 3 — Enter OTP</CardTitle></CardHeader>
+            <CardHeader><CardTitle className="text-lg">Step 3: Enter OTP</CardTitle></CardHeader>
             <CardContent className="space-y-3">
               <Input placeholder="6-digit OTP" value={otpValue} onChange={(e) => setOtpValue(e.target.value)} maxLength={6} />
               {/* Debug OTP display removed post-go-live. */}
@@ -425,7 +426,7 @@ export default function PublicDirectoryFormPage() {
           <>
             <Card>
               <CardHeader>
-                <CardTitle className="text-lg">Step 4 — Fill your details ({group})</CardTitle>
+                <CardTitle className="text-lg">Step 4: Fill your details ({group})</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="flex items-center justify-between text-sm mb-1">
@@ -471,7 +472,7 @@ export default function PublicDirectoryFormPage() {
                     const wrapCls = `rounded-md p-3 border-l-4 ${filled ? "bg-green-50/40 border-green-500" : "bg-amber-50/40 border-amber-500"}`;
                     const pill = filled
                       ? <span className="inline-flex items-center gap-1 rounded-full bg-green-100 px-2 py-0.5 text-[11px] font-medium text-green-700">✓ Filled</span>
-                      : <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-[11px] font-medium text-amber-700">⚠ Pending</span>;
+                      : <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-[11px] font-medium text-amber-700">Pending</span>;
                     const labelRow = (
                       <div className="flex items-center justify-between mb-1">
                         <Label className="m-0">{f.label}</Label>
@@ -532,7 +533,7 @@ export default function PublicDirectoryFormPage() {
                           </div>
                           {showValidationErr && (
                             <div className="text-xs text-red-600 bg-red-50 border border-red-200 rounded px-2 py-1 mt-2">
-                              ⚠ Please fill <b>{missing.join(", ")}</b> — or clear ALL address fields to leave this block blank.
+                              Please fill <b>{missing.join(", ")}</b>: or clear ALL address fields to leave this block blank.
                             </div>
                           )}
                         </div>
@@ -624,7 +625,7 @@ export default function PublicDirectoryFormPage() {
             <CardHeader><CardTitle className="text-lg text-green-700">Thank you!</CardTitle></CardHeader>
             <CardContent className="space-y-2">
               <p>Your data has been saved for District <b>{cfg?.districtNumber}</b> ({cfg?.yearLabel}).</p>
-              <p>Status: <b>{completion.filled}/{completion.total}</b> fields — <b>{completion.percent}%</b>.</p>
+              <p>Status: <b>{completion.filled}/{completion.total}</b> fields: <b>{completion.percent}%</b>.</p>
               {completion.pending.length > 0 && (
                 <>
                   <p className="text-sm font-medium">Pending fields:</p>
@@ -633,13 +634,13 @@ export default function PublicDirectoryFormPage() {
                   </ol>
                 </>
               )}
-              <p className="text-xs text-muted-foreground">A confirmation has been sent to your email and WhatsApp.</p>
+              <p className="text-xs text-muted-foreground">A confirmation has been sent to your email.</p>
               <div className="pt-3">
                 <a
                   href={`/public/directory-data-collection?ID=${urlHash}${isAdminMode ? "&fetch=admin" : ""}`}
                   className="text-primary underline text-sm hover:text-primary/80"
                 >
-                  🔄 Reopen form to verify or update again
+                  <RefreshCw className="mr-1 inline h-4 w-4 align-[-2px]" aria-hidden />Reopen form to verify or update again
                 </a>
               </div>
             </CardContent>

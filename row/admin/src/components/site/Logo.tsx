@@ -22,10 +22,10 @@ export function Logo({
         "group inline-flex items-center rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold-dark focus-visible:ring-offset-2",
         className
       )}
-      aria-label="ROW — Home"
+      aria-label="ROW: Home"
     >
       <Image
-        src={tone === "brand" ? "/brand/row-logo.png" : "/brand/row-logo-badge.png"}
+        src={tone === "brand" ? "/brand/row-logo.png" : "/brand/row-logo-inverse.png"}
         alt="ROW"
         width={905}
         height={295}

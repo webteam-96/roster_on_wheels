@@ -19,15 +19,15 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import ErrorAlert from "@/components/ErrorAlert";
-import { Mail, Search, Filter, RotateCcw, Download, ArrowLeft } from "lucide-react";
+import { Mail, Search, Filter, RotateCcw, Download, ArrowLeft } from "@/components/icons";
 import Link from "next/link";
 import RotaryLoader from "@/components/RotaryLoader";
 
 import { appLocale } from "@/lib/appFormat";
 function fmtDate(d: string | null) {
-  if (!d) return "—";
+  if (!d) return "–";
   const dt = new Date(d);
-  if (isNaN(dt.getTime()) || dt.getFullYear() < 2000) return "—";
+  if (isNaN(dt.getTime()) || dt.getFullYear() < 2000) return "–";
   return dt.toLocaleString(appLocale(), { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" });
 }
 function statusBadge(status: string, error?: string | null) {
@@ -111,7 +111,7 @@ export default function EmailLogPanel({ base, backHref }: { base: string; backHr
         )}
         <div>
           <h1 className="text-2xl font-bold flex items-center gap-2"><Mail className="h-6 w-6" /> Email Log</h1>
-          <p className="text-sm text-slate-500">Emails sent to your club/district members (announcements, events, newsletters, credentials, etc.) — full history from the email log.</p>
+          <p className="text-sm text-slate-500">Emails sent to your club/district members (announcements, events, newsletters, credentials, etc.): full history from the email log.</p>
         </div>
       </div>
 
@@ -183,8 +183,8 @@ export default function EmailLogPanel({ base, backHref }: { base: string; backHr
                       <TableCell className="text-xs">{fmtDate(it.sentAt)}</TableCell>
                       <TableCell>{statusBadge(it.status, it.errorMessage)}</TableCell>
                       <TableCell className="text-xs break-all">{it.recipientEmail}</TableCell>
-                      <TableCell className="text-sm">{it.subject ?? "—"}</TableCell>
-                      <TableCell className="text-xs text-slate-600">{it.emailType ?? "—"}</TableCell>
+                      <TableCell className="text-sm">{it.subject ?? "–"}</TableCell>
+                      <TableCell className="text-xs text-slate-600">{it.emailType ?? "–"}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>

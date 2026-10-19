@@ -32,16 +32,14 @@ public class SuperAdminController : ControllerBase
 
     private readonly string _connectionString;
     private readonly IEmailService _email;
-    private readonly ISmsService _sms;
     private readonly ILogger<SuperAdminController> _logger;
     private readonly string _otpMobile;
     private readonly string _otpEmail;
 
-    public SuperAdminController(IConfiguration config, IEmailService email, ISmsService sms, ILogger<SuperAdminController> logger)
+    public SuperAdminController(IConfiguration config, IEmailService email, ILogger<SuperAdminController> logger)
     {
         _connectionString = config.GetConnectionString("DefaultConnection")!;
         _email = email;
-        _sms = sms;
         _logger = logger;
         _otpMobile = config["SuperAdminApproval:OtpMobile"] ?? "";
         _otpEmail = config["SuperAdminApproval:OtpEmail"] ?? "";
@@ -256,11 +254,7 @@ public class SuperAdminController : ControllerBase
 {EmailService.EMAIL_FOOTER}";
 
         bool smsOk = false, emailOk = false;
-        if (!string.IsNullOrWhiteSpace(_otpMobile))
-        {
-            try { smsOk = await _sms.SendOtpSmsAsync(_otpMobile, otp); }
-            catch (Exception ex) { _logger.LogWarning(ex, "SA-OTP SMS failed to {Mobile}", _otpMobile); }
-        }
+        // ROW sends no SMS: the code goes by email only.
         if (!string.IsNullOrWhiteSpace(_otpEmail))
         {
             try { await _email.SendGenericEmailAsync(_otpEmail, emailSubject, emailBody); emailOk = true; }

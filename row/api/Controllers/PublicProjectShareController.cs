@@ -369,13 +369,29 @@ public class PublicProjectShareController : ControllerBase
 
     // Collapse the stored description (newlines, stray HTML, entities, runs of whitespace) into
     // one clean line so it reads correctly in a chat bubble and on the card.
-    // Single implementation lives in WhatsAppTemplateText — shared with the announcement
-    // WhatsApp-template fitter, which has to normalise the same way before it measures lengths.
-    private static string Normalise(string? raw) => WhatsAppTemplateText.Normalise(raw);
+    private static string Normalise(string? raw)
+    {
+        if (string.IsNullOrWhiteSpace(raw)) return "";
+        var s = System.Text.RegularExpressions.Regex.Replace(raw, "<[^>]+>", " ");
+        s = System.Net.WebUtility.HtmlDecode(s);
+        s = s.Replace("\\n", " ").Replace("\\r", " ");   // some legacy rows store literal "\n"
+        s = System.Text.RegularExpressions.Regex.Replace(s, @"\s+", " ");
+        return s.Trim();
+    }
 
     // Cut on a word boundary and append a single-character ellipsis. `max` is now a hard ceiling
     // for the result INCLUDING the ellipsis (it used to return max+1 characters).
-    private static string Truncate(string s, int max) => WhatsAppTemplateText.Truncate(s, max);
+    private static string Truncate(string s, int max)
+    {
+        if (string.IsNullOrEmpty(s) || max <= 0) return "";
+        if (s.Length <= max) return s;
+        var cut = s[..(max - 1)];                       // reserve one unit for the "…"
+        var lastSpace = cut.LastIndexOf(' ');
+        if (lastSpace > max / 2) cut = cut[..lastSpace]; // word boundary, never mid-word
+        else if (cut.Length > 0 && char.IsHighSurrogate(cut[^1])) cut = cut[..^1]; // don't split an emoji
+        cut = cut.TrimEnd(' ', ',', ';', ':', '-', '.');
+        return cut.Length == 0 ? "" : cut + "…";
+    }
 
     private static string HostOf(string url)
     {

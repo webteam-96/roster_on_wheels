@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
-import { ArrowLeft, MessageSquare, Mail, Send, Info } from "lucide-react";
+import { ArrowLeft, MessageSquare, Mail, Send, Info } from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
 import Link from "next/link";
 import DistrictAdminShell from "@/components/v2/DistrictAdminShell";
@@ -52,7 +52,6 @@ export default function DistrictGreetingsSettingsPage() {
   const [isEnableBirthdayNotification, setIsEnableBirthdayNotification] = useState(false);
   const [anniversaryGreeting, setAnniversaryGreeting] = useState("");
   const [isEnableAnniversaryNotification, setIsEnableAnniversaryNotification] = useState(false);
-  const [isGreetingSendWhatsapp, setIsGreetingSendWhatsapp] = useState(false);
   const [isGreetingSendPush, setIsGreetingSendPush] = useState(false);
   const [isEnableBirthdayEmail, setIsEnableBirthdayEmail] = useState(false);
   const [birthdayEmailFrom, setBirthdayEmailFrom] = useState("");
@@ -81,7 +80,6 @@ export default function DistrictGreetingsSettingsPage() {
         setIsEnableBirthdayNotification(settings.isEnableBirthdayNotification || false);
         setAnniversaryGreeting(settings.anniversaryGreeting || "");
         setIsEnableAnniversaryNotification(settings.isEnableAnniversaryNotification || false);
-        setIsGreetingSendWhatsapp(settings.isGreetingSendWhatsapp || false);
         setIsGreetingSendPush(settings.isGreetingSendPush || false);
         setIsEnableBirthdayEmail(settings.isEnableBirthdayEmail || false);
         setBirthdayEmailFrom(settings.birthdayEmailFrom || "");
@@ -125,7 +123,6 @@ export default function DistrictGreetingsSettingsPage() {
         isEnableBirthdayNotification,
         anniversaryGreeting: anniversaryGreeting.trim() || null,
         isEnableAnniversaryNotification,
-        isGreetingSendWhatsapp,
         isGreetingSendPush,
         isGreetingSendEmail: isEnableBirthdayEmail || isEnableAnniversaryEmail,
         isEnableBirthdayEmail,
@@ -165,8 +162,7 @@ export default function DistrictGreetingsSettingsPage() {
 
         <GreetingPauseNotice paused={pauseInfo.paused} reviewedYear={pauseInfo.reviewedYear} currentYear={pauseInfo.currentYear} />
 
-        {/* 1. In-App & WhatsApp Notifications */}
-        <Section icon={MessageSquare} title="In-App & WhatsApp Notifications" number={1}>
+        <Section icon={MessageSquare} title="In-App Notifications" number={1}>
           <div className="space-y-5">
             <label className="flex items-center gap-3 cursor-pointer">
               <input type="checkbox" checked={isEnableBirthdayNotification} onChange={(e) => setIsEnableBirthdayNotification(e.target.checked)} disabled={!canManage} className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary" />
@@ -192,13 +188,6 @@ export default function DistrictGreetingsSettingsPage() {
               </div>
             )}
 
-            {/* WhatsApp notify checkbox hidden 2026-09-07 per request — re-enable later. Value still submits (default off). */}
-            {false && (
-            <label className="flex items-center gap-3 cursor-pointer">
-              <input type="checkbox" checked={isGreetingSendWhatsapp} onChange={(e) => setIsGreetingSendWhatsapp(e.target.checked)} disabled={!canManage} className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary" />
-              <span className="text-sm font-medium">Send via WhatsApp</span>
-            </label>
-            )}
 
             <label className="flex items-center gap-3 cursor-pointer">
               <input type="checkbox" checked={isGreetingSendPush} onChange={(e) => setIsGreetingSendPush(e.target.checked)} disabled={!canManage} className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary" />

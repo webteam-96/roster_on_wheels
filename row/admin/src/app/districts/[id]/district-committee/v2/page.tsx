@@ -5,7 +5,7 @@
  *
  * Mirrors `/districts/[id]/district-committee/page.tsx` (V1) 1:1 in behaviour;
  * only the visual chrome changes to match the new design language used on
- * `district-admin-dashboard/membership/page.tsx` (navy #1e3a5f + gold #F7A81B).
+ * `district-admin-dashboard/membership/page.tsx` (navy #17458f + gold #F7A81B).
  *
  * ?returnTo=<url> — every navigation button (back + module cards forward)
  * honours this. If absent, back falls through to /districts/{id}/dashboard,
@@ -16,7 +16,7 @@ import { useState, useEffect } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { getDistrict } from "@/services/api";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Users, UsersRound, AlertCircle } from "lucide-react";
+import { ArrowLeft, Users, UsersRound, AlertCircle } from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
 import ProtectedRoute from "@/components/ProtectedRoute";
 
@@ -27,10 +27,10 @@ const COMMITTEE_MODULES = [
 
 function getIcon(iconName: string) {
   const map: Record<string, React.ReactNode> = {
-    Users: <Users className="h-10 w-10 text-[#1e3a5f]" />,
-    UsersRound: <UsersRound className="h-10 w-10 text-[#1e3a5f]" />,
+    Users: <Users className="h-10 w-10 text-ink" />,
+    UsersRound: <UsersRound className="h-10 w-10 text-ink" />,
   };
-  return map[iconName] || <Users className="h-10 w-10 text-[#1e3a5f]" />;
+  return map[iconName] || <Users className="h-10 w-10 text-ink" />;
 }
 
 export default function DistrictCommitteeV2Page() {
@@ -78,7 +78,7 @@ export default function DistrictCommitteeV2Page() {
             <ArrowLeft className="h-4 w-4" />
           </Button>
           <div>
-            <h2 className="text-2xl font-bold tracking-tight text-[#1e3a5f]">
+            <h2 className="text-2xl font-bold tracking-tight text-ink">
               {districtNumber ? `District ${districtNumber} - Committee` : "District Committee"}
             </h2>
             <p className="text-slate-600 text-base">Manage district committee members and groups</p>
@@ -104,7 +104,7 @@ export default function DistrictCommitteeV2Page() {
             {COMMITTEE_MODULES.map((mod) => (
               <div
                 key={mod.key}
-                className={`cursor-pointer rounded-2xl border border-slate-200 shadow-sm bg-white transition-all hover:shadow-md hover:border-[#1e3a5f]/30 ${navigatingKey === mod.key ? "opacity-70 pointer-events-none" : ""}`}
+                className={`cursor-pointer rounded-2xl border border-slate-200 shadow-sm bg-white transition-all hover:shadow-md hover:border-azure/30 ${navigatingKey === mod.key ? "opacity-70 pointer-events-none" : ""}`}
                 onClick={() => {
                   setNavigatingKey(mod.key);
                   router.push(`/districts/${districtId}/district-committee/v2/${mod.route}${suffix}`);

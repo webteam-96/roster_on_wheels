@@ -34,7 +34,7 @@ import RotaryLoader from "@/components/RotaryLoader";
 import {
   Plus, Pencil, Trash2, MoreHorizontal, FolderOpen, AlertTriangle, ChevronRight,
   FolderTree, Loader2, Image as ImageIcon, Link2,
-} from "lucide-react";
+} from "@/components/icons";
 
 const ReactQuill = dynamic(() => import("react-quill-new"), { ssr: false });
 import "react-quill-new/dist/quill.snow.css";
@@ -235,10 +235,10 @@ export default function WebLinksSection({ clubId }: { clubId: number }) {
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-2 text-slate-700">
           <Link2 className="h-4 w-4" />
-          <span className="text-sm font-semibold">Web Links — navigation links & pages shown on the club website</span>
+          <span className="text-sm font-semibold">Web Links: navigation links & pages shown on the club website</span>
         </div>
         {canManage && (
-          <Button onClick={openAddDialog} className="bg-[#1e3a5f] hover:bg-[#152a44] text-white">
+          <Button onClick={openAddDialog} className="bg-azure hover:bg-mint-ink text-white">
             <Plus className="mr-2 h-4 w-4" />Add Weblink
           </Button>
         )}
@@ -288,7 +288,7 @@ export default function WebLinksSection({ clubId }: { clubId: number }) {
           <CardContent className="p-0">
             <Table>
               <TableHeader>
-                <TableRow className="hover:opacity-100" style={{ backgroundColor: "#1e3a5f" }}>
+                <TableRow className="hover:opacity-100" style={{ backgroundColor: "#17458f" }}>
                   <TableHead className="w-12 text-white text-base font-semibold">S.No.</TableHead>
                   <TableHead className="text-white text-base font-semibold">Logo</TableHead>
                   <TableHead className="text-white text-base font-semibold">Title</TableHead>
@@ -450,7 +450,7 @@ export default function WebLinksSection({ clubId }: { clubId: number }) {
 
           <DialogFooter>
             <Button variant="outline" onClick={() => { setDialogOpen(false); setEditing(null); resetForm(); }} disabled={saving}>Cancel</Button>
-            <Button onClick={handleSave} disabled={saving} className="bg-[#1e3a5f] hover:bg-[#152a44] text-white">
+            <Button onClick={handleSave} disabled={saving} className="bg-azure hover:bg-mint-ink text-white">
               {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               {editing ? "Update" : "Create"}
             </Button>

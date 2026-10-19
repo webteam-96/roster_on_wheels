@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { useAuth } from "@/contexts/AuthContext";
-import { ArrowLeft, Building2, Users, Download, Loader2, Copy } from "lucide-react";
+import { ArrowLeft, Building2, Users, Download, Loader2, Copy } from "@/components/icons";
 import { getRotaryOrgSyncSummary, downloadClubSyncReport, getDuplicateCount, getClubSyncDistricts } from "@/services/api";
 
 import { appLocale } from "@/lib/appFormat";
@@ -66,7 +66,7 @@ export default function RotaryOrgPage() {
     );
   }
 
-  const fmt = (n: number | undefined) => (n == null ? "—" : n.toLocaleString(appLocale()));
+  const fmt = (n: number | undefined) => (n == null ? "–" : n.toLocaleString(appLocale()));
 
   return (
     <ProtectedRoute>
@@ -77,7 +77,7 @@ export default function RotaryOrgPage() {
           </Button>
           <div>
             <h2 className="text-2xl font-bold tracking-tight text-primary">Rotary.org Manual Sync</h2>
-            <p className="text-muted-foreground text-base">Side-by-side comparison and manual sync — auto sync runs daily, this is for one-off corrections</p>
+            <p className="text-muted-foreground text-base">Side-by-side comparison and manual sync: auto sync runs daily, this is for one-off corrections</p>
           </div>
         </div>
 
@@ -162,7 +162,7 @@ export default function RotaryOrgPage() {
                   <Copy className="h-7 w-7" />
                 </div>
                 <h3 className="text-lg font-semibold text-primary">Duplicate Mobile / Email</h3>
-                <p className="text-sm text-muted-foreground">Members sharing a mobile or email (one holds it as primary, the other as secondary) — compare side-by-side, then merge or keep both.</p>
+                <p className="text-sm text-muted-foreground">Members sharing a mobile or email (one holds it as primary, the other as secondary): compare side-by-side, then merge or keep both.</p>
                 {dupCount && (
                   <div className="flex flex-wrap items-center justify-center gap-2 mt-1">
                     <span className="rounded-full bg-rose-50 border border-rose-200 text-rose-700 text-xs font-semibold px-2.5 py-0.5">{dupCount.total.toLocaleString(appLocale())} to review</span>

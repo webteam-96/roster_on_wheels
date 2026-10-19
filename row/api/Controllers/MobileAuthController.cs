@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MySqlConnector;
@@ -13,49 +14,48 @@ public class MobileAuthController : ControllerBase
     private readonly ILogger<MobileAuthController> _logger;
     private readonly IConfiguration _config;
 
-    public MobileAuthController(IMobileAuthService mobileAuthService, ILogger<MobileAuthController> logger, IConfiguration config)
+    private readonly IAuthService _authService;
+
+    public MobileAuthController(IMobileAuthService mobileAuthService, IAuthService authService, ILogger<MobileAuthController> logger, IConfiguration config)
     {
         _mobileAuthService = mobileAuthService;
         _logger = logger;
         _config = config;
+        _authService = authService;
     }
 
-    // ── Mobile: Request OTP (public) ────────────────────────────
-    [HttpPost("api/mobile/auth/request-otp")]
-    public async Task<ActionResult> RequestOtp([FromBody] MobileRequestOtpDto dto)
+    // ── Mobile: Email + password login (public) ─────────────────
+    [HttpPost("api/mobile/auth/login")]
+    [EnableRateLimiting("auth")]
+    public async Task<ActionResult> Login([FromBody] MobilePasswordLoginDto dto)
     {
         try
         {
-            var result = await _mobileAuthService.RequestOtpAsync(dto);
-            return Ok(result);
+            return Ok(await _mobileAuthService.LoginWithPasswordAsync(dto));
         }
         catch (ArgumentException ex) { return BadRequest(new { message = ex.Message }); }
-        catch (InvalidOperationException ex) { return BadRequest(new { message = ex.Message }); }
-        catch (KeyNotFoundException ex) { return NotFound(new { message = ex.Message }); }
-        catch (UnauthorizedAccessException ex) { return StatusCode(403, new { message = ex.Message }); }
+        catch (UnauthorizedAccessException ex) { return Unauthorized(new { message = ex.Message }); }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Mobile request-otp failed.");
-            return StatusCode(500, new { message = "Failed to request OTP." });
+            _logger.LogError(ex, "Mobile password login failed.");
+            return StatusCode(500, new { message = "Sign-in failed." });
         }
     }
 
-    // ── Mobile: Verify OTP (public) ─────────────────────────────
-    [HttpPost("api/mobile/auth/verify-otp")]
-    public async Task<ActionResult> VerifyOtp([FromBody] MobileVerifyOtpDto dto)
+    // ── Mobile: set / reset password by email (public) ──────────
+    // Any member may ask; the reply never says whether the email exists.
+    [HttpPost("api/mobile/auth/forgot-password")]
+    [EnableRateLimiting("auth")]
+    public async Task<ActionResult> ForgotPassword([FromBody] MobileForgotPasswordDto dto)
     {
         try
         {
-            var result = await _mobileAuthService.VerifyOtpAsync(dto);
-            return Ok(result);
+            return Ok(await _authService.ForgotPasswordAsync(new ForgotPasswordRequestDto { Email = dto.Email?.Trim() }, anyMember: true));
         }
-        catch (ArgumentException ex) { return BadRequest(new { message = ex.Message }); }
-        catch (InvalidOperationException ex) { return BadRequest(new { message = ex.Message }); }
-        catch (UnauthorizedAccessException ex) { return StatusCode(403, new { message = ex.Message }); }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Mobile verify-otp failed.");
-            return StatusCode(500, new { message = "Failed to verify OTP." });
+            _logger.LogError(ex, "Mobile forgot-password failed.");
+            return StatusCode(500, new { message = "Could not send the email. Please try again." });
         }
     }
 

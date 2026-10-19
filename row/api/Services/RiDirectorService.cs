@@ -438,19 +438,6 @@ public partial class RiDirectorService : IRiDirectorService
         await conn.OpenAsync();
 
         // Pre-check WhatsApp credits if send flag is on — total = recipients × (1 initial + N reminders)
-        if (dto.IsSendWhatsapp)
-        {
-            var recipientCount = await GetRecipientCountAsync(
-                "whatsapp",
-                dto.RecipientTarget ?? "all",
-                dto.RecipientZoneIds,
-                dto.RecipientDistrictIds,
-                dto.RecipientSubgroupIds);
-            int rc = dto.Reminders?.Count ?? 0;
-            int totalCreditsNeeded = recipientCount * (1 + rc);
-            if (totalCreditsNeeded > 0 && !await HasSufficientCreditsAsync("WhatsApp", totalCreditsNeeded))
-                throw new InvalidOperationException($"Insufficient WhatsApp credits. Need {totalCreditsNeeded} credit(s) for {recipientCount} members × {1 + rc} sends. Please uncheck 'Send through WhatsApp' to save without WhatsApp notification, or reduce reminders, or purchase more credits.");
-        }
 
         // Email parity — block save when email is on without enough Email credits (counts members with an email).
         if (dto.IsSendEmail)
@@ -481,7 +468,7 @@ public partial class RiDirectorService : IRiDirectorService
                 dto.PublishDateTime,
                 dto.ExpiryDateTime,
                 IsDisplayOnBanner = dto.IsDisplayOnBanner ? 1 : 0,
-                IsSendWhatsapp = dto.IsSendWhatsapp ? 1 : 0,
+                IsSendWhatsapp = 0,
                 IsSendEmail = dto.IsSendEmail ? 1 : 0,
                 IsRepeatNotification = dto.IsRepeatNotification ? 1 : 0,
                 RecipientTarget = dto.RecipientTarget ?? "all",
@@ -503,20 +490,6 @@ public partial class RiDirectorService : IRiDirectorService
         }
 
         // Deduct WhatsApp credits after successful save
-        if (dto.IsSendWhatsapp)
-        {
-            var recipientCount = await GetRecipientCountAsync(
-                "whatsapp",
-                dto.RecipientTarget ?? "all",
-                dto.RecipientZoneIds,
-                dto.RecipientDistrictIds,
-                dto.RecipientSubgroupIds);
-            if (recipientCount > 0)
-            {
-                await DeductCreditWithHistoryAsync("WhatsApp", recipientCount, "RiAnnouncement", id,
-                    $"WhatsApp notification for {dto.Title}", createdBy);
-            }
-        }
 
         return id;
     }
@@ -534,19 +507,6 @@ public partial class RiDirectorService : IRiDirectorService
         bool priorWhatsapp = prior != null && Convert.ToBoolean(prior.IsSendWhatsapp);
 
         // Pre-check credits if newly turning on WhatsApp
-        if (dto.IsSendWhatsapp && !priorWhatsapp)
-        {
-            var recipientCount = await GetRecipientCountAsync(
-                "whatsapp",
-                dto.RecipientTarget ?? "all",
-                dto.RecipientZoneIds,
-                dto.RecipientDistrictIds,
-                dto.RecipientSubgroupIds);
-            int rc = dto.Reminders?.Count ?? 0;
-            int totalCreditsNeeded = recipientCount * (1 + rc);
-            if (totalCreditsNeeded > 0 && !await HasSufficientCreditsAsync("WhatsApp", totalCreditsNeeded))
-                throw new InvalidOperationException($"Insufficient WhatsApp credits. Need {totalCreditsNeeded} credit(s) for {recipientCount} members × {1 + rc} sends. Please uncheck 'Send through WhatsApp' to save without WhatsApp notification, or reduce reminders, or purchase more credits.");
-        }
 
         // Email parity — block save when email is on without enough Email credits.
         if (dto.IsSendEmail)
@@ -579,7 +539,7 @@ public partial class RiDirectorService : IRiDirectorService
                 dto.PublishDateTime,
                 dto.ExpiryDateTime,
                 IsDisplayOnBanner = dto.IsDisplayOnBanner ? 1 : 0,
-                IsSendWhatsapp = dto.IsSendWhatsapp ? 1 : 0,
+                IsSendWhatsapp = 0,
                 IsSendEmail = dto.IsSendEmail ? 1 : 0,
                 IsRepeatNotification = dto.IsRepeatNotification ? 1 : 0,
                 RecipientTarget = dto.RecipientTarget ?? "all",
@@ -602,19 +562,6 @@ public partial class RiDirectorService : IRiDirectorService
         }
 
         // Deduct WhatsApp credits only if flag newly turned on (no refund if turned off)
-        if (dto.IsSendWhatsapp && !priorWhatsapp)
-        {
-            var recipientCount = await GetRecipientCountAsync(
-                "whatsapp",
-                dto.RecipientTarget ?? "all",
-                dto.RecipientZoneIds,
-                dto.RecipientDistrictIds);
-            if (recipientCount > 0)
-            {
-                await DeductCreditWithHistoryAsync("WhatsApp", recipientCount, "RiAnnouncement", id,
-                    $"WhatsApp notification for {dto.Title}", modifiedBy);
-            }
-        }
     }
 
     public async Task DeleteAnnouncementAsync(int id, int deletedBy)

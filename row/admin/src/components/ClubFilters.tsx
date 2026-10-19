@@ -7,7 +7,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { MEETING_DAYS } from "@/lib/constants";
 import { DistrictListItem } from "@/types/district";
-import { Search, LayoutGrid, List, X } from "lucide-react";
+import { Search, LayoutGrid, List, X } from "@/components/icons";
 
 interface ClubFiltersProps {
   search: string;

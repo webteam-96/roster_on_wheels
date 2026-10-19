@@ -10,7 +10,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { type LucideIcon } from "lucide-react";
+import { type LucideIcon } from "@/components/icons";
 import { type ReactNode } from "react";
 
 // ── Theme constants (change here to reflect everywhere) ──

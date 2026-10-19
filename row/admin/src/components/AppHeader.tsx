@@ -20,7 +20,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { User, LogOut, Key, Settings, Clock, ClipboardList, Bell } from "lucide-react";
+import { User, LogOut, Key, Settings, Clock, ClipboardList, Bell } from "@/components/icons";
 import ChangePasswordDialog from "@/components/ChangePasswordDialog";
 import LanguagePicker from "@/components/LanguagePicker";
 import BrandLogo from "@/components/BrandLogo";
@@ -132,7 +132,7 @@ export default function AppHeader() {
           <span>{helpline}</span>
         </div>
       )}
-      <header className="sticky top-0 z-50 w-full border-b bg-primary text-primary-foreground shadow-sm">
+      <header className="sticky top-0 z-50 w-full border-b border-[color:var(--row-line)] bg-white text-foreground shadow-sm">
         <div className="flex h-20 items-center justify-between px-8">
           <Link href={homeLink} className="flex items-center">
             <BrandLogo className="h-16" />
@@ -140,18 +140,18 @@ export default function AppHeader() {
 
 
           <nav className="hidden md:flex items-center gap-1">
-            <LanguagePicker signedIn={isAuthenticated} className="border-white/30 bg-transparent text-primary-foreground" />
+            <LanguagePicker signedIn={isAuthenticated} className="border-border bg-transparent text-foreground" />
             {/* Multi-role SuperAdmin: prominent way BACK to their own operational dashboard. */}
             {isAuthenticated && <HeaderAdminDashboardLink />}
             {isAuthenticated && isSuperAdmin && (
               <>
-                <Button variant="ghost" className="text-primary-foreground hover:bg-white/20 gap-2" asChild>
+                <Button variant="ghost" className="text-foreground hover:bg-muted gap-2" asChild>
                   <Link href="/admin/login-logs">
                     <ClipboardList className="h-4 w-4" />
                     Login Logs
                   </Link>
                 </Button>
-                <Button variant="ghost" className="text-primary-foreground hover:bg-white/20 gap-2" asChild>
+                <Button variant="ghost" className="text-foreground hover:bg-muted gap-2" asChild>
                   <Link href="/settings">
                     <Settings className="h-4 w-4" />
                     Settings
@@ -160,7 +160,7 @@ export default function AppHeader() {
               </>
             )}
             {isAuthenticated && isZonalCoordinator && (
-              <Button variant="ghost" className="text-primary-foreground hover:bg-white/20 gap-2" asChild>
+              <Button variant="ghost" className="text-foreground hover:bg-muted gap-2" asChild>
                 <Link href="/zonal-dashboard">
                   Dashboard
                 </Link>
@@ -170,7 +170,7 @@ export default function AppHeader() {
 
           <div className="flex items-center gap-2">
             {isAuthenticated && sessionRemaining > 0 && (
-              <div className={`hidden sm:flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-full ${isSessionLow ? "bg-red-500/80 animate-pulse" : "bg-white/15"}`}>
+              <div className={`hidden sm:flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-full ${isSessionLow ? "bg-red-500 text-white animate-pulse" : "bg-muted text-foreground"}`}>
                 <Clock className="h-3 w-3" />
                 <span className="font-mono">{formatTime(sessionRemaining)}</span>
               </div>
@@ -178,7 +178,7 @@ export default function AppHeader() {
             {isAuthenticated && isAdmin && (
               <Popover>
                 <PopoverTrigger asChild>
-                  <Button variant="ghost" size="icon" className="relative text-primary-foreground hover:bg-white/20">
+                  <Button variant="ghost" size="icon" className="relative text-foreground hover:bg-muted">
                     <Bell className="h-4 w-4" />
                     {notifications.length > 0 && (
                       <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-orange-500 text-[10px] font-bold text-white">
@@ -208,7 +208,7 @@ export default function AppHeader() {
             )}
             <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="text-primary-foreground hover:bg-white/20 gap-2">
+                  <Button variant="ghost" className="text-foreground hover:bg-muted gap-2">
                     <User className="h-4 w-4" />
                     <span className="hidden sm:inline">{user?.name || "User"}</span>
                   </Button>

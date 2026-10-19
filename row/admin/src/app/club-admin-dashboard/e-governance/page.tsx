@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
-import { ClipboardList } from "lucide-react";
+import { ClipboardList } from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
 import { useClubAdminCache } from "@/contexts/ClubAdminDashboardCacheContext";
 import SectionHeader from "@/components/dashboard/SectionHeader";
@@ -121,7 +121,7 @@ function EGovTabBar({ active, onChange }: { active: EGovTab; onChange: (k: EGovT
     <div className="overflow-x-auto">
       <div
         className="inline-flex items-center gap-1 rounded-xl p-1.5"
-        style={{ backgroundColor: "#1e3a5f" }}
+        style={{ backgroundColor: "#17458f" }}
       >
         {EGOV_TABS.map((t) => {
           const isActive = active === t.key;
@@ -132,7 +132,7 @@ function EGovTabBar({ active, onChange }: { active: EGovTab; onChange: (k: EGovT
               className={`px-3.5 py-2 text-sm font-semibold rounded-lg whitespace-nowrap transition ${
                 isActive ? "shadow-sm" : "text-white hover:bg-white/10"
               }`}
-              style={isActive ? { backgroundColor: "#F7A81B", color: "#1e3a5f" } : undefined}
+              style={isActive ? { backgroundColor: "#F7A81B", color: "#17458f" } : undefined}
             >
               {t.label}
             </button>

@@ -49,7 +49,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
 import AlertModal from "@/components/AlertModal";
-import { ArrowLeft, Plus, Pencil, Trash2, Save, AlertTriangle, FolderOpen, Download, Trophy, Eye } from "lucide-react";
+import { ArrowLeft, Plus, Pencil, Trash2, Save, AlertTriangle, FolderOpen, Download, Trophy, Eye } from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
 import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";
@@ -550,7 +550,7 @@ export default function DistrictCitationPage() {
                                 return (
                                   <p key={s.id} className="text-sm">
                                     <span className="font-medium">{typeLabel}{typeLabel ? ": " : ""}{lineage}</span>
-                                    {" "}— Points: {s.points}{s.isBonus ? ` | Bonus: ${s.bonusPoints}` : ""}
+                                    {" "},  Points: {s.points}{s.isBonus ? ` | Bonus: ${s.bonusPoints}` : ""}
                                   </p>
                                 );
                               })}
@@ -591,10 +591,10 @@ export default function DistrictCitationPage() {
                                 <div key={sc.id} className="text-sm">
                                   <span className="font-medium">{sc.subCriteriaTitle}</span>
                                   <span className="text-muted-foreground"> ({sc.answerType})</span>
-                                  {sc.answerType === "number" && <span> — Points: {sc.points}{sc.isBonus ? ` | Bonus: ${sc.bonusPoints}` : ""}</span>}
-                                  {sc.answerType === "yesno" && <span> — Base Points: {sc.points}</span>}
+                                  {sc.answerType === "number" && <span>: Points: {sc.points}{sc.isBonus ? ` | Bonus: ${sc.bonusPoints}` : ""}</span>}
+                                  {sc.answerType === "yesno" && <span>: Base Points: {sc.points}</span>}
                                   {sc.answerType === "choose_one" && sc.options && (
-                                    <span> — {sc.options.length} options</span>
+                                    <span>: {sc.options.length} options</span>
                                   )}
                                 </div>
                               ))}

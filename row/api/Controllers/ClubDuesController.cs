@@ -301,14 +301,6 @@ public class ClubDuesController : ControllerBase
         return Ok(new { message = "Reminder sent." });
     }
 
-    [HttpPost("{id}/whatsapp")]
-    public async Task<ActionResult> BulkWhatsApp(int id)
-    {
-        if (!IsSuperAdminOrAdmin() && !await IsDistrictAdminForDuesAsync(GetUserId(), id)) return Denied();
-        await _service.BulkSendReminderWhatsAppAsync(id);
-        return Ok(new { message = "WhatsApp reminders sent." });
-    }
-
     // Send a TEST reminder/receipt email (sample values, current template) — FREE, no wallet credit.
     // Multipart so an unsaved email-header logo can be sent + embedded inline for a true pre-save preview.
     // SuperAdmin/Admin or the district's own admin.
@@ -323,14 +315,6 @@ public class ClubDuesController : ControllerBase
             return Ok(new { message = $"Test email sent to {dto.Email}." });
         }
         catch (InvalidOperationException ex) { return BadRequest(new { message = ex.Message }); }
-    }
-
-    [HttpPost("{id}/clubs/{clubId}/whatsapp")]
-    public async Task<ActionResult> ClubWhatsApp(int id, int clubId)
-    {
-        if (!IsSuperAdminOrAdmin() && !await IsDistrictAdminForDuesAsync(GetUserId(), id)) return Denied();
-        await _service.SendReminderWhatsAppAsync(id, clubId);
-        return Ok(new { message = "WhatsApp reminder sent." });
     }
 
     // ── Export + pay link ──────────────────────────────────────────

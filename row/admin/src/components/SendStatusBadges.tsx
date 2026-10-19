@@ -4,13 +4,9 @@
 // projects). For each enabled channel shows: "Pending" (queued / mid-throttle send, SentDate
 // still null) or "✓ {sent} · ✗ {failed}" once the send has finished. Renders nothing when
 // neither channel is enabled.
-import { MessageCircle, Mail } from "lucide-react";
+import { Mail } from "@/components/icons";
 
 export interface SendStatusItem {
-  isSendWhatsapp?: boolean;
-  whatsAppSentDate?: string | null;
-  whatsAppSentCount?: number;
-  whatsAppFailedCount?: number;
   isSendEmail?: boolean;
   emailSentDate?: string | null;
   emailSentCount?: number;
@@ -21,7 +17,7 @@ function ChannelChip({
   enabled, sentDate, sent, failed, Icon, title,
 }: {
   enabled: boolean; sentDate?: string | null; sent?: number; failed?: number;
-  Icon: typeof MessageCircle; title: string;
+  Icon: typeof Mail; title: string;
 }) {
   if (!enabled) return null;
   const pending = !sentDate;
@@ -44,18 +40,12 @@ function ChannelChip({
 }
 
 export default function SendStatusBadges({ item, className }: { item: SendStatusItem; className?: string }) {
-  if (!item.isSendWhatsapp && !item.isSendEmail) return null;
   return (
     <div className={`flex flex-wrap items-center gap-1 ${className ?? ""}`}>
       <ChannelChip
-        enabled={!!item.isSendWhatsapp} sentDate={item.whatsAppSentDate}
-        sent={item.whatsAppSentCount} failed={item.whatsAppFailedCount}
-        Icon={MessageCircle} title="WhatsApp — sent / failed (Pending until the send finishes)"
-      />
-      <ChannelChip
         enabled={!!item.isSendEmail} sentDate={item.emailSentDate}
         sent={item.emailSentCount} failed={item.emailFailedCount}
-        Icon={Mail} title="Email — sent / failed (Pending until the send finishes)"
+        Icon={Mail} title="Email: sent / failed (Pending until the send finishes)"
       />
     </div>
   );

@@ -29,8 +29,8 @@ import dynamic from "next/dynamic";
 import {
   ArrowLeft, FileText, Plus, Pencil, Trash2, AlertTriangle,
   Eye, EyeOff, Info, Loader2, CheckCircle2, Lock, Hash, Activity, Sparkles,
-} from "lucide-react";
-import type { LucideIcon } from "lucide-react";
+} from "@/components/icons";
+import type { LucideIcon } from "@/components/icons";
 import { ClubAbout } from "@/types/about";
 import {
   getClubAboutByClub, createClubAbout, updateClubAbout, deleteClubAbout,
@@ -259,7 +259,7 @@ export default function AboutV2Page() {
             </Link>
             <div>
               <h1 className="text-lg font-semibold text-slate-800">
-                {clubName ? `${clubName} — About Us` : "About Us"}
+                {clubName ? `${clubName}: About Us` : "About Us"}
               </h1>
               <p className="text-xs text-slate-500 mt-0.5">
                 The story that appears on your public website. One record per club.
@@ -291,7 +291,7 @@ export default function AboutV2Page() {
         {!loading && !canManage && (
           <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-2 text-xs text-slate-600">
             <span className="inline-flex items-center gap-1">
-              <Lock size={12} /> Read only — only SuperAdmin or Admin can edit the About content.
+              <Lock size={12} /> Read only. Only SuperAdmin or Admin can edit the About content.
             </span>
           </div>
         )}
@@ -299,7 +299,7 @@ export default function AboutV2Page() {
         {/* Empty state — no record yet */}
         {!loading && !about && (
           <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
-            <div className="px-5 py-3 border-b border-slate-100 flex items-center gap-2 bg-gradient-to-r from-blue-50 to-white">
+            <div className="px-5 py-3 border-b border-slate-100 flex items-center gap-2 bg-blue-50">
               <div className="w-9 h-9 rounded-lg bg-blue-100 text-blue-700 flex items-center justify-center">
                 <Sparkles size={18} />
               </div>
@@ -361,7 +361,7 @@ export default function AboutV2Page() {
 
             {/* Preview card */}
             <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
-              <div className="px-5 py-3 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-gradient-to-r from-blue-50 to-white">
+              <div className="px-5 py-3 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-blue-50">
                 <div className="flex items-center gap-2">
                   <div className="w-9 h-9 rounded-lg bg-blue-100 text-blue-700 flex items-center justify-center">
                     <FileText size={18} />

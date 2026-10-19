@@ -106,7 +106,6 @@ export interface ProjectDetail {
   rotariansInvolved: number | null;
   rotaractorsInvolved: number | null;
   rccInvolved: number | null;
-  sendWhatsapp: boolean;
   sendEmail: boolean;
   meetingType: string | null;
   agendaDocument: string | null;
@@ -158,7 +157,6 @@ export interface CreateProjectRequest {
   rotariansInvolved?: number | null;
   rotaractorsInvolved?: number | null;
   rccInvolved?: number | null;
-  sendWhatsapp: boolean;
   meetingType?: string | null;
   agendaDocument?: string | null;
   minutesDocument?: string | null;
@@ -200,7 +198,6 @@ export interface UpdateProjectRequest {
   rotariansInvolved?: number | null;
   rotaractorsInvolved?: number | null;
   rccInvolved?: number | null;
-  sendWhatsapp: boolean;
   meetingType?: string | null;
   agendaDocument?: string | null;
   minutesDocument?: string | null;

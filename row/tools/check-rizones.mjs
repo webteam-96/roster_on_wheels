@@ -1,7 +1,7 @@
 // Fails when ROW (.NET edition) code contains RIZones identity: names, domains,
 // vendor, phone numbers, people. Same rules as row/api/tools/check-rizones.mjs.
 // India-only behaviour (providers, ₹, India time) is reported separately with --india.
-// Usage: node tools/check-rizones.mjs [--india] [dir ...]   (default: api admin club-website workers)
+// Usage: node tools/check-rizones.mjs [--india] [dir ...]   (default: api admin club-website district-website workers mobile)
 import { readdirSync, readFileSync, statSync } from "node:fs";
 import { join, relative } from "node:path";
 
@@ -23,8 +23,8 @@ const INDIA = [
 ];
 // Well-known fake numbers used in examples, placeholders and masks.
 const FAKE_NUMBERS = /\+?(?:91[\s-]?)?(?:98765[\s-]?4321\d|98765-?432\d\d|9999999999|7700[\s-]?900\d{3}|77009 00\d{3}|9000000\d{3}|90000 00\d{3}|6600000000|6591234567|9187654321|98XXXXXX\d\d|\d{3}234567\d|7700…)/g;
-const SKIP_DIRS =new Set(["node_modules", ".next", "bin", "obj", "dist", "out", ".git"]);
-const EXT = /\.(cs|cshtml|ts|tsx|js|mjs|json|sql|html|css)$/;
+const SKIP_DIRS =new Set(["node_modules", ".next", "bin", "obj", "dist", "out", ".git", ".dart_tool", "build", "Pods", ".gradle"]);
+const EXT = /\.(cs|cshtml|ts|tsx|js|mjs|json|sql|html|css|dart|arb|yaml|xml|plist|gradle|kts|kt|swift|pbxproj)$/;
 const ALLOW = [/check-rizones\.mjs$/, /package-lock\.json$/];
 
 const args = process.argv.slice(2);
@@ -45,7 +45,7 @@ function walk(path) {
     for (const [re, why] of rules) if (re.test(line)) hits.push(`${relative(process.cwd(), path)}:${i + 1}: ${why}: ${line.trim().slice(0, 140)}`);
   });
 }
-(roots.length ? roots : ["api", "admin", "club-website", "workers"]).forEach(walk);
+(roots.length ? roots : ["api", "admin", "club-website", "district-website", "workers", "mobile"]).forEach(walk);
 hits.forEach((h) => console.log(h));
 console.log(`check-rizones${india ? " --india" : ""}: ${hits.length} finding(s)`);
 process.exit(hits.length && !india ? 1 : 0);

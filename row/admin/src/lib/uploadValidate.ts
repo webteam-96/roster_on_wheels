@@ -136,7 +136,7 @@ export async function validateAndProcessUpload(
   // that, reject (no safe auto-compress for documents).
   if (file.size <= DOC_MAX_BYTES) return file;
   throw new UploadValidationError(
-    `Document max ${DOC_MAX_MB} MB — your file is ${(file.size / (1024 * 1024)).toFixed(1)} MB. Please reduce the file size and try again.`,
+    `Document max ${DOC_MAX_MB} MB: your file is ${(file.size / (1024 * 1024)).toFixed(1)} MB. Please reduce the file size and try again.`,
   );
 }
 
@@ -255,13 +255,13 @@ export function describeUploadError(
     return "You are not allowed to upload here. Please sign in again and retry.";
   }
   if (status) {
-    return `Upload failed — the server returned an error (${status}). Please try again, or contact support if it keeps happening.`;
+    return `Upload failed: the server returned an error (${status}). Please try again, or contact support if it keeps happening.`;
   }
   if (e.code === "ECONNABORTED") {
     return "Upload timed out. Please check your connection and try again.";
   }
   if (e.code === "ERR_NETWORK" || e.message === "Network Error") {
-    return "Upload failed — could not reach the server. Check your internet connection and try again.";
+    return "Upload failed: could not reach the server. Check your internet connection and try again.";
   }
 
   return fallback;

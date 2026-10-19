@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import {
   TrendingUp, Users, BookOpen, ClipboardList, Globe, ChevronUp, ChevronDown,
   Activity, Award, ChevronLeft, ChevronRight, PieChart as PieIcon, BarChart3,
-} from "lucide-react";
+} from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
 import {
   ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend,
@@ -182,11 +182,11 @@ export default function AgMembershipPage() {
           <h1 className="text-2xl font-bold text-slate-800 leading-tight">Membership</h1>
           <p className="text-sm text-slate-500 mt-1 flex items-center gap-2 flex-wrap">
             <span>
-              AG: <span className="font-medium text-slate-700">{data.ag.name || "—"}</span>
+              AG: <span className="font-medium text-slate-700">{data.ag.name || "–"}</span>
             </span>
             <span className="text-slate-300">·</span>
             <span>
-              RY <span className="font-medium text-slate-700">{data.ag.yearLabel || "—"}</span>
+              RY <span className="font-medium text-slate-700">{data.ag.yearLabel || "–"}</span>
             </span>
             <span className="text-slate-300">·</span>
             <span className="inline-flex items-center gap-1.5">
@@ -196,15 +196,15 @@ export default function AgMembershipPage() {
           </p>
         </div>
         <div className="text-xs text-slate-500 bg-slate-50 border border-slate-200 rounded-lg px-3 py-1.5">
-          {data.clubs.length} club{data.clubs.length === 1 ? "" : "s"} · District {data.ag.districtNumber || "—"}
+          {data.clubs.length} club{data.clubs.length === 1 ? "" : "s"} · District {data.ag.districtNumber || "–"}
         </div>
       </div>
 
       {/* ── SECTION BANNER + KPI TILES ────────────────────────────────────── */}
-      <div className="rounded-xl border border-slate-200 bg-gradient-to-br from-blue-50/40 via-white to-amber-50/30 p-5 space-y-4">
+      <div className="rounded-xl border border-slate-200 bg-blue-50/40 p-5 space-y-4">
         <SectionHeader
           title="Membership Overview"
-          subtitle={`All ${data.clubs.length} clubs · District ${data.ag.districtNumber || "—"} · Year ${data.ag.yearLabel || "—"}`}
+          subtitle={`All ${data.clubs.length} clubs · District ${data.ag.districtNumber || "–"} · Year ${data.ag.yearLabel || "–"}`}
           icon={TrendingUp}
         />
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
@@ -243,7 +243,7 @@ export default function AgMembershipPage() {
       <div className="bg-white rounded-xl border border-slate-200 p-5">
         <div className="flex items-center justify-between mb-1">
           <h3 className="text-sm font-bold text-slate-700 inline-flex items-center gap-2">
-            <BarChart3 size={14} className="text-[#003DA5]" />
+            <BarChart3 size={14} className="text-azure" />
             Club-by-Club Comparison
           </h3>
           <span className="text-[11px] text-slate-400">Members · Club Service · Projects</span>
@@ -254,11 +254,11 @@ export default function AgMembershipPage() {
         ) : (
           <ResponsiveContainer width="100%" height={320}>
             <BarChart data={barData} margin={{ top: 4, right: 8, left: 0, bottom: 50 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+              <CartesianGrid strokeDasharray="3 3" stroke="#edf4fb" />
               <XAxis dataKey="name" tick={{ fontSize: 10, fill: "#64748b" }} angle={-30} textAnchor="end" interval={0} height={64} />
               <YAxis tick={{ fontSize: 10, fill: "#64748b" }} width={32} />
               <Tooltip
-                contentStyle={{ fontSize: 12, borderRadius: 8, border: "1px solid #e2e8f0" }}
+                contentStyle={{ fontSize: 12, borderRadius: 8, border: "1px solid #d5dee8" }}
                 labelFormatter={(_, p) => p?.[0]?.payload?.fullName ?? ""}
               />
               <Legend wrapperStyle={{ fontSize: 12, paddingTop: 8 }} />
@@ -286,11 +286,11 @@ export default function AgMembershipPage() {
           ) : (
             <ResponsiveContainer width="100%" height={280}>
               <BarChart data={activityData} margin={{ top: 4, right: 8, left: 0, bottom: 50 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+                <CartesianGrid strokeDasharray="3 3" stroke="#edf4fb" />
                 <XAxis dataKey="name" tick={{ fontSize: 10, fill: "#64748b" }} angle={-30} textAnchor="end" interval={0} height={64} />
                 <YAxis tick={{ fontSize: 10, fill: "#64748b" }} width={32} />
                 <Tooltip
-                  contentStyle={{ fontSize: 12, borderRadius: 8, border: "1px solid #e2e8f0" }}
+                  contentStyle={{ fontSize: 12, borderRadius: 8, border: "1px solid #d5dee8" }}
                   labelFormatter={(_, p) => p?.[0]?.payload?.fullName ?? ""}
                 />
                 <Legend wrapperStyle={{ fontSize: 12, paddingTop: 8 }} />
@@ -304,7 +304,7 @@ export default function AgMembershipPage() {
         <div className="bg-white rounded-xl border border-slate-200 p-5 flex flex-col">
           <div className="flex items-center justify-between mb-2">
             <h3 className="text-sm font-bold text-slate-700 inline-flex items-center gap-2">
-              <PieIcon size={14} className="text-[#7C3AED]" />
+              <PieIcon size={14} className="text-azure" />
               Members Distribution
             </h3>
           </div>
@@ -323,14 +323,14 @@ export default function AgMembershipPage() {
                       outerRadius={88}
                       dataKey="value"
                       paddingAngle={2}
-                      stroke="#fff"
+                      stroke="#fcfdfe"
                       strokeWidth={2}
                     >
                       {pieData.map((e) => <Cell key={e.name} fill={e.color} />)}
                     </Pie>
                     <Tooltip
                       formatter={(v, n) => [fmtInt(Number(v)) + " members", String(n)] as [string, string]}
-                      contentStyle={{ fontSize: 12, borderRadius: 8, border: "1px solid #e2e8f0" }}
+                      contentStyle={{ fontSize: 12, borderRadius: 8, border: "1px solid #d5dee8" }}
                     />
                   </PieChart>
                 </ResponsiveContainer>
@@ -418,8 +418,8 @@ export default function AgMembershipPage() {
               })}
               {/* AG Total row — only render when we’re showing the entire dataset on one page. */}
               {pageCount === 1 && sorted.length > 0 && (
-                <tr className="bg-[#003DA5]/5 border-t-2 border-[#003DA5]/30 font-bold text-slate-800">
-                  <td className="px-3 py-2.5 text-[#003DA5]">AG Total ({data.clubs.length} Clubs)</td>
+                <tr className="bg-azure/5 border-t-2 border-azure/30 font-bold text-slate-800">
+                  <td className="px-3 py-2.5 text-azure">AG Total ({data.clubs.length} Clubs)</td>
                   <td className="px-3 py-2.5 tabular-nums text-right">{fmtInt(data.totalMembers)}</td>
                   <td className="px-3 py-2.5 tabular-nums text-right">{fmtInt(data.totalClubService)}</td>
                   <td className="px-3 py-2.5 tabular-nums text-right">{fmtInt(data.totalProjects)}</td>
@@ -467,7 +467,7 @@ export default function AgMembershipPage() {
       {summaryClubs.length > 0 && (
         <div>
           <h3 className="text-sm font-bold text-slate-700 mb-3 inline-flex items-center gap-2">
-            <Award size={14} className="text-[#003DA5]" />
+            <Award size={14} className="text-azure" />
             Club Highlights
             <span className="text-[11px] font-normal text-slate-400">Top {summaryClubs.length} by current sort</span>
           </h3>

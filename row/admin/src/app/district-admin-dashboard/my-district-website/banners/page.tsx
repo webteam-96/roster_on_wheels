@@ -17,8 +17,8 @@
  *   - ?yearId= is carried forward on every redirect
  *
  * Palette:
- *   Navy   #1e3a5f  — primary buttons, table header, active tab
- *   Navy H #152a44  — button hover
+ *   Navy   #17458f  — primary buttons, table header, active tab
+ *   Navy H #1b2c42  — button hover
  *   Gold   #F7A81B  — table-header underline (border-b-2)
  *   Slate  text/backgrounds/rings
  */
@@ -65,7 +65,7 @@ import AlertModal from "@/components/AlertModal";
 import {
   ArrowLeft, Plus, Pencil, Trash2, MoreHorizontal, ImageIcon,
   AlertTriangle, Upload, X, Eye, EyeOff, GripVertical, Search,
-} from "lucide-react";
+} from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
 import Image from "next/image";
 import ProtectedRoute from "@/components/ProtectedRoute";
@@ -361,7 +361,7 @@ export default function DistrictAdminBannerPhotosPage() {
               <ArrowLeft className="h-4 w-4" />
             </button>
             <div>
-              <h2 className="text-2xl font-bold tracking-tight text-[#1e3a5f]">
+              <h2 className="text-2xl font-bold tracking-tight text-ink">
                 {districtNumber ? `District ${districtNumber} · Banner Photos` : "Banner Photos"}
               </h2>
               <p className="text-slate-500 text-sm mt-0.5">
@@ -373,7 +373,7 @@ export default function DistrictAdminBannerPhotosPage() {
             <Button
               onClick={openAddDialog}
               disabled={!selectedYearId}
-              className="bg-[#1e3a5f] hover:bg-[#152a44] text-white"
+              className="bg-azure hover:bg-mint-ink text-white"
             >
               <Plus className="mr-2 h-4 w-4" />Add Banner
             </Button>
@@ -432,7 +432,7 @@ export default function DistrictAdminBannerPhotosPage() {
                   placeholder="Search banners..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-9 pr-8 border-slate-200 bg-white focus:border-[#1e3a5f] focus:ring-[#1e3a5f]/20 text-sm"
+                  className="pl-9 pr-8 border-slate-200 bg-white focus:border-azure focus:ring-azure/20 text-sm"
                 />
                 {searchQuery && (
                   <Button
@@ -482,7 +482,7 @@ export default function DistrictAdminBannerPhotosPage() {
                           <Badge
                             variant={banner.isActive ? "default" : "secondary"}
                             className={`mt-1 ${banner.isActive
-                              ? "bg-[#1e3a5f] text-white hover:bg-[#152a44]"
+                              ? "bg-azure text-white hover:bg-mint-ink"
                               : "bg-slate-100 text-slate-700 border border-slate-200"}`}
                           >
                             {banner.isActive ? "Active" : "Inactive"}
@@ -520,8 +520,8 @@ export default function DistrictAdminBannerPhotosPage() {
               <Table>
                 <TableHeader>
                   <TableRow
-                    className="hover:opacity-100 border-b-2 border-[#F7A81B]"
-                    style={{ backgroundColor: "#1e3a5f" }}
+                    className="hover:opacity-100 border-b-2 border-marigold"
+                    style={{ backgroundColor: "#17458f" }}
                   >
                     <TableHead className="w-24 text-white text-xs font-semibold uppercase tracking-wide">Thumbnail</TableHead>
                     <TableHead className="text-white text-xs font-semibold uppercase tracking-wide">Description</TableHead>
@@ -551,7 +551,7 @@ export default function DistrictAdminBannerPhotosPage() {
                           <Badge
                             variant={banner.isActive ? "default" : "secondary"}
                             className={banner.isActive
-                              ? "bg-[#1e3a5f] text-white hover:bg-[#152a44]"
+                              ? "bg-azure text-white hover:bg-mint-ink"
                               : "bg-slate-100 text-slate-700 border border-slate-200"}
                           >
                             {banner.isActive ? "Active" : "Inactive"}
@@ -603,7 +603,7 @@ export default function DistrictAdminBannerPhotosPage() {
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogContent className="max-w-md">
             <DialogHeader>
-              <DialogTitle className="text-[#1e3a5f]">{editingBanner ? "Edit Banner" : "Add Banner"}</DialogTitle>
+              <DialogTitle className="text-ink">{editingBanner ? "Edit Banner" : "Add Banner"}</DialogTitle>
               <DialogDescription>{editingBanner ? "Update the banner details." : "Upload an image and fill in the details."}</DialogDescription>
             </DialogHeader>
             <div className="space-y-4 py-2">
@@ -652,14 +652,14 @@ export default function DistrictAdminBannerPhotosPage() {
                   onChange={(e) => setFormDescription(e.target.value.slice(0, 500))}
                   rows={2}
                   maxLength={500}
-                  className="border-slate-200 bg-white focus:border-[#1e3a5f] focus:ring-[#1e3a5f]/20"
+                  className="border-slate-200 bg-white focus:border-azure focus:ring-azure/20"
                 />
                 <p className="text-xs text-slate-400 text-right">{formDescription.length}/500</p>
               </div>
               <div className="space-y-2">
                 <Label className="text-slate-600 text-sm">Status</Label>
                 <Select value={formIsActive} onValueChange={setFormIsActive}>
-                  <SelectTrigger className="border-slate-200 bg-white focus:border-[#1e3a5f] focus:ring-[#1e3a5f]/20"><SelectValue /></SelectTrigger>
+                  <SelectTrigger className="border-slate-200 bg-white focus:border-azure focus:ring-azure/20"><SelectValue /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="1">Active</SelectItem>
                     <SelectItem value="0">Inactive</SelectItem>
@@ -670,7 +670,7 @@ export default function DistrictAdminBannerPhotosPage() {
                 <div className="space-y-2">
                   <Label className="text-slate-600 text-sm">Rotary Year</Label>
                   <Select value={formYearId} onValueChange={setFormYearId}>
-                    <SelectTrigger className="border-slate-200 bg-white focus:border-[#1e3a5f] focus:ring-[#1e3a5f]/20"><SelectValue placeholder="Select a year" /></SelectTrigger>
+                    <SelectTrigger className="border-slate-200 bg-white focus:border-azure focus:ring-azure/20"><SelectValue placeholder="Select a year" /></SelectTrigger>
                     <SelectContent>
                       {allRotaryYears.map((y) => (
                         <SelectItem key={y.id} value={String(y.id)}>{y.yearLabel}{y.isCurrent ? " (Current)" : ""}</SelectItem>
@@ -692,7 +692,7 @@ export default function DistrictAdminBannerPhotosPage() {
               <Button
                 onClick={handleSave}
                 disabled={saving || !formImagePath}
-                className="bg-[#1e3a5f] hover:bg-[#152a44] text-white"
+                className="bg-azure hover:bg-mint-ink text-white"
               >
                 {saving ? "Saving..." : editingBanner ? "Update" : "Add"}
               </Button>

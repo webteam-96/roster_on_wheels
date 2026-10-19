@@ -42,7 +42,7 @@ import {
   Calendar, Download, BarChart3, Users, Megaphone, CalendarClock, Newspaper, FileText,
   CheckSquare, Award, UserCircle, IndianRupee, Building2, Crown, UserCog, Shield, Trophy,
   ClipboardList, Star, Tent, Mail, Link2, MessageCircle, FileSpreadsheet, Loader2,
-} from "lucide-react";
+} from "@/components/icons";
 import Link from "next/link";
 import RotaryLoader from "@/components/RotaryLoader";
 
@@ -583,7 +583,7 @@ function ClubMonthlyProjectDetailsRow({
     const scope = agName ? `AG_${agName.replace(/\s+/g, "_")}` : (clubName ? clubName.replace(/\s+/g, "_") : "All_Clubs");
     exportMonthlyPivot({
       filename: `District_${districtNumber}_CMR_${scope}`,
-      title: `${title} — District ${districtNumber}`,
+      title: `${title} | District ${districtNumber}`,
       subtitle: `Rotary Year: ${yearLabel}${agName ? ` · AG: ${agName}` : ""}`,
       leadCols: [
         ...(showGeo ? [
@@ -937,7 +937,7 @@ function OcvReportRow({
             <p className="font-medium truncate">{title}</p>
             <p className="text-xs text-amber-600">
               {hasSel
-                ? (isAg ? "Ready — downloads every club under this AG (zipped)" : "Ready — all sub-modules included")
+                ? (isAg ? "Ready: downloads every club under this AG (zipped)" : "Ready: all sub-modules included")
                 : `Please select a ${isAg ? "AG" : "club"} to download`}
             </p>
           </div>
@@ -1322,7 +1322,7 @@ export default function DistrictReportContent({ districtId, initialYearId, servi
   const exportSection = (data: any[], sectionName: string, columns: { key: string; label: string; width?: number; hyperlink?: boolean; linkText?: string; index?: boolean; format?: (v: any, r: any) => string }[]) => {
     if (!data || data.length === 0) return;
     exportToCSV(data, `${filePrefix}_${sectionName.replace(/\s+/g, "_")}`, injectGeo(columns), {
-      title: `${sectionName} — ${scopeLabel}`,
+      title: `${sectionName} | ${scopeLabel}`,
       subtitle: `Rotary Year: ${yearLabel}`,
     });
     // No success toast — browser's file save UI is the confirmation.
@@ -1342,7 +1342,7 @@ export default function DistrictReportContent({ districtId, initialYearId, servi
       ? baseFile
       : `${filePrefix}_${baseFile.replace(/\s+/g, "_")}`;
     exportToCSV(data, finalBase, injectGeo(columns), {
-      title: `${label} — ${scopeLabel}`,
+      title: `${label} | ${scopeLabel}`,
       subtitle: `Rotary Year: ${yearLabel}`,
       summary,
     });
@@ -1470,18 +1470,14 @@ export default function DistrictReportContent({ districtId, initialYearId, servi
         <div className="text-center py-20 text-muted-foreground">No report data available.</div>
       ) : (
         <>
-          {/* Communication logs (WhatsApp / Email delivery) — opened from the district Reports tab. */}
           {showCommunicationLogs && (
             <Card className="mb-4">
               <CardContent className="p-0">
                 <div className="px-5 py-3 border-b border-slate-100">
                   <h3 className="text-sm font-semibold text-slate-800">Communication Logs</h3>
-                  <p className="text-xs text-slate-500 mt-0.5">Delivery status of WhatsApp &amp; Email sent to your district&apos;s members</p>
+                  <p className="text-xs text-slate-500 mt-0.5">Delivery status of email sent to your district&apos;s members</p>
                 </div>
                 <div className="p-4 flex flex-wrap gap-3">
-                  <Link href="/district-admin-dashboard/whatsapp-log" className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-2 rounded-lg border border-slate-200 text-slate-700 hover:bg-emerald-50 hover:text-emerald-700 hover:border-emerald-200">
-                    <MessageCircle size={14} /> WhatsApp Log
-                  </Link>
                   <Link href="/district-admin-dashboard/email-log" className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-2 rounded-lg border border-slate-200 text-slate-700 hover:bg-blue-50 hover:text-blue-700 hover:border-blue-200">
                     <Mail size={14} /> Email Log
                   </Link>

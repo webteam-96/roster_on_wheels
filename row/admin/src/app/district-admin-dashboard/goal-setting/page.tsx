@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { Building2, MessagesSquare } from "lucide-react";
+import { Building2, MessagesSquare } from "@/components/icons";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useAuth } from "@/contexts/AuthContext";
 import GoalSettingPanel from "@/components/dashboard/GoalSettingPanel";
@@ -66,7 +66,7 @@ export default function DistrictAdminGoalSettingPage() {
         </div>
         <Link
           href={clubGoalsHref}
-          className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg bg-[#1e3a5f] text-white hover:bg-[#152a44]"
+          className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg bg-azure text-white hover:bg-mint-ink"
         >
           <Building2 size={13} /> View Club Goals
         </Link>

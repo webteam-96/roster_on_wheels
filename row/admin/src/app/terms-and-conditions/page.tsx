@@ -6,9 +6,9 @@ import { getServerBrand, hostOf } from "@/lib/brand";
 export async function generateMetadata(): Promise<Metadata> {
   const brand = await getServerBrand();
   return {
-    title: `Terms & Conditions — ${brand.productName}`,
+    title: `Terms & Conditions | ${brand.productName}`,
     description:
-      `Terms of use for the ${brand.productName} administration portal — user obligations, payment terms, intellectual property, liability, governing law.`,
+      `Terms of use for the ${brand.productName} administration portal: user obligations, payment terms, intellectual property, liability, governing law.`,
   };
 }
 

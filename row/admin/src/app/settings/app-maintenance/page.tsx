@@ -25,7 +25,7 @@ import {
   Search,
   Settings,
   Wrench,
-} from "lucide-react";
+} from "@/components/icons";
 
 import { useAuth } from "@/contexts/AuthContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
@@ -78,7 +78,7 @@ const GROUPS: GroupDef[] = [
   {
     key: "auth",
     title: "Auth & System",
-    description: "Locked — blocking these would lock users out of the app.",
+    description: "Locked: blocking these would lock users out of the app.",
     locked: true,
     routes: [
       "/splash", "/login", "/otp-verify", "/welcome", "/terms",
@@ -284,9 +284,9 @@ const LOCKED_ROUTE_KEYS = new Set<string>(
 // Format helpers.
 // ---------------------------------------------------------------------------
 function fmtDate(d: string | null): string {
-  if (!d) return "—";
+  if (!d) return "–";
   const dt = new Date(d);
-  if (isNaN(dt.getTime()) || dt.getFullYear() < 2000) return "—";
+  if (isNaN(dt.getTime()) || dt.getFullYear() < 2000) return "–";
   return dt.toLocaleString(appLocale(), {
     day: "2-digit", month: "short", year: "numeric",
     hour: "2-digit", minute: "2-digit",
@@ -665,7 +665,7 @@ export default function AppMaintenancePage() {
           />
           <KpiCard
             title="Last Modified"
-            value={stats.lastModified ? fmtDate(stats.lastModified) : "—"}
+            value={stats.lastModified ? fmtDate(stats.lastModified) : "–"}
             icon={AlertTriangle}
             color="gold"
           />
@@ -757,7 +757,7 @@ export default function AppMaintenancePage() {
                             >
                               <span className="font-mono">{rk}</span>
                               <span className="ml-2 italic">
-                                (not yet seeded — run the API once)
+                                (not yet seeded: run the API once)
                               </span>
                             </div>
                           );

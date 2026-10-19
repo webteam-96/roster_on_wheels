@@ -5,7 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import { getClub } from "@/services/api";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { ArrowLeft, UserX, UserPlus } from "lucide-react";
+import { ArrowLeft, UserX, UserPlus } from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
 import ProtectedRoute from "@/components/ProtectedRoute";
 

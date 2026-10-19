@@ -8,7 +8,7 @@ import { useEffect, useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { getGlobalMemberCard, getPhotoUrl, MemberCard } from "@/services/api";
-import { User, Mail, Phone, Building2, IdCard } from "lucide-react";
+import { User, Mail, Phone, Building2, IdCard } from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
 
 export default function MemberContactCardDialog({

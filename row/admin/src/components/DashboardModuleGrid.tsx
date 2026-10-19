@@ -5,7 +5,7 @@ import { DashboardCategoryGroup } from "@/types/module";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { LayoutGrid, LayoutDashboard, PanelLeft, Rows3, Sparkles, Grid3X3 } from "lucide-react";
+import { LayoutGrid, LayoutDashboard, PanelLeft, Rows3, Sparkles, Grid3X3 } from "@/components/icons";
 import ModuleIcon from "@/components/ModuleIcon";
 import RotaryLoader from "@/components/RotaryLoader";
 
@@ -23,18 +23,9 @@ const themes: { key: DashboardTheme; label: string; icon: React.ReactNode }[] = 
 ];
 
 const METRO_COLORS = [
-  "from-blue-500 to-blue-600",
-  "from-emerald-500 to-emerald-600",
-  "from-violet-500 to-violet-600",
-  "from-amber-500 to-amber-600",
-  "from-rose-500 to-rose-600",
-  "from-cyan-500 to-cyan-600",
-  "from-indigo-500 to-indigo-600",
-  "from-orange-500 to-orange-600",
-  "from-teal-500 to-teal-600",
-  "from-pink-500 to-pink-600",
-  "from-lime-500 to-lime-600",
-  "from-fuchsia-500 to-fuchsia-600",
+  "bg-blue-700",
+  "bg-blue-800",
+  "bg-slate-700",
 ];
 
 interface DashboardModuleGridProps {
@@ -103,7 +94,7 @@ export default function DashboardModuleGrid({
       <Badge
         variant="secondary"
         className="absolute top-2 right-2 text-[10px] px-1.5 py-0.5 bg-amber-100 text-amber-700 border-amber-200 max-w-[90%] whitespace-normal text-right leading-tight"
-        title={dateText ? `Coming Soon — ${dateText}` : "Coming Soon"}
+        title={dateText ? `Coming Soon: ${dateText}` : "Coming Soon"}
       >
         Coming Soon{dateText ? <><br />{dateText}</> : null}
       </Badge>
@@ -266,9 +257,7 @@ export default function DashboardModuleGrid({
                   {renderLoader(mod.moduleKey)}
                   {comingSoonBadge(mod.moduleKey)}
                   {/* Gradient background */}
-                  <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-primary/10 to-primary/20 group-hover:from-primary/10 group-hover:via-primary/20 group-hover:to-primary/30 transition-all duration-300" />
-                  {/* Glow effect on hover */}
-                  <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-[radial-gradient(circle_at_50%_0%,hsl(var(--primary)/0.15),transparent_70%)]" />
+                  <div className="absolute inset-0 bg-primary/5 group-hover:bg-primary/10 transition-all duration-300" />
                   {/* Content */}
                   <div className="relative flex flex-col items-center justify-center p-5 text-center gap-3 border border-primary/10 rounded-xl group-hover:border-primary/30 transition-colors">
                     <div className="h-14 w-14 rounded-2xl bg-white/80 dark:bg-white/10 shadow-sm flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
@@ -302,7 +291,7 @@ export default function DashboardModuleGrid({
                   >
                     {renderLoader(mod.moduleKey)}
                   {comingSoonBadge(mod.moduleKey)}
-                    <div className={`bg-gradient-to-br ${colorClass} p-5 flex flex-col items-center justify-center text-center gap-3 min-h-[120px]`}>
+                    <div className={`${colorClass} p-5 flex flex-col items-center justify-center text-center gap-3 min-h-[120px]`}>
                       <div className="opacity-90 group-hover:opacity-100 group-hover:scale-110 transition-all duration-200">
                         <ModuleIcon name={mod.iconClass} iconPath={mod.iconPath} className="h-9 w-9 text-white" />
                       </div>

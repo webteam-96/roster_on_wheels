@@ -27,7 +27,7 @@ import { useParams } from "next/navigation";
 import Image from "next/image";
 import {
   Info, ImageIcon, Upload, X, FileText, Type, Power, Calendar,
-} from "lucide-react";
+} from "@/components/icons";
 import {
   getClub,
   getRotaryYears,
@@ -58,7 +58,7 @@ const MAX_ACTIVE = 10;
 // ceiling, so this never shrinks a realistic source.
 const AD_MAX_WIDTH = 2560;
 const TOP_MESSAGE =
-  "Advertisements appear on the club website. Up to 10 ads can be active per year — extras must stay inactive. Crop the banner image to focus on the area you want shown.";
+  "Advertisements appear on the club website. Up to 10 ads can be active per year: extras must stay inactive. Crop the banner image to focus on the area you want shown.";
 
 function FieldLabel({
   children, hint, dot, required = false,
@@ -80,7 +80,7 @@ function SectionCard({
 }: { number: number; icon: React.ElementType; title: string; dot: string; children: React.ReactNode }) {
   return (
     <div className="rounded-xl border border-slate-200 overflow-hidden mb-4">
-      <div className="flex items-center gap-3 px-4 py-2.5 bg-gradient-to-r from-slate-50 to-white border-b border-slate-100">
+      <div className="flex items-center gap-3 px-4 py-2.5 bg-slate-50 border-b border-slate-100">
         <div className={`flex items-center justify-center h-7 w-7 rounded-full text-white text-xs font-bold ${dot}`}>{number}</div>
         <Icon className="h-4 w-4 text-slate-500" />
         <h3 className="text-sm font-semibold text-slate-800">{title}</h3>
@@ -328,7 +328,7 @@ export default function AdvertisementsV2AddPage() {
 
         {/* 2. Document or Link (optional) */}
         <SectionCard number={2} icon={FileText} title="Document or Link (optional)" dot="bg-amber-600">
-          <FieldLabel dot="bg-amber-500" hint="(document or link — not both)">
+          <FieldLabel dot="bg-amber-500" hint="(document or link. Not both)">
             Attached Document / Link
           </FieldLabel>
           <DocumentOrLinkField

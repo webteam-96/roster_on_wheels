@@ -23,7 +23,7 @@ import { useRouter } from "next/navigation";
 import {
   Receipt, Link2, BadgeCheck, CheckCircle2, XCircle,
   Search, ExternalLink, Copy, Edit3, Users, FileBarChart,
-} from "lucide-react";
+} from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
 import { useClubAdminCache } from "@/contexts/ClubAdminDashboardCacheContext";
 import { getEventPaymentLinks } from "@/services/api";
@@ -312,7 +312,7 @@ export default function ClubAdminPaymentLinksPage() {
                           </button>
                         </div>
                       ) : (
-                        <span className="text-xs text-slate-300">—</span>
+                        <span className="text-xs text-slate-300">, </span>
                       )}
                     </td>
                     <td className="px-4 py-2.5 text-center">

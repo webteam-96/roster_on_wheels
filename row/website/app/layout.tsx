@@ -1,15 +1,20 @@
 import type { Metadata, Viewport } from "next";
-import { Inter } from "next/font/google";
+import { Bricolage_Grotesque, Figtree } from "next/font/google";
 import "./globals.css";
 import SiteHeader from "@/components/SiteHeader";
 import SiteFooter from "@/components/SiteFooter";
 import Loader from "@/components/Loader";
 
-// Brand typography: Inter (its optical-size axis gives Inter Display at headline sizes).
-const inter = Inter({
+// Brand typography: Bricolage Grotesque for display (opsz axis tightens it at headline sizes), Figtree for body.
+const display = Bricolage_Grotesque({
   subsets: ["latin"],
   axes: ["opsz"],
-  variable: "--font-inter",
+  variable: "--font-bricolage",
+  display: "swap",
+});
+const body = Figtree({
+  subsets: ["latin"],
+  variable: "--font-figtree",
   display: "swap",
 });
 
@@ -32,7 +37,7 @@ const BOOT =
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="en" className={inter.variable} suppressHydrationWarning>
+    <html lang="en" className={`${display.variable} ${body.variable}`} suppressHydrationWarning>
       <body>
         <script dangerouslySetInnerHTML={{ __html: BOOT }} />
         <Loader />

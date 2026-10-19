@@ -24,7 +24,7 @@ import {
   Trash2,
   Shield,
   ShieldOff,
-} from "lucide-react";
+} from "@/components/icons";
 import Image from "next/image";
 import Link from "next/link";
 

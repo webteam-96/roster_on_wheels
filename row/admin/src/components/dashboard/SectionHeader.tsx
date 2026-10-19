@@ -1,4 +1,4 @@
-import { type LucideIcon } from "lucide-react";
+import { type LucideIcon } from "@/components/icons";
 
 interface SectionHeaderProps {
   title: string;
@@ -10,7 +10,7 @@ export default function SectionHeader({ title, subtitle, icon: Icon }: SectionHe
   return (
     <div className="flex items-start gap-3">
       {Icon && (
-        <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#003DA5]/10 text-[#003DA5]">
+        <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-azure/10 text-azure">
           <Icon size={18} />
         </div>
       )}

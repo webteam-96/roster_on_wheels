@@ -24,7 +24,7 @@ import ErrorAlert from "@/components/ErrorAlert";
 import RotaryLoader from "@/components/RotaryLoader";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { useAuth } from "@/contexts/AuthContext";
-import { ArrowLeft, CheckCircle2, AlertTriangle, RefreshCw, Loader2 } from "lucide-react";
+import { ArrowLeft, CheckCircle2, AlertTriangle, RefreshCw, Loader2 } from "@/components/icons";
 import {
   getDistricts, getDistrictSyncClubsForMatch, getClubOrgMemberCount,
   sweepMembersForClub, sweepMembersForDistrict,
@@ -285,7 +285,7 @@ export default function MemberMatchPage() {
                           )}
                         </TableCell>
                         <TableCell className="text-center">
-                          {!loaded ? <span className="text-muted-foreground">—</span>
+                          {!loaded ? <span className="text-muted-foreground">, </span>
                             : mismatch
                               ? <Badge variant="destructive" className="cursor-pointer hover:opacity-80" title="Click to see which members differ and what will happen to them" onClick={() => setDiffFor(c)}>{diff > 0 ? `+${diff}` : diff}</Badge>
                               : <CheckCircle2 className="mx-auto h-4 w-4 text-emerald-600" />}
@@ -388,7 +388,7 @@ function DiffDialog({ club, onClose, onSoftDeleted, onError }: {
         <div>
           <h3 className="text-lg font-semibold">{club.clubName}</h3>
           {data && !data.error && (
-            <p className="text-sm text-muted-foreground">ROW <b>{data.localCount}</b> vs Rotary.org <b>{data.orgCount}</b> — here&apos;s exactly who differs.</p>
+            <p className="text-sm text-muted-foreground">ROW <b>{data.localCount}</b> vs Rotary.org <b>{data.orgCount}</b>: here&apos;s exactly who differs.</p>
           )}
         </div>
 
@@ -400,7 +400,7 @@ function DiffDialog({ club, onClose, onSoftDeleted, onError }: {
           <div className="space-y-4 text-sm">
             {/* To add */}
             <section>
-              <p className="font-medium text-emerald-700">On Rotary.org, missing here — added when you Sync ({data.toAdd.length})</p>
+              <p className="font-medium text-emerald-700">On Rotary.org, missing here: added when you Sync ({data.toAdd.length})</p>
               {data.toAdd.length === 0 ? <p className="text-xs text-muted-foreground">None.</p> : (
                 <ul className="mt-1 divide-y rounded-md border">
                   {data.toAdd.map((m) => (
@@ -415,7 +415,7 @@ function DiffDialog({ club, onClose, onSoftDeleted, onError }: {
 
             {/* Left Rotary.org */}
             <section>
-              <p className="font-medium text-amber-700">Left Rotary.org — removed when you Sync ({data.toRemove.length})</p>
+              <p className="font-medium text-amber-700">Left Rotary.org: removed when you Sync ({data.toRemove.length})</p>
               {data.toRemove.length === 0 ? <p className="text-xs text-muted-foreground">None.</p> : (
                 <ul className="mt-1 divide-y rounded-md border">
                   {data.toRemove.map((m) => (
@@ -438,7 +438,7 @@ function DiffDialog({ club, onClose, onSoftDeleted, onError }: {
                       <span>{m.name || "(no name)"}</span>
                       {m.willSoftDelete
                         ? <Badge variant="destructive" className="text-[10px]">will soft-delete</Badge>
-                        : <Badge variant="secondary" className="text-[10px]">kept — {m.keepReason}</Badge>}
+                        : <Badge variant="secondary" className="text-[10px]">kept: {m.keepReason}</Badge>}
                     </li>
                   ))}
                 </ul>

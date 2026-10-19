@@ -4,14 +4,7 @@ import { useEffect, useState, useCallback, Fragment } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/contexts/AuthContext";
-import {
-  getClubDuesClubs, updateClubDuesRate, recordClubDuesOffline, approveClubDuesPayment,
-  sendClubDuesReminder, bulkClubDuesReminder, sendClubDuesWhatsApp, bulkClubDuesWhatsApp,
-  sendClubDuesReceipt, getClubDuesOfflineDetails, updateClubDuesOffline,
-  getClubDuesClubVendors, saveClubDuesClubVendors, getRazorpayRouteAccounts, RazorpayRouteAccount,
-  getClubDuesOfflineAccounts, ClubDuesOfflineAccountOption,
-  getClubDuesPayLink, getClubDuesExportUrl, syncClubDues,
-} from "@/services/api";
+import { getClubDuesClubs, updateClubDuesRate, recordClubDuesOffline, approveClubDuesPayment, sendClubDuesReminder, bulkClubDuesReminder, sendClubDuesReceipt, getClubDuesOfflineDetails, updateClubDuesOffline, getClubDuesClubVendors, saveClubDuesClubVendors, getRazorpayRouteAccounts, RazorpayRouteAccount, getClubDuesOfflineAccounts, ClubDuesOfflineAccountOption, getClubDuesPayLink, getClubDuesExportUrl, syncClubDues } from "@/services/api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -22,7 +15,7 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
 import AlertModal from "@/components/AlertModal";
-import { ArrowLeft, RefreshCw, Download, Bell, Link2, Check, ChevronLeft, ChevronRight, MessageCircle, Receipt, Pencil, Split, Plus, X, FileText, Send } from "lucide-react";
+import { ArrowLeft, RefreshCw, Download, Bell, Link2, Check, ChevronLeft, ChevronRight, Receipt, Pencil, Split, Plus, X, FileText, Send } from "@/components/icons";
 
 import { appLocale, currencySymbol } from "@/lib/appFormat";
 interface AccountBreakdown {
@@ -81,7 +74,7 @@ export default function ClubDuesClubsPage() {
   const [busy, setBusy] = useState(false);
   const [success, setSuccess] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [bulkConfirmChannel, setBulkConfirmChannel] = useState<"email" | "whatsapp" | null>(null);
+  const [bulkConfirmChannel, setBulkConfirmChannel] = useState<"email" | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -131,7 +124,7 @@ export default function ClubDuesClubsPage() {
     try {
       const res = await getClubDuesPayLink(duesId, r.fkClubId);
       await navigator.clipboard.writeText(res.url);
-      setSuccess(`Pay link for ${r.clubName} copied — this link stays active and does not expire.`);
+      setSuccess(`Pay link for ${r.clubName} copied. This link stays active and does not expire.`);
     } catch { setError("Failed to generate link."); }
   };
 
@@ -158,10 +151,6 @@ export default function ClubDuesClubsPage() {
     catch { setError("Failed to send reminder."); }
   };
 
-  const whatsapp = async (r: ClubRow) => {
-    try { await sendClubDuesWhatsApp(duesId, r.fkClubId); setSuccess(`WhatsApp reminder sent to ${r.clubName}.`); }
-    catch { setError("Failed to send WhatsApp."); }
-  };
 
   // Non-sync clubs (not synced from Rotary.org — often zero-member) sink to the bottom, so they land on
   // the last page(s). Stable sort keeps each group's A-Z order from the backend.
@@ -181,14 +170,13 @@ export default function ClubDuesClubsPage() {
           <div className="flex items-center gap-3">
             <Button variant="ghost" size="icon" asChild><Link href="/settings/club-dues"><ArrowLeft className="h-4 w-4" /></Link></Button>
             <div>
-              <h2 className="text-2xl font-bold tracking-tight text-primary">District Dues — Clubs</h2>
+              <h2 className="text-2xl font-bold tracking-tight text-primary">District Dues: Clubs</h2>
               <p className="text-muted-foreground text-base">Each club owes members × rate. Track payment status and send reminders.</p>
             </div>
           </div>
           <div className="flex gap-2">
             <Button variant="outline" size="sm" onClick={async () => { setBusy(true); try { await syncClubDues(duesId); await load(); } finally { setBusy(false); } }} disabled={busy}><RefreshCw className="mr-2 h-4 w-4" />Sync members</Button>
             <Button variant="outline" size="sm" onClick={() => setBulkConfirmChannel("email")}><Bell className="mr-2 h-4 w-4" />Email all</Button>
-            <Button variant="outline" size="sm" onClick={() => setBulkConfirmChannel("whatsapp")}><MessageCircle className="mr-2 h-4 w-4" />WhatsApp all</Button>
             <Button variant="outline" size="sm" onClick={copyReportLink} title="Copy public report link"><FileText className="mr-2 h-4 w-4" />Copy report link</Button>
             <a href={getClubDuesExportUrl(duesId)}><Button variant="outline" size="sm"><Download className="mr-2 h-4 w-4" />Export</Button></a>
           </div>
@@ -273,7 +261,7 @@ export default function ClubDuesClubsPage() {
                         <span className="ml-2 text-xs rounded bg-amber-100 text-amber-700 px-1.5 py-0.5" title="This club is not synced from Rotary.org">non-sync</span>
                       </td>
                       <td colSpan={10 + maxOfflineAccountCols * 2 + maxOnlineAccountCols * 2} className="p-3 text-sm italic text-amber-700">
-                        This club is not synced from Rotary.org, so it has no members to bill — sync this club first to track its dues.
+                        This club is not synced from Rotary.org, so it has no members to bill: sync this club first to track its dues.
                       </td>
                     </tr>
                   ) : (
@@ -362,7 +350,6 @@ export default function ClubDuesClubsPage() {
                           ) : (
                             <>
                               <Button size="sm" variant="ghost" onClick={() => remind(r)} title="Send email reminder"><Bell className="h-4 w-4" /></Button>
-                              <Button size="sm" variant="ghost" onClick={() => whatsapp(r)} title="Send WhatsApp reminder"><MessageCircle className="h-4 w-4" /></Button>
                             </>
                           )}
                         </div>
@@ -412,22 +399,16 @@ export default function ClubDuesClubsPage() {
       <AlertModal
         open={!!bulkConfirmChannel}
         icon={Send}
-        iconClassName={bulkConfirmChannel === "whatsapp" ? "text-green-600" : "text-orange-600"}
-        title={`Send ${bulkConfirmChannel === "whatsapp" ? "WhatsApp" : "Email"} Reminder to All Clubs`}
-        description={`Send a ${bulkConfirmChannel === "whatsapp" ? "WhatsApp" : "email"} reminder to every unpaid club in this campaign? This cannot be undone.`}
+        iconClassName="text-orange-600"
+        title="Send Email Reminder to All Clubs"
+        description="Send an email reminder to every unpaid club in this campaign? This cannot be undone."
         confirmLabel="Send"
-        confirmClassName={bulkConfirmChannel === "whatsapp" ? "bg-green-600 text-white hover:bg-green-700" : "bg-orange-600 text-white hover:bg-orange-700"}
+        confirmClassName="bg-orange-600 text-white hover:bg-orange-700"
         onConfirm={async () => {
-          const channel = bulkConfirmChannel;
           setBulkConfirmChannel(null);
           try {
-            if (channel === "whatsapp") {
-              await bulkClubDuesWhatsApp(duesId);
-              setSuccess("WhatsApp reminders sent to all unpaid clubs.");
-            } else {
-              await bulkClubDuesReminder(duesId);
-              setSuccess("Email reminders sent to all unpaid clubs.");
-            }
+            await bulkClubDuesReminder(duesId);
+            setSuccess("Email reminders sent to all unpaid clubs.");
           } catch { setError("Failed."); }
         }}
         cancelLabel="Cancel"
@@ -491,7 +472,7 @@ function OfflineDialog({ duesId, club, editPaymentId, onClose, onDone, onError }
     } catch (e: any) { onError(e?.response?.data?.message || "Failed."); } finally { setBusy(false); }
   };
   return (
-    <Modal title={`${isEdit ? "Edit" : "Record"} offline payment — ${club.clubName}`} onClose={onClose}>
+    <Modal title={`${isEdit ? "Edit" : "Record"} offline payment: ${club.clubName}`} onClose={onClose}>
       {isEdit && <p className="text-xs text-amber-600">Saving a pending payment also approves it.</p>}
       {accounts.length > 0 && (
         <div className="space-y-2">
@@ -568,7 +549,7 @@ function SplitDialog({ duesId, club, isOnline, routeAccounts, onClose, onDone, o
   };
 
   return (
-    <Modal title={`${isOnline ? "Online" : "Offline"} split — ${club.clubName}`} onClose={onClose}>
+    <Modal title={`${isOnline ? "Online" : "Offline"} split: ${club.clubName}`} onClose={onClose}>
       <p className="text-sm text-muted-foreground">Overrides the campaign&apos;s {isOnline ? "online" : "offline"} split for this club only (rate {currencySymbol()}{rate}/member). Clear all to use the campaign default.</p>
       <div className="flex items-center justify-between">
         <Label>Split by</Label>
@@ -582,7 +563,7 @@ function SplitDialog({ duesId, club, isOnline, routeAccounts, onClose, onDone, o
           <Select value={row.routeAccountId} onValueChange={(v) => update(i, "routeAccountId", v)}>
             <SelectTrigger className="flex-1"><SelectValue placeholder="Select account" /></SelectTrigger>
             <SelectContent>
-              {routeAccounts.map((a) => <SelectItem key={a.id} value={String(a.id)}>••••{a.bankAccountLast4 || "----"} · IFSC {a.bankIfsc || "N/A"} — {a.name}</SelectItem>)}
+              {routeAccounts.map((a) => <SelectItem key={a.id} value={String(a.id)}>••••{a.bankAccountLast4 || "----"} · IFSC {a.bankIfsc || "N/A"}: {a.name}</SelectItem>)}
             </SelectContent>
           </Select>
           <div className="w-24"><Input type="number" value={row.value} onChange={(e) => update(i, "value", e.target.value)} placeholder={amountType === "2" ? "%" : currencySymbol()} /></div>
@@ -621,7 +602,7 @@ function ApproveDialog({ club, onClose, onDone, onError }: { club: ClubRow; onCl
     } catch (e: any) { onError(e?.response?.data?.message || "Failed."); } finally { setBusy(false); }
   };
   return (
-    <Modal title={`Review offline payment — ${club.clubName}`} onClose={onClose}>
+    <Modal title={`Review offline payment: ${club.clubName}`} onClose={onClose}>
       <p className="text-sm text-muted-foreground">
         Amount: <b>{currencySymbol()}{Number(detail?.amount ?? club.unpaidCount * club.offlinePerMemberRate).toLocaleString(appLocale(), { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</b>{" "}
         for {detail?.memberCountCovered ?? club.unpaidCount} member(s).

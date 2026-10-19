@@ -7,7 +7,7 @@
 // compile into their client graph.
 
 import Link from "next/link";
-import { ArrowUpRight, ChevronLeft, ChevronRight, X } from "lucide-react";
+import { ArrowUpRight, ChevronLeft, ChevronRight, X } from "@/components/icons";
 import { CardMedia } from "@/components/pages/projects/CardMedia";
 import type { Project } from "@/lib/projectsApi";
 
@@ -98,7 +98,7 @@ export function areaKeywords(name: string): string {
 
 /** Solid white base + 10% cause tint — the at-rest cause wash for cards/rows. */
 function tintBg(hex: string, alpha = "1A"): string {
-  return `linear-gradient(0deg, ${hex}${alpha}, ${hex}${alpha}) #FFFFFF`;
+  return `linear-gradient(0deg, ${hex}${alpha}, ${hex}${alpha}) #FCFDFE`;
 }
 
 /* ——— Data shapes ——— */

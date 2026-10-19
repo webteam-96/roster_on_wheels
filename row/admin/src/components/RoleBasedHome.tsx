@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { MapPin, Building2, FileText, CheckCircle2, Users, Target } from "lucide-react";
+import { MapPin, Building2, FileText, CheckCircle2, Users, Target } from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
 import { getMyContext, getMyGoalAssignments } from "@/services/api";
 import type { GoalMyAssignmentDto } from "@/types/goalSetting";
@@ -280,7 +280,7 @@ export default function RoleBasedHome() {
                   <div className="flex-1 min-w-0">
                     <h4 className="font-semibold text-lg text-white">Review Goals</h4>
                     <p className="text-xs text-white/80 mt-0.5">
-                      {goalAssignments.length > 0 ? goalAssignments.map((a) => a.assignmentName).join(" · ") : "All districts, all categories — locks & comments"}
+                      {goalAssignments.length > 0 ? goalAssignments.map((a) => a.assignmentName).join(" · ") : "All districts, all categories: locks & comments"}
                     </p>
                   </div>
                 </div>

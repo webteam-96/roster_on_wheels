@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { ArrowUpRight, Search } from "lucide-react";
+import { ArrowUpRight, Search } from "@/components/icons";
 import { PageBanner } from "@/components/site/PageBanner";
 import { SiteFooter } from "@/components/site/SiteFooter";
 import { DISTRICTS } from "@/components/pages/websites/data";
@@ -48,7 +48,7 @@ export function DistrictGovernors() {
       for (const r of rows) {
         if (known.has(r.districtNumber)) continue;
         merged.push({
-          name: r.name?.trim() || "—",
+          name: r.name?.trim() || "–",
           district: r.districtNumber,
           mobile: r.phone?.trim() || "",
           email: r.email?.trim() || "",
@@ -211,7 +211,7 @@ export function DistrictGovernors() {
                 No governors found
               </p>
               <p className="mx-auto mt-2 max-w-md text-[14px] leading-relaxed text-muted">
-                Try a different name, district number or email — or clear the search.
+                Try a different name, district number or email: or clear the search.
               </p>
               <button type="button" onClick={() => setQuery("")} className="btn-outline mt-6">
                 Clear search

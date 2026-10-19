@@ -46,7 +46,7 @@ export function fillBrandName(messages: Messages, brandName: string): Messages {
  * English is loaded first and the locale's messages merged over it, so a key
  * missing in a translation shows the English text instead of the key.
  */
-export async function loadMessages(locale: string, namespaces: readonly string[], brandName: string): Promise<Messages> {
+export async function loadRawMessages(locale: string, namespaces: readonly string[]): Promise<Messages> {
   const entries = await Promise.all(
     namespaces.map(async (ns) => {
       const english = await loadOne(DEFAULT_LOCALE, ns);
@@ -54,7 +54,11 @@ export async function loadMessages(locale: string, namespaces: readonly string[]
       return [ns, deepMerge(english, localized)] as const;
     }),
   );
-  return fillBrandName(Object.fromEntries(entries), brandName);
+  return Object.fromEntries(entries);
+}
+
+export async function loadMessages(locale: string, namespaces: readonly string[], brandName: string): Promise<Messages> {
+  return fillBrandName(await loadRawMessages(locale, namespaces), brandName);
 }
 
 export function isPseudo(locale: string): boolean {

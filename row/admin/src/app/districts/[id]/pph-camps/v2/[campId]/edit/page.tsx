@@ -12,7 +12,7 @@
 import { useEffect, useState } from "react";
 import DateField from "@/components/DateField";
 import { useParams } from "next/navigation";
-import { FileText } from "lucide-react";
+import { FileText } from "@/components/icons";
 import { PphCamp } from "@/types/pphCamp";
 import { getDistrict, getDistrictPphCamps, updateDistrictPphCamp } from "@/services/api";
 import V2FormShell, { useV2ReturnTo } from "@/components/v2/V2FormShell";

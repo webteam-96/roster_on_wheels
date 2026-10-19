@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import {
   Store, ListChecks, IdCard, Globe, ExternalLink, Clock, Hourglass,
   Construction,
-} from "lucide-react";
+} from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
 import { getClubAdminDashboardMarketplace } from "@/services/api";
 import { useAuth } from "@/contexts/AuthContext";
@@ -23,7 +23,7 @@ export default function DashboardMarketplacePage() {
       <div className="rounded-full bg-amber-100 p-5 mb-5">
         <Construction className="h-10 w-10 text-amber-600" />
       </div>
-      <h2 className="text-2xl font-bold text-slate-800 mb-2">Marketplace — Coming Soon</h2>
+      <h2 className="text-2xl font-bold text-slate-800 mb-2">Marketplace: Coming Soon</h2>
       <p className="text-slate-500 max-w-md text-sm">
         The Club Marketplace is under final review and will be available shortly.
         Listings, member discounts, and club services will appear here once enabled.
@@ -77,7 +77,7 @@ function MarketplaceImpl() {
   return (
     <div className="space-y-5">
       {/* Coming Soon banner — the Rotary Web Marketplace integration is not yet live. */}
-      <div className="rounded-2xl border border-amber-200 bg-gradient-to-r from-amber-50 to-orange-50 p-4 flex items-start gap-3">
+      <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 flex items-start gap-3">
         <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-amber-100 text-amber-700">
           <Hourglass size={18} />
         </div>
@@ -85,7 +85,7 @@ function MarketplaceImpl() {
           <h2 className="text-sm font-bold text-amber-900">Coming Soon</h2>
           <p className="text-xs text-amber-800 mt-0.5">
             The Rotary Web Marketplace feature is currently under development and not yet
-            available. The information below is a preview of the upcoming experience —
+            available. The information below is a preview of the upcoming experience , 
             listings, subscriptions, and account details shown here are not live data.
           </p>
         </div>
@@ -196,7 +196,7 @@ function MarketplaceImpl() {
               </div>
               <div className="flex justify-between gap-2">
                 <dt className="text-slate-500">District</dt>
-                <dd className="font-medium text-slate-800">{data.account.districtNumber || "—"}</dd>
+                <dd className="font-medium text-slate-800">{data.account.districtNumber || "–"}</dd>
               </div>
               <div className="flex justify-between gap-2">
                 <dt className="text-slate-500">Subscription</dt>

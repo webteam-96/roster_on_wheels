@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Award, CalendarCheck, DollarSign, Heart, TrendingUp, Users, Wallet } from "lucide-react";
+import { Award, CalendarCheck, DollarSign, Heart, TrendingUp, Users, Wallet } from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
 import KpiCard from "@/components/dashboard/KpiCard";
 import { getGoalCategories, getClubGoalForm } from "@/services/api";

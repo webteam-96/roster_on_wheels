@@ -9,6 +9,9 @@ public class AttendanceListDto
     public int YearId { get; set; }
     public string EventName { get; set; } = "";
     public DateTime EventDateTime { get; set; }
+    /// in_person | online | hybrid (ROW Wave 1). Online and hybrid may carry an https join link.
+    public string MeetingMode { get; set; } = "in_person";
+    public string? MeetingLink { get; set; }
     public int MembersCount { get; set; }
     public int AnnsCount { get; set; }
     public int AnnetsCount { get; set; }
@@ -25,6 +28,9 @@ public class AttendanceDetailDto
     public string EventName { get; set; } = "";
     public string Description { get; set; } = "";
     public DateTime EventDateTime { get; set; }
+    /// in_person | online | hybrid (ROW Wave 1). Online and hybrid may carry an https join link.
+    public string MeetingMode { get; set; } = "in_person";
+    public string? MeetingLink { get; set; }
     public List<AttendanceMemberDto> Members { get; set; } = new();
     public List<AttendanceAnnDto> Anns { get; set; } = new();
     public List<AttendanceAnnetDto> Annets { get; set; } = new();
@@ -81,6 +87,9 @@ public class CreateAttendanceDto
     [StringLength(10000, ErrorMessage = "Description must be 10000 characters or less.")]
     public string Description { get; set; } = "";
     public DateTime EventDateTime { get; set; }
+    /// in_person | online | hybrid (ROW Wave 1). Online and hybrid may carry an https join link.
+    public string MeetingMode { get; set; } = "in_person";
+    public string? MeetingLink { get; set; }
     public List<int>? MemberIds { get; set; }
     public List<CreateAttendanceAnnDto>? Anns { get; set; }
     public List<CreateAttendanceAnnetDto>? Annets { get; set; }
@@ -96,6 +105,9 @@ public class UpdateAttendanceDto
     [StringLength(10000, ErrorMessage = "Description must be 10000 characters or less.")]
     public string Description { get; set; } = "";
     public DateTime EventDateTime { get; set; }
+    /// in_person | online | hybrid (ROW Wave 1). Online and hybrid may carry an https join link.
+    public string MeetingMode { get; set; } = "in_person";
+    public string? MeetingLink { get; set; }
     public List<int>? MemberIds { get; set; }
     public List<CreateAttendanceAnnDto>? Anns { get; set; }
     public List<CreateAttendanceAnnetDto>? Annets { get; set; }

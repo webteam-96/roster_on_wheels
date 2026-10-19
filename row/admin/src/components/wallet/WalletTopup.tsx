@@ -6,12 +6,11 @@ import { getClubCreditBalance, getDistrictCreditBalance, createWalletTopupOrder,
 import { appLocale, currencySymbol } from "@/lib/appFormat";
 // Client-side pricing MIRRORS the server (server is authoritative on the actual credit + charge).
 const PRICING = {
-  WhatsApp: { rate: 1, min: 1000, label: "WhatsApp" },
   Email: { rate: 0.3, min: 500, label: "Email" },
 } as const;
 const GST_PERCENT = 18;
 
-type CreditType = "WhatsApp" | "Email";
+type CreditType = "Email";
 type Scope = "club" | "district";
 
 function loadRazorpayScript(): Promise<boolean> {
@@ -30,7 +29,7 @@ const inr = (n: number) => `${currencySymbol()}${n.toLocaleString(appLocale(), {
 export default function WalletTopup({ scope, clubId, districtId }: { scope: Scope; clubId?: number | null; districtId?: number | null }) {
   const [balance, setBalance] = useState<any>(null);
   const [loadingBalance, setLoadingBalance] = useState(true);
-  const [creditType, setCreditType] = useState<CreditType>("WhatsApp");
+  const creditType: CreditType = "Email";
   const [amount, setAmount] = useState<string>("1000");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -90,7 +89,7 @@ export default function WalletTopup({ scope, clubId, districtId }: { scope: Scop
               razorpaySignature: resp.razorpay_signature,
             });
             if (v.isSuccess) {
-              setSuccess(`Payment successful — ${v.creditCount} ${creditType} credit(s) added to your wallet.`);
+              setSuccess(`Payment successful: ${v.creditCount} ${creditType} credit(s) added to your wallet.`);
               await loadBalance();
             } else {
               setError(v.message || "Payment verification failed. If money was deducted it will reconcile shortly.");
@@ -112,23 +111,17 @@ export default function WalletTopup({ scope, clubId, districtId }: { scope: Scop
     }
   }
 
-  const waRemaining = balance?.whatsAppRemaining ?? 0;
   const emailRemaining = balance?.emailRemaining ?? 0;
 
   return (
     <div className="max-w-3xl space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-[#17458f]">Wallet &amp; Credits</h1>
-        <p className="text-sm text-gray-500">Top up your {scope === "club" ? "club" : "district"} WhatsApp &amp; Email notification credits.</p>
+        <h1 className="text-2xl font-bold text-azure">Wallet &amp; Credits</h1>
+        <p className="text-sm text-gray-500">Top up your {scope === "club" ? "club" : "district"} email notification credits.</p>
       </div>
 
       {/* Balances */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div className="rounded-xl border bg-white p-5">
-          <div className="text-sm text-gray-500">WhatsApp balance</div>
-          <div className="text-3xl font-bold text-emerald-600">{loadingBalance ? "…" : waRemaining}</div>
-          <div className="text-xs text-gray-400">credits remaining</div>
-        </div>
         <div className="rounded-xl border bg-white p-5">
           <div className="text-sm text-gray-500">Email balance</div>
           <div className="text-3xl font-bold text-blue-600">{loadingBalance ? "…" : emailRemaining}</div>
@@ -140,30 +133,16 @@ export default function WalletTopup({ scope, clubId, districtId }: { scope: Scop
       <div className="rounded-xl border bg-white p-5 space-y-4">
         <div className="font-semibold text-gray-800">Add balance</div>
 
-        {/* Credit type toggle */}
-        <div className="flex gap-2">
-          {(["WhatsApp", "Email"] as CreditType[]).map((t) => (
-            <button
-              key={t}
-              type="button"
-              onClick={() => setCreditType(t)}
-              className={`px-4 py-2 rounded-lg text-sm font-medium border ${creditType === t ? "bg-[#17458f] text-white border-[#17458f]" : "bg-white text-gray-700 border-gray-300"}`}
-            >
-              {t} <span className="opacity-70">({t === "WhatsApp" ? "₹1 / msg" : "₹0.30 / email"})</span>
-            </button>
-          ))}
-        </div>
-
         {/* Amount */}
         <div className="space-y-1.5">
-          <label className="text-sm font-medium text-gray-700">Amount ({currencySymbol()}) <span className="text-gray-400">— minimum {currencySymbol()}{cfg.min}</span></label>
+          <label className="text-sm font-medium text-gray-700">Amount ({currencySymbol()}) <span className="text-gray-400">,  minimum {currencySymbol()}{cfg.min}</span></label>
           <input
             type="number"
             min={cfg.min}
-            step={creditType === "WhatsApp" ? 100 : 50}
+            step={50}
             value={amount}
             onChange={(e) => setAmount(e.target.value)}
-            className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-[#17458f] focus:outline-none"
+            className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-azure focus:outline-none"
           />
           {belowMin && amount !== "" && <p className="text-xs text-red-600">Minimum for {cfg.label} is {currencySymbol()}{cfg.min}.</p>}
         </div>
@@ -173,7 +152,7 @@ export default function WalletTopup({ scope, clubId, districtId }: { scope: Scop
           <div className="flex justify-between"><span className="text-gray-600">Credits you'll receive</span><span className="font-semibold">{credits.toLocaleString(appLocale())} {creditType}</span></div>
           <div className="flex justify-between"><span className="text-gray-600">Amount</span><span>{inr(amt)}</span></div>
           <div className="flex justify-between"><span className="text-gray-600">GST ({GST_PERCENT}%)</span><span>{inr(gst)}</span></div>
-          <div className="flex justify-between border-t border-gray-200 pt-1.5 font-semibold text-[#17458f]"><span>Total payable</span><span>{inr(total)}</span></div>
+          <div className="flex justify-between border-t border-gray-200 pt-1.5 font-semibold text-azure"><span>Total payable</span><span>{inr(total)}</span></div>
         </div>
 
         {error && <div className="rounded-lg bg-red-50 border border-red-200 text-red-700 text-sm p-3">{error}</div>}
@@ -183,7 +162,7 @@ export default function WalletTopup({ scope, clubId, districtId }: { scope: Scop
           type="button"
           disabled={busy || belowMin || !scopeId}
           onClick={handlePay}
-          className="w-full sm:w-auto px-6 py-2.5 rounded-lg bg-[#17458f] text-white font-medium disabled:opacity-50"
+          className="w-full sm:w-auto px-6 py-2.5 rounded-lg bg-azure text-white font-medium disabled:opacity-50"
         >
           {busy ? "Processing…" : `Pay ${inr(total)} with Razorpay`}
         </button>

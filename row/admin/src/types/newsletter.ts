@@ -7,12 +7,8 @@ export interface NewsletterListItem {
   attachmentType: string; // "link" or "file"
   linkUrl: string | null;
   filePath: string | null;
-  isSendWhatsapp: boolean;
   isSendEmail: boolean;
   status: string;
-  whatsAppSentDate?: string | null;
-  whatsAppSentCount?: number;
-  whatsAppFailedCount?: number;
   emailSentDate?: string | null;
   emailSentCount?: number;
   emailFailedCount?: number;
@@ -27,7 +23,6 @@ export interface NewsletterDetail {
   attachmentType: string;
   linkUrl: string | null;
   filePath: string | null;
-  isSendWhatsapp: boolean;
   isSendEmail: boolean;
   status: string;
 }
@@ -39,7 +34,6 @@ export interface CreateNewsletterRequest {
   attachmentType: string;
   linkUrl: string | null;
   filePath: string | null;
-  isSendWhatsapp: boolean;
   isSendEmail: boolean;
 }
 
@@ -50,6 +44,5 @@ export interface UpdateNewsletterRequest {
   attachmentType: string;
   linkUrl: string | null;
   filePath: string | null;
-  isSendWhatsapp: boolean;
   isSendEmail: boolean;
 }

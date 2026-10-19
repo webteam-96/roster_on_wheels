@@ -14,7 +14,7 @@ import Pagination from "@/components/Pagination";
 import DeleteDialog from "@/components/DeleteDialog";
 import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
-import { MapPin, AlertCircle, ArrowLeft, Plus } from "lucide-react";
+import { MapPin, AlertCircle, ArrowLeft, Plus } from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
 import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";

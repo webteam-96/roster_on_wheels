@@ -28,7 +28,7 @@ import {
   Calendar,
   ChevronRight,
   ExternalLink,
-} from "lucide-react";
+} from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
 import { useClubAdminCache } from "@/contexts/ClubAdminDashboardCacheContext";
 import KpiCard from "@/components/dashboard/KpiCard";
@@ -76,7 +76,7 @@ type MgmtCard = {
   accent: string;   // icon foreground
   bg: string;       // icon background tile
   ring: string;     // hover ring colour
-  gradient: string; // subtle background gradient on the card
+  gradient: string; // subtle background tint on the card
 };
 
 // Encode current tab so v2 pages can route their back arrow back here.
@@ -94,7 +94,7 @@ const MGMT_CARDS: MgmtCard[] = [
     accent: "text-blue-600",
     bg: "bg-blue-50",
     ring: "hover:ring-blue-200",
-    gradient: "from-blue-50/60 to-white",
+    gradient: "bg-blue-50/60",
   },
   {
     title: "Advertisement Area",
@@ -104,7 +104,7 @@ const MGMT_CARDS: MgmtCard[] = [
     accent: "text-purple-600",
     bg: "bg-purple-50",
     ring: "hover:ring-purple-200",
-    gradient: "from-purple-50/60 to-white",
+    gradient: "bg-purple-50/60",
   },
   {
     title: "Social Media Links",
@@ -114,17 +114,17 @@ const MGMT_CARDS: MgmtCard[] = [
     accent: "text-pink-600",
     bg: "bg-pink-50",
     ring: "hover:ring-pink-200",
-    gradient: "from-pink-50/60 to-white",
+    gradient: "bg-pink-50/60",
   },
   {
     title: "Logos",
-    description: "Upload Club Logo + Rotary Logo (3:1 horizontal crop). Same Club Logo column as the profile page — change here reflects everywhere.",
+    description: "Upload Club Logo + Rotary Logo (3:1 horizontal crop). Same Club Logo column as the profile page: change here reflects everywhere.",
     href: (id, qs) => `/clubs/${id}/website-data/logos${qs}`,
     icon: ImageIcon,
     accent: "text-amber-600",
     bg: "bg-amber-50",
     ring: "hover:ring-amber-200",
-    gradient: "from-amber-50/60 to-white",
+    gradient: "bg-amber-50/60",
   },
   {
     title: "Menu List",
@@ -134,7 +134,7 @@ const MGMT_CARDS: MgmtCard[] = [
     accent: "text-emerald-600",
     bg: "bg-emerald-50",
     ring: "hover:ring-emerald-200",
-    gradient: "from-emerald-50/60 to-white",
+    gradient: "bg-emerald-50/60",
   },
   {
     title: "Change Theme",
@@ -144,7 +144,7 @@ const MGMT_CARDS: MgmtCard[] = [
     accent: "text-fuchsia-600",
     bg: "bg-fuchsia-50",
     ring: "hover:ring-fuchsia-200",
-    gradient: "from-fuchsia-50/60 to-white",
+    gradient: "bg-fuchsia-50/60",
   },
   {
     title: "Contact Details",
@@ -154,7 +154,7 @@ const MGMT_CARDS: MgmtCard[] = [
     accent: "text-teal-600",
     bg: "bg-teal-50",
     ring: "hover:ring-teal-200",
-    gradient: "from-teal-50/60 to-white",
+    gradient: "bg-teal-50/60",
   },
   {
     title: "About",
@@ -164,7 +164,7 @@ const MGMT_CARDS: MgmtCard[] = [
     accent: "text-rose-600",
     bg: "bg-rose-50",
     ring: "hover:ring-rose-200",
-    gradient: "from-rose-50/60 to-white",
+    gradient: "bg-rose-50/60",
   },
 ];
 
@@ -203,11 +203,11 @@ function externalHref(url: string | null) {
 }
 
 function fmtShortDate(s?: string | null) {
-  if (!s) return "—";
+  if (!s) return "–";
   try {
     return new Date(s).toLocaleDateString(appLocale(), { day: "2-digit", month: "short" });
   } catch {
-    return "—";
+    return "–";
   }
 }
 
@@ -270,7 +270,7 @@ export default function ClubAdminMyClubWebsitePage() {
       {/* ─────────────────── Header row ─────────────────── */}
       <div className="flex items-start justify-between flex-wrap gap-4">
         <div className="flex items-start gap-3 min-w-0">
-          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#003DA5]/10 text-[#003DA5]">
+          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-azure/10 text-azure">
             <Globe size={20} />
           </div>
           <div className="min-w-0">
@@ -282,7 +282,7 @@ export default function ClubAdminMyClubWebsitePage() {
                     href={publicHref}
                     target="_blank"
                     rel="noreferrer"
-                    className="text-xs font-medium text-[#003DA5] hover:underline inline-flex items-center gap-1"
+                    className="text-xs font-medium text-azure hover:underline inline-flex items-center gap-1"
                   >
                     {publicUrl}
                     <ExternalLink size={12} />
@@ -318,7 +318,7 @@ export default function ClubAdminMyClubWebsitePage() {
         {showRenewButton && (
           <Link
             href="/club-admin-dashboard/website-purchase"
-            className="inline-flex items-center gap-2 self-start rounded-lg bg-[#003DA5] px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-[#00308a]"
+            className="inline-flex items-center gap-2 self-start rounded-lg bg-azure px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-azure"
           >
             <Plus size={16} />
             Renew Club Website
@@ -331,7 +331,7 @@ export default function ClubAdminMyClubWebsitePage() {
         <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700 flex items-start gap-2">
           <AlertTriangle size={16} className="mt-0.5 flex-shrink-0" />
           <div>
-            <strong className="font-semibold">Kill switch enabled</strong> — your website is hidden by district administration.
+            <strong className="font-semibold">Kill switch enabled</strong>: your website is hidden by district administration.
           </div>
         </div>
       )}
@@ -344,12 +344,12 @@ export default function ClubAdminMyClubWebsitePage() {
           </div>
           <p className="text-sm font-semibold text-slate-700 mb-1">Your club website is not yet set up</p>
           <p className="text-xs text-slate-500 max-w-md mx-auto mb-4">
-            Get your club its own website at rc&lt;name&gt;.example.org — manage banners, menus,
+            Get your club its own website at rc&lt;name&gt;.example.org: manage banners, menus,
             events and more, renewed yearly.
           </p>
           <Link
             href="/club-admin-dashboard/website-purchase"
-            className="inline-flex items-center gap-2 rounded-lg bg-[#003DA5] px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-[#00308a]"
+            className="inline-flex items-center gap-2 rounded-lg bg-azure px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-azure"
           >
             <Plus size={16} />
             Buy Club Website
@@ -397,7 +397,7 @@ export default function ClubAdminMyClubWebsitePage() {
             <KpiCard
               title="Last Updated"
               value={fmtShortDate(website.activatedDate)}
-              subtitle={website.activatedDate ? fmtDate(website.activatedDate) : "—"}
+              subtitle={website.activatedDate ? fmtDate(website.activatedDate) : "–"}
               icon={Calendar}
               color="purple"
             />
@@ -413,7 +413,7 @@ export default function ClubAdminMyClubWebsitePage() {
               percent={bannerPct}
               icon={ImageIcon}
               barClass="bg-blue-500"
-              tintFrom="from-blue-50"
+              tintFrom="bg-blue-50"
               accent="text-blue-600"
               bg="bg-blue-50"
               addLabel="+ Add Banner"
@@ -426,7 +426,7 @@ export default function ClubAdminMyClubWebsitePage() {
               percent={adPct}
               icon={Megaphone}
               barClass="bg-purple-500"
-              tintFrom="from-purple-50"
+              tintFrom="bg-purple-50"
               accent="text-purple-600"
               bg="bg-purple-50"
               addLabel="+ Add Ad"
@@ -455,7 +455,7 @@ export default function ClubAdminMyClubWebsitePage() {
               <Link
                 key={card.title}
                 href={card.href(clubId, RETURN_TO_QS)}
-                className={`group relative rounded-xl border border-slate-200 bg-gradient-to-br ${card.gradient} p-4 transition hover:shadow-md hover:-translate-y-0.5 ring-1 ring-transparent ${card.ring}`}
+                className={`group relative rounded-xl border border-slate-200 ${card.gradient} p-4 transition hover:shadow-md hover:-translate-y-0.5 ring-1 ring-transparent ${card.ring}`}
               >
                 <div className={`flex h-11 w-11 items-center justify-center rounded-lg ${card.bg} ${card.accent} mb-3`}>
                   <Icon size={20} />
@@ -505,7 +505,7 @@ function MediaTile({
   addHref,
 }: MediaTileProps) {
   return (
-    <div className={`relative rounded-2xl border border-slate-200 bg-gradient-to-br ${tintFrom} to-white p-5 overflow-hidden`}>
+    <div className={`relative rounded-2xl border border-slate-200 ${tintFrom} p-5 overflow-hidden`}>
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <div className="flex items-center gap-2">

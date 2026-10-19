@@ -30,7 +30,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
-import { ArrowLeft, Plus, Pencil, Trash2, AlertTriangle, Shield, Search, Building2, User } from "lucide-react";
+import { ArrowLeft, Plus, Pencil, Trash2, AlertTriangle, Shield, Search, Building2, User } from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import DistrictMembershipTabBar from "@/components/dashboard/DistrictMembershipTabBar";
@@ -265,7 +265,7 @@ export default function DistrictAdminClubModeratorPage() {
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-3">
             <div>
-              <h2 className="text-2xl font-bold tracking-tight text-[#1e3a5f]">
+              <h2 className="text-2xl font-bold tracking-tight text-ink">
                 {districtName ? `${districtName} - Club Moderator` : "Club Moderator"}
               </h2>
               <p className="text-slate-500 text-sm">Assign club moderators</p>
@@ -274,7 +274,7 @@ export default function DistrictAdminClubModeratorPage() {
           {canManage && (
             <Button
               onClick={openAddDialog}
-              className="bg-[#1e3a5f] hover:bg-[#152a44] text-white"
+              className="bg-azure hover:bg-mint-ink text-white"
             >
               <Plus className="mr-2 h-4 w-4" />Add Moderator
             </Button>
@@ -314,7 +314,7 @@ export default function DistrictAdminClubModeratorPage() {
                           className="w-12 h-12 rounded-full object-cover ring-1 ring-slate-200"
                         />
                       ) : (
-                        <div className="w-12 h-12 rounded-full bg-[#1e3a5f]/10 flex items-center justify-center text-lg font-bold text-[#1e3a5f]">
+                        <div className="w-12 h-12 rounded-full bg-azure/10 flex items-center justify-center text-lg font-bold text-ink">
                           {mod.memberName?.charAt(0) || <User className="h-5 w-5" />}
                         </div>
                       )}
@@ -331,7 +331,7 @@ export default function DistrictAdminClubModeratorPage() {
                           variant="ghost"
                           size="icon"
                           onClick={() => openEditDialog(mod)}
-                          className="text-slate-500 hover:text-[#1e3a5f] hover:bg-slate-100"
+                          className="text-slate-500 hover:text-ink hover:bg-slate-100"
                         >
                           <Pencil className="h-4 w-4" />
                         </Button>
@@ -353,7 +353,7 @@ export default function DistrictAdminClubModeratorPage() {
                         variant="outline"
                         className="text-xs py-1 px-2.5 border-slate-200 bg-slate-50 text-slate-700 font-medium"
                       >
-                        <Building2 className="h-3.5 w-3.5 mr-1.5 text-[#1e3a5f]" />{c.clubName}
+                        <Building2 className="h-3.5 w-3.5 mr-1.5 text-ink" />{c.clubName}
                       </Badge>
                     ))}
                   </div>
@@ -367,7 +367,7 @@ export default function DistrictAdminClubModeratorPage() {
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle className="text-[#1e3a5f]">
+              <DialogTitle className="text-ink">
                 {editing ? "Edit Club Moderator" : "Add Club Moderator"}
               </DialogTitle>
               <DialogDescription className="text-slate-500">
@@ -382,7 +382,7 @@ export default function DistrictAdminClubModeratorPage() {
                   <div className="relative">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
                     <Input
-                      className="pl-9 border-slate-200 bg-white focus:border-[#1e3a5f] focus:ring-[#1e3a5f]/20"
+                      className="pl-9 border-slate-200 bg-white focus:border-azure focus:ring-azure/20"
                       placeholder="Search by name, mobile, email..."
                       value={memberSearch}
                       onChange={(e) => handleMemberSearch(e.target.value)}
@@ -424,7 +424,7 @@ export default function DistrictAdminClubModeratorPage() {
                   {formMemberPhoto ? (
                     <img src={getPhotoUrl(formMemberPhoto)} alt="" className="w-9 h-9 rounded-full object-cover" />
                   ) : (
-                    <div className="w-9 h-9 rounded-full bg-[#1e3a5f]/10 flex items-center justify-center text-sm font-bold text-[#1e3a5f]">
+                    <div className="w-9 h-9 rounded-full bg-azure/10 flex items-center justify-center text-sm font-bold text-ink">
                       {formMemberName?.charAt(0)}
                     </div>
                   )}
@@ -444,7 +444,7 @@ export default function DistrictAdminClubModeratorPage() {
                   <div className="relative">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
                     <Input
-                      className="pl-9 border-slate-200 bg-white focus:border-[#1e3a5f] focus:ring-[#1e3a5f]/20"
+                      className="pl-9 border-slate-200 bg-white focus:border-azure focus:ring-azure/20"
                       placeholder="Search clubs..."
                       value={clubSearchQuery}
                       onChange={(e) => setClubSearchQuery(e.target.value)}
@@ -464,13 +464,13 @@ export default function DistrictAdminClubModeratorPage() {
                           <div
                             key={c.id}
                             className={`flex items-center gap-3 px-3 py-2 hover:bg-slate-50 cursor-pointer border-b border-slate-100 last:border-b-0 ${
-                              formSelectedClubIds.has(c.id) ? "bg-[#1e3a5f]/5" : ""
+                              formSelectedClubIds.has(c.id) ? "bg-azure/5" : ""
                             }`}
                             onClick={() => toggleClub(c.id)}
                           >
                             <Checkbox
                               checked={formSelectedClubIds.has(c.id)}
-                              className="data-[state=checked]:bg-[#1e3a5f] data-[state=checked]:border-[#1e3a5f]"
+                              className="data-[state=checked]:bg-azure data-[state=checked]:border-azure"
                             />
                             <div className="flex-1 min-w-0">
                               <p className="text-sm font-medium text-slate-800">{c.clubName}</p>
@@ -498,7 +498,7 @@ export default function DistrictAdminClubModeratorPage() {
               <Button
                 onClick={handleSave}
                 disabled={saving || !formMemberId || formSelectedClubIds.size === 0}
-                className="bg-[#1e3a5f] hover:bg-[#152a44] text-white"
+                className="bg-azure hover:bg-mint-ink text-white"
               >
                 {saving ? "Saving..." : editing ? "Update" : "Add"}
               </Button>

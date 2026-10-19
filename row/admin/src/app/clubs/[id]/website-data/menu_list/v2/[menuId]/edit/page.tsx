@@ -28,7 +28,7 @@ import "react-quill-new/dist/quill.snow.css";
 import {
   AlertTriangle, FileText, Hash, Layers, Link2, Pencil, Plus, Settings,
   Trash2, Upload, X,
-} from "lucide-react";
+} from "@/components/icons";
 import {
   createClubSubMenu,
   deleteClubSubMenu,
@@ -72,7 +72,7 @@ function SectionCard({
 }: { number: number; icon: React.ElementType; title: string; dot: string; children: React.ReactNode; action?: React.ReactNode }) {
   return (
     <div className="rounded-xl border border-slate-200 mb-4 overflow-hidden">
-      <div className="flex items-center gap-3 px-4 py-2.5 bg-gradient-to-r from-slate-50 to-white border-b border-slate-100">
+      <div className="flex items-center gap-3 px-4 py-2.5 bg-slate-50 border-b border-slate-100">
         <div className={`flex items-center justify-center h-7 w-7 rounded-full text-white text-xs font-bold ${dot}`}>{number}</div>
         <Icon className="h-4 w-4 text-slate-500" />
         <h3 className="text-sm font-semibold text-slate-800 flex-1">{title}</h3>
@@ -599,7 +599,7 @@ export default function MenuListV2EditPage() {
                 {menu.isActive ? "Active" : "Inactive"}
               </span>
             </div>
-            <p className="text-[11px] text-slate-500 mt-2">System-managed default menu — manage its sub-menus below.</p>
+            <p className="text-[11px] text-slate-500 mt-2">System-managed default menu: manage its sub-menus below.</p>
           </SectionCard>
         )}
 
@@ -863,7 +863,7 @@ export default function MenuListV2EditPage() {
                             <Pencil size={13} />
                           </button>
                         ) : (
-                          <span className="text-slate-300 text-xs">—</span>
+                          <span className="text-slate-300 text-xs">, </span>
                         )}
                       </td>
                       <td className="px-3 py-2 text-right">
@@ -878,7 +878,7 @@ export default function MenuListV2EditPage() {
                             <Trash2 size={13} />
                           </button>
                         ) : (
-                          <span className="text-slate-300 text-xs">—</span>
+                          <span className="text-slate-300 text-xs">, </span>
                         )}
                       </td>
                     </tr>

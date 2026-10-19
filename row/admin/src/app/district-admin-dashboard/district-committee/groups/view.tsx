@@ -19,7 +19,7 @@ import {
   deleteCommitteeGroup, getRotaryYears, getDistrict, reorderCommitteeGroups,
 } from "@/services/api";
 import { useDragSort } from "@/hooks/useDragSort";
-import { GripVertical } from "lucide-react";
+import { GripVertical } from "@/components/icons";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -27,7 +27,7 @@ import { Badge } from "@/components/ui/badge";
 import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
 import AlertModal from "@/components/AlertModal";
-import { ArrowLeft, Plus, Pencil, Trash2, AlertTriangle, UsersRound, Users, MoreHorizontal, Layers, Lock, Search, X } from "lucide-react";
+import { ArrowLeft, Plus, Pencil, Trash2, AlertTriangle, UsersRound, Users, MoreHorizontal, Layers, Lock, Search, X } from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import DistrictMembershipTabBar from "@/components/dashboard/DistrictMembershipTabBar";
@@ -184,7 +184,7 @@ export function GroupCommitteeView({ embedded = false }: { embedded?: boolean } 
                 <ArrowLeft className="h-4 w-4" />
               </Button>
               <div>
-                <h2 className="text-2xl font-bold tracking-tight text-[#1e3a5f]">
+                <h2 className="text-2xl font-bold tracking-tight text-ink">
                   {districtName ? `${districtName} - Group Committee` : "Group Committee"}
                 </h2>
                 <p className="text-slate-600 text-sm">Manage groups with members and sub-groups</p>
@@ -201,7 +201,7 @@ export function GroupCommitteeView({ embedded = false }: { embedded?: boolean } 
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
               <Input
-                className="pl-9 pr-8 border-slate-200 bg-white focus:border-[#1e3a5f] focus:ring-[#1e3a5f]/20"
+                className="pl-9 pr-8 border-slate-200 bg-white focus:border-azure focus:ring-azure/20"
                 placeholder="Search by group name..."
                 value={searchDraft}
                 onChange={(e) => setSearchDraft(e.target.value)}
@@ -218,7 +218,7 @@ export function GroupCommitteeView({ embedded = false }: { embedded?: boolean } 
                 size="sm"
                 onClick={handleSearch}
                 type="button"
-                className="bg-[#1e3a5f] hover:bg-[#152a44] text-white"
+                className="bg-azure hover:bg-mint-ink text-white"
               >
                 <Search className="mr-2 h-4 w-4" />Search
               </Button>
@@ -238,7 +238,7 @@ export function GroupCommitteeView({ embedded = false }: { embedded?: boolean } 
                 <Button
                   size="sm"
                   onClick={() => router.push(`/district-admin-dashboard/district-committee/groups/add${backQs ? `?${backQs}` : ""}`)}
-                  className="bg-[#1e3a5f] hover:bg-[#152a44] text-white"
+                  className="bg-azure hover:bg-mint-ink text-white"
                 >
                   <Plus className="mr-2 h-4 w-4" />Add Group
                 </Button>
@@ -283,7 +283,7 @@ export function GroupCommitteeView({ embedded = false }: { embedded?: boolean } 
                     <td className="px-4 py-2.5 text-slate-500 tabular-nums">{idx + 1}</td>
                     <td className="px-4 py-2.5">
                       <div className="flex items-center gap-2.5">
-                        {navigatingId === g.id ? <RotaryLoader size="sm" /> : <UsersRound className="h-5 w-5 text-[#1e3a5f] flex-shrink-0" />}
+                        {navigatingId === g.id ? <RotaryLoader size="sm" /> : <UsersRound className="h-5 w-5 text-ink flex-shrink-0" />}
                         <span className="font-medium text-slate-800">{g.groupName}</span>
                       </div>
                     </td>
@@ -292,7 +292,7 @@ export function GroupCommitteeView({ embedded = false }: { embedded?: boolean } 
                         <Badge
                           variant="secondary"
                           className="flex w-fit items-center gap-1 bg-slate-100 text-slate-600 border border-slate-200"
-                          title="Auto-managed by BOD — edit via Board of Directors"
+                          title="Auto-managed by BOD: edit via Board of Directors"
                         >
                           <Lock className="h-3 w-3" />Auto
                         </Badge>
@@ -306,7 +306,7 @@ export function GroupCommitteeView({ embedded = false }: { embedded?: boolean } 
                       <div className="flex items-center justify-end gap-1">
                         {canManage && !isAutoManagedGroup(g.groupName) && (
                           <>
-                            <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-500 hover:text-[#1e3a5f] hover:bg-slate-100" onClick={() => { setNavigatingId(g.id); router.push(`/district-admin-dashboard/district-committee/groups/${g.id}${backQs ? `?${backQs}` : ""}`); }}>
+                            <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-500 hover:text-ink hover:bg-slate-100" onClick={() => { setNavigatingId(g.id); router.push(`/district-admin-dashboard/district-committee/groups/${g.id}${backQs ? `?${backQs}` : ""}`); }}>
                               <Pencil className="h-4 w-4" />
                             </Button>
                             <Button variant="ghost" size="icon" className="h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-50" onClick={() => setDeleteTarget(g)}>

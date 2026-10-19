@@ -45,7 +45,7 @@ import {
   CheckCircle,
   XCircle,
   ArrowLeft,
-} from "lucide-react";
+} from "@/components/icons";
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import Link from "next/link";
 
@@ -407,12 +407,12 @@ export default function ZoneDirectBeneficiariesPage() {
                   <h4 className="font-semibold text-base mb-2">Project Details</h4>
                   <div className="grid grid-cols-2 gap-2 bg-muted/30 rounded-lg p-3">
                     <div><span className="text-muted-foreground">Title:</span> <span className="font-medium">{viewDetail.projectTitle}</span></div>
-                    <div><span className="text-muted-foreground">Date:</span> {viewDetail.projectDate ? new Date(viewDetail.projectDate).toLocaleDateString(appLocale(), { day: "2-digit", month: "short", year: "numeric" }) : "—"}</div>
-                    <div className="col-span-2"><span className="text-muted-foreground">Description:</span> {viewDetail.projectDescription || "—"}</div>
-                    <div><span className="text-muted-foreground">Cost:</span> {viewDetail.projectCost != null ? formatMoney(viewDetail.projectCost, viewDetail.currency) : "—"}</div>
-                    <div><span className="text-muted-foreground">Man Hours:</span> {viewDetail.manHours ?? "—"}</div>
-                    <div><span className="text-muted-foreground">Rotarians:</span> {viewDetail.rotariansInvolved ?? "—"}</div>
-                    <div><span className="text-muted-foreground">Rotaractors:</span> {viewDetail.rotaractorsInvolved ?? "—"}</div>
+                    <div><span className="text-muted-foreground">Date:</span> {viewDetail.projectDate ? new Date(viewDetail.projectDate).toLocaleDateString(appLocale(), { day: "2-digit", month: "short", year: "numeric" }) : "–"}</div>
+                    <div className="col-span-2"><span className="text-muted-foreground">Description:</span> {viewDetail.projectDescription || "–"}</div>
+                    <div><span className="text-muted-foreground">Cost:</span> {viewDetail.projectCost != null ? formatMoney(viewDetail.projectCost, viewDetail.currency) : "–"}</div>
+                    <div><span className="text-muted-foreground">Man Hours:</span> {viewDetail.manHours ?? "–"}</div>
+                    <div><span className="text-muted-foreground">Rotarians:</span> {viewDetail.rotariansInvolved ?? "–"}</div>
+                    <div><span className="text-muted-foreground">Rotaractors:</span> {viewDetail.rotaractorsInvolved ?? "–"}</div>
                   </div>
                 </div>
 
@@ -509,7 +509,7 @@ export default function ZoneDirectBeneficiariesPage() {
                 {actionDialog?.type === "approve" ? "Approve" : "Reject"} Request
               </DialogTitle>
               <DialogDescription>
-                {actionDialog?.item.projectTitle} — {actionDialog?.item.clubName}
+                {actionDialog?.item.projectTitle}: {actionDialog?.item.clubName}
               </DialogDescription>
             </DialogHeader>
             <div className="space-y-4">

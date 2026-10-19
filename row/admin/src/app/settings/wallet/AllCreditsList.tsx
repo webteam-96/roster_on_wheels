@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * Settings › Wallet — combined WhatsApp/Email credit list.
+ * Settings › Wallet — combined email credit list.
  * Offline = given by Super Admin (Offline button); Online = bought by the club/district itself.
  * Both show here, one row per entry, so a club that got 500 from Super Admin and also bought
  * 1000 online shows both rows.
@@ -9,7 +9,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import DateField from "@/components/DateField";
-import { Download, Loader2, Search } from "lucide-react";
+import { Download, Loader2, Search } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -29,9 +29,9 @@ import { appLocale, currencySymbol } from "@/lib/appFormat";
 const PAGE_SIZE = 50;
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
-const inr = (n: number | null) => (n == null ? "—" : `${currencySymbol()}${Number(n).toLocaleString(appLocale(), { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`);
-const fmtDate = (s?: string | null) => (s ? new Date(s).toLocaleDateString(appLocale(), { day: "2-digit", month: "short", year: "numeric" }) : "—");
-const fmtDateTime = (s?: string | null) => (s ? new Date(s).toLocaleString(appLocale(), { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" }) : "—");
+const inr = (n: number | null) => (n == null ? "–" : `${currencySymbol()}${Number(n).toLocaleString(appLocale(), { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`);
+const fmtDate = (s?: string | null) => (s ? new Date(s).toLocaleDateString(appLocale(), { day: "2-digit", month: "short", year: "numeric" }) : "–");
+const fmtDateTime = (s?: string | null) => (s ? new Date(s).toLocaleString(appLocale(), { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" }) : "–");
 
 function creditsText(r: WalletCreditEntryRow): string {
   if (r.credits == null) return "Not recorded";
@@ -66,7 +66,7 @@ export default function AllCreditsList({ refreshKey = 0 }: { refreshKey?: number
       try {
         const res = await getDistricts(1, 9999, undefined, 1);
         setDistricts(((res as any).items || []).sort((a: any, b: any) => String(a.districtNumber).localeCompare(String(b.districtNumber), undefined, { numeric: true })));
-      } catch { /* non-critical — district filter just stays empty */ }
+      } catch { /* non-critical: district filter just stays empty */ }
     })();
   }, []);
 
@@ -113,8 +113,8 @@ export default function AllCreditsList({ refreshKey = 0 }: { refreshKey?: number
     const sum = (src: string, type: string) =>
       rows.filter((r) => r.source === src && r.creditType === type).reduce((a, r) => a + (r.credits ?? 0), 0);
     return {
-      offlineWa: sum("Offline", "WhatsApp"), offlineEmail: sum("Offline", "Email"),
-      onlineWa: sum("Online", "WhatsApp"), onlineEmail: sum("Online", "Email"),
+      offlineEmail: sum("Offline", "Email"),
+      onlineEmail: sum("Online", "Email"),
       onlineAmount: rows.filter((r) => r.source === "Online").reduce((a, r) => a + (r.amount ?? 0), 0),
     };
   }, [rows]);
@@ -155,7 +155,7 @@ export default function AllCreditsList({ refreshKey = 0 }: { refreshKey?: number
       { key: "packStatus", label: "Status" },
       { key: "byName", label: "By" },
       { key: "note", label: "Note" },
-    ], { title: "WhatsApp & Email Credits — Offline + Online" });
+    ], { title: "Email Credits | Offline + Online" });
   };
 
   return (
@@ -178,7 +178,6 @@ export default function AllCreditsList({ refreshKey = 0 }: { refreshKey?: number
             <SelectTrigger><SelectValue /></SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All types</SelectItem>
-              <SelectItem value="WhatsApp">WhatsApp</SelectItem>
               <SelectItem value="Email">Email</SelectItem>
             </SelectContent>
           </Select>
@@ -232,10 +231,10 @@ export default function AllCreditsList({ refreshKey = 0 }: { refreshKey?: number
       {!loading && rows.length > 0 && (
         <div className="flex flex-wrap gap-2 text-xs">
           <span className="rounded-md border bg-amber-50 border-amber-200 px-2.5 py-1 text-amber-800">
-            Offline: WhatsApp <b>{totals.offlineWa.toLocaleString(appLocale())}</b> · Email <b>{totals.offlineEmail.toLocaleString(appLocale())}</b>
+            Offline: Email <b>{totals.offlineEmail.toLocaleString(appLocale())}</b>
           </span>
           <span className="rounded-md border bg-blue-50 border-blue-200 px-2.5 py-1 text-blue-800">
-            Online: WhatsApp <b>{totals.onlineWa.toLocaleString(appLocale())}</b> · Email <b>{totals.onlineEmail.toLocaleString(appLocale())}</b> · Paid <b>{inr(totals.onlineAmount)}</b>
+            Online: Email <b>{totals.onlineEmail.toLocaleString(appLocale())}</b> · Paid <b>{inr(totals.onlineAmount)}</b>
           </span>
           <span className="rounded-md border px-2.5 py-1 text-muted-foreground">{rows.length} entries</span>
         </div>
@@ -285,16 +284,16 @@ export default function AllCreditsList({ refreshKey = 0 }: { refreshKey?: number
                         <div className="text-[11px] text-slate-400 mt-0.5">{r.entryType}</div>
                       )}
                     </td>
-                    <td className="px-3 py-2 text-slate-600 whitespace-nowrap">{r.districtNumber || "—"}</td>
+                    <td className="px-3 py-2 text-slate-600 whitespace-nowrap">{r.districtNumber || "–"}</td>
                     <td className="px-3 py-2 font-medium text-slate-800">
-                      {r.clubName || "—"}
+                      {r.clubName || "–"}
                       {r.note && <div className="text-[11px] font-normal text-amber-700 max-w-xs">{r.note}</div>}
                     </td>
                     <td className="px-3 py-2 text-slate-600 whitespace-nowrap">{r.creditType}</td>
                     <td className={`px-3 py-2 text-right whitespace-nowrap ${r.credits == null ? "text-slate-400 italic" : "text-slate-800 font-medium"}`}>{creditsText(r)}</td>
                     <td className="px-3 py-2 text-right text-slate-700 whitespace-nowrap">{inr(r.amount)}</td>
                     <td className="px-3 py-2 text-slate-500 whitespace-nowrap font-mono text-xs">
-                      {r.transactionId || "—"}
+                      {r.transactionId || "–"}
                       {r.proofDocumentPath && (
                         <div>
                           <a href={`${API_BASE}${r.proofDocumentPath}`} target="_blank" rel="noopener noreferrer" className="font-sans text-primary underline">Proof</a>
@@ -303,9 +302,9 @@ export default function AllCreditsList({ refreshKey = 0 }: { refreshKey?: number
                     </td>
                     <td className="px-3 py-2 text-slate-600 whitespace-nowrap">{fmtDate(r.expiryDate)}</td>
                     <td className="px-3 py-2 whitespace-nowrap">
-                      {r.packStatus ? <Badge variant="outline" className={statusClass[r.packStatus] || ""}>{r.packStatus}</Badge> : "—"}
+                      {r.packStatus ? <Badge variant="outline" className={statusClass[r.packStatus] || ""}>{r.packStatus}</Badge> : "–"}
                     </td>
-                    <td className="px-3 py-2 text-slate-600 whitespace-nowrap">{r.byName || "—"}</td>
+                    <td className="px-3 py-2 text-slate-600 whitespace-nowrap">{r.byName || "–"}</td>
                   </tr>
                 ))}
               </tbody>

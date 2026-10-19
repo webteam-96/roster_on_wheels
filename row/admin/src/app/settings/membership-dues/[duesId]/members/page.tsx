@@ -3,16 +3,7 @@
 import { useState, useCallback, useEffect, useRef } from "react";
 import DateField from "@/components/DateField";
 import { useParams } from "next/navigation";
-import {
-  getMembershipDuesMembers, getMembershipDuesDetail,
-  allocateMembershipDuesFees, updateMembershipDuesMemberFee,
-  recordMembershipDuesOffline, approveMembershipDuesPayment,
-  getMembershipDuesOfflineDetails, updateMembershipDuesOffline,
-  sendMembershipDuesReceipt, sendMembershipDuesReminder,
-  sendMembershipDuesReminderWhatsApp,
-  bulkMembershipDuesReminderEmail, bulkMembershipDuesReminderWhatsApp,
-  revertMembershipDuesPayment,
-} from "@/services/api";
+import { getMembershipDuesMembers, getMembershipDuesDetail, allocateMembershipDuesFees, updateMembershipDuesMemberFee, recordMembershipDuesOffline, approveMembershipDuesPayment, getMembershipDuesOfflineDetails, updateMembershipDuesOffline, sendMembershipDuesReceipt, sendMembershipDuesReminder, bulkMembershipDuesReminderEmail, revertMembershipDuesPayment } from "@/services/api";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -34,10 +25,10 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import {
-  ArrowLeft, Mail, MessageSquare, MoreHorizontal, Receipt, CreditCard,
+  ArrowLeft, Mail, MoreHorizontal, Receipt, CreditCard,
   Pencil, Send, UserPlus, Check, X, Upload, Lock, Info, Globe, Banknote,
   Undo2, AlertTriangle,
-} from "lucide-react";
+} from "@/components/icons";
 import {
   Tooltip, TooltipContent, TooltipProvider, TooltipTrigger,
 } from "@/components/ui/tooltip";
@@ -173,7 +164,6 @@ export default function MembershipDuesMembersPage() {
     feeType?: number;
   } | null>(null);
 
-  const [bulkWhatsAppConfirmOpen, setBulkWhatsAppConfirmOpen] = useState(false);
 
   // Offline payment dialog
   const [offlineDialogOpen, setOfflineDialogOpen] = useState(false);
@@ -387,12 +377,6 @@ export default function MembershipDuesMembersPage() {
     setRemarkDialogOpen(true);
   };
 
-  // Bulk WhatsApp Reminder
-  const confirmBulkWhatsApp = () => {
-    setBulkWhatsAppConfirmOpen(false);
-    bulkMembershipDuesReminderWhatsApp(duesId).catch(() => {});
-    setSuccessMessage("Sending bulk WhatsApp reminders in background...");
-  };
 
   // Individual reminder email
   const openReminderEmailDialog = (memberFeeId: number, feeType: number) => {
@@ -401,20 +385,6 @@ export default function MembershipDuesMembersPage() {
     setRemarkDialogOpen(true);
   };
 
-  // Individual WhatsApp reminder. Awaited + per-row busy state so the dropdown
-  // shows a spinner and can't be re-clicked while the request is in flight.
-  const handleReminderWhatsApp = async (memberFeeId: number, feeType: number) => {
-    const key = `wa-${memberFeeId}-${feeType}`;
-    setBusyAction(key);
-    try {
-      await sendMembershipDuesReminderWhatsApp(duesId, memberFeeId, feeType);
-      setSuccessMessage("WhatsApp reminder sent.");
-    } catch (err: any) {
-      setErrorMessage(err?.response?.data?.message || "Failed to send WhatsApp reminder.");
-    } finally {
-      setBusyAction(null);
-    }
-  };
 
   // Send remark dialog
   const handleSendWithRemark = async () => {
@@ -746,7 +716,7 @@ export default function MembershipDuesMembersPage() {
       ? (duesDetail?.fees1Text || "Annual")
       : ft === 2 ? (duesDetail?.fees2Text || "Semi 1")
       : ft === 3 ? (duesDetail?.fees3Text || "Semi 2")
-      : "—";
+      : "–";
     return {
       memberName: m.memberName ?? m.MemberName,
       feeTypeLabel,
@@ -830,7 +800,7 @@ export default function MembershipDuesMembersPage() {
         feeType: revertTarget.feeType,
         reason: revertReason.trim(),
       });
-      setSuccessMessage(res?.message || "Payment reverted — member is now marked Unpaid. No money was refunded.");
+      setSuccessMessage(res?.message || "Payment reverted: member is now marked Unpaid. No money was refunded.");
       setRevertDialogOpen(false);
       setRevertTarget(null);
       fetchMembers();
@@ -931,18 +901,6 @@ export default function MembershipDuesMembersPage() {
         <SuccessAlert open={!!successMessage} title="Success" description={successMessage || ""} onOk={() => setSuccessMessage(null)} />
         <ErrorAlert open={!!errorMessage} title="Error" description={errorMessage || ""} onOk={() => setErrorMessage(null)} />
 
-        <AlertModal
-          open={bulkWhatsAppConfirmOpen}
-          icon={Send}
-          iconClassName="text-green-600"
-          title="Send Bulk WhatsApp Reminder"
-          description="Send a WhatsApp reminder to every unpaid member on this campaign? This cannot be undone."
-          confirmLabel="Send"
-          confirmClassName="bg-green-600 text-white hover:bg-green-700"
-          onConfirm={confirmBulkWhatsApp}
-          cancelLabel="Cancel"
-          onCancel={() => setBulkWhatsAppConfirmOpen(false)}
-        />
 
         {/* Header */}
         <div className="flex items-start gap-3">
@@ -972,9 +930,6 @@ export default function MembershipDuesMembersPage() {
           </Button>
           <Button variant="outline" size="sm" onClick={openBulkEmailDialog}>
             <Mail className="h-4 w-4 mr-1" />Bulk Email Reminder
-          </Button>
-          <Button variant="outline" size="sm" onClick={() => setBulkWhatsAppConfirmOpen(true)}>
-            <MessageSquare className="h-4 w-4 mr-1" />Bulk WhatsApp Reminder
           </Button>
         </div>
 
@@ -1081,7 +1036,7 @@ export default function MembershipDuesMembersPage() {
                           <TableCell>
                             {/* Per-row busy check: when any action for this row is in flight,
                                 show the spinner inline (the dropdown trigger gets replaced).
-                                Match keys defined in handleReminderWhatsApp / handleSendReceipt. */}
+                                Match keys defined in handleSendReceipt. */}
                             {(() => {
                               const rowBusy =
                                 busyAction != null && (
@@ -1122,18 +1077,6 @@ export default function MembershipDuesMembersPage() {
                                         <Mail className="h-4 w-4 mr-2" />Email Reminder ({ft.label})
                                       </DropdownMenuItem>
                                     ))}
-                                    {getUnpaidFeeTypes(m).map(ft => (
-                                      <DropdownMenuItem
-                                        key={`wa-${ft.value}`}
-                                        onClick={() => {
-                                          if (window.confirm(`Send WhatsApp reminder to ${m.memberName || "this member"}?`)) {
-                                            handleReminderWhatsApp(m.id, ft.value);
-                                          }
-                                        }}
-                                      >
-                                        <MessageSquare className="h-4 w-4 mr-2" />WhatsApp Reminder ({ft.label})
-                                      </DropdownMenuItem>
-                                    ))}
                                     {isFullyPaid(m) && (
                                       <DropdownMenuItem
                                         onClick={() => {
@@ -1167,7 +1110,7 @@ export default function MembershipDuesMembersPage() {
                                       >
                                         <Undo2 className="h-4 w-4 mr-2" />
                                         {ft.isOnline
-                                          ? `Revert ${ft.label} (online — not allowed)`
+                                          ? `Revert ${ft.label} (online. Not allowed)`
                                           : `Revert ${ft.label} to Unpaid`}
                                       </DropdownMenuItem>
                                     ))}
@@ -1244,7 +1187,7 @@ export default function MembershipDuesMembersPage() {
                 {offlineUpdatePaymentId > 0 && (
                   <p className="text-xs text-amber-700 mt-1">
                     {offlineUpdateIsApproved
-                      ? "Editing a paid offline payment — status stays Approved."
+                      ? "Editing a paid offline payment: status stays Approved."
                       : "Saving will approve this payment and email the receipt to the member. If CP/Secretary later clicks Approve/Reject from their email, they'll see “already approved”."}
                   </p>
                 )}
@@ -1263,7 +1206,7 @@ export default function MembershipDuesMembersPage() {
                     <p className="text-sm"><strong>Date:</strong> {new Date(offlineOnlineView.date).toLocaleDateString(appLocale())}</p>
                   )}
                   <p className="text-sm"><strong>Status:</strong> Paid (Online)</p>
-                  <p className="text-xs text-emerald-700 mt-1">Gateway payments can't be edited offline — viewing only.</p>
+                  <p className="text-xs text-emerald-700 mt-1">Gateway payments can't be edited offline: viewing only.</p>
                 </div>
               ) : (
                 <>
@@ -1338,7 +1281,7 @@ export default function MembershipDuesMembersPage() {
                       <Input
                         value={offlineApprovalRemark}
                         onChange={e => setOfflineApprovalRemark(e.target.value)}
-                        placeholder="Optional — appears on receipt email"
+                        placeholder="Optional: appears on receipt email"
                       />
                     </div>
                   )}
@@ -1547,7 +1490,7 @@ export default function MembershipDuesMembersPage() {
                       value={approveRemark}
                       onChange={e => setApproveRemark(e.target.value)}
                       rows={3}
-                      placeholder="Optional remark — will appear on the receipt email if provided"
+                      placeholder="Optional remark: will appear on the receipt email if provided"
                     />
                   </div>
                 </>

@@ -8,7 +8,7 @@ import { driftedOverview, getSnapshot } from "@/lib/projectStatsServer";
 export const metadata: Metadata = {
   title: "Projects | ROW",
   description:
-    "Service on the ground across ROW — browse club projects by state, district, club and area of focus.",
+    "Service on the ground across ROW: browse club projects by state, district, club and area of focus.",
 };
 
 // The overview is handed down from the server-side snapshot (src/lib/statsCache.ts), so
@@ -36,7 +36,7 @@ export default async function ProjectsPage({
     <>
       <PageBanner
         eyebrow="Service on the ground"
-        subtitle="Club work from across the zones — filter by state, district, club or area of focus, then open any project for the full story."
+        subtitle="Club work from across the zones: filter by state, district, club or area of focus, then open any project for the full story."
       >
         Rotary <span className="text-gold">Projects</span>
       </PageBanner>

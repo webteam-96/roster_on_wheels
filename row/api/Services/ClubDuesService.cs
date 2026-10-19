@@ -19,18 +19,15 @@ public class ClubDuesService : IClubDuesService
     private readonly string _connStr;
     private readonly IConfiguration _config;
     private readonly IEmailService _emailService;
-    private readonly IWhatsAppService _whatsAppService;
     private readonly IGoogleSheetsService _googleSheetsService;
     private readonly HttpClient _httpClient;
     private readonly ILogger<ClubDuesService> _logger;
 
-    public ClubDuesService(IConfiguration config, IEmailService emailService, IWhatsAppService whatsAppService,
-        IGoogleSheetsService googleSheetsService, IHttpClientFactory httpClientFactory, ILogger<ClubDuesService> logger)
+    public ClubDuesService(IConfiguration config, IEmailService emailService, IGoogleSheetsService googleSheetsService, IHttpClientFactory httpClientFactory, ILogger<ClubDuesService> logger)
     {
         _connStr = config.GetConnectionString("DefaultConnection")!;
         _config = config;
         _emailService = emailService;
-        _whatsAppService = whatsAppService;
         _googleSheetsService = googleSheetsService;
         _httpClient = httpClientFactory.CreateClient();
         _logger = logger;
@@ -1617,84 +1614,6 @@ own separate approval request.</p>
         foreach (System.Text.RegularExpressions.Match m in System.Text.RegularExpressions.Regex.Matches(template, @"\{\{\s*([A-Za-z0-9_]+)\s*\}\}"))
             if (Array.IndexOf(names, m.Groups[1].Value.ToLowerInvariant()) >= 0) return true;
         return false;
-    }
-
-    // ── WhatsApp reminders ─────────────────────────────────────
-    // Templates: updated_row_district_dues_collection (bank details on) /
-    // updated_row_district_dues_collection_no_bank_details (off).
-    public async Task SendReminderWhatsAppAsync(int duesId, int clubId)
-    {
-        using var conn = GetConnection();
-        await SendReminderWhatsAppInternalAsync(conn, duesId, clubId);
-    }
-
-    public async Task BulkSendReminderWhatsAppAsync(int duesId)
-    {
-        using var conn = GetConnection();
-        var clubIds = (await conn.QueryAsync<int>(@"
-            SELECT cc.fk_club_id FROM club_dues_clubs cc
-            WHERE cc.fk_club_dues_id=@DuesId AND cc.isdeleted=0
-              AND (SELECT COUNT(*) FROM club_dues_members m WHERE m.fk_club_dues_id=cc.fk_club_dues_id AND m.fk_club_id=cc.fk_club_id AND m.isdeleted=0 AND m.IsHonorary=0 AND m.IsPaid=0) > 0",
-            new { DuesId = duesId })).ToList();
-        foreach (var clubId in clubIds)
-            try { await SendReminderWhatsAppInternalAsync(conn, duesId, clubId); } catch { }
-    }
-
-    private async Task SendReminderWhatsAppInternalAsync(MySqlConnection conn, int duesId, int clubId)
-    {
-        var info = await conn.QueryFirstOrDefaultAsync<dynamic>(@"
-            SELECT cd.Purpose, cd.RotaryYear, cd.IsShowBankInReceipt,
-                   cd.OfflineBankName, cd.OfflineAccountNumber, cd.OfflineIfscCode, c.ClubName
-            FROM club_dues cd LEFT JOIN club_master c ON c.pk_club_id=@ClubId
-            WHERE cd.pk_club_dues_id=@DuesId AND cd.isdeleted=0", new { DuesId = duesId, ClubId = clubId });
-        if (info == null) return;
-        var rates = await GetClubRatesAsync(conn, duesId, clubId);
-        if (rates.Unpaid <= 0) return;
-
-        // Recipients: the club's President / Secretary / Treasurer (current year) with a mobile.
-        var officers = (await conn.QueryAsync<dynamic>(@"
-            SELECT DISTINCT m.MemberName, m.PrimaryMobileNumber
-            FROM board_of_directors bod
-            JOIN member_master_profile m ON m.pk_member_master_profile_id = bod.fk_member_master_profile_id
-            JOIN designation_master dm ON dm.pk_designation_id = bod.fk_designation_id
-            JOIN rotary_year_master y ON y.pk_year_id = bod.fk_year_id
-            WHERE bod.fk_club_id=@ClubId AND COALESCE(bod.isdeleted,0)=0 AND m.isdeleted=0
-              AND m.PrimaryMobileNumber IS NOT NULL AND m.PrimaryMobileNumber <> ''
-              AND dm.designation_name IN ('Club President','Club Secretary','Club Treasurer') AND y.IsCurrent=1",
-            new { ClubId = clubId })).ToList();
-        if (officers.Count == 0) return;
-
-        var secret = _config["JwtSettings:Secret"] ?? "";
-        var token = ClubDuesAccessToken.Generate(duesId, clubId, secret); // non-expiring, stable per club
-        var frontendUrl = _config["FrontendUrl"] ?? "http://localhost:3000";
-        var payUrl = $"{frontendUrl}/pay/club-dues/{duesId}?clubId={clubId}&token={token}";
-
-        // Bank details only make sense when the campaign both wants them shown AND actually has
-        // an offline track configured (ModeOfPayment 2/3) — an online-only campaign has no bank
-        // details to send regardless of the checkbox.
-        bool showBank = Convert.ToBoolean(info.IsShowBankInReceipt) && ChannelEnabled(rates.ModeOfPayment, isOnline: false);
-        var template = showBank ? "updated_row_district_dues_collection" : "updated_row_district_dues_collection_no_bank_details";
-        var purpose = (string?)info.Purpose ?? "District Dues";
-        var clubName = (string?)info.ClubName ?? "-";
-        var status = rates.Independent
-            ? $"₹{rates.OfflineOwed:0} offline / ₹{rates.OnlineOwed:0} online pending ({rates.Unpaid} member(s))"
-            : $"₹{rates.OfflineOwed:0} pending ({rates.Unpaid} member(s))";
-
-        foreach (var o in officers)
-        {
-            var name = (string?)o.MemberName ?? "";
-            var mobile = (string?)o.PrimaryMobileNumber ?? "";
-            if (string.IsNullOrWhiteSpace(mobile)) continue;
-            // Body params mirror the membership-dues templates:
-            //  with bank (8): name, club, purpose, status, payUrl, bank, account, ifsc
-            //  no bank  (5): name, club, purpose, status, payUrl
-            string[] values = showBank
-                ? new[] { name, clubName, purpose, status, payUrl,
-                          (string?)info.OfflineBankName ?? "-", (string?)info.OfflineAccountNumber ?? "-", (string?)info.OfflineIfscCode ?? "-" }
-                : new[] { name, clubName, purpose, status, payUrl };
-            try { await _whatsAppService.SendWhatsAppWithBodyValuesAsync(mobile, template, values); }
-            catch (Exception ex) { _logger.LogError(ex, "Club dues WhatsApp failed for club {Club} mobile {Mobile}", clubId, mobile); }
-        }
     }
 
     // ═══════════════════════════════════════════════════════════════

@@ -3,7 +3,7 @@
 /**
  * SuperAdmin › Wallet.
  * --------------------------------------------------------------------------
- * One place for WhatsApp/Email credits:
+ * One place for email credits:
  *   • Offline button — Super Admin gives credits by hand (the former Settings › Credit Management).
  *   • Online button  — Club Wallet / District Wallet / Reports (club-website pricing, shareable
  *                      credit top-up links, purchase reports).
@@ -15,7 +15,7 @@
 import { Suspense, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { ArrowLeft, Globe, HandCoins, Landmark, X } from "lucide-react";
+import { ArrowLeft, Globe, HandCoins, Landmark, X } from "@/components/icons";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
@@ -45,7 +45,7 @@ function WalletContent() {
         </Button>
         <div className="flex-1 min-w-0">
           <h1 className="text-xl font-bold tracking-tight text-primary">Wallet</h1>
-          <p className="text-sm text-muted-foreground">WhatsApp &amp; Email credits — given offline or bought online — and club-website pricing</p>
+          <p className="text-sm text-muted-foreground">Email credits: given offline or bought online. And club-website pricing</p>
         </div>
         <div className="flex flex-wrap gap-2">
           <Button variant={view === "offline" ? "default" : "outline"} onClick={() => toggle("offline")}>
@@ -64,8 +64,8 @@ function WalletContent() {
         <div className="rounded-lg border p-4">
           <div className="mb-3 flex items-center justify-between">
             <h2 className="font-semibold">
-              {view === "offline" ? "Offline credit — given by Super Admin"
-                : view === "online" ? "Online — wallet, top-up links & purchase reports"
+              {view === "offline" ? "Offline credit: given by Super Admin"
+                : view === "online" ? "Online: wallet, top-up links & purchase reports"
                 : "RI Director Credits"}
             </h2>
             <Button variant="ghost" size="sm" onClick={() => setView("")}>
@@ -94,9 +94,9 @@ function WalletContent() {
       {view !== "ri-director" && (
       <div className="space-y-3">
         <div>
-          <h2 className="text-lg font-semibold">All WhatsApp &amp; Email Credits</h2>
+          <h2 className="text-lg font-semibold">All Email Credits</h2>
           <p className="text-sm text-muted-foreground">
-            Every credit entry for clubs and districts — <b>Offline</b> (given by Super Admin) and <b>Online</b> (bought by the club or district).
+            Every credit entry for clubs and districts: <b>Offline</b> (given by Super Admin) and <b>Online</b> (bought by the club or district).
           </p>
         </div>
         <AllCreditsList refreshKey={refreshKey} />

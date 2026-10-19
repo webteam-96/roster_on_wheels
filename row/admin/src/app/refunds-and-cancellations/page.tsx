@@ -6,7 +6,7 @@ import { getServerBrand } from "@/lib/brand";
 export async function generateMetadata(): Promise<Metadata> {
   const brand = await getServerBrand();
   return {
-    title: `Refunds & Cancellations — ${brand.productName}`,
+    title: `Refunds & Cancellations | ${brand.productName}`,
     description:
       `Refund and cancellation policy for Club Dues, event registrations, project contributions, and Foundation contributions on the ${brand.productName} portal.`,
   };
@@ -33,7 +33,7 @@ export default async function RefundsPage() {
             All amounts are charged and refunded in <strong>Indian Rupees (INR)</strong>.
           </li>
           <li>
-            Refunds — when applicable — are issued to the <strong>original
+            Refunds: when applicable: are issued to the <strong>original
             payment method</strong>. We do not offer cash, cheque, or alternate-account refunds.
           </li>
           <li>
@@ -119,7 +119,7 @@ export default async function RefundsPage() {
           <li><strong>Duplicate or accidental payment</strong> (proven through transaction logs).</li>
           <li><strong>Demonstrable technical error</strong> on the Platform leading to an unintended payment.</li>
           <li><strong>Fraudulent transaction</strong> reported promptly to your bank and to us.</li>
-          <li><strong>Wrong recipient</strong> (e.g., the donor intended a different project) — refund subject to confirmation that funds have not been disbursed.</li>
+          <li><strong>Wrong recipient</strong> (e.g., the donor intended a different project): refund subject to confirmation that funds have not been disbursed.</li>
         </ul>
         <p>
           Approved donor refunds are processed within{" "}
@@ -166,7 +166,7 @@ export default async function RefundsPage() {
         <h2>7. Chargebacks</h2>
         <p>
           We encourage you to contact us first before initiating a chargeback
-          with your bank — most issues can be resolved faster directly.
+          with your bank: most issues can be resolved faster directly.
           Chargebacks raised for transactions found to be legitimate after
           investigation may lead to suspension of your Platform account.
         </p>

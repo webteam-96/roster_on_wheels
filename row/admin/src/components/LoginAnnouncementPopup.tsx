@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import { getActiveLoginAnnouncement, acknowledgeLoginAnnouncements } from "@/services/api";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, ChevronRight, X } from "lucide-react";
+import { ChevronLeft, ChevronRight, X } from "@/components/icons";
 import { ALL_ROLES_KEY, currentRoleFromPath, loginAnnouncementRoleLabel } from "@/utils/loginAnnouncementRoles";
 
 interface AnnouncementItem {
@@ -117,7 +117,7 @@ export default function LoginAnnouncementPopup() {
         className="bg-white rounded-2xl shadow-2xl max-w-lg w-full max-h-[80vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-300"
       >
         {/* Header */}
-        <div className="flex items-center justify-between gap-3 px-6 py-4 border-b bg-gradient-to-r from-primary/10 to-primary/5">
+        <div className="flex items-center justify-between gap-3 px-6 py-4 border-b bg-primary/10">
           <div className="min-w-0">
             <h3 className="text-lg font-bold text-primary">Announcement</h3>
             {(roleText || total > 1) && (

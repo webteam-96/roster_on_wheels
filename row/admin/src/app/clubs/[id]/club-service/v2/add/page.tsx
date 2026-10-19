@@ -15,7 +15,7 @@ import DateField from "@/components/DateField";
 import { useParams, useSearchParams } from "next/navigation";
 import {
   Upload, X, Star, Info, FileText, Camera, Calendar, Users, FileUp,
-} from "lucide-react";
+} from "@/components/icons";
 import {
   getClub,
   getModules,
@@ -34,7 +34,7 @@ import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import ClubAdminShell from "@/components/v2/ClubAdminShell";
-import WhatsAppRecipientBadge from "@/components/WhatsAppRecipientBadge";
+import RecipientBadge from "@/components/RecipientBadge";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
 } from "@/components/ui/dialog";
@@ -92,7 +92,7 @@ function SectionCard({
 }: { number: number; icon: React.ElementType; title: string; dot: string; children: React.ReactNode }) {
   return (
     <div className="rounded-xl border border-slate-200 overflow-hidden mb-4">
-      <div className="flex items-center gap-3 px-4 py-2.5 bg-gradient-to-r from-slate-50 to-white border-b border-slate-100">
+      <div className="flex items-center gap-3 px-4 py-2.5 bg-slate-50 border-b border-slate-100">
         <div className={`flex items-center justify-center h-7 w-7 rounded-full text-white text-xs font-bold ${dot}`}>{number}</div>
         <Icon className="h-4 w-4 text-slate-500" />
         <h3 className="text-sm font-semibold text-slate-800">{title}</h3>
@@ -368,7 +368,6 @@ export default function ClubServiceV2AddPage() {
         minutesDocument,
         attendance: Number(attendance),
         attendancePercentage: attendancePercentage ? Number(attendancePercentage) : null,
-        sendWhatsapp: false,
         sendEmail,
         photos: photoInputs,
       } as any);
@@ -608,7 +607,7 @@ export default function ClubServiceV2AddPage() {
           <label className="flex items-center gap-2.5 cursor-pointer select-none">
             <input type="checkbox" checked={sendEmail} onChange={(e) => setSendEmail(e.target.checked)} className="accent-blue-600 h-4 w-4" />
             <span className="text-sm font-medium text-slate-700">Send Email notification</span>
-            {sendEmail && <WhatsAppRecipientBadge scope="club" clubId={clubId} channel="email" />}
+            {sendEmail && <RecipientBadge scope="club" clubId={clubId} />}
           </label>
         </div>
 

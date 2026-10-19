@@ -11,7 +11,7 @@
  */
 
 import { useSearchParams } from "next/navigation";
-import { Loader2 } from "lucide-react";
+import { Loader2 } from "@/components/icons";
 import { useDistrictAdminCache } from "@/contexts/DistrictAdminDashboardCacheContext";
 import DistrictFoundationTabBar from "@/components/dashboard/DistrictFoundationTabBar";
 import { DistrictProjectsSection, DistrictEventsSection } from "./sections";

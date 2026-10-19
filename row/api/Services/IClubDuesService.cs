@@ -45,8 +45,6 @@ public interface IClubDuesService
     // Test send of the reminder/receipt email (sample values, current template) — FREE. An optional
     // unsaved email-header logo is embedded inline so the image can be previewed before saving.
     Task SendTestEmailAsync(ClubDuesTestEmailDto dto, IFormFile? emailLogo, int userId);
-    Task SendReminderWhatsAppAsync(int duesId, int clubId);
-    Task BulkSendReminderWhatsAppAsync(int duesId);
 
     // ── Public / payment ────────────────────────────────────────
     // Live snapshot for a club: amount owed = unpaid non-honorary members x rate.

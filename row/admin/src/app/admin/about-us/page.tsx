@@ -6,9 +6,9 @@ import { getServerBrand } from "@/lib/brand";
 export async function generateMetadata(): Promise<Metadata> {
   const brand = await getServerBrand();
   return {
-    title: `About Us — ${brand.productName}`,
+    title: `About Us | ${brand.productName}`,
     description:
-      `About the ${brand.productName} administration platform — who we are, what we do, and the values that guide us.`,
+      `About the ${brand.productName} administration platform: who we are, what we do, and the values that guide us.`,
   };
 }
 
@@ -24,7 +24,7 @@ export default async function AboutPage() {
         <p>
           {MERCHANT.legalName} is the technology initiative that operates this
           Platform. It serves Rotary International&apos;s Districts grouped
-          under the zones — covering a substantial portion of
+          under the zones: covering a substantial portion of
           Rotary&apos;s activity across the Indian subcontinent.
         </p>
       </section>
@@ -59,10 +59,10 @@ export default async function AboutPage() {
       <section>
         <h2>Our Values</h2>
         <ul>
-          <li><strong>Service Above Self</strong> — the platform exists for the benefit of Rotarians, not for profit.</li>
-          <li><strong>Transparency</strong> — clear pricing, clear policies, clear receipts.</li>
-          <li><strong>Security</strong> — encryption in transit and at rest; minimal data collection; least-privilege access.</li>
-          <li><strong>Compliance</strong> — alignment with Indian IT, consumer-protection, and data-protection law and Rotary International&apos;s policies.</li>
+          <li><strong>Service Above Self</strong>: the platform exists for the benefit of Rotarians, not for profit.</li>
+          <li><strong>Transparency</strong>: clear pricing, clear policies, clear receipts.</li>
+          <li><strong>Security</strong>: encryption in transit and at rest; minimal data collection; least-privilege access.</li>
+          <li><strong>Compliance</strong>: alignment with Indian IT, consumer-protection, and data-protection law and Rotary International&apos;s policies.</li>
         </ul>
       </section>
 

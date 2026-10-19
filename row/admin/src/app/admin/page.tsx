@@ -16,7 +16,7 @@ import Pagination from "@/components/Pagination";
 import DeleteDialog from "@/components/DeleteDialog";
 import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
-import { Plus, Globe, AlertCircle, Users, X, Search, Loader2 } from "lucide-react";
+import { Plus, Globe, AlertCircle, Users, X, Search, Loader2 } from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
 import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";
@@ -323,7 +323,7 @@ export default function Home() {
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2">
                 <Users className="h-5 w-5" />
-                Zonal Co-ordinator — {coordinatorTarget?.zoneName}
+                Zonal Co-ordinator: {coordinatorTarget?.zoneName}
               </DialogTitle>
             </DialogHeader>
             <div className="space-y-4">

@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { ADD_TO_ORG_WEBSTORE_URL } from "@/lib/addToOrg";
-import { CheckCircle2, ShieldCheck, Download } from "lucide-react";
+import { CheckCircle2, ShieldCheck, Download } from "@/components/icons";
 
 /**
  * Status shown in the add-form footer for the "Add to Org" browser extension.

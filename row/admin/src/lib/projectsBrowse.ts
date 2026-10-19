@@ -73,7 +73,7 @@ export type PagedProjects = {
 /** Rotary-year id (start year) + label for a project, e.g. 2025 / "2025-2026". */
 function ryOf(p: BundledProject): { id: number; label: string } {
   const t = parseTime(p.projectDate);
-  if (t === null) return { id: 0, label: "—" };
+  if (t === null) return { id: 0, label: "–" };
   const label = rotaryYearOf(t);
   return { id: Number(label.slice(0, 4)), label };
 }
@@ -151,17 +151,17 @@ export async function getProjectOptions(
   const base = SAMPLE_PROJECTS.filter((p) => matches(p, filters));
   switch (level) {
     case "states":
-      return tally(base, (p) => ({ id: p.clubState ?? "—", label: p.clubState ?? "—" }), byLabel);
+      return tally(base, (p) => ({ id: p.clubState ?? "–", label: p.clubState ?? "–" }), byLabel);
     case "districts":
       return tally(
         base,
-        (p) => ({ id: p.districtNumber ?? "—", label: `RID ${p.districtNumber ?? "—"}` }),
+        (p) => ({ id: p.districtNumber ?? "–", label: `RID ${p.districtNumber ?? "–"}` }),
         (a, b) => a.id.localeCompare(b.id, undefined, { numeric: true })
       );
     case "clubs":
       return tally(
         base,
-        (p) => ({ id: p.clubName ?? "—", label: p.clubName ?? "—" }),
+        (p) => ({ id: p.clubName ?? "–", label: p.clubName ?? "–" }),
         byLabel
       );
     case "areas":

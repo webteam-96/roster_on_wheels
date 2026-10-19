@@ -24,7 +24,7 @@ import { useParams } from "next/navigation";
 import Image from "next/image";
 import {
   Info, User, Search, UserMinus, Calendar, MessageSquare, AlertTriangle,
-} from "lucide-react";
+} from "@/components/icons";
 import {
   getClub,
   getClubMembers,
@@ -77,7 +77,7 @@ function SectionCard({
 }: { number: number; icon: React.ElementType; title: string; dot: string; children: React.ReactNode }) {
   return (
     <div className="rounded-xl border border-slate-200 overflow-hidden mb-4">
-      <div className="flex items-center gap-3 px-4 py-2.5 bg-gradient-to-r from-slate-50 to-white border-b border-slate-100">
+      <div className="flex items-center gap-3 px-4 py-2.5 bg-slate-50 border-b border-slate-100">
         <div className={`flex items-center justify-center h-7 w-7 rounded-full text-white text-xs font-bold ${dot}`}>{number}</div>
         <Icon className="h-4 w-4 text-slate-500" />
         <h3 className="text-sm font-semibold text-slate-800">{title}</h3>
@@ -350,7 +350,7 @@ export default function TerminatedMembersV2AddPage() {
                         <div className="min-w-0 flex-1">
                           <div className="text-sm font-medium text-slate-800 truncate">{m.memberName}</div>
                           <div className="text-xs text-slate-500 truncate">
-                            {m.rotaryId ? `#${m.rotaryId}` : "—"}
+                            {m.rotaryId ? `#${m.rotaryId}` : "–"}
                             {m.emailId ? ` · ${m.emailId}` : ""}
                           </div>
                         </div>
@@ -372,7 +372,7 @@ export default function TerminatedMembersV2AddPage() {
         </SectionCard>
 
         {/* 2. Termination Details */}
-        <SectionCard number={2} icon={Calendar} title="Termination Details (will be ignored by backend — pending API)" dot="bg-rose-600">
+        <SectionCard number={2} icon={Calendar} title="Termination Details (will be ignored by backend: pending API)" dot="bg-rose-600">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <FieldLabel dot="bg-rose-500">Termination Date <span className="text-slate-400 font-normal">(ignored by API)</span></FieldLabel>
@@ -397,8 +397,8 @@ export default function TerminatedMembersV2AddPage() {
         </SectionCard>
 
         {/* 3. Notes */}
-        <SectionCard number={3} icon={MessageSquare} title="Notes (will be ignored by backend — pending API)" dot="bg-slate-600">
-          <FieldLabel dot="bg-slate-500" hint="(optional, max 1000 chars — ignored by API)" required={false}>Additional Context</FieldLabel>
+        <SectionCard number={3} icon={MessageSquare} title="Notes (will be ignored by backend: pending API)" dot="bg-slate-600">
+          <FieldLabel dot="bg-slate-500" hint="(optional, max 1000 chars: ignored by API)" required={false}>Additional Context</FieldLabel>
           <textarea
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
@@ -424,7 +424,7 @@ export default function TerminatedMembersV2AddPage() {
               <div className="space-y-3 text-sm text-left">
                 {previewWarning && (
                   <p className="text-amber-700 bg-amber-50 border border-amber-200 rounded-md px-2.5 py-1.5 text-xs">
-                    Impact preview unavailable ({previewWarning}). You can still proceed —
+                    Impact preview unavailable ({previewWarning}). You can still proceed , 
                     the server will run its standard termination cascade.
                   </p>
                 )}
@@ -437,7 +437,7 @@ export default function TerminatedMembersV2AddPage() {
                 </p>
                 {preview.isLastClub && (
                   <p className="text-rose-700">
-                    This is the member&apos;s last active club — their login will be disabled
+                    This is the member&apos;s last active club: their login will be disabled
                     and all roles revoked.
                   </p>
                 )}

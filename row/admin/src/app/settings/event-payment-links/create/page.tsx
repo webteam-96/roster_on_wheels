@@ -27,7 +27,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
-import { ArrowLeft, ArrowRight, Plus, Trash2, Save, Loader2, Check, Pencil, ChevronsUpDown, Eye } from "lucide-react";
+import { ArrowLeft, ArrowRight, Plus, Trash2, Save, Loader2, Check, Pencil, ChevronsUpDown, Eye } from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
 import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";

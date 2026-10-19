@@ -8,7 +8,7 @@ export function EventsBanner() {
   return (
     <PageBanner
       eyebrow="Zonal Archive"
-      subtitle="Recordings, galleries and highlights from institutes, summits and conclaves across the zones — every milestone, kept."
+      subtitle="Recordings, galleries and highlights from institutes, summits and conclaves across the zones: every milestone, kept."
       rightSlot={
         <div className="text-right">
           <p

@@ -9,7 +9,7 @@ import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
 import RotaryLoader from "@/components/RotaryLoader";
 import ProtectedRoute from "@/components/ProtectedRoute";
-import { ArrowLeft, Plus, Edit, Trash2, Link as LinkIcon, Mail, MessageCircle, FileSpreadsheet, ExternalLink, Power, PowerOff, Loader2 } from "lucide-react";
+import { ArrowLeft, Plus, Edit, Trash2, Link as LinkIcon, Mail, FileSpreadsheet, ExternalLink, Power, PowerOff, Loader2 } from "@/components/icons";
 import {
   getDirectoryConfigs, deleteDirectoryConfig, toggleDirectoryConfigActive,
   sendDirectoryReminders, getDirectoryPublicUrl,
@@ -129,12 +129,12 @@ export default function DirectoryDataCollectionListPage() {
     } finally { setBusy(null); }
   };
 
-  const sendReminder = async (id: number, channel: "email" | "whatsapp") => {
+  const sendReminder = async (id: number, channel: "email") => {
     if (!confirm(`Send ${channel} reminder to all members with <100% completion?`)) return;
     try {
       setBusy(`${channel}:${id}`);
       await sendDirectoryReminders(id, channel);
-      setSuccess(`${channel === "email" ? "Email" : "WhatsApp"} reminders queued. They will be sent in background.`);
+      setSuccess("Email reminders queued. They will be sent in background.");
     } catch (e: any) {
       setError(e?.response?.data?.message ?? "Failed to queue reminders");
     } finally { setBusy(null); }
@@ -218,10 +218,10 @@ export default function DirectoryDataCollectionListPage() {
                       <td className="p-3 font-medium">{r.districtNumber}</td>
                       <td className="p-3">{r.yearLabel}</td>
                       <td className="p-3">
-                        {r.firstContactName ? <>{r.firstContactName}<br /><span className="text-xs text-muted-foreground">{r.firstContactMobile ?? ""}</span></> : "—"}
+                        {r.firstContactName ? <>{r.firstContactName}<br /><span className="text-xs text-muted-foreground">{r.firstContactMobile ?? ""}</span></> : "–"}
                       </td>
                       <td className="p-3">
-                        {r.secondContactName ? <>{r.secondContactName}<br /><span className="text-xs text-muted-foreground">{r.secondContactMobile ?? ""}</span></> : "—"}
+                        {r.secondContactName ? <>{r.secondContactName}<br /><span className="text-xs text-muted-foreground">{r.secondContactMobile ?? ""}</span></> : "–"}
                       </td>
                       <td className="p-3">
                         <div className="flex items-center gap-1 justify-end flex-wrap">
@@ -234,11 +234,8 @@ export default function DirectoryDataCollectionListPage() {
                           <Button size="sm" variant="outline" onClick={() => openUrl(r.id)} disabled={busy === `open:${r.id}`} title="Open public form in new tab">
                             {spin(`open:${r.id}`, <ExternalLink className="h-4 w-4" />)}
                           </Button>
-                          <Button size="sm" variant="outline" onClick={() => sendReminder(r.id, "email")} disabled={busy === `email:${r.id}` || r.sendEmail === 0} title={r.sendEmail === 0 ? "Email is disabled for this district — enable it in the config to send email reminders" : "Email reminder to all incomplete members"}>
+                          <Button size="sm" variant="outline" onClick={() => sendReminder(r.id, "email")} disabled={busy === `email:${r.id}` || r.sendEmail === 0} title={r.sendEmail === 0 ? "Email is disabled for this district: enable it in the config to send email reminders" : "Email reminder to all incomplete members"}>
                             {spin(`email:${r.id}`, <Mail className="h-4 w-4" />)}
-                          </Button>
-                          <Button size="sm" variant="outline" onClick={() => sendReminder(r.id, "whatsapp")} disabled={busy === `whatsapp:${r.id}` || r.sendWhatsapp === 0} title={r.sendWhatsapp === 0 ? "WhatsApp is disabled for this district — enable it in the config to send WhatsApp reminders" : "WhatsApp reminder to all incomplete members"}>
-                            {spin(`whatsapp:${r.id}`, <MessageCircle className="h-4 w-4" />)}
                           </Button>
                           <Button size="sm" variant="outline" onClick={() => downloadExcel(r)} disabled={busy === `xls:${r.id}`} title="Download Excel report">
                             {spin(`xls:${r.id}`, <FileSpreadsheet className="h-4 w-4" />)}
@@ -250,7 +247,7 @@ export default function DirectoryDataCollectionListPage() {
                             className={r.isActive === 0 ? "" : "border-green-500 text-green-700 hover:bg-green-50"}
                             onClick={() => toggleActive(r.id)}
                             disabled={busy === `active:${r.id}`}
-                            title={r.isActive === 0 ? "Link is CLOSED — click to enable" : "Link is OPEN — click to disable"}
+                            title={r.isActive === 0 ? "Link is CLOSED. Click to enable" : "Link is OPEN. Click to disable"}
                           >
                             {busy === `active:${r.id}`
                               ? <><Loader2 className="h-4 w-4 mr-1 animate-spin" />{r.isActive === 0 ? "Closed" : "Open"}</>

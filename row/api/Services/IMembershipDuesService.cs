@@ -33,9 +33,7 @@ public interface IMembershipDuesService
     // unrelated payment ids across tables).
     Task SendReceiptEmailByFeeIdAsync(int memberFeeId);
     Task SendReminderEmailAsync(int memberFeeId, int feeType, string? remark);
-    Task SendReminderWhatsAppAsync(int memberFeeId, int feeType);
     Task BulkSendReminderEmailAsync(int duesId, string? remark);
-    Task BulkSendReminderWhatsAppAsync(int duesId);
 
     // Google Sheets
     Task<string> CreateGoogleSheetAsync(int duesId);

@@ -19,7 +19,7 @@
  * row updates automatically. duesSetups (full multi-year list) is fetched
  * once and filtered client-side.
  *
- * No bulk Email / WhatsApp / search / filter pills here — those belong on
+ * No bulk email / search / filter pills here — those belong on
  * the dedicated /clubs/[id]/membership-dues/v2/[duesId]/members page.
  */
 
@@ -28,7 +28,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import {
   Wallet, Pencil, FileSpreadsheet, Users, Plus,
   IndianRupee, BadgeCheck, AlertCircle, TrendingUp,
-} from "lucide-react";
+} from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
 import { useAuth } from "@/contexts/AuthContext";
 import { useClubAdminCache } from "@/contexts/ClubAdminDashboardCacheContext";
@@ -278,7 +278,7 @@ export default function ClubAdminMembershipDuesPage() {
           <div className="h-2 overflow-hidden rounded-full bg-slate-100">
             <div
               className="h-full rounded-full transition-all"
-              style={{ width: `${collectionPct}%`, background: "linear-gradient(90deg, #2563eb 0%, #06b6d4 100%)" }}
+              style={{ width: `${collectionPct}%`, background: "#0067C8" }}
             />
           </div>
         </div>
@@ -441,7 +441,7 @@ export default function ClubAdminMembershipDuesPage() {
                         </button>
                       </div>
                     ) : (
-                      <span className="text-slate-400">—</span>
+                      <span className="text-slate-400">, </span>
                     )}
                   </td>
                 </tr>

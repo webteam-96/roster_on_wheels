@@ -2,10 +2,7 @@
 
 import { useState, useCallback, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
-import {
-  getEventMembers, sendEventReceipt, sendEventReminderEmail,
-  sendEventReminderWhatsApp, bulkReminderEmail, bulkReminderWhatsApp, exportEventMembers,
-} from "@/services/api";
+import { getEventMembers, sendEventReceipt, sendEventReminderEmail, bulkReminderEmail, exportEventMembers } from "@/services/api";
 import { fileTimestamp } from "@/lib/dateUtils";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -19,7 +16,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
-import { ArrowLeft, Download, Mail, MessageSquare, MoreHorizontal, Receipt, CreditCard } from "lucide-react";
+import { ArrowLeft, Download, Mail, MoreHorizontal, Receipt, CreditCard } from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
 import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";
@@ -114,7 +111,6 @@ export default function ClubEventMembersPage() {
                   ) : (<>
                     <DropdownMenuItem onClick={() => router.push(`/clubs/${clubId}/event-payment-links/${linkId}/members/${m.id}/offline-payment`)}><CreditCard className="h-4 w-4 mr-2" />Offline Payment</DropdownMenuItem>
                     <DropdownMenuItem onClick={async () => { try { await sendEventReminderEmail(m.id); setSuccessMessage("Email sent."); } catch { setErrorMessage("Failed."); } }}><Mail className="h-4 w-4 mr-2" />Email Reminder</DropdownMenuItem>
-                    <DropdownMenuItem onClick={async () => { try { await sendEventReminderWhatsApp(m.id); setSuccessMessage("WhatsApp sent."); } catch { setErrorMessage("Failed."); } }}><MessageSquare className="h-4 w-4 mr-2" />WhatsApp Reminder</DropdownMenuItem>
                   </>)}
                 </DropdownMenuContent>
               </DropdownMenu>
@@ -141,7 +137,6 @@ export default function ClubEventMembersPage() {
             <TabsList><TabsTrigger value="paid">Paid ({paidMembers.length})</TabsTrigger><TabsTrigger value="unpaid">Unpaid ({unpaidMembers.length})</TabsTrigger></TabsList>
             {activeTab === "unpaid" && <div className="flex gap-2">
               <Button variant="outline" size="sm" onClick={async () => { setBulkSending(true); try { await bulkReminderEmail(linkId); setSuccessMessage("Sent."); } catch { setErrorMessage("Failed."); } setBulkSending(false); }} disabled={bulkSending}><Mail className="h-4 w-4 mr-1" />Bulk Email</Button>
-              <Button variant="outline" size="sm" onClick={async () => { setBulkSending(true); try { await bulkReminderWhatsApp(linkId); setSuccessMessage("Sent."); } catch { setErrorMessage("Failed."); } setBulkSending(false); }} disabled={bulkSending}><MessageSquare className="h-4 w-4 mr-1" />Bulk WhatsApp</Button>
             </div>}
           </div>
           <TabsContent value="paid">{renderTable(paidMembers, paidLoading, true)}</TabsContent>

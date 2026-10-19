@@ -4,7 +4,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { MapPin, LocateFixed, Search, Loader2 } from "lucide-react";
+import { MapPin, LocateFixed, Search, Loader2 } from "@/components/icons";
 
 // Leaflet CSS + JS are loaded dynamically to avoid SSR issues in Next.js.
 
@@ -243,8 +243,8 @@ export default function MapPicker({ open, onOpenChange, initialLat, initialLng, 
         <div ref={containerRef} className="w-full h-[60vh] rounded border" />
 
         <div className="text-sm flex items-center gap-4">
-          <span>Latitude: <span className="font-mono">{pickedLat != null ? pickedLat.toFixed(7) : "—"}</span></span>
-          <span>Longitude: <span className="font-mono">{pickedLng != null ? pickedLng.toFixed(7) : "—"}</span></span>
+          <span>Latitude: <span className="font-mono">{pickedLat != null ? pickedLat.toFixed(7) : "–"}</span></span>
+          <span>Longitude: <span className="font-mono">{pickedLng != null ? pickedLng.toFixed(7) : "–"}</span></span>
         </div>
 
         <DialogFooter>

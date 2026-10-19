@@ -31,7 +31,7 @@
 
 import { useEffect, useState } from "react";
 import { useParams, useSearchParams } from "next/navigation";
-import { Target, Users, UserPlus, Percent, Calendar } from "lucide-react";
+import { Target, Users, UserPlus, Percent, Calendar } from "@/components/icons";
 import {
   getDistrictMembershipGoal,
   saveDistrictMembershipGoal,
@@ -69,7 +69,7 @@ function SectionCard({
 }: { number: number; icon: React.ElementType; title: string; dot: string; children: React.ReactNode }) {
   return (
     <div className="rounded-xl border border-slate-200 mb-4 overflow-hidden">
-      <div className="flex items-center gap-3 px-4 py-2.5 bg-gradient-to-r from-slate-50 to-white border-b border-slate-100">
+      <div className="flex items-center gap-3 px-4 py-2.5 bg-slate-50 border-b border-slate-100">
         <div className={`flex items-center justify-center h-7 w-7 rounded-full text-white text-xs font-bold ${dot}`}>{number}</div>
         <Icon className="h-4 w-4 text-slate-500" />
         <h3 className="text-sm font-semibold text-slate-800">{title}</h3>
@@ -326,7 +326,7 @@ export default function DistrictMembershipGoalV2EditPage() {
             <input
               type="text"
               readOnly
-              value={currentTotal == null ? "—" : currentTotal.toLocaleString()}
+              value={currentTotal == null ? "–" : currentTotal.toLocaleString()}
               className="w-full rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700"
             />
             <p className="mt-1 text-[11px] text-slate-500">

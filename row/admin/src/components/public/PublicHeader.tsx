@@ -11,7 +11,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Menu, X, Phone, Mail, Clock } from "lucide-react";
+import { Menu, X, Phone, Mail, Clock } from "@/components/icons";
 import { merchantFrom } from "@/lib/merchantInfo";
 import { telHref } from "@/lib/brand";
 import { useBrand } from "@/contexts/BrandContext";
@@ -25,7 +25,7 @@ const NAV_LINKS: { label: string; href: string }[] = [
   { label: "Contact", href: "/contact-us" },
 ];
 
-const BRAND_NAVY = "#1e3a5f";
+const BRAND_NAVY = "#17458f";
 const BRAND_GOLD = "#F7A81B";
 
 export default function PublicHeader() {
@@ -67,7 +67,7 @@ export default function PublicHeader() {
         <div className="flex h-16 items-center justify-between gap-4">
           {/* Brand */}
           <Link href="/" className="flex items-center gap-3 flex-shrink-0">
-            <BrandLogo tone="dark" className="h-9 w-auto" textClassName="text-[#1e3a5f]" />
+            <BrandLogo tone="dark" className="h-9 w-auto" textClassName="text-ink" />
             <span className="hidden lg:inline text-xs font-semibold tracking-wide" style={{ color: BRAND_NAVY }}>
               {brand.productName}
             </span>

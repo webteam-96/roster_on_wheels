@@ -18,7 +18,7 @@ import {
 } from "@/components/ui/select";
 import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
-import { ArrowLeft, Upload, X } from "lucide-react";
+import { ArrowLeft, Upload, X } from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
 import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";
@@ -255,7 +255,7 @@ export default function EditModulePage() {
                     <Label htmlFor="assignToAll" className="font-medium">Assign to all districts / clubs now</Label>
                   </div>
                   <p className="text-xs text-muted-foreground">
-                    Leave unchecked for a normal edit — existing per-district/club assignments stay untouched.
+                    Leave unchecked for a normal edit: existing per-district/club assignments stay untouched.
                     Check it only if you want to push this module to every district and/or club (per the Module
                     Level above) right now. It never removes existing assignments.
                   </p>

@@ -45,7 +45,6 @@ public class PublicWalletController : ControllerBase
 
     private static string? CreditTypeFor(string purpose) => purpose switch
     {
-        "whatsapp" => "WhatsApp",
         "email" => "Email",
         _ => null,
     };
@@ -112,7 +111,7 @@ public class PublicWalletController : ControllerBase
             return BadRequest(new { message = error ?? "Invalid link." });
         if (t.Scope != "club" && t.Scope != "district")
             return BadRequest(new { message = "Invalid link." });
-        if (t.Purpose != "website" && t.Purpose != "whatsapp" && t.Purpose != "email")
+        if (t.Purpose != "website" && t.Purpose != "email")
             return BadRequest(new { message = "Invalid link." });
         if (t.Purpose == "website" && t.Scope != "club")
             return BadRequest(new { message = "Invalid link." });

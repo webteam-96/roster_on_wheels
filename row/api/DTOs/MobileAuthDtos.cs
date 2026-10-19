@@ -19,6 +19,22 @@ public class MobileVerifyOtpDto
     public string? AppVersion { get; set; }
 }
 
+/// Email + password sign-in for every member (ROW, 2026-10-19). Device fields as in verify-otp.
+public class MobilePasswordLoginDto
+{
+    public string Email { get; set; } = "";
+    public string Password { get; set; } = "";
+    public string? Imei { get; set; }
+    public string? DeviceToken { get; set; }
+    public string? DeviceName { get; set; }
+    public string? AppVersion { get; set; }
+}
+
+public class MobileForgotPasswordDto
+{
+    public string Email { get; set; } = "";
+}
+
 public class MobileLogoutDto
 {
     public string? Imei { get; set; }

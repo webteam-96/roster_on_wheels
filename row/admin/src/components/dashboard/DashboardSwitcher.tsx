@@ -3,7 +3,7 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useRouter, useSearchParams } from "next/navigation";
-import { ArrowLeftRight, Check, ChevronUp, Building2, Search } from "lucide-react";
+import { ArrowLeftRight, Check, ChevronUp, Building2, Search } from "@/components/icons";
 import { resolveDashboardLanding, getDistrictAllClubsForAdmin, type DashboardEntry } from "@/services/api";
 import { useAuth } from "@/contexts/AuthContext";
 import RotaryLoader from "@/components/RotaryLoader";
@@ -60,7 +60,7 @@ function scopeSuffix(e: DashboardEntry): string {
 function friendlyLabel(e: DashboardEntry): string {
   const suffix = scopeSuffix(e);
   if (!suffix) return e.label;
-  return `${e.label} — ${suffix}`;
+  return `${e.label}: ${suffix}`;
 }
 
 // Short scope-only label used inside a grouped role section (the role header
@@ -368,7 +368,7 @@ export default function DashboardSwitcher({ currentKind, onNavigate }: Dashboard
       ref={portalRef}
       onMouseDown={(e) => e.stopPropagation()}
       className="rounded-lg shadow-2xl overflow-hidden border border-white/10"
-      style={{ backgroundColor: "#1e293b" }}
+      style={{ backgroundColor: "#1b2c42" }}
     >
       <p className="px-3 py-2 text-[10px] font-bold text-slate-500 uppercase tracking-widest border-b border-white/10">
         Switch dashboard
@@ -453,7 +453,7 @@ export default function DashboardSwitcher({ currentKind, onNavigate }: Dashboard
                 ))}
                 {daHidden > 0 && (
                   <li className="px-3 py-1.5 text-[10px] text-slate-500">
-                    +{daHidden} more — type to narrow
+                    +{daHidden} more: type to narrow
                   </li>
                 )}
               </>

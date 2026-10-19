@@ -132,17 +132,6 @@ public class NewsletterService : INewsletterService
         // Pre-check WhatsApp credits BEFORE insert (block save if insufficient)
         int memberCountForCheck = 0;
         int refundEntityIdForCheck = districtId ?? clubId;
-        if (dto.IsSendWhatsapp && refundEntityIdForCheck > 0)
-        {
-            memberCountForCheck = await CountRecipientsAsync(connection, clubId, districtId);
-            if (memberCountForCheck > 0)
-            {
-                using var scope = _scopeFactory.CreateScope();
-                var creditSvc = scope.ServiceProvider.GetRequiredService<ICreditManagementService>();
-                if (!await creditSvc.HasSufficientCreditsAsync(refundEntityIdForCheck, "WhatsApp", memberCountForCheck))
-                    throw new InvalidOperationException($"Insufficient WhatsApp credits. Need {memberCountForCheck} credit(s).");
-            }
-        }
 
         // Pre-check Email credits BEFORE insert (parity with WhatsApp; counts members with an email).
         if (dto.IsSendEmail && refundEntityIdForCheck > 0)
@@ -180,7 +169,7 @@ public class NewsletterService : INewsletterService
             dto.AttachmentType,
             dto.LinkUrl,
             dto.FilePath,
-            IsSendWhatsapp = dto.IsSendWhatsapp ? 1 : 0,
+            IsSendWhatsapp = 0,
             IsSendEmail = dto.IsSendEmail ? 1 : 0,
             CreatedBy = createdBy
         });
@@ -254,8 +243,8 @@ public class NewsletterService : INewsletterService
         int clubIdForCheck = prior != null ? (int)prior.fk_club_id : 0;
         int? districtIdForCheck = prior != null && prior.fk_district_id != null ? (int?)prior.fk_district_id : null;
         int refundEntityIdForCheck = districtIdForCheck ?? clubIdForCheck;
-        bool newlyTurnedOn = dto.IsSendWhatsapp && !priorWhatsapp && !alreadySent;
-        bool resendOnDateChange = dto.IsSendWhatsapp && alreadySent && dto.PublishDateTime > DateTime.Now;
+        bool newlyTurnedOn = false && !priorWhatsapp && !alreadySent;
+        bool resendOnDateChange = false && alreadySent && dto.PublishDateTime > DateTime.Now;
         if ((newlyTurnedOn || resendOnDateChange) && refundEntityIdForCheck > 0)
         {
             memberCountForCheck = await CountRecipientsAsync(connection, clubIdForCheck, districtIdForCheck);
@@ -296,7 +285,7 @@ public class NewsletterService : INewsletterService
                 p_AttachmentType = dto.AttachmentType,
                 p_LinkUrl = dto.LinkUrl,
                 p_FilePath = dto.FilePath,
-                p_IsSendWhatsapp = dto.IsSendWhatsapp ? 1 : 0,
+                p_IsSendWhatsapp = 0,
                 p_ModifiedBy = modifiedBy
             },
             commandType: CommandType.StoredProcedure);
