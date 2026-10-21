@@ -739,6 +739,8 @@ Mapped {api/event-payment-links/{linkId}/create-google-sheet, Post}
 Mapped {api/event-payment-links/{linkId}/settlement-refresh, Post}
 Mapped {api/event-payment-links/{linkId}/settlement-report, Get}
 Mapped {api/event-payment-links/{linkId}/members/export, Get}
+Mapped {api/features, Get}
+Mapped {api/features/{key}, Put}
 Mapped {api/mobile/find-rotarian, Get}
 Mapped {api/mobile/find-rotarian/{memberId}, Get}
 Mapped {api/funding, Get}

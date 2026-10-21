@@ -30,7 +30,14 @@ RotaryApi.Services.Brand.Init(builder.Configuration);
 // Add services to the container. The convention opens CORS (PublicOpen policy) on every controller
 // routed under api/public — see PublicCorsControllerConvention.
 // Per-IP limit for the public sign-in endpoints marked [EnableRateLimiting("auth")]: 10 a minute.
-// shortcut: partitions by the connecting IP; behind a reverse proxy add ForwardedHeaders first, or every client shares one bucket.
+// Partitions by the client IP. Behind a reverse proxy, list the proxy's networks in ForwardedHeaders:KnownNetworks
+// (CIDR, e.g. ForwardedHeaders__KnownNetworks__0=10.0.0.0/16) so X-Forwarded-For is trusted; loopback is trusted by default.
+builder.Services.Configure<Microsoft.AspNetCore.Builder.ForwardedHeadersOptions>(o =>
+{
+    o.ForwardedHeaders = Microsoft.AspNetCore.HttpOverrides.ForwardedHeaders.XForwardedFor | Microsoft.AspNetCore.HttpOverrides.ForwardedHeaders.XForwardedProto;
+    foreach (var cidr in builder.Configuration.GetSection("ForwardedHeaders:KnownNetworks").Get<string[]>() ?? [])
+        o.KnownIPNetworks.Add(System.Net.IPNetwork.Parse(cidr));
+});
 builder.Services.AddRateLimiter(o =>
 {
     o.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
@@ -349,6 +356,7 @@ builder.Services.AddDataProtection()
     .PersistKeysToFileSystem(new DirectoryInfo(Path.Combine(builder.Environment.ContentRootPath, "App_Data", "dp-keys")));
 
 var app = builder.Build();
+app.UseForwardedHeaders(); // first, so the rate limiter, audit log and HTTPS checks see the real client
 
 // Startup banner — tells the morning admin which background services are
 // armed without having to grep the codebase. Visible in stdout / Plesk log
@@ -664,6 +672,7 @@ app.Use(async (ctx, next) =>
 });
 
 app.UseCors();
+app.UseMiddleware<RotaryApi.Services.FeatureGateMiddleware>(); // skipped / switched-off modules answer 404
 app.UseRateLimiter();
 app.UseAuthentication();
 app.UseAuthorization();

@@ -8,6 +8,7 @@ import { LayoutGrid, Settings, Calendar, Globe, Palette, Target, Layers, GitBran
 import { useRouter } from "next/navigation";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { useFeature } from "@/contexts/BrandContext";
+import { useIsPathOff } from "@/components/FeatureGate";
 import RotaryLoader from "@/components/RotaryLoader";
 
 interface SettingsCard {
@@ -219,6 +220,12 @@ const settingsCards: SettingsCard[] = [
     href: "/settings/translations",
   },
   {
+    title: "Features",
+    description: "Switch flagged modules on or off for the whole platform",
+    icon: ShieldCheck,
+    href: "/settings/features",
+  },
+  {
     title: "Designations",
     description: "Manage board of directors designations",
     icon: Settings,
@@ -294,11 +301,13 @@ export default function SettingsPage() {
   const [navigatingHref, setNavigatingHref] = useState<string | null>(null);
   const walletOn = useFeature("modules.wallet");
   const zonalAwardsOn = useFeature("modules.zonalAwards");
+  const isPathOff = useIsPathOff();
   // Modules switched off for this instance are hidden as well.
   const hidden = new Set<string>([
     ...HIDDEN_HREFS,
     ...(walletOn ? [] : ["/settings/wallet"]),
     ...(zonalAwardsOn ? [] : ["/settings/zonal-awards"]),
+    ...settingsCards.map((c) => c.href).filter(isPathOff),
   ]);
 
   // Pinned quick-access modules — always shown as small cards in one row above the listing (in this

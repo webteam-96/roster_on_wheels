@@ -14,6 +14,7 @@
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/contexts/AuthContext";
+import { useFeatureOn } from "@/components/FeatureGate";
 
 type TabKey = "cmr" | "pps" | "citation" | "reports";
 
@@ -56,6 +57,8 @@ export default function DistrictEgovernanceTabBar() {
   const searchParams = useSearchParams();
   const { selectedDistrictId } = useAuth();
   const active = activeTabFromPath(pathname, searchParams.get("tab"));
+  // ROW module switches (components/FeatureGate): skipped or switched-off modules lose their tab
+  const tabOn: Record<TabKey, boolean> = { cmr: useFeatureOn("club_monthly_report"), pps: useFeatureOn("pph_camps"), citation: true, reports: true };
   const yearId = resolveYearId(searchParams);
 
   // districtId: from /districts/{id}/… path, else ?districtId= query (used when a
@@ -88,7 +91,7 @@ export default function DistrictEgovernanceTabBar() {
             className="h-auto flex-wrap gap-1 p-1.5"
             style={{ backgroundColor: "#17458f" }}
           >
-            {TAB_KEYS.map((k) => (
+            {TAB_KEYS.filter((k) => tabOn[k]).map((k) => (
               <TabsTrigger
                 key={k}
                 value={k}

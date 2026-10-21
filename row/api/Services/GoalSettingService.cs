@@ -1013,6 +1013,8 @@ public class GoalSettingService : IGoalSettingService
     private async Task<GoalLockStatusDto> GetLockAsync(
         MySqlConnection conn, string entityType, int clubId, int districtId, int categoryId, int yearId)
     {
+        // ROW skips district goal locks: a lock left in synced data must not freeze a district's targets
+        if (entityType == "District" && FeatureGate.IsSkipped("goal_lock")) return new GoalLockStatusDto { IsLocked = false };
         var row = await conn.QueryFirstOrDefaultAsync<dynamic>(@"
             SELECT l.IsLocked AS isLocked, m.MemberName AS lockedByName,
                    DATE_FORMAT(l.LockedDate, '%Y-%m-%d %H:%i') AS lockedDate

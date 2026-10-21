@@ -23,6 +23,7 @@ public class ProjectApprovalController : ControllerBase
     public async Task<ActionResult> HasModerator(int clubId)
     {
         if (!await RotaryApi.Services.KillSwitchHelper.IsClubDrillReachableAsync(_connectionString, clubId)) return StatusCode(403, new { message = "This club, its district, or its zone is inactive. Reactivate it first to access this data." });
+        if (RotaryApi.Services.FeatureGate.IsSkipped("club_moderation")) return Ok(new { hasModerator = false, moderatorName = (string?)null });
         var (hasModerator, moderatorName) = await _approvalService.GetModeratorInfoAsync(clubId);
         return Ok(new { hasModerator, moderatorName });
     }

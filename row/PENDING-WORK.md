@@ -195,6 +195,25 @@ reach the private repo. As a result, `kb/` diffs against the local copy show 10 
 | ShrigodaPartner (1) | RIZones partner integration |
 | Rotary.org member-sweep worker (separate `.exe`) | A separate RIZones program, not part of the API; the launch endpoints are ported and run whatever `RotaryOrgSync:WorkerExePath` points at |
 
+### 11a. Module scope from the user's sheet (2026-10-21)
+
+Source: Google Sheet "RotaryIndia_Modules_and_Labels", tabs "Modules by Role" and "District Admin". The user's
+rules:
+
+| Colour | Meaning | Modules |
+|---|---|---|
+| Red | Skip: hide from menus and the app, and the API refuses calls. Code stays. | Club Moderator Dashboard, RI Director Dashboard, Zonal Dashboard, Zonal Awards, Goal Lock / Unlock, Goal Setting Roles, Directory Data Collection, Zone / RI Director Reports, Direct Beneficiary Approvals, PPH Camps, Project Approval (Moderation), Categories & Sub-categories, Direct Beneficiaries Limit, Market Place |
+| Orange, and yellow on the District Admin tab | Build, but hidden behind a flag until asked for (SuperAdmin switches it on) | OCV / Governor Visit, Foundation Goals, Sub Groups, CMR Submission Email Settings, Club Excellence / Youth Tracking, Club Monthly Report |
+| Yellow on Modules by Role | Payments: wait for Wave 2 (Stripe) | District Dues, Dues Approval, Event Payment Links, Membership Dues, My Membership Dues, Payment Gateway Setup, Wallet & Credits |
+| Green / uncoloured | Build normally | everything else |
+
+Red wins where the tabs disagree (Club Moderator Dashboard and Project Approval are skipped). Open note on the sheet:
+Foundation Goals "Is this coming from RI ?".
+
+Built 2026-10-21 (web): see "Module switches" in `ROW-CHANGES.md`. Every page the sheet lists for a green module exists
+in the admin (only the removed WhatsApp pages do not). Still to do: hide the same modules in the mobile app (the API
+already refuses their calls); Payments wait for Stripe.
+
 ## 12. Open decisions that hold work back
 
 Full details are in `row/STATUS.md` §8 and `row/ROW-CHANGES.md`.

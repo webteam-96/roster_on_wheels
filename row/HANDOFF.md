@@ -39,6 +39,10 @@ Plan: `docs/superpowers/plans/2026-10-19-wave1-foundations.md`.
 
 Details: `row/ROW-CHANGES.md` (2026-10-21) and the wave 1 ledger. Wave 1 Tasks 1 to 6 are all done.
 
+Later on 2026-10-21 (not committed yet when written): go-live security fixes (members API needs sign-in, web
+sign-in rate-limited, forwarded headers, no default SuperAdmin password) and module switches from the user's module
+sheet (PENDING-WORK §11a; Settings > Features; e2e `kb/tools/feature_gate_e2e.py`).
+
 ## Next task
 
 Wave 1 and its wrap-up are done (STATUS §6d, PENDING-WORK §1/§7, design plan Task 10 gates green 2026-10-21).
@@ -58,7 +62,9 @@ scope (needs the user's list), and committing this work (only when the user asks
   user whether to version it before relying on history.
 - The scope write guard is path-based: endpoints that take the club or district id in the body or query are not
   covered (list in `ROW-CHANGES.md`).
-- The auth rate limiter needs ForwardedHeaders configured once ROW runs behind a proxy.
+- Behind a proxy, set `ForwardedHeaders__KnownNetworks__0=<proxy CIDR>` or every client shares one rate-limit bucket.
+- A fresh database gets a SuperAdmin login only when `Bootstrap__SuperAdminPassword` (12+ characters) is set.
+- The repo is public and its history holds old demo logins: rotate any password that was ever committed.
 - Database columns named after WhatsApp are kept (no destructive migration); only sending, granting and buying
   were removed.
 - `row/mobile/.../welcome_screen.dart` (around line 228) holds a stray personal note in a code comment about
@@ -85,7 +91,7 @@ scope (needs the user's list), and committing this work (only when the user asks
 ## Checks to run after changes
 
 - API: `dotnet build`; e2e: `python kb/tools/<name>_e2e.py` for `no_whatsapp`, `scope_write_guard`,
-  `meeting_mode`, `mobile_password_login`, `audit_immutable`, `tenant_lifecycle`, `i18n_catalogue` (run them a minute apart: the auth rate limit is
+  `meeting_mode`, `mobile_password_login`, `audit_immutable`, `tenant_lifecycle`, `i18n_catalogue`, `feature_gate` (run them a minute apart: the auth rate limit is
   10 logins per minute per IP).
 - Admin: `npx tsc --noEmit -p tsconfig.json`, `npx vitest run`, `node scripts/check-design.mjs`.
 - App: `flutter analyze` (errors print as `  error -`), `flutter test`.

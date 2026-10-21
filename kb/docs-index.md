@@ -86,7 +86,7 @@ open the file for the text. Do not edit by hand.
   -   Known gaps and flags
   -   Run locally (dev only)
   -   Checks to run after changes
-- **row/PENDING-WORK.md** (15 KB)
+- **row/PENDING-WORK.md** (17 KB)
   - ROW — Pending Work and Why
   -   1. Summary
   -   2. Payments (largest backend gap)
@@ -110,7 +110,7 @@ open the file for the text. Do not edit by hand.
   -   Configuration (set per server as environment variables; never commit values)
   -   Checks
   -   Refreshing from a newer RIZones copy
-- **row/ROW-CHANGES.md** (33 KB)
+- **row/ROW-CHANGES.md** (35 KB)
   - ROW changes to consider later
   -   Security and privacy
   -   Providers

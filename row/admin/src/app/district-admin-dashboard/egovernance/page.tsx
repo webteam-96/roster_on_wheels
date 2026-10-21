@@ -63,6 +63,7 @@ import DistrictReportContent from "@/components/dashboard/DistrictReportContent"
 import { DistrictZonalAwardsView } from "@/app/districts/[id]/zonal-awards/view";
 import { DistrictRotaryNetworkView } from "@/app/district-admin-dashboard/rotary-network/view";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useFeatureOn } from "@/components/FeatureGate";
 import { getDistrictCmrEmailSettings, saveDistrictCmrEmailSettings } from "@/services/api";
 import { Mail, Settings } from "@/components/icons";
 import {
@@ -235,13 +236,19 @@ export default function DistrictAdminEGovernancePage() {
   // Tab can be deep-linked via ?tab=citation (also accepts club_points which
   // maps onto the citation sub-tab — used by the V2 club page's Back URL).
   const tabParam = searchParams.get("tab");
+  // ROW module switches (components/FeatureGate): skipped or switched-off modules lose their tab
+  const on = {
+    cmr: useFeatureOn("club_monthly_report"),
+    pps: useFeatureOn("pph_camps"),
+    zonal: useFeatureOn("zonal_awards"),
+  };
   const initialTab: "cmr" | "pps" | "zonal" | "citation" | "network" | "reports" =
-    tabParam === "zonal" ? "zonal"
+    tabParam === "zonal" && on.zonal ? "zonal"
     : tabParam === "citation" || tabParam === "club_points" ? "citation"
-    : tabParam === "pps" ? "pps"
+    : tabParam === "pps" && on.pps ? "pps"
     : tabParam === "network" ? "network"
     : tabParam === "reports" ? "reports"
-    : "cmr";
+    : on.cmr ? "cmr" : "citation";
   const [activeTab, setActiveTab] = useState<
     "cmr" | "pps" | "zonal" | "citation" | "network" | "reports"
   >(initialTab);
@@ -286,9 +293,9 @@ export default function DistrictAdminEGovernancePage() {
               className="h-auto w-full justify-start sm:w-auto p-1.5 gap-1"
               style={{ backgroundColor: "#17458f" }}
             >
-              <TabsTrigger value="cmr" className="text-sm font-semibold px-3.5 py-1.5 rounded-md text-white hover:bg-white/10 data-[state=active]:bg-marigold data-[state=active]:text-ink data-[state=active]:shadow-sm">Club Monthly Report</TabsTrigger>
-              <TabsTrigger value="pps" className="text-sm font-semibold px-3.5 py-1.5 rounded-md text-white hover:bg-white/10 data-[state=active]:bg-marigold data-[state=active]:text-ink data-[state=active]:shadow-sm">PPH Camp</TabsTrigger>
-              <TabsTrigger value="zonal" className="text-sm font-semibold px-3.5 py-1.5 rounded-md text-white hover:bg-white/10 data-[state=active]:bg-marigold data-[state=active]:text-ink data-[state=active]:shadow-sm">Zonal Awards</TabsTrigger>
+              {on.cmr && <TabsTrigger value="cmr" className="text-sm font-semibold px-3.5 py-1.5 rounded-md text-white hover:bg-white/10 data-[state=active]:bg-marigold data-[state=active]:text-ink data-[state=active]:shadow-sm">Club Monthly Report</TabsTrigger>}
+              {on.pps && <TabsTrigger value="pps" className="text-sm font-semibold px-3.5 py-1.5 rounded-md text-white hover:bg-white/10 data-[state=active]:bg-marigold data-[state=active]:text-ink data-[state=active]:shadow-sm">PPH Camp</TabsTrigger>}
+              {on.zonal && <TabsTrigger value="zonal" className="text-sm font-semibold px-3.5 py-1.5 rounded-md text-white hover:bg-white/10 data-[state=active]:bg-marigold data-[state=active]:text-ink data-[state=active]:shadow-sm">Zonal Awards</TabsTrigger>}
               <TabsTrigger value="citation" className="text-sm font-semibold px-3.5 py-1.5 rounded-md text-white hover:bg-white/10 data-[state=active]:bg-marigold data-[state=active]:text-ink data-[state=active]:shadow-sm">District Awards</TabsTrigger>
               <TabsTrigger value="network" className="text-sm font-semibold px-3.5 py-1.5 rounded-md text-white hover:bg-white/10 data-[state=active]:bg-marigold data-[state=active]:text-ink data-[state=active]:shadow-sm">Rotary Network</TabsTrigger>
               <TabsTrigger value="reports" className="text-sm font-semibold px-3.5 py-1.5 rounded-md text-white hover:bg-white/10 data-[state=active]:bg-marigold data-[state=active]:text-ink data-[state=active]:shadow-sm">Reports</TabsTrigger>
@@ -592,6 +599,7 @@ function MonthlySummary({
   const router = useRouter();
   const searchParams = useSearchParams();
   const yearId = searchParams.get("yearId");
+  const cmrEmailOn = useFeatureOn("cmr_email_settings");
   // Month name → calendar month number (Jul=7 … Jun=6).
   const MONTH_TO_NUM: Record<string, number> = {
     July: 7, August: 8, September: 9, October: 10, November: 11, December: 12,
@@ -609,7 +617,7 @@ function MonthlySummary({
       <div className="px-5 py-3 border-b border-slate-100 flex items-center justify-between flex-wrap gap-2">
         <div>
           <div className="flex items-center gap-1.5">
-            <CmrEmailSettingsButton districtId={districtId} />
+            {cmrEmailOn && <CmrEmailSettingsButton districtId={districtId} />}
             <h4 className="text-sm font-semibold text-slate-800">
               District Summary: By Month
             </h4>

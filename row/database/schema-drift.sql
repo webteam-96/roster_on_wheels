@@ -130,3 +130,11 @@ CREATE TABLE IF NOT EXISTS i18n_strings (
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     UNIQUE KEY uk_i18n_string (locale, namespace, msg_key)
 );
+
+-- Platform-wide switches for flagged modules (api/Services/FeatureGate.cs); no row = off. 2026-10-21.
+CREATE TABLE IF NOT EXISTS platform_features (
+    feature_key VARCHAR(50) NOT NULL PRIMARY KEY,
+    enabled TINYINT(1) NOT NULL DEFAULT 0,
+    modified_by INT NULL,
+    modified_date DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);

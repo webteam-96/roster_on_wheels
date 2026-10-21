@@ -1,5 +1,6 @@
 "use client";
 
+import { useFeatureOn } from "@/components/FeatureGate";
 import { useState } from "react";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import { ClipboardList } from "@/components/icons";
@@ -45,10 +46,12 @@ export default function ClubAdminEGovernancePage() {
   const router = useRouter();
   const pathname = usePathname();
 
+  // ROW module switches (components/FeatureGate): skipped or switched-off modules lose their tab
+  const tabOn = useEGovTabsOn();
   // Active tab from URL ?tab= — default "cmr" (Club Monthly Report).
   const initialTab: EGovTab = (() => {
     const t = searchParams?.get("tab");
-    return isEGovTab(t) ? t : "cmr";
+    return isEGovTab(t) && tabOn[t] ? t : tabOn.cmr ? "cmr" : "attendance";
   })();
   const [activeTab, setActiveTab] = useState<EGovTab>(initialTab);
 
@@ -116,14 +119,21 @@ export default function ClubAdminEGovernancePage() {
 }
 
 // ── Tab strip — navy/gold pills, active state (mirrors Communication) ────────
+function useEGovTabsOn(): Record<EGovTab, boolean> {
+  const cmr = useFeatureOn("club_monthly_report");
+  const ocv = useFeatureOn("ocv");
+  return { cmr, ocv, dues: true, attendance: true, awards: true, network: true, reports: true };
+}
+
 function EGovTabBar({ active, onChange }: { active: EGovTab; onChange: (k: EGovTab) => void }) {
+  const tabOn = useEGovTabsOn();
   return (
     <div className="overflow-x-auto">
       <div
         className="inline-flex items-center gap-1 rounded-xl p-1.5"
         style={{ backgroundColor: "#17458f" }}
       >
-        {EGOV_TABS.map((t) => {
+        {EGOV_TABS.filter((t) => tabOn[t.key]).map((t) => {
           const isActive = active === t.key;
           return (
             <button

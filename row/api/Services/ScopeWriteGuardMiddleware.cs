@@ -40,6 +40,7 @@ public class ScopeWriteGuardMiddleware
         ("/api/tenants", new[] { 3 }),
         ("/api/editions", new[] { 3 }),
         ("/api/i18n", new[] { 3 }),
+        ("/api/features", new[] { 3 }),
     };
 
     public async Task InvokeAsync(HttpContext ctx)

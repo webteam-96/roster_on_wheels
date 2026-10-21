@@ -7824,3 +7824,20 @@ export async function getConsentStatus(): Promise<ConsentStatus> {
 export async function acceptConsent(policyVersion: string, language: string): Promise<void> {
   await api.post("/api/privacy/consent", { policyVersion, language });
 }
+
+// Platform module switches (api/Services/FeatureGate.cs): skipped modules stay off, flagged ones a SuperAdmin turns on.
+export interface PlatformFeature {
+  key: string;
+  label: string;
+  kind: "skipped" | "flagged";
+  enabled: boolean;
+  adminPaths: string[];
+}
+
+export async function getFeatures(): Promise<PlatformFeature[]> {
+  return (await api.get("/api/features")).data;
+}
+
+export async function setFeature(key: string, enabled: boolean) {
+  await api.put(`/api/features/${encodeURIComponent(key)}`, { enabled });
+}

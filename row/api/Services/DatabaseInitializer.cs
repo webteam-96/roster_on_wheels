@@ -4613,6 +4613,15 @@ public partial class DatabaseInitializer
                         UNIQUE KEY uk_i18n_string (locale, namespace, msg_key)
                     )");
 
+                // Platform-wide switches for flagged modules (Services/FeatureGate.cs); no row = off.
+                await connection.ExecuteAsync(@"
+                    CREATE TABLE IF NOT EXISTS platform_features (
+                        feature_key VARCHAR(50) NOT NULL PRIMARY KEY,
+                        enabled TINYINT(1) NOT NULL DEFAULT 0,
+                        modified_by INT NULL,
+                        modified_date DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+                    )");
+
                 // Sync exception log — every collision/parse error/duplicate during member sync
                 // gets written here so admin can review + resolve. No DROP — additive only,
                 // history preserved across deploys.
@@ -6626,7 +6635,15 @@ public partial class DatabaseInitializer
                 new { Id = memberId });
             if (credExists == 0)
             {
-                var passwordHash = BCrypt.Net.BCrypt.HashPassword("Admin@123");
+                // No built-in default: the first password comes from the environment (Bootstrap__SuperAdminPassword),
+                // is marked temporary, and must be changed at first sign-in.
+                var initial = _configuration["Bootstrap:SuperAdminPassword"];
+                if (string.IsNullOrWhiteSpace(initial) || initial.Length < 12)
+                {
+                    _logger.LogWarning("SuperAdmin member {Id} has no login. Set Bootstrap__SuperAdminPassword (12+ characters) and restart to create one.", memberId);
+                    return;
+                }
+                var passwordHash = BCrypt.Net.BCrypt.HashPassword(initial);
                 var updated = await connection.ExecuteAsync(
                     "UPDATE member_credentials SET IsActive = 1, isdeleted = 0, PasswordHash = @Hash, IsTemporaryPassword = 1 WHERE fk_member_master_profile_id = @Id",
                     new { Id = memberId, Hash = passwordHash });

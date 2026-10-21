@@ -79,8 +79,8 @@ public class ProjectApprovalService : IProjectApprovalService
         if (string.IsNullOrEmpty(moduleKey) || !ApprovalModuleKeys.Contains(moduleKey))
             return;
 
-        // Check if club has a moderator
-        var moderator = await conn.QueryFirstOrDefaultAsync<dynamic>(@"
+        // Check if club has a moderator (none when ROW skips moderation, so projects never wait for approval)
+        var moderator = FeatureGate.IsSkipped("club_moderation") ? null : await conn.QueryFirstOrDefaultAsync<dynamic>(@"
             SELECT dcm.fk_member_id AS moderatorId, m.MemberName AS moderatorName, m.EmailId AS moderatorEmail
             FROM district_club_moderator dcm
             JOIN member_master_profile m ON m.pk_member_master_profile_id = dcm.fk_member_id

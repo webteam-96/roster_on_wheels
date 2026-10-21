@@ -12,6 +12,22 @@ unless marked "done"; decide them when the area is worked on.
   the zone's ZonalCoordinator), and limits RI Director, master-data and mass-email-media writes to their roles.
   Roles come from `member_roles` on every write. E2E: `kb/tools/scope_write_guard_e2e.py`. Not covered: endpoints
   that take the club/district id in the body or query string (they rely on their own checks); review those next.
+- **No default SuperAdmin password** (done 2026-10-21). The initializer used to give the bootstrap SuperAdmin
+  (`Brand:SuperAdminEmail`) the password `Admin@123` whenever it had no active login. It now reads
+  `Bootstrap__SuperAdminPassword` from the environment (12+ characters, marked temporary); unset, it logs a
+  warning and creates no login.
+- **Web sign-in is rate-limited and proxy-aware** (done 2026-10-21). `api/auth/login`, `forgot-password` and
+  `reset-password` had no limit; they now use the `auth` policy (10 a minute per client IP). `UseForwardedHeaders`
+  runs first, so the limiter and audit log see the real client: list the proxy networks in
+  `ForwardedHeaders__KnownNetworks__0=<CIDR>` (loopback is trusted by default).
+- **Module switches** (done 2026-10-21, from the user's module sheet, PENDING-WORK §11a). `Services/FeatureGate.cs`
+  lists 11 skipped modules (code kept, API answers 404, admin hides them) and 6 flagged ones (off until a SuperAdmin
+  turns them on in Settings > Features; table `platform_features`, no row = off). The admin hides every link to an
+  off module and shows "Not available" on its pages (`components/FeatureGate.tsx`); tab-based pages (district and
+  club e-governance) drop the tab. So skipped modules leave no stuck data: with moderation skipped no project waits
+  for approval, district goal locks read as unlocked, and the direct-beneficiary limit reads as unset. Category
+  masters stay readable (project forms use them); only editing is closed. E2E: `kb/tools/feature_gate_e2e.py`.
+  Not done: the mobile app still shows these modules (their calls get 404).
 - **Swagger only in Development** (or `Swagger:Enabled=true`), and unhandled errors return a generic message
   outside Development (done 2026-10-19).
 - **Mobile sign-in is email + password for every member** (done 2026-10-19). RIZones members signed in to the
@@ -20,9 +36,8 @@ unless marked "done"; decide them when the area is worked on.
   lockout 5 / 15 min as the web) and `POST api/mobile/auth/forgot-password` (any member; same reset link as the
   web, which now creates the member's first password). Both are rate-limited per IP (`auth` policy, 10 a minute).
   E2E: `kb/tools/mobile_password_login_e2e.py`. The OTP endpoints remain but the app no longer uses them.
-- **Members API is anonymous** (`api/members` has no `[Authorize]` in RIZones):
-  anyone can list members, read and overwrite push tokens. Ported as-is.
-  Strongly recommended: require sign-in.
+- **Members API needs sign-in** (done 2026-10-21). In RIZones `api/members` had no `[Authorize]`: anyone could
+  list members, read and overwrite push tokens and upload files. Anonymous calls now get 401.
 - Blood group and family details: done behind flags `member.bloodGroup` /
   `member.familyDetails` in the members service (both on by default via
   configuration; ROW defaults them off). Revisit with counsel.

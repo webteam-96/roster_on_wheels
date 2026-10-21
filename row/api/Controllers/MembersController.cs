@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using RotaryApi.DTOs;
 using RotaryApi.Services;
@@ -5,6 +6,7 @@ using RotaryApi.Services;
 namespace RotaryApi.Controllers;
 
 [ApiController]
+[Authorize] // RIZones left this anonymous: anyone could list members, swap push tokens and upload files
 [Route("api/[controller]")]
 public class MembersController : ControllerBase
 {
