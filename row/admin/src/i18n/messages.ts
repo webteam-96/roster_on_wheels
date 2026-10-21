@@ -22,6 +22,40 @@ function deepMerge(base: Messages, over: Messages): Messages {
   return out;
 }
 
+/** One row of the string catalogue (API `GET api/i18n/{locale}`); key is a dotted path inside the namespace. */
+export type Override = { namespace: string; key: string; text: string; reviewed?: boolean };
+
+/**
+ * Overrides from the string catalogue (ROW Wave 1, build spec item 3) laid over loaded messages. Only namespaces
+ * already loaded are touched; keys without an override keep their bundled (English-backed) text.
+ */
+export function applyOverrides(messages: Messages, overrides: readonly Override[]): Messages {
+  const over: Messages = {};
+  for (const { namespace, key, text } of overrides) {
+    if (!(namespace in messages)) continue;
+    const path = [namespace, ...key.split(".")];
+    let node = over;
+    for (const part of path.slice(0, -1)) {
+      if (typeof node[part] !== "object") node[part] = {};
+      node = node[part] as Messages;
+    }
+    node[path[path.length - 1]] = text;
+  }
+  return deepMerge(messages, over);
+}
+
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+
+/** The catalogue overrides for a locale; none if the API is slow or down (bundled messages still show). */
+export async function fetchOverrides(locale: string): Promise<Override[]> {
+  try {
+    const res = await fetch(`${API_BASE_URL}/api/i18n/${encodeURIComponent(locale)}`, { signal: AbortSignal.timeout(3000) });
+    return res.ok ? ((await res.json()) as Override[]) : [];
+  } catch {
+    return [];
+  }
+}
+
 /** ICU-escape text inserted verbatim into a message (apostrophes and braces). */
 function icuEscape(text: string): string {
   return text.replace(/'/g, "''").replace(/[{}]/g, (c) => `'${c}'`);
@@ -47,14 +81,21 @@ export function fillBrandName(messages: Messages, brandName: string): Messages {
  * missing in a translation shows the English text instead of the key.
  */
 export async function loadRawMessages(locale: string, namespaces: readonly string[]): Promise<Messages> {
-  const entries = await Promise.all(
-    namespaces.map(async (ns) => {
-      const english = await loadOne(DEFAULT_LOCALE, ns);
-      const localized = locale === DEFAULT_LOCALE ? {} : await loadOne(locale, ns);
-      return [ns, deepMerge(english, localized)] as const;
-    }),
-  );
-  return Object.fromEntries(entries);
+  const [entries, englishOverrides, localeOverrides] = await Promise.all([
+    Promise.all(
+      namespaces.map(async (ns) => {
+        const english = await loadOne(DEFAULT_LOCALE, ns);
+        const localized = locale === DEFAULT_LOCALE ? {} : await loadOne(locale, ns);
+        return [ns, english, localized] as const;
+      }),
+    ),
+    fetchOverrides(DEFAULT_LOCALE),
+    locale === DEFAULT_LOCALE || isPseudo(locale) ? Promise.resolve([]) : fetchOverrides(locale),
+  ]);
+  // English (bundled + its overrides) under the locale (bundled + its overrides): a gap shows English, never a key.
+  const english = applyOverrides(Object.fromEntries(entries.map(([ns, en]) => [ns, en])), englishOverrides);
+  const localized = applyOverrides(Object.fromEntries(entries.map(([ns, , loc]) => [ns, loc])), localeOverrides);
+  return deepMerge(english, localized);
 }
 
 export async function loadMessages(locale: string, namespaces: readonly string[], brandName: string): Promise<Messages> {

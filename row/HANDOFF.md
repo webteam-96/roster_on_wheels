@@ -1,6 +1,6 @@
 # ROW: session handoff (read this first)
 
-Last session: **2026-10-19**. A new session starts here, then continues with **"Next task"** below without
+Last session: **2026-10-21**. A new session starts here, then continues with **"Next task"** below without
 re-reading whole codebases (use `kb/README.md` and the graphify commands in the root `CLAUDE.md`).
 
 ## Ground rules (from the user)
@@ -30,20 +30,23 @@ re-reading whole codebases (use `kb/README.md` and the graphify commands in the 
 Wave 1 ledger: `.superpowers/sdd/2026-10-19-wave1-foundations/progress.md` (git-ignored, local only).
 Plan: `docs/superpowers/plans/2026-10-19-wave1-foundations.md`.
 
+## Done on 2026-10-21
+
+- Wave 1 Task 5, tenant lifecycle and editions (Settings > Tenants, Settings > Editions), e2e
+  `kb/tools/tenant_lifecycle_e2e.py`, browser-checked.
+- Wave 1 Task 6, string catalogue (Settings > Translations, overrides merged into the admin's messages), e2e
+  `kb/tools/i18n_catalogue_e2e.py`, browser-checked.
+
+Details: `row/ROW-CHANGES.md` (2026-10-21) and the wave 1 ledger. Wave 1 Tasks 1 to 6 are all done.
+
 ## Next task
 
-**Wave 1 Task 5: tenant lifecycle and editions** (spec items 1 and 5). Full brief in the Wave 1 plan, Task 5:
-tables `edition_catalogue`, `edition_modules`, `tenant_subscriptions`; Super Admin APIs to edit editions and
-apply one to a district and its clubs (on/off module switches); planning state that refuses current-year writes;
-admin Tenants and Editions pages; an e2e script in `kb/tools/`.
-
-Then **Wave 1 Task 6: string catalogue** (`i18n_strings` table, `GET api/i18n/{locale}`, admin Translations
-editor, merge of overrides over bundled messages).
+Wave 1 and its wrap-up are done (STATUS §6d, PENDING-WORK §1/§7, design plan Task 10 gates green 2026-10-21).
+**Wave 2 (money) is blocked on a Stripe test account from the user.** Unblocked meanwhile: the district website
+scope (needs the user's list), and committing this work (only when the user asks).
 
 ## Still pending after Wave 1
 
-- Finish the Wave 1 wrap-up: update `row/STATUS.md` and `row/PENDING-WORK.md` (§6 WhatsApp is now done), design
-  plan Task 10 close-out.
 - Wave 2 money (needs a Stripe test account), Wave 3 data in/out (needs RI access and real export files),
   Waves 4 to 6: see the build spec plan.
 - Open decision C8 (Kaizen Events) blocks the Wave 4 event items.
@@ -65,7 +68,9 @@ editor, merge of overrides over bundled messages).
 
 ## Run locally (dev only)
 
-- MySQL 8.4 on port 3317, database `row_local` (data dir in the session scratchpad; recreate if missing).
+- MySQL 8.4 on port 3317, database `row_local`. Data dir (2026-10-21):
+  `C:\Users\USER\AppData\Local\Temp\claude\E--websites-row\90aa448c-26b5-4793-8f68-287ce64e72b4\scratchpad\rowdb\data`;
+  start: `mysqld --datadir=<that dir> --port=3317 --bind-address=127.0.0.1 --mysqlx=OFF --console`.
 - API: from `row/api`, set `ASPNETCORE_ENVIRONMENT=Development`, `ConnectionStrings__DefaultConnection` to the
   local database, a random `JwtSettings__Secret`, `Database__SkipInit=true`, then
   `dotnet run --urls http://0.0.0.0:5000`.
@@ -74,13 +79,13 @@ editor, merge of overrides over bundled messages).
 - Club website: `row/club-website`, `npx next dev -p 3001`, open `monrovia.localhost:3001`.
 - App: Flutter at `C:\src\flutter`, Android SDK at `C:\Users\USER\android`, emulator `afc_tablet`:
   `flutter run -d emulator-5554 --dart-define=API_BASE_URL=http://10.0.2.2:5000`.
-- Local test logins (demo data only) are in the `kb/tools/*_e2e.py` scripts. The demo club admin is now
+- Local test logins (demo data only) are in the `kb/tools/*_e2e.py` scripts; the newer ones read `ROW_E2E_SA_EMAIL`, `ROW_E2E_SA_PASSWORD`, `ROW_E2E_ADMIN_PASSWORD` from the environment. The demo club admin is now
   `samuel.tubman@monrovia.demo` (joseph.weah was erased by an earlier test run).
 
 ## Checks to run after changes
 
 - API: `dotnet build`; e2e: `python kb/tools/<name>_e2e.py` for `no_whatsapp`, `scope_write_guard`,
-  `meeting_mode`, `mobile_password_login`, `audit_immutable` (run them a minute apart: the auth rate limit is
+  `meeting_mode`, `mobile_password_login`, `audit_immutable`, `tenant_lifecycle`, `i18n_catalogue` (run them a minute apart: the auth rate limit is
   10 logins per minute per IP).
 - Admin: `npx tsc --noEmit -p tsconfig.json`, `npx vitest run`, `node scripts/check-design.mjs`.
 - App: `flutter analyze` (errors print as `  error -`), `flutter test`.

@@ -3,6 +3,7 @@ import { toast } from "@/hooks/use-toast";
 import { validateImagePhoto } from "@/utils/validateImagePhoto";
 import { fileTimestamp } from "@/lib/dateUtils";
 import { validateAndProcessUpload, UploadValidationError } from "@/lib/uploadValidate";
+import type { Override } from "@/i18n/messages";
 
 // ─── Project-wide upload caps ────────────────────────────────────────────────
 // Every upload* function below routes its incoming File through one of these
@@ -1875,6 +1876,62 @@ export async function searchZoneMembers(zoneId: number, search: string) {
 export async function getSystemSetting(key: string) {
   const response = await api.get(`/api/system-settings/${key}`);
   return response.data;
+}
+
+// ── Tenants and editions (ROW Wave 1, build spec items 1 and 5). SuperAdmin only. ──
+export interface Edition { code: string; name: string; moduleKeys: string[] }
+export interface TenantSubscription {
+  districtId?: number;
+  districtNumber?: string | null;
+  editionCode: string;
+  memberBand: string | null;
+  termStart: string | null;
+  termEnd: string | null;
+  state: "planning" | "live";
+  region: "US" | "EU" | "APAC" | "IN" | null;
+  bridgeStart: string | null;
+  bridgeEnd: string | null;
+  setupFeeWaived: boolean;
+  platformFeePct: number | null;
+  platformFeeFixed: number | null;
+  feeWaiverUntil: string | null;
+}
+export interface TenantDetail {
+  subscription: TenantSubscription | null;
+  clubs: { clubId: number; clubName: string | null; editionCode: string }[];
+}
+
+export async function getEditions(): Promise<Edition[]> {
+  return (await api.get("/api/editions")).data;
+}
+
+export async function updateEdition(code: string, name: string, moduleKeys: string[]) {
+  return (await api.put(`/api/editions/${encodeURIComponent(code)}`, { name, moduleKeys })).data;
+}
+
+export async function getTenant(districtId: number): Promise<TenantDetail> {
+  return (await api.get(`/api/tenants/${districtId}`)).data;
+}
+
+export async function setTenant(districtId: number, subscription: TenantSubscription) {
+  return (await api.put(`/api/tenants/${districtId}`, subscription)).data;
+}
+
+export async function applyTenantEdition(districtId: number): Promise<{ districtOn: number; districtOff: number; clubOn: number; clubOff: number }> {
+  return (await api.post(`/api/tenants/${districtId}/apply-edition`)).data;
+}
+
+// ── String catalogue (ROW Wave 1, build spec item 3). Reading is public; writing is SuperAdmin only. ──
+export async function getI18nOverrides(locale: string): Promise<Override[]> {
+  return (await api.get(`/api/i18n/${encodeURIComponent(locale)}`)).data;
+}
+
+export async function saveI18nOverride(locale: string, namespace: string, key: string, text: string, reviewed: boolean): Promise<Override> {
+  return (await api.put(`/api/i18n/${encodeURIComponent(locale)}/${encodeURIComponent(namespace)}/${encodeURIComponent(key)}`, { text, reviewed })).data;
+}
+
+export async function deleteI18nOverride(locale: string, namespace: string, key: string) {
+  await api.delete(`/api/i18n/${encodeURIComponent(locale)}/${encodeURIComponent(namespace)}/${encodeURIComponent(key)}`);
 }
 
 export async function upsertSystemSetting(settingKey: string, settingValue: string, description?: string) {

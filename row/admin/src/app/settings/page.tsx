@@ -201,6 +201,24 @@ const settingsCards: SettingsCard[] = [
     href: "/settings/module-master",
   },
   {
+    title: "Tenants",
+    description: "District subscriptions, planning state, apply editions",
+    icon: Layers,
+    href: "/settings/tenants",
+  },
+  {
+    title: "Editions",
+    description: "Modules each edition switches on",
+    icon: LayoutGrid,
+    href: "/settings/editions",
+  },
+  {
+    title: "Translations",
+    description: "Override interface strings per language",
+    icon: Globe,
+    href: "/settings/translations",
+  },
+  {
     title: "Designations",
     description: "Manage board of directors designations",
     icon: Settings,

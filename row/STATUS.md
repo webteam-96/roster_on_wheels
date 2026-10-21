@@ -1,6 +1,6 @@
 # ROW Build — Status and Handover
 
-Last updated: 2026-10-15 (session 5) · Branch: `main`
+Last updated: 2026-10-21 (Wave 1 done) · Branch: `main`
 
 > **Stack finalized 2026-10-15: Next.js frontend + ASP.NET Core (.NET) backend.** The NestJS port of the API
 > was deleted and the former `row-dotnet/` edition was promoted to the main `row/` folder, so there is now a
@@ -346,6 +346,24 @@ Rotaract out of district counts, mobile goal-setting parity); the admin portal d
   (`row/PENDING-WORK.md` §7). Open decision 12 (Meta templates) no longer applies.
 - **Tests:** both APIs on fresh databases answer all 382 parameterless GET routes with the same status class
   (`kb/tools/get_sweep.py`); builds, type checks, admin tests and identity lints clean (`kb/testing.md`).
+
+## 6d. Wave 1 of the build spec (2026-10-19 to 2026-10-21)
+
+Plan: `docs/superpowers/plans/2026-10-19-wave1-foundations.md`. All six tasks done, each with an e2e script in
+`kb/tools/` (details in `row/ROW-CHANGES.md`):
+
+| Task | What | e2e |
+|---|---|---|
+| 1 | Immutable audit log (DB triggers; privacy erasure still anonymises) | `audit_immutable_e2e.py` |
+| 2 | Meeting mode (in person / online / hybrid) on attendance | `meeting_mode_e2e.py` |
+| 3 | Cookie consent banner and map consent on club and district websites | browser check |
+| 4 | WhatsApp, SMS and mobile OTP removed | `no_whatsapp_e2e.py` |
+| 5 | Tenant lifecycle and editions; planning state makes the current year read-only | `tenant_lifecycle_e2e.py` |
+| 6 | String catalogue: per-locale overrides merged into the admin's messages | `i18n_catalogue_e2e.py` |
+
+Security fixes in the same wave: scope write guard (club / district writes need a role for that scope), auth rate
+limit, Swagger only in Development, generic 500s, OTP bypass removed (`scope_write_guard_e2e.py`). Next: Wave 2
+(money), which needs a Stripe test account.
 
 ## 7. Deployment (to do)
 

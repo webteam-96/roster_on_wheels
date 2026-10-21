@@ -272,3 +272,54 @@ Both APIs ran side by side on the same scratch database (fixture data, the .NET 
 - Mobile: WhatsApp compose toggles, reminder actions, wallet type, contact buttons (wa.me), social-link type and icon asset removed.
 - Kept on purpose: DB columns named after WhatsApp (no destructive migration).
 - Test: `python kb/tools/no_whatsapp_e2e.py`.
+
+## 2026-10-21: Tenant lifecycle and editions (Wave 1 Task 5, build spec items 1 and 5)
+
+- Tables `edition_catalogue` (district, club, club_basic, rotaract, zone), `edition_modules` (edition_code,
+  module_key), `tenant_subscriptions` (one row per district with `fk_club_id = 0`, plus one per club). In
+  `DatabaseInitializer` and `database/schema-drift.sql`; additive only.
+- `TenantsController` (SuperAdmin): `GET/PUT api/editions[/{code}]`, `GET api/tenants`, `GET/PUT api/tenants/{districtId}`,
+  `POST api/tenants/{districtId}/apply-edition`; `GET api/tenants/{districtId}/state` for any signed-in user.
+  Writes also need role 3 in `member_roles` (ScopeWriteGuard RoleOnly list). Every change is audited.
+- Saving a district subscription provisions every club (`club_basic`, `rotaract` for `ClubType = 'Rotaract Club'`);
+  a club that already has a row keeps its edition.
+- Applying editions only flips `district_modules` / `club_modules.IsEnabled`; rows are never deleted.
+- `PlanningWriteGuardMiddleware`: while a district is `planning`, writes on routes with `{yearId}` plus `{clubId}` or
+  `{districtId}` return 409 for the current year; other years pass. Not covered: endpoints that take the year in the
+  body or query.
+- Admin: Settings > Tenants (subscription form, apply edition, club editions) and Settings > Editions (module checklist).
+- Not built yet: changing a single club's edition (e.g. upgrade to `club`), invoices and billing (Wave 2).
+- e2e: `kb/tools/tenant_lifecycle_e2e.py` (20 checks; restores demo module switches and state afterwards).
+- Browser check (2026-10-21): Tenants save failed when a date was empty (`""` cannot bind to `DateTime?`); the
+  page now sends `null`. Editions and Tenants pages render and save.
+
+## 2026-10-21: String catalogue (Wave 1 Task 6, build spec item 3)
+
+- Table `i18n_strings` (namespace, msg_key, locale, text, reviewed, updated_by, updated_at; unique per
+  locale + namespace + key). In `DatabaseInitializer` and `database/schema-drift.sql`.
+- `I18nController`: `GET api/i18n/{locale}` (public; ETag + `Cache-Control: no-cache`, so clients revalidate and get
+  304). A `max-age` is not used because the global `UseResponseCaching()` would then serve stale text after an edit.
+  `PUT` / `DELETE api/i18n/{locale}/{namespace}/{key}` are SuperAdmin only (also role 3 in ScopeWriteGuard), audited.
+  Empty text is refused: removing the override is how a string goes back to English.
+- Admin: `src/i18n/messages.ts` `applyOverrides` + `fetchOverrides` (3 s timeout, bundled messages if the API is
+  down). Order: bundled English + `en` overrides, under bundled locale + locale overrides. Machine-translated locales
+  apply their overrides after LiveTranslate. Settings > Translations editor (language, area, missing / not reviewed
+  filter, search, save, reviewed, "Use English").
+- Not done: the app (ARB) side, listed for the app i18n step. Most admin screens are not extracted to the catalogue
+  yet (about 100 keys in 4 namespaces), so the editor covers only extracted strings.
+- Tests: `src/i18n/messages.test.ts` (3, RED then GREEN); `kb/tools/i18n_catalogue_e2e.py` (11).
+
+## 2026-10-19: Fellowship design port (admin + mobile)
+
+Plan: `docs/superpowers/plans/2026-10-19-fellowship-design-port.md`. The admin portal and the app now follow the
+marketing website's design (`row/website/design.md`) under the FRONTEND-RULES gate:
+- Typefaces: Bricolage Grotesque (display) and Figtree (body) replace Inter (admin) and Google Fonts calls (app,
+  now bundled TTFs with their OFL licence).
+- Colours: Fellowship tokens (cream, ink, azure, marigold for accents only); no pure white surfaces, gradients or
+  default drop shadows; separation by 1px line borders. Semantic red / green / amber kept.
+- Icons: Lucide replaced by Phosphor through one module (`row/admin/src/components/icons.ts`); the app keeps
+  Material Icons.
+- App: palette, gold and font pickers removed (old preferences cleared at start-up); `AppColors` is one fixed
+  Fellowship palette; `PillButton` and `ToneCard` widgets added.
+- All dashboard sidebars look the same (light, ROW logo); "Foundation" renamed "Projects / Events".
+- Gate: `node row/admin/scripts/check-design.mjs` (all counts 0 is required).

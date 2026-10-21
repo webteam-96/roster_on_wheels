@@ -4551,6 +4551,68 @@ public partial class DatabaseInitializer
                         END IF;
                     END");
 
+                // Tenant lifecycle and editions (ROW Wave 1, build spec items 1 and 5). An edition is a set of
+                // module keys; applying it only switches district_modules / club_modules IsEnabled on or off.
+                // tenant_subscriptions: one row per district (fk_club_id = 0) plus one per club of it.
+                // Same SQL in database/schema-drift.sql.
+                await connection.ExecuteAsync(@"
+                    CREATE TABLE IF NOT EXISTS edition_catalogue (
+                        code VARCHAR(20) PRIMARY KEY,
+                        name VARCHAR(100) NOT NULL,
+                        modified_by INT NULL,
+                        modified_date DATETIME NULL ON UPDATE CURRENT_TIMESTAMP
+                    )");
+                await connection.ExecuteAsync(@"
+                    INSERT IGNORE INTO edition_catalogue (code, name) VALUES
+                        ('district', 'District'), ('club', 'Club'), ('club_basic', 'Club basic'),
+                        ('rotaract', 'Rotaract'), ('zone', 'Zone')");
+                await connection.ExecuteAsync(@"
+                    CREATE TABLE IF NOT EXISTS edition_modules (
+                        edition_code VARCHAR(20) NOT NULL,
+                        module_key VARCHAR(50) NOT NULL,
+                        PRIMARY KEY (edition_code, module_key),
+                        FOREIGN KEY (edition_code) REFERENCES edition_catalogue(code)
+                    )");
+                await connection.ExecuteAsync(@"
+                    CREATE TABLE IF NOT EXISTS tenant_subscriptions (
+                        pk_subscription_id INT AUTO_INCREMENT PRIMARY KEY,
+                        fk_district_id INT NOT NULL,
+                        fk_club_id INT NOT NULL DEFAULT 0,
+                        edition_code VARCHAR(20) NOT NULL,
+                        member_band VARCHAR(20) NULL,
+                        term_start DATE NULL,
+                        term_end DATE NULL,
+                        state ENUM('planning','live') NOT NULL DEFAULT 'live',
+                        region ENUM('US','EU','APAC','IN') NULL,
+                        bridge_start DATE NULL,
+                        bridge_end DATE NULL,
+                        setup_fee_waived TINYINT(1) NOT NULL DEFAULT 0,
+                        platform_fee_pct DECIMAL(5,2) NULL,
+                        platform_fee_fixed DECIMAL(10,2) NULL,
+                        fee_waiver_until DATE NULL,
+                        created_by INT NULL,
+                        created_date DATETIME DEFAULT CURRENT_TIMESTAMP,
+                        modified_by INT NULL,
+                        modified_date DATETIME NULL ON UPDATE CURRENT_TIMESTAMP,
+                        UNIQUE KEY uk_tenant_scope (fk_district_id, fk_club_id),
+                        FOREIGN KEY (edition_code) REFERENCES edition_catalogue(code)
+                    )");
+
+                // String catalogue (ROW Wave 1, build spec item 3): per-locale overrides of the admin's bundled
+                // messages (messages/en stays the source). Same SQL in database/schema-drift.sql.
+                await connection.ExecuteAsync(@"
+                    CREATE TABLE IF NOT EXISTS i18n_strings (
+                        pk_string_id INT AUTO_INCREMENT PRIMARY KEY,
+                        namespace VARCHAR(50) NOT NULL,
+                        msg_key VARCHAR(200) NOT NULL,
+                        locale VARCHAR(20) NOT NULL,
+                        text TEXT NOT NULL,
+                        reviewed TINYINT(1) NOT NULL DEFAULT 0,
+                        updated_by INT NULL,
+                        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                        UNIQUE KEY uk_i18n_string (locale, namespace, msg_key)
+                    )");
+
                 // Sync exception log — every collision/parse error/duplicate during member sync
                 // gets written here so admin can review + resolve. No DROP — additive only,
                 // history preserved across deploys.

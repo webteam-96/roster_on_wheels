@@ -668,6 +668,7 @@ app.UseRateLimiter();
 app.UseAuthentication();
 app.UseAuthorization();
 app.UseMiddleware<RotaryApi.Services.ScopeWriteGuardMiddleware>(); // club/district writes need a role for that club/district
+app.UseMiddleware<RotaryApi.Services.PlanningWriteGuardMiddleware>(); // planning districts: current year is read-only
 app.UseMiddleware<RotaryApi.Services.MobileJwtRefreshMiddleware>();
 app.UseMiddleware<RotaryApi.Services.AuditMiddleware>();
 app.UseResponseCaching();

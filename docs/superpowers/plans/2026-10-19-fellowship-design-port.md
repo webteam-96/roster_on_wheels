@@ -161,9 +161,9 @@ Each batch clears its folders of `Color(0x` literals (use `AppColors`/`RowTone`)
 
 ### Task 10: Docs and final gates
 
-- [ ] Update `row/STATUS.md` and `row/ROW-CHANGES.md` (design port done; pickers removed; fonts; Lucide → Phosphor).
-- [ ] Final verification: website `npm run build`; admin `npx tsc --noEmit && npm run build && node scripts/check-design.mjs`; mobile `flutter analyze && flutter test`.
-- [ ] FRONTEND-RULES gate review across all three surfaces, listing any violation with file:line.
+- [x] Update `row/STATUS.md` and `row/ROW-CHANGES.md` (design port done; pickers removed; fonts; Lucide → Phosphor).
+- [x] Final verification: website `npm run build`; admin `npx tsc --noEmit && npm run build && node scripts/check-design.mjs`; mobile `flutter analyze && flutter test`.
+- [x] FRONTEND-RULES gate review across all three surfaces, listing any violation with file:line.
 - [ ] Ask the user about commit and push (do not commit unasked).
 
 ## Follow-up (user request 2026-10-19, after this plan): mobile RIZones → ROW conversion

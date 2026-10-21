@@ -837,6 +837,9 @@ Mapped {api/goal-setting/foundation-import/club/convert, Post}
 Mapped {api/goal-setting/foundation-import/club/sample, Get}
 Mapped {api/clubs/{clubId}/greetings, Get}
 Mapped {api/clubs/{clubId}/greetings, Put}
+Mapped {api/i18n/{locale}, Get}
+Mapped {api/i18n/{locale}/{ns}/{key}, Put}
+Mapped {api/i18n/{locale}/{ns}/{key}, Delete}
 Mapped {api/admin/international-president/all, Get}
 Mapped {api/admin/international-president, Get}
 Mapped {api/admin/international-president, Put}
@@ -1425,6 +1428,13 @@ Mapped {api/admin/super-admins/verify-otp, Post}
 Mapped {api/system-settings/{key}, Get}
 Mapped {api/system-settings, Post}
 Mapped {api/system-settings, Get}
+Mapped {api/editions, Get}
+Mapped {api/editions/{code}, Put}
+Mapped {api/tenants, Get}
+Mapped {api/tenants/{districtId:int}, Get}
+Mapped {api/tenants/{districtId:int}, Put}
+Mapped {api/tenants/{districtId:int}/apply-edition, Post}
+Mapped {api/tenants/{districtId:int}/state, Get}
 Mapped {api/themes, Get}
 Mapped {api/themes, Post}
 Mapped {api/themes/{id}, Put}

@@ -74,9 +74,19 @@ open the file for the text. Do not edit by hand.
   -   19. Gates
   - … 15 more headings
 
-## row (47 documents)
+## row (48 documents)
 
-- **row/PENDING-WORK.md** (16 KB)
+- **row/HANDOFF.md** (6 KB)
+  - ROW: session handoff (read this first)
+  -   Ground rules (from the user)
+  -   Done on 2026-10-19
+  -   Done on 2026-10-21
+  -   Next task
+  -   Still pending after Wave 1
+  -   Known gaps and flags
+  -   Run locally (dev only)
+  -   Checks to run after changes
+- **row/PENDING-WORK.md** (15 KB)
   - ROW — Pending Work and Why
   -   1. Summary
   -   2. Payments (largest backend gap)
@@ -84,7 +94,7 @@ open the file for the text. Do not edit by hand.
   -   4. Club website (`row/club-website`)
   -   5. Mobile app (`row/mobile`)
   -   6. Privacy (WS7)
-  -   7. WhatsApp: removal on hold
+  -   7. WhatsApp: removed (2026-10-19)
   -   8. Deployment on IIS
   -   9. Testing gaps
   -   10. Reference copy is behind (resolved 2026-10-12)
@@ -100,7 +110,7 @@ open the file for the text. Do not edit by hand.
   -   Configuration (set per server as environment variables; never commit values)
   -   Checks
   -   Refreshing from a newer RIZones copy
-- **row/ROW-CHANGES.md** (29 KB)
+- **row/ROW-CHANGES.md** (33 KB)
   - ROW changes to consider later
   -   Security and privacy
   -   Providers
@@ -120,7 +130,10 @@ open the file for the text. Do not edit by hand.
   -   Upstream sync (2026-10-10, reference cb3e678)
   -   Session 3 (2026-10-12)
   -   2026-10-19 — WhatsApp and SMS removed (ROW is in-app + email only)
-- **row/STATUS.md** (31 KB)
+  -   2026-10-21: Tenant lifecycle and editions (Wave 1 Task 5, build spec items 1 and 5)
+  -   2026-10-21: String catalogue (Wave 1 Task 6, build spec item 3)
+  -   2026-10-19: Fellowship design port (admin + mobile)
+- **row/STATUS.md** (33 KB)
   - ROW Build — Status and Handover
   -   1. What ROW is
   -   2. Repository layout
@@ -134,6 +147,7 @@ open the file for the text. Do not edit by hand.
   -   6a. Upstream drift — synced 2026-10-10 against reference `cb3e678` (2026-10-09 18:56 IST)
   -   6b. Session 3 (2026-10-12): privacy, schema gaps, .NET edition
   -   6c. Session 4 (2026-10-13): no India-specific behaviour, no WhatsApp
+  -   6d. Wave 1 of the build spec (2026-10-19 to 2026-10-21)
   -   7. Deployment (to do)
   -   8. Open decisions (owner: product / company)
   -   9. Working rules agreed with the team

@@ -28,7 +28,7 @@ Every pending item has one of four reasons:
 | 3 | Club website conversion | Done (purchase / renewal pages wait for Payments) | — | — |
 | 4 | Mobile app WS10 items | 6 items | Mixed (see §5) | Firebase project, Payments, final icon |
 | 5 | Privacy (WS7) | Backend done in both editions; legal texts and the mobile screens left | Decision + External | Counsel's policy texts (Q6), legal review of health data (decision 2) |
-| 6 | WhatsApp removal | senders, scheduled sends, log, credits, admin / mobile screens | Decision (on hold) | ROW has no WhatsApp (2026-10-13); waits for the go-ahead (§7) |
+| 6 | ~~WhatsApp removal~~ | Done 2026-10-19 (Wave 1 Task 4): API, workers, admin, app; SMS and mobile OTP removed too | Done | — (§7) |
 | 7 | Deployment on IIS | web.config ×3, guide | Not started + Decision | Plesk vs IIS-native club hosting (open decision 3) |
 | 8 | Testing gaps | real sends, Payments, load, reports SQL | External | ROW credentials, a test database with real-shaped data |
 | 9 | Reference refresh | local copy 2 days behind | External | Access to the private RIZones repo from this machine |
@@ -108,9 +108,9 @@ member** (new `api/mobile/auth/login` + `forgot-password`, rate-limited; OTP scr
 |---|---|
 | WS10-06 payment flows (Razorpay checkout, 18 files) | Rebuild on Stripe (decided 2026-10-19), Wave 2 of `docs/superpowers/plans/2026-10-19-row-build-spec-plan.md` |
 | WS10-07 push notifications | External: needs a ROW Firebase project (open decision 6) |
-| WS10-03 translation | Not started (build spec item 3, Wave 1) |
+| WS10-03 translation | String catalogue API done 2026-10-21 (`GET api/i18n/{locale}`, Wave 1 Task 6); app ARB generation from it not started |
 | WS10-09 store listings and app IDs | Decision: iOS bundle ID is `com.kaizen.row`, Android applicationId is the placeholder `com.SampleApp.row` |
-| WhatsApp screens | ROW has no WhatsApp or SMS (2026-10-19); removal in Wave 1 |
+| WhatsApp screens | Removed 2026-10-19 (Wave 1 Task 4) |
 | Version control | `row/mobile` is ignored by the repo and is not a repository itself: changes are not tracked anywhere |
 
 Clean-up, not urgent: 130 of the 200 `ApiConstants` entries are unused RIZones carry-over, and
@@ -129,20 +129,12 @@ Rotary.org sweep, registry audit, retention, member language, consent-aware broa
   no Flutter SDK on this machine.
 - Health data: PPH camps (non-members) stay behind `modules.pphCamps` (off) until decision 2.
 
-## 7. WhatsApp: removal on hold
+## 7. WhatsApp: removed (2026-10-19)
 
-**Decision (2026-10-13): ROW has no WhatsApp.** Not Interakt, and not a Meta replacement either. Messaging is
-email, SMS (Twilio) and push. This supersedes open decision 12 (Meta templates) and the old item "scheduled
-WhatsApp sender".
-
-**What is left.** Take WhatsApp out of both editions, the admin portal and the mobile app: the senders, the
-scheduled sends (announcements, events, reminders), the WhatsApp log and credits, the "send WhatsApp" options and
-screens, and "whatsapp" in the default one-time-code policy (`Brand:Providers:OtpPolicy`, NestJS default
-email / WhatsApp / SMS).
-
-**Why pending.** On hold until the go-ahead. Meanwhile the .NET edition sends WhatsApp through the Meta Cloud API
-(`MetaWhatsAppService` in `Services/RowMessaging.cs`, which replaced Interakt in session 4), and only when Meta
-credentials are configured; with none, nothing is sent and email / SMS are used.
+**Decision (2026-10-13, confirmed 2026-10-19): ROW has no WhatsApp and no SMS.** Communication is in-app (push,
+feed) and email only. Wave 1 Task 4 removed the senders, scheduled sends, log screens, credit grants and purchases,
+the "send WhatsApp" options in the admin and the app, and the mobile OTP endpoints (`row/ROW-CHANGES.md`,
+2026-10-19). Database columns named after WhatsApp are kept (history; no destructive migration).
 
 ## 8. Deployment on IIS
 

@@ -37,6 +37,9 @@ public class ScopeWriteGuardMiddleware
         ("/api/funding", new[] { 3 }),
         ("/api/website-data-modules", new[] { 3 }),
         ("/api/mass-email/image", new[] { 2, 3, 4, 5, 6, 7 }),
+        ("/api/tenants", new[] { 3 }),
+        ("/api/editions", new[] { 3 }),
+        ("/api/i18n", new[] { 3 }),
     };
 
     public async Task InvokeAsync(HttpContext ctx)

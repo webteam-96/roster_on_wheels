@@ -12,7 +12,7 @@ import {
   resolveLocale,
   isMachineTranslated,
 } from "@/i18n/config";
-import { fillBrandName, loadMessages, loadRawMessages, type Messages } from "@/i18n/messages";
+import { applyOverrides, fetchOverrides, fillBrandName, loadMessages, loadRawMessages, type Messages } from "@/i18n/messages";
 import { WORLD_LANGUAGE_CODES } from "@/i18n/worldLanguages";
 import { translateCatalog } from "@/i18n/translateCatalog";
 import englishCommon from "../../messages/en/common.json";
@@ -112,7 +112,10 @@ export function IntlProvider({ children }: { children: React.ReactNode }) {
       // Machine-translated locale: show English at once, then swap in the translation.
       loadRawMessages(DEFAULT_LOCALE, namespaces).then((english) => {
         set(fillBrandName(english, brand.productName));
-        translateCatalog(english, locale).then((translated) => set(fillBrandName(translated, brand.productName)));
+        // Catalogue overrides for this locale (human-edited) win over the machine translation.
+        Promise.all([translateCatalog(english, locale), fetchOverrides(locale)]).then(([translated, overrides]) =>
+          set(fillBrandName(applyOverrides(translated, overrides), brand.productName)),
+        );
       });
     }
     return () => {
