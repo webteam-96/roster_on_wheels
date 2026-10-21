@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-16"?>
 <Task version="1.4" xmlns="http://schemas.microsoft.com/windows/2004/02/mit/task">
   <RegistrationInfo>
-    <Description>ROW - Weekly Clubs Bootstrap (full UPDATE for all Indian clubs + disappeared-club flag)</Description>
+    <Description>ROW - Weekly Clubs Bootstrap (full UPDATE for all synced clubs outside India + disappeared-club flag)</Description>
     <Author>Kaizen Projects</Author>
     <URI>\ROW\Clubs Bootstrap</URI>
   </RegistrationInfo>

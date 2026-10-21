@@ -93,7 +93,9 @@ public class EmailReportSender
     private async Task<string?> SendViaBrevoAsync(string toEmail, string subject, string htmlBody, byte[]? attachmentBytes, string? attachmentFileName)
     {
         var brevo = _config.GetSection("Brevo");
-        var apiKey = brevo["ApiKey"] ?? throw new InvalidOperationException("Brevo:ApiKey is not configured.");
+        var apiKey = brevo["ApiKey"];
+        // An empty key would only be rejected by Brevo; stop here so no address leaves the server.
+        if (string.IsNullOrWhiteSpace(apiKey)) throw new InvalidOperationException("Brevo:ApiKey is not configured.");
         var apiUrl = brevo["ApiUrl"] ?? "https://api.brevo.com/v3/smtp/email";
         var senderEmail = brevo["SenderEmail"] ?? RotaryApi.Services.Brand.NoReplyEmail;
         var senderName = brevo["SenderName"] ?? "ROW";

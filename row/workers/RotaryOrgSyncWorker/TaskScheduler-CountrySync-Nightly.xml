@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-16"?>
 <Task version="1.4" xmlns="http://schemas.microsoft.com/windows/2004/02/mit/task">
   <RegistrationInfo>
-    <Description>ROW - Nightly Country Sync (India + Sri Lanka + Nepal /Clubs/search; INSERTs new non-sync clubs, refreshes meeting info for clubs already added by this job)</Description>
+    <Description>ROW - Nightly Country Sync (/Clubs/search for every synced country except India; INSERTs new non-sync clubs, refreshes meeting info for clubs already added by this job)</Description>
     <Author>Kaizen Projects</Author>
     <URI>\ROW\Clubs Country Sync</URI>
   </RegistrationInfo>

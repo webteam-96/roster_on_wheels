@@ -16,6 +16,8 @@ public class RotaryOrgApiClient : IRotaryOrgApiClient
     private readonly ILogger<RotaryOrgApiClient> _logger;
     private readonly SemaphoreSlim _authLock = new(1, 1);
     private CachedRotaryOrgToken? _cached;
+    // ROW: clubs in these countries (India) are dropped from every club list below.
+    private readonly CountryScope _scope;
 
     private static readonly JsonSerializerOptions JsonOpts = new()
     {
@@ -28,6 +30,7 @@ public class RotaryOrgApiClient : IRotaryOrgApiClient
         _http = http;
         _config = config;
         _logger = logger;
+        _scope = new CountryScope(config);
         _http.Timeout = TimeSpan.FromSeconds(120);
         _http.DefaultRequestHeaders.Accept.Clear();
         _http.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
@@ -136,7 +139,7 @@ public class RotaryOrgApiClient : IRotaryOrgApiClient
             throw new HttpRequestException($"Rotary.org GET /clubs failed: {(int)resp.StatusCode}. Body: {Truncate(body, 200)}");
         var list = JsonSerializer.Deserialize<List<RotaryOrgClubListDto>>(body, JsonOpts) ?? new List<RotaryOrgClubListDto>();
         _logger.LogInformation("[RI.org] GET /clubs OK in {Ms}ms — {Count} clubs", sw.ElapsedMilliseconds, list.Count);
-        return list;
+        return DropSkipped(list, c => _scope.IsSkipped(c.ClubCountry), "/clubs");
     }
 
     public async Task<RotaryOrgClubDetailDto?> GetClubDetailAsync(string clubType, int clubId, CancellationToken ct = default)
@@ -148,7 +151,15 @@ public class RotaryOrgApiClient : IRotaryOrgApiClient
         if (resp.StatusCode == HttpStatusCode.NotFound) return null;
         if (!resp.IsSuccessStatusCode)
             throw new HttpRequestException($"Rotary.org GET club detail failed: {(int)resp.StatusCode}. Body: {Truncate(body, 200)}");
-        return JsonSerializer.Deserialize<RotaryOrgClubDetailDto>(body, JsonOpts);
+        var detail = JsonSerializer.Deserialize<RotaryOrgClubDetailDto>(body, JsonOpts);
+        // ROW: an Indian club is never synced, even when asked for by id.
+        if (detail?.Addresses is { Count: > 0 } addrs && _scope.IsSkippedAny(addrs.Select(a => a.Country).ToArray()))
+        {
+            _logger.LogInformation("[RI.org] club {ClubId} skipped — country {Country} is not synced by ROW",
+                clubId, addrs.Select(a => a.Country).FirstOrDefault(c => !string.IsNullOrWhiteSpace(c)));
+            return null;
+        }
+        return detail;
     }
 
     public async Task<List<RotaryOrgMemberUpdateNotificationDto>> GetMemberUpdateNotificationsAsync(DateTime startDate, DateTime endDate, CancellationToken ct = default)
@@ -182,6 +193,13 @@ public class RotaryOrgApiClient : IRotaryOrgApiClient
 
     public async Task<List<RotaryOrgClubSearchDto>> SearchClubsByCountryAsync(string country, CancellationToken ct = default)
     {
+        // ROW: never search a skipped country (India) at all.
+        if (_scope.IsSkipped(country))
+        {
+            _logger.LogInformation("[RI.org] /Clubs/search country={Country} skipped — not synced by ROW", country);
+            return new List<RotaryOrgClubSearchDto>();
+        }
+
         // Path: Clubs/search?searchterm=(type=country:value=<country>)&searchterm=(type=ClubType:value=Rotary Club)
         // Note: 'searchterm' parameter is repeated. Special chars in (type=country:value=Sri Lanka) need URL encoding.
         var countryParam = $"(type=country:value={country})";
@@ -206,7 +224,12 @@ public class RotaryOrgApiClient : IRotaryOrgApiClient
                 var list = JsonSerializer.Deserialize<List<RotaryOrgClubSearchDto>>(body, JsonOpts) ?? new List<RotaryOrgClubSearchDto>();
                 _logger.LogInformation("[RI.org] GET /Clubs/search country={Country} OK in {Ms}ms — {Count} clubs (attempt {Attempt})",
                     country, sw.ElapsedMilliseconds, list.Count, attempt);
-                return list;
+                // A row without its own country belongs to the country searched for.
+                return DropSkipped(list, c =>
+                    string.IsNullOrWhiteSpace(c.Address?.Country) && string.IsNullOrWhiteSpace(c.Location?.Country)
+                        ? _scope.IsSkipped(country)
+                        : _scope.IsSkippedAny(c.Address?.Country, c.Location?.Country),
+                    $"/Clubs/search {country}");
             }
 
             var transient = (int)resp.StatusCode >= 500
@@ -241,7 +264,20 @@ public class RotaryOrgApiClient : IRotaryOrgApiClient
         var list = JsonSerializer.Deserialize<List<RotaryOrgClubListDto>>(body, JsonOpts) ?? new List<RotaryOrgClubListDto>();
         _logger.LogInformation("[RI.org] GET /clubs/updates ({Start} → {End}) OK in {Ms}ms — {Count} club(s) changed",
             s, e, sw.ElapsedMilliseconds, list.Count);
-        return list;
+        return DropSkipped(list, c => _scope.IsSkipped(c.ClubCountry), "/clubs/updates");
+    }
+
+    // ROW: removes clubs in skipped countries (India) and says how many were removed.
+    private List<T> DropSkipped<T>(List<T> list, Func<T, bool> isSkipped, string source)
+    {
+        var kept = list.Where(c => !isSkipped(c)).ToList();
+        var dropped = list.Count - kept.Count;
+        if (dropped > 0)
+        {
+            Console.WriteLine($"[{DateTime.Now:HH:mm:ss}]   {source}: {dropped} club(s) skipped (not synced by ROW: {_scope.Describe}) — {kept.Count} kept");
+            _logger.LogInformation("[RI.org] {Source}: {Dropped} club(s) skipped by ROW country scope, {Kept} kept", source, dropped, kept.Count);
+        }
+        return kept;
     }
 
     public async Task<(int StatusCode, string Body)> GetClubMembersRawAsync(string clubType, int clubId, CancellationToken ct = default)

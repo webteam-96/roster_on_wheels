@@ -206,7 +206,7 @@ public class CountrySyncWorker
                     var country = Truncate(c.Address?.Country ?? c.Location?.Country, 50);
                     var state = Truncate(c.Address?.State ?? c.Location?.State, 50);
                     var city = Truncate(c.Address?.City, 100);
-                    var postalCode = Truncate(c.Address?.PostalCode, 10);
+                    var postalCode = Truncate(c.Address?.PostalCode, 20);
                     var meetingDay = Truncate(c.Address?.MeetingDay, 10);
                     var clubName = Truncate(c.ClubName, 200);
                     var activeFrom = c.CharterDate;

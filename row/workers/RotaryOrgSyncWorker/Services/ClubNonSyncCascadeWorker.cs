@@ -8,6 +8,8 @@ namespace RotaryOrgSyncWorker.Services;
 
 /// <summary>
 /// NON-SYNC club member cascade (Phase 1 — detection + cascade, audit-first).
+/// Since 2026-10-14 a club must be missing from /clubs on RotaryOrgSync:NonSyncGraceNights (default 7)
+/// nightly runs in a row before anything is soft-deleted (tracked in rotary_org_nonsync_watch).
 ///
 /// Identifies clubs that DROPPED OUT of Rotary.org's sync list (/clubs) but STILL EXIST
 /// on Rotary.org (present in /Clubs/search) — i.e. they went sync → non-sync (NOT terminated).
@@ -33,8 +35,6 @@ namespace RotaryOrgSyncWorker.Services;
 /// </summary>
 public class ClubNonSyncCascadeWorker
 {
-    private static readonly string[] TargetCountries = { "India", "Sri Lanka", "Nepal" };
-
     // Districts that must NEVER be cascaded (system/internal). Matched on district_master.DistrictNumber.
     private static string[] ExemptDistrictNumbers => RotaryApi.Services.Brand.ExemptDistricts;   // ROW: Brand:Scope:ExemptDistricts
 
@@ -86,8 +86,23 @@ public class ClubNonSyncCascadeWorker
             Console.WriteLine($"[{DateTime.Now:HH:mm:ss}]   /clubs: {syncClubs.Count}");
 
             // 2. /Clubs/search = clubs that STILL EXIST on Rotary.org (any status).
+            //    ROW: every country of the /clubs list plus every country of our own sync clubs
+            //    (the original searched a fixed list of three). India is never searched (CountryScope).
+            var countrySet = new HashSet<string>(
+                syncClubs.Select(c => c.ClubCountry?.Trim())
+                         .Where(s => !string.IsNullOrWhiteSpace(s)).Select(s => s!),
+                StringComparer.OrdinalIgnoreCase);
+            await using (var ccConn = CreateConnection())
+            {
+                await ccConn.OpenAsync(ct);
+                var dbCountries = await ccConn.QueryAsync<string>(@"
+                    SELECT DISTINCT TRIM(Country) FROM club_master
+                    WHERE isdeleted = 0 AND IFNULL(IsSyncedFromRotaryOrg, 0) = 1
+                      AND Country IS NOT NULL AND TRIM(Country) <> ''");
+                foreach (var c in dbCountries) countrySet.Add(c);
+            }
             var searchIds = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-            foreach (var country in TargetCountries)
+            foreach (var country in countrySet.OrderBy(s => s, StringComparer.OrdinalIgnoreCase))
             {
                 ct.ThrowIfCancellationRequested();
                 Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Fetching /Clubs/search for {country}...");
@@ -116,22 +131,43 @@ public class ClubNonSyncCascadeWorker
 
             // 4. Non-sync candidates: dropped from /clubs but STILL in /Clubs/search (so not terminated).
             //    In neither → that's a termination case (ClubTerminator's job) — skipped here.
-            var candidates = syncedInDb
+            var missing = syncedInDb
                 .Where(c => !syncIds.Contains(c.clubRotaryId) && searchIds.Contains(c.clubRotaryId))
                 .ToList();
 
+            // 4b. Grace period (user 2026-10-14). A club missing from /clubs for ONE night is not
+            //     enough: on 9 Oct Karivellur Midtown + Kumbakonam Universe dropped out for a few
+            //     days and 55 members were soft-deleted. A club's members are now removed only after
+            //     it has been missing on NonSyncGraceNights nightly runs in a row (default 7). Until
+            //     then nothing is touched - the club is only listed as "waiting" in the email. A club
+            //     that comes back on any night starts again from 0.
+            int graceNights = int.Parse(_config["RotaryOrgSync:NonSyncGraceNights"] ?? "7");
+            var nights = await TrackMissingAsync(dbConn, missing, record: apply);
+            var candidates = missing.Where(c => nights.GetValueOrDefault(c.pk_id) >= graceNights).ToList();
+            var waiting = missing.Where(c => nights.GetValueOrDefault(c.pk_id) < graceNights).ToList();
+
             Console.WriteLine("");
-            Console.WriteLine($"=== {candidates.Count} club(s) went sync → non-sync (still on Rotary.org, dropped from /clubs) ===");
-            foreach (var c in candidates)
-                Console.WriteLine($"  D{c.districtNumber}  {c.clubName} (RID {c.clubRotaryId}, pk_club_id={c.pk_id})");
+            Console.WriteLine($"=== {missing.Count} club(s) missing from /clubs (still on Rotary.org) — grace {graceNights} night(s) ===");
+            foreach (var c in missing)
+                Console.WriteLine($"  D{c.districtNumber}  {c.clubName} (RID {c.clubRotaryId}, pk_club_id={c.pk_id}) — missing {nights.GetValueOrDefault(c.pk_id)} night(s){(nights.GetValueOrDefault(c.pk_id) >= graceNights ? " → NON-SYNC" : " → waiting, nothing changed")}");
             Console.WriteLine($"  (exempt districts skipped: {string.Join(", ", ExemptDistrictNumbers)})");
+
+            var waitingRows = new List<(CascadeRow Row, int Nights)>();
+            foreach (var c in waiting)
+            {
+                var d = await BuildCascadeAsync(dbConn, c.pk_id);
+                waitingRows.Add((new CascadeRow { ClubRotaryId = c.clubRotaryId, ClubName = c.clubName, DistrictNumber = c.districtNumber, Detail = d }, nights.GetValueOrDefault(c.pk_id)));
+            }
 
             if (candidates.Count == 0)
             {
-                Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] No clubs went non-sync. Nothing to cascade.");
+                Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] No club has passed the grace period. Nothing to cascade.");
                 await dbConn.ExecuteAsync(
-                    "UPDATE rotary_org_sync_log SET FinishedAtUtc = UTC_TIMESTAMP(), Status='Completed', TotalFetched=@T WHERE pk_id=@Id",
-                    new { Id = logId, T = syncClubs.Count });
+                    "UPDATE rotary_org_sync_log SET FinishedAtUtc = UTC_TIMESTAMP(), Status='Completed', TotalFetched=@T, ErrorDetail=@D WHERE pk_id=@Id",
+                    new { Id = logId, T = syncClubs.Count,
+                          D = waiting.Count > 0 ? $"Waiting: {waiting.Count} club(s) missing from /clubs, under the {graceNights}-night grace period. Nothing deleted." : null });
+                if (waiting.Count > 0)
+                    await SendEmailAsync(apply, 0, new CascadeTotals(), new List<CascadeRow>(), syncClubs.Count, aborted: false, threshold: 0, waitingRows, graceNights);
                 return;
             }
 
@@ -152,7 +188,7 @@ public class ClubNonSyncCascadeWorker
                     abortRows.Add(new CascadeRow { ClubRotaryId = c.clubRotaryId, ClubName = c.clubName, DistrictNumber = c.districtNumber, Detail = d });
                     abortTotals.Add(d);
                 }
-                await SendEmailAsync(false, candidates.Count, abortTotals, abortRows, syncClubs.Count, aborted: true, threshold: maxAuto);
+                await SendEmailAsync(false, candidates.Count, abortTotals, abortRows, syncClubs.Count, aborted: true, threshold: maxAuto, waitingRows, graceNights);
                 return;
             }
 
@@ -169,6 +205,8 @@ public class ClubNonSyncCascadeWorker
                 if (apply)
                 {
                     await ApplyCascadeAsync(dbConn, c.pk_id, ct);
+                    await dbConn.ExecuteAsync(
+                        "UPDATE rotary_org_nonsync_watch SET Status='Cascaded' WHERE fk_club_id=@C", new { C = c.pk_id });
                     Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Non-synced {c.clubName} (RID {c.clubRotaryId}) — flag→0, {detail.TotalRows} member row(s) soft-deleted");
                 }
             }
@@ -200,7 +238,7 @@ public class ClubNonSyncCascadeWorker
             if (!apply)
                 Console.WriteLine($"\n  AUDIT ONLY — no DB changes. Re-run with --apply to execute.");
 
-            await SendEmailAsync(apply, candidates.Count, totals, rows, syncClubs.Count, aborted: false, threshold: maxAuto);
+            await SendEmailAsync(apply, candidates.Count, totals, rows, syncClubs.Count, aborted: false, threshold: maxAuto, waitingRows, graceNights);
         }
         catch (Exception ex)
         {
@@ -217,6 +255,64 @@ public class ClubNonSyncCascadeWorker
             catch { }
             throw;
         }
+    }
+
+    // One row per club in rotary_org_nonsync_watch, updated in place (never deleted):
+    //   Watching  - missing from /clubs; MissingNights counts the nightly runs it was missing
+    //   Cleared   - was being watched, then seen again (or no longer a candidate) - starts over at 0
+    //   Cascaded  - passed the grace period and was flipped to non-sync
+    // A night is counted once per calendar day, so a re-run the same day does not add a night.
+    // Audit mode (record = false) only reads the counts; the nightly --apply run writes them.
+    private static async Task<Dictionary<int, int>> TrackMissingAsync(
+        MySqlConnection conn, List<(int pk_id, string clubRotaryId, string clubName, string districtNumber)> missing, bool record)
+    {
+        await conn.ExecuteAsync(@"
+            CREATE TABLE IF NOT EXISTS rotary_org_nonsync_watch (
+                pk_id INT AUTO_INCREMENT PRIMARY KEY,
+                fk_club_id INT NOT NULL,
+                ClubRotaryId VARCHAR(20) NULL,
+                FirstMissingDate DATE NOT NULL,
+                LastMissingDate DATE NOT NULL,
+                MissingNights INT NOT NULL DEFAULT 1,
+                Status VARCHAR(20) NOT NULL DEFAULT 'Watching',
+                created_date DATETIME DEFAULT CURRENT_TIMESTAMP,
+                modified_date DATETIME NULL ON UPDATE CURRENT_TIMESTAMP,
+                UNIQUE KEY ux_nonsync_watch_club (fk_club_id)
+            )");
+
+        var ids = missing.Select(c => c.pk_id).ToList();
+        if (record)
+        {
+            if (ids.Count > 0)
+                await conn.ExecuteAsync(
+                    "UPDATE rotary_org_nonsync_watch SET Status='Cleared' WHERE Status='Watching' AND fk_club_id NOT IN @Ids",
+                    new { Ids = ids });
+            else
+                await conn.ExecuteAsync("UPDATE rotary_org_nonsync_watch SET Status='Cleared' WHERE Status='Watching'");
+
+            // MySQL applies these assignments left to right, so MissingNights / FirstMissingDate
+            // still see the OLD Status and LastMissingDate.
+            foreach (var c in missing)
+                await conn.ExecuteAsync(@"
+                    INSERT INTO rotary_org_nonsync_watch (fk_club_id, ClubRotaryId, FirstMissingDate, LastMissingDate, MissingNights, Status)
+                    VALUES (@C, @R, CURDATE(), CURDATE(), 1, 'Watching')
+                    ON DUPLICATE KEY UPDATE
+                        MissingNights    = IF(Status = 'Watching', IF(LastMissingDate < CURDATE(), MissingNights + 1, MissingNights), 1),
+                        FirstMissingDate = IF(Status = 'Watching', FirstMissingDate, CURDATE()),
+                        LastMissingDate  = CURDATE(),
+                        ClubRotaryId     = @R,
+                        Status           = 'Watching'",
+                    new { C = c.pk_id, R = c.clubRotaryId });
+        }
+
+        if (ids.Count == 0) return new Dictionary<int, int>();
+        var rows = await conn.QueryAsync<(int ClubId, int Nights)>(
+            "SELECT fk_club_id, MissingNights FROM rotary_org_nonsync_watch WHERE Status='Watching' AND fk_club_id IN @Ids",
+            new { Ids = ids });
+        // Audit of a club not yet watched: it would be night 1.
+        var map = rows.ToDictionary(r => r.ClubId, r => r.Nights);
+        foreach (var id in ids) map.TryAdd(id, 1);
+        return map;
     }
 
     private async Task<CascadeDetail> BuildCascadeAsync(MySqlConnection conn, int clubId)
@@ -301,13 +397,14 @@ public class ClubNonSyncCascadeWorker
         }
     }
 
-    private async Task SendEmailAsync(bool apply, int clubCount, CascadeTotals totals, List<CascadeRow> rows, int syncTotal, bool aborted, int threshold)
+    private async Task SendEmailAsync(bool apply, int clubCount, CascadeTotals totals, List<CascadeRow> rows, int syncTotal, bool aborted, int threshold,
+        List<(CascadeRow Row, int Nights)> waiting, int graceNights)
     {
         try
         {
             using var wb = new XLWorkbook();
             var s = wb.Worksheets.Add("Summary");
-            var modeText = aborted ? "SAFETY ABORT" : (apply ? "APPLIED" : "AUDIT ONLY");
+            var modeText = aborted ? "SAFETY ABORT" : clubCount == 0 ? "WAITING" : (apply ? "APPLIED" : "AUDIT ONLY");
             s.Cell(1, 1).Value = $"Rotary.org Non-Sync Cascade — {modeText}";
             s.Range("A1:B1").Merge().Style.Font.SetBold().Font.SetFontSize(14);
             s.Cell(3, 1).Value = "Mode"; s.Cell(3, 2).Value = modeText;
@@ -367,6 +464,23 @@ public class ClubNonSyncCascadeWorker
             }
             mem.Columns().AdjustToContents();
 
+            // Clubs missing from /clubs but still inside the grace period - nothing was changed for them.
+            var wait = wb.Worksheets.Add("Waiting (no change)");
+            var wHdr = new[] { "ClubRotaryId", "ClubName", "District", "NightsMissing", "GraceNights", "Members" };
+            for (int i = 0; i < wHdr.Length; i++) wait.Cell(1, i + 1).Value = wHdr[i];
+            wait.Range(1, 1, 1, wHdr.Length).Style.Font.SetBold().Fill.SetBackgroundColor(XLColor.LightGray);
+            for (int i = 0; i < waiting.Count; i++)
+            {
+                var (r, n) = waiting[i];
+                wait.Cell(i + 2, 1).Value = r.ClubRotaryId;
+                wait.Cell(i + 2, 2).Value = r.ClubName;
+                wait.Cell(i + 2, 3).Value = "D" + r.DistrictNumber;
+                wait.Cell(i + 2, 4).Value = n;
+                wait.Cell(i + 2, 5).Value = graceNights;
+                wait.Cell(i + 2, 6).Value = r.Detail.MembersAffected;
+            }
+            wait.Columns().AdjustToContents();
+
             using var ms = new MemoryStream();
             wb.SaveAs(ms);
             var bytes = ms.ToArray();
@@ -388,10 +502,27 @@ public class ClubNonSyncCascadeWorker
                 $"<td style='padding:6px 12px;border:1px solid #e5e7eb;text-align:right;'><b>{r.Detail.MembersAffected}</b></td>" +
                 $"<td style='padding:6px 12px;border:1px solid #e5e7eb;text-align:right;color:#dc2626;'><b>{r.Detail.BlockedMembers}</b></td></tr>"));
 
+            if (clubCount == 0 && !aborted)
+                note = $"<p style='background:#eff6ff;border-left:4px solid #3b82f6;padding:8px 12px;'><b>Nothing was deleted.</b> The clubs below are missing from Rotary.org's sync list but are still inside the {graceNights}-night grace period. Their members are removed only if a club stays missing for {graceNights} nights in a row; a club that comes back before then is not touched.</p>";
+
+            var waitingHtml = waiting.Count == 0 ? "" :
+                $"<h3 style='margin-top:20px;color:#1a365d;'>Waiting — missing from /clubs, no change yet ({waiting.Count})</h3>" +
+                "<table style='border-collapse:collapse;font-size:14px;border:1px solid #e5e7eb;'><thead><tr style='background:#475569;color:white;font-weight:bold;'>" +
+                "<td style='padding:8px 12px;'>Club</td><td style='padding:8px 12px;'>District</td><td style='padding:8px 12px;'>Rotary ID</td>" +
+                "<td style='padding:8px 12px;text-align:right;'>Nights missing</td><td style='padding:8px 12px;text-align:right;'>Members</td></tr></thead><tbody>" +
+                string.Join("", waiting.Select(w =>
+                    $"<tr><td style='padding:6px 12px;border:1px solid #e5e7eb;'><b>{System.Net.WebUtility.HtmlEncode(w.Row.ClubName)}</b></td>" +
+                    $"<td style='padding:6px 12px;border:1px solid #e5e7eb;color:#64748b;'>D{System.Net.WebUtility.HtmlEncode(w.Row.DistrictNumber)}</td>" +
+                    $"<td style='padding:6px 12px;border:1px solid #e5e7eb;color:#64748b;'>RID {System.Net.WebUtility.HtmlEncode(w.Row.ClubRotaryId)}</td>" +
+                    $"<td style='padding:6px 12px;border:1px solid #e5e7eb;text-align:right;'><b>{w.Nights} / {graceNights}</b></td>" +
+                    $"<td style='padding:6px 12px;border:1px solid #e5e7eb;text-align:right;'>{w.Row.Detail.MembersAffected}</td></tr>")) +
+                "</tbody></table>";
+
             var body = $@"<div style='font-family:Arial,sans-serif;'>
 <h2 style='color:{color};'>Rotary.org Non-Sync Cascade — {modeText}</h2>
 <p>Dear {System.Net.WebUtility.HtmlEncode(triggeredByName)},</p>
 {note}
+{waitingHtml}
 <p>These clubs are still on Rotary.org (in <code>/Clubs/search</code>) but dropped out of the sync list (<code>/clubs</code>), so they went <b>sync → non-sync</b>. The club is kept; only its members are soft-deleted from club-scoped tables.</p>
 <table style='border-collapse:collapse;margin:12px 0;'>
   <tr><td style='padding:4px 12px;'>Clubs → non-sync</td><td style='padding:4px 12px;'><b>{clubCount}</b></td></tr>
@@ -412,6 +543,8 @@ public class ClubNonSyncCascadeWorker
 
             var subject = aborted
                 ? "[ALERT] Non-Sync Cascade Aborted — safety threshold"
+                : clubCount == 0
+                ? $"[Waiting] {waiting.Count} club(s) missing from Rotary.org sync list — nothing deleted — {DateTime.Now:dd MMM yyyy}"
                 : $"[{(apply ? "Applied" : "Audit")}] ROW Non-Sync Cascade — {DateTime.Now:dd MMM yyyy}";
             await _emailSender.SendReportAsync(subject, body, bytes, fileName);
             Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Email sent.");

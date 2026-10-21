@@ -29,9 +29,9 @@ public class WorldClubImportWorker
 {
     private const string OtherZonesName = "Other Zones";
 
-    // Owned by the daily --country-sync; never imported here.
-    private static readonly HashSet<string> SkipCountries =
-        new(new[] { "India", "Sri Lanka", "Nepal" }, StringComparer.OrdinalIgnoreCase);
+    // ROW: India is never synced (CountryScope). Sri Lanka and Nepal are imported like any other
+    // country (in RIZones they were owned by the daily --country-sync).
+    private readonly CountryScope _scope;
 
     // Country names EXACTLY as Rotary.org's /Clubs/search expects them — verified live 2026-09-18.
     // Rotary.org uses formal names ("Korea, Republic of", "Russian Federation", "Viet Nam", "Côte d'Ivoire")
@@ -75,7 +75,8 @@ public class WorldClubImportWorker
         "Trinidad and Tobago", "Tunisia", "Turkey", "Turks and Caicos Islands", "Uganda", "Ukraine",
         "United Arab Emirates", "United States", "United States Virgin Islands", "Uruguay",
         "Uzbekistan", "Vanuatu", "Venezuela", "Viet Nam", "Wales", "Yemen", "Zambia", "Zimbabwe",
-        // India / Sri Lanka / Nepal are owned by the daily --country-sync (see SkipCountries).
+        "Nepal", "Sri Lanka",
+        // India is not synced by ROW (CountryScope).
     };
 
     private readonly IRotaryOrgApiClient _api;
@@ -94,6 +95,7 @@ public class WorldClubImportWorker
         _emailSender = emailSender;
         _config = config;
         _logger = logger;
+        _scope = new CountryScope(config);
         _connectionString = config.GetConnectionString("DefaultConnection")
             ?? throw new InvalidOperationException("ConnectionStrings:DefaultConnection missing");
     }
@@ -196,7 +198,7 @@ public class WorldClubImportWorker
             Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Loaded {existingClubIds.Count} existing ClubRotaryIds (incl. deleted)");
 
             // 1. Fetch every country. One failed country is logged and skipped — never aborts the run.
-            var countries = AllCountries.Where(c => !SkipCountries.Contains(c))
+            var countries = AllCountries.Where(c => !_scope.IsSkipped(c))
                 .Distinct(StringComparer.OrdinalIgnoreCase).ToList();
             var unique = new Dictionary<string, (RotaryOrgClubSearchDto Club, string SearchCountry)>(StringComparer.OrdinalIgnoreCase);
             int idx = 0;
@@ -261,9 +263,8 @@ public class WorldClubImportWorker
                     continue;
                 }
 
-                // Also leave India / Sri Lanka / Nepal clubs that surfaced under another country's
-                // search to the daily --country-sync.
-                if (SkipCountries.Contains(clubCountry))
+                // An Indian club that surfaced under another country's search is still not synced.
+                if (_scope.IsSkipped(clubCountry))
                     continue;
 
                 var districtNumber = Clean(c.District);
@@ -342,7 +343,7 @@ public class WorldClubImportWorker
                                 Country = Truncate(clubCountry, 100),
                                 State = Truncate(c.Address?.State ?? c.Location?.State ?? c.Location?.InternationalProvince, 100),
                                 City = city,
-                                PinCode = Truncate(c.Address?.PostalCode, 50),
+                                PinCode = Truncate(c.Address?.PostalCode, 20),   // club_master.Pincode VARCHAR(20)
                                 Website = Truncate(c.Website, 500),
                                 Email = Truncate(c.Email, 200),
                                 Lat = lat,
@@ -375,7 +376,7 @@ public class WorldClubImportWorker
             var elapsed = DateTime.UtcNow - startedAt;
             Console.WriteLine("");
             Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] === World Clubs Import {(dryRun ? "DRY RUN" : "APPLY")} DONE in {elapsed.TotalMinutes:F1} min ===");
-            Console.WriteLine($"  Countries searched:          {countries.Count} (skipped: {string.Join(", ", SkipCountries)})");
+            Console.WriteLine($"  Countries searched:          {countries.Count} (skipped: {_scope.Describe})");
             Console.WriteLine($"  Countries failed (API):      {failedCountries.Count}");
             Console.WriteLine($"  Countries with 0 clubs:      {zeroCountries.Count}");
             Console.WriteLine($"  Unique clubs on Rotary.org:  {unique.Count}");
@@ -436,7 +437,7 @@ public class WorldClubImportWorker
                 ("Log ID", dryRun ? "(dry run)" : logId.ToString()),
                 ("Duration (min)", Math.Round(elapsed.TotalMinutes, 1)),
                 ("Countries searched", countriesSearched),
-                ("Countries skipped (owned by --country-sync)", string.Join(", ", SkipCountries)),
+                ("Countries skipped (not synced by ROW)", _scope.Describe),
                 ("Countries failed (API)", failedCountries.Count),
                 ("Countries with 0 clubs", zeroCountries.Count),
                 ("Unique clubs on Rotary.org", uniqueClubs),
@@ -528,7 +529,7 @@ public class WorldClubImportWorker
 {Row("Errors", errorCount, errorCount > 0 ? "#dc2626" : "#0f172a")}
 </table>
 <p style='color:#64748b;font-size:13px;'>New clubs are NON-SYNC (<code>IsSyncedFromRotaryOrg=0</code>) — club row only: no members, no BOD, no modules.
-Existing clubs were not touched. India / Sri Lanka / Nepal are handled by the daily country sync.
+Existing clubs were not touched. Clubs in India are never synced by ROW.
 Full breakdown is in the attached Excel.</p>
 <p>Regards,<br/><strong>Team ROW</strong></p>
 </div>";

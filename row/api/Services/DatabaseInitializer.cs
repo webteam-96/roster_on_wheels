@@ -426,7 +426,7 @@ public partial class DatabaseInitializer
                         Country VARCHAR(100) DEFAULT 'India',
                         State VARCHAR(100),
                         City VARCHAR(100),
-                        Pincode VARCHAR(10),
+                        Pincode VARCHAR(20),
                         ActiveFromDate DATE NULL,
                         ActiveToDate DATE NULL,
                         IsAutomaticMeetingReminder TINYINT(1) DEFAULT 1,
@@ -4671,6 +4671,16 @@ public partial class DatabaseInitializer
                     await connection.ExecuteAsync(
                         "ALTER TABLE member_address_details MODIFY COLUMN PinCode VARCHAR(100) NULL");
                     _logger.LogInformation("Widened member_address_details.PinCode from VARCHAR({Old}) to VARCHAR(100).", pincodeColLen.Value);
+                }
+
+                // ROW: club postal codes worldwide run past 10 characters (Brazil 01310-100, Canada K1A 0B1 ...).
+                var clubPincodeLen = await connection.ExecuteScalarAsync<long?>(@"
+                    SELECT CHARACTER_MAXIMUM_LENGTH FROM information_schema.COLUMNS
+                    WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'club_master' AND COLUMN_NAME = 'Pincode'");
+                if (clubPincodeLen.HasValue && clubPincodeLen.Value < 20)
+                {
+                    await connection.ExecuteAsync("ALTER TABLE club_master MODIFY COLUMN Pincode VARCHAR(20) NULL");
+                    _logger.LogInformation("Widened club_master.Pincode from VARCHAR({Old}) to VARCHAR(20).", clubPincodeLen.Value);
                 }
 
                 // District Governors

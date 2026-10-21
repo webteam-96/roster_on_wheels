@@ -14,3 +14,8 @@ api/wwwroot/uploads/
 
 # OAuth token caches written by Google.Apis (never commit)
 Google.Apis.Auth.OAuth2.Responses.TokenResponse-*
+
+# RIZones reference copy of the sync worker: its appsettings.json holds RIZones secrets. Never commit.
+workers/RotaryOrgSyncWorker-FromRIZones/
+# Sync worker secrets (Rotary.org login, row_production connection). Never commit.
+workers/RotaryOrgSyncWorker/appsettings.Local.json

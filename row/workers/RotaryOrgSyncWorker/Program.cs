@@ -17,7 +17,7 @@ if (mode == "--help" || mode == "-h" || mode == "/?" || mode == "/help")
     Console.WriteLine("  RotaryOrgSyncWorker.exe --delta              Daily incremental sync (only changed clubs)");
     Console.WriteLine("  RotaryOrgSyncWorker.exe --member-sync        Daily member sync (add/update/terminate)");
     Console.WriteLine("  RotaryOrgSyncWorker.exe --repair-sync        Insert sync clubs missing from DB (after adding districts)");
-    Console.WriteLine("  RotaryOrgSyncWorker.exe --country-sync       Nightly country sync (India/Sri Lanka/Nepal)");
+    Console.WriteLine("  RotaryOrgSyncWorker.exe --country-sync       Nightly country sync (every synced country except India)");
     Console.WriteLine("  RotaryOrgSyncWorker.exe --country-sync --dry-run                  Same, but NO DB writes / NO email — just prints what would happen");
     Console.WriteLine("  RotaryOrgSyncWorker.exe --country-sync --dry-run --club-id 90395  Dry-run restricted to ONE club (ClubRotaryId)");
     Console.WriteLine("  RotaryOrgSyncWorker.exe --terminate-clubs    Audit clubs gone from /clubs AND /Clubs/search (no DB changes)");
@@ -80,9 +80,24 @@ if (mode == "--help" || mode == "-h" || mode == "/?" || mode == "/help")
 var config = new ConfigurationBuilder()
     .SetBasePath(AppContext.BaseDirectory)
     .AddJsonFile("appsettings.json", optional: false, reloadOnChange: false)
+    .AddJsonFile("appsettings.Local.json", optional: true, reloadOnChange: false)   // this machine/server only: secrets, git-ignored
     .AddEnvironmentVariables()   // secrets and Brand__* settings come from the environment
     .Build();
 RotaryApi.Services.Brand.Init(config);
+
+// ROW safety lock: this worker writes clubs and members, so it only ever runs against a ROW
+// database (name starting "row", e.g. row_production). A RIZones database is refused outright.
+{
+    var cs = config.GetConnectionString("DefaultConnection") ?? "";
+    string db = "";
+    try { db = new MySqlConnector.MySqlConnectionStringBuilder(cs).Database ?? ""; } catch { }
+    if (!db.StartsWith("row", StringComparison.OrdinalIgnoreCase))
+    {
+        Console.Error.WriteLine($"Refusing to run: database '{(db == "" ? "(none)" : db)}' is not a ROW database. " +
+            "Set ConnectionStrings:DefaultConnection (or ConnectionStrings__DefaultConnection) to the row_production database.");
+        return 2;
+    }
+}
 
 // DI container
 var services = new ServiceCollection();
