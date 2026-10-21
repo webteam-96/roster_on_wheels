@@ -16,7 +16,8 @@ namespace RotaryApi.Services;
 /// </summary>
 public class ScopeWriteGuardMiddleware
 {
-    private static readonly Regex Scoped = new(@"^/api/(clubs|districts)/(\d+)(?:/|$)", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+    // district-modules/{id} is a district scope too (citation settings had no check of their own).
+    private static readonly Regex Scoped = new(@"^/api/(clubs|districts|district-modules)/(\d+)(?:/|$)", RegexOptions.IgnoreCase | RegexOptions.Compiled);
     private readonly RequestDelegate _next;
     private readonly string _connectionString;
 
@@ -68,7 +69,7 @@ public class ScopeWriteGuardMiddleware
             var memberId = int.TryParse(ctx.User.FindFirst("memberId")?.Value, out var id) ? id : 0;
             var isClub = m.Groups[1].Value.Equals("clubs", StringComparison.OrdinalIgnoreCase);
             var scopeId = int.Parse(m.Groups[2].Value);
-            if (memberId <= 0 || !await AllowedAsync(memberId, isClub, scopeId))
+            if (memberId <= 0 || !await AllowedAsync(_connectionString, memberId, isClub, scopeId))
             {
                 ctx.Response.StatusCode = StatusCodes.Status403Forbidden;
                 await ctx.Response.WriteAsJsonAsync(new { message = isClub
@@ -89,9 +90,11 @@ public class ScopeWriteGuardMiddleware
             new { M = memberId, R = roles }) > 0;
     }
 
-    internal async Task<bool> AllowedAsync(int memberId, bool isClub, int scopeId)
+    /// <summary>True when the member manages this club (isClub) or district; also used by controllers that write
+    /// to a club or district named outside the URL.</summary>
+    internal static async Task<bool> AllowedAsync(string connectionString, int memberId, bool isClub, int scopeId)
     {
-        await using var conn = new MySqlConnection(_connectionString);
+        await using var conn = new MySqlConnection(connectionString);
         await conn.OpenAsync();
         const string active = "mr.fk_member_master_profile_id = @M AND mr.IsActive = 1 AND mr.isdeleted = 0";
         // District-level rows store fk_club_id as NULL or 0 (same rule as ClubAdminAccessHelper).

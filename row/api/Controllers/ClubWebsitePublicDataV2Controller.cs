@@ -392,8 +392,9 @@ public class ClubWebsitePublicDataV2Controller : ControllerBase
         try
         {
             foreach (var id in await conn.QueryAsync<int>(
-                @"SELECT DISTINCT fk_year_id FROM upcoming_events
-                  WHERE fk_club_id = @ClubId AND isdeleted = 0 AND IsActive = 1 AND fk_year_id > 0",
+                @"SELECT DISTINCT y2.pk_year_id FROM upcoming_events ue
+                  JOIN rotary_year_master y2 ON ue.EventDate >= y2.StartDate AND ue.EventDate < DATE_ADD(y2.EndDate, INTERVAL 1 DAY)
+                  WHERE ue.fk_club_id = @ClubId AND ue.isdeleted = 0 AND ue.IsActive = 1",
                 new { ClubId = clubId }))
                 yearIds.Add(id);
         }
@@ -523,7 +524,7 @@ public class ClubWebsitePublicDataV2Controller : ControllerBase
             DistrictNumber  = (string?)about.districtNumber,
             ClubLogoPath    = (string?)about.clubLogoPath,
             RotaryLogoPath  = (string?)about.rotaryLogoPath,
-            Content         = (string?)about.content,
+            Content         = RotaryApi.Services.PublicHtml.Clean((string?)about.content),
             Contacts        = contacts,
             Socials         = socials,
             MeetingDay      = (string?)about.meetingDay,

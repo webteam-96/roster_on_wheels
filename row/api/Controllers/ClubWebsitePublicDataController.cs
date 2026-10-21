@@ -96,8 +96,9 @@ public class ClubWebsitePublicDataController : ControllerBase
                 UNION
                 SELECT fk_year_id FROM ({yearProjLegs}) yp
                 UNION
-                SELECT DISTINCT fk_year_id FROM upcoming_events
-                  WHERE fk_club_id = @ClubId AND isdeleted = 0 AND IsActive = 1
+                SELECT DISTINCT y2.pk_year_id FROM upcoming_events ue
+                  JOIN rotary_year_master y2 ON ue.EventDate >= y2.StartDate AND ue.EventDate < DATE_ADD(y2.EndDate, INTERVAL 1 DAY)
+                  WHERE ue.fk_club_id = @ClubId AND ue.isdeleted = 0 AND ue.IsActive = 1
                 UNION
                 SELECT DISTINCT fk_year_id FROM past_presidents
                   WHERE fk_club_id = @ClubId AND isdeleted = 0
@@ -214,7 +215,7 @@ public class ClubWebsitePublicDataController : ControllerBase
             DistrictNumber  = (string?)about.districtNumber,
             ClubLogoPath    = (string?)about.clubLogoPath,
             RotaryLogoPath  = (string?)about.rotaryLogoPath,
-            Content         = (string?)about.content,
+            Content         = RotaryApi.Services.PublicHtml.Clean((string?)about.content),
             Contacts        = contacts,
             Socials         = socials,
             MeetingDay      = (string?)about.meetingDay,
@@ -623,6 +624,8 @@ public class ClubWebsitePublicDataController : ControllerBase
     public class PublicProjectDto
     {
         public int Id { get; set; }
+        public int ClubId { get; set; }
+        public string? ClubName { get; set; }
         public int YearId { get; set; }
         public string YearLabel { get; set; } = "";
         public string ModuleKey { get; set; } = "";
@@ -728,6 +731,94 @@ public class ClubWebsitePublicDataController : ControllerBase
         using var conn = CreateConn();
         await conn.OpenAsync();
         if (!await IsClubServiceableAsync(conn, clubId)) return NotFound();
+        return await ProjectDetailCoreAsync(conn, clubId, projectId, yearId);
+    }
+
+    // District website: a project of any active club in a district whose website is live (the club itself needs no
+    // website). Same body as the club route.
+    [HttpGet("/api/public/district/{districtId:int}/clubs/{clubId:int}/projects/{projectId:int}")]
+    public async Task<ActionResult<ProjectDetailDto>> GetDistrictProjectDetail(int districtId, int clubId, int projectId, [FromQuery] int? yearId = null)
+    {
+        using var conn = CreateConn();
+        await conn.OpenAsync();
+        if (!await IsDistrictClubServiceableAsync(conn, districtId, clubId)) return NotFound();
+        return await ProjectDetailCoreAsync(conn, clubId, projectId, yearId);
+    }
+
+    // Projects of all active clubs in a district with a live website, newest first, one page at a time.
+    // avenue: a project module key (community_service, …); empty = every avenue.
+    [HttpGet("/api/public/district/{districtId:int}/projects")]
+    public async Task<ActionResult<IEnumerable<PublicProjectDto>>> GetDistrictProjects(
+        int districtId, [FromQuery] int? yearId, [FromQuery] string? avenue, [FromQuery] int page = 1, [FromQuery] int pageSize = 24)
+    {
+        using var conn = CreateConn();
+        await conn.OpenAsync();
+        if (!await IsDistrictClubServiceableAsync(conn, districtId, null)) return NotFound();
+        if (!string.IsNullOrEmpty(avenue) && !ProjectModuleKeys.Contains(avenue)) return BadRequest(new { message = "Unknown avenue." });
+        var keys = string.IsNullOrEmpty(avenue) ? ProjectModuleKeys : new[] { avenue };
+        var year = yearId ?? await conn.ExecuteScalarAsync<int?>("SELECT pk_year_id FROM rotary_year_master WHERE IsCurrent = 1 AND isdeleted = 0 LIMIT 1");
+        pageSize = Math.Clamp(pageSize, 1, 60);
+        return Ok(await QueryProjectsAsync(conn, 0, year, keys, includeMeetings: false,
+            districtId: districtId, limit: pageSize, offset: (Math.Max(page, 1) - 1) * pageSize));
+    }
+
+    // District website home "snapshot": this year's service projects across the district's clubs, plus clubs and members.
+    [HttpGet("/api/public/district/{districtId:int}/snapshot")]
+    public async Task<ActionResult> GetDistrictSnapshot(int districtId, [FromQuery] int? yearId)
+    {
+        using var conn = CreateConn();
+        await conn.OpenAsync();
+        if (!await IsDistrictClubServiceableAsync(conn, districtId, null)) return NotFound();
+        var year = yearId ?? await conn.ExecuteScalarAsync<int?>("SELECT pk_year_id FROM rotary_year_master WHERE IsCurrent = 1 AND isdeleted = 0 LIMIT 1");
+        var t = year.HasValue ? await _yearTables.ResolveByYearIdAsync(conn, year.Value) : null;
+        var projects = t == null ? null : await conn.QueryFirstOrDefaultAsync<dynamic>($@"
+            SELECT COUNT(*) AS projects, COALESCE(SUM(p.direct_beneficiaries), 0) AS beneficiaries,
+                   COALESCE(SUM(p.project_cost), 0) AS cost, COALESCE(SUM(p.man_hours), 0) AS manHours
+            FROM `{t.ProjectsTable}` p
+            JOIN module_master mm ON mm.pk_module_id = p.fk_module_id
+            JOIN club_master c ON c.pk_club_id = p.fk_club_id
+            WHERE c.fk_district_id = @DistrictId AND c.isdeleted = 0 AND c.IsActive = 1
+              AND p.isdeleted = 0 AND p.is_active = 1
+              AND (COALESCE(p.approval_status, '') = '' OR p.approval_status = 'Approved')
+              AND mm.ModuleKey IN @Keys",
+            new { DistrictId = districtId, Keys = ProjectModuleKeys });
+        var people = await conn.QueryFirstAsync<dynamic>(@"
+            SELECT COUNT(DISTINCT c.pk_club_id) AS clubs, COUNT(DISTINCT cm.fk_member_master_profile_id) AS members
+            FROM club_master c
+            LEFT JOIN club_members cm ON cm.fk_club_id = c.pk_club_id AND cm.IsActive = 1 AND COALESCE(cm.isdeleted, 0) = 0
+            WHERE c.fk_district_id = @DistrictId AND c.isdeleted = 0 AND c.IsActive = 1",
+            new { DistrictId = districtId });
+        return Ok(new
+        {
+            yearId = year,
+            projects = (long)(projects?.projects ?? 0L),
+            beneficiaries = (decimal)(projects?.beneficiaries ?? 0m),
+            cost = (decimal)(projects?.cost ?? 0m),
+            manHours = (decimal)(projects?.manHours ?? 0m),
+            clubs = (long)people.clubs,
+            members = (long)people.members,
+        });
+    }
+
+    // The district has a live website and an active district + zone; with clubId, that club is active and in it.
+    private static async Task<bool> IsDistrictClubServiceableAsync(MySqlConnection conn, int districtId, int? clubId)
+    {
+        var count = await conn.ExecuteScalarAsync<int>(@"
+            SELECT COUNT(*)
+            FROM district_websites w
+            JOIN district_master d ON d.pk_district_id = w.fk_district_id
+            JOIN zone_master z     ON z.pk_zone_id     = d.fk_zone_id
+            WHERE w.fk_district_id = @DistrictId AND w.isdeleted = 0
+              AND d.isdeleted = 0 AND d.IsActive = 1
+              AND z.isdeleted = 0 AND z.IsActive = 1
+              AND (@ClubId IS NULL OR EXISTS (SELECT 1 FROM club_master c WHERE c.pk_club_id = @ClubId
+                     AND c.fk_district_id = @DistrictId AND c.isdeleted = 0 AND c.IsActive = 1))",
+            new { DistrictId = districtId, ClubId = clubId });
+        return count > 0;
+    }
+
+    private async Task<ActionResult<ProjectDetailDto>> ProjectDetailCoreAsync(MySqlConnection conn, int clubId, int projectId, int? yearId)
+    {
 
         // Resolve the matching year table — prefer caller-provided yearId, else scan.
         YearTableInfo? info = null;
@@ -1014,8 +1105,13 @@ public class ClubWebsitePublicDataController : ControllerBase
     }
 
     private async Task<List<PublicProjectDto>> QueryProjectsAsync(
-        MySqlConnection conn, int clubId, int? yearId, string[] moduleKeys, bool includeMeetings)
+        MySqlConnection conn, int clubId, int? yearId, string[] moduleKeys, bool includeMeetings,
+        int districtId = 0, int? limit = null, int offset = 0)
     {
+        // districtId > 0: every active club of that district instead of one club (district website)
+        var clubFilter = districtId > 0
+            ? "p.fk_club_id IN (SELECT pk_club_id FROM club_master WHERE fk_district_id = @DistrictId AND isdeleted = 0 AND IsActive = 1)"
+            : "p.fk_club_id = @ClubId";
         // Year-wise: when yearId provided, hit that one year's tables; else UNION across all
         // existing year-wise tables. Primary photo is reconstructed via CONCAT — handles both
         // new uploads (with year segment in folder) and migrated rows (no year segment, uses old_pk).
@@ -1037,6 +1133,8 @@ public class ClubWebsitePublicDataController : ControllerBase
         var unionLegs = string.Join(" UNION ALL ", tables.Select(t => {
             var suffix = t.YearLabel.Replace("-", "_");
             return $@"SELECT p.pk_project_id AS Id,
+                             p.fk_club_id   AS ClubId,
+                             (SELECT ClubName FROM club_master WHERE pk_club_id = p.fk_club_id) AS ClubName,
                              p.fk_year_id   AS YearId,
                              '{t.YearLabel}' AS YearLabel,
                              mm.ModuleKey   AS ModuleKey,
@@ -1063,18 +1161,21 @@ public class ClubWebsitePublicDataController : ControllerBase
                       LEFT JOIN area_of_focus_master aof ON aof.pk_area_of_focus_id = p.fk_area_of_focus_id
                       LEFT JOIN category_master cat ON cat.pk_category_id = p.fk_category_id
                       LEFT JOIN sub_category_master sc ON sc.pk_sub_category_id = p.fk_sub_category_id
-                      WHERE p.fk_club_id = @ClubId
+                      WHERE {clubFilter}
                         AND p.isdeleted = 0 AND p.is_active = 1
                         AND (COALESCE(p.approval_status, '') = '' OR p.approval_status = 'Approved')
                         AND mm.ModuleKey IN @Keys{ptFilter}";
         }));
 
-        var sql = $"SELECT * FROM ({unionLegs}) u ORDER BY COALESCE(u.ModifiedDate, u.CreatedDate) DESC, u.Id DESC";
-        var raw = await conn.QueryAsync<dynamic>(sql, new { ClubId = clubId, Keys = moduleKeys });
+        var sql = $"SELECT * FROM ({unionLegs}) u ORDER BY COALESCE(u.ModifiedDate, u.CreatedDate) DESC, u.Id DESC"
+                  + (limit.HasValue ? " LIMIT @Limit OFFSET @Offset" : "");
+        var raw = await conn.QueryAsync<dynamic>(sql, new { ClubId = clubId, DistrictId = districtId, Keys = moduleKeys, Limit = limit ?? 0, Offset = offset });
 
         return raw.Select(r => new PublicProjectDto
         {
             Id               = (int)r.Id,
+            ClubId           = (int)r.ClubId,
+            ClubName         = (string?)r.ClubName,
             YearId           = (int)r.YearId,
             YearLabel        = (string?)r.YearLabel ?? "",
             ModuleKey        = (string?)r.ModuleKey ?? "",
@@ -1143,6 +1244,7 @@ public class ClubWebsitePublicDataController : ControllerBase
             ORDER BY sort_order, pk_club_website_menu_id",
             new { ClubId = clubId })).ToList();
 
+        foreach (var m in menus) m.ContentHtml = RotaryApi.Services.PublicHtml.Clean(m.ContentHtml);
         if (menus.Count == 0) return Ok(menus);
 
         var menuIds = menus.Select(m => m.Id).ToArray();
@@ -1207,8 +1309,9 @@ public class ClubWebsitePublicDataController : ControllerBase
                 UNION
                 SELECT fk_year_id FROM ({yearProjLegs}) yp
                 UNION
-                SELECT DISTINCT fk_year_id FROM upcoming_events
-                  WHERE fk_club_id = @ClubId AND isdeleted = 0 AND IsActive = 1
+                SELECT DISTINCT y2.pk_year_id FROM upcoming_events ue
+                  JOIN rotary_year_master y2 ON ue.EventDate >= y2.StartDate AND ue.EventDate < DATE_ADD(y2.EndDate, INTERVAL 1 DAY)
+                  WHERE ue.fk_club_id = @ClubId AND ue.isdeleted = 0 AND ue.IsActive = 1
             )
             ORDER BY y.IsCurrent DESC, y.pk_year_id DESC
             LIMIT 1",
@@ -1261,6 +1364,7 @@ public class ClubWebsitePublicDataController : ControllerBase
             LIMIT 1",
             new { YearId = resolvedYearId.Value });
 
+        if (row != null) row.Description = RotaryApi.Services.PublicHtml.Clean(row.Description);
         return Ok(row);
     }
 
@@ -1324,6 +1428,7 @@ public class ClubWebsitePublicDataController : ControllerBase
             LIMIT 1",
             new { ClubId = clubId, YearId = resolvedYearId.Value });
 
+        if (row != null) row.Description = RotaryApi.Services.PublicHtml.Clean(row.Description);
         return Ok(row);
     }
 

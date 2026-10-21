@@ -209,7 +209,7 @@ public class ClubWebsitePublicController : ControllerBase
     // (http/https), leading "www.", any path/trailing slash and the port. Mirrors the old ASP.NET
     // TenantResolver so ClientDomain/Subdomain stored as full URLs (e.g. "https://www.rcmadras.in/")
     // still match an incoming Host like "rcmadras.in" — no data migration needed.
-    private static string NormalizeHost(string? raw)
+    internal static string NormalizeHost(string? raw)
     {
         if (string.IsNullOrWhiteSpace(raw)) return "";
         var h = raw.Trim().ToLowerInvariant();
@@ -223,7 +223,7 @@ public class ClubWebsitePublicController : ControllerBase
 
     // SQL that normalises a stored column the SAME way as NormalizeHost, applied at query time so no
     // data migration is required. `col` is a controlled constant (never user input).
-    private static string NormCol(string col) =>
+    internal static string NormCol(string col) =>
         $"SUBSTRING_INDEX(REPLACE(REPLACE(REPLACE(LOWER({col}),'https://',''),'http://',''),'www.',''),'/',1)";
 
     private static string ToThemeKey(string? themeName)

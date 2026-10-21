@@ -215,6 +215,20 @@ public class MembersController : ControllerBase
         if (existing == null)
             return NotFound(new { message = "Member not found" });
 
+        // A club / district admin may edit only members of a club they manage (was: any member anywhere).
+        if (isAdminPartial && !isSA && !isSelf)
+        {
+            await using var scopeConn = new MySqlConnector.MySqlConnection(_connectionString);
+            var clubIds = await Dapper.SqlMapper.QueryAsync<int>(scopeConn,
+                "SELECT fk_club_id FROM club_members WHERE fk_member_master_profile_id = @Id AND IsActive = 1 AND isdeleted = 0",
+                new { Id = id });
+            var manages = false;
+            foreach (var clubId in clubIds)
+                if (await ScopeWriteGuardMiddleware.AllowedAsync(_connectionString, currentMemberId, true, clubId)) { manages = true; break; }
+            if (!manages)
+                return StatusCode(403, new { message = "You can only edit members of a club you manage." });
+        }
+
         // Before the duplicate check + change detection below, so "+91 7700…" is compared as "7700…".
         (dto.PrimaryMobileNumber, dto.SecondaryMobileNumber) = await StripMobileCountryCodesAsync(
             dto.PrimaryMobileNumber, dto.FkPrimaryCountryId, dto.SecondaryMobileNumber, dto.FkSecondaryCountryId);

@@ -10,8 +10,12 @@ unless marked "done"; decide them when the area is worked on.
   write under `api/clubs/{id}` or `api/districts/{id}` unless the caller manages that club/district (SuperAdmin,
   RIDirector, the club's Admin / ClubModerator / AG, a district Admin with all-clubs access, the district's Admin,
   the zone's ZonalCoordinator), and limits RI Director, master-data and mass-email-media writes to their roles.
-  Roles come from `member_roles` on every write. E2E: `kb/tools/scope_write_guard_e2e.py`. Not covered: endpoints
-  that take the club/district id in the body or query string (they rely on their own checks); review those next.
+  Roles come from `member_roles` on every write. E2E: `kb/tools/scope_write_guard_e2e.py`. Endpoints that take the
+  club/district id in the body or query were reviewed on 2026-10-21 (73 found): all but two check permission
+  themselves or are payment routes (Wave 2). The two holes are closed: `api/district-modules/{id}/...` (district
+  citation settings, no check at all) is now a district scope of this guard, and a club / district admin can
+  edit only members of a club they manage (`PUT api/members/{id}` allowed any member anywhere).
+  E2E: `kb/tools/member_scope_e2e.py`. Not reviewed: who may READ what (GET endpoints).
 - **No default SuperAdmin password** (done 2026-10-21). The initializer used to give the bootstrap SuperAdmin
   (`Brand:SuperAdminEmail`) the password `Admin@123` whenever it had no active login. It now reads
   `Bootstrap__SuperAdminPassword` from the environment (12+ characters, marked temporary); unset, it logs a
@@ -27,7 +31,21 @@ unless marked "done"; decide them when the area is worked on.
   club e-governance) drop the tab. So skipped modules leave no stuck data: with moderation skipped no project waits
   for approval, district goal locks read as unlocked, and the direct-beneficiary limit reads as unset. Category
   masters stay readable (project forms use them); only editing is closed. E2E: `kb/tools/feature_gate_e2e.py`.
-  Not done: the mobile app still shows these modules (their calls get 404).
+  Mobile app (2026-10-21): `core/features/feature_controller.dart` reads the same switches; the router sends an off
+  module's screens to "Not available" (the app routes use the admin paths) and the home role tiles, club and
+  district dashboard tiles, club e-governance tiles, settings tiles and AG reports drop them.
+- **District website** (done 2026-10-21). `row/district-website` was a copy of the club site; it is now a district
+  site modelled on the user's example (a live RIZones district site, viewed in the browser only): Home (banners,
+  Four-Way Test, district snapshot, RI President and Governor, this month's events, newsletters, sponsors), About,
+  District Committee, Club Finder with each club's board, Projects by avenue with project pages, Newsletters
+  (governor / club), custom menu pages. Data comes from new anonymous, read-only routes under
+  `api/public/district/{id}/...` that return public fields only. The example site instead forwards admin API calls
+  through a proxy (member records, committee contacts) and makes one events call per club; neither was copied.
+  No member list and no cookie banner (no third-party content). E2E: `kb/tools/district_site_e2e.py`.
+- **Admin rich text is sanitized on public sites** (done 2026-10-21). About pages, custom menu pages and
+  President / Governor descriptions were rendered as raw HTML on the club website, so any club admin could run
+  script for visitors. The public API now cleans them (`Services/PublicHtml.cs`, HtmlSanitizer 9.2). MailKit and
+  MimeKit were raised to 4.18.1 (known advisory); `dotnet list package --vulnerable` is clean.
 - **Swagger only in Development** (or `Swagger:Enabled=true`), and unhandled errors return a generic message
   outside Development (done 2026-10-19).
 - **Mobile sign-in is email + password for every member** (done 2026-10-19). RIZones members signed in to the

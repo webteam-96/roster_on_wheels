@@ -110,7 +110,7 @@ open the file for the text. Do not edit by hand.
   -   Configuration (set per server as environment variables; never commit values)
   -   Checks
   -   Refreshing from a newer RIZones copy
-- **row/ROW-CHANGES.md** (35 KB)
+- **row/ROW-CHANGES.md** (37 KB)
   - ROW changes to consider later
   -   Security and privacy
   -   Providers

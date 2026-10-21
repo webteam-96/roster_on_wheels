@@ -211,8 +211,8 @@ Red wins where the tabs disagree (Club Moderator Dashboard and Project Approval 
 Foundation Goals "Is this coming from RI ?".
 
 Built 2026-10-21 (web): see "Module switches" in `ROW-CHANGES.md`. Every page the sheet lists for a green module exists
-in the admin (only the removed WhatsApp pages do not). Still to do: hide the same modules in the mobile app (the API
-already refuses their calls); Payments wait for Stripe.
+in the admin (only the removed WhatsApp pages do not). The mobile app hides them too (same day; `row/mobile`
+is not in git). Payments wait for Stripe.
 
 ## 12. Open decisions that hold work back
 
@@ -220,7 +220,7 @@ Full details are in `row/STATUS.md` §8 and `row/ROW-CHANGES.md`.
 
 | # | Decision | Holds back |
 |---|---|---|
-| 1 | Members API is open without sign-in (as in RIZones): lock it down? | Security before launch |
+| 1 | ~~Members API is open without sign-in~~ | Closed 2026-10-21: `api/members` requires sign-in |
 | 2 | Health / blood-group / spouse data under HIPAA, GDPR, PIPEDA | Privacy (§6), PPH camps |
 | 3 | Plesk or IIS-native hosting for club websites | Deployment (§8) |
 | 4 | Stripe and/or PayPal, tax, payouts | Payments (§2), admin task C, mobile WS10-06 |

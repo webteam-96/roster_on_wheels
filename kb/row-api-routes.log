@@ -283,6 +283,9 @@ Mapped {api/public/club/{clubId:int}/directory, Get}
 Mapped {api/public/club/{clubId:int}/past-presidents, Get}
 Mapped {api/public/club/{clubId:int}/calendar, Get}
 Mapped {api/public/club/{clubId:int}/projects/{projectId:int}, Get}
+Mapped {api/public/district/{districtId:int}/clubs/{clubId:int}/projects/{projectId:int}, Get}
+Mapped {api/public/district/{districtId:int}/projects, Get}
+Mapped {api/public/district/{districtId:int}/snapshot, Get}
 Mapped {api/public/club/{clubId:int}/projects, Get}
 Mapped {api/public/club/{clubId:int}/meetings, Get}
 Mapped {api/public/club/{clubId:int}/menus, Get}
@@ -662,6 +665,16 @@ Mapped {api/districts/{districtId}/district-report/avenue-of-service-club-count,
 Mapped {api/public/district/{districtId:int}/menus, Get}
 Mapped {api/public/district/{districtId:int}/citation/performance, Get}
 Mapped {api/public/district/{districtId:int}/citation/years, Get}
+Mapped {api/public/district/by-host, Get}
+Mapped {api/public/district/{districtId:int}/site, Get}
+Mapped {api/public/district/{districtId:int}/{kind:regex(^(banners|advertisements)$)}, Get}
+Mapped {api/public/district/{districtId:int}/about, Get}
+Mapped {api/public/district/{districtId:int}/dignitaries, Get}
+Mapped {api/public/district/{districtId:int}/events, Get}
+Mapped {api/public/district/{districtId:int}/newsletters, Get}
+Mapped {api/public/district/{districtId:int}/committee, Get}
+Mapped {api/public/district/{districtId:int}/clubs, Get}
+Mapped {api/public/district/{districtId:int}/clubs/{clubId:int}/board, Get}
 Mapped {api/districts/{districtId}/website-status, Get}
 Mapped {api/admin/district-websites, Get}
 Mapped {api/admin/district-websites/{id}/logs, Get}

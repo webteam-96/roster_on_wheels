@@ -54,21 +54,19 @@ scope (needs the user's list), and committing this work (only when the user asks
 - Wave 2 money (needs a Stripe test account), Wave 3 data in/out (needs RI access and real export files),
   Waves 4 to 6: see the build spec plan.
 - Open decision C8 (Kaizen Events) blocks the Wave 4 event items.
-- District website scope: waiting for the user's list of what stays and what goes.
+- District website: rebuilt 2026-10-21 from the user's example (a live RIZones district site); see ROW-CHANGES.
 
 ## Known gaps and flags
 
-- **`row/mobile` is not in git** (ignored by the repo, no nested repo). Its work is on the local disk only. Ask the
-  user whether to version it before relying on history.
-- The scope write guard is path-based: endpoints that take the club or district id in the body or query are not
-  covered (list in `ROW-CHANGES.md`).
+- **`row/mobile` is in git since 2026-10-21** (user decision). Its RIZones-era notes (`WORK_LOG.txt`, `ANALYSIS.md`,
+  `.specs/` and others, see `row/mobile/.gitignore`) stay local: they hold RIZones servers and old dev logins.
+- Write endpoints with the club or district id outside the URL were reviewed 2026-10-21; READ (GET) access is not
+  reviewed yet (see `ROW-CHANGES.md`).
 - Behind a proxy, set `ForwardedHeaders__KnownNetworks__0=<proxy CIDR>` or every client shares one rate-limit bucket.
 - A fresh database gets a SuperAdmin login only when `Bootstrap__SuperAdminPassword` (12+ characters) is set.
 - The repo is public and its history holds old demo logins: rotate any password that was ever committed.
 - Database columns named after WhatsApp are kept (no destructive migration); only sending, granting and buying
   were removed.
-- `row/mobile/.../welcome_screen.dart` (around line 228) holds a stray personal note in a code comment about
-  hosting for a client; not acted on.
 - Store ids: iOS `com.kaizen.row`, Android `com.SampleApp.row` (Android id still a placeholder).
 - 19 analyzer warnings in the app (unused locals such as `grad`) and some admin lint warnings are pre-existing.
 
@@ -83,6 +81,8 @@ scope (needs the user's list), and committing this work (only when the user asks
 - Admin: `row/admin`, `NODE_OPTIONS=--max-old-space-size=6144 npx next dev -p 3300`. Never run `next build` while
   the dev server runs.
 - Club website: `row/club-website`, `npx next dev -p 3001`, open `monrovia.localhost:3001`.
+- District website: `row/district-website`, `npx next dev -p 3002`, open `d9101.localhost:3002` (demo row in
+  `district_websites`).
 - App: Flutter at `C:\src\flutter`, Android SDK at `C:\Users\USER\android`, emulator `afc_tablet`:
   `flutter run -d emulator-5554 --dart-define=API_BASE_URL=http://10.0.2.2:5000`.
 - Local test logins (demo data only) are in the `kb/tools/*_e2e.py` scripts; the newer ones read `ROW_E2E_SA_EMAIL`, `ROW_E2E_SA_PASSWORD`, `ROW_E2E_ADMIN_PASSWORD` from the environment. The demo club admin is now
@@ -91,7 +91,7 @@ scope (needs the user's list), and committing this work (only when the user asks
 ## Checks to run after changes
 
 - API: `dotnet build`; e2e: `python kb/tools/<name>_e2e.py` for `no_whatsapp`, `scope_write_guard`,
-  `meeting_mode`, `mobile_password_login`, `audit_immutable`, `tenant_lifecycle`, `i18n_catalogue`, `feature_gate` (run them a minute apart: the auth rate limit is
+  `meeting_mode`, `mobile_password_login`, `audit_immutable`, `tenant_lifecycle`, `i18n_catalogue`, `feature_gate`, `district_site`, `member_scope` (run them a minute apart: the auth rate limit is
   10 logins per minute per IP).
 - Admin: `npx tsc --noEmit -p tsconfig.json`, `npx vitest run`, `node scripts/check-design.mjs`.
 - App: `flutter analyze` (errors print as `  error -`), `flutter test`.
