@@ -398,7 +398,7 @@ public class TrainingAppointmentService : ITrainingAppointmentService
             var addr = to.Trim();
             if (!sentTo.Add(addr)) return; // already emailed this address
             try { await _email.SendGenericEmailWithCcAsync(addr, cc, subject, body); }
-            catch (Exception ex) { _logger.LogWarning(ex, "Training {Id}: email to {To} failed.", apptId, addr); }
+            catch (Exception ex) { _logger.LogWarning(ex, "Training {Id}: email to {To} failed.", apptId, LogMask.Email(addr)); }
         }
 
         try

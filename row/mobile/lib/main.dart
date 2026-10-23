@@ -13,6 +13,7 @@ import 'core/preferences/font_scale_controller.dart';
 import 'core/preferences/home_layout_controller.dart';
 import 'core/security/biometric_controller.dart';
 import 'core/theme/legacy_prefs.dart';
+import 'core/utils/date_formatter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// Debug-only HttpOverrides that accept self-signed / missing-intermediate
@@ -45,6 +46,7 @@ void main() async {
 
   // Name, logos, support contacts and flags of this instance (cached; ROW defaults offline).
   await Brand.load();
+  await DateFormatter.init();
   await clearLegacyThemePrefs(await SharedPreferences.getInstance());
 
   SystemChrome.setPreferredOrientations([

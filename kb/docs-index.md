@@ -74,9 +74,9 @@ open the file for the text. Do not edit by hand.
   -   19. Gates
   - … 15 more headings
 
-## row (50 documents)
+## row (51 documents)
 
-- **row/HANDOFF.md** (9 KB)
+- **row/HANDOFF.md** (10 KB)
   - ROW: session handoff (read this first)
   -   Ground rules (from the user)
   -   Done on 2026-10-19
@@ -111,7 +111,7 @@ open the file for the text. Do not edit by hand.
   -   Configuration (set per server as environment variables; never commit values)
   -   Checks
   -   Refreshing from a newer RIZones copy
-- **row/ROW-CHANGES.md** (40 KB)
+- **row/ROW-CHANGES.md** (43 KB)
   - ROW changes to consider later
   -   Security and privacy
   -   Providers
@@ -135,6 +135,15 @@ open the file for the text. Do not edit by hand.
   -   2026-10-21: String catalogue (Wave 1 Task 6, build spec item 3)
   -   2026-10-19: Fellowship design port (admin + mobile)
   -   2026-10-23: Skipped modules removed, 10 new spec modules, security fixes
+  -   2026-10-23 (part 2): security and read review, time zones, planning mode, escalation, rebranding
+- **row/STATUS-REPORT.md** (6 KB)
+  - ROW status report (updated 2026-10-23, evening)
+  -   Done (verified on a local copy of production, `row_prod_copy`)
+  -   Still to do (in order)
+  -   On hold (product owner decides when)
+  -   Blocked outside the team
+  -   Needs a decision or an action
+  -   How to run and check locally
 - **row/STATUS.md** (33 KB)
   - ROW Build — Status and Handover
   -   1. What ROW is
@@ -538,7 +547,7 @@ open the file for the text. Do not edit by hand.
   -   6. Accessibility (non-negotiable, port to every surface)
   -   7. Porting checklist
 
-## reference (110 documents)
+## reference (156 documents)
 
 - **reference/RotaryIndia_Admin_API_Claude/Announcements.txt** (0 KB)
   - _Announcements:_
@@ -909,6 +918,545 @@ open the file for the text. Do not edit by hand.
   - _PUBLIC PROJECTS PAGE — WHAT THE BACKEND NEEDS TO BUILD_
 - **reference/RotaryIndia_Admin_API_Claude/rotary-frontend/submobile.txt** (1 KB)
   - _1)Sagar sangama 2027 1 registration missing._
+- **reference/kaizen-events/CLAUDE.md** (30 KB)
+  - CLAUDE.md — Kaizen Events: .NET 8 + MySQL 8 Backend
+  -   1. Project Overview
+  -   2. Tech Stack
+  -   3. Solution Structure
+  -   4. Database: MySQL 8
+  -   5. Controllers → Python File Mapping
+  -   6. All Enums (exact string values must match)
+  -   7. Authentication & Authorization
+  -   8. Business Logic Rules (MUST preserve exactly)
+  -   9. Audit Logger
+  -   10. Middleware Pipeline (order matters)
+  -   11. External Service Integrations
+  -   12. Configuration (appsettings.json)
+  -   13. Health Check
+  -   14. Startup Tasks (Program.cs)
+  -   15. Development Workflow & Conventions
+  - backend against LOCAL db only (build first so the exe exists for start-local.ps1):
+  -   16. Migration Build Order (historical)
+  -   17. Key Reference Documents
+- **reference/kaizen-events/README.md** (0 KB)
+  - _Frontend:_
+- **reference/kaizen-events/docs/CASHFREE_PROXY_AND_SPLITS.md** (14 KB)
+  - Cashfree Proxy + Vendor Splits — Setup Guide
+  -   Scope — What Routes Where
+  -   What You Need from Kaizen Infotech
+  -   Old Flow — not used now
+  -   New Flow — In-App Vendor Onboarding (April 2026)
+  -   Configuration
+  -   Database — One-Time Migration
+  -   How the Flow Works
+  -   Switching Between Models
+  -   Where the 2.95% Lives Across the Codebase
+  -   Production Checklist
+  -   Common Errors
+  -   Why a Proxy at All?
+  -   Reference
+- **reference/kaizen-events/docs/COMPLETE_USER_GUIDE.md** (92 KB)
+  - Kaizen Events - Complete User Guide
+  -   Table of Contents
+  -   1. Introduction & Terminology
+  -   2. Getting Started
+  -   3. User Roles Explained
+  -   4. Event Management
+  -   5. Form Builder
+  -   6. Pricing & Formulas
+  -   7. Field Rules & Conditional Logic
+  -   8. Multi-Page Forms
+  -   9. Landing Page Builder
+  -   10. Public User Experience
+  -   11. Online Payments
+  -   12. Offline Payments
+  -   13. Kiosk Mode
+  -   14. Managing Registrations
+  -   15. Closed Group Events
+  -   16. Payment Accounts
+  -   17. Fund Transfers
+  -   18. Director Approvals
+  -   19. Notifications & Communications
+  -   20. Google Sheets Integration
+  -   21. User Management
+  -   22. DKIM & Email Deliverability
+  -   23. URL Shortener
+  - … 3 more headings
+- **reference/kaizen-events/docs/CashFree Payment SETUP_GUIDE.md** (19 KB)
+  - Cashfree Payment Gateway Proxy — Developer Setup Guide
+  -   What Is This?
+  -   Files Overview
+  -   Part 1 — One-Time Server Setup (Done Once by Kaizen Infotech)
+  -   Part 2 — Registering a New Project (Done by Kaizen Infotech)
+  -   Part 3 — Integrating Into Your Application
+  -   Part 4 — Webhook Proxy Setup
+  -   Signature Quick Reference
+  -   Common Errors & Fixes
+  -   Admin Dashboard
+  -   Going Live Checklist
+  -   Contact
+- **reference/kaizen-events/docs/DOTNET_MIGRATION_GUIDE.md** (103 KB)
+  - Kaizen Events: Python/FastAPI + MongoDB to .NET 8 + MySQL Migration Guide
+  -   Table of Contents
+  -   Section 1: Migration Overview
+  -   Section 2: Project Structure Mapping
+  -   Section 3: Authentication & Authorization
+  -   Section 4: Security Layer
+  -   Section 5: Database Schema -- MongoDB to MySQL
+  -   Section 6: API Routes -- Complete Reference
+  -   Section 7: Pydantic Models to C# DTOs
+  -   Section 8: Services Layer
+  -   Section 9: Middleware Stack
+  -   Section 10: Business Logic Rules
+  -   Section 11: External Service Integrations
+  -   Section 12: Environment Variables
+  -   Section 13: Frontend Integration Points
+  -   Section 14: Deployment & Infrastructure
+  - Backend Dockerfile
+  -   Section 15: Data Migration Plan
+  - Repeat for all collections
+  -   Section 16: NuGet Package Mapping
+  -   Section 17: Appendices
+- **reference/kaizen-events/docs/SECURITY.md** (25 KB)
+  - SECURITY.md — Kaizen Events
+  -   Changelog
+  -   1. Authentication
+  -   2. Authorization
+  -   3. Sessions
+  -   4. Rate limiting
+  -   5. OTP service (`IOtpService` / `OtpService.cs`)
+  -   6. Audit logging (`IAuditLoggerService`)
+  -   7. CORS
+  -   8. Request signing (HMAC-SHA256)
+  -   9. Data encryption at rest
+  -   10. Input validation / injection defenses
+  -   11. Security headers
+  -   12. Secrets / config
+  -   13. Instamojo Archive — additional controls
+  -   14. Known gaps / not yet hardened
+  -   15. Operational
+  -   16. SQL dump / import safety
+  -   17. Where things live
+- **reference/kaizen-events/docs/steps_detail.md** (0 KB)
+  - _Developer notes:_
+- **reference/kaizen-events/docs/cashfree-payment-gateway_reference/CASHFREE_VENDOR_SPLITS.md** (14 KB)
+  - Cashfree Payment Gateway — Developer Guide
+  -   TL;DR (read this first)
+  -   1. What is a "Vendor Split"?
+  -   2. Configuration (where to look)
+  -   3. How the split is calculated
+  -   4. The full payment flow (step by step)
+  -   5. Files you need to know
+  -   6. API endpoints (cheat sheet)
+  -   7. The `vendor_splits_json` column (audit trail)
+  -   8. Security: signatures explained
+  -   9. How to test locally (sandbox)
+  -   10. Going to production (checklist)
+  -   11. Common problems & fixes
+  -   12. Glossary
+  -   Questions?
+- **reference/kaizen-events/docs/cashfree-payment-gateway_reference/SETUP_GUIDE.md** (19 KB)
+  - Cashfree Payment Gateway Proxy — Developer Setup Guide
+  -   What Is This?
+  -   Files Overview
+  -   Part 1 — One-Time Server Setup (Done Once by Kaizen Infotech)
+  -   Part 2 — Registering a New Project (Done by Kaizen Infotech)
+  -   Part 3 — Integrating Into Your Application
+  -   Part 4 — Webhook Proxy Setup
+  -   Signature Quick Reference
+  -   Common Errors & Fixes
+  -   Admin Dashboard
+  -   Going Live Checklist
+  -   Contact
+- **reference/kaizen-events/docs/kaizen-webhook-proxy/README.md** (7 KB)
+  - Kaizen Events — Cashfree Webhook Proxy
+  -   Files in This Folder
+  -   Why a Proxy
+  -   Server-Side Deploy Instructions (for Kaizen Infotech admin)
+  -   Configuration in Kaizen Events Backend
+  -   How Idempotency Works
+  -   Logging & Debugging
+  -   Common Errors
+  -   Security Notes
+  -   What This Proxy Does NOT Do
+- **reference/kaizen-events/python-sourcecode-ref/Kaizen-Events-main/CLAUDE.md** (6 KB)
+  - CLAUDE.md
+  -   Project Overview
+  -   Development Commands
+  -   Architecture
+  -   Code Patterns
+- **reference/kaizen-events/python-sourcecode-ref/Kaizen-Events-main/DATABASE_RESTORE_GUIDE.md** (5 KB)
+  - Database Backup & Restore Guide
+  -   Backup File Information
+  -   Restore Instructions
+  -   Default Login Credentials
+  -   Troubleshooting
+  - macOS
+  - Linux
+  - Windows
+  -   Creating Your Own Backup
+  -   Scheduled Backups (Production)
+  - Add to crontab (daily at 2 AM)
+- **reference/kaizen-events/python-sourcecode-ref/Kaizen-Events-main/ERROR_HANDLING_COMPLETE.md** (5 KB)
+  - Error Handling & Bug Fixes - Complete
+  -   ✅ Issues Fixed
+  -   ✅ Error Handling System Implemented
+  -   Error Handling Best Practices Implemented
+  -   Error States Handled
+  -   Error Messaging Examples
+  -   Future Enhancements
+  -   Testing Error Handling
+  -   Production Readiness
+  -   Summary
+- **reference/kaizen-events/python-sourcecode-ref/Kaizen-Events-main/LOCAL_SETUP_GUIDE.md** (7 KB)
+  - Kaizen Events - Local Setup Guide
+  -   Prerequisites
+  -   Quick Start (5 minutes)
+  - Clone repository
+  - Setup backend
+  - Create environment file
+  - macOS
+  - Linux
+  - Windows
+  -   Common Issues & Solutions
+  - Check MongoDB status
+  - Windows
+  - macOS
+  - Linux
+  - Windows
+  - macOS/Linux
+  -   Running in Production Mode
+  - Serve with nginx or any static file server
+  -   Project Structure
+  -   API Documentation
+  -   Security Notes
+  -   Support
+  -   Quick Start (TL;DR)
+  - Terminal 1 - Backend
+  - Create .env file with your settings
+  - … 1 more headings
+- **reference/kaizen-events/python-sourcecode-ref/Kaizen-Events-main/PHASES_3_4_5_COMPLETE.md** (9 KB)
+  - Kaizen Events Admin Panel - Phases 3, 4, 5 Complete
+  -   ✅ Phase 3: Landing Page & Public Registration
+  -   ✅ Phase 4: Payment Integration & Registration Management
+  -   ✅ Phase 5: Analytics & Automation
+  -   System Architecture
+  -   API Endpoints Summary
+  -   Database Collections
+  -   Security Features
+  -   Testing & Validation
+  -   Performance Features
+  -   Next Steps for Production
+  -   Technologies Used
+  -   Completed Features Checklist
+  -   Mock/Placeholder Integrations
+  -   Production-Ready Components
+  -   Demo Flow
+- **reference/kaizen-events/python-sourcecode-ref/Kaizen-Events-main/PHASE_1_COMPLETE.md** (4 KB)
+  - Kaizen Events Admin Panel - Phase 1 Complete
+  -   ✅ Phase 1: Foundation & Core Auth + Campaign Management
+  -   Next Phase: Phase 2 - Form Builder
+- **reference/kaizen-events/python-sourcecode-ref/Kaizen-Events-main/PHASE_2_COMPLETE.md** (5 KB)
+  - Kaizen Events Admin Panel - Phase 2 Complete
+  -   ✅ Phase 2: Form Builder (Drag-and-Drop, Zoho Forms-Level)
+  -   Phase 2 Summary
+- **reference/kaizen-events/python-sourcecode-ref/Kaizen-Events-main/PRODUCTION_DEPLOYMENT.md** (8 KB)
+  - Production Deployment Checklist
+  -   Pre-Deployment Checklist
+  - Start MongoDB
+  - Create admin user (run once)
+  - Terminal 1 - Backend
+  - Terminal 2 - Frontend
+  - Backend with Gunicorn (Linux/macOS)
+  - Frontend - Build static files
+  - Serve 'build' folder with nginx or any static server
+  - Check backend health
+  - Check login works
+  - Allow only necessary ports
+  - Daily MongoDB backup script
+  - Keep only last 30 days
+  -   Post-Deployment Verification
+  -   Troubleshooting
+  - Check logs
+  - Check if port is in use
+  - Check MongoDB status
+  - Check MongoDB logs
+- **reference/kaizen-events/python-sourcecode-ref/Kaizen-Events-main/README.md** (5 KB)
+  - Kaizen Events - Event Registration Platform
+  -   📋 Table of Contents
+  -   Overview
+  -   Features
+  -   Quick Start
+  -   User Guide
+  -   Documentation
+  -   Tech Stack
+  -   Default Credentials
+  -   Support
+- **reference/kaizen-events/python-sourcecode-ref/Kaizen-Events-main/test_plan.md** (2 KB)
+  - Comprehensive Test Plan - Kaizen Events Admin Panel
+  -   Components to Test
+- **reference/kaizen-events/python-sourcecode-ref/Kaizen-Events-main/test_result.md** (35 KB)
+  - Test Results - EventPay Full System Test
+  -   Testing Protocol
+  -   Test Credentials
+  -   Current Focus
+  -   Test Scenarios
+  -   Test Credentials
+  -   WhatsApp Template Variables
+  -   Backend Testing Results
+  -   Frontend Testing Results
+  -   Metadata
+  -   Test Plan
+  -   Frontend Testing Results - Comprehensive Review Request
+  -   Frontend Testing Results - Kiosk Mode and Campaign Creation
+  -   Agent Communication
+  -   Test Focus
+  -   Agent Communication
+  -   Test Focus
+  -   Agent Communication
+  -   Test Focus
+- **reference/kaizen-events/python-sourcecode-ref/Kaizen-Events-main/vapt_report.md** (3 KB)
+  - VAPT Report - Kaizen Events Admin Panel
+  -   Date: January 6, 2026
+  -   Executive Summary
+  -   Detailed Findings
+  -   Security Headers Verified
+  -   Conclusion
+- **reference/kaizen-events/python-sourcecode-ref/Kaizen-Events-main/.emergent/summary.txt** (12 KB)
+  - _<analysis>**original_problem_statement:**_
+- **reference/kaizen-events/python-sourcecode-ref/Kaizen-Events-main/backend/requirements.txt** (1 KB)
+  - _aiofiles==23.2.1_
+- **reference/kaizen-events/python-sourcecode-ref/Kaizen-Events-main/docs/CICD_DOCUMENTATION_UPDATE.md** (7 KB)
+  - CI/CD Integration Guide for Documentation Updates
+  -   Overview
+  -   Script Capabilities
+  -   CI/CD Integration Examples
+  -   Local Usage
+  -   Customization Options
+  - Example: Add support for scanning middleware
+  -   Best Practices
+  -   Troubleshooting
+  -   Summary File Structure
+- **reference/kaizen-events/python-sourcecode-ref/Kaizen-Events-main/docs/COMPLETE_USER_GUIDE.md** (101 KB)
+  - Kaizen Events - Complete User Guide
+  -   Table of Contents
+  -   1. Introduction & Terminology
+  -   2. Getting Started
+  -   3. User Roles Explained
+  -   4. Campaign Management
+  -   5. Form Builder
+  -   6. Pricing & Formulas
+  -   7. Field Rules & Conditional Logic
+  -   8. Multi-Page Forms
+  -   9. Landing Page Builder
+  -   10. Public User Experience
+  -   11. Online Payments
+  -   12. Offline Payments
+  -   13. Kiosk Mode
+  -   14. Managing Registrations
+  -   15. Closed Group Campaigns
+  -   16. Payment Accounts
+  -   17. Fund Transfers
+  -   18. Director Approvals
+  -   19. Notifications & Communications
+  -   20. Google Sheets Integration
+  -   21. User Management
+  -   22. DKIM & Email Deliverability
+  -   23. URL Shortener
+  - … 3 more headings
+- **reference/kaizen-events/python-sourcecode-ref/Kaizen-Events-main/docs/DOTNET_MIGRATION_GUIDE.md** (103 KB)
+  - Kaizen Events: Python/FastAPI + MongoDB to .NET 8 + MySQL Migration Guide
+  -   Table of Contents
+  -   Section 1: Migration Overview
+  -   Section 2: Project Structure Mapping
+  -   Section 3: Authentication & Authorization
+  -   Section 4: Security Layer
+  -   Section 5: Database Schema -- MongoDB to MySQL
+  -   Section 6: API Routes -- Complete Reference
+  -   Section 7: Pydantic Models to C# DTOs
+  -   Section 8: Services Layer
+  -   Section 9: Middleware Stack
+  -   Section 10: Business Logic Rules
+  -   Section 11: External Service Integrations
+  -   Section 12: Environment Variables
+  -   Section 13: Frontend Integration Points
+  -   Section 14: Deployment & Infrastructure
+  - Backend Dockerfile
+  -   Section 15: Data Migration Plan
+  - Repeat for all collections
+  -   Section 16: NuGet Package Mapping
+  -   Section 17: Appendices
+- **reference/kaizen-events/python-sourcecode-ref/Kaizen-Events-main/docs/FUND_TRANSFER_DESIGN.md** (48 KB)
+  - Fund Transfer Management System - Detailed Design Document
+  -   📋 Overview
+  -   🔄 User Flows
+  -   🖥️ UI Mockups
+  -   👥 User Roles & Access
+  -   🔐 Approval Workflow
+  -   📊 Database Schema
+  -   📁 Files to Create/Modify
+  -   🔑 API Endpoints
+  -   ⏱️ Development Phases
+- **reference/kaizen-events/python-sourcecode-ref/Kaizen-Events-main/docs/MASTER_DOCUMENTATION.md** (68 KB)
+  - Kaizen Events - Master Documentation
+  -   Document Information
+  -   Table of Contents
+  - Part I: Executive Summary
+  -   Platform Overview
+  -   Platform Capabilities
+  -   Quick Start Guide
+  -   Default Credentials
+  - Part II: System Architecture
+  -   Architecture Diagram
+  -   Technology Stack
+  -   Directory Structure
+  - Part III: Database Design
+  -   Collections Overview
+  -   Collections Reference
+  -   Indexes & Performance
+  - Part IV: API Reference
+  -   API Overview
+  -   Authentication Endpoints
+  -   Campaign Endpoints
+  -   Registration Endpoints
+  -   Payment Endpoints
+  -   Kiosk Mode Endpoints
+  -   Administrative Endpoints
+  -   Public Endpoints (No Auth Required)
+  - … 55 more headings
+- **reference/kaizen-events/python-sourcecode-ref/Kaizen-Events-main/docs/TECHNICAL_DEBT.md** (1 KB)
+  - Technical Debt & Future Improvements
+  -   Priority Items
+  -   Other Items
+  -   Completed Items
+- **reference/kaizen-events/python-sourcecode-ref/Kaizen-Events-main/frontend/README.md** (3 KB)
+  - Getting Started with Create React App
+  -   Available Scripts
+  -   Learn More
+- **reference/kaizen-events/python-sourcecode-ref/Kaizen-Events-main/memory/PRD.md** (6 KB)
+  - Form Builder Application - Product Requirements Document
+  -   Original Problem Statement
+  -   Target Users
+  -   Core Requirements
+  -   What's Been Implemented
+  -   Prioritized Backlog
+  -   Known Limitations
+  -   Current Container IP
+  -   Test Credentials
+  -   Key API Endpoints
+- **reference/kaizen-events/python-sourcecode-ref/Kaizen-Events-main/memory/SECURITY_ROADMAP.md** (5 KB)
+  - Security Roadmap - Kaizen Events Platform
+  -   Phase 1: Code-Level Security ✅ COMPLETED
+  -   Phase 2: Infrastructure Security (POST-DEPLOYMENT)
+  -   Phase 3: Advanced Security Features
+  -   Phase 4: Compliance & Monitoring
+  -   Current Container IP
+  -   Security Contacts
+- **reference/kaizen-events/uploads/2026/07/c82f748f4410478e971a320b9355d1c9.txt** (0 KB)
+  - _Hello from a registrant upload test Mon Jul 27 09:32:30 UTC 2026_
+- **reference/kaizen-qr/CLAUDE.md** (11 KB)
+  - CLAUDE.md
+  -   Project Overview
+  -   Tech Stack
+  -   Development Commands
+  -   Architecture
+  -   Key Domain Concepts
+  -   Gotchas / Notes
+  -   Reference
+- **reference/kaizen-qr/DEPLOYMENT_AND_SCALING.md** (15 KB)
+  - Deployment & Scaling Reference
+  -   1. Current Production Architecture
+  -   2. Operations Runbook
+  - on the server
+  - from anywhere
+  -   3. Migration Record — 31 July 2026
+  -   4. Post-Migration Punch List (outstanding)
+  -   5. Scale Assessment — "Would this survive a Sunburn?" (100k+ attendees)
+  -   6. Professional Scanner Hardware — Adaptation Guide
+  -   7. Poor / No Connectivity Strategy (wallets & scanning)
+  -   8. Quick Reference
+- **reference/kaizen-qr/FLOW_DOCUMENT.md** (14 KB)
+  - QR-Based Event Check-in System - Complete Flow Document
+  -   Table of Contents
+  -   System Overview
+  -   User Roles
+  -   Admin Portal Flows
+  -   Scanner Portal Flows
+  -   Badge Generation System
+  -   Notification System
+  -   API Reference
+  -   Database Collections
+  -   Security Features
+  -   Troubleshooting
+  -   Support
+- **reference/kaizen-qr/README.md** (0 KB)
+  - Here are your Instructions
+- **reference/kaizen-qr/Wallet_system_plan.md** (9 KB)
+  - 💳 Closed-Loop Wallet System for Events
+  -   Overview
+  -   User Roles
+  -   User Flows
+  -   Database Schema
+  -   API Endpoints
+  -   Payment Gateway Integration
+  -   UI Components
+  -   Security Considerations
+  -   Reports
+  -   Implementation Phases
+- **reference/kaizen-qr/test_result.md** (4 KB)
+  - START - Testing Protocol - DO NOT EDIT OR REMOVE THIS SECTION
+  - THIS SECTION CONTAINS CRITICAL TESTING INSTRUCTIONS FOR BOTH AGENTS
+  - BOTH MAIN_AGENT AND TESTING_AGENT MUST PRESERVE THIS ENTIRE BLOCK
+  - Communication Protocol:
+  - If the `testing_agent` is available, main agent should delegate all testing tasks to it.
+  - You have access to a file called `test_result.md`. This file contains the complete testing state
+  - and history, and is the primary means of communication between main and the testing agent.
+  - Main and testing agents must follow this exact format to maintain testing data.
+  - The testing data must be entered in yaml format Below is the data structure:
+  -   user_problem_statement: {problem_statement}
+  -   backend:
+  -   - task: "Task name"
+  -   implemented: true
+  -   working: true  # or false or "NA"
+  -   file: "file_path.py"
+  -   stuck_count: 0
+  -   priority: "high"  # or "medium" or "low"
+  -   needs_retesting: false
+  -   status_history:
+  -   -working: true  # or false or "NA"
+  -   -agent: "main"  # or "testing" or "user"
+  -   -comment: "Detailed comment about status"
+  -   frontend:
+  -   - task: "Task name"
+  -   implemented: true
+  - … 52 more headings
+- **reference/kaizen-qr/.emergent/summary.txt** (11 KB)
+  - _<analysis>**original_problem_statement:**_
+- **reference/kaizen-qr/backend/requirements.txt** (3 KB)
+  - _aiofiles==25.1.0_
+- **reference/kaizen-qr/backups/README.md** (2 KB)
+  - Database Backup
+  -   Backup Structure
+  -   How to Restore
+  - Restore all collections
+  -   Creating New Backup
+  -   Important Notes
+  -   Backup Date
+- **reference/kaizen-qr/frontend/README.md** (3 KB)
+  - Getting Started with Create React App
+  -   Available Scripts
+  -   Learn More
+- **reference/kaizen-qr/memory/PRD.md** (6 KB)
+  - QR-Based Event Check-in System - Product Requirements Document
+  -   Original Problem Statement
+  -   User Personas
+  -   Completed Features
+  -   Pending Features
+  -   Tech Stack
+  -   Key Database Collections
+  -   Key API Endpoints
+  -   Test Credentials
+  -   Architecture
 - **reference/rotary_zones_45678_flutter/ANALYSIS.md** (7 KB)
   - Frontend Analysis Report — Rotary Zones 4,5,6,7 & 8 Admin
   -   1. PROJECT OVERVIEW

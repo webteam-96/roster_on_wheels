@@ -77,7 +77,7 @@ function shortInr(value: number): string {
 }
 
 function exportToCsv(rows: ProjectListItem[], yearLabel: string, clubName: string) {
-  const header = ["Sr", "Date", "Title", "Type", "Category", "Location", "Cost (INR)"];
+  const header = ["Sr", "Date", "Title", "Type", "Category", "Location", "Cost"];
   const lines = rows.map((r, i) => {
     const dateStr = r.projectDate ? fmtDate(r.projectDate) : "";
     return [

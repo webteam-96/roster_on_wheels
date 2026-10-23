@@ -1,26 +1,35 @@
 """Tenant lifecycle and editions (ROW Wave 1, task 5).
 
-    python kb/tools/tenant_lifecycle_e2e.py [api_base] [mysql_port]
-Dev database only: sets the demo district's subscription, edits the district and club_basic editions, applies them,
-and checks the planning state. Puts the district back to 'live' at the end. Run scope_write_guard_e2e.py first once
-(it gives samuel.tubman@monrovia.demo his club admin password).
+    python -I kb/tools/tenant_lifecycle_e2e.py <api_base> <mysql_port> <database>
+JWT secret from ROW_E2E_JWT_SECRET (the API must be started with the same JwtSettings__Secret). The SuperAdmin and a
+club admin are picked by query; the district is the smallest one (two clubs or more) where a club admin exists. Sets
+the district's subscription, edits the district and club_basic editions, applies them and checks the planning state.
+Local copies only, never production. Everything it changes is copied to e2e_tl_* tables first and put back at the
+end: both editions, the district's subscriptions, its district and club module switches and the test club's type.
+audit_log rows stay (the table is append-only by design).
 """
-import json
-import os
-import subprocess
-import sys
-import urllib.error
-import urllib.request
+import base64, hashlib, hmac, json, os, subprocess, sys, time, urllib.error, urllib.request
 
-API = sys.argv[1] if len(sys.argv) > 1 else "http://localhost:5000"
-PORT = sys.argv[2] if len(sys.argv) > 2 else "3317"
+API, PORT, DB = sys.argv[1].rstrip('/'), sys.argv[2], sys.argv[3]
+SECRET = os.environ['ROW_E2E_JWT_SECRET']
 MYSQL = r"C:\Program Files\MySQL\MySQL Server 8.4\bin\mysql.exe"
 fails = 0
 
 
 def sql(q):
-    return subprocess.run([MYSQL, "-uroot", "-h127.0.0.1", f"-P{PORT}", "row_local", "-N", "-e", q],
+    return subprocess.run([MYSQL, "-uroot", "-h127.0.0.1", f"-P{PORT}", DB, "-N", "-e", q],
                           capture_output=True, text=True, check=True).stdout.strip()
+
+
+def b64(b):
+    return base64.urlsafe_b64encode(b).rstrip(b'=').decode()
+
+
+def sign(member_id, roles):
+    body = {"memberId": str(member_id), "name": "e2e", "email": "e2e@example.org", "roles": roles,
+            "iss": "JwtIssuer", "aud": "JwtAudience", "exp": int(time.time()) + 600}
+    signing = f"{b64(json.dumps({'alg': 'HS256', 'typ': 'JWT'}).encode())}.{b64(json.dumps(body).encode())}"
+    return f"{signing}.{b64(hmac.new(SECRET.encode(), signing.encode(), hashlib.sha256).digest())}"
 
 
 def call(method, path, body=None, token=None):
@@ -42,22 +51,29 @@ def check(name, ok, detail=""):
     print(("PASS " if ok else "FAIL ") + name + ("" if ok else f"  -> {detail}"))
 
 
-# SuperAdmin login from the environment (never commit real credentials): ROW_E2E_SA_EMAIL, ROW_E2E_SA_PASSWORD.
-sa = call("POST", "/api/auth/login", {"email": os.environ["ROW_E2E_SA_EMAIL"], "password": os.environ["ROW_E2E_SA_PASSWORD"]})[1].get("token", "")
-admin = call("POST", "/api/auth/login", {"email": "samuel.tubman@monrovia.demo", "password": os.environ["ROW_E2E_ADMIN_PASSWORD"]})[1].get("token", "")
-district = int(sql("SELECT pk_district_id FROM district_master WHERE isdeleted=0 ORDER BY 1 LIMIT 1"))
+CLUBS_OF = "(SELECT COUNT(*) FROM club_master x WHERE x.fk_district_id=c.fk_district_id AND x.isdeleted=0)"
+admin_id, club0, district = [int(x) for x in sql(
+    "SELECT r.fk_member_master_profile_id, r.fk_club_id, c.fk_district_id FROM member_roles r "
+    "JOIN club_master c ON c.pk_club_id=r.fk_club_id AND c.isdeleted=0 "
+    f"WHERE r.fk_role_id=2 AND r.IsActive=1 AND r.isdeleted=0 AND {CLUBS_OF} >= 2 ORDER BY {CLUBS_OF}, 1, 2 LIMIT 1").split()]
+sa = sign(int(sql("SELECT fk_member_master_profile_id FROM member_roles WHERE fk_role_id=3 AND IsActive=1 AND isdeleted=0 LIMIT 1")), "SuperAdmin")
+admin = sign(admin_id, "Admin")
 clubs = [int(x) for x in sql(f"SELECT pk_club_id FROM club_master WHERE isdeleted=0 AND fk_district_id={district} ORDER BY 1").split()]
-rotaract = clubs[-1]
-old_type = sql(f"SELECT COALESCE(ClubType,'') FROM club_master WHERE pk_club_id={rotaract}")
-sql(f"UPDATE club_master SET ClubType='Rotaract Club' WHERE pk_club_id={rotaract}")
-# provisioning keeps an existing club row (INSERT IGNORE), so let the test club be provisioned fresh
-sql(f"DELETE FROM tenant_subscriptions WHERE fk_club_id={rotaract}")
+rotaract = max(c for c in clubs if c != club0)
+ids = ",".join(map(str, clubs))
 current = int(sql("SELECT pk_year_id FROM rotary_year_master WHERE isdeleted=0 AND IsCurrent=1 LIMIT 1"))
 dkeys = sql("SELECT ModuleKey FROM module_master WHERE isdeleted=0 AND ModuleLevel IN ('District','Both') ORDER BY SortOrder LIMIT 3").split()
 ckeys = sql("SELECT ModuleKey FROM module_master WHERE isdeleted=0 AND ModuleLevel IN ('Club','Both') ORDER BY SortOrder LIMIT 2").split()
-ids = ",".join(map(str, clubs))
-was_on = (sql(f"SELECT GROUP_CONCAT(pk_district_module_id) FROM district_modules WHERE fk_district_id={district} AND IsEnabled=1"),
-          sql(f"SELECT GROUP_CONCAT(pk_club_module_id) FROM club_modules WHERE fk_club_id IN ({ids}) AND IsEnabled=1"))
+EDS = "('district','club_basic')"
+BAK = {"e2e_tl_ed": f"SELECT * FROM edition_catalogue WHERE code IN {EDS}",
+       "e2e_tl_em": f"SELECT * FROM edition_modules WHERE edition_code IN {EDS}",
+       "e2e_tl_ts": f"SELECT * FROM tenant_subscriptions WHERE fk_district_id={district}",
+       "e2e_tl_dm": f"SELECT pk_district_module_id, IsEnabled FROM district_modules WHERE fk_district_id={district}",
+       "e2e_tl_cm": f"SELECT pk_club_module_id, IsEnabled FROM club_modules WHERE fk_club_id IN ({ids})",
+       "e2e_tl_club": f"SELECT pk_club_id, ClubType FROM club_master WHERE pk_club_id={rotaract}"}
+sql("; ".join(f"DROP TABLE IF EXISTS {t}; CREATE TABLE {t} AS {q}" for t, q in BAK.items()))
+# provisioning keeps an existing club row (INSERT IGNORE), so the district's clubs are provisioned fresh
+sql(f"UPDATE club_master SET ClubType='Rotaract Club' WHERE pk_club_id={rotaract}; DELETE FROM tenant_subscriptions WHERE fk_district_id={district}")
 sub = {"editionCode": "district", "memberBand": "1-1500", "termStart": "2026-07-01", "termEnd": "2027-06-30",
        "state": "planning", "region": "APAC", "setupFeeWaived": True, "platformFeePct": 2.5, "platformFeeFixed": 0.3}
 
@@ -92,42 +108,45 @@ try:
 
     # a module data row the edition switches off must survive (on/off only)
     off_key = sql(f"SELECT m.ModuleKey FROM club_modules cm JOIN module_master m ON m.pk_module_id=cm.fk_module_id "
-                  f"WHERE cm.fk_club_id={clubs[0]} AND m.ModuleKey NOT IN ('{ckeys[0]}') LIMIT 1")
+                  f"WHERE cm.fk_club_id={club0} AND m.ModuleKey NOT IN ('{ckeys[0]}') LIMIT 1")
     s, b = call("POST", f"/api/tenants/{district}/apply-edition", {}, sa)
     check("SuperAdmin applies the editions", s == 200, (s, b))
     on = set(sql(f"SELECT m.ModuleKey FROM district_modules dm JOIN module_master m ON m.pk_module_id=dm.fk_module_id "
                  f"WHERE dm.fk_district_id={district} AND dm.IsEnabled=1").split())
     check("district modules switched to the district edition", on == set(dkeys), (on, dkeys))
     on = set(sql(f"SELECT m.ModuleKey FROM club_modules cm JOIN module_master m ON m.pk_module_id=cm.fk_module_id "
-                 f"WHERE cm.fk_club_id={clubs[0]} AND cm.IsEnabled=1").split())
+                 f"WHERE cm.fk_club_id={club0} AND cm.IsEnabled=1").split())
     check("club modules switched to club_basic", on == {ckeys[0]}, (on, ckeys[0]))
     if off_key:
         kept = sql(f"SELECT COUNT(*) FROM club_modules cm JOIN module_master m ON m.pk_module_id=cm.fk_module_id "
-                   f"WHERE cm.fk_club_id={clubs[0]} AND m.ModuleKey='{off_key}' AND cm.IsEnabled=0")
+                   f"WHERE cm.fk_club_id={club0} AND m.ModuleKey='{off_key}' AND cm.IsEnabled=0")
         check("a switched-off module keeps its row (disabled, not deleted)", kept == "1", off_key)
 
     s, st = call("GET", f"/api/tenants/{district}/state", token=admin)
     check("a signed-in admin reads the planning state", s == 200 and st.get("state") == "planning", (s, st))
-    s, b = call("PUT", f"/api/clubs/{clubs[0]}/projects/{current}/999999", {}, admin)
+    s, b = call("PUT", f"/api/clubs/{club0}/projects/{current}/999999", {}, admin)
     check("planning refuses a current-year write", s == 409, (s, b))
-    s, b = call("PUT", f"/api/clubs/{clubs[0]}/projects/{current + 1}/999999", {}, admin)
+    s, b = call("PUT", f"/api/clubs/{club0}/projects/{current + 1}/999999", {}, admin)
     check("planning allows a next-year write", s != 409, (s, b))
     s, b = call("PUT", f"/api/districts/{district}/projects/{current}/999999", {}, sa)
     check("planning refuses a current-year district write", s == 409, (s, b))
 
     call("PUT", f"/api/tenants/{district}", {**sub, "state": "live"}, sa)
-    s, b = call("PUT", f"/api/clubs/{clubs[0]}/projects/{current}/999999", {}, admin)
+    s, b = call("PUT", f"/api/clubs/{club0}/projects/{current}/999999", {}, admin)
     check("live allows a current-year write", s != 409, (s, b))
     n = sql(f"SELECT COUNT(*) FROM audit_log WHERE entity_type IN ('tenant_subscription','edition') AND created_date > NOW() - INTERVAL 5 MINUTE")
     check("tenant and edition changes are audited", int(n or 0) >= 4, n)
 finally:
-    call("PUT", f"/api/tenants/{district}", {**sub, "state": "live"}, sa)
-    # put the demo module switches back as they were
-    sql(f"UPDATE district_modules SET IsEnabled = pk_district_module_id IN ({was_on[0] if was_on[0] != 'NULL' else 0}) WHERE fk_district_id={district}")
-    sql(f"UPDATE club_modules SET IsEnabled = pk_club_module_id IN ({was_on[1] if was_on[1] != 'NULL' else 0}) WHERE fk_club_id IN ({ids})")
-    sql(f"UPDATE club_master SET ClubType={'NULL' if not old_type else repr(old_type)} WHERE pk_club_id={rotaract}")
-    if not old_type:  # the club was only Rotaract for this test
-        sql(f"UPDATE tenant_subscriptions SET edition_code='club_basic' WHERE fk_club_id={rotaract} AND edition_code='rotaract'")
+    sql("START TRANSACTION; "
+        "UPDATE edition_catalogue e JOIN e2e_tl_ed b ON b.code=e.code SET e.name=b.name, e.modified_by=b.modified_by, e.modified_date=b.modified_date; "
+        f"DELETE FROM edition_modules WHERE edition_code IN {EDS}; INSERT INTO edition_modules SELECT * FROM e2e_tl_em; "
+        f"DELETE FROM tenant_subscriptions WHERE fk_district_id={district}; INSERT INTO tenant_subscriptions SELECT * FROM e2e_tl_ts; "
+        "UPDATE district_modules dm JOIN e2e_tl_dm b ON b.pk_district_module_id=dm.pk_district_module_id SET dm.IsEnabled=b.IsEnabled; "
+        f"DELETE FROM district_modules WHERE fk_district_id={district} AND pk_district_module_id NOT IN (SELECT pk_district_module_id FROM e2e_tl_dm); "
+        "UPDATE club_modules cm JOIN e2e_tl_cm b ON b.pk_club_module_id=cm.pk_club_module_id SET cm.IsEnabled=b.IsEnabled; "
+        f"DELETE FROM club_modules WHERE fk_club_id IN ({ids}) AND pk_club_module_id NOT IN (SELECT pk_club_module_id FROM e2e_tl_cm); "
+        "UPDATE club_master c JOIN e2e_tl_club b ON b.pk_club_id=c.pk_club_id SET c.ClubType=b.ClubType; "
+        "COMMIT; " + "; ".join(f"DROP TABLE {t}" for t in BAK))
 
 print(f"\n{'ALL PASS' if fails == 0 else f'{fails} FAILED'}")
 sys.exit(1 if fails else 0)

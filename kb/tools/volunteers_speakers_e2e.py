@@ -345,7 +345,11 @@ try:
     check("the duty at tomorrow's meeting gets its reminder", duty_reminded == 1, duty_reminded)
     check("a slot three days away is not reminded yet",
           one(f"SELECT COUNT(*) FROM volunteer_signups WHERE fk_slot_id={slot_b} AND reminder_sent_at IS NOT NULL") == 0)
-    sent = sql(f"SELECT status FROM email_log WHERE subject LIKE 'Reminder: {MARK}%' OR subject LIKE 'Meeting duty: {MARK}%'").split()
+    for _ in range(20):  # a send logs 'Pending' first and 'Failed' once its retries give up
+        sent = sql(f"SELECT status FROM email_log WHERE subject LIKE 'Reminder: {MARK}%' OR subject LIKE 'Meeting duty: {MARK}%'").split()
+        if len(sent) == 2 and "Pending" not in sent:
+            break
+        time.sleep(3)
     check("reminder emails go through EmailService and email_log (no mail key here: none delivered)",
           len(sent) == 2 and all(s == "Failed" for s in sent), sent)
     r = call("GET", "/api/mobile/notifications?types=volunteer,meeting_duty&days=7", t_plain)

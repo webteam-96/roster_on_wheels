@@ -1114,7 +1114,7 @@ class _TrfBody extends StatelessWidget {
         accent: AppColors.donutFillAmber,
       );
     }
-    // Real fund breakdown from /overview (all INR). Bars are scaled relative to
+    // Real fund breakdown from /overview (all USD). Bars are scaled relative to
     // the largest fund (no per-fund server goal exists); donor counts scale
     // relative to each other.
     final fundPeak = [

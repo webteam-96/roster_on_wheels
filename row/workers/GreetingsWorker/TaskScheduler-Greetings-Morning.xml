@@ -1,13 +1,18 @@
 <?xml version="1.0" encoding="UTF-16"?>
 <Task version="1.4" xmlns="http://schemas.microsoft.com/windows/2004/02/mit/task">
   <RegistrationInfo>
-    <Description>ROW - Daily Birthday &amp; Anniversary Greetings (Email + push) for every active member, per club + district greeting config. Runs each morning.</Description>
+    <Description>ROW - Daily Birthday &amp; Anniversary Greetings (Email + push) for every active member, per club + district greeting config. Runs every hour: each club and district is greeted from 08:00 in its own district's time zone, once a day.</Description>
     <Author>Kaizen Projects</Author>
     <URI>\ROW\Daily Greetings Morning</URI>
   </RegistrationInfo>
   <Triggers>
     <CalendarTrigger>
-      <StartBoundary>2026-07-01T08:00:00</StartBoundary>
+      <Repetition>
+        <Interval>PT1H</Interval>
+        <Duration>P1D</Duration>
+        <StopAtDurationEnd>false</StopAtDurationEnd>
+      </Repetition>
+      <StartBoundary>2026-07-01T00:05:00</StartBoundary>
       <Enabled>true</Enabled>
       <ScheduleByDay>
         <DaysInterval>1</DaysInterval>

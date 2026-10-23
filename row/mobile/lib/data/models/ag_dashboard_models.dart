@@ -1,7 +1,9 @@
 // AG (Assistant Governor) Dashboard models — mirror `RotaryApi/DTOs/AgDashboardDtos.cs`.
-// Wire JSON is camelCase. TRF *Inr = USD x 84. Percent fields are 0-100.
+// Wire JSON is camelCase. TRF *Inr fields carry USD (legacy names, no conversion). Percent fields are 0-100.
 // Wave-12A fields carry `*IsPending` flags — when true the value is 0/null and
 // the UI must render an em-dash "—" / "Pending" chip, never the 0.
+
+import '../../core/brand/brand.dart';
 
 // ── json helpers ─────────────────────────────────────────────────────────────
 int _i(dynamic v) =>
@@ -199,7 +201,7 @@ class AgProjectRow {
         areaOfFocus: _sn(j['areaOfFocus']),
         date: _sn(j['date']),
         cost: _d(j['cost']),
-        currency: _s(j['currency']).isEmpty ? 'INR' : _s(j['currency']),
+        currency: _s(j['currency']).isEmpty ? Brand.current.defaultCurrency : _s(j['currency']),
         beneficiaries: _i(j['beneficiaries']),
         manHours: _i(j['manHours']),
         funding: _s(j['funding']),
@@ -462,7 +464,7 @@ class AgMembershipClubRow {
   final int meetings;
   final int totalProjects;
   final int projectRank;
-  final double trf; // INR
+  final double trf; // USD
   final int ocv;
   final int beneficiaries;
   final int goalsCitations;
@@ -622,7 +624,7 @@ class AgProjectsResponse {
         totalManHours: _i(j['totalManHours']),
         totalCost: _d(j['totalCost']),
         targetCurrency:
-            _s(j['targetCurrency']).isEmpty ? 'INR' : _s(j['targetCurrency']),
+            _s(j['targetCurrency']).isEmpty ? Brand.current.defaultCurrency : _s(j['targetCurrency']),
       );
 
   /// FE-derived root pending: projects present and either every row pending or
@@ -677,7 +679,7 @@ class AgGoalsClubRow {
   final String clubName;
   final int members;
   final double membershipGrowth; // %
-  final double trfPerCapita; // INR
+  final double trfPerCapita; // USD
   final int serviceProjects;
   final double meetingAttendance; // %
   final double myRotary; // %

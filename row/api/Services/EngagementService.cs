@@ -106,9 +106,10 @@ public class EngagementService
     /// <summary>
     /// The daily pass: capture new PHF highlights, then record and send the milestones that came round in the last
     /// 7 days. Each milestone row is inserted before its email, so only the run that inserts it sends.
-    /// districtId limits the pass to one district (the SuperAdmin "run now").
+    /// districtId limits the pass to one district (the SuperAdmin "run now"). Each district counts from its own local
+    /// date (N12); fromLocalHour leaves out the districts whose local time is earlier (the daily job's morning start).
     /// </summary>
-    public async Task<(int Milestones, int Highlights)> RunAsync(int? districtId, CancellationToken ct = default)
+    public async Task<(int Milestones, int Highlights)> RunAsync(int? districtId, CancellationToken ct = default, int fromLocalHour = 0)
     {
         if (!await IsOnAsync(_connectionString)) return (0, 0);
         await using var conn = new MySqlConnection(_connectionString);
@@ -122,56 +123,68 @@ public class EngagementService
         int[] YearsOf(int district) => settings.TryGetValue(district, out var s) ? ParseYears(s.Years) ?? Array.Empty<int>() : DefaultMilestones;
         var wanted = settings.Keys.SelectMany(YearsOf).Concat(DefaultMilestones).Distinct().ToArray();
 
-        // The consent filter for broadcast messages (privacy module) decides the email; the feed item is in-app.
-        var candidates = await conn.QueryAsync<Candidate>($@"
-            SELECT cm.fk_member_master_profile_id AS MemberId, m.MemberName, m.EmailId AS Email,
-                   cm.fk_club_id AS ClubId, c.ClubName, c.fk_district_id AS DistrictId, dm.DistrictNumber,
-                   TIMESTAMPDIFF(YEAR, cm.JoinedDate, CURDATE()) AS Years,
-                   DATE_ADD(cm.JoinedDate, INTERVAL TIMESTAMPDIFF(YEAR, cm.JoinedDate, CURDATE()) YEAR) AS OccurredOn,
-                   CASE WHEN 1 = 1{PrivacyConsent.BroadcastFilter()} THEN 1 ELSE 0 END AS MayEmail
-            FROM club_members cm
-            {ActiveMembership}
-            JOIN member_master_profile m ON m.pk_member_master_profile_id = cm.fk_member_master_profile_id AND m.isdeleted = 0
-            WHERE cm.IsActive = 1 AND IFNULL(cm.isdeleted, 0) = 0 AND cm.JoinedDate IS NOT NULL
-              AND TIMESTAMPDIFF(YEAR, cm.JoinedDate, CURDATE()) IN @Wanted
-              AND DATE_ADD(cm.JoinedDate, INTERVAL TIMESTAMPDIFF(YEAR, cm.JoinedDate, CURDATE()) YEAR) >= CURDATE() - INTERVAL {CatchUpDays - 1} DAY
-              AND (@District IS NULL OR c.fk_district_id = @District)",
-            new { Wanted = wanted, District = districtId });
-
         var milestones = 0;
         var governors = new Dictionary<int, string?>(); // District Governor per district, read once per pass
-        foreach (var c in candidates)
+        var links = new Dictionary<int, string>();      // Foundation giving link per district, read once per pass
+        foreach (var (tz, zone) in await ZoneTime.ZonesAsync(conn))
         {
-            if (ct.IsCancellationRequested) break;
-            if (!YearsOf(c.DistrictId).Contains(c.Years)) continue;
-            var inserted = await conn.ExecuteAsync(@"
-                INSERT IGNORE INTO engagement_events
-                    (event_type, dedupe_key, fk_member_master_profile_id, fk_club_id, fk_district_id, level, occurred_on)
-                VALUES ('MILESTONE', @Key, @MemberId, @ClubId, @DistrictId, @Years, @OccurredOn)",
-                new { Key = $"MILESTONE:{c.MemberId}:{c.Years}", c.MemberId, c.ClubId, c.DistrictId, c.Years, c.OccurredOn });
-            if (inserted == 0) continue; // already recorded and sent
-            milestones++;
-            if (c.MayEmail && !string.IsNullOrWhiteSpace(c.Email))
-                await SendMilestoneEmailAsync(conn, c, settings.TryGetValue(c.DistrictId, out var s) ? s.Message : null, governors);
+            var local = ZoneTime.Local(zone);
+            if (local.Hour < fromLocalHour) continue;
+            // The consent filter for broadcast messages (privacy module) decides the email; the feed item is in-app.
+            var candidates = await conn.QueryAsync<Candidate>($@"
+                SELECT cm.fk_member_master_profile_id AS MemberId, m.MemberName, m.EmailId AS Email,
+                       cm.fk_club_id AS ClubId, c.ClubName, c.fk_district_id AS DistrictId, dm.DistrictNumber,
+                       TIMESTAMPDIFF(YEAR, cm.JoinedDate, @Today) AS Years,
+                       DATE_ADD(cm.JoinedDate, INTERVAL TIMESTAMPDIFF(YEAR, cm.JoinedDate, @Today) YEAR) AS OccurredOn,
+                       CASE WHEN 1 = 1{PrivacyConsent.BroadcastFilter()} THEN 1 ELSE 0 END AS MayEmail
+                FROM club_members cm
+                {ActiveMembership}
+                JOIN member_master_profile m ON m.pk_member_master_profile_id = cm.fk_member_master_profile_id AND m.isdeleted = 0
+                WHERE cm.IsActive = 1 AND IFNULL(cm.isdeleted, 0) = 0 AND cm.JoinedDate IS NOT NULL
+                  AND TIMESTAMPDIFF(YEAR, cm.JoinedDate, @Today) IN @Wanted
+                  AND DATE_ADD(cm.JoinedDate, INTERVAL TIMESTAMPDIFF(YEAR, cm.JoinedDate, @Today) YEAR) >= @Today - INTERVAL {CatchUpDays - 1} DAY
+                  AND (@District IS NULL OR c.fk_district_id = @District) AND {ZoneTime.Filter("dm")}",
+                new { Wanted = wanted, District = districtId, Today = local.Date, Tz = tz });
+
+            foreach (var c in candidates)
+            {
+                if (ct.IsCancellationRequested) break;
+                if (!YearsOf(c.DistrictId).Contains(c.Years)) continue;
+                var inserted = await conn.ExecuteAsync(@"
+                    INSERT IGNORE INTO engagement_events
+                        (event_type, dedupe_key, fk_member_master_profile_id, fk_club_id, fk_district_id, level, occurred_on)
+                    VALUES ('MILESTONE', @Key, @MemberId, @ClubId, @DistrictId, @Years, @OccurredOn)",
+                    new { Key = $"MILESTONE:{c.MemberId}:{c.Years}", c.MemberId, c.ClubId, c.DistrictId, c.Years, c.OccurredOn });
+                if (inserted == 0) continue; // already recorded and sent
+                milestones++;
+                if (c.MayEmail && !string.IsNullOrWhiteSpace(c.Email))
+                {
+                    if (!links.TryGetValue(c.DistrictId, out var link))
+                        links[c.DistrictId] = link = await CommsTemplates.FoundationLinkAsync(conn, c.DistrictId);
+                    await SendMilestoneEmailAsync(conn, c, settings.TryGetValue(c.DistrictId, out var s) ? s.Message : null, governors, link);
+                }
+            }
         }
-        _log.LogInformation("Engagement pass: {Milestones} milestones, {Highlights} PHF highlights", milestones, highlights);
+        if (milestones + highlights > 0) _log.LogInformation("Engagement pass: {Milestones} milestones, {Highlights} PHF highlights", milestones, highlights);
         return (milestones, highlights);
     }
 
     // shortcut: a failed email is not retried (the sent-log row already exists; email_log shows the failure).
-    private async Task SendMilestoneEmailAsync(MySqlConnection conn, Candidate c, string? governorMessage, Dictionary<int, string?> governors)
+    // foundationLink: the district's giving link ({foundation_link}); empty = no link.
+    private async Task SendMilestoneEmailAsync(MySqlConnection conn, Candidate c, string? governorMessage, Dictionary<int, string?> governors,
+        string foundationLink)
     {
         // Language hook: the member's language preference (another lane) is resolved here. shortcut: every member gets
         // the tenant default (Brand.DefaultLanguage) and these texts are English, ROW's default; choose the text by the
         // member's language here once per-language templates (3.10) exist.
         var label = Label("MILESTONE", c.Years);
         static string Html(string s) => WebUtility.HtmlEncode(s).Replace("\r\n", "\n").Replace("\n", "<br/>");
-        string text, signature = "";
+        string text, signature = "", give = "";
         if (!string.IsNullOrWhiteSpace(governorMessage))
         {
             // Governor variant: the district's template, signed by this Rotary year's District Governor.
             text = governorMessage.Replace("{name}", c.MemberName).Replace("{years}", c.Years.ToString())
-                .Replace("{club}", c.ClubName ?? "");
+                .Replace("{club}", c.ClubName ?? "").Replace("{foundation_link}", foundationLink);
             if (!governors.TryGetValue(c.DistrictId, out var governor))
                 governors[c.DistrictId] = governor = await CurrentGovernorAsync(conn, c.DistrictId);
             var role = $"District Governor, District {c.DistrictNumber}";
@@ -181,11 +194,15 @@ public class EngagementService
         {
             text = $"Congratulations on {c.Years} {(c.Years == 1 ? "year" : "years")} of Rotary membership with {c.ClubName}. "
                  + "Thank you for your service to your club and your community.";
+            // the district's template places {foundation_link} itself; the standard text adds a line when there is a link
+            if (foundationLink.Length > 0)
+                give = $"<p>Celebrate with a gift to The Rotary Foundation: <a href=\"{Html(foundationLink)}\">{Html(foundationLink)}</a></p>";
         }
         var html = $@"{EmailService.EMAIL_HEADER}
-                        <h2 style='color: #1a365d; margin-top: 0;'>Congratulations on {Html(label)}</h2>
+                        <h2 style='color: #17458F; margin-top: 0;'>Congratulations on {Html(label)}</h2>
                         <p>Dear {Html(c.MemberName)},</p>
                         <p>{Html(text)}</p>
+                        {give}
                         {signature}
             {EmailService.EMAIL_FOOTER}";
         await _email.SendScopedEmailAsync(c.Email!, $"Congratulations on {label}", html, c.ClubId, c.DistrictId);
@@ -200,8 +217,8 @@ public class EngagementService
             WHERE g.fk_district_id = @D AND g.isdeleted = 0 LIMIT 1", new { D = districtId });
 }
 
-/// <summary>Runs the engagement pass once a day from 08:00 in the brand's time zone (the greetings hour). Hourly
-/// ticks only check the clock; the sent-log makes a repeat run after a restart send nothing.</summary>
+/// <summary>Runs the engagement pass every hour for the districts whose local time is 08:00 or later (the greetings
+/// hour, in each district's zone). The sent-log makes every repeat on the same day send nothing.</summary>
 public class EngagementBackgroundService : BackgroundService
 {
     private readonly IServiceScopeFactory _scopes;
@@ -215,18 +232,12 @@ public class EngagementBackgroundService : BackgroundService
 
     protected override async Task ExecuteAsync(CancellationToken ct)
     {
-        DateOnly? lastRun = null;
         while (!ct.IsCancellationRequested)
         {
             try
             {
-                var local = TimeZoneInfo.ConvertTime(DateTime.UtcNow, Brand.TimeZone);
-                if (local.Hour >= 8 && lastRun != DateOnly.FromDateTime(local))
-                {
-                    using var scope = _scopes.CreateScope();
-                    await scope.ServiceProvider.GetRequiredService<EngagementService>().RunAsync(null, ct);
-                    lastRun = DateOnly.FromDateTime(local);
-                }
+                using var scope = _scopes.CreateScope();
+                await scope.ServiceProvider.GetRequiredService<EngagementService>().RunAsync(null, ct, fromLocalHour: 8);
             }
             catch (Exception ex)
             {

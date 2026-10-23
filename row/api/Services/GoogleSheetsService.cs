@@ -290,7 +290,7 @@ public class GoogleSheetsService : IGoogleSheetsService
         request.SendNotificationEmail = false;
         await request.ExecuteAsync();
 
-        _logger.LogInformation("Shared Google Sheet {SpreadsheetId} with {Email}", spreadsheetId, email);
+        _logger.LogInformation("Shared Google Sheet {SpreadsheetId} with {Email}", spreadsheetId, LogMask.Email(email));
     }
 
     public async Task DeleteSpreadsheetAsync(string spreadsheetId)

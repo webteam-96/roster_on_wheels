@@ -1,4 +1,5 @@
 import type { Messages } from "@/i18n/messages";
+import { postTranslate } from "@/i18n/postTranslate";
 
 /**
  * Machine-translate a message catalog (English source) into any target locale,
@@ -85,11 +86,7 @@ export async function translateCatalog(english: Messages, targetLocale: string):
 
     if (needed.length > 0) {
       const masks = needed.map(mask);
-      const res = await fetch("/api/i18n/translate", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ target: targetLocale, source: "en", q: masks.map((m) => m.masked) }),
-      });
+      const res = await postTranslate({ target: targetLocale, source: "en", q: masks.map((m) => m.masked) });
       if (res.ok) {
         const { translations } = (await res.json()) as { translations: string[] };
         needed.forEach((original, i) => {

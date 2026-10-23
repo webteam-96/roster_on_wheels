@@ -120,7 +120,8 @@ public class PublicProjectShareController : ControllerBase
 
         // Cache key covers everything the card draws, so an edited project (or a swapped primary
         // photo) yields a different filename and regenerates instead of serving a stale card.
-        var stamp = Hash($"{title}|{clubDisplay}|{p.DistrictNumber}|{p.AreaOfFocus}|{summary}|{p.PrimaryPhoto}|{HostOf(shareUrl)}|v1");
+        // v2: the ROW palette (2026-10-24), so cards cached in the old colours are drawn again.
+        var stamp = Hash($"{title}|{clubDisplay}|{p.DistrictNumber}|{p.AreaOfFocus}|{summary}|{p.PrimaryPhoto}|{HostOf(shareUrl)}|v2");
         var cacheFile = CachePath(p.YearLabel, p.Id, stamp);
 
         if (cacheFile != null && System.IO.File.Exists(cacheFile))

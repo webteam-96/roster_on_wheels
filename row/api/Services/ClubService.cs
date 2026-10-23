@@ -444,6 +444,8 @@ public class ClubService : IClubService
         // form strips the leading district token first, then takes the first 4-digit
         // run of the remainder ("2025"). Same expression is used by the filter, the
         // ORDER BY, the years dropdown and the CogYear projection.
+        // The COG year filter compares numbers: a CHAR cast takes the connection's collation, which can clash with the
+        // column's (MySQL 8 servers default to utf8mb4_0900_ai_ci; ROW tables are utf8mb4_unicode_ci) and fail the query.
         var totalCount = await connection.ExecuteScalarAsync<int>(@"
             SELECT COUNT(DISTINCT m.pk_member_master_profile_id)
             FROM member_master_profile m
@@ -471,7 +473,7 @@ public class ClubService : IClubService
                          AND fd.Name LIKE CONCAT('%', @FamilyMemberName, '%')
                    ))
               AND (@Year IS NULL OR @ClubId <> " + CogDesignationHelper.CogClubId + @"
-                   OR " + CogDesignationHelper.YearStartSql("cm") + @" = CAST(@Year AS CHAR))",
+                   OR CAST(" + CogDesignationHelper.YearStartSql("cm") + @" AS SIGNED) = @Year)",
             new
             {
                 ClubId = clubId, Search = searchParam, Year = year,
@@ -553,7 +555,7 @@ public class ClubService : IClubService
                          AND fd.Name LIKE CONCAT('%', @FamilyMemberName, '%')
                    ))
               AND (@Year IS NULL OR @ClubId <> " + CogDesignationHelper.CogClubId + @"
-                   OR " + CogDesignationHelper.YearStartSql("cm") + @" = CAST(@Year AS CHAR))
+                   OR CAST(" + CogDesignationHelper.YearStartSql("cm") + @" AS SIGNED) = @Year)
             GROUP BY m.pk_member_master_profile_id, m.MemberName, m.ProfilePhotoPath,
                      m.EmailId, m.PrimaryMobileNumber, m.RotaryId,
                      m.ShowPhoneInMyClub, m.ShowPhoneInAllClubs,

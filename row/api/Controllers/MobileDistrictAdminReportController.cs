@@ -44,8 +44,14 @@ public class MobileDistrictAdminReportController : ControllerBase
         return int.TryParse(id, out var x) ? x : 0;
     }
 
-    // AGs may read these reports, but only their own clubs.
-    private bool CanRead() => IsSuperAdminOrAdmin() || IsAg();
+    // SuperAdmin / Admin: the rule of the web district-report route this mirrors (members and managers of the
+    // district). Was: any Admin read any district's report. AGs: only their own clubs (EffectiveAgScope), any district.
+    private async Task<bool> CanReadAsync(int districtId)
+    {
+        if (!IsSuperAdminOrAdmin()) return IsAg();
+        var cs = HttpContext.RequestServices.GetRequiredService<IConfiguration>().GetConnectionString("DefaultConnection")!;
+        return await RotaryApi.Services.ScopeWriteGuardMiddleware.ReadAllowedAsync(cs, GetMemberId(), false, districtId);
+    }
 
     // The agMemberId actually handed to the report logic.
     //   SuperAdmin / Admin → whatever they asked for (they may filter by any AG, or none).
@@ -65,48 +71,48 @@ public class MobileDistrictAdminReportController : ControllerBase
     [HttpGet("")]
     public async Task<ActionResult> GetReport([FromQuery] int districtId, [FromQuery] int yearId, [FromQuery] int? agMemberId = null)
     {
-        if (!CanRead()) return Denied();
         if (districtId <= 0) return BadRequest(new { message = "districtId is required." });
+        if (!await CanReadAsync(districtId)) return Denied();
         return await Web().GetReport(districtId, yearId, EffectiveAgScope(agMemberId));
     }
 
     [HttpGet("ocv-gov")]
     public async Task<ActionResult> GetOcvGovReport([FromQuery] int districtId, [FromQuery] int yearId, [FromQuery] int? clubId = null, [FromQuery] int? agMemberId = null)
     {
-        if (!CanRead()) return Denied();
         if (districtId <= 0) return BadRequest(new { message = "districtId is required." });
+        if (!await CanReadAsync(districtId)) return Denied();
         return await Web().GetOcvGovReport(districtId, yearId, clubId, EffectiveAgScope(agMemberId));
     }
 
     [HttpGet("club-officers-ri")]
     public async Task<ActionResult> GetClubOfficersFromRi([FromQuery] int districtId, [FromQuery] int yearId, [FromQuery] int? clubId = null, [FromQuery] int? agMemberId = null)
     {
-        if (!CanRead()) return Denied();
         if (districtId <= 0) return BadRequest(new { message = "districtId is required." });
+        if (!await CanReadAsync(districtId)) return Denied();
         return await Web().GetClubOfficersFromRi(districtId, yearId, clubId, EffectiveAgScope(agMemberId));
     }
 
     [HttpGet("available-years")]
     public async Task<ActionResult> GetAvailableYears([FromQuery] int districtId)
     {
-        if (!CanRead()) return Denied();
         if (districtId <= 0) return BadRequest(new { message = "districtId is required." });
+        if (!await CanReadAsync(districtId)) return Denied();
         return await Web().GetAvailableYears(districtId);
     }
 
     [HttpGet("avenue-of-service-all-clubs")]
     public async Task<ActionResult> AvenueOfServiceAllClubs([FromQuery] int districtId, [FromQuery] int yearId, [FromQuery] int? agMemberId = null)
     {
-        if (!CanRead()) return Denied();
         if (districtId <= 0) return BadRequest(new { message = "districtId is required." });
+        if (!await CanReadAsync(districtId)) return Denied();
         return await Web().AvenueOfServiceAllClubs(districtId, yearId, EffectiveAgScope(agMemberId));
     }
 
     [HttpGet("avenue-of-service-club-count")]
     public async Task<ActionResult> AvenueOfServiceClubCount([FromQuery] int districtId, [FromQuery] int yearId, [FromQuery] int? agMemberId = null)
     {
-        if (!CanRead()) return Denied();
         if (districtId <= 0) return BadRequest(new { message = "districtId is required." });
+        if (!await CanReadAsync(districtId)) return Denied();
         return await Web().AvenueOfServiceClubCount(districtId, yearId, EffectiveAgScope(agMemberId));
     }
 }

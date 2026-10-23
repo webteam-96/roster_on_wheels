@@ -17,15 +17,14 @@ export default async function AboutPage() {
   return (
     <PolicyPageLayout
       title="About Us"
-      intro="An integrated administration platform serving Rotary clubs across the zones in India."
+      intro="A club and district management tool for Rotary, made for Rotarians by Rotarians."
     >
       <section>
         <h2>Who We Are</h2>
         <p>
           {MERCHANT.legalName} is the technology initiative that operates this
-          Platform. It serves Rotary International&apos;s Districts grouped
-          under the zones: covering a substantial portion of
-          Rotary&apos;s activity across the Indian subcontinent.
+          Platform. It serves Rotary clubs and districts, their members and
+          their leaders.
         </p>
       </section>
 
@@ -39,7 +38,7 @@ export default async function AboutPage() {
           <li>Maintain accurate member records and a searchable directory;</li>
           <li>Document club service projects with photographs and impact data;</li>
           <li>Manage District-level events, registrations, and attendance;</li>
-          <li>Collect annual Club Dues, event fees, and voluntary contributions in INR through a secure payment gateway;</li>
+          <li>Collect annual Club Dues, event fees, and voluntary contributions through a secure payment gateway;</li>
           <li>Generate statutory reports for Rotary International and internal Rotary administration;</li>
           <li>Surface live dashboards for Club Admins, Assistant Governors and District Admins.</li>
         </ul>
@@ -48,7 +47,7 @@ export default async function AboutPage() {
       <section>
         <h2>Who We Serve</h2>
         <ul>
-          <li>Members of Rotary clubs across the zones in India;</li>
+          <li>Members of the Rotary clubs that use the Platform;</li>
           <li>Club Presidents, Secretaries, Treasurers, Directors, and other office-bearers;</li>
           <li>District Governors, District Administrators, Assistant Governors;</li>
           <li>Rotary International Directors and Rotary Foundation administrators;</li>
@@ -62,7 +61,7 @@ export default async function AboutPage() {
           <li><strong>Service Above Self</strong>: the platform exists for the benefit of Rotarians, not for profit.</li>
           <li><strong>Transparency</strong>: clear pricing, clear policies, clear receipts.</li>
           <li><strong>Security</strong>: encryption in transit and at rest; minimal data collection; least-privilege access.</li>
-          <li><strong>Compliance</strong>: alignment with Indian IT, consumer-protection, and data-protection law and Rotary International&apos;s policies.</li>
+          <li><strong>Compliance</strong>: alignment with applicable consumer-protection and data-protection law and Rotary International&apos;s policies.</li>
         </ul>
       </section>
 

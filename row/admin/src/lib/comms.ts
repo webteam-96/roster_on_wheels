@@ -3,8 +3,8 @@
 
 /** Template keys the platform sends by itself; any other key is a campaign template picked in compose. */
 export const SYSTEM_TEMPLATES: { key: string; label: string; placeholders: string }[] = [
-  { key: "birthday", label: "Birthday greeting", placeholders: "{{member_name}}, {{club_name}}" },
-  { key: "anniversary", label: "Anniversary greeting", placeholders: "{{member_name}}, {{club_name}}" },
+  { key: "birthday", label: "Birthday greeting", placeholders: "{{member_name}}, {{club_name}}, {{foundation_link}}" },
+  { key: "anniversary", label: "Anniversary greeting", placeholders: "{{member_name}}, {{club_name}}, {{foundation_link}}" },
   { key: "meeting_reminder", label: "Meeting reminder", placeholders: "{{member_name}}, {{club_name}}, {{meeting_title}}, {{meeting_time}}, {{join_link}}" },
 ];
 
@@ -13,6 +13,18 @@ export const CAMPAIGN_PLACEHOLDERS = "{{member_name}}, {{club_name}}";
 export const isTemplateKey = (key: string) => /^[a-z0-9][a-z0-9_-]{0,49}$/.test(key);
 
 export const isLanguageCode = (code: string) => /^[A-Za-z]{2,3}(-[A-Za-z0-9]{2,8})?$/.test(code);
+
+/** The district's Foundation giving link: a full https:// address of at most 500 characters, with no spaces, quotes,
+ *  angle brackets or sign-in part (CommsService.IsGivingUrl). Empty means no link and is checked by the caller. */
+export function isGivingUrl(url: string): boolean {
+  if (url.length > 500 || /[\s"'<>\\]/.test(url)) return false;
+  try {
+    const u = new URL(url);
+    return u.protocol === "https:" && !u.username && !u.password && u.hostname.includes(".");
+  } catch {
+    return false;
+  }
+}
 
 /** "40%" of a whole; "0%" when there is nothing to count. */
 export function rate(part: number, whole: number): string {

@@ -279,6 +279,7 @@ class _GoalsCardState extends State<_GoalsCard> {
         polioPlusGoal: _val(_polio),
         endowmentFundGoal: _val(_endow),
         otherGoal: _val(_other),
+        currency: g.currency, // keep the goal's currency, as the web form does
       );
       if (!mounted) return;
       widget.onReload();

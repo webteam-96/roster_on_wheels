@@ -225,28 +225,28 @@ public class CreditManagementService : ICreditManagementService
 
                     var newBalance = currentBalance + dto.CreditCount;
                     var txnHtml = !string.IsNullOrWhiteSpace(dto.TransactionId)
-                        ? $"<tr><td style='padding:8px;border:1px solid #e2e8f0;font-weight:bold;'>Transaction ID</td><td style='padding:8px;border:1px solid #e2e8f0;'>{dto.TransactionId}</td></tr>"
+                        ? $"<tr><td style='padding:8px;border:1px solid #D5DEE8;font-weight:bold;'>Transaction ID</td><td style='padding:8px;border:1px solid #D5DEE8;'>{dto.TransactionId}</td></tr>"
                         : "";
                     var payDateHtml = dto.PaymentDate.HasValue
-                        ? $"<tr><td style='padding:8px;border:1px solid #e2e8f0;font-weight:bold;'>Payment Date</td><td style='padding:8px;border:1px solid #e2e8f0;'>{dto.PaymentDate.Value:dd-MMM-yyyy}</td></tr>"
+                        ? $"<tr><td style='padding:8px;border:1px solid #D5DEE8;font-weight:bold;'>Payment Date</td><td style='padding:8px;border:1px solid #D5DEE8;'>{dto.PaymentDate.Value:dd-MMM-yyyy}</td></tr>"
                         : "";
 
                     var subject = $"Rotary Club - {dto.CreditType} Credits Allocated for {clubName}";
                     var body = $@"
                         {EmailService.EMAIL_HEADER}
-                            <h2 style='color: #1a365d; margin-top: 0;'>{dto.CreditType} Credits Allocated</h2>
+                            <h2 style='color: #17458F; margin-top: 0;'>{dto.CreditType} Credits Allocated</h2>
                             <p>Dear {(string)adminInfo.MemberName},</p>
                             <p><strong>{dto.CreditType}</strong> credits have been allocated to <strong>{clubName}</strong>.</p>
                             <table style='width:100%;border-collapse:collapse;margin:16px 0;'>
-                                <tr style='background:#f7fafc;'><td style='padding:8px;border:1px solid #e2e8f0;font-weight:bold;'>Credit Type</td><td style='padding:8px;border:1px solid #e2e8f0;'>{dto.CreditType}</td></tr>
-                                <tr><td style='padding:8px;border:1px solid #e2e8f0;font-weight:bold;'>Previous Balance</td><td style='padding:8px;border:1px solid #e2e8f0;'>{currentBalance}</td></tr>
-                                <tr style='background:#f7fafc;'><td style='padding:8px;border:1px solid #e2e8f0;font-weight:bold;'>Credits Added</td><td style='padding:8px;border:1px solid #e2e8f0;color:#38a169;font-weight:bold;'>+{dto.CreditCount}</td></tr>
-                                <tr><td style='padding:8px;border:1px solid #e2e8f0;font-weight:bold;'>Updated Balance</td><td style='padding:8px;border:1px solid #e2e8f0;color:#1a365d;font-weight:bold;'>{newBalance}</td></tr>
-                                <tr style='background:#f7fafc;'><td style='padding:8px;border:1px solid #e2e8f0;font-weight:bold;'>Expiry Date</td><td style='padding:8px;border:1px solid #e2e8f0;'>{dto.ToDate:dd-MMM-yyyy}</td></tr>
+                                <tr style='background:#F7F9FC;'><td style='padding:8px;border:1px solid #D5DEE8;font-weight:bold;'>Credit Type</td><td style='padding:8px;border:1px solid #D5DEE8;'>{dto.CreditType}</td></tr>
+                                <tr><td style='padding:8px;border:1px solid #D5DEE8;font-weight:bold;'>Previous Balance</td><td style='padding:8px;border:1px solid #D5DEE8;'>{currentBalance}</td></tr>
+                                <tr style='background:#F7F9FC;'><td style='padding:8px;border:1px solid #D5DEE8;font-weight:bold;'>Credits Added</td><td style='padding:8px;border:1px solid #D5DEE8;color:#38a169;font-weight:bold;'>+{dto.CreditCount}</td></tr>
+                                <tr><td style='padding:8px;border:1px solid #D5DEE8;font-weight:bold;'>Updated Balance</td><td style='padding:8px;border:1px solid #D5DEE8;color:#17458F;font-weight:bold;'>{newBalance}</td></tr>
+                                <tr style='background:#F7F9FC;'><td style='padding:8px;border:1px solid #D5DEE8;font-weight:bold;'>Expiry Date</td><td style='padding:8px;border:1px solid #D5DEE8;'>{dto.ToDate:dd-MMM-yyyy}</td></tr>
                                 {txnHtml}
                                 {payDateHtml}
                             </table>
-                            <p style='color:#718096;font-size:13px;'>Credited on: {DateTime.Now:dd-MMM-yyyy hh:mm tt}</p>
+                            <p style='color:#64748B;font-size:13px;'>Credited on: {DateTime.Now:dd-MMM-yyyy hh:mm tt}</p>
                         {EmailService.EMAIL_FOOTER}";
 
                     await _emailService.SendGenericEmailAsync((string)adminInfo.EmailId, subject, body);

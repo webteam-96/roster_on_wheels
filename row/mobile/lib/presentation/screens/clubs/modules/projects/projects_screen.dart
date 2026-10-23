@@ -2119,10 +2119,10 @@ class _ProjectFormScreenState extends State<_ProjectFormScreen> {
   bool _isJointProject = false;
   bool _saving = false;
 
-  // Currency (Financial & Impact). Defaults to INR; resolved from the club's
+  // Currency (Financial & Impact). Defaults to the brand currency; resolved from the club's
   // district on Add and from the saved project on Edit. Web parity: the Project
   // Cost / Grant / CSR amount labels show this currency's symbol.
-  String _currency = 'INR';
+  String _currency = Brand.current.defaultCurrency;
 
   // ── Classification AI gate (web parity: ClassificationAssist) ──────────────
   // The Area of Focus dropdown starts LOCKED on Add until the user taps
@@ -2263,8 +2263,8 @@ class _ProjectFormScreenState extends State<_ProjectFormScreen> {
       if (mounted) setState(() => _resolvedModuleId = id);
     });
     _loadDropdowns();
-    // Currency: on a fresh Add, resolve the club's district default (INR
-    // fallback); on Edit it's prefilled below, and on a switch the draft carries
+    // Currency: on a fresh Add, resolve the club's district default (brand
+    // currency fallback); on Edit it's prefilled below, and on a switch the draft carries
     // it.
     if (!_isEditing && widget.switchDraft == null && _caps.showCost) {
       _loadClubDefaultCurrency();
@@ -2379,7 +2379,7 @@ class _ProjectFormScreenState extends State<_ProjectFormScreen> {
   }
 
   /// Resolve the default project currency from the club's district (Add only).
-  /// Falls back silently to INR when the fetch fails or fields are absent.
+  /// Falls back silently to the brand currency when the fetch fails or fields are absent.
   Future<void> _loadClubDefaultCurrency() async {
     try {
       final resp = await _api.get<Map<String, dynamic>>(
@@ -2394,7 +2394,7 @@ class _ProjectFormScreenState extends State<_ProjectFormScreen> {
       );
       setState(() => _currency = resolved);
     } catch (_) {
-      // INR default stands.
+      // The brand currency default stands.
     }
   }
 
@@ -3347,7 +3347,7 @@ class _ProjectFormScreenState extends State<_ProjectFormScreen> {
                   // Financial & Impact — cost / beneficiaries / man-hours
                   if (_caps.showBeneficiaries || _caps.showCost || _caps.showManHoursRotarians) {
                     final curSym = _currencySymbol(_currency);
-                    specs.add(_Section(Icons.currency_rupee, 'Financial & Impact', [
+                    specs.add(_Section(Icons.payments_outlined, 'Financial & Impact', [
                       if (_caps.showCost) ...[
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.start,

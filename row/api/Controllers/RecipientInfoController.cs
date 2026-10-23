@@ -24,9 +24,15 @@ public class RecipientInfoController : ControllerBase
         _credits = credits;
     }
 
+    private int MemberId => int.TryParse(User.FindFirst("memberId")?.Value, out var id) ? id : 0;
+
+    // Only the people who send for the club / district see its recipient count and email credits: the club's
+    // managers and its district's admins, or the district's admins (SuperAdmin always). Was: any signed-in user.
     [HttpGet("club/{clubId}")]
     public async Task<ActionResult> GetForClub(int clubId)
     {
+        if (!await ScopeWriteGuardMiddleware.ReadAllowedAsync(_connectionString, MemberId, true, clubId, members: false))
+            return StatusCode(403, new { message = "You do not manage this club." });
         if (!await KillSwitchHelper.IsClubDrillReachableAsync(_connectionString, clubId))
             return StatusCode(403, new { message = "This club, its district, or its zone is inactive. Reactivate it first to access this data." });
         await using var conn = new MySqlConnection(_connectionString);
@@ -44,6 +50,8 @@ public class RecipientInfoController : ControllerBase
     [HttpGet("district/{districtId}")]
     public async Task<ActionResult> GetForDistrict(int districtId)
     {
+        if (!await ScopeWriteGuardMiddleware.AllowedAsync(_connectionString, MemberId, false, districtId))
+            return StatusCode(403, new { message = "You do not manage this district." });
         if (!await KillSwitchHelper.IsDistrictDrillReachableAsync(_connectionString, districtId))
             return StatusCode(403, new { message = "This district or its zone is inactive. Reactivate it first to access this data." });
         await using var conn = new MySqlConnection(_connectionString);

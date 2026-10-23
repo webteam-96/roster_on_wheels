@@ -1426,22 +1426,22 @@ public class ClubWebsitesController : ControllerBase
             bool changed = oldBase != newBase || oldGst != newGst;
             var arrow = changed ? "background:#fffbeb;" : "";
             return $@"<tr style='{arrow}'>
-                <td style='padding:8px 10px;border:1px solid #e2e8f0;'>{label}</td>
-                <td style='padding:8px 10px;border:1px solid #e2e8f0;text-align:right;color:#64748b;'>{Inr(oldBase)} + {oldGst:0.##}% = <strong>{Inr(ComputeTotal(oldBase, oldGst))}</strong></td>
-                <td style='padding:8px 10px;border:1px solid #e2e8f0;text-align:right;color:#166534;'>{Inr(newBase)} + {newGst:0.##}% = <strong>{Inr(ComputeTotal(newBase, newGst))}</strong></td>
+                <td style='padding:8px 10px;border:1px solid #D5DEE8;'>{label}</td>
+                <td style='padding:8px 10px;border:1px solid #D5DEE8;text-align:right;color:#64748b;'>{Inr(oldBase)} + {oldGst:0.##}% = <strong>{Inr(ComputeTotal(oldBase, oldGst))}</strong></td>
+                <td style='padding:8px 10px;border:1px solid #D5DEE8;text-align:right;color:#166534;'>{Inr(newBase)} + {newGst:0.##}% = <strong>{Inr(ComputeTotal(newBase, newGst))}</strong></td>
             </tr>";
         }
 
         var emailSubject = "ROW — Club Website Default Pricing change (OTP)";
         var emailBody = $@"{EmailService.EMAIL_HEADER}
-<h2 style='color:#1a365d;margin-top:0;'>Club Website Default Pricing — change request</h2>
+<h2 style='color:#17458F;margin-top:0;'>Club Website Default Pricing — change request</h2>
 <p><strong>{System.Net.WebUtility.HtmlEncode(requestedBy)}</strong> wants to change the <strong>system-wide default</strong> club-website prices. Share the OTP below only if you approve this exact change:</p>
 <table style='border-collapse:collapse;width:100%;margin:12px 0;font-size:14px;'>
   <thead>
-    <tr style='background:#f1f5f9;'>
-      <th style='padding:8px 10px;border:1px solid #e2e8f0;text-align:left;'>Item</th>
-      <th style='padding:8px 10px;border:1px solid #e2e8f0;text-align:right;'>Current (old)</th>
-      <th style='padding:8px 10px;border:1px solid #e2e8f0;text-align:right;'>New (proposed)</th>
+    <tr style='background:#EDF4FB;'>
+      <th style='padding:8px 10px;border:1px solid #D5DEE8;text-align:left;'>Item</th>
+      <th style='padding:8px 10px;border:1px solid #D5DEE8;text-align:right;'>Current (old)</th>
+      <th style='padding:8px 10px;border:1px solid #D5DEE8;text-align:right;'>New (proposed)</th>
     </tr>
   </thead>
   <tbody>
@@ -1450,8 +1450,8 @@ public class ClubWebsitesController : ControllerBase
   </tbody>
 </table>
 <p style='font-size:12px;color:#64748b;margin-top:0;'>Amounts are shown as base + GST% = total payable. Highlighted rows are changing.</p>
-<div style='background-color:#f7fafc;border:2px solid #3182ce;border-radius:8px;padding:20px;margin:16px 0;text-align:center;'>
-  <p style='font-size:32px;font-weight:bold;color:#1a365d;letter-spacing:8px;margin:0;'>{otp}</p>
+<div style='background-color:#F7F9FC;border:2px solid #17458F;border-radius:8px;padding:20px;margin:16px 0;text-align:center;'>
+  <p style='font-size:32px;font-weight:bold;color:#17458F;letter-spacing:8px;margin:0;'>{otp}</p>
 </div>
 <p style='color:#e53e3e;'><strong>This OTP expires in {CW_PRICE_OTP_EXPIRY_MIN} minutes.</strong></p>
 <p>If you did not expect this, ignore this email — nothing changes without the OTP.</p>

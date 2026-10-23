@@ -1063,7 +1063,7 @@ public class EventPaymentLinkService : IEventPaymentLinkService
         var payUrl = $"{frontendUrl}/pay/{linkId}";
         var subject = link.EmailReminderSubject ?? "Payment Reminder";
         var regAmount = link.Registrations.FirstOrDefault()?.Amount ?? 0;
-        var remarkHtml = string.IsNullOrWhiteSpace(extraRemark) ? "" : $"<p style='margin-top:16px;padding:12px;background:#f7fafc;border-left:4px solid #3182ce;'><strong>Remark:</strong> {extraRemark}</p>";
+        var remarkHtml = string.IsNullOrWhiteSpace(extraRemark) ? "" : $"<p style='margin-top:16px;padding:12px;background:#F7F9FC;border-left:4px solid #17458F;'><strong>Remark:</strong> {extraRemark}</p>";
 
         foreach (var m in unpaidMembers)
         {
@@ -1071,15 +1071,15 @@ public class EventPaymentLinkService : IEventPaymentLinkService
             try
             {
                 var body = $@"{EmailService.EMAIL_HEADER}
-                    <h2 style='color: #1a365d; margin-top: 0;'>Payment Reminder</h2>
+                    <h2 style='color: #17458F; margin-top: 0;'>Payment Reminder</h2>
                     <p>Dear {m.MemberName},</p>
                     <table style='width:100%;border-collapse:collapse;margin:20px 0;'>
-                        <tr><td style='padding:8px;border:1px solid #ddd;font-weight:bold;'>District Number</td><td style='padding:8px;border:1px solid #ddd;'>{m.DistrictNumber ?? "-"}</td></tr>
-                        <tr><td style='padding:8px;border:1px solid #ddd;font-weight:bold;'>Club Name</td><td style='padding:8px;border:1px solid #ddd;'>{m.ClubName ?? "-"}</td></tr>
-                        <tr><td style='padding:8px;border:1px solid #ddd;font-weight:bold;'>Purpose of the payment</td><td style='padding:8px;border:1px solid #ddd;'>{link.Title}</td></tr>
-                        <tr><td style='padding:8px;border:1px solid #ddd;font-weight:bold;'>Outstanding amount</td><td style='padding:8px;border:1px solid #ddd;'>₹{regAmount}/-</td></tr>
-                        <tr><td style='padding:8px;border:1px solid #ddd;font-weight:bold;'>Status</td><td style='padding:8px;border:1px solid #ddd;'>Unpaid</td></tr>
-                        <tr><td style='padding:8px;border:1px solid #ddd;font-weight:bold;'>Click on the link</td><td style='padding:8px;border:1px solid #ddd;'><a href='{payUrl}' style='color:#3182ce;'>{payUrl}</a></td></tr>
+                        <tr><td style='padding:8px;border:1px solid #D5DEE8;font-weight:bold;'>District Number</td><td style='padding:8px;border:1px solid #D5DEE8;'>{m.DistrictNumber ?? "-"}</td></tr>
+                        <tr><td style='padding:8px;border:1px solid #D5DEE8;font-weight:bold;'>Club Name</td><td style='padding:8px;border:1px solid #D5DEE8;'>{m.ClubName ?? "-"}</td></tr>
+                        <tr><td style='padding:8px;border:1px solid #D5DEE8;font-weight:bold;'>Purpose of the payment</td><td style='padding:8px;border:1px solid #D5DEE8;'>{link.Title}</td></tr>
+                        <tr><td style='padding:8px;border:1px solid #D5DEE8;font-weight:bold;'>Outstanding amount</td><td style='padding:8px;border:1px solid #D5DEE8;'>{Brand.Money(regAmount)}</td></tr>
+                        <tr><td style='padding:8px;border:1px solid #D5DEE8;font-weight:bold;'>Status</td><td style='padding:8px;border:1px solid #D5DEE8;'>Unpaid</td></tr>
+                        <tr><td style='padding:8px;border:1px solid #D5DEE8;font-weight:bold;'>Click on the link</td><td style='padding:8px;border:1px solid #D5DEE8;'><a href='{payUrl}' style='color:#17458F;'>{payUrl}</a></td></tr>
                     </table>
                     {(link.EmailReminderBody ?? "")}
                     {remarkHtml}
@@ -1255,12 +1255,12 @@ public class EventPaymentLinkService : IEventPaymentLinkService
             {
                 await _emailService.SendGenericEmailAsync(email!, "OTP Verification - ROW",
                     $@"{EmailService.EMAIL_HEADER}
-                        <h2 style='color: #1a365d; margin-top: 0;'>OTP Verification</h2>
+                        <h2 style='color: #17458F; margin-top: 0;'>OTP Verification</h2>
                         <p>Your OTP for event payment verification is:</p>
                         <div style='text-align:center;margin:20px 0;'>
-                            <span style='font-size:32px;font-weight:bold;letter-spacing:8px;color:#1a365d;'>{otp}</span>
+                            <span style='font-size:32px;font-weight:bold;letter-spacing:8px;color:#17458F;'>{otp}</span>
                         </div>
-                        <p style='color:#718096;'>Valid for 5 minutes.</p>
+                        <p style='color:#64748B;'>Valid for 5 minutes.</p>
                     {EmailService.EMAIL_FOOTER}");
                 emailSent = true;
             }
@@ -1624,7 +1624,7 @@ public class EventPaymentLinkService : IEventPaymentLinkService
         if (!string.IsNullOrWhiteSpace(email))
         {
             try { await _googleSheetsService.ShareWithEmailAsync(sheetId, email); }
-            catch (Exception ex) { _logger.LogWarning(ex, "Failed to share sheet with {Email}", email); }
+            catch (Exception ex) { _logger.LogWarning(ex, "Failed to share sheet with {Email}", LogMask.Email(email)); }
         }
 
         await conn.ExecuteAsync("UPDATE event_payment_links SET GoogleSheetId=@SheetId WHERE pk_id=@Id",
@@ -1726,12 +1726,12 @@ public class EventPaymentLinkService : IEventPaymentLinkService
     private string BuildReceiptBody(dynamic member, string? extraRemark = null)
     {
         var rows = new StringBuilder();
-        void AddRow(string label, string? value) { if (!string.IsNullOrWhiteSpace(value)) rows.Append($"<tr><td style='padding:8px;border:1px solid #ddd;font-weight:bold;'>{label}</td><td style='padding:8px;border:1px solid #ddd;'>{value}</td></tr>"); }
+        void AddRow(string label, string? value) { if (!string.IsNullOrWhiteSpace(value)) rows.Append($"<tr><td style='padding:8px;border:1px solid #D5DEE8;font-weight:bold;'>{label}</td><td style='padding:8px;border:1px solid #D5DEE8;'>{value}</td></tr>"); }
 
         AddRow("District Number", (string?)member.DistrictNumber);
         AddRow("Club Name", (string?)member.ClubName);
         AddRow("Purpose of the payment", (string?)member.LinkTitle);
-        AddRow("Amount received", $"₹{member.Amount}/-");
+        AddRow("Amount received", Brand.Money(Convert.ToDecimal((object?)member.Amount)));
         AddRow("Date and time", ((DateTime?)member.PaymentDate)?.ToString("dd-MM-yyyy HH:mm") ?? DateTime.Now.ToString("dd-MM-yyyy HH:mm"));
         AddRow("Method of payment", Convert.ToBoolean(member.IsOnline) ? "Online" : ((string?)member.OfflineTransactionType ?? "Offline"));
         AddRow("Transaction ID", (string?)member.TransactionId);
@@ -1750,14 +1750,14 @@ public class EventPaymentLinkService : IEventPaymentLinkService
         AddRow("Designation", (string?)member.DesignationName);
 
         return $@"{EmailService.EMAIL_HEADER}
-            <h2 style='color: #1a365d; margin-top: 0;'>Payment Receipt</h2>
+            <h2 style='color: #17458F; margin-top: 0;'>Payment Receipt</h2>
             <p>Dear {member.MemberName},</p>
             <p>Your payment has been received successfully.</p>
             <table style='width:100%;border-collapse:collapse;margin:20px 0;'>
                 {rows}
             </table>
             {((string?)member.EmailBody ?? "")}
-            {(string.IsNullOrWhiteSpace(extraRemark) ? "" : $"<p style='margin-top:16px;padding:12px;background:#f7fafc;border-left:4px solid #3182ce;'><strong>Remark:</strong> {extraRemark}</p>")}
+            {(string.IsNullOrWhiteSpace(extraRemark) ? "" : $"<p style='margin-top:16px;padding:12px;background:#F7F9FC;border-left:4px solid #17458F;'><strong>Remark:</strong> {extraRemark}</p>")}
             <p>Thank you,<br/>ROW</p>
         {EmailService.EMAIL_FOOTER}";
     }
@@ -1765,15 +1765,15 @@ public class EventPaymentLinkService : IEventPaymentLinkService
     private string BuildReminderBody(dynamic member, string payUrl, string? extraRemark = null)
     {
         return $@"{EmailService.EMAIL_HEADER}
-            <h2 style='color: #1a365d; margin-top: 0;'>Payment Reminder</h2>
+            <h2 style='color: #17458F; margin-top: 0;'>Payment Reminder</h2>
             <p>Dear {member.MemberName},</p>
             <table style='width:100%;border-collapse:collapse;margin:20px 0;'>
-                <tr><td style='padding:8px;border:1px solid #ddd;font-weight:bold;'>District Number</td><td style='padding:8px;border:1px solid #ddd;'>{(string?)member.DistrictNumber ?? "-"}</td></tr>
-                <tr><td style='padding:8px;border:1px solid #ddd;font-weight:bold;'>Club Name</td><td style='padding:8px;border:1px solid #ddd;'>{(string?)member.ClubName ?? "-"}</td></tr>
-                <tr><td style='padding:8px;border:1px solid #ddd;font-weight:bold;'>Purpose of the payment</td><td style='padding:8px;border:1px solid #ddd;'>{member.LinkTitle}</td></tr>
-                <tr><td style='padding:8px;border:1px solid #ddd;font-weight:bold;'>Outstanding amount</td><td style='padding:8px;border:1px solid #ddd;'>₹{member.RegAmount}/-</td></tr>
-                <tr><td style='padding:8px;border:1px solid #ddd;font-weight:bold;'>Status</td><td style='padding:8px;border:1px solid #ddd;'>Unpaid</td></tr>
-                <tr><td style='padding:8px;border:1px solid #ddd;font-weight:bold;'>Click on the link</td><td style='padding:8px;border:1px solid #ddd;'><a href='{payUrl}' style='color:#3182ce;'>{payUrl}</a></td></tr>
+                <tr><td style='padding:8px;border:1px solid #D5DEE8;font-weight:bold;'>District Number</td><td style='padding:8px;border:1px solid #D5DEE8;'>{(string?)member.DistrictNumber ?? "-"}</td></tr>
+                <tr><td style='padding:8px;border:1px solid #D5DEE8;font-weight:bold;'>Club Name</td><td style='padding:8px;border:1px solid #D5DEE8;'>{(string?)member.ClubName ?? "-"}</td></tr>
+                <tr><td style='padding:8px;border:1px solid #D5DEE8;font-weight:bold;'>Purpose of the payment</td><td style='padding:8px;border:1px solid #D5DEE8;'>{member.LinkTitle}</td></tr>
+                <tr><td style='padding:8px;border:1px solid #D5DEE8;font-weight:bold;'>Outstanding amount</td><td style='padding:8px;border:1px solid #D5DEE8;'>{Brand.Money(Convert.ToDecimal((object?)member.RegAmount))}</td></tr>
+                <tr><td style='padding:8px;border:1px solid #D5DEE8;font-weight:bold;'>Status</td><td style='padding:8px;border:1px solid #D5DEE8;'>Unpaid</td></tr>
+                <tr><td style='padding:8px;border:1px solid #D5DEE8;font-weight:bold;'>Click on the link</td><td style='padding:8px;border:1px solid #D5DEE8;'><a href='{payUrl}' style='color:#17458F;'>{payUrl}</a></td></tr>
             </table>
             {((string?)member.EmailReminderBody ?? "")}
             {(extraRemark ?? "")}

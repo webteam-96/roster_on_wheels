@@ -59,6 +59,7 @@ import {
 import { useSyncClubIdFromUrl } from "@/hooks/useSyncClubIdFromUrl";
 
 import { appLocale } from "@/lib/appFormat";
+import { formatMoney } from "@/lib/currency";
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
 const CATEGORY_VISUAL: Record<
@@ -573,7 +574,7 @@ export function OcvCategoryV2View({
                         <td className="px-3 py-2 text-slate-500 tabular-nums">{formatBytes(doc.fileSize)}</td>
                         {isDues && (
                           <td className="px-3 py-2 text-slate-700 tabular-nums">
-                            {doc.amount != null ? `Rs. ${doc.amount.toLocaleString(appLocale())}` : "–"}
+                            {doc.amount != null ? formatMoney(doc.amount) : "–"}
                           </td>
                         )}
                         {isDues && (

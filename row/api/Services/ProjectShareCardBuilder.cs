@@ -30,12 +30,12 @@ public sealed class ProjectShareCardData
 // LinkedIn and X all crop from.
 public static class ProjectShareCardBuilder
 {
-    private const string Navy = "#0B2C5E";     // Rotary "Royal Blue" family — matches the public site
-    private const string NavyDeep = "#08203F";
-    private const string Gold = "#C8A64B";
-    private const string Ink = "#1A1A1A";
-    private const string Muted = "#5A6472";
-    private const string Paper = "#FFFFFF";
+    private const string Navy = "#17458F";     // Rotary "Royal Blue" family — matches the public site
+    private const string NavyDeep = "#1B2C42";
+    private const string Gold = "#F7A81B";
+    private const string Ink = "#1B2C42";
+    private const string Muted = "#64748B";
+    private const string Paper = "#FCFDFE";
 
     private const int CardWidth = 1200;
     private const int CardHeight = 630;
@@ -89,7 +89,7 @@ public static class ProjectShareCardBuilder
                                 cell.Background(NavyDeep).AlignMiddle().AlignCenter().Padding(40).Column(c =>
                                 {
                                     c.Item().AlignCenter().Text("ROTARY")
-                                        .FontSize(58).Bold().FontColor("#FFFFFF").LetterSpacing(0.18f);
+                                        .FontSize(58).Bold().FontColor("#FCFDFE").LetterSpacing(0.18f);
                                     c.Item().PaddingTop(14).AlignCenter().Width(150).Height(4).Background(Gold);
                                     c.Item().PaddingTop(16).AlignCenter().Text(d.PanelLabel)
                                         .FontSize(16).SemiBold().FontColor(Gold).LetterSpacing(0.26f);

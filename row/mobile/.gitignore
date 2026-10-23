@@ -51,7 +51,7 @@ ios/Runner/GoogleService-Info.plist
 # Xcode build cache
 ios/build/
 
-# RIZones-era working notes: they hold RIZones servers and old dev logins, so they stay on the local disk only
+# Working notes from the original platform: they hold its servers and old dev logins, so they stay on the local disk only
 WORK_LOG.txt
 ANALYSIS.md
 GAP_REPORT.md

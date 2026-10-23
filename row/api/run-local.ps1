@@ -10,7 +10,7 @@ param(
     [string]$Database = "row_production",
     [string]$User = "Mysql_admin_User",
     [string]$SuperAdminEmail = "mukesh.dhole@kaizeninfotech.com",
-    [int]$ApiPort = 5050,   # 5000 is usually taken by a local RIZones API
+    [int]$ApiPort = 5050,   # 5000 is usually taken by another local API
     [switch]$FirstRun
 )
 

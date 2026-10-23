@@ -209,7 +209,7 @@ public class AgGoalsClubRowDto
     public string ClubName { get; set; } = "";
     public int Members { get; set; }
     public decimal MembershipGrowth { get; set; } // %
-    public decimal TrfPerCapita { get; set; } // INR
+    public decimal TrfPerCapita { get; set; } // USD
     public int ServiceProjects { get; set; }
     public decimal MeetingAttendance { get; set; } // %
     public decimal MyRotary { get; set; } // %

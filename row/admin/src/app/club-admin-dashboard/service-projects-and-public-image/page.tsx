@@ -94,7 +94,7 @@ function attendancePercentChip(pct: number) {
   return "bg-rose-100 text-rose-700";
 }
 
-// Compact money — INR by default; currency-aware totals/rows pass the district or project currency.
+// Compact money in the instance currency by default; currency-aware totals/rows pass the district or project currency.
 const shortInr = (value: number): string => shortMoney(value, defaultCurrency());
 
 // Whitelist guard — keeps URL params safe when reading ?tab=

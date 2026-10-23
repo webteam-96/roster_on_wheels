@@ -885,7 +885,7 @@ export default function ClubMembershipDuesV2MembersPage() {
                           </td>
                           <td className="px-3 py-2 text-slate-600">{m.categoryType || "–"}</td>
 
-                          {/* Fee Amount (the ONE true base amount, INR
+                          {/* Fee Amount (the ONE true base amount,
                               comma-formatted — sum matches the dashboard's
                               Total Amount tile) + Status merged into one
                               column per fee type. */}

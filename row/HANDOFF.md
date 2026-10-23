@@ -57,15 +57,17 @@ sheet (PENDING-WORK §11a; Settings > Features; e2e `kb/tools/feature_gate_e2e.p
 
 ## Next task
 
-Plan for the next round (user: build everything, no questions): `docs/superpowers/plans/2026-10-23-round2-and-app.md`
-(not started; N12 facts gathered: no IST constant left, district_master has no Timezone column yet). Copy-sources added
-2026-10-23: `reference/kaizen-events` (.NET) and `reference/kaizen-qr` (QR check-in), read-only like RIZones.
-Commit this work when the user asks (nothing is committed; scan every added file for secrets first). Then:
-round 2 of the spec modules: N7 planning mode, N12 time zones, escalation ladder and target celebration (B.3/B.4),
-the app screens for the 10 new modules, and P6 (8 older e2e scripts still use the dropped `row_local`).
-Open decisions for the user: club committees (only districts have them), "district on ROW" signal for grants
-(tenant row), volunteer hours added on top of project man-hours, transactional emails outside email credits,
-seeding RI default themes. **Wave 2 (money) is still blocked on a Stripe test account.**
+Read `row/STATUS-REPORT.md` first (done, to do in order, on hold, blocked, decisions). Order agreed with the owner:
+Phase 1b security (HIGH: records fetched by id inside a club's URL are not tied to that club, sub group members,
+event payment link writes, credit wallet lookup, raw exception text), then Phase 3 mobile app screens for members,
+clubs and districts, then 3b app language switch, then 4 final assurance. Events + QR merge and all club/district
+website work (themes per subscription) are ON HOLD until the owner says go. Brand source: `row/website`.
+Plan with sizes and timeline: `C:/Users/USER/.claude/plans/encapsulated-finding-lemur.md` (local) and
+`docs/superpowers/plans/2026-10-23-round2-and-app.md`.
+
+Parallel lanes (when the owner allows parallel agents): `C:/Users/USER/row-lanes/_base/lanes.sh setup <ids>` makes a
+git worktree + DB copy per lane; `integrate.sh <id>` then `resolve.py <id>` merges a lane (per-lane merge base);
+`postmerge-check.sh` finds duplicated names; `lanes.sh teardown <ids>` removes junctions first, then worktrees and DBs.
 
 ## Still pending after Wave 1
 
@@ -126,7 +128,9 @@ seeding RI default themes. **Wave 2 (money) is still blocked on a Stripe test ac
   10 logins per minute per IP). New (args `<api> 3317 <db>`, `ROW_E2E_JWT_SECRET`): `membership_fields`,
   `engagement`, `grants`, `volunteers_speakers` (API with `VolunteerReminders__Enabled=true`),
   `contacts_prospects_growth` (`ROW_E2E_EMAIL_SAFE=1`), `target_dashboard`, `meetings_links_compliance`,
-  `communication_upgrades` (see its header: fake Brevo + DNS ports), `websites_multilingual`, `chat`.
+  `communication_upgrades` (see its header: fake Brevo + DNS ports), `websites_multilingual`, `chat`,
+  `calendar_scope`, `mass_email_scope`, `read_review_a_l`, `read_review_m_z`, `time_zones`, `planning_mode`,
+  `escalation_celebration`, `rebranding`, `security_guards`. All 30 scripts take the same three arguments.
 - Admin: `npx tsc --noEmit -p tsconfig.json`, `npx vitest run`, `node scripts/check-design.mjs`.
 - App: `flutter analyze` (errors print as `  error -`), `flutter test`.
 - Then `bash kb/rebuild.sh`.

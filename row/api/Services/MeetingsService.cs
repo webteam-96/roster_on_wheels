@@ -65,6 +65,7 @@ public class MeetingsService
         public string? MeetingMode { get; set; }
         public string? MeetingLink { get; set; }
         public string ClubName { get; set; } = "";
+        public string? Tz { get; set; }
     }
 
     /// <summary>The iCal text for a feed token, or null for an unknown token or an inactive club.</summary>
@@ -87,9 +88,11 @@ public class MeetingsService
 
         // A member feed follows the clubs the member belongs to today, so leaving a club drops its meetings.
         var meetings = await conn.QueryAsync<FeedMeeting>($@"
-            SELECT a.pk_attendance_id AS Id, a.EventName, a.Description, a.EventDateTime, a.MeetingMode, a.MeetingLink, c.ClubName
+            SELECT a.pk_attendance_id AS Id, a.EventName, a.Description, a.EventDateTime, a.MeetingMode, a.MeetingLink, c.ClubName,
+                   d.Timezone AS Tz
             FROM club_attendance a
             JOIN club_master c ON c.pk_club_id = a.fk_club_id AND IFNULL(c.isdeleted, 0) = 0 AND c.IsActive = 1
+            LEFT JOIN district_master d ON d.pk_district_id = c.fk_district_id
             WHERE a.isdeleted = 0
               AND a.EventDateTime >= DATE_SUB(NOW(), INTERVAL 90 DAY)
               AND {(feed.ClubId != null
@@ -109,6 +112,11 @@ public class MeetingsService
         var sb = new StringBuilder();
         void Line(string s) => sb.Append(Fold(s)).Append("\r\n");
         static string Local(DateTime d) => d.ToString("yyyyMMdd'T'HHmmss", CultureInfo.InvariantCulture);
+        // N12: a stored UTC time goes out as UTC ("Z"); a stored wall-clock time is the club's, in its district's zone.
+        // shortcut: the admin and app send meeting times as typed (no offset), which a UTC server stores as if UTC;
+        // send UTC instants from the meeting forms to make them exact.
+        static string At(string name, DateTime d, string? tz) =>
+            ZoneTime.StoredUtc ? $"{name}:{Local(d)}Z" : $"{name};TZID={ZoneTime.IanaId(ZoneTime.Find(tz))}:{Local(d)}";
 
         Line("BEGIN:VCALENDAR");
         Line("VERSION:2.0");
@@ -128,9 +136,10 @@ public class MeetingsService
             Line("BEGIN:VEVENT");
             Line($"UID:row-meeting-{m.Id}");
             Line("DTSTAMP:" + stamp);
-            // shortcut: floating local times and 1 hour long: meeting records hold no zone or end time (web plan #12 adds zones).
-            Line("DTSTART:" + Local(m.EventDateTime));
-            Line("DTEND:" + Local(m.EventDateTime.AddHours(1)));
+            // shortcut: 1 hour long, meeting records hold no end time. TZID names the zone without a VTIMEZONE block
+            // (Google, Apple and Outlook resolve IANA names); add VTIMEZONE if a client shows wrong times.
+            Line(At("DTSTART", m.EventDateTime, m.Tz));
+            Line(At("DTEND", m.EventDateTime.AddHours(1), m.Tz));
             Line("SUMMARY:" + Esc(m.EventName));
             Line("DESCRIPTION:" + Esc(string.Join("\n\n", desc)));
             if (link != null)
@@ -273,7 +282,7 @@ public class MeetingsService
                     EmailService.EMAIL_HEADER + CommsTemplates.Fill(template.BodyHtml, values, true) + EmailService.EMAIL_FOOTER);
         }
         var about = string.IsNullOrWhiteSpace(description) ? ""
-            : $"<p style='color:#555;'>{E(description.Length > 1000 ? description[..1000] + "..." : description)}</p>";
+            : $"<p style='color:#4A5A70;'>{E(description.Length > 1000 ? description[..1000] + "..." : description)}</p>";
         var join = link == null ? ""
             : $"<p><strong>Join online:</strong> <a href=\"{E(link)}\">{E(link)}</a></p>";
         var html = EmailService.EMAIL_HEADER + $@"
@@ -322,6 +331,7 @@ public class MeetingReminderBackgroundService : BackgroundService
         public string Email { get; set; } = "";
         public string? MemberName { get; set; }
         public string? Language { get; set; }
+        public string? Tz { get; set; }
     }
 
     protected override async Task ExecuteAsync(CancellationToken stop)
@@ -350,10 +360,18 @@ public class MeetingReminderBackgroundService : BackgroundService
         var comms = features.Contains(CommsService.FeatureKey);
         await using var conn = new MySqlConnection(_cs);
         await conn.OpenAsync(stop);
-        var due = (await conn.QueryAsync<Due>($@"
+        // N12: stored UTC times are compared with UTC now (one group); wall-clock times with the local time of each
+        // district zone.
+        var groups = ZoneTime.StoredUtc ? new List<(string Id, TimeZoneInfo Zone)> { ("*", TimeZoneInfo.Utc) } : await ZoneTime.ZonesAsync(conn);
+        var due = new List<Due>();
+        foreach (var (tz, zone) in groups)
+        {
+            if (due.Count >= MaxPerTick) break;
+            due.AddRange(await conn.QueryAsync<Due>($@"
             SELECT a.pk_attendance_id AS AttendanceId, a.fk_club_id AS ClubId, c.ClubName, a.EventName, a.Description,
                    a.EventDateTime, a.MeetingMode, a.MeetingLink,
-                   m.pk_member_master_profile_id AS MemberId, m.EmailId AS Email, m.MemberName, m.PrimaryLanguage AS Language
+                   m.pk_member_master_profile_id AS MemberId, m.EmailId AS Email, m.MemberName, m.PrimaryLanguage AS Language,
+                   d.Timezone AS Tz
             FROM club_attendance a
             JOIN club_master c ON c.pk_club_id = a.fk_club_id AND IFNULL(c.isdeleted, 0) = 0 AND c.IsActive = 1
             JOIN district_master d ON d.pk_district_id = c.fk_district_id AND d.isdeleted = 0 AND d.IsActive = 1
@@ -361,14 +379,16 @@ public class MeetingReminderBackgroundService : BackgroundService
             JOIN club_members cm ON cm.fk_club_id = a.fk_club_id AND cm.IsActive = 1 AND cm.isdeleted = 0 AND cm.IsHonoraryMember = 0
             JOIN member_master_profile m ON m.pk_member_master_profile_id = cm.fk_member_master_profile_id AND m.isdeleted = 0
             WHERE a.isdeleted = 0
-              AND a.EventDateTime > NOW()
-              AND a.EventDateTime <= DATE_ADD(NOW(), INTERVAL {MeetingsService.ReminderLeadHours} HOUR)
+              AND a.EventDateTime > @Now
+              AND a.EventDateTime <= DATE_ADD(@Now, INTERVAL {MeetingsService.ReminderLeadHours} HOUR)
+              {(tz == "*" ? "" : "AND " + ZoneTime.Filter("d"))}
               AND m.EmailId IS NOT NULL AND m.EmailId <> ''
               AND NOT EXISTS (SELECT 1 FROM meeting_reminder_log l
                               WHERE l.fk_attendance_id = a.pk_attendance_id AND l.fk_member_id = m.pk_member_master_profile_id)
               {RotaryApi.Privacy.PrivacyConsent.BroadcastFilter()}
               {(comms ? "AND NOT " + CommsTemplates.EmailBlockedSql("m.pk_member_master_profile_id", "m.EmailId", "a.fk_club_id", "0") : "")}
-            LIMIT {MaxPerTick}")).ToList();
+            LIMIT {MaxPerTick - due.Count}", new { Now = ZoneTime.Local(zone), Tz = tz }));
+        }
         if (due.Count == 0) return 0;
 
         using var scope = _services.CreateScope();
@@ -395,7 +415,9 @@ public class MeetingReminderBackgroundService : BackgroundService
                                                     await CommsTemplates.DefaultLanguageAsync(conn, r.ClubId, 0));
                 template = CommsTemplates.Pick(ct.Versions, r.Language, ct.Language);
             }
-            var (subject, html) = MeetingsService.ReminderEmail(r.ClubName, r.EventName, r.Description, r.EventDateTime, r.MeetingMode, link, template, r.MemberName);
+            // The time as the club reads it: a stored UTC time in the club's district zone.
+            var when = ZoneTime.StoredUtc ? ZoneTime.Local(ZoneTime.Find(r.Tz), r.EventDateTime) : r.EventDateTime;
+            var (subject, html) = MeetingsService.ReminderEmail(r.ClubName, r.EventName, r.Description, when, r.MeetingMode, link, template, r.MemberName);
             await email.SendScopedEmailAsync(r.Email, subject, html, r.ClubId, null);
             sent++;
         }

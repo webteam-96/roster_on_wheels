@@ -160,7 +160,7 @@ public class DistrictAdminOverviewResponse
     // Settings dialog), plus "Others" for rows where fk_fund_id maps to
     // the Others master fund — those carry their free-text label in
     // trf_contributions.OtherFundName. Amounts are aggregated across every
-    // club in the district for the selected year and returned in INR.
+    // club in the district for the selected year and returned in USD (TRF is stored in USD).
     public List<DistrictAdminFundBreakdownRow> FundTypeBreakdown { get; set; } = new();
 }
 

@@ -62,6 +62,8 @@ public class AuditMiddleware
         { "foundation-designations", "Foundation Designation" },
         { "engagement", "Engagement" },
         { "spotlight-cards", "Spotlight Card" },
+        { "escalation", "Escalation" },
+        { "celebration", "Target Celebration" },
         { "zones", "Zone" },
         { "area-of-focus", "Area of Focus" },
         { "categories", "Category" },

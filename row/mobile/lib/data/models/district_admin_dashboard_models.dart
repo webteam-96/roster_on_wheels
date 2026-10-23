@@ -335,7 +335,7 @@ class DaClubLeaderboardRow {
 }
 
 /// One fund-type total for the district TRF panel (Annual / Polio / Endowment /
-/// Others + any admin-defined funds), aggregated across all clubs, in INR.
+/// Others + any admin-defined funds), aggregated across all clubs, in USD.
 class DaFundBreakdownRow {
   final String fundName;
   final double amountInr;
@@ -653,8 +653,8 @@ class DistrictMembershipGoal {
 }
 
 /// Foundation collection goal (GET/POST /foundation-goal). The 4 targets are
-/// stored/transferred as RAW USD (the dashboard panel re-exposes them ×84 as
-/// INR for display only). POST requires fkYearId > 0.
+/// stored/transferred as RAW USD (the dashboard panel shows them in USD too,
+/// no conversion). POST requires fkYearId > 0.
 class DistrictFoundationGoal {
   final int pkId;
   final int fkDistrictId;

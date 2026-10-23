@@ -6,6 +6,7 @@ import { getPublicEventReport } from "@/services/api";
 import { fileTimestamp } from "@/lib/dateUtils";
 
 import { appLocale } from "@/lib/appFormat";
+import { formatMoney } from "@/lib/currency";
 interface ReportMember {
   srNo: number;
   memberName: string | null;
@@ -180,7 +181,7 @@ export default function PublicReportPage() {
               <span>Club: <strong>{linkDetails.clubName}</strong></span>
             )}
             <span>Total Paid: <strong>{members.length}</strong></span>
-            <span>Total Amount: <strong>Rs. {totalAmount.toLocaleString(appLocale())}</strong></span>
+            <span>Total Amount: <strong>{formatMoney(totalAmount)}</strong></span>
           </div>
         </div>
       </div>
@@ -242,7 +243,7 @@ export default function PublicReportPage() {
                     <td className="px-3 py-2.5 whitespace-nowrap">{m.mobile || "-"}</td>
                     <td className="px-3 py-2.5 whitespace-nowrap">{m.email || "-"}</td>
                     <td className="px-3 py-2.5 whitespace-nowrap">{m.registrationName || "-"}</td>
-                    <td className="px-3 py-2.5 whitespace-nowrap text-right">Rs. {m.amount.toLocaleString(appLocale())}</td>
+                    <td className="px-3 py-2.5 whitespace-nowrap text-right">{formatMoney(m.amount)}</td>
                     <td className="px-3 py-2.5 whitespace-nowrap">{formatDate(m.paymentDate)}</td>
                     <td className="px-3 py-2.5 whitespace-nowrap">{m.paidSource || "-"}</td>
                     <td className="px-3 py-2.5 whitespace-nowrap">{m.partnerName || "-"}</td>
@@ -261,7 +262,7 @@ export default function PublicReportPage() {
 
         {members.length > 0 && (
           <div className="mt-4 text-right text-sm text-gray-600">
-            Showing {members.length} paid member{members.length !== 1 ? "s" : ""} | Total: Rs. {totalAmount.toLocaleString(appLocale())}
+            Showing {members.length} paid member{members.length !== 1 ? "s" : ""} | Total: {formatMoney(totalAmount)}
           </div>
         )}
       </div>

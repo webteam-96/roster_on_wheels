@@ -54,12 +54,12 @@ public class EmailReportSender
                 logId = await InsertPendingAsync(to, subject, htmlBody);
                 var msgId = await SendViaBrevoAsync(to, subject, htmlBody, xlsxBytes, xlsxFileName);
                 await MarkSentAsync(logId, msgId);
-                _logger.LogInformation("[Email] sent → {To} (Brevo id={Id})", to, msgId);
+                _logger.LogInformation("[Email] sent → {To} (Brevo id={Id})", RotaryApi.Services.LogMask.Email(to), msgId);
             }
             catch (Exception ex)
             {
                 await MarkFailedAsync(logId, ex.Message);
-                _logger.LogError(ex, "[Email] failed → {To}", to);
+                _logger.LogError(ex, "[Email] failed → {To}", RotaryApi.Services.LogMask.Email(to));
                 // Do not throw — one bad address must not stop the rest.
             }
         }
@@ -79,12 +79,12 @@ public class EmailReportSender
             logId = await InsertPendingAsync(to, subject, htmlBody);
             var msgId = await SendViaBrevoAsync(to, subject, htmlBody, null, null);
             await MarkSentAsync(logId, msgId);
-            _logger.LogInformation("[Email] sent → {To} (Brevo id={Id})", to, msgId);
+            _logger.LogInformation("[Email] sent → {To} (Brevo id={Id})", RotaryApi.Services.LogMask.Email(to), msgId);
         }
         catch (Exception ex)
         {
             await MarkFailedAsync(logId, ex.Message);
-            _logger.LogError(ex, "[Email] admin-credentials send failed → {To}", to);
+            _logger.LogError(ex, "[Email] admin-credentials send failed → {To}", RotaryApi.Services.LogMask.Email(to));
         }
     }
 
@@ -176,7 +176,7 @@ public class EmailReportSender
         }
         catch (Exception ex)
         {
-            _logger.LogWarning(ex, "[email_log] InsertPending failed for {To}", toEmail);
+            _logger.LogWarning(ex, "[email_log] InsertPending failed for {To}", RotaryApi.Services.LogMask.Email(toEmail));
             return null;
         }
     }

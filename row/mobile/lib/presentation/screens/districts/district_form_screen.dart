@@ -335,7 +335,7 @@ class _DistrictFormScreenState extends State<DistrictFormScreen> {
                 const SizedBox(height: 16),
                 CustomTextField(controller: _stateCtrl, label: 'State', hint: 'Maharashtra'),
                 const SizedBox(height: 16),
-                CustomTextField(controller: _countryCtrl, label: 'Country', hint: 'India'),
+                CustomTextField(controller: _countryCtrl, label: 'Country', hint: 'United States'),
               ],
             ),
             const SizedBox(height: 12),

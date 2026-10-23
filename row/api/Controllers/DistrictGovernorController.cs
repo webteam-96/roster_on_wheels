@@ -288,10 +288,11 @@ public class DistrictGovernorController : ControllerBase
         return Ok(new { path = fileName });
     }
 
-    // Search members across all zones
+    // Search members across all zones (the DG picker of this SuperAdmin page; it returns mobiles and emails)
     [HttpGet("search-members")]
     public async Task<ActionResult> SearchMembers([FromQuery] string search)
     {
+        if (!IsSuperAdmin()) return Forbid();
         if (string.IsNullOrWhiteSpace(search) || search.Length < 2) return Ok(Array.Empty<object>());
         using var conn = CreateConnection();
         await conn.OpenAsync();

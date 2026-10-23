@@ -16,10 +16,11 @@ import { useParams, useSearchParams } from "next/navigation";
 import { Info, FileText, DollarSign, Calendar } from "@/components/icons";
 import {
   getClub,
-  getMonthlyReportYears,
+  getTrfYears,
   getTrfFunds,
   createTrfContribution,
 } from "@/services/api";
+import { useFeatureLoadedOn } from "@/components/FeatureGate";
 import { TrfFund } from "@/types/trfContribution";
 import { ReportYear } from "@/types/clubMonthlyReport";
 import V2FormShell, { useV2ReturnTo } from "@/components/v2/V2FormShell";
@@ -77,6 +78,7 @@ export default function TrfV2AddPage() {
 
   const [clubName, setClubName] = useState("");
   const [years, setYears] = useState<ReportYear[]>([]);
+  const cmrOn = useFeatureLoadedOn("club_monthly_report");
   const [yearId, setYearId] = useState<number | null>(null);
   const [funds, setFunds] = useState<TrfFund[]>([]);
   const [loading, setLoading] = useState(true);
@@ -98,7 +100,7 @@ export default function TrfV2AddPage() {
       try {
         const [club, yearsData, fundsData] = await Promise.all([
           getClub(clubId),
-          getMonthlyReportYears(clubId),
+          getTrfYears(clubId, cmrOn),
           getTrfFunds(clubId),
         ]);
         setClubName(club.clubName);
@@ -121,7 +123,7 @@ export default function TrfV2AddPage() {
       }
     }
     init();
-  }, [clubId, yearIdParam]);
+  }, [clubId, yearIdParam, cmrOn]);
 
   const selectedFund = funds.find((f) => f.id === fundId);
   const yearObj = years.find((y) => y.id === yearId);

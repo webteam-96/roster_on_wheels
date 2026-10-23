@@ -371,7 +371,7 @@ export default function AgMembershipPage() {
                 <Th label="Members"       colKey="members"       sortKey={sortKey} sortDir={sortDir} onSort={toggleSort} align="right" />
                 <Th label="Club Service"  colKey="clubService"   sortKey={sortKey} sortDir={sortDir} onSort={toggleSort} align="right" />
                 <Th label="Projects"      colKey="totalProjects" sortKey={sortKey} sortDir={sortDir} onSort={toggleSort} align="right" />
-                <Th label="TRF (INR)"     colKey="trf"           sortKey={sortKey} sortDir={sortDir} onSort={toggleSort} align="right" />
+                <Th label="TRF"           colKey="trf"           sortKey={sortKey} sortDir={sortDir} onSort={toggleSort} align="right" />
                 <Th label="GCs"           colKey="goalsCitations" sortKey={sortKey} sortDir={sortDir} onSort={toggleSort} align="right" />
                 <Th label="District Rank" colKey="projectRank"   sortKey={sortKey} sortDir={sortDir} onSort={toggleSort} align="right" />
               </tr>

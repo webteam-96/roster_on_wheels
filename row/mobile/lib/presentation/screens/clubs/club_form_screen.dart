@@ -453,7 +453,7 @@ class _ClubFormScreenState extends State<ClubFormScreen> {
                 const SizedBox(height: 16),
                 CustomTextField(controller: _stateCtrl, label: 'State', hint: 'Maharashtra'),
                 const SizedBox(height: 16),
-                CustomTextField(controller: _countryCtrl, label: 'Country', hint: 'India'),
+                CustomTextField(controller: _countryCtrl, label: 'Country', hint: 'United States'),
                 const SizedBox(height: 16),
                 CustomTextField(
                   controller: _pincodeCtrl,
@@ -504,7 +504,7 @@ class _ClubFormScreenState extends State<ClubFormScreen> {
                 CustomTextField(
                   controller: _timezoneCtrl,
                   label: 'Timezone',
-                  hint: 'Asia/Kolkata',
+                  hint: 'e.g. Europe/London',
                 ),
               ],
             ),

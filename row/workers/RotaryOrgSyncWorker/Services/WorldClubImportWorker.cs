@@ -30,7 +30,7 @@ public class WorldClubImportWorker
     private const string OtherZonesName = "Other Zones";
 
     // ROW: India is never synced (CountryScope). Sri Lanka and Nepal are imported like any other
-    // country (in RIZones they were owned by the daily --country-sync).
+    // country (in the original platform they were owned by the daily --country-sync).
     private readonly CountryScope _scope;
 
     // Country names EXACTLY as Rotary.org's /Clubs/search expects them — verified live 2026-09-18.

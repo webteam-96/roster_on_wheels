@@ -71,7 +71,7 @@ public class CashfreeKycService : ICashfreeKycService
 
         await _emailService.SendGenericEmailAsync(otpEmail, subject, body);
 
-        _logger.LogInformation("Cashfree KYC OTP sent to {Email}", otpEmail);
+        _logger.LogInformation("Cashfree KYC OTP sent to {Email}", LogMask.Email(otpEmail));
         return "OTP sent successfully.";
     }
 

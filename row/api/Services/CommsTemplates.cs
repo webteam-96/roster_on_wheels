@@ -99,6 +99,20 @@ public static class CommsTemplates
             ? (html ? WebUtility.HtmlEncode(v ?? "") : (v ?? "").Replace("\r", " ").Replace("\n", " "))
             : m.Value);
 
+    /// <summary>The district's Foundation giving link for {{foundation_link}}; empty when it has none (no link).</summary>
+    public static async Task<string> FoundationLinkAsync(MySqlConnection conn, int districtId)
+    {
+        try
+        {
+            return await conn.ExecuteScalarAsync<string?>(
+                "SELECT foundation_giving_url FROM comm_settings WHERE fk_club_id = 0 AND fk_district_id = @D", new { D = districtId }) ?? "";
+        }
+        catch (MySqlException)
+        {
+            return ""; // column not there yet (the worker on a database the API has not upgraded): no link
+        }
+    }
+
     /// <summary>The district's Governor note as an email block, or null when the district has not switched it on.</summary>
     public static async Task<string?> GovernorNoteHtmlAsync(MySqlConnection conn, int districtId)
     {
@@ -115,7 +129,7 @@ public static class CommsTemplates
         var photo = string.IsNullOrWhiteSpace(photoUrl) ? ""
             : $"<img src=\"{E(photoUrl)}\" alt=\"{E(name)}\" width=\"64\" height=\"64\" style=\"width:64px;height:64px;border-radius:32px;object-fit:cover;float:left;margin:0 12px 6px 0\" />";
         var text = E(message).Replace("\r\n", "\n").Replace("\n", "<br>");
-        return $@"<div style=""margin:20px 0 0 0;padding:16px 0 0 0;border-top:1px solid #e2e8f0;overflow:hidden"">{photo}<p style=""margin:0;font-style:italic"">{text}</p><p style=""margin:8px 0 0 0;font-weight:bold"">{E(name)}</p><p style=""margin:0;color:#64748b;font-size:13px"">District Governor</p></div>";
+        return $@"<div style=""margin:20px 0 0 0;padding:16px 0 0 0;border-top:1px solid #D5DEE8;overflow:hidden"">{photo}<p style=""margin:0;font-style:italic"">{text}</p><p style=""margin:8px 0 0 0;font-weight:bold"">{E(name)}</p><p style=""margin:0;color:#64748b;font-size:13px"">District Governor</p></div>";
     }
 
     /// <summary>

@@ -1123,7 +1123,7 @@ class _ClubReportScreenState extends State<ClubReportScreen> {
             ),
           ],
           _exportTile(
-            icon: Icons.currency_rupee_rounded,
+            icon: Icons.payments_rounded,
             group: _Group.clubs,
             title: 'Club Dues',
             count: _duesRows().length,

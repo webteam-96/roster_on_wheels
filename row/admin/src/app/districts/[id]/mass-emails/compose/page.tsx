@@ -49,6 +49,7 @@ function DistrictComposeContent() {
   const [subject, setSubject] = useState("");
   const [emailBody, setEmailBody] = useState("");
   const commsOn = useFeatureLoadedOn("communication"); // N5: allowance instead of credits, language versions
+  const subGroupsOn = useFeatureLoadedOn("sub_groups"); // switched off: no Subgroup recipients, no sub-group calls
   const [templateKey, setTemplateKey] = useState("");
 
   // Lookups
@@ -74,6 +75,7 @@ function DistrictComposeContent() {
 
   // Load rotary years
   useEffect(() => {
+    if (!subGroupsOn) return;
     async function load() {
       try {
         const years = await getDistrictSubGroupAvailableYears(districtId);
@@ -82,7 +84,7 @@ function DistrictComposeContent() {
       } catch {}
     }
     load();
-  }, [districtId]);
+  }, [districtId, subGroupsOn]);
 
   // Load subgroups when year changes
   useEffect(() => {
@@ -207,7 +209,7 @@ function DistrictComposeContent() {
             {[
               { value: "1", label: "All Members" },
               { value: "2", label: "Clubs" },
-              { value: "3", label: "Subgroups" },
+              ...(subGroupsOn ? [{ value: "3", label: "Subgroups" }] : []),
             ].map(opt => (
               <label key={opt.value} className="flex items-center gap-2 cursor-pointer">
                 <input type="radio" name="recipientType" value={opt.value}

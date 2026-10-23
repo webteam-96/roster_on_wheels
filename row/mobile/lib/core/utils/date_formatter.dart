@@ -1,11 +1,22 @@
+import 'dart:ui' show PlatformDispatcher;
+
+import 'package:intl/date_symbol_data_local.dart';
 import 'package:intl/intl.dart';
 
+/// Dates for display in the device's locale and time zone (N12): the API sends stored UTC times with "Z", so a
+/// time is shown in device time. API values ([toApiFormat]) stay ISO, whatever the locale.
+/// shortcut: screens that build their own DateFormat('...') keep fixed English patterns; move them here when the
+/// app gets more languages.
 class DateFormatter {
-  static final DateFormat _display = DateFormat('dd MMM yyyy');
-  static final DateFormat _displayWithTime = DateFormat('dd MMM yyyy, hh:mm a');
-  static final DateFormat _api = DateFormat('yyyy-MM-dd');
-  static final DateFormat _time = DateFormat('hh:mm a');
-  static final DateFormat _monthYear = DateFormat('MMM yyyy');
+  static final DateFormat _api = DateFormat('yyyy-MM-dd', 'en_US');
+
+  /// Loads the date names of every locale intl ships; call once before runApp.
+  static Future<void> init() => initializeDateFormatting();
+
+  /// The device's locale (or its language) when intl has date names for it, else English.
+  static String get _locale => Intl.verifiedLocale(
+      PlatformDispatcher.instance.locale.toLanguageTag(), DateFormat.localeExists,
+      onFailure: (_) => 'en_US')!;
 
   /// MySQL "zero" dates now deserialize to `0001-01-01` on the backend (after
   /// the `ConvertZeroDateTime=true` connection-string change) instead of
@@ -15,12 +26,12 @@ class DateFormatter {
 
   static String toDisplay(DateTime? date) {
     if (isZeroDate(date)) return '-';
-    return _display.format(date!);
+    return DateFormat.yMMMd(_locale).format(date!.toLocal());
   }
 
   static String toDisplayWithTime(DateTime? date) {
     if (isZeroDate(date)) return '-';
-    return _displayWithTime.format(date!);
+    return DateFormat.yMMMd(_locale).add_jm().format(date!.toLocal());
   }
 
   static String toApiFormat(DateTime? date) {
@@ -35,7 +46,7 @@ class DateFormatter {
       final hour = int.parse(parts[0]);
       final minute = int.parse(parts[1]);
       final dt = DateTime(2000, 1, 1, hour, minute);
-      return _time.format(dt);
+      return DateFormat.jm(_locale).format(dt);
     } catch (_) {
       return timeStr;
     }
@@ -43,7 +54,7 @@ class DateFormatter {
 
   static String toMonthYear(DateTime? date) {
     if (isZeroDate(date)) return '-';
-    return _monthYear.format(date!);
+    return DateFormat.yMMM(_locale).format(date!.toLocal());
   }
 
   static DateTime? fromApiString(String? dateStr) {

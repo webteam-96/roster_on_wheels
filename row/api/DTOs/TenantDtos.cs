@@ -31,6 +31,11 @@ public class TenantSubscriptionDto
     public decimal? PlatformFeePct { get; set; }
     public decimal? PlatformFeeFixed { get; set; }
     public DateTime? FeeWaiverUntil { get; set; }
+    // Read only (N7 planning mode and trials): set by POST trial / convert-trial and the planning endpoints, never by PUT.
+    public DateTime? TrialEnds { get; set; }
+    public string? PlanningYearLabel { get; set; }
+    public DateTime? CutoverAt { get; set; }
+    public DateTime? CutoverDoneAt { get; set; }
 }
 
 public class TenantClubDto

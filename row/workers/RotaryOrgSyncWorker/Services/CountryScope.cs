@@ -4,7 +4,7 @@ namespace RotaryOrgSyncWorker.Services;
 
 /// <summary>
 /// ROW: which Rotary.org clubs this instance may sync. ROW syncs every country EXCEPT India
-/// (India is RIZones' territory). RotaryOrgApiClient drops skipped clubs from every club list it
+/// (India is served by the original platform). RotaryOrgApiClient drops skipped clubs from every club list it
 /// returns (/clubs, /clubs/updates, /Clubs/search), so no worker ever sees one.
 ///
 /// Config:

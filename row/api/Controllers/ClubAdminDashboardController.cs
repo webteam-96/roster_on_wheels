@@ -251,7 +251,13 @@ public class ClubAdminDashboardController : ControllerBase
                       AND IsActive = 1 AND isdeleted = 0 ORDER BY pk_member_role_id ASC LIMIT 1",
                     new { MemberId = memberId }) ?? 0;
             }
+            // A club named in the query: only the people who manage it (names, mobiles and emails follow).
+            else if (!await ScopeWriteGuardMiddleware.AllowedAsync(ConnectionString, memberId, true, resolvedClubId))
+                return ForbidWithMessage("You are not an active admin for this club.");
             if (resolvedClubId == 0) return NotConfigured();
+            // A club named in the query must be one this user manages (was: any club, contacts included).
+            if (clubId is > 0 && !await ScopeWriteGuardMiddleware.AllowedAsync(ConnectionString, memberId, true, resolvedClubId))
+                return ForbidWithMessage("You do not have access to this club.");
 
             // Read the Rotary.org club id (string in our DB; int at Rotary.org)
             // plus the club type string ("Rotary Club" / "Rotaract Club" / etc.).
@@ -264,6 +270,9 @@ public class ClubAdminDashboardController : ControllerBase
                 return Ok(new { clubId = resolvedClubId, members = Array.Empty<object>(), warning = "Club is not linked to Rotary.org (missing ClubRotaryId)." });
             }
             var clubType = string.IsNullOrWhiteSpace(meta.clubType) ? "Rotary Club" : meta.clubType!;
+            // No Rotary.org API login on this server (a local copy, a new instance): nothing to fetch, not a bad request.
+            if (string.IsNullOrWhiteSpace(_configuration["RotaryOrgApi:Username"]) || string.IsNullOrWhiteSpace(_configuration["RotaryOrgApi:Password"]))
+                return Ok(new { clubId = resolvedClubId, members = Array.Empty<object>(), warning = "Rotary.org is not connected on this server." });
 
             var list = await _rotaryOrgClient.GetClubTerminatedMembersAsync(clubType, rotaryOrgClubId);
 

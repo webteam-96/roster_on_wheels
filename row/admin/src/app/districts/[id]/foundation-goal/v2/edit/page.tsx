@@ -21,10 +21,9 @@
  *   POST /api/district-admin-dashboard/project-targets      (bulk upsert)
  *
  *   "Raised so far" values are read from the foundation dashboard endpoint
- *   (annualFundInr / polioFundInr / endowmentInr / othersInr). These are in
- *   INR while targets are stored in USD on the DTO — the UI labels both
- *   currencies so the gap is obvious to the user. The DTOs themselves do
- *   not carry the raised numbers.
+ *   (annualFundInr / polioFundInr / endowmentInr / othersInr; legacy names,
+ *   the API stores and serves TRF in USD). The DTOs themselves do not carry
+ *   the raised numbers.
  *
  *   "Current" per-avenue counts come from foundation.districtProjectTargets
  *   (DistrictAdminProjectTargetRow.completed). The 5 avenue module IDs are
@@ -159,7 +158,7 @@ export default function DistrictFoundationGoalV2EditPage() {
   const [districtNumber, setDistrictNumber] = useState<string>("");
   const [yearLabel, setYearLabel] = useState<string>("");
 
-  // Raised-so-far values (INR, from foundation dashboard).
+  // Raised-so-far values (TRF, from the foundation dashboard).
   const [raisedAnnualInr, setRaisedAnnualInr] = useState<number | null>(null);
   const [raisedPolioInr,  setRaisedPolioInr]  = useState<number | null>(null);
   const [raisedEndowmentInr, setRaisedEndowmentInr] = useState<number | null>(null);
@@ -522,8 +521,7 @@ export default function DistrictFoundationGoalV2EditPage() {
                   <Info size={12} className="mt-0.5 flex-shrink-0" />
                   <span>
                     Targets are stored in <span className="font-semibold">USD</span>.
-                    &quot;Raised so far&quot; is reported in <span className="font-semibold">INR</span>
-                    {" "}from this year&apos;s TRF contributions. The Save button
+                    &quot;Raised so far&quot; comes from this year&apos;s TRF contributions. The Save button
                     saves the goals shown on this tab.
                   </span>
                 </div>
@@ -568,7 +566,7 @@ export default function DistrictFoundationGoalV2EditPage() {
                         </div>
                         <div>
                           <label className="block text-[10px] uppercase tracking-wide text-slate-400 font-semibold mb-1">
-                            Raised so far (INR)
+                            Raised so far
                           </label>
                           <div className="rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700 tabular-nums">
                             {raised == null ? "–" : fmtInr(raised)}

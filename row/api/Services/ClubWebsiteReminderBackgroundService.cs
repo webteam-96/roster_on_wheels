@@ -203,7 +203,7 @@ public class ClubWebsiteReminderBackgroundService : BackgroundService
                             (DateTime)w.endDate, daysLeft, payLink);
                         sent++;
                     }
-                    catch (Exception ex) { failed++; _logger.LogError(ex, "Website reminder email failed for {Email}", lemail); }
+                    catch (Exception ex) { failed++; _logger.LogError(ex, "Website reminder email failed for {Email}", LogMask.Email(lemail)); }
                 }
             }
 

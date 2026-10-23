@@ -26,6 +26,12 @@ export function FooterBottomBar() {
             <Link href={brand.legal.termsUrl} className="transition-colors hover:text-cream">
               Terms and Conditions
             </Link>
+            <span className="text-cream/20" aria-hidden>
+              •
+            </span>
+            <Link href="/data-processing-agreement" className="transition-colors hover:text-cream">
+              Data Processing Agreement
+            </Link>
             {brand.legal.cookiesUrl && (
               <>
                 <span className="text-cream/20" aria-hidden>

@@ -99,7 +99,7 @@ class _Project {
   final String? location;
   final DateTime? projectDate;
   final double? projectCost;
-  // Currency the projectCost is in (INR/LKR/NPR/USD); backend defaults INR.
+  // Currency the projectCost is in; the backend defaults to the brand currency.
   final String? currency;
   final int? directBeneficiaries;
   final int? manHours;

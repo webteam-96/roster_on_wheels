@@ -31,6 +31,11 @@ public class CitationMatrixController : ControllerBase
     public async Task<ActionResult> GetMatrix([FromQuery] int districtId, [FromQuery] int? yearId = null, [FromQuery] int? clubId = null)
     {
         if (districtId <= 0) return BadRequest(new { message = "districtId is required." });
+        // Same readers as /api/districts/{id}/district-report, or /api/clubs/{id}/club-report when one club is asked for.
+        var me = int.TryParse(User.FindFirst("memberId")?.Value, out var mid) ? mid : 0;
+        if (me <= 0 || !(await RotaryApi.Services.ScopeWriteGuardMiddleware.ReadAllowedAsync(_connectionString, me, false, districtId)
+                         || (clubId > 0 && await RotaryApi.Services.ScopeWriteGuardMiddleware.ReadAllowedAsync(_connectionString, me, true, clubId.Value))))
+            return StatusCode(403, new { message = "You do not have access to this district." });
         if (!await RotaryApi.Services.KillSwitchHelper.IsDistrictDrillReachableAsync(_connectionString, districtId))
             return StatusCode(403, new { message = "This district or its zone is inactive." });
 

@@ -448,14 +448,14 @@ public class DailyStatsReportService : IDailyStatsReportService
         if (_suppressLocalDev && !force)
         {
             _logger.LogWarning("Daily statistics report SUPPRESSED — local dev (API on a remote DB). Would send to {To} (cc {Cc}). Metrics: {Metrics}",
-                to, string.Join(", ", cc), string.Join(" | ", r.Metrics.Select(m => $"{m.Key}={m.Value}")));
+                LogMask.Email(to), LogMask.Emails(cc), string.Join(" | ", r.Metrics.Select(m => $"{m.Key}={m.Value}")));
             return;
         }
         if (_suppressLocalDev && force)
             _logger.LogWarning("Daily statistics report FORCE-SEND on a dev/remote-DB machine (manual trigger) — emailing real recipients {To} (cc {Cc}).",
-                to, string.Join(", ", cc));
+                LogMask.Email(to), LogMask.Emails(cc));
         await _email.SendEmailWithAttachmentAsync(to, r.Subject, r.Html, r.Excel, r.FileName, cc);
-        _logger.LogInformation("Daily statistics report sent to {To} (cc {Cc}).", to, string.Join(", ", cc));
+        _logger.LogInformation("Daily statistics report sent to {To} (cc {Cc}).", LogMask.Email(to), LogMask.Emails(cc));
     }
 
     // True when the DB host is NOT localhost — i.e. a developer machine pointing at the remote DB.
@@ -737,26 +737,26 @@ public class DailyStatsReportService : IDailyStatsReportService
         List<AvenueRow> yesterdayRows, List<AvenueRow> curRows, string curYearLabel)
     {
         var rows = string.Join("", metrics.Select((m, i) => $@"
-            <tr style='background:{(i % 2 == 0 ? "#ffffff" : "#f4f7fb")}'>
-                <td style='padding:8px 12px;border:1px solid #d9e1f2;font-size:14px;color:#333'>{System.Net.WebUtility.HtmlEncode(m.Label)}</td>
-                <td style='padding:8px 12px;border:1px solid #d9e1f2;font-size:14px;color:#1F4E79;font-weight:bold;text-align:right'>{m.Value:N0}</td>
+            <tr style='background:{(i % 2 == 0 ? "#FCFDFE" : "#F7F9FC")}'>
+                <td style='padding:8px 12px;border:1px solid #CFE2F6;font-size:14px;color:#1B2C42'>{System.Net.WebUtility.HtmlEncode(m.Label)}</td>
+                <td style='padding:8px 12px;border:1px solid #CFE2F6;font-size:14px;color:#17458F;font-weight:bold;text-align:right'>{m.Value:N0}</td>
             </tr>"));
         return $@"
             {EmailService.EMAIL_HEADER}
                 <p style='font-size:15px;margin:0 0 14px 0'><strong>ROW — Daily Statistics</strong><br/>
-                <span style='font-size:12px;color:#666'>{DateTime.Now:dddd, dd MMMM yyyy}</span></p>
+                <span style='font-size:12px;color:#64748B'>{DateTime.Now:dddd, dd MMMM yyyy}</span></p>
                 <table style='border-collapse:collapse;width:100%;max-width:620px'>
                     <thead>
-                        <tr style='background:#1F4E79;color:#fff'>
-                            <th style='padding:9px 12px;border:1px solid #1F4E79;text-align:left;font-size:13px'>Particulars</th>
-                            <th style='padding:9px 12px;border:1px solid #1F4E79;text-align:right;font-size:13px'>Count</th>
+                        <tr style='background:#17458F;color:#FCFDFE'>
+                            <th style='padding:9px 12px;border:1px solid #17458F;text-align:left;font-size:13px'>Particulars</th>
+                            <th style='padding:9px 12px;border:1px solid #17458F;text-align:right;font-size:13px'>Count</th>
                         </tr>
                     </thead>
                     <tbody>{rows}</tbody>
                 </table>
                 {BuildBreakdownTable("Projects Added Yesterday — by Avenue", yesterdayRows)}
                 {BuildBreakdownTable($"Total Projects ({curYearLabel}) — by Avenue", curRows)}
-                <p style='font-size:12px;color:#555;line-height:1.7;margin-top:14px;max-width:760px'>
+                <p style='font-size:12px;color:#4A5A70;line-height:1.7;margin-top:14px;max-width:760px'>
                     <strong>How a project is counted.</strong> One-time projects count once. An ongoing project
                     counts once — its parent entry, or, when the parent belongs to an earlier year, its first
                     entry of this year; its repeat entries are in <em>Repeat entries</em>. Zone 0 and the
@@ -764,12 +764,12 @@ public class DailyStatsReportService : IDailyStatsReportService
                     meetings, so it sits outside the project total. <strong>TOTAL PROJECTS is the same figure
                     the website publishes</strong> on its public projects page.
                 </p>
-                <p style='font-size:13px;color:#444;line-height:1.7;margin-top:16px'>
+                <p style='font-size:13px;color:#2A3F5C;line-height:1.7;margin-top:16px'>
                     The attached Excel opens with a <strong>Summary</strong> sheet (all counts + the project breakdown by avenue),
                     followed by the detailed listings: <strong>District-wise summary</strong> ({districtCount} districts),
                     <strong>Sync Clubs</strong>, and <strong>Non-Sync Clubs</strong>.
                 </p>
-                <p style='font-size:12px;color:#888;font-style:italic'>Automated daily report from ROW.</p>
+                <p style='font-size:12px;color:#8796AA;font-style:italic'>Automated daily report from ROW.</p>
             {EmailService.EMAIL_FOOTER}";
     }
 
@@ -779,18 +779,18 @@ public class DailyStatsReportService : IDailyStatsReportService
     private static string BuildBreakdownTable(string title, List<AvenueRow> rows)
     {
         static string Cell(long v, bool strong = false) =>
-            $"<td style='padding:7px 10px;border:1px solid #d9e1f2;font-size:13px;text-align:right;color:{(strong ? "#1F4E79" : "#333")}{(strong ? ";font-weight:bold" : "")}'>{v:N0}</td>";
+            $"<td style='padding:7px 10px;border:1px solid #CFE2F6;font-size:13px;text-align:right;color:{(strong ? "#17458F" : "#1B2C42")}{(strong ? ";font-weight:bold" : "")}'>{v:N0}</td>";
         static string Row(AvenueRow a, string bg, string label, bool italic = false) => $@"
             <tr style='background:{bg}{(italic ? ";font-style:italic" : "")}'>
-                <td style='padding:7px 10px;border:1px solid #d9e1f2;font-size:13px;color:#333'>{System.Net.WebUtility.HtmlEncode(label)}</td>
+                <td style='padding:7px 10px;border:1px solid #CFE2F6;font-size:13px;color:#1B2C42'>{System.Net.WebUtility.HtmlEncode(label)}</td>
                 {Cell(a.OneTime)}{Cell(a.Ongoing)}{Cell(a.Total, true)}
                 {Cell(a.NotRepeat)}
             </tr>";
 
         var projects = ProjectAvenues(rows);
-        var body = string.Join("", projects.Select((a, i) => Row(a, i % 2 == 0 ? "#ffffff" : "#f4f7fb", a.Label)));
+        var body = string.Join("", projects.Select((a, i) => Row(a, i % 2 == 0 ? "#FCFDFE" : "#F7F9FC", a.Label)));
         var below = string.Join("", rows.Where(x => !IsProjectAvenue(x)).Select(a =>
-            Row(a, "#fbfbfb", "Club Service (meetings — not a project)", italic: true)));
+            Row(a, "#FCFDFE", "Club Service (meetings — not a project)", italic: true)));
         var total = new AvenueRow
         {
             OneTime = projects.Sum(x => x.OneTime),
@@ -798,17 +798,17 @@ public class DailyStatsReportService : IDailyStatsReportService
             NotRepeat = projects.Sum(x => x.NotRepeat),
         };
         static string Th(string t, bool right = true) =>
-            $"<th style='padding:8px 10px;border:1px solid #1F4E79;text-align:{(right ? "right" : "left")};font-size:12px'>{t}</th>";
+            $"<th style='padding:8px 10px;border:1px solid #17458F;text-align:{(right ? "right" : "left")};font-size:12px'>{t}</th>";
         return $@"
-            <p style='font-size:13px;font-weight:bold;color:#1F4E79;margin:18px 0 6px 0'>{System.Net.WebUtility.HtmlEncode(title)}</p>
+            <p style='font-size:13px;font-weight:bold;color:#17458F;margin:18px 0 6px 0'>{System.Net.WebUtility.HtmlEncode(title)}</p>
             <table style='border-collapse:collapse;width:100%;max-width:760px'>
                 <thead>
-                    <tr style='background:#1F4E79;color:#fff'>
+                    <tr style='background:#17458F;color:#FCFDFE'>
                         {Th("Avenue", right: false)}{Th("One-Time")}{Th("Ongoing")}{Th("Counted")}
                         {Th("Repeat entries")}
                     </tr>
                 </thead>
-                <tbody>{body}{Row(total, "#cfe0f4", "TOTAL PROJECTS")}{below}</tbody>
+                <tbody>{body}{Row(total, "#CFE2F6", "TOTAL PROJECTS")}{below}</tbody>
             </table>";
     }
 }

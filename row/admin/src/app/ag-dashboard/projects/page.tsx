@@ -501,7 +501,7 @@ export default function AgProjectsPage() {
                 <th className="px-3 py-3 text-left font-semibold whitespace-nowrap">Club</th>
                 <th className="px-3 py-3 text-left font-semibold whitespace-nowrap">Date</th>
                 <th className="px-3 py-3 text-left font-semibold">Title</th>
-                <th className="px-3 py-3 text-right font-semibold whitespace-nowrap">Cost (INR)</th>
+                <th className="px-3 py-3 text-right font-semibold whitespace-nowrap">Cost</th>
                 <th className="px-3 py-3 text-right font-semibold whitespace-nowrap">Beneficiaries</th>
                 <th className="px-3 py-3 text-right font-semibold whitespace-nowrap">Man Hours</th>
                 <th className="px-3 py-3 text-left font-semibold whitespace-nowrap">Funding</th>

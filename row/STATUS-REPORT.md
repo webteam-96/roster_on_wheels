@@ -1,40 +1,46 @@
-# ROW status report (2026-10-23)
+# ROW status report (updated 2026-10-23, evening)
 
 ROW (Roster On Wheels) is the international edition of RIZones: Rotary club and district management for countries
 outside the India region. It is RIZones rebranded, with Stripe instead of Indian gateways (payments on hold until a
 Stripe test account exists), no WhatsApp or SMS (email + in-app only), email + password sign-in, the module sheet's
 red modules removed, and the build specification's new modules added.
 Stack: .NET API (`row/api`, `row/workers`), Next.js admin (`row/admin`), Next.js public sites (`row/club-website`,
-`row/district-website`, not in git), marketing site (`row/website`), Flutter app (`row/mobile`), MySQL.
-Dates from the build guide: code freeze 28 Oct 2026, launch 15 Nov 2026.
+`row/district-website`, not in git), marketing site and brand source (`row/website`), Flutter app (`row/mobile`), MySQL.
+Build guide dates: code freeze 28 Oct 2026, launch 15 Nov 2026. Priority (product owner): finish the rebranding,
+the admin console and the mobile app first.
 
-## Done (verified 2026-10-23 on a local copy of production, `row_prod_copy`)
+## Done (verified on a local copy of production, `row_prod_copy`)
 
-| Area | What | Evidence |
-|---|---|---|
-| Removal | Every red module of the sheet removed completely (code, admin, app, schema, seeds): club moderation + project approval, RI Director, zonal dashboard, zonal awards, goal lock and goal setting roles, direct beneficiaries, PPH camps, directory data collection, market place; roles ClubModerator, ZonalCoordinator, RIDirector; WhatsApp and SMS leftovers; project Category / Sub-category (user: Area of Focus only); the all-zones performance report | 84 trace patterns: 0 hits; all builds 0 errors |
-| New modules | Web + API, each behind a FeatureGate flag that is OFF until a SuperAdmin switches it on: N1 Foundation designations + duplicate check + committee documents, N2 grants, N3 contacts / prospects / growth / invite prompts, N4 volunteers and speakers, N5 communication upgrades (templates per language, sender domains, Brevo webhook, consent, unsubscribe, allowances, member language, Governor note), N6 multilingual websites + Rotaract template + RI themes, N8 meeting links / calendar feed / compliance, N9 milestones / PHF highlights / spotlight cards, N10 live target dashboard, N11 chat (API + web moderation) | e2e PASS: N1 40, N2 76, N3 89, N4 87, N5 65, N6 40, N8 43, N9 44, N10 52, N11 84 checks |
-| Security | Price-change OTP no longer returned outside Development; Gemini key moved from the URL to a header; Data Protection key file untracked (must be rotated: it is in git history of a public repo) | build 0 errors |
-| Checks | `dotnet build` API + 3 workers 0 errors; admin `tsc` 0 errors, `vitest` 103/103, design check clean; both public sites `tsc` 0; app `flutter analyze` + tests passed after the removal; `scope_read_guard` 7/7 and `feature_gate` 10/10 PASS | `kb/testing.md` |
-| Existing databases | `row/database/maintenance/2026-10-23-drop-removed-modules.sql` drops the removed modules' tables, columns, procedures and rows | tested on a throwaway copy; NOT run on production |
+| Area | What |
+|---|---|
+| Removal | Every red module of the sheet removed completely: club moderation + project approval, RI Director, zonal dashboard, zonal awards, goal lock and goal setting roles, direct beneficiaries, PPH camps, directory data collection, market place; roles ClubModerator, ZonalCoordinator, RIDirector; WhatsApp and SMS leftovers; project Category / Sub-category (Area of Focus only); the all-zones performance report |
+| New modules (web + API, each behind a switch that is OFF until a SuperAdmin turns it on) | N1 Foundation designations + duplicate check + committee documents; N2 grants; N3 contacts, prospects, growth, invite prompts; N4 volunteers and speakers; N5 communication upgrades; N6 multilingual websites + Rotaract template + RI themes; N7 planning mode (elect roles, DGE invitations, next-year workspace, launchpad, cut-over with RI steps stubbed, edition auto-provisioning, trials); N8 meeting links, calendar feed, compliance; N9 milestones, PHF highlights, spotlight cards, escalation ladder, target celebration; N10 live target dashboard; N11 chat (API + web moderation); Foundation giving link per district; draft DPA page |
+| Time zones (N12) | IANA zone per district; greetings, reports, reminders, milestones, iCal and dashboards use the district's own day and hour; app dates follow the device locale |
+| Rebranding | Admin, emails, documents and app aligned with `row/website` (logo, colours, icons); money labels follow the brand or district currency |
+| Security | Calendar endpoints and mass email limited to the right club/district; recipient lists checked; translate route signed-in tiers and visitor budget; email addresses masked in logs; 758 GET routes reviewed, 77 fixed; own-device push tokens only; module masters SuperAdmin-only; club id 0 no longer passes club writes; OTP no longer echoed outside Development; Gemini key in a header; Data Protection key untracked (must be rotated: it is in git history) |
 
-Details: `row/ROW-CHANGES.md` (2026-10-23), plans `docs/superpowers/plans/2026-10-23-*.md`, tracker `row/TRACKER.md`.
+Proof (2026-10-23): `dotnet build` API + 3 workers 0 errors; admin `tsc` 0, `vitest` 120/120, design check clean;
+public sites `tsc` 0; app `flutter analyze` 0 errors, tests pass; 30 e2e scripts, 1,250 checks, 0 failures; admin crawl
+of 319 pages as SuperAdmin with no real errors; the app run on the Android emulator against the local API (sign-in,
+home, calendar, club calendar, notifications) with ROW branding and no exceptions. Details: `kb/testing.md`.
 
-## In progress and planned (in this order)
+## Still to do (in order)
 
-| Phase | Work | Target |
-|---|---|---|
-| 1 (running) | Security: calendar data leak, mass email ownership checks, open translate route, emails in logs; read-access review of all GET routes; admin crawl findings F1-F6; older e2e scripts | 24 Oct |
-| 2 | N12 time zones per district; N7 planning mode (planning/live, elect roles, DGE team and invites, next-year workspace, launchpad, cut-over with RI steps stubbed, edition auto-provisioning, 60-day trial); escalation ladder; target celebration; theme seed; Rotary Showcase Chrome extension under the ROW brand; DPA page; Foundation link in greetings; exports in the tenant's language; branding aligned with `row/website` | 25 Oct |
-| 3 | Mobile app for members, clubs and districts: all new modules (prospects + guest invites, volunteers + speakers, chat, highlights, designations, language + consent, meeting links, target dashboard, grant status), next-year workspace + tenant branding, Add/Edit Member, Honorary Members, Public Image, District Goal Messages; then the app language switch through the translation API | 26-27 Oct |
-| 4 | Assurance: every page run in a browser, the app on the emulator, all e2e, independent reviews, non-functional checks (WCAG on public sites, timing, email throughput) | 28 Oct |
+| Phase | Work |
+|---|---|
+| 1b (security, HIGH) | Records fetched by id inside a club's URL are not checked against that club (newsletters, past presidents, sub groups, upcoming events, board of directors, committee members, and similar): a member of club A can read or change club B's record. Sub groups accept members from other clubs. Event payment link writes pass for any admin. Credit wallet lookup can match a district wallet by id. Mass email write errors return raw exception text. Club finder member lists, `/api/members` search on hidden phones, and the public OCV documents need a product decision. Weak temporary AG password. |
+| 3 | Mobile app screens for members, clubs and districts: all new modules (prospects + guest invites, volunteers + speakers, chat, highlights, designations, language + consent, meeting links, target dashboard, grant status, planning workspace + tenant branding), Add/Edit Member, Honorary Members, Public Image, District Goal Messages; Club Dues tile to hide while payments are on hold |
+| 3b | App language switch through the translation API |
+| 4 | Final assurance: crawl as District Admin, Club Admin and AG (needs local test logins), independent reviews, non-functional checks (WCAG, timing, email throughput) |
+| Later | Rotary Showcase Chrome extension under the ROW brand; exports in the tenant's language; meeting forms to send UTC times |
 
 Super Admin tools stay web-only.
 
-## On hold (product owner)
+## On hold (product owner decides when)
 
-Kaizen Events + Kaizen QR merge into ROW (events, form builder, registration, QR check-in, nomination form). Source
-copies are in `reference/kaizen-events` and `reference/kaizen-qr` (read-only).
+Kaizen Events + Kaizen QR merge into ROW (events, form builder, registration, QR check-in, nomination form; copies in
+`reference/kaizen-events` and `reference/kaizen-qr`, read-only). All club and district website work, including
+beautiful website themes sold per subscription plan.
 
 ## Blocked outside the team
 
@@ -44,14 +50,16 @@ Firebase project), production environment (hosting decision), translation provid
 
 ## Needs a decision or an action
 
-- Rotate the ASP.NET Data Protection key ring (old key is in the public repo's history).
-- Run the production cleanup script only after the new code is deployed and a backup is taken.
-- Defaults taken without a decision (change if wrong): no club committees; a district counts as "on ROW" when it
-  has a tenant row; volunteer hours add to project man-hours; transactional emails are not deducted from credits.
+- Rotate the ASP.NET Data Protection key ring (the old key is in the public repo's history).
+- Run `row/database/maintenance/2026-10-23-drop-removed-modules.sql` on production only after deploy + backup.
+- Re-import the GreetingsWorker Task Scheduler job on the server (it now runs hourly).
+- The DPA page is a draft: legal review needed. Legal pages still describe India and INR.
+- Defaults taken (change if wrong): no club committees; a district counts as "on ROW" with a tenant row; volunteer
+  hours add to project man-hours; transactional emails are not deducted from credits.
 - `reference/kaizen-events` contains a committed Google Cloud service-account key and a payment data dump;
-  `reference/kaizen-qr` contains attendee data backups. Rotate the key and clean those repositories.
+  `reference/kaizen-qr` contains attendee data backups: rotate the key and clean those repositories.
 
 ## How to run and check locally
 
-See `row/HANDOFF.md` (MySQL on 3317 with `row_prod_copy`, API on 5000, admin on 3300, sites on 3001/3002, app on
-the emulator) and `kb/testing.md` (every check and e2e script with its arguments).
+`row/HANDOFF.md` (MySQL on 3317 with `row_prod_copy`, API on 5000, admin on 3300, sites on 3001/3002, app on the
+emulator) and `kb/testing.md` (every check and e2e script with its arguments).

@@ -1,5 +1,7 @@
+using Dapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using MySqlConnector;
 using RotaryApi.DTOs;
 using RotaryApi.Services;
 
@@ -29,6 +31,25 @@ public class EventPaymentLinksController : ControllerBase
     {
         var roles = User.FindFirst("roles")?.Value ?? "";
         return roles.Contains("SuperAdmin") || roles.Contains("Admin");
+    }
+
+    // Reads (2026-10-24): only the people who manage the link's club or district (the ScopeWriteGuardMiddleware rule:
+    // SuperAdmin, club Admin / AG, district Admin). The role check alone let any club's Admin read every link's
+    // registrations, payments and bank splits.
+    private async Task<bool> ManagesAsync(int? clubId, int? districtId)
+    {
+        if (UserPermissionHelper.IsSuperAdmin(User)) return true;
+        var me = GetUserId();
+        return me > 0 && ((clubId > 0 && await ScopeWriteGuardMiddleware.AllowedAsync(_connectionString, me, true, clubId.Value))
+            || (districtId > 0 && await ScopeWriteGuardMiddleware.AllowedAsync(_connectionString, me, false, districtId.Value)));
+    }
+
+    private async Task<bool> CanReadLinkAsync(int linkId)
+    {
+        await using var conn = new MySqlConnection(_connectionString);
+        var owner = await conn.QueryFirstOrDefaultAsync<(int? ClubId, int? DistrictId)>(
+            "SELECT fk_club_id, fk_district_master_id FROM event_payment_links WHERE pk_id = @Id", new { Id = linkId });
+        return await ManagesAsync(owner.ClubId, owner.DistrictId);
     }
 
     private int? GetAdminClubId()
@@ -66,6 +87,8 @@ public class EventPaymentLinksController : ControllerBase
         // Admin can only see their own club's links
         var adminClubId = GetAdminClubId();
         if (adminClubId.HasValue) clubId = adminClubId.Value;
+        // no club or district named = every link on the platform: SuperAdmin only
+        if (!await ManagesAsync(clubId, districtId)) return StatusCode(403, new { message = "Access denied." });
         var result = await _service.GetPaymentLinksAsync(clubId, districtId, search);
         return Ok(result);
     }
@@ -73,7 +96,7 @@ public class EventPaymentLinksController : ControllerBase
     [HttpGet("{linkId}")]
     public async Task<ActionResult> GetPaymentLinkDetail(int linkId)
     {
-        if (!IsSuperAdminOrAdmin()) return StatusCode(403, new { message = "Access denied." });
+        if (!IsSuperAdminOrAdmin() || !await CanReadLinkAsync(linkId)) return StatusCode(403, new { message = "Access denied." });
         var result = await _service.GetPaymentLinkDetailAsync(linkId);
         if (result == null) return NotFound(new { message = "Payment link not found." });
         return Ok(result);
@@ -191,7 +214,7 @@ public class EventPaymentLinksController : ControllerBase
     [HttpGet("{linkId}/registrations")]
     public async Task<ActionResult> GetRegistrations(int linkId)
     {
-        if (!IsSuperAdminOrAdmin()) return StatusCode(403, new { message = "Access denied." });
+        if (!IsSuperAdminOrAdmin() || !await CanReadLinkAsync(linkId)) return StatusCode(403, new { message = "Access denied." });
         var result = await _service.GetRegistrationsAsync(linkId);
         return Ok(result);
     }
@@ -225,7 +248,7 @@ public class EventPaymentLinksController : ControllerBase
     [HttpGet("{linkId}/vendor-splits")]
     public async Task<ActionResult> GetVendorSplits(int linkId)
     {
-        if (!IsSuperAdminOrAdmin()) return StatusCode(403, new { message = "Access denied." });
+        if (!IsSuperAdminOrAdmin() || !await CanReadLinkAsync(linkId)) return StatusCode(403, new { message = "Access denied." });
         var result = await _service.GetVendorSplitsAsync(linkId);
         return Ok(result);
     }
@@ -243,7 +266,7 @@ public class EventPaymentLinksController : ControllerBase
     [HttpGet("{linkId}/designations")]
     public async Task<ActionResult> GetDesignations(int linkId)
     {
-        if (!IsSuperAdminOrAdmin()) return StatusCode(403, new { message = "Access denied." });
+        if (!IsSuperAdminOrAdmin() || !await CanReadLinkAsync(linkId)) return StatusCode(403, new { message = "Access denied." });
         var result = await _service.GetDesignationsAsync(linkId);
         return Ok(result);
     }
@@ -269,7 +292,7 @@ public class EventPaymentLinksController : ControllerBase
     [HttpGet("{linkId}/members")]
     public async Task<ActionResult> GetMembers(int linkId, [FromQuery] bool isPaid = false, [FromQuery] string? search = null)
     {
-        if (!IsSuperAdminOrAdmin()) return StatusCode(403, new { message = "Access denied." });
+        if (!IsSuperAdminOrAdmin() || !await CanReadLinkAsync(linkId)) return StatusCode(403, new { message = "Access denied." });
         var result = await _service.GetMembersAsync(linkId, isPaid, search);
         return Ok(result);
     }
@@ -309,6 +332,7 @@ public class EventPaymentLinksController : ControllerBase
         if (!IsSuperAdminOrAdmin()) return StatusCode(403, new { message = "Access denied." });
         var result = await _service.GetMemberPaymentAsync(memberPaymentId);
         if (result == null) return NotFound(new { message = "Payment not found." });
+        if (!await CanReadLinkAsync((int)result.LinkId)) return StatusCode(403, new { message = "Access denied." });
         return Ok(result);
     }
 
@@ -437,7 +461,7 @@ public class EventPaymentLinksController : ControllerBase
     [HttpGet("{linkId}/settlement-report")]
     public async Task<ActionResult> GetSettlementReport(int linkId)
     {
-        if (!IsSuperAdminOrAdmin()) return StatusCode(403, new { message = "Access denied." });
+        if (!IsSuperAdminOrAdmin() || !await CanReadLinkAsync(linkId)) return StatusCode(403, new { message = "Access denied." });
         try
         {
             var result = await _service.GetEventSettlementReportAsync(linkId);
@@ -452,7 +476,7 @@ public class EventPaymentLinksController : ControllerBase
     [HttpGet("{linkId}/members/export")]
     public async Task<ActionResult> ExportMembers(int linkId, [FromQuery] bool isPaid = false)
     {
-        if (!IsSuperAdminOrAdmin()) return StatusCode(403, new { message = "Access denied." });
+        if (!IsSuperAdminOrAdmin() || !await CanReadLinkAsync(linkId)) return StatusCode(403, new { message = "Access denied." });
         try
         {
             var bytes = await _service.ExportMembersExcelAsync(linkId, isPaid);

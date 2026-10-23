@@ -1,8 +1,8 @@
 "use client";
 
 /**
- * Engagement for a club or a district (build list #26-#28): a spotlight card for each membership milestone and each
- * new Paul Harris Fellow waits for an admin to approve it; an approved card downloads as a PNG to share by hand
+ * Engagement for a club or a district (build list #26-#28): a spotlight card for each membership milestone, each
+ * new Paul Harris Fellow and each club target reached (target celebration, B.1 #35) waits for an admin to approve it; an approved card downloads as a PNG to share by hand
  * (nothing is posted to social platforms). The district page also sets the milestone years and the Governor message.
  */
 
@@ -30,7 +30,7 @@ export default function EngagementPanel({ scope, scopeId }: { scope: Scope; scop
     <div className="space-y-6">
       <SectionHeader
         title="Engagement"
-        subtitle="Spotlight cards for membership milestones and new Paul Harris Fellows"
+        subtitle="Spotlight cards for membership milestones, new Paul Harris Fellows and club targets reached"
         icon={Trophy}
       />
       {scope === "districts" && <MilestoneSettings districtId={scopeId} />}
@@ -150,7 +150,7 @@ function SpotlightQueue({ scope, scopeId }: { scope: Scope; scopeId: number }) {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Member</TableHead>
+                <TableHead>Member or club</TableHead>
                 {scope === "districts" && <TableHead>Club</TableHead>}
                 <TableHead>Occasion</TableHead>
                 <TableHead>Date</TableHead>
@@ -177,7 +177,8 @@ function SpotlightQueue({ scope, scopeId }: { scope: Scope; scopeId: number }) {
               {cards.length === 0 && (
                 <TableRow>
                   <TableCell colSpan={scope === "districts" ? 6 : 5} className="py-8 text-center text-slate-500">
-                    No cards here. A card appears when a member reaches a membership milestone or becomes a Paul Harris Fellow.
+                    No cards here. A card appears when a member reaches a membership milestone or becomes a Paul Harris
+                    Fellow, or when a club reaches a target.
                   </TableCell>
                 </TableRow>
               )}
@@ -279,7 +280,8 @@ function MilestoneSettings({ districtId }: { districtId: number }) {
               <Textarea rows={4} maxLength={2000} value={message} onChange={(e) => { setMessage(e.target.value); setSaved(false); }} />
               <span className="block font-normal text-slate-500">
                 Sent instead of the standard text and signed by {governor ?? "the District Governor of the current Rotary year"}. You
-                can use {"{name}"}, {"{years}"} and {"{club}"}.
+                can use {"{name}"}, {"{years}"}, {"{club}"} and {"{foundation_link}"} (the district&apos;s Foundation giving
+                link, set in Email Settings).
               </span>
             </label>
             <div className="flex items-center gap-3">

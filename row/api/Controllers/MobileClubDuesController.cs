@@ -80,6 +80,13 @@ public class MobileClubDuesController : ControllerBase
     public async Task<ActionResult> Get(int duesId, [FromQuery] int clubId)
     {
         if (!await CanPayForClubAsync(GetMemberId(), clubId)) return Denied();
+        // the campaign must be the club's own district's (was: an officer could read any district's campaign)
+        await using var conn = new MySqlConnection(_connStr);
+        var ownDistrict = await conn.ExecuteScalarAsync<int>(@"
+            SELECT COUNT(*) FROM club_dues cd JOIN club_master c ON c.fk_district_id = cd.fk_district_id
+            WHERE cd.pk_club_dues_id = @DuesId AND c.pk_club_id = @ClubId AND cd.isdeleted = 0",
+            new { DuesId = duesId, ClubId = clubId }) > 0;
+        if (!ownDistrict) return NotFound(new { message = "District dues not found." });
         var dto = await _service.GetPublicDuesAsync(duesId, clubId);
         if (dto == null) return NotFound(new { message = "District dues not found." });
         return Ok(dto);

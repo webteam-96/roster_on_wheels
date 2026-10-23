@@ -156,7 +156,7 @@ public class DuesReceiptService : IDuesReceiptService
                 decimal g = Math.Round(total - baseEquivalent, 2, MidpointRounding.AwayFromZero);
                 netAmount = (int)Math.Round(total - g, 0, MidpointRounding.AwayFromZero);
                 gateway = g;
-                gatewayText = $"₹{g:N2}";
+                gatewayText = Brand.Money(g);
             }
             else
             {
@@ -177,7 +177,7 @@ public class DuesReceiptService : IDuesReceiptService
                 FeeType = ft,
                 FeeTypeLabel = FeeTypeLabel(ft),
                 Amount = netAmount,
-                AmountText = $"₹{netAmount:N0}",
+                AmountText = Brand.Money(netAmount, decimals: 0),
                 IsOnline = ppIsOnline,
                 Mode = ppIsOnline ? "Online" : "Offline",
                 GatewayCharges = gateway,

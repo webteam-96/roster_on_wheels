@@ -298,6 +298,9 @@ builder.Services.AddScoped<GrowthService>();
 builder.Services.AddScoped<InvitePromptService>();
 // N10 live target dashboard (feature target_dashboard)
 builder.Services.AddScoped<TargetDashboardService>();
+// Escalation ladder (flag escalation) and target celebration (flag celebration); the daily passes are registered below.
+builder.Services.AddScoped<EscalationService>();
+builder.Services.AddScoped<CelebrationService>();
 builder.Services.AddScoped<IAreaOfFocusService, AreaOfFocusService>();
 builder.Services.AddScoped<IFundingService, FundingService>();
 builder.Services.AddScoped<IProjectService, ProjectService>();
@@ -366,6 +369,7 @@ if (enableBackgroundJobs) builder.Services.AddHostedService<EmailScheduledSendBa
 if (enableBackgroundJobs) builder.Services.AddHostedService<ClubLeadershipEmailBackgroundService>();
 if (enableBackgroundJobs) builder.Services.AddHostedService<ClubWebsiteReminderBackgroundService>();
 if (enableBackgroundJobs) builder.Services.AddHostedService<EngagementBackgroundService>();
+if (enableBackgroundJobs) builder.Services.AddHostedService<TargetAlertsBackgroundService>();
 if (enableBackgroundJobs) builder.Services.AddHostedService<InvitePromptBackgroundService>();
 // Meeting reminder emails follow BackgroundJobs:Enabled unless Meetings:ReminderJob says otherwise (ops switch);
 // they also wait for the 'meetings' feature to be on.
@@ -401,6 +405,12 @@ builder.Services.AddScoped<VolunteerService>();
 builder.Services.AddScoped<SpeakerService>();
 if (enableBackgroundJobs || builder.Configuration.GetValue<bool>("VolunteerReminders:Enabled"))
     builder.Services.AddHostedService<VolunteerReminderBackgroundService>();
+
+// Planning mode and cut-over (ROW build spec 3.1): service + the job that runs scheduled cut-overs
+// (Planning:CutoverJob runs that job alone on a dev copy, like Meetings:ReminderJob).
+builder.Services.AddScoped<PlanningService>();
+if (builder.Configuration.GetValue("Planning:CutoverJob", enableBackgroundJobs))
+    builder.Services.AddHostedService<PlanningCutoverBackgroundService>();
 
 builder.Services.AddSingleton<PleskService>();
 builder.Services.AddSingleton<IDnsPointingChecker, DnsPointingChecker>();

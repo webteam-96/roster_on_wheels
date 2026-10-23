@@ -994,6 +994,7 @@ public class MembershipDuesService : IMembershipDuesService
     public async Task<int> RecordOfflinePaymentAsync(int duesId, int memberFeeId, RecordOfflineDuesPaymentDto dto,
         IFormFile? attachment, int userId, IWebHostEnvironment env)
     {
+        await PlanningAccess.EnsureDuesCollectableAsync(_connStr, false, duesId);
         using var conn = GetConnection();
 
         // Get fee details to determine amount
@@ -1208,6 +1209,7 @@ public class MembershipDuesService : IMembershipDuesService
 
     public async Task<int> RecordPublicOfflinePaymentAsync(int duesId, RecordOfflineDuesPaymentDto dto, IFormFile? attachment, IWebHostEnvironment env)
     {
+        await PlanningAccess.EnsureDuesCollectableAsync(_connStr, false, duesId);
         using var conn = GetConnection();
         // Get member fee allocation
         var fee = await conn.QueryFirstOrDefaultAsync<dynamic>(@"
@@ -1280,7 +1282,7 @@ public class MembershipDuesService : IMembershipDuesService
             {
                 var feeLabel = dto.FeeType switch { 1 => (string?)details.Fees1Text ?? "Annual", 2 => (string?)details.Fees2Text ?? "Semi-Annual 1", 3 => (string?)details.Fees3Text ?? "Semi-Annual 2", _ => "Dues" };
                 var memberEmail = (string?)details.MemberEmail;
-                _logger.LogInformation("Offline payment {Id}: notification block reached; memberEmail='{Me}'.", paymentId, memberEmail ?? "(null)");
+                _logger.LogInformation("Offline payment {Id}: notification block reached; memberEmail='{Me}'.", paymentId, memberEmail == null ? "(null)" : LogMask.Email(memberEmail));
 
                 // Approval recipients = Club President + Club Secretary for the rotary year
                 // THIS dues record was created for. Match BY DESIGNATION NAME, not by id —
@@ -1386,19 +1388,19 @@ public class MembershipDuesService : IMembershipDuesService
                 }
 
                 var remarkRow = !string.IsNullOrWhiteSpace(dto.Remark)
-                    ? $"<tr><td style='padding:8px;border:1px solid #ddd;font-weight:bold;vertical-align:top;'>Remark</td><td style='padding:8px;border:1px solid #ddd;white-space:pre-wrap;'>{System.Net.WebUtility.HtmlEncode(dto.Remark.Trim())}</td></tr>"
+                    ? $"<tr><td style='padding:8px;border:1px solid #D5DEE8;font-weight:bold;vertical-align:top;'>Remark</td><td style='padding:8px;border:1px solid #D5DEE8;white-space:pre-wrap;'>{System.Net.WebUtility.HtmlEncode(dto.Remark.Trim())}</td></tr>"
                     : "";
 
                 var emailTable = $@"<table style='width:100%;border-collapse:collapse;margin:20px 0;'>
-                    <tr><td style='padding:8px;border:1px solid #ddd;font-weight:bold;'>Member Name</td><td style='padding:8px;border:1px solid #ddd;'>{(string?)details.MemberName}</td></tr>
-                    <tr><td style='padding:8px;border:1px solid #ddd;font-weight:bold;'>District Number</td><td style='padding:8px;border:1px solid #ddd;'>{(string?)details.DistrictNumber ?? "-"}</td></tr>
-                    <tr><td style='padding:8px;border:1px solid #ddd;font-weight:bold;'>Club Name</td><td style='padding:8px;border:1px solid #ddd;'>{(string?)details.ClubName ?? "-"}</td></tr>
-                    <tr><td style='padding:8px;border:1px solid #ddd;font-weight:bold;'>Purpose</td><td style='padding:8px;border:1px solid #ddd;'>{(string?)details.Purpose}</td></tr>
-                    <tr><td style='padding:8px;border:1px solid #ddd;font-weight:bold;'>Fee Type</td><td style='padding:8px;border:1px solid #ddd;'>{feeLabel}</td></tr>
-                    <tr><td style='padding:8px;border:1px solid #ddd;font-weight:bold;'>Amount</td><td style='padding:8px;border:1px solid #ddd;'>₹{amount}/-</td></tr>
-                    <tr><td style='padding:8px;border:1px solid #ddd;font-weight:bold;'>Payment Mode</td><td style='padding:8px;border:1px solid #ddd;'>{dto.TransactionType}</td></tr>
+                    <tr><td style='padding:8px;border:1px solid #D5DEE8;font-weight:bold;'>Member Name</td><td style='padding:8px;border:1px solid #D5DEE8;'>{(string?)details.MemberName}</td></tr>
+                    <tr><td style='padding:8px;border:1px solid #D5DEE8;font-weight:bold;'>District Number</td><td style='padding:8px;border:1px solid #D5DEE8;'>{(string?)details.DistrictNumber ?? "-"}</td></tr>
+                    <tr><td style='padding:8px;border:1px solid #D5DEE8;font-weight:bold;'>Club Name</td><td style='padding:8px;border:1px solid #D5DEE8;'>{(string?)details.ClubName ?? "-"}</td></tr>
+                    <tr><td style='padding:8px;border:1px solid #D5DEE8;font-weight:bold;'>Purpose</td><td style='padding:8px;border:1px solid #D5DEE8;'>{(string?)details.Purpose}</td></tr>
+                    <tr><td style='padding:8px;border:1px solid #D5DEE8;font-weight:bold;'>Fee Type</td><td style='padding:8px;border:1px solid #D5DEE8;'>{feeLabel}</td></tr>
+                    <tr><td style='padding:8px;border:1px solid #D5DEE8;font-weight:bold;'>Amount</td><td style='padding:8px;border:1px solid #D5DEE8;'>{Brand.Money(amount)}</td></tr>
+                    <tr><td style='padding:8px;border:1px solid #D5DEE8;font-weight:bold;'>Payment Mode</td><td style='padding:8px;border:1px solid #D5DEE8;'>{dto.TransactionType}</td></tr>
                     {remarkRow}
-                    <tr><td style='padding:8px;border:1px solid #ddd;font-weight:bold;'>Status</td><td style='padding:8px;border:1px solid #ddd;color:#d69e2e;font-weight:bold;'>Pending Approval</td></tr>
+                    <tr><td style='padding:8px;border:1px solid #D5DEE8;font-weight:bold;'>Status</td><td style='padding:8px;border:1px solid #D5DEE8;color:#d69e2e;font-weight:bold;'>Pending Approval</td></tr>
                 </table>";
 
                 // Personalised token per recipient so the audit log records which
@@ -1420,10 +1422,10 @@ public class MembershipDuesService : IMembershipDuesService
                     var greeting = string.IsNullOrWhiteSpace(rec.name) ? "Hello," : $"Dear {rec.name},";
                     var roleLine = string.IsNullOrWhiteSpace(rec.designation)
                         ? ""
-                        : $"<p style='color:#666; font-size:13px;'>You're receiving this as the <strong>{rec.designation}</strong> of {(string?)details.ClubName}.</p>";
+                        : $"<p style='color:#64748B; font-size:13px;'>You're receiving this as the <strong>{rec.designation}</strong> of {(string?)details.ClubName}.</p>";
 
                     var adminBody = $@"{EmailService.EMAIL_HEADER}
-                        <h2 style='color: #1a365d; margin-top: 0;'>New Offline Payment - Pending Approval</h2>
+                        <h2 style='color: #17458F; margin-top: 0;'>New Offline Payment - Pending Approval</h2>
                         <p>{greeting}</p>
                         {roleLine}
                         <p>A member has submitted an offline payment that needs your approval:</p>
@@ -1432,7 +1434,7 @@ public class MembershipDuesService : IMembershipDuesService
                             <a href='{approveUrl}' style='background-color:#16a34a; color:white; padding:12px 28px; text-decoration:none; border-radius:6px; font-weight:bold; display:inline-block; margin:0 6px;'>Approve</a>
                             <a href='{rejectUrl}' style='background-color:#dc2626; color:white; padding:12px 28px; text-decoration:none; border-radius:6px; font-weight:bold; display:inline-block; margin:0 6px;'>Reject</a>
                         </div>
-                        <p style='color:#666; font-size:12px; text-align:center;'>
+                        <p style='color:#64748B; font-size:12px; text-align:center;'>
                             One click — no login required. Rejecting needs a reason on the next screen.<br/>
                             This link is personalised to you and expires in 7 days.
                         </p>
@@ -1440,13 +1442,13 @@ public class MembershipDuesService : IMembershipDuesService
                     {EmailService.EMAIL_FOOTER}";
 
                     try { await _emailService.SendGenericEmailAsync(rec.email, "Club Dues - New Offline Payment Pending Approval", adminBody); }
-                    catch (Exception ex) { _logger.LogError(ex, "Offline payment {Id}: admin email to {Email} failed.", paymentId, rec.email); }
+                    catch (Exception ex) { _logger.LogError(ex, "Offline payment {Id}: admin email to {Email} failed.", paymentId, LogMask.Email((string?)rec.email)); }
                 }
 
                 if (!string.IsNullOrWhiteSpace(memberEmail))
                 {
                     var memberBody = $@"{EmailService.EMAIL_HEADER}
-                        <h2 style='color: #1a365d; margin-top: 0;'>Offline Payment Submitted</h2>
+                        <h2 style='color: #17458F; margin-top: 0;'>Offline Payment Submitted</h2>
                         <p>Dear {(string?)details.MemberName},</p>
                         <p>Your offline payment has been submitted and is pending approval.</p>
                         {emailTable}
@@ -1454,7 +1456,7 @@ public class MembershipDuesService : IMembershipDuesService
                         <p>Thank you,<br/>ROW</p>
                     {EmailService.EMAIL_FOOTER}";
                     try { await _emailService.SendGenericEmailAsync(memberEmail, "Club Dues - Payment Submitted for Approval", memberBody); }
-                    catch (Exception ex) { _logger.LogError(ex, "Offline payment {Id}: member confirmation email to {Email} failed.", paymentId, memberEmail); }
+                    catch (Exception ex) { _logger.LogError(ex, "Offline payment {Id}: member confirmation email to {Email} failed.", paymentId, LogMask.Email(memberEmail)); }
                 }
 
                 if (adminRecipients.Count == 0)
@@ -1578,13 +1580,13 @@ public class MembershipDuesService : IMembershipDuesService
                         <p>Dear {(string?)payment.MemberName},</p>
                         <p>Your offline payment has been rejected. Please see the details below:</p>
                         <table style='width:100%;border-collapse:collapse;margin:20px 0;'>
-                            <tr><td style='padding:8px;border:1px solid #ddd;font-weight:bold;'>District Number</td><td style='padding:8px;border:1px solid #ddd;'>{(string?)payment.DistrictNumber ?? "-"}</td></tr>
-                            <tr><td style='padding:8px;border:1px solid #ddd;font-weight:bold;'>Club Name</td><td style='padding:8px;border:1px solid #ddd;'>{(string?)payment.ClubName ?? "-"}</td></tr>
-                            <tr><td style='padding:8px;border:1px solid #ddd;font-weight:bold;'>Purpose</td><td style='padding:8px;border:1px solid #ddd;'>{(string?)payment.Purpose}</td></tr>
-                            <tr><td style='padding:8px;border:1px solid #ddd;font-weight:bold;'>Fee Type</td><td style='padding:8px;border:1px solid #ddd;'>{feeLabel}</td></tr>
-                            <tr><td style='padding:8px;border:1px solid #ddd;font-weight:bold;'>Amount</td><td style='padding:8px;border:1px solid #ddd;'>₹{payment.Amount}/-</td></tr>
-                            <tr><td style='padding:8px;border:1px solid #ddd;font-weight:bold;'>Status</td><td style='padding:8px;border:1px solid #ddd;color:#c53030;font-weight:bold;'>Rejected</td></tr>
-                            <tr><td style='padding:8px;border:1px solid #ddd;font-weight:bold;'>Reason</td><td style='padding:8px;border:1px solid #ddd;'>{reasonText}</td></tr>
+                            <tr><td style='padding:8px;border:1px solid #D5DEE8;font-weight:bold;'>District Number</td><td style='padding:8px;border:1px solid #D5DEE8;'>{(string?)payment.DistrictNumber ?? "-"}</td></tr>
+                            <tr><td style='padding:8px;border:1px solid #D5DEE8;font-weight:bold;'>Club Name</td><td style='padding:8px;border:1px solid #D5DEE8;'>{(string?)payment.ClubName ?? "-"}</td></tr>
+                            <tr><td style='padding:8px;border:1px solid #D5DEE8;font-weight:bold;'>Purpose</td><td style='padding:8px;border:1px solid #D5DEE8;'>{(string?)payment.Purpose}</td></tr>
+                            <tr><td style='padding:8px;border:1px solid #D5DEE8;font-weight:bold;'>Fee Type</td><td style='padding:8px;border:1px solid #D5DEE8;'>{feeLabel}</td></tr>
+                            <tr><td style='padding:8px;border:1px solid #D5DEE8;font-weight:bold;'>Amount</td><td style='padding:8px;border:1px solid #D5DEE8;'>{Brand.Money(Convert.ToDecimal((object?)payment.Amount))}</td></tr>
+                            <tr><td style='padding:8px;border:1px solid #D5DEE8;font-weight:bold;'>Status</td><td style='padding:8px;border:1px solid #D5DEE8;color:#c53030;font-weight:bold;'>Rejected</td></tr>
+                            <tr><td style='padding:8px;border:1px solid #D5DEE8;font-weight:bold;'>Reason</td><td style='padding:8px;border:1px solid #D5DEE8;'>{reasonText}</td></tr>
                         </table>
                         <p>You can resubmit your payment. Please contact your club admin for more details.</p>
                         <p>Thank you,<br/>ROW</p>
@@ -1644,17 +1646,17 @@ public class MembershipDuesService : IMembershipDuesService
                     }}
                 </style>
             </head>
-            <body style='font-family: Arial, sans-serif; line-height: 1.6; color: #333; background-color: #f5f5f5; margin: 0; padding: 0;'>
+            <body style='font-family: Figtree, Arial, sans-serif; line-height: 1.6; color: #1B2C42; background-color: #EDF4FB; margin: 0; padding: 0;'>
                 <div style='max-width: 620px; width: 100%; margin: 0 auto; box-sizing: border-box;'>
-                    <div style='background-color: #1a365d; padding: 16px 24px; text-align: center; border-radius: 8px 8px 0 0;'>
+                    <div style='background-color: #17458F; padding: 16px 24px; text-align: center; border-radius: 8px 8px 0 0;'>
                         <img src='{logoUrl}' alt='ROW' style='height: 77px; max-width: 100%;' />
                     </div>
-                    <div class='rz-email-body' style='background-color: #ffffff; padding: 28px 32px; border-left: 1px solid #e2e8f0; border-right: 1px solid #e2e8f0; box-sizing: border-box;'>";
+                    <div class='rz-email-body' style='background-color: #FCFDFE; padding: 28px 32px; border-left: 1px solid #D5DEE8; border-right: 1px solid #D5DEE8; box-sizing: border-box;'>";
 
     private const string BRANDED_EMAIL_FOOTER = @"
                     </div>
-                    <div style='background-color: #f8f9fa; border: 1px solid #e2e8f0; border-top: none; padding: 16px 24px; text-align: center; border-radius: 0 0 8px 8px;'>
-                        <p style='font-size: 12px; color: #666; margin: 0; font-style: italic;'>This is generated by <strong>ROW</strong></p>
+                    <div style='background-color: #F7F9FC; border: 1px solid #D5DEE8; border-top: none; padding: 16px 24px; text-align: center; border-radius: 0 0 8px 8px;'>
+                        <p style='font-size: 12px; color: #64748B; margin: 0; font-style: italic;'>This is generated by <strong>ROW</strong></p>
                     </div>
                 </div>
             </body>
@@ -1876,15 +1878,15 @@ public class MembershipDuesService : IMembershipDuesService
             new { FeeId = Convert.ToInt32(payment.fk_member_fee_id) })).ToList();
 
         var feesTable = new StringBuilder();
-        feesTable.Append(@"<table class='rz-email-table' style='width:100%;border-collapse:collapse;margin:12px 0;border:1px solid #ddd;'>
-            <thead><tr style='background:#f3f4f6;'>
-                <th style='padding:8px;border:1px solid #ddd;text-align:left;'>Sr No</th>
-                <th style='padding:8px;border:1px solid #ddd;text-align:left;'>Fee Type</th>
-                <th style='padding:8px;border:1px solid #ddd;text-align:right;'>Amount</th>
-                <th style='padding:8px;border:1px solid #ddd;text-align:left;'>Mode</th>
-                <th style='padding:8px;border:1px solid #ddd;text-align:right;'>Payment Gateway Charges</th>
-                <th style='padding:8px;border:1px solid #ddd;text-align:left;'>Payment Date</th>
-                <th style='padding:8px;border:1px solid #ddd;text-align:left;'>Transaction ID</th>
+        feesTable.Append(@"<table class='rz-email-table' style='width:100%;border-collapse:collapse;margin:12px 0;border:1px solid #D5DEE8;'>
+            <thead><tr style='background:#EDF4FB;'>
+                <th style='padding:8px;border:1px solid #D5DEE8;text-align:left;'>Sr No</th>
+                <th style='padding:8px;border:1px solid #D5DEE8;text-align:left;'>Fee Type</th>
+                <th style='padding:8px;border:1px solid #D5DEE8;text-align:right;'>Amount</th>
+                <th style='padding:8px;border:1px solid #D5DEE8;text-align:left;'>Mode</th>
+                <th style='padding:8px;border:1px solid #D5DEE8;text-align:right;'>Payment Gateway Charges</th>
+                <th style='padding:8px;border:1px solid #D5DEE8;text-align:left;'>Payment Date</th>
+                <th style='padding:8px;border:1px solid #D5DEE8;text-align:left;'>Transaction ID</th>
             </tr></thead><tbody>");
 
         int sr = 0;
@@ -1901,13 +1903,13 @@ public class MembershipDuesService : IMembershipDuesService
                 decimal baseEquivalent = surchargePercent > 0 ? total / (1 + surchargePercent / 100m) : total;
                 decimal gateway = Math.Round(total - baseEquivalent, 2, MidpointRounding.AwayFromZero);
                 int netAmount = (int)Math.Round(total - gateway, 0, MidpointRounding.AwayFromZero);
-                amountCell = $"₹{netAmount:N0}";
-                gatewayCell = $"₹{gateway:N2}";
+                amountCell = Brand.Money(netAmount, decimals: 0);
+                gatewayCell = Brand.Money(gateway);
             }
             else
             {
                 int netAmount = (int)Math.Round(total, 0, MidpointRounding.AwayFromZero);
-                amountCell = $"₹{netAmount:N0}";
+                amountCell = Brand.Money(netAmount, decimals: 0);
                 gatewayCell = "N/A";
             }
 
@@ -1920,13 +1922,13 @@ public class MembershipDuesService : IMembershipDuesService
             var payDate = ((DateTime?)pp.PaymentDate)?.ToString("dd-MMM-yyyy") ?? "-";
 
             feesTable.Append($@"<tr>
-                <td style='padding:8px;border:1px solid #ddd;'>{sr}</td>
-                <td style='padding:8px;border:1px solid #ddd;'>{System.Net.WebUtility.HtmlEncode(FeeTypeLabel(ft))}</td>
-                <td style='padding:8px;border:1px solid #ddd;text-align:right;'>{amountCell}</td>
-                <td style='padding:8px;border:1px solid #ddd;'>{(ppIsOnline ? "Online" : "Offline")}</td>
-                <td style='padding:8px;border:1px solid #ddd;text-align:right;'>{gatewayCell}</td>
-                <td style='padding:8px;border:1px solid #ddd;'>{payDate}</td>
-                <td style='padding:8px;border:1px solid #ddd;'>{System.Net.WebUtility.HtmlEncode(txnId)}</td>
+                <td style='padding:8px;border:1px solid #D5DEE8;'>{sr}</td>
+                <td style='padding:8px;border:1px solid #D5DEE8;'>{System.Net.WebUtility.HtmlEncode(FeeTypeLabel(ft))}</td>
+                <td style='padding:8px;border:1px solid #D5DEE8;text-align:right;'>{amountCell}</td>
+                <td style='padding:8px;border:1px solid #D5DEE8;'>{(ppIsOnline ? "Online" : "Offline")}</td>
+                <td style='padding:8px;border:1px solid #D5DEE8;text-align:right;'>{gatewayCell}</td>
+                <td style='padding:8px;border:1px solid #D5DEE8;'>{payDate}</td>
+                <td style='padding:8px;border:1px solid #D5DEE8;'>{System.Net.WebUtility.HtmlEncode(txnId)}</td>
             </tr>");
         }
         feesTable.Append("</tbody></table>");
@@ -1938,7 +1940,7 @@ public class MembershipDuesService : IMembershipDuesService
         void AddRow(string label, string? value)
         {
             if (!string.IsNullOrWhiteSpace(value))
-                rows.Append($"<tr><td style='padding:8px;border:1px solid #ddd;font-weight:bold;'>{label}</td><td style='padding:8px;border:1px solid #ddd;'>{value}</td></tr>");
+                rows.Append($"<tr><td style='padding:8px;border:1px solid #D5DEE8;font-weight:bold;'>{label}</td><td style='padding:8px;border:1px solid #D5DEE8;'>{value}</td></tr>");
         }
 
         AddRow("Member Name", memberName);
@@ -1975,30 +1977,30 @@ public class MembershipDuesService : IMembershipDuesService
                     }}
                 </style>
             </head>
-            <body style='font-family: Arial, sans-serif; line-height: 1.6; color: #333; background-color: #f5f5f5; margin: 0; padding: 0;'>
+            <body style='font-family: Figtree, Arial, sans-serif; line-height: 1.6; color: #1B2C42; background-color: #EDF4FB; margin: 0; padding: 0;'>
                 <div style='max-width: 620px; width: 100%; margin: 0 auto; box-sizing: border-box;'>
-                    <div style='background-color: #1a365d; padding: 16px 24px; text-align: center; border-radius: 8px 8px 0 0;'>
+                    <div style='background-color: #17458F; padding: 16px 24px; text-align: center; border-radius: 8px 8px 0 0;'>
                         <img src='{logoUrl}' alt='ROW' style='height: 77px; max-width: 100%;' />
                     </div>
-                    <div class='rz-email-body' style='background-color: #ffffff; padding: 28px 32px; border-left: 1px solid #e2e8f0; border-right: 1px solid #e2e8f0; box-sizing: border-box;'>";
+                    <div class='rz-email-body' style='background-color: #FCFDFE; padding: 28px 32px; border-left: 1px solid #D5DEE8; border-right: 1px solid #D5DEE8; box-sizing: border-box;'>";
 
         const string receiptFooter = @"
                     </div>
-                    <div style='background-color: #f8f9fa; border: 1px solid #e2e8f0; border-top: none; padding: 16px 24px; text-align: center; border-radius: 0 0 8px 8px;'>
-                        <p style='font-size: 12px; color: #666; margin: 0; font-style: italic;'>This is generated by <strong>ROW</strong></p>
+                    <div style='background-color: #F7F9FC; border: 1px solid #D5DEE8; border-top: none; padding: 16px 24px; text-align: center; border-radius: 0 0 8px 8px;'>
+                        <p style='font-size: 12px; color: #64748B; margin: 0; font-style: italic;'>This is generated by <strong>ROW</strong></p>
                     </div>
                 </div>
             </body>
             </html>";
 
         var body = $@"{receiptHeader}
-            <h2 style='color: #1a365d; margin-top: 0;'>Payment Receipt</h2>
+            <h2 style='color: #17458F; margin-top: 0;'>Payment Receipt</h2>
             <p>Dear {memberName},</p>
             <p>Thank you for your payment. Here are the details:</p>
             <table style='width:100%;border-collapse:collapse;margin:20px 0;'>
                 {rows}
             </table>
-            <h3 style='color:#1a365d;margin:16px 0 6px;'>Fees</h3>
+            <h3 style='color:#17458F;margin:16px 0 6px;'>Fees</h3>
             <div style='overflow-x:auto;'>{feesTable}</div>
             {((string?)payment.EmailBody ?? "")}
         {receiptFooter}";
@@ -2096,31 +2098,31 @@ public class MembershipDuesService : IMembershipDuesService
 
             var label = ft switch { 1 => (string?)data.Fees1Text ?? "Annual", 2 => (string?)data.Fees2Text ?? "Semi-Annual 1", 3 => (string?)data.Fees3Text ?? "Semi-Annual 2", _ => "Dues" };
             decimal amt = ft switch { 1 => (decimal)data.AnnualAmount, 2 => (decimal)data.Semi1Amount, 3 => (decimal)data.Semi2Amount, _ => 0 };
-            unpaidRows.Append($"<tr><td style='padding:8px;border:1px solid #ddd;'>{label}</td><td style='padding:8px;border:1px solid #ddd;'>₹{amt}/-</td><td style='padding:8px;border:1px solid #ddd;'>Unpaid</td></tr>");
+            unpaidRows.Append($"<tr><td style='padding:8px;border:1px solid #D5DEE8;'>{label}</td><td style='padding:8px;border:1px solid #D5DEE8;'>{Brand.Money(amt)}</td><td style='padding:8px;border:1px solid #D5DEE8;'>Unpaid</td></tr>");
         }
         if (unpaidRows.Length == 0) return; // nothing to remind
 
         var frontendUrl = _config["FrontendUrl"] ?? "http://localhost:3000";
         var payUrl = $"{frontendUrl}/pay/dues/{(int)data.DuesId}";
-        var remarkHtml = string.IsNullOrWhiteSpace(remark) ? "" : $"<p style='margin-top:16px;padding:12px;background:#f7fafc;border-left:4px solid #3182ce;'><strong>Remark:</strong> {remark}</p>";
+        var remarkHtml = string.IsNullOrWhiteSpace(remark) ? "" : $"<p style='margin-top:16px;padding:12px;background:#F7F9FC;border-left:4px solid #17458F;'><strong>Remark:</strong> {remark}</p>";
 
         var subject = (string?)data.EmailReminderSubject ?? "Club Dues - Payment Reminder";
         var headerLogoUrl = ResolveEmailLogoUrl((string?)data.ClubLogoPath, (string?)data.EmailHeaderLogo);
         var body = $@"{BuildBrandedEmailHeader(headerLogoUrl)}
-            <h2 style='color: #1a365d; margin-top: 0;'>Payment Reminder</h2>
+            <h2 style='color: #17458F; margin-top: 0;'>Payment Reminder</h2>
             <p>Dear {(string?)data.MemberName},</p>
             <table style='width:100%;border-collapse:collapse;margin:20px 0;'>
-                <tr><td style='padding:8px;border:1px solid #ddd;font-weight:bold;'>District Number</td><td colspan='2' style='padding:8px;border:1px solid #ddd;'>{(string?)data.DistrictNumber ?? "-"}</td></tr>
-                <tr><td style='padding:8px;border:1px solid #ddd;font-weight:bold;'>Club Name</td><td colspan='2' style='padding:8px;border:1px solid #ddd;'>{(string?)data.ClubName ?? "-"}</td></tr>
-                <tr><td style='padding:8px;border:1px solid #ddd;font-weight:bold;'>Purpose</td><td colspan='2' style='padding:8px;border:1px solid #ddd;'>{(string?)data.Purpose}</td></tr>
+                <tr><td style='padding:8px;border:1px solid #D5DEE8;font-weight:bold;'>District Number</td><td colspan='2' style='padding:8px;border:1px solid #D5DEE8;'>{(string?)data.DistrictNumber ?? "-"}</td></tr>
+                <tr><td style='padding:8px;border:1px solid #D5DEE8;font-weight:bold;'>Club Name</td><td colspan='2' style='padding:8px;border:1px solid #D5DEE8;'>{(string?)data.ClubName ?? "-"}</td></tr>
+                <tr><td style='padding:8px;border:1px solid #D5DEE8;font-weight:bold;'>Purpose</td><td colspan='2' style='padding:8px;border:1px solid #D5DEE8;'>{(string?)data.Purpose}</td></tr>
             </table>
             <div style='overflow-x:auto;'>
             <table class='rz-email-table' style='width:100%;border-collapse:collapse;margin:20px 0;'>
-                <tr style='background:#17458F;color:white;'><th style='padding:8px;border:1px solid #ddd;'>Fee Type</th><th style='padding:8px;border:1px solid #ddd;'>Outstanding Amount</th><th style='padding:8px;border:1px solid #ddd;'>Status</th></tr>
+                <tr style='background:#17458F;color:white;'><th style='padding:8px;border:1px solid #D5DEE8;'>Fee Type</th><th style='padding:8px;border:1px solid #D5DEE8;'>Outstanding Amount</th><th style='padding:8px;border:1px solid #D5DEE8;'>Status</th></tr>
                 {unpaidRows}
             </table>
             </div>
-            <p><strong>Click to Pay:</strong> <a href='{payUrl}' style='color:#3182ce;'>{payUrl}</a></p>
+            <p><strong>Click to Pay:</strong> <a href='{payUrl}' style='color:#17458F;'>{payUrl}</a></p>
             {((string?)data.EmailReminderBody ?? "")}
             {remarkHtml}
         {BRANDED_EMAIL_FOOTER}";
@@ -2169,7 +2171,7 @@ public class MembershipDuesService : IMembershipDuesService
 
         var frontendUrl = _config["FrontendUrl"] ?? "http://localhost:3000";
         var payUrl = $"{frontendUrl}/pay/dues/{duesId}";
-        var remarkHtml = string.IsNullOrWhiteSpace(remark) ? "" : $"<p style='margin-top:16px;padding:12px;background:#f7fafc;border-left:4px solid #3182ce;'><strong>Remark:</strong> {remark}</p>";
+        var remarkHtml = string.IsNullOrWhiteSpace(remark) ? "" : $"<p style='margin-top:16px;padding:12px;background:#F7F9FC;border-left:4px solid #17458F;'><strong>Remark:</strong> {remark}</p>";
         var subject = (string?)dues.EmailReminderSubject ?? "Club Dues - Payment Reminder";
         int sentCount = 0;
         int clubId = (int)dues.ClubId;
@@ -2226,25 +2228,25 @@ public class MembershipDuesService : IMembershipDuesService
                     var amt = ut == ((string?)dues.Fees1Text ?? "Annual") ? (decimal)f.AnnualAmount
                             : ut == ((string?)dues.Fees2Text ?? "Semi-Annual 1") ? (decimal)f.Semi1Amount
                             : (decimal)f.Semi2Amount;
-                    unpaidRowsHtml.Append($"<tr><td style='padding:8px;border:1px solid #ddd;'>{ut}</td><td style='padding:8px;border:1px solid #ddd;'>₹{amt}/-</td><td style='padding:8px;border:1px solid #ddd;'>Unpaid</td></tr>");
+                    unpaidRowsHtml.Append($"<tr><td style='padding:8px;border:1px solid #D5DEE8;'>{ut}</td><td style='padding:8px;border:1px solid #D5DEE8;'>{Brand.Money(amt)}</td><td style='padding:8px;border:1px solid #D5DEE8;'>Unpaid</td></tr>");
                 }
 
                 var bulkHeaderLogoUrl = ResolveEmailLogoUrl((string?)f.ClubLogoPath, (string?)dues.EmailHeaderLogo);
                 var body = $@"{BuildBrandedEmailHeader(bulkHeaderLogoUrl)}
-                    <h2 style='color: #1a365d; margin-top: 0;'>Payment Reminder</h2>
+                    <h2 style='color: #17458F; margin-top: 0;'>Payment Reminder</h2>
                     <p>Dear {(string?)f.MemberName},</p>
                     <table style='width:100%;border-collapse:collapse;margin:20px 0;'>
-                        <tr><td style='padding:8px;border:1px solid #ddd;font-weight:bold;'>District Number</td><td colspan='2' style='padding:8px;border:1px solid #ddd;'>{(string?)f.DistrictNumber ?? "-"}</td></tr>
-                        <tr><td style='padding:8px;border:1px solid #ddd;font-weight:bold;'>Club Name</td><td colspan='2' style='padding:8px;border:1px solid #ddd;'>{(string?)f.ClubName ?? "-"}</td></tr>
-                        <tr><td style='padding:8px;border:1px solid #ddd;font-weight:bold;'>Purpose</td><td colspan='2' style='padding:8px;border:1px solid #ddd;'>{(string?)dues.Purpose}</td></tr>
+                        <tr><td style='padding:8px;border:1px solid #D5DEE8;font-weight:bold;'>District Number</td><td colspan='2' style='padding:8px;border:1px solid #D5DEE8;'>{(string?)f.DistrictNumber ?? "-"}</td></tr>
+                        <tr><td style='padding:8px;border:1px solid #D5DEE8;font-weight:bold;'>Club Name</td><td colspan='2' style='padding:8px;border:1px solid #D5DEE8;'>{(string?)f.ClubName ?? "-"}</td></tr>
+                        <tr><td style='padding:8px;border:1px solid #D5DEE8;font-weight:bold;'>Purpose</td><td colspan='2' style='padding:8px;border:1px solid #D5DEE8;'>{(string?)dues.Purpose}</td></tr>
                     </table>
                     <div style='overflow-x:auto;'>
                     <table class='rz-email-table' style='width:100%;border-collapse:collapse;margin:20px 0;'>
-                        <tr style='background:#17458F;color:white;'><th style='padding:8px;border:1px solid #ddd;'>Fee Type</th><th style='padding:8px;border:1px solid #ddd;'>Outstanding Amount</th><th style='padding:8px;border:1px solid #ddd;'>Status</th></tr>
+                        <tr style='background:#17458F;color:white;'><th style='padding:8px;border:1px solid #D5DEE8;'>Fee Type</th><th style='padding:8px;border:1px solid #D5DEE8;'>Outstanding Amount</th><th style='padding:8px;border:1px solid #D5DEE8;'>Status</th></tr>
                         {unpaidRowsHtml}
                     </table>
                     </div>
-                    <p><strong>Click to Pay:</strong> <a href='{payUrl}' style='color:#3182ce;'>{payUrl}</a></p>
+                    <p><strong>Click to Pay:</strong> <a href='{payUrl}' style='color:#17458F;'>{payUrl}</a></p>
                     {((string?)dues.EmailReminderBody ?? "")}
                     {remarkHtml}
                 {BRANDED_EMAIL_FOOTER}";
@@ -2285,7 +2287,7 @@ public class MembershipDuesService : IMembershipDuesService
         if (!string.IsNullOrWhiteSpace(email))
         {
             try { await _googleSheetsService.ShareWithEmailAsync(sheetId, email); }
-            catch (Exception ex) { _logger.LogWarning(ex, "Failed to share sheet with {Email}", email); }
+            catch (Exception ex) { _logger.LogWarning(ex, "Failed to share sheet with {Email}", LogMask.Email(email)); }
         }
 
         await conn.ExecuteAsync("UPDATE membership_dues SET GoogleSheetId=@SheetId WHERE pk_membership_dues_id=@Id",
@@ -2520,12 +2522,12 @@ public class MembershipDuesService : IMembershipDuesService
             {
                 await _emailService.SendGenericEmailAsync(email!, "OTP Verification - ROW",
                     $@"{EmailService.EMAIL_HEADER}
-                        <h2 style='color: #1a365d; margin-top: 0;'>OTP Verification</h2>
+                        <h2 style='color: #17458F; margin-top: 0;'>OTP Verification</h2>
                         <p>Your OTP for club dues payment verification is:</p>
                         <div style='text-align:center;margin:20px 0;'>
-                            <span style='font-size:32px;font-weight:bold;letter-spacing:8px;color:#1a365d;'>{otp}</span>
+                            <span style='font-size:32px;font-weight:bold;letter-spacing:8px;color:#17458F;'>{otp}</span>
                         </div>
-                        <p style='color:#718096;'>Valid for 5 minutes.</p>
+                        <p style='color:#64748B;'>Valid for 5 minutes.</p>
                     {EmailService.EMAIL_FOOTER}");
                 emailSent = true;
             }
@@ -2575,6 +2577,7 @@ public class MembershipDuesService : IMembershipDuesService
 
     public async Task<DuesPaymentSessionResponseDto> CreatePaymentOrderAsync(int duesId, PublicDuesPaymentSubmitDto dto)
     {
+        await PlanningAccess.EnsureDuesCollectableAsync(_connStr, false, duesId);
         using var conn = GetConnection();
 
         // Get member's fee allocation

@@ -57,6 +57,7 @@ try:
     for name, method, path, key in [
         ("OCV is off by default", "GET", "/api/clubs/1/ocv-gov", "ocv"),
         ("club monthly report is off by default", "GET", "/api/clubs/1/monthly-reports", "club_monthly_report"),
+        ("sub groups are off by default", "GET", "/api/clubs/1/sub-groups/available-years", "sub_groups"),
     ]:
         ok, d = gated(method, path, key)
         check(name, ok, d)
@@ -68,10 +69,10 @@ try:
     check("removed modules' routes are gone", all(s == 404 and "feature" not in b for s, b in gone.values()), gone)
 
     for name, method, path in [
-        ("project forms still read categories", "GET", "/api/categories"),
         ("district committee sub groups stay open", "GET", "/api/districts/1/committee/groups/1/sub-groups"),
         ("goal setting stays open", "GET", "/api/goal-setting/categories"),
         ("other club pages stay open", "GET", "/api/clubs/1/attendance"),
+        ("mass email's member list stays open while sub groups are off", "GET", "/api/clubs/1/sub-groups/club-members"),
     ]:
         ok, d = open_(method, path)
         check(name, ok, d)

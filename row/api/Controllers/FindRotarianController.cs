@@ -236,7 +236,7 @@ public class FindRotarianController : ControllerBase
         foreach (var kv in (IDictionary<string, object?>)member) memberDict[kv.Key] = kv.Value;
         if (!Services.MemberPrivacyHelper.ShouldShowPhone(viewerMemberId, memberId, sharesClub,
                 memberDict.GetValueOrDefault("showPhoneInMyClub"), memberDict.GetValueOrDefault("showPhoneInAllClubs")))
-            memberDict["primaryMobile"] = null;
+            memberDict["primaryMobile"] = memberDict["secondaryMobile"] = null;
         if (!Services.MemberPrivacyHelper.ShouldShowEmail(viewerMemberId, memberId, sharesClub,
                 memberDict.GetValueOrDefault("showEmailInMyClub"), memberDict.GetValueOrDefault("showEmailInAllClubs")))
             memberDict["email"] = null;
@@ -244,6 +244,7 @@ public class FindRotarianController : ControllerBase
         memberDict.Remove("showPhoneInAllClubs");
         memberDict.Remove("showEmailInMyClub");
         memberDict.Remove("showEmailInAllClubs");
+        var detailsHidden = Services.MemberPrivacyHelper.HidePrivateDetails(memberDict, viewerMemberId, memberId);
 
         // Designation + ClassificationProfession live on club_members (per-club),
         // not on member_address_details. Stripped from addresses; surfaced
@@ -258,6 +259,8 @@ public class FindRotarianController : ControllerBase
             LEFT JOIN country_master co ON co.pk_country_id = a.fk_country_id
             WHERE a.fk_member_master_profile_id = @Id AND a.isdeleted = 0",
             new { Id = memberId });
+        // the home address is a personal detail too (the app shows it only when they are visible)
+        if (detailsHidden) addresses = addresses.Where(a => !((string?)a.addressType ?? "").StartsWith("Resid", StringComparison.OrdinalIgnoreCase));
 
         var clubs = await conn.QueryAsync<dynamic>(@"
             SELECT c.pk_club_id AS clubId, c.ClubName AS clubName, c.ClubRotaryId AS clubRotaryId,

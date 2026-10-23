@@ -301,7 +301,7 @@ class _KpiStrip extends StatelessWidget {
             const SizedBox(width: 10),
             Expanded(
               child: _KpiTile(
-                icon: Icons.currency_rupee_rounded,
+                icon: Icons.payments_rounded,
                 label: 'Total Cost (${data.targetCurrency})',
                 value: formatMoney(data.totalCost, data.targetCurrency),
                 sub: 'Combined project spend',
@@ -474,7 +474,7 @@ class _ImpactBanner extends StatelessWidget {
               ),
               Expanded(
                 child: _ImpactTile(
-                  icon: Icons.currency_rupee_rounded,
+                  icon: Icons.payments_rounded,
                   value: formatMoney(data.totalCost, data.targetCurrency),
                   label: 'Cost (${data.targetCurrency})',
                 ),
@@ -1271,7 +1271,7 @@ class _ProjectRow extends StatelessWidget {
             crossAxisAlignment: WrapCrossAlignment.center,
             children: [
               _MetricChip(
-                icon: Icons.currency_rupee_rounded,
+                icon: Icons.payments_rounded,
                 value: project.cost > 0
                     ? formatMoney(project.cost, project.currency)
                     : '–',

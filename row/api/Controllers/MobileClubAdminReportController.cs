@@ -12,9 +12,8 @@ namespace RotaryApi.Controllers;
 // web module without modifying it. Those report actions are pure (no User /
 // HttpContext / Request usage), so delegation is safe.
 //
-// Authorisation mirrors the club-admin mobile pattern: SuperAdmin (any club) or
-// Admin (auto-scoped to their own club from the token, ignoring any clubId query
-// value to prevent cross-club access).
+// Authorisation: SuperAdmin or Admin role, and the clubId must be a club the caller
+// may read on the web route (its members and managers).
 [ApiController]
 [Route("api/mobile/club-admin/club-report")]
 [Authorize]
@@ -29,18 +28,14 @@ public class MobileClubAdminReportController : ControllerBase
         return roles.Contains("SuperAdmin") || roles.Contains("Admin");
     }
 
-    private bool IsSuperAdmin() => (User.FindFirst("roles")?.Value ?? "").Contains("SuperAdmin");
-
-    private int? GetScopedClubId()
+    // On top of the Admin role, the rule of the web club-report route this mirrors: members and managers of the club
+    // (SuperAdmin always). Was: a "clubId" token claim that is never issued, so any Admin read any club's reports.
+    private async Task<bool> CanReadClubAsync(int clubId)
     {
-        if (IsSuperAdmin()) return null;
-        var clubId = User.FindFirst("clubId")?.Value;
-        return int.TryParse(clubId, out var cid) ? cid : (int?)null;
+        if (!int.TryParse(User.FindFirst("memberId")?.Value, out var me) || me <= 0) return false;
+        var cs = HttpContext.RequestServices.GetRequiredService<IConfiguration>().GetConnectionString("DefaultConnection")!;
+        return await RotaryApi.Services.ScopeWriteGuardMiddleware.ReadAllowedAsync(cs, me, true, clubId);
     }
-
-    // Club Admin is pinned to their own club regardless of any clubId query value;
-    // SuperAdmin uses the supplied clubId.
-    private int? ResolveClubId(int? requestedClubId) => GetScopedClubId() ?? requestedClubId;
 
     private ObjectResult Denied() => StatusCode(StatusCodes.Status403Forbidden, new { message = "Access denied." });
 
@@ -49,8 +44,9 @@ public class MobileClubAdminReportController : ControllerBase
     public async Task<ActionResult> GetReport([FromQuery] int? clubId, [FromQuery] int yearId)
     {
         if (!IsSuperAdminOrAdmin()) return Denied();
-        var cid = ResolveClubId(clubId);
+        var cid = clubId;
         if (cid == null) return BadRequest(new { message = "clubId is required." });
+        if (!await CanReadClubAsync(cid.Value)) return Denied();
         return await Web().GetReport(cid.Value, yearId);
     }
 
@@ -58,8 +54,9 @@ public class MobileClubAdminReportController : ControllerBase
     public async Task<ActionResult> AvenueOfServiceRawData([FromQuery] int? clubId, [FromQuery] int yearId)
     {
         if (!IsSuperAdminOrAdmin()) return Denied();
-        var cid = ResolveClubId(clubId);
+        var cid = clubId;
         if (cid == null) return BadRequest(new { message = "clubId is required." });
+        if (!await CanReadClubAsync(cid.Value)) return Denied();
         return await Web().AvenueOfServiceRawData(cid.Value, yearId);
     }
 
@@ -67,8 +64,9 @@ public class MobileClubAdminReportController : ControllerBase
     public async Task<ActionResult> AnnualClubServiceRawData([FromQuery] int? clubId, [FromQuery] int yearId)
     {
         if (!IsSuperAdminOrAdmin()) return Denied();
-        var cid = ResolveClubId(clubId);
+        var cid = clubId;
         if (cid == null) return BadRequest(new { message = "clubId is required." });
+        if (!await CanReadClubAsync(cid.Value)) return Denied();
         return await Web().AnnualClubServiceRawData(cid.Value, yearId);
     }
 
@@ -76,8 +74,9 @@ public class MobileClubAdminReportController : ControllerBase
     public async Task<ActionResult> AnnualReport([FromQuery] int? clubId, [FromQuery] int yearId)
     {
         if (!IsSuperAdminOrAdmin()) return Denied();
-        var cid = ResolveClubId(clubId);
+        var cid = clubId;
         if (cid == null) return BadRequest(new { message = "clubId is required." });
+        if (!await CanReadClubAsync(cid.Value)) return Denied();
         return await Web().AnnualReport(cid.Value, yearId);
     }
 
@@ -85,8 +84,9 @@ public class MobileClubAdminReportController : ControllerBase
     public async Task<ActionResult> GetAvailableYears([FromQuery] int? clubId)
     {
         if (!IsSuperAdminOrAdmin()) return Denied();
-        var cid = ResolveClubId(clubId);
+        var cid = clubId;
         if (cid == null) return BadRequest(new { message = "clubId is required." });
+        if (!await CanReadClubAsync(cid.Value)) return Denied();
         return await Web().GetAvailableYears(cid.Value);
     }
 }

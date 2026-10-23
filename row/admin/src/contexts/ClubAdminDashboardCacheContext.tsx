@@ -10,7 +10,6 @@
  * Endpoints prefetched (all already exist in services/api.ts):
  *   overview                -> getClubAdminOverview()
  *   foundation              -> getClubAdminFoundation()
- *   foundationGoals         -> getFoundationGoalsList(null)
  *   membership              -> getClubAdminMembership()
  *   serviceProjectsOverview -> getServiceProjectsOverview(null)
  *   eGovernance             -> getClubAdminEGovernance()
@@ -39,7 +38,6 @@ import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import {
   getClubAdminOverview,
   getClubAdminFoundation,
-  getFoundationGoalsList,
   getClubAdminMembership,
   getServiceProjectsOverview,
   getClubAdminEGovernance,
@@ -53,7 +51,6 @@ import { useAuth } from "@/contexts/AuthContext";
 import type {
   ClubAdminOverviewResponse,
   ClubAdminFoundationResponse,
-  FoundationGoalListResponse,
   ClubAdminMembershipResponse,
   ServiceProjectsOverviewResponse,
   ClubAdminEGovernanceResponse,
@@ -67,7 +64,6 @@ export type ClubAdminCacheStatus = "loading" | "ready" | "partial" | "error";
 interface ClubAdminCacheState {
   overview: ClubAdminOverviewResponse | null;
   foundation: ClubAdminFoundationResponse | null;
-  foundationGoals: FoundationGoalListResponse | null;
   membership: ClubAdminMembershipResponse | null;
   serviceProjectsOverview: ServiceProjectsOverviewResponse | null;
   eGovernance: ClubAdminEGovernanceResponse | null;
@@ -85,7 +81,6 @@ interface ClubAdminCacheState {
 const EMPTY_STATE: Omit<ClubAdminCacheState, "refresh"> = {
   overview: null,
   foundation: null,
-  foundationGoals: null,
   membership: null,
   serviceProjectsOverview: null,
   eGovernance: null,
@@ -118,12 +113,12 @@ export function ClubAdminDashboardCacheProvider({ children }: { children: ReactN
   // Once we've resolved the effective yearId for THIS session (URL vs server's
   // current year), don't run the resolve step again — subsequent URL changes
   // (user picks a year) go straight to fetchAll. This is what makes stale-URL
-  // detection cost 0 extra heavy fetches instead of 2 rounds of 9 endpoints.
+  // detection cost 0 extra heavy fetches instead of 2 rounds of 8 endpoints.
   const yearResolvedRef = useRef(false);
   // Router / pathname / searchParams need to be usable inside the fetch effect
   // for the one-shot stale-URL replace, but MUST NOT trigger the effect on
   // navigation. If they were in the effect deps, every tab click between
-  // /club-admin-dashboard/* pages would refetch all 9 endpoints and reset the
+  // /club-admin-dashboard/* pages would refetch all 8 endpoints and reset the
   // UI to a loading spinner — which is what "everywhere slow" felt like.
   const routerRef = useRef(router);
   const pathnameRef = useRef(pathname);
@@ -139,7 +134,6 @@ export function ClubAdminDashboardCacheProvider({ children }: { children: ReactN
     const calls = [
       getClubAdminOverview(effectiveYearId, selectedClubId),
       getClubAdminFoundation(effectiveYearId, selectedClubId),
-      getFoundationGoalsList(effectiveYearId, selectedClubId),
       getClubAdminMembership(effectiveYearId, selectedClubId),
       getServiceProjectsOverview(effectiveYearId, selectedClubId),
       getClubAdminEGovernance(effectiveYearId, selectedClubId),
@@ -155,7 +149,6 @@ export function ClubAdminDashboardCacheProvider({ children }: { children: ReactN
     const [
       rOverview,
       rFoundation,
-      rFoundationGoals,
       rMembership,
       rServiceProjects,
       rEGovernance,
@@ -189,7 +182,6 @@ export function ClubAdminDashboardCacheProvider({ children }: { children: ReactN
     setState({
       overview: pick(rOverview) as ClubAdminOverviewResponse | null,
       foundation: pick(rFoundation) as ClubAdminFoundationResponse | null,
-      foundationGoals: pick(rFoundationGoals) as FoundationGoalListResponse | null,
       membership: pick(rMembership) as ClubAdminMembershipResponse | null,
       serviceProjectsOverview: pick(
         rServiceProjects,
@@ -212,9 +204,9 @@ export function ClubAdminDashboardCacheProvider({ children }: { children: ReactN
   //   available-years endpoint to learn the server's IsCurrent yearId. If the
   //   URL is carrying a stale yearId (e.g. bookmarked before 1 July rolled the
   //   year over) AND the user hasn't explicitly picked one via the topbar in
-  //   this session, we swap the URL to the current year BEFORE the 9 heavy
+  //   this session, we swap the URL to the current year BEFORE the 8 heavy
   //   endpoints fire. That way stale URLs cost 1 quick years fetch + 1 round
-  //   of 9 fetches, instead of firing 9 endpoints twice.
+  //   of 8 fetches, instead of firing 8 endpoints twice.
   useEffect(() => {
     mountedRef.current = true;
     if (selectedClubId == null) {
@@ -230,7 +222,7 @@ export function ClubAdminDashboardCacheProvider({ children }: { children: ReactN
       if (selectedClubId == null) return;
       if (!yearResolvedRef.current) {
         // First mount for this session/club. Resolve stale-URL detection
-        // BEFORE firing the 9 endpoints so we don't fetch twice.
+        // BEFORE firing the 8 endpoints so we don't fetch twice.
         setState((s) => ({ ...s, status: "loading" }));
         try {
           const years = await getClubAdminAvailableYears(selectedClubId);
@@ -256,7 +248,7 @@ export function ClubAdminDashboardCacheProvider({ children }: { children: ReactN
           if (effective && effective !== yearId) {
             // URL doesn't match effective — replace once. This triggers a
             // re-render + this effect re-runs with resolved=true, which then
-            // goes straight to fetchAll(effective). Only 1 round of 9 fires.
+            // goes straight to fetchAll(effective). Only 1 round of 8 fires.
             const next = new URLSearchParams(searchParamsRef.current.toString());
             next.set("yearId", String(effective));
             routerRef.current.replace(`${pathnameRef.current}?${next.toString()}`, { scroll: false });
@@ -285,7 +277,7 @@ export function ClubAdminDashboardCacheProvider({ children }: { children: ReactN
     };
     // Deliberately narrow deps — router/pathname/searchParams are stashed in
     // refs above so navigation between dashboard tabs (which changes pathname)
-    // does NOT refetch the 9 heavy endpoints and does NOT reset the cache.
+    // does NOT refetch the 8 heavy endpoints and does NOT reset the cache.
     // Only real state changes (club or year) refire the effect.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedClubId, yearId, fetchAll]);

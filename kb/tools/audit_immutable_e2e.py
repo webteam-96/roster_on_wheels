@@ -1,25 +1,36 @@
 """audit_log is append-only (ROW Wave 1, task 1), and privacy erasure still anonymises it.
 
-    python kb/tools/audit_immutable_e2e.py [api_base] [mysql_port]
-Dev database only: each run creates and erases its own throwaway member (demo members are left alone).
+    python -I kb/tools/audit_immutable_e2e.py <api_base> <mysql_port> <database>
+JWT secret from ROW_E2E_JWT_SECRET (the API must be started with the same JwtSettings__Secret); the SuperAdmin is
+picked by query. Local copies only, never production. Each run creates and erases its own throwaway member (real
+members are left alone). What stays: the 'E2E' audit rows (audit_log is append-only by design) and the erased,
+soft-deleted throwaway member (hard deletes of members are refused by a trigger); its privacy request and change-log
+rows are removed.
 """
-import json
-import subprocess
-import sys
-import urllib.error
-import urllib.request
+import base64, hashlib, hmac, json, os, subprocess, sys, time, urllib.error, urllib.request
 
-API = sys.argv[1] if len(sys.argv) > 1 else "http://localhost:5000"
-PORT = sys.argv[2] if len(sys.argv) > 2 else "3317"
+API, PORT, DB = sys.argv[1].rstrip('/'), sys.argv[2], sys.argv[3]
+SECRET = os.environ['ROW_E2E_JWT_SECRET']
 MYSQL = r"C:\Program Files\MySQL\MySQL Server 8.4\bin\mysql.exe"
 fails = 0
 
 
 def sql(q, ok=True):
-    r = subprocess.run([MYSQL, "-uroot", "-h127.0.0.1", f"-P{PORT}", "row_local", "-N", "-e", q], capture_output=True, text=True)
+    r = subprocess.run([MYSQL, "-uroot", "-h127.0.0.1", f"-P{PORT}", DB, "-N", "-e", q], capture_output=True, text=True)
     if ok and r.returncode:
         raise RuntimeError(r.stderr)
     return r.returncode, (r.stdout + r.stderr).strip()
+
+
+def b64(b):
+    return base64.urlsafe_b64encode(b).rstrip(b'=').decode()
+
+
+def token(member_id, roles):
+    body = {"memberId": str(member_id), "name": "e2e", "email": "e2e@example.org", "roles": roles,
+            "iss": "JwtIssuer", "aud": "JwtAudience", "exp": int(time.time()) + 600}
+    signing = f"{b64(json.dumps({'alg': 'HS256', 'typ': 'JWT'}).encode())}.{b64(json.dumps(body).encode())}"
+    return f"{signing}.{b64(hmac.new(SECRET.encode(), signing.encode(), hashlib.sha256).digest())}"
 
 
 def call(method, path, body=None, token=None):
@@ -51,17 +62,16 @@ check("deleting an audit row is refused", code != 0 and "append-only" in out, ou
 code, out = sql(f"UPDATE audit_log SET member_name=NULL, ip_address=NULL WHERE pk_audit_id={rid}", ok=False)
 check("anonymising name and IP is allowed (erasure)", code == 0, out)
 
-s, b = call("POST", "/api/auth/login", {"email": "naren@kaizeninfotech.com", "password": "Admin@123"})
-token = b.get("token", "")
+sa = int(sql("SELECT fk_member_master_profile_id FROM member_roles WHERE fk_role_id=3 AND IsActive=1 AND isdeleted=0 LIMIT 1")[1])
 _, mid = sql("INSERT INTO member_master_profile (MemberName, EmailId) VALUES ('E2E Erase Me', CONCAT('e2e.erase.', UUID_SHORT(), '@example.invalid')); SELECT LAST_INSERT_ID()")
-if mid:
-    sql(f"INSERT INTO audit_log (fk_member_master_profile_id, member_name, action, entity_type, ip_address) VALUES ({mid}, 'Emmanuel Kollie', 'E2E', 'member', '10.0.0.2')")
-    s, b = call("POST", f"/api/privacy/members/{mid}/erase", {"reason": "e2e: audit immutability"}, token)
+try:
+    sql(f"INSERT INTO audit_log (fk_member_master_profile_id, member_name, action, entity_type, ip_address) VALUES ({mid}, 'E2E Erase Me', 'E2E', 'member', '10.0.0.2')")
+    s, b = call("POST", f"/api/privacy/members/{mid}/erase", {"reason": "e2e: audit immutability"}, token(sa, "SuperAdmin"))
     check("privacy erasure still completes", s == 200 and b.get("status") == "completed", (s, b))
     _, left = sql(f"SELECT COUNT(*) FROM audit_log WHERE fk_member_master_profile_id={mid} AND member_name IS NOT NULL")
     check("erasure anonymised the member's audit rows", left == "0", left)
-else:
-    print("SKIP erasure checks: demo member already erased")
+finally:
+    sql(f"DELETE FROM privacy_requests WHERE fk_member_id={mid}; DELETE FROM member_change_log WHERE fk_member_master_profile_id={mid}")
 
-print(f"\n{fails} failed")
+print(f"\n{'ALL PASS' if fails == 0 else f'{fails} FAILED'}")
 sys.exit(1 if fails else 0)

@@ -29,6 +29,7 @@ public class DistrictAdminDashboardController : ControllerBase
         var roles = User.FindFirst("roles")?.Value ?? "";
         return roles.Contains("Admin") || roles.Contains("SuperAdmin");
     }
+    private bool IsElect() => (User.FindFirst("roles")?.Value ?? "").Split(',').Contains("Elect");
     private ActionResult NotConfigured() => NotFound(new { message = "No district admin assignment found for this user." });
 
     // Translate service-level UnauthorizedAccessException into a 403 with message.
@@ -187,7 +188,8 @@ public class DistrictAdminDashboardController : ControllerBase
     [HttpPost("membership-goal")]
     public async Task<ActionResult<DistrictMembershipGoalDto>> UpsertMembershipGoal([FromBody] DistrictMembershipGoalDto dto)
     {
-        if (!IsAuthorisedRole()) return Forbid();
+        // N7: an elect-only member ("Elect") may set the goals of the year being planned; the service checks which
+        if (!IsAuthorisedRole() && !IsElect()) return Forbid();
         try { return Ok(await _service.UpsertMembershipGoalAsync(GetMemberId(), dto)); }
         catch (UnauthorizedAccessException ex) { return ForbidWithMessage(ex.Message); }
         catch (ArgumentException ex) { return BadRequest(new { message = ex.Message }); }
@@ -204,7 +206,7 @@ public class DistrictAdminDashboardController : ControllerBase
     [HttpPost("foundation-goal")]
     public async Task<ActionResult<DistrictFoundationGoalDto>> UpsertFoundationGoal([FromBody] DistrictFoundationGoalDto dto)
     {
-        if (!IsAuthorisedRole()) return Forbid();
+        if (!IsAuthorisedRole() && !IsElect()) return Forbid();
         try { return Ok(await _service.UpsertFoundationGoalAsync(GetMemberId(), dto)); }
         catch (UnauthorizedAccessException ex) { return ForbidWithMessage(ex.Message); }
         catch (ArgumentException ex) { return BadRequest(new { message = ex.Message }); }

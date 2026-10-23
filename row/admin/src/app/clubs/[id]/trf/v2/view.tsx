@@ -5,7 +5,7 @@
  *
  * Named export used inline by the Club Admin Foundation page (embedded) AND by the
  * route page.tsx (standalone, wrapped in ClubAdminShell). Data flows through the v1
- * API surface (getTrfContributions / getTrfFunds / getMonthlyReportYears). Amounts are
+ * API surface (getTrfContributions / getTrfFunds / getTrfYears). Amounts are
  * USD (no currency conversion). Add / Edit route to the shared v2 add/edit form with a
  * returnTo = the current page URL, so after save the user comes back to wherever they
  * are (Foundation tab when embedded, the standalone TRF page otherwise). CMR round-trips
@@ -21,11 +21,12 @@ import {
 } from "@/components/icons";
 import {
   getClub,
-  getMonthlyReportYears,
+  getTrfYears,
   getTrfFunds,
   getTrfContributions,
   deleteTrfContribution,
 } from "@/services/api";
+import { useFeatureLoadedOn } from "@/components/FeatureGate";
 import { TrfContribution, TrfFund } from "@/types/trfContribution";
 import { ReportYear } from "@/types/clubMonthlyReport";
 import KpiCard from "@/components/dashboard/KpiCard";
@@ -65,6 +66,7 @@ export function TrfV2View({ clubId: propClubId, embedded = false, yearId: global
 
   const [clubName, setClubName] = useState("");
   const [years, setYears] = useState<ReportYear[]>([]);
+  const cmrOn = useFeatureLoadedOn("club_monthly_report");
   const [selectedYearId, setSelectedYearId] = useState<number | null>(null);
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [funds, setFunds] = useState<TrfFund[]>([]);
@@ -104,7 +106,7 @@ export function TrfV2View({ clubId: propClubId, embedded = false, yearId: global
       try {
         const [club, yearsData, fundsData] = await Promise.all([
           getClub(clubId),
-          getMonthlyReportYears(clubId),
+          getTrfYears(clubId, cmrOn),
           getTrfFunds(clubId),
         ]);
         if (cancelled) return;
@@ -128,7 +130,7 @@ export function TrfV2View({ clubId: propClubId, embedded = false, yearId: global
     }
     init();
     return () => { cancelled = true; };
-  }, [clubId, yearIdParam, globalYearId]);
+  }, [clubId, yearIdParam, globalYearId, cmrOn]);
 
   // When embedded, follow the global dashboard year as it changes in the topbar.
   useEffect(() => {

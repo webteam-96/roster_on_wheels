@@ -103,6 +103,8 @@ public class DistrictsController : ControllerBase
     {
         if (!IsSuperAdmin())
             return StatusCode(403, new { message = "Only SuperAdmin can create districts." });
+        if (BadZone(dto.Timezone))
+            return BadRequest(new { message = ZoneMessage });
 
         try
         {
@@ -121,6 +123,8 @@ public class DistrictsController : ControllerBase
     {
         if (!IsSuperAdmin())
             return StatusCode(403, new { message = "Only SuperAdmin can update districts." });
+        if (BadZone(dto.Timezone))
+            return BadRequest(new { message = ZoneMessage });
 
         var existing = await _districtService.GetByIdAsync(id);
         if (existing == null)
@@ -190,6 +194,10 @@ public class DistrictsController : ControllerBase
         var path = await _districtService.UploadLogoAsync(file);
         return Ok(new { path });
     }
+
+    // N12: a district's zone is an IANA id the server knows; blank = the brand's zone.
+    private const string ZoneMessage = "Unknown time zone. Use an IANA name such as America/New_York.";
+    private static bool BadZone(string? zone) => !string.IsNullOrWhiteSpace(zone) && !ZoneTime.IsValidId(zone.Trim());
 
     private bool IsSuperAdmin()
     {

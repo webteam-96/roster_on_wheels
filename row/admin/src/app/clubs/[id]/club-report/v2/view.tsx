@@ -280,7 +280,8 @@ export function ClubReportV2PageImpl({ clubId: propClubId, embedded = false, yea
     let cancelled = false;
     setLiveTermLoading(true);
     getRotaryOrgTerminatedMembers(clubId)
-      .then((res) => { if (!cancelled) setLiveTerminated(res.members || []); })
+      // a warning means no live list (club not linked, Rotary.org not connected): fall back like an error
+      .then((res) => { if (!cancelled) setLiveTerminated(res.warning ? null : res.members || []); })
       .catch(() => { if (!cancelled) setLiveTerminated(null); })   // null → fall back to rnet.terminated
       .finally(() => { if (!cancelled) setLiveTermLoading(false); });
     return () => { cancelled = true; };

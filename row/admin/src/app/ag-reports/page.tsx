@@ -307,7 +307,7 @@ export default function AgReportsPage() {
   const [success, setSuccess] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!isAuthenticated) return;
+    if (!isAuthenticated || !isAG) return; // the AG endpoints refuse everyone else; the page shows Access Denied
     (async () => {
       try {
         const [ys, cs] = await Promise.all([getAgMyYears(), getAgMyClubs()]);
@@ -317,7 +317,7 @@ export default function AgReportsPage() {
         setError(e?.response?.data?.message ?? "Failed to load filters");
       } finally { setLoading(false); }
     })();
-  }, [isAuthenticated]);
+  }, [isAuthenticated, isAG]);
 
   if (!isAuthenticated) return <ProtectedRoute><div /></ProtectedRoute>;
   if (!isAG) return (

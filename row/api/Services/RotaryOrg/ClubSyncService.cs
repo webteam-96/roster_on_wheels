@@ -451,13 +451,13 @@ public class ClubSyncService : IClubSyncService
             var fileName = $"RotaryOrg_Sync_Report_{DateTime.Now:yyyyMMdd_HHmmss}.xlsx";
 
             var body = $@"{EmailService.EMAIL_HEADER}
-<h2 style='color:#1a365d;margin-top:0;'>Rotary.org Sync Complete</h2>
+<h2 style='color:#17458F;margin-top:0;'>Rotary.org Sync Complete</h2>
 <p>Dear {System.Net.WebUtility.HtmlEncode(toName)},</p>
 <p>The Rotary.org bootstrap sync has finished. Summary:</p>
 <table style='border-collapse:collapse; margin:12px 0;'>
   <tr><td style='padding:4px 12px;'>Total fetched</td><td style='padding:4px 12px;'><b>{r.TotalFetched}</b></td></tr>
   <tr><td style='padding:4px 12px;'>New clubs added</td><td style='padding:4px 12px;color:#16a34a;'><b>{r.InsertedCount}</b></td></tr>
-  <tr><td style='padding:4px 12px;'>Existing clubs updated</td><td style='padding:4px 12px;color:#2563eb;'><b>{r.UpdatedCount}</b></td></tr>
+  <tr><td style='padding:4px 12px;'>Existing clubs updated</td><td style='padding:4px 12px;color:#1F56A8;'><b>{r.UpdatedCount}</b></td></tr>
   <tr><td style='padding:4px 12px;'>Clubs disabled (no longer on Rotary.org)</td><td style='padding:4px 12px;color:#dc2626;'><b>{r.DisabledCount}</b></td></tr>
   <tr><td style='padding:4px 12px;'>Skipped (district missing locally)</td><td style='padding:4px 12px;color:#64748b;'><b>{r.SkippedDistrictMissing}</b></td></tr>
   <tr><td style='padding:4px 12px;'>Errors</td><td style='padding:4px 12px;color:#dc2626;'><b>{r.ErrorCount}</b></td></tr>
@@ -468,7 +468,7 @@ public class ClubSyncService : IClubSyncService
 {EmailService.EMAIL_FOOTER}";
 
             await emailService.SendEmailWithAttachmentAsync(toEmail, $"Rotary.org Sync Report — {DateTime.Now:dd MMM yyyy}", body, bytes, fileName, ccEmails);
-            _logger.LogInformation("🔑 [RI.org sync #{LogId}] report email sent — to={To} cc={CcCount}", r.LogId, toEmail, ccEmails.Count);
+            _logger.LogInformation("🔑 [RI.org sync #{LogId}] report email sent — to={To} cc={CcCount}", r.LogId, LogMask.Email(toEmail), ccEmails.Count);
         }
         catch (Exception ex)
         {

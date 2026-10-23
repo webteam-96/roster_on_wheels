@@ -127,7 +127,7 @@ export default function AgTrfPage() {
       {/* ── KPI tiles ─────────────────────────────────────────────────── */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
         <KpiCard
-          title="Total Giving (INR)"
+          title="Total Giving"
           value={fmtUsd(data.totals.totalInr)}
           subtitle="All TRF funds combined"
           icon={DollarSign}
@@ -362,7 +362,7 @@ export default function AgTrfPage() {
                   ["PolioPlus", "polio"],
                   ["Endowment", "endowment"],
                   ["Other Funds", "other"],
-                  ["Total (INR)", "total"],
+                  ["Total", "total"],
                 ] as Array<[string, SortField]>).map(([label, field], i) => (
                   <th
                     key={field}

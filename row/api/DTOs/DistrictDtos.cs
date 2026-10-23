@@ -11,6 +11,8 @@ public class DistrictListDto
     public string? ZoneName { get; set; }
     public string? Country { get; set; }
     public string? DefaultCurrency { get; set; }
+    /// <summary>IANA time zone (N12); null = the brand's zone.</summary>
+    public string? Timezone { get; set; }
     public int TotalClubs { get; set; }
     public int TotalMembers { get; set; }
 }
@@ -29,6 +31,8 @@ public class DistrictDetailDto
     public string? ZoneName { get; set; }
     public string? Country { get; set; }
     public string? DefaultCurrency { get; set; }
+    /// <summary>IANA time zone (N12); null = the brand's zone.</summary>
+    public string? Timezone { get; set; }
     public int TotalClubs { get; set; }
     public int TotalMembers { get; set; }
 }
@@ -41,6 +45,8 @@ public class CreateDistrictDto
     public int? FkZoneId { get; set; }
     public string? Country { get; set; } = "India";
     public string? DefaultCurrency { get; set; }
+    /// <summary>IANA time zone (N12); null = the brand's zone.</summary>
+    public string? Timezone { get; set; }
 }
 
 public class UpdateDistrictDto
@@ -51,6 +57,8 @@ public class UpdateDistrictDto
     public int? FkZoneId { get; set; }
     public string? Country { get; set; } = "India";
     public string? DefaultCurrency { get; set; }
+    /// <summary>IANA time zone (N12); null = the brand's zone.</summary>
+    public string? Timezone { get; set; }
 }
 
 public class UpdateDistrictCurrencyDto

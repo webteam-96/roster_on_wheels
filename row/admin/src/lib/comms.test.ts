@@ -1,7 +1,15 @@
 import { describe, expect, it } from "vitest";
-import { currentMonth, deliveryLabel, isLanguageCode, isTemplateKey, rate } from "./comms";
+import { currentMonth, deliveryLabel, isGivingUrl, isLanguageCode, isTemplateKey, rate } from "./comms";
 
 describe("comms rules", () => {
+  it("accepts the Foundation giving links the server accepts", () => {
+    expect(isGivingUrl("https://my.rotary.org/en/donate")).toBe(true);
+    for (const bad of ["http://example.org/give", "javascript:alert(1)", "https://example.org/a b", "/give",
+      "https://user:secret@example.org/give", `https://example.org/${"a".repeat(490)}`, "https://localhost/give"]) {
+      expect(isGivingUrl(bad)).toBe(false);
+    }
+  });
+
   it("accepts the template keys and language codes the server accepts", () => {
     expect(isTemplateKey("newsletter-oct_2026")).toBe(true);
     expect(isTemplateKey("Bad Key")).toBe(false);

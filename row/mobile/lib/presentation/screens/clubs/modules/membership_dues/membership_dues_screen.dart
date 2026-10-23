@@ -2361,7 +2361,7 @@ class DuesOfflinePaymentDialogState extends State<DuesOfflinePaymentDialog> {
   /// Fee slots worth showing in the picker: a disabled slot reports a 0 amount
   /// and a fully-paid slot reports a 0 balance, so `due > 0` is the same signal
   /// that drives the default selection in [initState] — this just hides the
-  /// bogus "Semi 1 (INR 0)" rows for clubs that don't use that slot (or already
+  /// bogus "Semi 1 ($0)" rows for clubs that don't use that slot (or already
   /// paid it). Falls back to all three if none qualify so the dropdown is never
   /// empty. Design is unchanged — only which options appear.
   List<int> get _payableFeeTypes {
@@ -2391,11 +2391,11 @@ class DuesOfflinePaymentDialogState extends State<DuesOfflinePaymentDialog> {
     final semi2Due = (m['semi2Balance'] ?? m['semi2BaseAmount']) as num?;
     switch (t) {
       case 1:
-        return 'Annual${annualDue != null ? ' (INR ${_offlineAmount(annualDue)})' : ''}';
+        return 'Annual${annualDue != null ? ' (${formatMoney(_offlineAmount(annualDue), null)})' : ''}';
       case 2:
-        return 'Semi 1${semi1Due != null ? ' (INR ${_offlineAmount(semi1Due)})' : ''}';
+        return 'Semi 1${semi1Due != null ? ' (${formatMoney(_offlineAmount(semi1Due), null)})' : ''}';
       case 3:
-        return 'Semi 2${semi2Due != null ? ' (INR ${_offlineAmount(semi2Due)})' : ''}';
+        return 'Semi 2${semi2Due != null ? ' (${formatMoney(_offlineAmount(semi2Due), null)})' : ''}';
       default:
         return 'Fee $t';
     }
@@ -2446,7 +2446,7 @@ class DuesOfflinePaymentDialogState extends State<DuesOfflinePaymentDialog> {
                         if (widget.member['pendingTransactionType'] != null)
                           _pendingInfoRow('Mode', widget.member['pendingTransactionType'].toString()),
                         if (widget.member['pendingAmount'] != null)
-                          _pendingInfoRow('Amount', 'INR ${widget.member['pendingAmount']}'),
+                          _pendingInfoRow('Amount', formatMoney(num.tryParse('${widget.member['pendingAmount']}'), null)),
                         if (widget.member['pendingTransactionId'] != null &&
                             widget.member['pendingTransactionId'].toString().isNotEmpty)
                           _pendingInfoRow('Txn ID', widget.member['pendingTransactionId'].toString()),

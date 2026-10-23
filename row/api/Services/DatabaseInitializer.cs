@@ -351,6 +351,8 @@ public partial class DatabaseInitializer
                 // freeform Country text above, which is unreliable — see CurrencyHelper.cs). NULL means
                 // "not yet configured" — frontend falls back to the old country-based guess for these.
                 await AddColumnIfNotExists(connection, "district_master", "DefaultCurrency", "VARCHAR(5) NULL AFTER Country");
+                // N12: the district's IANA time zone; NULL = the brand's zone (ZoneTime).
+                await AddColumnIfNotExists(connection, "district_master", "Timezone", "VARCHAR(64) NULL AFTER DefaultCurrency");
 
                 // Default every district to the brand's currency (the SuperAdmin manages exceptions
                 // from Settings → Currency). Idempotent: only touches NULLs, so a
@@ -5181,6 +5183,10 @@ public partial class DatabaseInitializer
                 await EnsureGrantTablesAsync(connection);
                 // Volunteers and speakers (ROW build spec 3.13): tables in DatabaseInitializer.Volunteers.cs.
                 await EnsureVolunteerTablesAsync(connection);
+                // Escalation ladder, target celebration, Foundation giving link: DatabaseInitializer.Escalation.cs.
+                await EnsureEscalationCelebrationSchemaAsync(connection);
+                // Planning mode and cut-over (ROW build spec 3.1): DatabaseInitializer.Planning.cs.
+                await EnsurePlanningTablesAsync(connection);
 
                 // Never reset any user's password on boot: passwords change only through
                 // explicit SuperAdmin reset flows.

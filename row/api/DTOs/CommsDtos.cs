@@ -14,6 +14,8 @@ public class CommSettingsDto
     public string? SenderFromName { get; set; }
     public string? SenderFromEmail { get; set; }
     public string? SenderReplyTo { get; set; }
+    /// <summary>District only: the Foundation giving link for {{foundation_link}} in greetings and milestone texts.</summary>
+    public string? FoundationGivingUrl { get; set; }
 }
 
 public class CommTemplateDto

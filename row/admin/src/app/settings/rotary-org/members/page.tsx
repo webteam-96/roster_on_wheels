@@ -345,10 +345,10 @@ export default function RotaryOrgMembersPage() {
         {!loading && data && (
           <>
             <div className="flex flex-wrap gap-2 items-center">
-              <Badge variant="secondary">India: {data.counts.ROW}</Badge>
+              <Badge variant="secondary">ROW: {data.counts.ROW}</Badge>
               <Badge variant="secondary">Rotary.org: {data.counts.rotaryOrg}</Badge>
               <Badge className="bg-green-100 text-green-800 border-green-300">Matched: {data.counts.matched}</Badge>
-              <Badge className="bg-yellow-100 text-yellow-800 border-yellow-300">Only India: {data.counts.onlyIndia}</Badge>
+              <Badge className="bg-yellow-100 text-yellow-800 border-yellow-300">Only ROW: {data.counts.onlyIndia}</Badge>
               <Badge className="bg-blue-100 text-blue-800 border-blue-300">Only Rotary.org: {data.counts.onlyOrg}</Badge>
               {data.lastFetchedUtc && (
                 <span className="text-xs text-muted-foreground ml-auto">
@@ -412,7 +412,7 @@ export default function RotaryOrgMembersPage() {
                                 <Field label="Business" value={indiaBusAddress} />
                               </div>
                             ) : (
-                              <span className="text-xs text-muted-foreground italic">,  not in India , </span>
+                              <span className="text-xs text-muted-foreground italic">,  not in ROW , </span>
                             )}
                           </TableCell>
                           <TableCell className="align-top">

@@ -303,7 +303,7 @@ public class DistrictAdminDashboardService : IDistrictAdminDashboardService
         }).ToList();
 
         // ── Wave 13A2 panels ────────────────────────────────────────────
-        // Per-fund INR totals (used by TRF goal panel).
+        // Per-fund totals in USD (used by TRF goal panel).
         var (annualInr, polioInr, endowInr, othersInr) = await ComputePerFundTotalsAsync(conn, districtId, resolvedYearId);
 
         var membershipGoal = await BuildMembershipGoalPanelAsync(conn, districtId, resolvedYearId, totalMembers, allClubStats);
@@ -359,7 +359,7 @@ public class DistrictAdminDashboardService : IDistrictAdminDashboardService
         //
         // Show EVERY active fund from trf_fund_master (LEFT JOIN so funds
         // with zero contributions this year still surface as a row with
-        // ₹0). trf_fund_master is a global admin-managed table (5 default
+        // 0). trf_fund_master is a global admin-managed table (5 default
         // funds seeded, admins can add more via TRF Settings) — the panel
         // must reflect the complete fund catalogue, not just what's been
         // contributed to. Order by SortOrder so the panel matches the
@@ -1115,6 +1115,8 @@ public class DistrictAdminDashboardService : IDistrictAdminDashboardService
         // Cached Rotary.org terminated members — fast (no live calls), populated by the
         // club-level live fetch and the district-wide batched refresh. This is now the
         // PRIMARY source for any club that's been refreshed at least once.
+        // Clubs match numerically, as in the query above: a CHAR cast takes the connection's collation, which can clash
+        // with the column's and fail the query.
         var cachedRows = (await conn.QueryAsync<dynamic>(@"
             SELECT t.pk_id AS id,
                    c.pk_club_id AS clubId, c.ClubName AS clubName,
@@ -1126,7 +1128,8 @@ public class DistrictAdminDashboardService : IDistrictAdminDashboardService
                    DATE_FORMAT(t.TerminationDate, '%Y-%m-%d') AS terminationDate,
                    COALESCE(t.TerminationReason, '') AS terminationReason
             FROM rotary_org_terminated_cache t
-            JOIN club_master c ON c.ClubRotaryId = CAST(t.fk_rotary_club_id AS CHAR) AND c.fk_district_id = @DistrictId AND c.isdeleted = 0
+            JOIN club_master c ON c.ClubRotaryId REGEXP '^[0-9]+$' AND CAST(c.ClubRotaryId AS UNSIGNED) = t.fk_rotary_club_id
+                              AND c.fk_district_id = @DistrictId AND c.isdeleted = 0
             WHERE (@ClubId IS NULL OR c.pk_club_id = @ClubId)
               AND (@Like IS NULL OR t.FirstName LIKE @Like OR t.LastName LIKE @Like OR t.LocalizedName LIKE @Like
                    OR t.TerminationReason LIKE @Like OR c.ClubName LIKE @Like)
@@ -2362,9 +2365,12 @@ public class DistrictAdminDashboardService : IDistrictAdminDashboardService
     {
         using var conn = CreateConnection();
         await conn.OpenAsync();
-        await EnsureDistrictAdminAsync(conn, memberId, dto.FkDistrictId);
+        // N7: the governor-elect (or district secretary / treasurer elect) sets the goals of the year being planned
+        if (!await PlanningAccess.ElectPlansYearAsync(conn, _connectionString, memberId, false, dto.FkDistrictId, dto.FkYearId))
+            await EnsureDistrictAdminAsync(conn, memberId, dto.FkDistrictId);
         if (dto.FkYearId <= 0)
             throw new ArgumentException("YearId is required.", nameof(dto));
+        await PlanningAccess.EnsureYearWritableAsync(conn, _connectionString, dto.FkDistrictId, dto.FkYearId);
 
         await conn.ExecuteAsync(@"
             INSERT INTO district_membership_goal
@@ -2435,9 +2441,11 @@ public class DistrictAdminDashboardService : IDistrictAdminDashboardService
     {
         using var conn = CreateConnection();
         await conn.OpenAsync();
-        await EnsureDistrictAdminAsync(conn, memberId, dto.FkDistrictId);
+        if (!await PlanningAccess.ElectPlansYearAsync(conn, _connectionString, memberId, false, dto.FkDistrictId, dto.FkYearId))
+            await EnsureDistrictAdminAsync(conn, memberId, dto.FkDistrictId);
         if (dto.FkYearId <= 0)
             throw new ArgumentException("YearId is required.", nameof(dto));
+        await PlanningAccess.EnsureYearWritableAsync(conn, _connectionString, dto.FkDistrictId, dto.FkYearId);
 
         await conn.ExecuteAsync(@"
             INSERT INTO district_foundation_goal
@@ -2552,6 +2560,9 @@ public class DistrictAdminDashboardService : IDistrictAdminDashboardService
         using var conn = CreateConnection();
         await conn.OpenAsync();
         if (clubId <= 0) return null;
+        // the club id comes from the query string: the same readers as /api/clubs/{id} (web and mobile routes)
+        if (!await ScopeWriteGuardMiddleware.ReadAllowedAsync(_connectionString, memberId, true, clubId))
+            throw new UnauthorizedAccessException("You do not have access to this club.");
         var resolvedYearId = await ResolveYearIdAsync(conn, yearId);
         if (resolvedYearId == 0) return null;
 
@@ -2625,6 +2636,8 @@ public class DistrictAdminDashboardService : IDistrictAdminDashboardService
         using var conn = CreateConnection();
         await conn.OpenAsync();
         if (clubId <= 0) return null;
+        if (!await ScopeWriteGuardMiddleware.ReadAllowedAsync(_connectionString, memberId, true, clubId))
+            throw new UnauthorizedAccessException("You do not have access to this club.");
         var resolvedYearId = await ResolveYearIdAsync(conn, yearId);
         if (resolvedYearId == 0) return null;
 

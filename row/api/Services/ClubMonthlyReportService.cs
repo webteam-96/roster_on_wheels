@@ -773,7 +773,7 @@ public class ClubMonthlyReportService : IClubMonthlyReportService
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Failed to send report email to {Role}: {Email}", role, email);
+                _logger.LogError(ex, "Failed to send report email to {Role}: {Email}", role, LogMask.Email(email));
                 result.Warnings.Add($"Failed to send email to {role}: {name} ({email})");
             }
         }

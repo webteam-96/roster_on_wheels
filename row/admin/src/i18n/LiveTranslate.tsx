@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import { useLocaleControl } from "@/i18n/IntlProvider";
 import { isMachineTranslated } from "@/i18n/config";
+import { postTranslate } from "@/i18n/postTranslate";
 
 /**
  * Runtime UI translator for ANY world language.
@@ -59,11 +60,7 @@ export default function LiveTranslate() {
         if (cancelled) return;
         const chunk = miss.slice(i, i + 300);
         try {
-          const res = await fetch("/api/i18n/translate", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ target: locale, source: "en", q: chunk }),
-          });
+          const res = await postTranslate({ target: locale, source: "en", q: chunk });
           if (!res.ok) continue;
           const { translations } = (await res.json()) as { translations: string[] };
           chunk.forEach((orig, j) => { cache[orig] = translations?.[j] || orig; });

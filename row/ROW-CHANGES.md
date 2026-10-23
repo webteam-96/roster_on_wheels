@@ -386,3 +386,39 @@ SignalR hub, web moderation). Plans and open points: `docs/superpowers/plans/202
 
 Security fixes: the website price-change OTP is no longer returned in the API response outside Development
 (`ClubWebsitesController`); the Gemini API key moved from the URL to the `x-goog-api-key` header.
+
+## 2026-10-23 (part 2): security and read review, time zones, planning mode, escalation, rebranding
+
+Security and access (Phase 1):
+- Calendars: `GET /api/mobile/club-calendar/{id}` and `/district-calendar/{id}` use the read guard's rule (members and
+  managers of that club or district, SuperAdmin); they were open to any signed-in user.
+- Mass email: ids from another club or district answer 404; recipient sub groups and members must belong to the club or
+  district (400 otherwise); lists, details and recipients are for managers only; district edits keep their recipients.
+- Admin `/api/i18n/translate`: signed-in admins (token checked by the new `GET /api/auth/session`) get higher limits;
+  visitors get per-IP limits and a fixed daily budget of new characters. Email addresses are masked in every log line
+  (`Services/LogMask.cs`); `email_log` rows are unchanged.
+- Read review of every GET route outside `/api/clubs/{id}` and `/api/districts/{id}`: 758 routes reviewed, 77 fixed
+  (notes: `docs/superpowers/plans/2026-10-24-read-review-a-l.md` and `-m-z.md`). `ScopeWriteGuardMiddleware
+  .ReadAllowedAsync` is shared (optional managers-only mode).
+- Guards: a member registers only their own push device token; module master writes are SuperAdmin-only; club id 0
+  no longer passes club writes for district Admin rows.
+- Admin crawl findings F1-F6 fixed in shared code (no calls to switched-off modules, no club id 1 default, AG pages for
+  AGs, session drops). The older e2e scripts take `<api> <port> <db>` and sign JWTs (no demo logins).
+
+New (Phase 2), each switched off until a SuperAdmin turns it on unless noted:
+- Time zones (N12, platform behaviour): `district_master.Timezone` (IANA, edited on the district pages next to the
+  currency); `Services/ZoneTime.cs` gives each district's local now/today; greetings, District Performance Report, invite
+  prompts, milestones, meeting reminders and iCal, volunteer reminders and the target dashboard use the district's
+  zone. The GreetingsWorker Task Scheduler job now runs hourly: re-import its XML on the server. App dates follow the
+  device locale.
+- Planning mode (N7, flag `planning_mode`): a SuperAdmin starts planning for a district; elect roles (DGE, district
+  secretary and treasurer elect, PE and SE per club) edit only the year being planned; DGE invitations by email;
+  `/planning` workspace and launchpad; cut-over (1 July by default, runnable earlier) makes next year current and
+  queues the RI steps in an outbound table (stubbed); edition auto-provisioning of Club Basic and Rotaract; trials.
+- Escalation ladder (#32, flag `escalation`): missed targets or meeting rules alert the president, then the AG, then
+  the DG after district-set delays; every alert logged. Target celebration (#35, flag `celebration`): once per target,
+  feed message, DG note and a spotlight card for approval. Per-district Foundation giving link in greetings and
+  milestones. Draft DPA page linked from tenant onboarding and the footer (legal review required).
+- Rebranding from `row/website`: favicon and icons, email and document palette, money labels follow the brand or
+  district currency (no INR / "Rs." in labels), India copy removed from the about page and sync badges, app launcher
+  icon and splash. Payment screens and legal pages keep India text until Stripe and legal review.

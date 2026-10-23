@@ -95,6 +95,12 @@ public class AuthController : ControllerBase
         }
     }
 
+    /// <summary>204 while the caller's token is valid. The admin's own server routes (app/api/i18n/translate) use it
+    /// to tell signed-in callers from visitors without holding the JWT secret.</summary>
+    [Authorize]
+    [HttpGet("session")]
+    public ActionResult Session() => NoContent();
+
     [Authorize]
     [HttpPost("logout")]
     public ActionResult Logout()

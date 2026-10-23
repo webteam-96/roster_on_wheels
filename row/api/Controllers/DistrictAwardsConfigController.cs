@@ -159,11 +159,11 @@ public class DistrictAwardsConfigController : ControllerBase
             var subject = $"District {districtNumber} — Award club points cleared (RY {yearLabel})";
             var body =
                 EmailService.EMAIL_HEADER +
-                $"<h2 style='color:#1a365d;margin-top:0;'>District Awards — Club Points Cleared</h2>" +
+                $"<h2 style='color:#17458F;margin-top:0;'>District Awards — Club Points Cleared</h2>" +
                 $"<p>Dear Sir/Madam,</p>" +
                 $"<p>The District Awards club points for <strong>District {districtNumber}</strong>, Rotary Year <strong>{yearLabel}</strong> " +
                 $"were cleared by a SuperAdmin on <strong>{DateTime.Now:dd MMM yyyy, hh:mm tt}</strong>.</p>" +
-                $"<div style='background-color:#f7fafc;border:1px solid #e2e8f0;border-radius:8px;padding:16px;margin:16px 0;'>" +
+                $"<div style='background-color:#F7F9FC;border:1px solid #D5DEE8;border-radius:8px;padding:16px;margin:16px 0;'>" +
                 $"<p style='margin:0;'><strong>{liveCount}</strong> point entr{(liveCount == 1 ? "y was" : "ies were")} cleared.</p>" +
                 $"<p style='margin:8px 0 0;'>The full detail (club name, category, question / criteria, answer and points) is attached as an Excel file for your records.</p>" +
                 $"</div>" +

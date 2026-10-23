@@ -45,6 +45,7 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 import SearchBox from "@/components/SearchBox";
 
 import { appLocale } from "@/lib/appFormat";
+import { formatMoney } from "@/lib/currency";
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
 export default function OcvCategoryPage() {
@@ -519,7 +520,7 @@ export default function OcvCategoryPage() {
                         {isDuesCategory && (
                           <>
                             <TableCell>
-                              {doc.amount != null ? `Rs. ${doc.amount.toLocaleString(appLocale())}` : "-"}
+                              {doc.amount != null ? formatMoney(doc.amount) : "-"}
                             </TableCell>
                             <TableCell>
                               {doc.paidOn

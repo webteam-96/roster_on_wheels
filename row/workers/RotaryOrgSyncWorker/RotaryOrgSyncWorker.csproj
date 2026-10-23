@@ -35,5 +35,7 @@
   <ItemGroup>
     <!-- ROW instance brand, shared with the API (Brand section / Brand__* environment variables). -->
     <Compile Include="../../api/Services/Brand.cs" Link="Brand.cs" />
+    <!-- Masks email addresses in log lines (same code as the API). -->
+    <Compile Include="../../api/Services/LogMask.cs" Link="LogMask.cs" />
   </ItemGroup>
 </Project>

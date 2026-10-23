@@ -41,6 +41,10 @@ public class RotaryOrgProjectSyncController : ControllerBase
         if (projectId <= 0 || clubId <= 0)
             return BadRequest(new { message = "projectId and clubId are required." });
         var memberId = CurrentMemberId();
+        // only the club's managers may sync its projects (SuperAdmin always). Was: any signed-in user could mint a
+        // token for any club's project and mark it synced.
+        if (memberId is not > 0 || !await ScopeWriteGuardMiddleware.AllowedAsync(_conn, memberId.Value, true, clubId))
+            return StatusCode(403, new { message = "You do not manage this club." });
         var token = ProjectSyncToken.Generate(_config, projectId, clubId, memberId: memberId);
         await LogSyncEventAsync(null, projectId, clubId, "sync_clicked", memberId);
         return Ok(new { token });

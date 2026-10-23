@@ -7,6 +7,7 @@ import DashboardShell from "@/components/dashboard/DashboardShell";
 import DashboardYearSelector from "@/components/dashboard/DashboardYearSelector";
 import DashboardYearFooterText from "@/components/dashboard/DashboardYearFooterText";
 import ClubAdminTopbarStatus from "@/components/dashboard/ClubAdminTopbarStatus";
+import PlanningBanner from "@/components/planning/PlanningBanner";
 import { useAuth } from "@/contexts/AuthContext";
 import { ClubAdminDashboardCacheProvider, useClubAdminCache } from "@/contexts/ClubAdminDashboardCacheContext";
 import { getClubDuesOfficerClubs } from "@/services/api";
@@ -101,6 +102,7 @@ function ClubAdminShell({ name, initials, title, showYearSelector, officerClubId
         </>
       }
     >
+      <PlanningBanner clubId={openClubId} />
       {children}
     </DashboardShell>
   );

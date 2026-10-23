@@ -250,5 +250,10 @@ public class DashboardResolverController : ControllerBase
         // never the landing (it is not in the landing chain above).
         if (includeGoal && rolesClaim.Contains("SuperAdmin"))
             available.Add(new DashboardEntry { Kind = "goal-oversight", Route = "/goal-overviews", Label = "Goal Overview" });
+
+        // N7: an active elect role in a planning district opens the planning workspace (web only). It is the landing
+        // only for a member with no other dashboard (available[0] above).
+        if (includeGoal && await RotaryApi.Services.PlanningAccess.IsElectAsync(connection, _connectionString, memberId))
+            available.Add(new DashboardEntry { Kind = "planning", Route = "/planning", Label = "Planning" });
     }
 }

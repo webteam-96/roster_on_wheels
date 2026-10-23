@@ -410,7 +410,7 @@ export default function DistrictAdminOverviewPage() {
 
   // Fund-Type breakdown (dynamic — every active fund in trf_fund_master
   // aggregated across every club in the district for the selected year).
-  // Show ALL funds even at ₹0 so admins can see which funds are unused.
+  // Show ALL funds even at zero so admins can see which funds are unused.
   const fundRows = data.fundTypeBreakdown ?? [];
   const fundRowMax = Math.max(1, ...fundRows.map(r => r.amountInr ?? 0));
   const fundTotal = fundRows.reduce((s, r) => s + (r.amountInr ?? 0), 0);

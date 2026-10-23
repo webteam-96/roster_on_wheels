@@ -84,7 +84,7 @@ public class GrantNotificationEmailBackgroundService : BackgroundService
         var page = r.Side == GrantService.DistrictSide ? "district-admin-dashboard" : "club-admin-dashboard";
         var link = _frontendUrl.Length == 0 ? "" :
             $"<p><a href=\"{E($"{_frontendUrl}/{page}/grants/{r.ApplicationId}")}\">Open the application in {E(Brand.ProductName)}</a></p>";
-        return $@"<div style=""font-family:Arial,Helvetica,sans-serif;font-size:15px;color:#1f2937;line-height:1.6;max-width:640px"">
+        return $@"<div style=""font-family:Figtree, Arial,Helvetica,sans-serif;font-size:15px;color:#1B2C42;line-height:1.6;max-width:640px"">
 <p>Dear {E(r.Name)},</p>
 <p><strong>{E(r.Title)}</strong></p>
 <p>{E(r.Body)}</p>

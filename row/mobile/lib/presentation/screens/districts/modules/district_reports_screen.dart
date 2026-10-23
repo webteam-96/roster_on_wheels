@@ -581,7 +581,7 @@ class _DistrictReportsScreenState extends State<DistrictReportsScreen> {
                 )),
       // Club Dues — one row per club, each dues type as Yes/No + Date (Excel),
       // pivoted from the payload's `duesReport`. Club-filterable like the web.
-      _Sec('CLUBS', 'Club Dues', Icons.currency_rupee_rounded,
+      _Sec('CLUBS', 'Club Dues', Icons.payments_rounded,
           cols: _duesCols(), rows: _duesRows(), file: 'Club_Dues',
           filters: const ['club']),
       _Sec('CLUBS', 'Club Monthly Report (Project Details)', Icons.assessment_outlined,

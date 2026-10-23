@@ -23,8 +23,8 @@ class ProjectModel {
   final String? clubRole;
   final bool isActive;
   final String? createdAt;
-  // ISO currency code the projectCost is denominated in (INR/LKR/NPR/USD).
-  // The backend now stamps this per project row (default INR).
+  // ISO currency code the projectCost is denominated in (one of the brand's currencies).
+  // The backend stamps this per project row (default: the brand currency).
   final String? currency;
 
   const ProjectModel({

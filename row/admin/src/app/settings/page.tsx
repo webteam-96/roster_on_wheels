@@ -259,7 +259,7 @@ const settingsCards: SettingsCard[] = [
   },
   {
     title: "Currency",
-    description: "Set each district's default currency for project-add forms: every district defaults to INR",
+    description: "Set each district's default currency for project-add forms; a district without one uses the instance currency",
     icon: BadgeDollarSign,
     href: "/settings/currency",
   },

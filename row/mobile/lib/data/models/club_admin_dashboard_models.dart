@@ -8,11 +8,12 @@
 /// Conventions confirmed against the backend DTOs:
 ///  • all JSON property names are camelCase;
 ///  • percent fields are 0–100;
-///  • TRF / foundation amounts are INR (already rupees — no ×84 here);
+///  • TRF / foundation amounts are USD (stored and served in USD, no conversion);
 ///  • date fields are `"yyyy-MM-dd"` strings (or null / "").
 library;
 
 import 'dart:math' as math;
+import '../../core/brand/brand.dart';
 import 'club_overview_models.dart';
 
 // ── primitive parsers ──────────────────────────────────────────────────────
@@ -109,7 +110,7 @@ class ClubAdminOverview {
   final int terminatedThisYear;
   final double avgAttendance; // %
 
-  // TRF (all INR)
+  // TRF (USD)
   final double trfRaisedInr;
   final double trfGoalInr;
   final double trfAnnualFundInr;
@@ -579,7 +580,7 @@ class ClubFundMetric {
 }
 
 /// Parsed `GET /foundation` response — this club's actual fund collections
-/// (all INR). No national rank/average/benchmark data is provided by the API.
+/// (USD). No national rank/average/benchmark data is provided by the API.
 class ClubAdminFoundation {
   final String clubName;
   final String yearLabel;
@@ -701,7 +702,7 @@ class FoundationGoal {
         polioPlusGoal: _d(j['polioPlusGoal']),
         endowmentFundGoal: _d(j['endowmentFundGoal']),
         otherGoal: _d(j['otherGoal']),
-        currency: _s(j['currency']).isEmpty ? 'INR' : _s(j['currency']),
+        currency: _s(j['currency']).isEmpty ? Brand.current.defaultCurrency : _s(j['currency']),
         remarks: _sn(j['remarks']),
         isEditable: j['isEditable'] == true,
         isCurrent: j['isCurrent'] == true,
@@ -868,7 +869,7 @@ class ServiceProjectsOverview {
       totalManHours: _i(kpis['totalManHours']),
       meetingsHeld: _i(kpis['meetingsHeld']),
       targetCurrency:
-          _s(j['targetCurrency']).isEmpty ? 'INR' : _s(j['targetCurrency']),
+          _s(j['targetCurrency']).isEmpty ? Brand.current.defaultCurrency : _s(j['targetCurrency']),
       avenues: _list(j['avenues']).map(SpAvenueSummary.fromJson).toList(),
     );
   }
@@ -976,7 +977,7 @@ class SpProject {
         title: _s(j['title']),
         type: _s(j['type']),
         cost: _d(j['cost']),
-        currency: _s(j['currency']).isEmpty ? 'INR' : _s(j['currency']),
+        currency: _s(j['currency']).isEmpty ? Brand.current.defaultCurrency : _s(j['currency']),
         beneficiaries: _i(j['directBeneficiaries']),
         manHours: _i(j['manHours']),
         isJoint: j['isJointProject'] == true,
@@ -1023,7 +1024,7 @@ class ServiceProjectsAvenueDetail {
             j['selectedYearId'] == null ? null : _i(j['selectedYearId']),
         years: _list(j['availableYears']).map(DashYear.fromJson).toList(),
         targetCurrency:
-            _s(j['targetCurrency']).isEmpty ? 'INR' : _s(j['targetCurrency']),
+            _s(j['targetCurrency']).isEmpty ? Brand.current.defaultCurrency : _s(j['targetCurrency']),
         kpis: SpAvenueKpis.fromJson(
             (j['kpis'] as Map?)?.cast<String, dynamic>() ?? const {}),
         meetings: _list(j['meetings']).map(SpMeeting.fromJson).toList(),

@@ -31,10 +31,18 @@ public class MobileDistrictAwardsController : ControllerBase
 
     private MySqlConnection Conn() => new(_connectionString);
 
+    // Same rule as the web district-modules citation routes this mirrors: members and managers of the district.
+    // Was: any signed-in user could read any district's awards.
+    private async Task<bool> CanReadAsync(int districtId) =>
+        int.TryParse(User.FindFirst("memberId")?.Value, out var me) && me > 0
+        && await ScopeWriteGuardMiddleware.ReadAllowedAsync(_connectionString, me, false, districtId);
+
     // ── Categories ──────────────────────────────────────────────────────
     [HttpGet("districts/{districtId}/awards/categories")]
     public async Task<ActionResult> GetCategories(int districtId, [FromQuery] int? yearId)
     {
+        if (!await CanReadAsync(districtId))
+            return StatusCode(403, new { message = "You do not have access to this district." });
         if (!await KillSwitchHelper.IsDistrictDrillReachableAsync(_connectionString, districtId))
             return StatusCode(403, new { message = "This district or its zone is inactive." });
         using var conn = Conn();
@@ -54,6 +62,8 @@ public class MobileDistrictAwardsController : ControllerBase
     [HttpGet("districts/{districtId}/awards/description")]
     public async Task<ActionResult> GetDescription(int districtId, [FromQuery] int yearId)
     {
+        if (!await CanReadAsync(districtId))
+            return StatusCode(403, new { message = "You do not have access to this district." });
         if (!await KillSwitchHelper.IsDistrictDrillReachableAsync(_connectionString, districtId))
             return StatusCode(403, new { message = "This district or its zone is inactive." });
         using var conn = Conn();
@@ -69,6 +79,8 @@ public class MobileDistrictAwardsController : ControllerBase
     [HttpGet("districts/{districtId}/awards/auto-questions")]
     public async Task<ActionResult> GetAutoQuestions(int districtId, [FromQuery] int? yearId)
     {
+        if (!await CanReadAsync(districtId))
+            return StatusCode(403, new { message = "You do not have access to this district." });
         if (!await KillSwitchHelper.IsDistrictDrillReachableAsync(_connectionString, districtId))
             return StatusCode(403, new { message = "This district or its zone is inactive." });
         using var conn = Conn();
@@ -120,6 +132,8 @@ public class MobileDistrictAwardsController : ControllerBase
     [HttpGet("districts/{districtId}/awards/manual-questions")]
     public async Task<ActionResult> GetManualQuestions(int districtId, [FromQuery] int? yearId)
     {
+        if (!await CanReadAsync(districtId))
+            return StatusCode(403, new { message = "You do not have access to this district." });
         if (!await KillSwitchHelper.IsDistrictDrillReachableAsync(_connectionString, districtId))
             return StatusCode(403, new { message = "This district or its zone is inactive." });
         using var conn = Conn();
@@ -173,6 +187,8 @@ public class MobileDistrictAwardsController : ControllerBase
     [HttpGet("districts/{districtId}/awards/club-points")]
     public async Task<ActionResult> GetClubPoints(int districtId, [FromQuery] int yearId)
     {
+        if (!await CanReadAsync(districtId))
+            return StatusCode(403, new { message = "You do not have access to this district." });
         if (!await KillSwitchHelper.IsDistrictDrillReachableAsync(_connectionString, districtId))
             return StatusCode(403, new { message = "This district or its zone is inactive." });
         using var conn = Conn();

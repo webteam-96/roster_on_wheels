@@ -10,7 +10,8 @@ namespace RotaryApi.Controllers;
 /// Engagement (build list #26-#28, flag engagement): highlights of membership milestones and new Paul Harris Fellows
 /// for a club or district (read by its members: the bulletin, greetings and the app pull them), the spotlight card
 /// queue (pending, approved, rejected) with the card image for the admins of the event's club or district, and the
-/// district settings (milestone years, Governor message). EngagementService records the events.
+/// district settings (milestone years, Governor message). EngagementService records the events; CelebrationService
+/// adds TARGET rows (a club reached a target, B.1 #35), which show here with the club in place of a member.
 /// </summary>
 [ApiController]
 [Authorize]
@@ -50,8 +51,9 @@ public class EngagementController : ControllerBase
         public int Id { get; set; }
         public string Type { get; set; } = "";
         public int Level { get; set; }
-        public int MemberId { get; set; }
+        public int? MemberId { get; set; }
         public string MemberName { get; set; } = "";
+        public string? TargetKey { get; set; }
         public int ClubId { get; set; }
         public string? ClubName { get; set; }
         public int DistrictId { get; set; }
@@ -63,19 +65,22 @@ public class EngagementController : ControllerBase
         public DateTime? CardDecidedDate { get; set; }
     }
 
-    // Erased members drop out, and so does a PHF highlight whose designation was removed.
+    // Erased members drop out, and so does a PHF highlight whose designation was removed. A TARGET row (target
+    // celebration, CelebrationService) belongs to the club: it has no member and shows the club's name instead.
     private static readonly string SelectRows = $@"
         SELECT e.pk_engagement_event_id AS Id, e.event_type AS Type, e.level AS Level,
-               e.fk_member_master_profile_id AS MemberId, m.MemberName, e.fk_club_id AS ClubId, c.ClubName,
+               e.fk_member_master_profile_id AS MemberId, COALESCE(m.MemberName, c.ClubName, '') AS MemberName,
+               e.target_key AS TargetKey, e.fk_club_id AS ClubId, c.ClubName,
                e.fk_district_id AS DistrictId, dm.DistrictNumber, {MobileNotificationFeedService.ProfilePhotoCase} AS PhotoUrl,
                e.occurred_on AS OccurredOn, e.created_date AS CreatedDate, e.card_status AS CardStatus,
                e.card_decided_date AS CardDecidedDate
         FROM engagement_events e
-        JOIN member_master_profile m ON m.pk_member_master_profile_id = e.fk_member_master_profile_id AND m.isdeleted = 0
+        LEFT JOIN member_master_profile m ON m.pk_member_master_profile_id = e.fk_member_master_profile_id AND m.isdeleted = 0
         LEFT JOIN club_master c ON c.pk_club_id = e.fk_club_id
         LEFT JOIN district_master dm ON dm.pk_district_id = e.fk_district_id
         LEFT JOIN member_foundation_designations d ON d.pk_member_designation_id = e.fk_designation_id
-        WHERE (e.fk_designation_id IS NULL OR d.isdeleted = 0)";
+        WHERE (m.pk_member_master_profile_id IS NOT NULL OR e.event_type = 'TARGET')
+          AND (e.fk_designation_id IS NULL OR d.isdeleted = 0)";
 
     private int CallerId() => int.TryParse(User.FindFirst("memberId")?.Value, out var id) ? id : 0;
 
@@ -90,8 +95,9 @@ public class EngagementController : ControllerBase
     {
         id = r.Id,
         type = r.Type,
-        label = EngagementService.Label(r.Type, r.Level),
-        text = EngagementService.Sentence(r.Type, r.Level, r.MemberName, r.ClubName),
+        label = r.Type == "TARGET" ? CelebrationService.Label(r.TargetKey) : EngagementService.Label(r.Type, r.Level),
+        text = r.Type == "TARGET" ? CelebrationService.Sentence(r.TargetKey, r.Level, r.ClubName)
+            : EngagementService.Sentence(r.Type, r.Level, r.MemberName, r.ClubName),
         memberId = r.MemberId,
         memberName = r.MemberName,
         clubId = r.ClubId,
@@ -166,12 +172,15 @@ public class EngagementController : ControllerBase
         var png = ProjectShareCardBuilder.Render(new ProjectShareCardData
         {
             Title = r.MemberName,
-            AreaOfFocus = EngagementService.Label(r.Type, r.Level),
+            AreaOfFocus = r.Type == "TARGET" ? CelebrationService.Label(r.TargetKey) : EngagementService.Label(r.Type, r.Level),
             ClubDisplayName = r.ClubName ?? "",
             DistrictNumber = r.DistrictNumber ?? "",
-            Summary = r.Type == "PHF"
-                ? $"Recognised by The Rotary Foundation as a {EngagementService.Label(r.Type, r.Level)}."
-                : $"Celebrating {r.Level} {(r.Level == 1 ? "year" : "years")} of Rotary membership. Thank you for your service.",
+            Summary = r.Type switch
+            {
+                "PHF" => $"Recognised by The Rotary Foundation as a {EngagementService.Label(r.Type, r.Level)}.",
+                "TARGET" => CelebrationService.Sentence(r.TargetKey, r.Level, r.ClubName) + " Thank you to every member.",
+                _ => $"Celebrating {r.Level} {(r.Level == 1 ? "year" : "years")} of Rotary membership. Thank you for your service.",
+            },
             FooterHost = Brand.PortalDomain.Length > 0 ? Brand.PortalDomain : Brand.ProductName,
             PhotoBytes = await CmrMediaLoader.LoadBytesAsync(_env, _config["Media:RedirectBaseUrl"], r.PhotoUrl),
             PanelLabel = "SPOTLIGHT",

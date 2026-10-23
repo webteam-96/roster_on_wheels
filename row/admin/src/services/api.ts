@@ -4,6 +4,7 @@ import { validateImagePhoto } from "@/utils/validateImagePhoto";
 import { fileTimestamp } from "@/lib/dateUtils";
 import { validateAndProcessUpload, UploadValidationError } from "@/lib/uploadValidate";
 import type { Override } from "@/i18n/messages";
+import { postTranslate } from "@/i18n/postTranslate";
 
 // ─── Project-wide upload caps ────────────────────────────────────────────────
 // Every upload* function below routes its incoming File through one of these
@@ -1467,6 +1468,11 @@ export interface TenantSubscription {
   platformFeePct: number | null;
   platformFeeFixed: number | null;
   feeWaiverUntil: string | null;
+  // read only (planning mode and trials, flag "planning_mode")
+  trialEnds?: string | null;
+  planningYearLabel?: string | null;
+  cutoverAt?: string | null;
+  cutoverDoneAt?: string | null;
 }
 export interface TenantDetail {
   subscription: TenantSubscription | null;
@@ -1491,6 +1497,43 @@ export async function setTenant(districtId: number, subscription: TenantSubscrip
 
 export async function applyTenantEdition(districtId: number): Promise<{ districtOn: number; districtOff: number; clubOn: number; clubOff: number }> {
   return (await api.post(`/api/tenants/${districtId}/apply-edition`)).data;
+}
+
+// ── Planning mode, elect access, cut-over and trials (api/Controllers/PlanningController.cs; flag "planning_mode") ──
+import type { AcceptedInvite, PlanningOverview, PlanningRole, PlanningState } from "@/types/planning";
+export async function startTenantTrial(districtId: number): Promise<{ trialEnds: string }> {
+  return (await api.post(`/api/tenants/${districtId}/trial`)).data;
+}
+export async function convertTenantTrial(districtId: number) {
+  return (await api.post(`/api/tenants/${districtId}/convert-trial`)).data;
+}
+export async function getPlanningState(scope: { districtId?: number; clubId?: number }): Promise<PlanningState> {
+  return (await api.get("/api/planning/state", { params: scope })).data;
+}
+export async function getMyPlanningRoles(): Promise<PlanningRole[]> {
+  return (await api.get("/api/planning/me")).data;
+}
+export async function getPlanningOverview(districtId: number): Promise<PlanningOverview> {
+  return (await api.get(`/api/planning/districts/${districtId}`)).data;
+}
+export async function startPlanning(districtId: number, dgeMemberId: number | null) {
+  return (await api.post(`/api/planning/districts/${districtId}/start`, { dgeMemberId })).data;
+}
+export async function appointPlanningRole(districtId: number, role: "DS" | "DT", memberId: number) {
+  return (await api.post(`/api/planning/districts/${districtId}/appointments`, { role, memberId })).data;
+}
+export async function invitePlanningRole(districtId: number, clubId: number, role: "PE" | "SE", memberId: number) {
+  return (await api.post(`/api/planning/districts/${districtId}/invites`, { clubId, role, memberId })).data;
+}
+export async function revokePlanningRole(districtId: number, roleId: number) {
+  await api.delete(`/api/planning/districts/${districtId}/roles/${roleId}`);
+}
+export async function runCutover(districtId: number): Promise<{ rolesActivated: number; officersQueued: number; primaryVendorQueued: number }> {
+  return (await api.post(`/api/planning/districts/${districtId}/cutover`)).data;
+}
+/** The accept link from the invitation email: no sign-in. */
+export async function acceptPlanningInvite(token: string): Promise<AcceptedInvite> {
+  return (await publicApi.post("/api/planning/invites/accept", { token })).data;
 }
 
 // ── String catalogue (ROW Wave 1, build spec item 3). Reading is public; writing is SuperAdmin only. ──
@@ -2992,6 +3035,11 @@ export async function getClubMembersForAttendance(clubId: number): Promise<ClubM
 export async function getMonthlyReportYears(clubId: number): Promise<ReportYear[]> {
   const response = await api.get(`/api/clubs/${clubId}/monthly-reports/years`);
   return response.data;
+}
+
+// TRF pages pick a year from the club's monthly-report years; with that module switched off, from every rotary year.
+export async function getTrfYears(clubId: number, monthlyReportOn: boolean): Promise<ReportYear[]> {
+  return monthlyReportOn ? getMonthlyReportYears(clubId) : getRotaryYears();
 }
 
 export async function getMonthlyReportMonths(clubId: number, yearId: number): Promise<MonthlyReportListItem[]> {
@@ -4765,10 +4813,11 @@ export async function removeCommitteeDocument(districtId: number, id: number): P
 export type SpotlightStatus = "pending" | "approved" | "rejected";
 export interface SpotlightCard {
   id: number;
-  type: "MILESTONE" | "PHF";
+  /** TARGET: the club reached a target (target celebration); the club stands in for the member. */
+  type: "MILESTONE" | "PHF" | "TARGET";
   label: string;
   text: string;
-  memberId: number;
+  memberId: number | null;
   memberName: string;
   clubId: number;
   clubName: string | null;
@@ -4804,6 +4853,48 @@ export async function saveEngagementSettings(
   districtId: number, body: { milestoneYears: number[]; governorMessage: string | null },
 ): Promise<EngagementSettings> {
   return (await api.put(`/api/districts/${districtId}/engagement/settings`, body)).data;
+}
+
+// ── Escalation alerts (B.1 #32, flag escalation): the district's rules and its alert log ──
+export type EscalationRule = "target" | "meetings";
+export type EscalationEmailStatus = "sent" | "no_email" | "no_recipient" | "opted_out";
+export interface EscalationRules {
+  /** red, or amber (amber or red); null: the target rule is off */
+  targetStatus: "red" | "amber" | null;
+  /** fire when a finished month has at least this many meetings fewer than required; null: off */
+  meetingShortfall: number | null;
+  agDelayDays: number;
+  dgDelayDays: number;
+}
+export interface EscalationSettings extends EscalationRules {
+  /** false: the rule waits for the Live target dashboard / Meetings module to be switched on */
+  targetRuleActive: boolean;
+  meetingRuleActive: boolean;
+}
+export interface EscalationAlert {
+  id: number;
+  clubId: number;
+  clubName: string | null;
+  rule: EscalationRule;
+  /** YYYY-MM */
+  period: string;
+  level: number;
+  role: string;
+  memberId: number | null;
+  recipientName: string | null;
+  reason: string;
+  emailStatus: EscalationEmailStatus;
+  createdDate: string;
+}
+
+export async function getEscalationSettings(districtId: number): Promise<EscalationSettings> {
+  return (await api.get(`/api/districts/${districtId}/escalation/settings`)).data;
+}
+export async function saveEscalationSettings(districtId: number, rules: EscalationRules): Promise<EscalationSettings> {
+  return (await api.put(`/api/districts/${districtId}/escalation/settings`, rules)).data;
+}
+export async function getEscalationAlerts(districtId: number, rule: EscalationRule | ""): Promise<EscalationAlert[]> {
+  return (await api.get(`/api/districts/${districtId}/escalation/alerts`, { params: rule ? { rule } : {} })).data;
 }
 
 // ── District Clubs View ───────────────────────────────────────────────
@@ -7045,6 +7136,8 @@ export interface CommSettings {
   senderFromName: string | null;
   senderFromEmail: string | null;
   senderReplyTo: string | null;
+  /** District only: the Foundation giving link that {{foundation_link}} fills in greetings and milestone texts. */
+  foundationGivingUrl: string | null;
 }
 
 export interface CommTemplate {
@@ -7171,11 +7264,7 @@ export async function getCommOptOuts(scope: CommsScope, id: number): Promise<Com
 
 /** Machine translation through the admin's own route (app/api/i18n/translate); untranslatable text comes back as is. */
 export async function machineTranslate(target: string, texts: string[]): Promise<string[]> {
-  const res = await fetch("/api/i18n/translate", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ target, source: "en", q: texts }),
-  });
+  const res = await postTranslate({ target, source: "en", q: texts });
   if (!res.ok) throw new Error("Translation failed");
   return (await res.json()).translations;
 }

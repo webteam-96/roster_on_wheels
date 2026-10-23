@@ -1,28 +1,34 @@
 """Member edits and district-modules writes are scoped (2026-10-21).
 
-    python kb/tools/member_scope_e2e.py [api_base] [mysql_port]
-Dev database only. Gives samuel.tubman@monrovia.demo (club admin of the first demo club) a random password through
-the normal reset flow, then checks that he can edit a member of his club but not a member of another club, and
-that he cannot change district citation settings. Nothing is written to a record: refused calls stop before saving,
-and the allowed edit sends the member's own values back.
+    python -I kb/tools/member_scope_e2e.py <api_base> <mysql_port> <database>
+JWT secret from ROW_E2E_JWT_SECRET (the API must be started with the same JwtSettings__Secret). A club admin is picked
+by query. Checks that he can edit a member of his club but not a member of another club, and that he cannot change
+district citation settings. Nothing is written: the allowed edit sends an email address another active member already
+uses, so it gets past the scope check and stops at the duplicate check (409) before saving; refused calls stop before
+saving too. Local copies only, never production.
 """
-import json
-import secrets
-import subprocess
-import sys
-import urllib.error
-import urllib.request
+import base64, hashlib, hmac, json, os, subprocess, sys, time, urllib.error, urllib.request
 
-API = sys.argv[1] if len(sys.argv) > 1 else "http://localhost:5000"
-PORT = sys.argv[2] if len(sys.argv) > 2 else "3317"
+API, PORT, DB = sys.argv[1].rstrip('/'), sys.argv[2], sys.argv[3]
+SECRET = os.environ['ROW_E2E_JWT_SECRET']
 MYSQL = r"C:\Program Files\MySQL\MySQL Server 8.4\bin\mysql.exe"
-ADMIN = "samuel.tubman@monrovia.demo"
 fails = 0
 
 
 def sql(q):
-    return subprocess.run([MYSQL, "-uroot", "-h127.0.0.1", f"-P{PORT}", "row_local", "-N", "-e", q],
+    return subprocess.run([MYSQL, "-uroot", "-h127.0.0.1", f"-P{PORT}", DB, "-N", "-e", q],
                           capture_output=True, text=True, check=True).stdout.strip()
+
+
+def b64(b):
+    return base64.urlsafe_b64encode(b).rstrip(b'=').decode()
+
+
+def sign(member_id, roles):
+    body = {"memberId": str(member_id), "name": "e2e", "email": "e2e@example.org", "roles": roles,
+            "iss": "JwtIssuer", "aud": "JwtAudience", "exp": int(time.time()) + 600}
+    signing = f"{b64(json.dumps({'alg': 'HS256', 'typ': 'JWT'}).encode())}.{b64(json.dumps(body).encode())}"
+    return f"{signing}.{b64(hmac.new(SECRET.encode(), signing.encode(), hashlib.sha256).digest())}"
 
 
 def call(method, path, body=None, token=None):
@@ -44,29 +50,27 @@ def check(name, ok, detail=""):
     print(("PASS " if ok else "FAIL ") + name + ("" if ok else f"  -> {detail}"))
 
 
-mid = int(sql(f"SELECT pk_member_master_profile_id FROM member_master_profile WHERE EmailId='{ADMIN}' AND isdeleted=0"))
-club = int(sql(f"SELECT fk_club_id FROM member_roles WHERE fk_member_master_profile_id={mid} AND fk_role_id=2 AND IsActive=1 AND isdeleted=0 AND fk_club_id>0 LIMIT 1"))
+ACTIVE = "cm.IsActive=1 AND cm.isdeleted=0"
+mid, club = [int(x) for x in sql("SELECT fk_member_master_profile_id, fk_club_id FROM member_roles WHERE fk_role_id=2 AND IsActive=1 "
+                                  "AND isdeleted=0 AND fk_club_id>0 ORDER BY 1 LIMIT 1").split()]
 district = int(sql(f"SELECT fk_district_id FROM club_master WHERE pk_club_id={club}"))
-own = sql(f"SELECT cm.fk_member_master_profile_id FROM club_members cm WHERE cm.fk_club_id={club} AND cm.IsActive=1 AND cm.isdeleted=0 "
-          f"AND cm.fk_member_master_profile_id<>{mid} LIMIT 1")
-other = sql(f"SELECT cm.fk_member_master_profile_id FROM club_members cm WHERE cm.IsActive=1 AND cm.isdeleted=0 AND cm.fk_member_master_profile_id<>{mid} "
-            f"AND cm.fk_member_master_profile_id NOT IN (SELECT fk_member_master_profile_id FROM club_members WHERE fk_club_id={club} AND IsActive=1 AND isdeleted=0) LIMIT 1")
+own = int(sql(f"SELECT cm.fk_member_master_profile_id FROM club_members cm WHERE cm.fk_club_id={club} AND {ACTIVE} "
+              f"AND cm.fk_member_master_profile_id<>{mid} LIMIT 1"))
+other = int(sql(f"SELECT cm.fk_member_master_profile_id FROM club_members cm WHERE {ACTIVE} AND cm.fk_member_master_profile_id<>{mid} "
+                f"AND cm.fk_member_master_profile_id NOT IN (SELECT fk_member_master_profile_id FROM club_members WHERE fk_club_id={club} "
+                "AND IsActive=1 AND isdeleted=0) LIMIT 1"))
+# an email another active member already uses: the duplicate check refuses it after the scope check, before any save
+taken = sql(f"SELECT m.EmailId FROM member_master_profile m JOIN club_members cm ON cm.fk_member_master_profile_id=m.pk_member_master_profile_id "
+            f"AND {ACTIVE} WHERE m.isdeleted=0 AND m.EmailId LIKE '%@%' AND m.pk_member_master_profile_id NOT IN ({own}, {mid}) "
+            f"AND LOWER(m.EmailId) <> (SELECT LOWER(IFNULL(EmailId,'')) FROM member_master_profile WHERE pk_member_master_profile_id={own}) LIMIT 1")
+admin = sign(mid, "Admin")
 
-password = "Row-" + secrets.token_urlsafe(12) + "9a"
-call("POST", "/api/mobile/auth/forgot-password", {"email": ADMIN})
-tok = sql(f"SELECT Token FROM password_reset_tokens WHERE fk_member_master_profile_id={mid} ORDER BY created_date DESC LIMIT 1")
-call("POST", "/api/auth/reset-password", {"token": tok, "newPassword": password, "confirmPassword": password})
-admin = call("POST", "/api/auth/login", {"email": ADMIN, "password": password})[1].get("token", "")
-check("the club admin signs in", bool(admin))
-
-if own:
-    s, m = call("GET", f"/api/members/{own}", token=admin)
-    s, b = call("PUT", f"/api/members/{own}", m, admin)
-    check("a club admin edits a member of their club", s != 403, (s, b))
-if other:
-    s, m = call("GET", f"/api/members/{other}", token=admin)
-    s, b = call("PUT", f"/api/members/{other}", m, admin)
-    check("a club admin cannot edit a member of another club", s == 403, (s, b))
+s, m = call("GET", f"/api/members/{own}", token=admin)
+check("a club admin reads a member of their club", s == 200, (s, m))
+s, b = call("PUT", f"/api/members/{own}", {**m, "emailId": taken}, admin)
+check("a club admin edits a member of their club (refused only as a duplicate email)", s == 409, (s, b))
+s, b = call("PUT", f"/api/members/{other}", m, admin)
+check("a club admin cannot edit a member of another club", s == 403, (s, b))
 s, b = call("POST", f"/api/district-modules/{district}/citation/categories", {"categoryName": "e2e"}, admin)
 check("a club admin cannot change district citation settings", s == 403, (s, b))
 

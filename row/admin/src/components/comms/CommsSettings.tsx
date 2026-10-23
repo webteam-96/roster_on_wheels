@@ -15,7 +15,7 @@ import {
   uploadMassEmailImage, type CommOptOut, type CommSettings, type CommSuppression, type CommUsage, type CommsScope,
 } from "@/services/api";
 import { appLocale } from "@/lib/appFormat";
-import { currentMonth, isLanguageCode, rate } from "@/lib/comms";
+import { currentMonth, isGivingUrl, isLanguageCode, rate } from "@/lib/comms";
 import TemplatesSection from "./TemplatesSection";
 import SenderSection from "./SenderSection";
 import { btnPrimary, btnSecondary, card, errorOf, input } from "./ui";
@@ -265,9 +265,11 @@ function LanguageSection({ scope, id, settings, onSaved }: {
   const save = async () => {
     const lang = form.defaultLanguage?.trim() || null;
     if (lang && !isLanguageCode(lang)) return setError("Language must be a code such as en, es or pt-BR.");
+    const giving = form.foundationGivingUrl?.trim() || null;
+    if (giving && !isGivingUrl(giving)) return setError("The Foundation giving link must be a full https:// address.");
     setBusy(true); setError(null); setNotice(null);
     try {
-      const saved = await saveCommSettings(scope, id, { ...form, defaultLanguage: lang });
+      const saved = await saveCommSettings(scope, id, { ...form, defaultLanguage: lang, foundationGivingUrl: giving });
       onSaved(saved);
       setForm(saved);
       setNotice("Saved.");
@@ -338,6 +340,14 @@ function LanguageSection({ scope, id, settings, onSaved }: {
             <textarea className={`${input} mt-1 w-full`} rows={4} maxLength={1000} value={form.governorMessage ?? ""}
               onChange={(e) => setForm({ ...form, governorMessage: e.target.value })} />
           </label>
+
+          <h2 className="mt-6 text-base font-semibold text-slate-800">Foundation giving link</h2>
+          <p className="mt-1 max-w-2xl text-sm text-slate-500">
+            Birthday and anniversary templates show it where they contain {"{{foundation_link}}"}, and membership milestone
+            messages add it. Clubs use their district&apos;s link. Leave it empty for no link.
+          </p>
+          <input aria-label="Foundation giving link" className={`${input} mt-3 w-full max-w-xl`} placeholder="https://" maxLength={500}
+            value={form.foundationGivingUrl ?? ""} onChange={(e) => setForm({ ...form, foundationGivingUrl: e.target.value })} />
         </div>
       )}
 

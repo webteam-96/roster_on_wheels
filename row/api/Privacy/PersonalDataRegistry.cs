@@ -123,7 +123,10 @@ public static class PersonalDataRegistry
         // Foundation designations entered by club / district admins (build spec 3.12).
         Del("member_foundation_designations"),
         // Membership milestones and PHF highlights with their spotlight card status (build list #26-#28).
+        // Target celebrations are rows of the club (no member), so they are not touched.
         Del("engagement_events"),
+        // Escalation alerts the member received as a club officer: the club's alert log stays, without the recipient.
+        Anon("escalation_alerts", "fk_member_id", new() { ["fk_member_id"] = null, ["recipient_name"] = ErasedName }),
         // N8 Meetings: the member's own calendar feed (its token is a credential, not exported) and reminder claims.
         Del("meeting_calendar_feeds", "fk_member_id", export: false),
         Del("meeting_reminder_log", "fk_member_id"),
@@ -156,6 +159,10 @@ public static class PersonalDataRegistry
         {
             ["name"] = ErasedName, ["email"] = null, ["phone"] = null, ["bio"] = null, ["photo_path"] = null, ["show_on_website"] = 0,
         }, MatchBy.Email),
+
+        // ── Planning mode (Services/PlanningService.cs): the member's elect roles and queued RI officer pushes go ──
+        Del("planning_roles", "fk_member_id"),
+        Del("ri_outbound_queue", "fk_member_id"),
     };
 
     /// <summary>Column names that look personal (WS7-01 audit).</summary>

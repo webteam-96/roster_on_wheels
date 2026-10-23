@@ -8,6 +8,7 @@ import DashboardYearFooterText from "@/components/dashboard/DashboardYearFooterT
 import DistrictAdminYearSelector from "@/components/dashboard/DistrictAdminYearSelector";
 import DistrictAdminTopbarStatus from "@/components/dashboard/DistrictAdminTopbarStatus";
 import DistrictAdminHeaderSubtitle from "@/components/dashboard/DistrictAdminHeaderSubtitle";
+import PlanningBanner from "@/components/planning/PlanningBanner";
 import { useAuth } from "@/contexts/AuthContext";
 import { DistrictAdminDashboardCacheProvider } from "@/contexts/DistrictAdminDashboardCacheContext";
 import { DISTRICT_ADMIN_NAV, DISTRICT_ADMIN_PAGE_TITLES } from "./nav";
@@ -23,7 +24,7 @@ function getInitials(name = "") {
 
 export default function DistrictAdminDashboardLayoutClient({ children }: { children: ReactNode }) {
   const pathname = usePathname() || "/district-admin-dashboard";
-  const { user } = useAuth();
+  const { user, selectedDistrictId } = useAuth();
   const name = user?.name ?? "District Admin";
   const initials = getInitials(name);
   const title = DISTRICT_ADMIN_PAGE_TITLES[pathname] ?? "District Dashboard";
@@ -49,6 +50,7 @@ export default function DistrictAdminDashboardLayoutClient({ children }: { child
             topbarStart={<DistrictAdminTopbarStatus />}
             topbarCenter={<DistrictAdminYearSelector />}
           >
+            <PlanningBanner districtId={selectedDistrictId} />
             {children}
           </DashboardShell>
         </DistrictAdminDashboardCacheProvider>

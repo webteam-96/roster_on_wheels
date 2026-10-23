@@ -3,9 +3,9 @@
 /**
  * SuperAdmin › Settings › Currency.
  * --------------------------------------------------------------------------
- * Sets each district's default currency (INR/LKR/NPR/USD) — pre-selected on the
+ * Sets each district's default currency (one the instance offers), pre-selected on the
  * currency dropdown when a club in that district adds a project, and overridable
- * per-project either way. Every district defaults to INR until a SuperAdmin changes it.
+ * per-project either way. A district without one uses the instance's default currency.
  */
 
 import { useCallback, useEffect, useState } from "react";

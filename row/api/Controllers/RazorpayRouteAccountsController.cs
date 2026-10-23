@@ -170,7 +170,7 @@ public class RazorpayRouteAccountsController : ControllerBase
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Route onboarding OTP email failed to {Email}", email);
+            _logger.LogError(ex, "Route onboarding OTP email failed to {Email}", LogMask.Email(email));
             return StatusCode(500, new { message = "Failed to send the OTP email." });
         }
         return Ok(new { success = true, email });

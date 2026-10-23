@@ -63,3 +63,12 @@ export const TIMEZONES = [
   "America/New_York",
   "America/Los_Angeles",
 ];
+
+/** IANA zones for a district's time zone (N12): the browser's full list, else TIMEZONES. */
+export function timeZoneOptions(): string[] {
+  try {
+    return Intl.supportedValuesOf("timeZone");
+  } catch {
+    return TIMEZONES;
+  }
+}

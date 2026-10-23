@@ -86,7 +86,7 @@ var config = new ConfigurationBuilder()
 RotaryApi.Services.Brand.Init(config);
 
 // ROW safety lock: this worker writes clubs and members, so it only ever runs against a ROW
-// database (name starting "row", e.g. row_production). A RIZones database is refused outright.
+// database (name starting "row", e.g. row_production). Any other database (the original platform's) is refused outright.
 {
     var cs = config.GetConnectionString("DefaultConnection") ?? "";
     string db = "";

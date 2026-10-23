@@ -51,6 +51,37 @@ public class ClubMassEmailService : IClubMassEmailService
             new { Id = id, ClubId = clubId, DistrictId = districtId }) > 0;
     }
 
+    /// <summary>False when a sub group, member or club named as a recipient is not this club's (clubId) or this
+    /// district's (districtId), so a campaign can only reach its own people. Members must be current (a member who has
+    /// left is outside the club; the compose screens clear a stale pick when the recipient type is switched).</summary>
+    private static async Task<bool> RecipientsInScopeAsync(MySqlConnection connection, int clubId, int? districtId, CreateMassEmailDto dto)
+    {
+        var d = districtId.HasValue;
+        if (!d && clubId <= 0) return false;
+        var subgroupIds = (dto.SubgroupIds ?? new List<int>()).Concat(dto.FkSubgroupId is int one ? new[] { one } : Array.Empty<int>()).ToList();
+        var checks = new (List<int>? Ids, string Sql)[]
+        {
+            (subgroupIds, d
+                ? "SELECT COUNT(*) FROM sub_groups WHERE pk_sub_group_id IN @Ids AND fk_club_id = 0 AND fk_district_id = @D AND isdeleted = 0"
+                : "SELECT COUNT(*) FROM sub_groups WHERE pk_sub_group_id IN @Ids AND fk_club_id = @C AND isdeleted = 0"),
+            (dto.MemberIds, d
+                ? @"SELECT COUNT(DISTINCT cm.fk_member_master_profile_id) FROM club_members cm JOIN club_master c ON c.pk_club_id = cm.fk_club_id
+                    WHERE cm.fk_member_master_profile_id IN @Ids AND c.fk_district_id = @D AND cm.IsActive = 1 AND cm.isdeleted = 0"
+                : @"SELECT COUNT(DISTINCT fk_member_master_profile_id) FROM club_members
+                    WHERE fk_member_master_profile_id IN @Ids AND fk_club_id = @C AND IsActive = 1 AND isdeleted = 0"),
+            (dto.ClubIds, "SELECT COUNT(*) FROM club_master WHERE pk_club_id IN @Ids AND IFNULL(isdeleted, 0) = 0 AND "
+                + (d ? "fk_district_id = @D" : "pk_club_id = @C")),
+        };
+        foreach (var (ids, sql) in checks)
+        {
+            var distinct = ids?.Distinct().ToList();
+            if (distinct is { Count: > 0 }
+                && await connection.ExecuteScalarAsync<int>(sql, new { Ids = distinct, C = clubId, D = districtId ?? 0 }) != distinct.Count)
+                return false;
+        }
+        return true;
+    }
+
     public async Task<(List<MassEmailListDto> Items, int TotalCount)> GetListAsync(
         int clubId, string? status, string? search, int page, int pageSize, int? districtId = null)
     {
@@ -127,6 +158,9 @@ public class ClubMassEmailService : IClubMassEmailService
         using var connection = CreateConnection();
         await connection.OpenAsync();
 
+        if (!await RecipientsInScopeAsync(connection, clubId, districtId, dto))
+            throw new ArgumentException("Some recipients are not part of this club or district.");
+
         var status = dto.SaveAsDraft ? "Draft" : "Draft"; // Always start as draft, send is separate
 
         var emailId = await connection.ExecuteScalarAsync<int>(
@@ -169,6 +203,14 @@ public class ClubMassEmailService : IClubMassEmailService
         using var connection = CreateConnection();
         await connection.OpenAsync();
 
+        // District emails are stored with fk_club_id 0: pass the district so its recipients resolve.
+        var (clubId, districtId) = await connection.QueryFirstAsync<(int, int?)>(
+            "SELECT fk_club_id, fk_district_id FROM club_mass_emails WHERE pk_mass_email_id = @Id",
+            new { Id = id });
+        var ownerDistrict = clubId == 0 && districtId > 0 ? districtId : null;
+        if (!await RecipientsInScopeAsync(connection, clubId, ownerDistrict, dto))
+            throw new ArgumentException("Some recipients are not part of this club or district.");
+
         // Reset status to Draft on edit, reset counts
         await connection.ExecuteAsync(
             @"UPDATE club_mass_emails SET RecipientType = @RecipientType, fk_subgroup_id = @SubgroupId, ContactGroupIds = @ContactGroupIds,
@@ -197,14 +239,9 @@ public class ClubMassEmailService : IClubMassEmailService
             "UPDATE club_mass_email_recipients SET isdeleted = 1 WHERE fk_mass_email_id = @Id",
             new { Id = id });
 
-        // District emails are stored with fk_club_id 0: pass the district so its recipients resolve.
-        var (clubId, districtId) = await connection.QueryFirstAsync<(int, int?)>(
-            "SELECT fk_club_id, fk_district_id FROM club_mass_emails WHERE pk_mass_email_id = @Id",
-            new { Id = id });
-
         var sgIds = dto.SubgroupIds ?? (dto.FkSubgroupId.HasValue ? new List<int> { dto.FkSubgroupId.Value } : null);
         await AddRecipientsAsync(connection, id, clubId, dto.RecipientType, sgIds, dto.MemberIds,
-            clubId == 0 && districtId > 0 ? districtId : null, dto.ClubIds, dto.ContactGroupIds);
+            ownerDistrict, dto.ClubIds, dto.ContactGroupIds);
     }
 
     public async Task DeleteAsync(int id, int userId)
@@ -283,14 +320,22 @@ public class ClubMassEmailService : IClubMassEmailService
         }
         else
         {
-            // Check credits
+            // Check credits. A district email is stored with club id 0: it spends its own district's wallet only
+            // (the club-wallet lookup would match every district's wallet for id 0).
             int clubId = (int)email.ClubId;
-            var hasCreds = await _creditService.HasSufficientCreditsAsync(clubId, "Email", recipients.Count);
+            int districtId = (int?)email.DistrictId ?? 0;
+            var hasCreds = clubId > 0
+                ? await _creditService.HasSufficientCreditsAsync(clubId, "Email", recipients.Count)
+                : (await _creditService.GetDistrictCreditBalanceAsync(districtId)).EmailRemaining >= recipients.Count;
             if (!hasCreds)
                 throw new InvalidOperationException($"Insufficient email credits. Need {recipients.Count}, check your credit balance.");
 
             // Deduct credits upfront with history
-            await _creditService.DeductWithHistoryAsync(clubId, "Email", recipients.Count, "MassEmail", id, $"Mass Email: {(string)email.Subject}", userId);
+            var detail = $"Mass Email: {(string)email.Subject}";
+            if (clubId > 0)
+                await _creditService.DeductWithHistoryAsync(clubId, "Email", recipients.Count, "MassEmail", id, detail, userId);
+            else
+                await _creditService.DeductDistrictWithHistoryAsync(districtId, "Email", recipients.Count, "MassEmail", id, detail, userId);
         }
 
         // Update status to Sending
@@ -402,6 +447,11 @@ public class ClubMassEmailService : IClubMassEmailService
 
         string sql;
         object param;
+
+        // Ids of another club or district count nobody.
+        if (!await RecipientsInScopeAsync(connection, clubId, districtId,
+                new CreateMassEmailDto { SubgroupIds = subgroupIds, MemberIds = memberIds, ClubIds = clubIds }))
+            return new RecipientCountDto();
 
         if (recipientType == 4) // Contact groups (club or district) - only groups of this owner count
         {

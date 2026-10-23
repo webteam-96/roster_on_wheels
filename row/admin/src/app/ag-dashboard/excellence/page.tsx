@@ -553,7 +553,7 @@ export default function AgExcellencePage() {
                     : undefined
                 }
               >
-                {m === "projects" ? "Service Projects" : m === "meetings" ? "Meetings Held" : "TRF (INR)"}
+                {m === "projects" ? "Service Projects" : m === "meetings" ? "Meetings Held" : "TRF"}
               </button>
             );
           })}

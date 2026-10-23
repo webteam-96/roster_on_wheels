@@ -14,13 +14,13 @@ namespace RotaryApi.Services;
 public static class ClubMonthlyReportPdfBuilder
 {
     private static bool _licensed;
-    private const string Brand = "#003DA5";
-    private const string Label = "#44546A";
-    private const string Muted = "#7A7A7A";
-    private const string Divider = "#B9C7DE";
-    private const string LabelBg = "#EEF3FB";
-    private const string Link = "#0563C1";
-    private const string Ink = "#222222";
+    private const string Brand = "#17458F";
+    private const string Label = "#2A3F5C";
+    private const string Muted = "#64748B";
+    private const string Divider = "#D5DEE8";
+    private const string LabelBg = "#EDF4FB";
+    private const string Link = "#0067C8";
+    private const string Ink = "#1B2C42";
 
     private static readonly (string Key, string Label)[] Avenues =
     {
@@ -58,6 +58,7 @@ public static class ClubMonthlyReportPdfBuilder
             {
                 page.Size(PageSizes.A4);
                 page.Margin(1.5f, Unit.Centimetre);
+                // shortcut: PDFs keep server fonts, the brand's Figtree needs embedding (QuestPDF FontManager); add it when the PDF look is reviewed.
                 page.DefaultTextStyle(x => x.FontFamily("Georgia").FontSize(10.5f).FontColor(Ink).LineHeight(1.35f));
 
                 page.Content().Column(col =>
@@ -68,7 +69,7 @@ public static class ClubMonthlyReportPdfBuilder
                     var logo = BrandAssets.PdfLogo;
                     if (logo != null)
                         col.Item().PaddingBottom(6).AlignCenter().Height(50).Image(logo).FitHeight();
-                    col.Item().AlignCenter().Text($"Club Monthly Report — {s.MonthName} {s.YearLabel}").Bold().FontSize(17).FontColor("#111111");
+                    col.Item().AlignCenter().Text($"Club Monthly Report — {s.MonthName} {s.YearLabel}").Bold().FontSize(17).FontColor("#1B2C42");
                     if (s.UploadedToDistrictDate.HasValue)
                         col.Item().AlignCenter().Text($"Uploaded to District: {FmtDateTime(s.UploadedToDistrictDate.Value)}").FontSize(10).FontColor(Muted);
                     col.Item().PaddingBottom(4);
@@ -260,7 +261,7 @@ public static class ClubMonthlyReportPdfBuilder
         {
             t.ColumnsDefinition(c => { foreach (var w in widths) c.RelativeColumn(w); });
             foreach (var h in headers)
-                t.Cell().Element(HeaderCell).Text(h).Bold().FontColor("#FFFFFF").FontSize(9.5f);
+                t.Cell().Element(HeaderCell).Text(h).Bold().FontColor("#FCFDFE").FontSize(9.5f);
             foreach (var r in rows)
                 foreach (var cval in r)
                     t.Cell().Element(ValueCell).Text(cval ?? "").FontSize(9.5f);

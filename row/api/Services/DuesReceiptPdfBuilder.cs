@@ -20,22 +20,22 @@ public static class DuesReceiptPdfBuilder
     private static bool _licensed;
 
     // Same palette as the receipt e-mail markup.
-    private const string Navy = "#1A365D";   // header band + headings
-    private const string Ink = "#333333";    // body text
-    private const string Border = "#DDDDDD"; // table borders
-    private const string HeadBg = "#F3F4F6"; // table header fill
-    private const string FootBg = "#F8F9FA"; // footer fill
-    private const string Muted = "#666666";
+    private const string Navy = "#17458F";   // header band + headings
+    private const string Ink = "#1B2C42";    // body text
+    private const string Border = "#D5DEE8"; // table borders
+    private const string HeadBg = "#EDF4FB"; // table header fill
+    private const string FootBg = "#F7F9FC"; // footer fill
+    private const string Muted = "#64748B";
 
     public static byte[] Build(DuesReceiptDto r)
     {
         if (!_licensed)
         {
             QuestPDF.Settings.License = LicenseType.Community;
-            // The amounts carry the ₹ (U+20B9) sign, exactly as in the receipt
-            // e-mail. QuestPDF's glyph check THROWS when the chosen font has no
-            // glyph for a character, which would turn a missing rupee sign into
-            // a 500 on a server whose Arial predates U+20B9. Same opt-out that
+            // The amounts carry the brand currency's sign (Brand.Money), exactly as
+            // in the receipt e-mail. QuestPDF's glyph check THROWS when the chosen
+            // font has no glyph for a character, which would turn a sign the
+            // server's Arial lacks into a 500. Same opt-out that
             // ProjectShareCardBuilder already uses.
             QuestPDF.Settings.CheckIfAllTextGlyphsAreAvailable = false;
             _licensed = true;
@@ -47,11 +47,12 @@ public static class DuesReceiptPdfBuilder
             {
                 page.Size(PageSizes.A4);
                 page.Margin(1.4f, Unit.Centimetre);
+                // shortcut: PDFs keep server fonts, the brand's Figtree needs embedding (QuestPDF FontManager); add it when the PDF look is reviewed.
                 // Arial to match the e-mail's font stack. The fallback chain
-                // exists for the ₹ (U+20B9) sign in the amount columns: older
-                // Arial builds predate it, and Segoe UI / Nirmala UI both carry
-                // it on any Windows host. Without a fallback a missing glyph
-                // would print as a tofu box next to every amount.
+                // exists for currency signs in the amount columns that older
+                // Arial builds lack; Segoe UI / Nirmala UI carry them on Windows
+                // hosts. Without a fallback a missing glyph would print as a
+                // tofu box next to every amount.
                 page.DefaultTextStyle(x => x
                     .FontFamily("Arial", "Segoe UI", "Nirmala UI")
                     .FontSize(10).FontColor(Ink).LineHeight(1.35f));

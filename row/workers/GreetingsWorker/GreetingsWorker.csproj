@@ -37,5 +37,9 @@
     <Compile Include="../../api/Services/Brand.cs" Link="Brand.cs" />
     <!-- N5 communication: templates per language, Governor note, consent and suppression filter (same code as the API). -->
     <Compile Include="../../api/Services/CommsTemplates.cs" Link="CommsTemplates.cs" />
+    <!-- Masks email addresses in log lines (same code as the API). -->
+    <Compile Include="../../api/Services/LogMask.cs" Link="LogMask.cs" />
+    <!-- N12 time zones: each district's zone (district_master.Timezone), same code as the API. -->
+    <Compile Include="../../api/Services/ZoneTime.cs" Link="ZoneTime.cs" />
   </ItemGroup>
 </Project>

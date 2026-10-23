@@ -1,6 +1,6 @@
 # ROW mobile app (Flutter)
 
-The ROW app, converted from the RIZones app: it talks to the ROW API (NestJS, `row/api`) and takes its
+The ROW app, converted from the original platform's app: it talks to the ROW API (`row/api`) and takes its
 name, logos, support contacts and links from the instance brand (`GET api/public/brand`, cached on the device).
 
 ## Build and run
@@ -14,8 +14,9 @@ flutter run --dart-define=API_BASE_URL=https://api.example.org      # the ROW AP
 - **Firebase** (push notifications, analytics): each instance supplies its own `android/app/google-services.json` and
   `ios/Runner/GoogleService-Info.plist` (gitignored). Android builds need the JSON file (the Google Services Gradle
   plugin requires it); without the files on iOS the app runs with push off.
-- App ids: Android `com.SampleApp.row`, iOS `com.kaizen.row`. Launcher icon: a placeholder until the ROW icon exists
-  (`assets/images/row-app-icon.png`, then `dart run flutter_launcher_icons`).
+- App ids: Android `com.SampleApp.row`, iOS `com.kaizen.row`. Launcher icon: the ROW favicon (handshake + ROW on
+  `#1E1C20`, from `row/website`); sources `assets/images/row-app-icon.png` and `row-app-icon-foreground.png`, then
+  `dart run flutter_launcher_icons`. Launch screens are ROW azure, like the Flutter splash.
 
 ## Checks
 

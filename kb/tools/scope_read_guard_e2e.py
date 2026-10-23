@@ -62,6 +62,9 @@ check("member reads own club", get(own, t_plain) == 200, get(own, t_plain))
 check("member cannot read another club", get(foreign, t_plain) == 403, get(foreign, t_plain))
 check("club admin cannot read another club", get(foreign, t_admin) == 403, get(foreign, t_admin))
 check("SuperAdmin reads any club", get(foreign, t_sa) == 200, get(foreign, t_sa))
+# a club id in the query string (2026-10-23): refused before any Rotary.org call is made
+terminated = f"/api/club-admin-dashboard/rotary-org-terminated-members?clubId={other}"
+check("club admin cannot read another club's terminated members", get(terminated, t_admin) == 403, get(terminated, t_admin))
 
 own_d, foreign_d = f"/api/districts/{district}/district-events", f"/api/districts/{other_district}/district-events"
 check("member reads own district", get(own_d, t_plain) == 200, get(own_d, t_plain))

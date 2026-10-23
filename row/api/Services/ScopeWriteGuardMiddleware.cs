@@ -44,6 +44,8 @@ public class ScopeWriteGuardMiddleware
         ("/api/i18n", new[] { 3 }),
         ("/api/features", new[] { 3 }),
         ("/api/engagement/run", new[] { 3 }),
+        ("/api/escalation/run", new[] { 3 }),
+        ("/api/celebration/run", new[] { 3 }),
     };
 
     public async Task InvokeAsync(HttpContext ctx)
@@ -71,9 +73,11 @@ public class ScopeWriteGuardMiddleware
             var memberId = int.TryParse(ctx.User.FindFirst("memberId")?.Value, out var id) ? id : 0;
             var isClub = m.Groups[1].Value.Equals("clubs", StringComparison.OrdinalIgnoreCase);
             var scopeId = int.Parse(m.Groups[2].Value);
+            // N7: an elect role (DGE, DS, DT on its district; PE, SE on its club) writes only the year being planned.
             var allowed = memberId > 0 && (write
                 ? await AllowedAsync(_connectionString, memberId, isClub, scopeId)
-                : await ReadAllowedAsync(memberId, isClub, scopeId));
+                  || await PlanningAccess.ElectMayWriteAsync(ctx, _connectionString, memberId, isClub, scopeId)
+                : await ReadAllowedAsync(_connectionString, memberId, isClub, scopeId));
             if (!allowed)
             {
                 ctx.Response.StatusCode = StatusCodes.Status403Forbidden;
@@ -100,10 +104,12 @@ public class ScopeWriteGuardMiddleware
     }
 
     /// <summary>True when the member may read this club or district: a manager, or an active member of the club /
-    /// of a club in the district. Managers are checked second so the common member case costs one query.</summary>
-    private async Task<bool> ReadAllowedAsync(int memberId, bool isClub, int scopeId)
+    /// of a club in the district. Managers are checked second so the common member case costs one query. Also used
+    /// by controllers that read a club or district named outside api/clubs|districts/{id} (MobileCalendarController,
+    /// the read review). members: false keeps the managers only (the club's managers and whoever manages its district).</summary>
+    internal static async Task<bool> ReadAllowedAsync(string connectionString, int memberId, bool isClub, int scopeId, bool members = true)
     {
-        await using (var conn = new MySqlConnection(_connectionString))
+        await using (var conn = new MySqlConnection(connectionString))
         {
             await conn.OpenAsync();
             var sql = isClub
@@ -111,27 +117,29 @@ public class ScopeWriteGuardMiddleware
                     WHERE cm.fk_member_master_profile_id = @M AND cm.fk_club_id = @S AND cm.IsActive = 1 AND IFNULL(cm.isdeleted, 0) = 0"
                 : @"SELECT COUNT(*) FROM club_members cm JOIN club_master c ON c.pk_club_id = cm.fk_club_id
                     WHERE cm.fk_member_master_profile_id = @M AND c.fk_district_id = @S AND cm.IsActive = 1 AND IFNULL(cm.isdeleted, 0) = 0";
-            if (await conn.ExecuteScalarAsync<int>(sql, new { M = memberId, S = scopeId }) > 0) return true;
+            if (members && await conn.ExecuteScalarAsync<int>(sql, new { M = memberId, S = scopeId }) > 0) return true;
             if (isClub)
             {
                 // whoever manages the club's district may read all of its clubs (district Admin)
                 var district = await conn.ExecuteScalarAsync<int?>(
                     "SELECT fk_district_id FROM club_master WHERE pk_club_id = @S", new { S = scopeId });
-                if (district is > 0 && await AllowedAsync(_connectionString, memberId, false, district.Value)) return true;
+                if (district is > 0 && await AllowedAsync(connectionString, memberId, false, district.Value)) return true;
             }
         }
-        return await AllowedAsync(_connectionString, memberId, isClub, scopeId);
+        return await AllowedAsync(connectionString, memberId, isClub, scopeId);
     }
 
     /// <summary>True when the member manages this club (isClub) or district; also used by controllers that write
     /// to a club or district named outside the URL.</summary>
     internal static async Task<bool> AllowedAsync(string connectionString, int memberId, bool isClub, int scopeId)
     {
+        if (isClub && scopeId <= 0) return false; // club 0 is no club: district Admin rows carry fk_club_id = 0
         await using var conn = new MySqlConnection(connectionString);
         await conn.OpenAsync();
         const string active = "mr.fk_member_master_profile_id = @M AND mr.IsActive = 1 AND mr.isdeleted = 0";
         // District-level rows store fk_club_id as NULL or 0 (same rule as ClubAdminAccessHelper).
-        // AG clubs come from district_ag, the AG module's own assignment table.
+        // AG clubs come from district_ag, the AG module's own assignment table. A row of a year that has not started
+        // does not count (N7: an AG appointed for the year being planned must not edit the current year).
         var sql = isClub
             ? $@"SELECT
                    (SELECT COUNT(*) FROM member_roles mr
@@ -142,7 +150,9 @@ public class ScopeWriteGuardMiddleware
                        OR (mr.fk_role_id = 2 AND (mr.fk_club_id IS NULL OR mr.fk_club_id = 0)
                            AND mr.AllClubsAccess = 1 AND mr.fk_district_id = c.fk_district_id)))
                  + (SELECT COUNT(*) FROM district_ag ag
-                    WHERE ag.fk_member_id = @M AND ag.fk_club_id = @S AND ag.is_active = 1 AND ag.isdeleted = 0)"
+                    LEFT JOIN rotary_year_master y ON y.pk_year_id = ag.fk_year_id
+                    WHERE ag.fk_member_id = @M AND ag.fk_club_id = @S AND ag.is_active = 1 AND ag.isdeleted = 0
+                      AND (y.StartDate IS NULL OR y.StartDate <= CURDATE()))"
             : $@"SELECT COUNT(*) FROM member_roles mr
                  WHERE {active} AND (
                        mr.fk_role_id = 3

@@ -26,6 +26,8 @@ namespace RotaryApi.Services;
 ///   newsletters    newsletters
 ///   documents      club_documents
 ///   meetings       club_attendance reminders, while the 'meetings' feature is on (N8 Meetings)
+///   escalation     escalation_alerts addressed to the member, while the 'escalation' feature is on
+///   celebration    targets reached by the member's clubs (engagement_events TARGET), while 'celebration' is on
 ///
 /// ── Shape of the query ───────────────────────────────────────────────────────────────────
 /// One UNION ALL of narrow, index-friendly legs; ORDER BY / LIMIT / OFFSET are applied to the
@@ -52,7 +54,8 @@ public class MobileNotificationFeedService : IMobileNotificationFeedService
     private const int BodyMaxChars = 300;
 
     private static readonly string[] AllTypes =
-        { "greeting", "project", "announcement", "event", "newsletter", "document", "highlight", "grant", "volunteer", "meeting_duty", "invite", "meeting" };
+        { "greeting", "project", "announcement", "event", "newsletter", "document", "highlight", "grant", "volunteer", "meeting_duty", "invite", "meeting",
+          "escalation", "celebration" };
 
     public async Task<PagedResult<MobileNotificationDto>> GetFeedAsync(
         int memberId, int page, int pageSize, int days, string? types)
@@ -160,6 +163,14 @@ public class MobileNotificationFeedService : IMobileNotificationFeedService
         // "Bring a guest" prompts sent to this member (InvitePromptService), while the feature is on.
         if (wanted.Contains("invite") && clubIds.Count > 0 && await FeatureGate.IsOnAsync("contacts_growth", _connectionString))
             legs.Add(InviteLeg());
+
+        // Escalation alerts sent to this member as a club officer (EscalationService), while that module is on.
+        if (wanted.Contains("escalation") && await FeatureGate.IsOnAsync(EscalationService.FeatureKey, _connectionString))
+            legs.Add(EscalationLeg());
+
+        // Targets reached by the member's clubs (CelebrationService), while that module is on.
+        if (wanted.Contains("celebration") && clubIds.Count > 0 && await FeatureGate.IsOnAsync(CelebrationService.FeatureKey, _connectionString))
+            legs.Add(CelebrationLeg());
 
         if (legs.Count == 0) return empty;
 
@@ -434,6 +445,8 @@ public class MobileNotificationFeedService : IMobileNotificationFeedService
 
     // In-app meeting reminder (N8 Meetings): it arrives ReminderLeadHours before the meeting, or when the meeting is
     // entered if that is later. A meeting entered after it took place (attendance logged afterwards) is no reminder.
+    // shortcut: compared with NOW(), right when stored times are UTC (a UTC server, ZoneTime.StoredUtc); group by
+    // district zone as MeetingReminderBackgroundService does if ROW ever runs on a server that is not on UTC.
     private static readonly string MeetingRemindAt =
         $"GREATEST(DATE_SUB(a.EventDateTime, INTERVAL {MeetingsService.ReminderLeadHours} HOUR), a.created_date)";
 
@@ -665,6 +678,37 @@ public class MobileNotificationFeedService : IMobileNotificationFeedService
             JOIN club_master c ON c.pk_club_id = l.fk_club_id
             WHERE l.fk_member_id = @MemberId AND l.fk_club_id IN @ClubIds AND l.created_date >= @From");
 
+    /// <summary>Escalation alerts addressed to the member (one row per alert). Title holds the club's name and Extra the
+    /// rule; <see cref="ToDto"/> builds the headline. The reason is the body.</summary>
+    private static Leg EscalationLeg() => new(
+        Cols: new[]
+        {
+            Str("'escalation'"), "a.pk_alert_id", "0",
+            "a.fk_club_id", "a.fk_district_id", Str("'club'"),
+            Str("c.ClubName"), Str("a.reason"), Str("NULL"), Str("NULL"),
+            "a.created_date",
+            Str("'escalation_alert'"), Str("a.rule_key")
+        },
+        FromWhere: @"
+            FROM escalation_alerts a
+            JOIN club_master c ON c.pk_club_id = a.fk_club_id
+            WHERE a.fk_member_id = @MemberId AND a.created_date >= @From");
+
+    /// <summary>Targets reached by the member's clubs, one row per target. Extra carries "metric:target";
+    /// <see cref="ToDto"/> builds the text.</summary>
+    private static Leg CelebrationLeg() => new(
+        Cols: new[]
+        {
+            Str("'celebration'"), "e.pk_engagement_event_id", "0",
+            "e.fk_club_id", "e.fk_district_id", Str("'club'"),
+            Str("NULL"), Str("NULL"), Str("NULL"), Str("NULL"),
+            "e.created_date",
+            Str("'target_celebration'"), Str("CONCAT(IFNULL(e.target_key, ''), ':', e.level)")
+        },
+        FromWhere: @"
+            FROM engagement_events e
+            WHERE e.event_type = 'TARGET' AND e.fk_club_id IN @ClubIds AND e.created_date >= @From");
+
     // ══════════════════════════════════════════════════════════════════════════════════════
     // Materialisation
     // ══════════════════════════════════════════════════════════════════════════════════════
@@ -833,6 +877,18 @@ public class MobileNotificationFeedService : IMobileNotificationFeedService
                 // the deep link opens the application, not the notification row
                 dto.DeepLink.EntityId = int.TryParse(r.Extra, out var appId) ? appId : null;
                 break;
+            case "escalation":
+                dto.Title = EscalationService.Headline(r.Title, r.Extra);
+                break;
+            case "celebration":
+            {
+                // Extra holds "growth:5" (see CelebrationLeg); the club's name comes from the member's scope.
+                var parts = (r.Extra ?? "").Split(':');
+                var target = parts.Length > 1 && int.TryParse(parts[1], out var tv) ? tv : 0;
+                dto.Title = CelebrationService.Label(parts[0]);
+                dto.Body = CelebrationService.Sentence(parts[0], target, dto.SourceName);
+                break;
+            }
         }
 
         return dto;

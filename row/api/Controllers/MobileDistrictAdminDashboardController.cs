@@ -163,7 +163,18 @@ public class MobileDistrictAdminDashboardController : ControllerBase
 public class MobileDistrictAdminClubGoalsController : ControllerBase
 {
     private readonly IDistrictAdminDashboardService _service;
-    public MobileDistrictAdminClubGoalsController(IDistrictAdminDashboardService service) => _service = service;
+    private readonly string _connectionString;
+
+    public MobileDistrictAdminClubGoalsController(IDistrictAdminDashboardService service, IConfiguration configuration)
+    {
+        _service = service;
+        _connectionString = configuration.GetConnectionString("DefaultConnection")!;
+    }
+
+    // Reads: the club's managers (its admins and AGs) and its district's admins; SuperAdmin always.
+    // Was: any Admin or AG could read any club's award status and MyRotary figures.
+    private async Task<bool> CanReadClubAsync(int clubId) =>
+        await ScopeWriteGuardMiddleware.ReadAllowedAsync(_connectionString, GetMemberId(), true, clubId, members: false);
 
     private int GetMemberId()
     {
@@ -182,6 +193,7 @@ public class MobileDistrictAdminClubGoalsController : ControllerBase
     public async Task<ActionResult<ClubAwardStatusDto?>> GetClubAwardStatus([FromQuery] int clubId, [FromQuery] int? yearId = null)
     {
         if (!IsAuthorisedRole()) return Forbid();
+        if (!await CanReadClubAsync(clubId)) return ForbidWithMessage("You do not have access to this club.");
         try { return Ok(await _service.GetClubAwardStatusAsync(GetMemberId(), clubId, yearId)); }
         catch (UnauthorizedAccessException ex) { return ForbidWithMessage(ex.Message); }
     }
@@ -199,6 +211,7 @@ public class MobileDistrictAdminClubGoalsController : ControllerBase
     public async Task<ActionResult<ClubMyRotaryTrackingDto?>> GetClubMyRotary([FromQuery] int clubId, [FromQuery] int? yearId = null)
     {
         if (!IsAuthorisedRole()) return Forbid();
+        if (!await CanReadClubAsync(clubId)) return ForbidWithMessage("You do not have access to this club.");
         try { return Ok(await _service.GetClubMyRotaryAsync(GetMemberId(), clubId, yearId)); }
         catch (UnauthorizedAccessException ex) { return ForbidWithMessage(ex.Message); }
     }

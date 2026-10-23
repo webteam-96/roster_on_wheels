@@ -122,7 +122,8 @@ export default function ClubAdminEGovernancePage() {
 function useEGovTabsOn(): Record<EGovTab, boolean> {
   const cmr = useFeatureOn("club_monthly_report");
   const ocv = useFeatureOn("ocv");
-  return { cmr, ocv, dues: true, attendance: true, awards: true, network: true, reports: true };
+  // Dues is the OCV / GOV "dues" category, so it switches with OCV
+  return { cmr, ocv, dues: ocv, attendance: true, awards: true, network: true, reports: true };
 }
 
 function EGovTabBar({ active, onChange }: { active: EGovTab; onChange: (k: EGovTab) => void }) {

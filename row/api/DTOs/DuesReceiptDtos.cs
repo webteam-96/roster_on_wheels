@@ -53,8 +53,8 @@ public class DuesReceiptLineDto
     public int SrNo { get; set; }
     public int FeeType { get; set; }                 // 1=Annual, 2=Semi 1, 3=Semi 2
     public string FeeTypeLabel { get; set; } = "";   // campaign's Fees1Text/Fees2Text/Fees3Text
-    public decimal Amount { get; set; }              // net of gateway charges (whole rupees)
-    public string AmountText { get; set; } = "";     // "₹12,500"
+    public decimal Amount { get; set; }              // net of gateway charges (whole units)
+    public string AmountText { get; set; } = "";     // Brand.Money, e.g. "$12,500"
     public bool IsOnline { get; set; }
     public string Mode { get; set; } = "";           // "Online" / "Offline"
     public decimal? GatewayCharges { get; set; }     // null for offline (prints "N/A")

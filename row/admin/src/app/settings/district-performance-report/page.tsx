@@ -19,7 +19,7 @@ import {
   type PerformanceReportSettings,
 } from "@/services/api";
 
-import { appLocale, appTimeZone } from "@/lib/appFormat";
+import { appLocale } from "@/lib/appFormat";
 const PCT_HEADER = "Percentage Achieved";
 
 // Text columns align left, numbers right: the first column, plus the club name in "#"-ranked tables.
@@ -282,8 +282,8 @@ export default function DistrictPerformanceReportPage() {
   const scheduleText = !settings ? "" : !settings.scheduleEnabled
     ? "Automatic sending is OFF. Nothing is emailed on a schedule. Use the buttons below to check the report."
     : settings.mode === "Live"
-      ? `LIVE: on day ${settings.liveDays.join(" & ")} of each month at ${settings.hour}:00 (${appTimeZone()}), every district's report goes to its District Governor (CC ${settings.liveCc.join(", ")}).`
-      : `TEST: every morning at ${settings.hour}:00 (${appTimeZone()}): District ${settings.testDistricts.join(", ")} report to ${settings.testRecipients.join(", ")}.`;
+      ? `LIVE: on day ${settings.liveDays.join(" & ")} of each month at ${settings.hour}:00 in each district's own time zone, every district's report goes to its District Governor (CC ${settings.liveCc.join(", ")}).`
+      : `TEST: every morning at ${settings.hour}:00 in the district's time zone: District ${settings.testDistricts.join(", ")} report to ${settings.testRecipients.join(", ")}.`;
 
   return (
     <ProtectedRoute>

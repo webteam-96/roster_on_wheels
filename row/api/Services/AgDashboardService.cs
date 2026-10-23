@@ -11,7 +11,7 @@ namespace RotaryApi.Services;
 //   Members per club     : COUNT(*) club_members WHERE IsActive=1 AND isdeleted=0
 //   Meetings per club    : COUNT(*) club_attendance for year
 //   Projects per club    : COUNT across rotary_projects_YYYY_YY year tables filtered by club + year
-//   TRF                  : SUM(AmountUSD) from trf_contributions, INR = USD * 84
+//   TRF                  : SUM(AmountUSD) from trf_contributions, shown in USD
 //   Citation             : SUM(points_earned + bonus_earned) from district_citation_club_entry
 //   OCV                  : COUNT(*) club_documents AccessType IN ('readonly','downloadonly')  (proxy)
 //   Beneficiaries        : SUM(direct_beneficiaries) from year-wise project tables

@@ -17,7 +17,7 @@ public class MobileAuthService : IMobileAuthService
     private readonly string _connectionString;
 
     // Mobile JWT lifetime (ROW 2026-10-19): 90 days, the same as MobileJwtRefreshMiddleware, which re-issues the
-    // token daily for active users. RIZones issued 10-year tokens that could not be revoked one by one; a lost
+    // token daily for active users. The original platform issued 10-year tokens that could not be revoked one by one; a lost
     // phone's token now expires 90 days after its last use.
     private const int MobileJwtDays = 90;
     private const int OtpExpiryMinutes = 5;

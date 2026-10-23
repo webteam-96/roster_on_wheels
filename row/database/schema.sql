@@ -1382,6 +1382,7 @@ CREATE TABLE IF NOT EXISTS `comm_settings` (
   `sender_reply_to` varchar(254) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `modified_by` int DEFAULT NULL,
   `modified_date` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `foundation_giving_url` varchar(500) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   PRIMARY KEY (`fk_club_id`,`fk_district_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 CREATE TABLE IF NOT EXISTS `comm_suppressions` (
@@ -1862,6 +1863,7 @@ CREATE TABLE `district_master` (
   `fk_zone_id` int DEFAULT NULL,
   `Country` varchar(100) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `DefaultCurrency` varchar(5) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `Timezone` varchar(64) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `IsActive` tinyint(1) DEFAULT '1',
   `created_by` int DEFAULT NULL,
   `created_date` datetime DEFAULT CURRENT_TIMESTAMP,
@@ -2104,11 +2106,12 @@ CREATE TABLE IF NOT EXISTS `engagement_district_settings` (
 /*!50503 SET character_set_client = utf8mb4 */;
 -- Membership milestones and Paul Harris Fellow highlights with their spotlight card status (build list #26-#28).
 -- dedupe_key is the sent-log (one row per member and milestone, or per designation). Same as DatabaseInitializer.
+-- TARGET rows (target celebration, B.1 #35) belong to a club: no member; target_key names the metric.
 CREATE TABLE IF NOT EXISTS `engagement_events` (
   `pk_engagement_event_id` int NOT NULL AUTO_INCREMENT,
   `event_type` varchar(20) COLLATE utf8mb4_unicode_ci NOT NULL,
   `dedupe_key` varchar(60) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `fk_member_master_profile_id` int NOT NULL,
+  `fk_member_master_profile_id` int DEFAULT NULL,
   `fk_club_id` int NOT NULL,
   `fk_district_id` int NOT NULL,
   `fk_designation_id` int DEFAULT NULL,
@@ -2118,11 +2121,51 @@ CREATE TABLE IF NOT EXISTS `engagement_events` (
   `card_decided_by` int DEFAULT NULL,
   `card_decided_date` datetime DEFAULT NULL,
   `created_date` datetime DEFAULT CURRENT_TIMESTAMP,
+  `target_key` varchar(20) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   PRIMARY KEY (`pk_engagement_event_id`),
   UNIQUE KEY `uk_engagement_dedupe` (`dedupe_key`),
   KEY `idx_ee_club` (`fk_club_id`,`created_date`),
   KEY `idx_ee_district` (`fk_district_id`,`created_date`),
   KEY `idx_ee_member` (`fk_member_master_profile_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+-- Escalation alerts (B.1 #32): one row per level sent (1 club president, 2 Assistant Governor, 3 District Governor).
+-- The UNIQUE key is the claim written before sending. Recipient as at sending; fk_member_id NULL: nobody held the role,
+-- or a non-member DG.
+-- Same as DatabaseInitializer.Escalation.cs.
+CREATE TABLE IF NOT EXISTS `escalation_alerts` (
+  `pk_alert_id` int NOT NULL AUTO_INCREMENT,
+  `fk_district_id` int NOT NULL,
+  `fk_club_id` int NOT NULL,
+  `rule_key` varchar(10) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `period` char(7) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `level` tinyint NOT NULL,
+  `fk_member_id` int DEFAULT NULL,
+  `recipient_name` varchar(200) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `reason` varchar(500) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `email_status` varchar(20) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `created_date` datetime DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`pk_alert_id`),
+  UNIQUE KEY `uk_escalation_alert` (`fk_club_id`,`rule_key`,`period`,`level`),
+  KEY `idx_escalation_district` (`fk_district_id`,`created_date`),
+  KEY `idx_escalation_member` (`fk_member_id`,`created_date`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+-- Escalation rules per district (B.1 #32): target_status 'red' or 'amber' (amber or red), meeting_shortfall = meetings
+-- below the rule in a finished month; NULL = that rule off. Same as DatabaseInitializer.Escalation.cs.
+CREATE TABLE IF NOT EXISTS `escalation_rules` (
+  `fk_district_id` int NOT NULL,
+  `target_status` varchar(10) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `meeting_shortfall` int DEFAULT NULL,
+  `ag_delay_days` int NOT NULL DEFAULT '7',
+  `dg_delay_days` int NOT NULL DEFAULT '7',
+  `modified_by` int DEFAULT NULL,
+  `modified_date` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`fk_district_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -3965,6 +4008,33 @@ CREATE TABLE `past_presidents` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `planning_roles` (
+  `pk_planning_role_id` int NOT NULL AUTO_INCREMENT,
+  `fk_district_id` int NOT NULL,
+  `fk_club_id` int NOT NULL DEFAULT '0',
+  `fk_year_id` int NOT NULL,
+  `role_code` varchar(3) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `fk_member_id` int NOT NULL,
+  `status` varchar(10) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'invited',
+  `source` varchar(10) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `live` tinyint(1) DEFAULT '1',
+  `token_hash` char(64) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `token_expires` datetime DEFAULT NULL,
+  `email_sent_at` datetime DEFAULT NULL,
+  `accepted_at` datetime DEFAULT NULL,
+  `activated_at` datetime DEFAULT NULL,
+  `created_by` int DEFAULT NULL,
+  `created_date` datetime DEFAULT CURRENT_TIMESTAMP,
+  `modified_by` int DEFAULT NULL,
+  `modified_date` datetime DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`pk_planning_role_id`),
+  UNIQUE KEY `uk_planning_role` (`fk_district_id`,`fk_club_id`,`fk_year_id`,`role_code`,`live`),
+  KEY `idx_planning_role_member` (`fk_member_id`,`status`),
+  KEY `idx_planning_role_token` (`token_hash`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `potential_members` (
   `pk_potential_member_id` int NOT NULL AUTO_INCREMENT,
   `fk_club_id` int NOT NULL,
@@ -4055,6 +4125,25 @@ CREATE TABLE `razorpay_settlements` (
   PRIMARY KEY (`pk_id`),
   UNIQUE KEY `ux_rs_payment` (`RazorpayPaymentId`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `ri_outbound_queue` (
+  `pk_outbound_id` int NOT NULL AUTO_INCREMENT,
+  `kind` varchar(20) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `fk_district_id` int NOT NULL,
+  `fk_club_id` int NOT NULL DEFAULT '0',
+  `fk_year_id` int NOT NULL,
+  `ref_id` int NOT NULL DEFAULT '0',
+  `fk_member_id` int DEFAULT NULL,
+  `ri_title` varchar(30) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `status` varchar(10) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'queued',
+  `created_by` int DEFAULT NULL,
+  `created_date` datetime DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`pk_outbound_id`),
+  UNIQUE KEY `uk_ri_outbound` (`kind`,`fk_district_id`,`fk_club_id`,`fk_year_id`,`ref_id`),
+  KEY `idx_ri_outbound_status` (`status`,`created_date`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;

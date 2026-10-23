@@ -26,7 +26,7 @@ class ClubFoundationGoalsApi {
   }
 
   /// Create/update (upsert) the goal for [clubId] + [yearId]. Amounts are in
-  /// the club's chosen [currency] (defaults to INR here, matching the actuals).
+  /// [currency] when given, otherwise the API's default (USD, as TRF actuals are stored).
   /// Throws [ApiException] with the server message on 400 (e.g. past year).
   Future<FoundationGoal> save(
     int clubId, {
@@ -35,7 +35,7 @@ class ClubFoundationGoalsApi {
     required num polioPlusGoal,
     required num endowmentFundGoal,
     required num otherGoal,
-    String currency = 'INR',
+    String? currency,
     String? remarks,
   }) async {
     // ApiClient.post has no queryParams arg — clubId goes in the path query.
@@ -47,7 +47,7 @@ class ClubFoundationGoalsApi {
         'polioPlusGoal': polioPlusGoal,
         'endowmentFundGoal': endowmentFundGoal,
         'otherGoal': otherGoal,
-        'currency': currency,
+        if (currency != null) 'currency': currency,
         if (remarks != null) 'remarks': remarks,
       },
     );

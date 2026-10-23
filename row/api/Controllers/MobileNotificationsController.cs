@@ -38,7 +38,8 @@ public class MobileNotificationsController : ControllerBase
     /// capped to the last 30 days — see MobileNotificationFeedService.)</param>
     /// <param name="types">Optional comma-separated filter:
     /// greeting, project, announcement, event, newsletter, document, highlight (engagement module), grant, volunteer,
-    /// meeting_duty, invite (guest invite prompts), meeting (reminder). Omit for all.</param>
+    /// meeting_duty, invite (guest invite prompts), meeting (reminder), escalation (alerts to a club officer),
+    /// celebration (targets reached). Omit for all.</param>
     [HttpGet("notifications")]
     public async Task<ActionResult<PagedResult<MobileNotificationDto>>> GetNotifications(
         [FromQuery] int page = 1,

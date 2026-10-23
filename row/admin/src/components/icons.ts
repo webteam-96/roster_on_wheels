@@ -107,7 +107,8 @@ export {
   ImageIcon as Image,
   ImageIcon as ImageIcon,
   TrayIcon as Inbox,
-  CurrencyInrIcon as IndianRupee,
+  // shortcut: the old name is kept so 48 pages stay untouched, rename to Banknote when those pages are next edited.
+  MoneyIcon as IndianRupee, // ROW is multi-currency: a neutral banknote, not the rupee sign
   InfoIcon as Info,
   KeyIcon as Key,
   KeyIcon as KeyRound,

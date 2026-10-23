@@ -484,7 +484,7 @@ public class EmailScheduledSendBackgroundService : BackgroundService
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogWarning(ex, "Email send failed to {Email}", r.Email);
+                    _logger.LogWarning(ex, "Email send failed to {Email}", LogMask.Email(r.Email));
                     Interlocked.Increment(ref failed);
                 }
             });
@@ -534,27 +534,27 @@ public class EmailScheduledSendBackgroundService : BackgroundService
     private static string Esc(string? s) => WebUtility.HtmlEncode(s ?? "");
 
     private static string Shell(string sourceName, string heading, string innerHtml) => $@"
-<div style='font-family:Arial,Helvetica,sans-serif;font-size:15px;color:#1f2937;line-height:1.6;max-width:640px;margin:0 auto'>
-  <div style='background:#07294d;color:#fff;padding:16px 24px;border-radius:8px 8px 0 0'>
+<div style='font-family:Figtree, Arial,Helvetica,sans-serif;font-size:15px;color:#1B2C42;line-height:1.6;max-width:640px;margin:0 auto'>
+  <div style='background:#1B2C42;color:#FCFDFE;padding:16px 24px;border-radius:8px 8px 0 0'>
     <div style='text-align:center;margin-bottom:12px'><img src='{Brand.EmailLogoUrl}' alt='ROW' style='height:77px' /></div>
     <div style='font-size:13px;opacity:.85'>{Esc(sourceName)}</div>
     <h2 style='margin:4px 0 0 0;font-size:19px'>{Esc(heading)}</h2>
   </div>
-  <div style='background:#ffffff;border:1px solid #e2e8f0;border-top:0;padding:24px;border-radius:0 0 8px 8px'>
+  <div style='background:#FCFDFE;border:1px solid #D5DEE8;border-top:0;padding:24px;border-radius:0 0 8px 8px'>
     <p style='margin:0 0 14px 0'>Dear Rtn. {{{{NAME}}}},</p>
     {innerHtml}
-    <p style='margin:24px 0 0 0;color:#94a3b8;font-size:12px'>This is an automated message from ROW. For further details, please contact your Club / District leadership.</p>
+    <p style='margin:24px 0 0 0;color:#8796AA;font-size:12px'>This is an automated message from ROW. For further details, please contact your Club / District leadership.</p>
   </div>
 </div>";
 
     private static string Row(string label, string? value)
         => string.IsNullOrWhiteSpace(value) ? "" :
-           $"<tr><td style='padding:6px 12px;border:1px solid #e2e8f0;background:#f8fafc;width:140px;vertical-align:top'>{Esc(label)}</td>" +
-           $"<td style='padding:6px 12px;border:1px solid #e2e8f0;vertical-align:top'>{Esc(value)}</td></tr>";
+           $"<tr><td style='padding:6px 12px;border:1px solid #D5DEE8;background:#F7F9FC;width:140px;vertical-align:top'>{Esc(label)}</td>" +
+           $"<td style='padding:6px 12px;border:1px solid #D5DEE8;vertical-align:top'>{Esc(value)}</td></tr>";
 
     private static string LinkButton(string url, string text)
         => string.IsNullOrWhiteSpace(url) ? "" :
-           $"<p style='margin:16px 0 0 0'><a href='{WebUtility.HtmlEncode(url)}' style='background:#1e3a8a;color:#fff;text-decoration:none;padding:10px 18px;border-radius:6px;display:inline-block'>{Esc(text)}</a></p>";
+           $"<p style='margin:16px 0 0 0'><a href='{WebUtility.HtmlEncode(url)}' style='background:#12376F;color:#FCFDFE;text-decoration:none;padding:10px 18px;border-radius:6px;display:inline-block'>{Esc(text)}</a></p>";
 
     private static string Image(string url)
         => string.IsNullOrWhiteSpace(url) ? "" :
@@ -567,7 +567,7 @@ public class EmailScheduledSendBackgroundService : BackgroundService
         var inner =
             $"<p style='margin:0 0 14px 0'>You are invited to an upcoming event organized by <strong>{Esc(sourceName)}</strong>:</p>" +
             Image(imageUrl ?? "") +
-            "<table style='border-collapse:collapse;width:100%;border:1px solid #e2e8f0'>" +
+            "<table style='border-collapse:collapse;width:100%;border:1px solid #D5DEE8'>" +
             Row("Event", title) + Row("Date", eventDate) + Row("Venue", venue) + Row("Details", details) +
             "</table>" +
             LinkButton(regLink ?? "", "Register / More details");
@@ -598,7 +598,7 @@ public class EmailScheduledSendBackgroundService : BackgroundService
     {
         var inner =
             $"<p style='margin:0 0 14px 0'>A project update from <strong>{Esc(sourceName)}</strong>:</p>" +
-            "<table style='border-collapse:collapse;width:100%;border:1px solid #e2e8f0'>" +
+            "<table style='border-collapse:collapse;width:100%;border:1px solid #D5DEE8'>" +
             Row("Project", title) + Row("Date", projectDate) + Row("Area of Focus", areaOfFocus) +
             Row("Project Cost", cost) + Row("Direct Beneficiaries", beneficiaries) + Row("Man Hours", manHours) +
             "</table>" +
@@ -614,17 +614,17 @@ public class EmailScheduledSendBackgroundService : BackgroundService
     {
         static string DocLink(string label, string? url)
             => string.IsNullOrWhiteSpace(url) ? "" :
-               $"<tr><td style='padding:6px 12px;border:1px solid #e2e8f0;background:#f8fafc;width:140px;vertical-align:top'>{Esc(label)}</td>" +
-               $"<td style='padding:6px 12px;border:1px solid #e2e8f0;vertical-align:top'><a href='{WebUtility.HtmlEncode(url)}' style='color:#1e3a8a'>Download</a></td></tr>";
+               $"<tr><td style='padding:6px 12px;border:1px solid #D5DEE8;background:#F7F9FC;width:140px;vertical-align:top'>{Esc(label)}</td>" +
+               $"<td style='padding:6px 12px;border:1px solid #D5DEE8;vertical-align:top'><a href='{WebUtility.HtmlEncode(url)}' style='color:#12376F'>Download</a></td></tr>";
 
         var descRow = string.IsNullOrWhiteSpace(description) ? "" :
-            $"<tr><td style='padding:6px 12px;border:1px solid #e2e8f0;background:#f8fafc;width:140px;vertical-align:top'>Description</td>" +
-            $"<td style='padding:6px 12px;border:1px solid #e2e8f0;vertical-align:top;white-space:pre-line'>{Esc(description)}</td></tr>";
+            $"<tr><td style='padding:6px 12px;border:1px solid #D5DEE8;background:#F7F9FC;width:140px;vertical-align:top'>Description</td>" +
+            $"<td style='padding:6px 12px;border:1px solid #D5DEE8;vertical-align:top;white-space:pre-line'>{Esc(description)}</td></tr>";
 
         var inner =
             $"<p style='margin:0 0 14px 0'>A club meeting from <strong>{Esc(sourceName)}</strong>:</p>" +
             Image(photoUrl ?? "") +
-            "<table style='border-collapse:collapse;width:100%;border:1px solid #e2e8f0'>" +
+            "<table style='border-collapse:collapse;width:100%;border:1px solid #D5DEE8'>" +
             Row("Meeting", title) + Row("Date", meetingDate) + Row("Meeting Type", meetingType) +
             descRow + Row("Attendance", attendance) +
             DocLink("Agenda", agendaUrl) + DocLink("Minutes of Meeting", minutesUrl) +

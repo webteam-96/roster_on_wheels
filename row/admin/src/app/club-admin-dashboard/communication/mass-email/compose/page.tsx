@@ -59,6 +59,7 @@ export default function ClubAdminComposeMassEmailPage() {
   const [subject, setSubject] = useState("");
   const [emailBody, setEmailBody] = useState("");
   const commsOn = useFeatureLoadedOn("communication"); // N5: allowance instead of credits, language versions
+  const subGroupsOn = useFeatureLoadedOn("sub_groups"); // switched off: no Subgroup recipients, no sub-group calls
   const [templateKey, setTemplateKey] = useState("");
 
   const [rotaryYears, setRotaryYears] = useState<any[]>([]);
@@ -76,12 +77,12 @@ export default function ClubAdminComposeMassEmailPage() {
   useEffect(() => { if (clubId) getClub(clubId).then((c) => setClubName(c.clubName)).catch(() => {}); }, [clubId]);
 
   useEffect(() => {
-    if (!clubId) return;
+    if (!clubId || !subGroupsOn) return;
     getClubSubGroupAvailableYears(clubId).then((years) => {
       setRotaryYears(years.map((y: any) => ({ id: y.id, yearLabel: y.yearLabel, isCurrent: false })));
       if (years.length > 0) setSelectedYearId(String(years[0].id));
     }).catch(() => {});
-  }, [clubId]);
+  }, [clubId, subGroupsOn]);
 
   useEffect(() => {
     if (!selectedYearId || !clubId) return;
@@ -181,7 +182,7 @@ export default function ClubAdminComposeMassEmailPage() {
           <CardHeader><CardTitle>Recipients</CardTitle></CardHeader>
           <CardContent className="space-y-4">
             <div className="flex flex-col gap-2">
-              {[{ value: "1", label: "All Members" }, { value: "2", label: "Subgroup" }, { value: "3", label: "Select Members" },
+              {[{ value: "1", label: "All Members" }, ...(subGroupsOn ? [{ value: "2", label: "Subgroup" }] : []), { value: "3", label: "Select Members" },
                 ...(contactsOn ? [{ value: "4", label: "Contact groups (non-members)" }] : [])].map((opt) => (
                 <label key={opt.value} className="flex items-center gap-2 cursor-pointer">
                   <input type="radio" name="recipientType" value={opt.value} checked={recipientType === opt.value}

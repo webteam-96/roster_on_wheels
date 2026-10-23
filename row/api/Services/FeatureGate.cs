@@ -27,8 +27,9 @@ public static class FeatureGate
             new[] { @"^/api/(mobile/)?club-foundation-goals(/|$)", @"/foundation-goal(/|$)" },
             new[] { @"/foundation-goal(/|$)" }),
         new("sub_groups", "Sub groups", Kind.Flagged,
-            // district committee sub groups (…/committee/groups/{id}/sub-groups) are a different module
-            new[] { @"^/api/(clubs|districts)/\d+/sub-groups(/|$)" },
+            // district committee sub groups (…/committee/groups/{id}/sub-groups) are a different module;
+            // …/sub-groups/club-members is the club's member list mass email picks recipients from, so it stays open
+            new[] { @"^/api/(clubs|districts)/\d+/sub-groups(/(?!club-members$)|$)" },
             new[] { @"^/(clubs|districts)/[^/]+/sub-groups(/|$)", @"/quick-links/sub-groups(/|$)" }),
         new("cmr_email_settings", "CMR submission email settings", Kind.Flagged,
             new[] { @"/cmr-email-settings(/|$)" },
@@ -69,6 +70,16 @@ public static class FeatureGate
         new("target_dashboard", "Live target dashboard", Kind.Flagged,
             new[] { @"^/api/(clubs|districts)/\d+/targets(/|$)" },
             new[] { @"^/(club|district)-admin-dashboard/targets(/|$)", @"^/ag-dashboard/targets(/|$)" }),
+        // B.1 #32 (2026-10-24): alerts from club president to Assistant Governor to DG. The daily pass and the app feed
+        // check the switch too; the target rule also needs target_dashboard on, the meeting rule meetings.
+        new(EscalationService.FeatureKey, "Escalation alerts (club president, Assistant Governor, District Governor)", Kind.Flagged,
+            new[] { @"^/api/districts/\d+/escalation(/|$)", @"^/api/escalation(/|$)" },
+            new[] { @"^/district-admin-dashboard/escalation(/|$)" }),
+        // B.1 #35 (2026-10-24): once per target reached, an app message to the club, a note to the DG and a spotlight
+        // card. The daily pass and the app feed check the switch; cards are approved on the Engagement page.
+        new(CelebrationService.FeatureKey, "Target celebration (club message, note to the DG, spotlight card)", Kind.Flagged,
+            new[] { @"^/api/celebration(/|$)" },
+            Array.Empty<string>()),
         // the pasted join link on meetings is ROW Wave 1 and stays open; reminders also check this switch
         new(MeetingsService.FeatureKey, "Meetings: calendar feeds, reminders, compliance", Kind.Flagged,
             new[] { @"/calendar-feed(/|$)", @"^/api/public/calendar/", @"/meeting-compliance(/|$)" },
@@ -86,6 +97,11 @@ public static class FeatureGate
         new("chat", "Chat", Kind.Flagged,
             new[] { @"^/api/chat(/|$)", @"^/api/(clubs|districts)/\d+/chat-moderation(/|$)" },
             new[] { @"/chat-moderation(/|$)" }),
+        // N7 (build spec 3.1). Off: the Wave 1 planning guard alone, no elect access or elect sign-in, no scheduled
+        // cut-over (the guards, sign-in and the cut-over job check this switch too).
+        new(PlanningAccess.FeatureKey, "Planning mode: elect access, launchpad, cut-over, trials", Kind.Flagged,
+            new[] { @"^/api/planning(/|$)", @"^/api/tenants/\d+/(trial|convert-trial)$" },
+            new[] { @"^/planning(/|$)" }),
     };
 
     private static readonly (Feature F, Regex Re, bool WritesOnly)[] Rules = All

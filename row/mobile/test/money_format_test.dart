@@ -3,6 +3,7 @@ import 'package:rotary_flutter_app/core/brand/brand.dart';
 import 'package:rotary_flutter_app/core/services/club_analytics_service.dart';
 import 'package:rotary_flutter_app/core/utils/currency_symbol.dart';
 import 'package:rotary_flutter_app/core/utils/money_format.dart';
+import 'package:rotary_flutter_app/data/models/ag_dashboard_models.dart';
 import 'package:rotary_flutter_app/presentation/screens/ag/widgets/ag_format.dart';
 
 BrandInfo _brand(String numberLocale, String currency) => BrandInfo.fromJson({
@@ -48,5 +49,11 @@ void main() {
     Brand.current = _brand('en-IN', 'INR');
     expect(fmtInt(1655000), '16,55,000');
     expect(shortMoney(1655000, null), '₹16.6L');
+  });
+
+  test('a row without a currency takes the brand currency, never INR', () {
+    Brand.current = _brand('en-US', 'EUR');
+    expect(AgProjectRow.fromJson(const {}).currency, 'EUR');
+    expect(AgProjectRow.fromJson(const {'currency': 'CAD'}).currency, 'CAD');
   });
 }

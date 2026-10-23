@@ -200,25 +200,25 @@ public class CitationAutoPointsBackgroundService : BackgroundService
             var subject = $"ROW - Auto Calculate District awards Points - {endTs:dd-MMM-yyyy hh:mm tt}";
 
             var body = $@"
-<div style='font-family:Arial,Helvetica,sans-serif;font-size:14px;color:#1f2937;line-height:1.6'>
-  <h2 style='color:#1e3a8a;margin:0 0 12px 0'>Auto Calculate District Awards Points</h2>
-  <p style='margin:0 0 16px 0;color:#475569'>The nightly background job has completed successfully.</p>
+<div style='font-family:Figtree, Arial,Helvetica,sans-serif;font-size:14px;color:#1B2C42;line-height:1.6'>
+  <h2 style='color:#12376F;margin:0 0 12px 0'>Auto Calculate District Awards Points</h2>
+  <p style='margin:0 0 16px 0;color:#4A5A70'>The nightly background job has completed successfully.</p>
 
-  <table style='border-collapse:collapse;width:100%;max-width:520px;border:1px solid #e2e8f0'>
-    <tr><td style='padding:8px 12px;border:1px solid #e2e8f0;background:#f8fafc;width:200px'>Run started</td>
-        <td style='padding:8px 12px;border:1px solid #e2e8f0'>{startTs:dd-MMM-yyyy hh:mm:ss tt}</td></tr>
-    <tr><td style='padding:8px 12px;border:1px solid #e2e8f0;background:#f8fafc'>Run completed</td>
-        <td style='padding:8px 12px;border:1px solid #e2e8f0'>{endTs:dd-MMM-yyyy hh:mm:ss tt}</td></tr>
-    <tr><td style='padding:8px 12px;border:1px solid #e2e8f0;background:#f8fafc'>Duration</td>
-        <td style='padding:8px 12px;border:1px solid #e2e8f0'>{(int)duration.TotalMinutes} min {duration.Seconds} sec</td></tr>
-    <tr><td style='padding:8px 12px;border:1px solid #e2e8f0;background:#f8fafc'>Rotary year</td>
-        <td style='padding:8px 12px;border:1px solid #e2e8f0'>{yearLabel}</td></tr>
-    <tr><td style='padding:8px 12px;border:1px solid #e2e8f0;background:#f8fafc'>Districts processed</td>
-        <td style='padding:8px 12px;border:1px solid #e2e8f0'>{districtCount}</td></tr>
-    <tr><td style='padding:8px 12px;border:1px solid #e2e8f0;background:#f8fafc'>Clubs processed</td>
-        <td style='padding:8px 12px;border:1px solid #e2e8f0'>{clubCount}</td></tr>
-    <tr><td style='padding:8px 12px;border:1px solid #e2e8f0;background:#f8fafc'>Entries written</td>
-        <td style='padding:8px 12px;border:1px solid #e2e8f0'>{entryCount}</td></tr>
+  <table style='border-collapse:collapse;width:100%;max-width:520px;border:1px solid #D5DEE8'>
+    <tr><td style='padding:8px 12px;border:1px solid #D5DEE8;background:#F7F9FC;width:200px'>Run started</td>
+        <td style='padding:8px 12px;border:1px solid #D5DEE8'>{startTs:dd-MMM-yyyy hh:mm:ss tt}</td></tr>
+    <tr><td style='padding:8px 12px;border:1px solid #D5DEE8;background:#F7F9FC'>Run completed</td>
+        <td style='padding:8px 12px;border:1px solid #D5DEE8'>{endTs:dd-MMM-yyyy hh:mm:ss tt}</td></tr>
+    <tr><td style='padding:8px 12px;border:1px solid #D5DEE8;background:#F7F9FC'>Duration</td>
+        <td style='padding:8px 12px;border:1px solid #D5DEE8'>{(int)duration.TotalMinutes} min {duration.Seconds} sec</td></tr>
+    <tr><td style='padding:8px 12px;border:1px solid #D5DEE8;background:#F7F9FC'>Rotary year</td>
+        <td style='padding:8px 12px;border:1px solid #D5DEE8'>{yearLabel}</td></tr>
+    <tr><td style='padding:8px 12px;border:1px solid #D5DEE8;background:#F7F9FC'>Districts processed</td>
+        <td style='padding:8px 12px;border:1px solid #D5DEE8'>{districtCount}</td></tr>
+    <tr><td style='padding:8px 12px;border:1px solid #D5DEE8;background:#F7F9FC'>Clubs processed</td>
+        <td style='padding:8px 12px;border:1px solid #D5DEE8'>{clubCount}</td></tr>
+    <tr><td style='padding:8px 12px;border:1px solid #D5DEE8;background:#F7F9FC'>Entries written</td>
+        <td style='padding:8px 12px;border:1px solid #D5DEE8'>{entryCount}</td></tr>
   </table>
 
   <p style='margin:20px 0 0 0;color:#64748b;font-size:12px'>This is an automated notification from ROW.</p>
@@ -230,7 +230,7 @@ public class CitationAutoPointsBackgroundService : BackgroundService
             foreach (var to in recipients)
             {
                 try { await emailService.SendGenericEmailAsync(to, subject, body); }
-                catch (Exception ex) { _logger.LogWarning(ex, "Failed to send citation auto-points email to {Recipient}", to); }
+                catch (Exception ex) { _logger.LogWarning(ex, "Failed to send citation auto-points email to {Recipient}", LogMask.Email(to)); }
             }
         }
         catch (Exception ex)

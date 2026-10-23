@@ -12,6 +12,9 @@ namespace GreetingsWorker.Services;
 //   • Credits: each send deducts 1 from the source's club/district credits (unless DeductCredits=false).
 //   • Idempotency: greeting_send_log keys on (member, occasion, channel, sourceType, sourceId, date),
 //     so a re-run never double-sends; a prior 'failed'/'skipped' entry is retried.
+//   • Time zones (N12): the job runs every hour. Each source works out its local date and hour from its district's
+//     zone (ZoneTime); it is greeted from SendHour local (08:00) once per local day: a 'Run' row (member 0) in
+//     greeting_send_log marks it done, and every log row carries the source's local date.
 public class GreetingsJob
 {
     private readonly string _conn;
@@ -41,6 +44,7 @@ public class GreetingsJob
         public int PushSent { get; set; }
         public int PushFailed { get; set; }
         public int Skipped { get; set; }
+        public int NotDue { get; set; }      // sources before their local SendHour, or already done today
     }
 
     // ── config resolved per occasion ──────────────────────────────────────
@@ -74,12 +78,18 @@ public class GreetingsJob
         public Dictionary<string, RotaryApi.Services.CommsTemplates.Template> BirthdayVersions = new(), AnniversaryVersions = new();
         public string Language = "";
         public string? GovernorNoteHtml;
+        public string FoundationLink = "";   // {{foundation_link}}: the district's giving link, "" = none
     }
 
     private bool _comms;              // N5 communication module on (platform_features 'communication')
 
     private bool _dryRun;
-    private int _refMonth, _refDay;   // the month/day matched against BirthDate/AnniversaryDate
+    private int _refMonth, _refDay;   // the month/day matched against BirthDate/AnniversaryDate (current source)
+    private DateTime _day;            // the current source's local date: SendDate of its log rows
+    private DateTime _utcNow;         // the run's clock (--now mocks it)
+    private DateTime? _dateOverride;  // --date: match this date, no SendHour wait
+    private bool _scheduled;          // full run (no scope, no --date, not dry): skip sources already done today
+    private Dictionary<int, TimeZoneInfo> _zones = new();   // district id -> time zone
     private int? _currentYearId;      // rotary_year_master.IsCurrent = 1
     private string? _currentYearLabel;
     private bool _hasReviewedYearColumn; // GreetingReviewedYearId present on both club_master + district_master
@@ -93,16 +103,17 @@ public class GreetingsJob
     //   • districtNumber set → only that district is processed
     //   • if EITHER is set, the OTHER source type is skipped unless it too is set
     //     (so "--club-name X" runs ONLY club X, no districts; both set runs exactly those two).
-    public async Task<RunStats> RunAsync(bool dryRun = false, string? clubNameFilter = null, string? districtNumberFilter = null, DateTime? overrideDate = null)
+    public async Task<RunStats> RunAsync(bool dryRun = false, string? clubNameFilter = null, string? districtNumberFilter = null, DateTime? overrideDate = null, DateTime? utcNow = null)
     {
         _dryRun = dryRun;
-        var refDate = overrideDate ?? DateTime.Now;
-        _refMonth = refDate.Month;
-        _refDay = refDate.Day;
+        _utcNow = utcNow ?? DateTime.UtcNow;
+        _dateOverride = overrideDate?.Date;
+        _scheduled = !dryRun && overrideDate == null && string.IsNullOrWhiteSpace(clubNameFilter) && string.IsNullOrWhiteSpace(districtNumberFilter);
         var stats = new RunStats { RunStartedAt = DateTime.Now };
         await using var conn = new MySqlConnection(_conn);
         await conn.OpenAsync();
         if (!dryRun) await EnsureLogTableAsync(conn);   // dry-run is strictly read-only — no schema change
+        _zones = await RotaryApi.Services.ZoneTime.DistrictZonesAsync(conn);
         _comms = await RotaryApi.Services.CommsTemplates.IsOnAsync(conn);
 
         // Current Rotary year — used to resolve the DG / Club President for the signature.
@@ -191,12 +202,14 @@ public class GreetingsJob
                 OfficerName = c.PresidentName, OfficerTitle = "Club President",
                 ReviewedYearId = c.GreetingReviewedYearId == null ? null : (int?)Convert.ToInt32(c.GreetingReviewedYearId),
             };
+            if (!await DueAsync(conn, cfg, (int?)c.DistrictId, stats)) continue;
             stats.ClubsProcessed++;
             if (_comms) await LoadCommsAsync(conn, cfg, governorNotes, (int?)c.DistrictId);
             await GreetForSourceAsync(conn, cfg,
                 birthdayMembersSql: ClubMembersByDateSql("BirthDate", _comms),
                 anniversaryMembersSql: ClubMembersByDateSql("AnniversaryDate", _comms),
                 sqlParams: new { ClubId = cfg.SourceId, RefMonth = _refMonth, RefDay = _refDay }, stats);
+            await MarkDoneAsync(conn, cfg);
         }
     }
 
@@ -244,13 +257,49 @@ public class GreetingsJob
                 OfficerName = d.DgName, OfficerTitle = "District Governor",
                 ReviewedYearId = d.GreetingReviewedYearId == null ? null : (int?)Convert.ToInt32(d.GreetingReviewedYearId),
             };
+            if (!await DueAsync(conn, cfg, cfg.SourceId, stats)) continue;
             stats.DistrictsProcessed++;
             if (_comms) await LoadCommsAsync(conn, cfg, null, null);
             await GreetForSourceAsync(conn, cfg,
                 birthdayMembersSql: DistrictMembersByDateSql("BirthDate", _comms),
                 anniversaryMembersSql: DistrictMembersByDateSql("AnniversaryDate", _comms),
                 sqlParams: new { DistrictId = cfg.SourceId, RefMonth = _refMonth, RefDay = _refDay }, stats);
+            await MarkDoneAsync(conn, cfg);
         }
+    }
+
+    // N12: sets the source's local date (_day) and the month/day to match, from its district's time zone. Not due
+    // before SendHour local (unless --date is given) or, in a full run, when its 'Run' row for the local date exists.
+    private async Task<bool> DueAsync(MySqlConnection conn, SourceConfig cfg, int? districtId, RunStats stats)
+    {
+        var zone = districtId is int id && _zones.TryGetValue(id, out var z) ? z : RotaryApi.Services.ZoneTime.Find(null);
+        var local = RotaryApi.Services.ZoneTime.Local(zone, _utcNow);
+        _day = local.Date;
+        var match = _dateOverride ?? _day;
+        _refMonth = match.Month;
+        _refDay = match.Day;
+        var state = _dateOverride == null && local.Hour < _opt.SendHour ? $"waiting for {_opt.SendHour:00}:00"
+            : _scheduled && await conn.ExecuteScalarAsync<int>(@"
+                SELECT COUNT(*) FROM greeting_send_log
+                WHERE fk_member_id = 0 AND Occasion = 'Run' AND SourceType = @T AND SourceId = @S AND SendDate = @Day",
+                new { T = cfg.IsDistrict ? "District" : "Club", S = cfg.SourceId, Day = _day }) > 0 ? "done today" : "due";
+        if (_dryRun)
+            Console.WriteLine($"[DRY] {(cfg.IsDistrict ? "District" : "Club")} #{cfg.SourceId} '{cfg.SourceName}': " +
+                $"{RotaryApi.Services.ZoneTime.IanaId(zone)} local {local:yyyy-MM-dd HH:mm}, match {match:MM-dd}, {state}");
+        if (state == "due") return true;
+        stats.NotDue++;
+        return false;
+    }
+
+    // The source is done for its local date: later hourly runs that day skip it.
+    private async Task MarkDoneAsync(MySqlConnection conn, SourceConfig cfg)
+    {
+        if (_dryRun) return;
+        await conn.ExecuteAsync(@"
+            INSERT INTO greeting_send_log (fk_member_id, Occasion, Channel, SourceType, SourceId, SendDate, Status, Detail)
+            VALUES (0, 'Run', 'All', @T, @S, @Day, 'done', NULL)
+            ON DUPLICATE KEY UPDATE Status = VALUES(Status), created_at = NOW()",
+            new { T = cfg.IsDistrict ? "District" : "Club", S = cfg.SourceId, Day = _day });
     }
 
     // N5: the source's template versions and language; a club greeting also carries its district's Governor note.
@@ -260,6 +309,8 @@ public class GreetingsJob
         cfg.BirthdayVersions = await RotaryApi.Services.CommsTemplates.LoadAsync(conn, club, district, "birthday");
         cfg.AnniversaryVersions = await RotaryApi.Services.CommsTemplates.LoadAsync(conn, club, district, "anniversary");
         cfg.Language = await RotaryApi.Services.CommsTemplates.DefaultLanguageAsync(conn, club, district);
+        // a club greeting uses its district's link
+        cfg.FoundationLink = await RotaryApi.Services.CommsTemplates.FoundationLinkAsync(conn, cfg.IsDistrict ? cfg.SourceId : districtOfClub ?? 0);
         if (governorNotes != null && districtOfClub is int d && d > 0)
         {
             if (!governorNotes.TryGetValue(d, out var note))
@@ -353,9 +404,9 @@ public class GreetingsJob
 
         await conn.ExecuteAsync(@"
             INSERT INTO greeting_send_log (fk_member_id, Occasion, Channel, SourceType, SourceId, SendDate, Status, Detail)
-            VALUES (0, 'Paused', 'All', @T, @S, CURDATE(), 'skipped', @D)
+            VALUES (0, 'Paused', 'All', @T, @S, @Day, 'skipped', @D)
             ON DUPLICATE KEY UPDATE Status=VALUES(Status), Detail=VALUES(Detail), created_at=NOW()",
-            new { T = sourceType, S = cfg.SourceId, D = detail });
+            new { T = sourceType, S = cfg.SourceId, D = detail, Day = _day });
     }
 
     // One broadcast push per source per day summarising today's celebrations. Free (no credit), push-only,
@@ -426,13 +477,13 @@ public class GreetingsJob
         return (await conn.QueryAsync<string>(sql, new { Id = cfg.SourceId })).ToList();
     }
 
-    private static async Task<bool> DigestAlreadySentAsync(MySqlConnection conn, string sourceType, int sourceId)
+    private async Task<bool> DigestAlreadySentAsync(MySqlConnection conn, string sourceType, int sourceId)
     {
         var n = await conn.ExecuteScalarAsync<int>(@"
             SELECT COUNT(*) FROM greeting_send_log
             WHERE fk_member_id=0 AND Occasion='Digest' AND Channel='Push' AND SourceType=@T AND SourceId=@S
-              AND SendDate=CURDATE() AND Status='sent'",
-            new { T = sourceType, S = sourceId });
+              AND SendDate=@Day AND Status='sent'",
+            new { T = sourceType, S = sourceId, Day = _day });
         return n > 0;
     }
 
@@ -442,9 +493,9 @@ public class GreetingsJob
     {
         await conn.ExecuteAsync(@"
             INSERT INTO greeting_send_log (fk_member_id, Occasion, Channel, SourceType, SourceId, SendDate, Status, Detail)
-            VALUES (0, 'Digest', 'Push', @T, @S, CURDATE(), @St, @D)
+            VALUES (0, 'Digest', 'Push', @T, @S, @Day, @St, @D)
             ON DUPLICATE KEY UPDATE Status=VALUES(Status), Detail=VALUES(Detail), created_at=NOW()",
-            new { T = sourceType, S = sourceId, St = status, D = detail });
+            new { T = sourceType, S = sourceId, St = status, D = detail, Day = _day });
     }
 
     private async Task GreetMemberAsync(MySqlConnection conn, SourceConfig cfg, string occasion, Celebrant m, RunStats stats)
@@ -467,7 +518,10 @@ public class GreetingsJob
         var version = RotaryApi.Services.CommsTemplates.Pick(isBirthday ? cfg.BirthdayVersions : cfg.AnniversaryVersions, m.Language, cfg.Language);
         if (version != null)
         {
-            var values = new Dictionary<string, string?> { ["member_name"] = m.MemberName, ["club_name"] = cfg.SourceName };
+            var values = new Dictionary<string, string?>
+            {
+                ["member_name"] = m.MemberName, ["club_name"] = cfg.SourceName, ["foundation_link"] = cfg.FoundationLink,
+            };
             emailSubject = RotaryApi.Services.CommsTemplates.Fill(version.Subject, values, false);
             emailBody = RotaryApi.Services.CommsTemplates.Fill(version.BodyHtml, values, true)
                 + "<p>" + System.Net.WebUtility.HtmlEncode(signature.Trim()).Replace("\n", "<br>") + "</p>";
@@ -487,7 +541,7 @@ public class GreetingsJob
                     await LogAsync(conn, m.MemberId, occasion, ChEmail, sourceType, cfg.SourceId, "skipped", "no Email credits", stats);
                 else if (_dryRun)
                 {
-                    Console.WriteLine($"[DRY] Email {occasion} -> {m.MemberName} ({m.Email}) via {sourceType} '{cfg.SourceName}' [subject={emailSubject}]");
+                    Console.WriteLine($"[DRY] Email {occasion} -> {m.MemberName} ({RotaryApi.Services.LogMask.Email((string?)m.Email)}) via {sourceType} '{cfg.SourceName}' [subject={emailSubject}]");
                     stats.EmailSent++;
                 }
                 else
@@ -612,6 +666,7 @@ public class GreetingsJob
         // row is written for it, when the count is zero (see SendCelebrationsDigestAsync's
         // early return). So a missing digest notification is EXPECTED, not a bug, whenever
         // this section comes back with nothing on both sides.
+        // shortcut: the server's date, not the district's zone (N12); use DueAsync's local date if operators need it.
         var todayNow = DateTime.Now;
         if (clubId.HasValue)
         {
@@ -667,7 +722,7 @@ public class GreetingsJob
                 bool bdToday = bd.HasValue && bd.Value.Month == today.Month && bd.Value.Day == today.Day;
                 bool adToday = ad.HasValue && ad.Value.Month == today.Month && ad.Value.Day == today.Day;
                 Console.WriteLine($"  MemberId={m.MemberId}  {m.MemberName}");
-                Console.WriteLine($"    Mobile={(string?)m.Mobile ?? "(none)"}  Email={(string?)m.Email ?? "(none)"}  DeviceToken={(string.IsNullOrWhiteSpace((string?)m.DeviceToken) ? "(none)" : "present")}");
+                Console.WriteLine($"    Mobile={(string?)m.Mobile ?? "(none)"}  Email={((string?)m.Email == null ? "(none)" : RotaryApi.Services.LogMask.Email((string?)m.Email))}  DeviceToken={(string.IsNullOrWhiteSpace((string?)m.DeviceToken) ? "(none)" : "present")}");
                 Console.WriteLine($"    BirthDate={(bd.HasValue ? bd.Value.ToString("dd-MMM") : "(none)")} (today match: {bdToday})   AnniversaryDate={(ad.HasValue ? ad.Value.ToString("dd-MMM") : "(none)")} (today match: {adToday})");
                 if (!bdToday && !adToday)
                     Console.WriteLine("    NOTE: neither date matches today — this member simply isn't due a greeting today, regardless of config.");
@@ -816,13 +871,13 @@ public class GreetingsJob
     private static string Coalesce(string? a, string? b)
         => !string.IsNullOrWhiteSpace(a) ? a! : (b ?? "");
 
-    private static async Task<bool> AlreadySentAsync(MySqlConnection conn, int memberId, string occasion, string channel, string sourceType, int sourceId)
+    private async Task<bool> AlreadySentAsync(MySqlConnection conn, int memberId, string occasion, string channel, string sourceType, int sourceId)
     {
         var n = await conn.ExecuteScalarAsync<int>(@"
             SELECT COUNT(*) FROM greeting_send_log
             WHERE fk_member_id=@M AND Occasion=@O AND Channel=@C AND SourceType=@T AND SourceId=@S
-              AND SendDate=CURDATE() AND Status='sent'",
-            new { M = memberId, O = occasion, C = channel, T = sourceType, S = sourceId });
+              AND SendDate=@Day AND Status='sent'",
+            new { M = memberId, O = occasion, C = channel, T = sourceType, S = sourceId, Day = _day });
         return n > 0;
     }
 
@@ -833,9 +888,9 @@ public class GreetingsJob
         {
             await conn.ExecuteAsync(@"
                 INSERT INTO greeting_send_log (fk_member_id, Occasion, Channel, SourceType, SourceId, SendDate, Status, Detail)
-                VALUES (@M, @O, @C, @T, @S, CURDATE(), @St, @D)
+                VALUES (@M, @O, @C, @T, @S, @Day, @St, @D)
                 ON DUPLICATE KEY UPDATE Status=VALUES(Status), Detail=VALUES(Detail), created_at=NOW()",
-                new { M = memberId, O = occasion, C = channel, T = sourceType, S = sourceId, St = status, D = detail });
+                new { M = memberId, O = occasion, C = channel, T = sourceType, S = sourceId, St = status, D = detail, Day = _day });
         }
         else if (status == "skipped")
         {
@@ -939,4 +994,6 @@ public class GreetingsOptions
     public string DefaultBirthdayEmailSubject { get; set; } = "Happy Birthday!";
     public string DefaultAnniversaryEmailSubject { get; set; } = "Happy Anniversary!";
     public bool DeductCredits { get; set; } = true;
+    /// <summary>Local hour (in each source's district time zone) from which the day's greetings go out.</summary>
+    public int SendHour { get; set; } = 8;
 }

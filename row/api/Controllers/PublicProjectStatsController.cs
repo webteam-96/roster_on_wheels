@@ -32,8 +32,8 @@ public class PublicProjectStatsController : ControllerBase
 
     private MySqlConnection CreateConn() => new(_connStr);
 
-    // Per-currency cost buckets computed in a single scan; summed into one INR total in C#
-    // (public/all-zones figures are INR-canonical). Selected in place of SUM(u.ProjectCost).
+    // Per-currency cost buckets computed in a single scan; summed into one total in C#
+    // (in the brand's default currency). Selected in place of SUM(u.ProjectCost).
     // ROW (as the NestJS edition): one cost bucket per brand currency plus "other", each converted into the
     // brand's default currency (the original platform: fixed INR / USD / NPR / LKR buckets, everything else counted as INR).
     private static IEnumerable<string> BucketCurrencies =>

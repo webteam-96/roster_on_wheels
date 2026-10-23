@@ -957,7 +957,7 @@ export default function EventPaymentLinkV2EditPage() {
                 />
               </div>
               <div>
-                <FieldLabel hint="(INR)">Amount</FieldLabel>
+                <FieldLabel hint={`(${currencySymbol()})`}>Amount</FieldLabel>
                 <input
                   type="number"
                   value={regAmount}

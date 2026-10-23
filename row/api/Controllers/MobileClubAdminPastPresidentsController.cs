@@ -37,35 +37,17 @@ public class MobileClubAdminPastPresidentsController : ControllerBase
         return roles.Contains("SuperAdmin") || roles.Contains("Admin");
     }
 
-    private bool IsSuperAdmin() => (User.FindFirst("roles")?.Value ?? "").Contains("SuperAdmin");
+    // SuperAdmin or a manager of the club (its admins and AGs, a district admin with all-clubs access): the rule
+    // for /api/clubs/{id} writes. Was: a "clubId" token claim that is never issued, so any Admin reached any club's
+    // list and member search, and club admins were refused their own records.
+    private async Task<bool> ManagesAsync(int clubId) =>
+        await ScopeWriteGuardMiddleware.AllowedAsync(_connectionString, GetUserId(), true, clubId);
 
-    // SuperAdmin → null (no forced club). Club Admin → their own clubId from the token.
-    private int? GetScopedClubId()
-    {
-        if (IsSuperAdmin()) return null;
-        var clubId = User.FindFirst("clubId")?.Value;
-        return int.TryParse(clubId, out var cid) ? cid : (int?)null;
-    }
+    private ObjectResult NotYourClub() => StatusCode(403, new { message = "Access denied." });
 
-    // Resolves the club a request may act on. Club Admin is pinned to their own
-    // club regardless of any clubId query value (prevents cross-club access);
-    // SuperAdmin uses the supplied clubId. Returns null when neither is available.
-    private int? ResolveClubId(int? requestedClubId)
-    {
-        var scoped = GetScopedClubId();
-        return scoped ?? requestedClubId;
-    }
-
-    // Verifies a past-president row belongs to the caller's scoped club (Club Admin).
-    // SuperAdmin passes this unconditionally.
-    private async Task<bool> CanTouchAsync(int pastPresidentId)
-    {
-        if (IsSuperAdmin()) return true;
-        var scoped = GetScopedClubId();
-        if (scoped == null) return false;
-        var row = await _service.GetByIdAsync(pastPresidentId);
-        return row != null && row.ClubId == scoped.Value;
-    }
+    // Verifies a past-president row belongs to a club the caller manages.
+    private async Task<bool> CanTouchAsync(int pastPresidentId) =>
+        await _service.GetByIdAsync(pastPresidentId) is { } row && await ManagesAsync(row.ClubId);
 
     // ── List ───────────────────────────────────────────────────────
     // GET /api/mobile/club-admin/past-presidents?clubId=
@@ -73,8 +55,9 @@ public class MobileClubAdminPastPresidentsController : ControllerBase
     public async Task<ActionResult<List<PastPresidentDto>>> GetByClub([FromQuery] int? clubId)
     {
         if (!IsSuperAdminOrAdmin()) return StatusCode(403, new { message = "Access denied." });
-        var cid = ResolveClubId(clubId);
+        var cid = clubId;
         if (cid == null) return BadRequest(new { message = "clubId is required." });
+        if (!await ManagesAsync(cid.Value)) return NotYourClub();
         if (!await KillSwitchHelper.IsClubDrillReachableAsync(_connectionString, cid.Value))
             return StatusCode(403, new { message = "This club, its district, or its zone is inactive. Reactivate it first to access this data." });
         var result = await _service.GetByClubAsync(cid.Value);
@@ -99,8 +82,9 @@ public class MobileClubAdminPastPresidentsController : ControllerBase
     public async Task<ActionResult> Create([FromQuery] int? clubId, [FromForm] CreatePastPresidentDto dto, IFormFile? photo)
     {
         if (!IsSuperAdminOrAdmin()) return StatusCode(403, new { message = "Access denied." });
-        var cid = ResolveClubId(clubId);
+        var cid = clubId;
         if (cid == null) return BadRequest(new { message = "clubId is required." });
+        if (!await ManagesAsync(cid.Value)) return NotYourClub();
         try
         {
             var id = await _service.CreateAsync(cid.Value, dto, photo, GetUserId(), _env);
@@ -145,8 +129,9 @@ public class MobileClubAdminPastPresidentsController : ControllerBase
     public async Task<ActionResult<List<ClubMemberSearchDto>>> SearchMembers([FromQuery] int? clubId, [FromQuery] string? search)
     {
         if (!IsSuperAdminOrAdmin()) return StatusCode(403, new { message = "Access denied." });
-        var cid = ResolveClubId(clubId);
+        var cid = clubId;
         if (cid == null) return BadRequest(new { message = "clubId is required." });
+        if (!await ManagesAsync(cid.Value)) return NotYourClub();
         if (!await KillSwitchHelper.IsClubDrillReachableAsync(_connectionString, cid.Value))
             return StatusCode(403, new { message = "This club, its district, or its zone is inactive. Reactivate it first to access this data." });
         var result = await _service.SearchClubMembersAsync(cid.Value, search);

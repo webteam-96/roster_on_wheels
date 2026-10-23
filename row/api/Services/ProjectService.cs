@@ -549,7 +549,7 @@ public class ProjectService : IProjectService
 
         // Currency: only v2 edit pages send this. When absent (v1 edit pages, or any other caller),
         // COALESCE below in the SQL leaves the project's existing currency untouched rather than
-        // silently resetting it to INR.
+        // silently resetting it to a default.
         string? currencyToSet = string.IsNullOrWhiteSpace(dto.Currency) ? null : CurrencyHelper.Normalize(dto.Currency);
 
         await conn.ExecuteAsync(

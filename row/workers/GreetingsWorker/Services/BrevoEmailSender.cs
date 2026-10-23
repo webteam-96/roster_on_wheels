@@ -44,14 +44,14 @@ public class BrevoEmailSender
             var body = await res.Content.ReadAsStringAsync();
             if (!res.IsSuccessStatusCode)
             {
-                _logger.LogWarning("Brevo send failed for {Email}: {Status} {Body}", toEmail, res.StatusCode, body);
+                _logger.LogWarning("Brevo send failed for {Email}: {Status} {Body}", RotaryApi.Services.LogMask.Email(toEmail), res.StatusCode, body);
                 return false;
             }
             return true;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Brevo send threw for {Email}", toEmail);
+            _logger.LogError(ex, "Brevo send threw for {Email}", RotaryApi.Services.LogMask.Email(toEmail));
             return false;
         }
     }

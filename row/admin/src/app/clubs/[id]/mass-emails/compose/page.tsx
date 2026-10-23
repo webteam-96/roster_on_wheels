@@ -51,6 +51,7 @@ export default function ComposeMassEmailPage() {
   const [subject, setSubject] = useState("");
   const [emailBody, setEmailBody] = useState("");
   const commsOn = useFeatureLoadedOn("communication"); // N5: allowance instead of credits, language versions
+  const subGroupsOn = useFeatureLoadedOn("sub_groups"); // switched off: no Subgroup recipients, no sub-group calls
   const [templateKey, setTemplateKey] = useState("");
 
   // Lookups
@@ -84,6 +85,7 @@ export default function ComposeMassEmailPage() {
 
   // Load only years that have subgroup data
   useEffect(() => {
+    if (!subGroupsOn) return;
     async function loadYears() {
       try {
         const years = await getClubSubGroupAvailableYears(clubId);
@@ -92,7 +94,7 @@ export default function ComposeMassEmailPage() {
       } catch {}
     }
     loadYears();
-  }, [clubId]);
+  }, [clubId, subGroupsOn]);
 
   // Load subgroups when year changes
   useEffect(() => {
@@ -264,7 +266,7 @@ export default function ComposeMassEmailPage() {
             <div className="flex flex-col gap-2">
               {[
                 { value: "1", label: "All Members" },
-                { value: "2", label: "Subgroup" },
+                ...(subGroupsOn ? [{ value: "2", label: "Subgroup" }] : []),
                 { value: "3", label: "Select Members" },
               ].map((opt) => (
                 <label key={opt.value} className="flex items-center gap-2 cursor-pointer">

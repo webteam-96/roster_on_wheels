@@ -33,6 +33,7 @@ public class ModulesController : ControllerBase
     [HttpPost("module-categories")]
     public async Task<ActionResult> CreateCategory([FromBody] CreateModuleCategoryDto dto)
     {
+        if (!IsSuperAdmin()) return StatusCode(403, new { message = "Only SuperAdmin can change the module masters." });
         var id = await _moduleService.CreateCategoryAsync(dto, GetUserId());
         return Ok(new { id });
     }
@@ -40,6 +41,7 @@ public class ModulesController : ControllerBase
     [HttpPut("module-categories/{id}")]
     public async Task<ActionResult> UpdateCategory(int id, [FromBody] UpdateModuleCategoryDto dto)
     {
+        if (!IsSuperAdmin()) return StatusCode(403, new { message = "Only SuperAdmin can change the module masters." });
         await _moduleService.UpdateCategoryAsync(id, dto, GetUserId());
         return Ok(new { message = "Category updated successfully." });
     }
@@ -47,6 +49,7 @@ public class ModulesController : ControllerBase
     [HttpDelete("module-categories/{id}")]
     public async Task<ActionResult> DeleteCategory(int id)
     {
+        if (!IsSuperAdmin()) return StatusCode(403, new { message = "Only SuperAdmin can change the module masters." });
         await _moduleService.DeleteCategoryAsync(id, GetUserId());
         return Ok(new { message = "Category deleted successfully." });
     }
@@ -71,6 +74,7 @@ public class ModulesController : ControllerBase
     [HttpPost("modules")]
     public async Task<ActionResult> CreateModule([FromBody] CreateModuleDto dto)
     {
+        if (!IsSuperAdmin()) return StatusCode(403, new { message = "Only SuperAdmin can change the module masters." });
         var moduleId = await _moduleService.CreateModuleAsync(dto, GetUserId());
         return Ok(new { id = moduleId });
     }
@@ -78,6 +82,7 @@ public class ModulesController : ControllerBase
     [HttpPut("modules/{id}")]
     public async Task<ActionResult> UpdateModule(int id, [FromBody] UpdateModuleDto dto)
     {
+        if (!IsSuperAdmin()) return StatusCode(403, new { message = "Only SuperAdmin can change the module masters." });
         await _moduleService.UpdateModuleAsync(id, dto, GetUserId());
         return Ok(new { message = "Module updated successfully." });
     }
@@ -85,6 +90,7 @@ public class ModulesController : ControllerBase
     [HttpDelete("modules/{id}")]
     public async Task<ActionResult> DeleteModule(int id)
     {
+        if (!IsSuperAdmin()) return StatusCode(403, new { message = "Only SuperAdmin can change the module masters." });
         await _moduleService.DeleteModuleAsync(id);
         return Ok(new { message = "Module deleted successfully." });
     }

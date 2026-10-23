@@ -121,7 +121,7 @@ function ClubCard({
           <StatCell icon={Users}        label="Members"   value={fmtInt(club.members)} />
           <StatCell icon={Calendar}     label="Club Service" value={fmtInt(club.clubService)} />
           <StatCell icon={Briefcase}    label="Projects"  value={fmtInt(club.totalProjects)} />
-          <StatCell icon={IndianRupee}  label="TRF (INR)" value={fmtInrShort(club.trfTotalInr)} />
+          <StatCell icon={IndianRupee}  label="TRF" value={fmtInrShort(club.trfTotalInr)} />
         </div>
       </div>
     </Link>
@@ -204,7 +204,7 @@ export default function AgClubsPage() {
         <KpiCard title="Total Members"   value={fmtInt(data.totalMembers)}       icon={Users}       color="blue" />
         <KpiCard title="Total Club Service" value={fmtInt(data.totalClubService)} icon={Calendar}    color="teal" />
         <KpiCard title="Total Projects"  value={fmtInt(data.totalProjects)}      icon={Briefcase}   color="purple" />
-        <KpiCard title="Total TRF (INR)" value={fmtInrShort(data.totalTrfInr)}   icon={IndianRupee} color="gold" />
+        <KpiCard title="Total TRF" value={fmtInrShort(data.totalTrfInr)}   icon={IndianRupee} color="gold" />
       </div>
 
       {/* Search — left aligned */}

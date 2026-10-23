@@ -157,22 +157,21 @@ matched by screen names in `row/mobile`. Error crawl: result of `kb/tools/admin_
 | P1 | Off modules redirect to the role home, no "Not available" page | Done | `admin/src/components/FeatureGate.tsx`, 2026-10-22 |
 | P2 | Read guard: club and district reads limited to members and managers | Done | `api/Services/ScopeWriteGuardMiddleware.cs`; e2e `kb/tools/scope_read_guard_e2e.py` 7/7 pass |
 | P3 | Error crawl tool | Done | `kb/tools/admin_crawl.py` |
-| P4 | Error crawl as SuperAdmin, fix every finding | In progress | first 66 pages: findings F1-F6 below |
+| P4 | Error crawl as SuperAdmin, fix every finding | Done 2026-10-23 | 319 pages crawled on the merged tree; 6 flagged were dev-server compile noise, clean on re-probe |
 | P5 | Crawl as District Admin, Club Admin, AG | Blocked | needs test logins for those roles (user said: Mukesh only for now) |
-| P6 | e2e scripts use accounts from env vars | To do | `row_local` was dropped; scripts used its demo logins |
-| P7 | Reads where the club / district id is in the query string, not the URL (589 GET routes) | To do | P2 covers only `/api/clubs/{id}` and `/api/districts/{id}` |
+| P6 | e2e scripts use accounts from env vars | Done 2026-10-23 | every `kb/tools/*_e2e.py` takes `<api> <port> <db>` and signs JWTs; 30 scripts, 1,250 checks PASS |
+| P7 | Reads where the club / district id is in the query string, not the URL | Done 2026-10-23 | 758 GET routes reviewed, 77 fixed; follow-ups in STATUS-REPORT (nested ids under the club prefix) |
 
 Crawl findings (SuperAdmin, 2026-10-22):
 
 | # | Finding | Where | Status |
 |---|---|---|---|
-| F1 | Pages call the Foundation Goals API while that module is flagged off (404) | club admin dashboard, every tab: `api/club-foundation-goals/list` | To do |
-| F2 | Pages call the Club Monthly Report API while flagged off (404) | club e-governance, `clubs/[id]/club-monthly-report` | To do |
-| F3 | SuperAdmin opens the club admin dashboard with club id 1 (no club picked) | `api/clubs/1/...`; `rotary-org-credentials` answers 403 | To do |
-| F4 | AG pages reachable by a non-AG (404 / 403) | `/ag-dashboard/*`, `/ag-reports` | To do |
-| F5 | `rotary-org-terminated-members` answers 400 | `clubs/[id]/club-report/v2` | To do |
-| F6 | Session drops to `/login` on some pages | AG dashboard, club monthly report | To do |
-
+| F1 | Pages call the Foundation Goals API while that module is flagged off (404) | club admin dashboard, every tab: `api/club-foundation-goals/list` | Done 2026-10-23 |
+| F2 | Pages call the Club Monthly Report API while flagged off (404) | club e-governance, `clubs/[id]/club-monthly-report` | Done 2026-10-23 |
+| F3 | SuperAdmin opens the club admin dashboard with club id 1 (no club picked) | `api/clubs/1/...`; `rotary-org-credentials` answers 403 | Done 2026-10-23 |
+| F4 | AG pages reachable by a non-AG (404 / 403) | `/ag-dashboard/*`, `/ag-reports` | Done 2026-10-23 |
+| F5 | `rotary-org-terminated-members` answers 400 | `clubs/[id]/club-report/v2` | Done 2026-10-23 |
+| F6 | Session drops to `/login` on some pages | AG dashboard, club monthly report | Done 2026-10-23 |
 ## 5. New spec modules (Build Specification v4.1)
 
 Web = admin pages + public sites. All To do unless noted.
@@ -185,12 +184,12 @@ Web = admin pages + public sites. All To do unless noted.
 | N4 | Volunteers and speakers | 3.13, #20 | Done 2026-10-23 | Done 2026-10-23 | Done 2026-10-23 | To do (API ready) | |
 | N5 | Communication upgrades, member language, Governor note | 3.10, #7, #24, #25 | Done 2026-10-23 | Done 2026-10-23 | Done 2026-10-23 | To do (API ready) | Brevo webhook |
 | N6 | Multilingual websites, Rotaract template, RI themes | 3.11, #8 | Done 2026-10-23 | Done 2026-10-23 | Done 2026-10-23 | n/a | |
-| N7 | Planning mode without RI or payment | 3.1, #1, #5 | To do | To do | To do | To do | cut-over RI steps stubbed |
+| N7 | Planning mode without RI or payment | 3.1, #1, #5 | Done 2026-10-23 | Done 2026-10-23 | Done 2026-10-23 | To do (API ready) | flag planning_mode; cut-over RI steps stubbed |
 | N8 | Meetings: pasted links, calendar, compliance | 3.17, #23, #31 | Done 2026-10-23 | Done 2026-10-23 | Done 2026-10-23 | To do (API ready) | Zoom / Google blocked |
 | N9 | Engagement: milestones, PHF, spotlight, escalation, celebration | B.2-B.4 | Done 2026-10-23 | Done 2026-10-23 | Done 2026-10-23 | To do (API ready) | feed + email; push blocked |
 | N10 | Live target dashboard | B.3, #30 | Done 2026-10-23 | n/a | Done 2026-10-23 | To do (API ready) | lock flow red on the sheet |
 | N11 | Chat | 3.10, #19 | Done 2026-10-23 | Done 2026-10-23 | moderation only | To do (API ready) | |
-| N12 | Time zones and formats (district zone, UTC, no IST) | guide pkg 4 | To do | To do | To do | To do | |
+| N12 | Time zones and formats (district zone, UTC, no IST) | guide pkg 4 | Done 2026-10-23 | Done 2026-10-23 | Done 2026-10-23 | Done (dates in device locale) | meeting forms still send wall-clock times (shortcut) |
 | N13 | App language switch through the translation API | 3.3, guide pkg 13 | n/a | n/a | Done (live translation) | To do | user picks the provider |
 
 ## 6. Blocked or on hold

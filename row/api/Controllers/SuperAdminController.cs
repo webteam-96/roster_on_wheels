@@ -203,11 +203,11 @@ public class SuperAdminController : ControllerBase
         var actionVerb = action == "PROMOTE" ? "promote" : "remove SuperAdmin role from";
         var emailSubject = $"ROW — SuperAdmin {(action == "PROMOTE" ? "Promotion" : "Removal")} OTP";
         var emailBody = $@"{EmailService.EMAIL_HEADER}
-<h2 style='color:#1a365d;margin-top:0;'>SuperAdmin {(action == "PROMOTE" ? "Promotion" : "Removal")} OTP</h2>
+<h2 style='color:#17458F;margin-top:0;'>SuperAdmin {(action == "PROMOTE" ? "Promotion" : "Removal")} OTP</h2>
 <p>An existing SuperAdmin requested to <strong>{actionVerb}</strong> <strong>{System.Net.WebUtility.HtmlEncode(targetName)}</strong>.</p>
 <p>Please share this OTP with them only if you approve the action:</p>
-<div style='background-color:#f7fafc;border:2px solid #3182ce;border-radius:8px;padding:20px;margin:16px 0;text-align:center;'>
-  <p style='font-size:32px;font-weight:bold;color:#1a365d;letter-spacing:8px;margin:0;'>{otp}</p>
+<div style='background-color:#F7F9FC;border:2px solid #17458F;border-radius:8px;padding:20px;margin:16px 0;text-align:center;'>
+  <p style='font-size:32px;font-weight:bold;color:#17458F;letter-spacing:8px;margin:0;'>{otp}</p>
 </div>
 <p style='color:#e53e3e;'><strong>This OTP expires in {OTP_EXPIRY_MINUTES} minutes.</strong></p>
 <p>If you did not expect this request, please contact the ROW team immediately.</p>
@@ -218,7 +218,7 @@ public class SuperAdminController : ControllerBase
         if (!string.IsNullOrWhiteSpace(_otpEmail))
         {
             try { await _email.SendGenericEmailAsync(_otpEmail, emailSubject, emailBody); emailOk = true; }
-            catch (Exception ex) { _logger.LogWarning(ex, "SA-OTP email failed to {Email}", _otpEmail); }
+            catch (Exception ex) { _logger.LogWarning(ex, "SA-OTP email failed to {Email}", LogMask.Email(_otpEmail)); }
         }
 
         if (!emailOk)
@@ -355,7 +355,7 @@ public class SuperAdminController : ControllerBase
                 if (!string.IsNullOrWhiteSpace(targetEmail))
                 {
                     try { await _email.SendSuperAdminWelcomeEmailAsync(targetEmail, targetName, targetMobile, tempPassword); }
-                    catch (Exception ex) { _logger.LogWarning(ex, "SA welcome email failed to {Email}", targetEmail); }
+                    catch (Exception ex) { _logger.LogWarning(ex, "SA welcome email failed to {Email}", LogMask.Email(targetEmail)); }
                 }
                 _logger.LogInformation("🔐 [SA] PROMOTED member={Id} by={By}", req.MemberId, byUserId);
                 return Ok(new { message = "Member promoted to SuperAdmin.", credentialsSent = !string.IsNullOrWhiteSpace(targetEmail) });
@@ -394,7 +394,7 @@ public class SuperAdminController : ControllerBase
                 if (!string.IsNullOrWhiteSpace(targetEmail))
                 {
                     try { await _email.SendSuperAdminRevokedEmailAsync(targetEmail, targetName); }
-                    catch (Exception ex) { _logger.LogWarning(ex, "SA revoked email failed to {Email}", targetEmail); }
+                    catch (Exception ex) { _logger.LogWarning(ex, "SA revoked email failed to {Email}", LogMask.Email(targetEmail)); }
                 }
                 _logger.LogInformation("🔐 [SA] REMOVED member={Id} by={By}", req.MemberId, byUserId);
                 return Ok(new { message = "SuperAdmin role removed." });

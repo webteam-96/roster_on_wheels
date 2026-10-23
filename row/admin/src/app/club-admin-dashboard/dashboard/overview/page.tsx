@@ -24,7 +24,7 @@ import GrowthCard from "@/components/growth/GrowthCard";
 export default function ClubAdminDashboardOverviewPage() {
   const { overview, status, yearId } = useClubAdminCache();
   const router = useRouter();
-  const { isSuperAdmin, isAdmin } = useAuth();
+  const { isSuperAdmin, isAdmin, user } = useAuth();
   const canManage = isSuperAdmin || isAdmin;
   const clubIdForPending = overview?.club?.clubId ?? 0;
   const [pendingApprovals, setPendingApprovals] = useState<Array<{ duesId: number; purpose: string; pendingCount: number }>>([]);
@@ -65,6 +65,11 @@ export default function ClubAdminDashboardOverviewPage() {
   const websiteWarning = data.club.clubWebsiteExpiry && new Date(data.club.clubWebsiteExpiry) < new Date();
   const totalPending = pendingApprovals.reduce((s, r) => s + (r.pendingCount || 0), 0);
   const firstPending = pendingApprovals[0];
+  // The club's Rotary.org login belongs to its own admins (or a District Admin with all-clubs access): the API
+  // refuses it to everyone else, a SuperAdmin included, so only they get the setup card.
+  const adminsThisClub =
+    (user?.scopedRoles ?? []).some((r) => (r.roleName === "Admin" || r.roleName === "Club Admin") && r.scope === "club" && r.clubId === data.club.clubId)
+    || (user?.districtClubAccess ?? []).some((d) => d.number === data.club.districtNumber);
 
   return (
     <div className="space-y-5">
@@ -117,7 +122,7 @@ export default function ClubAdminDashboardOverviewPage() {
         </div>
       </div>
 
-      {canManage && <SyncProjectsToRotaryOrgCard clubId={data.club.clubId} />}
+      {adminsThisClub && <SyncProjectsToRotaryOrgCard clubId={data.club.clubId} />}
 
       {/* 9-card strip: 5 per row on lg+, wraps to next row for the remaining 4.
           Order: Active, Male, Female, Honorary, Total, Avg Attendance, TRF Raised,

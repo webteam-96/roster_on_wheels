@@ -20,6 +20,7 @@ import { getPhotoUrl } from "@/services/api";
 import { ZoneListItem } from "@/types/zone";
 import { COUNTRIES, DEFAULT_COUNTRY } from "@/constants/countries";
 import { currencyOptions } from "@/lib/currency";
+import DistrictTimeZoneField from "@/components/DistrictTimeZoneField";
 
 import { defaultCurrency as instanceCurrency } from "@/lib/appFormat";
 function NewDistrictForm() {
@@ -38,6 +39,7 @@ function NewDistrictForm() {
   const [zones, setZones] = useState<ZoneListItem[]>([]);
   const [country, setCountry] = useState<string>(DEFAULT_COUNTRY);
   const [defaultCurrency, setDefaultCurrency] = useState<string>(instanceCurrency());
+  const [timezone, setTimezone] = useState<string>("");
   const [showSuccess, setShowSuccess] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
@@ -92,6 +94,7 @@ function NewDistrictForm() {
         fkZoneId: zoneId ? parseInt(zoneId) : null,
         country: country || DEFAULT_COUNTRY,
         defaultCurrency,
+        timezone: timezone || null,
       });
       setShowSuccess(true);
     } catch (err) {
@@ -213,6 +216,8 @@ function NewDistrictForm() {
                   </Select>
                   <p className="text-xs text-muted-foreground">Pre-selected on project-add forms for clubs in this district</p>
                 </div>
+
+                <DistrictTimeZoneField value={timezone} onChange={setTimezone} />
 
                 <div className="space-y-2">
                   <Label htmlFor="districtNumber">District Number<span className="text-destructive ml-1">*</span></Label>

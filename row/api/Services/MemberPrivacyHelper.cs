@@ -152,4 +152,16 @@ public static class MemberPrivacyHelper
 
     public static Flags FlagsFor(Dictionary<int, Flags> map, int memberId)
         => map.TryGetValue(memberId, out var f) ? f : VisibleFlags;
+
+    // The app hides a member's phone, email and personal dates when IsPersonalDetailsVisible is off, and the family
+    // photo when IsFamilyDetailsVisible is off. Cross-club profile endpoints (find-rotarian, club-finder) enforce the
+    // same on the server; the member always sees their own. True when personal details were hidden.
+    public static bool HidePrivateDetails(Dictionary<string, object?> m, int? viewerMemberId, int memberId)
+    {
+        if (viewerMemberId == memberId) return false;
+        if (!ToFlag(m.GetValueOrDefault("isFamilyDetailsVisible"))) m["familyPhoto"] = null;
+        if (ToFlag(m.GetValueOrDefault("isPersonalDetailsVisible"))) return false;
+        foreach (var k in new[] { "email", "primaryMobile", "secondaryMobile", "birthDate", "anniversaryDate" }) m[k] = null;
+        return true;
+    }
 }

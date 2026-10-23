@@ -91,6 +91,8 @@ public class AuthService : IAuthService
                 AND mr.IsActive = 1 AND mr.isdeleted = 0
                 AND r.RoleName IN ('Admin', 'SuperAdmin', 'AG')",
             new { Id = memberId })).ToList();
+        // N7: a governor-, president- or secretary-elect with no admin role signs in to plan next year (lands on /planning)
+        if (roles.Count == 0 && await PlanningAccess.IsElectAsync(connection, _connectionString, memberId)) roles.Add("Elect");
         if (roles.Count == 0)
         {
             await LogLoginAudit(connection, memberId, memberName, emailOrMobile, ipAddress, userAgent, "failed", "No admin role");
@@ -229,6 +231,7 @@ public class AuthService : IAuthService
                 AND mr.IsActive = 1 AND mr.isdeleted = 0
                 AND r.RoleName IN ('Admin', 'SuperAdmin', 'AG')",
             new { Id = memberId })).ToList();
+        if (roles.Count == 0 && await PlanningAccess.IsElectAsync(connection, _connectionString, memberId)) roles.Add("Elect");
         // no admin role → no web session
         if (roles.Count == 0) return null;
 
@@ -322,6 +325,8 @@ public class AuthService : IAuthService
                 AND mr.IsActive = 1 AND mr.isdeleted = 0
                 AND r.RoleName IN ('Admin', 'SuperAdmin', 'AG')",
             new { Id = memberId });
+        // N7: an elect member sets a first password here to sign in and plan next year
+        if (roleCount == 0 && await PlanningAccess.IsElectAsync(connection, _connectionString, memberId)) roleCount = 1;
 
         if ((!anyMember && roleCount == 0)
             || string.IsNullOrWhiteSpace(memberEmail))

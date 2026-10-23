@@ -18,6 +18,9 @@ public class DistrictService : IDistrictService
 
     private MySqlConnection CreateConnection() => new(_connectionString);
 
+    // Blank = the brand's zone (NULL). The controller has refused anything that is not an IANA id.
+    private static string? NormalizeZone(string? zone) => string.IsNullOrWhiteSpace(zone) ? null : zone.Trim();
+
     public async Task<PagedResult<DistrictListDto>> GetAllAsync(int page, int pageSize, string? search, int? isActive, int? zoneId = null, bool? hasClubs = null, bool? hasMembers = null, bool? hasSyncClubs = null)
     {
         using var connection = CreateConnection();
@@ -82,6 +85,7 @@ public class DistrictService : IDistrictService
                 z.ZoneName,
                 d.Country,
                 d.DefaultCurrency,
+                d.Timezone,
                 (SELECT COUNT(*) FROM club_master c WHERE c.fk_district_id = d.pk_district_id AND c.isdeleted = 0 AND COALESCE(c.ClubType,'') <> 'Rotaract Club') AS TotalClubs,
                 (SELECT COUNT(DISTINCT cm.fk_member_master_profile_id)
                  FROM club_members cm
@@ -133,6 +137,7 @@ public class DistrictService : IDistrictService
                 z.ZoneName,
                 d.Country,
                 d.DefaultCurrency,
+                d.Timezone,
                 (SELECT COUNT(*) FROM club_master c WHERE c.fk_district_id = d.pk_district_id AND c.isdeleted = 0 AND COALESCE(c.ClubType,'') <> 'Rotaract Club') AS TotalClubs,
                 (SELECT COUNT(DISTINCT cm.fk_member_master_profile_id)
                  FROM club_members cm
@@ -158,9 +163,9 @@ public class DistrictService : IDistrictService
 
         var insertSql = @"
             INSERT INTO district_master
-                (DistrictNumber, DistrictLogoPath, IsActive, fk_zone_id, Country, DefaultCurrency, created_by, created_date, isdeleted)
+                (DistrictNumber, DistrictLogoPath, IsActive, fk_zone_id, Country, DefaultCurrency, Timezone, created_by, created_date, isdeleted)
             VALUES
-                (@DistrictNumber, @DistrictLogoPath, @IsActive, @FkZoneId, @Country, @DefaultCurrency, @CreatedBy, NOW(), 0);
+                (@DistrictNumber, @DistrictLogoPath, @IsActive, @FkZoneId, @Country, @DefaultCurrency, @Timezone, @CreatedBy, NOW(), 0);
             SELECT LAST_INSERT_ID();";
 
         var districtId = await connection.ExecuteScalarAsync<int>(insertSql, new
@@ -172,6 +177,7 @@ public class DistrictService : IDistrictService
             FkZoneId = (dto.FkZoneId.HasValue && dto.FkZoneId.Value != 0) ? dto.FkZoneId : (int?)null,
             Country = country,
             DefaultCurrency = defaultCurrency,
+            Timezone = NormalizeZone(dto.Timezone),
             CreatedBy = createdBy,
         });
 
@@ -202,6 +208,7 @@ public class DistrictService : IDistrictService
                 fk_zone_id = @FkZoneId,
                 Country = @Country,
                 DefaultCurrency = @DefaultCurrency,
+                Timezone = @Timezone,
                 modified_by = @ModifiedBy,
                 modified_date = NOW()
             WHERE pk_district_id = @Id AND isdeleted = 0";
@@ -216,6 +223,7 @@ public class DistrictService : IDistrictService
             FkZoneId = (dto.FkZoneId.HasValue && dto.FkZoneId.Value != 0) ? dto.FkZoneId : (int?)null,
             Country = country,
             DefaultCurrency = defaultCurrency,
+            Timezone = NormalizeZone(dto.Timezone),
             ModifiedBy = modifiedBy,
         });
 

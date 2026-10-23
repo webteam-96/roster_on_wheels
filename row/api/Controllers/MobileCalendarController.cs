@@ -2,6 +2,7 @@ using Dapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MySqlConnector;
+using RotaryApi.Services;
 
 namespace RotaryApi.Controllers;
 
@@ -54,6 +55,11 @@ public class MobileCalendarController : ControllerBase
     [HttpGet("club-calendar/{clubId}")]
     public async Task<ActionResult> GetClubCalendar(int clubId, [FromQuery] int? month, [FromQuery] int? year)
     {
+        // Birthdays, phones and emails of the club's members: only for people who may read this club (the read rule
+        // of api/clubs/{id}: its members, managers and district admins, SuperAdmin).
+        var me = GetUserId();
+        if (me <= 0 || !await ScopeWriteGuardMiddleware.ReadAllowedAsync(_connectionString, me, true, clubId))
+            return StatusCode(403, new { message = "You do not have access to this club." });
         if (!await RotaryApi.Services.KillSwitchHelper.IsClubDrillReachableAsync(_connectionString, clubId)) return StatusCode(403, new { message = "This club, its district, or its zone is inactive. Reactivate it first to access this data." });
         var now = DateTime.Now;
         int m = month ?? now.Month;
@@ -239,6 +245,10 @@ public class MobileCalendarController : ControllerBase
     [HttpGet("district-calendar/{districtId}")]
     public async Task<ActionResult> GetDistrictCalendar(int districtId, [FromQuery] int? month, [FromQuery] int? year)
     {
+        // Same for the district: members of its clubs, its admins, SuperAdmin.
+        var me = GetUserId();
+        if (me <= 0 || !await ScopeWriteGuardMiddleware.ReadAllowedAsync(_connectionString, me, false, districtId))
+            return StatusCode(403, new { message = "You do not have access to this district." });
         if (!await RotaryApi.Services.KillSwitchHelper.IsDistrictDrillReachableAsync(_connectionString, districtId)) return StatusCode(403, new { message = "This district or its zone is inactive. Reactivate it first to access this data." });
         var now = DateTime.Now;
         int m = month ?? now.Month;

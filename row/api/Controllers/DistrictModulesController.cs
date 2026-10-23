@@ -625,12 +625,20 @@ public class DistrictModulesController : ControllerBase
     // ── Mass Emails ───────────────────────────────────────────────────
     // ══════════════════════════════════════════════════════════════════════
 
+    /// <summary>Null when the caller manages this district; otherwise 403. Campaigns carry the recipients' addresses,
+    /// so plain members may not read them.</summary>
+    private async Task<ActionResult?> DenyMassEmailReadAsync(int districtId)
+        => GetUserId() > 0 && await ScopeWriteGuardMiddleware.AllowedAsync(_connectionString, GetUserId(), false, districtId)
+            ? null
+            : StatusCode(403, new { message = "Only the people who manage this district can see its mass emails." });
+
     [HttpGet("api/districts/{districtId}/mass-emails")]
     public async Task<ActionResult> GetDistrictMassEmails(int districtId,
         [FromQuery] string? status, [FromQuery] string? search,
         [FromQuery] int page = 1, [FromQuery] int pageSize = 20)
     {
         if (!await RotaryApi.Services.KillSwitchHelper.IsDistrictDrillReachableAsync(_connectionString, districtId)) return StatusCode(403, new { message = "This district or its zone is inactive. Reactivate it first to access this data." });
+        if (await DenyMassEmailReadAsync(districtId) is { } deny) return deny;
         var (items, totalCount) = await _massEmailService.GetListAsync(0, status, search, page, pageSize, districtId);
         return Ok(new { items, totalCount, page, pageSize });
     }
@@ -639,6 +647,7 @@ public class DistrictModulesController : ControllerBase
     public async Task<ActionResult> GetDistrictMassEmailDetail(int districtId, int id)
     {
         if (!await RotaryApi.Services.KillSwitchHelper.IsDistrictDrillReachableAsync(_connectionString, districtId)) return StatusCode(403, new { message = "This district or its zone is inactive. Reactivate it first to access this data." });
+        if (await DenyMassEmailReadAsync(districtId) is { } deny) return deny;
         if (!await _massEmailService.BelongsToAsync(id, null, districtId)) return NotFound(new { message = "Mass email not found." });
         var detail = await _massEmailService.GetDetailAsync(id);
         if (detail == null) return NotFound(new { message = "Mass email not found." });
@@ -708,6 +717,7 @@ public class DistrictModulesController : ControllerBase
     public async Task<ActionResult> GetDistrictMassEmailRecipients(int districtId, int id)
     {
         if (!await RotaryApi.Services.KillSwitchHelper.IsDistrictDrillReachableAsync(_connectionString, districtId)) return StatusCode(403, new { message = "This district or its zone is inactive. Reactivate it first to access this data." });
+        if (await DenyMassEmailReadAsync(districtId) is { } deny) return deny;
         if (!await _massEmailService.BelongsToAsync(id, null, districtId)) return NotFound(new { message = "Mass email not found." });
         var recipients = await _massEmailService.GetRecipientsAsync(id);
         return Ok(recipients);
@@ -731,6 +741,7 @@ public class DistrictModulesController : ControllerBase
         [FromQuery] string? clubIds, [FromQuery] string? memberIds, [FromQuery] string? contactGroupIds)
     {
         if (!await RotaryApi.Services.KillSwitchHelper.IsDistrictDrillReachableAsync(_connectionString, districtId)) return StatusCode(403, new { message = "This district or its zone is inactive. Reactivate it first to access this data." });
+        if (await DenyMassEmailReadAsync(districtId) is { } deny) return deny;
         List<int>? parsedSubgroupIds = null;
         if (!string.IsNullOrEmpty(subgroupIds))
             parsedSubgroupIds = subgroupIds.Split(',', StringSplitOptions.RemoveEmptyEntries).Select(int.Parse).ToList();
@@ -872,26 +883,26 @@ public class DistrictModulesController : ControllerBase
                 var subject = "Rotary Club - Your Role Assignment";
 
                 var credentialsHtml = tempPassword != null
-                    ? $@"<div style='background-color: #f7fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px; margin: 16px 0;'>
-                            <p><strong>Login URL:</strong> <a href='{loginUrl}' style='color: #3182ce;'>{loginUrl}</a></p>
+                    ? $@"<div style='background-color: #F7F9FC; border: 1px solid #D5DEE8; border-radius: 8px; padding: 16px; margin: 16px 0;'>
+                            <p><strong>Login URL:</strong> <a href='{loginUrl}' style='color: #17458F;'>{loginUrl}</a></p>
                             {(!string.IsNullOrWhiteSpace((string?)member.PrimaryMobileNumber) ? $"<p><strong>Username (Mobile):</strong> {member.PrimaryMobileNumber}</p>" : "")}
                             <p><strong>Username (Email):</strong> {member.EmailId}</p>
                             <p><strong>Temporary Password:</strong> {tempPassword}</p>
                         </div>
                         <p style='color: #e53e3e;'><strong>Important:</strong> Please change your password after your first login.</p>"
-                    : $@"<div style='background-color: #f7fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px; margin: 16px 0;'>
-                            <p><strong>Login URL:</strong> <a href='{loginUrl}' style='color: #3182ce;'>{loginUrl}</a></p>
+                    : $@"<div style='background-color: #F7F9FC; border: 1px solid #D5DEE8; border-radius: 8px; padding: 16px; margin: 16px 0;'>
+                            <p><strong>Login URL:</strong> <a href='{loginUrl}' style='color: #17458F;'>{loginUrl}</a></p>
                             <p>Please use your existing credentials to login.</p>
                         </div>";
 
                 var body = $@"{EmailService.EMAIL_HEADER}
-                            <h2 style='color: #1a365d; margin-top: 0;'>Role Assignment Notification</h2>
+                            <h2 style='color: #17458F; margin-top: 0;'>Role Assignment Notification</h2>
                             <p>Dear {member.MemberName},</p>
-                            <p>You have been assigned the following role(s) on the Rotary Club Admin Portal:</p>
+                            <p>You have been assigned the following role(s) on {RotaryApi.Services.Brand.ProductName}:</p>
                             {rolesHtml}
                             {credentialsHtml}
                             <div style='text-align: center; margin: 24px 0;'>
-                                <a href='{loginUrl}' style='background-color: #3182ce; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold;'>Login Now</a>
+                                <a href='{loginUrl}' style='background-color: #17458F; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold;'>Login Now</a>
                             </div>
                     {EmailService.EMAIL_FOOTER}";
 
@@ -1077,8 +1088,8 @@ public class DistrictModulesController : ControllerBase
 
         var html = "<table style='border-collapse: collapse; width: 100%; margin: 12px 0;'>"
             + "<tr style='background-color: #17458F; color: white;'>"
-            + "<th style='padding: 8px 12px; text-align: left; border: 1px solid #ddd;'>Role</th>"
-            + "<th style='padding: 8px 12px; text-align: left; border: 1px solid #ddd;'>Details</th>"
+            + "<th style='padding: 8px 12px; text-align: left; border: 1px solid #D5DEE8;'>Role</th>"
+            + "<th style='padding: 8px 12px; text-align: left; border: 1px solid #D5DEE8;'>Details</th>"
             + "</tr>";
 
         foreach (var r in roles)
@@ -1102,8 +1113,8 @@ public class DistrictModulesController : ControllerBase
                 details = "All Districts & Clubs";
             }
 
-            html += $"<tr><td style='padding: 8px 12px; border: 1px solid #ddd; font-weight: bold;'>{roleName}</td>"
-                  + $"<td style='padding: 8px 12px; border: 1px solid #ddd;'>{details}</td></tr>";
+            html += $"<tr><td style='padding: 8px 12px; border: 1px solid #D5DEE8; font-weight: bold;'>{roleName}</td>"
+                  + $"<td style='padding: 8px 12px; border: 1px solid #D5DEE8;'>{details}</td></tr>";
         }
 
         html += "</table>";
@@ -3216,14 +3227,14 @@ public class DistrictModulesController : ControllerBase
                             // Aligned to the district-governor reminder template: month/year specific,
                             // "not submitted", submit via the app, contact AG, ignore-if-submitted.
                             var body = $@"
-                                <div style='font-family:Arial,Helvetica,sans-serif;max-width:620px;margin:0 auto;color:#414042;'>
-                                    <div style='padding:24px;border:1px solid #ccc;'>
+                                <div style='font-family:Figtree, Arial,Helvetica,sans-serif;max-width:620px;margin:0 auto;color:#1B2C42;'>
+                                    <div style='padding:24px;border:1px solid #B7C3D2;'>
                                         <p style='font-size:16px;font-style:italic;line-height:28px;'><b>Dear Club leader</b></p>
                                         <p style='font-size:14px;font-style:italic;line-height:24px;'>The monthly report of your club for the month of <b>{monthNameWithYear}</b> has not been submitted. Please log in using your username and password and click on the <b>Club Monthly Report</b> icon to submit the report.</p>
                                         <p style='font-size:14px;font-style:italic;line-height:22px;'><b>District : {districtNumber}</b><br/><b>Club : {(string)r.clubName}</b></p>
                                         <p style='font-size:14px;font-style:italic;line-height:22px;'>If you are unable to get support, please contact your Asst. Governor.</p>
                                         <p style='font-size:14px;font-style:italic;line-height:22px;'>Please note that the Club Monthly Report should be submitted only through the ROW App, not by email or any physical format.</p>
-                                        <p style='font-size:13px;font-style:italic;line-height:22px;color:#718096;'>(Please ignore this email if the report is already submitted.)</p>
+                                        <p style='font-size:13px;font-style:italic;line-height:22px;color:#64748B;'>(Please ignore this email if the report is already submitted.)</p>
                                         <p style='font-size:14px;font-style:italic;line-height:22px;'>Regards,<br/><strong>District Governor</strong></p>
                                     </div>
                                 </div>";
@@ -3464,13 +3475,13 @@ public class DistrictModulesController : ControllerBase
                 "SELECT MemberName AS memberName, EmailId AS email FROM member_master_profile WHERE pk_member_master_profile_id = @Id AND isdeleted = 0", new { Id = oldMemberId });
             if (oldMember != null && !string.IsNullOrEmpty((string?)oldMember.email))
             {
-                var removeBody = $@"<div style='font-family:Arial,sans-serif;max-width:600px;margin:0 auto;'>
+                var removeBody = $@"<div style='font-family:Figtree, Arial,sans-serif;max-width:600px;margin:0 auto;'>
                     <div style='background:#dc2626;color:white;padding:20px;text-align:center;border-radius:8px 8px 0 0;'><h2 style='margin:0;'>Assistant Governor Role Removed</h2></div>
-                    <div style='padding:24px;border:1px solid #e2e8f0;border-top:none;border-radius:0 0 8px 8px;'>
+                    <div style='padding:24px;border:1px solid #D5DEE8;border-top:none;border-radius:0 0 8px 8px;'>
                         <p>Dear <strong>{(string)oldMember.memberName}</strong>,</p>
                         <p>Your <strong>Assistant Governor (AG)</strong> role for District <strong>{districtNumber}</strong> has been removed.</p>
                         <p>If you have any questions, please contact your district administrator.</p>
-                        <p style='color:#718096;font-size:12px;margin-top:24px;'>This is an automated notification from ROW.</p>
+                        <p style='color:#64748B;font-size:12px;margin-top:24px;'>This is an automated notification from ROW.</p>
                     </div></div>";
                 try { await _emailService.SendGenericEmailAsync((string)oldMember.email, "ROW - AG Role Removed", removeBody); } catch { }
             }
@@ -3567,18 +3578,18 @@ public class DistrictModulesController : ControllerBase
         {
             var clubListHtml = string.Join("", clubNames.Select(c => $"<li style='padding:4px 0;'>{c}</li>"));
             var credentialHtml = tempPassword != null
-                ? $@"<div style='background-color:#f7fafc;border:1px solid #e2e8f0;border-radius:8px;padding:16px;margin:16px 0;'><p><strong>Username:</strong> {(string)member.mobile}</p><p><strong>Temporary Password:</strong> {tempPassword}</p></div><p style='color:#e53e3e;'><strong>Important:</strong> Please change your password after your first login.</p>"
-                : $@"<div style='background-color:#f7fafc;border:1px solid #e2e8f0;border-radius:8px;padding:16px;margin:16px 0;'><p><strong>Username:</strong> {(string)member.mobile}</p><p>Use your existing password to login.</p></div>";
-            var body = $@"<div style='font-family:Arial,sans-serif;max-width:600px;margin:0 auto;'>
-                <div style='background:#1a365d;color:white;padding:20px;text-align:center;border-radius:8px 8px 0 0;'><h2 style='margin:0;'>Assistant Governor (AG) Assignment</h2></div>
-                <div style='padding:24px;border:1px solid #e2e8f0;border-top:none;border-radius:0 0 8px 8px;'>
+                ? $@"<div style='background-color:#F7F9FC;border:1px solid #D5DEE8;border-radius:8px;padding:16px;margin:16px 0;'><p><strong>Username:</strong> {(string)member.mobile}</p><p><strong>Temporary Password:</strong> {tempPassword}</p></div><p style='color:#e53e3e;'><strong>Important:</strong> Please change your password after your first login.</p>"
+                : $@"<div style='background-color:#F7F9FC;border:1px solid #D5DEE8;border-radius:8px;padding:16px;margin:16px 0;'><p><strong>Username:</strong> {(string)member.mobile}</p><p>Use your existing password to login.</p></div>";
+            var body = $@"<div style='font-family:Figtree, Arial,sans-serif;max-width:600px;margin:0 auto;'>
+                <div style='background:#17458F;color:white;padding:20px;text-align:center;border-radius:8px 8px 0 0;'><h2 style='margin:0;'>Assistant Governor (AG) Assignment</h2></div>
+                <div style='padding:24px;border:1px solid #D5DEE8;border-top:none;border-radius:0 0 8px 8px;'>
                     <p>Dear <strong>{(string)member.memberName}</strong>,</p>
                     <p>You have been assigned as <strong>Assistant Governor (AG)</strong> for District <strong>{districtNumber}</strong>.</p>
-                    <h3 style='color:#1a365d;margin-top:20px;'>Assigned Clubs:</h3>
-                    <ul style='background:#f7fafc;border:1px solid #e2e8f0;border-radius:8px;padding:16px 16px 16px 32px;margin:8px 0;'>{clubListHtml}</ul>
-                    <h3 style='color:#1a365d;margin-top:20px;'>Login Details:</h3>
+                    <h3 style='color:#17458F;margin-top:20px;'>Assigned Clubs:</h3>
+                    <ul style='background:#F7F9FC;border:1px solid #D5DEE8;border-radius:8px;padding:16px 16px 16px 32px;margin:8px 0;'>{clubListHtml}</ul>
+                    <h3 style='color:#17458F;margin-top:20px;'>Login Details:</h3>
                     {credentialHtml}
-                    <p style='color:#718096;font-size:12px;margin-top:24px;'>This is an automated notification from ROW.</p>
+                    <p style='color:#64748B;font-size:12px;margin-top:24px;'>This is an automated notification from ROW.</p>
                 </div></div>";
             try { await _emailService.SendGenericEmailAsync((string)member.email, "ROW - AG Assignment", body); } catch { }
         }
@@ -3611,13 +3622,13 @@ public class DistrictModulesController : ControllerBase
         var districtNumber = await conn.ExecuteScalarAsync<string>("SELECT DistrictNumber FROM district_master WHERE pk_district_id = @Id", new { Id = districtId }) ?? "";
         if (member != null && !string.IsNullOrEmpty((string?)member.email))
         {
-            var body = $@"<div style='font-family:Arial,sans-serif;max-width:600px;margin:0 auto;'>
+            var body = $@"<div style='font-family:Figtree, Arial,sans-serif;max-width:600px;margin:0 auto;'>
                 <div style='background:#dc2626;color:white;padding:20px;text-align:center;border-radius:8px 8px 0 0;'><h2 style='margin:0;'>Assistant Governor Role Removed</h2></div>
-                <div style='padding:24px;border:1px solid #e2e8f0;border-top:none;border-radius:0 0 8px 8px;'>
+                <div style='padding:24px;border:1px solid #D5DEE8;border-top:none;border-radius:0 0 8px 8px;'>
                     <p>Dear <strong>{(string)member.memberName}</strong>,</p>
                     <p>Your <strong>Assistant Governor (AG)</strong> role for District <strong>{districtNumber}</strong> has been removed.</p>
                     <p>If you have any questions, please contact your district administrator.</p>
-                    <p style='color:#718096;font-size:12px;margin-top:24px;'>This is an automated notification from ROW.</p>
+                    <p style='color:#64748B;font-size:12px;margin-top:24px;'>This is an automated notification from ROW.</p>
                 </div></div>";
             try { await _emailService.SendGenericEmailAsync((string)member.email, "ROW - AG Role Removed", body); } catch { }
         }

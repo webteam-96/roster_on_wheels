@@ -70,8 +70,9 @@ public class AdminController : ControllerBase
         [FromQuery] int pageSize = 10,
         [FromQuery] string? search = null)
     {
-        if (!IsSuperAdminOrAdmin())
-            return StatusCode(403, new { message = "Only SuperAdmin or Admin can view member roles." });
+        // Every member's email and mobile across all clubs: a club or district Admin holds no such scope.
+        if (!IsSuperAdmin())
+            return StatusCode(403, new { message = "Only SuperAdmin can view member roles." });
 
         try
         {

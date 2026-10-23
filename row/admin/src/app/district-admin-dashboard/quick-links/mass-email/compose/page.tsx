@@ -85,6 +85,7 @@ export default function DistrictAdminMassEmailComposePage() {
   const [subject, setSubject] = useState("");
   const [emailBody, setEmailBody] = useState("");
   const commsOn = useFeatureLoadedOn("communication"); // N5: allowance instead of credits, language versions
+  const subGroupsOn = useFeatureLoadedOn("sub_groups"); // switched off: no Subgroup recipients, no sub-group calls
   const [templateKey, setTemplateKey] = useState("");
 
   // Lookups
@@ -114,7 +115,7 @@ export default function DistrictAdminMassEmailComposePage() {
   }, [districtId]);
 
   useEffect(() => {
-    if (!districtId) return;
+    if (!districtId || !subGroupsOn) return;
     // Load subgroup-available years for the dropdown, and default the
     // selection to the CURRENT rotary year (found via getRotaryYears) if
     // that year exists in the available list — otherwise fall back to the
@@ -135,7 +136,7 @@ export default function DistrictAdminMassEmailComposePage() {
       } catch {}
     }
     load();
-  }, [districtId]);
+  }, [districtId, subGroupsOn]);
 
   // Fetch district email credit balance so we can validate before
   // sending. Server-side check exists too (throws "Insufficient Email
@@ -307,7 +308,7 @@ export default function DistrictAdminMassEmailComposePage() {
               {[
                 { value: "1", label: "All Members" },
                 { value: "2", label: "Clubs" },
-                { value: "3", label: "Subgroups" },
+                ...(subGroupsOn ? [{ value: "3", label: "Subgroups" }] : []),
                 ...(contactsOn ? [{ value: "4", label: "Contact groups (non-members)" }] : []),
               ].map((opt) => (
                 <label key={opt.value} className="flex items-center gap-2 cursor-pointer">

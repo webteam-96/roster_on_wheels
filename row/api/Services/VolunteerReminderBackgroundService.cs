@@ -11,8 +11,8 @@ namespace RotaryApi.Services;
 /// loses one email instead of sending it twice; the app's bell shows members the same reminder from reminder_sent_at
 /// (MobileNotificationFeedService). email_log records every send and failure (the club's email log).
 /// </summary>
-// shortcut: slot times are the club's wall-clock values compared with the server clock (clubs carry no reliable time
-// zone yet), so a reminder can come early or late by the zone difference; use the tenant's zone once it has one.
+// Slot times and duty dates are the club's wall clock: each is compared with the local time of the club's district
+// zone (N12, ZoneTime).
 // shortcut: failed sends are not retried (email_log shows them), add a retry when delivery tracking lands.
 public class VolunteerReminderBackgroundService : BackgroundService
 {
@@ -60,7 +60,13 @@ public class VolunteerReminderBackgroundService : BackgroundService
     {
         await using var c = new MySqlConnection(_cs);
         await c.OpenAsync(ct);
-        var slots = await c.QueryAsync<Due>(@"
+        var slots = new List<Due>();
+        var duties = new List<Due>();
+        foreach (var (tz, zone) in await ZoneTime.ZonesAsync(c))
+        {
+            var now = ZoneTime.Local(zone);
+            var at = new { Now = now, Today = now.Date, Tz = tz };
+            slots.AddRange(await c.QueryAsync<Due>($@"
             SELECT su.pk_signup_id AS Id, COALESCE(m.EmailId, su.email) AS Email, COALESCE(m.MemberName, su.name) AS Name,
                    su.fk_member_id IS NOT NULL AS IsMember, sl.task AS What, sh.title AS Detail, sl.starts_at AS `When`,
                    sl.ends_at AS Until, sh.fk_club_id AS ClubId, cl.fk_district_id AS DistrictId, cl.ClubName
@@ -68,18 +74,21 @@ public class VolunteerReminderBackgroundService : BackgroundService
             JOIN volunteer_slots sl ON sl.pk_slot_id = su.fk_slot_id
             JOIN volunteer_sheets sh ON sh.pk_sheet_id = sl.fk_sheet_id
             JOIN club_master cl ON cl.pk_club_id = sh.fk_club_id
+            LEFT JOIN district_master dz ON dz.pk_district_id = cl.fk_district_id
             LEFT JOIN member_master_profile m ON m.pk_member_master_profile_id = su.fk_member_id AND IFNULL(m.isdeleted, 0) = 0
             WHERE su.reminder_sent_at IS NULL
-              AND sl.starts_at > NOW() AND sl.starts_at <= NOW() + INTERVAL 24 HOUR
-            ORDER BY sl.starts_at LIMIT 200");
-        var duties = await c.QueryAsync<Due>(@"
+              AND sl.starts_at > @Now AND sl.starts_at <= @Now + INTERVAL 24 HOUR AND {ZoneTime.Filter("dz")}
+            ORDER BY sl.starts_at LIMIT 200", at));
+            duties.AddRange(await c.QueryAsync<Due>($@"
             SELECT d.pk_duty_id AS Id, m.EmailId AS Email, m.MemberName AS Name, 1 AS IsMember, d.duty AS What, d.note AS Detail,
                    d.meeting_date AS `When`, d.fk_club_id AS ClubId, cl.fk_district_id AS DistrictId, cl.ClubName
             FROM meeting_duties d
             JOIN club_master cl ON cl.pk_club_id = d.fk_club_id
+            LEFT JOIN district_master dz ON dz.pk_district_id = cl.fk_district_id
             LEFT JOIN member_master_profile m ON m.pk_member_master_profile_id = d.fk_member_id AND IFNULL(m.isdeleted, 0) = 0
-            WHERE d.reminder_sent_at IS NULL AND d.meeting_date BETWEEN CURDATE() AND CURDATE() + INTERVAL 2 DAY
-            ORDER BY d.meeting_date LIMIT 200");
+            WHERE d.reminder_sent_at IS NULL AND d.meeting_date BETWEEN @Today AND @Today + INTERVAL 2 DAY AND {ZoneTime.Filter("dz")}
+            ORDER BY d.meeting_date LIMIT 200", at));
+        }
 
         using var scope = _scopes.CreateScope();
         var email = scope.ServiceProvider.GetRequiredService<IEmailService>();
@@ -99,7 +108,7 @@ public class VolunteerReminderBackgroundService : BackgroundService
 
     private static string E(string? s) => WebUtility.HtmlEncode(s ?? "");
 
-    private static string Wrap(Due r, string body) => $@"<div style=""font-family:Arial,Helvetica,sans-serif;font-size:15px;color:#1f2937;line-height:1.6;max-width:640px"">
+    private static string Wrap(Due r, string body) => $@"<div style=""font-family:Figtree, Arial,Helvetica,sans-serif;font-size:15px;color:#1B2C42;line-height:1.6;max-width:640px"">
 <p>Dear {E(r.Name)},</p>
 {body}
 <p style=""color:#64748b;font-size:12px"">This is an automated message from {E(Brand.ProductName)} for {E(r.ClubName)}.</p>

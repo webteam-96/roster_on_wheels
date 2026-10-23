@@ -815,6 +815,7 @@ public class ClubDuesService : IClubDuesService
     // only chooses WHICH account the money went into.
     public async Task<int> RecordOfflinePaymentAsync(int duesId, RecordOfflineClubDuesPaymentDto dto, IFormFile? attachment, int userId, IWebHostEnvironment env)
     {
+        await PlanningAccess.EnsureDuesCollectableAsync(_connStr, true, duesId);
         using var conn = GetConnection();
         await SyncClubsAndMembersInternalAsync(conn, duesId, userId, null);
         var rates = await GetClubRatesAsync(conn, duesId, dto.FkClubId);
@@ -855,6 +856,7 @@ public class ClubDuesService : IClubDuesService
     // Same account-driven amount rule as the admin path above.
     public async Task<int> RecordPublicOfflinePaymentAsync(int duesId, RecordOfflineClubDuesPaymentDto dto, IFormFile? attachment, IWebHostEnvironment env)
     {
+        await PlanningAccess.EnsureDuesCollectableAsync(_connStr, true, duesId);
         using var conn = GetConnection();
         await SyncClubsAndMembersInternalAsync(conn, duesId, 0, null);
         var rates = await GetClubRatesAsync(conn, duesId, dto.FkClubId);
@@ -974,7 +976,7 @@ public class ClubDuesService : IClubDuesService
         var reasonText = string.IsNullOrWhiteSpace(reason) ? "No reason provided." : reason;
         var accountLabel = info.AccountName == null ? "-" : BuildAccountLabel((string?)info.AccountName, (string?)info.BankAccountLast4, (string?)info.BankIfsc);
         var subject = $"District Dues payment rejected — {(string?)info.ClubName}";
-        var body = $@"<div style='font-family:Arial,sans-serif'>
+        var body = $@"<div style='font-family:Figtree, Arial,sans-serif'>
 <h2 style='color:#c53030;margin-top:0'>Payment Rejected</h2>
 <p>Dear {(string?)info.OfficerName},</p>
 <p>Your club's offline dues payment has been rejected. Please see the details below:</p>
@@ -983,7 +985,7 @@ public class ClubDuesService : IClubDuesService
 <tr><td style='padding:4px 10px'>Club</td><td style='padding:4px 10px'><b>{(string?)info.ClubName ?? "-"}</b></td></tr>
 <tr><td style='padding:4px 10px'>Members covered</td><td style='padding:4px 10px'><b>{(int)info.MemberCountCovered}</b></td></tr>
 <tr><td style='padding:4px 10px'>Account</td><td style='padding:4px 10px'><b>{accountLabel}</b></td></tr>
-<tr><td style='padding:4px 10px'>Amount</td><td style='padding:4px 10px'><b>₹{(decimal)info.Amount:0.00}</b></td></tr>
+<tr><td style='padding:4px 10px'>Amount</td><td style='padding:4px 10px'><b>{Brand.Money((decimal)info.Amount)}</b></td></tr>
 <tr><td style='padding:4px 10px'>Year</td><td style='padding:4px 10px'>{(string?)info.RotaryYear}</td></tr>
 <tr><td style='padding:4px 10px'>Reason</td><td style='padding:4px 10px;color:#c53030'><b>{reasonText}</b></td></tr>
 </table>
@@ -1015,7 +1017,7 @@ public class ClubDuesService : IClubDuesService
         var url = $"{frontendUrl}/club-dues-approval/{token}";
         var accountLabel = info.AccountName == null ? "-" : BuildAccountLabel((string?)info.AccountName, (string?)info.BankAccountLast4, (string?)info.BankIfsc);
         var subject = $"District Dues approval — {(string?)info.ClubName} ({(string?)info.DistrictNumber})";
-        var body = $@"<div style='font-family:Arial,sans-serif'>
+        var body = $@"<div style='font-family:Figtree, Arial,sans-serif'>
 <p>An offline District Dues payment needs your approval. This submission covers ONE of the club's
 configured accounts — if the club is depositing into more than one account, each will arrive as its
 own separate approval request.</p>
@@ -1024,9 +1026,9 @@ own separate approval request.</p>
 <tr><td style='padding:4px 10px'>Club</td><td style='padding:4px 10px'><b>{(string?)info.ClubName}</b></td></tr>
 <tr><td style='padding:4px 10px'>Members covered</td><td style='padding:4px 10px'><b>{(int)info.MemberCountCovered}</b></td></tr>
 <tr><td style='padding:4px 10px'>Account</td><td style='padding:4px 10px'><b>{accountLabel}</b></td></tr>
-<tr><td style='padding:4px 10px'>Amount for this account</td><td style='padding:4px 10px'><b>₹{(decimal)info.Amount:0.00}</b></td></tr>
+<tr><td style='padding:4px 10px'>Amount for this account</td><td style='padding:4px 10px'><b>{Brand.Money((decimal)info.Amount)}</b></td></tr>
 </table>
-<p><a href='{url}' style='background:#1a365d;color:#fff;padding:10px 18px;border-radius:6px;text-decoration:none'>Review &amp; Approve / Reject</a></p>
+<p><a href='{url}' style='background:#17458F;color:#FCFDFE;padding:10px 18px;border-radius:6px;text-decoration:none'>Review &amp; Approve / Reject</a></p>
 <p style='color:#64748b;font-size:12px'>This link is unique to this payment.</p>
 </div>";
         await _emailService.SendGenericEmailAsync(approverEmail, subject, body);
@@ -1325,7 +1327,7 @@ own separate approval request.</p>
             inner = $"<p>Dear {officerName},</p><p>Your club's dues payment has been received.</p>"
                   + ReceiptSummaryHtml(clubName, covered, amount, year) + "<p>Thank you.</p>";
         }
-        var body = $"<div style='font-family:Arial,sans-serif'>{EmailLogoHtml((string?)info.EmailHeaderLogo)}{inner}</div>";
+        var body = $"<div style='font-family:Figtree, Arial,sans-serif'>{EmailLogoHtml((string?)info.EmailHeaderLogo)}{inner}</div>";
 
         var cc = (string?)info.EmailCC;
         if (!string.IsNullOrWhiteSpace(cc)) await _emailService.SendGenericEmailWithCcAsync(toEmail, cc, subject, body);
@@ -1338,7 +1340,7 @@ own separate approval request.</p>
 <table style='border-collapse:collapse'>
 <tr><td style='padding:4px 10px'>Club</td><td style='padding:4px 10px'><b>{clubName}</b></td></tr>
 <tr><td style='padding:4px 10px'>Members covered</td><td style='padding:4px 10px'><b>{membersCovered}</b></td></tr>
-<tr><td style='padding:4px 10px'>Amount</td><td style='padding:4px 10px'><b>₹{amount:0.00}</b></td></tr>
+<tr><td style='padding:4px 10px'>Amount</td><td style='padding:4px 10px'><b>{Brand.Money(amount)}</b></td></tr>
 <tr><td style='padding:4px 10px'>Year</td><td style='padding:4px 10px'>{year}</td></tr>
 </table>";
 
@@ -1414,13 +1416,13 @@ own separate approval request.</p>
             if (showBank)
                 inner += BankDetailsHtml((string?)info.OfflineBankName, (string?)info.OfflineAccountNumber, (string?)info.OfflineIfscCode);
             if (!string.IsNullOrWhiteSpace(remark)) inner += $"<p>{remark}</p>";
-            var body = $"<div style='font-family:Arial,sans-serif'>{logoHtml}{inner}</div>";
+            var body = $"<div style='font-family:Figtree, Arial,sans-serif'>{logoHtml}{inner}</div>";
             try { await _emailService.SendGenericEmailAsync(r.Email, subject, body); } catch { }
         }
     }
 
     private static string ReminderSummaryHtml(int unpaid, decimal owed) =>
-        $"<p>Your club has <b>{unpaid}</b> unpaid member(s). Amount due: <b>₹{owed:0.00}</b>.</p>";
+        $"<p>Your club has <b>{unpaid}</b> unpaid member(s). Amount due: <b>{Brand.Money(owed)}</b>.</p>";
 
     // Absolute URL for the campaign's Email header logo (stored as a bare filename under
     // Documents/ClubDues). Emails are viewed off-site, so the URL must point at the prod API host.
@@ -1444,7 +1446,7 @@ own separate approval request.</p>
     private static string PayButtonHtml(string payUrl, string? buttonText = null)
     {
         var text = string.IsNullOrWhiteSpace(buttonText) ? "Pay Now/Record Offline Payment Here" : buttonText;
-        return $@"<div style='margin:18px 0'><a href='{payUrl}' style='display:inline-block;background:#1a365d;color:#ffffff;padding:12px 30px;border-radius:6px;text-decoration:none;font-weight:bold;font-family:Arial,sans-serif'>{text}</a></div>";
+        return $@"<div style='margin:18px 0'><a href='{payUrl}' style='display:inline-block;background:#17458F;color:#FCFDFE;padding:12px 30px;border-radius:6px;text-decoration:none;font-weight:bold;font-family:Figtree, Arial,sans-serif'>{text}</a></div>";
     }
 
     // Offline settlement bank details block (reminder only, when opted in). Shows only non-empty fields.
@@ -1455,7 +1457,7 @@ own separate approval request.</p>
         if (!string.IsNullOrWhiteSpace(acctNo)) rows.Add($"A/C No.: <b>{acctNo}</b>");
         if (!string.IsNullOrWhiteSpace(ifsc)) rows.Add($"IFSC: <b>{ifsc}</b>");
         if (rows.Count == 0) return "";
-        return $@"<div style='margin-top:14px;padding:12px 14px;border:1px solid #e2e8f0;border-radius:6px;background:#f8fafc;font-family:Arial,sans-serif'>
+        return $@"<div style='margin-top:14px;padding:12px 14px;border:1px solid #D5DEE8;border-radius:6px;background:#F7F9FC;font-family:Figtree, Arial,sans-serif'>
 <p style='margin:0 0 6px;font-weight:bold'>To pay offline, transfer to:</p>{string.Join("<br/>", rows)}</div>";
     }
 
@@ -1568,13 +1570,13 @@ own separate approval request.</p>
         {
             // Just-picked (unsaved) logo → embed inline via CID so it renders without a public URL.
             var logoHtml = $"<div style='margin-bottom:14px'><img src='cid:{inlineLogoCid}' alt='' style='max-height:70px;max-width:240px;object-fit:contain'/></div>";
-            var body = $"<div style='font-family:Arial,sans-serif'>{logoHtml}{inner}</div>";
+            var body = $"<div style='font-family:Figtree, Arial,sans-serif'>{logoHtml}{inner}</div>";
             await _emailService.SendEmailWithAttachmentAsync(dto.Email, $"[TEST] {subject}", body, inlineLogoBytes, inlineLogoCid);
         }
         else
         {
             // Otherwise use the campaign's saved header logo by URL (matches the real email exactly).
-            var body = $"<div style='font-family:Arial,sans-serif'>{EmailLogoHtml(headerLogo)}{inner}</div>";
+            var body = $"<div style='font-family:Figtree, Arial,sans-serif'>{EmailLogoHtml(headerLogo)}{inner}</div>";
             await _emailService.SendGenericEmailAsync(dto.Email, $"[TEST] {subject}", body);
         }
     }
@@ -1662,6 +1664,7 @@ own separate approval request.</p>
 
     public async Task<ClubDuesPaymentSessionResponseDto> CreatePaymentOrderAsync(int duesId, PublicClubDuesPaymentSubmitDto dto)
     {
+        await PlanningAccess.EnsureDuesCollectableAsync(_connStr, true, duesId);
         using var conn = GetConnection();
         await SyncClubsAndMembersInternalAsync(conn, duesId, 0, null);
         var rates = await GetClubRatesAsync(conn, duesId, dto.FkClubId);
@@ -2062,7 +2065,7 @@ own separate approval request.</p>
         if (!string.IsNullOrWhiteSpace(email))
         {
             try { await _googleSheetsService.ShareWithEmailAsync(sheetId, email); }
-            catch (Exception ex) { _logger.LogWarning(ex, "Failed to share club dues sheet with {Email}", email); }
+            catch (Exception ex) { _logger.LogWarning(ex, "Failed to share club dues sheet with {Email}", LogMask.Email(email)); }
         }
 
         await conn.ExecuteAsync("UPDATE club_dues SET GoogleSheetId=@SheetId WHERE pk_club_dues_id=@Id",

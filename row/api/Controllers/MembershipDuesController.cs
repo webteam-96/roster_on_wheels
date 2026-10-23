@@ -34,13 +34,17 @@ public class MembershipDuesController : ControllerBase
         return User.FindFirst("roles")?.Value?.Contains("SuperAdmin") == true;
     }
 
-    private int? GetAdminClubId()
-    {
-        var roles = User.FindFirst("roles")?.Value ?? "";
-        if (roles.Contains("SuperAdmin")) return null;
-        var clubId = User.FindFirst("clubId")?.Value;
-        return clubId != null ? int.Parse(clubId) : null;
-    }
+    // Reads need a manager of the club that owns the campaign (its admins and AGs, its district's admins) or, for a
+    // campaign without a club, of the district; SuperAdmin always. Was: any Admin could read any club's campaign (the
+    // "clubId" claim this relied on is never issued).
+    private async Task<bool> ManagesOwnerAsync(int clubId, int districtId) => clubId > 0
+        ? await ScopeWriteGuardMiddleware.ReadAllowedAsync(_connectionString, GetUserId(), true, clubId, members: false)
+        : districtId > 0 && await ScopeWriteGuardMiddleware.AllowedAsync(_connectionString, GetUserId(), false, districtId);
+
+    private async Task<bool> ManagesDuesAsync(int duesId) =>
+        await _service.GetDetailAsync(duesId) is { } d && await ManagesOwnerAsync(d.FkClubId, d.FkDistrictId);
+
+    private ObjectResult Denied() => StatusCode(403, new { message = "Access denied." });
 
     private static string? ValidateImageFile(IFormFile? file)
     {
@@ -58,8 +62,11 @@ public class MembershipDuesController : ControllerBase
     public async Task<ActionResult> GetList([FromQuery] int? clubId, [FromQuery] int? districtId, [FromQuery] string? search, [FromQuery] string? year)
     {
         if (!IsSuperAdminOrAdmin()) return StatusCode(403, new { message = "Access denied." });
-        var adminClubId = GetAdminClubId();
-        if (adminClubId.HasValue) clubId = adminClubId.Value;
+        // only SuperAdmin lists every club's campaigns
+        var allowed = clubId is > 0 ? await ManagesOwnerAsync(clubId.Value, 0)
+            : districtId is > 0 ? await ManagesOwnerAsync(0, districtId.Value)
+            : IsSuperAdmin();
+        if (!allowed) return Denied();
         var result = await _service.GetListAsync(clubId, districtId, search, year);
         return Ok(result);
     }
@@ -70,6 +77,7 @@ public class MembershipDuesController : ControllerBase
         if (!IsSuperAdminOrAdmin()) return StatusCode(403, new { message = "Access denied." });
         var result = await _service.GetDetailAsync(id);
         if (result == null) return NotFound(new { message = "Club dues not found." });
+        if (!await ManagesOwnerAsync(result.FkClubId, result.FkDistrictId)) return Denied();
         return Ok(result);
     }
 
@@ -164,6 +172,7 @@ public class MembershipDuesController : ControllerBase
     public async Task<ActionResult> GetMemberFees(int id, [FromQuery] string? search, [FromQuery] string? filter)
     {
         if (!IsSuperAdminOrAdmin()) return StatusCode(403, new { message = "Access denied." });
+        if (!await ManagesDuesAsync(id)) return Denied();
         var result = await _service.GetMemberFeesAsync(id, search, filter);
         return Ok(result);
     }
@@ -236,6 +245,10 @@ public class MembershipDuesController : ControllerBase
         if (!IsSuperAdminOrAdmin()) return StatusCode(403, new { message = "Access denied." });
         using var conn = new MySqlConnector.MySqlConnection(_connectionString);
         await conn.OpenAsync();
+        var duesId = await Dapper.SqlMapper.ExecuteScalarAsync<int?>(conn,
+            "SELECT fk_membership_dues_id FROM membership_dues_payments WHERE pk_id = @Id AND isdeleted = 0", new { Id = paymentId });
+        if (duesId == null) return NotFound(new { message = "Payment not found." });
+        if (!await ManagesDuesAsync(duesId.Value)) return Denied();
         var row = await Dapper.SqlMapper.QueryFirstOrDefaultAsync<dynamic>(conn, @"
             SELECT pk_id                      AS paymentId,
                    fk_member_fee_id           AS memberFeeId,
@@ -503,6 +516,7 @@ public class MembershipDuesController : ControllerBase
     public async Task<ActionResult> GetSettlementReport(int id)
     {
         if (!IsSuperAdminOrAdmin()) return StatusCode(403, new { message = "Access denied." });
+        if (!await ManagesDuesAsync(id)) return Denied();
         try
         {
             var result = await _service.GetSettlementReportAsync(id);
@@ -520,6 +534,7 @@ public class MembershipDuesController : ControllerBase
     public async Task<ActionResult> ExportMembers(int id)
     {
         if (!IsSuperAdminOrAdmin()) return StatusCode(403, new { message = "Access denied." });
+        if (!await ManagesDuesAsync(id)) return Denied();
         try
         {
             var bytes = await _service.ExportMembersCsvAsync(id);

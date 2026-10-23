@@ -9,7 +9,7 @@ zones, members); routes with any other dynamic segment are detail pages and are 
 (payments are on hold). Per page it records: final URL, console errors, page errors, API responses >= 400, and
 whether an error screen ("Something went wrong", "Not available", Next.js error overlay) is visible.
 """
-import json, os, re, sys, time
+import json, os, re, sys, time, urllib.request
 from pathlib import Path
 from playwright.sync_api import sync_playwright
 
@@ -45,13 +45,23 @@ def routes():
     return sorted(found)
 
 
+def wait_for_server(seconds=300):
+    end = time.time() + seconds
+    while time.time() < end:
+        try:
+            urllib.request.urlopen(base + '/login', timeout=120)
+            return
+        except Exception:
+            time.sleep(3)
+
+
 def crawl():
     results = []
     with sync_playwright() as p:
         browser = p.chromium.launch()
         ctx = browser.new_context()
         page = ctx.new_page()
-        page.goto(base + '/login')
+        page.goto(base + '/login', wait_until='networkidle', timeout=180000)  # hydrated, or the form posts natively
         page.fill('input[type="email"]', email)
         page.fill('input[type="password"]', password)
         page.click('button[type="submit"]')
@@ -66,11 +76,19 @@ def crawl():
             page.on('pageerror', on_error)
             page.on('response', on_resp)
             t = time.time()
-            try:
-                page.goto(base + url, wait_until='domcontentloaded', timeout=60000)
-                page.wait_for_load_state('networkidle', timeout=20000)
-            except Exception as e:
-                rec['pageerror'].append(f'navigation: {str(e)[:200]}')
+            for attempt in (1, 2):
+                try:
+                    page.goto(base + url, wait_until='domcontentloaded', timeout=60000)
+                    page.wait_for_load_state('networkidle', timeout=20000)
+                    break
+                except Exception as e:
+                    # next dev restarts itself near its memory limit: not a page finding, wait for it and go again
+                    if attempt == 1 and 'ERR_CONNECTION_REFUSED' in str(e):
+                        wait_for_server()
+                        for k in ('console', 'pageerror', 'api'):
+                            rec[k].clear()
+                        continue
+                    rec['pageerror'].append(f'navigation: {str(e)[:200]}')
             body = page.inner_text('body') if page.url else ''
             m = ERROR_TEXT.search(body)
             rec.update(final=page.url.replace(base, ''), ms=int((time.time() - t) * 1000), screen=m.group(0) if m else '')

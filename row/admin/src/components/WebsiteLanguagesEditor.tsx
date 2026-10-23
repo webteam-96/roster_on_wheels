@@ -9,6 +9,7 @@ import {
 } from "@/services/api";
 import { WORLD_LANGUAGE_CODES } from "@/i18n/worldLanguages";
 import { nativeLanguageName } from "@/i18n/config";
+import { postTranslate } from "@/i18n/postTranslate";
 import { translateHtml, translateText, type Translator } from "@/lib/translateHtml";
 import RichTextEditor from "@/components/RichTextEditor";
 import ErrorAlert from "@/components/ErrorAlert";
@@ -29,11 +30,7 @@ const apiMessage = (err: unknown, fallback: string) =>
 /** The admin's translate route; `seen.changed` stays false when the provider only echoed the text back. */
 function routeTranslator(target: string, source: string, seen: { changed: boolean }): Translator {
   return async (q) => {
-    const res = await fetch("/api/i18n/translate", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ target, source, q }),
-    });
+    const res = await postTranslate({ target, source, q });
     if (!res.ok) throw new Error("translate failed");
     const out = ((await res.json()) as { translations?: string[] }).translations ?? q;
     if (out.some((t, i) => t !== q[i])) seen.changed = true;

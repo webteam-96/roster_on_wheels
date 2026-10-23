@@ -31,6 +31,13 @@ public class DistrictDirectoryController : ControllerBase
 
     private MySqlConnection CreateConnection() => new(_connectionString);
 
+    // m.* also carries the member's device and app sign-in trail (push token, IMEI): never directory data.
+    private static readonly string[] DeviceColumns =
+    {
+        "LastImei", "LastDeviceToken", "LastDeviceName", "MobileLoginCount",
+        "FirstMobileVisit", "LastMobileVisit", "LastMobileLogout", "mobile_force_relogin_at",
+    };
+
     [HttpGet("{districtNumber}")]
     public async Task<ActionResult> GetDistrictDirectory(string districtNumber, [FromQuery] string rotaryYear)
     {
@@ -46,6 +53,10 @@ public class DistrictDirectoryController : ControllerBase
             new { Num = districtNumber });
         if (district == null) return NotFound(new { message = $"District '{districtNumber}' not found." });
         int districtId = (int)district.pk_district_id;
+        // Every member's profile in the district: the same readers as /api/districts/{id} (its members and managers).
+        var me = MemberPrivacyHelper.GetViewerMemberId(User) ?? 0;
+        if (me <= 0 || !await ScopeWriteGuardMiddleware.ReadAllowedAsync(_connectionString, me, false, districtId))
+            return StatusCode(403, new { message = "You do not have access to this district." });
 
         // ── Rotary Year info (lookup by YearLabel e.g. "2025-2026") ──
         var year = await conn.QueryFirstOrDefaultAsync<dynamic>(
@@ -225,6 +236,7 @@ public class DistrictDirectoryController : ControllerBase
                 var dict = new Dictionary<string, object?>(StringComparer.Ordinal);
                 foreach (var kv in src)
                     dict[kv.Key] = kv.Value;
+                foreach (var k in DeviceColumns) dict.Remove(k);
 
                 object? residential = null;
                 object? business = null;
@@ -285,14 +297,14 @@ public class DistrictDirectoryController : ControllerBase
                     if (!RotaryApi.Services.MemberPrivacyHelper.ShouldShowPhone(viewerMemberId, rowMemberId, sharesClub,
                             dict.GetValueOrDefault("ShowPhoneInMyClub"), dict.GetValueOrDefault("ShowPhoneInAllClubs")))
                     {
-                        dict["PrimaryMobileNumber"] = null;
+                        dict["PrimaryMobileNumber"] = dict["SecondaryMobileNumber"] = null;
                         if (dict.ContainsKey("committeeMobile")) dict["committeeMobile"] = dict.GetValueOrDefault("mobile");
                         if (dict.ContainsKey("agMobile")) dict["agMobile"] = null;
                     }
                     if (!RotaryApi.Services.MemberPrivacyHelper.ShouldShowEmail(viewerMemberId, rowMemberId, sharesClub,
                             dict.GetValueOrDefault("ShowEmailInMyClub"), dict.GetValueOrDefault("ShowEmailInAllClubs")))
                     {
-                        dict["EmailId"] = null;
+                        dict["EmailId"] = dict["SecondaryEmailId"] = null;
                         // committeeMobile/committeeEmail read the live profile for member rows; a member
                         // who hides them gets the district's own typed copy back (what showed before).
                         if (dict.ContainsKey("committeeEmail")) dict["committeeEmail"] = dict.GetValueOrDefault("email");

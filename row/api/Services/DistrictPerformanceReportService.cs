@@ -29,7 +29,7 @@ namespace RotaryApi.Services;
 //   • District Dues and District Awards sections appear only when the district uses them that year.
 //
 // Schedule — HARD-CODED below (ScheduleOn / ScheduleMode / SendHour / recipient arrays), no appsettings:
-//   Mode "Test" (now) → District 3142, daily at the send hour (brand time zone), to the two
+//   Mode "Test" (now) → District 3142, daily at the send hour (the district's time zone), to the two
 //                       test addresses (first = To, rest = CC).
 //   Mode "Live" (later) → on the 1st & 16th: every district to its District Governor (CC LiveCc; a district
 //                       with no DG email is skipped and LiveCc is told).
@@ -43,9 +43,10 @@ public interface IDistrictPerformanceReportService
     Task<string> SendTestAsync(int districtId, int requestedByMemberId, CancellationToken ct = default);
     // The email body of an already-built report — the SuperAdmin screen's "Print" opens exactly this.
     string BuildPrintHtml(DistrictPerformanceReportResult result);
-    // catchUp = the API started after today's send hour: only districts with a VERIFIED "not sent
-    // today" log are sent, so a restart can never mail the same district twice.
-    Task RunScheduledAsync(bool catchUp, CancellationToken ct = default);
+    // Hourly: sends each district that is due at utcNow in its own time zone (its send hour on a send day). After
+    // the send hour, or on the first run after a start (catch-ups), only districts with a VERIFIED "not sent today"
+    // log are sent, so a restart can never mail the same district twice.
+    Task RunScheduledAsync(DateTime utcNow, bool afterStart, CancellationToken ct = default);
 }
 
 public class DistrictPerformanceReportService : IDistrictPerformanceReportService
@@ -138,7 +139,7 @@ public class DistrictPerformanceReportService : IDistrictPerformanceReportServic
 
         // HARD-CODED (user 2026-09-17: no config, hard-code both email ids).
         // LIVE since 2026-09-29 - the user verified the report and asked for it to go to every
-        // District Governor. On the 1st and 16th at the send hour (brand time zone): each district's report
+        // District Governor. On the 1st and 16th at the send hour (district time zone): each district's report
         // to its own DG (CC LiveCc; a district with no DG email is skipped and LiveCc is told).
         _enabled = ScheduleOn;
         _mode = ScheduleMode;
@@ -243,6 +244,7 @@ public class DistrictPerformanceReportService : IDistrictPerformanceReportServic
         public string DistrictNumber { get; set; } = "";
         public string? ZoneName { get; set; }
         public string? DefaultCurrency { get; set; }
+        public string? Timezone { get; set; }
     }
     private sealed class ClubRow
     {
@@ -397,7 +399,8 @@ public class DistrictPerformanceReportService : IDistrictPerformanceReportServic
         await conn.OpenAsync(ct);
 
         var district = await conn.QueryFirstOrDefaultAsync<DistrictRow>(@"
-            SELECT d.pk_district_id AS Id, d.DistrictNumber AS DistrictNumber, z.ZoneName AS ZoneName, d.DefaultCurrency AS DefaultCurrency
+            SELECT d.pk_district_id AS Id, d.DistrictNumber AS DistrictNumber, z.ZoneName AS ZoneName, d.DefaultCurrency AS DefaultCurrency,
+                   d.Timezone AS Timezone
             FROM district_master d LEFT JOIN zone_master z ON z.pk_zone_id = d.fk_zone_id
             WHERE d.pk_district_id = @D AND d.isdeleted = 0", new { D = districtId })
             ?? throw new KeyNotFoundException("District not found.");
@@ -407,7 +410,7 @@ public class DistrictPerformanceReportService : IDistrictPerformanceReportServic
         if (year.Id == 0) throw new InvalidOperationException("No current Rotary year is set.");
 
         DateTime start = year.StartDate.Date;
-        DateTime today = DateTime.Today;
+        DateTime today = ZoneTime.Local(ZoneTime.Find(district.Timezone)).Date;   // the district's local date (N12)
         DateTime end = today < year.EndDate.Date ? today : year.EndDate.Date;   // "till date"
         DateTime endExclusive = end.AddDays(1);
         string currency = CurrencyHelper.Normalize(string.IsNullOrWhiteSpace(district.DefaultCurrency) ? RotaryApi.Services.Brand.DefaultCurrency : district.DefaultCurrency);
@@ -1103,35 +1106,41 @@ public class DistrictPerformanceReportService : IDistrictPerformanceReportServic
         return $"Test email for District {r.DistrictNumber} sent to {string.Join(", ", _testRecipients)}.";
     }
 
-    public async Task RunScheduledAsync(bool catchUp, CancellationToken ct = default)
+    public async Task RunScheduledAsync(DateTime utcNow, bool afterStart, CancellationToken ct = default)
     {
         if (!_enabled) return;
-        var today = DateTime.Today;
-        // Rehearsal day: behave exactly like the old Test mode - sample district report,
-        // to the test addresses only. See PreviewDate above.
-        bool preview = PreviewDate.HasValue && today.Date == PreviewDate.Value.Date;
-        bool live = _mode == "Live" && !preview;
-        if (live && !_liveDays.Contains(today.Day)) return;
-        if (!live && !preview && _mode == "Live") return;   // a live-mode day that is neither 1st/16th nor the rehearsal
-        string runType = live ? "ScheduledLive" : "ScheduledTest";
-
-        List<PerformanceReportDistrictOption> targets;
+        List<PerformanceReportDistrictOption> all;
+        Dictionary<int, TimeZoneInfo> zones;
         await using (var conn = new MySqlConnection(_conn))
         {
             await conn.OpenAsync(ct);
-            var all = await LoadReportDistrictsAsync(conn);
-            targets = live
-                ? all
-                : all.Where(d => _testDistricts.Contains(d.DistrictNumber, StringComparer.OrdinalIgnoreCase)).ToList();
+            all = await LoadReportDistrictsAsync(conn);
+            zones = await ZoneTime.DistrictZonesAsync(conn);
         }
 
         var skippedNoDg = new List<string>();
-        foreach (var d in targets)
+        var live = false;
+        foreach (var d in all)
         {
             if (ct.IsCancellationRequested) break;
-            var already = await AlreadyRanTodayAsync(d.DistrictId, runType);
+            // N12: the district's own local day and hour.
+            var local = ZoneTime.Local(zones.TryGetValue(d.DistrictId, out var zone) ? zone : Brand.TimeZone, utcNow);
+            if (local.Hour < _hour) continue;
+            var today = local.Date;
+            // Rehearsal day: behave exactly like the old Test mode - sample district report,
+            // to the test addresses only. See PreviewDate above.
+            bool preview = PreviewDate.HasValue && today == PreviewDate.Value.Date;
+            bool districtLive = _mode == "Live" && !preview;
+            if (districtLive && !_liveDays.Contains(today.Day)) continue;
+            if (!districtLive && !preview && _mode == "Live") continue;   // a live-mode day that is neither 1st/16th nor the rehearsal
+            if (!districtLive && !_testDistricts.Contains(d.DistrictNumber, StringComparer.OrdinalIgnoreCase)) continue;
+            live |= districtLive;
+            string runType = districtLive ? "ScheduledLive" : "ScheduledTest";
+
+            var already = await AlreadyRanTodayAsync(d.DistrictId, runType, today);
             if (already == true) continue;
-            if (catchUp && already == null) continue;   // can't verify the log → never risk a duplicate
+            // A catch-up (after the send hour, or the first run after a start): can't verify the log → never risk a duplicate.
+            if ((afterStart || local.Hour > _hour) && already == null) continue;
 
             string? to = null;
             List<string> cc = new();
@@ -1140,12 +1149,12 @@ public class DistrictPerformanceReportService : IDistrictPerformanceReportServic
             {
                 var r = await BuildReportAsync(d.DistrictId, includeAttachment: true, ct);
                 yearId = r.YearId;
-                if (live)
+                if (districtLive)
                 {
                     if (r.GovernorEmail == null)
                     {
                         skippedNoDg.Add(d.DistrictNumber);
-                        await LogAsync(d.DistrictId, yearId, runType, null, null, "Skipped", "No District Governor email on record.", null);
+                        await LogAsync(d.DistrictId, yearId, runType, null, null, "Skipped", "No District Governor email on record.", null, today);
                         continue;
                     }
                     to = r.GovernorEmail;
@@ -1160,18 +1169,18 @@ public class DistrictPerformanceReportService : IDistrictPerformanceReportServic
                 if (_suppressLocalDev)
                 {
                     _logger.LogWarning("District performance report SUPPRESSED on a dev/remote-DB machine — District {District} would go to {To} (cc {Cc}).",
-                        d.DistrictNumber, to, string.Join(", ", cc));
-                    await LogAsync(d.DistrictId, yearId, runType, to, cc, "Suppressed", "Dev machine — scheduled send suppressed.", null);
+                        d.DistrictNumber, LogMask.Email(to), LogMask.Emails(cc));
+                    await LogAsync(d.DistrictId, yearId, runType, to, cc, "Suppressed", "Dev machine — scheduled send suppressed.", null, today);
                     continue;
                 }
                 await _email.SendScopedEmailWithAttachmentAsync(to, r.Subject, r.Html!, r.Excel!, r.FileName, cc, null, d.DistrictId, EmailType);
-                await LogAsync(d.DistrictId, yearId, runType, to, cc, "Sent", null, null);
-                _logger.LogInformation("District performance report sent — District {District} to {To}.", d.DistrictNumber, to);
+                await LogAsync(d.DistrictId, yearId, runType, to, cc, "Sent", null, null, today);
+                _logger.LogInformation("District performance report sent — District {District} to {To}.", d.DistrictNumber, LogMask.Email(to));
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "District performance report failed for District {District}.", d.DistrictNumber);
-                await LogAsync(d.DistrictId, yearId, runType, to, cc, "Failed", ex.Message, null);
+                await LogAsync(d.DistrictId, yearId, runType, to, cc, "Failed", ex.Message, null, today);
             }
         }
 
@@ -1181,20 +1190,21 @@ public class DistrictPerformanceReportService : IDistrictPerformanceReportServic
             try
             {
                 var body = $@"{EmailService.EMAIL_HEADER}
-                    <p style='font-size:14px;color:#333'>The District Performance Report was <strong>not sent</strong> to these districts
+                    <p style='font-size:14px;color:#1B2C42'>The District Performance Report was <strong>not sent</strong> to these districts
                     because no District Governor email is on record for the current Rotary year:</p>
-                    <p style='font-size:15px;font-weight:bold;color:#1F4E79'>{WebUtility.HtmlEncode(string.Join(", ", skippedNoDg))}</p>
-                    <p style='font-size:13px;color:#555'>Add the District Governor (with an email address) and the next run will include them.</p>
+                    <p style='font-size:15px;font-weight:bold;color:#17458F'>{WebUtility.HtmlEncode(string.Join(", ", skippedNoDg))}</p>
+                    <p style='font-size:13px;color:#4A5A70'>Add the District Governor (with an email address) and the next run will include them.</p>
                     {EmailService.EMAIL_FOOTER}";
                 await _email.SendGenericEmailWithCcAsync(_liveCc[0], _liveCc.Length > 1 ? string.Join(",", _liveCc.Skip(1)) : null,
-                    $"District Performance Report — {skippedNoDg.Count} district(s) skipped (no DG email) — {today:dd MMM yyyy}", body);
+                    $"District Performance Report — {skippedNoDg.Count} district(s) skipped (no DG email) — {utcNow:dd MMM yyyy}", body);
             }
             catch (Exception ex) { _logger.LogError(ex, "District performance report: could not send the skipped-districts notice."); }
         }
     }
 
-    // true = a Sent/Skipped row exists today; false = verified none; null = the log could not be read.
-    private async Task<bool?> AlreadyRanTodayAsync(int districtId, string runType)
+    // true = the district already had its run for its local day (sent, skipped, suppressed or failed: the hourly
+    // ticks never retry it); false = verified none; null = the log could not be read.
+    private async Task<bool?> AlreadyRanTodayAsync(int districtId, string runType, DateTime day)
     {
         try
         {
@@ -1202,8 +1212,8 @@ public class DistrictPerformanceReportService : IDistrictPerformanceReportServic
             await conn.OpenAsync();
             var n = await conn.ExecuteScalarAsync<long>(@"
                 SELECT COUNT(*) FROM district_performance_report_log
-                WHERE fk_district_id = @D AND RunType = @T AND RunDate = CURDATE() AND Status IN ('Sent', 'Skipped')",
-                new { D = districtId, T = runType });
+                WHERE fk_district_id = @D AND RunType = @T AND RunDate = @Day",
+                new { D = districtId, T = runType, Day = day.Date });
             return n > 0;
         }
         catch (Exception ex)
@@ -1213,7 +1223,8 @@ public class DistrictPerformanceReportService : IDistrictPerformanceReportServic
         }
     }
 
-    private async Task LogAsync(int districtId, int yearId, string runType, string? to, List<string>? cc, string status, string? message, int? memberId)
+    // runDate: the district's local day for scheduled runs; a manual send logs the server's date.
+    private async Task LogAsync(int districtId, int yearId, string runType, string? to, List<string>? cc, string status, string? message, int? memberId, DateTime? runDate = null)
     {
         try
         {
@@ -1222,7 +1233,7 @@ public class DistrictPerformanceReportService : IDistrictPerformanceReportServic
             await conn.ExecuteAsync(@"
                 INSERT INTO district_performance_report_log
                     (fk_district_id, fk_year_id, RunType, ToEmail, CcEmails, Status, Message, RunDate, created_by, created_date)
-                VALUES (@D, @Y, @T, @To, @Cc, @S, @M, CURDATE(), @By, NOW())",
+                VALUES (@D, @Y, @T, @To, @Cc, @S, @M, IFNULL(@Day, CURDATE()), @By, NOW())",
                 new
                 {
                     D = districtId, Y = yearId, T = runType, To = to,
@@ -1230,6 +1241,7 @@ public class DistrictPerformanceReportService : IDistrictPerformanceReportServic
                     S = status,
                     M = message == null ? null : (message.Length > 1000 ? message[..1000] : message),
                     By = memberId,
+                    Day = runDate?.Date,
                 });
         }
         catch (Exception ex)
@@ -1326,9 +1338,9 @@ public class DistrictPerformanceReportService : IDistrictPerformanceReportServic
     {
         // Email-safe layout: tables + inline styles only (no flex/grid), so Gmail / Outlook / phones render it.
         static string E(string? s) => WebUtility.HtmlEncode(s ?? "");
-        const string navy = "#1a365d", blue = "#2d7fc7", ink = "#1e293b", muted = "#64748b", line = "#e2e8f0";
+        const string navy = "#17458F", blue = "#0067C8", ink = "#1B2C42", muted = "#64748b", line = "#D5DEE8";
         var sb = new System.Text.StringBuilder();
-        // Wider body for this report only (620 → 820px) so four tiles fit a row without "₹ 4,81,48,933"
+        // Wider body for this report only (620 → 820px) so four tiles fit a row without a long amount
         // wrapping (user 2026-09-28). Every other email keeps the shared 620px header; phones still shrink it.
         sb.Append(EmailService.EMAIL_HEADER.Replace("max-width: 620px", "max-width: 820px"));
 
@@ -1344,7 +1356,7 @@ public class DistrictPerformanceReportService : IDistrictPerformanceReportServic
                 <div style='font-size:12px;color:{muted}'>{E(r.ReportSubtitle)}</div>
               </td></tr>
             </table>");
-        sb.Append($@"<p style='font-size:14px;color:#333;margin:0 0 18px 0'>{E(r.Salutation)}<br/>{E(r.IntroLine)}</p>");
+        sb.Append($@"<p style='font-size:14px;color:#1B2C42;margin:0 0 18px 0'>{E(r.Salutation)}<br/>{E(r.IntroLine)}</p>");
 
         // ── At a glance — 4 tiles per row on the District report ──
         if (r.Highlights.Count > 0)
@@ -1371,7 +1383,7 @@ public class DistrictPerformanceReportService : IDistrictPerformanceReportServic
                         if (j >= tiles.Count) { sb.Append($"<td width='{tdWidth}'></td>"); continue; }
                         var h = tiles[j];
                         string valueColor = h.Percent.HasValue ? RagColor(h.Percent.Value) : navy;
-                        sb.Append($@"<td width='{tdWidth}' valign='top' style='background:#f8fafc;border:1px solid {line};border-radius:8px;padding:12px 12px'>
+                        sb.Append($@"<td width='{tdWidth}' valign='top' style='background:#F7F9FC;border:1px solid {line};border-radius:8px;padding:12px 12px'>
                             <div style='font-size:10px;letter-spacing:.8px;text-transform:uppercase;color:{muted};white-space:nowrap'>{E(h.Label)}</div>
                             <div style='font-size:22px;font-weight:bold;color:{valueColor};line-height:1.3;white-space:nowrap'>{E(h.Value)}</div>
                             <div style='font-size:11px;color:{muted}'>{E(h.Sub)}</div>
@@ -1385,7 +1397,7 @@ public class DistrictPerformanceReportService : IDistrictPerformanceReportServic
 
         // Plain scope line under the tiles — no box, no colour (user 2026-09-18); darker so it reads (user 2026-09-28).
         if (!string.IsNullOrWhiteSpace(r.ScopeNote))
-            sb.Append($"<p style='font-size:12px;color:#334155;margin:0 0 4px 2px;line-height:1.6'>{E(r.ScopeNote)}</p>");
+            sb.Append($"<p style='font-size:12px;color:#2A3F5C;margin:0 0 4px 2px;line-height:1.6'>{E(r.ScopeNote)}</p>");
 
         // ── Sections — grouped into parts (District, then Clubs), each opened by a large band ──
         string? lastPart = null;
@@ -1398,15 +1410,15 @@ public class DistrictPerformanceReportService : IDistrictPerformanceReportServic
                 partNo++;
                 sb.Append($@"<table role='presentation' width='100%' cellspacing='0' cellpadding='0' style='border-collapse:collapse;margin:30px 0 4px 0'>
                     <tr><td style='background:{navy};border-radius:8px;padding:13px 16px'>
-                      <div style='font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:#bfdbfe'>Part {partNo}</div>
-                      <div style='font-size:19px;font-weight:bold;color:#ffffff;line-height:1.3'>{E(s.Part)}</div>
-                      {(string.IsNullOrWhiteSpace(s.PartSubtitle) ? "" : $"<div style='font-size:12px;color:#cbd5e1'>{E(s.PartSubtitle)}</div>")}
+                      <div style='font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:#CFE2F6'>Part {partNo}</div>
+                      <div style='font-size:19px;font-weight:bold;color:#FCFDFE;line-height:1.3'>{E(s.Part)}</div>
+                      {(string.IsNullOrWhiteSpace(s.PartSubtitle) ? "" : $"<div style='font-size:12px;color:#B7C3D2'>{E(s.PartSubtitle)}</div>")}
                     </td></tr></table>");
             }
             sb.Append($@"<table role='presentation' width='100%' cellspacing='0' cellpadding='0' style='border-collapse:collapse;margin:20px 0 0 0'>
-                <tr><td style='border-left:4px solid {blue};background:#f1f5f9;padding:8px 12px;font-size:14px;font-weight:bold;color:{navy}'>{E(s.Title)}</td></tr></table>");
+                <tr><td style='border-left:4px solid {blue};background:#EDF4FB;padding:8px 12px;font-size:14px;font-weight:bold;color:{navy}'>{E(s.Title)}</td></tr></table>");
             if (!string.IsNullOrWhiteSpace(s.Intro))
-                sb.Append($"<p style='font-size:12px;color:#334155;font-style:italic;margin:6px 0 2px 12px'>{E(s.Intro)}</p>");
+                sb.Append($"<p style='font-size:12px;color:#2A3F5C;font-style:italic;margin:6px 0 2px 12px'>{E(s.Intro)}</p>");
 
             if (s.Items.Count > 0)
             {
@@ -1415,8 +1427,8 @@ public class DistrictPerformanceReportService : IDistrictPerformanceReportServic
                 {
                     bool sub = it.Label.StartsWith(" ");
                     sb.Append($@"<tr>
-                        <td style='padding:7px 12px{(sub ? " 7px 28px" : "")};border-bottom:1px solid {line};font-size:13px;color:{(sub ? muted : "#334155")}'>{E(it.Label.Trim())}</td>
-                        <td style='padding:7px 12px;border-bottom:1px solid {line};font-size:14px;color:{ink};font-weight:bold;text-align:right;white-space:nowrap'>{(string.IsNullOrWhiteSpace(it.Url) ? E(it.Value) : $"<a href='{E(it.Url)}' target='_blank' style='color:#1d4ed8;text-decoration:underline'>{E(it.Value)}</a>")}</td></tr>");
+                        <td style='padding:7px 12px{(sub ? " 7px 28px" : "")};border-bottom:1px solid {line};font-size:13px;color:{(sub ? muted : "#2A3F5C")}'>{E(it.Label.Trim())}</td>
+                        <td style='padding:7px 12px;border-bottom:1px solid {line};font-size:14px;color:{ink};font-weight:bold;text-align:right;white-space:nowrap'>{(string.IsNullOrWhiteSpace(it.Url) ? E(it.Value) : $"<a href='{E(it.Url)}' target='_blank' style='color:#17458F;text-decoration:underline'>{E(it.Value)}</a>")}</td></tr>");
                 }
                 sb.Append("</tbody></table>");
             }
@@ -1443,7 +1455,7 @@ public class DistrictPerformanceReportService : IDistrictPerformanceReportServic
                         }
                         bool left = c == 0 || (rankTable && c == 1);
                         string? band = c == 0 ? BandColor(row[c]) : null;
-                        sb.Append($"<td style='padding:7px 10px;border-bottom:1px solid {line};font-size:13px;color:{band ?? (left ? "#334155" : ink)};{(band != null ? "font-weight:bold;" : "")}text-align:{(left ? "left" : "right")};white-space:{(left ? "normal" : "nowrap")}'>{E(row[c])}</td>");
+                        sb.Append($"<td style='padding:7px 10px;border-bottom:1px solid {line};font-size:13px;color:{band ?? (left ? "#2A3F5C" : ink)};{(band != null ? "font-weight:bold;" : "")}text-align:{(left ? "left" : "right")};white-space:{(left ? "normal" : "nowrap")}'>{E(row[c])}</td>");
                     }
                     sb.Append("</tr>");
                 }
@@ -1451,20 +1463,20 @@ public class DistrictPerformanceReportService : IDistrictPerformanceReportServic
             }
 
             if (!string.IsNullOrWhiteSpace(s.Note))
-                sb.Append($"<p style='font-size:12px;color:#334155;font-style:italic;margin:5px 0 0 12px'>{E(s.Note)}</p>");
+                sb.Append($"<p style='font-size:12px;color:#2A3F5C;font-style:italic;margin:5px 0 0 12px'>{E(s.Note)}</p>");
         }
 
         // ── Closing ──
         sb.Append($@"
-            <p style='font-size:14px;color:#333;line-height:1.7;margin:26px 0 8px 0'>
+            <p style='font-size:14px;color:#1B2C42;line-height:1.7;margin:26px 0 8px 0'>
                 {E(r.ClosingLine)}
             </p>
             <table role='presentation' width='100%' cellspacing='0' cellpadding='0' style='border-collapse:collapse;margin:14px 0 6px 0'>
-              <tr><td style='background:#f8fafc;border:1px solid {line};border-radius:8px;padding:12px 14px;font-size:12px;color:#334155;line-height:1.7'>
-                📎 {E(r.AttachmentNote)}
+              <tr><td style='background:#F7F9FC;border:1px solid {line};border-radius:8px;padding:12px 14px;font-size:12px;color:#2A3F5C;line-height:1.7'>
+                {E(r.AttachmentNote)}
               </td></tr>
             </table>
-            <p style='font-size:12px;color:#334155;font-style:italic;margin:10px 0 0 0'>All figures are as on {DateTime.Today:dd MMM yyyy} and are sourced from the ROW portal.</p>");
+            <p style='font-size:12px;color:#2A3F5C;font-style:italic;margin:10px 0 0 0'>All figures are as on {DateTime.Today:dd MMM yyyy} and are sourced from the ROW portal.</p>");
         sb.Append(EmailService.EMAIL_FOOTER);
         return sb.ToString();
     }

@@ -77,6 +77,7 @@ export default function AppHeader() {
     "/refunds-and-cancellations",
     "/privacy-policy",
     "/cookies",
+    "/data-processing-agreement",
     "/about-us",
     "/tutorial",
   ];

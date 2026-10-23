@@ -23,12 +23,20 @@ public class ClubMassEmailsController : ControllerBase
     private bool IsSuperAdmin() => User.FindFirst("roles")?.Value?.Contains("SuperAdmin") == true;
     private bool IsAdmin() => User.FindFirst("roles")?.Value?.Contains("Admin") == true;
 
+    /// <summary>Null when the caller manages this club; otherwise 403. Campaigns carry the recipients' addresses, so
+    /// plain members may not read them.</summary>
+    private async Task<ActionResult?> DenyReadAsync(int clubId)
+        => GetUserId() > 0 && await ScopeWriteGuardMiddleware.AllowedAsync(_connectionString, GetUserId(), true, clubId)
+            ? null
+            : StatusCode(403, new { message = "Only the people who manage this club can see its mass emails." });
+
     [HttpGet]
     public async Task<ActionResult> GetList(int clubId,
         [FromQuery] string? status, [FromQuery] string? search,
         [FromQuery] int page = 1, [FromQuery] int pageSize = 20)
     {
         if (!await RotaryApi.Services.KillSwitchHelper.IsClubDrillReachableAsync(_connectionString, clubId)) return StatusCode(403, new { message = "This club, its district, or its zone is inactive. Reactivate it first to access this data." });
+        if (await DenyReadAsync(clubId) is { } deny) return deny;
         var (items, totalCount) = await _service.GetListAsync(clubId, status, search, page, pageSize);
         return Ok(new { items, totalCount, page, pageSize });
     }
@@ -37,6 +45,7 @@ public class ClubMassEmailsController : ControllerBase
     public async Task<ActionResult> GetDetail(int clubId, int id)
     {
         if (!await RotaryApi.Services.KillSwitchHelper.IsClubDrillReachableAsync(_connectionString, clubId)) return StatusCode(403, new { message = "This club, its district, or its zone is inactive. Reactivate it first to access this data." });
+        if (await DenyReadAsync(clubId) is { } deny) return deny;
         if (!await _service.BelongsToAsync(id, clubId, null)) return NotFound(new { message = "Mass email not found." });
         var detail = await _service.GetDetailAsync(id);
         if (detail == null) return NotFound(new { message = "Mass email not found." });
@@ -106,6 +115,7 @@ public class ClubMassEmailsController : ControllerBase
     public async Task<ActionResult> GetRecipients(int clubId, int id)
     {
         if (!await RotaryApi.Services.KillSwitchHelper.IsClubDrillReachableAsync(_connectionString, clubId)) return StatusCode(403, new { message = "This club, its district, or its zone is inactive. Reactivate it first to access this data." });
+        if (await DenyReadAsync(clubId) is { } deny) return deny;
         if (!await _service.BelongsToAsync(id, clubId, null)) return NotFound(new { message = "Mass email not found." });
         var recipients = await _service.GetRecipientsAsync(id);
         return Ok(recipients);
@@ -117,6 +127,7 @@ public class ClubMassEmailsController : ControllerBase
         [FromQuery] string? memberIds, [FromQuery] string? contactGroupIds)
     {
         if (!await RotaryApi.Services.KillSwitchHelper.IsClubDrillReachableAsync(_connectionString, clubId)) return StatusCode(403, new { message = "This club, its district, or its zone is inactive. Reactivate it first to access this data." });
+        if (await DenyReadAsync(clubId) is { } deny) return deny;
         List<int>? parsedSubgroupIds = null;
         if (!string.IsNullOrEmpty(subgroupIds))
             parsedSubgroupIds = subgroupIds.Split(',', StringSplitOptions.RemoveEmptyEntries).Select(int.Parse).ToList();

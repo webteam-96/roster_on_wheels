@@ -58,8 +58,9 @@ export default function DashboardGuard({ kind, children }: DashboardGuardProps) 
       return;
     }
     const roles = user?.roles ?? [];
+    // "/admin" is the role home; "/" is the public site, which sends a signed-in user to the login page.
     if (!isAuthorized(kind, roles, user?.scopedRoles, user?.districtClubAccess)) {
-      router.replace("/");
+      router.replace("/admin");
     }
   }, [loading, isAuthenticated, user, kind, router]);
 

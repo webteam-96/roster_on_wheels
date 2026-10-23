@@ -6,13 +6,14 @@ import { TrfFund, TrfContribution } from "@/types/trfContribution";
 import { ReportYear } from "@/types/clubMonthlyReport";
 import {
   getClub,
-  getMonthlyReportYears,
+  getTrfYears,
   getTrfFunds,
   getTrfContributions,
   createTrfContribution,
   updateTrfContribution,
   deleteTrfContribution,
 } from "@/services/api";
+import { useFeatureLoadedOn } from "@/components/FeatureGate";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -115,6 +116,7 @@ export default function TrfContributionPage() {
 
   const [clubName, setClubName] = useState("");
   const [years, setYears] = useState<ReportYear[]>([]);
+  const cmrOn = useFeatureLoadedOn("club_monthly_report");
   const [selectedYearId, setSelectedYearId] = useState<number | null>(null);
   const [funds, setFunds] = useState<TrfFund[]>([]);
   const [contributions, setContributions] = useState<TrfContribution[]>([]);
@@ -174,7 +176,7 @@ export default function TrfContributionPage() {
       try {
         const [club, yearsData, fundsData] = await Promise.all([
           getClub(clubId),
-          getMonthlyReportYears(clubId),
+          getTrfYears(clubId, cmrOn),
           getTrfFunds(clubId),
         ]);
         setClubName(club.clubName);
@@ -205,7 +207,7 @@ export default function TrfContributionPage() {
       }
     }
     init();
-  }, [clubId, yearIdParam]);
+  }, [clubId, yearIdParam, cmrOn]);
 
   // Load contributions when year changes
   const loadContributions = useCallback(async () => {

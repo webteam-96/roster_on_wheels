@@ -44,6 +44,10 @@ public class ClubAnalyticsController : ControllerBase
         bool allClubs = !(clubId is > 0) && !(districtId is > 0);
         if (allClubs && !IsSuperAdmin())
             return Forbid();
+        // One club or one district: the same readers as its club report or district report (officer contacts follow).
+        var me = int.TryParse(User.FindFirst("memberId")?.Value, out var mid) ? mid : 0;
+        if (!allClubs && (me <= 0 || !await ScopeWriteGuardMiddleware.ReadAllowedAsync(_cs, me, clubId is > 0, clubId is > 0 ? clubId.Value : districtId.GetValueOrDefault())))
+            return Forbid();
 
         using var conn = Conn();
         await conn.OpenAsync();

@@ -17,6 +17,8 @@ import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
 import { ArrowLeft, Loader2, Save } from "@/components/icons";
 import ProtectedRoute from "@/components/ProtectedRoute";
+import { useFeatureLoadedOn } from "@/components/FeatureGate";
+import TenantPlanningCard from "@/components/planning/TenantPlanningCard";
 
 // Super Admin > Tenants (ROW Wave 1, build spec items 1 and 5): a district's subscription, its planning state,
 // and applying its editions (switches district and club modules on or off; no module data is deleted).
@@ -40,6 +42,8 @@ export default function TenantsPage() {
   const [confirmApply, setConfirmApply] = useState(false);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const planningOn = useFeatureLoadedOn("planning_mode");
+  const [reloadKey, setReloadKey] = useState(0);
 
   useEffect(() => {
     if (!isSuperAdmin) return;
@@ -65,7 +69,7 @@ export default function TenantsPage() {
           bridgeStart: day(t.subscription.bridgeStart), bridgeEnd: day(t.subscription.bridgeEnd), feeWaiverUntil: day(t.subscription.feeWaiverUntil) } : EMPTY);
       })
       .catch(() => setErrorMessage("Could not load this district's subscription."));
-  }, [districtId]);
+  }, [districtId, reloadKey]);
 
   const set = <K extends keyof TenantSubscription>(k: K, v: TenantSubscription[K]) => setForm((f) => ({ ...f, [k]: v }));
   const orNull = (v: string) => (v === "" ? null : v);
@@ -128,6 +132,13 @@ export default function TenantsPage() {
             <p className="text-muted-foreground text-base">District subscriptions, planning state and editions</p>
           </div>
         </div>
+        <p className="text-sm text-muted-foreground">
+          Before a district goes live, share the{" "}
+          <Link href="/data-processing-agreement" target="_blank" className="font-medium text-primary underline-offset-2 hover:underline">
+            data processing agreement
+          </Link>{" "}
+          with it (a draft that still needs legal review).
+        </p>
 
         {loading ? (
           <div className="space-y-3" aria-busy="true">
@@ -214,6 +225,11 @@ export default function TenantsPage() {
                     </div>
                   </CardContent>
                 </Card>
+
+                {planningOn && detail.subscription && districtId != null && (
+                  <TenantPlanningCard districtId={districtId} subscription={detail.subscription}
+                    onChanged={() => setReloadKey((k) => k + 1)} onDone={setSuccessMessage} onError={setErrorMessage} />
+                )}
 
                 {detail.clubs.length > 0 && (
                   <Card>

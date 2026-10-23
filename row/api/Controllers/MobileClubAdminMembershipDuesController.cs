@@ -33,26 +33,34 @@ public class MobileClubAdminMembershipDuesController : ControllerBase
         return roles.Contains("SuperAdmin") || roles.Contains("Admin");
     }
 
-    // SuperAdmin → null (no club filter). Club Admin → their clubId.
-    private int? GetScopedClubId()
-    {
-        var roles = User.FindFirst("roles")?.Value ?? "";
-        if (roles.Contains("SuperAdmin")) return null;
-        var clubId = User.FindFirst("clubId")?.Value;
-        return int.TryParse(clubId, out var cid) ? cid : (int?)null;
-    }
+    private string ConnectionString => HttpContext.RequestServices
+        .GetRequiredService<IConfiguration>().GetConnectionString("DefaultConnection")!;
+
+    // Same rule as the web controller: a manager of the club that owns the campaign (or of the district, for a
+    // campaign without a club); SuperAdmin always. Was: the "clubId" claim this relied on is never issued, so any
+    // Admin could read any club's campaign.
+    private async Task<bool> ManagesOwnerAsync(int clubId, int districtId) => clubId > 0
+        ? await ScopeWriteGuardMiddleware.ReadAllowedAsync(ConnectionString, GetUserId(), true, clubId, members: false)
+        : districtId > 0 && await ScopeWriteGuardMiddleware.AllowedAsync(ConnectionString, GetUserId(), false, districtId);
+
+    private async Task<bool> ManagesDuesAsync(int duesId) =>
+        await _service.GetDetailAsync(duesId) is { } d && await ManagesOwnerAsync(d.FkClubId, d.FkDistrictId);
+
+    private ObjectResult Denied() => StatusCode(403, new { message = "Access denied." });
 
     // ── List / Detail ──────────────────────────────────────────────
 
     // GET /api/mobile/club-admin/membership-dues?clubId=&districtId=&search=&year=
-    // SuperAdmin sees everything; Club Admin is auto-scoped to their club
-    // regardless of any clubId query value to prevent cross-club access.
+    // A club or district the caller manages; only SuperAdmin lists everything.
     [HttpGet("")]
     public async Task<ActionResult> GetList([FromQuery] int? clubId, [FromQuery] int? districtId, [FromQuery] string? search, [FromQuery] string? year)
     {
         if (!IsSuperAdminOrAdmin()) return StatusCode(403, new { message = "Access denied." });
-        var scopedClub = GetScopedClubId() ?? clubId;
-        var result = await _service.GetListAsync(scopedClub, districtId, search, year);
+        var allowed = clubId is > 0 ? await ManagesOwnerAsync(clubId.Value, 0)
+            : districtId is > 0 ? await ManagesOwnerAsync(0, districtId.Value)
+            : (User.FindFirst("roles")?.Value ?? "").Contains("SuperAdmin");
+        if (!allowed) return Denied();
+        var result = await _service.GetListAsync(clubId, districtId, search, year);
         return Ok(result);
     }
 
@@ -62,6 +70,7 @@ public class MobileClubAdminMembershipDuesController : ControllerBase
         if (!IsSuperAdminOrAdmin()) return StatusCode(403, new { message = "Access denied." });
         var result = await _service.GetDetailAsync(id);
         if (result == null) return NotFound(new { message = "Club dues not found." });
+        if (!await ManagesOwnerAsync(result.FkClubId, result.FkDistrictId)) return Denied();
         return Ok(result);
     }
 
@@ -71,6 +80,7 @@ public class MobileClubAdminMembershipDuesController : ControllerBase
     public async Task<ActionResult> GetMembers(int id, [FromQuery] string? search, [FromQuery] string? filter)
     {
         if (!IsSuperAdminOrAdmin()) return StatusCode(403, new { message = "Access denied." });
+        if (!await ManagesDuesAsync(id)) return Denied();
         var result = await _service.GetMemberFeesAsync(id, search, filter);
         return Ok(result);
     }
@@ -106,6 +116,10 @@ public class MobileClubAdminMembershipDuesController : ControllerBase
         using var conn = new MySqlConnector.MySqlConnection(HttpContext.RequestServices
             .GetRequiredService<IConfiguration>().GetConnectionString("DefaultConnection")!);
         await conn.OpenAsync();
+        var duesId = await Dapper.SqlMapper.ExecuteScalarAsync<int?>(conn,
+            "SELECT fk_membership_dues_id FROM membership_dues_payments WHERE pk_id = @Id AND isdeleted = 0", new { Id = paymentId });
+        if (duesId == null) return NotFound(new { message = "Payment not found." });
+        if (!await ManagesDuesAsync(duesId.Value)) return Denied();
         var row = await Dapper.SqlMapper.QueryFirstOrDefaultAsync<dynamic>(conn, @"
             SELECT pk_id                      AS paymentId,
                    fk_member_fee_id           AS memberFeeId,
@@ -177,14 +191,15 @@ public class MobileClubAdminMembershipDuesController : ControllerBase
     }
 
     // Dashboard alert — one row per dues that has at least one pending offline
-    // approval. The web endpoint is scoped by {clubId}; here we derive the
-    // club from the JWT (Club Admin) or accept the query arg (SuperAdmin).
+    // approval. The web endpoint is scoped by {clubId}; here the clubId query
+    // arg must be a club the caller manages.
     [HttpGet("pending-offline-approvals")]
     public async Task<ActionResult> GetPendingOfflineApprovals([FromQuery] int? clubId = null)
     {
         if (!IsSuperAdminOrAdmin()) return StatusCode(403, new { message = "Access denied." });
-        var scopedClub = GetScopedClubId() ?? clubId;
+        var scopedClub = clubId;
         if (scopedClub == null || scopedClub <= 0) return BadRequest(new { message = "clubId is required." });
+        if (!await ManagesOwnerAsync(scopedClub.Value, 0)) return Denied();
 
         using var conn = new MySqlConnector.MySqlConnection(HttpContext.RequestServices
             .GetRequiredService<IConfiguration>().GetConnectionString("DefaultConnection")!);

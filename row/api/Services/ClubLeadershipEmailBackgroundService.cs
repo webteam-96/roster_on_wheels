@@ -109,7 +109,7 @@ public class ClubLeadershipEmailBackgroundService : BackgroundService
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Failed to send leadership email to {Email}", (string)r.email);
+                _logger.LogError(ex, "Failed to send leadership email to {Email}", LogMask.Email((string)r.email));
                 await conn.ExecuteAsync(@"
                     UPDATE club_leadership_email_log
                     SET Status = 'Failed', ErrorMessage = @Err WHERE pk_id = @Id",

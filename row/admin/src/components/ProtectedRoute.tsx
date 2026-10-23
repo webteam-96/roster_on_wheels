@@ -20,7 +20,7 @@ export default function ProtectedRoute({ children, requireSuperAdmin }: Protecte
       return;
     }
     if (!loading && requireSuperAdmin && !isSuperAdmin) {
-      router.replace("/");
+      router.replace("/admin"); // the role home ("/" is the public site, which sends signed-in users to log in)
     }
   }, [isAuthenticated, isSuperAdmin, requireSuperAdmin, loading, router]);
 

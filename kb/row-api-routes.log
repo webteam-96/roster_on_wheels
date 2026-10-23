@@ -57,6 +57,7 @@ Mapped {api/Auth/login, Post}
 Mapped {api/Auth/forgot-password, Post}
 Mapped {api/Auth/reset-password, Post}
 Mapped {api/Auth/change-password, Post}
+Mapped {api/Auth/session, Get}
 Mapped {api/Auth/logout, Post}
 Mapped {api/Auth/login-logs, Get}
 Mapped {api/designations, Get}
@@ -679,6 +680,11 @@ Mapped {api/engagement/spotlight-cards/{id:int}/reject, Post}
 Mapped {api/districts/{districtId:int}/engagement/settings, Get}
 Mapped {api/districts/{districtId:int}/engagement/settings, Put}
 Mapped {api/engagement/run, Post}
+Mapped {api/districts/{districtId:int}/escalation/settings, Get}
+Mapped {api/districts/{districtId:int}/escalation/settings, Put}
+Mapped {api/districts/{districtId:int}/escalation/alerts, Get}
+Mapped {api/escalation/run, Post}
+Mapped {api/celebration/run, Post}
 Mapped {api/event-masters/tshirt-sizes, Get}
 Mapped {api/event-masters/tshirt-sizes, Post}
 Mapped {api/event-masters/tshirt-sizes/{id}, Put}
@@ -1055,6 +1061,15 @@ Mapped {api/clubs/{clubId}/past-presidents, Post}
 Mapped {api/clubs/{clubId}/past-presidents/{id}, Put}
 Mapped {api/clubs/{clubId}/past-presidents/{id}, Delete}
 Mapped {api/clubs/{clubId}/past-presidents/search-members, Get}
+Mapped {api/planning/state, Get}
+Mapped {api/planning/me, Get}
+Mapped {api/planning/districts/{districtId:int}, Get}
+Mapped {api/planning/districts/{districtId:int}/start, Post}
+Mapped {api/planning/districts/{districtId:int}/appointments, Post}
+Mapped {api/planning/districts/{districtId:int}/invites, Post}
+Mapped {api/planning/districts/{districtId:int}/roles/{roleId:int}, Delete}
+Mapped {api/planning/districts/{districtId:int}/cutover, Post}
+Mapped {api/planning/invites/accept, Post}
 Mapped {api/clubs/{clubId}/potential-members, Get}
 Mapped {api/clubs/{clubId}/potential-members/{id}, Get}
 Mapped {api/clubs/{clubId}/potential-members, Post}
@@ -1263,6 +1278,8 @@ Mapped {api/tenants, Get}
 Mapped {api/tenants/{districtId:int}, Get}
 Mapped {api/tenants/{districtId:int}, Put}
 Mapped {api/tenants/{districtId:int}/apply-edition, Post}
+Mapped {api/tenants/{districtId:int}/trial, Post}
+Mapped {api/tenants/{districtId:int}/convert-trial, Post}
 Mapped {api/tenants/{districtId:int}/state, Get}
 Mapped {api/themes, Get}
 Mapped {api/themes, Post}

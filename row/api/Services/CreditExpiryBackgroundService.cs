@@ -92,10 +92,10 @@ public class CreditExpiryBackgroundService : BackgroundService
 
                 if (adminInfo != null && !string.IsNullOrWhiteSpace((string?)adminInfo.EmailId))
                 {
-                    var subject = $"⚠️ {creditType} Credits Expiring Soon - {clubName}";
+                    var subject = $"{creditType} Credits Expiring Soon - {clubName}";
                     var body = $@"
                         {EmailService.EMAIL_HEADER}
-                            <h2 style='color: #d69e2e; margin-top: 0;'>⚠️ {creditType} Credits Expiring Soon</h2>
+                            <h2 style='color: #d69e2e; margin-top: 0;'>{creditType} Credits Expiring Soon</h2>
                             <p>Dear {(string)adminInfo.MemberName},</p>
                             <p>Your <strong>{creditType}</strong> credits for <strong>{clubName}</strong> are expiring soon.</p>
                             <div style='background-color: #fffff0; border: 1px solid #f6e05e; border-radius: 8px; padding: 16px; margin: 16px 0;'>
@@ -118,7 +118,7 @@ public class CreditExpiryBackgroundService : BackgroundService
                         new { ClubId = clubId, CreditType = creditType, CreditId = (int)credit.pk_credit_id, CreditIdStr = credit.pk_credit_id.ToString(), Remaining = remaining });
 
                     _logger.LogInformation("Sent {CreditType} expiry warning to {Email} for club {Club} ({DaysLeft} days left)",
-                        creditType, (string)adminInfo.EmailId, clubName, daysLeft);
+                        creditType, LogMask.Email((string)adminInfo.EmailId), clubName, daysLeft);
                 }
             }
             catch (Exception ex)

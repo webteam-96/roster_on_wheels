@@ -29,26 +29,27 @@ public class InvitePromptService
 
     private MySqlConnection Open() => new(_connectionString);
 
-    // shortcut: server-local dates (DateTime.Today / CURDATE()), like the other reminder jobs; switch to the club's
-    // club_master.Timezone when the time-zone module lands.
+    // Dates are the club's local dates (its district's time zone, N12).
     public async Task<List<InvitePromptDto>> ListAsync(int clubId)
     {
         await using var conn = Open();
+        var today = ZoneTime.Local(await ZoneTime.OfClubAsync(conn, clubId)).Date;
         return (await conn.QueryAsync<InvitePromptDto>(@"
             SELECT pk_invite_prompt_id AS Id, meeting_date AS MeetingDate, send_on AS SendOn, note AS Note, status AS Status,
                    sent_count AS SentCount, sent_date AS SentDate
-            FROM invite_prompts WHERE fk_club_id = @C AND (meeting_date >= CURDATE() - INTERVAL 60 DAY)
-            ORDER BY meeting_date DESC, pk_invite_prompt_id DESC LIMIT 50", new { C = clubId })).ToList();
+            FROM invite_prompts WHERE fk_club_id = @C AND (meeting_date >= @Today - INTERVAL 60 DAY)
+            ORDER BY meeting_date DESC, pk_invite_prompt_id DESC LIMIT 50", new { C = clubId, Today = today })).ToList();
     }
 
     public async Task<int> CreateAsync(int clubId, CreateInvitePromptDto dto, int by)
     {
-        var meeting = dto.MeetingDate.Date;
-        if (meeting < DateTime.Today) throw new ArgumentException("The meeting date has passed.");
-        if (meeting > DateTime.Today.AddYears(1)) throw new ArgumentException("Pick a meeting within the next year.");
         if (dto.DaysBefore is < 0 or > 14) throw new ArgumentException("Send the prompt 0 to 14 days before the meeting.");
-        var sendOn = meeting.AddDays(-dto.DaysBefore) < DateTime.Today ? DateTime.Today : meeting.AddDays(-dto.DaysBefore);
+        var meeting = dto.MeetingDate.Date;
         await using var conn = Open();
+        var today = ZoneTime.Local(await ZoneTime.OfClubAsync(conn, clubId)).Date;
+        if (meeting < today) throw new ArgumentException("The meeting date has passed.");
+        if (meeting > today.AddYears(1)) throw new ArgumentException("Pick a meeting within the next year.");
+        var sendOn = meeting.AddDays(-dto.DaysBefore) < today ? today : meeting.AddDays(-dto.DaysBefore);
         return await conn.ExecuteScalarAsync<int>(@"
             INSERT INTO invite_prompts (fk_club_id, meeting_date, send_on, note, created_by) VALUES (@C, @M, @S, @N, @By);
             SELECT LAST_INSERT_ID();",
@@ -74,13 +75,18 @@ public class InvitePromptService
             new { Id = id, C = clubId }) > 0;
     }
 
-    /// <summary>Background job: claims and sends every prompt whose send date has come.</summary>
+    /// <summary>Background job: claims and sends every prompt whose send date has come in its club's time zone.</summary>
     public async Task SendDueAsync(CancellationToken ct)
     {
-        List<(int Id, int ClubId)> due;
+        var due = new List<(int Id, int ClubId)>();
         await using (var conn = Open())
-            due = (await conn.QueryAsync<(int, int)>(
-                "SELECT pk_invite_prompt_id, fk_club_id FROM invite_prompts WHERE status = 'scheduled' AND send_on <= CURDATE() AND meeting_date >= CURDATE()")).ToList();
+            foreach (var (tz, zone) in await ZoneTime.ZonesAsync(conn))
+                due.AddRange(await conn.QueryAsync<(int, int)>($@"
+                    SELECT ip.pk_invite_prompt_id, ip.fk_club_id FROM invite_prompts ip
+                    JOIN club_master c ON c.pk_club_id = ip.fk_club_id
+                    LEFT JOIN district_master d ON d.pk_district_id = c.fk_district_id
+                    WHERE ip.status = 'scheduled' AND ip.send_on <= @Today AND ip.meeting_date >= @Today AND {ZoneTime.Filter("d")}",
+                    new { Today = ZoneTime.Local(zone).Date, Tz = tz }));
         foreach (var (id, clubId) in due)
         {
             if (ct.IsCancellationRequested) return;
@@ -167,9 +173,7 @@ public class InvitePromptService
         var row = await conn.QueryFirstOrDefaultAsync<InviteRow>(@"
             SELECT l.fk_club_id AS ClubId, l.fk_member_id AS MemberId, c.ClubName, m.MemberName AS InviterName, c.MeetingDay,
                    TIME_FORMAT(c.MeetingFromTime, '%H:%i') AS MeetingFromTime, TIME_FORMAT(c.MeetingToTime, '%H:%i') AS MeetingToTime,
-                   c.MeetingAddress,
-                   (SELECT MIN(ip.meeting_date) FROM invite_prompts ip
-                     WHERE ip.fk_club_id = l.fk_club_id AND ip.meeting_date >= CURDATE() AND ip.status <> 'cancelled') AS MeetingDate
+                   c.MeetingAddress
             FROM member_invite_links l
             JOIN club_master c ON c.pk_club_id = l.fk_club_id AND c.isdeleted = 0 AND c.IsActive = 1
             JOIN member_master_profile m ON m.pk_member_master_profile_id = l.fk_member_id AND m.isdeleted = 0
@@ -177,6 +181,10 @@ public class InvitePromptService
                  AND cm.IsActive = 1 AND cm.isdeleted = 0
             WHERE l.token = @T LIMIT 1", new { T = token.ToLowerInvariant() });
         if (row == null) return null;
+        // The club's next prompted meeting, from its local date.
+        row.MeetingDate = await conn.ExecuteScalarAsync<DateTime?>(
+            "SELECT MIN(meeting_date) FROM invite_prompts WHERE fk_club_id = @C AND meeting_date >= @Today AND status <> 'cancelled'",
+            new { C = row.ClubId, Today = ZoneTime.Local(await ZoneTime.OfClubAsync(conn, row.ClubId)).Date });
         return (row.ClubId, row.MemberId, new PublicInviteDto
         {
             ClubName = row.ClubName, InviterName = row.InviterName, MeetingDate = row.MeetingDate, MeetingDay = row.MeetingDay,

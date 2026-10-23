@@ -86,9 +86,12 @@ public class TenantsController : ControllerBase
                ts.member_band AS MemberBand, ts.term_start AS TermStart, ts.term_end AS TermEnd, ts.state AS State,
                ts.region AS Region, ts.bridge_start AS BridgeStart, ts.bridge_end AS BridgeEnd,
                ts.setup_fee_waived AS SetupFeeWaived, ts.platform_fee_pct AS PlatformFeePct,
-               ts.platform_fee_fixed AS PlatformFeeFixed, ts.fee_waiver_until AS FeeWaiverUntil
+               ts.platform_fee_fixed AS PlatformFeeFixed, ts.fee_waiver_until AS FeeWaiverUntil,
+               ts.trial_ends AS TrialEnds, py.YearLabel AS PlanningYearLabel, ts.cutover_at AS CutoverAt,
+               ts.cutover_done_at AS CutoverDoneAt
         FROM tenant_subscriptions ts
         LEFT JOIN district_master d ON d.pk_district_id = ts.fk_district_id
+        LEFT JOIN rotary_year_master py ON py.pk_year_id = ts.planning_year_id
         WHERE ts.fk_club_id = 0";
 
     [HttpGet("tenants")]
@@ -208,6 +211,39 @@ public class TenantsController : ControllerBase
         await _auditLog.LogAsync(by, "APPLY", "tenant_subscription", districtId, edition,
             new { districtOn, districtOff, clubOn, clubOff }, HttpContext);
         return Ok(new { districtId, edition, districtOn, districtOff, clubOn, clubOff });
+    }
+
+    /// <summary>Starts a 60-day trial (N7, flag planning_mode). A trial tenant is an ordinary tenant with an end
+    /// date, so converting it later keeps every record.</summary>
+    // shortcut: an expired trial only shows in Settings > Tenants (no lock-out), decide the expiry rule with payments.
+    [HttpPost("tenants/{districtId:int}/trial")]
+    public async Task<IActionResult> StartTrial(int districtId)
+    {
+        if (!IsSuperAdmin()) return Forbidden();
+        await using var conn = new MySqlConnection(_connectionString);
+        var n = await conn.ExecuteAsync(@"
+            UPDATE tenant_subscriptions SET trial_ends = CURDATE() + INTERVAL 60 DAY, modified_by = @by
+            WHERE fk_district_id = @districtId AND fk_club_id = 0", new { districtId, by = GetCurrentMemberId() });
+        if (n == 0) return NotFound(new { message = "This district has no subscription yet." });
+        var trialEnds = await conn.ExecuteScalarAsync<DateTime>(
+            "SELECT trial_ends FROM tenant_subscriptions WHERE fk_district_id = @districtId AND fk_club_id = 0", new { districtId });
+        await _auditLog.LogAsync(GetCurrentMemberId(), "TRIAL", "tenant_subscription", districtId, null, new { trialEnds }, HttpContext);
+        return Ok(new { districtId, trialEnds });
+    }
+
+    /// <summary>Converts a trial to paid: clears the end date and touches nothing else. The payment itself is
+    /// taken outside ROW until payments are built (a SuperAdmin records the conversion here).</summary>
+    [HttpPost("tenants/{districtId:int}/convert-trial")]
+    public async Task<IActionResult> ConvertTrial(int districtId)
+    {
+        if (!IsSuperAdmin()) return Forbidden();
+        await using var conn = new MySqlConnection(_connectionString);
+        var n = await conn.ExecuteAsync(@"
+            UPDATE tenant_subscriptions SET trial_ends = NULL, modified_by = @by
+            WHERE fk_district_id = @districtId AND fk_club_id = 0 AND trial_ends IS NOT NULL", new { districtId, by = GetCurrentMemberId() });
+        if (n == 0) return Conflict(new { message = "This district is not on a trial." });
+        await _auditLog.LogAsync(GetCurrentMemberId(), "CONVERT", "tenant_subscription", districtId, null, new { converted = true }, HttpContext);
+        return Ok(new { districtId, trialEnds = (DateTime?)null });
     }
 
     /// <summary>Planning state of a district (any signed-in user). No subscription means live.</summary>

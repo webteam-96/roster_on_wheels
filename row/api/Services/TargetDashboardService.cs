@@ -49,6 +49,19 @@ public class TargetDashboardService
         return await BuildAsync(conn, districtId, clubIds, y, whole);
     }
 
+    /// <summary>Every active club of the district for the current Rotary year, read by the daily escalation and
+    /// celebration passes (no viewer, so no access check). Null when no year is current.</summary>
+    internal async Task<TargetDashboardDto?> GetDistrictForJobAsync(int districtId)
+    {
+        await using var conn = new MySqlConnection(_connectionString);
+        await conn.OpenAsync();
+        if (await GrowthService.YearAsync(conn, null) is not { } y) return null;
+        var clubIds = (await conn.QueryAsync<int>(
+            "SELECT pk_club_id FROM club_master WHERE fk_district_id = @D AND isdeleted = 0 AND IsActive = 1",
+            new { D = districtId })).ToList();
+        return await BuildAsync(conn, districtId, clubIds, y, true);
+    }
+
     /// <summary>One club, for its admins, its Assistant Governor and the district's managers. Null when the club or the
     /// year does not exist.</summary>
     public async Task<TargetDashboardDto?> GetClubAsync(int clubId, int memberId, int? yearId)
@@ -67,7 +80,7 @@ public class TargetDashboardService
 
     private async Task<TargetDashboardDto> BuildAsync(MySqlConnection conn, int districtId, List<int> clubIds, GrowthService.YearRow y, bool whole)
     {
-        var elapsed = Elapsed(y.Start, y.End, DateTime.Today);
+        var elapsed = Elapsed(y.Start, y.End, ZoneTime.Local(await ZoneTime.OfDistrictAsync(conn, districtId)).Date);
         var dto = new TargetDashboardDto
         {
             DistrictId = districtId, YearId = y.Id, YearLabel = y.Label, WholeDistrict = whole,
@@ -213,8 +226,8 @@ public class TargetDashboardService
         return progress >= elapsed ? "green" : progress >= 0.75 * elapsed ? "amber" : "red";
     }
 
-    // shortcut: a straight line through the year by the server's date; use the month-wise target split
-    // (GoalTargetSplitPilot) and the district's time zone once those apply to every district.
+    // shortcut: a straight line through the year by the district's local date; use the month-wise target split
+    // (GoalTargetSplitPilot) once it applies to every district.
     /// <summary>Share of the Rotary year passed, today included: 0 before it starts, 1 after it ends.</summary>
     internal static double Elapsed(DateTime start, DateTime end, DateTime today)
         => Math.Clamp(((today.Date - start.Date).TotalDays + 1) / ((end.Date - start.Date).TotalDays + 1), 0, 1);

@@ -8,7 +8,8 @@ namespace RotaryApi.DTOs;
 public class MobileNotificationDto
 {
     /// <summary>greeting | project | announcement | event | newsletter | document | highlight | grant | volunteer |
-    /// meeting_duty | invite | meeting (reminder; LinkUrl = join link)</summary>
+    /// meeting_duty | invite | meeting (reminder; LinkUrl = join link) | escalation (alert to a club officer) |
+    /// celebration (a club reached a target)</summary>
     public string Type { get; set; } = "";
 
     /// <summary>Entity primary key (for greeting rows: the celebrating member's id).</summary>

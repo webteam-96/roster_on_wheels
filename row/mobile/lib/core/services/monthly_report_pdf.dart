@@ -97,9 +97,9 @@ class MonthlyReportPdfService {
   Future<List<int>> _buildPdf(Map<String, dynamic> r) async {
     final pdf = pw.Document();
 
-    const headerFill = PdfColor.fromInt(0xff2980b9);
+    const headerFill = PdfColor.fromInt(0xff17458f); // ROW azure (row/website/design.md)
     final cellBorder = pw.TableBorder.all(
-      color: const PdfColor.fromInt(0xffcccccc),
+      color: const PdfColor.fromInt(0xffd5dee8), // ROW stone
       width: 0.5,
     );
 

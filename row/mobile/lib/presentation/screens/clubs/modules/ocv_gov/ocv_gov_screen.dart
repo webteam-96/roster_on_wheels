@@ -11,6 +11,7 @@ import '../../../../../core/network/api_exceptions.dart';
 import '../../../../../core/theme/app_colors.dart';
 import '../../../../../core/theme/app_text_styles.dart';
 import '../../../../../core/utils/file_download_utils.dart';
+import '../../../../../core/utils/money_format.dart';
 import '../../../../providers/auth_provider.dart';
 import '../../../../widgets/common/custom_app_bar.dart';
 import '../../../../widgets/common/custom_text_field.dart';
@@ -42,7 +43,7 @@ String _fmtDate(String? iso) {
 
 String _fmtAmount(num? amt) {
   if (amt == null) return '-';
-  return 'Rs. ${amt.toStringAsFixed(2)}';
+  return formatMoney(amt, null);
 }
 
 String _fmtFileSize(int? bytes) {

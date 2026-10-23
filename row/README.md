@@ -55,8 +55,11 @@ The `admin/` and `club-website/` keep this folder's `web.config` files for IIS h
   and notifications go by email and in-app push (`Services/OtpChannelPolicy.cs`). Codes are not written to the log;
   `MobileOtp:ReturnDebugOtp` is off.
 - **Time**: on a UTC server, timestamps go out with "Z" (`time.emitOffset`, `Services/UtcDateTimeConverter.cs`);
-  midnight values stay date-only. Schedules (daily statistics, district performance report, club cache refresh),
-  training slots and Zoom meetings use the brand's time zone (`Brand.TimeZone`); new clubs get it too.
+  midnight values stay date-only. Each district has an IANA time zone (`district_master.Timezone`, empty = the
+  brand's; `Services/ZoneTime.cs`): greetings, the district performance report, engagement milestones, invite
+  prompts, volunteer and meeting reminders and the target dashboard use the district's local day and hour. Platform
+  schedules (daily statistics, club cache refresh), training slots and Zoom meetings use the brand's time zone
+  (`Brand.TimeZone`); new clubs get it too.
 - **Money**: amounts in emails, approvals and the Word / PDF reports through `Brand.Money` (brand currency and
   number locale); projects and districts without a currency use the brand's (`Brand.SqlCurrency`).
 - **Members**: a country id of 0 is stored as no country (the original RIZones code defaulted to India).

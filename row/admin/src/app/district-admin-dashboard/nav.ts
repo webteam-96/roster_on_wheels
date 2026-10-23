@@ -25,6 +25,8 @@ export const DISTRICT_ADMIN_NAV: NavItem[] = [
   { to: "/district-admin-dashboard/grants",        label: "Grants" },
   // Live target against actual per club. Hidden while the target_dashboard feature is off.
   { to: "/district-admin-dashboard/targets",       label: "Targets" },
+  // Alerts from club president to AG to DG, rules and log. Hidden while the escalation feature is off.
+  { to: "/district-admin-dashboard/escalation",    label: "Escalation Alerts" },
   // Website Data → 6 tab pages (banners / advertisements / social media /
   // contact / menu list / about). No moduleKey — website data is core, always
   // visible for district admins.
@@ -61,6 +63,7 @@ export const DISTRICT_ADMIN_PAGE_TITLES: Record<string, string> = {
   "/district-admin-dashboard/goal-setting/clubs": "Club Goals",
   "/district-admin-dashboard/grants":        "Grants",
   "/district-admin-dashboard/targets":       "Targets",
+  "/district-admin-dashboard/escalation":    "Escalation Alerts",
   "/district-admin-dashboard/meeting-compliance": "Meeting Compliance",
   "/district-admin-dashboard/my-district-website": "My District Website",
   "/district-admin-dashboard/quick-links":   "Quick Links",

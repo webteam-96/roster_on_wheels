@@ -65,6 +65,7 @@ public class CommsController : ControllerBase
         await AuditAsync("UPDATE", "comm_settings", id, scope, new
         {
             dto.DefaultLanguage, dto.GovernorNoteEnabled, dto.GovernorName, dto.SenderFromName, dto.SenderFromEmail, dto.SenderReplyTo,
+            dto.FoundationGivingUrl,
         });
         return Ok(await _comms.GetSettingsAsync(TenantOf(scope, id)));
     }

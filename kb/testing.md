@@ -20,6 +20,18 @@ The dated results below are kept as history and still mention the NestJS edition
 
 ## Results
 
+### 2026-10-23 evening (security + read review, time zones, planning mode, escalation, rebranding; on 0a1e4b8)
+
+- Builds: API + 3 workers 0 errors; admin `tsc` 0, `vitest` 22 files / 120 tests, `check-design.mjs` 0; app
+  `flutter analyze` 0 errors (448 pre-existing infos/warnings), `flutter test` all passed.
+- e2e on `row_prod_copy` (API :5000, Brevo/SMTP to closed or fake local ports): 30 scripts, 1,250 checks, 0 failures
+  (new: calendar_scope 13, mass_email_scope 60, read_review_a_l 85, read_review_m_z 103, time_zones 24,
+  planning_mode 100, escalation_celebration 79, rebranding 19, security_guards 12; the 9 older scripts now on args).
+- Admin crawl as SuperAdmin (`kb/tools/admin_crawl.py`, dev server :3300): 319 pages; 6 flagged were dev-server
+  compile noise and were clean on re-probe.
+- App on the emulator (afc_tablet, `flutter run --dart-define=API_BASE_URL=http://10.0.2.2:5000`): sign-in, home,
+  calendar list, club calendar, notifications: ROW branding, no exceptions in the log.
+
 ### 2026-10-23 (skipped modules removed, 10 new spec modules, uncommitted on top of 31115e2)
 
 - `dotnet build`: API and the 3 workers, 0 errors. Admin `tsc --noEmit` 0 errors, `vitest run` 18 files / 103 tests

@@ -16,7 +16,13 @@ namespace RotaryApi.Controllers;
 public class MobileDistrictCmrEmailSettingsController : ControllerBase
 {
     private readonly IDistrictCmrEmailSettingsService _service;
-    public MobileDistrictCmrEmailSettingsController(IDistrictCmrEmailSettingsService service) => _service = service;
+    private readonly string _connectionString;
+
+    public MobileDistrictCmrEmailSettingsController(IDistrictCmrEmailSettingsService service, IConfiguration configuration)
+    {
+        _service = service;
+        _connectionString = configuration.GetConnectionString("DefaultConnection")!;
+    }
 
     private int GetUserId() => int.TryParse(User.FindFirst("memberId")?.Value, out var id) ? id : 0;
 
@@ -37,6 +43,9 @@ public class MobileDistrictCmrEmailSettingsController : ControllerBase
     {
         if (!IsDistrictAdmin()) return Forbid();
         if (districtId <= 0 || yearId <= 0) return BadRequest(new { message = "districtId and yearId are required." });
+        // the district's own admins (SuperAdmin always): the CC list holds people's email addresses. Was: any Admin.
+        if (!await ScopeWriteGuardMiddleware.AllowedAsync(_connectionString, GetUserId(), false, districtId))
+            return StatusCode(403, new { message = "You do not manage this district." });
         return Ok(await _service.GetAsync(districtId, yearId));
     }
 

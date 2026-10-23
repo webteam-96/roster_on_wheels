@@ -6,7 +6,7 @@ using RotaryApi.Services;
 namespace RotaryApi.Controllers;
 
 [ApiController]
-[Authorize] // RIZones left this anonymous: anyone could list members, swap push tokens and upload files
+[Authorize] // The original platform left this anonymous: anyone could list members, swap push tokens and upload files
 [Route("api/[controller]")]
 public class MembersController : ControllerBase
 {
@@ -41,7 +41,7 @@ public class MembersController : ControllerBase
 
     private int GetCurrentMemberId() => int.TryParse(User.FindFirst("memberId")?.Value, out var id) ? id : 0;
 
-    // Mobile app only: the Flutter client prepends the country code to the number ("+91 7700900123")
+    // Mobile app only: the Flutter client prepends the country code to the number ("+44 7700900123")
     // even though the code already travels as FkPrimary/SecondaryCountryId. Strip it using each
     // country's PhoneCode so the column keeps only the local number. Web saves are not touched.
     private async Task<(string? Primary, string? Secondary)> StripMobileCountryCodesAsync(
@@ -109,9 +109,27 @@ public class MembersController : ControllerBase
         return Ok(result);
     }
 
+    // Self, SuperAdmin, or anyone who may read one of the member's clubs (its members, its managers, its district's
+    // managers). Was: any signed-in user could read any member's profile (birth date, addresses, family).
+    private async Task<bool> CanReadMemberAsync(int id)
+    {
+        var me = GetCurrentMemberId();
+        if (me <= 0) return false;
+        if (me == id || UserPermissionHelper.IsSuperAdmin(User)) return true;
+        await using var conn = new MySqlConnector.MySqlConnection(_connectionString);
+        var clubIds = await Dapper.SqlMapper.QueryAsync<int>(conn,
+            "SELECT DISTINCT fk_club_id FROM club_members WHERE fk_member_master_profile_id = @Id AND IFNULL(isdeleted, 0) = 0",
+            new { Id = id });
+        foreach (var clubId in clubIds)
+            if (await ScopeWriteGuardMiddleware.ReadAllowedAsync(_connectionString, me, true, clubId)) return true;
+        return false;
+    }
+
     [HttpGet("{id}")]
     public async Task<ActionResult<MemberDetailDto>> GetById(int id, [FromQuery] int? clubId = null)
     {
+        if (!await CanReadMemberAsync(id))
+            return StatusCode(403, new { message = "You do not have access to this member." });
         var member = await _memberService.GetByIdAsync(id, clubId);
         if (member == null)
             return NotFound(new { message = "Member not found" });
@@ -127,6 +145,9 @@ public class MembersController : ControllerBase
     [HttpGet("{id}/device-token")]
     public async Task<ActionResult> GetDeviceToken(int id)
     {
+        // the app reads only its own token; SuperAdmin for support
+        if (id != GetCurrentMemberId() && !UserPermissionHelper.IsSuperAdmin(User))
+            return StatusCode(403, new { message = "You do not have access to this member." });
         await using var conn = new MySqlConnector.MySqlConnection(_connectionString);
         await conn.OpenAsync();
 
@@ -149,6 +170,9 @@ public class MembersController : ControllerBase
     [HttpPost("{id}/device-token")]
     public async Task<ActionResult> SetDeviceToken(int id, [FromBody] DeviceTokenRequest? request)
     {
+        // a member registers only their own device; SuperAdmin for support (else anyone could take over another member's pushes)
+        if (id != GetCurrentMemberId() && !UserPermissionHelper.IsSuperAdmin(User))
+            return StatusCode(403, new { message = "You do not have access to this member." });
         await using var conn = new MySqlConnector.MySqlConnection(_connectionString);
         await conn.OpenAsync();
 
@@ -229,7 +253,7 @@ public class MembersController : ControllerBase
                 return StatusCode(403, new { message = "You can only edit members of a club you manage." });
         }
 
-        // Before the duplicate check + change detection below, so "+91 7700…" is compared as "7700…".
+        // Before the duplicate check + change detection below, so "+44 7700…" is compared as "7700…".
         (dto.PrimaryMobileNumber, dto.SecondaryMobileNumber) = await StripMobileCountryCodesAsync(
             dto.PrimaryMobileNumber, dto.FkPrimaryCountryId, dto.SecondaryMobileNumber, dto.FkSecondaryCountryId);
 

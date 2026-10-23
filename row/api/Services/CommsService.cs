@@ -59,7 +59,7 @@ public class CommsService
         var dto = await conn.QueryFirstOrDefaultAsync<CommSettingsDto>(@"
             SELECT default_language AS DefaultLanguage, governor_note_enabled AS GovernorNoteEnabled, governor_name AS GovernorName,
                    governor_photo_url AS GovernorPhotoUrl, governor_message AS GovernorMessage, sender_from_name AS SenderFromName,
-                   sender_from_email AS SenderFromEmail, sender_reply_to AS SenderReplyTo
+                   sender_from_email AS SenderFromEmail, sender_reply_to AS SenderReplyTo, foundation_giving_url AS FoundationGivingUrl
             FROM comm_settings WHERE fk_club_id = @ClubId AND fk_district_id = @DistrictId", new { t.ClubId, t.DistrictId }) ?? new();
         dto.EffectiveLanguage = await CommsTemplates.DefaultLanguageAsync(conn, t.ClubId, t.DistrictId);
         return dto;
@@ -71,11 +71,14 @@ public class CommsService
         var lang = Blank(dto.DefaultLanguage);
         if (lang != null && !CommsTemplates.LanguageCode.IsMatch(lang)) return "Language must be a code such as \"en\" or \"pt-BR\".";
 
-        // The Governor note belongs to the district; a club row never holds one.
-        string? gName = null, gPhoto = null, gMessage = null;
+        // The Governor note and the Foundation giving link belong to the district; a club row never holds them.
+        string? gName = null, gPhoto = null, gMessage = null, foundation = null;
         var gOn = false;
         if (!t.IsClub)
         {
+            foundation = Blank(dto.FoundationGivingUrl);
+            if (foundation != null && !IsGivingUrl(foundation))
+                return "The Foundation giving link must be a full https:// address of at most 500 characters.";
             gName = Blank(dto.GovernorName);
             gPhoto = Blank(dto.GovernorPhotoUrl);
             gMessage = Blank(dto.GovernorMessage)?.Replace("\r\n", "\n");
@@ -112,13 +115,13 @@ public class CommsService
 
         await conn.ExecuteAsync(@"
             INSERT INTO comm_settings (fk_club_id, fk_district_id, default_language, governor_note_enabled, governor_name, governor_photo_url,
-                                       governor_message, sender_from_name, sender_from_email, sender_reply_to, modified_by)
-            VALUES (@ClubId, @DistrictId, @lang, @gOn, @gName, @gPhoto, @gMessage, @fromName, @fromEmail, @replyTo, @by)
+                                       governor_message, sender_from_name, sender_from_email, sender_reply_to, foundation_giving_url, modified_by)
+            VALUES (@ClubId, @DistrictId, @lang, @gOn, @gName, @gPhoto, @gMessage, @fromName, @fromEmail, @replyTo, @foundation, @by)
             ON DUPLICATE KEY UPDATE default_language = VALUES(default_language), governor_note_enabled = VALUES(governor_note_enabled),
                 governor_name = VALUES(governor_name), governor_photo_url = VALUES(governor_photo_url), governor_message = VALUES(governor_message),
                 sender_from_name = VALUES(sender_from_name), sender_from_email = VALUES(sender_from_email),
-                sender_reply_to = VALUES(sender_reply_to), modified_by = VALUES(modified_by)",
-            new { t.ClubId, t.DistrictId, lang, gOn, gName, gPhoto, gMessage, fromName, fromEmail, replyTo, by });
+                sender_reply_to = VALUES(sender_reply_to), foundation_giving_url = VALUES(foundation_giving_url), modified_by = VALUES(modified_by)",
+            new { t.ClubId, t.DistrictId, lang, gOn, gName, gPhoto, gMessage, fromName, fromEmail, replyTo, foundation, by });
         return null;
     }
 
@@ -132,6 +135,13 @@ public class CommsService
         var api = Blank(_config["Api:BaseUrl"]) ?? Brand.ApiOrigin;
         return api.Length == 0 || (Uri.TryCreate(api, UriKind.Absolute, out var a) && string.Equals(a.Host, u.Host, StringComparison.OrdinalIgnoreCase));
     }
+
+    // Goes into greeting and milestone emails as a link: an absolute https address without credentials or characters
+    // that could break out of an HTML attribute.
+    private static bool IsGivingUrl(string url)
+        => url.Length <= 500 && !url.Any(c => char.IsWhiteSpace(c) || char.IsControl(c) || "\"'<>\\".Contains(c))
+           && Uri.TryCreate(url, UriKind.Absolute, out var u) && u.Scheme == Uri.UriSchemeHttps && u.UserInfo.Length == 0
+           && u.Host.Contains('.');
 
     private static bool IsEmail(string s)
         => s.Length <= 254 && s.IndexOfAny(new[] { ' ', '\r', '\n', '<', '>', '"', ',' }) < 0

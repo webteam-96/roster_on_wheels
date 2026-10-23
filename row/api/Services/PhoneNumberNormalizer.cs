@@ -6,7 +6,7 @@ namespace RotaryApi.Services;
 /// Removes a leading country code from a mobile number. The country code is stored separately
 /// (fk_primary_country_id / fk_secondary_country_id → country_master.PhoneCode), so the number
 /// column must hold only the local part. The Flutter app prepends the code before saving
-/// ("+91 7700900123"); callers on the mobile write path run the DTO through this first.
+/// ("+44 7700900123"); callers on the mobile write path run the DTO through this first.
 /// </summary>
 public static class PhoneNumberNormalizer
 {
@@ -36,14 +36,14 @@ public static class PhoneNumberNormalizer
         var codeDigits = new string((phoneCode ?? "").Where(char.IsDigit).ToArray());
         var afterPlus = n[1..].TrimStart();
 
-        // 1) Known country code — handles both "+91 7700…" and "+917700…".
+        // 1) Known country code — handles both "+44 7700…" and "+447700…".
         if (codeDigits.Length > 0 && afterPlus.StartsWith(codeDigits, StringComparison.Ordinal))
         {
             var rest = afterPlus[codeDigits.Length..].TrimStart(' ', '-', '.');
             if (rest.Any(char.IsDigit)) return rest.Trim();
         }
 
-        // 2) Code for another country but clearly separated — "+44 7700900123" while the country says India.
+        // 2) Code for another country but clearly separated — "+44 7700900123" while the country says Canada.
         var m = SeparatedCode.Match(n);
         if (m.Success)
         {

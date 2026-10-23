@@ -7,7 +7,7 @@ using RotaryApi.Services;
 
 namespace RotaryApi.Controllers;
 
-// Web admin surface for Club Dues (District Dues). SuperAdmin / Admin CRUD, plus:
+// Web admin surface for Club Dues (District Dues). SuperAdmin CRUD, plus:
 //   • officer/*  — Club President/Secretary/Treasurer pay their own club (BOD-gated)
 //   • {id}/content, my-district — District Admin edits branding + email copy only
 // Separate from MembershipDuesController — never touches membership dues.
@@ -31,18 +31,18 @@ public class ClubDuesController : ControllerBase
 
     private int GetUserId() => int.Parse(User.FindFirst("memberId")?.Value ?? "0");
 
-    private bool IsSuperAdminOrAdmin()
-    {
-        var roles = User.FindFirst("roles")?.Value ?? "";
-        return roles.Contains("SuperAdmin") || roles.Contains("Admin");
-    }
+    // Was "SuperAdmin or Admin": in ROW every club admin holds Admin, so any of them could read and change every
+    // district's campaigns. District admins keep their own district through the IsDistrictAdmin* checks below.
+    private bool IsSuperAdmin() => UserPermissionHelper.IsSuperAdmin(User);
 
     private ObjectResult Denied() => StatusCode(403, new { message = "Access denied." });
 
     // A member may pay for a club only if they are its President / Secretary /
-    // Treasurer in the CURRENT rotary year (matched by designation NAME).
-    // Same rule as MobileClubDuesController.CanPayForClubAsync.
-    private async Task<bool> CanPayForClubAsync(int memberId, int clubId)
+    // Treasurer in the CURRENT rotary year (matched by designation NAME), and only
+    // for a campaign of the club's own district (else any officer could open another
+    // district's campaign, its bank details and pay link).
+    // Same rule as MobileClubDuesController.CanPayForClubAsync, plus the district match.
+    private async Task<bool> CanPayForClubAsync(int memberId, int clubId, int duesId)
     {
         if (memberId <= 0 || clubId <= 0) return false;
         await using var conn = new MySqlConnection(_connStr);
@@ -51,12 +51,14 @@ public class ClubDuesController : ControllerBase
             FROM board_of_directors bod
             JOIN designation_master dm ON dm.pk_designation_id = bod.fk_designation_id
             JOIN rotary_year_master y ON y.pk_year_id = bod.fk_year_id
+            JOIN club_master c ON c.pk_club_id = bod.fk_club_id
+            JOIN club_dues cd ON cd.pk_club_dues_id = @DuesId AND cd.fk_district_id = c.fk_district_id AND cd.isdeleted = 0
             WHERE bod.fk_club_id = @ClubId
               AND bod.fk_member_master_profile_id = @MemberId
               AND COALESCE(bod.isdeleted, 0) = 0
               AND y.IsCurrent = 1
               AND dm.designation_name IN ('Club President','Club Secretary','Club Treasurer')",
-            new { ClubId = clubId, MemberId = memberId });
+            new { ClubId = clubId, MemberId = memberId, DuesId = duesId });
         return count > 0;
     }
 
@@ -64,7 +66,7 @@ public class ClubDuesController : ControllerBase
 
     // True when this member is a District Admin (member_roles fk_role_id=2, no club) for the
     // district that owns the given campaign. Mirrors ClubAdminAccessHelper's district pattern,
-    // scoped to the campaign's district. SuperAdmin/Admin always passes via IsSuperAdminOrAdmin.
+    // scoped to the campaign's district. SuperAdmin always passes via IsSuperAdmin.
     private async Task<bool> IsDistrictAdminForDuesAsync(int memberId, int duesId)
     {
         if (memberId <= 0 || duesId <= 0) return false;
@@ -106,14 +108,14 @@ public class ClubDuesController : ControllerBase
     [HttpGet("")]
     public async Task<ActionResult> GetList([FromQuery] int? districtId, [FromQuery] string? search, [FromQuery] string? year)
     {
-        if (!IsSuperAdminOrAdmin()) return Denied();
+        if (!IsSuperAdmin()) return Denied();
         return Ok(await _service.GetListAsync(districtId, search, year));
     }
 
     [HttpGet("{id}")]
     public async Task<ActionResult> GetDetail(int id)
     {
-        if (!IsSuperAdminOrAdmin()) return Denied();
+        if (!IsSuperAdmin()) return Denied();
         var result = await _service.GetDetailAsync(id);
         if (result == null) return NotFound(new { message = "District dues not found." });
         return Ok(result);
@@ -122,7 +124,7 @@ public class ClubDuesController : ControllerBase
     [HttpPost("")]
     public async Task<ActionResult> Create([FromForm] CreateClubDuesDto dto, IFormFile? logo, IFormFile? bgImage, IFormFile? emailLogo)
     {
-        if (!IsSuperAdminOrAdmin()) return Denied();
+        if (!IsSuperAdmin()) return Denied();
         try
         {
             var id = await _service.CreateAsync(dto, logo, bgImage, emailLogo, GetUserId(), _env);
@@ -137,7 +139,7 @@ public class ClubDuesController : ControllerBase
     [HttpPut("{id}")]
     public async Task<ActionResult> Update(int id, [FromForm] CreateClubDuesDto dto, IFormFile? logo, IFormFile? bgImage, IFormFile? emailLogo)
     {
-        if (!IsSuperAdminOrAdmin()) return Denied();
+        if (!IsSuperAdmin()) return Denied();
         await _service.UpdateAsync(id, dto, logo, bgImage, emailLogo, GetUserId(), _env);
         return Ok(new { message = "Updated." });
     }
@@ -145,7 +147,7 @@ public class ClubDuesController : ControllerBase
     [HttpDelete("{id}")]
     public async Task<ActionResult> Delete(int id)
     {
-        if (!IsSuperAdminOrAdmin()) return Denied();
+        if (!IsSuperAdmin()) return Denied();
         await _service.DeleteAsync(id, GetUserId());
         return Ok(new { message = "Deleted." });
     }
@@ -153,7 +155,7 @@ public class ClubDuesController : ControllerBase
     [HttpPatch("{id}/toggle-active")]
     public async Task<ActionResult> ToggleActive(int id)
     {
-        if (!IsSuperAdminOrAdmin()) return Denied();
+        if (!IsSuperAdmin()) return Denied();
         await _service.ToggleActiveAsync(id, GetUserId());
         return Ok(new { message = "Toggled." });
     }
@@ -162,7 +164,7 @@ public class ClubDuesController : ControllerBase
     [HttpPost("{id}/sync")]
     public async Task<ActionResult> Sync(int id)
     {
-        if (!IsSuperAdminOrAdmin()) return Denied();
+        if (!IsSuperAdmin()) return Denied();
         await _service.SyncClubsAndMembersAsync(id, GetUserId());
         return Ok(new { message = "Synced." });
     }
@@ -170,33 +172,33 @@ public class ClubDuesController : ControllerBase
     [HttpGet("{id}/clubs")]
     public async Task<ActionResult> GetClubs(int id, [FromQuery] string? search, [FromQuery] bool includeNonSynced = true)
     {
-        // Read-only: SuperAdmin/Admin OR the campaign's district admin (to see paid/pending clubs).
-        if (!IsSuperAdminOrAdmin() && !await IsDistrictAdminForDuesAsync(GetUserId(), id)) return Denied();
+        // Read-only: SuperAdmin OR the campaign's district admin (to see paid/pending clubs).
+        if (!IsSuperAdmin() && !await IsDistrictAdminForDuesAsync(GetUserId(), id)) return Denied();
         return Ok(await _service.GetClubsAsync(id, search, includeNonSynced));
     }
 
     [HttpGet("{id}/clubs/{clubId}/members")]
     public async Task<ActionResult> GetClubMembers(int id, int clubId)
     {
-        if (!IsSuperAdminOrAdmin() && !await IsDistrictAdminForDuesAsync(GetUserId(), id)) return Denied();
+        if (!IsSuperAdmin() && !await IsDistrictAdminForDuesAsync(GetUserId(), id)) return Denied();
         return Ok(await _service.GetClubMembersAsync(id, clubId));
     }
 
     [HttpPut("{id}/clubs/{clubDuesClubId}/rate")]
     public async Task<ActionResult> UpdateRate(int id, int clubDuesClubId, [FromBody] UpdateClubDuesRateDto dto)
     {
-        if (!IsSuperAdminOrAdmin()) return Denied();
+        if (!IsSuperAdmin()) return Denied();
         await _service.UpdateClubRateAsync(id, clubDuesClubId, dto, GetUserId());
         return Ok(new { message = "Rate updated." });
     }
 
     // ── Offline + approval ─────────────────────────────────────────
-    // SuperAdmin/Admin OR the campaign's district admin may record an offline payment for a club
+    // SuperAdmin OR the campaign's district admin may record an offline payment for a club
     // (recorded as paid directly — the district is the authority on money it received offline).
     [HttpPost("{id}/offline-payment")]
     public async Task<ActionResult> RecordOffline(int id, [FromForm] RecordOfflineClubDuesPaymentDto dto, IFormFile? attachment)
     {
-        if (!IsSuperAdminOrAdmin() && !await IsDistrictAdminForDuesAsync(GetUserId(), id)) return Denied();
+        if (!IsSuperAdmin() && !await IsDistrictAdminForDuesAsync(GetUserId(), id)) return Denied();
         var paymentId = await _service.RecordOfflinePaymentAsync(id, dto, attachment, GetUserId(), _env);
         return Ok(new { paymentId });
     }
@@ -204,8 +206,8 @@ public class ClubDuesController : ControllerBase
     [HttpPost("payments/{paymentId}/approve-reject")]
     public async Task<ActionResult> ApproveReject(int paymentId, [FromBody] ApproveClubDuesPaymentDto dto)
     {
-        // SuperAdmin/Admin OR the district admin of the district that owns this payment's campaign.
-        if (!IsSuperAdminOrAdmin() && !await IsDistrictAdminForPaymentAsync(GetUserId(), paymentId)) return Denied();
+        // SuperAdmin OR the district admin of the district that owns this payment's campaign.
+        if (!IsSuperAdmin() && !await IsDistrictAdminForPaymentAsync(GetUserId(), paymentId)) return Denied();
         try
         {
             await _service.ApproveRejectPaymentAsync(paymentId, dto, GetUserId());
@@ -220,7 +222,7 @@ public class ClubDuesController : ControllerBase
     [HttpPost("payments/{paymentId}/receipt")]
     public async Task<ActionResult> SendReceipt(int paymentId)
     {
-        if (!IsSuperAdminOrAdmin()) return Denied();
+        if (!IsSuperAdmin()) return Denied();
         await _service.SendReceiptEmailAsync(paymentId);
         return Ok(new { message = "Receipt sent." });
     }
@@ -228,7 +230,7 @@ public class ClubDuesController : ControllerBase
     [HttpGet("payments/{paymentId}/offline-details")]
     public async Task<ActionResult> GetOfflineDetails(int paymentId)
     {
-        if (!IsSuperAdminOrAdmin() && !await IsDistrictAdminForPaymentAsync(GetUserId(), paymentId)) return Denied();
+        if (!IsSuperAdmin() && !await IsDistrictAdminForPaymentAsync(GetUserId(), paymentId)) return Denied();
         var d = await _service.GetOfflinePaymentDetailAsync(paymentId);
         if (d == null) return NotFound(new { message = "Offline payment not found." });
         return Ok(d);
@@ -237,7 +239,7 @@ public class ClubDuesController : ControllerBase
     [HttpPut("payments/{paymentId}/update-offline")]
     public async Task<ActionResult> UpdateOffline(int paymentId, [FromForm] RecordOfflineClubDuesPaymentDto dto, IFormFile? attachment)
     {
-        if (!IsSuperAdminOrAdmin() && !await IsDistrictAdminForPaymentAsync(GetUserId(), paymentId)) return Denied();
+        if (!IsSuperAdmin() && !await IsDistrictAdminForPaymentAsync(GetUserId(), paymentId)) return Denied();
         await _service.UpdateOfflinePaymentAsync(paymentId, dto, attachment, GetUserId(), _env);
         return Ok(new { message = "Offline payment updated." });
     }
@@ -246,21 +248,21 @@ public class ClubDuesController : ControllerBase
     [HttpGet("{id}/clubs/{clubId}/vendors")]
     public async Task<ActionResult> GetClubVendors(int id, int clubId)
     {
-        if (!IsSuperAdminOrAdmin()) return Denied();
+        if (!IsSuperAdmin()) return Denied();
         return Ok(await _service.GetClubVendorsAsync(id, clubId));
     }
 
     [HttpGet("{id}/all-club-vendors")]
     public async Task<ActionResult> GetAllClubVendors(int id)
     {
-        if (!IsSuperAdminOrAdmin()) return Denied();
+        if (!IsSuperAdmin()) return Denied();
         return Ok(await _service.GetAllClubVendorsAsync(id));
     }
 
     [HttpPut("{id}/clubs/{clubId}/vendors")]
     public async Task<ActionResult> SaveClubVendors(int id, int clubId, [FromBody] ClubVendorsSaveDto dto)
     {
-        if (!IsSuperAdminOrAdmin()) return Denied();
+        if (!IsSuperAdmin()) return Denied();
         await _service.SaveClubVendorsAsync(id, clubId, dto.VendorsJson, GetUserId(), dto.IsOnline);
         return Ok(new { message = "Split saved." });
     }
@@ -270,7 +272,7 @@ public class ClubDuesController : ControllerBase
     [HttpGet("{id}/clubs/{clubId}/offline-accounts")]
     public async Task<ActionResult> GetOfflineAccounts(int id, int clubId)
     {
-        if (!IsSuperAdminOrAdmin() && !await IsDistrictAdminForDuesAsync(GetUserId(), id)) return Denied();
+        if (!IsSuperAdmin() && !await IsDistrictAdminForDuesAsync(GetUserId(), id)) return Denied();
         return Ok(await _service.GetOfflineAccountOptionsAsync(id, clubId));
     }
 
@@ -279,16 +281,16 @@ public class ClubDuesController : ControllerBase
     [HttpGet("officer/{duesId}/offline-accounts")]
     public async Task<ActionResult> OfficerGetOfflineAccounts(int duesId, [FromQuery] int clubId)
     {
-        if (!await CanPayForClubAsync(GetUserId(), clubId)) return OfficerDenied();
+        if (!await CanPayForClubAsync(GetUserId(), clubId, duesId)) return OfficerDenied();
         return Ok(await _service.GetOfflineAccountOptionsAsync(duesId, clubId));
     }
 
     // ── Reminders ──────────────────────────────────────────────────
-    // Email reminders may be sent by SuperAdmin/Admin OR the campaign's district admin.
+    // Email reminders may be sent by SuperAdmin OR the campaign's district admin.
     [HttpPost("{id}/reminder")]
     public async Task<ActionResult> BulkReminder(int id, [FromBody] ClubDuesReminderDto dto)
     {
-        if (!IsSuperAdminOrAdmin() && !await IsDistrictAdminForDuesAsync(GetUserId(), id)) return Denied();
+        if (!IsSuperAdmin() && !await IsDistrictAdminForDuesAsync(GetUserId(), id)) return Denied();
         await _service.BulkSendReminderEmailAsync(id, dto.Remark);
         return Ok(new { message = "Reminders sent." });
     }
@@ -296,18 +298,18 @@ public class ClubDuesController : ControllerBase
     [HttpPost("{id}/clubs/{clubId}/reminder")]
     public async Task<ActionResult> ClubReminder(int id, int clubId, [FromBody] ClubDuesReminderDto dto)
     {
-        if (!IsSuperAdminOrAdmin() && !await IsDistrictAdminForDuesAsync(GetUserId(), id)) return Denied();
+        if (!IsSuperAdmin() && !await IsDistrictAdminForDuesAsync(GetUserId(), id)) return Denied();
         await _service.SendReminderEmailAsync(id, clubId, dto.Remark);
         return Ok(new { message = "Reminder sent." });
     }
 
     // Send a TEST reminder/receipt email (sample values, current template) — FREE, no wallet credit.
     // Multipart so an unsaved email-header logo can be sent + embedded inline for a true pre-save preview.
-    // SuperAdmin/Admin or the district's own admin.
+    // SuperAdmin or the district's own admin.
     [HttpPost("test-email")]
     public async Task<ActionResult> SendTestEmail([FromForm] ClubDuesTestEmailDto dto, IFormFile? emailLogo)
     {
-        if (!IsSuperAdminOrAdmin() && !(dto.DistrictId > 0 && await IsDistrictAdminOfDistrictAsync(GetUserId(), dto.DistrictId)))
+        if (!IsSuperAdmin() && !(dto.DistrictId > 0 && await IsDistrictAdminOfDistrictAsync(GetUserId(), dto.DistrictId)))
             return Denied();
         try
         {
@@ -321,7 +323,7 @@ public class ClubDuesController : ControllerBase
     [HttpGet("{id}/export")]
     public async Task<ActionResult> Export(int id)
     {
-        if (!IsSuperAdminOrAdmin()) return Denied();
+        if (!IsSuperAdmin()) return Denied();
         var bytes = await _service.ExportClubsCsvAsync(id);
         return File(bytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", $"DistrictDues_{id}.xlsx");
     }
@@ -329,7 +331,7 @@ public class ClubDuesController : ControllerBase
     [HttpGet("{id}/clubs/{clubId}/pay-link")]
     public ActionResult GetPayLink(int id, int clubId)
     {
-        if (!IsSuperAdminOrAdmin()) return Denied();
+        if (!IsSuperAdmin()) return Denied();
         var frontendUrl = _config["FrontendUrl"] ?? "";
         return Ok(_service.GeneratePayLink(id, clubId, frontendUrl));
     }
@@ -338,7 +340,7 @@ public class ClubDuesController : ControllerBase
     [HttpPost("{id}/create-google-sheet")]
     public async Task<ActionResult> CreateGoogleSheet(int id)
     {
-        if (!IsSuperAdminOrAdmin()) return Denied();
+        if (!IsSuperAdmin()) return Denied();
         try
         {
             var sheetId = await _service.CreateGoogleSheetAsync(id);
@@ -351,7 +353,7 @@ public class ClubDuesController : ControllerBase
     [HttpDelete("{id}/delete-google-sheet")]
     public async Task<ActionResult> DeleteGoogleSheet(int id)
     {
-        if (!IsSuperAdminOrAdmin()) return Denied();
+        if (!IsSuperAdmin()) return Denied();
         try
         {
             await _service.DeleteGoogleSheetAsync(id);
@@ -367,7 +369,7 @@ public class ClubDuesController : ControllerBase
     [HttpPost("resync-all-google-sheets")]
     public async Task<ActionResult> ResyncAllGoogleSheets()
     {
-        if (!IsSuperAdminOrAdmin()) return Denied();
+        if (!IsSuperAdmin()) return Denied();
         try
         {
             var count = await _service.ResyncAllGoogleSheetsAsync();
@@ -409,7 +411,7 @@ public class ClubDuesController : ControllerBase
     [HttpGet("officer/{duesId}")]
     public async Task<ActionResult> OfficerGet(int duesId, [FromQuery] int clubId)
     {
-        if (!await CanPayForClubAsync(GetUserId(), clubId)) return OfficerDenied();
+        if (!await CanPayForClubAsync(GetUserId(), clubId, duesId)) return OfficerDenied();
         var dto = await _service.GetPublicDuesAsync(duesId, clubId);
         if (dto == null) return NotFound(new { message = "District dues not found." });
         return Ok(dto);
@@ -420,7 +422,7 @@ public class ClubDuesController : ControllerBase
     public async Task<ActionResult> OfficerPay(int duesId, [FromQuery] int clubId)
     {
         var memberId = GetUserId();
-        if (!await CanPayForClubAsync(memberId, clubId)) return OfficerDenied();
+        if (!await CanPayForClubAsync(memberId, clubId, duesId)) return OfficerDenied();
         try
         {
             var result = await _service.CreatePaymentOrderAsync(duesId, new PublicClubDuesPaymentSubmitDto { FkClubId = clubId, PaidByMemberId = memberId });
@@ -433,7 +435,7 @@ public class ClubDuesController : ControllerBase
     [HttpPost("officer/{duesId}/verify")]
     public async Task<ActionResult> OfficerVerify(int duesId, [FromQuery] int clubId, [FromBody] ClubDuesVerifyDto dto)
     {
-        if (!await CanPayForClubAsync(GetUserId(), clubId)) return OfficerDenied();
+        if (!await CanPayForClubAsync(GetUserId(), clubId, duesId)) return OfficerDenied();
         return Ok(await _service.VerifyPaymentAsync(duesId, dto));
     }
 
@@ -442,7 +444,7 @@ public class ClubDuesController : ControllerBase
     [HttpGet("officer/{duesId}/pay-link")]
     public async Task<ActionResult> OfficerPayLink(int duesId, [FromQuery] int clubId)
     {
-        if (!await CanPayForClubAsync(GetUserId(), clubId)) return OfficerDenied();
+        if (!await CanPayForClubAsync(GetUserId(), clubId, duesId)) return OfficerDenied();
         return Ok(_service.GeneratePayLink(duesId, clubId, _config["FrontendUrl"] ?? ""));
     }
 
@@ -451,7 +453,7 @@ public class ClubDuesController : ControllerBase
     public async Task<ActionResult> OfficerOffline(int duesId, [FromQuery] int clubId, [FromForm] RecordOfflineClubDuesPaymentDto dto, IFormFile? attachment)
     {
         var memberId = GetUserId();
-        if (!await CanPayForClubAsync(memberId, clubId)) return OfficerDenied();
+        if (!await CanPayForClubAsync(memberId, clubId, duesId)) return OfficerDenied();
         dto.FkClubId = clubId;
         dto.PaidByMemberId = memberId;
         try
@@ -470,7 +472,7 @@ public class ClubDuesController : ControllerBase
 
     // The active campaign(s) for a district. The dashboard passes its selected districtId,
     // which lets it work for a SuperAdmin borrowing a district via global search (they hold no
-    // district-admin role). Access: SuperAdmin/Admin for any district, else the district's own admin.
+    // district-admin role). Access: SuperAdmin for any district, else the district's own admin.
     [HttpGet("my-district")]
     public async Task<ActionResult> MyDistrict([FromQuery] int? districtId)
     {
@@ -479,7 +481,7 @@ public class ClubDuesController : ControllerBase
         await using var conn = new MySqlConnection(_connStr);
 
         if (districtId.HasValue && districtId.Value > 0 &&
-            (IsSuperAdminOrAdmin() || await IsDistrictAdminOfDistrictAsync(memberId, districtId.Value)))
+            (IsSuperAdmin() || await IsDistrictAdminOfDistrictAsync(memberId, districtId.Value)))
         {
             var byDistrict = await conn.QueryAsync<ClubDuesListDto>(@"
                 SELECT cd.pk_club_dues_id AS Id, d.DistrictNumber, cd.RotaryYear, cd.Purpose,
@@ -522,21 +524,21 @@ public class ClubDuesController : ControllerBase
         return count > 0;
     }
 
-    // Campaign detail for the edit form — SuperAdmin/Admin or the district's own admin.
+    // Campaign detail for the edit form — SuperAdmin or the district's own admin.
     [HttpGet("{id}/content")]
     public async Task<ActionResult> GetContent(int id)
     {
-        if (!IsSuperAdminOrAdmin() && !await IsDistrictAdminForDuesAsync(GetUserId(), id)) return Denied();
+        if (!IsSuperAdmin() && !await IsDistrictAdminForDuesAsync(GetUserId(), id)) return Denied();
         var result = await _service.GetDetailAsync(id);
         if (result == null) return NotFound(new { message = "District dues not found." });
         return Ok(result);
     }
 
-    // Content-only update (logos + email copy). SuperAdmin/Admin or the district's own admin.
+    // Content-only update (logos + email copy). SuperAdmin or the district's own admin.
     [HttpPatch("{id}/content")]
     public async Task<ActionResult> UpdateContent(int id, [FromForm] UpdateClubDuesContentDto dto, IFormFile? logo, IFormFile? bgImage, IFormFile? emailLogo)
     {
-        if (!IsSuperAdminOrAdmin() && !await IsDistrictAdminForDuesAsync(GetUserId(), id)) return Denied();
+        if (!IsSuperAdmin() && !await IsDistrictAdminForDuesAsync(GetUserId(), id)) return Denied();
         await _service.UpdateContentAsync(id, dto, logo, bgImage, emailLogo, GetUserId(), _env);
         return Ok(new { message = "Content updated." });
     }

@@ -133,7 +133,7 @@ function RadioPill({
   );
 }
 
-// The rupee glyph is India's - Sri Lanka and Nepal get a neutral coin (user 2026-10-05).
+// Dollar currencies get a dollar sign, every other currency a neutral coin.
 function moneyIcon(code?: string | null) {
   const which = moneyIconName(code);
   return which === "dollar" ? DollarSign : Coins;

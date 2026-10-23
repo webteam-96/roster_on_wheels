@@ -12,9 +12,11 @@ using Microsoft.Extensions.Logging;
 //            Club AND district both send (a member covered by both gets one each).
 //            Each send deducts 1 from the source's club/district credits
 //            (unless Greetings:DeductCredits=false). A greeting_send_log makes
-//            re-runs idempotent. Sends an admin summary email on completion.
+//            re-runs idempotent. Sends an admin summary email when a run sent or failed something.
+//            Time zones (N12): each club/district greets from Greetings:SendHour (08:00) in its district's
+//            zone, once per local day, so the task runs every hour.
 //
-// Scheduled via Windows Task Scheduler (see TaskScheduler-Greetings-Morning.xml).
+// Scheduled via Windows Task Scheduler, hourly (see TaskScheduler-Greetings-Morning.xml).
 // ════════════════════════════════════════════════════════════════════════
 
 Console.WriteLine("=========================================");
@@ -34,6 +36,7 @@ if (mode is "--help" or "-h" or "/?" or "/help")
     Console.WriteLine("    --club-name \"Thane City View\"     process only this club");
     Console.WriteLine("    --district-number 5656             process only this district");
     Console.WriteLine("    --date 2026-08-15                  match birthdays/anniversaries on this date instead of today (testing)");
+    Console.WriteLine("    --now 2026-08-15T02:30:00Z         run as if the UTC clock showed this time (testing time zones)");
     Console.WriteLine("    --member-name \"Raj Shah\"           (--diagnose only) also inspect this member's own record + send log");
     Console.WriteLine();
     Console.WriteLine("  e.g.  GreetingsWorker.exe --dry-run --club-name \"Thane City View\" --district-number 5656 --date 2026-08-15");
@@ -97,6 +100,14 @@ try
             if (DateTime.TryParse(dateArg, out var d)) overrideDate = d;
             else { Console.WriteLine($"Invalid --date '{dateArg}'. Use YYYY-MM-DD."); return 1; }
         }
+        var nowArg = GetArg(args, "--now");
+        DateTime? utcNow = null;
+        if (!string.IsNullOrWhiteSpace(nowArg))
+        {
+            if (DateTime.TryParse(nowArg, System.Globalization.CultureInfo.InvariantCulture,
+                    System.Globalization.DateTimeStyles.AdjustToUniversal | System.Globalization.DateTimeStyles.AssumeUniversal, out var n)) utcNow = n;
+            else { Console.WriteLine($"Invalid --now '{nowArg}'. Use an ISO UTC time, e.g. 2026-08-15T02:30:00Z."); return 1; }
+        }
         var job = provider.GetRequiredService<GreetingsJob>();
         var scopeMsg = (clubName, districtNumber) switch
         {
@@ -108,15 +119,17 @@ try
         log.LogInformation("{Mode} started. Scope: {Scope}. Match date: {Date}.",
             dry ? "Greetings DRY-RUN (no sends/credits/log writes)" : "Greetings run", scopeMsg,
             overrideDate?.ToString("dd-MMM") ?? "today");
-        var stats = await job.RunAsync(dry, clubName, districtNumber, overrideDate);
+        var stats = await job.RunAsync(dry, clubName, districtNumber, overrideDate, utcNow);
         var dur = stats.RunCompletedAt - stats.RunStartedAt;
         log.LogInformation(
-            "{Tag}done in {Sec}s. Email={E} (failed {EF}) | Push={P} (failed {PF}) | skipped={Sk} | clubs={C} districts={D}",
+            "{Tag}done in {Sec}s. Email={E} (failed {EF}) | Push={P} (failed {PF}) | skipped={Sk} | clubs={C} districts={D} | not due={N}",
             dry ? "[DRY] " : "", (int)dur.TotalSeconds,
             stats.EmailSent, stats.EmailFailed,
             stats.PushSent, stats.PushFailed,
-            stats.Skipped, stats.ClubsProcessed, stats.DistrictsProcessed);
-        if (!dry) await SendSummaryAsync(provider, recipients, stats);
+            stats.Skipped, stats.ClubsProcessed, stats.DistrictsProcessed, stats.NotDue);
+        // Hourly runs: a summary only for a run that sent or failed something.
+        if (!dry && stats.EmailSent + stats.EmailFailed + stats.PushSent + stats.PushFailed > 0)
+            await SendSummaryAsync(provider, recipients, stats);
         return 0;
     }
 
@@ -182,6 +195,6 @@ static async Task SendSummaryAsync(IServiceProvider sp, string[] recipients, Gre
     foreach (var to in recipients)
     {
         var ok = await email.SendAsync(to, subject, body);
-        if (!ok) summaryLog.LogWarning("Admin summary email failed to send to {To}", to);
+        if (!ok) summaryLog.LogWarning("Admin summary email failed to send to {To}", RotaryApi.Services.LogMask.Email(to));
     }
 }

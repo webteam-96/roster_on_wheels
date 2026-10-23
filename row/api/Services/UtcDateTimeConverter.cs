@@ -13,9 +13,7 @@ namespace RotaryApi.Services;
 /// </summary>
 public sealed class UtcDateTimeConverter : JsonConverter<DateTime>
 {
-    private static readonly bool ServerIsUtc = TimeZoneInfo.Local.BaseUtcOffset == TimeSpan.Zero && !TimeZoneInfo.Local.SupportsDaylightSavingTime;
-
-    private static bool Emit => ServerIsUtc && Brand.Feature("time.emitOffset");
+    private static bool Emit => ZoneTime.StoredUtc;
 
     public override DateTime Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options) =>
         reader.GetDateTime();

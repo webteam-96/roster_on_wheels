@@ -8,6 +8,8 @@ export interface DistrictListItem {
   zoneName: string | null;
   country: string | null;
   defaultCurrency: string | null;
+  /** IANA time zone (N12); null = the instance default. */
+  timezone: string | null;
   totalClubs: number;
   totalMembers: number;
 }
@@ -25,6 +27,8 @@ export interface District {
   zoneName: string | null;
   country: string | null;
   defaultCurrency: string | null;
+  /** IANA time zone (N12); null = the instance default. */
+  timezone: string | null;
   totalClubs: number;
   totalMembers: number;
 }
@@ -36,6 +40,7 @@ export interface CreateDistrictRequest {
   fkZoneId?: number | null;
   country?: string | null;
   defaultCurrency?: string | null;
+  timezone?: string | null;
 }
 
 export interface UpdateDistrictRequest {
@@ -45,6 +50,7 @@ export interface UpdateDistrictRequest {
   fkZoneId?: number | null;
   country?: string | null;
   defaultCurrency?: string | null;
+  timezone?: string | null;
 }
 
 export interface DistrictMember {

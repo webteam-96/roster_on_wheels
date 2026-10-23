@@ -156,6 +156,14 @@ CREATE TABLE IF NOT EXISTS tenant_subscriptions (
     UNIQUE KEY uk_tenant_scope (fk_district_id, fk_club_id),
     FOREIGN KEY (edition_code) REFERENCES edition_catalogue(code)
 );
+-- N7 planning mode (build spec 3.1, DatabaseInitializer.Planning.cs): the year being planned, the scheduled and
+-- actual cut-over (UTC), the year the cut-over archived, and the end of a 60-day trial. Added together.
+SET @has_col := (SELECT COUNT(*) FROM information_schema.COLUMNS
+                 WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'tenant_subscriptions' AND COLUMN_NAME = 'planning_year_id');
+SET @sql := IF(@has_col = 0, 'ALTER TABLE tenant_subscriptions ADD COLUMN planning_year_id INT NULL, ADD COLUMN cutover_at DATETIME NULL, ADD COLUMN cutover_done_at DATETIME NULL, ADD COLUMN archived_year_id INT NULL, ADD COLUMN trial_ends DATE NULL', 'SELECT 1');
+PREPARE stmt FROM @sql;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
 
 -- String catalogue (ROW Wave 1, build spec item 3). Same SQL as DatabaseInitializer.
 CREATE TABLE IF NOT EXISTS i18n_strings (
