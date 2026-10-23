@@ -44,6 +44,28 @@ builder.Services.AddRateLimiter(o =>
     o.AddPolicy("auth", ctx => System.Threading.RateLimiting.RateLimitPartition.GetFixedWindowLimiter(
         ctx.Connection.RemoteIpAddress?.ToString() ?? "unknown",
         _ => new System.Threading.RateLimiting.FixedWindowRateLimiterOptions { PermitLimit = 10, Window = TimeSpan.FromMinutes(1) }));
+    // Public forms anyone can post (volunteer sign-up link): 10 posts per IP per 10 minutes.
+    o.AddPolicy("public-form", ctx => System.Threading.RateLimiting.RateLimitPartition.GetFixedWindowLimiter(
+        ctx.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+        _ => new System.Threading.RateLimiting.FixedWindowRateLimiterOptions { PermitLimit = 10, Window = TimeSpan.FromMinutes(10) }));
+    // Public join and RSVP forms (PublicJoinController): 8 posts per 10 minutes per IP.
+    o.AddPolicy("join-form", ctx => System.Threading.RateLimiting.RateLimitPartition.GetFixedWindowLimiter(
+        ctx.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+        _ => new System.Threading.RateLimiting.FixedWindowRateLimiterOptions { PermitLimit = 8, Window = TimeSpan.FromMinutes(10) }));
+    // Anonymous calendar feeds (MeetingsController, [EnableRateLimiting("feed")]): calendar apps poll every few minutes at most.
+    o.AddPolicy("feed", ctx => System.Threading.RateLimiting.RateLimitPartition.GetFixedWindowLimiter(
+        ctx.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+        _ => new System.Threading.RateLimiting.FixedWindowRateLimiterOptions { PermitLimit = 60, Window = TimeSpan.FromMinutes(1) }));
+    // Public unsubscribe page and one-click requests (CommsController, [EnableRateLimiting("unsubscribe")]).
+    o.AddPolicy("unsubscribe", ctx => System.Threading.RateLimiting.RateLimitPartition.GetFixedWindowLimiter(
+        ctx.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+        _ => new System.Threading.RateLimiting.FixedWindowRateLimiterOptions { PermitLimit = 30, Window = TimeSpan.FromMinutes(1) }));
+    // Public reads marked [EnableRateLimiting("public-read")]: 600 a minute per IP. Over the limit a site shows its default language.
+    // shortcut: the public sites call from their server, so one site server shares one bucket; partition by the visitor IP
+    // the site forwards once sites run behind a shared server at real load.
+    o.AddPolicy("public-read", ctx => System.Threading.RateLimiting.RateLimitPartition.GetFixedWindowLimiter(
+        ctx.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+        _ => new System.Threading.RateLimiting.FixedWindowRateLimiterOptions { PermitLimit = 600, Window = TimeSpan.FromMinutes(1) }));
 });
 
 builder.Services.AddControllers(o =>
@@ -155,6 +177,17 @@ builder.Services.AddAuthentication(options =>
         ValidAudience = jwtSettings["Audience"],
         IssuerSigningKey = new SymmetricSecurityKey(secretKey)
     };
+    // The chat hub's clients send the token in the access_token query (a browser WebSocket cannot carry headers).
+    // Accepted on that path only; the error log below leaves such query strings out.
+    options.Events = new JwtBearerEvents
+    {
+        OnMessageReceived = ctx =>
+        {
+            if (string.IsNullOrEmpty(ctx.Token) && ctx.HttpContext.Request.Path.StartsWithSegments("/api/chat/hub"))
+                ctx.Token = ctx.Request.Query["access_token"];
+            return Task.CompletedTask;
+        }
+    };
 });
 
 builder.Services.AddAuthorization();
@@ -194,7 +227,6 @@ builder.Services.AddSwaggerGen(c =>
 builder.Services.AddSingleton<DatabaseInitializer>();
 // ROW privacy (master plan WS7): consent, export, erasure, retention. Behind Brand:Features:privacy.enabled.
 builder.Services.AddSingleton<RotaryApi.Privacy.PrivacyService>();
-builder.Services.AddSingleton<AdminProxyTokenSigner>();
 builder.Services.AddMemoryCache();
 
 // Club-website cache purger — fires fire-and-forget HTTP calls to club-website's
@@ -213,8 +245,6 @@ builder.Services.AddScoped<IMemberService, MemberService>();
 builder.Services.AddScoped<ICountryService, CountryService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<IRoleService, RoleService>();
-builder.Services.AddScoped<ISystemSettingService, SystemSettingService>();
-builder.Services.AddScoped<IBeneficiaryApprovalService, BeneficiaryApprovalService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IZoneService, ZoneService>();
 builder.Services.AddScoped<IDistrictService, DistrictService>();
@@ -247,6 +277,13 @@ builder.Services.AddScoped<IBodSubGroupAutoService, BodSubGroupAutoService>();
 // The API service above is kept for real-time hooks when BOD changes via web portal.
 builder.Services.AddScoped<IWebsiteDataModuleService, WebsiteDataModuleService>();
 builder.Services.AddScoped<IThemeService, ThemeService>();
+builder.Services.AddScoped<IWebsiteLanguageService, WebsiteLanguageService>();
+// Chat (build spec 3.10): REST in ChatController, real-time delivery through SignalR (shared framework, no package).
+// shortcut: SignalR delivers to clients connected to this API instance only; add a backplane (Redis) when the API
+// runs on more than one instance.
+builder.Services.AddSignalR().AddJsonProtocol(o => o.PayloadSerializerOptions.Converters.Add(new UtcDateTimeConverter()));
+builder.Services.AddSingleton<Microsoft.AspNetCore.SignalR.IUserIdProvider, ChatUserIdProvider>();
+builder.Services.AddScoped<IChatService, ChatService>();
 builder.Services.AddScoped<IClubThemeService, ClubThemeService>();
 builder.Services.AddScoped<IClubBannerService, ClubBannerService>();
 builder.Services.AddScoped<IClubAdvertisementService, ClubAdvertisementService>();
@@ -255,9 +292,13 @@ builder.Services.AddScoped<IClubMenuService, ClubMenuService>();
 builder.Services.AddScoped<IClubContactDetailService, ClubContactDetailService>();
 builder.Services.AddScoped<IClubAboutService, ClubAboutService>();
 builder.Services.AddScoped<IPotentialMemberService, PotentialMemberService>();
+// N3 contacts, prospects, growth, invite prompts (feature contacts_growth)
+builder.Services.AddScoped<ContactService>();
+builder.Services.AddScoped<GrowthService>();
+builder.Services.AddScoped<InvitePromptService>();
+// N10 live target dashboard (feature target_dashboard)
+builder.Services.AddScoped<TargetDashboardService>();
 builder.Services.AddScoped<IAreaOfFocusService, AreaOfFocusService>();
-builder.Services.AddScoped<ICategoryService, CategoryService>();
-builder.Services.AddScoped<ISubCategoryService, SubCategoryService>();
 builder.Services.AddScoped<IFundingService, FundingService>();
 builder.Services.AddScoped<IProjectService, ProjectService>();
 builder.Services.AddScoped<IUpcomingEventService, UpcomingEventService>();
@@ -268,7 +309,13 @@ builder.Services.AddScoped<IRouteMaintenanceService, RouteMaintenanceService>();
 builder.Services.AddScoped<IGreetingService, GreetingService>();
 // Mobile bell-icon feed (GET /api/mobile/notifications)
 builder.Services.AddScoped<IMobileNotificationFeedService, MobileNotificationFeedService>();
+// Engagement: milestones, PHF highlights, spotlight cards (flag engagement); the daily pass is registered below.
+builder.Services.AddScoped<EngagementService>();
 builder.Services.AddScoped<IAttendanceService, AttendanceService>();
+// N8 Meetings: calendar feeds, compliance, reminder text (MeetingReminderBackgroundService sends the emails)
+builder.Services.AddScoped<MeetingsService>();
+// N5 Communication: templates, sender domains, allowances, suppressions, consent, tracking (CommsController)
+builder.Services.AddScoped<CommsService>();
 builder.Services.AddScoped<IClubMonthlyReportService, ClubMonthlyReportService>();
 builder.Services.AddScoped<IDistrictCmrEmailSettingsService, DistrictCmrEmailSettingsService>();
 builder.Services.AddScoped<ICmrSubmissionMailer, CmrSubmissionMailer>();
@@ -278,7 +325,6 @@ builder.Services.AddHostedService<DailyStatsReportBackgroundService>();
 builder.Services.AddScoped<IDistrictPerformanceReportService, DistrictPerformanceReportService>();
 builder.Services.AddHostedService<DistrictPerformanceReportBackgroundService>();
 builder.Services.AddScoped<IOcvGovService, OcvGovService>();
-builder.Services.AddScoped<IPphCampService, PphCampService>();
 builder.Services.AddScoped<ITrfContributionService, TrfContributionService>();
 builder.Services.AddScoped<ICashfreeKycService, CashfreeKycService>();
 builder.Services.AddScoped<IWeblinkService, WeblinkService>();
@@ -313,16 +359,17 @@ if (enableBackgroundJobs) builder.Services.AddHostedService(sp => sp.GetRequired
 // Fire-and-forget trigger callable from any write-side service to recompute
 // a club's auto-points immediately after a citation-relevant change.
 builder.Services.AddSingleton<ICitationRecalcTrigger, CitationRecalcTrigger>();
-builder.Services.AddScoped<ZonalAwardsAutoCalculationService>();
-if (enableBackgroundJobs) builder.Services.AddHostedService<ZonalAwardsAutoCalculationBackgroundService>();
 builder.Services.AddScoped<IMobileAuthService, MobileAuthService>();
-builder.Services.AddScoped<IProjectApprovalService, ProjectApprovalService>();
 builder.Services.AddScoped<IClubRotaryOrgCredentialService, ClubRotaryOrgCredentialService>();
 builder.Services.AddScoped<IAuditLogService, AuditLogService>();
-builder.Services.AddScoped<IRiDirectorService, RiDirectorService>();
 if (enableBackgroundJobs) builder.Services.AddHostedService<EmailScheduledSendBackgroundService>();
 if (enableBackgroundJobs) builder.Services.AddHostedService<ClubLeadershipEmailBackgroundService>();
 if (enableBackgroundJobs) builder.Services.AddHostedService<ClubWebsiteReminderBackgroundService>();
+if (enableBackgroundJobs) builder.Services.AddHostedService<EngagementBackgroundService>();
+if (enableBackgroundJobs) builder.Services.AddHostedService<InvitePromptBackgroundService>();
+// Meeting reminder emails follow BackgroundJobs:Enabled unless Meetings:ReminderJob says otherwise (ops switch);
+// they also wait for the 'meetings' feature to be on.
+if (builder.Configuration.GetValue("Meetings:ReminderJob", enableBackgroundJobs)) builder.Services.AddHostedService<MeetingReminderBackgroundService>();
 if (enableBackgroundJobs) builder.Services.AddHostedService<RotaryYearRolloverBackgroundService>();
 if (enableBackgroundJobs) builder.Services.AddHostedService<RazorpaySettlementSyncBackgroundService>();
 // Cashfree dues reconciliation — safety net for webhooks that never arrive.
@@ -344,6 +391,17 @@ if (enableBackgroundJobs)
     builder.Services.AddHostedService<RotaryApi.Services.Push.PushLogCleanupBackgroundService>();
 }
 
+// Grants (ROW build spec 3.8): service + the job that emails grant notifications.
+builder.Services.AddScoped<GrantService>();
+if (enableBackgroundJobs) builder.Services.AddHostedService<GrantNotificationEmailBackgroundService>();
+
+// Volunteers and speakers (ROW build spec 3.13). VolunteerReminders:Enabled runs the reminder job alone on a dev copy
+// (BackgroundJobs:Enabled would start every job against that data).
+builder.Services.AddScoped<VolunteerService>();
+builder.Services.AddScoped<SpeakerService>();
+if (enableBackgroundJobs || builder.Configuration.GetValue<bool>("VolunteerReminders:Enabled"))
+    builder.Services.AddHostedService<VolunteerReminderBackgroundService>();
+
 builder.Services.AddSingleton<PleskService>();
 builder.Services.AddSingleton<IDnsPointingChecker, DnsPointingChecker>();
 builder.Services.AddHttpClient();
@@ -362,10 +420,9 @@ app.UseForwardedHeaders(); // first, so the rate limiter, audit log and HTTPS ch
 // armed without having to grep the codebase. Visible in stdout / Plesk log
 // the moment the API binds its port.
 app.Logger.LogInformation(
-    "═══ RotaryApi startup ═══ BackgroundJobs.Enabled={Bg} | CitationAutoPoints.DailyLoopEnabled={Cite} | ZonalAwards.AutoCalcEnabled={Zonal}",
+    "═══ RotaryApi startup ═══ BackgroundJobs.Enabled={Bg} | CitationAutoPoints.DailyLoopEnabled={Cite}",
     enableBackgroundJobs,
-    builder.Configuration.GetValue<bool>("CitationAutoPoints:DailyLoopEnabled"),
-    builder.Configuration.GetValue<bool>("ZonalAwards:AutoCalcEnabled"));
+    builder.Configuration.GetValue<bool>("CitationAutoPoints:DailyLoopEnabled"));
 
 // Initialize database — gated by config so local dev can skip the ~900-DDL
 // initializer when schema is already up to date. Production never sets the
@@ -453,54 +510,10 @@ _ = Task.Run(async () =>
     }
 });
 
-// One-time backfill: normalize legacy approval_status values (e.g. "Pending For Approval", "Approved",
-// "REJECTED", title-case variants) to canonical lowercase 'pending'/'approved'/'rejected' across all
-// year-wise rotary_projects_YYYY_YY tables. Idempotent — safe to run on every startup. Without this the
-// Club Moderator queue renders raw legacy strings and hides Approve/Reject buttons (which strict-compare).
-_ = Task.Run(async () =>
-{
-    try
-    {
-        using var bfScope = app.Services.CreateScope();
-        var resolver = bfScope.ServiceProvider.GetRequiredService<RotaryApi.Services.IYearTableResolver>();
-        var connStr = bfScope.ServiceProvider.GetRequiredService<IConfiguration>().GetConnectionString("DefaultConnection")!;
-        await using var conn = new MySqlConnector.MySqlConnection(connStr);
-        await conn.OpenAsync();
-        int totalUpdated = 0;
-        foreach (var t in await resolver.GetAllExistingYearTablesAsync(conn))
-        {
-            // Map any case/whitespace variant containing pending/approv/reject to canonical lowercase.
-            // Leaves canonical 'pending'/'approved'/'rejected' and NULL untouched (covered by the
-            // BINARY collation comparison + LIKE filter).
-            var n = await Dapper.SqlMapper.ExecuteAsync(conn, $@"
-                UPDATE `{t.ProjectsTable}`
-                SET approval_status = CASE
-                    WHEN LOWER(TRIM(approval_status)) LIKE '%pending%' THEN 'pending'
-                    WHEN LOWER(TRIM(approval_status)) LIKE '%reject%'  THEN 'rejected'
-                    WHEN LOWER(TRIM(approval_status)) LIKE '%approv%'  THEN 'approved'
-                    ELSE approval_status
-                END
-                WHERE approval_status IS NOT NULL
-                  AND BINARY approval_status NOT IN ('pending','approved','rejected')");
-            totalUpdated += n;
-        }
-        if (totalUpdated > 0)
-        {
-            var bfLogger = app.Services.GetRequiredService<ILogger<Program>>();
-            bfLogger.LogInformation("Approval-status backfill: normalized {N} legacy rows across year-wise project tables", totalUpdated);
-        }
-    }
-    catch (Exception ex)
-    {
-        var bfLogger = app.Services.GetRequiredService<ILogger<Program>>();
-        bfLogger.LogError(ex, "Approval-status backfill failed (non-fatal)");
-    }
-});
-
 // One-time backfill: legacy e-bulletin (newsletter) files uploaded BEFORE filenames were sanitized
 // (commit 0e2c3983) kept their spaces on disk AND in the DB FilePath (e.g. "RC Pulse 05 4-8-26_...pdf").
 // The served URL encodes those spaces as '+', and IIS blocks '+' in the request PATH (request filtering)
-// → the PDF 404s in email/WhatsApp/browser even though it physically exists. Rename each such file to a
+// → the PDF 404s in email/browser even though it physically exists. Rename each such file to a
 // servable name (same rule as NewsletterService.UploadFileAsync) on disk AND update its DB FilePath, so
 // no space/'+' is ever produced again. This is the ONLY reliable fix — a serve-time rewrite can't help
 // because IIS rejects the '+' before the request reaches the app. Idempotent: only rows whose FilePath
@@ -519,7 +532,6 @@ _ = Task.Run(async () =>
         // than letters/digits/dot/underscore/hyphen — i.e. spaces, '+', parentheses, etc.
         var rows = (await Dapper.SqlMapper.QueryAsync(conn, @"
             SELECT pk_newsletter_id AS Id,
-                   COALESCE(Scope, IF(fk_district_id IS NOT NULL, 'district','club')) AS Scope,
                    fk_club_id AS ClubId, fk_district_id AS DistrictId, FilePath
             FROM newsletters
             WHERE FilePath IS NOT NULL AND FilePath <> ''
@@ -531,11 +543,10 @@ _ = Task.Run(async () =>
             try
             {
                 string oldName = (string)r.FilePath;
-                string scope = (string)r.Scope;
                 int clubId = r.ClubId != null ? Convert.ToInt32(r.ClubId) : 0;
                 int distId = r.DistrictId != null ? Convert.ToInt32(r.DistrictId) : 0;
-                // group folder mirrors the read-SQL CONCAT: ri | Group{district} | Group{club}
-                string folder = scope == "ri" ? "ri" : (distId > 0 ? $"Group{distId}" : $"Group{clubId}");
+                // group folder mirrors the read-SQL CONCAT: Group{district} | Group{club}
+                string folder = distId > 0 ? $"Group{distId}" : $"Group{clubId}";
                 var dir = Path.Combine(webRoot, "Documents", "ebulletin", folder);
                 var ext = Path.GetExtension(oldName);
                 var baseName = Path.GetFileNameWithoutExtension(oldName);
@@ -599,8 +610,6 @@ try
     Directory.CreateDirectory(Path.Combine(webRoot, "tempdocument"));
     // OCV documents directory
     Directory.CreateDirectory(Path.Combine(webRoot, "Documents", "OCV"));
-    // PPH camp documents directory
-    Directory.CreateDirectory(Path.Combine(webRoot, "Documents", "Campmaster"));
     // Weblink documents directory
     Directory.CreateDirectory(Path.Combine(webRoot, "Documents", "Weblink"));
     // Event payment link uploads
@@ -658,7 +667,9 @@ app.Use(async (ctx, next) =>
     catch (Exception ex)
     {
         var logger = ctx.RequestServices.GetRequiredService<ILogger<Program>>();
-        logger.LogError(ex, "Unhandled {Method} {Path}{Query} -> 500", ctx.Request.Method, ctx.Request.Path, ctx.Request.QueryString);
+        // A chat hub request carries the member's token in its query: never write that to the log.
+        logger.LogError(ex, "Unhandled {Method} {Path}{Query} -> 500", ctx.Request.Method, ctx.Request.Path,
+            ctx.Request.Query.ContainsKey("access_token") ? "" : ctx.Request.QueryString.Value);
         if (!ctx.Response.HasStarted)
         {
             ctx.Response.StatusCode = 500;
@@ -715,7 +726,7 @@ app.UseResponseCaching();
 }
 // Gallery '.png → .jpg' rescue: PngToJpgTool turns PNG photos into JPEG under the same name and
 // renames image_path in the DB, so every screen asks for the .jpg. Links built BEFORE the
-// conversion (sent emails, WhatsApp messages still queued, shared links, app caches) still ask for
+// conversion (sent emails, shared links, app caches) still ask for
 // the .png - when that .png is gone and the .jpg next to it exists, serve the .jpg instead.
 // Guarded on File.Exists → untouched PNGs (logos, unconverted photos) are served as before.
 {
@@ -790,5 +801,6 @@ app.UseStaticFiles(new Microsoft.AspNetCore.Builder.StaticFileOptions
     }
 });
 app.MapControllers();
+app.MapHub<ChatHub>("/api/chat/hub");
 
 app.Run();

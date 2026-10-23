@@ -21,7 +21,7 @@ const INCLUDED: [string, ReactNode][] = [
   ["Events Module for club events and notifications", ICON.calendar],
   ["Directory, Board of Directors and past presidents", ICON.people],
   ["Meetings, attendance and service projects", ICON.clipboard],
-  ["Announcements, newsletters and greetings through the app and WhatsApp", ICON.megaphone],
+  ["Announcements, newsletters and greetings through the app and email", ICON.megaphone],
   ["Club monthly reports, district citation and Rotary Foundation tracking", ICON.chart],
   ["Connection with My Rotary", ICON.sync],
   ["All eight languages", ICON.globe],

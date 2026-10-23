@@ -7,8 +7,7 @@ namespace RotaryApi.Services;
 /// Club Service (module key 'club_service') meeting data for the Email scheduler.
 /// Club Service rows are meetings, not service projects — they carry Meeting Type / Attendance /
 /// Agenda / Minutes instead of Area of Focus / Cost / Beneficiaries / Man Hours — so the scheduler
-/// sends them with their own email body built from these fields only. (Club Service is email-only;
-/// the add/edit pages offer no WhatsApp option.)
+/// sends them with their own email body built from these fields only. (Club Service is email-only.)
 ///
 /// Loaded per row (SELECT *) rather than inside the scheduler's UNION across every year table:
 /// not every year table has every column (e.g. a junk year table without old_pk), and one missing

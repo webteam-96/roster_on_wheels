@@ -20,6 +20,8 @@ import { ArrowLeft, Save, Send, Loader2 } from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
 import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";
+import { useFeatureLoadedOn } from "@/components/FeatureGate";
+import ComposeComms from "@/components/comms/ComposeComms";
 
 interface ClubOption { id: number; clubName: string; }
 interface SubGroupOption { id: number; groupName: string; memberCount: number; }
@@ -46,6 +48,8 @@ function DistrictComposeContent() {
   const [replyEmail, setReplyEmail] = useState("");
   const [subject, setSubject] = useState("");
   const [emailBody, setEmailBody] = useState("");
+  const commsOn = useFeatureLoadedOn("communication"); // N5: allowance instead of credits, language versions
+  const [templateKey, setTemplateKey] = useState("");
 
   // Lookups
   const [clubs, setClubs] = useState<ClubOption[]>([]);
@@ -107,6 +111,7 @@ function DistrictComposeContent() {
         setReplyEmail(detail.replyEmail || "");
         setSubject(detail.subject || "");
         setEmailBody(detail.emailBody || "");
+        setTemplateKey(detail.templateKey || "");
       } catch { setErrorMessage("Failed to load email details."); }
       setLoading(false);
     }
@@ -142,6 +147,7 @@ function DistrictComposeContent() {
         subject: subject.trim(),
         emailBody,
         saveAsDraft: asDraft,
+        templateKey: templateKey || null,
       };
 
       let createdId: number | null = null;
@@ -288,6 +294,7 @@ function DistrictComposeContent() {
             <Label>Email Body *</Label>
             <Textarea value={emailBody} onChange={e => setEmailBody(e.target.value)} rows={8} placeholder="Email content..." />
           </div>
+          {commsOn && <ComposeComms scope="districts" ownerId={districtId} templateKey={templateKey} onTemplateKey={setTemplateKey} needed={recipientCount.membersWithEmail} />}
         </CardContent>
       </Card>
 

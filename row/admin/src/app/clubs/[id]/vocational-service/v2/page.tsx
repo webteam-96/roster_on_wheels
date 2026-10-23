@@ -4,18 +4,18 @@
  * Vocational Service v2 listing — second module in the frontend overhaul.
  *
  * Visuals mimic the Club Admin Dashboard's NonClubAvenueSection (KPI tiles,
- * One-time / Ongoing sub-tabs, project table, pending-approval banner) but the
+ * One-time / Ongoing sub-tabs, project table) but the
  * data still comes from the existing v1 API endpoints.
  *
  * v2 reads ONLY `?returnTo=` — never any other param name.
  */
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useRouter, useParams, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import {
   Briefcase, Users, IndianRupee, Loader2, Search, Plus, Edit3, Trash2, Eye,
-  Download, ArrowLeft, AlertTriangle, Info, BadgeAlert, Clock, CheckCircle2, XCircle, Puzzle,
+  Download, ArrowLeft, AlertTriangle, Info, Puzzle,
 } from "@/components/icons";
 import {
   getClub,
@@ -23,7 +23,6 @@ import {
   getProjects,
   deleteProject,
   getProjectYears,
-  checkClubHasModerator,
   getProject,
 } from "@/services/api";
 import Pagination from "@/components/Pagination";
@@ -65,11 +64,6 @@ function projectTypeLabel(t: string | null | undefined): string {
   if (lo === "ongoing_instance") return "Recurring";
   if (lo === "annual")          return "Annual";
   return t || "–";
-}
-
-function isPendingStatus(s: string | null | undefined): boolean {
-  const lo = (s || "").toLowerCase();
-  return lo === "pending" || lo === "draft" || lo === "rejected";
 }
 
 function exportToCsv(rows: ProjectListItem[], yearLabel: string, clubName: string) {
@@ -115,7 +109,6 @@ export default function VocationalServiceV2Page() {
   const [search, setSearch] = useState("");
   const [searchInput, setSearchInput] = useState("");
   const pageSize = 20;
-  const [hasModerator, setHasModerator] = useState(false);
 
   const [showAgreeDialog, setShowAgreeDialog] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<ProjectListItem | null>(null);
@@ -127,10 +120,7 @@ export default function VocationalServiceV2Page() {
   const installed = useExtensionStatus();
   const isBotEnabled = isFlowBotEnabled(clubId);
   const [syncTarget, setSyncTarget] = useState<ProjectListItem | null>(null);
-  const canSyncRow = (p: ProjectListItem) => {
-    const status = (p.approvalStatus || "").toLowerCase();
-    return isBotEnabled && installed === true && canManage && (status === "" || status === "approved");
-  };
+  const canSync = isBotEnabled && installed === true && canManage;
 
   // Two-hop returnTo chain: dashboard → listing → add/edit → listing → dashboard.
   // childReturnTo points at THIS listing (with parent's returnTo nested inside),
@@ -159,9 +149,6 @@ export default function VocationalServiceV2Page() {
           const current = projectYears.find((y) => y.isCurrent);
           setSelectedYearId(current ? current.id : projectYears[0]?.id ?? null);
         }
-        checkClubHasModerator(clubId).then((r) => {
-          if (!cancelled) setHasModerator(r.hasModerator);
-        }).catch(() => {});
       } catch (err: unknown) {
         const e = err as { response?: { data?: { message?: string } } };
         if (!cancelled) setErrorMessage(e?.response?.data?.message || "Failed to initialize.");
@@ -194,11 +181,6 @@ export default function VocationalServiceV2Page() {
 
   // Server-side paginated rows are already filtered by ?search — show as-is.
   const filtered = projects;
-
-  const pendingRows = useMemo(
-    () => projects.filter((p) => isPendingStatus(p.approvalStatus)),
-    [projects]
-  );
 
   const yearLabel = years.find((y) => y.id === selectedYearId)?.yearLabel ?? "–";
   const totalPages = Math.ceil(totalCount / pageSize);
@@ -351,29 +333,6 @@ export default function VocationalServiceV2Page() {
             </div>
           </div>
 
-          {/* Pending approval banner row(s) — above the table */}
-          {pendingRows.length > 0 && (
-            <div className="border-b border-slate-100 bg-amber-50/40 divide-y divide-amber-100">
-              {pendingRows.map((p) => (
-                <div key={p.id} className="px-5 py-2.5 flex flex-wrap items-center gap-3 text-xs">
-                  <span className="font-semibold text-slate-700 truncate max-w-[280px]">{p.title}</span>
-                  <span className="inline-flex items-center gap-1 text-[10px] font-medium px-2 py-0.5 rounded-full border bg-amber-100 text-amber-700 border-amber-200">
-                    <BadgeAlert size={10} /> {(p.approvalStatus || "pending").toLowerCase()}
-                  </span>
-                  <span className="text-slate-500 whitespace-nowrap">{fmtDate(p.projectDate)}</span>
-                  {canManage && (
-                    <Link
-                      href={`/clubs/${clubId}/vocational-service/v2/${p.id}/edit?returnTo=${returnTo}&yearId=${selectedYearId}`}
-                      className="ml-auto inline-flex items-center gap-1 text-blue-700 hover:underline"
-                    >
-                      fix <Edit3 size={10} />
-                    </Link>
-                  )}
-                </div>
-              ))}
-            </div>
-          )}
-
           {/* Table */}
           <div className="overflow-x-auto">
             {loading ? (
@@ -390,7 +349,6 @@ export default function VocationalServiceV2Page() {
                     <th className="px-3 py-2.5 text-left">Type</th>
                     <th className="px-3 py-2.5 text-right">Cost</th>
                     <th className="px-3 py-2.5 text-right">Direct Benf</th>
-                    <th className="px-3 py-2.5 text-left">Status</th>
                     <th className="px-3 py-2.5 text-right w-16">View</th>
                     {canManage && <th className="px-3 py-2.5 text-right w-16">Edit</th>}
                     {canManage && <th className="px-3 py-2.5 text-right w-16">Delete</th>}
@@ -414,21 +372,6 @@ export default function VocationalServiceV2Page() {
                         </td>
                         <td className="px-3 py-2 text-right text-slate-600 whitespace-nowrap">{cost > 0 ? `${getCurrencySymbol(p.currency)}${cost.toLocaleString(appLocale())}` : "–"}</td>
                         <td className="px-3 py-2 text-right text-slate-600">{benf > 0 ? fmtInt(benf) : "–"}</td>
-                        <td className="px-3 py-2">
-                          {p.approvalStatus === "pending" ? (
-                            <span className="inline-flex items-center gap-1 text-[10px] font-medium px-2 py-0.5 rounded-full bg-amber-500 text-white">
-                              <Clock size={10} /> Pending
-                            </span>
-                          ) : p.approvalStatus === "approved" ? (
-                            <span className="inline-flex items-center gap-1 text-[10px] font-medium px-2 py-0.5 rounded-full bg-green-600 text-white">
-                              <CheckCircle2 size={10} /> Approved
-                            </span>
-                          ) : p.approvalStatus === "rejected" ? (
-                            <span className="inline-flex items-center gap-1 text-[10px] font-medium px-2 py-0.5 rounded-full bg-red-600 text-white">
-                              <XCircle size={10} /> Rejected
-                            </span>
-                          ) : null}
-                        </td>
                         <td className="px-3 py-2 text-right">
                           <Link
                             href={`/clubs/${clubId}/vocational-service/${p.id}?yearId=${selectedYearId}`}
@@ -463,7 +406,7 @@ export default function VocationalServiceV2Page() {
                         )}
                         {isBotEnabled && installed === true && (
                           <td className="px-3 py-2 text-right">
-                            {canSyncRow(p) && (
+                            {canSync && (
                               <button
                                 type="button"
                                 onClick={() => setSyncTarget(p)}
@@ -481,7 +424,7 @@ export default function VocationalServiceV2Page() {
                   })}
                   {filtered.length === 0 && (
                     <tr>
-                      <td colSpan={(canManage ? 9 : 7) + 1 + (isBotEnabled && installed === true ? 1 : 0)} className="px-4 py-10 text-center text-slate-400">
+                      <td colSpan={(canManage ? 8 : 6) + 1 + (isBotEnabled && installed === true ? 1 : 0)} className="px-4 py-10 text-center text-slate-400">
                         {search ? "No projects match your search." : "No projects in this section."}
                       </td>
                     </tr>

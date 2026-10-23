@@ -343,13 +343,10 @@ function ClubMonthlyReportV2PreviewInner() {
                     {isCommunity ? (
                       <>
                         <th className="px-3 py-2 text-left border border-slate-200">Area of Focus</th>
-                        <th className="px-3 py-2 text-left border border-slate-200">Category</th>
-                        <th className="px-3 py-2 text-left border border-slate-200">Sub Category</th>
                       </>
                     ) : (
                       <>
                         <th className="px-3 py-2 text-left border border-slate-200">Category</th>
-                        <th className="px-3 py-2 text-left border border-slate-200">Sub Category</th>
                       </>
                     )}
                     <th className="px-3 py-2 text-right border border-slate-200">Cost</th>
@@ -393,13 +390,10 @@ function ClubMonthlyReportV2PreviewInner() {
                       {isCommunity ? (
                         <>
                           <td className="px-3 py-2 border border-slate-200">{project.areaOfFocusName || "-"}</td>
-                          <td className="px-3 py-2 border border-slate-200">{project.categoryName || "-"}</td>
-                          <td className="px-3 py-2 border border-slate-200">{project.subCategoryName || "-"}</td>
                         </>
                       ) : (
                         <>
                           <td className="px-3 py-2 border border-slate-200">{project.areaOfFocusName || "-"}</td>
-                          <td className="px-3 py-2 border border-slate-200">{project.categoryName || "-"}</td>
                         </>
                       )}
                       <td className="px-3 py-2 border border-slate-200 text-right tabular-nums">

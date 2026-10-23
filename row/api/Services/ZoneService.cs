@@ -34,7 +34,6 @@ public class ZoneService : IZoneService
                 z.ZoneName,
                 z.IsActive,
                 z.created_date AS CreatedDate,
-                CAST(IFNULL(z.IsZonalAwardsEnabled, 0) AS UNSIGNED) AS IsZonalAwardsEnabled,
                 (SELECT COUNT(*) FROM district_master d WHERE d.fk_zone_id = z.pk_zone_id AND d.isdeleted = 0) AS TotalDistricts,
                 (SELECT COUNT(*) FROM club_master c
                  JOIN district_master d2 ON d2.pk_district_id = c.fk_district_id AND d2.isdeleted = 0
@@ -46,16 +45,8 @@ public class ZoneService : IZoneService
                  JOIN district_master d3 ON d3.pk_district_id = c2.fk_district_id AND d3.isdeleted = 0
                  JOIN member_master_profile m ON m.pk_member_master_profile_id = cm.fk_member_master_profile_id
                  WHERE d3.fk_zone_id = z.pk_zone_id AND cm.IsActive = 1 AND cm.isdeleted = 0 AND m.isdeleted = 0
-                   AND cm.IsHonoraryMember = 0) AS TotalMembers,
-                coord.MemberName AS CoordinatorName,
-                coord.EmailId AS CoordinatorEmail
+                   AND cm.IsHonoraryMember = 0) AS TotalMembers
             FROM zone_master z
-            LEFT JOIN (
-                SELECT mr.fk_zone_id, m.MemberName, m.EmailId
-                FROM member_roles mr
-                JOIN member_master_profile m ON m.pk_member_master_profile_id = mr.fk_member_master_profile_id
-                WHERE mr.fk_role_id = 4 AND mr.IsActive = 1 AND mr.isdeleted = 0 AND m.isdeleted = 0
-            ) coord ON coord.fk_zone_id = z.pk_zone_id
             WHERE z.isdeleted = 0
               AND (@Search IS NULL OR z.ZoneName LIKE CONCAT('%', @Search, '%'))
               AND (@IsActive IS NULL OR z.IsActive = @IsActive)

@@ -130,8 +130,7 @@ export default function PricingRemindersTab() {
     try {
       const res = await sendWebsiteDefaultPricingOtp({ newAmount: n, renewalAmount: r, gstPercent: g });
       setDefOtpSent(true);
-      const dests = [res.maskedMobile, res.maskedEmail].filter(Boolean).join(" and ");
-      setDefOtpInfo(`OTP sent to ${dests || "your registered contact"}. Valid ${res.expiryMinutes} min.${res.debugOtp ? ` (dev: ${res.debugOtp})` : ""}`);
+      setDefOtpInfo(`OTP sent to ${res.maskedEmail || "your registered email"}. Valid ${res.expiryMinutes} min.${res.debugOtp ? ` (dev: ${res.debugOtp})` : ""}`);
     } catch (e: any) {
       setErrorMessage(e?.response?.data?.message || "Could not send OTP. Please try again.");
     } finally { setDefSendingOtp(false); }

@@ -176,10 +176,6 @@ public class ProjectService : IProjectService
                       p.location AS Location,
                       aof.name AS AreaOfFocusName,
                       p.other_area_of_focus AS OtherAreaOfFocus,
-                      cat.name AS CategoryName,
-                      p.other_category AS OtherCategory,
-                      scat.name AS SubCategoryName,
-                      p.other_sub_category AS OtherSubCategory,
                       p.project_date AS ProjectDate,
                       p.project_cost AS ProjectCost,
                       p.Currency AS Currency,
@@ -189,12 +185,10 @@ public class ProjectService : IProjectService
                       p.attendance AS Attendance,
                       p.attendance_percentage AS AttendancePercentage,
                       p.is_active AS IsActive,
-                      p.approval_status AS ApprovalStatus,
-                      -- Authoritative flag columns are send_whatsapp / send_email (create/update set
-                      -- these). There is NO IsSendEmail column on the project table, so selecting it
+                      -- Authoritative flag column is send_email (create/update set
+                      -- it). There is NO IsSendEmail column on the project table, so selecting it
                       -- threw the Unknown-column error; use send_email instead.
-                      p.send_whatsapp AS IsSendWhatsapp, p.send_email AS IsSendEmail,
-                      p.WhatsAppSentDate AS WhatsAppSentDate, p.WhatsAppSentCount AS WhatsAppSentCount, p.WhatsAppFailedCount AS WhatsAppFailedCount,
+                      p.send_email AS IsSendEmail,
                       p.EmailSentDate AS EmailSentDate, p.EmailSentCount AS EmailSentCount, p.EmailFailedCount AS EmailFailedCount,
                       (SELECT CONCAT('/Documents/gallery/Group', p.fk_club_id, '/',
                                 CASE WHEN p.old_pk IS NOT NULL
@@ -211,8 +205,6 @@ public class ProjectService : IProjectService
                JOIN (SELECT DISTINCT pid FROM page) pg ON pg.pid = p.pk_project_id OR pg.pid = k.eff_parent
                LEFT JOIN rotary_year_master y ON p.fk_year_id = y.pk_year_id
                LEFT JOIN area_of_focus_master aof ON p.fk_area_of_focus_id = aof.pk_area_of_focus_id
-               LEFT JOIN category_master cat ON p.fk_category_id = cat.pk_category_id
-               LEFT JOIN sub_category_master scat ON p.fk_sub_category_id = scat.pk_sub_category_id
                LEFT JOIN funding_master f ON p.fk_funding_id = f.pk_funding_id
                WHERE p.fk_club_id = @ClubId
                  AND p.fk_module_id = @ModuleId
@@ -280,12 +272,6 @@ public class ProjectService : IProjectService
                       p.fk_area_of_focus_id AS AreaOfFocusId,
                       aof.name AS AreaOfFocusName,
                       p.other_area_of_focus AS OtherAreaOfFocus,
-                      p.fk_category_id AS CategoryId,
-                      cat.name AS CategoryName,
-                      p.other_category AS OtherCategory,
-                      p.fk_sub_category_id AS SubCategoryId,
-                      scat.name AS SubCategoryName,
-                      p.other_sub_category AS OtherSubCategory,
                       p.project_date AS ProjectDate,
                       p.project_cost AS ProjectCost,
                       p.Currency AS Currency,
@@ -296,7 +282,6 @@ public class ProjectService : IProjectService
                       p.rotarians_involved AS RotariansInvolved,
                       p.rotaractors_involved AS RotaractorsInvolved,
                       COALESCE(p.rcc_involved,0) AS RccInvolved,
-                      p.send_whatsapp AS SendWhatsapp,
                       p.send_email AS SendEmail,
                       p.meeting_type AS MeetingType,
                       p.agenda_document AS AgendaDocument,
@@ -314,8 +299,6 @@ public class ProjectService : IProjectService
                FROM `{info.ProjectsTable}` p
                LEFT JOIN rotary_year_master y ON p.fk_year_id = y.pk_year_id
                LEFT JOIN area_of_focus_master aof ON p.fk_area_of_focus_id = aof.pk_area_of_focus_id
-               LEFT JOIN category_master cat ON p.fk_category_id = cat.pk_category_id
-               LEFT JOIN sub_category_master scat ON p.fk_sub_category_id = scat.pk_sub_category_id
                LEFT JOIN funding_master f ON p.fk_funding_id = f.pk_funding_id
                WHERE p.pk_project_id = @Id AND p.fk_club_id = @ClubId AND p.isdeleted = 0;
 
@@ -364,10 +347,7 @@ public class ProjectService : IProjectService
         using var conn = CreateConnection();
         await conn.OpenAsync();
 
-        // Pre-check WhatsApp credits BEFORE insert
-        int memberCountForCheck = 0;
-
-        // Pre-check Email credits BEFORE insert (parity with WhatsApp; counts members with an email).
+        // Pre-check Email credits BEFORE insert (counts members with an email).
         if (dto.SendEmail && clubId > 0)
         {
             int emailMemberCount = await conn.ExecuteScalarAsync<int>(
@@ -411,11 +391,9 @@ public class ProjectService : IProjectService
                 ongoing_group_title, is_joint_project, co_host_name, club_role,
                 title, description, location,
                 fk_area_of_focus_id, other_area_of_focus,
-                fk_category_id, other_category,
-                fk_sub_category_id, other_sub_category,
                 project_date, project_cost, Currency, fk_funding_id,
                 direct_beneficiaries, man_hours, rotarians_involved, rotaractors_involved, rcc_involved,
-                send_whatsapp, send_email, meeting_type, agenda_document, minutes_document,
+                send_email, meeting_type, agenda_document, minutes_document,
                 attendance, attendance_percentage,
                 global_grant_number, amount_sanctioned, amount_received, amount_spent,
                 host_clubs_districts, global_partner_clubs_districts, csr_company_name,
@@ -425,11 +403,9 @@ public class ProjectService : IProjectService
                 @OngoingGroupTitle, @IsJointProject, @CoHostName, @ClubRole,
                 @Title, @Description, @Location,
                 @AreaOfFocusId, @OtherAreaOfFocus,
-                @CategoryId, @OtherCategory,
-                @SubCategoryId, @OtherSubCategory,
                 @ProjectDate, @ProjectCost, @Currency, @FundingId,
                 @DirectBeneficiaries, @ManHours, @RotariansInvolved, @RotaractorsInvolved, @RccInvolved,
-                @SendWhatsapp, @SendEmail, @MeetingType, @AgendaDocument, @MinutesDocument,
+                @SendEmail, @MeetingType, @AgendaDocument, @MinutesDocument,
                 @Attendance, @AttendancePercentage,
                 @GlobalGrantNumber, @AmountSanctioned, @AmountReceived, @AmountSpent,
                 @HostClubsDistricts, @GlobalPartnerClubsDistricts, @CsrCompanyName,
@@ -444,14 +420,12 @@ public class ProjectService : IProjectService
                 CoHostName = dto.CoHostName, ClubRole = dto.ClubRole,
                 Title = dto.Title, Description = dto.Description, Location = dto.Location,
                 AreaOfFocusId = dto.AreaOfFocusId, OtherAreaOfFocus = dto.OtherAreaOfFocus,
-                CategoryId = dto.CategoryId, OtherCategory = dto.OtherCategory,
-                SubCategoryId = dto.SubCategoryId, OtherSubCategory = dto.OtherSubCategory,
                 ProjectDate = dto.ProjectDate, ProjectCost = dto.ProjectCost,
                 Currency = CurrencyHelper.Normalize(dto.Currency), FundingId = dto.FundingId,
                 DirectBeneficiaries = dto.DirectBeneficiaries, ManHours = dto.ManHours,
                 RotariansInvolved = dto.RotariansInvolved, RotaractorsInvolved = dto.RotaractorsInvolved,
                 RccInvolved = dto.RccInvolved ?? 0,
-                SendWhatsapp = false, SendEmail = dto.SendEmail, MeetingType = dto.MeetingType,
+                SendEmail = dto.SendEmail, MeetingType = dto.MeetingType,
                 AgendaDocument = dto.AgendaDocument, MinutesDocument = dto.MinutesDocument,
                 Attendance = dto.Attendance, AttendancePercentage = dto.AttendancePercentage,
                 GlobalGrantNumber = ggNumber, AmountSanctioned = amtSanc,
@@ -501,20 +475,6 @@ public class ProjectService : IProjectService
             }
         }
 
-        // Moderator approval — pass yearId so approval flow can locate the project
-        // without doing a cross-year FindByProjectIdAsync scan (which races against
-        // the pooled connection's visibility of the just-INSERTed row).
-        try
-        {
-            using var approvalScope = _scopeFactory.CreateScope();
-            var approvalService = approvalScope.ServiceProvider.GetRequiredService<IProjectApprovalService>();
-            await approvalService.SetPendingApprovalAsync(projectId, clubId, dto.ModuleId, createdBy, yearId);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Failed to check/set moderator approval for project {ProjectId}", projectId);
-        }
-
         // Refresh District Awards auto-count: projects power the Club/Community
         // /Vocational/International/NewGen/PublicImage service-module counts.
         _citationRecalc.TriggerForClub(clubId);
@@ -550,28 +510,11 @@ public class ProjectService : IProjectService
         }
 
         var prior = await conn.QueryFirstOrDefaultAsync<dynamic>(
-            $@"SELECT fk_club_id, send_whatsapp FROM `{info.ProjectsTable}` WHERE pk_project_id = @Id AND isdeleted = 0",
+            $@"SELECT fk_club_id FROM `{info.ProjectsTable}` WHERE pk_project_id = @Id AND isdeleted = 0",
             new { Id = id });
         int clubIdForCheck = prior != null ? (int)prior.fk_club_id : 0;
-        bool shouldSend = false;
-        if (shouldSend && clubIdForCheck > 0)
-        {
-            int memberCountForCheck = await conn.ExecuteScalarAsync<int>(
-                @"SELECT COUNT(*) FROM club_members cm
-                  JOIN member_master_profile m ON m.pk_member_master_profile_id = cm.fk_member_master_profile_id
-                  WHERE cm.fk_club_id = @Id AND cm.IsActive = 1 AND cm.isdeleted = 0 AND m.isdeleted = 0
-                    AND m.PrimaryMobileNumber IS NOT NULL AND m.PrimaryMobileNumber <> ''",
-                new { Id = clubIdForCheck });
-            if (memberCountForCheck > 0)
-            {
-                using var preScope = _scopeFactory.CreateScope();
-                var creditSvc = preScope.ServiceProvider.GetRequiredService<ICreditManagementService>();
-                if (!await creditSvc.HasSufficientCreditsAsync(clubIdForCheck, "WhatsApp", memberCountForCheck))
-                    throw new InvalidOperationException($"Insufficient WhatsApp credits. Need {memberCountForCheck} credit(s). Please uncheck 'Send through WhatsApp' to save without WhatsApp notification, or purchase more credits.");
-            }
-        }
 
-        // Pre-check Email credits BEFORE update (parity with WhatsApp; counts members with an email).
+        // Pre-check Email credits BEFORE update (counts members with an email).
         if (dto.SendEmail && clubIdForCheck > 0)
         {
             int emailMemberCount = await conn.ExecuteScalarAsync<int>(
@@ -622,10 +565,6 @@ public class ProjectService : IProjectService
                 location = @Location,
                 fk_area_of_focus_id = @AreaOfFocusId,
                 other_area_of_focus = @OtherAreaOfFocus,
-                fk_category_id = @CategoryId,
-                other_category = @OtherCategory,
-                fk_sub_category_id = @SubCategoryId,
-                other_sub_category = @OtherSubCategory,
                 project_date = @ProjectDate,
                 project_cost = @ProjectCost,
                 Currency = COALESCE(@Currency, Currency),
@@ -635,7 +574,6 @@ public class ProjectService : IProjectService
                 rotarians_involved = @RotariansInvolved,
                 rotaractors_involved = @RotaractorsInvolved,
                 rcc_involved = @RccInvolved,
-                send_whatsapp = @SendWhatsapp,
                 send_email = @SendEmail,
                 meeting_type = @MeetingType,
                 agenda_document = @AgendaDocument,
@@ -659,14 +597,12 @@ public class ProjectService : IProjectService
                 CoHostName = dto.CoHostName, ClubRole = dto.ClubRole,
                 Title = dto.Title, Description = dto.Description, Location = dto.Location,
                 AreaOfFocusId = dto.AreaOfFocusId, OtherAreaOfFocus = dto.OtherAreaOfFocus,
-                CategoryId = dto.CategoryId, OtherCategory = dto.OtherCategory,
-                SubCategoryId = dto.SubCategoryId, OtherSubCategory = dto.OtherSubCategory,
                 ProjectDate = dto.ProjectDate, ProjectCost = dto.ProjectCost,
                 Currency = currencyToSet, FundingId = dto.FundingId,
                 DirectBeneficiaries = dto.DirectBeneficiaries, ManHours = dto.ManHours,
                 RotariansInvolved = dto.RotariansInvolved, RotaractorsInvolved = dto.RotaractorsInvolved,
                 RccInvolved = dto.RccInvolved ?? 0,
-                SendWhatsapp = false, SendEmail = dto.SendEmail, MeetingType = dto.MeetingType,
+                SendEmail = dto.SendEmail, MeetingType = dto.MeetingType,
                 AgendaDocument = dto.AgendaDocument, MinutesDocument = dto.MinutesDocument,
                 Attendance = dto.Attendance, AttendancePercentage = dto.AttendancePercentage,
                 GlobalGrantNumber = ggNumber, AmountSanctioned = amtSanc,
@@ -675,15 +611,9 @@ public class ProjectService : IProjectService
                 CsrCompanyName = csrCo, ModifiedBy = modifiedBy
             });
 
-        // Send-after-edit: the existing "Send through WhatsApp / Email" checkboxes are the control.
-        // If a box is (still) checked on save, clear its sent-stamp so the scheduler re-notifies with
-        // the updated project. Leaving a box UNchecked sends nothing (flag=0) — that already worked.
-        // Projects have no publish date, so a checked edit re-sends on the next scheduler run (WhatsApp
-        // still respects approval). Credits were pre-checked above and are deducted at send time.
-        if (false)
-            await conn.ExecuteAsync(
-                $"UPDATE `{info.ProjectsTable}` SET WhatsAppSentDate = NULL, WhatsAppSentCount = 0, WhatsAppFailedCount = 0 WHERE pk_project_id = @Id AND isdeleted = 0",
-                new { Id = id });
+        // Send-after-edit: the "Send through Email" box is the control. If it is still checked on save,
+        // clear the sent-stamp so the scheduler re-notifies with the updated project. Credits were
+        // pre-checked above and are deducted at send time.
         if (dto.SendEmail)
             await conn.ExecuteAsync(
                 $"UPDATE `{info.ProjectsTable}` SET EmailSentDate = NULL, EmailSentCount = 0, EmailFailedCount = 0 WHERE pk_project_id = @Id AND isdeleted = 0",
@@ -714,25 +644,6 @@ public class ProjectService : IProjectService
                         Description = photo.Description, IsPrimary = photo.IsPrimary, SortOrder = photo.SortOrder
                     });
             }
-        }
-
-        try
-        {
-            var projectInfo = await conn.QueryFirstOrDefaultAsync<dynamic>(
-                $"SELECT fk_club_id, fk_module_id FROM `{info.ProjectsTable}` WHERE pk_project_id = @Id",
-                new { Id = id });
-            if (projectInfo != null)
-            {
-                using var approvalScope = _scopeFactory.CreateScope();
-                var approvalService = approvalScope.ServiceProvider.GetRequiredService<IProjectApprovalService>();
-                // Pass yearId so SetPendingApprovalAsync skips the cross-year scan
-                // (same hardening as CreateAsync — see IProjectApprovalService.cs).
-                await approvalService.SetPendingApprovalAsync(id, (int)projectInfo.fk_club_id, (int)projectInfo.fk_module_id, modifiedBy, yearId);
-            }
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Failed to re-check moderator approval on project update {ProjectId}", id);
         }
 
         // Refresh District Awards count for the project's club after update.
@@ -801,33 +712,27 @@ public class ProjectService : IProjectService
                     fk_club_id, fk_district_id, fk_module_id, fk_year_id, DistrictProjectType,
                     project_type, parent_project_id, ongoing_group_title, is_joint_project,
                     co_host_name, club_role, title, description, location,
-                    fk_area_of_focus_id, other_area_of_focus, fk_category_id, other_category,
-                    fk_sub_category_id, other_sub_category, project_date, project_cost, Currency, fk_funding_id,
+                    fk_area_of_focus_id, other_area_of_focus, project_date, project_cost, Currency, fk_funding_id,
                     direct_beneficiaries, man_hours, rotarians_involved, rotaractors_involved, rcc_involved,
-                    send_whatsapp, send_email, meeting_type, agenda_document, minutes_document,
+                    send_email, meeting_type, agenda_document, minutes_document,
                     attendance, attendance_percentage, global_grant_number,
                     amount_sanctioned, amount_received, amount_spent,
                     host_clubs_districts, global_partner_clubs_districts, csr_company_name,
-                    IsSendWhatsapp, WhatsAppSentDate, WhatsAppSentCount, WhatsAppFailedCount,
                     EmailSentDate, EmailSentCount, EmailFailedCount,
                     PushNotificationSent, PushNotificationSentAt,
-                    approval_status, approval_remark, approved_by, approval_date, approval_token,
                     is_active, created_by, created_date, modified_by, old_pk)
                 SELECT
                     fk_club_id, fk_district_id, fk_module_id, @ToYearId, DistrictProjectType,
                     @ProjectType, @ParentProjectId, @OngoingGroupTitle, @IsJointProject,
                     @CoHostName, @ClubRole, @Title, @Description, @Location,
-                    @AreaOfFocusId, @OtherAreaOfFocus, @CategoryId, @OtherCategory,
-                    @SubCategoryId, @OtherSubCategory, @ProjectDate, @ProjectCost, Currency, @FundingId,
+                    @AreaOfFocusId, @OtherAreaOfFocus, @ProjectDate, @ProjectCost, Currency, @FundingId,
                     @DirectBeneficiaries, @ManHours, @RotariansInvolved, @RotaractorsInvolved, @RccInvolved,
-                    @SendWhatsapp, @SendEmail, @MeetingType, @AgendaDocument, @MinutesDocument,
+                    @SendEmail, @MeetingType, @AgendaDocument, @MinutesDocument,
                     @Attendance, @AttendancePercentage, @GlobalGrantNumber,
                     @AmountSanctioned, @AmountReceived, @AmountSpent,
                     @HostClubsDistricts, @GlobalPartnerClubsDistricts, @CsrCompanyName,
-                    IsSendWhatsapp, WhatsAppSentDate, WhatsAppSentCount, WhatsAppFailedCount,
                     EmailSentDate, EmailSentCount, EmailFailedCount,
                     PushNotificationSent, PushNotificationSentAt,
-                    approval_status, approval_remark, approved_by, approval_date, approval_token,
                     is_active, created_by, created_date, @ModifiedBy, old_pk
                 FROM `{srcInfo.ProjectsTable}` WHERE pk_project_id = @Id AND isdeleted = 0;
                 SELECT LAST_INSERT_ID();",
@@ -839,13 +744,11 @@ public class ProjectService : IProjectService
                     CoHostName = dto.CoHostName, ClubRole = dto.ClubRole,
                     Title = dto.Title, Description = dto.Description, Location = dto.Location,
                     AreaOfFocusId = dto.AreaOfFocusId, OtherAreaOfFocus = dto.OtherAreaOfFocus,
-                    CategoryId = dto.CategoryId, OtherCategory = dto.OtherCategory,
-                    SubCategoryId = dto.SubCategoryId, OtherSubCategory = dto.OtherSubCategory,
                     ProjectDate = dto.ProjectDate, ProjectCost = dto.ProjectCost, FundingId = dto.FundingId,
                     DirectBeneficiaries = dto.DirectBeneficiaries, ManHours = dto.ManHours,
                     RotariansInvolved = dto.RotariansInvolved, RotaractorsInvolved = dto.RotaractorsInvolved,
                     RccInvolved = dto.RccInvolved ?? 0,
-                    SendWhatsapp = false, SendEmail = dto.SendEmail, MeetingType = dto.MeetingType,
+                    SendEmail = dto.SendEmail, MeetingType = dto.MeetingType,
                     AgendaDocument = dto.AgendaDocument, MinutesDocument = dto.MinutesDocument,
                     Attendance = dto.Attendance, AttendancePercentage = dto.AttendancePercentage,
                     GlobalGrantNumber = ggNumber, AmountSanctioned = amtSanc,
@@ -1104,7 +1007,6 @@ public class ProjectService : IProjectService
                       p.location AS Location,
                       p.project_date AS ProjectDate,
                       aof.name AS AreaOfFocusName,
-                      cat.name AS CategoryName,
                       p.direct_beneficiaries AS DirectBeneficiaries,
                       (SELECT CONCAT('/Documents/gallery/Group', p.fk_club_id, '/',
                                 CASE WHEN p.old_pk IS NOT NULL
@@ -1116,7 +1018,6 @@ public class ProjectService : IProjectService
                        WHERE pp.fk_project_id = p.pk_project_id AND pp.is_primary = 1 LIMIT 1) AS PrimaryPhotoPath
                FROM `{info.ProjectsTable}` p
                LEFT JOIN area_of_focus_master aof ON p.fk_area_of_focus_id = aof.pk_area_of_focus_id
-               LEFT JOIN category_master cat ON p.fk_category_id = cat.pk_category_id
                WHERE p.fk_club_id = @ClubId AND p.fk_module_id = @ModuleId AND p.isdeleted = 0
                ORDER BY p.project_date DESC, p.pk_project_id DESC
                LIMIT @Offset, @PageSize;

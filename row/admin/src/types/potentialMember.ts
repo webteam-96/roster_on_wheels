@@ -5,6 +5,14 @@ export interface PotentialMember {
   email: string | null;
   mobileNumber: string | null;
   referenceDetails: string | null;
+  // Prospect pipeline (N3, feature contacts_growth)
+  stage: string;
+  ownerMemberId: number | null;
+  ownerName: string | null;
+  notes: string | null;
+  source: string;
+  convertedMemberId: number | null;
+  createdDate: string | null;
 }
 
 export interface CreatePotentialMemberRequest {
@@ -12,6 +20,9 @@ export interface CreatePotentialMemberRequest {
   email?: string | null;
   mobileNumber?: string | null;
   referenceDetails?: string | null;
+  stage?: string | null;
+  ownerMemberId?: number | null;
+  notes?: string | null;
 }
 
 export interface UpdatePotentialMemberRequest {
@@ -19,4 +30,7 @@ export interface UpdatePotentialMemberRequest {
   email?: string | null;
   mobileNumber?: string | null;
   referenceDetails?: string | null;
+  stage?: string | null;
+  ownerMemberId?: number | null;
+  notes?: string | null;
 }

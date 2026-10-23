@@ -26,7 +26,7 @@ import {
   rejectPrivacyRequest,
   requestMemberErasure,
   requestMemberExport,
-  searchMembersForModerator,
+  searchDistrictCommitteeMembers,
 } from "@/services/api";
 import type { PrivacyRequest, PrivacyRequestKind, PrivacyRequestStatus } from "@/types/privacy";
 
@@ -93,7 +93,7 @@ function NewRequestDialog({
     setSearching(true);
     timer.current = setTimeout(async () => {
       try {
-        setHits(await searchMembersForModerator(districtId, value.trim()));
+        setHits(await searchDistrictCommitteeMembers(districtId, value.trim()));
       } catch {
         setHits([]);
       } finally {

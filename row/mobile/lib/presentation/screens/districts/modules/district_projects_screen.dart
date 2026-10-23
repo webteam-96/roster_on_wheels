@@ -31,8 +31,8 @@ import '../../../widgets/detail/detail_hero_layout.dart';
 // Form constants — mirror the web district-project add page exactly.
 // ---------------------------------------------------------------------------
 
-/// Sentinel id used to represent the "Others" option in AoF/Category/Sub-
-/// Category dropdowns. Matches the convention used in the club projects screen
+/// Sentinel id used to represent the "Others" option in the AoF dropdown.
+/// Matches the convention used in the club projects screen
 /// (`_kOthersSentinel`). When this is selected the corresponding `other…` text
 /// field becomes visible and required.
 const int _kOthersSentinel = -999;
@@ -54,7 +54,7 @@ const int _kPhotoDescMaxChars = 500;
 const Set<String> _kAllowedPhotoExts = {'jpg', 'jpeg', 'png', 'gif', 'webp'};
 const int _kPhotoMaxBytes = 10 * 1024 * 1024;
 
-/// Single dropdown entry used for AoF, Category, Sub-Category, Funding.
+/// Single dropdown entry used for AoF and Funding.
 class _DropdownItem {
   final int id;
   final String name;
@@ -105,10 +105,9 @@ class _Project {
   final int? manHours;
   final int? rotariansInvolved;
   final int? rotaractorsInvolved;
-  // List endpoint returns these (names, not ids) — used to recover the
-  // dropdown selections by name when the detail endpoint is unavailable.
+  // List endpoint returns this (a name, not an id) — used to recover the
+  // dropdown selection by name when the detail endpoint is unavailable.
   final String? areaOfFocusName;
-  final String? categoryName;
   final String? primaryPhoto;
   final bool isJointProject;
   final String? coHostName;
@@ -131,7 +130,6 @@ class _Project {
     this.rotariansInvolved,
     this.rotaractorsInvolved,
     this.areaOfFocusName,
-    this.categoryName,
     this.primaryPhoto,
     this.isJointProject = false,
     this.coHostName,
@@ -152,7 +150,6 @@ class _Project {
         rotariansInvolved: (j['rotariansInvolved'] as num?)?.toInt(),
         rotaractorsInvolved: (j['rotaractorsInvolved'] as num?)?.toInt(),
         areaOfFocusName: j['areaOfFocusName'] as String?,
-        categoryName: j['categoryName'] as String?,
         primaryPhoto: j['primaryPhoto'] as String?,
         isJointProject: j['isJointProject'] as bool? ?? false,
         coHostName: j['coHostName'] as String?,
@@ -758,10 +755,9 @@ class _InfoChip extends StatelessWidget {
 
 // ---------------------------------------------------------------------------
 // Form Page — mirrors web /districts/{id}/projects/add page exactly.
-// 14 fields: Title*, Description, Location, AoF*, Category*, Sub-Category,
-// Date*, Project Cost, Funding, Direct Beneficiaries, Man Hours, Rotarians
-// Involved, Rotaractors Involved, Photos* (≥1, ≤5, format + size + dimension
-// validated per spec).
+// 12 fields: Title*, Description, Location, AoF*, Date*, Project Cost,
+// Funding, Direct Beneficiaries, Man Hours, Rotarians Involved, Rotaractors
+// Involved, Photos* (≥1, ≤5, format + size + dimension validated per spec).
 // ---------------------------------------------------------------------------
 class _ProjectFormPage extends StatefulWidget {
   final int districtId;
@@ -787,8 +783,6 @@ class _ProjectFormPageState extends State<_ProjectFormPage> {
   final _descCtrl = TextEditingController();
   final _locationCtrl = TextEditingController();
   final _otherAofCtrl = TextEditingController();
-  final _otherCategoryCtrl = TextEditingController();
-  final _otherSubCategoryCtrl = TextEditingController();
   final _costCtrl = TextEditingController();
   final _beneficiariesCtrl = TextEditingController();
   final _manHoursCtrl = TextEditingController();
@@ -810,19 +804,13 @@ class _ProjectFormPageState extends State<_ProjectFormPage> {
 
   // Lookups
   List<_DropdownItem> _areasOfFocus = const [];
-  List<_DropdownItem> _categories = const [];
-  List<_DropdownItem> _subCategories = const [];
   List<_DropdownItem> _fundings = const [];
 
   int? _aofId;
-  int? _categoryId;
-  int? _subCategoryId;
   int? _fundingId;
   int? _moduleId; // community_service module id, resolved on init
 
   bool get _isOthersAof => _aofId == _kOthersSentinel;
-  bool get _isOthersCategory => _categoryId == _kOthersSentinel;
-  bool get _isOthersSubCategory => _subCategoryId == _kOthersSentinel;
 
   // ── Funding classification (mirrors backend ClassifyFunding + web) ──────────
   String _classifyFunding(String? name) {
@@ -910,11 +898,11 @@ class _ProjectFormPageState extends State<_ProjectFormPage> {
     _rotaractorsCtrl.text = _numToCtrl(e.rotaractorsInvolved);
   }
 
-  /// Recover the Area-of-Focus + Category dropdown selections (by name) and the
-  /// primary photo from the list row. This is the fallback that keeps edit
-  /// usable when the detail endpoint (`/districts/{id}/projects/{id}`) 404s —
-  /// the list only gives names + the primary photo, not ids, so we match names
-  /// against the loaded masters to derive the ids.
+  /// Recover the Area-of-Focus dropdown selection (by name) and the primary
+  /// photo from the list row. This is the fallback that keeps edit usable when
+  /// the detail endpoint (`/districts/{id}/projects/{id}`) 404s — the list only
+  /// gives names + the primary photo, not ids, so we match names against the
+  /// loaded masters to derive the ids.
   Future<void> _recoverFromListRow() async {
     final e = widget.existing!;
     final aofName = e.areaOfFocusName?.trim().toLowerCase();
@@ -922,17 +910,7 @@ class _ProjectFormPageState extends State<_ProjectFormPage> {
       final match = _areasOfFocus
           .where((a) => a.name.trim().toLowerCase() == aofName)
           .toList();
-      if (match.isNotEmpty) {
-        _aofId = match.first.id;
-        await _loadCategories(_aofId!);
-        final catName = e.categoryName?.trim().toLowerCase();
-        if (catName != null && catName.isNotEmpty) {
-          final cm = _categories
-              .where((c) => c.name.trim().toLowerCase() == catName)
-              .toList();
-          if (cm.isNotEmpty) _categoryId = cm.first.id;
-        }
-      }
+      if (match.isNotEmpty) _aofId = match.first.id;
     }
     final photo = e.primaryPhoto?.trim();
     if (photo != null && photo.isNotEmpty && _photos.isEmpty) {
@@ -1008,60 +986,8 @@ class _ProjectFormPageState extends State<_ProjectFormPage> {
     } catch (_) {}
   }
 
-  Future<void> _loadCategories(int aofId) async {
-    if (aofId == _kOthersSentinel) {
-      setState(() {
-        _categories = const [];
-        _categoryId = null;
-        _subCategories = const [];
-        _subCategoryId = null;
-      });
-      return;
-    }
-    try {
-      final resp = await _api.get<List<dynamic>>(
-        '/api/categories',
-        queryParams: {'areaOfFocusId': aofId},
-        fromJson: (j) => j as List<dynamic>,
-      );
-      if (!mounted) return;
-      setState(() {
-        _categories = _usableOptions((resp.data ?? const [])
-            .whereType<Map<String, dynamic>>()
-            .map(_DropdownItem.fromJson)
-            .toList());
-      });
-    } catch (_) {}
-  }
-
-  Future<void> _loadSubCategories(int categoryId) async {
-    if (categoryId == _kOthersSentinel) {
-      setState(() {
-        _subCategories = const [];
-        _subCategoryId = null;
-      });
-      return;
-    }
-    try {
-      final resp = await _api.get<List<dynamic>>(
-        '/api/sub-categories',
-        queryParams: {'categoryId': categoryId},
-        fromJson: (j) => j as List<dynamic>,
-      );
-      if (!mounted) return;
-      setState(() {
-        _subCategories = _usableOptions((resp.data ?? const [])
-            .whereType<Map<String, dynamic>>()
-            .map(_DropdownItem.fromJson)
-            .toList());
-      });
-    } catch (_) {}
-  }
-
   /// Hydrate every form field from `/api/districts/{id}/projects/{projectId}`
-  /// — this is the only place we read the full project record. Cascades the
-  /// AoF → Category → Sub-Category loads in sequence so the existing
-  /// selections are present in their respective dropdowns when applied.
+  /// — this is the only place we read the full project record.
   Future<void> _hydrateFromExisting() async {
     // No year → can't hit the year-scoped detail route; the list-row recovery
     // (already run in _bootstrap) keeps the form populated.
@@ -1096,30 +1022,6 @@ class _ProjectFormPageState extends State<_ProjectFormPage> {
       } else if (otherAof.isNotEmpty) {
         _aofId = _kOthersSentinel;
         _otherAofCtrl.text = otherAof;
-      }
-      if (_aofId != null && _aofId != _kOthersSentinel) {
-        await _loadCategories(_aofId!);
-      }
-
-      final catId = (d['categoryId'] as num?)?.toInt();
-      final otherCat = (d['otherCategory'] ?? '').toString();
-      if (catId != null && _categories.any((c) => c.id == catId)) {
-        _categoryId = catId;
-      } else if (otherCat.isNotEmpty) {
-        _categoryId = _kOthersSentinel;
-        _otherCategoryCtrl.text = otherCat;
-      }
-      if (_categoryId != null && _categoryId != _kOthersSentinel) {
-        await _loadSubCategories(_categoryId!);
-      }
-
-      final subId = (d['subCategoryId'] as num?)?.toInt();
-      final otherSub = (d['otherSubCategory'] ?? '').toString();
-      if (subId != null && _subCategories.any((s) => s.id == subId)) {
-        _subCategoryId = subId;
-      } else if (otherSub.isNotEmpty) {
-        _subCategoryId = _kOthersSentinel;
-        _otherSubCategoryCtrl.text = otherSub;
       }
 
       final fundingId = (d['fundingId'] as num?)?.toInt();
@@ -1166,8 +1068,8 @@ class _ProjectFormPageState extends State<_ProjectFormPage> {
     } catch (e) {
       // The scalar fields are already seeded from the list row, so the form is
       // never blank. A 404 here just means the detail endpoint can't find this
-      // project record (a data quirk for some rows) — the focus area / category
-      // / funding dropdowns and full photo list can't be enriched, but the form
+      // project record (a data quirk for some rows) — the focus area / funding
+      // dropdowns and full photo list can't be enriched, but the form
       // stays usable, so show a soft note rather than a red error. Any other
       // failure (500/network) is a real problem and is shown in red.
       if (mounted) {
@@ -1175,7 +1077,7 @@ class _ProjectFormPageState extends State<_ProjectFormPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(is404
-                ? 'Loaded from summary. Check funding, sub-category and photos before saving.'
+                ? 'Loaded from summary. Check funding and photos before saving.'
                 : (e is ApiException ? e.message : 'Could not load full project details.')),
             backgroundColor: is404 ? Colors.grey.shade800 : AppColors.error,
           ),
@@ -1301,8 +1203,6 @@ class _ProjectFormPageState extends State<_ProjectFormPage> {
       _descCtrl,
       _locationCtrl,
       _otherAofCtrl,
-      _otherCategoryCtrl,
-      _otherSubCategoryCtrl,
       _costCtrl,
       _beneficiariesCtrl,
       _manHoursCtrl,
@@ -1359,13 +1259,6 @@ class _ProjectFormPageState extends State<_ProjectFormPage> {
       'location': _locationCtrl.text.trim().isEmpty ? null : _locationCtrl.text.trim(),
       'areaOfFocusId': _isOthersAof ? null : _aofId,
       'otherAreaOfFocus': _isOthersAof ? _otherAofCtrl.text.trim() : null,
-      'categoryId': _isOthersAof ? null : (_isOthersCategory ? null : _categoryId),
-      'otherCategory': _isOthersCategory ? _otherCategoryCtrl.text.trim() : null,
-      'subCategoryId': _isOthersAof || _isOthersCategory
-          ? null
-          : (_isOthersSubCategory ? null : _subCategoryId),
-      'otherSubCategory':
-          _isOthersSubCategory ? _otherSubCategoryCtrl.text.trim() : null,
       'projectDate': _isoFmt.format(_projectDate!),
       'projectCost': _parseNum(_costCtrl.text),
       'fundingId': _fundingId,
@@ -1481,15 +1374,6 @@ class _ProjectFormPageState extends State<_ProjectFormPage> {
     if (_isOthersAof && _otherAofCtrl.text.trim().isEmpty) {
       return 'Please specify the Area of Focus.';
     }
-    if (!_isOthersAof && _categoryId == null) {
-      return 'Category is required.';
-    }
-    if (_isOthersCategory && _otherCategoryCtrl.text.trim().isEmpty) {
-      return 'Please specify the Category.';
-    }
-    if (_isOthersSubCategory && _otherSubCategoryCtrl.text.trim().isEmpty) {
-      return 'Please specify the Sub Category.';
-    }
     if (_showGlobalGrant) {
       if (_ggNumberCtrl.text.trim().isEmpty) return 'Global Grant Number is required for Global Grant.';
       if (_amtSanctionedCtrl.text.trim().isEmpty) return 'Amount Sanctioned is required for Global Grant.';
@@ -1564,26 +1448,6 @@ class _ProjectFormPageState extends State<_ProjectFormPage> {
                         label: 'Specify Area of Focus *',
                         controller: _otherAofCtrl,
                         hint: 'Enter area of focus',
-                      ),
-                    ],
-                    const SizedBox(height: 16),
-                    _buildCategoryDropdown(),
-                    if (_isOthersCategory) ...[
-                      const SizedBox(height: 8),
-                      CustomTextField(
-                        label: 'Specify Category *',
-                        controller: _otherCategoryCtrl,
-                        hint: 'Enter category',
-                      ),
-                    ],
-                    const SizedBox(height: 16),
-                    _buildSubCategoryDropdown(),
-                    if (_isOthersSubCategory) ...[
-                      const SizedBox(height: 8),
-                      CustomTextField(
-                        label: 'Specify Sub Category',
-                        controller: _otherSubCategoryCtrl,
-                        hint: 'Enter sub category',
                       ),
                     ],
                     const SizedBox(height: 16),
@@ -1803,70 +1667,10 @@ class _ProjectFormPageState extends State<_ProjectFormPage> {
       label: 'Area of Focus *',
       value: _aofId,
       items: items,
-      onChanged: (v) async {
-        setState(() {
-          _aofId = v;
-          _categoryId = null;
-          _subCategoryId = null;
-          _categories = const [];
-          _subCategories = const [];
-          if (!_isOthersAof) _otherAofCtrl.clear();
-          _otherCategoryCtrl.clear();
-          _otherSubCategoryCtrl.clear();
-        });
-        if (v != null) await _loadCategories(v);
-      },
-    );
-  }
-
-  Widget _buildCategoryDropdown() {
-    final disabled = _isOthersAof || _aofId == null;
-    final items = <DropdownMenuItem<int>>[
-      for (final c in _categories)
-        DropdownMenuItem(value: c.id, child: Text(c.name)),
-      const DropdownMenuItem(value: _kOthersSentinel, child: Text('Others')),
-    ];
-    return _labeledDropdown(
-      label: 'Category *',
-      value: disabled ? null : _categoryId,
-      items: items,
-      onChanged: disabled
-          ? null
-          : (v) async {
-              setState(() {
-                _categoryId = v;
-                _subCategoryId = null;
-                _subCategories = const [];
-                if (!_isOthersCategory) _otherCategoryCtrl.clear();
-                _otherSubCategoryCtrl.clear();
-              });
-              if (v != null) await _loadSubCategories(v);
-            },
-      placeholder: disabled ? 'N/A' : 'Select',
-    );
-  }
-
-  Widget _buildSubCategoryDropdown() {
-    final disabled =
-        _isOthersAof || _isOthersCategory || _categoryId == null;
-    final items = <DropdownMenuItem<int>>[
-      for (final s in _subCategories)
-        DropdownMenuItem(value: s.id, child: Text(s.name)),
-      const DropdownMenuItem(value: _kOthersSentinel, child: Text('Others')),
-    ];
-    return _labeledDropdown(
-      label: 'Sub Category',
-      value: disabled ? null : _subCategoryId,
-      items: items,
-      onChanged: disabled
-          ? null
-          : (v) {
-              setState(() {
-                _subCategoryId = v;
-                if (!_isOthersSubCategory) _otherSubCategoryCtrl.clear();
-              });
-            },
-      placeholder: disabled ? 'N/A' : 'Select',
+      onChanged: (v) => setState(() {
+        _aofId = v;
+        if (!_isOthersAof) _otherAofCtrl.clear();
+      }),
     );
   }
 
@@ -1948,7 +1752,6 @@ class _ProjectFormPageState extends State<_ProjectFormPage> {
     required int? value,
     required List<DropdownMenuItem<int>> items,
     required ValueChanged<int?>? onChanged,
-    String placeholder = 'Select',
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -1963,7 +1766,7 @@ class _ProjectFormPageState extends State<_ProjectFormPage> {
                 EdgeInsets.symmetric(horizontal: 14, vertical: 12),
           ),
           hint: Text(
-            placeholder,
+            'Select',
             style: AppTextStyles.body.copyWith(color: AppColors.textMuted),
           ),
           items: items,
@@ -2302,7 +2105,6 @@ class _ProjectDetailScreenState extends State<_ProjectDetailScreen> {
       'rotariansInvolved': fb.rotariansInvolved,
       'rotaractorsInvolved': fb.rotaractorsInvolved,
       'areaOfFocusName': fb.areaOfFocusName,
-      'categoryName': fb.categoryName,
       'isJointProject': fb.isJointProject,
       'coHostName': fb.coHostName,
       ..._project, // detail overrides the seed once loaded
@@ -2341,9 +2143,6 @@ class _ProjectDetailScreenState extends State<_ProjectDetailScreen> {
         final aof = _text(p['areaOfFocusName']) ??
             _text(p['areaOfFocus']) ??
             _text(p['otherAreaOfFocus']);
-        final category = _text(p['categoryName']) ?? _text(p['otherCategory']);
-        final subCategory =
-            _text(p['subCategoryName']) ?? _text(p['otherSubCategory']);
         final funding = _text(p['fundingName']);
         final grantNo = _text(p['globalGrantNumber']);
         final amtSanctioned = _money(p['amountSanctioned'], symbol: sym);
@@ -2378,7 +2177,6 @@ class _ProjectDetailScreenState extends State<_ProjectDetailScreen> {
           if (location != null)
             detailInfoChip(Icons.location_on_outlined, location),
           if (aof != null) detailInfoChip(Icons.track_changes_outlined, aof),
-          if (category != null) detailInfoChip(Icons.category_outlined, category),
         ];
 
         return ListView(
@@ -2399,8 +2197,6 @@ class _ProjectDetailScreenState extends State<_ProjectDetailScreen> {
                     DetailKV('Joint Project', isJoint ? 'Yes' : null),
                     DetailKV('Co-Host', isJoint ? coHost : null),
                     DetailKV('Area of Focus', aof),
-                    DetailKV('Category', category),
-                    DetailKV('Sub-Category', subCategory),
                     DetailKV('Project Cost', cost),
                     DetailKV('Funding', funding),
                     DetailKV('Global Grant Number', grantNo),

@@ -56,7 +56,7 @@ export interface DashboardShellProps {
   pageTitle: string;
   pageSubtitle?: ReactNode;
   variant?: "icon" | "dot";
-  switcherKind?: "ag" | "club-admin" | "district-admin" | "club-moderator";
+  switcherKind?: "ag" | "club-admin" | "district-admin";
   /** Optional element rendered between the page title (left) and the scope
    *  picker (right) in the topbar. Used by Club Admin Dashboard to host the
    *  global Rotary-year selector — kept generic so other dashboards can

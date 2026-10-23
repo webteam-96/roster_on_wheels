@@ -10,6 +10,7 @@ public class ClubMassEmailService : IClubMassEmailService
     private readonly IEmailService _emailService;
     private readonly IServiceScopeFactory _scopeFactory;
     private readonly ICreditManagementService _creditService;
+    private readonly CommsService _comms;
     private readonly ILogger<ClubMassEmailService> _logger;
 
     public ClubMassEmailService(
@@ -17,16 +18,38 @@ public class ClubMassEmailService : IClubMassEmailService
         IEmailService emailService,
         IServiceScopeFactory scopeFactory,
         ICreditManagementService creditService,
+        CommsService comms,
         ILogger<ClubMassEmailService> logger)
     {
         _connectionString = configuration.GetConnectionString("DefaultConnection")!;
         _emailService = emailService;
         _scopeFactory = scopeFactory;
         _creditService = creditService;
+        _comms = comms;
         _logger = logger;
     }
 
     private MySqlConnection CreateConnection() => new(_connectionString);
+
+    private static readonly System.Text.RegularExpressions.Regex TemplateKeyFormat = new(@"^[a-z0-9][a-z0-9_-]{0,49}$");
+
+    /// <summary>N5: the optional template key whose language versions a send uses; null when blank.</summary>
+    private static string? TemplateKeyOf(CreateMassEmailDto dto)
+    {
+        var key = string.IsNullOrWhiteSpace(dto.TemplateKey) ? null : dto.TemplateKey.Trim().ToLowerInvariant();
+        if (key != null && !TemplateKeyFormat.IsMatch(key)) throw new InvalidOperationException("Unknown template key.");
+        return key;
+    }
+
+    /// <summary>True when the campaign belongs to this club (clubId) or district (districtId); guards every id route.</summary>
+    public async Task<bool> BelongsToAsync(int id, int? clubId, int? districtId)
+    {
+        using var connection = CreateConnection();
+        return await connection.ExecuteScalarAsync<int>(clubId.HasValue
+            ? "SELECT COUNT(*) FROM club_mass_emails WHERE pk_mass_email_id = @Id AND fk_club_id = @ClubId AND fk_club_id > 0 AND isdeleted = 0"
+            : "SELECT COUNT(*) FROM club_mass_emails WHERE pk_mass_email_id = @Id AND fk_club_id = 0 AND fk_district_id = @DistrictId AND isdeleted = 0",
+            new { Id = id, ClubId = clubId, DistrictId = districtId }) > 0;
+    }
 
     public async Task<(List<MassEmailListDto> Items, int TotalCount)> GetListAsync(
         int clubId, string? status, string? search, int page, int pageSize, int? districtId = null)
@@ -76,10 +99,10 @@ public class ClubMassEmailService : IClubMassEmailService
 
         var detail = await connection.QueryFirstOrDefaultAsync<MassEmailDetailDto>(
             @"SELECT me.pk_mass_email_id AS Id, me.fk_club_id AS FkClubId, me.RecipientType,
-                     me.fk_subgroup_id AS FkSubgroupId, sg.GroupName AS SubgroupName,
+                     me.fk_subgroup_id AS FkSubgroupId, sg.GroupName AS SubgroupName, me.ContactGroupIds AS ContactGroupIdsCsv,
                      me.FromName, me.ReplyName, me.ReplyEmail, me.Subject, me.EmailBody,
                      me.Status, me.TotalRecipients, me.SentCount, me.FailedCount,
-                     me.SentDate, me.created_date AS CreatedDate
+                     me.SentDate, me.created_date AS CreatedDate, me.TemplateKey
               FROM club_mass_emails me
               LEFT JOIN sub_groups sg ON sg.pk_sub_group_id = me.fk_subgroup_id
               WHERE me.pk_mass_email_id = @Id AND me.isdeleted = 0",
@@ -107,11 +130,11 @@ public class ClubMassEmailService : IClubMassEmailService
         var status = dto.SaveAsDraft ? "Draft" : "Draft"; // Always start as draft, send is separate
 
         var emailId = await connection.ExecuteScalarAsync<int>(
-            @"INSERT INTO club_mass_emails (fk_club_id, fk_district_id, RecipientType, fk_subgroup_id, FromName,
-                  ReplyName, ReplyEmail, Subject, EmailBody, Status, TotalRecipients,
+            @"INSERT INTO club_mass_emails (fk_club_id, fk_district_id, RecipientType, fk_subgroup_id, ContactGroupIds, FromName,
+                  ReplyName, ReplyEmail, Subject, EmailBody, Status, TotalRecipients, TemplateKey,
                   created_by, created_date, isdeleted)
-              VALUES (@ClubId, @DistrictId, @RecipientType, @SubgroupId, @FromName,
-                  @ReplyName, @ReplyEmail, @Subject, @EmailBody, @Status, 0,
+              VALUES (@ClubId, @DistrictId, @RecipientType, @SubgroupId, @ContactGroupIds, @FromName,
+                  @ReplyName, @ReplyEmail, @Subject, @EmailBody, @Status, 0, @TemplateKey,
                   @UserId, NOW(), 0);
               SELECT LAST_INSERT_ID();",
             new
@@ -120,21 +143,26 @@ public class ClubMassEmailService : IClubMassEmailService
                 DistrictId = districtId,
                 dto.RecipientType,
                 SubgroupId = dto.SubgroupIds?.Count > 0 ? dto.SubgroupIds[0] : dto.FkSubgroupId,
+                ContactGroupIds = ContactGroupCsv(dto),
                 dto.FromName,
                 dto.ReplyName,
                 dto.ReplyEmail,
                 dto.Subject,
                 dto.EmailBody,
                 Status = status,
+                TemplateKey = TemplateKeyOf(dto),
                 UserId = userId
             });
 
         // Add recipients
         var sgIds = dto.SubgroupIds ?? (dto.FkSubgroupId.HasValue ? new List<int> { dto.FkSubgroupId.Value } : null);
-        await AddRecipientsAsync(connection, emailId, clubId, dto.RecipientType, sgIds, dto.MemberIds, districtId, dto.ClubIds);
+        await AddRecipientsAsync(connection, emailId, clubId, dto.RecipientType, sgIds, dto.MemberIds, districtId, dto.ClubIds, dto.ContactGroupIds);
 
         return emailId;
     }
+
+    private static string? ContactGroupCsv(CreateMassEmailDto dto)
+        => dto.RecipientType == 4 && dto.ContactGroupIds?.Count > 0 ? string.Join(",", dto.ContactGroupIds.Distinct()) : null;
 
     public async Task UpdateAsync(int id, CreateMassEmailDto dto, int userId)
     {
@@ -143,9 +171,9 @@ public class ClubMassEmailService : IClubMassEmailService
 
         // Reset status to Draft on edit, reset counts
         await connection.ExecuteAsync(
-            @"UPDATE club_mass_emails SET RecipientType = @RecipientType, fk_subgroup_id = @SubgroupId,
+            @"UPDATE club_mass_emails SET RecipientType = @RecipientType, fk_subgroup_id = @SubgroupId, ContactGroupIds = @ContactGroupIds,
                   FromName = @FromName, ReplyName = @ReplyName, ReplyEmail = @ReplyEmail,
-                  Subject = @Subject, EmailBody = @EmailBody,
+                  Subject = @Subject, EmailBody = @EmailBody, TemplateKey = @TemplateKey,
                   Status = 'Draft', SentCount = 0, FailedCount = 0, SentDate = NULL,
                   modified_by = @UserId, modified_date = NOW()
               WHERE pk_mass_email_id = @Id AND isdeleted = 0",
@@ -153,11 +181,13 @@ public class ClubMassEmailService : IClubMassEmailService
             {
                 dto.RecipientType,
                 SubgroupId = dto.SubgroupIds?.Count > 0 ? dto.SubgroupIds[0] : dto.FkSubgroupId,
+                ContactGroupIds = ContactGroupCsv(dto),
                 dto.FromName,
                 dto.ReplyName,
                 dto.ReplyEmail,
                 dto.Subject,
                 dto.EmailBody,
+                TemplateKey = TemplateKeyOf(dto),
                 UserId = userId,
                 Id = id
             });
@@ -167,12 +197,14 @@ public class ClubMassEmailService : IClubMassEmailService
             "UPDATE club_mass_email_recipients SET isdeleted = 1 WHERE fk_mass_email_id = @Id",
             new { Id = id });
 
-        var clubId = await connection.ExecuteScalarAsync<int>(
-            "SELECT fk_club_id FROM club_mass_emails WHERE pk_mass_email_id = @Id",
+        // District emails are stored with fk_club_id 0: pass the district so its recipients resolve.
+        var (clubId, districtId) = await connection.QueryFirstAsync<(int, int?)>(
+            "SELECT fk_club_id, fk_district_id FROM club_mass_emails WHERE pk_mass_email_id = @Id",
             new { Id = id });
 
         var sgIds = dto.SubgroupIds ?? (dto.FkSubgroupId.HasValue ? new List<int> { dto.FkSubgroupId.Value } : null);
-        await AddRecipientsAsync(connection, id, clubId, dto.RecipientType, sgIds, dto.MemberIds, null, dto.ClubIds);
+        await AddRecipientsAsync(connection, id, clubId, dto.RecipientType, sgIds, dto.MemberIds,
+            clubId == 0 && districtId > 0 ? districtId : null, dto.ClubIds, dto.ContactGroupIds);
     }
 
     public async Task DeleteAsync(int id, int userId)
@@ -203,9 +235,10 @@ public class ClubMassEmailService : IClubMassEmailService
         await connection.OpenAsync();
 
         // Get email details
+        var commsOn = await _comms.IsOnAsync();
         var email = await connection.QueryFirstOrDefaultAsync<dynamic>(
-            @"SELECT pk_mass_email_id AS Id, fk_club_id AS ClubId, FromName, ReplyName, ReplyEmail,
-                     Subject, EmailBody, Status
+            @"SELECT pk_mass_email_id AS Id, fk_club_id AS ClubId, fk_district_id AS DistrictId, FromName, ReplyName, ReplyEmail,
+                     Subject, EmailBody, Status, TemplateKey
               FROM club_mass_emails WHERE pk_mass_email_id = @Id AND isdeleted = 0",
             new { Id = id });
 
@@ -213,26 +246,52 @@ public class ClubMassEmailService : IClubMassEmailService
         if ((string)email.Status != "Draft" && (string)email.Status != "Failed")
             throw new InvalidOperationException("Only draft or failed emails can be sent.");
 
-        // Get recipients with email
-        var recipients = (await connection.QueryAsync<dynamic>(
-            @"SELECT pk_id AS Id, fk_member_id AS MemberId, MemberName, Email
-              FROM club_mass_email_recipients
-              WHERE fk_mass_email_id = @Id AND isdeleted = 0
-                AND Email IS NOT NULL AND Email != ''
-                AND (Status = 'Pending' OR Status = 'Failed')",
+        // Get recipients with email (and their language, for the N5 language versions)
+        var recipients = (await connection.QueryAsync<CommsService.CampaignRecipient>(
+            @"SELECT r.pk_id AS Id, r.fk_member_id AS MemberId, r.MemberName, r.Email, m.PrimaryLanguage AS Language
+              FROM club_mass_email_recipients r
+              LEFT JOIN member_master_profile m ON m.pk_member_master_profile_id = r.fk_member_id
+              WHERE r.fk_mass_email_id = @Id AND r.isdeleted = 0
+                AND r.Email IS NOT NULL AND r.Email != ''
+                AND (r.Status = 'Pending' OR r.Status = 'Failed')",
             new { Id = id })).ToList();
 
         if (recipients.Count == 0)
             throw new InvalidOperationException("No recipients with valid email addresses.");
 
-        // Check credits
-        int clubId = (int)email.ClubId;
-        var hasCreds = await _creditService.HasSufficientCreditsAsync(clubId, "Email", recipients.Count);
-        if (!hasCreds)
-            throw new InvalidOperationException($"Insufficient email credits. Need {recipients.Count}, check your credit balance.");
+        // N5 (module on): unsubscribed and suppressed members are skipped, the monthly allowance replaces credits,
+        // each member gets the template version in their language with an unsubscribe link, Brevo's id is kept.
+        CommsService.CampaignPlan? plan = null;
+        if (commsOn)
+        {
+            var prevStatus = (string)email.Status;
+            if (await connection.ExecuteAsync("UPDATE club_mass_emails SET Status = 'Sending' WHERE pk_mass_email_id = @Id AND Status = @Prev",
+                    new { Id = id, Prev = prevStatus }) == 0)
+                throw new InvalidOperationException("This email is already being sent.");
+            try
+            {
+                var tenant = (int)email.ClubId > 0
+                    ? new CommsService.Tenant((int)email.ClubId, 0)
+                    : new CommsService.Tenant(0, (int?)email.DistrictId ?? 0);
+                plan = await _comms.PlanCampaignAsync(connection, tenant, (string?)email.TemplateKey, recipients);
+            }
+            catch
+            {
+                await connection.ExecuteAsync("UPDATE club_mass_emails SET Status = @Prev WHERE pk_mass_email_id = @Id", new { Id = id, Prev = prevStatus });
+                throw;
+            }
+        }
+        else
+        {
+            // Check credits
+            int clubId = (int)email.ClubId;
+            var hasCreds = await _creditService.HasSufficientCreditsAsync(clubId, "Email", recipients.Count);
+            if (!hasCreds)
+                throw new InvalidOperationException($"Insufficient email credits. Need {recipients.Count}, check your credit balance.");
 
-        // Deduct credits upfront with history
-        await _creditService.DeductWithHistoryAsync(clubId, "Email", recipients.Count, "MassEmail", id, $"Mass Email: {(string)email.Subject}", userId);
+            // Deduct credits upfront with history
+            await _creditService.DeductWithHistoryAsync(clubId, "Email", recipients.Count, "MassEmail", id, $"Mass Email: {(string)email.Subject}", userId);
+        }
 
         // Update status to Sending
         await connection.ExecuteAsync(
@@ -248,7 +307,12 @@ public class ClubMassEmailService : IClubMassEmailService
         var fromName = (string)email.FromName;
         var replyName = (string?)email.ReplyName;
         var replyEmail = (string?)email.ReplyEmail;
-        var recipientsCopy = recipients.Select(r => new { Id = (int)r.Id, MemberId = (int)r.MemberId, MemberName = (string)r.MemberName, Email = (string)r.Email }).ToList();
+        if (plan != null)
+        {
+            if (string.IsNullOrWhiteSpace(fromName)) fromName = plan.FromName ?? fromName;
+            if (string.IsNullOrWhiteSpace(replyEmail)) { replyEmail = plan.ReplyTo; replyName = null; }
+        }
+        var recipientsCopy = plan?.ToSend ?? recipients;
         var connStr = _connectionString;
 
         _ = Task.Run(async () =>
@@ -267,10 +331,21 @@ public class ClubMassEmailService : IClubMassEmailService
                 {
                     try
                     {
-                        await emailSvc.SendMassEmailAsync(r.Email, subject, body, fromName, replyName, replyEmail);
-                        await conn.ExecuteAsync(
-                            "UPDATE club_mass_email_recipients SET Status = 'Sent', SentDate = NOW() WHERE pk_id = @Id",
-                            new { r.Id });
+                        if (plan == null)
+                        {
+                            await emailSvc.SendMassEmailAsync(r.Email, subject, body, fromName, replyName, replyEmail);
+                            await conn.ExecuteAsync(
+                                "UPDATE club_mass_email_recipients SET Status = 'Sent', SentDate = NOW() WHERE pk_id = @Id",
+                                new { r.Id });
+                        }
+                        else
+                        {
+                            var (s, html, language) = plan.Render(r, subject, body);
+                            var messageId = await emailSvc.SendMassEmailAsync(r.Email, s, html, fromName, replyName, replyEmail, plan.FromEmail, plan.Headers(r));
+                            await conn.ExecuteAsync(
+                                "UPDATE club_mass_email_recipients SET Status = 'Sent', SentDate = NOW(), MessageId = @MessageId, Language = @Language WHERE pk_id = @Id",
+                                new { r.Id, MessageId = messageId, Language = language });
+                        }
                         sentCount++;
                     }
                     catch (Exception ex)
@@ -282,6 +357,7 @@ public class ClubMassEmailService : IClubMassEmailService
                     }
                 }
 
+                if (plan != null) await CommsService.ReleaseAsync(conn, plan, failedCount);
                 var finalStatus = failedCount == recipientsCopy.Count ? "Failed" : "Sent";
                 await conn.ExecuteAsync(
                     @"UPDATE club_mass_emails SET Status = @Status, SentCount = @Sent, FailedCount = @Failed,
@@ -319,13 +395,21 @@ public class ClubMassEmailService : IClubMassEmailService
             new { Id = id })).ToList();
     }
 
-    public async Task<RecipientCountDto> GetRecipientCountAsync(int clubId, int recipientType, List<int>? subgroupIds, List<int>? memberIds, int? districtId = null, List<int>? clubIds = null)
+    public async Task<RecipientCountDto> GetRecipientCountAsync(int clubId, int recipientType, List<int>? subgroupIds, List<int>? memberIds, int? districtId = null, List<int>? clubIds = null, List<int>? contactGroupIds = null)
     {
         using var connection = CreateConnection();
         await connection.OpenAsync();
 
         string sql;
         object param;
+
+        if (recipientType == 4) // Contact groups (club or district) - only groups of this owner count
+        {
+            if (contactGroupIds == null || contactGroupIds.Count == 0) return new RecipientCountDto();
+            return await connection.QueryFirstAsync<RecipientCountDto>(
+                $"SELECT COUNT(DISTINCT c.pk_contact_id) AS TotalMembers, {ContactEmailCount} AS MembersWithEmail {ContactGroupFrom}",
+                ContactGroupArgs(clubId, districtId, contactGroupIds));
+        }
 
         // Kill-switch: skip recipients whose chain (club→district→zone) has any inactive link.
         if (recipientType == 1) // All Members
@@ -417,13 +501,35 @@ public class ClubMassEmailService : IClubMassEmailService
         return result ?? new RecipientCountDto();
     }
 
+    // Contact groups (recipient type 4): only groups owned by the email's club or district are read, so a group id
+    // of another club adds nobody.
+    private const string ContactGroupFrom = @"
+        FROM contact_group_members gm
+        JOIN contact_groups g ON g.pk_contact_group_id = gm.fk_contact_group_id
+        JOIN contacts c ON c.pk_contact_id = gm.fk_contact_id
+        WHERE gm.fk_contact_group_id IN @Ids AND g.fk_club_id = @ClubId AND g.fk_district_id = @DistrictId";
+    private const string ContactEmailCount = "COUNT(DISTINCT CASE WHEN c.email IS NOT NULL AND c.email != '' THEN LOWER(TRIM(c.email)) END)";
+    private static object ContactGroupArgs(int clubId, int? districtId, List<int> ids)
+        => new { Ids = ids, ClubId = districtId.HasValue ? 0 : clubId, DistrictId = districtId ?? 0 };
+
     private async Task AddRecipientsAsync(MySqlConnection connection, int emailId, int clubId,
-        int recipientType, List<int>? subgroupIds, List<int>? memberIds, int? districtId = null, List<int>? clubIds = null)
+        int recipientType, List<int>? subgroupIds, List<int>? memberIds, int? districtId = null, List<int>? clubIds = null,
+        List<int>? contactGroupIds = null)
     {
         List<dynamic> members;
 
+        if (recipientType == 4 && contactGroupIds?.Count > 0) // Contact groups (club or district)
+        {
+            // shortcut: contacts get no unsubscribe link yet; add it with the communication upgrades module
+            // (unsubscribe on every bulk message, plan module 6).
+            if (!await FeatureGate.IsOnAsync("contacts_growth", _connectionString))
+                throw new InvalidOperationException("Contacts are switched off.");
+            members = (await connection.QueryAsync<dynamic>(
+                $"SELECT DISTINCT 0 AS MemberId, c.pk_contact_id AS ContactId, c.name AS MemberName, c.email AS Email {ContactGroupFrom}",
+                ContactGroupArgs(clubId, districtId, contactGroupIds))).ToList();
+        }
         // Kill-switch: skip recipients whose chain (club→district→zone) has any inactive link.
-        if (recipientType == 1) // All Members
+        else if (recipientType == 1) // All Members
         {
             if (districtId.HasValue)
             {
@@ -528,10 +634,12 @@ public class ClubMassEmailService : IClubMassEmailService
             if (string.IsNullOrWhiteSpace(email)) continue;
             var normalized = email.Trim();
             if (!seenEmails.Add(normalized.ToLowerInvariant())) continue;
+            // Contact rows carry fk_member_id 0 and their contact id.
+            ((IDictionary<string, object>)m).TryGetValue("ContactId", out var contactId);
             await connection.ExecuteAsync(
-                @"INSERT INTO club_mass_email_recipients (fk_mass_email_id, fk_member_id, MemberName, Email, Status, isdeleted)
-                  VALUES (@EmailId, @MemberId, @MemberName, @Email, 'Pending', 0)",
-                new { EmailId = emailId, MemberId = (int)m.MemberId, MemberName = (string?)m.MemberName, Email = normalized });
+                @"INSERT INTO club_mass_email_recipients (fk_mass_email_id, fk_member_id, fk_contact_id, MemberName, Email, Status, isdeleted)
+                  VALUES (@EmailId, @MemberId, @ContactId, @MemberName, @Email, 'Pending', 0)",
+                new { EmailId = emailId, MemberId = Convert.ToInt32(m.MemberId), ContactId = contactId, MemberName = (string?)m.MemberName, Email = normalized });
             inserted++;
         }
 

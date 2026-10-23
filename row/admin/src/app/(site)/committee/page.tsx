@@ -98,7 +98,7 @@ export default function CommitteePage() {
           <SectionHeader
             eyebrow="Working Team"
             title="Web Committee"
-            note="Website Chairman · Zonal Coordinators, Zones 4–7 · Web Master"
+            note="Website Chairman · Web Master"
             count={COMMITTEE.length}
             countLabel="members across the zones"
           />

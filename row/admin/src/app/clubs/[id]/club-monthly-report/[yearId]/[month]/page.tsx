@@ -801,13 +801,10 @@ export default function ClubMonthlyReportWizardPage() {
                                     {serviceType === "community_service" ? (
                                       <>
                                         <TableHead>Area of Focus</TableHead>
-                                        <TableHead>Category</TableHead>
-                                        <TableHead>Sub Category</TableHead>
                                       </>
                                     ) : (
                                       <>
                                         <TableHead>Category</TableHead>
-                                        <TableHead>Sub Category</TableHead>
                                       </>
                                     )}
                                     <TableHead className="w-24 text-center">Actions</TableHead>
@@ -842,13 +839,10 @@ export default function ClubMonthlyReportWizardPage() {
                                       {serviceType === "community_service" ? (
                                         <>
                                           <TableCell>{project.areaOfFocusName || "-"}</TableCell>
-                                          <TableCell>{project.categoryName || "-"}</TableCell>
-                                          <TableCell>{project.subCategoryName || "-"}</TableCell>
                                         </>
                                       ) : (
                                         <>
                                           <TableCell>{project.areaOfFocusName || "-"}</TableCell>
-                                          <TableCell>{project.categoryName || "-"}</TableCell>
                                         </>
                                       )}
                                       <TableCell>

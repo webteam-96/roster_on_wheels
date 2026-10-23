@@ -6,13 +6,10 @@ using Microsoft.Extensions.Logging;
 // ════════════════════════════════════════════════════════════════════════
 // Awards Auto-Calc Worker
 //
-// Two modes:
+// Mode:
 //   --district-citation   Full district citation auto-points recalc (every
 //                         district, every club, every auto question).
 //                         Writes to district_citation_club_entry.
-//   --zonal-awards        Zonal Awards auto-calc (current year + zones where
-//                         IsZonalAwardsEnabled=1 + districts that are active).
-//                         Gated by ZonalAwards:AutoCalcEnabled in appsettings.
 //
 // Scheduled via Windows Task Scheduler. Sends a Brevo email on completion.
 // ════════════════════════════════════════════════════════════════════════
@@ -28,7 +25,6 @@ if (mode == "--help" || mode == "-h" || mode == "/?" || mode == "/help")
     Console.WriteLine("");
     Console.WriteLine("Usage:");
     Console.WriteLine("  AwardsAutoCalcWorker.exe --district-citation   Full district citation auto-points recalc");
-    Console.WriteLine("  AwardsAutoCalcWorker.exe --zonal-awards        Zonal Awards auto-calc (gated by ZonalAwards:AutoCalcEnabled)");
     Console.WriteLine("");
     return 1;
 }
@@ -63,10 +59,6 @@ services.AddSingleton<CitationCalculator>(sp => new CitationCalculator(
     connString,
     sp.GetRequiredService<ILogger<CitationCalculator>>(),
     sp.GetRequiredService<YearTableResolver>()));
-services.AddSingleton<ZonalAwardsCalculator>(sp => new ZonalAwardsCalculator(
-    connString,
-    sp.GetRequiredService<ILogger<ZonalAwardsCalculator>>(),
-    sp.GetRequiredService<YearTableResolver>()));
 services.AddSingleton<BrevoEmailSender>(sp =>
 {
     var brevo = config.GetSection("Brevo");
@@ -94,24 +86,6 @@ try
             (int)(stats.RunCompletedAt - stats.RunStartedAt).TotalMinutes,
             (stats.RunCompletedAt - stats.RunStartedAt).Seconds);
         await SendCitationEmailAsync(sp, recipients, stats);
-        return 0;
-    }
-
-    if (mode == "--zonal-awards")
-    {
-        var gate = config.GetValue<bool>("ZonalAwards:AutoCalcEnabled");
-        if (!gate)
-        {
-            log.LogWarning("Zonal Awards auto-calc is PAUSED (ZonalAwards:AutoCalcEnabled=false in appsettings.json). Exiting.");
-            return 0;
-        }
-        var calc = sp.GetRequiredService<ZonalAwardsCalculator>();
-        log.LogInformation("Zonal Awards auto-calc started.");
-        var stats = await calc.CalculateForCurrentYearAsync();
-        log.LogInformation("Zonal Awards auto-calc completed. Duration: {Min}m {Sec}s",
-            (int)(stats.RunCompletedAt - stats.RunStartedAt).TotalMinutes,
-            (stats.RunCompletedAt - stats.RunStartedAt).Seconds);
-        await SendZonalEmailAsync(sp, recipients, stats);
         return 0;
     }
 
@@ -151,38 +125,6 @@ static async Task SendCitationEmailAsync(IServiceProvider sp, string[] recipient
         <td style='padding:8px 12px;border:1px solid #e2e8f0'>{s.ClubCount}</td></tr>
     <tr><td style='padding:8px 12px;border:1px solid #e2e8f0;background:#f8fafc'>Entries written</td>
         <td style='padding:8px 12px;border:1px solid #e2e8f0'>{s.EntryCount}</td></tr>
-  </table>
-  <p style='margin:20px 0 0 0;color:#64748b;font-size:12px'>This is an automated notification from ROW.</p>
-</div>";
-    foreach (var to in recipients)
-        await email.SendAsync(to, subject, body);
-}
-
-static async Task SendZonalEmailAsync(IServiceProvider sp, string[] recipients, ZonalAwardsCalculator.RunStats s)
-{
-    if (recipients.Length == 0) return;
-    var email = sp.GetRequiredService<BrevoEmailSender>();
-    var duration = s.RunCompletedAt - s.RunStartedAt;
-    var subject = $"ROW - Auto Calculate Zonal Awards Points - {s.RunCompletedAt:dd-MMM-yyyy hh:mm tt}";
-    var body = $@"
-<div style='font-family:Arial,Helvetica,sans-serif;font-size:14px;color:#1f2937;line-height:1.6'>
-  <h2 style='color:#1e3a8a;margin:0 0 12px 0'>Auto Calculate Zonal Awards Points</h2>
-  <p style='margin:0 0 16px 0;color:#475569'>The standalone worker (AwardsAutoCalcWorker --zonal-awards) has completed.</p>
-  <table style='border-collapse:collapse;width:100%;max-width:520px;border:1px solid #e2e8f0'>
-    <tr><td style='padding:8px 12px;border:1px solid #e2e8f0;background:#f8fafc;width:200px'>Run started</td>
-        <td style='padding:8px 12px;border:1px solid #e2e8f0'>{s.RunStartedAt:dd-MMM-yyyy hh:mm:ss tt}</td></tr>
-    <tr><td style='padding:8px 12px;border:1px solid #e2e8f0;background:#f8fafc'>Run completed</td>
-        <td style='padding:8px 12px;border:1px solid #e2e8f0'>{s.RunCompletedAt:dd-MMM-yyyy hh:mm:ss tt}</td></tr>
-    <tr><td style='padding:8px 12px;border:1px solid #e2e8f0;background:#f8fafc'>Duration</td>
-        <td style='padding:8px 12px;border:1px solid #e2e8f0'>{(int)duration.TotalMinutes} min {duration.Seconds} sec</td></tr>
-    <tr><td style='padding:8px 12px;border:1px solid #e2e8f0;background:#f8fafc'>Rotary year</td>
-        <td style='padding:8px 12px;border:1px solid #e2e8f0'>{s.YearLabel}</td></tr>
-    <tr><td style='padding:8px 12px;border:1px solid #e2e8f0;background:#f8fafc'>Status</td>
-        <td style='padding:8px 12px;border:1px solid #e2e8f0'>{(s.Skipped ? $"Skipped — {s.SkipReason}" : "Completed")}</td></tr>
-    <tr><td style='padding:8px 12px;border:1px solid #e2e8f0;background:#f8fafc'>Districts processed</td>
-        <td style='padding:8px 12px;border:1px solid #e2e8f0'>{s.DistrictsProcessed}</td></tr>
-    <tr><td style='padding:8px 12px;border:1px solid #e2e8f0;background:#f8fafc'>Districts failed</td>
-        <td style='padding:8px 12px;border:1px solid #e2e8f0'>{s.DistrictsFailed}</td></tr>
   </table>
   <p style='margin:20px 0 0 0;color:#64748b;font-size:12px'>This is an automated notification from ROW.</p>
 </div>";

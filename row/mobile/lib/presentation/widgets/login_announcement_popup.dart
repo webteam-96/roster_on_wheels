@@ -11,7 +11,7 @@ import 'package:rotary_flutter_app/core/theme/app_fonts.dart';
 
 /// Checks for an active login announcement and shows the popup if one exists.
 ///
-/// Call this from the `initState` of landing screens (HomeScreen, ZonalDashboardScreen)
+/// Call this from the `initState` of landing screens (HomeScreen)
 /// inside a `WidgetsBinding.instance.addPostFrameCallback((_) => ...)`.
 ///
 /// Safe to call without awaiting — silently swallows any network failure so it

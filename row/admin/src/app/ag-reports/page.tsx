@@ -275,15 +275,6 @@ const sections: ReportSection[] = [
           { key: "contributionDate", label: "Date", width: 14 },
           { key: "remarks", label: "Remarks", width: 30 },
         ] },
-      { id: "pph-camps", title: "PPH Camps", endpoint: "pph-camps", fileName: "MyClubs_PPH_Camps", yearScoped: true,
-        columns: [
-          { key: "clubName", label: "Club", width: 28 },
-          { key: "yearLabel", label: "Year", width: 12 },
-          { key: "campName", label: "Camp Name", width: 30 },
-          { key: "campDate", label: "Date", width: 14 },
-          { key: "location", label: "Location", width: 24 },
-          { key: "beneficiaryCount", label: "Beneficiaries", width: 14 },
-        ] },
     ],
   },
 ];

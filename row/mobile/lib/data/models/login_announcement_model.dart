@@ -4,7 +4,7 @@ class LoginAnnouncementItem {
   final String content;
 
   /// The role keys this announcement matched for this member — "ALL", or the
-  /// specific ones (e.g. ClubAdmin, RIDirector). Shown as "For: …" so the
+  /// specific ones (e.g. ClubAdmin, DistrictAdmin). Shown as "For: …" so the
   /// reader knows which of their hats it is addressed to.
   final List<String> roles;
 
@@ -45,21 +45,12 @@ class LoginAnnouncementItem {
     if (key == 'ALL') return 'All roles';
     return const {
       'SuperAdmin': 'SuperAdmin',
-      'RIDirector': 'RI Director',
-      'ZonalCoordinator': 'Zonal Coordinator',
       'ClubAdmin': 'Club Admin',
       'DistrictAdmin': 'District Admin',
       'AG': 'Assistant Governor (AG)',
-      'ClubModerator': 'Club Moderator',
       'Member': 'Member',
       'ClubPresident': 'Club President',
       'ClubSecretary': 'Club Secretary',
-      'RMC': 'Rotary Membership Co-Ordinator (RMC)',
-      'ARC': 'Assistant Rotary Co-Ordinator (ARC)',
-      'RPIC': 'Regional Public Image Co-Ordinator (RPIC)',
-      'ARPIC': 'Assistant Regional Public Image Co-Ordinator (ARPIC)',
-      'RRFC': 'Regional Rotary Foundation Co-Ordinator (RRFC)',
-      'ARRFC': 'Assistant Regional Rotary Foundation Co-Ordinator (ARRFC)',
     }[key] ??
         key;
   }

@@ -452,16 +452,8 @@ public class ModuleService : IModuleService
 
         var modules = await QueryDistrictModulesAsync(connection, districtId);
 
-        // Check if zone has Zonal Awards enabled for this district
-        var zonalAwardsEnabled = await connection.ExecuteScalarAsync<bool?>(@"
-            SELECT z.IsZonalAwardsEnabled FROM zone_master z
-            JOIN district_master d ON d.fk_zone_id = z.pk_zone_id
-            WHERE d.pk_district_id = @DistrictId AND d.isdeleted = 0 AND z.isdeleted = 0",
-            new { DistrictId = districtId });
-
         var groups = modules
             .Where(m => m.IsEnabled)
-            .Where(m => m.ModuleKey != "zonal_awards" || (zonalAwardsEnabled == true))
             .GroupBy(m => new { m.CategoryId, m.CategoryName, m.CategorySortOrder })
             .OrderBy(g => g.Key.CategorySortOrder)
             .Select(g => new DashboardCategoryGroupDto
@@ -594,15 +586,8 @@ public class ModuleService : IModuleService
             modules = modules.Where(m => memberKeys.Contains(m.ModuleKey)).ToList();
         }
 
-        var zonalAwardsEnabled = await connection.ExecuteScalarAsync<bool?>(@"
-            SELECT z.IsZonalAwardsEnabled FROM zone_master z
-            JOIN district_master d ON d.fk_zone_id = z.pk_zone_id
-            WHERE d.pk_district_id = @DistrictId AND d.isdeleted = 0 AND z.isdeleted = 0",
-            new { DistrictId = districtId });
-
         var groups = modules
             .Where(m => m.IsEnabled)
-            .Where(m => m.ModuleKey != "zonal_awards" || (zonalAwardsEnabled == true))
             .GroupBy(m => new { m.CategoryId, m.CategoryName, m.CategorySortOrder })
             .OrderBy(g => g.Key.CategorySortOrder)
             .Select(g => new DashboardCategoryGroupDto

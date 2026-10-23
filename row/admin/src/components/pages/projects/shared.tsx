@@ -120,12 +120,10 @@ const CLUB_SERVICE_TITLE_RE =
 export function isClubService(p: {
   title?: string | null;
   areaOfFocus?: string | null;
-  category?: string | null;
-  subCategory?: string | null;
   moduleKey?: string | null;
   moduleName?: string | null;
 }): boolean {
-  const avenue = [p.moduleKey, p.moduleName, p.category, p.subCategory, p.areaOfFocus]
+  const avenue = [p.moduleKey, p.moduleName, p.areaOfFocus]
     .filter(Boolean)
     .join(" ");
   if (CLUB_SERVICE_AVENUE_RE.test(avenue)) return true;

@@ -939,7 +939,6 @@ public class DistrictAdminDashboardService : IDistrictAdminDashboardService
             Kpis = new DistrictAdminEGovernanceKpis
             {
                 MonthlyReports = totalSubmitted,
-                PpsCamps = 0,
                 AvgCitationScore = avgCitation,
             },
         };
@@ -1783,7 +1782,7 @@ public class DistrictAdminDashboardService : IDistrictAdminDashboardService
         return list;
     }
 
-    // Membership tab counts — Directors / DistrictCommittee / AG / ClubModerators / Clubs.
+    // Membership tab counts — Directors / DistrictCommittee / AG / Clubs.
     private async Task<List<DistrictAdminMembershipTabCount>> BuildMembershipTabCountsAsync(
         MySqlConnection conn, int districtId, int yearId)
     {
@@ -1855,27 +1854,6 @@ public class DistrictAdminDashboardService : IDistrictAdminDashboardService
             Total = agTotal, Active = agActiveClubs,
             ParticipationPercent = totalDistrictClubs == 0 ? 0
                 : Math.Round((decimal)agActiveClubs / totalDistrictClubs * 100m, 1),
-        });
-
-        int modTotal = 0, modActive = 0;
-        try
-        {
-            modTotal = await conn.ExecuteScalarAsync<int>(@"
-                SELECT COUNT(*) FROM district_club_moderator
-                WHERE fk_district_id = @DistrictId AND isdeleted = 0",
-                new { DistrictId = districtId });
-            modActive = await conn.ExecuteScalarAsync<int>(@"
-                SELECT COUNT(*) FROM district_club_moderator
-                WHERE fk_district_id = @DistrictId AND isdeleted = 0 AND is_active = 1",
-                new { DistrictId = districtId });
-        }
-        catch { }
-        tabs.Add(new DistrictAdminMembershipTabCount
-        {
-            TabKey = "club_moderator", TabLabel = "Club Moderators",
-            Total = modTotal, Active = modActive,
-            ParticipationPercent = totalDistrictClubs == 0 ? 0
-                : Math.Round((decimal)modActive / totalDistrictClubs * 100m, 1),
         });
 
         int activeClubsAll = await conn.ExecuteScalarAsync<int>(@"
@@ -2030,8 +2008,7 @@ public class DistrictAdminDashboardService : IDistrictAdminDashboardService
                           COALESCE(p.direct_beneficiaries, 0) AS bens,
                           COALESCE(p.project_cost, 0) AS funds,
                           COALESCE(p.man_hours, 0) AS mh,
-                          md.ModuleName AS avenue, af.name AS aof,
-                          COALESCE(p.approval_status, '') AS status
+                          md.ModuleName AS avenue, af.name AS aof
                    FROM `{t.ProjectsTable}` p
                    JOIN club_master c ON c.pk_club_id = p.fk_club_id AND c.isdeleted = 0
                    LEFT JOIN module_master md ON md.pk_module_id = p.fk_module_id
@@ -2055,7 +2032,6 @@ public class DistrictAdminDashboardService : IDistrictAdminDashboardService
                     ManHours = Convert.ToInt32(r.mh ?? 0),
                     AvenueName = r.avenue as string,
                     AreaOfFocus = r.aof as string,
-                    Status = (r.status as string) ?? "",
                 });
             }
         }
@@ -2276,36 +2252,6 @@ public class DistrictAdminDashboardService : IDistrictAdminDashboardService
             });
         }
         return rows;
-    }
-
-    private async Task<List<DistrictAdminPpsCampClubRow>> BuildPpsCampPerClubAsync(
-        MySqlConnection conn, int districtId, int yearId)
-    {
-        try
-        {
-            // PPH camps are not year-scoped in schema — use CampDate ∈ rotary-year range.
-            var (start, end) = await YearRangeAsync(conn, yearId);
-            var rows = await conn.QueryAsync<DistrictAdminPpsCampClubRow>(@"
-                SELECT c.pk_club_id AS clubId, c.ClubName AS clubName,
-                       COALESCE(COUNT(DISTINCT pc.pk_camp_id), 0) AS campCount,
-                       COALESCE(COUNT(pa.pk_attendance_id), 0) AS totalAttendees
-                FROM club_master c
-                LEFT JOIN pph_camps pc ON pc.fk_club_id = c.pk_club_id AND pc.isdeleted = 0
-                    AND (@HasRange = 0 OR (pc.CampDate >= @Start AND pc.CampDate <= @End))
-                LEFT JOIN pph_camp_attendance pa ON pa.fk_camp_id = pc.pk_camp_id
-                WHERE c.fk_district_id = @DistrictId AND c.isdeleted = 0 AND COALESCE(c.ClubType,'') <> 'Rotaract Club'
-                GROUP BY c.pk_club_id, c.ClubName
-                ORDER BY campCount DESC, c.ClubName",
-                new
-                {
-                    DistrictId = districtId,
-                    HasRange = start.HasValue ? 1 : 0,
-                    Start = start ?? DateTime.MinValue,
-                    End = end ?? DateTime.MaxValue,
-                });
-            return rows.ToList();
-        }
-        catch { return new List<DistrictAdminPpsCampClubRow>(); }
     }
 
     private async Task<List<DistrictAdminCitationClubRow>> BuildCitationPerClubAsync(

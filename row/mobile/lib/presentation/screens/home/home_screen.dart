@@ -1,13 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
-import '../../../core/features/feature_controller.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../core/constants/api_constants.dart';
 import '../../../core/constants/feature_flags.dart';
 import '../../../core/network/api_client.dart';
-import '../../../core/services/goal_setting_api.dart';
-import '../../../data/models/goal_setting_models.dart';
 import '../../../core/notifications/deep_link_service.dart';
 import '../../../core/notifications/notification_badge_service.dart';
 import '../../../core/preferences/home_layout_controller.dart';
@@ -39,7 +36,7 @@ import 'package:rotary_flutter_app/core/theme/app_fonts.dart';
 class _ConnectionItem {
   final int id;
   final String title;
-  final String type; // 'zone' | 'unified' | 'zonalDashboard' | 'riDirector'
+  final String type; // 'zone' | 'unified'
   final int? districtId;
   final int? clubId;
 
@@ -54,12 +51,6 @@ class _ConnectionItem {
       case 'unified':
         context.push(
             RouteNames.unifiedModules(districtId: districtId!, clubId: clubId));
-        break;
-      case 'zonalDashboard':
-        context.push(RouteNames.zonalDashboard);
-        break;
-      case 'riDirector':
-        context.push(RouteNames.riDirector);
         break;
     }
   }
@@ -258,16 +249,6 @@ class _HomeScreenState extends State<HomeScreen> {
       if (auth.isSuperAdmin) {
         // Super admin sees all zones
         allowedZoneIds = null;
-      } else if (auth.isZonalCoordinator) {
-        // Zonal coordinator: tile routes straight to the Zonal Dashboard.
-        allowedZoneIds = auth.accessibleZoneIds.toSet();
-        final visibleZones =
-            allZones.where((z) => allowedZoneIds!.contains(z.id)).toList();
-        // Card is labelled by role ("Zonal Coordinator"), not by the zone name;
-        // tapping it opens the frontend-parity Zonal Dashboard for that zone.
-        connections = visibleZones
-            .map((z) => _ConnectionItem(z.id, 'Zonal Coordinator', 'zonalDashboard'))
-            .toList();
       } else if (auth.isDistrictAdmin || auth.isDistrictMember) {
         allowedZoneIds = {};
         final Map<int, int> zoneToDistrict = {};
@@ -302,20 +283,9 @@ class _HomeScreenState extends State<HomeScreen> {
         final isPlainMember = auth.isClubMember &&
             !auth.isClubAdmin &&
             !auth.isDistrictAdmin &&
-            !auth.isZonalCoordinator &&
-            !auth.isRIDirector &&
-            !auth.isAG &&
-            !auth.isClubModerator;
-        final isRIDirectorMember = auth.isRIDirector &&
-            !auth.isClubAdmin &&
-            !auth.isDistrictAdmin &&
-            !auth.isZonalCoordinator &&
-            !auth.isAG &&
-            !auth.isClubModerator;
+            !auth.isAG;
         if (isPlainMember) {
           connections = [];
-        } else if (isRIDirectorMember) {
-          connections = [const _ConnectionItem(0, 'RI Director', 'riDirector')];
         } else if (auth.assignedDistrictIds.isNotEmpty) {
           final Map<int, int> zoneToDistrict = {};
           for (final distId in auth.assignedDistrictIds) {
@@ -386,25 +356,12 @@ class _HomeScreenState extends State<HomeScreen> {
           .map((z) => _ConnectionItem(z.id, z.zoneName, 'zone'))
           .toList();
 
-      // RI Director always gets an explicit tile on Home so they can reach
-      // their dashboard regardless of any other admin role they hold.
-      if (auth.isRIDirector &&
-          !connections.any((c) => c.type == 'riDirector')) {
-        connections = [
-          ...connections,
-          const _ConnectionItem(0, 'RI Director', 'riDirector'),
-        ];
-      }
-
       // Fetch My Clubs shortcut for district/club member roles (non-admin).
       // Admin roles already see clubs via _RoleBasedConnections.
       final myClubs = <({int id, String name})>[];
       if (!auth.isAdmin &&
           !auth.isSuperAdmin &&
-          !auth.isZonalCoordinator &&
-          !auth.isRIDirector &&
-          !auth.isAG &&
-          !auth.isClubModerator) {
+          !auth.isAG) {
         for (final clubId in auth.assignedClubIds) {
           // COG and IFRM are special clubs hidden from the "My Clubs" card
           // (their districts are already hidden elsewhere). Skip COG by id
@@ -527,33 +484,20 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
             ),
-            if (!(auth.isRIDirector &&
-                !auth.isAdmin &&
-                !auth.isZonalCoordinator &&
-                !auth.isAG &&
-                !auth.isClubModerator &&
-                !auth.isSuperAdmin))
-              SliverToBoxAdapter(
-                child: Transform.translate(
-                  offset: const Offset(0, -40),
-                  child: const Padding(
-                    padding:
-                        EdgeInsets.symmetric(horizontal: AppSpacing.md),
-                    child: _ImportantLinksCard(),
-                  ),
+            SliverToBoxAdapter(
+              child: Transform.translate(
+                offset: const Offset(0, -40),
+                child: const Padding(
+                  padding:
+                      EdgeInsets.symmetric(horizontal: AppSpacing.md),
+                  child: _ImportantLinksCard(),
                 ),
               ),
+            ),
             SliverPadding(
-              padding: EdgeInsets.fromLTRB(
+              padding: const EdgeInsets.fromLTRB(
                 AppSpacing.md,
-                (auth.isRIDirector &&
-                        !auth.isAdmin &&
-                        !auth.isZonalCoordinator &&
-                        !auth.isAG &&
-                        !auth.isClubModerator &&
-                        !auth.isSuperAdmin)
-                    ? AppSpacing.lg
-                    : 0,
+                0,
                 AppSpacing.md,
                 AppSpacing.md,
               ),
@@ -568,19 +512,10 @@ class _HomeScreenState extends State<HomeScreen> {
                     _SuperAdminConnectionCard(api: _api),
                     const SizedBox(height: AppSpacing.md),
                   ],
-                  // Goal Setting Oversight — shown to anyone holding an active
-                  // goal assignment (RI Director / Zone Co-ordinator / District
-                  // Assistant), mirroring web RoleBasedHome. Self-hides (and adds
-                  // no spacing) when the member has no goal assignment.
-                  // Hidden entirely while Goal Setting is off for release.
-                  if (kGoalSettingEnabled) const _GoalOversightConnectionCard(),
-                  if ((auth.isAdmin ||
-                          auth.isAG ||
-                          auth.isClubModerator ||
-                          auth.isDistrictMember ||
-                          auth.isClubMember) &&
-                      !auth.isRIDirector &&
-                      !auth.isZonalCoordinator)
+                  if (auth.isAdmin ||
+                      auth.isAG ||
+                      auth.isDistrictMember ||
+                      auth.isClubMember)
                     _RoleBasedConnections(
                         key: _connectionsKey, api: _api, auth: auth)
                   else ...[
@@ -2111,37 +2046,12 @@ class _RoleBasedConnectionsState extends State<_RoleBasedConnections> {
     final secondary =
         <({String title, String badge, String stats, VoidCallback onTap})>[];
 
-    // ROW module switches (FeatureController): no tile for a skipped or switched-off module
-    final features = context.watch<FeatureController>();
-    if (auth.isRIDirector && !features.isPathOff(RouteNames.riDirector))
-      secondary.add((
-        title: 'RI Director',
-        badge: 'RI Director',
-        stats: '',
-        onTap: () => context.push(RouteNames.riDirector)
-      ));
-    if (auth.isClubModerator && !features.isPathOff(RouteNames.clubModerator))
-      secondary.add((
-        title: 'Project Approvals',
-        badge: 'Moderator',
-        stats: '',
-        onTap: () => context.push(RouteNames.clubModerator)
-      ));
     if (auth.isAG) {
       secondary.add((
         title: 'AG Dashboard',
         badge: 'AG',
         stats: 'Clubs · Goals · TRF',
         onTap: () => context.push(RouteNames.agDashboard)
-      ));
-    }
-    if (auth.isZonalCoordinator && !features.isPathOff(RouteNames.zonalDashboard)) {
-      secondary.add((
-        title: 'Zonal Dashboard',
-        badge: 'Zonal Coordinator',
-        stats:
-            '${auth.accessibleZoneIds.length} Zone${auth.accessibleZoneIds.length != 1 ? "s" : ""}',
-        onTap: () => context.push(RouteNames.zonalDashboard),
       ));
     }
 
@@ -2278,11 +2188,7 @@ class _RoleBasedConnectionsState extends State<_RoleBasedConnections> {
     // Plain-member layout override: Club tile(s) get the hero treatment, then
     // District + My Clubs shortcut share the second row. Falls through to the
     // standard admin layout when the user has any elevated role.
-    final isPlainMember = !auth.isAdmin &&
-        !auth.isAG &&
-        !auth.isClubModerator &&
-        !auth.isRIDirector &&
-        !auth.isZonalCoordinator;
+    final isPlainMember = !auth.isAdmin && !auth.isAG;
     if (isPlainMember && !unifiedEligible) {
       allTiles.clear();
       // 1) Member clubs first (first tile becomes the full-width hero).
@@ -2493,138 +2399,6 @@ class _RoleScopeCard extends StatelessWidget {
               ),
             ),
           ],
-        ),
-      ),
-    );
-  }
-}
-
-
-/// My Connections entry for the Goal Setting Oversight dashboard. Mirrors web
-/// RoleBasedHome: shown to anyone holding an active goal assignment (RI Director
-/// / Zone Co-ordinator / District Assistant — a feature-scoped goal role, NOT a
-/// JWT admin role). Probes `my-assignments` on init and self-hides (rendering
-/// nothing, no spacing) when the member has no assignment.
-class _GoalOversightConnectionCard extends StatefulWidget {
-  const _GoalOversightConnectionCard();
-
-  @override
-  State<_GoalOversightConnectionCard> createState() =>
-      _GoalOversightConnectionCardState();
-}
-
-class _GoalOversightConnectionCardState
-    extends State<_GoalOversightConnectionCard> {
-  final GoalSettingApi _goalApi = GoalSettingApi();
-  List<GoalMyAssignment> _assignments = const [];
-  bool _loaded = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _probe();
-  }
-
-  Future<void> _probe() async {
-    try {
-      final rows = await _goalApi.getMyAssignments();
-      if (!mounted) return;
-      setState(() {
-        _assignments = rows;
-        _loaded = true;
-      });
-    } catch (_) {
-      if (!mounted) return;
-      setState(() {
-        _assignments = const [];
-        _loaded = true;
-      });
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    // Hidden until we know there is at least one assignment — no spacer either.
-    if (!_loaded || _assignments.isEmpty) return const SizedBox.shrink();
-
-    final subtitle = _assignments
-        .map((a) => a.assignmentName)
-        .where((s) => s.isNotEmpty)
-        .join(' · ');
-
-    return Padding(
-      padding: const EdgeInsets.only(bottom: AppSpacing.md),
-      child: GestureDetector(
-        onTap: () => context.push(RouteNames.goalOversight),
-        child: Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: AppColors.primaryDeep,
-            borderRadius: BorderRadius.circular(18),
-          ),
-          child: Row(
-            children: [
-              Container(
-                width: 44,
-                height: 44,
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.14),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: const Icon(Icons.flag_rounded,
-                    color: Colors.white, size: 24),
-              ),
-              const SizedBox(width: 14),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 8, vertical: 3),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.18),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Text(
-                        'GOAL SETTING',
-                        style: AppFonts.body(color: Colors.white,
-                          fontSize: 9,
-                          fontWeight: FontWeight.w800,
-                          letterSpacing: 0.5,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 6),
-                    Text(
-                      'Review Goals',
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: AppFonts.body(color: Colors.white,
-                        fontSize: 14,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      subtitle.isEmpty
-                          ? 'Target vs achieved · locks & messages'
-                          : subtitle,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: AppFonts.body(color: Colors.white.withOpacity(0.75),
-                        fontSize: 11,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 8),
-              Icon(Icons.chevron_right_rounded,
-                  color: Colors.white.withOpacity(0.8), size: 22),
-            ],
-          ),
         ),
       ),
     );

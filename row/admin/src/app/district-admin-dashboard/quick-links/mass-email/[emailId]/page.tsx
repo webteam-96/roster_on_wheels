@@ -29,6 +29,7 @@ import ErrorAlert from "@/components/ErrorAlert";
 import AlertModal from "@/components/AlertModal";
 import RotaryLoader from "@/components/RotaryLoader";
 import ProtectedRoute from "@/components/ProtectedRoute";
+import CampaignTrackingCard from "@/components/comms/CampaignTrackingCard";
 import {
   ArrowLeft, Send, Pencil, Trash2, CheckCircle2, XCircle, Clock, Loader2, AlertTriangle,
 } from "@/components/icons";
@@ -213,6 +214,8 @@ export default function DistrictAdminMassEmailDetailPage() {
             )}
           </div>
         </div>
+
+        <CampaignTrackingCard scope="districts" ownerId={districtId} emailId={emailId} />
 
         {/* Recipients table */}
         <div className="rounded-2xl border border-slate-200 shadow-sm bg-white overflow-hidden">

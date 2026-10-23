@@ -5,7 +5,7 @@ namespace RotaryApi.Services;
 
 // Fire-and-forget hook: nudge CitationAutoPointsBackgroundService to recompute
 // auto-points for a specific club whenever its underlying data changes
-// (pph_camps, newsletters, club_attendance, club_monthly_reports, projects,
+// (newsletters, club_attendance, club_monthly_reports, projects,
 // club_members). Without these hooks the District Awards count would stay
 // stale until the nightly batch ran or someone clicked "Refresh Auto Points"
 // on the club citation page — which was the original bug.

@@ -357,7 +357,7 @@ public class ClubLeadershipController : ControllerBase
         if (string.IsNullOrWhiteSpace((string?)member.email))
             return BadRequest(new { message = "Member does not have an email address. Cannot send admin email." });
 
-        // 2026-09-25: no role block — a SuperAdmin, RI Director or Zonal Coordinator can also be
+        // 2026-09-25: no role block — a SuperAdmin can also be
         // made Club Admin; they switch between their dashboards from the sidebar switcher.
 
         var clubName = await conn.ExecuteScalarAsync<string>(

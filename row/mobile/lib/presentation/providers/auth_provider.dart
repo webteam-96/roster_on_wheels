@@ -123,10 +123,7 @@ class AuthProvider extends ChangeNotifier {
       _hasRole(AppConstants.roleClubMember) ||
       _hasRole(AppConstants.roleMember) ||
       _hasRole(AppConstants.roleFamilyMember);
-  bool get isZonalCoordinator => _hasRole(AppConstants.roleZonalCoordinator);
-  bool get isClubModerator => _hasRole(AppConstants.roleClubModerator);
   bool get isAG => _hasRole(AppConstants.roleAG);
-  bool get isRIDirector => _hasRole(AppConstants.roleRIDirector);
   bool get isAdmin => isDistrictAdmin || isClubAdmin;
   bool get canAdd => isAdmin;
   bool get canEdit => isAdmin;
@@ -937,7 +934,7 @@ class AuthProvider extends ChangeNotifier {
 
   // ── Stale-token (roles changed after login) detection ────────────────────
   //
-  // Role-gated endpoints (Admin, AG, Zonal Coordinator, Moderator, RI Director)
+  // Role-gated endpoints (Admin, AG)
   // authorise off the `roles` claim baked into the JWT at login, NOT the live
   // DB. my-context reflects the live DB, so the two disagree the moment
   // someone's roles change server-side. We compare the two ROLE SETS so the UI
@@ -952,8 +949,7 @@ class AuthProvider extends ChangeNotifier {
   /// Roles whose LOSS forces a re-login. Plain membership roles are absent by
   /// design — see the revoke note in [_recomputeStaleRoleToken].
   static const Set<String> _elevatedRoleKeys = {
-    'admin', 'superadmin', 'clubadmin', 'districtadmin',
-    'ag', 'zonalcoordinator', 'clubmoderator', 'ridirector',
+    'admin', 'superadmin', 'clubadmin', 'districtadmin', 'ag',
   };
 
   /// Case- and space-insensitive role key, matching [_hasRole]'s normalisation
@@ -1007,9 +1003,9 @@ class AuthProvider extends ChangeNotifier {
 
       // GRANT — any live role the token doesn't carry. That role's endpoints
       // will 403 until re-login. Set-based, so this covers every role (AG,
-      // Zonal Coordinator, Club/District Admin, Moderator, RI Director) with no
-      // per-role list to maintain, and it catches a SECOND role granted to
-      // someone who already holds one (the old `claim.contains('Admin')` test
+      // Club/District Admin) with no per-role list to maintain, and it
+      // catches a SECOND role granted to someone who already holds one
+      // (the old `claim.contains('Admin')` test
       // could not — a club admin made a district admin looked unchanged).
       final granted = ctxRoles.difference(tokenRoles);
 

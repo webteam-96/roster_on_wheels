@@ -45,7 +45,6 @@ const bool kNearMeEnabled = true;
 /// release on 2026-09-10 because the module is not fully done on mobile (month-wise
 /// goal collection and the Excel/goal reports are backend-blocked — no mobile
 /// routes yet). While `false`, every Goal Setting entry point is suppressed:
-///   • the Home "Goal Setting Oversight" connection card,
 ///   • the "Goal Setting" module tile + route on the club and district dashboards,
 ///   • the club Foundation "Collection Goals" card (gated together with
 ///     `kFoundationGoalsEnabled`),

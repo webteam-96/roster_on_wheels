@@ -26,11 +26,12 @@ import { useAuth } from "@/contexts/AuthContext";
 import { getDistrictWebsiteStatus } from "@/services/api";
 import {
   AlertCircle, ImageIcon, Megaphone, Share2, Phone, List, Info,
-  Globe, ExternalLink,
+  Globe, ExternalLink, Languages,
 } from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
+import { useIsPathOff } from "@/components/FeatureGate";
 
-type ModuleKey = "banners" | "advertisements" | "social-media-links" | "contact-details" | "menu-list" | "about";
+type ModuleKey = "banners" | "advertisements" | "social-media-links" | "contact-details" | "menu-list" | "about" | "languages";
 
 interface Mod {
   key: ModuleKey;
@@ -48,6 +49,7 @@ const MODULES: Mod[] = [
   { key: "contact-details",    name: "Contact Details",     description: "Phone, email, address on Contact page",  icon: Phone,     accent: "bg-violet-50 text-violet-700",   ring: "hover:border-violet-300" },
   { key: "menu-list",          name: "Menu List",           description: "Top navigation & footer menu items",     icon: List,      accent: "bg-rose-50 text-rose-700",       ring: "hover:border-rose-300" },
   { key: "about",              name: "About",               description: "About-us content on the public site",    icon: Info,      accent: "bg-sky-50 text-sky-700",         ring: "hover:border-sky-300" },
+  { key: "languages",          name: "Languages",           description: "The site in more languages, with machine translation", icon: Languages, accent: "bg-teal-50 text-teal-700", ring: "hover:border-teal-300" },
 ];
 
 export default function MyDistrictWebsitePage() {
@@ -73,6 +75,7 @@ export default function MyDistrictWebsitePage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [navigatingKey, setNavigatingKey] = useState<ModuleKey | null>(null);
+  const isPathOff = useIsPathOff(); // the cards navigate with router.push, so FeatureGate cannot hide them itself
 
   useEffect(() => {
     if (!districtId) return;
@@ -158,7 +161,7 @@ export default function MyDistrictWebsitePage() {
 
       {!loading && !error && (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {MODULES.map((mod) => {
+          {MODULES.filter((mod) => !isPathOff(`/district-admin-dashboard/my-district-website/${mod.key}`)).map((mod) => {
             const Icon = mod.icon;
             const busy = navigatingKey === mod.key;
             return (

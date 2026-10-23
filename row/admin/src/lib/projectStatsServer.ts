@@ -55,8 +55,7 @@ const UPSTREAM_TIMEOUT_MS = 45_000;
  * different version is treated as missing and rebuilt on the spot.
  *
  * 2 = the 2026-09-28 rules: an ongoing project counts once (parent, or its first entry of
- * this year when the parent is from an earlier year), nothing unapproved by the moderator,
- * nothing with an unapproved beneficiary limit, no Zone 0 / exempt districts.
+ * this year when the parent is from an earlier year), no Zone 0 / exempt districts.
  */
 const RULES_VERSION = 2;
 

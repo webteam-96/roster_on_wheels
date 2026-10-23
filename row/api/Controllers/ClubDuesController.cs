@@ -284,7 +284,7 @@ public class ClubDuesController : ControllerBase
     }
 
     // ── Reminders ──────────────────────────────────────────────────
-    // Reminders (email + WhatsApp) may be sent by SuperAdmin/Admin OR the campaign's district admin.
+    // Email reminders may be sent by SuperAdmin/Admin OR the campaign's district admin.
     [HttpPost("{id}/reminder")]
     public async Task<ActionResult> BulkReminder(int id, [FromBody] ClubDuesReminderDto dto)
     {

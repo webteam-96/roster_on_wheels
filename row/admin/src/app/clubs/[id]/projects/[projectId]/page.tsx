@@ -206,7 +206,7 @@ export default function ViewProjectPage() {
 
         {/* ── 3. Classification (hidden for Club Service) ── */}
         {!isClubService && (
-          <Section icon={Target} title="Category" number={3}>
+          <Section icon={Target} title="Area of Focus" number={3}>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <DetailRow
                 label="Area of Focus"
@@ -214,22 +214,6 @@ export default function ViewProjectPage() {
                   project.otherAreaOfFocus
                     ? `Others: ${project.otherAreaOfFocus}`
                     : project.areaOfFocusName
-                }
-              />
-              <DetailRow
-                label="Category"
-                value={
-                  project.otherCategory
-                    ? `Others: ${project.otherCategory}`
-                    : project.categoryName
-                }
-              />
-              <DetailRow
-                label="Sub Category"
-                value={
-                  project.otherSubCategory
-                    ? `Others: ${project.otherSubCategory}`
-                    : project.subCategoryName
                 }
               />
             </div>

@@ -7,13 +7,13 @@
  * unified projects page at /clubs/[id]/projects?module=community_service.
  *
  * Visuals mimic the Club Admin Dashboard's NonClubAvenueSection (KPI tiles,
- * One-time / Ongoing sub-tabs, project table, pending-approval banner).
+ * One-time / Ongoing sub-tabs, project table).
  * Data still comes from the existing v1 API endpoints, scoped to
  * moduleKey="community_service".
  *
  * v2 reads ONLY `?returnTo=` — never any other param name.
  *
- * Pagination, search, and Approval-Status column mirror v1 to keep parity
+ * Pagination and search mirror v1 to keep parity
  * with the unified projects listing.
  */
 
@@ -22,7 +22,7 @@ import { useRouter, useParams, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import {
   HeartHandshake, Users, IndianRupee, Loader2, Search, Plus, Edit3, Trash2,
-  Download, ArrowLeft, AlertTriangle, Info, BadgeAlert, Clock, CheckCircle2, XCircle, Puzzle,
+  Download, ArrowLeft, AlertTriangle, Info, Puzzle,
 } from "@/components/icons";
 import {
   getClub,
@@ -30,7 +30,6 @@ import {
   getProjects,
   deleteProject,
   getProjectYears,
-  checkClubHasModerator,
   getProject,
 } from "@/services/api";
 import { ProjectListItem } from "@/types/project";
@@ -77,14 +76,8 @@ function projectTypeLabel(t: string | null | undefined): string {
   return t || "–";
 }
 
-function isPendingStatus(s: string | null | undefined): boolean {
-  const lo = (s || "").toLowerCase();
-  return lo === "pending" || lo === "draft" || lo === "rejected";
-}
-
-function exportToCsv(rows: ProjectListItem[], yearLabel: string, clubName: string, includeStatus: boolean) {
+function exportToCsv(rows: ProjectListItem[], yearLabel: string, clubName: string) {
   const header = ["Sr", "Date", "Title", "Type", "Area of Focus", "Cost", "Direct Beneficiaries", "Location"];
-  if (includeStatus) header.push("Approval Status");
   const lines = rows.map((r, i) => {
     const dateStr = r.projectDate ? fmtDate(r.projectDate) : "";
     const row = [
@@ -97,7 +90,6 @@ function exportToCsv(rows: ProjectListItem[], yearLabel: string, clubName: strin
       r.directBeneficiaries ?? "",
       `"${(r.location || "").replace(/"/g, '""')}"`,
     ];
-    if (includeStatus) row.push(`"${r.approvalStatus || ""}"`);
     return row.join(",");
   });
   const csv = [header.join(","), ...lines].join("\n");
@@ -129,7 +121,6 @@ export default function CommunityServiceV2Page() {
   const [searchInput, setSearchInput] = useState("");
   const [search, setSearch] = useState("");
   const [subTab, setSubTab] = useState<"one_time" | "ongoing">("one_time");
-  const [hasModerator, setHasModerator] = useState(false);
 
   const [showAgreeDialog, setShowAgreeDialog] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<ProjectListItem | null>(null);
@@ -141,10 +132,7 @@ export default function CommunityServiceV2Page() {
   const installed = useExtensionStatus();
   const isBotEnabled = isFlowBotEnabled(clubId);
   const [syncTarget, setSyncTarget] = useState<ProjectListItem | null>(null);
-  const canSyncRow = (p: ProjectListItem) => {
-    const status = (p.approvalStatus || "").toLowerCase();
-    return isBotEnabled && installed === true && canManage && (status === "" || status === "approved");
-  };
+  const canSync = isBotEnabled && installed === true && canManage;
 
   // Two-hop returnTo chain: dashboard → listing → add/edit → listing → dashboard.
   // childReturnTo points at THIS listing (with parent's returnTo nested inside),
@@ -171,7 +159,6 @@ export default function CommunityServiceV2Page() {
           const current = projectYears.find((y) => y.isCurrent);
           setSelectedYearId(current ? current.id : projectYears[0]?.id ?? null);
         }
-        checkClubHasModerator(clubId).then((r) => { if (!cancelled) setHasModerator(r.hasModerator); }).catch(() => {});
       } catch (err: unknown) {
         const e = err as { response?: { data?: { message?: string } } };
         if (!cancelled) setErrorMessage(e?.response?.data?.message || "Failed to initialize.");
@@ -211,11 +198,6 @@ export default function CommunityServiceV2Page() {
     }
     return projects.filter((p) => (p.projectType || "").toLowerCase() !== "one_time");
   }, [projects, subTab]);
-
-  const pendingRows = useMemo(
-    () => projects.filter((p) => isPendingStatus(p.approvalStatus)),
-    [projects]
-  );
 
   const yearLabel = years.find((y) => y.id === selectedYearId)?.yearLabel ?? "–";
 
@@ -264,26 +246,6 @@ export default function CommunityServiceV2Page() {
     } catch {
       setErrorMessage("Failed to load project details for Rotary.org sync.");
     }
-  };
-
-  const renderApprovalBadge = (status: string | null | undefined) => {
-    const lo = (status || "").toLowerCase();
-    if (lo === "pending") return (
-      <span className="inline-flex items-center gap-1 text-[10px] font-medium px-2 py-0.5 rounded-full border bg-amber-100 text-amber-700 border-amber-200">
-        <Clock className="h-3 w-3" /> Pending
-      </span>
-    );
-    if (lo === "approved") return (
-      <span className="inline-flex items-center gap-1 text-[10px] font-medium px-2 py-0.5 rounded-full border bg-emerald-100 text-emerald-700 border-emerald-200">
-        <CheckCircle2 className="h-3 w-3" /> Approved
-      </span>
-    );
-    if (lo === "rejected") return (
-      <span className="inline-flex items-center gap-1 text-[10px] font-medium px-2 py-0.5 rounded-full border bg-rose-100 text-rose-700 border-rose-200">
-        <XCircle className="h-3 w-3" /> Rejected
-      </span>
-    );
-    return <span className="text-slate-400 text-xs">, </span>;
   };
 
   return (
@@ -390,7 +352,7 @@ export default function CommunityServiceV2Page() {
               )}
               <button
                 type="button"
-                onClick={() => exportToCsv(visibleRows, yearLabel, clubName || "club", hasModerator)}
+                onClick={() => exportToCsv(visibleRows, yearLabel, clubName || "club")}
                 className="inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1.5 rounded-lg border border-slate-200 text-slate-700 hover:bg-slate-50"
               >
                 <Download size={13} /> Export to Excel
@@ -406,29 +368,6 @@ export default function CommunityServiceV2Page() {
               )}
             </div>
           </div>
-
-          {/* Pending approval banner row(s) — above the table */}
-          {pendingRows.length > 0 && (
-            <div className="border-b border-slate-100 bg-amber-50/40 divide-y divide-amber-100">
-              {pendingRows.map((p) => (
-                <div key={p.id} className="px-5 py-2.5 flex flex-wrap items-center gap-3 text-xs">
-                  <span className="font-semibold text-slate-700 truncate max-w-[280px]">{p.title}</span>
-                  <span className="inline-flex items-center gap-1 text-[10px] font-medium px-2 py-0.5 rounded-full border bg-amber-100 text-amber-700 border-amber-200">
-                    <BadgeAlert size={10} /> {(p.approvalStatus || "pending").toLowerCase()}
-                  </span>
-                  <span className="text-slate-500 whitespace-nowrap">{fmtDate(p.projectDate)}</span>
-                  {canManage && (
-                    <Link
-                      href={`/clubs/${clubId}/community-service/v2/${p.id}/edit?returnTo=${returnTo}&yearId=${selectedYearId}`}
-                      className="ml-auto inline-flex items-center gap-1 text-blue-700 hover:underline"
-                    >
-                      fix <Edit3 size={10} />
-                    </Link>
-                  )}
-                </div>
-              ))}
-            </div>
-          )}
 
           {/* Table */}
           <div className="overflow-x-auto">
@@ -447,7 +386,6 @@ export default function CommunityServiceV2Page() {
                     <th className="px-3 py-2.5 text-left">Area of Focus</th>
                     <th className="px-3 py-2.5 text-right">Cost</th>
                     <th className="px-3 py-2.5 text-right">Direct Benf</th>
-                    <th className="px-3 py-2.5 text-left whitespace-nowrap">Status</th>
                     {canManage && <th className="px-3 py-2.5 text-right w-16">Edit</th>}
                     {canManage && <th className="px-3 py-2.5 text-right w-16">Delete</th>}
                     {isBotEnabled && installed === true && <th className="px-3 py-2.5 text-right w-16">Rotary.org</th>}
@@ -471,7 +409,6 @@ export default function CommunityServiceV2Page() {
                         <td className="px-3 py-2 text-slate-600">{aof}</td>
                         <td className="px-3 py-2 text-right text-slate-600 whitespace-nowrap">{cost > 0 ? `${getCurrencySymbol(p.currency)}${cost.toLocaleString(appLocale())}` : "–"}</td>
                         <td className="px-3 py-2 text-right text-slate-600">{benf > 0 ? fmtInt(benf) : "–"}</td>
-                        <td className="px-3 py-2 whitespace-nowrap">{renderApprovalBadge(p.approvalStatus)}</td>
                         {canManage && (
                           <td className="px-3 py-2 text-right">
                             <Link
@@ -497,7 +434,7 @@ export default function CommunityServiceV2Page() {
                         )}
                         {isBotEnabled && installed === true && (
                           <td className="px-3 py-2 text-right">
-                            {canSyncRow(p) && (
+                            {canSync && (
                               <button
                                 type="button"
                                 onClick={() => setSyncTarget(p)}
@@ -515,7 +452,7 @@ export default function CommunityServiceV2Page() {
                   })}
                   {visibleRows.length === 0 && (
                     <tr>
-                      <td colSpan={8 + (canManage ? 2 : 0) + (isBotEnabled && installed === true ? 1 : 0)} className="px-4 py-10 text-center text-slate-400">
+                      <td colSpan={7 + (canManage ? 2 : 0) + (isBotEnabled && installed === true ? 1 : 0)} className="px-4 py-10 text-center text-slate-400">
                         {search ? "No projects match your search." : "No projects in this section."}
                       </td>
                     </tr>

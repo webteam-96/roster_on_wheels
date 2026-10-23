@@ -13,12 +13,13 @@ import urllib.request
 
 API = sys.argv[1] if len(sys.argv) > 1 else "http://localhost:5000"
 PORT = sys.argv[2] if len(sys.argv) > 2 else "3317"
+DB = sys.argv[3] if len(sys.argv) > 3 else "row_local"
 MYSQL = r"C:\Program Files\MySQL\MySQL Server 8.4\bin\mysql.exe"
 fails = 0
 
 
 def sql(q):
-    return subprocess.run([MYSQL, "-uroot", "-h127.0.0.1", f"-P{PORT}", "row_local", "-N", "-e", q],
+    return subprocess.run([MYSQL, "-uroot", "-h127.0.0.1", f"-P{PORT}", DB, "-N", "-e", q],
                           capture_output=True, text=True, check=True).stdout.strip()
 
 
@@ -54,18 +55,17 @@ def open_(method, path):
 was = sql("SELECT COALESCE(MAX(enabled), 0) FROM platform_features WHERE feature_key='ocv'")
 try:
     for name, method, path, key in [
-        ("PPH camps are closed", "GET", "/api/clubs/1/pph-camps", "pph_camps"),
-        ("RI Director is closed", "GET", "/api/ri-director/context", "ri_director"),
-        ("zonal dashboard is closed", "GET", "/api/zonal-dashboard", "zonal_dashboard"),
-        ("project approval is closed", "GET", "/api/project-approval/moderator/projects", "club_moderation"),
-        ("district goal lock is closed", "POST", "/api/goal-setting/districts/1/lock", "goal_lock"),
-        ("the beneficiary limit reads as missing", "GET", "/api/system-settings/direct_beneficiaries_limit", "direct_beneficiaries"),
-        ("editing category masters is closed", "POST", "/api/categories", "category_masters"),
         ("OCV is off by default", "GET", "/api/clubs/1/ocv-gov", "ocv"),
         ("club monthly report is off by default", "GET", "/api/clubs/1/monthly-reports", "club_monthly_report"),
     ]:
         ok, d = gated(method, path, key)
         check(name, ok, d)
+
+    # removed modules (2026-10-23) have no route and no switch: a plain 404, not the gate's
+    gone = {p: call("GET", p) for p in ["/api/clubs/1/pph-camps", "/api/ri-director/context", "/api/zonal-dashboard",
+                                        "/api/project-approval/moderator/projects",
+                                        "/api/system-settings/direct_beneficiaries_limit"]}
+    check("removed modules' routes are gone", all(s == 404 and "feature" not in b for s, b in gone.values()), gone)
 
     for name, method, path in [
         ("project forms still read categories", "GET", "/api/categories"),

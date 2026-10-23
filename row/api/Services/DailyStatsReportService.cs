@@ -15,8 +15,7 @@ namespace RotaryApi.Services;
 //
 // PROJECT COUNTS come from ProjectCountRules — the same definition the public website counts with
 // (user, 2026-09-28: the report's project total must match portal.example.org/projects). So an
-// ongoing project counts ONCE, a project the moderator hasn't approved doesn't count, and one
-// whose beneficiary count went over the limit without approval doesn't either. Each rule's
+// ongoing project counts ONCE. Each rule's
 // removals are reported here as their own columns, which the website has no room to show.
 public interface IDailyStatsReportService
 {
@@ -55,8 +54,6 @@ public sealed class AvenueBreakdownRow
     // What the counting rules left out of Total (user, 2026-09-28 — the email shows these
     // as separate columns; the website just shows Total).
     public long NotRepeat { get; set; }
-    public long NotModerator { get; set; }
-    public long NotBeneficiary { get; set; }
     // Club Service (meetings) and "Other" (no module) sit under the project total, never in it.
     public bool IsProject { get; set; } = true;
 }
@@ -128,7 +125,7 @@ public class DailyStatsReportService : IDailyStatsReportService
         public int MemberCount { get; set; }
     }
     // One avenue's project split. OneTime + Ongoing are what COUNTS (and what the website
-    // shows); the three Not* columns are the rows the rules removed, reported so the email
+    // shows); the NotRepeat column is the rows the rules removed, reported so the email
     // can explain the difference between "entered" and "counted".
     private sealed class AvenueRow
     {
@@ -136,10 +133,8 @@ public class DailyStatsReportService : IDailyStatsReportService
         public long OneTime { get; set; }
         public long Ongoing { get; set; }
         public long NotRepeat { get; set; }        // repeat entry of an ongoing project
-        public long NotModerator { get; set; }     // club moderator has not approved it
-        public long NotBeneficiary { get; set; }   // beneficiaries over the limit, not approved
         public long Total => OneTime + Ongoing;
-        public long NotCounted => NotRepeat + NotModerator + NotBeneficiary;
+        public long NotCounted => NotRepeat;
     }
 
     // Club Service is the club's meetings, not a project: it is reported on its own line,
@@ -225,8 +220,6 @@ public class DailyStatsReportService : IDailyStatsReportService
         long curOngoing = curProjectRows.Sum(r => r.Ongoing);
         long totalProjectsCurYear = curOneTime + curOngoing;
         long curNotRepeat = curProjectRows.Sum(r => r.NotRepeat);
-        long curNotModerator = curProjectRows.Sum(r => r.NotModerator);
-        long curNotBeneficiary = curProjectRows.Sum(r => r.NotBeneficiary);
         long clubServiceCurYear = curRows.FirstOrDefault(r => r.Label == ClubServiceLabel)?.Total ?? 0;
 
         // Clubs involved in projects — the clubs behind the counted projects, so this answers
@@ -300,8 +293,6 @@ public class DailyStatsReportService : IDailyStatsReportService
             ($"Total Projects ({curYearLabel}) — Ongoing", curOngoing),
             ($"Total Projects ({curYearLabel}) — Total (= website)", totalProjectsCurYear),
             ($"Not counted — repeat entries of ongoing projects", curNotRepeat),
-            ($"Not counted — moderator approval pending", curNotModerator),
-            ($"Not counted — beneficiary approval pending", curNotBeneficiary),
             ($"Clubs Involved in Projects ({curYearLabel})", clubsInProjects),
         };
 
@@ -321,7 +312,7 @@ public class DailyStatsReportService : IDailyStatsReportService
             Rows = src.Select(a => new AvenueBreakdownRow
             {
                 Avenue = a.Label, OneTime = a.OneTime, Ongoing = a.Ongoing, Total = a.Total,
-                NotRepeat = a.NotRepeat, NotModerator = a.NotModerator, NotBeneficiary = a.NotBeneficiary,
+                NotRepeat = a.NotRepeat,
                 IsProject = IsProjectAvenue(a),
             }).ToList(),
         };
@@ -422,8 +413,6 @@ public class DailyStatsReportService : IDailyStatsReportService
                     case "one_time": row.OneTime += c; break;
                     case "ongoing": row.Ongoing += c; break;
                     case "repeat": row.NotRepeat += c; break;
-                    case "moderator": row.NotModerator += c; break;
-                    case "beneficiary": row.NotBeneficiary += c; break;
                 }
             }
         }
@@ -443,8 +432,6 @@ public class DailyStatsReportService : IDailyStatsReportService
             target.OneTime += kv.Value.OneTime;
             target.Ongoing += kv.Value.Ongoing;
             target.NotRepeat += kv.Value.NotRepeat;
-            target.NotModerator += kv.Value.NotModerator;
-            target.NotBeneficiary += kv.Value.NotBeneficiary;
         }
         return rows;
     }
@@ -546,13 +533,13 @@ public class DailyStatsReportService : IDailyStatsReportService
             ws.Row(r).Height = 22; r++;
         }
         // Project-breakdown block: the 5 project avenues, a bold TOTAL (the figure the website
-        // publishes), then Club Service BELOW it — outside the total — and three columns saying
+        // publishes), then Club Service BELOW it — outside the total — and a column saying
         // what the counting rules removed.
-        const int AvCols = 7;
+        const int AvCols = 5;
         void AvenueBlock(string title, List<AvenueRow> rows)
         {
             Section(title);
-            string[] h = { "Avenue", "One-Time", "Ongoing", "Counted", "Repeat entries", "Moderator pending", "Beneficiary pending" };
+            string[] h = { "Avenue", "One-Time", "Ongoing", "Counted", "Repeat entries" };
             for (int i = 0; i < h.Length; i++) ws.Cell(r, i + 1).Value = h[i];
             var hr = ws.Range(r, 1, r, AvCols);
             hr.Style.Fill.BackgroundColor = navy;
@@ -569,8 +556,6 @@ public class DailyStatsReportService : IDailyStatsReportService
                 ws.Cell(r, 3).Value = a.Ongoing;
                 ws.Cell(r, 4).Value = a.Total;
                 ws.Cell(r, 5).Value = a.NotRepeat;
-                ws.Cell(r, 6).Value = a.NotModerator;
-                ws.Cell(r, 7).Value = a.NotBeneficiary;
                 for (int i = 2; i <= AvCols; i++) ws.Cell(r, i).Style.NumberFormat.Format = "#,##0";
                 r++;
             }
@@ -582,8 +567,6 @@ public class DailyStatsReportService : IDailyStatsReportService
             ws.Cell(r, 3).Value = projects.Sum(x => x.Ongoing);
             ws.Cell(r, 4).Value = projects.Sum(x => x.Total);
             ws.Cell(r, 5).Value = projects.Sum(x => x.NotRepeat);
-            ws.Cell(r, 6).Value = projects.Sum(x => x.NotModerator);
-            ws.Cell(r, 7).Value = projects.Sum(x => x.NotBeneficiary);
             for (int i = 2; i <= AvCols; i++) ws.Cell(r, i).Style.NumberFormat.Format = "#,##0";
             var tr = ws.Range(r, 1, r, AvCols);
             tr.Style.Font.Bold = true;
@@ -776,9 +759,7 @@ public class DailyStatsReportService : IDailyStatsReportService
                 <p style='font-size:12px;color:#555;line-height:1.7;margin-top:14px;max-width:760px'>
                     <strong>How a project is counted.</strong> One-time projects count once. An ongoing project
                     counts once — its parent entry, or, when the parent belongs to an earlier year, its first
-                    entry of this year; its repeat entries are in <em>Repeat entries</em>. A project the club
-                    moderator has not approved is in <em>Moderator pending</em>, and one whose beneficiary count
-                    went over the limit without approval is in <em>Beneficiary pending</em>. Zone 0 and the
+                    entry of this year; its repeat entries are in <em>Repeat entries</em>. Zone 0 and the
                     exempt districts count nowhere. Club Service is the club's
                     meetings, so it sits outside the project total. <strong>TOTAL PROJECTS is the same figure
                     the website publishes</strong> on its public projects page.
@@ -793,7 +774,7 @@ public class DailyStatsReportService : IDailyStatsReportService
     }
 
     // Avenue table: the 5 project avenues, a bold TOTAL PROJECTS row (the number the website
-    // publishes), then Club Service below it — outside the total — plus the three columns
+    // publishes), then Club Service below it — outside the total — plus the column
     // saying what the counting rules removed.
     private static string BuildBreakdownTable(string title, List<AvenueRow> rows)
     {
@@ -803,7 +784,7 @@ public class DailyStatsReportService : IDailyStatsReportService
             <tr style='background:{bg}{(italic ? ";font-style:italic" : "")}'>
                 <td style='padding:7px 10px;border:1px solid #d9e1f2;font-size:13px;color:#333'>{System.Net.WebUtility.HtmlEncode(label)}</td>
                 {Cell(a.OneTime)}{Cell(a.Ongoing)}{Cell(a.Total, true)}
-                {Cell(a.NotRepeat)}{Cell(a.NotModerator)}{Cell(a.NotBeneficiary)}
+                {Cell(a.NotRepeat)}
             </tr>";
 
         var projects = ProjectAvenues(rows);
@@ -815,8 +796,6 @@ public class DailyStatsReportService : IDailyStatsReportService
             OneTime = projects.Sum(x => x.OneTime),
             Ongoing = projects.Sum(x => x.Ongoing),
             NotRepeat = projects.Sum(x => x.NotRepeat),
-            NotModerator = projects.Sum(x => x.NotModerator),
-            NotBeneficiary = projects.Sum(x => x.NotBeneficiary),
         };
         static string Th(string t, bool right = true) =>
             $"<th style='padding:8px 10px;border:1px solid #1F4E79;text-align:{(right ? "right" : "left")};font-size:12px'>{t}</th>";
@@ -826,7 +805,7 @@ public class DailyStatsReportService : IDailyStatsReportService
                 <thead>
                     <tr style='background:#1F4E79;color:#fff'>
                         {Th("Avenue", right: false)}{Th("One-Time")}{Th("Ongoing")}{Th("Counted")}
-                        {Th("Repeat entries")}{Th("Moderator pending")}{Th("Beneficiary pending")}
+                        {Th("Repeat entries")}
                     </tr>
                 </thead>
                 <tbody>{body}{Row(total, "#cfe0f4", "TOTAL PROJECTS")}{below}</tbody>

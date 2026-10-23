@@ -7,7 +7,7 @@ namespace RotaryApi.Controllers;
 
 // Unauthenticated public pay surface for Club Dues. Access is gated by a signed
 // ClubDuesAccessToken (the "copy payment link" an officer shares, the link in the
-// email/WhatsApp reminders, or the link surfaced in the mobile app). The token binds
+// email reminders, or the link surfaced in the mobile app). The token binds
 // the request to one dues campaign + one club, so a link can only pay for its own club.
 // NOTE: these links are deliberately non-expiring — anyone the link is forwarded to
 // keeps access to this club's pay page (see ClubDuesAccessToken).

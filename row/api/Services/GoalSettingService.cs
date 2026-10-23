@@ -8,96 +8,14 @@ namespace RotaryApi.Services;
 public class GoalSettingService : IGoalSettingService
 {
     private readonly string _cs;
-    private readonly IRoleService _roleService;
 
-    public GoalSettingService(IConfiguration configuration, IRoleService roleService)
+    public GoalSettingService(IConfiguration configuration)
     {
         _cs = configuration.GetConnectionString("DefaultConnection")
             ?? throw new InvalidOperationException("DefaultConnection missing");
-        _roleService = roleService;
     }
 
     private MySqlConnection CreateConnection() => new(_cs);
-
-    // ── District Assistant category access (user 2026-09-21) ─────────────────────────────────
-    // A District Assistant works on ONE goal category for the districts they are given, so their
-    // login must not show the other categories — in the category list, the club goal view, the
-    // reports or messaging. (Their districts were already enforced.)
-    // Returns null = NO filter, which is EVERYONE else: a Zone Co-ordinator (sees every category,
-    // user 2026-09-21), SuperAdmin, RI Director, any Club / District Admin (their own goal screens
-    // need every category) and any member holding no goal-role assignment.
-    private async Task<HashSet<int>?> DaCategoryFilterAsync(MySqlConnection conn, int memberId)
-    {
-        if (memberId <= 0) return null;
-        if (await ClubAdminAccessHelper.IsSuperAdminAsync(conn, memberId)) return null;
-        var isEntityAdmin = await conn.ExecuteScalarAsync<int>(@"
-            SELECT COUNT(*) FROM member_roles
-            WHERE fk_member_master_profile_id = @M AND fk_role_id = 2 AND IsActive = 1 AND isdeleted = 0",
-            new { M = memberId });
-        if (isEntityAdmin > 0) return null;
-
-        var rows = await GetActiveAssignmentRowsAsync(conn, memberId);
-        var cats = new HashSet<int>();
-        foreach (var r in rows)
-        {
-            var roleType = (string)r.roleType;
-            // RI Director and Zone Co-ordinator both see every category.
-            if (roleType is "AllCategoryAllDistrictsFewZones" or "AllDistrictsOneCategoryOneZone") return null;
-            if (roleType == "FewDistrictsOneCategoryOneZone" && r.categoryId != null) cats.Add(Convert.ToInt32(r.categoryId));
-        }
-        return cats.Count > 0 ? cats : null;
-    }
-
-    // ── The same rule, for the GOAL-OVERSIGHT screens only (user 2026-09-25) ──────────────────
-    // The rule above lets a Club / District Admin through unfiltered, because their OWN club or
-    // district goal screen needs all four categories. But 19 of the 62 District Assistants are also
-    // Admins, and that let every category back into their DISTRICT ASSISTANT screens too — the
-    // district list, the club list behind it and the club goal view - which is not what the role is.
-    //
-    // So the restriction follows the SCREEN, not the person: on an oversight screen a District
-    // Assistant sees their assigned category and nothing else, whatever else they happen to be.
-    // On their own club / district screens the rule above still applies and nothing changes.
-    //
-    // SuperAdmin is still unrestricted here: they are observing the screen, not holding the seat.
-    // An RI Director and a Zone Co-ordinator still see every category (a ZC's whole zone, 09-24).
-    private async Task<HashSet<int>?> OversightCategoryFilterAsync(MySqlConnection conn, int memberId)
-    {
-        if (memberId <= 0) return null;
-        if (await ClubAdminAccessHelper.IsSuperAdminAsync(conn, memberId)) return null;
-
-        var rows = await GetActiveAssignmentRowsAsync(conn, memberId);
-        var cats = new HashSet<int>();
-        foreach (var r in rows)
-        {
-            var roleType = (string)r.roleType;
-            if (roleType is "AllCategoryAllDistrictsFewZones" or "AllDistrictsOneCategoryOneZone") return null;
-            if (roleType == "FewDistrictsOneCategoryOneZone" && r.categoryId != null) cats.Add(Convert.ToInt32(r.categoryId));
-        }
-        return cats.Count > 0 ? cats : null;
-    }
-
-    // Categories for one caller: the full list for everyone, narrowed to their own category on a
-    // District Assistant login.
-    public async Task<List<GoalCategoryDto>> GetCategoriesAsync(int callerMemberId)
-    {
-        var all = await GetCategoriesAsync();
-        using var conn = CreateConnection();
-        await conn.OpenAsync();
-        var only = await DaCategoryFilterAsync(conn, callerMemberId);
-        return only == null ? all : all.Where(c => only.Contains(c.Id)).ToList();
-    }
-
-    // Categories for the GOAL-OVERSIGHT screens. Same list, but a District Assistant gets only
-    // their own category even when they are also a Club / District Admin. The plain list above is
-    // left exactly as it was, so an Admin's own goal panel still offers all four.
-    public async Task<List<GoalCategoryDto>> GetOversightCategoriesAsync(int callerMemberId)
-    {
-        var all = await GetCategoriesAsync();
-        using var conn = CreateConnection();
-        await conn.OpenAsync();
-        var only = await OversightCategoryFilterAsync(conn, callerMemberId);
-        return only == null ? all : all.Where(c => only.Contains(c.Id)).ToList();
-    }
 
     public async Task<List<GoalCategoryDto>> GetCategoriesAsync()
     {
@@ -126,7 +44,7 @@ public class GoalSettingService : IGoalSettingService
         {
             var isSelfAdmin = await conn.ExecuteScalarAsync<int>(@"
                 SELECT COUNT(*) FROM member_roles
-                WHERE fk_member_master_profile_id = @MemberId AND fk_role_id IN (2, 5)
+                WHERE fk_member_master_profile_id = @MemberId AND fk_role_id = 2
                   AND fk_club_id = @ClubId AND IsActive = 1 AND isdeleted = 0",
                 new { MemberId = memberId, ClubId = requestedClubId.Value });
             if (isSelfAdmin > 0) return requestedClubId.Value;
@@ -153,12 +71,7 @@ public class GoalSettingService : IGoalSettingService
             ORDER BY pk_member_role_id DESC LIMIT 1", new { MemberId = memberId });
         if (clubId is > 0) return clubId.Value;
 
-        clubId = await conn.ExecuteScalarAsync<int?>(@"
-            SELECT fk_club_id FROM member_roles
-            WHERE fk_member_master_profile_id = @MemberId AND fk_role_id = 5
-              AND fk_club_id IS NOT NULL AND fk_club_id > 0 AND IsActive = 1 AND isdeleted = 0
-            ORDER BY pk_member_role_id DESC LIMIT 1", new { MemberId = memberId });
-        return clubId ?? 0;
+        return 0;
     }
 
     // ── District resolution ──────────────────────────────────────────────
@@ -182,17 +95,6 @@ public class GoalSettingService : IGoalSettingService
                   AND IsActive = 1 AND isdeleted = 0",
                 new { MemberId = memberId, DistrictId = requestedDistrictId.Value });
             if (isDistrictAdmin > 0) return requestedDistrictId.Value;
-
-            // A Zonal Coordinator (role 4) may set/edit the goals of any district in their
-            // own zone — the zone-level parallel to a District Admin editing their clubs.
-            var isZonalCoordForDistrict = await conn.ExecuteScalarAsync<int>(@"
-                SELECT COUNT(*) FROM member_roles mr
-                JOIN district_master d ON d.pk_district_id = @DistrictId AND d.isdeleted = 0
-                WHERE mr.fk_member_master_profile_id = @MemberId AND mr.fk_role_id = 4
-                  AND mr.fk_zone_id = d.fk_zone_id
-                  AND mr.IsActive = 1 AND mr.isdeleted = 0",
-                new { MemberId = memberId, DistrictId = requestedDistrictId.Value });
-            if (isZonalCoordForDistrict > 0) return requestedDistrictId.Value;
 
             if (await ClubAdminAccessHelper.IsSuperAdminAsync(conn, memberId)) return requestedDistrictId.Value;
             throw new UnauthorizedAccessException("You are not an active admin for this district.");
@@ -320,7 +222,7 @@ public class GoalSettingService : IGoalSettingService
                     f.NumericValue = Math.Round((decimal)liveWomen.Value / liveMembers.Value * 100, 0, MidpointRounding.AwayFromZero);
                 else if (f.FieldKey == "avg_members_per_club" && liveClubs is > 0 && liveMembers != null)
                     f.NumericValue = Math.Round((decimal)liveMembers.Value / liveClubs.Value, 0, MidpointRounding.AwayFromZero);
-                // RAG "Healthy Clubs" bands by active member count per club (Zonal Awards rule):
+                // RAG "Healthy Clubs" bands by active member count per club:
                 // Red 10-25, Amber 26-40, Green 41+. Clubs with <10 members fall in no band.
                 else if (f.FieldKey == "rag_red" && rag != null) f.NumericValue = rag.Value.Red;
                 else if (f.FieldKey == "rag_amber" && rag != null) f.NumericValue = rag.Value.Amber;
@@ -705,7 +607,7 @@ public class GoalSettingService : IGoalSettingService
             new { Id = clubId, S = start, E = end });
     }
 
-    // RAG "Healthy Clubs" counts (Zonal Awards band rule): classify each club in the district by
+    // RAG "Healthy Clubs" counts: classify each club in the district by
     // its active member count — Red 10-25, Amber 26-40, Green 41-50, Super Green 51+. Clubs with
     // <10 active members fall in no band and are not counted (matches the Healthy-Clubs definition).
     private static async Task<(int Red, int Amber, int Green, int SuperGreen)> LiveDistrictRagCountsAsync(MySqlConnection conn, int districtId)
@@ -1009,105 +911,6 @@ public class GoalSettingService : IGoalSettingService
     private static async Task<bool> IsAnnualOnlyCategoryAsync(MySqlConnection conn, int categoryId)
         => categoryId > 0 && IsAnnualOnlyCategory(await GetCategoryNameAsync(conn, categoryId));
 
-    // ── Locking ───────────────────────────────────────────────────────────
-    private async Task<GoalLockStatusDto> GetLockAsync(
-        MySqlConnection conn, string entityType, int clubId, int districtId, int categoryId, int yearId)
-    {
-        // ROW skips district goal locks: a lock left in synced data must not freeze a district's targets
-        if (entityType == "District" && FeatureGate.IsSkipped("goal_lock")) return new GoalLockStatusDto { IsLocked = false };
-        var row = await conn.QueryFirstOrDefaultAsync<dynamic>(@"
-            SELECT l.IsLocked AS isLocked, m.MemberName AS lockedByName,
-                   DATE_FORMAT(l.LockedDate, '%Y-%m-%d %H:%i') AS lockedDate
-            FROM goal_locks l
-            LEFT JOIN member_master_profile m ON m.pk_member_master_profile_id = l.LockedBy
-            WHERE l.EntityType = @EntityType AND l.fk_club_id = @ClubId AND l.fk_district_id = @DistrictId
-              AND l.fk_category_id = @CategoryId AND l.fk_year_id = @YearId",
-            new { EntityType = entityType, ClubId = clubId, DistrictId = districtId, CategoryId = categoryId, YearId = yearId });
-        if (row == null) return new GoalLockStatusDto { IsLocked = false };
-        var isLocked = Convert.ToBoolean(row.isLocked);
-        return new GoalLockStatusDto
-        {
-            IsLocked = isLocked,
-            LockedByName = isLocked ? row.lockedByName as string : null,
-            LockedDate = isLocked ? row.lockedDate as string : null,
-        };
-    }
-
-    private async Task SetLockAsync(
-        MySqlConnection conn, string entityType, int clubId, int districtId, int categoryId, int yearId, bool locked, int memberId)
-    {
-        if (locked)
-        {
-            await conn.ExecuteAsync(@"
-                INSERT INTO goal_locks (EntityType, fk_club_id, fk_district_id, fk_category_id, fk_year_id, IsLocked, LockedBy, LockedDate)
-                VALUES (@EntityType, @ClubId, @DistrictId, @CategoryId, @YearId, 1, @MemberId, NOW())
-                ON DUPLICATE KEY UPDATE IsLocked = 1, LockedBy = @MemberId, LockedDate = NOW(), UnlockedBy = NULL, UnlockedDate = NULL",
-                new { EntityType = entityType, ClubId = clubId, DistrictId = districtId, CategoryId = categoryId, YearId = yearId, MemberId = memberId });
-        }
-        else
-        {
-            await conn.ExecuteAsync(@"
-                INSERT INTO goal_locks (EntityType, fk_club_id, fk_district_id, fk_category_id, fk_year_id, IsLocked, UnlockedBy, UnlockedDate)
-                VALUES (@EntityType, @ClubId, @DistrictId, @CategoryId, @YearId, 0, @MemberId, NOW())
-                ON DUPLICATE KEY UPDATE IsLocked = 0, UnlockedBy = @MemberId, UnlockedDate = NOW()",
-                new { EntityType = entityType, ClubId = clubId, DistrictId = districtId, CategoryId = categoryId, YearId = yearId, MemberId = memberId });
-        }
-    }
-
-    // A club's goals can be locked by a District Admin of that club's district, or SuperAdmin.
-    // The Club Admin who owns the goals can never lock/unlock their own — matches the spec's
-    // "District Admin sees/edit/locks club goals" language (locking is an oversight action).
-    private async Task<bool> CanLockClubAsync(MySqlConnection conn, int memberId, int clubId)
-    {
-        if (await ClubAdminAccessHelper.IsSuperAdminAsync(conn, memberId)) return true;
-        var isDistrictAdminForClub = await conn.ExecuteScalarAsync<int>(@"
-            SELECT COUNT(*) FROM member_roles mr
-            JOIN club_master c ON c.pk_club_id = @ClubId AND c.isdeleted = 0
-            WHERE mr.fk_member_master_profile_id = @MemberId AND mr.fk_role_id = 2
-              AND mr.fk_district_id = c.fk_district_id
-              AND (mr.fk_club_id IS NULL OR mr.fk_club_id = 0)
-              AND mr.IsActive = 1 AND mr.isdeleted = 0",
-            new { MemberId = memberId, ClubId = clubId });
-        return isDistrictAdminForClub > 0;
-    }
-
-    // A district's own goals can be locked by SuperAdmin, or by the Zonal Coordinator
-    // (role 4) of the zone that contains the district — the zone-level parallel to a
-    // District Admin locking a club's goals. (The Phase-3 All-Category-All-Districts-Few-Zones
-    // role calls SetLockAsync directly with its own zone-scoped authorisation, not here.)
-    private async Task<bool> CanLockDistrictAsync(MySqlConnection conn, int memberId, int districtId)
-    {
-        if (await ClubAdminAccessHelper.IsSuperAdminAsync(conn, memberId)) return true;
-        var isZonalCoord = await conn.ExecuteScalarAsync<int>(@"
-            SELECT COUNT(*) FROM member_roles mr
-            JOIN district_master d ON d.pk_district_id = @DistrictId AND d.isdeleted = 0
-            WHERE mr.fk_member_master_profile_id = @MemberId AND mr.fk_role_id = 4
-              AND mr.fk_zone_id = d.fk_zone_id
-              AND mr.IsActive = 1 AND mr.isdeleted = 0",
-            new { MemberId = memberId, DistrictId = districtId });
-        return isZonalCoord > 0;
-    }
-
-    public async Task<GoalLockStatusDto> SetClubLockAsync(int memberId, int categoryId, int yearId, int clubId, bool locked)
-    {
-        using var conn = CreateConnection();
-        await conn.OpenAsync();
-        if (!await CanLockClubAsync(conn, memberId, clubId))
-            throw new UnauthorizedAccessException("You are not authorised to lock/unlock this club's goals.");
-        await SetLockAsync(conn, "Club", clubId, 0, categoryId, yearId, locked, memberId);
-        return await GetLockAsync(conn, "Club", clubId, 0, categoryId, yearId);
-    }
-
-    public async Task<GoalLockStatusDto> SetDistrictLockAsync(int memberId, int categoryId, int yearId, int districtId, bool locked)
-    {
-        using var conn = CreateConnection();
-        await conn.OpenAsync();
-        if (!await CanLockDistrictAsync(conn, memberId, districtId))
-            throw new UnauthorizedAccessException("You are not authorised to lock/unlock this district's goals.");
-        await SetLockAsync(conn, "District", 0, districtId, categoryId, yearId, locked, memberId);
-        return await GetLockAsync(conn, "District", 0, districtId, categoryId, yearId);
-    }
-
     // ── Club goal form ───────────────────────────────────────────────────
     public async Task<GoalCategoryFormDto?> GetClubGoalFormAsync(int memberId, int categoryId, int? yearId, int? requestedClubId)
     {
@@ -1123,15 +926,12 @@ public class GoalSettingService : IGoalSettingService
             "SELECT ClubName FROM club_master WHERE pk_club_id = @Id AND isdeleted = 0", new { Id = clubId }) ?? "";
         var categoryName = await GetCategoryNameAsync(conn, categoryId);
         var fields = await LoadFieldsWithValuesAsync(conn, categoryId, resolvedYearId, "Club", clubId, 0, autoFillLive: isEditable);
-        var lock_ = await GetLockAsync(conn, "Club", clubId, 0, categoryId, resolvedYearId);
-        var canLock = await CanLockClubAsync(conn, memberId, clubId);
 
         return new GoalCategoryFormDto
         {
             CategoryId = categoryId, CategoryName = categoryName, EntityType = "Club", ClubId = clubId,
             EntityName = clubName, YearId = resolvedYearId, YearLabel = yearLabel,
-            IsEditable = isEditable && !lock_.IsLocked, IsLocked = lock_.IsLocked,
-            LockedByName = lock_.LockedByName, LockedDate = lock_.LockedDate, CanLock = canLock,
+            IsEditable = isEditable,
             AchievedAsOn = await AchievedAsOnAsync(conn, categoryId, resolvedYearId, "Club", clubId, 0),
             Fields = fields,
         };
@@ -1148,9 +948,6 @@ public class GoalSettingService : IGoalSettingService
         var (_, _, isEditable) = await ResolveYearAsync(conn, request.YearId);
         if (!isEditable) throw new InvalidOperationException("Past years are read-only and cannot be edited.");
 
-        var lock_ = await GetLockAsync(conn, "Club", clubId, 0, categoryId, request.YearId);
-        if (lock_.IsLocked) throw new InvalidOperationException("This category is locked and cannot be edited.");
-
         await ValidateTargetsVsBaselineAsync(conn, categoryId, request.YearId, "Club", clubId, 0, request.Entries);
         await SaveEntriesAsync(conn, categoryId, request.YearId, "Club", clubId, 0, request.Entries, memberId);
         // Also snapshot the current month's collected values into the month-wise table (additive).
@@ -1159,24 +956,20 @@ public class GoalSettingService : IGoalSettingService
     }
 
     // ── District's own goal form ─────────────────────────────────────────
-    // Shared by the District Admin's own-goal form AND the Phase 3 scoped oversight
-    // dashboards — both ultimately render "one category's fields for one district".
+    // "One category's fields for one district" for the District Admin's own-goal form.
     private async Task<GoalCategoryFormDto> BuildDistrictFormDtoAsync(
-        MySqlConnection conn, int memberId, int categoryId, int districtId, int yearId, string yearLabel, bool yearIsEditable)
+        MySqlConnection conn, int categoryId, int districtId, int yearId, string yearLabel, bool yearIsEditable)
     {
         var districtName = await conn.ExecuteScalarAsync<string>(
             "SELECT DistrictNumber FROM district_master WHERE pk_district_id = @Id AND isdeleted = 0", new { Id = districtId }) ?? "";
         var categoryName = await GetCategoryNameAsync(conn, categoryId);
         var fields = await LoadFieldsWithValuesAsync(conn, categoryId, yearId, "District", 0, districtId, autoFillLive: yearIsEditable);
-        var lock_ = await GetLockAsync(conn, "District", 0, districtId, categoryId, yearId);
-        var canLock = await CanLockDistrictAsync(conn, memberId, districtId);
 
         return new GoalCategoryFormDto
         {
             CategoryId = categoryId, CategoryName = categoryName, EntityType = "District", DistrictId = districtId,
             EntityName = $"District {districtName}", YearId = yearId, YearLabel = yearLabel,
-            IsEditable = yearIsEditable && !lock_.IsLocked, IsLocked = lock_.IsLocked,
-            LockedByName = lock_.LockedByName, LockedDate = lock_.LockedDate, CanLock = canLock,
+            IsEditable = yearIsEditable,
             AchievedAsOn = await AchievedAsOnAsync(conn, categoryId, yearId, "District", 0, districtId),
             Fields = fields,
         };
@@ -1192,7 +985,7 @@ public class GoalSettingService : IGoalSettingService
         var (resolvedYearId, yearLabel, isEditable) = await ResolveYearAsync(conn, yearId);
         if (resolvedYearId == 0) return null;
 
-        return await BuildDistrictFormDtoAsync(conn, memberId, categoryId, districtId, resolvedYearId, yearLabel, isEditable);
+        return await BuildDistrictFormDtoAsync(conn, categoryId, districtId, resolvedYearId, yearLabel, isEditable);
     }
 
     // ── The target floor (user 2026-09-29) ──────────────────────────────────────────────────────
@@ -1271,9 +1064,6 @@ public class GoalSettingService : IGoalSettingService
 
         var (_, _, isEditable) = await ResolveYearAsync(conn, request.YearId);
         if (!isEditable) throw new InvalidOperationException("Past years are read-only and cannot be edited.");
-
-        var lock_ = await GetLockAsync(conn, "District", 0, districtId, categoryId, request.YearId);
-        if (lock_.IsLocked) throw new InvalidOperationException("This category is locked and cannot be edited.");
 
         await ValidateTargetsVsBaselineAsync(conn, categoryId, request.YearId, "District", 0, districtId, request.Entries);
         await SaveEntriesAsync(conn, categoryId, request.YearId, "District", 0, districtId, request.Entries, memberId);
@@ -2356,9 +2146,8 @@ public class GoalSettingService : IGoalSettingService
         return await BuildMonthlyFormAsync(conn, categoryId, resolvedYearId, "District", 0, districtId, name, !readOnly);
     }
 
-    // Goal-oversight (RI Director / ZC / observer) read-only month-wise for ANY district in the caller's goal
-    // scope (assignment DistrictIds / SuperAdmin) — NOT gated on the district-admin role. Used by the row-click
-    // popup so every overseen district opens, not only the one the caller happens to administer.
+    // Goal Overview (SuperAdmin) read-only month-wise for ANY district — NOT gated on the district-admin
+    // role. Used by the row-click popup so every district opens.
     public async Task<GoalMonthlyFormDto?> GetDistrictMonthlyGoalFormScopedAsync(int memberId, int categoryId, int? yearId, int districtId)
     {
         if (districtId <= 0) return null;
@@ -2367,14 +2156,8 @@ public class GoalSettingService : IGoalSettingService
         // Youth Service / Public Image have no month-wise concept at all (user 2026-09-25).
         if (await IsAnnualOnlyCategoryAsync(conn, categoryId)) return null;
 
-        bool isSuper = await ClubAdminAccessHelper.IsSuperAdminAsync(conn, memberId);
-        if (!isSuper)
-        {
-            var assigns = await GetMyAssignmentsAsync(memberId);
-            var allowed = assigns.SelectMany(a => a.DistrictIds).ToHashSet();
-            if (!allowed.Contains(districtId))
-                throw new UnauthorizedAccessException("This district is outside your goal-setting scope.");
-        }
+        if (!await ClubAdminAccessHelper.IsSuperAdminAsync(conn, memberId))
+            throw new UnauthorizedAccessException("This district is outside your goal-setting scope.");
 
         var (resolvedYearId, _, _) = await ResolveYearAsync(conn, yearId);
         if (resolvedYearId == 0) return null;
@@ -2501,8 +2284,6 @@ public class GoalSettingService : IGoalSettingService
             throw new InvalidOperationException(GoalTargetSplitPilot.NotInPilotMessage);
         var (resolvedYearId, _, isEditable) = await ResolveYearAsync(conn, req.YearId);
         if (!isEditable) throw new InvalidOperationException("Past years are read-only and cannot be edited.");
-        var lk = await GetLockAsync(conn, "District", 0, districtId, categoryId, resolvedYearId);
-        if (lk.IsLocked) throw new InvalidOperationException("This category is locked and cannot be edited.");
 
         var form = await GetDistrictMonthlyGoalFormAsync(memberId, categoryId, resolvedYearId, districtId)
                    ?? throw new InvalidOperationException("No month-wise metrics for this category.");
@@ -2524,8 +2305,6 @@ public class GoalSettingService : IGoalSettingService
             throw new InvalidOperationException(GoalTargetSplitPilot.NotInPilotMessage);
         var (resolvedYearId, _, isEditable) = await ResolveYearAsync(conn, req.YearId);
         if (!isEditable) throw new InvalidOperationException("Past years are read-only and cannot be edited.");
-        var lk = await GetLockAsync(conn, "Club", clubId, 0, categoryId, resolvedYearId);
-        if (lk.IsLocked) throw new InvalidOperationException("This category is locked and cannot be edited.");
 
         var form = await GetClubMonthlyGoalFormAsync(memberId, categoryId, resolvedYearId, clubId)
                    ?? throw new InvalidOperationException("No month-wise metrics for this category.");
@@ -2689,29 +2468,21 @@ public class GoalSettingService : IGoalSettingService
         var num = await conn.ExecuteScalarAsync<string>(
             "SELECT DistrictNumber FROM district_master WHERE pk_district_id = @Id", new { Id = districtId }) ?? "";
         var wb = await RenderEntityWorkbookAsync(conn, "District", 0, districtId, resolvedYearId,
-            $"District {num}", $"Rotary Year {yearLabel}   ·   Generated {DateTime.Now:dd MMM yyyy, hh:mm tt}", isEditable,
-            await DaCategoryFilterAsync(conn, memberId));
+            $"District {num}", $"Rotary Year {yearLabel}   ·   Generated {DateTime.Now:dd MMM yyyy, hh:mm tt}", isEditable);
         return wb == null ? null : SaveAndDispose(wb);
     }
 
-    // Goal-oversight (RI Director / ZC / observer SuperAdmin) per-district download: renders the EXACT same
-    // "District Goal Setting" workbook as BuildDistrictMonthlyExcelAsync, but validates the district against the
-    // caller's GOAL-OVERSIGHT scope (assignment DistrictIds / SuperAdmin) instead of the district-admin role check.
-    // Kept separate so the district-admin path (goals-excel/districts) is untouched.
+    // Goal Overview (SuperAdmin) per-district download: renders the EXACT same "District Goal Setting"
+    // workbook as BuildDistrictMonthlyExcelAsync, but checks for the SuperAdmin instead of the district-admin
+    // role. Kept separate so the district-admin path (goals-excel/districts) is untouched.
     public async Task<byte[]?> BuildDistrictGoalSettingReportScopedAsync(int memberId, int districtId, int? yearId)
     {
         if (districtId <= 0) return null;
         using var conn = CreateConnection();
         await conn.OpenAsync();
 
-        bool isSuper = await ClubAdminAccessHelper.IsSuperAdminAsync(conn, memberId);
-        if (!isSuper)
-        {
-            var assigns = await GetMyAssignmentsAsync(memberId);
-            var allowed = assigns.SelectMany(a => a.DistrictIds).ToHashSet();
-            if (!allowed.Contains(districtId))
-                throw new UnauthorizedAccessException("This district is outside your goal-setting scope.");
-        }
+        if (!await ClubAdminAccessHelper.IsSuperAdminAsync(conn, memberId))
+            throw new UnauthorizedAccessException("This district is outside your goal-setting scope.");
 
         var (resolvedYearId, yearLabel, isEditable) = await ResolveYearAsync(conn, yearId);
         if (resolvedYearId == 0) return null;
@@ -2719,7 +2490,7 @@ public class GoalSettingService : IGoalSettingService
             "SELECT DistrictNumber FROM district_master WHERE pk_district_id = @Id", new { Id = districtId }) ?? "";
         var wb = await RenderEntityWorkbookAsync(conn, "District", 0, districtId, resolvedYearId,
             $"District {num}", $"Rotary Year {yearLabel}   ·   Generated {DateTime.Now:dd MMM yyyy, hh:mm tt}", isEditable,
-            await OversightCategoryFilterAsync(conn, memberId), dropYouthPct: true);
+            dropYouthPct: true);
         return wb == null ? null : SaveAndDispose(wb);
     }
 
@@ -2738,8 +2509,7 @@ public class GoalSettingService : IGoalSettingService
         string clubName = (row.name as string) ?? $"Club {clubId}";
         string dnum = (row.num as string) ?? "";
         var wb = await RenderEntityWorkbookAsync(conn, "Club", clubId, 0, resolvedYearId,
-            clubName, $"District {dnum}   ·   Rotary Year {yearLabel}   ·   Generated {DateTime.Now:dd MMM yyyy, hh:mm tt}", isEditable,
-            await DaCategoryFilterAsync(conn, memberId));
+            clubName, $"District {dnum}   ·   Rotary Year {yearLabel}   ·   Generated {DateTime.Now:dd MMM yyyy, hh:mm tt}", isEditable);
         return wb == null ? null : SaveAndDispose(wb);
     }
 
@@ -3077,12 +2847,11 @@ public class GoalSettingService : IGoalSettingService
     // caller can append a Messages sheet before saving. Null when the entity has no goal data.
     private async Task<XLWorkbook?> RenderEntityWorkbookAsync(
         MySqlConnection conn, string entityType, int clubId, int districtId, int yearId,
-        string entityTitle, string subtitle, bool autoFillLive, HashSet<int>? onlyCategoryIds = null, bool dropYouthPct = false)
+        string entityTitle, string subtitle, bool autoFillLive, bool dropYouthPct = false)
     {
         // The month the Foundation import covers, for the TRF "Achieved" heading below.
         var trfAsOn = await FoundationAsOnAsync(conn, yearId, entityType);
         var cats = await GetCategoriesAsync();
-        if (onlyCategoryIds != null) cats = cats.Where(c => onlyCategoryIds.Contains(c.Id)).ToList();
         var perCat = new List<(string Name, List<GoalMetricComputed> Rows, List<GoalMonthPeriodDto> Months)>();
         foreach (var cat in cats)
         {
@@ -3146,11 +2915,9 @@ public class GoalSettingService : IGoalSettingService
     // Compute the per-category metric blocks for one entity (club/district). Returns null when the
     // entity has NO goal data at all. Shared by the single-entity workbook and the all-clubs workbook.
     private async Task<(List<(string Name, List<GoalMetricComputed> Rows, List<GoalMonthPeriodDto> Months)> PerCat, List<GoalMonthPeriodDto> Months0)?> ComputeEntityPerCatAsync(
-        MySqlConnection conn, string entityType, int clubId, int districtId, int yearId, bool autoFillLive,
-        HashSet<int>? onlyCategoryIds = null)
+        MySqlConnection conn, string entityType, int clubId, int districtId, int yearId, bool autoFillLive)
     {
         var cats = await GetCategoriesAsync();
-        if (onlyCategoryIds != null) cats = cats.Where(c => onlyCategoryIds.Contains(c.Id)).ToList();
         var perCat = new List<(string Name, List<GoalMetricComputed> Rows, List<GoalMonthPeriodDto> Months)>();
         foreach (var cat in cats)
         {
@@ -3521,23 +3288,23 @@ public class GoalSettingService : IGoalSettingService
         await conn.OpenAsync();
         var districtId = await ResolveDistrictIdAsync(conn, memberId, requestedDistrictId);
         // user 2026-10-08: Rotaract clubs hidden from the District Admin's goal screens (SuperAdmin keeps them).
-        return await BuildAllClubsMonthlyExcelCoreAsync(conn, districtId, yearId, await DaCategoryFilterAsync(conn, memberId),
+        return await BuildAllClubsMonthlyExcelCoreAsync(conn, districtId, yearId,
             excludeRotaract: ClubScopeSql.HideRotaract(await ClubAdminAccessHelper.IsSuperAdminAsync(conn, memberId)));
     }
 
-    // Goal-oversight "View clubs" popup: the all-clubs "Club Goal Setting" report for ANY district in
-    // the caller's goal scope (validated via CanAccessDistrictReportAsync, not district-admin role).
+    // Goal Overview "View clubs" popup: the all-clubs "Club Goal Setting" report for ANY district the
+    // caller may report on (validated via CanAccessDistrictReportAsync).
     public async Task<byte[]?> BuildAllClubsMonthlyExcelScopedAsync(int memberId, int? yearId, int districtId)
     {
         using var conn = CreateConnection();
         await conn.OpenAsync();
         if (!await CanAccessDistrictReportAsync(conn, memberId, districtId))
             throw new UnauthorizedAccessException("This district is outside your goal-setting scope.");
-        return await BuildAllClubsMonthlyExcelCoreAsync(conn, districtId, yearId, await OversightCategoryFilterAsync(conn, memberId));
+        return await BuildAllClubsMonthlyExcelCoreAsync(conn, districtId, yearId);
     }
 
     private async Task<byte[]?> BuildAllClubsMonthlyExcelCoreAsync(MySqlConnection conn, int districtId, int? yearId,
-        HashSet<int>? onlyCategoryIds = null, bool excludeRotaract = false)
+        bool excludeRotaract = false)
     {
         if (districtId == 0) return null;
         var (resolvedYearId, yearLabel, isEditable) = await ResolveYearAsync(conn, yearId);
@@ -3563,7 +3330,7 @@ public class GoalSettingService : IGoalSettingService
             {
                 using var c2 = CreateConnection();
                 await c2.OpenAsync();
-                var data = await ComputeEntityPerCatAsync(c2, "Club", club.Id, 0, resolvedYearId, isEditable, onlyCategoryIds);
+                var data = await ComputeEntityPerCatAsync(c2, "Club", club.Id, 0, resolvedYearId, isEditable);
                 return (club.Name, Data: data);
             }
             finally { sem.Release(); }
@@ -3899,9 +3666,8 @@ public class GoalSettingService : IGoalSettingService
         return SaveAndDispose(wb);
     }
 
-    // ── District oversight report (RI/ZC/DA): districts = rows, categories horizontal, YTD + Month-wise.
-    //    Scope: districtId>0 → that district; else zoneId>0 → that zone's districts; else ALL the caller's
-    //    districts across every zone they cover. Enforced against the caller's assignments (SuperAdmin = all).
+    // ── District goal report (SuperAdmin Goal Overview): districts = rows, categories horizontal, YTD +
+    //    Month-wise. Scope: districtId>0 → that district; else zoneId>0 → that zone's districts; else ALL.
     public async Task<byte[]?> BuildGoalDistrictReportExcelAsync(int memberId, int? zoneId, int? districtId, int? yearId)
     {
         using var conn = CreateConnection();
@@ -3909,17 +3675,7 @@ public class GoalSettingService : IGoalSettingService
         var (resolvedYearId, yearLabel, isEditable) = await ResolveYearAsync(conn, yearId);
         if (resolvedYearId == 0) return null;
 
-        // Resolve the scoped district set (id + number).
-        bool isSuper = await ClubAdminAccessHelper.IsSuperAdminAsync(conn, memberId);
-        // District Assistant: the report carries their own goal category only (user 2026-09-21).
-        var onlyCats = await OversightCategoryFilterAsync(conn, memberId);
-        HashSet<int>? allowed = null; // null = unrestricted (SuperAdmin)
-        if (!isSuper)
-        {
-            var assigns = await GetMyAssignmentsAsync(memberId);
-            allowed = assigns.SelectMany(a => a.DistrictIds).ToHashSet();
-            if (allowed.Count == 0) return null;
-        }
+        if (!await ClubAdminAccessHelper.IsSuperAdminAsync(conn, memberId)) return null;
 
         string where = "d.isdeleted=0 AND d.IsActive=1";
         if (districtId is > 0) where += " AND d.pk_district_id=@Did";
@@ -3927,7 +3683,6 @@ public class GoalSettingService : IGoalSettingService
         var districts = (await conn.QueryAsync<(int Id, string Number)>(
             $"SELECT pk_district_id AS Id, DistrictNumber AS Number FROM district_master d WHERE {where} ORDER BY DistrictNumber",
             new { Did = districtId ?? 0, Zid = zoneId ?? 0 })).ToList();
-        if (allowed != null) districts = districts.Where(d => allowed.Contains(d.Id)).ToList();
         if (districts.Count == 0) return null;
 
         // Parallel pre-compute (bounded) — one own connection per task.
@@ -3939,7 +3694,7 @@ public class GoalSettingService : IGoalSettingService
             {
                 using var c2 = CreateConnection();
                 await c2.OpenAsync();
-                var data = await ComputeEntityPerCatAsync(c2, "District", 0, d.Id, resolvedYearId, isEditable, onlyCats);
+                var data = await ComputeEntityPerCatAsync(c2, "District", 0, d.Id, resolvedYearId, isEditable);
                 return (Name: $"D {d.Number}", Data: data);
             }
             finally { sem.Release(); }
@@ -3959,514 +3714,20 @@ public class GoalSettingService : IGoalSettingService
 
         string scopeLabel = districtId is > 0 ? $"District {districts[0].Number}"
             : zoneId is > 0 ? $"Zone (districts) — {districts.Count} district(s)"
-            : $"All my districts — {districts.Count} district(s)";
+            : $"All districts — {districts.Count} district(s)";
         var subtitle = $"{scopeLabel}   ·   Rotary Year {yearLabel}   ·   Generated {DateTime.Now:dd MMM yyyy, hh:mm tt}";
         return BuildHorizontalGoalWorkbook("District", "Goal Setting — District Report", subtitle, rowData, months0,
             await FoundationAsOnAsync(conn, resolvedYearId, "District"));
     }
 
-    // ── Messages sheet (district report): every thread of the district the caller can see, all categories ──
-    private async Task AppendDistrictMessagesSheetAsync(XLWorkbook wb, int memberId, int districtId, int yearId)
-    {
-        var cats = await GetOversightCategoriesAsync(memberId);   // oversight screen: a DA gets only their own category
-        var ws = wb.Worksheets.Add("Messages");
-        ws.Column(1).Width = 16; ws.Column(2).Width = 32; ws.Column(3).Width = 28; ws.Column(4).Width = 64; ws.Column(5).Width = 16;
-        int r = 1;
-        RenderTitleBand(ws, 5, "Messages", "Goal-setting oversight conversations", ref r);
-        string[] hs = { "Category", "Thread", "From", "Message", "Date" };
-        for (int c = 0; c < hs.Length; c++) { var cell = ws.Cell(r, c + 1); cell.Value = hs[c]; StyleHeaderCell(cell); }
-        r++;
-        bool any = false;
-        foreach (var cat in cats)
-        {
-            GoalThreadListDto list;
-            try { list = await GetGoalThreadListAsync(memberId, cat.Id, districtId, yearId); }
-            catch { continue; }
-            foreach (var th in list.Threads)
-            {
-                List<GoalCommentDto> msgs;
-                try { msgs = await GetGoalThreadMessagesAsync(memberId, cat.Id, districtId, yearId, th.OwnerMemberId); }
-                catch { continue; }
-                foreach (var m in msgs)
-                {
-                    any = true;
-                    ws.Cell(r, 1).Value = cat.Name;
-                    ws.Cell(r, 2).Value = $"{th.OwnerName} ({th.OwnerRoleLabel})";
-                    ws.Cell(r, 3).Value = $"{m.PostedByRoleLabel} · {m.PostedByName}";
-                    ws.Cell(r, 4).Value = m.CommentText; ws.Cell(r, 4).Style.Alignment.WrapText = true;
-                    ws.Cell(r, 5).Value = m.CreatedDate ?? "";
-                    var rng = ws.Range(r, 1, r, 5);
-                    rng.Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
-                    rng.Style.Border.InsideBorder = XLBorderStyleValues.Thin;
-                    rng.Style.Border.OutsideBorderColor = RepBorder; rng.Style.Border.InsideBorderColor = RepBorder;
-                    rng.Style.Alignment.Vertical = XLAlignmentVerticalValues.Top;
-                    r++;
-                }
-            }
-        }
-        // District-side messages (District Admin / DG, user 2026-10-09) the downloader may read.
-        using (var dconn = CreateConnection())
-        {
-            await dconn.OpenAsync();
-            foreach (var m in await DistrictSideReportRowsAsync(dconn, memberId, yearId, 0, 0, districtId))
-            {
-                if (!cats.Any(x => x.Id == m.CategoryId)) continue;
-                any = true;
-                ws.Cell(r, 1).Value = m.CategoryName;
-                ws.Cell(r, 2).Value = $"District {m.DistrictNumber} ({m.FromRole})";
-                ws.Cell(r, 3).Value = $"{m.FromRole} · {m.FromName}";
-                ws.Cell(r, 4).Value = m.Text; ws.Cell(r, 4).Style.Alignment.WrapText = true;
-                ws.Cell(r, 5).Value = m.Created.ToString("yyyy-MM-dd HH:mm");
-                var drng = ws.Range(r, 1, r, 5);
-                drng.Style.Border.OutsideBorder = XLBorderStyleValues.Thin; drng.Style.Border.InsideBorder = XLBorderStyleValues.Thin;
-                drng.Style.Border.OutsideBorderColor = RepBorder; drng.Style.Border.InsideBorderColor = RepBorder;
-                drng.Style.Alignment.Vertical = XLAlignmentVerticalValues.Top;
-                r++;
-            }
-        }
-        if (!any) { ws.Range(r, 1, r, 5).Merge(); var c = ws.Cell(r, 1); c.Value = "No messages."; c.Style.Font.Italic = true; c.Style.Font.FontColor = XLColor.FromHtml("#94a3b8"); r++; }
-        ws.PageSetup.PageOrientation = XLPageOrientation.Landscape;
-        ws.PageSetup.FitToPages(1, 0);
-        ws.PageSetup.PrintAreas.Add($"A1:E{r - 1}");
-    }
-
-    // ── Public report builders ──
-    // These two serve BOTH audiences: a District / Club Admin pulling their own entity's report, and
-    // a goal-oversight role pulling a report for an entity they merely oversee. So the category rule
-    // is chosen per report (user 2026-09-25): an Admin of THIS district / club keeps every category;
-    // anyone else — including a District Assistant who happens to be an Admin somewhere else — is
-    // narrowed to their appointed category.
-    private async Task<HashSet<int>?> ReportCategoryFilterAsync(MySqlConnection conn, int memberId, bool ownsEntity)
-        => ownsEntity
-            ? await DaCategoryFilterAsync(conn, memberId)
-            : await OversightCategoryFilterAsync(conn, memberId);
-
-    private static async Task<bool> IsAdminOfDistrictAsync(MySqlConnection conn, int memberId, int districtId)
-        => await conn.ExecuteScalarAsync<int>(@"
-            SELECT COUNT(*) FROM member_roles
-            WHERE fk_member_master_profile_id = @M AND fk_role_id = 2 AND fk_district_id = @D
-              AND (fk_club_id IS NULL OR fk_club_id = 0) AND IsActive = 1 AND isdeleted = 0",
-            new { M = memberId, D = districtId }) > 0;
-
-    private static async Task<bool> IsAdminOfClubAsync(MySqlConnection conn, int memberId, int clubId)
-        => await conn.ExecuteScalarAsync<int>(@"
-            SELECT COUNT(*) FROM member_roles
-            WHERE fk_member_master_profile_id = @M AND fk_role_id IN (2, 5) AND fk_club_id = @C
-              AND IsActive = 1 AND isdeleted = 0",
-            new { M = memberId, C = clubId }) > 0
-           || await ClubAdminAccessHelper.IsDistrictAdminWithClubAccessAsync(conn, memberId, clubId);
-
-    public async Task<byte[]?> BuildDistrictGoalReportAsync(int memberId, int districtId, int? yearId)
-    {
-        using var conn = CreateConnection();
-        await conn.OpenAsync();
-        if (!await CanAccessDistrictReportAsync(conn, memberId, districtId))
-            throw new UnauthorizedAccessException("You are not authorised for this district's goal report.");
-        var (resolvedYearId, yearLabel, isEditable) = await ResolveYearAsync(conn, yearId);
-        if (resolvedYearId == 0) return null;
-        var num = await conn.ExecuteScalarAsync<string>(
-            "SELECT DistrictNumber FROM district_master WHERE pk_district_id = @Id", new { Id = districtId }) ?? "";
-        var wb = await RenderEntityWorkbookAsync(conn, "District", 0, districtId, resolvedYearId,
-            $"District {num}", $"Rotary Year {yearLabel}   ·   Generated {DateTime.Now:dd MMM yyyy, hh:mm tt}", isEditable,
-            await ReportCategoryFilterAsync(conn, memberId, await IsAdminOfDistrictAsync(conn, memberId, districtId)));
-        if (wb == null) return null;
-        await AppendDistrictMessagesSheetAsync(wb, memberId, districtId, resolvedYearId);
-        return SaveAndDispose(wb);
-    }
-
-    public async Task<byte[]?> BuildClubGoalReportAsync(int memberId, int clubId, int? yearId)
-    {
-        using var conn = CreateConnection();
-        await conn.OpenAsync();
-        if (!await CanAccessClubReportAsync(conn, memberId, clubId))
-            throw new UnauthorizedAccessException("You are not authorised for this club's goal report.");
-        var (resolvedYearId, yearLabel, isEditable) = await ResolveYearAsync(conn, yearId);
-        if (resolvedYearId == 0) return null;
-        var row = await conn.QueryFirstOrDefaultAsync<dynamic>(
-            "SELECT c.ClubName AS name, d.DistrictNumber AS num FROM club_master c LEFT JOIN district_master d ON d.pk_district_id = c.fk_district_id WHERE c.pk_club_id = @Id AND c.isdeleted = 0",
-            new { Id = clubId });
-        if (row == null) return null;
-        string clubName = (row.name as string) ?? $"Club {clubId}";
-        string dnum = (row.num as string) ?? "";
-        var wb = await RenderEntityWorkbookAsync(conn, "Club", clubId, 0, resolvedYearId,
-            clubName, $"District {dnum}   ·   Rotary Year {yearLabel}   ·   Generated {DateTime.Now:dd MMM yyyy, hh:mm tt}", isEditable,
-            await ReportCategoryFilterAsync(conn, memberId, await IsAdminOfClubAsync(conn, memberId, clubId)));
-        return wb == null ? null : SaveAndDispose(wb);
-    }
-
-    public async Task<byte[]?> BuildZoneGoalReportAsync(int memberId, int zoneId, int? yearId)
-    {
-        using var conn = CreateConnection();
-        await conn.OpenAsync();
-        if (!await CanAccessZoneReportAsync(conn, memberId, zoneId))
-            throw new UnauthorizedAccessException("You are not authorised for this zone's goal report.");
-        var (resolvedYearId, yearLabel, isEditable) = await ResolveYearAsync(conn, yearId);
-        if (resolvedYearId == 0) return null;
-        var zoneName = await conn.ExecuteScalarAsync<string>(
-            "SELECT ZoneName FROM zone_master WHERE pk_zone_id = @Z AND isdeleted = 0", new { Z = zoneId }) ?? $"Zone {zoneId}";
-        var districts = (await conn.QueryAsync<dynamic>(
-            "SELECT pk_district_id AS id, DistrictNumber AS num FROM district_master WHERE fk_zone_id = @Z AND isdeleted = 0 AND IsActive = 1 ORDER BY DistrictNumber",
-            new { Z = zoneId })).ToList();
-        if (districts.Count == 0) return null;
-        var cats = await GetOversightCategoriesAsync(memberId);   // DA: their own category only, Admin or not
-        string subtitle = $"Zone report   ·   Rotary Year {yearLabel}   ·   Generated {DateTime.Now:dd MMM yyyy, hh:mm tt}";
-
-        // Pre-compute every (district, category) once.
-        var computed = new Dictionary<(int Did, int Cid), (string Name, List<GoalMetricComputed> Rows, List<GoalMonthPeriodDto> Months)>();
-        foreach (var d in districts)
-            foreach (var cat in cats)
-                computed[((int)d.id, cat.Id)] = await ComputeCategoryMetricsAsync(conn, cat.Id, resolvedYearId, "District", 0, (int)d.id, isEditable);
-
-        var wb = new XLWorkbook();
-
-        // ── Sheet 1 — YTD, per category a table of districts × (metric → Jul-1/Target/Achieved/%) ──
-        var s1 = wb.Worksheets.Add("YTD (Till Date)");
-        s1.Column(1).Width = 14;
-        int r = 1;
-        foreach (var cat in cats)
-        {
-            // A metric with no reference column gets 3 columns. BaseLabel names that column — "Highest"
-            // for TRF, "Clubs as on July 1st" etc. for Membership (2026-09-16).
-            var labels = new List<(string Label, bool HasBaseline, bool Single, string BaseLabel)>();
-            foreach (var d in districts)
-            {
-                // Sheet 1 (YTD) keeps exactly the metrics it always had; the annual-only rows are listed
-                // on the Month-wise sheet instead (with empty month cells).
-                var rows = computed[((int)d.id, cat.Id)].Rows.Where(x => x.MonthlyTracked || x.SingleValue).ToList();
-                if (rows.Count > 0) { labels = rows.Select(x => (QualifiedLabel(x, rows), x.HasBaseline, x.SingleValue, ReportLabel(x.BaselineLabel))).ToList(); break; }
-            }
-            if (labels.Count == 0) continue;
-            // Public Image → 1 column per field; otherwise 4, or 3 without a July-1 baseline (TRF).
-            int width = 1 + labels.Sum(l => l.Single ? 1 : (l.HasBaseline ? 4 : 3));
-            if (r == 1) RenderTitleBand(s1, width, $"Zone {zoneName}", subtitle, ref r);
-            RenderSectionBand(s1, width, cat.Name, ref r);
-            // Super-header: District (merged over 2 rows) + each metric merged over its sub-cols.
-            int superRow = r;
-            s1.Range(superRow, 1, superRow + 1, 1).Merge();
-            var dh = s1.Cell(superRow, 1); dh.Value = "District"; StyleHeaderCell(dh);
-            int c = 2;
-            foreach (var (lbl, hasBase, single, _) in labels)
-            {
-                int cols = single ? 1 : (hasBase ? 4 : 3);
-                s1.Range(superRow, c, superRow, c + cols - 1).Merge();
-                var mh = s1.Cell(superRow, c); mh.Value = lbl; StyleHeaderCell(mh);
-                for (int k = 1; k < cols; k++) StyleHeaderCell(s1.Cell(superRow, c + k));
-                c += cols;
-            }
-            r++;
-            // Sub-header row.
-            c = 2;
-            foreach (var (lbl, hasBase, single, baseLbl) in labels)
-            {
-                string[] sub = single
-                    ? new[] { "Value" }
-                    : hasBase
-                    ? new[] { string.IsNullOrWhiteSpace(baseLbl) ? "Jul 1" : baseLbl, "Target", "Ach.", "Achievement(%)" }
-                    : new[] { "Target", "Ach.", "Achievement(%)" };
-                for (int k = 0; k < sub.Length; k++) { var cell = s1.Cell(r, c + k); cell.Value = sub[k]; StyleHeaderCell(cell); }
-                c += sub.Length;
-            }
-            r++;
-            foreach (var d in districts)
-            {
-                // Rows are the category's fields in a fixed order (same for every district), so align by
-                // index — labels can repeat (e.g. several "Proposed New Clubs"), so a label dict would clash.
-                var drows = computed[((int)d.id, cat.Id)].Rows.Where(x => x.MonthlyTracked || x.SingleValue).ToList();
-                s1.Cell(r, 1).Value = (string)d.num;
-                c = 2;
-                for (int i = 0; i < labels.Count; i++)
-                {
-                    var m = i < drows.Count ? drows[i] : null;
-                    if (labels[i].Single)
-                    {
-                        // ONE cell: the number, or Yes/No / the numbered Suggestions list.
-                        if (m?.DisplayText != null) { var dc = s1.Cell(r, c); dc.Value = m.DisplayText; dc.Style.Alignment.WrapText = true; }
-                        else SetNumCell(s1.Cell(r, c), m?.Target);
-                        c++;
-                        continue;
-                    }
-                    if (labels[i].HasBaseline) { SetNumCell(s1.Cell(r, c), m?.Baseline); c++; }
-                    SetNumCell(s1.Cell(r, c), m?.Target); c++;
-                    SetNumCell(s1.Cell(r, c), m?.Achieved); c++;
-                    SetPctCell(s1.Cell(r, c), m?.Pct, m?.TwoDecimalPct == true); c++;
-                }
-                BorderRow(s1, r, width); r++;
-            }
-            for (int col = 2; col <= width; col++) s1.Column(col).Width = 9;
-            r++; // spacer
-        }
-        s1.PageSetup.PageOrientation = XLPageOrientation.Landscape;
-        s1.PageSetup.FitToPages(1, 0);
-        s1.SheetView.FreezeColumns(1);
-
-        // ── Sheet 2 — Quarter, flat (District × Category × Metric) — user 2026-09-25 ──
-        // The yearly target split across Q1-Q4 and what each quarter achieved. Annual-only categories
-        // (Youth Service / Public Image) are skipped, as on the Month wise sheet below.
-        {
-            string[] qh = { "Q1 · Jul-Sep", "Q2 · Oct-Dec", "Q3 · Jan-Mar", "Q4 · Apr-Jun" };
-            var sq = wb.Worksheets.Add("Quarter");
-            int qCols = 3 + 1 + 8;   // District · Category · Metric · Yearly target · (target+achieved) × 4
-            sq.Column(1).Width = 12; sq.Column(2).Width = 16; sq.Column(3).Width = 26;
-            int rq = 1;
-            RenderTitleBand(sq, qCols, $"Zone {zoneName}", subtitle + "   ·   Quarter", ref rq);
-            int qc = 1;
-            foreach (var h in new[] { "District", "Category", "Particulars", "Yearly target" })
-            { var cell = sq.Cell(rq, qc); cell.Value = h; StyleHeaderCell(cell); qc++; }
-            foreach (var h in qh)
-            {
-                var t = sq.Cell(rq, qc); t.Value = h + " target"; StyleHeaderCell(t); qc++;
-                var a2 = sq.Cell(rq, qc); a2.Value = h + " achieved"; StyleHeaderCell(a2); qc++;
-            }
-            rq++;
-            foreach (var d in districts)
-                foreach (var cat in cats)
-                {
-                    var (nm, rws, _) = computed[((int)d.id, cat.Id)];
-                    if (IsAnnualOnlyCategory(string.IsNullOrEmpty(nm) ? cat.Name : nm)) continue;
-                    foreach (var m in rws.Where(x => x.MonthlyTracked))
-                    {
-                        sq.Cell(rq, 1).Value = (string)d.num;
-                        sq.Cell(rq, 2).Value = string.IsNullOrEmpty(nm) ? cat.Name : nm;
-                        sq.Cell(rq, 3).Value = QualifiedLabel(m, rws);
-                        SetNumCell(sq.Cell(rq, 4), m.Target);
-                        int c2 = 5;
-                        for (int q = 1; q <= 4; q++)
-                        {
-                            SetNumCell(sq.Cell(rq, c2), m.QuarterlyTargets.TryGetValue(q, out var qt) ? qt : null); c2++;
-                            SetNumCell(sq.Cell(rq, c2), m.QuarterlyAchieved.TryGetValue(q, out var qa) ? qa : null); c2++;
-                        }
-                        BorderRow(sq, rq, qCols); rq++;
-                    }
-                }
-            sq.PageSetup.PageOrientation = XLPageOrientation.Landscape;
-            sq.PageSetup.FitToPages(1, 0);
-            sq.SheetView.FreezeColumns(3);
-        }
-
-        // ── Sheet 3 — Month wise, flat (District × Category × Metric) ──
-        var months0 = UnionMonths(computed.Values.Select(v => v.Months));
-        var s2 = wb.Worksheets.Add("Month wise");
-        int totalCols = 3 + 1 + months0.Count + 1;   // District · Category · Metric · As on Jul 1 · <months> · Total
-        s2.Column(1).Width = 12; s2.Column(2).Width = 16; s2.Column(3).Width = 26;
-        r = 1;
-        RenderTitleBand(s2, totalCols, $"Zone {zoneName}", subtitle + "   ·   Month wise", ref r);
-        int hc = 1;
-        foreach (var h in new[] { "District", "Category", "Particulars", "As on Jul 1 / Value" }) { var cell = s2.Cell(r, hc); cell.Value = h; StyleHeaderCell(cell); hc++; }
-        foreach (var mo in months0) { var cell = s2.Cell(r, hc); cell.Value = mo.Label; StyleHeaderCell(cell); hc++; }
-        var t2 = s2.Cell(r, hc); t2.Value = "Gained"; StyleHeaderCell(t2);
-        r++;
-        foreach (var d in districts)
-            foreach (var cat in cats)
-            {
-                var (name, rows, months) = computed[((int)d.id, cat.Id)];
-                foreach (var m in rows)
-                {
-                    s2.Cell(r, 1).Value = (string)d.num;
-                    s2.Cell(r, 2).Value = string.IsNullOrEmpty(name) ? cat.Name : name;
-                    s2.Cell(r, 3).Value = QualifiedLabel(m, rows);
-                    // Annual-only field → its value here, then EMPTY month cells and no "Gained".
-                    if (!m.MonthlyTracked)
-                    {
-                        if (m.DisplayText != null) { var dc = s2.Cell(r, 4); dc.Value = m.DisplayText; dc.Style.Alignment.WrapText = true; }
-                        else SetNumCell(s2.Cell(r, 4), m.Target ?? m.Baseline);
-                        int bc = 5;
-                        foreach (var _ in months0) { SetNumCell(s2.Cell(r, bc), (decimal?)null); bc++; }
-                        SetNumCell(s2.Cell(r, bc), (decimal?)null);
-                        BorderRow(s2, r, totalCols); r++;
-                        continue;
-                    }
-                    SetNumCell(s2.Cell(r, 4), m.Baseline);   // As on Jul 1 (blank for non-Membership)
-                    // Stored deltas → CUMULATIVE running total (baseline + additions to date).
-                    // TRF starts at 0 — its "As on Jul 1 / Value" column holds Highest, not an opening figure.
-                    decimal run = m.BaselineIsReferenceOnly ? 0m : (m.Baseline ?? 0m);
-                    int c = 5;
-                    foreach (var mo in months0)
-                    {
-                        if (mo.IsAvailable && !m.ClosedMonths.Contains(mo.Month)) { run += (m.Monthly.TryGetValue(mo.Month, out var v) && v.HasValue) ? v.Value : 0m; SetNumCell(s2.Cell(r, c), run); }
-                        else SetNumCell(s2.Cell(r, c), null);
-                        c++;
-                    }
-                    SetNumCell(s2.Cell(r, c), m.MonthTotal);
-                    var rng = s2.Range(r, 1, r, totalCols);
-                    rng.Style.Border.OutsideBorder = XLBorderStyleValues.Thin; rng.Style.Border.InsideBorder = XLBorderStyleValues.Thin;
-                    rng.Style.Border.OutsideBorderColor = RepBorder; rng.Style.Border.InsideBorderColor = RepBorder;
-                    r++;
-                }
-            }
-        s2.PageSetup.PageOrientation = XLPageOrientation.Landscape;
-        s2.PageSetup.FitToPages(1, 0);
-        s2.SheetView.FreezeRows(1);
-
-        await AppendZoneMessagesSheetAsync(wb, memberId, zoneId, resolvedYearId);
-        return SaveAndDispose(wb);
-    }
-
-    // ── Messages sheet (zone report): every zone thread the caller can see, all categories ──
-    private async Task AppendZoneMessagesSheetAsync(XLWorkbook wb, int memberId, int zoneId, int yearId)
-    {
-        var cats = await GetOversightCategoriesAsync(memberId);   // oversight screen: a DA gets only their own category
-        var ws = wb.Worksheets.Add("Messages");
-        ws.Column(1).Width = 16; ws.Column(2).Width = 32; ws.Column(3).Width = 28; ws.Column(4).Width = 64; ws.Column(5).Width = 16;
-        int r = 1;
-        RenderTitleBand(ws, 5, "Messages", "Goal-setting oversight conversations (zone)", ref r);
-        string[] hs = { "Category", "Thread", "From", "Message", "Date" };
-        for (int c = 0; c < hs.Length; c++) { var cell = ws.Cell(r, c + 1); cell.Value = hs[c]; StyleHeaderCell(cell); }
-        r++;
-        bool any = false;
-        foreach (var cat in cats)
-        {
-            GoalThreadListDto list;
-            try { list = await GetGoalZoneThreadListAsync(memberId, cat.Id, zoneId, yearId, null); }
-            catch { continue; }
-            foreach (var th in list.Threads)
-            {
-                List<GoalCommentDto> msgs;
-                try { msgs = await GetGoalOwnerThreadMessagesAsync(memberId, cat.Id, yearId, th.OwnerMemberId); }
-                catch { continue; }
-                foreach (var m in msgs)
-                {
-                    any = true;
-                    ws.Cell(r, 1).Value = cat.Name;
-                    ws.Cell(r, 2).Value = $"{th.OwnerName} ({th.OwnerRoleLabel})";
-                    ws.Cell(r, 3).Value = $"{m.PostedByRoleLabel} · {m.PostedByName}";
-                    ws.Cell(r, 4).Value = m.CommentText; ws.Cell(r, 4).Style.Alignment.WrapText = true;
-                    ws.Cell(r, 5).Value = m.CreatedDate ?? "";
-                    var rng = ws.Range(r, 1, r, 5);
-                    rng.Style.Border.OutsideBorder = XLBorderStyleValues.Thin; rng.Style.Border.InsideBorder = XLBorderStyleValues.Thin;
-                    rng.Style.Border.OutsideBorderColor = RepBorder; rng.Style.Border.InsideBorderColor = RepBorder;
-                    rng.Style.Alignment.Vertical = XLAlignmentVerticalValues.Top;
-                    r++;
-                }
-            }
-        }
-        // District-side messages (District Admin / DG, user 2026-10-09) the downloader may read.
-        using (var dconn = CreateConnection())
-        {
-            await dconn.OpenAsync();
-            foreach (var m in await DistrictSideReportRowsAsync(dconn, memberId, yearId, zoneId, 0, 0))
-            {
-                if (!cats.Any(x => x.Id == m.CategoryId)) continue;
-                any = true;
-                ws.Cell(r, 1).Value = m.CategoryName;
-                ws.Cell(r, 2).Value = $"District {m.DistrictNumber} ({m.FromRole})";
-                ws.Cell(r, 3).Value = $"{m.FromRole} · {m.FromName}";
-                ws.Cell(r, 4).Value = m.Text; ws.Cell(r, 4).Style.Alignment.WrapText = true;
-                ws.Cell(r, 5).Value = m.Created.ToString("yyyy-MM-dd HH:mm");
-                var drng = ws.Range(r, 1, r, 5);
-                drng.Style.Border.OutsideBorder = XLBorderStyleValues.Thin; drng.Style.Border.InsideBorder = XLBorderStyleValues.Thin;
-                drng.Style.Border.OutsideBorderColor = RepBorder; drng.Style.Border.InsideBorderColor = RepBorder;
-                drng.Style.Alignment.Vertical = XLAlignmentVerticalValues.Top;
-                r++;
-            }
-        }
-        if (!any) { ws.Range(r, 1, r, 5).Merge(); var c = ws.Cell(r, 1); c.Value = "No messages."; c.Style.Font.Italic = true; c.Style.Font.FontColor = XLColor.FromHtml("#94a3b8"); r++; }
-        ws.PageSetup.PageOrientation = XLPageOrientation.Landscape;
-        ws.PageSetup.FitToPages(1, 0);
-        ws.PageSetup.PrintAreas.Add($"A1:E{r - 1}");
-    }
-
-    // ── Report-scope validators (goal-role scope + entity admin) ──
-    private async Task<bool> CanAccessZoneReportAsync(MySqlConnection conn, int memberId, int zoneId)
-    {
-        if (zoneId <= 0 || memberId <= 0) return false;
-        if (await ClubAdminAccessHelper.IsSuperAdminAsync(conn, memberId)) return true;
-        var assigns = await GetMyAssignmentsAsync(memberId);
-        foreach (var a in assigns)
-            if ((a.RoleType == "AllCategoryAllDistrictsFewZones" || a.RoleType == "AllDistrictsOneCategoryOneZone")
-                && (a.ZoneIds ?? new List<int>()).Contains(zoneId)) return true;
-        var isZc = await conn.ExecuteScalarAsync<int>(
-            "SELECT COUNT(*) FROM member_roles WHERE fk_member_master_profile_id = @M AND fk_role_id = 4 AND fk_zone_id = @Z AND IsActive = 1 AND isdeleted = 0",
-            new { M = memberId, Z = zoneId });
-        return isZc > 0;
-    }
+    // ── Report-scope validator (SuperAdmin or the district's admin) ──
     private async Task<bool> CanAccessDistrictReportAsync(MySqlConnection conn, int memberId, int districtId)
     {
         if (districtId <= 0 || memberId <= 0) return false;
         if (await ClubAdminAccessHelper.IsSuperAdminAsync(conn, memberId)) return true;
-        var assigns = await GetMyAssignmentsAsync(memberId);
-        if (assigns.Any(a => (a.DistrictIds ?? new List<int>()).Contains(districtId))) return true;
         try { return await ResolveDistrictIdAsync(conn, memberId, districtId) == districtId; }
         catch (UnauthorizedAccessException) { return false; }
     }
-    private async Task<bool> CanAccessClubReportAsync(MySqlConnection conn, int memberId, int clubId)
-    {
-        if (clubId <= 0 || memberId <= 0) return false;
-        if (await ClubAdminAccessHelper.IsSuperAdminAsync(conn, memberId)) return true;
-        try { if (await ResolveClubIdAsync(conn, memberId, clubId) == clubId) return true; }
-        catch (UnauthorizedAccessException) { }
-        var dId = await conn.ExecuteScalarAsync<int?>(
-            "SELECT fk_district_id FROM club_master WHERE pk_club_id = @Id AND isdeleted = 0", new { Id = clubId }) ?? 0;
-        if (dId <= 0) return false;
-        var assigns = await GetMyAssignmentsAsync(memberId);
-        return assigns.Any(a => (a.DistrictIds ?? new List<int>()).Contains(dId));
-    }
-
-    // ── Scoped CLUB drill-down for role logins ──
-    public async Task<List<GoalClubSummaryDto>> GetScopedDistrictClubsGoalListAsync(int memberId, int categoryId, int yearId, int districtId)
-    {
-        using var conn = CreateConnection();
-        await conn.OpenAsync();
-        if (!await CanAccessDistrictReportAsync(conn, memberId, districtId))
-            throw new UnauthorizedAccessException("You are not authorised to view this district's clubs.");
-        var onlyCats = await OversightCategoryFilterAsync(conn, memberId);
-        if (onlyCats != null && !onlyCats.Contains(categoryId))
-            throw new UnauthorizedAccessException("This goal category is outside your assignment.");
-
-        var rows = await conn.QueryAsync<dynamic>(@"
-            SELECT c.pk_club_id AS clubId, c.ClubName AS clubName,
-                   (SELECT COUNT(*) FROM goal_entries e
-                     JOIN goal_fields f ON f.pk_field_id = e.fk_field_id AND f.isdeleted = 0
-                    WHERE f.fk_category_id = @CategoryId AND e.fk_year_id = @YearId
-                      AND e.EntityType = 'Club' AND e.fk_club_id = c.pk_club_id AND e.isdeleted = 0) AS entryCount,
-                   (SELECT DATE_FORMAT(MAX(COALESCE(e.modified_date, e.created_date)), '%Y-%m-%d %H:%i')
-                      FROM goal_entries e JOIN goal_fields f ON f.pk_field_id = e.fk_field_id AND f.isdeleted = 0
-                     WHERE f.fk_category_id = @CategoryId AND e.fk_year_id = @YearId
-                       AND e.EntityType = 'Club' AND e.fk_club_id = c.pk_club_id AND e.isdeleted = 0) AS lastUpdatedDate,
-                   (SELECT l.IsLocked FROM goal_locks l
-                     WHERE l.EntityType = 'Club' AND l.fk_club_id = c.pk_club_id AND l.fk_district_id = 0
-                       AND l.fk_category_id = @CategoryId AND l.fk_year_id = @YearId) AS isLocked
-            FROM club_master c
-            WHERE c.fk_district_id = @DistrictId AND c.isdeleted = 0 AND c.IsActive = 1
-            ORDER BY c.ClubName",
-            new { CategoryId = categoryId, YearId = yearId, DistrictId = districtId });
-        return rows.Select(r => new GoalClubSummaryDto
-        {
-            ClubId = Convert.ToInt32(r.clubId),
-            ClubName = (string)r.clubName,
-            HasAnyGoalSet = Convert.ToInt32(r.entryCount ?? 0L) > 0,
-            LastUpdatedDate = r.lastUpdatedDate as string,
-            IsLocked = r.isLocked != null && Convert.ToBoolean(r.isLocked),
-        }).ToList();
-    }
-
-    public async Task<GoalCategoryFormDto?> GetScopedClubGoalFormAsync(int memberId, int categoryId, int yearId, int clubId)
-    {
-        using var conn = CreateConnection();
-        await conn.OpenAsync();
-        if (!await CanAccessClubReportAsync(conn, memberId, clubId))
-            throw new UnauthorizedAccessException("You are not authorised to view this club's goals.");
-        var onlyCats = await OversightCategoryFilterAsync(conn, memberId);
-        if (onlyCats != null && !onlyCats.Contains(categoryId))
-            throw new UnauthorizedAccessException("This goal category is outside your assignment.");
-
-        var (resolvedYearId, yearLabel, isEditable) = await ResolveYearAsync(conn, yearId);
-        if (resolvedYearId == 0) return null;
-        var clubName = await conn.ExecuteScalarAsync<string>(
-            "SELECT ClubName FROM club_master WHERE pk_club_id = @Id AND isdeleted = 0", new { Id = clubId }) ?? "";
-        var categoryName = await GetCategoryNameAsync(conn, categoryId);
-        var fields = await LoadFieldsWithValuesAsync(conn, categoryId, resolvedYearId, "Club", clubId, 0, autoFillLive: isEditable);
-        var lock_ = await GetLockAsync(conn, "Club", clubId, 0, categoryId, resolvedYearId);
-        return new GoalCategoryFormDto
-        {
-            CategoryId = categoryId, CategoryName = categoryName, EntityType = "Club", ClubId = clubId,
-            EntityName = clubName, YearId = resolvedYearId, YearLabel = yearLabel,
-            IsEditable = false, IsLocked = lock_.IsLocked, LockedByName = lock_.LockedByName,
-            LockedDate = lock_.LockedDate, CanLock = false,
-            AchievedAsOn = await AchievedAsOnAsync(conn, categoryId, resolvedYearId, "Club", clubId, 0),
-            Fields = fields,
-        };
-    }
-
     // ── District Admin's club list overview ──────────────────────────────
     public async Task<List<GoalClubSummaryDto>> GetDistrictClubsGoalListAsync(int memberId, int categoryId, int yearId, int? requestedDistrictId)
     {
@@ -4484,10 +3745,7 @@ public class GoalSettingService : IGoalSettingService
                    (SELECT DATE_FORMAT(MAX(COALESCE(e.modified_date, e.created_date)), '%Y-%m-%d %H:%i')
                       FROM goal_entries e JOIN goal_fields f ON f.pk_field_id = e.fk_field_id AND f.isdeleted = 0
                      WHERE f.fk_category_id = @CategoryId AND e.fk_year_id = @YearId
-                       AND e.EntityType = 'Club' AND e.fk_club_id = c.pk_club_id AND e.isdeleted = 0) AS lastUpdatedDate,
-                   (SELECT l.IsLocked FROM goal_locks l
-                     WHERE l.EntityType = 'Club' AND l.fk_club_id = c.pk_club_id AND l.fk_district_id = 0
-                       AND l.fk_category_id = @CategoryId AND l.fk_year_id = @YearId) AS isLocked
+                       AND e.EntityType = 'Club' AND e.fk_club_id = c.pk_club_id AND e.isdeleted = 0) AS lastUpdatedDate
             FROM club_master c
             WHERE c.fk_district_id = @DistrictId AND c.isdeleted = 0 AND c.IsActive = 1
             ORDER BY c.ClubName",
@@ -4499,7 +3757,6 @@ public class GoalSettingService : IGoalSettingService
             ClubName = (string)r.clubName,
             HasAnyGoalSet = Convert.ToInt32(r.entryCount ?? 0L) > 0,
             LastUpdatedDate = r.lastUpdatedDate as string,
-            IsLocked = r.isLocked != null && Convert.ToBoolean(r.isLocked),
         }).ToList();
     }
 
@@ -4515,9 +3772,8 @@ public class GoalSettingService : IGoalSettingService
             excludeRotaract: ClubScopeSql.HideRotaract(await ClubAdminAccessHelper.IsSuperAdminAsync(conn, memberId)));   // user 2026-10-08
     }
 
-    // Goal-oversight (RI Director / ZC / DA / observer) variant: validate the district against the
-    // caller's goal scope (CanAccessDistrictReportAsync), NOT the district-admin role. Used by the
-    // "Club Goal Setting" popup on the district oversight matrix.
+    // Goal Overview variant: validate the district with CanAccessDistrictReportAsync (SuperAdmin or the
+    // district's admin). Used by the "Club Goal Setting" popup on the Goal Overview district matrix.
     public async Task<GoalClubMatrixDto> GetScopedDistrictClubsGoalMatrixAsync(int memberId, int categoryId, int? yearId, int districtId)
     {
         using var conn = CreateConnection();
@@ -4606,7 +3862,7 @@ public class GoalSettingService : IGoalSettingService
             excludeRotaract: ClubScopeSql.HideRotaract(await ClubAdminAccessHelper.IsSuperAdminAsync(conn, memberId)));   // user 2026-10-08
     }
 
-    // Goal-oversight variant (goal-scope validated, not district-admin) — for the "Club Goal Setting" popup.
+    // Goal Overview variant (validated by CanAccessDistrictReportAsync) — for the "Club Goal Setting" popup.
     public async Task<GoalClubMonthlyMatrixDto> GetScopedDistrictClubsMonthlyMatrixAsync(int memberId, int categoryId, int? yearId, int districtId)
     {
         using var conn = CreateConnection();
@@ -4717,74 +3973,6 @@ public class GoalSettingService : IGoalSettingService
         return string.IsNullOrWhiteSpace(f.TextValue) ? null : f.TextValue;
     }
 
-    // ── Zonal Coordinator's district list overview ───────────────────────
-    // The zone-level parallel to a District Admin's club list: every district in the
-    // ZC's zone with its goal status for one category+year. A ZC edits/locks a district's
-    // goals the same way a District Admin edits/locks a club's (reuses the district-form
-    // + district-lock service methods, authorised via ResolveDistrictIdAsync / CanLockDistrictAsync).
-    private async Task<int> ResolveZoneIdForCoordinatorAsync(MySqlConnection conn, int memberId, int? requestedZoneId)
-    {
-        if (memberId <= 0) return 0;
-        var isSuperAdmin = await ClubAdminAccessHelper.IsSuperAdminAsync(conn, memberId);
-
-        if (requestedZoneId is > 0)
-        {
-            if (isSuperAdmin) return requestedZoneId.Value;
-            var isZcOfZone = await conn.ExecuteScalarAsync<int>(@"
-                SELECT COUNT(*) FROM member_roles
-                WHERE fk_member_master_profile_id = @MemberId AND fk_role_id = 4
-                  AND fk_zone_id = @ZoneId AND IsActive = 1 AND isdeleted = 0",
-                new { MemberId = memberId, ZoneId = requestedZoneId.Value });
-            if (isZcOfZone > 0) return requestedZoneId.Value;
-            throw new UnauthorizedAccessException("You are not the Zonal Coordinator for this zone.");
-        }
-
-        var zoneId = await conn.ExecuteScalarAsync<int?>(@"
-            SELECT fk_zone_id FROM member_roles
-            WHERE fk_member_master_profile_id = @MemberId AND fk_role_id = 4
-              AND fk_zone_id IS NOT NULL AND fk_zone_id > 0 AND IsActive = 1 AND isdeleted = 0
-            ORDER BY pk_member_role_id DESC LIMIT 1", new { MemberId = memberId });
-        return zoneId ?? 0;
-    }
-
-    public async Task<List<GoalDistrictSummaryDto>> GetZoneDistrictsGoalListAsync(int memberId, int categoryId, int yearId, int? requestedZoneId)
-    {
-        using var conn = CreateConnection();
-        await conn.OpenAsync();
-        var zoneId = await ResolveZoneIdForCoordinatorAsync(conn, memberId, requestedZoneId);
-        if (zoneId == 0) return new List<GoalDistrictSummaryDto>();
-
-        var rows = await conn.QueryAsync<dynamic>(@"
-            SELECT d.pk_district_id AS districtId, d.DistrictNumber AS districtNumber, d.fk_zone_id AS zoneId, z.ZoneName AS zoneName,
-                   (SELECT COUNT(*) FROM goal_entries e
-                     JOIN goal_fields f ON f.pk_field_id = e.fk_field_id AND f.isdeleted = 0
-                    WHERE f.fk_category_id = @CategoryId AND e.fk_year_id = @YearId
-                      AND e.EntityType = 'District' AND e.fk_district_id = d.pk_district_id AND e.isdeleted = 0) AS entryCount,
-                   (SELECT DATE_FORMAT(MAX(COALESCE(e.modified_date, e.created_date)), '%Y-%m-%d %H:%i')
-                      FROM goal_entries e JOIN goal_fields f ON f.pk_field_id = e.fk_field_id AND f.isdeleted = 0
-                     WHERE f.fk_category_id = @CategoryId AND e.fk_year_id = @YearId
-                       AND e.EntityType = 'District' AND e.fk_district_id = d.pk_district_id AND e.isdeleted = 0) AS lastUpdatedDate,
-                   (SELECT l.IsLocked FROM goal_locks l
-                     WHERE l.EntityType = 'District' AND l.fk_district_id = d.pk_district_id AND l.fk_club_id = 0
-                       AND l.fk_category_id = @CategoryId AND l.fk_year_id = @YearId) AS isLocked
-            FROM district_master d
-            LEFT JOIN zone_master z ON z.pk_zone_id = d.fk_zone_id
-            WHERE d.isdeleted = 0 AND d.IsActive = 1 AND d.fk_zone_id = @ZoneId
-            ORDER BY d.DistrictNumber",
-            new { CategoryId = categoryId, YearId = yearId, ZoneId = zoneId });
-
-        return rows.Select(r => new GoalDistrictSummaryDto
-        {
-            DistrictId = Convert.ToInt32(r.districtId),
-            DistrictNumber = (string)r.districtNumber,
-            ZoneId = r.zoneId == null ? 0 : Convert.ToInt32(r.zoneId),
-            ZoneName = r.zoneName as string,
-            HasAnyGoalSet = Convert.ToInt32(r.entryCount ?? 0L) > 0,
-            LastUpdatedDate = r.lastUpdatedDate as string,
-            IsLocked = r.isLocked != null && Convert.ToBoolean(r.isLocked),
-        }).ToList();
-    }
-
     // ── SuperAdmin read-only Overview matrix (one zone × one category × one year) ──────────
     // A comparison grid: rows = the category's district-level metrics, columns = every active
     // district in the zone, each cell = that district's Target and/or Achieved value.
@@ -4798,61 +3986,18 @@ public class GoalSettingService : IGoalSettingService
     //     or its FieldRole == 'Target'; otherwise it's the ACHIEVED side (Reference/Computed baseline,
     //     e.g. the imported Foundation figures or the live "*_achieved" progress). Unpaired fields
     //     (pure targets in Public Image, pure references) simply fill one side of their row.
-    // Role-scoped Overview matrix — the SAME target/achieved grid as the SuperAdmin Overview, but
-    // callable by a goal oversight role for a zone THEY cover. RI Director / Zone Co-ordinator see the
-    // whole zone; a District Assistant sees only their assigned districts within the zone (the grid is
-    // filtered to those columns). SuperAdmin sees everything. Throws Unauthorized otherwise.
-    public async Task<GoalOverviewMatrixDto?> GetScopedOverviewMatrixAsync(int memberId, int zoneId, int categoryId, int? yearId)
-    {
-        if (zoneId <= 0) return null;
-        using (var conn = CreateConnection())
-        {
-            await conn.OpenAsync();
-            HashSet<int>? allowedDistricts = null; // null = all districts of the zone
-
-            if (!await ClubAdminAccessHelper.IsSuperAdminAsync(conn, memberId))
-            {
-                var assigns = await GetMyAssignmentsAsync(memberId);
-                bool riOrZc = assigns.Any(a =>
-                    (a.RoleType == "AllCategoryAllDistrictsFewZones" && a.ZoneIds.Contains(zoneId)) ||
-                    (a.RoleType == "AllDistrictsOneCategoryOneZone" && a.ZoneIds.Contains(zoneId) && a.CategoryIds.Contains(categoryId)));
-                if (!riOrZc)
-                {
-                    // District Assistant — restrict to the districts they hold for this category that
-                    // are actually in this zone.
-                    var daDistricts = assigns
-                        .Where(a => a.RoleType == "FewDistrictsOneCategoryOneZone" && a.CategoryIds.Contains(categoryId))
-                        .SelectMany(a => a.DistrictIds).Distinct().ToList();
-                    if (daDistricts.Count == 0)
-                        throw new UnauthorizedAccessException("You do not oversee this zone / category.");
-                    var zoneDistricts = (await conn.QueryAsync<int>(
-                        "SELECT pk_district_id FROM district_master WHERE fk_zone_id=@Z AND isdeleted=0 AND IsActive=1",
-                        new { Z = zoneId })).ToHashSet();
-                    allowedDistricts = daDistricts.Where(zoneDistricts.Contains).ToHashSet();
-                    if (allowedDistricts.Count == 0)
-                        throw new UnauthorizedAccessException("You do not oversee any district in this zone / category.");
-                }
-            }
-
-            var matrix = await GetOverviewMatrixAsync(zoneId, categoryId, yearId);
-            if (matrix == null) return null;
-            if (allowedDistricts != null)
-            {
-                matrix.Districts = matrix.Districts.Where(d => allowedDistricts.Contains(d.DistrictId)).ToList();
-                foreach (var row in matrix.Rows)
-                    row.Cells = row.Cells.Where(c => allowedDistricts.Contains(c.DistrictId)).ToList();
-            }
-            return matrix;
-        }
-    }
-
-    // Districts = rows, one compact Target/Achieved/% block per category the caller oversees. Reuses the
-    // scoped per-category overview (so RI/ZC get all zone districts, DA only their districts), taking each
-    // category's HEADLINE metric (first row with a Target) as the summary. Adds a summed total per category.
+    // Districts = rows, one compact Target/Achieved/% block per category (SuperAdmin Goal Overview). Reuses
+    // the per-category overview, taking each category's HEADLINE metric (first row with a Target) as the
+    // summary. Adds a summed total per category. Anyone else gets an empty matrix.
     public async Task<GoalDistrictSummaryMatrixDto> GetScopedDistrictSummaryMatrixAsync(int memberId, int zoneId, int? yearId)
     {
         var result = new GoalDistrictSummaryMatrixDto { ZoneId = zoneId };
-        var cats = await GetOversightCategoriesAsync(memberId);   // DA: their own category only, Admin or not
+        using (var conn = CreateConnection())
+        {
+            await conn.OpenAsync();
+            if (!await ClubAdminAccessHelper.IsSuperAdminAsync(conn, memberId)) return result;
+        }
+        var cats = await GetCategoriesAsync();
         var order = new List<GoalSummaryDistrictRowDto>();
         var byId = new Dictionary<int, GoalSummaryDistrictRowDto>();
         // Per (categoryId, metricIndex) totals accumulator.
@@ -4860,9 +4005,7 @@ public class GoalSettingService : IGoalSettingService
 
         foreach (var cat in cats)
         {
-            GoalOverviewMatrixDto? m;
-            try { m = await GetScopedOverviewMatrixAsync(memberId, zoneId, cat.Id, yearId); }
-            catch (UnauthorizedAccessException) { continue; }   // caller doesn't oversee this category
+            var m = await GetOverviewMatrixAsync(zoneId, cat.Id, yearId);
             if (m == null || m.Districts.Count == 0 || m.Rows.Count == 0) continue;
 
             if (string.IsNullOrEmpty(result.ZoneName)) { result.ZoneName = m.ZoneName; result.YearId = m.YearId; result.YearLabel = m.YearLabel; }
@@ -4924,7 +4067,7 @@ public class GoalSettingService : IGoalSettingService
                 {
                     foreach (var r in grows)
                     {
-                        // Youth Service: no Achievement(%) columns for the oversight roles (user 2026-10-09);
+                        // Youth Service: no Achievement(%) columns on the Goal Overview (user 2026-10-09);
                         // the District Admin's own form keeps them.
                         if (IsYouthCategory(m.CategoryName) && r.DataType == "Percentage") continue;
                         groups.Add((gname, ReportLabel(r.Label), r, r, r, RagBandOf(r.MetricKey, r.Label), true, null));
@@ -5064,8 +4207,8 @@ public class GoalSettingService : IGoalSettingService
 
     private static bool IsYouthCategory(string? name) => string.Equals(name, "Youth Service", StringComparison.OrdinalIgnoreCase);
 
-    // Oversight reports (RI Director / ZC / District Assistant, user 2026-10-09): Youth Service without
-    // its Achievement(%) columns. The District Admin's own exports are not passed through this.
+    // Goal Overview reports (SuperAdmin, user 2026-10-09): Youth Service without its Achievement(%)
+    // columns. The District Admin's own exports are not passed through this.
     private static void DropYouthPct(List<(string Name, List<GoalMetricComputed> Rows, List<GoalMonthPeriodDto> Months)> perCat)
     {
         foreach (var (name, rows, _) in perCat)
@@ -5151,7 +4294,7 @@ public class GoalSettingService : IGoalSettingService
 
         var categoryName = await GetCategoryNameAsync(conn, categoryId);
 
-        // Active districts of the zone (same filter the ZC/bulk-lock views use).
+        // Active districts of the zone.
         var districtRows = (await conn.QueryAsync<dynamic>(@"
             SELECT pk_district_id AS id, DistrictNumber AS number
             FROM district_master
@@ -5328,973 +4471,12 @@ public class GoalSettingService : IGoalSettingService
         }
     }
 
-    // ── Specialized oversight roles (Phase 3) ────────────────────────────
-    // Club Admin / District Admin reuse member_roles — everything below is only for the
-    // three goal_role_assignments-backed roles: FewDistrictsOneCategoryOneZone,
-    // AllDistrictsOneCategoryOneZone, AllCategoryAllDistrictsFewZones.
-    private static readonly HashSet<string> ValidGoalRoleTypes = new()
-    {
-        "FewDistrictsOneCategoryOneZone", "AllDistrictsOneCategoryOneZone", "AllCategoryAllDistrictsFewZones",
-    };
-
-    public async Task<List<GoalRoleAssignmentDto>> GetRoleAssignmentsAsync()
-    {
-        using var conn = CreateConnection();
-        await conn.OpenAsync();
-        var rows = await conn.QueryAsync<dynamic>(@"
-            SELECT a.pk_id AS id, a.fk_member_id AS memberId,
-                   COALESCE(NULLIF(m.MemberName, ''), a.MemberNameText) AS memberName,
-                   a.RoleType AS roleType, a.AssignmentName AS assignmentName,
-                   a.RoleTitle AS roleTitle, a.Avenue AS avenue,
-                   a.fk_category_id AS categoryId, IF(c.Name = 'TRF', 'Foundation', c.Name) AS categoryName,
-                   a.fk_zone_id AS zoneId, z.ZoneName AS zoneName,
-                   a.HomeDistrictId AS homeDistrictId, hd.DistrictNumber AS homeDistrictNumber,
-                   a.DgYear AS dgYear, a.SupportingText AS supportingText,
-                   a.IsActive AS isActive, DATE_FORMAT(a.AssignedDate, '%Y-%m-%d') AS assignedDate,
-                   DATE_FORMAT(a.RoleEmailSentDate, '%Y-%m-%d %H:%i') AS roleEmailSentDate
-            FROM goal_role_assignments a
-            LEFT JOIN member_master_profile m ON m.pk_member_master_profile_id = a.fk_member_id
-            LEFT JOIN goal_categories c ON c.pk_category_id = a.fk_category_id
-            LEFT JOIN zone_master z ON z.pk_zone_id = a.fk_zone_id
-            LEFT JOIN district_master hd ON hd.pk_district_id = a.HomeDistrictId
-            WHERE a.isdeleted = 0
-            ORDER BY a.IsActive DESC, a.AssignedDate DESC");
-
-        // Built via an explicit foreach (not .Select().ToList()) — chaining LINQ directly on
-        // Dapper's dynamic rows here infers the whole chain as `dynamic`, not List<T>, which
-        // then breaks TryGetValue's `out var` type inference below (CS8197).
-        var list = new List<GoalRoleAssignmentDto>();
-        foreach (var r in rows)
-        {
-            list.Add(new GoalRoleAssignmentDto
-            {
-                Id = Convert.ToInt32(r.id),
-                MemberId = Convert.ToInt32(r.memberId),
-                MemberName = r.memberName as string ?? "",
-                RoleType = (string)r.roleType,
-                AssignmentName = (string)r.assignmentName,
-                CategoryId = r.categoryId == null ? null : Convert.ToInt32(r.categoryId),
-                CategoryName = r.categoryName as string,
-                ZoneId = r.zoneId == null ? null : Convert.ToInt32(r.zoneId),
-                ZoneName = r.zoneName as string,
-                IsActive = Convert.ToBoolean(r.isActive),
-                AssignedDate = r.assignedDate as string,
-                RoleEmailSentDate = r.roleEmailSentDate as string,
-                RoleTitle = r.roleTitle as string,
-                Avenue = r.avenue as string,
-                HomeDistrictId = r.homeDistrictId == null ? null : Convert.ToInt32(r.homeDistrictId),
-                HomeDistrictNumber = r.homeDistrictNumber as string,
-                DgYear = r.dgYear as string,
-                SupportingText = r.supportingText as string,
-            });
-        }
-        if (list.Count == 0) return list;
-
-        var ids = list.Select(a => a.Id).ToList();
-        Dictionary<int, GoalRoleAssignmentDto> byId = list.ToDictionary(a => a.Id);
-
-        var districtRows = await conn.QueryAsync<dynamic>(@"
-            SELECT d.fk_assignment_id AS assignmentId, dm.DistrictNumber AS districtNumber
-            FROM goal_role_assignment_districts d
-            JOIN district_master dm ON dm.pk_district_id = d.fk_district_id
-            WHERE d.fk_assignment_id IN @Ids", new { Ids = ids });
-        foreach (var dr in districtRows)
-        {
-            int assignmentId = Convert.ToInt32(dr.assignmentId);
-            if (byId.TryGetValue(assignmentId, out GoalRoleAssignmentDto? a))
-            {
-                a.DistrictNumbers.Add((string)dr.districtNumber);
-            }
-        }
-
-        var zoneRows = await conn.QueryAsync<dynamic>(@"
-            SELECT z.fk_assignment_id AS assignmentId, zm.pk_zone_id AS zoneId, zm.ZoneName AS zoneName
-            FROM goal_role_assignment_zones z
-            JOIN zone_master zm ON zm.pk_zone_id = z.fk_zone_id
-            WHERE z.fk_assignment_id IN @Ids", new { Ids = ids });
-        foreach (var zr in zoneRows)
-        {
-            int assignmentId = Convert.ToInt32(zr.assignmentId);
-            if (byId.TryGetValue(assignmentId, out GoalRoleAssignmentDto? a))
-            {
-                a.ZoneIds.Add(Convert.ToInt32(zr.zoneId));
-                a.ZoneNames.Add((string)zr.zoneName);
-            }
-        }
-        return list;
-    }
-
-    // Export the Role Assign listing as Excel (user 2026-10-05). One row per role HOLDER - a seat
-    // held by two people exports two rows, because this is a contact sheet.
-    //
-    // zoneId follows the "Filter by zone" dropdown of the screen, by exactly the same rule as the
-    // "Send role emails" button: null = every zone, otherwise an RI Director matches through its
-    // zone LIST and a Zone Co-ordinator / District Assistant through its single zone.
-    //
-    // Zone / Assigned Districts describe the ROLE's scope; Club and District are the holder's own
-    // (from their active club membership), which is what makes the mobile number and email usable.
-    public async Task<byte[]> BuildRoleAssignmentsExcelAsync(int? zoneId)
-    {
-        var rows = (await GetRoleAssignmentsAsync()).Where(a => a.IsActive).ToList();
-        if (zoneId is > 0)
-            rows = rows.Where(a => a.RoleType == "AllCategoryAllDistrictsFewZones"
-                ? a.ZoneIds.Contains(zoneId.Value)
-                : a.ZoneId == zoneId.Value).ToList();
-
-        using var conn = CreateConnection();
-        await conn.OpenAsync();
-
-        var zoneName = zoneId is > 0
-            ? await conn.ExecuteScalarAsync<string>("SELECT ZoneName FROM zone_master WHERE pk_zone_id = @Z", new { Z = zoneId })
-            : null;
-
-        // Contact + club/district for every holder, in one query. A member in two clubs gets both
-        // names in the cell rather than a second row - the role is held once.
-        var contacts = new Dictionary<int, (string Email, string Mobile, string Club, string District)>();
-        var memberIds = rows.Select(a => a.MemberId).Where(id => id > 0).Distinct().ToList();
-        if (memberIds.Count > 0)
-        {
-            var cRows = await conn.QueryAsync<dynamic>(@"
-                SELECT m.pk_member_master_profile_id AS id,
-                       COALESCE(m.EmailId, '') AS email,
-                       COALESCE(m.PrimaryMobileNumber, '') AS mobile,
-                       COALESCE(GROUP_CONCAT(DISTINCT c.ClubName ORDER BY c.ClubName SEPARATOR ', '), '') AS clubName,
-                       COALESCE(GROUP_CONCAT(DISTINCT d.DistrictNumber ORDER BY d.DistrictNumber SEPARATOR ', '), '') AS districtNumber
-                FROM member_master_profile m
-                LEFT JOIN club_members cm ON cm.fk_member_master_profile_id = m.pk_member_master_profile_id
-                     AND cm.IsActive = 1 AND COALESCE(cm.isdeleted, 0) = 0
-                LEFT JOIN club_master c ON c.pk_club_id = cm.fk_club_id AND COALESCE(c.isdeleted, 0) = 0
-                LEFT JOIN district_master d ON d.pk_district_id = c.fk_district_id AND COALESCE(d.isdeleted, 0) = 0
-                WHERE m.pk_member_master_profile_id IN @Ids
-                GROUP BY m.pk_member_master_profile_id, m.EmailId, m.PrimaryMobileNumber",
-                new { Ids = memberIds });
-            foreach (var cr in cRows)
-                contacts[Convert.ToInt32(cr.id)] = (
-                    (string)cr.email, (string)cr.mobile, (string)cr.clubName, (string)cr.districtNumber);
-        }
-
-        static string RoleLabel(GoalRoleAssignmentDto a) => a.RoleType switch
-        {
-            "AllCategoryAllDistrictsFewZones" => "RI Director",
-            "AllDistrictsOneCategoryOneZone" => string.IsNullOrWhiteSpace(a.RoleTitle) ? "Zone Co-ordinator" : a.RoleTitle!,
-            _ => string.IsNullOrWhiteSpace(a.RoleTitle) ? "District Assistant" : a.RoleTitle!,
-        };
-        static int RoleOrder(GoalRoleAssignmentDto a) => a.RoleType switch
-        {
-            "AllCategoryAllDistrictsFewZones" => 0,
-            "AllDistrictsOneCategoryOneZone" => 1,
-            _ => 2,
-        };
-        static string ZoneCell(GoalRoleAssignmentDto a) => a.RoleType == "AllCategoryAllDistrictsFewZones"
-            ? (a.ZoneNames.Count > 0 ? string.Join(", ", a.ZoneNames) : "-")
-            : (a.ZoneName ?? "-");
-        static string AssignedDistrictsCell(GoalRoleAssignmentDto a) => a.RoleType switch
-        {
-            "AllCategoryAllDistrictsFewZones" => "All districts of the zone(s)",
-            "AllDistrictsOneCategoryOneZone" => "All districts of the zone",
-            _ => a.DistrictNumbers.Count > 0 ? string.Join(", ", a.DistrictNumbers) : "-",
-        };
-
-        var ordered = rows
-            .OrderBy(a => ZoneCell(a), StringComparer.OrdinalIgnoreCase)
-            .ThenBy(a => RoleOrder(a))
-            .ThenBy(a => a.Avenue ?? a.CategoryName ?? "", StringComparer.OrdinalIgnoreCase)
-            .ThenBy(a => a.MemberName, StringComparer.OrdinalIgnoreCase)
-            .ToList();
-
-        var wb = new XLWorkbook();
-        var ws = wb.Worksheets.Add("Role Assignments");
-        ws.Column(1).Width = 7;  ws.Column(2).Width = 22; ws.Column(3).Width = 20;
-        ws.Column(4).Width = 20; ws.Column(5).Width = 26; ws.Column(6).Width = 30;
-        ws.Column(7).Width = 34; ws.Column(8).Width = 12; ws.Column(9).Width = 18;
-        ws.Column(10).Width = 32;
-
-        int r = 1;
-        RenderTitleBand(ws, 10, "Goal Setting - Role Assignments",
-            $"{zoneName ?? "All zones"}   ·   {ordered.Count} role holder(s)   ·   Generated {DateTime.Now:dd MMM yyyy, hh:mm tt}", ref r);
-
-        string[] heads = { "Sr No", "Role", "Avenue / Category", "Zone", "Assigned Districts",
-                           "Member Name", "Club", "District", "Mobile Number", "Email Id" };
-        int headerRow = r;
-        for (int c = 0; c < heads.Length; c++) { var cell = ws.Cell(r, c + 1); cell.Value = heads[c]; StyleHeaderCell(cell); }
-        r++;
-
-        int sr = 1;
-        foreach (var a in ordered)
-        {
-            contacts.TryGetValue(a.MemberId, out var ct);
-            ws.Cell(r, 1).Value = sr++;
-            ws.Cell(r, 2).Value = RoleLabel(a);
-            ws.Cell(r, 3).Value = a.RoleType == "AllCategoryAllDistrictsFewZones"
-                ? "All avenues"
-                : (a.Avenue ?? a.CategoryName ?? "-");
-            ws.Cell(r, 4).Value = ZoneCell(a);
-            ws.Cell(r, 5).Value = AssignedDistrictsCell(a);
-            ws.Cell(r, 6).Value = a.MemberName;
-            // A handful of leaders are typed free-hand and have no profile - their contact cells
-            // stay blank rather than showing someone else's.
-            ws.Cell(r, 7).Value = string.IsNullOrWhiteSpace(ct.Club) ? "-" : ct.Club;
-            ws.Cell(r, 8).Value = string.IsNullOrWhiteSpace(ct.District) ? "-" : ct.District;
-            ws.Cell(r, 9).Value = string.IsNullOrWhiteSpace(ct.Mobile) ? "-" : ct.Mobile;
-            ws.Cell(r, 10).Value = string.IsNullOrWhiteSpace(ct.Email) ? "-" : ct.Email;
-            ws.Cell(r, 9).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Left;
-            r++;
-        }
-        if (sr == 1) ws.Cell(r, 1).Value = "No active role assignments for this filter.";
-        else
-        {
-            var body = ws.Range(headerRow, 1, r - 1, heads.Length);
-            body.Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
-            body.Style.Border.InsideBorder = XLBorderStyleValues.Thin;
-            body.Style.Border.OutsideBorderColor = RepBorder;
-            body.Style.Border.InsideBorderColor = RepBorder;
-            ws.SheetView.FreezeRows(headerRow);
-        }
-        return SaveAndDispose(wb);
-    }
-
-    public async Task<GoalRoleAssignmentDto> CreateRoleAssignmentAsync(int assignedByMemberId, CreateGoalRoleAssignmentRequest req)
-    {
-        if (!ValidGoalRoleTypes.Contains(req.RoleType)) throw new InvalidOperationException("Unknown role type.");
-        if (string.IsNullOrWhiteSpace(req.AssignmentName)) throw new InvalidOperationException("Assignment name is required.");
-        // A member is EITHER picked from the list (MemberId > 0) OR typed free-hand
-        // (MemberNameText) for the handful of leaders not in member_master_profile.
-        var hasFreeTextName = !string.IsNullOrWhiteSpace(req.MemberNameText);
-        if (req.MemberId <= 0 && !hasFreeTextName)
-            throw new InvalidOperationException("Select a member, or type a name.");
-
-        var isOneCategoryOneZone = req.RoleType is "FewDistrictsOneCategoryOneZone" or "AllDistrictsOneCategoryOneZone";
-        if (isOneCategoryOneZone)
-        {
-            if (req.CategoryId is not > 0) throw new InvalidOperationException("Category is required for this role type.");
-            if (req.ZoneId is not > 0) throw new InvalidOperationException("Zone is required for this role type.");
-        }
-        if (req.RoleType == "FewDistrictsOneCategoryOneZone" && (req.DistrictIds == null || req.DistrictIds.Count == 0))
-            throw new InvalidOperationException("At least one district is required for this role type.");
-        if (req.RoleType == "AllCategoryAllDistrictsFewZones" && (req.ZoneIds == null || req.ZoneIds.Count == 0))
-            throw new InvalidOperationException("At least one zone is required for this role type.");
-
-        using var conn = CreateConnection();
-        await conn.OpenAsync();
-
-        // Hierarchy dependency — the chain is RI Director → Zone Co-ordinator → District Assistant.
-        // You cannot create a lower role until the one above it exists for the same zone (and, below
-        // the director, the same avenue/category). RI Director is the top and has no prerequisite.
-        if (req.RoleType == "AllDistrictsOneCategoryOneZone")
-        {
-            // Zone Co-ordinator needs an active RI Director whose zones cover this zone.
-            var hasDirector = await conn.ExecuteScalarAsync<int>(@"
-                SELECT COUNT(*) FROM goal_role_assignments a
-                JOIN goal_role_assignment_zones z ON z.fk_assignment_id = a.pk_id
-                WHERE a.RoleType = 'AllCategoryAllDistrictsFewZones' AND a.IsActive = 1 AND a.isdeleted = 0
-                  AND z.fk_zone_id = @ZoneId", new { ZoneId = req.ZoneId });
-            if (hasDirector == 0)
-                throw new InvalidOperationException("Assign an RI Director for this zone first — a Zone Co-ordinator sits under a director.");
-        }
-        else if (req.RoleType == "FewDistrictsOneCategoryOneZone")
-        {
-            // District Assistant needs an active Zone Co-ordinator for the same zone AND avenue.
-            var hasCoordinator = await conn.ExecuteScalarAsync<int>(@"
-                SELECT COUNT(*) FROM goal_role_assignments a
-                WHERE a.RoleType = 'AllDistrictsOneCategoryOneZone' AND a.IsActive = 1 AND a.isdeleted = 0
-                  AND a.fk_zone_id = @ZoneId AND a.fk_category_id = @CategoryId",
-                new { ZoneId = req.ZoneId, CategoryId = req.CategoryId });
-            if (hasCoordinator == 0)
-                throw new InvalidOperationException("Assign a Zone Co-ordinator for this zone & avenue first — a District Assistant sits under a co-ordinator.");
-        }
-
-        using var tx = await conn.BeginTransactionAsync();
-
-        var assignmentId = await conn.ExecuteScalarAsync<int>(@"
-            INSERT INTO goal_role_assignments
-                (fk_member_id, MemberNameText, RoleType, AssignmentName, RoleTitle, Avenue,
-                 fk_category_id, fk_zone_id, HomeDistrictId, DgYear, SupportingText,
-                 IsActive, AssignedBy, AssignedDate, isdeleted)
-            VALUES (@MemberId, @MemberNameText, @RoleType, @AssignmentName, @RoleTitle, @Avenue,
-                    @CategoryId, @ZoneId, @HomeDistrictId, @DgYear, @SupportingText,
-                    1, @AssignedBy, NOW(), 0);
-            SELECT LAST_INSERT_ID();",
-            new
-            {
-                req.MemberId,
-                MemberNameText = hasFreeTextName ? req.MemberNameText!.Trim() : (string?)null,
-                req.RoleType, req.AssignmentName,
-                RoleTitle = string.IsNullOrWhiteSpace(req.RoleTitle) ? (string?)null : req.RoleTitle.Trim(),
-                Avenue = string.IsNullOrWhiteSpace(req.Avenue) ? (string?)null : req.Avenue.Trim(),
-                CategoryId = isOneCategoryOneZone ? req.CategoryId : (int?)null,
-                ZoneId = isOneCategoryOneZone ? req.ZoneId : (int?)null,
-                HomeDistrictId = req.HomeDistrictId is > 0 ? req.HomeDistrictId : (int?)null,
-                DgYear = string.IsNullOrWhiteSpace(req.DgYear) ? (string?)null : req.DgYear.Trim(),
-                SupportingText = string.IsNullOrWhiteSpace(req.SupportingText) ? (string?)null : req.SupportingText.Trim(),
-                AssignedBy = assignedByMemberId,
-            }, tx);
-
-        if (req.RoleType == "FewDistrictsOneCategoryOneZone" && req.DistrictIds != null)
-        {
-            foreach (var districtId in req.DistrictIds.Distinct())
-            {
-                await conn.ExecuteAsync(
-                    "INSERT INTO goal_role_assignment_districts (fk_assignment_id, fk_district_id) VALUES (@AssignmentId, @DistrictId)",
-                    new { AssignmentId = assignmentId, DistrictId = districtId }, tx);
-            }
-        }
-        if (req.RoleType == "AllCategoryAllDistrictsFewZones" && req.ZoneIds != null)
-        {
-            foreach (var zoneId in req.ZoneIds.Distinct())
-            {
-                await conn.ExecuteAsync(
-                    "INSERT INTO goal_role_assignment_zones (fk_assignment_id, fk_zone_id) VALUES (@AssignmentId, @ZoneId)",
-                    new { AssignmentId = assignmentId, ZoneId = zoneId }, tx);
-            }
-        }
-
-        await tx.CommitAsync();
-
-        // Give the member a login now, but send NO email at assignment time — the SuperAdmin sends
-        // the role-assigned emails to everyone later, in one go, via the "Send role-assigned emails
-        // to all" button (SendAllRoleAssignmentEmailsAsync), once the whole listing looks correct.
-        // Best-effort — a failed login-provision must never turn a successful assignment into an error.
-        if (req.MemberId > 0)
-        {
-            try { await _roleService.EnsureLoginAndNotifyAsync(req.MemberId, assignedByMemberId, sendEmail: false); }
-            catch { /* login is best-effort; the role is already assigned */ }
-        }
-
-        var all = await GetRoleAssignmentsAsync();
-        return all.First(a => a.Id == assignmentId);
-    }
-
-    // Global smart member search for the assign form — the member is now picked FIRST (before any
-    // zone), so this searches every active member by name / email / mobile (no zone filter). Requires
-    // a 2+ char term (the caller enforces it too) and returns the same shape as the zone search.
-    public async Task<List<GoalZoneMemberDto>> SearchMembersAsync(string? search)
-    {
-        var term = (search ?? "").Trim();
-        if (term.Length < 2) return new();
-        using var conn = CreateConnection();
-        await conn.OpenAsync();
-        var like = $"%{term}%";
-        var rows = await conn.QueryAsync<dynamic>(@"
-            SELECT m.pk_member_master_profile_id AS id, m.MemberName AS memberName,
-                   m.EmailId AS emailId, m.PrimaryMobileNumber AS primaryMobileNumber,
-                   GROUP_CONCAT(DISTINCT c.ClubName ORDER BY c.ClubName SEPARATOR ', ') AS clubName,
-                   GROUP_CONCAT(DISTINCT d.DistrictNumber ORDER BY d.DistrictNumber SEPARATOR ', ') AS districtNumber
-            FROM member_master_profile m
-            LEFT JOIN club_members cm ON cm.fk_member_master_profile_id = m.pk_member_master_profile_id
-                 AND cm.IsActive = 1 AND COALESCE(cm.isdeleted, 0) = 0
-            LEFT JOIN club_master c ON c.pk_club_id = cm.fk_club_id AND COALESCE(c.isdeleted, 0) = 0
-            LEFT JOIN district_master d ON d.pk_district_id = c.fk_district_id AND COALESCE(d.isdeleted, 0) = 0
-            WHERE COALESCE(m.isdeleted, 0) = 0
-              AND (m.MemberName LIKE @Like OR m.EmailId LIKE @Like OR m.PrimaryMobileNumber LIKE @Like)
-            GROUP BY m.pk_member_master_profile_id, m.MemberName, m.EmailId, m.PrimaryMobileNumber
-            ORDER BY m.MemberName
-            LIMIT 40",
-            new { Like = like });
-
-        var list = new List<GoalZoneMemberDto>();
-        foreach (var r in rows)
-        {
-            list.Add(new GoalZoneMemberDto
-            {
-                Id = Convert.ToInt32(r.id),
-                MemberName = r.memberName as string ?? "",
-                EmailId = r.emailId as string ?? "",
-                PrimaryMobileNumber = r.primaryMobileNumber as string ?? "",
-                ClubName = r.clubName as string,
-                DistrictNumber = r.districtNumber as string,
-            });
-        }
-        return list;
-    }
-
-    // Members whose active club sits in one of the given zones — the goal-role assign form scopes
-    // its member search to the selected zone(s) so you only ever pick from that zone. Empty search
-    // returns the zone's members (capped); a search term filters by name / email / mobile.
-    public async Task<List<GoalZoneMemberDto>> SearchZoneMembersAsync(int[] zoneIds, string? search)
-    {
-        if (zoneIds == null || zoneIds.Length == 0) return new();
-        using var conn = CreateConnection();
-        await conn.OpenAsync();
-        var term = (search ?? "").Trim();
-        var like = $"%{term}%";
-        var rows = await conn.QueryAsync<dynamic>(@"
-            SELECT m.pk_member_master_profile_id AS id, m.MemberName AS memberName,
-                   m.EmailId AS emailId, m.PrimaryMobileNumber AS primaryMobileNumber,
-                   GROUP_CONCAT(DISTINCT c.ClubName ORDER BY c.ClubName SEPARATOR ', ') AS clubName,
-                   GROUP_CONCAT(DISTINCT d.DistrictNumber ORDER BY d.DistrictNumber SEPARATOR ', ') AS districtNumber
-            FROM member_master_profile m
-            JOIN club_members cm ON cm.fk_member_master_profile_id = m.pk_member_master_profile_id
-                 AND cm.IsActive = 1 AND COALESCE(cm.isdeleted, 0) = 0
-            JOIN club_master c ON c.pk_club_id = cm.fk_club_id AND COALESCE(c.isdeleted, 0) = 0
-            JOIN district_master d ON d.pk_district_id = c.fk_district_id AND COALESCE(d.isdeleted, 0) = 0
-            WHERE d.fk_zone_id IN @ZoneIds AND COALESCE(m.isdeleted, 0) = 0
-              AND (@Term = '' OR m.MemberName LIKE @Like OR m.EmailId LIKE @Like OR m.PrimaryMobileNumber LIKE @Like)
-            GROUP BY m.pk_member_master_profile_id, m.MemberName, m.EmailId, m.PrimaryMobileNumber
-            ORDER BY m.MemberName
-            LIMIT 40",
-            new { ZoneIds = zoneIds, Term = term, Like = like });
-
-        var list = new List<GoalZoneMemberDto>();
-        foreach (var r in rows)
-        {
-            list.Add(new GoalZoneMemberDto
-            {
-                Id = Convert.ToInt32(r.id),
-                MemberName = r.memberName as string ?? "",
-                EmailId = r.emailId as string ?? "",
-                PrimaryMobileNumber = r.primaryMobileNumber as string ?? "",
-                ClubName = r.clubName as string,
-                DistrictNumber = r.districtNumber as string,
-            });
-        }
-        return list;
-    }
-
-    // ADD another holder to an existing assignment — the "+" button beside a name (2026-09-16).
-    // The new person inherits EXACTLY the same scope as the row it was clicked on: role type,
-    // avenue/category, zone, the RI Director's zone list and the District Assistant's districts. So a
-    // zone held by one director can now be held by several people, with nothing extra to pick.
-    // Silent: a login is provisioned but NO email — the SuperAdmin sends those with the envelope icon
-    // or the zone-filtered bulk button.
-    public async Task<int> AddRoleAssignmentHolderAsync(int assignmentId, AddGoalRoleHolderRequest req, int addedByMemberId)
-    {
-        if (req.MemberId <= 0 && string.IsNullOrWhiteSpace(req.MemberNameText))
-            throw new InvalidOperationException("Select a member, or type a name.");
-
-        using var conn = CreateConnection();
-        await conn.OpenAsync();
-
-        var src = await conn.QueryFirstOrDefaultAsync<dynamic>(@"
-            SELECT RoleType AS roleType, AssignmentName AS assignmentName, RoleTitle AS roleTitle,
-                   Avenue AS avenue, fk_category_id AS categoryId, fk_zone_id AS zoneId,
-                   HomeDistrictId AS homeDistrictId, DgYear AS dgYear, SupportingText AS supportingText
-            FROM goal_role_assignments
-            WHERE pk_id = @Id AND IsActive = 1 AND isdeleted = 0", new { Id = assignmentId });
-        if (src == null) throw new InvalidOperationException("Assignment not found or already revoked.");
-
-        string roleType = (string)src.roleType;
-        int? categoryId = src.categoryId == null ? (int?)null : Convert.ToInt32(src.categoryId);
-        int? zoneId = src.zoneId == null ? (int?)null : Convert.ToInt32(src.zoneId);
-
-        // Don't let the same person be added twice to the same seat.
-        if (req.MemberId > 0)
-        {
-            var already = await conn.ExecuteScalarAsync<int>(@"
-                SELECT COUNT(*) FROM goal_role_assignments
-                WHERE IsActive = 1 AND isdeleted = 0 AND fk_member_id = @M AND RoleType = @RoleType
-                  AND (fk_zone_id <=> @ZoneId) AND (fk_category_id <=> @CategoryId)",
-                new { M = req.MemberId, RoleType = roleType, ZoneId = zoneId, CategoryId = categoryId });
-            if (already > 0) throw new InvalidOperationException("That member already holds this role here.");
-        }
-
-        bool hasFreeText = !string.IsNullOrWhiteSpace(req.MemberNameText);
-        using var tx = await conn.BeginTransactionAsync();
-
-        var newId = await conn.ExecuteScalarAsync<int>(@"
-            INSERT INTO goal_role_assignments
-                (fk_member_id, MemberNameText, RoleType, AssignmentName, RoleTitle, Avenue,
-                 fk_category_id, fk_zone_id, HomeDistrictId, DgYear, SupportingText,
-                 IsActive, AssignedBy, AssignedDate, isdeleted)
-            VALUES (@MemberId, @NameText, @RoleType, @AssignmentName, @RoleTitle, @Avenue,
-                    @CategoryId, @ZoneId, @HomeDistrictId, @DgYear, @SupportingText,
-                    1, @By, NOW(), 0);
-            SELECT LAST_INSERT_ID();",
-            new
-            {
-                req.MemberId,
-                NameText = hasFreeText ? req.MemberNameText!.Trim() : (string?)null,
-                RoleType = roleType,
-                AssignmentName = (string)src.assignmentName,
-                RoleTitle = src.roleTitle as string,
-                Avenue = src.avenue as string,
-                CategoryId = categoryId,
-                ZoneId = zoneId,
-                HomeDistrictId = src.homeDistrictId == null ? (int?)null : Convert.ToInt32(src.homeDistrictId),
-                DgYear = src.dgYear as string,
-                SupportingText = src.supportingText as string,
-                By = addedByMemberId,
-            }, tx);
-
-        // Same zones (RI Director) and same districts (District Assistant) as the row it was added to.
-        await conn.ExecuteAsync(@"
-            INSERT INTO goal_role_assignment_zones (fk_assignment_id, fk_zone_id)
-            SELECT @NewId, fk_zone_id FROM goal_role_assignment_zones WHERE fk_assignment_id = @SrcId",
-            new { NewId = newId, SrcId = assignmentId }, tx);
-        await conn.ExecuteAsync(@"
-            INSERT INTO goal_role_assignment_districts (fk_assignment_id, fk_district_id)
-            SELECT @NewId, fk_district_id FROM goal_role_assignment_districts WHERE fk_assignment_id = @SrcId",
-            new { NewId = newId, SrcId = assignmentId }, tx);
-
-        await tx.CommitAsync();
-
-        if (req.MemberId > 0)
-        {
-            try { await _roleService.EnsureLoginAndNotifyAsync(req.MemberId, addedByMemberId, sendEmail: false); }
-            catch { /* login is best-effort; the holder is already added */ }
-        }
-        return newId;
-    }
-
-    public async Task RevokeRoleAssignmentAsync(int assignmentId, int revokedByMemberId)
-    {
-        using var conn = CreateConnection();
-        await conn.OpenAsync();
-
-        // Identify the assignment being revoked, then CASCADE down the hierarchy:
-        //   RI Director → also revoke every Zone Co-ordinator + District Assistant in the director's
-        //                 zones (they no longer sit under a director).
-        //   Zone Co-ordinator → also revoke every District Assistant in the same zone + category
-        //                 (a District Assistant can't stand without its co-ordinator).
-        //   District Assistant → just itself.
-        var main = await conn.QueryFirstOrDefaultAsync<dynamic>(@"
-            SELECT RoleType AS roleType, fk_zone_id AS zoneId, fk_category_id AS categoryId
-            FROM goal_role_assignments WHERE pk_id = @Id AND isdeleted = 0", new { Id = assignmentId });
-        if (main == null) return;
-
-        var ids = new List<int> { assignmentId };
-        string roleType = (string)main.roleType;
-        // CASCADE RULE (2026-09-16): several people may now hold the same zone. Removing ONE of them
-        // must not strip the people below while a colleague still covers that zone — the cascade only
-        // fires for zones this person covered ALONE.
-        if (roleType == "AllCategoryAllDistrictsFewZones")
-        {
-            var zoneIds = (await conn.QueryAsync<int>(
-                "SELECT fk_zone_id FROM goal_role_assignment_zones WHERE fk_assignment_id = @Id", new { Id = assignmentId })).ToList();
-            var orphanZones = new List<int>();
-            foreach (var z in zoneIds)
-            {
-                var otherDirectors = await conn.ExecuteScalarAsync<int>(@"
-                    SELECT COUNT(*)
-                    FROM goal_role_assignments a
-                    JOIN goal_role_assignment_zones az ON az.fk_assignment_id = a.pk_id
-                    WHERE a.RoleType = 'AllCategoryAllDistrictsFewZones' AND a.IsActive = 1 AND a.isdeleted = 0
-                      AND a.pk_id <> @Id AND az.fk_zone_id = @Z",
-                    new { Id = assignmentId, Z = z });
-                if (otherDirectors == 0) orphanZones.Add(z);   // nobody else covers it → its people go
-            }
-            if (orphanZones.Count > 0)
-            {
-                var childIds = await conn.QueryAsync<int>(@"
-                    SELECT pk_id FROM goal_role_assignments
-                    WHERE IsActive = 1 AND isdeleted = 0
-                      AND RoleType IN ('AllDistrictsOneCategoryOneZone','FewDistrictsOneCategoryOneZone')
-                      AND fk_zone_id IN @ZoneIds", new { ZoneIds = orphanZones });
-                ids.AddRange(childIds);
-            }
-        }
-        else if (roleType == "AllDistrictsOneCategoryOneZone")
-        {
-            int? zid = main.zoneId == null ? (int?)null : Convert.ToInt32(main.zoneId);
-            int? cid = main.categoryId == null ? (int?)null : Convert.ToInt32(main.categoryId);
-            if (zid != null && cid != null)
-            {
-                // Another active co-ordinator on the same zone + avenue → the District Assistants stay.
-                var otherCoordinators = await conn.ExecuteScalarAsync<int>(@"
-                    SELECT COUNT(*) FROM goal_role_assignments
-                    WHERE RoleType = 'AllDistrictsOneCategoryOneZone' AND IsActive = 1 AND isdeleted = 0
-                      AND pk_id <> @Id AND fk_zone_id = @Zid AND fk_category_id = @Cid",
-                    new { Id = assignmentId, Zid = zid, Cid = cid });
-                if (otherCoordinators == 0)
-                {
-                    var childIds = await conn.QueryAsync<int>(@"
-                        SELECT pk_id FROM goal_role_assignments
-                        WHERE IsActive = 1 AND isdeleted = 0 AND RoleType = 'FewDistrictsOneCategoryOneZone'
-                          AND fk_zone_id = @Zid AND fk_category_id = @Cid", new { Zid = zid, Cid = cid });
-                    ids.AddRange(childIds);
-                }
-            }
-        }
-        ids = ids.Distinct().ToList();
-
-        // Deactivate the whole set atomically. Revoke is SILENT — NO removal email is sent
-        // (per request 2026-09-07): the member is simply removed from the Goal Setting roles,
-        // no notification. (Assignment likewise never auto-emails — the SuperAdmin sends those
-        // in bulk from the "Send role emails" button.)
-        await conn.ExecuteAsync(@"
-            UPDATE goal_role_assignments SET IsActive = 0, RevokedBy = @RevokedBy, RevokedDate = NOW()
-            WHERE pk_id IN @Ids AND isdeleted = 0",
-            new { Ids = ids, RevokedBy = revokedByMemberId });
-    }
-
-    // REPLACE the holder of an existing assignment (and, for RI Director, its zones; for a District
-    // Assistant, its districts) WITHOUT revoking — the assignment row stays active, so the whole
-    // hierarchy below it is preserved. Only when a zone is REMOVED from an RI Director do we silently
-    // revoke the Zone Co-ordinators / District Assistants that sat under that removed zone. No email is
-    // ever sent here (the new member gets a silent login; the SuperAdmin mails via the button).
-    public async Task ChangeRoleAssignmentAsync(int assignmentId, ChangeGoalRoleAssignmentRequest req, int changedByMemberId)
-    {
-        if (req.MemberId <= 0 && string.IsNullOrWhiteSpace(req.MemberNameText))
-            throw new InvalidOperationException("Select a member, or type a name.");
-
-        using var conn = CreateConnection();
-        await conn.OpenAsync();
-
-        var a = await conn.QueryFirstOrDefaultAsync<dynamic>(@"
-            SELECT RoleType FROM goal_role_assignments
-            WHERE pk_id = @Id AND IsActive = 1 AND isdeleted = 0", new { Id = assignmentId });
-        if (a == null) throw new InvalidOperationException("Assignment not found or already revoked.");
-        string roleType = (string)a.RoleType;
-
-        using var tx = await conn.BeginTransactionAsync();
-
-        // 1. Swap the person on the assignment (real member OR free-text name).
-        bool hasFreeText = !string.IsNullOrWhiteSpace(req.MemberNameText);
-        await conn.ExecuteAsync(@"
-            UPDATE goal_role_assignments
-            SET fk_member_id = @MemberId, MemberNameText = @NameText, AssignedBy = @By, AssignedDate = NOW()
-            WHERE pk_id = @Id",
-            new { req.MemberId, NameText = hasFreeText ? req.MemberNameText!.Trim() : (string?)null, By = changedByMemberId, Id = assignmentId }, tx);
-
-        // 2a. RI Director — diff the zone set: add new ones, remove dropped ones. A removed zone silently
-        //     revokes the Zone Co-ordinators + District Assistants that sat under it (1b).
-        if (roleType == "AllCategoryAllDistrictsFewZones" && req.ZoneIds != null)
-        {
-            var newZones = req.ZoneIds.Distinct().ToList();
-            if (newZones.Count == 0) throw new InvalidOperationException("At least one zone is required for an RI Director.");
-            var oldZones = (await conn.QueryAsync<int>(
-                "SELECT fk_zone_id FROM goal_role_assignment_zones WHERE fk_assignment_id = @Id", new { Id = assignmentId }, tx)).ToList();
-            var removed = oldZones.Except(newZones).ToList();
-            var added = newZones.Except(oldZones).ToList();
-
-            foreach (var z in removed)
-                await conn.ExecuteAsync("DELETE FROM goal_role_assignment_zones WHERE fk_assignment_id = @Id AND fk_zone_id = @Z",
-                    new { Id = assignmentId, Z = z }, tx);
-            foreach (var z in added)
-                await conn.ExecuteAsync("INSERT INTO goal_role_assignment_zones (fk_assignment_id, fk_zone_id) VALUES (@Id, @Z)",
-                    new { Id = assignmentId, Z = z }, tx);
-
-            if (removed.Count > 0)
-                await conn.ExecuteAsync(@"
-                    UPDATE goal_role_assignments SET IsActive = 0, RevokedBy = @By, RevokedDate = NOW()
-                    WHERE IsActive = 1 AND isdeleted = 0
-                      AND RoleType IN ('AllDistrictsOneCategoryOneZone','FewDistrictsOneCategoryOneZone')
-                      AND fk_zone_id IN @Removed",
-                    new { By = changedByMemberId, Removed = removed }, tx);
-        }
-        // 2b. Zone Co-ordinator — single zone; allow moving it if a new zone was supplied.
-        else if (roleType == "AllDistrictsOneCategoryOneZone" && req.ZoneId is > 0)
-        {
-            await conn.ExecuteAsync(
-                "UPDATE goal_role_assignments SET fk_zone_id = @Z, AssignedBy = @By, AssignedDate = NOW() WHERE pk_id = @Id",
-                new { Z = req.ZoneId, By = changedByMemberId, Id = assignmentId }, tx);
-        }
-
-        // 3. District Assistant — replace its district set.
-        if (roleType == "FewDistrictsOneCategoryOneZone" && req.DistrictIds != null)
-        {
-            if (req.DistrictIds.Count == 0) throw new InvalidOperationException("At least one district is required for a District Assistant.");
-            await conn.ExecuteAsync("DELETE FROM goal_role_assignment_districts WHERE fk_assignment_id = @Id", new { Id = assignmentId }, tx);
-            foreach (var d in req.DistrictIds.Distinct())
-                await conn.ExecuteAsync("INSERT INTO goal_role_assignment_districts (fk_assignment_id, fk_district_id) VALUES (@Id, @D)",
-                    new { Id = assignmentId, D = d }, tx);
-        }
-
-        await tx.CommitAsync();
-
-        // New holder gets a login now, but NO email (same policy as assignment).
-        if (req.MemberId > 0)
-        {
-            try { await _roleService.EnsureLoginAndNotifyAsync(req.MemberId, changedByMemberId, sendEmail: false); }
-            catch { /* login is best-effort; the change is already saved */ }
-        }
-    }
-
-    // Sends the login/credentials email to the ONE member holding this assignment (on-demand, from the
-    // listing). Real profiles with an email only; returns 1 if sent, 0 if there was no one to email.
-    public async Task<int> SendCredentialsEmailAsync(int assignmentId, int requestedByMemberId)
-    {
-        using var conn = CreateConnection();
-        await conn.OpenAsync();
-        // Same email as the bulk send: the member's HIGHEST goal role decides the template, so someone
-        // who is both an RI Director and a Zone Co-ordinator always gets the RI Director wording.
-        var row = await conn.QueryFirstOrDefaultAsync<dynamic>(@"
-            SELECT a.fk_member_id AS memberId,
-                   (SELECT MIN(CASE x.RoleType
-                                 WHEN 'AllCategoryAllDistrictsFewZones' THEN 1
-                                 WHEN 'AllDistrictsOneCategoryOneZone'  THEN 2
-                                 ELSE 3 END)
-                      FROM goal_role_assignments x
-                     WHERE x.fk_member_id = a.fk_member_id AND x.IsActive = 1 AND x.isdeleted = 0) AS roleRank
-            FROM goal_role_assignments a
-            JOIN member_master_profile m ON m.pk_member_master_profile_id = a.fk_member_id
-                 AND m.isdeleted = 0 AND m.EmailId IS NOT NULL AND m.EmailId <> ''
-            WHERE a.pk_id = @Id AND a.IsActive = 1 AND a.isdeleted = 0 AND a.fk_member_id > 0",
-            new { Id = assignmentId });
-        if (row == null) return 0;   // free-text name, or no email on file
-        await _roleService.SendGoalRoleCredentialsEmailAsync(
-            Convert.ToInt32(row.memberId), RoleTypeFromRank(Convert.ToInt32(row.roleRank)), requestedByMemberId);
-        await conn.ExecuteAsync(
-            "UPDATE goal_role_assignments SET RoleEmailSentDate = NOW() WHERE pk_id = @Id",
-            new { Id = assignmentId });
-        return 1;
-    }
-
-    // Zone ids already held by an ACTIVE RI Director — the assign/change form hides these so a zone is
-    // never double-assigned. When editing an assignment, its own zones are excluded from the "taken" set.
-    public async Task<List<int>> GetAssignedDirectorZoneIdsAsync(int? excludeAssignmentId)
-    {
-        using var conn = CreateConnection();
-        await conn.OpenAsync();
-        return (await conn.QueryAsync<int>(@"
-            SELECT DISTINCT z.fk_zone_id
-            FROM goal_role_assignment_zones z
-            JOIN goal_role_assignments a ON a.pk_id = z.fk_assignment_id
-            WHERE a.RoleType = 'AllCategoryAllDistrictsFewZones' AND a.IsActive = 1 AND a.isdeleted = 0
-              AND (@Exclude IS NULL OR a.pk_id <> @Exclude)", new { Exclude = excludeAssignmentId })).ToList();
-    }
-
-    // Sends the "your Goal Setting role(s) + login" email to EVERY member who currently holds an
-    // active goal-role assignment (RI Director / Zone Co-ordinator / District Assistant). Assignment
-    // itself never emails; the SuperAdmin triggers this once the listing looks correct. One email per
-    // member (EnsureLoginAndNotifyAsync lists ALL their roles), so a member with several assignments
-    // gets a single consolidated mail. Best-effort background send. Returns the members emailed.
-    public async Task<int> SendAllRoleAssignmentEmailsAsync(int requestedByMemberId, int? zoneId = null)
-    {
-        using var conn = CreateConnection();
-        await conn.OpenAsync();
-
-        // ONE row per member carrying their HIGHEST goal role (RI Director → Zone Co-ordinator →
-        // District Assistant), so a member holding two roles gets a single email (2026-09-16 request).
-        // zoneId narrows it to the zone picked in the listing filter: an RI Director's zones live in the
-        // child table, while a Zone Co-ordinator / District Assistant carries its zone on the row itself.
-        var rows = (await conn.QueryAsync<dynamic>(@"
-            SELECT a.fk_member_id AS memberId,
-                   MIN(CASE a.RoleType
-                         WHEN 'AllCategoryAllDistrictsFewZones' THEN 1
-                         WHEN 'AllDistrictsOneCategoryOneZone'  THEN 2
-                         ELSE 3 END) AS roleRank
-            FROM goal_role_assignments a
-            JOIN member_master_profile m ON m.pk_member_master_profile_id = a.fk_member_id
-                 AND m.isdeleted = 0 AND m.EmailId IS NOT NULL AND m.EmailId <> ''
-            LEFT JOIN goal_role_assignment_zones z ON z.fk_assignment_id = a.pk_id
-            WHERE a.IsActive = 1 AND a.isdeleted = 0 AND a.fk_member_id > 0
-              AND (@ZoneId IS NULL OR z.fk_zone_id = @ZoneId OR a.fk_zone_id = @ZoneId)
-            GROUP BY a.fk_member_id", new { ZoneId = zoneId })).ToList();
-
-        int sent = 0;
-        foreach (var r in rows)
-        {
-            try
-            {
-                await _roleService.SendGoalRoleCredentialsEmailAsync(
-                    Convert.ToInt32(r.memberId), RoleTypeFromRank(Convert.ToInt32(r.roleRank)), requestedByMemberId);
-                sent++;
-                // Record WHEN each holder was emailed (shown in the listing). Not a filter — this button
-                // always mails everyone in the filtered zone.
-                await conn.ExecuteAsync(@"
-                    UPDATE goal_role_assignments a
-                    LEFT JOIN goal_role_assignment_zones z ON z.fk_assignment_id = a.pk_id
-                    SET a.RoleEmailSentDate = NOW()
-                    WHERE a.fk_member_id = @M AND a.IsActive = 1 AND a.isdeleted = 0
-                      AND (@ZoneId IS NULL OR z.fk_zone_id = @ZoneId OR a.fk_zone_id = @ZoneId)",
-                    new { M = Convert.ToInt32(r.memberId), ZoneId = zoneId });
-            }
-            catch { /* best-effort; keep sending to the rest */ }
-        }
-        return sent;
-    }
-
-    // 1 = RI Director, 2 = Zone Co-ordinator, anything else = District Assistant.
-    private static string RoleTypeFromRank(int rank) => rank switch
-    {
-        1 => "AllCategoryAllDistrictsFewZones",
-        2 => "AllDistrictsOneCategoryOneZone",
-        _ => "FewDistrictsOneCategoryOneZone",
-    };
-
-    // Builds the (member, role label, scope) tuple used for a revoke-notification email for ONE
-    // assignment. Returns null when the row is missing, already inactive, or a free-text name (no login).
-    private async Task<(int memberId, string roleLabel, string? scope)?> BuildRevokeNotifyInfoAsync(MySqlConnection conn, int assignmentId)
-    {
-        var info = await conn.QueryFirstOrDefaultAsync<dynamic>(@"
-            SELECT a.fk_member_id AS memberId, a.IsActive AS isActive, a.RoleType AS roleType,
-                   a.RoleTitle AS roleTitle, a.AssignmentName AS assignmentName,
-                   IF(c.Name = 'TRF', 'Foundation', c.Name) AS categoryName, z.ZoneName AS zoneName
-            FROM goal_role_assignments a
-            LEFT JOIN goal_categories c ON c.pk_category_id = a.fk_category_id
-            LEFT JOIN zone_master z ON z.pk_zone_id = a.fk_zone_id
-            WHERE a.pk_id = @Id AND a.isdeleted = 0", new { Id = assignmentId });
-        if (info == null || Convert.ToInt32(info.memberId) <= 0 || !Convert.ToBoolean(info.isActive)) return null;
-
-        int memberId = Convert.ToInt32(info.memberId);
-        string title = (info.roleTitle as string) ?? RoleTypeLabel((string?)info.roleType) ?? (info.assignmentName as string) ?? "Goal Setting";
-        var roleLabel = $"{title} (Goal Setting) role";
-
-        var scopeParts = new List<string>();
-        if (!string.IsNullOrWhiteSpace(info.categoryName as string)) scopeParts.Add((string)info.categoryName);
-        var zoneNames = (await conn.QueryAsync<string>(@"
-            SELECT zm.ZoneName FROM goal_role_assignment_zones z
-            JOIN zone_master zm ON zm.pk_zone_id = z.fk_zone_id
-            WHERE z.fk_assignment_id = @Id", new { Id = assignmentId })).ToList();
-        if (zoneNames.Count > 0) scopeParts.Add("Zones: " + string.Join(", ", zoneNames));
-        else if (!string.IsNullOrWhiteSpace(info.zoneName as string)) scopeParts.Add("Zone " + (string)info.zoneName);
-        var districtNumbers = (await conn.QueryAsync<string>(@"
-            SELECT dm.DistrictNumber FROM goal_role_assignment_districts d
-            JOIN district_master dm ON dm.pk_district_id = d.fk_district_id
-            WHERE d.fk_assignment_id = @Id", new { Id = assignmentId })).ToList();
-        if (districtNumbers.Count > 0) scopeParts.Add("Districts " + string.Join(", ", districtNumbers));
-
-        return (memberId, roleLabel, scopeParts.Count > 0 ? string.Join(" · ", scopeParts) : null);
-    }
-
-    // Friendly fallback label when an assignment row has no explicit RoleTitle.
-    private static string? RoleTypeLabel(string? roleType) => roleType switch
-    {
-        "AllCategoryAllDistrictsFewZones" => "RI Director",
-        "AllDistrictsOneCategoryOneZone" => "Zone Co-ordinator",
-        "FewDistrictsOneCategoryOneZone" => "District Assistant",
-        _ => null,
-    };
-
-    // ── Leadership designation catalog (RMC / ARC / RPIC …) ────────────────────
-    public async Task<List<GoalDesignationDto>> GetDesignationsAsync()
-    {
-        using var conn = CreateConnection();
-        await conn.OpenAsync();
-        var rows = await conn.QueryAsync<dynamic>(@"
-            SELECT d.pk_id AS id, d.Title AS title, d.Avenue AS avenue, d.RoleType AS roleType,
-                   d.DefaultCategoryName AS defaultCategoryName, c.pk_category_id AS defaultCategoryId,
-                   d.SortOrder AS sortOrder
-            FROM goal_leadership_designations d
-            LEFT JOIN goal_categories c ON c.Name = d.DefaultCategoryName AND c.isdeleted = 0
-            WHERE d.isdeleted = 0 AND d.IsActive = 1
-            ORDER BY d.SortOrder, d.Title");
-        var list = new List<GoalDesignationDto>();
-        foreach (var r in rows)
-        {
-            list.Add(new GoalDesignationDto
-            {
-                Id = Convert.ToInt32(r.id),
-                Title = (string)r.title,
-                Avenue = (string)r.avenue,
-                RoleType = (string)r.roleType,
-                DefaultCategoryName = r.defaultCategoryName as string,
-                DefaultCategoryId = r.defaultCategoryId == null ? null : Convert.ToInt32(r.defaultCategoryId),
-                SortOrder = Convert.ToInt32(r.sortOrder),
-            });
-        }
-        return list;
-    }
-
-    public async Task<GoalDesignationDto> AddDesignationAsync(CreateGoalDesignationRequest req)
-    {
-        if (string.IsNullOrWhiteSpace(req.Title)) throw new InvalidOperationException("Title is required.");
-        if (string.IsNullOrWhiteSpace(req.Avenue)) throw new InvalidOperationException("Avenue is required.");
-        if (!ValidGoalRoleTypes.Contains(req.RoleType)) throw new InvalidOperationException("Pick a valid role type.");
-
-        using var conn = CreateConnection();
-        await conn.OpenAsync();
-        // Idempotent by unique Title: a matching (possibly soft-deleted/inactive) row is
-        // refreshed and re-activated rather than erroring on the unique key.
-        await conn.ExecuteAsync(@"
-            INSERT INTO goal_leadership_designations (Title, Avenue, RoleType, DefaultCategoryName, SortOrder, IsActive, isdeleted)
-            VALUES (@Title, @Avenue, @RoleType, @Category, 900, 1, 0)
-            ON DUPLICATE KEY UPDATE
-                Avenue = VALUES(Avenue), RoleType = VALUES(RoleType),
-                DefaultCategoryName = VALUES(DefaultCategoryName), IsActive = 1, isdeleted = 0",
-            new
-            {
-                Title = req.Title.Trim(), Avenue = req.Avenue.Trim(), req.RoleType,
-                Category = string.IsNullOrWhiteSpace(req.DefaultCategoryName) ? (string?)null : req.DefaultCategoryName.Trim(),
-            });
-
-        var all = await GetDesignationsAsync();
-        return all.First(d => string.Equals(d.Title, req.Title.Trim(), StringComparison.OrdinalIgnoreCase));
-    }
-
-    // Raw active-assignment rows for one member — the shared building block behind both
-    // GetMyAssignmentsAsync (dashboard menu) and every scope-check below.
-    private async Task<List<dynamic>> GetActiveAssignmentRowsAsync(MySqlConnection conn, int memberId)
-    {
-        var rows = await conn.QueryAsync<dynamic>(@"
-            SELECT pk_id AS id, RoleType AS roleType, AssignmentName AS assignmentName, fk_category_id AS categoryId, fk_zone_id AS zoneId
-            FROM goal_role_assignments
-            WHERE fk_member_id = @MemberId AND IsActive = 1 AND isdeleted = 0",
-            new { MemberId = memberId });
-        return rows.ToList();
-    }
-
-    public async Task<List<GoalMyAssignmentDto>> GetMyAssignmentsAsync(int memberId)
-    {
-        using var conn = CreateConnection();
-        await conn.OpenAsync();
-        var rows = await GetActiveAssignmentRowsAsync(conn, memberId);
-        var result = new List<GoalMyAssignmentDto>();
-        var allCategoryIds = (await conn.QueryAsync<int>("SELECT pk_category_id FROM goal_categories WHERE isdeleted = 0")).ToList();
-
-        foreach (var r in rows)
-        {
-            var assignmentId = (int)r.id;
-            var roleType = (string)r.roleType;
-            var dto = new GoalMyAssignmentDto
-            {
-                AssignmentId = assignmentId, RoleType = roleType, AssignmentName = (string)r.assignmentName,
-                CanBulkLock = roleType == "AllCategoryAllDistrictsFewZones",
-            };
-
-            if (roleType == "AllCategoryAllDistrictsFewZones")
-            {
-                dto.CategoryIds = allCategoryIds;
-                var zoneIds = (await conn.QueryAsync<int>(
-                    "SELECT fk_zone_id FROM goal_role_assignment_zones WHERE fk_assignment_id = @Id", new { Id = assignmentId })).ToList();
-                dto.ZoneIds = zoneIds;
-                if (zoneIds.Count > 0)
-                {
-                    dto.DistrictIds = (await conn.QueryAsync<int>(
-                        "SELECT pk_district_id FROM district_master WHERE fk_zone_id IN @ZoneIds AND isdeleted = 0 AND IsActive = 1",
-                        new { ZoneIds = zoneIds })).ToList();
-                }
-            }
-            else
-            {
-                if (r.categoryId != null) dto.CategoryIds = new List<int> { Convert.ToInt32(r.categoryId) };
-                // A Zone Co-ordinator's category is a LABEL on the role page, not a limit on their
-                // login (user 2026-09-24): the ZONE is their boundary, so they oversee EVERY category
-                // of it - the SuperAdmin's roles screen still shows the one category they were given.
-                // Read-only either way: every save path resolves a District Admin, never an assignment.
-                if (roleType == "AllDistrictsOneCategoryOneZone") dto.CategoryIds = allCategoryIds;
-                int? zoneId = r.zoneId == null ? (int?)null : Convert.ToInt32(r.zoneId);
-                if (zoneId != null) dto.ZoneIds = new List<int> { zoneId.Value };
-
-                if (roleType == "AllDistrictsOneCategoryOneZone" && zoneId != null)
-                {
-                    dto.DistrictIds = (await conn.QueryAsync<int>(
-                        "SELECT pk_district_id FROM district_master WHERE fk_zone_id = @ZoneId AND isdeleted = 0 AND IsActive = 1",
-                        new { ZoneId = zoneId.Value })).ToList();
-                }
-                else if (roleType == "FewDistrictsOneCategoryOneZone")
-                {
-                    dto.DistrictIds = (await conn.QueryAsync<int>(
-                        "SELECT fk_district_id FROM goal_role_assignment_districts WHERE fk_assignment_id = @Id", new { Id = assignmentId })).ToList();
-                }
-            }
-            result.Add(dto);
-        }
-        return result;
-    }
-
-    // Every district this member can view for a given category, across ALL their active
-    // assignments (a member could hold more than one). SuperAdmin sees everything.
-    private async Task<HashSet<int>?> ResolveScopedDistrictIdsAsync(MySqlConnection conn, int memberId, int categoryId)
-    {
-        if (await ClubAdminAccessHelper.IsSuperAdminAsync(conn, memberId)) return null; // null = unrestricted
-
-        var assignments = await GetMyAssignmentsAsync(memberId);
-        var districtIds = new HashSet<int>();
-        foreach (var a in assignments)
-        {
-            if (!a.CategoryIds.Contains(categoryId)) continue;
-            foreach (var d in a.DistrictIds) districtIds.Add(d);
-        }
-        return districtIds;
-    }
-
+    // Goal Overview (SuperAdmin): every active district with its goal status for one category + year.
     public async Task<List<GoalDistrictSummaryDto>> GetScopedDistrictsGoalListAsync(int memberId, int categoryId, int yearId)
     {
         using var conn = CreateConnection();
         await conn.OpenAsync();
-        var scoped = await ResolveScopedDistrictIdsAsync(conn, memberId, categoryId);
-        if (scoped != null && scoped.Count == 0)
+        if (!await ClubAdminAccessHelper.IsSuperAdminAsync(conn, memberId))
             throw new UnauthorizedAccessException("You have no goal-setting oversight access for this category.");
 
         var rows = await conn.QueryAsync<dynamic>(@"
@@ -6306,21 +4488,12 @@ public class GoalSettingService : IGoalSettingService
                    (SELECT DATE_FORMAT(MAX(COALESCE(e.modified_date, e.created_date)), '%Y-%m-%d %H:%i')
                       FROM goal_entries e JOIN goal_fields f ON f.pk_field_id = e.fk_field_id AND f.isdeleted = 0
                      WHERE f.fk_category_id = @CategoryId AND e.fk_year_id = @YearId
-                       AND e.EntityType = 'District' AND e.fk_district_id = d.pk_district_id AND e.isdeleted = 0) AS lastUpdatedDate,
-                   (SELECT l.IsLocked FROM goal_locks l
-                     WHERE l.EntityType = 'District' AND l.fk_district_id = d.pk_district_id AND l.fk_club_id = 0
-                       AND l.fk_category_id = @CategoryId AND l.fk_year_id = @YearId) AS isLocked
+                       AND e.EntityType = 'District' AND e.fk_district_id = d.pk_district_id AND e.isdeleted = 0) AS lastUpdatedDate
             FROM district_master d
             LEFT JOIN zone_master z ON z.pk_zone_id = d.fk_zone_id
             WHERE d.isdeleted = 0 AND d.IsActive = 1
-              AND (@Unrestricted = 1 OR d.pk_district_id IN @DistrictIds)
             ORDER BY d.DistrictNumber",
-            new
-            {
-                CategoryId = categoryId, YearId = yearId,
-                Unrestricted = scoped == null ? 1 : 0,
-                DistrictIds = scoped ?? new HashSet<int>(),
-            });
+            new { CategoryId = categoryId, YearId = yearId });
 
         return rows.Select(r => new GoalDistrictSummaryDto
         {
@@ -6330,72 +4503,7 @@ public class GoalSettingService : IGoalSettingService
             ZoneName = r.zoneName as string,
             HasAnyGoalSet = Convert.ToInt32(r.entryCount ?? 0L) > 0,
             LastUpdatedDate = r.lastUpdatedDate as string,
-            IsLocked = r.isLocked != null && Convert.ToBoolean(r.isLocked),
         }).ToList();
-    }
-
-    public async Task<GoalCategoryFormDto> GetScopedDistrictGoalFormAsync(int memberId, int categoryId, int yearId, int districtId)
-    {
-        using var conn = CreateConnection();
-        await conn.OpenAsync();
-        var scoped = await ResolveScopedDistrictIdsAsync(conn, memberId, categoryId);
-        if (scoped != null && !scoped.Contains(districtId))
-            throw new UnauthorizedAccessException("You are not authorised to view this district's goals.");
-
-        var (resolvedYearId, yearLabel, isEditable) = await ResolveYearAsync(conn, yearId);
-        if (resolvedYearId == 0) throw new InvalidOperationException("No active Rotary year found.");
-
-        return await BuildDistrictFormDtoAsync(conn, memberId, categoryId, districtId, resolvedYearId, yearLabel, isEditable);
-    }
-
-    // Bulk lock/unlock — only the All-Category-All-Districts-Few-Zones role (or SuperAdmin)
-    // can do this, and only over DISTRICT-level goals within their own zone scope. Club-level
-    // locking stays a District Admin action (SetClubLockAsync) — this role's oversight domain
-    // is districts, matching its "view-only across districts" read scope above.
-    public async Task<GoalBulkLockResultDto> BulkLockDistrictsAsync(int memberId, GoalBulkLockRequest req)
-    {
-        if (req.YearId <= 0) throw new InvalidOperationException("yearId required");
-        using var conn = CreateConnection();
-        await conn.OpenAsync();
-
-        var isSuperAdmin = await ClubAdminAccessHelper.IsSuperAdminAsync(conn, memberId);
-        List<int> allowedZoneIds;
-        if (isSuperAdmin)
-        {
-            allowedZoneIds = (await conn.QueryAsync<int>("SELECT pk_zone_id FROM zone_master WHERE isdeleted = 0")).ToList();
-        }
-        else
-        {
-            var assignments = await GetMyAssignmentsAsync(memberId);
-            var bulkAssignment = assignments.FirstOrDefault(a => a.CanBulkLock);
-            if (bulkAssignment == null)
-                throw new UnauthorizedAccessException("You are not authorised to bulk lock/unlock goals.");
-            allowedZoneIds = bulkAssignment.ZoneIds;
-        }
-
-        var zoneIds = (req.ZoneIds != null && req.ZoneIds.Count > 0)
-            ? req.ZoneIds.Where(z => allowedZoneIds.Contains(z)).ToList()
-            : allowedZoneIds;
-        if (zoneIds.Count == 0) throw new InvalidOperationException("No zones in scope.");
-
-        var categoryIds = (req.CategoryIds != null && req.CategoryIds.Count > 0)
-            ? req.CategoryIds
-            : (await conn.QueryAsync<int>("SELECT pk_category_id FROM goal_categories WHERE isdeleted = 0")).ToList();
-
-        var districtIds = (await conn.QueryAsync<int>(
-            "SELECT pk_district_id FROM district_master WHERE fk_zone_id IN @ZoneIds AND isdeleted = 0 AND IsActive = 1",
-            new { ZoneIds = zoneIds })).ToList();
-
-        var affected = 0;
-        foreach (var districtId in districtIds)
-        {
-            foreach (var categoryId in categoryIds)
-            {
-                await SetLockAsync(conn, "District", 0, districtId, categoryId, req.YearId, req.Locked, memberId);
-                affected++;
-            }
-        }
-        return new GoalBulkLockResultDto { AffectedCount = affected };
     }
 
     // ── Messaging (two-way threads; formerly "comments") ──────────────────────
@@ -6404,10 +4512,9 @@ public class GoalSettingService : IGoalSettingService
     // access to a thread sees the WHOLE conversation (two-way chat) — the tier is now only
     // a display label + post-eligibility gate, no longer a read filter.
     //
-    // District thread participants: District Admin (tier 1) + the coordinators above it
-    // (tiers 2/3/4, scoped by their assignment's category+district) + SuperAdmin (5).
+    // District thread participants: District Admin (tier 1) + SuperAdmin (5).
     // Club thread participants: the Club Admin of that club (tier 1) + its District Admin
-    // (tier 2) + SuperAdmin (5) — coordinators are NOT in club threads.
+    // (tier 2) + SuperAdmin (5).
     private async Task<int?> ResolveThreadTierAsync(MySqlConnection conn, int memberId, int categoryId, int districtId, int clubId)
     {
         if (await ClubAdminAccessHelper.IsSuperAdminAsync(conn, memberId)) return 5;
@@ -6424,41 +4531,19 @@ public class GoalSettingService : IGoalSettingService
             return null;
         }
 
-        var tiers = new List<int>();
         var isDistrictAdmin = await conn.ExecuteScalarAsync<int>(@"
             SELECT COUNT(*) FROM member_roles
             WHERE fk_member_master_profile_id = @MemberId AND fk_role_id = 2
               AND fk_district_id = @DistrictId AND (fk_club_id IS NULL OR fk_club_id = 0)
               AND IsActive = 1 AND isdeleted = 0",
             new { MemberId = memberId, DistrictId = districtId });
-        if (isDistrictAdmin > 0) tiers.Add(1);
-
-        var assignments = await GetMyAssignmentsAsync(memberId);
-        foreach (var a in assignments)
-        {
-            if (!a.CategoryIds.Contains(categoryId)) continue;
-            if (!a.DistrictIds.Contains(districtId)) continue;
-            var tier = a.RoleType switch
-            {
-                "FewDistrictsOneCategoryOneZone" => 2,
-                "AllDistrictsOneCategoryOneZone" => 3,
-                "AllCategoryAllDistrictsFewZones" => 4,
-                _ => 0,
-            };
-            if (tier > 0) tiers.Add(tier);
-        }
-        return tiers.Count > 0 ? tiers.Max() : (int?)null;
+        return isDistrictAdmin > 0 ? 1 : (int?)null;
     }
 
     // Human label for a sender's tier, shown under their name in the chat bubble.
     private static string TierLabel(int tier, bool clubThread) => clubThread
         ? tier switch { 5 => "SuperAdmin", 2 => "District Admin", 1 => "Club Admin", _ => "" }
-        : tier switch
-        {
-            5 => "SuperAdmin", 4 => "Zonal Action Plan",
-            3 => "Regional Co-ordinator", 2 => "Assistant Co-ordinator",
-            1 => "District Admin", _ => "",
-        };
+        : tier switch { 5 => "SuperAdmin", 1 => "District Admin", _ => "" };
 
     public async Task<List<GoalCommentDto>> GetCommentsAsync(int memberId, int categoryId, int districtId, int clubId, int yearId)
     {
@@ -6468,14 +4553,10 @@ public class GoalSettingService : IGoalSettingService
         if (tier == null) throw new UnauthorizedAccessException("You do not have access to this message thread.");
 
         // Two-way: everyone in the thread sees every message (no PostedByTier filter).
-        // The poster's real leadership title is shown when they have one active assignment
-        // carrying a RoleTitle; otherwise fall back to the tier label.
+        // The poster is labelled by their tier.
         var rows = await conn.QueryAsync<dynamic>(@"
             SELECT c.pk_id AS id, c.CommentText AS commentText, c.PostedByMemberId AS postedByMemberId,
                    m.MemberName AS postedByName, c.PostedByTier AS postedByTier,
-                   (SELECT ra.RoleTitle FROM goal_role_assignments ra
-                     WHERE ra.fk_member_id = c.PostedByMemberId AND ra.IsActive = 1 AND ra.isdeleted = 0
-                       AND ra.RoleTitle IS NOT NULL ORDER BY ra.pk_id DESC LIMIT 1) AS roleTitle,
                    DATE_FORMAT(c.created_date, '%Y-%m-%d %H:%i') AS createdDate
             FROM goal_comments c
             LEFT JOIN member_master_profile m ON m.pk_member_master_profile_id = c.PostedByMemberId
@@ -6497,7 +4578,7 @@ public class GoalSettingService : IGoalSettingService
                 PostedByMemberId = postedBy,
                 PostedByName = r.postedByName as string ?? "",
                 PostedByTier = postedByTier,
-                PostedByRoleLabel = (r.roleTitle as string) ?? TierLabel(postedByTier, clubThread),
+                PostedByRoleLabel = TierLabel(postedByTier, clubThread),
                 IsMine = postedBy == memberId,
                 CreatedDate = r.createdDate as string,
             });
@@ -6522,39 +4603,14 @@ public class GoalSettingService : IGoalSettingService
 
         var memberName = await conn.ExecuteScalarAsync<string>(
             "SELECT MemberName FROM member_master_profile WHERE pk_member_master_profile_id = @Id", new { Id = memberId }) ?? "";
-        var roleTitle = await conn.ExecuteScalarAsync<string?>(@"
-            SELECT RoleTitle FROM goal_role_assignments
-            WHERE fk_member_id = @Id AND IsActive = 1 AND isdeleted = 0 AND RoleTitle IS NOT NULL
-            ORDER BY pk_id DESC LIMIT 1", new { Id = memberId });
 
         return new GoalCommentDto
         {
             Id = id, CommentText = trimmed, PostedByMemberId = memberId, PostedByName = memberName,
-            PostedByTier = tier.Value, PostedByRoleLabel = roleTitle ?? TierLabel(tier.Value, clubId > 0),
+            PostedByTier = tier.Value, PostedByRoleLabel = TierLabel(tier.Value, clubId > 0),
             IsMine = true, CreatedDate = DateTime.Now.ToString("yyyy-MM-dd HH:mm"),
         };
     }
-
-    // ── Pairwise oversight messaging (RI Director ↔ each District Assistant / Zone Co-ordinator) ──
-    // Goal messages are PRIVATE 1-to-1 conversations UP the hierarchy, scoped to (category, district,
-    // year). A District Assistant and a Zone Co-ordinator each get their OWN thread with the RI
-    // Director over their zone; the RI Director sees every such thread and can reply to — or start —
-    // any of them. Club/District admins have no messaging. ThreadOwnerMemberId = the DA/ZC member.
-
-    private static string TierRoleLabel(int tier) => tier switch
-    {
-        5 => "SuperAdmin", 4 => "RI Director", 3 => "Zone Co-ordinator", 2 => "District Assistant", _ => "",
-    };
-
-    // The active RI Director member over a zone (null => messaging is unavailable there).
-    private static async Task<int?> ResolveRiDirectorForZoneAsync(MySqlConnection conn, int zoneId)
-        => await conn.ExecuteScalarAsync<int?>(@"
-            SELECT a.fk_member_id
-            FROM goal_role_assignments a
-            JOIN goal_role_assignment_zones z ON z.fk_assignment_id = a.pk_id
-            WHERE a.RoleType = 'AllCategoryAllDistrictsFewZones' AND a.IsActive = 1 AND a.isdeleted = 0
-              AND a.fk_member_id > 0 AND z.fk_zone_id = @ZoneId
-            ORDER BY a.pk_id DESC LIMIT 1", new { ZoneId = zoneId });
 
     private static async Task<int?> DistrictZoneIdAsync(MySqlConnection conn, int districtId)
         => await conn.ExecuteScalarAsync<int?>(
@@ -6564,686 +4620,19 @@ public class GoalSettingService : IGoalSettingService
         => (await conn.ExecuteScalarAsync<string>(
             "SELECT MemberName FROM member_master_profile WHERE pk_member_master_profile_id = @Id", new { Id = memberId })) ?? "";
 
-    // ── Messages follow the SEAT, not the person ──
-    // Every goal message stores the goal_role_assignments row it was posted under (fk_assignment_id = the
-    // "seat") and that seat's zone (fk_zone_id). "Change person" swaps fk_member_id on the SAME row, so the
-    // new holder simply inherits the seat's messages. When a seat is revoked and a new one assigned instead,
-    // its messages pass to the active seat of the same role type + zone + category: a District Assistant
-    // inherits the old seat's messages for the districts it now covers, plus its "All districts" messages
-    // when the two seats share any district. Zone-wide views (list / report / unread) read fk_zone_id, so a
-    // message never disappears when its writer leaves the role.
-
-    // The member's ACTIVE Zone Co-ordinator / District Assistant seats in a category — optionally narrowed
-    // to one zone, one role type, or seats covering a district (a Zone Co-ordinator covers its whole zone).
-    private static async Task<List<int>> ActiveMessageSeatIdsAsync(MySqlConnection conn, int memberId, int categoryId,
-        int? zoneId = null, string? roleType = null, int? districtId = null)
-        => (await conn.QueryAsync<int>(@"
-            SELECT a.pk_id FROM goal_role_assignments a
-            WHERE a.fk_member_id=@M AND a.fk_category_id=@C AND a.IsActive=1 AND a.isdeleted=0
-              AND a.RoleType IN ('AllDistrictsOneCategoryOneZone','FewDistrictsOneCategoryOneZone')
-              AND (@Z IS NULL OR a.fk_zone_id=@Z) AND (@RT IS NULL OR a.RoleType=@RT)
-              AND (@D IS NULL OR a.RoleType='AllDistrictsOneCategoryOneZone' OR EXISTS (
-                    SELECT 1 FROM goal_role_assignment_districts d WHERE d.fk_assignment_id=a.pk_id AND d.fk_district_id=@D))
-            ORDER BY a.pk_id DESC",
-            new { M = memberId, C = categoryId, Z = zoneId, RT = roleType, D = districtId })).ToList();
-
-    // WHERE fragment (goal_comments alias c; params @SeatIds, @SeatOwner) for one thread's messages: posted
-    // under one of the seats, legacy un-seated rows of the owner, or inherited from a revoked seat (above).
-    // No active seat → the owner's own rows only.
-    private static string SeatThreadFilterSql(bool hasSeats) => !hasSeats
-        ? "c.ThreadOwnerMemberId = @SeatOwner"
-        : @"(c.fk_assignment_id IN @SeatIds
-             OR (c.fk_assignment_id = 0 AND c.ThreadOwnerMemberId = @SeatOwner)
-             OR EXISTS (
-                SELECT 1 FROM goal_role_assignments x
-                JOIN goal_role_assignments s ON s.pk_id IN @SeatIds
-                WHERE x.pk_id = c.fk_assignment_id AND (x.IsActive = 0 OR x.isdeleted = 1)
-                  AND x.RoleType = s.RoleType AND x.fk_zone_id = s.fk_zone_id AND x.fk_category_id = s.fk_category_id
-                  AND (s.RoleType = 'AllDistrictsOneCategoryOneZone'
-                       OR (c.fk_district_id > 0 AND EXISTS (SELECT 1 FROM goal_role_assignment_districts sd
-                             WHERE sd.fk_assignment_id = s.pk_id AND sd.fk_district_id = c.fk_district_id))
-                       OR (c.fk_district_id = 0 AND EXISTS (SELECT 1 FROM goal_role_assignment_districts sd
-                             JOIN goal_role_assignment_districts xd ON xd.fk_district_id = sd.fk_district_id
-                             WHERE sd.fk_assignment_id = s.pk_id AND xd.fk_assignment_id = x.pk_id)))))";
-
-    private static DynamicParameters SeatThreadParams(int categoryId, int yearId, List<int> seatIds, int ownerMemberId)
-    {
-        var p = new DynamicParameters();
-        p.Add("C", categoryId);
-        p.Add("Y", yearId);
-        p.Add("SeatOwner", ownerMemberId);
-        if (seatIds.Count > 0) p.Add("SeatIds", seatIds);
-        return p;
-    }
-
-    // Count + last message of one thread. extraWhere narrows further (e.g. "AND c.fk_district_id=@D").
-    private static async Task<(int Count, string? LastText, string? LastDate)> SeatThreadSummaryAsync(
-        MySqlConnection conn, DynamicParameters p, bool hasSeats, string extraWhere = "")
-    {
-        var where = $"c.fk_category_id=@C AND c.fk_year_id=@Y AND c.isdeleted=0 {extraWhere} AND {SeatThreadFilterSql(hasSeats)}";
-        var cnt = await conn.ExecuteScalarAsync<int>($"SELECT COUNT(*) FROM goal_comments c WHERE {where}", p);
-        if (cnt == 0) return (0, null, null);
-        var last = await conn.QueryFirstOrDefaultAsync<dynamic>($@"
-            SELECT c.CommentText AS text, DATE_FORMAT(c.created_date,'%Y-%m-%d %H:%i') AS dt
-            FROM goal_comments c WHERE {where} ORDER BY c.created_date DESC LIMIT 1", p);
-        return (cnt, last?.text as string, last?.dt as string);
-    }
-
-    // ── Per-thread unread (user 2026-09-25) ─────────────────────────────────────────────────────
-    // How many messages in THIS conversation the viewer has not seen, ignoring their own. Uses the
-    // same WHERE the summary uses, so the count can never disagree with the box it sits on.
-    private static async Task<int> SeatThreadUnreadAsync(
-        MySqlConnection conn, DynamicParameters p, bool hasSeats, int viewerMemberId,
-        int ownerMemberId, int categoryId, int yearId, string extraWhere = "")
-    {
-        var lastSeen = await conn.ExecuteScalarAsync<DateTime?>(@"
-            SELECT last_seen_date FROM goal_message_thread_seen
-            WHERE fk_member_id=@M AND ThreadOwnerMemberId=@O AND fk_category_id=@C AND fk_year_id=@Y",
-            new { M = viewerMemberId, O = ownerMemberId, C = categoryId, Y = yearId });
-
-        p.Add("Viewer", viewerMemberId);
-        p.Add("LastSeen", lastSeen);
-        return await conn.ExecuteScalarAsync<int>($@"
-            SELECT COUNT(*) FROM goal_comments c
-            WHERE c.fk_category_id=@C AND c.fk_year_id=@Y AND c.isdeleted=0 {extraWhere}
-              AND {SeatThreadFilterSql(hasSeats)}
-              AND c.PostedByMemberId <> @Viewer
-              AND (@LastSeen IS NULL OR c.created_date > @LastSeen)", p);
-    }
-
-    // Stamp one conversation as read for this viewer. Called when the thread is actually opened, so
-    // reading one box never clears the others.
-    private static async Task MarkThreadSeenAsync(
-        MySqlConnection conn, int viewerMemberId, int ownerMemberId, int categoryId, int yearId)
-    {
-        if (viewerMemberId <= 0 || ownerMemberId <= 0) return;
-        await conn.ExecuteAsync(@"
-            INSERT INTO goal_message_thread_seen
-                (fk_member_id, ThreadOwnerMemberId, fk_category_id, fk_year_id, last_seen_date)
-            VALUES (@M, @O, @C, @Y, NOW())
-            ON DUPLICATE KEY UPDATE last_seen_date = NOW()",
-            new { M = viewerMemberId, O = ownerMemberId, C = categoryId, Y = yearId });
-    }
-
-    // One thread's messages, oldest first, each with its writer + district.
-    private static Task<List<GoalCommentDto>> SeatThreadMessagesAsync(
-        MySqlConnection conn, int viewerMemberId, DynamicParameters p, bool hasSeats, string extraWhere = "")
-        => CommentsWhereAsync(conn, viewerMemberId, p,
-            $"c.fk_category_id=@C AND c.fk_year_id=@Y AND c.isdeleted=0 {extraWhere} AND {SeatThreadFilterSql(hasSeats)}");
-
-    // Messages by id (param @Ids), oldest first - the RI Director's box (RiZoneBoxesAsync).
-    private static Task<List<GoalCommentDto>> MessagesByIdsAsync(MySqlConnection conn, int viewerMemberId, DynamicParameters p)
-        => CommentsWhereAsync(conn, viewerMemberId, p, "c.pk_id IN @Ids AND c.isdeleted=0");
-
-    private static async Task<List<GoalCommentDto>> CommentsWhereAsync(
-        MySqlConnection conn, int viewerMemberId, DynamicParameters p, string where)
-    {
-        var rows = await conn.QueryAsync<dynamic>($@"
-            SELECT c.pk_id AS id, c.CommentText AS commentText, c.PostedByMemberId AS postedByMemberId,
-                   m.MemberName AS postedByName, c.PostedByTier AS postedByTier,
-                   c.fk_district_id AS districtId, dm.DistrictNumber AS districtNumber,
-                   DATE_FORMAT(c.created_date,'%Y-%m-%d %H:%i') AS createdDate
-            FROM goal_comments c LEFT JOIN member_master_profile m ON m.pk_member_master_profile_id=c.PostedByMemberId
-            LEFT JOIN district_master dm ON dm.pk_district_id = c.fk_district_id
-            WHERE {where}
-            ORDER BY c.created_date ASC, c.pk_id ASC", p);
-        var list = new List<GoalCommentDto>();
-        foreach (var r in rows)
-        {
-            int postedBy = Convert.ToInt32(r.postedByMemberId);
-            int t = Convert.ToInt32(r.postedByTier);
-            int did = r.districtId == null ? 0 : Convert.ToInt32(r.districtId);
-            list.Add(new GoalCommentDto
-            {
-                Id = Convert.ToInt64(r.id), CommentText = (string)r.commentText, PostedByMemberId = postedBy,
-                PostedByName = r.postedByName as string ?? "", PostedByTier = t,
-                PostedByRoleLabel = TierRoleLabel(t), IsMine = postedBy == viewerMemberId, CreatedDate = r.createdDate as string,
-                DistrictId = did, DistrictNumber = did > 0 ? (r.districtNumber as string) : null,
-            });
-        }
-        return list;
-    }
-
-    // Roster message count for one owner (their active seats in the category), optionally one district.
-    private static async Task<int> RosterMessageCountAsync(MySqlConnection conn, int ownerMemberId, int categoryId, int yearId, int districtId)
-    {
-        var seats = await ActiveMessageSeatIdsAsync(conn, ownerMemberId, categoryId);
-        var p = SeatThreadParams(categoryId, yearId, seats, ownerMemberId);
-        p.Add("Did", districtId);
-        return (await SeatThreadSummaryAsync(conn, p, seats.Count > 0, "AND (@Did=0 OR c.fk_district_id=@Did)")).Count;
-    }
-
-    // Roster unread count for one owner - the same seats and the same WHERE as the count above, so the
-    // badge can never disagree with the "N messages" line it sits on.
-    private static async Task<int> RosterUnreadCountAsync(
-        MySqlConnection conn, int viewerMemberId, int ownerMemberId, int categoryId, int yearId, int districtId)
-    {
-        var seats = await ActiveMessageSeatIdsAsync(conn, ownerMemberId, categoryId);
-        var p = SeatThreadParams(categoryId, yearId, seats, ownerMemberId);
-        p.Add("Did", districtId);
-        return await SeatThreadUnreadAsync(conn, p, seats.Count > 0, viewerMemberId, ownerMemberId, categoryId, yearId,
-            "AND (@Did=0 OR c.fk_district_id=@Did)");
-    }
-
-    // The DA / ZC members who own a thread for this (category, district): the Zone Co-ordinator of
-    // (category, zone) plus every District Assistant of (category, district). Returns (memberId, label).
-    private static async Task<List<(int MemberId, string RoleLabel)>> ThreadOwnersAsync(
-        MySqlConnection conn, int categoryId, int districtId, int zoneId)
-    {
-        var owners = new List<(int, string)>();
-        var zc = await conn.QueryAsync<int>(@"
-            SELECT fk_member_id FROM goal_role_assignments
-            WHERE RoleType = 'AllDistrictsOneCategoryOneZone' AND IsActive = 1 AND isdeleted = 0
-              AND fk_category_id = @Cid AND fk_zone_id = @Zid AND fk_member_id > 0",
-            new { Cid = categoryId, Zid = zoneId });
-        foreach (var m in zc) owners.Add((m, "Zone Co-ordinator"));
-        var da = await conn.QueryAsync<int>(@"
-            SELECT a.fk_member_id FROM goal_role_assignments a
-            JOIN goal_role_assignment_districts d ON d.fk_assignment_id = a.pk_id
-            WHERE a.RoleType = 'FewDistrictsOneCategoryOneZone' AND a.IsActive = 1 AND a.isdeleted = 0
-              AND a.fk_category_id = @Cid AND d.fk_district_id = @Did AND a.fk_member_id > 0",
-            new { Cid = categoryId, Did = districtId });
-        foreach (var m in da) owners.Add((m, "District Assistant"));
-        return owners.GroupBy(o => o.Item1).Select(g => g.First()).ToList();
-    }
-
-    // The caller's messaging role within one (category, district): the RI Director over the zone, a
-    // Zone Co-ordinator / District Assistant who owns a thread here, SuperAdmin, or None.
-    private async Task<string> ViewerMessagingRoleAsync(MySqlConnection conn, int memberId, int categoryId, int districtId, int zoneId)
-    {
-        if (await ClubAdminAccessHelper.IsSuperAdminAsync(conn, memberId)) return "SuperAdmin";
-        var isRd = await conn.ExecuteScalarAsync<int>(@"
-            SELECT COUNT(*) FROM goal_role_assignments a
-            JOIN goal_role_assignment_zones z ON z.fk_assignment_id = a.pk_id
-            WHERE a.RoleType = 'AllCategoryAllDistrictsFewZones' AND a.IsActive = 1 AND a.isdeleted = 0
-              AND a.fk_member_id = @M AND z.fk_zone_id = @Z", new { M = memberId, Z = zoneId });
-        if (isRd > 0) return "RIDirector";
-        var isZc = await conn.ExecuteScalarAsync<int>(@"
-            SELECT COUNT(*) FROM goal_role_assignments
-            WHERE RoleType = 'AllDistrictsOneCategoryOneZone' AND IsActive = 1 AND isdeleted = 0
-              AND fk_member_id = @M AND fk_category_id = @C AND fk_zone_id = @Z", new { M = memberId, C = categoryId, Z = zoneId });
-        if (isZc > 0) return "ZoneCoordinator";
-        var isDa = await conn.ExecuteScalarAsync<int>(@"
-            SELECT COUNT(*) FROM goal_role_assignments a
-            JOIN goal_role_assignment_districts d ON d.fk_assignment_id = a.pk_id
-            WHERE a.RoleType = 'FewDistrictsOneCategoryOneZone' AND a.IsActive = 1 AND a.isdeleted = 0
-              AND a.fk_member_id = @M AND a.fk_category_id = @C AND d.fk_district_id = @D",
-            new { M = memberId, C = categoryId, D = districtId });
-        if (isDa > 0) return "DistrictAssistant";
-        return "None";
-    }
-
-    // ── Observer ("view as") — driven by the per-SuperAdmin "Goal Setting enabled" flag ──────────
-    // A SuperAdmin whose goal_oversight_access.IsEnabled = 1 (checkbox on settings/super-admin-role-config)
-    // may view any RI Director / Zone Co-ordinator / District Assistant's Goal Setting oversight + post AS
-    // ZC/DA in messaging. This REPLACES the old hard-coded 2-mobile allow-list. Every "view as" endpoint
-    // re-checks this server-side, so a crafted asMemberId does nothing for anyone without the flag.
-    private static async Task<bool> HasGoalOversightAccessAsync(MySqlConnection conn, int memberId)
-    {
-        if (memberId <= 0) return false;
-        var enabled = await conn.ExecuteScalarAsync<int?>(
-            "SELECT IsEnabled FROM goal_oversight_access WHERE fk_member_id = @Id", new { Id = memberId });
-        return enabled == 1;
-    }
-
-    public async Task<bool> IsGoalObserverAsync(int callerMemberId)
-    {
-        if (callerMemberId <= 0) return false;
-        using var conn = CreateConnection();
-        await conn.OpenAsync();
-        return await HasGoalOversightAccessAsync(conn, callerMemberId);
-    }
-
-    // The "Observe as" list: every active RI Director + Zone Co-ordinator with member name + zone(s).
-    // Gated — returns empty for any caller that isn't the observer.
-    public async Task<List<GoalObserverRoleDto>> GetObserverRoleListAsync(int callerMemberId)
-    {
-        if (!await IsGoalObserverAsync(callerMemberId)) return new List<GoalObserverRoleDto>();
-        using var conn = CreateConnection();
-        await conn.OpenAsync();
-
-        // RI Directors — one row per member, zones GROUP_CONCAT'd (they cover several zones).
-        var rds = (await conn.QueryAsync<GoalObserverRoleDto>(@"
-            SELECT a.fk_member_id AS MemberId,
-                   COALESCE(m.MemberName, '') AS MemberName,
-                   'AllCategoryAllDistrictsFewZones' AS RoleType,
-                   'RI Director' AS RoleLabel,
-                   COALESCE(GROUP_CONCAT(DISTINCT z.ZoneName ORDER BY z.ZoneName SEPARATOR ', '), '') AS ZoneNames,
-                   NULL AS CategoryName
-            FROM goal_role_assignments a
-            JOIN member_master_profile m ON m.pk_member_master_profile_id = a.fk_member_id AND m.isdeleted = 0
-            LEFT JOIN goal_role_assignment_zones az ON az.fk_assignment_id = a.pk_id
-            LEFT JOIN zone_master z ON z.pk_zone_id = az.fk_zone_id
-            WHERE a.RoleType = 'AllCategoryAllDistrictsFewZones' AND a.IsActive = 1 AND a.isdeleted = 0 AND a.fk_member_id > 0
-            GROUP BY a.fk_member_id, m.MemberName
-            ORDER BY m.MemberName")).ToList();
-
-        // Zone Co-ordinators — per (member, category, zone).
-        var zcs = (await conn.QueryAsync<GoalObserverRoleDto>(@"
-            SELECT a.fk_member_id AS MemberId,
-                   COALESCE(m.MemberName, '') AS MemberName,
-                   'AllDistrictsOneCategoryOneZone' AS RoleType,
-                   'Zone Co-ordinator' AS RoleLabel,
-                   COALESCE(z.ZoneName, '') AS ZoneNames,
-                   IF(c.Name = 'TRF', 'Foundation', c.Name) AS CategoryName
-            FROM goal_role_assignments a
-            JOIN member_master_profile m ON m.pk_member_master_profile_id = a.fk_member_id AND m.isdeleted = 0
-            LEFT JOIN zone_master z ON z.pk_zone_id = a.fk_zone_id
-            LEFT JOIN goal_categories c ON c.pk_category_id = a.fk_category_id
-            WHERE a.RoleType = 'AllDistrictsOneCategoryOneZone' AND a.IsActive = 1 AND a.isdeleted = 0 AND a.fk_member_id > 0
-            ORDER BY m.MemberName")).ToList();
-
-        // District Assistants — per (member, category, zone); their districts appended to the label.
-        var das = (await conn.QueryAsync<GoalObserverRoleDto>(@"
-            SELECT a.fk_member_id AS MemberId,
-                   COALESCE(m.MemberName, '') AS MemberName,
-                   'FewDistrictsOneCategoryOneZone' AS RoleType,
-                   'District Assistant' AS RoleLabel,
-                   TRIM(BOTH ' ' FROM CONCAT_WS(' · ',
-                        COALESCE(z.ZoneName, ''),
-                        (SELECT GROUP_CONCAT(DISTINCT CONCAT('D', dm.DistrictNumber) ORDER BY dm.DistrictNumber SEPARATOR ', ')
-                           FROM goal_role_assignment_districts ad
-                           JOIN district_master dm ON dm.pk_district_id = ad.fk_district_id
-                          WHERE ad.fk_assignment_id = a.pk_id))) AS ZoneNames,
-                   IF(c.Name = 'TRF', 'Foundation', c.Name) AS CategoryName
-            FROM goal_role_assignments a
-            JOIN member_master_profile m ON m.pk_member_master_profile_id = a.fk_member_id AND m.isdeleted = 0
-            LEFT JOIN zone_master z ON z.pk_zone_id = a.fk_zone_id
-            LEFT JOIN goal_categories c ON c.pk_category_id = a.fk_category_id
-            WHERE a.RoleType = 'FewDistrictsOneCategoryOneZone' AND a.IsActive = 1 AND a.isdeleted = 0 AND a.fk_member_id > 0
-            ORDER BY m.MemberName")).ToList();
-
-        return rds.Concat(zcs).Concat(das).ToList();
-    }
-
-    public async Task<GoalThreadListDto> GetGoalThreadListAsync(int memberId, int categoryId, int districtId, int yearId)
-    {
-        using var conn = CreateConnection();
-        await conn.OpenAsync();
-        var zoneId = await DistrictZoneIdAsync(conn, districtId) ?? 0;
-        var role = await ViewerMessagingRoleAsync(conn, memberId, categoryId, districtId, zoneId);
-        var result = new GoalThreadListDto { ViewerRole = role };
-        if (role == "None" || zoneId == 0) return result;
-
-        var riId = await ResolveRiDirectorForZoneAsync(conn, zoneId);
-        var riName = riId != null ? await MemberNameAsync(conn, riId.Value) : null;
-
-        async Task<GoalMessageThreadDto> BuildThread(int ownerId, string ownerLabel)
-        {
-            var seatType = ownerLabel == "Zone Co-ordinator" ? "AllDistrictsOneCategoryOneZone" : "FewDistrictsOneCategoryOneZone";
-            var seats = await ActiveMessageSeatIdsAsync(conn, ownerId, categoryId, zoneId, seatType, districtId);
-            var p = SeatThreadParams(categoryId, yearId, seats, ownerId);
-            p.Add("D", districtId);
-            var (cnt, lastText, lastDate) = await SeatThreadSummaryAsync(conn, p, seats.Count > 0, "AND c.fk_district_id=@D AND c.fk_club_id=0");
-            var unread = await SeatThreadUnreadAsync(conn, p, seats.Count > 0, memberId, ownerId, categoryId, yearId,
-                "AND c.fk_district_id=@D AND c.fk_club_id=0");
-            return new GoalMessageThreadDto
-            {
-                OwnerMemberId = ownerId,
-                OwnerName = await MemberNameAsync(conn, ownerId),
-                OwnerRoleLabel = ownerLabel,
-                IsMine = ownerId == memberId,
-                MessageCount = cnt,
-                UnreadCount = unread,
-                LastMessagePreview = lastText,
-                LastMessageDate = lastDate,
-            };
-        }
-
-        if (role is "RIDirector" or "SuperAdmin")
-        {
-            var owners = await ThreadOwnersAsync(conn, categoryId, districtId, zoneId);
-            foreach (var (ownerId, label) in owners)
-            {
-                var t = await BuildThread(ownerId, label);
-                t.CanPost = false;                // RI Director / SuperAdmin are READ-ONLY — view every thread, cannot reply
-                result.Threads.Add(t);
-            }
-        }
-        else // ZoneCoordinator or DistrictAssistant — a single self-thread with the RI Director
-        {
-            var label = role == "ZoneCoordinator" ? "Zone Co-ordinator" : "District Assistant";
-            var t = await BuildThread(memberId, label);
-            t.CounterpartyName = riName;
-            t.CanPost = riId != null;
-            t.Notice = riId == null
-                ? "No RI Director is assigned over your zone yet — messaging opens once one is assigned."
-                : null;
-            result.Threads.Add(t);
-        }
-        return result;
-    }
-
-    public async Task<List<GoalCommentDto>> GetGoalThreadMessagesAsync(int memberId, int categoryId, int districtId, int yearId, int ownerMemberId)
-    {
-        using var conn = CreateConnection();
-        await conn.OpenAsync();
-        var zoneId = await DistrictZoneIdAsync(conn, districtId) ?? 0;
-        var role = await ViewerMessagingRoleAsync(conn, memberId, categoryId, districtId, zoneId);
-        bool allowed = role switch
-        {
-            "SuperAdmin" or "RIDirector" => true,
-            "ZoneCoordinator" or "DistrictAssistant" => ownerMemberId == memberId,
-            _ => false,
-        };
-        if (!allowed) throw new UnauthorizedAccessException("You do not have access to this message thread.");
-
-        var seats = await ActiveMessageSeatIdsAsync(conn, ownerMemberId, categoryId, zoneId, null, districtId);
-        var p = SeatThreadParams(categoryId, yearId, seats, ownerMemberId);
-        p.Add("D", districtId);
-        // Opening the conversation marks THIS one read - never the others (user 2026-09-25).
-        await MarkThreadSeenAsync(conn, memberId, ownerMemberId, categoryId, yearId);
-        return await SeatThreadMessagesAsync(conn, memberId, p, seats.Count > 0, "AND c.fk_district_id=@D AND c.fk_club_id=0");
-    }
-
-    public async Task<GoalCommentDto> PostGoalThreadMessageAsync(int memberId, int categoryId, int districtId, int yearId, int ownerMemberId, string text)
-    {
-        if (string.IsNullOrWhiteSpace(text)) throw new InvalidOperationException("Message text is required.");
-        using var conn = CreateConnection();
-        await conn.OpenAsync();
-        var zoneId = await DistrictZoneIdAsync(conn, districtId) ?? 0;
-        var role = await ViewerMessagingRoleAsync(conn, memberId, categoryId, districtId, zoneId);
-
-        // RI Director & SuperAdmin are READ-ONLY on messaging — they see every thread but cannot reply.
-        // Only Zone Co-ordinators / District Assistants post (always UP to their RI Director).
-        int tier;
-        if (role is "SuperAdmin" or "RIDirector")
-            throw new UnauthorizedAccessException("Read-only: RI Director / SuperAdmin cannot post messages.");
-        else if (role == "ZoneCoordinator") { tier = 3; ownerMemberId = memberId; }
-        else if (role == "DistrictAssistant") { tier = 2; ownerMemberId = memberId; }
-        else throw new UnauthorizedAccessException("You cannot message on this thread.");
-
-        var ri = await ResolveRiDirectorForZoneAsync(conn, zoneId);
-        if (ri == null) throw new InvalidOperationException("No RI Director is assigned over your zone yet — you cannot send a message.");
-
-        // The seat this message belongs to (see "Messages follow the SEAT").
-        var seatId = (await ActiveMessageSeatIdsAsync(conn, memberId, categoryId, zoneId,
-            tier == 3 ? "AllDistrictsOneCategoryOneZone" : "FewDistrictsOneCategoryOneZone", districtId)).FirstOrDefault();
-
-        var trimmed = text.Trim();
-        var id = await conn.ExecuteScalarAsync<long>(@"
-            INSERT INTO goal_comments (fk_category_id, fk_district_id, fk_club_id, fk_year_id, ThreadOwnerMemberId, fk_assignment_id, fk_zone_id, CommentText, PostedByMemberId, PostedByTier, created_date, isdeleted)
-            VALUES (@C, @D, 0, @Y, @O, @Seat, @Z, @Text, @M, @Tier, NOW(), 0); SELECT LAST_INSERT_ID();",
-            new { C = categoryId, D = districtId, Y = yearId, O = ownerMemberId, Seat = seatId, Z = zoneId, Text = trimmed, M = memberId, Tier = tier });
-        var name = await MemberNameAsync(conn, memberId);
-        return new GoalCommentDto
-        {
-            Id = id, CommentText = trimmed, PostedByMemberId = memberId, PostedByName = name,
-            PostedByTier = tier, PostedByRoleLabel = TierRoleLabel(tier),
-            IsMine = true, CreatedDate = DateTime.Now.ToString("yyyy-MM-dd HH:mm"),
-        };
-    }
-
-    // ── Zone-based messaging (RI Director dashboard) ─────────────────────────────
-    // Threads are keyed by (category, year, ownerMemberId) — the owner is a Zone Co-ordinator or a
-    // District Assistant, ONE message box per person (not per district). The RI Director of a zone
-    // sees the ZC box + a box per DA of that zone+category; each DA/ZC sees their own box.
-
-    private static async Task<int?> OwnerZoneAsync(MySqlConnection conn, int ownerMemberId, int categoryId)
-        => await conn.ExecuteScalarAsync<int?>(@"
-            SELECT fk_zone_id FROM goal_role_assignments
-            WHERE fk_member_id=@O AND IsActive=1 AND isdeleted=0 AND fk_category_id=@C
-              AND RoleType IN ('AllDistrictsOneCategoryOneZone','FewDistrictsOneCategoryOneZone')
-            ORDER BY pk_id DESC LIMIT 1", new { O = ownerMemberId, C = categoryId });
-
-    // ZC + DA owners of (category, zone) with their designation title + coverage text.
-    // filterDistrictId: null → every owner (ZC + all DAs); 0 → the Zone Co-ordinator only (no district
-    // picked); >0 → only the District Assistant(s) whose assignment covers that district id.
-    private static async Task<List<(int MemberId, string Label, string Scope)>> ZoneThreadOwnersAsync(
-        MySqlConnection conn, int categoryId, int zoneId, int? filterDistrictId = null)
-    {
-        var owners = new List<(int, string, string)>();
-        var zoneName = await conn.ExecuteScalarAsync<string?>("SELECT ZoneName FROM zone_master WHERE pk_zone_id=@Z", new { Z = zoneId }) ?? "";
-        bool wantZc = filterDistrictId == null || filterDistrictId == 0;   // ZC shows at zone level (no district)
-        bool wantDa = filterDistrictId == null || filterDistrictId > 0;    // DAs show when a district is picked
-        if (wantZc)
-        {
-            var zc = await conn.QueryAsync<dynamic>(@"
-                SELECT fk_member_id AS m, RoleTitle AS t FROM goal_role_assignments
-                WHERE RoleType='AllDistrictsOneCategoryOneZone' AND IsActive=1 AND isdeleted=0
-                  AND fk_category_id=@C AND fk_zone_id=@Z AND fk_member_id>0", new { C = categoryId, Z = zoneId });
-            foreach (var r in zc) owners.Add((Convert.ToInt32(r.m), (r.t as string) ?? "Zone Co-ordinator", $"Zone {zoneName}"));
-        }
-        if (wantDa)
-        {
-            var da = await conn.QueryAsync<dynamic>(@"
-                SELECT a.pk_id AS id, a.fk_member_id AS m, a.RoleTitle AS t FROM goal_role_assignments a
-                WHERE a.RoleType='FewDistrictsOneCategoryOneZone' AND a.IsActive=1 AND a.isdeleted=0
-                  AND a.fk_category_id=@C AND a.fk_zone_id=@Z AND a.fk_member_id>0", new { C = categoryId, Z = zoneId });
-            foreach (var r in da)
-            {
-                int aid = Convert.ToInt32(r.id);
-                var drows = (await conn.QueryAsync<dynamic>(@"
-                    SELECT d.fk_district_id AS did, dm.DistrictNumber AS dn FROM goal_role_assignment_districts d
-                    JOIN district_master dm ON dm.pk_district_id=d.fk_district_id WHERE d.fk_assignment_id=@A",
-                    new { A = aid })).ToList();
-                // When a district is selected, skip DAs that don't cover it.
-                if (filterDistrictId > 0 && !drows.Any(x => Convert.ToInt32(x.did) == filterDistrictId.Value)) continue;
-                var dnums = drows.Select(x => (string)x.dn).ToList();
-                owners.Add((Convert.ToInt32(r.m), (r.t as string) ?? "District Assistant",
-                    dnums.Count > 0 ? "D " + string.Join(", ", dnums) : $"Zone {zoneName}"));
-            }
-        }
-        // No dedup by member: a person who is BOTH the ZC and a DA of the zone must still show as two
-        // boxes (one Zone Co-ordinator, one District Assistant). In production these are different people.
-        return owners;
-    }
-
-    private async Task<string> ViewerZoneMessagingRoleAsync(MySqlConnection conn, int memberId, int categoryId, int zoneId)
-    {
-        if (await ClubAdminAccessHelper.IsSuperAdminAsync(conn, memberId)) return "SuperAdmin";
-        var isRd = await conn.ExecuteScalarAsync<int>(@"
-            SELECT COUNT(*) FROM goal_role_assignments a JOIN goal_role_assignment_zones z ON z.fk_assignment_id=a.pk_id
-            WHERE a.RoleType='AllCategoryAllDistrictsFewZones' AND a.IsActive=1 AND a.isdeleted=0
-              AND a.fk_member_id=@M AND z.fk_zone_id=@Z", new { M = memberId, Z = zoneId });
-        if (isRd > 0) return "RIDirector";
-        var isZc = await conn.ExecuteScalarAsync<int>(@"
-            SELECT COUNT(*) FROM goal_role_assignments WHERE RoleType='AllDistrictsOneCategoryOneZone'
-              AND IsActive=1 AND isdeleted=0 AND fk_member_id=@M AND fk_category_id=@C AND fk_zone_id=@Z",
-            new { M = memberId, C = categoryId, Z = zoneId });
-        if (isZc > 0) return "ZoneCoordinator";
-        var isDa = await conn.ExecuteScalarAsync<int>(@"
-            SELECT COUNT(*) FROM goal_role_assignments WHERE RoleType='FewDistrictsOneCategoryOneZone'
-              AND IsActive=1 AND isdeleted=0 AND fk_member_id=@M AND fk_category_id=@C AND fk_zone_id=@Z",
-            new { M = memberId, C = categoryId, Z = zoneId });
-        if (isDa > 0) return "DistrictAssistant";
-        return "None";
-    }
-
-    private async Task<bool> CanAccessOwnerThreadAsync(MySqlConnection conn, int memberId, int categoryId, int ownerMemberId)
-    {
-        if (memberId == ownerMemberId) return true;
-        if (await ClubAdminAccessHelper.IsSuperAdminAsync(conn, memberId)) return true;
-        var ozone = await OwnerZoneAsync(conn, ownerMemberId, categoryId) ?? 0;
-        if (ozone == 0) return false;
-        var isRd = await conn.ExecuteScalarAsync<int>(@"
-            SELECT COUNT(*) FROM goal_role_assignments a JOIN goal_role_assignment_zones z ON z.fk_assignment_id=a.pk_id
-            WHERE a.RoleType='AllCategoryAllDistrictsFewZones' AND a.IsActive=1 AND a.isdeleted=0
-              AND a.fk_member_id=@M AND z.fk_zone_id=@Z", new { M = memberId, Z = ozone });
-        return isRd > 0;
-    }
-
-    // ── RI Director / SuperAdmin conversations: ONE definition (user 2026-10-07) ─────────────────
-    // The list, the opened conversation and the red dot all read these boxes, so the dot can only
-    // count what the list can open. Before this the dot counted every message of the zone while the
-    // list only showed current seat-holders' seats, so three kinds of message lit it for ever:
-    //   * people who no longer hold a seat (their box vanished, their messages kept counting);
-    //   * messages a CURRENT seat-holder posted under an earlier seat of theirs;
-    //   * "All districts" (district 0) messages of a revoked seat nobody inherited.
-    // Now: each current owner's box = their seats' messages (as before) PLUS any other message of the
-    // zone they own that no box shows; whatever is left belongs to someone with no seat any more and
-    // becomes a read-only "Former ..." box (only on the full list, not a district-filtered one).
-    private sealed class RiZoneMsg
-    {
-        public long Id; public int Owner; public int PostedBy; public DateTime Created; public string Text = "";
-        public int District;
-    }
-    private sealed class RiZoneBox
-    {
-        public int OwnerId; public string Label = ""; public string Scope = ""; public bool IsFormer;
-        public List<RiZoneMsg> Msgs = new();
-    }
-
-    private const string RiZoneMsgColumns =
-        "c.pk_id AS Id, c.ThreadOwnerMemberId AS Owner, c.PostedByMemberId AS PostedBy, c.created_date AS Created, c.CommentText AS Text, c.fk_district_id AS District";
-
-    private static async Task<List<RiZoneBox>> RiZoneBoxesAsync(
-        MySqlConnection conn, int categoryId, int zoneId, int yearId, int? filterDistrictId)
-    {
-        var boxes = new List<RiZoneBox>();
-        var covered = new HashSet<long>();
-        foreach (var (ownerId, label, scope) in await ZoneThreadOwnersAsync(conn, categoryId, zoneId, filterDistrictId))
-        {
-            var seats = await ActiveMessageSeatIdsAsync(conn, ownerId, categoryId);
-            var msgs = (await conn.QueryAsync<RiZoneMsg>($@"
-                SELECT {RiZoneMsgColumns} FROM goal_comments c
-                WHERE c.fk_category_id=@C AND c.fk_year_id=@Y AND c.isdeleted=0 AND {SeatThreadFilterSql(seats.Count > 0)}",
-                SeatThreadParams(categoryId, yearId, seats, ownerId))).ToList();
-            foreach (var m in msgs) covered.Add(m.Id);
-            boxes.Add(new RiZoneBox { OwnerId = ownerId, Label = label, Scope = scope, Msgs = msgs });
-        }
-
-        // Every message of the zone the boxes above do not show yet.
-        var rest = (await conn.QueryAsync<RiZoneMsg>($@"
-            SELECT {RiZoneMsgColumns} FROM goal_comments c
-            WHERE c.fk_category_id=@C AND c.fk_year_id=@Y AND c.fk_zone_id=@Z
-              AND c.ThreadOwnerMemberId > 0 AND c.isdeleted=0",
-            new { C = categoryId, Y = yearId, Z = zoneId }))
-            .Where(m => !covered.Contains(m.Id)).ToList();
-
-        foreach (var g in rest.GroupBy(m => m.Owner))
-        {
-            var own = boxes.FirstOrDefault(b => b.OwnerId == g.Key);
-            if (own != null) { own.Msgs.AddRange(g); continue; }      // a current owner's earlier seat
-            if (filterDistrictId != null) continue;                    // former boxes only on the full list
-            var last = await conn.QueryFirstOrDefaultAsync<dynamic>(@"
-                SELECT RoleTitle AS t, RoleType AS rt FROM goal_role_assignments
-                WHERE fk_member_id=@O AND fk_category_id=@C AND fk_zone_id=@Z
-                  AND RoleType IN ('AllDistrictsOneCategoryOneZone','FewDistrictsOneCategoryOneZone')
-                ORDER BY pk_id DESC LIMIT 1", new { O = g.Key, C = categoryId, Z = zoneId });
-            string role = (last?.t as string)
-                ?? ((last?.rt as string) == "AllDistrictsOneCategoryOneZone" ? "Zone Co-ordinator" : "District Assistant");
-            boxes.Add(new RiZoneBox
-            {
-                OwnerId = g.Key, Label = $"Former {role}", Scope = "No longer holds this seat",
-                IsFormer = true, Msgs = g.ToList(),
-            });
-        }
-        foreach (var b in boxes) b.Msgs.Sort((a, c) => a.Created != c.Created ? a.Created.CompareTo(c.Created) : a.Id.CompareTo(c.Id));
-        return boxes;
-    }
-
-    private static async Task<DateTime?> ThreadLastSeenAsync(MySqlConnection conn, int viewerMemberId, int ownerMemberId, int categoryId, int yearId)
-        => await conn.ExecuteScalarAsync<DateTime?>(@"
-            SELECT last_seen_date FROM goal_message_thread_seen
-            WHERE fk_member_id=@M AND ThreadOwnerMemberId=@O AND fk_category_id=@C AND fk_year_id=@Y",
-            new { M = viewerMemberId, O = ownerMemberId, C = categoryId, Y = yearId });
-
-    private static int RiBoxUnread(RiZoneBox box, int viewerMemberId, DateTime? lastSeen)
-        => box.Msgs.Count(m => m.PostedBy != viewerMemberId && (lastSeen == null || m.Created > lastSeen.Value));
-
-    private async Task<GoalMessageThreadDto> RiBoxToDtoAsync(MySqlConnection conn, RiZoneBox box, int viewerMemberId, int categoryId, int yearId)
-    {
-        var last = box.Msgs.LastOrDefault();
-        return new GoalMessageThreadDto
-        {
-            OwnerMemberId = box.OwnerId, OwnerName = await MemberNameAsync(conn, box.OwnerId),
-            OwnerRoleLabel = box.Label, Scope = box.Scope, IsMine = box.OwnerId == viewerMemberId,
-            IsFormer = box.IsFormer,
-            MessageCount = box.Msgs.Count,
-            UnreadCount = RiBoxUnread(box, viewerMemberId, await ThreadLastSeenAsync(conn, viewerMemberId, box.OwnerId, categoryId, yearId)),
-            LastMessagePreview = last?.Text, LastMessageDate = last?.Created.ToString("yyyy-MM-dd HH:mm"),
-            CanPost = false,   // RI Director / SuperAdmin are read-only
-        };
-    }
-
-    // The RI Director over a zone, or a SuperAdmin.
-    private static async Task<bool> SeesWholeZoneAsync(MySqlConnection conn, int memberId, int zoneId)
-        => await ClubAdminAccessHelper.IsSuperAdminAsync(conn, memberId)
-        || await conn.ExecuteScalarAsync<int>(@"
-            SELECT COUNT(*) FROM goal_role_assignments a
-            JOIN goal_role_assignment_zones z ON z.fk_assignment_id = a.pk_id
-            WHERE a.RoleType='AllCategoryAllDistrictsFewZones' AND a.IsActive=1 AND a.isdeleted=0
-              AND a.fk_member_id=@M AND z.fk_zone_id=@Z", new { M = memberId, Z = zoneId }) > 0;
-
-    // Which roles the caller holds for (category, zone). One person may hold several (e.g. RI
-    // Director AND ZC AND DA of the same zone). `actingAs` (from the switcher: "ri-director" /
-    // "zone-coordinator" / "district-assistant") forces that view when they hold it; otherwise the
-    // highest role wins.
-    // Red "new message" dot: any message from a ZC/DA in this zone (across categories), for the year,
-    // newer than when this viewer last opened the messages popup (never opened → any message counts).
+    // Red dot: unread District Admin / DG messages in the zone that the viewer may read.
     public async Task<bool> HasUnreadZoneMessagesAsync(int memberId, int zoneId, int yearId)
     {
         if (zoneId <= 0) return false;
         using var conn = CreateConnection();
         await conn.OpenAsync();
-        // The dot must follow the SAME rule as the thread list (user 2026-09-25). It used to count
-        // every message in the zone, so a District Assistant writing to the RI Director lit up the
-        // Zone Co-ordinator's dot — for a conversation the ZC cannot even open. He clicked, found
-        // only his own empty box, and the dot stayed.
-        //
-        //   RI Director / SuperAdmin → every thread of the zone, as before (they can open them all).
-        //   Zone Co-ordinator / District Assistant → their OWN thread only, and only in the
-        //   categories they hold: a Membership ZC must not be lit by a Public Image DA either.
-        //
-        // Messages the person posted themselves never count (PostedByMemberId <> @M), so the dot
-        // means "someone has written to you".
-        //
-        // The "seen" marker is now PER CONVERSATION (goal_message_thread_seen), so the dot no longer
-        // disappears for every box the moment one of them is opened - it stays until each one with
-        // something new has actually been read.
-        // District Admin / DG messages the viewer may read and has not opened (user 2026-10-09).
-        if (await HasUnreadDistrictSideAsync(conn, memberId, zoneId, yearId)) return true;
-
-        bool seesWholeZone = await SeesWholeZoneAsync(conn, memberId, zoneId);
-
-        int cnt;
-        if (seesWholeZone)
-        {
-            // RI Director / SuperAdmin (2026-10-07): exactly the boxes their Messages list shows - every
-            // category that has messages in the zone, every box (current + former) - and lit only while
-            // one of them has something unread. Opening that box is what clears it.
-            var cats = (await conn.QueryAsync<int>(@"
-                SELECT DISTINCT fk_category_id FROM goal_comments
-                WHERE fk_zone_id=@Z AND fk_year_id=@Y AND ThreadOwnerMemberId>0 AND isdeleted=0",
-                new { Z = zoneId, Y = yearId })).ToList();
-            foreach (var cat in cats)
-                foreach (var box in await RiZoneBoxesAsync(conn, cat, zoneId, yearId, null))
-                    if (box.Msgs.Count > 0
-                        && RiBoxUnread(box, memberId, await ThreadLastSeenAsync(conn, memberId, box.OwnerId, cat, yearId)) > 0)
-                        return true;
-            return false;
-        }
-        else
-        {
-            var myCategories = (await conn.QueryAsync<int>(@"
-                SELECT DISTINCT fk_category_id FROM goal_role_assignments
-                WHERE fk_member_id=@M AND fk_zone_id=@Z AND IsActive=1 AND isdeleted=0
-                  AND RoleType IN ('AllDistrictsOneCategoryOneZone','FewDistrictsOneCategoryOneZone')
-                  AND fk_category_id IS NOT NULL", new { M = memberId, Z = zoneId })).ToList();
-            if (myCategories.Count == 0) return false;
-
-            cnt = await conn.ExecuteScalarAsync<int>(
-                @"SELECT COUNT(*) FROM goal_comments c
-                  LEFT JOIN goal_message_thread_seen s
-                         ON s.fk_member_id = @M AND s.ThreadOwnerMemberId = c.ThreadOwnerMemberId
-                        AND s.fk_category_id = c.fk_category_id AND s.fk_year_id = c.fk_year_id
-                  WHERE c.fk_zone_id=@Z AND c.fk_year_id=@Y AND c.isdeleted=0
-                    AND c.ThreadOwnerMemberId=@M AND c.fk_category_id IN @Cats
-                    AND c.PostedByMemberId <> @M
-                    AND (s.last_seen_date IS NULL OR c.created_date > s.last_seen_date)",
-                new { Z = zoneId, Y = yearId, M = memberId, Cats = myCategories });
-        }
-        return cnt > 0;
+        return await HasUnreadDistrictSideAsync(conn, memberId, zoneId, yearId);
     }
 
     // ── District-side messages (user 2026-10-09) ────────────────────────────────────────────────
-    // A District Admin or the District Governor writes to the oversight chain about one category.
-    // Read-only for everyone above: the District Assistant covering that district + category, the
-    // Zone Co-ordinator of the zone + category, the RI Director of the zone, and SuperAdmin. Nobody
-    // replies. Stored in goal_comments with PostedByTier = 1 and ThreadOwnerMemberId = -districtId:
-    // every existing ZC/DA query keeps "ThreadOwnerMemberId > 0" (or matches a member id), so these
-    // never appear inside a ZC/DA conversation. The same negative key drives goal_message_thread_seen.
+    // A District Admin or the District Governor writes about one category. The SuperAdmin reads it;
+    // nobody replies. Stored in goal_comments with PostedByTier = 1 and ThreadOwnerMemberId = -districtId.
+    // The same negative key drives goal_message_thread_seen.
     private const int DistrictSideTier = 1;
     private static int DistrictThreadKey(int districtId) => -districtId;
 
@@ -7266,21 +4655,11 @@ public class GoalSettingService : IGoalSettingService
     }
 
     // Rows of goal_comments c (district-side) the viewer may READ, as SQL. SuperAdmin -> everything.
-    // RI Director: the zones of their seat. Zone Co-ordinator: their zone + category (or every
-    // category when the ZC role carries no category). District Assistant: their districts + category.
     // The district's own Admin / DG see their district.
     private const string DistrictSideScopeSql = @"(
-        EXISTS (SELECT 1 FROM goal_role_assignments a
-                WHERE a.fk_member_id = @Viewer AND a.IsActive = 1 AND a.isdeleted = 0 AND (
-                     (a.RoleType = 'AllCategoryAllDistrictsFewZones'
-                      AND EXISTS (SELECT 1 FROM goal_role_assignment_zones z WHERE z.fk_assignment_id = a.pk_id AND z.fk_zone_id = c.fk_zone_id))
-                  OR (a.RoleType = 'AllDistrictsOneCategoryOneZone' AND a.fk_zone_id = c.fk_zone_id AND a.fk_category_id = c.fk_category_id)
-                  OR (a.RoleType = 'FewDistrictsOneCategoryOneZone' AND a.fk_category_id = c.fk_category_id
-                      AND EXISTS (SELECT 1 FROM goal_role_assignment_districts d WHERE d.fk_assignment_id = a.pk_id AND d.fk_district_id = c.fk_district_id))))
-     OR EXISTS (SELECT 1 FROM member_roles r
+        EXISTS (SELECT 1 FROM member_roles r
                 WHERE r.fk_member_master_profile_id = @Viewer AND r.IsActive = 1 AND r.isdeleted = 0
-                  AND ((r.fk_role_id = 2 AND r.fk_district_id = c.fk_district_id AND COALESCE(r.fk_club_id,0) = 0)
-                       OR (r.fk_role_id = 4 AND r.fk_zone_id = c.fk_zone_id)))
+                  AND r.fk_role_id = 2 AND r.fk_district_id = c.fk_district_id AND COALESCE(r.fk_club_id,0) = 0)
      OR EXISTS (SELECT 1 FROM district_governors g
                 WHERE g.fk_member_id = @Viewer AND g.fk_district_id = c.fk_district_id AND g.fk_year_id = c.fk_year_id AND COALESCE(g.isdeleted,0) = 0))";
 
@@ -7375,14 +4754,10 @@ public class GoalSettingService : IGoalSettingService
         var dnum = await conn.ExecuteScalarAsync<string?>("SELECT DistrictNumber FROM district_master WHERE pk_district_id=@D", new { D = districtId });
         var catName = await conn.ExecuteScalarAsync<string?>(
             "SELECT IF(Name = 'TRF', 'Foundation', Name) FROM goal_categories WHERE pk_category_id=@C", new { C = categoryId }) ?? "";
-        var zoneId = await DistrictZoneIdAsync(conn, districtId) ?? 0;
-        string? notice = null;
-        if (posterRole != null && await ResolveRiDirectorForZoneAsync(conn, zoneId) == null)
-            notice = "No RI Director is assigned over your zone yet - your message will still reach the District Assistant and Zone Co-ordinator.";
         return new GoalDistrictMessagesDto
         {
             DistrictId = districtId, DistrictNumber = dnum, CategoryId = categoryId, CategoryName = catName,
-            CanPost = posterRole != null, PosterRole = posterRole, Notice = notice,
+            CanPost = posterRole != null, PosterRole = posterRole,
             Messages = rows.Select(r => ToCommentDto(r, memberId)).ToList(),
         };
     }
@@ -7412,8 +4787,8 @@ public class GoalSettingService : IGoalSettingService
         var zoneId = await DistrictZoneIdAsync(conn, districtId) ?? 0;
         var trimmed = text.Trim();
         var id = await conn.ExecuteScalarAsync<long>(@"
-            INSERT INTO goal_comments (fk_category_id, fk_district_id, fk_club_id, fk_year_id, ThreadOwnerMemberId, fk_assignment_id, fk_zone_id, CommentText, PostedByMemberId, PostedByTier, created_date, isdeleted)
-            VALUES (@C, @D, 0, @Y, @O, 0, @Z, @Text, @M, @Tier, NOW(), 0); SELECT LAST_INSERT_ID();",
+            INSERT INTO goal_comments (fk_category_id, fk_district_id, fk_club_id, fk_year_id, ThreadOwnerMemberId, fk_zone_id, CommentText, PostedByMemberId, PostedByTier, created_date, isdeleted)
+            VALUES (@C, @D, 0, @Y, @O, @Z, @Text, @M, @Tier, NOW(), 0); SELECT LAST_INSERT_ID();",
             new { C = categoryId, D = districtId, Y = yearId, O = DistrictThreadKey(districtId), Z = zoneId, Text = trimmed, M = memberId, Tier = DistrictSideTier });
         return new GoalCommentDto
         {
@@ -7424,8 +4799,8 @@ public class GoalSettingService : IGoalSettingService
         };
     }
 
-    // Inbox for the readers (RI Director / ZC / District Assistant / SuperAdmin): one row per district +
-    // category that has district-side messages the viewer may read, newest first, with unread counts.
+    // Inbox for the reader (SuperAdmin): one row per district + category that has district-side
+    // messages the viewer may read, newest first, with unread counts.
     public async Task<List<GoalDistrictConversationDto>> GetDistrictMessageInboxAsync(int memberId, int zoneId, int yearId, int categoryId, int districtId)
     {
         using var conn = CreateConnection();
@@ -7470,389 +4845,16 @@ public class GoalSettingService : IGoalSettingService
         => await DistrictSideRowsAsync(conn, memberId, await ClubAdminAccessHelper.IsSuperAdminAsync(conn, memberId),
             yearId, zoneId, categoryId, districtId);
 
-    public async Task MarkZoneMessagesSeenAsync(int memberId, int zoneId, int yearId)
-    {
-        if (zoneId <= 0) return;
-        using var conn = CreateConnection();
-        await conn.OpenAsync();
-        await conn.ExecuteAsync(
-            @"INSERT INTO goal_message_seen (fk_member_id, fk_zone_id, fk_year_id, last_seen_date)
-              VALUES (@M,@Z,@Y,NOW()) ON DUPLICATE KEY UPDATE last_seen_date=NOW()",
-            new { M = memberId, Z = zoneId, Y = yearId });
-    }
-
-    public async Task<GoalThreadListDto> GetGoalZoneThreadListAsync(int memberId, int categoryId, int zoneId, int yearId, string? actingAs = null, int? filterDistrictId = null)
-    {
-        using var conn = CreateConnection();
-        await conn.OpenAsync();
-
-        bool isSuper = await ClubAdminAccessHelper.IsSuperAdminAsync(conn, memberId);
-        bool isRd = await conn.ExecuteScalarAsync<int>(@"
-            SELECT COUNT(*) FROM goal_role_assignments a JOIN goal_role_assignment_zones z ON z.fk_assignment_id=a.pk_id
-            WHERE a.RoleType='AllCategoryAllDistrictsFewZones' AND a.IsActive=1 AND a.isdeleted=0
-              AND a.fk_member_id=@M AND z.fk_zone_id=@Z", new { M = memberId, Z = zoneId }) > 0;
-        bool isZc = await conn.ExecuteScalarAsync<int>(@"
-            SELECT COUNT(*) FROM goal_role_assignments WHERE RoleType='AllDistrictsOneCategoryOneZone'
-              AND IsActive=1 AND isdeleted=0 AND fk_member_id=@M AND fk_category_id=@C AND fk_zone_id=@Z",
-            new { M = memberId, C = categoryId, Z = zoneId }) > 0;
-        bool isDa = await conn.ExecuteScalarAsync<int>(@"
-            SELECT COUNT(*) FROM goal_role_assignments WHERE RoleType='FewDistrictsOneCategoryOneZone'
-              AND IsActive=1 AND isdeleted=0 AND fk_member_id=@M AND fk_category_id=@C AND fk_zone_id=@Z",
-            new { M = memberId, C = categoryId, Z = zoneId }) > 0;
-
-        string role =
-            (actingAs == "district-assistant" && isDa) ? "DistrictAssistant"
-          : (actingAs == "zone-coordinator" && isZc) ? "ZoneCoordinator"
-          : (actingAs == "ri-director" && (isRd || isSuper)) ? "RIDirector"
-          : isSuper ? "SuperAdmin"
-          : isRd ? "RIDirector"
-          : isZc ? "ZoneCoordinator"
-          : isDa ? "DistrictAssistant"
-          : "None";
-
-        var result = new GoalThreadListDto { ViewerRole = role };
-        // A SuperAdmin with the "Goal Setting enabled" flag → may click any ZC/DA box and post AS that
-        // person (the upward ZC→RI / DA→RI flow from one login). Driven by goal_oversight_access now.
-        if (isSuper)
-            result.CanObservePost = await HasGoalOversightAccessAsync(conn, memberId);
-        if (role == "None") return result;
-        var riId = await ResolveRiDirectorForZoneAsync(conn, zoneId);
-        var riName = riId != null ? await MemberNameAsync(conn, riId.Value) : null;
-
-        async Task<GoalMessageThreadDto> Build(int ownerId, string label, string scope, bool canPost)
-        {
-            // Same seats as the opened thread (GetGoalOwnerThreadMessagesAsync), so the box count matches.
-            var seats = await ActiveMessageSeatIdsAsync(conn, ownerId, categoryId);
-            var (cnt, lastText, lastDate) = await SeatThreadSummaryAsync(conn, SeatThreadParams(categoryId, yearId, seats, ownerId), seats.Count > 0);
-            var unread = await SeatThreadUnreadAsync(conn, SeatThreadParams(categoryId, yearId, seats, ownerId),
-                seats.Count > 0, memberId, ownerId, categoryId, yearId);
-            return new GoalMessageThreadDto
-            {
-                OwnerMemberId = ownerId, OwnerName = await MemberNameAsync(conn, ownerId),
-                OwnerRoleLabel = label, Scope = scope, IsMine = ownerId == memberId,
-                MessageCount = cnt, UnreadCount = unread,
-                LastMessagePreview = lastText, LastMessageDate = lastDate,
-                CanPost = canPost,
-            };
-        }
-
-        if (role is "RIDirector" or "SuperAdmin")
-        {
-            // RI Director / SuperAdmin are READ-ONLY — see every owner's box but cannot reply (canPost=false).
-            // filterDistrictId narrows the list: 0 → the Zone Co-ordinator only; >0 → that district's DA(s) only.
-            // Only owners who have messaged are listed — except for the gated observer, who needs every box
-            // to start a conversation AS that owner.
-            // The same boxes the red dot counts (RiZoneBoxesAsync), incl. read-only "Former ..." ones.
-            foreach (var box in await RiZoneBoxesAsync(conn, categoryId, zoneId, yearId, filterDistrictId))
-            {
-                if (box.Msgs.Count == 0 && !(result.CanObservePost && !box.IsFormer)) continue;
-                result.Threads.Add(await RiBoxToDtoAsync(conn, box, memberId, categoryId, yearId));
-            }
-        }
-        else
-        {
-            var label = role == "ZoneCoordinator" ? "Zone Co-ordinator" : "District Assistant";
-            var t = await Build(memberId, label, "", riId != null);
-            t.CounterpartyName = riName;
-            t.Notice = riId == null ? "No RI Director is assigned over your zone yet — messaging opens once one is assigned." : null;
-            result.Threads.Add(t);
-            // District Assistant composes district-wise → give the UI their covered districts (this
-            // category + zone) for the "message about which district" picker ("All" = 0 added by the UI).
-            if (role == "DistrictAssistant")
-            {
-                result.OwnerDistricts = (await conn.QueryAsync<GoalMessageDistrictDto>(@"
-                    SELECT DISTINCT dm.pk_district_id AS Id, dm.DistrictNumber AS Number
-                    FROM goal_role_assignments a
-                    JOIN goal_role_assignment_districts d ON d.fk_assignment_id = a.pk_id
-                    JOIN district_master dm ON dm.pk_district_id = d.fk_district_id AND dm.isdeleted = 0
-                    WHERE a.RoleType='FewDistrictsOneCategoryOneZone' AND a.IsActive=1 AND a.isdeleted=0
-                      AND a.fk_member_id=@M AND a.fk_category_id=@C AND a.fk_zone_id=@Z
-                    ORDER BY dm.DistrictNumber", new { M = memberId, C = categoryId, Z = zoneId })).ToList();
-            }
-        }
-        return result;
-    }
-
-    public async Task<List<GoalCommentDto>> GetGoalOwnerThreadMessagesAsync(int memberId, int categoryId, int yearId, int ownerMemberId, int? zoneId = null)
-    {
-        using var conn = CreateConnection();
-        await conn.OpenAsync();
-
-        // RI Director / SuperAdmin opening someone else's box: read the SAME box the list and the red dot
-        // use (RiZoneBoxesAsync), so a former seat-holder's box opens and gets marked read too. The zone
-        // comes from the screen; callers that don't send it (mobile) fall back to the owner's seat zone,
-        // then to the zone of the owner's latest message.
-        if (memberId != ownerMemberId)
-        {
-            int z = zoneId ?? 0;
-            if (z <= 0) z = await OwnerZoneAsync(conn, ownerMemberId, categoryId) ?? 0;
-            if (z <= 0) z = await conn.ExecuteScalarAsync<int?>(@"
-                SELECT fk_zone_id FROM goal_comments
-                WHERE ThreadOwnerMemberId=@O AND fk_category_id=@C AND fk_year_id=@Y AND isdeleted=0 AND fk_zone_id > 0
-                ORDER BY created_date DESC LIMIT 1", new { O = ownerMemberId, C = categoryId, Y = yearId }) ?? 0;
-            if (z > 0 && await SeesWholeZoneAsync(conn, memberId, z))
-            {
-                var ids = (await RiZoneBoxesAsync(conn, categoryId, z, yearId, null))
-                    .Where(b => b.OwnerId == ownerMemberId).SelectMany(b => b.Msgs).Select(m => m.Id).Distinct().ToList();
-                await MarkThreadSeenAsync(conn, memberId, ownerMemberId, categoryId, yearId);
-                if (ids.Count == 0) return new List<GoalCommentDto>();
-                var p = new DynamicParameters();
-                p.Add("Ids", ids);
-                return await MessagesByIdsAsync(conn, memberId, p);
-            }
-        }
-
-        if (!await CanAccessOwnerThreadAsync(conn, memberId, categoryId, ownerMemberId))
-            throw new UnauthorizedAccessException("You do not have access to this message thread.");
-        // The owner's seats → their own messages PLUS those of earlier holders of the same seat/districts.
-        var seats = await ActiveMessageSeatIdsAsync(conn, ownerMemberId, categoryId);
-        // Opening the conversation marks THIS one read - never the others (user 2026-09-25).
-        await MarkThreadSeenAsync(conn, memberId, ownerMemberId, categoryId, yearId);
-        return await SeatThreadMessagesAsync(conn, memberId, SeatThreadParams(categoryId, yearId, seats, ownerMemberId), seats.Count > 0);
-    }
-
-    public async Task<GoalCommentDto> PostGoalOwnerThreadMessageAsync(int memberId, int categoryId, int yearId, int ownerMemberId, string text, int districtId = 0)
-    {
-        if (string.IsNullOrWhiteSpace(text)) throw new InvalidOperationException("Message text is required.");
-        using var conn = CreateConnection();
-        await conn.OpenAsync();
-        bool isSuper = await ClubAdminAccessHelper.IsSuperAdminAsync(conn, memberId);
-        // Only RI Director / SuperAdmin can reach another owner's thread — and they are READ-ONLY.
-        if (memberId != ownerMemberId)
-            throw new UnauthorizedAccessException("Read-only: RI Director / SuperAdmin cannot post messages.");
-
-        // The seat the message is posted under: the owner's latest active ZC/DA role in this category.
-        // No active role → refuse (SuperAdmin too); such a message would belong to no seat and be hidden.
-        var seat = await conn.QueryFirstOrDefaultAsync<dynamic>(@"
-            SELECT pk_id AS id, RoleType AS rt, fk_zone_id AS zone FROM goal_role_assignments
-            WHERE fk_member_id=@O AND IsActive=1 AND isdeleted=0 AND fk_category_id=@C
-              AND RoleType IN ('AllDistrictsOneCategoryOneZone','FewDistrictsOneCategoryOneZone')
-            ORDER BY pk_id DESC LIMIT 1", new { O = ownerMemberId, C = categoryId });
-        if (seat == null)
-            throw new InvalidOperationException("You have no active Zone Co-ordinator / District Assistant role for this category — the message cannot be sent.");
-        int seatId = Convert.ToInt32(seat.id);
-        int seatZone = seat.zone == null ? 0 : Convert.ToInt32(seat.zone);
-        var ri = seatZone > 0 ? await ResolveRiDirectorForZoneAsync(conn, seatZone) : null;
-        if (ri == null && !isSuper) throw new InvalidOperationException("No RI Director is assigned over your zone yet — you cannot send a message.");
-        int tier = (string)seat.rt == "AllDistrictsOneCategoryOneZone" ? 3 : 2;
-        // District Assistant messages are district-wise: tag the message to one of the owner's covered
-        // districts (this category), or 0 = "All districts". Only a District Assistant (tier 2) may tag;
-        // other tiers (ZC/RI) are zone-wide → forced to 0. An invalid district for the DA falls back to 0.
-        int taggedDistrict = 0;
-        if (tier == 2 && districtId > 0)
-        {
-            var covers = await conn.ExecuteScalarAsync<int>(@"
-                SELECT COUNT(*) FROM goal_role_assignments a
-                JOIN goal_role_assignment_districts d ON d.fk_assignment_id = a.pk_id
-                WHERE a.RoleType='FewDistrictsOneCategoryOneZone' AND a.IsActive=1 AND a.isdeleted=0
-                  AND a.fk_member_id=@M AND a.fk_category_id=@C AND d.fk_district_id=@D",
-                new { M = ownerMemberId, C = categoryId, D = districtId });
-            if (covers > 0) taggedDistrict = districtId;
-        }
-        var trimmed = text.Trim();
-        var id = await conn.ExecuteScalarAsync<long>(@"
-            INSERT INTO goal_comments (fk_category_id, fk_district_id, fk_club_id, fk_year_id, ThreadOwnerMemberId, fk_assignment_id, fk_zone_id, CommentText, PostedByMemberId, PostedByTier, created_date, isdeleted)
-            VALUES (@C, @D, 0, @Y, @O, @Seat, @Z, @Text, @M, @Tier, NOW(), 0); SELECT LAST_INSERT_ID();",
-            new { C = categoryId, D = taggedDistrict, Y = yearId, O = ownerMemberId, Seat = seatId, Z = seatZone, Text = trimmed, M = memberId, Tier = tier });
-        var name = await MemberNameAsync(conn, memberId);
-        string? dnum = taggedDistrict > 0
-            ? await conn.ExecuteScalarAsync<string>("SELECT DistrictNumber FROM district_master WHERE pk_district_id=@D", new { D = taggedDistrict })
-            : null;
-        return new GoalCommentDto
-        {
-            Id = id, CommentText = trimmed, PostedByMemberId = memberId, PostedByName = name,
-            PostedByTier = tier, PostedByRoleLabel = TierRoleLabel(tier), IsMine = true,
-            CreatedDate = DateTime.Now.ToString("yyyy-MM-dd HH:mm"),
-            DistrictId = taggedDistrict, DistrictNumber = dnum,
-        };
-    }
-
-    // ── Goal messages LIST (on-screen, RI Director / ZC / SuperAdmin) ────────────────────────────
-    // The unified all-categories / all-districts messages view, filterable by category (0=all) and
-    // district (0=all). Same scope + filter semantics as the report; returns rows for display.
-    public async Task<List<GoalMessageRowDto>> GetGoalMessagesListAsync(int memberId, int zoneId, int yearId, int categoryId, int districtId)
-    {
-        var result = new List<GoalMessageRowDto>();
-        if (zoneId <= 0) return result;
-        using var conn = CreateConnection();
-        await conn.OpenAsync();
-        bool isSuper = await ClubAdminAccessHelper.IsSuperAdminAsync(conn, memberId);
-        if (!isSuper && !await CanAccessZoneReportAsync(conn, memberId, zoneId))
-            throw new UnauthorizedAccessException("You are not authorised to view this zone's messages.");
-
-        // By the message's seat zone — messages stay visible after their writer leaves the role.
-        var rows = await conn.QueryAsync<dynamic>(@"
-            SELECT c.pk_id AS id, c.fk_category_id AS catId, IF(cat.Name = 'TRF', 'Foundation', cat.Name) AS catName,
-                   c.fk_district_id AS did, dm.DistrictNumber AS dnum,
-                   c.PostedByTier AS tier, COALESCE(m.MemberName,'') AS fromName,
-                   c.CommentText AS msg, DATE_FORMAT(c.created_date,'%Y-%m-%d %H:%i') AS dt
-            FROM goal_comments c
-            JOIN goal_categories cat ON cat.pk_category_id = c.fk_category_id AND cat.isdeleted = 0
-            LEFT JOIN member_master_profile m ON m.pk_member_master_profile_id = c.PostedByMemberId
-            LEFT JOIN district_master dm ON dm.pk_district_id = c.fk_district_id
-            WHERE c.fk_year_id=@Y AND c.isdeleted=0 AND c.fk_zone_id=@Z AND c.ThreadOwnerMemberId>0
-              AND (@Cat=0 OR c.fk_category_id=@Cat)
-              AND (@Did=0 OR c.fk_district_id=@Did)
-            ORDER BY c.created_date DESC",
-            new { Y = yearId, Z = zoneId, Cat = categoryId, Did = districtId });
-        foreach (var r in rows)
-        {
-            int did = r.did == null ? 0 : Convert.ToInt32(r.did);
-            int tier = Convert.ToInt32(r.tier);
-            result.Add(new GoalMessageRowDto
-            {
-                Id = Convert.ToInt64(r.id), CategoryId = Convert.ToInt32(r.catId), CategoryName = (string)r.catName,
-                DistrictId = did, DistrictNumber = did > 0 ? (r.dnum as string) : null,
-                FromName = (string)r.fromName, RoleLabel = TierRoleLabel(tier), PostedByTier = tier,
-                Message = (string)r.msg, CreatedDate = r.dt as string,
-            });
-        }
-        return result;
-    }
-
-    // ── Goal message roster (RI Director / ZC / SuperAdmin) ──────────────────────────────────────
-    // The Zone Co-ordinators + District Assistants in a zone (filterable by category / district), each
-    // with their message count — so the messages popup can show "each ZC/DA · No message yet" instead of
-    // a blank when a filter has no messages.
-    public async Task<List<GoalMessageOwnerDto>> GetGoalMessageRosterAsync(int memberId, int zoneId, int yearId, int categoryId, int districtId)
-    {
-        var result = new List<GoalMessageOwnerDto>();
-        if (zoneId <= 0) return result;
-        using var conn = CreateConnection();
-        await conn.OpenAsync();
-        bool isSuper = await ClubAdminAccessHelper.IsSuperAdminAsync(conn, memberId);
-        if (!isSuper && !await CanAccessZoneReportAsync(conn, memberId, zoneId))
-            throw new UnauthorizedAccessException("You are not authorised to view this zone's messages.");
-
-        // Zone Co-ordinators (zone-wide; not district-scoped). Skipped when a district filter is applied
-        // AND the caller wants strictly that district — but a ZC covers every district, so keep them.
-        // Message counts come from the owner's seats (incl. earlier holders' messages), not their member id.
-        // GROUP BY (member, category): a person can hold MORE THAN ONE active ZC seat for the same
-        // category + zone (a re-created assignment leaves the old row active). Without this the same
-        // person came back once per seat - the popup showed them 2-4 times over (user 2026-09-29).
-        var zcs = await conn.QueryAsync<dynamic>(@"
-            SELECT a.fk_member_id AS mid, a.fk_category_id AS catId, COALESCE(m.MemberName,'') AS name, IF(cat.Name = 'TRF', 'Foundation', cat.Name) AS catName
-            FROM goal_role_assignments a
-            JOIN member_master_profile m ON m.pk_member_master_profile_id=a.fk_member_id AND m.isdeleted=0
-            JOIN goal_categories cat ON cat.pk_category_id=a.fk_category_id AND cat.isdeleted=0
-            WHERE a.RoleType='AllDistrictsOneCategoryOneZone' AND a.IsActive=1 AND a.isdeleted=0
-              AND a.fk_zone_id=@Z AND a.fk_member_id>0 AND (@Cat=0 OR a.fk_category_id=@Cat)
-            GROUP BY a.fk_member_id, a.fk_category_id, m.MemberName, cat.Name, cat.SortOrder
-            ORDER BY cat.SortOrder, m.MemberName", new { Z = zoneId, Cat = categoryId });
-        // Only people who have messaged are listed (SuperAdmin / RI Director listing) — 0 messages → hidden.
-        foreach (var r in zcs)
-        {
-            int mid = Convert.ToInt32(r.mid), cid = Convert.ToInt32(r.catId);
-            int cnt = await RosterMessageCountAsync(conn, mid, cid, yearId, districtId);
-            if (cnt == 0) continue;
-            result.Add(new GoalMessageOwnerDto { MemberId = mid, CategoryId = cid,
-                Name = (string)r.name, RoleLabel = "Zone Co-ordinator", CategoryName = (string)r.catName, Districts = null,
-                MessageCount = cnt, UnreadCount = await RosterUnreadCountAsync(conn, memberId, mid, cid, yearId, districtId) });
-        }
-
-        // District Assistants (their covered districts; narrowed to one district if filtered).
-        var das = await conn.QueryAsync<dynamic>(@"
-            SELECT a.fk_member_id AS mid, a.fk_category_id AS catId, COALESCE(m.MemberName,'') AS name, IF(cat.Name = 'TRF', 'Foundation', cat.Name) AS catName,
-                   GROUP_CONCAT(DISTINCT dm.DistrictNumber ORDER BY dm.DistrictNumber SEPARATOR ', ') AS districts
-            FROM goal_role_assignments a
-            JOIN member_master_profile m ON m.pk_member_master_profile_id=a.fk_member_id AND m.isdeleted=0
-            JOIN goal_categories cat ON cat.pk_category_id=a.fk_category_id AND cat.isdeleted=0
-            JOIN goal_role_assignment_districts d ON d.fk_assignment_id=a.pk_id
-            JOIN district_master dm ON dm.pk_district_id=d.fk_district_id AND dm.isdeleted=0
-            WHERE a.RoleType='FewDistrictsOneCategoryOneZone' AND a.IsActive=1 AND a.isdeleted=0
-              AND a.fk_zone_id=@Z AND a.fk_member_id>0 AND (@Cat=0 OR a.fk_category_id=@Cat)
-              AND (@Did=0 OR d.fk_district_id=@Did)
-            GROUP BY a.fk_member_id, a.fk_category_id, m.MemberName, cat.Name, cat.SortOrder
-            ORDER BY cat.SortOrder, m.MemberName", new { Z = zoneId, Cat = categoryId, Did = districtId });
-        foreach (var r in das)
-        {
-            int mid = Convert.ToInt32(r.mid), cid = Convert.ToInt32(r.catId);
-            int cnt = await RosterMessageCountAsync(conn, mid, cid, yearId, districtId);
-            if (cnt == 0) continue;
-            result.Add(new GoalMessageOwnerDto { MemberId = mid, CategoryId = cid,
-                Name = (string)r.name, RoleLabel = "District Assistant", CategoryName = (string)r.catName, Districts = r.districts as string,
-                MessageCount = cnt, UnreadCount = await RosterUnreadCountAsync(conn, memberId, mid, cid, yearId, districtId) });
-        }
-
-        // People who NO LONGER hold a seat (user 2026-10-07, Zone 0): their messages light the red dot
-        // (RiZoneBoxesAsync), but this list only had current seat-holders, so those conversations
-        // could never be opened and the dot never cleared. Listed read-only as "Former ...", for the
-        // viewers the dot covers that way (SuperAdmin / RI Director of the zone).
-        if (await SeesWholeZoneAsync(conn, memberId, zoneId))
-        {
-            var catIds = categoryId > 0 ? new List<int> { categoryId }
-                : (await conn.QueryAsync<int>(@"
-                    SELECT DISTINCT c.fk_category_id FROM goal_comments c
-                    JOIN goal_categories cat ON cat.pk_category_id=c.fk_category_id AND cat.isdeleted=0
-                    WHERE c.fk_zone_id=@Z AND c.fk_year_id=@Y AND c.ThreadOwnerMemberId>0 AND c.isdeleted=0",
-                    new { Z = zoneId, Y = yearId })).ToList();
-            foreach (var cid in catIds)
-            {
-                var catName = await conn.ExecuteScalarAsync<string?>(
-                    "SELECT IF(Name = 'TRF', 'Foundation', Name) FROM goal_categories WHERE pk_category_id=@C", new { C = cid }) ?? "";
-                var boxes = await RiZoneBoxesAsync(conn, cid, zoneId, yearId, null);
-
-                // Current seat-holders: count what their conversation actually OPENS (the box also holds
-                // messages from the person's own earlier seats - e.g. Siddhesh's old "D-1212 SJ"), so the
-                // row's count and red badge match the thread and clear when it is opened.
-                foreach (var row in result.Where(x => x.CategoryId == cid && !x.IsFormer))
-                {
-                    var own = boxes.Where(b => b.OwnerId == row.MemberId && !b.IsFormer).SelectMany(b => b.Msgs)
-                        .GroupBy(m => m.Id).Select(g => g.First())
-                        .Where(m => districtId <= 0 || m.District == districtId).ToList();
-                    if (own.Count == 0) continue;
-                    var seen = await ThreadLastSeenAsync(conn, memberId, row.MemberId, cid, yearId);
-                    row.MessageCount = own.Count;
-                    row.UnreadCount = own.Count(m => m.PostedBy != memberId && (seen == null || m.Created > seen.Value));
-                }
-
-                foreach (var box in boxes.Where(b => b.IsFormer))
-                {
-                    if (result.Any(x => x.MemberId == box.OwnerId && x.CategoryId == cid)) continue;
-                    var msgs = districtId > 0 ? box.Msgs.Where(m => m.District == districtId).ToList() : box.Msgs;
-                    if (msgs.Count == 0) continue;
-                    var lastSeen = await ThreadLastSeenAsync(conn, memberId, box.OwnerId, cid, yearId);
-                    result.Add(new GoalMessageOwnerDto
-                    {
-                        MemberId = box.OwnerId, CategoryId = cid, Name = await MemberNameAsync(conn, box.OwnerId),
-                        RoleLabel = box.Label, CategoryName = catName, Districts = null, IsFormer = true,
-                        MessageCount = msgs.Count,
-                        UnreadCount = msgs.Count(m => m.PostedBy != memberId && (lastSeen == null || m.Created > lastSeen.Value)),
-                    });
-                }
-            }
-        }
-        return result;
-    }
-
-    // ── Goal messages report (RI Director / ZC / SuperAdmin) ─────────────────────────────────────
-    // Every goal message in a zone, filterable by category (0 = all) and district (0 = all). A specific
-    // district returns ONLY that district's messages (zone-wide fk_district_id=0 rows appear only under
-    // "All districts"). Columns: Category · District · Role · From · Message · Date & Time.
+    // ── Goal messages report (SuperAdmin) ───────────────────────────────────────────────────────
+    // Every District Admin / DG goal message in a zone, filterable by category (0 = all) and district
+    // (0 = all). Columns: Category · District · Role · From · Message · Date & Time.
     public async Task<byte[]?> BuildGoalMessagesReportExcelAsync(int memberId, int zoneId, int yearId, int categoryId, int districtId)
     {
         if (zoneId <= 0) return null;
         using var conn = CreateConnection();
         await conn.OpenAsync();
-        bool isSuper = await ClubAdminAccessHelper.IsSuperAdminAsync(conn, memberId);
-        if (!isSuper && !await CanAccessZoneReportAsync(conn, memberId, zoneId))
+        if (!await ClubAdminAccessHelper.IsSuperAdminAsync(conn, memberId))
             throw new UnauthorizedAccessException("You are not authorised to view this zone's messages.");
-
-        // By the message's seat zone — messages stay in the report after their writer leaves the role.
-        var rows = (await conn.QueryAsync<dynamic>(@"
-            SELECT IF(cat.Name = 'TRF', 'Foundation', cat.Name) AS catName, cat.SortOrder AS catSort,
-                   c.fk_district_id AS did, dm.DistrictNumber AS dnum,
-                   c.PostedByTier AS tier, COALESCE(m.MemberName,'') AS fromName,
-                   c.CommentText AS msg, DATE_FORMAT(c.created_date,'%d %b %Y, %h:%i %p') AS dt, c.created_date AS raw
-            FROM goal_comments c
-            JOIN goal_categories cat ON cat.pk_category_id = c.fk_category_id AND cat.isdeleted = 0
-            LEFT JOIN member_master_profile m ON m.pk_member_master_profile_id = c.PostedByMemberId
-            LEFT JOIN district_master dm ON dm.pk_district_id = c.fk_district_id
-            WHERE c.fk_year_id=@Y AND c.isdeleted=0 AND c.fk_zone_id=@Z AND c.ThreadOwnerMemberId>0
-              AND (@Cat=0 OR c.fk_category_id=@Cat)
-              AND (@Did=0 OR c.fk_district_id=@Did)
-            ORDER BY cat.SortOrder, c.created_date",
-            new { Y = yearId, Z = zoneId, Cat = categoryId, Did = districtId })).ToList();
 
         var yearLabel = await conn.ExecuteScalarAsync<string>(
             "SELECT YearLabel FROM rotary_year_master WHERE pk_year_id=@Y", new { Y = yearId }) ?? "";
@@ -7869,14 +4871,11 @@ public class GoalSettingService : IGoalSettingService
         string[] hs = { "Sr No", "Category", "District", "Role", "From", "Message", "Date & Time" };
         for (int c = 0; c < hs.Length; c++) { var cell = ws.Cell(r, c + 1); cell.Value = hs[c]; StyleHeaderCell(cell); }
         r++;
-        // One list: the ZC / DA conversations above + the District Admin / DG messages (user 2026-10-09).
-        var all = rows.Select(x => (Sort: Convert.ToInt32(x.catSort), Cat: (string)x.catName,
-                Did: x.did == null ? 0 : Convert.ToInt32(x.did), Dnum: x.dnum as string,
-                Role: TierRoleLabel(Convert.ToInt32(x.tier)), From: (string)x.fromName, Msg: (string)x.msg,
-                Dt: x.dt as string ?? "", Raw: (DateTime)x.raw)).ToList();
-        foreach (var d in await DistrictSideReportRowsAsync(conn, memberId, yearId, zoneId, categoryId, districtId))
-            all.Add((d.CategorySort, d.CategoryName, d.DistrictId, d.DistrictNumber, d.FromRole ?? "District Admin",
-                d.FromName, d.Text, d.Created.ToString("dd MMM yyyy, hh:mm tt"), d.Created));
+        // The District Admin / DG messages (user 2026-10-09).
+        var all = (await DistrictSideReportRowsAsync(conn, memberId, yearId, zoneId, categoryId, districtId))
+            .Select(d => (Sort: d.CategorySort, Cat: d.CategoryName, Did: d.DistrictId, Dnum: d.DistrictNumber,
+                Role: d.FromRole ?? "District Admin", From: d.FromName, Msg: d.Text,
+                Dt: d.Created.ToString("dd MMM yyyy, hh:mm tt"), Raw: d.Created)).ToList();
         int sr = 1;
         foreach (var row in all.OrderBy(x => x.Sort).ThenBy(x => x.Raw))
         {

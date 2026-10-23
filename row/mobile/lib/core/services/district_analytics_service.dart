@@ -227,14 +227,4 @@ class DistrictAnalyticsService {
     if (denom == 0) return 0;
     return ((monthlyReportSubmittedSlots / denom) * 100).round();
   }
-
-  // ── E-Governance: PPH Camps ────────────────────────────────────────────
-
-  static int get pphCampsCount => kPphCamps.length;
-  static int get pphChildren =>
-      kPphCamps.fold(0, (s, c) => s + c.children);
-  static int get pphRotarians =>
-      kPphCamps.fold(0, (s, c) => s + c.rotarians);
-  static int get pphRotaractors =>
-      kPphCamps.fold(0, (s, c) => s + c.rotaractors);
 }

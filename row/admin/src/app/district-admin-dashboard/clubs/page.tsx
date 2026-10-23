@@ -24,8 +24,11 @@ import Image from "next/image";
 import Link from "next/link";
 import { ClubListItem } from "@/types/club";
 import { PagedResult } from "@/types/member";
-import { getDistrict, getClubs, deleteClub, getPhotoUrl } from "@/services/api";
+import { getDistrict, getClubs, deleteClub, getPhotoUrl, getDistrictMeetingCompliance, type MeetingComplianceClub } from "@/services/api";
 import { useAuth } from "@/contexts/AuthContext";
+import { useFeatureLoadedOn } from "@/components/FeatureGate";
+import { Skeleton } from "@/components/dashboard/DashboardSkeleton";
+import { MEETING_STATUS, monthLabel } from "@/lib/meetingCompliance";
 import { clubWebsiteUrl } from "@/lib/clubWebsite";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -52,13 +55,16 @@ import Pagination from "@/components/Pagination";
 // DA-dashboard table (list-only view; V2 grid toggle removed).
 // -----------------------------------------------------------------------------
 function ClubTableDA({
-  clubs, onDelete, isSuperAdmin, districtId, buildDetailHref,
+  clubs, onDelete, isSuperAdmin, districtId, buildDetailHref, meetings, meetingsMonth,
 }: {
   clubs: ClubListItem[];
   onDelete: (club: ClubListItem) => void;
   isSuperAdmin: boolean;
   districtId: number;
   buildDetailHref: (clubId: number) => string;
+  // Meeting compliance (N8 Meetings): undefined = feature off (no column), null = still loading.
+  meetings: Record<number, MeetingComplianceClub> | null | undefined;
+  meetingsMonth: string;
 }) {
   const router = useRouter();
   const [navigatingId, setNavigatingId] = useState<number | null>(null);
@@ -84,6 +90,11 @@ function ClubTableDA({
             <TableHead className="hidden lg:table-cell text-white text-xs font-semibold uppercase tracking-wide">Meeting Day</TableHead>
             <TableHead className="hidden md:table-cell text-white text-xs font-semibold uppercase tracking-wide">City</TableHead>
             <TableHead className="text-white text-xs font-semibold uppercase tracking-wide">Members</TableHead>
+            {meetings !== undefined && (
+              <TableHead className="text-white text-xs font-semibold uppercase tracking-wide">
+                Meetings{meetingsMonth ? ` ${monthLabel(meetingsMonth)}` : ""}
+              </TableHead>
+            )}
             <TableHead className="text-white text-xs font-semibold uppercase tracking-wide">Sync</TableHead>
             <TableHead className="min-w-[240px] text-white text-xs font-semibold uppercase tracking-wide">Website</TableHead>
             <TableHead className="text-white text-xs font-semibold uppercase tracking-wide">Status</TableHead>
@@ -127,6 +138,24 @@ function ClubTableDA({
                     <span className="ml-1 text-[11px] text-amber-600" title="Honorary members">+{club.honoraryMembers} hon.</span>
                   )}
                 </TableCell>
+                {meetings !== undefined && (
+                  <TableCell>
+                    {meetings === null ? (
+                      <Skeleton className="h-4 w-20" />
+                    ) : meetings[club.id] ? (
+                      <span className="inline-flex items-center gap-1.5 text-sm text-slate-700">
+                        <span className="tabular-nums" title="Meetings held of required">
+                          {meetings[club.id].held}/{meetings[club.id].required}
+                        </span>
+                        <Badge variant="outline" className={`text-[10px] font-medium ${MEETING_STATUS[meetings[club.id].status].cls}`}>
+                          {MEETING_STATUS[meetings[club.id].status].label}
+                        </Badge>
+                      </span>
+                    ) : (
+                      <span className="text-slate-400">-</span>
+                    )}
+                  </TableCell>
+                )}
                 <TableCell>
                   {/* Sync badge — reflects club_master.IsSyncedFromRotaryOrg */}
                   <Badge
@@ -237,6 +266,23 @@ export default function DistrictAdminClubsPage() {
   const [deleteTarget, setDeleteTarget] = useState<ClubListItem | null>(null);
   const [deleteSuccess, setDeleteSuccess] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  // Meeting compliance column (N8 Meetings): last complete month, every club of the district in one call.
+  const meetingsOn = useFeatureLoadedOn("meetings");
+  const [meetings, setMeetings] = useState<Record<number, MeetingComplianceClub> | null>(null);
+  const [meetingsMonth, setMeetingsMonth] = useState("");
+  useEffect(() => {
+    if (!districtId || !meetingsOn) return;
+    let cancelled = false;
+    getDistrictMeetingCompliance(districtId)
+      .then((d) => {
+        if (cancelled) return;
+        setMeetings(Object.fromEntries(d.clubs.map((c) => [c.clubId, c])));
+        setMeetingsMonth(d.month);
+      })
+      .catch(() => { if (!cancelled) setMeetings({}); });
+    return () => { cancelled = true; };
+  }, [districtId, meetingsOn]);
 
   useEffect(() => {
     if (!districtId) return;
@@ -354,6 +400,14 @@ export default function DistrictAdminClubsPage() {
               </span>
               <span className="text-xs font-semibold text-ink">Total Clubs</span>
             </div>
+            {meetingsOn && (
+              <Link
+                href="/district-admin-dashboard/meeting-compliance"
+                className="inline-flex items-center rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50"
+              >
+                Meeting rule
+              </Link>
+            )}
           </div>
         </div>
 
@@ -397,6 +451,8 @@ export default function DistrictAdminClubsPage() {
               isSuperAdmin={isSuperAdmin}
               districtId={districtId}
               buildDetailHref={buildDetailHref}
+              meetings={meetingsOn ? meetings : undefined}
+              meetingsMonth={meetingsMonth}
             />
             <Pagination
               page={data.page}

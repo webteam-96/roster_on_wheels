@@ -34,6 +34,12 @@ async function runPool<T>(items: T[], worker: (item: T) => Promise<void>, concur
   await Promise.all(runners);
 }
 
+// Members the add-club sync skipped because their Rotary ID, email or mobile belongs to another member (named by the API).
+function duplicatesNote(r: { memberDuplicates?: string[] } | null | undefined): string {
+  const d = r?.memberDuplicates ?? [];
+  return d.length ? ` ${d.length} skipped as duplicates: ${d.join("; ")}` : "";
+}
+
 export default function RotaryOrgClubsPage() {
   const { isSuperAdmin } = useAuth();
   const [districts, setDistricts] = useState<DistrictOption[]>([]);
@@ -122,7 +128,7 @@ export default function RotaryOrgClubsPage() {
     setBusyKey(`add-${rotaryClubId}`);
     try {
       const r = await addClubFromOrg(rotaryClubId, Number(districtId));
-      setSuccess(`Club added. ${r?.membersAdded ?? 0} members synced (${r?.memberErrors ?? 0} errors).`);
+      setSuccess(`Club added. ${r?.membersAdded ?? 0} members synced (${r?.memberErrors ?? 0} errors).${duplicatesNote(r)}`);
       await reload();
     } catch (e: any) { setError(e?.response?.data?.message || "Failed to add club"); }
     finally { setBusyKey(null); }
@@ -340,7 +346,7 @@ export default function RotaryOrgClubsPage() {
         setSuccess(r?.message || "Club synced; members syncing in the background.");
       } else {
         const r = await addClubFromOrg(row.org.rotaryClubId, Number(districtId));
-        setSuccess(`Club added & synced. ${r?.membersAdded ?? 0} members (${r?.memberErrors ?? 0} errors).`);
+        setSuccess(`Club added & synced. ${r?.membersAdded ?? 0} members (${r?.memberErrors ?? 0} errors).${duplicatesNote(r)}`);
       }
       await reload(true);   // silent → don't blank the table / jump to top
     } catch (e: any) { setError(e?.response?.data?.message || "Failed to sync club"); }

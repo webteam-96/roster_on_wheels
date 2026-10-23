@@ -96,8 +96,6 @@ export default function ProjectDetailModal({
   }, [clubId, yearId, projectId]);
 
   const areaOfFocus = detail?.areaOfFocusName || detail?.otherAreaOfFocus || "";
-  const category = detail?.categoryName || detail?.otherCategory || "";
-  const subCategory = detail?.subCategoryName || detail?.otherSubCategory || "";
   const cost =
     detail?.projectCost != null && detail.projectCost > 0
       ? formatMoney(detail.projectCost, detail.currency)
@@ -131,8 +129,6 @@ export default function ProjectDetailModal({
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-1.5">
               <Row label="Date" value={fmtDate(detail.projectDate)} />
               <Row label="Location" value={detail.location} />
-              <Row label="Category" value={category} />
-              <Row label="Sub Category" value={subCategory} />
               <Row label="Funding" value={detail.fundingName} />
               <Row label="Meeting Type" value={detail.meetingType} />
               {detail.isJointProject && <Row label="Joint With" value={detail.coHostName} />}

@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import DateField from "@/components/DateField";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
-import { getDistrict, getDistrictProjectDetail, updateDistrictProject, moveDistrictProject, uploadDistrictProjectPhoto, getModules, getAreasOfFocus, getCategories, getSubCategories, getFunding } from "@/services/api";
+import { getDistrict, getDistrictProjectDetail, updateDistrictProject, moveDistrictProject, uploadDistrictProjectPhoto, getModules, getAreasOfFocus, getFunding } from "@/services/api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -38,10 +38,6 @@ export default function DistrictProjectEditPage() {
   const [location, setLocation] = useState("");
   const [areaOfFocusId, setAreaOfFocusId] = useState("");
   const [otherAreaOfFocus, setOtherAreaOfFocus] = useState("");
-  const [categoryId, setCategoryId] = useState("");
-  const [otherCategory, setOtherCategory] = useState("");
-  const [subCategoryId, setSubCategoryId] = useState("");
-  const [otherSubCategory, setOtherSubCategory] = useState("");
   const [projectDate, setProjectDate] = useState("");
   const [projectCost, setProjectCost] = useState("");
   const [fundingId, setFundingId] = useState("");
@@ -59,12 +55,9 @@ export default function DistrictProjectEditPage() {
   const [rotaractorsInvolved, setRotaractorsInvolved] = useState("");
   const [rccInvolved, setRccInvolved] = useState("");
   const [areasOfFocus, setAreasOfFocus] = useState<any[]>([]);
-  const [categories, setCategories] = useState<any[]>([]);
-  const [subCategories, setSubCategories] = useState<any[]>([]);
   const [fundings, setFundings] = useState<any[]>([]);
   const [photos, setPhotos] = useState<{ path: string; preview: string; description: string }[]>([]);
   const [uploading, setUploading] = useState(false);
-  const [initLoaded, setInitLoaded] = useState(false);
 
   useEffect(() => { getDistrict(districtId).then(d => setDistrictName(`District ${d.districtNumber}`)).catch(() => {}); }, [districtId]);
   useEffect(() => {
@@ -80,20 +73,6 @@ export default function DistrictProjectEditPage() {
   }, []);
 
   const isOthersAof = areaOfFocusId === "others" || areasOfFocus.find(a => String(a.id) === areaOfFocusId)?.name?.toLowerCase() === "others";
-  const isOthersCat = categoryId === "others" || categories.find(c => String(c.id) === categoryId)?.name?.toLowerCase() === "others";
-  const isOthersSubCat = subCategoryId === "others" || subCategories.find(s => String(s.id) === subCategoryId)?.name?.toLowerCase() === "others";
-
-  useEffect(() => {
-    if (!initLoaded && areaOfFocusId && areaOfFocusId !== "others") getCategories(Number(areaOfFocusId)).then(setCategories).catch(() => {});
-    if (initLoaded && areaOfFocusId && areaOfFocusId !== "others") { getCategories(Number(areaOfFocusId)).then(setCategories).catch(() => {}); setCategoryId(""); setSubCategoryId(""); }
-    if (areaOfFocusId === "others") { setCategories([]); setCategoryId(""); setSubCategoryId(""); }
-  }, [areaOfFocusId]);
-
-  useEffect(() => {
-    if (!initLoaded && categoryId && categoryId !== "others") getSubCategories(Number(categoryId)).then(setSubCategories).catch(() => {});
-    if (initLoaded && categoryId && categoryId !== "others") { getSubCategories(Number(categoryId)).then(setSubCategories).catch(() => {}); setSubCategoryId(""); }
-    if (categoryId === "others") { setSubCategories([]); setSubCategoryId(""); }
-  }, [categoryId]);
 
   useEffect(() => {
     async function load() {
@@ -105,10 +84,6 @@ export default function DistrictProjectEditPage() {
         setLocation(p.location || "");
         if (p.otherAreaOfFocus) { setAreaOfFocusId("others"); setOtherAreaOfFocus(p.otherAreaOfFocus); }
         else if (p.areaOfFocusId) setAreaOfFocusId(String(p.areaOfFocusId));
-        if (p.otherCategory) { setCategoryId("others"); setOtherCategory(p.otherCategory); }
-        else if (p.categoryId) setCategoryId(String(p.categoryId));
-        if (p.otherSubCategory) { setSubCategoryId("others"); setOtherSubCategory(p.otherSubCategory); }
-        else if (p.subCategoryId) setSubCategoryId(String(p.subCategoryId));
         if (p.projectDate) setProjectDate(new Date(p.projectDate).toISOString().split("T")[0]);
         if (p.projectCost) setProjectCost(String(p.projectCost));
         if (p.fundingId) setFundingId(String(p.fundingId));
@@ -125,7 +100,6 @@ export default function DistrictProjectEditPage() {
         if (p.rotaractorsInvolved) setRotaractorsInvolved(String(p.rotaractorsInvolved));
         if (p.rccInvolved) setRccInvolved(String(p.rccInvolved));
         if (res.photos) setPhotos(res.photos.map((ph: any) => ({ path: ph.imagePath, preview: `${API_URL}${ph.imagePath}`, description: ph.description || "" })));
-        setTimeout(() => setInitLoaded(true), 500);
       } catch { setErrorMessage("Failed to load project."); }
       finally { setLoading(false); }
     }
@@ -178,8 +152,6 @@ export default function DistrictProjectEditPage() {
     if (!projectDate) { setErrorMessage("Date is required."); return; }
     if (!areaOfFocusId) { setErrorMessage("Area of Focus is required."); return; }
     if (isOthersAof && !otherAreaOfFocus.trim()) { setErrorMessage("Please specify the Area of Focus."); return; }
-    if (!isOthersAof && !categoryId) { setErrorMessage("Category is required."); return; }
-    if (isOthersCat && !otherCategory.trim()) { setErrorMessage("Please specify the Category."); return; }
     // Funding-conditional validation (mirrors backend)
     if (showGlobalGrantBlock) {
       if (!globalGrantNumber.trim()) { setErrorMessage("Global Grant Number is required for Global Grant."); return; }
@@ -200,10 +172,6 @@ export default function DistrictProjectEditPage() {
       title: title.trim(), description: description.trim() || null, location: location.trim() || null,
       areaOfFocusId: isOthersAof ? null : (Number(areaOfFocusId) || null),
       otherAreaOfFocus: isOthersAof ? otherAreaOfFocus.trim() : null,
-      categoryId: isOthersCat ? null : (Number(categoryId) || null),
-      otherCategory: isOthersCat ? otherCategory.trim() : null,
-      subCategoryId: isOthersSubCat ? null : (subCategoryId ? Number(subCategoryId) : null),
-      otherSubCategory: isOthersSubCat ? otherSubCategory.trim() : null,
       projectDate, projectCost: projectCost ? Number(projectCost) : null,
       fundingId: fundingId ? Number(fundingId) : null,
       // Funding-conditional fields. Backend also nulls out non-applicable ones as a safety net.
@@ -261,8 +229,6 @@ export default function DistrictProjectEditPage() {
           <div className="space-y-2"><Label>Location</Label><Input value={location} onChange={e => setLocation(e.target.value)} /></div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="space-y-2"><Label>Area of Focus <span className="text-destructive">*</span></Label><Select value={areaOfFocusId} onValueChange={setAreaOfFocusId}><SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger><SelectContent>{areasOfFocus.map(a => <SelectItem key={a.id} value={String(a.id)}>{a.name}</SelectItem>)}</SelectContent></Select>{isOthersAof && <Input value={otherAreaOfFocus} onChange={e => setOtherAreaOfFocus(e.target.value)} placeholder="Specify Area of Focus" className="mt-2" />}</div>
-            <div className="space-y-2"><Label>Category <span className="text-destructive">*</span></Label><Select value={categoryId} onValueChange={setCategoryId} disabled={isOthersAof || !areaOfFocusId}><SelectTrigger><SelectValue placeholder={isOthersAof ? "N/A" : "Select"} /></SelectTrigger><SelectContent>{categories.map(c => <SelectItem key={c.id} value={String(c.id)}>{c.name}</SelectItem>)}</SelectContent></Select>{isOthersCat && <Input value={otherCategory} onChange={e => setOtherCategory(e.target.value)} placeholder="Specify Category" className="mt-2" />}</div>
-            <div className="space-y-2"><Label>Sub Category</Label><Select value={subCategoryId} onValueChange={setSubCategoryId} disabled={isOthersAof || isOthersCat || !categoryId}><SelectTrigger><SelectValue placeholder={isOthersAof || isOthersCat ? "N/A" : "Select"} /></SelectTrigger><SelectContent>{subCategories.map(s => <SelectItem key={s.id} value={String(s.id)}>{s.name}</SelectItem>)}{!isOthersAof && !isOthersCat && <SelectItem value="others">Others</SelectItem>}</SelectContent></Select>{isOthersSubCat && <Input value={otherSubCategory} onChange={e => setOtherSubCategory(e.target.value)} placeholder="Specify Sub Category" className="mt-2" />}</div>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="space-y-2"><Label>Date <span className="text-destructive">*</span></Label><DateField value={projectDate} onChange={setProjectDate} /></div>

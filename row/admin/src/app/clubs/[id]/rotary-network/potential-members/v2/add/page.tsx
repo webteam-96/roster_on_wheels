@@ -21,6 +21,7 @@ import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { useSyncClubIdFromUrl } from "@/hooks/useSyncClubIdFromUrl";
+import ProspectPipelineFields, { type PipelineValue } from "@/components/contacts/ProspectPipelineFields";
 
 const TOP_MESSAGE = "Capture prospective members the club may invite to join. Provide as much contact information as possible so the club can follow up.";
 
@@ -68,6 +69,7 @@ export default function PotentialMembersV2AddPage() {
   const [email, setEmail] = useState("");
   const [mobile, setMobile] = useState("");
   const [reference, setReference] = useState("");
+  const [pipeline, setPipeline] = useState<PipelineValue>({ stage: "inquiry", ownerMemberId: null, notes: "" });
 
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [showSuccessDialog, setShowSuccessDialog] = useState(false);
@@ -98,6 +100,9 @@ export default function PotentialMembersV2AddPage() {
         email: email.trim() || null,
         mobileNumber: mobile.trim() || null,
         referenceDetails: reference.trim() || null,
+        stage: pipeline.stage,
+        ownerMemberId: pipeline.ownerMemberId,
+        notes: pipeline.notes.trim() || null,
       });
       setShowSuccessDialog(true);
     } catch (err: unknown) {
@@ -203,6 +208,9 @@ export default function PotentialMembersV2AddPage() {
             className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500"
           />
         </SectionCard>
+
+        {/* 4. Pipeline (feature contacts_growth) */}
+        <ProspectPipelineFields clubId={clubId} number={4} value={pipeline} onChange={setPipeline} />
 
         <SuccessAlert
           open={showSuccessDialog}

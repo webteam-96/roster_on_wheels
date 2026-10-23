@@ -286,7 +286,6 @@ class MonthlyReportPdfService {
 
             final projects = List<Map<String, dynamic>>.from(
                 list.map((e) => Map<String, dynamic>.from(e as Map)));
-            final isCommunity = key == 'community_service';
 
             out.add(_sectionHeader(label));
             out.add(pw.SizedBox(height: 4));
@@ -294,17 +293,10 @@ class MonthlyReportPdfService {
               headerFill: headerFill,
               border: cellBorder,
               fontSize: 7,
-              headers: isCommunity
-                  ? const [
-                      'Sr.No', 'Date', 'Title', 'Area of Focus', 'Category',
-                      'Sub Category', 'Cost', 'Beneficiaries', 'Man Hours',
-                      'Rotarians', 'Rotaractors'
-                    ]
-                  : const [
-                      'Sr.No', 'Date', 'Title', 'Category', 'Sub Category',
-                      'Cost', 'Beneficiaries', 'Man Hours', 'Rotarians',
-                      'Rotaractors'
-                    ],
+              headers: const [
+                'Sr.No', 'Date', 'Title', 'Area of Focus', 'Cost',
+                'Beneficiaries', 'Man Hours', 'Rotarians', 'Rotaractors'
+              ],
               rows: projects.asMap().entries.map((e) {
                 final i = e.key;
                 final p = e.value;
@@ -340,23 +332,11 @@ class MonthlyReportPdfService {
                       ? '${_asInt(p['rotaractorsInvolved'])}'
                       : '-',
                 ];
-                if (isCommunity) {
-                  return [
-                    '${i + 1}',
-                    _fmtDate(p['projectDate']?.toString()),
-                    title,
-                    p['areaOfFocusName']?.toString() ?? '-',
-                    p['categoryName']?.toString() ?? '-',
-                    p['subCategoryName']?.toString() ?? '-',
-                    ...common,
-                  ];
-                }
                 return [
                   '${i + 1}',
                   _fmtDate(p['projectDate']?.toString()),
                   title,
                   p['areaOfFocusName']?.toString() ?? '-',
-                  p['categoryName']?.toString() ?? '-',
                   ...common,
                 ];
               }).toList(),

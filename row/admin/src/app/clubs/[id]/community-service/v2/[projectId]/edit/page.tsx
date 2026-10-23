@@ -5,15 +5,15 @@
  *
  * No dedicated v1 page existed; v1 served Community Service via the unified
  * /clubs/[id]/projects/[id]/edit?module=community_service page. Same field
- * set, API calls (incl. cross-year move flow, beneficiaries-limit cap and
- * moderator approval) and validation rules are preserved here.
+ * set, API calls (incl. cross-year move flow) and validation rules are
+ * preserved here.
  *
  * Unlike sibling service-avenue v2 pages, community_service in v1 exposes
  * the FULL form including:
  *   - Project Type (One Time / Ongoing-Repeat with parent search) — shown
  *     read-only here, mirroring v1 which freezes project type on edit.
  *   - Joint Project (Yes/No → coHostName + clubRole pills)
- *   - 3-level classification (Area of Focus → Category → Sub Category)
+ *   - Area of Focus classification
  *
  * v2 reads ONLY `?returnTo=` — no `returnUrl`, no `backUrl`. yearId comes
  * from a normal query param (?yearId=) since the API requires it.
@@ -29,21 +29,16 @@ import {
   getClub,
   getModules,
   getAreasOfFocus,
-  getCategories,
-  getSubCategories,
   getFunding,
   getOngoingProjects,
   getProject,
   updateProject,
   moveProject,
   uploadProjectImage,
-  getSystemSetting,
-  createBeneficiaryApprovalRequest,
-  checkClubHasModerator,
   type ClassificationSearchResult,
 } from "@/services/api";
 import ClassificationAssist from "@/components/projects/ClassificationAssist";
-import { AreaOfFocus, Category, SubCategory, Funding, OngoingProject, ProjectPhotoInput } from "@/types/project";
+import { AreaOfFocus, Funding, OngoingProject, ProjectPhotoInput } from "@/types/project";
 import { currencyOptions, getCurrencySymbol, moneyIconName } from "@/lib/currency";
 import V2FormShell, { useV2ReturnTo } from "@/components/v2/V2FormShell";
 import RotaryLoader from "@/components/RotaryLoader";
@@ -53,7 +48,7 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 import ClubAdminShell from "@/components/v2/ClubAdminShell";
 import RecipientBadge from "@/components/RecipientBadge";
 import {
-  Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter,
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { useSyncClubIdFromUrl } from "@/hooks/useSyncClubIdFromUrl";
@@ -157,14 +152,11 @@ export default function CommunityServiceV2EditPage() {
   const [moduleId, setModuleId] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [initDone, setInitDone] = useState(false);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   // Masters
   const [areasOfFocus, setAreasOfFocus] = useState<AreaOfFocus[]>([]);
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [subCategories, setSubCategories] = useState<SubCategory[]>([]);
   const [fundingList, setFundingList] = useState<Funding[]>([]);
   const [ongoingProjects, setOngoingProjects] = useState<OngoingProject[]>([]);
 
@@ -187,16 +179,10 @@ export default function CommunityServiceV2EditPage() {
 
   const [selectedAofId, setSelectedAofId] = useState<string>("");
   const [otherAreaOfFocus, setOtherAreaOfFocus] = useState("");
-  const [selectedCatId, setSelectedCatId] = useState<string>("");
-  const [otherCategory, setOtherCategory] = useState("");
-  const [selectedSubCatId, setSelectedSubCatId] = useState<string>("");
-  const [otherSubCategory, setOtherSubCategory] = useState("");
 
-  // One pick (smart-search result or AI suggestion) sets all three classification ids.
+  // One pick (smart-search result or AI suggestion) sets the Area of Focus.
   const applyClassification = (r: ClassificationSearchResult) => {
     setSelectedAofId(String(r.areaOfFocusId));
-    setSelectedCatId(r.categoryId ? String(r.categoryId) : "");
-    setSelectedSubCatId(r.subCategoryId ? String(r.subCategoryId) : "");
   };
 
   const [projectDate, setProjectDate] = useState("");
@@ -216,20 +202,11 @@ export default function CommunityServiceV2EditPage() {
   const [rotaractorsInvolved, setRotaractorsInvolved] = useState("");
   const [rccInvolved, setRccInvolved] = useState("");
   const [sendEmail, setSendEmail] = useState(false);
-  const [beneficiariesLimit, setBeneficiariesLimit] = useState<number>(0);
-  const [showBeneficiaryConfirm, setShowBeneficiaryConfirm] = useState(false);
   const [showProjectSuccess, setShowProjectSuccess] = useState(false);
-  const [pendingSaveData, setPendingSaveData] = useState<Record<string, unknown> | null>(null);
 
   const [photos, setPhotos] = useState<PhotoItem[]>([]);
   const photoCrop = useImageCropQueue();
   const photoInputRef = useRef<HTMLInputElement>(null);
-
-  // Moderator approval
-  const [hasModerator, setHasModerator] = useState(false);
-  const [moderatorName, setModeratorName] = useState<string | null>(null);
-  const [showModeratorConfirm, setShowModeratorConfirm] = useState(false);
-  const moderatorConfirmedRef = useRef(false);
 
   // ── Funding classifier ──
   const classifyFunding = (name?: string | null): "global_grant" | "csr" | "" => {
@@ -256,20 +233,16 @@ export default function CommunityServiceV2EditPage() {
   const onlyDigits = (v: string) => v.replace(/\D/g, "");
 
   const isOthersAof = selectedAofId === "others";
-  const isOthersCat = selectedCatId === "others";
-  const isOthersSubCat = selectedSubCatId === "others";
 
   useEffect(() => {
     async function init() {
       try {
-        const [club, modules, funding, project, limitSetting] = await Promise.all([
+        const [club, modules, funding, project] = await Promise.all([
           getClub(clubId),
           getModules(),
           getFunding(),
           getProject(clubId, yearId, projectId),
-          getSystemSetting("direct_beneficiaries_limit").catch(() => null),
         ]);
-        if (limitSetting?.settingValue) setBeneficiariesLimit(Number(limitSetting.settingValue) || 0);
         setClubName(club.clubName);
         const mod = modules.find((m) => m.moduleKey === MODULE_KEY);
         if (mod) {
@@ -309,27 +282,13 @@ export default function CommunityServiceV2EditPage() {
         setDescription(project.description || "");
         setLocation(project.location || "");
 
-        // 3-level classification pre-fill — load Category + Sub Category lists
-        // during init to avoid sequencing issues with the cascading useEffects.
+        // Classification pre-fill
         if (project.areaOfFocusId) {
           setSelectedAofId(String(project.areaOfFocusId));
-          const cats = await getCategories(project.areaOfFocusId);
-          setCategories(cats.filter((c) => c.isActive));
-          if (project.categoryId) {
-            setSelectedCatId(String(project.categoryId));
-            const subs = await getSubCategories(project.categoryId);
-            setSubCategories(subs.filter((s) => s.isActive));
-            if (project.subCategoryId) setSelectedSubCatId(String(project.subCategoryId));
-            else if (project.otherSubCategory) setSelectedSubCatId("others");
-          } else if (project.otherCategory) {
-            setSelectedCatId("others");
-          }
         } else if (project.otherAreaOfFocus) {
           setSelectedAofId("others");
         }
         setOtherAreaOfFocus(project.otherAreaOfFocus || "");
-        setOtherCategory(project.otherCategory || "");
-        setOtherSubCategory(project.otherSubCategory || "");
 
         setProjectDate(project.projectDate ? project.projectDate.split("T")[0] : "");
         setProjectCost(project.projectCost != null ? String(project.projectCost) : "");
@@ -357,13 +316,6 @@ export default function CommunityServiceV2EditPage() {
           uploading: false,
           previewUrl: `${API_URL}${p.imagePath}`,
         })));
-
-        checkClubHasModerator(clubId).then((r) => {
-          setHasModerator(r.hasModerator);
-          setModeratorName(r.moderatorName);
-        }).catch(() => {});
-
-        setInitDone(true);
       } catch (err: unknown) {
         const e = err as { response?: { data?: { message?: string } } };
         setErrorMessage(e?.response?.data?.message || "Failed to load project.");
@@ -373,44 +325,6 @@ export default function CommunityServiceV2EditPage() {
     }
     init();
   }, [clubId, projectId, yearId]);
-
-  // Fetch categories when area of focus changes (skip during init)
-  useEffect(() => {
-    if (!initDone) return;
-    if (!selectedAofId || selectedAofId === "others") {
-      setCategories([]); setSelectedCatId(""); return;
-    }
-    let cancelled = false;
-    async function fetchCats() {
-      try {
-        const cats = await getCategories(Number(selectedAofId));
-        if (!cancelled) setCategories(cats.filter((c) => c.isActive));
-      } catch {
-        if (!cancelled) setCategories([]);
-      }
-    }
-    fetchCats();
-    return () => { cancelled = true; };
-  }, [selectedAofId, initDone]);
-
-  // Fetch sub-categories when category changes (skip during init)
-  useEffect(() => {
-    if (!initDone) return;
-    if (!selectedCatId || selectedCatId === "others") {
-      setSubCategories([]); setSelectedSubCatId(""); return;
-    }
-    let cancelled = false;
-    async function fetchSubCats() {
-      try {
-        const subs = await getSubCategories(Number(selectedCatId));
-        if (!cancelled) setSubCategories(subs.filter((s) => s.isActive));
-      } catch {
-        if (!cancelled) setSubCategories([]);
-      }
-    }
-    fetchSubCats();
-    return () => { cancelled = true; };
-  }, [selectedCatId, initDone]);
 
   // Ongoing parent search (only when sub-type is "existing")
   useEffect(() => {
@@ -508,10 +422,6 @@ export default function CommunityServiceV2EditPage() {
     if (!location.trim()) { setErrorMessage("Location is required."); return; }
     if (!selectedAofId) { setErrorMessage("Area of Focus is required."); return; }
     if (isOthersAof && !otherAreaOfFocus.trim()) { setErrorMessage("Please specify the Area of Focus."); return; }
-    if (!isOthersAof && categories.length > 0 && !selectedCatId) { setErrorMessage("Category is required."); return; }
-    if (isOthersCat && !otherCategory.trim()) { setErrorMessage("Please specify the Category."); return; }
-    if (!isOthersCat && !isOthersAof && subCategories.length > 0 && !selectedSubCatId) { setErrorMessage("Sub Category is required."); return; }
-    if (isOthersSubCat && !otherSubCategory.trim()) { setErrorMessage("Please specify the Sub Category."); return; }
     if (!projectDate) { setErrorMessage("Date is required."); return; }
     if (new Date(projectDate) > new Date()) { setErrorMessage("Date cannot be in the future."); return; }
     if (!projectCost) { setErrorMessage("Project Cost is required."); return; }
@@ -530,12 +440,6 @@ export default function CommunityServiceV2EditPage() {
     if (!rotariansInvolved) { setErrorMessage("Rotarians Involved is required."); return; }
     if (photos.length === 0) { setErrorMessage("At least 1 photo is required."); return; }
     if (photos.some((p) => p.uploading)) { setErrorMessage("Please wait for photos to finish uploading."); return; }
-
-    if (hasModerator && !moderatorConfirmedRef.current) {
-      setShowModeratorConfirm(true);
-      return;
-    }
-    moderatorConfirmedRef.current = false;
 
     const photoInputs: ProjectPhotoInput[] = photos.map((p, i) => ({
       imagePath: p.imagePath,
@@ -556,10 +460,6 @@ export default function CommunityServiceV2EditPage() {
       location: location.trim() || null,
       areaOfFocusId: isOthersAof ? null : (selectedAofId ? Number(selectedAofId) : null),
       otherAreaOfFocus: isOthersAof ? otherAreaOfFocus : null,
-      categoryId: isOthersCat ? null : (selectedCatId ? Number(selectedCatId) : null),
-      otherCategory: isOthersCat ? otherCategory : null,
-      subCategoryId: isOthersSubCat ? null : (selectedSubCatId ? Number(selectedSubCatId) : null),
-      otherSubCategory: isOthersSubCat ? otherSubCategory : null,
       projectDate,
       projectCost: projectCost ? Number(projectCost) : null,
       currency,
@@ -580,26 +480,18 @@ export default function CommunityServiceV2EditPage() {
       photos: photoInputs,
     };
 
-    if (beneficiariesLimit > 0 && Number(directBeneficiaries) > beneficiariesLimit) {
-      setPendingSaveData(saveData);
-      setShowBeneficiaryConfirm(true);
-      return;
-    }
-
     await doSaveProject(saveData);
   };
 
-  const doSaveProject = async (saveData: Record<string, unknown>, capAtLimit = false) => {
+  const doSaveProject = async (saveData: Record<string, unknown>) => {
     setSaving(true);
     try {
-      const actualBeneficiaries = saveData.directBeneficiaries as number;
-      const dataToSave = capAtLimit ? { ...saveData, directBeneficiaries: beneficiariesLimit } : saveData;
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const moveInfo = await updateProject(clubId, yearId, projectId, dataToSave as any);
+      const moveInfo = await updateProject(clubId, yearId, projectId, saveData as any);
       if (moveInfo) {
         if (window.confirm(moveInfo.message)) {
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          const moved = await moveProject(clubId, moveInfo.fromYearId, projectId, dataToSave as any);
+          const moved = await moveProject(clubId, moveInfo.fromYearId, projectId, saveData as any);
           window.alert(`Project moved to ${moved.newYearLabel}.`);
           // Honor ?returnTo= so callers from /club-admin-dashboard or other
           // surfaces aren't dumped to the v2 listing.
@@ -607,9 +499,6 @@ export default function CommunityServiceV2EditPage() {
         }
         setSaving(false);
         return;
-      }
-      if (capAtLimit) {
-        try { await createBeneficiaryApprovalRequest(projectId, actualBeneficiaries, clubId, yearId); } catch { /* ignored */ }
       }
       setSuccessMessage("Project updated successfully.");
       setShowProjectSuccess(true);
@@ -619,11 +508,6 @@ export default function CommunityServiceV2EditPage() {
     } finally {
       setSaving(false);
     }
-  };
-
-  const handleBeneficiaryConfirm = () => {
-    setShowBeneficiaryConfirm(false);
-    if (pendingSaveData) { doSaveProject(pendingSaveData, true); setPendingSaveData(null); }
   };
 
   if (loading) {
@@ -799,8 +683,8 @@ export default function CommunityServiceV2EditPage() {
           </div>
         </SectionCard>
 
-        {/* 3. Classification — 3-level: Area of Focus → Category → Sub Category */}
-        <SectionCard number={3} icon={Target} title="Category" dot="bg-violet-600">
+        {/* 3. Classification: Area of Focus */}
+        <SectionCard number={3} icon={Target} title="Area of Focus" dot="bg-violet-600">
           <ClassificationAssist
             clubId={clubId}
             moduleId={moduleId}
@@ -808,7 +692,7 @@ export default function CommunityServiceV2EditPage() {
             title={title}
             description={description}
             onApply={applyClassification}
-            selectedSubCatId={selectedSubCatId}
+            selectedAreaId={selectedAofId}
             enableCrossModule={false}
           />
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -816,7 +700,7 @@ export default function CommunityServiceV2EditPage() {
               <FieldLabel dot="bg-violet-500">Area of Focus</FieldLabel>
               <select
                 value={selectedAofId}
-                onChange={(e) => { setSelectedAofId(e.target.value); setSelectedCatId(""); setSelectedSubCatId(""); }}
+                onChange={(e) => setSelectedAofId(e.target.value)}
                 className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-violet-500"
               >
                 <option value="">Select</option>
@@ -833,58 +717,6 @@ export default function CommunityServiceV2EditPage() {
                   value={otherAreaOfFocus}
                   onChange={(e) => setOtherAreaOfFocus(e.target.value)}
                   placeholder="Specify area of focus"
-                  className="mt-2 w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500"
-                />
-              )}
-            </div>
-            <div>
-              <FieldLabel dot="bg-violet-500" required={categories.length > 0}>Category</FieldLabel>
-              <select
-                value={selectedCatId}
-                onChange={(e) => { setSelectedCatId(e.target.value); setSelectedSubCatId(""); }}
-                disabled={isOthersAof || categories.length === 0}
-                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-violet-500 disabled:bg-slate-50 disabled:text-slate-400"
-              >
-                <option value="">{isOthersAof ? "N/A" : "Select"}</option>
-                {categories.map((c) => (
-                  <option key={c.id} value={String(c.id)}>{c.name}</option>
-                ))}
-                {!categories.some((c) => (c.name || "").trim().toLowerCase() === "others") && categories.length > 0 && (
-                  <option value="others">Others</option>
-                )}
-              </select>
-              {isOthersCat && (
-                <input
-                  type="text"
-                  value={otherCategory}
-                  onChange={(e) => setOtherCategory(e.target.value)}
-                  placeholder="Specify category"
-                  className="mt-2 w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500"
-                />
-              )}
-            </div>
-            <div>
-              <FieldLabel dot="bg-violet-500" required={subCategories.length > 0}>Sub Category</FieldLabel>
-              <select
-                value={selectedSubCatId}
-                onChange={(e) => setSelectedSubCatId(e.target.value)}
-                disabled={isOthersCat || isOthersAof || subCategories.length === 0}
-                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-violet-500 disabled:bg-slate-50 disabled:text-slate-400"
-              >
-                <option value="">{(isOthersCat || isOthersAof) ? "N/A" : "Select"}</option>
-                {subCategories.map((s) => (
-                  <option key={s.id} value={String(s.id)}>{s.name}</option>
-                ))}
-                {!subCategories.some((s) => (s.name || "").trim().toLowerCase() === "others") && subCategories.length > 0 && (
-                  <option value="others">Others</option>
-                )}
-              </select>
-              {isOthersSubCat && (
-                <input
-                  type="text"
-                  value={otherSubCategory}
-                  onChange={(e) => setOtherSubCategory(e.target.value)}
-                  placeholder="Specify sub category"
                   className="mt-2 w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500"
                 />
               )}
@@ -1130,31 +962,7 @@ export default function CommunityServiceV2EditPage() {
             <span className="text-sm font-medium text-slate-700">Send Email notification</span>
             {sendEmail && <RecipientBadge scope="club" clubId={clubId} />}
           </label>
-          {sendEmail && hasModerator && (
-            <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded px-3 py-2 mt-2">
-              Note: This project will go for approval to moderator. Email will be sent after moderator approves.
-            </p>
-          )}
         </div>
-
-        {/* Beneficiary Limit Confirmation */}
-        <Dialog open={showBeneficiaryConfirm} onOpenChange={setShowBeneficiaryConfirm}>
-          <DialogContent className="max-w-lg">
-            <DialogHeader>
-              <DialogTitle>Beneficiary Limit Exceeded</DialogTitle>
-              <DialogDescription>Review before proceeding</DialogDescription>
-            </DialogHeader>
-            <div className="text-sm text-muted-foreground space-y-3 py-2">
-              <p>A limit of <span className="font-semibold text-foreground">{beneficiariesLimit}</span> beneficiaries has been set for each project. You have entered <span className="font-semibold text-foreground">{directBeneficiaries}</span> beneficiaries which exceeds the limit.</p>
-              <p>If you confirm, the project will be saved with <span className="font-semibold text-foreground">{beneficiariesLimit}</span> beneficiaries and an approval request for <span className="font-semibold text-foreground">{directBeneficiaries}</span> beneficiaries will be sent to the Zonal Co-ordinator for approval.</p>
-              <p>Once approved, the beneficiary count will be updated to {directBeneficiaries}.</p>
-            </div>
-            <div className="flex gap-3 justify-end">
-              <Button variant="outline" onClick={() => setShowBeneficiaryConfirm(false)}>Cancel</Button>
-              <Button onClick={handleBeneficiaryConfirm} disabled={saving}>{saving ? "Saving..." : "Confirm"}</Button>
-            </div>
-          </DialogContent>
-        </Dialog>
 
         {/* Project Success Dialog */}
         <Dialog open={showProjectSuccess} onOpenChange={() => {}}>
@@ -1169,25 +977,6 @@ export default function CommunityServiceV2EditPage() {
               <p>Thank you,<br /><span className="font-medium text-foreground">Team ROW</span></p>
             </div>
             <Button className="w-full" onClick={() => { setShowProjectSuccess(false); setSuccessMessage(null); navigateAfterSave(); }}>OK</Button>
-          </DialogContent>
-        </Dialog>
-
-        {/* Moderator Approval Confirmation */}
-        <Dialog open={showModeratorConfirm} onOpenChange={setShowModeratorConfirm}>
-          <DialogContent className="sm:max-w-md">
-            <DialogHeader>
-              <DialogTitle>Project Approval Required</DialogTitle>
-            </DialogHeader>
-            <div className="space-y-3">
-              <p className="text-sm text-muted-foreground">
-                This club has a moderator <strong>{moderatorName}</strong> assigned. Your updated project will be re-submitted for approval.
-              </p>
-              <p className="text-sm text-muted-foreground">Do you want to continue?</p>
-            </div>
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setShowModeratorConfirm(false)}>Cancel</Button>
-              <Button onClick={() => { moderatorConfirmedRef.current = true; setShowModeratorConfirm(false); handleSave(); }}>Submit for Approval</Button>
-            </DialogFooter>
           </DialogContent>
         </Dialog>
 

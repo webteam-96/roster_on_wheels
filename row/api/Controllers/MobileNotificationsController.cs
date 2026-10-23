@@ -37,7 +37,8 @@ public class MobileNotificationsController : ControllerBase
     /// <param name="days">Lookback window in days. Default 90, max 365. (Greetings are always
     /// capped to the last 30 days — see MobileNotificationFeedService.)</param>
     /// <param name="types">Optional comma-separated filter:
-    /// greeting, project, announcement, event, newsletter, document. Omit for all.</param>
+    /// greeting, project, announcement, event, newsletter, document, highlight (engagement module), grant, volunteer,
+    /// meeting_duty, invite (guest invite prompts), meeting (reminder). Omit for all.</param>
     [HttpGet("notifications")]
     public async Task<ActionResult<PagedResult<MobileNotificationDto>>> GetNotifications(
         [FromQuery] int page = 1,

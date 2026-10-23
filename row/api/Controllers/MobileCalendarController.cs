@@ -184,7 +184,6 @@ public class MobileCalendarController : ControllerBase
                    CASE
                        WHEN ImagePath IS NULL OR ImagePath = '' THEN NULL
                        WHEN ImagePath LIKE '/%' THEN ImagePath
-                       WHEN Scope = 'ri' THEN CONCAT('/Documents/Event/ri/', ImagePath)
                        WHEN fk_district_id IS NOT NULL THEN CONCAT('/Documents/Event/Group', fk_district_id, '/', ImagePath)
                        ELSE CONCAT('/Documents/Event/Group', fk_club_id, '/', ImagePath)
                    END AS imagePath,
@@ -343,7 +342,6 @@ public class MobileCalendarController : ControllerBase
                    CASE
                        WHEN ImagePath IS NULL OR ImagePath = '' THEN NULL
                        WHEN ImagePath LIKE '/%' THEN ImagePath
-                       WHEN Scope = 'ri' THEN CONCAT('/Documents/Event/ri/', ImagePath)
                        WHEN fk_district_id IS NOT NULL THEN CONCAT('/Documents/Event/Group', fk_district_id, '/', ImagePath)
                        ELSE CONCAT('/Documents/Event/Group', fk_club_id, '/', ImagePath)
                    END AS imagePath,
@@ -395,7 +393,6 @@ public class MobileCalendarController : ControllerBase
                    CASE
                        WHEN ImagePath IS NULL OR ImagePath = '' THEN NULL
                        WHEN ImagePath LIKE '/%' THEN ImagePath
-                       WHEN Scope = 'ri' THEN CONCAT('/Documents/announcement/ri/', ImagePath)
                        WHEN fk_district_id IS NOT NULL THEN CONCAT('/Documents/announcement/Group', fk_district_id, '/', ImagePath)
                        ELSE CONCAT('/Documents/announcement/Group', fk_club_id, '/', ImagePath)
                    END AS imagePath,

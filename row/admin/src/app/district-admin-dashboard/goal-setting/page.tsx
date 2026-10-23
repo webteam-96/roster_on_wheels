@@ -9,10 +9,10 @@ import { useAuth } from "@/contexts/AuthContext";
 import GoalSettingPanel from "@/components/dashboard/GoalSettingPanel";
 import GoalTargetSplitPanel from "@/components/dashboard/GoalTargetSplitPanel";
 import DistrictGoalMessages from "@/components/goal-messages/DistrictGoalMessages";
-import { getDistrictGoalForm, saveDistrictGoalForm, lockDistrictGoals, unlockDistrictGoals,
+import { getDistrictGoalForm, saveDistrictGoalForm,
          getDistrictMonthlyGoals, saveDistrictTargetSplit } from "@/services/api";
 import type { GoalMonthlyForm, SaveGoalTargetSplitRequest } from "@/services/api";
-import type { GoalCategoryFormDto, SaveGoalEntriesRequest, GoalLockStatusDto } from "@/types/goalSetting";
+import type { GoalCategoryFormDto, SaveGoalEntriesRequest } from "@/types/goalSetting";
 
 export default function DistrictAdminGoalSettingPage() {
   const { selectedDistrictId } = useAuth();
@@ -28,10 +28,6 @@ export default function DistrictAdminGoalSettingPage() {
   }, [selectedDistrictId, yearId]);
   const saveForm = useCallback((categoryId: number, body: SaveGoalEntriesRequest): Promise<GoalCategoryFormDto> => {
     return saveDistrictGoalForm(categoryId, body, selectedDistrictId);
-  }, [selectedDistrictId]);
-  const lockToggle = useCallback((categoryId: number, yearId: number, locked: boolean): Promise<GoalLockStatusDto> => {
-    if (selectedDistrictId == null) return Promise.reject(new Error("Missing districtId"));
-    return locked ? lockDistrictGoals(categoryId, yearId, selectedDistrictId) : unlockDistrictGoals(categoryId, yearId, selectedDistrictId);
   }, [selectedDistrictId]);
   const onFormLoaded = useCallback((f: GoalCategoryFormDto) => {
     if (f.districtId != null) setThreadKey({ categoryId: f.categoryId, districtId: f.districtId, yearId: f.yearId });
@@ -62,7 +58,7 @@ export default function DistrictAdminGoalSettingPage() {
       <div className="bg-white rounded-2xl border border-slate-200 p-4 flex items-center justify-between">
         <div>
           <h2 className="text-sm font-semibold text-slate-800">District Goal Setting</h2>
-          <p className="text-xs text-slate-500">Set the district's own targets, or review and lock each club's goals.</p>
+          <p className="text-xs text-slate-500">Set the district's own targets, or review each club's goals.</p>
         </div>
         <Link
           href={clubGoalsHref}
@@ -77,7 +73,6 @@ export default function DistrictAdminGoalSettingPage() {
         subtitle="District-level targets for the year, by category"
         fetchForm={fetchForm}
         saveForm={saveForm}
-        lockToggle={lockToggle}
         onFormLoaded={onFormLoaded}
         belowCategories={
           <div className="flex flex-wrap items-start gap-3">
@@ -97,8 +92,8 @@ export default function DistrictAdminGoalSettingPage() {
         }
         reloadKey={yearId ?? "current"}
       />
-      {/* District Admin / District Governor -> District Assistant, Zone Co-ordinator, RI Director, for
-          the category selected above (user 2026-10-09). Read-only for them; no replies. */}
+      {/* District Admin / District Governor → Super Admin, for the category selected above
+          (user 2026-10-09). Read-only for the Super Admin; no replies. */}
       <Dialog open={msgOpen} onOpenChange={setMsgOpen}>
         <DialogContent className="max-w-2xl w-[95vw] max-h-[90vh] overflow-y-auto">
           <DialogHeader>

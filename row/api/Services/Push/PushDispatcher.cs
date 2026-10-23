@@ -15,8 +15,6 @@ namespace RotaryApi.Services.Push;
 ///
 ///  • Send + per-token log + invalid-token cleanup — identical everywhere except the log table's
 ///    foreign-key column(s), which callers pass in.
-///
-/// RI-scope is intentionally NOT handled here (callers filter Scope &lt;&gt; 'ri' — kept as a limitation).
 /// </summary>
 public static class PushDispatcher
 {

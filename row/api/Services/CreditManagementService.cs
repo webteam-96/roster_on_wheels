@@ -346,16 +346,9 @@ public class CreditManagementService : ICreditManagementService
                 result.EmailUsed += (int)c.UsedCount;
                 result.EmailExpiry = (DateTime)c.ToDate;
             }
-            else if ((string)c.CreditType == "WhatsApp")
-            {
-                result.WhatsAppCredits += (int)c.CreditCount;
-                result.WhatsAppUsed += (int)c.UsedCount;
-                result.WhatsAppExpiry = (DateTime)c.ToDate;
-            }
         }
 
         result.EmailRemaining = result.EmailCredits - result.EmailUsed;
-        result.WhatsAppRemaining = result.WhatsAppCredits - result.WhatsAppUsed;
 
         return result;
     }
@@ -413,7 +406,7 @@ public class CreditManagementService : ICreditManagementService
     public async Task<bool> HasSufficientCreditsAsync(int clubId, string creditType, int count)
     {
         var balance = await GetClubCreditBalanceAsync(clubId);
-        var available = creditType == "Email" ? balance.EmailRemaining : balance.WhatsAppRemaining;
+        var available = creditType == "Email" ? balance.EmailRemaining : 0;
         return available >= count;
     }
 
@@ -554,16 +547,15 @@ public class CreditManagementService : ICreditManagementService
             WHERE fk_club_id = 0 AND fk_district_id = @DistrictId
               AND IsActive = 1 AND isdeleted = 0 AND @Today BETWEEN FromDate AND ToDate
             GROUP BY CreditType", new { DistrictId = districtId, Today = today })).ToList();
-        int eT = 0, eU = 0, wT = 0, wU = 0;
+        int eT = 0, eU = 0;
         foreach (var r in rows)
         {
             var t = ((string)r.CreditType)?.ToLowerInvariant() ?? "";
             int total = Convert.ToInt32(r.total);
             int used = Convert.ToInt32(r.used);
             if (t == "email") { eT = total; eU = used; }
-            else if (t == "whatsapp") { wT = total; wU = used; }
         }
-        return new CreditBalanceDto { EmailCredits = eT, EmailUsed = eU, EmailRemaining = Math.Max(0, eT - eU), WhatsAppCredits = wT, WhatsAppUsed = wU, WhatsAppRemaining = Math.Max(0, wT - wU) };
+        return new CreditBalanceDto { EmailCredits = eT, EmailUsed = eU, EmailRemaining = Math.Max(0, eT - eU) };
     }
 
     public async Task<List<CreditUsageHistoryDto>> GetUsageHistoryAsync(int? clubId, int? districtId, string? creditType, int page, int pageSize)

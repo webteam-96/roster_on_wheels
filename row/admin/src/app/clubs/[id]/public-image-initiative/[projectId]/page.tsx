@@ -203,14 +203,6 @@ export default function PublicImageInitiativeViewPage() {
                   : project.areaOfFocusName
               }
             />
-            <DetailRow
-              label="Sub Category"
-              value={
-                project.otherCategory
-                  ? `Others: ${project.otherCategory}`
-                  : project.categoryName
-              }
-            />
           </div>
         </Section>
 

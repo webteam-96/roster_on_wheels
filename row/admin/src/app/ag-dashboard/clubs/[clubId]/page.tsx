@@ -132,7 +132,6 @@ export default function AgClubDetailPage() {
                 <tr>
                   <th className="px-4 py-2.5 text-left">Date</th>
                   <th className="px-4 py-2.5 text-left">Title</th>
-                  <th className="px-4 py-2.5 text-left">Category</th>
                   <th className="px-4 py-2.5 text-right">Cost</th>
                   <th className="px-4 py-2.5 text-right">Beneficiaries</th>
                 </tr>
@@ -142,7 +141,6 @@ export default function AgClubDetailPage() {
                   <tr key={i} className="border-t border-slate-100 hover:bg-slate-50">
                     <td className="px-4 py-2 text-xs text-slate-600 whitespace-nowrap">{fmtDate(p.date)}</td>
                     <td className="px-4 py-2 font-medium text-slate-800">{p.title}</td>
-                    <td className="px-4 py-2 text-xs text-slate-600">{p.category || "–"}</td>
                     <td className="px-4 py-2 text-right tabular-nums text-slate-700">{p.cost > 0 ? formatMoney(p.cost, p.currency) : "–"}</td>
                     <td className="px-4 py-2 text-right tabular-nums text-slate-700">{p.beneficiaries > 0 ? fmtInt(p.beneficiaries) : "–"}</td>
                   </tr>

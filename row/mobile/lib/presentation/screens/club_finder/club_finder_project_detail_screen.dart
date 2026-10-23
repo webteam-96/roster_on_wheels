@@ -321,8 +321,6 @@ class _ClubFinderProjectDetailScreenState
     final rows = <_KV>[
       _KV('Avenue', text(p['moduleName'])),
       _KV('Area of Focus', text(p['areaOfFocus']) ?? text(p['otherAreaOfFocus'])),
-      _KV('Category', text(p['categoryName']) ?? text(p['otherCategory'])),
-      _KV('Sub-Category', text(p['subCategoryName']) ?? text(p['otherSubCategory'])),
       _KV('Project Cost', money(p['projectCost'])),
       _KV('Funding', text(p['fundingName'])),
       _KV('Direct Beneficiaries', count(p['directBeneficiaries'])),

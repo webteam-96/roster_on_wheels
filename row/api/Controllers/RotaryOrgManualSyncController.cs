@@ -573,6 +573,7 @@ public class RotaryOrgManualSyncController : ControllerBase
 
         // Auto-sync this club's members
         int membersAdded = 0, memberErrors = 0;
+        var memberDuplicates = new List<string>();
         try
         {
             var orgMembers = await _api.GetClubMembersAsync("Rotary Club", req.RotaryClubId);
@@ -583,6 +584,8 @@ public class RotaryOrgManualSyncController : ControllerBase
                     var ok = await AddMemberFromOrgAsync(conn, newClubId, m);
                     if (ok) membersAdded++;
                 }
+                // Named in the response for the SuperAdmin, not logged: the message names a member.
+                catch (DuplicateMemberException ex) { memberDuplicates.Add(ex.Message); }
                 catch (Exception ex)
                 {
                     memberErrors++;
@@ -592,7 +595,7 @@ public class RotaryOrgManualSyncController : ControllerBase
         }
         catch (Exception ex) { _logger.LogWarning(ex, "Auto-sync members failed for new club {Cid}", newClubId); }
 
-        return Ok(new { clubId = newClubId, message = "Club added.", membersAdded, memberErrors });
+        return Ok(new { clubId = newClubId, message = "Club added.", membersAdded, memberErrors, memberDuplicates });
     }
 
     [HttpPut("clubs/{clubId:int}")]
@@ -760,6 +763,10 @@ public class RotaryOrgManualSyncController : ControllerBase
             if (dob.Value.Date > DateTime.Today.AddYears(-age)) age--;
             isYouth = (age >= 18 && age <= 40) ? 1 : 0;
         }
+
+        // A Rotary ID, email or mobile that another ACTIVE member holds is refused with that member's name
+        // (build spec 3.12); it used to fail on the UNIQUE keys with a database error.
+        await MemberService.CheckDuplicatesAsync(conn, phone, email, rid);
 
         // Find existing soft-deleted member (re-activation) by RotaryId/email/phone
         var existingId = await conn.ExecuteScalarAsync<int?>(@"
@@ -1132,7 +1139,9 @@ public class RotaryOrgManualSyncController : ControllerBase
         var match = orgList.FirstOrDefault(m => m.MemberId == req.RotaryMemberId);
         if (match == null) return NotFound(new { message = "Member not found in this club on Rotary.org" });
 
-        var inserted = await AddMemberFromOrgAsync(conn, req.ClubId, match);
+        bool inserted;
+        try { inserted = await AddMemberFromOrgAsync(conn, req.ClubId, match); }
+        catch (DuplicateMemberException ex) { return Conflict(new { message = ex.Message }); }
         return inserted
             ? Ok(new { message = "Member added." })
             : Conflict(new { message = "Member already in this club" });
@@ -1224,7 +1233,7 @@ public class RotaryOrgManualSyncController : ControllerBase
         if (!IsSuperAdmin()) return Forbid();
         // Delegate to the SAME removal logic used by the Club Dashboard "Remove member"
         // (ClubService.RemoveMemberAsync): club-scoped soft-delete of club_members / roles / BOD /
-        // DC / AG / moderator, and — when this is the member's LAST club — free the primary mobile
+        // DC / AG, and — when this is the member's LAST club — free the primary mobile
         // (Primary -> Secondary) + soft-delete address & family, while KEEPING the profile.
         // Calling the shared method (instead of duplicating SQL) guarantees every delete surface
         // stays identical and can't drift.
@@ -1637,8 +1646,6 @@ public class RotaryOrgManualSyncController : ControllerBase
         await conn.ExecuteAsync(@"UPDATE district_committee_sub_group_member SET isdeleted=1, modified_date=NOW()
             WHERE fk_club_id=@ClubId AND fk_member_id IN @Ids AND isdeleted=0", p, tx);
         await conn.ExecuteAsync(@"UPDATE district_ag SET isdeleted=1, is_active=0, modified_date=NOW()
-            WHERE fk_club_id=@ClubId AND fk_member_id IN @Ids AND isdeleted=0", p, tx);
-        await conn.ExecuteAsync(@"UPDATE district_club_moderator SET isdeleted=1, is_active=0, modified_date=NOW()
             WHERE fk_club_id=@ClubId AND fk_member_id IN @Ids AND isdeleted=0", p, tx);
         await tx.CommitAsync();
 

@@ -23,7 +23,7 @@ import 'package:rotary_flutter_app/core/theme/app_fonts.dart';
 /// screen mirrors the web layout: a grouped list (MEMBERS / CLUBS / DISTRICT)
 /// where each section is a row showing its record count + a Download button,
 /// and tapping the row expands an on-screen table (same columns as the export).
-/// Sections mobile can't build yet (Data Collection, citation matrix, OCV, …)
+/// Sections mobile can't build yet (citation matrix, OCV, …)
 /// show a "Coming Soon" state, exactly like the web.
 class DistrictReportsScreen extends StatefulWidget {
   final int districtId;
@@ -251,35 +251,6 @@ class _DistrictReportsScreenState extends State<DistrictReportsScreen> {
     ];
   }
 
-  // ── Data Collection (config-gated, lazy) ──
-
-  /// The `dataCollection` config block, or null when the district has no
-  /// directory-data-collection config for this year (then the 3 DC sections
-  /// stay "Coming Soon", exactly like the web hides them).
-  Map<String, dynamic>? get _dcConfig =>
-      (_report?['dataCollection'] as Map?)?.cast<String, dynamic>();
-
-  /// Build report columns from a `dataCollection.columns.*` spec ([{key,label}]).
-  List<ReportColumn> _dcColsFrom(dynamic spec) => [
-        for (final c in (spec as List? ?? const []))
-          if (c is Map)
-            ReportColumn(
-              (c['key'] ?? '').toString(),
-              (c['label'] ?? '').toString(),
-              width: 18,
-            ),
-      ];
-
-  /// Lazy fetch for a Data Collection endpoint — returns its `rows`.
-  Future<List<Map<String, dynamic>>> _fetchDc(String path) async {
-    final resp = await _api.get<Map<String, dynamic>>(
-      '/api/districts/${widget.districtId}/district-report/data-collection/$path',
-      queryParams: {'yearId': _yearId},
-      fromJson: (j) => j as Map<String, dynamic>,
-    );
-    return _rows(resp.data?['rows']);
-  }
-
   /// Fetch a lazy section's rows then hand them to the Excel exporter.
   Future<void> _exportLazy(_Sec s) async {
     final messenger = ScaffoldMessenger.of(context);
@@ -359,7 +330,6 @@ class _DistrictReportsScreenState extends State<DistrictReportsScreen> {
     ReportColumn('projectCost', 'Cost', width: 14),
     ReportColumn('directBeneficiaries', 'Beneficiaries', width: 14),
     ReportColumn('manHours', 'Man Hours', width: 12),
-    ReportColumn('approvalStatus', 'Status', width: 14),
   ];
 
   // ─────────────────────────────────────────────────────────────────────────
@@ -422,8 +392,6 @@ class _DistrictReportsScreenState extends State<DistrictReportsScreen> {
     ReportColumn('typeOfProject', 'Type of Project', width: 18),
     ReportColumn('clubRole', 'Club Role', width: 14),
     ReportColumn('coHostName', 'Co-host', width: 18),
-    ReportColumn('category', 'Category', width: 18),
-    ReportColumn('subCategory', 'Sub Category', width: 18),
     ReportColumn('projectDate', 'Date', width: 15),
     ReportColumn('title', 'Title', width: 25),
     ReportColumn('location', 'Project Location', width: 20),
@@ -464,38 +432,6 @@ class _DistrictReportsScreenState extends State<DistrictReportsScreen> {
     ReportColumn('fundName', 'Fund', width: 20),
     ReportColumn('amountUsd', 'Amount (USD)', width: 15),
     ReportColumn('trfDate', 'Date', width: 18),
-  ];
-  static const _pphCampCols = [
-    ReportColumn('clubName', 'Club', width: 25),
-    ReportColumn('campDate', 'Camp Date', width: 15),
-    ReportColumn('title', 'Camp Name', width: 30),
-    ReportColumn('address', 'Camp Address', width: 30),
-    ReportColumn('attendanceCount', 'Total Attendees', width: 14),
-    ReportColumn('description', 'Camp Description', width: 30),
-  ];
-  static const _pphAttendeeCols = [
-    ReportColumn('clubName', 'Club', width: 22),
-    ReportColumn('campDate', 'Camp Date', width: 15),
-    ReportColumn('campName', 'Camp Name', width: 24),
-    ReportColumn('serialNumber', 'Serial Number', width: 14),
-    ReportColumn('name', 'Name', width: 22),
-    ReportColumn('mobileNumber', 'Mobile Number', width: 16),
-    ReportColumn('address', 'Address', width: 28),
-    ReportColumn('gender', 'Gender', width: 12),
-    ReportColumn('approvalForSms', 'Approval for SMS', width: 16),
-    ReportColumn('age', 'Age', width: 8),
-    ReportColumn('bpSystolic', 'BP (Systolic)', width: 12),
-    ReportColumn('bpDiastolic', 'BP (Diastolic)', width: 12),
-    ReportColumn('fbs', 'FBS mg/dl', width: 12),
-    ReportColumn('rbs', 'RBS mg/dl', width: 12),
-    ReportColumn('height', 'Height (Cms)', width: 12),
-    ReportColumn('weight', 'Weight (kg)', width: 12),
-    ReportColumn('bmi', 'BMI', width: 10),
-    ReportColumn('diabetes', 'Diabetes', width: 12),
-    ReportColumn('highBloodPressure', 'High Blood Pressure', width: 16),
-    ReportColumn('obese', 'Obese', width: 10),
-    ReportColumn('overweight', 'Overweight', width: 12),
-    ReportColumn('remarks', 'Remarks', width: 24),
   ];
   static const _presidentSecretaryCols = [
     ReportColumn('clubName', 'Club Name', width: 26),
@@ -541,8 +477,6 @@ class _DistrictReportsScreenState extends State<DistrictReportsScreen> {
   ];
   static const _districtProjectCols = [
     ReportColumn('areaOfFocus', 'Area of Focus', width: 20),
-    ReportColumn('category', 'Category', width: 18),
-    ReportColumn('subCategory', 'Sub Category', width: 18),
     ReportColumn('projectDate', 'Date', width: 15),
     ReportColumn('title', 'Title', width: 25),
     ReportColumn('description', 'Description', width: 30),
@@ -586,23 +520,6 @@ class _DistrictReportsScreenState extends State<DistrictReportsScreen> {
   /// the combined workbook (the app-bar Download fetches their richer server
   /// versions separately).
   List<_Sec> _specs() {
-    // Data Collection is config-gated: shown only when the district has a
-    // directory-data-collection config for the year (else "Coming Soon", as
-    // the web hides these rows entirely). Columns come from the main payload;
-    // rows are lazy-loaded from the dedicated endpoints on first expand.
-    final dcCfg = _dcConfig;
-    final dcCols = (dcCfg?['columns'] as Map?)?.cast<String, dynamic>();
-
-    _Sec dcSection(String title, String path, String key, String file) {
-      if (dcCfg == null) {
-        return _Sec.soon('MEMBERS', title, Icons.fact_check_outlined);
-      }
-      return _Sec('MEMBERS', title, Icons.fact_check_outlined,
-          cols: _dcColsFrom(dcCols?[key]),
-          loader: () => _fetchDc(path),
-          file: file);
-    }
-
     // District Awards (Club Wise) — flattened citation matrix from the payload.
     final citCols = _citationCols();
 
@@ -626,13 +543,6 @@ class _DistrictReportsScreenState extends State<DistrictReportsScreen> {
           cols: _appUserCols, rows: _rows(_report?['appUsers']), file: 'App_Users',
           filters: const ['club']),
       const _Sec.soon('MEMBERS', 'Prospective Members (All Clubs)', Icons.person_add_alt_1_outlined),
-      dcSection('Data Collection (All Members)', 'all-members', 'allMembers',
-          'Data_Collection_All_Members'),
-      dcSection('Data Collection (BOD: President & Secretary)', 'bod', 'bod',
-          'Data_Collection_BOD'),
-      dcSection('Data Collection (District Committee)', 'dc', 'dc',
-          'Data_Collection_DC'),
-
       // ── CLUBS ──
       _Sec('CLUBS', 'Attendance (All Clubs)', Icons.event_available_outlined,
           cols: _attendanceCols, rows: attendance, file: 'Attendance',
@@ -684,12 +594,6 @@ class _DistrictReportsScreenState extends State<DistrictReportsScreen> {
           cols: _monthlyCols, rows: _rows(_report?['monthlyReports']), file: 'Monthly_Report'),
       _Sec('CLUBS', 'TRF Contributions', Icons.volunteer_activism_outlined,
           cols: _trfCols, rows: _rows(_report?['trf']), file: 'TRF_Contributions',
-          filters: const ['club']),
-      _Sec('CLUBS', 'PPH Camp Attendees (All Clubs)', Icons.groups_2_outlined,
-          cols: _pphAttendeeCols, rows: _rows(_report?['pphCampAttendees']), file: 'PPH_Attendees',
-          filters: const ['club']),
-      _Sec('CLUBS', 'PPH Camp (All Clubs)', Icons.medical_services_outlined,
-          cols: _pphCampCols, rows: _rows(_report?['pphCamps']), file: 'PPH_Camps',
           filters: const ['club']),
       _Sec('CLUBS', 'Non Synchronized Clubs', Icons.sync_disabled_outlined,
           cols: _presidentSecretaryCols, rows: _rows(_report?['nonRiSyncedClubs']),
@@ -969,8 +873,6 @@ class _DistrictReportsScreenState extends State<DistrictReportsScreen> {
     ReportColumn('clubRole', 'Your Club Role', width: 16),
     ReportColumn('coHostName', 'Co-host Name', width: 18),
     ReportColumn('areaOfFocus', 'Area of Focus', width: 22),
-    ReportColumn('category', 'Category', width: 22),
-    ReportColumn('subCategory', 'Sub Category', width: 18),
     ReportColumn('projectDate', 'Date', width: 14),
     ReportColumn('title', 'Title', width: 28),
     ReportColumn('description', 'Description', width: 40),
@@ -2230,7 +2132,7 @@ class _Sec {
   final bool fromEndpoint;
 
   /// When set, rows are fetched lazily on first expand (heavy/config-gated
-  /// sections like Data Collection). Excluded from the combined workbook.
+  /// sections like Club Officers from RI). Excluded from the combined workbook.
   final Future<List<Map<String, dynamic>>> Function()? loader;
 
   /// Per-section filter dropdowns (mirrors the web report rows). Ordered keys:

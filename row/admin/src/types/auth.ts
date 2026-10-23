@@ -88,13 +88,3 @@ export interface RemoveRoleRequest {
   roleId: number;
   clubId?: number;
 }
-
-export interface MemberWithRoles {
-  id: number;
-  memberName: string;
-  emailId: string;
-  primaryMobileNumber: string;
-  roles: string[];
-  hasAdminRole: boolean;
-  hasCredentials: boolean;
-}

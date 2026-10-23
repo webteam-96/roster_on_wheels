@@ -178,16 +178,14 @@ public class PushLogsController : ControllerBase
                    fk_club_id AS clubId, fk_district_id AS districtId, PublishDateTime AS publishDate
             FROM announcements
             WHERE isdeleted = 0 AND IFNULL(PushNotificationSent, 0) = 0
-              AND PublishDateTime <= NOW() AND (ExpiryDateTime IS NULL OR ExpiryDateTime > NOW())
-              AND IFNULL(Scope, '') <> 'ri'"));
+              AND PublishDateTime <= NOW() AND (ExpiryDateTime IS NULL OR ExpiryDateTime > NOW())"));
 
         stuck.AddRange(await conn.QueryAsync<dynamic>(@"
             SELECT 'event' AS type, pk_upcoming_event_id AS entityId, Title AS title,
                    fk_club_id AS clubId, fk_district_id AS districtId, PublishDate AS publishDate
             FROM upcoming_events
             WHERE isdeleted = 0 AND IFNULL(PushNotificationSent, 0) = 0
-              AND PublishDate <= NOW() AND EventDate > NOW()
-              AND IFNULL(Scope, '') <> 'ri'"));
+              AND PublishDate <= NOW() AND EventDate > NOW()"));
 
         stuck.AddRange(await conn.QueryAsync<dynamic>(@"
             SELECT 'document' AS type, pk_document_id AS entityId, Title AS title,
@@ -195,7 +193,7 @@ public class PushLogsController : ControllerBase
             FROM club_documents
             WHERE isdeleted = 0 AND IFNULL(PushNotificationSent, 0) = 0
               AND PublishDateTime <= NOW() AND (ExpiryDateTime IS NULL OR ExpiryDateTime > NOW())
-              AND IFNULL(Scope, '') <> 'ri' AND IFNULL(Status, 'Unpublished') = 'Published'"));
+              AND IFNULL(Status, 'Unpublished') = 'Published'"));
 
         return Ok(stuck.OrderBy(s => s.publishDate));
     }

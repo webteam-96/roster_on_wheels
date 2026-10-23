@@ -1,7 +1,7 @@
 "use client";
 
 // A prominent header shortcut BACK to the member's own operational dashboard (District/Club Admin,
-// AG, ZC, RI Director, Club Moderator), shown ONLY to a SuperAdmin who ALSO holds such a role.
+// AG), shown ONLY to a SuperAdmin who ALSO holds such a role.
 // Multi-role members land on their operational dashboard and switch INTO Super Admin from the
 // sidebar; the SuperAdmin portal (Global Search / Settings) has no sidebar switcher, so this — plus
 // the floating bottom-left "Back to Admin Dashboard" button — is the way back. A pure SuperAdmin has
@@ -12,7 +12,7 @@ import { useAuth, decodeJwt } from "@/contexts/AuthContext";
 import { resolveDashboardLanding, type DashboardEntry } from "@/services/api";
 import { LayoutDashboard } from "@/components/icons";
 
-const OPERATIONAL_ORDER = ["district-admin", "club-admin", "ri-director", "zonal-coordinator", "ag", "club-moderator"];
+const OPERATIONAL_ORDER = ["district-admin", "club-admin", "ag"];
 
 function pickOperational(available: DashboardEntry[]): DashboardEntry | null {
   for (const kind of OPERATIONAL_ORDER) {
@@ -35,9 +35,6 @@ const KIND_LABEL: Record<string, string> = {
   "district-admin": "District Admin",
   "club-admin": "Club Admin",
   "ag": "AG Dashboard",
-  "zonal-coordinator": "Zonal Dashboard",
-  "ri-director": "RI Director",
-  "club-moderator": "Club Moderator",
 };
 
 export default function HeaderAdminDashboardLink() {

@@ -45,13 +45,11 @@ public class AnnouncementService : IAnnouncementService
                    CASE
                        WHEN a.ImagePath IS NULL OR a.ImagePath = '' THEN NULL
                        WHEN a.ImagePath LIKE '/%' THEN a.ImagePath
-                       WHEN a.Scope = 'ri' THEN CONCAT('/Documents/announcement/ri/', a.ImagePath)
                        WHEN a.fk_district_id IS NOT NULL THEN CONCAT('/Documents/announcement/Group', a.fk_district_id, '/', a.ImagePath)
                        ELSE CONCAT('/Documents/announcement/Group', a.fk_club_id, '/', a.ImagePath)
                    END AS ImagePath,
                    a.PublishDateTime, a.ExpiryDateTime,
-                   a.IsDisplayOnBanner, a.IsSendWhatsapp, a.IsSendEmail, a.IsRepeatNotification,
-                   a.WhatsAppSentDate, a.WhatsAppSentCount, a.WhatsAppFailedCount,
+                   a.IsDisplayOnBanner, a.IsSendEmail, a.IsRepeatNotification,
                    a.EmailSentDate, a.EmailSentCount, a.EmailFailedCount,
                    CASE
                        WHEN NOW() < a.PublishDateTime THEN 'Unpublished'
@@ -94,13 +92,11 @@ public class AnnouncementService : IAnnouncementService
                    CASE
                        WHEN a.ImagePath IS NULL OR a.ImagePath = '' THEN NULL
                        WHEN a.ImagePath LIKE '/%' THEN a.ImagePath
-                       WHEN a.Scope = 'ri' THEN CONCAT('/Documents/announcement/ri/', a.ImagePath)
                        WHEN a.fk_district_id IS NOT NULL THEN CONCAT('/Documents/announcement/Group', a.fk_district_id, '/', a.ImagePath)
                        ELSE CONCAT('/Documents/announcement/Group', a.fk_club_id, '/', a.ImagePath)
                    END AS ImagePath,
                    a.PublishDateTime, a.ExpiryDateTime,
-                   a.IsDisplayOnBanner, a.IsSendWhatsapp, a.IsSendEmail, a.IsRepeatNotification,
-                   a.RecipientTarget, a.RecipientZoneIds, a.RecipientDistrictIds, a.RecipientSubgroupIds,
+                   a.IsDisplayOnBanner, a.IsSendEmail, a.IsRepeatNotification,
                    CASE
                        WHEN a.ExpiryDateTime < NOW() THEN 'Expired'
                        WHEN a.PublishDateTime <= NOW() AND a.ExpiryDateTime >= NOW() THEN 'Published'
@@ -125,23 +121,20 @@ public class AnnouncementService : IAnnouncementService
 
     public async Task<int> CreateAsync(int clubId, CreateAnnouncementDto dto, int createdBy, int? districtId = null)
     {
-        // Character limits — keep the WhatsApp body under the template ceiling (club + district).
+        // Character limits (club + district).
         CommsLimits.Require(dto.Title, CommsLimits.AnnouncementTitle, "Title");
         CommsLimits.Require(dto.Description, CommsLimits.AnnouncementDescription, "Description");
 
         using var connection = CreateConnection();
         await connection.OpenAsync();
 
-        // Pre-check WhatsApp credits BEFORE insert — total = recipients × (1 initial + N reminders)
-        int memberCountForCheck = 0;
         int refundEntityIdForCheck = districtId ?? clubId;
         int reminderCount = dto.Reminders?.Count ?? 0;
-        int totalCreditsNeeded = 0;
 
-        // Pre-check Email credits BEFORE insert (parity with WhatsApp; counts members with an email).
+        // Pre-check Email credits BEFORE insert (counts members with an email).
         if (dto.IsSendEmail && refundEntityIdForCheck > 0)
         {
-            int emailCount = await CountRecipientsAsync(connection, clubId, districtId, forEmail: true);
+            int emailCount = await CountRecipientsAsync(connection, clubId, districtId);
             int emailNeeded = emailCount * (1 + reminderCount);
             if (emailNeeded > 0)
             {
@@ -153,10 +146,10 @@ public class AnnouncementService : IAnnouncementService
         }
 
         var sql = @"INSERT INTO announcements (fk_club_id, fk_district_id, Title, Description, ImagePath,
-                        PublishDateTime, ExpiryDateTime, IsDisplayOnBanner, IsSendWhatsapp, IsSendEmail, IsRepeatNotification,
+                        PublishDateTime, ExpiryDateTime, IsDisplayOnBanner, IsSendEmail, IsRepeatNotification,
                         created_by, created_date, isdeleted)
                     VALUES (@ClubId, @DistrictId, @Title, @Description, @ImagePath,
-                        @PublishDateTime, @ExpiryDateTime, @IsDisplayOnBanner, @IsSendWhatsapp, @IsSendEmail, @IsRepeatNotification,
+                        @PublishDateTime, @ExpiryDateTime, @IsDisplayOnBanner, @IsSendEmail, @IsRepeatNotification,
                         @CreatedBy, NOW(), 0);
                     SELECT LAST_INSERT_ID();";
 
@@ -170,7 +163,6 @@ public class AnnouncementService : IAnnouncementService
             dto.PublishDateTime,
             dto.ExpiryDateTime,
             IsDisplayOnBanner = dto.IsDisplayOnBanner ? 1 : 0,
-            IsSendWhatsapp = 0,
             IsSendEmail = dto.IsSendEmail ? 1 : 0,
             IsRepeatNotification = dto.IsRepeatNotification ? 1 : 0,
             CreatedBy = createdBy
@@ -196,13 +188,10 @@ public class AnnouncementService : IAnnouncementService
         return announcementId;
     }
 
-    private async Task<int> CountRecipientsAsync(MySqlConnection conn, int clubId, int? districtId, bool forEmail = false)
+    private async Task<int> CountRecipientsAsync(MySqlConnection conn, int clubId, int? districtId)
     {
-        // Same kill-switch-filtered audience the scheduler sends to; the contact filter is the
-        // only difference between channels — WhatsApp needs a mobile, Email needs an EmailId.
-        var contact = forEmail
-            ? "m.EmailId IS NOT NULL AND m.EmailId <> ''"
-            : "m.PrimaryMobileNumber IS NOT NULL AND m.PrimaryMobileNumber <> ''";
+        // Same kill-switch-filtered audience the scheduler sends to: members with an email address.
+        const string contact = "m.EmailId IS NOT NULL AND m.EmailId <> ''";
         if (districtId.HasValue)
         {
             return await conn.ExecuteScalarAsync<int>(
@@ -253,41 +242,24 @@ public class AnnouncementService : IAnnouncementService
         if (existingExpiry.HasValue && existingExpiry.Value < DateTime.Now)
             throw new InvalidOperationException("Cannot edit an expired item. Once an item's expiry date has passed, it can no longer be modified.");
 
-        // Pre-check WhatsApp/Email credits if a channel is being newly turned ON and not yet sent
+        // Pre-check Email credits if email is newly turned ON and not yet sent
         var prior = await connection.QueryFirstOrDefaultAsync<dynamic>(
-            @"SELECT fk_club_id, fk_district_id, IsSendWhatsapp, WhatsAppSentDate, IsSendEmail, EmailSentDate, PublishDateTime
+            @"SELECT fk_club_id, fk_district_id, IsSendEmail, EmailSentDate, PublishDateTime
               FROM announcements WHERE pk_announcement_id = @Id AND isdeleted = 0",
             new { Id = id });
-        bool priorWhatsapp = prior != null && Convert.ToBoolean(prior.IsSendWhatsapp);
-        bool alreadySent = prior != null && prior.WhatsAppSentDate != null;
-        int memberCountForCheck = 0;
         int clubIdForCheck = prior != null ? (int)prior.fk_club_id : 0;
         int? districtIdForCheck = prior != null && prior.fk_district_id != null ? (int?)prior.fk_district_id : null;
         int refundEntityIdForCheck = districtIdForCheck ?? clubIdForCheck;
-        bool newlyTurnedOn = false && !priorWhatsapp && !alreadySent;
-        bool resendOnDateChange = false && alreadySent && dto.PublishDateTime > DateTime.Now;
         int reminderCount = dto.Reminders?.Count ?? 0;
-        if ((newlyTurnedOn || resendOnDateChange) && refundEntityIdForCheck > 0)
-        {
-            memberCountForCheck = await CountRecipientsAsync(connection, clubIdForCheck, districtIdForCheck);
-            int totalCreditsNeeded = memberCountForCheck * (1 + reminderCount);
-            if (totalCreditsNeeded > 0)
-            {
-                using var scope = _scopeFactory.CreateScope();
-                var creditSvc = scope.ServiceProvider.GetRequiredService<ICreditManagementService>();
-                if (!await creditSvc.HasSufficientCreditsAsync(refundEntityIdForCheck, "WhatsApp", totalCreditsNeeded))
-                    throw new InvalidOperationException($"Insufficient WhatsApp credits. Need {totalCreditsNeeded} credit(s) for {memberCountForCheck} members × {1 + reminderCount} sends. Please uncheck 'Send through WhatsApp' to save without WhatsApp notification, or reduce reminders, or purchase more credits.");
-            }
-        }
 
-        // Email parity — block save when email is newly turned on (or re-sent) without enough Email credits.
+        // Block save when email is newly turned on (or re-sent) without enough Email credits.
         bool priorEmail = prior != null && Convert.ToBoolean(prior.IsSendEmail);
         bool emailAlreadySent = prior != null && prior.EmailSentDate != null;
         bool emailNewlyOn = dto.IsSendEmail && !priorEmail && !emailAlreadySent;
         bool emailResend = dto.IsSendEmail && emailAlreadySent && dto.PublishDateTime > DateTime.Now;
         if ((emailNewlyOn || emailResend) && refundEntityIdForCheck > 0)
         {
-            int emailCount = await CountRecipientsAsync(connection, clubIdForCheck, districtIdForCheck, forEmail: true);
+            int emailCount = await CountRecipientsAsync(connection, clubIdForCheck, districtIdForCheck);
             int emailNeeded = emailCount * (1 + reminderCount);
             if (emailNeeded > 0)
             {
@@ -298,42 +270,33 @@ public class AnnouncementService : IAnnouncementService
             }
         }
 
+        // Inline (not sp_announcement_update), so the edit never depends on the procedure's signature on prod.
         await connection.ExecuteAsync(
-            "sp_announcement_update",
+            @"UPDATE announcements SET Title = @Title, Description = @Description, ImagePath = @ImagePath,
+                     PublishDateTime = @PublishDateTime, ExpiryDateTime = @ExpiryDateTime,
+                     IsDisplayOnBanner = @IsDisplayOnBanner, IsSendEmail = @IsSendEmail,
+                     IsRepeatNotification = @IsRepeatNotification, modified_by = @ModifiedBy
+              WHERE pk_announcement_id = @Id AND isdeleted = 0",
             new
             {
-                p_Id = id,
-                p_Title = dto.Title,
-                p_Description = dto.Description,
-                p_ImagePath = dto.ImagePath,
-                p_PublishDateTime = dto.PublishDateTime,
-                p_ExpiryDateTime = dto.ExpiryDateTime,
-                p_IsDisplayOnBanner = dto.IsDisplayOnBanner ? 1 : 0,
-                p_IsSendWhatsapp = 0,
-                p_IsRepeatNotification = dto.IsRepeatNotification ? 1 : 0,
-                p_ModifiedBy = modifiedBy
-            },
-            commandType: CommandType.StoredProcedure);
+                Id = id,
+                dto.Title,
+                dto.Description,
+                dto.ImagePath,
+                dto.PublishDateTime,
+                dto.ExpiryDateTime,
+                IsDisplayOnBanner = dto.IsDisplayOnBanner ? 1 : 0,
+                IsSendEmail = dto.IsSendEmail ? 1 : 0,
+                IsRepeatNotification = dto.IsRepeatNotification ? 1 : 0,
+                ModifiedBy = modifiedBy
+            });
 
-        // sp_announcement_update doesn't carry IsSendEmail (avoids a stored-proc change that prod's
-        // SkipInit would not auto-apply); set it with a small inline update.
-        await connection.ExecuteAsync(
-            "UPDATE announcements SET IsSendEmail = @E WHERE pk_announcement_id = @Id",
-            new { E = dto.IsSendEmail ? 1 : 0, Id = id });
-
-        // Clear each channel's sent-state INDEPENDENTLY so the scheduler re-sends it. A channel
-        // resets when it's newly turned on or re-sent via a future publish date. Previously only
-        // WhatsApp's condition cleared BOTH — so turning on Email alone never reset EmailSentDate
-        // and the email never sent.
-        string clearWa = (newlyTurnedOn || resendOnDateChange)
-            ? "WhatsAppSentDate = NULL, WhatsAppSentCount = 0, WhatsAppFailedCount = 0" : "";
-        string clearEmail = (emailNewlyOn || emailResend)
-            ? "EmailSentDate = NULL, EmailSentCount = 0, EmailFailedCount = 0" : "";
-        var clearParts = new[] { clearWa, clearEmail }.Where(s => s.Length > 0).ToArray();
-        if (clearParts.Length > 0)
+        // Clear the email sent-state when email is newly turned on or re-sent via a future publish
+        // date, so the scheduler sends it.
+        if (emailNewlyOn || emailResend)
         {
             await connection.ExecuteAsync(
-                $"UPDATE announcements SET {string.Join(", ", clearParts)} WHERE pk_announcement_id = @Id",
+                "UPDATE announcements SET EmailSentDate = NULL, EmailSentCount = 0, EmailFailedCount = 0 WHERE pk_announcement_id = @Id",
                 new { Id = id });
         }
 
@@ -378,12 +341,6 @@ public class AnnouncementService : IAnnouncementService
     {
         using var connection = CreateConnection();
         await connection.OpenAsync();
-
-        // Inspect record BEFORE delete for refund decision
-        var row = await connection.QueryFirstOrDefaultAsync<dynamic>(@"
-            SELECT fk_club_id, fk_district_id, IsSendWhatsapp, WhatsAppSentDate, Title
-            FROM announcements WHERE pk_announcement_id = @Id AND isdeleted = 0",
-            new { Id = id });
 
         await connection.ExecuteAsync(
             "sp_announcement_delete",

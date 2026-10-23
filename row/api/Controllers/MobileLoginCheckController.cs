@@ -83,7 +83,7 @@ public class MobileLoginCheckController : ControllerBase
         string? memberEmail = (string?)member.EmailId;
 
         // SuperAdmin-on-mobile policy: SA cannot mobile-login UNLESS they ALSO hold
-        // another usable role (Admin / ClubModerator / AG / RID / ZC) or have at least
+        // another usable role (Admin / AG) or have at least
         // one active club membership. SA-only members are web-only.
         var isSuperAdmin = await conn.ExecuteScalarAsync<int>(@"
             SELECT COUNT(*) FROM member_roles mr
@@ -125,47 +125,35 @@ public class MobileLoginCheckController : ControllerBase
             }
         }
 
-        // Kill-switch: same chain check the real mobile-login flow runs. RID is global,
-        // exempt from chain check. Anyone else needs at least one active club→district→zone chain.
-        var isRid = await conn.ExecuteScalarAsync<int>(@"
-            SELECT COUNT(*) FROM member_roles mr
-            JOIN roles r ON r.pk_role_id = mr.fk_role_id
-            WHERE mr.fk_member_master_profile_id = @MemberId
-              AND r.RoleName = 'RIDirector'
-              AND mr.IsActive = 1 AND mr.isdeleted = 0",
+        // Kill-switch: same chain check the real mobile-login flow runs. Everyone needs at least one active club→district→zone chain.
+        var hasActiveChain = await conn.ExecuteScalarAsync<int>(@"
+            SELECT COUNT(*)
+            FROM club_members cm
+            JOIN club_master c ON c.pk_club_id = cm.fk_club_id
+            JOIN district_master d ON d.pk_district_id = c.fk_district_id
+            JOIN zone_master z ON z.pk_zone_id = d.fk_zone_id
+            WHERE cm.fk_member_master_profile_id = @MemberId
+              AND cm.IsActive = 1 AND cm.isdeleted = 0
+              AND c.IsActive = 1 AND c.isdeleted = 0
+              AND d.IsActive = 1 AND d.isdeleted = 0
+              AND z.IsActive = 1 AND z.isdeleted = 0",
             new { MemberId = memberId });
 
-        if (isRid == 0)
+        if (hasActiveChain == 0)
         {
-            var hasActiveChain = await conn.ExecuteScalarAsync<int>(@"
-                SELECT COUNT(*)
-                FROM club_members cm
-                JOIN club_master c ON c.pk_club_id = cm.fk_club_id
-                JOIN district_master d ON d.pk_district_id = c.fk_district_id
-                JOIN zone_master z ON z.pk_zone_id = d.fk_zone_id
-                WHERE cm.fk_member_master_profile_id = @MemberId
-                  AND cm.IsActive = 1 AND cm.isdeleted = 0
-                  AND c.IsActive = 1 AND c.isdeleted = 0
-                  AND d.IsActive = 1 AND d.isdeleted = 0
-                  AND z.IsActive = 1 AND z.isdeleted = 0",
-                new { MemberId = memberId });
-
-            if (hasActiveChain == 0)
+            return Ok(new
             {
-                return Ok(new
+                allowed = false,
+                reason = "No active club→district→zone chain. Member has no usable club membership for mobile login.",
+                mobile = trimmed,
+                member = new
                 {
-                    allowed = false,
-                    reason = "No active club→district→zone chain. Member has no usable club membership for mobile login.",
-                    mobile = trimmed,
-                    member = new
-                    {
-                        id = memberId,
-                        name = memberName,
-                        email = memberEmail
-                    },
-                    clubs = new object[0]
-                });
-            }
+                    id = memberId,
+                    name = memberName,
+                    email = memberEmail
+                },
+                clubs = new object[0]
+            });
         }
 
         // Fetch the same club list the mobile app would render on its "pick your club" screen:

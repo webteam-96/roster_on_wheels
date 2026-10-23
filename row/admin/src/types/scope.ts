@@ -4,7 +4,7 @@
 export type RoleScopeKind = "global" | "zone" | "district" | "club";
 
 export interface RoleScopeDto {
-  roleName: string; // "Admin" | "AG" | "ClubModerator" | "SuperAdmin" | "Member" | "RIDirector" | "ZonalCoordinator"
+  roleName: string; // "Admin" | "AG" | "SuperAdmin" | "Member"
   scope: string;    // RoleScopeKind values (string-typed for backward/forward compat)
   zoneId?: number;
   zoneName?: string;

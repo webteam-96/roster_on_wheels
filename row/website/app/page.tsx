@@ -114,7 +114,7 @@ const SEATS = [
   "Sanjay Gupta", "Meera Iyer", "Rohan Shah", "Pooja Menon", "Amit Verma", "Anjali Deshpande", "Suresh Pillai", "Divya Kapoor",
 ];
 
-// Hero wheel seats: [colour, email, WhatsApp]
+// Hero wheel seats: [colour, email, phone]
 const WHEEL: [string, string, string][] = [
   ["coral", "shared", "hidden"], ["sky", "shared", "shared"], ["ink", "hidden", "shared"], ["mint", "shared", "shared"],
   ["lilac", "shared", "hidden"], ["azure", "hidden", "hidden"], ["cream", "shared", "shared"], ["coral", "shared", "hidden"],
@@ -125,7 +125,7 @@ const WHEEL: [string, string, string][] = [
 const CLUB = [
   "Directory, Board of Directors and past presidents",
   "Meetings, attendance and Avenues of Service projects",
-  "Events, announcements and newsletters through the app and WhatsApp",
+  "Events, announcements and newsletters through the app and email",
   "Club dues collection, monthly reports and your club website",
 ];
 
@@ -217,7 +217,7 @@ function ReadMore({ href, by }: { href: string; by: string }) {
 }
 
 export default function Home() {
-  const [leadEmail, leadWa] = WHEEL[0].slice(1);
+  const [leadEmail, leadPhone] = WHEEL[0].slice(1);
   return (
     <>
 {/* ============ 1. HERO ============ */}
@@ -265,7 +265,7 @@ export default function Home() {
             <div className="profile__actions">
               <span className="pbtn" data-state="shared" data-p-act-email>Email</span>
               {" "}
-              <span className="pbtn" data-state="hidden" data-p-act-wa>WhatsApp</span>
+              <span className="pbtn" data-state="hidden" data-p-act-phone>Call</span>
             </div>
           </div>
           <div className="phone__tabs"><i /><i /><i /><i /></div>
@@ -274,11 +274,11 @@ export default function Home() {
       <p className="vh" aria-live="polite" data-wheel-status />
       <div className="wheel-arc">
         <div className="wheel-stage">
-          <div className="wheel" id="roster-wheel" tabIndex={0} role="slider" aria-label="Spin the roster" aria-valuemin={1} aria-valuemax={16} aria-valuenow={1} aria-valuetext={`${SEATS[0]}. Email ${leadEmail}, WhatsApp ${leadWa}.`} data-wheel>
-            {WHEEL.map(([c, email, wa], i) => {
+          <div className="wheel" id="roster-wheel" tabIndex={0} role="slider" aria-label="Spin the roster" aria-valuemin={1} aria-valuemax={16} aria-valuenow={1} aria-valuetext={`${SEATS[0]}. Email ${leadEmail}, phone ${leadPhone}.`} data-wheel>
+            {WHEEL.map(([c, email, phone], i) => {
               const name = SEATS[i];
               return (
-                <span key={i} className="wheel__avatar" style={{ "--i": String(i) } as CSSProperties} data-c={c} data-email={email} data-wa={wa} data-name={name} data-initials={initials(name)}>
+                <span key={i} className="wheel__avatar" style={{ "--i": String(i) } as CSSProperties} data-c={c} data-email={email} data-phone={phone} data-name={name} data-initials={initials(name)}>
                   <span className="wheel__face" data-sample>{initials(name)}</span>
                 </span>
               );

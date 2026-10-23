@@ -34,8 +34,13 @@ import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
 import RotaryLoader from "@/components/RotaryLoader";
 import ProtectedRoute from "@/components/ProtectedRoute";
+import { useFeatureLoadedOn } from "@/components/FeatureGate";
+import ComposeComms from "@/components/comms/ComposeComms";
 import { ArrowLeft, Save, Send, Loader2, Users } from "@/components/icons";
 import RichTextEditor from "@/components/RichTextEditor";
+import { useFeatureOn } from "@/components/FeatureGate";
+import ContactGroupPicker from "@/components/contacts/ContactGroupPicker";
+import { CONTACTS_FEATURE } from "@/lib/contacts";
 
 import { appLocale } from "@/lib/appFormat";
 const BASE = "/district-admin-dashboard/quick-links/mass-email";
@@ -69,6 +74,9 @@ export default function DistrictAdminMassEmailComposePage() {
   const [recipientType, setRecipientType] = useState("1"); // 1=All, 2=Clubs, 3=Subgroups
   const [selectedClubIds, setSelectedClubIds] = useState<Set<number>>(new Set());
   const [selectedSubgroupIds, setSelectedSubgroupIds] = useState<Set<number>>(new Set());
+  // Recipient type 4: the district's contact groups (non-members), while the contacts_growth feature is on.
+  const contactsOn = useFeatureOn(CONTACTS_FEATURE);
+  const [selectedContactGroupIds, setSelectedContactGroupIds] = useState<Set<number>>(new Set());
 
   // Email fields
   const [fromName, setFromName] = useState("");
@@ -76,6 +84,8 @@ export default function DistrictAdminMassEmailComposePage() {
   const [replyEmail, setReplyEmail] = useState("");
   const [subject, setSubject] = useState("");
   const [emailBody, setEmailBody] = useState("");
+  const commsOn = useFeatureLoadedOn("communication"); // N5: allowance instead of credits, language versions
+  const [templateKey, setTemplateKey] = useState("");
 
   // Lookups
   const [clubs, setClubs] = useState<ClubOption[]>([]);
@@ -164,11 +174,13 @@ export default function DistrictAdminMassEmailComposePage() {
         if (detail.clubIds) setSelectedClubIds(new Set(detail.clubIds));
         if (detail.subgroupIds) setSelectedSubgroupIds(new Set(detail.subgroupIds));
         else if (detail.fkSubgroupId) setSelectedSubgroupIds(new Set([detail.fkSubgroupId]));
+        if (detail.recipientType === 4) setSelectedContactGroupIds(new Set(detail.contactGroupIds ?? []));
         setFromName(detail.fromName || "");
         setReplyName(detail.replyName || "");
         setReplyEmail(detail.replyEmail || "");
         setSubject(detail.subject || "");
         setEmailBody(detail.emailBody || "");
+        setTemplateKey(detail.templateKey || "");
       } catch { setErrorMessage("Failed to load email details."); }
       setLoading(false);
     }
@@ -181,10 +193,11 @@ export default function DistrictAdminMassEmailComposePage() {
       const p: Record<string, any> = { recipientType: Number(recipientType) };
       if (recipientType === "2" && selectedClubIds.size > 0) p.clubIds = Array.from(selectedClubIds).join(",");
       if (recipientType === "3" && selectedSubgroupIds.size > 0) p.subgroupIds = Array.from(selectedSubgroupIds).join(",");
+      if (recipientType === "4" && selectedContactGroupIds.size > 0) p.contactGroupIds = Array.from(selectedContactGroupIds).join(",");
       const res = await getDistrictMassEmailRecipientCount(districtId, p);
       setRecipientCount(res);
     } catch {}
-  }, [districtId, recipientType, selectedClubIds, selectedSubgroupIds]);
+  }, [districtId, recipientType, selectedClubIds, selectedSubgroupIds, selectedContactGroupIds]);
 
   useEffect(() => { fetchRecipientCount(); }, [fetchRecipientCount]);
 
@@ -192,7 +205,7 @@ export default function DistrictAdminMassEmailComposePage() {
   // AND the number of email-having members exceeds what's left in the wallet.
   // Save Draft always allowed — no credits deducted.
   const insufficientCredits =
-    emailRemaining !== null && recipientCount.membersWithEmail > emailRemaining;
+    !commsOn && emailRemaining !== null && recipientCount.membersWithEmail > emailRemaining;
 
   const handleSave = async (asDraft: boolean) => {
     if (!fromName.trim() || !subject.trim()) { setErrorMessage("From Name and Subject are required."); return; }
@@ -216,12 +229,14 @@ export default function DistrictAdminMassEmailComposePage() {
         recipientType: Number(recipientType),
         clubIds: recipientType === "2" ? Array.from(selectedClubIds) : null,
         subgroupIds: recipientType === "3" ? Array.from(selectedSubgroupIds) : null,
+        contactGroupIds: recipientType === "4" ? Array.from(selectedContactGroupIds) : null,
         fromName: fromName.trim(),
         replyName: replyName.trim() || null,
         replyEmail: replyEmail.trim() || null,
         subject: subject.trim(),
         emailBody,
         saveAsDraft: asDraft,
+        templateKey: templateKey || null,
       };
 
       let createdId: number | null = null;
@@ -293,6 +308,7 @@ export default function DistrictAdminMassEmailComposePage() {
                 { value: "1", label: "All Members" },
                 { value: "2", label: "Clubs" },
                 { value: "3", label: "Subgroups" },
+                ...(contactsOn ? [{ value: "4", label: "Contact groups (non-members)" }] : []),
               ].map((opt) => (
                 <label key={opt.value} className="flex items-center gap-2 cursor-pointer">
                   <input
@@ -300,7 +316,7 @@ export default function DistrictAdminMassEmailComposePage() {
                     name="recipientType"
                     value={opt.value}
                     checked={recipientType === opt.value}
-                    onChange={() => { setRecipientType(opt.value); setSelectedClubIds(new Set()); setSelectedSubgroupIds(new Set()); }}
+                    onChange={() => { setRecipientType(opt.value); setSelectedClubIds(new Set()); setSelectedSubgroupIds(new Set()); setSelectedContactGroupIds(new Set()); }}
                     className="accent-azure"
                   />
                   <span className="text-sm text-slate-700">{opt.label}</span>
@@ -344,6 +360,10 @@ export default function DistrictAdminMassEmailComposePage() {
                   ))}
                 </div>
               </div>
+            )}
+
+            {recipientType === "4" && (
+              <ContactGroupPicker scope="districts" ownerId={districtId} selected={selectedContactGroupIds} onChange={setSelectedContactGroupIds} />
             )}
 
             <div className="flex items-center gap-2 rounded-lg bg-azure/5 px-3 py-2 text-sm text-slate-700">
@@ -411,6 +431,7 @@ export default function DistrictAdminMassEmailComposePage() {
               <Label className="text-slate-700 text-sm font-medium">Email Body *</Label>
               <RichTextEditor value={emailBody} onChange={setEmailBody} placeholder="Write your email content here..." />
             </div>
+            {commsOn && <ComposeComms scope="districts" ownerId={districtId} templateKey={templateKey} onTemplateKey={setTemplateKey} needed={recipientCount.membersWithEmail} />}
           </div>
         </div>
 

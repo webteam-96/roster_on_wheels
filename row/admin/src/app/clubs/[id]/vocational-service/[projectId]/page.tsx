@@ -140,7 +140,6 @@ export default function VocationalServiceViewPage() {
         <Section icon={Target} title="Category" number={sectionNum++}>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <DetailRow label="Category" value={project.otherAreaOfFocus ? `Others: ${project.otherAreaOfFocus}` : project.areaOfFocusName} />
-            <DetailRow label="Sub Category" value={project.otherCategory ? `Others: ${project.otherCategory}` : project.categoryName} />
           </div>
         </Section>
 

@@ -32,7 +32,7 @@ public class ClubMemberHonoraryController : ControllerBase
     // The JWT stores roles as a comma-separated string under the "roles" claim
     // (set by AuthService when the token is issued). User.IsInRole("SuperAdmin")
     // doesn't match because the role claim isn't on the ASP.NET default schema.
-    // Mirror the pattern from DistrictGovernorController / ZonalAwards etc.
+    // Mirror the pattern from DistrictGovernorController etc.
     private bool IsSuperAdmin() =>
         User.FindFirst("roles")?.Value?.Contains("SuperAdmin", StringComparison.OrdinalIgnoreCase) == true;
 

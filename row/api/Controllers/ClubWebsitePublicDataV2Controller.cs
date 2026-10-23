@@ -215,7 +215,6 @@ public class ClubWebsitePublicDataV2Controller : ControllerBase
     //
     // Filters match the public /projects endpoint exactly:
     //   isdeleted = 0  AND  is_active = 1
-    //   AND approval_status IN ('', 'Approved')   (approved/blank only)
     //
     // TRF / Foundation USD comes from trf_contributions (single non-partitioned
     // table — separate aggregate from the project-table union below).
@@ -285,7 +284,6 @@ public class ClubWebsitePublicDataV2Controller : ControllerBase
             WHERE p.fk_club_id = @ClubId
               AND p.isdeleted  = 0
               AND p.is_active  = 1
-              AND (COALESCE(p.approval_status, '') = '' OR p.approval_status = 'Approved')
               AND mm.ModuleKey IN ('community_service','vocational_service','international_service','new_generation_service','public_image_initiative','club_service')"));
 
         var row = await conn.QueryFirstOrDefaultAsync<dynamic>($@"
@@ -666,7 +664,6 @@ public class ClubWebsitePublicDataV2Controller : ControllerBase
                       JOIN module_master mm     ON mm.pk_module_id = p.fk_module_id
                       WHERE p.fk_club_id = @ClubId
                         AND p.isdeleted = 0 AND p.is_active = 1
-                        AND (COALESCE(p.approval_status, '') = '' OR p.approval_status = 'Approved')
                         AND ph.image_path IS NOT NULL AND ph.image_path <> ''";
         }));
 
@@ -726,7 +723,6 @@ public class ClubWebsitePublicDataV2Controller : ControllerBase
         public string? Location { get; set; }
         public string? ProjectDate { get; set; }
         public string? AreaOfFocus { get; set; }
-        public string? Category { get; set; }
         public string? ProjectType { get; set; }     // "Ongoing" | "Onetime" | other
         public int? ParentProjectId { get; set; }    // null for main projects; set on repeat-instance children
         public int ChildCount { get; set; }          // # of repeat-instance children under this project
@@ -803,7 +799,6 @@ public class ClubWebsitePublicDataV2Controller : ControllerBase
                              CONVERT(p.location USING utf8mb4)    AS Location,
                              p.project_date AS ProjectDate,
                              CONVERT(aof.name USING utf8mb4)      AS AreaOfFocus,
-                             CONVERT(cat.name USING utf8mb4)      AS Category,
                              CONVERT(p.project_type USING utf8mb4) AS ProjectType,
                              CONVERT(p.Currency USING utf8mb4)    AS Currency,
                              p.parent_project_id AS ParentProjectId,
@@ -822,10 +817,8 @@ public class ClubWebsitePublicDataV2Controller : ControllerBase
                       FROM `{t.ProjectsTable}` p
                       JOIN module_master mm ON mm.pk_module_id = p.fk_module_id
                       LEFT JOIN area_of_focus_master aof ON aof.pk_area_of_focus_id = p.fk_area_of_focus_id
-                      LEFT JOIN category_master cat ON cat.pk_category_id = p.fk_category_id
                       WHERE p.fk_club_id = @ClubId
                         AND p.isdeleted = 0 AND p.is_active = 1
-                        AND (COALESCE(p.approval_status, '') = '' OR p.approval_status = 'Approved')
                         AND mm.ModuleKey IN @Keys{ptFilter}";
         }));
 
@@ -845,7 +838,6 @@ public class ClubWebsitePublicDataV2Controller : ControllerBase
             Location         = (string?)r.Location,
             ProjectDate      = r.ProjectDate is DateTime pd ? pd.ToString("yyyy-MM-dd") : null,
             AreaOfFocus      = (string?)r.AreaOfFocus,
-            Category         = (string?)r.Category,
             ProjectType      = (string?)r.ProjectType,
             Currency         = (string?)r.Currency ?? RotaryApi.Services.Brand.DefaultCurrency,
             ParentProjectId  = r.ParentProjectId == null ? (int?)null : Convert.ToInt32(r.ParentProjectId),

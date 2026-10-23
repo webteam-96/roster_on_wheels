@@ -8,7 +8,6 @@ import '../../../../../data/models/club_overview_models.dart';
 import 'club_dashboard_async.dart';
 import 'dashboard/dashboard_bod_subtab.dart';
 import 'dashboard/dashboard_directory_subtab.dart';
-import 'dashboard/dashboard_marketplace_subtab.dart';
 import 'dashboard/dashboard_rotary_network_subtab.dart';
 import '../../../../widgets/common/dashboard_refresh.dart';
 import '../../../../widgets/common/website_renewal_dialog.dart';
@@ -17,7 +16,7 @@ import 'membership_summary_card.dart';
 import 'package:rotary_flutter_app/core/theme/app_fonts.dart';
 
 /// The club "Dashboard" tab — mirrors the web Club Dashboard's five sub-tabs
-/// (Overview · Directory · Board of Directors · Marketplace · Rotary Network).
+/// (Overview · Directory · Board of Directors · Rotary Network).
 class ClubOverviewTab extends StatefulWidget {
   final int clubId;
   final int? yearId;
@@ -35,7 +34,6 @@ class _ClubOverviewTabState extends State<ClubOverviewTab>
     'Overview',
     'Directory',
     'Board of Directors',
-    'Marketplace',
     'Rotary Network',
   ];
 
@@ -51,9 +49,6 @@ class _ClubOverviewTabState extends State<ClubOverviewTab>
         return DashboardBodSubtab(
             clubId: widget.clubId, yearId: widget.yearId);
       case 3:
-        // Marketplace is not year-scoped.
-        return DashboardMarketplaceSubtab(clubId: widget.clubId);
-      case 4:
         return DashboardRotaryNetworkSubtab(
             clubId: widget.clubId, yearId: widget.yearId);
       default:

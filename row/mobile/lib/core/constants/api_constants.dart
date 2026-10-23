@@ -108,8 +108,6 @@ class ApiConstants {
 
   // OCV/GOV
 
-  // PPH Camps
-
   // Weblinks
 
   // Website Data (Club)
@@ -149,7 +147,6 @@ class ApiConstants {
 
   // Settings
   static const String designations = '/api/designations';
-  static const String categories = '/api/categories';
   static const String funding = '/api/funding';
   static const String modules = '/api/modules';
   static const String themes = '/api/themes';
@@ -161,108 +158,16 @@ class ApiConstants {
 
   // Credit Management
 
-  // Zonal Dashboard
-
   // District Committee
 
   // District Events
 
   // District-specific modules
 
-  // ── Goal Setting (mobile oversight) ────────────────────────────────────────
-  // Mirrors the web /goal-oversight dashboard for the goal oversight roles
-  // (RI Director / Zone Co-ordinator / District Assistant). Reuses the same
-  // backend service as web via the mobile twin controller.
+  // ── Goal Setting (club / district goal entry) ───────────────────────────────
+  // Reuses the same backend service as web via the mobile twin controller.
   static const String goalSettingBase = '/api/mobile/goal-setting';
   static const String goalCategories = '$goalSettingBase/categories';
-  static const String goalMyAssignments = '$goalSettingBase/my-assignments';
-  static const String goalScopedBulkLock = '$goalSettingBase/scoped/bulk-lock';
-  static String goalScopedDistricts(int categoryId, int yearId) =>
-      '$goalSettingBase/scoped/districts/$categoryId?yearId=$yearId';
-  // NOTE: `overview-scoped` (the old per-category Target/Achieved matrix) is no
-  // longer called — web replaced that view with `district-summary-matrix`, see
-  // goalDistrictSummaryMatrix below. The route still exists server-side.
-  // Zone messaging "new message" dot. Plain [Authorize] — no role gate — so a
-  // pure Zone Co-ordinator / District Assistant can use these, unlike the
-  // club/month-wise oversight routes.
-  static String goalMessagesHasUnread(int zoneId, int yearId) =>
-      '$goalSettingWebBase/messages/has-unread?zoneId=$zoneId&yearId=$yearId';
-  static String goalMessagesMarkSeen(int zoneId, int yearId) =>
-      '$goalSettingWebBase/messages/mark-seen?zoneId=$zoneId&yearId=$yearId';
-
-  /// The RI Director's message roster: every ZC/DA of the zone with a message
-  /// count. categoryId / districtId of 0 mean "all".
-  static String goalMessageRoster(
-          int zoneId, int yearId, int categoryId, int districtId) =>
-      '$goalSettingWebBase/messages/roster?zoneId=$zoneId&yearId=$yearId'
-      '&categoryId=$categoryId&districtId=$districtId';
-
-  /// Excel of every message matching the same filters.
-  static const String goalMessagesReport = '$goalSettingWebBase/messages/report';
-
-  static String goalZoneThreadList(int categoryId, int zoneId, int yearId) =>
-      '$goalSettingBase/zone-threads/$categoryId/$zoneId?yearId=$yearId';
-  static String goalOwnerThread(int categoryId, int ownerMemberId, int yearId) =>
-      '$goalSettingBase/owner-thread/$categoryId/$ownerMemberId?yearId=$yearId';
-
-  // Read-only DRILL-DOWN for the oversight roles: one scoped district's goal
-  // form, that district's clubs, and one scoped club's goal form. The district
-  // form has a mobile twin; the club list/form and the three Excel reports live
-  // only on the web route — they carry NO role gate (plain [Authorize] with the
-  // scope enforced per-member inside GoalSettingService), so the app's own JWT
-  // reaches them unchanged. Move them to `goalSettingBase` if/when the backend
-  // mirrors them onto the mobile controller.
-  static const String goalSettingWebBase = '/api/goal-setting';
-  static String goalScopedDistrictForm(int categoryId, int districtId, int yearId) =>
-      '$goalSettingBase/scoped/districts/$categoryId/$districtId?yearId=$yearId';
-  static String goalScopedDistrictClubs(int categoryId, int yearId, int districtId) =>
-      '$goalSettingWebBase/scoped/districts/$categoryId/clubs?yearId=$yearId&districtId=$districtId';
-  static String goalScopedClubForm(int categoryId, int yearId, int clubId) =>
-      '$goalSettingWebBase/scoped/clubs/$categoryId?yearId=$yearId&clubId=$clubId';
-
-  // Excel goal reports (YTD + Month-wise sheets), one per drill-down level.
-  static String goalZoneReport(int zoneId) => '$goalSettingWebBase/report/zone/$zoneId';
-  static String goalDistrictReport(int districtId) =>
-      '$goalSettingWebBase/report/district/$districtId';
-  static String goalClubReport(int clubId) => '$goalSettingWebBase/report/club/$clubId';
-
-  // ── Goal oversight district matrix (web GoalOversightMatrix) ──────────────
-  // Districts as ROWS with every overseen category laid out horizontally. Web
-  // route only — the mobile controller has no twin yet; it carries no role gate
-  // (plain [Authorize], scope enforced per-member in GoalSettingService).
-  static String goalDistrictSummaryMatrix(int zoneId, int yearId) =>
-      '$goalSettingWebBase/district-summary-matrix?zoneId=$zoneId&yearId=$yearId';
-
-  /// Per-row download from that matrix: the EXACT district-admin
-  /// "District Goal Setting" workbook. NOT the same as [goalDistrictReport],
-  /// which is the older YTD+Month-wise drill-down report.
-  static String goalDistrictSettingReport(int districtId) =>
-      '$goalSettingWebBase/district-report/$districtId';
-
-  // ── "View clubs" popup: one district's clubs, read-only ───────────────────
-  // The /oversight twins of the district-admin club matrices, scoped per member
-  // so an RI Director / ZC / DA can open any district they oversee.
-  // ⚠️ These three are gated on IsAuthorisedRole() (Admin|SuperAdmin) server-
-  // side, so a member holding ONLY a goal role and no admin role is refused —
-  // the UI surfaces that plainly rather than as a raw error.
-  static String goalScopedClubsMatrix(int categoryId, int districtId, int yearId) =>
-      '$goalSettingWebBase/districts/$categoryId/clubs-matrix/oversight'
-      '?districtId=$districtId&yearId=$yearId';
-
-  static String goalScopedClubsMonthlyMatrix(
-          int categoryId, int districtId, int yearId) =>
-      '$goalSettingWebBase/districts/$categoryId/clubs-monthly-matrix/oversight'
-      '?districtId=$districtId&yearId=$yearId';
-
-  static String goalScopedAllClubsReport(int districtId) =>
-      '$goalSettingWebBase/goals-excel/clubs-all/oversight';
-
-  /// One district's month-wise collection for a category, read-only.
-  /// ⚠️ Also gated IsAuthorisedRole() (Admin|SuperAdmin) server-side.
-  static String goalScopedDistrictMonthly(
-          int categoryId, int districtId, int yearId) =>
-      '$goalSettingWebBase/monthly/districts/$categoryId/oversight'
-      '?districtId=$districtId&yearId=$yearId';
 
   // ── Goal ENTRY (club / district admins set their own targets) ──────────────
   // yearId omitted → server default (current year); clubId/districtId omitted →
@@ -279,13 +184,9 @@ class ApiConstants {
       '$goalSettingBase/clubs/$categoryId${_q({'yearId': yearId, 'clubId': clubId})}';
   static String goalClubSave(int categoryId, {int? clubId}) =>
       '$goalSettingBase/clubs/$categoryId${_q({'clubId': clubId})}';
-  static String goalClubLock(int categoryId, int yearId, int clubId, bool locked) =>
-      '$goalSettingBase/clubs/$categoryId/${locked ? 'lock' : 'unlock'}?yearId=$yearId&clubId=$clubId';
 
   static String goalDistrictForm(int categoryId, {int? yearId, int? districtId}) =>
       '$goalSettingBase/districts/$categoryId${_q({'yearId': yearId, 'districtId': districtId})}';
   static String goalDistrictSave(int categoryId, {int? districtId}) =>
       '$goalSettingBase/districts/$categoryId${_q({'districtId': districtId})}';
-  static String goalDistrictLock(int categoryId, int yearId, int districtId, bool locked) =>
-      '$goalSettingBase/districts/$categoryId/${locked ? 'lock' : 'unlock'}?yearId=$yearId&districtId=$districtId';
 }

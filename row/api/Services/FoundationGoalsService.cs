@@ -24,10 +24,10 @@ public class FoundationGoalsService : IFoundationGoalsService
     // Returns the club_master.pk_club_id this member is acting on.
     //
     // - When `requestedClubId` is provided, validate the caller has an active
-    //   Club Admin (role 2) OR Club Moderator (role 5) assignment at that club.
+    //   Club Admin (role 2) assignment at that club.
     //   Throws `UnauthorizedAccessException` if not (controllers translate to 403).
-    // - When null, fall back to the legacy LIMIT 1 lookup (Club Admin first,
-    //   then Club Moderator) so existing callers continue to work.
+    // - When null, fall back to the legacy LIMIT 1 lookup (Club Admin) so
+    //   existing callers continue to work.
     private async Task<int> ResolveClubIdAsync(MySqlConnection conn, int memberId, int? requestedClubId = null)
     {
         if (memberId <= 0) return 0;
@@ -37,7 +37,7 @@ public class FoundationGoalsService : IFoundationGoalsService
             var isAuthorised = await conn.ExecuteScalarAsync<int>(@"
                 SELECT COUNT(*) FROM member_roles
                 WHERE fk_member_master_profile_id = @MemberId
-                  AND fk_role_id IN (2, 5)
+                  AND fk_role_id = 2
                   AND fk_club_id = @ClubId
                   AND IsActive = 1 AND isdeleted = 0",
                 new { MemberId = memberId, ClubId = requestedClubId.Value });
@@ -66,19 +66,7 @@ public class FoundationGoalsService : IFoundationGoalsService
             new { MemberId = memberId });
         if (clubId.HasValue && clubId.Value > 0) return clubId.Value;
 
-        // Fall back to ClubModerator (role_id = 5) — same fall-through
-        // behavior as the dashboard service.
-        clubId = await conn.ExecuteScalarAsync<int?>(@"
-            SELECT mr.fk_club_id
-            FROM member_roles mr
-            WHERE mr.fk_member_master_profile_id = @MemberId
-              AND mr.fk_role_id = 5
-              AND mr.IsActive = 1
-              AND mr.isdeleted = 0
-            ORDER BY mr.pk_member_role_id DESC
-            LIMIT 1",
-            new { MemberId = memberId });
-        return clubId ?? 0;
+        return 0;
     }
 
     public async Task<FoundationGoalListResponse?> GetListAsync(int memberId, int? yearId, int? requestedClubId = null)

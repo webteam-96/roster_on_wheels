@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { LayoutGrid, Settings, Calendar, Globe, Palette, Target, Layers, GitBranch, Wallet, Users, CreditCard, Shirt, LinkIcon, BadgeDollarSign, Coins, Trophy, Crown, History, Megaphone, Search, UserCog2, MonitorSmartphone, UserCircle2, FileBarChart, ClipboardList, ShieldCheck, Bell, Smartphone, Wrench, Mail, MessageCircle, RefreshCw, X, type LucideIcon } from "@/components/icons";
+import { LayoutGrid, Settings, Calendar, Globe, Palette, Target, Layers, GitBranch, Wallet, CreditCard, Shirt, LinkIcon, BadgeDollarSign, Coins, Crown, History, Megaphone, Search, UserCog2, MonitorSmartphone, UserCircle2, FileBarChart, ClipboardList, ShieldCheck, Bell, Smartphone, Wrench, Mail, MessageCircle, RefreshCw, X, type LucideIcon } from "@/components/icons";
 import { useRouter } from "next/navigation";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { useFeature } from "@/contexts/BrandContext";
@@ -65,7 +65,7 @@ const settingsCards: SettingsCard[] = [
   },
   {
     title: "Performance Report",
-    description: "RI Director (all districts, zone-wise) and DG (per district) progress reports: view, download the Excel, send a test email",
+    description: "District Governor (per district) progress report: view, download the Excel, send a test email",
     icon: FileBarChart,
     href: "/settings/district-performance-report",
   },
@@ -114,12 +114,6 @@ const settingsCards: SettingsCard[] = [
     href: "/settings/district-governor",
   },
   {
-    title: "Directory Data Collection",
-    description: "Configure per-district member data collection forms (DC, BOD, Members) with OTP + reminders",
-    icon: ClipboardList,
-    href: "/settings/directory-data-collection",
-  },
-  {
     title: "Rotary.org",
     description: "Manually sync clubs and members between ROW and Rotary.org",
     icon: Globe,
@@ -140,16 +134,10 @@ const settingsCards: SettingsCard[] = [
     href: "/settings/super-admin-role-config",
   },
   {
-    title: "RI Director Management",
-    description: "Assign or remove RI Director role",
-    icon: Crown,
-    href: "/settings/ri-director",
-  },
-  {
-    title: "Goal Setting | Oversight Roles",
-    description: "Assign zone/category-scoped Goal Setting oversight roles (view, lock, comment)",
+    title: "Goal Setting | Data Import",
+    description: "Foundation (district + club) and District Membership imports for goal setting",
     icon: Target,
-    href: "/settings/goal-setting-roles",
+    href: "/settings/goal-imports",
   },
   {
     title: "Mobile App Version",
@@ -177,7 +165,7 @@ const settingsCards: SettingsCard[] = [
   },
   {
     title: "Wallet",
-    description: "Email credits (Offline, Online, RI Director) and club-website pricing & pay-link reminders",
+    description: "Email credits (Offline, Online) and club-website pricing & pay-link reminders",
     icon: Wallet,
     href: "/settings/wallet",
   },
@@ -186,12 +174,6 @@ const settingsCards: SettingsCard[] = [
     description: "Manage Razorpay Route linked accounts used for club-website payments",
     icon: CreditCard,
     href: "/settings/razorpay-route-accounts",
-  },
-  {
-    title: "Zonal Awards",
-    description: "Manage zonal award questions & import data",
-    icon: Trophy,
-    href: "/settings/zonal-awards",
   },
 
   // ─── Tier 4: Master data (rarely edited) ─────────────────────────────────────
@@ -253,7 +235,7 @@ const settingsCards: SettingsCard[] = [
   },
   {
     title: "Project Categorization",
-    description: "Areas of focus, categories & sub-categories",
+    description: "Areas of focus for service projects",
     icon: Target,
     href: "/settings/project-categorization",
   },
@@ -264,12 +246,6 @@ const settingsCards: SettingsCard[] = [
     href: "/settings/funding",
   },
   {
-    title: "Direct Beneficiaries Limit",
-    description: "Set max direct beneficiaries per project",
-    icon: Users,
-    href: "/settings/direct-beneficiaries-limit",
-  },
-  {
     title: "Payments & Dues",
     description: "Payment gateway, event payments and Club Dues",
     icon: CreditCard,
@@ -277,7 +253,7 @@ const settingsCards: SettingsCard[] = [
   },
   {
     title: "Email Credits",
-    description: "Manage credits for clubs, districts and RI Director",
+    description: "Manage credits for clubs and districts",
     icon: Coins,
     href: "/settings/email-credits",
   },
@@ -290,7 +266,7 @@ const settingsCards: SettingsCard[] = [
 ];
 
 // Hidden cards (page still exists, just not listed). Email Credits: everything it
-// opened now lives in Settings › Wallet (Offline / Online / RI Director Credits buttons).
+// opened now lives in Settings › Wallet (Offline / Online buttons).
 // Never on ROW: Razorpay Route is an India-only payout provider.
 const HIDDEN_HREFS = new Set<string>(["/settings/email-credits", "/settings/razorpay-route-accounts"]);
 
@@ -300,13 +276,11 @@ export default function SettingsPage() {
   const [query, setQuery] = useState("");
   const [navigatingHref, setNavigatingHref] = useState<string | null>(null);
   const walletOn = useFeature("modules.wallet");
-  const zonalAwardsOn = useFeature("modules.zonalAwards");
   const isPathOff = useIsPathOff();
   // Modules switched off for this instance are hidden as well.
   const hidden = new Set<string>([
     ...HIDDEN_HREFS,
     ...(walletOn ? [] : ["/settings/wallet"]),
-    ...(zonalAwardsOn ? [] : ["/settings/zonal-awards"]),
     ...settingsCards.map((c) => c.href).filter(isPathOff),
   ]);
 

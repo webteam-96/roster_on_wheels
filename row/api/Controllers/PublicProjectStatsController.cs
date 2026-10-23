@@ -64,7 +64,7 @@ public class PublicProjectStatsController : ControllerBase
     // The 5 project avenues (club_service is a meeting, excluded from the projects feed) and
     // the club → district → zone chain. BOTH come from ProjectCountFilter, which is also what
     // the daily statistics email counts with — that shared definition is the only reason the
-    // two numbers agree (user, 2026-09-28). Rule 5 lives in there too: Zone 0, "Other Zones"
+    // two numbers agree (user, 2026-09-28). Rule 3 lives in there too: Zone 0, "Other Zones"
     // and the three exempt districts are outside the organisation and count nowhere.
     private const string ProjectModuleKeys = ProjectCountFilter.ProjectModuleKeys;
 
@@ -87,12 +87,11 @@ public class PublicProjectStatsController : ControllerBase
     // scoped to a single year. Scope beats predicate placement by 10x.
     //
     // Every word must be a WHOLE word (a plural "s" allowed), any order, of ONE of: the
-    // project title, its area of focus, category or sub category (master name or the
-    // "other" text), or its club's name, state or district number. So "right to go thane"
-    // finds RIGHT TO GO by Thane Hills, and "toilets 3142" a sub category in RID 3142.
+    // project title, its area of focus (master name or the "other" text), or its club's name,
+    // state or district number. So "right to go thane" finds RIGHT TO GO by Thane Hills.
     // Whole words, not substrings — substrings are what made "heart surgery" list
     // "Heartline Surgery". One- and two-letter words ("to", "of") match the title only;
-    // against the master names they matched half the category list.
+    // against the master names they matched half the list.
     //
     // The matching master-table ids are looked up ONCE here and inlined (they are ints
     // read from the database), rather than left as IN (subquery) in every union leg:
@@ -136,18 +135,14 @@ public class PublicProjectStatsController : ControllerBase
             async Task<string> Ids(string sql) =>
                 string.Join(",", await conn.QueryAsync<long>(sql, lp)) is { Length: > 0 } list ? list : "NULL";
             var areas = await Ids("SELECT pk_area_of_focus_id FROM area_of_focus_master WHERE name REGEXP @R");
-            var cats = await Ids("SELECT pk_category_id FROM category_master WHERE name REGEXP @R");
-            var subs = await Ids("SELECT pk_sub_category_id FROM sub_category_master WHERE name REGEXP @R");
             var clubs = await Ids(@"SELECT sc.pk_club_id FROM club_master sc
                 JOIN district_master sd ON sd.pk_district_id = sc.fk_district_id
                 WHERE sc.isdeleted = 0 AND sc.IsActive = 1
                   AND (sc.ClubName REGEXP @R OR sc.State REGEXP @R OR sd.DistrictNumber = @W)");
             sb.Append($@"
               AND ({title}
-                OR p.fk_area_of_focus_id IN ({areas}) OR p.fk_category_id IN ({cats}) OR p.fk_sub_category_id IN ({subs})
+                OR p.fk_area_of_focus_id IN ({areas})
                 OR (p.other_area_of_focus LIKE @Q{i} AND p.other_area_of_focus REGEXP @R{i})
-                OR (p.other_category LIKE @Q{i} AND p.other_category REGEXP @R{i})
-                OR (p.other_sub_category LIKE @Q{i} AND p.other_sub_category REGEXP @R{i})
                 OR p.fk_club_id IN ({clubs}))");
         }
         return sb.ToString();
@@ -189,8 +184,7 @@ public class PublicProjectStatsController : ControllerBase
             JOIN module_master mm ON mm.pk_module_id = p.fk_module_id AND mm.ModuleKey IN ({ProjectModuleKeys})
             LEFT JOIN area_of_focus_master aof ON aof.pk_area_of_focus_id = p.fk_area_of_focus_id
             WHERE {f.CountsAsProject(t.ProjectsTable)}{search}";
-              // Every rule is in ProjectCountFilter.CountsAsProject: live row, moderator
-              // approved (or no moderator), beneficiary limit not left unapproved, and ONE
+              // Every rule is in ProjectCountFilter.CountsAsProject: live row and ONE
               // row per project — the ongoing parent, or, when the parent belongs to an
               // earlier year, that project's first entry of this year. An ongoing project's
               // repeat entries are what used to inflate the statistics email, and dropping

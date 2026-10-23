@@ -26,7 +26,7 @@
     </None>
     <!-- Gitignored credential (**/firebase-admin*.json) — must be placed here manually.
          Without it, FirebasePushSender silently disables all greeting push (digest + personal),
-         while WhatsApp/Email keep working — the #1 cause of "push notifications never arrive". -->
+         while email keeps working — the #1 cause of "push notifications never arrive". -->
     <None Update="firebase-admin.json" Condition="Exists('firebase-admin.json')">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
@@ -35,5 +35,7 @@
   <ItemGroup>
     <!-- ROW instance brand, shared with the API (Brand section / Brand__* environment variables). -->
     <Compile Include="../../api/Services/Brand.cs" Link="Brand.cs" />
+    <!-- N5 communication: templates per language, Governor note, consent and suppression filter (same code as the API). -->
+    <Compile Include="../../api/Services/CommsTemplates.cs" Link="CommsTemplates.cs" />
   </ItemGroup>
 </Project>

@@ -23,7 +23,6 @@ import {
   getProjects,
   deleteProject,
   getProjectYears,
-  checkClubHasModerator,
 } from "@/services/api";
 import { ProjectListItem } from "@/types/project";
 import { useAuth } from "@/contexts/AuthContext";
@@ -115,7 +114,6 @@ export default function ClubServiceV2Page() {
   const [searchInput, setSearchInput] = useState("");
   const [search, setSearch] = useState("");
 
-  const [hasModerator, setHasModerator] = useState(false);
   const [showAgreeDialog, setShowAgreeDialog] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<ProjectListItem | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
@@ -150,9 +148,6 @@ export default function ClubServiceV2Page() {
           const current = projectYears.find((y) => y.isCurrent);
           setSelectedYearId(current ? current.id : projectYears[0]?.id ?? null);
         }
-        checkClubHasModerator(clubId).then((r) => {
-          if (!cancelled) setHasModerator(r.hasModerator);
-        }).catch(() => {});
       } catch (err: unknown) {
         const e = err as { response?: { data?: { message?: string } } };
         if (!cancelled) setErrorMessage(e?.response?.data?.message || "Failed to initialize.");

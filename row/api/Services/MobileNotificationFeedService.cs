@@ -25,6 +25,7 @@ namespace RotaryApi.Services;
 ///   events         upcoming_events
 ///   newsletters    newsletters
 ///   documents      club_documents
+///   meetings       club_attendance reminders, while the 'meetings' feature is on (N8 Meetings)
 ///
 /// ── Shape of the query ───────────────────────────────────────────────────────────────────
 /// One UNION ALL of narrow, index-friendly legs; ORDER BY / LIMIT / OFFSET are applied to the
@@ -51,7 +52,7 @@ public class MobileNotificationFeedService : IMobileNotificationFeedService
     private const int BodyMaxChars = 300;
 
     private static readonly string[] AllTypes =
-        { "greeting", "project", "announcement", "event", "newsletter", "document" };
+        { "greeting", "project", "announcement", "event", "newsletter", "document", "highlight", "grant", "volunteer", "meeting_duty", "invite", "meeting" };
 
     public async Task<PagedResult<MobileNotificationDto>> GetFeedAsync(
         int memberId, int page, int pageSize, int days, string? types)
@@ -83,19 +84,10 @@ public class MobileNotificationFeedService : IMobileNotificationFeedService
 
         // Kill-switch: drop any club/district whose club→district→zone chain has an inactive link,
         // exactly as PushDispatcher does when choosing recipients. Batched — one query, no N+1.
-        var (clubIds, districtIds, zoneIds) = await FilterActiveScopeAsync(
+        var (clubIds, districtIds) = await FilterActiveScopeAsync(
             conn, scopes.Clubs.Select(c => c.Id).ToList(), scopes.Districts.Select(d => d.Id).ToList());
 
         if (clubIds.Count == 0 && districtIds.Count == 0) return empty;
-
-        // RI sub-groups this member belongs to — needed for Scope='ri' rows whose
-        // RecipientTarget is 'subgroups' (see WhatsAppScheduledSendBackgroundService).
-        var subgroupIds = (await conn.QueryAsync<int>(@"
-            SELECT DISTINCT sm.fk_sub_group_id
-            FROM sub_group_members sm
-            JOIN sub_groups sg ON sg.pk_sub_group_id = sm.fk_sub_group_id AND sg.Scope = 'ri' AND sg.isdeleted = 0
-            WHERE sm.fk_member_master_profile_id = @MemberId AND sm.isdeleted = 0",
-            new { MemberId = memberId })).ToList();
 
         // Per-member notification toggles from the mobile Settings screen
         // (MobileMemberSettingsController). A member who switched a module OFF must not get
@@ -122,18 +114,19 @@ public class MobileNotificationFeedService : IMobileNotificationFeedService
         if (clubIds.Count > 0) p.Add("ClubIds", clubIds);
         if (districtIds.Count > 0) p.Add("DistrictIds", districtIds);
 
-        var ri = BuildRiTargetParams(p, zoneIds, districtIds, subgroupIds);
-
         var legs = new List<Leg>();
 
         if (wanted.Contains("announcement") && prefs.NotifyAnnouncements)
-            legs.Add(AnnouncementLeg(clubIds.Count > 0, districtIds.Count > 0, ri));
+            legs.Add(AnnouncementLeg(clubIds.Count > 0, districtIds.Count > 0));
         if (wanted.Contains("event") && prefs.NotifyEvents)
-            legs.Add(EventLeg(clubIds.Count > 0, districtIds.Count > 0, ri));
+            legs.Add(EventLeg(clubIds.Count > 0, districtIds.Count > 0));
         if (wanted.Contains("newsletter") && prefs.NotifyNewsletters)
-            legs.Add(NewsletterLeg(clubIds.Count > 0, districtIds.Count > 0, ri));
+            legs.Add(NewsletterLeg(clubIds.Count > 0, districtIds.Count > 0));
         if (wanted.Contains("document") && prefs.NotifyDocuments)
-            legs.Add(DocumentLeg(clubIds.Count > 0, districtIds.Count > 0, ri));
+            legs.Add(DocumentLeg(clubIds.Count > 0, districtIds.Count > 0));
+        if (wanted.Contains("meeting") && clubIds.Count > 0
+            && (await FeatureGate.OnAsync(_connectionString)).Contains(MeetingsService.FeatureKey))
+            legs.Add(MeetingLeg());
 
         if (wanted.Contains("project"))
             foreach (var t in yearTables)
@@ -148,6 +141,25 @@ public class MobileNotificationFeedService : IMobileNotificationFeedService
             legs.Add(SelfGreetingLeg("BirthDate", "Birthday", "IsEnableBirthdayNotification"));
             legs.Add(SelfGreetingLeg("AnniversaryDate", "Anniversary", "IsEnableAnniversaryNotification"));
         }
+
+        // Engagement highlights (milestones, new Paul Harris Fellows) of the member's clubs, while that module is on.
+        if (wanted.Contains("highlight") && clubIds.Count > 0 && await EngagementService.IsOnAsync(_connectionString))
+            legs.Add(HighlightLeg());
+
+        // Grant notifications are addressed to the member (GrantService); read only while the module is switched on.
+        if (wanted.Contains("grant") && (await FeatureGate.OnAsync(_connectionString)).Contains("grants"))
+            legs.Add(GrantLeg());
+
+        // Volunteer slot and meeting duty reminders (VolunteerReminderBackgroundService), while the module is switched on.
+        if ((wanted.Contains("volunteer") || wanted.Contains("meeting_duty")) && (await FeatureGate.OnAsync(_connectionString)).Contains("volunteers"))
+        {
+            if (wanted.Contains("volunteer")) legs.Add(VolunteerLeg());
+            if (wanted.Contains("meeting_duty")) legs.Add(MeetingDutyLeg());
+        }
+
+        // "Bring a guest" prompts sent to this member (InvitePromptService), while the feature is on.
+        if (wanted.Contains("invite") && clubIds.Count > 0 && await FeatureGate.IsOnAsync("contacts_growth", _connectionString))
+            legs.Add(InviteLeg());
 
         if (legs.Count == 0) return empty;
 
@@ -201,41 +213,39 @@ public class MobileNotificationFeedService : IMobileNotificationFeedService
     }
 
     /// <summary>
-    /// Keep only clubs/districts whose whole club→district→zone chain is active, and collect the
-    /// zone ids they resolve to (needed for RI rows targeted at zones). Two queries, no N+1 —
+    /// Keep only clubs/districts whose whole club→district→zone chain is active. Two queries, no N+1 —
     /// KillSwitchHelper's per-id helpers open a fresh connection each call and would be O(scope).
     /// </summary>
-    private static async Task<(List<int> ClubIds, List<int> DistrictIds, List<int> ZoneIds)> FilterActiveScopeAsync(
+    private static async Task<(List<int> ClubIds, List<int> DistrictIds)> FilterActiveScopeAsync(
         MySqlConnection conn, List<int> clubIds, List<int> districtIds)
     {
         var clubs = new List<int>();
         var districts = new HashSet<int>();
-        var zones = new HashSet<int>();
 
         if (clubIds.Count > 0)
         {
-            var rows = await conn.QueryAsync<(int ClubId, int DistrictId, int ZoneId)>(@"
-                SELECT c.pk_club_id, d.pk_district_id, d.fk_zone_id
+            var rows = await conn.QueryAsync<(int ClubId, int DistrictId)>(@"
+                SELECT c.pk_club_id, d.pk_district_id
                 FROM club_master c
                 JOIN district_master d ON d.pk_district_id = c.fk_district_id AND d.isdeleted = 0 AND d.IsActive = 1
                 JOIN zone_master z ON z.pk_zone_id = d.fk_zone_id AND z.isdeleted = 0 AND z.IsActive = 1
                 WHERE c.pk_club_id IN @Ids AND c.isdeleted = 0 AND c.IsActive = 1",
                 new { Ids = clubIds });
-            foreach (var r in rows) { clubs.Add(r.ClubId); districts.Add(r.DistrictId); zones.Add(r.ZoneId); }
+            foreach (var r in rows) { clubs.Add(r.ClubId); districts.Add(r.DistrictId); }
         }
 
         if (districtIds.Count > 0)
         {
-            var rows = await conn.QueryAsync<(int DistrictId, int ZoneId)>(@"
-                SELECT d.pk_district_id, d.fk_zone_id
+            var rows = await conn.QueryAsync<int>(@"
+                SELECT d.pk_district_id
                 FROM district_master d
                 JOIN zone_master z ON z.pk_zone_id = d.fk_zone_id AND z.isdeleted = 0 AND z.IsActive = 1
                 WHERE d.pk_district_id IN @Ids AND d.isdeleted = 0 AND d.IsActive = 1",
                 new { Ids = districtIds });
-            foreach (var r in rows) { districts.Add(r.DistrictId); zones.Add(r.ZoneId); }
+            districts.UnionWith(rows);
         }
 
-        return (clubs.Distinct().ToList(), districts.ToList(), zones.ToList());
+        return (clubs.Distinct().ToList(), districts.ToList());
     }
 
     /// <summary>
@@ -309,66 +319,29 @@ public class MobileNotificationFeedService : IMobileNotificationFeedService
         public bool NotifyDocuments { get; set; } = true;
     }
 
-    /// <summary>RI-scope targeting fragments, built once and reused verbatim by every leg.</summary>
-    private sealed record RiTarget(string Zones, string Districts, string Subgroups);
-
-    private static RiTarget BuildRiTargetParams(
-        DynamicParameters p, List<int> zoneIds, List<int> districtIds, List<int> subgroupIds)
-    {
-        // RecipientZoneIds / RecipientDistrictIds / RecipientSubgroupIds are comma-separated TEXT.
-        // FIND_IN_SET can't take a list, so one OR'd term per id the member holds (typically 1-3).
-        string Terms(string col, List<int> ids, string prefix)
-        {
-            if (ids.Count == 0) return "";
-            var terms = new List<string>();
-            for (int i = 0; i < ids.Count; i++)
-            {
-                var name = $"{prefix}{i}";
-                p.Add(name, ids[i]);
-                terms.Add($"FIND_IN_SET(@{name}, REPLACE(IFNULL({{0}}.{col}, ''), ' ', '')) > 0");
-            }
-            return "(" + string.Join(" OR ", terms) + ")";
-        }
-
-        return new RiTarget(
-            Terms("RecipientZoneIds", zoneIds, "riz"),
-            Terms("RecipientDistrictIds", districtIds, "rid"),
-            Terms("RecipientSubgroupIds", subgroupIds, "rig"));
-    }
-
     /// <summary>
     /// Visibility predicate for one communications table.
     ///
-    /// The three arms are mutually exclusive by construction, so a row can never be counted twice:
-    ///   ri       → Scope = 'ri'
-    ///   district → Scope &lt;&gt; 'ri' AND fk_club_id is 0/NULL   (verified in prod: 0 rows carry BOTH
-    ///   club     → Scope &lt;&gt; 'ri' AND fk_club_id &gt; 0        a club id and a district id)
+    /// The two arms are mutually exclusive by construction, so a row can never be counted twice:
+    ///   district → fk_club_id is 0/NULL   (verified in prod: 0 rows carry BOTH
+    ///   club     → fk_club_id &gt; 0        a club id and a district id)
+    /// The caller returns early when the member has neither, so at least one arm is always present.
     /// </summary>
-    private static string ScopeWhere(string a, bool hasClubs, bool hasDistricts, RiTarget ri, bool hasSubgroupColumn)
+    private static string ScopeWhere(string a, bool hasClubs, bool hasDistricts)
     {
         var arms = new List<string>();
 
         if (hasClubs)
-            arms.Add($"(IFNULL({a}.Scope, '') <> 'ri' AND {a}.fk_club_id > 0 AND {a}.fk_club_id IN @ClubIds)");
+            arms.Add($"({a}.fk_club_id > 0 AND {a}.fk_club_id IN @ClubIds)");
 
         if (hasDistricts)
-            arms.Add($"(IFNULL({a}.Scope, '') <> 'ri' AND ({a}.fk_club_id = 0 OR {a}.fk_club_id IS NULL) AND {a}.fk_district_id IN @DistrictIds)");
-
-        // RI rows: RecipientTarget NULL/'' means "everyone" (14 of 15 live RI announcements).
-        var riArms = new List<string> { $"IFNULL(NULLIF({a}.RecipientTarget, ''), 'all') = 'all'" };
-        if (!string.IsNullOrEmpty(ri.Zones))
-            riArms.Add($"({a}.RecipientTarget = 'zones' AND {string.Format(ri.Zones, a)})");
-        if (!string.IsNullOrEmpty(ri.Districts))
-            riArms.Add($"({a}.RecipientTarget = 'districts' AND {string.Format(ri.Districts, a)})");
-        if (hasSubgroupColumn && !string.IsNullOrEmpty(ri.Subgroups))
-            riArms.Add($"({a}.RecipientTarget = 'subgroups' AND {string.Format(ri.Subgroups, a)})");
-        arms.Add($"(IFNULL({a}.Scope, '') = 'ri' AND ({string.Join(" OR ", riArms)}))");
+            arms.Add($"(({a}.fk_club_id = 0 OR {a}.fk_club_id IS NULL) AND {a}.fk_district_id IN @DistrictIds)");
 
         return "(" + string.Join(" OR ", arms) + ")";
     }
 
     private static string ScopeKind(string a) =>
-        $"CASE WHEN IFNULL({a}.Scope, '') = 'ri' THEN 'ri' WHEN {a}.fk_club_id > 0 THEN 'club' ELSE 'district' END";
+        $"CASE WHEN {a}.fk_club_id > 0 THEN 'club' ELSE 'district' END";
 
     /// <summary>
     /// Site-relative media path, matching the CASE already used by MobileCalendarController /
@@ -377,7 +350,6 @@ public class MobileNotificationFeedService : IMobileNotificationFeedService
     private static string MediaPath(string a, string col, string folder) => $@"
         CASE WHEN {a}.{col} IS NULL OR {a}.{col} = '' THEN NULL
              WHEN {a}.{col} LIKE '/%' THEN {a}.{col}
-             WHEN IFNULL({a}.Scope, '') = 'ri' THEN CONCAT('/Documents/{folder}/ri/', {a}.{col})
              WHEN {a}.fk_district_id IS NOT NULL AND {a}.fk_district_id > 0 THEN CONCAT('/Documents/{folder}/Group', {a}.fk_district_id, '/', {a}.{col})
              ELSE CONCAT('/Documents/{folder}/Group', {a}.fk_club_id, '/', {a}.{col}) END";
 
@@ -386,7 +358,7 @@ public class MobileNotificationFeedService : IMobileNotificationFeedService
     // fail with "Illegal mix of collations" (same fix as ProjectPushBackgroundService).
     private static string Str(string expr) => $"CONVERT({expr} USING utf8mb4) COLLATE utf8mb4_general_ci";
 
-    private static Leg AnnouncementLeg(bool hasClubs, bool hasDistricts, RiTarget ri) => new(
+    private static Leg AnnouncementLeg(bool hasClubs, bool hasDistricts) => new(
         Cols: new[]
         {
             Str("'announcement'"), "a.pk_announcement_id", "0",
@@ -404,9 +376,9 @@ public class MobileNotificationFeedService : IMobileNotificationFeedService
             WHERE a.isdeleted = 0
               AND a.PublishDateTime >= @From AND a.PublishDateTime <= NOW()
               AND (a.ExpiryDateTime IS NULL OR a.ExpiryDateTime >= NOW())
-              AND {ScopeWhere("a", hasClubs, hasDistricts, ri, hasSubgroupColumn: true)}");
+              AND {ScopeWhere("a", hasClubs, hasDistricts)}");
 
-    private static Leg EventLeg(bool hasClubs, bool hasDistricts, RiTarget ri) => new(
+    private static Leg EventLeg(bool hasClubs, bool hasDistricts) => new(
         Cols: new[]
         {
             Str("'event'"), "e.pk_upcoming_event_id", "0",
@@ -422,9 +394,9 @@ public class MobileNotificationFeedService : IMobileNotificationFeedService
             WHERE e.isdeleted = 0
               AND e.PublishDate >= @From
               AND {OcvLiveVisibility.UpcomingEvents("e")}
-              AND {ScopeWhere("e", hasClubs, hasDistricts, ri, hasSubgroupColumn: true)}");
+              AND {ScopeWhere("e", hasClubs, hasDistricts)}");
 
-    private static Leg NewsletterLeg(bool hasClubs, bool hasDistricts, RiTarget ri) => new(
+    private static Leg NewsletterLeg(bool hasClubs, bool hasDistricts) => new(
         Cols: new[]
         {
             Str("'newsletter'"), "n.pk_newsletter_id", "IFNULL(n.fk_year_id, 0)",
@@ -441,9 +413,9 @@ public class MobileNotificationFeedService : IMobileNotificationFeedService
             WHERE n.isdeleted = 0
               AND n.PublishDateTime >= @From
               AND {OcvLiveVisibility.Newsletters("n")}
-              AND {ScopeWhere("n", hasClubs, hasDistricts, ri, hasSubgroupColumn: true)}");
+              AND {ScopeWhere("n", hasClubs, hasDistricts)}");
 
-    private static Leg DocumentLeg(bool hasClubs, bool hasDistricts, RiTarget ri) => new(
+    private static Leg DocumentLeg(bool hasClubs, bool hasDistricts) => new(
         Cols: new[]
         {
             Str("'document'"), "d.pk_document_id", "0",
@@ -453,13 +425,33 @@ public class MobileNotificationFeedService : IMobileNotificationFeedService
             "d.PublishDateTime",
             Str("'document'"), Str("d.AccessType")
         },
-        // club_documents has NO RecipientSubgroupIds column (unlike the other three tables).
         FromWhere: $@"
             FROM club_documents d
             WHERE d.isdeleted = 0
               AND d.PublishDateTime >= @From
               AND {OcvLiveVisibility.ClubDocuments("d")}
-              AND {ScopeWhere("d", hasClubs, hasDistricts, ri, hasSubgroupColumn: false)}");
+              AND {ScopeWhere("d", hasClubs, hasDistricts)}");
+
+    // In-app meeting reminder (N8 Meetings): it arrives ReminderLeadHours before the meeting, or when the meeting is
+    // entered if that is later. A meeting entered after it took place (attendance logged afterwards) is no reminder.
+    private static readonly string MeetingRemindAt =
+        $"GREATEST(DATE_SUB(a.EventDateTime, INTERVAL {MeetingsService.ReminderLeadHours} HOUR), a.created_date)";
+
+    private static Leg MeetingLeg() => new(
+        Cols: new[]
+        {
+            Str("'meeting'"), "a.pk_attendance_id", "0",
+            "a.fk_club_id", "0", Str("'club'"),
+            Str("a.EventName"), Str("a.Description"), Str("NULL"),
+            Str("CASE WHEN a.MeetingMode IN ('online', 'hybrid') THEN a.MeetingLink END"),
+            MeetingRemindAt,
+            Str("'club_meeting'"), Str("CONCAT(a.MeetingMode, '|', DATE_FORMAT(a.EventDateTime, '%Y-%m-%dT%H:%i:%s'))")
+        },
+        FromWhere: $@"
+            FROM club_attendance a
+            WHERE a.fk_club_id IN @ClubIds AND a.isdeleted = 0
+              AND a.created_date < a.EventDateTime
+              AND {MeetingRemindAt} <= NOW() AND {MeetingRemindAt} >= @From");
 
     /// <summary>
     /// One project leg per (year table × scope). Club and district scopes are SEPARATE legs on
@@ -469,6 +461,55 @@ public class MobileNotificationFeedService : IMobileNotificationFeedService
     /// Filter is the canonical public one, written WITHOUT a `NOT (x AND y)` — that pattern
     /// silently drops every row where y is NULL (this repo lost 89,578 project rows to it).
     /// </summary>
+    /// <summary>Grant application notifications (one row per recipient, written by GrantService). Extra carries
+    /// the application id for the deep link.</summary>
+    private static Leg GrantLeg() => new(
+        Cols: new[]
+        {
+            Str("'grant'"), "gn.pk_notification_id", "0",
+            "ga.fk_club_id", "ga.fk_district_id", Str("'club'"),
+            Str("gn.title"), Str("gn.body"), Str("NULL"), Str("NULL"),
+            "gn.created_date",
+            Str("'grant_application'"), Str("CAST(gn.fk_application_id AS CHAR)")
+        },
+        FromWhere: @"
+            FROM grant_notifications gn
+            JOIN grant_applications ga ON ga.pk_application_id = gn.fk_application_id
+            WHERE gn.fk_member_id = @MemberId AND gn.created_date >= @From");
+
+    /// <summary>The member's volunteer slot reminders (one per sign-up, when the reminder went out). The id is the
+    /// sheet's, for the deep link.</summary>
+    private static Leg VolunteerLeg() => new(
+        Cols: new[]
+        {
+            Str("'volunteer'"), "sh.pk_sheet_id", "0",
+            "sh.fk_club_id", "NULL", Str("'club'"),
+            Str("CONCAT('Reminder: ', sl.task)"), Str("CONCAT(sh.title, ', ', DATE_FORMAT(sl.starts_at, '%d %b %Y %H:%i'))"),
+            Str("NULL"), Str("NULL"),
+            "su.reminder_sent_at",
+            Str("'volunteer_sheet'"), Str("NULL")
+        },
+        FromWhere: @"
+            FROM volunteer_signups su
+            JOIN volunteer_slots sl ON sl.pk_slot_id = su.fk_slot_id
+            JOIN volunteer_sheets sh ON sh.pk_sheet_id = sl.fk_sheet_id
+            WHERE su.fk_member_id = @MemberId AND su.reminder_sent_at >= @From");
+
+    /// <summary>The member's meeting duty reminders.</summary>
+    private static Leg MeetingDutyLeg() => new(
+        Cols: new[]
+        {
+            Str("'meeting_duty'"), "d.pk_duty_id", "0",
+            "d.fk_club_id", "NULL", Str("'club'"),
+            Str("CONCAT('Meeting duty: ', d.duty)"), Str("CONCAT('Meeting on ', DATE_FORMAT(d.meeting_date, '%d %b %Y'))"),
+            Str("NULL"), Str("NULL"),
+            "d.reminder_sent_at",
+            Str("'meeting_duty'"), Str("NULL")
+        },
+        FromWhere: @"
+            FROM meeting_duties d
+            WHERE d.fk_member_id = @MemberId AND d.reminder_sent_at >= @From");
+
     private static Leg ProjectLeg(YearTableInfo t, bool districtScoped) => new(
         Cols: new[]
         {
@@ -486,7 +527,6 @@ public class MobileNotificationFeedService : IMobileNotificationFeedService
                     ? "p.fk_club_id = 0 AND p.fk_district_id IN @DistrictIds"
                     : "p.fk_club_id IN @ClubIds")}
               AND p.isdeleted = 0 AND p.is_active = 1
-              AND (COALESCE(p.approval_status, '') = '' OR p.approval_status = 'Approved')
               AND COALESCE(p.created_date, p.project_date) >= @From");
 
     /// <summary>
@@ -501,10 +541,33 @@ public class MobileNotificationFeedService : IMobileNotificationFeedService
              THEN STR_TO_DATE(CONCAT(YEAR(CURDATE()),     '-', DATE_FORMAT(m.{dateCol}, '%m-%d'), ' 08:00:00'), '%Y-%m-%d %H:%i:%s')
              ELSE STR_TO_DATE(CONCAT(YEAR(CURDATE()) - 1, '-', DATE_FORMAT(m.{dateCol}, '%m-%d'), ' 08:00:00'), '%Y-%m-%d %H:%i:%s') END";
 
-    private const string ProfilePhotoCase = @"
+    internal const string ProfilePhotoCase = @"
         CASE WHEN IFNULL(m.ProfilePhotoPath, '') = '' THEN NULL
              WHEN m.ProfilePhotoPath LIKE '/Documents/directory/%' THEN m.ProfilePhotoPath
              ELSE CONCAT('/Documents/directory/', SUBSTRING_INDEX(m.ProfilePhotoPath, '/', -1)) END";
+
+    /// <summary>
+    /// Engagement highlights (EngagementService): membership milestones and new Paul Harris Fellows in the member's
+    /// clubs. A PHF whose designation was removed drops out. Title carries the member's name and Extra
+    /// "MILESTONE:&lt;years&gt;" or "PHF:&lt;level&gt;"; <see cref="ToDto"/> turns them into display text.
+    /// </summary>
+    private static Leg HighlightLeg() => new(
+        Cols: new[]
+        {
+            Str("'highlight'"), "e.pk_engagement_event_id", "0",
+            "e.fk_club_id", "e.fk_district_id", Str("'club'"),
+            Str("m.MemberName"), Str("NULL"),
+            Str(ProfilePhotoCase),
+            Str("NULL"),
+            "e.created_date",
+            Str("'engagement_highlight'"), Str("CONCAT(e.event_type, ':', e.level)")
+        },
+        FromWhere: @"
+            FROM engagement_events e
+            JOIN member_master_profile m ON m.pk_member_master_profile_id = e.fk_member_master_profile_id AND m.isdeleted = 0
+            LEFT JOIN member_foundation_designations d ON d.pk_member_designation_id = e.fk_designation_id
+            WHERE e.fk_club_id IN @ClubIds AND e.created_date >= @From
+              AND (e.fk_designation_id IS NULL OR d.isdeleted = 0)");
 
     /// <summary>
     /// Every celebrant (birthday + anniversary) in the member's own clubs whose date has come
@@ -539,7 +602,7 @@ public class MobileNotificationFeedService : IMobileNotificationFeedService
     /// and pushed every project/announcement off the screen.
     ///
     /// There is no stored greeting row worth replaying instead: greeting_send_log only reaches
-    /// back to 2026-06-30 and the majority of its rows are Status='skipped' (no WhatsApp credit /
+    /// back to 2026-06-30 and the majority of its rows are Status='skipped' (no credit /
     /// no device token), so it under-reports what members should see.
     ///
     /// Title carries the celebrant names, Extra carries "birthdays/anniversaries" counts; both are
@@ -585,6 +648,22 @@ public class MobileNotificationFeedService : IMobileNotificationFeedService
               AND cm.fk_club_id IN @ClubIds AND cm.IsActive = 1 AND cm.isdeleted = 0
               AND m.{dateCol} IS NOT NULL
               AND {OccExpr(dateCol)} >= @GreetFrom");
+
+    // One row per prompt this member received (invite_prompt_log). The app opens its "invite a guest" screen for
+    // the club, which reads the member's link from GET api/clubs/{clubId}/invite-link.
+    private static Leg InviteLeg() => new(
+        Cols: new[]
+        {
+            Str("'invite'"), "l.pk_id", "0", "l.fk_club_id", "c.fk_district_id", Str("'club'"),
+            Str("'Bring a guest to the next meeting'"),
+            Str("CONCAT('Meeting on ', DATE_FORMAT(ip.meeting_date, '%d %b %Y'), '. Share your personal invite link with a guest.')"),
+            Str("NULL"), Str("NULL"), "l.created_date", Str("'invite_guest'"), Str("DATE_FORMAT(ip.meeting_date, '%Y-%m-%d')")
+        },
+        FromWhere: @"
+            FROM invite_prompt_log l
+            JOIN invite_prompts ip ON ip.pk_invite_prompt_id = l.fk_invite_prompt_id
+            JOIN club_master c ON c.pk_club_id = l.fk_club_id
+            WHERE l.fk_member_id = @MemberId AND l.fk_club_id IN @ClubIds AND l.created_date >= @From");
 
     // ══════════════════════════════════════════════════════════════════════════════════════
     // Materialisation
@@ -724,11 +803,35 @@ public class MobileNotificationFeedService : IMobileNotificationFeedService
                         ? ed.ToString("dd MMM yyyy, h:mm tt")
                         : $"{ed:dd MMM yyyy, h:mm tt} · {dto.Body}";
                 break;
+            case "meeting":
+            {
+                // Extra holds "<mode>|<meeting time>": the reminder names the time, the mode and, online or hybrid, the join link.
+                var parts = (r.Extra ?? "").Split('|', 2);
+                var at = parts.Length == 2 && DateTime.TryParse(parts[1], out var md) ? md.ToString("dd MMM yyyy, h:mm tt") : null;
+                dto.Title = $"Meeting reminder: {dto.Title}";
+                dto.Body = string.Join(" · ", new[] { at, MeetingsService.ModeLabel(parts[0]), r.LinkUrl }
+                    .Where(s => !string.IsNullOrEmpty(s)));
+                break;
+            }
             case "newsletter":
                 dto.Body ??= "A new newsletter has been published.";
                 break;
             case "document":
                 dto.Body ??= "A new document has been published.";
+                break;
+            case "highlight":
+            {
+                // Title holds the member's name, Extra "MILESTONE:5" or "PHF:2" (see HighlightLeg).
+                var parts = (r.Extra ?? "").Split(':');
+                var level = parts.Length > 1 && int.TryParse(parts[1], out var lv) ? lv : 0;
+                var name = r.Title ?? "";
+                dto.Title = $"{name}: {EngagementService.Label(parts[0], level)}";
+                dto.Body = EngagementService.Sentence(parts[0], level, name, dto.SourceName);
+                break;
+            }
+            case "grant":
+                // the deep link opens the application, not the notification row
+                dto.DeepLink.EntityId = int.TryParse(r.Extra, out var appId) ? appId : null;
                 break;
         }
 
@@ -737,7 +840,6 @@ public class MobileNotificationFeedService : IMobileNotificationFeedService
 
     private static string SourceName(FeedRow r, Dictionary<int, string> clubNames, Dictionary<int, string> districtNumbers)
     {
-        if (r.ScopeKind == "ri") return "Rotary International";
         if (r.ScopeKind == "district" && r.DistrictId is int did && districtNumbers.TryGetValue(did, out var num))
             return $"District {num}";
         if (r.ClubId is int cid && clubNames.TryGetValue(cid, out var name)) return name;

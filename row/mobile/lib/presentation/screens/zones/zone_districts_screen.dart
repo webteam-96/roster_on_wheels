@@ -69,9 +69,9 @@ class _ZoneDistrictsScreenState extends State<ZoneDistrictsScreen>
           .map((e) => DistrictModel.fromJson(e as Map<String, dynamic>))
           .toList();
       // Filter by assigned districts only for DistrictAdmin/DistrictMember roles.
-      // SuperAdmin and ZonalCoordinator see all districts in the zone.
+      // SuperAdmin sees all districts in the zone.
       List<DistrictModel> filtered = items;
-      if (!auth.isSuperAdmin && !auth.isZonalCoordinator &&
+      if (!auth.isSuperAdmin &&
           (auth.isDistrictAdmin || auth.isDistrictMember)) {
         final assigned = auth.assignedDistrictIds;
         if (assigned.isNotEmpty) {
@@ -102,9 +102,9 @@ class _ZoneDistrictsScreenState extends State<ZoneDistrictsScreen>
           .map((e) => ClubModel.fromJson(e as Map<String, dynamic>))
           .toList();
       // Filter by assigned clubs only for ClubAdmin/ClubMember roles.
-      // SuperAdmin, ZonalCoordinator, and DistrictAdmin see all clubs in the zone.
+      // SuperAdmin and DistrictAdmin see all clubs in the zone.
       List<ClubModel> filtered = items;
-      if (!auth.isSuperAdmin && !auth.isZonalCoordinator && !auth.isDistrictAdmin &&
+      if (!auth.isSuperAdmin && !auth.isDistrictAdmin &&
           (auth.isClubAdmin || auth.isClubMember)) {
         final assigned = auth.assignedClubIds;
         if (assigned.isNotEmpty) {
@@ -297,7 +297,7 @@ class _DistrictCard extends StatelessWidget {
       child: Container(
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(12),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -362,7 +362,7 @@ class _ClubCard extends StatelessWidget {
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(12),
         ),
         child: Row(
           children: [

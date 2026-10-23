@@ -20,7 +20,7 @@ class FeatureController extends ChangeNotifier {
   List<RegExp> _off = const [];
   Set<String> _offKeys = const {};
 
-  /// True when [path] (an app route such as `/clubs/3/pph-camps`) belongs to a module that is off.
+  /// True when [path] (an app route such as `/clubs/3/ocv-gov`) belongs to a module that is off.
   bool isPathOff(String path) => offPatternsMatch(_off, path);
 
   /// True when the module is usable. Unknown keys and a not-yet-loaded list count as on.

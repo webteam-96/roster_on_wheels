@@ -10,13 +10,11 @@ import {
   deleteProject,
   getProjectYears,
   getCurrentRotaryYear,
-  checkClubHasModerator,
 } from "@/services/api";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
@@ -34,7 +32,6 @@ import {
   ArrowLeft, Search, X, Plus, Pencil, Trash2, Eye,
   MoreHorizontal, FolderOpen, AlertTriangle, Info,
   ChevronDown, ChevronRight,
-  Clock, CheckCircle2, XCircle,
 } from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
 import Link from "next/link";
@@ -93,7 +90,6 @@ export default function ProjectsPage() {
 
   // Delete
   const [deleteTarget, setDeleteTarget] = useState<ProjectListItem | null>(null);
-  const [hasModerator, setHasModerator] = useState(false);
 
   // Expanded ongoing parents (show child projects)
   const [expandedParents, setExpandedParents] = useState<Set<number>>(new Set());
@@ -138,7 +134,6 @@ export default function ProjectsPage() {
             setLoading(false); // nothing to fetch — release the loader
           }
         }
-        checkClubHasModerator(clubId).then(r => setHasModerator(r.hasModerator)).catch(() => {});
       } catch (err: any) {
         setErrorMessage(err?.response?.data?.message || err?.response?.data || "Failed to initialize.");
         setLoading(false); // release the loader on init failure
@@ -282,12 +277,6 @@ export default function ProjectsPage() {
         <TableCell>{formatDate(project.projectDate)}</TableCell>
         <TableCell>{project.location || "-"}</TableCell>
         <TableCell className="text-right">{project.projectCost != null ? formatMoney(project.projectCost, project.currency) : "-"}</TableCell>
-        <TableCell>
-          {project.approvalStatus === "pending" ? <Badge className="bg-amber-500 text-white text-xs"><Clock className="h-3 w-3 mr-1" />Pending</Badge>
-           : project.approvalStatus === "approved" ? <Badge className="bg-green-600 text-white text-xs"><CheckCircle2 className="h-3 w-3 mr-1" />Approved</Badge>
-           : project.approvalStatus === "rejected" ? <Badge className="bg-red-600 text-white text-xs"><XCircle className="h-3 w-3 mr-1" />Rejected</Badge>
-           : null}
-        </TableCell>
         {canManage && (
           <TableCell>
             <DropdownMenu>
@@ -424,7 +413,6 @@ export default function ProjectsPage() {
                     <TableHead className="text-primary-foreground text-base font-semibold">Date</TableHead>
                     <TableHead className="text-primary-foreground text-base font-semibold">Location</TableHead>
                     <TableHead className="text-primary-foreground text-base font-semibold text-right">Cost</TableHead>
-                    <TableHead className="text-primary-foreground text-base font-semibold">Status</TableHead>
                     {canManage && (
                       <TableHead className="w-12 text-primary-foreground"></TableHead>
                     )}

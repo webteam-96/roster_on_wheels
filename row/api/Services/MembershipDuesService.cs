@@ -2513,8 +2513,6 @@ public class MembershipDuesService : IMembershipDuesService
             new { LinkId = duesId, Email = email, Mobile = mobile, Otp = otp });
 
         var emailSent = false;
-        var smsSent = false;
-        var whatsAppSent = false;
 
         if (!string.IsNullOrWhiteSpace(email))
         {
@@ -2533,9 +2531,9 @@ public class MembershipDuesService : IMembershipDuesService
             }
             catch { /* skip if email fails */ }
         }
-        // ROW sends no SMS or WhatsApp: the code goes by email only.
+        // The code goes by email only.
 
-        return emailSent || smsSent || whatsAppSent;
+        return emailSent;
     }
 
     public async Task<bool> VerifyOtpAsync(int duesId, VerifyOtpRequestDto dto)

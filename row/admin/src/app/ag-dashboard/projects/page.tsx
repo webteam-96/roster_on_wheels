@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import {
   Briefcase, Users, Clock, IndianRupee, ChevronLeft, ChevronRight, Search,
-  CheckCircle2, XCircle, X,
+  X,
 } from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
 import {
@@ -58,49 +58,6 @@ function ClubChip({ name, index }: { name: string; index: number }) {
       {name.length > 28 ? name.slice(0, 26) + "…" : name}
     </span>
   );
-}
-
-function CategoryChip({ category }: { category: string | null | undefined }) {
-  if (!category) return <span className="text-slate-300 text-xs">, </span>;
-  return (
-    <span
-      className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium bg-slate-100 text-slate-700 whitespace-nowrap"
-      title={category}
-    >
-      {category.length > 32 ? category.slice(0, 30) + "…" : category}
-    </span>
-  );
-}
-
-// Approval workflow status badge.
-//   pending  → amber
-//   approved → green
-//   rejected → red
-//   null     → em-dash (Club Service & legacy rows have no approval workflow)
-function ApprovalStatusChip({ status }: { status: string | null | undefined }) {
-  const s = (status || "").toLowerCase();
-  if (s === "pending") {
-    return (
-      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-amber-100 text-amber-800 border border-amber-200">
-        <Clock size={11} /> Pending
-      </span>
-    );
-  }
-  if (s === "approved") {
-    return (
-      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-100 text-emerald-800 border border-emerald-200">
-        <CheckCircle2 size={11} /> Approved
-      </span>
-    );
-  }
-  if (s === "rejected") {
-    return (
-      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-rose-100 text-rose-800 border border-rose-200">
-        <XCircle size={11} /> Rejected
-      </span>
-    );
-  }
-  return <span className="text-slate-300 text-xs">, </span>;
 }
 
 function FundingChip({ funding }: { funding: string }) {
@@ -214,8 +171,6 @@ function ProjectDetailModal({
               <DetailField label="Club">{d?.clubName || row.clubName || dash}</DetailField>
               <DetailField label="Date">{d?.date ? fmtDate(d.date) : row.date ? fmtDate(row.date) : dash}</DetailField>
               <DetailField label="Avenue of Service">{d?.avenue || row.avenue || dash}</DetailField>
-              <DetailField label="Category">{d?.category || row.category || dash}</DetailField>
-              <DetailField label="Sub Category">{d?.subCategory || dash}</DetailField>
               <DetailField label="Area of Focus">{d?.areaOfFocus || row.areaOfFocus || dash}</DetailField>
               <DetailField label="Location">{d?.location || dash}</DetailField>
               <DetailField label="Funding"><FundingChip funding={d?.funding || row.funding} /></DetailField>
@@ -238,9 +193,6 @@ function ProjectDetailModal({
                 {d?.isJointProject
                   ? `Yes${d.coHostName ? `: with ${d.coHostName}` : ""}${d.clubRole ? ` (${d.clubRole})` : ""}`
                   : "No"}
-              </DetailField>
-              <DetailField label="Approval Status">
-                <ApprovalStatusChip status={d?.approvalStatus ?? row.approvalStatus ?? null} />
               </DetailField>
             </div>
 
@@ -358,14 +310,6 @@ export default function AgProjectsPage() {
       .sort((a, b) => a.sortKey.localeCompare(b.sortKey));
   }, [data]);
 
-  const categoryData = useMemo(() => {
-    if (!data) return [];
-    return Object.entries(data.categoryCounts)
-      .map(([cat, count]) => ({ name: cat, count }))
-      .sort((a, b) => b.count - a.count)
-      .slice(0, 10);
-  }, [data]);
-
   // Avenue options come from the data itself, so only avenues these clubs actually
   // have projects in are offered — no dead options.
   const avenueOptions = useMemo(() => {
@@ -387,7 +331,6 @@ export default function AgProjectsPage() {
       return (
         r.title.toLowerCase().includes(q) ||
         r.clubName.toLowerCase().includes(q) ||
-        (r.category ?? "").toLowerCase().includes(q) ||
         (r.avenue ?? "").toLowerCase().includes(q) ||
         (r.funding ?? "").toLowerCase().includes(q)
       );
@@ -514,38 +457,6 @@ export default function AgProjectsPage() {
         </div>
       </div>
 
-      {/* ───────── Top 10 Project Categories ───────── */}
-      <div className="bg-white rounded-xl border border-slate-200 p-5 shadow-sm">
-        <h3 className="text-sm font-semibold text-slate-800">Top 10 Project Categories</h3>
-        <p className="text-[11px] text-slate-500 mb-3">
-          Projects grouped by service category across all clubs
-        </p>
-        {categoryData.length === 0 ? (
-          <p className="text-xs text-slate-400 py-8 text-center">No category data.</p>
-        ) : (
-          <ResponsiveContainer width="100%" height={Math.max(240, categoryData.length * 40)}>
-            <BarChart data={categoryData} layout="vertical" margin={{ top: 4, right: 56, left: 8, bottom: 4 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#edf4fb" horizontal={false} />
-              <XAxis type="number" tick={{ fontSize: 11, fill: "#64748b" }} allowDecimals={false} />
-              <YAxis
-                type="category"
-                dataKey="name"
-                width={240}
-                tick={{ fontSize: 11, fill: "#4A5A70" }}
-                tickFormatter={(v: string) => (v.length > 30 ? v.slice(0, 28) + "…" : v)}
-              />
-              <Tooltip contentStyle={{ fontSize: 12, borderRadius: 8 }} />
-              <Bar dataKey="count" radius={[0, 4, 4, 0]} barSize={20}>
-                {categoryData.map((_, idx) => (
-                  <Cell key={idx} fill={idx === 0 ? ROTARY_GOLD : idx < 3 ? "#0067c8" : ROTARY_BLUE} />
-                ))}
-                <LabelList dataKey="count" position="right" style={{ fontSize: 11, fill: "#4A5A70", fontWeight: 600 }} />
-              </Bar>
-            </BarChart>
-          </ResponsiveContainer>
-        )}
-      </div>
-
       {/* ───────── All Projects table ───────── */}
       <div className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
         <div className="px-5 py-4 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
@@ -574,7 +485,7 @@ export default function AgProjectsPage() {
               <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
               <input
                 type="text"
-                placeholder="Search projects, clubs, categories…"
+                placeholder="Search projects, clubs…"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 className="border border-slate-200 rounded-lg pl-8 pr-3 py-1.5 text-sm w-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
@@ -589,13 +500,11 @@ export default function AgProjectsPage() {
               <tr>
                 <th className="px-3 py-3 text-left font-semibold whitespace-nowrap">Club</th>
                 <th className="px-3 py-3 text-left font-semibold whitespace-nowrap">Date</th>
-                <th className="px-3 py-3 text-left font-semibold whitespace-nowrap">Category</th>
                 <th className="px-3 py-3 text-left font-semibold">Title</th>
                 <th className="px-3 py-3 text-right font-semibold whitespace-nowrap">Cost (INR)</th>
                 <th className="px-3 py-3 text-right font-semibold whitespace-nowrap">Beneficiaries</th>
                 <th className="px-3 py-3 text-right font-semibold whitespace-nowrap">Man Hours</th>
                 <th className="px-3 py-3 text-left font-semibold whitespace-nowrap">Funding</th>
-                <th className="px-3 py-3 text-left font-semibold whitespace-nowrap">Status</th>
               </tr>
             </thead>
             <tbody>
@@ -613,9 +522,6 @@ export default function AgProjectsPage() {
                     </td>
                     <td className="px-3 py-2.5 text-slate-600 whitespace-nowrap text-xs">
                       {fmtDate(row.date)}
-                    </td>
-                    <td className="px-3 py-2.5 max-w-[200px]">
-                      <CategoryChip category={row.category} />
                     </td>
                     <td className="px-3 py-2.5 text-slate-800 font-medium max-w-[280px]">
                       <span title={row.title}>
@@ -640,15 +546,12 @@ export default function AgProjectsPage() {
                     <td className="px-3 py-2.5">
                       <FundingChip funding={row.funding} />
                     </td>
-                    <td className="px-3 py-2.5 whitespace-nowrap">
-                      <ApprovalStatusChip status={row.approvalStatus ?? null} />
-                    </td>
                   </tr>
                 );
               })}
               {pageRows.length === 0 && (
                 <tr>
-                  <td colSpan={9} className="px-6 py-10 text-center text-slate-400 text-sm">
+                  <td colSpan={7} className="px-6 py-10 text-center text-slate-400 text-sm">
                     {search ? "No projects match your search." : "No projects yet."}
                   </td>
                 </tr>
@@ -657,7 +560,7 @@ export default function AgProjectsPage() {
             {pageRows.length > 0 && (
               <tfoot>
                 <tr className="border-t-2 border-slate-300 bg-slate-50 font-bold text-slate-800 text-xs">
-                  <td className="px-3 py-3" colSpan={4}>
+                  <td className="px-3 py-3" colSpan={3}>
                     Page totals ({pageRows.length} project{pageRows.length === 1 ? "" : "s"})
                   </td>
                   <td className="px-3 py-3 text-right tabular-nums">
@@ -671,7 +574,6 @@ export default function AgProjectsPage() {
                       ? <PendingCell />
                       : fmtInt(pageRows.reduce((s, r) => s + (isManHoursPending(r) ? 0 : r.manHours || 0), 0))}
                   </td>
-                  <td className="px-3 py-3 text-slate-400">, </td>
                   <td className="px-3 py-3 text-slate-400">, </td>
                 </tr>
               </tfoot>

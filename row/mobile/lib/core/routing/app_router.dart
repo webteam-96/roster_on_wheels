@@ -44,7 +44,6 @@ import '../../presentation/screens/clubs/modules/event_payment_links/event_payme
 import '../../presentation/screens/clubs/modules/trf/trf_screen.dart';
 import '../../presentation/screens/clubs/modules/ocv_gov/live_documents_screen.dart';
 import '../../presentation/screens/clubs/modules/ocv_gov/ocv_gov_screen.dart';
-import '../../presentation/screens/clubs/modules/pph_camps/pph_camps_screen.dart';
 import '../../presentation/screens/clubs/modules/weblinks/weblinks_screen.dart';
 import '../../presentation/screens/clubs/modules/website_data/club_website_data_hub_screen.dart';
 import '../../presentation/screens/clubs/modules/website_data/club_website_theme_screen.dart';
@@ -79,52 +78,23 @@ import '../../presentation/screens/districts/modules/committee/district_committe
 import '../../presentation/screens/districts/modules/committee/district_committee_screen.dart';
 import '../../presentation/screens/districts/modules/committee/district_committee_sub_group_screen.dart';
 import '../../presentation/screens/districts/modules/district_events_screen.dart';
-import '../../presentation/screens/districts/modules/district_club_moderator_screen.dart';
 import '../../presentation/screens/districts/modules/district_citation_screen.dart';
-import '../../presentation/screens/districts/modules/district_rni_camp_screen.dart';
 import '../../presentation/screens/districts/modules/district_reports_screen.dart';
-import '../../presentation/screens/districts/modules/district_zonal_awards_screen.dart';
 import '../../presentation/screens/districts/modules/district_online_event_link_screen.dart';
 import '../../presentation/screens/districts/modules/district_event_payment_link_members_screen.dart';
 import '../../presentation/screens/districts/modules/district_club_dues_screen.dart';
 import '../../presentation/screens/districts/modules/district_ag_screen.dart';
 import '../../presentation/screens/districts/modules/district_cmr_month_detail_screen.dart';
-import '../../presentation/screens/districts/modules/district_rni_camp_attendance_screen.dart';
 import '../../presentation/screens/settings/settings_screen.dart';
 import '../../presentation/screens/settings/member_settings_screen.dart';
 import '../../presentation/screens/settings/rotary_years_screen.dart';
 import '../../presentation/screens/settings/designations_screen.dart';
-import '../../presentation/screens/settings/categories_screen.dart';
 import '../../presentation/screens/settings/area_of_focus_screen.dart';
 import '../../presentation/screens/admin/login_logs_screen.dart';
-import '../../presentation/screens/zonal_dashboard/zonal_dashboard_screen.dart';
-import '../../presentation/screens/club_moderator/club_moderator_screen.dart';
-import '../../presentation/screens/ri_director/ri_director_dashboard_screen.dart';
-import '../../presentation/screens/goal_setting/goal_oversight_screen.dart';
 import '../../presentation/screens/goal_setting/goal_setting_entry_screen.dart';
 import '../../presentation/screens/home/my_club_websites_screen.dart';
 import '../../presentation/screens/home/my_district_websites_screen.dart';
 import '../../presentation/screens/ag_reports/ag_reports_screen.dart';
-import '../../presentation/screens/ri_director/ri_director_announcements_screen.dart';
-import '../../presentation/screens/ri_director/ri_director_announcement_detail_screen.dart';
-import '../../presentation/screens/ri_director/ri_director_announcement_form_screen.dart';
-import '../../presentation/screens/ri_director/ri_director_upcoming_events_screen.dart';
-import '../../presentation/screens/ri_director/ri_director_upcoming_event_detail_screen.dart';
-import '../../presentation/screens/ri_director/ri_director_upcoming_event_form_screen.dart';
-import '../../presentation/screens/ri_director/ri_director_mass_emails_screen.dart';
-import '../../presentation/screens/ri_director/ri_director_mass_email_detail_screen.dart';
-import '../../presentation/screens/ri_director/ri_director_mass_email_form_screen.dart';
-import '../../presentation/screens/ri_director/ri_director_sub_group_form_screen.dart';
-import '../../presentation/screens/ri_director/ri_director_weblinks_screen.dart';
-import '../../presentation/screens/ri_director/ri_director_weblink_form_screen.dart';
-import '../../presentation/screens/ri_director/ri_director_sub_groups_screen.dart';
-import '../../presentation/screens/ri_director/ri_director_sub_group_detail_screen.dart';
-import '../../presentation/screens/ri_director/ri_director_documents_screen.dart';
-import '../../presentation/screens/ri_director/ri_director_document_form_screen.dart';
-import '../../presentation/screens/ri_director/ri_director_newsletters_screen.dart';
-import '../../presentation/screens/ri_director/ri_director_newsletter_detail_screen.dart';
-import '../../presentation/screens/ri_director/ri_director_newsletter_form_screen.dart';
-import '../../presentation/screens/ri_director/ri_director_reports_screen.dart';
 import '../../presentation/screens/home/home_screen.dart';
 import '../../presentation/screens/home/helpline_screen.dart';
 import '../../presentation/screens/zones/zone_districts_screen.dart';
@@ -157,14 +127,6 @@ import '../../data/models/wallet_models.dart';
 import '../../presentation/screens/clubs/modules/website_purchase/website_purchase_screen.dart';
 import '../../presentation/screens/privacy/my_data_screen.dart';
 
-/// Observes route pushes/pops on the root navigator so screens can refresh when
-/// a pushed route (e.g. an add/edit form) pops back to them. Screens opt in with
-/// the `RouteAware` mixin + `didPopNext()`. This is independent of whether a
-/// `context.push` future delivers its pop result, which proved unreliable for
-/// the RI-director add-then-refresh flow.
-final RouteObserver<ModalRoute<void>> appRouteObserver =
-    RouteObserver<ModalRoute<void>>();
-
 /// The live [GoRouter], exposed so non-widget code — specifically the push
 /// notification tap handlers in [DeepLinkService] — can navigate without a
 /// BuildContext. Assigned in [AppRouter.createRouter]; reassigned if the
@@ -194,7 +156,6 @@ class AppRouter {
     final router = GoRouter(
       // Re-evaluate redirect when auth OR the maintenance snapshot changes.
       refreshListenable: Listenable.merge([authProvider, maintenance, features]),
-      observers: [appRouteObserver],
       initialLocation: RouteNames.splash,
       redirect: (context, state) {
         if (authProvider.isCheckingAuth) return null;
@@ -208,11 +169,7 @@ class AppRouter {
         }
         // Redirect logged-in users away from auth screens (but NOT from /welcome)
         if (isLoggedIn && isPublic && loc != '/welcome' && loc != '/splash') {
-          // Mirror rotary-frontend: ZonalCoordinator-only users land on zonal dashboard
-          final isZonalOnly = authProvider.isZonalCoordinator
-              && !authProvider.isSuperAdmin
-              && !authProvider.isAdmin;
-          return isZonalOnly && !features.isPathOff(RouteNames.zonalDashboard) ? RouteNames.zonalDashboard : RouteNames.home;
+          return RouteNames.home;
         }
 
         // ── Module switches (FeatureController): skipped or switched-off modules ──
@@ -386,19 +343,8 @@ class AppRouter {
           ),
         ),
         GoRoute(path: '/districts/:id/district-events', builder: (_, state) => DistrictEventsScreen(districtId: int.parse(state.pathParameters['id']!))),
-        GoRoute(path: '/districts/:id/club-moderator', builder: (_, state) => DistrictClubModeratorScreen(districtId: int.parse(state.pathParameters['id']!))),
         GoRoute(path: '/districts/:id/district-citation', builder: (_, state) => DistrictCitationScreen(districtId: int.parse(state.pathParameters['id']!))),
-        GoRoute(path: '/districts/:id/rni-camp', builder: (_, state) => DistrictRniCampScreen(districtId: int.parse(state.pathParameters['id']!))),
-        GoRoute(
-          path: '/districts/:id/rni-camp/:campId/attendance',
-          builder: (_, state) => DistrictRniCampAttendanceScreen(
-            districtId: int.parse(state.pathParameters['id']!),
-            campId: int.parse(state.pathParameters['campId']!),
-            campTitle: state.uri.queryParameters['title'] ?? 'Camp Attendance',
-          ),
-        ),
         GoRoute(path: '/districts/:id/reports', builder: (_, state) => DistrictReportsScreen(districtId: int.parse(state.pathParameters['id']!))),
-        GoRoute(path: '/districts/:id/zonal-awards', builder: (_, state) => DistrictZonalAwardsScreen(districtId: int.parse(state.pathParameters['id']!))),
         GoRoute(path: '/districts/:id/online-event-link', builder: (_, state) => DistrictOnlineEventLinkScreen(districtId: int.parse(state.pathParameters['id']!))),
         GoRoute(
           path: '/districts/:id/event-payment-links/:linkId/members',
@@ -472,7 +418,6 @@ class AppRouter {
             );
           },
         ),
-        GoRoute(path: '/clubs/:id/pph-camps', builder: (_, state) => PphCampsScreen(clubId: int.parse(state.pathParameters['id']!))),
         GoRoute(path: '/clubs/:id/weblinks', builder: (_, state) => WeblinksScreen(clubId: int.parse(state.pathParameters['id']!))),
         GoRoute(path: '/clubs/:id/website-data', builder: (_, state) => ClubWebsiteDataHubScreen(clubId: int.parse(state.pathParameters['id']!))),
         GoRoute(
@@ -546,20 +491,15 @@ class AppRouter {
         GoRoute(path: RouteNames.textSize, builder: (_, __) => const TextSizeScreen()),
         GoRoute(path: RouteNames.rotaryYears, builder: (_, __) => const RotaryYearsScreen()),
         GoRoute(path: RouteNames.designations, builder: (_, __) => const DesignationsScreen()),
-        GoRoute(path: RouteNames.categories, builder: (_, __) => const CategoriesScreen()),
         GoRoute(path: RouteNames.areaOfFocus, builder: (_, __) => const AreaOfFocusScreen()),
 
         // Admin
         GoRoute(path: RouteNames.loginLogs, builder: (_, __) => const LoginLogsScreen()),
 
-        // Zonal Dashboard
+        // Dashboards and websites
         GoRoute(path: RouteNames.myClubWebsites, builder: (_, __) => const MyClubWebsitesScreen()),
         GoRoute(path: RouteNames.myDistrictWebsites, builder: (_, __) => const MyDistrictWebsitesScreen()),
         GoRoute(path: RouteNames.agReports, builder: (_, __) => const AgReportsScreen()),
-        GoRoute(path: RouteNames.zonalDashboard, builder: (_, __) => const ZonalDashboardScreen()),
-        GoRoute(path: RouteNames.clubModerator, builder: (_, __) => const ClubModeratorScreen()),
-        GoRoute(path: RouteNames.riDirector, builder: (_, __) => const RiDirectorDashboardScreen()),
-        GoRoute(path: RouteNames.goalOversight, builder: (_, __) => const GoalOversightScreen()),
         GoRoute(
           path: '/clubs/:id/goal-setting',
           builder: (_, state) => GoalSettingEntryScreen(
@@ -574,93 +514,6 @@ class AppRouter {
             entityId: int.parse(state.pathParameters['id']!),
           ),
         ),
-        GoRoute(path: RouteNames.riDirectorAnnouncements, builder: (_, __) => const RiDirectorAnnouncementsScreen()),
-        GoRoute(path: RouteNames.riDirectorAnnouncementAdd, builder: (_, __) => const RiDirectorAnnouncementFormScreen()),
-        GoRoute(
-          path: '/ri-director/announcements/:id/edit',
-          builder: (_, state) => RiDirectorAnnouncementFormScreen(
-            announcementId: int.parse(state.pathParameters['id']!),
-          ),
-        ),
-        GoRoute(
-          path: '/ri-director/announcements/:id',
-          builder: (_, state) => RiDirectorAnnouncementDetailScreen(
-            announcementId: int.parse(state.pathParameters['id']!),
-          ),
-        ),
-        GoRoute(path: RouteNames.riDirectorUpcomingEvents, builder: (_, __) => const RiDirectorUpcomingEventsScreen()),
-        GoRoute(path: RouteNames.riDirectorUpcomingEventAdd, builder: (_, __) => const RiDirectorUpcomingEventFormScreen()),
-        GoRoute(
-          path: '/ri-director/upcoming-events/:id/edit',
-          builder: (_, state) => RiDirectorUpcomingEventFormScreen(
-            eventId: int.parse(state.pathParameters['id']!),
-          ),
-        ),
-        GoRoute(
-          path: '/ri-director/upcoming-events/:id',
-          builder: (_, state) => RiDirectorUpcomingEventDetailScreen(
-            eventId: int.parse(state.pathParameters['id']!),
-          ),
-        ),
-        GoRoute(path: RouteNames.riDirectorMassEmails, builder: (_, __) => const RiDirectorMassEmailsScreen()),
-        GoRoute(path: RouteNames.riDirectorMassEmailCompose, builder: (_, __) => const RiDirectorMassEmailFormScreen()),
-        GoRoute(
-          path: '/ri-director/mass-emails/:id/edit',
-          builder: (_, state) => RiDirectorMassEmailFormScreen(
-            emailId: int.parse(state.pathParameters['id']!),
-          ),
-        ),
-        GoRoute(
-          path: '/ri-director/mass-emails/:id',
-          builder: (_, state) => RiDirectorMassEmailDetailScreen(
-            emailId: int.parse(state.pathParameters['id']!),
-          ),
-        ),
-        GoRoute(path: RouteNames.riDirectorWeblinks, builder: (_, __) => const RiDirectorWeblinksScreen()),
-        GoRoute(path: RouteNames.riDirectorWeblinkAdd, builder: (_, __) => const RiDirectorWeblinkFormScreen()),
-        GoRoute(
-          path: '/ri-director/weblinks/:id/edit',
-          builder: (_, state) => RiDirectorWeblinkFormScreen(
-            weblinkId: int.parse(state.pathParameters['id']!),
-          ),
-        ),
-        GoRoute(path: RouteNames.riDirectorSubGroups, builder: (_, __) => const RiDirectorSubGroupsScreen()),
-        GoRoute(path: RouteNames.riDirectorSubGroupAdd, builder: (_, __) => const RiDirectorSubGroupFormScreen()),
-        GoRoute(
-          path: '/ri-director/sub-groups/:id/edit',
-          builder: (_, state) => RiDirectorSubGroupFormScreen(
-            subGroupId: int.parse(state.pathParameters['id']!),
-          ),
-        ),
-        GoRoute(
-          path: '/ri-director/sub-groups/:id',
-          builder: (_, state) => RiDirectorSubGroupDetailScreen(
-            subGroupId: int.parse(state.pathParameters['id']!),
-          ),
-        ),
-        GoRoute(path: RouteNames.riDirectorDocuments, builder: (_, __) => const RiDirectorDocumentsScreen()),
-        GoRoute(path: RouteNames.riDirectorDocumentAdd, builder: (_, __) => const RiDirectorDocumentFormScreen()),
-        GoRoute(
-          path: '/ri-director/documents/:id/edit',
-          builder: (_, state) => RiDirectorDocumentFormScreen(
-            documentId: int.parse(state.pathParameters['id']!),
-          ),
-        ),
-        GoRoute(path: RouteNames.riDirectorNewsletters, builder: (_, __) => const RiDirectorNewslettersScreen()),
-        GoRoute(path: RouteNames.riDirectorNewsletterAdd, builder: (_, __) => const RiDirectorNewsletterFormScreen()),
-        GoRoute(
-          path: '/ri-director/newsletters/:id/edit',
-          builder: (_, state) => RiDirectorNewsletterFormScreen(
-            newsletterId: int.parse(state.pathParameters['id']!),
-          ),
-        ),
-        GoRoute(
-          path: '/ri-director/newsletters/:id',
-          builder: (_, state) => RiDirectorNewsletterDetailScreen(
-            newsletterId: int.parse(state.pathParameters['id']!),
-          ),
-        ),
-        GoRoute(path: RouteNames.riDirectorReports, builder: (_, __) => const RiDirectorReportsScreen()),
 
         // Unified Dashboard
         GoRoute(

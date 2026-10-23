@@ -29,10 +29,9 @@ export default function Page() {
       </p>
 
       <h2>Delivery</h2>
-      <p>ROW offers multiple delivery options. Currently, the following delivery options are available:</p>
+      <p>Currently, the following delivery option is available:</p>
       <ul>
         <li>Email confirmation: your payment confirmation and receipt will be sent via email.</li>
-        <li>SMS notification.</li>
       </ul>
 
       <h2>Cancelled or postponed events</h2>

@@ -29,11 +29,10 @@ namespace RotaryApi.Services;
 //   • District Dues and District Awards sections appear only when the district uses them that year.
 //
 // Schedule — HARD-CODED below (ScheduleOn / ScheduleMode / SendHour / recipient arrays), no appsettings:
-//   Mode "Test" (now) → District 3142 + the RI Director all-zones report, daily at the send hour (brand time zone), to the two
+//   Mode "Test" (now) → District 3142, daily at the send hour (brand time zone), to the two
 //                       test addresses (first = To, rest = CC).
 //   Mode "Live" (later) → on the 1st & 16th: every district to its District Governor (CC LiveCc; a district
-//                       with no DG email is skipped and LiveCc is told) and the all-zones report to every
-//                       active RI Director (Settings → RI Director, member_roles role 7).
+//                       with no DG email is skipped and LiveCc is told).
 // Scheduled sends are suppressed on a dev machine (remote DB) — same guard as the daily stats report.
 // The SuperAdmin screen's "Send test email" always sends (to TestRecipients).
 public interface IDistrictPerformanceReportService
@@ -44,9 +43,6 @@ public interface IDistrictPerformanceReportService
     Task<string> SendTestAsync(int districtId, int requestedByMemberId, CancellationToken ct = default);
     // The email body of an already-built report — the SuperAdmin screen's "Print" opens exactly this.
     string BuildPrintHtml(DistrictPerformanceReportResult result);
-    // RI Director report: every district, zone-wise (built from each district's own report).
-    Task<DistrictPerformanceReportResult> BuildZoneReportAsync(bool includeAttachment, CancellationToken ct = default);
-    Task<string> SendZoneTestAsync(int requestedByMemberId, CancellationToken ct = default);
     // catchUp = the API started after today's send hour: only districts with a VERIFIED "not sent
     // today" log are sent, so a restart can never mail the same district twice.
     Task RunScheduledAsync(bool catchUp, CancellationToken ct = default);
@@ -141,10 +137,9 @@ public class DistrictPerformanceReportService : IDistrictPerformanceReportServic
         _parentDomain = (config.GetSection("PleskSettings")["ParentDomain"] ?? RotaryApi.Services.Brand.ClubSiteParentDomain).Trim().Trim('.').ToLowerInvariant();
 
         // HARD-CODED (user 2026-09-17: no config, hard-code both email ids).
-        // LIVE since 2026-09-29 - the user verified both reports and asked for them to go to every
-        // District Governor and RI Director. On the 1st and 16th at the send hour (brand time zone): each district's report
-        // to its own DG (CC LiveCc; a district with no DG email is skipped and LiveCc is told), and the
-        // all-zones report to every active RI Director (Settings -> RI Director, member_roles role 7).
+        // LIVE since 2026-09-29 - the user verified the report and asked for it to go to every
+        // District Governor. On the 1st and 16th at the send hour (brand time zone): each district's report
+        // to its own DG (CC LiveCc; a district with no DG email is skipped and LiveCc is told).
         _enabled = ScheduleOn;
         _mode = ScheduleMode;
         _hour = SendHour;
@@ -160,17 +155,17 @@ public class DistrictPerformanceReportService : IDistrictPerformanceReportServic
     // The sample districts the rehearsal run mails (see PreviewDate). 3141 is the one the user has
     // been checking against, 3142 is the original test district.
     private static readonly string[] TestDistrictNumbers = { "3141", "3142" };
-    // The SuperAdmin screen's "Send test email" goes ONLY here - never to a DG or an RI Director,
+    // The SuperAdmin screen's "Send test email" goes ONLY here - never to a DG,
     // so the reports can be checked by hand at any time (user 2026-09-29).
     private static readonly string[] TestRecipientEmails = RotaryApi.Services.Brand.ReportRecipients;
-    // Live CC on every DG and RI Director mail: Naren only (user 2026-09-29 - "don't keep me").
+    // Live CC on every DG mail: Naren only (user 2026-09-29 - "don't keep me").
     private static readonly string[] LiveCcEmails = RotaryApi.Services.Brand.InternalCc.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
     private static readonly int[] LiveDayNumbers = { 1, 16 };
 
     // ── One-off rehearsal (user 2026-10-01) ─────────────────────────────────────────────────────
     // A dry run BEFORE the 16th so any problem can be fixed in time: on this exact date the morning
-    // job sends the sample district report + the RI Director all-zones report to the configured
-    // addresses ONLY. No District Governor and no RI Director is mailed, nothing is marked as a live
+    // job sends the sample district report to the configured
+    // addresses ONLY. No District Governor is mailed, nothing is marked as a live
     // run, and the real 16 Oct send is untouched. It is a DATE, not a day number, so it happens once
     // and never repeats; clear it (null) once it has served its purpose.
     private static readonly DateTime? PreviewDate = new DateTime(2026, 10, 6);
@@ -229,7 +224,7 @@ public class DistrictPerformanceReportService : IDistrictPerformanceReportServic
                 FROM district_performance_report_log l
                 LEFT JOIN district_master d ON d.pk_district_id = l.fk_district_id
                 ORDER BY l.pk_id DESC LIMIT 500")).ToList();   // one live run alone is ~48 rows
-                                                                  // (a mail per district + one per RI Director)
+                                                                  // (a mail per district)
         }
         catch (Exception ex)
         {
@@ -526,7 +521,6 @@ public class DistrictPerformanceReportService : IDistrictPerformanceReportServic
                 JOIN module_master mm ON mm.pk_module_id = pr.fk_module_id
                 LEFT JOIN club_master c ON c.pk_club_id = pr.fk_club_id
                 WHERE COALESCE(pr.isdeleted, 0) = 0
-                  AND LOWER(COALESCE(pr.approval_status, '')) <> 'rejected'
                   AND (pr.project_date IS NULL OR pr.project_date < @E1)
                   AND ( (COALESCE(pr.fk_club_id, 0) > 0 AND {activeClub})
                      OR (COALESCE(pr.fk_club_id, 0) = 0 AND pr.fk_district_id = @D) )", p)).ToList();
@@ -623,7 +617,7 @@ public class DistrictPerformanceReportService : IDistrictPerformanceReportServic
             return new CmrGridRow(c, cells, submitted);
         }).ToList();
 
-        // ── Communication (the district's own, published in the period) + PPH camps ─────────────────
+        // ── Communication (the district's own, published in the period) ─────────────────
         async Task<(long Total, long District, Dictionary<int, long> ByClub)> CountCommsAsync(string table, string dateCol)
         {
             var rows = (await conn.QueryAsync<CountByClub>($@"
@@ -642,8 +636,6 @@ public class DistrictPerformanceReportService : IDistrictPerformanceReportServic
         var announcements = await CountCommsAsync("announcements", "PublishDateTime");
         var events = await CountCommsAsync("upcoming_events", "PublishDate");
         var documents = await CountCommsAsync("club_documents", "PublishDateTime");
-        var pph = await CountCommsAsync("pph_camps", "CampDate");
-        foreach (var st in stats.Values) st.Mod["PPH Camps"] = pph.ByClub.GetValueOrDefault(st.Club.Id);
 
         // ── Club websites — ACTIVE only (as on today) ───────────────────────────────────────────
         var activeSites = (await conn.QueryAsync<WebsiteRow>($@"
@@ -770,11 +762,6 @@ public class DistrictPerformanceReportService : IDistrictPerformanceReportServic
               AND gf.FieldRole = 'Target' AND {activeClub}
               AND (ge.NumericValue IS NOT NULL OR COALESCE(ge.TextValue, '') <> '' OR ge.BoolValue IS NOT NULL)", p))
             if (stats.TryGetValue(gs.ClubId, out var st)) st.GoalCategoriesSet.Add(gs.CatId);
-        var lockedByCat = (await conn.QueryAsync<(int CatId, long N)>($@"
-            SELECT l.fk_category_id AS CatId, COUNT(DISTINCT l.fk_club_id) AS N
-            FROM goal_locks l JOIN club_master c ON c.pk_club_id = l.fk_club_id
-            WHERE l.EntityType = 'Club' AND l.fk_year_id = @Y AND l.IsLocked = 1 AND {activeClub}
-            GROUP BY l.fk_category_id", p)).ToDictionary(x => x.CatId, x => x.N);
 
         var goalData = await _goals.GetDistrictPerformanceGoalDataAsync(districtId, year.Id, includeAttachment);
 
@@ -814,8 +801,6 @@ public class DistrictPerformanceReportService : IDistrictPerformanceReportServic
             SELECT COUNT(*) FROM district_committee_group WHERE fk_district_id = @D AND fk_year_id = @Y AND COALESCE(isdeleted, 0) = 0 AND COALESCE(is_active, 1) = 1");
         long dAgs = await DistrictScalarAsync("Assistant Governors", @"
             SELECT COUNT(DISTINCT fk_member_id) FROM district_ag WHERE fk_district_id = @D AND fk_year_id = @Y AND COALESCE(isdeleted, 0) = 0 AND COALESCE(is_active, 1) = 1");
-        long dModerators = await DistrictScalarAsync("Club moderators", @"
-            SELECT COUNT(*) FROM district_club_moderator WHERE fk_district_id = @D AND COALESCE(isdeleted, 0) = 0 AND COALESCE(is_active, 1) = 1");
         long dAdmins = await DistrictScalarAsync("District admins", @"
             SELECT COUNT(DISTINCT fk_member_master_profile_id) FROM member_roles
             WHERE fk_role_id = 2 AND fk_district_id = @D AND COALESCE(fk_club_id, 0) = 0 AND IsActive = 1 AND COALESCE(isdeleted, 0) = 0");
@@ -850,9 +835,6 @@ public class DistrictPerformanceReportService : IDistrictPerformanceReportServic
                 if (stats.TryGetValue(t.ClubId, out var st)) st.TrfUsd = t.Usd;
         }
         catch (Exception ex) { _logger.LogWarning(ex, "Performance report: TRF amount failed"); }
-        await ClubCountAsync("Beneficiary Approvals", $@"
-            SELECT x.fk_club_id AS ClubId, COUNT(*) AS N FROM beneficiary_approval_requests x {xClub}
-              AND x.created_date >= @S AND x.created_date < @E1 GROUP BY x.fk_club_id");
         long ClubsTotal(string key) => stats.Values.Sum(s => s.Mod.GetValueOrDefault(key));
         long ClubsWith(string key) => stats.Values.Count(s => s.Mod.GetValueOrDefault(key) > 0);
 
@@ -997,7 +979,6 @@ public class DistrictPerformanceReportService : IDistrictPerformanceReportServic
             Items =
             {
                 new("OCV / GOV documents uploaded", N(ClubsTotal("OCV/GOV Documents"))),
-                new("PPH camps held", N(pph.ByClub.Where(kv => stats.ContainsKey(kv.Key)).Sum(kv => kv.Value))),
             },
         });
 
@@ -1021,8 +1002,6 @@ public class DistrictPerformanceReportService : IDistrictPerformanceReportServic
         // "Top 5 Clubs by Members" removed — no member figures outside Clubs & Members (user 2026-09-28).
 
         // ── At a glance (the first thing the DG sees) ────────────────────────────────────────────
-        var totalMembersGoal = headlineGoals.FirstOrDefault(g =>
-            g.Category.Equals("Membership", StringComparison.OrdinalIgnoreCase) && g.Metric.Equals("Total Members", StringComparison.OrdinalIgnoreCase));
         var totalGivingGoal = headlineGoals.FirstOrDefault(g =>
             g.Category.Equals("Foundation", StringComparison.OrdinalIgnoreCase) && g.Metric.Equals("Total Giving", StringComparison.OrdinalIgnoreCase));
         long cmrDue = cmrSubmitted + cmrPending + cmrNotStarted;
@@ -1085,39 +1064,6 @@ public class DistrictPerformanceReportService : IDistrictPerformanceReportServic
                                ? "Goals - District (Club Goal Setting is coming soon), "
                                : "Goals - District, Goals - Clubs (one sheet each for Membership, Youth Service, Foundation and Public Image), ")
                            + "Projects Ranking, Club Monthly Report Grid and Club Websites (active).",
-            Kpi = new DistrictPerformanceKpi
-            {
-                ZoneName = district.ZoneName ?? "",
-                DistrictNumber = district.DistrictNumber,
-                GovernorName = dg.Name,
-                Clubs = clubs.Count,
-                NonSyncedClubs = nonSynced.Count,
-                Members = dm.Members,
-                Women = dm.Women,
-                Youth = dm.Youth,
-                Joined = dm.Added,
-                Left = dm.LeftCount,
-                ClubProjects = avenueTotals.Values.Sum(),
-                DistrictProjects = districtProjects + districtEvents,
-                Beneficiaries = totalBeneficiaries + districtBeneficiaries,
-                VolunteerHours = totalHours + districtHours,
-                CmrSubmitted = cmrSubmitted,
-                CmrDue = cmrSubmitted + cmrPending + cmrNotStarted,
-                AwardPoints = districtAwardPoints,
-                ClubService = clubServiceEntries,
-                Avenues = ProjectAvenues.Select(a => a.Label).Concat(hasOtherAvenue ? new[] { OtherAvenue } : Array.Empty<string>())
-                    .ToDictionary(label => label, label => avenueTotals.GetValueOrDefault(label), StringComparer.Ordinal),
-                Foundation = GoalRows("Foundation").Where(g => g.Achieved.HasValue)
-                    .GroupBy(g => g.Metric, StringComparer.Ordinal)
-                    .ToDictionary(g => g.Key, g => g.First().Achieved!.Value, StringComparer.Ordinal),
-                TrfAsOn = goalData.AchievedAsOn.TryGetValue("Foundation", out var asOnTrf) ? asOnTrf : null,
-                MembershipTarget = totalMembersGoal?.Target,
-                MembershipAchieved = totalMembersGoal?.Achieved,
-                MembershipPct = totalMembersGoal?.Pct,
-                TrfTarget = totalGivingGoal?.Target,
-                TrfAchieved = totalGivingGoal?.Achieved,
-                TrfPct = totalGivingGoal?.Pct,
-            },
         };
 
         if (includeAttachment)
@@ -1125,498 +1071,11 @@ public class DistrictPerformanceReportService : IDistrictPerformanceReportServic
             // Members Joined / Members Left sheets and the District Dues sheet are no longer part of this
             // report (user 2026-09-28): no member details outside Clubs & Members, and no District Dues.
 
-            // Zonal Awards — points by goal (every goal of the year, even where nothing is entered yet).
-            // Excel "District" sheet only, not the email body (user 2026-09-18).
-            var zonalByGoal = new List<(string Goal, decimal Points, decimal? MaxPoints)>();
-            try
-            {
-                zonalByGoal = (await conn.QueryAsync<(string Goal, decimal Points, decimal? MaxPoints)>(@"
-                    SELECT g.title AS Goal, CAST(COALESCE(SUM(e.received_points), 0) AS DECIMAL(14,2)) AS Points,
-                           CAST(MAX(g.max_points) AS DECIMAL(14,2)) AS MaxPoints
-                    FROM zonal_awards_goal g
-                    JOIN zonal_awards_question q ON q.fk_goal_id = g.pk_id AND COALESCE(q.isdeleted, 0) = 0
-                    JOIN zonal_awards_question_option o ON o.fk_question_id = q.pk_id AND COALESCE(o.isdeleted, 0) = 0
-                    LEFT JOIN zonal_awards_district_entry e ON e.fk_option_id = o.pk_id AND e.fk_district_id = @D AND e.fk_year_id = @Y AND COALESCE(e.isdeleted, 0) = 0
-                    WHERE g.fk_year_id = @Y AND COALESCE(g.isdeleted, 0) = 0
-                    GROUP BY g.pk_id, g.title, g.sort_order
-                    ORDER BY g.sort_order, g.pk_id", p)).ToList();
-            }
-            catch (Exception ex) { _logger.LogWarning(ex, "Performance report: zonal awards by goal failed"); }
-
             result.Excel = BuildWorkbook(result, allStats, categories, hasOtherAvenue, activeSites,
-                monthStates.Select(x => x.Month).ToList(), goalData, currency, nonSynced, cmrAllClubs, awardsEnabled, zonalByGoal);
+                monthStates.Select(x => x.Month).ToList(), goalData, currency, nonSynced, cmrAllClubs, awardsEnabled);
             result.Html = BuildEmailBody(result, null);
         }
         return result;
-    }
-
-    // ══════════════════════════════════════════════════════════════════════════════════════════════
-    //  RI Director report — every district, zone-wise (2026-09-17)
-    // ══════════════════════════════════════════════════════════════════════════════════════════════
-    // Built from each district's own District Performance Report (same numbers, same rules), so the
-    // RI Director report can never disagree with what a DG receives.
-    public async Task<DistrictPerformanceReportResult> BuildZoneReportAsync(bool includeAttachment, CancellationToken ct = default)
-    {
-        List<PerformanceReportDistrictOption> districts;
-        await using (var conn = new MySqlConnection(_conn))
-        {
-            await conn.OpenAsync(ct);
-            districts = await LoadReportDistrictsAsync(conn);
-        }
-
-        // Bounded parallel build (each district opens its own connections). Order follows the zone/district list.
-        var sem = new SemaphoreSlim(3);
-        var failed = new List<string>();
-        var built = await Task.WhenAll(districts.Select(async d =>
-        {
-            await sem.WaitAsync(ct);
-            try { return await BuildReportAsync(d.DistrictId, includeAttachment: false, ct); }
-            catch (Exception ex)
-            {
-                _logger.LogWarning(ex, "RI Director report: District {District} could not be built.", d.DistrictNumber);
-                lock (failed) failed.Add(d.DistrictNumber);
-                return null;
-            }
-            finally { sem.Release(); }
-        }));
-        var reports = built.Where(r => r?.Kpi != null).Select(r => r!).ToList();
-        var first = reports.FirstOrDefault();
-        var today = DateTime.Today;
-
-        var k = reports.Select(r => r.Kpi!).ToList();
-        long clubs = k.Sum(x => x.Clubs), members = k.Sum(x => x.Members), joined = k.Sum(x => x.Joined), left = k.Sum(x => x.Left);
-        long projects = k.Sum(x => x.ClubProjects + x.DistrictProjects), beneficiaries = k.Sum(x => x.Beneficiaries), hours = k.Sum(x => x.VolunteerHours);
-        long cmrSub = k.Sum(x => x.CmrSubmitted), cmrDue = k.Sum(x => x.CmrDue);
-        decimal trfTarget = k.Sum(x => x.TrfTarget ?? 0m), trfAchieved = k.Sum(x => x.TrfTarget > 0 ? x.TrfAchieved ?? 0m : 0m);
-        long net = joined - left;
-        var zones = reports.Select(r => r.ZoneName).Distinct().ToList();
-        decimal? Ratio(decimal num, decimal den) => den > 0 ? Math.Round(num / den * 100m, 1) : null;
-        string Signed(long v) => (v > 0 ? "+" : "") + N(v);
-
-        // The funds and avenues every district reports on, in a fixed order.
-        var funds = new[] { "Total Giving", "Annual Fund", "Polio Plus Fund", "Endowment Fund", "CSR" };
-        var avenues = ProjectAvenues.Select(a => a.Label)
-            .Concat(k.SelectMany(x => x.Avenues.Keys).Distinct().Where(a => a == OtherAvenue)).ToList();
-        decimal Fund(IEnumerable<DistrictPerformanceKpi> rows, string fund) => rows.Sum(x => x.Foundation.GetValueOrDefault(fund));
-        long Avenue(IEnumerable<DistrictPerformanceKpi> rows, string avenue) => rows.Sum(x => x.Avenues.GetValueOrDefault(avenue));
-        // "Foundation as on <month>" — the latest month any district has TRF figures for.
-        var asOnDates = k.Select(x => x.TrfAsOn).Where(x => !string.IsNullOrWhiteSpace(x))
-            .Select(x => DateTime.TryParse(x, CultureInfo.InvariantCulture, DateTimeStyles.None, out var d) ? (DateTime?)d : null)
-            .Where(x => x.HasValue).Select(x => x!.Value).ToList();
-        string foundationGroup = asOnDates.Count > 0 ? $"Foundation (as on {asOnDates.Max():dd MMM yyyy})" : "Foundation";
-        const string membershipGroup = "Districts & Clubs", serviceGroup = "Service Projects & Club Service";
-
-        // At a glance — three groups of totals (user 2026-09-18), same tile design as the district report.
-        var highlights = new List<PerformanceReportHighlight>
-        {
-            new() { Group = membershipGroup, Label = "Districts", Value = N(reports.Count), Sub = $"in {N(zones.Count)} zones" },
-            new() { Group = membershipGroup, Label = "Clubs", Value = N(clubs + k.Sum(x => x.NonSyncedClubs)), Sub = $"{N(clubs)} synced · {N(k.Sum(x => x.NonSyncedClubs))} not synced" },
-            // Members / Women / Youth tiles removed — no member figures in this report (user 2026-09-28).
-        };
-        highlights.AddRange(funds.Select(f => new PerformanceReportHighlight
-        {
-            Group = foundationGroup,
-            Label = f,
-            Value = Dec(Fund(k, f)),
-            Sub = f == "Total Giving" && trfTarget > 0 ? $"{Pct2(Math.Round(trfAchieved / trfTarget * 100m, 2))} target of {Dec(trfTarget)}" : "achieved this year",
-        }));
-        highlights.AddRange(avenues.Select(a => new PerformanceReportHighlight
-        {
-            Group = serviceGroup, Label = a, Value = N(Avenue(k, a)), Sub = "projects",
-        }));
-        highlights.Add(new PerformanceReportHighlight
-        {
-            Group = serviceGroup, Label = "Total Projects", Value = N(projects), Sub = $"{N(beneficiaries)} beneficiaries · {N(hours)} man hours",
-        });
-        highlights.Add(new PerformanceReportHighlight
-        {
-            Group = serviceGroup, Label = "Club Service", Value = N(k.Sum(x => x.ClubService)), Sub = "club service entries",
-        });
-
-        // Email body: one row per ZONE only — the district-by-district detail would run for pages, so it
-        // lives in the Excel instead (user 2026-09-18).
-        var sections = new List<PerformanceReportSection>();
-        const string zonePart = "Zone-wise Progress";
-        string zonePartSub = $"{N(reports.Count)} districts · {N(zones.Count)} zones · district-wise detail in the attached Excel";
-        List<DistrictPerformanceKpi> Zone(string zone) => reports.Where(r => r.ZoneName == zone).Select(r => r.Kpi!).ToList();
-        // A zone's Membership % = total gained ÷ total target: pct x target gives back each district's gained.
-        string ZonePct(List<DistrictPerformanceKpi> zr)
-        {
-            var withTarget = zr.Where(x => x.MembershipTarget > 0).ToList();
-            decimal target = withTarget.Sum(x => x.MembershipTarget ?? 0m);
-            if (target <= 0) return "—";
-            decimal gained = withTarget.Sum(x => (x.MembershipPct ?? 0m) * (x.MembershipTarget ?? 0m) / 100m);
-            return Pct(Math.Round(gained / target * 100m, 1));
-        }
-
-        // Zone and club count only (user 2026-09-28): Members, Women, Youth and Membership % removed.
-        // Club count = synced + non-synced.
-        var clubRows = zones.Select(zone => new List<string> { zone, N(Zone(zone).Sum(x => x.AllClubs)) }).ToList();
-        clubRows.Add(new List<string> { ZoneTotalLabel, N(k.Sum(x => x.AllClubs)) });
-        sections.Add(new PerformanceReportSection
-        {
-            Part = zonePart, PartSubtitle = zonePartSub,
-            Title = "Clubs",
-            TableHeaders = new() { "Zone", "Clubs" },
-            TableRows = clubRows,
-        });
-
-        var fundRows = zones.Select(zone => new List<string> { zone }
-            .Concat(funds.Select(f => Dec(Fund(Zone(zone), f)))).ToList()).ToList();
-        fundRows.Add(new List<string> { ZoneTotalLabel }.Concat(funds.Select(f => Dec(Fund(k, f)))).ToList());
-        sections.Add(new PerformanceReportSection
-        {
-            Part = zonePart, PartSubtitle = zonePartSub,
-            Title = foundationGroup,
-            TableHeaders = new List<string> { "Zone" }.Concat(funds).ToList(),
-            TableRows = fundRows,
-        });
-
-        // Service Projects reads the other way round: the avenues down the side, the zones across the top,
-        // because eight avenue columns would not fit an email (user 2026-09-18).
-        var serviceLines = avenues.Select(a => (Label: a, Value: (Func<List<DistrictPerformanceKpi>, string>)(zr => N(Avenue(zr, a))))).ToList();
-        serviceLines.Add(("Total Projects", zr => N(zr.Sum(x => x.ClubProjects + x.DistrictProjects))));
-        serviceLines.Add(("Club Service", zr => N(zr.Sum(x => x.ClubService))));
-        sections.Add(new PerformanceReportSection
-        {
-            Part = zonePart, PartSubtitle = zonePartSub,
-            Title = "Service Projects & Club Service",
-            TableHeaders = new List<string> { "Service" }.Concat(zones).Append("Total").ToList(),
-            TableRows = serviceLines.Select(line => new List<string> { line.Label }
-                .Concat(zones.Select(z => line.Value(Zone(z))))
-                .Append(line.Value(k)).ToList()).ToList(),
-        });
-
-        var result = new DistrictPerformanceReportResult
-        {
-            DistrictNumber = "All Zones",
-            ZoneName = $"{N(zones.Count)} zones",
-            YearId = first?.YearId ?? 0,
-            YearLabel = first?.YearLabel ?? "",
-            PeriodLabel = first?.PeriodLabel ?? "",
-            Subject = $"RI Director Report — All Zones — {today:dd MMM yyyy}",
-            FileName = $"RI_Director_Report_All_Zones_{DateTime.Now:ddMMyyyy_HHmm}.xlsx",
-            ReportKicker = "RI Director Report",
-            ReportTitle = "All Zones",
-            ReportSubtitle = $"{N(zones.Count)} zones · {N(reports.Count)} districts · Rotary Year {first?.YearLabel} · {first?.PeriodLabel}",
-            Salutation = "Dear RI Director,",
-            IntroLine = "Here is how every district across the zones is progressing this Rotary year — zone by zone.",
-            ClosingLine = "Thank you for your guidance and leadership across the zones.",
-            AttachmentNote = "The attached Excel holds the complete data behind this report. Sheets included: Summary (this email), "
-                           + "All Districts (one row per district with every district and club figure, with zone totals), Clubs, Foundation "
-                           + "and Service Projects.",
-            Highlights = highlights,
-            // No member figures in this report any more (user 2026-09-28), so the note no longer mentions them.
-            ScopeNote = "Club counts include every active club, whether or not it has enabled sync with Rotary.org. All other figures "
-                      + "are drawn only from clubs that have enabled sync, so they may differ from the district's own records until all "
-                      + "clubs enable sync.",
-            Sections = sections,
-            DistrictReports = reports,
-        };
-        if (includeAttachment)
-        {
-            result.Excel = BuildZoneWorkbook(result);
-            result.Html = BuildEmailBody(result, null);
-        }
-        return result;
-    }
-
-    private const string ZoneTotalLabel = "Zone total";
-
-    public async Task<string> SendZoneTestAsync(int requestedByMemberId, CancellationToken ct = default)
-    {
-        var r = await BuildZoneReportAsync(includeAttachment: true, ct);
-        string to = _testRecipients[0];
-        var cc = _testRecipients.Skip(1).ToList();
-        string html = BuildEmailBody(r, "TEST COPY — when this goes live it will be sent to the RI Directors listed in Settings → RI Director.");
-        try
-        {
-            await _email.SendScopedEmailWithAttachmentAsync(to, r.Subject, html, r.Excel!, r.FileName, cc, null, null, EmailType);
-            await LogAsync(0, r.YearId, "ZoneManual", to, cc, "Sent", null, requestedByMemberId);
-        }
-        catch (Exception ex)
-        {
-            await LogAsync(0, r.YearId, "ZoneManual", to, cc, "Failed", ex.Message, requestedByMemberId);
-            throw;
-        }
-        return $"RI Director report (all zones) sent to {string.Join(", ", _testRecipients)}.";
-    }
-
-    // Scheduled RI Director report: Test → the test recipients; Live → every active RI Director (Settings → RI Director).
-    private async Task RunZoneScheduledAsync(bool live, bool catchUp, CancellationToken ct)
-    {
-        string runType = live ? "ZoneLive" : "ZoneTest";
-        var already = await AlreadyRanTodayAsync(0, runType);
-        if (already == true || (catchUp && already == null)) return;
-
-        List<string> recipients;
-        if (live)
-        {
-            await using var conn = new MySqlConnection(_conn);
-            await conn.OpenAsync(ct);
-            recipients = (await conn.QueryAsync<string>(@"
-                SELECT DISTINCT TRIM(m.EmailId) FROM member_roles mr
-                JOIN member_master_profile m ON m.pk_member_master_profile_id = mr.fk_member_master_profile_id
-                WHERE mr.fk_role_id = 7 AND mr.IsActive = 1 AND mr.isdeleted = 0 AND m.isdeleted = 0
-                  AND COALESCE(TRIM(m.EmailId), '') <> ''")).ToList();
-        }
-        else recipients = _testRecipients.ToList();
-        if (recipients.Count == 0) { _logger.LogWarning("RI Director report: no recipients."); return; }
-
-        // LIVE: one email PER RI Director (user 2026-09-29) - a single mail with the others in CC
-        // showed every director the whole recipient list, and the greeting cannot carry a name because
-        // it is the same body for all of them ("Dear RI Director,"). TEST keeps the old single mail to
-        // the configured report recipients (first = To, rest = CC).
-        var sendList = live
-            ? recipients.Select(x => (To: x, Cc: _liveCc.ToList())).ToList()
-            : new List<(string To, List<string> Cc)> { (recipients[0], recipients.Skip(1).ToList()) };
-
-        int yearId = 0;
-        DistrictPerformanceReportResult? report = null;
-        try { report = await BuildZoneReportAsync(includeAttachment: true, ct); yearId = report.YearId; }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "RI Director report failed to build.");
-            await LogAsync(0, yearId, runType, null, null, "Failed", ex.Message, null);
-            return;
-        }
-
-        foreach (var (to, cc) in sendList)
-        {
-            if (ct.IsCancellationRequested) break;
-            try
-            {
-                if (_suppressLocalDev)
-                {
-                    _logger.LogWarning("RI Director report SUPPRESSED on a dev/remote-DB machine — would go to {To} (cc {Cc}).", to, string.Join(", ", cc));
-                    await LogAsync(0, yearId, runType, to, cc, "Suppressed", "Dev machine — scheduled send suppressed.", null);
-                    continue;
-                }
-                await _email.SendScopedEmailWithAttachmentAsync(to, report.Subject, report.Html!, report.Excel!, report.FileName, cc, null, null, EmailType);
-                await LogAsync(0, yearId, runType, to, cc, "Sent", null, null);
-                _logger.LogInformation("RI Director report sent to {To}.", to);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "RI Director report failed for {To}.", to);
-                await LogAsync(0, yearId, runType, to, cc, "Failed", ex.Message, null);
-            }
-        }
-    }
-
-    // Summary (= email body) + "All Districts": one row per district with every figure of its own report
-    // (district and club parts), grouped by zone with a zone total row.
-    private static byte[] BuildZoneWorkbook(DistrictPerformanceReportResult r)
-    {
-        using var wb = new XLWorkbook();
-        BuildSummarySheet(wb, r);
-
-        var reports = r.DistrictReports ?? new List<DistrictPerformanceReportResult>();
-        // Column model = every item label / goal metric in first-seen order across all districts.
-        var keys = new List<string>();
-        var seen = new HashSet<string>(StringComparer.Ordinal);
-        var values = new List<Dictionary<string, string>>();
-        foreach (var dr in reports)
-        {
-            var map = new Dictionary<string, string>(StringComparer.Ordinal);
-            void Put(string key, string value)
-            {
-                if (seen.Add(key)) keys.Add(key);
-                map[key] = value;
-            }
-            foreach (var s in dr.Sections)
-            {
-                string area = s.Part.StartsWith("Clubs", StringComparison.Ordinal) ? "Clubs" : "District";
-                foreach (var it in s.Items) Put($"{area}: {s.Title} — {it.Label.Trim()}", it.Value);
-                // Tables (goal tables, RAG, Clubs & Members, Goal Setting — Clubs): one column per row × value
-                // column. Ranked top-5 lists ("#" first) are skipped. "Achieved (as on 31 Aug 2026)" is keyed
-                // as "Achieved" so districts with different dates share one column.
-                if (s.TableHeaders == null || s.TableRows == null || s.TableHeaders.Count < 2 || s.TableHeaders[0] == "#") continue;
-                foreach (var g in s.TableRows)
-                {
-                    // No member figures in the RI Director report (user 2026-09-28): from the district's
-                    // Clubs & Members table only the Active clubs row is carried; Members / Women / Youth are
-                    // left out here. The District report itself keeps the full table.
-                    if (s.Title == "Clubs & Members" && g.Count > 0 && g[0] != "Active clubs") continue;
-                    for (int c = 1; c < s.TableHeaders.Count && c < g.Count; c++)
-                    {
-                        string h = System.Text.RegularExpressions.Regex.Replace(s.TableHeaders[c], @"\s*\(as on [^)]*\)", "");
-                        Put($"{area}: {s.Title} — {g[0]} — {h}", g[c]);
-                    }
-                }
-            }
-            values.Add(map);
-        }
-
-        var ws = wb.Worksheets.Add("All Districts");
-        string[] lead = { "Zone", "District", "District Governor", "DG Email", "DG Mobile" };
-        for (int i = 0; i < lead.Length; i++) ws.Cell(1, i + 1).Value = lead[i];
-        for (int i = 0; i < keys.Count; i++) ws.Cell(1, lead.Length + i + 1).Value = keys[i];
-        int cols = lead.Length + keys.Count;
-
-        // Numbers are written as numbers (so they sum / sort); % and text stay as text.
-        static bool TryNumber(string raw, out decimal n)
-        {
-            n = 0m;
-            if (string.IsNullOrWhiteSpace(raw) || raw.Contains('%')) return false;
-            var v = raw.Replace("₹", "").Replace("$", "").Replace(",", "").Replace("+", "").Trim();
-            return decimal.TryParse(v, NumberStyles.Number, CultureInfo.InvariantCulture, out n);
-        }
-
-        int row = 2;
-        var totalRows = new List<int>();
-        foreach (var zone in reports.Select(x => x.ZoneName).Distinct().ToList())
-        {
-            var idx = reports.Select((x, i) => (x, i)).Where(t => t.x.ZoneName == zone).Select(t => t.i).ToList();
-            var sums = new Dictionary<int, decimal>();
-            foreach (var i in idx)
-            {
-                var dr = reports[i];
-                ws.Cell(row, 1).Value = dr.ZoneName;
-                ws.Cell(row, 2).Value = dr.DistrictNumber;
-                ws.Cell(row, 3).Value = dr.GovernorName ?? "";
-                ws.Cell(row, 4).Value = dr.GovernorEmail ?? "";
-                ws.Cell(row, 5).Value = dr.GovernorMobile ?? "";
-                for (int c = 0; c < keys.Count; c++)
-                {
-                    if (!values[i].TryGetValue(keys[c], out var raw)) continue;
-                    var cell = ws.Cell(row, lead.Length + c + 1);
-                    if (TryNumber(raw, out var n))
-                    {
-                        cell.Value = n;
-                        cell.Style.NumberFormat.Format = n == Math.Truncate(n) ? "#,##0" : "#,##0.##";
-                        sums[c] = sums.GetValueOrDefault(c) + n;
-                    }
-                    else cell.Value = raw;
-                }
-                row++;
-            }
-            ws.Cell(row, 1).Value = zone;
-            ws.Cell(row, 2).Value = ZoneTotalLabel;
-            foreach (var kv in sums)
-            {
-                var cell = ws.Cell(row, lead.Length + kv.Key + 1);
-                cell.Value = kv.Value;
-                cell.Style.NumberFormat.Format = kv.Value == Math.Truncate(kv.Value) ? "#,##0" : "#,##0.##";
-            }
-            totalRows.Add(row);
-            row++;
-        }
-        int lastRow = Math.Max(1, row - 1);
-
-        var header = ws.Range(1, 1, 1, cols);
-        header.Style.Fill.BackgroundColor = XLColor.FromHtml("#1F4E79");
-        header.Style.Font.FontColor = XLColor.White;
-        header.Style.Font.Bold = true;
-        header.Style.Alignment.WrapText = true;
-        header.Style.Alignment.Vertical = XLAlignmentVerticalValues.Top;
-        ws.Row(1).Height = 60;
-        var all = ws.Range(1, 1, lastRow, cols);
-        all.Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
-        all.Style.Border.InsideBorder = XLBorderStyleValues.Thin;
-        all.Style.Border.OutsideBorderColor = XLColor.FromHtml("#8EAADB");
-        all.Style.Border.InsideBorderColor = XLColor.FromHtml("#D9E1F2");
-        foreach (var tr in totalRows)
-        {
-            var rng = ws.Range(tr, 1, tr, cols);
-            rng.Style.Font.Bold = true;
-            rng.Style.Fill.BackgroundColor = XLColor.FromHtml("#CFE0F4");
-            rng.Style.Border.TopBorder = XLBorderStyleValues.Medium;
-        }
-        ws.Column(1).Width = 12; ws.Column(2).Width = 12; ws.Column(3).Width = 26; ws.Column(4).Width = 28; ws.Column(5).Width = 14;
-        for (int c = lead.Length + 1; c <= cols; c++) ws.Column(c).Width = 16;
-        ws.SheetView.FreezeRows(1);
-        ws.SheetView.FreezeColumns(2);
-        if (lastRow > 1) ws.Range(1, 1, lastRow, cols).SetAutoFilter();
-
-        // The three breakdowns, ZONE by ZONE and then DISTRICT by DISTRICT (user 2026-09-18): the email body
-        // carries the zone rows only, so the full district detail lives here — one sheet each, zone rows in
-        // bold with their districts underneath.
-        var kpis = reports.Where(d => d.Kpi != null).Select(d => d.Kpi!).ToList();
-        var zoneNames = kpis.Select(x => x.ZoneName).Distinct().ToList();
-        var fundNames = new[] { "Total Giving", "Annual Fund", "Polio Plus Fund", "Endowment Fund", "CSR" };
-        var avenueNames = ProjectAvenues.Select(a => a.Label)
-            .Concat(kpis.SelectMany(x => x.Avenues.Keys).Distinct().Where(a => a == OtherAvenue)).ToList();
-
-        void BreakdownSheet(string sheetName, List<string> headers, Func<DistrictPerformanceKpi, List<object?>> rowOf,
-                            Func<List<DistrictPerformanceKpi>, List<object?>> totalOf)
-        {
-            var ws2 = wb.Worksheets.Add(sheetName);
-            for (int i = 0; i < headers.Count; i++) ws2.Cell(1, i + 1).Value = headers[i];
-            int row2 = 2;
-            var zoneRows = new List<int>();
-            void Write(string zone, string label, List<object?> values, bool bold)
-            {
-                ws2.Cell(row2, 1).Value = zone;
-                ws2.Cell(row2, 2).Value = label;
-                for (int c = 0; c < values.Count; c++)
-                {
-                    var cell = ws2.Cell(row2, c + 3);
-                    switch (values[c])
-                    {
-                        case null: break;
-                        case long l: cell.Value = l; cell.Style.NumberFormat.Format = "#,##0"; break;
-                        case decimal d: cell.Value = d; cell.Style.NumberFormat.Format = d == Math.Truncate(d) ? "#,##0" : "#,##0.##"; break;
-                        default: cell.Value = values[c]!.ToString(); break;
-                    }
-                }
-                if (bold)
-                {
-                    var rng = ws2.Range(row2, 1, row2, headers.Count);
-                    rng.Style.Font.Bold = true;
-                    rng.Style.Fill.BackgroundColor = XLColor.FromHtml("#CFE0F4");
-                    zoneRows.Add(row2);
-                }
-                row2++;
-            }
-            foreach (var zone in zoneNames)
-            {
-                var zr = kpis.Where(x => x.ZoneName == zone).ToList();
-                Write(zone, "Zone total", totalOf(zr), bold: true);
-                foreach (var d in zr) Write(zone, d.DistrictNumber, rowOf(d), bold: false);
-            }
-            Write("All zones", "Grand total", totalOf(kpis), bold: true);
-
-            int last2 = row2 - 1;
-            var head2 = ws2.Range(1, 1, 1, headers.Count);
-            head2.Style.Fill.BackgroundColor = XLColor.FromHtml("#1F4E79");
-            head2.Style.Font.FontColor = XLColor.White;
-            head2.Style.Font.Bold = true;
-            head2.Style.Alignment.WrapText = true;
-            ws2.Row(1).Height = 34;
-            var all2 = ws2.Range(1, 1, Math.Max(1, last2), headers.Count);
-            all2.Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
-            all2.Style.Border.InsideBorder = XLBorderStyleValues.Thin;
-            all2.Style.Border.OutsideBorderColor = XLColor.FromHtml("#8EAADB");
-            all2.Style.Border.InsideBorderColor = XLColor.FromHtml("#D9E1F2");
-            foreach (var zr in zoneRows) ws2.Range(zr, 1, zr, headers.Count).Style.Border.TopBorder = XLBorderStyleValues.Medium;
-            ws2.SheetView.FreezeRows(1);
-            ws2.SheetView.FreezeColumns(2);
-            ws2.Columns().AdjustToContents(1, Math.Max(1, last2), 10, 40);
-        }
-
-        // Was "Membership": club count only now (user 2026-09-28) — no member figures, no Membership %.
-        BreakdownSheet("Clubs",
-            new List<string> { "Zone", "District", "Clubs" },
-            d => new List<object?> { d.AllClubs },
-            zr => new List<object?> { zr.Sum(x => x.AllClubs) });
-
-        BreakdownSheet("Foundation",
-            new List<string> { "Zone", "District" }.Concat(fundNames).ToList(),
-            d => fundNames.Select(f => (object?)d.Foundation.GetValueOrDefault(f)).ToList(),
-            zr => fundNames.Select(f => (object?)zr.Sum(x => x.Foundation.GetValueOrDefault(f))).ToList());
-
-        BreakdownSheet("Service Projects",
-            new List<string> { "Zone", "District" }.Concat(avenueNames).Concat(new[] { "Total Projects", "Club Service" }).ToList(),
-            d => avenueNames.Select(a => (object?)d.Avenues.GetValueOrDefault(a))
-                 .Concat(new object?[] { d.ClubProjects + d.DistrictProjects, d.ClubService }).ToList(),
-            zr => avenueNames.Select(a => (object?)zr.Sum(x => x.Avenues.GetValueOrDefault(a)))
-                  .Concat(new object?[] { zr.Sum(x => x.ClubProjects + x.DistrictProjects), zr.Sum(x => x.ClubService) }).ToList());
-
-        wb.Worksheet("Summary").SetTabActive();
-        using var ms = new MemoryStream();
-        wb.SaveAs(ms);
-        return ms.ToArray();
     }
 
     // ══════════════════════════════════════════════════════════════════════════════════════════════
@@ -1648,8 +1107,8 @@ public class DistrictPerformanceReportService : IDistrictPerformanceReportServic
     {
         if (!_enabled) return;
         var today = DateTime.Today;
-        // Rehearsal day: behave exactly like the old Test mode - sample district + the RI Director
-        // report, to the test addresses only. See PreviewDate above.
+        // Rehearsal day: behave exactly like the old Test mode - sample district report,
+        // to the test addresses only. See PreviewDate above.
         bool preview = PreviewDate.HasValue && today.Date == PreviewDate.Value.Date;
         bool live = _mode == "Live" && !preview;
         if (live && !_liveDays.Contains(today.Day)) return;
@@ -1732,9 +1191,6 @@ public class DistrictPerformanceReportService : IDistrictPerformanceReportServic
             }
             catch (Exception ex) { _logger.LogError(ex, "District performance report: could not send the skipped-districts notice."); }
         }
-
-        // RI Director report (all districts, zone-wise) - same morning run.
-        if (!ct.IsCancellationRequested) await RunZoneScheduledAsync(live, catchUp, ct);
     }
 
     // true = a Sent/Skipped row exists today; false = verified none; null = the log could not be read.
@@ -1863,7 +1319,7 @@ public class DistrictPerformanceReportService : IDistrictPerformanceReportServic
     // ══════════════════════════════════════════════════════════════════════════════════════════════
     //  Email body
     // ══════════════════════════════════════════════════════════════════════════════════════════════
-    // Print = the email body itself, so a printed copy is identical to what the DG / RI Director gets.
+    // Print = the email body itself, so a printed copy is identical to what the DG gets.
     public string BuildPrintHtml(DistrictPerformanceReportResult result) => BuildEmailBody(result, null);
 
     private static string BuildEmailBody(DistrictPerformanceReportResult r, string? banner)
@@ -1890,13 +1346,12 @@ public class DistrictPerformanceReportService : IDistrictPerformanceReportServic
             </table>");
         sb.Append($@"<p style='font-size:14px;color:#333;margin:0 0 18px 0'>{E(r.Salutation)}<br/>{E(r.IntroLine)}</p>");
 
-        // ── At a glance — 4 tiles per row on the District report, 3 on the RI Director report ──
+        // ── At a glance — 4 tiles per row on the District report ──
         if (r.Highlights.Count > 0)
         {
             int perRow = r.TilesPerRow is 4 ? 4 : 3;
             string tdWidth = perRow == 4 ? "25%" : "33%";
-            // Tiles are grouped: the district report has one unnamed group ("At a glance"), the RI Director
-            // report has Membership / Foundation / Service Projects (user 2026-09-18).
+            // Tiles are grouped: the district report has one unnamed group ("At a glance").
             foreach (var group in r.Highlights.GroupBy(h => h.Group))
             {
                 sb.Append($"<div style='font-size:13px;font-weight:bold;color:{navy};margin:12px 0 6px 0'>{E(group.Key ?? "At a glance")}</div>");
@@ -1976,8 +1431,7 @@ public class DistrictPerformanceReportService : IDistrictPerformanceReportServic
                 sb.Append("</tr></thead><tbody>");
                 foreach (var row in s.TableRows)
                 {
-                    bool totalRow = row.Count > 0 && row[0] == ZoneTotalLabel;
-                    sb.Append(totalRow ? "<tr style='background:#e8f0fb;font-weight:bold'>" : "<tr>");
+                    sb.Append("<tr>");
                     for (int c = 0; c < row.Count; c++)
                     {
                         // % columns ("Percentage Achieved", "TRF %" …): the figure only, coloured red / amber / green.
@@ -2021,8 +1475,7 @@ public class DistrictPerformanceReportService : IDistrictPerformanceReportServic
     private static byte[] BuildWorkbook(DistrictPerformanceReportResult r, List<ClubStats> clubs, List<(int Id, string Name)> categories,
         bool hasOtherAvenue, List<WebsiteRow> websites,
         List<int> months, DistrictPerformanceGoalData goals, string currency,
-        List<ClubRow> nonSynced, List<CmrGridRow> cmrRows, bool awardsEnabled,
-        List<(string Goal, decimal Points, decimal? MaxPoints)> zonalByGoal)
+        List<ClubRow> nonSynced, List<CmrGridRow> cmrRows, bool awardsEnabled)
     {
         using var wb = new XLWorkbook();
         BuildSummarySheet(wb, r);
@@ -2161,34 +1614,6 @@ public class DistrictPerformanceReportService : IDistrictPerformanceReportServic
                 }
                 row++;
             }
-
-            // Zonal Awards — points by goal. Excel only (kept out of the email body, user 2026-09-18).
-            if (zonalByGoal.Count > 0)
-            {
-                Band("Zonal Awards — Points by Goal");
-                string[] zh = { "Goal", "Points received", "Max points" };
-                for (int c = 0; c < zh.Length; c++)
-                {
-                    var hc = ws.Cell(row, c + 1); hc.Value = zh[c];
-                    hc.Style.Font.Bold = true; hc.Style.Fill.BackgroundColor = XLColor.FromHtml("#e2e8f0");
-                }
-                int headRow = row; row++;
-                foreach (var z in zonalByGoal)
-                {
-                    ws.Cell(row, 1).Value = z.Goal;
-                    ws.Cell(row, 1).Style.Alignment.WrapText = true;
-                    ws.Cell(row, 2).Value = z.Points; ws.Cell(row, 2).Style.NumberFormat.Format = "#,##0.##";
-                    if (z.MaxPoints.HasValue) { ws.Cell(row, 3).Value = z.MaxPoints.Value; ws.Cell(row, 3).Style.NumberFormat.Format = "#,##0.##"; }
-                    row++;
-                }
-                ws.Cell(row, 1).Value = "TOTAL";
-                ws.Cell(row, 2).Value = zonalByGoal.Sum(z => z.Points); ws.Cell(row, 2).Style.NumberFormat.Format = "#,##0.##";
-                ws.Range(row, 1, row, 3).Style.Font.Bold = true;
-                ws.Range(row, 1, row, 3).Style.Fill.BackgroundColor = XLColor.FromHtml("#cfe0f4");
-                var blk = ws.Range(headRow, 1, row, 3);
-                blk.Style.Border.OutsideBorder = XLBorderStyleValues.Thin; blk.Style.Border.InsideBorder = XLBorderStyleValues.Thin;
-                blk.Style.Border.OutsideBorderColor = border; blk.Style.Border.InsideBorderColor = border;
-            }
             ws.SheetView.FreezeRows(2);
         }
 
@@ -2222,7 +1647,6 @@ public class DistrictPerformanceReportService : IDistrictPerformanceReportServic
                 ("OCV/GOV Documents", s => s.Mod.GetValueOrDefault("OCV/GOV Documents"), true, true),
                 ("TRF Contributions", s => s.Mod.GetValueOrDefault("TRF Contributions"), true, true),
                 ("TRF Amount (USD)", s => Math.Round(s.TrfUsd, 0), true, true),
-                ("PPH Camps", s => s.Mod.GetValueOrDefault("PPH Camps"), true, true),
                 ("Active Club Website", s => s.Website == null ? "No" : (s.Website.Host ?? "Yes"), false, false),
             });
             // District Awards column only when the district uses it (same as the email).

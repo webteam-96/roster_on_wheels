@@ -51,7 +51,6 @@ public class ReminderPushBackgroundService : BackgroundService
             FROM announcement_reminders r
             JOIN announcements a ON a.pk_announcement_id = r.fk_announcement_id
                                   AND a.isdeleted = 0
-                                  AND IFNULL(a.Scope, '') <> 'ri'
             WHERE r.IsActive = 1
               AND r.PushSentAt IS NULL
               AND r.ReminderDateTime <= NOW()
@@ -97,7 +96,6 @@ public class ReminderPushBackgroundService : BackgroundService
             FROM upcoming_event_reminders r
             JOIN upcoming_events e ON e.pk_upcoming_event_id = r.fk_upcoming_event_id
                                   AND e.isdeleted = 0
-                                  AND IFNULL(e.Scope, '') <> 'ri'
             WHERE r.IsActive = 1
               AND r.PushSentAt IS NULL
               AND r.ReminderDateTime <= NOW()

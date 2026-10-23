@@ -24,6 +24,7 @@ import {
   Palette,
   PhoneCall,
   Info,
+  Languages,
   Plus,
   Calendar,
   ChevronRight,
@@ -165,6 +166,17 @@ const MGMT_CARDS: MgmtCard[] = [
     bg: "bg-rose-50",
     ring: "hover:ring-rose-200",
     gradient: "bg-rose-50/60",
+  },
+  {
+    // flag website_languages: FeatureGate hides this link while the module is off
+    title: "Languages",
+    description: "Offer the site in more languages; translate pages by hand or by machine.",
+    href: (id, qs) => `/clubs/${id}/website-data/languages${qs}`,
+    icon: Languages,
+    accent: "text-sky-600",
+    bg: "bg-sky-50",
+    ring: "hover:ring-sky-200",
+    gradient: "bg-sky-50/60",
   },
 ];
 

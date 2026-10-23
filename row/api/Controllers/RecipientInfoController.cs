@@ -8,7 +8,7 @@ namespace RotaryApi.Controllers;
 
 /// <summary>
 /// "Will email X members (Y credits available)" next to the email checkbox on announcement / event / newsletter
-/// forms. Email-only successor of the RIZones WhatsAppInfoController (ROW has no WhatsApp, 2026-10-19).
+/// forms.
 /// </summary>
 [ApiController]
 [Authorize]

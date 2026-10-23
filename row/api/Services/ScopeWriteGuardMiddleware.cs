@@ -9,10 +9,14 @@ namespace RotaryApi.Services;
 /// allowed only for people who manage that club or district (ROW security fix, 2026-10-19). Before this, those
 /// endpoints only required a signed-in user, so any member could change any club's records.
 ///
-/// Club: SuperAdmin, RIDirector, the club's Admin / ClubModerator / AG, or a district Admin with access to all
-/// clubs of the club's district. District: SuperAdmin, RIDirector, the district's Admin, or the ZonalCoordinator
-/// of its zone. Roles are read from member_roles on every write (not from the token), so a revoked role stops
-/// working at once. Anonymous requests pass through; the endpoint's own [Authorize] answers them.
+/// Club: SuperAdmin, the club's Admin / AG, or a district Admin with access to all
+/// clubs of the club's district. District: SuperAdmin, or the district's Admin. Roles are read from
+/// member_roles on every write (not from the token), so a revoked role stops working at once. Anonymous requests
+/// pass through; the endpoint's own [Authorize] answers them.
+///
+/// Reads (GET) under the same paths (2026-10-22): allowed for the people above, plus active members of that club
+/// (club) or of any club in that district (district), so the app's member screens keep working. Before this, any
+/// signed-in user could read any club's or district's records by changing the id in the URL.
 /// </summary>
 public class ScopeWriteGuardMiddleware
 {
@@ -28,20 +32,18 @@ public class ScopeWriteGuardMiddleware
     }
 
     // Writes outside a club/district scope that only certain roles may make (role ids from the roles table:
-    // 2 Admin, 3 SuperAdmin, 4 ZonalCoordinator, 5 ClubModerator, 6 AG, 7 RIDirector).
+    // 2 Admin, 3 SuperAdmin, 6 AG).
     private static readonly (string Prefix, int[] Roles)[] RoleOnly =
     {
-        ("/api/ri-director", new[] { 3, 7 }),
-        ("/api/categories", new[] { 3 }),
-        ("/api/sub-categories", new[] { 3 }),
         ("/api/area-of-focus", new[] { 3 }),
         ("/api/funding", new[] { 3 }),
         ("/api/website-data-modules", new[] { 3 }),
-        ("/api/mass-email/image", new[] { 2, 3, 4, 5, 6, 7 }),
+        ("/api/mass-email/image", new[] { 2, 3, 6 }),
         ("/api/tenants", new[] { 3 }),
         ("/api/editions", new[] { 3 }),
         ("/api/i18n", new[] { 3 }),
         ("/api/features", new[] { 3 }),
+        ("/api/engagement/run", new[] { 3 }),
     };
 
     public async Task InvokeAsync(HttpContext ctx)
@@ -63,18 +65,25 @@ public class ScopeWriteGuardMiddleware
                 }
             }
         }
-        var m = write ? Scoped.Match(path) : null;
+        var m = HttpMethods.IsOptions(ctx.Request.Method) ? null : Scoped.Match(path);
         if (m is { Success: true } && ctx.User.Identity?.IsAuthenticated == true)
         {
             var memberId = int.TryParse(ctx.User.FindFirst("memberId")?.Value, out var id) ? id : 0;
             var isClub = m.Groups[1].Value.Equals("clubs", StringComparison.OrdinalIgnoreCase);
             var scopeId = int.Parse(m.Groups[2].Value);
-            if (memberId <= 0 || !await AllowedAsync(_connectionString, memberId, isClub, scopeId))
+            var allowed = memberId > 0 && (write
+                ? await AllowedAsync(_connectionString, memberId, isClub, scopeId)
+                : await ReadAllowedAsync(memberId, isClub, scopeId));
+            if (!allowed)
             {
                 ctx.Response.StatusCode = StatusCodes.Status403Forbidden;
-                await ctx.Response.WriteAsJsonAsync(new { message = isClub
-                    ? "You do not manage this club."
-                    : "You do not manage this district." });
+                await ctx.Response.WriteAsJsonAsync(new { message = (write, isClub) switch
+                {
+                    (true, true) => "You do not manage this club.",
+                    (true, false) => "You do not manage this district.",
+                    (false, true) => "You do not have access to this club.",
+                    _ => "You do not have access to this district.",
+                } });
                 return;
             }
         }
@@ -88,6 +97,30 @@ public class ScopeWriteGuardMiddleware
         return await conn.ExecuteScalarAsync<int>(
             "SELECT COUNT(*) FROM member_roles WHERE fk_member_master_profile_id = @M AND fk_role_id IN @R AND IsActive = 1 AND isdeleted = 0",
             new { M = memberId, R = roles }) > 0;
+    }
+
+    /// <summary>True when the member may read this club or district: a manager, or an active member of the club /
+    /// of a club in the district. Managers are checked second so the common member case costs one query.</summary>
+    private async Task<bool> ReadAllowedAsync(int memberId, bool isClub, int scopeId)
+    {
+        await using (var conn = new MySqlConnection(_connectionString))
+        {
+            await conn.OpenAsync();
+            var sql = isClub
+                ? @"SELECT COUNT(*) FROM club_members cm
+                    WHERE cm.fk_member_master_profile_id = @M AND cm.fk_club_id = @S AND cm.IsActive = 1 AND IFNULL(cm.isdeleted, 0) = 0"
+                : @"SELECT COUNT(*) FROM club_members cm JOIN club_master c ON c.pk_club_id = cm.fk_club_id
+                    WHERE cm.fk_member_master_profile_id = @M AND c.fk_district_id = @S AND cm.IsActive = 1 AND IFNULL(cm.isdeleted, 0) = 0";
+            if (await conn.ExecuteScalarAsync<int>(sql, new { M = memberId, S = scopeId }) > 0) return true;
+            if (isClub)
+            {
+                // whoever manages the club's district may read all of its clubs (district Admin)
+                var district = await conn.ExecuteScalarAsync<int?>(
+                    "SELECT fk_district_id FROM club_master WHERE pk_club_id = @S", new { S = scopeId });
+                if (district is > 0 && await AllowedAsync(_connectionString, memberId, false, district.Value)) return true;
+            }
+        }
+        return await AllowedAsync(_connectionString, memberId, isClub, scopeId);
     }
 
     /// <summary>True when the member manages this club (isClub) or district; also used by controllers that write
@@ -104,18 +137,16 @@ public class ScopeWriteGuardMiddleware
                    (SELECT COUNT(*) FROM member_roles mr
                     LEFT JOIN club_master c ON c.pk_club_id = @S
                     WHERE {active} AND (
-                          mr.fk_role_id IN (3, 7)
-                       OR (mr.fk_role_id IN (2, 5) AND mr.fk_club_id = @S)
+                          mr.fk_role_id = 3
+                       OR (mr.fk_role_id = 2 AND mr.fk_club_id = @S)
                        OR (mr.fk_role_id = 2 AND (mr.fk_club_id IS NULL OR mr.fk_club_id = 0)
                            AND mr.AllClubsAccess = 1 AND mr.fk_district_id = c.fk_district_id)))
                  + (SELECT COUNT(*) FROM district_ag ag
                     WHERE ag.fk_member_id = @M AND ag.fk_club_id = @S AND ag.is_active = 1 AND ag.isdeleted = 0)"
             : $@"SELECT COUNT(*) FROM member_roles mr
-                 LEFT JOIN district_master d ON d.pk_district_id = @S
                  WHERE {active} AND (
-                       mr.fk_role_id IN (3, 7)
-                    OR (mr.fk_role_id = 2 AND (mr.fk_club_id IS NULL OR mr.fk_club_id = 0) AND mr.fk_district_id = @S)
-                    OR (mr.fk_role_id = 4 AND mr.fk_zone_id = d.fk_zone_id))";
+                       mr.fk_role_id = 3
+                    OR (mr.fk_role_id = 2 AND (mr.fk_club_id IS NULL OR mr.fk_club_id = 0) AND mr.fk_district_id = @S))";
         return await conn.ExecuteScalarAsync<int>(sql, new { M = memberId, S = scopeId }) > 0;
     }
 }

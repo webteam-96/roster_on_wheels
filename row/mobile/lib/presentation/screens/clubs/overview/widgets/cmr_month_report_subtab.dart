@@ -208,28 +208,18 @@ class _CmrProject {
   final String title;
   final String? projectDate;
   final String? areaOfFocus;
-  final String? category;
-  final String? subCategory;
   const _CmrProject({
     required this.title,
     required this.projectDate,
     required this.areaOfFocus,
-    required this.category,
-    required this.subCategory,
   });
   factory _CmrProject.fromJson(Map<String, dynamic> j) => _CmrProject(
         title: _asStr(j['title']),
         projectDate: _asStrN(j['projectDate']),
         areaOfFocus: _asStrN(j['areaOfFocusName']),
-        category: _asStrN(j['categoryName']),
-        subCategory: _asStrN(j['subCategoryName']),
       );
-  String get areaCategory {
-    final parts = [areaOfFocus, category, subCategory]
-        .where((s) => s != null && s.isNotEmpty)
-        .toList();
-    return parts.isEmpty ? '–' : parts.join(' · ');
-  }
+  String get areaLabel =>
+      (areaOfFocus == null || areaOfFocus!.isEmpty) ? '–' : areaOfFocus!;
 }
 
 class _CmrPreview {
@@ -1100,7 +1090,7 @@ class _CmrDetailSheetState extends State<_CmrDetailSheet> {
                         title: p.title,
                         line2: [
                           if (p.projectDate != null) _fmtDate(p.projectDate),
-                          p.areaCategory,
+                          p.areaLabel,
                         ].where((s) => s != '–' && s.isNotEmpty).join(' · '),
                         trailing: null,
                       ),

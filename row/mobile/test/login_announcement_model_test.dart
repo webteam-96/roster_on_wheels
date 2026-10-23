@@ -75,7 +75,6 @@ void main() {
 
   group('role labels', () {
     test('known keys read as words', () {
-      expect(LoginAnnouncementItem.roleLabel('RIDirector'), 'RI Director');
       expect(LoginAnnouncementItem.roleLabel('ClubAdmin'), 'Club Admin');
       expect(LoginAnnouncementItem.roleLabel('ALL'), 'All roles');
     });

@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace RotaryApi.Controllers;
 
 /// <summary>
-/// Image host for the mass-email rich-text body (club + district + RI-director all
+/// Image host for the mass-email rich-text body (club + district both
 /// share this). The editor used to inline pictures as base64 data-URIs, which email
 /// clients (Gmail/Outlook/Yahoo) strip — so images never appeared in the received
 /// mail and the body overflowed the column. Here the picture is saved to

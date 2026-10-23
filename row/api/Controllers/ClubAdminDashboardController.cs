@@ -187,18 +187,6 @@ public class ClubAdminDashboardController : ControllerBase
         catch (UnauthorizedAccessException ex) { return ForbidWithMessage(ex.Message); }
     }
 
-    [HttpGet("dashboard-marketplace")]
-    public async Task<ActionResult<ClubAdminDashboardMarketplaceResponse>> DashboardMarketplace([FromQuery] int? yearId = null, [FromQuery] int? clubId = null)
-    {
-        if (!IsAuthorisedRole()) return Forbid();
-        try
-        {
-            var r = await _service.GetDashboardMarketplaceAsync(GetMemberId(), yearId, clubId);
-            return r == null ? NotConfigured() : Ok(r);
-        }
-        catch (UnauthorizedAccessException ex) { return ForbidWithMessage(ex.Message); }
-    }
-
     [HttpGet("dashboard-rotary-network")]
     public async Task<ActionResult<ClubAdminDashboardRotaryNetworkResponse>> DashboardRotaryNetwork([FromQuery] int? yearId = null, [FromQuery] int? clubId = null)
     {
@@ -259,7 +247,7 @@ public class ClubAdminDashboardController : ControllerBase
             {
                 resolvedClubId = await conn.ExecuteScalarAsync<int?>(@"
                     SELECT fk_club_id FROM member_roles
-                    WHERE fk_member_master_profile_id = @MemberId AND fk_role_id IN (2, 5)
+                    WHERE fk_member_master_profile_id = @MemberId AND fk_role_id = 2
                       AND IsActive = 1 AND isdeleted = 0 ORDER BY pk_member_role_id ASC LIMIT 1",
                     new { MemberId = memberId }) ?? 0;
             }

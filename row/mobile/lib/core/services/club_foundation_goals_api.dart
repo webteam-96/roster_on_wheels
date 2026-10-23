@@ -5,7 +5,7 @@ import '../../data/models/club_admin_dashboard_models.dart';
 /// (`api/mobile/club-foundation-goals`, commit 5c505d3).
 ///
 /// `clubId` is passed as a query param (the server validates the caller is an
-/// active Club Admin/Moderator of it). Past years are read-only — the server
+/// active Club Admin of it). Past years are read-only — the server
 /// returns 400 on save/delete for them, surfaced as an [ApiException].
 class ClubFoundationGoalsApi {
   ClubFoundationGoalsApi();

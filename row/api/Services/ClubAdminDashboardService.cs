@@ -128,19 +128,13 @@ public class ClubAdminDashboardService : IClubAdminDashboardService
             && string.Equals(wsStatus, "Active", StringComparison.OrdinalIgnoreCase)
             && (expiry == null || expiry >= DateTime.Today);
 
-        // Available WhatsApp + Email credit balances for the hero chip.
+        // Available Email credit balance for the hero chip.
         // Mirrors the query in CreditManagementService.cs:105 — only active,
         // unexpired credits count; expired or used-up batches don't.
         int emailCredits = await conn.ExecuteScalarAsync<int?>(@"
             SELECT COALESCE(SUM(CreditCount - UsedCount), 0)
             FROM club_credits
             WHERE fk_club_id = @ClubId AND CreditType = 'Email'
-              AND IsActive = 1 AND isdeleted = 0 AND NOW() <= ToDate",
-            new { ClubId = clubId }) ?? 0;
-        int waCredits = await conn.ExecuteScalarAsync<int?>(@"
-            SELECT COALESCE(SUM(CreditCount - UsedCount), 0)
-            FROM club_credits
-            WHERE fk_club_id = @ClubId AND CreditType = 'WhatsApp'
               AND IsActive = 1 AND isdeleted = 0 AND NOW() <= ToDate",
             new { ClubId = clubId }) ?? 0;
 
@@ -158,7 +152,6 @@ public class ClubAdminDashboardService : IClubAdminDashboardService
             ClubWebsiteActive = websiteActive,
             ClubWebsiteExpiry = expiry,
             EmailCreditBalance = emailCredits,
-            WhatsAppCreditBalance = waCredits,
         };
     }
 
@@ -631,8 +624,7 @@ public class ClubAdminDashboardService : IClubAdminDashboardService
                           COALESCE(p.project_cost, 0) AS cost,
                           COALESCE(p.Currency, '{RotaryApi.Services.Brand.SqlCurrency}') AS currency,
                           COALESCE(p.direct_beneficiaries, 0) AS beneficiaries,
-                          COALESCE(f.name, 'Self Funded') AS funding,
-                          COALESCE(p.approval_status, '') AS approvalStatus
+                          COALESCE(f.name, 'Self Funded') AS funding
                    FROM `{t.ProjectsTable}` p
                    LEFT JOIN module_master md ON md.pk_module_id = p.fk_module_id
                    LEFT JOIN area_of_focus_master aof ON aof.pk_area_of_focus_id = p.fk_area_of_focus_id
@@ -660,7 +652,6 @@ public class ClubAdminDashboardService : IClubAdminDashboardService
                     Currency = curr,
                     Beneficiaries = benef,
                     Funding = r.funding as string,
-                    ApprovalStatus = (r.approvalStatus as string) ?? "",
                 });
             }
         }
@@ -1333,73 +1324,6 @@ public class ClubAdminDashboardService : IClubAdminDashboardService
         return needles.Any(n => lower.Contains(n));
     }
 
-    // Dashboard › Marketplace
-    public async Task<ClubAdminDashboardMarketplaceResponse?> GetDashboardMarketplaceAsync(int memberId, int? yearId, int? requestedClubId = null)
-    {
-        using var conn = CreateConnection();
-        await conn.OpenAsync();
-        var clubId = await ResolveClubIdAsync(conn, memberId, requestedClubId);
-        if (clubId == 0) return null;
-        var resolvedYearId = await ResolveYearIdAsync(conn, yearId);
-        var identity = await BuildIdentityAsync(conn, memberId, clubId, resolvedYearId);
-        if (identity == null) return null;
-
-        // Treat the count of upcoming-events + active-announcements as "listings"
-        // (these are the items a member sees on the public ROW marketplace
-        // pages for this club today).
-        int listingsCount = await conn.ExecuteScalarAsync<int>(@"
-            SELECT
-                (SELECT COUNT(*) FROM upcoming_events WHERE fk_club_id = @ClubId AND isdeleted = 0
-                    AND EventDate >= CURDATE())
-              + (SELECT COUNT(*) FROM announcements   WHERE fk_club_id = @ClubId AND isdeleted = 0)",
-            new { ClubId = clubId });
-
-        var listings = new List<ClubAdminDashboardMarketplaceListing>();
-
-        var upcoming = await conn.QueryAsync<dynamic>(@"
-            SELECT Title AS title, EventDate AS date
-            FROM upcoming_events
-            WHERE fk_club_id = @ClubId AND isdeleted = 0 AND EventDate >= CURDATE()
-            ORDER BY EventDate ASC LIMIT 8",
-            new { ClubId = clubId });
-        foreach (var u in upcoming)
-        {
-            DateTime? d = u.date is DateTime dd ? dd : (DateTime?)null;
-            listings.Add(new ClubAdminDashboardMarketplaceListing
-            {
-                Title = (u.title as string) ?? "",
-                Kind = "event",
-                Date = d?.ToString("yyyy-MM-dd"),
-                Status = "Active",
-            });
-        }
-
-        // Rotary ID acts as the "club account id" on the external marketplace.
-        var rotaryId = await conn.ExecuteScalarAsync<string?>(@"
-            SELECT ClubRotaryId FROM club_master WHERE pk_club_id = @ClubId AND isdeleted = 0",
-            new { ClubId = clubId }) ?? "";
-
-        return new ClubAdminDashboardMarketplaceResponse
-        {
-            Club = identity,
-            Subscription = identity.ClubWebsiteActive ? "Active" : "Inactive",
-            ClubListingsCount = listingsCount,
-            MemberId = string.IsNullOrEmpty(rotaryId) ? "—" : "#" + rotaryId,
-            Platform = "ROW",
-            PlatformUrl = RotaryApi.Services.Brand.PortalDomain,
-            LaunchUrl = RotaryApi.Services.Brand.PortalOrigin,
-            Listings = listings,
-            Account = new ClubAdminDashboardMarketplaceAccount
-            {
-                ClubName = identity.ClubName,
-                MarketplaceId = string.IsNullOrEmpty(rotaryId) ? "—" : "#" + rotaryId,
-                DistrictNumber = identity.DistrictNumber,
-                Subscription = identity.ClubWebsiteActive ? "Active" : "Inactive",
-                ContactSupport = RotaryApi.Services.Brand.SupportEmail,
-            },
-        };
-    }
-
     // Dashboard › Rotary Network — terminated + potential members
     public async Task<ClubAdminDashboardRotaryNetworkResponse?> GetDashboardRotaryNetworkAsync(int memberId, int? yearId, int? requestedClubId = null)
     {
@@ -1563,7 +1487,6 @@ public class ClubAdminDashboardService : IClubAdminDashboardService
         ("international_service",   "International Service"),
         ("new_generation_service",  "New Generation"),
         ("public_image_initiative", "Public Image"),
-        ("pph_camp",                "PPH Camp"),
     };
 
     public async Task<ServiceProjectsOverviewResponse?> GetServiceProjectsOverviewAsync(int memberId, int? yearId, int? requestedClubId = null)
@@ -1586,7 +1509,6 @@ public class ClubAdminDashboardService : IClubAdminDashboardService
             a => a.Key,
             a => new ServiceProjectsAvenueSummaryRow { AvenueKey = a.Key, AvenueName = a.Name });
         var kpis = new ServiceProjectsOverviewKpis();
-        var pendingItems = new List<ServiceProjectsPendingFixRow>();
         // TotalCost + per-avenue Cost subtotals convert into the district default currency.
         var targetCurrency = await ResolveClubTargetCurrencyAsync(conn, clubId);
         var fxRates = await _fx.GetInrRatesAsync();
@@ -1597,14 +1519,11 @@ public class ClubAdminDashboardService : IClubAdminDashboardService
             var rows = await conn.QueryAsync<dynamic>(
                 $@"SELECT mm.ModuleKey AS moduleKey,
                           mm.ModuleName AS moduleName,
-                          p.pk_project_id AS projectId,
-                          COALESCE(p.title, '') AS title,
                           COALESCE(p.project_cost, 0) AS cost,
                           COALESCE(p.Currency, '{RotaryApi.Services.Brand.SqlCurrency}') AS currency,
                           COALESCE(p.direct_beneficiaries, 0) AS beneficiaries,
                           COALESCE(p.man_hours, 0) AS manHours,
                           COALESCE(p.attendance, 0) AS attendance,
-                          COALESCE(p.approval_status, '') AS approvalStatus,
                           COALESCE(p.meeting_type, '') AS meetingType
                    FROM `{t.ProjectsTable}` p
                    JOIN module_master mm ON mm.pk_module_id = p.fk_module_id
@@ -1640,51 +1559,6 @@ public class ClubAdminDashboardService : IClubAdminDashboardService
                     kpis.TotalCost          += cost;
                     kpis.TotalManHours      += hours;
                 }
-
-                // Items that look incomplete / pending → top accordion
-                var status = (r.approvalStatus as string ?? "").Trim().ToLowerInvariant();
-                if (status == "pending" || status == "rejected" || status == "draft")
-                {
-                    if (pendingItems.Count < 8)
-                    {
-                        pendingItems.Add(new ServiceProjectsPendingFixRow
-                        {
-                            ProjectId      = AsInt(r.projectId),
-                            Title          = (r.title as string) ?? "",
-                            AvenueKey      = key,
-                            AvenueLabel    = row.AvenueName,
-                            ApprovalStatus = status,
-                            // Fix URL points to existing module edit page
-                            FixUrl = AvenueEditUrl(identity.ClubId, key, AsInt(r.projectId)),
-                        });
-                    }
-                }
-            }
-        }
-
-        // PPH camps live in their own `pph_camps` table, not the year-partitioned
-        // `rotary_projects_YYYY_YY` tables the loop above scans — aggregate them
-        // separately so the PPH Camp avenue row (and the global totals) aren't
-        // silently stuck at zero.
-        {
-            var (pphYearStart, pphYearEnd) = await YearRangeAsync(conn, selectedYearId);
-            var campRows = await conn.QueryAsync<dynamic>(
-                $@"SELECT c.pk_camp_id AS id, COUNT(a.pk_attendance_id) AS attendance
-                   FROM pph_camps c
-                   LEFT JOIN pph_camp_attendance a ON a.fk_camp_id = c.pk_camp_id AND COALESCE(a.isdeleted, 0) = 0
-                   WHERE c.fk_club_id = @ClubId AND COALESCE(c.isdeleted, 0) = 0
-                     {(pphYearStart.HasValue && pphYearEnd.HasValue ? "AND c.CampDate BETWEEN @YearStart AND @YearEnd" : "")}
-                   GROUP BY c.pk_camp_id",
-                new { ClubId = clubId, YearStart = pphYearStart, YearEnd = pphYearEnd });
-
-            var pphRow = byAvenue["pph_camp"];
-            foreach (var r in campRows)
-            {
-                var benef = AsInt(r.attendance);
-                pphRow.Projects++;
-                pphRow.Beneficiaries += benef;
-                kpis.TotalProjects++;
-                kpis.TotalBeneficiaries += benef;
             }
         }
 
@@ -1700,7 +1574,6 @@ public class ClubAdminDashboardService : IClubAdminDashboardService
             Kpis = kpis,
             TargetCurrency = targetCurrency,
             Avenues = AvenueOrder.Select(a => byAvenue[a.Key]).ToList(),
-            PendingItems = pendingItems,
         };
     }
 
@@ -1737,15 +1610,6 @@ public class ClubAdminDashboardService : IClubAdminDashboardService
             AvailableYears = availableYears,
         };
 
-        // PPH camps live in their own `pph_camps` table, not the year-partitioned
-        // `rotary_projects_YYYY_YY` tables — handle them before the tables.Count
-        // guard below, which only applies to the generic avenue tables.
-        if (avenueKey == "pph_camp")
-        {
-            await LoadPphCampsAsync(conn, clubId, selectedYearId, response);
-            return response;
-        }
-
         // Get target tables — single year for the detail view.
         var tables = await GetTargetTablesAsync(conn, selectedYearId);
 
@@ -1757,7 +1621,7 @@ public class ClubAdminDashboardService : IClubAdminDashboardService
         }
         else
         {
-            await LoadAvenueProjectsAsync(conn, clubId, tables, avenueKey, avenueMeta.Name, response);
+            await LoadAvenueProjectsAsync(conn, clubId, tables, avenueKey, response);
         }
 
         return response;
@@ -1882,11 +1746,10 @@ public class ClubAdminDashboardService : IClubAdminDashboardService
         };
     }
 
-    private async Task LoadAvenueProjectsAsync(MySqlConnection conn, int clubId, List<YearTableInfo> tables, string avenueKey, string avenueName, ServiceProjectsAvenueDetailResponse response)
+    private async Task LoadAvenueProjectsAsync(MySqlConnection conn, int clubId, List<YearTableInfo> tables, string avenueKey, ServiceProjectsAvenueDetailResponse response)
     {
         var oneTime = new List<ServiceProjectsProjectRow>();
         var ongoing = new List<ServiceProjectsProjectRow>();
-        var pending = new List<ServiceProjectsPendingApprovalBannerRow>();
 
         int totalProjects = 0, totalBenef = 0, totalHours = 0;
         decimal totalSpent = 0;
@@ -1907,19 +1770,11 @@ public class ClubAdminDashboardService : IClubAdminDashboardService
                           COALESCE(p.Currency, '{RotaryApi.Services.Brand.SqlCurrency}') AS currency,
                           COALESCE(p.direct_beneficiaries, 0) AS beneficiaries,
                           COALESCE(p.man_hours, 0) AS manHours,
-                          COALESCE(p.approval_status, '') AS approvalStatus,
                           COALESCE(p.synced_to_org, 0) AS syncedToOrg,
                           COALESCE(p.is_joint_project, 0) AS isJoint,
                           p.co_host_name AS coHostName,
                           p.parent_project_id AS parentId,
-                          p.ongoing_group_title AS ongoingTitle,
-                          p.created_by AS createdBy,
-                          (SELECT m.MemberName FROM member_master_profile m
-                            WHERE m.pk_member_master_profile_id = p.created_by) AS creatorName,
-                          (SELECT m.PrimaryMobileNumber FROM member_master_profile m
-                            WHERE m.pk_member_master_profile_id = p.created_by) AS creatorMobile,
-                          (SELECT m.EmailId FROM member_master_profile m
-                            WHERE m.pk_member_master_profile_id = p.created_by) AS creatorEmail
+                          p.ongoing_group_title AS ongoingTitle
                    FROM `{t.ProjectsTable}` p
                    JOIN module_master mm ON mm.pk_module_id = p.fk_module_id
                    WHERE p.fk_club_id = @ClubId AND mm.ModuleKey = @AvenueKey
@@ -1949,7 +1804,6 @@ public class ClubAdminDashboardService : IClubAdminDashboardService
                     DirectBeneficiaries = benef,
                     ManHours = hours,
                     Beneficiary = null,
-                    ApprovalStatus = (r.approvalStatus as string) ?? "",
                     SyncedToOrg = Convert.ToBoolean(r.syncedToOrg ?? 0),
                     IsJointProject = Convert.ToBoolean(r.isJoint ?? 0),
                     CoHostName = r.coHostName as string,
@@ -1983,22 +1837,6 @@ public class ClubAdminDashboardService : IClubAdminDashboardService
                 totalBenef += benef;
                 totalSpent += CurrencyHelper.Convert(cost, row.Currency, targetCurrency, fxRates);
                 totalHours += hours;
-
-                var status = row.ApprovalStatus.Trim().ToLowerInvariant();
-                if ((status == "pending" || status == "rejected" || status == "draft")
-                    && pending.Count < 3)
-                {
-                    pending.Add(new ServiceProjectsPendingApprovalBannerRow
-                    {
-                        ProjectId = row.Id,
-                        CreatorName = (r.creatorName as string) ?? "Member",
-                        ProjectTitle = row.Title,
-                        AvenueLabel = avenueName,
-                        Mobile = r.creatorMobile as string,
-                        Email = r.creatorEmail as string,
-                        ApprovalStatus = status,
-                    });
-                }
             }
         }
 
@@ -2024,7 +1862,6 @@ public class ClubAdminDashboardService : IClubAdminDashboardService
 
         response.OneTimeProjects = oneTime;
         response.OngoingProjects = ongoing;
-        response.PendingApprovals = pending;
         response.TargetCurrency = targetCurrency;
         response.Kpis = new ServiceProjectsAvenueKpis
         {
@@ -2032,66 +1869,6 @@ public class ClubAdminDashboardService : IClubAdminDashboardService
             Beneficiaries = totalBenef,
             AmountSpent = totalSpent,
             ManHours = totalHours,
-        };
-    }
-
-    // PPH camps have their own table (`pph_camps`, joined to `pph_camp_attendance`
-    // for a beneficiary/attendance count) — they're not projects in the year-wise
-    // `rotary_projects_YYYY_YY` tables, so this mirrors LoadAvenueProjectsAsync's
-    // shape without touching the shared project tables. Filtering by the selected
-    // Rotary year uses CampDate against rotary_year_master's date range (camps have
-    // no fk_year_id column), same approach as AgReportsController's PPH report.
-    private async Task LoadPphCampsAsync(MySqlConnection conn, int clubId, int yearId, ServiceProjectsAvenueDetailResponse response)
-    {
-        var (yearStart, yearEnd) = await YearRangeAsync(conn, yearId);
-
-        var rows = await conn.QueryAsync<dynamic>(
-            $@"SELECT c.pk_camp_id AS id, c.CampDate AS campDate, COALESCE(c.Title, '') AS title,
-                      COUNT(a.pk_attendance_id) AS attendance,
-                      COALESCE(c.IsActive, 1) AS isActive,
-                      CASE
-                          WHEN c.CampLogoPath IS NULL OR c.CampLogoPath = '' THEN NULL
-                          WHEN c.CampLogoPath LIKE '/%' THEN c.CampLogoPath
-                          ELSE CONCAT('/Documents/Campmaster/Group', c.fk_club_id, '/', c.CampLogoPath)
-                      END AS campImageUrl
-               FROM pph_camps c
-               LEFT JOIN pph_camp_attendance a ON a.fk_camp_id = c.pk_camp_id AND COALESCE(a.isdeleted, 0) = 0
-               WHERE c.fk_club_id = @ClubId AND COALESCE(c.isdeleted, 0) = 0
-                 {(yearStart.HasValue && yearEnd.HasValue ? "AND c.CampDate BETWEEN @YearStart AND @YearEnd" : "")}
-               GROUP BY c.pk_camp_id, c.CampDate, c.Title, c.IsActive, c.CampLogoPath, c.fk_club_id
-               ORDER BY c.CampDate DESC, c.pk_camp_id DESC",
-            new { ClubId = clubId, YearStart = yearStart, YearEnd = yearEnd });
-
-        var items = new List<ServiceProjectsProjectRow>();
-        int totalBenef = 0, sr = 0;
-        foreach (var r in rows)
-        {
-            DateTime? d = r.campDate is DateTime dd ? dd : (DateTime?)null;
-            int benef = AsInt(r.attendance);
-            items.Add(new ServiceProjectsProjectRow
-            {
-                Id = AsInt(r.id),
-                Sr = ++sr,
-                Date = d?.ToString("yyyy-MM-dd") ?? "",
-                Title = (r.title as string) ?? "",
-                Type = "",
-                Cost = 0,
-                DirectBeneficiaries = benef,
-                ManHours = 0,
-                ApprovalStatus = "",
-                IsActive = AsInt(r.isActive) == 1,
-                CampImageUrl = r.campImageUrl as string,
-            });
-            totalBenef += benef;
-        }
-
-        response.OneTimeProjects = items;
-        response.Kpis = new ServiceProjectsAvenueKpis
-        {
-            Projects = items.Count,
-            Beneficiaries = totalBenef,
-            AmountSpent = 0,
-            ManHours = 0,
         };
     }
 
@@ -2169,23 +1946,6 @@ public class ClubAdminDashboardService : IClubAdminDashboardService
             "ongoing_repeat"  => "Ongoing",
             _                 => projType,
         };
-    }
-
-    private static string AvenueEditUrl(int clubId, string avenueKey, int projectId)
-    {
-        // Map avenue → existing module page URL (used by the "fix" link)
-        var slug = avenueKey switch
-        {
-            "club_service"            => "club-service",
-            "community_service"       => "community-service",
-            "vocational_service"      => "vocational-service",
-            "international_service"   => "international-service",
-            "new_generation_service"  => "new-generation-service",
-            "public_image_initiative" => "public-image-initiative",
-            "pph_camp"                => "pph-camps",
-            _                         => "projects",
-        };
-        return $"/clubs/{clubId}/{slug}/{projectId}/edit";
     }
 
     // ─── AVAILABLE YEARS (powers the global topbar dropdown) ───────────

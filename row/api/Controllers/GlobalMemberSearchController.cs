@@ -37,11 +37,9 @@ public class GlobalMemberSearchController : ControllerBase
         // Search members — SELECT * for future-proof.
         // Two legs UNION-ed:
         //   A) members with an ACTIVE club membership (matched by profile fields OR club name).
-        //   B) members holding an ACTIVE admin role (RIDirector / SuperAdmin / ZC / AG / ClubModerator /
-        //      Admin) matched by profile fields — EVEN IF they have no active club membership. RI
-        //      Directors especially are top-level and often have no club membership, so leg A alone
-        //      would drop them (their RIDirector badge never showed). Plain members with no club and
-        //      no role stay hidden (soft-delete behaviour preserved).
+        //   B) members holding an ACTIVE admin role (SuperAdmin / AG / Admin) matched by profile
+        //      fields — EVEN IF they have no active club membership, which leg A alone would drop.
+        //      Plain members with no club and no role stay hidden (soft-delete behaviour preserved).
         var members = (await conn.QueryAsync<dynamic>(@"
             SELECT * FROM (
                 SELECT m.*
@@ -63,7 +61,7 @@ public class GlobalMemberSearchController : ControllerBase
                 INNER JOIN member_roles mr ON mr.fk_member_master_profile_id = m.pk_member_master_profile_id
                      AND mr.isdeleted = 0 AND mr.IsActive = 1
                 INNER JOIN roles r ON r.pk_role_id = mr.fk_role_id
-                     AND r.RoleName IN ('Admin','SuperAdmin','ZonalCoordinator','ClubModerator','AG','RIDirector')
+                     AND r.RoleName IN ('Admin','SuperAdmin','AG')
                 WHERE m.isdeleted = 0
                   AND (
                       m.MemberName LIKE @Search
@@ -200,15 +198,6 @@ public class GlobalMemberSearchController : ControllerBase
             WHERE ag.fk_member_id IN @Ids AND ag.isdeleted = 0
             ORDER BY y.pk_year_id DESC");
 
-        // Club Moderator assignments (which club the member moderates; no year dimension).
-        var clubModeratorBy = await BatchAsync(@"
-            SELECT cmod.fk_member_id AS __mid, c.ClubName AS clubName, d.DistrictNumber AS districtNumber, cmod.is_active AS isActive
-            FROM district_club_moderator cmod
-            JOIN club_master c ON c.pk_club_id = cmod.fk_club_id
-            JOIN district_master d ON d.pk_district_id = cmod.fk_district_id
-            WHERE cmod.fk_member_id IN @Ids AND cmod.isdeleted = 0
-            ORDER BY c.ClubName");
-
         // Club-level sub-groups / committees (includes CP/CS auto-groups) — year-wise.
         var clubSubGroupsBy = await BatchAsync(@"
             SELECT sgm.fk_member_master_profile_id AS __mid, sg.GroupName AS groupName, c.ClubName AS clubName,
@@ -244,18 +233,6 @@ public class GlobalMemberSearchController : ControllerBase
             WHERE dp.fk_member_profile_id IN @Ids AND dp.isdeleted = 0
             ORDER BY dp.created_date DESC");
 
-        // District Directory data-collection submissions by/for the member (no isdeleted column).
-        var directorySubmissionsBy = await BatchAsync(@"
-            SELECT dsl.fk_member_id AS __mid, d.DistrictNumber AS districtNumber, y.YearLabel AS yearLabel,
-                   dsl.GroupType AS groupType, dsl.CompletedCount AS completedCount,
-                   dsl.TotalCount AS totalCount, dsl.SubmittedAt AS submittedAt
-            FROM district_directory_submission_log dsl
-            JOIN district_directory_config cfg ON cfg.pk_id = dsl.fk_config_id
-            JOIN district_master d ON d.pk_district_id = cfg.fk_district_id
-            LEFT JOIN rotary_year_master y ON y.pk_year_id = cfg.fk_year_id
-            WHERE dsl.fk_member_id IN @Ids
-            ORDER BY dsl.SubmittedAt DESC");
-
         var result = new List<object>();
 
         foreach (var member in members)
@@ -270,11 +247,9 @@ public class GlobalMemberSearchController : ControllerBase
             var districtGovernor = districtGovernorBy[memberId];
             var pastPresident = pastPresidentBy[memberId];
             var assistantGovernor = assistantGovernorBy[memberId];
-            var clubModerator = clubModeratorBy[memberId];
             var clubSubGroups = clubSubGroupsBy[memberId];
             var events = eventsBy[memberId];
             var membershipDues = membershipDuesBy[memberId];
-            var directorySubmissions = directorySubmissionsBy[memberId];
 
             result.Add(new
             {
@@ -288,11 +263,9 @@ public class GlobalMemberSearchController : ControllerBase
                 districtGovernor,
                 pastPresident,
                 assistantGovernor,
-                clubModerator,
                 clubSubGroups,
                 events,
-                membershipDues,
-                directorySubmissions
+                membershipDues
             });
         }
 

@@ -91,13 +91,11 @@ public class LiveDocumentsExportController : ControllerBase
                    p.man_hours AS manHours, p.rotarians_involved AS rotariansInvolved,
                    p.rotaractors_involved AS rotaractorsInvolved,
                    COALESCE(p.rcc_involved,0) AS rccInvolved,
-                   af.name AS areaOfFocus, cat.name AS category, sc.name AS subCategory,
-                   f.name AS funding, p.approval_status AS approvalStatus,
+                   af.name AS areaOfFocus,
+                   f.name AS funding,
                    mm.ModuleName AS moduleName, p.created_date AS createdDate
             FROM `{info.ProjectsTable}` p
             LEFT JOIN area_of_focus_master af ON af.pk_area_of_focus_id = p.fk_area_of_focus_id
-            LEFT JOIN category_master cat ON cat.pk_category_id = p.fk_category_id
-            LEFT JOIN sub_category_master sc ON sc.pk_sub_category_id = p.fk_sub_category_id
             LEFT JOIN funding_master f ON f.pk_funding_id = p.fk_funding_id
             LEFT JOIN module_master mm ON mm.pk_module_id = p.fk_module_id
             WHERE p.fk_club_id = @ClubId AND p.isdeleted = 0
@@ -111,7 +109,7 @@ public class LiveDocumentsExportController : ControllerBase
         return await conn.QueryAsync<dynamic>(@"
             SELECT a.Title AS title, a.Description AS description, a.PublishDateTime AS publishDate,
                    a.ExpiryDateTime AS expiryDate, a.IsDisplayOnBanner AS isDisplayOnBanner,
-                   a.IsSendWhatsapp AS isSendWhatsapp, a.created_date AS createdDate,
+                   a.created_date AS createdDate,
                    CASE WHEN NOW() < a.PublishDateTime THEN 'Unpublished'
                         WHEN NOW() > a.ExpiryDateTime THEN 'Expired' ELSE 'Published' END AS status
             FROM announcements a
@@ -130,7 +128,7 @@ public class LiveDocumentsExportController : ControllerBase
         return await conn.QueryAsync<dynamic>($@"
             SELECT e.Title AS title, e.Description AS description, e.EventDate AS eventDate,
                    e.EventVenue AS eventVenue, e.PublishDate AS publishDate, e.ExpiryDate AS expiryDate,
-                   e.RegistrationLink AS registrationLink, e.IsSendWhatsapp AS isSendWhatsapp,
+                   e.RegistrationLink AS registrationLink,
                    e.created_date AS createdDate,
                    CASE WHEN NOW() < e.PublishDate THEN 'Unpublished'
                         WHEN NOW() > e.ExpiryDate THEN 'Expired' ELSE 'Published' END AS status
@@ -154,12 +152,11 @@ public class LiveDocumentsExportController : ControllerBase
                    CASE
                        WHEN n.FilePath IS NULL OR n.FilePath = '' THEN NULL
                        WHEN n.FilePath LIKE '/%' THEN n.FilePath
-                       WHEN n.Scope = 'ri' THEN CONCAT('/Documents/ebulletin/ri/', n.FilePath)
                        WHEN n.fk_district_id IS NOT NULL AND n.fk_district_id > 0 THEN CONCAT('/Documents/ebulletin/Group', n.fk_district_id, '/', n.FilePath)
                        WHEN n.fk_club_id IS NOT NULL AND n.fk_club_id > 0 THEN CONCAT('/Documents/ebulletin/Group', n.fk_club_id, '/', n.FilePath)
                        ELSE NULL
                    END AS filePath,
-                   n.IsSendWhatsapp AS isSendWhatsapp, n.created_date AS createdDate,
+                   n.created_date AS createdDate,
                    CASE WHEN NOW() < n.PublishDateTime THEN 'Unpublished'
                         WHEN NOW() > n.ExpiryDateTime THEN 'Expired' ELSE 'Published' END AS status
             FROM newsletters n
@@ -184,7 +181,6 @@ public class LiveDocumentsExportController : ControllerBase
                    CASE
                        WHEN cd.FilePath IS NULL OR cd.FilePath = '' THEN NULL
                        WHEN cd.FilePath LIKE '/%' THEN cd.FilePath
-                       WHEN cd.Scope = 'ri' THEN CONCAT('/Documents/documentsafe/ri/', cd.FilePath)
                        WHEN cd.fk_district_id IS NOT NULL THEN CONCAT('/Documents/documentsafe/Group', cd.fk_district_id, '/', cd.FilePath)
                        ELSE CONCAT('/Documents/documentsafe/Group', cd.fk_club_id, '/', cd.FilePath)
                    END AS filePath,

@@ -29,16 +29,13 @@ class AppConstants {
   // Roles
   static const String roleSuparAdmin = 'SuperAdmin';
   static const String roleAdmin = 'Admin';           // legacy / Club Admin (API-issued)
-  static const String roleZonalCoordinator = 'ZonalCoordinator';
   static const String roleDistrictAdmin = 'District Admin';
   static const String roleClubAdmin = 'Club Admin';
   static const String roleDistrictMember = 'DistrictMember';
   static const String roleClubMember = 'ClubMember';
   static const String roleMember = 'Member';           // API-issued short form of ClubMember
   static const String roleFamilyMember = 'FamilyMember';
-  static const String roleClubModerator = 'ClubModerator';
   static const String roleAG = 'AG';
-  static const String roleRIDirector = 'RIDirector';
 
   // Storage keys for scoped-access IDs
   static const String assignedDistrictIdsKey = 'assigned_district_ids';

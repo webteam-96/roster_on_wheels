@@ -9,9 +9,6 @@ public class ZoneListDto
     public int TotalDistricts { get; set; }
     public int TotalClubs { get; set; }
     public int TotalMembers { get; set; }
-    public bool IsZonalAwardsEnabled { get; set; }
-    public string? CoordinatorName { get; set; }
-    public string? CoordinatorEmail { get; set; }
 }
 
 public class ZoneDetailDto

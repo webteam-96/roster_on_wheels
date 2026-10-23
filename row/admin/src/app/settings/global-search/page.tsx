@@ -32,7 +32,7 @@ const CLUB_DASH_RETURN_KEY = "club_dash_return_to";  // where the borrowed dashb
 
 function routeFor(row: ResultRow): string {
   const ret = `returnTo=${encodeURIComponent(RETURN_TO)}`;
-  if (row.type === "zone")     return `/zonal-dashboard?zoneId=${row.id}`;
+  if (row.type === "zone")     return `/zones/${row.id}/districts?${ret}`;
   if (row.type === "district") return `/districts/${row.id}/dashboard?${ret}`;
   // club
   const parts: string[] = [];

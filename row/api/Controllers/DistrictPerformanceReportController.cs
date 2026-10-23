@@ -72,48 +72,6 @@ public class DistrictPerformanceReportController : ControllerBase
         catch (Exception ex) { return BadRequest(new { message = $"Failed to build the Excel: {ex.Message}" }); }
     }
 
-    // ── RI Director report — every district, zone-wise ──────────────────────────────────────────
-    [HttpGet("api/district-performance-report/zones/view")]
-    public async Task<ActionResult> ZoneView()
-    {
-        if (!IsSuperAdmin()) return Forbid();
-        try
-        {
-            var r = await _service.BuildZoneReportAsync(includeAttachment: false, HttpContext.RequestAborted);
-            return Ok(new
-            {
-                r.DistrictNumber, r.ZoneName, r.YearId, r.YearLabel, r.PeriodLabel, r.Subject,
-                r.ReportKicker, r.ReportTitle, r.ReportSubtitle, r.Highlights, r.ScopeNote, r.Sections,
-                Html = _service.BuildPrintHtml(r),   // the screen's "Print" prints the email itself
-            });
-        }
-        catch (Exception ex) { return BadRequest(new { message = $"Failed to build the RI Director report: {ex.Message}" }); }
-    }
-
-    [HttpGet("api/district-performance-report/zones/excel")]
-    public async Task<ActionResult> ZoneExcel()
-    {
-        if (!IsSuperAdmin()) return Forbid();
-        try
-        {
-            var r = await _service.BuildZoneReportAsync(includeAttachment: true, HttpContext.RequestAborted);
-            return File(r.Excel!, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", r.FileName);
-        }
-        catch (Exception ex) { return BadRequest(new { message = $"Failed to build the RI Director Excel: {ex.Message}" }); }
-    }
-
-    [HttpPost("api/district-performance-report/zones/send-test")]
-    public async Task<ActionResult> ZoneSendTest()
-    {
-        if (!IsSuperAdmin()) return Forbid();
-        try
-        {
-            var message = await _service.SendZoneTestAsync(GetMemberId(), HttpContext.RequestAborted);
-            return Ok(new { message });
-        }
-        catch (Exception ex) { return BadRequest(new { message = $"Failed to send the RI Director test email: {ex.Message}" }); }
-    }
-
     // Sends to the TEST recipients only (never to the DG) — for checking before go-live.
     [HttpPost("api/district-performance-report/send-test")]
     public async Task<ActionResult> SendTest([FromQuery] int districtId)

@@ -84,26 +84,12 @@ public class CitationMatrixController : ControllerBase
                            SELECT CONCAT(' · ', GROUP_CONCAT(
                                CASE
                                    WHEN LOWER(s.sub_item_type) = 'area_of_focus' THEN COALESCE(aof_only.name, s.sub_item_name)
-                                   WHEN LOWER(s.sub_item_type) = 'category' THEN CONCAT(
-                                       COALESCE(aof_for_cat.name, '?'), ' → ',
-                                       COALESCE(cat_only.name, s.sub_item_name)
-                                   )
-                                   WHEN LOWER(s.sub_item_type) IN ('sub_category','subcategory') THEN CONCAT(
-                                       COALESCE(aof_for_sub.name, '?'), ' → ',
-                                       COALESCE(cat_for_sub.name, '?'), ' → ',
-                                       COALESCE(sub_only.name, s.sub_item_name)
-                                   )
                                    ELSE s.sub_item_name
                                END
                                ORDER BY s.sort_order SEPARATOR ' / '
                            ))
                            FROM district_citation_auto_question_sub s
                            LEFT JOIN area_of_focus_master aof_only      ON LOWER(s.sub_item_type) = 'area_of_focus' AND aof_only.pk_area_of_focus_id = s.sub_item_id
-                           LEFT JOIN category_master cat_only           ON LOWER(s.sub_item_type) = 'category'      AND cat_only.pk_category_id      = s.sub_item_id
-                           LEFT JOIN area_of_focus_master aof_for_cat   ON LOWER(s.sub_item_type) = 'category'      AND aof_for_cat.pk_area_of_focus_id = cat_only.fk_area_of_focus_id
-                           LEFT JOIN sub_category_master sub_only       ON LOWER(s.sub_item_type) IN ('sub_category','subcategory') AND sub_only.pk_sub_category_id = s.sub_item_id
-                           LEFT JOIN category_master cat_for_sub        ON LOWER(s.sub_item_type) IN ('sub_category','subcategory') AND cat_for_sub.pk_category_id = sub_only.fk_category_id
-                           LEFT JOIN area_of_focus_master aof_for_sub   ON LOWER(s.sub_item_type) IN ('sub_category','subcategory') AND aof_for_sub.pk_area_of_focus_id = cat_for_sub.fk_area_of_focus_id
                            WHERE s.fk_auto_question_id = q.pk_id AND s.isdeleted = 0
                        ), '')
                    ) AS title,

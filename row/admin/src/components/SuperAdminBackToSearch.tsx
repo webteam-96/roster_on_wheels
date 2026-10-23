@@ -5,8 +5,8 @@ import { useAuth, decodeJwt } from "@/contexts/AuthContext";
 import { ArrowLeft } from "@/components/icons";
 
 // A floating shortcut back to Global Search, shown ONLY to a SuperAdmin who has drilled into a
-// District / Club / Zone / AG / Club-Moderator dashboard (those pages otherwise have no way back to
-// the SuperAdmin search). A genuine DA/CA/AG/CM login is NOT a SuperAdmin, so they never see it.
+// District / Club / Zone / AG dashboard (those pages otherwise have no way back to
+// the SuperAdmin search). A genuine DA/CA/AG login is NOT a SuperAdmin, so they never see it.
 //
 // Hidden on the SuperAdmin's own areas (settings / admin / login) where dedicated navigation already
 // exists — including the Global Search page itself, so we don't show "Back to Search" while on search.

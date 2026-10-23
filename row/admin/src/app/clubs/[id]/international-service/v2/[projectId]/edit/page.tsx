@@ -4,9 +4,9 @@
  * International Service v2 — Edit Project.
  *
  * Same data semantics as the v1 edit page: every field, every API call
- * (including the cross-year move flow + moderator + beneficiary-limit flows)
- * is preserved verbatim. Only the visual presentation differs (V2FormShell
- * wrapper, dot-accented section headers, sticky save bar).
+ * (including the cross-year move flow) is preserved verbatim. Only the visual
+ * presentation differs (V2FormShell wrapper, dot-accented section headers,
+ * sticky save bar).
  *
  * v2 reads ONLY `?returnTo=` — no `returnUrl`, no `backUrl`. yearId comes
  * from a normal query param (?yearId=) since the API requires it.
@@ -16,25 +16,21 @@ import { useEffect, useRef, useState } from "react";
 import DateField from "@/components/DateField";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import {
-  Upload, X, Star, Info, MapPin, Target, IndianRupee, Camera, Users, AlertTriangle,
+  Upload, X, Star, Info, MapPin, Target, IndianRupee, Camera, Users,
 } from "@/components/icons";
 import ClassificationAssist from "@/components/projects/ClassificationAssist";
 import {
   getClub,
   getModules,
   getAreasOfFocus,
-  getCategories,
   getFunding,
   getProject,
   updateProject,
   moveProject,
   uploadProjectImage,
-  getSystemSetting,
-  createBeneficiaryApprovalRequest,
-  checkClubHasModerator,
   type ClassificationSearchResult,
 } from "@/services/api";
-import { AreaOfFocus, Category, Funding, ProjectPhotoInput } from "@/types/project";
+import { AreaOfFocus, Funding, ProjectPhotoInput } from "@/types/project";
 import { currencyOptions, getCurrencySymbol } from "@/lib/currency";
 import V2FormShell, { useV2ReturnTo } from "@/components/v2/V2FormShell";
 import RotaryLoader from "@/components/RotaryLoader";
@@ -139,10 +135,8 @@ export default function InternationalServiceV2EditPage() {
   const [moduleId, setModuleId] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [initDone, setInitDone] = useState(false);
 
   const [areasOfFocus, setAreasOfFocus] = useState<AreaOfFocus[]>([]);
-  const [categories, setCategories] = useState<Category[]>([]);
   const [fundingList, setFundingList] = useState<Funding[]>([]);
 
   const [title, setTitle] = useState("");
@@ -151,14 +145,10 @@ export default function InternationalServiceV2EditPage() {
 
   const [selectedAofId, setSelectedAofId] = useState<string>("");
   const [otherAreaOfFocus, setOtherAreaOfFocus] = useState("");
-  const [selectedCatId, setSelectedCatId] = useState<string>("");
-  const [otherCategory, setOtherCategory] = useState("");
 
-  // One pick (smart-search result or AI suggestion) sets both classification ids. International
-  // Service is a 2-level classification: "Category" = areaOfFocusId, "Sub Category" = categoryId.
+  // One pick (smart-search result or AI suggestion) sets the "Category" (= areaOfFocusId).
   const applyClassification = (r: ClassificationSearchResult) => {
     setSelectedAofId(String(r.areaOfFocusId));
-    setSelectedCatId(r.categoryId ? String(r.categoryId) : "");
   };
 
   const [projectDate, setProjectDate] = useState("");
@@ -179,15 +169,6 @@ export default function InternationalServiceV2EditPage() {
   const [rccInvolved, setRccInvolved] = useState("");
   const [sendEmail, setSendEmail] = useState(false);
 
-  const [beneficiariesLimit, setBeneficiariesLimit] = useState<number>(0);
-  const [showBeneficiaryConfirm, setShowBeneficiaryConfirm] = useState(false);
-  const [pendingSaveData, setPendingSaveData] = useState<Record<string, unknown> | null>(null);
-
-  const [hasModerator, setHasModerator] = useState(false);
-  const [moderatorName, setModeratorName] = useState<string | null>(null);
-  const [showModeratorConfirm, setShowModeratorConfirm] = useState(false);
-  const moderatorConfirmedRef = useRef(false);
-
   const [photos, setPhotos] = useState<PhotoItem[]>([]);
   const photoCrop = useImageCropQueue();
   const photoInputRef = useRef<HTMLInputElement>(null);
@@ -203,19 +184,16 @@ export default function InternationalServiceV2EditPage() {
   const showCsrBlock = fundingClass === "csr";
 
   const isOthersAof = selectedAofId === "others";
-  const isOthersCat = selectedCatId === "others";
 
   useEffect(() => {
     async function init() {
       try {
-        const [club, modules, funding, project, limitSetting] = await Promise.all([
+        const [club, modules, funding, project] = await Promise.all([
           getClub(clubId),
           getModules(),
           getFunding(),
           getProject(clubId, yearId, projectId),
-          getSystemSetting("direct_beneficiaries_limit").catch(() => null),
         ]);
-        if (limitSetting?.settingValue) setBeneficiariesLimit(Number(limitSetting.settingValue) || 0);
         setClubName(club.clubName);
         const mod = modules.find((m) => m.moduleKey === "international_service");
         if (mod) {
@@ -232,15 +210,10 @@ export default function InternationalServiceV2EditPage() {
 
         if (project.areaOfFocusId) {
           setSelectedAofId(String(project.areaOfFocusId));
-          const cats = await getCategories(project.areaOfFocusId);
-          setCategories(cats.filter((c) => c.isActive));
-          if (project.categoryId) setSelectedCatId(String(project.categoryId));
-          else if (project.otherCategory) setSelectedCatId("others");
         } else if (project.otherAreaOfFocus) {
           setSelectedAofId("others");
         }
         setOtherAreaOfFocus(project.otherAreaOfFocus || "");
-        setOtherCategory(project.otherCategory || "");
 
         setProjectDate(project.projectDate ? project.projectDate.split("T")[0] : "");
         setProjectCost(project.projectCost != null ? String(project.projectCost) : "");
@@ -270,12 +243,6 @@ export default function InternationalServiceV2EditPage() {
             previewUrl: `${API_URL}${p.imagePath}`,
           })));
         }
-
-        checkClubHasModerator(clubId)
-          .then((r) => { setHasModerator(r.hasModerator); setModeratorName(r.moderatorName); })
-          .catch(() => {});
-
-        setInitDone(true);
       } catch (err: unknown) {
         const e = err as { response?: { data?: { message?: string } } };
         setErrorMessage(e?.response?.data?.message || "Failed to load project.");
@@ -285,22 +252,6 @@ export default function InternationalServiceV2EditPage() {
     }
     init();
   }, [clubId, projectId, yearId]);
-
-  useEffect(() => {
-    if (!initDone) return;
-    if (!selectedAofId || selectedAofId === "others") {
-      setCategories([]);
-      setSelectedCatId("");
-      return;
-    }
-    async function fetchCats() {
-      try {
-        const cats = await getCategories(Number(selectedAofId));
-        setCategories(cats.filter((c) => c.isActive));
-      } catch { setCategories([]); }
-    }
-    fetchCats();
-  }, [selectedAofId, initDone]);
 
   const handleFundingChange = (newId: string) => {
     setSelectedFundingId(newId);
@@ -381,8 +332,6 @@ export default function InternationalServiceV2EditPage() {
     if (!location.trim()) { setErrorMessage("Location is required."); return; }
     if (!selectedAofId) { setErrorMessage("Category is required."); return; }
     if (isOthersAof && !otherAreaOfFocus.trim()) { setErrorMessage("Please specify the Category."); return; }
-    if (!isOthersAof && categories.length > 0 && !selectedCatId) { setErrorMessage("Sub Category is required."); return; }
-    if (isOthersCat && !otherCategory.trim()) { setErrorMessage("Please specify the Sub Category."); return; }
     if (!projectDate) { setErrorMessage("Date is required."); return; }
     if (new Date(projectDate) > new Date()) { setErrorMessage("Date cannot be in the future."); return; }
     if (!projectCost) { setErrorMessage("Project Cost is required."); return; }
@@ -402,12 +351,6 @@ export default function InternationalServiceV2EditPage() {
     if (photos.length === 0) { setErrorMessage("At least 1 photo is required."); return; }
     if (photos.some((p) => p.uploading)) { setErrorMessage("Please wait for photos to finish uploading."); return; }
 
-    if (hasModerator && !moderatorConfirmedRef.current) {
-      setShowModeratorConfirm(true);
-      return;
-    }
-    moderatorConfirmedRef.current = false;
-
     const photoInputs: ProjectPhotoInput[] = photos.map((p, i) => ({
       imagePath: p.imagePath,
       description: p.description || null,
@@ -423,8 +366,6 @@ export default function InternationalServiceV2EditPage() {
       location: location.trim() || null,
       areaOfFocusId: isOthersAof ? null : (selectedAofId ? Number(selectedAofId) : null),
       otherAreaOfFocus: isOthersAof ? otherAreaOfFocus : null,
-      categoryId: isOthersCat ? null : (selectedCatId ? Number(selectedCatId) : null),
-      otherCategory: isOthersCat ? otherCategory : null,
       projectDate,
       projectCost: projectCost ? Number(projectCost) : null,
       currency,
@@ -445,34 +386,23 @@ export default function InternationalServiceV2EditPage() {
       photos: photoInputs,
     };
 
-    if (beneficiariesLimit > 0 && Number(directBeneficiaries) > beneficiariesLimit) {
-      setPendingSaveData(saveData);
-      setShowBeneficiaryConfirm(true);
-      return;
-    }
-
     await doSaveProject(saveData);
   };
 
-  const doSaveProject = async (saveData: Record<string, unknown>, capAtLimit = false) => {
+  const doSaveProject = async (saveData: Record<string, unknown>) => {
     setSaving(true);
     try {
-      const actualBeneficiaries = saveData.directBeneficiaries as number;
-      const dataToSave = capAtLimit ? { ...saveData, directBeneficiaries: beneficiariesLimit } : saveData;
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const moveInfo = await updateProject(clubId, yearId, projectId, dataToSave as any);
+      const moveInfo = await updateProject(clubId, yearId, projectId, saveData as any);
       if (moveInfo) {
         if (window.confirm(moveInfo.message)) {
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          const moved = await moveProject(clubId, moveInfo.fromYearId, projectId, dataToSave as any);
+          const moved = await moveProject(clubId, moveInfo.fromYearId, projectId, saveData as any);
           window.alert(`Project moved to ${moved.newYearLabel}.`);
           router.push(`/clubs/${clubId}/international-service/v2`);
         }
         setSaving(false);
         return;
-      }
-      if (capAtLimit) {
-        try { await createBeneficiaryApprovalRequest(projectId, actualBeneficiaries, clubId, yearId); } catch { /* ignored */ }
       }
       setShowProjectSuccess(true);
     } catch (err: unknown) {
@@ -481,11 +411,6 @@ export default function InternationalServiceV2EditPage() {
     } finally {
       setSaving(false);
     }
-  };
-
-  const handleBeneficiaryConfirm = () => {
-    setShowBeneficiaryConfirm(false);
-    if (pendingSaveData) { doSaveProject(pendingSaveData, true); setPendingSaveData(null); }
   };
 
   if (loading) {
@@ -585,7 +510,7 @@ export default function InternationalServiceV2EditPage() {
               <FieldLabel dot="bg-violet-500">Category</FieldLabel>
               <select
                 value={selectedAofId}
-                onChange={(e) => { setSelectedAofId(e.target.value); setSelectedCatId(""); }}
+                onChange={(e) => setSelectedAofId(e.target.value)}
                 className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-violet-500"
               >
                 <option value="">Select</option>
@@ -602,32 +527,6 @@ export default function InternationalServiceV2EditPage() {
                   value={otherAreaOfFocus}
                   onChange={(e) => setOtherAreaOfFocus(e.target.value)}
                   placeholder="Specify category"
-                  className="mt-2 w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500"
-                />
-              )}
-            </div>
-            <div>
-              <FieldLabel dot="bg-violet-500" required={categories.length > 0}>Sub Category</FieldLabel>
-              <select
-                value={selectedCatId}
-                onChange={(e) => setSelectedCatId(e.target.value)}
-                disabled={isOthersAof || categories.length === 0}
-                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-violet-500 disabled:bg-slate-50 disabled:text-slate-400"
-              >
-                <option value="">{isOthersAof ? "N/A" : "Select"}</option>
-                {categories.map((c) => (
-                  <option key={c.id} value={String(c.id)}>{c.name}</option>
-                ))}
-                {!categories.some((c) => (c.name || "").trim().toLowerCase() === "others") && categories.length > 0 && (
-                  <option value="others">Others</option>
-                )}
-              </select>
-              {isOthersCat && (
-                <input
-                  type="text"
-                  value={otherCategory}
-                  onChange={(e) => setOtherCategory(e.target.value)}
-                  placeholder="Specify sub category"
                   className="mt-2 w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500"
                 />
               )}
@@ -840,50 +739,7 @@ export default function InternationalServiceV2EditPage() {
             <span className="text-sm font-medium text-slate-700">Send Email notification</span>
             {sendEmail && <RecipientBadge scope="club" clubId={clubId} />}
           </label>
-          {sendEmail && hasModerator && (
-            <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded px-3 py-2 mt-2">
-              Note: This project will go for approval to moderator. Email will be sent after moderator approves.
-            </p>
-          )}
         </SectionCard>
-
-        {/* Beneficiary Limit Confirmation */}
-        <AlertModal
-          open={showBeneficiaryConfirm}
-          onOpenChange={(o) => !o && setShowBeneficiaryConfirm(false)}
-          icon={AlertTriangle}
-          iconClassName="text-amber-500"
-          title="Beneficiary Limit Exceeded"
-          description={
-            <div className="text-sm text-muted-foreground space-y-2">
-              <p>A limit of <span className="font-semibold text-foreground">{beneficiariesLimit}</span> beneficiaries has been set for each project. You have entered <span className="font-semibold text-foreground">{directBeneficiaries}</span> beneficiaries which exceeds the limit.</p>
-              <p>If you confirm, the project will be saved with <span className="font-semibold text-foreground">{beneficiariesLimit}</span> beneficiaries and an approval request for <span className="font-semibold text-foreground">{directBeneficiaries}</span> beneficiaries will be sent to the Zonal Co-ordinator.</p>
-            </div>
-          }
-          confirmLabel={saving ? "Saving…" : "Confirm"}
-          onConfirm={handleBeneficiaryConfirm}
-          cancelLabel="Cancel"
-          onCancel={() => setShowBeneficiaryConfirm(false)}
-        />
-
-        {/* Moderator Approval Confirmation */}
-        <AlertModal
-          open={showModeratorConfirm}
-          onOpenChange={(o) => !o && setShowModeratorConfirm(false)}
-          icon={Info}
-          iconClassName="text-blue-500"
-          title="Project Approval Required"
-          description={
-            <div className="text-sm text-muted-foreground space-y-2">
-              <p>This club has a moderator <strong>{moderatorName}</strong> assigned. Your updated project will be re-submitted for approval.</p>
-              <p>Do you want to continue?</p>
-            </div>
-          }
-          confirmLabel="Submit for Approval"
-          onConfirm={() => { moderatorConfirmedRef.current = true; setShowModeratorConfirm(false); handleSave(); }}
-          cancelLabel="Cancel"
-          onCancel={() => setShowModeratorConfirm(false)}
-        />
 
         {/* Project Success Dialog — v1 parity: rich "Dear Club Leader" message
             with hyperlink to Rotary Showcase to encourage cross-posting. */}

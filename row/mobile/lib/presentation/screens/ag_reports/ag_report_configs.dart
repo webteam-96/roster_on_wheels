@@ -382,22 +382,6 @@ const kAgReportSections = <AgReportSection>[
           AgReportColumn('remarks', 'Remarks', width: 30),
         ],
       ),
-      AgReportConfig(
-        id: 'pph-camps',
-        title: 'PPH Camps',
-        fileName: 'MyClubs_PPH_Camps',
-        icon: Icons.medical_services_outlined,
-        color: AppColors.errorDark,
-        yearScoped: true,
-        columns: [
-          AgReportColumn('clubName', 'Club', width: 28),
-          AgReportColumn('yearLabel', 'Year', width: 12),
-          AgReportColumn('campName', 'Camp Name', width: 30),
-          AgReportColumn('campDate', 'Date', width: 14),
-          AgReportColumn('location', 'Location', width: 24),
-          AgReportColumn('beneficiaryCount', 'Beneficiaries', width: 14),
-        ],
-      ),
     ],
   ),
 ];

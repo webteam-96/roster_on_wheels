@@ -16,10 +16,6 @@ public class DistrictProjectDto
     public string? EventDate { get; set; } // unused, for compatibility
     public int? AreaOfFocusId { get; set; }
     public string? OtherAreaOfFocus { get; set; }
-    public int? CategoryId { get; set; }
-    public string? OtherCategory { get; set; }
-    public int? SubCategoryId { get; set; }
-    public string? OtherSubCategory { get; set; }
     public string? ProjectDate { get; set; }
     public decimal? ProjectCost { get; set; }
     public int? FundingId { get; set; }
@@ -101,7 +97,6 @@ public class DistrictModulesController : ControllerBase
     private readonly IWebHostEnvironment _env;
     private readonly string _connectionString;
     private readonly IConfiguration _configuration;
-    private readonly ZonalAwardsAutoCalculationService _zonalAwardsAutoCalc;
     private readonly IRoleService _roleService;
     private readonly IAuditLogService _auditLog;
     private readonly IDcAutoGroupService _dcAutoGroups;
@@ -119,7 +114,6 @@ public class DistrictModulesController : ControllerBase
         IEmailService emailService,
         IWebHostEnvironment env,
         IConfiguration configuration,
-        ZonalAwardsAutoCalculationService zonalAwardsAutoCalc,
         IRoleService roleService,
         IAuditLogService auditLog,
         IDcAutoGroupService dcAutoGroups,
@@ -137,7 +131,6 @@ public class DistrictModulesController : ControllerBase
         _env = env;
         _connectionString = configuration.GetConnectionString("DefaultConnection")!;
         _configuration = configuration;
-        _zonalAwardsAutoCalc = zonalAwardsAutoCalc;
         _roleService = roleService;
         _auditLog = auditLog;
         _dcAutoGroups = dcAutoGroups;
@@ -646,6 +639,7 @@ public class DistrictModulesController : ControllerBase
     public async Task<ActionResult> GetDistrictMassEmailDetail(int districtId, int id)
     {
         if (!await RotaryApi.Services.KillSwitchHelper.IsDistrictDrillReachableAsync(_connectionString, districtId)) return StatusCode(403, new { message = "This district or its zone is inactive. Reactivate it first to access this data." });
+        if (!await _massEmailService.BelongsToAsync(id, null, districtId)) return NotFound(new { message = "Mass email not found." });
         var detail = await _massEmailService.GetDetailAsync(id);
         if (detail == null) return NotFound(new { message = "Mass email not found." });
         return Ok(detail);
@@ -668,6 +662,7 @@ public class DistrictModulesController : ControllerBase
     [HttpPut("api/districts/{districtId}/mass-emails/{id}")]
     public async Task<ActionResult> UpdateDistrictMassEmail(int districtId, int id, [FromBody] CreateMassEmailDto dto)
     {
+        if (!await _massEmailService.BelongsToAsync(id, null, districtId)) return NotFound(new { message = "Mass email not found." });
         try
         {
             await _massEmailService.UpdateAsync(id, dto, GetUserId());
@@ -682,6 +677,7 @@ public class DistrictModulesController : ControllerBase
     [HttpDelete("api/districts/{districtId}/mass-emails/{id}")]
     public async Task<ActionResult> DeleteDistrictMassEmail(int districtId, int id)
     {
+        if (!await _massEmailService.BelongsToAsync(id, null, districtId)) return NotFound(new { message = "Mass email not found." });
         try
         {
             await _massEmailService.DeleteAsync(id, GetUserId());
@@ -696,6 +692,7 @@ public class DistrictModulesController : ControllerBase
     [HttpPost("api/districts/{districtId}/mass-emails/{id}/send")]
     public async Task<ActionResult> SendDistrictMassEmail(int districtId, int id)
     {
+        if (!await _massEmailService.BelongsToAsync(id, null, districtId)) return NotFound(new { message = "Mass email not found." });
         try
         {
             await _massEmailService.SendAsync(id, GetUserId());
@@ -711,6 +708,7 @@ public class DistrictModulesController : ControllerBase
     public async Task<ActionResult> GetDistrictMassEmailRecipients(int districtId, int id)
     {
         if (!await RotaryApi.Services.KillSwitchHelper.IsDistrictDrillReachableAsync(_connectionString, districtId)) return StatusCode(403, new { message = "This district or its zone is inactive. Reactivate it first to access this data." });
+        if (!await _massEmailService.BelongsToAsync(id, null, districtId)) return NotFound(new { message = "Mass email not found." });
         var recipients = await _massEmailService.GetRecipientsAsync(id);
         return Ok(recipients);
     }
@@ -730,7 +728,7 @@ public class DistrictModulesController : ControllerBase
     [HttpGet("api/districts/{districtId}/mass-emails/recipient-count")]
     public async Task<ActionResult> GetDistrictRecipientCount(int districtId,
         [FromQuery] int recipientType, [FromQuery] string? subgroupIds,
-        [FromQuery] string? clubIds, [FromQuery] string? memberIds)
+        [FromQuery] string? clubIds, [FromQuery] string? memberIds, [FromQuery] string? contactGroupIds)
     {
         if (!await RotaryApi.Services.KillSwitchHelper.IsDistrictDrillReachableAsync(_connectionString, districtId)) return StatusCode(403, new { message = "This district or its zone is inactive. Reactivate it first to access this data." });
         List<int>? parsedSubgroupIds = null;
@@ -745,7 +743,10 @@ public class DistrictModulesController : ControllerBase
         if (!string.IsNullOrEmpty(memberIds))
             parsedMemberIds = memberIds.Split(',', StringSplitOptions.RemoveEmptyEntries).Select(int.Parse).ToList();
 
-        var count = await _massEmailService.GetRecipientCountAsync(0, recipientType, parsedSubgroupIds, parsedMemberIds, districtId, parsedClubIds);
+        var parsedContactGroupIds = contactGroupIds?.Split(',', StringSplitOptions.RemoveEmptyEntries)
+            .Select(s => int.TryParse(s, out var n) ? n : 0).Where(n => n > 0).ToList();
+
+        var count = await _massEmailService.GetRecipientCountAsync(0, recipientType, parsedSubgroupIds, parsedMemberIds, districtId, parsedClubIds, parsedContactGroupIds);
         return Ok(count);
     }
 
@@ -769,7 +770,7 @@ public class DistrictModulesController : ControllerBase
         if (memberExists == 0)
             return NotFound(new { message = "Member not found." });
 
-        // Mutual exclusion: District Admin (role 2) cannot coexist with SA/ZC/RID
+        // Mutual exclusion: District Admin (role 2) cannot coexist with SA
         try { await _roleService.CheckRoleConflictPublicAsync(memberId, 2); }
         catch (InvalidOperationException ex) { return BadRequest(new { message = ex.Message }); }
 
@@ -928,12 +929,11 @@ public class DistrictModulesController : ControllerBase
             SELECT COUNT(*) FROM member_roles mr
             JOIN roles r ON r.pk_role_id = mr.fk_role_id
             WHERE mr.fk_member_master_profile_id = @MemberId AND mr.IsActive = 1 AND mr.isdeleted = 0
-              AND r.RoleName IN ('Admin', 'SuperAdmin', 'ZonalCoordinator')",
+              AND r.RoleName IN ('Admin', 'SuperAdmin')",
             new { MemberId = memberId });
 
-        // If no remaining admin roles, deactivate credentials — unless they still hold a Goal Setting
-        // role, which logs in to the web portal with the same credentials.
-        if (hasOtherRoles == 0 && !await RotaryApi.Services.GoalLoginHelper.HasActiveGoalRoleAsync(connection, memberId))
+        // If no remaining admin roles, deactivate credentials.
+        if (hasOtherRoles == 0)
         {
             await connection.ExecuteAsync(@"
                 UPDATE member_credentials SET IsActive = 0 WHERE fk_member_master_profile_id = @MemberId",
@@ -1063,18 +1063,15 @@ public class DistrictModulesController : ControllerBase
                    CASE r.fk_role_id
                        WHEN 2 THEN CASE WHEN r.fk_district_id IS NOT NULL THEN 'District Admin' ELSE 'Club Admin' END
                        WHEN 3 THEN 'Super Admin'
-                       WHEN 4 THEN 'Zonal Coordinator'
                        ELSE 'Member'
                    END AS RoleName,
                    c.ClubName,
                    d.DistrictNumber,
-                   d2.DistrictNumber AS DirectDistrictNumber,
-                   z.ZoneName
+                   d2.DistrictNumber AS DirectDistrictNumber
             FROM member_roles r
             LEFT JOIN club_master c ON r.fk_club_id = c.pk_club_id
             LEFT JOIN district_master d ON c.fk_district_id = d.pk_district_id
             LEFT JOIN district_master d2 ON r.fk_district_id = d2.pk_district_id
-            LEFT JOIN zone_master z ON r.fk_zone_id = z.pk_zone_id
             WHERE r.fk_member_master_profile_id = @MemberId AND r.IsActive = 1 AND r.isdeleted = 0
             ORDER BY r.fk_role_id", new { MemberId = memberId });
 
@@ -1103,10 +1100,6 @@ public class DistrictModulesController : ControllerBase
             else if (roleId == 3)
             {
                 details = "All Districts & Clubs";
-            }
-            else if (roleId == 4)
-            {
-                details = (string?)r.ZoneName ?? "";
             }
 
             html += $"<tr><td style='padding: 8px 12px; border: 1px solid #ddd; font-weight: bold;'>{roleName}</td>"
@@ -1156,13 +1149,12 @@ public class DistrictModulesController : ControllerBase
                        p.direct_beneficiaries AS directBeneficiaries, p.man_hours AS manHours,
                        p.rotarians_involved AS rotariansInvolved, p.rotaractors_involved AS rotaractorsInvolved,
                        p.fk_year_id AS yearId,
-                       aof.name AS areaOfFocusName, cat.name AS categoryName,
+                       aof.name AS areaOfFocusName,
                        (SELECT CONCAT('/Documents/DistrictProject/', p.fk_district_id, '/', pp.image_path)
                         FROM `{t.PhotosTable}` pp WHERE pp.fk_project_id = p.pk_project_id LIMIT 1) AS primaryPhoto,
                        p.created_date AS createdDate
                 FROM `{t.ProjectsTable}` p
                 LEFT JOIN area_of_focus_master aof ON aof.pk_area_of_focus_id = p.fk_area_of_focus_id
-                LEFT JOIN category_master cat ON cat.pk_category_id = p.fk_category_id
                 WHERE p.fk_district_id = @DistrictId AND (p.DistrictProjectType = 'Project' OR p.DistrictProjectType IS NULL)
                   AND p.isdeleted = 0
                   AND (@Search IS NULL OR p.title LIKE CONCAT('%', @Search, '%'))";
@@ -1195,8 +1187,6 @@ public class DistrictModulesController : ControllerBase
         var project = await conn.QueryFirstOrDefaultAsync<dynamic>($@"
             SELECT p.pk_project_id AS id, p.fk_year_id AS yearId, p.title, p.description,
                    p.location, p.fk_area_of_focus_id AS areaOfFocusId, p.other_area_of_focus AS otherAreaOfFocus,
-                   p.fk_category_id AS categoryId, p.other_category AS otherCategory,
-                   p.fk_sub_category_id AS subCategoryId, p.other_sub_category AS otherSubCategory,
                    p.project_date AS projectDate, p.project_cost AS projectCost,
                    p.fk_funding_id AS fundingId,
                    p.global_grant_number AS globalGrantNumber, p.amount_sanctioned AS amountSanctioned,
@@ -1303,13 +1293,13 @@ public class DistrictModulesController : ControllerBase
 
         var id = await conn.ExecuteScalarAsync<int>($@"
             INSERT INTO `{info.ProjectsTable}` (fk_club_id, fk_district_id, fk_module_id, fk_year_id, DistrictProjectType,
-                title, description, location, fk_area_of_focus_id, other_area_of_focus, fk_category_id, other_category, fk_sub_category_id, other_sub_category,
+                title, description, location, fk_area_of_focus_id, other_area_of_focus,
                 project_date, project_cost, fk_funding_id,
                 global_grant_number, amount_sanctioned, amount_received, amount_spent, host_clubs_districts, global_partner_clubs_districts, csr_company_name,
                 direct_beneficiaries, man_hours,
                 rotarians_involved, rotaractors_involved, rcc_involved, created_by, created_date)
             VALUES (0, @DistrictId, @ModuleId, @YearId, 'Project',
-                @Title, @Description, @Location, @AreaOfFocusId, @OtherAreaOfFocus, @CategoryId, @OtherCategory, @SubCategoryId, @OtherSubCategory,
+                @Title, @Description, @Location, @AreaOfFocusId, @OtherAreaOfFocus,
                 @ProjectDate, @ProjectCost, @FundingId,
                 @GlobalGrantNumber, @AmountSanctioned, @AmountReceived, @AmountSpent, @HostClubsDistricts, @GlobalPartnerClubsDistricts, @CsrCompanyName,
                 @DirectBeneficiaries, @ManHours,
@@ -1319,8 +1309,6 @@ public class DistrictModulesController : ControllerBase
                 DistrictId = districtId, ModuleId = moduleId, YearId = yearId,
                 Title = dto.Title, Description = dto.Description, Location = dto.Location,
                 AreaOfFocusId = dto.AreaOfFocusId, OtherAreaOfFocus = dto.OtherAreaOfFocus,
-                CategoryId = dto.CategoryId, OtherCategory = dto.OtherCategory,
-                SubCategoryId = dto.SubCategoryId, OtherSubCategory = dto.OtherSubCategory,
                 ProjectDate = dto.ProjectDate, ProjectCost = dto.ProjectCost, FundingId = dto.FundingId,
                 GlobalGrantNumber = dto.GlobalGrantNumber, AmountSanctioned = dto.AmountSanctioned,
                 AmountReceived = dto.AmountReceived, AmountSpent = dto.AmountSpent,
@@ -1399,8 +1387,6 @@ public class DistrictModulesController : ControllerBase
         await conn.ExecuteAsync($@"
             UPDATE `{info.ProjectsTable}` SET title=@Title, description=@Description, location=@Location,
                 fk_area_of_focus_id=@AreaOfFocusId, other_area_of_focus=@OtherAreaOfFocus,
-                fk_category_id=@CategoryId, other_category=@OtherCategory,
-                fk_sub_category_id=@SubCategoryId, other_sub_category=@OtherSubCategory,
                 project_date=@ProjectDate, project_cost=@ProjectCost, fk_funding_id=@FundingId,
                 global_grant_number=@GlobalGrantNumber, amount_sanctioned=@AmountSanctioned,
                 amount_received=@AmountReceived, amount_spent=@AmountSpent,
@@ -1414,8 +1400,6 @@ public class DistrictModulesController : ControllerBase
                 Id = id, DistrictId = districtId,
                 Title = dto.Title, Description = dto.Description, Location = dto.Location,
                 AreaOfFocusId = dto.AreaOfFocusId, OtherAreaOfFocus = dto.OtherAreaOfFocus,
-                CategoryId = dto.CategoryId, OtherCategory = dto.OtherCategory,
-                SubCategoryId = dto.SubCategoryId, OtherSubCategory = dto.OtherSubCategory,
                 ProjectDate = dto.ProjectDate, ProjectCost = dto.ProjectCost, FundingId = dto.FundingId,
                 GlobalGrantNumber = dto.GlobalGrantNumber, AmountSanctioned = dto.AmountSanctioned,
                 AmountReceived = dto.AmountReceived, AmountSpent = dto.AmountSpent,
@@ -1674,14 +1658,13 @@ public class DistrictModulesController : ControllerBase
     private const string DistrictMoveColumns =
         "fk_club_id, fk_district_id, fk_module_id, fk_year_id, DistrictProjectType, project_type, " +
         "parent_project_id, ongoing_group_title, is_joint_project, co_host_name, club_role, title, " +
-        "description, location, fk_area_of_focus_id, other_area_of_focus, fk_category_id, other_category, " +
-        "fk_sub_category_id, other_sub_category, project_date, project_cost, fk_funding_id, " +
-        "direct_beneficiaries, man_hours, rotarians_involved, rotaractors_involved, rcc_involved, send_whatsapp, " +
+        "description, location, fk_area_of_focus_id, other_area_of_focus, " +
+        "project_date, project_cost, fk_funding_id, " +
+        "direct_beneficiaries, man_hours, rotarians_involved, rotaractors_involved, rcc_involved, " +
         "meeting_type, agenda_document, minutes_document, attendance, attendance_percentage, " +
         "global_grant_number, amount_sanctioned, amount_received, amount_spent, host_clubs_districts, " +
-        "global_partner_clubs_districts, csr_company_name, IsSendWhatsapp, WhatsAppSentDate, " +
-        "WhatsAppSentCount, WhatsAppFailedCount, approval_status, approval_remark, approved_by, " +
-        "approval_date, approval_token, is_active, created_by, created_date, modified_by, modified_date, " +
+        "global_partner_clubs_districts, csr_company_name, " +
+        "is_active, created_by, created_date, modified_by, modified_date, " +
         "isdeleted, deleted_by, deleted_date, old_pk";
 
     // Relocates an already-updated district record (project or event) + its photos to the target
@@ -1753,8 +1736,6 @@ public class DistrictModulesController : ControllerBase
             await conn.ExecuteAsync($@"
                 UPDATE `{src.ProjectsTable}` SET title=@Title, description=@Description, location=@Location,
                     fk_area_of_focus_id=@AreaOfFocusId, other_area_of_focus=@OtherAreaOfFocus,
-                    fk_category_id=@CategoryId, other_category=@OtherCategory,
-                    fk_sub_category_id=@SubCategoryId, other_sub_category=@OtherSubCategory,
                     project_date=@ProjectDate, project_cost=@ProjectCost, fk_funding_id=@FundingId,
                     direct_beneficiaries=@DirectBeneficiaries, man_hours=@ManHours,
                     rotarians_involved=@RotariansInvolved, rotaractors_involved=@RotaractorsInvolved, rcc_involved=@RccInvolved,
@@ -1764,8 +1745,6 @@ public class DistrictModulesController : ControllerBase
                     Id = id, DistrictId = districtId,
                     Title = dto.Title, Description = dto.Description, Location = dto.Location,
                     AreaOfFocusId = dto.AreaOfFocusId, OtherAreaOfFocus = dto.OtherAreaOfFocus,
-                    CategoryId = dto.CategoryId, OtherCategory = dto.OtherCategory,
-                    SubCategoryId = dto.SubCategoryId, OtherSubCategory = dto.OtherSubCategory,
                     ProjectDate = dto.ProjectDate, ProjectCost = dto.ProjectCost, FundingId = dto.FundingId,
                     DirectBeneficiaries = dto.DirectBeneficiaries, ManHours = dto.ManHours,
                     RotariansInvolved = dto.RotariansInvolved, RotaractorsInvolved = dto.RotaractorsInvolved,
@@ -2896,7 +2875,6 @@ public class DistrictModulesController : ControllerBase
                        p.fk_module_id AS moduleId, mm.ModuleName AS moduleName, mm.ModuleKey AS moduleKey,
                        p.fk_area_of_focus_id AS areaOfFocusId, af.name AS areaOfFocusName,
                        p.other_area_of_focus AS otherAreaOfFocus,
-                       p.fk_category_id AS categoryId, p.fk_sub_category_id AS subCategoryId,
                        (SELECT CONCAT('/Documents/gallery/Group', p.fk_club_id, '/',
                                 CASE WHEN p.old_pk IS NOT NULL THEN CONCAT('Album', p.old_pk)
                                      ELSE CONCAT('{suffix}/Album', p.pk_project_id) END,
@@ -3110,7 +3088,7 @@ public class DistrictModulesController : ControllerBase
 
         // Get last reminder log per club
         var reminderLogs = clubIds.Count > 0 ? (await conn.QueryAsync<dynamic>(@"
-            SELECT l1.fk_club_id AS clubId, l1.email_status AS emailStatus, l1.whatsapp_status AS whatsappStatus, l1.sent_date AS sentDate
+            SELECT l1.fk_club_id AS clubId, l1.email_status AS emailStatus, l1.sent_date AS sentDate
             FROM district_report_reminder_log l1
             INNER JOIN (
                 SELECT fk_club_id, MAX(id) AS maxId
@@ -3139,7 +3117,6 @@ public class DistrictModulesController : ControllerBase
                 secretaryMobile = sec != null ? (string?)sec.mobile : null,
                 secretaryEmail = sec != null ? (string?)sec.email : null,
                 lastEmailStatus = log != null ? (string?)log.emailStatus : null,
-                lastWhatsappStatus = log != null ? (string?)log.whatsappStatus : null,
                 lastReminderDate = log != null ? (DateTime?)log.sentDate : null
             };
         }).ToList();
@@ -3158,7 +3135,7 @@ public class DistrictModulesController : ControllerBase
     public async Task<ActionResult> SendReportReminder(int districtId, int yearId, int month, [FromBody] SendReportReminderDto dto)
     {
         if (!dto.SendEmail)
-            return BadRequest(new { message = "Select at least email or WhatsApp." });
+            return BadRequest(new { message = "Select email to send reminders." });
 
         // Check DISTRICT credit balance before sending (not club).
         var creditSvc = HttpContext.RequestServices.GetRequiredService<ICreditManagementService>();
@@ -3225,11 +3202,11 @@ public class DistrictModulesController : ControllerBase
 
                 var emailService = emailSvc;
                 var creditService = creditSvc2;
-                int emailSent = 0, whatsAppSent = 0;
+                int emailSent = 0;
 
                 foreach (var r in recipients)
                 {
-                    string emailStatus = "not_sent", waStatus = "not_sent";
+                    string emailStatus = "not_sent";
 
                     if (dto.SendEmail && !string.IsNullOrEmpty((string?)r.email))
                     {
@@ -3260,369 +3237,21 @@ public class DistrictModulesController : ControllerBase
 
                     // Log reminder status
                     await conn.ExecuteAsync(@"
-                        INSERT INTO district_report_reminder_log (fk_district_id, fk_year_id, report_month, fk_club_id, fk_member_id, member_name, designation, email_status, whatsapp_status, sent_by)
-                        VALUES (@DistrictId, @YearId, @Month, @ClubId, @MemberId, @MemberName, @Designation, @EmailStatus, @WaStatus, @UserId)",
+                        INSERT INTO district_report_reminder_log (fk_district_id, fk_year_id, report_month, fk_club_id, fk_member_id, member_name, designation, email_status, sent_by)
+                        VALUES (@DistrictId, @YearId, @Month, @ClubId, @MemberId, @MemberName, @Designation, @EmailStatus, @UserId)",
                         new { DistrictId = districtId, YearId = yearId, Month = month, ClubId = (int)r.clubId,
                               MemberId = (int)r.memberId, MemberName = (string)r.memberName, Designation = (string)r.designation,
-                              EmailStatus = emailStatus, WaStatus = waStatus, UserId = userId });
+                              EmailStatus = emailStatus, UserId = userId });
                 }
 
                 // Deduct from the DISTRICT wallet (fk_club_id = 0, fk_district_id = districtId).
                 if (emailSent > 0)
                     await creditService.DeductDistrictWithHistoryAsync(districtId, "Email", emailSent, "MonthlyReportReminder", yearId, $"Monthly report reminder for {monthNameWithYear}", userId);
-                if (whatsAppSent > 0)
-                    await creditService.DeductDistrictWithHistoryAsync(districtId, "WhatsApp", whatsAppSent, "MonthlyReportReminder", yearId, $"Monthly report WhatsApp reminder for {monthNameWithYear}", userId);
             }
             catch (Exception ex) { Console.WriteLine($"Reminder error: {ex.Message}"); }
         });
 
         return Ok(new { message = "Reminders are being sent in background. Refresh to check status." });
-    }
-
-    // ══════════════════════════════════════════════════════════════════════
-    // ── Club Moderator ─────────────────────────────────────────────────
-    // ══════════════════════════════════════════════════════════════════════
-
-    [HttpGet("api/districts/{districtId}/club-moderators")]
-    public async Task<ActionResult> GetClubModerators(int districtId)
-    {
-        if (!await RotaryApi.Services.KillSwitchHelper.IsDistrictDrillReachableAsync(_connectionString, districtId)) return StatusCode(403, new { message = "This district or its zone is inactive. Reactivate it first to access this data." });
-        using var conn = CreateConnection();
-        await conn.OpenAsync();
-        var result = await conn.QueryAsync<dynamic>(@"
-            SELECT dcm.id, dcm.fk_district_id AS districtId, dcm.fk_member_id AS memberId,
-                   dcm.fk_club_id AS clubId, dcm.is_active AS isActive,
-                   m.MemberName AS memberName, m.PrimaryMobileNumber AS mobile, m.EmailId AS email,
-                   CASE
-                       WHEN m.ProfilePhotoPath IS NULL OR m.ProfilePhotoPath = '' THEN NULL
-                       WHEN m.ProfilePhotoPath LIKE '/Documents/directory/%' THEN m.ProfilePhotoPath
-                       ELSE CONCAT('/Documents/directory/', SUBSTRING_INDEX(m.ProfilePhotoPath, '/', -1))
-                   END AS profilePhoto,
-                   c.ClubName AS clubName, c.ClubRotaryId AS clubRotaryId
-            FROM district_club_moderator dcm
-            INNER JOIN member_master_profile m ON m.pk_member_master_profile_id = dcm.fk_member_id AND m.isdeleted = 0
-            INNER JOIN club_master c ON c.pk_club_id = dcm.fk_club_id AND c.isdeleted = 0
-            WHERE dcm.fk_district_id = @DistrictId AND dcm.isdeleted = 0
-            ORDER BY m.MemberName, c.ClubName",
-            new { DistrictId = districtId });
-        return Ok(result);
-    }
-
-    [HttpGet("api/districts/{districtId}/club-moderators/available-clubs")]
-    public async Task<ActionResult> GetAvailableClubsForModerator(int districtId, [FromQuery] int? excludeModeratorId)
-    {
-        if (!await RotaryApi.Services.KillSwitchHelper.IsDistrictDrillReachableAsync(_connectionString, districtId)) return StatusCode(403, new { message = "This district or its zone is inactive. Reactivate it first to access this data." });
-        using var conn = CreateConnection();
-        await conn.OpenAsync();
-        // Clubs not yet assigned to any moderator (or assigned to the one being edited)
-        var clubs = await conn.QueryAsync<dynamic>($@"
-            SELECT c.pk_club_id AS id, c.ClubName AS clubName, c.ClubRotaryId AS clubRotaryId
-            FROM club_master c
-            WHERE c.fk_district_id = @DistrictId AND c.isdeleted = 0 AND c.IsActive = 1{NotRotaractUnlessSa()}
-              AND c.pk_club_id NOT IN (
-                SELECT fk_club_id FROM district_club_moderator
-                WHERE fk_district_id = @DistrictId AND isdeleted = 0
-                  AND (@ExcludeMemberId IS NULL OR fk_member_id != @ExcludeMemberId)
-              )
-            ORDER BY c.ClubName",
-            new { DistrictId = districtId, ExcludeMemberId = excludeModeratorId });
-        return Ok(clubs);
-    }
-
-    [HttpGet("api/districts/{districtId}/club-moderators/member-clubs/{memberId}")]
-    public async Task<ActionResult> GetModeratorClubs(int districtId, int memberId)
-    {
-        if (!await RotaryApi.Services.KillSwitchHelper.IsDistrictDrillReachableAsync(_connectionString, districtId)) return StatusCode(403, new { message = "This district or its zone is inactive. Reactivate it first to access this data." });
-        using var conn = CreateConnection();
-        await conn.OpenAsync();
-        var clubs = await conn.QueryAsync<dynamic>(@"
-            SELECT dcm.id, dcm.fk_club_id AS clubId, c.ClubName AS clubName, c.ClubRotaryId AS clubRotaryId
-            FROM district_club_moderator dcm
-            INNER JOIN club_master c ON c.pk_club_id = dcm.fk_club_id
-            WHERE dcm.fk_district_id = @DistrictId AND dcm.fk_member_id = @MemberId AND dcm.isdeleted = 0
-            ORDER BY c.ClubName",
-            new { DistrictId = districtId, MemberId = memberId });
-        return Ok(clubs);
-    }
-
-    public class ClubModeratorDto
-    {
-        public int MemberId { get; set; }
-        public int? OldMemberId { get; set; }
-        public List<int> ClubIds { get; set; } = new();
-    }
-
-    [HttpPost("api/districts/{districtId}/club-moderators")]
-    public async Task<ActionResult> SaveClubModerator(int districtId, [FromBody] ClubModeratorDto dto)
-    {
-        if (dto.ClubIds.Count == 0)
-            return BadRequest(new { message = "Select at least one club." });
-
-        // Mutual exclusion: Club Moderator (role 5) cannot coexist with SA/ZC/RID
-        try { await _roleService.CheckRoleConflictPublicAsync(dto.MemberId, 5); }
-        catch (InvalidOperationException ex) { return BadRequest(new { message = ex.Message }); }
-
-        using var conn = CreateConnection();
-        await conn.OpenAsync();
-
-        // Check if any of these clubs are already assigned to another moderator (exclude both new and old member)
-        var excludeMembers = new List<int> { dto.MemberId };
-        if (dto.OldMemberId.HasValue) excludeMembers.Add(dto.OldMemberId.Value);
-        var conflicts = (await conn.QueryAsync<dynamic>(@"
-            SELECT c.ClubName AS clubName, m.MemberName AS memberName
-            FROM district_club_moderator dcm
-            INNER JOIN club_master c ON c.pk_club_id = dcm.fk_club_id
-            INNER JOIN member_master_profile m ON m.pk_member_master_profile_id = dcm.fk_member_id
-            WHERE dcm.fk_district_id = @DistrictId AND dcm.fk_club_id IN @ClubIds
-              AND dcm.fk_member_id NOT IN @ExcludeMembers AND dcm.isdeleted = 0",
-            new { DistrictId = districtId, ClubIds = dto.ClubIds, ExcludeMembers = excludeMembers })).ToList();
-
-        if (conflicts.Count > 0)
-        {
-            var msg = string.Join(", ", conflicts.Select(c => $"{(string)c.clubName} (assigned to {(string)c.memberName})"));
-            return BadRequest(new { message = $"These clubs already have a moderator: {msg}" });
-        }
-
-        var userId = GetUserId();
-        bool memberChanged = dto.OldMemberId.HasValue && dto.OldMemberId.Value != dto.MemberId;
-        var districtNumber = await conn.ExecuteScalarAsync<string>(
-            "SELECT DistrictNumber FROM district_master WHERE pk_district_id = @Id", new { Id = districtId }) ?? "";
-
-        // ── If member changed: handle old member removal ──
-        if (memberChanged)
-        {
-            var oldMemberId = dto.OldMemberId!.Value;
-
-            // Soft-delete all old member's club assignments
-            await conn.ExecuteAsync(
-                "UPDATE district_club_moderator SET isdeleted = 1, modified_by = @UserId WHERE fk_district_id = @DistrictId AND fk_member_id = @MemberId AND isdeleted = 0",
-                new { DistrictId = districtId, MemberId = oldMemberId, UserId = userId });
-
-            // Remove ClubModerator role from old member
-            await conn.ExecuteAsync(
-                "UPDATE member_roles SET IsActive = 0, RevokedDate = NOW(), RevokedBy = @UserId WHERE fk_member_master_profile_id = @MemberId AND fk_role_id = 5 AND IsActive = 1 AND isdeleted = 0",
-                new { MemberId = oldMemberId, UserId = userId });
-
-            // Send removal email to old member
-            var oldMember = await conn.QueryFirstOrDefaultAsync<dynamic>(
-                "SELECT MemberName AS memberName, EmailId AS email FROM member_master_profile WHERE pk_member_master_profile_id = @Id AND isdeleted = 0",
-                new { Id = oldMemberId });
-            if (oldMember != null && !string.IsNullOrEmpty((string?)oldMember.email))
-            {
-                var removeBody = $@"
-                    <div style='font-family:Arial,sans-serif;max-width:600px;margin:0 auto;'>
-                        <div style='background:#dc2626;color:white;padding:20px;text-align:center;border-radius:8px 8px 0 0;'>
-                            <h2 style='margin:0;'>Club Moderator Role Removed</h2>
-                        </div>
-                        <div style='padding:24px;border:1px solid #e2e8f0;border-top:none;border-radius:0 0 8px 8px;'>
-                            <p>Dear <strong>{(string)oldMember.memberName}</strong>,</p>
-                            <p>Your <strong>Club Moderator</strong> role for District <strong>{districtNumber}</strong> has been removed.</p>
-                            <p>If you have any questions, please contact your district administrator.</p>
-                            <p style='color:#718096;font-size:12px;margin-top:24px;'>This is an automated notification from ROW.</p>
-                        </div>
-                    </div>";
-                try { await _emailService.SendGenericEmailAsync((string)oldMember.email, "ROW - Club Moderator Role Removed", removeBody); }
-                catch { }
-            }
-
-            // Now add all clubs as new for the new member
-            foreach (var clubId in dto.ClubIds)
-            {
-                var reactivated = await conn.ExecuteAsync(
-                    "UPDATE district_club_moderator SET fk_member_id = @MemberId, isdeleted = 0, is_active = 1, modified_by = @UserId WHERE fk_district_id = @DistrictId AND fk_club_id = @ClubId AND isdeleted = 1",
-                    new { DistrictId = districtId, MemberId = dto.MemberId, ClubId = clubId, UserId = userId });
-                if (reactivated == 0)
-                {
-                    await conn.ExecuteAsync(
-                        "INSERT INTO district_club_moderator (fk_district_id, fk_member_id, fk_club_id, is_active, created_by) VALUES (@DistrictId, @MemberId, @ClubId, 1, @UserId)",
-                        new { DistrictId = districtId, MemberId = dto.MemberId, ClubId = clubId, UserId = userId });
-                }
-            }
-        }
-        else
-        {
-            // ── Same member, just update clubs ──
-            var currentClubIds = (await conn.QueryAsync<int>(
-                "SELECT fk_club_id FROM district_club_moderator WHERE fk_district_id = @DistrictId AND fk_member_id = @MemberId AND isdeleted = 0",
-                new { DistrictId = districtId, MemberId = dto.MemberId })).ToList();
-
-            var toAdd = dto.ClubIds.Except(currentClubIds).ToList();
-            var toRemove = currentClubIds.Except(dto.ClubIds).ToList();
-
-            // Soft-delete removed clubs
-            if (toRemove.Count > 0)
-            {
-                await conn.ExecuteAsync(
-                    "UPDATE district_club_moderator SET isdeleted = 1, modified_by = @UserId WHERE fk_district_id = @DistrictId AND fk_member_id = @MemberId AND fk_club_id IN @ClubIds AND isdeleted = 0",
-                    new { DistrictId = districtId, MemberId = dto.MemberId, ClubIds = toRemove, UserId = userId });
-                // NOTE: pending projects on removed clubs are deliberately LEFT pending.
-                // They must not be auto-approved on moderator removal — they transfer to
-                // whoever moderates the club next (the moderator queries join by club).
-            }
-
-            // Re-activate or insert new clubs
-            foreach (var clubId in toAdd)
-            {
-                var reactivated = await conn.ExecuteAsync(
-                    "UPDATE district_club_moderator SET isdeleted = 0, is_active = 1, modified_by = @UserId WHERE fk_district_id = @DistrictId AND fk_member_id = @MemberId AND fk_club_id = @ClubId AND isdeleted = 1",
-                    new { DistrictId = districtId, MemberId = dto.MemberId, ClubId = clubId, UserId = userId });
-                if (reactivated == 0)
-                {
-                    var otherDeleted = await conn.ExecuteAsync(
-                        "UPDATE district_club_moderator SET fk_member_id = @MemberId, isdeleted = 0, is_active = 1, modified_by = @UserId WHERE fk_district_id = @DistrictId AND fk_club_id = @ClubId AND isdeleted = 1",
-                        new { DistrictId = districtId, MemberId = dto.MemberId, ClubId = clubId, UserId = userId });
-                    if (otherDeleted == 0)
-                    {
-                        await conn.ExecuteAsync(
-                            "INSERT INTO district_club_moderator (fk_district_id, fk_member_id, fk_club_id, is_active, created_by) VALUES (@DistrictId, @MemberId, @ClubId, 1, @UserId)",
-                            new { DistrictId = districtId, MemberId = dto.MemberId, ClubId = clubId, UserId = userId });
-                    }
-                }
-            }
-        }
-
-        // ── Ensure ClubModerator role for new member ──
-        var hasRole = await conn.ExecuteScalarAsync<int>(
-            "SELECT COUNT(*) FROM member_roles WHERE fk_member_master_profile_id = @MemberId AND fk_role_id = 5 AND IsActive = 1 AND isdeleted = 0",
-            new { MemberId = dto.MemberId });
-        if (hasRole == 0)
-        {
-            // Try reactivate first
-            var reactivatedRole = await conn.ExecuteAsync(
-                "UPDATE member_roles SET IsActive = 1, RevokedDate = NULL, RevokedBy = NULL WHERE fk_member_master_profile_id = @MemberId AND fk_role_id = 5 AND isdeleted = 0",
-                new { MemberId = dto.MemberId });
-            if (reactivatedRole == 0)
-            {
-                await conn.ExecuteAsync(
-                    "INSERT IGNORE INTO member_roles (fk_member_master_profile_id, fk_role_id, IsActive, created_by, created_date) VALUES (@MemberId, 5, 1, @UserId, NOW())",
-                    new { MemberId = dto.MemberId, UserId = userId });
-            }
-        }
-
-        // ── Credentials + Email for new/current member ──
-        var member = await conn.QueryFirstOrDefaultAsync<dynamic>(
-            "SELECT MemberName AS memberName, EmailId AS email, PrimaryMobileNumber AS mobile FROM member_master_profile WHERE pk_member_master_profile_id = @Id AND isdeleted = 0",
-            new { Id = dto.MemberId });
-
-        var clubNames = (await conn.QueryAsync<string>(
-            "SELECT ClubName FROM club_master WHERE pk_club_id IN @ClubIds ORDER BY ClubName",
-            new { ClubIds = dto.ClubIds })).ToList();
-
-        string? tempPassword = null;
-        var credExists = await conn.ExecuteScalarAsync<int>(
-            "SELECT COUNT(*) FROM member_credentials WHERE fk_member_master_profile_id = @Id AND IsActive = 1 AND isdeleted = 0",
-            new { Id = dto.MemberId });
-        if (credExists == 0)
-        {
-            tempPassword = "Mod@" + new Random().Next(1000, 9999);
-            var hash = BCrypt.Net.BCrypt.HashPassword(tempPassword);
-            var updated = await conn.ExecuteAsync(
-                "UPDATE member_credentials SET IsActive = 1, isdeleted = 0, PasswordHash = @Hash, IsTemporaryPassword = 1 WHERE fk_member_master_profile_id = @Id",
-                new { Id = dto.MemberId, Hash = hash });
-            if (updated == 0)
-            {
-                await conn.ExecuteAsync(
-                    "INSERT INTO member_credentials (fk_member_master_profile_id, PasswordHash, IsTemporaryPassword) VALUES (@Id, @Hash, 1)",
-                    new { Id = dto.MemberId, Hash = hash });
-            }
-        }
-
-        // Send assignment email
-        if (member != null && !string.IsNullOrEmpty((string?)member.email))
-        {
-            var clubListHtml = string.Join("", clubNames.Select(c => $"<li style='padding:4px 0;'>{c}</li>"));
-            var credentialHtml = tempPassword != null
-                ? $@"<div style='background-color:#f7fafc;border:1px solid #e2e8f0;border-radius:8px;padding:16px;margin:16px 0;'>
-                        <p><strong>Username:</strong> {(string)member.mobile}</p>
-                        <p><strong>Temporary Password:</strong> {tempPassword}</p>
-                     </div>
-                     <p style='color:#e53e3e;'><strong>Important:</strong> Please change your password after your first login.</p>"
-                : $@"<div style='background-color:#f7fafc;border:1px solid #e2e8f0;border-radius:8px;padding:16px;margin:16px 0;'>
-                        <p><strong>Username:</strong> {(string)member.mobile}</p>
-                        <p>Use your existing password to login.</p>
-                     </div>";
-
-            var body = $@"
-                <div style='font-family:Arial,sans-serif;max-width:600px;margin:0 auto;'>
-                    <div style='background:#1a365d;color:white;padding:20px;text-align:center;border-radius:8px 8px 0 0;'>
-                        <h2 style='margin:0;'>Club Moderator Assignment</h2>
-                    </div>
-                    <div style='padding:24px;border:1px solid #e2e8f0;border-top:none;border-radius:0 0 8px 8px;'>
-                        <p>Dear <strong>{(string)member.memberName}</strong>,</p>
-                        <p>You have been assigned as <strong>Club Moderator</strong> for District <strong>{districtNumber}</strong>.</p>
-                        <h3 style='color:#1a365d;margin-top:20px;'>Assigned Clubs:</h3>
-                        <ul style='background:#f7fafc;border:1px solid #e2e8f0;border-radius:8px;padding:16px 16px 16px 32px;margin:8px 0;'>
-                            {clubListHtml}
-                        </ul>
-                        <h3 style='color:#1a365d;margin-top:20px;'>Login Details:</h3>
-                        {credentialHtml}
-                        <p style='color:#718096;font-size:12px;margin-top:24px;'>This is an automated notification from ROW.</p>
-                    </div>
-                </div>";
-            try { await _emailService.SendGenericEmailAsync((string)member.email, "ROW - Club Moderator Assignment", body); }
-            catch { }
-        }
-
-        return Ok(new { message = "Club moderator saved." });
-    }
-
-    [HttpDelete("api/districts/{districtId}/club-moderators/{id}")]
-    public async Task<ActionResult> DeleteClubModeratorAssignment(int districtId, int id)
-    {
-        using var conn = CreateConnection();
-        await conn.OpenAsync();
-        await conn.ExecuteAsync("UPDATE district_club_moderator SET isdeleted = 1 WHERE id = @Id AND fk_district_id = @DistrictId",
-            new { Id = id, DistrictId = districtId });
-        // NOTE: pending projects for this club are deliberately LEFT pending — they
-        // must not be auto-approved on moderator removal; they transfer to the club's
-        // next moderator (the moderator queries join by club).
-        return Ok(new { message = "Club moderator assignment removed." });
-    }
-
-    [HttpDelete("api/districts/{districtId}/club-moderators/member/{memberId}")]
-    public async Task<ActionResult> DeleteClubModeratorByMember(int districtId, int memberId)
-    {
-        using var conn = CreateConnection();
-        await conn.OpenAsync();
-
-        // Soft-delete club assignments.
-        // NOTE: pending projects on these clubs are deliberately LEFT pending — they
-        // must not be auto-approved on moderator removal; they transfer to whoever
-        // moderates the club next (the moderator queries join by club).
-        await conn.ExecuteAsync("UPDATE district_club_moderator SET isdeleted = 1, modified_by = @UserId WHERE fk_district_id = @DistrictId AND fk_member_id = @MemberId AND isdeleted = 0",
-            new { DistrictId = districtId, MemberId = memberId, UserId = GetUserId() });
-
-        // Remove ClubModerator role
-        await conn.ExecuteAsync(
-            "UPDATE member_roles SET IsActive = 0, RevokedDate = NOW(), RevokedBy = @UserId WHERE fk_member_master_profile_id = @MemberId AND fk_role_id = 5 AND IsActive = 1 AND isdeleted = 0",
-            new { MemberId = memberId, UserId = GetUserId() });
-
-        // Send removal email
-        var member = await conn.QueryFirstOrDefaultAsync<dynamic>(
-            "SELECT MemberName AS memberName, EmailId AS email FROM member_master_profile WHERE pk_member_master_profile_id = @Id AND isdeleted = 0",
-            new { Id = memberId });
-        var districtNumber = await conn.ExecuteScalarAsync<string>(
-            "SELECT DistrictNumber FROM district_master WHERE pk_district_id = @Id", new { Id = districtId }) ?? "";
-
-        if (member != null && !string.IsNullOrEmpty((string?)member.email))
-        {
-            var body = $@"
-                <div style='font-family:Arial,sans-serif;max-width:600px;margin:0 auto;'>
-                    <div style='background:#dc2626;color:white;padding:20px;text-align:center;border-radius:8px 8px 0 0;'>
-                        <h2 style='margin:0;'>Club Moderator Role Removed</h2>
-                    </div>
-                    <div style='padding:24px;border:1px solid #e2e8f0;border-top:none;border-radius:0 0 8px 8px;'>
-                        <p>Dear <strong>{(string)member.memberName}</strong>,</p>
-                        <p>Your <strong>Club Moderator</strong> role for District <strong>{districtNumber}</strong> has been removed.</p>
-                        <p>If you have any questions, please contact your district administrator.</p>
-                        <p style='color:#718096;font-size:12px;margin-top:24px;'>This is an automated notification from ROW.</p>
-                    </div>
-                </div>";
-            try { await _emailService.SendGenericEmailAsync((string)member.email, "ROW - Club Moderator Role Removed", body); }
-            catch { }
-        }
-
-        return Ok(new { message = "Club moderator removed." });
     }
 
     // ══════════════════════════════════════════════════════════════════════
@@ -3679,7 +3308,7 @@ public class DistrictModulesController : ControllerBase
     }
 
     [HttpGet("api/districts/{districtId}/ag/available-clubs")]
-    public async Task<ActionResult> GetAvailableClubsForAG(int districtId, [FromQuery] int? excludeModeratorId, [FromQuery] int? yearId)
+    public async Task<ActionResult> GetAvailableClubsForAG(int districtId, [FromQuery] int? excludeMemberId, [FromQuery] int? yearId)
     {
         if (!await RotaryApi.Services.KillSwitchHelper.IsDistrictDrillReachableAsync(_connectionString, districtId)) return StatusCode(403, new { message = "This district or its zone is inactive. Reactivate it first to access this data." });
         using var conn = CreateConnection();
@@ -3697,7 +3326,7 @@ public class DistrictModulesController : ControllerBase
                   AND (@ExcludeMemberId IS NULL OR fk_member_id != @ExcludeMemberId)
               )
             ORDER BY c.ClubName",
-            new { DistrictId = districtId, ExcludeMemberId = excludeModeratorId, YearId = yearId });
+            new { DistrictId = districtId, ExcludeMemberId = excludeMemberId, YearId = yearId });
         return Ok(clubs);
     }
 
@@ -3772,7 +3401,7 @@ public class DistrictModulesController : ControllerBase
         if (dto.YearId <= 0)
             return BadRequest(new { message = "Year is required." });
 
-        // Mutual exclusion: AG (role 6) cannot coexist with SA/ZC/RID
+        // Mutual exclusion: AG (role 6) cannot coexist with SA
         try { await _roleService.CheckRoleConflictPublicAsync(dto.MemberId, 6); }
         catch (InvalidOperationException ex) { return BadRequest(new { message = ex.Message }); }
 
@@ -4022,7 +3651,7 @@ public class DistrictModulesController : ControllerBase
         });
     }
 
-    // ── Area of Focus, Categories, Sub Categories (for Community/Vocational/International/NewGen/PublicImage) ──
+    // ── Area of Focus (for Community/Vocational/International/NewGen/PublicImage) ──
     [HttpGet("api/district-modules/citation/area-of-focus")]
     public async Task<ActionResult> GetCitationAreaOfFocus([FromQuery] string? moduleKey)
     {
@@ -4036,28 +3665,6 @@ public class DistrictModulesController : ControllerBase
         }
         sql += " ORDER BY name";
         return Ok(await conn.QueryAsync<dynamic>(sql));
-    }
-
-    [HttpGet("api/district-modules/citation/categories")]
-    public async Task<ActionResult> GetCitationCategories([FromQuery] int? areaOfFocusId)
-    {
-        using var conn = CreateConnection();
-        await conn.OpenAsync();
-        var sql = "SELECT pk_category_id AS id, name FROM category_master WHERE isdeleted = 0";
-        if (areaOfFocusId.HasValue) sql += " AND fk_area_of_focus_id = @AofId";
-        sql += " ORDER BY name";
-        return Ok(await conn.QueryAsync<dynamic>(sql, new { AofId = areaOfFocusId }));
-    }
-
-    [HttpGet("api/district-modules/citation/sub-categories")]
-    public async Task<ActionResult> GetCitationSubCategories([FromQuery] int? categoryId)
-    {
-        using var conn = CreateConnection();
-        await conn.OpenAsync();
-        var sql = "SELECT pk_sub_category_id AS id, name FROM sub_category_master WHERE isdeleted = 0";
-        if (categoryId.HasValue) sql += " AND fk_category_id = @CatId";
-        sql += " ORDER BY name";
-        return Ok(await conn.QueryAsync<dynamic>(sql, new { CatId = categoryId }));
     }
 
     // ── Citation Categories (Main Criteria) ──
@@ -4182,30 +3789,20 @@ public class DistrictModulesController : ControllerBase
         var qIds = questions.Select(q => (int)q.id).ToList();
         if (qIds.Count > 0)
         {
-            // Joins resolve the lineage labels admin needs to tell apart the
-            // N rows of the same activity (e.g. three "Club Service" auto
-            // questions, each scoped to a different area_of_focus). The leaf
-            // master is matched by (sub_item_type, sub_item_id); parents come
-            // from filter_aof_id / filter_cat_id or via the leaf's parent FK.
+            // The area-of-focus label admin needs to tell apart the N rows of the same activity
+            // (e.g. three "Club Service" auto questions, each scoped to a different area_of_focus).
+            // It comes from the sub-item itself (sub_item_type, sub_item_id) or from filter_aof_id.
             var subs = (await conn.QueryAsync<dynamic>(@"
                 SELECT s.pk_id AS id, s.fk_auto_question_id AS autoQuestionId, s.sub_item_type AS subItemType,
                        s.sub_item_id AS subItemId, s.sub_item_name AS subItemName,
-                       s.filter_aof_id AS filterAofId, s.filter_cat_id AS filterCatId,
+                       s.filter_aof_id AS filterAofId,
                        CAST(ROUND(s.points) AS SIGNED) AS points, s.is_bonus AS isBonus,
                        CAST(ROUND(s.bonus_points) AS SIGNED) AS bonusPoints,
                        s.min_bonus AS minBonus, s.max_bonus AS maxBonus,
-                       COALESCE(aof_only.name, aof_for_cat.name, aof_for_sub.name, aof_by_filter.name) AS areaOfFocusName,
-                       COALESCE(cat_only.name, cat_for_sub.name, cat_by_filter.name) AS categoryName,
-                       sub_only.name AS subCategoryName
+                       COALESCE(aof_only.name, aof_by_filter.name) AS areaOfFocusName
                 FROM district_citation_auto_question_sub s
                 LEFT JOIN area_of_focus_master aof_only      ON LOWER(s.sub_item_type) = 'area_of_focus' AND aof_only.pk_area_of_focus_id = s.sub_item_id
-                LEFT JOIN category_master cat_only           ON LOWER(s.sub_item_type) = 'category'      AND cat_only.pk_category_id      = s.sub_item_id
-                LEFT JOIN area_of_focus_master aof_for_cat   ON LOWER(s.sub_item_type) = 'category'      AND aof_for_cat.pk_area_of_focus_id = cat_only.fk_area_of_focus_id
-                LEFT JOIN sub_category_master sub_only       ON LOWER(s.sub_item_type) IN ('sub_category','subcategory') AND sub_only.pk_sub_category_id = s.sub_item_id
-                LEFT JOIN category_master cat_for_sub        ON LOWER(s.sub_item_type) IN ('sub_category','subcategory') AND cat_for_sub.pk_category_id = sub_only.fk_category_id
-                LEFT JOIN area_of_focus_master aof_for_sub   ON LOWER(s.sub_item_type) IN ('sub_category','subcategory') AND aof_for_sub.pk_area_of_focus_id = cat_for_sub.fk_area_of_focus_id
                 LEFT JOIN area_of_focus_master aof_by_filter ON s.filter_aof_id IS NOT NULL AND aof_by_filter.pk_area_of_focus_id = s.filter_aof_id
-                LEFT JOIN category_master cat_by_filter      ON s.filter_cat_id IS NOT NULL AND cat_by_filter.pk_category_id      = s.filter_cat_id
                 WHERE s.fk_auto_question_id IN @Ids AND s.isdeleted = 0
                 ORDER BY s.sort_order",
                 new { Ids = qIds })).ToList();
@@ -4241,7 +3838,6 @@ public class DistrictModulesController : ControllerBase
         public int? SubItemId { get; set; }
         public string? SubItemName { get; set; }
         public int? FilterAofId { get; set; }
-        public int? FilterCatId { get; set; }
         public int Points { get; set; }
         public bool IsBonus { get; set; }
         public int BonusPoints { get; set; }
@@ -4262,9 +3858,9 @@ public class DistrictModulesController : ControllerBase
 
         foreach (var sub in dto.SubItems)
         {
-            await conn.ExecuteAsync(@"INSERT INTO district_citation_auto_question_sub (fk_auto_question_id, sub_item_type, sub_item_id, sub_item_name, filter_aof_id, filter_cat_id, points, is_bonus, bonus_points, min_bonus, max_bonus, created_by)
-                VALUES (@QId, @Type, @SubId, @SubName, @FilterAofId, @FilterCatId, @Points, @IsBonus, @BonusPoints, @MinBonus, @MaxBonus, @UserId)",
-                new { QId = id, Type = sub.SubItemType, SubId = sub.SubItemId, SubName = sub.SubItemName, sub.FilterAofId, sub.FilterCatId, sub.Points, IsBonus = sub.IsBonus ? 1 : 0, sub.BonusPoints, sub.MinBonus, sub.MaxBonus, UserId = userId });
+            await conn.ExecuteAsync(@"INSERT INTO district_citation_auto_question_sub (fk_auto_question_id, sub_item_type, sub_item_id, sub_item_name, filter_aof_id, points, is_bonus, bonus_points, min_bonus, max_bonus, created_by)
+                VALUES (@QId, @Type, @SubId, @SubName, @FilterAofId, @Points, @IsBonus, @BonusPoints, @MinBonus, @MaxBonus, @UserId)",
+                new { QId = id, Type = sub.SubItemType, SubId = sub.SubItemId, SubName = sub.SubItemName, sub.FilterAofId, sub.Points, IsBonus = sub.IsBonus ? 1 : 0, sub.BonusPoints, sub.MinBonus, sub.MaxBonus, UserId = userId });
         }
         return Ok(new { id, message = "Auto question created." });
     }
@@ -4284,9 +3880,9 @@ public class DistrictModulesController : ControllerBase
         await conn.ExecuteAsync("UPDATE district_citation_auto_question_sub SET isdeleted=1 WHERE fk_auto_question_id=@Id", new { Id = id });
         foreach (var sub in dto.SubItems)
         {
-            await conn.ExecuteAsync(@"INSERT INTO district_citation_auto_question_sub (fk_auto_question_id, sub_item_type, sub_item_id, sub_item_name, filter_aof_id, filter_cat_id, points, is_bonus, bonus_points, min_bonus, max_bonus, created_by)
-                VALUES (@QId, @Type, @SubId, @SubName, @FilterAofId, @FilterCatId, @Points, @IsBonus, @BonusPoints, @MinBonus, @MaxBonus, @UserId)",
-                new { QId = id, Type = sub.SubItemType, SubId = sub.SubItemId, SubName = sub.SubItemName, sub.FilterAofId, sub.FilterCatId, sub.Points, IsBonus = sub.IsBonus ? 1 : 0, sub.BonusPoints, sub.MinBonus, sub.MaxBonus, UserId = userId });
+            await conn.ExecuteAsync(@"INSERT INTO district_citation_auto_question_sub (fk_auto_question_id, sub_item_type, sub_item_id, sub_item_name, filter_aof_id, points, is_bonus, bonus_points, min_bonus, max_bonus, created_by)
+                VALUES (@QId, @Type, @SubId, @SubName, @FilterAofId, @Points, @IsBonus, @BonusPoints, @MinBonus, @MaxBonus, @UserId)",
+                new { QId = id, Type = sub.SubItemType, SubId = sub.SubItemId, SubName = sub.SubItemName, sub.FilterAofId, sub.Points, IsBonus = sub.IsBonus ? 1 : 0, sub.BonusPoints, sub.MinBonus, sub.MaxBonus, UserId = userId });
         }
         return Ok(new { message = "Auto question updated." });
     }
@@ -5007,248 +4603,6 @@ public class DistrictModulesController : ControllerBase
     }
 
     // ══════════════════════════════════════════════════════════════════════
-    // ── District PPH Camps ─────────────────────────────────────────────
-    // ══════════════════════════════════════════════════════════════════════
-
-    private static readonly HashSet<string> AllowedCampImageTypes = new(StringComparer.OrdinalIgnoreCase)
-    {
-        ".jpg", ".jpeg", ".png", ".gif", ".bmp", ".webp", ".svg"
-    };
-
-    [HttpGet("api/district-modules/{districtId}/pph-camps")]
-    public async Task<ActionResult> GetDistrictPphCamps(int districtId)
-    {
-        if (!await RotaryApi.Services.KillSwitchHelper.IsDistrictDrillReachableAsync(_connectionString, districtId)) return StatusCode(403, new { message = "This district or its zone is inactive. Reactivate it first to access this data." });
-        using var conn = CreateConnection();
-        await conn.OpenAsync();
-        var camps = await conn.QueryAsync<PphCampListDto>(@"
-            SELECT c.pk_camp_id AS Id, c.Title, c.Description, c.Address,
-                   c.CampDate,
-                   CASE
-                       WHEN c.CampLogoPath IS NULL OR c.CampLogoPath = '' THEN NULL
-                       WHEN c.CampLogoPath LIKE '/%' THEN c.CampLogoPath
-                       WHEN c.fk_district_id IS NOT NULL THEN CONCAT('/Documents/Campmaster/District', c.fk_district_id, '/', c.CampLogoPath)
-                       ELSE CONCAT('/Documents/Campmaster/Group', c.fk_club_id, '/', c.CampLogoPath)
-                   END AS CampLogoPath,
-                   c.IsActive,
-                   COUNT(a.pk_attendance_id) AS AttendanceCount
-            FROM pph_camps c
-            LEFT JOIN pph_camp_attendance a ON a.fk_camp_id = c.pk_camp_id AND a.isdeleted = 0
-            WHERE c.fk_club_id IS NULL AND c.fk_district_id = @DistrictId AND c.isdeleted = 0
-            GROUP BY c.pk_camp_id, c.Title, c.Description, c.Address,
-                     c.CampDate, c.CampLogoPath, c.fk_club_id, c.fk_district_id, c.IsActive
-            ORDER BY c.CampDate DESC, c.pk_camp_id DESC",
-            new { DistrictId = districtId });
-        return Ok(camps);
-    }
-
-    [HttpPost("api/district-modules/{districtId}/pph-camps")]
-    public async Task<ActionResult> CreateDistrictPphCamp(int districtId, [FromForm] CreatePphCampDto dto, IFormFile? logo)
-    {
-        if (logo != null)
-        {
-            if (logo.Length > 5 * 1024 * 1024)
-                return BadRequest(new { message = "Logo file size must be less than 5MB." });
-            var ext = Path.GetExtension(logo.FileName);
-            if (!AllowedCampImageTypes.Contains(ext))
-                return BadRequest(new { message = "Only image files are allowed for camp logo." });
-        }
-
-        string? logoPath = null;
-        if (logo != null)
-        {
-            var groupFolder = $"District{districtId}";
-            var uploadsPath = Path.Combine(_env.WebRootPath, "Documents", "Campmaster", groupFolder);
-            Directory.CreateDirectory(uploadsPath);
-            var extension = Path.GetExtension(logo.FileName);
-            var fileName = $"{Guid.NewGuid():N}_{DateTime.Now:ddMMyyyyhhmmsstt}{extension}";
-            var fullPath = Path.Combine(uploadsPath, fileName);
-            using var stream = new FileStream(fullPath, FileMode.Create);
-            await logo.CopyToAsync(stream);
-            // Store filename only — full URL reconstructed via SQL CONCAT on read
-            logoPath = fileName;
-        }
-
-        using var conn = CreateConnection();
-        await conn.OpenAsync();
-        var id = await conn.ExecuteScalarAsync<int>(@"
-            INSERT INTO pph_camps (fk_club_id, fk_district_id, Title, Description, Address, CampDate, CampLogoPath, IsActive, created_by, created_date, isdeleted)
-            VALUES (NULL, @DistrictId, @Title, @Description, @Address, @CampDate, @CampLogoPath, 1, @CreatedBy, NOW(), 0);
-            SELECT LAST_INSERT_ID();",
-            new { DistrictId = districtId, dto.Title, dto.Description, dto.Address, CampDate = DateTime.Parse(dto.CampDate), CampLogoPath = logoPath, CreatedBy = GetUserId() });
-
-        // Reconstruct full URL for response
-        var responseLogoPath = string.IsNullOrEmpty(logoPath) ? logoPath : $"/Documents/Campmaster/District{districtId}/{logoPath}";
-        return Ok(new { id, title = dto.Title, description = dto.Description, address = dto.Address, campDate = DateTime.Parse(dto.CampDate), campLogoPath = responseLogoPath, isActive = true, attendanceCount = 0 });
-    }
-
-    [HttpPut("api/district-modules/{districtId}/pph-camps/{campId}")]
-    public async Task<ActionResult> UpdateDistrictPphCamp(int districtId, int campId, [FromForm] UpdatePphCampDto dto, IFormFile? logo)
-    {
-        if (logo != null)
-        {
-            if (logo.Length > 5 * 1024 * 1024)
-                return BadRequest(new { message = "Logo file size must be less than 5MB." });
-            var ext = Path.GetExtension(logo.FileName);
-            if (!AllowedCampImageTypes.Contains(ext))
-                return BadRequest(new { message = "Only image files are allowed for camp logo." });
-        }
-
-        using var conn = CreateConnection();
-        await conn.OpenAsync();
-
-        var existing = await conn.QueryFirstOrDefaultAsync<dynamic>(
-            @"SELECT pk_camp_id,
-                     CampLogoPath AS CampLogoPathRaw,
-                     CASE
-                         WHEN CampLogoPath IS NULL OR CampLogoPath = '' THEN NULL
-                         WHEN CampLogoPath LIKE '/%' THEN CampLogoPath
-                         WHEN fk_district_id IS NOT NULL THEN CONCAT('/Documents/Campmaster/District', fk_district_id, '/', CampLogoPath)
-                         ELSE CONCAT('/Documents/Campmaster/Group', fk_club_id, '/', CampLogoPath)
-                     END AS CampLogoPathFull
-              FROM pph_camps WHERE pk_camp_id = @CampId AND fk_club_id IS NULL AND fk_district_id = @DistrictId AND isdeleted = 0",
-            new { CampId = campId, DistrictId = districtId });
-        if (existing == null) return NotFound(new { message = "Camp not found." });
-
-        // DB stores filename only after migration
-        string? logoPath = (string?)existing.CampLogoPathRaw;
-        if (logo != null)
-        {
-            // Delete old file using reconstructed full URL
-            string? oldFullUrl = (string?)existing.CampLogoPathFull;
-            if (!string.IsNullOrEmpty(oldFullUrl))
-            {
-                var oldFullPath = Path.Combine(_env.WebRootPath, oldFullUrl.TrimStart('/').Replace('/', Path.DirectorySeparatorChar));
-                if (System.IO.File.Exists(oldFullPath)) System.IO.File.Delete(oldFullPath);
-            }
-            var groupFolder = $"District{districtId}";
-            var uploadsPath = Path.Combine(_env.WebRootPath, "Documents", "Campmaster", groupFolder);
-            Directory.CreateDirectory(uploadsPath);
-            var extension = Path.GetExtension(logo.FileName);
-            var fileName = $"{Guid.NewGuid():N}_{DateTime.Now:ddMMyyyyhhmmsstt}{extension}";
-            var fullPath = Path.Combine(uploadsPath, fileName);
-            using var stream = new FileStream(fullPath, FileMode.Create);
-            await logo.CopyToAsync(stream);
-            // Store filename only — full URL reconstructed via SQL CONCAT on read
-            logoPath = fileName;
-        }
-
-        await conn.ExecuteAsync(@"
-            UPDATE pph_camps SET Title = @Title, Description = @Description, Address = @Address,
-                CampDate = @CampDate, CampLogoPath = @CampLogoPath, IsActive = @IsActive,
-                modified_by = @ModifiedBy, modified_date = NOW()
-            WHERE pk_camp_id = @CampId AND isdeleted = 0",
-            new { CampId = campId, dto.Title, dto.Description, dto.Address, CampDate = DateTime.Parse(dto.CampDate), CampLogoPath = logoPath, IsActive = dto.IsActive ? 1 : 0, ModifiedBy = GetUserId() });
-
-        var attendanceCount = await conn.ExecuteScalarAsync<int>("SELECT COUNT(*) FROM pph_camp_attendance WHERE fk_camp_id = @CampId AND isdeleted = 0", new { CampId = campId });
-        // Reconstruct full URL for response
-        var responseLogoPath = string.IsNullOrEmpty(logoPath) ? logoPath :
-                               logoPath.StartsWith("/") ? logoPath :
-                               $"/Documents/Campmaster/District{districtId}/{logoPath}";
-        return Ok(new { id = campId, title = dto.Title, description = dto.Description, address = dto.Address, campDate = DateTime.Parse(dto.CampDate), campLogoPath = responseLogoPath, isActive = dto.IsActive, attendanceCount });
-    }
-
-    [HttpDelete("api/district-modules/{districtId}/pph-camps/{campId}")]
-    public async Task<ActionResult> DeleteDistrictPphCamp(int districtId, int campId)
-    {
-        using var conn = CreateConnection();
-        await conn.OpenAsync();
-        var attendanceCount = await conn.ExecuteScalarAsync<int>("SELECT COUNT(*) FROM pph_camp_attendance WHERE fk_camp_id = @CampId AND isdeleted = 0", new { CampId = campId });
-        if (attendanceCount > 0)
-            return BadRequest(new { message = "Cannot delete camp with attendance records." });
-        await conn.ExecuteAsync("UPDATE pph_camps SET isdeleted = 1, deleted_by = @DeletedBy, deleted_date = NOW() WHERE pk_camp_id = @CampId AND fk_club_id IS NULL AND fk_district_id = @DistrictId",
-            new { CampId = campId, DistrictId = districtId, DeletedBy = GetUserId() });
-        return Ok(new { message = "Camp deleted successfully." });
-    }
-
-    [HttpPut("api/district-modules/{districtId}/pph-camps/{campId}/toggle-active")]
-    public async Task<ActionResult> ToggleDistrictPphCampActive(int districtId, int campId)
-    {
-        using var conn = CreateConnection();
-        await conn.OpenAsync();
-        await conn.ExecuteAsync("UPDATE pph_camps SET IsActive = NOT IsActive, modified_by = @ModifiedBy, modified_date = NOW() WHERE pk_camp_id = @CampId AND fk_club_id IS NULL AND fk_district_id = @DistrictId AND isdeleted = 0",
-            new { CampId = campId, DistrictId = districtId, ModifiedBy = GetUserId() });
-        return Ok(new { message = "Camp active status toggled." });
-    }
-
-    // ── District PPH attendees (person) + medical readings ──────────────
-    // Shares PphCampService with the club controller (camp-scoped logic identical for both).
-
-    private RotaryApi.Services.IPphCampService PphService =>
-        HttpContext.RequestServices.GetRequiredService<RotaryApi.Services.IPphCampService>();
-
-    [HttpGet("api/district-modules/{districtId}/pph-camps/{campId}/attendees")]
-    public async Task<ActionResult> GetDistrictPphAttendees(int districtId, int campId)
-    {
-        if (!await RotaryApi.Services.KillSwitchHelper.IsDistrictDrillReachableAsync(_connectionString, districtId)) return StatusCode(403, new { message = "This district or its zone is inactive. Reactivate it first to access this data." });
-        return Ok(await PphService.GetAttendeesAsync(campId));
-    }
-
-    // History for a mobile across ALL clubs/camps/years (never deduped), grouped club-wise.
-    // districtId is only used for the reachability guard — the result spans every club.
-    [HttpGet("api/district-modules/{districtId}/pph-camps/attendee-history")]
-    public async Task<ActionResult> GetDistrictPphAttendeeHistoryByMobile(int districtId, [FromQuery] string mobile)
-    {
-        if (!await RotaryApi.Services.KillSwitchHelper.IsDistrictDrillReachableAsync(_connectionString, districtId)) return StatusCode(403, new { message = "This district or its zone is inactive. Reactivate it first to access this data." });
-        if (string.IsNullOrWhiteSpace(mobile)) return BadRequest(new { message = "Mobile number is required." });
-        return Ok(await PphService.GetAttendeeHistoryByMobileAsync(mobile));
-    }
-
-    // Scoped attendee report — DISTRICT scope: attendee entries across ALL clubs in this
-    // district (plus this district's own district-scope camps), never deduped, club-wise.
-    [HttpGet("api/district-modules/{districtId}/pph-camps/attendees-report")]
-    public async Task<ActionResult> GetDistrictPphAttendeeReport(int districtId)
-    {
-        if (!await RotaryApi.Services.KillSwitchHelper.IsDistrictDrillReachableAsync(_connectionString, districtId)) return StatusCode(403, new { message = "This district or its zone is inactive. Reactivate it first to access this data." });
-        return Ok(await PphService.GetAttendeeReportAsync("district", districtId));
-    }
-
-    [HttpGet("api/district-modules/{districtId}/pph-camps/{campId}/attendees/{attendeeId}")]
-    public async Task<ActionResult> GetDistrictPphAttendeeDetail(int districtId, int campId, int attendeeId)
-    {
-        if (!await RotaryApi.Services.KillSwitchHelper.IsDistrictDrillReachableAsync(_connectionString, districtId)) return StatusCode(403, new { message = "This district or its zone is inactive. Reactivate it first to access this data." });
-        var detail = await PphService.GetAttendeeDetailAsync(campId, attendeeId);
-        if (detail == null) return NotFound(new { message = "Attendee not found." });
-        return Ok(detail);
-    }
-
-    [HttpPost("api/district-modules/{districtId}/pph-camps/{campId}/readings")]
-    public async Task<ActionResult> AddDistrictPphReading(int districtId, int campId, [FromBody] CreatePphReadingDto dto)
-    {
-        try { return Ok(await PphService.AddReadingAsync(campId, dto, GetUserId())); }
-        catch (InvalidOperationException ex) { return BadRequest(new { message = ex.Message }); }
-    }
-
-    [HttpPut("api/district-modules/{districtId}/pph-camps/{campId}/attendees/{attendeeId}")]
-    public async Task<ActionResult> UpdateDistrictPphAttendee(int districtId, int campId, int attendeeId, [FromBody] UpdatePphAttendeeDto dto)
-    {
-        try { return Ok(await PphService.UpdateAttendeeAsync(campId, attendeeId, dto, GetUserId())); }
-        catch (InvalidOperationException ex) { return BadRequest(new { message = ex.Message }); }
-        catch (KeyNotFoundException ex) { return NotFound(new { message = ex.Message }); }
-    }
-
-    [HttpPut("api/district-modules/{districtId}/pph-camps/{campId}/readings/{readingId}")]
-    public async Task<ActionResult> UpdateDistrictPphReading(int districtId, int campId, int readingId, [FromBody] UpdatePphReadingDto dto)
-    {
-        try { return Ok(await PphService.UpdateReadingAsync(campId, readingId, dto, GetUserId())); }
-        catch (KeyNotFoundException ex) { return NotFound(new { message = ex.Message }); }
-    }
-
-    [HttpDelete("api/district-modules/{districtId}/pph-camps/{campId}/readings/{readingId}")]
-    public async Task<ActionResult> DeleteDistrictPphReading(int districtId, int campId, int readingId)
-    {
-        await PphService.DeleteReadingAsync(campId, readingId, GetUserId());
-        return Ok(new { message = "Reading deleted successfully." });
-    }
-
-    [HttpDelete("api/district-modules/{districtId}/pph-camps/{campId}/attendees/{attendeeId}")]
-    public async Task<ActionResult> DeleteDistrictPphAttendee(int districtId, int campId, int attendeeId)
-    {
-        await PphService.DeleteAttendeeAsync(campId, attendeeId, GetUserId());
-        return Ok(new { message = "Attendee deleted successfully." });
-    }
-
-    // ══════════════════════════════════════════════════════════════════════
     // ── Club Citation Entry ────────────────────────────────────────────
     // ══════════════════════════════════════════════════════════════════════
 
@@ -5295,10 +4649,8 @@ public class DistrictModulesController : ControllerBase
             new { DistrictId = districtId, YearId = resolvedYearId });
 
         // Get auto entries (saved by background job)
-        // subItemDisplay shows the AOF → Category → Sub-Category lineage so admins
-        // can tell which area_of_focus / category a sub-item belongs to without
-        // needing to remember the master tables. The leaf master is matched via
-        // s.sub_item_id + s.sub_item_type, parents via FK chain on the masters.
+        // subItemDisplay shows the area of focus a sub-item points at, so admins can tell the rows
+        // apart without needing to remember the master table (matched via sub_item_id + sub_item_type).
         var autoEntries = (await conn.QueryAsync<dynamic>(@"
             SELECT e.pk_id AS id, e.fk_question_id AS questionId, e.fk_sub_question_id AS subQuestionId,
                    CAST(ROUND(e.points_earned) AS SIGNED) AS pointsEarned,
@@ -5313,34 +4665,16 @@ public class DistrictModulesController : ControllerBase
                    CAST(ROUND(s.points) AS SIGNED) AS subBasePoints, s.is_bonus AS subIsBonus,
                    CAST(ROUND(s.bonus_points) AS SIGNED) AS subBonusPoints,
                    -- The FIRST branch is the one that matters (user, 2026-09-28: all extra and
-                   -- wrong data). A sub-item stores its own name AND an id, but the id is only a
-                   -- project-master id for the avenue questions; for the others it numbers that
-                   -- activity's own list — New Generation Service's Formation/Sponsor of RCC is
-                   -- id 49, and category_master 49 happens to be Dialysis Centres. Looking the id
-                   -- up regardless printed a different, unrelated lineage for every one of those
-                   -- rows on the club screen, while the district screen (which prints the stored
-                   -- name) showed them correctly. So: trust the stored name unless the master row it
-                   -- points at carries that same name — in which case the id really is that master
-                   -- row and the AoF → Category → Sub-Category lineage is worth showing, which is
-                   -- why it was added in the first place.
+                   -- wrong data). A sub-item stores its own name AND an id, but the id is only an
+                   -- area-of-focus id for the avenue questions; for the others it numbers that
+                   -- activity's own list. So: trust the stored name unless the area of focus it
+                   -- points at carries that same name.
                    CASE
                        WHEN COALESCE(s.sub_item_name, '') <> ''
                             AND LOWER(TRIM(COALESCE(
-                                CASE WHEN LOWER(s.sub_item_type) = 'area_of_focus' THEN aof_only.name
-                                     WHEN LOWER(s.sub_item_type) = 'category' THEN cat_only.name
-                                     WHEN LOWER(s.sub_item_type) IN ('sub_category', 'subcategory') THEN sub_only.name
-                                END, ''))) <> LOWER(TRIM(s.sub_item_name))
+                                CASE WHEN LOWER(s.sub_item_type) = 'area_of_focus' THEN aof_only.name END, ''))) <> LOWER(TRIM(s.sub_item_name))
                            THEN s.sub_item_name
                        WHEN LOWER(s.sub_item_type) = 'area_of_focus' THEN COALESCE(aof_only.name, s.sub_item_name)
-                       WHEN LOWER(s.sub_item_type) = 'category' THEN CONCAT(
-                           COALESCE(aof_for_cat.name, '?'), ' → ',
-                           COALESCE(cat_only.name, s.sub_item_name)
-                       )
-                       WHEN LOWER(s.sub_item_type) IN ('sub_category', 'subcategory') THEN CONCAT(
-                           COALESCE(aof_for_sub.name, '?'), ' → ',
-                           COALESCE(cat_for_sub.name, '?'), ' → ',
-                           COALESCE(sub_only.name, s.sub_item_name)
-                       )
                        ELSE s.sub_item_name
                    END AS subItemDisplay
             FROM district_citation_club_entry e
@@ -5352,11 +4686,6 @@ public class DistrictModulesController : ControllerBase
             -- at all (864 such rows across 109 clubs in 2026-27).
             LEFT JOIN district_citation_auto_question_sub s ON s.pk_id = e.fk_sub_question_id AND s.isdeleted = 0
             LEFT JOIN area_of_focus_master aof_only ON LOWER(s.sub_item_type) = 'area_of_focus' AND aof_only.pk_area_of_focus_id = s.sub_item_id
-            LEFT JOIN category_master cat_only ON LOWER(s.sub_item_type) = 'category' AND cat_only.pk_category_id = s.sub_item_id
-            LEFT JOIN area_of_focus_master aof_for_cat ON LOWER(s.sub_item_type) = 'category' AND aof_for_cat.pk_area_of_focus_id = cat_only.fk_area_of_focus_id
-            LEFT JOIN sub_category_master sub_only ON LOWER(s.sub_item_type) IN ('sub_category', 'subcategory') AND sub_only.pk_sub_category_id = s.sub_item_id
-            LEFT JOIN category_master cat_for_sub ON LOWER(s.sub_item_type) IN ('sub_category', 'subcategory') AND cat_for_sub.pk_category_id = sub_only.fk_category_id
-            LEFT JOIN area_of_focus_master aof_for_sub ON LOWER(s.sub_item_type) IN ('sub_category', 'subcategory') AND aof_for_sub.pk_area_of_focus_id = cat_for_sub.fk_area_of_focus_id
             WHERE e.fk_district_id=@DistrictId AND e.fk_year_id=@YearId AND e.fk_club_id=@ClubId AND e.entry_type='auto' AND e.isdeleted=0
               -- and drop the entry outright when its sub-item is gone: with the LEFT JOIN above
               -- it would otherwise survive as a nameless row carrying the question's points.
@@ -5507,46 +4836,6 @@ public class DistrictModulesController : ControllerBase
     // ══════════════════════════════════════════════════════════════════════
     // ── District Committee: Search District Members ────────────────────
     // ══════════════════════════════════════════════════════════════════════
-
-    [HttpGet("api/districts/{districtId}/club-moderators/search-members")]
-    public async Task<ActionResult> SearchMembersForModerator(int districtId, [FromQuery] string? search)
-    {
-        if (!await RotaryApi.Services.KillSwitchHelper.IsDistrictDrillReachableAsync(_connectionString, districtId)) return StatusCode(403, new { message = "This district or its zone is inactive. Reactivate it first to access this data." });
-        if (string.IsNullOrWhiteSpace(search) || search.Length < 2)
-            return Ok(Array.Empty<object>());
-        using var conn = CreateConnection();
-        await conn.OpenAsync();
-        var members = await conn.QueryAsync<dynamic>(@"
-            SELECT m.pk_member_master_profile_id AS memberId,
-                   m.MemberName AS name,
-                   m.PrimaryMobileNumber AS mobile,
-                   m.EmailId AS email,
-                   CASE
-                       WHEN m.ProfilePhotoPath IS NULL OR m.ProfilePhotoPath = '' THEN NULL
-                       WHEN m.ProfilePhotoPath LIKE '/Documents/directory/%' THEN m.ProfilePhotoPath
-                       ELSE CONCAT('/Documents/directory/', SUBSTRING_INDEX(m.ProfilePhotoPath, '/', -1))
-                   END AS profilePhoto,
-                   cm.fk_club_id AS clubId,
-                   c.ClubName AS clubName
-            FROM member_master_profile m
-            INNER JOIN club_members cm ON cm.fk_member_master_profile_id = m.pk_member_master_profile_id AND cm.IsActive = 1 AND cm.isdeleted = 0
-            INNER JOIN club_master c ON c.pk_club_id = cm.fk_club_id
-            WHERE c.fk_district_id = @DistrictId
-              AND m.isdeleted = 0
-              AND (m.MemberName LIKE @Search OR m.PrimaryMobileNumber LIKE @Search OR m.EmailId LIKE @Search)
-              AND m.pk_member_master_profile_id NOT IN (
-                SELECT fk_member_master_profile_id FROM member_roles
-                WHERE fk_role_id = 3 AND IsActive = 1 AND isdeleted = 0
-              )
-              AND m.pk_member_master_profile_id NOT IN (
-                SELECT fk_member_id FROM district_club_moderator
-                WHERE fk_district_id = @DistrictId AND isdeleted = 0
-              )
-            ORDER BY m.MemberName
-            LIMIT 20",
-            new { DistrictId = districtId, Search = $"%{search}%" });
-        return Ok(members);
-    }
 
     [HttpGet("api/districts/{districtId}/committee/search-members")]
     public async Task<ActionResult> SearchDistrictCommitteeMembers(int districtId, [FromQuery] string? search)
@@ -6137,7 +5426,7 @@ public class DistrictModulesController : ControllerBase
                             SELECT f.fk_member_master_profile_id, f.Name, f.BirthDate, f.PhotoPath
                             FROM member_family_details f
                             JOIN (
-                                -- Latest-changed spouse row, same pick as the Directory and Data Collection form.
+                                -- Latest-changed spouse row, same pick as the Directory.
                                 SELECT pk_member_family_details_id AS pk_id,
                                        ROW_NUMBER() OVER (PARTITION BY fk_member_master_profile_id
                                                           ORDER BY COALESCE(modified_date, created_date) DESC, pk_member_family_details_id DESC) AS rn
@@ -6289,7 +5578,7 @@ public class DistrictModulesController : ControllerBase
                    CASE WHEN COALESCE(sgm.fk_member_id,0) > 0 THEN c.ClubName ELSE sgm.club_name END AS clubName,
                    sgm.district_remark AS districtRemark,
                    -- Member rows: the member PROFILE photo only (same rule as level-1 and group), so an
-                   -- upload or removal on the member add/edit page or Directory Data Collection shows here.
+                   -- upload or removal on the member add/edit page shows here.
                    -- Non-members keep the photo uploaded on this screen, exactly as before.
                    CASE
                        WHEN COALESCE(sgm.fk_member_id, 0) > 0 THEN
@@ -6410,1125 +5699,5 @@ public class DistrictModulesController : ControllerBase
             await conn.ExecuteAsync("UPDATE district_committee_sub_group_member SET sort_order=@S WHERE id=@Id AND fk_sub_group_id=@S2",
                 new { S = i, Id = dto.OrderedIds[i], S2 = subGroupId });
         return Ok(new { message = "Order saved." });
-    }
-
-    // ── Zonal Awards (restructured with goals → questions → options) ──
-
-    // --- Get all goals, questions, options for a year ---
-    [HttpGet("api/zonal-awards/questions")]
-    public async Task<ActionResult> GetZonalAwardsQuestions([FromQuery] int yearId)
-    {
-        using var conn = CreateConnection();
-        await conn.OpenAsync();
-        var goals = await conn.QueryAsync<dynamic>(@"
-            SELECT pk_id AS id, title, max_points AS maxPoints, max_remark AS maxRemark, sort_order AS sortOrder
-            FROM zonal_awards_goal WHERE fk_year_id=@Y AND isdeleted=0 ORDER BY sort_order", new { Y = yearId });
-        var questions = await conn.QueryAsync<dynamic>(@"
-            SELECT q.pk_id AS id, q.fk_goal_id AS goalId, q.auto_or_manual AS autoOrManual, q.sr_no AS srNo,
-                   q.sub_title AS subTitle, q.category, q.sort_order AS sortOrder
-            FROM zonal_awards_question q
-            JOIN zonal_awards_goal g ON g.pk_id=q.fk_goal_id
-            WHERE g.fk_year_id=@Y AND q.isdeleted=0 ORDER BY q.sort_order", new { Y = yearId });
-        var options = await conn.QueryAsync<dynamic>(@"
-            SELECT o.pk_id AS id, o.fk_question_id AS questionId, o.goal_requirement_label AS label,
-                   o.points_label AS pointsLabel, o.mini, o.maxi, o.points, o.atleast, o.subtype,
-                   o.input_type AS inputType, o.question_type_for_import AS importType, o.sort_order AS sortOrder
-            FROM zonal_awards_question_option o
-            JOIN zonal_awards_question q ON q.pk_id=o.fk_question_id
-            JOIN zonal_awards_goal g ON g.pk_id=q.fk_goal_id
-            WHERE g.fk_year_id=@Y AND o.isdeleted=0 ORDER BY o.fk_question_id, o.sort_order", new { Y = yearId });
-        return Ok(new { goals, questions, options });
-    }
-
-    // (No CRUD for questions — static seed, dynamic later)
-
-    // Removed old CRUD — replaced below
-
-    // --- Available Years ---
-    [HttpGet("api/zonal-awards/available-years")]
-    public async Task<ActionResult> GetZonalAwardsAvailableYears()
-    {
-        using var conn = CreateConnection();
-        await conn.OpenAsync();
-        var result = await conn.QueryAsync<dynamic>(@"
-            SELECT DISTINCT y.pk_year_id AS id, y.YearLabel AS label, y.IsCurrent AS isCurrent
-            FROM zonal_awards_goal g
-            JOIN rotary_year_master y ON y.pk_year_id = g.fk_year_id
-            WHERE g.isdeleted = 0
-            ORDER BY y.pk_year_id DESC");
-        return Ok(result);
-    }
-
-    // --- District: Get Zonal Awards data (goals → questions → options + entries) ---
-    [HttpGet("api/districts/{districtId}/zonal-awards")]
-    public async Task<ActionResult> GetDistrictZonalAwards(int districtId, [FromQuery] int yearId)
-    {
-        if (!await RotaryApi.Services.KillSwitchHelper.IsDistrictDrillReachableAsync(_connectionString, districtId)) return StatusCode(403, new { message = "This district or its zone is inactive. Reactivate it first to access this data." });
-        using var conn = CreateConnection();
-        await conn.OpenAsync();
-
-        // Auto-calculate for current year only (non-Foundation questions)
-        var currentYearIdForCalc = await conn.ExecuteScalarAsync<int?>(
-            "SELECT pk_year_id FROM rotary_year_master WHERE IsCurrent=1 LIMIT 1");
-        if (currentYearIdForCalc.HasValue && yearId == currentYearIdForCalc.Value)
-        {
-            try { await _zonalAwardsAutoCalc.CalculateForDistrictAsync(districtId, yearId); }
-            catch { /* don't block page load if calc fails */ }
-        }
-
-        var goals = (await conn.QueryAsync<dynamic>(@"
-            SELECT pk_id AS id, title, max_points AS maxPoints, max_remark AS maxRemark, sort_order AS sortOrder
-            FROM zonal_awards_goal WHERE fk_year_id=@Y AND isdeleted=0 ORDER BY sort_order", new { Y = yearId })).ToList();
-
-        var questions = (await conn.QueryAsync<dynamic>(@"
-            SELECT q.pk_id AS id, q.fk_goal_id AS goalId, q.auto_or_manual AS autoOrManual,
-                   COALESCE(q.question_level, 'District') AS questionLevel,
-                   q.sr_no AS srNo, q.sub_title AS subTitle, q.category, q.sort_order AS sortOrder
-            FROM zonal_awards_question q
-            JOIN zonal_awards_goal g ON g.pk_id=q.fk_goal_id
-            WHERE g.fk_year_id=@Y AND q.isdeleted=0 ORDER BY q.sort_order", new { Y = yearId })).ToList();
-
-        var options = (await conn.QueryAsync<dynamic>(@"
-            SELECT o.pk_id AS id, o.fk_question_id AS questionId, o.goal_requirement_label AS label,
-                   o.points_label AS pointsLabel, o.mini, o.maxi, o.points, o.atleast, o.subtype,
-                   o.input_type AS inputType, o.question_type_for_import AS importType, o.sort_order AS sortOrder
-            FROM zonal_awards_question_option o
-            JOIN zonal_awards_question q ON q.pk_id=o.fk_question_id
-            JOIN zonal_awards_goal g ON g.pk_id=q.fk_goal_id
-            WHERE g.fk_year_id=@Y AND o.isdeleted=0 ORDER BY o.fk_question_id, o.sort_order", new { Y = yearId })).ToList();
-
-        // Get year-wise entries (month=0) for this district
-        var entries = (await conn.QueryAsync<dynamic>(@"
-            SELECT fk_option_id AS optionId, entered_counts AS enteredCounts, received_points AS receivedPoints
-            FROM zonal_awards_district_entry
-            WHERE fk_district_id=@DId AND fk_year_id=@YId AND month=0 AND isdeleted=0",
-            new { DId = districtId, YId = yearId })).ToDictionary(e => (int)e.optionId, e => e);
-
-        // Year label + current year check
-        var yearLabel = await conn.ExecuteScalarAsync<string?>(
-            "SELECT YearLabel FROM rotary_year_master WHERE pk_year_id=@Y", new { Y = yearId });
-        var currentYearId = await conn.ExecuteScalarAsync<int?>(
-            "SELECT pk_year_id FROM rotary_year_master WHERE IsCurrent=1 LIMIT 1");
-
-        // Is Zonal Awards switched ON for this district's parent zone (Zones list → ⋮ → Zonal Awards)?
-        // Same gate the district dashboard module grid uses. NULL/absent → treat as disabled.
-        var isZonalAwardsEnabled = await conn.ExecuteScalarAsync<bool?>(@"
-            SELECT z.IsZonalAwardsEnabled FROM zone_master z
-            JOIN district_master d ON d.fk_zone_id = z.pk_zone_id
-            WHERE d.pk_district_id = @DId AND d.isdeleted = 0 AND z.isdeleted = 0",
-            new { DId = districtId }) ?? false;
-
-        return Ok(new { goals, questions, options, entries, yearLabel, isCurrentYear = yearId == currentYearId, isZonalAwardsEnabled });
-    }
-
-    // --- District: Save manual entries (current month only) ---
-    public class ZonalAwardsManualSaveDto
-    {
-        public int OptionId { get; set; }
-        public decimal EnteredCounts { get; set; }
-        public decimal ReceivedPoints { get; set; }
-    }
-
-    [HttpPost("api/districts/{districtId}/zonal-awards/save-manual")]
-    public async Task<ActionResult> SaveDistrictZonalAwardsManual(int districtId, [FromBody] List<ZonalAwardsManualSaveDto> entries, [FromQuery] int yearId)
-    {
-        using var conn = CreateConnection();
-        await conn.OpenAsync();
-        var currentMonth = DateTime.Now.Month;
-
-        // Permission check: SuperAdmin can save any year. District Admin can only save the current year.
-        var currentYearId = await conn.ExecuteScalarAsync<int?>(
-            "SELECT pk_year_id FROM rotary_year_master WHERE IsCurrent = 1 LIMIT 1");
-        var rolesClaim = User.FindFirst("roles")?.Value ?? "";
-        var isSuper = rolesClaim.Split(',').Any(r => r.Trim().Equals("SuperAdmin", StringComparison.OrdinalIgnoreCase));
-        if (!isSuper && yearId != currentYearId)
-            return StatusCode(403, new { message = "Only SuperAdmin can edit past year data." });
-
-        if (entries == null || entries.Count == 0)
-            return BadRequest(new { message = "No entries to save." });
-
-        foreach (var e in entries)
-        {
-            // Save month-wise (current month)
-            await conn.ExecuteAsync(@"
-                INSERT INTO zonal_awards_district_entry (fk_option_id, fk_district_id, fk_year_id, month, entered_counts, received_points, created_by)
-                VALUES (@OId, @DId, @YId, @Month, @Counts, @Pts, @UserId)
-                ON DUPLICATE KEY UPDATE entered_counts=@Counts, received_points=@Pts, modified_by=@UserId",
-                new { OId = e.OptionId, DId = districtId, YId = yearId, Month = currentMonth,
-                      Counts = e.EnteredCounts, Pts = e.ReceivedPoints, UserId = GetUserId() });
-
-            // Update year-wise (month=0) — SUM of all individual months (1-12), past months untouched
-            var cumCounts = await conn.ExecuteScalarAsync<decimal?>(@"
-                SELECT COALESCE(SUM(entered_counts), 0) FROM zonal_awards_district_entry
-                WHERE fk_option_id=@OId AND fk_district_id=@DId AND fk_year_id=@YId AND month > 0 AND isdeleted=0",
-                new { OId = e.OptionId, DId = districtId, YId = yearId }) ?? 0;
-
-            var cumPoints = await conn.ExecuteScalarAsync<decimal?>(@"
-                SELECT COALESCE(SUM(received_points), 0) FROM zonal_awards_district_entry
-                WHERE fk_option_id=@OId AND fk_district_id=@DId AND fk_year_id=@YId AND month > 0 AND isdeleted=0",
-                new { OId = e.OptionId, DId = districtId, YId = yearId }) ?? 0;
-
-            await conn.ExecuteAsync(@"
-                INSERT INTO zonal_awards_district_entry (fk_option_id, fk_district_id, fk_year_id, month, entered_counts, received_points, created_by)
-                VALUES (@OId, @DId, @YId, 0, @Counts, @Pts, @UserId)
-                ON DUPLICATE KEY UPDATE entered_counts=@Counts, received_points=@Pts, modified_by=@UserId",
-                new { OId = e.OptionId, DId = districtId, YId = yearId, Counts = cumCounts, Pts = cumPoints, UserId = GetUserId() });
-        }
-
-        return Ok(new { message = $"Manual entries saved ({entries.Count} options)." });
-    }
-
-    // --- Import Foundation Points from Excel ---
-    public class ZonalAwardsImportForm
-    {
-        public IFormFile? File { get; set; }
-        public int YearId { get; set; }
-        public int Month { get; set; }
-    }
-
-    [HttpPost("api/zonal-awards/import")]
-    public async Task<ActionResult> ImportZonalAwardsAuto([FromForm] ZonalAwardsImportForm form)
-    {
-        var file = form.File;
-        var yearId = form.YearId;
-        var month = form.Month;
-
-        if (file == null || file.Length == 0)
-            return BadRequest(new { message = "No file uploaded." });
-        if (month < 1 || month > 12)
-            return BadRequest(new { message = "Invalid month." });
-
-        using var conn = CreateConnection();
-        await conn.OpenAsync();
-
-        // Load all Foundation options indexed by (qSort, subtype)
-        var fndOpts = (await conn.QueryAsync<dynamic>(@"
-            SELECT q.sort_order AS qSort, q.sr_no AS srNo, q.category AS question,
-                   o.pk_id AS optionId, o.goal_requirement_label AS optionLabel, o.points_label AS pointsLabel,
-                   o.mini, o.maxi, o.points, o.subtype, o.input_type AS inputType,
-                   o.sort_order AS oSort
-            FROM zonal_awards_question_option o
-            JOIN zonal_awards_question q ON q.pk_id = o.fk_question_id
-            JOIN zonal_awards_goal g ON g.pk_id = q.fk_goal_id
-            WHERE g.fk_year_id = @Y AND g.sort_order = 12 AND o.isdeleted = 0 AND q.isdeleted = 0
-            ORDER BY q.sort_order, o.subtype, o.sort_order", new { Y = yearId })).ToList();
-
-        // Group options by rowKey "qSort-subtype"
-        var optsByRowKey = fndOpts
-            .GroupBy(o => $"{(int)o.qSort}-{(o.subtype == null ? 0 : (int)o.subtype)}")
-            .ToDictionary(g => g.Key, g => g.ToList());
-
-        // Per-count question sort orders (multiply by count instead of fixed tier points)
-        var perCountQSorts = new HashSet<int> { 40, 42, 43, 45, 46, 48, 50, 51, 52 };
-
-        using var stream = file.OpenReadStream();
-        using var workbook = new XLWorkbook(stream);
-        var ws = workbook.Worksheets.First();
-
-        // Row 1 = headers: Sr, Foundation Question, Input Type, RowKey, then district numbers from col 5
-        var headerRow = ws.Row(1);
-        var districtColumns = new Dictionary<int, int>(); // col index → districtId
-
-        // Map all districts in real (non-deleted) zones — import is independent of the per-zone
-        // IsZonalAwardsEnabled toggle so SuperAdmin can import any time.
-        var enabledDistrictNumbers = (await conn.QueryAsync<dynamic>(@"
-            SELECT d.pk_district_id AS id, d.DistrictNumber AS districtNumber
-            FROM district_master d
-            INNER JOIN zone_master z ON z.pk_zone_id = d.fk_zone_id
-            WHERE d.isdeleted = 0 AND z.isdeleted = 0"))
-            .ToDictionary(d => (string)d.districtNumber, d => (int)d.id);
-
-        int lastCol = ws.LastColumnUsed()?.ColumnNumber() ?? 4;
-        for (int col = 5; col <= lastCol; col++)
-        {
-            var distNum = headerRow.Cell(col).GetString().Trim();
-            if (string.IsNullOrEmpty(distNum)) continue;
-            if (enabledDistrictNumbers.TryGetValue(distNum, out int distId))
-                districtColumns[col] = distId;
-        }
-
-        if (districtColumns.Count == 0)
-            return BadRequest(new { message = "No matching districts found in the Excel headers." });
-
-        int rowsProcessed = 0;
-        int cellsProcessed = 0;
-        int lastRow = ws.LastRowUsed()?.RowNumber() ?? 1;
-
-        for (int row = 2; row <= lastRow; row++)
-        {
-            // RowKey is in column B (column 2)
-            var rowKey = ws.Row(row).Cell(2).GetString().Trim();
-            if (string.IsNullOrEmpty(rowKey) || !optsByRowKey.TryGetValue(rowKey, out var subOpts))
-                continue;
-
-            // Determine row characteristics
-            var firstOpt = subOpts[0];
-            int qSort = (int)firstOpt.qSort;
-            bool isYesNoRow = ((string?)firstOpt.inputType ?? "").Equals("Yes/No", StringComparison.OrdinalIgnoreCase)
-                              || subOpts.Any(o => ((string?)o.optionLabel ?? "").Equals("No", StringComparison.OrdinalIgnoreCase));
-            bool isPerCount = perCountQSorts.Contains(qSort) && !isYesNoRow;
-
-            rowsProcessed++;
-
-            foreach (var kv in districtColumns)
-            {
-                int col = kv.Key;
-                int districtId = kv.Value;
-                var cellVal = ws.Row(row).Cell(col).GetString().Trim();
-                if (string.IsNullOrEmpty(cellVal)) continue; // empty = skip
-
-                // Parse input
-                decimal inputValue = 0;
-                bool isYes = false;
-                bool isExplicitZero = false;
-
-                if (isYesNoRow)
-                {
-                    if (cellVal.Equals("yes", StringComparison.OrdinalIgnoreCase) || cellVal == "1" || cellVal.Equals("true", StringComparison.OrdinalIgnoreCase) || cellVal.Equals("y", StringComparison.OrdinalIgnoreCase))
-                        isYes = true;
-                    else if (cellVal.Equals("no", StringComparison.OrdinalIgnoreCase) || cellVal == "0" || cellVal.Equals("false", StringComparison.OrdinalIgnoreCase) || cellVal.Equals("n", StringComparison.OrdinalIgnoreCase))
-                        isYes = false;
-                    else
-                        continue; // invalid yes/no cell — skip
-                }
-                else
-                {
-                    if (!decimal.TryParse(cellVal, System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out inputValue))
-                        continue; // invalid number — skip
-                    if (inputValue == 0) isExplicitZero = true;
-                }
-
-                // Find the matched option for this cell
-                dynamic? matched = null;
-                if (isYesNoRow)
-                {
-                    // Pick the "Yes" option (non-"No" label) if isYes; else pick the "No" option if present
-                    if (isYes)
-                        matched = subOpts.FirstOrDefault(o => !((string?)o.optionLabel ?? "").Equals("No", StringComparison.OrdinalIgnoreCase))
-                                  ?? subOpts[0];
-                    else
-                        matched = subOpts.FirstOrDefault(o => ((string?)o.optionLabel ?? "").Equals("No", StringComparison.OrdinalIgnoreCase));
-                }
-                else
-                {
-                    // Find tier where mini <= inputValue <= maxi
-                    foreach (var o in subOpts)
-                    {
-                        int mini = (int)o.mini;
-                        int maxi = (int)o.maxi;
-                        if (mini == 0 && maxi == 0) continue;
-                        if (inputValue >= mini && inputValue <= maxi)
-                        {
-                            if (matched == null || (int)o.mini >= (int)matched.mini)
-                                matched = o;
-                        }
-                    }
-                }
-
-                // Clear all options of this subtype for this (district, year, month) — ensures clean tier switch
-                var subOptionIds = subOpts.Select(o => (int)o.optionId).ToList();
-                await conn.ExecuteAsync(@"
-                    UPDATE zonal_awards_district_entry
-                    SET entered_counts = 0, received_points = 0, modified_by = @UserId
-                    WHERE fk_option_id IN @OIds AND fk_district_id = @DId AND fk_year_id = @YId AND month = @Month",
-                    new { OIds = subOptionIds, DId = districtId, YId = yearId, Month = month, UserId = GetUserId() });
-
-                // Compute the entered counts + points for the matched option
-                decimal enteredCounts = 0;
-                decimal receivedPoints = 0;
-                if (matched != null && !isExplicitZero && !(isYesNoRow && !isYes))
-                {
-                    if (isYesNoRow)
-                    {
-                        enteredCounts = 1;
-                        receivedPoints = (decimal)matched.points;
-                    }
-                    else if (isPerCount)
-                    {
-                        enteredCounts = inputValue;
-                        receivedPoints = inputValue * (decimal)matched.points;
-                    }
-                    else
-                    {
-                        enteredCounts = inputValue;
-                        receivedPoints = (decimal)matched.points;
-                    }
-
-                    // Upsert the matched option row for this month
-                    await conn.ExecuteAsync(@"
-                        INSERT INTO zonal_awards_district_entry (fk_option_id, fk_district_id, fk_year_id, month, entered_counts, received_points, created_by)
-                        VALUES (@OId, @DId, @YId, @Month, @Counts, @Pts, @UserId)
-                        ON DUPLICATE KEY UPDATE entered_counts=@Counts, received_points=@Pts, modified_by=@UserId",
-                        new { OId = (int)matched.optionId, DId = districtId, YId = yearId, Month = month,
-                              Counts = enteredCounts, Pts = receivedPoints, UserId = GetUserId() });
-                }
-
-                // Recalculate year-wise cumulative (month=0) for ALL options in this subtype
-                foreach (var o in subOpts)
-                {
-                    int optId = (int)o.optionId;
-                    var cumCounts = await conn.ExecuteScalarAsync<decimal?>(@"
-                        SELECT COALESCE(SUM(entered_counts), 0) FROM zonal_awards_district_entry
-                        WHERE fk_option_id=@OId AND fk_district_id=@DId AND fk_year_id=@YId AND month > 0 AND isdeleted=0",
-                        new { OId = optId, DId = districtId, YId = yearId }) ?? 0;
-                    var cumPts = await conn.ExecuteScalarAsync<decimal?>(@"
-                        SELECT COALESCE(SUM(received_points), 0) FROM zonal_awards_district_entry
-                        WHERE fk_option_id=@OId AND fk_district_id=@DId AND fk_year_id=@YId AND month > 0 AND isdeleted=0",
-                        new { OId = optId, DId = districtId, YId = yearId }) ?? 0;
-
-                    await conn.ExecuteAsync(@"
-                        INSERT INTO zonal_awards_district_entry (fk_option_id, fk_district_id, fk_year_id, month, entered_counts, received_points, created_by)
-                        VALUES (@OId, @DId, @YId, 0, @Counts, @Pts, @UserId)
-                        ON DUPLICATE KEY UPDATE entered_counts=@Counts, received_points=@Pts, modified_by=@UserId",
-                        new { OId = optId, DId = districtId, YId = yearId, Counts = cumCounts, Pts = cumPts, UserId = GetUserId() });
-                }
-
-                cellsProcessed++;
-            }
-        }
-
-        // Log import
-        await conn.ExecuteAsync(@"
-            INSERT INTO zonal_awards_import_log (fk_year_id, month, file_name, total_districts, total_questions, uploaded_by)
-            VALUES (@YId, @Month, @FileName, @TotalDist, @TotalQ, @UserId)",
-            new { YId = yearId, Month = month, FileName = file.FileName, TotalDist = districtColumns.Count, TotalQ = rowsProcessed, UserId = GetUserId() });
-
-        return Ok(new {
-            message = $"Imported {rowsProcessed} Foundation rows × {districtColumns.Count} districts ({cellsProcessed} cells).",
-            rowsProcessed, totalDistricts = districtColumns.Count, cellsProcessed
-        });
-    }
-
-    // --- Download Sample Excel for Foundation Import ---
-    [HttpGet("api/zonal-awards/sample-excel")]
-    public async Task<ActionResult> DownloadZonalAwardsSampleExcel([FromQuery] int yearId)
-    {
-        using var conn = CreateConnection();
-        await conn.OpenAsync();
-
-        // Foundation questions (goal sort_order=12) with options, grouped by subtype
-        var foundationOpts = (await conn.QueryAsync<dynamic>(@"
-            SELECT q.pk_id AS questionId, q.sort_order AS qSort, q.sr_no AS srNo, q.category AS question,
-                   o.pk_id AS optionId, o.goal_requirement_label AS optionLabel, o.points_label AS pointsLabel,
-                   o.mini, o.maxi, o.points, o.subtype, o.input_type AS inputType,
-                   o.question_type_for_import AS importType, o.sort_order AS oSort
-            FROM zonal_awards_question_option o
-            JOIN zonal_awards_question q ON q.pk_id = o.fk_question_id
-            JOIN zonal_awards_goal g ON g.pk_id = q.fk_goal_id
-            WHERE g.fk_year_id = @Y AND g.sort_order = 12 AND o.isdeleted = 0 AND q.isdeleted = 0
-            ORDER BY q.sort_order, o.subtype, o.sort_order", new { Y = yearId })).ToList();
-
-        // All districts in real (non-deleted) zones — sample template is independent of the
-        // per-zone IsZonalAwardsEnabled toggle so SuperAdmin can always produce it.
-        var districts = (await conn.QueryAsync<dynamic>(@"
-            SELECT d.pk_district_id AS id, d.DistrictNumber
-            FROM district_master d
-            INNER JOIN zone_master z ON z.pk_zone_id = d.fk_zone_id
-            WHERE d.isdeleted = 0 AND z.isdeleted = 0
-            ORDER BY CAST(d.DistrictNumber AS UNSIGNED), d.DistrictNumber")).ToList();
-
-        // Build one row per (questionId, subtype) combo
-        var rows = foundationOpts
-            .GroupBy(o => new { qId = (int)o.questionId, sub = o.subtype == null ? 0 : (int)o.subtype })
-            .Select(g =>
-            {
-                var first = g.First();
-                var qSort = (int)first.qSort;
-                var srNo = (string)first.srNo;
-                var question = (string)first.question;
-                var subType = g.Key.sub;
-                var optList = g.ToList();
-
-                // Determine input type: Yes/No vs Count
-                string firstInput = (string?)first.inputType ?? "";
-                bool isYesNo = firstInput.Equals("Yes/No", StringComparison.OrdinalIgnoreCase)
-                                || optList.Any(o => ((string?)o.optionLabel ?? "").Equals("No", StringComparison.OrdinalIgnoreCase));
-
-                // Label: sub 1 uses question.category; other subs use importType of first option
-                string label;
-                string inputLabel;
-                if (subType == 1 || optList.All(o => string.IsNullOrEmpty((string?)o.importType)))
-                {
-                    label = question;
-                    inputLabel = "Count";
-                }
-                else
-                {
-                    label = (string?)first.importType ?? question;
-                    inputLabel = isYesNo ? "Yes/No" : "Count";
-                }
-
-                // Dollar-amount detection (Q47 Annual Fund)
-                if (qSort == 47 && (subType == 1 || subType == 2))
-                    inputLabel = "Amount";
-                // DDF (Q44) is percentage
-                if (qSort == 44 && subType == 1)
-                    inputLabel = "Count";
-
-                // Derive a sub-letter (1.a, 1.b, ...) for display
-                return new
-                {
-                    qSort,
-                    subType,
-                    srNo,
-                    displaySr = subType <= 1 ? $"{srNo}" : $"{srNo}.{(char)('a' + subType - 1)}",
-                    label,
-                    inputLabel,
-                    isYesNo,
-                    rowKey = $"{qSort}-{subType}"
-                };
-            })
-            .OrderBy(r => r.qSort).ThenBy(r => r.subType)
-            .ToList();
-
-        using var wb = new XLWorkbook();
-        var ws = wb.Worksheets.Add("Foundation Import");
-
-        // Headers
-        ws.Cell(1, 1).Value = "Sr";
-        ws.Cell(1, 2).Value = "RowKey";
-        ws.Cell(1, 3).Value = "Foundation Question";
-        ws.Cell(1, 4).Value = "Input Type";
-        int col = 5;
-        foreach (var d in districts)
-        {
-            ws.Cell(1, col).Value = (string)d.DistrictNumber;
-            col++;
-        }
-
-        var lastCol = col - 1;
-        var headerRange = ws.Range(1, 1, 1, lastCol);
-        headerRange.Style.Font.Bold = true;
-        headerRange.Style.Fill.BackgroundColor = XLColor.FromHtml("#003366");
-        headerRange.Style.Font.FontColor = XLColor.White;
-        headerRange.Style.Alignment.Horizontal = ClosedXML.Excel.XLAlignmentHorizontalValues.Center;
-
-        int row = 2;
-        foreach (var r in rows)
-        {
-            ws.Cell(row, 1).Value = r.displaySr;
-            ws.Cell(row, 2).Value = r.rowKey;
-            ws.Cell(row, 3).Value = r.label;
-            ws.Cell(row, 4).Value = r.inputLabel;
-            row++;
-        }
-
-        // Hide RowKey column (Col B) — internal identifier, still parseable on import
-        ws.Column(2).Hide();
-        ws.Columns(1, lastCol).AdjustToContents();
-        ws.Column(3).Width = Math.Min(ws.Column(3).Width, 50);
-        ws.SheetView.FreezeRows(1);
-        ws.SheetView.FreezeColumns(4);
-
-        using var ms = new MemoryStream();
-        wb.SaveAs(ms);
-        return File(ms.ToArray(), "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", $"zonal_awards_foundation_sample_{yearId}.xlsx");
-    }
-
-    // ══════════════════════════════════════════════════════════════════════
-    // Zone-Level Cricket Match (Q23)
-    // ══════════════════════════════════════════════════════════════════════
-
-    // --- Get zone-level questions + selections for a zone ---
-    [HttpGet("api/zones/{zoneId}/zone-awards")]
-    public async Task<ActionResult> GetZoneAwards(int zoneId, [FromQuery] int yearId)
-    {
-        using var conn = CreateConnection();
-        await conn.OpenAsync();
-
-        // Zone info
-        var zone = await conn.QueryFirstOrDefaultAsync<dynamic>(
-            "SELECT pk_zone_id AS id, ZoneName FROM zone_master WHERE pk_zone_id = @Z AND isdeleted = 0",
-            new { Z = zoneId });
-        if (zone == null) return NotFound(new { message = "Zone not found." });
-
-        // Zone-level questions (e.g., Cricket Match)
-        var questions = (await conn.QueryAsync<dynamic>(@"
-            SELECT q.pk_id AS id, q.sr_no AS srNo, q.category, q.question_level AS level
-            FROM zonal_awards_question q
-            JOIN zonal_awards_goal g ON g.pk_id = q.fk_goal_id
-            WHERE g.fk_year_id = @Y AND q.question_level = 'Zone' AND q.isdeleted = 0
-            ORDER BY q.sort_order", new { Y = yearId })).ToList();
-
-        var qIds = questions.Select(q => (int)q.id).ToList();
-        var options = qIds.Count > 0
-            ? (await conn.QueryAsync<dynamic>(@"
-                SELECT pk_id AS id, fk_question_id AS questionId, goal_requirement_label AS label,
-                       points_label AS pointsLabel, points, sort_order AS sortOrder
-                FROM zonal_awards_question_option
-                WHERE fk_question_id IN @Ids AND isdeleted = 0
-                ORDER BY fk_question_id, sort_order", new { Ids = qIds })).ToList()
-            : new List<dynamic>();
-
-        // Districts in this zone
-        var districts = (await conn.QueryAsync<dynamic>(@"
-            SELECT pk_district_id AS id, DistrictNumber
-            FROM district_master
-            WHERE fk_zone_id = @Z AND isdeleted = 0
-            ORDER BY CAST(DistrictNumber AS UNSIGNED), DistrictNumber", new { Z = zoneId })).ToList();
-
-        // Current selections: for each option, which district (if any) has counts > 0 at month = 0
-        var districtIds = districts.Select(d => (int)d.id).ToList();
-        var optIds = options.Select(o => (int)o.id).ToList();
-
-        var selections = new List<dynamic>();
-        if (districtIds.Count > 0 && optIds.Count > 0)
-        {
-            selections = (await conn.QueryAsync<dynamic>(@"
-                SELECT fk_option_id AS optionId, fk_district_id AS districtId,
-                       entered_counts AS enteredCounts, received_points AS receivedPoints
-                FROM zonal_awards_district_entry
-                WHERE fk_option_id IN @Opts AND fk_district_id IN @Districts
-                  AND fk_year_id = @Y AND month = 0 AND isdeleted = 0 AND entered_counts > 0",
-                new { Opts = optIds, Districts = districtIds, Y = yearId })).ToList();
-        }
-
-        // Per-district totals (sum of zone-level points awarded to each district, year-wise)
-        var totals = new Dictionary<int, decimal>();
-        foreach (var d in districts) totals[(int)d.id] = 0;
-        foreach (var s in selections)
-        {
-            int dId = (int)s.districtId;
-            if (!totals.ContainsKey(dId)) totals[dId] = 0;
-            totals[dId] += (decimal)s.receivedPoints;
-        }
-        var districtTotals = totals.Select(kv => new { districtId = kv.Key, totalPoints = kv.Value }).ToList();
-
-        return Ok(new { zone, questions, options, districts, selections, districtTotals });
-    }
-
-    public class ZoneAwardSaveDto
-    {
-        public int OptionId { get; set; }
-        public int? DistrictId { get; set; } // null means "None / clear"
-    }
-
-    // --- Save zone-level selections (yearly only, month=0) ---
-    [HttpPost("api/zones/{zoneId}/zone-awards/save")]
-    public async Task<ActionResult> SaveZoneAwards(int zoneId, [FromBody] List<ZoneAwardSaveDto> entries, [FromQuery] int yearId)
-    {
-        if (entries == null) return BadRequest(new { message = "No entries supplied." });
-
-        using var conn = CreateConnection();
-        await conn.OpenAsync();
-
-        // Permission: SuperAdmin only (ZC deferred until zonal dashboard is built)
-        var rolesClaim = User.FindFirst("roles")?.Value ?? "";
-        var isSuper = rolesClaim.Split(',').Any(r => r.Trim().Equals("SuperAdmin", StringComparison.OrdinalIgnoreCase));
-        if (!isSuper)
-            return StatusCode(403, new { message = "Only SuperAdmin can edit zone awards." });
-
-        // Verify zone exists
-        var zoneExists = await conn.ExecuteScalarAsync<int?>(
-            "SELECT pk_zone_id FROM zone_master WHERE pk_zone_id = @Z AND isdeleted = 0", new { Z = zoneId });
-        if (!zoneExists.HasValue) return NotFound(new { message = "Zone not found." });
-
-        // Get districts in this zone
-        var zoneDistrictIds = (await conn.QueryAsync<int>(
-            "SELECT pk_district_id FROM district_master WHERE fk_zone_id = @Z AND isdeleted = 0",
-            new { Z = zoneId })).ToList();
-
-        // Validate all optionIds belong to zone-level questions and all districtIds belong to this zone
-        var validOpts = (await conn.QueryAsync<dynamic>(@"
-            SELECT o.pk_id AS id, o.points
-            FROM zonal_awards_question_option o
-            JOIN zonal_awards_question q ON q.pk_id = o.fk_question_id
-            JOIN zonal_awards_goal g ON g.pk_id = q.fk_goal_id
-            WHERE g.fk_year_id = @Y AND q.question_level = 'Zone' AND o.isdeleted = 0",
-            new { Y = yearId })).ToDictionary(o => (int)o.id, o => (decimal)o.points);
-
-        int updated = 0;
-        foreach (var e in entries)
-        {
-            if (!validOpts.TryGetValue(e.OptionId, out var optPts)) continue;
-
-            // Step 1: zero out any existing row for this option across ALL districts in this zone, year-wise (month=0).
-            // UPDATE only — never DELETE. This "removes" any previously-held award for this option.
-            if (zoneDistrictIds.Count > 0)
-            {
-                await conn.ExecuteAsync(@"
-                    UPDATE zonal_awards_district_entry
-                    SET entered_counts = 0, received_points = 0, modified_by = @UserId
-                    WHERE fk_option_id = @OId
-                      AND fk_district_id IN @Districts
-                      AND fk_year_id = @YId
-                      AND month = 0",
-                    new { OId = e.OptionId, Districts = zoneDistrictIds, YId = yearId, UserId = GetUserId() });
-            }
-
-            // Step 2: if a new district was picked, upsert it with counts = 1 and fixed option points
-            if (e.DistrictId.HasValue && zoneDistrictIds.Contains(e.DistrictId.Value))
-            {
-                await conn.ExecuteAsync(@"
-                    INSERT INTO zonal_awards_district_entry
-                        (fk_option_id, fk_district_id, fk_year_id, month, entered_counts, received_points, created_by)
-                    VALUES (@OId, @DId, @YId, 0, 1, @Pts, @UserId)
-                    ON DUPLICATE KEY UPDATE
-                        entered_counts = 1, received_points = @Pts, modified_by = @UserId",
-                    new { OId = e.OptionId, DId = e.DistrictId.Value, YId = yearId, Pts = optPts, UserId = GetUserId() });
-            }
-
-            updated++;
-        }
-
-        return Ok(new { message = $"Zone awards saved ({updated} options).", updated });
-    }
-
-    // --- Export Structure (Goals + Questions + Options + Criteria) ---
-    // No district data — used by zones to review questions/options and request corrections
-    [HttpGet("api/zonal-awards/export-structure/excel")]
-    public async Task<ActionResult> ExportZonalAwardsStructure([FromQuery] int yearId)
-    {
-        using var conn = CreateConnection();
-        await conn.OpenAsync();
-
-        var yearLabel = await conn.ExecuteScalarAsync<string?>(
-            "SELECT YearLabel FROM rotary_year_master WHERE pk_year_id = @Y", new { Y = yearId }) ?? $"Year {yearId}";
-
-        var goals = (await conn.QueryAsync<dynamic>(@"
-            SELECT pk_id AS id, title, max_points AS maxPoints, max_remark AS maxRemark, sort_order AS sortOrder
-            FROM zonal_awards_goal
-            WHERE fk_year_id = @Y AND isdeleted = 0
-            ORDER BY sort_order", new { Y = yearId })).ToList();
-
-        var questions = (await conn.QueryAsync<dynamic>(@"
-            SELECT q.pk_id AS id, q.fk_goal_id AS goalId, q.sr_no AS srNo, q.sub_title AS subTitle,
-                   q.category, q.auto_or_manual AS autoOrManual, q.sort_order AS sortOrder
-            FROM zonal_awards_question q
-            JOIN zonal_awards_goal g ON g.pk_id = q.fk_goal_id
-            WHERE g.fk_year_id = @Y AND q.isdeleted = 0
-            ORDER BY q.sort_order", new { Y = yearId })).ToList();
-
-        var options = (await conn.QueryAsync<dynamic>(@"
-            SELECT o.pk_id AS id, o.fk_question_id AS questionId, o.goal_requirement_label AS label,
-                   o.points_label AS pointsLabel, o.mini, o.maxi, o.points, o.atleast,
-                   o.subtype, o.input_type AS inputType, o.question_type_for_import AS importType,
-                   o.sort_order AS sortOrder
-            FROM zonal_awards_question_option o
-            JOIN zonal_awards_question q ON q.pk_id = o.fk_question_id
-            JOIN zonal_awards_goal g ON g.pk_id = q.fk_goal_id
-            WHERE g.fk_year_id = @Y AND o.isdeleted = 0
-            ORDER BY o.fk_question_id, o.subtype, o.sort_order", new { Y = yearId })).ToList();
-
-        using var wb = new XLWorkbook();
-        var ws = wb.Worksheets.Add("Zonal Awards Structure");
-
-        // Title row
-        ws.Cell(1, 1).Value = $"Zonal Awards — Questions & Criteria — {yearLabel}";
-        ws.Range(1, 1, 1, 7).Merge();
-        ws.Cell(1, 1).Style.Font.Bold = true;
-        ws.Cell(1, 1).Style.Font.FontSize = 14;
-        ws.Cell(1, 1).Style.Fill.BackgroundColor = XLColor.FromHtml("#003366");
-        ws.Cell(1, 1).Style.Font.FontColor = XLColor.White;
-        ws.Cell(1, 1).Style.Alignment.Horizontal = ClosedXML.Excel.XLAlignmentHorizontalValues.Center;
-        ws.Row(1).Height = 22;
-
-        // Headers
-        var headers = new[] {
-            "Goal", "Sr", "Question", "Type", "Subtype",
-            "Option / Criteria", "Points Label"
-        };
-        for (int i = 0; i < headers.Length; i++)
-            ws.Cell(3, i + 1).Value = headers[i];
-
-        var hdrRange = ws.Range(3, 1, 3, headers.Length);
-        hdrRange.Style.Font.Bold = true;
-        hdrRange.Style.Fill.BackgroundColor = XLColor.FromHtml("#003366");
-        hdrRange.Style.Font.FontColor = XLColor.White;
-        hdrRange.Style.Alignment.Horizontal = ClosedXML.Excel.XLAlignmentHorizontalValues.Center;
-        hdrRange.Style.Border.OutsideBorder = ClosedXML.Excel.XLBorderStyleValues.Thin;
-
-        int row = 4;
-        foreach (var g in goals)
-        {
-            int goalId = (int)g.id;
-            var goalTitle = (string)g.title;
-            var maxPts = g.maxPoints == null ? (int?)null : (int)g.maxPoints;
-
-            // Goal header row (merged across all columns)
-            var goalText = maxPts.HasValue ? $"{goalTitle}   (Max {maxPts} points)" : goalTitle;
-            ws.Cell(row, 1).Value = goalText;
-            ws.Range(row, 1, row, headers.Length).Merge();
-            ws.Cell(row, 1).Style.Font.Bold = true;
-            ws.Cell(row, 1).Style.Font.FontSize = 12;
-            ws.Cell(row, 1).Style.Fill.BackgroundColor = XLColor.FromHtml("#D9E8F5");
-            ws.Cell(row, 1).Style.Border.OutsideBorder = ClosedXML.Excel.XLBorderStyleValues.Thin;
-            row++;
-
-            var goalQuestions = questions.Where(q => (int)q.goalId == goalId)
-                                          .OrderBy(q => (int)q.sortOrder).ToList();
-            foreach (var q in goalQuestions)
-            {
-                int qId = (int)q.id;
-                var qOpts = options.Where(o => (int)o.questionId == qId)
-                                   .OrderBy(o => o.subtype == null ? 0 : (int)o.subtype)
-                                   .ThenBy(o => (int)o.sortOrder).ToList();
-
-                // Determine number of rows this question will span
-                int optCount = Math.Max(qOpts.Count, 1);
-                int firstRow = row;
-
-                for (int i = 0; i < optCount; i++)
-                {
-                    // Goal column left blank for detail rows (goal header already shown above)
-                    ws.Cell(row, 1).Value = "";
-                    ws.Cell(row, 2).Value = i == 0 ? ((string?)q.srNo ?? "") : "";
-                    ws.Cell(row, 3).Value = i == 0 ? (string)q.category : "";
-                    ws.Cell(row, 4).Value = i == 0 ? (string)q.autoOrManual : "";
-
-                    if (qOpts.Count > 0)
-                    {
-                        var o = qOpts[i];
-                        ws.Cell(row, 5).Value = o.subtype == null ? "" : ((int)o.subtype).ToString();
-                        ws.Cell(row, 6).Value = (string?)o.label ?? "";
-                        ws.Cell(row, 7).Value = (string?)o.pointsLabel ?? "";
-                    }
-                    row++;
-                }
-
-                // Color Type cell based on auto/manual
-                if (optCount > 0)
-                {
-                    var typeCell = ws.Cell(firstRow, 4);
-                    if ((string)q.autoOrManual == "Auto")
-                        typeCell.Style.Fill.BackgroundColor = XLColor.FromHtml("#DBEAFE");
-                    else
-                        typeCell.Style.Fill.BackgroundColor = XLColor.FromHtml("#DCFCE7");
-                    typeCell.Style.Font.Bold = true;
-                    typeCell.Style.Alignment.Horizontal = ClosedXML.Excel.XLAlignmentHorizontalValues.Center;
-                }
-
-                // Light bottom border between questions
-                ws.Range(firstRow, 1, row - 1, headers.Length).Style.Border.BottomBorder = ClosedXML.Excel.XLBorderStyleValues.Hair;
-            }
-        }
-
-        ws.Range(3, 1, row - 1, headers.Length).Style.Border.InsideBorder = ClosedXML.Excel.XLBorderStyleValues.Thin;
-        ws.Range(3, 1, row - 1, headers.Length).Style.Border.OutsideBorder = ClosedXML.Excel.XLBorderStyleValues.Medium;
-        ws.Range(3, 1, row - 1, headers.Length).Style.Alignment.Vertical = ClosedXML.Excel.XLAlignmentVerticalValues.Center;
-        ws.Range(3, 1, row - 1, headers.Length).Style.Alignment.WrapText = true;
-
-        ws.Columns(1, headers.Length).AdjustToContents();
-        ws.Column(3).Width = Math.Min(Math.Max(ws.Column(3).Width, 30), 50);
-        ws.Column(6).Width = Math.Min(Math.Max(ws.Column(6).Width, 30), 50);
-        ws.Column(7).Width = Math.Min(Math.Max(ws.Column(7).Width, 15), 30);
-        ws.SheetView.FreezeRows(3);
-
-        using var ms = new MemoryStream();
-        wb.SaveAs(ms);
-        return File(ms.ToArray(), "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", $"zonal_awards_structure_{yearId}.xlsx");
-    }
-
-    // --- Import Logs ---
-    [HttpGet("api/zonal-awards/import-logs")]
-    public async Task<ActionResult> GetZonalAwardsImportLogs([FromQuery] int yearId)
-    {
-        using var conn = CreateConnection();
-        await conn.OpenAsync();
-        var result = await conn.QueryAsync<dynamic>(@"
-            SELECT pk_id AS id, month, file_name AS fileName, total_districts AS totalDistricts,
-                   total_questions AS totalQuestions, uploaded_date AS uploadedDate
-            FROM zonal_awards_import_log WHERE fk_year_id=@Y ORDER BY uploaded_date DESC", new { Y = yearId });
-        return Ok(result);
-    }
-
-    // --- Year-wise Report (all districts) ---
-    [HttpGet("api/zonal-awards/report/yearly")]
-    public async Task<ActionResult> GetZonalAwardsYearlyReport([FromQuery] int yearId)
-    {
-        using var conn = CreateConnection();
-        await conn.OpenAsync();
-
-        // Get all districts that have entries
-        var districts = await conn.QueryAsync<dynamic>(@"
-            SELECT DISTINCT d.pk_district_id AS districtId, d.DistrictNumber AS districtNumber
-            FROM zonal_awards_district_entry e
-            JOIN district_master d ON d.pk_district_id=e.fk_district_id
-            WHERE e.fk_year_id=@Y AND e.month=0 AND e.isdeleted=0 AND d.isdeleted=0
-            ORDER BY CAST(d.DistrictNumber AS UNSIGNED), d.DistrictNumber", new { Y = yearId });
-
-        var questions = await conn.QueryAsync<dynamic>(@"
-            SELECT q.pk_id AS questionId, q.sr_no AS srNo, q.category, q.auto_or_manual AS autoOrManual,
-                   g.title AS goalTitle
-            FROM zonal_awards_question q
-            JOIN zonal_awards_goal g ON g.pk_id=q.fk_goal_id
-            WHERE g.fk_year_id=@Y AND q.isdeleted=0 ORDER BY q.sort_order", new { Y = yearId });
-
-        // Get totals per district
-        var districtTotals = await conn.QueryAsync<dynamic>(@"
-            SELECT e.fk_district_id AS districtId, SUM(e.received_points) AS totalPoints
-            FROM zonal_awards_district_entry e
-            WHERE e.fk_year_id=@Y AND e.month=0 AND e.isdeleted=0
-            GROUP BY e.fk_district_id ORDER BY totalPoints DESC", new { Y = yearId });
-
-        return Ok(new { districts, questions, districtTotals });
-    }
-
-    // --- Month-wise Report ---
-    [HttpGet("api/zonal-awards/report/monthly")]
-    public async Task<ActionResult> GetZonalAwardsMonthlyReport([FromQuery] int yearId, [FromQuery] int districtId)
-    {
-        using var conn = CreateConnection();
-        await conn.OpenAsync();
-
-        var entries = await conn.QueryAsync<dynamic>(@"
-            SELECT e.fk_option_id AS optionId, e.month, e.entered_counts AS enteredCounts, e.received_points AS receivedPoints,
-                   o.goal_requirement_label AS optionLabel, q.sr_no AS srNo, q.category AS question, q.auto_or_manual AS autoOrManual
-            FROM zonal_awards_district_entry e
-            JOIN zonal_awards_question_option o ON o.pk_id=e.fk_option_id
-            JOIN zonal_awards_question q ON q.pk_id=o.fk_question_id
-            WHERE e.fk_district_id=@DId AND e.fk_year_id=@YId AND e.month>0 AND e.isdeleted=0
-            ORDER BY q.sort_order, o.sort_order, e.month",
-            new { DId = districtId, YId = yearId });
-
-        return Ok(entries);
-    }
-
-    // --- Download Year-wise Excel Report ---
-    [HttpGet("api/zonal-awards/report/yearly/excel")]
-    public async Task<ActionResult> DownloadZonalAwardsYearlyExcel([FromQuery] int yearId)
-    {
-        using var conn = CreateConnection();
-        await conn.OpenAsync();
-
-        var goals = (await conn.QueryAsync<dynamic>(
-            "SELECT pk_id AS id, title, sort_order FROM zonal_awards_goal WHERE fk_year_id=@Y AND isdeleted=0 ORDER BY sort_order", new { Y = yearId })).ToList();
-        var questions = (await conn.QueryAsync<dynamic>(@"
-            SELECT q.pk_id AS id, q.fk_goal_id AS goalId, q.sr_no AS srNo, q.category, q.auto_or_manual AS autoOrManual
-            FROM zonal_awards_question q JOIN zonal_awards_goal g ON g.pk_id=q.fk_goal_id
-            WHERE g.fk_year_id=@Y AND q.isdeleted=0 ORDER BY q.sort_order", new { Y = yearId })).ToList();
-        var districts = (await conn.QueryAsync<dynamic>(@"
-            SELECT DISTINCT d.pk_district_id AS id, d.DistrictNumber
-            FROM zonal_awards_district_entry e JOIN district_master d ON d.pk_district_id=e.fk_district_id
-            WHERE e.fk_year_id=@Y AND e.month=0 AND e.isdeleted=0 AND d.isdeleted=0
-            ORDER BY CAST(d.DistrictNumber AS UNSIGNED), d.DistrictNumber", new { Y = yearId })).ToList();
-
-        // Get totals per district per question
-        var entries = (await conn.QueryAsync<dynamic>(@"
-            SELECT e.fk_district_id AS districtId, o.fk_question_id AS questionId,
-                   SUM(e.received_points) AS totalPoints
-            FROM zonal_awards_district_entry e
-            JOIN zonal_awards_question_option o ON o.pk_id=e.fk_option_id
-            WHERE e.fk_year_id=@Y AND e.month=0 AND e.isdeleted=0
-            GROUP BY e.fk_district_id, o.fk_question_id", new { Y = yearId })).ToList();
-
-        var entryMap = new Dictionary<string, decimal>();
-        foreach (var e in entries) entryMap[$"{e.districtId}_{e.questionId}"] = (decimal)e.totalPoints;
-
-        using var wb = new XLWorkbook();
-        var ws = wb.Worksheets.Add("Yearly Report");
-
-        // Header row
-        ws.Cell(1, 1).Value = "Goal";
-        ws.Cell(1, 2).Value = "Sr No";
-        ws.Cell(1, 3).Value = "Question";
-        ws.Cell(1, 4).Value = "Type";
-        int col = 5;
-        foreach (var d in districts) { ws.Cell(1, col).Value = (string)d.DistrictNumber; col++; }
-
-        var hdr = ws.Range(1, 1, 1, col - 1);
-        hdr.Style.Font.Bold = true;
-        hdr.Style.Fill.BackgroundColor = XLColor.FromHtml("#003366");
-        hdr.Style.Font.FontColor = XLColor.White;
-
-        int row = 2;
-        var goalMap = goals.ToDictionary(g => (int)g.id, g => (string)g.title);
-        foreach (var q in questions)
-        {
-            ws.Cell(row, 1).Value = goalMap.GetValueOrDefault((int)q.goalId, "");
-            ws.Cell(row, 2).Value = (string?)q.srNo ?? "";
-            ws.Cell(row, 3).Value = (string)q.category;
-            ws.Cell(row, 4).Value = (string)q.autoOrManual;
-            col = 5;
-            foreach (var d in districts)
-            {
-                var key = $"{d.id}_{q.id}";
-                ws.Cell(row, col).Value = entryMap.ContainsKey(key) ? (double)entryMap[key] : 0;
-                col++;
-            }
-            row++;
-        }
-
-        // Total row
-        ws.Cell(row, 1).Value = "TOTAL";
-        ws.Range(row, 1, row, 4).Style.Font.Bold = true;
-        ws.Range(row, 1, row, 4).Style.Fill.BackgroundColor = XLColor.FromHtml("#FFD700");
-        col = 5;
-        foreach (var d in districts)
-        {
-            decimal total = 0;
-            foreach (var q in questions)
-            {
-                var key = $"{d.id}_{q.id}";
-                if (entryMap.ContainsKey(key)) total += entryMap[key];
-            }
-            ws.Cell(row, col).Value = (double)total;
-            ws.Cell(row, col).Style.Font.Bold = true;
-            ws.Cell(row, col).Style.Fill.BackgroundColor = XLColor.FromHtml("#FFD700");
-            col++;
-        }
-
-        ws.Columns().AdjustToContents();
-        ws.SheetView.FreezeRows(1);
-        ws.SheetView.FreezeColumns(4);
-
-        using var ms = new MemoryStream();
-        wb.SaveAs(ms);
-        return File(ms.ToArray(), "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", $"zonal_awards_yearly_{yearId}.xlsx");
-    }
-
-    // --- Download Month-wise + YTD Excel Report ---
-    [HttpGet("api/zonal-awards/report/monthly/excel")]
-    public async Task<ActionResult> DownloadZonalAwardsMonthlyExcel([FromQuery] int yearId)
-    {
-        using var conn = CreateConnection();
-        await conn.OpenAsync();
-
-        var startDate = await conn.ExecuteScalarAsync<DateTime?>(
-            "SELECT StartDate FROM rotary_year_master WHERE pk_year_id = @Y", new { Y = yearId });
-        int startYear = startDate?.Year ?? DateTime.Now.Year;
-
-        var goalTitle = (await conn.QueryAsync<dynamic>(
-            "SELECT pk_id AS id, title FROM zonal_awards_goal WHERE fk_year_id=@Y AND isdeleted=0 ORDER BY sort_order",
-            new { Y = yearId })).ToDictionary(g => (int)g.id, g => (string)g.title);
-
-        var questions = (await conn.QueryAsync<dynamic>(@"
-            SELECT q.pk_id AS id, q.fk_goal_id AS goalId, q.sr_no AS srNo, q.category,
-                   q.auto_or_manual AS autoOrManual, q.sort_order AS sortOrder
-            FROM zonal_awards_question q
-            JOIN zonal_awards_goal g ON g.pk_id = q.fk_goal_id
-            WHERE g.fk_year_id = @Y AND q.isdeleted = 0
-            ORDER BY q.sort_order", new { Y = yearId })).ToList();
-
-        var options = (await conn.QueryAsync<dynamic>(@"
-            SELECT o.pk_id AS id, o.fk_question_id AS questionId, COALESCE(o.subtype,0) AS subtype,
-                   o.question_type_for_import AS importType, o.sort_order AS sortOrder
-            FROM zonal_awards_question_option o
-            JOIN zonal_awards_question q ON q.pk_id = o.fk_question_id
-            JOIN zonal_awards_goal g ON g.pk_id = q.fk_goal_id
-            WHERE g.fk_year_id = @Y AND o.isdeleted = 0
-            ORDER BY o.fk_question_id, COALESCE(o.subtype,0), o.sort_order", new { Y = yearId })).ToList();
-
-        // Districts with non-zero data for the year (numeric order). Matches the per-month pivot;
-        // SuperAdmin downloads regardless of the per-zone IsZonalAwardsEnabled toggle.
-        var districts = (await conn.QueryAsync<dynamic>(@"
-            SELECT DISTINCT d.pk_district_id AS id, d.DistrictNumber AS districtNumber
-            FROM zonal_awards_district_entry e
-            JOIN district_master d ON d.pk_district_id = e.fk_district_id
-            WHERE e.fk_year_id = @Y AND e.month > 0 AND e.received_points > 0 AND e.isdeleted = 0 AND d.isdeleted = 0
-            ORDER BY CAST(d.DistrictNumber AS UNSIGNED)", new { Y = yearId })).ToList();
-
-        // Stored points per (district, question, subtype, month) — shown as-is per month (no
-        // carry-forward / re-normalize), exactly like the source data.
-        var allEntries = await conn.QueryAsync<dynamic>(@"
-            SELECT e.fk_district_id AS districtId, o.fk_question_id AS questionId,
-                   COALESCE(o.subtype,0) AS subtype, e.month, SUM(e.received_points) AS pts
-            FROM zonal_awards_district_entry e
-            JOIN zonal_awards_question_option o ON o.pk_id = e.fk_option_id
-            JOIN zonal_awards_question q ON q.pk_id = o.fk_question_id
-            JOIN zonal_awards_goal g ON g.pk_id = q.fk_goal_id AND g.fk_year_id = @Y
-            WHERE e.fk_year_id = @Y AND e.isdeleted = 0 AND e.month > 0
-            GROUP BY e.fk_district_id, o.fk_question_id, COALESCE(o.subtype,0), e.month", new { Y = yearId });
-        var entryMap = new Dictionary<string, decimal>();
-        foreach (var e in allEntries)
-            entryMap[$"{(int)e.districtId}_{(int)e.questionId}_{(int)e.subtype}_{(int)e.month}"] = (decimal)e.pts;
-
-        // Row layout: one row per (question, subtype). Single-subtype questions = 1 row labelled by
-        // question text; multi-subtype questions = one row per subtype labelled by import type.
-        var reportRows = new List<(string sr, string goal, string question, string type, int qId, int subtype)>();
-        foreach (var q in questions)
-        {
-            int qId = (int)q.id;
-            string sr = (string?)q.srNo ?? "";
-            string goal = goalTitle.GetValueOrDefault((int)q.goalId, "");
-            string type = (string)q.autoOrManual;
-            string category = (string)q.category;
-            var subs = options.Where(o => (int)o.questionId == qId)
-                              .GroupBy(o => (int)o.subtype).OrderBy(grp => grp.Key).ToList();
-            if (subs.Count <= 1)
-            {
-                reportRows.Add((sr, goal, category, type, qId, subs.Count == 1 ? subs[0].Key : 0));
-            }
-            else
-            {
-                foreach (var grp in subs)
-                {
-                    var imp = (string?)grp.First().importType;
-                    reportRows.Add((sr, goal, string.IsNullOrWhiteSpace(imp) ? category : imp!, type, qId, grp.Key));
-                }
-            }
-        }
-
-        // One sheet per elapsed rotary-year month (Jul..current). Past years => all 12.
-        var monthOrder = new (int num, string abbr)[] {
-            (7, "Jul"), (8, "Aug"), (9, "Sep"), (10, "Oct"), (11, "Nov"), (12, "Dec"),
-            (1, "Jan"), (2, "Feb"), (3, "Mar"), (4, "Apr"), (5, "May"), (6, "Jun")
-        };
-        var nowMonthStart = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1);
-        var monthSheets = new List<(int num, string sheet)>();
-        foreach (var m in monthOrder)
-        {
-            int calYear = m.num >= 7 ? startYear : startYear + 1;
-            if (new DateTime(calYear, m.num, 1) <= nowMonthStart)
-                monthSheets.Add((m.num, $"{m.abbr}_{calYear}"));
-        }
-        if (monthSheets.Count == 0)
-            foreach (var m in monthOrder)
-                monthSheets.Add((m.num, $"{m.abbr}_{(m.num >= 7 ? startYear : startYear + 1)}"));
-
-        using var wb = new XLWorkbook();
-
-        // ─── One sheet per month: questions (rows) × districts (columns) ───
-        int fixedCols = 4; // Sr | Goal | Question | Type
-        int colCount = fixedCols + districts.Count;
-        foreach (var (monthNum, sheetName) in monthSheets)
-        {
-            var ws = wb.Worksheets.Add(sheetName);
-
-            ws.Cell(1, 1).Value = "Sr";
-            ws.Cell(1, 2).Value = "Goal";
-            ws.Cell(1, 3).Value = "Question";
-            ws.Cell(1, 4).Value = "Type";
-            for (int d = 0; d < districts.Count; d++)
-                ws.Cell(1, fixedCols + 1 + d).Value = (string)districts[d].districtNumber;
-
-            var hdr = ws.Range(1, 1, 1, colCount);
-            hdr.Style.Font.Bold = true;
-            hdr.Style.Fill.BackgroundColor = XLColor.FromHtml("#003366");
-            hdr.Style.Font.FontColor = XLColor.White;
-            hdr.Style.Alignment.Horizontal = ClosedXML.Excel.XLAlignmentHorizontalValues.Center;
-            hdr.Style.Border.OutsideBorder = ClosedXML.Excel.XLBorderStyleValues.Thin;
-
-            int r = 2;
-            foreach (var row in reportRows)
-            {
-                ws.Cell(r, 1).Value = row.sr;
-                ws.Cell(r, 2).Value = row.goal;
-                ws.Cell(r, 3).Value = row.question;
-                ws.Cell(r, 4).Value = row.type;
-                ws.Cell(r, 4).Style.Alignment.Horizontal = ClosedXML.Excel.XLAlignmentHorizontalValues.Center;
-                ws.Cell(r, 4).Style.Fill.BackgroundColor = XLColor.FromHtml(row.type == "Auto" ? "#DBEAFE" : "#DCFCE7");
-
-                for (int d = 0; d < districts.Count; d++)
-                {
-                    int dId = (int)districts[d].id;
-                    var key = $"{dId}_{row.qId}_{row.subtype}_{monthNum}";
-                    decimal v = entryMap.TryGetValue(key, out var p) ? p : 0;
-                    ws.Cell(r, fixedCols + 1 + d).Value = (double)v;
-                }
-                r++;
-            }
-
-            ws.Range(1, 1, r - 1, colCount).Style.Border.InsideBorder = ClosedXML.Excel.XLBorderStyleValues.Thin;
-            ws.Range(1, 1, r - 1, colCount).Style.Border.OutsideBorder = ClosedXML.Excel.XLBorderStyleValues.Medium;
-            ws.Column(2).Width = Math.Min(Math.Max(ws.Column(2).Width, 14), 22);
-            ws.Column(3).Width = Math.Min(Math.Max(ws.Column(3).Width, 30), 50);
-            ws.SheetView.FreezeRows(1);
-            ws.SheetView.FreezeColumns(fixedCols);
-        }
-
-        using var ms = new MemoryStream();
-        wb.SaveAs(ms);
-        return File(ms.ToArray(), "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", $"zonal_awards_monthly_{yearId}.xlsx");
     }
 }

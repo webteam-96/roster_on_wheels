@@ -408,8 +408,8 @@ function SampleHub({
   /* Every word must be a WHOLE word of the project TITLE (a plural "s" on
      either side allowed), order-independent — so "heart surgery" no longer
      lists "Heartline Surgery". Title only: this is the bundled-sample fallback.
-     The live hub's `q` also matches club, state, district, area, category and
-     sub category — SearchSqlAsync() in PublicProjectStatsController.cs. */
+     The live hub's `q` also matches club, state, district and area —
+     SearchSqlAsync() in PublicProjectStatsController.cs. */
   const terms = useMemo(
     () =>
       typed

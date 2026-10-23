@@ -1,8 +1,7 @@
 "use client";
 
-// Read-only inbox of District Admin / District Governor messages (user 2026-10-09) for the RI
-// Director, Zone Co-ordinator, District Assistant and SuperAdmin. The API returns only what the
-// viewer may read. Two panes: conversations (district + category) on the left, the messages on the
+// Read-only inbox of District Admin / District Governor messages (user 2026-10-09) for the
+// SuperAdmin. The API returns only what the viewer may read. Two panes: conversations (district + category) on the left, the messages on the
 // right. Opening a conversation marks it read.
 
 import { useEffect, useState } from "react";

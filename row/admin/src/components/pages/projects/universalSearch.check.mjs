@@ -99,8 +99,8 @@ assert.ok(
    Surgery" and "Happy street", because each word was matched as a substring of the
    title, area, category, club or state independently. The rule now: every word
    must be a WHOLE word of the TITLE (a trailing plural "s" allowed), any order.
-   (The live API also lets a word match the club, state, district, area, category
-   or sub category — this checks only the title rule the two share.) */
+   (The live API also lets a word match the club, state, district or area — this
+   checks only the title rule the two share.) */
 function matchesProject(query, title) {
   const terms = query
     .toLowerCase()

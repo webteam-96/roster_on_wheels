@@ -7,7 +7,7 @@
 import { useEffect, useState } from "react";
 import { isAnnualOnlyCategory } from "@/lib/goalCategories";
 import { Loader2 } from "@/components/icons";
-import { getGoalOversightCategories, getDistrictMonthlyGoalsScoped, type GoalMonthlyForm } from "@/services/api";
+import { getGoalCategories, getDistrictMonthlyGoalsScoped, type GoalMonthlyForm } from "@/services/api";
 import { monthlyFieldLabel } from "@/lib/goalCategories";
 
 const fmt = (v: number | null | undefined) =>
@@ -59,7 +59,7 @@ export default function DistrictMonthWiseReport(
     setLoading(true);
     (async () => {
       try {
-        const all = await getGoalOversightCategories();
+        const all = await getGoalCategories();
         if (cancelled) return;
         // Youth Service / Public Image are annual only (user 2026-09-25): a month-wise view never
         // lists them, so Membership and TRF are all that can appear here.

@@ -66,6 +66,7 @@ import RotaryLoader from "@/components/RotaryLoader";
 import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
 import ProtectedRoute from "@/components/ProtectedRoute";
+import FoundationDesignationsCard from "@/components/membership/FoundationDesignationsCard";
 import { DayMonthPicker } from "@/components/DayMonthPicker";
 import { MEMBER_NAME_FILTER } from "@/lib/textInput";
 
@@ -1292,6 +1293,8 @@ function EditMemberV2Form() {
         )}
       </SectionCard>
       )}
+
+      <FoundationDesignationsCard memberId={memberId} />
 
       <SuccessAlert
         open={showSuccess}

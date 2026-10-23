@@ -25,19 +25,17 @@ import {
   getClub,
   getModules,
   getAreasOfFocus,
-  getCategories,
   getFunding,
   getOngoingProjects,
   getProject,
   updateProject,
   moveProject,
   uploadProjectImage,
-  checkClubHasModerator,
   type ClassificationSearchResult,
 } from "@/services/api";
 import ClassificationAssist from "@/components/projects/ClassificationAssist";
 import {
-  AreaOfFocus, Category, Funding, OngoingProject, ProjectPhotoInput,
+  AreaOfFocus, Funding, OngoingProject, ProjectPhotoInput,
 } from "@/types/project";
 import { currencyOptions, getCurrencySymbol, moneyIconName } from "@/lib/currency";
 import V2FormShell, { useV2ReturnTo } from "@/components/v2/V2FormShell";
@@ -177,12 +175,10 @@ export default function PublicImageInitiativeV2EditPage() {
 
   // Masters
   const [areasOfFocus, setAreasOfFocus] = useState<AreaOfFocus[]>([]);
-  const [categories, setCategories] = useState<Category[]>([]);
   const [fundingList, setFundingList] = useState<Funding[]>([]);
   const [ongoingProjects, setOngoingProjects] = useState<OngoingProject[]>([]);
 
   const [showOngoingInfo, setShowOngoingInfo] = useState(false);
-  const [initDone, setInitDone] = useState(false);
 
   // Form state
   const [projectType, setProjectType] = useState<"" | "one_time" | "ongoing_repeat">("");
@@ -201,8 +197,6 @@ export default function PublicImageInitiativeV2EditPage() {
 
   const [selectedAofId, setSelectedAofId] = useState<string>("");
   const [otherAreaOfFocus, setOtherAreaOfFocus] = useState("");
-  const [selectedCatId, setSelectedCatId] = useState<string>("");
-  const [otherCategory, setOtherCategory] = useState("");
 
   const [projectDate, setProjectDate] = useState("");
   const [projectCost, setProjectCost] = useState("");
@@ -228,11 +222,6 @@ export default function PublicImageInitiativeV2EditPage() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [showSuccessDialog, setShowSuccessDialog] = useState(false);
 
-  const [hasModerator, setHasModerator] = useState(false);
-  const [moderatorName, setModeratorName] = useState<string | null>(null);
-  const [showModeratorConfirm, setShowModeratorConfirm] = useState(false);
-  const moderatorConfirmedRef = useRef(false);
-
   const classifyFunding = (name?: string | null): "global_grant" | "csr" | "" => {
     if (!name) return "";
     const n = name.trim().toLowerCase();
@@ -257,13 +246,10 @@ export default function PublicImageInitiativeV2EditPage() {
   const onlyDigits = (v: string) => v.replace(/\D/g, "");
 
   const isOthersAof = selectedAofId === "others";
-  const isOthersCat = selectedCatId === "others";
 
-  // One pick (smart-search result or AI suggestion) sets the two classification ids
-  // this module exposes (Area of Focus + Category; there is no sub-category level here).
+  // One pick (smart-search result or AI suggestion) sets the "Category" (= areaOfFocusId).
   const applyClassification = (r: ClassificationSearchResult) => {
     setSelectedAofId(String(r.areaOfFocusId));
-    setSelectedCatId(r.categoryId ? String(r.categoryId) : "");
   };
 
   // Init: load project + masters and pre-fill
@@ -313,18 +299,10 @@ export default function PublicImageInitiativeV2EditPage() {
 
         if (project.areaOfFocusId) {
           setSelectedAofId(String(project.areaOfFocusId));
-          const cats = await getCategories(project.areaOfFocusId);
-          setCategories(cats.filter((c) => c.isActive));
-          if (project.categoryId) {
-            setSelectedCatId(String(project.categoryId));
-          } else if (project.otherCategory) {
-            setSelectedCatId("others");
-          }
         } else if (project.otherAreaOfFocus) {
           setSelectedAofId("others");
         }
         setOtherAreaOfFocus(project.otherAreaOfFocus || "");
-        setOtherCategory(project.otherCategory || "");
 
         setProjectDate(project.projectDate ? project.projectDate.split("T")[0] : "");
         setProjectCost(project.projectCost != null ? String(project.projectCost) : "");
@@ -351,10 +329,6 @@ export default function PublicImageInitiativeV2EditPage() {
           uploading: false,
           previewUrl: `${API_URL}${p.imagePath}`,
         })));
-
-        checkClubHasModerator(clubId).then((r) => { setHasModerator(r.hasModerator); setModeratorName(r.moderatorName); }).catch(() => {});
-
-        setInitDone(true);
       } catch (err: unknown) {
         const e = err as { response?: { data?: { message?: string } } };
         setErrorMessage(e?.response?.data?.message || "Failed to load project.");
@@ -364,23 +338,6 @@ export default function PublicImageInitiativeV2EditPage() {
     }
     init();
   }, [clubId, projectId, yearId]);
-
-  // Fetch categories when area of focus changes (skip during init)
-  useEffect(() => {
-    if (!initDone) return;
-    if (!selectedAofId || selectedAofId === "others") {
-      setCategories([]);
-      setSelectedCatId("");
-      return;
-    }
-    async function fetchCats() {
-      try {
-        const cats = await getCategories(Number(selectedAofId));
-        setCategories(cats.filter((c) => c.isActive));
-      } catch { setCategories([]); }
-    }
-    fetchCats();
-  }, [selectedAofId, initDone]);
 
   // Fetch ongoing projects for search — scoped to THIS year.
   useEffect(() => {
@@ -471,8 +428,6 @@ export default function PublicImageInitiativeV2EditPage() {
     if (new Date(projectDate) > new Date()) { setErrorMessage("Project date cannot be in the future."); return; }
     if (!selectedAofId) { setErrorMessage("Category is required."); return; }
     if (isOthersAof && !otherAreaOfFocus.trim()) { setErrorMessage("Please specify the Category."); return; }
-    if (!isOthersAof && categories.length > 0 && !selectedCatId) { setErrorMessage("Sub Category is required."); return; }
-    if (isOthersCat && !otherCategory.trim()) { setErrorMessage("Please specify the Sub Category."); return; }
     if (!projectCost) { setErrorMessage("Project Cost is required."); return; }
     if (!selectedFundingId) { setErrorMessage("Funding is required."); return; }
     if (showGlobalGrantBlock) {
@@ -488,12 +443,6 @@ export default function PublicImageInitiativeV2EditPage() {
     if (!rotariansInvolved) { setErrorMessage("Rotarians Involved is required."); return; }
     if (photos.length === 0) { setErrorMessage("At least 1 photo is required."); return; }
     if (photos.some((p) => p.uploading)) { setErrorMessage("Please wait for photos to finish uploading."); return; }
-
-    if (hasModerator && !moderatorConfirmedRef.current) {
-      setShowModeratorConfirm(true);
-      return;
-    }
-    moderatorConfirmedRef.current = false;
 
     const photoInputs: ProjectPhotoInput[] = photos.map((p, i) => ({
       imagePath: p.imagePath,
@@ -514,10 +463,6 @@ export default function PublicImageInitiativeV2EditPage() {
       location: location.trim() || null,
       areaOfFocusId: isOthersAof ? null : (selectedAofId ? Number(selectedAofId) : null),
       otherAreaOfFocus: isOthersAof ? otherAreaOfFocus : null,
-      categoryId: isOthersCat ? null : (selectedCatId ? Number(selectedCatId) : null),
-      otherCategory: isOthersCat ? otherCategory : null,
-      subCategoryId: null,
-      otherSubCategory: null,
       projectDate,
       projectCost: projectCost ? Number(projectCost) : null,
       currency,
@@ -744,7 +689,7 @@ export default function PublicImageInitiativeV2EditPage() {
             title={title}
             description={description}
             onApply={applyClassification}
-            selectedSubCatId={selectedCatId}
+            selectedAreaId={selectedAofId}
             enableCrossModule={false}
           />
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -752,7 +697,7 @@ export default function PublicImageInitiativeV2EditPage() {
               <FieldLabel dot="bg-amber-500">Category</FieldLabel>
               <select
                 value={selectedAofId}
-                onChange={(e) => { setSelectedAofId(e.target.value); setSelectedCatId(""); }}
+                onChange={(e) => setSelectedAofId(e.target.value)}
                 className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-amber-500"
               >
                 <option value="">Select</option>
@@ -769,32 +714,6 @@ export default function PublicImageInitiativeV2EditPage() {
                   value={otherAreaOfFocus}
                   onChange={(e) => setOtherAreaOfFocus(e.target.value)}
                   placeholder="Specify category"
-                  className="w-full mt-2 px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500"
-                />
-              )}
-            </div>
-            <div>
-              <FieldLabel dot="bg-amber-500" required={categories.length > 0}>Sub Category</FieldLabel>
-              <select
-                value={selectedCatId}
-                onChange={(e) => setSelectedCatId(e.target.value)}
-                disabled={isOthersAof || categories.length === 0}
-                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-amber-500 disabled:bg-slate-50 disabled:text-slate-400"
-              >
-                <option value="">{isOthersAof ? "N/A" : "Select"}</option>
-                {categories.map((c) => (
-                  <option key={c.id} value={String(c.id)}>{c.name}</option>
-                ))}
-                {!categories.some((c) => (c.name || "").trim().toLowerCase() === "others") && (
-                  <option value="others">Others</option>
-                )}
-              </select>
-              {isOthersCat && (
-                <input
-                  type="text"
-                  value={otherCategory}
-                  onChange={(e) => setOtherCategory(e.target.value)}
-                  placeholder="Specify sub category"
                   className="w-full mt-2 px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500"
                 />
               )}
@@ -1003,11 +922,6 @@ export default function PublicImageInitiativeV2EditPage() {
               />
               <span className="text-sm font-medium text-slate-700">Send Email notification</span>
             </label>
-            {sendEmail && hasModerator && (
-              <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded px-3 py-2 mt-2">
-                Note: This project will go for approval to moderator. Email will be sent after moderator approves.
-              </p>
-            )}
           </div>
         </SectionCard>
 
@@ -1027,25 +941,6 @@ export default function PublicImageInitiativeV2EditPage() {
           onConfirm={() => setShowOngoingInfo(false)}
           cancelLabel=""
           onCancel={() => setShowOngoingInfo(false)}
-        />
-
-        {/* Moderator confirm dialog */}
-        <AlertModal
-          open={showModeratorConfirm}
-          onOpenChange={(o) => !o && setShowModeratorConfirm(false)}
-          icon={Info}
-          iconClassName="text-blue-500"
-          title="Project Approval Required"
-          description={
-            <>
-              <p>This club has a moderator <strong>{moderatorName}</strong> assigned. Your updated project will be re-submitted for approval.</p>
-              <p className="mt-2">Do you want to continue?</p>
-            </>
-          }
-          confirmLabel="Submit for Approval"
-          onConfirm={() => { moderatorConfirmedRef.current = true; setShowModeratorConfirm(false); handleSave(); }}
-          cancelLabel="Cancel"
-          onCancel={() => setShowModeratorConfirm(false)}
         />
 
         <SuccessAlert

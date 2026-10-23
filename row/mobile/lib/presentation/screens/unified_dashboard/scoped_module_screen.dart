@@ -11,7 +11,6 @@ import '../districts/modules/district_announcements_screen.dart';
 import '../districts/modules/district_newsletters_screen.dart';
 import '../districts/modules/district_documents_screen.dart';
 import '../districts/modules/district_greetings_screen.dart';
-import '../districts/modules/district_rni_camp_screen.dart';
 import '../districts/modules/district_reports_screen.dart';
 import '../districts/modules/district_online_event_link_screen.dart';
 import '../districts/modules/district_weblinks_screen.dart';
@@ -25,7 +24,6 @@ import '../clubs/modules/announcements/announcements_screen.dart';
 import '../clubs/modules/newsletters/newsletters_screen.dart';
 import '../clubs/modules/documents/documents_screen.dart';
 import '../clubs/modules/greetings/greetings_screen.dart';
-import '../clubs/modules/pph_camps/pph_camps_screen.dart';
 import '../clubs/modules/event_payment_links/event_payment_links_screen.dart';
 import '../clubs/modules/weblinks/weblinks_screen.dart';
 import '../clubs/modules/sub_groups/sub_groups_screen.dart';
@@ -73,8 +71,6 @@ class ScopedModuleScreen extends StatelessWidget {
         return DistrictDocumentsScreen(districtId: districtId, embedded: true);
       case 'greetings':
         return DistrictGreetingsScreen(districtId: districtId, embedded: true);
-      case 'pphcamp':
-        return DistrictRniCampScreen(districtId: districtId, embedded: true);
       case 'reports':
         return DistrictReportsScreen(districtId: districtId, embedded: true);
       case 'onlineeventlink':
@@ -113,8 +109,6 @@ class ScopedModuleScreen extends StatelessWidget {
         return DocumentsScreen(clubId: clubId, embedded: true, viewOnly: viewOnly);
       case 'greetings':
         return GreetingsScreen(clubId: clubId, embedded: true);
-      case 'pphcamp':
-        return PphCampsScreen(clubId: clubId, embedded: true, viewOnly: viewOnly);
       case 'onlineeventlink':
         return EventPaymentLinksScreen(clubId: clubId, embedded: true);
       case 'weblinks':

@@ -7,8 +7,7 @@
  * Same fields, same validation rules (including the "originalDateTime grace"
  * so existing past dates are allowed when unchanged), same data shape — only
  * scope differs (district instead of club) and chrome swaps ClubAdminShell
- * for DistrictAdminShell. No moderator-approval flow (district has no
- * equivalent).
+ * for DistrictAdminShell.
  *
  * v2 reads ONLY `?returnTo=` — no `returnUrl`, no `backUrl`.
  *

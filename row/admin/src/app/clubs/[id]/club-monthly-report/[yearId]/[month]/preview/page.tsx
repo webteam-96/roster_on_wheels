@@ -374,13 +374,10 @@ function MonthlyReportPreviewPage() {
                       {isCommunityService ? (
                         <>
                           <TableHead className="border">Area of Focus</TableHead>
-                          <TableHead className="border">Category</TableHead>
-                          <TableHead className="border">Sub Category</TableHead>
                         </>
                       ) : (
                         <>
                           <TableHead className="border">Category</TableHead>
-                          <TableHead className="border">Sub Category</TableHead>
                         </>
                       )}
                       <TableHead className="text-right border">Cost</TableHead>
@@ -420,13 +417,10 @@ function MonthlyReportPreviewPage() {
                         {isCommunityService ? (
                           <>
                             <TableCell className="border">{project.areaOfFocusName || "-"}</TableCell>
-                            <TableCell className="border">{project.categoryName || "-"}</TableCell>
-                            <TableCell className="border">{project.subCategoryName || "-"}</TableCell>
                           </>
                         ) : (
                           <>
                             <TableCell className="border">{project.areaOfFocusName || "-"}</TableCell>
-                            <TableCell className="border">{project.categoryName || "-"}</TableCell>
                           </>
                         )}
                         <TableCell className="text-right border">

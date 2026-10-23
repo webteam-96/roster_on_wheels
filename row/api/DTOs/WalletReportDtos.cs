@@ -3,9 +3,7 @@ namespace RotaryApi.DTOs;
 public enum WalletReportType
 {
     ClubWebsite,
-    ClubWhatsApp,
     ClubEmail,
-    DistrictWhatsApp,
     DistrictEmail,
 }
 
@@ -38,7 +36,7 @@ public class WalletReportRow
     public DateTime? EndDate { get; set; }
 }
 
-// Settings › Wallet combined credit list — every WhatsApp/Email credit a club or district got,
+// Settings › Wallet combined credit list — every Email credit a club or district got,
 // Offline (given by Super Admin) and Online (bought by the club/district itself), one row each.
 public class WalletCreditEntryRow
 {

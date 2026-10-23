@@ -65,11 +65,8 @@ class RouteNames {
   static String districtCmr(int id) => '/districts/$id/club-monthly-report';
   static String districtCommittee(int id) => '/districts/$id/district-committee';
   static String districtEvents(int id) => '/districts/$id/district-events';
-  static String districtClubModerator(int id) => '/districts/$id/club-moderator';
   static String districtCitation(int id) => '/districts/$id/district-citation';
-  static String districtRniCamp(int id) => '/districts/$id/rni-camp';
   static String districtReports(int id) => '/districts/$id/reports';
-  static String districtZonalAwards(int id) => '/districts/$id/zonal-awards';
   static String districtOnlineEventLink(int id) => '/districts/$id/online-event-link';
   static String districtClubDues(int id) => '/districts/$id/club-dues';
   static String districtAg(int id) => '/districts/$id/ag';
@@ -106,7 +103,6 @@ class RouteNames {
   static String eventPaymentLinks(int id) => '/clubs/$id/event-payment-links';
   static String trf(int id) => '/clubs/$id/trf';
   static String ocvGov(int id) => '/clubs/$id/ocv-gov';
-  static String pphCamps(int id) => '/clubs/$id/pph-camps';
   static String clubWeblinks(int id) => '/clubs/$id/weblinks';
   static String clubWebsiteData(int id) => '/clubs/$id/website-data';
   static String rotaryNetwork(int id) => '/clubs/$id/rotary-network';
@@ -132,7 +128,6 @@ class RouteNames {
   static const String textSize = '/settings/text-size';
   static const String rotaryYears = '/settings/rotary-years';
   static const String designations = '/settings/designations';
-  static const String categories = '/settings/categories';
   static const String areaOfFocus = '/settings/area-of-focus';
   static const String themes = '/settings/themes';
   static const String eventMasters = '/settings/event-masters';
@@ -150,43 +145,12 @@ class RouteNames {
   // Admin
   static const String loginLogs = '/admin/login-logs';
 
-  // Zonal Dashboard
-  static const String zonalDashboard = '/zonal-dashboard';
-  static const String clubModerator = '/club-moderator';
+  // Dashboards and websites
   static const String myClubWebsites = '/my-club-websites';
   static const String myDistrictWebsites = '/my-district-websites';
   static const String agReports = '/ag-reports';
-  static const String riDirector = '/ri-director';
-  static const String riDirectorAnnouncements = '/ri-director/announcements';
-  static String riDirectorAnnouncementDetail(int id) => '/ri-director/announcements/$id';
-  static const String riDirectorAnnouncementAdd = '/ri-director/announcements/add';
-  static String riDirectorAnnouncementEdit(int id) => '/ri-director/announcements/$id/edit';
-  static const String riDirectorUpcomingEvents = '/ri-director/upcoming-events';
-  static String riDirectorUpcomingEventDetail(int id) => '/ri-director/upcoming-events/$id';
-  static const String riDirectorUpcomingEventAdd = '/ri-director/upcoming-events/add';
-  static String riDirectorUpcomingEventEdit(int id) => '/ri-director/upcoming-events/$id/edit';
-  static const String riDirectorMassEmails = '/ri-director/mass-emails';
-  static String riDirectorMassEmailDetail(int id) => '/ri-director/mass-emails/$id';
-  static const String riDirectorMassEmailCompose = '/ri-director/mass-emails/compose';
-  static String riDirectorMassEmailEdit(int id) => '/ri-director/mass-emails/$id/edit';
-  static const String riDirectorWeblinks = '/ri-director/weblinks';
-  static const String riDirectorWeblinkAdd = '/ri-director/weblinks/add';
-  static String riDirectorWeblinkEdit(int id) => '/ri-director/weblinks/$id/edit';
-  static const String riDirectorSubGroups = '/ri-director/sub-groups';
-  static String riDirectorSubGroupDetail(int id) => '/ri-director/sub-groups/$id';
-  static const String riDirectorSubGroupAdd = '/ri-director/sub-groups/add';
-  static String riDirectorSubGroupEdit(int id) => '/ri-director/sub-groups/$id/edit';
-  static const String riDirectorDocuments = '/ri-director/documents';
-  static const String riDirectorDocumentAdd = '/ri-director/documents/add';
-  static String riDirectorDocumentEdit(int id) => '/ri-director/documents/$id/edit';
-  static const String riDirectorNewsletters = '/ri-director/newsletters';
-  static String riDirectorNewsletterDetail(int id) => '/ri-director/newsletters/$id';
-  static const String riDirectorNewsletterAdd = '/ri-director/newsletters/add';
-  static String riDirectorNewsletterEdit(int id) => '/ri-director/newsletters/$id/edit';
-  static const String riDirectorReports = '/ri-director/reports';
 
   // Goal Setting
-  static const String goalOversight = '/goal-oversight';
   // Club / District goal ENTRY (admins set their own targets by category).
   static String clubGoalSetting(int clubId) => '/clubs/$clubId/goal-setting';
   static String districtGoalSetting(int districtId) => '/districts/$districtId/goal-setting';

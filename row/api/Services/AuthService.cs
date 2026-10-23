@@ -82,18 +82,16 @@ public class AuthService : IAuthService
             throw new ArgumentException("Email or CountryCode + MobileNumber is required.");
         }
 
-        // Check member has active Admin, SuperAdmin or ZonalCoordinator role
+        // Check member has an active admin role
         // Using inline SQL instead of SP to avoid stale SP issue (SYSTEM_USER privilege prevents SP update)
         var roles = (await connection.QueryAsync<string>(
             @"SELECT r.RoleName FROM member_roles mr
               JOIN roles r ON r.pk_role_id = mr.fk_role_id
               WHERE mr.fk_member_master_profile_id = @Id
                 AND mr.IsActive = 1 AND mr.isdeleted = 0
-                AND r.RoleName IN ('Admin', 'SuperAdmin', 'ZonalCoordinator', 'RIDirector', 'AG', 'ClubModerator')",
+                AND r.RoleName IN ('Admin', 'SuperAdmin', 'AG')",
             new { Id = memberId })).ToList();
-        // Goal Setting role holders (goal_role_assignments) may also use the web portal — they land on
-        // the Goal Setting oversight dashboard even with no member_roles admin role (roles stays empty).
-        if (roles.Count == 0 && !await GoalLoginHelper.HasActiveGoalRoleAsync(connection, memberId))
+        if (roles.Count == 0)
         {
             await LogLoginAudit(connection, memberId, memberName, emailOrMobile, ipAddress, userAgent, "failed", "No admin role");
             throw new UnauthorizedAccessException("You do not have permission to access the admin panel.");
@@ -139,11 +137,9 @@ public class AuthService : IAuthService
         }
 
         // Kill-switch: block login if user's entire club→district→zone chain is inactive.
-        // SA + RID are global roles — never blocked regardless of zone status.
+        // SuperAdmin is a global role — never blocked regardless of zone status.
         // At least one chain must be fully active (cm.IsActive=1 AND c.IsActive=1 AND d.IsActive=1 AND z.IsActive=1).
-        // Goal Setting "RI Director" is global too (same exemption as the member_roles RIDirector).
-        bool isLoginExempt = roles.Contains("SuperAdmin") || roles.Contains("RIDirector")
-            || await GoalLoginHelper.HasActiveGoalRoleAsync(connection, memberId, riDirectorOnly: true);
+        bool isLoginExempt = roles.Contains("SuperAdmin");
         if (!isLoginExempt)
         {
             var hasActiveChain = await connection.ExecuteScalarAsync<int>(@"
@@ -231,10 +227,10 @@ public class AuthService : IAuthService
               JOIN roles r ON r.pk_role_id = mr.fk_role_id
               WHERE mr.fk_member_master_profile_id = @Id
                 AND mr.IsActive = 1 AND mr.isdeleted = 0
-                AND r.RoleName IN ('Admin', 'SuperAdmin', 'ZonalCoordinator', 'RIDirector', 'AG', 'ClubModerator')",
+                AND r.RoleName IN ('Admin', 'SuperAdmin', 'AG')",
             new { Id = memberId })).ToList();
-        // no admin role AND no Goal Setting role → no web session
-        if (roles.Count == 0 && !await GoalLoginHelper.HasActiveGoalRoleAsync(connection, memberId)) return null;
+        // no admin role → no web session
+        if (roles.Count == 0) return null;
 
         var expiryMinutes = int.Parse(_configuration["JwtSettings:ExpiryMinutes"] ?? "480");
         var token = GenerateJwtToken(memberId, memberName, email, roles);
@@ -283,7 +279,7 @@ public class AuthService : IAuthService
     }
 
     /// <param name="anyMember">true for the mobile app, where every member signs in with a password;
-    /// false keeps the web portal rule (admin and goal roles only).</param>
+    /// false keeps the web portal rule (admin roles only).</param>
     public async Task<object> ForgotPasswordAsync(ForgotPasswordRequestDto request, bool anyMember = false)
     {
         using var connection = CreateConnection();
@@ -318,16 +314,16 @@ public class AuthService : IAuthService
         string memberName = (string)member.MemberName;
         string memberEmail = (string)(member.EmailId ?? "");
 
-        // Validate has active Admin/SuperAdmin/ZonalCoordinator role
+        // Validate has an active admin role
         var roleCount = await connection.ExecuteScalarAsync<int>(
             @"SELECT COUNT(*) FROM member_roles mr
               JOIN roles r ON r.pk_role_id = mr.fk_role_id
               WHERE mr.fk_member_master_profile_id = @Id
                 AND mr.IsActive = 1 AND mr.isdeleted = 0
-                AND r.RoleName IN ('Admin', 'SuperAdmin', 'ZonalCoordinator', 'RIDirector', 'AG', 'ClubModerator')",
+                AND r.RoleName IN ('Admin', 'SuperAdmin', 'AG')",
             new { Id = memberId });
 
-        if ((!anyMember && roleCount == 0 && !await GoalLoginHelper.HasActiveGoalRoleAsync(connection, memberId))
+        if ((!anyMember && roleCount == 0)
             || string.IsNullOrWhiteSpace(memberEmail))
             return new { message = "If the account exists, a reset link has been sent to the registered email." };
 

@@ -76,8 +76,6 @@ export interface AgProjectDetail {
   location: string | null;
   avenue: string | null;
   areaOfFocus: string | null;
-  category: string | null;
-  subCategory: string | null;
   date: string | null;
   cost: number;
   currency: string;
@@ -92,7 +90,6 @@ export interface AgProjectDetail {
   isJointProject: boolean;
   coHostName: string | null;
   clubRole: string | null;
-  approvalStatus: string | null;
   photos: AgProjectPhoto[];
 }
 
@@ -106,7 +103,6 @@ export interface AgProjectRow {
   // Service avenue (module_master.ModuleName) — Community / Vocational /
   // International / New Generations / Public Image / Club Service.
   avenue: string | null;
-  category: string | null;
   areaOfFocus: string | null;
   date: string | null;
   cost: number;
@@ -115,9 +111,6 @@ export interface AgProjectRow {
   manHours: number;
   funding: string;
   rotarians: number;
-  // Approval workflow status. Null for Club Service / non-approval avenues;
-  // 'pending' / 'approved' / 'rejected' for the 5 approval avenues.
-  approvalStatus?: string | null;
 }
 
 export interface AgClubDetailResponse {
@@ -189,7 +182,6 @@ export interface AgProjectsResponse {
   projects: AgProjectRow[];
   clubProjectCounts: Record<string, number>;
   monthlyProjectCounts: Record<string, number>;
-  categoryCounts: Record<string, number>;
   totalProjects: number;
   totalBeneficiaries: number;
   totalManHours: number;

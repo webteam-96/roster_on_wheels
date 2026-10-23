@@ -34,7 +34,6 @@ import {
   ChangePasswordRequest,
   AssignRoleRequest,
   RemoveRoleRequest,
-  MemberWithRoles,
 } from "@/types/auth";
 import { DistrictListItem, District, CreateDistrictRequest, UpdateDistrictRequest, DistrictMember } from "@/types/district";
 import { ClubListItem, Club, CreateClubRequest, UpdateClubRequest, ClubMemberItem, AddClubMemberRequest, TerminatedMember } from "@/types/club";
@@ -53,7 +52,7 @@ import { ClubContactDetail, CreateClubContactDetailRequest, UpdateClubContactDet
 import { ClubAbout, CreateClubAboutRequest, UpdateClubAboutRequest } from "@/types/about";
 import { PotentialMember, CreatePotentialMemberRequest, UpdatePotentialMemberRequest } from "@/types/potentialMember";
 import {
-  AreaOfFocus, Category, SubCategory, Funding,
+  AreaOfFocus, Funding,
   ProjectListItem, ProjectDetail, CreateProjectRequest, UpdateProjectRequest,
   OngoingProject,
 } from "@/types/project";
@@ -81,7 +80,6 @@ import {
   MonthlyReportListItem, MonthlyReportDetail, TrfEntry, SaveTrfEntry,
   SaveMemberInfo, ReportMeeting, ReportProject, MonthlyReportPreview, ReportYear,
 } from "@/types/clubMonthlyReport";
-import { PphCamp, PphAttendee, PphAttendeeDetail, PphMedicalReading, CreatePphReadingPayload, UpdatePphAttendeePayload, UpdatePphReadingPayload, PphMobileHistory, PphAttendeeReportRow } from "@/types/pphCamp";
 import { TrfFund, TrfContribution } from "@/types/trfContribution";
 import { Weblink, WeblinkTree } from "@/types/weblink";
 import { Brand, BRAND_ENDPOINT } from "@/lib/brand";
@@ -333,35 +331,6 @@ export async function downloadDistrictPerformanceReportExcel(districtId: number)
 // Sends to the configured TEST recipients only (never the District Governor).
 export async function sendDistrictPerformanceReportTest(districtId: number): Promise<{ message: string }> {
   const response = await api.post("/api/district-performance-report/send-test", null, { params: { districtId }, timeout: 300000 });
-  return response.data;
-}
-
-// ── RI Director report — every district, zone-wise (builds every district, so it can take minutes) ──
-export interface ZonePerformanceReportView {
-  yearLabel: string;
-  periodLabel: string;
-  subject: string;
-  reportKicker: string;
-  reportTitle: string;
-  reportSubtitle: string;
-  highlights: PerformanceReportHighlight[];
-  sections: PerformanceReportSection[];
-  scopeNote?: string | null;   // plain line under the tiles: counts cover synced clubs only
-  html?: string | null;        // the email body itself — used by the screen's "Print"
-}
-
-export async function getZonePerformanceReportView(): Promise<ZonePerformanceReportView> {
-  const response = await api.get("/api/district-performance-report/zones/view", { timeout: 900000 });
-  return response.data;
-}
-
-export async function downloadZonePerformanceReportExcel(): Promise<Blob> {
-  const response = await api.get("/api/district-performance-report/zones/excel", { responseType: "blob", timeout: 900000 });
-  return response.data;
-}
-
-export async function sendZonePerformanceReportTest(): Promise<{ message: string }> {
-  const response = await api.post("/api/district-performance-report/zones/send-test", null, { timeout: 900000 });
   return response.data;
 }
 
@@ -641,7 +610,6 @@ export async function getClubAdminPayments(yearId?: number | null, clubId?: numb
 import type {
   ClubAdminDashboardDirectoryResponse,
   ClubAdminDashboardBodResponse,
-  ClubAdminDashboardMarketplaceResponse,
   ClubAdminDashboardRotaryNetworkResponse,
 } from "@/types/clubAdminDashboard";
 
@@ -651,10 +619,6 @@ export async function getClubAdminDashboardDirectory(yearId?: number | null, clu
 }
 export async function getClubAdminDashboardBod(yearId?: number | null, clubId?: number | null): Promise<ClubAdminDashboardBodResponse> {
   const r = await api.get("/api/club-admin-dashboard/dashboard-bod", { params: caParams(yearId, clubId) });
-  return r.data;
-}
-export async function getClubAdminDashboardMarketplace(yearId?: number | null, clubId?: number | null): Promise<ClubAdminDashboardMarketplaceResponse> {
-  const r = await api.get("/api/club-admin-dashboard/dashboard-marketplace", { params: caParams(yearId, clubId) });
   return r.data;
 }
 export async function getClubAdminDashboardRotaryNetwork(yearId?: number | null, clubId?: number | null): Promise<ClubAdminDashboardRotaryNetworkResponse> {
@@ -711,40 +675,19 @@ import type {
   GoalCategoryDto,
   GoalCategoryFormDto,
   SaveGoalEntriesRequest,
-  GoalClubSummaryDto,
   GoalClubMatrixDto,
   GoalClubMonthlyMatrixDto,
   GoalDistrictSummaryMatrixDto,
-  GoalObserverRoleDto,
-  GoalLockStatusDto,
-  GoalRoleAssignmentDto,
-  CreateGoalRoleAssignmentRequest,
-  GoalMyAssignmentDto,
   GoalDistrictSummaryDto,
-  GoalBulkLockRequest,
-  GoalBulkLockResultDto,
   GoalCommentDto,
-  GoalThreadListDto,
-  GoalMessageRowDto,
-  GoalMessageOwnerDto,
   GoalDistrictMessagesDto,
   GoalDistrictConversationDto,
-  GoalDesignationDto,
-  CreateGoalDesignationRequest,
   GoalFoundationImportResultDto,
   GoalOverviewMatrixDto,
 } from "@/types/goalSetting";
 
 export async function getGoalCategories(): Promise<GoalCategoryDto[]> {
   const r = await api.get("/api/goal-setting/categories");
-  return r.data;
-}
-
-// Categories for the GOAL-OVERSIGHT screens. Same list, except that a District Assistant gets only
-// the category they are appointed for — even when they are also a Club / District Admin, which the
-// plain list above deliberately lets through so their own goal panel keeps every category.
-export async function getGoalOversightCategories(): Promise<GoalCategoryDto[]> {
-  const r = await api.get("/api/goal-setting/oversight-categories");
   return r.data;
 }
 
@@ -755,16 +698,6 @@ export async function getGoalOverview(
   const params: Record<string, unknown> = { zoneId, categoryId };
   if (yearId != null) params.yearId = yearId;
   const r = await api.get("/api/goal-setting/overview", { params });
-  return r.data;
-}
-
-// Role-scoped Overview matrix — for a goal oversight role (RI Director / ZC / DA) on a zone they cover.
-export async function getGoalOverviewScoped(
-  zoneId: number, categoryId: number, yearId?: number | null,
-): Promise<GoalOverviewMatrixDto> {
-  const params: Record<string, unknown> = { zoneId, categoryId };
-  if (yearId != null) params.yearId = yearId;
-  const r = await api.get("/api/goal-setting/overview-scoped", { params });
   return r.data;
 }
 
@@ -942,9 +875,9 @@ export async function getDistrictMonthlyGoals(categoryId: number, yearId?: numbe
   const r = await api.get(`/api/goal-setting/monthly/districts/${categoryId}`, { params });
   return r.data;
 }
-// Goal-oversight read-only month-wise for ANY district in the caller's goal scope (honours observer view-as).
+// Goal-oversight read-only month-wise for ANY district in the caller's goal scope.
 export async function getDistrictMonthlyGoalsScoped(categoryId: number, districtId: number, yearId?: number | null): Promise<GoalMonthlyForm> {
-  const params = withViewAs({ districtId, ...(yearId != null ? { yearId } : {}) });
+  const params = { districtId, ...(yearId != null ? { yearId } : {}) };
   const r = await api.get(`/api/goal-setting/monthly/districts/${categoryId}/oversight`, { params });
   return r.data;
 }
@@ -952,21 +885,6 @@ export async function saveDistrictMonthlyGoals(categoryId: number, body: SaveGoa
   const params: Record<string, unknown> = {};
   if (districtId != null) params.districtId = districtId;
   const r = await api.post(`/api/goal-setting/monthly/districts/${categoryId}`, body, { params });
-  return r.data;
-}
-
-export async function downloadDistrictMonthlyExcel(categoryId: number, yearId?: number | null, districtId?: number | null): Promise<Blob> {
-  const params: Record<string, unknown> = {};
-  if (yearId != null) params.yearId = yearId;
-  if (districtId != null) params.districtId = districtId;
-  const r = await api.get(`/api/goal-setting/monthly/districts/${categoryId}/excel`, { params, responseType: "blob" });
-  return r.data;
-}
-export async function downloadClubMonthlyExcel(categoryId: number, yearId?: number | null, clubId?: number | null): Promise<Blob> {
-  const params: Record<string, unknown> = {};
-  if (yearId != null) params.yearId = yearId;
-  if (clubId != null) params.clubId = clubId;
-  const r = await api.get(`/api/goal-setting/monthly/clubs/${categoryId}/excel`, { params, responseType: "blob" });
   return r.data;
 }
 
@@ -994,27 +912,6 @@ export async function downloadAllClubsGoalExcel(yearId?: number | null, district
   return r.data;
 }
 
-// Goal Setting drill-down reports (Zone / District / Club) — all 4 categories, YTD + Month-wise
-// (+ Messages sheet for zone/district). Scope is enforced server-side by the caller's role.
-export async function downloadZoneGoalReport(zoneId: number, yearId?: number | null): Promise<Blob> {
-  const params: Record<string, unknown> = {};
-  if (yearId != null) params.yearId = yearId;
-  const r = await api.get(`/api/goal-setting/report/zone/${zoneId}`, { params, responseType: "blob" });
-  return r.data;
-}
-export async function downloadDistrictGoalReport(districtId: number, yearId?: number | null): Promise<Blob> {
-  const params: Record<string, unknown> = {};
-  if (yearId != null) params.yearId = yearId;
-  const r = await api.get(`/api/goal-setting/report/district/${districtId}`, { params, responseType: "blob" });
-  return r.data;
-}
-export async function downloadClubGoalReport(clubId: number, yearId?: number | null): Promise<Blob> {
-  const params: Record<string, unknown> = {};
-  if (yearId != null) params.yearId = yearId;
-  const r = await api.get(`/api/goal-setting/report/club/${clubId}`, { params, responseType: "blob" });
-  return r.data;
-}
-
 // Club Analytics — per-club counts report (one row per club for a district; one row for a single club).
 export async function downloadClubAnalyticsDistrict(yearId?: number | null, districtId?: number | null): Promise<Blob> {
   const params: Record<string, unknown> = {};
@@ -1031,13 +928,6 @@ export async function downloadClubAnalyticsClub(yearId?: number | null, clubId?:
   return r.data;
 }
 
-export async function getDistrictClubsGoalList(categoryId: number, yearId?: number | null, districtId?: number | null): Promise<GoalClubSummaryDto[]> {
-  const params: Record<string, unknown> = {};
-  if (yearId != null) params.yearId = yearId;
-  if (districtId != null) params.districtId = districtId;
-  const r = await api.get(`/api/goal-setting/districts/${categoryId}/clubs`, { params });
-  return r.data;
-}
 // Read-only matrix: all clubs × one category's fields (+ per-club RAG). Powers "View club goals".
 export async function getDistrictClubsGoalMatrix(categoryId: number, yearId?: number | null, districtId?: number | null): Promise<GoalClubMatrixDto> {
   const params: Record<string, unknown> = {};
@@ -1054,115 +944,24 @@ export async function getDistrictClubsMonthlyMatrix(categoryId: number, yearId?:
   return r.data;
 }
 // Goal-oversight "Club Goal Setting" popup: clubs matrix for a specific district in the caller's goal
-// scope (RI Director / ZC / DA / observer / SuperAdmin) — honours observer view-as via withViewAs.
+// scope (SuperAdmin Goal Overview).
 export async function getScopedDistrictClubsGoalMatrix(categoryId: number, districtId: number, yearId?: number | null): Promise<GoalClubMatrixDto> {
-  const params = withViewAs({ districtId, ...(yearId != null ? { yearId } : {}) });
+  const params = { districtId, ...(yearId != null ? { yearId } : {}) };
   const r = await api.get(`/api/goal-setting/districts/${categoryId}/clubs-matrix/oversight`, { params, timeout: 180000 });
   return r.data;
 }
 export async function getScopedDistrictClubsMonthlyMatrix(categoryId: number, districtId: number, yearId?: number | null): Promise<GoalClubMonthlyMatrixDto> {
-  const params = withViewAs({ districtId, ...(yearId != null ? { yearId } : {}) });
+  const params = { districtId, ...(yearId != null ? { yearId } : {}) };
   const r = await api.get(`/api/goal-setting/districts/${categoryId}/clubs-monthly-matrix/oversight`, { params, timeout: 180000 });
   return r.data;
 }
 // Goal-oversight "View clubs" popup → the all-clubs "Club Goal Setting" report for that district.
 export async function downloadScopedAllClubsGoalReport(districtId: number, yearId?: number | null): Promise<Blob> {
-  const params = withViewAs({ districtId, ...(yearId != null ? { yearId } : {}) });
+  const params = { districtId, ...(yearId != null ? { yearId } : {}) };
   const r = await api.get(`/api/goal-setting/goals-excel/clubs-all/oversight`, { params, responseType: "blob", timeout: 300000 });
   return r.data;
 }
-export async function lockClubGoals(categoryId: number, yearId: number, clubId: number): Promise<GoalLockStatusDto> {
-  const r = await api.post(`/api/goal-setting/clubs/${categoryId}/lock`, null, { params: { yearId, clubId } });
-  return r.data;
-}
-export async function unlockClubGoals(categoryId: number, yearId: number, clubId: number): Promise<GoalLockStatusDto> {
-  const r = await api.post(`/api/goal-setting/clubs/${categoryId}/unlock`, null, { params: { yearId, clubId } });
-  return r.data;
-}
-export async function lockDistrictGoals(categoryId: number, yearId: number, districtId: number): Promise<GoalLockStatusDto> {
-  const r = await api.post(`/api/goal-setting/districts/${categoryId}/lock`, null, { params: { yearId, districtId } });
-  return r.data;
-}
-export async function unlockDistrictGoals(categoryId: number, yearId: number, districtId: number): Promise<GoalLockStatusDto> {
-  const r = await api.post(`/api/goal-setting/districts/${categoryId}/unlock`, null, { params: { yearId, districtId } });
-  return r.data;
-}
 
-// Zonal Coordinator: districts of my zone (mirror of District Admin's clubs).
-// zoneId is optional — a real ZC omits it (backend uses their zone); a SuperAdmin
-// borrowing a zone from Global Search passes it.
-export async function getZoneDistrictsGoalList(categoryId: number, yearId: number, zoneId?: number | null): Promise<GoalDistrictSummaryDto[]> {
-  const params: Record<string, number> = { yearId };
-  if (zoneId != null && zoneId > 0) params.zoneId = zoneId;
-  const r = await api.get(`/api/goal-setting/zone/districts/${categoryId}`, { params });
-  return r.data;
-}
-export async function getZoneDistrictGoalForm(categoryId: number, districtId: number, yearId?: number | null): Promise<GoalCategoryFormDto> {
-  const params = yearId != null ? { yearId } : {};
-  const r = await api.get(`/api/goal-setting/zone/districts/${categoryId}/${districtId}`, { params });
-  return r.data;
-}
-export async function saveZoneDistrictGoalForm(categoryId: number, districtId: number, body: SaveGoalEntriesRequest): Promise<GoalCategoryFormDto> {
-  const r = await api.post(`/api/goal-setting/zone/districts/${categoryId}/${districtId}`, body);
-  return r.data;
-}
-export async function lockZoneDistrictGoals(categoryId: number, districtId: number, yearId: number): Promise<GoalLockStatusDto> {
-  const r = await api.post(`/api/goal-setting/zone/districts/${categoryId}/${districtId}/lock`, null, { params: { yearId } });
-  return r.data;
-}
-export async function unlockZoneDistrictGoals(categoryId: number, districtId: number, yearId: number): Promise<GoalLockStatusDto> {
-  const r = await api.post(`/api/goal-setting/zone/districts/${categoryId}/${districtId}/unlock`, null, { params: { yearId } });
-  return r.data;
-}
-
-// Specialized oversight roles (Phase 3)
-export async function getGoalRoleAssignments(): Promise<GoalRoleAssignmentDto[]> {
-  const r = await api.get("/api/goal-setting/role-assignments");
-  return r.data;
-}
-export async function createGoalRoleAssignment(body: CreateGoalRoleAssignmentRequest): Promise<GoalRoleAssignmentDto> {
-  const r = await api.post("/api/goal-setting/role-assignments", body);
-  return r.data;
-}
-export async function revokeGoalRoleAssignment(assignmentId: number): Promise<void> {
-  await api.delete(`/api/goal-setting/role-assignments/${assignmentId}`);
-}
-// Replace the holder (and RI-Director zones / District-Assistant districts) WITHOUT revoking. No email.
-export interface ChangeGoalRoleAssignmentRequest {
-  memberId: number;
-  memberNameText?: string | null;
-  zoneIds?: number[] | null;      // RI Director: new full zone set
-  zoneId?: number | null;         // Zone Co-ordinator: new single zone
-  districtIds?: number[] | null;  // District Assistant: new full district set
-}
-export async function changeGoalRoleAssignment(assignmentId: number, body: ChangeGoalRoleAssignmentRequest): Promise<void> {
-  await api.put(`/api/goal-setting/role-assignments/${assignmentId}`, body);
-}
-// Sends the login/credentials email to the single member on this assignment (on-demand).
-// "+" beside a name: add ANOTHER holder to the same seat. The new person inherits the same role type,
-// avenue/category, zone(s) and districts — nothing else to pick. Silent: no email is sent.
-export async function addGoalRoleHolder(
-  assignmentId: number,
-  body: { memberId: number; memberNameText?: string | null },
-): Promise<{ id: number; message: string }> {
-  const r = await api.post(`/api/goal-setting/role-assignments/${assignmentId}/add-holder`, body);
-  return r.data;
-}
-
-export async function sendGoalRoleCredentials(assignmentId: number): Promise<{ sent: number; message: string }> {
-  const r = await api.post(`/api/goal-setting/role-assignments/${assignmentId}/send-credentials`);
-  return r.data;
-}
-// Zone ids already held by an active RI Director (to hide from the picker); pass excludeAssignmentId when editing.
-export async function getAssignedDirectorZones(excludeAssignmentId?: number): Promise<number[]> {
-  const r = await api.get("/api/goal-setting/role-assignments/assigned-zones", {
-    params: excludeAssignmentId ? { excludeAssignmentId } : {},
-  });
-  return r.data;
-}
-// Sends the role-assigned email (with login) to everyone currently in the active listing.
-// zoneId: when the roles listing is filtered to a zone, ONLY that zone's RI Director / Zone
-// Co-ordinators / District Assistants are emailed — never the whole list.
 // SuperAdmin only: clear a project's Rotary.org "Synced" flag so the club can sync it again.
 // Used from the club listing when a club reports that a project reads Synced but never reached
 // Rotary.org (the admin confirmed without clicking Publish there).
@@ -1216,176 +1015,60 @@ export async function getProjectSyncHistory(clubId: number, projectId: number, y
   return r.data;
 }
 
-// Excel of the Role Assign listing. zoneId follows the screen's "Filter by zone" dropdown:
-// null/undefined = every zone, otherwise only that zone's RI Director / ZCs / DAs.
-export async function downloadGoalRoleAssignments(zoneId?: number | null): Promise<Blob> {
-  const r = await api.get("/api/goal-setting/role-assignments/export", {
-    params: zoneId != null ? { zoneId } : {},
-    responseType: "blob",
-  });
-  return r.data;
-}
-export async function sendGoalRoleAssignmentEmails(zoneId?: number | null): Promise<{ sent: number; message: string }> {
-  const r = await api.post("/api/goal-setting/role-assignments/send-emails", null, {
-    params: zoneId != null ? { zoneId } : {},
-  });
-  return r.data;
-}
-// ── Goal Setting "Observe as" (flagged SuperAdmin observers only) ───────────────────
-// Module-level override: when the observer picks an RI Director / ZC on /goal-oversight, every
-// goal-setting oversight+messaging call carries ?asMemberId so the backend serves THAT person's
-// view. The backend ignores asMemberId unless the caller is the gated observer, so this is inert
-// for everyone else. Set on the oversight page from the URL; cleared when leaving.
-let _goalViewAsMemberId: number | null = null;
-export function setGoalViewAs(id: number | null) { _goalViewAsMemberId = id && id > 0 ? id : null; }
-function withViewAs(params: Record<string, unknown> = {}): Record<string, unknown> {
-  if (_goalViewAsMemberId) params.asMemberId = _goalViewAsMemberId;
-  return params;
-}
-export async function getObserverRoleList(): Promise<GoalObserverRoleDto[]> {
-  const r = await api.get("/api/goal-setting/observer/role-list");
-  return r.data;
-}
-
-export async function getMyGoalAssignments(): Promise<GoalMyAssignmentDto[]> {
-  const r = await api.get("/api/goal-setting/my-assignments", { params: withViewAs() });
-  return r.data;
-}
 export async function getScopedDistrictsGoalList(categoryId: number, yearId: number): Promise<GoalDistrictSummaryDto[]> {
-  const r = await api.get(`/api/goal-setting/scoped/districts/${categoryId}`, { params: withViewAs({ yearId }) });
-  return r.data;
-}
-export async function getScopedDistrictGoalForm(categoryId: number, districtId: number, yearId: number): Promise<GoalCategoryFormDto> {
-  const r = await api.get(`/api/goal-setting/scoped/districts/${categoryId}/${districtId}`, { params: withViewAs({ yearId }) });
-  return r.data;
-}
-// Scoped club drill-down (role logins) — clubs of a district, and one club's read-only form.
-export async function getScopedDistrictClubsGoalList(categoryId: number, yearId: number, districtId: number): Promise<GoalClubSummaryDto[]> {
-  const r = await api.get(`/api/goal-setting/scoped/districts/${categoryId}/clubs`, { params: withViewAs({ yearId, districtId }) });
-  return r.data;
-}
-export async function getScopedClubGoalForm(categoryId: number, yearId: number, clubId: number): Promise<GoalCategoryFormDto> {
-  const r = await api.get(`/api/goal-setting/scoped/clubs/${categoryId}`, { params: withViewAs({ yearId, clubId }) });
-  return r.data;
-}
-export async function bulkLockGoalDistricts(body: GoalBulkLockRequest): Promise<GoalBulkLockResultDto> {
-  const r = await api.post("/api/goal-setting/scoped/bulk-lock", body);
-  return r.data;
-}
-// Leadership designation catalog (RMC / ARC / RPIC …).
-export async function getGoalDesignations(): Promise<GoalDesignationDto[]> {
-  const r = await api.get("/api/goal-setting/designations");
-  return r.data;
-}
-export async function addGoalDesignation(body: CreateGoalDesignationRequest): Promise<GoalDesignationDto> {
-  const r = await api.post("/api/goal-setting/designations", body);
-  return r.data;
-}
-// Zone-scoped member search for the goal-role assign form (members whose active club is in the zone[s]).
-export async function searchGoalZoneMembers(zoneIds: number[], search: string): Promise<any[]> {
-  if (!zoneIds.length) return [];
-  const r = await api.get("/api/goal-setting/zone-members", { params: { zoneIds: zoneIds.join(","), search } });
-  return r.data;
-}
-
-// Global smart member search for the assign form (member is picked before any zone).
-export async function searchGoalMembers(search: string): Promise<any[]> {
-  if (!search || search.trim().length < 2) return [];
-  const r = await api.get("/api/goal-setting/search-members", { params: { search: search.trim() } });
+  const r = await api.get(`/api/goal-setting/scoped/districts/${categoryId}`, { params: { yearId } });
   return r.data;
 }
 
 // Messaging (formerly "comments"). clubId 0 = district thread; clubId>0 = club↔district thread.
 export async function getGoalComments(categoryId: number, districtId: number, yearId: number, clubId = 0): Promise<GoalCommentDto[]> {
-  const r = await api.get(`/api/goal-setting/comments/${categoryId}/${districtId}`, { params: withViewAs({ yearId, clubId }) });
+  const r = await api.get(`/api/goal-setting/comments/${categoryId}/${districtId}`, { params: { yearId, clubId } });
   return r.data;
 }
 export async function postGoalComment(categoryId: number, districtId: number, yearId: number, commentText: string, clubId = 0): Promise<GoalCommentDto> {
-  const r = await api.post(`/api/goal-setting/comments/${categoryId}/${districtId}`, { commentText }, { params: withViewAs({ yearId, clubId }) });
+  const r = await api.post(`/api/goal-setting/comments/${categoryId}/${districtId}`, { commentText }, { params: { yearId, clubId } });
   return r.data;
 }
 
-// Pairwise oversight messaging — RI Director ↔ each District Assistant / Zone Co-ordinator.
-export async function getGoalThreadList(categoryId: number, districtId: number, yearId: number): Promise<GoalThreadListDto> {
-  const r = await api.get(`/api/goal-setting/threads/${categoryId}/${districtId}`, { params: withViewAs({ yearId }) });
-  return r.data;
-}
-export async function getGoalThreadMessages(categoryId: number, districtId: number, yearId: number, ownerMemberId: number): Promise<GoalCommentDto[]> {
-  const r = await api.get(`/api/goal-setting/threads/${categoryId}/${districtId}/${ownerMemberId}`, { params: withViewAs({ yearId }) });
-  return r.data;
-}
-export async function postGoalThreadMessage(categoryId: number, districtId: number, yearId: number, ownerMemberId: number, commentText: string): Promise<GoalCommentDto> {
-  const r = await api.post(`/api/goal-setting/threads/${categoryId}/${districtId}/${ownerMemberId}`, { commentText }, { params: withViewAs({ yearId }) });
-  return r.data;
-}
-// Zone-based messaging (RI Director dashboard): ZC + DA message boxes for one (category, zone).
-// districtId: undefined/null → every owner; 0 → Zone Co-ordinator only (no district picked);
-// >0 → only the District Assistant(s) covering that district.
-export async function getGoalZoneThreadList(categoryId: number, zoneId: number, yearId: number, act?: string | null, districtId?: number | null): Promise<GoalThreadListDto> {
-  const params: Record<string, unknown> = withViewAs({ yearId });
-  if (act) params.act = act;
-  if (districtId != null) params.districtId = districtId;
-  const r = await api.get(`/api/goal-setting/zone-threads/${categoryId}/${zoneId}`, { params });
-  return r.data;
-}
 // Goal-oversight dashboard: districts = rows, compact Target/Achieved/% per overseen category.
 export async function getDistrictSummaryMatrix(zoneId: number, yearId?: number | null): Promise<GoalDistrictSummaryMatrixDto> {
-  const params = withViewAs({ zoneId, ...(yearId != null ? { yearId } : {}) });
+  const params = { zoneId, ...(yearId != null ? { yearId } : {}) };
   const r = await api.get(`/api/goal-setting/district-summary-matrix`, { params });
   return r.data;
 }
 // Goal-oversight district report (YTD + Month-wise, districts × categories horizontal). Scope:
 // districtId → that district; else zoneId → that zone's districts; else all the caller's districts.
 export async function downloadGoalDistrictReport(zoneId?: number | null, districtId?: number | null, yearId?: number | null): Promise<Blob> {
-  const params = withViewAs({
+  const params = {
     ...(zoneId ? { zoneId } : {}),
     ...(districtId ? { districtId } : {}),
     ...(yearId != null ? { yearId } : {}),
-  });
+  };
   const r = await api.get(`/api/goal-setting/district-report`, { params, responseType: "blob" });
   return r.data;
 }
 // Goal-oversight row-wise download: the SAME "District Goal Setting" report the district admin gets,
-// scope-validated against the caller's goal assignments (honours observer view-as via withViewAs).
+// scope-validated server-side (SuperAdmin Goal Overview).
 export async function downloadGoalOversightDistrictReport(districtId: number, yearId?: number | null): Promise<Blob> {
-  const params = withViewAs({ ...(yearId != null ? { yearId } : {}) });
+  const params = { ...(yearId != null ? { yearId } : {}) };
   const r = await api.get(`/api/goal-setting/district-report/${districtId}`, { params, responseType: "blob" });
   return r.data;
 }
-// Red "new message" dot for the RI Messages popup.
+// Red "new message" dot for the Goal Overview Messages popup.
 export async function getGoalMessagesHasUnread(zoneId: number, yearId: number): Promise<boolean> {
-  const r = await api.get(`/api/goal-setting/messages/has-unread`, { params: withViewAs({ zoneId, yearId }) });
+  const r = await api.get(`/api/goal-setting/messages/has-unread`, { params: { zoneId, yearId } });
   return !!r.data?.hasUnread;
 }
-export async function markGoalMessagesSeen(zoneId: number, yearId: number): Promise<void> {
-  await api.post(`/api/goal-setting/messages/mark-seen`, null, { params: withViewAs({ zoneId, yearId }) });
-}
-export async function getGoalOwnerThreadMessages(categoryId: number, yearId: number, ownerMemberId: number, zoneId?: number | null): Promise<GoalCommentDto[]> {
-  // zoneId: the RI Director's zone, so a former seat-holder's box opens (2026-10-07).
-  const r = await api.get(`/api/goal-setting/owner-thread/${categoryId}/${ownerMemberId}`, { params: withViewAs({ yearId, ...(zoneId ? { zoneId } : {}) }) });
-  return r.data;
-}
-export async function postGoalOwnerThreadMessage(categoryId: number, yearId: number, ownerMemberId: number, commentText: string, districtId = 0): Promise<GoalCommentDto> {
-  const r = await api.post(`/api/goal-setting/owner-thread/${categoryId}/${ownerMemberId}`, { commentText }, { params: withViewAs({ yearId, ...(districtId ? { districtId } : {}) }) });
-  return r.data;
-}
-// Goal messages report (Excel) for a zone, filtered by category (0=all) + district (0=all). RI/ZC/SuperAdmin.
+// Goal messages report (Excel) for a zone, filtered by category (0=all) + district (0=all). SuperAdmin.
 export async function downloadGoalMessagesReport(zoneId: number, yearId: number, categoryId = 0, districtId = 0): Promise<Blob> {
-  const params = withViewAs({ zoneId, yearId, categoryId, districtId });
+  const params = { zoneId, yearId, categoryId, districtId };
   const r = await api.get(`/api/goal-setting/messages/report`, { params, responseType: "blob" });
   return r.data;
 }
-// On-screen unified messages list for the RI popup (same filter/scope as the report).
-export async function getGoalMessagesList(zoneId: number, yearId: number, categoryId = 0, districtId = 0): Promise<GoalMessageRowDto[]> {
-  const params = withViewAs({ zoneId, yearId, categoryId, districtId });
-  const r = await api.get(`/api/goal-setting/messages/list`, { params });
-  return r.data;
-}
-// Roster of ZC/DA in the zone — shown when a filter has no messages ("each ZC/DA · No message yet").
 // District Admin / District Governor messages (2026-10-09): the district writes per category; the
-// District Assistant, Zone Co-ordinator, RI Director and SuperAdmin read. GET marks it read for readers.
+// SuperAdmin reads. GET marks it read for readers.
 export async function getDistrictGoalMessages(categoryId: number, districtId: number, yearId: number): Promise<GoalDistrictMessagesDto> {
-  const r = await api.get(`/api/goal-setting/district-messages/${categoryId}/${districtId}`, { params: withViewAs({ yearId }) });
+  const r = await api.get(`/api/goal-setting/district-messages/${categoryId}/${districtId}`, { params: { yearId } });
   return r.data;
 }
 export async function postDistrictGoalMessage(categoryId: number, districtId: number, yearId: number, commentText: string): Promise<GoalCommentDto> {
@@ -1393,13 +1076,7 @@ export async function postDistrictGoalMessage(categoryId: number, districtId: nu
   return r.data;
 }
 export async function getDistrictGoalMessageInbox(zoneId: number, yearId: number, categoryId = 0, districtId = 0): Promise<GoalDistrictConversationDto[]> {
-  const r = await api.get(`/api/goal-setting/district-messages/inbox`, { params: withViewAs({ zoneId, yearId, categoryId, districtId }) });
-  return r.data;
-}
-
-export async function getGoalMessageRoster(zoneId: number, yearId: number, categoryId = 0, districtId = 0): Promise<GoalMessageOwnerDto[]> {
-  const params = withViewAs({ zoneId, yearId, categoryId, districtId });
-  const r = await api.get(`/api/goal-setting/messages/roster`, { params });
+  const r = await api.get(`/api/goal-setting/district-messages/inbox`, { params: { zoneId, yearId, categoryId, districtId } });
   return r.data;
 }
 
@@ -1635,82 +1312,9 @@ export async function removeRole(
   return response.data;
 }
 
-export async function getMembersWithRoles(
-  page: number = 1,
-  pageSize: number = 10,
-  search?: string
-): Promise<PagedResult<MemberWithRoles>> {
-  const params: Record<string, string | number> = { page, pageSize };
-  if (search) params.search = search;
-  const response = await api.get("/api/admin/members-with-roles", { params });
-  return response.data;
-}
-
 // Shared context endpoint (web + mobile) — returns roles + accessible scopes
 export async function getMyContext() {
   const { data } = await api.get("/api/auth/my-context");
-  return data;
-}
-
-// RI Director management APIs (SuperAdmin only)
-export interface RIDirector {
-  memberId: number;
-  memberName: string;
-  email: string;
-  mobile?: string;
-  assignedDate?: string;
-  emailSentCount?: number;
-  emailLastSentDate?: string | null;
-}
-
-// Assign no longer emails — this sends (or re-sends) the login details on request.
-export async function sendRIDirectorCredentials(memberId: number): Promise<{ message: string }> {
-  const { data } = await api.post("/api/admin/send-ri-director-credentials", { memberId });
-  return data;
-}
-
-export async function getRIDirectors(): Promise<RIDirector[]> {
-  const { data } = await api.get("/api/admin/ri-directors");
-  return data;
-}
-
-// The profile popup behind a Current RI Directors row: contact details, the clubs he belongs to
-// (with district + zone) and the other roles he holds.
-export interface RIDirectorClub {
-  clubId: number;
-  clubName: string;
-  districtNumber?: string | null;
-  zoneName?: string | null;
-  designation?: string | null;
-  isHonorary: boolean;
-  isClubAdmin: boolean;
-}
-export interface RIDirectorProfile {
-  memberId: number;
-  memberName: string;
-  email?: string | null;
-  mobile?: string | null;
-  photoPath?: string | null;
-  city?: string | null;
-  state?: string | null;
-  rotaryId?: string | null;
-  assignedDate?: string | null;
-  adminDistricts: string[];
-  otherRoles: string[];
-  clubs: RIDirectorClub[];
-}
-export async function getRIDirectorProfile(memberId: number): Promise<RIDirectorProfile> {
-  const { data } = await api.get(`/api/admin/ri-directors/${memberId}/profile`);
-  return data;
-}
-
-export async function assignRIDirector(memberId: number): Promise<{ message: string }> {
-  const { data } = await api.post("/api/admin/assign-ri-director", { memberId });
-  return data;
-}
-
-export async function removeRIDirector(memberId: number): Promise<{ message: string }> {
-  const { data } = await api.post("/api/admin/remove-ri-director", { memberId });
   return data;
 }
 
@@ -1846,38 +1450,6 @@ export async function deleteZone(id: number): Promise<void> {
   await api.delete(`/api/zones/${id}`);
 }
 
-export async function toggleZonalAwards(zoneId: number): Promise<{ isZonalAwardsEnabled: boolean }> {
-  const response = await api.post(`/api/zones/${zoneId}/toggle-zonal-awards`, {});
-  return response.data;
-}
-
-// Zonal Coordinator APIs
-export async function getZonalCoordinator(zoneId: number) {
-  const response = await api.get(`/api/admin/zonal-coordinator/${zoneId}`);
-  return response.data;
-}
-
-export async function assignZonalCoordinator(memberId: number, zoneId: number) {
-  const response = await api.post("/api/admin/zonal-coordinator", { memberId, zoneId });
-  return response.data;
-}
-
-export async function removeZonalCoordinator(zoneId: number) {
-  const response = await api.delete(`/api/admin/zonal-coordinator/${zoneId}`);
-  return response.data;
-}
-
-export async function searchZoneMembers(zoneId: number, search: string) {
-  const response = await api.get(`/api/admin/zone-members/${zoneId}`, { params: { search } });
-  return response.data;
-}
-
-// System Settings APIs
-export async function getSystemSetting(key: string) {
-  const response = await api.get(`/api/system-settings/${key}`);
-  return response.data;
-}
-
 // ── Tenants and editions (ROW Wave 1, build spec items 1 and 5). SuperAdmin only. ──
 export interface Edition { code: string; name: string; moduleKeys: string[] }
 export interface TenantSubscription {
@@ -1934,118 +1506,85 @@ export async function deleteI18nOverride(locale: string, namespace: string, key:
   await api.delete(`/api/i18n/${encodeURIComponent(locale)}/${encodeURIComponent(namespace)}/${encodeURIComponent(key)}`);
 }
 
-export async function upsertSystemSetting(settingKey: string, settingValue: string, description?: string) {
-  const response = await api.post("/api/system-settings", { settingKey, settingValue, description });
-  return response.data;
+// Multilingual club and district websites (api WebsiteLanguagesController, flag website_languages).
+export type WebsiteScope = "clubs" | "districts";
+export interface WebsiteLanguageSettings { defaultLanguage: string; languages: string[] }
+export type WebsiteTextType = "site" | "about" | "page" | "submenu";
+export interface WebsiteTranslationItem {
+  type: WebsiteTextType;
+  id: number;
+  sourceTitle: string | null;
+  sourceBody: string | null; // sanitised HTML
+  hasBody: boolean;
+  sourceSeoTitle: string | null;
+  sourceSeoDescription: string | null;
+  title: string | null;
+  body: string | null;
+  seoTitle: string | null;
+  seoDescription: string | null;
+}
+export type WebsiteTranslationFields = Pick<WebsiteTranslationItem, "title" | "body" | "seoTitle" | "seoDescription">;
+
+const websiteLanguagesPath = (scope: WebsiteScope, ownerId: number) => `/api/${scope}/${ownerId}/website-languages`;
+
+export async function getWebsiteLanguages(scope: WebsiteScope, ownerId: number): Promise<WebsiteLanguageSettings> {
+  return (await api.get(websiteLanguagesPath(scope, ownerId))).data;
 }
 
-// Beneficiary Approval APIs
-export async function createBeneficiaryApprovalRequest(
-  projectId: number,
-  requestedBeneficiaries: number,
-  clubId: number,
-  yearId: number,
-) {
-  // clubId is required so the backend resolves the zone deterministically —
-  // pk_project_id is reused across year tables, so id alone is ambiguous.
-  const response = await api.post("/api/beneficiary-approval/request", {
-    projectId,
-    requestedBeneficiaries,
-    clubId,
-    yearId,
-  });
-  return response.data;
+export async function saveWebsiteLanguages(scope: WebsiteScope, ownerId: number, settings: WebsiteLanguageSettings): Promise<WebsiteLanguageSettings> {
+  return (await api.put(websiteLanguagesPath(scope, ownerId), settings)).data;
 }
 
-// Zonal Dashboard APIs
-export async function getZonalDashboardInfo() {
-  const response = await api.get("/api/zonal-dashboard/zone-info");
-  return response.data;
+export async function getWebsiteTranslations(scope: WebsiteScope, ownerId: number, language: string): Promise<WebsiteTranslationItem[]> {
+  return (await api.get(`${websiteLanguagesPath(scope, ownerId)}/${encodeURIComponent(language)}`)).data;
 }
 
-export async function getZonalApprovalRequests(status?: string, page = 1, pageSize = 20, districtId = 0, yearId = 0) {
-  const params: Record<string, string | number> = { page, pageSize };
-  if (status) params.status = status;
-  if (districtId) params.districtId = districtId;
-  if (yearId) params.yearId = yearId;
-  const response = await api.get("/api/zonal-dashboard/approval-requests", { params });
-  return response.data;
+export async function saveWebsiteTranslation(scope: WebsiteScope, ownerId: number, language: string, type: WebsiteTextType, id: number, fields: WebsiteTranslationFields) {
+  await api.put(`${websiteLanguagesPath(scope, ownerId)}/${encodeURIComponent(language)}/${type}/${id}`, fields);
 }
 
-// ZC / SuperAdmin: data-only filter options (years + districts that have approvals).
-type ZonalApprovalFilters = {
-  years: { id: number; label: string; isCurrent?: boolean }[];
-  districts: { id: number; number: string }[];
-  counts?: { pending: number; approved: number; rejected: number };
-};
-export async function getZonalApprovalFilters() {
-  const response = await api.get("/api/zonal-dashboard/approval-filters");
-  return response.data as ZonalApprovalFilters;
-}
-export async function getZoneApprovalFilters(zoneId: number) {
-  const response = await api.get(`/api/zonal-dashboard/zone/${zoneId}/approval-filters`);
-  return response.data as ZonalApprovalFilters;
+export async function deleteWebsiteTranslation(scope: WebsiteScope, ownerId: number, language: string, type: WebsiteTextType, id: number) {
+  await api.delete(`${websiteLanguagesPath(scope, ownerId)}/${encodeURIComponent(language)}/${type}/${id}`);
 }
 
-// SuperAdmin: get approval requests for a specific zone
-export async function getZoneApprovalRequests(zoneId: number, status?: string, page = 1, pageSize = 20, districtId = 0, yearId = 0) {
-  const params: Record<string, string | number> = { page, pageSize };
-  if (status) params.status = status;
-  if (districtId) params.districtId = districtId;
-  if (yearId) params.yearId = yearId;
-  const response = await api.get(`/api/zonal-dashboard/zone/${zoneId}/approval-requests`, { params });
-  return response.data;
+// Chat moderation queue (api ChatModerationController, flag chat). The chat itself is in the app.
+export interface ChatReport {
+  id: number;
+  reason: string | null;
+  reportedAt: string;
+  reporterId: number;
+  reporterName: string | null;
+  messageId: number;
+  messageBody: string; // plain text typed by a member: render as text, never as HTML
+  messageAt: string;
+  hidden: boolean;
+  senderId: number;
+  senderName: string | null;
+  senderMuted: boolean;
+  conversationId: number;
+  conversationKind: "direct" | "group";
+  conversationTitle: string | null;
+  resolvedAt: string | null;
+  resolvedByName: string | null;
+  resolution: string | null;
 }
 
-// SuperAdmin: get districts for a specific zone
-export async function getZoneDistricts(zoneId: number) {
-  const response = await api.get(`/api/zonal-dashboard/zone/${zoneId}/districts`);
-  return response.data;
+const chatModerationPath = (scope: "clubs" | "districts", ownerId: number) => `/api/${scope}/${ownerId}/chat-moderation`;
+
+export async function getChatReports(scope: "clubs" | "districts", ownerId: number, status: "open" | "resolved"): Promise<ChatReport[]> {
+  return (await api.get(`${chatModerationPath(scope, ownerId)}/reports`, { params: { status } })).data;
 }
 
-// SuperAdmin: zone info for a specific zone (opening a zone dashboard from Global Search)
-export async function getZoneInfo(zoneId: number) {
-  const response = await api.get(`/api/zonal-dashboard/zone/${zoneId}/info`);
-  return response.data;
+export async function setChatMessageHidden(scope: "clubs" | "districts", ownerId: number, messageId: number, hidden: boolean) {
+  await api.post(`${chatModerationPath(scope, ownerId)}/messages/${messageId}/${hidden ? "hide" : "unhide"}`);
 }
 
-export async function getZonalApprovalDetail(token: string) {
-  const response = await api.get(`/api/zonal-dashboard/approval-requests/${token}/detail`);
-  return response.data;
+export async function setChatMemberMuted(scope: "clubs" | "districts", ownerId: number, conversationId: number, memberId: number, muted: boolean) {
+  await api.post(`${chatModerationPath(scope, ownerId)}/conversations/${conversationId}/${muted ? "mute" : "unmute"}/${memberId}`);
 }
 
-export type ApprovalHistoryItem = {
-  approvalId: number;
-  requestedBeneficiaries: number;
-  approvedBeneficiaries: number | null;
-  status: string;
-  remark: string | null;
-  createdDate: string;
-  respondedDate: string | null;
-  respondedByName: string | null;
-};
-export async function getApprovalHistory(approvalId: number): Promise<ApprovalHistoryItem[]> {
-  const response = await api.get(`/api/zonal-dashboard/approval-history/${approvalId}`);
-  return response.data as ApprovalHistoryItem[];
-}
-export async function zonalApprove(approvalId: number, remark?: string, approvedBeneficiaries?: number) {
-  const response = await api.post("/api/zonal-dashboard/approve", { approvalId, remark, approvedBeneficiaries });
-  return response.data;
-}
-
-export async function zonalReject(approvalId: number, remark: string) {
-  const response = await api.post("/api/zonal-dashboard/reject", { approvalId, remark });
-  return response.data;
-}
-
-export async function getZonalDistricts() {
-  const response = await api.get("/api/zonal-dashboard/districts");
-  return response.data;
-}
-
-export async function getZonalDistrictClubs(districtId: number) {
-  const response = await api.get(`/api/zonal-dashboard/districts/${districtId}/clubs`);
-  return response.data;
+export async function resolveChatReport(scope: "clubs" | "districts", ownerId: number, reportId: number, note: string) {
+  await api.post(`${chatModerationPath(scope, ownerId)}/reports/${reportId}/resolve`, { note });
 }
 
 // District APIs
@@ -2966,9 +2505,10 @@ export async function getPotentialMembers(
   clubId: number,
   page: number = 1,
   pageSize: number = 20,
-  search?: string
+  search?: string,
+  stage?: string
 ): Promise<PagedResult<PotentialMember>> {
-  const response = await api.get(`/api/clubs/${clubId}/potential-members`, { params: { page, pageSize, search } });
+  const response = await api.get(`/api/clubs/${clubId}/potential-members`, { params: { page, pageSize, search, stage } });
   return response.data;
 }
 
@@ -3016,49 +2556,12 @@ export async function reorderAreasOfFocus(moduleId: number, orderedIds: number[]
   await api.put("/api/area-of-focus/reorder", { moduleId, orderedIds });
 }
 
-// ══════════════════════════════════════════════════════
-// CATEGORIES
-// ══════════════════════════════════════════════════════
-
-export async function getCategories(areaOfFocusId: number): Promise<Category[]> {
-  const response = await api.get(`/api/categories?areaOfFocusId=${areaOfFocusId}`);
-  return response.data;
-}
-
-export async function createCategory(data: { areaOfFocusId: number; name: string; sortOrder: number; isActive: boolean }): Promise<{ id: number }> {
-  const response = await api.post("/api/categories", data);
-  return response.data;
-}
-
-export async function updateCategory(id: number, data: { areaOfFocusId: number; name: string; sortOrder: number; isActive: boolean }): Promise<void> {
-  await api.put(`/api/categories/${id}`, data);
-}
-
-export async function deleteCategory(id: number): Promise<void> {
-  await api.delete(`/api/categories/${id}`);
-}
-
-export async function reorderCategories(areaOfFocusId: number, orderedIds: number[]): Promise<void> {
-  await api.put("/api/categories/reorder", { areaOfFocusId, orderedIds });
-}
-
-// ══════════════════════════════════════════════════════
-// SUB CATEGORIES
-// ══════════════════════════════════════════════════════
-
-export async function getSubCategories(categoryId: number): Promise<SubCategory[]> {
-  const response = await api.get(`/api/sub-categories?categoryId=${categoryId}`);
-  return response.data;
-}
-
-// Unified smart search across Area of Focus / Category / Sub Category — one term, all 3 levels,
-// each result carrying the full hierarchy path so the form can punch all 3 ids on one pick.
+// Smart search across a module's Areas of Focus: one term, each result carrying the area's id + name
+// so the form can set it on one pick.
 // module* fields are populated only by the AI suggest (cross-module); the smart search leaves them null.
 export interface ClassificationSearchResult {
-  type: "area" | "category" | "subcategory";
+  type: "area";
   areaOfFocusId: number; areaOfFocusName: string;
-  categoryId: number | null; categoryName: string | null;
-  subCategoryId: number | null; subCategoryName: string | null;
   moduleId?: number | null; moduleKey?: string | null; moduleName?: string | null;
 }
 // AI suggestion result: best matches WITHIN the current module, plus an optional single "better fit"
@@ -3071,28 +2574,11 @@ export async function searchProjectClassifications(q: string, moduleId: number):
   const { data } = await api.get(`/api/project-classification/search`, { params: { q, moduleId } });
   return data;
 }
-// AI suggestion: read a project's title/description → best classification path(s) in this module +
-// (optionally) a better-fitting classification from another module.
+// AI suggestion: read a project's title/description → best Area(s) of Focus in this module +
+// (optionally) a better-fitting Area of Focus from another module.
 export async function suggestProjectClassification(title: string, description: string, moduleId: number): Promise<ClassificationSuggestResponse> {
   const { data } = await api.post(`/api/project-classification/suggest`, { title, description, moduleId });
   return data;
-}
-
-export async function createSubCategory(data: { categoryId: number; name: string; sortOrder: number; isActive: boolean }): Promise<{ id: number }> {
-  const response = await api.post("/api/sub-categories", data);
-  return response.data;
-}
-
-export async function updateSubCategory(id: number, data: { categoryId: number; name: string; sortOrder: number; isActive: boolean }): Promise<void> {
-  await api.put(`/api/sub-categories/${id}`, data);
-}
-
-export async function deleteSubCategory(id: number): Promise<void> {
-  await api.delete(`/api/sub-categories/${id}`);
-}
-
-export async function reorderSubCategories(categoryId: number, orderedIds: number[]): Promise<void> {
-  await api.put("/api/sub-categories/reorder", { categoryId, orderedIds });
 }
 
 // ══════════════════════════════════════════════════════
@@ -3191,12 +2677,6 @@ export async function getProjectYears(clubId: number, moduleId: number): Promise
   return response.data;
 }
 
-// Club Moderator Approval
-export async function checkClubHasModerator(clubId: number): Promise<{ hasModerator: boolean; moderatorName: string | null }> {
-  const { data } = await api.get(`/api/clubs/${clubId}/has-moderator`);
-  return data;
-}
-
 // RI Flow-Bot: per-club rotary.org login the extension uses to sign in to spc.rotary.org.
 export interface ClubRotaryOrgCredentials {
   hasCredentials: boolean;
@@ -3215,32 +2695,6 @@ export async function saveClubRotaryOrgCredentials(clubId: number, username: str
 // SPC) that THIS project was synced — the extension POSTs it back to the public confirm endpoint.
 export async function getRotaryOrgSyncToken(projectId: number, clubId: number): Promise<{ token: string }> {
   const { data } = await api.get(`/api/rotary-org-sync/token`, { params: { projectId, clubId } });
-  return data;
-}
-export async function getModeratorYearSummary() {
-  const { data } = await api.get("/api/project-approval/moderator/years");
-  return data;
-}
-export async function getModeratorProjects(yearId: number, status?: string, page = 1, pageSize = 20, moduleKey?: string) {
-  const params: Record<string, string> = { yearId: String(yearId), page: String(page), pageSize: String(pageSize) };
-  if (status) params.status = status;
-  if (moduleKey) params.moduleKey = moduleKey;
-  const { data } = await api.get("/api/project-approval/moderator/projects", { params });
-  return data;
-}
-export async function getModeratorProjectDetail(projectId: number, yearId?: number) {
-  const qs = yearId != null ? `?yearId=${yearId}` : "";
-  const { data } = await api.get(`/api/project-approval/moderator/${projectId}/detail${qs}`);
-  return data;
-}
-export async function moderatorApproveProject(projectId: number, remark?: string, yearId?: number) {
-  const qs = yearId != null ? `?yearId=${yearId}` : "";
-  const { data } = await api.post(`/api/project-approval/moderator/${projectId}/approve${qs}`, { remark });
-  return data;
-}
-export async function moderatorRejectProject(projectId: number, remark: string, yearId?: number) {
-  const qs = yearId != null ? `?yearId=${yearId}` : "";
-  const { data } = await api.post(`/api/project-approval/moderator/${projectId}/reject${qs}`, { remark });
   return data;
 }
 
@@ -3767,80 +3221,6 @@ export async function updateOcvDocumentType(clubId: number, typeId: number, dto:
 
 export async function deleteOcvDocumentType(clubId: number, typeId: number): Promise<void> {
   await api.delete(`/api/clubs/${clubId}/ocv-gov/settings/document-types/${typeId}`);
-}
-
-// PPH Camp
-export async function getPphCamps(clubId: number): Promise<PphCamp[]> {
-  const { data } = await api.get(`/api/clubs/${clubId}/pph-camps`);
-  return data;
-}
-
-export async function createPphCamp(clubId: number, formData: FormData): Promise<PphCamp> {
-  const { data } = await api.post(`/api/clubs/${clubId}/pph-camps`, formData, {
-    headers: { "Content-Type": "multipart/form-data" },
-  });
-  return data;
-}
-
-export async function updatePphCamp(clubId: number, campId: number, formData: FormData): Promise<PphCamp> {
-  const { data } = await api.put(`/api/clubs/${clubId}/pph-camps/${campId}`, formData, {
-    headers: { "Content-Type": "multipart/form-data" },
-  });
-  return data;
-}
-
-export async function deletePphCamp(clubId: number, campId: number): Promise<void> {
-  await api.delete(`/api/clubs/${clubId}/pph-camps/${campId}`);
-}
-
-export async function togglePphCampActive(clubId: number, campId: number): Promise<void> {
-  await api.put(`/api/clubs/${clubId}/pph-camps/${campId}/toggle-active`);
-}
-
-// PPH attendees (person) + medical readings — club scope
-export async function getPphAttendees(clubId: number, campId: number): Promise<PphAttendee[]> {
-  const { data } = await api.get(`/api/clubs/${clubId}/pph-camps/${campId}/attendees`);
-  return data;
-}
-
-export async function getPphAttendeeDetail(clubId: number, campId: number, attendeeId: number): Promise<PphAttendeeDetail> {
-  const { data } = await api.get(`/api/clubs/${clubId}/pph-camps/${campId}/attendees/${attendeeId}`);
-  return data;
-}
-
-export async function addPphReading(clubId: number, campId: number, dto: CreatePphReadingPayload): Promise<PphAttendeeDetail> {
-  const { data } = await api.post(`/api/clubs/${clubId}/pph-camps/${campId}/readings`, dto);
-  return data;
-}
-
-export async function updatePphAttendee(clubId: number, campId: number, attendeeId: number, dto: UpdatePphAttendeePayload): Promise<PphAttendee> {
-  const { data } = await api.put(`/api/clubs/${clubId}/pph-camps/${campId}/attendees/${attendeeId}`, dto);
-  return data;
-}
-
-export async function updatePphReading(clubId: number, campId: number, readingId: number, dto: UpdatePphReadingPayload): Promise<PphMedicalReading> {
-  const { data } = await api.put(`/api/clubs/${clubId}/pph-camps/${campId}/readings/${readingId}`, dto);
-  return data;
-}
-
-export async function deletePphReading(clubId: number, campId: number, readingId: number): Promise<void> {
-  await api.delete(`/api/clubs/${clubId}/pph-camps/${campId}/readings/${readingId}`);
-}
-
-export async function deletePphAttendee(clubId: number, campId: number, attendeeId: number): Promise<void> {
-  await api.delete(`/api/clubs/${clubId}/pph-camps/${campId}/attendees/${attendeeId}`);
-}
-
-// Attendee history by mobile across ALL clubs/camps/years (club-scope route; result spans all clubs)
-export async function getPphAttendeeHistoryByMobile(clubId: number, mobile: string): Promise<PphMobileHistory> {
-  const { data } = await api.get(`/api/clubs/${clubId}/pph-camps/attendee-history`, { params: { mobile } });
-  return data;
-}
-
-// Scoped attendee report rows — CLUB scope (this club's entries only)
-export async function getPphAttendeeReport(clubId: number): Promise<PphAttendeeReportRow[]> {
-  const { data } = await api.get(`/api/clubs/${clubId}/pph-camps/attendees-report`);
-  return data;
 }
 
 // TRF Contribution
@@ -5317,6 +4697,115 @@ export async function reorderSubGroupMembers(districtId: number, subGroupId: num
   await api.put(`/api/districts/${districtId}/committee/sub-groups/${subGroupId}/members/reorder`, { orderedIds });
 }
 
+// ── Membership fields (build spec 3.12, flag membership_fields): Foundation designations, committee documents ──
+export type DesignationType = "PHF" | "MAJOR_DONOR" | "BEQUEST_SOCIETY";
+export interface MemberDesignation {
+  id: number;
+  type: DesignationType;
+  level: number | null;
+  label: string;
+  awardedDate: string;
+  notes: string | null;
+  source: string;
+}
+export interface DesignationReportRow {
+  memberId: number;
+  memberName: string;
+  clubName: string;
+  level: number | null;
+  label: string;
+  awardedDate: string;
+}
+export interface CommitteeDocument {
+  id: number;
+  title: string;
+  originalFileName: string | null;
+  url: string;
+  createdDate: string;
+}
+/** A committee (groupId) or one of its sub-committees (subGroupId). */
+export type CommitteeRef = { groupId: number } | { subGroupId: number };
+
+export async function getMemberDesignations(memberId: number): Promise<MemberDesignation[]> {
+  return (await api.get(`/api/members/${memberId}/foundation-designations`)).data;
+}
+export async function addMemberDesignation(
+  memberId: number,
+  body: { type: DesignationType; level: number | null; awardedDate: string; notes: string | null },
+): Promise<{ id: number }> {
+  return (await api.post(`/api/members/${memberId}/foundation-designations`, body)).data;
+}
+export async function removeMemberDesignation(memberId: number, id: number): Promise<void> {
+  await api.delete(`/api/members/${memberId}/foundation-designations/${id}`);
+}
+export async function getDesignationReport(
+  scope: "clubs" | "districts", scopeId: number, type: DesignationType, minLevel: number,
+): Promise<DesignationReportRow[]> {
+  return (await api.get(`/api/${scope}/${scopeId}/foundation-designations`, { params: { type, minLevel } })).data;
+}
+export async function getCommitteeDocuments(districtId: number, committee: CommitteeRef): Promise<CommitteeDocument[]> {
+  return (await api.get(`/api/districts/${districtId}/committee/documents`, { params: committee })).data;
+}
+export async function uploadCommitteeDocument(districtId: number, committee: CommitteeRef, title: string, file: File): Promise<{ id: number }> {
+  file = await processDocumentBeforeUpload(file);
+  const formData = new FormData();
+  for (const [k, v] of Object.entries(committee)) formData.append(k, String(v));
+  formData.append("title", title);
+  formData.append("file", file);
+  const response = await api.post(`/api/districts/${districtId}/committee/documents`, formData, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
+  return response.data;
+}
+export async function removeCommitteeDocument(districtId: number, id: number): Promise<void> {
+  await api.delete(`/api/districts/${districtId}/committee/documents/${id}`);
+}
+
+// ── Engagement (build list #26-#28, flag engagement): milestones, PHF highlights, spotlight cards ──
+export type SpotlightStatus = "pending" | "approved" | "rejected";
+export interface SpotlightCard {
+  id: number;
+  type: "MILESTONE" | "PHF";
+  label: string;
+  text: string;
+  memberId: number;
+  memberName: string;
+  clubId: number;
+  clubName: string | null;
+  photoUrl: string | null;
+  occurredOn: string;
+  createdDate: string;
+  cardStatus: SpotlightStatus;
+  cardDecidedDate: string | null;
+}
+export interface EngagementSettings {
+  milestoneYears: number[];
+  governorMessage: string | null;
+  /** This Rotary year's District Governor, who signs the Governor message; null when none is set. */
+  governorName?: string | null;
+}
+
+export async function getSpotlightCards(
+  scope: "clubs" | "districts", scopeId: number, status: SpotlightStatus | "",
+): Promise<SpotlightCard[]> {
+  return (await api.get(`/api/${scope}/${scopeId}/engagement/cards`, { params: status ? { status } : {} })).data;
+}
+/** The card as a PNG. download=true is refused until the card is approved. */
+export async function getSpotlightCardImage(id: number, download = false): Promise<Blob> {
+  return (await api.get(`/api/engagement/spotlight-cards/${id}/image`, { params: { download }, responseType: "blob" })).data;
+}
+export async function decideSpotlightCard(id: number, decision: "approve" | "reject"): Promise<{ id: number; cardStatus: SpotlightStatus }> {
+  return (await api.post(`/api/engagement/spotlight-cards/${id}/${decision}`)).data;
+}
+export async function getEngagementSettings(districtId: number): Promise<EngagementSettings> {
+  return (await api.get(`/api/districts/${districtId}/engagement/settings`)).data;
+}
+export async function saveEngagementSettings(
+  districtId: number, body: { milestoneYears: number[]; governorMessage: string | null },
+): Promise<EngagementSettings> {
+  return (await api.put(`/api/districts/${districtId}/engagement/settings`, body)).data;
+}
+
 // ── District Clubs View ───────────────────────────────────────────────
 export async function getClubInfoForDistrict(districtId: number, clubId: number) {
   const res = await api.get(`/api/districts/${districtId}/clubs/${clubId}/info`);
@@ -5353,34 +4842,6 @@ export async function sendReportReminder(districtId: number, yearId: number, mon
   return res.data;
 }
 
-// ── Club Moderator ────────────────────────────────────────────────────
-export async function getClubModerators(districtId: number) {
-  const res = await api.get(`/api/districts/${districtId}/club-moderators`);
-  return res.data;
-}
-export async function getAvailableClubsForModerator(districtId: number, excludeModeratorId?: number) {
-  const res = await api.get(`/api/districts/${districtId}/club-moderators/available-clubs`, { params: { excludeModeratorId } });
-  return res.data;
-}
-export async function getModeratorClubs(districtId: number, memberId: number) {
-  const res = await api.get(`/api/districts/${districtId}/club-moderators/member-clubs/${memberId}`);
-  return res.data;
-}
-export async function saveClubModerator(districtId: number, data: { memberId: number; clubIds: number[]; oldMemberId?: number }) {
-  const res = await api.post(`/api/districts/${districtId}/club-moderators`, data);
-  return res.data;
-}
-export async function deleteClubModeratorAssignment(districtId: number, id: number) {
-  await api.delete(`/api/districts/${districtId}/club-moderators/${id}`);
-}
-export async function deleteClubModeratorByMember(districtId: number, memberId: number) {
-  await api.delete(`/api/districts/${districtId}/club-moderators/member/${memberId}`);
-}
-export async function searchMembersForModerator(districtId: number, search: string) {
-  const res = await api.get(`/api/districts/${districtId}/club-moderators/search-members`, { params: { search } });
-  return res.data;
-}
-
 // ── AG (Assistant Governor) ───────────────────────────────────────────
 // AG is now year-scoped: every list / save / delete passes yearId so the same
 // member can be AG of different clubs across rotary years independently.
@@ -5394,8 +4855,8 @@ export async function getAGYearsWithData(districtId: number): Promise<{ id: numb
   const res = await api.get(`/api/districts/${districtId}/ag/years-with-data`);
   return res.data;
 }
-export async function getAvailableClubsForAG(districtId: number, excludeModeratorId?: number, yearId?: number) {
-  const res = await api.get(`/api/districts/${districtId}/ag/available-clubs`, { params: { excludeModeratorId, yearId } });
+export async function getAvailableClubsForAG(districtId: number, excludeMemberId?: number, yearId?: number) {
+  const res = await api.get(`/api/districts/${districtId}/ag/available-clubs`, { params: { excludeMemberId, yearId } });
   return res.data;
 }
 export async function searchMembersForAG(districtId: number, search: string, yearId?: number) {
@@ -5408,86 +4869,6 @@ export async function saveAG(districtId: number, data: { memberId: number; clubI
 }
 export async function deleteAGByMember(districtId: number, memberId: number, yearId?: number) {
   await api.delete(`/api/districts/${districtId}/ag/member/${memberId}`, { params: { yearId } });
-}
-
-// District PPH Camps
-export async function getDistrictPphCamps(districtId: number) {
-  const { data } = await api.get(`/api/district-modules/${districtId}/pph-camps`);
-  return data;
-}
-
-export async function createDistrictPphCamp(districtId: number, formData: FormData) {
-  const { data } = await api.post(`/api/district-modules/${districtId}/pph-camps`, formData, {
-    headers: { "Content-Type": "multipart/form-data" },
-  });
-  return data;
-}
-
-export async function updateDistrictPphCamp(districtId: number, campId: number, formData: FormData) {
-  const { data } = await api.put(`/api/district-modules/${districtId}/pph-camps/${campId}`, formData, {
-    headers: { "Content-Type": "multipart/form-data" },
-  });
-  return data;
-}
-
-export async function deleteDistrictPphCamp(districtId: number, campId: number) {
-  await api.delete(`/api/district-modules/${districtId}/pph-camps/${campId}`);
-}
-
-export async function toggleDistrictPphCampActive(districtId: number, campId: number) {
-  await api.put(`/api/district-modules/${districtId}/pph-camps/${campId}/toggle-active`);
-}
-
-// PPH attendees (person) + medical readings — district scope
-export async function getDistrictPphAttendees(districtId: number, campId: number): Promise<PphAttendee[]> {
-  const { data } = await api.get(`/api/district-modules/${districtId}/pph-camps/${campId}/attendees`);
-  return data;
-}
-
-export async function getDistrictPphAttendeeDetail(districtId: number, campId: number, attendeeId: number): Promise<PphAttendeeDetail> {
-  const { data } = await api.get(`/api/district-modules/${districtId}/pph-camps/${campId}/attendees/${attendeeId}`);
-  return data;
-}
-
-export async function addDistrictPphReading(districtId: number, campId: number, dto: CreatePphReadingPayload): Promise<PphAttendeeDetail> {
-  const { data } = await api.post(`/api/district-modules/${districtId}/pph-camps/${campId}/readings`, dto);
-  return data;
-}
-
-export async function updateDistrictPphAttendee(districtId: number, campId: number, attendeeId: number, dto: UpdatePphAttendeePayload): Promise<PphAttendee> {
-  const { data } = await api.put(`/api/district-modules/${districtId}/pph-camps/${campId}/attendees/${attendeeId}`, dto);
-  return data;
-}
-
-export async function updateDistrictPphReading(districtId: number, campId: number, readingId: number, dto: UpdatePphReadingPayload): Promise<PphMedicalReading> {
-  const { data } = await api.put(`/api/district-modules/${districtId}/pph-camps/${campId}/readings/${readingId}`, dto);
-  return data;
-}
-
-export async function deleteDistrictPphReading(districtId: number, campId: number, readingId: number) {
-  await api.delete(`/api/district-modules/${districtId}/pph-camps/${campId}/readings/${readingId}`);
-}
-
-export async function deleteDistrictPphAttendee(districtId: number, campId: number, attendeeId: number) {
-  await api.delete(`/api/district-modules/${districtId}/pph-camps/${campId}/attendees/${attendeeId}`);
-}
-
-// Attendee history by mobile across ALL clubs/camps/years (district-scope route; result spans all clubs)
-export async function getDistrictPphAttendeeHistoryByMobile(districtId: number, mobile: string): Promise<PphMobileHistory> {
-  const { data } = await api.get(`/api/district-modules/${districtId}/pph-camps/attendee-history`, { params: { mobile } });
-  return data;
-}
-
-// Scoped attendee report rows — DISTRICT scope (all clubs in the district + district camps)
-export async function getDistrictPphAttendeeReport(districtId: number): Promise<PphAttendeeReportRow[]> {
-  const { data } = await api.get(`/api/district-modules/${districtId}/pph-camps/attendees-report`);
-  return data;
-}
-
-// Scoped attendee report rows — SUPER ADMIN scope (everything, all districts/clubs)
-export async function getSuperAdminPphAttendeeReport(): Promise<PphAttendeeReportRow[]> {
-  const { data } = await api.get(`/api/admin/reports/pph-attendees`);
-  return data;
 }
 
 // District Citation
@@ -5503,16 +4884,6 @@ export async function getCitationMeetingTypes() {
 
 export async function getCitationAreaOfFocus(moduleKey?: string) {
   const { data } = await api.get("/api/district-modules/citation/area-of-focus", { params: { moduleKey } });
-  return data;
-}
-
-export async function getCitationCategories(areaOfFocusId?: number) {
-  const { data } = await api.get("/api/district-modules/citation/categories", { params: { areaOfFocusId } });
-  return data;
-}
-
-export async function getCitationSubCategories(categoryId?: number) {
-  const { data } = await api.get("/api/district-modules/citation/sub-categories", { params: { categoryId } });
   return data;
 }
 
@@ -5630,312 +5001,6 @@ export async function refreshClubAutoPoints(clubId: number, districtId: number) 
   return data;
 }
 
-// ── Zonal Awards ──
-export async function getZonalAwardsAll(yearId: number) {
-  const { data } = await api.get("/api/zonal-awards/questions", { params: { yearId } });
-  return data;
-}
-export async function getZonalAwardsAvailableYears() {
-  const { data } = await api.get("/api/zonal-awards/available-years");
-  return data;
-}
-export async function getDistrictZonalAwards(districtId: number, yearId: number) {
-  const { data } = await api.get(`/api/districts/${districtId}/zonal-awards`, { params: { yearId } });
-  return data;
-}
-export async function saveDistrictZonalAwardsManual(districtId: number, yearId: number, entries: any[]) {
-  const { data } = await api.post(`/api/districts/${districtId}/zonal-awards/save-manual`, entries, { params: { yearId } });
-  return data;
-}
-export async function importZonalAwardsAuto(formData: FormData) {
-  const { data } = await api.post("/api/zonal-awards/import", formData, { headers: { "Content-Type": "multipart/form-data" } });
-  return data;
-}
-export async function downloadZonalAwardsSampleExcel(yearId: number) {
-  const { data } = await api.get("/api/zonal-awards/sample-excel", { params: { yearId }, responseType: "blob" });
-  return data;
-}
-export async function getZonalAwardsImportLogs(yearId: number) {
-  const { data } = await api.get("/api/zonal-awards/import-logs", { params: { yearId } });
-  return data;
-}
-export async function downloadZonalAwardsYearlyExcel(yearId: number) {
-  const { data } = await api.get("/api/zonal-awards/report/yearly/excel", { params: { yearId }, responseType: "blob" });
-  return data;
-}
-export async function downloadZonalAwardsMonthlyExcel(yearId: number) {
-  const { data } = await api.get("/api/zonal-awards/report/monthly/excel", { params: { yearId }, responseType: "blob" });
-  return data;
-}
-export async function exportZonalAwardsStructure(yearId: number) {
-  const { data } = await api.get("/api/zonal-awards/export-structure/excel", { params: { yearId }, responseType: "blob" });
-  return data;
-}
-export async function getZoneAwards(zoneId: number, yearId: number) {
-  const { data } = await api.get(`/api/zones/${zoneId}/zone-awards`, { params: { yearId } });
-  return data;
-}
-export async function saveZoneAwards(zoneId: number, yearId: number, entries: { optionId: number; districtId: number | null }[]) {
-  const { data } = await api.post(`/api/zones/${zoneId}/zone-awards/save`, entries, { params: { yearId } });
-  return data;
-}
-export async function getZonalAwardsMonthlyReport(yearId: number, districtId: number) {
-  const { data } = await api.get("/api/zonal-awards/report/monthly", { params: { yearId, districtId } });
-  return data;
-}
-
-// ─────────────────────────────────────────────────────────────
-// RI Director
-// ─────────────────────────────────────────────────────────────
-export async function getRiDirectorContext() {
-  const { data } = await api.get("/api/ri-director/context");
-  return data;
-}
-
-export async function getRiDirectorCreditBalance() {
-  const { data } = await api.get("/api/ri-director/credits/balance");
-  return data;
-}
-
-export async function getRiDirectorCredits(creditType?: string, page: number = 1, pageSize: number = 20) {
-  const params = new URLSearchParams({ page: String(page), pageSize: String(pageSize) });
-  if (creditType) params.set("creditType", creditType);
-  const { data } = await api.get(`/api/ri-director/credits?${params}`);
-  return data;
-}
-
-export async function addRiDirectorCredit(formData: FormData) {
-  const { data } = await api.post(`/api/ri-director/credits`, formData, {
-    headers: { "Content-Type": "multipart/form-data" },
-  });
-  return data;
-}
-
-export async function getRiDirectorCreditHistory(creditType?: string, page: number = 1, pageSize: number = 20) {
-  const params = new URLSearchParams({ page: String(page), pageSize: String(pageSize) });
-  if (creditType) params.set("creditType", creditType);
-  const { data } = await api.get(`/api/ri-director/credits/history?${params}`);
-  return data;
-}
-
-// RI Director — Announcements
-export async function getRiDirectorAnnouncements(
-  page: number = 1, pageSize: number = 20, status?: string, search?: string
-) {
-  const params = new URLSearchParams({ page: String(page), pageSize: String(pageSize) });
-  if (status) params.set("status", status);
-  if (search) params.set("search", search);
-  const { data } = await api.get(`/api/ri-director/announcements?${params}`);
-  return data;
-}
-export async function getRiDirectorAnnouncement(id: number) {
-  const { data } = await api.get(`/api/ri-director/announcements/${id}`);
-  return data;
-}
-export async function createRiDirectorAnnouncement(payload: any) {
-  const { data } = await api.post(`/api/ri-director/announcements`, payload);
-  return data;
-}
-export async function updateRiDirectorAnnouncement(id: number, payload: any) {
-  await api.put(`/api/ri-director/announcements/${id}`, payload);
-}
-export async function deleteRiDirectorAnnouncement(id: number) {
-  await api.delete(`/api/ri-director/announcements/${id}`);
-}
-export async function uploadRiDirectorAnnouncementImage(file: File) {
-  const fd = new FormData();
-  fd.append("file", file);
-  const { data } = await api.post(`/api/ri-director/announcements/upload`, fd, {
-    headers: { "Content-Type": "multipart/form-data" },
-  });
-  return data;
-}
-
-export async function getRiDirectorRecipientCount(
-  channel: "email",
-  target: "all" | "zones" | "districts" | "subgroups",
-  zoneIds?: number[], districtIds?: number[], subgroupIds?: number[]
-) {
-  const params = new URLSearchParams({ channel, target });
-  (zoneIds ?? []).forEach(id => params.append("zoneIds", String(id)));
-  (districtIds ?? []).forEach(id => params.append("districtIds", String(id)));
-  (subgroupIds ?? []).forEach(id => params.append("subgroupIds", String(id)));
-  const { data } = await api.get(`/api/ri-director/recipients/count?${params}`);
-  return data.count as number;
-}
-
-// RI Director — Upcoming Events
-export async function getRiDirectorUpcomingEvents(page: number = 1, pageSize: number = 20, status?: string, search?: string) {
-  const params = new URLSearchParams({ page: String(page), pageSize: String(pageSize) });
-  if (status) params.set("status", status);
-  if (search) params.set("search", search);
-  const { data } = await api.get(`/api/ri-director/upcoming-events?${params}`);
-  return data;
-}
-export async function getRiDirectorUpcomingEvent(id: number) {
-  const { data } = await api.get(`/api/ri-director/upcoming-events/${id}`);
-  return data;
-}
-export async function createRiDirectorUpcomingEvent(payload: any) {
-  const { data } = await api.post(`/api/ri-director/upcoming-events`, payload);
-  return data;
-}
-export async function updateRiDirectorUpcomingEvent(id: number, payload: any) {
-  await api.put(`/api/ri-director/upcoming-events/${id}`, payload);
-}
-export async function deleteRiDirectorUpcomingEvent(id: number) {
-  await api.delete(`/api/ri-director/upcoming-events/${id}`);
-}
-export async function uploadRiDirectorUpcomingEventImage(file: File) {
-  const fd = new FormData();
-  fd.append("file", file);
-  const { data } = await api.post(`/api/ri-director/upcoming-events/upload`, fd, {
-    headers: { "Content-Type": "multipart/form-data" },
-  });
-  return data;
-}
-
-// RI Director — Sub Groups
-export async function getRiDirectorSubGroups(yearId?: number) {
-  const params = new URLSearchParams();
-  if (yearId) params.set("yearId", String(yearId));
-  const { data } = await api.get(`/api/ri-director/sub-groups?${params}`);
-  return data;
-}
-export async function getRiDirectorSubGroupYears() {
-  const { data } = await api.get(`/api/ri-director/sub-groups/years`);
-  return data as { id: number; yearLabel: string; isCurrent: boolean; groupCount: number }[];
-}
-export async function getRiDirectorSubGroup(id: number) {
-  const { data } = await api.get(`/api/ri-director/sub-groups/${id}`);
-  return data;
-}
-export async function createRiDirectorSubGroup(payload: any) {
-  const { data } = await api.post(`/api/ri-director/sub-groups`, payload);
-  return data;
-}
-export async function updateRiDirectorSubGroup(id: number, payload: any) {
-  await api.put(`/api/ri-director/sub-groups/${id}`, payload);
-}
-export async function deleteRiDirectorSubGroup(id: number) {
-  await api.delete(`/api/ri-director/sub-groups/${id}`);
-}
-export async function getRiDirectorAvailableMembers(search?: string) {
-  const params = new URLSearchParams();
-  if (search) params.set("search", search);
-  const { data } = await api.get(`/api/ri-director/sub-groups/available-members?${params}`);
-  return data;
-}
-
-// RI Director — Mass Emails
-export async function getRiDirectorMassEmails(page: number = 1, pageSize: number = 20, status?: string, search?: string) {
-  const params = new URLSearchParams({ page: String(page), pageSize: String(pageSize) });
-  if (status) params.set("status", status);
-  if (search) params.set("search", search);
-  const { data } = await api.get(`/api/ri-director/mass-emails?${params}`);
-  return data;
-}
-export async function getRiDirectorMassEmail(id: number) {
-  const { data } = await api.get(`/api/ri-director/mass-emails/${id}`);
-  return data;
-}
-export async function createRiDirectorMassEmail(payload: any) {
-  const { data } = await api.post(`/api/ri-director/mass-emails`, payload);
-  return data;
-}
-export async function updateRiDirectorMassEmail(id: number, payload: any) {
-  await api.put(`/api/ri-director/mass-emails/${id}`, payload);
-}
-export async function deleteRiDirectorMassEmail(id: number) {
-  await api.delete(`/api/ri-director/mass-emails/${id}`);
-}
-export async function sendRiDirectorMassEmail(id: number) {
-  const { data } = await api.post(`/api/ri-director/mass-emails/${id}/send`);
-  return data;
-}
-
-// RI Director — Web Links
-export async function getRiDirectorWeblinks() {
-  const { data } = await api.get(`/api/ri-director/weblinks`);
-  return data;
-}
-export async function getRiDirectorWeblink(id: number) {
-  const { data } = await api.get(`/api/ri-director/weblinks/${id}`);
-  return data;
-}
-export async function createRiDirectorWeblink(payload: any) {
-  const { data } = await api.post(`/api/ri-director/weblinks`, payload);
-  return data;
-}
-export async function updateRiDirectorWeblink(id: number, payload: any) {
-  await api.put(`/api/ri-director/weblinks/${id}`, payload);
-}
-export async function deleteRiDirectorWeblink(id: number) {
-  await api.delete(`/api/ri-director/weblinks/${id}`);
-}
-
-// RI Director — Documents
-export async function getRiDirectorDocuments(page: number = 1, pageSize: number = 20, status?: string, search?: string) {
-  const params = new URLSearchParams({ page: String(page), pageSize: String(pageSize) });
-  if (status) params.set("status", status);
-  if (search) params.set("search", search);
-  const { data } = await api.get(`/api/ri-director/documents?${params}`);
-  return data;
-}
-export async function getRiDirectorDocument(id: number) {
-  const { data } = await api.get(`/api/ri-director/documents/${id}`);
-  return data;
-}
-export async function createRiDirectorDocument(payload: any) {
-  const { data } = await api.post(`/api/ri-director/documents`, payload);
-  return data;
-}
-export async function updateRiDirectorDocument(id: number, payload: any) {
-  await api.put(`/api/ri-director/documents/${id}`, payload);
-}
-export async function deleteRiDirectorDocument(id: number) {
-  await api.delete(`/api/ri-director/documents/${id}`);
-}
-export async function uploadRiDirectorDocumentFile(file: File) {
-  const fd = new FormData();
-  fd.append("file", file);
-  const { data } = await api.post(`/api/ri-director/documents/upload`, fd, {
-    headers: { "Content-Type": "multipart/form-data" },
-  });
-  return data;
-}
-
-// RI Director — Newsletters
-export async function getRiDirectorNewsletters(page: number = 1, pageSize: number = 20, status?: string, search?: string) {
-  const params = new URLSearchParams({ page: String(page), pageSize: String(pageSize) });
-  if (status) params.set("status", status);
-  if (search) params.set("search", search);
-  const { data } = await api.get(`/api/ri-director/newsletters?${params}`);
-  return data;
-}
-export async function getRiDirectorNewsletter(id: number) {
-  const { data } = await api.get(`/api/ri-director/newsletters/${id}`);
-  return data;
-}
-export async function createRiDirectorNewsletter(payload: any) {
-  const { data } = await api.post(`/api/ri-director/newsletters`, payload);
-  return data;
-}
-export async function updateRiDirectorNewsletter(id: number, payload: any) {
-  await api.put(`/api/ri-director/newsletters/${id}`, payload);
-}
-export async function deleteRiDirectorNewsletter(id: number) {
-  await api.delete(`/api/ri-director/newsletters/${id}`);
-}
-export async function uploadRiDirectorNewsletterFile(file: File) {
-  const fd = new FormData();
-  fd.append("file", file);
-  const { data } = await api.post(`/api/ri-director/newsletters/upload`, fd, {
-    headers: { "Content-Type": "multipart/form-data" },
-  });
-  return data;
-}
-
 // Mass-email rich-text body image host. Returns { url } — an ABSOLUTE public URL
 // (e.g. https://portal.example.org/API/uploads/mass-email/<file>) that email clients
 // can load. Used by RichTextEditor's image button instead of inline base64.
@@ -5946,22 +5011,6 @@ export async function uploadMassEmailImage(file: File | Blob, filename = "image.
     headers: { "Content-Type": "multipart/form-data" },
   });
   return data;
-}
-
-// RI Director — Reports (CSV)
-export function getRiDirectorReportUrl(kind: "zones" | "districts" | "clubs" | "members" | "communications") {
-  const base = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
-  return `${base}/api/ri-director/reports/${kind}`;
-}
-export async function downloadRiDirectorReport(kind: "zones" | "districts" | "clubs" | "members" | "communications") {
-  const response = await api.get(`/api/ri-director/reports/${kind}`, { responseType: "blob" });
-  const blob = new Blob([response.data], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
-  const url = window.URL.createObjectURL(blob);
-  const link = document.createElement("a");
-  link.href = url;
-  link.download = `ri_${kind}_${fileTimestamp()}.xlsx`;
-  link.click();
-  window.URL.revokeObjectURL(url);
 }
 
 // ── Club Report — Word .docx downloads (Avenue of Service Raw Data + Annual Club Service Raw Data)
@@ -6260,8 +5309,8 @@ export async function getWebsiteDefaultPricing(): Promise<WebsiteDefaultPricing>
   return data;
 }
 export interface WebsiteDefaultPricingOtpResult {
-  message: string; debugOtp?: string; sentSms: boolean; sentEmail: boolean;
-  maskedMobile: string; maskedEmail: string; expiryMinutes: number;
+  message: string; debugOtp?: string; sentEmail: boolean;
+  maskedEmail: string; expiryMinutes: number;
 }
 export async function sendWebsiteDefaultPricingOtp(payload: { newAmount: number; renewalAmount: number; gstPercent: number }): Promise<WebsiteDefaultPricingOtpResult> {
   const { data } = await api.post(`/api/admin/club-websites/default-pricing/send-otp`, payload);
@@ -6649,17 +5698,6 @@ export async function getDistrictReport(districtId: number, yearId: number, agMe
   return data;
 }
 
-// Data Collection — lazy-loaded rows for the 3 reports under the main district-report.
-// Main report returns enabled+columns only; rows fetched on Download click via these endpoints.
-// Optional clubId narrows the SQL on the backend — fast single-club fetch.
-// Omit clubId (or pass undefined) to get rows for every club in the district.
-export async function getDistrictDcAllMembers(districtId: number, yearId: number, clubId?: number, agMemberId?: number) {
-  const params: any = { yearId };
-  if (clubId && clubId > 0) params.clubId = clubId;
-  if (agMemberId && agMemberId > 0) params.agMemberId = agMemberId;
-  const { data } = await api.get(`/api/districts/${districtId}/district-report/data-collection/all-members`, { params, timeout: 300000 });
-  return (data?.rows || []) as any[];
-}
 // Club Officers (From RI) — live from Rotary.org for the selected year; one row per club.
 export async function getDistrictClubOfficersRi(districtId: number, yearId: number, clubId?: number, agMemberId?: number) {
   const params: any = { yearId };
@@ -6689,37 +5727,6 @@ export async function getDistrictOcvGovReport(
     }>;
   };
 }
-export async function getDistrictDcBod(districtId: number, yearId: number, clubId?: number, agMemberId?: number) {
-  const params: any = { yearId };
-  if (clubId && clubId > 0) params.clubId = clubId;
-  if (agMemberId && agMemberId > 0) params.agMemberId = agMemberId;
-  const { data } = await api.get(`/api/districts/${districtId}/district-report/data-collection/bod`, { params, timeout: 300000 });
-  return (data?.rows || []) as any[];
-}
-// Covers all three committee levels (District Committee / Group / Sub-Group).
-// District-wide by design — no club filter, always the whole district committee.
-export async function getDistrictDcDc(districtId: number, yearId: number, agMemberId?: number) {
-  const params: any = { yearId };
-  if (agMemberId && agMemberId > 0) params.agMemberId = agMemberId;
-  // District Committee has NO club filter — pulls every DC/Group/Sub-Group member and runs per-member
-  // completion lookups, so it can be slow (esp. dev → remote DB). Allow 5 min (default 30s trips).
-  const { data } = await api.get(`/api/districts/${districtId}/district-report/data-collection/dc`, { params, timeout: 300000 });
-  return (data?.rows || []) as any[];
-}
-
-// Same pattern for the club-level reports.
-export async function getClubDcAllMembers(clubId: number, yearId: number) {
-  const { data } = await api.get(`/api/clubs/${clubId}/club-report/data-collection/all-members`, { params: { yearId } });
-  return (data?.rows || []) as any[];
-}
-export async function getClubDcBod(clubId: number, yearId: number) {
-  const { data } = await api.get(`/api/clubs/${clubId}/club-report/data-collection/bod`, { params: { yearId } });
-  return (data?.rows || []) as any[];
-}
-export async function getClubDcDc(clubId: number, yearId: number) {
-  const { data } = await api.get(`/api/clubs/${clubId}/club-report/data-collection/dc`, { params: { yearId } });
-  return (data?.rows || []) as any[];
-}
 // Avenue Of Service — flat per-project list across every club in the district.
 // Fetched lazily by the Excel-export button on the Reports tab so the main
 // district-report payload stays small.
@@ -6732,7 +5739,7 @@ export async function getDistrictAvenueOfServiceAllClubs(districtId: number, yea
     clubName: string; districtNumber: string;
     typeOfProject: string; moduleKey: string;
     clubRole: string | null; coHostName: string | null;
-    areaOfFocus: string | null; category: string | null; subCategory: string | null;
+    areaOfFocus: string | null;
     projectDate: string | null; title: string; description: string | null;
     location: string | null; projectCost: number | null; funding: string | null;
     globalGrantNumber: string | null; csrCompanyName: string | null;
@@ -6851,7 +5858,6 @@ export interface SuperAdminRow {
   email: string | null;
   promotedOn: string | null;
   promotedByName: string | null;
-  goalSettingEnabled: boolean;
 }
 export interface SuperAdminSearchRow {
   memberId: number;
@@ -6868,19 +5874,14 @@ export async function listSuperAdmins(): Promise<SuperAdminRow[]> {
   const { data } = await api.get("/api/admin/super-admins");
   return data;
 }
-// Toggle a SuperAdmin's "Goal Setting" access (instant save, no OTP). Default is off.
-export async function setSuperAdminGoalSettingAccess(memberId: number, enabled: boolean): Promise<{ goalSettingEnabled: boolean }> {
-  const { data } = await api.put(`/api/admin/super-admins/${memberId}/goal-setting-access`, { enabled });
-  return data;
-}
 export async function searchSuperAdminCandidates(q: string): Promise<SuperAdminSearchRow[]> {
   const { data } = await api.get("/api/admin/super-admins/search-members", { params: { q } });
   return data;
 }
 export async function sendSuperAdminOtp(memberId: number, action: "PROMOTE" | "REMOVE") {
   const { data } = await api.post("/api/admin/super-admins/send-otp", { memberId, action });
-  // No debugOtp — the SuperAdmin promote/remove OTP goes only to the approver's SMS + email.
-  return data as { message: string; sentSms: boolean; sentEmail: boolean; expiryMinutes: number };
+  // No debugOtp — the SuperAdmin promote/remove OTP goes only to the approver's email.
+  return data as { message: string; sentEmail: boolean; expiryMinutes: number };
 }
 export async function verifySuperAdminOtp(memberId: number, action: "PROMOTE" | "REMOVE", otp: string) {
   const { data } = await api.post("/api/admin/super-admins/verify-otp", { memberId, action, otp });
@@ -6918,206 +5919,6 @@ export async function uploadInternationalPresidentPhoto(file: File): Promise<{ p
   });
   return response.data;
 }
-
-// ═══════════════════════════════════════════════════════════════════
-// Directory Data Collection
-// ═══════════════════════════════════════════════════════════════════
-
-export interface DirectoryFieldMeta {
-  key: string;
-  label: string;
-  type: string;
-}
-export interface DirectoryFieldSection {
-  section: string;
-  fields: DirectoryFieldMeta[];
-}
-export interface DirectoryConfigListRow {
-  id: number;
-  districtId: number;
-  districtNumber: string;
-  yearId: number;
-  yearLabel: string;
-  urlHash: string;
-  firstContactName: string | null;
-  firstContactMobile: string | null;
-  secondContactName: string | null;
-  secondContactMobile: string | null;
-  createdDate: string;
-  modifiedDate: string | null;
-  sendEmail?: number;      // 0 = email disabled for this district
-  isActive?: number;       // 1 = public link open, 0 = closed ("Link is closed")
-}
-
-export async function getDirectoryFieldMetadata(): Promise<DirectoryFieldSection[]> {
-  const { data } = await api.get("/api/admin/directory-config/member-fields");
-  return data;
-}
-
-export async function getDirectoryConfigs(params?: { districtId?: number; yearId?: number }): Promise<DirectoryConfigListRow[]> {
-  const { data } = await api.get("/api/admin/directory-config", { params });
-  return data;
-}
-
-export async function getDirectoryConfig(id: number) {
-  const { data } = await api.get(`/api/admin/directory-config/${id}`);
-  return data;
-}
-
-export async function createDirectoryConfig(payload: {
-  districtId: number;
-  yearId: number;
-  firstContactName?: string;
-  firstContactMobile?: string;
-  secondContactName?: string;
-  secondContactMobile?: string;
-  dcFields: string[];
-  bodFields: string[];
-  memberFields: string[];
-  sendEmail?: boolean;
-}) {
-  const { data } = await api.post("/api/admin/directory-config", payload);
-  return data;
-}
-
-export async function updateDirectoryConfig(id: number, payload: {
-  districtId: number;
-  yearId: number;
-  firstContactName?: string;
-  firstContactMobile?: string;
-  secondContactName?: string;
-  secondContactMobile?: string;
-  dcFields: string[];
-  bodFields: string[];
-  memberFields: string[];
-  sendEmail?: boolean;
-}) {
-  const { data } = await api.put(`/api/admin/directory-config/${id}`, payload);
-  return data;
-}
-
-export async function deleteDirectoryConfig(id: number) {
-  const { data } = await api.delete(`/api/admin/directory-config/${id}`);
-  return data;
-}
-
-// Enable/disable the public collection link. Returns { id, isActive, message }.
-export async function toggleDirectoryConfigActive(id: number): Promise<{ id: number; isActive: number; message: string }> {
-  const { data } = await api.put(`/api/admin/directory-config/${id}/toggle-active`);
-  return data;
-}
-
-export async function sendDirectoryReminders(id: number, channel: "email") {
-  const { data } = await api.post(`/api/admin/directory-config/${id}/send-reminders`, null, { params: { channel } });
-  return data;
-}
-
-export async function getDirectoryReport(id: number) {
-  const { data } = await api.get(`/api/admin/directory-config/${id}/report`);
-  return data;
-}
-
-export async function getDirectoryPublicUrl(id: number): Promise<{ url: string }> {
-  const { data } = await api.get(`/api/admin/directory-config/${id}/public-url`);
-  return data;
-}
-
-export function getDirectoryReportExcelUrl(id: number): string {
-  return `${API_BASE_URL}/api/admin/directory-config/${id}/report/excel`;
-}
-export async function downloadDirectoryReportExcel(id: number, districtNumber: string, yearLabel: string): Promise<void> {
-  // Report scans every member of the district (per-member completion lookups), so it can take a
-  // while — especially on a dev machine hitting the remote DB. Allow up to 5 min (default 30s trips).
-  const resp = await api.get(`/api/admin/directory-config/${id}/report/excel`, { responseType: "blob", timeout: 300000 });
-  const blob = new Blob([resp.data], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = `DistrictDirectory_${districtNumber}_${yearLabel}_${fileTimestamp()}.xlsx`.replace(/\//g, "-");
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  URL.revokeObjectURL(url);
-}
-
-// Public (anonymous) — used by the public form page
-export async function publicDirectoryGetConfig(urlHash: string) {
-  const { data } = await publicApi.get(`/api/public/directory/${urlHash}`);
-  return data;
-}
-export async function publicDirectorySearch(urlHash: string, q: string) {
-  const { data } = await publicApi.get(`/api/public/directory/${urlHash}/search`, { params: { q } });
-  return data as { memberId: number; name: string; clubName: string }[];
-}
-export async function publicDirectoryGetMasked(urlHash: string, memberId: number) {
-  const { data } = await publicApi.get(`/api/public/directory/${urlHash}/member/${memberId}/masked`);
-  return data as {
-    name: string; maskedMobile: string; maskedEmail: string; hasMobile: boolean; hasEmail: boolean;
-    // India members → SMS OTP only; outside-India members → email OTP only.
-    otpChannel: "sms" | "email";
-  };
-}
-export async function publicDirectorySendOtp(urlHash: string, memberId: number, channel: "email" | "sms" | "both") {
-  const { data } = await publicApi.post(`/api/public/directory/${urlHash}/send-otp`, { memberId, channel });
-  return data as { sentEmail: boolean; sentSms: boolean; debugOtp: string; expiresInSec: number };
-}
-export async function publicDirectoryVerifyOtp(urlHash: string, memberId: number, otp: string) {
-  const { data } = await publicApi.post(`/api/public/directory/${urlHash}/verify-otp`, { memberId, otp });
-  return data;
-}
-export async function publicDirectorySubmit(urlHash: string, payload: { memberId: number; sessionToken: string; fields: Record<string, string | null>; spouseNotApplicable?: boolean; adminToken?: string }) {
-  const { data } = await publicApi.post(`/api/public/directory/${urlHash}/submit`, payload);
-  return data;
-}
-// Admin-proxy login (?fetch=admin URL flow). Backend validates mobile + password against the
-// First/Second Contact rows on district_directory_config and returns a short-lived signed token.
-export async function publicDirectoryAdminLogin(urlHash: string, mobile: string, password: string): Promise<{ adminToken: string; expiresAt: number; slot: "first" | "second" }> {
-  const { data } = await publicApi.post(`/api/public/directory/${urlHash}/admin-login`, { mobile, password });
-  return data;
-}
-// Admin-proxy: load form fields for a selected member without OTP (uses adminToken).
-export async function publicDirectoryAdminLoadFields(urlHash: string, memberId: number, adminToken: string) {
-  const { data } = await publicApi.post(`/api/public/directory/${urlHash}/admin-load-fields`, { memberId, adminToken });
-  return data;
-}
-export async function publicDirectoryUploadPhoto(urlHash: string, memberId: number, sessionToken: string, kind: "profile" | "spouse", file: File, adminToken?: string) {
-  const form = new FormData();
-  form.append("file", file);
-  // Use raw fetch — bypass axios entirely. publicApi defaults Content-Type to
-  // application/json, and axios's per-request override behavior for multipart varies
-  // by version (sometimes drops the boundary parameter from the header). With fetch
-  // + FormData, the browser is guaranteed to set "multipart/form-data; boundary=…"
-  // automatically. ASP.NET Core's [ApiController] needs that boundary or IFormFile
-  // binds null and the request 400s before reaching the action body.
-  const qs = new URLSearchParams({
-    memberId: String(memberId),
-    sessionToken: sessionToken ?? "",
-    kind,
-    ...(adminToken ? { adminToken } : {}),
-  }).toString();
-  const res = await fetch(`${API_BASE_URL}/api/public/directory/${urlHash}/upload-photo?${qs}`, {
-    method: "POST",
-    body: form,
-  });
-  if (!res.ok) {
-    let msg = "Upload failed";
-    try { const j = await res.json(); msg = j?.message || msg; } catch { /* ignore parse */ }
-    const e: any = new Error(msg);
-    e.response = { data: { message: msg } };
-    throw e;
-  }
-  return (await res.json()) as { path: string };
-}
-export function publicDirectoryPhotoUrl(relativePath: string | null | undefined): string {
-  if (!relativePath) return "";
-  if (relativePath.startsWith("http")) return relativePath;
-  return `${API_BASE_URL.replace(/\/$/, "")}/${relativePath.replace(/^\//, "")}`;
-}
-export async function publicGetCountries(): Promise<Country[]> {
-  const { data } = await publicApi.get("/api/countries");
-  return data;
-}
-
 
 // ═══════════════════════════════════════════════════════════════════
 // SuperAdmin → Settings → Rotary.org → Manual Sync
@@ -7489,7 +6290,7 @@ export async function upsertAppRouteMaintenance(payload: AppRouteMaintenanceUpse
 // Mobile Login Check (SuperAdmin diagnostic) — simulates the first half of the
 // mobile-login flow without sending an OTP. Returns the club list the user would
 // see on the mobile app's "pick your club" screen plus an Allowed/Not-allowed
-// verdict and reason. No DB writes, no SMS, no email.
+// verdict and reason. No DB writes, no email.
 // ─────────────────────────────────────────────────────────────────────────────
 export interface MobileLoginCheckClub {
   clubId: number;
@@ -7840,4 +6641,551 @@ export async function getFeatures(): Promise<PlatformFeature[]> {
 
 export async function setFeature(key: string, enabled: boolean) {
   await api.put(`/api/features/${encodeURIComponent(key)}`, { enabled });
+}
+
+// ─── Grants (api/Controllers/GrantsController.cs; flagged module "grants") ───
+import type {
+  GrantApplication, GrantApplicationListItem, GrantActionBody, GrantAttachment, GrantCashFlow, GrantClubOverview,
+  GrantCycle, GrantLightProject, RecordGrantPayment, SaveGrantApplication, SaveGrantCycle,
+} from "@/types/grants";
+
+export type GrantSide = "club" | "district";
+const grantsBase = (side: GrantSide, scopeId: number) =>
+  side === "club" ? `/api/clubs/${scopeId}/grants` : `/api/districts/${scopeId}/grants`;
+
+function saveBlob(blob: Blob, fileName: string) {
+  const url = window.URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = fileName;
+  link.click();
+  window.URL.revokeObjectURL(url);
+}
+
+export async function getGrantCycles(districtId: number): Promise<GrantCycle[]> {
+  return (await api.get(`${grantsBase("district", districtId)}/cycles`)).data;
+}
+export async function saveGrantCycle(districtId: number, body: SaveGrantCycle, cycleId?: number): Promise<GrantCycle> {
+  const url = `${grantsBase("district", districtId)}/cycles`;
+  return (await (cycleId ? api.put(`${url}/${cycleId}`, body) : api.post(url, body))).data;
+}
+export async function getGrantCashFlow(districtId: number, cycleId: number): Promise<GrantCashFlow> {
+  return (await api.get(`${grantsBase("district", districtId)}/cycles/${cycleId}/cashflow`)).data;
+}
+export async function downloadGrantsCsv(districtId: number, cycleId: number, yearLabel: string) {
+  const r = await api.get(`${grantsBase("district", districtId)}/cycles/${cycleId}/export`, { responseType: "blob" });
+  saveBlob(new Blob([r.data], { type: "text/csv" }), `grants_${yearLabel}_${fileTimestamp()}.csv`);
+}
+export async function getDistrictGrantApplications(
+  districtId: number,
+  params: { cycleId?: number; status?: string; archived?: boolean },
+): Promise<GrantApplicationListItem[]> {
+  return (await api.get(`${grantsBase("district", districtId)}/applications`, { params })).data;
+}
+export async function recordGrantPayment(districtId: number, id: number, body: RecordGrantPayment): Promise<GrantApplication> {
+  return (await api.post(`${grantsBase("district", districtId)}/applications/${id}/payments`, body)).data;
+}
+
+export async function getGrantApplication(side: GrantSide, scopeId: number, id: number): Promise<GrantApplication> {
+  return (await api.get(`${grantsBase(side, scopeId)}/applications/${id}`)).data;
+}
+export async function grantAction(side: GrantSide, scopeId: number, id: number, action: string, body: GrantActionBody): Promise<GrantApplication> {
+  return (await api.post(`${grantsBase(side, scopeId)}/applications/${id}/actions/${action}`, body)).data;
+}
+export async function grantComment(side: GrantSide, scopeId: number, id: number, comment: string): Promise<GrantApplication> {
+  return (await api.post(`${grantsBase(side, scopeId)}/applications/${id}/comments`, { comment })).data;
+}
+export async function downloadGrantAttachment(side: GrantSide, scopeId: number, id: number, attachment: GrantAttachment) {
+  const r = await api.get(`${grantsBase(side, scopeId)}/applications/${id}/attachments/${attachment.id}`, { responseType: "blob" });
+  saveBlob(r.data, attachment.originalName);
+}
+
+export async function getClubGrants(clubId: number): Promise<GrantClubOverview> {
+  return (await api.get(grantsBase("club", clubId))).data;
+}
+export async function createGrantApplication(clubId: number, body: SaveGrantApplication): Promise<{ id: number }> {
+  return (await api.post(`${grantsBase("club", clubId)}/applications`, body)).data;
+}
+export async function updateGrantApplication(clubId: number, id: number, body: SaveGrantApplication): Promise<GrantApplication> {
+  return (await api.put(`${grantsBase("club", clubId)}/applications/${id}`, body)).data;
+}
+export async function uploadGrantAttachment(clubId: number, id: number, file: File): Promise<GrantAttachment> {
+  const checked = file.type.startsWith("image/") ? await processImageBeforeUpload(file) : await processDocumentBeforeUpload(file);
+  const form = new FormData();
+  form.append("file", checked);
+  return (await api.post(`${grantsBase("club", clubId)}/applications/${id}/attachments`, form, {
+    headers: { "Content-Type": "multipart/form-data" },
+    timeout: 120000,
+  })).data;
+}
+export async function deleteGrantAttachment(clubId: number, id: number, attachmentId: number): Promise<void> {
+  await api.delete(`${grantsBase("club", clubId)}/applications/${id}/attachments/${attachmentId}`);
+}
+export async function getGrantLightProjects(clubId: number, yearId: number): Promise<GrantLightProject[]> {
+  return (await api.get(`${grantsBase("club", clubId)}/light`, { params: { yearId } })).data;
+}
+export async function saveGrantLight(clubId: number, yearId: number, projectId: number, body: { grantAmount: number | null; reportDate: string | null }) {
+  await api.put(`${grantsBase("club", clubId)}/light/${yearId}/${projectId}`, body);
+}
+
+// ─── Volunteers and speakers (api/Controllers/VolunteersController.cs, SpeakersController.cs; flagged module "volunteers") ───
+import type {
+  MeetingDuty, PublicVolunteerSheet, SaveMeetingDuty, SaveSpeaker, SaveVolunteerSheet, Speaker, VolunteerSheet,
+  VolunteerSheetListItem, VolunteerTargets,
+} from "@/types/volunteers";
+
+const sheetsBase = (clubId: number) => `/api/clubs/${clubId}/volunteer-sheets`;
+
+export async function getVolunteerSheets(clubId: number): Promise<VolunteerSheetListItem[]> {
+  return (await api.get(sheetsBase(clubId))).data;
+}
+export async function getVolunteerTargets(clubId: number, yearId: number | null): Promise<VolunteerTargets> {
+  return (await api.get(`${sheetsBase(clubId)}/targets`, { params: yearId ? { yearId } : {} })).data;
+}
+export async function getVolunteerSheet(clubId: number, id: number): Promise<VolunteerSheet> {
+  return (await api.get(`${sheetsBase(clubId)}/${id}`)).data;
+}
+export async function createVolunteerSheet(clubId: number, body: SaveVolunteerSheet): Promise<{ id: number }> {
+  return (await api.post(sheetsBase(clubId), body)).data;
+}
+export async function updateVolunteerSheet(clubId: number, id: number, body: SaveVolunteerSheet): Promise<VolunteerSheet> {
+  return (await api.put(`${sheetsBase(clubId)}/${id}`, body)).data;
+}
+export async function deleteVolunteerSheet(clubId: number, id: number): Promise<void> {
+  await api.delete(`${sheetsBase(clubId)}/${id}`);
+}
+export async function saveVolunteerHours(clubId: number, id: number, entries: { signupId: number; hours: number | null }[]): Promise<VolunteerSheet> {
+  return (await api.put(`${sheetsBase(clubId)}/${id}/hours`, { entries })).data;
+}
+export async function removeVolunteerSignup(clubId: number, id: number, signupId: number): Promise<VolunteerSheet> {
+  return (await api.delete(`${sheetsBase(clubId)}/${id}/signups/${signupId}`)).data;
+}
+// The public sign-up page: no session, so the public instance (no admin token).
+export async function getPublicVolunteerSheet(token: string): Promise<PublicVolunteerSheet> {
+  return (await publicApi.get(`/api/public/volunteers/${encodeURIComponent(token)}`)).data;
+}
+export async function publicVolunteerSignup(
+  token: string,
+  body: { slotId: number; name: string; email: string; consent: boolean; formToken: string; website: string },
+): Promise<{ message: string }> {
+  return (await publicApi.post(`/api/public/volunteers/${encodeURIComponent(token)}/signup`, body)).data;
+}
+
+const speakersBase = (clubId: number) => `/api/clubs/${clubId}/speakers`;
+
+export async function getSpeakers(clubId: number, params: { from?: string; to?: string } = {}): Promise<Speaker[]> {
+  return (await api.get(speakersBase(clubId), { params })).data;
+}
+export async function saveSpeaker(clubId: number, body: SaveSpeaker, id?: number): Promise<Speaker> {
+  return (await (id ? api.put(`${speakersBase(clubId)}/${id}`, body) : api.post(speakersBase(clubId), body))).data;
+}
+export async function deleteSpeaker(clubId: number, id: number): Promise<void> {
+  await api.delete(`${speakersBase(clubId)}/${id}`);
+}
+export async function uploadSpeakerPhoto(clubId: number, id: number, file: File): Promise<Speaker> {
+  const form = new FormData();
+  form.append("file", await processImageBeforeUpload(file));
+  return (await api.post(`${speakersBase(clubId)}/${id}/photo`, form, { headers: { "Content-Type": "multipart/form-data" } })).data;
+}
+export async function getMeetingDuties(clubId: number, params: { from?: string; to?: string } = {}): Promise<MeetingDuty[]> {
+  return (await api.get(`/api/clubs/${clubId}/meeting-duties`, { params })).data;
+}
+export async function addMeetingDuty(clubId: number, body: SaveMeetingDuty): Promise<MeetingDuty> {
+  return (await api.post(`/api/clubs/${clubId}/meeting-duties`, body)).data;
+}
+export async function deleteMeetingDuty(clubId: number, id: number): Promise<void> {
+  await api.delete(`/api/clubs/${clubId}/meeting-duties/${id}`);
+}
+
+// ── Contacts, prospect pipeline, growth and guest invites (N3, feature contacts_growth) ─────────────────
+// scope "clubs" | "districts": the same endpoints serve a club and a district.
+export type ContactScope = "clubs" | "districts";
+
+export interface Contact {
+  id: number;
+  name: string;
+  email: string | null;
+  mobile: string | null;
+  contactType: string;
+  organisation: string | null;
+  notes: string | null;
+  source: string;
+  createdDate: string;
+  groupIds: number[];
+}
+export interface SaveContact {
+  name: string;
+  email?: string | null;
+  mobile?: string | null;
+  contactType?: string;
+  organisation?: string | null;
+  notes?: string | null;
+  groupIds?: number[];
+}
+export interface ContactGroup { id: number; name: string; contactCount: number }
+export interface ContactImportPreviewRow {
+  row: number;
+  name: string;
+  email: string | null;
+  mobile: string | null;
+  contactType: string;
+  status: "new" | "duplicate" | "invalid";
+  reason: string | null;
+  matchId: number | null;
+}
+export interface ContactImportResult { created: number; updated: number; skipped: number; invalid: number }
+export interface StageCount { stage: string; count: number }
+export interface ClubGrowth {
+  clubId: number;
+  yearId: number;
+  yearLabel: string;
+  target: number | null;
+  joined: number;
+  terminated: number;
+  netGrowth: number;
+  currentMembers: number;
+  progressPercent: number | null;
+  prospectsByStage: StageCount[];
+}
+export interface DistrictGrowthClub {
+  clubId: number;
+  clubName: string;
+  target: number | null;
+  joined: number;
+  terminated: number;
+  netGrowth: number;
+  progressPercent: number | null;
+  openProspects: number;
+}
+export interface DistrictGrowth {
+  districtId: number;
+  yearId: number;
+  yearLabel: string;
+  targetTotal: number;
+  clubsWithTarget: number;
+  clubsReached: number;
+  joined: number;
+  terminated: number;
+  netGrowth: number;
+  prospectsByStage: StageCount[];
+  clubs: DistrictGrowthClub[];
+}
+export interface InvitePrompt {
+  id: number;
+  meetingDate: string;
+  sendOn: string;
+  note: string | null;
+  status: "scheduled" | "sending" | "sent" | "cancelled";
+  sentCount: number;
+  sentDate: string | null;
+}
+export interface PublicInvite {
+  clubName: string;
+  inviterName: string;
+  meetingDate: string | null;
+  meetingDay: string | null;
+  meetingFromTime: string | null;
+  meetingToTime: string | null;
+  meetingAddress: string | null;
+}
+
+export async function getContacts(scope: ContactScope, ownerId: number,
+  params: { search?: string; type?: string; groupId?: number; page?: number; pageSize?: number }): Promise<PagedResult<Contact>> {
+  return (await api.get(`/api/${scope}/${ownerId}/contacts`, { params })).data;
+}
+export async function createContact(scope: ContactScope, ownerId: number, data: SaveContact): Promise<{ id: number }> {
+  return (await api.post(`/api/${scope}/${ownerId}/contacts`, data)).data;
+}
+export async function updateContact(scope: ContactScope, ownerId: number, id: number, data: SaveContact): Promise<void> {
+  await api.put(`/api/${scope}/${ownerId}/contacts/${id}`, data);
+}
+export async function deleteContact(scope: ContactScope, ownerId: number, id: number): Promise<void> {
+  await api.delete(`/api/${scope}/${ownerId}/contacts/${id}`);
+}
+export async function getContactGroups(scope: ContactScope, ownerId: number): Promise<ContactGroup[]> {
+  return (await api.get(`/api/${scope}/${ownerId}/contact-groups`)).data;
+}
+export async function createContactGroup(scope: ContactScope, ownerId: number, name: string): Promise<{ id: number }> {
+  return (await api.post(`/api/${scope}/${ownerId}/contact-groups`, { name })).data;
+}
+export async function renameContactGroup(scope: ContactScope, ownerId: number, id: number, name: string): Promise<void> {
+  await api.put(`/api/${scope}/${ownerId}/contact-groups/${id}`, { name });
+}
+export async function deleteContactGroup(scope: ContactScope, ownerId: number, id: number): Promise<void> {
+  await api.delete(`/api/${scope}/${ownerId}/contact-groups/${id}`);
+}
+export async function previewContactImport(scope: ContactScope, ownerId: number, rows: object[]): Promise<ContactImportPreviewRow[]> {
+  return (await api.post(`/api/${scope}/${ownerId}/contacts/import/preview`, { rows })).data;
+}
+export async function importContacts(scope: ContactScope, ownerId: number, rows: object[], groupId: number | null,
+  updateExisting: boolean): Promise<ContactImportResult> {
+  return (await api.post(`/api/${scope}/${ownerId}/contacts/import`, { rows, groupId, updateExisting })).data;
+}
+export async function inviteContactsToEvent(scope: ContactScope, ownerId: number, eventId: number,
+  contactGroupIds: number[]): Promise<{ massEmailId: number }> {
+  return (await api.post(`/api/${scope}/${ownerId}/contacts/invite-event`, { eventId, contactGroupIds })).data;
+}
+export async function convertPotentialMember(clubId: number, id: number): Promise<{ memberId: number; message: string }> {
+  return (await api.post(`/api/clubs/${clubId}/potential-members/${id}/convert`)).data;
+}
+export async function getClubGrowth(clubId: number, yearId?: number | null): Promise<ClubGrowth> {
+  return (await api.get(`/api/clubs/${clubId}/growth`, { params: yearId ? { yearId } : undefined })).data;
+}
+export async function setClubGrowthTarget(clubId: number, yearId: number, target: number): Promise<void> {
+  await api.put(`/api/clubs/${clubId}/growth/target`, { yearId, target });
+}
+export async function getDistrictGrowth(districtId: number, yearId?: number | null): Promise<DistrictGrowth> {
+  return (await api.get(`/api/districts/${districtId}/growth`, { params: yearId ? { yearId } : undefined })).data;
+}
+export async function getInvitePrompts(clubId: number): Promise<InvitePrompt[]> {
+  return (await api.get(`/api/clubs/${clubId}/invite-prompts`)).data;
+}
+export async function createInvitePrompt(clubId: number, data: { meetingDate: string; daysBefore: number; note?: string | null }): Promise<{ id: number }> {
+  return (await api.post(`/api/clubs/${clubId}/invite-prompts`, data)).data;
+}
+export async function sendInvitePromptNow(clubId: number, id: number): Promise<void> {
+  await api.post(`/api/clubs/${clubId}/invite-prompts/${id}/send`);
+}
+export async function cancelInvitePrompt(clubId: number, id: number): Promise<void> {
+  await api.delete(`/api/clubs/${clubId}/invite-prompts/${id}`);
+}
+export async function getPublicInvite(token: string): Promise<PublicInvite> {
+  return (await publicApi.get(`/api/public/invite/${encodeURIComponent(token)}`)).data;
+}
+export async function sendInviteRsvp(token: string, body: {
+  name: string; email: string; phone: string; attending: boolean; interestedInJoining: boolean;
+  consent: boolean; website: string; elapsedMs: number;
+}): Promise<{ message: string; kind: "prospect" | "contact" }> {
+  return (await publicApi.post(`/api/public/invite/${encodeURIComponent(token)}/rsvp`, body)).data;
+}
+
+// ─── N10 live target dashboard (feature target_dashboard) ───────────────────────────────────────────────────────────
+export type TargetStatus = "green" | "amber" | "red" | "none";
+export type TargetMetricKey = "members" | "growth" | "newMembers" | "dues" | "attendance" | "meetings" | "projects" | "foundation";
+export interface TargetMetric {
+  actual: number;
+  target: number | null;
+  percent: number | null;
+  status: TargetStatus;
+}
+export interface TargetClubRow {
+  clubId: number;
+  clubName: string;
+  agMemberId: number | null;
+  agName: string | null;
+  status: TargetStatus;
+  metrics: Record<TargetMetricKey, TargetMetric>;
+}
+export interface TargetDashboardData {
+  districtId: number;
+  yearId: number;
+  yearLabel: string;
+  yearElapsedPercent: number;
+  wholeDistrict: boolean;
+  totals: Record<TargetMetricKey, TargetMetric>;
+  agGroups: { memberId: number; name: string; clubs: number }[];
+  clubs: TargetClubRow[];
+}
+/** Clubs this viewer may see: the whole district for its managers, an AG's group, a club admin's club. */
+export async function getDistrictTargets(districtId: number, yearId?: number | null): Promise<TargetDashboardData> {
+  return (await api.get(`/api/districts/${districtId}/targets`, { params: yearId ? { yearId } : undefined })).data;
+}
+/** One club (clubs[0]), for its admins, its AG and the district. */
+export async function getClubTargets(clubId: number, yearId?: number | null): Promise<TargetDashboardData> {
+  return (await api.get(`/api/clubs/${clubId}/targets`, { params: yearId ? { yearId } : undefined })).data;
+}
+
+// N8 Meetings (api/Controllers/MeetingsController.cs, flagged feature "meetings"): calendar feed URLs and
+// meeting compliance (meetings held per club against the meetings-per-month rule).
+export interface MeetingComplianceClub {
+  clubId: number;
+  clubName: string;
+  required: number;
+  isOverride: boolean;
+  held: number;
+  status: "met" | "due" | "missed";
+}
+
+export interface MeetingCompliance {
+  month: string; // YYYY-MM
+  districtDefault: number;
+  districtDefaultIsSet: boolean;
+  clubs: MeetingComplianceClub[];
+}
+
+export async function getDistrictMeetingCompliance(districtId: number, month?: string): Promise<MeetingCompliance> {
+  return (await api.get(`/api/districts/${districtId}/meeting-compliance`, { params: { month } })).data;
+}
+
+/** No clubId: the district default. A clubId: that club's override, where null clears it. */
+export async function setMeetingRule(districtId: number, meetingsPerMonth: number | null, clubId?: number) {
+  await api.put(`/api/districts/${districtId}/meeting-compliance/rule`, { clubId: clubId ?? null, meetingsPerMonth });
+}
+
+export async function getClubCalendarFeed(clubId: number): Promise<string | null> {
+  return (await api.get(`/api/clubs/${clubId}/calendar-feed`)).data.url ?? null;
+}
+
+/** Issues the club's calendar feed URL; an earlier URL stops working. */
+export async function resetClubCalendarFeed(clubId: number): Promise<string> {
+  return (await api.post(`/api/clubs/${clubId}/calendar-feed`)).data.url;
+}
+
+// N5 Communication (api/Controllers/CommsController.cs, flagged feature "communication"): per-language templates,
+// sender profile and domains, monthly allowance, campaign tracking, suppressions and opt-outs. scope: club or district.
+export type CommsScope = "clubs" | "districts";
+
+export interface CommSettings {
+  defaultLanguage: string | null;
+  effectiveLanguage: string;
+  governorNoteEnabled: boolean;
+  governorName: string | null;
+  governorPhotoUrl: string | null;
+  governorMessage: string | null;
+  senderFromName: string | null;
+  senderFromEmail: string | null;
+  senderReplyTo: string | null;
+}
+
+export interface CommTemplate {
+  id: number;
+  templateKey: string;
+  language: string;
+  subject: string;
+  bodyHtml: string;
+  /** false: a machine translation nobody reviewed yet (beta) */
+  reviewed: boolean;
+  modifiedDate: string | null;
+}
+
+export interface DnsRecord { type: string; host: string; value: string; purpose: string; }
+
+export interface SenderDomain {
+  id: number;
+  domain: string;
+  dkimSelector: string;
+  verifyToken: string;
+  ownershipOk: boolean;
+  spfOk: boolean;
+  dkimOk: boolean;
+  dmarcOk: boolean;
+  verified: boolean;
+  checkedAt: string | null;
+  records: DnsRecord[];
+}
+
+export interface CampaignCounts {
+  id: number;
+  subject: string;
+  sentDate: string | null;
+  sent: number;
+  delivered: number;
+  opened: number;
+  clicked: number;
+  bounced: number;
+  complaints: number;
+  skipped: number;
+}
+
+export interface CommUsage {
+  month: string;
+  edition: string;
+  perMember: number | null;
+  members: number;
+  allowance: number | null;
+  used: number;
+  remaining: number | null;
+  campaigns: CampaignCounts[];
+}
+
+export interface CampaignRecipientTracking {
+  memberName: string | null;
+  email: string | null;
+  language: string | null;
+  status: string;
+  deliveryStatus: string | null;
+  sentDate: string | null;
+  openedAt: string | null;
+  openCount: number;
+  clickedAt: string | null;
+  clickCount: number;
+  errorMessage: string | null;
+}
+
+export interface CampaignTracking extends CampaignCounts {
+  status: string;
+  templateKey: string | null;
+  recipients: number;
+  failed: number;
+  recipientRows: CampaignRecipientTracking[];
+}
+
+export interface CommSuppression { id: number; email: string; reason: string; createdDate: string; }
+export interface CommOptOut { memberId: number; memberName: string | null; channel: string; changedAtUtc: string; source: string; }
+
+const commsBase = (scope: CommsScope, id: number) => `/api/${scope}/${id}/comms`;
+
+export async function getCommSettings(scope: CommsScope, id: number): Promise<CommSettings> {
+  return (await api.get(`${commsBase(scope, id)}/settings`)).data;
+}
+export async function saveCommSettings(scope: CommsScope, id: number, settings: Partial<CommSettings>): Promise<CommSettings> {
+  return (await api.put(`${commsBase(scope, id)}/settings`, settings)).data;
+}
+export async function getCommTemplates(scope: CommsScope, id: number): Promise<CommTemplate[]> {
+  return (await api.get(`${commsBase(scope, id)}/templates`)).data;
+}
+export async function saveCommTemplate(scope: CommsScope, id: number,
+  t: { templateKey: string; language: string; subject: string; bodyHtml: string; reviewed: boolean }): Promise<CommTemplate> {
+  return (await api.put(`${commsBase(scope, id)}/templates`, t)).data;
+}
+export async function deleteCommTemplate(scope: CommsScope, id: number, templateId: number) {
+  await api.delete(`${commsBase(scope, id)}/templates/${templateId}`);
+}
+export async function getSenderDomains(scope: CommsScope, id: number): Promise<SenderDomain[]> {
+  return (await api.get(`${commsBase(scope, id)}/domains`)).data;
+}
+export async function addSenderDomain(scope: CommsScope, id: number, domain: string, dkimSelector?: string): Promise<SenderDomain> {
+  return (await api.post(`${commsBase(scope, id)}/domains`, { domain, dkimSelector: dkimSelector || null })).data;
+}
+export async function verifySenderDomain(scope: CommsScope, id: number, domainId: number): Promise<SenderDomain> {
+  return (await api.post(`${commsBase(scope, id)}/domains/${domainId}/verify`)).data;
+}
+export async function deleteSenderDomain(scope: CommsScope, id: number, domainId: number) {
+  await api.delete(`${commsBase(scope, id)}/domains/${domainId}`);
+}
+export async function getCommUsage(scope: CommsScope, id: number, month?: string): Promise<CommUsage> {
+  return (await api.get(`${commsBase(scope, id)}/usage`, { params: { month } })).data;
+}
+export async function getCampaignTracking(scope: CommsScope, id: number, massEmailId: number): Promise<CampaignTracking> {
+  return (await api.get(`${commsBase(scope, id)}/campaigns/${massEmailId}`)).data;
+}
+export async function getCommSuppressions(scope: CommsScope, id: number): Promise<CommSuppression[]> {
+  return (await api.get(`${commsBase(scope, id)}/suppressions`)).data;
+}
+export async function deleteCommSuppression(scope: CommsScope, id: number, suppressionId: number) {
+  await api.delete(`${commsBase(scope, id)}/suppressions/${suppressionId}`);
+}
+export async function getCommOptOuts(scope: CommsScope, id: number): Promise<CommOptOut[]> {
+  return (await api.get(`${commsBase(scope, id)}/opt-outs`)).data;
+}
+
+/** Machine translation through the admin's own route (app/api/i18n/translate); untranslatable text comes back as is. */
+export async function machineTranslate(target: string, texts: string[]): Promise<string[]> {
+  const res = await fetch("/api/i18n/translate", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ target, source: "en", q: texts }),
+  });
+  if (!res.ok) throw new Error("Translation failed");
+  return (await res.json()).translations;
+}
+
+// Public unsubscribe page (signed token in the link, no login).
+export interface UnsubscribeInfo { maskedEmail: string; subscribed: boolean; }
+
+export async function getUnsubscribe(token: string): Promise<UnsubscribeInfo> {
+  return (await publicApi.get(`/api/public/comms/unsubscribe/${encodeURIComponent(token)}`)).data;
+}
+export async function setUnsubscribe(token: string, subscribe: boolean): Promise<UnsubscribeInfo> {
+  return (await publicApi.post(`/api/public/comms/unsubscribe/${encodeURIComponent(token)}`, { subscribe })).data;
 }

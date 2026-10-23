@@ -136,8 +136,8 @@ export default async function TermsPage() {
         <h2>8. Third-Party Services</h2>
         <p>
           The Platform integrates with third-party services including (but not
-          limited to) Cashfree Payments, email delivery services, SMS
-          providers, and Rotary International&apos;s public APIs. Your use of
+          limited to) Cashfree Payments, email delivery services and Rotary
+          International&apos;s public APIs. Your use of
           those services is also subject to their respective terms.
         </p>
       </section>

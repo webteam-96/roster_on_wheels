@@ -534,7 +534,7 @@ public class MemberDuplicateController : ControllerBase
             // Transfer the loser's family members to the survivor so nothing is lost (re-point active rows).
             await conn.ExecuteAsync("UPDATE member_family_details SET fk_member_master_profile_id=@Keep, modified_date=NOW() WHERE fk_member_master_profile_id=@Del AND isdeleted=0", new { Keep = req.KeepId, Del = req.DeleteId }, tx);
             // One spouse per member: when both profiles had a spouse, keep only the latest-changed one
-            // (the same row the Directory and the Data Collection form use). Soft delete; undo restores it.
+            // (the same row the Directory uses). Soft delete; undo restores it.
             await conn.ExecuteAsync(@"
                 UPDATE member_family_details f
                 JOIN (

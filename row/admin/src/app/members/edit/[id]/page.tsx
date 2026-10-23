@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter, useParams, useSearchParams } from "next/navigation";
 import MemberForm from "@/components/MemberForm";
+import FoundationDesignationsCard from "@/components/membership/FoundationDesignationsCard";
 import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
 import ProtectedRoute from "@/components/ProtectedRoute";
@@ -128,6 +129,9 @@ export default function EditMemberPage() {
         isAdminPartial={isAdmin}
         backUrl={backUrl}
       />
+      <div className="mt-6">
+        <FoundationDesignationsCard memberId={id} />
+      </div>
       <SuccessAlert
         open={showSuccess}
         title="Member Updated"

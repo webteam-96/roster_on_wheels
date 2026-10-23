@@ -93,7 +93,7 @@ public class MobileAuthService : IMobileAuthService
     {
 
         // Non-sync cascade login guard — deny if the member's only club went non-sync
-        // (no active club_members, not in an exempt district, no global SA/ZC/RID role).
+        // (no active club_members, not in an exempt district, no global SA role).
         await NonSyncLoginGuardHelper.EnsureCanLoginAsync(conn, memberId);
 
         // Re-check SuperAdmin policy (defense in depth — same rule as RequestOtp).
@@ -126,31 +126,21 @@ public class MobileAuthService : IMobileAuthService
         }
 
         // Re-check chain kill-switch (defense in depth — same rule as RequestOtp).
-        // RID is global — exempt. SA-with-other-role users go through this check normally.
-        var isRidVerify = await conn.ExecuteScalarAsync<int>(@"
-            SELECT COUNT(*) FROM member_roles mr
-            JOIN roles r ON r.pk_role_id = mr.fk_role_id
-            WHERE mr.fk_member_master_profile_id = @MemberId
-              AND r.RoleName = 'RIDirector'
-              AND mr.IsActive = 1 AND mr.isdeleted = 0",
+        // SA-with-other-role users go through this check normally.
+        var hasActiveChainVerify = await conn.ExecuteScalarAsync<int>(@"
+            SELECT COUNT(*)
+            FROM club_members cm
+            JOIN club_master c ON c.pk_club_id = cm.fk_club_id
+            JOIN district_master d ON d.pk_district_id = c.fk_district_id
+            JOIN zone_master z ON z.pk_zone_id = d.fk_zone_id
+            WHERE cm.fk_member_master_profile_id = @MemberId
+              AND cm.IsActive = 1 AND cm.isdeleted = 0
+              AND c.IsActive = 1 AND c.isdeleted = 0
+              AND d.IsActive = 1 AND d.isdeleted = 0
+              AND z.IsActive = 1 AND z.isdeleted = 0",
             new { MemberId = memberId });
-        if (isRidVerify == 0)
-        {
-            var hasActiveChainVerify = await conn.ExecuteScalarAsync<int>(@"
-                SELECT COUNT(*)
-                FROM club_members cm
-                JOIN club_master c ON c.pk_club_id = cm.fk_club_id
-                JOIN district_master d ON d.pk_district_id = c.fk_district_id
-                JOIN zone_master z ON z.pk_zone_id = d.fk_zone_id
-                WHERE cm.fk_member_master_profile_id = @MemberId
-                  AND cm.IsActive = 1 AND cm.isdeleted = 0
-                  AND c.IsActive = 1 AND c.isdeleted = 0
-                  AND d.IsActive = 1 AND d.isdeleted = 0
-                  AND z.IsActive = 1 AND z.isdeleted = 0",
-                new { MemberId = memberId });
-            if (hasActiveChainVerify == 0)
-                throw new UnauthorizedAccessException("Your zone, district, or club is currently inactive. Please contact your administrator.");
-        }
+        if (hasActiveChainVerify == 0)
+            throw new UnauthorizedAccessException("Your zone, district, or club is currently inactive. Please contact your administrator.");
 
         // Load member basic info (the rotarian's profile)
         var memberInfo = await conn.QueryFirstOrDefaultAsync<dynamic>(@"

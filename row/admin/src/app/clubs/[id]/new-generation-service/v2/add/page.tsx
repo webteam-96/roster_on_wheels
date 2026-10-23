@@ -12,7 +12,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import DateField from "@/components/DateField";
-import { useParams, useSearchParams, useRouter } from "next/navigation";
+import { useParams, useSearchParams } from "next/navigation";
 import {
   Upload, X, Star, Info, Camera, MapPin, Target, IndianRupee, Users,
 } from "@/components/icons";
@@ -22,14 +22,12 @@ import {
   getClub,
   getModules,
   getAreasOfFocus,
-  getCategories,
   getFunding,
   createProject,
   uploadProjectImage,
-  checkClubHasModerator,
   type ClassificationSearchResult,
 } from "@/services/api";
-import { AreaOfFocus, Category, Funding, ProjectPhotoInput } from "@/types/project";
+import { AreaOfFocus, Funding, ProjectPhotoInput } from "@/types/project";
 import { currencyOptions, getCurrencySymbol, resolveClubDefaultCurrency } from "@/lib/currency";
 import V2FormShell, { useV2ReturnTo } from "@/components/v2/V2FormShell";
 import RotaryLoader from "@/components/RotaryLoader";
@@ -42,9 +40,8 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { useSyncClubIdFromUrl } from "@/hooks/useSyncClubIdFromUrl";
-import AddToOrgConfirmDialog from "@/components/AddToOrgConfirmDialog";
 import { useExtensionStatus } from "@/hooks/useExtensionStatus";
-import { isFlowBotEnabled, triggerAddToOrg, fileToDataUrl, type OrgExport, type FundingClass } from "@/lib/addToOrg";
+import { isFlowBotEnabled } from "@/lib/addToOrg";
 import ImageCropDialog from "@/components/ImageCropDialog";
 import { useImageCropQueue } from "@/hooks/useImageCropQueue";
 
@@ -56,8 +53,6 @@ const PROJECT_PHOTO_MAX_WIDTH = 1600;
 
 // Test-club gate: BOT (RI Flow-Bot) UI shows only for club 2765. Hardcoded for
 // now so it's a one-line grep when expanding to more clubs.
-// API origin for building full photo URLs handed to the Add-to-Org extension.
-const ADD_TO_ORG_API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
 const TOP_MESSAGE = "Please post all the New Generation services executed by your club. The content posted here will be displayed in District website, Club Monthly Report & ROW integrated Club website.";
 
@@ -113,7 +108,6 @@ export default function NewGenerationServiceV2AddPage() {
   useSyncClubIdFromUrl();
   const params = useParams();
   const searchParams = useSearchParams();
-  const router = useRouter();
   const clubId = Number(params.id);
   const { navigateAfterSave, navigateAfterCancel } = useV2ReturnTo(`/clubs/${clubId}/new-generation-service/v2`);
 
@@ -148,9 +142,8 @@ export default function NewGenerationServiceV2AddPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
-  // Masters — Area of Focus renamed to "Category", Category renamed to "Sub Category"
+  // Masters — Area of Focus renamed to "Category"
   const [areasOfFocus, setAreasOfFocus] = useState<AreaOfFocus[]>([]);
-  const [categories, setCategories] = useState<Category[]>([]);
   const [fundingList, setFundingList] = useState<Funding[]>([]);
 
   const [title, setTitle] = useState("");
@@ -159,8 +152,6 @@ export default function NewGenerationServiceV2AddPage() {
 
   const [selectedAofId, setSelectedAofId] = useState<string>("");
   const [otherAreaOfFocus, setOtherAreaOfFocus] = useState("");
-  const [selectedCatId, setSelectedCatId] = useState<string>("");
-  const [otherCategory, setOtherCategory] = useState("");
 
   const [projectDate, setProjectDate] = useState("");
   const [projectCost, setProjectCost] = useState("");
@@ -188,12 +179,6 @@ export default function NewGenerationServiceV2AddPage() {
   const [showProjectSuccess, setShowProjectSuccess] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  // Moderator approval
-  const [hasModerator, setHasModerator] = useState(false);
-  const [moderatorName, setModeratorName] = useState<string | null>(null);
-  const [showModeratorConfirm, setShowModeratorConfirm] = useState(false);
-  const moderatorConfirmedRef = useRef(false);
-
   // RI Flow-Bot extension state (enabled for all clubs).
   // installed: null = checking, true = ready, false = not installed.
   const installed = useExtensionStatus();
@@ -201,9 +186,6 @@ export default function NewGenerationServiceV2AddPage() {
   // Install prompt (extension NOT detected) — shown once on load, dismissible.
   const [showInstallPrompt, setShowInstallPrompt] = useState(false);
   const installDismissedRef = useRef(false);
-  // Post-save "Add To Rotary Org" prompt (extension detected + moderator flow).
-  const [showAddToOrgPrompt, setShowAddToOrgPrompt] = useState(false);
-  const savedProjectIdRef = useRef<number | null>(null);
 
   // Surface the install prompt once the extension check resolves to "not installed"
   // (only for the test club, and not while the "I Agree" gate is still up).
@@ -218,22 +200,6 @@ export default function NewGenerationServiceV2AddPage() {
     setShowInstallPrompt(false);
   };
 
-  // "Add To Rotary Org" (post-save dialog): close synchronously, then hand the
-  // saved project to the extension. The deferred trigger guarantees the dialog is
-  // unmounted (body pointer-events restored) before the extension's in-page UI shows.
-  const handleAddToOrgConfirm = async () => {
-    setShowAddToOrgPrompt(false);
-    const payload = await buildOrgExport();
-    const id = savedProjectIdRef.current;
-    setTimeout(() => triggerAddToOrg(id, payload, clubId), 0);
-  };
-  // "Cancel" (post-save dialog): project is already saved → go to the club's
-  // Service Projects & Public Image dashboard.
-  const handleAddToOrgCancel = () => {
-    setShowAddToOrgPrompt(false);
-    router.push("/club-admin-dashboard/service-projects-and-public-image");
-  };
-
   // ── Funding classifier — drives conditional Global Grant / CSR field block ──
   const classifyFunding = (name?: string | null): "global_grant" | "csr" | "" => {
     if (!name) return "";
@@ -241,18 +207,6 @@ export default function NewGenerationServiceV2AddPage() {
     if (n.includes("global grant")) return "global_grant";
     if (n === "csr" || n.startsWith("csr ") || n.includes(" csr") || n.includes("(csr)")) return "csr";
     return "";
-  };
-  // 5-way funding class for the Add-to-Org extension export (broader than
-  // classifyFunding above, which only drives the conditional UI). Mirrors the
-  // extension's FundingClass enum so the extension can map to the right SPC grant path.
-  const classifyFundingClass = (name?: string | null): FundingClass => {
-    const n = (name || "").trim().toLowerCase();
-    if (!n) return "";
-    if (n.includes("global grant")) return "global_grant";
-    if (n.includes("district grant")) return "district_grant";
-    if (n === "csr" || n.startsWith("csr ") || n.includes(" csr") || n.includes("(csr)")) return "csr";
-    if (n.includes("self funded") || n === "self" || n.includes("self-funded")) return "self";
-    return "other";
   };
   const selectedFundingName = fundingList.find((f) => String(f.id) === selectedFundingId)?.name ?? "";
   const fundingClass = classifyFunding(selectedFundingName);
@@ -271,7 +225,6 @@ export default function NewGenerationServiceV2AddPage() {
   const onlyDigits = (v: string) => v.replace(/\D/g, "");
 
   const isOthersAof = selectedAofId === "others";
-  const isOthersCat = selectedCatId === "others";
 
   useEffect(() => {
     async function init() {
@@ -288,10 +241,6 @@ export default function NewGenerationServiceV2AddPage() {
           setAreasOfFocus(aof.filter((a) => a.isActive));
         }
         setFundingList(funding.filter((f) => f.isActive));
-        checkClubHasModerator(clubId).then((r) => {
-          setHasModerator(r.hasModerator);
-          setModeratorName(r.moderatorName);
-        }).catch(() => {});
       } catch (err: unknown) {
         const e = err as { response?: { data?: { message?: string } } };
         setErrorMessage(e?.response?.data?.message || "Failed to initialize.");
@@ -302,27 +251,9 @@ export default function NewGenerationServiceV2AddPage() {
     init();
   }, [clubId]);
 
-  // Fetch "Sub Category" (= categories) when "Category" (= area of focus) changes
-  useEffect(() => {
-    if (!selectedAofId || selectedAofId === "others") {
-      setCategories([]);
-      setSelectedCatId("");
-      return;
-    }
-    async function fetchCats() {
-      try {
-        const cats = await getCategories(Number(selectedAofId));
-        setCategories(cats.filter((c) => c.isActive));
-      } catch { setCategories([]); }
-    }
-    fetchCats();
-  }, [selectedAofId]);
-
-  // One pick (smart-search result or AI suggestion) sets both classification ids. This avenue is
-  // 2-level (Category → Sub Category, mapped to areaOfFocusId → categoryId); there is no third level.
+  // One pick (smart-search result or AI suggestion) sets the "Category" (= areaOfFocusId).
   const applyClassification = (r: ClassificationSearchResult) => {
     setSelectedAofId(String(r.areaOfFocusId));
-    setSelectedCatId(r.categoryId ? String(r.categoryId) : "");
   };
 
   // Carry-over draft for a cross-module "switch": everything this form has filled so far. The target
@@ -373,7 +304,6 @@ export default function NewGenerationServiceV2AddPage() {
         })));
     }
     setSelectedAofId(String(draft.suggested.areaOfFocusId));
-    setSelectedCatId(draft.suggested.categoryId ? String(draft.suggested.categoryId) : "");
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handlePhotoSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -437,8 +367,6 @@ export default function NewGenerationServiceV2AddPage() {
     if (!location.trim()) return "Location is required.";
     if (!selectedAofId) return "Category is required.";
     if (isOthersAof && !otherAreaOfFocus.trim()) return "Please specify the Category.";
-    if (!isOthersAof && categories.length > 0 && !selectedCatId) return "Sub Category is required.";
-    if (isOthersCat && !otherCategory.trim()) return "Please specify the Sub Category.";
     if (!projectDate) return "Date is required.";
     if (new Date(projectDate) > new Date()) return "Date cannot be in the future.";
     if (!projectCost) return "Project Cost is required.";
@@ -466,12 +394,6 @@ export default function NewGenerationServiceV2AddPage() {
     const err = validate();
     if (err) { setErrorMessage(err); return; }
 
-    if (hasModerator && !moderatorConfirmedRef.current) {
-      setShowModeratorConfirm(true);
-      return;
-    }
-    moderatorConfirmedRef.current = false;
-
     const photoInputs: ProjectPhotoInput[] = photos.map((p, i) => ({
       imagePath: p.imagePath,
       description: p.description || null,
@@ -488,8 +410,6 @@ export default function NewGenerationServiceV2AddPage() {
       location: location.trim() || null,
       areaOfFocusId: isOthersAof ? null : (selectedAofId ? Number(selectedAofId) : null),
       otherAreaOfFocus: isOthersAof ? otherAreaOfFocus : null,
-      categoryId: isOthersCat ? null : (selectedCatId ? Number(selectedCatId) : null),
-      otherCategory: isOthersCat ? otherCategory : null,
       projectDate,
       projectCost: projectCost ? Number(projectCost) : null,
       currency,
@@ -513,18 +433,8 @@ export default function NewGenerationServiceV2AddPage() {
     setSaving(true);
     try {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const result = await createProject(clubId, saveData as any);
-      // RI Flow-Bot: after a moderator-approval save on the test club, offer to
-      // also add the project to Rotary Org — but ONLY when the extension is present
-      // (non-moderator clubs just save; the prompt never appears for them).
-      if (isBotEnabled && hasModerator && installed === true) {
-        savedProjectIdRef.current = result?.id ?? null;
-        setShowAddToOrgPrompt(true);
-      } else {
-        // Return to the page the user came from immediately on save/submit-for-approval
-        // (no blocking success modal).
-        navigateAfterSave();
-      }
+      await createProject(clubId, saveData as any);
+      navigateAfterSave();
     } catch (err: unknown) {
       const e = err as { response?: { data?: { message?: string } } };
       setErrorMessage(e?.response?.data?.message || "Failed to create project.");
@@ -532,51 +442,6 @@ export default function NewGenerationServiceV2AddPage() {
       setSaving(false);
     }
   };
-
-  // Build the project export the Add-to-Org extension consumes (resolved names +
-  // full photo URLs). This avenue has a 2-level classification (Category →
-  // Sub Category, mapped to areaOfFocusId → categoryId); there is no third level.
-  const buildOrgExport = async (): Promise<OrgExport> => ({
-    title: title.trim(),
-    description: description.trim(),
-    meta: { avenue: "New Generation Service" },
-    classification: {
-      areaOfFocus: isOthersAof
-        ? otherAreaOfFocus
-        : (areasOfFocus.find((a) => String(a.id) === selectedAofId)?.name || ""),
-      category: isOthersCat
-        ? otherCategory
-        : (categories.find((c) => String(c.id) === selectedCatId)?.name || ""),
-      subCategory: "",
-    },
-    locationText: location.trim(),
-    dateOfProject: projectDate,
-    projectType: "One Time Project",
-    projectCostINR: projectCost ? Number(projectCost) : 0,
-    funding: selectedFundingName,
-    financial: {
-      fundingClass: classifyFundingClass(selectedFundingName),
-      globalGrantNumber: showGlobalGrantBlock ? (globalGrantNumber.trim() || null) : null,
-      amountSanctionedINR: (showGlobalGrantBlock || showCsrBlock) && amountSanctioned ? Number(amountSanctioned) : null,
-      amountReceivedINR: (showGlobalGrantBlock || showCsrBlock) && amountReceived ? Number(amountReceived) : null,
-      amountSpentINR: showGlobalGrantBlock && amountSpent ? Number(amountSpent) : null,
-      hostClubsDistricts: showGlobalGrantBlock ? (hostClubsDistricts.trim() || null) : null,
-      globalPartnerClubsDistricts: showGlobalGrantBlock ? (globalPartnerClubsDistricts.trim() || null) : null,
-      csrCompanyName: showCsrBlock ? (csrCompanyName.trim() || null) : null,
-    },
-    directBeneficiaries: Number(directBeneficiaries) || 0,
-    manHours: Number(manHours) || 0,
-    rotariansInvolved: Number(rotariansInvolved) || 0,
-    rotaractorsInvolved: Number(rotaractorsInvolved) || 0,
-    rccInvolved: Number(rccInvolved) || 0,
-    photos: await Promise.all(photos.map(async (p) => ({
-      // Embed the in-memory file bytes as a data: URL. The stored imagePath points at
-      // /tempdocument/, which the backend MOVES on save (→ 404), so a URL here is stale.
-      url: p.file ? await fileToDataUrl(p.file) : `${ADD_TO_ORG_API_URL}${p.imagePath}`,
-      isPrimary: p.isPrimary,
-      caption: p.description || "",
-    }))),
-  });
 
   if (loading) {
     return (
@@ -664,7 +529,7 @@ export default function NewGenerationServiceV2AddPage() {
             title={title}
             description={description}
             onApply={applyClassification}
-            selectedSubCatId={selectedCatId}
+            selectedAreaId={selectedAofId}
             enableCrossModule
             buildSwitchDraft={buildSwitchDraft}
             unlocked={classUnlocked}
@@ -675,7 +540,7 @@ export default function NewGenerationServiceV2AddPage() {
               <FieldLabel dot="bg-violet-500">Category</FieldLabel>
               <select
                 value={selectedAofId}
-                onChange={(e) => { setSelectedAofId(e.target.value); setSelectedCatId(""); }}
+                onChange={(e) => setSelectedAofId(e.target.value)}
                 className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-violet-500"
               >
                 <option value="">Select</option>
@@ -692,36 +557,6 @@ export default function NewGenerationServiceV2AddPage() {
                   value={otherAreaOfFocus}
                   onChange={(e) => setOtherAreaOfFocus(e.target.value)}
                   placeholder="Specify category"
-                  className="w-full mt-2 px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500"
-                />
-              )}
-            </div>
-            <div>
-              {categories.length > 0 ? (
-                <FieldLabel dot="bg-violet-500">Sub Category</FieldLabel>
-              ) : (
-                <FieldLabel dot="bg-violet-500" required={false}>Sub Category</FieldLabel>
-              )}
-              <select
-                value={selectedCatId}
-                onChange={(e) => setSelectedCatId(e.target.value)}
-                disabled={isOthersAof || categories.length === 0}
-                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-violet-500 disabled:bg-slate-50 disabled:text-slate-400"
-              >
-                <option value="">{isOthersAof ? "N/A" : "Select"}</option>
-                {categories.map((c) => (
-                  <option key={c.id} value={String(c.id)}>{c.name}</option>
-                ))}
-                {categories.length > 0 && !categories.some((c) => (c.name || "").trim().toLowerCase() === "others") && (
-                  <option value="others">Others</option>
-                )}
-              </select>
-              {isOthersCat && (
-                <input
-                  type="text"
-                  value={otherCategory}
-                  onChange={(e) => setOtherCategory(e.target.value)}
-                  placeholder="Specify sub category"
                   className="w-full mt-2 px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500"
                 />
               )}
@@ -998,11 +833,6 @@ export default function NewGenerationServiceV2AddPage() {
             <span className="text-sm font-medium text-slate-700">Send Email notification</span>
             {sendEmail && <RecipientBadge scope="club" clubId={clubId} />}
           </label>
-          {sendEmail && hasModerator && (
-            <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded px-3 py-2 mt-2">
-              Note: This project will go for approval to moderator. Email will be sent after moderator approves.
-            </p>
-          )}
         </SectionCard>
 
         {/* Project Success Dialog */}
@@ -1020,35 +850,6 @@ export default function NewGenerationServiceV2AddPage() {
             <Button className="w-full" onClick={() => { setShowProjectSuccess(false); navigateAfterSave(); }}>OK</Button>
           </DialogContent>
         </Dialog>
-
-        {/* Moderator Approval Confirmation */}
-        <Dialog open={showModeratorConfirm} onOpenChange={setShowModeratorConfirm}>
-          <DialogContent className="sm:max-w-md">
-            <DialogHeader>
-              <DialogTitle>Project Approval Required</DialogTitle>
-              <DialogDescription className="sr-only">Moderator approval confirmation</DialogDescription>
-            </DialogHeader>
-            <div className="space-y-3">
-              <p className="text-sm text-muted-foreground">
-                This club has a moderator <strong>{moderatorName}</strong> assigned. Your project will be submitted for approval and will be visible only after the moderator approves it.
-              </p>
-              <p className="text-sm text-muted-foreground">Do you want to continue?</p>
-            </div>
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setShowModeratorConfirm(false)}>Cancel</Button>
-              <Button onClick={() => { moderatorConfirmedRef.current = true; setShowModeratorConfirm(false); handleSave(); }}>
-                Submit for Approval
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-
-        {/* RI Flow-Bot (test club only): install prompt + post-save "Add To Rotary Org" */}
-        {isBotEnabled && (
-          <>
-            <AddToOrgConfirmDialog open={showAddToOrgPrompt} onCancel={handleAddToOrgCancel} onConfirm={handleAddToOrgConfirm} />
-          </>
-        )}
 
         <ImageCropDialog
           open={photoCrop.open}

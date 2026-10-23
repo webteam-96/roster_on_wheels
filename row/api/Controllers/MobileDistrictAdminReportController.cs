@@ -70,30 +70,6 @@ public class MobileDistrictAdminReportController : ControllerBase
         return await Web().GetReport(districtId, yearId, EffectiveAgScope(agMemberId));
     }
 
-    [HttpGet("data-collection/all-members")]
-    public async Task<ActionResult> DataCollectionAllMembers([FromQuery] int districtId, [FromQuery] int yearId, [FromQuery] int? clubId = null, [FromQuery] int? agMemberId = null)
-    {
-        if (!CanRead()) return Denied();
-        if (districtId <= 0) return BadRequest(new { message = "districtId is required." });
-        return await Web().DataCollectionAllMembers(districtId, yearId, clubId, EffectiveAgScope(agMemberId));
-    }
-
-    [HttpGet("data-collection/bod")]
-    public async Task<ActionResult> DataCollectionBod([FromQuery] int districtId, [FromQuery] int yearId, [FromQuery] int? clubId = null, [FromQuery] int? agMemberId = null)
-    {
-        if (!CanRead()) return Denied();
-        if (districtId <= 0) return BadRequest(new { message = "districtId is required." });
-        return await Web().DataCollectionBod(districtId, yearId, clubId, EffectiveAgScope(agMemberId));
-    }
-
-    [HttpGet("data-collection/dc")]
-    public async Task<ActionResult> DataCollectionDc([FromQuery] int districtId, [FromQuery] int yearId, [FromQuery] int? agMemberId = null)
-    {
-        if (!CanRead()) return Denied();
-        if (districtId <= 0) return BadRequest(new { message = "districtId is required." });
-        return await Web().DataCollectionDc(districtId, yearId, EffectiveAgScope(agMemberId));
-    }
-
     [HttpGet("ocv-gov")]
     public async Task<ActionResult> GetOcvGovReport([FromQuery] int districtId, [FromQuery] int yearId, [FromQuery] int? clubId = null, [FromQuery] int? agMemberId = null)
     {

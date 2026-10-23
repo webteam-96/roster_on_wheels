@@ -20,42 +20,6 @@ public static class FeatureGate
 
     public static readonly Feature[] All =
     {
-        new("club_moderation", "Club moderator dashboard and project approval", Kind.Skipped,
-            new[] { @"^/api/project-approval(/|$)", @"^/api/(mobile/)?club-moderator(/|$)" },
-            new[] { @"^/club-moderator(/|$)" }),
-        new("ri_director", "RI Director dashboard and reports", Kind.Skipped,
-            new[] { @"^/api/(mobile/)?ri-director(/|$)" },
-            new[] { @"^/ri-director(/|$)" }),
-        new("zonal_dashboard", "Zonal dashboard and zone reports", Kind.Skipped,
-            new[] { @"^/api/(mobile/)?zonal-dashboard(/|$)" },
-            new[] { @"^/zonal-dashboard(/|$)" }),
-        new("zonal_awards", "Zonal awards", Kind.Skipped,
-            new[] { @"^/api/(mobile/)?zonal-awards(/|$)", @"^/api/districts/\d+/zonal-awards(/|$)", @"^/api/zones/\d+/zone-awards(/|$)", @"/toggle-zonal-awards$" },
-            new[] { @"/zonal-awards(/|$)" }),
-        new("goal_lock", "District goal lock / unlock", Kind.Skipped,
-            new[] { @"^/api/(mobile/)?goal-setting/districts/\d+/(lock|unlock)$" },
-            Array.Empty<string>()),
-        new("goal_setting_roles", "Goal setting roles", Kind.Skipped,
-            new[] { @"write:^/api/(mobile/)?goal-setting/role-assignments(/|$)" },
-            new[] { @"^/settings/goal-setting-roles(/|$)" }),
-        new("directory_data_collection", "Directory data collection", Kind.Skipped,
-            new[] { @"^/api/admin/directory-config(/|$)" },
-            new[] { @"^/settings/directory-data-collection(/|$)" }),
-        new("direct_beneficiaries", "Direct beneficiary limit and approvals", Kind.Skipped,
-            // the project forms read the limit and ask for approval above it: a 404 reads as "no limit"
-            new[] { @"^/api/beneficiary-approval(/|$)", @"^/api/system-settings/direct_beneficiaries_limit$", @"^/api/zones/\d+/direct-beneficiar" },
-            new[] { @"^/settings/direct-beneficiaries-limit(/|$)", @"^/zones/[^/]+/direct-beneficiaries(/|$)" }),
-        new("pph_camps", "PPH camps", Kind.Skipped,
-            new[] { @"/pph-(camps|attendees)(/|$)" },
-            new[] { @"/pph-camps(/|$)" }),
-        new("category_masters", "Categories and sub-categories masters", Kind.Skipped,
-            // project forms still read categories, only editing the masters is skipped
-            new[] { @"write:^/api/(sub-)?categories(/|$)" },
-            new[] { @"^/settings/categories(/|$)" }),
-        new("marketplace", "Market place", Kind.Skipped,
-            new[] { @"^/api/(mobile/)?club-admin-dashboard/dashboard-marketplace(/|$)" },
-            new[] { @"/marketplace(/|$)" }),
-
         new("ocv", "OCV / Governor visit", Kind.Flagged,
             new[] { @"^/api/clubs/\d+/ocv-gov(/|$)", @"/ocv-documents(/|$)", @"^/api/public/ocv-live-documents(/|$)", @"/district-report/ocv-gov(/|$)" },
             new[] { @"/ocv-gov(/|$)" }),
@@ -75,13 +39,58 @@ public static class FeatureGate
         new("club_monthly_report", "Club monthly report", Kind.Flagged,
             new[] { @"/(club-)?monthly-reports?(/|$)" },
             new[] { @"/club-monthly-report(/|$)" }),
+        // Build spec 3.12. The duplicate check on member add / edit / import is not gated: it refines an existing refusal.
+        new("membership_fields", "Foundation designations and committee documents", Kind.Flagged,
+            new[] { @"/foundation-designations(/|$)", @"^/api/districts/\d+/committee/documents(/|$)" },
+            new[] { @"/foundation-designations(/|$)" }),
+        // Build list #26-#28. The milestone job and the app feed (MobileNotificationFeedService) check the flag too.
+        new("engagement", "Engagement: milestones, PHF highlights, spotlight cards", Kind.Flagged,
+            new[] { @"^/api/(clubs|districts)/\d+/engagement(/|$)", @"^/api/engagement(/|$)" },
+            new[] { @"/engagement(/|$)" }),
+        new("grants", "Grants (district grant cycles and club applications)", Kind.Flagged,
+            new[] { @"^/api/(clubs|districts)/\d+/grants(/|$)" },
+            new[] { @"/grants(/|$)" }),
+        new("volunteers", "Volunteers and speakers (sign-up sheets, speakers, meeting duties)", Kind.Flagged,
+            new[] { @"^/api/clubs/\d+/(volunteer-sheets|speakers|meeting-duties)(/|$)", @"^/api/mobile/(volunteers|meeting-duties)(/|$)",
+                    @"^/api/public/volunteers(/|$)", @"^/api/public/club/\d+/speakers(/|$)" },
+            new[] { @"/volunteers(/|$)", @"/speakers(/|$)", @"^/public/volunteer(/|$)" }),
+        // N3 (2026-10-23). The existing potential-members list/add/edit stay on; the new parts switch with this.
+        new("contacts_growth", "Contacts, prospect pipeline, join form, invite prompts and growth", Kind.Flagged,
+            new[]
+            {
+                @"^/api/(clubs|districts)/\d+/(contacts|contact-groups)(/|$)",
+                @"^/api/clubs/\d+/potential-members/\d+/convert$",
+                @"^/api/(clubs|districts)/\d+/growth(/|$)",
+                @"^/api/clubs/\d+/invite-(prompts|link)(/|$)",
+                @"^/api/public/(join|invite)(/|$)",
+            },
+            new[] { @"^/(club|district)-admin-dashboard/contacts(/|$)" }),
+        // N10 (2026-10-23): read-only target against actual per club and district; targets come from goal setting and N3.
+        new("target_dashboard", "Live target dashboard", Kind.Flagged,
+            new[] { @"^/api/(clubs|districts)/\d+/targets(/|$)" },
+            new[] { @"^/(club|district)-admin-dashboard/targets(/|$)", @"^/ag-dashboard/targets(/|$)" }),
+        // the pasted join link on meetings is ROW Wave 1 and stays open; reminders also check this switch
+        new(MeetingsService.FeatureKey, "Meetings: calendar feeds, reminders, compliance", Kind.Flagged,
+            new[] { @"/calendar-feed(/|$)", @"^/api/public/calendar/", @"/meeting-compliance(/|$)" },
+            new[] { @"/meeting-compliance(/|$)" }),
+        // the unsubscribe link and the Brevo webhook stay open: links in inboxes must keep working, the webhook has its secret.
+        // Sends also check this switch (ClubMassEmailService, GreetingsWorker, meeting reminders).
+        new(CommsService.FeatureKey, "Communication: templates per language, sender domains, tracking, consent, allowances", Kind.Flagged,
+            new[] { @"^/api/(clubs|districts)/\d+/comms(/|$)", @"^/api/mobile/comms(/|$)" },
+            new[] { @"/comms-settings(/|$)" }),
+        // off: the public sites get a 404 from the public route and show their default language only
+        new("website_languages", "Multilingual websites", Kind.Flagged,
+            new[] { @"^/api/(clubs|districts)/\d+/website-languages(/|$)", @"^/api/public/website-languages(/|$)" },
+            new[] { @"/website-data/languages(/|$)", @"/my-district-website/languages(/|$)" }),
+        // off: every chat route and the hub (/api/chat/hub) answer 404, so the app hides chat
+        new("chat", "Chat", Kind.Flagged,
+            new[] { @"^/api/chat(/|$)", @"^/api/(clubs|districts)/\d+/chat-moderation(/|$)" },
+            new[] { @"/chat-moderation(/|$)" }),
     };
 
     private static readonly (Feature F, Regex Re, bool WritesOnly)[] Rules = All
         .SelectMany(f => f.Api.Select(p => (f, new Regex(p.StartsWith("write:") ? p[6..] : p, RegexOptions.IgnoreCase | RegexOptions.Compiled), p.StartsWith("write:"))))
         .ToArray();
-
-    public static bool IsSkipped(string key) => All.Any(f => f.Key == key && f.Kind == Kind.Skipped);
 
     /// <summary>The feature that blocks this request, or null.</summary>
     public static Feature? Match(string path, string method)
@@ -109,6 +118,10 @@ public static class FeatureGate
 
     public static async Task<bool> IsOffAsync(Feature f, string connectionString)
         => f.Kind == Kind.Skipped || !(await OnAsync(connectionString)).Contains(f.Key);
+
+    /// <summary>For code outside a gated route (background jobs, shared services): is this flagged module on?</summary>
+    public static async Task<bool> IsOnAsync(string key, string connectionString)
+        => All.Any(f => f.Key == key && f.Kind == Kind.Flagged) && (await OnAsync(connectionString)).Contains(key);
 }
 
 /// <summary>Answers 404 for requests to a skipped module or to a flagged module that is switched off.</summary>

@@ -10,7 +10,7 @@ namespace RotaryApi.Services;
 /// zone are active (IsActive = 1, isdeleted = 0). A club drill-down is reachable
 /// only when the club, its district, and its zone are all active.
 ///
-/// SuperAdmin and RIDirector are exempt at LOGIN, but for management/drill-down
+/// SuperAdmin is exempt at LOGIN, but for management/drill-down
 /// every role follows this chain rule. Only the master Edit/Update endpoints in
 /// ZonesController / DistrictsController / ClubsController bypass these helpers
 /// so SA can flip IsActive back on.

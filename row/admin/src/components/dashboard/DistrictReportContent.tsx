@@ -26,7 +26,7 @@ import DistrictGoalReports from "@/components/dashboard/DistrictGoalReports";
 import {
   getDistrictReport, getDistrictReportAvailableYears, getCitationMatrix,
   getDistrictAvenueOfServiceAllClubs, getDistrictAvenueOfServiceClubCount,
-  getDistrictDcAllMembers, getDistrictDcBod, getDistrictDcDc, getDistrictClubOfficersRi,
+  getDistrictClubOfficersRi,
   getRotaryYears, downloadOcvReportExcel, downloadOcvReportWord, downloadClubAnalyticsDistrict,
   getDistrictAdminRotaryNetwork, getPotentialMembers,
 } from "@/services/api";
@@ -41,20 +41,20 @@ import SuccessAlert from "@/components/SuccessAlert";
 import {
   Calendar, Download, BarChart3, Users, Megaphone, CalendarClock, Newspaper, FileText,
   CheckSquare, Award, UserCircle, IndianRupee, Building2, Crown, UserCog, Shield, Trophy,
-  ClipboardList, Star, Tent, Mail, Link2, MessageCircle, FileSpreadsheet, Loader2,
+  ClipboardList, Star, Mail, Link2, MessageCircle, FileSpreadsheet, Loader2,
 } from "@/components/icons";
 import Link from "next/link";
 import RotaryLoader from "@/components/RotaryLoader";
 
 import { appLocale } from "@/lib/appFormat";
-// RI Director "All Districts" mode. Fetches one report per district in the zone
+// Multi-district ("All Districts") mode. Fetches one report per district in the zone
 // and concatenates every section array into a single payload so the existing
 // per-section Download buttons emit ONE combined file (all districts, all clubs).
 // Each row is stamped with its source districtNumber so the origin isn't lost.
 // Only used when the caller passes districtIds; single-district reports never hit this.
 const MERGE_ARRAY_KEYS = [
   "bod", "members", "appUsers", "attendance", "clubMonthlyProjectDetails",
-  "monthlyReportSubmissions", "trf", "pphCampAttendees", "pphCamps",
+  "monthlyReportSubmissions", "trf",
   "nonRiSyncedClubs", "riSyncedClubs", "events", "newsletters", "announcements",
   "documents", "districtProjects", "agAllocation", "committeeMain",
   "committeeGroup", "committeeSubGroup", "clubList",
@@ -71,7 +71,7 @@ function mergeDistrictReports(reports: any[]): any | null {
   const list = (reports || []).filter(Boolean);
   if (list.length === 0) return null;
   if (list.length === 1) return list[0];
-  const merged: any = { district: { districtNumber: "All Districts", zoneName: "" }, projectsByModule: {}, dataCollection: null };
+  const merged: any = { district: { districtNumber: "All Districts", zoneName: "" }, projectsByModule: {} };
   for (const k of MERGE_ARRAY_KEYS) merged[k] = [];
   for (const r of list) {
     const dn = r?.district?.districtNumber ?? "";
@@ -87,12 +87,11 @@ function mergeDistrictReports(reports: any[]): any | null {
       const rows = Array.isArray(pbm[mk]) ? pbm[mk] : [];
       for (const row of rows) merged.projectsByModule[mk].push(stampGeo(row, dn, zn));
     }
-    if (!merged.dataCollection && r?.dataCollection) merged.dataCollection = r.dataCollection;
   }
   return merged;
 }
 
-// Single-district RI Director view: stamp every section row with the one district's
+// Geo-columns view: stamp every section row with the one district's
 // zone + district so the injected Zone / District columns are populated.
 function stampGeoSingle(report: any): any {
   if (!report) return report;
@@ -158,76 +157,9 @@ function ReportSection({ title, icon: Icon, count, onExport }: { title: string; 
   );
 }
 
-// Data Collection row with an inline Club dropdown + lazy-load fetch.
-// Used only on the DISTRICT report (not the club-level v2) for All Members + BOD.
-// Filters rows client-side after first fetch (cached) so switching clubs and
-// re-downloading doesn't hit the API again.
-function DataCollectionFilterRow({
-  title, icon, clubs, defaultFile, fetchFn, columns, onExport,
-}: {
-  title: string;
-  icon: React.ElementType;
-  clubs: { clubId: number; clubName: string }[];
-  defaultFile: string;
-  /** Receives clubId when a specific club is selected, undefined for "All Clubs". */
-  fetchFn: (clubId?: number) => Promise<any[]>;
-  columns: { key: string; label: string; width?: number; greenWhen100Percent?: boolean }[];
-  onExport: (rows: any[], baseFile: string, label: string, columns: any[]) => void;
-}) {
-  const [clubId, setClubId] = useState<string>("all");
-  const [busy, setBusy] = useState(false);
-  const Icon = icon;
-  const handleClick = async () => {
-    if (busy) return;
-    setBusy(true);
-    try {
-      // Pass clubId straight to backend so the query is narrowed at the SQL
-      // level — avoids fetching the full district when only one club is wanted.
-      const scopedClubId = clubId === "all" ? undefined : Number(clubId);
-      const rows = await fetchFn(scopedClubId);
-      const targetClubName = clubs.find((c) => String(c.clubId) === clubId)?.clubName;
-      const base = targetClubName && clubId !== "all"
-        ? `${targetClubName.replace(/\s+/g, "_")}_${defaultFile}`
-        : defaultFile;
-      onExport(rows || [], base, title, columns);
-    } finally { setBusy(false); }
-  };
-  return (
-    <Card>
-      <CardContent className="p-4 flex items-center justify-between gap-3">
-        <div className="flex items-center gap-3 min-w-0">
-          <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-            <Icon className="h-5 w-5 text-primary" />
-          </div>
-          <div className="min-w-0">
-            <p className="font-medium truncate">{title}</p>
-            <p className="text-xs text-muted-foreground">{clubId === "all" ? "All clubs" : clubs.find((c) => String(c.clubId) === clubId)?.clubName || ""}</p>
-          </div>
-        </div>
-        <div className="flex items-center gap-2">
-          <Select value={clubId} onValueChange={setClubId}>
-            <SelectTrigger className="w-40 h-8 text-xs"><SelectValue placeholder="All Clubs" /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Clubs</SelectItem>
-              {clubs.map((c) => <SelectItem key={c.clubId} value={String(c.clubId)}>{c.clubName}</SelectItem>)}
-            </SelectContent>
-          </Select>
-          <Button variant="outline" size="sm" onClick={handleClick} disabled={busy}>
-            {busy ? (
-              <span className="inline-flex items-center gap-2"><RotaryLoader size="sm" />Loading…</span>
-            ) : (
-              <><Download className="mr-2 h-3 w-3" />Download</>
-            )}
-          </Button>
-        </div>
-      </CardContent>
-    </Card>
-  );
-}
-
 // Rotary Network download row (Terminated / Potential members) — inline club dropdown
 // ("All" + each club) that FETCHES the rows on demand, then exports. Mirrors
-// DataCollectionFilterRow but with the exact "All" label the spec asks for.
+// the club rows above, with the exact "All" label the spec asks for.
 function NetworkDownloadRow({
   title, icon, clubs, defaultFile, fetchFn, columns, onExport,
 }: {
@@ -331,7 +263,7 @@ function ClubFilterRow({
   renderNote?: (filtered: any[]) => React.ReactNode;
   /** Optional summary line written into the Excel header (e.g. Not Downloaded / Android / iOS totals). */
   summaryText?: (filtered: any[]) => string;
-  /** RI Director "All Districts" view: drop the per-club dropdown; always download every club. */
+  /** Multi-district ("All Districts") mode: drop the per-club dropdown; always download every club. */
   hideClub?: boolean;
 }) {
   const [clubId, setClubId] = useState<string>("all");
@@ -497,9 +429,9 @@ function ClubMonthlyProjectDetailsRow({
   yearLabel: string;
   districtNumber: string;
   isCurrentYear: boolean;
-  /** RI Director "All Districts" view: drop the per-club dropdown; always all clubs. */
+  /** Multi-district ("All Districts") mode: drop the per-club dropdown; always all clubs. */
   hideClub?: boolean;
-  /** RI Director view: prepend Zone + District Number lead columns. */
+  /** Geo-columns view: prepend Zone + District Number lead columns. */
   showGeo?: boolean;
 }) {
   const isAgMode = mode === "ag";
@@ -985,7 +917,7 @@ function BodMultiFilterRow({
   defaultFile: string;
   baseColumns: { key: string; label: string; width?: number; hyperlink?: boolean; linkText?: string; index?: boolean; format?: (v: any, r: any) => string }[];
   onDownload: (rows: any[], filenameBase: string, label: string, columns: typeof baseColumns) => void;
-  /** RI Director "All Districts" view: drop the per-club dropdown (keep the designation filter). */
+  /** Multi-district ("All Districts") mode: drop the per-club dropdown (keep the designation filter). */
   hideClub?: boolean;
 }) {
   const [clubId, setClubId] = useState<string>("all");
@@ -1055,7 +987,7 @@ function AwardsClubFilterRow({
   selectedYearId: string;
   compact?: boolean;
   onEmpty?: (msg: string) => void;
-  /** RI Director single-district view: drop the per-club dropdown; always all clubs. */
+  /** Geo-columns view: drop the per-club dropdown; always all clubs. */
   hideClub?: boolean;
 }) {
   const [clubId, setClubId] = useState<string>("all");
@@ -1217,11 +1149,11 @@ export default function DistrictReportContent({ districtId, initialYearId, servi
   // AG, so its AG dropdown would list only them. Hidden rather than left as a no-op.
   const isAgReport = !!agMemberId && agMemberId > 0;
   const showBloodGroup = useFeature("member.bloodGroup");
-  // RI Director "All Districts" mode — fetch + merge every district in the zone.
+  // Multi-district ("All Districts") mode — fetch + merge every district in the zone.
   const isMulti = Array.isArray(districtIds) && districtIds.length > 0;
   const effectiveDistrictId = districtId ?? 0;
   // "(AG Wise)" report rows: hidden on an AG report (redundant) and when the caller
-  // asks to hide AG-wise reports (RI Director). District-level rows keep using !isAgReport.
+  // asks to hide AG-wise reports (hideAgReports). District-level rows keep using !isAgReport.
   const showAgRows = !isAgReport && !hideAgReports;
   const searchParams = useSearchParams();
   const [years, setYears] = useState<any[]>([]);
@@ -1302,7 +1234,7 @@ export default function DistrictReportContent({ districtId, initialYearId, servi
     ? `AG_${agName.trim().replace(/\s+/g, "_")}`
     : `District_${districtNumber}`;
 
-  // RI Director view: every report should identify each row's Zone + District (rows
+  // Geo-columns view: every report should identify each row's Zone + District (rows
   // are pre-stamped with zoneName/districtNumber). Inject the two columns right after
   // the Sr.No column (or at the front), skipping any the report already carries so
   // Sync/Non-sync/Avenue-count rows keep their own District Number column.
@@ -1420,10 +1352,7 @@ export default function DistrictReportContent({ districtId, initialYearId, servi
     { key: "typeOfProject", label: "Type of Project", width: 18 },
     { key: "clubRole", label: "Club Role", width: 16 },
     { key: "coHostName", label: "Co-host", width: 18 },
-    // Area of Focus was missing - only Category / Sub Category showed (user 2026-10-07).
     { key: "areaOfFocus", label: "Area of Focus", width: 22 },
-    { key: "category", label: "Category", width: 20 },
-    { key: "subCategory", label: "Sub Category", width: 18 },
     { key: "projectDate", label: "Date", width: 14, format: ddmmyyyy },
     { key: "title", label: "Title", width: 28 },
     { key: "description", label: "Description", width: 36 },
@@ -1497,7 +1426,7 @@ export default function DistrictReportContent({ districtId, initialYearId, servi
               Count, AG-Wise variants). */}
 
           {!servicesOnly && <>
-            {/* ── MEMBERS subsection ── hidden when hideMembers (Zonal Coordinator report) ── */}
+            {/* ── MEMBERS subsection ── hidden when hideMembers ── */}
             {!hideMembers && (<>
             <SubsectionHeader title="Members" />
 
@@ -1638,7 +1567,7 @@ export default function DistrictReportContent({ districtId, initialYearId, servi
             )}
 
             {/* 3. Members (AG wise) — hidden on the AG report (redundant) and when
-                AG-wise reports are suppressed (RI Director). */}
+                AG-wise reports are suppressed (hideAgReports). */}
             {showAgRows && (
             <AgFilterRow
               title="Members (AG wise)"
@@ -1676,60 +1605,6 @@ export default function DistrictReportContent({ districtId, initialYearId, servi
             />
 
 
-            {/* 6–8. Data Collection reports — only when the district has an
-                active district_directory_config for the selected year. */}
-            {report.dataCollection && (
-              <>
-                <DataCollectionFilterRow
-                  title="Data Collection (All Members)"
-                  icon={Users}
-                  clubs={clubsDropdown}
-                  defaultFile="Data_Collection_All_Members"
-                  fetchFn={async (clubId) => {
-                    try { return await getDistrictDcAllMembers(effectiveDistrictId, Number(selectedYearId), clubId, agMemberId); }
-                    catch (err: any) { setErrorMessage(err?.response?.data?.message || err?.message || "Failed to load Data Collection (All Members)."); return []; }
-                  }}
-                  columns={report.dataCollection.columns.allMembers.map((c: any) => ({
-                    key: c.key, label: c.label, width: 18, master: c.master === true,
-                    greenWhen100Percent: c.key === "donePercent",
-                  }))}
-                  onExport={exportWithFilename}
-                />
-                <DataCollectionFilterRow
-                  title="Data Collection (BOD (Club President & Secretary))"
-                  icon={UserCircle}
-                  clubs={clubsDropdown}
-                  defaultFile="Data_Collection_President_and_Secretary"
-                  fetchFn={async (clubId) => {
-                    try { return await getDistrictDcBod(effectiveDistrictId, Number(selectedYearId), clubId, agMemberId); }
-                    catch (err: any) { setErrorMessage(err?.response?.data?.message || err?.message || "Failed to load Data Collection (BOD)."); return []; }
-                  }}
-                  columns={report.dataCollection.columns.bod.map((c: any) => ({
-                    key: c.key, label: c.label, width: 18, master: c.master === true,
-                    greenWhen100Percent: c.key === "donePercent",
-                  }))}
-                  onExport={exportWithFilename}
-                />
-                {/* No club dropdown here on purpose — the district committee is a single
-                    district-wide list, so this always downloads all of it. Covers all three
-                    levels (District Committee / Group / Sub-Group). */}
-                <ReportSection
-                  title="Data Collection (District Committee (DC))"
-                  icon={UserCircle}
-                  count={1}
-                  onExport={async () => {
-                    try {
-                      const rows = await getDistrictDcDc(effectiveDistrictId, Number(selectedYearId), agMemberId);
-                      exportSection(
-                        rows,
-                        "Data_Collection_District_Committee",
-                        report.dataCollection.columns.dc.map((c: any) => ({ key: c.key, label: c.label, width: 18, master: c.master === true })),
-                      );
-                    } catch (err: any) { setErrorMessage(err?.response?.data?.message || err?.message || "Failed to load Data Collection (DC)."); }
-                  }}
-                />
-              </>
-            )}
             </>)}
 
             {/* ── CLUBS subsection ──────────────────────────────────────── */}
@@ -1827,7 +1702,7 @@ export default function DistrictReportContent({ districtId, initialYearId, servi
             />
 
             {/* 8b. Club Monthly Report AG wise (Project Details) — hidden on the AG report
-                + when AG-wise reports are suppressed (RI Director). */}
+                + when AG-wise reports are suppressed (hideAgReports). */}
             {showAgRows && (
             <ClubMonthlyProjectDetailsRow
               mode="ag"
@@ -1932,62 +1807,6 @@ export default function DistrictReportContent({ districtId, initialYearId, servi
               onDownload={exportWithFilename}
             />
 
-            {/* 13. PPH Camp — shown BEFORE its attendees (see the camp first, then the
-                attendance list for that camp). */}
-            <ClubFilterRow
-              title="PPH Camp (All Clubs)"
-              icon={Tent}
-              rows={report.pphCamps || []}
-              clubs={clubsDropdown}
-              hideClub={hideClubFilter}
-              defaultFile="PPH_Camp"
-              baseColumns={[
-                { key: "clubName", label: "Club", width: 25 },
-                { key: "campDate", label: "Camp Date", width: 14 },
-                { key: "title", label: "Camp Name", width: 30 },
-                { key: "address", label: "Camp Address", width: 40 },
-                { key: "attendanceCount", label: "Total Attendees", width: 14 },
-              ]}
-              onDownload={exportWithFilename}
-            />
-
-            {/* 14. PPH Camp Attendees */}
-            <ClubFilterRow
-              title="PPH Camp Attendees (All Clubs)"
-              icon={Users}
-              rows={report.pphCampAttendees || []}
-              clubs={clubsDropdown}
-              hideClub={hideClubFilter}
-              defaultFile="PPH_Camp_Attendees"
-              baseColumns={[
-                { key: "clubName", label: "Club", width: 25 },
-                { key: "campDate", label: "Camp Date", width: 14, format: (v) => ddmmyyyy(v) },
-                { key: "campName", label: "Camp Name", width: 30 },
-                // One row per medical reading (camps in the selected Rotary year).
-                { key: "readingDate", label: "Reading Date", width: 14, format: (v) => ddmmyyyy(v) },
-                { key: "serialNumber", label: "Serial Number", width: 14 },
-                { key: "name", label: "Name", width: 25 },
-                { key: "mobileNumber", label: "Mobile Number", width: 16 },
-                { key: "address", label: "Address", width: 35 },
-                { key: "gender", label: "Gender", width: 10 },
-                { key: "approvalForSms", label: "Approval for SMS", width: 14 },
-                { key: "age", label: "Age", width: 8 },
-                { key: "bpSystolic", label: "BP (Systolic)", width: 12 },
-                { key: "bpDiastolic", label: "BP (Diastolic)", width: 12 },
-                { key: "fbs", label: "FBS mg/dl", width: 12 },
-                { key: "rbs", label: "RBS mg/dl", width: 12 },
-                { key: "height", label: "Height (Cms)", width: 12 },
-                { key: "weight", label: "Weight (kg)", width: 12 },
-                { key: "bmi", label: "BMI", width: 10 },
-                { key: "diabetes", label: "Diabetes", width: 22 },
-                { key: "highBloodPressure", label: "High Blood Pressure", width: 22 },
-                { key: "obese", label: "Obese", width: 10 },
-                { key: "overweight", label: "Overweight", width: 12 },
-                { key: "remarks", label: "Remarks", width: 30 },
-              ]}
-              onDownload={exportWithFilename}
-            />
-
             {/* 11. Non Synchronized Clubs (renamed from Non RI Synchronized Clubs) */}
             <ReportSection
               title="Non Synchronized Clubs"
@@ -2036,7 +1855,7 @@ export default function DistrictReportContent({ districtId, initialYearId, servi
                     : await getDistrictClubOfficersRi(effectiveDistrictId, Number(selectedYearId), undefined, agMemberId);
                   if (!rows || rows.length === 0) { setErrorMessage("No club officers found from Rotary.org for the selected year."); return; }
                   // On-demand rows aren't part of the stamped payload — attach Zone + District
-                  // by matching each officer row to its club (RI Director view only).
+                  // by matching each officer row to its club (geo-columns view only).
                   let officerRows = rows;
                   if (showGeoColumns) {
                     const geoById = new Map(clubsDropdown.map((c) => [Number(c.clubId), { districtNumber: c.districtNumber, zoneName: c.zoneName }]));
@@ -2137,8 +1956,6 @@ export default function DistrictReportContent({ districtId, initialYearId, servi
                 exportSection(report.districtProjects, "District_Projects", [
                   { key: "srNo", label: "Sr. No.", width: 8, index: true },
                   { key: "areaOfFocus", label: "Area of Focus", width: 22 },
-                  { key: "category", label: "Category", width: 18 },
-                  { key: "subCategory", label: "Sub Category", width: 18 },
                   { key: "projectDate", label: "Date", width: 14, format: ddmmyyyy },
                   { key: "title", label: "Title", width: 28 },
                   { key: "description", label: "Description", width: 40 },
@@ -2314,7 +2131,7 @@ export default function DistrictReportContent({ districtId, initialYearId, servi
             count={(report.committeeMain?.length || 0) + (report.committeeGroup?.length || 0) + (report.committeeSubGroup?.length || 0)}
             onExport={() => {
               const wb = XLSX.utils.book_new();
-              // RI Director view: lead every sheet with Zone + District Number (rows pre-stamped).
+              // Geo-columns view: lead every sheet with Zone + District Number (rows pre-stamped).
               const geoCols = showGeoColumns
                 ? [{ key: "zoneName", label: "Zone", width: 16 }, { key: "districtNumber", label: "District Number", width: 16 }]
                 : [];
@@ -2420,7 +2237,7 @@ export default function DistrictReportContent({ districtId, initialYearId, servi
 
           {/* 8. Governor's Official Visit (OCV/GOV) — Club Wise + AG Wise, all sub-modules.
               Club Wise needs a single club, so it's dropped when the per-club dropdown is
-              hidden (RI Director) or in "All Districts" mode. */}
+              hidden (hideClubFilter) or in "All Districts" mode. */}
           {!hideClubFilter && !isMulti && (
           <OcvReportRow
             mode="club"
@@ -2445,8 +2262,6 @@ export default function DistrictReportContent({ districtId, initialYearId, servi
           />
           )}
 
-          {/* Data Collection (All Members / BOD / DC) reports removed from the
-              District subsection per spec — they remain in the Members subsection. */}
           </>}
         </>
       )}

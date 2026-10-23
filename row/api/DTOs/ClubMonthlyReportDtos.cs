@@ -95,8 +95,6 @@ public class ReportProjectDto
     public int? ParentProjectId { get; set; }
     public string? ProjectDate { get; set; }
     public string? AreaOfFocusName { get; set; }
-    public string? CategoryName { get; set; }
-    public string? SubCategoryName { get; set; }
     public decimal? ProjectCost { get; set; }
     public int? DirectBeneficiaries { get; set; }
     public int? ManHours { get; set; }
@@ -177,8 +175,6 @@ public class CmrWordProjectDto
     public string? MeetingType { get; set; }
     public string? AreaOfFocusName { get; set; }
     public string? OtherAreaOfFocus { get; set; }
-    public string? CategoryName { get; set; }
-    public string? SubCategoryName { get; set; }
     public decimal? ProjectCost { get; set; }
     public string? FundingName { get; set; }
     public int? DirectBeneficiaries { get; set; }

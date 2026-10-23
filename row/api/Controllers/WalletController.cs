@@ -7,7 +7,7 @@ using RotaryApi.Services;
 
 namespace RotaryApi.Controllers;
 
-// Self-service wallet top-up: club/district admins buy WhatsApp/Email credits via Razorpay.
+// Self-service wallet top-up: club/district admins buy Email credits via Razorpay.
 [ApiController]
 [Route("api/wallet")]
 [Authorize]

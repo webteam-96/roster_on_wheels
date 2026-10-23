@@ -550,7 +550,7 @@ export default function ClubServiceAddPage() {
           </div>
         </Section>
 
-        {/* Email notification (Club Service is email-only) — no moderator approval, so it sends right after save. */}
+        {/* Email notification (Club Service is email-only): sends right after save. */}
         <div className="rounded-xl border p-4 mb-6">
           <label className="flex items-center gap-2.5 cursor-pointer select-none">
             <input type="checkbox" checked={sendEmail} onChange={(e) => setSendEmail(e.target.checked)} className="accent-blue-600 h-4 w-4" />

@@ -225,8 +225,7 @@ public class MobileClubAdminMembershipDuesController : ControllerBase
         return Ok(new { message = "Reminder email is being sent." });
     }
 
-    // Bulk reminders skip fully-paid members inside BulkSendReminderEmailAsync /
-    // BulkSendReminderWhatsAppAsync — only unpaid members get notified.
+    // Bulk reminders skip fully-paid members inside BulkSendReminderEmailAsync — only unpaid members get notified.
     [HttpPost("{id}/bulk-reminder-email")]
     public ActionResult BulkSendReminderEmail(int id, [FromBody] BulkDuesReminderDto? dto = null)
     {

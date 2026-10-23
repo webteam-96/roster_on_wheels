@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { Button } from "@/components/ui/button";
-import { AlertTriangle, ArrowLeft, Building2, Check, Download, Eye, FileBarChart, Globe2, Loader2, Mail, Printer } from "@/components/icons";
+import { AlertTriangle, ArrowLeft, Download, Eye, FileBarChart, Loader2, Mail, Printer } from "@/components/icons";
 import { fileTimestamp } from "@/lib/dateUtils";
 import {
   getDistrictPerformanceReportSettings,
@@ -12,10 +12,6 @@ import {
   getDistrictPerformanceReportView,
   downloadDistrictPerformanceReportExcel,
   sendDistrictPerformanceReportTest,
-  getZonePerformanceReportView,
-  downloadZonePerformanceReportExcel,
-  sendZonePerformanceReportTest,
-  type ZonePerformanceReportView,
   type PerformanceReportHighlight,
   type PerformanceReportSection,
   type DistrictPerformanceReportView,
@@ -40,11 +36,8 @@ const bandColor = (text: string) =>
 // % columns show the figure only (no bar), coloured red / amber / green.
 const isPctCol = (header: string | undefined) => !!header && (header === PCT_HEADER || header.endsWith("%"));
 
-
-const ZONE_TOTAL = "Zone total";
-
 // Print = the email body itself (the API returns it with the view), so a printed copy is identical to
-// what the DG / RI Director receives. The window is opened on the click (never after an await, or the
+// what the DG receives. The window is opened on the click (never after an await, or the
 // pop-up blocker stops it), shows "Preparing…", and prints itself once the report is in.
 function openPrintWindow(): Window | null {
   const w = window.open("", "_blank");
@@ -64,14 +57,14 @@ function writePrintDoc(w: Window, html: string, title: string) {
   w.document.close();
 }
 
-// Highlights ("At a glance") + parts/sections — shared by the District report and the RI Director report.
-// tilesPerRow: 4 on the District report (two rows of four), 3 on the RI Director report.
+// Highlights ("At a glance") + parts/sections of the District report.
+// tilesPerRow: 4 on the District report (two rows of four).
 function ReportBody({ highlights, sections, scopeNote, tilesPerRow = 3 }: { highlights: PerformanceReportHighlight[]; sections: PerformanceReportSection[]; scopeNote?: string | null; tilesPerRow?: 3 | 4 }) {
   return (
     <>
             {highlights?.length > 0 && (
               <div className="space-y-3">
-                {/* Tiles are grouped: one unnamed group on the DG report, three on the RI Director report. */}
+                {/* Tiles are grouped: one unnamed group on the DG report. */}
                 {Array.from(new Set(highlights.map((h) => h.group ?? ""))).map((group) => (
                   <div key={group}>
                     <div className="text-sm font-semibold text-slate-800 mb-2">{group || "At a glance"}</div>
@@ -142,7 +135,7 @@ function ReportBody({ highlights, sections, scopeNote, tilesPerRow = 3 }: { high
                           </thead>
                           <tbody className="divide-y divide-slate-100">
                             {s.tableRows.map((row, ri) => (
-                              <tr key={ri} className={row[0] === ZONE_TOTAL ? "bg-blue-50 font-semibold" : ri % 2 ? "bg-slate-50/50" : ""}>
+                              <tr key={ri} className={ri % 2 ? "bg-slate-50/50" : ""}>
                                 {row.map((cell, ci) => (
                                   <td key={ci} className={`px-3 py-1.5 ${isTextCol(s.tableHeaders, ci) ? "text-left text-slate-700" : "text-right tabular-nums text-slate-900"} whitespace-pre-line`}>
                                     {isPctCol(s.tableHeaders?.[ci]) && !Number.isNaN(parseFloat(cell))
@@ -185,18 +178,13 @@ export default function DistrictPerformanceReportPage() {
   const [printing, setPrinting] = useState(false);
   const [msg, setMsg] = useState<{ kind: "ok" | "err"; text: string } | null>(null);
 
-  // Two tabs: RI Director (all districts, zone-wise) and DG (one district).
-  const [tab, setTab] = useState<"ri" | "dg">("ri");
-
   // ── Sent list (user 2026-09-29) ───────────────────────────────────────────────────────────────
-  // The run log, split by the tab in view: Zone* rows are the RI Director mails, the rest are the
-  // per-district DG mails. A live run writes ~48 rows (one per district + one per RI Director), so
+  // The run log of the per-district DG mails. A live run writes one row per district, so
   // it is paged and summarised per run date.
   const SEND_PAGE_SIZE = 20;
   const [sendPage, setSendPage] = useState(1);
-  useEffect(() => { setSendPage(1); }, [tab]);   // switching tab starts at the top again
 
-  const sendRows = (settings?.recentRuns ?? []).filter((r) => r.runType.startsWith("Zone") === (tab === "ri"));
+  const sendRows = settings?.recentRuns ?? [];
   const sendPageCount = Math.max(1, Math.ceil(sendRows.length / SEND_PAGE_SIZE));
   const sendStart = (sendPage - 1) * SEND_PAGE_SIZE;
   const sendPageRows = sendRows.slice(sendStart, sendStart + SEND_PAGE_SIZE);
@@ -212,14 +200,6 @@ export default function DistrictPerformanceReportPage() {
     }
     return Array.from(by.values()).slice(0, 6);
   })();
-
-  // RI Director report (all districts, zone-wise)
-  const [zoneReport, setZoneReport] = useState<ZonePerformanceReportView | null>(null);
-  const [zoneViewing, setZoneViewing] = useState(false);
-  const [zoneDownloading, setZoneDownloading] = useState(false);
-  const [zoneSending, setZoneSending] = useState(false);
-  const [zonePrinting, setZonePrinting] = useState(false);
-  const [zoneMsg, setZoneMsg] = useState<{ kind: "ok" | "err"; text: string } | null>(null);
 
   const loadSettings = async () => {
     try { setSettings(await getDistrictPerformanceReportSettings()); } catch { /* screen still usable */ }
@@ -299,61 +279,11 @@ export default function DistrictPerformanceReportPage() {
     } finally { setPrinting(false); }
   };
 
-  const zoneView = async () => {
-    setZoneViewing(true); setZoneMsg(null);
-    try { setZoneReport(await getZonePerformanceReportView()); }
-    catch (e: any) { setZoneMsg({ kind: "err", text: e?.response?.data?.message || "Failed to build the RI Director report." }); }
-    finally { setZoneViewing(false); }
-  };
-
-  const zoneDownload = async () => {
-    setZoneDownloading(true); setZoneMsg(null);
-    try {
-      const blob = await downloadZonePerformanceReportExcel();
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `RI_Director_Report_All_Zones_${fileTimestamp()}.xlsx`;
-      document.body.appendChild(a); a.click(); a.remove();
-      URL.revokeObjectURL(url);
-    } catch {
-      setZoneMsg({ kind: "err", text: "Failed to download the RI Director Excel." });
-    } finally { setZoneDownloading(false); }
-  };
-
-  const zoneSendTest = async () => {
-    if (!settings) return;
-    if (!confirm(`Send a TEST email of the RI Director report (all districts, zone-wise) to:\n\n${settings.testRecipients.join(", ")}\n\nIt is NOT sent to the RI Directors.`)) return;
-    setZoneSending(true); setZoneMsg(null);
-    try {
-      const r = await sendZonePerformanceReportTest();
-      setZoneMsg({ kind: "ok", text: r.message || "Test email sent." });
-    } catch (e: any) {
-      setZoneMsg({ kind: "err", text: e?.response?.data?.message || "Failed to send the RI Director test email." });
-    } finally { setZoneSending(false); loadSettings(); }
-  };
-
-  // Prints the RI Director report. Building every district takes a minute or two when it is not on screen.
-  const zonePrint = async () => {
-    const w = openPrintWindow();
-    if (!w) { setZoneMsg({ kind: "err", text: "Allow pop-ups for this site to print the report." }); return; }
-    setZonePrinting(true); setZoneMsg(null);
-    try {
-      const r = zoneReport?.html ? zoneReport : await getZonePerformanceReportView();
-      if (!zoneReport?.html) setZoneReport(r);
-      if (!r.html) throw new Error("The report could not be prepared for printing.");
-      writePrintDoc(w, r.html, "RI Director Report: All Zones");
-    } catch (e: any) {
-      w.close();
-      setZoneMsg({ kind: "err", text: e?.response?.data?.message || e?.message || "Failed to build the RI Director report." });
-    } finally { setZonePrinting(false); }
-  };
-
   const scheduleText = !settings ? "" : !settings.scheduleEnabled
     ? "Automatic sending is OFF. Nothing is emailed on a schedule. Use the buttons below to check the report."
     : settings.mode === "Live"
       ? `LIVE: on day ${settings.liveDays.join(" & ")} of each month at ${settings.hour}:00 (${appTimeZone()}), every district's report goes to its District Governor (CC ${settings.liveCc.join(", ")}).`
-      : `TEST: every morning at ${settings.hour}:00 (${appTimeZone()}): District ${settings.testDistricts.join(", ")} report + RI Director report (all zones) to ${settings.testRecipients.join(", ")}.`;
+      : `TEST: every morning at ${settings.hour}:00 (${appTimeZone()}): District ${settings.testDistricts.join(", ")} report to ${settings.testRecipients.join(", ")}.`;
 
   return (
     <ProtectedRoute>
@@ -368,7 +298,7 @@ export default function DistrictPerformanceReportPage() {
           </div>
           <div>
             <h1 className="text-xl font-semibold text-slate-800">Performance Report</h1>
-            <p className="text-xs text-slate-500">RI Director and District Governor progress reports: current Rotary year, 1 July to today.</p>
+            <p className="text-xs text-slate-500">District Governor progress report: current Rotary year, 1 July to today.</p>
           </div>
         </div>
 
@@ -379,42 +309,6 @@ export default function DistrictPerformanceReportPage() {
           </div>
         )}
 
-        {/* Which report to work with — two obvious, clickable cards (the old pill was too subtle). */}
-        <div>
-          <div className="text-xs font-medium text-slate-500 mb-1.5">Choose the report</div>
-          <div className="grid gap-3 sm:grid-cols-2 max-w-2xl">
-            {([
-              ["ri", "RI Director", "All districts, zone-wise", Globe2],
-              ["dg", "District Governor", "One district's own report", Building2],
-            ] as const).map(([key, label, sub, Icon]) => {
-              const active = tab === key;
-              return (
-                <button
-                  key={key}
-                  type="button"
-                  aria-pressed={active}
-                  onClick={() => setTab(key)}
-                  className={`flex items-center gap-3 rounded-xl border-2 px-4 py-3 text-left transition cursor-pointer ${
-                    active
-                      ? "border-azure bg-azure text-white shadow-md"
-                      : "border-slate-300 bg-white text-slate-700 hover:border-azure hover:bg-slate-50 hover:shadow-sm"
-                  }`}
-                >
-                  <span className={`h-9 w-9 shrink-0 rounded-lg flex items-center justify-center ${active ? "bg-white/15" : "bg-slate-100"}`}>
-                    <Icon className={`h-5 w-5 ${active ? "text-white" : "text-azure"}`} />
-                  </span>
-                  <span className="min-w-0">
-                    <span className="block text-sm font-semibold">{label}</span>
-                    <span className={`block text-xs ${active ? "text-blue-100" : "text-slate-500"}`}>{sub}</span>
-                  </span>
-                  {active && <Check className="h-4 w-4 ml-auto shrink-0" />}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-
-        {tab === "dg" && (
           <div className="space-y-5">
           <p className="text-xs text-slate-500">One district&apos;s report, exactly as its District Governor receives it.</p>
         <div className="flex flex-wrap items-end gap-2">
@@ -482,56 +376,12 @@ export default function DistrictPerformanceReportPage() {
           </div>
         )}
           </div>
-        )}
-
-        {tab === "ri" && (
-        <div className="space-y-4">
-          <p className="text-xs text-slate-500">
-            Every district, zone-wise: the same figures as each district&apos;s report. Building it takes a minute or two.
-          </p>
-          <div className="flex flex-wrap gap-2">
-            <Button variant="outline" onClick={zoneView} disabled={zoneViewing}>
-              {zoneViewing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Eye className="mr-2 h-4 w-4" />}
-              {zoneViewing ? "Building all districts…" : "View Report"}
-            </Button>
-            <Button variant="outline" onClick={zoneDownload} disabled={zoneDownloading}>
-              {zoneDownloading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Download className="mr-2 h-4 w-4" />}
-              {zoneDownloading ? "Preparing Excel…" : "Download Excel"}
-            </Button>
-            <Button onClick={zoneSendTest} disabled={zoneSending || !settings} className="bg-emerald-600 hover:bg-emerald-700 text-white">
-              {zoneSending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Mail className="mr-2 h-4 w-4" />}
-              {zoneSending ? "Sending…" : "Send Test Email"}
-            </Button>
-            <Button variant="outline" onClick={zonePrint} disabled={zonePrinting} title="Prints the report in the same format as the email">
-              {zonePrinting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Printer className="mr-2 h-4 w-4" />}
-              {zonePrinting ? "Preparing…" : "Print Report"}
-            </Button>
-          </div>
-          {zoneMsg && (
-            <div className={`text-sm rounded-md px-3 py-2 border ${zoneMsg.kind === "ok" ? "bg-emerald-50 border-emerald-200 text-emerald-700" : "bg-rose-50 border-rose-200 text-rose-700"}`}>
-              {zoneMsg.text}
-            </div>
-          )}
-          {zoneReport && (
-            <div className="space-y-4">
-              <div className="bg-white rounded-xl border border-slate-200 p-4">
-                <div className="text-base font-semibold text-slate-800">{zoneReport.reportKicker}: {zoneReport.reportTitle}</div>
-                <div className="text-xs text-slate-500">{zoneReport.reportSubtitle}</div>
-              </div>
-              <ReportBody highlights={zoneReport.highlights} sections={zoneReport.sections} scopeNote={zoneReport.scopeNote} />
-              <p className="text-xs text-slate-500">
-                The Excel adds All Districts: every district in one row with every district and club figure, with zone totals.
-              </p>
-            </div>
-          )}
-        </div>
-        )}
 
         {settings && sendRows.length > 0 && (
           <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
             <div className="px-4 py-2.5 border-b border-slate-100 flex flex-wrap items-center gap-2">
               <span className="text-sm font-medium text-slate-700">
-                {tab === "ri" ? "Sends to RI Directors" : "Sends to District Governors"}
+                Sends to District Governors
               </span>
               <span className="text-xs text-slate-400">the 1st and the 16th of each month</span>
             </div>
@@ -553,7 +403,7 @@ export default function DistrictPerformanceReportPage() {
                 <thead>
                   <tr className="bg-slate-50 text-slate-600">
                     <th className="px-3 py-2 text-left font-medium">When</th>
-                    <th className="px-3 py-2 text-left font-medium">{tab === "ri" ? "Report" : "District"}</th>
+                    <th className="px-3 py-2 text-left font-medium">District</th>
                     <th className="px-3 py-2 text-left font-medium">Type</th>
                     <th className="px-3 py-2 text-left font-medium">To</th>
                     <th className="px-3 py-2 text-left font-medium">Status</th>
@@ -563,7 +413,7 @@ export default function DistrictPerformanceReportPage() {
                   {sendPageRows.map((r) => (
                     <tr key={r.id}>
                       <td className="px-3 py-1.5 text-slate-600 whitespace-nowrap">{new Date(r.createdDate).toLocaleString(appLocale())}</td>
-                      <td className="px-3 py-1.5 text-slate-700">{r.districtNumber ?? "All zones"}</td>
+                      <td className="px-3 py-1.5 text-slate-700">{r.districtNumber ?? "–"}</td>
                       <td className="px-3 py-1.5 text-slate-600">{r.runType}</td>
                       <td className="px-3 py-1.5 text-slate-600">{r.toEmail ?? "–"}{r.ccEmails ? ` (cc ${r.ccEmails})` : ""}</td>
                       <td className={`px-3 py-1.5 font-medium ${r.status === "Sent" ? "text-emerald-700" : r.status === "Failed" ? "text-rose-700" : "text-amber-700"}`} title={r.message ?? ""}>

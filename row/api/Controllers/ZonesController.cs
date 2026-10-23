@@ -1,4 +1,3 @@
-using Dapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using RotaryApi.DTOs;
@@ -93,27 +92,6 @@ public class ZonesController : ControllerBase
         await _zoneService.DeleteAsync(id, GetCurrentMemberId());
         await _auditLog.LogAsync(GetCurrentMemberId(), "DELETE", "zone", id, existing.ZoneName, null, HttpContext);
         return NoContent();
-    }
-
-    [HttpPost("{id}/toggle-zonal-awards")]
-    public async Task<ActionResult> ToggleZonalAwards(int id)
-    {
-        if (!IsSuperAdmin())
-            return StatusCode(403, new { message = "Only SuperAdmin can toggle zonal awards." });
-
-        using var connection = new MySqlConnector.MySqlConnection(
-            HttpContext.RequestServices.GetRequiredService<IConfiguration>().GetConnectionString("DefaultConnection"));
-        await connection.OpenAsync();
-
-        await connection.ExecuteAsync(
-            "UPDATE zone_master SET IsZonalAwardsEnabled = IF(IsZonalAwardsEnabled = 1, 0, 1) WHERE pk_zone_id = @Id AND isdeleted = 0",
-            new { Id = id });
-
-        var enabledVal = await connection.ExecuteScalarAsync<object>(
-            "SELECT IsZonalAwardsEnabled FROM zone_master WHERE pk_zone_id = @Id", new { Id = id });
-        var enabled = Convert.ToBoolean(enabledVal);
-
-        return Ok(new { isZonalAwardsEnabled = enabled });
     }
 
     private bool IsSuperAdmin()

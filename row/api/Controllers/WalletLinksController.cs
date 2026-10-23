@@ -44,7 +44,7 @@ public class WalletLinksController : ControllerBase
     private string Link(string purpose, int districtId) =>
         $"{Frontend()}/pay/w/{WalletPayLinkToken.Generate(_config, "district", purpose, districtId)}";
 
-    // Per-district WhatsApp/Email balances + copy links + the 2 common (pick-a-district) links.
+    // Per-district Email balances + copy links + the common (pick-a-district) link.
     [HttpGet("districts")]
     public async Task<ActionResult> GetDistricts([FromQuery] string? search)
     {
@@ -78,7 +78,7 @@ public class WalletLinksController : ControllerBase
         return Ok(new { items, commonLinks });
     }
 
-    // Every club that has a live (non-expired) WhatsApp OR Email credit balance > 0, with its
+    // Every club that has a live (non-expired) Email credit balance > 0, with its
     // current-year President + Secretary contacts — for the "Check balance" popup + CSV export.
     [HttpGet("club-balances")]
     public async Task<ActionResult> GetClubBalances()
@@ -88,19 +88,18 @@ public class WalletLinksController : ControllerBase
         await conn.OpenAsync();
 
         var sql = $@"
-            SELECT b.clubId, b.clubName, b.districtNumber, b.whatsappBalance, b.emailBalance,
+            SELECT b.clubId, b.clubName, b.districtNumber, b.emailBalance,
                    pres.name AS presidentName, pres.mobile AS presidentMobile, pres.email AS presidentEmail,
                    sec.name  AS secretaryName, sec.mobile  AS secretaryMobile, sec.email  AS secretaryEmail
             FROM (
                 SELECT c.pk_club_id AS clubId, c.ClubName AS clubName, d.DistrictNumber AS districtNumber,
-                       SUM(CASE WHEN cc.CreditType = 'WhatsApp' THEN cc.CreditCount - cc.UsedCount ELSE 0 END) AS whatsappBalance,
                        SUM(CASE WHEN cc.CreditType = 'Email'    THEN cc.CreditCount - cc.UsedCount ELSE 0 END) AS emailBalance
                 FROM club_credits cc
                 JOIN club_master c ON c.pk_club_id = cc.fk_club_id AND c.isdeleted = 0 AND c.IsActive = 1
                 LEFT JOIN district_master d ON d.pk_district_id = c.fk_district_id
                 WHERE cc.fk_club_id > 0 AND cc.IsActive = 1 AND cc.isdeleted = 0 AND NOW() <= cc.ToDate
                 GROUP BY c.pk_club_id, c.ClubName, d.DistrictNumber
-                HAVING (whatsappBalance > 0 OR emailBalance > 0)   -- OR: at least one credit type has balance
+                HAVING emailBalance > 0
             ) b
             LEFT JOIN ({BoardContactSql("Club President")}) pres ON pres.clubId = b.clubId
             LEFT JOIN ({BoardContactSql("Club Secretary")}) sec  ON sec.clubId  = b.clubId
@@ -111,7 +110,6 @@ public class WalletLinksController : ControllerBase
             clubId = (int)r.clubId,
             clubName = (string?)r.clubName,
             districtNumber = (string?)r.districtNumber,
-            whatsappBalance = Convert.ToInt32(r.whatsappBalance ?? 0),
             emailBalance = Convert.ToInt32(r.emailBalance ?? 0),
             presidentName = (string?)r.presidentName, presidentMobile = (string?)r.presidentMobile, presidentEmail = (string?)r.presidentEmail,
             secretaryName = (string?)r.secretaryName, secretaryMobile = (string?)r.secretaryMobile, secretaryEmail = (string?)r.secretaryEmail,
@@ -141,20 +139,10 @@ public class WalletLinksController : ControllerBase
         [FromQuery] int? districtId, [FromQuery] string? search)
         => RunReport(WalletReportType.ClubWebsite, dateFrom, dateTo, districtId, search);
 
-    [HttpGet("reports/whatsapp")]
-    public Task<ActionResult> ReportClubWhatsApp([FromQuery] DateTime? dateFrom, [FromQuery] DateTime? dateTo,
-        [FromQuery] int? districtId, [FromQuery] string? search)
-        => RunReport(WalletReportType.ClubWhatsApp, dateFrom, dateTo, districtId, search);
-
     [HttpGet("reports/email")]
     public Task<ActionResult> ReportClubEmail([FromQuery] DateTime? dateFrom, [FromQuery] DateTime? dateTo,
         [FromQuery] int? districtId, [FromQuery] string? search)
         => RunReport(WalletReportType.ClubEmail, dateFrom, dateTo, districtId, search);
-
-    [HttpGet("reports/district-whatsapp")]
-    public Task<ActionResult> ReportDistrictWhatsApp([FromQuery] DateTime? dateFrom, [FromQuery] DateTime? dateTo,
-        [FromQuery] int? districtId, [FromQuery] string? search)
-        => RunReport(WalletReportType.DistrictWhatsApp, dateFrom, dateTo, districtId, search);
 
     [HttpGet("reports/district-email")]
     public Task<ActionResult> ReportDistrictEmail([FromQuery] DateTime? dateFrom, [FromQuery] DateTime? dateTo,

@@ -6,16 +6,16 @@
  * Same data semantics as the v1 add page: every field, every API call, every
  * validation rule is preserved verbatim (project type, ongoing sub-type +
  * existing/new flow, joint project + co-host role, classification, funding
- * with Global Grant / CSR conditional blocks, impact metrics, photos,
- * moderator approval). Only the visual presentation differs (V2FormShell
- * wrapper, dot-accented section headers, sticky save bar).
+ * with Global Grant / CSR conditional blocks, impact metrics, photos).
+ * Only the visual presentation differs (V2FormShell wrapper, dot-accented
+ * section headers, sticky save bar).
  *
  * v2 reads ONLY `?returnTo=` — no `returnUrl`, no `backUrl`.
  */
 
 import { useEffect, useRef, useState } from "react";
 import DateField from "@/components/DateField";
-import { useParams, useRouter, useSearchParams } from "next/navigation";
+import { useParams, useSearchParams } from "next/navigation";
 import {
   Upload, X, Star, Info, FileText, MapPin, Target, IndianRupee, Coins, DollarSign, Camera, Search,
 } from "@/components/icons";
@@ -23,19 +23,17 @@ import {
   getClub,
   getModules,
   getAreasOfFocus,
-  getCategories,
   getFunding,
   getOngoingProjects,
   createProject,
   uploadProjectImage,
-  checkClubHasModerator,
   getCurrentRotaryYear,
   type ClassificationSearchResult,
 } from "@/services/api";
 import ClassificationAssist from "@/components/projects/ClassificationAssist";
 import { consumeProjectSwitchDraft } from "@/lib/projectDraft";
 import {
-  AreaOfFocus, Category, Funding, OngoingProject, ProjectPhotoInput,
+  AreaOfFocus, Funding, OngoingProject, ProjectPhotoInput,
 } from "@/types/project";
 import { currencyOptions, getCurrencySymbol, resolveClubDefaultCurrency, moneyIconName } from "@/lib/currency";
 import V2FormShell, { useV2ReturnTo } from "@/components/v2/V2FormShell";
@@ -48,9 +46,8 @@ import AlertModal from "@/components/AlertModal";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { useSyncClubIdFromUrl } from "@/hooks/useSyncClubIdFromUrl";
-import AddToOrgConfirmDialog from "@/components/AddToOrgConfirmDialog";
 import { useExtensionStatus } from "@/hooks/useExtensionStatus";
-import { isFlowBotEnabled, triggerAddToOrg, fileToDataUrl, type OrgExport, type FundingClass } from "@/lib/addToOrg";
+import { isFlowBotEnabled } from "@/lib/addToOrg";
 import ImageCropDialog from "@/components/ImageCropDialog";
 import { useImageCropQueue } from "@/hooks/useImageCropQueue";
 
@@ -62,8 +59,6 @@ const PROJECT_PHOTO_MAX_WIDTH = 1600;
 
 // Test-club gate: BOT (RI Flow-Bot) UI shows only for club 2765. Hardcoded for
 // now so it's a one-line grep when expanding to more clubs.
-// API origin for building full photo URLs handed to the Add-to-Org extension.
-const ADD_TO_ORG_API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
 const MODULE_KEY = "public_image_initiative";
 
@@ -152,7 +147,6 @@ function moneyIcon(code?: string | null) {
 export default function PublicImageInitiativeV2AddPage() {
   useSyncClubIdFromUrl();
   const params = useParams();
-  const router = useRouter();
   const searchParams = useSearchParams();
   const clubId = Number(params.id);
   const { navigateAfterSave, navigateAfterCancel } = useV2ReturnTo(`/clubs/${clubId}/public-image-initiative/v2`);
@@ -190,7 +184,6 @@ export default function PublicImageInitiativeV2AddPage() {
 
   // Masters
   const [areasOfFocus, setAreasOfFocus] = useState<AreaOfFocus[]>([]);
-  const [categories, setCategories] = useState<Category[]>([]);
   const [fundingList, setFundingList] = useState<Funding[]>([]);
   const [ongoingProjects, setOngoingProjects] = useState<OngoingProject[]>([]);
   // Scope "Select Existing" search to the CURRENT rotary year. v2 Add has no yearId in URL.
@@ -216,8 +209,6 @@ export default function PublicImageInitiativeV2AddPage() {
 
   const [selectedAofId, setSelectedAofId] = useState<string>("");
   const [otherAreaOfFocus, setOtherAreaOfFocus] = useState("");
-  const [selectedCatId, setSelectedCatId] = useState<string>("");
-  const [otherCategory, setOtherCategory] = useState("");
 
   const [projectDate, setProjectDate] = useState("");
   const [projectCost, setProjectCost] = useState("");
@@ -245,12 +236,6 @@ export default function PublicImageInitiativeV2AddPage() {
   const [showSuccessDialog, setShowSuccessDialog] = useState(false);
   const [showProjectSuccess, setShowProjectSuccess] = useState(false);
 
-  // Moderator approval
-  const [hasModerator, setHasModerator] = useState(false);
-  const [moderatorName, setModeratorName] = useState<string | null>(null);
-  const [showModeratorConfirm, setShowModeratorConfirm] = useState(false);
-  const moderatorConfirmedRef = useRef(false);
-
   // RI Flow-Bot extension state (enabled for all clubs).
   // installed: null = checking, true = ready, false = not installed.
   const installed = useExtensionStatus();
@@ -258,9 +243,6 @@ export default function PublicImageInitiativeV2AddPage() {
   // Install prompt (extension NOT detected) — shown once on load, dismissible.
   const [showInstallPrompt, setShowInstallPrompt] = useState(false);
   const installDismissedRef = useRef(false);
-  // Post-save "Add To Rotary Org" prompt (extension detected + moderator flow).
-  const [showAddToOrgPrompt, setShowAddToOrgPrompt] = useState(false);
-  const savedProjectIdRef = useRef<number | null>(null);
 
   // Surface the install prompt once the extension check resolves to "not installed"
   // (only for the test club, and not while the "I Agree" gate is still up).
@@ -275,22 +257,6 @@ export default function PublicImageInitiativeV2AddPage() {
     setShowInstallPrompt(false);
   };
 
-  // "Add To Rotary Org" (post-save dialog): close synchronously, then hand the
-  // saved project to the extension. The deferred trigger guarantees the dialog is
-  // unmounted (body pointer-events restored) before the extension's in-page UI shows.
-  const handleAddToOrgConfirm = async () => {
-    setShowAddToOrgPrompt(false);
-    const payload = await buildOrgExport();
-    const id = savedProjectIdRef.current;
-    setTimeout(() => triggerAddToOrg(id, payload, clubId), 0);
-  };
-  // "Cancel" (post-save dialog): project is already saved → go to the club's
-  // Service Projects & Public Image dashboard.
-  const handleAddToOrgCancel = () => {
-    setShowAddToOrgPrompt(false);
-    router.push("/club-admin-dashboard/service-projects-and-public-image");
-  };
-
   // ── Funding classifier — drives conditional Global Grant / CSR field block ──
   const classifyFunding = (name?: string | null): "global_grant" | "csr" | "" => {
     if (!name) return "";
@@ -298,18 +264,6 @@ export default function PublicImageInitiativeV2AddPage() {
     if (n.includes("global grant")) return "global_grant";
     if (n === "csr" || n.startsWith("csr ") || n.includes(" csr") || n.includes("(csr)")) return "csr";
     return "";
-  };
-  // 5-way funding class for the Add-to-Org extension export (broader than
-  // classifyFunding above, which only drives the conditional UI). Mirrors the
-  // extension's FundingClass enum so the extension can map to the right SPC grant path.
-  const classifyFundingClass = (name?: string | null): FundingClass => {
-    const n = (name || "").trim().toLowerCase();
-    if (!n) return "";
-    if (n.includes("global grant")) return "global_grant";
-    if (n.includes("district grant")) return "district_grant";
-    if (n === "csr" || n.startsWith("csr ") || n.includes(" csr") || n.includes("(csr)")) return "csr";
-    if (n.includes("self funded") || n === "self" || n.includes("self-funded")) return "self";
-    return "other";
   };
   const selectedFundingName = fundingList.find((f) => String(f.id) === selectedFundingId)?.name ?? "";
   const fundingClass = classifyFunding(selectedFundingName);
@@ -328,7 +282,6 @@ export default function PublicImageInitiativeV2AddPage() {
   const onlyDigits = (v: string) => v.replace(/\D/g, "");
 
   const isOthersAof = selectedAofId === "others";
-  const isOthersCat = selectedCatId === "others";
 
   useEffect(() => {
     async function init() {
@@ -347,7 +300,6 @@ export default function PublicImageInitiativeV2AddPage() {
           setAreasOfFocus(aof.filter((a) => a.isActive));
         }
         setFundingList(funding.filter((f) => f.isActive));
-        checkClubHasModerator(clubId).then((r) => { setHasModerator(r.hasModerator); setModeratorName(r.moderatorName); }).catch(() => {});
       } catch (err: unknown) {
         const e = err as { response?: { data?: { message?: string } } };
         setErrorMessage(e?.response?.data?.message || "Failed to initialize.");
@@ -358,27 +310,9 @@ export default function PublicImageInitiativeV2AddPage() {
     init();
   }, [clubId]);
 
-  // Fetch categories when area of focus changes
-  useEffect(() => {
-    if (!selectedAofId || selectedAofId === "others") {
-      setCategories([]);
-      setSelectedCatId("");
-      return;
-    }
-    async function fetchCats() {
-      try {
-        const cats = await getCategories(Number(selectedAofId));
-        setCategories(cats.filter((c) => c.isActive));
-      } catch { setCategories([]); }
-    }
-    fetchCats();
-  }, [selectedAofId]);
-
-  // One pick (smart-search result or AI suggestion) sets the two classification ids
-  // this module exposes (Area of Focus + Category; there is no sub-category level here).
+  // One pick (smart-search result or AI suggestion) sets the "Category" (= areaOfFocusId).
   const applyClassification = (r: ClassificationSearchResult) => {
     setSelectedAofId(String(r.areaOfFocusId));
-    setSelectedCatId(r.categoryId ? String(r.categoryId) : "");
   };
 
   // Carry-over draft for a cross-module "switch": everything this form has filled so far. The
@@ -435,7 +369,6 @@ export default function PublicImageInitiativeV2AddPage() {
         })));
     }
     setSelectedAofId(String(draft.suggested.areaOfFocusId));
-    setSelectedCatId(draft.suggested.categoryId ? String(draft.suggested.categoryId) : "");
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Resolve the current rotary year once — scopes ongoing search to this year only.
@@ -545,8 +478,6 @@ export default function PublicImageInitiativeV2AddPage() {
     if (new Date(projectDate) > new Date()) { setErrorMessage("Project date cannot be in the future."); return; }
     if (!selectedAofId) { setErrorMessage("Category is required."); return; }
     if (isOthersAof && !otherAreaOfFocus.trim()) { setErrorMessage("Please specify the Category."); return; }
-    if (!isOthersAof && categories.length > 0 && !selectedCatId) { setErrorMessage("Sub Category is required."); return; }
-    if (isOthersCat && !otherCategory.trim()) { setErrorMessage("Please specify the Sub Category."); return; }
     if (!projectCost) { setErrorMessage("Project Cost is required."); return; }
     if (!selectedFundingId) { setErrorMessage("Funding is required."); return; }
     if (showGlobalGrantBlock) {
@@ -563,12 +494,6 @@ export default function PublicImageInitiativeV2AddPage() {
     if (photos.length === 0) { setErrorMessage("At least 1 photo is required."); return; }
     if (photos.some((p) => p.uploading)) { setErrorMessage("Please wait for photos to finish uploading."); return; }
     if (!moduleId) { setErrorMessage("Module not found."); return; }
-
-    if (hasModerator && !moderatorConfirmedRef.current) {
-      setShowModeratorConfirm(true);
-      return;
-    }
-    moderatorConfirmedRef.current = false;
 
     const photoInputs: ProjectPhotoInput[] = photos.map((p, i) => ({
       imagePath: p.imagePath,
@@ -590,10 +515,6 @@ export default function PublicImageInitiativeV2AddPage() {
       location: location.trim() || null,
       areaOfFocusId: isOthersAof ? null : (selectedAofId ? Number(selectedAofId) : null),
       otherAreaOfFocus: isOthersAof ? otherAreaOfFocus : null,
-      categoryId: isOthersCat ? null : (selectedCatId ? Number(selectedCatId) : null),
-      otherCategory: isOthersCat ? otherCategory : null,
-      subCategoryId: null,
-      otherSubCategory: null,
       projectDate,
       projectCost: projectCost ? Number(projectCost) : null,
       currency,
@@ -617,18 +538,8 @@ export default function PublicImageInitiativeV2AddPage() {
     setSaving(true);
     try {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const result = await createProject(clubId, saveData as any);
-      // RI Flow-Bot: after a moderator-approval save on the test club, offer to
-      // also add the project to Rotary Org — but ONLY when the extension is present
-      // (non-moderator clubs just save; the prompt never appears for them).
-      if (isBotEnabled && hasModerator && installed === true) {
-        savedProjectIdRef.current = result?.id ?? null;
-        setShowAddToOrgPrompt(true);
-      } else {
-        // Return to the page the user came from immediately on save/submit-for-approval
-        // (no blocking success modal).
-        navigateAfterSave();
-      }
+      await createProject(clubId, saveData as any);
+      navigateAfterSave();
     } catch (err: unknown) {
       const e = err as { response?: { data?: { message?: string } } };
       setErrorMessage(e?.response?.data?.message || "Failed to save project.");
@@ -636,50 +547,6 @@ export default function PublicImageInitiativeV2AddPage() {
       setSaving(false);
     }
   };
-
-  // Build the project export the Add-to-Org extension consumes (resolved names +
-  // full photo URLs). This avenue has no beneficiaries field → default to 0.
-  const buildOrgExport = async (): Promise<OrgExport> => ({
-    title: title.trim(),
-    description: description.trim(),
-    meta: { avenue: "Public Image Initiative Service" },
-    classification: {
-      areaOfFocus: isOthersAof
-        ? otherAreaOfFocus
-        : (areasOfFocus.find((a) => String(a.id) === selectedAofId)?.name || ""),
-      category: isOthersCat
-        ? otherCategory
-        : (categories.find((c) => String(c.id) === selectedCatId)?.name || ""),
-      subCategory: "",
-    },
-    locationText: location.trim(),
-    dateOfProject: projectDate,
-    projectType: projectType === "one_time" ? "One Time Project" : "Ongoing / Repeat Project",
-    projectCostINR: projectCost ? Number(projectCost) : 0,
-    funding: selectedFundingName,
-    financial: {
-      fundingClass: classifyFundingClass(selectedFundingName),
-      globalGrantNumber: showGlobalGrantBlock ? (globalGrantNumber.trim() || null) : null,
-      amountSanctionedINR: (showGlobalGrantBlock || showCsrBlock) && amountSanctioned ? Number(amountSanctioned) : null,
-      amountReceivedINR: (showGlobalGrantBlock || showCsrBlock) && amountReceived ? Number(amountReceived) : null,
-      amountSpentINR: showGlobalGrantBlock && amountSpent ? Number(amountSpent) : null,
-      hostClubsDistricts: showGlobalGrantBlock ? (hostClubsDistricts.trim() || null) : null,
-      globalPartnerClubsDistricts: showGlobalGrantBlock ? (globalPartnerClubsDistricts.trim() || null) : null,
-      csrCompanyName: showCsrBlock ? (csrCompanyName.trim() || null) : null,
-    },
-    directBeneficiaries: 0,
-    manHours: Number(manHours) || 0,
-    rotariansInvolved: Number(rotariansInvolved) || 0,
-    rotaractorsInvolved: Number(rotaractorsInvolved) || 0,
-    rccInvolved: Number(rccInvolved) || 0,
-    photos: await Promise.all(photos.map(async (p) => ({
-      // Embed the in-memory file bytes as a data: URL. The stored imagePath points at
-      // /tempdocument/, which the backend MOVES on save (→ 404), so a URL here is stale.
-      url: p.file ? await fileToDataUrl(p.file) : `${ADD_TO_ORG_API_URL}${p.imagePath}`,
-      isPrimary: p.isPrimary,
-      caption: p.description || "",
-    }))),
-  });
 
   if (loading) {
     return (
@@ -881,7 +748,7 @@ export default function PublicImageInitiativeV2AddPage() {
             title={title}
             description={description}
             onApply={applyClassification}
-            selectedSubCatId={selectedCatId}
+            selectedAreaId={selectedAofId}
             enableCrossModule
             buildSwitchDraft={buildSwitchDraft}
             unlocked={classUnlocked}
@@ -892,7 +759,7 @@ export default function PublicImageInitiativeV2AddPage() {
               <FieldLabel dot="bg-amber-500">Category</FieldLabel>
               <select
                 value={selectedAofId}
-                onChange={(e) => { setSelectedAofId(e.target.value); setSelectedCatId(""); }}
+                onChange={(e) => setSelectedAofId(e.target.value)}
                 className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-amber-500"
               >
                 <option value="">Select</option>
@@ -909,32 +776,6 @@ export default function PublicImageInitiativeV2AddPage() {
                   value={otherAreaOfFocus}
                   onChange={(e) => setOtherAreaOfFocus(e.target.value)}
                   placeholder="Specify category"
-                  className="w-full mt-2 px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500"
-                />
-              )}
-            </div>
-            <div>
-              <FieldLabel dot="bg-amber-500" required={categories.length > 0}>Sub Category</FieldLabel>
-              <select
-                value={selectedCatId}
-                onChange={(e) => setSelectedCatId(e.target.value)}
-                disabled={isOthersAof || categories.length === 0}
-                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-amber-500 disabled:bg-slate-50 disabled:text-slate-400"
-              >
-                <option value="">{isOthersAof ? "N/A" : "Select"}</option>
-                {categories.map((c) => (
-                  <option key={c.id} value={String(c.id)}>{c.name}</option>
-                ))}
-                {!categories.some((c) => (c.name || "").trim().toLowerCase() === "others") && (
-                  <option value="others">Others</option>
-                )}
-              </select>
-              {isOthersCat && (
-                <input
-                  type="text"
-                  value={otherCategory}
-                  onChange={(e) => setOtherCategory(e.target.value)}
-                  placeholder="Specify sub category"
                   className="w-full mt-2 px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500"
                 />
               )}
@@ -1143,11 +984,6 @@ export default function PublicImageInitiativeV2AddPage() {
               />
               <span className="text-sm font-medium text-slate-700">Send Email notification</span>
             </label>
-            {sendEmail && hasModerator && (
-              <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded px-3 py-2 mt-2">
-                Note: This project will go for approval to moderator. Email will be sent after moderator approves.
-              </p>
-            )}
           </div>
         </SectionCard>
 
@@ -1167,25 +1003,6 @@ export default function PublicImageInitiativeV2AddPage() {
           onConfirm={() => setShowOngoingInfo(false)}
           cancelLabel=""
           onCancel={() => setShowOngoingInfo(false)}
-        />
-
-        {/* Moderator confirm dialog */}
-        <AlertModal
-          open={showModeratorConfirm}
-          onOpenChange={(o) => !o && setShowModeratorConfirm(false)}
-          icon={Info}
-          iconClassName="text-blue-500"
-          title="Project Approval Required"
-          description={
-            <>
-              <p>This club has a moderator <strong>{moderatorName}</strong> assigned. Your project will be submitted for approval and will be visible only after the moderator approves it.</p>
-              <p className="mt-2">Do you want to continue?</p>
-            </>
-          }
-          confirmLabel="Submit for Approval"
-          onConfirm={() => { moderatorConfirmedRef.current = true; setShowModeratorConfirm(false); handleSave(); }}
-          cancelLabel="Cancel"
-          onCancel={() => setShowModeratorConfirm(false)}
         />
 
         {/* Project Success Dialog with Rotary Showcase link (v1 parity) */}
@@ -1223,12 +1040,6 @@ export default function PublicImageInitiativeV2AddPage() {
         />
         <ErrorAlert open={!!errorMessage} title="Error" description={errorMessage || ""} onOk={() => setErrorMessage(null)} />
 
-        {/* RI Flow-Bot (Add to Rotary Org) dialogs — test club only */}
-        {isBotEnabled && (
-          <>
-            <AddToOrgConfirmDialog open={showAddToOrgPrompt} onCancel={handleAddToOrgCancel} onConfirm={handleAddToOrgConfirm} />
-          </>
-        )}
       </V2FormShell>
 
       {/* Page-load "I Agree" disclaimer (ported from v1 listing page) */}

@@ -215,12 +215,6 @@ public class CitationCalculator
                 "SELECT COUNT(*) FROM club_attendance WHERE fk_club_id = @ClubId AND fk_year_id = @YearId AND isdeleted = 0",
                 new { ClubId = clubId, YearId = yearId });
         }
-        if (act.Contains("pph camp"))
-        {
-            return await conn.ExecuteScalarAsync<int>(
-                "SELECT COUNT(*) FROM pph_camps WHERE fk_club_id = @ClubId AND isdeleted = 0 AND CampDate >= @Start AND CampDate <= @End",
-                new { ClubId = clubId, Start = startDate, End = endDate });
-        }
 
         if (act.Contains("club service"))
         {
@@ -262,30 +256,6 @@ public class CitationCalculator
                     return await conn.ExecuteScalarAsync<int>(
                         $"SELECT COUNT(*) FROM `{projTbl}` WHERE fk_club_id=@ClubId AND fk_module_id=@ModId AND fk_year_id=@YearId AND fk_area_of_focus_id=@AofId AND isdeleted=0",
                         new { ClubId = clubId, ModId = modId, YearId = yearId, AofId = subId.Value });
-
-                if (subType == "category" && subId.HasValue)
-                {
-                    if (act.Contains("community"))
-                        return await conn.ExecuteScalarAsync<int>(
-                            $"SELECT COUNT(*) FROM `{projTbl}` WHERE fk_club_id=@ClubId AND fk_module_id=@ModId AND fk_year_id=@YearId AND fk_category_id=@CatId AND isdeleted=0",
-                            new { ClubId = clubId, ModId = modId, YearId = yearId, CatId = subId.Value });
-                    else
-                        return await conn.ExecuteScalarAsync<int>(
-                            $"SELECT COUNT(*) FROM `{projTbl}` WHERE fk_club_id=@ClubId AND fk_module_id=@ModId AND fk_year_id=@YearId AND fk_area_of_focus_id=@AofId AND isdeleted=0",
-                            new { ClubId = clubId, ModId = modId, YearId = yearId, AofId = subId.Value });
-                }
-
-                if (subType == "sub_category" && subId.HasValue)
-                {
-                    if (act.Contains("community"))
-                        return await conn.ExecuteScalarAsync<int>(
-                            $"SELECT COUNT(*) FROM `{projTbl}` WHERE fk_club_id=@ClubId AND fk_module_id=@ModId AND fk_year_id=@YearId AND fk_sub_category_id=@SubCatId AND isdeleted=0",
-                            new { ClubId = clubId, ModId = modId, YearId = yearId, SubCatId = subId.Value });
-                    else
-                        return await conn.ExecuteScalarAsync<int>(
-                            $"SELECT COUNT(*) FROM `{projTbl}` WHERE fk_club_id=@ClubId AND fk_module_id=@ModId AND fk_year_id=@YearId AND fk_category_id=@CatId AND isdeleted=0",
-                            new { ClubId = clubId, ModId = modId, YearId = yearId, CatId = subId.Value });
-                }
             }
 
             return await conn.ExecuteScalarAsync<int>(

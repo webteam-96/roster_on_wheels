@@ -50,7 +50,6 @@ public class EventPushBackgroundService : BackgroundService
               -- dropped every event created for 'today' the moment its listed time passed —
               -- the common case for same-day events). Past-date events are still excluded.
               AND EventDate >= CURDATE()
-              AND IFNULL(Scope, '') <> 'ri'
             ORDER BY PublishDate
             LIMIT 5")).ToList();
         if (due.Count == 0) return;

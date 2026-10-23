@@ -1,9 +1,8 @@
 namespace RotaryApi.Services;
 
 // Character limits for the four communication content types (Upcoming Events, Announcements,
-// Newsletters, Documents) — enforced server-side on BOTH club and district create/update, so a
-// too-long body can never reach the WhatsApp template (whose ~650-char ceiling would fail the
-// send). MUST match the frontend rotary-frontend/src/lib/commsLimits.ts values.
+// Newsletters, Documents) — enforced server-side on BOTH club and district create/update.
+// MUST match the frontend rotary-frontend/src/lib/commsLimits.ts values.
 public static class CommsLimits
 {
     public const int EventTitle = 50;

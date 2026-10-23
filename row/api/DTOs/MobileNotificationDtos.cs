@@ -7,7 +7,8 @@ namespace RotaryApi.DTOs;
 /// </summary>
 public class MobileNotificationDto
 {
-    /// <summary>greeting | project | announcement | event | newsletter | document</summary>
+    /// <summary>greeting | project | announcement | event | newsletter | document | highlight | grant | volunteer |
+    /// meeting_duty | invite | meeting (reminder; LinkUrl = join link)</summary>
     public string Type { get; set; } = "";
 
     /// <summary>Entity primary key (for greeting rows: the celebrating member's id).</summary>
@@ -30,7 +31,7 @@ public class MobileNotificationDto
     public int? ClubId { get; set; }
     public int? DistrictId { get; set; }
 
-    /// <summary>Human label for the source, e.g. "RC Ratnagiri Midtown", "District 3170", "Rotary International".</summary>
+    /// <summary>Human label for the source, e.g. "RC Ratnagiri Midtown", "District 3170".</summary>
     public string SourceName { get; set; } = "";
 
     /// <summary>Registration link / newsletter link / document file path — whatever "open the thing" means. Nullable.</summary>
@@ -56,7 +57,7 @@ public class MobileNotificationDeepLinkDto
     public int? EntityId { get; set; }
     /// <summary>Projects only — the year-partitioned table the project lives in.</summary>
     public int? YearId { get; set; }
-    /// <summary>Documents only — "club" | "district" | "ri" (matches DocumentPushBackgroundService).</summary>
+    /// <summary>Documents only — "club" | "district" (matches DocumentPushBackgroundService).</summary>
     public string? Scope { get; set; }
     /// <summary>Documents only — the club or district id that goes with <see cref="Scope"/>.</summary>
     public int? ScopeId { get; set; }

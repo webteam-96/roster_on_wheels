@@ -46,7 +46,7 @@ public class ClubWebsitePublicDataController : ControllerBase
     // Returns true only if the club has a (paid or trial) website AND
     // its club/district/zone are all active+not-deleted. Used as a single
     // guard at the top of every endpoint so a kill-switched site goes dark.
-    private async Task<bool> IsClubServiceableAsync(MySqlConnection conn, int clubId)
+    internal static async Task<bool> IsClubServiceableAsync(MySqlConnection conn, int clubId)
     {
         var count = await conn.ExecuteScalarAsync<int>(@"
             SELECT COUNT(*)
@@ -584,7 +584,6 @@ public class ClubWebsitePublicDataController : ControllerBase
                    CASE
                        WHEN ImagePath IS NULL OR ImagePath = '' THEN NULL
                        WHEN ImagePath LIKE '/%' THEN ImagePath
-                       WHEN Scope = 'ri' THEN CONCAT('/Documents/Event/ri/', ImagePath)
                        WHEN fk_district_id IS NOT NULL THEN CONCAT('/Documents/Event/Group', fk_district_id, '/', ImagePath)
                        ELSE CONCAT('/Documents/Event/Group', fk_club_id, '/', ImagePath)
                    END AS imagePath,
@@ -635,8 +634,6 @@ public class ClubWebsitePublicDataController : ControllerBase
         public string? Location { get; set; }
         public string? ProjectDate { get; set; }
         public string? AreaOfFocus { get; set; }
-        public string? Category { get; set; }
-        public string? SubCategory { get; set; }
         public string? PrimaryPhotoPath { get; set; }
         public string? CreatedDate { get; set; }    // ISO datetime — used to pick the most-recently-uploaded project per avenue on the home page
         public string? ModifiedDate { get; set; }   // ISO datetime — latest edit timestamp
@@ -655,8 +652,6 @@ public class ClubWebsitePublicDataController : ControllerBase
         public string? Location { get; set; }
         public string? ProjectDate { get; set; }
         public string? AreaOfFocus { get; set; }
-        public string? Category { get; set; }
-        public string? SubCategory { get; set; }
         public string? ProjectType { get; set; }
         public string? OngoingGroupTitle { get; set; }
         public bool? IsJointProject { get; set; }
@@ -779,7 +774,6 @@ public class ClubWebsitePublicDataController : ControllerBase
             JOIN club_master c ON c.pk_club_id = p.fk_club_id
             WHERE c.fk_district_id = @DistrictId AND c.isdeleted = 0 AND c.IsActive = 1
               AND p.isdeleted = 0 AND p.is_active = 1
-              AND (COALESCE(p.approval_status, '') = '' OR p.approval_status = 'Approved')
               AND mm.ModuleKey IN @Keys",
             new { DistrictId = districtId, Keys = ProjectModuleKeys });
         var people = await conn.QueryFirstAsync<dynamic>(@"
@@ -861,8 +855,6 @@ public class ClubWebsitePublicDataController : ControllerBase
                    p.location       AS location,
                    p.project_date   AS projectDate,
                    COALESCE(aof.name, p.other_area_of_focus) AS areaOfFocus,
-                   COALESCE(cat.name, p.other_category)      AS category,
-                   COALESCE(sc.name,  p.other_sub_category)  AS subCategory,
                    p.project_type        AS projectType,
                    p.ongoing_group_title AS ongoingGroupTitle,
                    p.is_joint_project    AS isJointProject,
@@ -882,12 +874,9 @@ public class ClubWebsitePublicDataController : ControllerBase
             JOIN rotary_year_master y ON y.pk_year_id = p.fk_year_id
             JOIN module_master mm     ON mm.pk_module_id = p.fk_module_id
             LEFT JOIN area_of_focus_master aof ON aof.pk_area_of_focus_id = p.fk_area_of_focus_id
-            LEFT JOIN category_master cat       ON cat.pk_category_id = p.fk_category_id
-            LEFT JOIN sub_category_master sc    ON sc.pk_sub_category_id = p.fk_sub_category_id
             LEFT JOIN funding_master f          ON f.pk_funding_id = p.fk_funding_id
             WHERE p.pk_project_id = @ProjectId AND p.fk_club_id = @ClubId
-              AND p.isdeleted = 0 AND p.is_active = 1
-              AND (COALESCE(p.approval_status, '') = '' OR p.approval_status = 'Approved')",
+              AND p.isdeleted = 0 AND p.is_active = 1",
             new { ClubId = clubId, ProjectId = projectId });
 
         if (row == null) return NotFound();
@@ -960,7 +949,6 @@ public class ClubWebsitePublicDataController : ControllerBase
                     WHERE p.parent_project_id = @ProjectId
                       AND p.fk_club_id = @ClubId
                       AND p.isdeleted = 0 AND p.is_active = 1
-                      AND (COALESCE(p.approval_status, '') = '' OR p.approval_status = 'Approved')
                     ORDER BY p.project_date DESC, p.pk_project_id DESC",
                     new { ProjectId = projectId, ClubId = clubId, YearLabel = childTable.YearLabel })).ToList();
 
@@ -1035,8 +1023,6 @@ public class ClubWebsitePublicDataController : ControllerBase
             Location             = (string?)row.location,
             ProjectDate          = row.projectDate is DateTime pd ? pd.ToString("yyyy-MM-dd") : null,
             AreaOfFocus          = (string?)row.areaOfFocus,
-            Category             = (string?)row.category,
-            SubCategory          = (string?)row.subCategory,
             ProjectType          = (string?)row.projectType,
             OngoingGroupTitle    = (string?)row.ongoingGroupTitle,
             IsJointProject       = row.isJointProject == null ? (bool?)null : Convert.ToBoolean(row.isJointProject),
@@ -1144,8 +1130,6 @@ public class ClubWebsitePublicDataController : ControllerBase
                              p.location     AS Location,
                              p.project_date AS ProjectDate,
                              aof.name       AS AreaOfFocus,
-                             cat.name       AS Category,
-                             sc.name        AS SubCategory,
                              (SELECT CONCAT('/Documents/gallery/Group', p.fk_club_id, '/',
                                        CASE WHEN p.old_pk IS NOT NULL THEN CONCAT('Album', p.old_pk)
                                             ELSE CONCAT('{suffix}/Album', p.pk_project_id) END,
@@ -1159,11 +1143,8 @@ public class ClubWebsitePublicDataController : ControllerBase
                       FROM `{t.ProjectsTable}` p
                       JOIN module_master mm ON mm.pk_module_id = p.fk_module_id
                       LEFT JOIN area_of_focus_master aof ON aof.pk_area_of_focus_id = p.fk_area_of_focus_id
-                      LEFT JOIN category_master cat ON cat.pk_category_id = p.fk_category_id
-                      LEFT JOIN sub_category_master sc ON sc.pk_sub_category_id = p.fk_sub_category_id
                       WHERE {clubFilter}
                         AND p.isdeleted = 0 AND p.is_active = 1
-                        AND (COALESCE(p.approval_status, '') = '' OR p.approval_status = 'Approved')
                         AND mm.ModuleKey IN @Keys{ptFilter}";
         }));
 
@@ -1185,8 +1166,6 @@ public class ClubWebsitePublicDataController : ControllerBase
             Location         = (string?)r.Location,
             ProjectDate      = r.ProjectDate is DateTime pd ? pd.ToString("yyyy-MM-dd") : null,
             AreaOfFocus      = (string?)r.AreaOfFocus,
-            Category         = (string?)r.Category,
-            SubCategory      = (string?)r.SubCategory,
             PrimaryPhotoPath = (string?)r.PrimaryPhotoPath,
             CreatedDate      = r.CreatedDate is DateTime cd ? cd.ToString("yyyy-MM-ddTHH:mm:ss") : null,
             ModifiedDate     = r.ModifiedDate is DateTime md ? md.ToString("yyyy-MM-ddTHH:mm:ss") : null,
@@ -1460,7 +1439,6 @@ public class ClubWebsitePublicDataController : ControllerBase
                    CASE
                        WHEN ImagePath IS NULL OR ImagePath = '' THEN NULL
                        WHEN ImagePath LIKE '/%' THEN ImagePath
-                       WHEN Scope = 'ri' THEN CONCAT('/Documents/Event/ri/', ImagePath)
                        WHEN fk_district_id IS NOT NULL THEN CONCAT('/Documents/Event/Group', fk_district_id, '/', ImagePath)
                        ELSE CONCAT('/Documents/Event/Group', fk_club_id, '/', ImagePath)
                    END AS ImagePath,
@@ -1512,7 +1490,6 @@ public class ClubWebsitePublicDataController : ControllerBase
                    CASE
                        WHEN FilePath IS NULL OR FilePath = '' THEN NULL
                        WHEN FilePath LIKE '/%' THEN FilePath
-                       WHEN Scope = 'ri' THEN CONCAT('/Documents/ebulletin/ri/', FilePath)
                        WHEN fk_district_id IS NOT NULL AND fk_district_id > 0 THEN CONCAT('/Documents/ebulletin/Group', fk_district_id, '/', FilePath)
                        WHEN fk_club_id IS NOT NULL AND fk_club_id > 0 THEN CONCAT('/Documents/ebulletin/Group', fk_club_id, '/', FilePath)
                        ELSE NULL

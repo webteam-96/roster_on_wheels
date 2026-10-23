@@ -51,15 +51,13 @@ public class NewsletterService : INewsletterService
                    CASE
                        WHEN n.FilePath IS NULL OR n.FilePath = '' THEN NULL
                        WHEN n.FilePath LIKE '/%' THEN n.FilePath
-                       WHEN n.Scope = 'ri' THEN CONCAT('/Documents/ebulletin/ri/', n.FilePath)
                        WHEN n.fk_district_id IS NOT NULL AND n.fk_district_id > 0
                             THEN CONCAT('/Documents/ebulletin/Group', n.fk_district_id, '/', n.FilePath)
                        WHEN n.fk_club_id IS NOT NULL AND n.fk_club_id > 0
                             THEN CONCAT('/Documents/ebulletin/Group', n.fk_club_id, '/', n.FilePath)
                        ELSE NULL  /* orphan row (no scope, no club, no district) — hide instead of building Group0/... */
                    END AS FilePath,
-                   n.IsSendWhatsapp, n.IsSendEmail,
-                   n.WhatsAppSentDate, n.WhatsAppSentCount, n.WhatsAppFailedCount,
+                   n.IsSendEmail,
                    n.EmailSentDate, n.EmailSentCount, n.EmailFailedCount,
                    CASE
                        WHEN NOW() < n.PublishDateTime THEN 'Unpublished'
@@ -104,14 +102,13 @@ public class NewsletterService : INewsletterService
                    CASE
                        WHEN n.FilePath IS NULL OR n.FilePath = '' THEN NULL
                        WHEN n.FilePath LIKE '/%' THEN n.FilePath
-                       WHEN n.Scope = 'ri' THEN CONCAT('/Documents/ebulletin/ri/', n.FilePath)
                        WHEN n.fk_district_id IS NOT NULL AND n.fk_district_id > 0
                             THEN CONCAT('/Documents/ebulletin/Group', n.fk_district_id, '/', n.FilePath)
                        WHEN n.fk_club_id IS NOT NULL AND n.fk_club_id > 0
                             THEN CONCAT('/Documents/ebulletin/Group', n.fk_club_id, '/', n.FilePath)
                        ELSE NULL  /* orphan row — see GetAllAsync */
                    END AS FilePath,
-                   n.IsSendWhatsapp, n.IsSendEmail,
+                   n.IsSendEmail,
                    CASE
                        WHEN NOW() < n.PublishDateTime THEN 'Unpublished'
                        ELSE 'Published'
@@ -129,14 +126,12 @@ public class NewsletterService : INewsletterService
         using var connection = CreateConnection();
         await connection.OpenAsync();
 
-        // Pre-check WhatsApp credits BEFORE insert (block save if insufficient)
-        int memberCountForCheck = 0;
         int refundEntityIdForCheck = districtId ?? clubId;
 
-        // Pre-check Email credits BEFORE insert (parity with WhatsApp; counts members with an email).
+        // Pre-check Email credits BEFORE insert (counts members with an email).
         if (dto.IsSendEmail && refundEntityIdForCheck > 0)
         {
-            int emailCount = await CountRecipientsAsync(connection, clubId, districtId, forEmail: true);
+            int emailCount = await CountRecipientsAsync(connection, clubId, districtId);
             if (emailCount > 0)
             {
                 using var scope = _scopeFactory.CreateScope();
@@ -149,14 +144,14 @@ public class NewsletterService : INewsletterService
         // fk_year_id is resolved at INSERT time from PublishDateTime via rotary_year_master,
         // so the listing (filtered by year column) and the date-range fallback always agree.
         var sql = @"INSERT INTO newsletters (fk_club_id, fk_district_id, fk_year_id, Title, PublishDateTime, ExpiryDateTime,
-                        AttachmentType, LinkUrl, FilePath, IsSendWhatsapp, IsSendEmail, created_by, created_date, isdeleted)
+                        AttachmentType, LinkUrl, FilePath, IsSendEmail, created_by, created_date, isdeleted)
                     VALUES (@ClubId, @DistrictId,
                         (SELECT pk_year_id FROM rotary_year_master
                          WHERE @PublishDateTime >= StartDate
                            AND @PublishDateTime < DATE_ADD(EndDate, INTERVAL 1 DAY)
                          LIMIT 1),
                         @Title, @PublishDateTime, @ExpiryDateTime,
-                        @AttachmentType, @LinkUrl, @FilePath, @IsSendWhatsapp, @IsSendEmail, @CreatedBy, NOW(), 0);
+                        @AttachmentType, @LinkUrl, @FilePath, @IsSendEmail, @CreatedBy, NOW(), 0);
                     SELECT LAST_INSERT_ID();";
 
         var newsletterId = await connection.ExecuteScalarAsync<int>(sql, new
@@ -169,7 +164,6 @@ public class NewsletterService : INewsletterService
             dto.AttachmentType,
             dto.LinkUrl,
             dto.FilePath,
-            IsSendWhatsapp = 0,
             IsSendEmail = dto.IsSendEmail ? 1 : 0,
             CreatedBy = createdBy
         });
@@ -181,13 +175,10 @@ public class NewsletterService : INewsletterService
         return newsletterId;
     }
 
-    private async Task<int> CountRecipientsAsync(MySqlConnection conn, int clubId, int? districtId, bool forEmail = false)
+    private async Task<int> CountRecipientsAsync(MySqlConnection conn, int clubId, int? districtId)
     {
-        // Same kill-switch-filtered audience the scheduler sends to; only the contact filter
-        // differs per channel — WhatsApp needs a mobile, Email needs an EmailId.
-        var contact = forEmail
-            ? "m.EmailId IS NOT NULL AND m.EmailId <> ''"
-            : "m.PrimaryMobileNumber IS NOT NULL AND m.PrimaryMobileNumber <> ''";
+        // Same kill-switch-filtered audience the scheduler sends to: members with an email address.
+        const string contact = "m.EmailId IS NOT NULL AND m.EmailId <> ''";
         if (districtId.HasValue)
         {
             return await conn.ExecuteScalarAsync<int>(
@@ -232,39 +223,23 @@ public class NewsletterService : INewsletterService
         // Expiry guard removed 2026-06-12 — UI no longer captures Expiry Date and
         // allows past/future PublishDateTime. Editing an "expired" item is now allowed.
 
-        // Pre-check WhatsApp/Email credits if a channel is being newly turned ON and not yet sent
+        // Pre-check Email credits if email is newly turned ON and not yet sent
         var prior = await connection.QueryFirstOrDefaultAsync<dynamic>(
-            @"SELECT fk_club_id, fk_district_id, IsSendWhatsapp, WhatsAppSentDate, IsSendEmail, EmailSentDate, PublishDateTime
+            @"SELECT fk_club_id, fk_district_id, IsSendEmail, EmailSentDate, PublishDateTime
               FROM newsletters WHERE pk_newsletter_id = @Id AND COALESCE(isdeleted, 0) = 0",
             new { Id = id });
-        bool priorWhatsapp = prior != null && Convert.ToBoolean(prior.IsSendWhatsapp);
-        bool alreadySent = prior != null && prior.WhatsAppSentDate != null;
-        int memberCountForCheck = 0;
         int clubIdForCheck = prior != null ? (int)prior.fk_club_id : 0;
         int? districtIdForCheck = prior != null && prior.fk_district_id != null ? (int?)prior.fk_district_id : null;
         int refundEntityIdForCheck = districtIdForCheck ?? clubIdForCheck;
-        bool newlyTurnedOn = false && !priorWhatsapp && !alreadySent;
-        bool resendOnDateChange = false && alreadySent && dto.PublishDateTime > DateTime.Now;
-        if ((newlyTurnedOn || resendOnDateChange) && refundEntityIdForCheck > 0)
-        {
-            memberCountForCheck = await CountRecipientsAsync(connection, clubIdForCheck, districtIdForCheck);
-            if (memberCountForCheck > 0)
-            {
-                using var scope = _scopeFactory.CreateScope();
-                var creditSvc = scope.ServiceProvider.GetRequiredService<ICreditManagementService>();
-                if (!await creditSvc.HasSufficientCreditsAsync(refundEntityIdForCheck, "WhatsApp", memberCountForCheck))
-                    throw new InvalidOperationException($"Insufficient WhatsApp credits. Need {memberCountForCheck} credit(s).");
-            }
-        }
 
-        // Email parity — block save when email is newly turned on (or re-sent) without enough Email credits.
+        // Block save when email is newly turned on (or re-sent) without enough Email credits.
         bool priorEmail = prior != null && Convert.ToBoolean(prior.IsSendEmail);
         bool emailAlreadySent = prior != null && prior.EmailSentDate != null;
         bool emailNewlyOn = dto.IsSendEmail && !priorEmail && !emailAlreadySent;
         bool emailResend = dto.IsSendEmail && emailAlreadySent && dto.PublishDateTime > DateTime.Now;
         if ((emailNewlyOn || emailResend) && refundEntityIdForCheck > 0)
         {
-            int emailCount = await CountRecipientsAsync(connection, clubIdForCheck, districtIdForCheck, forEmail: true);
+            int emailCount = await CountRecipientsAsync(connection, clubIdForCheck, districtIdForCheck);
             if (emailCount > 0)
             {
                 using var scope = _scopeFactory.CreateScope();
@@ -274,47 +249,32 @@ public class NewsletterService : INewsletterService
             }
         }
 
-        await connection.ExecuteAsync(
-            "sp_newsletter_update",
-            new
-            {
-                p_Id = id,
-                p_Title = dto.Title,
-                p_PublishDateTime = dto.PublishDateTime,
-                p_ExpiryDateTime = dto.ExpiryDateTime,
-                p_AttachmentType = dto.AttachmentType,
-                p_LinkUrl = dto.LinkUrl,
-                p_FilePath = dto.FilePath,
-                p_IsSendWhatsapp = 0,
-                p_ModifiedBy = modifiedBy
-            },
-            commandType: CommandType.StoredProcedure);
-
-        // SP can't be updated under current DB user (SYSTEM_USER privilege). Patch
-        // fk_year_id post-SP so a publish-date change moves the newsletter into the
-        // right rotary year — keeps listing (year-column filter) in sync with date.
+        // Inline (not sp_newsletter_update), so the edit never depends on the procedure's signature on
+        // prod. fk_year_id follows the publish date so the listing (year-column filter) stays in sync.
         await connection.ExecuteAsync(@"
             UPDATE newsletters
-            SET fk_year_id = (
+            SET Title = @Title, PublishDateTime = @PublishDateTime, ExpiryDateTime = @ExpiryDateTime,
+                AttachmentType = @AttachmentType, LinkUrl = @LinkUrl, FilePath = @FilePath,
+                modified_by = @ModifiedBy,
+                fk_year_id = (
                 SELECT pk_year_id FROM rotary_year_master
                 WHERE @PublishDateTime >= StartDate
                   AND @PublishDateTime < DATE_ADD(EndDate, INTERVAL 1 DAY)
                 LIMIT 1),
                 IsSendEmail = @IsSendEmail
             WHERE pk_newsletter_id = @Id",
-            new { Id = id, PublishDateTime = dto.PublishDateTime, IsSendEmail = dto.IsSendEmail ? 1 : 0 });
+            new
+            {
+                Id = id, dto.Title, dto.PublishDateTime, dto.ExpiryDateTime, dto.AttachmentType,
+                dto.LinkUrl, dto.FilePath, ModifiedBy = modifiedBy, IsSendEmail = dto.IsSendEmail ? 1 : 0
+            });
 
-        // Clear each channel's sent-state INDEPENDENTLY so the scheduler re-sends it (turning on
-        // Email alone previously never reset EmailSentDate, so the email never sent).
-        string clearWa = (newlyTurnedOn || resendOnDateChange)
-            ? "WhatsAppSentDate = NULL, WhatsAppSentCount = 0, WhatsAppFailedCount = 0" : "";
-        string clearEmail = (emailNewlyOn || emailResend)
-            ? "EmailSentDate = NULL, EmailSentCount = 0, EmailFailedCount = 0" : "";
-        var clearParts = new[] { clearWa, clearEmail }.Where(s => s.Length > 0).ToArray();
-        if (clearParts.Length > 0)
+        // Clear the email sent-state when email is newly turned on or re-sent via a future publish
+        // date, so the scheduler sends it.
+        if (emailNewlyOn || emailResend)
         {
             await connection.ExecuteAsync(
-                $"UPDATE newsletters SET {string.Join(", ", clearParts)} WHERE pk_newsletter_id = @Id",
+                "UPDATE newsletters SET EmailSentDate = NULL, EmailSentCount = 0, EmailFailedCount = 0 WHERE pk_newsletter_id = @Id",
                 new { Id = id });
         }
 
@@ -335,7 +295,7 @@ public class NewsletterService : INewsletterService
         await connection.OpenAsync();
 
         var row = await connection.QueryFirstOrDefaultAsync<dynamic>(@"
-            SELECT fk_club_id, fk_district_id, IsSendWhatsapp, WhatsAppSentDate, Title
+            SELECT fk_club_id, fk_district_id, Title
             FROM newsletters WHERE pk_newsletter_id = @Id AND COALESCE(isdeleted, 0) = 0",
             new { Id = id });
 

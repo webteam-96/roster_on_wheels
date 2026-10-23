@@ -133,7 +133,7 @@ public class DistrictDirectoryController : ControllerBase
         // ── Spouse details (preloaded once, keyed by member id) ──
         // Pulls Name/BirthDate/PhotoPath from member_family_details where Relation='Spouse'.
         // If a member has multiple spouse rows (edge case) we take the LATEST-changed one - the same row
-        // the Directory Data Collection form reads and saves, so a change on either side shows on both.
+        // the member profile reads and saves, so a change on either side shows on both.
         var spouseRows = (await conn.QueryAsync<dynamic>(@"
             SELECT f.fk_member_master_profile_id AS memberId,
                    f.Name       AS spouseName,
@@ -274,7 +274,7 @@ public class DistrictDirectoryController : ControllerBase
                 }
 
                 // Contact-visibility gate. Every row here carries m.* so the four flag
-                // columns are already present. The AG/moderator projections alias the same
+                // columns are already present. The AG projections alias the same
                 // two columns under different keys, so those are nulled together — but
                 // committeeMobile/committeeEmail are live profile values for member rows; when
                 // hidden they fall back to the district's own typed copy (see below).
@@ -288,7 +288,6 @@ public class DistrictDirectoryController : ControllerBase
                         dict["PrimaryMobileNumber"] = null;
                         if (dict.ContainsKey("committeeMobile")) dict["committeeMobile"] = dict.GetValueOrDefault("mobile");
                         if (dict.ContainsKey("agMobile")) dict["agMobile"] = null;
-                        if (dict.ContainsKey("moderatorMobile")) dict["moderatorMobile"] = null;
                     }
                     if (!RotaryApi.Services.MemberPrivacyHelper.ShouldShowEmail(viewerMemberId, rowMemberId, sharesClub,
                             dict.GetValueOrDefault("ShowEmailInMyClub"), dict.GetValueOrDefault("ShowEmailInAllClubs")))
@@ -298,7 +297,6 @@ public class DistrictDirectoryController : ControllerBase
                         // who hides them gets the district's own typed copy back (what showed before).
                         if (dict.ContainsKey("committeeEmail")) dict["committeeEmail"] = dict.GetValueOrDefault("email");
                         if (dict.ContainsKey("agEmail")) dict["agEmail"] = null;
-                        if (dict.ContainsKey("moderatorEmail")) dict["moderatorEmail"] = null;
                     }
                 }
 
@@ -453,33 +451,6 @@ public class DistrictDirectoryController : ControllerBase
             agByClub[grp.Key] = agDict;
         }
 
-        // ── Club Moderator per-club map (one moderator per club — UNIQUE fk_club_id) ──
-        // m.* → ALL member_master_profile columns (a–z); summary aliases kept.
-        var modRows = (await conn.QueryAsync<dynamic>(@"
-            SELECT cm.fk_club_id                  AS clubId,
-                   cm.fk_member_id                AS memberId,
-                   m.MemberName                   AS moderatorName,
-                   m.PrimaryMobileNumber          AS moderatorMobile,
-                   m.EmailId                      AS moderatorEmail,
-                   m.ProfilePhotoPath             AS moderatorPhoto,
-                   cty.PhoneCode                  AS moderatorMobileCountryCode,
-                   m.*
-            FROM district_club_moderator cm
-            JOIN member_master_profile m ON m.pk_member_master_profile_id = cm.fk_member_id AND m.isdeleted = 0
-            LEFT JOIN country_master cty ON cty.pk_country_id = m.fk_primary_country_id
-            WHERE cm.fk_district_id = @DistrictId
-              AND cm.is_active = 1
-              AND cm.isdeleted = 0",
-            new { DistrictId = districtId })).ToList();
-
-        var moderatorByClub = new Dictionary<int, object>();
-        foreach (var m in modRows)
-        {
-            var modDict = EnrichOne(m);
-            modDict["moderatorMemberId"] = Convert.ToInt32(m.memberId);
-            moderatorByClub[Convert.ToInt32(m.clubId)] = modDict;
-        }
-
         // ── 3. Clubs with BOD + Members (each enriched with residentialAddress) ──
         var clubs = (await conn.QueryAsync<dynamic>(@"
             SELECT c.* FROM club_master c
@@ -542,15 +513,13 @@ public class DistrictDirectoryController : ControllerBase
                 new { ClubId = clubId });
             var members = WithAddresses(membersRaw);
 
-            // Attach AG + Club Moderator per club (from district_ag / district_club_moderator).
+            // Attach AG per club (from district_ag).
             var agInfo         = agByClub.TryGetValue(clubId, out var ag)  ? ag  : null;
-            var moderatorInfo  = moderatorByClub.TryGetValue(clubId, out var md) ? md : null;
 
             clubResult.Add(new
             {
                 club,
                 assistantGovernor = agInfo,
-                clubModerator     = moderatorInfo,
                 boardOfDirectors = bod,
                 boardOfDirectorsYearId    = bodEffectiveYearId,
                 boardOfDirectorsYearLabel = bodEffectiveYearLabel,
@@ -592,30 +561,6 @@ public class DistrictDirectoryController : ControllerBase
             .OrderBy(a => (string?)a["agName"])
             .ToList();
 
-        // "Moderator has how many clubs" — same shape as AG, full member details included.
-        var modGrouped = modRows
-            .GroupBy(r => Convert.ToInt32(r.memberId))
-            .Select(grp =>
-            {
-                var head = grp.First();
-                var assignedClubs = grp.Select(r =>
-                {
-                    int cid = Convert.ToInt32(r.clubId);
-                    return new
-                    {
-                        clubId   = cid,
-                        clubName = clubNameById.TryGetValue(cid, out var n) ? n : null
-                    };
-                }).ToList();
-                var dict = EnrichOne(head);
-                dict["moderatorMemberId"] = Convert.ToInt32(head.memberId);
-                dict["clubCount"]         = assignedClubs.Count;
-                dict["clubs"]             = assignedClubs;
-                return dict;
-            })
-            .OrderBy(m => (string?)m["moderatorName"])
-            .ToList();
-
         return Ok(new
         {
             district,
@@ -623,8 +568,7 @@ public class DistrictDirectoryController : ControllerBase
             districtCommittee,
             groups = groupResult,
             clubs = clubResult,
-            assistantGovernors = agGrouped,
-            clubModerators     = modGrouped
+            assistantGovernors = agGrouped
         });
     }
 }

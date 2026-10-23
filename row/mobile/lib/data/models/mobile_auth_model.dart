@@ -74,13 +74,11 @@ class ZoneScopeModel {
 class MobileOtpRequestResult {
   final String message;
   final bool sentEmail;
-  final bool sentSms;
   final int otpExpiresInSeconds;
 
   const MobileOtpRequestResult({
     required this.message,
     required this.sentEmail,
-    required this.sentSms,
     required this.otpExpiresInSeconds,
   });
 
@@ -88,7 +86,6 @@ class MobileOtpRequestResult {
       MobileOtpRequestResult(
         message: j['message']?.toString() ?? '',
         sentEmail: j['sentEmail'] as bool? ?? false,
-        sentSms: j['sentSms'] as bool? ?? false,
         otpExpiresInSeconds: j['otpExpiresInSeconds'] as int? ?? 300,
       );
 }

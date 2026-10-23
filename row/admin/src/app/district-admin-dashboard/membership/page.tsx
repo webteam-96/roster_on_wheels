@@ -5,8 +5,8 @@
  * ---------------------------------------------------------------------------
  * Layout (new, per user request 2026-07-03):
  *   1. Global topbar (from DashboardShell) — district + year picker
- *   2. Six-tab strip: Directory · Directors · District Committee ·
- *        Assistant Governors · Club Moderators · Clubs
+ *   2. Five-tab strip: Directory · Directors · District Committee ·
+ *        Assistant Governors · Clubs
  *   3. TAB CONTENT is the whole page below the tabs.
  *        - Directory tab: 3 KPI cards (Total / New / Terminated) then a
  *          full member listing with grid/table toggle, search, pagination,
@@ -74,7 +74,6 @@ interface TabStat {
 interface TabsBlock {
   districtCommittee?: TabStat;
   assistantGovernors?: TabStat;
-  clubModerators?: TabStat;
   clubs?: TabStat;
   isPending?: boolean;
 }
@@ -84,18 +83,17 @@ interface ExtendedMembership {
 }
 
 // Role tabs — keys that map to TabsBlock fields (all except "directory")
-type RoleTabKey = "districtCommittee" | "assistantGovernors" | "clubModerators" | "clubs";
+type RoleTabKey = "districtCommittee" | "assistantGovernors" | "clubs";
 type TabKey = "directory" | RoleTabKey;
 
 const TAB_LABELS: Record<TabKey, string> = {
   directory: "Directory",
   districtCommittee: "District Committee",
   assistantGovernors: "Assistant Governors",
-  clubModerators: "Club Moderators",
   clubs: "Clubs",
 };
 
-const ROLE_TAB_KEYS: RoleTabKey[] = ["districtCommittee", "assistantGovernors", "clubModerators", "clubs"];
+const ROLE_TAB_KEYS: RoleTabKey[] = ["districtCommittee", "assistantGovernors", "clubs"];
 
 // Route each role tab to the matching page UNDER /district-admin-dashboard/
 // so the target page inherits DistrictAdminDashboardLayoutClient (navy
@@ -122,8 +120,6 @@ function getRoleTabV2Href(k: RoleTabKey, _districtId: number, yearId: string | n
       return `/district-admin-dashboard/district-committee${qs}`;
     case "assistantGovernors":
       return `/district-admin-dashboard/ag${qs}`;
-    case "clubModerators":
-      return `/district-admin-dashboard/club-moderator${qs}`;
     case "clubs":
       return `/district-admin-dashboard/clubs${qs}`;
     default:

@@ -71,9 +71,6 @@ const List<int> _palette = [
   if (n.contains('vocational')) return (color: 0xFF0891B2, target: 10);
   if (n.contains('public image')) return (color: 0xFFE11D48, target: 10);
   if (n.contains('international')) return (color: 0xFF9333EA, target: 10);
-  if (n.contains('pph') || n.contains('pps') || n.contains('camp')) {
-    return (color: 0xFF0891B2, target: 5);
-  }
   return (color: 0xFF64748B, target: 10);
 }
 
@@ -295,7 +292,6 @@ class ClubAdminOverview {
         serviceProjects: serviceProjects,
         districtCitationScore: districtCitationScore.round(),
         districtCitationMax: 0,
-        zonalAwards: 0,
         reportsSubmitted: 0,
         reportsTotal: 0,
       );
@@ -831,27 +827,6 @@ class SpAvenueSummary {
       );
 }
 
-/// A project flagged as pending/rejected/draft (overview "needs attention").
-class SpPendingItem {
-  final int projectId;
-  final String title;
-  final String avenueLabel;
-  final String approvalStatus;
-  const SpPendingItem({
-    required this.projectId,
-    required this.title,
-    required this.avenueLabel,
-    required this.approvalStatus,
-  });
-
-  factory SpPendingItem.fromJson(Map<String, dynamic> j) => SpPendingItem(
-        projectId: _i(j['projectId']),
-        title: _s(j['title']),
-        avenueLabel: _s(j['avenueLabel']),
-        approvalStatus: _s(j['approvalStatus']),
-      );
-}
-
 /// Parsed `GET /service-projects-overview` response.
 class ServiceProjectsOverview {
   final String selectedYearLabel;
@@ -866,7 +841,6 @@ class ServiceProjectsOverview {
   // (the club's district default). Per-project rows keep their own currency.
   final String targetCurrency;
   final List<SpAvenueSummary> avenues;
-  final List<SpPendingItem> pending;
 
   const ServiceProjectsOverview({
     required this.selectedYearLabel,
@@ -879,7 +853,6 @@ class ServiceProjectsOverview {
     required this.meetingsHeld,
     required this.targetCurrency,
     required this.avenues,
-    required this.pending,
   });
 
   factory ServiceProjectsOverview.fromJson(Map<String, dynamic> j) {
@@ -897,7 +870,6 @@ class ServiceProjectsOverview {
       targetCurrency:
           _s(j['targetCurrency']).isEmpty ? 'INR' : _s(j['targetCurrency']),
       avenues: _list(j['avenues']).map(SpAvenueSummary.fromJson).toList(),
-      pending: _list(j['pendingItems']).map(SpPendingItem.fromJson).toList(),
     );
   }
 }
@@ -981,7 +953,6 @@ class SpProject {
   final String currency; // the project's own currency — the row shows cost in this
   final int beneficiaries;
   final int manHours;
-  final String approvalStatus;
   final bool isJoint;
   final String? coHostName;
   const SpProject({
@@ -994,7 +965,6 @@ class SpProject {
     required this.currency,
     required this.beneficiaries,
     required this.manHours,
-    required this.approvalStatus,
     required this.isJoint,
     required this.coHostName,
   });
@@ -1009,39 +979,8 @@ class SpProject {
         currency: _s(j['currency']).isEmpty ? 'INR' : _s(j['currency']),
         beneficiaries: _i(j['directBeneficiaries']),
         manHours: _i(j['manHours']),
-        approvalStatus: _s(j['approvalStatus']),
         isJoint: j['isJointProject'] == true,
         coHostName: _sn(j['coHostName']),
-      );
-}
-
-class SpPendingApproval {
-  final int projectId;
-  final String creatorName;
-  final String projectTitle;
-  final String avenueLabel;
-  final String? mobile;
-  final String? email;
-  final String approvalStatus;
-  const SpPendingApproval({
-    required this.projectId,
-    required this.creatorName,
-    required this.projectTitle,
-    required this.avenueLabel,
-    required this.mobile,
-    required this.email,
-    required this.approvalStatus,
-  });
-
-  factory SpPendingApproval.fromJson(Map<String, dynamic> j) =>
-      SpPendingApproval(
-        projectId: _i(j['projectId']),
-        creatorName: _s(j['creatorName']),
-        projectTitle: _s(j['projectTitle']),
-        avenueLabel: _s(j['avenueLabel']),
-        mobile: _sn(j['mobile']),
-        email: _sn(j['email']),
-        approvalStatus: _s(j['approvalStatus']),
       );
 }
 
@@ -1059,7 +998,6 @@ class ServiceProjectsAvenueDetail {
   final List<SpMeeting> meetings;
   final List<SpProject> oneTimeProjects;
   final List<SpProject> ongoingProjects;
-  final List<SpPendingApproval> pendingApprovals;
 
   const ServiceProjectsAvenueDetail({
     required this.avenueKey,
@@ -1072,7 +1010,6 @@ class ServiceProjectsAvenueDetail {
     required this.meetings,
     required this.oneTimeProjects,
     required this.ongoingProjects,
-    required this.pendingApprovals,
   });
 
   bool get isClubService => avenueKey == 'club_service';
@@ -1094,9 +1031,6 @@ class ServiceProjectsAvenueDetail {
             _list(j['oneTimeProjects']).map(SpProject.fromJson).toList(),
         ongoingProjects:
             _list(j['ongoingProjects']).map(SpProject.fromJson).toList(),
-        pendingApprovals: _list(j['pendingApprovals'])
-            .map(SpPendingApproval.fromJson)
-            .toList(),
       );
 }
 
@@ -1528,98 +1462,6 @@ class ClubAdminPayments {
         for (var i = 0; i < rows.length; i++)
           ClubAdminDuesMember.fromJson(rows[i], i),
       ],
-    );
-  }
-}
-
-// ── Dashboard › Marketplace ──────────────────────────────────────────────────
-
-class MarketplaceListing {
-  final String title;
-  final String kind; // event | announcement | newsletter
-  final String? date;
-  final String status; // Active | Open | Closed
-  const MarketplaceListing({
-    required this.title,
-    required this.kind,
-    required this.date,
-    required this.status,
-  });
-
-  factory MarketplaceListing.fromJson(Map<String, dynamic> j) =>
-      MarketplaceListing(
-        title: _s(j['title']),
-        kind: _s(j['kind']),
-        date: _sn(j['date']),
-        status: _s(j['status']),
-      );
-}
-
-class MarketplaceAccount {
-  final String clubName;
-  final String marketplaceId;
-  final String districtNumber;
-  final String subscription;
-  final String? contactSupport;
-  const MarketplaceAccount({
-    required this.clubName,
-    required this.marketplaceId,
-    required this.districtNumber,
-    required this.subscription,
-    required this.contactSupport,
-  });
-
-  factory MarketplaceAccount.fromJson(Map<String, dynamic> j) =>
-      MarketplaceAccount(
-        clubName: _s(j['clubName']),
-        marketplaceId: _s(j['marketplaceId']),
-        districtNumber: _s(j['districtNumber']),
-        subscription: _s(j['subscription']),
-        contactSupport: _sn(j['contactSupport']),
-      );
-}
-
-/// Parsed `GET /dashboard-marketplace` response (mostly informational; the
-/// public web marketplace is "coming soon").
-class ClubAdminMarketplace {
-  final String clubName;
-  final String yearLabel;
-  final String subscription;
-  final int clubListingsCount;
-  final String memberId; // display string like "#678910"
-  final String platform;
-  final String platformUrl;
-  final String launchUrl;
-  final List<MarketplaceListing> listings;
-  final MarketplaceAccount account;
-
-  const ClubAdminMarketplace({
-    required this.clubName,
-    required this.yearLabel,
-    required this.subscription,
-    required this.clubListingsCount,
-    required this.memberId,
-    required this.platform,
-    required this.platformUrl,
-    required this.launchUrl,
-    required this.listings,
-    required this.account,
-  });
-
-  factory ClubAdminMarketplace.fromJson(Map<String, dynamic> j) {
-    final club = (j['club'] as Map?)?.cast<String, dynamic>() ?? const {};
-    final acct = (j['account'] as Map?)?.cast<String, dynamic>() ?? const {};
-    return ClubAdminMarketplace(
-      clubName: _s(club['clubName']),
-      yearLabel: _s(club['yearLabel']),
-      subscription: _s(j['subscription']),
-      clubListingsCount: _i(j['clubListingsCount']),
-      memberId: _s(j['memberId']),
-      platform: _s(j['platform']),
-      platformUrl: _s(j['platformUrl']),
-      launchUrl: _s(j['launchUrl']),
-      listings: _list(j['listings']).map(MarketplaceListing.fromJson).toList(),
-      account: MarketplaceAccount.fromJson(acct),
     );
   }
 }

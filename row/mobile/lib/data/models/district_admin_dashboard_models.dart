@@ -474,10 +474,10 @@ class DistrictAdminOverview {
 // ── /membership ──────────────────────────────────────────────────────────────
 
 /// One sub-tab row (Directors / District Committee / Assistant Governors /
-/// Club Moderators / Clubs). The backend currently ships an empty `tabCounts`
+/// Clubs). The backend currently ships an empty `tabCounts`
 /// list for un-wired districts, so the UI treats an empty list as "Pending".
 class DaMembershipTabCount {
-  final String tabKey; // directors | district_committee | ag | club_moderator | clubs
+  final String tabKey; // directors | district_committee | ag | clubs
   final String tabLabel;
   final int total;
   final int active;
@@ -952,9 +952,9 @@ class DistrictAdminCommunication {
 }
 
 // ── /egovernance ─────────────────────────────────────────────────────────────
-// The main response's NEW Wave-13A2 fields (monthlyReportsCount, ppsCampsCount,
+// The main response's NEW Wave-13A2 fields (monthlyReportsCount,
 // avgCitationScore, cmrTotalClubs, cmrOnTimePercent, cmrMonthBreakdown[],
-// cmrPerClubGrid[], ppsCampPerClub[], citationPerClub[], reports[]) are
+// cmrPerClubGrid[], citationPerClub[], reports[]) are
 // DEAD-CODE / unpopulated (always 0/empty). The LEGACY fields (totalCmrSubmitted,
 // totalCmrPending) ARE real. The 12-month per-club grid comes from the dedicated
 // /egovernance/per-club endpoint ([DistrictAdminCmrPerClubGrid]).
@@ -966,7 +966,6 @@ class DistrictAdminEGovernance {
   final double avgAttendance;
   final int totalMeetings;
   final int monthlyReportsCount; // Wave-13A2: stub 0
-  final int ppsCampsCount; // Wave-13A2: stub 0
   final double avgCitationScore; // Wave-13A2: stub 0 → render Pending
   final int cmrTotalClubs; // Wave-13A2: stub 0 → fall back to district.totalClubs
   final double cmrOnTimePercent; // Wave-13A2: stub 0 → compute from legacy totals
@@ -977,7 +976,6 @@ class DistrictAdminEGovernance {
     required this.avgAttendance,
     required this.totalMeetings,
     required this.monthlyReportsCount,
-    required this.ppsCampsCount,
     required this.avgCitationScore,
     required this.cmrTotalClubs,
     required this.cmrOnTimePercent,
@@ -990,7 +988,6 @@ class DistrictAdminEGovernance {
         avgAttendance: _d(j['avgAttendance']),
         totalMeetings: _i(j['totalMeetings']),
         monthlyReportsCount: _i(j['monthlyReportsCount']),
-        ppsCampsCount: _i(j['ppsCampsCount']),
         avgCitationScore: _d(j['avgCitationScore']),
         cmrTotalClubs: _i(j['cmrTotalClubs']),
         cmrOnTimePercent: _d(j['cmrOnTimePercent']),

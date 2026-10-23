@@ -165,7 +165,7 @@ export default function ClubReportPage() {
               </div>
             </div>
 
-            {/* Projects grouped by module — Club Service has no AOF/Category/Sub Category, omit those columns. */}
+            {/* Projects grouped by module — Club Service has no Area of Focus, omit that column. */}
             {Object.entries(report.projectsByModule || {}).map(([moduleKey, projects]: any) => {
               const moduleName = projects[0]?.moduleName || moduleKey;
               const isClubService = moduleKey === "club_service";
@@ -174,16 +174,15 @@ export default function ClubReportPage() {
                     { key: "title", label: "Title", width: 25 }, { key: "projectDate", label: "Date", width: 15 },
                     { key: "location", label: "Location", width: 20 }, { key: "projectCost", label: "Cost", width: 12 },
                     { key: "directBeneficiaries", label: "Beneficiaries", width: 14 }, { key: "manHours", label: "Man Hours", width: 12 },
-                    { key: "funding", label: "Funding", width: 15 }, { key: "approvalStatus", label: "Status", width: 14 },
+                    { key: "funding", label: "Funding", width: 15 },
                     { key: "publicPhotoUrl", label: "Photos", width: 12, hyperlink: true, linkText: "Photos" },
                   ]
                 : [
                     { key: "title", label: "Title", width: 25 }, { key: "projectDate", label: "Date", width: 15 },
-                    { key: "areaOfFocus", label: "Area of Focus", width: 20 }, { key: "category", label: "Category", width: 18 },
-                    { key: "subCategory", label: "Sub Category", width: 18 },
+                    { key: "areaOfFocus", label: "Area of Focus", width: 20 },
                     { key: "location", label: "Location", width: 20 }, { key: "projectCost", label: "Cost", width: 12 },
                     { key: "directBeneficiaries", label: "Beneficiaries", width: 14 }, { key: "manHours", label: "Man Hours", width: 12 },
-                    { key: "funding", label: "Funding", width: 15 }, { key: "approvalStatus", label: "Status", width: 14 },
+                    { key: "funding", label: "Funding", width: 15 },
                     { key: "publicPhotoUrl", label: "Photos", width: 12, hyperlink: true, linkText: "Photos" },
                   ];
               return (

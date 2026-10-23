@@ -9,9 +9,6 @@ import type { GoalCommentDto } from "@/types/goalSetting";
 const ROLE_STYLE: Record<string, string> = {
   "District Governor": "bg-amber-50 text-amber-800 border-amber-200",
   "District Admin": "bg-orange-50 text-orange-800 border-orange-200",
-  "District Assistant": "bg-emerald-50 text-emerald-700 border-emerald-200",
-  "Zone Co-ordinator": "bg-violet-50 text-violet-700 border-violet-200",
-  "RI Director": "bg-blue-50 text-blue-700 border-blue-200",
 };
 
 export function RoleChip({ role }: { role?: string | null }) {
@@ -52,7 +49,7 @@ export default function GoalMessageList({
   showCategory?: boolean;     // inbox views that mix categories show the category chip on each message
   emptyText?: string;
   // The writer's own box (District Admin / DG, user 2026-10-09): their messages show just "You" -
-  // no role or district chip. Readers (RI / ZC / DA) keep the full labels.
+  // no role or district chip. Readers (SuperAdmin) keep the full labels.
   plainMine?: boolean;
 }) {
   if (messages.length === 0) return <p className="text-sm text-slate-400 text-center py-10">{emptyText}</p>;

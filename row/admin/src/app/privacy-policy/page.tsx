@@ -86,7 +86,7 @@ export default async function PrivacyPolicyPage() {
             <strong>Cashfree Payments India Pvt. Ltd.</strong>: payment gateway; subject to Cashfree&apos;s own privacy policy;
           </li>
           <li>
-            <strong>Email and SMS service providers</strong>: strictly to deliver transactional and Rotary-related communications;
+            <strong>Email service providers</strong>: strictly to deliver transactional and Rotary-related communications;
           </li>
           <li>
             <strong>Cloud hosting providers and managed-service partners</strong>: bound by confidentiality and security obligations under written contract;

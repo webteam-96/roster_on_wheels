@@ -1,8 +1,8 @@
-// Guards the metadata-driven goal form shared by the ENTRY screen and the
-// read-only OVERSIGHT viewer: a server-shaped category form must render its
-// groups, labels and values, and stay fully disabled when read-only. Field
-// editability is decided by FieldRole + the system-filled set, never by a
-// hardcoded key — so a DISHA field rebuild flows through untouched.
+// Guards the metadata-driven goal form of the ENTRY screen: a server-shaped
+// category form must render its groups, labels and values, and stay fully
+// disabled when read-only. Field editability is decided by FieldRole + the
+// system-filled set, never by a hardcoded key — so a DISHA field rebuild flows
+// through untouched.
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:rotary_flutter_app/data/models/goal_setting_models.dart';
@@ -17,8 +17,6 @@ GoalCategoryForm _form() => GoalCategoryForm.fromJson({
       'yearId': 9,
       'yearLabel': '2026-27',
       'isEditable': false,
-      'isLocked': false,
-      'canLock': false,
       'fields': [
         {
           'fieldId': 11,

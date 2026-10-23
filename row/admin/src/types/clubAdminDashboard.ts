@@ -104,7 +104,6 @@ export interface ClubAdminProjectRow {
   currency: string; // project's own currency — cost cell shows this
   beneficiaries: number;
   funding: string | null;
-  approvalStatus: string;
 }
 
 export interface ClubAdminAvenueResponse {
@@ -273,33 +272,6 @@ export interface ClubAdminDashboardBodResponse {
   directors: ClubAdminDashboardBodRow[];
 }
 
-export interface ClubAdminDashboardMarketplaceListing {
-  title: string;
-  kind: string;
-  date: string | null;
-  status: string;
-}
-
-export interface ClubAdminDashboardMarketplaceAccount {
-  clubName: string;
-  marketplaceId: string;
-  districtNumber: string;
-  subscription: string;
-  contactSupport: string | null;
-}
-
-export interface ClubAdminDashboardMarketplaceResponse {
-  club: ClubAdminIdentity;
-  subscription: string;
-  clubListingsCount: number;
-  memberId: string;
-  platform: string;
-  platformUrl: string;
-  launchUrl: string;
-  listings: ClubAdminDashboardMarketplaceListing[];
-  account: ClubAdminDashboardMarketplaceAccount;
-}
-
 export interface ClubAdminDashboardRotaryNetworkRow {
   id: number;
   memberId: string;
@@ -345,15 +317,6 @@ export interface ServiceProjectsAvenueSummaryRow {
   manHours: number;
 }
 
-export interface ServiceProjectsPendingFixRow {
-  projectId: number;
-  title: string;
-  avenueKey: string;
-  avenueLabel: string;
-  fixUrl: string;
-  approvalStatus: string;
-}
-
 export interface ServiceProjectsOverviewResponse {
   club: ClubAdminIdentity;
   selectedYearId: number | null;
@@ -362,7 +325,6 @@ export interface ServiceProjectsOverviewResponse {
   kpis: ServiceProjectsOverviewKpis;
   targetCurrency: string; // currency of kpis.totalCost + per-avenue cost subtotals
   avenues: ServiceProjectsAvenueSummaryRow[];
-  pendingItems: ServiceProjectsPendingFixRow[];
 }
 
 export interface ServiceProjectsAvenueKpis {
@@ -403,24 +365,11 @@ export interface ServiceProjectsProjectRow {
   manHours: number;
   beneficiary: string | null;
   beneficiaries2: number | null;
-  approvalStatus: string;
-  campImageUrl?: string | null;   // PPH Camp only — camp logo/image (relative /Documents path)
-  isActive?: boolean;             // PPH Camp only — active/inactive
   syncedToOrg: boolean;
   isJointProject: boolean;
   coHostName: string | null;
   parentProjectId: number | null;
   ongoingGroupTitle: string | null;
-}
-
-export interface ServiceProjectsPendingApprovalBannerRow {
-  projectId: number;
-  creatorName: string;
-  projectTitle: string;
-  avenueLabel: string;
-  mobile: string | null;
-  email: string | null;
-  approvalStatus: string;
 }
 
 export interface ServiceProjectsAvenueDetailResponse {
@@ -435,7 +384,6 @@ export interface ServiceProjectsAvenueDetailResponse {
   meetings: ServiceProjectsMeetingRow[];
   oneTimeProjects: ServiceProjectsProjectRow[];
   ongoingProjects: ServiceProjectsProjectRow[];
-  pendingApprovals: ServiceProjectsPendingApprovalBannerRow[];
 }
 
 // ─── Foundation Collection Goals (Phase C) ─────────────────────────────

@@ -40,6 +40,7 @@ import { useDistrictAdminCache } from "@/contexts/DistrictAdminDashboardCacheCon
 import {
   fmtInt, fmtUsdShort, ROTARY_BLUE,
 } from "@/components/dashboard/formatters";
+import DistrictGrowthCard from "@/components/growth/DistrictGrowthCard";
 
 /* ------------------------------------------------------------------ */
 /*  Local view-model — accesses Wave 13A4 additive fields as optional  */
@@ -464,6 +465,8 @@ export default function DistrictAdminOverviewPage() {
           subtitle="5 service avenues (excl. Club Services)"
         />
       </div>
+
+      {selectedDistrictId && <DistrictGrowthCard districtId={selectedDistrictId} yearId={awardsYearId} />}
 
       {/* ─── 2. FOUR-PANEL ROW ────────────────────────────────────── */}
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3">

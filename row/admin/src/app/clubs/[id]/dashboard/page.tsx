@@ -28,7 +28,7 @@ export default function ClubDashboardPage() {
   const clubId = Number(params.id);
   const districtId = searchParams.get("districtId");
   const router = useRouter();
-  const { user, isSuperAdmin, isAdmin, isZonalCoordinator } = useAuth();
+  const { user, isSuperAdmin, isAdmin } = useAuth();
   const [data, setData] = useState<ClubDashboard | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -183,7 +183,7 @@ export default function ClubDashboardPage() {
 
   const handleModuleClick = (moduleKey: string, routeUrl: string | null) => {
     if (navigatingModule) return;
-    // External URL (e.g. Market Place)
+    // External URL (module hosted on another site)
     if (routeUrl && routeUrl.startsWith("http")) {
       const url = routeUrl.replace("{memberId}", String(user?.memberId || ""));
       window.location.href = url;
@@ -247,9 +247,6 @@ export default function ClubDashboardPage() {
     } else if (moduleKey === "club_report" || moduleKey === "reports") {
       setNavigatingModule(moduleKey);
       router.push(`/clubs/${clubId}/club-report${qs}`);
-    } else if (moduleKey === "pph_camp") {
-      setNavigatingModule(moduleKey);
-      router.push(`/clubs/${clubId}/pph-camps${qs}`);
     } else if (moduleKey === "district_citation" || moduleKey === "citation") {
       setNavigatingModule(moduleKey);
       router.push(`/clubs/${clubId}/citation${qs}`);
@@ -311,7 +308,7 @@ export default function ClubDashboardPage() {
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            {(isSuperAdmin || isZonalCoordinator) && (
+            {isSuperAdmin && (
               <Button variant="outline" size="icon" asChild>
                 <Link href={returnTo ?? (districtId ? `/districts/${districtId}/clubs` : "/")}>
                   <ArrowLeft className="h-4 w-4" />

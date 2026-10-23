@@ -6,7 +6,7 @@ namespace RotaryApi.Services;
 
 // Purchase-history reports for the Wallet module (SuperAdmin only, surfaced via
 // WalletLinksController). Two underlying shapes: Club Website (club_website_orders) and
-// WhatsApp/Email credits (wallet_topup_orders, club or district scope) — these are separate
+// Email credits (wallet_topup_orders, club or district scope) — these are separate
 // order ledgers, not one unified table (see plan notes). Settlement columns come from
 // razorpay_settlements, populated by RazorpaySettlementSyncBackgroundService; rows without a
 // matched settlement yet (T+2/T+3 typical) simply show null/"Pending", which is expected.
@@ -50,9 +50,7 @@ public class WalletReportService : IWalletReportService
         var sql = type switch
         {
             WalletReportType.ClubWebsite => ClubWebsiteSql(),
-            WalletReportType.ClubWhatsApp => CreditSql(district: false, "WhatsApp", p),
             WalletReportType.ClubEmail => CreditSql(district: false, "Email", p),
-            WalletReportType.DistrictWhatsApp => CreditSql(district: true, "WhatsApp", p),
             WalletReportType.DistrictEmail => CreditSql(district: true, "Email", p),
             _ => throw new ArgumentOutOfRangeException(nameof(type)),
         };

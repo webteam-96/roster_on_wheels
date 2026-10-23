@@ -14,7 +14,6 @@ public class ClubAdminIdentityDto
     /// <summary>Sum of available (unused, unexpired, active) Email credits for the club.
     /// Drives the credits chip on the Overview hero (point #16, 2026-06-12).</summary>
     public int EmailCreditBalance { get; set; }
-    public int WhatsAppCreditBalance { get; set; }
 }
 
 public class ClubAdminAvenueRow
@@ -132,7 +131,6 @@ public class ClubAdminProjectRow
     public string Currency { get; set; } = RotaryApi.Services.Brand.DefaultCurrency; // the project's own currency — row shows Cost in this
     public int Beneficiaries { get; set; }
     public string? Funding { get; set; }
-    public string ApprovalStatus { get; set; } = "";
 }
 
 public class ClubAdminAvenueResponse
@@ -254,7 +252,7 @@ public class ClubAdminPaymentsResponse
     public List<ClubAdminDuesMemberRow> Members { get; set; } = new();
 }
 
-// ─── Dashboard sub-tabs (Directory / BOD / Marketplace / Rotary Network) ──
+// ─── Dashboard sub-tabs (Directory / BOD / Rotary Network) ──
 
 public class ClubAdminDashboardDirectoryMemberRow
 {
@@ -333,36 +331,6 @@ public class ClubAdminDashboardBodResponse
     public List<ClubAdminDashboardBodRow> Directors { get; set; } = new();
 }
 
-public class ClubAdminDashboardMarketplaceListing
-{
-    public string Title { get; set; } = "";
-    public string Kind { get; set; } = ""; // event | announcement | newsletter
-    public string? Date { get; set; }
-    public string Status { get; set; } = ""; // Active | Open | Closed
-}
-
-public class ClubAdminDashboardMarketplaceAccount
-{
-    public string ClubName { get; set; } = "";
-    public string MarketplaceId { get; set; } = "";
-    public string DistrictNumber { get; set; } = "";
-    public string Subscription { get; set; } = "";
-    public string? ContactSupport { get; set; }
-}
-
-public class ClubAdminDashboardMarketplaceResponse
-{
-    public ClubAdminIdentityDto Club { get; set; } = new();
-    public string Subscription { get; set; } = "";
-    public int ClubListingsCount { get; set; }
-    public string MemberId { get; set; } = "";
-    public string Platform { get; set; } = "";
-    public string PlatformUrl { get; set; } = "";
-    public string LaunchUrl { get; set; } = "";
-    public List<ClubAdminDashboardMarketplaceListing> Listings { get; set; } = new();
-    public ClubAdminDashboardMarketplaceAccount Account { get; set; } = new();
-}
-
 public class ClubAdminDashboardRotaryNetworkRow
 {
     public int Id { get; set; }
@@ -412,16 +380,6 @@ public class ServiceProjectsAvenueSummaryRow
     public int ManHours { get; set; }
 }
 
-public class ServiceProjectsPendingFixRow
-{
-    public int ProjectId { get; set; }
-    public string Title { get; set; } = "";
-    public string AvenueKey { get; set; } = "";
-    public string AvenueLabel { get; set; } = "";
-    public string FixUrl { get; set; } = "";
-    public string ApprovalStatus { get; set; } = "";
-}
-
 public class ServiceProjectsOverviewResponse
 {
     public ClubAdminIdentityDto Club { get; set; } = new();
@@ -432,12 +390,11 @@ public class ServiceProjectsOverviewResponse
     // Currency the TotalCost KPI and per-avenue Cost subtotals are expressed in (district default).
     public string TargetCurrency { get; set; } = RotaryApi.Services.Brand.DefaultCurrency;
     public List<ServiceProjectsAvenueSummaryRow> Avenues { get; set; } = new();
-    public List<ServiceProjectsPendingFixRow> PendingItems { get; set; } = new();
 }
 
 public class ServiceProjectsAvenueKpis
 {
-    // Non-club-service avenues (Community / Vocational / International / NG / PI / PPH)
+    // Non-club-service avenues (Community / Vocational / International / NG / PI)
     public int? Projects { get; set; }
     public int? Beneficiaries { get; set; }
     public decimal? AmountSpent { get; set; }
@@ -479,10 +436,6 @@ public class ServiceProjectsProjectRow
     public int ManHours { get; set; }
     public string? Beneficiary { get; set; }
     public int? Beneficiaries2 { get; set; }
-    public string ApprovalStatus { get; set; } = "";
-    // PPH Camp only — the camp's logo/image (relative /Documents path) and its active flag.
-    public string? CampImageUrl { get; set; }
-    public bool? IsActive { get; set; }
     // True once the RI Flow-Bot extension has confirmed this project was published into Rotary
     // International's Service Project Center — the listing hides its "Sync" button when so.
     public bool SyncedToOrg { get; set; }
@@ -490,17 +443,6 @@ public class ServiceProjectsProjectRow
     public string? CoHostName { get; set; }
     public int? ParentProjectId { get; set; }
     public string? OngoingGroupTitle { get; set; }
-}
-
-public class ServiceProjectsPendingApprovalBannerRow
-{
-    public int ProjectId { get; set; }
-    public string CreatorName { get; set; } = "";
-    public string ProjectTitle { get; set; } = "";
-    public string AvenueLabel { get; set; } = "";
-    public string? Mobile { get; set; }
-    public string? Email { get; set; }
-    public string ApprovalStatus { get; set; } = "";
 }
 
 public class ServiceProjectsAvenueDetailResponse
@@ -518,5 +460,4 @@ public class ServiceProjectsAvenueDetailResponse
     public List<ServiceProjectsMeetingRow> Meetings { get; set; } = new();
     public List<ServiceProjectsProjectRow> OneTimeProjects { get; set; } = new();
     public List<ServiceProjectsProjectRow> OngoingProjects { get; set; } = new();
-    public List<ServiceProjectsPendingApprovalBannerRow> PendingApprovals { get; set; } = new();
 }

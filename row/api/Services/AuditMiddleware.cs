@@ -29,9 +29,12 @@ public class AuditMiddleware
         { "weblinks", "Weblink" },
         { "sub-groups", "Sub Group" },
         { "potential-members", "Potential Member" },
+        { "contacts", "Contact" },
+        { "contact-groups", "Contact Group" },
+        { "growth", "Growth Target" },
+        { "invite-prompts", "Invite Prompt" },
         { "past-presidents", "Past President" },
         { "trf", "TRF Contribution" },
-        { "pph-camps", "PPH Camp" },
         { "membership-dues", "Club Dues" },
         { "club-monthly-report", "Club Monthly Report" },
         // Club website data
@@ -49,20 +52,19 @@ public class AuditMiddleware
         { "committee", "District Committee" },
         { "groups", "Committee Group" },
         { "district-events", "District Event" },
-        { "club-moderators", "Club Moderator" },
         { "ag", "Assistant Governor" },
         { "mass-emails", "Mass Email" },
         { "citation", "District Awards" },
-        // RI Director
-        { "ri-director", "RI Director" },
         // Settings / Masters
         { "clubs", "Club" },
         { "districts", "District" },
         { "members", "Member" },
+        { "foundation-designations", "Foundation Designation" },
+        { "engagement", "Engagement" },
+        { "spotlight-cards", "Spotlight Card" },
         { "zones", "Zone" },
         { "area-of-focus", "Area of Focus" },
         { "categories", "Category" },
-        { "sub-categories", "Sub Category" },
         { "funding", "Funding" },
         { "designations", "Designation" },
         { "themes", "Theme" },
@@ -70,23 +72,27 @@ public class AuditMiddleware
         { "modules", "Module" },
         { "module-categories", "Module Category" },
         { "credit-management", "Credit Management" },
-        { "credits", "RI Director Credit" },
         { "event-masters", "Event Master" },
         { "event-payment", "Event Payment" },
         { "tshirt-sizes", "T-Shirt Size" },
         { "food-preferences", "Food Preference" },
         { "cashfree-kyc", "Cashfree KYC" },
         { "rotary-years", "Rotary Year" },
-        { "zonal-awards", "Zonal Award" },
-        { "project-approval", "Project Approval" },
         { "document-types", "Document Type" },
         { "funds", "Fund" },
+        { "grants", "Grant" },
+        { "volunteer-sheets", "Volunteer Sheet" },
+        { "volunteers", "Volunteer Sign-up" },
+        { "speakers", "Speaker" },
+        { "meeting-duties", "Meeting Duty" },
+        { "chat-moderation", "Chat Moderation" },
     };
 
-    // Skip these paths (read-only, auth, webhooks)
+    // Skip these paths (read-only, auth, webhooks). Members' chat writes (/api/chat/) are their own record in
+    // chat_messages and chat_reports; the moderators' actions are under /api/clubs|districts and are logged.
     private static readonly string[] SkipPrefixes = {
-        "/api/auth", "/api/mobile-auth", "/api/public/", "/api/whatsapp-info",
-        "/api/district-directory", "/swagger", "/api/countries"
+        "/api/auth", "/api/mobile-auth", "/api/public/",
+        "/api/district-directory", "/swagger", "/api/countries", "/api/chat/"
     };
 
     public AuditMiddleware(RequestDelegate next, IConfiguration config)
@@ -153,9 +159,13 @@ public class AuditMiddleware
             if (path.Contains("/reject", StringComparison.OrdinalIgnoreCase)) action = "Reject";
             if (path.Contains("/assign", StringComparison.OrdinalIgnoreCase)) action = "Assign";
             if (path.Contains("/remove", StringComparison.OrdinalIgnoreCase)) action = "Remove";
+            if (path.EndsWith("/convert", StringComparison.OrdinalIgnoreCase)) action = "Convert";
+            if (path.EndsWith("/contacts/import", StringComparison.OrdinalIgnoreCase)) action = "Import";
+            if (path.EndsWith("/import/preview", StringComparison.OrdinalIgnoreCase)) action = "Preview";
 
             var entityType = ResolveEntityType(path);
-            var entityName = ExtractEntityName(requestBody);
+            // Contacts are non-members: audit_log cannot be erased, so keep their names out of it (the id is enough).
+            var entityName = path.Contains("/contacts", StringComparison.OrdinalIgnoreCase) ? null : ExtractEntityName(requestBody);
             var entityId = ExtractEntityId(path);
 
             var connStr = _config.GetConnectionString("DefaultConnection");

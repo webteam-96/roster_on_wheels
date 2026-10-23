@@ -136,10 +136,6 @@ Future<int> _resolveModuleId(ApiClient api, String moduleType) async {
   return _kModuleKeyToId[moduleType] ?? _kModuleKeyToId[canonical] ?? 0;
 }
 
-// Backend system-settings key holding the per-project Direct Beneficiaries cap.
-// Mirrors the web add/edit pages (getSystemSetting("direct_beneficiaries_limit")).
-const String _kBeneficiariesLimitSettingKey = 'direct_beneficiaries_limit';
-
 // ---------------------------------------------------------------------------
 // Currency (project cost). Mirrors rotary-frontend/src/lib/currency.ts so the
 // mobile form matches the web Financial & Impact "Currency" dropdown 1:1.
@@ -168,42 +164,27 @@ String _resolveClubDefaultCurrency({String? districtDefaultCurrency, String? dis
 }
 
 // ---------------------------------------------------------------------------
-// Classification smart-search / AI-suggest result (one hierarchy row).
+// Classification smart-search / AI-suggest result (one Area of Focus).
 // Mirrors backend ClassificationSearchResultDto + web ClassificationSearchResult.
 // ---------------------------------------------------------------------------
 class _ClassificationResult {
-  final String type; // "area" | "category" | "subcategory"
   final int areaOfFocusId;
   final String areaOfFocusName;
-  final int? categoryId;
-  final String? categoryName;
-  final int? subCategoryId;
-  final String? subCategoryName;
   // Populated only on the cross-module AI `betterModule` (the module a project
   // reads like it belongs to) so the "Better fit" hint can name + route to it.
   final String? moduleKey;
   final String? moduleName;
 
   const _ClassificationResult({
-    required this.type,
     required this.areaOfFocusId,
     required this.areaOfFocusName,
-    this.categoryId,
-    this.categoryName,
-    this.subCategoryId,
-    this.subCategoryName,
     this.moduleKey,
     this.moduleName,
   });
 
   factory _ClassificationResult.fromJson(Map<String, dynamic> j) => _ClassificationResult(
-        type: (j['type'] ?? '').toString(),
         areaOfFocusId: (j['areaOfFocusId'] as num?)?.toInt() ?? 0,
         areaOfFocusName: (j['areaOfFocusName'] ?? '').toString(),
-        categoryId: (j['categoryId'] as num?)?.toInt(),
-        categoryName: (j['categoryName'])?.toString(),
-        subCategoryId: (j['subCategoryId'] as num?)?.toInt(),
-        subCategoryName: (j['subCategoryName'])?.toString(),
         moduleKey: (j['moduleKey'])?.toString(),
         moduleName: (j['moduleName'])?.toString(),
       );
@@ -230,35 +211,27 @@ String _normalizeModuleKey(String? k) =>
 /// Describes which form sections/behaviors a given service-area module exposes.
 /// All 6 modules share the same backend but diverge significantly in UI/fields.
 class _ModuleCaps {
-  final bool showClassification;        // AoF + Category row
-  final bool showSubCategory;           // SubCategory row (community_service only)
-  final bool renameClassificationLabels; // true for voc/intl/newgen → "Category"/"Sub Category"
+  final bool showClassification;        // Area of Focus row
   final bool showMeetingFields;         // club_service only
   final bool showOngoingType;           // community + public_image
   final bool showJointProject;          // community + public_image
   final bool showCost;                  // all except club_service
   final bool showBeneficiaries;         // all except club_service + public_image
-  final bool showBeneficiaryLimitGate;  // community + vocational + international
   final bool showFunding;               // all except club_service
   final bool showManHoursRotarians;     // all except club_service
   final bool showLocation;              // all except club_service
-  final bool runModeratorGate;          // all except club_service
   final bool showAgendaDocument;        // legacy agenda doc — off for community
 
   const _ModuleCaps({
     this.showClassification = true,
-    this.showSubCategory = true,
-    this.renameClassificationLabels = false,
     this.showMeetingFields = false,
     this.showOngoingType = true,
     this.showJointProject = true,
     this.showCost = true,
     this.showBeneficiaries = true,
-    this.showBeneficiaryLimitGate = true,
     this.showFunding = true,
     this.showManHoursRotarians = true,
     this.showLocation = true,
-    this.runModeratorGate = true,
     this.showAgendaDocument = true,
   });
 
@@ -269,27 +242,22 @@ class _ModuleCaps {
       case 'club':
         return const _ModuleCaps(
           showClassification: false,
-          showSubCategory: false,
           showMeetingFields: true,
           showOngoingType: false,
           showJointProject: false,
           showCost: false,
           showBeneficiaries: false,
-          showBeneficiaryLimitGate: false,
           showFunding: false,
           showManHoursRotarians: false,
           showLocation: false,
-          runModeratorGate: false,
         );
       case 'community_service':
       case 'community':
         return const _ModuleCaps(
           showClassification: true,
-          showSubCategory: true,
           showOngoingType: true,
           showJointProject: true,
           showBeneficiaries: true,
-          showBeneficiaryLimitGate: true,
           showFunding: true,
           showManHoursRotarians: true,
           showAgendaDocument: false,
@@ -300,12 +268,9 @@ class _ModuleCaps {
       case 'international':
         return const _ModuleCaps(
           showClassification: true,
-          showSubCategory: false,
-          renameClassificationLabels: true,
           showOngoingType: false,
           showJointProject: false,
           showBeneficiaries: true,
-          showBeneficiaryLimitGate: true,
           showFunding: true,
           showManHoursRotarians: true,
           showAgendaDocument: false,
@@ -314,12 +279,9 @@ class _ModuleCaps {
       case 'new_generation':
         return const _ModuleCaps(
           showClassification: true,
-          showSubCategory: false,
-          renameClassificationLabels: true,
           showOngoingType: false,
           showJointProject: false,
           showBeneficiaries: true,
-          showBeneficiaryLimitGate: false,
           showFunding: true,
           showManHoursRotarians: true,
           showAgendaDocument: false,
@@ -328,11 +290,9 @@ class _ModuleCaps {
       case 'public_image':
         return const _ModuleCaps(
           showClassification: true,
-          showSubCategory: false,
           showOngoingType: true,
           showJointProject: true,
           showBeneficiaries: false,
-          showBeneficiaryLimitGate: false,
           showFunding: true,
           showManHoursRotarians: true,
           showAgendaDocument: false,
@@ -384,14 +344,8 @@ class _Project {
   final int? parentProjectId;
   final String? ongoingGroupTitle;
   final int? areaOfFocusId;
-  final int? categoryId;
-  final int? subCategoryId;
   final String? areaOfFocusName;
-  final String? categoryName;
-  final String? subCategoryName;
   final String? otherAreaOfFocus;
-  final String? otherCategory;
-  final String? otherSubCategory;
   final int? fundingId;
   final String? fundingName;
   final String? globalGrantNumber;
@@ -406,7 +360,6 @@ class _Project {
   final int? rotaractorsInvolved;
   final String? yearLabel;
   final int? yearId;
-  final String? approvalStatus;
   final String? primaryPhotoPath;
   final List<_ProjectPhoto> photos;
   final int? attendance;
@@ -433,14 +386,8 @@ class _Project {
     this.parentProjectId,
     this.ongoingGroupTitle,
     this.areaOfFocusId,
-    this.categoryId,
-    this.subCategoryId,
     this.areaOfFocusName,
-    this.categoryName,
-    this.subCategoryName,
     this.otherAreaOfFocus,
-    this.otherCategory,
-    this.otherSubCategory,
     this.fundingId,
     this.fundingName,
     this.globalGrantNumber,
@@ -455,7 +402,6 @@ class _Project {
     this.rotaractorsInvolved,
     this.yearLabel,
     this.yearId,
-    this.approvalStatus,
     this.primaryPhotoPath,
     this.photos = const [],
     this.attendance,
@@ -467,15 +413,6 @@ class _Project {
     this.minutesDocumentName,
     this.clubRole,
   });
-
-  /// A project awaiting or refused moderator approval is an admin-only concern —
-  /// plain members should never see Pending/Rejected rows in the list. Anything
-  /// else (Approved, or a null/blank status on clubs without moderation) stays
-  /// visible. Mirrors the web console, where members only see live projects.
-  bool get isVisibleToMembers {
-    final s = approvalStatus?.trim().toLowerCase();
-    return s != 'pending' && s != 'requested' && s != 'rejected' && s != 'denied';
-  }
 
   factory _Project.fromJson(Map<String, dynamic> j) {
     // The detail endpoint returns `photos[]` (with imagePath, description,
@@ -513,14 +450,8 @@ class _Project {
         parentProjectId: j['parentProjectId'] as int?,
         ongoingGroupTitle: (j['ongoingGroupTitle'])?.toString(),
         areaOfFocusId: (j['areaOfFocusId'] as num?)?.toInt(),
-        categoryId: (j['categoryId'] as num?)?.toInt(),
-        subCategoryId: (j['subCategoryId'] as num?)?.toInt(),
         areaOfFocusName: (j['areaOfFocusName'])?.toString(),
-        categoryName: (j['categoryName'])?.toString(),
-        subCategoryName: (j['subCategoryName'])?.toString(),
         otherAreaOfFocus: (j['otherAreaOfFocus'])?.toString(),
-        otherCategory: (j['otherCategory'])?.toString(),
-        otherSubCategory: (j['otherSubCategory'])?.toString(),
         fundingId: (j['fundingId'] as num?)?.toInt(),
         fundingName: (j['fundingName'])?.toString(),
         globalGrantNumber: (j['globalGrantNumber'])?.toString(),
@@ -536,7 +467,6 @@ class _Project {
         rotaractorsInvolved: (j['rotaractorsInvolved'] as num?)?.toInt(),
         yearLabel: (j['yearLabel'])?.toString(),
         yearId: j['yearId'] as int?,
-        approvalStatus: (j['approvalStatus'])?.toString(),
         primaryPhotoPath: primary,
         photos: photos,
         attendance: j['attendance'] as int?,
@@ -907,13 +837,8 @@ class _ProjectsScreenState extends State<ProjectsScreen> {
         fromJson: (j) => j as Map<String, dynamic>,
       );
       final paged = PagedResponse.fromJson(resp.data ?? {}, (j) => _Project.fromJson(j));
-      // Plain members only ever see live projects — hide any Pending/Rejected
-      // rows that the server still returns (admins keep the full moderation view).
-      final visible = canManage
-          ? paged.items
-          : paged.items.where((p) => p.isVisibleToMembers).toList();
       setState(() {
-        _projects.addAll(visible);
+        _projects.addAll(paged.items);
         _totalPages = paged.totalPages;
         _totalCount = paged.totalCount;
         _loading = false;
@@ -1398,11 +1323,6 @@ class _ProjectCard extends StatelessWidget {
         _CountPill(text: '${_currencySymbol(project.currency)} ${numFmt.format(project.projectCost!)}'),
     ];
 
-    // Approval status is an admin-only concern — plain members never see the
-    // Pending/Approved/Rejected pill.
-    final hasStatus =
-        canManage && project.approvalStatus?.trim().isNotEmpty == true;
-
     return Card(
       elevation: 0,
       shape: RoundedRectangleBorder(
@@ -1438,14 +1358,12 @@ class _ProjectCard extends StatelessWidget {
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
                         ),
-                        if (hasStatus || project.isJointProject) ...[
+                        if (project.isJointProject) ...[
                           const SizedBox(height: 4),
                           Wrap(
                             spacing: 6,
                             runSpacing: 4,
                             children: [
-                              if (hasStatus)
-                                _StatusPill(status: project.approvalStatus),
                               if (project.isJointProject) const _JointPill(),
                             ],
                           ),
@@ -1520,57 +1438,6 @@ class _AvenueBadge extends StatelessWidget {
         borderRadius: BorderRadius.circular(10),
       ),
       child: Icon(icon, size: 20, color: AppColors.primaryPrime),
-    );
-  }
-}
-
-/// Colored approval-status pill (Pending/Approved/Rejected). Renders nothing
-/// when status is null/empty. Keeps the original status -> label mapping.
-class _StatusPill extends StatelessWidget {
-  final String? status;
-  const _StatusPill({required this.status});
-
-  @override
-  Widget build(BuildContext context) {
-    final s = status?.trim();
-    if (s == null || s.isEmpty) return const SizedBox.shrink();
-    final lower = s.toLowerCase();
-    Color color;
-    String label;
-    switch (lower) {
-      case 'approved':
-        color = AppColors.success;
-        label = 'Approved';
-        break;
-      case 'rejected':
-      case 'denied':
-        color = AppColors.error;
-        label = 'Rejected';
-        break;
-      case 'pending':
-      case 'requested':
-        color = AppColors.warning;
-        label = 'Pending';
-        break;
-      default:
-        color = AppColors.textMuted;
-        label = s;
-    }
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Text(
-        label.toUpperCase(),
-        style: AppFonts.body(
-          fontSize: 10,
-          fontWeight: FontWeight.w800,
-          color: color,
-          letterSpacing: 0.4,
-        ),
-      ),
     );
   }
 }
@@ -1893,20 +1760,10 @@ class _ProjectDetailScreenState extends State<_ProjectDetailScreen> {
         p.minutesDocument != null && p.minutesDocument!.isNotEmpty;
     final hasDocs = showAgenda || hasMinutes;
 
-    // Classification values (respect caps + "Others:" fallback + label rename).
+    // Area of Focus value (respects caps + "Others:" fallback).
     final aofVal = (p.otherAreaOfFocus?.isNotEmpty ?? false)
         ? 'Others: ${p.otherAreaOfFocus}'
         : ((p.areaOfFocusName?.isNotEmpty ?? false) ? p.areaOfFocusName : null);
-    final catVal = (p.otherCategory?.isNotEmpty ?? false)
-        ? 'Others: ${p.otherCategory}'
-        : ((p.categoryName?.isNotEmpty ?? false) ? p.categoryName : null);
-    final subVal = caps.showSubCategory
-        ? ((p.otherSubCategory?.isNotEmpty ?? false)
-            ? 'Others: ${p.otherSubCategory}'
-            : ((p.subCategoryName?.isNotEmpty ?? false)
-                ? p.subCategoryName
-                : null))
-        : null;
 
     // Urls + per-photo captions built together so they stay index-aligned even
     // when a photo path is blank/unresolvable (mirrors District Events).
@@ -1962,15 +1819,7 @@ class _ProjectDetailScreenState extends State<_ProjectDetailScreen> {
                   ? 'Lead Club'
                   : 'Co-Host Club')
               : null),
-      if (caps.showClassification)
-        DetailKV(
-            caps.renameClassificationLabels ? 'Category' : 'Area of Focus',
-            aofVal),
-      if (caps.showClassification)
-        DetailKV(
-            caps.renameClassificationLabels ? 'Sub Category' : 'Category',
-            catVal),
-      if (caps.showClassification) DetailKV('Sub Category', subVal),
+      if (caps.showClassification) DetailKV('Area of Focus', aofVal),
       // Club-service attendance.
       if (isClubService && p.attendance != null)
         DetailKV('Attendance', '${p.attendance}'),
@@ -2256,8 +2105,6 @@ class _ProjectFormScreenState extends State<_ProjectFormScreen> {
   final _rotaractorsCtrl = TextEditingController();
   final _ongoingGroupTitleCtrl = TextEditingController();
   final _otherAofCtrl = TextEditingController();
-  final _otherCategoryCtrl = TextEditingController();
-  final _otherSubCategoryCtrl = TextEditingController();
 
   // Funding-conditional fields (shown only for Global Grant / CSR funding).
   final _ggNumberCtrl = TextEditingController();
@@ -2278,11 +2125,11 @@ class _ProjectFormScreenState extends State<_ProjectFormScreen> {
   String _currency = 'INR';
 
   // ── Classification AI gate (web parity: ClassificationAssist) ──────────────
-  // The AoF/Category/Sub dropdowns start LOCKED on Add until the user taps
-  // "Auto-Suggest Category" (which also fires the AI). Unlocked by default on
-  // Edit so saved values stay visible/editable.
+  // The Area of Focus dropdown starts LOCKED on Add until the user taps
+  // "Auto-Suggest Area of Focus" (which also fires the AI). Unlocked by default
+  // on Edit so the saved value stays visible/editable.
   bool _classUnlocked = false;
-  // Smart search (module-scoped) over all three levels.
+  // Smart search (module-scoped) over the areas of focus.
   final _classSearchCtrl = TextEditingController();
   Timer? _classSearchDebounce;
   List<_ClassificationResult> _classSearchResults = [];
@@ -2338,26 +2185,15 @@ class _ProjectFormScreenState extends State<_ProjectFormScreen> {
 
   // Dropdown data
   List<_DropdownItem> _areasOfFocus = [];
-  List<_DropdownItem> _categories = [];
-  List<_DropdownItem> _subCategories = [];
   List<_DropdownItem> _fundings = [];
 
   // Sentinel value for "Others" free-text entries in dropdowns.
   static const int _kOthersSentinel = -999;
 
   int? _selectedAreaOfFocusId;
-  int? _selectedCategoryId;
-  int? _selectedSubCategoryId;
   int? _selectedFundingId;
 
   bool _loadingDropdowns = true;
-
-  // Moderator gating
-  bool _hasModerator = false;
-
-  // Per-project Direct Beneficiaries cap from system settings (0 = not
-  // configured → the "Beneficiary Limit Exceeded" popup never fires).
-  int _beneficiariesLimit = 0;
 
   bool get _isEditing => widget.existing != null;
 
@@ -2433,14 +2269,6 @@ class _ProjectFormScreenState extends State<_ProjectFormScreen> {
     if (!_isEditing && widget.switchDraft == null && _caps.showCost) {
       _loadClubDefaultCurrency();
     }
-    // Moderator gate does not apply to Club Service (parity with web).
-    if (_caps.runModeratorGate) {
-      _loadModeratorFlag();
-    }
-    // Per-project beneficiary cap (only for modules that show the gate).
-    if (_caps.showBeneficiaryLimitGate) {
-      _loadBeneficiariesLimit();
-    }
     if (_caps.showMeetingFields) {
       _loadTotalMembers();
       _attendanceCtrl.addListener(_recalcAttendancePct);
@@ -2506,8 +2334,6 @@ class _ProjectFormScreenState extends State<_ProjectFormScreen> {
         _ongoingMode = 'create';
       }
       _otherAofCtrl.text = e.otherAreaOfFocus ?? '';
-      _otherCategoryCtrl.text = e.otherCategory ?? '';
-      _otherSubCategoryCtrl.text = e.otherSubCategory ?? '';
       // Funding + conditional fields (preselect dropdown + prefill the relevant
       // Global Grant / CSR block).
       _selectedFundingId = e.fundingId;
@@ -2552,39 +2378,6 @@ class _ProjectFormScreenState extends State<_ProjectFormScreen> {
     }
   }
 
-  Future<void> _loadModeratorFlag() async {
-    try {
-      final resp = await _api.get<Map<String, dynamic>>(
-        '/api/clubs/${widget.clubId}/has-moderator',
-        fromJson: (j) => j as Map<String, dynamic>,
-      );
-      final data = resp.data ?? const {};
-      final flag = _asBool(data['hasModerator'] ?? data['has_moderator'] ?? data['value']);
-      if (!mounted) return;
-      setState(() => _hasModerator = flag);
-    } catch (_) {
-      // Graceful fallback: treat as no moderator.
-      if (mounted) setState(() => _hasModerator = false);
-    }
-  }
-
-  /// Fetch the per-project Direct Beneficiaries cap from system settings
-  /// (`direct_beneficiaries_limit`). 0/absent → no cap, so the "Beneficiary
-  /// Limit Exceeded" popup never fires. Mirrors the web add/edit pages.
-  Future<void> _loadBeneficiariesLimit() async {
-    try {
-      final resp = await _api.get<Map<String, dynamic>>(
-        '/api/system-settings/$_kBeneficiariesLimitSettingKey',
-        fromJson: (j) => j as Map<String, dynamic>,
-      );
-      final v = resp.data?['settingValue']?.toString();
-      final n = int.tryParse(v ?? '') ?? 0;
-      if (mounted) setState(() => _beneficiariesLimit = n);
-    } catch (_) {
-      // No cap configured / fetch failed → gate stays off.
-    }
-  }
-
   /// Resolve the default project currency from the club's district (Add only).
   /// Falls back silently to INR when the fetch fails or fields are absent.
   Future<void> _loadClubDefaultCurrency() async {
@@ -2606,7 +2399,7 @@ class _ProjectFormScreenState extends State<_ProjectFormScreen> {
   }
 
   // ── Classification smart search + AI suggest ───────────────────────────────
-  /// Debounced module-scoped search across area/category/sub-category.
+  /// Debounced module-scoped search across the areas of focus.
   void _onClassSearchChanged(String v) {
     setState(() => _showClassSearchResults = true);
     _classSearchDebounce?.cancel();
@@ -2819,10 +2612,9 @@ class _ProjectFormScreenState extends State<_ProjectFormScreen> {
     }
   }
 
-  /// Apply a picked classification (search result or AI suggestion): set the
-  /// AoF, cascade-load categories, then set category + sub-category if present
-  /// and still active (mirrors _preselectClassification's guarded selection).
-  Future<void> _applyClassificationResult(_ClassificationResult r) async {
+  /// Apply a picked classification (search result or AI suggestion): set its
+  /// Area of Focus.
+  void _applyClassificationResult(_ClassificationResult r) {
     // Collapse the search UI immediately.
     setState(() {
       _classSearchCtrl.clear();
@@ -2840,61 +2632,8 @@ class _ProjectFormScreenState extends State<_ProjectFormScreen> {
     // the sentinel reveals the "Other Area of Focus" text field for the user.
     final aofIsOthers = isOthersName(r.areaOfFocusName) ||
         !_areasOfFocus.any((a) => a.id == r.areaOfFocusId);
-    if (aofIsOthers) {
-      setState(() {
-        _selectedAreaOfFocusId = _kOthersSentinel;
-        _categories = [];
-        _subCategories = [];
-        _selectedCategoryId = null;
-        _selectedSubCategoryId = null;
-      });
-      return; // Others AoF has no real category tree.
-    }
-
-    setState(() {
-      _selectedAreaOfFocusId = r.areaOfFocusId;
-      _categories = [];
-      _subCategories = [];
-      _selectedCategoryId = null;
-      _selectedSubCategoryId = null;
-    });
-
-    await _loadCategories(r.areaOfFocusId);
-    if (!mounted) return;
-
-    // ── Category ── (same Others handling as the Area of Focus above)
-    if (isOthersName(r.categoryName)) {
-      setState(() {
-        _selectedCategoryId = _kOthersSentinel;
-        _subCategories = [];
-        _selectedSubCategoryId = null;
-      });
-      return;
-    }
-    final catId = r.categoryId;
-    if (catId == null || !_categories.any((c) => c.id == catId)) return;
-    setState(() => _selectedCategoryId = catId);
-
-    if (!_caps.showSubCategory) return;
-    await _loadSubCategories(catId);
-    if (!mounted) return;
-
-    // ── Sub Category ──
-    if (isOthersName(r.subCategoryName)) {
-      setState(() => _selectedSubCategoryId = _kOthersSentinel);
-      return;
-    }
-    final subId = r.subCategoryId;
-    if (subId == null || !_subCategories.any((s) => s.id == subId)) return;
-    setState(() => _selectedSubCategoryId = subId);
-  }
-
-  /// Human-readable AoF › Category › Sub path for a result row.
-  String _classPathLabel(_ClassificationResult r) {
-    final parts = <String>[r.areaOfFocusName];
-    if ((r.categoryName ?? '').isNotEmpty) parts.add(r.categoryName!);
-    if ((r.subCategoryName ?? '').isNotEmpty) parts.add(r.subCategoryName!);
-    return parts.join(' › ');
+    setState(() => _selectedAreaOfFocusId =
+        aofIsOthers ? _kOthersSentinel : r.areaOfFocusId);
   }
 
   Future<void> _pickAndUploadPhoto() async {
@@ -3029,7 +2768,7 @@ class _ProjectFormScreenState extends State<_ProjectFormScreen> {
       _titleCtrl, _descCtrl, _locationCtrl, _costCtrl, _beneficiariesCtrl,
       _attendanceCtrl, _attendancePctCtrl, _coHostCtrl, _manHoursCtrl,
       _rotariansCtrl, _rotaractorsCtrl, _ongoingGroupTitleCtrl, _otherAofCtrl,
-      _otherCategoryCtrl, _otherSubCategoryCtrl, _classSearchCtrl,
+      _classSearchCtrl,
       _ggNumberCtrl, _amtSanctionedCtrl, _amtReceivedCtrl, _amtSpentCtrl,
       _hostCtrl, _partnerCtrl, _csrCompanyCtrl,
     ]) {
@@ -3073,123 +2812,33 @@ class _ProjectFormScreenState extends State<_ProjectFormScreen> {
         _fundings = funding;
         _loadingDropdowns = false;
       });
-      // On edit, preselect the saved Area of Focus → Category → Sub Category
-      // (these aren't set in initState because Category/Sub Category must be
-      // cascade-loaded for the saved AoF/Category first).
+      // On edit, preselect the saved Area of Focus (it isn't set in initState
+      // because the options must be loaded first).
       if (_isEditing) {
-        await _preselectClassification();
+        _preselectClassification();
       } else if (widget.switchSuggested != null && _caps.showClassification) {
-        // Cross-module switch: the AI's betterModule carries ONLY the Area of
-        // Focus (the model is never given the other avenue's category tree), so
-        // preselect that first…
-        await _applyClassificationResult(widget.switchSuggested!);
-        // …then auto-run the in-module AI here (this avenue's FULL taxonomy) and
-        // apply its top pick so Category/Sub actually carry over instead of being
-        // left empty. Falls back to just the Area of Focus if the AI returns
-        // nothing / is unavailable.
-        await _handleAutoSuggest();
-        if (mounted && _aiMatches.isNotEmpty) {
-          await _applyClassificationResult(_aiMatches.first);
-        }
+        // Cross-module switch: preselect the AI's betterModule Area of Focus.
+        _applyClassificationResult(widget.switchSuggested!);
       }
     } catch (_) {
       setState(() => _loadingDropdowns = false);
     }
   }
 
-  /// Restore the saved classification selections when editing. The dropdowns
-  /// are keyed by id, so we set the AoF id (or the Others sentinel when an
-  /// `other*` free-text value was saved), then cascade-load and set Category
-  /// and Sub Category. Each id is only set if present in the (active) loaded
-  /// list, so a since-deactivated option can't crash the dropdown.
-  Future<void> _preselectClassification() async {
+  /// Restore the saved Area of Focus when editing: its id, or the Others
+  /// sentinel when an `otherAreaOfFocus` free-text value was saved. The id is
+  /// only set if present in the (active) loaded list, so a since-deactivated
+  /// option can't crash the dropdown.
+  void _preselectClassification() {
     if (!_caps.showClassification) return;
     final e = widget.existing!;
-
-    // Area of Focus
     if ((e.otherAreaOfFocus ?? '').isNotEmpty) {
       setState(() => _selectedAreaOfFocusId = _kOthersSentinel);
-      return; // Others AoF has no real category tree
+      return;
     }
     final aofId = e.areaOfFocusId;
     if (aofId == null || !_areasOfFocus.any((a) => a.id == aofId)) return;
     setState(() => _selectedAreaOfFocusId = aofId);
-
-    // Category (cascade-loaded for this AoF)
-    await _loadCategories(aofId);
-    if (!mounted) return;
-    if ((e.otherCategory ?? '').isNotEmpty) {
-      setState(() => _selectedCategoryId = _kOthersSentinel);
-      return;
-    }
-    final catId = e.categoryId;
-    if (catId == null || !_categories.any((c) => c.id == catId)) return;
-    setState(() => _selectedCategoryId = catId);
-
-    // Sub Category (only for modules that show it, e.g. Community Service)
-    if (!_caps.showSubCategory) return;
-    await _loadSubCategories(catId);
-    if (!mounted) return;
-    if ((e.otherSubCategory ?? '').isNotEmpty) {
-      setState(() => _selectedSubCategoryId = _kOthersSentinel);
-      return;
-    }
-    final subId = e.subCategoryId;
-    if (subId == null || !_subCategories.any((s) => s.id == subId)) return;
-    setState(() => _selectedSubCategoryId = subId);
-  }
-
-  Future<void> _loadCategories(int aofId) async {
-    if (aofId == _kOthersSentinel) {
-      setState(() {
-        _categories = [];
-        _selectedCategoryId = null;
-        _subCategories = [];
-        _selectedSubCategoryId = null;
-      });
-      return;
-    }
-    try {
-      final resp = await _api.get<List<dynamic>>(
-        '/api/categories',
-        queryParams: {'areaOfFocusId': aofId},
-        fromJson: (j) => j as List<dynamic>,
-      );
-      setState(() {
-        _categories = _usableOptions((resp.data ?? [])
-            .map((e) => _DropdownItem.fromJson(e as Map<String, dynamic>)).toList());
-        _selectedCategoryId = null;
-        _subCategories = [];
-        _selectedSubCategoryId = null;
-      });
-    } catch (_) {
-      setState(() {
-        _categories = [];
-        _selectedCategoryId = null;
-      });
-    }
-  }
-
-  Future<void> _loadSubCategories(int categoryId) async {
-    if (categoryId == _kOthersSentinel) {
-      setState(() {
-        _subCategories = [];
-        _selectedSubCategoryId = null;
-      });
-      return;
-    }
-    try {
-      final resp = await _api.get<List<dynamic>>(
-        '/api/sub-categories',
-        queryParams: {'categoryId': categoryId},
-        fromJson: (j) => j as List<dynamic>,
-      );
-      setState(() {
-        _subCategories = _usableOptions((resp.data ?? [])
-            .map((e) => _DropdownItem.fromJson(e as Map<String, dynamic>)).toList());
-        _selectedSubCategoryId = null;
-      });
-    } catch (_) {}
   }
 
   Future<void> _pickDate() async {
@@ -3239,102 +2888,6 @@ class _ProjectFormScreenState extends State<_ProjectFormScreen> {
     if (result != null) setState(() => _selectedParent = result);
   }
 
-  /// Shows moderator-approval confirmation dialog. Returns true to proceed.
-  Future<bool> _confirmModeratorFlow() async {
-    final res = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Moderator Approval'),
-        content: const Text(
-          'Your district has assigned a moderator. This project will need '
-          'approval before becoming active. Send for approval?',
-        ),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
-            onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('Send for Approval'),
-          ),
-        ],
-      ),
-    );
-    return res ?? false;
-  }
-
-  /// Prompts for beneficiary-over-limit justification. Returns justification
-  /// text on confirm, null on cancel.
-  /// The web "Beneficiary Limit Exceeded" review dialog. Shown when the entered
-  /// Direct Beneficiaries [entered] exceeds the configured per-project [limit].
-  /// Returns true on Confirm (save capped at [limit] + queue an approval request
-  /// for the full count); false on Cancel.
-  Future<bool> _confirmBeneficiaryLimit(int entered, int limit) async {
-    final bodyStyle = AppTextStyles.body.copyWith(
-      color: AppColors.textSecondary,
-      height: 1.5,
-    );
-    TextSpan bold(String s) =>
-        TextSpan(text: s, style: const TextStyle(fontWeight: FontWeight.w800));
-
-    final ok = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Beneficiary Limit Exceeded'),
-        content: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text('Review before proceeding',
-                  style: AppTextStyles.caption
-                      .copyWith(color: AppColors.textMuted)),
-              const SizedBox(height: 16),
-              Text.rich(TextSpan(style: bodyStyle, children: [
-                const TextSpan(text: 'A limit of '),
-                bold('$limit'),
-                const TextSpan(
-                    text: ' beneficiaries has been set for each project. '
-                        'You have entered '),
-                bold('$entered'),
-                const TextSpan(
-                    text: ' beneficiaries which exceeds the limit.'),
-              ])),
-              const SizedBox(height: 12),
-              Text.rich(TextSpan(style: bodyStyle, children: [
-                const TextSpan(
-                    text: 'If you confirm, the project will be saved with '),
-                bold('$limit'),
-                const TextSpan(
-                    text: ' beneficiaries and an approval request for '),
-                bold('$entered'),
-                const TextSpan(
-                    text: ' beneficiaries will be sent to the Zonal '
-                        'Co-ordinator for approval.'),
-              ])),
-              const SizedBox(height: 12),
-              Text(
-                'Once approved, the beneficiary count will be updated to '
-                '$entered.',
-                style: bodyStyle,
-              ),
-            ],
-          ),
-        ),
-        actions: [
-          TextButton(
-              onPressed: () => Navigator.pop(ctx, false),
-              child: const Text('Cancel')),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
-            onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('Confirm'),
-          ),
-        ],
-      ),
-    );
-    return ok ?? false;
-  }
-
   Future<void> _save() async {
     if (!_formKey.currentState!.validate()) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -3376,27 +2929,7 @@ class _ProjectFormScreenState extends State<_ProjectFormScreen> {
       return;
     }
 
-    // Moderator gate — skipped for Club Service (per web). Runs before the
-    // beneficiary gate, mirroring the web handleSave order.
-    if (_caps.runModeratorGate && _hasModerator) {
-      final ok = await _confirmModeratorFlow();
-      if (!ok) return;
-    }
-
-    // Beneficiary-over-limit gate — mirrors the web "Beneficiary Limit Exceeded"
-    // flow. When the entered count exceeds the configured per-project cap, the
-    // project is saved capped at the limit and an approval request for the FULL
-    // count is queued to the Zonal Co-ordinator (below, after the save succeeds).
     final int beneficiaries = int.tryParse(_beneficiariesCtrl.text) ?? 0;
-    bool capBeneficiaries = false;
-    if (_caps.showBeneficiaryLimitGate &&
-        _beneficiariesLimit > 0 &&
-        beneficiaries > _beneficiariesLimit) {
-      final confirmed =
-          await _confirmBeneficiaryLimit(beneficiaries, _beneficiariesLimit);
-      if (!confirmed) return; // Cancel → abort save, stay on the form.
-      capBeneficiaries = true;
-    }
 
     setState(() => _saving = true);
 
@@ -3404,14 +2937,6 @@ class _ProjectFormScreenState extends State<_ProjectFormScreen> {
     final int? aofIdForBody =
         (_selectedAreaOfFocusId != null && _selectedAreaOfFocusId != _kOthersSentinel)
             ? _selectedAreaOfFocusId
-            : null;
-    final int? categoryIdForBody =
-        (_selectedCategoryId != null && _selectedCategoryId != _kOthersSentinel)
-            ? _selectedCategoryId
-            : null;
-    final int? subCatIdForBody =
-        (_selectedSubCategoryId != null && _selectedSubCategoryId != _kOthersSentinel)
-            ? _selectedSubCategoryId
             : null;
 
     // Start with base fields common to every module.
@@ -3442,22 +2967,12 @@ class _ProjectFormScreenState extends State<_ProjectFormScreen> {
       body['location'] = _locationCtrl.text.trim();
     }
 
-    // Classification (AoF + Category). SubCategory only when showSubCategory.
+    // Classification (Area of Focus).
     if (_caps.showClassification) {
       body['areaOfFocusId'] = aofIdForBody;
       body['otherAreaOfFocus'] = _selectedAreaOfFocusId == _kOthersSentinel
           ? _otherAofCtrl.text.trim()
           : null;
-      body['categoryId'] = categoryIdForBody;
-      body['otherCategory'] = _selectedCategoryId == _kOthersSentinel
-          ? _otherCategoryCtrl.text.trim()
-          : null;
-      if (_caps.showSubCategory) {
-        body['subCategoryId'] = subCatIdForBody;
-        body['otherSubCategory'] = _selectedSubCategoryId == _kOthersSentinel
-            ? _otherSubCategoryCtrl.text.trim()
-            : null;
-      }
     }
 
     // Project type: ongoing/repeat only for modules that show it, else one_time.
@@ -3488,12 +3003,10 @@ class _ProjectFormScreenState extends State<_ProjectFormScreen> {
       body['isJointProject'] = false;
     }
 
-    // Beneficiaries. When the limit gate capped the count, persist the cap; an
-    // approval request for the real number is queued after the save.
+    // Beneficiaries.
     if (_caps.showBeneficiaries) {
       if (_beneficiariesCtrl.text.isNotEmpty) {
-        body['directBeneficiaries'] =
-            capBeneficiaries ? _beneficiariesLimit : beneficiaries;
+        body['directBeneficiaries'] = beneficiaries;
       }
     } else {
       body['directBeneficiaries'] = null;
@@ -3546,14 +3059,12 @@ class _ProjectFormScreenState extends State<_ProjectFormScreen> {
     }
 
     try {
-      int? savedProjectId;
       if (_isEditing) {
         // Year-scoped update. The project's own year takes precedence over the
         // form's year context. If the edited date crosses into another rotary
         // year the server returns 409 and we confirm a move (new id in target).
         final yearId = widget.existing!.yearId ?? widget.yearId;
         final id = widget.existing!.id;
-        savedProjectId = id;
         try {
           await _api.put('/api/clubs/${widget.clubId}/projects/$yearId/$id', body: body);
         } on ApiException catch (e) {
@@ -3572,33 +3083,11 @@ class _ProjectFormScreenState extends State<_ProjectFormScreen> {
           await _api.post('/api/clubs/${widget.clubId}/projects/$yearId/$id/move', body: body);
         }
       } else {
-        final resp = await _api.post<Map<String, dynamic>>(
+        await _api.post<Map<String, dynamic>>(
           '/api/clubs/${widget.clubId}/projects',
           body: body,
           fromJson: (j) => j is Map<String, dynamic> ? j : <String, dynamic>{},
         );
-        savedProjectId = (resp.data?['id'] as num?)?.toInt();
-      }
-
-      // Beneficiary approval request for the full (un-capped) count. Best-effort
-      // and non-blocking, exactly like the web (its failure is swallowed) — the
-      // project has already saved with the capped value.
-      if (capBeneficiaries && savedProjectId != null) {
-        try {
-          await _api.post(
-            '/api/beneficiary-approval/request',
-            body: {
-              'projectId': savedProjectId,
-              'requestedBeneficiaries': beneficiaries,
-              // clubId is REQUIRED: pk_project_id is reused across year tables,
-              // so the backend needs the club to resolve the zone (and yearId to
-              // locate the right year table). Without clubId it binds 0 and the
-              // request never reaches the Zonal Co-ordinator.
-              'clubId': widget.clubId,
-              'yearId': widget.yearId,
-            },
-          );
-        } catch (_) {/* ignored, mirrors web */}
       }
 
       if (mounted) {
@@ -4019,13 +3508,13 @@ class _ProjectFormScreenState extends State<_ProjectFormScreen> {
                     ]));
                   }
 
-                  // Classification: AoF + Category (+ SubCategory)
+                  // Classification: Area of Focus
                   if (_caps.showClassification) {
                     specs.add(_Section(Icons.track_changes_outlined, 'Classification', [
                       _buildClassificationAssist(),
                       const SizedBox(height: 12),
-                      // AoF / Category / Sub dropdowns — greyed & non-interactive
-                      // until the section is unlocked via Auto-Suggest (web parity).
+                      // AoF dropdown — greyed & non-interactive until the
+                      // section is unlocked via Auto-Suggest (web parity).
                       Opacity(
                         opacity: _classUnlocked ? 1.0 : 0.5,
                         child: IgnorePointer(
@@ -4034,99 +3523,20 @@ class _ProjectFormScreenState extends State<_ProjectFormScreen> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                       _buildDropdown(
-                        label: _caps.renameClassificationLabels
-                            ? 'Category *'
-                            : 'Area of Focus *',
+                        label: 'Area of Focus *',
                         value: _selectedAreaOfFocusId,
                         items: _areasOfFocus,
                         includeOthers: true,
                         isRequired: true,
-                        onChanged: (v) {
-                          setState(() {
-                            _selectedAreaOfFocusId = v;
-                            _categories = [];
-                            _subCategories = [];
-                            _selectedCategoryId = null;
-                            _selectedSubCategoryId = null;
-                          });
-                          if (v != null && v != _kOthersSentinel) _loadCategories(v);
-                        },
+                        onChanged: (v) => setState(() => _selectedAreaOfFocusId = v),
                       ),
                       if (_selectedAreaOfFocusId == _kOthersSentinel) ...[
                         const SizedBox(height: 8),
                         CustomTextField(
-                          label: _caps.renameClassificationLabels
-                              ? 'Other Category'
-                              : 'Other Area of Focus',
+                          label: 'Other Area of Focus',
                           controller: _otherAofCtrl,
                           hint: 'Specify',
                         ),
-                      ],
-                      const SizedBox(height: 12),
-                      // Web parity: the Category level is required only when the
-                      // parent Area of Focus is a real (non-Others) selection AND
-                      // it actually has categories. When AoF = Others there is no
-                      // category tree, so this dropdown is disabled and must NOT
-                      // be required — otherwise its validator can never be
-                      // satisfied and Create fails.
-                      _buildDropdown(
-                        label: (_caps.renameClassificationLabels
-                                ? 'Sub Category'
-                                : 'Category') +
-                            ((_selectedAreaOfFocusId != null &&
-                                    _selectedAreaOfFocusId != _kOthersSentinel &&
-                                    _categories.isNotEmpty)
-                                ? ' *'
-                                : ''),
-                        value: _selectedCategoryId,
-                        items: _categories,
-                        includeOthers: _selectedAreaOfFocusId != null,
-                        enabled: _selectedAreaOfFocusId != null &&
-                            _selectedAreaOfFocusId != _kOthersSentinel,
-                        isRequired: _selectedAreaOfFocusId != null &&
-                            _selectedAreaOfFocusId != _kOthersSentinel &&
-                            _categories.isNotEmpty,
-                        onChanged: (v) {
-                          setState(() {
-                            _selectedCategoryId = v;
-                            _subCategories = [];
-                            _selectedSubCategoryId = null;
-                          });
-                          if (v != null && v != _kOthersSentinel &&
-                              _caps.showSubCategory) {
-                            _loadSubCategories(v);
-                          }
-                        },
-                      ),
-                      if (_selectedCategoryId == _kOthersSentinel) ...[
-                        const SizedBox(height: 8),
-                        CustomTextField(
-                          label: _caps.renameClassificationLabels
-                              ? 'Other Sub Category'
-                              : 'Other Category',
-                          controller: _otherCategoryCtrl,
-                          hint: 'Specify',
-                        ),
-                      ],
-                      if (_caps.showSubCategory &&
-                          _selectedCategoryId != null &&
-                          _selectedCategoryId != _kOthersSentinel) ...[
-                        const SizedBox(height: 12),
-                        _buildDropdown(
-                          label: 'Sub Category',
-                          value: _selectedSubCategoryId,
-                          items: _subCategories,
-                          includeOthers: true,
-                          onChanged: (v) => setState(() => _selectedSubCategoryId = v),
-                        ),
-                        if (_selectedSubCategoryId == _kOthersSentinel) ...[
-                          const SizedBox(height: 8),
-                          CustomTextField(
-                            label: 'Other Sub Category',
-                            controller: _otherSubCategoryCtrl,
-                            hint: 'Specify',
-                          ),
-                        ],
                       ],
                             ],
                           ),
@@ -4236,27 +3646,6 @@ class _ProjectFormScreenState extends State<_ProjectFormScreen> {
                           title: specs[i].title,
                           accent: _kSectionAccents[i % _kSectionAccents.length],
                           children: specs[i].children,
-                        ),
-                      if (_caps.runModeratorGate && _hasModerator)
-                        Container(
-                          padding: const EdgeInsets.all(10),
-                          decoration: BoxDecoration(
-                            color: Colors.amber.shade50,
-                            borderRadius: BorderRadius.circular(8),
-                            border: Border.all(color: Colors.amber.shade200),
-                          ),
-                          child: Row(
-                            children: [
-                              Icon(Icons.info_outline, size: 16, color: Colors.amber.shade900),
-                              const SizedBox(width: 8),
-                              Expanded(
-                                child: Text(
-                                  'A district moderator is assigned. This project will require approval before publishing.',
-                                  style: AppTextStyles.caption.copyWith(color: Colors.amber.shade900),
-                                ),
-                              ),
-                            ],
-                          ),
                         ),
                     ],
                   );
@@ -4387,7 +3776,7 @@ class _ProjectFormScreenState extends State<_ProjectFormScreen> {
                             width: 16, height: 16,
                             child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
                         : const Icon(Icons.auto_awesome, size: 18),
-                    label: const Text('Auto-Suggest Category'),
+                    label: const Text('Auto-Suggest Area of Focus'),
                     style: ElevatedButton.styleFrom(
                         backgroundColor: _kViolet, foregroundColor: Colors.white),
                   ),
@@ -4400,7 +3789,7 @@ class _ProjectFormScreenState extends State<_ProjectFormScreen> {
                     const SizedBox(width: 4),
                     Flexible(
                       child: Text(
-                        'Click to get AI suggestions and unlock the search & dropdowns below.',
+                        'Click to get AI suggestions and unlock the search & dropdown below.',
                         style: AppTextStyles.caption.copyWith(color: AppColors.textSecondary),
                         textAlign: TextAlign.center,
                       ),
@@ -4431,7 +3820,7 @@ class _ProjectFormScreenState extends State<_ProjectFormScreen> {
                           width: 14, height: 14,
                           child: CircularProgressIndicator(strokeWidth: 2, color: _kViolet))
                       : const Icon(Icons.auto_awesome, size: 16),
-                  label: const Text('Auto-Suggest Category'),
+                  label: const Text('Auto-Suggest Area of Focus'),
                   style: OutlinedButton.styleFrom(
                       foregroundColor: _kViolet,
                       side: const BorderSide(color: _kVioletBorder),
@@ -4442,7 +3831,7 @@ class _ProjectFormScreenState extends State<_ProjectFormScreen> {
               // into a narrow column that wrapped mid-word).
               if (_aiStatus == 'error') ...[
                 const SizedBox(height: 6),
-                Text('AI unavailable: use the search or dropdowns.',
+                Text('AI unavailable: use the search or dropdown.',
                     style: AppTextStyles.caption.copyWith(color: AppColors.error)),
               ] else if (_aiNeedText) ...[
                 const SizedBox(height: 6),
@@ -4473,7 +3862,7 @@ class _ProjectFormScreenState extends State<_ProjectFormScreen> {
                     prefixIcon: const Icon(Icons.search,
                         size: 18, color: AppColors.textSecondary),
                     hintText: _classUnlocked
-                        ? 'Type to search all three levels…'
+                        ? 'Type to search areas of focus…'
                         : 'Locked: use Auto-Suggest above first',
                     hintStyle: AppTextStyles.body.copyWith(color: AppColors.textMuted),
                     contentPadding:
@@ -4567,12 +3956,8 @@ class _ProjectFormScreenState extends State<_ProjectFormScreen> {
                             text: _aiBetter!.moduleName ?? 'another avenue',
                             style: const TextStyle(fontWeight: FontWeight.w800),
                           ),
-                          if ((_aiBetter!.categoryName ??
-                                  _aiBetter!.areaOfFocusName)
-                              .isNotEmpty)
-                            TextSpan(
-                                text:
-                                    ' › ${_aiBetter!.categoryName ?? _aiBetter!.areaOfFocusName}'),
+                          if (_aiBetter!.areaOfFocusName.isNotEmpty)
+                            TextSpan(text: ' › ${_aiBetter!.areaOfFocusName}'),
                           const TextSpan(
                               text: ': switch & carry over',
                               style: TextStyle(fontWeight: FontWeight.w700)),
@@ -4589,13 +3974,8 @@ class _ProjectFormScreenState extends State<_ProjectFormScreen> {
     );
   }
 
-  /// A tappable smart-search result row (applies the full hierarchy on tap).
+  /// A tappable smart-search result row (applies its Area of Focus on tap).
   Widget _classSearchTile(_ClassificationResult r) {
-    final typeLabel = r.type == 'area'
-        ? 'Area'
-        : r.type == 'category'
-            ? 'Category'
-            : 'Sub';
     return InkWell(
       onTap: () => _applyClassificationResult(r),
       child: Padding(
@@ -4608,12 +3988,12 @@ class _ProjectFormScreenState extends State<_ProjectFormScreen> {
                 color: _kVioletBg,
                 borderRadius: BorderRadius.circular(4),
               ),
-              child: Text(typeLabel.toUpperCase(),
+              child: Text('AREA',
                   style: AppTextStyles.caption.copyWith(
                       color: _kViolet, fontWeight: FontWeight.w700, fontSize: 10)),
             ),
             const SizedBox(width: 8),
-            Expanded(child: Text(_classPathLabel(r), style: AppTextStyles.body)),
+            Expanded(child: Text(r.areaOfFocusName, style: AppTextStyles.body)),
           ],
         ),
       ),
@@ -4622,12 +4002,8 @@ class _ProjectFormScreenState extends State<_ProjectFormScreen> {
 
   /// One AI suggestion row with a Select / Selected action.
   Widget _aiSuggestionTile(_ClassificationResult r) {
-    // Compare on the deepest id the result carries (works for 2-level modules too).
-    final leafId = r.subCategoryId ?? r.categoryId ?? r.areaOfFocusId;
-    final selected = (_selectedSubCategoryId != null && _selectedSubCategoryId == leafId) ||
-        (_caps.showSubCategory == false &&
-            _selectedCategoryId != null &&
-            _selectedCategoryId == leafId);
+    final selected = _selectedAreaOfFocusId != null &&
+        _selectedAreaOfFocusId == r.areaOfFocusId;
     return Container(
       margin: const EdgeInsets.only(bottom: 6),
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
@@ -4637,7 +4013,7 @@ class _ProjectFormScreenState extends State<_ProjectFormScreen> {
       ),
       child: Row(
         children: [
-          Expanded(child: Text(_classPathLabel(r), style: AppTextStyles.caption)),
+          Expanded(child: Text(r.areaOfFocusName, style: AppTextStyles.caption)),
           const SizedBox(width: 8),
           if (selected)
             Container(
@@ -4677,7 +4053,6 @@ class _ProjectFormScreenState extends State<_ProjectFormScreen> {
     required List<_DropdownItem> items,
     required ValueChanged<int?> onChanged,
     bool includeOthers = false,
-    bool enabled = true,
     bool isRequired = false,
   }) {
     return Column(
@@ -4700,7 +4075,7 @@ class _ProjectFormScreenState extends State<_ProjectFormScreen> {
                 child: Text('Others', style: AppTextStyles.body.copyWith(fontStyle: FontStyle.italic)),
               ),
           ],
-          onChanged: enabled ? onChanged : null,
+          onChanged: onChanged,
           validator: isRequired ? (v) => v == null ? 'Please select $label' : null : null,
         ),
       ],

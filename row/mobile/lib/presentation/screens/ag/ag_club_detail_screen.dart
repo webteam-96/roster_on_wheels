@@ -472,10 +472,7 @@ class _RecentProjectsCard extends StatelessWidget {
                   overflow: TextOverflow.ellipsis),
               const SizedBox(height: 2),
               Text(
-                [
-                  agFmtDate(p.date),
-                  if (p.category != null && p.category!.isNotEmpty) p.category!,
-                ].join(' · '),
+                agFmtDate(p.date),
                 style: AppFonts.body(
                     fontSize: 10.5, color: AppColors.slate500),
                 maxLines: 1,

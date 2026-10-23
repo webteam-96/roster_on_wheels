@@ -15,6 +15,7 @@ public sealed class ProjectShareCardData
     public string Summary { get; set; } = "";           // truncated description
     public string FooterHost { get; set; } = "";        // host of the share URL ("club.example.org")
     public byte[]? PhotoBytes { get; set; }             // primary project photo, or null
+    public string PanelLabel { get; set; } = "SERVICE PROJECT"; // under "ROTARY" when there is no photo (spotlight cards: "SPOTLIGHT")
 }
 
 // Renders the 1200x630 social-preview ("Open Graph") card for a project share link.
@@ -25,7 +26,7 @@ public sealed class ProjectShareCardData
 // needs NO new NuGet dependency — no SkiaSharp, no ImageSharp, no System.Drawing.
 //
 // 1200x630 at 72 DPI => a page sized 1200x630 points rasterises to exactly 1200x630 px, which
-// is the standard OG/Twitter "summary_large_image" ratio (1.91:1) that WhatsApp, Facebook,
+// is the standard OG/Twitter "summary_large_image" ratio (1.91:1) that chat apps, Facebook,
 // LinkedIn and X all crop from.
 public static class ProjectShareCardBuilder
 {
@@ -90,7 +91,7 @@ public static class ProjectShareCardBuilder
                                     c.Item().AlignCenter().Text("ROTARY")
                                         .FontSize(58).Bold().FontColor("#FFFFFF").LetterSpacing(0.18f);
                                     c.Item().PaddingTop(14).AlignCenter().Width(150).Height(4).Background(Gold);
-                                    c.Item().PaddingTop(16).AlignCenter().Text("SERVICE PROJECT")
+                                    c.Item().PaddingTop(16).AlignCenter().Text(d.PanelLabel)
                                         .FontSize(16).SemiBold().FontColor(Gold).LetterSpacing(0.26f);
                                 });
                             }

@@ -8,7 +8,7 @@ using RotaryApi.Services;
 namespace RotaryApi.Controllers;
 
 // OPEN (no-login) Wallet purchase, reached from the SuperAdmin's encrypted pay links (/pay/w/{token}).
-// Handles WhatsApp/Email credit top-ups (club + district) inline, and hands "common" website links
+// Handles Email credit top-ups (club + district) inline, and hands "common" website links
 // back to the existing club-website flow. The token carries only { scope, purpose, entityId, expiry };
 // credit pricing (rate/GST) is always re-resolved server-side (WalletService), so nothing about the
 // amount is client-supplied ("no foul play"). Crediting is exactly-once and the client verify callback
@@ -69,14 +69,13 @@ public class PublicWalletController : ControllerBase
         return ($"District {(string)dist.number}", (string?)dist.number);
     }
 
-    // Full status snapshot for a resolved entity: WhatsApp + Email balances, and (club) the website state.
+    // Full status snapshot for a resolved entity: Email balance, and (club) the website state.
     private async Task<PublicWalletStatusDto> BuildStatusAsync(string scope, int entityId)
     {
         var status = new PublicWalletStatusDto();
         if (scope == "club")
         {
             var bal = await _credit.GetClubCreditBalanceAsync(entityId);
-            status.WhatsAppRemaining = bal.WhatsAppRemaining;
             status.EmailRemaining = bal.EmailRemaining;
             try
             {
@@ -93,7 +92,6 @@ public class PublicWalletController : ControllerBase
         else
         {
             var bal = await _credit.GetDistrictCreditBalanceAsync(entityId);
-            status.WhatsAppRemaining = bal.WhatsAppRemaining;
             status.EmailRemaining = bal.EmailRemaining;
         }
         return status;
@@ -205,7 +203,7 @@ public class PublicWalletController : ControllerBase
         return Ok(new PublicWalletWebsiteTokenResponse { WebsiteToken = WebsitePayLinkToken.Generate(_config, clubId, yearId) });
     }
 
-    // Live credits/GST/total preview for an entered amount (WhatsApp/Email links only).
+    // Live credits/GST/total preview for an entered amount (Email links only).
     [HttpGet("{token}/quote")]
     public ActionResult Quote(string token, [FromQuery] decimal amount)
     {

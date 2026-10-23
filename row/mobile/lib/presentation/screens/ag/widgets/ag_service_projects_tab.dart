@@ -3,7 +3,6 @@ import '../../../../core/services/ag_dashboard_api.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../data/models/ag_dashboard_models.dart';
 import '../../../../core/utils/money_format.dart';
-import '../../club_moderator/approval_status_utils.dart';
 import '../ag_project_detail_screen.dart';
 import 'ag_async.dart';
 import 'ag_format.dart';
@@ -17,8 +16,7 @@ import 'package:rotary_flutter_app/core/theme/app_fonts.dart';
 ///   3. AG Group Impact summary banner (blue gradient)
 ///   4. Projects by Club — horizontal bars (gold = top club)
 ///   5. Monthly Projects Trend — vertical mini-bars (gold = peak month)
-///   6. Top 10 Project Categories — horizontal bars
-///   7. Detailed projects table (search + client pagination)
+///   6. Detailed projects table (search + client pagination)
 class AgServiceProjectsTab extends StatefulWidget {
   final int? yearId;
   const AgServiceProjectsTab({super.key, this.yearId});
@@ -91,7 +89,6 @@ class _AgServiceProjectsTabState extends State<AgServiceProjectsTab>
     if (q.isNotEmpty) {
       out = out.where((p) =>
           p.title.toLowerCase().contains(q) ||
-          (p.category ?? '').toLowerCase().contains(q) ||
           p.clubName.toLowerCase().contains(q));
     }
     return out.toList();
@@ -162,8 +159,6 @@ class _AgServiceProjectsTabState extends State<AgServiceProjectsTab>
               _ProjectsByClubCard(counts: data.clubProjectCounts),
               const SizedBox(height: 14),
               _MonthlyTrendCard(counts: data.monthlyProjectCounts),
-              const SizedBox(height: 14),
-              _CategoryBreakdownCard(counts: data.categoryCounts),
               const SizedBox(height: 14),
               _ProjectsTable(
                 rows: pageRows,
@@ -808,154 +803,7 @@ class _MonthlyTrendCard extends StatelessWidget {
 }
 
 // ─────────────────────────────────────────────────────────────────────────
-// 6. Top 10 Categories
-// ─────────────────────────────────────────────────────────────────────────
-
-class _CategoryBreakdownCard extends StatelessWidget {
-  final Map<String, int> counts;
-  const _CategoryBreakdownCard({required this.counts});
-
-  @override
-  Widget build(BuildContext context) {
-    final entries = counts.entries.toList()
-      ..sort((a, b) => b.value.compareTo(a.value));
-    final cats = entries.take(10).toList();
-    final peak = cats.isEmpty ? 0 : cats.first.value;
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppColors.slate200),
-      ),
-      padding: const EdgeInsets.fromLTRB(14, 12, 14, 14),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Text(
-            'Top 10 Project Categories',
-            style: AppFonts.body(
-              fontSize: 13,
-              fontWeight: FontWeight.w800,
-              color: AppColors.slate700,
-            ),
-          ),
-          Text(
-            'Projects grouped by service category across all clubs',
-            style: AppFonts.body(
-              fontSize: 11,
-              color: AppColors.slate400,
-            ),
-          ),
-          const SizedBox(height: 12),
-          if (cats.isEmpty)
-            const _CardEmpty(text: 'No category data.')
-          else
-            for (var i = 0; i < cats.length; i++) ...[
-              _CategoryRow(
-                rank: i + 1,
-                name: cats[i].key,
-                count: cats[i].value,
-                peak: peak,
-                isTop: i == 0,
-                isPodium: i < 3,
-              ),
-              if (i != cats.length - 1) const SizedBox(height: 8),
-            ],
-        ],
-      ),
-    );
-  }
-}
-
-class _CategoryRow extends StatelessWidget {
-  final int rank;
-  final String name;
-  final int count;
-  final int peak;
-  final bool isTop;
-  final bool isPodium;
-  const _CategoryRow({
-    required this.rank,
-    required this.name,
-    required this.count,
-    required this.peak,
-    required this.isTop,
-    required this.isPodium,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final pct = peak == 0 ? 0.0 : count / peak;
-    final color = isTop
-        ? AppColors.goldPrime
-        : isPodium
-            ? AppColors.accentBlue
-            : AppColors.rotaryBlue;
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        SizedBox(
-          width: 16,
-          child: Text(
-            '$rank',
-            textAlign: TextAlign.right,
-            style: AppFonts.body(
-              fontSize: 10,
-              fontWeight: FontWeight.w800,
-              color: AppColors.slate400,
-              fontFeatures: const [FontFeature.tabularFigures()],
-            ),
-          ),
-        ),
-        const SizedBox(width: 8),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                name,
-                style: AppFonts.body(
-                  fontSize: 11,
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.slate700,
-                ),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-              const SizedBox(height: 3),
-              ClipRRect(
-                borderRadius: BorderRadius.circular(999),
-                child: LinearProgressIndicator(
-                  value: pct,
-                  minHeight: 6,
-                  backgroundColor: AppColors.slate100,
-                  valueColor: AlwaysStoppedAnimation<Color>(color),
-                ),
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(width: 8),
-        SizedBox(
-          width: 28,
-          child: Text(
-            '$count',
-            textAlign: TextAlign.right,
-            style: AppFonts.body(
-              fontSize: 11.5,
-              fontWeight: FontWeight.w800,
-              color: color,
-              fontFeatures: const [FontFeature.tabularFigures()],
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-// ─────────────────────────────────────────────────────────────────────────
-// 7. Detailed projects table
+// 6. Detailed projects table
 // ─────────────────────────────────────────────────────────────────────────
 
 class _ProjectsTable extends StatelessWidget {
@@ -1294,7 +1142,7 @@ class _SearchInput extends StatelessWidget {
                 color: AppColors.textPrimary,
               ),
               decoration: InputDecoration(
-                hintText: 'Search projects, clubs, categories…',
+                hintText: 'Search projects, clubs…',
                 hintStyle: AppFonts.body(
                   fontSize: 12,
                   color: AppColors.slate400,
@@ -1358,49 +1206,10 @@ class _ProjectRow extends StatelessWidget {
   String _truncTitle(String t) =>
       t.length <= 56 ? t : '${t.substring(0, 55)}…';
 
-  /// Approval chip — only for the 5 approval avenues (null on Club Service etc.).
-  Widget? _approvalChip() {
-    final raw = project.approvalStatus;
-    if (raw == null || raw.trim().isEmpty) return null;
-    final s = normalizeApprovalStatus(raw);
-    Color bg, fg;
-    switch (s) {
-      case 'approved':
-        bg = AppColors.background;
-        fg = AppColors.successDark;
-        break;
-      case 'rejected':
-        bg = AppColors.errorLight;
-        fg = AppColors.errorDark;
-        break;
-      case 'pending':
-      default:
-        bg = AppColors.background;
-        fg = AppColors.warningInk;
-    }
-    final label = s.isEmpty ? '–' : '${s[0].toUpperCase()}${s.substring(1)}';
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
-      decoration: BoxDecoration(
-        color: bg,
-        borderRadius: BorderRadius.circular(999),
-      ),
-      child: Text(
-        label,
-        style: AppFonts.body(
-          fontSize: 9,
-          fontWeight: FontWeight.w800,
-          color: fg,
-        ),
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final clubColor = Color(agClubColor(colorIndex));
     final fs = _fundingStyle();
-    final approvalChip = _approvalChip();
     final manHours = project.manHoursIsPending
         ? 'Pending'
         : (project.manHours > 0 ? '${agFmtInt(project.manHours)}h' : '–');
@@ -1455,25 +1264,12 @@ class _ProjectRow extends StatelessWidget {
               height: 1.3,
             ),
           ),
-          const SizedBox(height: 3),
-          Text(
-            (project.category == null || project.category!.isEmpty)
-                ? '–'
-                : project.category!,
-            style: AppFonts.body(
-              fontSize: 10.5,
-              color: AppColors.slate500,
-            ),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
           const SizedBox(height: 8),
           Wrap(
             spacing: 10,
             runSpacing: 4,
             crossAxisAlignment: WrapCrossAlignment.center,
             children: [
-              if (approvalChip != null) approvalChip,
               _MetricChip(
                 icon: Icons.currency_rupee_rounded,
                 value: project.cost > 0

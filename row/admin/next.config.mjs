@@ -25,7 +25,7 @@ const nextConfig = {
     ignoreDuringBuilds: true,
   },
   typescript: {
-    // Skip TS type-check at build (pre-existing code issues in area-of-focus/categories/sub-categories/audit-log).
+    // Skip TS type-check at build (pre-existing code issues in area-of-focus/audit-log).
     ignoreBuildErrors: true,
   },
   images: {

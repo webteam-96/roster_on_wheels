@@ -28,6 +28,7 @@ import RotaryLoader from "@/components/RotaryLoader";
 import Link from "next/link";
 import Pagination from "@/components/Pagination";
 import NonSyncRemovedCommitteeMembers from "@/components/dashboard/NonSyncRemovedCommitteeMembers";
+import CommitteeDocumentsCard from "@/components/membership/CommitteeDocumentsCard";
 import ImageCropDialog from "@/components/ImageCropDialog";
 import { useImageCropUpload } from "@/hooks/useImageCropUpload";
 
@@ -597,6 +598,8 @@ export default function GroupDetailPage() {
           onCancel={photoCrop.cancel}
           onSave={handlePhotoCropSave}
         />
+
+        <CommitteeDocumentsCard districtId={districtId} groupId={groupId} />
 
         <AlertModal open={!!deleteMemberTarget} onOpenChange={(o) => !o && setDeleteMemberTarget(null)} icon={AlertTriangle} iconClassName="text-destructive" title="Delete Member" description="Are you sure? This action cannot be undone." confirmLabel="Delete" confirmClassName="bg-destructive text-destructive-foreground hover:bg-destructive/90" onConfirm={handleDeleteMember} cancelLabel="Cancel" onCancel={() => setDeleteMemberTarget(null)} />
         <AlertModal open={!!deleteSubGroupTarget} onOpenChange={(o) => !o && setDeleteSubGroupTarget(null)} icon={AlertTriangle} iconClassName="text-destructive" title="Delete Sub Group" description="Are you sure? This will delete the sub group and all its members." confirmLabel="Delete" confirmClassName="bg-destructive text-destructive-foreground hover:bg-destructive/90" onConfirm={handleDeleteSubGroup} cancelLabel="Cancel" onCancel={() => setDeleteSubGroupTarget(null)} />

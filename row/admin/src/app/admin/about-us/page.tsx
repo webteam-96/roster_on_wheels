@@ -41,7 +41,7 @@ export default async function AboutPage() {
           <li>Manage District-level events, registrations, and attendance;</li>
           <li>Collect annual Club Dues, event fees, and voluntary contributions in INR through a secure payment gateway;</li>
           <li>Generate statutory reports for Rotary International and internal Rotary administration;</li>
-          <li>Surface live dashboards for Club Admins, Assistant Governors, District Admins, and RI Directors.</li>
+          <li>Surface live dashboards for Club Admins, Assistant Governors and District Admins.</li>
         </ul>
       </section>
 

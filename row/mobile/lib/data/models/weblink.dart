@@ -1,5 +1,5 @@
 /// A single web link node from the mobile weblinks feed
-/// (`GET /api/mobile/{clubs|districts}/{id}/weblinks` and `/api/mobile/weblinks/ri`).
+/// (`GET /api/mobile/{clubs|districts}/{id}/weblinks`).
 /// The feed is a flat list; hierarchy is expressed via [parentId] / [level] /
 /// [childCount]. Container nodes (`Page` or with children) drill down; leaf
 /// nodes open a URL / PDF / YouTube link.

@@ -262,7 +262,6 @@ public class AgReportsController : ControllerBase
                        CASE
                            WHEN a.ImagePath IS NULL OR a.ImagePath = '' THEN NULL
                            WHEN a.ImagePath LIKE '/%' THEN a.ImagePath
-                           WHEN a.Scope = 'ri' THEN CONCAT('/Documents/announcement/ri/', a.ImagePath)
                            WHEN a.fk_district_id IS NOT NULL THEN CONCAT('/Documents/announcement/Group', a.fk_district_id, '/', a.ImagePath)
                            ELSE CONCAT('/Documents/announcement/Group', a.fk_club_id, '/', a.ImagePath)
                        END AS imagePath,
@@ -355,7 +354,6 @@ public class AgReportsController : ControllerBase
                        CASE
                            WHEN doc.FilePath IS NULL OR doc.FilePath = '' THEN NULL
                            WHEN doc.FilePath LIKE '/%' THEN doc.FilePath
-                           WHEN doc.Scope = 'ri' THEN CONCAT('/Documents/documentsafe/ri/', doc.FilePath)
                            WHEN doc.fk_district_id IS NOT NULL THEN CONCAT('/Documents/documentsafe/Group', doc.fk_district_id, '/', doc.FilePath)
                            ELSE CONCAT('/Documents/documentsafe/Group', doc.fk_club_id, '/', doc.FilePath)
                        END AS documentUrl,
@@ -440,40 +438,6 @@ public class AgReportsController : ControllerBase
             p.Add("ClubIds", clubIds);
             if (yearId.HasValue) { sql += " AND t.fk_year_id = @YearId"; p.Add("YearId", yearId.Value); }
             sql += " ORDER BY t.TrfDate DESC";
-            var rows = await conn.QueryAsync<dynamic>(sql, p);
-            return Ok(rows);
-        }
-    }
-
-    [HttpGet("pph-camps")]
-    public async Task<ActionResult> PphCamps([FromQuery] int? yearId = null, [FromQuery] int? clubId = null)
-    {
-        var (conn, clubIds, guard) = await StartAsync(clubId, yearId);
-        if (guard != null) return guard;
-        using (conn)
-        {
-            if (clubIds.Count == 0) return Ok(Array.Empty<object>());
-            // pph_camps has no fk_year_id — filter by CampDate within year's StartDate/EndDate range
-            var sql = @"
-                SELECT pc.Title AS campName, pc.CampDate AS campDate,
-                       pc.Address AS location,
-                       (SELECT COUNT(*) FROM pph_camp_attendance pa WHERE pa.fk_camp_id = pc.pk_camp_id) AS beneficiaryCount,
-                       c.ClubName AS clubName, d.DistrictNumber AS districtNumber,
-                       NULL AS yearLabel
-                FROM pph_camps pc
-                JOIN club_master c ON c.pk_club_id = pc.fk_club_id AND c.isdeleted = 0
-                JOIN district_master d ON d.pk_district_id = c.fk_district_id
-                WHERE c.pk_club_id IN @ClubIds AND pc.isdeleted = 0";
-            var p = new DynamicParameters();
-            p.Add("ClubIds", clubIds);
-            if (yearId.HasValue)
-            {
-                sql += @" AND pc.CampDate BETWEEN
-                    (SELECT StartDate FROM rotary_year_master WHERE pk_year_id = @YearId)
-                    AND (SELECT EndDate FROM rotary_year_master WHERE pk_year_id = @YearId)";
-                p.Add("YearId", yearId.Value);
-            }
-            sql += " ORDER BY pc.CampDate DESC";
             var rows = await conn.QueryAsync<dynamic>(sql, p);
             return Ok(rows);
         }

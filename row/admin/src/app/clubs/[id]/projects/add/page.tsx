@@ -3,20 +3,15 @@
 import { useState, useEffect, useRef } from "react";
 import DateField from "@/components/DateField";
 import { useParams, useSearchParams, useRouter } from "next/navigation";
-import { AreaOfFocus, Category, SubCategory, Funding, OngoingProject, ProjectPhotoInput } from "@/types/project";
+import { AreaOfFocus, Funding, OngoingProject, ProjectPhotoInput } from "@/types/project";
 import {
   getClub,
   getModules,
   getAreasOfFocus,
-  getCategories,
-  getSubCategories,
   getFunding,
   getOngoingProjects,
   createProject,
   uploadProjectImage,
-  getSystemSetting,
-  createBeneficiaryApprovalRequest,
-  checkClubHasModerator,
 } from "@/services/api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -26,7 +21,7 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import {
-  Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter,
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription,
 } from "@/components/ui/dialog";
 import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
@@ -184,8 +179,6 @@ export default function AddProjectPage() {
 
   // Masters
   const [areasOfFocus, setAreasOfFocus] = useState<AreaOfFocus[]>([]);
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [subCategories, setSubCategories] = useState<SubCategory[]>([]);
   const [fundingList, setFundingList] = useState<Funding[]>([]);
   const [ongoingProjects, setOngoingProjects] = useState<OngoingProject[]>([]);
 
@@ -209,10 +202,6 @@ export default function AddProjectPage() {
 
   const [selectedAofId, setSelectedAofId] = useState<string>("");
   const [otherAreaOfFocus, setOtherAreaOfFocus] = useState("");
-  const [selectedCatId, setSelectedCatId] = useState<string>("");
-  const [otherCategory, setOtherCategory] = useState("");
-  const [selectedSubCatId, setSelectedSubCatId] = useState<string>("");
-  const [otherSubCategory, setOtherSubCategory] = useState("");
 
   const [projectDate, setProjectDate] = useState("");
   const [projectCost, setProjectCost] = useState("");
@@ -231,19 +220,10 @@ export default function AddProjectPage() {
   const [rotaractorsInvolved, setRotaractorsInvolved] = useState("");
   const [rccInvolved, setRccInvolved] = useState("");
   const [sendEmail, setSendEmail] = useState(false);
-  const [beneficiariesLimit, setBeneficiariesLimit] = useState<number>(0);
-  const [showBeneficiaryConfirm, setShowBeneficiaryConfirm] = useState(false);
   const [showProjectSuccess, setShowProjectSuccess] = useState(false);
-  const [pendingSaveData, setPendingSaveData] = useState<Record<string, unknown> | null>(null);
 
   const [photos, setPhotos] = useState<PhotoItem[]>([]);
   const photoCrop = useImageCropQueue();
-
-  // Moderator approval
-  const [hasModerator, setHasModerator] = useState(false);
-  const [moderatorName, setModeratorName] = useState<string | null>(null);
-  const [showModeratorConfirm, setShowModeratorConfirm] = useState(false);
-  const moderatorConfirmedRef = useRef(false);
 
   const moduleLabel = MODULE_LABELS[moduleKey] || "Projects";
   const topMessage = TOP_MESSAGES[moduleKey];
@@ -296,20 +276,16 @@ export default function AddProjectPage() {
   // Allow only digits in amount / number inputs (no letters, no decimals — whole numbers only per spec)
   const onlyDigits = (v: string) => v.replace(/\D/g, "");
   const isOthersAof = selectedAofId === "others";
-  const isOthersCat = selectedCatId === "others";
-  const isOthersSubCat = selectedSubCatId === "others";
 
   // Init
   useEffect(() => {
     async function init() {
       try {
-        const [club, modules, funding, limitSetting] = await Promise.all([
+        const [club, modules, funding] = await Promise.all([
           getClub(clubId),
           getModules(),
           getFunding(),
-          getSystemSetting("direct_beneficiaries_limit").catch(() => null),
         ]);
-        if (limitSetting?.settingValue) setBeneficiariesLimit(Number(limitSetting.settingValue) || 0);
         setClubName(club.clubName);
         const mod = modules.find(m => m.moduleKey === moduleKey);
         if (mod) {
@@ -321,7 +297,6 @@ export default function AddProjectPage() {
           }
         }
         setFundingList(funding.filter(f => f.isActive));
-        checkClubHasModerator(clubId).then(r => { setHasModerator(r.hasModerator); setModeratorName(r.moderatorName); }).catch(() => {});
       } catch (err: any) {
         setErrorMessage(err?.response?.data?.message || err?.response?.data || "Failed to initialize.");
       } finally {
@@ -330,38 +305,6 @@ export default function AddProjectPage() {
     }
     init();
   }, [clubId, moduleKey]);
-
-  // Fetch categories when area of focus changes
-  useEffect(() => {
-    if (!selectedAofId || selectedAofId === "others") {
-      setCategories([]);
-      setSelectedCatId("");
-      return;
-    }
-    async function fetchCats() {
-      try {
-        const cats = await getCategories(Number(selectedAofId));
-        setCategories(cats.filter(c => c.isActive));
-      } catch { setCategories([]); }
-    }
-    fetchCats();
-  }, [selectedAofId]);
-
-  // Fetch sub-categories when category changes
-  useEffect(() => {
-    if (!selectedCatId || selectedCatId === "others") {
-      setSubCategories([]);
-      setSelectedSubCatId("");
-      return;
-    }
-    async function fetchSubCats() {
-      try {
-        const subs = await getSubCategories(Number(selectedCatId));
-        setSubCategories(subs.filter(s => s.isActive));
-      } catch { setSubCategories([]); }
-    }
-    fetchSubCats();
-  }, [selectedCatId]);
 
   // Fetch ongoing projects for search
   useEffect(() => {
@@ -464,10 +407,6 @@ export default function AddProjectPage() {
     if (!isClubService) {
       if (!selectedAofId) { setErrorMessage("Area of Focus is required."); return; }
       if (isOthersAof && !otherAreaOfFocus.trim()) { setErrorMessage("Please specify the Area of Focus."); return; }
-      if (!isOthersAof && categories.length > 0 && !selectedCatId) { setErrorMessage("Category is required."); return; }
-      if (isOthersCat && !otherCategory.trim()) { setErrorMessage("Please specify the Category."); return; }
-      if (!isOthersCat && !isOthersAof && subCategories.length > 0 && !selectedSubCatId) { setErrorMessage("Sub Category is required."); return; }
-      if (isOthersSubCat && !otherSubCategory.trim()) { setErrorMessage("Please specify the Sub Category."); return; }
     }
     if (!projectCost) { setErrorMessage("Project Cost is required."); return; }
     if (!selectedFundingId) { setErrorMessage("Funding is required."); return; }
@@ -487,12 +426,6 @@ export default function AddProjectPage() {
     if (photos.length === 0) { setErrorMessage("At least 1 photo is required."); return; }
     if (photos.some(p => p.uploading)) { setErrorMessage("Please wait for photos to finish uploading."); return; }
     if (!moduleId) { setErrorMessage("Module not found."); return; }
-
-    if (hasModerator && !moderatorConfirmedRef.current) {
-      setShowModeratorConfirm(true);
-      return;
-    }
-    moderatorConfirmedRef.current = false;
 
     // Build save data
     const photoInputs: ProjectPhotoInput[] = photos.map((p, i) => ({
@@ -515,10 +448,6 @@ export default function AddProjectPage() {
       location: location.trim() || null,
       areaOfFocusId: isOthersAof ? null : (selectedAofId ? Number(selectedAofId) : null),
       otherAreaOfFocus: isOthersAof ? otherAreaOfFocus : null,
-      categoryId: isOthersCat ? null : (selectedCatId ? Number(selectedCatId) : null),
-      otherCategory: isOthersCat ? otherCategory : null,
-      subCategoryId: isOthersSubCat ? null : (selectedSubCatId ? Number(selectedSubCatId) : null),
-      otherSubCategory: isOthersSubCat ? otherSubCategory : null,
       projectDate,
       projectCost: projectCost ? Number(projectCost) : null,
       fundingId: selectedFundingId ? Number(selectedFundingId) : null,
@@ -539,36 +468,15 @@ export default function AddProjectPage() {
       photos: photoInputs,
     };
 
-    // If over limit, show confirmation dialog instead of saving directly
-    if (beneficiariesLimit > 0 && Number(directBeneficiaries) > beneficiariesLimit) {
-      setPendingSaveData(saveData);
-      setShowBeneficiaryConfirm(true);
-      return;
-    }
-
-    // Normal save (within limit)
     await doSaveProject(saveData);
   };
 
-  const doSaveProject = async (saveData: Record<string, unknown>, capAtLimit = false) => {
+  const doSaveProject = async (saveData: Record<string, unknown>) => {
     setSaving(true);
     try {
-      const actualBeneficiaries = saveData.directBeneficiaries as number;
-      const dataToSave = capAtLimit
-        ? { ...saveData, directBeneficiaries: beneficiariesLimit }
-        : saveData;
-
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const result = await createProject(clubId, dataToSave as any);
+      const result = await createProject(clubId, saveData as any);
 
-      if (capAtLimit && result?.id) {
-        // Create approval request for the over-limit beneficiaries
-        try {
-          await createBeneficiaryApprovalRequest(result.id, actualBeneficiaries, clubId, 0);
-        } catch {
-          // Approval request failed but project was saved
-        }
-      }
       // RI Flow-Bot: when user clicked "Submit & Add to Org", skip the success
       // dialog (the extension needs the page to stay) and hand the project off.
       if (addToOrgAfterSaveRef.current) {
@@ -585,14 +493,6 @@ export default function AddProjectPage() {
     }
   };
 
-  const handleBeneficiaryConfirm = () => {
-    setShowBeneficiaryConfirm(false);
-    if (pendingSaveData) {
-      doSaveProject(pendingSaveData, true);
-      setPendingSaveData(null);
-    }
-  };
-
   // Build the project export the Add-to-Org extension consumes. V1 page handles
   // all avenues, but BOT is gated to community_service only — so avenue is hardcoded.
   const buildOrgExport = (): OrgExport => ({
@@ -603,12 +503,6 @@ export default function AddProjectPage() {
       areaOfFocus: isOthersAof
         ? otherAreaOfFocus
         : (areasOfFocus.find((a) => String(a.id) === selectedAofId)?.name || ""),
-      category: isOthersCat
-        ? otherCategory
-        : (categories.find((c) => String(c.id) === selectedCatId)?.name || ""),
-      subCategory: isOthersSubCat
-        ? otherSubCategory
-        : (subCategories.find((s) => String(s.id) === selectedSubCatId)?.name || ""),
     },
     locationText: location.trim(),
     dateOfProject: projectDate,
@@ -826,11 +720,11 @@ export default function AddProjectPage() {
 
         {/* ── 3. Classification (hidden for Club Service) ── */}
         {!isClubService && (
-        <Section icon={Target} title="Category" number={3}>
+        <Section icon={Target} title="Area of Focus" number={3}>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div className="space-y-1.5">
               <Req>Area of Focus</Req>
-              <Select value={selectedAofId} onValueChange={(v) => { setSelectedAofId(v); setSelectedCatId(""); setSelectedSubCatId(""); }}>
+              <Select value={selectedAofId} onValueChange={setSelectedAofId}>
                 <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
                 <SelectContent>
                   {areasOfFocus.map(a => (
@@ -843,42 +737,6 @@ export default function AddProjectPage() {
               </Select>
               {isOthersAof && (
                 <Input value={otherAreaOfFocus} onChange={(e) => setOtherAreaOfFocus(e.target.value)} placeholder="Specify area of focus" className="mt-2" />
-              )}
-            </div>
-
-            <div className="space-y-1.5">
-              {categories.length > 0 ? <Req>Category</Req> : <Label className="text-sm font-medium">Category</Label>}
-              <Select value={selectedCatId} onValueChange={(v) => { setSelectedCatId(v); setSelectedSubCatId(""); }} disabled={isOthersAof || categories.length === 0}>
-                <SelectTrigger><SelectValue placeholder={isOthersAof ? "N/A" : "Select"} /></SelectTrigger>
-                <SelectContent>
-                  {categories.map(c => (
-                    <SelectItem key={c.id} value={String(c.id)}>{c.name}</SelectItem>
-                  ))}
-                  {!categories.some(c => (c.name || "").trim().toLowerCase() === "others") && (
-                    <SelectItem value="others">Others</SelectItem>
-                  )}
-                </SelectContent>
-              </Select>
-              {isOthersCat && (
-                <Input value={otherCategory} onChange={(e) => setOtherCategory(e.target.value)} placeholder="Specify category" className="mt-2" />
-              )}
-            </div>
-
-            <div className="space-y-1.5">
-              {subCategories.length > 0 ? <Req>Sub Category</Req> : <Label className="text-sm font-medium">Sub Category</Label>}
-              <Select value={selectedSubCatId} onValueChange={setSelectedSubCatId} disabled={isOthersCat || subCategories.length === 0}>
-                <SelectTrigger><SelectValue placeholder={isOthersCat ? "N/A" : "Select"} /></SelectTrigger>
-                <SelectContent>
-                  {subCategories.map(s => (
-                    <SelectItem key={s.id} value={String(s.id)}>{s.name}</SelectItem>
-                  ))}
-                  {!subCategories.some(s => (s.name || "").trim().toLowerCase() === "others") && (
-                    <SelectItem value="others">Others</SelectItem>
-                  )}
-                </SelectContent>
-              </Select>
-              {isOthersSubCat && (
-                <Input value={otherSubCategory} onChange={(e) => setOtherSubCategory(e.target.value)} placeholder="Specify sub category" className="mt-2" />
               )}
             </div>
           </div>
@@ -1117,11 +975,6 @@ export default function AddProjectPage() {
             </Button>
           </div>
         </div>
-        {sendEmail && hasModerator && (
-          <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded px-3 py-2 mt-2">
-            Note: This project will go for approval to moderator. Email will be sent after moderator approves.
-          </p>
-        )}
 
         {/* ── Ongoing Info Dialog ── */}
         <Dialog open={showOngoingInfo} onOpenChange={setShowOngoingInfo}>
@@ -1137,35 +990,7 @@ export default function AddProjectPage() {
           </DialogContent>
         </Dialog>
 
-        {/* ── Beneficiary Limit Confirmation Dialog ── */}
-        <Dialog open={showBeneficiaryConfirm} onOpenChange={setShowBeneficiaryConfirm}>
-          <DialogContent className="max-w-lg">
-            <DialogHeader>
-              <DialogTitle>Beneficiary Limit Exceeded</DialogTitle>
-              <DialogDescription>Review before proceeding</DialogDescription>
-            </DialogHeader>
-            <div className="text-sm text-muted-foreground space-y-3 py-2">
-              <p>
-                A limit of <span className="font-semibold text-foreground">{beneficiariesLimit}</span> beneficiaries has been set for each project.
-                You have entered <span className="font-semibold text-foreground">{directBeneficiaries}</span> beneficiaries which exceeds the limit.
-              </p>
-              <p>
-                If you confirm, the project will be saved with <span className="font-semibold text-foreground">{beneficiariesLimit}</span> beneficiaries
-                and an approval request for <span className="font-semibold text-foreground">{directBeneficiaries}</span> beneficiaries will be sent
-                to the Zonal Co-ordinator for approval.
-              </p>
-              <p>Once approved, the beneficiary count will be updated to {directBeneficiaries}.</p>
-            </div>
-            <div className="flex gap-3 justify-end">
-              <Button variant="outline" onClick={() => setShowBeneficiaryConfirm(false)}>Cancel</Button>
-              <Button onClick={handleBeneficiaryConfirm} disabled={saving}>
-                {saving ? "Saving..." : "Confirm"}
-              </Button>
-            </div>
-          </DialogContent>
-        </Dialog>
-
-        {/* ── Project Success Dialog (after beneficiary approval request) ── */}
+        {/* ── Project Success Dialog ── */}
         <Dialog open={showProjectSuccess} onOpenChange={() => {}}>
           <DialogContent className="max-w-lg [&>button.absolute]:hidden" onPointerDownOutside={(e) => e.preventDefault()}>
             <DialogHeader>
@@ -1191,25 +1016,6 @@ export default function AddProjectPage() {
             >
               OK
             </Button>
-          </DialogContent>
-        </Dialog>
-
-        {/* ── Moderator Approval Confirmation ── */}
-        <Dialog open={showModeratorConfirm} onOpenChange={setShowModeratorConfirm}>
-          <DialogContent className="sm:max-w-md">
-            <DialogHeader>
-              <DialogTitle>Project Approval Required</DialogTitle>
-            </DialogHeader>
-            <div className="space-y-3">
-              <p className="text-sm text-muted-foreground">
-                This club has a moderator <strong>{moderatorName}</strong> assigned. Your project will be submitted for approval and will be visible only after the moderator approves it.
-              </p>
-              <p className="text-sm text-muted-foreground">Do you want to continue?</p>
-            </div>
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setShowModeratorConfirm(false)}>Cancel</Button>
-              <Button onClick={() => { moderatorConfirmedRef.current = true; setShowModeratorConfirm(false); handleSave(); }}>Submit for Approval</Button>
-            </DialogFooter>
           </DialogContent>
         </Dialog>
 

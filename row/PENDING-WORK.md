@@ -202,7 +202,7 @@ rules:
 
 | Colour | Meaning | Modules |
 |---|---|---|
-| Red | Skip: hide from menus and the app, and the API refuses calls. Code stays. | Club Moderator Dashboard, RI Director Dashboard, Zonal Dashboard, Zonal Awards, Goal Lock / Unlock, Goal Setting Roles, Directory Data Collection, Zone / RI Director Reports, Direct Beneficiary Approvals, PPH Camps, Project Approval (Moderation), Categories & Sub-categories, Direct Beneficiaries Limit, Market Place |
+| Red | Removed completely (code, schema, seeds; user decision 2026-10-22, done 2026-10-23). Leftover objects in existing databases go with `database/maintenance/2026-10-23-drop-removed-modules.sql` after the user's go-ahead. | Club Moderator Dashboard, RI Director Dashboard, Zonal Dashboard, Zonal Awards, Goal Lock / Unlock, Goal Setting Roles, Directory Data Collection, Zone / RI Director Reports, Direct Beneficiary Approvals, PPH Camps, Project Approval (Moderation), Categories & Sub-categories, Direct Beneficiaries Limit, Market Place |
 | Orange, and yellow on the District Admin tab | Build, but hidden behind a flag until asked for (SuperAdmin switches it on) | OCV / Governor Visit, Foundation Goals, Sub Groups, CMR Submission Email Settings, Club Excellence / Youth Tracking, Club Monthly Report |
 | Yellow on Modules by Role | Payments: wait for Wave 2 (Stripe) | District Dues, Dues Approval, Event Payment Links, Membership Dues, My Membership Dues, Payment Gateway Setup, Wallet & Credits |
 | Green / uncoloured | Build normally | everything else |

@@ -214,8 +214,6 @@ public static class ClubMonthlyReportWordBuilder
         {
             var focus = FirstNonEmpty(p.AreaOfFocusName, p.OtherAreaOfFocus);
             if (focus != null) facts.Add(("Area of Focus", focus));
-            if (!string.IsNullOrWhiteSpace(p.CategoryName)) facts.Add(("Category", p.CategoryName!));
-            if (!string.IsNullOrWhiteSpace(p.SubCategoryName)) facts.Add(("Sub-Category", p.SubCategoryName!));
             if (!string.IsNullOrWhiteSpace(p.Location)) facts.Add(("Location", p.Location!));
             if (p.ProjectCost is > 0) facts.Add(("Cost", Brand.Money(p.ProjectCost!.Value, null, 0)));
             if (!string.IsNullOrWhiteSpace(p.FundingName)) facts.Add(("Funding", p.FundingName!));

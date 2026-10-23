@@ -3,11 +3,8 @@ namespace RotaryApi.Services;
 public interface IEmailService
 {
     Task SendCredentialEmailAsync(string email, string memberName, string tempPassword);
-    Task SendZonalCoordinatorEmailAsync(string email, string memberName, string mobileNumber, string tempPassword, string zoneName);
     Task SendPasswordResetEmailAsync(string email, string memberName, string resetLink);
     Task SendPasswordChangedEmailAsync(string email, string memberName);
-    Task SendBeneficiaryApprovalEmailAsync(string coordinatorEmail, string coordinatorName, DTOs.BeneficiaryApprovalDetailDto detail, string? approveUrl, string? rejectUrl);
-    Task SendBeneficiaryDecisionEmailAsync(string adminEmail, string adminName, DTOs.BeneficiaryApprovalDetailDto detail, string decision, string? remark);
     Task SendEmailWithAttachmentAsync(string toEmail, string subject, string htmlBody, byte[] attachment, string attachmentFileName);
     Task SendEmailWithAttachmentAsync(string toEmail, string subject, string htmlBody, byte[] attachment, string attachmentFileName, IEnumerable<string>? ccEmails);
     // Same as above, but stamps email_log.fk_district_id / fk_club_id and an explicit email_type, so a
@@ -28,7 +25,9 @@ public interface IEmailService
     // Brevo:MassEmailSenderEmail (falls back to Brevo:SenderEmail). Kept
     // separate from SendGenericEmailAsync so other flows (OTP, receipts,
     // reminders) keep using the default no-reply sender.
-    Task SendMassEmailAsync(string toEmail, string subject, string htmlBody, string? fromName, string? replyName, string? replyEmail);
+    // N5: optional verified tenant from-address and extra headers (List-Unsubscribe); returns Brevo's message id.
+    Task<string?> SendMassEmailAsync(string toEmail, string subject, string htmlBody, string? fromName, string? replyName, string? replyEmail,
+        string? fromEmail = null, IReadOnlyDictionary<string, string>? headers = null);
     Task SendSuperAdminWelcomeEmailAsync(string email, string memberName, string mobileNumber, string? tempPassword);
     Task SendSuperAdminRevokedEmailAsync(string email, string memberName);
     Task SendNewMemberWelcomeEmailAsync(string memberEmail, string memberName, string clubName, string? districtNumber, string? zoneName, IEnumerable<string>? ccEmails);

@@ -1,22 +1,18 @@
 "use client";
 
-// Goal-oversight dashboard (RI Director / Zone Co-ordinator / District Assistant, and the observer):
-// pick a Zone → every district of that zone shows as a ROW, with each category (Membership / TRF /
-// Youth Service / Public Image) laid out horizontally in front of the district as Target · Achieved · %.
-// A Total row sums the columns. RI Director & ZC get a District filter; a DA does NOT (a DA just sees
-// all their assigned districts). Clicking a district row opens that district's messages below.
+// SuperAdmin Goal Overview: pick a Zone → every district of that zone shows as a ROW, with each
+// category (Membership / TRF / Youth Service / Public Image) laid out horizontally in front of the
+// district as Target · Achieved · %. A Total row sums the columns, and a District filter narrows the
+// grid to one district. Clicking a district row opens that district's month-wise collection.
 
 import { Fragment, useCallback, useEffect, useMemo, useState } from "react";
 import { Loader2, Download, MessagesSquare, Calendar, Building2 } from "@/components/icons";
 import { saveAs } from "file-saver";
-import { getDistrictSummaryMatrix, downloadGoalDistrictReport, downloadGoalOversightDistrictReport, getGoalMessagesHasUnread, markGoalMessagesSeen, getDistrictMonthlyGoals, downloadGoalMessagesReport } from "@/services/api";
+import { getDistrictSummaryMatrix, downloadGoalDistrictReport, downloadGoalOversightDistrictReport, getGoalMessagesHasUnread, getDistrictMonthlyGoals, downloadGoalMessagesReport } from "@/services/api";
 import { fileTimestamp } from "@/lib/dateUtils";
-import GoalZoneMessages from "@/components/dashboard/GoalZoneMessages";
 import DistrictMonthWiseReport from "@/components/DistrictMonthWiseReport";
 import ClubGoalSettingPanel from "@/components/ClubGoalSettingPanel";
-import GoalMessagesFeed from "@/components/GoalMessagesFeed";
 import DistrictMessagesInbox from "@/components/goal-messages/DistrictMessagesInbox";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import type { GoalDistrictSummaryMatrixDto, GoalSummaryCategoryDto } from "@/types/goalSetting";
 import { isAnnualOnlyCategory } from "@/lib/goalCategories";
@@ -48,23 +44,21 @@ function groupSegments(c: GoalSummaryCategoryDto) {
 }
 
 export default function GoalOversightMatrix({
-  zones, yearId, actingAs = null, canFilterDistrict = true, showMessages = false, title = "Goal Overview",
+  zones, yearId, canFilterDistrict = true, showMessages = false, title = "Goal Overview",
 }: {
   zones: { id: number; zoneName: string }[];
   yearId: number;                // driven by the top-right header Year picker
-  actingAs?: string | null;
-  canFilterDistrict?: boolean;   // false for a District Assistant (no filter — just their districts)
-  showMessages?: boolean;        // RI Director only → the read-only Messages popup + red new-message dot
-  title?: string;                // card heading — "Goal Overview" (Super Admin) or "Goal Setting" (RI Director)
+  canFilterDistrict?: boolean;   // false hides the District filter
+  showMessages?: boolean;        // the read-only Messages popup + red new-message dot
+  title?: string;                // card heading
 }) {
   const [zoneId, setZoneId] = useState<number | null>(zones.length === 1 ? zones[0].id : null);
   const [matrix, setMatrix] = useState<GoalDistrictSummaryMatrixDto | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [districtFilter, setDistrictFilter] = useState<number | null>(null); // one district, or all
-  const [msgDistrictId, setMsgDistrictId] = useState<number | null>(null);   // row clicked → show messages
   const [dl, setDl] = useState<number | "scope" | null>(null);               // download-in-progress marker
-  const [msgOpen, setMsgOpen] = useState(false);                             // RI messages popup
+  const [msgOpen, setMsgOpen] = useState(false);                             // messages popup
   const [hasUnread, setHasUnread] = useState(false);                        // red dot
   const [monthDistrict, setMonthDistrict] = useState<{ id: number; number: string } | null>(null); // row-click → month-wise popup
   const [clubDistrict, setClubDistrict] = useState<{ id: number; number: string } | null>(null);   // "Club Goal Setting" → clubs popup
@@ -87,7 +81,7 @@ export default function GoalOversightMatrix({
     } finally { setRptBusy(false); }
   }
 
-  // Poll the red "new message" dot when a zone is picked (RI only). Re-checks after closing the popup.
+  // Poll the red "new message" dot when a zone is picked. Re-checks after closing the popup.
   useEffect(() => {
     if (!showMessages || !zoneId || !yearId) { setHasUnread(false); return; }
     let cancelled = false;
@@ -102,7 +96,6 @@ export default function GoalOversightMatrix({
 
   function openMessages() {
     setMsgOpen(true);
-    if (zoneId && yearId) markGoalMessagesSeen(zoneId, yearId).then(() => setHasUnread(false)).catch(() => {});
   }
 
   // Download the YTD + Month-wise report. dId set → just that district; else current zone/district scope.
@@ -133,9 +126,9 @@ export default function GoalOversightMatrix({
     } finally { setDl(null); }
   }
 
-  // Auto-select the only zone (ZC / single-zone DA).
+  // Auto-select the only zone.
   useEffect(() => { if (zones.length === 1) setZoneId(zones[0].id); }, [zones]);
-  useEffect(() => { setDistrictFilter(null); setMsgDistrictId(null); }, [zoneId]);
+  useEffect(() => { setDistrictFilter(null); }, [zoneId]);
 
   const load = useCallback(() => {
     if (!zoneId || !yearId) { setMatrix(null); return; }
@@ -158,7 +151,6 @@ export default function GoalOversightMatrix({
   // open the Month-wise popup (user 2026-09-29) - "View clubs" still works, it stops propagation.
   const selectedCatName = catFilter == null ? null : (cats.find((c) => c.categoryId === catFilter)?.name ?? null);
   const monthWiseOff = isAnnualOnlyCategory(selectedCatName);
-  const msgCategoryId = cats[0]?.categoryId ?? null; // messaging is per (category, zone); use the first overseen
 
   // Default the grid to Membership (fall back to the first overseen category), and keep the choice
   // valid when the zone/year changes to a scope that doesn't include it.
@@ -183,7 +175,7 @@ export default function GoalOversightMatrix({
     <div className="space-y-4">
       <div className="rounded-xl border border-slate-200 bg-white p-4">
         <div className="text-sm font-semibold text-slate-800">{title}: districts (read-only)</div>
-        <p className="text-xs text-slate-500 mt-0.5 mb-3">Pick a zone to see every district&apos;s Membership / Foundation / Youth Service / Public Image progress. Click a district row to see its messages.</p>
+        <p className="text-xs text-slate-500 mt-0.5 mb-3">Pick a zone to see every district&apos;s Membership / Foundation / Youth Service / Public Image progress. Click a district row to see its month-wise collection.</p>
         <div className="flex flex-wrap gap-3">
           <label className="flex flex-col gap-1 text-xs text-slate-500">
             Zone
@@ -222,7 +214,7 @@ export default function GoalOversightMatrix({
                 type="button"
                 onClick={openMessages}
                 className="relative inline-flex items-center gap-1.5 h-9 rounded-md border border-blue-200 bg-blue-50 px-3 text-xs font-medium text-blue-700 hover:bg-blue-100"
-                title="Read messages from your Zone Co-ordinators & District Assistants"
+                title="Read messages from District Admins and Governors"
               >
                 <MessagesSquare size={14} /> Messages
                 {hasUnread && <span className="absolute -top-1 -right-1 h-2.5 w-2.5 rounded-full bg-red-500 ring-2 ring-white" title="New message" />}
@@ -407,12 +399,6 @@ export default function GoalOversightMatrix({
         </div>
       )}
 
-      {/* Click a district → its messages (per zone + category, filtered to that district). Not for RI —
-          RI reads everything via the Messages popup instead. */}
-      {!showMessages && msgDistrictId && zoneId && msgCategoryId && (
-        <GoalZoneMessages categoryId={msgCategoryId} zoneId={zoneId} yearId={yearId} districtId={msgDistrictId} actingAs={actingAs} allowObserverPost={false} />
-      )}
-
       {/* Row click → that district's month-wise collection (read-only), category tabs inside the panel. */}
       <Dialog open={!!monthDistrict} onOpenChange={(o) => { if (!o) setMonthDistrict(null); }}>
         <DialogContent className="max-w-[96vw] sm:max-w-[96vw] w-[96vw] h-[88vh] flex flex-col overflow-hidden">
@@ -458,7 +444,7 @@ export default function GoalOversightMatrix({
         </DialogContent>
       </Dialog>
 
-      {/* RI Messages popup — 4 category tabs; each shows the zone's ZC (first) then its DAs (read-only). */}
+      {/* Messages popup: the zone's District Admin / Governor messages (read-only). */}
       <Dialog open={msgOpen} onOpenChange={setMsgOpen}>
         <DialogContent className="max-w-4xl w-[95vw] h-[85vh] flex flex-col overflow-hidden">
           <DialogHeader className="shrink-0">
@@ -493,22 +479,11 @@ export default function GoalOversightMatrix({
               {rptBusy ? <Loader2 size={13} className="animate-spin" /> : <Download size={13} />} Download report
             </button>
           </div>
-          {/* Two sources (user 2026-10-09): District Admins / Governors writing up the chain, and the
-              Zone Co-ordinators / District Assistants. Both honour the Category + District filter above. */}
+          {/* District Admins / Governors writing up the chain (user 2026-10-09). Honours the Category +
+              District filter above. */}
           <div className="mt-3 flex-1 min-h-0 overflow-y-auto">
             {zoneId && yearId ? (
-              <Tabs defaultValue="zcda" className="flex flex-col">
-                <TabsList className="self-start">
-                  <TabsTrigger value="zcda">Zone Co-ordinators &amp; Assistants</TabsTrigger>
-                  <TabsTrigger value="districts">From Districts</TabsTrigger>
-                </TabsList>
-                <TabsContent value="zcda" className="mt-3">
-                  <GoalMessagesFeed zoneId={zoneId} yearId={yearId} categoryId={rptCat} districtId={rptDistrict} />
-                </TabsContent>
-                <TabsContent value="districts" className="mt-3">
-                  <DistrictMessagesInbox zoneId={zoneId} yearId={yearId} categoryId={rptCat} districtId={rptDistrict} />
-                </TabsContent>
-              </Tabs>
+              <DistrictMessagesInbox zoneId={zoneId} yearId={yearId} categoryId={rptCat} districtId={rptDistrict} />
             ) : (
               <p className="text-sm text-slate-400 py-6 text-center">Select a zone to see its messages.</p>
             )}

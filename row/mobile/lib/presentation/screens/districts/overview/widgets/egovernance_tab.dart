@@ -7,7 +7,6 @@ import '../../../../../core/theme/app_colors.dart';
 import '../../../../../data/models/district_admin_dashboard_models.dart';
 import '../../modules/district_citation_screen.dart';
 import '../../modules/district_reports_screen.dart';
-import '../../modules/district_rni_camp_screen.dart';
 import 'district_dashboard_async.dart';
 import 'stat_card.dart';
 import '../../../../widgets/common/dashboard_refresh.dart';
@@ -17,11 +16,11 @@ import 'package:rotary_flutter_app/core/theme/app_fonts.dart';
 /// `GET /api/mobile/district-admin-dashboard/egovernance` (+ `/egovernance/per-club`
 /// for the real 12-month CMR grid).
 ///
-/// Mirrors the web console: header + 3 KPI tiles + 4 sub-tabs (Club Monthly
-/// Report / PPH Camp / District Awards / Reports). Per the backend, the main
+/// Mirrors the web console: header + 2 KPI tiles + 3 sub-tabs (Club Monthly
+/// Report / District Awards / Reports). Per the backend, the main
 /// response's Wave-13A2 fields are dead-code, so KPIs use the live legacy CMR
-/// totals; the per-club grid is fetched from the dedicated endpoint; PPH Camp /
-/// District Awards / Reports are Pending / empty (awaiting Wave 13A1).
+/// totals; the per-club grid is fetched from the dedicated endpoint; District
+/// Awards / Reports are Pending / empty (awaiting Wave 13A1).
 class EGovernanceTab extends StatefulWidget {
   final int districtId;
   final int? yearId;
@@ -132,7 +131,6 @@ const List<String> _kRyMonths = [
 
 const List<({String key, String label})> _kSubTabs = [
   (key: 'cmr', label: 'Club Monthly Report'),
-  (key: 'pps', label: 'PPH Camp'),
   (key: 'citation', label: 'District Awards'),
   (key: 'reports', label: 'Reports'),
 ];
@@ -200,12 +198,6 @@ class _EGovBodyState extends State<_EGovBody> {
               yearId: widget.yearId,
               effectiveYearId: widget.effectiveYearId),
         );
-      case 'pps':
-        return DistrictRniCampScreen(
-          key: const ValueKey('egov-pph'),
-          districtId: widget.districtId,
-          embedded: true,
-        );
       case 'citation':
         return DistrictCitationScreen(
           key: const ValueKey('egov-citation'),
@@ -225,7 +217,7 @@ class _EGovBodyState extends State<_EGovBody> {
 }
 
 // ─────────────────────────────────────────────────────────────────────────
-// Top 3 KPI tiles
+// Top KPI tiles
 // ─────────────────────────────────────────────────────────────────────────
 
 class _TopKpis extends StatelessWidget {
@@ -245,15 +237,6 @@ class _TopKpis extends StatelessWidget {
               value: data.monthlyReports.toString(),
               sub: 'Submitted on time',
               accent: AppColors.rotaryBlue,
-            ),
-          ),
-          const SizedBox(width: 8),
-          Expanded(
-            child: StatCard(
-              label: 'PPH Camps',
-              value: data.ppsCampsCount.toString(),
-              sub: 'District-wide',
-              accent: AppColors.avenueNewGen,
             ),
           ),
           const SizedBox(width: 8),

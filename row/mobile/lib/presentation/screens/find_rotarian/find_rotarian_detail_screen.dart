@@ -431,7 +431,7 @@ class _FindRotarianDetailScreenState extends State<FindRotarianDetailScreen> {
     var url = raw.trim();
     if (url.isEmpty) return;
     // Pass through any URL that already specifies a scheme (tel:, mailto:,
-    // sms:, https://wa.me/…, etc). Only bare hostnames like "example.com"
+    // sms:, https://…, etc). Only bare hostnames like "example.com"
     // get prefixed with https:// — the old code prepended https:// to
     // everything, which silently turned tel:+<cc>… into https://tel:+<cc>…
     // and made canLaunchUrl reject it.

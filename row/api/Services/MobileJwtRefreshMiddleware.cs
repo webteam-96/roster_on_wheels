@@ -113,12 +113,9 @@ public class MobileJwtRefreshMiddleware
             var memberIdStr = context.User.FindFirst("memberId")?.Value;
             if (!int.TryParse(memberIdStr, out var memberId) || memberId <= 0) return false;
 
-            var authHeader = context.Request.Headers["Authorization"].FirstOrDefault();
-            if (string.IsNullOrEmpty(authHeader) || !authHeader.StartsWith("Bearer ")) return false;
-            var token = authHeader.Substring("Bearer ".Length).Trim();
-
-            var jwt = new JwtSecurityTokenHandler().ReadJwtToken(token);
-            var iatClaim = jwt.Claims.FirstOrDefault(c => c.Type == "iat")?.Value;
+            // From the validated token rather than the Authorization header, so the chat hub's query-string token
+            // (Program.cs, /api/chat/hub) is checked too.
+            var iatClaim = context.User.FindFirst("iat")?.Value;
             if (!long.TryParse(iatClaim, out var iatUnix)) return false;
             var jwtIssuedAtUtc = DateTimeOffset.FromUnixTimeSeconds(iatUnix).UtcDateTime;
 

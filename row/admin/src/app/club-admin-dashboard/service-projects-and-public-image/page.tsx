@@ -5,11 +5,10 @@ import Link from "next/link";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import {
   Briefcase, Users, IndianRupee, Coins, DollarSign, Clock4, CalendarDays, Search,
-  Plus, Edit3, Trash2, Eye, Phone, Mail, BadgeAlert, Puzzle,
-  Clock, CheckCircle2, XCircle, ChevronDown, ChevronRight, AlertTriangle, RotateCcw } from "@/components/icons";
+  Plus, Edit3, Trash2, Eye, Puzzle,
+  CheckCircle2, ChevronDown, ChevronRight, AlertTriangle, RotateCcw } from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
 import ProjectDetailModal from "@/components/ProjectDetailModal";
-import PphCampDetailModal from "@/components/PphCampDetailModal";
 import AlertModal from "@/components/AlertModal";
 import AddToOrgConfirmDialog from "@/components/AddToOrgConfirmDialog";
 import AgreeAddButton from "@/components/AgreeAddButton";
@@ -19,8 +18,6 @@ import { isFlowBotEnabled, AVENUE_LABELS, buildOrgExportFromDetail, triggerAddTo
 import {
   getServiceProjectsAvenue,
   deleteProject,
-  deletePphCamp,
-  togglePphCampActive,
   getProject,
   resetRotaryOrgSync,
 } from "@/services/api";
@@ -43,7 +40,7 @@ const SYNC_API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 // Tab order matches the on-screen pill bar in the screenshots
 type AvenueTab = "all" | "club_service" | "community_service" | "vocational_service"
                | "international_service" | "new_generation_service"
-               | "public_image_initiative" | "pph_camp";
+               | "public_image_initiative";
 
 const AVENUE_TABS: { key: AvenueTab; label: string }[] = [
   { key: "all",                     label: "All" },
@@ -53,7 +50,6 @@ const AVENUE_TABS: { key: AvenueTab; label: string }[] = [
   { key: "international_service",   label: "International Service" },
   { key: "new_generation_service",  label: "New Generation" },
   { key: "public_image_initiative", label: "Public Image" },
-  { key: "pph_camp",                label: "PPH Camp" },
 ];
 
 // Slug map used to build links into existing module pages
@@ -64,7 +60,6 @@ const SLUG_MAP: Record<string, string> = {
   international_service:   "international-service/v2",
   new_generation_service:  "new-generation-service/v2",
   public_image_initiative: "public-image-initiative/v2",
-  pph_camp:                "pph-camps/v2",
 };
 
 function avenueBadgeStyle(key: string): string {
@@ -75,7 +70,6 @@ function avenueBadgeStyle(key: string): string {
     case "international_service":   return "bg-violet-50 text-violet-700 border-violet-200";
     case "new_generation_service":  return "bg-pink-50 text-pink-700 border-pink-200";
     case "public_image_initiative": return "bg-orange-50 text-orange-700 border-orange-200";
-    case "pph_camp":                return "bg-teal-50 text-teal-700 border-teal-200";
     default:                        return "bg-slate-50 text-slate-700 border-slate-200";
   }
 }
@@ -648,7 +642,7 @@ function NonClubAvenueSection({
   const { isSuperAdmin } = useAuth();
   const avenueLabel = AVENUE_LABELS[data.avenueKey];
   // Column renders only when the extension is installed,
-  // on avenues the extension understands (pph_camp has no AVENUE_LABELS entry).
+  // on avenues the extension understands.
   // Sync button: extension installed + an avenue the extension understands.
   // Reset: SuperAdmin only, and it must work WITHOUT the extension - support clears the flag from
   // their own machine after a club reports a project that reads "Synced" but never reached
@@ -659,8 +653,6 @@ function NonClubAvenueSection({
   const [syncError, setSyncError] = useState<string | null>(null);
   const [resetTarget, setResetTarget] = useState<ServiceProjectsProjectRow | null>(null);
   const [resetting, setResetting] = useState(false);
-  // Every project gets a Sync button here regardless of approval status (per user
-  // request) — unlike the /clubs/[id]/…/v2 listing which limits it to approved rows.
 
   const handleSyncConfirm = async () => {
     const target = syncTarget;
@@ -693,37 +685,8 @@ function NonClubAvenueSection({
     } finally { setResetting(false); }
   };
 
-  // PPH Camp: flip Active/Inactive straight from the listing (toggle in the Status column).
-  const [togglingId, setTogglingId] = useState<number | null>(null);
-  const handleToggleActive = async (r: ServiceProjectsProjectRow) => {
-    setTogglingId(r.id);
-    try {
-      await togglePphCampActive(clubId, r.id);
-      await onRefresh();
-    } catch { /* ignore: state stays as-is */ }
-    finally { setTogglingId(null); }
-  };
-
   const handleConfirmDelete = async () => {
     if (!deleteTarget) return;
-    // PPH camps live in their own table/endpoint (pk_camp_id, not a year-wise
-    // project id) — routing this through deleteProject would hit the wrong
-    // table and could delete an unrelated project that happens to share the
-    // same numeric id.
-    if (data.avenueKey === "pph_camp") {
-      setIsDeleting(true);
-      try {
-        await deletePphCamp(clubId, deleteTarget.id);
-        setDeleteTarget(null);
-        await onRefresh();
-      } catch (e) {
-        const err = e as { response?: { data?: { message?: string } } };
-        setDeleteError(err?.response?.data?.message || "Failed to delete camp.");
-      } finally {
-        setIsDeleting(false);
-      }
-      return;
-    }
     const effectiveYearId = data.selectedYearId ?? yearId ?? 0;
     if (!effectiveYearId) {
       setDeleteError("Could not resolve the Rotary year for this record.");
@@ -806,17 +769,12 @@ function NonClubAvenueSection({
 
   return (
     <div className="space-y-5">
-      {/* PPH Camp uses the same NonClubAvenueSection scaffold but doesn't track
-          beneficiaries / amount spent / man-hours — they're not collected on a
-          PPH camp form. Hide the KPI row for that tab. */}
-      {data.avenueKey !== "pph_camp" && (
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <KpiCard title="Projects"      value={fmtInt(k.projects ?? 0)}                  subtitle={data.avenueName}     icon={Briefcase}   color="blue" />
-          <KpiCard title="Beneficiaries" value={fmtInt(k.beneficiaries ?? 0)}             subtitle="Lives impacted"      icon={Users}       color="green" />
-          <KpiCard title="Amount Spent"  value={shortMoney(Number(k.amountSpent ?? 0), data.targetCurrency)}     subtitle="Project investment"  icon={moneyIcon(data.targetCurrency)} color="gold" />
-          <KpiCard title="Man Hours"     value={fmtInt(k.manHours ?? 0)}                  subtitle="Volunteer time"      icon={Clock4}      color="purple" />
-        </div>
-      )}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <KpiCard title="Projects"      value={fmtInt(k.projects ?? 0)}                  subtitle={data.avenueName}     icon={Briefcase}   color="blue" />
+        <KpiCard title="Beneficiaries" value={fmtInt(k.beneficiaries ?? 0)}             subtitle="Lives impacted"      icon={Users}       color="green" />
+        <KpiCard title="Amount Spent"  value={shortMoney(Number(k.amountSpent ?? 0), data.targetCurrency)}     subtitle="Project investment"  icon={moneyIcon(data.targetCurrency)} color="gold" />
+        <KpiCard title="Man Hours"     value={fmtInt(k.manHours ?? 0)}                  subtitle="Volunteer time"      icon={Clock4}      color="purple" />
+      </div>
 
       <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
         <div className="px-5 py-3 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
@@ -860,42 +818,9 @@ function NonClubAvenueSection({
             )}
             {/* Local YearSelect removed — use global topbar year selector. */}
             <SearchBox value={search} onChange={setSearch} />
-            <AgreeAddButton message={AGREE_MESSAGES[data.avenueKey] ?? ""} href={addUrl} label={data.avenueKey === "pph_camp" ? "Add Camp" : "Add Project"} />
+            <AgreeAddButton message={AGREE_MESSAGES[data.avenueKey] ?? ""} href={addUrl} label="Add Project" />
           </div>
         </div>
-
-        {/* Pending approval banner row(s) — above the table */}
-        {data.pendingApprovals.length > 0 && (
-          <div className="border-b border-slate-100 bg-amber-50/40 divide-y divide-amber-200">
-            {data.pendingApprovals.map((p) => (
-              <div key={p.projectId} className="px-5 py-3 flex flex-wrap items-center gap-x-4 gap-y-2 text-xs">
-                <div className="flex items-center gap-2 shrink-0">
-                  <div className="w-8 h-8 rounded-full bg-emerald-100 text-emerald-700 font-semibold flex items-center justify-center">
-                    {(p.creatorName || "?").charAt(0).toUpperCase()}
-                  </div>
-                  <span className="font-medium text-slate-800 truncate max-w-[180px]">{p.creatorName}</span>
-                </div>
-                <span className="text-slate-400">·</span>
-                <span className="font-semibold text-slate-700 truncate max-w-[240px]">{p.projectTitle}</span>
-                <span className="inline-flex items-center gap-1 text-[10px] font-medium px-2 py-0.5 rounded-full border bg-amber-100 text-amber-700 border-amber-200 shrink-0">
-                  <BadgeAlert size={10} /> {p.approvalStatus || "pending"}
-                </span>
-                <div className="ml-auto flex items-center gap-3 shrink-0">
-                  {p.mobile && (
-                    <a href={`tel:${p.mobile}`} className="inline-flex items-center gap-1 text-emerald-700 hover:underline">
-                      <Phone size={12} /> {p.mobile}
-                    </a>
-                  )}
-                  {p.email && (
-                    <a href={`mailto:${p.email}`} className="inline-flex items-center gap-1 text-blue-700 hover:underline truncate max-w-[200px]">
-                      <Mail size={12} /> {p.email}
-                    </a>
-                  )}
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
 
         <div className="overflow-x-auto">
           <table className="min-w-full text-sm">
@@ -905,22 +830,9 @@ function NonClubAvenueSection({
                 <th className="px-3 py-2.5 text-left whitespace-nowrap">Date</th>
                 <th className="px-3 py-2.5 text-left">Title</th>
                 {showTypeFilter && <th className="px-3 py-2.5 text-left">Type</th>}
-                {data.avenueKey === "pph_camp" && <th className="px-3 py-2.5 text-right">Attendance</th>}
-                {data.avenueKey !== "pph_camp" && (
-                  <>
-                    <th className="px-3 py-2.5 text-right">Cost</th>
-                    <th className="px-3 py-2.5 text-right">Direct Benf</th>
-                    <th className="px-3 py-2.5 text-right">Man Hours</th>
-                  </>
-                )}
-                <th className="px-3 py-2.5 text-left whitespace-nowrap">Status</th>
-                {data.avenueKey === "pph_camp" && (
-                  <th className="px-3 py-2.5 text-center w-16">
-                    <span className="inline-flex items-center justify-center" title="Attendees">
-                      <Users size={14} />
-                    </span>
-                  </th>
-                )}
+                <th className="px-3 py-2.5 text-right">Cost</th>
+                <th className="px-3 py-2.5 text-right">Direct Benf</th>
+                <th className="px-3 py-2.5 text-right">Man Hours</th>
                 <th className="px-3 py-2.5 text-right w-16">View</th>
                 <th className="px-3 py-2.5 text-right w-16">Edit</th>
                 <th className="px-3 py-2.5 text-right w-16">Delete</th>
@@ -942,19 +854,7 @@ function NonClubAvenueSection({
                     <td className="px-3 py-2 text-slate-500">{r.sr ?? (safePage - 1) * PAGE_SIZE + i + 1}</td>
                     <td className="px-3 py-2 text-slate-700 whitespace-nowrap">{fmtDate(r.date)}</td>
                     <td className="px-3 py-2 font-medium text-slate-800">
-                      {data.avenueKey === "pph_camp" && r.campImageUrl ? (
-                        <span className="inline-flex items-center gap-2">
-                          {/* eslint-disable-next-line @next/next/no-img-element */}
-                          <img
-                            src={`${process.env.NEXT_PUBLIC_API_URL ?? ""}${r.campImageUrl}`}
-                            alt=""
-                            className="h-8 w-8 rounded object-cover border border-slate-200 shrink-0"
-                          />
-                          <span>{r.title || "–"}</span>
-                        </span>
-                      ) : (
-                        r.title || "–"
-                      )}
+                      {r.title || "–"}
                     </td>
                     {showTypeFilter && (
                       <td className="px-3 py-2">
@@ -980,43 +880,9 @@ function NonClubAvenueSection({
                         )}
                       </td>
                     )}
-                    {data.avenueKey === "pph_camp" && (
-                      <td className="px-3 py-2 text-right text-slate-700 tabular-nums">{fmtInt(r.directBeneficiaries)}</td>
-                    )}
-                    {data.avenueKey !== "pph_camp" && (
-                      <>
-                        <td className="px-3 py-2 text-right text-slate-600 whitespace-nowrap">{r.cost > 0 ? shortMoney(Number(r.cost), r.currency) : "–"}</td>
-                        <td className="px-3 py-2 text-right text-slate-600">{r.directBeneficiaries > 0 ? fmtInt(r.directBeneficiaries) : "–"}</td>
-                        <td className="px-3 py-2 text-right text-slate-600">{r.manHours > 0 ? fmtInt(r.manHours) : "–"}</td>
-                      </>
-                    )}
-                    <td className="px-3 py-2 whitespace-nowrap">
-                      {data.avenueKey === "pph_camp" ? (
-                        <button
-                          type="button"
-                          onClick={() => handleToggleActive(r)}
-                          disabled={togglingId === r.id}
-                          title={r.isActive ? "Active. Click to set Inactive" : "Inactive. Click to set Active"}
-                          className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors disabled:opacity-50 ${r.isActive ? "bg-emerald-500" : "bg-slate-300"}`}
-                        >
-                          <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${r.isActive ? "translate-x-4" : "translate-x-0.5"}`} />
-                        </button>
-                      ) : (
-                        <ApprovalStatusChip status={r.approvalStatus} />
-                      )}
-                    </td>
-                    {/* PPH Camp: Attendance / Add attendee (V2 attendance sub-page keeps the e-Gov chrome). */}
-                    {data.avenueKey === "pph_camp" && (
-                      <td className="px-3 py-2 text-center">
-                        <Link
-                          href={`/clubs/${clubId}/pph-camps/v2/${r.id}/attendance?returnTo=${returnTo}`}
-                          className="inline-flex items-center justify-center w-7 h-7 rounded text-slate-500 hover:text-teal-700 hover:bg-teal-50"
-                          title="Attendance / Add attendee"
-                        >
-                          <Users size={13} />
-                        </Link>
-                      </td>
-                    )}
+                    <td className="px-3 py-2 text-right text-slate-600 whitespace-nowrap">{r.cost > 0 ? shortMoney(Number(r.cost), r.currency) : "–"}</td>
+                    <td className="px-3 py-2 text-right text-slate-600">{r.directBeneficiaries > 0 ? fmtInt(r.directBeneficiaries) : "–"}</td>
+                    <td className="px-3 py-2 text-right text-slate-600">{r.manHours > 0 ? fmtInt(r.manHours) : "–"}</td>
                     <td className="px-3 py-2 text-right">
                       <button
                         type="button"
@@ -1110,9 +976,6 @@ function NonClubAvenueSection({
                     <td className="px-3 py-2 text-right text-slate-500 whitespace-nowrap">{c.cost > 0 ? shortMoney(Number(c.cost), c.currency) : "–"}</td>
                     <td className="px-3 py-2 text-right text-slate-500">{c.directBeneficiaries > 0 ? fmtInt(c.directBeneficiaries) : "–"}</td>
                     <td className="px-3 py-2 text-right text-slate-500">{c.manHours > 0 ? fmtInt(c.manHours) : "–"}</td>
-                    <td className="px-3 py-2 whitespace-nowrap">
-                      <ApprovalStatusChip status={c.approvalStatus} />
-                    </td>
                     <td className="px-3 py-2 text-right">
                       <Link
                         href={`/clubs/${clubId}/${slug}/${c.id}/edit?returnTo=${returnTo}&yearId=${data.selectedYearId ?? yearId ?? ""}`}
@@ -1176,7 +1039,7 @@ function NonClubAvenueSection({
                 return [parentRow, ...childRows];
               })}
               {filtered.length === 0 && (
-                <tr><td colSpan={syncColumnVisible ? 12 : 11} className="px-4 py-8 text-center text-slate-400">No projects in this section.</td></tr>
+                <tr><td colSpan={syncColumnVisible ? 11 : 10} className="px-4 py-8 text-center text-slate-400">No projects in this section.</td></tr>
               )}
             </tbody>
           </table>
@@ -1204,22 +1067,12 @@ function NonClubAvenueSection({
         )}
       </div>
 
-      {/* Read-only detail popup. A PPH Camp is not a project - it has its own table and its own
-          endpoint, so it gets its own popup (user 2026-10-05: "pph camp is camp"). */}
-      {data.avenueKey === "pph_camp" ? (
-        <PphCampDetailModal
-          clubId={clubId}
-          campId={viewTarget?.id ?? null}
-          onClose={() => setViewTarget(null)}
-        />
-      ) : (
-        <ProjectDetailModal
-          clubId={clubId}
-          yearId={Number(data.selectedYearId ?? yearId ?? 0)}
-          projectId={viewTarget?.id ?? null}
-          onClose={() => setViewTarget(null)}
-        />
-      )}
+      <ProjectDetailModal
+        clubId={clubId}
+        yearId={Number(data.selectedYearId ?? yearId ?? 0)}
+        projectId={viewTarget?.id ?? null}
+        onClose={() => setViewTarget(null)}
+      />
 
       <AlertModal
         open={!!deleteTarget}
@@ -1319,35 +1172,6 @@ function NonClubAvenueSection({
 }
 
 // ── Small shared bits ──────────────────────────────────────────────────
-
-// Approval workflow status badge. Used in NonClubAvenueSection's project
-// table (Community / Vocational / International / New Generation / Public
-// Image). Club Service rows naturally have status=NULL and render as "—".
-function ApprovalStatusChip({ status }: { status: string | null | undefined }) {
-  const s = (status || "").toLowerCase();
-  if (s === "pending") {
-    return (
-      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-amber-100 text-amber-800 border border-amber-200">
-        <Clock size={11} /> Pending
-      </span>
-    );
-  }
-  if (s === "approved") {
-    return (
-      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-100 text-emerald-800 border border-emerald-200">
-        <CheckCircle2 size={11} /> Approved
-      </span>
-    );
-  }
-  if (s === "rejected") {
-    return (
-      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-rose-100 text-rose-800 border border-rose-200">
-        <XCircle size={11} /> Rejected
-      </span>
-    );
-  }
-  return <span className="text-slate-300 text-xs">, </span>;
-}
 
 function YearSelect({
   data, yearId, onYearChange,

@@ -45,13 +45,11 @@ public class UpcomingEventService : IUpcomingEventService
                    CASE
                        WHEN e.ImagePath IS NULL OR e.ImagePath = '' THEN NULL
                        WHEN e.ImagePath LIKE '/%' THEN e.ImagePath
-                       WHEN e.Scope = 'ri' THEN CONCAT('/Documents/Event/ri/', e.ImagePath)
                        WHEN e.fk_district_id IS NOT NULL THEN CONCAT('/Documents/Event/Group', e.fk_district_id, '/', e.ImagePath)
                        ELSE CONCAT('/Documents/Event/Group', e.fk_club_id, '/', e.ImagePath)
                    END AS ImagePath,
                    e.EventDate, e.PublishDate, e.ExpiryDate,
-                   e.EventVenue, e.RegistrationLink, e.IsSendWhatsapp, e.IsSendEmail, e.IsRepeatNotification,
-                   e.WhatsAppSentDate, e.WhatsAppSentCount, e.WhatsAppFailedCount,
+                   e.EventVenue, e.RegistrationLink, e.IsSendEmail, e.IsRepeatNotification,
                    e.EmailSentDate, e.EmailSentCount, e.EmailFailedCount,
                    CASE
                        WHEN NOW() < e.PublishDate THEN 'Unpublished'
@@ -94,13 +92,12 @@ public class UpcomingEventService : IUpcomingEventService
                    CASE
                        WHEN e.ImagePath IS NULL OR e.ImagePath = '' THEN NULL
                        WHEN e.ImagePath LIKE '/%' THEN e.ImagePath
-                       WHEN e.Scope = 'ri' THEN CONCAT('/Documents/Event/ri/', e.ImagePath)
                        WHEN e.fk_district_id IS NOT NULL THEN CONCAT('/Documents/Event/Group', e.fk_district_id, '/', e.ImagePath)
                        ELSE CONCAT('/Documents/Event/Group', e.fk_club_id, '/', e.ImagePath)
                    END AS ImagePath,
                    e.EventDate, e.PublishDate, e.ExpiryDate,
                    e.EventVenue, e.RegistrationLink,
-                   e.IsSendWhatsapp, e.IsSendEmail, e.IsRepeatNotification,
+                   e.IsSendEmail, e.IsRepeatNotification,
                    CASE
                        WHEN e.ExpiryDate < NOW() THEN 'Expired'
                        WHEN e.PublishDate <= NOW() AND e.ExpiryDate >= NOW() THEN 'Published'
@@ -125,7 +122,7 @@ public class UpcomingEventService : IUpcomingEventService
 
     public async Task<int> CreateAsync(int clubId, CreateUpcomingEventDto dto, int createdBy, int? districtId = null)
     {
-        // Character limits — keep the WhatsApp body under the template ceiling (club + district).
+        // Character limits (club + district).
         CommsLimits.Require(dto.Title, CommsLimits.EventTitle, "Title");
         CommsLimits.Require(dto.EventVenue, CommsLimits.EventVenue, "Event Venue");
         CommsLimits.Require(dto.Description, CommsLimits.EventDescription, "Description");
@@ -133,17 +130,13 @@ public class UpcomingEventService : IUpcomingEventService
         using var connection = CreateConnection();
         await connection.OpenAsync();
 
-        // Pre-check WhatsApp credits BEFORE insert (block save if insufficient).
-        // Total = recipients × (1 initial send + N reminders).
-        int memberCountForCheck = 0;
         int refundEntityIdForCheck = districtId ?? clubId;
         int reminderCount = dto.Reminders?.Count ?? 0;
-        int totalCreditsNeeded = 0;
 
-        // Pre-check Email credits BEFORE insert (parity with WhatsApp; counts members with an email).
+        // Pre-check Email credits BEFORE insert (counts members with an email).
         if (dto.IsSendEmail && refundEntityIdForCheck > 0)
         {
-            int emailCount = await CountRecipientsAsync(connection, clubId, districtId, forEmail: true);
+            int emailCount = await CountRecipientsAsync(connection, clubId, districtId);
             int emailNeeded = emailCount * (1 + reminderCount);
             if (emailNeeded > 0)
             {
@@ -156,10 +149,10 @@ public class UpcomingEventService : IUpcomingEventService
 
         var sql = @"INSERT INTO upcoming_events (fk_club_id, fk_district_id, Title, Description, ImagePath,
                         EventDate, PublishDate, ExpiryDate, EventVenue, RegistrationLink,
-                        IsSendWhatsapp, IsSendEmail, IsRepeatNotification, created_by, created_date, isdeleted)
+                        IsSendEmail, IsRepeatNotification, created_by, created_date, isdeleted)
                     VALUES (@ClubId, @DistrictId, @Title, @Description, @ImagePath,
                         @EventDate, @PublishDate, @ExpiryDate, @EventVenue, @RegistrationLink,
-                        @IsSendWhatsapp, @IsSendEmail, @IsRepeatNotification, @CreatedBy, NOW(), 0);
+                        @IsSendEmail, @IsRepeatNotification, @CreatedBy, NOW(), 0);
                     SELECT LAST_INSERT_ID();";
 
         var eventId = await connection.ExecuteScalarAsync<int>(sql, new
@@ -174,7 +167,6 @@ public class UpcomingEventService : IUpcomingEventService
             dto.ExpiryDate,
             dto.EventVenue,
             dto.RegistrationLink,
-            IsSendWhatsapp = 0,
             IsSendEmail = dto.IsSendEmail ? 1 : 0,
             IsRepeatNotification = dto.IsRepeatNotification ? 1 : 0,
             CreatedBy = createdBy
@@ -195,13 +187,10 @@ public class UpcomingEventService : IUpcomingEventService
         return eventId;
     }
 
-    private async Task<int> CountRecipientsAsync(MySqlConnection conn, int clubId, int? districtId, bool forEmail = false)
+    private async Task<int> CountRecipientsAsync(MySqlConnection conn, int clubId, int? districtId)
     {
-        // Same kill-switch-filtered audience the scheduler sends to; only the contact filter
-        // differs per channel — WhatsApp needs a mobile, Email needs an EmailId.
-        var contact = forEmail
-            ? "m.EmailId IS NOT NULL AND m.EmailId <> ''"
-            : "m.PrimaryMobileNumber IS NOT NULL AND m.PrimaryMobileNumber <> ''";
+        // Same kill-switch-filtered audience the scheduler sends to: members with an email address.
+        const string contact = "m.EmailId IS NOT NULL AND m.EmailId <> ''";
         if (districtId.HasValue)
         {
             return await conn.ExecuteScalarAsync<int>(
@@ -253,42 +242,24 @@ public class UpcomingEventService : IUpcomingEventService
         if (existingExpiry.HasValue && existingExpiry.Value < DateTime.Now)
             throw new InvalidOperationException("Cannot edit an expired item. Once an item's expiry date has passed, it can no longer be modified.");
 
-        // Pre-check WhatsApp/Email credits if a channel is being newly turned ON and not yet sent
+        // Pre-check Email credits if email is newly turned ON and not yet sent
         var prior = await connection.QueryFirstOrDefaultAsync<dynamic>(
-            @"SELECT fk_club_id, fk_district_id, IsSendWhatsapp, WhatsAppSentDate, IsSendEmail, EmailSentDate, PublishDate
+            @"SELECT fk_club_id, fk_district_id, IsSendEmail, EmailSentDate, PublishDate
               FROM upcoming_events WHERE pk_upcoming_event_id = @Id AND isdeleted = 0",
             new { Id = id });
-        bool priorWhatsapp = prior != null && Convert.ToBoolean(prior.IsSendWhatsapp);
-        bool alreadySent = prior != null && prior.WhatsAppSentDate != null;
-        int memberCountForCheck = 0;
         int clubIdForCheck = prior != null ? (int)prior.fk_club_id : 0;
         int? districtIdForCheck = prior != null && prior.fk_district_id != null ? (int?)prior.fk_district_id : null;
         int refundEntityIdForCheck = districtIdForCheck ?? clubIdForCheck;
-        bool newlyTurnedOn = false && !priorWhatsapp && !alreadySent;
-        // Re-send if already sent AND new publish date is still in the future (user wants resend)
-        bool resendOnDateChange = false && alreadySent && dto.PublishDate > DateTime.Now;
         int reminderCount = dto.Reminders?.Count ?? 0;
-        if ((newlyTurnedOn || resendOnDateChange) && refundEntityIdForCheck > 0)
-        {
-            memberCountForCheck = await CountRecipientsAsync(connection, clubIdForCheck, districtIdForCheck);
-            int totalCreditsNeeded = memberCountForCheck * (1 + reminderCount);
-            if (totalCreditsNeeded > 0)
-            {
-                using var scope = _scopeFactory.CreateScope();
-                var creditSvc = scope.ServiceProvider.GetRequiredService<ICreditManagementService>();
-                if (!await creditSvc.HasSufficientCreditsAsync(refundEntityIdForCheck, "WhatsApp", totalCreditsNeeded))
-                    throw new InvalidOperationException($"Insufficient WhatsApp credits. Need {totalCreditsNeeded} credit(s) for {memberCountForCheck} members × {1 + reminderCount} sends. Please uncheck 'Send through WhatsApp' to save without WhatsApp notification, or reduce reminders, or purchase more credits.");
-            }
-        }
 
-        // Email parity — block save when email is newly turned on (or re-sent) without enough Email credits.
+        // Block save when email is newly turned on (or re-sent) without enough Email credits.
         bool priorEmail = prior != null && Convert.ToBoolean(prior.IsSendEmail);
         bool emailAlreadySent = prior != null && prior.EmailSentDate != null;
         bool emailNewlyOn = dto.IsSendEmail && !priorEmail && !emailAlreadySent;
         bool emailResend = dto.IsSendEmail && emailAlreadySent && dto.PublishDate > DateTime.Now;
         if ((emailNewlyOn || emailResend) && refundEntityIdForCheck > 0)
         {
-            int emailCount = await CountRecipientsAsync(connection, clubIdForCheck, districtIdForCheck, forEmail: true);
+            int emailCount = await CountRecipientsAsync(connection, clubIdForCheck, districtIdForCheck);
             int emailNeeded = emailCount * (1 + reminderCount);
             if (emailNeeded > 0)
             {
@@ -299,13 +270,8 @@ public class UpcomingEventService : IUpcomingEventService
             }
         }
 
-        // Clear each channel's sent-state INDEPENDENTLY so the scheduler re-sends it. A channel
-        // resets when it's newly turned on (so a never-sent-email that's now enabled always goes
-        // out) or re-sent via a future publish date. Previously only WhatsApp's condition cleared
-        // BOTH — so turning on Email alone never reset EmailSentDate and the email never sent.
+        // Clear the email sent-state when email is newly turned on or re-sent via a future publish date.
         string clearSentSql = "";
-        if (newlyTurnedOn || resendOnDateChange)
-            clearSentSql += ", WhatsAppSentDate = NULL, WhatsAppSentCount = 0, WhatsAppFailedCount = 0";
         if (emailNewlyOn || emailResend)
             clearSentSql += ", EmailSentDate = NULL, EmailSentCount = 0, EmailFailedCount = 0";
 
@@ -314,7 +280,7 @@ public class UpcomingEventService : IUpcomingEventService
                 Title = @Title, Description = @Description, ImagePath = @ImagePath,
                 EventDate = @EventDate, PublishDate = @PublishDate, ExpiryDate = @ExpiryDate,
                 EventVenue = @EventVenue, RegistrationLink = @RegistrationLink,
-                IsSendWhatsapp = @IsSendWhatsapp, IsSendEmail = @IsSendEmail, IsRepeatNotification = @IsRepeatNotification,
+                IsSendEmail = @IsSendEmail, IsRepeatNotification = @IsRepeatNotification,
                 modified_by = @ModifiedBy, modified_date = NOW()" + clearSentSql + @"
             WHERE pk_upcoming_event_id = @Id AND isdeleted = 0",
             new
@@ -322,7 +288,6 @@ public class UpcomingEventService : IUpcomingEventService
                 Id = id, dto.Title, dto.Description, dto.ImagePath,
                 dto.EventDate, dto.PublishDate, dto.ExpiryDate,
                 dto.EventVenue, dto.RegistrationLink,
-                IsSendWhatsapp = 0,
                 IsSendEmail = dto.IsSendEmail ? 1 : 0,
                 IsRepeatNotification = dto.IsRepeatNotification ? 1 : 0,
                 ModifiedBy = modifiedBy
@@ -351,11 +316,6 @@ public class UpcomingEventService : IUpcomingEventService
     {
         using var connection = CreateConnection();
         await connection.OpenAsync();
-
-        var row = await connection.QueryFirstOrDefaultAsync<dynamic>(@"
-            SELECT fk_club_id, fk_district_id, IsSendWhatsapp, WhatsAppSentDate, Title
-            FROM upcoming_events WHERE pk_upcoming_event_id = @Id AND isdeleted = 0",
-            new { Id = id });
 
         await connection.ExecuteAsync(@"
             UPDATE upcoming_events SET isdeleted = 1, deleted_by = @DeletedBy, deleted_date = NOW()

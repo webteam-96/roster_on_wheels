@@ -1,8 +1,8 @@
 "use client";
 
 /**
- * GoalOversightShell — V2 sidebar + topbar chrome for the Goal Setting oversight roles
- * (RI Director / Zone Co-ordinator / District Assistant). Visually mirrors DistrictAdminShell
+ * GoalOversightShell — V2 sidebar + topbar chrome for the SuperAdmin Goal Overview
+ * (/goal-overviews). Visually mirrors DistrictAdminShell
  * (dark sidebar, amber active pill, identity card, sign-out) but carries no district/club
  * machinery — the nav items are passed in by the page (its goal categories), and the goal
  * content renders inside. Auth is handled by the page's own ProtectedRoute.
@@ -43,7 +43,7 @@ export default function GoalOversightShell({
 }: {
   pageTitle: string;
   pageSubtitle?: string;
-  roleLabel?: string;                 // e.g. "RI Director" / "Zone Co-ordinator"
+  roleLabel?: string;                 // e.g. "Super Admin"
   nav: GoalOversightNavItem[];
   children: ReactNode;
   headerRight?: ReactNode;            // top-right header slot (e.g. the global Year picker)
@@ -52,7 +52,7 @@ export default function GoalOversightShell({
   const { logout, user } = useAuth();
   const identityName = user?.name ?? "Goal Setting";
   const initials = getInitials(identityName) || "GS";
-  // Brand caption: "Goal Overview" for Super Admin, "Goal Setting" for RI Director / ZC / DA.
+  // Brand caption: "Goal Overview" for Super Admin (the Goal Overview page), "Goal Setting" otherwise.
   const brand = roleLabel === "Super Admin" ? "Goal Overview" : "Goal Setting";
 
   const sidebarContent = (

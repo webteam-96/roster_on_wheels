@@ -5,8 +5,8 @@
  * reused across every service-avenue Add/Edit page.
  *
  * Gate model (per product ask): the classification is LOCKED until the user clicks
- * "Auto-Suggest Category". While locked, the smart search here is greyed/disabled and the
- * parent greys its own Area/Category/Sub dropdowns (driven by the `unlocked` prop it controls).
+ * "Auto-Suggest". While locked, the smart search here is greyed/disabled and the
+ * parent greys its own Area of Focus dropdown (driven by the `unlocked` prop it controls).
  * Pressing the button (a) unlocks everything and (b) fires the ONE AI request — the AI never runs
  * on its own. After unlocking, the user can pick an AI suggestion, use the smart search, or the
  * dropdowns; the button stays available as a small "re-suggest" action.
@@ -38,20 +38,20 @@ interface ClassificationAssistProps {
   description: string;
   // Apply a chosen classification (search pick or AI in-module suggestion) to the parent's dropdowns.
   onApply: (r: ClassificationSearchResult) => void;
-  // Currently-selected sub-category id (string) so a suggestion can show its "Selected" state.
-  selectedSubCatId?: string;
+  // Currently-selected Area of Focus id (string) so a suggestion can show its "Selected" state.
+  selectedAreaId?: string;
   // Cross-module "better fit" switch. Off on Edit pages (can't migrate an existing project record).
   enableCrossModule?: boolean;
   // Builds the "carry everything possible" draft handed to the target page on switch.
   buildSwitchDraft?: () => Record<string, unknown>;
   // The gate: while false, the smart search here is disabled and the parent greys its dropdowns.
-  // Pressing "Auto-Suggest Category" calls onUnlock() to flip it. Defaults to true (no gate).
+  // Pressing "Auto-Suggest" calls onUnlock() to flip it. Defaults to true (no gate).
   unlocked?: boolean;
   onUnlock?: () => void;
 }
 
 export default function ClassificationAssist({
-  clubId, moduleId, moduleKey, title, description, onApply, selectedSubCatId,
+  clubId, moduleId, moduleKey, title, description, onApply, selectedAreaId,
   enableCrossModule = true, buildSwitchDraft, unlocked = true, onUnlock,
 }: ClassificationAssistProps) {
   const router = useRouter();
@@ -125,8 +125,6 @@ export default function ClassificationAssist({
     const fields = buildSwitchDraft ? buildSwitchDraft() : {};
     const path = stashProjectSwitchDraft(clubId, better.moduleKey, fields, {
       areaOfFocusId: better.areaOfFocusId,
-      categoryId: better.categoryId ?? null,
-      subCategoryId: better.subCategoryId ?? null,
     }, Date.now());
     if (path) router.push(path);
   };
@@ -134,8 +132,6 @@ export default function ClassificationAssist({
   const pathLabel = (r: ClassificationSearchResult) => (
     <>
       {r.areaOfFocusName}
-      {r.categoryName && <> <span className="text-slate-400">›</span> {r.categoryName}</>}
-      {r.subCategoryName && <> <span className="text-slate-400">›</span> <span className="font-medium text-slate-800">{r.subCategoryName}</span></>}
     </>
   );
 
@@ -143,7 +139,7 @@ export default function ClassificationAssist({
 
   return (
     <div className="mb-4">
-      {/* Auto-Suggest Category button — the gate. Prominent while locked; compact once unlocked. */}
+      {/* Auto-Suggest button — the gate. Prominent while locked; compact once unlocked. */}
       {!unlocked ? (
         <div className="rounded-xl border border-dashed border-violet-300 bg-violet-50/60 p-4 text-center">
           <button
@@ -153,7 +149,7 @@ export default function ClassificationAssist({
             className="inline-flex items-center gap-2 rounded-lg bg-violet-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-violet-700 disabled:opacity-70"
           >
             {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
-            Auto-Suggest Category
+            Auto-Suggest
           </button>
           <p className="mt-2 flex items-center justify-center gap-1 text-xs text-slate-500">
             <Lock className="h-3 w-3" />
@@ -172,7 +168,7 @@ export default function ClassificationAssist({
             className="inline-flex items-center gap-1.5 rounded-lg border border-violet-300 bg-white px-3 py-1.5 text-xs font-semibold text-violet-700 hover:bg-violet-50 disabled:opacity-70"
           >
             {loading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Sparkles className="h-3.5 w-3.5" />}
-            Auto-Suggest Category
+            Auto-Suggest
           </button>
           {aiStatus === "error" && <span className="text-xs text-rose-600">AI unavailable. Use the search or dropdowns.</span>}
           {needText && <span className="text-xs text-amber-600">Add a longer description for AI suggestions.</span>}
@@ -189,7 +185,7 @@ export default function ClassificationAssist({
           onChange={(e) => onQueryChange(e.target.value)}
           onFocus={() => setOpen(true)}
           onBlur={() => setTimeout(() => setOpen(false), 150)}
-          placeholder={unlocked ? "Type to search all three levels…" : "Locked. Use Auto-Suggest above first"}
+          placeholder={unlocked ? "Type to search…" : "Locked. Use Auto-Suggest above first"}
           className="w-full pl-9 pr-3 py-2 text-sm border border-slate-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-violet-500 disabled:bg-slate-50"
         />
         {unlocked && open && query.trim().length > 0 && (
@@ -200,14 +196,14 @@ export default function ClassificationAssist({
               <div className="px-3 py-2 text-xs text-slate-400">No matches.</div>
             ) : results.map((r, i) => (
               <button
-                key={`${r.type}-${r.areaOfFocusId}-${r.categoryId ?? 0}-${r.subCategoryId ?? 0}-${i}`}
+                key={`${r.type}-${r.areaOfFocusId}-${i}`}
                 type="button"
                 onMouseDown={(e) => e.preventDefault()}
                 onClick={() => applyPick(r)}
                 className="w-full text-left px-3 py-2 hover:bg-violet-50 flex items-center gap-2"
               >
                 <span className="shrink-0 text-[10px] uppercase font-semibold px-1.5 py-0.5 rounded bg-violet-100 text-violet-700">
-                  {r.type === "area" ? "Area" : r.type === "category" ? "Category" : "Sub"}
+                  Area
                 </span>
                 <span className="text-sm text-slate-700">{pathLabel(r)}</span>
               </button>
@@ -224,12 +220,9 @@ export default function ClassificationAssist({
           </div>
           <div className="space-y-1.5">
             {matches.map((r, i) => {
-              // Compare on the deepest id the result carries so the badge also works on 2-level
-              // modules (leaf = category, subCategoryId null), whose parent passes its category id here.
-              const leafId = String(r.subCategoryId ?? r.categoryId ?? r.areaOfFocusId ?? "");
-              const selected = !!selectedSubCatId && selectedSubCatId === leafId;
+              const selected = !!selectedAreaId && selectedAreaId === String(r.areaOfFocusId);
               return (
-                <div key={`ai-${r.subCategoryId ?? 0}-${i}`} className="flex items-center justify-between gap-2 rounded-md bg-white px-2.5 py-1.5">
+                <div key={`ai-${r.areaOfFocusId}-${i}`} className="flex items-center justify-between gap-2 rounded-md bg-white px-2.5 py-1.5">
                   <span className="text-xs text-slate-700">{pathLabel(r)}</span>
                   <button
                     type="button"
@@ -256,7 +249,7 @@ export default function ClassificationAssist({
           <ArrowRightLeft className="h-3.5 w-3.5" />
           <span>
             Better fit: <span className="font-semibold">{better.moduleName}</span>
-            {(better.categoryName || better.areaOfFocusName) && <> <span className="text-amber-400">›</span> {better.categoryName || better.areaOfFocusName}</>}
+            {better.areaOfFocusName && <> <span className="text-amber-400">›</span> {better.areaOfFocusName}</>}
             <span className="text-amber-500">: switch &amp; carry over</span>
           </span>
         </button>

@@ -3,11 +3,11 @@
 /**
  * International Service v2 listing — mirrors the Club Admin Dashboard's
  * NonClubAvenueSection (KPIs Projects/Beneficiaries/Amount Spent/Man Hours;
- * One-time/Ongoing sub-tabs; pending-approval banner; year dropdown; search;
+ * One-time/Ongoing sub-tabs; year dropdown; search;
  * +Add Project routed to v2 with returnTo).
  *
  * Data still comes from the existing v1 API endpoints (getProjects +
- * getProjectYears + getClub + checkClubHasModerator). Zero backend changes.
+ * getProjectYears + getClub). Zero backend changes.
  *
  * v2 reads ONLY `?returnTo=` — never any other param name.
  */
@@ -17,8 +17,7 @@ import { useRouter, useParams, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import {
   Briefcase, Users, IndianRupee, Loader2, Search, Plus, Edit3, Trash2,
-  Download, ArrowLeft, AlertTriangle, Info, Phone, Mail, BadgeAlert,
-  Clock, CheckCircle2, XCircle, Puzzle,
+  Download, ArrowLeft, AlertTriangle, Info, Puzzle,
 } from "@/components/icons";
 import {
   getClub,
@@ -26,7 +25,6 @@ import {
   getProjects,
   deleteProject,
   getProjectYears,
-  checkClubHasModerator,
   getProject,
 } from "@/services/api";
 import { ProjectListItem } from "@/types/project";
@@ -72,7 +70,7 @@ function projectTypeLabel(t: string): string {
 }
 
 function exportToCsv(rows: ProjectListItem[], yearLabel: string, clubName: string) {
-  const header = ["Sr", "Date", "Title", "Type", "Category", "Location", "Cost", "Direct Benf", "Status"];
+  const header = ["Sr", "Date", "Title", "Type", "Category", "Location", "Cost", "Direct Benf"];
   const lines = rows.map((r, i) => {
     const dateStr = r.projectDate ? fmtDate(r.projectDate) : "";
     return [
@@ -84,7 +82,6 @@ function exportToCsv(rows: ProjectListItem[], yearLabel: string, clubName: strin
       `"${(r.location || "").replace(/"/g, '""')}"`,
       r.projectCost ?? "",
       r.directBeneficiaries ?? "",
-      `"${r.approvalStatus || ""}"`,
     ].join(",");
   });
   const csv = [header.join(","), ...lines].join("\n");
@@ -118,7 +115,6 @@ export default function InternationalServiceV2Page() {
   const [searchInput, setSearchInput] = useState("");
   const [search, setSearch] = useState("");
   const [subTab, setSubTab] = useState<"one_time" | "ongoing">("one_time");
-  const [hasModerator, setHasModerator] = useState(false);
 
   const [showAgreeDialog, setShowAgreeDialog] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<ProjectListItem | null>(null);
@@ -130,10 +126,7 @@ export default function InternationalServiceV2Page() {
   const installed = useExtensionStatus();
   const isBotEnabled = isFlowBotEnabled(clubId);
   const [syncTarget, setSyncTarget] = useState<ProjectListItem | null>(null);
-  const canSyncRow = (p: ProjectListItem) => {
-    const status = (p.approvalStatus || "").toLowerCase();
-    return isBotEnabled && installed === true && canManage && (status === "" || status === "approved");
-  };
+  const canSync = isBotEnabled && installed === true && canManage;
 
   // Two-hop returnTo chain: dashboard → listing → add/edit → listing → dashboard.
   // childReturnTo points at THIS listing (with parent's returnTo nested inside),
@@ -160,9 +153,6 @@ export default function InternationalServiceV2Page() {
           const current = projectYears.find((y) => y.isCurrent);
           setSelectedYearId(current ? current.id : projectYears[0]?.id ?? null);
         }
-        checkClubHasModerator(clubId)
-          .then((r) => { if (!cancelled) setHasModerator(r.hasModerator); })
-          .catch(() => {});
       } catch (err: unknown) {
         const e = err as { response?: { data?: { message?: string } } };
         if (!cancelled) setErrorMessage(e?.response?.data?.message || "Failed to initialize.");
@@ -199,13 +189,6 @@ export default function InternationalServiceV2Page() {
   const totalBeneficiaries = projects.reduce((s, p) => s + (p.directBeneficiaries ?? 0), 0);
   const totalCost = projects.reduce((s, p) => s + (p.projectCost ?? 0), 0);
   const totalPages = Math.ceil(totalCount / pageSize);
-
-  // Pending approvals — surfaced as the banner above the table when a moderator
-  // is assigned. Mirrors NonClubAvenueSection's pending-approval row.
-  const pendingApprovals = useMemo(
-    () => (hasModerator ? projects.filter((p) => p.approvalStatus === "pending") : []),
-    [projects, hasModerator],
-  );
 
   // Sub-tab filter applies client-side to the current paginated page of projects.
   const filtered = useMemo<ProjectListItem[]>(() => {
@@ -370,33 +353,6 @@ export default function InternationalServiceV2Page() {
             </div>
           </div>
 
-          {/* Pending approval banner row(s) — above the table */}
-          {pendingApprovals.length > 0 && (
-            <div className="border-b border-slate-100 bg-amber-50/40 divide-y divide-amber-100">
-              {pendingApprovals.map((p) => (
-                <div key={p.id} className="px-5 py-2.5 flex flex-wrap items-center gap-3 text-xs">
-                  <div className="w-8 h-8 rounded-full bg-emerald-100 text-emerald-700 font-semibold flex items-center justify-center">
-                    {(p.title || "?").charAt(0).toUpperCase()}
-                  </div>
-                  <span className="font-semibold text-slate-700 truncate max-w-[280px]">{p.title}</span>
-                  <span className="inline-flex items-center gap-1 text-[10px] font-medium px-2 py-0.5 rounded-full border bg-amber-100 text-amber-700 border-amber-200">
-                    <BadgeAlert size={10} /> {p.approvalStatus || "pending"}
-                  </span>
-                  <span className="text-slate-500 whitespace-nowrap">{fmtDate(p.projectDate)}</span>
-                  <div className="ml-auto flex items-center gap-2">
-                    {p.location && (
-                      <span className="inline-flex items-center gap-1 text-slate-600">
-                        <Phone size={12} className="hidden" /> {p.location}
-                      </span>
-                    )}
-                  </div>
-                </div>
-              ))}
-              {/* Suppress unused-import lint (Phone/Mail kept in case of future enrichment) */}
-              <span className="hidden"><Phone /><Mail /></span>
-            </div>
-          )}
-
           {/* Table */}
           <div className="overflow-x-auto">
             {loading ? (
@@ -414,7 +370,6 @@ export default function InternationalServiceV2Page() {
                     <th className="px-3 py-2.5 text-left">Category</th>
                     <th className="px-3 py-2.5 text-right">Cost</th>
                     <th className="px-3 py-2.5 text-right">Direct Benf</th>
-                    <th className="px-3 py-2.5 text-left">Status</th>
                     {canManage && <th className="px-3 py-2.5 text-right w-16">Edit</th>}
                     {canManage && <th className="px-3 py-2.5 text-right w-16">Delete</th>}
                     {isBotEnabled && installed === true && <th className="px-3 py-2.5 text-right w-16">Rotary.org</th>}
@@ -442,23 +397,6 @@ export default function InternationalServiceV2Page() {
                         <td className="px-3 py-2 text-right text-slate-600">
                           {r.directBeneficiaries && r.directBeneficiaries > 0 ? fmtInt(r.directBeneficiaries) : "–"}
                         </td>
-                        <td className="px-3 py-2">
-                          {r.approvalStatus === "pending" ? (
-                            <span className="inline-flex items-center gap-1 text-[10px] font-medium px-2 py-0.5 rounded-full bg-amber-100 text-amber-700">
-                              <Clock size={10} /> Pending
-                            </span>
-                          ) : r.approvalStatus === "approved" ? (
-                            <span className="inline-flex items-center gap-1 text-[10px] font-medium px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700">
-                              <CheckCircle2 size={10} /> Approved
-                            </span>
-                          ) : r.approvalStatus === "rejected" ? (
-                            <span className="inline-flex items-center gap-1 text-[10px] font-medium px-2 py-0.5 rounded-full bg-rose-100 text-rose-700">
-                              <XCircle size={10} /> Rejected
-                            </span>
-                          ) : (
-                            <span className="text-slate-400">, </span>
-                          )}
-                        </td>
                         {canManage && (
                           <td className="px-3 py-2 text-right">
                             <Link
@@ -484,7 +422,7 @@ export default function InternationalServiceV2Page() {
                         )}
                         {isBotEnabled && installed === true && (
                           <td className="px-3 py-2 text-right">
-                            {canSyncRow(r) && (
+                            {canSync && (
                               <button
                                 type="button"
                                 onClick={() => setSyncTarget(r)}
@@ -503,7 +441,7 @@ export default function InternationalServiceV2Page() {
                   {filtered.length === 0 && (
                     <tr>
                       <td
-                        colSpan={5 + 1 + (canManage ? 2 : 0) + 2 + (isBotEnabled && installed === true ? 1 : 0)}
+                        colSpan={5 + 1 + (canManage ? 2 : 0) + 1 + (isBotEnabled && installed === true ? 1 : 0)}
                         className="px-4 py-10 text-center text-slate-400"
                       >
                         {search ? "No projects match your search." : "No projects in this section."}

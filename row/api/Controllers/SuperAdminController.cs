@@ -20,10 +20,7 @@ public class SuperAdminController : ControllerBase
     private const int ROLE_MEMBER = 1;
     private const int ROLE_ADMIN = 2;
     private const int ROLE_SUPERADMIN = 3;
-    private const int ROLE_ZONAL_COORDINATOR = 4;
-    private const int ROLE_CLUB_MODERATOR = 5;
     private const int ROLE_AG = 6;
-    private const int ROLE_RI_DIRECTOR = 7;
 
     // login_type in mobile_login_otp is VARCHAR(20) — keep this ≤ 20 chars
     private const string OTP_LOGIN_TYPE = "sa_approval";
@@ -67,18 +64,15 @@ public class SuperAdminController : ControllerBase
                    m.PrimaryMobileNumber AS mobile,
                    m.EmailId AS email,
                    mr.created_date AS promotedOn,
-                   promoted_by_mem.MemberName AS promotedByName,
-                   COALESCE(ga.IsEnabled, 0) AS goalSettingEnabled
+                   promoted_by_mem.MemberName AS promotedByName
             FROM member_roles mr
             JOIN member_master_profile m ON m.pk_member_master_profile_id = mr.fk_member_master_profile_id AND m.isdeleted = 0
             LEFT JOIN member_master_profile promoted_by_mem ON promoted_by_mem.pk_member_master_profile_id = mr.created_by
-            LEFT JOIN goal_oversight_access ga ON ga.fk_member_id = m.pk_member_master_profile_id
             WHERE mr.fk_role_id = @Role AND mr.IsActive = 1
               AND (mr.isdeleted IS NULL OR mr.isdeleted = 0)
             ORDER BY mr.created_date DESC",
             new { Role = ROLE_SUPERADMIN });
 
-        // Shape goalSettingEnabled as a real bool (tinyint → true/false) for the frontend checkbox.
         var shaped = rows.Select(r => new
         {
             memberId = r.memberId,
@@ -87,41 +81,8 @@ public class SuperAdminController : ControllerBase
             email = r.email,
             promotedOn = r.promotedOn,
             promotedByName = r.promotedByName,
-            goalSettingEnabled = Convert.ToInt32(r.goalSettingEnabled ?? 0) == 1,
         });
         return Ok(shaped);
-    }
-
-    // ── 1b. Toggle a SuperAdmin's "Goal Setting" access (per-member; instant save, no OTP) ──────────
-    // Controls whether that SuperAdmin sees the Goal Setting oversight tile + observer view-as. Default OFF.
-    public class GoalAccessRequest { public bool Enabled { get; set; } }
-
-    [HttpPut("{memberId:int}/goal-setting-access")]
-    public async Task<ActionResult> SetGoalSettingAccess(int memberId, [FromBody] GoalAccessRequest req)
-    {
-        if (!IsSuperAdmin()) return Forbid();
-        if (memberId <= 0) return BadRequest(new { message = "Invalid memberId" });
-
-        using var conn = CreateConnection();
-        await conn.OpenAsync();
-
-        // Only an active SuperAdmin can be granted Goal Setting access.
-        var isSa = await conn.ExecuteScalarAsync<int>(@"
-            SELECT COUNT(*) FROM member_roles
-            WHERE fk_member_master_profile_id = @Id AND fk_role_id = @Role AND IsActive = 1
-              AND (isdeleted IS NULL OR isdeleted = 0)",
-            new { Id = memberId, Role = ROLE_SUPERADMIN });
-        if (isSa == 0) return BadRequest(new { message = "This member is not an active SuperAdmin." });
-
-        await conn.ExecuteAsync(@"
-            INSERT INTO goal_oversight_access (fk_member_id, IsEnabled, created_date, modified_date, modified_by)
-            VALUES (@Id, @En, NOW(), NOW(), @By)
-            ON DUPLICATE KEY UPDATE IsEnabled = @En, modified_date = NOW(), modified_by = @By",
-            new { Id = memberId, En = req.Enabled ? 1 : 0, By = CurrentUserId() });
-
-        _logger.LogInformation("🎯 [SA] Goal Setting access {State} for member={Id} by={By}",
-            req.Enabled ? "ENABLED" : "DISABLED", memberId, CurrentUserId());
-        return Ok(new { message = $"Goal Setting {(req.Enabled ? "enabled" : "disabled")}.", goalSettingEnabled = req.Enabled });
     }
 
     // ── 2. Search members (for promotion picker) ───────────────────────────
@@ -240,7 +201,6 @@ public class SuperAdminController : ControllerBase
 
         var targetName = (string)target.MemberName ?? "member";
         var actionVerb = action == "PROMOTE" ? "promote" : "remove SuperAdmin role from";
-        var smsText = $"ROW: OTP {otp} to {actionVerb} {targetName}. Expires in {OTP_EXPIRY_MINUTES} min. Do not share.";
         var emailSubject = $"ROW — SuperAdmin {(action == "PROMOTE" ? "Promotion" : "Removal")} OTP";
         var emailBody = $@"{EmailService.EMAIL_HEADER}
 <h2 style='color:#1a365d;margin-top:0;'>SuperAdmin {(action == "PROMOTE" ? "Promotion" : "Removal")} OTP</h2>
@@ -253,26 +213,25 @@ public class SuperAdminController : ControllerBase
 <p>If you did not expect this request, please contact the ROW team immediately.</p>
 {EmailService.EMAIL_FOOTER}";
 
-        bool smsOk = false, emailOk = false;
-        // ROW sends no SMS: the code goes by email only.
+        bool emailOk = false;
+        // The code goes by email only.
         if (!string.IsNullOrWhiteSpace(_otpEmail))
         {
             try { await _email.SendGenericEmailAsync(_otpEmail, emailSubject, emailBody); emailOk = true; }
             catch (Exception ex) { _logger.LogWarning(ex, "SA-OTP email failed to {Email}", _otpEmail); }
         }
 
-        if (!smsOk && !emailOk)
-            return StatusCode(500, new { message = "Failed to deliver OTP via SMS and email. Please check logs." });
+        if (!emailOk)
+            return StatusCode(500, new { message = "Failed to deliver OTP via email. Please check logs." });
 
-        _logger.LogInformation("🔐 [SA-OTP] action={Action} target={TargetId} by={ByUserId} sms={SmsOk} email={EmailOk}",
-            action, req.MemberId, CurrentUserId(), smsOk, emailOk);
+        _logger.LogInformation("🔐 [SA-OTP] action={Action} target={TargetId} by={ByUserId} email={EmailOk}",
+            action, req.MemberId, CurrentUserId(), emailOk);
 
         return Ok(new
         {
             message = "OTP sent to approver. Ask them for the code.",
             // The OTP is NEVER returned here — echoing it let the requesting SuperAdmin read and paste
-            // it themselves, which defeated the whole approver gate. Only the approver's SMS/email has it.
-            sentSms = smsOk,
+            // it themselves, which defeated the whole approver gate. Only the approver's email has it.
             sentEmail = emailOk,
             expiryMinutes = OTP_EXPIRY_MINUTES,
         });
@@ -344,8 +303,8 @@ public class SuperAdminController : ControllerBase
             if (action == "PROMOTE")
             {
                 // Role mutual-exclusion REMOVED (2026-08-14): promoting to SuperAdmin no longer deactivates
-                // ZonalCoordinator / RIDirector (or any other role). Every role the member holds STAYS —
-                // a member can now be SuperAdmin AND District/Club Admin AND ZC/RID/AG/Moderator at once.
+                // any other role. Every role the member holds STAYS —
+                // a member can now be SuperAdmin AND District/Club Admin AND AG at once.
 
                 // Upsert SuperAdmin row — reactivate if a soft-inactive one exists, else INSERT.
                 var updated = await conn.ExecuteAsync(@"

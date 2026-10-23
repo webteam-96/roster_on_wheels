@@ -19,8 +19,6 @@ namespace RotaryApi.Services;
 //   - Web callers pass excludeSuperAdmin=false (SA is the headline web role).
 //
 // Expansion rules (kept identical to the original mobile implementation):
-//   - ZonalCoordinator: all districts in their zone become accessible
-//     (auto-club expansion intentionally NOT done — clubs need explicit Club Admin).
 //   - District Admin: NO implicit club access — must have explicit Club Admin row.
 public static class MemberScopesHelper
 {
@@ -164,23 +162,6 @@ public static class MemberScopesHelper
                 accessibleDistricts[distId.Value] = new DistrictScopeDto { Id = distId.Value, Number = (string?)row.DistrictNumber ?? "", ZoneId = zId };
         }
 
-        // (3) Expansion for ZonalCoordinator — ZC sees all districts in their zone (no auto-clubs).
-        foreach (var role in rolesList.ToList())
-        {
-            if (role.RoleName == "ZonalCoordinator" && role.ZoneId.HasValue)
-            {
-                var zoneDistricts = await conn.QueryAsync<dynamic>(@"
-                    SELECT pk_district_id AS id, DistrictNumber FROM district_master
-                    WHERE fk_zone_id = @Z AND isdeleted = 0", new { Z = role.ZoneId.Value });
-                foreach (var d in zoneDistricts)
-                {
-                    int dId = (int)d.id;
-                    if (!accessibleDistricts.ContainsKey(dId))
-                        accessibleDistricts[dId] = new DistrictScopeDto { Id = dId, Number = (string?)d.DistrictNumber ?? "", ZoneId = role.ZoneId };
-                }
-            }
-        }
-
         // Counts: districts
         if (accessibleDistricts.Count > 0)
         {
@@ -279,7 +260,7 @@ public static class MemberScopesHelper
             }
         }
 
-        // (4) Mobile dashboard — one group per accessible club/district.
+        // (3) Mobile dashboard — one group per accessible club/district.
         //     Per-scope rule:
         //       • Admin for THIS club/district  → all enabled modules
         //       • Pure member for THIS scope    → only IsDefaultForMember=1
@@ -314,7 +295,7 @@ public static class MemberScopesHelper
 
         // Per-club groups — batched.
         // The old code ran one SELECT per accessible club, which for privileged
-        // accounts (SuperAdmin / RID / ZC across multiple zones) meant 100+ DB
+        // accounts (SuperAdmin across multiple zones) meant 100+ DB
         // round-trips inside verify-otp → 30s timeout on mobile. Now we fetch
         // every (clubId, moduleRow) pair in ONE query and group in memory; the
         // admin/member filter is applied in C# using adminClubIds.

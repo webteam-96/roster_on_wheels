@@ -19,6 +19,7 @@ import AlertModal from "@/components/AlertModal";
 import { ArrowLeft, RefreshCw, CheckCircle2, XCircle, Clock, Loader2 } from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
 import ProtectedRoute from "@/components/ProtectedRoute";
+import CampaignTrackingCard from "@/components/comms/CampaignTrackingCard";
 
 import { appLocale } from "@/lib/appFormat";
 interface Recipient { memberId: number; memberName: string; email: string; status: string; sentDate: string | null; errorMessage: string | null; }
@@ -116,6 +117,8 @@ export default function ClubAdminMassEmailViewPage() {
             {detail.emailBody && (<div className="border-t pt-4"><p className="text-sm text-muted-foreground mb-2">Email Body:</p><div className="bg-muted/50 rounded-md p-4 prose prose-sm max-w-none break-words [overflow-wrap:anywhere] [&_*]:max-w-full [&_img]:h-auto [&_ul]:list-disc [&_ul]:pl-6 [&_ol]:list-decimal [&_ol]:pl-6 [&_li]:my-1 [&_a]:break-all" dangerouslySetInnerHTML={{ __html: detail.emailBody }} /></div>)}
           </CardContent>
         </Card>
+
+        <CampaignTrackingCard scope="clubs" ownerId={clubId} emailId={emailId} />
 
         <Card>
           <CardHeader><CardTitle>Recipients ({detail.recipients.length})</CardTitle></CardHeader>

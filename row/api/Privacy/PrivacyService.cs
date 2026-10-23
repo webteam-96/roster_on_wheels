@@ -540,7 +540,6 @@ public class PrivacyService
             if (n > 0) done.Add($"{label}: {n}");
         }
         await Run("email_log bodies", "email_log", "sent_at", "UPDATE email_log SET body_html = NULL WHERE sent_at < @Cutoff AND body_html IS NOT NULL", "email_log_body");
-        await Run("whatsapp_log", "whatsapp_log", "sent_at", "DELETE FROM whatsapp_log WHERE sent_at < @Cutoff", "whatsapp_log");
         foreach (var t in new[] { "announcement_push_log", "announcement_reminder_push_log", "event_push_log", "event_reminder_push_log", "document_push_log", "newsletter_push_log", "project_push_log" })
             await Run(t, t, "created_date", $"DELETE FROM `{t}` WHERE created_date < @Cutoff", "push_log");
         await Run("login_audit_logs", "login_audit_logs", "login_time", "DELETE FROM login_audit_logs WHERE login_time < @Cutoff", "login_audit");

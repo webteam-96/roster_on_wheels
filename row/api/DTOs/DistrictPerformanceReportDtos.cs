@@ -18,8 +18,7 @@ public sealed class DistrictPerformanceReportResult
     public string? GovernorMobile { get; set; }
     public string Subject { get; set; } = "";
     public string FileName { get; set; } = "";
-    // Heading / wording, so the same email + Summary renderer serves the District report and the
-    // RI Director (all zones) report.
+    // Heading / wording for the email + Summary renderer.
     public string ReportKicker { get; set; } = "District Performance Report";
     public string ReportTitle { get; set; } = "";
     public string ReportSubtitle { get; set; } = "";
@@ -27,15 +26,9 @@ public sealed class DistrictPerformanceReportResult
     public string IntroLine { get; set; } = "";
     public string ClosingLine { get; set; } = "";
     public string AttachmentNote { get; set; } = "";
-    // Numeric headline figures of one district — used to build the RI Director (all zones) report.
-    [System.Text.Json.Serialization.JsonIgnore]
-    public DistrictPerformanceKpi? Kpi { get; set; }
-    // RI Director report only: every district's own report, used for the "All Districts" sheet.
-    [System.Text.Json.Serialization.JsonIgnore]
-    public List<DistrictPerformanceReportResult>? DistrictReports { get; set; }
     // "At a glance" tiles shown first (email, screen, top of the Summary sheet).
     public List<PerformanceReportHighlight> Highlights { get; set; } = new();
-    // Tiles per row in the email: 4 on the District report (two rows of four), 3 on the RI Director report.
+    // Tiles per row in the email: 4 on the District report.
     [System.Text.Json.Serialization.JsonIgnore]
     public int TilesPerRow { get; set; } = 3;
     // Plain one-line note printed right under the tiles — says the counts cover synced clubs only.
@@ -61,41 +54,6 @@ public sealed class PerformanceReportSection
     public List<string>? TableHeaders { get; set; }
     public List<List<string>>? TableRows { get; set; }
     public string? Note { get; set; }
-}
-
-public sealed class DistrictPerformanceKpi
-{
-    public string ZoneName { get; set; } = "";
-    public string DistrictNumber { get; set; } = "";
-    public string? GovernorName { get; set; }
-    public long Clubs { get; set; }                  // active = synced with Rotary.org
-    public long NonSyncedClubs { get; set; }         // shown beside the club count
-    // Club COUNT = synced + non-synced, to match Rotary.org (user 2026-09-28). Member counts stay synced-only.
-    public long AllClubs => Clubs + NonSyncedClubs;
-    public long Members { get; set; }                // honorary members are never counted
-    public long Women { get; set; }
-    public long Youth { get; set; }
-    public long Joined { get; set; }
-    public long Left { get; set; }
-    public long ClubProjects { get; set; }
-    public long DistrictProjects { get; set; }      // district's own projects + events
-    public long Beneficiaries { get; set; }
-    public long VolunteerHours { get; set; }
-    public long CmrSubmitted { get; set; }
-    public long CmrDue { get; set; }                 // submitted + saved + not started, completed months
-    public decimal AwardPoints { get; set; }
-    public long ClubService { get; set; }
-    // Service project counts per avenue, keyed by the avenue label.
-    public Dictionary<string, long> Avenues { get; set; } = new(StringComparer.Ordinal);
-    // TRF achieved per fund, keyed by the Goal Setting metric name (Total Giving, Annual Fund …).
-    public Dictionary<string, decimal> Foundation { get; set; } = new(StringComparer.Ordinal);
-    public string? TrfAsOn { get; set; }             // "31 Aug 2026" — the month the TRF figures are as on
-    public decimal? MembershipTarget { get; set; }   // "Total Members" goal
-    public decimal? MembershipAchieved { get; set; }
-    public decimal? MembershipPct { get; set; }
-    public decimal? TrfTarget { get; set; }          // "Total Giving" goal
-    public decimal? TrfAchieved { get; set; }
-    public decimal? TrfPct { get; set; }
 }
 
 public sealed class PerformanceReportHighlight

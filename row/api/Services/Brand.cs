@@ -78,7 +78,7 @@ public static class Brand
     public static string[] ConsentRequiredFor { get; private set; } = { "greeting", "announcement", "event", "newsletter", "marketing" };
     public static IReadOnlyDictionary<string, int> RetentionDays { get; private set; } = new Dictionary<string, int>
     {
-        ["email_log_body"] = 180, ["whatsapp_log"] = 365, ["push_log"] = 90, ["login_audit"] = 365,
+        ["email_log_body"] = 180, ["push_log"] = 90, ["login_audit"] = 365,
         ["otp"] = 7, ["export_files"] = 7, ["assistant_turns"] = 365,
     };
 
@@ -95,13 +95,10 @@ public static class Brand
         ["masters.editable"] = false,        // master data comes from seed files
         ["documents.strictGlyphs"] = true,
         ["sync.conditionalProfiles"] = true,
-        ["whatsapp.purposeCallback"] = true,
-        ["modules.citation"] = false,        // zonal award programmes of the original platform: off until ROW decides (master plan Q9)
-        ["modules.zonalAwards"] = false,
+        ["modules.citation"] = false,        // district citation programme of the original platform: off until ROW decides (master plan Q9)
         ["modules.wallet"] = false,
         ["modules.websitePurchase"] = false,
         ["modules.assistant"] = false,
-        ["modules.pphCamps"] = false,
         ["site.public"] = false,             // no public marketing site until ROW content exists
     };
     private static Dictionary<string, bool> _features = new(StringComparer.OrdinalIgnoreCase);

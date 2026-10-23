@@ -14,13 +14,11 @@ public class ReportsController : ControllerBase
 {
     private readonly string _connectionString;
     private readonly IYearTableResolver _yearTables;
-    private readonly IPphCampService _pph;
 
-    public ReportsController(IConfiguration config, IYearTableResolver yearTables, IPphCampService pph)
+    public ReportsController(IConfiguration config, IYearTableResolver yearTables)
     {
         _connectionString = config.GetConnectionString("DefaultConnection")!;
         _yearTables = yearTables;
-        _pph = pph;
     }
 
     private MySqlConnection CreateConnection() => new(_connectionString);
@@ -61,33 +59,6 @@ public class ReportsController : ControllerBase
         return Ok(rows);
     }
 
-    [HttpGet("zone-coordinators")]
-    public async Task<ActionResult> ZoneCoordinators()
-    {
-        if (!IsSuperAdmin()) return Forbid();
-        using var conn = CreateConnection();
-        await conn.OpenAsync();
-        var rows = await conn.QueryAsync<dynamic>(@"
-            SELECT z.ZoneName AS zoneName,
-                   m.MemberName AS memberName,
-                   m.RotaryId AS rotaryId,
-                   m.EmailId AS email,
-                   m.PrimaryMobileNumber AS mobile,
-                   c.ClubName AS clubName,
-                   d.DistrictNumber AS districtNumber,
-                   mr.AssignedDate AS assignedDate
-            FROM member_roles mr
-            JOIN zone_master z ON z.pk_zone_id = mr.fk_zone_id AND z.isdeleted = 0
-            JOIN member_master_profile m ON m.pk_member_master_profile_id = mr.fk_member_master_profile_id AND m.isdeleted = 0
-            LEFT JOIN club_members cm ON cm.fk_member_master_profile_id = m.pk_member_master_profile_id
-                 AND cm.IsActive = 1 AND cm.isdeleted = 0
-            LEFT JOIN club_master c ON c.pk_club_id = cm.fk_club_id AND c.isdeleted = 0
-            LEFT JOIN district_master d ON d.pk_district_id = c.fk_district_id
-            WHERE mr.fk_role_id = 4 AND mr.IsActive = 1 AND mr.isdeleted = 0
-            ORDER BY z.ZoneName, m.MemberName");
-        return Ok(rows);
-    }
-
     // ==================== MEMBERS BY ROLE ====================
     //
     // Role-pivoted member listing for SA reports. One endpoint, optional `role`
@@ -121,8 +92,7 @@ public class ReportsController : ControllerBase
         //
         // Role IDs:
         //   1 = Member        2 = Admin (DA + CA)   3 = SuperAdmin
-        //   4 = ZonalCoord    5 = ClubModerator     6 = AG
-        //   7 = RIDirector
+        //   6 = AG
         //
         // For "All Admin Roles" we pass NULL → no role filter; the WHERE keeps the
         // club-active filter. Member role (id 1) is explicitly excluded for "all".
@@ -130,9 +100,7 @@ public class ReportsController : ControllerBase
         int? roleId = key switch
         {
             "superadmin"      => 3,
-            "ridirector"      => 7,
             "ag"              => 6,
-            "clubmoderator"   => 5,
             "districtadmin"   => 2, // Admin, scoped District
             "clubadmin"       => 2, // Admin, scoped Club
             "alladmin"        => 2,
@@ -476,29 +444,6 @@ public class ReportsController : ControllerBase
         return Ok(rows);
     }
 
-    [HttpGet("categories")]
-    public async Task<ActionResult> Categories()
-    {
-        if (!IsSuperAdmin()) return Forbid();
-        using var conn = CreateConnection();
-        await conn.OpenAsync();
-        // Combined categories + sub-categories (hierarchy flat)
-        var rows = await conn.QueryAsync<dynamic>(@"
-            SELECT a.name AS areaOfFocus,
-                   c.name AS categoryName,
-                   s.name AS subCategoryName,
-                   c.sort_order AS categorySortOrder,
-                   s.sort_order AS subSortOrder,
-                   CASE WHEN c.is_active = 1 THEN 'Yes' ELSE 'No' END AS categoryActive,
-                   CASE WHEN s.is_active = 1 THEN 'Yes' ELSE 'No' END AS subCategoryActive
-            FROM category_master c
-            LEFT JOIN area_of_focus_master a ON a.pk_area_of_focus_id = c.fk_area_of_focus_id AND a.isdeleted = 0
-            LEFT JOIN sub_category_master s ON s.fk_category_id = c.pk_category_id AND s.isdeleted = 0
-            WHERE c.isdeleted = 0
-            ORDER BY a.name, c.sort_order, c.name, s.sort_order, s.name");
-        return Ok(rows);
-    }
-
     [HttpGet("funding")]
     public async Task<ActionResult> Funding()
     {
@@ -585,8 +530,7 @@ public class ReportsController : ControllerBase
                    a.PublishDateTime AS publishDate,
                    a.ExpiryDateTime AS expiryDate,
                    a.Status AS status,
-                   CASE WHEN a.IsDisplayOnBanner = 1 THEN 'Yes' ELSE 'No' END AS displayBanner,
-                   CASE WHEN a.IsSendWhatsapp = 1 THEN 'Yes' ELSE 'No' END AS sendWhatsApp
+                   CASE WHEN a.IsDisplayOnBanner = 1 THEN 'Yes' ELSE 'No' END AS displayBanner
             FROM announcements a
             JOIN club_master c ON c.pk_club_id = a.fk_club_id AND c.isdeleted = 0
             JOIN district_master d ON d.pk_district_id = c.fk_district_id
@@ -667,7 +611,6 @@ public class ReportsController : ControllerBase
                    CASE
                        WHEN doc.FilePath IS NULL OR doc.FilePath = '' THEN NULL
                        WHEN doc.FilePath LIKE '/%' THEN doc.FilePath
-                       WHEN doc.Scope = 'ri' THEN CONCAT('/Documents/documentsafe/ri/', doc.FilePath)
                        WHEN doc.fk_district_id IS NOT NULL THEN CONCAT('/Documents/documentsafe/Group', doc.fk_district_id, '/', doc.FilePath)
                        ELSE CONCAT('/Documents/documentsafe/Group', doc.fk_club_id, '/', doc.FilePath)
                    END AS filePath,
@@ -742,7 +685,7 @@ public class ReportsController : ControllerBase
                       p.project_type AS projectType,
                       CASE WHEN p.is_joint_project = 1 THEN 'Yes' ELSE 'No' END AS jointProject,
                       p.co_host_name AS coHost,
-                      a.name AS areaOfFocus, cat.name AS category, sub.name AS subCategory,
+                      a.name AS areaOfFocus,
                       f.name AS funding,
                       p.global_grant_number AS globalGrantNumber,
                       p.amount_sanctioned AS amountSanctioned,
@@ -756,8 +699,6 @@ public class ReportsController : ControllerBase
                JOIN district_master d ON d.pk_district_id = c.fk_district_id
                LEFT JOIN module_master md ON md.pk_module_id = p.fk_module_id
                LEFT JOIN area_of_focus_master a ON a.pk_area_of_focus_id = p.fk_area_of_focus_id
-               LEFT JOIN category_master cat ON cat.pk_category_id = p.fk_category_id
-               LEFT JOIN sub_category_master sub ON sub.pk_sub_category_id = p.fk_sub_category_id
                LEFT JOIN funding_master f ON f.pk_funding_id = p.fk_funding_id
                WHERE p.isdeleted = 0{districtFilter}"));
 
@@ -796,48 +737,6 @@ public class ReportsController : ControllerBase
         return Ok(rows);
     }
 
-    [HttpGet("pph-camps")]
-    public async Task<ActionResult> PphCamps([FromQuery] int? yearId, [FromQuery] int? districtId)
-    {
-        if (!IsSuperAdmin()) return Forbid();
-        using var conn = CreateConnection();
-        await conn.OpenAsync();
-        // pph_camps has no fk_year_id — filter by CampDate within year's StartDate/EndDate range
-        var sql = @"
-            SELECT d.DistrictNumber AS districtNumber, c.ClubName AS clubName,
-                   pc.Title AS title,
-                   pc.Description AS description,
-                   pc.Address AS address,
-                   pc.CampDate AS campDate,
-                   (SELECT COUNT(*) FROM pph_camp_attendance pa WHERE pa.fk_camp_id = pc.pk_camp_id) AS attendanceCount,
-                   CASE WHEN pc.IsActive = 1 THEN 'Yes' ELSE 'No' END AS isActive
-            FROM pph_camps pc
-            JOIN club_master c ON c.pk_club_id = pc.fk_club_id AND c.isdeleted = 0
-            JOIN district_master d ON d.pk_district_id = c.fk_district_id
-            WHERE pc.isdeleted = 0";
-        var p = new DynamicParameters();
-        if (yearId.HasValue)
-        {
-            sql += @" AND pc.CampDate BETWEEN
-                (SELECT StartDate FROM rotary_year_master WHERE pk_year_id = @YearId)
-                AND (SELECT EndDate FROM rotary_year_master WHERE pk_year_id = @YearId)";
-            p.Add("YearId", yearId.Value);
-        }
-        if (districtId.HasValue) { sql += " AND c.fk_district_id = @DistrictId"; p.Add("DistrictId", districtId.Value); }
-        sql += " ORDER BY pc.CampDate DESC";
-        var rows = await conn.QueryAsync<dynamic>(sql, p);
-        return Ok(rows);
-    }
-
-    // SuperAdmin attendee report — ALL scope: every attendee entry across all districts/clubs
-    // and their camps (never deduped), ordered club-wise. Frontend pipes rows into xlsx.
-    [HttpGet("pph-attendees")]
-    public async Task<ActionResult> PphAttendees()
-    {
-        if (!IsSuperAdmin()) return Forbid();
-        return Ok(await _pph.GetAttendeeReportAsync("all", null));
-    }
-
     [HttpGet("newsletters")]
     public async Task<ActionResult> Newsletters([FromQuery] int? yearId, [FromQuery] int? districtId)
     {
@@ -854,7 +753,6 @@ public class ReportsController : ControllerBase
                    CASE
                        WHEN n.FilePath IS NULL OR n.FilePath = '' THEN NULL
                        WHEN n.FilePath LIKE '/%' THEN n.FilePath
-                       WHEN n.Scope = 'ri' THEN CONCAT('/Documents/ebulletin/ri/', n.FilePath)
                        WHEN n.fk_district_id IS NOT NULL AND n.fk_district_id > 0 THEN CONCAT('/Documents/ebulletin/Group', n.fk_district_id, '/', n.FilePath)
                        WHEN n.fk_club_id IS NOT NULL AND n.fk_club_id > 0 THEN CONCAT('/Documents/ebulletin/Group', n.fk_club_id, '/', n.FilePath)
                        ELSE NULL
@@ -933,31 +831,6 @@ public class ReportsController : ControllerBase
         if (districtId.HasValue) { sql += " AND ag.fk_district_id = @DistrictId"; p.Add("DistrictId", districtId.Value); }
         if (yearId.HasValue) { sql += " AND ag.fk_year_id = @YearId"; p.Add("YearId", yearId.Value); }
         sql += " ORDER BY y.YearLabel DESC, CAST(d.DistrictNumber AS UNSIGNED), d.DistrictNumber, c.ClubName";
-        var rows = await conn.QueryAsync<dynamic>(sql, p);
-        return Ok(rows);
-    }
-
-    [HttpGet("moderators")]
-    public async Task<ActionResult> Moderators([FromQuery] int? districtId)
-    {
-        if (!IsSuperAdmin()) return Forbid();
-        using var conn = CreateConnection();
-        await conn.OpenAsync();
-        var sql = @"
-            SELECT d.DistrictNumber AS districtNumber,
-                   c.ClubName AS assignedClub, c.ClubRotaryId AS clubRotaryId,
-                   m.MemberName AS memberName, m.EmailId AS email, m.PrimaryMobileNumber AS mobile,
-                   m.RotaryId AS rotaryId,
-                   CASE WHEN mo.is_active = 1 THEN 'Yes' ELSE 'No' END AS isActive,
-                   mo.created_date AS assignedDate
-            FROM district_club_moderator mo
-            JOIN district_master d ON d.pk_district_id = mo.fk_district_id
-            JOIN club_master c ON c.pk_club_id = mo.fk_club_id AND c.isdeleted = 0
-            JOIN member_master_profile m ON m.pk_member_master_profile_id = mo.fk_member_id AND m.isdeleted = 0
-            WHERE mo.isdeleted = 0";
-        var p = new DynamicParameters();
-        if (districtId.HasValue) { sql += " AND mo.fk_district_id = @DistrictId"; p.Add("DistrictId", districtId.Value); }
-        sql += " ORDER BY CAST(d.DistrictNumber AS UNSIGNED), d.DistrictNumber, c.ClubName";
         var rows = await conn.QueryAsync<dynamic>(sql, p);
         return Ok(rows);
     }
@@ -1046,30 +919,6 @@ public class ReportsController : ControllerBase
         var p = new DynamicParameters();
         if (districtId.HasValue) { sql += " AND (ep.fk_district_master_id = @DistrictId OR c.fk_district_id = @DistrictId)"; p.Add("DistrictId", districtId.Value); }
         sql += " ORDER BY ep.created_date DESC";
-        var rows = await conn.QueryAsync<dynamic>(sql, p);
-        return Ok(rows);
-    }
-
-    [HttpGet("zonal-awards")]
-    public async Task<ActionResult> ZonalAwards([FromQuery] int? yearId, [FromQuery] int? districtId)
-    {
-        if (!IsSuperAdmin()) return Forbid();
-        using var conn = CreateConnection();
-        await conn.OpenAsync();
-        // Aggregate: points per district per year
-        var sql = @"
-            SELECT d.DistrictNumber AS districtNumber, y.YearLabel AS year,
-                   COUNT(DISTINCT e.pk_id) AS entryCount,
-                   SUM(e.received_points) AS totalPoints,
-                   SUM(e.entered_counts) AS totalCounts
-            FROM zonal_awards_district_entry e
-            JOIN district_master d ON d.pk_district_id = e.fk_district_id
-            JOIN rotary_year_master y ON y.pk_year_id = e.fk_year_id
-            WHERE e.isdeleted = 0";
-        var p = new DynamicParameters();
-        if (yearId.HasValue) { sql += " AND e.fk_year_id = @YearId"; p.Add("YearId", yearId.Value); }
-        if (districtId.HasValue) { sql += " AND e.fk_district_id = @DistrictId"; p.Add("DistrictId", districtId.Value); }
-        sql += " GROUP BY d.DistrictNumber, y.YearLabel ORDER BY y.YearLabel DESC, totalPoints DESC";
         var rows = await conn.QueryAsync<dynamic>(sql, p);
         return Ok(rows);
     }
@@ -1265,7 +1114,6 @@ public class ReportsController : ControllerBase
                    CASE
                        WHEN w.PdfPath IS NULL OR w.PdfPath = '' THEN NULL
                        WHEN w.PdfPath LIKE '/%' THEN w.PdfPath
-                       WHEN w.Scope = 'ri' THEN CONCAT('/Documents/Weblink/ri/', w.PdfPath)
                        WHEN w.fk_district_id IS NOT NULL THEN CONCAT('/Documents/Weblink/Group', w.fk_district_id, '/', w.PdfPath)
                        ELSE CONCAT('/Documents/Weblink/Group', w.fk_club_id, '/', w.PdfPath)
                    END AS pdfPath,
@@ -1336,34 +1184,6 @@ public class ReportsController : ControllerBase
         if (districtId.HasValue) { sql += " AND c.fk_district_id = @DistrictId"; p.Add("DistrictId", districtId.Value); }
         sql += " ORDER BY me.created_date DESC";
         var rows = await conn.QueryAsync<dynamic>(sql, p);
-        return Ok(rows);
-    }
-
-    // RI Director credits (WhatsApp / SMS purchased & usage)
-    [HttpGet("ri-director-credits")]
-    public async Task<ActionResult> RiDirectorCredits()
-    {
-        if (!IsSuperAdmin()) return Forbid();
-        using var conn = CreateConnection();
-        await conn.OpenAsync();
-        var rows = await conn.QueryAsync<dynamic>(@"
-            SELECT pk_credit_id AS creditId,
-                   CreditType AS creditType,
-                   CreditCount AS purchasedCount,
-                   UsedCount AS usedCount,
-                   PreviousCount AS previousCount,
-                   (CreditCount - UsedCount) AS balance,
-                   FromDate AS fromDate,
-                   ToDate AS toDate,
-                   TransactionId AS transactionId,
-                   PaymentDate AS paymentDate,
-                   CASE
-                       WHEN ProofDocumentPath IS NULL OR ProofDocumentPath = '' THEN NULL
-                       WHEN ProofDocumentPath LIKE '/%' THEN ProofDocumentPath
-                       ELSE CONCAT('/Documents/ri_credit_proofs/', ProofDocumentPath)
-                   END AS proofDocumentPath
-            FROM ri_director_credits
-            ORDER BY FromDate DESC, pk_credit_id DESC");
         return Ok(rows);
     }
 

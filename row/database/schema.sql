@@ -54,9 +54,6 @@ CREATE TABLE `announcement_reminders` (
   `created_by` int DEFAULT NULL,
   `created_date` datetime DEFAULT CURRENT_TIMESTAMP,
   `PushSentAt` datetime DEFAULT NULL,
-  `WhatsAppSentDate` datetime DEFAULT NULL,
-  `WhatsAppSentCount` int NOT NULL DEFAULT '0',
-  `WhatsAppFailedCount` int NOT NULL DEFAULT '0',
   `EmailSentDate` datetime DEFAULT NULL,
   `EmailSentCount` int NOT NULL DEFAULT '0',
   `EmailFailedCount` int NOT NULL DEFAULT '0',
@@ -77,7 +74,6 @@ CREATE TABLE `announcements` (
   `PublishDateTime` datetime NOT NULL,
   `ExpiryDateTime` datetime NOT NULL,
   `IsDisplayOnBanner` tinyint(1) DEFAULT '0',
-  `IsSendWhatsapp` tinyint(1) DEFAULT '0',
   `IsRepeatNotification` tinyint(1) DEFAULT '0',
   `Status` varchar(20) COLLATE utf8mb4_unicode_ci DEFAULT 'Unpublished',
   `IsActive` tinyint(1) DEFAULT '1',
@@ -91,20 +87,12 @@ CREATE TABLE `announcements` (
   `PushNotificationSent` tinyint(1) DEFAULT '0',
   `PushNotificationSentAt` datetime DEFAULT NULL,
   `Scope` varchar(10) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'district',
-  `RecipientTarget` varchar(20) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `RecipientZoneIds` text COLLATE utf8mb4_unicode_ci,
-  `RecipientDistrictIds` text COLLATE utf8mb4_unicode_ci,
-  `RecipientSubgroupIds` varchar(500) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `WhatsAppSentDate` datetime DEFAULT NULL,
-  `WhatsAppSentCount` int NOT NULL DEFAULT '0',
-  `WhatsAppFailedCount` int NOT NULL DEFAULT '0',
   `IsSendEmail` tinyint(1) NOT NULL DEFAULT '0',
   `EmailSentDate` datetime DEFAULT NULL,
   `EmailSentCount` int NOT NULL DEFAULT '0',
   `EmailFailedCount` int NOT NULL DEFAULT '0',
   PRIMARY KEY (`pk_announcement_id`),
   KEY `fk_club_id` (`fk_club_id`),
-  KEY `idx_ann_wa_pending` (`IsSendWhatsapp`,`WhatsAppSentDate`,`PublishDateTime`),
   KEY `idx_ann_email_pending` (`IsSendEmail`,`EmailSentDate`,`PublishDateTime`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -148,34 +136,6 @@ CREATE TABLE `audit_log` (
   KEY `idx_audit_date` (`created_date`),
   KEY `idx_audit_action` (`action`),
   KEY `idx_audit_entity_type` (`entity_type`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `beneficiary_approval_requests` (
-  `pk_approval_id` int NOT NULL AUTO_INCREMENT,
-  `fk_project_id` int NOT NULL,
-  `fk_zone_id` int NOT NULL,
-  `fk_club_id` int NOT NULL,
-  `requested_beneficiaries` int NOT NULL,
-  `approved_beneficiaries` int DEFAULT NULL,
-  `current_limit` int NOT NULL,
-  `approval_token` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `status` varchar(20) COLLATE utf8mb4_unicode_ci DEFAULT 'pending',
-  `remark` varchar(1000) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `requested_by` int NOT NULL,
-  `responded_by` int DEFAULT NULL,
-  `responded_date` datetime DEFAULT NULL,
-  `created_date` datetime DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY (`pk_approval_id`),
-  UNIQUE KEY `approval_token` (`approval_token`),
-  KEY `fk_zone_id` (`fk_zone_id`),
-  KEY `fk_club_id` (`fk_club_id`),
-  KEY `idx_approval_token` (`approval_token`),
-  KEY `idx_approval_project` (`fk_project_id`),
-  KEY `idx_approval_status` (`status`),
-  CONSTRAINT `beneficiary_approval_requests_ibfk_1` FOREIGN KEY (`fk_zone_id`) REFERENCES `zone_master` (`pk_zone_id`),
-  CONSTRAINT `beneficiary_approval_requests_ibfk_2` FOREIGN KEY (`fk_club_id`) REFERENCES `club_master` (`pk_club_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -255,22 +215,65 @@ CREATE TABLE `cashfree_otp` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `category_master` (
-  `pk_category_id` int NOT NULL AUTO_INCREMENT,
-  `fk_area_of_focus_id` int NOT NULL,
-  `name` varchar(200) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `sort_order` int DEFAULT '0',
-  `is_active` tinyint(1) DEFAULT '1',
-  `created_by` int DEFAULT NULL,
-  `created_date` datetime DEFAULT CURRENT_TIMESTAMP,
-  `modified_by` int DEFAULT NULL,
-  `modified_date` datetime DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
-  `isdeleted` int DEFAULT '0',
-  `deleted_by` int DEFAULT NULL,
-  `deleted_date` datetime DEFAULT NULL,
-  PRIMARY KEY (`pk_category_id`),
-  KEY `fk_area_of_focus_id` (`fk_area_of_focus_id`),
-  CONSTRAINT `category_master_ibfk_1` FOREIGN KEY (`fk_area_of_focus_id`) REFERENCES `area_of_focus_master` (`pk_area_of_focus_id`)
+CREATE TABLE `chat_conversations` (
+  `pk_conversation_id` int NOT NULL AUTO_INCREMENT,
+  `scope` varchar(10) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `owner_id` int NOT NULL,
+  `kind` varchar(10) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `title` varchar(100) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `direct_key` varchar(30) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `created_by` int NOT NULL,
+  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`pk_conversation_id`),
+  UNIQUE KEY `uk_chat_direct` (`scope`,`owner_id`,`direct_key`),
+  KEY `ix_chat_creator` (`created_by`,`created_at`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `chat_members` (
+  `conversation_id` int NOT NULL,
+  `member_id` int NOT NULL,
+  `is_owner` tinyint(1) NOT NULL DEFAULT '0',
+  `last_read_message_id` bigint NOT NULL DEFAULT '0',
+  `muted_at` datetime DEFAULT NULL,
+  `muted_by` int DEFAULT NULL,
+  `joined_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`conversation_id`,`member_id`),
+  KEY `ix_chat_member` (`member_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `chat_messages` (
+  `pk_message_id` bigint NOT NULL AUTO_INCREMENT,
+  `conversation_id` int NOT NULL,
+  `sender_id` int NOT NULL,
+  `body` text COLLATE utf8mb4_unicode_ci NOT NULL,
+  `client_key` varchar(64) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `hidden_at` datetime DEFAULT NULL,
+  `hidden_by` int DEFAULT NULL,
+  PRIMARY KEY (`pk_message_id`),
+  UNIQUE KEY `uk_chat_message_key` (`sender_id`,`client_key`),
+  KEY `ix_chat_message_conversation` (`conversation_id`,`pk_message_id`),
+  KEY `ix_chat_message_sender` (`sender_id`,`created_at`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `chat_reports` (
+  `pk_report_id` int NOT NULL AUTO_INCREMENT,
+  `message_id` bigint NOT NULL,
+  `reporter_id` int NOT NULL,
+  `reason` varchar(500) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `resolved_at` datetime DEFAULT NULL,
+  `resolved_by` int DEFAULT NULL,
+  `resolution` varchar(500) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  PRIMARY KEY (`pk_report_id`),
+  UNIQUE KEY `uk_chat_report` (`message_id`,`reporter_id`),
+  KEY `ix_chat_reporter` (`reporter_id`,`created_at`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -291,6 +294,7 @@ CREATE TABLE `club_attendance` (
   `deleted_date` datetime DEFAULT NULL,
   PRIMARY KEY (`pk_attendance_id`),
   KEY `fk_club_id` (`fk_club_id`),
+  KEY `idx_club_attendance_datetime` (`EventDateTime`),
   CONSTRAINT `club_attendance_ibfk_1` FOREIGN KEY (`fk_club_id`) REFERENCES `club_master` (`pk_club_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -476,9 +480,6 @@ CREATE TABLE `club_documents` (
   `PushNotificationSent` tinyint(1) DEFAULT '0',
   `PushNotificationSentAt` datetime DEFAULT NULL,
   `Scope` varchar(10) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'district',
-  `RecipientTarget` varchar(20) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `RecipientZoneIds` text COLLATE utf8mb4_unicode_ci,
-  `RecipientDistrictIds` text COLLATE utf8mb4_unicode_ci,
   PRIMARY KEY (`pk_document_id`),
   KEY `fk_club_id` (`fk_club_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -700,6 +701,17 @@ CREATE TABLE `club_foundation_collection_goals` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `club_growth_targets` (
+  `fk_club_id` int NOT NULL,
+  `fk_year_id` int NOT NULL,
+  `target_net_growth` int NOT NULL,
+  `modified_by` int DEFAULT NULL,
+  `modified_date` datetime DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`fk_club_id`,`fk_year_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `club_leadership_email_log` (
   `pk_id` int NOT NULL AUTO_INCREMENT,
   `fk_schedule_id` int NOT NULL,
@@ -748,6 +760,7 @@ CREATE TABLE `club_mass_email_recipients` (
   `SentDate` datetime DEFAULT NULL,
   `ErrorMessage` text COLLATE utf8mb4_unicode_ci,
   `isdeleted` tinyint(1) DEFAULT '0',
+  `fk_contact_id` int DEFAULT NULL,
   PRIMARY KEY (`pk_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -775,10 +788,7 @@ CREATE TABLE `club_mass_emails` (
   `modified_date` datetime DEFAULT NULL,
   `isdeleted` tinyint(1) DEFAULT '0',
   `Scope` varchar(10) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'district',
-  `RecipientTarget` varchar(20) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `RecipientZoneIds` text COLLATE utf8mb4_unicode_ci,
-  `RecipientDistrictIds` text COLLATE utf8mb4_unicode_ci,
-  `RecipientSubgroupIds` varchar(500) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `ContactGroupIds` varchar(500) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   PRIMARY KEY (`pk_mass_email_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -813,13 +823,11 @@ CREATE TABLE `club_master` (
   `isdeleted` int DEFAULT '0',
   `deleted_by` int DEFAULT NULL,
   `deleted_date` datetime DEFAULT NULL,
-  `Is_healthy_club` varchar(10) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `ClubType` varchar(50) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `BirthdayGreeting` varchar(700) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `IsEnableBirthdayNotification` tinyint(1) DEFAULT '0',
   `AnniversaryGreeting` varchar(700) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `IsEnableAnniversaryNotification` tinyint(1) DEFAULT '0',
-  `IsGreetingSendWhatsapp` tinyint(1) DEFAULT '0',
   `IsGreetingSendEmail` tinyint(1) DEFAULT '0',
   `IsEnableBirthdayEmail` tinyint(1) DEFAULT '0',
   `BirthdayEmailFrom` varchar(200) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
@@ -987,6 +995,28 @@ CREATE TABLE `club_rotary_org_credentials` (
   PRIMARY KEY (`pk_id`),
   UNIQUE KEY `ux_crc_club` (`fk_club_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `club_speakers` (
+  `pk_speaker_id` int NOT NULL AUTO_INCREMENT,
+  `fk_club_id` int NOT NULL,
+  `meeting_date` date NOT NULL,
+  `name` varchar(150) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `topic` varchar(250) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `bio` text COLLATE utf8mb4_unicode_ci,
+  `photo_path` varchar(300) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `email` varchar(254) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `phone` varchar(40) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `show_on_website` tinyint(1) NOT NULL DEFAULT '1',
+  `fk_contact_id` int DEFAULT NULL,
+  `created_by` int NOT NULL,
+  `created_date` datetime DEFAULT CURRENT_TIMESTAMP,
+  `modified_by` int DEFAULT NULL,
+  `modified_date` datetime DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`pk_speaker_id`),
+  KEY `idx_club_speaker_date` (`fk_club_id`,`meeting_date`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
@@ -1276,6 +1306,127 @@ CREATE TABLE `club_websites` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `contact_group_members` (
+  `fk_contact_group_id` int NOT NULL,
+  `fk_contact_id` int NOT NULL,
+  `created_date` datetime DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`fk_contact_group_id`,`fk_contact_id`),
+  KEY `idx_cgm_contact` (`fk_contact_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `contact_groups` (
+  `pk_contact_group_id` int NOT NULL AUTO_INCREMENT,
+  `fk_club_id` int NOT NULL DEFAULT '0',
+  `fk_district_id` int NOT NULL DEFAULT '0',
+  `name` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `created_by` int DEFAULT NULL,
+  `created_date` datetime DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`pk_contact_group_id`),
+  KEY `idx_contact_groups_owner` (`fk_club_id`,`fk_district_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `contacts` (
+  `pk_contact_id` int NOT NULL AUTO_INCREMENT,
+  `fk_club_id` int NOT NULL DEFAULT '0',
+  `fk_district_id` int NOT NULL DEFAULT '0',
+  `name` varchar(200) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `email` varchar(200) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `mobile` varchar(30) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `contact_type` varchar(20) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'guest',
+  `organisation` varchar(200) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `notes` varchar(1000) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `source` varchar(20) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'manual',
+  `created_by` int DEFAULT NULL,
+  `created_date` datetime DEFAULT CURRENT_TIMESTAMP,
+  `modified_by` int DEFAULT NULL,
+  `modified_date` datetime DEFAULT NULL,
+  PRIMARY KEY (`pk_contact_id`),
+  UNIQUE KEY `uk_contacts_owner_email` (`fk_club_id`,`fk_district_id`,`email`),
+  KEY `idx_contacts_owner` (`fk_club_id`,`fk_district_id`),
+  KEY `idx_contacts_email` (`email`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE IF NOT EXISTS `comm_sender_domains` (
+  `pk_domain_id` int NOT NULL AUTO_INCREMENT,
+  `fk_club_id` int NOT NULL DEFAULT '0',
+  `fk_district_id` int NOT NULL DEFAULT '0',
+  `domain` varchar(253) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `dkim_selector` varchar(63) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `verify_token` char(32) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `ownership_ok` tinyint(1) NOT NULL DEFAULT '0',
+  `spf_ok` tinyint(1) NOT NULL DEFAULT '0',
+  `dkim_ok` tinyint(1) NOT NULL DEFAULT '0',
+  `dmarc_ok` tinyint(1) NOT NULL DEFAULT '0',
+  `checked_at` datetime DEFAULT NULL,
+  `created_by` int DEFAULT NULL,
+  `created_date` datetime DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`pk_domain_id`),
+  UNIQUE KEY `uq_comm_domain` (`fk_club_id`,`fk_district_id`,`domain`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+CREATE TABLE IF NOT EXISTS `comm_settings` (
+  `fk_club_id` int NOT NULL DEFAULT '0',
+  `fk_district_id` int NOT NULL DEFAULT '0',
+  `default_language` varchar(20) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `governor_note_enabled` tinyint(1) NOT NULL DEFAULT '0',
+  `governor_name` varchar(150) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `governor_photo_url` varchar(500) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `governor_message` varchar(1000) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `sender_from_name` varchar(100) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `sender_from_email` varchar(254) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `sender_reply_to` varchar(254) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `modified_by` int DEFAULT NULL,
+  `modified_date` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`fk_club_id`,`fk_district_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+CREATE TABLE IF NOT EXISTS `comm_suppressions` (
+  `pk_suppression_id` int NOT NULL AUTO_INCREMENT,
+  `fk_club_id` int NOT NULL DEFAULT '0',
+  `fk_district_id` int NOT NULL DEFAULT '0',
+  `email` varchar(254) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `reason` varchar(20) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `created_date` datetime DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`pk_suppression_id`),
+  UNIQUE KEY `uq_comm_suppression` (`fk_club_id`,`fk_district_id`,`email`),
+  KEY `idx_comm_suppression_email` (`email`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+CREATE TABLE IF NOT EXISTS `comm_templates` (
+  `pk_template_id` int NOT NULL AUTO_INCREMENT,
+  `fk_club_id` int NOT NULL DEFAULT '0',
+  `fk_district_id` int NOT NULL DEFAULT '0',
+  `template_key` varchar(50) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `language` varchar(20) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `subject` varchar(300) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `body_html` mediumtext COLLATE utf8mb4_unicode_ci NOT NULL,
+  `reviewed` tinyint(1) NOT NULL DEFAULT '1',
+  `modified_by` int DEFAULT NULL,
+  `modified_date` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`pk_template_id`),
+  UNIQUE KEY `uq_comm_template` (`fk_club_id`,`fk_district_id`,`template_key`,`language`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+CREATE TABLE IF NOT EXISTS `comm_usage` (
+  `fk_club_id` int NOT NULL DEFAULT '0',
+  `fk_district_id` int NOT NULL DEFAULT '0',
+  `usage_month` char(7) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `emails_used` int NOT NULL DEFAULT '0',
+  PRIMARY KEY (`fk_club_id`,`fk_district_id`,`usage_month`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+CREATE TABLE IF NOT EXISTS `comm_webhook_events` (
+  `event_key` char(64) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `event` varchar(30) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `message_id` varchar(200) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `received_at` datetime DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`event_key`),
+  KEY `idx_comm_webhook_received` (`received_at`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `country_master` (
   `pk_country_id` int NOT NULL AUTO_INCREMENT,
   `CountryName` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL,
@@ -1304,21 +1455,6 @@ CREATE TABLE `designation_master` (
   `deleted_by` int DEFAULT NULL,
   `deleted_date` datetime DEFAULT NULL,
   PRIMARY KEY (`pk_designation_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `directory_data_member_status` (
-  `pk_id` int NOT NULL AUTO_INCREMENT,
-  `fk_config_id` int NOT NULL,
-  `fk_member_id` int NOT NULL,
-  `SpouseNotApplicable` tinyint(1) NOT NULL DEFAULT '0',
-  `created_date` datetime DEFAULT CURRENT_TIMESTAMP,
-  `modified_date` datetime DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
-  PRIMARY KEY (`pk_id`),
-  UNIQUE KEY `uk_ddms_config_member` (`fk_config_id`,`fk_member_id`),
-  KEY `idx_ddms_member` (`fk_member_id`),
-  CONSTRAINT `directory_data_member_status_ibfk_1` FOREIGN KEY (`fk_config_id`) REFERENCES `district_directory_config` (`pk_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -1394,7 +1530,6 @@ CREATE TABLE `district_citation_auto_question_sub` (
   `sub_item_id` int DEFAULT NULL,
   `sub_item_name` varchar(300) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `filter_aof_id` int DEFAULT NULL,
-  `filter_cat_id` int DEFAULT NULL,
   `points` decimal(10,2) DEFAULT '0.00',
   `is_bonus` tinyint(1) DEFAULT '0',
   `bonus_points` decimal(10,2) DEFAULT '0.00',
@@ -1545,19 +1680,23 @@ CREATE TABLE `district_citation_manual_sub_criteria_option` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `district_club_moderator` (
+-- Documents per district committee or sub-committee (build spec 3.12). Same as DatabaseInitializer.
+CREATE TABLE IF NOT EXISTS `district_committee_documents` (
   `id` int NOT NULL AUTO_INCREMENT,
   `fk_district_id` int NOT NULL,
-  `fk_member_id` int NOT NULL,
-  `fk_club_id` int NOT NULL,
-  `is_active` tinyint(1) DEFAULT '1',
+  `fk_group_id` int NOT NULL,
+  `fk_sub_group_id` int DEFAULT NULL,
+  `title` varchar(200) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `file_path` varchar(500) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `original_file_name` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `created_by` int DEFAULT NULL,
   `created_date` datetime DEFAULT CURRENT_TIMESTAMP,
-  `modified_by` int DEFAULT NULL,
-  `modified_date` datetime DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
-  `isdeleted` int DEFAULT '0',
+  `isdeleted` tinyint(1) NOT NULL DEFAULT '0',
+  `deleted_by` int DEFAULT NULL,
+  `deleted_date` datetime DEFAULT NULL,
   PRIMARY KEY (`id`),
-  UNIQUE KEY `uk_club_moderator` (`fk_club_id`)
+  KEY `idx_dcd_group` (`fk_group_id`,`isdeleted`),
+  KEY `idx_dcd_sub_group` (`fk_sub_group_id`,`isdeleted`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -1672,59 +1811,6 @@ CREATE TABLE `district_committee_sub_group_member` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `district_directory_config` (
-  `pk_id` int NOT NULL AUTO_INCREMENT,
-  `fk_district_id` int NOT NULL,
-  `fk_year_id` int NOT NULL,
-  `UrlHash` varchar(64) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `FirstContactName` varchar(200) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `FirstContactMobile` varchar(20) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `FirstContactPasswordHash` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `SecondContactName` varchar(200) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `SecondContactMobile` varchar(20) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `SecondContactPasswordHash` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `DcFieldsJson` mediumtext COLLATE utf8mb4_unicode_ci,
-  `BodFieldsJson` mediumtext COLLATE utf8mb4_unicode_ci,
-  `MemberFieldsJson` mediumtext COLLATE utf8mb4_unicode_ci,
-  `created_by` int DEFAULT NULL,
-  `created_date` datetime DEFAULT CURRENT_TIMESTAMP,
-  `modified_by` int DEFAULT NULL,
-  `modified_date` datetime DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
-  `isdeleted` tinyint(1) DEFAULT '0',
-  `SendEmail` tinyint(1) NOT NULL DEFAULT '1',
-  `SendWhatsapp` tinyint(1) NOT NULL DEFAULT '1',
-  `IsActive` tinyint(1) NOT NULL DEFAULT '1',
-  PRIMARY KEY (`pk_id`),
-  UNIQUE KEY `UrlHash` (`UrlHash`),
-  KEY `idx_ddc_district_year` (`fk_district_id`,`fk_year_id`),
-  KEY `idx_ddc_urlhash` (`UrlHash`),
-  KEY `fk_year_id` (`fk_year_id`),
-  CONSTRAINT `district_directory_config_ibfk_1` FOREIGN KEY (`fk_district_id`) REFERENCES `district_master` (`pk_district_id`),
-  CONSTRAINT `district_directory_config_ibfk_2` FOREIGN KEY (`fk_year_id`) REFERENCES `rotary_year_master` (`pk_year_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `district_directory_submission_log` (
-  `pk_id` int NOT NULL AUTO_INCREMENT,
-  `fk_config_id` int NOT NULL,
-  `fk_member_id` int NOT NULL,
-  `GroupType` varchar(20) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `FieldsSubmittedJson` mediumtext COLLATE utf8mb4_unicode_ci,
-  `CompletedCount` int DEFAULT '0',
-  `TotalCount` int DEFAULT '0',
-  `IpAddress` varchar(50) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `UserAgent` varchar(500) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `SubmittedAt` datetime DEFAULT CURRENT_TIMESTAMP,
-  `FilledByAdminMobile` varchar(20) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  PRIMARY KEY (`pk_id`),
-  KEY `idx_ddsl_config` (`fk_config_id`),
-  KEY `idx_ddsl_member` (`fk_member_id`),
-  KEY `idx_ddsl_date` (`SubmittedAt`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `district_foundation_goal` (
   `pk_id` int NOT NULL AUTO_INCREMENT,
   `fk_district_id` int NOT NULL,
@@ -1788,7 +1874,6 @@ CREATE TABLE `district_master` (
   `IsEnableBirthdayNotification` tinyint(1) DEFAULT '0',
   `AnniversaryGreeting` varchar(700) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `IsEnableAnniversaryNotification` tinyint(1) DEFAULT '0',
-  `IsGreetingSendWhatsapp` tinyint(1) DEFAULT '0',
   `IsGreetingSendEmail` tinyint(1) DEFAULT '0',
   `IsGreetingSendPush` tinyint(1) DEFAULT '1',
   `IsEnableBirthdayEmail` tinyint(1) DEFAULT '0',
@@ -1907,7 +1992,6 @@ CREATE TABLE `district_report_reminder_log` (
   `member_name` varchar(200) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `designation` varchar(100) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `email_status` varchar(20) COLLATE utf8mb4_unicode_ci DEFAULT 'not_sent',
-  `whatsapp_status` varchar(20) COLLATE utf8mb4_unicode_ci DEFAULT 'not_sent',
   `sent_date` datetime DEFAULT CURRENT_TIMESTAMP,
   `sent_by` int DEFAULT NULL,
   PRIMARY KEY (`id`)
@@ -2002,6 +2086,43 @@ CREATE TABLE `email_log` (
   KEY `ix_email_log_status` (`status`),
   KEY `ix_email_log_club` (`fk_club_id`),
   KEY `ix_email_log_district` (`fk_district_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+-- Engagement settings per district (build list #26): milestone years, optional Governor message. Same as DatabaseInitializer.
+CREATE TABLE IF NOT EXISTS `engagement_district_settings` (
+  `fk_district_id` int NOT NULL,
+  `milestone_years` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '1,3,5,10',
+  `governor_message` text COLLATE utf8mb4_unicode_ci,
+  `modified_by` int DEFAULT NULL,
+  `modified_date` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`fk_district_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+-- Membership milestones and Paul Harris Fellow highlights with their spotlight card status (build list #26-#28).
+-- dedupe_key is the sent-log (one row per member and milestone, or per designation). Same as DatabaseInitializer.
+CREATE TABLE IF NOT EXISTS `engagement_events` (
+  `pk_engagement_event_id` int NOT NULL AUTO_INCREMENT,
+  `event_type` varchar(20) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `dedupe_key` varchar(60) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `fk_member_master_profile_id` int NOT NULL,
+  `fk_club_id` int NOT NULL,
+  `fk_district_id` int NOT NULL,
+  `fk_designation_id` int DEFAULT NULL,
+  `level` int NOT NULL,
+  `occurred_on` date NOT NULL,
+  `card_status` varchar(10) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'pending',
+  `card_decided_by` int DEFAULT NULL,
+  `card_decided_date` datetime DEFAULT NULL,
+  `created_date` datetime DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`pk_engagement_event_id`),
+  UNIQUE KEY `uk_engagement_dedupe` (`dedupe_key`),
+  KEY `idx_ee_club` (`fk_club_id`,`created_date`),
+  KEY `idx_ee_district` (`fk_district_id`,`created_date`),
+  KEY `idx_ee_member` (`fk_member_master_profile_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -2304,7 +2425,6 @@ CREATE TABLE `goal_comments` (
   `fk_district_id` int NOT NULL,
   `fk_club_id` int NOT NULL DEFAULT '0',
   `ThreadOwnerMemberId` int NOT NULL DEFAULT '0',
-  `fk_assignment_id` int NOT NULL DEFAULT '0',
   `fk_zone_id` int NOT NULL DEFAULT '0',
   `fk_year_id` int NOT NULL,
   `CommentText` text COLLATE utf8mb4_unicode_ci NOT NULL,
@@ -2317,7 +2437,6 @@ CREATE TABLE `goal_comments` (
   KEY `fk_category_id` (`fk_category_id`),
   KEY `fk_year_id` (`fk_year_id`),
   KEY `idx_goal_comment_zone` (`fk_zone_id`,`fk_year_id`),
-  KEY `idx_goal_comment_seat` (`fk_assignment_id`),
   CONSTRAINT `goal_comments_ibfk_1` FOREIGN KEY (`fk_category_id`) REFERENCES `goal_categories` (`pk_category_id`),
   CONSTRAINT `goal_comments_ibfk_2` FOREIGN KEY (`fk_year_id`) REFERENCES `rotary_year_master` (`pk_year_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -2416,55 +2535,6 @@ CREATE TABLE `goal_foundation_import_months` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `goal_leadership_designations` (
-  `pk_id` int NOT NULL AUTO_INCREMENT,
-  `Title` varchar(150) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `Avenue` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `RoleType` varchar(50) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `DefaultCategoryName` varchar(50) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `SortOrder` int NOT NULL DEFAULT '0',
-  `IsActive` tinyint(1) NOT NULL DEFAULT '1',
-  `isdeleted` tinyint(1) NOT NULL DEFAULT '0',
-  PRIMARY KEY (`pk_id`),
-  UNIQUE KEY `uk_goal_designation_title` (`Title`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `goal_locks` (
-  `pk_id` int NOT NULL AUTO_INCREMENT,
-  `EntityType` varchar(10) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `fk_club_id` int NOT NULL DEFAULT '0',
-  `fk_district_id` int NOT NULL DEFAULT '0',
-  `fk_category_id` int NOT NULL,
-  `fk_year_id` int NOT NULL,
-  `IsLocked` tinyint(1) NOT NULL DEFAULT '0',
-  `LockedBy` int DEFAULT NULL,
-  `LockedDate` datetime DEFAULT NULL,
-  `UnlockedBy` int DEFAULT NULL,
-  `UnlockedDate` datetime DEFAULT NULL,
-  PRIMARY KEY (`pk_id`),
-  UNIQUE KEY `uk_goal_lock` (`EntityType`,`fk_club_id`,`fk_district_id`,`fk_category_id`,`fk_year_id`),
-  KEY `fk_category_id` (`fk_category_id`),
-  KEY `fk_year_id` (`fk_year_id`),
-  CONSTRAINT `goal_locks_ibfk_1` FOREIGN KEY (`fk_category_id`) REFERENCES `goal_categories` (`pk_category_id`),
-  CONSTRAINT `goal_locks_ibfk_2` FOREIGN KEY (`fk_year_id`) REFERENCES `rotary_year_master` (`pk_year_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `goal_message_seen` (
-  `pk_id` int NOT NULL AUTO_INCREMENT,
-  `fk_member_id` int NOT NULL,
-  `fk_zone_id` int NOT NULL,
-  `fk_year_id` int NOT NULL,
-  `last_seen_date` datetime NOT NULL,
-  PRIMARY KEY (`pk_id`),
-  UNIQUE KEY `uq_seen` (`fk_member_id`,`fk_zone_id`,`fk_year_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `goal_message_thread_seen` (
   `pk_id` int NOT NULL AUTO_INCREMENT,
   `fk_member_id` int NOT NULL,
@@ -2478,63 +2548,174 @@ CREATE TABLE `goal_message_thread_seen` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `goal_oversight_access` (
-  `fk_member_id` int NOT NULL,
-  `IsEnabled` tinyint(1) NOT NULL DEFAULT '0',
-  `created_date` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `modified_date` datetime DEFAULT NULL,
-  `modified_by` int DEFAULT NULL,
-  PRIMARY KEY (`fk_member_id`)
+CREATE TABLE `grant_application_lines` (
+  `pk_line_id` int NOT NULL AUTO_INCREMENT,
+  `fk_application_id` int NOT NULL,
+  `kind` varchar(10) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `description` varchar(300) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `detail` varchar(300) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `amount` decimal(12,2) DEFAULT NULL,
+  `sort_order` int NOT NULL DEFAULT '0',
+  PRIMARY KEY (`pk_line_id`),
+  KEY `idx_grant_line_app` (`fk_application_id`),
+  CONSTRAINT `fk_grant_line_app` FOREIGN KEY (`fk_application_id`) REFERENCES `grant_applications` (`pk_application_id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `goal_role_assignment_districts` (
+CREATE TABLE `grant_application_members` (
   `pk_id` int NOT NULL AUTO_INCREMENT,
-  `fk_assignment_id` int NOT NULL,
+  `fk_application_id` int NOT NULL,
+  `fk_member_id` int NOT NULL,
+  `note` varchar(200) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  PRIMARY KEY (`pk_id`),
+  UNIQUE KEY `uk_grant_app_member` (`fk_application_id`,`fk_member_id`),
+  KEY `idx_grant_member` (`fk_member_id`),
+  CONSTRAINT `fk_grant_member_app` FOREIGN KEY (`fk_application_id`) REFERENCES `grant_applications` (`pk_application_id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `grant_applications` (
+  `pk_application_id` int NOT NULL AUTO_INCREMENT,
+  `fk_cycle_id` int NOT NULL,
   `fk_district_id` int NOT NULL,
-  PRIMARY KEY (`pk_id`),
-  UNIQUE KEY `uk_goal_role_assignment_district` (`fk_assignment_id`,`fk_district_id`),
-  CONSTRAINT `goal_role_assignment_districts_ibfk_1` FOREIGN KEY (`fk_assignment_id`) REFERENCES `goal_role_assignments` (`pk_id`)
+  `fk_club_id` int NOT NULL,
+  `status` varchar(30) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'draft',
+  `title` varchar(200) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `description` text COLLATE utf8mb4_unicode_ci,
+  `location` varchar(200) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `start_date` date DEFAULT NULL,
+  `end_date` date DEFAULT NULL,
+  `beneficiaries` int DEFAULT NULL,
+  `amount_requested` decimal(12,2) NOT NULL DEFAULT '0.00',
+  `amount_approved` decimal(12,2) DEFAULT NULL,
+  `rules_accepted` tinyint(1) NOT NULL DEFAULT '0',
+  `rejection_reason` text COLLATE utf8mb4_unicode_ci,
+  `report_summary` text COLLATE utf8mb4_unicode_ci,
+  `report_amount_spent` decimal(12,2) DEFAULT NULL,
+  `report_beneficiaries` int DEFAULT NULL,
+  `submitted_at` datetime DEFAULT NULL,
+  `report_submitted_at` datetime DEFAULT NULL,
+  `closed_at` datetime DEFAULT NULL,
+  `created_by` int NOT NULL,
+  `created_date` datetime DEFAULT CURRENT_TIMESTAMP,
+  `modified_by` int DEFAULT NULL,
+  `modified_date` datetime DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`pk_application_id`),
+  KEY `idx_grant_app_cycle` (`fk_cycle_id`,`status`),
+  KEY `idx_grant_app_club` (`fk_club_id`),
+  KEY `idx_grant_app_district` (`fk_district_id`,`status`),
+  CONSTRAINT `fk_grant_app_cycle` FOREIGN KEY (`fk_cycle_id`) REFERENCES `grant_cycles` (`pk_cycle_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `goal_role_assignment_zones` (
-  `pk_id` int NOT NULL AUTO_INCREMENT,
-  `fk_assignment_id` int NOT NULL,
-  `fk_zone_id` int NOT NULL,
-  PRIMARY KEY (`pk_id`),
-  UNIQUE KEY `uk_goal_role_assignment_zone` (`fk_assignment_id`,`fk_zone_id`),
-  CONSTRAINT `goal_role_assignment_zones_ibfk_1` FOREIGN KEY (`fk_assignment_id`) REFERENCES `goal_role_assignments` (`pk_id`)
+CREATE TABLE `grant_attachments` (
+  `pk_attachment_id` int NOT NULL AUTO_INCREMENT,
+  `fk_application_id` int NOT NULL,
+  `kind` varchar(12) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `original_name` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `stored_name` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `size_bytes` int NOT NULL,
+  `uploaded_by` int NOT NULL,
+  `created_date` datetime DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`pk_attachment_id`),
+  KEY `idx_grant_att_app` (`fk_application_id`),
+  CONSTRAINT `fk_grant_att_app` FOREIGN KEY (`fk_application_id`) REFERENCES `grant_applications` (`pk_application_id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `goal_role_assignments` (
-  `pk_id` int NOT NULL AUTO_INCREMENT,
+CREATE TABLE `grant_cycles` (
+  `pk_cycle_id` int NOT NULL AUTO_INCREMENT,
+  `fk_district_id` int NOT NULL,
+  `fk_year_id` int NOT NULL,
+  `status` varchar(10) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'draft',
+  `ddf_budget` decimal(12,2) NOT NULL DEFAULT '0.00',
+  `max_request` decimal(12,2) DEFAULT NULL,
+  `min_qualified_members` int NOT NULL DEFAULT '0',
+  `opens_on` date DEFAULT NULL,
+  `closes_on` date DEFAULT NULL,
+  `report_due_on` date DEFAULT NULL,
+  `rules` text COLLATE utf8mb4_unicode_ci,
+  `created_by` int DEFAULT NULL,
+  `created_date` datetime DEFAULT CURRENT_TIMESTAMP,
+  `modified_by` int DEFAULT NULL,
+  `modified_date` datetime DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`pk_cycle_id`),
+  UNIQUE KEY `uk_grant_cycle` (`fk_district_id`,`fk_year_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `grant_events` (
+  `pk_event_id` int NOT NULL AUTO_INCREMENT,
+  `fk_application_id` int NOT NULL,
   `fk_member_id` int NOT NULL,
-  `MemberNameText` varchar(200) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `RoleType` varchar(50) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `AssignmentName` varchar(200) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `RoleTitle` varchar(150) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `Avenue` varchar(100) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `fk_category_id` int DEFAULT NULL,
-  `fk_zone_id` int DEFAULT NULL,
-  `HomeDistrictId` int DEFAULT NULL,
-  `DgYear` varchar(40) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `SupportingText` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `IsActive` tinyint(1) NOT NULL DEFAULT '1',
-  `AssignedBy` int DEFAULT NULL,
-  `AssignedDate` datetime DEFAULT CURRENT_TIMESTAMP,
-  `RoleEmailSentDate` datetime DEFAULT NULL,
-  `RevokedBy` int DEFAULT NULL,
-  `RevokedDate` datetime DEFAULT NULL,
-  `isdeleted` tinyint(1) NOT NULL DEFAULT '0',
+  `side` varchar(10) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `action` varchar(30) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `from_status` varchar(30) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `to_status` varchar(30) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `comment` text COLLATE utf8mb4_unicode_ci,
+  `created_date` datetime DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`pk_event_id`),
+  KEY `idx_grant_event_app` (`fk_application_id`),
+  KEY `idx_grant_event_member` (`fk_member_id`),
+  CONSTRAINT `fk_grant_event_app` FOREIGN KEY (`fk_application_id`) REFERENCES `grant_applications` (`pk_application_id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `grant_notifications` (
+  `pk_notification_id` int NOT NULL AUTO_INCREMENT,
+  `fk_member_id` int NOT NULL,
+  `fk_application_id` int NOT NULL,
+  `fk_event_id` int NOT NULL,
+  `side` varchar(10) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `title` varchar(250) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `body` varchar(600) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `email_status` varchar(10) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'pending',
+  `email_sent_at` datetime DEFAULT NULL,
+  `created_date` datetime DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`pk_notification_id`),
+  KEY `idx_grant_notif_member` (`fk_member_id`,`created_date`),
+  KEY `idx_grant_notif_email` (`email_status`),
+  KEY `fk_grant_notif_app` (`fk_application_id`),
+  CONSTRAINT `fk_grant_notif_app` FOREIGN KEY (`fk_application_id`) REFERENCES `grant_applications` (`pk_application_id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `grant_payments` (
+  `pk_payment_id` int NOT NULL AUTO_INCREMENT,
+  `fk_application_id` int NOT NULL,
+  `amount` decimal(12,2) NOT NULL,
+  `paid_on` date NOT NULL,
+  `method` varchar(20) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `reference` varchar(100) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `note` varchar(500) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `recorded_by` int NOT NULL,
+  `created_date` datetime DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`pk_payment_id`),
+  KEY `idx_grant_pay_app` (`fk_application_id`),
+  CONSTRAINT `fk_grant_pay_app` FOREIGN KEY (`fk_application_id`) REFERENCES `grant_applications` (`pk_application_id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `grant_project_light` (
+  `pk_id` int NOT NULL AUTO_INCREMENT,
+  `fk_club_id` int NOT NULL,
+  `fk_year_id` int NOT NULL,
+  `fk_project_id` int NOT NULL,
+  `grant_amount` decimal(12,2) DEFAULT NULL,
+  `report_date` date DEFAULT NULL,
+  `modified_by` int DEFAULT NULL,
+  `modified_date` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`pk_id`),
-  KEY `idx_goal_role_member` (`fk_member_id`,`IsActive`),
-  KEY `fk_category_id` (`fk_category_id`),
-  CONSTRAINT `goal_role_assignments_ibfk_1` FOREIGN KEY (`fk_category_id`) REFERENCES `goal_categories` (`pk_category_id`)
+  UNIQUE KEY `uk_grant_light` (`fk_year_id`,`fk_project_id`),
+  KEY `idx_grant_light_club` (`fk_club_id`,`fk_year_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -2554,6 +2735,37 @@ CREATE TABLE `international_president` (
   PRIMARY KEY (`pk_id`),
   UNIQUE KEY `uk_ip_year` (`fk_year_id`),
   CONSTRAINT `international_president_ibfk_1` FOREIGN KEY (`fk_year_id`) REFERENCES `rotary_year_master` (`pk_year_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `invite_prompt_log` (
+  `pk_id` int NOT NULL AUTO_INCREMENT,
+  `fk_invite_prompt_id` int NOT NULL,
+  `fk_club_id` int NOT NULL,
+  `fk_member_id` int NOT NULL,
+  `created_date` datetime DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`pk_id`),
+  UNIQUE KEY `uk_invite_prompt_member` (`fk_invite_prompt_id`,`fk_member_id`),
+  KEY `idx_invite_log_member` (`fk_member_id`,`created_date`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `invite_prompts` (
+  `pk_invite_prompt_id` int NOT NULL AUTO_INCREMENT,
+  `fk_club_id` int NOT NULL,
+  `meeting_date` date NOT NULL,
+  `send_on` date NOT NULL,
+  `note` varchar(500) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `status` varchar(20) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'scheduled',
+  `sent_count` int NOT NULL DEFAULT '0',
+  `sent_date` datetime DEFAULT NULL,
+  `created_by` int DEFAULT NULL,
+  `created_date` datetime DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`pk_invite_prompt_id`),
+  KEY `idx_invite_prompts_due` (`status`,`send_on`),
+  KEY `idx_invite_prompts_club` (`fk_club_id`,`meeting_date`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -2601,6 +2813,57 @@ CREATE TABLE `login_audit_logs` (
   KEY `idx_audit_member` (`fk_member_id`),
   KEY `idx_audit_time` (`login_time`),
   KEY `idx_audit_status` (`login_status`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `meeting_duties` (
+  `pk_duty_id` int NOT NULL AUTO_INCREMENT,
+  `fk_club_id` int NOT NULL,
+  `meeting_date` date NOT NULL,
+  `duty` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `fk_member_id` int NOT NULL,
+  `note` varchar(300) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `reminder_sent_at` datetime DEFAULT NULL,
+  `created_by` int NOT NULL,
+  `created_date` datetime DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`pk_duty_id`),
+  KEY `idx_meeting_duty_club` (`fk_club_id`,`meeting_date`),
+  KEY `idx_meeting_duty_member` (`fk_member_id`,`meeting_date`),
+  KEY `idx_meeting_duty_date` (`meeting_date`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE IF NOT EXISTS `meeting_calendar_feeds` (
+  `pk_feed_id` int NOT NULL AUTO_INCREMENT,
+  `token` char(64) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `fk_club_id` int DEFAULT NULL,
+  `fk_member_id` int DEFAULT NULL,
+  `created_by` int DEFAULT NULL,
+  `created_date` datetime DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`pk_feed_id`),
+  UNIQUE KEY `uq_meeting_feed_token` (`token`),
+  UNIQUE KEY `uq_meeting_feed_club` (`fk_club_id`),
+  UNIQUE KEY `uq_meeting_feed_member` (`fk_member_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+CREATE TABLE IF NOT EXISTS `meeting_reminder_log` (
+  `fk_attendance_id` int NOT NULL,
+  `fk_member_id` int NOT NULL,
+  `sent_date` datetime DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`fk_attendance_id`,`fk_member_id`),
+  KEY `idx_meeting_reminder_member` (`fk_member_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+CREATE TABLE IF NOT EXISTS `meeting_rules` (
+  `pk_meeting_rule_id` int NOT NULL AUTO_INCREMENT,
+  `fk_district_id` int DEFAULT NULL,
+  `fk_club_id` int DEFAULT NULL,
+  `MeetingsPerMonth` int NOT NULL,
+  `modified_by` int DEFAULT NULL,
+  `modified_date` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`pk_meeting_rule_id`),
+  UNIQUE KEY `uq_meeting_rules_district` (`fk_district_id`),
+  UNIQUE KEY `uq_meeting_rules_club` (`fk_club_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -2735,6 +2998,17 @@ DELIMITER ;
 /*!50003 SET character_set_client  = @saved_cs_client */ ;
 /*!50003 SET character_set_results = @saved_cs_results */ ;
 /*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE IF NOT EXISTS `member_channel_consents` (
+  `fk_member_id` int NOT NULL,
+  `channel` varchar(10) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `consented` tinyint(1) NOT NULL,
+  `changed_at_utc` datetime NOT NULL,
+  `source` varchar(20) COLLATE utf8mb4_unicode_ci NOT NULL,
+  PRIMARY KEY (`fk_member_id`,`channel`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `member_change_log` (
@@ -2941,6 +3215,40 @@ CREATE TABLE `member_fcm_tokens` (
   PRIMARY KEY (`pk_id`),
   UNIQUE KEY `uq_fcm_token` (`FcmToken`),
   KEY `idx_member_active` (`fk_member_master_profile_id`,`IsActive`,`isdeleted`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+-- Rotary Foundation designations per member with the date reached (build spec 3.12). Same as DatabaseInitializer.
+CREATE TABLE IF NOT EXISTS `member_foundation_designations` (
+  `pk_member_designation_id` int NOT NULL AUTO_INCREMENT,
+  `fk_member_master_profile_id` int NOT NULL,
+  `designation_type` varchar(20) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `level` tinyint DEFAULT NULL,
+  `awarded_date` date NOT NULL,
+  `notes` varchar(500) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `source` varchar(20) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'manual',
+  `created_by` int DEFAULT NULL,
+  `created_date` datetime DEFAULT CURRENT_TIMESTAMP,
+  `isdeleted` tinyint(1) NOT NULL DEFAULT '0',
+  `deleted_by` int DEFAULT NULL,
+  `deleted_date` datetime DEFAULT NULL,
+  PRIMARY KEY (`pk_member_designation_id`),
+  KEY `idx_mfd_member` (`fk_member_master_profile_id`,`isdeleted`),
+  KEY `idx_mfd_type` (`designation_type`,`isdeleted`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `member_invite_links` (
+  `pk_id` int NOT NULL AUTO_INCREMENT,
+  `fk_club_id` int NOT NULL,
+  `fk_member_id` int NOT NULL,
+  `token` char(32) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `created_date` datetime DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`pk_id`),
+  UNIQUE KEY `uk_invite_link_token` (`token`),
+  UNIQUE KEY `uk_invite_link_member` (`fk_club_id`,`fk_member_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -3448,8 +3756,6 @@ CREATE TABLE `mobile_login_otp` (
   `expires_at` datetime NOT NULL,
   `is_used` tinyint(1) DEFAULT '0',
   `sent_email` tinyint(1) DEFAULT '0',
-  `sent_sms` tinyint(1) DEFAULT '0',
-  `sent_whatsapp` tinyint(1) NOT NULL DEFAULT '0',
   `created_date` datetime DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`pk_otp_id`),
   KEY `idx_otp_lookup` (`identifier`,`is_used`,`expires_at`)
@@ -3533,7 +3839,6 @@ CREATE TABLE `newsletters` (
   `AttachmentType` varchar(10) COLLATE utf8mb4_unicode_ci DEFAULT 'link',
   `LinkUrl` varchar(500) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `FilePath` varchar(500) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `IsSendWhatsapp` tinyint(1) DEFAULT '0',
   `Status` varchar(20) COLLATE utf8mb4_unicode_ci DEFAULT 'Unpublished',
   `IsActive` tinyint(1) DEFAULT '1',
   `created_by` int DEFAULT NULL,
@@ -3546,20 +3851,12 @@ CREATE TABLE `newsletters` (
   `PushNotificationSent` tinyint(1) DEFAULT '0',
   `PushNotificationSentAt` datetime DEFAULT NULL,
   `Scope` varchar(10) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'district',
-  `RecipientTarget` varchar(20) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `RecipientZoneIds` text COLLATE utf8mb4_unicode_ci,
-  `RecipientDistrictIds` text COLLATE utf8mb4_unicode_ci,
-  `RecipientSubgroupIds` varchar(500) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `WhatsAppSentDate` datetime DEFAULT NULL,
-  `WhatsAppSentCount` int NOT NULL DEFAULT '0',
-  `WhatsAppFailedCount` int NOT NULL DEFAULT '0',
   `IsSendEmail` tinyint(1) NOT NULL DEFAULT '0',
   `EmailSentDate` datetime DEFAULT NULL,
   `EmailSentCount` int NOT NULL DEFAULT '0',
   `EmailFailedCount` int NOT NULL DEFAULT '0',
   PRIMARY KEY (`pk_newsletter_id`),
   KEY `fk_club_id` (`fk_club_id`),
-  KEY `idx_nl_wa_pending` (`IsSendWhatsapp`,`WhatsAppSentDate`,`PublishDateTime`),
   KEY `idx_nl_email_pending` (`IsSendEmail`,`EmailSentDate`,`PublishDateTime`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -3683,89 +3980,19 @@ CREATE TABLE `potential_members` (
   `isdeleted` int DEFAULT '0',
   `deleted_by` int DEFAULT NULL,
   `deleted_date` datetime DEFAULT NULL,
+  `stage` varchar(20) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'inquiry',
+  `fk_owner_member_id` int DEFAULT NULL,
+  `notes` varchar(2000) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `source` varchar(20) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'manual',
+  `consent_date` datetime DEFAULT NULL,
+  `fk_converted_member_id` int DEFAULT NULL,
+  `converted_date` datetime DEFAULT NULL,
   PRIMARY KEY (`pk_potential_member_id`),
+  KEY `idx_pm_club_stage` (`fk_club_id`,`isdeleted`,`stage`),
   KEY `fk_club_id` (`fk_club_id`),
   KEY `fk_member_master_profile_id_as_referrer` (`fk_member_master_profile_id_as_referrer`),
   CONSTRAINT `potential_members_ibfk_1` FOREIGN KEY (`fk_club_id`) REFERENCES `club_master` (`pk_club_id`),
   CONSTRAINT `potential_members_ibfk_2` FOREIGN KEY (`fk_member_master_profile_id_as_referrer`) REFERENCES `member_master_profile` (`pk_member_master_profile_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `pph_camp_attendance` (
-  `pk_attendance_id` int NOT NULL AUTO_INCREMENT,
-  `fk_camp_id` int NOT NULL,
-  `fk_attendee_id` int DEFAULT NULL,
-  `RegistrationNo` varchar(20) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `Age` int DEFAULT NULL,
-  `BPSystolic` int DEFAULT NULL,
-  `BPDiastolic` int DEFAULT NULL,
-  `BloodSugarType` varchar(10) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `BloodSugarValue` decimal(10,2) DEFAULT NULL,
-  `HeightCm` decimal(10,2) DEFAULT NULL,
-  `WeightKg` decimal(10,2) DEFAULT NULL,
-  `BMI` decimal(10,2) DEFAULT NULL,
-  `DiabetesStatus` varchar(50) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `BPStatus` varchar(50) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `IsOverweight` tinyint(1) DEFAULT '0',
-  `IsObese` tinyint(1) DEFAULT '0',
-  `IsConsentedForMessages` tinyint(1) DEFAULT '0',
-  `Remarks` text COLLATE utf8mb4_unicode_ci,
-  `created_by` int DEFAULT NULL,
-  `created_date` datetime DEFAULT CURRENT_TIMESTAMP,
-  `modified_by` int DEFAULT NULL,
-  `modified_date` datetime DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
-  `isdeleted` tinyint(1) DEFAULT '0',
-  `deleted_by` int DEFAULT NULL,
-  `deleted_date` datetime DEFAULT NULL,
-  PRIMARY KEY (`pk_attendance_id`),
-  KEY `fk_camp_id` (`fk_camp_id`),
-  CONSTRAINT `pph_camp_attendance_ibfk_1` FOREIGN KEY (`fk_camp_id`) REFERENCES `pph_camps` (`pk_camp_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `pph_camp_attendies` (
-  `pk_attendee_id` int NOT NULL AUTO_INCREMENT,
-  `fk_camp_id` int NOT NULL,
-  `Name` varchar(200) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `MobileNo` varchar(20) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `Sex` varchar(10) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `Address` text COLLATE utf8mb4_unicode_ci,
-  `IsConsentedForMessages` tinyint(1) DEFAULT '0',
-  `created_by` int DEFAULT NULL,
-  `created_date` datetime DEFAULT CURRENT_TIMESTAMP,
-  `modified_by` int DEFAULT NULL,
-  `modified_date` datetime DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
-  `isdeleted` tinyint(1) DEFAULT '0',
-  `deleted_by` int DEFAULT NULL,
-  `deleted_date` datetime DEFAULT NULL,
-  PRIMARY KEY (`pk_attendee_id`),
-  KEY `idx_pph_attendee_camp_mobile` (`fk_camp_id`,`MobileNo`),
-  CONSTRAINT `pph_camp_attendies_ibfk_1` FOREIGN KEY (`fk_camp_id`) REFERENCES `pph_camps` (`pk_camp_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `pph_camps` (
-  `pk_camp_id` int NOT NULL AUTO_INCREMENT,
-  `fk_club_id` int DEFAULT NULL,
-  `fk_district_id` int DEFAULT NULL,
-  `Title` varchar(300) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `Description` text COLLATE utf8mb4_unicode_ci,
-  `Address` text COLLATE utf8mb4_unicode_ci,
-  `CampDate` date NOT NULL,
-  `CampLogoPath` varchar(500) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `IsActive` tinyint(1) DEFAULT '1',
-  `created_by` int DEFAULT NULL,
-  `created_date` datetime DEFAULT CURRENT_TIMESTAMP,
-  `modified_by` int DEFAULT NULL,
-  `modified_date` datetime DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
-  `isdeleted` tinyint(1) DEFAULT '0',
-  `deleted_by` int DEFAULT NULL,
-  `deleted_date` datetime DEFAULT NULL,
-  PRIMARY KEY (`pk_camp_id`),
-  KEY `fk_club_id` (`fk_club_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -3828,61 +4055,6 @@ CREATE TABLE `razorpay_settlements` (
   PRIMARY KEY (`pk_id`),
   UNIQUE KEY `ux_rs_payment` (`RazorpayPaymentId`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `ri_director_credential_email` (
-  `pk_id` int NOT NULL AUTO_INCREMENT,
-  `fk_member_id` int NOT NULL,
-  `IssuesPassword` tinyint(1) NOT NULL DEFAULT '0',
-  `SentCount` int NOT NULL DEFAULT '0',
-  `LastSentDate` datetime DEFAULT NULL,
-  `LastSentBy` int DEFAULT NULL,
-  `created_by` int DEFAULT NULL,
-  `created_date` datetime DEFAULT CURRENT_TIMESTAMP,
-  `modified_by` int DEFAULT NULL,
-  `modified_date` datetime DEFAULT NULL,
-  PRIMARY KEY (`pk_id`),
-  UNIQUE KEY `uk_ri_cred_member` (`fk_member_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `ri_director_credit_usage_history` (
-  `pk_id` int NOT NULL AUTO_INCREMENT,
-  `CreditType` varchar(20) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `DeductedCount` int NOT NULL DEFAULT '0',
-  `Source` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `SourceId` int DEFAULT NULL,
-  `SourceDetail` varchar(500) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `BalanceBefore` int NOT NULL DEFAULT '0',
-  `BalanceAfter` int NOT NULL DEFAULT '0',
-  `created_by` int DEFAULT '0',
-  `created_date` datetime DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY (`pk_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `ri_director_credits` (
-  `pk_credit_id` int NOT NULL AUTO_INCREMENT,
-  `CreditType` varchar(20) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `CreditCount` int NOT NULL DEFAULT '0',
-  `UsedCount` int NOT NULL DEFAULT '0',
-  `PreviousCount` int DEFAULT '0',
-  `FromDate` date NOT NULL,
-  `ToDate` date NOT NULL,
-  `TransactionId` varchar(200) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `PaymentDate` date DEFAULT NULL,
-  `ProofDocumentPath` varchar(500) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `IsActive` tinyint(1) DEFAULT '1',
-  `created_by` int DEFAULT '0',
-  `created_date` datetime DEFAULT CURRENT_TIMESTAMP,
-  `modified_by` int DEFAULT NULL,
-  `modified_date` datetime DEFAULT NULL,
-  `isdeleted` tinyint(1) DEFAULT '0',
-  PRIMARY KEY (`pk_credit_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
@@ -4068,10 +4240,6 @@ CREATE TABLE `rotary_projects` (
   `location` varchar(200) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `fk_area_of_focus_id` int DEFAULT NULL,
   `other_area_of_focus` varchar(100) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `fk_category_id` int DEFAULT NULL,
-  `other_category` varchar(100) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `fk_sub_category_id` int DEFAULT NULL,
-  `other_sub_category` varchar(100) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `project_date` date DEFAULT NULL,
   `project_cost` decimal(15,2) DEFAULT NULL,
   `fk_funding_id` int DEFAULT NULL,
@@ -4080,7 +4248,6 @@ CREATE TABLE `rotary_projects` (
   `rotarians_involved` int DEFAULT NULL,
   `rotaractors_involved` int DEFAULT NULL,
   `rcc_involved` int DEFAULT '0',
-  `send_whatsapp` tinyint(1) DEFAULT '0',
   `meeting_type` varchar(20) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `agenda_document` varchar(500) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `minutes_document` varchar(500) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
@@ -4101,38 +4268,22 @@ CREATE TABLE `rotary_projects` (
   `host_clubs_districts` varchar(500) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `global_partner_clubs_districts` varchar(500) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `csr_company_name` varchar(200) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `IsSendWhatsapp` tinyint(1) NOT NULL DEFAULT '0',
-  `WhatsAppSentDate` datetime DEFAULT NULL,
-  `WhatsAppSentCount` int NOT NULL DEFAULT '0',
-  `WhatsAppFailedCount` int NOT NULL DEFAULT '0',
   `IsSendEmail` tinyint(1) NOT NULL DEFAULT '0',
   `EmailSentDate` datetime DEFAULT NULL,
   `EmailSentCount` int NOT NULL DEFAULT '0',
   `EmailFailedCount` int NOT NULL DEFAULT '0',
-  `approval_status` varchar(20) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `approval_remark` varchar(500) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `approved_by` int DEFAULT NULL,
-  `approval_date` datetime DEFAULT NULL,
-  `approval_token` varchar(64) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `DistrictProjectType` varchar(20) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   PRIMARY KEY (`pk_project_id`),
   KEY `fk_module_id` (`fk_module_id`),
   KEY `fk_year_id` (`fk_year_id`),
   KEY `fk_area_of_focus_id` (`fk_area_of_focus_id`),
-  KEY `fk_category_id` (`fk_category_id`),
-  KEY `fk_sub_category_id` (`fk_sub_category_id`),
   KEY `fk_funding_id` (`fk_funding_id`),
   KEY `idx_projects_club_year_module` (`fk_club_id`,`fk_year_id`,`fk_module_id`,`isdeleted`),
   KEY `idx_projects_parent` (`parent_project_id`),
   KEY `idx_projects_date` (`project_date`),
-  KEY `idx_proj_wa_pending` (`IsSendWhatsapp`,`WhatsAppSentDate`),
-  KEY `idx_projects_approval_token` (`approval_token`),
-  KEY `idx_projects_approval_status` (`approval_status`),
   CONSTRAINT `rotary_projects_ibfk_3` FOREIGN KEY (`fk_year_id`) REFERENCES `rotary_year_master` (`pk_year_id`),
   CONSTRAINT `rotary_projects_ibfk_4` FOREIGN KEY (`parent_project_id`) REFERENCES `rotary_projects` (`pk_project_id`),
   CONSTRAINT `rotary_projects_ibfk_5` FOREIGN KEY (`fk_area_of_focus_id`) REFERENCES `area_of_focus_master` (`pk_area_of_focus_id`),
-  CONSTRAINT `rotary_projects_ibfk_6` FOREIGN KEY (`fk_category_id`) REFERENCES `category_master` (`pk_category_id`),
-  CONSTRAINT `rotary_projects_ibfk_7` FOREIGN KEY (`fk_sub_category_id`) REFERENCES `sub_category_master` (`pk_sub_category_id`),
   CONSTRAINT `rotary_projects_ibfk_8` FOREIGN KEY (`fk_funding_id`) REFERENCES `funding_master` (`pk_funding_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -4197,14 +4348,6 @@ DELIMITER ;;
                             IF OLD.fk_area_of_focus_id != NEW.fk_area_of_focus_id OR (OLD.fk_area_of_focus_id IS NULL AND NEW.fk_area_of_focus_id IS NOT NULL) OR (OLD.fk_area_of_focus_id IS NOT NULL AND NEW.fk_area_of_focus_id IS NULL) THEN
                                 INSERT INTO rotary_project_audit_log (fk_project_id, fk_club_id, action_type, field_name, old_value, new_value, action_by, action_date)
                                 VALUES (NEW.pk_project_id, NEW.fk_club_id, 'UPDATE', 'area_of_focus', CAST(OLD.fk_area_of_focus_id AS CHAR), CAST(NEW.fk_area_of_focus_id AS CHAR), NEW.modified_by, NOW());
-                            END IF;
-                            IF OLD.fk_category_id != NEW.fk_category_id OR (OLD.fk_category_id IS NULL AND NEW.fk_category_id IS NOT NULL) OR (OLD.fk_category_id IS NOT NULL AND NEW.fk_category_id IS NULL) THEN
-                                INSERT INTO rotary_project_audit_log (fk_project_id, fk_club_id, action_type, field_name, old_value, new_value, action_by, action_date)
-                                VALUES (NEW.pk_project_id, NEW.fk_club_id, 'UPDATE', 'category', CAST(OLD.fk_category_id AS CHAR), CAST(NEW.fk_category_id AS CHAR), NEW.modified_by, NOW());
-                            END IF;
-                            IF OLD.fk_sub_category_id != NEW.fk_sub_category_id OR (OLD.fk_sub_category_id IS NULL AND NEW.fk_sub_category_id IS NOT NULL) OR (OLD.fk_sub_category_id IS NOT NULL AND NEW.fk_sub_category_id IS NULL) THEN
-                                INSERT INTO rotary_project_audit_log (fk_project_id, fk_club_id, action_type, field_name, old_value, new_value, action_by, action_date)
-                                VALUES (NEW.pk_project_id, NEW.fk_club_id, 'UPDATE', 'sub_category', CAST(OLD.fk_sub_category_id AS CHAR), CAST(NEW.fk_sub_category_id AS CHAR), NEW.modified_by, NOW());
                             END IF;
                             IF OLD.fk_funding_id != NEW.fk_funding_id OR (OLD.fk_funding_id IS NULL AND NEW.fk_funding_id IS NOT NULL) OR (OLD.fk_funding_id IS NOT NULL AND NEW.fk_funding_id IS NULL) THEN
                                 INSERT INTO rotary_project_audit_log (fk_project_id, fk_club_id, action_type, field_name, old_value, new_value, action_by, action_date)
@@ -4278,26 +4421,6 @@ CREATE TABLE `route_maintenance` (
   PRIMARY KEY (`pk_route_maintenance_id`),
   UNIQUE KEY `RouteKey` (`RouteKey`),
   KEY `idx_under_maintenance` (`IsUnderMaintenance`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `sub_category_master` (
-  `pk_sub_category_id` int NOT NULL AUTO_INCREMENT,
-  `fk_category_id` int NOT NULL,
-  `name` varchar(200) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `sort_order` int DEFAULT '0',
-  `is_active` tinyint(1) DEFAULT '1',
-  `created_by` int DEFAULT NULL,
-  `created_date` datetime DEFAULT CURRENT_TIMESTAMP,
-  `modified_by` int DEFAULT NULL,
-  `modified_date` datetime DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
-  `isdeleted` int DEFAULT '0',
-  `deleted_by` int DEFAULT NULL,
-  `deleted_date` datetime DEFAULT NULL,
-  PRIMARY KEY (`pk_sub_category_id`),
-  KEY `fk_category_id` (`fk_category_id`),
-  CONSTRAINT `sub_category_master_ibfk_1` FOREIGN KEY (`fk_category_id`) REFERENCES `category_master` (`pk_category_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -4500,9 +4623,6 @@ CREATE TABLE `upcoming_event_reminders` (
   `created_by` int DEFAULT NULL,
   `created_date` datetime DEFAULT CURRENT_TIMESTAMP,
   `PushSentAt` datetime DEFAULT NULL,
-  `WhatsAppSentDate` datetime DEFAULT NULL,
-  `WhatsAppSentCount` int NOT NULL DEFAULT '0',
-  `WhatsAppFailedCount` int NOT NULL DEFAULT '0',
   `EmailSentDate` datetime DEFAULT NULL,
   `EmailSentCount` int NOT NULL DEFAULT '0',
   `EmailFailedCount` int NOT NULL DEFAULT '0',
@@ -4525,7 +4645,6 @@ CREATE TABLE `upcoming_events` (
   `ExpiryDate` datetime NOT NULL,
   `EventVenue` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `RegistrationLink` varchar(500) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `IsSendWhatsapp` tinyint(1) DEFAULT '0',
   `IsRepeatNotification` tinyint(1) DEFAULT '0',
   `Status` varchar(20) COLLATE utf8mb4_unicode_ci DEFAULT 'Unpublished',
   `IsActive` tinyint(1) DEFAULT '1',
@@ -4539,21 +4658,73 @@ CREATE TABLE `upcoming_events` (
   `PushNotificationSent` tinyint(1) DEFAULT '0',
   `PushNotificationSentAt` datetime DEFAULT NULL,
   `Scope` varchar(10) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'district',
-  `RecipientTarget` varchar(20) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `RecipientZoneIds` text COLLATE utf8mb4_unicode_ci,
-  `RecipientDistrictIds` text COLLATE utf8mb4_unicode_ci,
-  `RecipientSubgroupIds` varchar(500) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `WhatsAppSentDate` datetime DEFAULT NULL,
-  `WhatsAppSentCount` int NOT NULL DEFAULT '0',
-  `WhatsAppFailedCount` int NOT NULL DEFAULT '0',
   `IsSendEmail` tinyint(1) NOT NULL DEFAULT '0',
   `EmailSentDate` datetime DEFAULT NULL,
   `EmailSentCount` int NOT NULL DEFAULT '0',
   `EmailFailedCount` int NOT NULL DEFAULT '0',
   PRIMARY KEY (`pk_upcoming_event_id`),
-  KEY `idx_evt_wa_pending` (`IsSendWhatsapp`,`WhatsAppSentDate`,`PublishDate`),
   KEY `idx_evt_email_pending` (`IsSendEmail`,`EmailSentDate`,`PublishDate`),
   KEY `idx_events_club_active_date` (`fk_club_id`,`IsActive`,`isdeleted`,`Status`,`EventDate`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `volunteer_sheets` (
+  `pk_sheet_id` int NOT NULL AUTO_INCREMENT,
+  `fk_club_id` int NOT NULL,
+  `title` varchar(200) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `description` text COLLATE utf8mb4_unicode_ci,
+  `fk_event_id` int DEFAULT NULL,
+  `fk_year_id` int DEFAULT NULL,
+  `fk_project_id` int DEFAULT NULL,
+  `hours_applied` int NOT NULL DEFAULT '0',
+  `public_token` char(32) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `is_public` tinyint(1) NOT NULL DEFAULT '1',
+  `status` varchar(10) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'open',
+  `created_by` int NOT NULL,
+  `created_date` datetime DEFAULT CURRENT_TIMESTAMP,
+  `modified_by` int DEFAULT NULL,
+  `modified_date` datetime DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`pk_sheet_id`),
+  UNIQUE KEY `uk_volunteer_sheet_token` (`public_token`),
+  KEY `idx_volunteer_sheet_club` (`fk_club_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `volunteer_signups` (
+  `pk_signup_id` int NOT NULL AUTO_INCREMENT,
+  `fk_slot_id` int NOT NULL,
+  `fk_member_id` int DEFAULT NULL,
+  `name` varchar(150) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `email` varchar(254) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `fk_contact_id` int DEFAULT NULL,
+  `consent_at` datetime DEFAULT NULL,
+  `hours` decimal(6,2) DEFAULT NULL,
+  `reminder_sent_at` datetime DEFAULT NULL,
+  `created_date` datetime DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`pk_signup_id`),
+  UNIQUE KEY `uk_volunteer_signup_member` (`fk_slot_id`,`fk_member_id`),
+  UNIQUE KEY `uk_volunteer_signup_email` (`fk_slot_id`,`email`),
+  KEY `idx_volunteer_signup_member` (`fk_member_id`),
+  KEY `idx_volunteer_signup_reminder` (`reminder_sent_at`),
+  CONSTRAINT `fk_volunteer_signup_slot` FOREIGN KEY (`fk_slot_id`) REFERENCES `volunteer_slots` (`pk_slot_id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `volunteer_slots` (
+  `pk_slot_id` int NOT NULL AUTO_INCREMENT,
+  `fk_sheet_id` int NOT NULL,
+  `task` varchar(200) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `starts_at` datetime NOT NULL,
+  `ends_at` datetime DEFAULT NULL,
+  `capacity` int NOT NULL,
+  `filled` int NOT NULL DEFAULT '0',
+  PRIMARY KEY (`pk_slot_id`),
+  KEY `idx_volunteer_slot_sheet` (`fk_sheet_id`),
+  KEY `idx_volunteer_slot_start` (`starts_at`),
+  CONSTRAINT `fk_volunteer_slot_sheet` FOREIGN KEY (`fk_sheet_id`) REFERENCES `volunteer_sheets` (`pk_sheet_id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -4618,9 +4789,6 @@ CREATE TABLE `weblinks` (
   `deleted_by` int DEFAULT NULL,
   `deleted_date` datetime DEFAULT NULL,
   `Scope` varchar(10) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'district',
-  `RecipientTarget` varchar(20) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `RecipientZoneIds` text COLLATE utf8mb4_unicode_ci,
-  `RecipientDistrictIds` text COLLATE utf8mb4_unicode_ci,
   PRIMARY KEY (`pk_weblink_id`),
   KEY `fk_club_id` (`fk_club_id`),
   KEY `fk_parent_id` (`fk_parent_id`),
@@ -4643,6 +4811,18 @@ CREATE TABLE `website_data_module_master` (
   `deleted_by` int DEFAULT NULL,
   `deleted_date` datetime DEFAULT NULL,
   PRIMARY KEY (`pk_website_data_module_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `website_languages` (
+  `scope` varchar(10) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `owner_id` int NOT NULL,
+  `default_language` varchar(20) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `languages` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `updated_by` int DEFAULT NULL,
+  `updated_at` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`scope`,`owner_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -4672,114 +4852,21 @@ CREATE TABLE `website_training_appointments` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `whatsapp_log` (
-  `pk_id` bigint NOT NULL AUTO_INCREMENT,
-  `recipient_mobile` varchar(30) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `recipient_name` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `template_name` varchar(120) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `whatsapp_type` varchar(60) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `source_id` bigint DEFAULT NULL,
-  `title` varchar(500) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `fk_club_id` int DEFAULT NULL,
-  `fk_district_id` int DEFAULT NULL,
-  `fk_member_profile_id` int DEFAULT NULL,
-  `status` varchar(20) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'Sent',
-  `interakt_message_id` varchar(200) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `http_status` int DEFAULT NULL,
-  `error_message` varchar(1000) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `body_preview` varchar(2000) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `sent_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `delivered_at` datetime DEFAULT NULL,
-  `modified_at` datetime DEFAULT NULL,
-  PRIMARY KEY (`pk_id`),
-  KEY `ix_wa_log_sent` (`sent_at`),
-  KEY `ix_wa_log_mobile` (`recipient_mobile`),
-  KEY `ix_wa_log_status` (`status`),
-  KEY `ix_wa_log_source` (`whatsapp_type`,`source_id`),
-  KEY `ix_wa_log_msgid` (`interakt_message_id`),
-  KEY `ix_wa_log_club` (`fk_club_id`),
-  KEY `ix_wa_log_district` (`fk_district_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `zonal_awards_district_entry` (
-  `pk_id` int NOT NULL AUTO_INCREMENT,
-  `fk_option_id` int NOT NULL,
-  `fk_district_id` int NOT NULL,
-  `fk_year_id` int NOT NULL,
-  `month` int NOT NULL DEFAULT '0',
-  `entered_counts` decimal(10,2) DEFAULT '0.00',
-  `received_points` decimal(10,2) DEFAULT '0.00',
-  `created_by` int DEFAULT NULL,
-  `created_date` datetime DEFAULT CURRENT_TIMESTAMP,
-  `modified_by` int DEFAULT NULL,
-  `modified_date` datetime DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
-  `isdeleted` tinyint(1) DEFAULT '0',
-  PRIMARY KEY (`pk_id`),
-  UNIQUE KEY `uk_za_entry` (`fk_option_id`,`fk_district_id`,`fk_year_id`,`month`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `zonal_awards_goal` (
-  `pk_id` int NOT NULL AUTO_INCREMENT,
-  `fk_year_id` int NOT NULL,
-  `title` varchar(200) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `max_points` int DEFAULT NULL,
-  `max_remark` varchar(500) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `sort_order` int DEFAULT '0',
-  `isdeleted` tinyint(1) DEFAULT '0',
-  PRIMARY KEY (`pk_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `zonal_awards_import_log` (
-  `pk_id` int NOT NULL AUTO_INCREMENT,
-  `fk_year_id` int NOT NULL,
-  `month` int NOT NULL,
-  `file_name` varchar(500) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `total_districts` int DEFAULT '0',
-  `total_questions` int DEFAULT '0',
-  `uploaded_by` int DEFAULT NULL,
-  `uploaded_date` datetime DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY (`pk_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `zonal_awards_question` (
-  `pk_id` int NOT NULL AUTO_INCREMENT,
-  `fk_goal_id` int NOT NULL,
-  `auto_or_manual` varchar(10) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'Auto',
-  `question_level` varchar(20) COLLATE utf8mb4_unicode_ci DEFAULT 'District',
-  `sr_no` varchar(20) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `sub_title` varchar(200) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `category` varchar(200) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `sort_order` int DEFAULT '0',
-  `isdeleted` tinyint(1) DEFAULT '0',
-  PRIMARY KEY (`pk_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `zonal_awards_question_option` (
-  `pk_id` int NOT NULL AUTO_INCREMENT,
-  `fk_question_id` int NOT NULL,
-  `goal_requirement_label` varchar(500) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `points_label` varchar(500) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `mini` int DEFAULT '0',
-  `maxi` int DEFAULT '0',
-  `points` int DEFAULT '0',
-  `atleast` int DEFAULT '0',
-  `subtype` int DEFAULT NULL,
-  `input_type` varchar(20) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `question_type_for_import` varchar(500) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `report_use_title` varchar(200) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `sort_order` int DEFAULT '0',
-  `isdeleted` tinyint(1) DEFAULT '0',
-  PRIMARY KEY (`pk_id`)
+CREATE TABLE `website_translations` (
+  `pk_translation_id` int NOT NULL AUTO_INCREMENT,
+  `scope` varchar(10) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `owner_id` int NOT NULL,
+  `item_type` varchar(10) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `item_id` int NOT NULL DEFAULT '0',
+  `language` varchar(20) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `title` varchar(200) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `body` mediumtext COLLATE utf8mb4_unicode_ci,
+  `seo_title` varchar(200) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `seo_description` varchar(500) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `updated_by` int DEFAULT NULL,
+  `updated_at` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`pk_translation_id`),
+  UNIQUE KEY `uk_website_translation` (`scope`,`owner_id`,`item_type`,`item_id`,`language`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -4788,7 +4875,6 @@ CREATE TABLE `zone_master` (
   `pk_zone_id` int NOT NULL AUTO_INCREMENT,
   `ZoneName` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL,
   `IsActive` tinyint(1) DEFAULT '1',
-  `IsZonalAwardsEnabled` tinyint(1) DEFAULT '0',
   `created_by` int DEFAULT NULL,
   `created_date` datetime DEFAULT CURRENT_TIMESTAMP,
   `modified_by` int DEFAULT NULL,
@@ -4818,13 +4904,12 @@ CREATE PROCEDURE `sp_announcement_create`(
                 IN p_PublishDateTime DATETIME,
                 IN p_ExpiryDateTime DATETIME,
                 IN p_IsDisplayOnBanner TINYINT,
-                IN p_IsSendWhatsapp TINYINT,
                 IN p_IsRepeatNotification TINYINT,
                 IN p_CreatedBy INT
             )
 BEGIN
-                INSERT INTO announcements (fk_club_id, Title, Description, ImagePath, PublishDateTime, ExpiryDateTime, IsDisplayOnBanner, IsSendWhatsapp, IsRepeatNotification, created_by)
-                VALUES (p_ClubId, p_Title, p_Description, p_ImagePath, p_PublishDateTime, p_ExpiryDateTime, p_IsDisplayOnBanner, p_IsSendWhatsapp, p_IsRepeatNotification, p_CreatedBy);
+                INSERT INTO announcements (fk_club_id, Title, Description, ImagePath, PublishDateTime, ExpiryDateTime, IsDisplayOnBanner, IsRepeatNotification, created_by)
+                VALUES (p_ClubId, p_Title, p_Description, p_ImagePath, p_PublishDateTime, p_ExpiryDateTime, p_IsDisplayOnBanner, p_IsRepeatNotification, p_CreatedBy);
 
                 SELECT LAST_INSERT_ID();
             END ;;
@@ -4887,7 +4972,6 @@ BEGIN
                        a.PublishDateTime,
                        a.ExpiryDateTime,
                        a.IsDisplayOnBanner,
-                       a.IsSendWhatsapp,
                        a.IsRepeatNotification,
                        CASE
                            WHEN a.ExpiryDateTime < NOW() THEN 'Expired'
@@ -4948,7 +5032,6 @@ BEGIN
                        a.PublishDateTime,
                        a.ExpiryDateTime,
                        a.IsDisplayOnBanner,
-                       a.IsSendWhatsapp,
                        a.IsRepeatNotification,
                        CASE
                            WHEN a.ExpiryDateTime < NOW() THEN 'Expired'
@@ -5061,7 +5144,6 @@ CREATE PROCEDURE `sp_announcement_update`(
                 IN p_PublishDateTime DATETIME,
                 IN p_ExpiryDateTime DATETIME,
                 IN p_IsDisplayOnBanner TINYINT,
-                IN p_IsSendWhatsapp TINYINT,
                 IN p_IsRepeatNotification TINYINT,
                 IN p_ModifiedBy INT
             )
@@ -5073,7 +5155,6 @@ BEGIN
                     PublishDateTime = p_PublishDateTime,
                     ExpiryDateTime = p_ExpiryDateTime,
                     IsDisplayOnBanner = p_IsDisplayOnBanner,
-                    IsSendWhatsapp = p_IsSendWhatsapp,
                     IsRepeatNotification = p_IsRepeatNotification,
                     modified_by = p_ModifiedBy
                 WHERE pk_announcement_id = p_Id
@@ -5357,7 +5438,7 @@ BEGIN
                 WHERE mr.fk_member_master_profile_id = p_MemberId
                   AND mr.IsActive = 1
                   AND mr.isdeleted = 0
-                  AND r.RoleName IN ('Admin', 'SuperAdmin', 'ZonalCoordinator');
+                  AND r.RoleName IN ('Admin', 'SuperAdmin');
             END ;;
 DELIMITER ;
 /*!50003 SET sql_mode              = @saved_sql_mode */ ;
@@ -5409,7 +5490,7 @@ BEGIN
                 WHERE mr.fk_member_master_profile_id = p_MemberId
                   AND mr.IsActive = 1
                   AND mr.isdeleted = 0
-                  AND r.RoleName IN ('Admin', 'SuperAdmin', 'ZonalCoordinator');
+                  AND r.RoleName IN ('Admin', 'SuperAdmin');
             END ;;
 DELIMITER ;
 /*!50003 SET sql_mode              = @saved_sql_mode */ ;
@@ -5647,166 +5728,6 @@ BEGIN
                     LockoutEndTime = NULL,
                     LastLoginDate = NOW()
                 WHERE pk_member_credential_id = p_CredId;
-            END ;;
-DELIMITER ;
-/*!50003 SET sql_mode              = @saved_sql_mode */ ;
-/*!50003 SET character_set_client  = @saved_cs_client */ ;
-/*!50003 SET character_set_results = @saved_cs_results */ ;
-/*!50003 SET collation_connection  = @saved_col_connection */ ;
-/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
-/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
-/*!50003 SET @saved_col_connection = @@collation_connection */ ;
-/*!50003 SET character_set_client  = utf8mb4 */ ;
-/*!50003 SET character_set_results = utf8mb4 */ ;
-/*!50003 SET collation_connection  = utf8mb4_0900_ai_ci */ ;
-/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
-/*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
-DELIMITER ;;
-CREATE PROCEDURE `sp_beneficiary_approval_approve`(
-                IN p_Token VARCHAR(100),
-                IN p_Remark VARCHAR(1000)
-            )
-BEGIN
-                DECLARE v_ProjectId INT;
-                DECLARE v_Requested INT;
-                DECLARE v_Status VARCHAR(20);
-
-                SELECT fk_project_id, requested_beneficiaries, status
-                INTO v_ProjectId, v_Requested, v_Status
-                FROM beneficiary_approval_requests
-                WHERE approval_token = p_Token;
-
-                IF v_Status != 'pending' THEN
-                    SELECT v_Status AS Status, 'already_processed' AS Result;
-                ELSE
-                    UPDATE beneficiary_approval_requests
-                    SET status = 'approved', remark = p_Remark, responded_date = NOW()
-                    WHERE approval_token = p_Token;
-
-                    UPDATE rotary_projects
-                    SET direct_beneficiaries = v_Requested, modified_date = NOW()
-                    WHERE pk_project_id = v_ProjectId;
-
-                    SELECT 'approved' AS Status, 'success' AS Result;
-                END IF;
-            END ;;
-DELIMITER ;
-/*!50003 SET sql_mode              = @saved_sql_mode */ ;
-/*!50003 SET character_set_client  = @saved_cs_client */ ;
-/*!50003 SET character_set_results = @saved_cs_results */ ;
-/*!50003 SET collation_connection  = @saved_col_connection */ ;
-/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
-/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
-/*!50003 SET @saved_col_connection = @@collation_connection */ ;
-/*!50003 SET character_set_client  = utf8mb4 */ ;
-/*!50003 SET character_set_results = utf8mb4 */ ;
-/*!50003 SET collation_connection  = utf8mb4_0900_ai_ci */ ;
-/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
-/*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
-DELIMITER ;;
-CREATE PROCEDURE `sp_beneficiary_approval_create`(
-                IN p_ProjectId INT,
-                IN p_ZoneId INT,
-                IN p_ClubId INT,
-                IN p_RequestedBeneficiaries INT,
-                IN p_CurrentLimit INT,
-                IN p_Token VARCHAR(100),
-                IN p_RequestedBy INT
-            )
-BEGIN
-                INSERT INTO beneficiary_approval_requests
-                    (fk_project_id, fk_zone_id, fk_club_id, requested_beneficiaries, current_limit, approval_token, status, requested_by)
-                VALUES
-                    (p_ProjectId, p_ZoneId, p_ClubId, p_RequestedBeneficiaries, p_CurrentLimit, p_Token, 'pending', p_RequestedBy);
-                SELECT LAST_INSERT_ID() AS Id;
-            END ;;
-DELIMITER ;
-/*!50003 SET sql_mode              = @saved_sql_mode */ ;
-/*!50003 SET character_set_client  = @saved_cs_client */ ;
-/*!50003 SET character_set_results = @saved_cs_results */ ;
-/*!50003 SET collation_connection  = @saved_col_connection */ ;
-/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
-/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
-/*!50003 SET @saved_col_connection = @@collation_connection */ ;
-/*!50003 SET character_set_client  = utf8mb4 */ ;
-/*!50003 SET character_set_results = utf8mb4 */ ;
-/*!50003 SET collation_connection  = utf8mb4_0900_ai_ci */ ;
-/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
-/*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
-DELIMITER ;;
-CREATE PROCEDURE `sp_beneficiary_approval_get_by_token`(
-                IN p_Token VARCHAR(100)
-            )
-BEGIN
-                SELECT
-                    bar.pk_approval_id AS Id,
-                    bar.fk_project_id AS ProjectId,
-                    bar.fk_zone_id AS ZoneId,
-                    bar.fk_club_id AS ClubId,
-                    bar.requested_beneficiaries AS RequestedBeneficiaries,
-                    bar.current_limit AS CurrentLimit,
-                    bar.approval_token AS ApprovalToken,
-                    bar.status AS Status,
-                    bar.remark AS Remark,
-                    bar.requested_by AS RequestedBy,
-                    bar.responded_date AS RespondedDate,
-                    bar.created_date AS CreatedDate,
-                    p.title AS ProjectTitle,
-                    p.description AS ProjectDescription,
-                    p.project_date AS ProjectDate,
-                    p.project_cost AS ProjectCost,
-                    p.direct_beneficiaries AS CurrentBeneficiaries,
-                    p.man_hours AS ManHours,
-                    p.rotarians_involved AS RotariansInvolved,
-                    p.rotaractors_involved AS RotaractorsInvolved,
-                    c.ClubName,
-                    d.DistrictNumber,
-                    z.ZoneName,
-                    m.MemberName AS RequestedByName,
-                    m.EmailId AS RequestedByEmail,
-                    m.PrimaryMobileNumber AS RequestedByMobile
-                FROM beneficiary_approval_requests bar
-                JOIN rotary_projects p ON p.pk_project_id = bar.fk_project_id
-                JOIN club_master c ON c.pk_club_id = bar.fk_club_id
-                JOIN district_master d ON d.pk_district_id = c.fk_district_id
-                JOIN zone_master z ON z.pk_zone_id = bar.fk_zone_id
-                JOIN member_master_profile m ON m.pk_member_master_profile_id = bar.requested_by
-                WHERE bar.approval_token = p_Token;
-            END ;;
-DELIMITER ;
-/*!50003 SET sql_mode              = @saved_sql_mode */ ;
-/*!50003 SET character_set_client  = @saved_cs_client */ ;
-/*!50003 SET character_set_results = @saved_cs_results */ ;
-/*!50003 SET collation_connection  = @saved_col_connection */ ;
-/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
-/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
-/*!50003 SET @saved_col_connection = @@collation_connection */ ;
-/*!50003 SET character_set_client  = utf8mb4 */ ;
-/*!50003 SET character_set_results = utf8mb4 */ ;
-/*!50003 SET collation_connection  = utf8mb4_0900_ai_ci */ ;
-/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
-/*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
-DELIMITER ;;
-CREATE PROCEDURE `sp_beneficiary_approval_reject`(
-                IN p_Token VARCHAR(100),
-                IN p_Remark VARCHAR(1000)
-            )
-BEGIN
-                DECLARE v_Status VARCHAR(20);
-
-                SELECT status INTO v_Status
-                FROM beneficiary_approval_requests
-                WHERE approval_token = p_Token;
-
-                IF v_Status != 'pending' THEN
-                    SELECT v_Status AS Status, 'already_processed' AS Result;
-                ELSE
-                    UPDATE beneficiary_approval_requests
-                    SET status = 'rejected', remark = p_Remark, responded_date = NOW()
-                    WHERE approval_token = p_Token;
-
-                    SELECT 'rejected' AS Status, 'success' AS Result;
-                END IF;
             END ;;
 DELIMITER ;
 /*!50003 SET sql_mode              = @saved_sql_mode */ ;
@@ -6066,135 +5987,6 @@ BEGIN
                     fk_year_id = p_YearId,
                     modified_by = p_ModifiedBy
                 WHERE pk_board_director_id = p_Id AND isdeleted = 0;
-            END ;;
-DELIMITER ;
-/*!50003 SET sql_mode              = @saved_sql_mode */ ;
-/*!50003 SET character_set_client  = @saved_cs_client */ ;
-/*!50003 SET character_set_results = @saved_cs_results */ ;
-/*!50003 SET collation_connection  = @saved_col_connection */ ;
-/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
-/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
-/*!50003 SET @saved_col_connection = @@collation_connection */ ;
-/*!50003 SET character_set_client  = utf8mb4 */ ;
-/*!50003 SET character_set_results = utf8mb4 */ ;
-/*!50003 SET collation_connection  = utf8mb4_0900_ai_ci */ ;
-/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
-/*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
-DELIMITER ;;
-CREATE PROCEDURE `sp_category_create`(
-                IN p_AreaOfFocusId INT,
-                IN p_Name VARCHAR(200),
-                IN p_SortOrder INT,
-                IN p_IsActive TINYINT,
-                IN p_CreatedBy INT
-            )
-BEGIN
-                INSERT INTO category_master (fk_area_of_focus_id, name, sort_order, is_active, created_by)
-                VALUES (p_AreaOfFocusId, p_Name, p_SortOrder, p_IsActive, p_CreatedBy);
-                SELECT LAST_INSERT_ID();
-            END ;;
-DELIMITER ;
-/*!50003 SET sql_mode              = @saved_sql_mode */ ;
-/*!50003 SET character_set_client  = @saved_cs_client */ ;
-/*!50003 SET character_set_results = @saved_cs_results */ ;
-/*!50003 SET collation_connection  = @saved_col_connection */ ;
-/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
-/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
-/*!50003 SET @saved_col_connection = @@collation_connection */ ;
-/*!50003 SET character_set_client  = utf8mb4 */ ;
-/*!50003 SET character_set_results = utf8mb4 */ ;
-/*!50003 SET collation_connection  = utf8mb4_0900_ai_ci */ ;
-/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
-/*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
-DELIMITER ;;
-CREATE PROCEDURE `sp_category_delete`(
-                IN p_Id INT,
-                IN p_DeletedBy INT
-            )
-BEGIN
-                UPDATE category_master
-                SET isdeleted = 1, deleted_by = p_DeletedBy, deleted_date = NOW()
-                WHERE pk_category_id = p_Id;
-            END ;;
-DELIMITER ;
-/*!50003 SET sql_mode              = @saved_sql_mode */ ;
-/*!50003 SET character_set_client  = @saved_cs_client */ ;
-/*!50003 SET character_set_results = @saved_cs_results */ ;
-/*!50003 SET collation_connection  = @saved_col_connection */ ;
-/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
-/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
-/*!50003 SET @saved_col_connection = @@collation_connection */ ;
-/*!50003 SET character_set_client  = utf8mb4 */ ;
-/*!50003 SET character_set_results = utf8mb4 */ ;
-/*!50003 SET collation_connection  = utf8mb4_0900_ai_ci */ ;
-/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
-/*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
-DELIMITER ;;
-CREATE PROCEDURE `sp_category_get_by_area_of_focus`(IN p_AreaOfFocusId INT)
-BEGIN
-                SELECT pk_category_id AS Id,
-                       fk_area_of_focus_id AS AreaOfFocusId,
-                       name AS Name,
-                       sort_order AS SortOrder,
-                       is_active AS IsActive
-                FROM category_master
-                WHERE fk_area_of_focus_id = p_AreaOfFocusId AND isdeleted = 0
-                ORDER BY sort_order, name;
-            END ;;
-DELIMITER ;
-/*!50003 SET sql_mode              = @saved_sql_mode */ ;
-/*!50003 SET character_set_client  = @saved_cs_client */ ;
-/*!50003 SET character_set_results = @saved_cs_results */ ;
-/*!50003 SET collation_connection  = @saved_col_connection */ ;
-/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
-/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
-/*!50003 SET @saved_col_connection = @@collation_connection */ ;
-/*!50003 SET character_set_client  = utf8mb4 */ ;
-/*!50003 SET character_set_results = utf8mb4 */ ;
-/*!50003 SET collation_connection  = utf8mb4_0900_ai_ci */ ;
-/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
-/*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
-DELIMITER ;;
-CREATE PROCEDURE `sp_category_get_by_id`(IN p_Id INT)
-BEGIN
-                SELECT pk_category_id AS Id,
-                       fk_area_of_focus_id AS AreaOfFocusId,
-                       name AS Name,
-                       sort_order AS SortOrder,
-                       is_active AS IsActive
-                FROM category_master
-                WHERE pk_category_id = p_Id AND isdeleted = 0;
-            END ;;
-DELIMITER ;
-/*!50003 SET sql_mode              = @saved_sql_mode */ ;
-/*!50003 SET character_set_client  = @saved_cs_client */ ;
-/*!50003 SET character_set_results = @saved_cs_results */ ;
-/*!50003 SET collation_connection  = @saved_col_connection */ ;
-/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
-/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
-/*!50003 SET @saved_col_connection = @@collation_connection */ ;
-/*!50003 SET character_set_client  = utf8mb4 */ ;
-/*!50003 SET character_set_results = utf8mb4 */ ;
-/*!50003 SET collation_connection  = utf8mb4_0900_ai_ci */ ;
-/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
-/*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
-DELIMITER ;;
-CREATE PROCEDURE `sp_category_update`(
-                IN p_Id INT,
-                IN p_AreaOfFocusId INT,
-                IN p_Name VARCHAR(200),
-                IN p_SortOrder INT,
-                IN p_IsActive TINYINT,
-                IN p_ModifiedBy INT
-            )
-BEGIN
-                UPDATE category_master
-                SET fk_area_of_focus_id = p_AreaOfFocusId,
-                    name = p_Name,
-                    sort_order = p_SortOrder,
-                    is_active = p_IsActive,
-                    modified_by = p_ModifiedBy
-                WHERE pk_category_id = p_Id AND isdeleted = 0;
             END ;;
 DELIMITER ;
 /*!50003 SET sql_mode              = @saved_sql_mode */ ;
@@ -8803,7 +8595,6 @@ BEGIN
                        CASE
                            WHEN d.FilePath IS NULL OR d.FilePath = '' THEN NULL
                            WHEN d.FilePath LIKE '/%' THEN d.FilePath
-                           WHEN d.Scope = 'ri' THEN CONCAT('/Documents/documentsafe/ri/', d.FilePath)
                            WHEN d.fk_district_id IS NOT NULL THEN CONCAT('/Documents/documentsafe/Group', d.fk_district_id, '/', d.FilePath)
                            ELSE CONCAT('/Documents/documentsafe/Group', d.fk_club_id, '/', d.FilePath)
                        END AS FilePath,
@@ -8864,7 +8655,6 @@ BEGIN
                        CASE
                            WHEN d.FilePath IS NULL OR d.FilePath = '' THEN NULL
                            WHEN d.FilePath LIKE '/%' THEN d.FilePath
-                           WHEN d.Scope = 'ri' THEN CONCAT('/Documents/documentsafe/ri/', d.FilePath)
                            WHEN d.fk_district_id IS NOT NULL THEN CONCAT('/Documents/documentsafe/Group', d.fk_district_id, '/', d.FilePath)
                            ELSE CONCAT('/Documents/documentsafe/Group', d.fk_club_id, '/', d.FilePath)
                        END AS FilePath,
@@ -9083,7 +8873,7 @@ BEGIN
                 SELECT
                     BirthdayGreeting, IsEnableBirthdayNotification,
                     AnniversaryGreeting, IsEnableAnniversaryNotification,
-                    IsGreetingSendWhatsapp, IsGreetingSendEmail,
+                    IsGreetingSendEmail,
                     IsEnableBirthdayEmail, BirthdayEmailFrom, BirthdayEmailSubject, BirthdayEmailMessage,
                     IsEnableAnniversaryEmail, AnniversaryEmailFrom, AnniversaryEmailSubject, AnniversaryEmailMessage
                 FROM club_master
@@ -9109,7 +8899,6 @@ CREATE PROCEDURE `sp_greeting_update_settings`(
                 IN p_IsEnableBirthdayNotification TINYINT,
                 IN p_AnniversaryGreeting VARCHAR(700),
                 IN p_IsEnableAnniversaryNotification TINYINT,
-                IN p_IsGreetingSendWhatsapp TINYINT,
                 IN p_IsGreetingSendEmail TINYINT,
                 IN p_IsEnableBirthdayEmail TINYINT,
                 IN p_BirthdayEmailFrom VARCHAR(200),
@@ -9127,7 +8916,6 @@ BEGIN
                     IsEnableBirthdayNotification = p_IsEnableBirthdayNotification,
                     AnniversaryGreeting = p_AnniversaryGreeting,
                     IsEnableAnniversaryNotification = p_IsEnableAnniversaryNotification,
-                    IsGreetingSendWhatsapp = p_IsGreetingSendWhatsapp,
                     IsGreetingSendEmail = p_IsGreetingSendEmail,
                     IsEnableBirthdayEmail = p_IsEnableBirthdayEmail,
                     BirthdayEmailFrom = p_BirthdayEmailFrom,
@@ -10104,12 +9892,11 @@ CREATE PROCEDURE `sp_newsletter_create`(
                 IN p_AttachmentType VARCHAR(10),
                 IN p_LinkUrl VARCHAR(500),
                 IN p_FilePath VARCHAR(500),
-                IN p_IsSendWhatsapp TINYINT,
                 IN p_CreatedBy INT
             )
 BEGIN
-                INSERT INTO newsletters (fk_club_id, Title, PublishDateTime, ExpiryDateTime, AttachmentType, LinkUrl, FilePath, IsSendWhatsapp, created_by)
-                VALUES (p_ClubId, p_Title, p_PublishDateTime, p_ExpiryDateTime, p_AttachmentType, p_LinkUrl, p_FilePath, p_IsSendWhatsapp, p_CreatedBy);
+                INSERT INTO newsletters (fk_club_id, Title, PublishDateTime, ExpiryDateTime, AttachmentType, LinkUrl, FilePath, created_by)
+                VALUES (p_ClubId, p_Title, p_PublishDateTime, p_ExpiryDateTime, p_AttachmentType, p_LinkUrl, p_FilePath, p_CreatedBy);
 
                 SELECT LAST_INSERT_ID();
             END ;;
@@ -10172,7 +9959,6 @@ BEGIN
                        n.AttachmentType,
                        n.LinkUrl,
                        n.FilePath,
-                       n.IsSendWhatsapp,
                        CASE
                            WHEN n.ExpiryDateTime < NOW() THEN 'Expired'
                            WHEN n.PublishDateTime <= NOW() AND n.ExpiryDateTime >= NOW() THEN 'Published'
@@ -10231,7 +10017,6 @@ BEGIN
                        n.AttachmentType,
                        n.LinkUrl,
                        n.FilePath,
-                       n.IsSendWhatsapp,
                        CASE
                            WHEN n.ExpiryDateTime < NOW() THEN 'Expired'
                            WHEN n.PublishDateTime <= NOW() AND n.ExpiryDateTime >= NOW() THEN 'Published'
@@ -10290,7 +10075,6 @@ CREATE PROCEDURE `sp_newsletter_update`(
                 IN p_AttachmentType VARCHAR(10),
                 IN p_LinkUrl VARCHAR(500),
                 IN p_FilePath VARCHAR(500),
-                IN p_IsSendWhatsapp TINYINT,
                 IN p_ModifiedBy INT
             )
 BEGIN
@@ -10301,7 +10085,6 @@ BEGIN
                     AttachmentType = p_AttachmentType,
                     LinkUrl = p_LinkUrl,
                     FilePath = p_FilePath,
-                    IsSendWhatsapp = p_IsSendWhatsapp,
                     modified_by = p_ModifiedBy
                 WHERE pk_newsletter_id = p_Id;
             END ;;
@@ -10667,10 +10450,6 @@ CREATE PROCEDURE `sp_project_create`(
                 IN p_Location VARCHAR(200),
                 IN p_AreaOfFocusId INT,
                 IN p_OtherAreaOfFocus VARCHAR(100),
-                IN p_CategoryId INT,
-                IN p_OtherCategory VARCHAR(100),
-                IN p_SubCategoryId INT,
-                IN p_OtherSubCategory VARCHAR(100),
                 IN p_ProjectDate DATE,
                 IN p_ProjectCost DECIMAL(15,2),
                 IN p_FundingId INT,
@@ -10678,7 +10457,6 @@ CREATE PROCEDURE `sp_project_create`(
                 IN p_ManHours INT,
                 IN p_RotariansInvolved INT,
                 IN p_RotaractorsInvolved INT,
-                IN p_SendWhatsapp TINYINT,
                 IN p_CreatedBy INT
             )
 BEGIN
@@ -10687,21 +10465,17 @@ BEGIN
                     ongoing_group_title, is_joint_project, co_host_name, club_role,
                     title, description, location,
                     fk_area_of_focus_id, other_area_of_focus,
-                    fk_category_id, other_category,
-                    fk_sub_category_id, other_sub_category,
                     project_date, project_cost, fk_funding_id,
                     direct_beneficiaries, man_hours, rotarians_involved, rotaractors_involved,
-                    send_whatsapp, created_by
+                    created_by
                 ) VALUES (
                     p_ClubId, p_ModuleId, p_YearId, p_ProjectType, p_ParentProjectId,
                     p_OngoingGroupTitle, p_IsJointProject, p_CoHostName, p_ClubRole,
                     p_Title, p_Description, p_Location,
                     p_AreaOfFocusId, p_OtherAreaOfFocus,
-                    p_CategoryId, p_OtherCategory,
-                    p_SubCategoryId, p_OtherSubCategory,
                     p_ProjectDate, p_ProjectCost, p_FundingId,
                     p_DirectBeneficiaries, p_ManHours, p_RotariansInvolved, p_RotaractorsInvolved,
-                    p_SendWhatsapp, p_CreatedBy
+                    p_CreatedBy
                 );
                 SELECT LAST_INSERT_ID();
             END ;;
@@ -10768,10 +10542,6 @@ BEGIN
                        p.location AS Location,
                        aof.name AS AreaOfFocusName,
                        p.other_area_of_focus AS OtherAreaOfFocus,
-                       cat.name AS CategoryName,
-                       p.other_category AS OtherCategory,
-                       scat.name AS SubCategoryName,
-                       p.other_sub_category AS OtherSubCategory,
                        p.project_date AS ProjectDate,
                        p.project_cost AS ProjectCost,
                        f.name AS FundingName,
@@ -10782,8 +10552,6 @@ BEGIN
                 FROM rotary_projects p
                 LEFT JOIN rotary_year_master y ON p.fk_year_id = y.pk_year_id
                 LEFT JOIN area_of_focus_master aof ON p.fk_area_of_focus_id = aof.pk_area_of_focus_id
-                LEFT JOIN category_master cat ON p.fk_category_id = cat.pk_category_id
-                LEFT JOIN sub_category_master scat ON p.fk_sub_category_id = scat.pk_sub_category_id
                 LEFT JOIN funding_master f ON p.fk_funding_id = f.pk_funding_id
                 WHERE p.fk_club_id = p_ClubId
                   AND p.fk_module_id = p_ModuleId
@@ -10836,12 +10604,6 @@ BEGIN
                        p.fk_area_of_focus_id AS AreaOfFocusId,
                        aof.name AS AreaOfFocusName,
                        p.other_area_of_focus AS OtherAreaOfFocus,
-                       p.fk_category_id AS CategoryId,
-                       cat.name AS CategoryName,
-                       p.other_category AS OtherCategory,
-                       p.fk_sub_category_id AS SubCategoryId,
-                       scat.name AS SubCategoryName,
-                       p.other_sub_category AS OtherSubCategory,
                        p.project_date AS ProjectDate,
                        p.project_cost AS ProjectCost,
                        p.fk_funding_id AS FundingId,
@@ -10850,13 +10612,10 @@ BEGIN
                        p.man_hours AS ManHours,
                        p.rotarians_involved AS RotariansInvolved,
                        p.rotaractors_involved AS RotaractorsInvolved,
-                       p.send_whatsapp AS SendWhatsapp,
                        p.is_active AS IsActive
                 FROM rotary_projects p
                 LEFT JOIN rotary_year_master y ON p.fk_year_id = y.pk_year_id
                 LEFT JOIN area_of_focus_master aof ON p.fk_area_of_focus_id = aof.pk_area_of_focus_id
-                LEFT JOIN category_master cat ON p.fk_category_id = cat.pk_category_id
-                LEFT JOIN sub_category_master scat ON p.fk_sub_category_id = scat.pk_sub_category_id
                 LEFT JOIN funding_master f ON p.fk_funding_id = f.pk_funding_id
                 WHERE p.pk_project_id = p_Id AND p.isdeleted = 0;
 
@@ -11088,10 +10847,6 @@ CREATE PROCEDURE `sp_project_update`(
                 IN p_Location VARCHAR(200),
                 IN p_AreaOfFocusId INT,
                 IN p_OtherAreaOfFocus VARCHAR(100),
-                IN p_CategoryId INT,
-                IN p_OtherCategory VARCHAR(100),
-                IN p_SubCategoryId INT,
-                IN p_OtherSubCategory VARCHAR(100),
                 IN p_ProjectDate DATE,
                 IN p_ProjectCost DECIMAL(15,2),
                 IN p_FundingId INT,
@@ -11099,7 +10854,6 @@ CREATE PROCEDURE `sp_project_update`(
                 IN p_ManHours INT,
                 IN p_RotariansInvolved INT,
                 IN p_RotaractorsInvolved INT,
-                IN p_SendWhatsapp TINYINT,
                 IN p_ModifiedBy INT
             )
 BEGIN
@@ -11115,10 +10869,6 @@ BEGIN
                     location = p_Location,
                     fk_area_of_focus_id = p_AreaOfFocusId,
                     other_area_of_focus = p_OtherAreaOfFocus,
-                    fk_category_id = p_CategoryId,
-                    other_category = p_OtherCategory,
-                    fk_sub_category_id = p_SubCategoryId,
-                    other_sub_category = p_OtherSubCategory,
                     project_date = p_ProjectDate,
                     project_cost = p_ProjectCost,
                     fk_funding_id = p_FundingId,
@@ -11126,7 +10876,6 @@ BEGIN
                     man_hours = p_ManHours,
                     rotarians_involved = p_RotariansInvolved,
                     rotaractors_involved = p_RotaractorsInvolved,
-                    send_whatsapp = p_SendWhatsapp,
                     modified_by = p_ModifiedBy
                 WHERE pk_project_id = p_Id AND isdeleted = 0;
             END ;;
@@ -11152,16 +10901,16 @@ CREATE PROCEDURE `sp_role_assign_admin`(
 BEGIN
                 DECLARE v_HasConflict INT DEFAULT 0;
 
-                -- Check if member has ZonalCoordinator or SuperAdmin role
+                -- Check if member has SuperAdmin role
                 SELECT COUNT(*) INTO v_HasConflict
                 FROM member_roles mr
                 JOIN roles r ON r.pk_role_id = mr.fk_role_id
                 WHERE mr.fk_member_master_profile_id = p_MemberId
                   AND mr.IsActive = 1 AND mr.isdeleted = 0
-                  AND r.RoleName IN ('SuperAdmin', 'ZonalCoordinator');
+                  AND r.RoleName = 'SuperAdmin';
 
                 IF v_HasConflict > 0 THEN
-                    SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Member already has SuperAdmin or Zonal Coordinator role. Cannot assign as Admin.';
+                    SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Member already has SuperAdmin role. Cannot assign as Admin.';
                 END IF;
 
                 INSERT INTO member_roles (fk_member_master_profile_id, fk_role_id, fk_club_id, AssignedBy)
@@ -11302,55 +11051,6 @@ BEGIN
                   AND fk_role_id = 3
                   AND IsActive = 1
                   AND isdeleted = 0;
-            END ;;
-DELIMITER ;
-/*!50003 SET sql_mode              = @saved_sql_mode */ ;
-/*!50003 SET character_set_client  = @saved_cs_client */ ;
-/*!50003 SET character_set_results = @saved_cs_results */ ;
-/*!50003 SET collation_connection  = @saved_col_connection */ ;
-/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
-/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
-/*!50003 SET @saved_col_connection = @@collation_connection */ ;
-/*!50003 SET character_set_client  = utf8mb4 */ ;
-/*!50003 SET character_set_results = utf8mb4 */ ;
-/*!50003 SET collation_connection  = utf8mb4_0900_ai_ci */ ;
-/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
-/*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
-DELIMITER ;;
-CREATE PROCEDURE `sp_role_check_member_exists`(
-                IN p_MemberId INT
-            )
-BEGIN
-                SELECT COUNT(*)
-                FROM member_master_profile
-                WHERE pk_member_master_profile_id = p_MemberId
-                  AND isdeleted = 0;
-            END ;;
-DELIMITER ;
-/*!50003 SET sql_mode              = @saved_sql_mode */ ;
-/*!50003 SET character_set_client  = @saved_cs_client */ ;
-/*!50003 SET character_set_results = @saved_cs_results */ ;
-/*!50003 SET collation_connection  = @saved_col_connection */ ;
-/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
-/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
-/*!50003 SET @saved_col_connection = @@collation_connection */ ;
-/*!50003 SET character_set_client  = utf8mb4 */ ;
-/*!50003 SET character_set_results = utf8mb4 */ ;
-/*!50003 SET collation_connection  = utf8mb4_0900_ai_ci */ ;
-/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
-/*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
-DELIMITER ;;
-CREATE PROCEDURE `sp_role_create_credentials`(
-                IN p_MemberId INT,
-                IN p_Hash VARCHAR(500),
-                IN p_CreatedBy INT
-            )
-BEGIN
-                INSERT INTO member_credentials (
-                    fk_member_master_profile_id, PasswordHash, IsTemporaryPassword, IsActive, created_by
-                ) VALUES (
-                    p_MemberId, p_Hash, 1, 1, p_CreatedBy
-                );
             END ;;
 DELIMITER ;
 /*!50003 SET sql_mode              = @saved_sql_mode */ ;
@@ -11611,206 +11311,6 @@ DELIMITER ;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
 /*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
 DELIMITER ;;
-CREATE PROCEDURE `sp_setting_get_all`()
-BEGIN
-                SELECT pk_setting_id AS Id, SettingKey, SettingValue, Description, modified_by AS ModifiedBy, modified_date AS ModifiedDate
-                FROM system_settings
-                ORDER BY SettingKey;
-            END ;;
-DELIMITER ;
-/*!50003 SET sql_mode              = @saved_sql_mode */ ;
-/*!50003 SET character_set_client  = @saved_cs_client */ ;
-/*!50003 SET character_set_results = @saved_cs_results */ ;
-/*!50003 SET collation_connection  = @saved_col_connection */ ;
-/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
-/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
-/*!50003 SET @saved_col_connection = @@collation_connection */ ;
-/*!50003 SET character_set_client  = utf8mb4 */ ;
-/*!50003 SET character_set_results = utf8mb4 */ ;
-/*!50003 SET collation_connection  = utf8mb4_0900_ai_ci */ ;
-/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
-/*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
-DELIMITER ;;
-CREATE PROCEDURE `sp_setting_get_by_key`(
-                IN p_Key VARCHAR(100)
-            )
-BEGIN
-                SELECT pk_setting_id AS Id, SettingKey, SettingValue, Description, modified_by AS ModifiedBy, modified_date AS ModifiedDate
-                FROM system_settings
-                WHERE SettingKey = p_Key;
-            END ;;
-DELIMITER ;
-/*!50003 SET sql_mode              = @saved_sql_mode */ ;
-/*!50003 SET character_set_client  = @saved_cs_client */ ;
-/*!50003 SET character_set_results = @saved_cs_results */ ;
-/*!50003 SET collation_connection  = @saved_col_connection */ ;
-/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
-/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
-/*!50003 SET @saved_col_connection = @@collation_connection */ ;
-/*!50003 SET character_set_client  = utf8mb4 */ ;
-/*!50003 SET character_set_results = utf8mb4 */ ;
-/*!50003 SET collation_connection  = utf8mb4_0900_ai_ci */ ;
-/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
-/*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
-DELIMITER ;;
-CREATE PROCEDURE `sp_setting_upsert`(
-                IN p_Key VARCHAR(100),
-                IN p_Value VARCHAR(500),
-                IN p_Description VARCHAR(200),
-                IN p_ModifiedBy INT
-            )
-BEGIN
-                INSERT INTO system_settings (SettingKey, SettingValue, Description, modified_by, modified_date)
-                VALUES (p_Key, p_Value, p_Description, p_ModifiedBy, NOW())
-                ON DUPLICATE KEY UPDATE
-                    SettingValue = p_Value,
-                    Description = p_Description,
-                    modified_by = p_ModifiedBy,
-                    modified_date = NOW();
-            END ;;
-DELIMITER ;
-/*!50003 SET sql_mode              = @saved_sql_mode */ ;
-/*!50003 SET character_set_client  = @saved_cs_client */ ;
-/*!50003 SET character_set_results = @saved_cs_results */ ;
-/*!50003 SET collation_connection  = @saved_col_connection */ ;
-/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
-/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
-/*!50003 SET @saved_col_connection = @@collation_connection */ ;
-/*!50003 SET character_set_client  = utf8mb4 */ ;
-/*!50003 SET character_set_results = utf8mb4 */ ;
-/*!50003 SET collation_connection  = utf8mb4_0900_ai_ci */ ;
-/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
-/*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
-DELIMITER ;;
-CREATE PROCEDURE `sp_sub_category_create`(
-                IN p_CategoryId INT,
-                IN p_Name VARCHAR(200),
-                IN p_SortOrder INT,
-                IN p_IsActive TINYINT,
-                IN p_CreatedBy INT
-            )
-BEGIN
-                INSERT INTO sub_category_master (fk_category_id, name, sort_order, is_active, created_by)
-                VALUES (p_CategoryId, p_Name, p_SortOrder, p_IsActive, p_CreatedBy);
-                SELECT LAST_INSERT_ID();
-            END ;;
-DELIMITER ;
-/*!50003 SET sql_mode              = @saved_sql_mode */ ;
-/*!50003 SET character_set_client  = @saved_cs_client */ ;
-/*!50003 SET character_set_results = @saved_cs_results */ ;
-/*!50003 SET collation_connection  = @saved_col_connection */ ;
-/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
-/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
-/*!50003 SET @saved_col_connection = @@collation_connection */ ;
-/*!50003 SET character_set_client  = utf8mb4 */ ;
-/*!50003 SET character_set_results = utf8mb4 */ ;
-/*!50003 SET collation_connection  = utf8mb4_0900_ai_ci */ ;
-/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
-/*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
-DELIMITER ;;
-CREATE PROCEDURE `sp_sub_category_delete`(
-                IN p_Id INT,
-                IN p_DeletedBy INT
-            )
-BEGIN
-                UPDATE sub_category_master
-                SET isdeleted = 1, deleted_by = p_DeletedBy, deleted_date = NOW()
-                WHERE pk_sub_category_id = p_Id;
-            END ;;
-DELIMITER ;
-/*!50003 SET sql_mode              = @saved_sql_mode */ ;
-/*!50003 SET character_set_client  = @saved_cs_client */ ;
-/*!50003 SET character_set_results = @saved_cs_results */ ;
-/*!50003 SET collation_connection  = @saved_col_connection */ ;
-/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
-/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
-/*!50003 SET @saved_col_connection = @@collation_connection */ ;
-/*!50003 SET character_set_client  = utf8mb4 */ ;
-/*!50003 SET character_set_results = utf8mb4 */ ;
-/*!50003 SET collation_connection  = utf8mb4_0900_ai_ci */ ;
-/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
-/*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
-DELIMITER ;;
-CREATE PROCEDURE `sp_sub_category_get_by_category`(IN p_CategoryId INT)
-BEGIN
-                SELECT pk_sub_category_id AS Id,
-                       fk_category_id AS CategoryId,
-                       name AS Name,
-                       sort_order AS SortOrder,
-                       is_active AS IsActive
-                FROM sub_category_master
-                WHERE fk_category_id = p_CategoryId AND isdeleted = 0
-                ORDER BY sort_order, name;
-            END ;;
-DELIMITER ;
-/*!50003 SET sql_mode              = @saved_sql_mode */ ;
-/*!50003 SET character_set_client  = @saved_cs_client */ ;
-/*!50003 SET character_set_results = @saved_cs_results */ ;
-/*!50003 SET collation_connection  = @saved_col_connection */ ;
-/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
-/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
-/*!50003 SET @saved_col_connection = @@collation_connection */ ;
-/*!50003 SET character_set_client  = utf8mb4 */ ;
-/*!50003 SET character_set_results = utf8mb4 */ ;
-/*!50003 SET collation_connection  = utf8mb4_0900_ai_ci */ ;
-/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
-/*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
-DELIMITER ;;
-CREATE PROCEDURE `sp_sub_category_get_by_id`(IN p_Id INT)
-BEGIN
-                SELECT pk_sub_category_id AS Id,
-                       fk_category_id AS CategoryId,
-                       name AS Name,
-                       sort_order AS SortOrder,
-                       is_active AS IsActive
-                FROM sub_category_master
-                WHERE pk_sub_category_id = p_Id AND isdeleted = 0;
-            END ;;
-DELIMITER ;
-/*!50003 SET sql_mode              = @saved_sql_mode */ ;
-/*!50003 SET character_set_client  = @saved_cs_client */ ;
-/*!50003 SET character_set_results = @saved_cs_results */ ;
-/*!50003 SET collation_connection  = @saved_col_connection */ ;
-/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
-/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
-/*!50003 SET @saved_col_connection = @@collation_connection */ ;
-/*!50003 SET character_set_client  = utf8mb4 */ ;
-/*!50003 SET character_set_results = utf8mb4 */ ;
-/*!50003 SET collation_connection  = utf8mb4_0900_ai_ci */ ;
-/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
-/*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
-DELIMITER ;;
-CREATE PROCEDURE `sp_sub_category_update`(
-                IN p_Id INT,
-                IN p_CategoryId INT,
-                IN p_Name VARCHAR(200),
-                IN p_SortOrder INT,
-                IN p_IsActive TINYINT,
-                IN p_ModifiedBy INT
-            )
-BEGIN
-                UPDATE sub_category_master
-                SET fk_category_id = p_CategoryId,
-                    name = p_Name,
-                    sort_order = p_SortOrder,
-                    is_active = p_IsActive,
-                    modified_by = p_ModifiedBy
-                WHERE pk_sub_category_id = p_Id AND isdeleted = 0;
-            END ;;
-DELIMITER ;
-/*!50003 SET sql_mode              = @saved_sql_mode */ ;
-/*!50003 SET character_set_client  = @saved_cs_client */ ;
-/*!50003 SET character_set_results = @saved_cs_results */ ;
-/*!50003 SET collation_connection  = @saved_col_connection */ ;
-/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
-/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
-/*!50003 SET @saved_col_connection = @@collation_connection */ ;
-/*!50003 SET character_set_client  = utf8mb4 */ ;
-/*!50003 SET character_set_results = utf8mb4 */ ;
-/*!50003 SET collation_connection  = utf8mb4_0900_ai_ci */ ;
-/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
-/*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
-DELIMITER ;;
 CREATE PROCEDURE `sp_theme_create`(
                 IN p_ThemeName VARCHAR(100),
                 IN p_ThemeImagePath VARCHAR(500),
@@ -11924,13 +11424,12 @@ CREATE PROCEDURE `sp_upcoming_event_create`(
                 IN p_ExpiryDate DATE,
                 IN p_EventVenue VARCHAR(255),
                 IN p_RegistrationLink VARCHAR(500),
-                IN p_IsSendWhatsapp TINYINT,
                 IN p_IsRepeatNotification TINYINT,
                 IN p_CreatedBy INT
             )
 BEGIN
-                INSERT INTO upcoming_events (fk_club_id, Title, Description, ImagePath, EventDate, PublishDate, ExpiryDate, EventVenue, RegistrationLink, IsSendWhatsapp, IsRepeatNotification, created_by)
-                VALUES (p_ClubId, p_Title, p_Description, p_ImagePath, p_EventDate, p_PublishDate, p_ExpiryDate, p_EventVenue, p_RegistrationLink, p_IsSendWhatsapp, p_IsRepeatNotification, p_CreatedBy);
+                INSERT INTO upcoming_events (fk_club_id, Title, Description, ImagePath, EventDate, PublishDate, ExpiryDate, EventVenue, RegistrationLink, IsRepeatNotification, created_by)
+                VALUES (p_ClubId, p_Title, p_Description, p_ImagePath, p_EventDate, p_PublishDate, p_ExpiryDate, p_EventVenue, p_RegistrationLink, p_IsRepeatNotification, p_CreatedBy);
 
                 SELECT LAST_INSERT_ID();
             END ;;
@@ -11995,7 +11494,6 @@ BEGIN
                        e.ExpiryDate,
                        e.EventVenue,
                        e.RegistrationLink,
-                       e.IsSendWhatsapp,
                        e.IsRepeatNotification,
                        CASE
                            WHEN e.ExpiryDate < NOW() THEN 'Expired'
@@ -12058,7 +11556,6 @@ BEGIN
                        e.ExpiryDate,
                        e.EventVenue,
                        e.RegistrationLink,
-                       e.IsSendWhatsapp,
                        e.IsRepeatNotification,
                        CASE
                            WHEN e.ExpiryDate < NOW() THEN 'Expired'
@@ -12173,7 +11670,6 @@ CREATE PROCEDURE `sp_upcoming_event_update`(
                 IN p_ExpiryDate DATE,
                 IN p_EventVenue VARCHAR(255),
                 IN p_RegistrationLink VARCHAR(500),
-                IN p_IsSendWhatsapp TINYINT,
                 IN p_IsRepeatNotification TINYINT,
                 IN p_ModifiedBy INT
             )
@@ -12187,7 +11683,6 @@ BEGIN
                     ExpiryDate = p_ExpiryDate,
                     EventVenue = p_EventVenue,
                     RegistrationLink = p_RegistrationLink,
-                    IsSendWhatsapp = p_IsSendWhatsapp,
                     IsRepeatNotification = p_IsRepeatNotification,
                     modified_by = p_ModifiedBy
                 WHERE pk_upcoming_event_id = p_Id
@@ -12340,362 +11835,6 @@ DELIMITER ;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
 /*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
 DELIMITER ;;
-CREATE PROCEDURE `sp_zonal_approve_request`(
-                IN p_ApprovalId INT,
-                IN p_ZoneId INT,
-                IN p_MemberId INT,
-                IN p_Remark VARCHAR(1000)
-            )
-BEGIN
-                DECLARE v_ProjectId INT;
-                DECLARE v_Requested INT;
-                DECLARE v_Status VARCHAR(20);
-                DECLARE v_Token VARCHAR(100);
-
-                SELECT fk_project_id, requested_beneficiaries, status, approval_token
-                INTO v_ProjectId, v_Requested, v_Status, v_Token
-                FROM beneficiary_approval_requests
-                WHERE pk_approval_id = p_ApprovalId AND fk_zone_id = p_ZoneId;
-
-                IF v_Status IS NULL THEN
-                    SELECT 'not_found' AS Status, 'error' AS Result;
-                ELSEIF v_Status != 'pending' THEN
-                    SELECT v_Status AS Status, 'already_processed' AS Result;
-                ELSE
-                    UPDATE beneficiary_approval_requests
-                    SET status = 'approved', remark = p_Remark, responded_by = p_MemberId, responded_date = NOW()
-                    WHERE pk_approval_id = p_ApprovalId;
-
-                    UPDATE rotary_projects
-                    SET direct_beneficiaries = v_Requested, modified_date = NOW()
-                    WHERE pk_project_id = v_ProjectId;
-
-                    SELECT 'approved' AS Status, 'success' AS Result, v_Token AS Token;
-                END IF;
-            END ;;
-DELIMITER ;
-/*!50003 SET sql_mode              = @saved_sql_mode */ ;
-/*!50003 SET character_set_client  = @saved_cs_client */ ;
-/*!50003 SET character_set_results = @saved_cs_results */ ;
-/*!50003 SET collation_connection  = @saved_col_connection */ ;
-/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
-/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
-/*!50003 SET @saved_col_connection = @@collation_connection */ ;
-/*!50003 SET character_set_client  = utf8mb4 */ ;
-/*!50003 SET character_set_results = utf8mb4 */ ;
-/*!50003 SET collation_connection  = utf8mb4_0900_ai_ci */ ;
-/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
-/*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
-DELIMITER ;;
-CREATE PROCEDURE `sp_zonal_coordinator_assign`(
-                IN p_MemberId INT,
-                IN p_ZoneId INT,
-                IN p_AssignedBy INT
-            )
-BEGIN
-                DECLARE v_HasConflict INT DEFAULT 0;
-
-                -- Check if member has SuperAdmin or Admin role
-                SELECT COUNT(*) INTO v_HasConflict
-                FROM member_roles mr
-                JOIN roles r ON r.pk_role_id = mr.fk_role_id
-                WHERE mr.fk_member_master_profile_id = p_MemberId
-                  AND mr.IsActive = 1 AND mr.isdeleted = 0
-                  AND r.RoleName IN ('SuperAdmin', 'Admin');
-
-                IF v_HasConflict > 0 THEN
-                    SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Member already has SuperAdmin or Admin role. Cannot assign as Zonal Coordinator.';
-                END IF;
-
-                -- Deactivate any existing coordinator for this zone
-                UPDATE member_roles
-                SET IsActive = 0, RevokedDate = NOW(), RevokedBy = p_AssignedBy
-                WHERE fk_role_id = 4 AND fk_zone_id = p_ZoneId AND IsActive = 1 AND isdeleted = 0;
-
-                -- Insert new coordinator role
-                INSERT INTO member_roles (fk_member_master_profile_id, fk_role_id, fk_zone_id, AssignedBy, AssignedDate, IsActive, isdeleted)
-                VALUES (p_MemberId, 4, p_ZoneId, p_AssignedBy, NOW(), 1, 0);
-            END ;;
-DELIMITER ;
-/*!50003 SET sql_mode              = @saved_sql_mode */ ;
-/*!50003 SET character_set_client  = @saved_cs_client */ ;
-/*!50003 SET character_set_results = @saved_cs_results */ ;
-/*!50003 SET collation_connection  = @saved_col_connection */ ;
-/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
-/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
-/*!50003 SET @saved_col_connection = @@collation_connection */ ;
-/*!50003 SET character_set_client  = utf8mb4 */ ;
-/*!50003 SET character_set_results = utf8mb4 */ ;
-/*!50003 SET collation_connection  = utf8mb4_0900_ai_ci */ ;
-/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
-/*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
-DELIMITER ;;
-CREATE PROCEDURE `sp_zonal_coordinator_get_by_zone`(
-                IN p_ZoneId INT
-            )
-BEGIN
-                SELECT
-                    mr.fk_member_master_profile_id AS MemberId,
-                    m.MemberName,
-                    m.EmailId AS Email,
-                    mr.AssignedDate
-                FROM member_roles mr
-                JOIN member_master_profile m ON m.pk_member_master_profile_id = mr.fk_member_master_profile_id
-                WHERE mr.fk_role_id = 4
-                  AND mr.fk_zone_id = p_ZoneId
-                  AND mr.IsActive = 1
-                  AND mr.isdeleted = 0
-                  AND m.isdeleted = 0
-                LIMIT 1;
-            END ;;
-DELIMITER ;
-/*!50003 SET sql_mode              = @saved_sql_mode */ ;
-/*!50003 SET character_set_client  = @saved_cs_client */ ;
-/*!50003 SET character_set_results = @saved_cs_results */ ;
-/*!50003 SET collation_connection  = @saved_col_connection */ ;
-/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
-/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
-/*!50003 SET @saved_col_connection = @@collation_connection */ ;
-/*!50003 SET character_set_client  = utf8mb4 */ ;
-/*!50003 SET character_set_results = utf8mb4 */ ;
-/*!50003 SET collation_connection  = utf8mb4_0900_ai_ci */ ;
-/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
-/*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
-DELIMITER ;;
-CREATE PROCEDURE `sp_zonal_coordinator_remove`(
-                IN p_ZoneId INT,
-                IN p_RevokedBy INT
-            )
-BEGIN
-                UPDATE member_roles
-                SET IsActive = 0, RevokedDate = NOW(), RevokedBy = p_RevokedBy
-                WHERE fk_role_id = 4 AND fk_zone_id = p_ZoneId AND IsActive = 1 AND isdeleted = 0;
-            END ;;
-DELIMITER ;
-/*!50003 SET sql_mode              = @saved_sql_mode */ ;
-/*!50003 SET character_set_client  = @saved_cs_client */ ;
-/*!50003 SET character_set_results = @saved_cs_results */ ;
-/*!50003 SET collation_connection  = @saved_col_connection */ ;
-/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
-/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
-/*!50003 SET @saved_col_connection = @@collation_connection */ ;
-/*!50003 SET character_set_client  = utf8mb4 */ ;
-/*!50003 SET character_set_results = utf8mb4 */ ;
-/*!50003 SET collation_connection  = utf8mb4_0900_ai_ci */ ;
-/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
-/*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
-DELIMITER ;;
-CREATE PROCEDURE `sp_zonal_coordinator_search_members`(
-                IN p_ZoneId INT,
-                IN p_Search VARCHAR(200)
-            )
-BEGIN
-                SELECT DISTINCT
-                    m.pk_member_master_profile_id AS MemberId,
-                    m.MemberName,
-                    m.EmailId AS Email,
-                    cl.ClubName,
-                    d.DistrictNumber
-                FROM member_master_profile m
-                JOIN club_members cm ON cm.fk_member_master_profile_id = m.pk_member_master_profile_id AND cm.isdeleted = 0
-                JOIN club_master cl ON cl.pk_club_id = cm.fk_club_id AND cl.isdeleted = 0
-                JOIN district_master d ON d.pk_district_id = cl.fk_district_id AND d.isdeleted = 0
-                WHERE d.fk_zone_id = p_ZoneId
-                  AND m.isdeleted = 0
-                  AND (m.MemberName LIKE CONCAT('%', p_Search, '%')
-                       OR m.EmailId LIKE CONCAT('%', p_Search, '%'))
-                  AND m.pk_member_master_profile_id NOT IN (
-                      SELECT mr2.fk_member_master_profile_id FROM member_roles mr2
-                      JOIN roles r2 ON r2.pk_role_id = mr2.fk_role_id
-                      WHERE mr2.IsActive = 1 AND mr2.isdeleted = 0
-                        AND r2.RoleName IN ('SuperAdmin', 'Admin')
-                  )
-                ORDER BY m.MemberName
-                LIMIT 20;
-            END ;;
-DELIMITER ;
-/*!50003 SET sql_mode              = @saved_sql_mode */ ;
-/*!50003 SET character_set_client  = @saved_cs_client */ ;
-/*!50003 SET character_set_results = @saved_cs_results */ ;
-/*!50003 SET collation_connection  = @saved_col_connection */ ;
-/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
-/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
-/*!50003 SET @saved_col_connection = @@collation_connection */ ;
-/*!50003 SET character_set_client  = utf8mb4 */ ;
-/*!50003 SET character_set_results = utf8mb4 */ ;
-/*!50003 SET collation_connection  = utf8mb4_0900_ai_ci */ ;
-/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
-/*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
-DELIMITER ;;
-CREATE PROCEDURE `sp_zonal_get_approval_requests`(
-                IN p_ZoneId INT,
-                IN p_DistrictId INT,
-                IN p_Status VARCHAR(20),
-                IN p_Page INT,
-                IN p_PageSize INT
-            )
-BEGIN
-                DECLARE v_Offset INT;
-                SET v_Offset = (p_Page - 1) * p_PageSize;
-
-                SELECT SQL_CALC_FOUND_ROWS
-                    bar.pk_approval_id AS Id,
-                    bar.fk_project_id AS ProjectId,
-                    bar.requested_beneficiaries AS RequestedBeneficiaries,
-                    bar.current_limit AS CurrentLimit,
-                    bar.approval_token AS ApprovalToken,
-                    bar.status AS Status,
-                    bar.remark AS Remark,
-                    bar.responded_date AS RespondedDate,
-                    bar.created_date AS CreatedDate,
-                    p.title AS ProjectTitle,
-                    p.project_date AS ProjectDate,
-                    c.ClubName,
-                    d.DistrictNumber,
-                    m.MemberName AS RequestedByName
-                FROM beneficiary_approval_requests bar
-                JOIN rotary_projects p ON p.pk_project_id = bar.fk_project_id
-                JOIN club_master c ON c.pk_club_id = bar.fk_club_id
-                JOIN district_master d ON d.pk_district_id = c.fk_district_id
-                LEFT JOIN member_master m ON m.pk_member_id = bar.requested_by
-                WHERE bar.fk_zone_id = p_ZoneId
-                  AND (p_DistrictId = 0 OR d.pk_district_id = p_DistrictId)
-                  AND (p_Status IS NULL OR p_Status = '' OR bar.status = p_Status)
-                ORDER BY
-                    CASE bar.status WHEN 'pending' THEN 0 ELSE 1 END,
-                    bar.created_date DESC
-                LIMIT v_Offset, p_PageSize;
-
-                SELECT FOUND_ROWS() AS TotalCount;
-            END ;;
-DELIMITER ;
-/*!50003 SET sql_mode              = @saved_sql_mode */ ;
-/*!50003 SET character_set_client  = @saved_cs_client */ ;
-/*!50003 SET character_set_results = @saved_cs_results */ ;
-/*!50003 SET collation_connection  = @saved_col_connection */ ;
-/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
-/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
-/*!50003 SET @saved_col_connection = @@collation_connection */ ;
-/*!50003 SET character_set_client  = utf8mb4 */ ;
-/*!50003 SET character_set_results = utf8mb4 */ ;
-/*!50003 SET collation_connection  = utf8mb4_0900_ai_ci */ ;
-/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
-/*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
-DELIMITER ;;
-CREATE PROCEDURE `sp_zonal_get_district_clubs`(
-                IN p_DistrictId INT
-            )
-BEGIN
-                SELECT pk_club_id AS Id, ClubName, ClubCode
-                FROM club_master
-                WHERE fk_district_id = p_DistrictId AND isdeleted = 0
-                ORDER BY ClubName;
-            END ;;
-DELIMITER ;
-/*!50003 SET sql_mode              = @saved_sql_mode */ ;
-/*!50003 SET character_set_client  = @saved_cs_client */ ;
-/*!50003 SET character_set_results = @saved_cs_results */ ;
-/*!50003 SET collation_connection  = @saved_col_connection */ ;
-/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
-/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
-/*!50003 SET @saved_col_connection = @@collation_connection */ ;
-/*!50003 SET character_set_client  = utf8mb4 */ ;
-/*!50003 SET character_set_results = utf8mb4 */ ;
-/*!50003 SET collation_connection  = utf8mb4_0900_ai_ci */ ;
-/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
-/*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
-DELIMITER ;;
-CREATE PROCEDURE `sp_zonal_get_zone_districts`(
-                IN p_ZoneId INT
-            )
-BEGIN
-                SELECT pk_district_id AS Id, DistrictNumber, DistrictName
-                FROM district_master
-                WHERE fk_zone_id = p_ZoneId AND isdeleted = 0
-                ORDER BY CAST(DistrictNumber AS UNSIGNED), DistrictNumber;
-            END ;;
-DELIMITER ;
-/*!50003 SET sql_mode              = @saved_sql_mode */ ;
-/*!50003 SET character_set_client  = @saved_cs_client */ ;
-/*!50003 SET character_set_results = @saved_cs_results */ ;
-/*!50003 SET collation_connection  = @saved_col_connection */ ;
-/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
-/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
-/*!50003 SET @saved_col_connection = @@collation_connection */ ;
-/*!50003 SET character_set_client  = utf8mb4 */ ;
-/*!50003 SET character_set_results = utf8mb4 */ ;
-/*!50003 SET collation_connection  = utf8mb4_0900_ai_ci */ ;
-/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
-/*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
-DELIMITER ;;
-CREATE PROCEDURE `sp_zonal_get_zone_for_member`(
-                IN p_MemberId INT
-            )
-BEGIN
-                SELECT mr.fk_zone_id AS ZoneId, z.ZoneName, z.ZoneCode
-                FROM member_roles mr
-                JOIN roles r ON r.pk_role_id = mr.fk_role_id
-                JOIN zone_master z ON z.pk_zone_id = mr.fk_zone_id
-                WHERE mr.fk_member_id = p_MemberId
-                  AND r.RoleName = 'ZonalCoordinator'
-                  AND mr.is_active = 1
-                  AND z.isdeleted = 0
-                LIMIT 1;
-            END ;;
-DELIMITER ;
-/*!50003 SET sql_mode              = @saved_sql_mode */ ;
-/*!50003 SET character_set_client  = @saved_cs_client */ ;
-/*!50003 SET character_set_results = @saved_cs_results */ ;
-/*!50003 SET collation_connection  = @saved_col_connection */ ;
-/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
-/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
-/*!50003 SET @saved_col_connection = @@collation_connection */ ;
-/*!50003 SET character_set_client  = utf8mb4 */ ;
-/*!50003 SET character_set_results = utf8mb4 */ ;
-/*!50003 SET collation_connection  = utf8mb4_0900_ai_ci */ ;
-/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
-/*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
-DELIMITER ;;
-CREATE PROCEDURE `sp_zonal_reject_request`(
-                IN p_ApprovalId INT,
-                IN p_ZoneId INT,
-                IN p_MemberId INT,
-                IN p_Remark VARCHAR(1000)
-            )
-BEGIN
-                DECLARE v_Status VARCHAR(20);
-                DECLARE v_Token VARCHAR(100);
-
-                SELECT status, approval_token INTO v_Status, v_Token
-                FROM beneficiary_approval_requests
-                WHERE pk_approval_id = p_ApprovalId AND fk_zone_id = p_ZoneId;
-
-                IF v_Status IS NULL THEN
-                    SELECT 'not_found' AS Status, 'error' AS Result;
-                ELSEIF v_Status != 'pending' THEN
-                    SELECT v_Status AS Status, 'already_processed' AS Result;
-                ELSE
-                    UPDATE beneficiary_approval_requests
-                    SET status = 'rejected', remark = p_Remark, responded_by = p_MemberId, responded_date = NOW()
-                    WHERE pk_approval_id = p_ApprovalId;
-
-                    SELECT 'rejected' AS Status, 'success' AS Result, v_Token AS Token;
-                END IF;
-            END ;;
-DELIMITER ;
-/*!50003 SET sql_mode              = @saved_sql_mode */ ;
-/*!50003 SET character_set_client  = @saved_cs_client */ ;
-/*!50003 SET character_set_results = @saved_cs_results */ ;
-/*!50003 SET collation_connection  = @saved_col_connection */ ;
-/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
-/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
-/*!50003 SET @saved_col_connection = @@collation_connection */ ;
-/*!50003 SET character_set_client  = utf8mb4 */ ;
-/*!50003 SET character_set_results = utf8mb4 */ ;
-/*!50003 SET collation_connection  = utf8mb4_0900_ai_ci */ ;
-/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
-/*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
-DELIMITER ;;
 CREATE PROCEDURE `sp_zone_check_duplicate`(
                 IN p_ZoneName VARCHAR(100),
                 IN p_ExcludeId INT
@@ -12790,16 +11929,8 @@ BEGIN
                      FROM club_members cm
                      JOIN club_master c2 ON c2.pk_club_id = cm.fk_club_id AND c2.isdeleted = 0
                      JOIN district_master d3 ON d3.pk_district_id = c2.fk_district_id AND d3.isdeleted = 0
-                     WHERE d3.fk_zone_id = z.pk_zone_id AND cm.isdeleted = 0) AS TotalMembers,
-                    coord.MemberName AS CoordinatorName,
-                    coord.EmailId AS CoordinatorEmail
+                     WHERE d3.fk_zone_id = z.pk_zone_id AND cm.isdeleted = 0) AS TotalMembers
                 FROM zone_master z
-                LEFT JOIN (
-                    SELECT mr.fk_zone_id, m.MemberName, m.EmailId
-                    FROM member_roles mr
-                    JOIN member_master_profile m ON m.pk_member_master_profile_id = mr.fk_member_master_profile_id
-                    WHERE mr.fk_role_id = 4 AND mr.IsActive = 1 AND mr.isdeleted = 0 AND m.isdeleted = 0
-                ) coord ON coord.fk_zone_id = z.pk_zone_id
                 WHERE z.isdeleted = 0
                   AND (p_Search IS NULL OR z.ZoneName LIKE CONCAT('%', p_Search, '%'))
                   AND (p_IsActive IS NULL OR z.IsActive = p_IsActive)

@@ -172,8 +172,8 @@ export function downloadPDF(report: MonthlyReportPreview) {
 
     const isCommunity = key === "community_service";
     const head = isCommunity
-      ? [["Sr.No", "Date", "Title", "Area of Focus", "Category", "Sub Category", "Cost", "Beneficiaries", "Man Hours", "Rotarians", "Rotaractors"]]
-      : [["Sr.No", "Date", "Title", "Category", "Sub Category", "Cost", "Beneficiaries", "Man Hours", "Rotarians", "Rotaractors"]];
+      ? [["Sr.No", "Date", "Title", "Area of Focus", "Cost", "Beneficiaries", "Man Hours", "Rotarians", "Rotaractors"]]
+      : [["Sr.No", "Date", "Title", "Category", "Cost", "Beneficiaries", "Man Hours", "Rotarians", "Rotaractors"]];
 
     const body = projects.map((p, i) => {
       const typeTag = (key === "community_service" || key === "public_image_initiative") && p.projectType
@@ -185,10 +185,7 @@ export function downloadPDF(report: MonthlyReportPreview) {
         p.directBeneficiaries ?? "-", p.manHours ?? "-",
         p.rotariansInvolved ?? "-", p.rotaractorsInvolved ?? "-",
       ];
-      if (isCommunity) {
-        return [i + 1, formatDate(p.projectDate), title, p.areaOfFocusName || "-", p.categoryName || "-", p.subCategoryName || "-", ...common];
-      }
-      return [i + 1, formatDate(p.projectDate), title, p.areaOfFocusName || "-", p.categoryName || "-", ...common];
+      return [i + 1, formatDate(p.projectDate), title, p.areaOfFocusName || "-", ...common];
     });
 
     autoTable(doc, {
@@ -338,12 +335,11 @@ export function generatePDFBase64(report: MonthlyReportPreview): string {
     doc.text(label, 14, y);
     y += 5;
     const head = isCommunityService
-      ? [["Sr.No", "Title", "Date", "Area of Focus", "Category", "Sub Category", "Cost", "Beneficiaries", "Man Hours", "Rotarians", "Rotaractors"]]
-      : [["Sr.No", "Title", "Date", "Category", "Sub Category", "Cost", "Beneficiaries", "Man Hours", "Rotarians", "Rotaractors"]];
+      ? [["Sr.No", "Title", "Date", "Area of Focus", "Cost", "Beneficiaries", "Man Hours", "Rotarians", "Rotaractors"]]
+      : [["Sr.No", "Title", "Date", "Category", "Cost", "Beneficiaries", "Man Hours", "Rotarians", "Rotaractors"]];
     const body = items.map((p, i) => {
       const base = [i + 1, p.title, formatDate(p.projectDate)];
-      if (isCommunityService) base.push(p.areaOfFocusName || "-", p.categoryName || "-", p.subCategoryName || "-");
-      else base.push(p.categoryName || "-", p.subCategoryName || "-");
+      base.push(p.areaOfFocusName || "-");
       base.push(p.projectCost != null ? `${currencySymbol()}${p.projectCost}` : "-", p.directBeneficiaries ?? "-", p.manHours ?? "-", p.rotariansInvolved ?? "-", p.rotaractorsInvolved ?? "-");
       return base;
     });
@@ -523,8 +519,8 @@ export async function downloadWord(report: MonthlyReportPreview) {
 
     const isCommunity = key === "community_service";
     const headerRow = isCommunity
-      ? new DocxTableRow({ children: [headerCell("Sr.No"), headerCell("Date"), headerCell("Title"), headerCell("Area of Focus"), headerCell("Category"), headerCell("Sub Category"), headerCell("Cost"), headerCell("Beneficiaries"), headerCell("Man Hours"), headerCell("Rotarians"), headerCell("Rotaractors")] })
-      : new DocxTableRow({ children: [headerCell("Sr.No"), headerCell("Date"), headerCell("Title"), headerCell("Category"), headerCell("Sub Category"), headerCell("Cost"), headerCell("Beneficiaries"), headerCell("Man Hours"), headerCell("Rotarians"), headerCell("Rotaractors")] });
+      ? new DocxTableRow({ children: [headerCell("Sr.No"), headerCell("Date"), headerCell("Title"), headerCell("Area of Focus"), headerCell("Cost"), headerCell("Beneficiaries"), headerCell("Man Hours"), headerCell("Rotarians"), headerCell("Rotaractors")] })
+      : new DocxTableRow({ children: [headerCell("Sr.No"), headerCell("Date"), headerCell("Title"), headerCell("Category"), headerCell("Cost"), headerCell("Beneficiaries"), headerCell("Man Hours"), headerCell("Rotarians"), headerCell("Rotaractors")] });
 
     const dataRows = projects.map((p, i) => {
       const typeTag = (key === "community_service" || key === "public_image_initiative") && p.projectType
@@ -538,10 +534,7 @@ export async function downloadWord(report: MonthlyReportPreview) {
         cell(p.rotariansInvolved != null ? String(p.rotariansInvolved) : "-"),
         cell(p.rotaractorsInvolved != null ? String(p.rotaractorsInvolved) : "-"),
       ];
-      if (isCommunity) {
-        return new DocxTableRow({ children: [cell(String(i + 1)), cell(formatDate(p.projectDate)), cell(title), cell(p.areaOfFocusName || "-"), cell(p.categoryName || "-"), cell(p.subCategoryName || "-"), ...common] });
-      }
-      return new DocxTableRow({ children: [cell(String(i + 1)), cell(formatDate(p.projectDate)), cell(title), cell(p.areaOfFocusName || "-"), cell(p.categoryName || "-"), ...common] });
+      return new DocxTableRow({ children: [cell(String(i + 1)), cell(formatDate(p.projectDate)), cell(title), cell(p.areaOfFocusName || "-"), ...common] });
     });
 
     tables.push(new DocxTable({

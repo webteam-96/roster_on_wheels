@@ -32,6 +32,7 @@ import AlertModal from "@/components/AlertModal";
 import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
 import ClubAdminShell from "@/components/v2/ClubAdminShell";
+import CalendarFeedCard from "@/components/attendance/CalendarFeedCard";
 import { fileTimestamp } from "@/lib/dateUtils";
 import { useSyncClubIdFromUrl } from "@/hooks/useSyncClubIdFromUrl";
 
@@ -514,6 +515,8 @@ export function AttendanceV2View({ clubId: propClubId, embedded = false }: { clu
             )}
           </div>
         </div>
+
+        <CalendarFeedCard clubId={clubId} canManage={canManage} />
 
         {/* Delete confirm */}
         <AlertModal

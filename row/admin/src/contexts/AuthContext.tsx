@@ -21,10 +21,7 @@ interface AuthContextType {
   isAuthenticated: boolean;
   isSuperAdmin: boolean;
   isAdmin: boolean;
-  isZonalCoordinator: boolean;
-  isRIDirector: boolean;
   isAG: boolean;
-  isClubModerator: boolean;
   loading: boolean;
   lastLoginTime: string | null;
   sessionRemaining: number; // seconds remaining
@@ -44,10 +41,7 @@ const AuthContext = createContext<AuthContextType>({
   isAuthenticated: false,
   isSuperAdmin: false,
   isAdmin: false,
-  isZonalCoordinator: false,
-  isRIDirector: false,
   isAG: false,
-  isClubModerator: false,
   loading: true,
   lastLoginTime: null,
   sessionRemaining: 0,
@@ -435,10 +429,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const isAuthenticated = !!token && !!user;
   const isSuperAdmin = user?.roles?.includes("SuperAdmin") ?? false;
   const isAdmin = user?.roles?.includes("Admin") ?? false;
-  const isZonalCoordinator = user?.roles?.includes("ZonalCoordinator") ?? false;
-  const isRIDirector = user?.roles?.includes("RIDirector") ?? false;
   const isAG = user?.roles?.includes("AG") ?? false;
-  const isClubModerator = user?.roles?.includes("ClubModerator") ?? false;
 
   const value = useMemo<AuthContextType>(
     () => ({
@@ -447,10 +438,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       isAuthenticated,
       isSuperAdmin,
       isAdmin,
-      isZonalCoordinator,
-      isRIDirector,
       isAG,
-      isClubModerator,
       loading,
       lastLoginTime,
       sessionRemaining,
@@ -471,10 +459,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       isAuthenticated,
       isSuperAdmin,
       isAdmin,
-      isZonalCoordinator,
-      isRIDirector,
       isAG,
-      isClubModerator,
       loading,
       lastLoginTime,
       sessionRemaining,

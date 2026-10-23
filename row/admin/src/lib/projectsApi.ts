@@ -21,8 +21,6 @@ export type Project = {
   rccInvolved: number | null;
   location: string | null;
   areaOfFocus: string | null;
-  category: string | null;
-  subCategory: string | null;
   funding: string | null;
   clubId: number;
   clubName: string | null;

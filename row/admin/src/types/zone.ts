@@ -6,9 +6,6 @@ export interface ZoneListItem {
   totalDistricts: number;
   totalClubs: number;
   totalMembers: number;
-  coordinatorName?: string | null;
-  coordinatorEmail?: string | null;
-  isZonalAwardsEnabled?: boolean;
 }
 
 export interface Zone {

@@ -3,7 +3,7 @@
  *
  * When the AI classification detects that a project fits a DIFFERENT project type (module) better,
  * the user can switch. We stash whatever they've filled so far into sessionStorage, navigate to the
- * target module's v2 Add page, and that page hydrates the draft + preselects the suggested category.
+ * target module's v2 Add page, and that page hydrates the draft + preselects the suggested Area of Focus.
  *
  * "Carry everything possible": the draft is a flat bag of the source form's fields. The target page
  * reads only the keys it recognises; unknown keys are simply ignored. Photos travel as their already
@@ -36,8 +36,6 @@ export function moduleAddPath(clubId: number, moduleKey?: string | null): string
 
 export interface SuggestedClassification {
   areaOfFocusId: number;
-  categoryId: number | null;
-  subCategoryId: number | null;
 }
 
 export interface ProjectSwitchDraft {

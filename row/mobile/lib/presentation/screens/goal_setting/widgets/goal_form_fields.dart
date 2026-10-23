@@ -5,12 +5,9 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../data/models/goal_setting_models.dart';
 import 'package:rotary_flutter_app/core/theme/app_fonts.dart';
 
-/// Shared rendering for a Goal Setting category form — the mobile twin of the
-/// web `GoalSettingPanel` field layer. Used by BOTH surfaces so they can never
-/// drift apart:
-///   • the ENTRY screen (club / district admins setting their own targets), and
-///   • the OVERSIGHT screen (RI Director / Zone Co-ordinator / District
-///     Assistant reading someone else's goals).
+/// Rendering for a Goal Setting category form — the mobile twin of the web
+/// `GoalSettingPanel` field layer, used by the ENTRY screen (club / district
+/// admins setting their own targets).
 ///
 /// Everything here is metadata-driven — the server supplies each field's
 /// DataType (Integer/Decimal/Percentage/Currency/Boolean/Text), FieldRole

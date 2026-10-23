@@ -55,7 +55,7 @@ public class DailyStatsReportController : ControllerBase
                         {
                             avenue = x.Avenue, oneTime = x.OneTime, ongoing = x.Ongoing, total = x.Total,
                             // What the counting rules left out — the email shows these as columns.
-                            notRepeat = x.NotRepeat, notModerator = x.NotModerator, notBeneficiary = x.NotBeneficiary,
+                            notRepeat = x.NotRepeat,
                             isProject = x.IsProject,
                         })
                     })

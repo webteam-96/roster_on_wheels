@@ -44,13 +44,11 @@ public class MobileRequestOtpResponse
 {
     public string Message { get; set; } = "";
     public bool SentEmail { get; set; }
-    public bool SentSms { get; set; }
-    public bool SentWhatsApp { get; set; }
     public int OtpExpiresInSeconds { get; set; }
 
     // TEMPORARY — when MobileOtp:ReturnDebugOtp=true (appsettings.json),
     // the actual OTP is echoed here so testers can verify without checking
-    // email/SMS. Set the flag to false (or delete) after live verification.
+    // email. Set the flag to false (or delete) after live verification.
     public string? DebugOtp { get; set; }
 }
 

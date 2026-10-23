@@ -37,7 +37,7 @@ public static class OcvReportExcelBuilder
         sb.Append("<font style='font-size:10.0pt; font-family:Calibri;'>");
         sb.Append("<table border='0' cellspacing='0' style='width:100%; border-collapse:collapse;'>");
 
-        // ── Header block — matches the standard reports (exportToCSV / PPH_Camp etc.):
+        // ── Header block — matches the standard reports (exportToCSV etc.):
         // a navy TITLE (text only, no fill) + grey italic subtitle lines, then the bordered
         // data table with a navy header row. No coloured label/value blocks.
         var generatedAt = DateTime.Now.ToString("dd MMM yyyy, hh:mm tt", CultureInfo.InvariantCulture);

@@ -7,8 +7,8 @@ using Microsoft.Extensions.Logging;
 // Greetings Worker — daily birthday & anniversary greetings
 //
 //   --send   Find every active member whose BIRTHDAY or wedding ANNIVERSARY is
-//            today and send a WhatsApp (approved Meta template) and/or email
-//            (Brevo) greeting per the per-club and per-district Greetings config.
+//            today and send an email (Brevo) and push greeting per the per-club
+//            and per-district Greetings config.
 //            Club AND district both send (a member covered by both gets one each).
 //            Each send deducts 1 from the source's club/district credits
 //            (unless Greetings:DeductCredits=false). A greeting_send_log makes
@@ -111,9 +111,9 @@ try
         var stats = await job.RunAsync(dry, clubName, districtNumber, overrideDate);
         var dur = stats.RunCompletedAt - stats.RunStartedAt;
         log.LogInformation(
-            "{Tag}done in {Sec}s. WhatsApp={WA} (failed {WAF}) | Email={E} (failed {EF}) | Push={P} (failed {PF}) | skipped={Sk} | clubs={C} districts={D}",
+            "{Tag}done in {Sec}s. Email={E} (failed {EF}) | Push={P} (failed {PF}) | skipped={Sk} | clubs={C} districts={D}",
             dry ? "[DRY] " : "", (int)dur.TotalSeconds,
-            stats.WhatsAppSent, stats.WhatsAppFailed, stats.EmailSent, stats.EmailFailed,
+            stats.EmailSent, stats.EmailFailed,
             stats.PushSent, stats.PushFailed,
             stats.Skipped, stats.ClubsProcessed, stats.DistrictsProcessed);
         if (!dry) await SendSummaryAsync(provider, recipients, stats);
@@ -170,8 +170,6 @@ static async Task SendSummaryAsync(IServiceProvider sp, string[] recipients, Gre
     {Row("Duration", $"{(int)dur.TotalMinutes} min {dur.Seconds} sec")}
     {Row("Clubs processed", s.ClubsProcessed)}
     {Row("Districts processed", s.DistrictsProcessed)}
-    {Row("WhatsApp sent", s.WhatsAppSent)}
-    {Row("WhatsApp failed", s.WhatsAppFailed)}
     {Row("Email sent", s.EmailSent)}
     {Row("Email failed", s.EmailFailed)}
     {Row("Push sent", s.PushSent)}

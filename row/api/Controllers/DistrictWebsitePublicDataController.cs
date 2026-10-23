@@ -26,7 +26,7 @@ public class DistrictWebsitePublicDataController : ControllerBase
     private MySqlConnection CreateConn() => new(_connectionString);
 
     // True only if the district has a live website row AND its district + zone are active.
-    private async Task<bool> IsDistrictServiceableAsync(MySqlConnection conn, int districtId)
+    internal static async Task<bool> IsDistrictServiceableAsync(MySqlConnection conn, int districtId)
     {
         var count = await conn.ExecuteScalarAsync<int>(@"
             SELECT COUNT(*)

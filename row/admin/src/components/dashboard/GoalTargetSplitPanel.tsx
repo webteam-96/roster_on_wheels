@@ -16,8 +16,8 @@
 // 0/1/10/1, even 12/0/0/0. The popup opens on an even split purely so nobody faces empty boxes.
 //
 // Only Membership and TRF reach this at all; Youth Service and Public Image are annual only, so the
-// form comes back empty and the buttons never render. Only Club/District Admin may edit — every
-// oversight role passes readOnly and gets the same popup without inputs or a Save button.
+// form comes back empty and the buttons never render. Only Club/District Admin may edit — a
+// read-only caller passes readOnly and gets the same popup without inputs or a Save button.
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { CalendarRange, CalendarDays, Loader2, Save, Check, AlertCircle, X } from "@/components/icons";

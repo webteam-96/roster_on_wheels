@@ -89,11 +89,6 @@ class ClubAdminDashboardApi {
   Future<ClubAdminPayments> getPayments(int clubId, {int? yearId}) async =>
       ClubAdminPayments.fromJson(await _get('payments', clubId, yearId));
 
-  Future<ClubAdminMarketplace> getDashboardMarketplace(int clubId,
-          {int? yearId}) async =>
-      ClubAdminMarketplace.fromJson(
-          await _get('dashboard-marketplace', clubId, yearId));
-
   Future<ClubAdminRotaryNetwork> getDashboardRotaryNetwork(int clubId,
           {int? yearId}) async =>
       ClubAdminRotaryNetwork.fromJson(

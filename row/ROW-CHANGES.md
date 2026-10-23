@@ -356,3 +356,33 @@ marketing website's design (`row/website/design.md`) under the FRONTEND-RULES ga
   Fellowship palette; `PillButton` and `ToneCard` widgets added.
 - All dashboard sidebars look the same (light, ROW logo); "Foundation" renamed "Projects / Events".
 - Gate: `node row/admin/scripts/check-design.mjs` (all counts 0 is required).
+
+## 2026-10-23: Skipped modules removed, 10 new spec modules, security fixes
+
+Removed completely (user decision 2026-10-22, TRACKER section 2): Club Moderator Dashboard and project approval
+(the approval columns too, and Club Moderator Assignment), RI Director dashboards and reports (with Settings > RI
+Director Management, the RI scope traces in shared content tables, and the all-zones Performance Report: user
+decision), Zonal Dashboard, Zonal Awards, goal lock/unlock (club, district, zone, bulk), Goal Setting Roles (goal
+imports moved to `/settings/goal-imports`, every SuperAdmin gets Goal Overview), direct beneficiary limit and
+approvals, PPH camps, project Category / Sub-category (user: projects use Area of Focus only), the roles
+ClubModerator (5), ZonalCoordinator (4) and RIDirector (7), WhatsApp and SMS leftovers. Code, admin, app, workers,
+schema, seeds and route seeds are clean (84 trace patterns, 0 hits). `SystemSettingsController` went too: no caller
+was left and it returned any setting to any signed-in user.
+
+- Existing databases keep the old tables, columns, procedures and rows until
+  `row/database/maintenance/2026-10-23-drop-removed-modules.sql` runs: only with the user's go-ahead, after the new
+  code is deployed and a backup is taken. Tested on a throwaway copy of `row_prod_copy`.
+- API contract changes: the AG club picker sends `excludeMemberId`; removed endpoints answer a plain 404.
+
+New spec modules (TRACKER section 5), API + admin + public sites, each behind a FeatureGate flag that is OFF until a
+SuperAdmin switches it on in Settings > Features; app screens later (their endpoints exist):
+`membership_fields` (N1 Foundation designations, duplicate check naming the member, district committee documents),
+`engagement` (N9 milestones, PHF highlights, spotlight cards), `grants` (N2), `volunteers` (N4 volunteers and
+speakers), `contacts_growth` (N3 contacts, prospect stages, public join form, invite prompts, growth target),
+`target_dashboard` (N10, no lock flow), `meetings` (N8 pasted links, iCal feed, reminders, compliance),
+`communication` (N5 templates per language, sender domains, Brevo webhook, consent, unsubscribe, allowances, member
+language, Governor note), `website_languages` (N6 multilingual sites, Rotaract template, RI themes), `chat` (N11 API,
+SignalR hub, web moderation). Plans and open points: `docs/superpowers/plans/2026-10-23-*.md`. e2e in `kb/tools`.
+
+Security fixes: the website price-change OTP is no longer returned in the API response outside Development
+(`ClubWebsitesController`); the Gemini API key moved from the URL to the `x-goog-api-key` header.

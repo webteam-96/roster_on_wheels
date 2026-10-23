@@ -476,20 +476,6 @@ export default function GlobalMemberSearchPage() {
                   </div>
                 )}
 
-                {/* Club Moderator */}
-                <SectionHeader icon={Shield} title="Club Moderator" count={r.clubModerator?.length || 0} />
-                {r.clubModerator?.length > 0 && (
-                  <div className="bg-muted/30 rounded-lg p-3 space-y-1">
-                    {r.clubModerator.map((cmod: any, i: number) => (
-                      <div key={i} className="text-sm flex items-center gap-2">
-                        {cmod.clubName}
-                        <span className="text-xs text-muted-foreground">(District {cmod.districtNumber})</span>
-                        {!cmod.isActive && <Badge variant="secondary" className="text-xs">Inactive</Badge>}
-                      </div>
-                    ))}
-                  </div>
-                )}
-
                 {/* Club Sub-Groups / Committees */}
                 <SectionHeader icon={Users} title="Club Sub-Groups / Committees" count={r.clubSubGroups?.length || 0} />
                 {r.clubSubGroups?.length > 0 && (
@@ -536,21 +522,6 @@ export default function GlobalMemberSearchPage() {
                   </div>
                 )}
 
-                {/* Directory Submissions */}
-                <SectionHeader icon={ClipboardList} title="Directory Submissions" count={r.directorySubmissions?.length || 0} />
-                {r.directorySubmissions?.length > 0 && (
-                  <div className="bg-muted/30 rounded-lg p-3 space-y-1">
-                    {r.directorySubmissions.map((ds: any, i: number) => (
-                      <div key={i} className="text-sm flex items-center gap-2 flex-wrap">
-                        {ds.yearLabel && <Badge variant="secondary" className="text-xs">{ds.yearLabel}</Badge>}
-                        District {ds.districtNumber}
-                        {ds.groupType && <span className="text-xs text-muted-foreground">({ds.groupType})</span>}
-                        {ds.totalCount > 0 && <span className="text-xs text-muted-foreground">{ds.completedCount}/{ds.totalCount} fields</span>}
-                        {ds.submittedAt && <span className="text-xs text-muted-foreground">{new Date(ds.submittedAt).toLocaleDateString(appLocale(), { day: "2-digit", month: "short", year: "numeric" })}</span>}
-                      </div>
-                    ))}
-                  </div>
-                )}
               </>
             )}
           </DialogContent>

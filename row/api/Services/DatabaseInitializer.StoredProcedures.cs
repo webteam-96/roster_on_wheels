@@ -538,7 +538,7 @@ public partial class DatabaseInitializer
                 WHERE mr.fk_member_master_profile_id = p_MemberId
                   AND mr.IsActive = 1
                   AND mr.isdeleted = 0
-                  AND r.RoleName IN ('Admin', 'SuperAdmin', 'ZonalCoordinator');
+                  AND r.RoleName IN ('Admin', 'SuperAdmin');
             END");
 
         // 18. sp_auth_get_credentials
@@ -598,7 +598,7 @@ public partial class DatabaseInitializer
                 WHERE mr.fk_member_master_profile_id = p_MemberId
                   AND mr.IsActive = 1
                   AND mr.isdeleted = 0
-                  AND r.RoleName IN ('Admin', 'SuperAdmin', 'ZonalCoordinator');
+                  AND r.RoleName IN ('Admin', 'SuperAdmin');
             END");
 
         // 22. sp_auth_create_reset_token
@@ -709,18 +709,6 @@ public partial class DatabaseInitializer
                 );
             END");
 
-        // 29. sp_role_check_member_exists
-        await CreateOrReplaceProcedure(connection, "sp_role_check_member_exists", @"
-            CREATE PROCEDURE sp_role_check_member_exists(
-                IN p_MemberId INT
-            )
-            BEGIN
-                SELECT COUNT(*)
-                FROM member_master_profile
-                WHERE pk_member_master_profile_id = p_MemberId
-                  AND isdeleted = 0;
-            END");
-
         // 30. sp_role_check_has_admin (club-specific)
         await CreateOrReplaceProcedure(connection, "sp_role_check_has_admin", @"
             CREATE PROCEDURE sp_role_check_has_admin(
@@ -738,7 +726,7 @@ public partial class DatabaseInitializer
             END");
 
         // 31. sp_role_assign_admin (club-specific)
-        // Validates member does not have ZonalCoordinator or SuperAdmin role before assigning
+        // Validates member does not have SuperAdmin role before assigning
         await CreateOrReplaceProcedure(connection, "sp_role_assign_admin", @"
             CREATE PROCEDURE sp_role_assign_admin(
                 IN p_MemberId INT,
@@ -748,16 +736,16 @@ public partial class DatabaseInitializer
             BEGIN
                 DECLARE v_HasConflict INT DEFAULT 0;
 
-                -- Check if member has ZonalCoordinator or SuperAdmin role
+                -- Check if member has SuperAdmin role
                 SELECT COUNT(*) INTO v_HasConflict
                 FROM member_roles mr
                 JOIN roles r ON r.pk_role_id = mr.fk_role_id
                 WHERE mr.fk_member_master_profile_id = p_MemberId
                   AND mr.IsActive = 1 AND mr.isdeleted = 0
-                  AND r.RoleName IN ('SuperAdmin', 'ZonalCoordinator');
+                  AND r.RoleName = 'SuperAdmin';
 
                 IF v_HasConflict > 0 THEN
-                    SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Member already has SuperAdmin or Zonal Coordinator role. Cannot assign as Admin.';
+                    SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Member already has SuperAdmin role. Cannot assign as Admin.';
                 END IF;
 
                 INSERT INTO member_roles (fk_member_master_profile_id, fk_role_id, fk_club_id, AssignedBy)
@@ -799,21 +787,6 @@ public partial class DatabaseInitializer
                     modified_by = p_ModifiedBy,
                     modified_date = NOW()
                 WHERE fk_member_master_profile_id = p_MemberId;
-            END");
-
-        // 34. sp_role_create_credentials
-        await CreateOrReplaceProcedure(connection, "sp_role_create_credentials", @"
-            CREATE PROCEDURE sp_role_create_credentials(
-                IN p_MemberId INT,
-                IN p_Hash VARCHAR(500),
-                IN p_CreatedBy INT
-            )
-            BEGIN
-                INSERT INTO member_credentials (
-                    fk_member_master_profile_id, PasswordHash, IsTemporaryPassword, IsActive, created_by
-                ) VALUES (
-                    p_MemberId, p_Hash, 1, 1, p_CreatedBy
-                );
             END");
 
         // 35. sp_role_get_member_email
@@ -993,16 +966,8 @@ public partial class DatabaseInitializer
                      FROM club_members cm
                      JOIN club_master c2 ON c2.pk_club_id = cm.fk_club_id AND c2.isdeleted = 0
                      JOIN district_master d3 ON d3.pk_district_id = c2.fk_district_id AND d3.isdeleted = 0
-                     WHERE d3.fk_zone_id = z.pk_zone_id AND cm.isdeleted = 0) AS TotalMembers,
-                    coord.MemberName AS CoordinatorName,
-                    coord.EmailId AS CoordinatorEmail
+                     WHERE d3.fk_zone_id = z.pk_zone_id AND cm.isdeleted = 0) AS TotalMembers
                 FROM zone_master z
-                LEFT JOIN (
-                    SELECT mr.fk_zone_id, m.MemberName, m.EmailId
-                    FROM member_roles mr
-                    JOIN member_master_profile m ON m.pk_member_master_profile_id = mr.fk_member_master_profile_id
-                    WHERE mr.fk_role_id = 4 AND mr.IsActive = 1 AND mr.isdeleted = 0 AND m.isdeleted = 0
-                ) coord ON coord.fk_zone_id = z.pk_zone_id
                 WHERE z.isdeleted = 0
                   AND (p_Search IS NULL OR z.ZoneName LIKE CONCAT('%', p_Search, '%'))
                   AND (p_IsActive IS NULL OR z.IsActive = p_IsActive)
@@ -3577,162 +3542,6 @@ public partial class DatabaseInitializer
             END");
 
         // ══════════════════════════════════════════════════════
-        // CATEGORY MASTER
-        // ══════════════════════════════════════════════════════
-
-        // 160. sp_category_get_by_area_of_focus
-        await CreateOrReplaceProcedure(connection, "sp_category_get_by_area_of_focus", @"
-            CREATE PROCEDURE sp_category_get_by_area_of_focus(IN p_AreaOfFocusId INT)
-            BEGIN
-                SELECT pk_category_id AS Id,
-                       fk_area_of_focus_id AS AreaOfFocusId,
-                       name AS Name,
-                       sort_order AS SortOrder,
-                       is_active AS IsActive
-                FROM category_master
-                WHERE fk_area_of_focus_id = p_AreaOfFocusId AND isdeleted = 0
-                ORDER BY sort_order, name;
-            END");
-
-        // 161. sp_category_get_by_id
-        await CreateOrReplaceProcedure(connection, "sp_category_get_by_id", @"
-            CREATE PROCEDURE sp_category_get_by_id(IN p_Id INT)
-            BEGIN
-                SELECT pk_category_id AS Id,
-                       fk_area_of_focus_id AS AreaOfFocusId,
-                       name AS Name,
-                       sort_order AS SortOrder,
-                       is_active AS IsActive
-                FROM category_master
-                WHERE pk_category_id = p_Id AND isdeleted = 0;
-            END");
-
-        // 162. sp_category_create
-        await CreateOrReplaceProcedure(connection, "sp_category_create", @"
-            CREATE PROCEDURE sp_category_create(
-                IN p_AreaOfFocusId INT,
-                IN p_Name VARCHAR(200),
-                IN p_SortOrder INT,
-                IN p_IsActive TINYINT,
-                IN p_CreatedBy INT
-            )
-            BEGIN
-                INSERT INTO category_master (fk_area_of_focus_id, name, sort_order, is_active, created_by)
-                VALUES (p_AreaOfFocusId, p_Name, p_SortOrder, p_IsActive, p_CreatedBy);
-                SELECT LAST_INSERT_ID();
-            END");
-
-        // 163. sp_category_update
-        await CreateOrReplaceProcedure(connection, "sp_category_update", @"
-            CREATE PROCEDURE sp_category_update(
-                IN p_Id INT,
-                IN p_AreaOfFocusId INT,
-                IN p_Name VARCHAR(200),
-                IN p_SortOrder INT,
-                IN p_IsActive TINYINT,
-                IN p_ModifiedBy INT
-            )
-            BEGIN
-                UPDATE category_master
-                SET fk_area_of_focus_id = p_AreaOfFocusId,
-                    name = p_Name,
-                    sort_order = p_SortOrder,
-                    is_active = p_IsActive,
-                    modified_by = p_ModifiedBy
-                WHERE pk_category_id = p_Id AND isdeleted = 0;
-            END");
-
-        // 164. sp_category_delete
-        await CreateOrReplaceProcedure(connection, "sp_category_delete", @"
-            CREATE PROCEDURE sp_category_delete(
-                IN p_Id INT,
-                IN p_DeletedBy INT
-            )
-            BEGIN
-                UPDATE category_master
-                SET isdeleted = 1, deleted_by = p_DeletedBy, deleted_date = NOW()
-                WHERE pk_category_id = p_Id;
-            END");
-
-        // ══════════════════════════════════════════════════════
-        // SUB CATEGORY MASTER
-        // ══════════════════════════════════════════════════════
-
-        // 165. sp_sub_category_get_by_category
-        await CreateOrReplaceProcedure(connection, "sp_sub_category_get_by_category", @"
-            CREATE PROCEDURE sp_sub_category_get_by_category(IN p_CategoryId INT)
-            BEGIN
-                SELECT pk_sub_category_id AS Id,
-                       fk_category_id AS CategoryId,
-                       name AS Name,
-                       sort_order AS SortOrder,
-                       is_active AS IsActive
-                FROM sub_category_master
-                WHERE fk_category_id = p_CategoryId AND isdeleted = 0
-                ORDER BY sort_order, name;
-            END");
-
-        // 166. sp_sub_category_get_by_id
-        await CreateOrReplaceProcedure(connection, "sp_sub_category_get_by_id", @"
-            CREATE PROCEDURE sp_sub_category_get_by_id(IN p_Id INT)
-            BEGIN
-                SELECT pk_sub_category_id AS Id,
-                       fk_category_id AS CategoryId,
-                       name AS Name,
-                       sort_order AS SortOrder,
-                       is_active AS IsActive
-                FROM sub_category_master
-                WHERE pk_sub_category_id = p_Id AND isdeleted = 0;
-            END");
-
-        // 167. sp_sub_category_create
-        await CreateOrReplaceProcedure(connection, "sp_sub_category_create", @"
-            CREATE PROCEDURE sp_sub_category_create(
-                IN p_CategoryId INT,
-                IN p_Name VARCHAR(200),
-                IN p_SortOrder INT,
-                IN p_IsActive TINYINT,
-                IN p_CreatedBy INT
-            )
-            BEGIN
-                INSERT INTO sub_category_master (fk_category_id, name, sort_order, is_active, created_by)
-                VALUES (p_CategoryId, p_Name, p_SortOrder, p_IsActive, p_CreatedBy);
-                SELECT LAST_INSERT_ID();
-            END");
-
-        // 168. sp_sub_category_update
-        await CreateOrReplaceProcedure(connection, "sp_sub_category_update", @"
-            CREATE PROCEDURE sp_sub_category_update(
-                IN p_Id INT,
-                IN p_CategoryId INT,
-                IN p_Name VARCHAR(200),
-                IN p_SortOrder INT,
-                IN p_IsActive TINYINT,
-                IN p_ModifiedBy INT
-            )
-            BEGIN
-                UPDATE sub_category_master
-                SET fk_category_id = p_CategoryId,
-                    name = p_Name,
-                    sort_order = p_SortOrder,
-                    is_active = p_IsActive,
-                    modified_by = p_ModifiedBy
-                WHERE pk_sub_category_id = p_Id AND isdeleted = 0;
-            END");
-
-        // 169. sp_sub_category_delete
-        await CreateOrReplaceProcedure(connection, "sp_sub_category_delete", @"
-            CREATE PROCEDURE sp_sub_category_delete(
-                IN p_Id INT,
-                IN p_DeletedBy INT
-            )
-            BEGIN
-                UPDATE sub_category_master
-                SET isdeleted = 1, deleted_by = p_DeletedBy, deleted_date = NOW()
-                WHERE pk_sub_category_id = p_Id;
-            END");
-
-        // ══════════════════════════════════════════════════════
         // FUNDING MASTER
         // ══════════════════════════════════════════════════════
 
@@ -3837,10 +3646,6 @@ public partial class DatabaseInitializer
                        p.location AS Location,
                        aof.name AS AreaOfFocusName,
                        p.other_area_of_focus AS OtherAreaOfFocus,
-                       cat.name AS CategoryName,
-                       p.other_category AS OtherCategory,
-                       scat.name AS SubCategoryName,
-                       p.other_sub_category AS OtherSubCategory,
                        p.project_date AS ProjectDate,
                        p.project_cost AS ProjectCost,
                        f.name AS FundingName,
@@ -3851,8 +3656,6 @@ public partial class DatabaseInitializer
                 FROM rotary_projects p
                 LEFT JOIN rotary_year_master y ON p.fk_year_id = y.pk_year_id
                 LEFT JOIN area_of_focus_master aof ON p.fk_area_of_focus_id = aof.pk_area_of_focus_id
-                LEFT JOIN category_master cat ON p.fk_category_id = cat.pk_category_id
-                LEFT JOIN sub_category_master scat ON p.fk_sub_category_id = scat.pk_sub_category_id
                 LEFT JOIN funding_master f ON p.fk_funding_id = f.pk_funding_id
                 WHERE p.fk_club_id = p_ClubId
                   AND p.fk_module_id = p_ModuleId
@@ -3894,12 +3697,6 @@ public partial class DatabaseInitializer
                        p.fk_area_of_focus_id AS AreaOfFocusId,
                        aof.name AS AreaOfFocusName,
                        p.other_area_of_focus AS OtherAreaOfFocus,
-                       p.fk_category_id AS CategoryId,
-                       cat.name AS CategoryName,
-                       p.other_category AS OtherCategory,
-                       p.fk_sub_category_id AS SubCategoryId,
-                       scat.name AS SubCategoryName,
-                       p.other_sub_category AS OtherSubCategory,
                        p.project_date AS ProjectDate,
                        p.project_cost AS ProjectCost,
                        p.fk_funding_id AS FundingId,
@@ -3908,13 +3705,10 @@ public partial class DatabaseInitializer
                        p.man_hours AS ManHours,
                        p.rotarians_involved AS RotariansInvolved,
                        p.rotaractors_involved AS RotaractorsInvolved,
-                       p.send_whatsapp AS SendWhatsapp,
                        p.is_active AS IsActive
                 FROM rotary_projects p
                 LEFT JOIN rotary_year_master y ON p.fk_year_id = y.pk_year_id
                 LEFT JOIN area_of_focus_master aof ON p.fk_area_of_focus_id = aof.pk_area_of_focus_id
-                LEFT JOIN category_master cat ON p.fk_category_id = cat.pk_category_id
-                LEFT JOIN sub_category_master scat ON p.fk_sub_category_id = scat.pk_sub_category_id
                 LEFT JOIN funding_master f ON p.fk_funding_id = f.pk_funding_id
                 WHERE p.pk_project_id = p_Id AND p.isdeleted = 0;
 
@@ -3946,10 +3740,6 @@ public partial class DatabaseInitializer
                 IN p_Location VARCHAR(200),
                 IN p_AreaOfFocusId INT,
                 IN p_OtherAreaOfFocus VARCHAR(100),
-                IN p_CategoryId INT,
-                IN p_OtherCategory VARCHAR(100),
-                IN p_SubCategoryId INT,
-                IN p_OtherSubCategory VARCHAR(100),
                 IN p_ProjectDate DATE,
                 IN p_ProjectCost DECIMAL(15,2),
                 IN p_FundingId INT,
@@ -3957,7 +3747,6 @@ public partial class DatabaseInitializer
                 IN p_ManHours INT,
                 IN p_RotariansInvolved INT,
                 IN p_RotaractorsInvolved INT,
-                IN p_SendWhatsapp TINYINT,
                 IN p_CreatedBy INT
             )
             BEGIN
@@ -3966,21 +3755,17 @@ public partial class DatabaseInitializer
                     ongoing_group_title, is_joint_project, co_host_name, club_role,
                     title, description, location,
                     fk_area_of_focus_id, other_area_of_focus,
-                    fk_category_id, other_category,
-                    fk_sub_category_id, other_sub_category,
                     project_date, project_cost, fk_funding_id,
                     direct_beneficiaries, man_hours, rotarians_involved, rotaractors_involved,
-                    send_whatsapp, created_by
+                    created_by
                 ) VALUES (
                     p_ClubId, p_ModuleId, p_YearId, p_ProjectType, p_ParentProjectId,
                     p_OngoingGroupTitle, p_IsJointProject, p_CoHostName, p_ClubRole,
                     p_Title, p_Description, p_Location,
                     p_AreaOfFocusId, p_OtherAreaOfFocus,
-                    p_CategoryId, p_OtherCategory,
-                    p_SubCategoryId, p_OtherSubCategory,
                     p_ProjectDate, p_ProjectCost, p_FundingId,
                     p_DirectBeneficiaries, p_ManHours, p_RotariansInvolved, p_RotaractorsInvolved,
-                    p_SendWhatsapp, p_CreatedBy
+                    p_CreatedBy
                 );
                 SELECT LAST_INSERT_ID();
             END");
@@ -4000,10 +3785,6 @@ public partial class DatabaseInitializer
                 IN p_Location VARCHAR(200),
                 IN p_AreaOfFocusId INT,
                 IN p_OtherAreaOfFocus VARCHAR(100),
-                IN p_CategoryId INT,
-                IN p_OtherCategory VARCHAR(100),
-                IN p_SubCategoryId INT,
-                IN p_OtherSubCategory VARCHAR(100),
                 IN p_ProjectDate DATE,
                 IN p_ProjectCost DECIMAL(15,2),
                 IN p_FundingId INT,
@@ -4011,7 +3792,6 @@ public partial class DatabaseInitializer
                 IN p_ManHours INT,
                 IN p_RotariansInvolved INT,
                 IN p_RotaractorsInvolved INT,
-                IN p_SendWhatsapp TINYINT,
                 IN p_ModifiedBy INT
             )
             BEGIN
@@ -4027,10 +3807,6 @@ public partial class DatabaseInitializer
                     location = p_Location,
                     fk_area_of_focus_id = p_AreaOfFocusId,
                     other_area_of_focus = p_OtherAreaOfFocus,
-                    fk_category_id = p_CategoryId,
-                    other_category = p_OtherCategory,
-                    fk_sub_category_id = p_SubCategoryId,
-                    other_sub_category = p_OtherSubCategory,
                     project_date = p_ProjectDate,
                     project_cost = p_ProjectCost,
                     fk_funding_id = p_FundingId,
@@ -4038,7 +3814,6 @@ public partial class DatabaseInitializer
                     man_hours = p_ManHours,
                     rotarians_involved = p_RotariansInvolved,
                     rotaractors_involved = p_RotaractorsInvolved,
-                    send_whatsapp = p_SendWhatsapp,
                     modified_by = p_ModifiedBy
                 WHERE pk_project_id = p_Id AND isdeleted = 0;
             END");
@@ -4182,414 +3957,6 @@ public partial class DatabaseInitializer
                 ORDER BY y.StartDate DESC;
             END");
 
-        // ========== ZONAL COORDINATOR STORED PROCEDURES (4) ==========
-
-        // 186. sp_zonal_coordinator_get_by_zone
-        await CreateOrReplaceProcedure(connection, "sp_zonal_coordinator_get_by_zone", @"
-            CREATE PROCEDURE sp_zonal_coordinator_get_by_zone(
-                IN p_ZoneId INT
-            )
-            BEGIN
-                SELECT
-                    mr.fk_member_master_profile_id AS MemberId,
-                    m.MemberName,
-                    m.EmailId AS Email,
-                    mr.AssignedDate
-                FROM member_roles mr
-                JOIN member_master_profile m ON m.pk_member_master_profile_id = mr.fk_member_master_profile_id
-                WHERE mr.fk_role_id = 4
-                  AND mr.fk_zone_id = p_ZoneId
-                  AND mr.IsActive = 1
-                  AND mr.isdeleted = 0
-                  AND m.isdeleted = 0
-                LIMIT 1;
-            END");
-
-        // 187. sp_zonal_coordinator_assign
-        // Validates member does not have SuperAdmin or Admin role before assigning
-        await CreateOrReplaceProcedure(connection, "sp_zonal_coordinator_assign", @"
-            CREATE PROCEDURE sp_zonal_coordinator_assign(
-                IN p_MemberId INT,
-                IN p_ZoneId INT,
-                IN p_AssignedBy INT
-            )
-            BEGIN
-                DECLARE v_HasConflict INT DEFAULT 0;
-
-                -- Check if member has SuperAdmin or Admin role
-                SELECT COUNT(*) INTO v_HasConflict
-                FROM member_roles mr
-                JOIN roles r ON r.pk_role_id = mr.fk_role_id
-                WHERE mr.fk_member_master_profile_id = p_MemberId
-                  AND mr.IsActive = 1 AND mr.isdeleted = 0
-                  AND r.RoleName IN ('SuperAdmin', 'Admin');
-
-                IF v_HasConflict > 0 THEN
-                    SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Member already has SuperAdmin or Admin role. Cannot assign as Zonal Coordinator.';
-                END IF;
-
-                -- Deactivate any existing coordinator for this zone
-                UPDATE member_roles
-                SET IsActive = 0, RevokedDate = NOW(), RevokedBy = p_AssignedBy
-                WHERE fk_role_id = 4 AND fk_zone_id = p_ZoneId AND IsActive = 1 AND isdeleted = 0;
-
-                -- Insert new coordinator role
-                INSERT INTO member_roles (fk_member_master_profile_id, fk_role_id, fk_zone_id, AssignedBy, AssignedDate, IsActive, isdeleted)
-                VALUES (p_MemberId, 4, p_ZoneId, p_AssignedBy, NOW(), 1, 0);
-            END");
-
-        // 188. sp_zonal_coordinator_remove
-        await CreateOrReplaceProcedure(connection, "sp_zonal_coordinator_remove", @"
-            CREATE PROCEDURE sp_zonal_coordinator_remove(
-                IN p_ZoneId INT,
-                IN p_RevokedBy INT
-            )
-            BEGIN
-                UPDATE member_roles
-                SET IsActive = 0, RevokedDate = NOW(), RevokedBy = p_RevokedBy
-                WHERE fk_role_id = 4 AND fk_zone_id = p_ZoneId AND IsActive = 1 AND isdeleted = 0;
-            END");
-
-        // 189. sp_zonal_coordinator_search_members
-        // Excludes members who already have SuperAdmin or Admin roles
-        await CreateOrReplaceProcedure(connection, "sp_zonal_coordinator_search_members", @"
-            CREATE PROCEDURE sp_zonal_coordinator_search_members(
-                IN p_ZoneId INT,
-                IN p_Search VARCHAR(200)
-            )
-            BEGIN
-                SELECT DISTINCT
-                    m.pk_member_master_profile_id AS MemberId,
-                    m.MemberName,
-                    m.EmailId AS Email,
-                    cl.ClubName,
-                    d.DistrictNumber
-                FROM member_master_profile m
-                JOIN club_members cm ON cm.fk_member_master_profile_id = m.pk_member_master_profile_id AND cm.isdeleted = 0
-                JOIN club_master cl ON cl.pk_club_id = cm.fk_club_id AND cl.isdeleted = 0
-                JOIN district_master d ON d.pk_district_id = cl.fk_district_id AND d.isdeleted = 0
-                WHERE d.fk_zone_id = p_ZoneId
-                  AND m.isdeleted = 0
-                  AND (m.MemberName LIKE CONCAT('%', p_Search, '%')
-                       OR m.EmailId LIKE CONCAT('%', p_Search, '%'))
-                  AND m.pk_member_master_profile_id NOT IN (
-                      SELECT mr2.fk_member_master_profile_id FROM member_roles mr2
-                      JOIN roles r2 ON r2.pk_role_id = mr2.fk_role_id
-                      WHERE mr2.IsActive = 1 AND mr2.isdeleted = 0
-                        AND r2.RoleName IN ('SuperAdmin', 'Admin')
-                  )
-                ORDER BY m.MemberName
-                LIMIT 20;
-            END");
-
-        // ========== SYSTEM SETTINGS STORED PROCEDURES (3) ==========
-
-        // 190. sp_setting_get_by_key
-        await CreateOrReplaceProcedure(connection, "sp_setting_get_by_key", @"
-            CREATE PROCEDURE sp_setting_get_by_key(
-                IN p_Key VARCHAR(100)
-            )
-            BEGIN
-                SELECT pk_setting_id AS Id, SettingKey, SettingValue, Description, modified_by AS ModifiedBy, modified_date AS ModifiedDate
-                FROM system_settings
-                WHERE SettingKey = p_Key;
-            END");
-
-        // 191. sp_setting_upsert
-        await CreateOrReplaceProcedure(connection, "sp_setting_upsert", @"
-            CREATE PROCEDURE sp_setting_upsert(
-                IN p_Key VARCHAR(100),
-                IN p_Value VARCHAR(500),
-                IN p_Description VARCHAR(200),
-                IN p_ModifiedBy INT
-            )
-            BEGIN
-                INSERT INTO system_settings (SettingKey, SettingValue, Description, modified_by, modified_date)
-                VALUES (p_Key, p_Value, p_Description, p_ModifiedBy, NOW())
-                ON DUPLICATE KEY UPDATE
-                    SettingValue = p_Value,
-                    Description = p_Description,
-                    modified_by = p_ModifiedBy,
-                    modified_date = NOW();
-            END");
-
-        // 192. sp_setting_get_all
-        await CreateOrReplaceProcedure(connection, "sp_setting_get_all", @"
-            CREATE PROCEDURE sp_setting_get_all()
-            BEGIN
-                SELECT pk_setting_id AS Id, SettingKey, SettingValue, Description, modified_by AS ModifiedBy, modified_date AS ModifiedDate
-                FROM system_settings
-                ORDER BY SettingKey;
-            END");
-
-        // ========== BENEFICIARY APPROVAL STORED PROCEDURES (4) ==========
-
-        // 193. sp_beneficiary_approval_create
-        await CreateOrReplaceProcedure(connection, "sp_beneficiary_approval_create", @"
-            CREATE PROCEDURE sp_beneficiary_approval_create(
-                IN p_ProjectId INT,
-                IN p_ZoneId INT,
-                IN p_ClubId INT,
-                IN p_RequestedBeneficiaries INT,
-                IN p_CurrentLimit INT,
-                IN p_Token VARCHAR(100),
-                IN p_RequestedBy INT
-            )
-            BEGIN
-                INSERT INTO beneficiary_approval_requests
-                    (fk_project_id, fk_zone_id, fk_club_id, requested_beneficiaries, current_limit, approval_token, status, requested_by)
-                VALUES
-                    (p_ProjectId, p_ZoneId, p_ClubId, p_RequestedBeneficiaries, p_CurrentLimit, p_Token, 'pending', p_RequestedBy);
-                SELECT LAST_INSERT_ID() AS Id;
-            END");
-
-        // 194. sp_beneficiary_approval_get_by_token
-        await CreateOrReplaceProcedure(connection, "sp_beneficiary_approval_get_by_token", @"
-            CREATE PROCEDURE sp_beneficiary_approval_get_by_token(
-                IN p_Token VARCHAR(100)
-            )
-            BEGIN
-                SELECT
-                    bar.pk_approval_id AS Id,
-                    bar.fk_project_id AS ProjectId,
-                    bar.fk_zone_id AS ZoneId,
-                    bar.fk_club_id AS ClubId,
-                    bar.requested_beneficiaries AS RequestedBeneficiaries,
-                    bar.current_limit AS CurrentLimit,
-                    bar.approval_token AS ApprovalToken,
-                    bar.status AS Status,
-                    bar.remark AS Remark,
-                    bar.requested_by AS RequestedBy,
-                    bar.responded_date AS RespondedDate,
-                    bar.created_date AS CreatedDate,
-                    p.title AS ProjectTitle,
-                    p.description AS ProjectDescription,
-                    p.project_date AS ProjectDate,
-                    p.project_cost AS ProjectCost,
-                    p.direct_beneficiaries AS CurrentBeneficiaries,
-                    p.man_hours AS ManHours,
-                    p.rotarians_involved AS RotariansInvolved,
-                    p.rotaractors_involved AS RotaractorsInvolved,
-                    c.ClubName,
-                    d.DistrictNumber,
-                    z.ZoneName,
-                    m.MemberName AS RequestedByName,
-                    m.EmailId AS RequestedByEmail,
-                    m.PrimaryMobileNumber AS RequestedByMobile
-                FROM beneficiary_approval_requests bar
-                JOIN rotary_projects p ON p.pk_project_id = bar.fk_project_id
-                JOIN club_master c ON c.pk_club_id = bar.fk_club_id
-                JOIN district_master d ON d.pk_district_id = c.fk_district_id
-                JOIN zone_master z ON z.pk_zone_id = bar.fk_zone_id
-                JOIN member_master_profile m ON m.pk_member_master_profile_id = bar.requested_by
-                WHERE bar.approval_token = p_Token;
-            END");
-
-        // 195. sp_beneficiary_approval_approve
-        await CreateOrReplaceProcedure(connection, "sp_beneficiary_approval_approve", @"
-            CREATE PROCEDURE sp_beneficiary_approval_approve(
-                IN p_Token VARCHAR(100),
-                IN p_Remark VARCHAR(1000)
-            )
-            BEGIN
-                DECLARE v_ProjectId INT;
-                DECLARE v_Requested INT;
-                DECLARE v_Status VARCHAR(20);
-
-                SELECT fk_project_id, requested_beneficiaries, status
-                INTO v_ProjectId, v_Requested, v_Status
-                FROM beneficiary_approval_requests
-                WHERE approval_token = p_Token;
-
-                IF v_Status != 'pending' THEN
-                    SELECT v_Status AS Status, 'already_processed' AS Result;
-                ELSE
-                    UPDATE beneficiary_approval_requests
-                    SET status = 'approved', remark = p_Remark, responded_date = NOW()
-                    WHERE approval_token = p_Token;
-
-                    UPDATE rotary_projects
-                    SET direct_beneficiaries = v_Requested, modified_date = NOW()
-                    WHERE pk_project_id = v_ProjectId;
-
-                    SELECT 'approved' AS Status, 'success' AS Result;
-                END IF;
-            END");
-
-        // 196. sp_beneficiary_approval_reject
-        await CreateOrReplaceProcedure(connection, "sp_beneficiary_approval_reject", @"
-            CREATE PROCEDURE sp_beneficiary_approval_reject(
-                IN p_Token VARCHAR(100),
-                IN p_Remark VARCHAR(1000)
-            )
-            BEGIN
-                DECLARE v_Status VARCHAR(20);
-
-                SELECT status INTO v_Status
-                FROM beneficiary_approval_requests
-                WHERE approval_token = p_Token;
-
-                IF v_Status != 'pending' THEN
-                    SELECT v_Status AS Status, 'already_processed' AS Result;
-                ELSE
-                    UPDATE beneficiary_approval_requests
-                    SET status = 'rejected', remark = p_Remark, responded_date = NOW()
-                    WHERE approval_token = p_Token;
-
-                    SELECT 'rejected' AS Status, 'success' AS Result;
-                END IF;
-            END");
-
-        // 197. sp_zonal_get_zone_for_member — get the zone assigned to a zonal coordinator
-        await CreateOrReplaceProcedure(connection, "sp_zonal_get_zone_for_member", @"
-            CREATE PROCEDURE sp_zonal_get_zone_for_member(
-                IN p_MemberId INT
-            )
-            BEGIN
-                SELECT mr.fk_zone_id AS ZoneId, z.ZoneName, z.ZoneCode
-                FROM member_roles mr
-                JOIN roles r ON r.pk_role_id = mr.fk_role_id
-                JOIN zone_master z ON z.pk_zone_id = mr.fk_zone_id
-                WHERE mr.fk_member_id = p_MemberId
-                  AND r.RoleName = 'ZonalCoordinator'
-                  AND mr.is_active = 1
-                  AND z.isdeleted = 0
-                LIMIT 1;
-            END");
-
-        // 198. sp_zonal_get_approval_requests — get approval requests for a zone, optionally filtered by district
-        await CreateOrReplaceProcedure(connection, "sp_zonal_get_approval_requests", @"
-            CREATE PROCEDURE sp_zonal_get_approval_requests(
-                IN p_ZoneId INT,
-                IN p_DistrictId INT,
-                IN p_Status VARCHAR(20),
-                IN p_Page INT,
-                IN p_PageSize INT
-            )
-            BEGIN
-                DECLARE v_Offset INT;
-                SET v_Offset = (p_Page - 1) * p_PageSize;
-
-                SELECT SQL_CALC_FOUND_ROWS
-                    bar.pk_approval_id AS Id,
-                    bar.fk_project_id AS ProjectId,
-                    bar.requested_beneficiaries AS RequestedBeneficiaries,
-                    bar.current_limit AS CurrentLimit,
-                    bar.approval_token AS ApprovalToken,
-                    bar.status AS Status,
-                    bar.remark AS Remark,
-                    bar.responded_date AS RespondedDate,
-                    bar.created_date AS CreatedDate,
-                    p.title AS ProjectTitle,
-                    p.project_date AS ProjectDate,
-                    c.ClubName,
-                    d.DistrictNumber,
-                    m.MemberName AS RequestedByName
-                FROM beneficiary_approval_requests bar
-                JOIN rotary_projects p ON p.pk_project_id = bar.fk_project_id
-                JOIN club_master c ON c.pk_club_id = bar.fk_club_id
-                JOIN district_master d ON d.pk_district_id = c.fk_district_id
-                LEFT JOIN member_master m ON m.pk_member_id = bar.requested_by
-                WHERE bar.fk_zone_id = p_ZoneId
-                  AND (p_DistrictId = 0 OR d.pk_district_id = p_DistrictId)
-                  AND (p_Status IS NULL OR p_Status = '' OR bar.status = p_Status)
-                ORDER BY
-                    CASE bar.status WHEN 'pending' THEN 0 ELSE 1 END,
-                    bar.created_date DESC
-                LIMIT v_Offset, p_PageSize;
-
-                SELECT FOUND_ROWS() AS TotalCount;
-            END");
-
-        // 199. sp_zonal_get_zone_districts — get districts in a zone
-        await CreateOrReplaceProcedure(connection, "sp_zonal_get_zone_districts", @"
-            CREATE PROCEDURE sp_zonal_get_zone_districts(
-                IN p_ZoneId INT
-            )
-            BEGIN
-                SELECT pk_district_id AS Id, DistrictNumber, DistrictName
-                FROM district_master
-                WHERE fk_zone_id = p_ZoneId AND isdeleted = 0
-                ORDER BY CAST(DistrictNumber AS UNSIGNED), DistrictNumber;
-            END");
-
-        // 200. sp_zonal_get_district_clubs — get clubs in a district
-        await CreateOrReplaceProcedure(connection, "sp_zonal_get_district_clubs", @"
-            CREATE PROCEDURE sp_zonal_get_district_clubs(
-                IN p_DistrictId INT
-            )
-            BEGIN
-                SELECT pk_club_id AS Id, ClubName, ClubCode
-                FROM club_master
-                WHERE fk_district_id = p_DistrictId AND isdeleted = 0
-                ORDER BY ClubName;
-            END");
-
-        // 201. sp_zonal_approve_request — approve from authenticated zonal coordinator
-        await CreateOrReplaceProcedure(connection, "sp_zonal_approve_request", @"
-            CREATE PROCEDURE sp_zonal_approve_request(
-                IN p_ApprovalId INT,
-                IN p_ZoneId INT,
-                IN p_MemberId INT,
-                IN p_Remark VARCHAR(1000)
-            )
-            BEGIN
-                DECLARE v_ProjectId INT;
-                DECLARE v_Requested INT;
-                DECLARE v_Status VARCHAR(20);
-                DECLARE v_Token VARCHAR(100);
-
-                SELECT fk_project_id, requested_beneficiaries, status, approval_token
-                INTO v_ProjectId, v_Requested, v_Status, v_Token
-                FROM beneficiary_approval_requests
-                WHERE pk_approval_id = p_ApprovalId AND fk_zone_id = p_ZoneId;
-
-                IF v_Status IS NULL THEN
-                    SELECT 'not_found' AS Status, 'error' AS Result;
-                ELSEIF v_Status != 'pending' THEN
-                    SELECT v_Status AS Status, 'already_processed' AS Result;
-                ELSE
-                    UPDATE beneficiary_approval_requests
-                    SET status = 'approved', remark = p_Remark, responded_by = p_MemberId, responded_date = NOW()
-                    WHERE pk_approval_id = p_ApprovalId;
-
-                    UPDATE rotary_projects
-                    SET direct_beneficiaries = v_Requested, modified_date = NOW()
-                    WHERE pk_project_id = v_ProjectId;
-
-                    SELECT 'approved' AS Status, 'success' AS Result, v_Token AS Token;
-                END IF;
-            END");
-
-        // 202. sp_zonal_reject_request — reject from authenticated zonal coordinator
-        await CreateOrReplaceProcedure(connection, "sp_zonal_reject_request", @"
-            CREATE PROCEDURE sp_zonal_reject_request(
-                IN p_ApprovalId INT,
-                IN p_ZoneId INT,
-                IN p_MemberId INT,
-                IN p_Remark VARCHAR(1000)
-            )
-            BEGIN
-                DECLARE v_Status VARCHAR(20);
-                DECLARE v_Token VARCHAR(100);
-
-                SELECT status, approval_token INTO v_Status, v_Token
-                FROM beneficiary_approval_requests
-                WHERE pk_approval_id = p_ApprovalId AND fk_zone_id = p_ZoneId;
-
-                IF v_Status IS NULL THEN
-                    SELECT 'not_found' AS Status, 'error' AS Result;
-                ELSEIF v_Status != 'pending' THEN
-                    SELECT v_Status AS Status, 'already_processed' AS Result;
-                ELSE
-                    UPDATE beneficiary_approval_requests
-                    SET status = 'rejected', remark = p_Remark, responded_by = p_MemberId, responded_date = NOW()
-                    WHERE pk_approval_id = p_ApprovalId;
-
-                    SELECT 'rejected' AS Status, 'success' AS Result, v_Token AS Token;
-                END IF;
-            END");
-
         // 203. sp_login_audit_create — insert login audit log
         await CreateOrReplaceProcedure(connection, "sp_login_audit_create", @"
             CREATE PROCEDURE sp_login_audit_create(
@@ -4673,7 +4040,6 @@ public partial class DatabaseInitializer
                        e.ExpiryDate,
                        e.EventVenue,
                        e.RegistrationLink,
-                       e.IsSendWhatsapp,
                        e.IsRepeatNotification,
                        CASE
                            WHEN e.ExpiryDate < NOW() THEN 'Expired'
@@ -4725,7 +4091,6 @@ public partial class DatabaseInitializer
                        e.ExpiryDate,
                        e.EventVenue,
                        e.RegistrationLink,
-                       e.IsSendWhatsapp,
                        e.IsRepeatNotification,
                        CASE
                            WHEN e.ExpiryDate < NOW() THEN 'Expired'
@@ -4756,13 +4121,12 @@ public partial class DatabaseInitializer
                 IN p_ExpiryDate DATE,
                 IN p_EventVenue VARCHAR(255),
                 IN p_RegistrationLink VARCHAR(500),
-                IN p_IsSendWhatsapp TINYINT,
                 IN p_IsRepeatNotification TINYINT,
                 IN p_CreatedBy INT
             )
             BEGIN
-                INSERT INTO upcoming_events (fk_club_id, Title, Description, ImagePath, EventDate, PublishDate, ExpiryDate, EventVenue, RegistrationLink, IsSendWhatsapp, IsRepeatNotification, created_by)
-                VALUES (p_ClubId, p_Title, p_Description, p_ImagePath, p_EventDate, p_PublishDate, p_ExpiryDate, p_EventVenue, p_RegistrationLink, p_IsSendWhatsapp, p_IsRepeatNotification, p_CreatedBy);
+                INSERT INTO upcoming_events (fk_club_id, Title, Description, ImagePath, EventDate, PublishDate, ExpiryDate, EventVenue, RegistrationLink, IsRepeatNotification, created_by)
+                VALUES (p_ClubId, p_Title, p_Description, p_ImagePath, p_EventDate, p_PublishDate, p_ExpiryDate, p_EventVenue, p_RegistrationLink, p_IsRepeatNotification, p_CreatedBy);
 
                 SELECT LAST_INSERT_ID();
             END");
@@ -4779,7 +4143,6 @@ public partial class DatabaseInitializer
                 IN p_ExpiryDate DATE,
                 IN p_EventVenue VARCHAR(255),
                 IN p_RegistrationLink VARCHAR(500),
-                IN p_IsSendWhatsapp TINYINT,
                 IN p_IsRepeatNotification TINYINT,
                 IN p_ModifiedBy INT
             )
@@ -4793,7 +4156,6 @@ public partial class DatabaseInitializer
                     ExpiryDate = p_ExpiryDate,
                     EventVenue = p_EventVenue,
                     RegistrationLink = p_RegistrationLink,
-                    IsSendWhatsapp = p_IsSendWhatsapp,
                     IsRepeatNotification = p_IsRepeatNotification,
                     modified_by = p_ModifiedBy
                 WHERE pk_upcoming_event_id = p_Id
@@ -4876,7 +4238,6 @@ public partial class DatabaseInitializer
                        a.PublishDateTime,
                        a.ExpiryDateTime,
                        a.IsDisplayOnBanner,
-                       a.IsSendWhatsapp,
                        a.IsRepeatNotification,
                        CASE
                            WHEN a.ExpiryDateTime < NOW() THEN 'Expired'
@@ -4926,7 +4287,6 @@ public partial class DatabaseInitializer
                        a.PublishDateTime,
                        a.ExpiryDateTime,
                        a.IsDisplayOnBanner,
-                       a.IsSendWhatsapp,
                        a.IsRepeatNotification,
                        CASE
                            WHEN a.ExpiryDateTime < NOW() THEN 'Expired'
@@ -4955,13 +4315,12 @@ public partial class DatabaseInitializer
                 IN p_PublishDateTime DATETIME,
                 IN p_ExpiryDateTime DATETIME,
                 IN p_IsDisplayOnBanner TINYINT,
-                IN p_IsSendWhatsapp TINYINT,
                 IN p_IsRepeatNotification TINYINT,
                 IN p_CreatedBy INT
             )
             BEGIN
-                INSERT INTO announcements (fk_club_id, Title, Description, ImagePath, PublishDateTime, ExpiryDateTime, IsDisplayOnBanner, IsSendWhatsapp, IsRepeatNotification, created_by)
-                VALUES (p_ClubId, p_Title, p_Description, p_ImagePath, p_PublishDateTime, p_ExpiryDateTime, p_IsDisplayOnBanner, p_IsSendWhatsapp, p_IsRepeatNotification, p_CreatedBy);
+                INSERT INTO announcements (fk_club_id, Title, Description, ImagePath, PublishDateTime, ExpiryDateTime, IsDisplayOnBanner, IsRepeatNotification, created_by)
+                VALUES (p_ClubId, p_Title, p_Description, p_ImagePath, p_PublishDateTime, p_ExpiryDateTime, p_IsDisplayOnBanner, p_IsRepeatNotification, p_CreatedBy);
 
                 SELECT LAST_INSERT_ID();
             END");
@@ -4976,7 +4335,6 @@ public partial class DatabaseInitializer
                 IN p_PublishDateTime DATETIME,
                 IN p_ExpiryDateTime DATETIME,
                 IN p_IsDisplayOnBanner TINYINT,
-                IN p_IsSendWhatsapp TINYINT,
                 IN p_IsRepeatNotification TINYINT,
                 IN p_ModifiedBy INT
             )
@@ -4988,7 +4346,6 @@ public partial class DatabaseInitializer
                     PublishDateTime = p_PublishDateTime,
                     ExpiryDateTime = p_ExpiryDateTime,
                     IsDisplayOnBanner = p_IsDisplayOnBanner,
-                    IsSendWhatsapp = p_IsSendWhatsapp,
                     IsRepeatNotification = p_IsRepeatNotification,
                     modified_by = p_ModifiedBy
                 WHERE pk_announcement_id = p_Id
@@ -5073,7 +4430,6 @@ public partial class DatabaseInitializer
                        n.AttachmentType,
                        n.LinkUrl,
                        n.FilePath,
-                       n.IsSendWhatsapp,
                        CASE
                            WHEN n.ExpiryDateTime < NOW() THEN 'Expired'
                            WHEN n.PublishDateTime <= NOW() AND n.ExpiryDateTime >= NOW() THEN 'Published'
@@ -5121,7 +4477,6 @@ public partial class DatabaseInitializer
                        n.AttachmentType,
                        n.LinkUrl,
                        n.FilePath,
-                       n.IsSendWhatsapp,
                        CASE
                            WHEN n.ExpiryDateTime < NOW() THEN 'Expired'
                            WHEN n.PublishDateTime <= NOW() AND n.ExpiryDateTime >= NOW() THEN 'Published'
@@ -5142,12 +4497,11 @@ public partial class DatabaseInitializer
                 IN p_AttachmentType VARCHAR(10),
                 IN p_LinkUrl VARCHAR(500),
                 IN p_FilePath VARCHAR(500),
-                IN p_IsSendWhatsapp TINYINT,
                 IN p_CreatedBy INT
             )
             BEGIN
-                INSERT INTO newsletters (fk_club_id, Title, PublishDateTime, ExpiryDateTime, AttachmentType, LinkUrl, FilePath, IsSendWhatsapp, created_by)
-                VALUES (p_ClubId, p_Title, p_PublishDateTime, p_ExpiryDateTime, p_AttachmentType, p_LinkUrl, p_FilePath, p_IsSendWhatsapp, p_CreatedBy);
+                INSERT INTO newsletters (fk_club_id, Title, PublishDateTime, ExpiryDateTime, AttachmentType, LinkUrl, FilePath, created_by)
+                VALUES (p_ClubId, p_Title, p_PublishDateTime, p_ExpiryDateTime, p_AttachmentType, p_LinkUrl, p_FilePath, p_CreatedBy);
 
                 SELECT LAST_INSERT_ID();
             END");
@@ -5162,7 +4516,6 @@ public partial class DatabaseInitializer
                 IN p_AttachmentType VARCHAR(10),
                 IN p_LinkUrl VARCHAR(500),
                 IN p_FilePath VARCHAR(500),
-                IN p_IsSendWhatsapp TINYINT,
                 IN p_ModifiedBy INT
             )
             BEGIN
@@ -5173,7 +4526,6 @@ public partial class DatabaseInitializer
                     AttachmentType = p_AttachmentType,
                     LinkUrl = p_LinkUrl,
                     FilePath = p_FilePath,
-                    IsSendWhatsapp = p_IsSendWhatsapp,
                     modified_by = p_ModifiedBy
                 WHERE pk_newsletter_id = p_Id;
             END");
@@ -5232,7 +4584,6 @@ public partial class DatabaseInitializer
                        CASE
                            WHEN d.FilePath IS NULL OR d.FilePath = '' THEN NULL
                            WHEN d.FilePath LIKE '/%' THEN d.FilePath
-                           WHEN d.Scope = 'ri' THEN CONCAT('/Documents/documentsafe/ri/', d.FilePath)
                            WHEN d.fk_district_id IS NOT NULL THEN CONCAT('/Documents/documentsafe/Group', d.fk_district_id, '/', d.FilePath)
                            ELSE CONCAT('/Documents/documentsafe/Group', d.fk_club_id, '/', d.FilePath)
                        END AS FilePath,
@@ -5282,7 +4633,6 @@ public partial class DatabaseInitializer
                        CASE
                            WHEN d.FilePath IS NULL OR d.FilePath = '' THEN NULL
                            WHEN d.FilePath LIKE '/%' THEN d.FilePath
-                           WHEN d.Scope = 'ri' THEN CONCAT('/Documents/documentsafe/ri/', d.FilePath)
                            WHEN d.fk_district_id IS NOT NULL THEN CONCAT('/Documents/documentsafe/Group', d.fk_district_id, '/', d.FilePath)
                            ELSE CONCAT('/Documents/documentsafe/Group', d.fk_club_id, '/', d.FilePath)
                        END AS FilePath,
@@ -5378,7 +4728,7 @@ public partial class DatabaseInitializer
                 SELECT
                     BirthdayGreeting, IsEnableBirthdayNotification,
                     AnniversaryGreeting, IsEnableAnniversaryNotification,
-                    IsGreetingSendWhatsapp, IsGreetingSendEmail,
+                    IsGreetingSendEmail,
                     IsEnableBirthdayEmail, BirthdayEmailFrom, BirthdayEmailSubject, BirthdayEmailMessage,
                     IsEnableAnniversaryEmail, AnniversaryEmailFrom, AnniversaryEmailSubject, AnniversaryEmailMessage
                 FROM club_master
@@ -5393,7 +4743,6 @@ public partial class DatabaseInitializer
                 IN p_IsEnableBirthdayNotification TINYINT,
                 IN p_AnniversaryGreeting VARCHAR(700),
                 IN p_IsEnableAnniversaryNotification TINYINT,
-                IN p_IsGreetingSendWhatsapp TINYINT,
                 IN p_IsGreetingSendEmail TINYINT,
                 IN p_IsEnableBirthdayEmail TINYINT,
                 IN p_BirthdayEmailFrom VARCHAR(200),
@@ -5411,7 +4760,6 @@ public partial class DatabaseInitializer
                     IsEnableBirthdayNotification = p_IsEnableBirthdayNotification,
                     AnniversaryGreeting = p_AnniversaryGreeting,
                     IsEnableAnniversaryNotification = p_IsEnableAnniversaryNotification,
-                    IsGreetingSendWhatsapp = p_IsGreetingSendWhatsapp,
                     IsGreetingSendEmail = p_IsGreetingSendEmail,
                     IsEnableBirthdayEmail = p_IsEnableBirthdayEmail,
                     BirthdayEmailFrom = p_BirthdayEmailFrom,

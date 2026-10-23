@@ -51,33 +51,38 @@ public class MemberService : IMemberService
         return new DateTime(1900, v.Month, day);
     }
 
-    private async Task CheckDuplicatesAsync(MySqlConnection connection, string? mobile, string? email, string? rotaryId, int? excludeId = null)
+    // One active club of the member, for naming them in a duplicate message.
+    private const string ClubOfMember = @"(SELECT c.ClubName FROM club_members cm JOIN club_master c ON c.pk_club_id = cm.fk_club_id
+          WHERE cm.fk_member_master_profile_id = m.pk_member_master_profile_id AND cm.IsActive = 1 AND IFNULL(cm.isdeleted, 0) = 0
+          ORDER BY cm.pk_club_member_id LIMIT 1)";
+
+    // Refuses a mobile, email or Rotary ID that an active profile already holds and names that member and a club of
+    // theirs, so the admin knows who it is (build spec 3.12). Shared by add, edit and the Rotary.org import.
+    internal static async Task CheckDuplicatesAsync(MySqlConnection connection, string? mobile, string? email, string? rotaryId, int? excludeId = null)
     {
         // Inline SQL — looks at ACTIVE profiles only. Soft-deleted profiles with same mobile/email
         // are handled separately in CreateAsync via FindSoftDeletedMatchAsync (re-activation flow).
-        var sql = @"
-            SELECT
-                SUM(CASE WHEN PrimaryMobileNumber = @Mobile AND @Mobile <> '' THEN 1 ELSE 0 END) AS MobileDuplicate,
-                SUM(CASE WHEN EmailId = @Email AND @Email <> '' THEN 1 ELSE 0 END) AS EmailDuplicate,
-                SUM(CASE WHEN RotaryId = @RotaryId AND @RotaryId <> '' THEN 1 ELSE 0 END) AS RotaryIdDuplicate
-            FROM member_master_profile
-            WHERE isdeleted = 0
-              AND (@ExcludeId IS NULL OR pk_member_master_profile_id <> @ExcludeId)";
+        const string notSelf = "AND (@ExcludeId IS NULL OR m.pk_member_master_profile_id <> @ExcludeId)";
+        var sql = $@"
+            SELECT 'mobile number' AS Field, m.MemberName AS Name, {ClubOfMember} AS Club FROM member_master_profile m
+            WHERE m.isdeleted = 0 AND @Mobile <> '' AND m.PrimaryMobileNumber = @Mobile {notSelf}
+            UNION ALL
+            SELECT 'email ID', m.MemberName, {ClubOfMember} FROM member_master_profile m
+            WHERE m.isdeleted = 0 AND @Email <> '' AND m.EmailId = @Email {notSelf}
+            UNION ALL
+            SELECT 'Rotary ID', m.MemberName, {ClubOfMember} FROM member_master_profile m
+            WHERE m.isdeleted = 0 AND @RotaryId <> '' AND m.RotaryId = @RotaryId {notSelf}";
 
-        var result = await connection.QueryFirstAsync<(long? MobileDuplicate, long? EmailDuplicate, long? RotaryIdDuplicate)>(sql,
-            new { Mobile = mobile ?? "", Email = email ?? "", RotaryId = rotaryId ?? "", ExcludeId = excludeId });
+        var hits = (await connection.QueryAsync<(string Field, string? Name, string? Club)>(sql,
+            new { Mobile = mobile ?? "", Email = email ?? "", RotaryId = rotaryId ?? "", ExcludeId = excludeId })).ToList();
 
-        var errors = new List<string>();
-        if ((result.MobileDuplicate ?? 0) > 0) errors.Add("This mobile number already exists");
-        if ((result.EmailDuplicate ?? 0) > 0) errors.Add("This email ID already exists");
-        if ((result.RotaryIdDuplicate ?? 0) > 0) errors.Add("This Rotary ID already exists");
-
-        if (errors.Count > 0)
-            throw new InvalidOperationException(string.Join(", ", errors));
+        if (hits.Count > 0)
+            throw new DuplicateMemberException(string.Join("; ", hits.Select(h =>
+                $"This {h.Field} already exists (used by {h.Name}{(string.IsNullOrEmpty(h.Club) ? "" : $", {h.Club}")})")));
     }
 
     // A member has one spouse. Every save re-inserts the whole family list, so a second "Spouse" card
-    // became a second spouse row - and the Club Directory and the Directory Data Collection form then
+    // became a second spouse row - and the Club Directory and the member profile then
     // each showed a different one. The form stops picking Spouse twice; this is the API-side guard.
     private static void CheckSingleSpouse(IEnumerable<FamilyMemberDto>? family)
     {
@@ -1012,3 +1017,6 @@ public class MemberService : IMemberService
             }, transaction, commandType: CommandType.StoredProcedure);
     }
 }
+
+/// <summary>A mobile, email or Rotary ID another active member already holds; the message names that member.</summary>
+public sealed class DuplicateMemberException(string message) : InvalidOperationException(message);

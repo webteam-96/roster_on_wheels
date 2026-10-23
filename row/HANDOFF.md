@@ -1,6 +1,6 @@
 # ROW: session handoff (read this first)
 
-Last session: **2026-10-21**. A new session starts here, then continues with **"Next task"** below without
+Last session: **2026-10-23**. A new session starts here, then continues with **"Next task"** below without
 re-reading whole codebases (use `kb/README.md` and the graphify commands in the root `CLAUDE.md`).
 
 ## Ground rules (from the user)
@@ -43,11 +43,29 @@ Later on 2026-10-21 (not committed yet when written): go-live security fixes (me
 sign-in rate-limited, forwarded headers, no default SuperAdmin password) and module switches from the user's module
 sheet (PENDING-WORK §11a; Settings > Features; e2e `kb/tools/feature_gate_e2e.py`).
 
+## Done on 2026-10-23
+
+- Skipped modules (TRACKER section 2) removed completely from API, workers, admin, app, public sites and schema, plus
+  project Category / Sub-category (user: Area of Focus only) and the all-zones Performance Report (user: remove).
+  Existing databases: `database/maintenance/2026-10-23-drop-removed-modules.sql`, run only with the user's go-ahead
+  after deploy + backup.
+- 10 new spec modules built (N1-N6, N8-N11; TRACKER section 5), web + API, each behind a FeatureGate flag that is
+  OFF. Plans: `docs/superpowers/plans/2026-10-23-*.md`. Details: `ROW-CHANGES.md` (2026-10-23).
+- Checks passed: dotnet build (API + 3 workers) 0 errors; admin tsc 0, vitest 103/103, check-design clean; both
+  sites tsc 0; e2e on `row_prod_copy`: the 10 new suites, `scope_read_guard`, `feature_gate` (now takes the DB name
+  as 3rd argument) all PASS.
+
 ## Next task
 
-Wave 1 and its wrap-up are done (STATUS §6d, PENDING-WORK §1/§7, design plan Task 10 gates green 2026-10-21).
-**Wave 2 (money) is blocked on a Stripe test account from the user.** Unblocked meanwhile: the district website
-scope (needs the user's list), and committing this work (only when the user asks).
+Plan for the next round (user: build everything, no questions): `docs/superpowers/plans/2026-10-23-round2-and-app.md`
+(not started; N12 facts gathered: no IST constant left, district_master has no Timezone column yet). Copy-sources added
+2026-10-23: `reference/kaizen-events` (.NET) and `reference/kaizen-qr` (QR check-in), read-only like RIZones.
+Commit this work when the user asks (nothing is committed; scan every added file for secrets first). Then:
+round 2 of the spec modules: N7 planning mode, N12 time zones, escalation ladder and target celebration (B.3/B.4),
+the app screens for the 10 new modules, and P6 (8 older e2e scripts still use the dropped `row_local`).
+Open decisions for the user: club committees (only districts have them), "district on ROW" signal for grants
+(tenant row), volunteer hours added on top of project man-hours, transactional emails outside email credits,
+seeding RI default themes. **Wave 2 (money) is still blocked on a Stripe test account.**
 
 ## Still pending after Wave 1
 
@@ -58,6 +76,12 @@ scope (needs the user's list), and committing this work (only when the user asks
 
 ## Known gaps and flags
 
+- Security, open (found 2026-10-23, not fixed): `row/api/App_Data/dp-keys/key-*.xml` (Data Protection key ring) is
+  tracked in the public repo: untrack and rotate. `GET /api/mobile/club-calendar/{id}` and `district-calendar/{id}`
+  let any signed-in user read any club's birthdays, phones and emails. Mass email detail/update/delete/send by id do
+  not check the club. Admin `/api/i18n/translate` has no auth (open translation proxy). `EmailService` logs the
+  recipient address on a failed send. Chat hub tokens travel in the query string: strip it from proxy logs.
+
 - **`row/mobile` is in git since 2026-10-21** (user decision). Its RIZones-era notes (`WORK_LOG.txt`, `ANALYSIS.md`,
   `.specs/` and others, see `row/mobile/.gitignore`) stay local: they hold RIZones servers and old dev logins.
 - Write endpoints with the club or district id outside the URL were reviewed 2026-10-21; READ (GET) access is not
@@ -65,14 +89,21 @@ scope (needs the user's list), and committing this work (only when the user asks
 - Behind a proxy, set `ForwardedHeaders__KnownNetworks__0=<proxy CIDR>` or every client shares one rate-limit bucket.
 - A fresh database gets a SuperAdmin login only when `Bootstrap__SuperAdminPassword` (12+ characters) is set.
 - The repo is public and its history holds old demo logins: rotate any password that was ever committed.
-- Database columns named after WhatsApp are kept (no destructive migration); only sending, granting and buying
-  were removed.
+- WhatsApp-named columns left the code and schema 2026-10-23; existing databases keep them until the cleanup
+  script runs (user go-ahead).
 - Store ids: iOS `com.kaizen.row`, Android `com.SampleApp.row` (Android id still a placeholder).
 - 19 analyzer warnings in the app (unused locals such as `grad`) and some admin lint warnings are pre-existing.
 
 ## Run locally (dev only)
 
-- MySQL 8.4 on port 3317, database `row_local`. Data dir (2026-10-21):
+- MySQL 8.4 on port 3317, root with no password. Use database `row_prod_copy`: a copy of prod `row_production`
+  taken 2026-10-22 (connection details in `row/.env`, gitignored). The old demo database `row_local` was
+  dropped 2026-10-22; e2e scripts that used its demo logins need accounts from the copy.
+  Re-copying prod: `mysqldump --single-transaction --routines --triggers --set-gtid-purged=OFF --no-tablespaces`,
+  rewrite ``DEFINER=`Mysql_admin_User`@...`` to ``DEFINER=`root`@`localhost` ``, restore into a database created
+  with `utf8mb4_unicode_ci`, then start the API once with `Database__SkipInit=false` to add tables the code has
+  but prod lacks. Prod password hashes come with the copy; to log in locally, reset a hash in the copy only.
+  Data dir (2026-10-21):
   `C:\Users\USER\AppData\Local\Temp\claude\E--websites-row\90aa448c-26b5-4793-8f68-287ce64e72b4\scratchpad\rowdb\data`;
   start: `mysqld --datadir=<that dir> --port=3317 --bind-address=127.0.0.1 --mysqlx=OFF --console`.
 - API: from `row/api`, set `ASPNETCORE_ENVIRONMENT=Development`, `ConnectionStrings__DefaultConnection` to the
@@ -92,7 +123,10 @@ scope (needs the user's list), and committing this work (only when the user asks
 
 - API: `dotnet build`; e2e: `python kb/tools/<name>_e2e.py` for `no_whatsapp`, `scope_write_guard`,
   `meeting_mode`, `mobile_password_login`, `audit_immutable`, `tenant_lifecycle`, `i18n_catalogue`, `feature_gate`, `district_site`, `member_scope` (run them a minute apart: the auth rate limit is
-  10 logins per minute per IP).
+  10 logins per minute per IP). New (args `<api> 3317 <db>`, `ROW_E2E_JWT_SECRET`): `membership_fields`,
+  `engagement`, `grants`, `volunteers_speakers` (API with `VolunteerReminders__Enabled=true`),
+  `contacts_prospects_growth` (`ROW_E2E_EMAIL_SAFE=1`), `target_dashboard`, `meetings_links_compliance`,
+  `communication_upgrades` (see its header: fake Brevo + DNS ports), `websites_multilingual`, `chat`.
 - Admin: `npx tsc --noEmit -p tsconfig.json`, `npx vitest run`, `node scripts/check-design.mjs`.
 - App: `flutter analyze` (errors print as `  error -`), `flutter test`.
 - Then `bash kb/rebuild.sh`.

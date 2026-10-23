@@ -290,7 +290,6 @@ class MonthlyReportWordService {
 
       final projects = List<Map<String, dynamic>>.from(
           list.map((e) => Map<String, dynamic>.from(e as Map)));
-      final isCommunity = key == 'community_service';
 
       buf.write(_paragraph(
         runs: [_run(label, bold: true, sizeHalfPt: 24)],
@@ -298,19 +297,11 @@ class MonthlyReportWordService {
         spacingAfter: 100,
       ));
 
-      final headerCells = isCommunity
-          ? [
-              _th('Sr.No'), _th('Date'), _th('Title'),
-              _th('Area of Focus'), _th('Category'), _th('Sub Category'),
-              _th('Cost'), _th('Beneficiaries'), _th('Man Hours'),
-              _th('Rotarians'), _th('Rotaractors'),
-            ]
-          : [
-              _th('Sr.No'), _th('Date'), _th('Title'),
-              _th('Category'), _th('Sub Category'),
-              _th('Cost'), _th('Beneficiaries'), _th('Man Hours'),
-              _th('Rotarians'), _th('Rotaractors'),
-            ];
+      final headerCells = [
+        _th('Sr.No'), _th('Date'), _th('Title'), _th('Area of Focus'),
+        _th('Cost'), _th('Beneficiaries'), _th('Man Hours'),
+        _th('Rotarians'), _th('Rotaractors'),
+      ];
 
       buf.write(_table(
         rows: [
@@ -348,23 +339,11 @@ class MonthlyReportWordService {
                   ? '${_asInt(p['rotaractorsInvolved'])}'
                   : '-'),
             ];
-            if (isCommunity) {
-              return _tableRow([
-                _td('${i + 1}'),
-                _td(_fmtDate(p['projectDate']?.toString())),
-                _td(title),
-                _td(p['areaOfFocusName']?.toString() ?? '-'),
-                _td(p['categoryName']?.toString() ?? '-'),
-                _td(p['subCategoryName']?.toString() ?? '-'),
-                ...common,
-              ]);
-            }
             return _tableRow([
               _td('${i + 1}'),
               _td(_fmtDate(p['projectDate']?.toString())),
               _td(title),
               _td(p['areaOfFocusName']?.toString() ?? '-'),
-              _td(p['categoryName']?.toString() ?? '-'),
               ...common,
             ]);
           }),

@@ -19,7 +19,6 @@ public interface IClubAdminDashboardService
     // Dashboard sub-tabs (Phase B)
     Task<ClubAdminDashboardDirectoryResponse?> GetDashboardDirectoryAsync(int memberId, int? yearId, int? requestedClubId = null);
     Task<ClubAdminDashboardBodResponse?> GetDashboardBodAsync(int memberId, int? yearId, int? requestedClubId = null);
-    Task<ClubAdminDashboardMarketplaceResponse?> GetDashboardMarketplaceAsync(int memberId, int? yearId, int? requestedClubId = null);
     Task<ClubAdminDashboardRotaryNetworkResponse?> GetDashboardRotaryNetworkAsync(int memberId, int? yearId, int? requestedClubId = null);
 
     // Service Projects & Public Image (Phase C)

@@ -86,7 +86,7 @@ export interface OrgExport {
   title: string;
   description: string;
   meta: { avenue: string };
-  classification: { areaOfFocus: string; category?: string; subCategory?: string };
+  classification: { areaOfFocus: string };
   locationText: string;
   dateOfProject: string; // YYYY-MM-DD
   projectType: string;
@@ -239,8 +239,6 @@ export function buildOrgExportFromDetail(
     meta: { avenue: avenueLabel },
     classification: {
       areaOfFocus: detail.otherAreaOfFocus || detail.areaOfFocusName || "",
-      category: detail.otherCategory || detail.categoryName || "",
-      subCategory: detail.otherSubCategory || detail.subCategoryName || "",
     },
     locationText: detail.location || "",
     dateOfProject: detail.projectDate || "",

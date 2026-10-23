@@ -1365,7 +1365,7 @@ own separate approval request.</p>
         var logoHtml = EmailLogoHtml((string?)info.EmailHeaderLogo);
         bool showBank = Convert.ToBoolean(info.IsShowBankInReceipt);
 
-        // Non-expiring, stable pay link for the club (same token type as the WhatsApp reminder) —
+        // Non-expiring, stable pay link for the club (same token type as the reminder email) —
         // re-sending the reminder re-issues the identical URL rather than a second, different one.
         var secret = _config["JwtSettings:Secret"] ?? "";
         var accessToken = ClubDuesAccessToken.Generate(duesId, clubId, secret);

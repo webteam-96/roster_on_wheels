@@ -5,9 +5,10 @@ import { useParams, useRouter } from "next/navigation";
 import { getDistrict } from "@/services/api";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { ArrowLeft, AlertCircle, Globe, ImageIcon, Megaphone, Share2, Phone, List, Info } from "@/components/icons";
+import { ArrowLeft, AlertCircle, Globe, ImageIcon, Megaphone, Share2, Phone, List, Info, Languages } from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
 import ProtectedRoute from "@/components/ProtectedRoute";
+import { useIsPathOff } from "@/components/FeatureGate";
 
 const DISTRICT_WEBSITE_MODULES = [
   { key: "banners", name: "Banner Photos", icon: "ImageIcon", route: "banners" },
@@ -16,6 +17,7 @@ const DISTRICT_WEBSITE_MODULES = [
   { key: "contact_details", name: "Contact Details", icon: "Phone", route: "contact_details" },
   { key: "menu_list", name: "Menu List", icon: "List", route: "menu_list" },
   { key: "about", name: "About", icon: "Info", route: "about" },
+  { key: "languages", name: "Languages", icon: "Languages", route: "languages" },
 ];
 
 function getModuleIcon(iconName: string) {
@@ -26,6 +28,7 @@ function getModuleIcon(iconName: string) {
     Phone: <Phone className="h-10 w-10 text-primary" />,
     List: <List className="h-10 w-10 text-primary" />,
     Info: <Info className="h-10 w-10 text-primary" />,
+    Languages: <Languages className="h-10 w-10 text-primary" />,
   };
   return iconMap[iconName] || <Globe className="h-10 w-10 text-primary" />;
 }
@@ -38,6 +41,7 @@ export default function DistrictWebsiteDataPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [navigatingKey, setNavigatingKey] = useState<string | null>(null);
+  const isPathOff = useIsPathOff(); // the cards navigate with router.push, so FeatureGate cannot hide them itself
 
   useEffect(() => {
     async function fetchData() {
@@ -90,7 +94,7 @@ export default function DistrictWebsiteDataPage() {
 
         {!loading && !error && (
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-            {DISTRICT_WEBSITE_MODULES.map((mod) => (
+            {DISTRICT_WEBSITE_MODULES.filter((mod) => !isPathOff(`/districts/${districtId}/website-data/${mod.route}`)).map((mod) => (
               <Card
                 key={mod.key}
                 className={`cursor-pointer hover:shadow-md hover:border-primary/30 transition-all ${navigatingKey === mod.key ? "opacity-70 pointer-events-none" : ""}`}

@@ -7,7 +7,7 @@ using RotaryApi.DTOs;
 
 namespace RotaryApi.Services;
 
-// Razorpay-backed wallet top-up: club/district admins buy WhatsApp/Email credits.
+// Razorpay-backed wallet top-up: club/district admins buy Email credits.
 // Pricing is server-authoritative; GST is added on top of the base amount; credits derive from
 // the BASE amount only. A payment credits the wallet exactly once (atomic claim shared by the
 // client verify callback and the webhook).
@@ -55,7 +55,7 @@ public class WalletService : IWalletService
 
     private Priced Compute(string creditType, decimal baseAmount)
     {
-        // ROW has no WhatsApp (2026-10-19): email credits are the only top-up.
+        // Email credits are the only top-up.
         if (creditType != "Email")
             return new Priced(false, "Invalid credit type.", 0, 0, 0, baseAmount, 0, 0, 0, 0);
         var (ratePaise, min) = PricingFor(creditType);

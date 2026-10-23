@@ -4,6 +4,7 @@ import {
   Briefcase,
   BarChart3,
   FileText,
+  Target,
 } from "@/components/icons";
 import type { NavItem } from "@/components/dashboard/DashboardShell";
 
@@ -22,6 +23,8 @@ export const AG_NAV: NavItem[] = [
   // wraps it always breaks there: "Service Projects &" / "Public Image".
   { to: "/ag-dashboard/projects",   label: "Service Projects & Public Image", icon: Briefcase, moduleKey: "community_service" },
   { to: "/ag-dashboard/district",   label: "District View",     icon: BarChart3 },
+  // Live target against actual for the AG's clubs. Hidden while the target_dashboard feature is off.
+  { to: "/ag-dashboard/targets",    label: "Targets",           icon: Target },
   // Replica of the District Admin report, scoped to this AG's clubs + selected year.
   { to: "/ag-dashboard/reports",    label: "Reports",           icon: FileText },
 ];
@@ -35,5 +38,6 @@ export const AG_PAGE_TITLES: Record<string, string> = {
   "/ag-dashboard/youth":      "Youth Services",
   "/ag-dashboard/projects":   "Service Projects & Public Image",
   "/ag-dashboard/district":   "District View",
+  "/ag-dashboard/targets":    "Targets",
   "/ag-dashboard/reports":    "Reports",
 };

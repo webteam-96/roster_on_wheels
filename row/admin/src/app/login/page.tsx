@@ -92,8 +92,6 @@ export default function LoginPage() {
         } catch {
           // Resolver failed — fall back to the flat-role hint so login still lands sensibly.
           if (response.roles.includes("SuperAdmin")) landingRoute = "/settings/global-search";
-          else if (response.roles.includes("RIDirector")) landingRoute = "/ri-director/v2";
-          else if (response.roles.includes("ZonalCoordinator")) landingRoute = "/zonal-dashboard";
         }
         router.push(landingRoute);
       }

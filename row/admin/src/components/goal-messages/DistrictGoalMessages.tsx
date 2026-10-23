@@ -1,8 +1,7 @@
 "use client";
 
-// District Admin / District Governor -> oversight chain (user 2026-10-09). Category-wise: the message
-// goes to the District Assistant of this district + category, the Zone Co-ordinator of the zone +
-// category, and the RI Director. They only read - nobody replies here.
+// District Admin / District Governor -> Super Admin (user 2026-10-09). Category-wise: the message
+// goes to the Super Admin for the selected category. They read it; there are no replies here.
 
 import { useEffect, useRef, useState } from "react";
 import { Loader2, MessagesSquare, Send } from "@/components/icons";
@@ -76,7 +75,7 @@ export default function DistrictGoalMessages({
           {data?.districtNumber && <span className="text-xs text-slate-500">District {data.districtNumber}</span>}
         </div>
         <p className="text-xs text-slate-500 mt-0.5">
-          Goes to your District Assistant, Zone Co-ordinator and RI Director for the selected category. They read it; there are no replies here.
+          Goes to the Super Admin for the selected category. They read it; there are no replies here.
         </p>
       </div>
 
@@ -97,7 +96,6 @@ export default function DistrictGoalMessages({
         )}
       </div>
 
-      {data?.notice && <p className="mx-5 mb-2 text-xs text-amber-700 bg-amber-50 border border-amber-100 rounded-lg px-3 py-2">{data.notice}</p>}
 
       {data?.canPost ? (
         <div className="px-5 pb-4 flex flex-col gap-2">

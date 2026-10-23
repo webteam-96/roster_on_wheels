@@ -24,7 +24,7 @@ import 'package:rotary_flutter_app/core/theme/app_fonts.dart';
 /// button that exports just that section as a styled .xlsx (mirrors the web
 /// per-section download). Rows are grouped under MEMBERS / CLUBS / DISTRICT.
 ///
-/// Phase 1: Avenue of Service, Data Collection and District Awards are shown
+/// Phase 1: Avenue of Service and District Awards are shown
 /// as "Coming Soon" (their exports need extra endpoints / column logic).
 class ClubReportScreen extends StatefulWidget {
   final int clubId;
@@ -314,54 +314,6 @@ class _ClubReportScreenState extends State<ClubReportScreen> {
     );
   }
 
-  // ── Data Collection (config-gated columns from payload, rows lazy) ──
-  Map<String, dynamic>? get _dcConfig =>
-      (_report?['dataCollection'] as Map?)?.cast<String, dynamic>();
-
-  List<ReportColumn> _dcColsFrom(dynamic spec) => [
-        for (final c in (spec as List? ?? const []))
-          if (c is Map)
-            ReportColumn((c['key'] ?? '').toString(),
-                (c['label'] ?? '').toString(),
-                width: 18),
-      ];
-
-  Future<List<Map<String, dynamic>>> _fetchDc(String path) async {
-    final resp = await _api.get<Map<String, dynamic>>(
-      '/api/clubs/${widget.clubId}/club-report/data-collection/$path',
-      queryParams: {'yearId': _yearId},
-      fromJson: (j) => j as Map<String, dynamic>,
-    );
-    return _rows(resp.data?['rows']);
-  }
-
-  /// Lazily fetch a Data Collection section's rows then export them to Excel.
-  Future<void> _exportDcLazy(
-      String path, String title, String fileSuffix, List<ReportColumn> cols) async {
-    if (_exporting) return;
-    final messenger = ScaffoldMessenger.of(context);
-    messenger.clearSnackBars();
-    messenger.showSnackBar(const SnackBar(
-      content: Text('Preparing…'),
-      duration: Duration(seconds: 30),
-    ));
-    try {
-      final rows = await _fetchDc(path);
-      if (!mounted) return;
-      messenger.clearSnackBars();
-      if (rows.isEmpty) {
-        _toast('No data to export for this section.');
-        return;
-      }
-      await _export(
-          title: title, fileSuffix: fileSuffix, columns: cols, rows: rows);
-    } catch (e) {
-      if (!mounted) return;
-      messenger.clearSnackBars();
-      _toast('Export failed: $e');
-    }
-  }
-
   // ── Blood Group (members + family who have a group on file) ──
   static const _bloodGroupCols = [
     ReportColumn('name', 'Name', width: 26),
@@ -400,8 +352,6 @@ class _ClubReportScreenState extends State<ClubReportScreen> {
     ReportColumn('clubRole', 'Your Club Role', width: 16),
     ReportColumn('coHostName', 'Co-host Name', width: 18),
     ReportColumn('areaOfFocus', 'Area of Focus', width: 22),
-    ReportColumn('category', 'Category', width: 20),
-    ReportColumn('subCategory', 'Sub Category', width: 18),
     ReportColumn('projectDate', 'Date', width: 14),
     ReportColumn('title', 'Title', width: 28),
     ReportColumn('description', 'Description', width: 36),
@@ -427,8 +377,6 @@ class _ClubReportScreenState extends State<ClubReportScreen> {
           'clubRole': _s(p['clubRole']),
           'coHostName': _s(p['coHostName']),
           'areaOfFocus': _s(p['areaOfFocus']),
-          'category': _s(p['category']),
-          'subCategory': _s(p['subCategory']),
           'projectDate': _date(p['projectDate']),
           'title': _s(p['title']),
           'description': _s(p['description']),
@@ -894,75 +842,6 @@ class _ClubReportScreenState extends State<ClubReportScreen> {
     return rows;
   }
 
-  // 15. RPA Camp — 5 cols
-  static const _campCols = [
-    ReportColumn('campDate', 'Camp Date', width: 16),
-    ReportColumn('campName', 'Camp Name', width: 24),
-    ReportColumn('campAddress', 'Camp Address', width: 30),
-    ReportColumn('totalAttendees', 'Total Attendees', width: 14),
-    ReportColumn('campDescription', 'Camp Description', width: 36),
-  ];
-  List<Map<String, dynamic>> _campRows() => _rows(_report?['pphCamps'])
-      .map((m) => {
-            'campDate': _date(m['campDate']),
-            'campName': _s(m['campName']),
-            'campAddress': _s(m['campAddress']),
-            'totalAttendees': _s(m['totalAttendees']),
-            'campDescription': _s(m['campDescription']),
-          })
-      .toList();
-
-  // 16. RPA Camp Attendees — 21 cols
-  static const _campAttendeeCols = [
-    ReportColumn('campDate', 'Camp Date', width: 16),
-    ReportColumn('serialNumber', 'Serial Number', width: 12),
-    ReportColumn('name', 'Name', width: 22),
-    ReportColumn('mobileNumber', 'Mobile Number', width: 16),
-    ReportColumn('address', 'Address', width: 30),
-    ReportColumn('gender', 'Gender', width: 10),
-    ReportColumn('approvalForSms', 'Approval for SMS', width: 14),
-    ReportColumn('age', 'Age', width: 8),
-    ReportColumn('bpSystolic', 'BP (Systolic)', width: 12),
-    ReportColumn('bpDiastolic', 'BP (Diastolic)', width: 12),
-    ReportColumn('fbs', 'FBS mg/dl', width: 10),
-    ReportColumn('rbs', 'RBS mg/dl', width: 10),
-    ReportColumn('height', 'Height (Cms)', width: 12),
-    ReportColumn('weight', 'Weight (kg)', width: 12),
-    ReportColumn('bmi', 'BMI', width: 10),
-    ReportColumn('diabetes', 'Diabetes', width: 10),
-    ReportColumn('highBloodPressure', 'High Blood Pressure', width: 14),
-    ReportColumn('obese', 'Obese', width: 10),
-    ReportColumn('overweight', 'Overweight', width: 10),
-    ReportColumn('remarks', 'Remarks', width: 24),
-    ReportColumn('campName', 'Camp Name', width: 22),
-  ];
-  List<Map<String, dynamic>> _campAttendeeRows() =>
-      _rows(_report?['pphCampAttendees'])
-          .map((m) => {
-                'campDate': _date(m['campDate']),
-                'serialNumber': _s(m['serialNumber']),
-                'name': _s(m['name']),
-                'mobileNumber': _s(m['mobileNumber']),
-                'address': _s(m['address']),
-                'gender': _s(m['gender']),
-                'approvalForSms': _yn(m['approvalForSms']),
-                'age': _s(m['age']),
-                'bpSystolic': _s(m['bpSystolic']),
-                'bpDiastolic': _s(m['bpDiastolic']),
-                'fbs': _s(m['fbs']),
-                'rbs': _s(m['rbs']),
-                'height': _s(m['height']),
-                'weight': _s(m['weight']),
-                'bmi': _s(m['bmi']),
-                'diabetes': _s(m['diabetes']),
-                'highBloodPressure': _s(m['highBloodPressure']),
-                'obese': _s(m['obese']),
-                'overweight': _s(m['overweight']),
-                'remarks': _s(m['remarks']),
-                'campName': _s(m['campName']),
-              })
-          .toList();
-
   // 17. TRF Contributions — 4 cols
   static const _trfCols = [
     ReportColumn('trfDate', 'Date', width: 16),
@@ -1099,11 +978,8 @@ class _ClubReportScreenState extends State<ClubReportScreen> {
     final hasDistrict = club['fkDistrictId'] != null &&
         _s(club['fkDistrictId']).isNotEmpty &&
         _s(club['fkDistrictId']) != '0';
-    final hasDataCollection = r['dataCollection'] != null;
     final attMeeting = _rows(r['attendanceMeetingWise']);
     final hasAttendance = attMeeting.isNotEmpty;
-    final camps = _rows(r['pphCamps']);
-    final campAttendees = _rows(r['pphCampAttendees']);
 
     return RefreshIndicator(
       onRefresh: _load,
@@ -1195,14 +1071,6 @@ class _ClubReportScreenState extends State<ClubReportScreen> {
             columns: _bloodGroupCols,
             rows: _bloodGroupRows(),
           ),
-          if (hasDataCollection) ...[
-            _dcTile('Data Collection (All Members)', 'all-members', 'allMembers',
-                'Data_Collection_All_Members'),
-            _dcTile('Data Collection (BOD: Club President & Secretary)', 'bod',
-                'bod', 'Data_Collection_BOD'),
-            _dcTile('Data Collection (District Committee)', 'dc', 'dc',
-                'Data_Collection_DC'),
-          ],
 
           // ---------------- CLUBS ----------------
           const SizedBox(height: 8),
@@ -1315,36 +1183,6 @@ class _ClubReportScreenState extends State<ClubReportScreen> {
             onExcel: () => _downloadOcv('excel'),
             onWord: () => _downloadOcv('word'),
           ),
-          if (camps.isNotEmpty)
-            _exportTile(
-              icon: Icons.medical_services_rounded,
-              group: _Group.clubs,
-              title: 'PPH Camp',
-              count: camps.length,
-              onExport: () => _export(
-                title: 'PPH Camp',
-                fileSuffix: 'PPH_Camp',
-                columns: _campCols,
-                rows: _campRows(),
-              ),
-            columns: _campCols,
-            rows: _campRows(),
-            ),
-          if (camps.isNotEmpty && campAttendees.isNotEmpty)
-            _exportTile(
-              icon: Icons.groups_2_rounded,
-              group: _Group.clubs,
-              title: 'PPH Camp Attendees',
-              count: campAttendees.length,
-              onExport: () => _export(
-                title: 'PPH Camp Attendees',
-                fileSuffix: 'PPH_Camp_Attendees',
-                columns: _campAttendeeCols,
-                rows: _campAttendeeRows(),
-              ),
-            columns: _campAttendeeCols,
-            rows: _campAttendeeRows(),
-            ),
           _exportTile(
             icon: Icons.volunteer_activism_rounded,
             group: _Group.clubs,
@@ -1635,26 +1473,6 @@ class _ClubReportScreenState extends State<ClubReportScreen> {
       title: title,
       subtitle: subtitle,
       trailing: Row(mainAxisSize: MainAxisSize.min, children: buttons),
-    );
-  }
-
-  /// A Data Collection row — real Excel when the district has a data-collection
-  /// config for the year, otherwise "Coming Soon" (mirrors the web).
-  Widget _dcTile(String title, String path, String key, String fileSuffix) {
-    final cfg = _dcConfig;
-    final columnsMap = (cfg?['columns'] as Map?)?.cast<String, dynamic>();
-    final cols = columnsMap == null
-        ? const <ReportColumn>[]
-        : _dcColsFrom(columnsMap[key]);
-    if (cfg == null || cols.isEmpty) {
-      return _comingSoonTile(icon: Icons.fact_check_rounded, title: title);
-    }
-    return _serverTile(
-      icon: Icons.fact_check_rounded,
-      group: _Group.members,
-      title: title,
-      subtitle: 'Excel',
-      onExcel: () => _exportDcLazy(path, title, fileSuffix, cols),
     );
   }
 }

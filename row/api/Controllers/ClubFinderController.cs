@@ -558,7 +558,6 @@ public class ClubFinderController : ControllerBase
                    CASE
                        WHEN e.ImagePath IS NULL OR e.ImagePath = '' THEN NULL
                        WHEN e.ImagePath LIKE '/%' THEN e.ImagePath
-                       WHEN e.Scope = 'ri' THEN CONCAT('/Documents/Event/ri/', e.ImagePath)
                        WHEN e.fk_district_id IS NOT NULL THEN CONCAT('/Documents/Event/Group', e.fk_district_id, '/', e.ImagePath)
                        ELSE CONCAT('/Documents/Event/Group', e.fk_club_id, '/', e.ImagePath)
                    END AS imagePath,
@@ -593,7 +592,6 @@ public class ClubFinderController : ControllerBase
                    CASE
                        WHEN e.ImagePath IS NULL OR e.ImagePath = '' THEN NULL
                        WHEN e.ImagePath LIKE '/%' THEN e.ImagePath
-                       WHEN e.Scope = 'ri' THEN CONCAT('/Documents/Event/ri/', e.ImagePath)
                        WHEN e.fk_district_id IS NOT NULL THEN CONCAT('/Documents/Event/Group', e.fk_district_id, '/', e.ImagePath)
                        ELSE CONCAT('/Documents/Event/Group', e.fk_club_id, '/', e.ImagePath)
                    END AS imagePath,
@@ -752,8 +750,6 @@ public class ClubFinderController : ControllerBase
                    p.club_role AS clubRole, p.ongoing_group_title AS ongoingGroupTitle,
                    md.ModuleName AS moduleName, a.name AS areaOfFocus,
                    p.other_area_of_focus AS otherAreaOfFocus,
-                   cat.name AS categoryName, p.other_category AS otherCategory,
-                   sub.name AS subCategoryName, p.other_sub_category AS otherSubCategory,
                    f.name AS fundingName,
                    cb.MemberName AS createdByName, cb.EmailId AS createdByEmail,
                    cb.PrimaryMobileNumber AS createdByMobile,
@@ -764,8 +760,6 @@ public class ClubFinderController : ControllerBase
             LEFT JOIN rotary_year_master y ON y.pk_year_id = p.fk_year_id
             LEFT JOIN module_master md ON md.pk_module_id = p.fk_module_id
             LEFT JOIN area_of_focus_master a ON a.pk_area_of_focus_id = p.fk_area_of_focus_id
-            LEFT JOIN category_master cat ON cat.pk_category_id = p.fk_category_id
-            LEFT JOIN sub_category_master sub ON sub.pk_sub_category_id = p.fk_sub_category_id
             LEFT JOIN funding_master f ON f.pk_funding_id = p.fk_funding_id
             LEFT JOIN member_master_profile cb ON cb.pk_member_master_profile_id = p.created_by
             WHERE p.pk_project_id = @Id AND p.isdeleted = 0",

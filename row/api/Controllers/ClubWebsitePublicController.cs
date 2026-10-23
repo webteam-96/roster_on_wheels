@@ -69,6 +69,7 @@ public class ClubWebsitePublicController : ControllerBase
             SELECT w.pk_id              AS websiteId,
                    w.fk_club_id         AS clubId,
                    c.ClubName           AS clubName,
+                   c.ClubType           AS clubType,
                    w.Subdomain          AS subdomain,
                    w.ClientDomain       AS clientDomain,
                    w.fk_theme_id        AS themeId,
@@ -126,7 +127,7 @@ public class ClubWebsitePublicController : ControllerBase
             Subdomain     = (string?)row.subdomain,
             ClientDomain  = (string?)row.clientDomain,
             ThemeId       = (int)(row.themeId ?? 0),
-            ThemeKey      = ToThemeKey((string?)row.themeName),
+            ThemeKey      = ToThemeKey((string?)row.themeName, (string?)row.clubType),
             Status        = computedStatus,
             TrialEndsAt   = !isPaid ? FormatDate(row.endDate) : null,
             PaidUntil     =  isPaid ? FormatDate(row.endDate) : null,
@@ -137,7 +138,7 @@ public class ClubWebsitePublicController : ControllerBase
 
     // PUBLIC (no-login) renewal/top-up pay links for a single club — meant to be called FROM the club
     // website itself (e.g. its expired/renew screen). Resolve by explicit clubId or by the site's own
-    // Host (?host=). Returns the encrypted website-renewal link plus WhatsApp/Email credit links. The
+    // Host (?host=). Returns the encrypted website-renewal link plus the Email credit link. The
     // token IS the authorization for paying, and price/GST/gateway are re-resolved server-side, so
     // minting a link publicly exposes nothing sensitive.
     [HttpGet("renew-link")]
@@ -200,7 +201,6 @@ public class ClubWebsitePublicController : ControllerBase
             isExpired = daysRemaining.HasValue && daysRemaining.Value < 0,
             // Website renewal link (null only if no Rotary year is configured).
             websitePayLink = yearId > 0 ? $"{frontend}/pay/club-website/{WebsitePayLinkToken.Generate(_config, cid, yearId)}" : null,
-            whatsappPayLink = $"{frontend}/pay/w/{WalletPayLinkToken.Generate(_config, "club", "whatsapp", cid)}",
             emailPayLink = $"{frontend}/pay/w/{WalletPayLinkToken.Generate(_config, "club", "email", cid)}",
         });
     }
@@ -226,9 +226,11 @@ public class ClubWebsitePublicController : ControllerBase
     internal static string NormCol(string col) =>
         $"SUBSTRING_INDEX(REPLACE(REPLACE(REPLACE(LOWER({col}),'https://',''),'http://',''),'www.',''),'/',1)";
 
-    private static string ToThemeKey(string? themeName)
+    // No theme chosen: a Rotaract club gets the Rotaract template, every other club Classic Blue.
+    private static string ToThemeKey(string? themeName, string? clubType)
     {
-        if (string.IsNullOrWhiteSpace(themeName)) return "classic-blue";
+        if (string.IsNullOrWhiteSpace(themeName))
+            return clubType?.StartsWith("Rotaract", StringComparison.OrdinalIgnoreCase) == true ? "rotaract" : "classic-blue";
         return themeName.Trim().ToLowerInvariant().Replace(' ', '-');
     }
 

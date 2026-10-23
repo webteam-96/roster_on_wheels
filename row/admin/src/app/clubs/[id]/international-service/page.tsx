@@ -9,13 +9,11 @@ import {
   getProjects,
   deleteProject,
   getProjectYears,
-  checkClubHasModerator,
 } from "@/services/api";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
@@ -32,7 +30,6 @@ import AlertModal from "@/components/AlertModal";
 import {
   ArrowLeft, Search, X, Plus, Pencil, Trash2, Eye,
   MoreHorizontal, FolderOpen, AlertTriangle, Info,
-  Clock, CheckCircle2, XCircle,
 } from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
 import Link from "next/link";
@@ -67,7 +64,6 @@ export default function InternationalServicePage() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [showAgreeDialog, setShowAgreeDialog] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<ProjectListItem | null>(null);
-  const [hasModerator, setHasModerator] = useState(false);
 
   const canManage = isSuperAdmin || isAdmin;
 
@@ -87,7 +83,6 @@ export default function InternationalServicePage() {
           const currentYear = projectYears.find(y => y.isCurrent);
           setSelectedYearId(currentYear ? currentYear.id : projectYears.length > 0 ? projectYears[0].id : null);
         }
-        checkClubHasModerator(clubId).then(r => setHasModerator(r.hasModerator)).catch(() => {});
       } catch (err: any) {
         setErrorMessage(err?.response?.data?.message || err?.response?.data || "Failed to initialize.");
       }
@@ -235,7 +230,6 @@ export default function InternationalServicePage() {
                     <TableHead className="text-primary-foreground text-base font-semibold">Date</TableHead>
                     <TableHead className="text-primary-foreground text-base font-semibold">Location</TableHead>
                     <TableHead className="text-primary-foreground text-base font-semibold text-right">Cost</TableHead>
-                    <TableHead className="text-primary-foreground text-base font-semibold">Status</TableHead>
                     {canManage && (
                       <TableHead className="w-12 text-primary-foreground"></TableHead>
                     )}
@@ -261,12 +255,6 @@ export default function InternationalServicePage() {
                       <TableCell>{formatDate(project.projectDate)}</TableCell>
                       <TableCell>{project.location || "-"}</TableCell>
                       <TableCell className="text-right">{project.projectCost != null ? formatMoney(project.projectCost, project.currency) : "-"}</TableCell>
-                      <TableCell>
-                        {project.approvalStatus === "pending" ? <Badge className="bg-amber-500 text-white text-xs"><Clock className="h-3 w-3 mr-1" />Pending</Badge>
-                         : project.approvalStatus === "approved" ? <Badge className="bg-green-600 text-white text-xs"><CheckCircle2 className="h-3 w-3 mr-1" />Approved</Badge>
-                         : project.approvalStatus === "rejected" ? <Badge className="bg-red-600 text-white text-xs"><XCircle className="h-3 w-3 mr-1" />Rejected</Badge>
-                         : null}
-                      </TableCell>
                       {canManage && (
                         <TableCell>
                           <DropdownMenu>

@@ -1130,8 +1130,6 @@ class _AutoQuestionsTabState extends State<_AutoQuestionsTab> {
                 subItemType: s['subItemType']?.toString() ?? '',
                 subItemId: s['subItemId'] as int?,
                 subItemName: s['subItemName']?.toString(),
-                filterAofId: s['filterAofId'] as int?,
-                filterCatId: s['filterCatId'] as int?,
                 points: (s['points'] as num?) ?? 0,
                 isBonus: _asBool(s['isBonus']),
                 bonusPoints: s['bonusPoints'] as num?,

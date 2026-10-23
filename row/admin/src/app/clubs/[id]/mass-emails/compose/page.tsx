@@ -23,6 +23,8 @@ import { ArrowLeft, Save, Send, Loader2, X, Search } from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
 import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";
+import { useFeatureLoadedOn } from "@/components/FeatureGate";
+import ComposeComms from "@/components/comms/ComposeComms";
 
 interface SubGroupOption { id: number; groupName: string; memberCount: number; }
 interface MemberOption { memberId: number; memberName: string; email: string; }
@@ -48,6 +50,8 @@ export default function ComposeMassEmailPage() {
   const [replyEmail, setReplyEmail] = useState("");
   const [subject, setSubject] = useState("");
   const [emailBody, setEmailBody] = useState("");
+  const commsOn = useFeatureLoadedOn("communication"); // N5: allowance instead of credits, language versions
+  const [templateKey, setTemplateKey] = useState("");
 
   // Lookups
   const [rotaryYears, setRotaryYears] = useState<any[]>([]);
@@ -133,6 +137,7 @@ export default function ComposeMassEmailPage() {
         setReplyEmail(detail.replyEmail || "");
         setSubject(detail.subject || "");
         setEmailBody(detail.emailBody || "");
+        setTemplateKey(detail.templateKey || "");
       } catch (err: any) {
         setErrorMessage("Failed to load email details.");
       }
@@ -167,7 +172,7 @@ export default function ComposeMassEmailPage() {
     loadBalance();
   }, [clubId]);
 
-  const insufficientCredits = creditBalance && recipientCount.membersWithEmail > creditBalance.emailRemaining;
+  const insufficientCredits = !commsOn && creditBalance && recipientCount.membersWithEmail > creditBalance.emailRemaining;
 
   const handleSave = async (asDraft: boolean) => {
     if (!fromName.trim() || !subject.trim()) {
@@ -191,6 +196,7 @@ export default function ComposeMassEmailPage() {
         subject: subject.trim(),
         emailBody: emailBody,
         saveAsDraft: asDraft,
+        templateKey: templateKey || null,
       };
 
       let createdId: number | null = null;
@@ -376,6 +382,7 @@ export default function ComposeMassEmailPage() {
                 rows={10}
               />
             </div>
+            {commsOn && <ComposeComms scope="clubs" ownerId={clubId} templateKey={templateKey} onTemplateKey={setTemplateKey} needed={recipientCount.membersWithEmail} />}
           </CardContent>
         </Card>
 

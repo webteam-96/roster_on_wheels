@@ -25,7 +25,6 @@ import '../clubs/modules/announcements/announcements_screen.dart';
 import '../clubs/modules/newsletters/newsletters_screen.dart';
 import '../clubs/modules/documents/documents_screen.dart';
 import '../clubs/modules/greetings/greetings_screen.dart';
-import '../clubs/modules/pph_camps/pph_camps_screen.dart';
 import '../clubs/modules/event_payment_links/event_payment_links_screen.dart';
 import '../clubs/modules/weblinks/weblinks_screen.dart';
 import '../clubs/modules/sub_groups/sub_groups_screen.dart';
@@ -52,7 +51,6 @@ import '../districts/modules/district_announcements_screen.dart';
 import '../districts/modules/district_newsletters_screen.dart';
 import '../districts/modules/district_documents_screen.dart';
 import '../districts/modules/district_greetings_screen.dart';
-import '../districts/modules/district_rni_camp_screen.dart';
 import '../districts/modules/district_reports_screen.dart';
 import '../districts/modules/district_online_event_link_screen.dart';
 import '../districts/modules/district_weblinks_screen.dart';
@@ -60,11 +58,9 @@ import '../districts/modules/district_sub_groups_screen.dart';
 import '../districts/modules/district_mass_emails_screen.dart';
 
 import '../districts/modules/district_clubs_screen.dart';
-import '../districts/modules/district_club_moderator_screen.dart';
 import '../districts/modules/district_projects_screen.dart';
 import '../districts/modules/district_events_screen.dart';
 import '../districts/modules/district_club_dues_screen.dart';
-import '../districts/modules/district_zonal_awards_screen.dart';
 import '../districts/modules/district_citation_screen.dart';
 import '../districts/modules/district_ag_screen.dart';
 
@@ -73,7 +69,7 @@ import '../districts/modules/district_ag_screen.dart';
 // ---------------------------------------------------------------------------
 
 const _kClubOnlyKeys = {
-  'marketplace', 'pastpresidents', 'boardofdirectors', 'rotarynetwork',
+  'pastpresidents', 'boardofdirectors', 'rotarynetwork',
   'clubservice', 'communityservice', 'vocationalservice', 'internationalservice',
   'newgenerationservice', 'publicimageinitiative', 'publicimageinitiation',
   'attendance', 'ocvgov', 'membershipdues', 'trfcontribution',
@@ -84,8 +80,8 @@ const _kClubOnlyKeys = {
 };
 
 const _kDistrictOnlyKeys = {
-  'districtcommittee', 'clubs', 'clubmoderator', 'ag',
-  'districtprojects', 'districtevents', 'clubdues', 'zonalawards',
+  'districtcommittee', 'clubs', 'ag',
+  'districtprojects', 'districtevents', 'clubdues',
 };
 
 String _normalize(String key) =>
@@ -175,7 +171,7 @@ class _UnifiedModuleDetailScreenState extends State<UnifiedModuleDetailScreen>
   }
 
   Future<List<ClubModel>> _fetchAllClubs(AuthProvider auth, List<int> zoneIds) async {
-    // Everyone except SuperAdmin / ZC only ever needs their OWN clubs here —
+    // Everyone except SuperAdmin only ever needs their OWN clubs here —
     // this mirrors the "My Club" tile in the normal home flow. Build that list
     // straight from my-context role assignments instead of downloading the
     // entire zone's club listing and filtering it down. The zone listing is
@@ -183,7 +179,7 @@ class _UnifiedModuleDetailScreenState extends State<UnifiedModuleDetailScreen>
     // district 3170 alone has 143 clubs) can push the user's own club past the
     // first page, which used to make it vanish from the selector — surfacing as
     // "No clubs available for this module" even though the module is granted.
-    if (!auth.isSuperAdmin && !auth.isZonalCoordinator) {
+    if (!auth.isSuperAdmin) {
       return auth.memberClubBriefs
           .map((c) => ClubModel(
                 id: c.id,
@@ -195,7 +191,7 @@ class _UnifiedModuleDetailScreenState extends State<UnifiedModuleDetailScreen>
           .toList();
     }
 
-    // SuperAdmin / ZC intentionally see every club in their accessible zones.
+    // SuperAdmin intentionally sees every club in their accessible zones.
     final all = <ClubModel>[];
     for (final zoneId in zoneIds) {
       try {
@@ -229,13 +225,13 @@ class _UnifiedModuleDetailScreenState extends State<UnifiedModuleDetailScreen>
     }
     final seen = <int>{};
     final unique = all.where((d) => seen.add(d.id)).toList();
-    // SuperAdmin / ZC see everything.
+    // SuperAdmin sees everything.
     // For district admins, narrow to districts they admin (strictly — not
     // every district their member clubs happen to belong to). Mirrors the
     // "District Admin" tile in the normal home flow.
     // For non-admin members, fall back to their membership districts so the
     // existing member unified flow (type: 'unified') keeps working.
-    if (auth.isSuperAdmin || auth.isZonalCoordinator) return unique;
+    if (auth.isSuperAdmin) return unique;
     if (auth.isDistrictAdmin) {
       final adminIds = auth.districtAdminDistrictIds;
       return unique.where((d) => adminIds.contains(d.id)).toList();
@@ -534,9 +530,6 @@ class _ClubModuleEmbedded extends StatelessWidget {
         return DocumentsScreen(clubId: clubId, embedded: true, viewOnly: viewOnly);
       case 'greetings':
         return GreetingsScreen(clubId: clubId, embedded: true);
-      case 'pphcamp':
-      case 'pphcamps':
-        return PphCampsScreen(clubId: clubId, embedded: true, viewOnly: viewOnly);
       case 'onlineeventlink':
       case 'eventpaymentlinks':
         return EventPaymentLinksScreen(clubId: clubId, embedded: true);
@@ -591,16 +584,6 @@ class _ClubModuleEmbedded extends StatelessWidget {
       case 'publicimageinitiative':
       case 'publicimageinitiation':
         return ProjectsScreen(clubId: clubId, moduleType: 'public-image', embedded: true, viewOnly: viewOnly);
-      case 'marketplace':
-        return const Center(
-          child: Padding(
-            padding: EdgeInsets.all(24),
-            child: Text(
-              'Market Place opens in a browser tab: please open it from the dashboard tile.',
-              textAlign: TextAlign.center,
-            ),
-          ),
-        );
       // Payments: combined Wallet + the split email single-type
       // views (the screen self-gates the buy button for non-admins).
       case 'wallet':
@@ -659,9 +642,6 @@ class _DistrictModuleEmbedded extends StatelessWidget {
         return DistrictDocumentsScreen(districtId: districtId, embedded: true, viewOnly: viewOnly);
       case 'greetings':
         return DistrictGreetingsScreen(districtId: districtId, embedded: true);
-      case 'pphcamp':
-      case 'rnicamp':
-        return DistrictRniCampScreen(districtId: districtId, embedded: true);
       case 'reports':
         return DistrictReportsScreen(districtId: districtId, embedded: true);
       case 'onlineeventlink':
@@ -680,8 +660,6 @@ class _DistrictModuleEmbedded extends StatelessWidget {
         return DistrictCommitteeScreen(districtId: districtId, embedded: true);
       case 'clubs':
         return DistrictClubsScreen(districtId: districtId, embedded: true);
-      case 'clubmoderator':
-        return DistrictClubModeratorScreen(districtId: districtId, embedded: true);
       case 'ag':
       case 'assistantgovernor':
         return DistrictAgScreen(districtId: districtId, embedded: true);
@@ -691,8 +669,6 @@ class _DistrictModuleEmbedded extends StatelessWidget {
         return DistrictEventsScreen(districtId: districtId, embedded: true, viewOnly: viewOnly);
       case 'clubdues':
         return DistrictClubDuesScreen(districtId: districtId, embedded: true);
-      case 'zonalawards':
-        return DistrictZonalAwardsScreen(districtId: districtId, embedded: true);
       // Payments: combined Wallet + the split email single-type
       // views (the screen self-gates the buy button for non-admins).
       case 'wallet':

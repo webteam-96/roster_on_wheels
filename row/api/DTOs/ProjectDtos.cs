@@ -17,10 +17,6 @@ public class ProjectListDto
     public string? Location { get; set; }
     public string? AreaOfFocusName { get; set; }
     public string? OtherAreaOfFocus { get; set; }
-    public string? CategoryName { get; set; }
-    public string? OtherCategory { get; set; }
-    public string? SubCategoryName { get; set; }
-    public string? OtherSubCategory { get; set; }
     public DateTime? ProjectDate { get; set; }
     public decimal? ProjectCost { get; set; }
     public string Currency { get; set; } = RotaryApi.Services.Brand.DefaultCurrency;
@@ -30,13 +26,8 @@ public class ProjectListDto
     public int? Attendance { get; set; }
     public decimal? AttendancePercentage { get; set; }
     public bool IsActive { get; set; }
-    public string? ApprovalStatus { get; set; }
     public string? PrimaryPhotoPath { get; set; }
-    public bool IsSendWhatsapp { get; set; }
     public bool IsSendEmail { get; set; }
-    public DateTime? WhatsAppSentDate { get; set; }
-    public int WhatsAppSentCount { get; set; }
-    public int WhatsAppFailedCount { get; set; }
     public DateTime? EmailSentDate { get; set; }
     public int EmailSentCount { get; set; }
     public int EmailFailedCount { get; set; }
@@ -61,12 +52,6 @@ public class ProjectDetailDto
     public int? AreaOfFocusId { get; set; }
     public string? AreaOfFocusName { get; set; }
     public string? OtherAreaOfFocus { get; set; }
-    public int? CategoryId { get; set; }
-    public string? CategoryName { get; set; }
-    public string? OtherCategory { get; set; }
-    public int? SubCategoryId { get; set; }
-    public string? SubCategoryName { get; set; }
-    public string? OtherSubCategory { get; set; }
     public DateTime? ProjectDate { get; set; }
     public decimal? ProjectCost { get; set; }
     public string Currency { get; set; } = RotaryApi.Services.Brand.DefaultCurrency;
@@ -79,7 +64,6 @@ public class ProjectDetailDto
     // Rotary Community Corps members involved - optional, 0 when nothing was entered. Always sits
     // next to RotaractorsInvolved (user 2026-10-05).
     public int? RccInvolved { get; set; }
-    public bool SendWhatsapp { get; set; }
     public bool SendEmail { get; set; }
     public string? MeetingType { get; set; }
     public string? AgendaDocument { get; set; }
@@ -124,10 +108,6 @@ public class CreateProjectDto
     public string? Location { get; set; }
     public int? AreaOfFocusId { get; set; }
     public string? OtherAreaOfFocus { get; set; }
-    public int? CategoryId { get; set; }
-    public string? OtherCategory { get; set; }
-    public int? SubCategoryId { get; set; }
-    public string? OtherSubCategory { get; set; }
     public DateTime? ProjectDate { get; set; }
     public decimal? ProjectCost { get; set; }
     public string? Currency { get; set; }
@@ -171,10 +151,6 @@ public class UpdateProjectDto
     public string? Location { get; set; }
     public int? AreaOfFocusId { get; set; }
     public string? OtherAreaOfFocus { get; set; }
-    public int? CategoryId { get; set; }
-    public string? OtherCategory { get; set; }
-    public int? SubCategoryId { get; set; }
-    public string? OtherSubCategory { get; set; }
     public DateTime? ProjectDate { get; set; }
     public decimal? ProjectCost { get; set; }
     public string? Currency { get; set; }

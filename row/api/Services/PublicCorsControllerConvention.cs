@@ -18,6 +18,7 @@ public sealed class PublicCorsControllerConvention : IControllerModelConvention
     {
         "api/public/club",
         "api/public/club-website",
+        "api/public/join", // the join form on club websites posts from the browser (PublicJoinController)
     };
 
     public void Apply(ControllerModel controller)

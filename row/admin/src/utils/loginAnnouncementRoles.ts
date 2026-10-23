@@ -12,26 +12,12 @@ export const LOGIN_ANNOUNCEMENT_ROLE_GROUPS: { title: string; roles: LoginAnnoun
     title: "Login roles",
     roles: [
       { key: "SuperAdmin", label: "SuperAdmin" },
-      { key: "RIDirector", label: "RI Director" },
-      { key: "ZonalCoordinator", label: "Zonal Coordinator" },
       { key: "ClubAdmin", label: "Club Admin" },
       { key: "DistrictAdmin", label: "District Admin" },
       { key: "AG", label: "Assistant Governor (AG)" },
-      { key: "ClubModerator", label: "Club Moderator" },
       { key: "Member", label: "Member" },
       { key: "ClubPresident", label: "Club President" },
       { key: "ClubSecretary", label: "Club Secretary" },
-    ],
-  },
-  {
-    title: "Goal Setting roles",
-    roles: [
-      { key: "RMC", label: "Rotary Membership Co-Ordinator (RMC)" },
-      { key: "ARC", label: "Assistant Rotary Co-Ordinator (ARC)" },
-      { key: "RPIC", label: "Regional Public Image Co-Ordinator (RPIC)" },
-      { key: "ARPIC", label: "Assistant Regional Public Image Co-Ordinator (ARPIC)" },
-      { key: "RRFC", label: "Regional Rotary Foundation Co-Ordinator (RRFC)" },
-      { key: "ARRFC", label: "Assistant Regional Rotary Foundation Co-Ordinator (ARRFC)" },
     ],
   },
 ];
@@ -48,9 +34,6 @@ export function currentRoleFromPath(pathname: string): string | undefined {
   if (pathname.startsWith("/district-admin-dashboard")) return "DistrictAdmin";
   if (pathname.startsWith("/club-admin-dashboard")) return "ClubAdmin";
   if (pathname.startsWith("/ag-dashboard")) return "AG";
-  if (pathname.startsWith("/zonal-dashboard")) return "ZonalCoordinator";
-  if (pathname.startsWith("/ri-director")) return "RIDirector";
-  if (pathname.startsWith("/club-moderator")) return "ClubModerator";
   if (pathname.startsWith("/settings")) return "SuperAdmin";
   return undefined;
 }

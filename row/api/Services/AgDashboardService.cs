@@ -184,8 +184,6 @@ public class AgDashboardService : IAgDashboardService
                    p.title, p.description, p.location,
                    COALESCE(md.ModuleName,'')  AS avenue,
                    COALESCE(aof.name,'')       AS areaOfFocus,
-                   COALESCE(cat.name,'')       AS category,
-                   COALESCE(scat.name,'')      AS subCategory,
                    p.project_date              AS projectDate,
                    COALESCE(p.project_cost,0)  AS cost,
                    COALESCE(f.name,'')         AS funding,
@@ -196,15 +194,12 @@ public class AgDashboardService : IAgDashboardService
                    p.project_type   AS projectType,
                    COALESCE(p.is_joint_project,0) AS isJointProject,
                    p.co_host_name   AS coHostName,
-                   p.club_role      AS clubRole,
-                   p.approval_status AS approvalStatus
+                   p.club_role      AS clubRole
             FROM `{info.ProjectsTable}` p
             LEFT JOIN club_master c            ON c.pk_club_id = p.fk_club_id
             LEFT JOIN rotary_year_master y     ON y.pk_year_id = p.fk_year_id
             LEFT JOIN module_master md         ON md.pk_module_id = p.fk_module_id
             LEFT JOIN area_of_focus_master aof ON aof.pk_area_of_focus_id = p.fk_area_of_focus_id
-            LEFT JOIN category_master cat      ON cat.pk_category_id = p.fk_category_id
-            LEFT JOIN sub_category_master scat ON scat.pk_sub_category_id = p.fk_sub_category_id
             LEFT JOIN funding_master f         ON f.pk_funding_id = p.fk_funding_id
             WHERE p.pk_project_id = @ProjectId AND p.fk_club_id IN @ClubIds AND p.isdeleted = 0
             LIMIT 1";
@@ -269,8 +264,6 @@ public class AgDashboardService : IAgDashboardService
             Location = r.location as string,
             Avenue = r.avenue as string,
             AreaOfFocus = r.areaOfFocus as string,
-            Category = r.category as string,
-            SubCategory = r.subCategory as string,
             Date = d?.ToString("yyyy-MM-dd"),
             Cost = r.cost is decimal cst ? cst : 0,
             Funding = (r.funding as string) ?? "",
@@ -284,7 +277,6 @@ public class AgDashboardService : IAgDashboardService
             IsJointProject = Convert.ToInt32(r.isJointProject ?? 0) == 1,
             CoHostName = r.coHostName as string,
             ClubRole = r.clubRole as string,
-            ApprovalStatus = r.approvalStatus as string,
             Photos = photos,
         };
     }
@@ -841,16 +833,13 @@ public class AgDashboardService : IAgDashboardService
                 $@"SELECT p.title, p.project_date AS projectDate,
                           COALESCE(md.ModuleName,'') AS avenue,
                           COALESCE(aof.name,'') AS areaOfFocus,
-                          COALESCE(cat.name,'') AS category,
                           COALESCE(p.project_cost, 0) AS cost,
                           COALESCE(p.direct_beneficiaries, 0) AS beneficiaries,
                           (COALESCE(p.rotarians_involved,0) + COALESCE(p.rotaractors_involved,0)) AS rotarians,
-                          COALESCE(f.name,'') AS funding,
-                          p.approval_status AS approvalStatus
+                          COALESCE(f.name,'') AS funding
                    FROM `{t.ProjectsTable}` p
                    LEFT JOIN module_master md ON md.pk_module_id = p.fk_module_id
                    LEFT JOIN area_of_focus_master aof ON aof.pk_area_of_focus_id = p.fk_area_of_focus_id
-                   LEFT JOIN category_master cat ON cat.pk_category_id = p.fk_category_id
                    LEFT JOIN funding_master f ON f.pk_funding_id = p.fk_funding_id
                    {ProjectAvenueOnly}
                    WHERE p.fk_club_id = @ClubId AND p.isdeleted = 0
@@ -865,14 +854,12 @@ public class AgDashboardService : IAgDashboardService
                     ClubName = meta.clubName,
                     Title = r.title as string ?? "",
                     Avenue = r.avenue as string,
-                    Category = r.category as string,
                     AreaOfFocus = r.areaOfFocus as string,
                     Date = d?.ToString("yyyy-MM-dd"),
                     Cost = r.cost is decimal cost ? cost : 0,
                     Beneficiaries = r.beneficiaries is long b1 ? (int)b1 : (r.beneficiaries is int b2 ? b2 : 0),
                     Funding = r.funding as string ?? "",
                     Rotarians = r.rotarians is long ro1 ? (int)ro1 : (r.rotarians is int ro2 ? ro2 : 0),
-                    ApprovalStatus = r.approvalStatus as string,
                 });
             }
         }
@@ -1350,18 +1337,15 @@ public class AgDashboardService : IAgDashboardService
                               p.fk_club_id AS clubId, p.title, p.project_date AS projectDate,
                               COALESCE(md.ModuleName,'') AS avenue,
                               COALESCE(aof.name,'') AS areaOfFocus,
-                              COALESCE(cat.name,'') AS category,
                               COALESCE(p.project_cost, 0) AS cost,
                               COALESCE(p.Currency, '{RotaryApi.Services.Brand.SqlCurrency}') AS currency,
                               COALESCE(p.direct_beneficiaries, 0) AS beneficiaries,
                               (COALESCE(p.rotarians_involved,0) + COALESCE(p.rotaractors_involved,0)) AS rotarians,
                               COALESCE(p.man_hours, 0) AS manHours,
-                              COALESCE(f.name,'Self Funded') AS funding,
-                              p.approval_status AS approvalStatus
+                              COALESCE(f.name,'Self Funded') AS funding
                        FROM `{t.ProjectsTable}` p
                        LEFT JOIN module_master md ON md.pk_module_id = p.fk_module_id
                        LEFT JOIN area_of_focus_master aof ON aof.pk_area_of_focus_id = p.fk_area_of_focus_id
-                       LEFT JOIN category_master cat ON cat.pk_category_id = p.fk_category_id
                        LEFT JOIN funding_master f ON f.pk_funding_id = p.fk_funding_id
                        {ProjectAvenueOnly}
                        WHERE p.fk_club_id IN @ClubIds AND p.isdeleted = 0
@@ -1378,18 +1362,15 @@ public class AgDashboardService : IAgDashboardService
                               p.fk_club_id AS clubId, p.title, p.project_date AS projectDate,
                               COALESCE(md.ModuleName,'') AS avenue,
                               COALESCE(aof.name,'') AS areaOfFocus,
-                              COALESCE(cat.name,'') AS category,
                               COALESCE(p.project_cost, 0) AS cost,
                               COALESCE(p.Currency, '{RotaryApi.Services.Brand.SqlCurrency}') AS currency,
                               COALESCE(p.direct_beneficiaries, 0) AS beneficiaries,
                               (COALESCE(p.rotarians_involved,0) + COALESCE(p.rotaractors_involved,0)) AS rotarians,
                               0 AS manHours,
-                              COALESCE(f.name,'Self Funded') AS funding,
-                              p.approval_status AS approvalStatus
+                              COALESCE(f.name,'Self Funded') AS funding
                        FROM `{t.ProjectsTable}` p
                        LEFT JOIN module_master md ON md.pk_module_id = p.fk_module_id
                        LEFT JOIN area_of_focus_master aof ON aof.pk_area_of_focus_id = p.fk_area_of_focus_id
-                       LEFT JOIN category_master cat ON cat.pk_category_id = p.fk_category_id
                        LEFT JOIN funding_master f ON f.pk_funding_id = p.fk_funding_id
                        {ProjectAvenueOnly}
                        WHERE p.fk_club_id IN @ClubIds AND p.isdeleted = 0
@@ -1408,7 +1389,6 @@ public class AgDashboardService : IAgDashboardService
                     ClubName = clubMeta.GetValueOrDefault(cid, ""),
                     Title = (r.title as string) ?? "",
                     Avenue = r.avenue as string,
-                    Category = r.category as string,
                     AreaOfFocus = r.areaOfFocus as string,
                     Date = d?.ToString("yyyy-MM-dd"),
                     Cost = r.cost is decimal cc ? cc : 0,
@@ -1418,7 +1398,6 @@ public class AgDashboardService : IAgDashboardService
                     Rotarians = r.rotarians is long ro1 ? (int)ro1 : (r.rotarians is int ro2 ? ro2 : 0),
                     ManHours = r.manHours is long mh1 ? (int)mh1 : (r.manHours is int mh2 ? mh2 : 0),
                     ManHoursIsPending = !tableHasManHours,
-                    ApprovalStatus = r.approvalStatus as string,
                 });
             }
         }
@@ -1431,9 +1410,6 @@ public class AgDashboardService : IAgDashboardService
             .Where(p => p.Date != null)
             .GroupBy(p => $"{p.Date!.Substring(5, 2)}-{p.Date!.Substring(0, 4)}")
             .ToDictionary(g => g.Key, g => g.Count());
-        var categoryCounts = projects
-            .GroupBy(p => string.IsNullOrWhiteSpace(p.Category) ? "Uncategorised" : p.Category!)
-            .ToDictionary(g => g.Key, g => g.Count());
 
         return new AgProjectsResponse
         {
@@ -1441,7 +1417,6 @@ public class AgDashboardService : IAgDashboardService
             Projects = projects,
             ClubProjectCounts = clubCounts,
             MonthlyProjectCounts = monthlyCounts,
-            CategoryCounts = categoryCounts,
             TotalProjects = projects.Count,
             TotalBeneficiaries = projects.Sum(p => p.Beneficiaries),
             // Wave 12A: TotalManHours sums real values when the column exists;

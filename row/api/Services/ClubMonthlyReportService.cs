@@ -316,8 +316,6 @@ public class ClubMonthlyReportService : IClubMonthlyReportService
                          p.parent_project_id AS ParentProjectId,
                          DATE_FORMAT(p.project_date, '%Y-%m-%d') AS ProjectDate,
                          aof.name AS AreaOfFocusName,
-                         c.name AS CategoryName,
-                         sc.name AS SubCategoryName,
                          p.project_cost AS ProjectCost,
                          p.direct_beneficiaries AS DirectBeneficiaries,
                          p.man_hours AS ManHours,
@@ -327,8 +325,6 @@ public class ClubMonthlyReportService : IClubMonthlyReportService
                   FROM `{info.ProjectsTable}` p
                   INNER JOIN module_master m ON m.pk_module_id = p.fk_module_id
                   LEFT JOIN area_of_focus_master aof ON aof.pk_area_of_focus_id = p.fk_area_of_focus_id
-                  LEFT JOIN category_master c ON c.pk_category_id = p.fk_category_id
-                  LEFT JOIN sub_category_master sc ON sc.pk_sub_category_id = p.fk_sub_category_id
                   WHERE p.fk_club_id = @ClubId
                     AND m.ModuleKey = @ModuleKey
                     AND MONTH(p.project_date) = @Month
@@ -382,7 +378,6 @@ public class ClubMonthlyReportService : IClubMonthlyReportService
                      p.title AS Title, p.description AS Description, p.location AS Location,
                      DATE_FORMAT(p.project_date, '%Y-%m-%d') AS ProjectDate, p.meeting_type AS MeetingType,
                      aof.name AS AreaOfFocusName, p.other_area_of_focus AS OtherAreaOfFocus,
-                     c.name AS CategoryName, sc.name AS SubCategoryName,
                      p.project_cost AS ProjectCost, f.name AS FundingName,
                      p.direct_beneficiaries AS DirectBeneficiaries, p.man_hours AS ManHours,
                      p.rotarians_involved AS RotariansInvolved, p.rotaractors_involved AS RotaractorsInvolved,
@@ -393,8 +388,6 @@ public class ClubMonthlyReportService : IClubMonthlyReportService
               FROM `{info.ProjectsTable}` p
               INNER JOIN module_master m ON m.pk_module_id = p.fk_module_id
               LEFT JOIN area_of_focus_master aof ON aof.pk_area_of_focus_id = p.fk_area_of_focus_id
-              LEFT JOIN category_master c ON c.pk_category_id = p.fk_category_id
-              LEFT JOIN sub_category_master sc ON sc.pk_sub_category_id = p.fk_sub_category_id
               LEFT JOIN funding_master f ON f.pk_funding_id = p.fk_funding_id
               WHERE p.fk_club_id = @ClubId AND m.ModuleKey IN @Keys
                 {monthClause} AND p.isdeleted = 0

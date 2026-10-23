@@ -48,13 +48,6 @@ final List<_SettingsTile> _tiles = <_SettingsTile>[
     color: AppColors.accentBlue,
   ),
   const _SettingsTile(
-    icon: Icons.category_rounded,
-    title: 'Categories',
-    subtitle: 'Manage content categories',
-    route: RouteNames.categories,
-    color: AppColors.success,
-  ),
-  const _SettingsTile(
     icon: Icons.track_changes_rounded,
     title: 'Area of Focus',
     subtitle: 'Rotary areas of focus',
@@ -103,10 +96,7 @@ class SettingsScreen extends StatelessWidget {
     final districtCount = auth.assignedDistrictIds.length;
     final isElevatedRole = auth.isSuperAdmin ||
         auth.isAdmin ||
-        auth.isAG ||
-        auth.isZonalCoordinator ||
-        auth.isClubModerator ||
-        auth.isRIDirector;
+        auth.isAG;
     final isMember = auth.isDistrictMember || auth.isClubMember;
     // Members whose ONLY clubs are special (COG and/or IFRM) have nothing to
     // unify: those clubs are hidden from the My Clubs card (and COG's district

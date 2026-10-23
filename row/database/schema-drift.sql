@@ -32,7 +32,7 @@ CALL row_add_column_if_missing('club_documents', 'fk_year_id', 'INT NULL AFTER f
 CALL row_add_column_if_missing('club_website_banner', 'document_path', 'VARCHAR(500) NULL');
 CALL row_add_column_if_missing('club_website_banner', 'link_url', 'VARCHAR(500) NULL');
 CALL row_add_column_if_missing('club_website_advertisement', 'link_url', 'VARCHAR(500) NULL');
--- BeneficiaryApprovalService / MobileDistrictAwardsController: the club's short code.
+-- MobileDistrictAwardsController: the club's short code.
 CALL row_add_column_if_missing('club_master', 'ClubCode', 'VARCHAR(50) NULL AFTER ClubName');
 -- RotaryOrgSyncWorker member sweep / sync-exceptions screen: did the member still land (1) or not (0).
 CALL row_add_column_if_missing('sync_exception_log', 'inserted', 'TINYINT(1) NOT NULL DEFAULT 0 AFTER fk_member_master_profile_id');
@@ -49,6 +49,36 @@ DEALLOCATE PREPARE stmt;
 -- Meeting mode on meeting records (ROW Wave 1, build spec 3.17).
 CALL row_add_column_if_missing('club_attendance', 'MeetingMode', "VARCHAR(20) NOT NULL DEFAULT 'in_person' AFTER EventDateTime");
 CALL row_add_column_if_missing('club_attendance', 'MeetingLink', 'VARCHAR(1000) NULL AFTER MeetingMode');
+
+-- N5 Communication (CommsService): template key on campaigns, per-recipient tracking columns and their indexes.
+-- Same SQL as DatabaseInitializer; the new comm_* tables and member_channel_consents are in schema.sql.
+CALL row_add_column_if_missing('club_mass_emails', 'TemplateKey', 'VARCHAR(50) NULL');
+CALL row_add_column_if_missing('club_mass_email_recipients', 'MessageId', 'VARCHAR(200) NULL');
+CALL row_add_column_if_missing('club_mass_email_recipients', 'Language', 'VARCHAR(20) NULL');
+CALL row_add_column_if_missing('club_mass_email_recipients', 'DeliveryStatus', 'VARCHAR(20) NULL');
+CALL row_add_column_if_missing('club_mass_email_recipients', 'DeliveredAt', 'DATETIME NULL');
+CALL row_add_column_if_missing('club_mass_email_recipients', 'OpenedAt', 'DATETIME NULL');
+CALL row_add_column_if_missing('club_mass_email_recipients', 'OpenCount', 'INT NOT NULL DEFAULT 0');
+CALL row_add_column_if_missing('club_mass_email_recipients', 'ClickedAt', 'DATETIME NULL');
+CALL row_add_column_if_missing('club_mass_email_recipients', 'ClickCount', 'INT NOT NULL DEFAULT 0');
+SET @has_idx := (SELECT COUNT(*) FROM information_schema.statistics
+                 WHERE table_schema = DATABASE() AND table_name = 'club_mass_email_recipients' AND index_name = 'idx_cmer_mass_email');
+SET @sql := IF(@has_idx = 0, 'ALTER TABLE club_mass_email_recipients ADD INDEX idx_cmer_mass_email (fk_mass_email_id)', 'SELECT 1');
+PREPARE stmt FROM @sql;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+SET @has_idx := (SELECT COUNT(*) FROM information_schema.statistics
+                 WHERE table_schema = DATABASE() AND table_name = 'club_mass_email_recipients' AND index_name = 'idx_cmer_message');
+SET @sql := IF(@has_idx = 0, 'ALTER TABLE club_mass_email_recipients ADD INDEX idx_cmer_message (MessageId)', 'SELECT 1');
+PREPARE stmt FROM @sql;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+SET @has_idx := (SELECT COUNT(*) FROM information_schema.statistics
+                 WHERE table_schema = DATABASE() AND table_name = 'email_log' AND index_name = 'ix_email_log_brevo_message');
+SET @sql := IF(@has_idx = 0, 'ALTER TABLE email_log ADD INDEX ix_email_log_brevo_message (brevo_message_id)', 'SELECT 1');
+PREPARE stmt FROM @sql;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
 
 DROP PROCEDURE row_add_column_if_missing;
 
@@ -88,6 +118,15 @@ CREATE TABLE IF NOT EXISTS edition_catalogue (
 INSERT IGNORE INTO edition_catalogue (code, name) VALUES
     ('district', 'District'), ('club', 'Club'), ('club_basic', 'Club basic'),
     ('rotaract', 'Rotaract'), ('zone', 'Zone');
+-- N5: emails per member per month included in an edition (build spec 3.10).
+SET @has_col := (SELECT COUNT(*) FROM information_schema.COLUMNS
+                 WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'edition_catalogue' AND COLUMN_NAME = 'email_allowance_per_member');
+SET @sql := IF(@has_col = 0, 'ALTER TABLE edition_catalogue ADD COLUMN email_allowance_per_member INT NULL', 'SELECT 1');
+PREPARE stmt FROM @sql;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+UPDATE edition_catalogue SET email_allowance_per_member = IF(code = 'district', 6, 25)
+WHERE email_allowance_per_member IS NULL AND code IN ('club', 'club_basic', 'rotaract', 'district');
 CREATE TABLE IF NOT EXISTS edition_modules (
     edition_code VARCHAR(20) NOT NULL,
     module_key VARCHAR(50) NOT NULL,

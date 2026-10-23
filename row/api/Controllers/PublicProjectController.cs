@@ -8,7 +8,7 @@ namespace RotaryApi.Controllers;
 
 /// <summary>
 /// Public (no-auth) endpoint to view a project's full details, photos, and current-year
-/// president/secretary of the club that owns the project. Used by WhatsApp links sent to
+/// president/secretary of the club that owns the project. Used by share links sent to
 /// members — link opens without login.
 /// </summary>
 [ApiController]
@@ -24,7 +24,7 @@ public class PublicProjectController : ControllerBase
         _yearTables = yearTables;
     }
 
-    // Year-wise note: URL has no yearId (used by WhatsApp share-links from previous code).
+    // Year-wise note: URL has no yearId (used by share links from previous code).
     // Accepts optional ?yearId= for efficiency; otherwise scans existing year tables to find the row.
     [HttpGet("api/public/projects/{id}")]
     public async Task<ActionResult> GetProject(int id, [FromQuery] int? yearId = null)
@@ -61,8 +61,6 @@ public class PublicProjectController : ControllerBase
                    COALESCE(p.rcc_involved,0) AS rccInvolved,
                    p.location,
                    aof.name AS areaOfFocus,
-                   cat.name AS category,
-                   sc.name AS subCategory,
                    f.name AS funding,
                    p.fk_club_id AS clubId,
                    c.ClubName AS clubName,
@@ -81,8 +79,6 @@ public class PublicProjectController : ControllerBase
             FROM `{info.ProjectsTable}` p
             LEFT JOIN module_master mm ON mm.pk_module_id = p.fk_module_id
             LEFT JOIN area_of_focus_master aof ON aof.pk_area_of_focus_id = p.fk_area_of_focus_id
-            LEFT JOIN category_master cat ON cat.pk_category_id = p.fk_category_id
-            LEFT JOIN sub_category_master sc ON sc.pk_sub_category_id = p.fk_sub_category_id
             LEFT JOIN funding_master f ON f.pk_funding_id = p.fk_funding_id
             LEFT JOIN club_master c ON c.pk_club_id = p.fk_club_id
             LEFT JOIN district_master d ON d.pk_district_id = c.fk_district_id

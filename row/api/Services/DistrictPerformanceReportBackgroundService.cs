@@ -1,9 +1,9 @@
 namespace RotaryApi.Services;
 
-// Fires the District Performance Report + the RI Director (all zones) report once a day at Brand:Scope DistrictReportSendHour (default 7:00) in the brand's time zone.
+// Fires the District Performance Report once a day at Brand:Scope DistrictReportSendHour (default 7:00) in the brand's time zone.
 // Schedule / recipients are HARD-CODED in DistrictPerformanceReportService (no appsettings):
-//   Test (now) → District 3142 + the all-zones report, every day, to the two test addresses.
-//   Live (later) → only on the 1st & 16th: each district to its DG, the all-zones report to the RI Directors.
+//   Test (now) → District 3142, every day, to the two test addresses.
+//   Live (later) → only on the 1st & 16th: each district to its DG.
 // If the API starts AFTER today's hour, one catch-up run is made; it only sends districts whose run log
 // VERIFIES nothing went out today, so a restart can never mail a district twice. Scheduled sends are
 // suppressed on a dev machine (remote DB).

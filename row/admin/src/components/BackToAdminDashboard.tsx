@@ -7,8 +7,8 @@ import { resolveDashboardLanding, type DashboardEntry } from "@/services/api";
 import DashboardSwitcher from "@/components/dashboard/DashboardSwitcher";
 
 // A floating GLOBAL shortcut back to the member's OWN admin dashboard, shown ONLY to a member who is
-// SuperAdmin AND ALSO holds an operational admin role (District/Club Admin, AG, ZC, RI Director, Club
-// Moderator). Multi-role members land on their operational dashboard and can switch INTO Super Admin
+// SuperAdmin AND ALSO holds an operational admin role (District/Club Admin, AG).
+// Multi-role members land on their operational dashboard and can switch INTO Super Admin
 // from the sidebar switcher (→ Global Search); this is the way BACK — visible on every SuperAdmin
 // portal page. A pure SuperAdmin has no operational dashboard, so they never see it.
 //
@@ -20,8 +20,6 @@ const HIDE_PREFIXES = [
   "/club-admin-dashboard",
   "/district-admin-dashboard",
   "/ag-dashboard",
-  "/zonal-dashboard",
-  "/club-moderator",
 ];
 
 // Same priority the resolver uses for the default landing, minus SuperAdmin — picks which operational
@@ -29,11 +27,7 @@ const HIDE_PREFIXES = [
 const OPERATIONAL_ORDER = [
   "district-admin",
   "club-admin",
-  "ri-director",
-  "zonal-coordinator",
   "ag",
-  "club-moderator",
-  "goal-oversight",
 ];
 
 function pickOperational(available: DashboardEntry[]): DashboardEntry | null {

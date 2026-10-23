@@ -239,7 +239,6 @@ class _ClubDashboardScreenState extends State<ClubDashboardScreen>
                     // Goal Setting hidden for release (see kGoalSettingEnabled).
                     if (!kGoalSettingEnabled && k == 'goalsetting') return false;
                     // ROW module switches (FeatureController): skipped or switched-off modules lose their tile
-                    if (k == 'marketplace') return features.isOn('marketplace');
                     final route = _routeFor(m.moduleKey);
                     return route == null || !features.isPathOff(route);
                   }).toList(),
@@ -276,8 +275,6 @@ class _ClubDashboardScreenState extends State<ClubDashboardScreen>
       case 'calendar':
       case 'upcomingevents':      return RouteNames.clubUpcomingEvents(id);
       case 'announcements':       return RouteNames.clubAnnouncements(id);
-      // Market Place opens external URL — handled separately via routeUrl
-      case 'marketplace':         return null;
       case 'clubservice':         return RouteNames.clubService(id);
       case 'communityservice':    return '/clubs/$id/projects?module=community_service';
       case 'vocationalservice':   return RouteNames.vocationalService(id);
@@ -306,8 +303,6 @@ class _ClubDashboardScreenState extends State<ClubDashboardScreen>
       case 'trf':
       case 'trfcontribution':     return RouteNames.trf(id);
       case 'ocvgov':              return RouteNames.ocvGov(id);
-      case 'pphcamp':
-      case 'pphcamps':            return RouteNames.pphCamps(id);
       case 'clubmonthlyreport':   return RouteNames.clubMonthlyReport(id);
       case 'onlineeventlink':
       case 'eventpaymentlinks':   return RouteNames.eventPaymentLinks(id);
@@ -344,7 +339,7 @@ class _ClubDashboardScreenState extends State<ClubDashboardScreen>
   }
 
   // Resolves a tap handler for a module: native route first, else external URL
-  // (Market Place uses routeUrl). Returns null if neither is available.
+  // (a module's routeUrl). Returns null if neither is available.
   VoidCallback? _onTapFor(DashboardModuleModel m) {
     // Coming Soon (set by SuperAdmin on the web admin): keep the tile tappable
     // but, instead of navigating, tell the member when it becomes available.

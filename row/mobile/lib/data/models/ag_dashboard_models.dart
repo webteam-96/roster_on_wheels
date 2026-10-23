@@ -163,7 +163,6 @@ class AgProjectRow {
   // Service avenue = module name (Community / Vocational / International /
   // New Generations / Public Image / Club Service). Null on older payloads.
   final String? avenue;
-  final String? category;
   final String? areaOfFocus;
   final String? date; // "yyyy-MM-dd" or null
   final double cost;
@@ -173,9 +172,6 @@ class AgProjectRow {
   final String funding;
   final int rotarians;
   final bool manHoursIsPending;
-  // Approval workflow status: 'pending' | 'approved' | 'rejected'; null for
-  // Club Service / non-approval avenues.
-  final String? approvalStatus;
   const AgProjectRow({
     required this.projectId,
     required this.yearId,
@@ -183,7 +179,6 @@ class AgProjectRow {
     required this.clubName,
     required this.title,
     required this.avenue,
-    required this.category,
     required this.areaOfFocus,
     required this.date,
     required this.cost,
@@ -193,7 +188,6 @@ class AgProjectRow {
     required this.funding,
     required this.rotarians,
     required this.manHoursIsPending,
-    this.approvalStatus,
   });
   factory AgProjectRow.fromJson(Map<String, dynamic> j) => AgProjectRow(
         projectId: _i(j['projectId']),
@@ -202,7 +196,6 @@ class AgProjectRow {
         clubName: _s(j['clubName']),
         title: _s(j['title']),
         avenue: _sn(j['avenue']),
-        category: _sn(j['category']),
         areaOfFocus: _sn(j['areaOfFocus']),
         date: _sn(j['date']),
         cost: _d(j['cost']),
@@ -212,7 +205,6 @@ class AgProjectRow {
         funding: _s(j['funding']),
         rotarians: _i(j['rotarians']),
         manHoursIsPending: _b(j['manHoursIsPending']),
-        approvalStatus: _sn(j['approvalStatus']),
       );
 
   /// A detail drill-down is only possible when the server sent a stable id.
@@ -248,8 +240,6 @@ class AgProjectDetail {
   final String? location;
   final String? avenue;
   final String? areaOfFocus;
-  final String? category;
-  final String? subCategory;
   final String? date;
   final double cost;
   final String funding;
@@ -262,7 +252,6 @@ class AgProjectDetail {
   final bool isJointProject;
   final String? coHostName;
   final String? clubRole;
-  final String? approvalStatus;
   final List<AgProjectPhoto> photos;
   const AgProjectDetail({
     required this.projectId,
@@ -275,8 +264,6 @@ class AgProjectDetail {
     required this.location,
     required this.avenue,
     required this.areaOfFocus,
-    required this.category,
-    required this.subCategory,
     required this.date,
     required this.cost,
     required this.funding,
@@ -289,7 +276,6 @@ class AgProjectDetail {
     required this.isJointProject,
     required this.coHostName,
     required this.clubRole,
-    required this.approvalStatus,
     required this.photos,
   });
   factory AgProjectDetail.fromJson(Map<String, dynamic> j) => AgProjectDetail(
@@ -303,8 +289,6 @@ class AgProjectDetail {
         location: _sn(j['location']),
         avenue: _sn(j['avenue']),
         areaOfFocus: _sn(j['areaOfFocus']),
-        category: _sn(j['category']),
-        subCategory: _sn(j['subCategory']),
         date: _sn(j['date']),
         cost: _d(j['cost']),
         funding: _s(j['funding']),
@@ -317,7 +301,6 @@ class AgProjectDetail {
         isJointProject: _b(j['isJointProject']),
         coHostName: _sn(j['coHostName']),
         clubRole: _sn(j['clubRole']),
-        approvalStatus: _sn(j['approvalStatus']),
         photos: _list(j['photos']).map(AgProjectPhoto.fromJson).toList(),
       );
 }
@@ -610,7 +593,6 @@ class AgProjectsResponse {
   final List<AgProjectRow> projects;
   final Map<String, int> clubProjectCounts; // clubName -> count
   final Map<String, int> monthlyProjectCounts; // "Jul 2025" -> count
-  final Map<String, int> categoryCounts;
   final int totalProjects;
   final int totalBeneficiaries;
   final int totalManHours;
@@ -623,7 +605,6 @@ class AgProjectsResponse {
     required this.projects,
     required this.clubProjectCounts,
     required this.monthlyProjectCounts,
-    required this.categoryCounts,
     required this.totalProjects,
     required this.totalBeneficiaries,
     required this.totalManHours,
@@ -636,7 +617,6 @@ class AgProjectsResponse {
         projects: _list(j['projects']).map(AgProjectRow.fromJson).toList(),
         clubProjectCounts: _intMap(j['clubProjectCounts']),
         monthlyProjectCounts: _intMap(j['monthlyProjectCounts']),
-        categoryCounts: _intMap(j['categoryCounts']),
         totalProjects: _i(j['totalProjects']),
         totalBeneficiaries: _i(j['totalBeneficiaries']),
         totalManHours: _i(j['totalManHours']),

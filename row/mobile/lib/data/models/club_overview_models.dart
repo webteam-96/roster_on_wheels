@@ -35,7 +35,6 @@ class ClubStats {
   final int serviceProjects;
   final int districtCitationScore;
   final int districtCitationMax;
-  final int zonalAwards;
   final int reportsSubmitted;
   final int reportsTotal;
   const ClubStats({
@@ -58,7 +57,6 @@ class ClubStats {
     required this.serviceProjects,
     required this.districtCitationScore,
     required this.districtCitationMax,
-    required this.zonalAwards,
     required this.reportsSubmitted,
     required this.reportsTotal,
   });

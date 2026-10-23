@@ -43,11 +43,8 @@ public class AuditLogService : IAuditLogService
                   AND mr.IsActive = 1 AND mr.isdeleted = 0
                 ORDER BY CASE r.RoleName
                     WHEN 'SuperAdmin' THEN 1
-                    WHEN 'RIDirector' THEN 2
-                    WHEN 'ZonalCoordinator' THEN 3
                     WHEN 'Admin' THEN 4
                     WHEN 'AG' THEN 5
-                    WHEN 'ClubModerator' THEN 6
                     ELSE 99
                 END ASC
                 LIMIT 1",

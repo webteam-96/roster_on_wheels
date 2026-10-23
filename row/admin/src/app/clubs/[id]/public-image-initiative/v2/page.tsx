@@ -23,7 +23,7 @@ import Link from "next/link";
 import {
   Briefcase, Users, IndianRupee, Clock4, Loader2, Search, Plus, Edit3, Trash2,
   Download, ArrowLeft, AlertTriangle, Info, ChevronDown, ChevronRight,
-  Clock, CheckCircle2, XCircle, Eye, X, Puzzle,
+  Eye, X, Puzzle,
 } from "@/components/icons";
 import {
   getClub,
@@ -31,7 +31,6 @@ import {
   getProjects,
   deleteProject,
   getProjectYears,
-  checkClubHasModerator,
   getProject,
 } from "@/services/api";
 import { ProjectListItem } from "@/types/project";
@@ -136,7 +135,6 @@ export default function PublicImageInitiativeV2Page() {
   const [page, setPage] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
   const pageSize = 20;
-  const [hasModerator, setHasModerator] = useState(false);
 
   // Type filter preserved from v1.
   const [projectTypeFilter, setProjectTypeFilter] = useState<"all" | "one_time" | "ongoing_repeat">("all");
@@ -155,10 +153,7 @@ export default function PublicImageInitiativeV2Page() {
   const installed = useExtensionStatus();
   const isBotEnabled = isFlowBotEnabled(clubId);
   const [syncTarget, setSyncTarget] = useState<ProjectListItem | null>(null);
-  const canSyncRow = (p: ProjectListItem) => {
-    const status = (p.approvalStatus || "").toLowerCase();
-    return isBotEnabled && installed === true && canManage && (status === "" || status === "approved");
-  };
+  const canSync = isBotEnabled && installed === true && canManage;
 
   // Two-hop returnTo chain: dashboard → listing → add/edit → listing → dashboard.
   // childReturnTo points at THIS listing (with parent's returnTo nested inside),
@@ -185,7 +180,6 @@ export default function PublicImageInitiativeV2Page() {
           const current = projectYears.find((y) => y.isCurrent);
           setSelectedYearId(current ? current.id : projectYears[0]?.id ?? null);
         }
-        checkClubHasModerator(clubId).then((r) => { if (!cancelled) setHasModerator(r.hasModerator); }).catch(() => {});
       } catch (err: unknown) {
         const e = err as { response?: { data?: { message?: string } } };
         if (!cancelled) setErrorMessage(e?.response?.data?.message || "Failed to initialize.");
@@ -308,13 +302,6 @@ export default function PublicImageInitiativeV2Page() {
     }
   };
 
-  const approvalChip = (status: string | null) => {
-    if (status === "pending")  return <span className="inline-flex items-center gap-1 text-[10px] font-medium px-2 py-0.5 rounded-full bg-amber-100 text-amber-700"><Clock size={10} />Pending</span>;
-    if (status === "approved") return <span className="inline-flex items-center gap-1 text-[10px] font-medium px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700"><CheckCircle2 size={10} />Approved</span>;
-    if (status === "rejected") return <span className="inline-flex items-center gap-1 text-[10px] font-medium px-2 py-0.5 rounded-full bg-rose-100 text-rose-700"><XCircle size={10} />Rejected</span>;
-    return null;
-  };
-
   const renderRow = (project: ProjectListItem, index: number, isChild: boolean) => {
     const children = childrenByParent.get(project.id) || [];
     const childCount = children.length;
@@ -355,7 +342,6 @@ export default function PublicImageInitiativeV2Page() {
         <td className="px-3 py-2 text-slate-600">{project.areaOfFocusName || project.otherAreaOfFocus || "–"}</td>
         <td className="px-3 py-2 text-slate-600">{project.location || "–"}</td>
         <td className="px-3 py-2 text-right text-slate-600 whitespace-nowrap">{project.projectCost ? shortCurrency(Number(project.projectCost), project.currency) : "–"}</td>
-        <td className="px-3 py-2">{approvalChip(project.approvalStatus)}</td>
         {canManage && (
           <td className="px-3 py-2 text-right">
             <Link
@@ -394,7 +380,7 @@ export default function PublicImageInitiativeV2Page() {
         )}
         {isBotEnabled && installed === true && (
           <td className="px-3 py-2 text-right">
-            {canSyncRow(project) && (
+            {canSync && (
               <button
                 type="button"
                 onClick={() => setSyncTarget(project)}
@@ -411,7 +397,7 @@ export default function PublicImageInitiativeV2Page() {
     );
   };
 
-  const colCount = 7 + 1 + (canManage ? 3 : 0) + (isBotEnabled && installed === true ? 1 : 0);
+  const colCount = 7 + (canManage ? 3 : 0) + (isBotEnabled && installed === true ? 1 : 0);
 
   return (
     <ProtectedRoute>
@@ -561,7 +547,6 @@ export default function PublicImageInitiativeV2Page() {
                     <th className="px-3 py-2.5 text-left">Category</th>
                     <th className="px-3 py-2.5 text-left">Location</th>
                     <th className="px-3 py-2.5 text-right">Cost</th>
-                    <th className="px-3 py-2.5 text-left">Status</th>
                     {canManage && <th className="px-3 py-2.5 text-right w-16">View</th>}
                     {canManage && <th className="px-3 py-2.5 text-right w-16">Edit</th>}
                     {canManage && <th className="px-3 py-2.5 text-right w-16">Delete</th>}

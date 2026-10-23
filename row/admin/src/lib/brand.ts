@@ -80,11 +80,9 @@ export const FEATURE_DEFAULTS: Readonly<Record<string, boolean>> = {
   "documents.strictGlyphs": true,
   "sync.conditionalProfiles": true,
   "modules.citation": false,
-  "modules.zonalAwards": false,
   "modules.wallet": false,
   "modules.websitePurchase": false,
   "modules.assistant": false,
-  "modules.pphCamps": false,
   "site.public": false,
 };
 

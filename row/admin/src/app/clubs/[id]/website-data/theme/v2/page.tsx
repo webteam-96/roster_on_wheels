@@ -37,11 +37,14 @@ import { useSyncClubIdFromUrl } from "@/hooks/useSyncClubIdFromUrl";
 // Visual swatches per theme — pure CSS, no API call needed.
 // Keys match the slug the public resolver will compute from theme_name.
 const THEME_PREVIEW: Record<string, { gradient: string; primary: string; accent: string; ink: string; bg: string; tagline: string; font: string }> = {
-  "classic-blue":   { gradient: "from-[#17458F] to-[#1D5BB8]",   primary: "#17458F", accent: "#F7A81B", ink: "#1A1A1A", bg: "#FFFFFF", tagline: "Traditional Rotary navy + gold. Serif headings.",     font: "serif" },
-  "modern-minimal": { gradient: "from-[#0F766E] to-[#14B8A6]",   primary: "#0F766E", accent: "#14B8A6", ink: "#111827", bg: "#FAFAFA", tagline: "Off-white, teal accent, ultra-light typography.",   font: "sans-serif" },
-  "bold-color":     { gradient: "from-[#E11D48] to-[#FB923C]",   primary: "#E11D48", accent: "#FB923C", ink: "#18181B", bg: "#FFFFFF", tagline: "Vibrant rose→orange. Big bold display headings.",  font: "system-ui" },
-  "editorial":      { gradient: "from-[#1F2937] to-[#B91C1C]",   primary: "#1F2937", accent: "#B91C1C", ink: "#111827", bg: "#FBF7F0", tagline: "Newspaper masthead with Playfair serif headings.",  font: "Georgia, serif" },
-  "compact-card":   { gradient: "from-[#1E40AF] to-[#06B6D4]",   primary: "#1E40AF", accent: "#06B6D4", ink: "#0F172A", bg: "#F3F4F6", tagline: "Dense tile grid. Built for content-heavy clubs.",   font: "sans-serif" },
+  // Same colours as the club site's theme tokens: Rotary's brand palette only (build spec 3.11).
+  "classic-blue":   { gradient: "from-[#17458F] to-[#17458F]",   primary: "#17458F", accent: "#F7A81B", ink: "#0F172A", bg: "#FBFAF7", tagline: "Rotary Royal Blue and Gold. Georgia headings.",          font: "Georgia, serif" },
+  "modern-minimal": { gradient: "from-[#0F172A] to-[#1E293B]",   primary: "#0F172A", accent: "#00A2E0", ink: "#0F172A", bg: "#FAFAFA", tagline: "Charcoal with a Rotary Sky Blue accent. Arial throughout.", font: "Arial, sans-serif" },
+  "bold-color":     { gradient: "from-[#0067C8] to-[#0067C8]",   primary: "#0067C8", accent: "#F7A81B", ink: "#0F172A", bg: "#F5F5F7", tagline: "Rotary Azure and Gold. Big bold headings.",               font: "Arial, sans-serif" },
+  "editorial":      { gradient: "from-[#1F2937] to-[#374151]",   primary: "#1F2937", accent: "#E02927", ink: "#111827", bg: "#FBF7F0", tagline: "Newspaper masthead with a Rotary Cardinal accent.",       font: "Georgia, serif" },
+  "compact-card":   { gradient: "from-[#17458F] to-[#17458F]",   primary: "#17458F", accent: "#FF7600", ink: "#1C1917", bg: "#FDF8F0", tagline: "Dense tile grid in Royal Blue and Rotary Orange.",        font: "Arial, sans-serif" },
+  "banner":         { gradient: "from-[#17458F] to-[#17458F]",   primary: "#17458F", accent: "#F7A81B", ink: "#0E1B33", bg: "#ECEEF2", tagline: "The club's banner wall: projects hang as pennants.",     font: "sans-serif" },
+  "rotaract":       { gradient: "from-[#D41367] to-[#D41367]",   primary: "#D41367", accent: "#F7A81B", ink: "#0E1B33", bg: "#F5F5F8", tagline: "Rotaract template: the banner wall in cranberry.",       font: "sans-serif" },
 };
 
 function themeKey(themeName: string): string {

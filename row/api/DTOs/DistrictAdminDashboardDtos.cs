@@ -177,10 +177,10 @@ public class DistrictAdminMemberStat
 }
 
 // One row per "tab" on Membership page: Directors / DistrictCommittee /
-// AssistantGovernors / ClubModerators / Clubs. Each shows count + active + participation %.
+// AssistantGovernors / Clubs. Each shows count + active + participation %.
 public class DistrictAdminMembershipTabCount
 {
-    public string TabKey { get; set; } = "";   // directors | district_committee | ag | club_moderator | clubs
+    public string TabKey { get; set; } = "";   // directors | district_committee | ag | clubs
     public string TabLabel { get; set; } = "";
     public int Total { get; set; }
     public int Active { get; set; }
@@ -218,7 +218,7 @@ public class DistrictAdminDirectoryMemberRow
     public string? Gender { get; set; }
     public string? ClubName { get; set; }
     public int? ClubId { get; set; }
-    public string Role { get; set; } = "";    // Member / Admin / AG / ClubModerator …
+    public string Role { get; set; } = "";    // Member / Admin / AG …
     public string Status { get; set; } = "";  // Active | Inactive | Honorary
     public bool IsHonorary { get; set; }
     public bool IsDistrictAdmin { get; set; }
@@ -369,7 +369,6 @@ public class DistrictAdminProjectListingRow
     public int ManHours { get; set; }
     public string? AvenueName { get; set; }
     public string? AreaOfFocus { get; set; }
-    public string Status { get; set; } = "";  // approval_status: approved/pending/rejected/null
 }
 
 public class DistrictAdminFoundationResponse
@@ -481,15 +480,6 @@ public class DistrictAdminCmrPerClubRow
     public List<DistrictAdminCmrPerClubMonth> Months { get; set; } = new();
 }
 
-// PPH Camp per-club row.
-public class DistrictAdminPpsCampClubRow
-{
-    public int ClubId { get; set; }
-    public string ClubName { get; set; } = "";
-    public int CampCount { get; set; }
-    public int TotalAttendees { get; set; }
-}
-
 // District Awards per-club score.
 public class DistrictAdminCitationClubRow
 {
@@ -517,7 +507,6 @@ public class DistrictAdminReportItem
 public class DistrictAdminEGovernanceKpis
 {
     public int MonthlyReports { get; set; }
-    public int PpsCamps { get; set; }
     public int AvgCitationScore { get; set; }
 }
 
@@ -533,12 +522,11 @@ public class DistrictAdminEGovernanceResponse
     public List<DistrictAdminCmrClubRow> ClubCompliance { get; set; } = new();
 
     // ── new Wave 13A2 fields (additive) ─────────────────────────────────
-    // 3 top-level KPI tiles
+    // top-level KPI tiles
     public int MonthlyReportsCount { get; set; }
-    public int PpsCampsCount { get; set; }
     public decimal AvgCitationScore { get; set; }
 
-    // Frontend reads `data.kpis?.monthlyReports/ppsCamps/avgCitationScore`.
+    // Frontend reads `data.kpis?.monthlyReports/avgCitationScore`.
     // Surface a nested Kpis object so the top KPI tiles light up. Same values
     // as the flat fields above (kept for backwards compatibility).
     public DistrictAdminEGovernanceKpis Kpis { get; set; } = new();
@@ -548,9 +536,6 @@ public class DistrictAdminEGovernanceResponse
     public decimal CmrOnTimePercent { get; set; }
     public List<DistrictAdminCmrMonthRow> CmrMonthBreakdown { get; set; } = new();
     public List<DistrictAdminCmrPerClubRow> CmrPerClubGrid { get; set; } = new();
-
-    // PPH Camp sub-tab
-    public List<DistrictAdminPpsCampClubRow> PpsCampPerClub { get; set; } = new();
 
     // District Awards sub-tab (frontend reads `districtCitation`).
     public List<DistrictAdminCitationClubRow> DistrictCitation { get; set; } = new();

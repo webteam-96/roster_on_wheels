@@ -11,13 +11,8 @@ interface CsvColumn {
   linkText?: string;
   /** When true, the column's cells get Excel "Wrap Text" formatting. */
   wrap?: boolean;
-  /** When true, render a green-fill bold cell whenever the value equals "100%". Used by Data Collection Done(%) columns. */
-  greenWhen100Percent?: boolean;
   /** When true, render the 1-based row serial number (Sr.No.) instead of a data value. */
   index?: boolean;
-  /** Fixed identity/summary column — tinted so it reads as a separate block from the
-   *  dynamic data-collection fields. Set by the Data Collection reports. */
-  master?: boolean;
   /** Custom cell-value formatter (overrides default formatting). e.g. day+month only for DOB/DOA. */
   format?: (val: any, row: any) => string;
 }
@@ -111,14 +106,6 @@ const oddRowStyle = {
   font: { sz: 10 },
 };
 
-// Master (fixed identity/summary) columns on Data Collection reports — a flat tint that
-// overrides the zebra so the block visually separates from the dynamic field columns.
-const masterCellStyle = {
-  ...cellBorder,
-  fill: { fgColor: { rgb: "E8EEF4" } },
-  font: { sz: 10, color: { rgb: "1F4E79" } },
-};
-
 // Footer style
 const footerStyle = {
   font: { bold: true, color: { rgb: "1F4E79" }, sz: 10 },
@@ -170,18 +157,10 @@ function buildCell(col: CsvColumn, item: any, idx: number, style: any) {
   } else {
     cell.v = formatValue(rawVal);
   }
-  // Apply per-column wrap when requested (PPH Camp description etc.)
+  // Apply per-column wrap when requested.
   if (col.wrap) {
     const baseAlign = (cell.s as any).alignment || {};
     cell.s = { ...cell.s, alignment: { ...baseAlign, wrapText: true, vertical: "top" } };
-  }
-  // Green-fill bold cell when Done(%) hits 100% — Data Collection reports.
-  if (col.greenWhen100Percent && String(rawVal ?? "").trim() === "100%") {
-    cell.s = {
-      ...cell.s,
-      fill: { fgColor: { rgb: "C6EFCE" } },
-      font: { ...((cell.s as any).font || {}), bold: true, color: { rgb: "006100" } },
-    };
   }
   return cell;
 }
@@ -294,8 +273,6 @@ export function exportOcvReport(opts: {
     { label: "Club Monthly Report", module: "club_monthly_report" },
     { label: "District Citation Report", module: "district_citation" },
     { label: "Attendance Report", module: "attendance" },
-    { label: "PPH Camp Report", module: "pph_camp" },
-    { label: "PPH Camp Attendees Report", module: "pph_attendees" },
     { label: "TRF contribution Report", module: "trf_contributions" },
   ];
   const now = new Date();
@@ -461,10 +438,7 @@ export function exportToCSV(
   data.forEach((item, idx) => {
     const zebra = idx % 2 === 0 ? oddRowStyle : evenRowStyle;
     columns.forEach((col, c) => {
-      // Master columns keep a flat tint instead of the zebra, so the fixed block reads
-      // as separate from the dynamic data-collection fields.
-      const style = col.master ? masterCellStyle : zebra;
-      ws[XLSX.utils.encode_cell({ r: row, c })] = buildCell(col, item, idx, style);
+      ws[XLSX.utils.encode_cell({ r: row, c })] = buildCell(col, item, idx, zebra);
     });
     row++;
   });

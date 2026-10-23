@@ -59,11 +59,7 @@ public class GoalCategoryFormDto
     public string EntityName { get; set; } = "";  // club or district display name
     public int YearId { get; set; }
     public string YearLabel { get; set; } = "";
-    public bool IsEditable { get; set; }          // year not yet ended AND not locked
-    public bool IsLocked { get; set; }
-    public string? LockedByName { get; set; }
-    public string? LockedDate { get; set; }
-    public bool CanLock { get; set; }             // caller is authorised to lock/unlock this scope
+    public bool IsEditable { get; set; }          // year not yet ended
     // "Achieved as on <date>" — last calendar day of the latest month that has month-wise data
     // imported for this entity+category+year (e.g. "31 Aug 2026"). Null when no month-wise data yet
     // (frontend then shows "as on July 1st").
@@ -80,7 +76,6 @@ public class GoalClubSummaryDto
     public bool HasAnyGoalSet { get; set; }
     public string? LastUpdatedDate { get; set; }
     public string? LastUpdatedBy { get; set; }
-    public bool IsLocked { get; set; }
 }
 
 // Read-only matrix: every club of a district as a row, every field of ONE category as a column,
@@ -152,137 +147,6 @@ public class GoalClubMonthlyRowDto
     public Dictionary<string, string?> Totals { get; set; } = new();
 }
 
-// One selectable person in the SuperAdmin "Observe as" list (RI Directors + Zone Coordinators).
-// Gated to the observer SuperAdmin only. ZoneNames is comma-joined (an RI Director covers many zones).
-public class GoalObserverRoleDto
-{
-    public int MemberId { get; set; }
-    public string MemberName { get; set; } = "";
-    public string RoleType { get; set; } = "";   // AllCategoryAllDistrictsFewZones | AllDistrictsOneCategoryOneZone
-    public string RoleLabel { get; set; } = "";   // "RI Director" | "Zone Co-ordinator"
-    public string ZoneNames { get; set; } = "";
-    public string? CategoryName { get; set; }     // ZC is per-category; null for RI Director
-}
-
-public class GoalLockStatusDto
-{
-    public bool IsLocked { get; set; }
-    public string? LockedByName { get; set; }
-    public string? LockedDate { get; set; }
-}
-
-// ── Specialized oversight roles (Phase 3) ──────────────────────────────────
-// RoleType is one of: FewDistrictsOneCategoryOneZone / AllDistrictsOneCategoryOneZone /
-// AllCategoryAllDistrictsFewZones. Club Admin / District Admin reuse member_roles — not here.
-public class GoalRoleAssignmentDto
-{
-    public int Id { get; set; }
-    public int MemberId { get; set; }
-    public string MemberName { get; set; } = "";
-    public string RoleType { get; set; } = "";
-    public string AssignmentName { get; set; } = "";
-    public int? CategoryId { get; set; }
-    public string? CategoryName { get; set; }
-    public int? ZoneId { get; set; }
-    public string? ZoneName { get; set; }
-    public List<int> DistrictIds { get; set; } = new();
-    public List<string> DistrictNumbers { get; set; } = new();
-    public List<int> ZoneIds { get; set; } = new();
-    public List<string> ZoneNames { get; set; } = new();
-    public bool IsActive { get; set; }
-    public string? AssignedDate { get; set; }
-    // When this holder was last sent their role email — shown in the listing. Null = never emailed.
-    public string? RoleEmailSentDate { get; set; }
-    // Zonal-leadership hierarchy overlay (all optional/additive).
-    public string? RoleTitle { get; set; }
-    public string? Avenue { get; set; }
-    public int? HomeDistrictId { get; set; }
-    public string? HomeDistrictNumber { get; set; }
-    public string? DgYear { get; set; }
-    public string? SupportingText { get; set; }
-}
-
-public class CreateGoalRoleAssignmentRequest
-{
-    public int MemberId { get; set; }
-    // Free-text member name when the person isn't a pickable member (MemberId then 0).
-    public string? MemberNameText { get; set; }
-    public string RoleType { get; set; } = "";
-    public string AssignmentName { get; set; } = "";
-    public int? CategoryId { get; set; }
-    public int? ZoneId { get; set; }
-    public List<int>? DistrictIds { get; set; }
-    public List<int>? ZoneIds { get; set; }
-    // Zonal-leadership hierarchy overlay.
-    public string? RoleTitle { get; set; }
-    public string? Avenue { get; set; }
-    public int? HomeDistrictId { get; set; }
-    public string? DgYear { get; set; }
-    public string? SupportingText { get; set; }
-}
-
-// REPLACE the holder of an existing goal-role assignment (and, for RI Director, edit its zone set;
-// for a District Assistant, its district set) WITHOUT revoking — so the hierarchy below is preserved.
-// "+" next to a name: ADD another holder to an existing assignment. The new person inherits the same
-// role type, avenue/category, zone(s) and districts — so there is nothing else to pick (2026-09-16).
-public class AddGoalRoleHolderRequest
-{
-    public int MemberId { get; set; }
-    public string? MemberNameText { get; set; }   // free-text name when MemberId is 0
-}
-
-public class ChangeGoalRoleAssignmentRequest
-{
-    public int MemberId { get; set; }                 // new holder (0 + MemberNameText for a free-text name)
-    public string? MemberNameText { get; set; }
-    public List<int>? ZoneIds { get; set; }           // RI Director: the NEW full zone set (add/remove diffed server-side)
-    public int? ZoneId { get; set; }                  // Zone Co-ordinator: optional new single zone
-    public List<int>? DistrictIds { get; set; }       // District Assistant: the NEW full district set
-}
-
-// Extensible leadership-designation catalog (RMC, ARC, RPIC …). SuperAdmin-managed.
-public class GoalDesignationDto
-{
-    public int Id { get; set; }
-    public string Title { get; set; } = "";
-    public string Avenue { get; set; } = "";
-    public string RoleType { get; set; } = "";
-    public string? DefaultCategoryName { get; set; }
-    public int? DefaultCategoryId { get; set; }
-    public int SortOrder { get; set; }
-}
-
-public class CreateGoalDesignationRequest
-{
-    public string Title { get; set; } = "";
-    public string Avenue { get; set; } = "";
-    public string RoleType { get; set; } = "";
-    public string? DefaultCategoryName { get; set; }
-}
-
-// Zone-scoped member picker result for the assign form.
-public class GoalZoneMemberDto
-{
-    public int Id { get; set; }
-    public string MemberName { get; set; } = "";
-    public string EmailId { get; set; } = "";
-    public string PrimaryMobileNumber { get; set; } = "";
-    public string? ClubName { get; set; }
-    public string? DistrictNumber { get; set; }
-}
-
-// What the CURRENT caller holds — drives the read-only oversight dashboard's own menu.
-public class GoalMyAssignmentDto
-{
-    public int AssignmentId { get; set; }
-    public string RoleType { get; set; } = "";
-    public string AssignmentName { get; set; } = "";
-    public List<int> CategoryIds { get; set; } = new();   // all 4 for AllCategoryAllDistrictsFewZones
-    public List<int> DistrictIds { get; set; } = new();
-    public List<int> ZoneIds { get; set; } = new();
-    public bool CanBulkLock { get; set; }
-}
-
 public class GoalDistrictSummaryDto
 {
     public int DistrictId { get; set; }
@@ -291,26 +155,11 @@ public class GoalDistrictSummaryDto
     public string? ZoneName { get; set; }
     public bool HasAnyGoalSet { get; set; }
     public string? LastUpdatedDate { get; set; }
-    public bool IsLocked { get; set; }
-}
-
-public class GoalBulkLockRequest
-{
-    public int YearId { get; set; }
-    public List<int>? CategoryIds { get; set; }
-    public List<int>? ZoneIds { get; set; }
-    public bool Locked { get; set; }
-}
-
-public class GoalBulkLockResultDto
-{
-    public int AffectedCount { get; set; }
 }
 
 // ── Commenting (Phase 4) ────────────────────────────────────────────────
-// PostedByTier: 1=District Admin, 2=FewDistrictsOneCategoryOneZone,
-// 3=AllDistrictsOneCategoryOneZone, 4=AllCategoryAllDistrictsFewZones, 5=SuperAdmin.
-// A viewer sees every comment with PostedByTier <= their own resolved tier for that thread.
+// PostedByTier: 1 = District Admin / DG (district thread) or Club Admin (club thread),
+// 2 = District Admin on a club thread, 5 = SuperAdmin.
 public class GoalCommentDto
 {
     public long Id { get; set; }
@@ -323,16 +172,15 @@ public class GoalCommentDto
     // and whether the current viewer authored it (drives right-vs-left bubble alignment).
     public string? PostedByRoleLabel { get; set; }
     public bool IsMine { get; set; }
-    // District this message is about (District Assistant tags each message to a district, or 0 = "All
-    // districts"). ZC / RI messages are zone-wide → 0. DistrictNumber is null for 0.
+    // District this message is about. DistrictNumber is null for 0.
     public int DistrictId { get; set; }
     public string? DistrictNumber { get; set; }
     // District Admin / DG messages (2026-10-09): the category they are about.
     public string? CategoryName { get; set; }
 }
 
-// District Admin / District Governor messages to the oversight chain (user 2026-10-09). Read-only
-// for the District Assistant, Zone Co-ordinator, RI Director and SuperAdmin; nobody replies.
+// District Admin / District Governor messages (user 2026-10-09). Read-only for the SuperAdmin;
+// nobody replies.
 public class GoalDistrictMessagesDto
 {
     public int DistrictId { get; set; }
@@ -341,7 +189,6 @@ public class GoalDistrictMessagesDto
     public string CategoryName { get; set; } = "";
     public bool CanPost { get; set; }            // the viewer is this district's Admin / DG
     public string? PosterRole { get; set; }      // "District Admin" / "District Governor"
-    public string? Notice { get; set; }
     public List<GoalCommentDto> Messages { get; set; } = new();
 }
 
@@ -357,84 +204,6 @@ public class GoalDistrictConversationDto
     public string? LastFromRole { get; set; }
     public string? LastPreview { get; set; }
     public string? LastDate { get; set; }
-}
-
-// A district option for the District Assistant's "message about which district" picker.
-public class GoalMessageDistrictDto
-{
-    public int Id { get; set; }
-    public string Number { get; set; } = "";
-}
-
-// A Zone Co-ordinator / District Assistant in the zone (for the "who can message" roster shown when a
-// filter has no messages yet — so the RI sees each ZC/DA with "No message yet").
-public class GoalMessageOwnerDto
-{
-    public int MemberId { get; set; }
-    public int CategoryId { get; set; }              // the owner's category (a ZC/DA is per-category)
-    public string Name { get; set; } = "";
-    public string RoleLabel { get; set; } = "";     // "Zone Co-ordinator" | "District Assistant"
-    public string CategoryName { get; set; } = "";
-    public string? Districts { get; set; }           // DA's covered district numbers (comma-joined); null for ZC
-    public bool IsFormer { get; set; }               // no longer holds the seat - old conversation, read-only (2026-10-07)
-    public int MessageCount { get; set; }
-    // How many of those the reader has NOT opened yet (their own messages never count) - drives the
-    // per-person red badge and the "Unread only" filter in the RI Director / SuperAdmin popup.
-    public int UnreadCount { get; set; }
-}
-
-// One row in the RI Director's unified (all-categories, all-districts) messages view — the on-screen
-// twin of the messages report, filterable by category + district.
-public class GoalMessageRowDto
-{
-    public long Id { get; set; }
-    public int CategoryId { get; set; }
-    public string CategoryName { get; set; } = "";
-    public int DistrictId { get; set; }            // 0 = zone-wide / all districts
-    public string? DistrictNumber { get; set; }
-    public string FromName { get; set; } = "";
-    public string RoleLabel { get; set; } = "";
-    public int PostedByTier { get; set; }
-    public string Message { get; set; } = "";
-    public string? CreatedDate { get; set; }
-}
-
-// One pairwise oversight thread: a District Assistant or Zone Co-ordinator (the OWNER) talking
-// privately with the RI Director over its zone, scoped to (category, district, year).
-public class GoalMessageThreadDto
-{
-    public int OwnerMemberId { get; set; }
-    public string OwnerName { get; set; } = "";
-    public string OwnerRoleLabel { get; set; } = "";   // designation title (RMC / ARC …) or generic role
-    public string? Scope { get; set; }                  // coverage — "Zone 0" for a ZC, "D 3141, 3142" for a DA
-    public bool IsMine { get; set; }                    // caller owns this thread (DA/ZC self view)
-    public string? LastMessagePreview { get; set; }
-    public string? LastMessageDate { get; set; }
-    public int MessageCount { get; set; }
-    // Messages in THIS conversation the viewer has not seen yet, written by somebody else
-    // (user 2026-09-25). 0 = nothing new. Each box clears on its own when it is opened.
-    public int UnreadCount { get; set; }
-    // A person who no longer holds a seat here: their old conversation stays readable (read-only)
-    // so the RI Director can open it and the red dot can clear (2026-10-07).
-    public bool IsFormer { get; set; }
-    public string? CounterpartyName { get; set; }       // RI Director name (shown to the DA/ZC)
-    public bool CanPost { get; set; }
-    public string? Notice { get; set; }                 // e.g. "No RI Director assigned for this zone yet."
-}
-
-// The thread list for one (category, district, year), plus the caller's role in it so the UI knows
-// whether to show a single self-thread (DA/ZC) or a list of the DA/ZC threads to reply to (RI Director).
-public class GoalThreadListDto
-{
-    public string ViewerRole { get; set; } = "None";    // "RIDirector" | "ZoneCoordinator" | "DistrictAssistant" | "SuperAdmin" | "None"
-    public List<GoalMessageThreadDto> Threads { get; set; } = new();
-    // For a District Assistant viewer: the districts they cover (this zone+category) — the compose
-    // "message about which district" dropdown ("All districts" = 0 is added by the UI).
-    public List<GoalMessageDistrictDto> OwnerDistricts { get; set; } = new();
-    // True only for the gated observer SuperAdmin (mobile allow-list). When set, the UI lets the
-    // observer click any ZC/DA box and post a message AS that person (for demo/testing the upward
-    // ZC→RI / DA→RI flow from one login). Everyone else is false and stays read-only.
-    public bool CanObservePost { get; set; }
 }
 
 public class PostGoalCommentRequest
@@ -511,9 +280,8 @@ public class GoalOverviewMatrixDto
     public List<GoalOverviewRowDto> Rows { get; set; } = new();
 }
 
-// ── Goal-oversight dashboard: districts = rows, each category shown compactly (Target · Achieved · %)
-//    in front of the district. Scoped to the caller's role (RI/ZC → all zone districts; DA → only
-//    their districts). Categories = the ones the caller oversees (RI = all; ZC/DA = their one). ──
+// ── Goal Overview dashboard (SuperAdmin): districts = rows, each category shown compactly
+//    (Target · Achieved · %) in front of the district. Every district of the zone, every category. ──
 public class GoalDistrictSummaryMatrixDto
 {
     public int ZoneId { get; set; }

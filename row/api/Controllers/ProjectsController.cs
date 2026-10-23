@@ -13,14 +13,12 @@ namespace RotaryApi.Controllers;
 public class ProjectsController : ControllerBase
 {
     private readonly IProjectService _service;
-    private readonly IBeneficiaryApprovalService _approvalService;
     private readonly string _connectionString;
     private readonly IClubSiteCachePurger _purger;
 
-    public ProjectsController(IProjectService service, IBeneficiaryApprovalService approvalService, IConfiguration configuration, IClubSiteCachePurger purger)
+    public ProjectsController(IProjectService service, IConfiguration configuration, IClubSiteCachePurger purger)
     {
         _service = service;
-        _approvalService = approvalService;
         _connectionString = configuration.GetConnectionString("DefaultConnection")!;
         _purger = purger;
     }
@@ -95,26 +93,6 @@ public class ProjectsController : ControllerBase
                 message = $"This project's date moves it from {ex.FromYearLabel} to {ex.ToYearLabel}. " +
                           $"Move the project and its photos to {ex.ToYearLabel}? It will get a new ID there."
             });
-        }
-
-        // Cancel pending approval if beneficiaries now within limit.
-        if (dto.DirectBeneficiaries.HasValue)
-        {
-            try
-            {
-                using var connection = new MySqlConnector.MySqlConnection(
-                    HttpContext.RequestServices.GetRequiredService<IConfiguration>()
-                        .GetConnectionString("DefaultConnection"));
-                await connection.OpenAsync();
-                var limitStr = await Dapper.SqlMapper.ExecuteScalarAsync<string?>(connection,
-                    "SELECT SettingValue FROM system_settings WHERE SettingKey = 'direct_beneficiaries_limit'");
-                var limit = int.TryParse(limitStr, out var l) ? l : 0;
-                if (limit > 0 && dto.DirectBeneficiaries.Value <= limit)
-                {
-                    await _approvalService.CancelPendingApprovalAsync(id);
-                }
-            }
-            catch { /* don't block project save */ }
         }
 
         _purger.PurgeByClub(clubId);

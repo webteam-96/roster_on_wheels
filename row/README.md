@@ -51,13 +51,9 @@ The `admin/` and `club-website/` keep this folder's `web.config` files for IIS h
   report zones `Brand:Scope:Zones` (empty = all), excluded club-name patterns
   `DistrictPerformanceReport:ExcludedClubNames` — in the API and the workers. Rotaract clubs are left out of
   district reports and counts (`ClubScopeSql`, as upstream).
-- **One-time codes and messaging**: channels from `Brand:Providers:OtpPolicy` per country; SMS through Twilio
-  (`TwilioOtpSmsService`) and WhatsApp through the Meta Cloud API (`MetaWhatsAppService`), both in
-  `Services/RowMessaging.cs`. The original India gateways (DLT SMS, Interakt) are
-  removed. A number stored without its country gets the member's country code, else the brand's default country
-  (`RowPhone.ResolveE164Async`). Codes are not written to the log; `MobileOtp:ReturnDebugOtp` is off.
-  **ROW has no WhatsApp** (2026-10-13): taking it out is on hold (`PENDING-WORK.md` §7); without Meta
-  credentials nothing is sent.
+- **One-time codes and messaging**: ROW sends no SMS or other phone messages (decided 2026-10-19). One-time codes
+  and notifications go by email and in-app push (`Services/OtpChannelPolicy.cs`). Codes are not written to the log;
+  `MobileOtp:ReturnDebugOtp` is off.
 - **Time**: on a UTC server, timestamps go out with "Z" (`time.emitOffset`, `Services/UtcDateTimeConverter.cs`);
   midnight values stay date-only. Schedules (daily statistics, district performance report, club cache refresh),
   training slots and Zoom meetings use the brand's time zone (`Brand.TimeZone`); new clubs get it too.
@@ -116,15 +112,12 @@ Config keys (`Brand__Domains__AdminOrigin`, ...):
 | `Brand:Look:LogoUrl`, `:LogoDarkUrl`, `:FaviconUrl` | logos (email header defaults to the portal's ROW lockup) |
 | `Brand:Locale:DefaultCurrency`, `:Currencies:0`, `:Languages:0`, `:NumberLocale`, `:DefaultTimeZone` | `USD`, `USD`, `en`, `en-US`, `UTC` |
 | `Brand:Scope:CogClubId`, `:ExemptDistricts:0`, `:Zones:0` | COG roster club, districts outside reports, report zones |
-| `Brand:Providers:OtpPolicy:<ISO or *>:0`, `:Sms`, `:WhatsApp` | one-time-code channels; `twilio`, `meta` |
-| `Brand:Providers:Twilio:*`, `Brand:Providers:MetaWhatsApp:*` | provider credentials |
 | `DistrictPerformanceReport:ExcludedClubNames:0` | club-name patterns left out of the performance report |
 | `Brand:Legal:PolicyVersion` | e.g. `2026-11`; consent is asked once this is set |
 | `Brand:Features:<flag>` | override a flag, e.g. `Brand__Features__member.bloodGroup=true` |
 | `Brand:Privacy:TombstoneSalt` | erasure tombstone salt (API **and** sync worker) |
-| `Brand:CommunicationEmail`, `:ReportRecipients:0`, `:SuperAdminEmail`, `:WhatsAppTemplatePrefix` | extras |
+| `Brand:CommunicationEmail`, `:ReportRecipients:0`, `:SuperAdminEmail` | extras |
 | `Privacy:ExportRoot`, `Privacy:LinkKey` | export folder (outside the web root), link-signing key (else the JWT secret) |
-| `WhatsApp:TemplateName`, `:LanguageCode`, `:ClubWebsiteReminderTemplate`, `:OtpTemplateName`, `:BulkBatchSize` | Meta templates (replace the original `Interakt:*` keys; WhatsApp removal on hold) |
 | `Database:SeedDemoData` | `false` |
 
 Plus RIZones' keys, blank in the files: `ConnectionStrings`, `JwtSettings:Secret`, `Brevo:*`,

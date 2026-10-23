@@ -301,8 +301,8 @@ export function initPage() {
     if (!N) return undefined;
     const STEP = 360 / N;
     const offs = [];
-    const members = avatars.map((el) => ({ el, email: el.dataset.email, wa: el.dataset.wa, c: el.dataset.c, name: el.dataset.name, initials: el.dataset.initials }));
-    const describe = (m) => `${m.name ? m.name + '. ' : ''}Email ${m.email}, WhatsApp ${m.wa}.`; // screen readers only: the phone mock is aria-hidden
+    const members = avatars.map((el) => ({ el, email: el.dataset.email, phone: el.dataset.phone, c: el.dataset.c, name: el.dataset.name, initials: el.dataset.initials }));
+    const describe = (m) => `${m.name ? m.name + '. ' : ''}Email ${m.email}, phone ${m.phone}.`; // screen readers only: the phone mock is aria-hidden
 
     /* Geometry comes from CSS: --marker per layout; radius measured from the DOM */
     const M = parseFloat(getComputedStyle(visual).getPropertyValue('--marker')) || (side ? 180 : 270);
@@ -323,11 +323,11 @@ export function initPage() {
 
     /* Phone profile card: the avatar colour and the two privacy choices follow the marker */
     const prof = {
-      avatar: $('[data-p-avatar]'), email: $('[data-p-email]'), wa: $('[data-p-wa]'),
-      actEmail: $('[data-p-act-email]'), actWa: $('[data-p-act-wa]'),
+      avatar: $('[data-p-avatar]'), email: $('[data-p-email]'), phone: $('[data-p-phone]'),
+      actEmail: $('[data-p-act-email]'), actPhone: $('[data-p-act-phone]'),
       name: $('[data-p-name]'),
     };
-    const popTargets = [$('[data-p-name]'), $('[data-p-meta]'), prof.email, prof.wa].filter(Boolean);
+    const popTargets = [$('[data-p-name]'), $('[data-p-meta]'), prof.email, prof.phone].filter(Boolean);
     const pin = $('[data-marker-pin]');
     const status = $('[data-wheel-status]');
     let active = -1;
@@ -343,7 +343,7 @@ export function initPage() {
       // the phone shows whoever is under the marker
       if (m.name && prof.name) prof.name.textContent = m.name;
       if (m.initials && prof.avatar) prof.avatar.textContent = m.initials;
-      [[prof.email, m.email], [prof.actEmail, m.email], [prof.wa, m.wa], [prof.actWa, m.wa]].forEach(([el, state]) => { if (el) el.dataset.state = state; });
+      [[prof.email, m.email], [prof.actEmail, m.email], [prof.phone, m.phone], [prof.actPhone, m.phone]].forEach(([el, state]) => { if (el) el.dataset.state = state; });
       wheel.setAttribute('aria-valuenow', String(i + 1));
       wheel.setAttribute('aria-valuetext', describe(m));
       if (motion && !first) {

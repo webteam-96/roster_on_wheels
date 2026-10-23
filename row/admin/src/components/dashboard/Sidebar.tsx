@@ -11,7 +11,7 @@ import { cn } from "@/lib/utils";
 import DashboardSwitcher from "./DashboardSwitcher";
 
 // ROW "Fellowship": a light rail; azure (Rotary Royal Blue) marks the selected item.
-// Single shared sidebar for every dashboard shell (District / Club / AG / RI-Director / Zonal).
+// Single shared sidebar for every dashboard shell (District / Club / AG / RI-Director).
 const ACTIVE_BG = "#17458F";
 const ACTIVE_TEXT = "#FCFDFE";
 
@@ -38,7 +38,7 @@ export interface SidebarProps {
   variant?: "icon" | "dot";
   footerText: ReactNode;
   switcherTop?: ReactNode;
-  switcherKind?: "ag" | "club-admin" | "district-admin" | "club-moderator" | "zonal-coordinator" | "goal-oversight" | "ri-director" | "super-admin";
+  switcherKind?: "ag" | "club-admin" | "district-admin" | "goal-oversight" | "super-admin";
   fromSuperAdminSearch?: boolean;
   onNavigate?: () => void;
   onSignOut: () => void;

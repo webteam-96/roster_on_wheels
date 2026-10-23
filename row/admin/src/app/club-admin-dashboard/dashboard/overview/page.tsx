@@ -19,6 +19,7 @@ import AlertModal from "@/components/AlertModal";
 import { getClubPendingOfflineApprovals } from "@/services/api";
 import { useAuth } from "@/contexts/AuthContext";
 import SyncProjectsToRotaryOrgCard from "@/components/dashboard/SyncProjectsToRotaryOrgCard";
+import GrowthCard from "@/components/growth/GrowthCard";
 
 export default function ClubAdminDashboardOverviewPage() {
   const { overview, status, yearId } = useClubAdminCache();
@@ -133,6 +134,8 @@ export default function ClubAdminDashboardOverviewPage() {
         <KpiCard title="TRF Raised"      value={fmtUsdShort(data.trfRaisedInr)}                    subtitle={data.trfGoalInr ? `${trfPct}% of ${fmtUsdShort(data.trfGoalInr)}` : "No goal set"} icon={Heart}    color="gold" />
         <KpiCard title="Awards Score"    value={fmtInt(data.districtCitationScore)}               subtitle="District awards"                                                        icon={Award}       color="red" />
       </div>
+
+      <GrowthCard clubId={data.club.clubId} yearId={yearId} canManage={canManage} />
 
       <div className="grid grid-cols-1 xl:grid-cols-4 gap-4 items-stretch">
         <div className="rounded-xl border border-slate-200 bg-white p-5">

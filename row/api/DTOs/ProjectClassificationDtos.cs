@@ -1,18 +1,14 @@
 namespace RotaryApi.DTOs;
 
-// One row of the unified project-classification smart search (area of focus / category / sub-category).
-// Carries the FULL hierarchy path so the form can punch all three ids on a single selection.
+// One row of the project-classification smart search: an area of focus (projects are classified
+// by Area of Focus only), so the form can set it on a single selection.
 // Module fields are populated by the AI suggest endpoint (which searches across ALL modules) so the
 // caller can tell whether a suggestion belongs to the current project type or a different one.
 public class ClassificationSearchResultDto
 {
-    public string Type { get; set; } = "";           // "area" | "category" | "subcategory"
+    public string Type { get; set; } = "";           // always "area"
     public int AreaOfFocusId { get; set; }
     public string AreaOfFocusName { get; set; } = "";
-    public int? CategoryId { get; set; }
-    public string? CategoryName { get; set; }
-    public int? SubCategoryId { get; set; }
-    public string? SubCategoryName { get; set; }
     // The module (project type) this classification belongs to. Null for the module-scoped smart
     // search (the caller already knows the module); populated by the cross-module AI suggest.
     public int? ModuleId { get; set; }
@@ -20,7 +16,7 @@ public class ClassificationSearchResultDto
     public string? ModuleName { get; set; }
 }
 
-// AI suggestion request: classify a project's title/description into the taxonomy.
+// AI suggestion request: classify a project's title/description into an area of focus.
 public class ClassificationSuggestRequest
 {
     public string? Title { get; set; }

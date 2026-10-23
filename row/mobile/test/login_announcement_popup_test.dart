@@ -18,7 +18,7 @@ ActiveLoginAnnouncement _three() => ActiveLoginAnnouncement.fromJson({
 ActiveLoginAnnouncement _one() => ActiveLoginAnnouncement.fromJson({
       'show': true,
       'items': [
-        {'id': 5, 'content': '<p>Solo notice</p>', 'roles': ['RIDirector']},
+        {'id': 5, 'content': '<p>Solo notice</p>', 'roles': ['DistrictAdmin']},
       ],
     });
 
@@ -71,7 +71,7 @@ void main() {
 
     expect(find.byIcon(Icons.chevron_left_rounded), findsNothing);
     expect(find.byIcon(Icons.chevron_right_rounded), findsNothing);
-    expect(find.text('For: RI Director'), findsOneWidget);
+    expect(find.text('For: District Admin'), findsOneWidget);
     expect(find.textContaining('of'), findsNothing);
   });
 }

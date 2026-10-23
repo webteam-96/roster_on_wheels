@@ -35,8 +35,6 @@ function mk(
     rccInvolved: id % 3,
     location: `${clubCity}, ${clubState}`,
     areaOfFocus,
-    category: null,
-    subCategory: null,
     funding: "Club",
     clubId: id,
     clubName,

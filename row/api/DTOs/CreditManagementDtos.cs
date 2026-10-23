@@ -38,7 +38,7 @@ public class CreditListDto
     public DateTime? PaymentDate { get; set; }
     public string? ProofDocumentPath { get; set; }
     public DateTime CreatedDate { get; set; }
-    // Most recent time this club/district consumed a credit of this type (email/WhatsApp sent).
+    // Most recent time this club/district consumed a credit of this type (email sent).
     // Null if never used. Scope-level (not tied to a specific credit pack).
     public DateTime? LastUsedDate { get; set; }
 }
@@ -49,10 +49,6 @@ public class CreditBalanceDto
     public int EmailUsed { get; set; }
     public int EmailRemaining { get; set; }
     public DateTime? EmailExpiry { get; set; }
-    public int WhatsAppCredits { get; set; }
-    public int WhatsAppUsed { get; set; }
-    public int WhatsAppRemaining { get; set; }
-    public DateTime? WhatsAppExpiry { get; set; }
 }
 
 public class CreditNotificationDto

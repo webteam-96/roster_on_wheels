@@ -6,7 +6,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import type { RoleScopeDto, DistrictScopeDto } from "@/types/scope";
 import RotaryLoader from "@/components/RotaryLoader";
 
-export type DashboardKind = "ag" | "club-admin" | "district-admin" | "club-moderator";
+export type DashboardKind = "ag" | "club-admin" | "district-admin";
 
 interface DashboardGuardProps {
   kind: DashboardKind;
@@ -21,7 +21,6 @@ function isAuthorized(
 ): boolean {
   if (roles.includes("SuperAdmin")) return true;
   if (kind === "ag") return roles.includes("AG");
-  if (kind === "club-moderator") return roles.includes("ClubModerator");
 
   // For Club Admin vs District Admin, the role name is the SAME ("Admin").
   // Distinguish via the scope on member_roles: district-scoped → DA,

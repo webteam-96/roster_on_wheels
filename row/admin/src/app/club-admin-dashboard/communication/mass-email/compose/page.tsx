@@ -26,6 +26,11 @@ import ErrorAlert from "@/components/ErrorAlert";
 import { ArrowLeft, Save, Send, Loader2, X, Search, Mail } from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
 import ProtectedRoute from "@/components/ProtectedRoute";
+import { useFeatureOn } from "@/components/FeatureGate";
+import ContactGroupPicker from "@/components/contacts/ContactGroupPicker";
+import { CONTACTS_FEATURE } from "@/lib/contacts";
+import { useFeatureLoadedOn } from "@/components/FeatureGate";
+import ComposeComms from "@/components/comms/ComposeComms";
 
 interface SubGroupOption { id: number; groupName: string; memberCount: number; }
 interface MemberOption { memberId: number; memberName: string; email: string; }
@@ -45,11 +50,16 @@ export default function ClubAdminComposeMassEmailPage() {
   const [recipientType, setRecipientType] = useState("1");
   const [selectedSubgroupIds, setSelectedSubgroupIds] = useState<Set<number>>(new Set());
   const [selectedMemberIds, setSelectedMemberIds] = useState<Set<number>>(new Set());
+  // Recipient type 4: contact groups (non-members), while the contacts_growth feature is on.
+  const contactsOn = useFeatureOn(CONTACTS_FEATURE);
+  const [selectedContactGroupIds, setSelectedContactGroupIds] = useState<Set<number>>(new Set());
   const [fromName, setFromName] = useState("");
   const [replyName, setReplyName] = useState("");
   const [replyEmail, setReplyEmail] = useState("");
   const [subject, setSubject] = useState("");
   const [emailBody, setEmailBody] = useState("");
+  const commsOn = useFeatureLoadedOn("communication"); // N5: allowance instead of credits, language versions
+  const [templateKey, setTemplateKey] = useState("");
 
   const [rotaryYears, setRotaryYears] = useState<any[]>([]);
   const [selectedYearId, setSelectedYearId] = useState("");
@@ -96,8 +106,9 @@ export default function ClubAdminComposeMassEmailPage() {
       if (detail.subgroupIds) setSelectedSubgroupIds(new Set(detail.subgroupIds));
       else if (detail.fkSubgroupId) setSelectedSubgroupIds(new Set([detail.fkSubgroupId]));
       if (detail.recipientType === 3 && detail.recipients) setSelectedMemberIds(new Set(detail.recipients.map((r: any) => r.memberId)));
+      if (detail.recipientType === 4) setSelectedContactGroupIds(new Set(detail.contactGroupIds ?? []));
       setFromName(detail.fromName || ""); setReplyName(detail.replyName || ""); setReplyEmail(detail.replyEmail || "");
-      setSubject(detail.subject || ""); setEmailBody(detail.emailBody || "");
+      setSubject(detail.subject || ""); setEmailBody(detail.emailBody || ""); setTemplateKey(detail.templateKey || "");
     }).catch(() => setErrorMessage("Failed to load email details.")).finally(() => setLoading(false));
   }, [clubId, editId]);
 
@@ -107,14 +118,15 @@ export default function ClubAdminComposeMassEmailPage() {
       const p: Record<string, any> = { recipientType: Number(recipientType) };
       if (recipientType === "2" && selectedSubgroupIds.size > 0) p.subgroupIds = Array.from(selectedSubgroupIds).join(",");
       if (recipientType === "3" && selectedMemberIds.size > 0) p.memberIds = Array.from(selectedMemberIds).join(",");
+      if (recipientType === "4" && selectedContactGroupIds.size > 0) p.contactGroupIds = Array.from(selectedContactGroupIds).join(",");
       setRecipientCount(await getMassEmailRecipientCount(clubId, p));
     } catch { /* ignore */ }
-  }, [clubId, recipientType, selectedSubgroupIds, selectedMemberIds]);
+  }, [clubId, recipientType, selectedSubgroupIds, selectedMemberIds, selectedContactGroupIds]);
   useEffect(() => { fetchRecipientCount(); }, [fetchRecipientCount]);
 
   useEffect(() => { if (clubId) getClubCreditBalance(clubId).then(setCreditBalance).catch(() => {}); }, [clubId]);
 
-  const insufficientCredits = creditBalance && recipientCount.membersWithEmail > creditBalance.emailRemaining;
+  const insufficientCredits = !commsOn && creditBalance && recipientCount.membersWithEmail > creditBalance.emailRemaining;
   // Quill renders an empty document as "<p><br></p>" — strip tags to detect a
   // genuinely empty body so the "required" check isn't fooled by the markup.
   const bodyIsEmpty = !emailBody || emailBody.replace(/<[^>]*>/g, "").replace(/&nbsp;/g, "").trim() === "";
@@ -128,8 +140,9 @@ export default function ClubAdminComposeMassEmailPage() {
         recipientType: Number(recipientType),
         subgroupIds: recipientType === "2" ? Array.from(selectedSubgroupIds) : null,
         memberIds: recipientType === "3" ? Array.from(selectedMemberIds) : null,
+        contactGroupIds: recipientType === "4" ? Array.from(selectedContactGroupIds) : null,
         fromName: fromName.trim(), replyName: replyName.trim() || null, replyEmail: replyEmail.trim() || null,
-        subject: subject.trim(), emailBody, saveAsDraft: asDraft,
+        subject: subject.trim(), emailBody, saveAsDraft: asDraft, templateKey: templateKey || null,
       };
       let createdId: number | null = null;
       if (editId) { await updateMassEmail(clubId, editId, data); createdId = editId; }
@@ -168,10 +181,11 @@ export default function ClubAdminComposeMassEmailPage() {
           <CardHeader><CardTitle>Recipients</CardTitle></CardHeader>
           <CardContent className="space-y-4">
             <div className="flex flex-col gap-2">
-              {[{ value: "1", label: "All Members" }, { value: "2", label: "Subgroup" }, { value: "3", label: "Select Members" }].map((opt) => (
+              {[{ value: "1", label: "All Members" }, { value: "2", label: "Subgroup" }, { value: "3", label: "Select Members" },
+                ...(contactsOn ? [{ value: "4", label: "Contact groups (non-members)" }] : [])].map((opt) => (
                 <label key={opt.value} className="flex items-center gap-2 cursor-pointer">
                   <input type="radio" name="recipientType" value={opt.value} checked={recipientType === opt.value}
-                    onChange={() => { setRecipientType(opt.value); setSelectedSubgroupIds(new Set()); setSelectedMemberIds(new Set()); }} className="accent-azure" />
+                    onChange={() => { setRecipientType(opt.value); setSelectedSubgroupIds(new Set()); setSelectedMemberIds(new Set()); setSelectedContactGroupIds(new Set()); }} className="accent-azure" />
                   <span className="text-sm">{opt.label}</span>
                 </label>
               ))}
@@ -218,7 +232,11 @@ export default function ClubAdminComposeMassEmailPage() {
               </div>
             )}
 
-            <p className="text-sm text-muted-foreground">{recipientCount.totalMembers} member{recipientCount.totalMembers !== 1 ? "s" : ""} selected ({recipientCount.membersWithEmail} have email)</p>
+            {recipientType === "4" && (
+              <ContactGroupPicker scope="clubs" ownerId={clubId} selected={selectedContactGroupIds} onChange={setSelectedContactGroupIds} />
+            )}
+
+            <p className="text-sm text-muted-foreground">{recipientCount.totalMembers} {recipientType === "4" ? "contact" : "member"}{recipientCount.totalMembers !== 1 ? "s" : ""} selected ({recipientCount.membersWithEmail} have email)</p>
           </CardContent>
         </Card>
 
@@ -235,6 +253,7 @@ export default function ClubAdminComposeMassEmailPage() {
             </div>
             <div className="space-y-2"><Label>Subject *</Label><Input value={subject} onChange={(e) => setSubject(e.target.value)} placeholder="Email subject" /></div>
             <div className="space-y-2"><Label>Email Body *</Label><RichTextEditor value={emailBody} onChange={setEmailBody} placeholder="Write your email content here..." /></div>
+            {commsOn && <ComposeComms scope="clubs" ownerId={clubId} templateKey={templateKey} onTemplateKey={setTemplateKey} needed={recipientCount.membersWithEmail} />}
           </CardContent>
         </Card>
 
@@ -250,7 +269,7 @@ export default function ClubAdminComposeMassEmailPage() {
                 {saving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Save className="h-4 w-4 mr-2" />}Save as Draft
               </Button>
               <Button onClick={() => handleSave(false)} disabled={saving || insufficientCredits || recipientCount.membersWithEmail === 0} className="bg-azure hover:bg-mint-ink text-white">
-                {saving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Send className="h-4 w-4 mr-2" />}Send to {recipientCount.membersWithEmail} member{recipientCount.membersWithEmail !== 1 ? "s" : ""}
+                {saving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Send className="h-4 w-4 mr-2" />}Send to {recipientCount.membersWithEmail} {recipientType === "4" ? "contact" : "member"}{recipientCount.membersWithEmail !== 1 ? "s" : ""}
               </Button>
               <Button variant="ghost" className="text-destructive" onClick={() => router.push(returnTo)}><X className="h-4 w-4 mr-2" />Discard</Button>
             </div>

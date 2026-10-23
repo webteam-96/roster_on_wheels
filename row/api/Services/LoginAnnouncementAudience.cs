@@ -1,6 +1,5 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using System.Text.RegularExpressions;
 using Dapper;
 using MySqlConnector;
 
@@ -19,9 +18,8 @@ public static class LoginAnnouncementAudience
     // Canonical keys + order (must match rotary-frontend/src/utils/loginAnnouncementRoles.ts).
     public static readonly string[] RoleKeys =
     {
-        "SuperAdmin", "RIDirector", "ZonalCoordinator", "ClubAdmin", "DistrictAdmin", "AG", "ClubModerator",
+        "SuperAdmin", "ClubAdmin", "DistrictAdmin", "AG",
         "Member", "ClubPresident", "ClubSecretary",
-        "RMC", "ARC", "RPIC", "ARPIC", "RRFC", "ARRFC",
     };
 
     // Purchase filters + allowed values (must match the frontend LOGIN_ANNOUNCEMENT_FILTERS). "any" = not set.
@@ -29,18 +27,15 @@ public static class LoginAnnouncementAudience
     //   clubDues         — club collects dues from members (membership_dues), CURRENT Rotary year, active.
     //   districtDues     — district collects dues from clubs (club_dues), CURRENT Rotary year, active.
     //   districtWebsite  — district_websites Status = Active.
-    //   whatsappCredits / emailCredits — unexpired credits left, on the member's clubs or districts they administer.
+    //   emailCredits — unexpired credits left, on the member's clubs or districts they administer.
     public static readonly (string Key, string[] Values)[] FilterDefs =
     {
         ("clubWebsite", new[] { "purchased", "not_purchased", "expired" }),
         ("clubDues", new[] { "purchased", "not_purchased" }),
         ("districtDues", new[] { "purchased", "not_purchased" }),
         ("districtWebsite", new[] { "purchased", "not_purchased" }),
-        ("whatsappCredits", new[] { "purchased", "not_purchased" }),
         ("emailCredits", new[] { "purchased", "not_purchased" }),
     };
-
-    private static readonly Regex GoalAbbrev = new(@"\(([A-Z]+)\)\s*$", RegexOptions.Compiled);
 
     // Validates the submitted role selection. Returns (storedValue, error): storedValue NULL means ALL.
     public static (string? Stored, string? Error) Normalize(IEnumerable<string>? input)
@@ -180,10 +175,7 @@ public static class LoginAnnouncementAudience
                 case "SuperAdmin":
                     if (includeSuperAdmin) keys.Add("SuperAdmin");
                     break;
-                case "RIDirector":
-                case "ZonalCoordinator":
                 case "AG":
-                case "ClubModerator":
                 case "Member":
                     keys.Add(name);
                     break;
@@ -211,24 +203,6 @@ public static class LoginAnnouncementAudience
         {
             if (d == "Club President") keys.Add("ClubPresident");
             else if (d == "Club Secretary") keys.Add("ClubSecretary");
-        }
-
-        // Goal Setting roles — RoleTitle ends with the abbreviation, e.g. "Rotary Membership Co-Ordinator (RMC)";
-        // the goal "RI Director" maps onto the RI Director checkbox.
-        var goalRows = await conn.QueryAsync<dynamic>(@"
-            SELECT DISTINCT RoleTitle AS roleTitle, RoleType AS roleType
-            FROM goal_role_assignments
-            WHERE fk_member_id = @Id AND fk_member_id > 0 AND IsActive = 1 AND isdeleted = 0",
-            new { Id = memberId });
-        foreach (var g in goalRows)
-        {
-            var title = ((string?)g.roleTitle ?? "").Trim();
-            var match = GoalAbbrev.Match(title);
-            if (match.Success && RoleKeys.Contains(match.Groups[1].Value, StringComparer.OrdinalIgnoreCase))
-                keys.Add(match.Groups[1].Value);
-            else if (title.Equals("RI Director", StringComparison.OrdinalIgnoreCase)
-                     || (string?)g.roleType == GoalLoginHelper.RiDirectorRoleType)
-                keys.Add("RIDirector");
         }
 
         return keys;
@@ -277,17 +251,11 @@ public static class LoginAnnouncementAudience
             return _locZones.Any(loc.ZoneIds.Contains);
         }
 
-        // Location-only units: purchase-filter districts ∪ Goal Setting assigned districts; zones = those districts'
-        // zones ∪ Zonal Coordinator zones ∪ Goal Setting assigned zones.
+        // Location-only units: the purchase-filter districts; zones = those districts' zones.
         private async Task LoadLocationUnitsAsync()
         {
             if (_locDistricts != null) return;
-            var goalDistricts = (await _conn.QueryAsync<int?>(@"
-                SELECT d.fk_district_id FROM goal_role_assignment_districts d
-                JOIN goal_role_assignments a ON a.pk_id = d.fk_assignment_id
-                WHERE a.fk_member_id = @Id AND a.fk_member_id > 0 AND a.IsActive = 1 AND a.isdeleted = 0",
-                new { Id = _memberId })).Where(x => x is > 0).Select(x => x!.Value);
-            _locDistricts = _allDistricts.Union(goalDistricts).ToList();
+            _locDistricts = _allDistricts.ToList();
 
             var zones = new HashSet<int>();
             if (_locDistricts.Count > 0)
@@ -297,20 +265,6 @@ public static class LoginAnnouncementAudience
                     new { Ids = _locDistricts }))
                     if (z is > 0) zones.Add(z.Value);
             }
-            foreach (var z in await _conn.QueryAsync<int?>(@"
-                SELECT mr.fk_zone_id FROM member_roles mr
-                JOIN roles r ON r.pk_role_id = mr.fk_role_id
-                WHERE mr.fk_member_master_profile_id = @Id AND mr.IsActive = 1 AND mr.isdeleted = 0
-                  AND r.RoleName = 'ZonalCoordinator' AND mr.fk_zone_id > 0
-                UNION
-                SELECT gz.fk_zone_id FROM goal_role_assignment_zones gz
-                JOIN goal_role_assignments a ON a.pk_id = gz.fk_assignment_id
-                WHERE a.fk_member_id = @Id AND a.fk_member_id > 0 AND a.IsActive = 1 AND a.isdeleted = 0
-                UNION
-                SELECT a.fk_zone_id FROM goal_role_assignments a
-                WHERE a.fk_member_id = @Id AND a.fk_member_id > 0 AND a.IsActive = 1 AND a.isdeleted = 0 AND a.fk_zone_id > 0",
-                new { Id = _memberId }))
-                if (z is > 0) zones.Add(z.Value);
             _locZones = zones.ToList();
         }
 
@@ -411,10 +365,9 @@ public static class LoginAnnouncementAudience
                         SELECT DISTINCT fk_district_id FROM district_websites
                         WHERE fk_district_id IN @Ids AND COALESCE(isdeleted, 0) = 0 AND Status = 'Active'"), new HashSet<string>());
                     break;
-                case "whatsappCredits":
                 case "emailCredits":
                 {
-                    var type = key == "whatsappCredits" ? "WhatsApp" : "Email";
+                    var type = "Email";
                     var clubHas = await Ids("c", clubs, @"
                         SELECT DISTINCT fk_club_id FROM club_credits
                         WHERE fk_club_id IN @Ids AND CreditType = @Type AND IsActive = 1 AND isdeleted = 0

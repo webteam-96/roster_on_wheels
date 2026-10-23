@@ -74,13 +74,14 @@ open the file for the text. Do not edit by hand.
   -   19. Gates
   - … 15 more headings
 
-## row (48 documents)
+## row (50 documents)
 
-- **row/HANDOFF.md** (6 KB)
+- **row/HANDOFF.md** (9 KB)
   - ROW: session handoff (read this first)
   -   Ground rules (from the user)
   -   Done on 2026-10-19
   -   Done on 2026-10-21
+  -   Done on 2026-10-23
   -   Next task
   -   Still pending after Wave 1
   -   Known gaps and flags
@@ -110,7 +111,7 @@ open the file for the text. Do not edit by hand.
   -   Configuration (set per server as environment variables; never commit values)
   -   Checks
   -   Refreshing from a newer RIZones copy
-- **row/ROW-CHANGES.md** (37 KB)
+- **row/ROW-CHANGES.md** (40 KB)
   - ROW changes to consider later
   -   Security and privacy
   -   Providers
@@ -133,6 +134,7 @@ open the file for the text. Do not edit by hand.
   -   2026-10-21: Tenant lifecycle and editions (Wave 1 Task 5, build spec items 1 and 5)
   -   2026-10-21: String catalogue (Wave 1 Task 6, build spec item 3)
   -   2026-10-19: Fellowship design port (admin + mobile)
+  -   2026-10-23: Skipped modules removed, 10 new spec modules, security fixes
 - **row/STATUS.md** (33 KB)
   - ROW Build — Status and Handover
   -   1. What ROW is
@@ -152,6 +154,15 @@ open the file for the text. Do not edit by hand.
   -   8. Open decisions (owner: product / company)
   -   9. Working rules agreed with the team
   -   10. How to resume
+- **row/TRACKER.md** (20 KB)
+  - ROW work tracker
+  -   1. Summary
+  -   2. Skipped modules: remove completely
+  -   3. Existing modules (the module sheet, 93 in scope)
+  -   4. Phase 1: web hardening (in progress)
+  -   5. New spec modules (Build Specification v4.1)
+  -   6. Blocked or on hold
+  -   7. Launch items (build guide)
 - **row/admin/README.md** (1 KB)
   -   Getting Started
   - or
@@ -182,6 +193,13 @@ open the file for the text. Do not edit by hand.
   -   10. Performance — DB indexes
   -   Known gaps (track separately, not blocking launch)
   -   Sample seed for fresh dev DB
+- **row/club-website/src/themes/banner/DESIGN.md** (2 KB)
+  - Banner: club website theme
+  -   Concept card
+  -   System
+  -   Pages
+  -   Empty states
+  -   Genericness check
 - **row/district-website/README.md** (2 KB)
   - District Website
   -   Phases
@@ -205,6 +223,8 @@ open the file for the text. Do not edit by hand.
   -   10. Performance — DB indexes
   -   Known gaps (track separately, not blocking launch)
   -   Sample seed for fresh dev DB
+- **row/district-website/src/components/wall/DESIGN.md** (1 KB)
+  - Wall of clubs: district website theme
 - **row/mobile/ANALYSIS.md** (7 KB)
   - Frontend Analysis Report — Rotary Zones 4,5,6,7 & 8 Admin
   -   1. PROJECT OVERVIEW
@@ -428,18 +448,6 @@ open the file for the text. Do not edit by hand.
   -   Filters
   -   Access Control
   -   Data Loading Flow
-  -   Notes
-- **row/mobile/.specs/pph_camps.md** (8 KB)
-  - Module: PPH Camps (Preventive Public Health Camps)
-  -   API Endpoints
-  -   Form Fields - Camp (Add/Edit)
-  -   Form Fields - Attendance (Add/Edit)
-  -   Reference Parameters Card
-  -   List/Card Display Fields (Camp Cards)
-  -   Attendance Table Display Fields
-  -   Actions (Buttons/Menu Items)
-  -   Filters
-  -   Types (from API)
   -   Notes
 - **row/mobile/.specs/projects.md** (13 KB)
   - Module: Projects (All 6 Service Areas)

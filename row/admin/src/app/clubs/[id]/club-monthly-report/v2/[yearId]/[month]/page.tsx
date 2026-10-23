@@ -817,13 +817,10 @@ function ClubMonthlyReportV2WizardInner() {
                               {isCommunity ? (
                                 <>
                                   <th className="px-3 py-2.5 text-left">Area of Focus</th>
-                                  <th className="px-3 py-2.5 text-left">Category</th>
-                                  <th className="px-3 py-2.5 text-left">Sub Category</th>
                                 </>
                               ) : (
                                 <>
                                   <th className="px-3 py-2.5 text-left">Category</th>
-                                  <th className="px-3 py-2.5 text-left">Sub Category</th>
                                 </>
                               )}
                               <th className="px-3 py-2.5 text-right w-24">Actions</th>
@@ -862,13 +859,10 @@ function ClubMonthlyReportV2WizardInner() {
                                 {isCommunity ? (
                                   <>
                                     <td className="px-3 py-2 text-slate-700">{project.areaOfFocusName || "-"}</td>
-                                    <td className="px-3 py-2 text-slate-700">{project.categoryName || "-"}</td>
-                                    <td className="px-3 py-2 text-slate-700">{project.subCategoryName || "-"}</td>
                                   </>
                                 ) : (
                                   <>
                                     <td className="px-3 py-2 text-slate-700">{project.areaOfFocusName || "-"}</td>
-                                    <td className="px-3 py-2 text-slate-700">{project.categoryName || "-"}</td>
                                   </>
                                 )}
                                 <td className="px-3 py-2">

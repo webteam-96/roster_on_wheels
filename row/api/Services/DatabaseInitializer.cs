@@ -1135,26 +1135,10 @@ public partial class DatabaseInitializer
                     UPDATE module_master SET isdeleted = 1
                     WHERE ModuleKey = 'club_report' AND isdeleted = 0");
 
-                // Market Place — no external marketplace site for this instance: no route.
+                // Modules removed from ROW (user's module sheet, 2026-10-22): soft-delete their tiles.
                 await connection.ExecuteAsync(@"
-                    UPDATE module_master
-                    SET RouteUrl = ''
-                    WHERE ModuleKey = 'market_place' AND isdeleted = 0");
-
-                // Zonal Awards — district only, remove from all clubs
-                await connection.ExecuteAsync(@"
-                    UPDATE module_master SET ModuleLevel = 'District', IsDefaultForClub = 0
-                    WHERE ModuleKey = 'zonal_awards' AND isdeleted = 0");
-                await connection.ExecuteAsync(@"
-                    DELETE FROM club_modules WHERE fk_module_id IN (
-                        SELECT pk_module_id FROM module_master WHERE ModuleKey = 'zonal_awards'
-                    )");
-
-                // Add IsZonalAwardsEnabled column to zone_master
-                await AddColumnIfNotExists(connection, "zone_master", "IsZonalAwardsEnabled", "TINYINT(1) DEFAULT 0 AFTER IsActive");
-
-                // Add Is_healthy_club column to club_master (for Zonal Awards Q5 auto calculation)
-                await AddColumnIfNotExists(connection, "club_master", "Is_healthy_club", "VARCHAR(10) NULL");
+                    UPDATE module_master SET isdeleted = 1
+                    WHERE ModuleKey IN ('market_place', 'zonal_awards', 'pph_camp', 'club_moderator') AND isdeleted = 0");
 
                 await connection.ExecuteAsync(@"
                     CREATE TABLE IF NOT EXISTS district_modules (
@@ -1593,22 +1577,6 @@ public partial class DatabaseInitializer
                         INDEX idx_sa_audit_by (fk_by_member_id)
                     )");
 
-                // District Club Moderator
-                await connection.ExecuteAsync(@"
-                    CREATE TABLE IF NOT EXISTS district_club_moderator (
-                        id INT AUTO_INCREMENT PRIMARY KEY,
-                        fk_district_id INT NOT NULL,
-                        fk_member_id INT NOT NULL,
-                        fk_club_id INT NOT NULL,
-                        is_active TINYINT(1) DEFAULT 1,
-                        created_by INT NULL,
-                        created_date DATETIME DEFAULT CURRENT_TIMESTAMP,
-                        modified_by INT NULL,
-                        modified_date DATETIME NULL ON UPDATE CURRENT_TIMESTAMP,
-                        isdeleted INT DEFAULT 0,
-                        UNIQUE KEY uk_club_moderator (fk_club_id)
-                    )");
-
                 await connection.ExecuteAsync(@"
                     CREATE TABLE IF NOT EXISTS club_website_menu (
                         pk_club_website_menu_id INT AUTO_INCREMENT PRIMARY KEY,
@@ -1734,40 +1702,6 @@ public partial class DatabaseInitializer
                 await AddColumnIfNotExists(connection, "area_of_focus_master", "image_path", "VARCHAR(500) NULL AFTER name");
 
                 await connection.ExecuteAsync(@"
-                    CREATE TABLE IF NOT EXISTS category_master (
-                        pk_category_id INT AUTO_INCREMENT PRIMARY KEY,
-                        fk_area_of_focus_id INT NOT NULL,
-                        name VARCHAR(200) NOT NULL,
-                        sort_order INT DEFAULT 0,
-                        is_active TINYINT(1) DEFAULT 1,
-                        created_by INT NULL,
-                        created_date DATETIME DEFAULT CURRENT_TIMESTAMP,
-                        modified_by INT NULL,
-                        modified_date DATETIME NULL ON UPDATE CURRENT_TIMESTAMP,
-                        isdeleted INT DEFAULT 0,
-                        deleted_by INT NULL,
-                        deleted_date DATETIME NULL,
-                        FOREIGN KEY (fk_area_of_focus_id) REFERENCES area_of_focus_master(pk_area_of_focus_id)
-                    )");
-
-                await connection.ExecuteAsync(@"
-                    CREATE TABLE IF NOT EXISTS sub_category_master (
-                        pk_sub_category_id INT AUTO_INCREMENT PRIMARY KEY,
-                        fk_category_id INT NOT NULL,
-                        name VARCHAR(200) NOT NULL,
-                        sort_order INT DEFAULT 0,
-                        is_active TINYINT(1) DEFAULT 1,
-                        created_by INT NULL,
-                        created_date DATETIME DEFAULT CURRENT_TIMESTAMP,
-                        modified_by INT NULL,
-                        modified_date DATETIME NULL ON UPDATE CURRENT_TIMESTAMP,
-                        isdeleted INT DEFAULT 0,
-                        deleted_by INT NULL,
-                        deleted_date DATETIME NULL,
-                        FOREIGN KEY (fk_category_id) REFERENCES category_master(pk_category_id)
-                    )");
-
-                await connection.ExecuteAsync(@"
                     CREATE TABLE IF NOT EXISTS funding_master (
                         pk_funding_id INT AUTO_INCREMENT PRIMARY KEY,
                         name VARCHAR(200) NOT NULL,
@@ -1800,10 +1734,6 @@ public partial class DatabaseInitializer
                         location VARCHAR(200) NULL,
                         fk_area_of_focus_id INT NULL,
                         other_area_of_focus VARCHAR(100) NULL,
-                        fk_category_id INT NULL,
-                        other_category VARCHAR(100) NULL,
-                        fk_sub_category_id INT NULL,
-                        other_sub_category VARCHAR(100) NULL,
                         project_date DATE NULL,
                         project_cost DECIMAL(15,2) NULL,
                         fk_funding_id INT NULL,
@@ -1812,7 +1742,6 @@ public partial class DatabaseInitializer
                         rotarians_involved INT NULL,
                         rotaractors_involved INT NULL,
                         rcc_involved INT NULL DEFAULT 0,
-                        send_whatsapp TINYINT(1) DEFAULT 0,
                         is_active TINYINT(1) DEFAULT 1,
                         created_by INT NULL,
                         created_date DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -1826,8 +1755,6 @@ public partial class DatabaseInitializer
                         FOREIGN KEY (fk_year_id) REFERENCES rotary_year_master(pk_year_id),
                         FOREIGN KEY (parent_project_id) REFERENCES rotary_projects(pk_project_id),
                         FOREIGN KEY (fk_area_of_focus_id) REFERENCES area_of_focus_master(pk_area_of_focus_id),
-                        FOREIGN KEY (fk_category_id) REFERENCES category_master(pk_category_id),
-                        FOREIGN KEY (fk_sub_category_id) REFERENCES sub_category_master(pk_sub_category_id),
                         FOREIGN KEY (fk_funding_id) REFERENCES funding_master(pk_funding_id),
                         INDEX idx_projects_club_year_module (fk_club_id, fk_year_id, fk_module_id, isdeleted),
                         INDEX idx_projects_parent (parent_project_id),
@@ -1852,7 +1779,7 @@ public partial class DatabaseInitializer
                     "ALTER TABLE rotary_project_photos MODIFY COLUMN description VARCHAR(500) NULL");
 
                 // Club Service fields
-                await AddColumnIfNotExists(connection, "rotary_projects", "meeting_type", "VARCHAR(20) NULL AFTER send_whatsapp");
+                await AddColumnIfNotExists(connection, "rotary_projects", "meeting_type", "VARCHAR(20) NULL AFTER rcc_involved");
                 await AddColumnIfNotExists(connection, "rotary_projects", "agenda_document", "VARCHAR(500) NULL AFTER meeting_type");
                 await AddColumnIfNotExists(connection, "rotary_projects", "minutes_document", "VARCHAR(500) NULL AFTER agenda_document");
                 await AddColumnIfNotExists(connection, "rotary_projects", "attendance", "INT NULL AFTER minutes_document");
@@ -1881,7 +1808,6 @@ public partial class DatabaseInitializer
                 await AddColumnIfNotExists(connection, "club_master", "IsEnableBirthdayNotification", "TINYINT(1) DEFAULT 0");
                 await AddColumnIfNotExists(connection, "club_master", "AnniversaryGreeting", "VARCHAR(700) NULL");
                 await AddColumnIfNotExists(connection, "club_master", "IsEnableAnniversaryNotification", "TINYINT(1) DEFAULT 0");
-                await AddColumnIfNotExists(connection, "club_master", "IsGreetingSendWhatsapp", "TINYINT(1) DEFAULT 0");
                 await AddColumnIfNotExists(connection, "club_master", "IsGreetingSendEmail", "TINYINT(1) DEFAULT 0");
                 await AddColumnIfNotExists(connection, "club_master", "IsEnableBirthdayEmail", "TINYINT(1) DEFAULT 0");
                 await AddColumnIfNotExists(connection, "club_master", "BirthdayEmailFrom", "VARCHAR(200) NULL");
@@ -1954,82 +1880,6 @@ public partial class DatabaseInitializer
                         FOREIGN KEY (fk_year_id) REFERENCES rotary_year_master(pk_year_id)
                     )");
 
-                // Directory Data Collection — SuperAdmin configures per-district+year which fields each of the 3 groups (DC/BOD/Member) must fill; members update via public URL + OTP
-                await connection.ExecuteAsync(@"
-                    CREATE TABLE IF NOT EXISTS district_directory_config (
-                        pk_id INT AUTO_INCREMENT PRIMARY KEY,
-                        fk_district_id INT NOT NULL,
-                        fk_year_id INT NOT NULL,
-                        UrlHash VARCHAR(64) NOT NULL UNIQUE,
-                        FirstContactName VARCHAR(200) NULL,
-                        FirstContactMobile VARCHAR(20) NULL,
-                        FirstContactPasswordHash VARCHAR(255) NULL,
-                        SecondContactName VARCHAR(200) NULL,
-                        SecondContactMobile VARCHAR(20) NULL,
-                        SecondContactPasswordHash VARCHAR(255) NULL,
-                        DcFieldsJson MEDIUMTEXT NULL,
-                        BodFieldsJson MEDIUMTEXT NULL,
-                        MemberFieldsJson MEDIUMTEXT NULL,
-                        created_by INT NULL,
-                        created_date DATETIME DEFAULT CURRENT_TIMESTAMP,
-                        modified_by INT NULL,
-                        modified_date DATETIME NULL ON UPDATE CURRENT_TIMESTAMP,
-                        isdeleted TINYINT(1) DEFAULT 0,
-                        INDEX idx_ddc_district_year (fk_district_id, fk_year_id),
-                        INDEX idx_ddc_urlhash (UrlHash),
-                        FOREIGN KEY (fk_district_id) REFERENCES district_master(pk_district_id),
-                        FOREIGN KEY (fk_year_id) REFERENCES rotary_year_master(pk_year_id)
-                    )");
-
-                // Directory Data Collection — public-form submission log (audit for anonymous updates)
-                await connection.ExecuteAsync(@"
-                    CREATE TABLE IF NOT EXISTS district_directory_submission_log (
-                        pk_id INT AUTO_INCREMENT PRIMARY KEY,
-                        fk_config_id INT NOT NULL,
-                        fk_member_id INT NOT NULL,
-                        GroupType VARCHAR(20) NOT NULL,
-                        FieldsSubmittedJson MEDIUMTEXT NULL,
-                        CompletedCount INT DEFAULT 0,
-                        TotalCount INT DEFAULT 0,
-                        IpAddress VARCHAR(50) NULL,
-                        UserAgent VARCHAR(500) NULL,
-                        SubmittedAt DATETIME DEFAULT CURRENT_TIMESTAMP,
-                        FilledByAdminMobile VARCHAR(20) NULL,
-                        INDEX idx_ddsl_config (fk_config_id),
-                        INDEX idx_ddsl_member (fk_member_id),
-                        INDEX idx_ddsl_date (SubmittedAt)
-                    )");
-
-                // Public directory admin-proxy login (2026-06-19): the 2 contact persons can fill the
-                // form on behalf of a member using mobile + password (no member OTP). Hashes only.
-                await AddColumnIfNotExists(connection, "district_directory_config", "FirstContactPasswordHash", "VARCHAR(255) NULL AFTER FirstContactMobile");
-                await AddColumnIfNotExists(connection, "district_directory_config", "SecondContactPasswordHash", "VARCHAR(255) NULL AFTER SecondContactMobile");
-                // Per-district notification toggles (2026-07-24): gate reminder + post-submit confirmation
-                // Email/WhatsApp per config. OTP is NOT affected. Default 1 = send (preserves prior behaviour).
-                await AddColumnIfNotExists(connection, "district_directory_config", "SendEmail", "TINYINT(1) NOT NULL DEFAULT 1");
-                await AddColumnIfNotExists(connection, "district_directory_config", "SendWhatsapp", "TINYINT(1) NOT NULL DEFAULT 1");
-                // Enable/disable the public collection link (2026-08-04). 1 = open (form works),
-                // 0 = closed (public link shows "Link is closed"; all public actions blocked).
-                await AddColumnIfNotExists(connection, "district_directory_config", "IsActive", "TINYINT(1) NOT NULL DEFAULT 1");
-                await AddColumnIfNotExists(connection, "district_directory_submission_log", "FilledByAdminMobile", "VARCHAR(20) NULL");
-
-                // Directory Data Collection — per (config, member) status flags. Spouse-not-applicable
-                // lets a member who has no spouse skip the Family fields without dragging their
-                // completion % down. Adds nothing to existing tables; member_family_details rows are
-                // never touched by this flag (data preserved in case the flag is unticked later).
-                await connection.ExecuteAsync(@"
-                    CREATE TABLE IF NOT EXISTS directory_data_member_status (
-                        pk_id INT AUTO_INCREMENT PRIMARY KEY,
-                        fk_config_id INT NOT NULL,
-                        fk_member_id INT NOT NULL,
-                        SpouseNotApplicable TINYINT(1) NOT NULL DEFAULT 0,
-                        created_date DATETIME DEFAULT CURRENT_TIMESTAMP,
-                        modified_date DATETIME NULL ON UPDATE CURRENT_TIMESTAMP,
-                        UNIQUE KEY uk_ddms_config_member (fk_config_id, fk_member_id),
-                        INDEX idx_ddms_member (fk_member_id),
-                        FOREIGN KEY (fk_config_id) REFERENCES district_directory_config(pk_id)
-                    )");
-
                 // Project audit log table
                 await connection.ExecuteAsync(@"
                     CREATE TABLE IF NOT EXISTS rotary_project_audit_log (
@@ -2099,14 +1949,6 @@ public partial class DatabaseInitializer
                                 INSERT INTO rotary_project_audit_log (fk_project_id, fk_club_id, action_type, field_name, old_value, new_value, action_by, action_date)
                                 VALUES (NEW.pk_project_id, NEW.fk_club_id, 'UPDATE', 'area_of_focus', CAST(OLD.fk_area_of_focus_id AS CHAR), CAST(NEW.fk_area_of_focus_id AS CHAR), NEW.modified_by, NOW());
                             END IF;
-                            IF OLD.fk_category_id != NEW.fk_category_id OR (OLD.fk_category_id IS NULL AND NEW.fk_category_id IS NOT NULL) OR (OLD.fk_category_id IS NOT NULL AND NEW.fk_category_id IS NULL) THEN
-                                INSERT INTO rotary_project_audit_log (fk_project_id, fk_club_id, action_type, field_name, old_value, new_value, action_by, action_date)
-                                VALUES (NEW.pk_project_id, NEW.fk_club_id, 'UPDATE', 'category', CAST(OLD.fk_category_id AS CHAR), CAST(NEW.fk_category_id AS CHAR), NEW.modified_by, NOW());
-                            END IF;
-                            IF OLD.fk_sub_category_id != NEW.fk_sub_category_id OR (OLD.fk_sub_category_id IS NULL AND NEW.fk_sub_category_id IS NOT NULL) OR (OLD.fk_sub_category_id IS NOT NULL AND NEW.fk_sub_category_id IS NULL) THEN
-                                INSERT INTO rotary_project_audit_log (fk_project_id, fk_club_id, action_type, field_name, old_value, new_value, action_by, action_date)
-                                VALUES (NEW.pk_project_id, NEW.fk_club_id, 'UPDATE', 'sub_category', CAST(OLD.fk_sub_category_id AS CHAR), CAST(NEW.fk_sub_category_id AS CHAR), NEW.modified_by, NOW());
-                            END IF;
                             IF OLD.fk_funding_id != NEW.fk_funding_id OR (OLD.fk_funding_id IS NULL AND NEW.fk_funding_id IS NOT NULL) OR (OLD.fk_funding_id IS NOT NULL AND NEW.fk_funding_id IS NULL) THEN
                                 INSERT INTO rotary_project_audit_log (fk_project_id, fk_club_id, action_type, field_name, old_value, new_value, action_by, action_date)
                                 VALUES (NEW.pk_project_id, NEW.fk_club_id, 'UPDATE', 'funding', CAST(OLD.fk_funding_id AS CHAR), CAST(NEW.fk_funding_id AS CHAR), NEW.modified_by, NOW());
@@ -2157,58 +1999,6 @@ public partial class DatabaseInitializer
                         modified_date DATETIME NULL ON UPDATE CURRENT_TIMESTAMP,
                         created_date DATETIME DEFAULT CURRENT_TIMESTAMP
                     )");
-
-                // Beneficiary approval requests table
-                await connection.ExecuteAsync(@"
-                    CREATE TABLE IF NOT EXISTS beneficiary_approval_requests (
-                        pk_approval_id INT AUTO_INCREMENT PRIMARY KEY,
-                        fk_project_id INT NOT NULL,
-                        fk_zone_id INT NOT NULL,
-                        fk_club_id INT NOT NULL,
-                        requested_beneficiaries INT NOT NULL,
-                        approved_beneficiaries INT NULL,
-                        current_limit INT NOT NULL,
-                        approval_token VARCHAR(100) NOT NULL UNIQUE,
-                        status VARCHAR(20) DEFAULT 'pending',
-                        remark VARCHAR(1000) NULL,
-                        requested_by INT NOT NULL,
-                        responded_by INT NULL,
-                        responded_date DATETIME NULL,
-                        created_date DATETIME DEFAULT CURRENT_TIMESTAMP,
-                        -- NOTE: no FK on fk_project_id. Projects live in year-wise tables
-                        -- (rotary_projects_YYYY_YY), not the legacy monolithic rotary_projects,
-                        -- so a single FK can't be satisfied. Integrity is enforced in code.
-                        FOREIGN KEY (fk_zone_id) REFERENCES zone_master(pk_zone_id),
-                        FOREIGN KEY (fk_club_id) REFERENCES club_master(pk_club_id),
-                        INDEX idx_approval_token (approval_token),
-                        INDEX idx_approval_project (fk_project_id),
-                        INDEX idx_approval_status (status)
-                    )");
-
-                // Migration: record the ZC-approved beneficiary count per attempt (for history).
-                await AddColumnIfNotExists(connection, "beneficiary_approval_requests", "approved_beneficiaries", "INT NULL AFTER requested_beneficiaries");
-
-                // Migration: drop the stale fk_project_id FK on existing DBs. It pointed at
-                // the legacy rotary_projects table, but projects are now year-wise, so any
-                // over-limit approval insert failed the constraint. Find it by reference and drop.
-                var staleProjFks = (await connection.QueryAsync<string>(@"
-                    SELECT CONSTRAINT_NAME FROM information_schema.KEY_COLUMN_USAGE
-                    WHERE TABLE_SCHEMA = DATABASE()
-                      AND TABLE_NAME = 'beneficiary_approval_requests'
-                      AND COLUMN_NAME = 'fk_project_id'
-                      AND REFERENCED_TABLE_NAME = 'rotary_projects'")).ToList();
-                foreach (var fk in staleProjFks)
-                {
-                    try
-                    {
-                        await connection.ExecuteAsync($"ALTER TABLE beneficiary_approval_requests DROP FOREIGN KEY `{fk}`");
-                        _logger.LogInformation("Dropped stale FK {Fk} on beneficiary_approval_requests.fk_project_id.", fk);
-                    }
-                    catch (MySqlException ex)
-                    {
-                        _logger.LogWarning(ex, "Could not drop stale FK {Fk} on beneficiary_approval_requests.", fk);
-                    }
-                }
 
                 // Drop the old unique key if it exists (President/Secretary validated in SP instead)
                 // Must drop foreign keys that rely on the index first, then re-add them
@@ -2264,7 +2054,6 @@ public partial class DatabaseInitializer
                         ExpiryDate DATETIME NOT NULL,
                         EventVenue VARCHAR(255),
                         RegistrationLink VARCHAR(500),
-                        IsSendWhatsapp TINYINT(1) DEFAULT 0,
                         IsRepeatNotification TINYINT(1) DEFAULT 0,
                         Status VARCHAR(20) DEFAULT 'Unpublished',
                         IsActive TINYINT(1) DEFAULT 1,
@@ -2310,7 +2099,6 @@ public partial class DatabaseInitializer
                         PublishDateTime DATETIME NOT NULL,
                         ExpiryDateTime DATETIME NOT NULL,
                         IsDisplayOnBanner TINYINT(1) DEFAULT 0,
-                        IsSendWhatsapp TINYINT(1) DEFAULT 0,
                         IsRepeatNotification TINYINT(1) DEFAULT 0,
                         Status VARCHAR(20) DEFAULT 'Unpublished',
                         IsActive TINYINT(1) DEFAULT 1,
@@ -2345,7 +2133,6 @@ public partial class DatabaseInitializer
                         AttachmentType VARCHAR(10) DEFAULT 'link',
                         LinkUrl VARCHAR(500),
                         FilePath VARCHAR(500),
-                        IsSendWhatsapp TINYINT(1) DEFAULT 0,
                         Status VARCHAR(20) DEFAULT 'Unpublished',
                         IsActive TINYINT(1) DEFAULT 1,
                         created_by INT NULL,
@@ -2492,7 +2279,6 @@ public partial class DatabaseInitializer
                         member_name VARCHAR(200) NULL,
                         designation VARCHAR(100) NULL,
                         email_status VARCHAR(20) DEFAULT 'not_sent',
-                        whatsapp_status VARCHAR(20) DEFAULT 'not_sent',
                         sent_date DATETIME DEFAULT CURRENT_TIMESTAMP,
                         sent_by INT NULL
                     )");
@@ -2588,80 +2374,6 @@ public partial class DatabaseInitializer
                         FOREIGN KEY (fk_club_id) REFERENCES club_master(pk_club_id),
                         FOREIGN KEY (fk_year_id) REFERENCES rotary_year_master(pk_year_id),
                         FOREIGN KEY (fk_fund_id) REFERENCES trf_fund_master(pk_fund_id)
-                    )");
-
-                // PPH Camps tables
-                await connection.ExecuteAsync(@"
-                    CREATE TABLE IF NOT EXISTS pph_camps (
-                        pk_camp_id INT AUTO_INCREMENT PRIMARY KEY,
-                        fk_club_id INT NOT NULL,
-                        Title VARCHAR(300) NOT NULL,
-                        Description TEXT NULL,
-                        Address TEXT NULL,
-                        CampDate DATE NOT NULL,
-                        CampLogoPath VARCHAR(500) NULL,
-                        IsActive TINYINT(1) DEFAULT 1,
-                        created_by INT NULL,
-                        created_date DATETIME DEFAULT CURRENT_TIMESTAMP,
-                        modified_by INT NULL,
-                        modified_date DATETIME NULL ON UPDATE CURRENT_TIMESTAMP,
-                        isdeleted TINYINT(1) DEFAULT 0,
-                        deleted_by INT NULL,
-                        deleted_date DATETIME NULL,
-                        FOREIGN KEY (fk_club_id) REFERENCES club_master(pk_club_id)
-                    )");
-
-                await connection.ExecuteAsync(@"
-                    CREATE TABLE IF NOT EXISTS pph_camp_attendance (
-                        pk_attendance_id INT AUTO_INCREMENT PRIMARY KEY,
-                        fk_camp_id INT NOT NULL,
-                        RegistrationNo VARCHAR(20) NULL,
-                        Age INT NULL,
-                        BPSystolic INT NULL,
-                        BPDiastolic INT NULL,
-                        BloodSugarType VARCHAR(10) NULL,
-                        BloodSugarValue DECIMAL(10,2) NULL,
-                        HeightCm DECIMAL(10,2) NULL,
-                        WeightKg DECIMAL(10,2) NULL,
-                        BMI DECIMAL(10,2) NULL,
-                        DiabetesStatus VARCHAR(50) NULL,
-                        BPStatus VARCHAR(50) NULL,
-                        IsOverweight TINYINT(1) DEFAULT 0,
-                        IsObese TINYINT(1) DEFAULT 0,
-                        IsConsentedForMessages TINYINT(1) DEFAULT 0,
-                        Remarks TEXT NULL,
-                        created_by INT NULL,
-                        created_date DATETIME DEFAULT CURRENT_TIMESTAMP,
-                        modified_by INT NULL,
-                        modified_date DATETIME NULL ON UPDATE CURRENT_TIMESTAMP,
-                        isdeleted TINYINT(1) DEFAULT 0,
-                        deleted_by INT NULL,
-                        deleted_date DATETIME NULL,
-                        FOREIGN KEY (fk_camp_id) REFERENCES pph_camps(pk_camp_id)
-                    )");
-
-                // PPH camp attendee (the person) — mobile is unique per camp (enforced in app via find-or-create).
-                // Each attendee has MANY readings in pph_camp_attendance (fk_attendee_id). Person fields live here;
-                // medical readings live in pph_camp_attendance. Sex/Address/Age nullable in DB to tolerate legacy
-                // backfilled rows; mandatory for new entries is enforced by DTO validation in the API.
-                await connection.ExecuteAsync(@"
-                    CREATE TABLE IF NOT EXISTS pph_camp_attendies (
-                        pk_attendee_id INT AUTO_INCREMENT PRIMARY KEY,
-                        fk_camp_id INT NOT NULL,
-                        Name VARCHAR(200) NOT NULL,
-                        MobileNo VARCHAR(20) NOT NULL,
-                        Sex VARCHAR(10) NULL,
-                        Address TEXT NULL,
-                        IsConsentedForMessages TINYINT(1) DEFAULT 0,
-                        created_by INT NULL,
-                        created_date DATETIME DEFAULT CURRENT_TIMESTAMP,
-                        modified_by INT NULL,
-                        modified_date DATETIME NULL ON UPDATE CURRENT_TIMESTAMP,
-                        isdeleted TINYINT(1) DEFAULT 0,
-                        deleted_by INT NULL,
-                        deleted_date DATETIME NULL,
-                        INDEX idx_pph_attendee_camp_mobile (fk_camp_id, MobileNo),
-                        FOREIGN KEY (fk_camp_id) REFERENCES pph_camps(pk_camp_id)
                     )");
 
                 // ── Cashfree KYC tables ───────────────────────────────────────
@@ -2925,7 +2637,7 @@ public partial class DatabaseInitializer
                         KEY idx_member_status (fk_member_master_profile_id, Status)
                     )");
 
-                // ── RI Director scope support (Scope='district' default, 'ri' for RI-level records) ──
+                // ── Content scope column (Scope='district' default) ──
                 await AddColumnIfNotExists(connection, "announcements", "Scope", "VARCHAR(10) NOT NULL DEFAULT 'district'");
                 await AddColumnIfNotExists(connection, "upcoming_events", "Scope", "VARCHAR(10) NOT NULL DEFAULT 'district'");
                 await AddColumnIfNotExists(connection, "newsletters", "Scope", "VARCHAR(10) NOT NULL DEFAULT 'district'");
@@ -2952,64 +2664,7 @@ public partial class DatabaseInitializer
                         isdeleted TINYINT(1) DEFAULT 0
                     )");
 
-                // RI Director recipient targeting columns (reused across modules for RI-scoped records)
-                await AddColumnIfNotExists(connection, "announcements", "RecipientTarget", "VARCHAR(20) NULL");
-                await AddColumnIfNotExists(connection, "announcements", "RecipientZoneIds", "TEXT NULL");
-                await AddColumnIfNotExists(connection, "announcements", "RecipientDistrictIds", "TEXT NULL");
-                await AddColumnIfNotExists(connection, "upcoming_events", "RecipientTarget", "VARCHAR(20) NULL");
-                await AddColumnIfNotExists(connection, "upcoming_events", "RecipientZoneIds", "TEXT NULL");
-                await AddColumnIfNotExists(connection, "upcoming_events", "RecipientDistrictIds", "TEXT NULL");
-                await AddColumnIfNotExists(connection, "newsletters", "RecipientTarget", "VARCHAR(20) NULL");
-                await AddColumnIfNotExists(connection, "newsletters", "RecipientZoneIds", "TEXT NULL");
-                await AddColumnIfNotExists(connection, "newsletters", "RecipientDistrictIds", "TEXT NULL");
-                await AddColumnIfNotExists(connection, "club_documents", "RecipientTarget", "VARCHAR(20) NULL");
-                await AddColumnIfNotExists(connection, "club_documents", "RecipientZoneIds", "TEXT NULL");
-                await AddColumnIfNotExists(connection, "club_documents", "RecipientDistrictIds", "TEXT NULL");
-                await AddColumnIfNotExists(connection, "weblinks", "RecipientTarget", "VARCHAR(20) NULL");
-                await AddColumnIfNotExists(connection, "weblinks", "RecipientZoneIds", "TEXT NULL");
-                await AddColumnIfNotExists(connection, "weblinks", "RecipientDistrictIds", "TEXT NULL");
-                await AddColumnIfNotExists(connection, "club_mass_emails", "RecipientTarget", "VARCHAR(20) NULL");
-                await AddColumnIfNotExists(connection, "club_mass_emails", "RecipientZoneIds", "TEXT NULL");
-                await AddColumnIfNotExists(connection, "club_mass_emails", "RecipientDistrictIds", "TEXT NULL");
-                await AddColumnIfNotExists(connection, "announcements", "RecipientSubgroupIds", "VARCHAR(500) NULL");
-                await AddColumnIfNotExists(connection, "upcoming_events", "RecipientSubgroupIds", "VARCHAR(500) NULL");
-                await AddColumnIfNotExists(connection, "newsletters", "RecipientSubgroupIds", "VARCHAR(500) NULL");
-                await AddColumnIfNotExists(connection, "club_mass_emails", "RecipientSubgroupIds", "VARCHAR(500) NULL");
-
-                // ── WhatsApp scheduled send tracking ──
-                await AddColumnIfNotExists(connection, "announcements", "WhatsAppSentDate", "DATETIME NULL");
-                await AddColumnIfNotExists(connection, "announcements", "WhatsAppSentCount", "INT NOT NULL DEFAULT 0");
-                await AddColumnIfNotExists(connection, "announcements", "WhatsAppFailedCount", "INT NOT NULL DEFAULT 0");
-                await AddColumnIfNotExists(connection, "upcoming_events", "WhatsAppSentDate", "DATETIME NULL");
-                await AddColumnIfNotExists(connection, "upcoming_events", "WhatsAppSentCount", "INT NOT NULL DEFAULT 0");
-                await AddColumnIfNotExists(connection, "upcoming_events", "WhatsAppFailedCount", "INT NOT NULL DEFAULT 0");
-                await AddColumnIfNotExists(connection, "newsletters", "WhatsAppSentDate", "DATETIME NULL");
-                await AddColumnIfNotExists(connection, "newsletters", "WhatsAppSentCount", "INT NOT NULL DEFAULT 0");
-                await AddColumnIfNotExists(connection, "newsletters", "WhatsAppFailedCount", "INT NOT NULL DEFAULT 0");
-                await AddColumnIfNotExists(connection, "rotary_projects", "IsSendWhatsapp", "TINYINT(1) NOT NULL DEFAULT 0");
-                await AddColumnIfNotExists(connection, "rotary_projects", "WhatsAppSentDate", "DATETIME NULL");
-                await AddColumnIfNotExists(connection, "rotary_projects", "WhatsAppSentCount", "INT NOT NULL DEFAULT 0");
-                await AddColumnIfNotExists(connection, "rotary_projects", "WhatsAppFailedCount", "INT NOT NULL DEFAULT 0");
-
-                // Per-reminder WhatsApp tracking (repeat notifications)
-                await AddColumnIfNotExists(connection, "upcoming_event_reminders", "WhatsAppSentDate", "DATETIME NULL");
-                await AddColumnIfNotExists(connection, "upcoming_event_reminders", "WhatsAppSentCount", "INT NOT NULL DEFAULT 0");
-                await AddColumnIfNotExists(connection, "upcoming_event_reminders", "WhatsAppFailedCount", "INT NOT NULL DEFAULT 0");
-                await AddColumnIfNotExists(connection, "announcement_reminders", "WhatsAppSentDate", "DATETIME NULL");
-                await AddColumnIfNotExists(connection, "announcement_reminders", "WhatsAppSentCount", "INT NOT NULL DEFAULT 0");
-                await AddColumnIfNotExists(connection, "announcement_reminders", "WhatsAppFailedCount", "INT NOT NULL DEFAULT 0");
-
-                // Indexes to speed up the scheduler pending-query
-                await CreateIndexIfNotExists(connection, "announcements", "idx_ann_wa_pending",
-                    "CREATE INDEX idx_ann_wa_pending ON announcements (IsSendWhatsapp, WhatsAppSentDate, PublishDateTime)");
-                await CreateIndexIfNotExists(connection, "upcoming_events", "idx_evt_wa_pending",
-                    "CREATE INDEX idx_evt_wa_pending ON upcoming_events (IsSendWhatsapp, WhatsAppSentDate, PublishDate)");
-                await CreateIndexIfNotExists(connection, "newsletters", "idx_nl_wa_pending",
-                    "CREATE INDEX idx_nl_wa_pending ON newsletters (IsSendWhatsapp, WhatsAppSentDate, PublishDateTime)");
-                await CreateIndexIfNotExists(connection, "rotary_projects", "idx_proj_wa_pending",
-                    "CREATE INDEX idx_proj_wa_pending ON rotary_projects (IsSendWhatsapp, WhatsAppSentDate)");
-
-                // ── Email scheduled send tracking (mirrors WhatsApp; separate IsSendEmail toggle) ──
+                // ── Email scheduled send tracking (IsSendEmail toggle) ──
                 await AddColumnIfNotExists(connection, "announcements", "IsSendEmail", "TINYINT(1) NOT NULL DEFAULT 0");
                 await AddColumnIfNotExists(connection, "announcements", "EmailSentDate", "DATETIME NULL");
                 await AddColumnIfNotExists(connection, "announcements", "EmailSentCount", "INT NOT NULL DEFAULT 0");
@@ -3042,41 +2697,6 @@ public partial class DatabaseInitializer
                     "CREATE INDEX idx_evt_email_pending ON upcoming_events (IsSendEmail, EmailSentDate, PublishDate)");
                 await CreateIndexIfNotExists(connection, "newsletters", "idx_nl_email_pending",
                     "CREATE INDEX idx_nl_email_pending ON newsletters (IsSendEmail, EmailSentDate, PublishDateTime)");
-
-                // RI Director credits (singleton-ish: one active row per credit type)
-                await connection.ExecuteAsync(@"
-                    CREATE TABLE IF NOT EXISTS ri_director_credits (
-                        pk_credit_id INT AUTO_INCREMENT PRIMARY KEY,
-                        CreditType VARCHAR(20) NOT NULL,
-                        CreditCount INT NOT NULL DEFAULT 0,
-                        UsedCount INT NOT NULL DEFAULT 0,
-                        PreviousCount INT DEFAULT 0,
-                        FromDate DATE NOT NULL,
-                        ToDate DATE NOT NULL,
-                        TransactionId VARCHAR(200) NULL,
-                        PaymentDate DATE NULL,
-                        ProofDocumentPath VARCHAR(500) NULL,
-                        IsActive TINYINT(1) DEFAULT 1,
-                        created_by INT DEFAULT 0,
-                        created_date DATETIME DEFAULT CURRENT_TIMESTAMP,
-                        modified_by INT NULL,
-                        modified_date DATETIME NULL,
-                        isdeleted TINYINT(1) DEFAULT 0
-                    )");
-
-                await connection.ExecuteAsync(@"
-                    CREATE TABLE IF NOT EXISTS ri_director_credit_usage_history (
-                        pk_id INT AUTO_INCREMENT PRIMARY KEY,
-                        CreditType VARCHAR(20) NOT NULL,
-                        DeductedCount INT NOT NULL DEFAULT 0,
-                        Source VARCHAR(100) NOT NULL,
-                        SourceId INT NULL,
-                        SourceDetail VARCHAR(500) NULL,
-                        BalanceBefore INT NOT NULL DEFAULT 0,
-                        BalanceAfter INT NOT NULL DEFAULT 0,
-                        created_by INT DEFAULT 0,
-                        created_date DATETIME DEFAULT CURRENT_TIMESTAMP
-                    )");
 
                 // Add district support to website data tables
                 await AddColumnIfNotExists(connection, "club_website_banner", "fk_district_id", "INT NULL");
@@ -3126,14 +2746,6 @@ public partial class DatabaseInitializer
                 await AddColumnIfNotExists(connection, "potential_members", "fk_member_master_profile_id_as_referrer", "INT NULL");
 
                 // Drop foreign key constraints on fk_club_id for district-shared tables (fk_club_id=0 for district records)
-                // Club Moderator project approval columns
-                await AddColumnIfNotExists(connection, "rotary_projects", "approval_status", "VARCHAR(20) NULL");
-                await AddColumnIfNotExists(connection, "rotary_projects", "approval_remark", "VARCHAR(500) NULL");
-                await AddColumnIfNotExists(connection, "rotary_projects", "approved_by", "INT NULL");
-                await AddColumnIfNotExists(connection, "rotary_projects", "approval_date", "DATETIME NULL");
-                await AddColumnIfNotExists(connection, "rotary_projects", "approval_token", "VARCHAR(64) NULL");
-                await CreateIndexIfNotExists(connection, "rotary_projects", "idx_projects_approval_token", "CREATE INDEX idx_projects_approval_token ON rotary_projects (approval_token)");
-                await CreateIndexIfNotExists(connection, "rotary_projects", "idx_projects_approval_status", "CREATE INDEX idx_projects_approval_status ON rotary_projects (approval_status)");
 
                 // District projects/events support
                 await AddColumnIfNotExists(connection, "rotary_projects", "fk_district_id", "INT NULL AFTER fk_club_id");
@@ -3172,7 +2784,6 @@ public partial class DatabaseInitializer
                 await AddColumnIfNotExists(connection, "district_master", "IsEnableBirthdayNotification", "TINYINT(1) DEFAULT 0");
                 await AddColumnIfNotExists(connection, "district_master", "AnniversaryGreeting", "VARCHAR(700) NULL");
                 await AddColumnIfNotExists(connection, "district_master", "IsEnableAnniversaryNotification", "TINYINT(1) DEFAULT 0");
-                await AddColumnIfNotExists(connection, "district_master", "IsGreetingSendWhatsapp", "TINYINT(1) DEFAULT 0");
                 await AddColumnIfNotExists(connection, "district_master", "IsGreetingSendEmail", "TINYINT(1) DEFAULT 0");
                 // Defaults ON (unlike the other Is*Send* toggles above) — clubs get push/digest
                 // unconditionally with no admin toggle at all, so districts should behave the same
@@ -3998,104 +3609,6 @@ public partial class DatabaseInitializer
                 // gives 16 MB. MODIFY is idempotent, so it's safe to run every startup.
                 try { await connection.ExecuteAsync("ALTER TABLE club_mass_emails MODIFY COLUMN EmailBody MEDIUMTEXT NULL"); } catch { /* already widened */ }
 
-                // PPH Camps district support
-                await AddColumnIfNotExists(connection, "pph_camps", "fk_district_id", "INT NULL AFTER fk_club_id");
-                // Make fk_club_id nullable for district-level camps (drop FK first)
-                try
-                {
-                    await connection.ExecuteAsync("ALTER TABLE pph_camps DROP FOREIGN KEY pph_camps_ibfk_1");
-                }
-                catch { /* FK may not exist or different name */ }
-                try
-                {
-                    await connection.ExecuteAsync("ALTER TABLE pph_camps MODIFY fk_club_id INT NULL");
-                }
-                catch { /* already nullable */ }
-
-                // ── PPH 3-level model: link each medical reading to an attendee (person) ──
-                await AddColumnIfNotExists(connection, "pph_camp_attendance", "fk_attendee_id", "INT NULL AFTER fk_camp_id");
-                // One-time backfill: existing flat attendance rows have no attendee yet. Group them by
-                // (fk_camp_id, MobileNo) into one attendee each, then link fk_attendee_id. Rows with a blank
-                // mobile get their own attendee (can't be grouped). Runs only while NULL fk_attendee_id rows exist.
-                var pphRowsToBackfill = await connection.ExecuteScalarAsync<long>(
-                    "SELECT COUNT(*) FROM pph_camp_attendance WHERE fk_attendee_id IS NULL AND isdeleted = 0");
-                if (pphRowsToBackfill > 0)
-                {
-                    var legacyRows = (await connection.QueryAsync<dynamic>(
-                        @"SELECT pk_attendance_id, fk_camp_id, Name, MobileNo, Sex, Address, Age, IsConsentedForMessages
-                          FROM pph_camp_attendance
-                          WHERE fk_attendee_id IS NULL AND isdeleted = 0
-                          ORDER BY pk_attendance_id")).ToList();
-
-                    var attendeeByCampMobile = new Dictionary<string, int>();
-                    foreach (var row in legacyRows)
-                    {
-                        int rowCampId = (int)row.fk_camp_id;
-                        string mobile = ((string?)row.MobileNo ?? "").Trim();
-                        string cacheKey = rowCampId + "|" + mobile;
-
-                        int attendeeId;
-                        if (mobile.Length > 0 && attendeeByCampMobile.TryGetValue(cacheKey, out var existingAttendeeId))
-                        {
-                            attendeeId = existingAttendeeId;
-                        }
-                        else
-                        {
-                            attendeeId = await connection.ExecuteScalarAsync<int>(
-                                @"INSERT INTO pph_camp_attendies
-                                      (fk_camp_id, Name, MobileNo, Sex, Address, IsConsentedForMessages, created_date, isdeleted)
-                                  VALUES (@CampId, @Name, @Mobile, @Sex, @Address, @Consent, NOW(), 0);
-                                  SELECT LAST_INSERT_ID();",
-                                new
-                                {
-                                    CampId = rowCampId,
-                                    Name = (string?)row.Name ?? "",
-                                    Mobile = mobile,
-                                    Sex = (string?)row.Sex,
-                                    Address = (string?)row.Address,
-                                    // Age stays on the reading (pph_camp_attendance), not the attendee — it can change per visit.
-                                    // TINYINT(1) comes back as bool (MySqlConnector default) — Convert handles bool or numeric.
-                                    Consent = Convert.ToInt32(row.IsConsentedForMessages ?? false)
-                                });
-                            if (mobile.Length > 0) attendeeByCampMobile[cacheKey] = attendeeId;
-                        }
-
-                        await connection.ExecuteAsync(
-                            "UPDATE pph_camp_attendance SET fk_attendee_id = @Aid WHERE pk_attendance_id = @Pid",
-                            new { Aid = attendeeId, Pid = (int)row.pk_attendance_id });
-                    }
-                }
-
-                // ── PPH per-reading global registration number (PPH-0001, PPH-0002, …) ──
-                await AddColumnIfNotExists(connection, "pph_camp_attendance", "RegistrationNo", "VARCHAR(20) NULL AFTER fk_camp_id");
-                // Backfill any reading without a number, continuing from the global max (includes deleted rows
-                // so numbers never repeat). Ordered by pk so assignment is stable.
-                var maxRegNo = await connection.ExecuteScalarAsync<long?>(
-                    "SELECT MAX(CAST(SUBSTRING(RegistrationNo, 5) AS UNSIGNED)) FROM pph_camp_attendance WHERE RegistrationNo IS NOT NULL");
-                long nextRegNo = maxRegNo ?? 0;
-                var rowsWithoutReg = (await connection.QueryAsync<int>(
-                    "SELECT pk_attendance_id FROM pph_camp_attendance WHERE RegistrationNo IS NULL ORDER BY pk_attendance_id")).ToList();
-                foreach (var pk in rowsWithoutReg)
-                {
-                    nextRegNo++;
-                    await connection.ExecuteAsync(
-                        "UPDATE pph_camp_attendance SET RegistrationNo = @Reg WHERE pk_attendance_id = @Pk",
-                        new { Reg = "PPH-" + nextRegNo.ToString("D4"), Pk = pk });
-                }
-
-                // Normalize: drop the duplicated person columns from readings. Authoritative person data
-                // lives on pph_camp_attendies (joined via fk_attendee_id). Runs AFTER the attendee backfill
-                // above so legacy flat rows were still migrated using these columns. Guarded per column.
-                foreach (var dupCol in new[] { "Name", "MobileNo", "Sex", "Address" })
-                {
-                    var dupExists = await connection.ExecuteScalarAsync<long?>(
-                        @"SELECT COUNT(*) FROM information_schema.COLUMNS
-                          WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'pph_camp_attendance' AND COLUMN_NAME = @c",
-                        new { c = dupCol });
-                    if (dupExists.HasValue && dupExists.Value > 0)
-                        await connection.ExecuteAsync($"ALTER TABLE pph_camp_attendance DROP COLUMN {dupCol}");
-                }
-
                 // ── District Citation tables ──────────────────────────────────
                 await connection.ExecuteAsync(@"
                     CREATE TABLE IF NOT EXISTS district_citation_activity_master (
@@ -4122,7 +3635,6 @@ public partial class DatabaseInitializer
                         ('Public Image Initiative', 1, 9),
                         ('Club Monthly Report', 0, 10),
                         ('Attendance', 0, 11),
-                        ('PPH Camp', 0, 12),
                         ('Club Dues', 0, 13),
                         ('Member Addition(Lady)', 0, 14),
                         ('Member Addition(Youth)', 0, 15)");
@@ -4292,24 +3804,8 @@ public partial class DatabaseInitializer
                         KEY idx_lookup (fk_district_id, fk_year_id, restored)
                     )");
 
-                // Goal-oversight "message seen" marker: last time a viewer (RI Director) opened the messages
-                // popup for a zone+year. Drives the red "new message" dot. Prod SkipInit → apply SQL/goal_message_seen.sql.
-                await connection.ExecuteAsync(@"
-                    CREATE TABLE IF NOT EXISTS goal_message_seen (
-                        pk_id INT AUTO_INCREMENT PRIMARY KEY,
-                        fk_member_id INT NOT NULL,
-                        fk_zone_id INT NOT NULL,
-                        fk_year_id INT NOT NULL,
-                        last_seen_date DATETIME NOT NULL,
-                        UNIQUE KEY uq_seen (fk_member_id, fk_zone_id, fk_year_id)
-                    )");
-
-                // PER-THREAD "message seen" marker (user 2026-09-25). The zone-wide row above answers
-                // only "has anyone written in this zone", and opening ANY box stamped the whole zone as
-                // read — so an RI Director with a dozen boxes saw one dot, had to open every box to find
-                // the new message, and the moment he opened one the signal for the others was gone.
-                // This row is per conversation, so each box carries its own unread count and clears on
-                // its own. Prod SkipInit → apply SQL/goal_message_thread_seen.sql.
+                // PER-THREAD "message seen" marker (user 2026-09-25): each conversation carries its own
+                // unread count and clears on its own. Prod SkipInit → apply SQL/goal_message_thread_seen.sql.
                 await connection.ExecuteAsync(@"
                     CREATE TABLE IF NOT EXISTS goal_message_thread_seen (
                         pk_id INT AUTO_INCREMENT PRIMARY KEY,
@@ -4319,18 +3815,6 @@ public partial class DatabaseInitializer
                         fk_year_id INT NOT NULL,
                         last_seen_date DATETIME NOT NULL,
                         UNIQUE KEY uq_thread_seen (fk_member_id, ThreadOwnerMemberId, fk_category_id, fk_year_id)
-                    )");
-
-                // Per-SuperAdmin "Goal Setting enabled" flag — toggled on settings/super-admin-role-config.
-                // A SuperAdmin sees the Goal Setting oversight tile + observer view-as ONLY when IsEnabled=1.
-                // Default (no row) = disabled. Prod SkipInit → apply SQL/goal_oversight_access.sql.
-                await connection.ExecuteAsync(@"
-                    CREATE TABLE IF NOT EXISTS goal_oversight_access (
-                        fk_member_id INT NOT NULL PRIMARY KEY,
-                        IsEnabled TINYINT(1) NOT NULL DEFAULT 0,
-                        created_date DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                        modified_date DATETIME NULL,
-                        modified_by INT NULL
                     )");
 
                 // District Awards activation flag (per district + year) — SuperAdmin toggles it.
@@ -4349,84 +3833,9 @@ public partial class DatabaseInitializer
 
                 // Citation sub-question filter columns
                 await AddColumnIfNotExists(connection, "district_citation_auto_question_sub", "filter_aof_id", "INT NULL AFTER sub_item_name");
-                await AddColumnIfNotExists(connection, "district_citation_auto_question_sub", "filter_cat_id", "INT NULL AFTER filter_aof_id");
 
                 // Note: member_master_profile.RiAdmissionDate was removed. Admission dates now live on
-                // club_members.JoinedDate (per-club). Zonal Awards / Citation queries filter on cm.JoinedDate.
-
-                // ── Zonal Awards Tables ──
-                // NOTE: Tables are created with CREATE TABLE IF NOT EXISTS below.
-                // NEVER drop or delete anything — only UPDATE or UPSERT. Dropping wipes district data.
-
-                await connection.ExecuteAsync(@"
-                    CREATE TABLE IF NOT EXISTS zonal_awards_goal (
-                        pk_id INT AUTO_INCREMENT PRIMARY KEY,
-                        fk_year_id INT NOT NULL,
-                        title VARCHAR(200) NOT NULL,
-                        max_points INT NULL,
-                        max_remark VARCHAR(500) NULL,
-                        sort_order INT DEFAULT 0,
-                        isdeleted TINYINT(1) DEFAULT 0
-                    )");
-
-                await connection.ExecuteAsync(@"
-                    CREATE TABLE IF NOT EXISTS zonal_awards_question (
-                        pk_id INT AUTO_INCREMENT PRIMARY KEY,
-                        fk_goal_id INT NOT NULL,
-                        auto_or_manual VARCHAR(10) NOT NULL DEFAULT 'Auto',
-                        sr_no VARCHAR(20) NULL,
-                        sub_title VARCHAR(200) NULL,
-                        category VARCHAR(200) NULL,
-                        sort_order INT DEFAULT 0,
-                        isdeleted TINYINT(1) DEFAULT 0
-                    )");
-
-                await connection.ExecuteAsync(@"
-                    CREATE TABLE IF NOT EXISTS zonal_awards_question_option (
-                        pk_id INT AUTO_INCREMENT PRIMARY KEY,
-                        fk_question_id INT NOT NULL,
-                        goal_requirement_label VARCHAR(500) NULL,
-                        points_label VARCHAR(500) NULL,
-                        mini INT DEFAULT 0,
-                        maxi INT DEFAULT 0,
-                        points INT DEFAULT 0,
-                        atleast INT DEFAULT 0,
-                        subtype INT NULL,
-                        input_type VARCHAR(20) NULL,
-                        question_type_for_import VARCHAR(500) NULL,
-                        report_use_title VARCHAR(200) NULL,
-                        sort_order INT DEFAULT 0,
-                        isdeleted TINYINT(1) DEFAULT 0
-                    )");
-
-                await connection.ExecuteAsync(@"
-                    CREATE TABLE IF NOT EXISTS zonal_awards_district_entry (
-                        pk_id INT AUTO_INCREMENT PRIMARY KEY,
-                        fk_option_id INT NOT NULL,
-                        fk_district_id INT NOT NULL,
-                        fk_year_id INT NOT NULL,
-                        month INT NOT NULL DEFAULT 0,
-                        entered_counts DECIMAL(10,2) DEFAULT 0,
-                        received_points DECIMAL(10,2) DEFAULT 0,
-                        created_by INT NULL,
-                        created_date DATETIME DEFAULT CURRENT_TIMESTAMP,
-                        modified_by INT NULL,
-                        modified_date DATETIME NULL ON UPDATE CURRENT_TIMESTAMP,
-                        isdeleted TINYINT(1) DEFAULT 0,
-                        UNIQUE KEY uk_za_entry (fk_option_id, fk_district_id, fk_year_id, month)
-                    )");
-
-                await connection.ExecuteAsync(@"
-                    CREATE TABLE IF NOT EXISTS zonal_awards_import_log (
-                        pk_id INT AUTO_INCREMENT PRIMARY KEY,
-                        fk_year_id INT NOT NULL,
-                        month INT NOT NULL,
-                        file_name VARCHAR(500) NULL,
-                        total_districts INT DEFAULT 0,
-                        total_questions INT DEFAULT 0,
-                        uploaded_by INT NULL,
-                        uploaded_date DATETIME DEFAULT CURRENT_TIMESTAMP
-                    )");
+                // club_members.JoinedDate (per-club). Citation queries filter on cm.JoinedDate.
 
                 // Seed event masters if empty
                 var tshirtCount = await connection.ExecuteScalarAsync<int>("SELECT COUNT(*) FROM event_tshirt_sizes");
@@ -4444,6 +3853,8 @@ public partial class DatabaseInitializer
                         INSERT INTO event_food_preferences (FoodType, SortOrder) VALUES
                         ('Vegetarian', 1), ('Non-Vegetarian', 2), ('Jain', 3), ('Vegan', 4)");
                 }
+
+                await EnsureContactsGrowthSchemaAsync(connection);
 
                 _logger.LogInformation("Database tables and triggers ensured.");
 
@@ -4478,25 +3889,10 @@ public partial class DatabaseInitializer
                     _logger.LogInformation("Roles seeded.");
                 }
 
-                // Ensure ZonalCoordinator role exists (for existing databases)
-                await connection.ExecuteAsync(@"
-                    INSERT IGNORE INTO roles (pk_role_id, RoleName, Description)
-                    VALUES (4, 'ZonalCoordinator', 'Zonal coordinator with zone-level access')");
-
-                // Ensure ClubModerator role exists (for existing databases)
-                await connection.ExecuteAsync(@"
-                    INSERT IGNORE INTO roles (pk_role_id, RoleName, Description)
-                    VALUES (5, 'ClubModerator', 'Club moderator with club-level access')");
-
                 // Ensure AG role exists (for existing databases)
                 await connection.ExecuteAsync(@"
                     INSERT IGNORE INTO roles (pk_role_id, RoleName, Description)
                     VALUES (6, 'AG', 'Assistant Governor with club-level access')");
-
-                // Ensure RIDirector role exists (for existing databases)
-                await connection.ExecuteAsync(@"
-                    INSERT IGNORE INTO roles (pk_role_id, RoleName, Description)
-                    VALUES (7, 'RIDirector', 'RI Director with read-only org structure access and full module CRUD')");
 
                 // Audit log table — tracks every CRUD action by every user (including SuperAdmin).
                 // NEVER drop it: the "who did what" history MUST survive every restart/deploy. Previously
@@ -4526,6 +3922,44 @@ public partial class DatabaseInitializer
                 // Meeting mode on meeting records (ROW Wave 1, build spec 3.17). Same as database/schema-drift.sql.
                 await AddColumnIfNotExists(connection, "club_attendance", "MeetingMode", "VARCHAR(20) NOT NULL DEFAULT 'in_person' AFTER EventDateTime");
                 await AddColumnIfNotExists(connection, "club_attendance", "MeetingLink", "VARCHAR(1000) NULL AFTER MeetingMode");
+
+                // N8 Meetings (MeetingsService): meetings-per-month rule (district default or club override),
+                // tokenised calendar feeds (per club or per member) and one reminder claim per meeting and member.
+                // Same SQL in database/schema.sql. Down: DROP TABLE meeting_rules, meeting_calendar_feeds, meeting_reminder_log.
+                await connection.ExecuteAsync(@"
+                    CREATE TABLE IF NOT EXISTS meeting_rules (
+                        pk_meeting_rule_id INT AUTO_INCREMENT PRIMARY KEY,
+                        fk_district_id INT NULL,
+                        fk_club_id INT NULL,
+                        MeetingsPerMonth INT NOT NULL,
+                        modified_by INT NULL,
+                        modified_date DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                        UNIQUE KEY uq_meeting_rules_district (fk_district_id),
+                        UNIQUE KEY uq_meeting_rules_club (fk_club_id)
+                    )");
+                await connection.ExecuteAsync(@"
+                    CREATE TABLE IF NOT EXISTS meeting_calendar_feeds (
+                        pk_feed_id INT AUTO_INCREMENT PRIMARY KEY,
+                        token CHAR(64) NOT NULL,
+                        fk_club_id INT NULL,
+                        fk_member_id INT NULL,
+                        created_by INT NULL,
+                        created_date DATETIME DEFAULT CURRENT_TIMESTAMP,
+                        UNIQUE KEY uq_meeting_feed_token (token),
+                        UNIQUE KEY uq_meeting_feed_club (fk_club_id),
+                        UNIQUE KEY uq_meeting_feed_member (fk_member_id)
+                    )");
+                await connection.ExecuteAsync(@"
+                    CREATE TABLE IF NOT EXISTS meeting_reminder_log (
+                        fk_attendance_id INT NOT NULL,
+                        fk_member_id INT NOT NULL,
+                        sent_date DATETIME DEFAULT CURRENT_TIMESTAMP,
+                        PRIMARY KEY (fk_attendance_id, fk_member_id),
+                        INDEX idx_meeting_reminder_member (fk_member_id)
+                    )");
+                // MeetingReminderBackgroundService looks up meetings by date every 5 minutes, across all clubs.
+                await CreateIndexIfNotExists(connection, "club_attendance", "idx_club_attendance_datetime",
+                    "CREATE INDEX idx_club_attendance_datetime ON club_attendance (EventDateTime)");
 
                 // Append-only (ROW build spec 3.14, immutable audit log): no deletes, and the only allowed
                 // update is privacy erasure blanking member_name / ip_address. Same SQL in database/schema-drift.sql.
@@ -4620,6 +4054,168 @@ public partial class DatabaseInitializer
                         enabled TINYINT(1) NOT NULL DEFAULT 0,
                         modified_by INT NULL,
                         modified_date DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+                    )");
+
+                // Rotary Foundation designations per member with the date reached (build spec 3.12, flag
+                // membership_fields): PHF level 0 = Paul Harris Fellow, 1-8 = PHF+1..+8; Major Donor levels 1-4;
+                // Bequest Society has no level. source = 'manual' until Rotary.org feeds them. Same SQL in database/schema.sql.
+                await connection.ExecuteAsync(@"
+                    CREATE TABLE IF NOT EXISTS member_foundation_designations (
+                        pk_member_designation_id INT AUTO_INCREMENT PRIMARY KEY,
+                        fk_member_master_profile_id INT NOT NULL,
+                        designation_type VARCHAR(20) NOT NULL,
+                        level TINYINT NULL,
+                        awarded_date DATE NOT NULL,
+                        notes VARCHAR(500) NULL,
+                        source VARCHAR(20) NOT NULL DEFAULT 'manual',
+                        created_by INT NULL,
+                        created_date DATETIME DEFAULT CURRENT_TIMESTAMP,
+                        isdeleted TINYINT(1) NOT NULL DEFAULT 0,
+                        deleted_by INT NULL,
+                        deleted_date DATETIME NULL,
+                        KEY idx_mfd_member (fk_member_master_profile_id, isdeleted),
+                        KEY idx_mfd_type (designation_type, isdeleted)
+                    )");
+
+                // Documents per district committee or sub-committee (build spec 3.12, flag membership_fields).
+                // Files sit beside the district's documents (Documents/documentsafe/Group{districtId}).
+                await connection.ExecuteAsync(@"
+                    CREATE TABLE IF NOT EXISTS district_committee_documents (
+                        id INT AUTO_INCREMENT PRIMARY KEY,
+                        fk_district_id INT NOT NULL,
+                        fk_group_id INT NOT NULL,
+                        fk_sub_group_id INT NULL,
+                        title VARCHAR(200) NOT NULL,
+                        file_path VARCHAR(500) NOT NULL,
+                        original_file_name VARCHAR(255) NULL,
+                        created_by INT NULL,
+                        created_date DATETIME DEFAULT CURRENT_TIMESTAMP,
+                        isdeleted TINYINT(1) NOT NULL DEFAULT 0,
+                        deleted_by INT NULL,
+                        deleted_date DATETIME NULL,
+                        KEY idx_dcd_group (fk_group_id, isdeleted),
+                        KEY idx_dcd_sub_group (fk_sub_group_id, isdeleted)
+                    )");
+
+                // Engagement (build list #26-#28, flag engagement): one row per membership milestone or Paul Harris
+                // Fellow highlight. dedupe_key is the sent-log: MILESTONE:{member}:{years} or PHF:{designation id}, so
+                // a restarted job never sends twice. level = years (milestone) or the PHF level. The spotlight card's
+                // approval sits on the same row. Same SQL in database/schema.sql.
+                await connection.ExecuteAsync(@"
+                    CREATE TABLE IF NOT EXISTS engagement_events (
+                        pk_engagement_event_id INT AUTO_INCREMENT PRIMARY KEY,
+                        event_type VARCHAR(20) NOT NULL,
+                        dedupe_key VARCHAR(60) NOT NULL,
+                        fk_member_master_profile_id INT NOT NULL,
+                        fk_club_id INT NOT NULL,
+                        fk_district_id INT NOT NULL,
+                        fk_designation_id INT NULL,
+                        level INT NOT NULL,
+                        occurred_on DATE NOT NULL,
+                        card_status VARCHAR(10) NOT NULL DEFAULT 'pending',
+                        card_decided_by INT NULL,
+                        card_decided_date DATETIME NULL,
+                        created_date DATETIME DEFAULT CURRENT_TIMESTAMP,
+                        UNIQUE KEY uk_engagement_dedupe (dedupe_key),
+                        KEY idx_ee_club (fk_club_id, created_date),
+                        KEY idx_ee_district (fk_district_id, created_date),
+                        KEY idx_ee_member (fk_member_master_profile_id)
+                    )");
+
+                // Per-district engagement settings: milestone years (empty = no milestone messages) and the optional
+                // Governor message used instead of the default milestone text. No row = 1,3,5,10 and no Governor message.
+                await connection.ExecuteAsync(@"
+                    CREATE TABLE IF NOT EXISTS engagement_district_settings (
+                        fk_district_id INT PRIMARY KEY,
+                        milestone_years VARCHAR(100) NOT NULL DEFAULT '1,3,5,10',
+                        governor_message TEXT NULL,
+                        modified_by INT NULL,
+                        modified_date DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+                    )");
+
+                // Multilingual websites (build spec 3.11, Services/WebsiteLanguageService.cs). scope is 'club' or
+                // 'district'; a translation row overrides the default language's text for one item and language.
+                await connection.ExecuteAsync(@"
+                    CREATE TABLE IF NOT EXISTS website_languages (
+                        scope VARCHAR(10) NOT NULL,
+                        owner_id INT NOT NULL,
+                        default_language VARCHAR(20) NOT NULL,
+                        languages VARCHAR(255) NOT NULL,
+                        updated_by INT NULL,
+                        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                        PRIMARY KEY (scope, owner_id)
+                    )");
+                await connection.ExecuteAsync(@"
+                    CREATE TABLE IF NOT EXISTS website_translations (
+                        pk_translation_id INT AUTO_INCREMENT PRIMARY KEY,
+                        scope VARCHAR(10) NOT NULL,
+                        owner_id INT NOT NULL,
+                        item_type VARCHAR(10) NOT NULL,
+                        item_id INT NOT NULL DEFAULT 0,
+                        language VARCHAR(20) NOT NULL,
+                        title VARCHAR(200) NULL,
+                        body MEDIUMTEXT NULL,
+                        seo_title VARCHAR(200) NULL,
+                        seo_description VARCHAR(500) NULL,
+                        updated_by INT NULL,
+                        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                        UNIQUE KEY uk_website_translation (scope, owner_id, item_type, item_id, language)
+                    )");
+
+                // Chat (build spec 3.10, Services/ChatService.cs). scope 'club' or 'district', owner_id the club or
+                // district; direct_key 'low:high' member ids keeps one direct chat per pair and club. Bodies are plain
+                // text. hidden_* and muted_* are moderator actions; client_key makes a retried send idempotent.
+                await connection.ExecuteAsync(@"
+                    CREATE TABLE IF NOT EXISTS chat_conversations (
+                        pk_conversation_id INT AUTO_INCREMENT PRIMARY KEY,
+                        scope VARCHAR(10) NOT NULL,
+                        owner_id INT NOT NULL,
+                        kind VARCHAR(10) NOT NULL,
+                        title VARCHAR(100) NULL,
+                        direct_key VARCHAR(30) NULL,
+                        created_by INT NOT NULL,
+                        created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                        UNIQUE KEY uk_chat_direct (scope, owner_id, direct_key),
+                        KEY ix_chat_creator (created_by, created_at)
+                    )");
+                await connection.ExecuteAsync(@"
+                    CREATE TABLE IF NOT EXISTS chat_members (
+                        conversation_id INT NOT NULL,
+                        member_id INT NOT NULL,
+                        is_owner TINYINT(1) NOT NULL DEFAULT 0,
+                        last_read_message_id BIGINT NOT NULL DEFAULT 0,
+                        muted_at DATETIME NULL,
+                        muted_by INT NULL,
+                        joined_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                        PRIMARY KEY (conversation_id, member_id),
+                        KEY ix_chat_member (member_id)
+                    )");
+                await connection.ExecuteAsync(@"
+                    CREATE TABLE IF NOT EXISTS chat_messages (
+                        pk_message_id BIGINT AUTO_INCREMENT PRIMARY KEY,
+                        conversation_id INT NOT NULL,
+                        sender_id INT NOT NULL,
+                        body TEXT NOT NULL,
+                        client_key VARCHAR(64) NULL,
+                        created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                        hidden_at DATETIME NULL,
+                        hidden_by INT NULL,
+                        KEY ix_chat_message_conversation (conversation_id, pk_message_id),
+                        KEY ix_chat_message_sender (sender_id, created_at),
+                        UNIQUE KEY uk_chat_message_key (sender_id, client_key)
+                    )");
+                await connection.ExecuteAsync(@"
+                    CREATE TABLE IF NOT EXISTS chat_reports (
+                        pk_report_id INT AUTO_INCREMENT PRIMARY KEY,
+                        message_id BIGINT NOT NULL,
+                        reporter_id INT NOT NULL,
+                        reason VARCHAR(500) NULL,
+                        created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                        resolved_at DATETIME NULL,
+                        resolved_by INT NULL,
+                        resolution VARCHAR(500) NULL,
+                        UNIQUE KEY uk_chat_report (message_id, reporter_id),
+                        KEY ix_chat_reporter (reporter_id, created_at)
                     )");
 
                 // Sync exception log — every collision/parse error/duplicate during member sync
@@ -4926,42 +4522,122 @@ public partial class DatabaseInitializer
                 await AddColumnIfNotExists(connection, "email_log", "fk_club_id", "INT NULL AFTER error_message");
                 await AddColumnIfNotExists(connection, "email_log", "fk_district_id", "INT NULL AFTER fk_club_id");
 
-                // Per-recipient WhatsApp send/delivery log (mirrors email_log). One row per
-                // recipient per broadcast: submit status (Sent/Failed) written at send time,
-                // upgraded to Delivered/Read/Failed by a delivery webhook (column name kept from the original schema).
+                // N5 Communication (CommsService): tenant settings, per-language templates, sender domains, suppressions,
+                // consent per channel, webhook idempotency, monthly usage; tracking columns on campaign recipients and the
+                // allowance per edition. A tenant is (club, 0) or (0, district); (0, 0) is the platform.
+                // Same SQL in database/schema.sql (tables) and database/schema-drift.sql (columns, indexes).
+                // Down: DROP TABLE comm_settings, comm_templates, comm_sender_domains, comm_suppressions,
+                // member_channel_consents, comm_webhook_events, comm_usage; drop the columns and indexes listed below.
                 await connection.ExecuteAsync(@"
-                    CREATE TABLE IF NOT EXISTS whatsapp_log (
-                        pk_id BIGINT AUTO_INCREMENT PRIMARY KEY,
-                        recipient_mobile VARCHAR(30) NOT NULL,
-                        recipient_name VARCHAR(255) NULL,
-                        template_name VARCHAR(120) NULL,
-                        whatsapp_type VARCHAR(60) NULL,
-                        source_id BIGINT NULL,
-                        title VARCHAR(500) NULL,
-                        fk_club_id INT NULL,
-                        fk_district_id INT NULL,
-                        fk_member_profile_id INT NULL,
-                        status VARCHAR(20) NOT NULL DEFAULT 'Sent',
-                        interakt_message_id VARCHAR(200) NULL,
-                        http_status INT NULL,
-                        error_message VARCHAR(1000) NULL,
-                        body_preview VARCHAR(2000) NULL,
-                        sent_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                        delivered_at DATETIME NULL,
-                        modified_at DATETIME NULL,
-                        INDEX ix_wa_log_sent (sent_at),
-                        INDEX ix_wa_log_mobile (recipient_mobile),
-                        INDEX ix_wa_log_status (status),
-                        INDEX ix_wa_log_source (whatsapp_type, source_id),
-                        INDEX ix_wa_log_msgid (interakt_message_id),
-                        INDEX ix_wa_log_club (fk_club_id),
-                        INDEX ix_wa_log_district (fk_district_id)
+                    CREATE TABLE IF NOT EXISTS comm_settings (
+                        fk_club_id INT NOT NULL DEFAULT 0,
+                        fk_district_id INT NOT NULL DEFAULT 0,
+                        default_language VARCHAR(20) NULL,
+                        governor_note_enabled TINYINT(1) NOT NULL DEFAULT 0,
+                        governor_name VARCHAR(150) NULL,
+                        governor_photo_url VARCHAR(500) NULL,
+                        governor_message VARCHAR(1000) NULL,
+                        sender_from_name VARCHAR(100) NULL,
+                        sender_from_email VARCHAR(254) NULL,
+                        sender_reply_to VARCHAR(254) NULL,
+                        modified_by INT NULL,
+                        modified_date DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                        PRIMARY KEY (fk_club_id, fk_district_id)
                     )");
+                await connection.ExecuteAsync(@"
+                    CREATE TABLE IF NOT EXISTS comm_templates (
+                        pk_template_id INT AUTO_INCREMENT PRIMARY KEY,
+                        fk_club_id INT NOT NULL DEFAULT 0,
+                        fk_district_id INT NOT NULL DEFAULT 0,
+                        template_key VARCHAR(50) NOT NULL,
+                        language VARCHAR(20) NOT NULL,
+                        subject VARCHAR(300) NOT NULL,
+                        body_html MEDIUMTEXT NOT NULL,
+                        reviewed TINYINT(1) NOT NULL DEFAULT 1,
+                        modified_by INT NULL,
+                        modified_date DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                        UNIQUE KEY uq_comm_template (fk_club_id, fk_district_id, template_key, language)
+                    )");
+                await connection.ExecuteAsync(@"
+                    CREATE TABLE IF NOT EXISTS comm_sender_domains (
+                        pk_domain_id INT AUTO_INCREMENT PRIMARY KEY,
+                        fk_club_id INT NOT NULL DEFAULT 0,
+                        fk_district_id INT NOT NULL DEFAULT 0,
+                        domain VARCHAR(253) NOT NULL,
+                        dkim_selector VARCHAR(63) NOT NULL,
+                        verify_token CHAR(32) NOT NULL,
+                        ownership_ok TINYINT(1) NOT NULL DEFAULT 0,
+                        spf_ok TINYINT(1) NOT NULL DEFAULT 0,
+                        dkim_ok TINYINT(1) NOT NULL DEFAULT 0,
+                        dmarc_ok TINYINT(1) NOT NULL DEFAULT 0,
+                        checked_at DATETIME NULL,
+                        created_by INT NULL,
+                        created_date DATETIME DEFAULT CURRENT_TIMESTAMP,
+                        UNIQUE KEY uq_comm_domain (fk_club_id, fk_district_id, domain)
+                    )");
+                await connection.ExecuteAsync(@"
+                    CREATE TABLE IF NOT EXISTS comm_suppressions (
+                        pk_suppression_id INT AUTO_INCREMENT PRIMARY KEY,
+                        fk_club_id INT NOT NULL DEFAULT 0,
+                        fk_district_id INT NOT NULL DEFAULT 0,
+                        email VARCHAR(254) NOT NULL,
+                        reason VARCHAR(20) NOT NULL,
+                        created_date DATETIME DEFAULT CURRENT_TIMESTAMP,
+                        UNIQUE KEY uq_comm_suppression (fk_club_id, fk_district_id, email),
+                        INDEX idx_comm_suppression_email (email)
+                    )");
+                await connection.ExecuteAsync(@"
+                    CREATE TABLE IF NOT EXISTS member_channel_consents (
+                        fk_member_id INT NOT NULL,
+                        channel VARCHAR(10) NOT NULL,
+                        consented TINYINT(1) NOT NULL,
+                        changed_at_utc DATETIME NOT NULL,
+                        source VARCHAR(20) NOT NULL,
+                        PRIMARY KEY (fk_member_id, channel)
+                    )");
+                await connection.ExecuteAsync(@"
+                    CREATE TABLE IF NOT EXISTS comm_webhook_events (
+                        event_key CHAR(64) NOT NULL PRIMARY KEY,
+                        event VARCHAR(30) NOT NULL,
+                        message_id VARCHAR(200) NULL,
+                        received_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                        INDEX idx_comm_webhook_received (received_at)
+                    )");
+                await connection.ExecuteAsync(@"
+                    CREATE TABLE IF NOT EXISTS comm_usage (
+                        fk_club_id INT NOT NULL DEFAULT 0,
+                        fk_district_id INT NOT NULL DEFAULT 0,
+                        usage_month CHAR(7) NOT NULL,
+                        emails_used INT NOT NULL DEFAULT 0,
+                        PRIMARY KEY (fk_club_id, fk_district_id, usage_month)
+                    )");
+                await AddColumnIfNotExists(connection, "club_mass_emails", "TemplateKey", "VARCHAR(50) NULL");
+                await AddColumnIfNotExists(connection, "club_mass_email_recipients", "MessageId", "VARCHAR(200) NULL");
+                await AddColumnIfNotExists(connection, "club_mass_email_recipients", "Language", "VARCHAR(20) NULL");
+                await AddColumnIfNotExists(connection, "club_mass_email_recipients", "DeliveryStatus", "VARCHAR(20) NULL");
+                await AddColumnIfNotExists(connection, "club_mass_email_recipients", "DeliveredAt", "DATETIME NULL");
+                await AddColumnIfNotExists(connection, "club_mass_email_recipients", "OpenedAt", "DATETIME NULL");
+                await AddColumnIfNotExists(connection, "club_mass_email_recipients", "OpenCount", "INT NOT NULL DEFAULT 0");
+                await AddColumnIfNotExists(connection, "club_mass_email_recipients", "ClickedAt", "DATETIME NULL");
+                await AddColumnIfNotExists(connection, "club_mass_email_recipients", "ClickCount", "INT NOT NULL DEFAULT 0");
+                // Campaign reports group recipients by campaign; webhook events find a recipient (or a logged email) by message id.
+                await CreateIndexIfNotExists(connection, "club_mass_email_recipients", "idx_cmer_mass_email",
+                    "CREATE INDEX idx_cmer_mass_email ON club_mass_email_recipients (fk_mass_email_id)");
+                await CreateIndexIfNotExists(connection, "club_mass_email_recipients", "idx_cmer_message",
+                    "CREATE INDEX idx_cmer_message ON club_mass_email_recipients (MessageId)");
+                await CreateIndexIfNotExists(connection, "email_log", "ix_email_log_brevo_message",
+                    "CREATE INDEX ix_email_log_brevo_message ON email_log (brevo_message_id)");
+                // Emails per member per month included in an edition (build spec 3.10); NULL = not limited.
+                // shortcut: no editor for it on Settings > Editions yet; change it with SQL until an edition needs another number.
+                await AddColumnIfNotExists(connection, "edition_catalogue", "email_allowance_per_member", "INT NULL");
+                await connection.ExecuteAsync(@"
+                    UPDATE edition_catalogue SET email_allowance_per_member = IF(code = 'district', 6, 25)
+                    WHERE email_allowance_per_member IS NULL AND code IN ('club', 'club_basic', 'rotaract', 'district')");
 
                 // Seed SuperAdmin if not exists
                 await SeedSuperAdminAsync(connection);
 
-                // Sample zones, districts, clubs and zonal-award questions are the original platform's demo
+                // Sample zones, districts and clubs are the original platform's demo
                 // data (Indian districts and clubs). A real ROW instance starts empty, so they are inserted only
                 // with Database:SeedDemoData=true, like the demo members.
                 var seedDemoData = string.Equals(_configuration["Database:SeedDemoData"], "true", StringComparison.OrdinalIgnoreCase);
@@ -5023,24 +4699,6 @@ public partial class DatabaseInitializer
                 // Always: ensure current year exists and IsCurrent flag is correct
                 await UpdateRotaryYearCurrentFlagAsync(connection);
 
-                // Seed Zonal Awards data from old production
-                var zaGoalCount = await connection.ExecuteScalarAsync<int>("SELECT COUNT(*) FROM zonal_awards_goal");
-                if (seedDemoData && zaGoalCount == 0)
-                {
-                    var curYear = await connection.ExecuteScalarAsync<int?>("SELECT pk_year_id FROM rotary_year_master WHERE IsCurrent = 1 LIMIT 1");
-                    if (curYear.HasValue)
-                    {
-                        var yId = curYear.Value;
-                        await SeedZonalAwardsAsync(connection, yId);
-                        _logger.LogInformation("Zonal Awards data seeded.");
-                    }
-                }
-
-                // Idempotent migration: add question_level column + seed Q23 Cricket Match (zone-level)
-                // Never deletes — only adds column if missing and inserts Q23 if not present
-                await AddColumnIfNotExists(connection, "zonal_awards_question", "question_level", "VARCHAR(20) DEFAULT 'District' AFTER auto_or_manual");
-                await EnsureZoneCricketMatchAsync(connection);
-
                 // ── Mobile Auth & Device Tracking ──
                 // New tables + columns for mobile app login (OTP based). Never touches web portal auth.
                 await connection.ExecuteAsync(@"
@@ -5057,14 +4715,9 @@ public partial class DatabaseInitializer
                         expires_at DATETIME NOT NULL,
                         is_used TINYINT(1) DEFAULT 0,
                         sent_email TINYINT(1) DEFAULT 0,
-                        sent_sms TINYINT(1) DEFAULT 0,
-                        sent_whatsapp TINYINT(1) NOT NULL DEFAULT 0,
                         created_date DATETIME DEFAULT CURRENT_TIMESTAMP,
                         INDEX idx_otp_lookup (identifier, is_used, expires_at)
                     )");
-
-                // Non-India members get their OTP over WhatsApp (the SMS gateway is India-only).
-                await AddColumnIfNotExists(connection, "mobile_login_otp", "sent_whatsapp", "TINYINT(1) NOT NULL DEFAULT 0 AFTER sent_sms");
 
                 await connection.ExecuteAsync(@"
                     CREATE TABLE IF NOT EXISTS member_device_sessions (
@@ -5328,34 +4981,9 @@ public partial class DatabaseInitializer
                         FOREIGN KEY (fk_year_id) REFERENCES rotary_year_master(pk_year_id)
                     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
 
-                // Lock granularity is (entity, category, year) — a club's Membership goals can be
-                // locked while its Foundation goals stay open. A bulk "lock everything" action
-                // (Role 5 / SuperAdmin) fans out to one concrete row per category rather than
-                // using a wildcard/NULL category, so lock checks never need to test two cases.
-                await connection.ExecuteAsync(@"
-                    CREATE TABLE IF NOT EXISTS goal_locks (
-                        pk_id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
-                        EntityType VARCHAR(10) NOT NULL,
-                        fk_club_id INT NOT NULL DEFAULT 0,
-                        fk_district_id INT NOT NULL DEFAULT 0,
-                        fk_category_id INT NOT NULL,
-                        fk_year_id INT NOT NULL,
-                        IsLocked TINYINT(1) NOT NULL DEFAULT 0,
-                        LockedBy INT NULL,
-                        LockedDate DATETIME NULL,
-                        UnlockedBy INT NULL,
-                        UnlockedDate DATETIME NULL,
-                        UNIQUE KEY uk_goal_lock (EntityType, fk_club_id, fk_district_id, fk_category_id, fk_year_id),
-                        FOREIGN KEY (fk_category_id) REFERENCES goal_categories(pk_category_id),
-                        FOREIGN KEY (fk_year_id) REFERENCES rotary_year_master(pk_year_id)
-                    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
-
-                // Scoped per (district, category, year) — comments are about a district's
-                // goal-setting oversight, not per-club. PostedByTier drives visibility:
-                // 1=District Admin, 2=Few-Districts-One-Category-One-Zone,
-                // 3=All-Districts-One-Category-One-Zone, 4=All-Category-All-Districts-Few-Zones
-                // (SuperAdmin reads everything regardless of tier). A viewer sees every comment
-                // with PostedByTier <= their own tier.
+                // Scoped per (district, category, year). PostedByTier is the sender's label:
+                // 1 = District Admin / DG (district thread) or Club Admin (club thread),
+                // 2 = District Admin on a club thread, 5 = SuperAdmin.
                 await connection.ExecuteAsync(@"
                     CREATE TABLE IF NOT EXISTS goal_comments (
                         pk_id BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY,
@@ -5372,133 +5000,25 @@ public partial class DatabaseInitializer
                         FOREIGN KEY (fk_year_id) REFERENCES rotary_year_master(pk_year_id)
                     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
 
-                // The 3 specialized oversight roles — Club Admin and District Admin reuse the
-                // EXISTING member_roles table (fk_role_id=2, scoped by fk_club_id/fk_district_id),
-                // no new table needed for those two. AssignmentName is the free-text label a
-                // SuperAdmin types in at assignment time (e.g. "Membership Reviewer — Districts
-                // 3140,3141 — Zone 5") — there is no precedent for a per-assignment custom name
-                // anywhere else in this codebase, so this is a new field, not a reused one.
-                // fk_category_id is NULL only for AllCategoryAllDistrictsFewZones (spans all 4).
-                await connection.ExecuteAsync(@"
-                    CREATE TABLE IF NOT EXISTS goal_role_assignments (
-                        pk_id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
-                        fk_member_id INT NOT NULL,
-                        RoleType VARCHAR(50) NOT NULL,
-                        AssignmentName VARCHAR(200) NOT NULL,
-                        fk_category_id INT NULL,
-                        fk_zone_id INT NULL,
-                        IsActive TINYINT(1) NOT NULL DEFAULT 1,
-                        AssignedBy INT NULL,
-                        AssignedDate DATETIME DEFAULT CURRENT_TIMESTAMP,
-                        RevokedBy INT NULL,
-                        RevokedDate DATETIME NULL,
-                        isdeleted TINYINT(1) NOT NULL DEFAULT 0,
-                        INDEX idx_goal_role_member (fk_member_id, IsActive),
-                        FOREIGN KEY (fk_category_id) REFERENCES goal_categories(pk_category_id)
-                    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
-
-                // District subset for FewDistrictsOneCategoryOneZone assignments only.
-                await connection.ExecuteAsync(@"
-                    CREATE TABLE IF NOT EXISTS goal_role_assignment_districts (
-                        pk_id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
-                        fk_assignment_id INT NOT NULL,
-                        fk_district_id INT NOT NULL,
-                        UNIQUE KEY uk_goal_role_assignment_district (fk_assignment_id, fk_district_id),
-                        FOREIGN KEY (fk_assignment_id) REFERENCES goal_role_assignments(pk_id)
-                    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
-
-                // Zone subset for AllCategoryAllDistrictsFewZones assignments only.
-                await connection.ExecuteAsync(@"
-                    CREATE TABLE IF NOT EXISTS goal_role_assignment_zones (
-                        pk_id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
-                        fk_assignment_id INT NOT NULL,
-                        fk_zone_id INT NOT NULL,
-                        UNIQUE KEY uk_goal_role_assignment_zone (fk_assignment_id, fk_zone_id),
-                        FOREIGN KEY (fk_assignment_id) REFERENCES goal_role_assignments(pk_id)
-                    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
-
-                // ── Zonal-leadership hierarchy overlay (2026-08) ───────────────────────
-                // The notepad org-chart (RMC / ARC / RPIC / RRFC / E-MGA / EPNC / Plan Leads /
-                // Zonal Action Plan Champion …) is captured as human-friendly METADATA on top
-                // of the proven 3-RoleType tier engine — the named title drives which RoleType +
-                // category the assignment resolves to, but visibility/locking still runs on the
-                // existing tier logic. All columns are additive & nullable so pre-existing
-                // assignments (which had none of this) keep working untouched.
-                await AddColumnIfNotExists(connection, "goal_role_assignments", "RoleTitle", "VARCHAR(150) NULL AFTER AssignmentName");
-                await AddColumnIfNotExists(connection, "goal_role_assignments", "Avenue", "VARCHAR(100) NULL AFTER RoleTitle");
-                await AddColumnIfNotExists(connection, "goal_role_assignments", "HomeDistrictId", "INT NULL AFTER fk_zone_id");
-                await AddColumnIfNotExists(connection, "goal_role_assignments", "DgYear", "VARCHAR(40) NULL AFTER HomeDistrictId");
-                await AddColumnIfNotExists(connection, "goal_role_assignments", "SupportingText", "VARCHAR(255) NULL AFTER DgYear");
-                // When this holder was last sent their role email (2026-09-16). Informational only — the
-                // "Send role emails" button always mails everyone in the filtered zone; this just lets the
-                // listing show who was emailed and when.
-                await AddColumnIfNotExists(connection, "goal_role_assignments", "RoleEmailSentDate", "DATETIME NULL AFTER AssignedDate");
-                // Free-text member name fallback: some notepad leaders aren't matchable to a
-                // real member_master_profile row. When picked from the member list, fk_member_id
-                // holds the id and this stays NULL; when typed free-hand, fk_member_id = 0 and
-                // this carries the display name.
-                await AddColumnIfNotExists(connection, "goal_role_assignments", "MemberNameText", "VARCHAR(200) NULL AFTER fk_member_id");
-
-                // Extensible catalog of leadership designations (titles). Seeded with the
-                // standard RI set; SuperAdmin can add more from the UI. Each title fixes the
-                // RoleType (tier) it resolves to and the goal category its messages attach to
-                // (DefaultCategoryName NULL = spans all categories, e.g. Zonal Action Plan).
-                await connection.ExecuteAsync(@"
-                    CREATE TABLE IF NOT EXISTS goal_leadership_designations (
-                        pk_id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
-                        Title VARCHAR(150) NOT NULL,
-                        Avenue VARCHAR(100) NOT NULL,
-                        RoleType VARCHAR(50) NOT NULL,
-                        DefaultCategoryName VARCHAR(50) NULL,
-                        SortOrder INT NOT NULL DEFAULT 0,
-                        IsActive TINYINT(1) NOT NULL DEFAULT 1,
-                        isdeleted TINYINT(1) NOT NULL DEFAULT 0,
-                        UNIQUE KEY uk_goal_designation_title (Title)
-                    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
-                await SeedGoalLeadershipDesignationsAsync(connection);
-
                 // Club↔District message thread support: fk_club_id = 0 is the district thread
-                // (District Admin ↔ coordinators above); fk_club_id > 0 is a club thread
+                // (District Admin ↔ SuperAdmin); fk_club_id > 0 is a club thread
                 // (Club Admin ↔ its District Admin only). Additive; existing rows default to 0
                 // (district threads), preserving every current comment.
                 await AddColumnIfNotExists(connection, "goal_comments", "fk_club_id", "INT NOT NULL DEFAULT 0 AFTER fk_district_id");
 
-                // ThreadOwnerMemberId — the DA / ZC member who OWNS a pairwise oversight thread. Goal
-                // messages are now private 1-to-1 conversations UP the hierarchy: each District
-                // Assistant and each Zone Co-ordinator has its own thread with the RI Director over its
-                // zone, isolated per (category, district, year). Owner = that DA/ZC's member id; the RI
-                // Director is the counterparty. 0 = legacy shared row (admin messaging, now retired).
+                // ThreadOwnerMemberId — the negative district key (-districtId) of a District Admin / DG
+                // message; 0 everywhere else.
                 await AddColumnIfNotExists(connection, "goal_comments", "ThreadOwnerMemberId", "INT NOT NULL DEFAULT 0 AFTER fk_club_id");
 
-                // Goal messages follow the ROLE SEAT, not the person: fk_assignment_id = the
-                // goal_role_assignments row the message was posted under, fk_zone_id = its zone. A person
-                // leaving / being replaced no longer hides their messages. Backfill only fills rows still 0
-                // (same statements as SQL/goal_comments_seat_zone.sql).
-                await AddColumnIfNotExists(connection, "goal_comments", "fk_assignment_id", "INT NOT NULL DEFAULT 0 AFTER ThreadOwnerMemberId");
-                await AddColumnIfNotExists(connection, "goal_comments", "fk_zone_id", "INT NOT NULL DEFAULT 0 AFTER fk_assignment_id");
+                // fk_zone_id = the zone of the district a message is about (zone-wide views read it).
+                // Backfill only fills rows still 0.
+                await AddColumnIfNotExists(connection, "goal_comments", "fk_zone_id", "INT NOT NULL DEFAULT 0 AFTER ThreadOwnerMemberId");
                 await CreateIndexIfNotExists(connection, "goal_comments", "idx_goal_comment_zone",
                     "CREATE INDEX idx_goal_comment_zone ON goal_comments (fk_zone_id, fk_year_id)");
-                await CreateIndexIfNotExists(connection, "goal_comments", "idx_goal_comment_seat",
-                    "CREATE INDEX idx_goal_comment_seat ON goal_comments (fk_assignment_id)");
                 await connection.ExecuteAsync(@"
                     UPDATE goal_comments c
-                    SET c.fk_assignment_id = COALESCE((
-                        SELECT a.pk_id FROM goal_role_assignments a
-                        WHERE a.fk_member_id = c.ThreadOwnerMemberId AND a.fk_category_id = c.fk_category_id
-                          AND a.RoleType IN ('AllDistrictsOneCategoryOneZone','FewDistrictsOneCategoryOneZone')
-                        ORDER BY ((c.PostedByTier = 3 AND a.RoleType = 'AllDistrictsOneCategoryOneZone')
-                               OR (c.PostedByTier = 2 AND a.RoleType = 'FewDistrictsOneCategoryOneZone')) DESC,
-                                 (c.fk_district_id > 0 AND EXISTS (SELECT 1 FROM goal_role_assignment_districts d
-                                      WHERE d.fk_assignment_id = a.pk_id AND d.fk_district_id = c.fk_district_id)) DESC,
-                                 (c.created_date >= a.AssignedDate AND (a.RevokedDate IS NULL OR c.created_date <= a.RevokedDate)) DESC,
-                                 a.pk_id DESC
-                        LIMIT 1), 0)
-                    WHERE c.fk_assignment_id = 0 AND c.ThreadOwnerMemberId > 0");
-                await connection.ExecuteAsync(@"
-                    UPDATE goal_comments c
-                    LEFT JOIN goal_role_assignments a ON a.pk_id = c.fk_assignment_id
                     LEFT JOIN district_master dm ON dm.pk_district_id = c.fk_district_id
-                    SET c.fk_zone_id = COALESCE(a.fk_zone_id, dm.fk_zone_id, 0)
+                    SET c.fk_zone_id = COALESCE(dm.fk_zone_id, 0)
                     WHERE c.fk_zone_id = 0");
 
                 // Field scoping — each goal field applies to Club, District, or Both (default).
@@ -5519,7 +5039,7 @@ public partial class DatabaseInitializer
                 // exists elsewhere in this file for a brand-new module; every other module was
                 // seeded once in SeedModuleCategoriesAndModulesAsync, which only fires on an
                 // empty DB). Grouped under "E-Governance / Reporting" alongside Attendance/TRF
-                // Contribution/Reports/Zonal Awards — same "track and report progress" family.
+                // Contribution/Reports — same "track and report progress" family.
                 var goalModuleExists = await connection.ExecuteScalarAsync<int>(
                     "SELECT COUNT(*) FROM module_master WHERE ModuleKey = 'goal_setting' AND isdeleted = 0");
                 if (goalModuleExists == 0)
@@ -5657,6 +5177,11 @@ public partial class DatabaseInitializer
 
                 await SeedRouteMaintenanceAsync(connection);
 
+                // Grants module (ROW build spec 3.8): tables in DatabaseInitializer.Grants.cs.
+                await EnsureGrantTablesAsync(connection);
+                // Volunteers and speakers (ROW build spec 3.13): tables in DatabaseInitializer.Volunteers.cs.
+                await EnsureVolunteerTablesAsync(connection);
+
                 // Never reset any user's password on boot: passwords change only through
                 // explicit SuperAdmin reset flows.
             }
@@ -5701,7 +5226,6 @@ public partial class DatabaseInitializer
                 ("/settings/font-family", "Settings - Font Family"),
                 ("/settings/rotary-years", "Settings - Rotary Years"),
                 ("/settings/designations", "Settings - Designations"),
-                ("/settings/categories", "Settings - Categories"),
                 ("/settings/area-of-focus", "Settings - Area of Focus"),
 
                 // Group 2: Zones.
@@ -5744,12 +5268,8 @@ public partial class DatabaseInitializer
                 ("/districts/:id/district-committee/groups/:groupId/sub-groups", "District Committee - Sub-Groups"),
                 ("/districts/:id/district-committee/groups/:groupId/sub-groups/:subGroupId", "District Committee - Sub-Group Detail"),
                 ("/districts/:id/district-events", "District Events"),
-                ("/districts/:id/club-moderator", "District Club Moderator"),
                 ("/districts/:id/district-citation", "District Awards"),
-                ("/districts/:id/rni-camp", "District RNI Camp"),
-                ("/districts/:id/rni-camp/:campId/attendance", "District RNI Camp - Attendance"),
                 ("/districts/:id/reports", "District Reports"),
-                ("/districts/:id/zonal-awards", "District Zonal Awards"),
                 ("/districts/:id/online-event-link", "District Online Event Link"),
                 ("/districts/:id/event-payment-links/:linkId/members", "District Event Payment Links - Members"),
                 ("/districts/:id/club-dues", "District Club Dues"),
@@ -5788,7 +5308,6 @@ public partial class DatabaseInitializer
                 ("/clubs/:id/trf", "Club TRF"),
                 ("/clubs/:id/ocv-gov", "Club OCV-Gov"),
                 ("/clubs/:id/ocv-gov/live-documents", "Club OCV-Gov - Live Documents"),
-                ("/clubs/:id/pph-camps", "Club PPH Camps"),
                 ("/clubs/:id/weblinks", "Club Weblinks"),
                 ("/clubs/:id/website-data", "Club Website Data"),
                 ("/clubs/:id/website-data/theme", "Club Website - Theme"),
@@ -5813,40 +5332,10 @@ public partial class DatabaseInitializer
                 ("/admin/login-logs", "Admin - Login Logs"),
                 ("/admin/role-management", "Admin - Role Management"),
 
-                // Group 8: Zonal / Websites / RI Director.
-                ("/zonal-dashboard", "Zonal Dashboard"),
-                ("/club-moderator", "Club Moderator"),
+                // Group 8: Websites.
                 ("/my-club-websites", "My Club Websites"),
                 ("/my-district-websites", "My District Websites"),
                 ("/ag-reports", "AG Reports"),
-                ("/ri-director", "RI Director"),
-                ("/ri-director/announcements", "RI Director - Announcements"),
-                ("/ri-director/announcements/add", "RI Director - Announcements Add"),
-                ("/ri-director/announcements/:id", "RI Director - Announcement Detail"),
-                ("/ri-director/announcements/:id/edit", "RI Director - Announcement Edit"),
-                ("/ri-director/upcoming-events", "RI Director - Upcoming Events"),
-                ("/ri-director/upcoming-events/add", "RI Director - Upcoming Events Add"),
-                ("/ri-director/upcoming-events/:id", "RI Director - Upcoming Event Detail"),
-                ("/ri-director/upcoming-events/:id/edit", "RI Director - Upcoming Event Edit"),
-                ("/ri-director/mass-emails", "RI Director - Mass Emails"),
-                ("/ri-director/mass-emails/compose", "RI Director - Mass Email Compose"),
-                ("/ri-director/mass-emails/:id", "RI Director - Mass Email Detail"),
-                ("/ri-director/mass-emails/:id/edit", "RI Director - Mass Email Edit"),
-                ("/ri-director/weblinks", "RI Director - Weblinks"),
-                ("/ri-director/weblinks/add", "RI Director - Weblinks Add"),
-                ("/ri-director/weblinks/:id/edit", "RI Director - Weblink Edit"),
-                ("/ri-director/sub-groups", "RI Director - Sub-Groups"),
-                ("/ri-director/sub-groups/add", "RI Director - Sub-Groups Add"),
-                ("/ri-director/sub-groups/:id", "RI Director - Sub-Group Detail"),
-                ("/ri-director/sub-groups/:id/edit", "RI Director - Sub-Group Edit"),
-                ("/ri-director/documents", "RI Director - Documents"),
-                ("/ri-director/documents/add", "RI Director - Documents Add"),
-                ("/ri-director/documents/:id/edit", "RI Director - Document Edit"),
-                ("/ri-director/newsletters", "RI Director - Newsletters"),
-                ("/ri-director/newsletters/add", "RI Director - Newsletters Add"),
-                ("/ri-director/newsletters/:id", "RI Director - Newsletter Detail"),
-                ("/ri-director/newsletters/:id/edit", "RI Director - Newsletter Edit"),
-                ("/ri-director/reports", "RI Director - Reports"),
 
                 // Group 9: Unified Dashboard.
                 ("/unified/:districtId", "Unified Dashboard"),
@@ -6454,8 +5943,6 @@ public partial class DatabaseInitializer
             (1, 'Member', 'Regular member with basic access'),
             (2, 'Admin', 'Administrator with management access'),
             (3, 'SuperAdmin', 'Super administrator with full system access'),
-            (4, 'ZonalCoordinator', 'Zonal coordinator with zone-level access'),
-            (5, 'ClubModerator', 'Club moderator with club-level access'),
             (6, 'AG', 'Assistant Governor with club-level access')");
     }
 
@@ -6838,7 +6325,6 @@ public partial class DatabaseInitializer
 
         // Category 1 - Master Modules
         await connection.ExecuteAsync(moduleSql, new { Name = "Directory", Key = "directory", CatId = cat1, Level = "Both", Icon = "BookUser", DefDist = 1, DefClub = 1, Sort = 1 });
-        await connection.ExecuteAsync(moduleSql, new { Name = "Market Place", Key = "market_place", CatId = cat1, Level = "Club", Icon = "Store", DefDist = 0, DefClub = 1, Sort = 2 });
         await connection.ExecuteAsync(moduleSql, new { Name = "Past Presidents", Key = "past_presidents", CatId = cat1, Level = "Club", Icon = "Crown", DefDist = 0, DefClub = 1, Sort = 3 });
         await connection.ExecuteAsync(moduleSql, new { Name = "Board of Directors", Key = "board_of_directors", CatId = cat1, Level = "Club", Icon = "Users", DefDist = 0, DefClub = 1, Sort = 4 });
         await connection.ExecuteAsync(moduleSql, new { Name = "Website Data", Key = "website_data", CatId = cat1, Level = "Both", Icon = "Globe", DefDist = 1, DefClub = 1, Sort = 5 });
@@ -6846,7 +6332,6 @@ public partial class DatabaseInitializer
         await connection.ExecuteAsync(moduleSql, new { Name = "District Committee", Key = "district_committee", CatId = cat1, Level = "District", Icon = "UsersRound", DefDist = 1, DefClub = 0, Sort = 7 });
         await connection.ExecuteAsync(moduleSql, new { Name = "Clubs", Key = "clubs", CatId = cat1, Level = "District", Icon = "Building2", DefDist = 1, DefClub = 0, Sort = 8 });
         await connection.ExecuteAsync(moduleSql, new { Name = "Club Monthly Report", Key = "club_monthly_report", CatId = cat1, Level = "Both", Icon = "BarChart3", DefDist = 1, DefClub = 1, Sort = 9 });
-        await connection.ExecuteAsync(moduleSql, new { Name = "Club Moderator", Key = "club_moderator", CatId = cat1, Level = "District", Icon = "Shield", DefDist = 1, DefClub = 0, Sort = 10 });
         await connection.ExecuteAsync(moduleSql, new { Name = "AG", Key = "ag", CatId = cat1, Level = "District", Icon = "UserCog", DefDist = 1, DefClub = 0, Sort = 11 });
 
         // Category 2 - Avenue of Service and Public Image Initiative
@@ -6868,10 +6353,8 @@ public partial class DatabaseInitializer
         await connection.ExecuteAsync(moduleSql, new { Name = "Attendance", Key = "attendance", CatId = cat4, Level = "Club", Icon = "ClipboardCheck", DefDist = 0, DefClub = 1, Sort = 1 });
         await connection.ExecuteAsync(moduleSql, new { Name = "District Awards", Key = "district_citation", CatId = cat4, Level = "Both", Icon = "Award", DefDist = 1, DefClub = 1, Sort = 2 });
         await connection.ExecuteAsync(moduleSql, new { Name = "OCV/GOV", Key = "ocv_gov", CatId = cat4, Level = "Club", Icon = "Vote", DefDist = 0, DefClub = 1, Sort = 3 });
-        await connection.ExecuteAsync(moduleSql, new { Name = "PPH Camp", Key = "pph_camp", CatId = cat4, Level = "Both", Icon = "Tent", DefDist = 1, DefClub = 1, Sort = 4 });
         await connection.ExecuteAsync(moduleSql, new { Name = "Reports", Key = "reports", CatId = cat4, Level = "Both", Icon = "FileBarChart", DefDist = 1, DefClub = 1, Sort = 5 });
         await connection.ExecuteAsync(moduleSql, new { Name = "TRF Contribution", Key = "trf_contribution", CatId = cat4, Level = "Club", Icon = "DollarSign", DefDist = 0, DefClub = 1, Sort = 6 });
-        await connection.ExecuteAsync(moduleSql, new { Name = "Zonal Awards", Key = "zonal_awards", CatId = cat4, Level = "District", Icon = "Trophy", DefDist = 1, DefClub = 0, Sort = 8 });
 
         // Category 5 - Payments
         await connection.ExecuteAsync(moduleSql, new { Name = "Online Event Link", Key = "online_event_link", CatId = cat5, Level = "Both", Icon = "Link", DefDist = 1, DefClub = 1, Sort = 1 });
@@ -7235,61 +6718,6 @@ public partial class DatabaseInitializer
         await RetireStaleAsync("Public Image", PublicImageFields.Select(f => f.Key).ToArray());
     }
 
-    // Standard RI zonal-leadership designations. (Title, Avenue, RoleType, DefaultCategoryName, Sort).
-    // RoleType decides the tier/scope: assistants support a FEW districts in one avenue+zone;
-    // regional co-ordinators & Plan Leads cover ALL districts of one avenue in a zone; the Zonal
-    // Action Plan roles span ALL categories across their zone(s). DefaultCategoryName maps the
-    // avenue to a goal tab for messaging (E-MGA / EPNC / Polio → Foundation; NULL = all tabs).
-    // The 6 current leadership roles (2026-08): 3 avenues × 2 levels. Zone-level roles use
-    // RoleType AllDistrictsOneCategoryOneZone ("only for zones" — whole zone); district-level
-    // Assistants use FewDistrictsOneCategoryOneZone ("only for districts" — pick districts).
-    // The earlier extra roles (E/MGA, EPNC, Polio, Plan Leads, Zonal Action Plan) are deactivated
-    // by SeedGoalLeadershipDesignationsAsync (kept in the table, IsActive=0, so re-enableable).
-    private static readonly (string Title, string Avenue, string RoleType, string? Category, int Sort)[] LeadershipDesignations =
-    {
-        // Goal Setting RI Director — top of the hierarchy, covers a FEW ZONES across ALL avenues
-        // (its own thing, unrelated to the member_roles RIDirector role). Scope = the selected
-        // zones; a director never sees another director's zones.
-        ("RI Director",                                                 "RI Director",           "AllCategoryAllDistrictsFewZones", null,          1),
-        ("Rotary Membership Co-Ordinator (RMC)",                        "Membership",            "AllDistrictsOneCategoryOneZone", "Membership",   10),
-        ("Assistant Rotary Co-Ordinator (ARC)",                        "Membership",            "FewDistrictsOneCategoryOneZone", "Membership",   11),
-        // Youth Service had NO designation at all (user 2026-09-25), so the Role Assign screen never
-        // offered a Youth Service tab — its Category tabs come from the distinct Avenue values here,
-        // not from goal_categories. With no designation nobody could be appointed, which is why the
-        // category had 0 Zone Co-ordinators and 0 District Assistants and never appeared in a ZC or
-        // DA login or their reports. Sorted 15/16 so the tab sits after Membership, matching the
-        // category order (Membership -> Youth Service -> TRF -> Public Image).
-        ("Youth Service Co-Ordinator",                                  "Youth Service",         "AllDistrictsOneCategoryOneZone", "Youth Service", 15),
-        ("Assistant Youth Service Co-Ordinator",                        "Youth Service",         "FewDistrictsOneCategoryOneZone", "Youth Service", 16),
-        ("Regional Public Image Co-Ordinator (RPIC)",                   "Public Image",          "AllDistrictsOneCategoryOneZone", "Public Image", 20),
-        ("Assistant Regional Public Image Co-Ordinator (ARPIC)",        "Public Image",          "FewDistrictsOneCategoryOneZone", "Public Image", 21),
-        ("Regional Rotary Foundation Co-Ordinator (RRFC)",             "Foundation",            "AllDistrictsOneCategoryOneZone", "TRF",          30),
-        ("Assistant Regional Rotary Foundation Co-Ordinator (ARRFC)",  "Foundation",            "FewDistrictsOneCategoryOneZone", "TRF",          31),
-    };
-
-    private static async Task SeedGoalLeadershipDesignationsAsync(MySqlConnection connection)
-    {
-        // Upsert the 6 current roles (force-active, so they're always available).
-        foreach (var d in LeadershipDesignations)
-        {
-            await connection.ExecuteAsync(@"
-                INSERT INTO goal_leadership_designations (Title, Avenue, RoleType, DefaultCategoryName, SortOrder, IsActive, isdeleted)
-                VALUES (@Title, @Avenue, @RoleType, @Category, @Sort, 1, 0)
-                ON DUPLICATE KEY UPDATE
-                    Avenue = VALUES(Avenue), RoleType = VALUES(RoleType),
-                    DefaultCategoryName = VALUES(DefaultCategoryName), SortOrder = VALUES(SortOrder),
-                    IsActive = 1, isdeleted = 0",
-                new { d.Title, d.Avenue, d.RoleType, d.Category, d.Sort });
-        }
-
-        // Deactivate every OTHER designation (the retired extras + any leftover) so only the 6
-        // current roles surface in the picker. Kept in the table (not deleted) for easy revival.
-        var keep = LeadershipDesignations.Select(x => x.Title).ToArray();
-        await connection.ExecuteAsync(
-            "UPDATE goal_leadership_designations SET IsActive = 0 WHERE Title NOT IN @Keep",
-            new { Keep = keep });
-    }
-
     private static async Task SeedOcvDocumentDataAsync(MySqlConnection connection)
     {
         // Seed categories
@@ -7370,482 +6798,5 @@ public partial class DatabaseInitializer
         await connection.ExecuteAsync(typeSql, new { CatId = catDues, Name = "RI Semi Annual1", AllowMultiple = 0, Sort = 3 });
         await connection.ExecuteAsync(typeSql, new { CatId = catDues, Name = "RI Semi Annual2", AllowMultiple = 0, Sort = 4 });
         await connection.ExecuteAsync(typeSql, new { CatId = catDues, Name = "Others", AllowMultiple = 1, Sort = 5 });
-    }
-
-    // Idempotent: ensures Q23 "Inter District Cricket Match" (zone-level) exists for every rotary year that has zonal awards goals.
-    // Runs on every startup. If the question already exists for a year, it is left alone (no delete, no re-insert).
-    // If the question_level column is missing, existing Q23 rows are updated to 'Zone'.
-    private static async Task EnsureZoneCricketMatchAsync(MySqlConnection connection)
-    {
-        // Find all years that have a "C. OTHERS" or "EVENTS - GOALS & RECOGNITIONS" goal (means that year was seeded)
-        var years = (await connection.QueryAsync<int>(
-            "SELECT DISTINCT fk_year_id FROM zonal_awards_goal WHERE isdeleted = 0")).ToList();
-
-        foreach (var yearId in years)
-        {
-            // Find the Events goal for this year (sort_order = 6)
-            var eventsGoalId = await connection.ExecuteScalarAsync<int?>(
-                "SELECT pk_id FROM zonal_awards_goal WHERE fk_year_id = @Y AND sort_order = 6 AND isdeleted = 0",
-                new { Y = yearId });
-            if (!eventsGoalId.HasValue) continue;
-
-            // Check if Cricket Match question already exists for this year
-            var existingQId = await connection.ExecuteScalarAsync<int?>(@"
-                SELECT q.pk_id FROM zonal_awards_question q
-                JOIN zonal_awards_goal g ON g.pk_id = q.fk_goal_id
-                WHERE g.fk_year_id = @Y AND q.category LIKE '%Cricket%' AND q.isdeleted = 0
-                LIMIT 1", new { Y = yearId });
-
-            int qId;
-            if (existingQId.HasValue)
-            {
-                qId = existingQId.Value;
-                // Make sure it's marked as Zone level
-                await connection.ExecuteAsync(
-                    "UPDATE zonal_awards_question SET question_level = 'Zone' WHERE pk_id = @Id",
-                    new { Id = qId });
-            }
-            else
-            {
-                // Insert once (idempotent because of the existence check above)
-                qId = await connection.ExecuteScalarAsync<int>(@"
-                    INSERT INTO zonal_awards_question (fk_goal_id, auto_or_manual, question_level, sr_no, sub_title, category, sort_order)
-                    VALUES (@G, 'Auto', 'Zone', '1', 'Events', 'Inter District Cricket Match', 23);
-                    SELECT LAST_INSERT_ID();", new { G = eventsGoalId.Value });
-            }
-
-            // Ensure the 3 options exist — one per tournament stage. Never delete or re-insert; only add if missing.
-            var optionsToEnsure = new[] {
-                new { Label = "Hosting Quarter Finals", PLabel = "400", Pts = 400, Sort = 1 },
-                new { Label = "Hosting Semi Finals",    PLabel = "800", Pts = 800, Sort = 2 },
-                new { Label = "Hosting Finals",         PLabel = "1000", Pts = 1000, Sort = 3 },
-            };
-
-            foreach (var o in optionsToEnsure)
-            {
-                var existingOptId = await connection.ExecuteScalarAsync<int?>(@"
-                    SELECT pk_id FROM zonal_awards_question_option
-                    WHERE fk_question_id = @Q AND goal_requirement_label = @L AND isdeleted = 0 LIMIT 1",
-                    new { Q = qId, L = o.Label });
-                if (existingOptId.HasValue) continue;
-
-                await connection.ExecuteAsync(@"
-                    INSERT INTO zonal_awards_question_option
-                    (fk_question_id, goal_requirement_label, points_label, mini, maxi, points, atleast, subtype, input_type, question_type_for_import, report_use_title, sort_order)
-                    VALUES (@Q, @L, @PL, 0, 0, @Pts, 0, NULL, NULL, NULL, NULL, @Sort)",
-                    new { Q = qId, L = o.Label, PL = o.PLabel, Pts = o.Pts, Sort = o.Sort });
-            }
-        }
-    }
-
-    private static async Task SeedZonalAwardsAsync(MySqlConnection connection, int yearId)
-    {
-        // ── Goals (12) ──
-        await connection.ExecuteAsync(@"
-            INSERT INTO zonal_awards_goal (fk_year_id, title, max_points, max_remark, sort_order) VALUES
-            (@Y,'A. NEW CLUBS IN THE DISTRICT',2000,'Points not exceeding 2000 points for Monthly Awards in this A Category',1),
-            (@Y,'B. MEMBERSHIP STATUS IN THE DISTRICT',3000,'Points not exceeding 3000 points for Monthly Awards in this B Category',2),
-            (@Y,'C. OTHERS',3000,'Points not exceeding 3000 for Monthly Award in this C category',3),
-            (@Y,'PROJECTS - GOALS & RECOGNITIONS',NULL,NULL,4),
-            (@Y,'RYLA',3000,'Total Score not to exceed 3000 points for monthly award under this category',5),
-            (@Y,'EVENTS - GOALS & RECOGNITIONS',3000,'Total Score not to exceed 3000 points for monthly award under this category',6),
-            (@Y,'A. Awareness and Training',3000,'Total Score not to exceed 3000 points for monthly award',7),
-            (@Y,'B. Public Image through Digital Media',NULL,NULL,8),
-            (@Y,'C. Public Image through Projects',NULL,NULL,9),
-            (@Y,'D. Display',NULL,NULL,10),
-            (@Y,'E. Print Media',NULL,NULL,11),
-            (@Y,'FOUNDATION GOALS',6000,'Total Score not to exceed 6000 points for monthly award',12)", new { Y = yearId });
-
-        // Get goal IDs
-        var goals = (await connection.QueryAsync<dynamic>("SELECT pk_id, sort_order FROM zonal_awards_goal WHERE fk_year_id=@Y ORDER BY sort_order", new { Y = yearId })).ToList();
-        int g1=goals[0].pk_id, g2=goals[1].pk_id, g3=goals[2].pk_id, g4=goals[3].pk_id, g5=goals[4].pk_id, g6=goals[5].pk_id;
-        int g7=goals[6].pk_id, g8=goals[7].pk_id, g9=goals[8].pk_id, g10=goals[9].pk_id, g11=goals[10].pk_id, g12=goals[11].pk_id;
-
-        // ── Questions (52) ──
-        var qSql = @"INSERT INTO zonal_awards_question (fk_goal_id, auto_or_manual, sr_no, sub_title, category, sort_order) VALUES (@G,@AM,@Sr,@Sub,@Cat,@Sort)";
-        // Goal 1: New Clubs
-        await connection.ExecuteAsync(qSql, new { G=g1, AM="Auto",   Sr="A1", Sub="Membership", Cat="Number of New Rotary Clubs", Sort=1 });
-        await connection.ExecuteAsync(qSql, new { G=g1, AM="Manual", Sr="A2", Sub="Membership", Cat="Special Category New Clubs", Sort=2 });
-        await connection.ExecuteAsync(qSql, new { G=g1, AM="Manual", Sr="A3", Sub="Membership", Cat="Bonus Points", Sort=3 });
-        // Goal 2: Membership Status
-        await connection.ExecuteAsync(qSql, new { G=g2, AM="Auto",   Sr="B1", Sub="Membership", Cat="Average Members per Club in District", Sort=4 });
-        await connection.ExecuteAsync(qSql, new { G=g2, AM="Auto",   Sr="B2", Sub="Membership", Cat="Healthy Clubs - Red(10-25)/Amber(26-40)/Green(41+)", Sort=5 });
-        await connection.ExecuteAsync(qSql, new { G=g2, AM="Manual", Sr="B3", Sub="Membership", Cat="Average Age of Members in District (My Rotary Registration Min 70%)", Sort=6 });
-        await connection.ExecuteAsync(qSql, new { G=g2, AM="Auto",   Sr="B4", Sub="Membership", Cat="Women In Rotary", Sort=7 });
-        await connection.ExecuteAsync(qSql, new { G=g2, AM="Auto",   Sr="B5", Sub="Membership", Cat="Percentage of Women In Rotary", Sort=8 });
-        // Goal 3: Others
-        await connection.ExecuteAsync(qSql, new { G=g3, AM="Manual", Sr="C1", Sub="Others", Cat="Club Constitution & By-Laws", Sort=9 });
-        await connection.ExecuteAsync(qSql, new { G=g3, AM="Manual", Sr="C2", Sub="Others", Cat="Clubs having their own registered Trust", Sort=10 });
-        await connection.ExecuteAsync(qSql, new { G=g3, AM="Manual", Sr="C3", Sub="Others", Cat="Registering in My Rotary", Sort=11 });
-        await connection.ExecuteAsync(qSql, new { G=g3, AM="Manual", Sr="C4", Sub="Others", Cat="District Directory", Sort=12 });
-        await connection.ExecuteAsync(qSql, new { G=g3, AM="Manual", Sr="C5.a", Sub="Others", Cat="Creating Record", Sort=13 });
-        // Goal 4: Projects
-        await connection.ExecuteAsync(qSql, new { G=g4, AM="Manual", Sr="A1", Sub="Projects", Cat="Jnana sethu - 1 million refurbished/New computers distribution", Sort=14 });
-        await connection.ExecuteAsync(qSql, new { G=g4, AM="Auto",   Sr="A2", Sub="Projects", Cat="Bosch Skill Center (Each)", Sort=15 });
-        await connection.ExecuteAsync(qSql, new { G=g4, AM="Manual", Sr="A3", Sub="Projects", Cat="Kotinati (Tree Plantation)", Sort=16 });
-        await connection.ExecuteAsync(qSql, new { G=g4, AM="Auto",   Sr="A4", Sub="Projects", Cat="Lake Rejuvenation (Each)", Sort=17 });
-        await connection.ExecuteAsync(qSql, new { G=g4, AM="Manual", Sr="A5", Sub="Projects", Cat="Blood Donation Drive", Sort=18 });
-        await connection.ExecuteAsync(qSql, new { G=g4, AM="Auto",   Sr="A6", Sub="Projects", Cat="Medical Mission (Each)", Sort=19 });
-        // Goal 5: RYLA
-        await connection.ExecuteAsync(qSql, new { G=g5, AM="Auto", Sr="B1", Sub="RYLA", Cat="Local - Each (Min 40 Students)", Sort=20 });
-        await connection.ExecuteAsync(qSql, new { G=g5, AM="Auto", Sr="B2", Sub="RYLA", Cat="National - Each (Min 60 Students)", Sort=21 });
-        await connection.ExecuteAsync(qSql, new { G=g5, AM="Auto", Sr="B3", Sub="RYLA", Cat="International - Each (Min 100 Students)", Sort=22 });
-        // Goal 6: Events
-        // Q23 (Cricket Match) removed — zone-level only, will add later
-        await connection.ExecuteAsync(qSql, new { G=g6, AM="Auto",   Sr="2",  Sub="Events", Cat="Marathon at least 250 members participation (Each)", Sort=24 });
-        await connection.ExecuteAsync(qSql, new { G=g2, AM="Manual", Sr="B6",  Sub="Membership", Cat="Intercity General Forum (ICGF) - Each (Min gathering of 300 participants)", Sort=25 });
-        await connection.ExecuteAsync(qSql, new { G=g6, AM="Auto",   Sr="4",  Sub="Events", Cat="Trade Fair in association with Local/National Trade bodies (Each)", Sort=26 });
-        await connection.ExecuteAsync(qSql, new { G=g6, AM="Auto",   Sr="5",  Sub="Events", Cat="Rotary Friendship Exchange (Min 3 Families) Within Zone - (Each)", Sort=27 });
-        await connection.ExecuteAsync(qSql, new { G=g6, AM="Auto",   Sr="6",  Sub="Events", Cat="Rotary Friendship Exchange (Min 3 Families) National - (Each)", Sort=28 });
-        await connection.ExecuteAsync(qSql, new { G=g6, AM="Auto",   Sr="7",  Sub="Events", Cat="Rotary Friendship Exchange (Min 3 Families) International - (Each)", Sort=29 });
-        // Goal 7: Awareness
-        await connection.ExecuteAsync(qSql, new { G=g7, AM="Manual", Sr="A1", Sub="Awareness and training", Cat="Inter District Public Image Seminar (Min 100 Participants)", Sort=30 });
-        await connection.ExecuteAsync(qSql, new { G=g7, AM="Manual", Sr="A2", Sub="Awareness and training", Cat="District Public Image Seminar (Min 100 Participants)", Sort=31 });
-        // Goal 8: Digital Media
-        await connection.ExecuteAsync(qSql, new { G=g8, AM="Manual", Sr="B1", Sub="Public Image through Digital Media", Cat="Maintaining and uploading in social media minimum 5 posts per month", Sort=32 });
-        await connection.ExecuteAsync(qSql, new { G=g8, AM="Manual", Sr="B2", Sub="Public Image through Digital Media", Cat="Clubs having live websites", Sort=33 });
-        await connection.ExecuteAsync(qSql, new { G=g8, AM="Manual", Sr="B3", Sub="Public Image through Digital Media", Cat="Broadcasting Rotary events on TV/Radio at least 5 programs", Sort=34 });
-        // Goal 9: Public Image Projects
-        await connection.ExecuteAsync(qSql, new { G=g9, AM="Auto", Sr="C1", Sub="Public Image", Cat="Adopt a Road/Garden/Park with display board", Sort=35 });
-        await connection.ExecuteAsync(qSql, new { G=g9, AM="Auto", Sr="C2", Sub="Public Image", Cat="Organising public rallies/marathons/human chains (Min 100+ Participants)", Sort=36 });
-        // Goal 10: Display
-        await connection.ExecuteAsync(qSql, new { G=g10, AM="Auto", Sr="D1", Sub="Public Image", Cat="City Bus/Auto/Metro Stations/Airports Hoardings/Wall painting", Sort=37 });
-        // Goal 11: Print Media
-        await connection.ExecuteAsync(qSql, new { G=g11, AM="Manual", Sr="E1", Sub="Print Media", Cat="Releasing Bulletin/Newsletter every month", Sort=38 });
-        await connection.ExecuteAsync(qSql, new { G=g11, AM="Manual", Sr="E2", Sub="Print Media", Cat="Executing Rotary events in public print media", Sort=39 });
-        // Goal 12: Foundation (Q40-Q52)
-        await connection.ExecuteAsync(qSql, new { G=g12, AM="Auto", Sr="1",  Sub="Foundation Goals", Cat="Arch Klump Society", Sort=40 });
-        await connection.ExecuteAsync(qSql, new { G=g12, AM="Auto", Sr="2",  Sub="Foundation Goals", Cat="Endowment", Sort=41 });
-        await connection.ExecuteAsync(qSql, new { G=g12, AM="Auto", Sr="3",  Sub="Foundation Goals", Cat="Bequest Society", Sort=42 });
-        await connection.ExecuteAsync(qSql, new { G=g12, AM="Auto", Sr="4",  Sub="Foundation Goals", Cat="Directed Gift", Sort=43 });
-        await connection.ExecuteAsync(qSql, new { G=g12, AM="Auto", Sr="5",  Sub="Foundation Goals", Cat="DDF (Pledge to polio)", Sort=44 });
-        await connection.ExecuteAsync(qSql, new { G=g12, AM="Auto", Sr="6",  Sub="Foundation Goals", Cat="EPF", Sort=45 });
-        await connection.ExecuteAsync(qSql, new { G=g12, AM="Auto", Sr="7",  Sub="Foundation Goals", Cat="Polio Plus Society", Sort=46 });
-        await connection.ExecuteAsync(qSql, new { G=g12, AM="Auto", Sr="8",  Sub="Foundation Goals", Cat="Annual Fund", Sort=47 });
-        await connection.ExecuteAsync(qSql, new { G=g12, AM="Auto", Sr="9",  Sub="Foundation Goals", Cat="PHF", Sort=48 });
-        await connection.ExecuteAsync(qSql, new { G=g12, AM="Auto", Sr="10", Sub="Foundation Goals", Cat="Hall of Honor Club (Min 25 Members club)", Sort=49 });
-        await connection.ExecuteAsync(qSql, new { G=g12, AM="Auto", Sr="11", Sub="Foundation Goals", Cat="PHSM", Sort=50 });
-        await connection.ExecuteAsync(qSql, new { G=g12, AM="Auto", Sr="12", Sub="Foundation Goals", Cat="Major Donors", Sort=51 });
-        await connection.ExecuteAsync(qSql, new { G=g12, AM="Auto", Sr="13", Sub="Foundation Goals", Cat="CSR project with RFI", Sort=52 });
-
-        // Get all question IDs
-        var qs = (await connection.QueryAsync<dynamic>("SELECT pk_id, sort_order FROM zonal_awards_question ORDER BY sort_order")).ToList();
-        // Map sort_order to pk_id: q[0]=sort1, q[1]=sort2, etc.
-        var qMap = qs.ToDictionary(q => (int)q.sort_order, q => (int)q.pk_id);
-
-        // ── Options (194) ──
-        var oSql = @"INSERT INTO zonal_awards_question_option (fk_question_id, goal_requirement_label, points_label, mini, maxi, points, atleast, subtype, input_type, question_type_for_import, report_use_title, sort_order)
-                     VALUES (@Q,@Label,@PLabel,@Min,@Max,@Pts,@At,@Sub,@Inp,@Imp,@Rep,@Sort)";
-
-        // Q1 (sort=1): Number of New Rotary Clubs - 4 range options
-        int q1=qMap[1];
-        await connection.ExecuteAsync(oSql, new { Q=q1, Label="Upto 10",     PLabel="100 Per Club",  Min=1,  Max=10,     Pts=100, At=0, Sub=(int?)null, Inp=(string?)null, Imp=(string?)null, Rep=(string?)null, Sort=1 });
-        await connection.ExecuteAsync(oSql, new { Q=q1, Label="11-15",       PLabel="150 per club",  Min=10, Max=15,     Pts=150, At=0, Sub=(int?)null, Inp=(string?)null, Imp=(string?)null, Rep=(string?)null, Sort=2 });
-        await connection.ExecuteAsync(oSql, new { Q=q1, Label="16-20",       PLabel="250 per club",  Min=15, Max=20,     Pts=250, At=0, Sub=(int?)null, Inp=(string?)null, Imp=(string?)null, Rep=(string?)null, Sort=3 });
-        await connection.ExecuteAsync(oSql, new { Q=q1, Label="21 & Above",  PLabel="400 per club",  Min=20, Max=100000, Pts=400, At=0, Sub=(int?)null, Inp=(string?)null, Imp=(string?)null, Rep=(string?)null, Sort=4 });
-
-        // Q2 (sort=2): Special Category New Clubs - 5 sub-items
-        int q2=qMap[2];
-        await connection.ExecuteAsync(oSql, new { Q=q2, Label="Nextgen club",               PLabel="200 per club", Min=0, Max=0, Pts=200, At=0, Sub=(int?)null, Inp=(string?)null, Imp="Nextgen club",               Rep=(string?)null, Sort=1 });
-        await connection.ExecuteAsync(oSql, new { Q=q2, Label="Majority women member club",  PLabel="200 per club", Min=0, Max=0, Pts=200, At=0, Sub=(int?)null, Inp=(string?)null, Imp="Majority women member club",  Rep=(string?)null, Sort=2 });
-        await connection.ExecuteAsync(oSql, new { Q=q2, Label="Cause Based Club",            PLabel="200 per club", Min=0, Max=0, Pts=200, At=0, Sub=(int?)null, Inp=(string?)null, Imp="Cause Based Club",            Rep=(string?)null, Sort=3 });
-        await connection.ExecuteAsync(oSql, new { Q=q2, Label="Fellowship Based Club",       PLabel="200 per club", Min=0, Max=0, Pts=200, At=0, Sub=(int?)null, Inp=(string?)null, Imp="Fellowship Based Club",       Rep=(string?)null, Sort=4 });
-        await connection.ExecuteAsync(oSql, new { Q=q2, Label="All couple club",             PLabel="200 per club", Min=0, Max=0, Pts=200, At=0, Sub=(int?)null, Inp=(string?)null, Imp="All couple club",             Rep=(string?)null, Sort=5 });
-
-        // Q3 (sort=3): Bonus Points - 1 option
-        int q3=qMap[3];
-        await connection.ExecuteAsync(oSql, new { Q=q3, Label="Implementing 10:20:30 formula", PLabel="1000", Min=0, Max=0, Pts=1000, At=0, Sub=(int?)null, Inp=(string?)null, Imp="Implementing 10:20:30 formula", Rep=(string?)null, Sort=1 });
-
-        // Q4 (sort=4): Average Members per Club - 3 range options
-        int q4=qMap[4];
-        await connection.ExecuteAsync(oSql, new { Q=q4, Label="Average Members per club 40+",  PLabel="100", Min=40, Max=44,     Pts=100, At=0, Sub=(int?)null, Inp=(string?)null, Imp=(string?)null, Rep=(string?)null, Sort=1 });
-        await connection.ExecuteAsync(oSql, new { Q=q4, Label="Average Members per club 45+",  PLabel="300", Min=44, Max=49,     Pts=300, At=0, Sub=(int?)null, Inp=(string?)null, Imp=(string?)null, Rep=(string?)null, Sort=2 });
-        await connection.ExecuteAsync(oSql, new { Q=q4, Label="Average Members per club 50+",  PLabel="750", Min=49, Max=100000, Pts=750, At=0, Sub=(int?)null, Inp=(string?)null, Imp=(string?)null, Rep=(string?)null, Sort=3 });
-
-        // Q5 (sort=5): Healthy Clubs - 3 range options
-        int q5=qMap[5];
-        await connection.ExecuteAsync(oSql, new { Q=q5, Label="District with Less than 30% Red Clubs",    PLabel="500", Min=0,  Max=30,  Pts=500, At=0, Sub=(int?)null, Inp=(string?)null, Imp=(string?)null, Rep=(string?)null, Sort=1 });
-        await connection.ExecuteAsync(oSql, new { Q=q5, Label="District with 40%+ Amber Clubs",           PLabel="500", Min=40, Max=100, Pts=500, At=0, Sub=(int?)null, Inp=(string?)null, Imp=(string?)null, Rep=(string?)null, Sort=2 });
-        await connection.ExecuteAsync(oSql, new { Q=q5, Label="District with more than 30%+ Green Clubs", PLabel="750", Min=30, Max=100, Pts=750, At=0, Sub=(int?)null, Inp=(string?)null, Imp=(string?)null, Rep=(string?)null, Sort=3 });
-
-        // Q6 (sort=6): Average Age - radio/choose one
-        int q6=qMap[6];
-        await connection.ExecuteAsync(oSql, new { Q=q6, Label="Less than 60", PLabel="200", Min=0, Max=0, Pts=200, At=0, Sub=(int?)null, Inp=(string?)null, Imp=(string?)null, Rep=(string?)null, Sort=1 });
-        await connection.ExecuteAsync(oSql, new { Q=q6, Label="Less than 55", PLabel="400", Min=0, Max=0, Pts=400, At=0, Sub=(int?)null, Inp=(string?)null, Imp=(string?)null, Rep=(string?)null, Sort=2 });
-        await connection.ExecuteAsync(oSql, new { Q=q6, Label="Less than 50", PLabel="600", Min=0, Max=0, Pts=600, At=0, Sub=(int?)null, Inp=(string?)null, Imp=(string?)null, Rep=(string?)null, Sort=3 });
-        await connection.ExecuteAsync(oSql, new { Q=q6, Label="None",         PLabel="0",   Min=0, Max=0, Pts=0,   At=0, Sub=(int?)null, Inp=(string?)null, Imp=(string?)null, Rep=(string?)null, Sort=4 });
-
-        // Q7 (sort=7): Women In Rotary - 3 range options
-        int q7=qMap[7];
-        await connection.ExecuteAsync(oSql, new { Q=q7, Label="33%+ clubs with at least 4 women members", PLabel="200",  Min=33, Max=65,  Pts=200,  At=4, Sub=(int?)null, Inp=(string?)null, Imp=(string?)null, Rep=(string?)null, Sort=1 });
-        await connection.ExecuteAsync(oSql, new { Q=q7, Label="66%+ clubs with at least 4 women members", PLabel="600",  Min=65, Max=89,  Pts=600,  At=4, Sub=(int?)null, Inp=(string?)null, Imp=(string?)null, Rep=(string?)null, Sort=2 });
-        await connection.ExecuteAsync(oSql, new { Q=q7, Label="90%+ clubs with at least 4 women members", PLabel="1000", Min=89, Max=100, Pts=1000, At=4, Sub=(int?)null, Inp=(string?)null, Imp=(string?)null, Rep=(string?)null, Sort=3 });
-
-        // Q8 (sort=8): Percentage of Women - 4 range options
-        int q8=qMap[8];
-        await connection.ExecuteAsync(oSql, new { Q=q8, Label="15%+ Women Member",          PLabel="250",  Min=15, Max=19,  Pts=250,  At=0, Sub=(int?)null, Inp=(string?)null, Imp=(string?)null, Rep=(string?)null, Sort=1 });
-        await connection.ExecuteAsync(oSql, new { Q=q8, Label="20%+ Women Member",          PLabel="500",  Min=19, Max=24,  Pts=500,  At=0, Sub=(int?)null, Inp=(string?)null, Imp=(string?)null, Rep=(string?)null, Sort=2 });
-        await connection.ExecuteAsync(oSql, new { Q=q8, Label="25%+ Women Member",          PLabel="750",  Min=24, Max=29,  Pts=750,  At=0, Sub=(int?)null, Inp=(string?)null, Imp=(string?)null, Rep=(string?)null, Sort=3 });
-        await connection.ExecuteAsync(oSql, new { Q=q8, Label="30% and above Women Member", PLabel="1000", Min=29, Max=100, Pts=1000, At=0, Sub=(int?)null, Inp=(string?)null, Imp=(string?)null, Rep=(string?)null, Sort=4 });
-
-        // Q9-Q13 (sort=9-13): Others - Manual questions with radio options
-        int q9=qMap[9];
-        await connection.ExecuteAsync(oSql, new { Q=q9, Label="33% & above Members in the District", PLabel="100", Min=0, Max=0, Pts=100, At=0, Sub=(int?)null, Inp=(string?)null, Imp=(string?)null, Rep=(string?)null, Sort=1 });
-        await connection.ExecuteAsync(oSql, new { Q=q9, Label="66% & above Members in the District", PLabel="300", Min=0, Max=0, Pts=300, At=0, Sub=(int?)null, Inp=(string?)null, Imp=(string?)null, Rep=(string?)null, Sort=2 });
-        await connection.ExecuteAsync(oSql, new { Q=q9, Label="90% & above Members in the District", PLabel="750", Min=0, Max=0, Pts=750, At=0, Sub=(int?)null, Inp=(string?)null, Imp=(string?)null, Rep=(string?)null, Sort=3 });
-        await connection.ExecuteAsync(oSql, new { Q=q9, Label="None", PLabel="0", Min=0, Max=0, Pts=0, At=0, Sub=(int?)null, Inp=(string?)null, Imp=(string?)null, Rep=(string?)null, Sort=4 });
-
-        int q10=qMap[10];
-        await connection.ExecuteAsync(oSql, new { Q=q10, Label="10%+ Clubs",        PLabel="200", Min=0, Max=0, Pts=200, At=0, Sub=(int?)null, Inp=(string?)null, Imp=(string?)null, Rep=(string?)null, Sort=1 });
-        await connection.ExecuteAsync(oSql, new { Q=q10, Label="20%+ Clubs",        PLabel="400", Min=0, Max=0, Pts=400, At=0, Sub=(int?)null, Inp=(string?)null, Imp=(string?)null, Rep=(string?)null, Sort=2 });
-        await connection.ExecuteAsync(oSql, new { Q=q10, Label="30% & Above Clubs", PLabel="750", Min=0, Max=0, Pts=750, At=0, Sub=(int?)null, Inp=(string?)null, Imp=(string?)null, Rep=(string?)null, Sort=3 });
-        await connection.ExecuteAsync(oSql, new { Q=q10, Label="None",              PLabel="0",   Min=0, Max=0, Pts=0,   At=0, Sub=(int?)null, Inp=(string?)null, Imp=(string?)null, Rep=(string?)null, Sort=4 });
-
-        int q11=qMap[11];
-        await connection.ExecuteAsync(oSql, new { Q=q11, Label="33%+ Members in the District", PLabel="100", Min=0, Max=0, Pts=100, At=0, Sub=(int?)null, Inp=(string?)null, Imp=(string?)null, Rep=(string?)null, Sort=1 });
-        await connection.ExecuteAsync(oSql, new { Q=q11, Label="66%+ Members in the District", PLabel="300", Min=0, Max=0, Pts=300, At=0, Sub=(int?)null, Inp=(string?)null, Imp=(string?)null, Rep=(string?)null, Sort=2 });
-        await connection.ExecuteAsync(oSql, new { Q=q11, Label="90%+ Members in the District", PLabel="750", Min=0, Max=0, Pts=750, At=0, Sub=(int?)null, Inp=(string?)null, Imp=(string?)null, Rep=(string?)null, Sort=3 });
-        await connection.ExecuteAsync(oSql, new { Q=q11, Label="None",                         PLabel="0",   Min=0, Max=0, Pts=0,   At=0, Sub=(int?)null, Inp=(string?)null, Imp=(string?)null, Rep=(string?)null, Sort=4 });
-
-        int q12=qMap[12]; // District Directory - radio
-        await connection.ExecuteAsync(oSql, new { Q=q12, Label="Release of District Directory on or before 30th June 2025", PLabel="500",  Min=0, Max=0, Pts=500,  At=0, Sub=(int?)null, Inp=(string?)null, Imp=(string?)null, Rep=(string?)null, Sort=1 });
-        await connection.ExecuteAsync(oSql, new { Q=q12, Label="Release of District Directory on or before 31st May 2025",  PLabel="1000", Min=0, Max=0, Pts=1000, At=0, Sub=(int?)null, Inp=(string?)null, Imp=(string?)null, Rep=(string?)null, Sort=2 });
-        await connection.ExecuteAsync(oSql, new { Q=q12, Label="Released on 1st July or later",                             PLabel="0",    Min=0, Max=0, Pts=0,    At=0, Sub=(int?)null, Inp=(string?)null, Imp=(string?)null, Rep=(string?)null, Sort=3 });
-
-        int q13=qMap[13]; // Creating Record - complex multi-subtype
-        await connection.ExecuteAsync(oSql, new { Q=q13, Label="Breaking previous district record of highest membership",      PLabel="500",        Min=0, Max=0, Pts=500,  At=0, Sub=1, Inp=(string?)null,  Imp="Breaking previous district record of highest membership in the district(Yes/No)", Rep=(string?)null, Sort=1 });
-        await connection.ExecuteAsync(oSql, new { Q=q13, Label="No",                                                           PLabel="0",          Min=0, Max=0, Pts=0,    At=0, Sub=1, Inp=(string?)null,  Imp="Breaking previous district record of highest membership in the district(Yes/No)", Rep=(string?)null, Sort=2 });
-        await connection.ExecuteAsync(oSql, new { Q=q13, Label="a. By 30th Sept 2025",                                         PLabel="1000 Bonus", Min=0, Max=0, Pts=1000, At=0, Sub=2, Inp=(string?)null,  Imp="By 30th Sept 2025 / By 31st Dec 2025", Rep=(string?)null, Sort=3 });
-        await connection.ExecuteAsync(oSql, new { Q=q13, Label="b. By 31st Dec 2025",                                          PLabel="750 Bonus",  Min=0, Max=0, Pts=750,  At=0, Sub=2, Inp=(string?)null,  Imp="By 30th Sept 2025 / By 31st Dec 2025", Rep=(string?)null, Sort=4 });
-        await connection.ExecuteAsync(oSql, new { Q=q13, Label="c. None",                                                      PLabel="0",          Min=0, Max=0, Pts=0,    At=0, Sub=2, Inp=(string?)null,  Imp="By 30th Sept 2025 / By 31st Dec 2025", Rep=(string?)null, Sort=5 });
-        await connection.ExecuteAsync(oSql, new { Q=q13, Label="Breaking the record highest new club in a year in the district",PLabel="500",        Min=0, Max=0, Pts=500,  At=0, Sub=3, Inp=(string?)null,  Imp="Breaking the record highest new club in a year in the district(Yes/No)", Rep=(string?)null, Sort=6 });
-        await connection.ExecuteAsync(oSql, new { Q=q13, Label="No",                                                           PLabel="0",          Min=0, Max=0, Pts=0,    At=0, Sub=3, Inp=(string?)null,  Imp="Breaking the record highest new club in a year in the district(Yes/No)", Rep=(string?)null, Sort=7 });
-        await connection.ExecuteAsync(oSql, new { Q=q13, Label="a. By 30th Sept 2025",                                         PLabel="1000 Bonus", Min=0, Max=0, Pts=1000, At=0, Sub=4, Inp=(string?)null,  Imp="By 30th Sept 2025 / By 31st Dec 2025", Rep=(string?)null, Sort=8 });
-        await connection.ExecuteAsync(oSql, new { Q=q13, Label="b. By 31st Dec 2025",                                          PLabel="750 Bonus",  Min=0, Max=0, Pts=750,  At=0, Sub=4, Inp=(string?)null,  Imp="By 30th Sept 2025 / By 31st Dec 2025", Rep=(string?)null, Sort=9 });
-        await connection.ExecuteAsync(oSql, new { Q=q13, Label="c. None",                                                      PLabel="0",          Min=0, Max=0, Pts=0,    At=0, Sub=4, Inp=(string?)null,  Imp="By 30th Sept 2025 / By 31st Dec 2025", Rep=(string?)null, Sort=10 });
-        await connection.ExecuteAsync(oSql, new { Q=q13, Label="Breaking the record of adding highest number of women members", PLabel="750",        Min=0, Max=0, Pts=750,  At=0, Sub=5, Inp=(string?)null,  Imp="Breaking the record of adding highest number of women members in the district(Yes/No)", Rep=(string?)null, Sort=11 });
-        await connection.ExecuteAsync(oSql, new { Q=q13, Label="No",                                                           PLabel="0",          Min=0, Max=0, Pts=0,    At=0, Sub=5, Inp=(string?)null,  Imp="Breaking the record of adding highest number of women members in the district(Yes/No)", Rep=(string?)null, Sort=12 });
-        await connection.ExecuteAsync(oSql, new { Q=q13, Label="a. By 30th Sept 2025",                                         PLabel="1000 Bonus", Min=0, Max=0, Pts=1000, At=0, Sub=6, Inp=(string?)null,  Imp="By 30th Sept 2025 / By 31st Dec 2025", Rep=(string?)null, Sort=13 });
-        await connection.ExecuteAsync(oSql, new { Q=q13, Label="b. By 31st Dec 2025",                                          PLabel="750 Bonus",  Min=0, Max=0, Pts=750,  At=0, Sub=6, Inp=(string?)null,  Imp="By 30th Sept 2025 / By 31st Dec 2025", Rep=(string?)null, Sort=14 });
-        await connection.ExecuteAsync(oSql, new { Q=q13, Label="c. None",                                                      PLabel="0",          Min=0, Max=0, Pts=0,    At=0, Sub=6, Inp=(string?)null,  Imp="By 30th Sept 2025 / By 31st Dec 2025", Rep=(string?)null, Sort=15 });
-
-        // Q14-Q19 (sort=14-19): Projects
-        int q14=qMap[14]; // Jnana sethu - range
-        await connection.ExecuteAsync(oSql, new { Q=q14, Label="100 to 500",   PLabel="300",  Min=0, Max=0, Pts=300,  At=0, Sub=(int?)null, Inp=(string?)null, Imp=(string?)null, Rep=(string?)null, Sort=1 });
-        await connection.ExecuteAsync(oSql, new { Q=q14, Label="501-2000",     PLabel="600",  Min=0, Max=0, Pts=600,  At=0, Sub=(int?)null, Inp=(string?)null, Imp=(string?)null, Rep=(string?)null, Sort=2 });
-        await connection.ExecuteAsync(oSql, new { Q=q14, Label="2001-4000",    PLabel="900",  Min=0, Max=0, Pts=900,  At=0, Sub=(int?)null, Inp=(string?)null, Imp=(string?)null, Rep=(string?)null, Sort=3 });
-        await connection.ExecuteAsync(oSql, new { Q=q14, Label="Above 4000",   PLabel="1200", Min=0, Max=0, Pts=1200, At=0, Sub=(int?)null, Inp=(string?)null, Imp=(string?)null, Rep=(string?)null, Sort=4 });
-        await connection.ExecuteAsync(oSql, new { Q=q14, Label="None",         PLabel="0",    Min=0, Max=0, Pts=0,    At=0, Sub=(int?)null, Inp=(string?)null, Imp=(string?)null, Rep=(string?)null, Sort=5 });
-
-        int q15=qMap[15]; // Bosch Skill Center
-        await connection.ExecuteAsync(oSql, new { Q=q15, Label="1",          PLabel="500", Min=0, Max=1,      Pts=500, At=0, Sub=(int?)null, Inp=(string?)null, Imp=(string?)null, Rep=(string?)null, Sort=1 });
-        await connection.ExecuteAsync(oSql, new { Q=q15, Label="2 & Above",  PLabel="750", Min=2, Max=100000, Pts=750, At=0, Sub=(int?)null, Inp=(string?)null, Imp=(string?)null, Rep=(string?)null, Sort=2 });
-
-        int q16=qMap[16]; // Kotinati Tree Plantation - range
-        await connection.ExecuteAsync(oSql, new { Q=q16, Label="500+",        PLabel="200",  Min=0, Max=0, Pts=200,  At=0, Sub=(int?)null, Inp=(string?)null, Imp=(string?)null, Rep=(string?)null, Sort=1 });
-        await connection.ExecuteAsync(oSql, new { Q=q16, Label="1000 - 2500", PLabel="400",  Min=0, Max=0, Pts=400,  At=0, Sub=(int?)null, Inp=(string?)null, Imp=(string?)null, Rep=(string?)null, Sort=2 });
-        await connection.ExecuteAsync(oSql, new { Q=q16, Label="2501 - 5000", PLabel="800",  Min=0, Max=0, Pts=800,  At=0, Sub=(int?)null, Inp=(string?)null, Imp=(string?)null, Rep=(string?)null, Sort=3 });
-        await connection.ExecuteAsync(oSql, new { Q=q16, Label="Above 5000",  PLabel="1000", Min=0, Max=0, Pts=1000, At=0, Sub=(int?)null, Inp=(string?)null, Imp=(string?)null, Rep=(string?)null, Sort=4 });
-        await connection.ExecuteAsync(oSql, new { Q=q16, Label="None",        PLabel="0",    Min=0, Max=0, Pts=0,    At=0, Sub=(int?)null, Inp=(string?)null, Imp=(string?)null, Rep=(string?)null, Sort=5 });
-
-        int q17=qMap[17]; // Lake Rejuvenation
-        await connection.ExecuteAsync(oSql, new { Q=q17, Label="1",          PLabel="500", Min=0, Max=1,   Pts=500, At=0, Sub=(int?)null, Inp=(string?)null, Imp=(string?)null, Rep=(string?)null, Sort=1 });
-        await connection.ExecuteAsync(oSql, new { Q=q17, Label="2 & Above",  PLabel="750", Min=2, Max=100, Pts=750, At=0, Sub=(int?)null, Inp=(string?)null, Imp=(string?)null, Rep=(string?)null, Sort=2 });
-
-        int q18=qMap[18]; // Blood Donation Drive - range
-        await connection.ExecuteAsync(oSql, new { Q=q18, Label="100 to 500 Units",  PLabel="200",  Min=0, Max=0, Pts=200,  At=0, Sub=(int?)null, Inp=(string?)null, Imp=(string?)null, Rep=(string?)null, Sort=1 });
-        await connection.ExecuteAsync(oSql, new { Q=q18, Label="501 - 1000 Units",  PLabel="400",  Min=0, Max=0, Pts=400,  At=0, Sub=(int?)null, Inp=(string?)null, Imp=(string?)null, Rep=(string?)null, Sort=2 });
-        await connection.ExecuteAsync(oSql, new { Q=q18, Label="1001 - 2000 Units", PLabel="800",  Min=0, Max=0, Pts=800,  At=0, Sub=(int?)null, Inp=(string?)null, Imp=(string?)null, Rep=(string?)null, Sort=3 });
-        await connection.ExecuteAsync(oSql, new { Q=q18, Label="2000+ Units",       PLabel="1000", Min=0, Max=0, Pts=1000, At=0, Sub=(int?)null, Inp=(string?)null, Imp=(string?)null, Rep=(string?)null, Sort=4 });
-        await connection.ExecuteAsync(oSql, new { Q=q18, Label="None",              PLabel="0",    Min=0, Max=0, Pts=0,    At=0, Sub=(int?)null, Inp=(string?)null, Imp=(string?)null, Rep=(string?)null, Sort=5 });
-
-        int q19=qMap[19]; // Medical Mission
-        await connection.ExecuteAsync(oSql, new { Q=q19, Label="India",  PLabel="750",  Min=0, Max=0, Pts=750,  At=0, Sub=(int?)null, Inp=(string?)null, Imp=(string?)null, Rep=(string?)null, Sort=1 });
-        await connection.ExecuteAsync(oSql, new { Q=q19, Label="Abroad", PLabel="1500", Min=0, Max=0, Pts=1500, At=0, Sub=(int?)null, Inp=(string?)null, Imp=(string?)null, Rep=(string?)null, Sort=2 });
-
-        // Q20-Q22 (sort=20-22): RYLA
-        int q20=qMap[20]; // Local
-        await connection.ExecuteAsync(oSql, new { Q=q20, Label="upto 5",     PLabel="200",  Min=0,  Max=5,      Pts=200,  At=0, Sub=(int?)null, Inp=(string?)null, Imp=(string?)null, Rep=(string?)null, Sort=1 });
-        await connection.ExecuteAsync(oSql, new { Q=q20, Label="6 to 10",    PLabel="600",  Min=6,  Max=10,     Pts=600,  At=0, Sub=(int?)null, Inp=(string?)null, Imp=(string?)null, Rep=(string?)null, Sort=2 });
-        await connection.ExecuteAsync(oSql, new { Q=q20, Label="10 & above", PLabel="1000", Min=10, Max=100000, Pts=1000, At=0, Sub=(int?)null, Inp=(string?)null, Imp=(string?)null, Rep=(string?)null, Sort=3 });
-
-        int q21=qMap[21]; // National
-        await connection.ExecuteAsync(oSql, new { Q=q21, Label="1",    PLabel="500", Min=0, Max=1,      Pts=500, At=0, Sub=(int?)null, Inp=(string?)null, Imp=(string?)null, Rep=(string?)null, Sort=1 });
-        await connection.ExecuteAsync(oSql, new { Q=q21, Label="2+",   PLabel="750", Min=2, Max=100000, Pts=750, At=0, Sub=(int?)null, Inp=(string?)null, Imp=(string?)null, Rep=(string?)null, Sort=2 });
-
-        int q22=qMap[22]; // International
-        await connection.ExecuteAsync(oSql, new { Q=q22, Label="First",  PLabel="750",  Min=0, Max=1,     Pts=750,  At=0, Sub=(int?)null, Inp=(string?)null, Imp=(string?)null, Rep=(string?)null, Sort=1 });
-        await connection.ExecuteAsync(oSql, new { Q=q22, Label="Second", PLabel="1000", Min=2, Max=10000, Pts=1000, At=0, Sub=(int?)null, Inp=(string?)null, Imp=(string?)null, Rep=(string?)null, Sort=2 });
-
-        // Q23-Q29 (sort=23-29): Events
-        // Q23 (Cricket Match) removed — zone-level only
-
-        int q24=qMap[24]; // Marathon
-        await connection.ExecuteAsync(oSql, new { Q=q24, Label="1",          PLabel="400", Min=0, Max=1,      Pts=400, At=0, Sub=(int?)null, Inp=(string?)null, Imp=(string?)null, Rep=(string?)null, Sort=1 });
-        await connection.ExecuteAsync(oSql, new { Q=q24, Label="2 & above",  PLabel="600", Min=2, Max=100000, Pts=600, At=0, Sub=(int?)null, Inp=(string?)null, Imp=(string?)null, Rep=(string?)null, Sort=2 });
-
-        int q25=qMap[25]; // ICGF
-        await connection.ExecuteAsync(oSql, new { Q=q25, Label="1 & 2",      PLabel="400", Min=0, Max=2,     Pts=400, At=0, Sub=(int?)null, Inp=(string?)null, Imp=(string?)null, Rep=(string?)null, Sort=1 });
-        await connection.ExecuteAsync(oSql, new { Q=q25, Label="3 & Above",  PLabel="600", Min=3, Max=10000, Pts=600, At=0, Sub=(int?)null, Inp=(string?)null, Imp=(string?)null, Rep=(string?)null, Sort=2 });
-
-        int q26=qMap[26]; // Trade Fair
-        await connection.ExecuteAsync(oSql, new { Q=q26, Label="1",          PLabel="400", Min=0, Max=1,      Pts=400, At=0, Sub=(int?)null, Inp=(string?)null, Imp=(string?)null, Rep=(string?)null, Sort=1 });
-        await connection.ExecuteAsync(oSql, new { Q=q26, Label="2 & Above",  PLabel="800", Min=2, Max=100000, Pts=800, At=0, Sub=(int?)null, Inp=(string?)null, Imp=(string?)null, Rep=(string?)null, Sort=2 });
-
-        int q27=qMap[27]; // Friendship Exchange Within Zone
-        await connection.ExecuteAsync(oSql, new { Q=q27, Label="upto 2",     PLabel="300", Min=0, Max=2,      Pts=300, At=0, Sub=(int?)null, Inp=(string?)null, Imp=(string?)null, Rep=(string?)null, Sort=1 });
-        await connection.ExecuteAsync(oSql, new { Q=q27, Label="3 & Above",  PLabel="500", Min=3, Max=100000, Pts=500, At=0, Sub=(int?)null, Inp=(string?)null, Imp=(string?)null, Rep=(string?)null, Sort=2 });
-
-        int q28=qMap[28]; // Friendship Exchange National
-        await connection.ExecuteAsync(oSql, new { Q=q28, Label="upto 2",     PLabel="400", Min=0, Max=2,      Pts=400, At=0, Sub=(int?)null, Inp=(string?)null, Imp=(string?)null, Rep=(string?)null, Sort=1 });
-        await connection.ExecuteAsync(oSql, new { Q=q28, Label="3 & Above",  PLabel="600", Min=3, Max=100000, Pts=600, At=0, Sub=(int?)null, Inp=(string?)null, Imp=(string?)null, Rep=(string?)null, Sort=2 });
-
-        int q29=qMap[29]; // Friendship Exchange International
-        await connection.ExecuteAsync(oSql, new { Q=q29, Label="upto 2",     PLabel="600", Min=0, Max=2,      Pts=600, At=0, Sub=(int?)null, Inp=(string?)null, Imp=(string?)null, Rep=(string?)null, Sort=1 });
-        await connection.ExecuteAsync(oSql, new { Q=q29, Label="3 & Above",  PLabel="800", Min=3, Max=100000, Pts=800, At=0, Sub=(int?)null, Inp=(string?)null, Imp=(string?)null, Rep=(string?)null, Sort=2 });
-
-        // Q30-Q31 (sort=30-31): Awareness - radio
-        int q30=qMap[30];
-        await connection.ExecuteAsync(oSql, new { Q=q30, Label="1",    PLabel="250", Min=0, Max=0, Pts=250, At=0, Sub=(int?)null, Inp=(string?)null, Imp=(string?)null, Rep=(string?)null, Sort=1 });
-        await connection.ExecuteAsync(oSql, new { Q=q30, Label="2",    PLabel="500", Min=0, Max=0, Pts=500, At=0, Sub=(int?)null, Inp=(string?)null, Imp=(string?)null, Rep=(string?)null, Sort=2 });
-        await connection.ExecuteAsync(oSql, new { Q=q30, Label="None", PLabel="0",   Min=0, Max=0, Pts=0,   At=0, Sub=(int?)null, Inp=(string?)null, Imp=(string?)null, Rep=(string?)null, Sort=3 });
-
-        int q31=qMap[31];
-        await connection.ExecuteAsync(oSql, new { Q=q31, Label="1",    PLabel="250", Min=0, Max=0, Pts=250, At=0, Sub=(int?)null, Inp=(string?)null, Imp=(string?)null, Rep=(string?)null, Sort=1 });
-        await connection.ExecuteAsync(oSql, new { Q=q31, Label="2",    PLabel="500", Min=0, Max=0, Pts=500, At=0, Sub=(int?)null, Inp=(string?)null, Imp=(string?)null, Rep=(string?)null, Sort=2 });
-        await connection.ExecuteAsync(oSql, new { Q=q31, Label="None", PLabel="0",   Min=0, Max=0, Pts=0,   At=0, Sub=(int?)null, Inp=(string?)null, Imp=(string?)null, Rep=(string?)null, Sort=3 });
-
-        // Q32-Q34 (sort=32-34): Digital Media - multi-subtype (District Yes/No + % clubs)
-        int q32=qMap[32];
-        await connection.ExecuteAsync(oSql, new { Q=q32, Label="District",               PLabel="500",  Min=0, Max=0, Pts=500,  At=0, Sub=1, Inp=(string?)null, Imp=(string?)null, Rep=(string?)null, Sort=1 });
-        await connection.ExecuteAsync(oSql, new { Q=q32, Label="District - No",          PLabel="0",    Min=0, Max=0, Pts=0,    At=0, Sub=1, Inp=(string?)null, Imp=(string?)null, Rep=(string?)null, Sort=2 });
-        await connection.ExecuteAsync(oSql, new { Q=q32, Label="33%+ clubs in District", PLabel="200",  Min=0, Max=0, Pts=200,  At=0, Sub=2, Inp=(string?)null, Imp=(string?)null, Rep=(string?)null, Sort=3 });
-        await connection.ExecuteAsync(oSql, new { Q=q32, Label="66%+ clubs in District", PLabel="750",  Min=0, Max=0, Pts=750,  At=0, Sub=2, Inp=(string?)null, Imp=(string?)null, Rep=(string?)null, Sort=4 });
-        await connection.ExecuteAsync(oSql, new { Q=q32, Label="90%+ Clubs in District", PLabel="1000", Min=0, Max=0, Pts=1000, At=0, Sub=2, Inp=(string?)null, Imp=(string?)null, Rep=(string?)null, Sort=5 });
-        await connection.ExecuteAsync(oSql, new { Q=q32, Label="None",                   PLabel="0",    Min=0, Max=0, Pts=0,    At=0, Sub=2, Inp=(string?)null, Imp=(string?)null, Rep=(string?)null, Sort=6 });
-
-        int q33=qMap[33];
-        await connection.ExecuteAsync(oSql, new { Q=q33, Label="District",               PLabel="500",  Min=0, Max=0, Pts=500,  At=0, Sub=1, Inp="District Yes / No", Imp=(string?)null, Rep=(string?)null, Sort=1 });
-        await connection.ExecuteAsync(oSql, new { Q=q33, Label="District - No",          PLabel="0",    Min=0, Max=0, Pts=0,    At=0, Sub=1, Inp="District Yes / No", Imp=(string?)null, Rep=(string?)null, Sort=2 });
-        await connection.ExecuteAsync(oSql, new { Q=q33, Label="33%+ clubs in District", PLabel="200",  Min=0, Max=0, Pts=200,  At=0, Sub=2, Inp=(string?)null, Imp=(string?)null, Rep=(string?)null, Sort=3 });
-        await connection.ExecuteAsync(oSql, new { Q=q33, Label="66%+ clubs in District", PLabel="750",  Min=0, Max=0, Pts=750,  At=0, Sub=2, Inp=(string?)null, Imp=(string?)null, Rep=(string?)null, Sort=4 });
-        await connection.ExecuteAsync(oSql, new { Q=q33, Label="90%+ Clubs in District", PLabel="1000", Min=0, Max=0, Pts=1000, At=0, Sub=2, Inp=(string?)null, Imp=(string?)null, Rep=(string?)null, Sort=5 });
-        await connection.ExecuteAsync(oSql, new { Q=q33, Label="None",                   PLabel="0",    Min=0, Max=0, Pts=0,    At=0, Sub=2, Inp=(string?)null, Imp=(string?)null, Rep=(string?)null, Sort=6 });
-
-        int q34=qMap[34];
-        await connection.ExecuteAsync(oSql, new { Q=q34, Label="District",               PLabel="500",  Min=0, Max=0, Pts=500,  At=0, Sub=1, Inp=(string?)null, Imp=(string?)null, Rep=(string?)null, Sort=1 });
-        await connection.ExecuteAsync(oSql, new { Q=q34, Label="District - No",          PLabel="0",    Min=0, Max=0, Pts=0,    At=0, Sub=1, Inp=(string?)null, Imp=(string?)null, Rep=(string?)null, Sort=2 });
-        await connection.ExecuteAsync(oSql, new { Q=q34, Label="33%+ clubs in District", PLabel="200",  Min=0, Max=0, Pts=200,  At=0, Sub=2, Inp=(string?)null, Imp=(string?)null, Rep=(string?)null, Sort=3 });
-        await connection.ExecuteAsync(oSql, new { Q=q34, Label="66%+ clubs in District", PLabel="750",  Min=0, Max=0, Pts=750,  At=0, Sub=2, Inp=(string?)null, Imp=(string?)null, Rep=(string?)null, Sort=4 });
-        await connection.ExecuteAsync(oSql, new { Q=q34, Label="90%+ Clubs in District", PLabel="1000", Min=0, Max=0, Pts=1000, At=0, Sub=2, Inp=(string?)null, Imp=(string?)null, Rep=(string?)null, Sort=5 });
-        await connection.ExecuteAsync(oSql, new { Q=q34, Label="None",                   PLabel="0",    Min=0, Max=0, Pts=0,    At=0, Sub=2, Inp=(string?)null, Imp=(string?)null, Rep=(string?)null, Sort=6 });
-
-        // Q35-Q37 (sort=35-37): Public Image Projects & Display
-        int q35=qMap[35]; // Adopt a Road
-        await connection.ExecuteAsync(oSql, new { Q=q35, Label="upto 5",      PLabel="100 per Project", Min=0, Max=5,      Pts=100, At=0, Sub=(int?)null, Inp=(string?)null, Imp=(string?)null, Rep=(string?)null, Sort=1 });
-        await connection.ExecuteAsync(oSql, new { Q=q35, Label="6 and above", PLabel="200 per Project", Min=6, Max=100000, Pts=200, At=0, Sub=(int?)null, Inp=(string?)null, Imp=(string?)null, Rep=(string?)null, Sort=2 });
-
-        int q36=qMap[36]; // Public rallies
-        await connection.ExecuteAsync(oSql, new { Q=q36, Label="upto 5",       PLabel="200 per event", Min=0, Max=5,      Pts=200, At=0, Sub=(int?)null, Inp=(string?)null, Imp=(string?)null, Rep=(string?)null, Sort=1 });
-        await connection.ExecuteAsync(oSql, new { Q=q36, Label="6 and above",  PLabel="300 per event", Min=6, Max=100000, Pts=300, At=0, Sub=(int?)null, Inp=(string?)null, Imp=(string?)null, Rep=(string?)null, Sort=2 });
-
-        int q37=qMap[37]; // City Bus/Hoardings
-        await connection.ExecuteAsync(oSql, new { Q=q37, Label="upto 5",      PLabel="200", Min=0, Max=5,      Pts=200, At=0, Sub=(int?)null, Inp=(string?)null, Imp=(string?)null, Rep=(string?)null, Sort=1 });
-        await connection.ExecuteAsync(oSql, new { Q=q37, Label="6 & above",   PLabel="300", Min=6, Max=100000, Pts=300, At=0, Sub=(int?)null, Inp=(string?)null, Imp=(string?)null, Rep=(string?)null, Sort=2 });
-
-        // Q38-Q39 (sort=38-39): Print Media - multi-subtype
-        int q38=qMap[38];
-        await connection.ExecuteAsync(oSql, new { Q=q38, Label="District",               PLabel="500",  Min=0, Max=0, Pts=500,  At=0, Sub=1, Inp="District Yes / No", Imp=(string?)null, Rep=(string?)null, Sort=1 });
-        await connection.ExecuteAsync(oSql, new { Q=q38, Label="District - No",          PLabel="0",    Min=0, Max=0, Pts=0,    At=0, Sub=1, Inp="District Yes / No", Imp=(string?)null, Rep=(string?)null, Sort=2 });
-        await connection.ExecuteAsync(oSql, new { Q=q38, Label="33%+ clubs in District", PLabel="200",  Min=0, Max=0, Pts=200,  At=0, Sub=2, Inp=(string?)null, Imp=(string?)null, Rep=(string?)null, Sort=3 });
-        await connection.ExecuteAsync(oSql, new { Q=q38, Label="66%+ clubs in District", PLabel="750",  Min=0, Max=0, Pts=750,  At=0, Sub=2, Inp=(string?)null, Imp=(string?)null, Rep=(string?)null, Sort=4 });
-        await connection.ExecuteAsync(oSql, new { Q=q38, Label="90%+ Clubs in District", PLabel="1000", Min=0, Max=0, Pts=1000, At=0, Sub=2, Inp=(string?)null, Imp=(string?)null, Rep=(string?)null, Sort=5 });
-        await connection.ExecuteAsync(oSql, new { Q=q38, Label="None",                   PLabel="0",    Min=0, Max=0, Pts=0,    At=0, Sub=2, Inp=(string?)null, Imp=(string?)null, Rep=(string?)null, Sort=6 });
-
-        int q39=qMap[39];
-        await connection.ExecuteAsync(oSql, new { Q=q39, Label="District",               PLabel="500",  Min=0, Max=0, Pts=500,  At=0, Sub=1, Inp="District Yes / No", Imp=(string?)null, Rep=(string?)null, Sort=1 });
-        await connection.ExecuteAsync(oSql, new { Q=q39, Label="District - No",          PLabel="0",    Min=0, Max=0, Pts=0,    At=0, Sub=1, Inp="District Yes / No", Imp=(string?)null, Rep=(string?)null, Sort=2 });
-        await connection.ExecuteAsync(oSql, new { Q=q39, Label="33%+ clubs in District", PLabel="200",  Min=0, Max=0, Pts=200,  At=0, Sub=2, Inp=(string?)null, Imp=(string?)null, Rep=(string?)null, Sort=3 });
-        await connection.ExecuteAsync(oSql, new { Q=q39, Label="66%+ clubs in District", PLabel="750",  Min=0, Max=0, Pts=750,  At=0, Sub=2, Inp=(string?)null, Imp=(string?)null, Rep=(string?)null, Sort=4 });
-        await connection.ExecuteAsync(oSql, new { Q=q39, Label="90%+ Clubs in District", PLabel="1000", Min=0, Max=0, Pts=1000, At=0, Sub=2, Inp=(string?)null, Imp=(string?)null, Rep=(string?)null, Sort=5 });
-        await connection.ExecuteAsync(oSql, new { Q=q39, Label="None",                   PLabel="0",    Min=0, Max=0, Pts=0,    At=0, Sub=2, Inp=(string?)null, Imp=(string?)null, Rep=(string?)null, Sort=6 });
-
-        // Q40-Q52 (sort=40-52): Foundation Goals - multi-subtype with Number + Yes/No
-        int q40=qMap[40]; // AKS
-        await connection.ExecuteAsync(oSql, new { Q=q40, Label="First AKS for the year",              PLabel="500 per AKS",  Min=0, Max=1,      Pts=500,  At=0, Sub=1, Inp="Option1", Imp=(string?)null,                   Rep=(string?)null, Sort=1 });
-        await connection.ExecuteAsync(oSql, new { Q=q40, Label="Second AKS for the year",             PLabel="750 per AKS",  Min=1, Max=2,      Pts=750,  At=0, Sub=1, Inp=(string?)null, Imp=(string?)null,                Rep=(string?)null, Sort=2 });
-        await connection.ExecuteAsync(oSql, new { Q=q40, Label="Third AKS & Above for the year",      PLabel="1000 per AKS", Min=2, Max=100000, Pts=1000, At=0, Sub=1, Inp=(string?)null, Imp=(string?)null,                Rep=(string?)null, Sort=3 });
-        await connection.ExecuteAsync(oSql, new { Q=q40, Label="First time district entering AKS club",PLabel="1000 Bonus",  Min=0, Max=0,      Pts=1000, At=0, Sub=2, Inp="Yes/No",     Imp="First time district entering AKS club", Rep=(string?)null, Sort=4 });
-
-        int q41=qMap[41]; // Endowment
-        await connection.ExecuteAsync(oSql, new { Q=q41, Label="First for the year",           PLabel="500",        Min=0, Max=1,      Pts=500, At=0, Sub=1, Inp="Option1",    Imp=(string?)null,                          Rep=(string?)null, Sort=1 });
-        await connection.ExecuteAsync(oSql, new { Q=q41, Label="Second for the year",          PLabel="600",        Min=1, Max=2,      Pts=600, At=0, Sub=1, Inp=(string?)null, Imp=(string?)null,                          Rep=(string?)null, Sort=2 });
-        await connection.ExecuteAsync(oSql, new { Q=q41, Label="Third & Above for the year",   PLabel="800",        Min=2, Max=100000, Pts=800, At=0, Sub=1, Inp=(string?)null, Imp=(string?)null,                          Rep=(string?)null, Sort=3 });
-        await connection.ExecuteAsync(oSql, new { Q=q41, Label="$100,000 & above for the year",PLabel="750 Bonus",  Min=0, Max=0,      Pts=750, At=0, Sub=2, Inp="Yes/No",     Imp="$100,000 & above for the year",        Rep=(string?)null, Sort=4 });
-        await connection.ExecuteAsync(oSql, new { Q=q41, Label="First time by District",       PLabel="750 Bonus",  Min=0, Max=0,      Pts=750, At=0, Sub=3, Inp="Yes/No",     Imp="First time by District",               Rep=(string?)null, Sort=5 });
-
-        int q42=qMap[42]; // Bequest Society
-        await connection.ExecuteAsync(oSql, new { Q=q42, Label="upto 5 for the year",          PLabel="100 per BS", Min=0,  Max=5,      Pts=100, At=0, Sub=1, Inp="Option1",    Imp=(string?)null,                          Rep=(string?)null, Sort=1 });
-        await connection.ExecuteAsync(oSql, new { Q=q42, Label="6 to 10 for the year",         PLabel="200 per BS", Min=6,  Max=10,     Pts=200, At=0, Sub=1, Inp=(string?)null, Imp=(string?)null,                          Rep=(string?)null, Sort=2 });
-        await connection.ExecuteAsync(oSql, new { Q=q42, Label="10 & above for the year",      PLabel="300 per BS", Min=10, Max=100000, Pts=300, At=0, Sub=1, Inp=(string?)null, Imp=(string?)null,                          Rep=(string?)null, Sort=3 });
-        await connection.ExecuteAsync(oSql, new { Q=q42, Label="$100,000 & above for the year",PLabel="750 Bonus",  Min=0,  Max=0,      Pts=750, At=0, Sub=2, Inp="Yes/No",     Imp="$100,000 & above for the year",        Rep=(string?)null, Sort=4 });
-
-        int q43=qMap[43]; // Directed Gift
-        await connection.ExecuteAsync(oSql, new { Q=q43, Label="First Directed Gift for the year",  PLabel="100 per Gift", Min=0, Max=1,      Pts=100, At=0, Sub=1, Inp="Option1",    Imp=(string?)null,                          Rep=(string?)null, Sort=1 });
-        await connection.ExecuteAsync(oSql, new { Q=q43, Label="Second Directed Gift for the year", PLabel="200 per Gift", Min=1, Max=2,      Pts=200, At=0, Sub=1, Inp=(string?)null, Imp=(string?)null,                          Rep=(string?)null, Sort=2 });
-        await connection.ExecuteAsync(oSql, new { Q=q43, Label="Third DG & Above for the year",     PLabel="300 per Gift", Min=2, Max=100000, Pts=300, At=0, Sub=1, Inp=(string?)null, Imp=(string?)null,                          Rep=(string?)null, Sort=3 });
-        await connection.ExecuteAsync(oSql, new { Q=q43, Label="$100,000 & above for the year",     PLabel="750 Bonus",   Min=0, Max=0,      Pts=750, At=0, Sub=2, Inp="Yes/No",     Imp="$100,000 & above for the year",        Rep=(string?)null, Sort=4 });
-        await connection.ExecuteAsync(oSql, new { Q=q43, Label="First time by District",            PLabel="750 Bonus",   Min=0, Max=0,      Pts=750, At=0, Sub=3, Inp="Yes/No",     Imp="First time by District",               Rep=(string?)null, Sort=5 });
-
-        int q44=qMap[44]; // DDF
-        await connection.ExecuteAsync(oSql, new { Q=q44, Label="20%+",            PLabel="400", Min=20, Max=100, Pts=400, At=0, Sub=1, Inp="Option1",    Imp=(string?)null, Rep=(string?)null, Sort=1 });
-        await connection.ExecuteAsync(oSql, new { Q=q44, Label="25%+",            PLabel="600", Min=25, Max=100, Pts=600, At=0, Sub=1, Inp=(string?)null, Imp=(string?)null, Rep=(string?)null, Sort=2 });
-        await connection.ExecuteAsync(oSql, new { Q=q44, Label="30% and above",   PLabel="800", Min=30, Max=100, Pts=800, At=0, Sub=1, Inp=(string?)null, Imp=(string?)null, Rep=(string?)null, Sort=3 });
-
-        int q45=qMap[45]; // EPF
-        await connection.ExecuteAsync(oSql, new { Q=q45, Label="upto 10",     PLabel="50 per EPF",  Min=0,  Max=10,     Pts=50,  At=0, Sub=1, Inp="Option1",    Imp=(string?)null, Rep=(string?)null, Sort=1 });
-        await connection.ExecuteAsync(oSql, new { Q=q45, Label="11 to 20",    PLabel="100 per EPF", Min=11, Max=20,     Pts=100, At=0, Sub=1, Inp=(string?)null, Imp=(string?)null, Rep=(string?)null, Sort=2 });
-        await connection.ExecuteAsync(oSql, new { Q=q45, Label="21 & above",  PLabel="150 per EPF", Min=21, Max=100000, Pts=150, At=0, Sub=1, Inp=(string?)null, Imp=(string?)null, Rep=(string?)null, Sort=3 });
-
-        int q46=qMap[46]; // Polio Plus Society
-        await connection.ExecuteAsync(oSql, new { Q=q46, Label="Atleast 2 members per club", PLabel="100 per club", Min=2, Max=100000, Pts=100, At=0, Sub=1, Inp="Option1", Imp=(string?)null, Rep=(string?)null, Sort=1 });
-
-        int q47=qMap[47]; // Annual Fund - 4 subtypes
-        await connection.ExecuteAsync(oSql, new { Q=q47, Label="100000",                                PLabel="750",        Min=0,      Max=100000,  Pts=750,  At=0, Sub=1, Inp="Option1",    Imp=(string?)null,                                       Rep=(string?)null, Sort=1 });
-        await connection.ExecuteAsync(oSql, new { Q=q47, Label="200000",                                PLabel="1000",       Min=100000, Max=200000,  Pts=1000, At=0, Sub=1, Inp=(string?)null, Imp=(string?)null,                                       Rep=(string?)null, Sort=2 });
-        await connection.ExecuteAsync(oSql, new { Q=q47, Label="$300,000+",                             PLabel="1500",       Min=200000, Max=10000000,Pts=1500, At=0, Sub=1, Inp=(string?)null, Imp=(string?)null,                                       Rep=(string?)null, Sort=3 });
-        await connection.ExecuteAsync(oSql, new { Q=q47, Label="Per capita contribution $25+",          PLabel="200",        Min=25,     Max=50,      Pts=200,  At=0, Sub=2, Inp="Option2",    Imp="Per capita",                                        Rep=(string?)null, Sort=4 });
-        await connection.ExecuteAsync(oSql, new { Q=q47, Label="Per capita contribution $50+",          PLabel="500",        Min=50,     Max=75,      Pts=500,  At=0, Sub=2, Inp=(string?)null, Imp="Per capita",                                        Rep=(string?)null, Sort=5 });
-        await connection.ExecuteAsync(oSql, new { Q=q47, Label="Per capita contribution $75+",          PLabel="1000",       Min=75,     Max=100000,  Pts=1000, At=0, Sub=2, Inp=(string?)null, Imp="Per capita",                                        Rep=(string?)null, Sort=6 });
-        await connection.ExecuteAsync(oSql, new { Q=q47, Label="100% Clubs contributing minimum $250",  PLabel="750 Bonus",  Min=0,      Max=0,       Pts=750,  At=0, Sub=3, Inp="Yes/No",     Imp="100% Clubs contributing minimum $250",              Rep=(string?)null, Sort=7 });
-        await connection.ExecuteAsync(oSql, new { Q=q47, Label="100% Rotarians contributing minimum $10",PLabel="1000 Bonus",Min=0,      Max=0,       Pts=1000, At=0, Sub=4, Inp="Yes/No",     Imp="100% Rotarians contributing minimum $10",           Rep=(string?)null, Sort=8 });
-
-        int q48=qMap[48]; // PHF
-        await connection.ExecuteAsync(oSql, new { Q=q48, Label="Upto 50",  PLabel="10 per PHF", Min=0,   Max=50,     Pts=10, At=0, Sub=1, Inp="Option1",    Imp=(string?)null, Rep=(string?)null, Sort=1 });
-        await connection.ExecuteAsync(oSql, new { Q=q48, Label="51 - 100", PLabel="20 per PHF", Min=51,  Max=100,    Pts=20, At=0, Sub=1, Inp=(string?)null, Imp=(string?)null, Rep=(string?)null, Sort=2 });
-        await connection.ExecuteAsync(oSql, new { Q=q48, Label="101+",     PLabel="30 per PHF", Min=101, Max=100000, Pts=30, At=0, Sub=1, Inp=(string?)null, Imp=(string?)null, Rep=(string?)null, Sort=3 });
-
-        int q49=qMap[49]; // Hall of Honor Club
-        await connection.ExecuteAsync(oSql, new { Q=q49, Label="First Club",            PLabel="400", Min=0, Max=1,     Pts=400, At=0, Sub=1, Inp="Option1",    Imp=(string?)null, Rep=(string?)null, Sort=1 });
-        await connection.ExecuteAsync(oSql, new { Q=q49, Label="Second Club",           PLabel="600", Min=1, Max=2,     Pts=600, At=0, Sub=1, Inp=(string?)null, Imp=(string?)null, Rep=(string?)null, Sort=2 });
-        await connection.ExecuteAsync(oSql, new { Q=q49, Label="Third club & Above",    PLabel="800", Min=2, Max=10000, Pts=800, At=0, Sub=1, Inp=(string?)null, Imp=(string?)null, Rep=(string?)null, Sort=3 });
-
-        int q50=qMap[50]; // PHSM
-        await connection.ExecuteAsync(oSql, new { Q=q50, Label="upto 10",    PLabel="20 per PHSM", Min=0,  Max=10,     Pts=20, At=0, Sub=1, Inp="Option1",    Imp=(string?)null, Rep=(string?)null, Sort=1 });
-        await connection.ExecuteAsync(oSql, new { Q=q50, Label="11 to 20",   PLabel="40 per PHSM", Min=11, Max=20,     Pts=40, At=0, Sub=1, Inp=(string?)null, Imp=(string?)null, Rep=(string?)null, Sort=2 });
-        await connection.ExecuteAsync(oSql, new { Q=q50, Label="20 to 30",   PLabel="60 per PHSM", Min=20, Max=30,     Pts=60, At=0, Sub=1, Inp=(string?)null, Imp=(string?)null, Rep=(string?)null, Sort=3 });
-        await connection.ExecuteAsync(oSql, new { Q=q50, Label="30 & above", PLabel="80 per PHSM", Min=30, Max=100000, Pts=80, At=0, Sub=1, Inp=(string?)null, Imp=(string?)null, Rep=(string?)null, Sort=4 });
-
-        int q51=qMap[51]; // Major Donors
-        await connection.ExecuteAsync(oSql, new { Q=q51, Label="upto 5",     PLabel="100 per MD", Min=0,  Max=5,      Pts=100, At=0, Sub=1, Inp="Option1",    Imp=(string?)null, Rep=(string?)null, Sort=1 });
-        await connection.ExecuteAsync(oSql, new { Q=q51, Label="06 to 10",   PLabel="200 per MD", Min=6,  Max=10,     Pts=200, At=0, Sub=1, Inp=(string?)null, Imp=(string?)null, Rep=(string?)null, Sort=2 });
-        await connection.ExecuteAsync(oSql, new { Q=q51, Label="11 to 15",   PLabel="300 per MD", Min=11, Max=15,     Pts=300, At=0, Sub=1, Inp=(string?)null, Imp=(string?)null, Rep=(string?)null, Sort=3 });
-        await connection.ExecuteAsync(oSql, new { Q=q51, Label="15 & above", PLabel="400 per MD", Min=15, Max=100000, Pts=400, At=0, Sub=1, Inp=(string?)null, Imp=(string?)null, Rep=(string?)null, Sort=4 });
-
-        int q52=qMap[52]; // CSR project with RFI
-        await connection.ExecuteAsync(oSql, new { Q=q52, Label="upto 3 projects",                   PLabel="200 per project", Min=0, Max=3,      Pts=200, At=0, Sub=1, Inp="Option1",    Imp=(string?)null,                              Rep=(string?)null, Sort=1 });
-        await connection.ExecuteAsync(oSql, new { Q=q52, Label="4 projects & above",                PLabel="300 per project", Min=4, Max=100000, Pts=300, At=0, Sub=1, Inp=(string?)null, Imp=(string?)null,                              Rep=(string?)null, Sort=2 });
-        await connection.ExecuteAsync(oSql, new { Q=q52, Label="CSR Projects with $100,000 or above",PLabel="500 Bonus",      Min=0, Max=0,      Pts=500, At=0, Sub=2, Inp="Yes/No",     Imp="CSR Projects with $100,000 or above",     Rep=(string?)null, Sort=3 });
-        await connection.ExecuteAsync(oSql, new { Q=q52, Label="First time by District",            PLabel="750 Bonus",       Min=0, Max=0,      Pts=750, At=0, Sub=3, Inp="Yes/No",     Imp="First time by District",                  Rep=(string?)null, Sort=4 });
     }
 }

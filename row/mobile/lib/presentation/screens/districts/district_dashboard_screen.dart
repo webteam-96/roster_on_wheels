@@ -180,7 +180,7 @@ class _DistrictDashboardScreenState extends State<DistrictDashboardScreen>
     switch (key) {
       case 'directory':           return RouteNames.districtMembers(id);
       // District goal ENTRY — set district-level targets by category, mirroring
-      // the web District Admin page (includes lock/unlock when granted).
+      // the web District Admin page.
       // Disabled while Goal Setting is hidden for release.
       case 'goalsetting':
         return kGoalSettingEnabled ? RouteNames.districtGoalSetting(id) : null;
@@ -203,12 +203,8 @@ class _DistrictDashboardScreenState extends State<DistrictDashboardScreen>
       case 'massemail':           return RouteNames.districtMassEmails(id);
       case 'greetings':           return RouteNames.districtGreetings(id);
       case 'websitedata':         return RouteNames.districtWebsiteData(id);
-      case 'clubmoderator':       return RouteNames.districtClubModerator(id);
       case 'districtcitation':    return RouteNames.districtCitation(id);
-      case 'rnicamp':
-      case 'pphcamp':             return RouteNames.districtRniCamp(id);
       case 'reports':             return RouteNames.districtReports(id);
-      case 'zonalawards':         return RouteNames.districtZonalAwards(id);
       case 'onlineeventlink':     return RouteNames.districtOnlineEventLink(id);
       case 'clubdues':            return RouteNames.districtClubDues(id);
       case 'ag':
@@ -780,11 +776,10 @@ class _ModuleTile extends StatelessWidget {
     if (key.contains('newsletter')) return Icons.newspaper_rounded;
     if (key.contains('document')) return Icons.folder_rounded;
     if (key.contains('committee')) return Icons.groups_rounded;
-    if (key.contains('club') && !key.contains('moderator')) return Icons.business_rounded;
+    if (key.contains('club')) return Icons.business_rounded;
     if (key.contains('report') || key.contains('cmr')) return Icons.bar_chart_rounded;
     if (key.contains('weblink') || key.contains('link')) return Icons.link_rounded;
     if (key.contains('project')) return Icons.assignment_rounded;
-    if (key.contains('moderator')) return Icons.manage_accounts_rounded;
     return Icons.grid_view_rounded;
   }
 

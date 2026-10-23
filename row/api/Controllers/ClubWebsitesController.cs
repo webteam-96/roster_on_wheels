@@ -1457,21 +1457,21 @@ public class ClubWebsitesController : ControllerBase
 <p>If you did not expect this, ignore this email — nothing changes without the OTP.</p>
 {EmailService.EMAIL_FOOTER}";
 
-        bool smsOk = false, emailOk = false;
-        // ROW sends no SMS: the code goes by email only.
+        bool emailOk = false;
+        // The code goes by email only.
         if (email != "")
         {
             try { await _emailService.SendGenericEmailAsync(email, emailSubject, emailBody); emailOk = true; }
             catch (Exception ex) { _ = ex; }
         }
-        if (!smsOk && !emailOk)
-            return StatusCode(500, new { message = "Could not deliver the OTP by SMS or email. Please try again." });
+        if (!emailOk)
+            return StatusCode(500, new { message = "Could not deliver the OTP by email. Please try again." });
 
         return Ok(new
         {
             message = "OTP sent to the authorised approver.",
-            debugOtp = otp,   // per project convention — shown in dev for testing
-            sentSms = smsOk,
+            // Development only: anywhere else the requester would get the approver's OTP back.
+            debugOtp = HttpContext.RequestServices.GetRequiredService<IWebHostEnvironment>().IsDevelopment() ? otp : null,
             sentEmail = emailOk,
             maskedMobile = MaskMobile(mobile),
             maskedEmail = MaskEmail(email),
@@ -1671,8 +1671,7 @@ public class ClubWebsitesController : ControllerBase
                 isCustom = r.pricingId != null,
                 // Encrypted one-click pay link for this club + the selected year (copy-able in the UI).
                 payLink = $"{frontend}/pay/club-website/{WebsitePayLinkToken.Generate(_config, cid, yr)}",
-                // Wallet credit top-up links for this club (WhatsApp / Email) — Club Wallet's 3 copy options.
-                whatsappPayLink = $"{frontend}/pay/w/{WalletPayLinkToken.Generate(_config, "club", "whatsapp", cid)}",
+                // Wallet email-credit top-up link for this club.
                 emailPayLink = $"{frontend}/pay/w/{WalletPayLinkToken.Generate(_config, "club", "email", cid)}",
                 baseAmount = effBase,
                 renewalAmount = effRenewal,
@@ -1691,7 +1690,6 @@ public class ClubWebsitesController : ControllerBase
         var commonLinks = new
         {
             website = $"{frontend}/pay/w/{WalletPayLinkToken.Generate(_config, "club", "website", 0, neverExpires: true)}",
-            whatsapp = $"{frontend}/pay/w/{WalletPayLinkToken.Generate(_config, "club", "whatsapp", 0, neverExpires: true)}",
             email = $"{frontend}/pay/w/{WalletPayLinkToken.Generate(_config, "club", "email", 0, neverExpires: true)}",
         };
         return Ok(new { items, total, page, pageSize, yearId = yr, routeAll = await GetRouteAllAsync(conn), commonLinks });
@@ -1742,8 +1740,8 @@ public class ClubWebsitesController : ControllerBase
         return Ok(new { success = true, updated = ids.Count });
     }
 
-    // Bulk buy/renew reminders: email + (template-gated) WhatsApp with an encrypted pay link, to the
-    // current-year President + Secretary of each selected club. Skips clubs with an invalid config or no contact.
+    // Bulk buy/renew reminders: an email with an encrypted pay link, to the current-year President,
+    // Secretary and Treasurer of each selected club. Skips clubs with an invalid config or no email.
     [HttpPost("pricing/send-reminders")]
     public async Task<ActionResult> SendPricingReminders([FromBody] SendRemindersRequest req)
     {
@@ -1756,9 +1754,6 @@ public class ClubWebsitesController : ControllerBase
 
         int userId = GetUserId();
         var frontend = (_config["FrontendUrl"] ?? RotaryApi.Services.Brand.PortalOrigin).TrimEnd('/');
-        var parentDomain = await conn.ExecuteScalarAsync<string?>(
-            "SELECT SettingValue FROM system_settings WHERE SettingKey = 'ClubWebsiteParentDomain' LIMIT 1")
-            ?? (_config.GetSection("PleskSettings")["ParentDomain"] ?? RotaryApi.Services.Brand.ClubSiteParentDomain);
         var def = await ResolveDefaultsAsync(conn);
         decimal defBase = def.NewAmount, defGst = def.GstPercent;
         bool globalRouteOk = await HasActiveGlobalRouteAccountAsync(conn);  // one account for all Route payments
@@ -1769,9 +1764,9 @@ public class ClubWebsitesController : ControllerBase
                    w.pk_id AS websiteId, w.Subdomain AS subdomain, w.ClientDomain AS clientDomain,
                    w.EndDate AS endDate, DATEDIFF(w.EndDate, CURDATE()) AS daysLeft,
                    p.BaseAmount AS baseAmount, p.GstPercent AS gstPercent, p.GatewayType AS gatewayType,
-                   pres.name AS presidentName, pres.mobile AS presidentMobile, pres.email AS presidentEmail,
-                   sec.name AS secretaryName, sec.mobile AS secretaryMobile, sec.email AS secretaryEmail,
-                   treas.name AS treasurerName, treas.mobile AS treasurerMobile, treas.email AS treasurerEmail
+                   pres.name AS presidentName, pres.email AS presidentEmail,
+                   sec.name AS secretaryName, sec.email AS secretaryEmail,
+                   treas.name AS treasurerName, treas.email AS treasurerEmail
             FROM club_master c
             LEFT JOIN district_master d ON d.pk_district_id = c.fk_district_id
             LEFT JOIN club_websites w ON w.pk_id = (
@@ -1784,7 +1779,7 @@ public class ClubWebsitesController : ControllerBase
             WHERE c.pk_club_id IN @Ids AND c.isdeleted = 0",
             new { Year = yr, Ids = req.ClubIds })).ToList();
 
-        int clubsProcessed = 0, emailsSent = 0, whatsappSent = 0, failed = 0;
+        int clubsProcessed = 0, emailsSent = 0, failed = 0;
         var skipped = new List<object>();
 
         foreach (var r in rows)
@@ -1810,33 +1805,26 @@ public class ClubWebsitesController : ControllerBase
             { skipped.Add(new { clubId, clubName, reason = $"Website active — {daysLeft} days remaining (over 30)." }); continue; }
             var token = WebsitePayLinkToken.Generate(_config, clubId, yr);
             var link = $"{frontend}/pay/club-website/{token}";
-            // WhatsApp renewal template params: website URL + due date (renewals only).
-            string websiteUrl = !string.IsNullOrWhiteSpace((string?)r.clientDomain) ? (string)r.clientDomain
-                : (!string.IsNullOrWhiteSpace((string?)r.subdomain) ? $"{(string)r.subdomain}.{parentDomain}" : clubName);
-            string dueDate = endDate?.ToString("dd MMM yyyy") ?? "";
 
-            var recips = new List<(string name, string? email, string? mobile, string designation)>();
-            if (!string.IsNullOrWhiteSpace((string?)r.presidentEmail) || !string.IsNullOrWhiteSpace((string?)r.presidentMobile))
-                recips.Add(((string?)r.presidentName ?? "President", (string?)r.presidentEmail, (string?)r.presidentMobile, "Club President"));
-            if (!string.IsNullOrWhiteSpace((string?)r.secretaryEmail) || !string.IsNullOrWhiteSpace((string?)r.secretaryMobile))
-                recips.Add(((string?)r.secretaryName ?? "Secretary", (string?)r.secretaryEmail, (string?)r.secretaryMobile, "Club Secretary"));
-            if (!string.IsNullOrWhiteSpace((string?)r.treasurerEmail) || !string.IsNullOrWhiteSpace((string?)r.treasurerMobile))
-                recips.Add(((string?)r.treasurerName ?? "Treasurer", (string?)r.treasurerEmail, (string?)r.treasurerMobile, "Club Treasurer"));
+            var recips = new List<(string name, string email, string designation)>();
+            if (!string.IsNullOrWhiteSpace((string?)r.presidentEmail))
+                recips.Add(((string?)r.presidentName ?? "President", (string)r.presidentEmail, "Club President"));
+            if (!string.IsNullOrWhiteSpace((string?)r.secretaryEmail))
+                recips.Add(((string?)r.secretaryName ?? "Secretary", (string)r.secretaryEmail, "Club Secretary"));
+            if (!string.IsNullOrWhiteSpace((string?)r.treasurerEmail))
+                recips.Add(((string?)r.treasurerName ?? "Treasurer", (string)r.treasurerEmail, "Club Treasurer"));
 
-            if (recips.Count == 0) { skipped.Add(new { clubId, clubName, reason = "No President/Secretary/Treasurer contact found." }); continue; }
+            if (recips.Count == 0) { skipped.Add(new { clubId, clubName, reason = "No President/Secretary/Treasurer email found." }); continue; }
 
             bool anySent = false;
             foreach (var rc in recips)
             {
-                if (!string.IsNullOrWhiteSpace(rc.email))
+                try
                 {
-                    try
-                    {
-                        await _emailService.SendClubWebsitePayLinkEmailAsync(rc.email!, rc.name, clubName, rc.designation, orderType, total, endDate, daysLeft, link);
-                        emailsSent++; anySent = true;
-                    }
-                    catch { failed++; }
+                    await _emailService.SendClubWebsitePayLinkEmailAsync(rc.email, rc.name, clubName, rc.designation, orderType, total, endDate, daysLeft, link);
+                    emailsSent++; anySent = true;
                 }
+                catch { failed++; }
             }
             if (anySent)
             {
@@ -1844,6 +1832,6 @@ public class ClubWebsitesController : ControllerBase
                 if (hasSite) await LogAction(conn, (int)r.websiteId, "ReminderSent", $"Bulk pay-link reminder (year {yr})", userId);
             }
         }
-        return Ok(new { clubsProcessed, emailsSent, whatsappSent, failed, skipped });
+        return Ok(new { clubsProcessed, emailsSent, failed, skipped });
     }
 }

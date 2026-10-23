@@ -54,33 +54,6 @@ public class MobileClubAdminReportController : ControllerBase
         return await Web().GetReport(cid.Value, yearId);
     }
 
-    [HttpGet("data-collection/all-members")]
-    public async Task<ActionResult> DataCollectionAllMembers([FromQuery] int? clubId, [FromQuery] int yearId)
-    {
-        if (!IsSuperAdminOrAdmin()) return Denied();
-        var cid = ResolveClubId(clubId);
-        if (cid == null) return BadRequest(new { message = "clubId is required." });
-        return await Web().DataCollectionAllMembers(cid.Value, yearId);
-    }
-
-    [HttpGet("data-collection/bod")]
-    public async Task<ActionResult> DataCollectionBod([FromQuery] int? clubId, [FromQuery] int yearId)
-    {
-        if (!IsSuperAdminOrAdmin()) return Denied();
-        var cid = ResolveClubId(clubId);
-        if (cid == null) return BadRequest(new { message = "clubId is required." });
-        return await Web().DataCollectionBod(cid.Value, yearId);
-    }
-
-    [HttpGet("data-collection/dc")]
-    public async Task<ActionResult> DataCollectionDc([FromQuery] int? clubId, [FromQuery] int yearId)
-    {
-        if (!IsSuperAdminOrAdmin()) return Denied();
-        var cid = ResolveClubId(clubId);
-        if (cid == null) return BadRequest(new { message = "clubId is required." });
-        return await Web().DataCollectionDc(cid.Value, yearId);
-    }
-
     [HttpGet("avenue-of-service-raw-data")]
     public async Task<ActionResult> AvenueOfServiceRawData([FromQuery] int? clubId, [FromQuery] int yearId)
     {

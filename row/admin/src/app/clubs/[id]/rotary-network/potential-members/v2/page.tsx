@@ -20,14 +20,18 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useParams, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import {
-  UserPlus, Mail, Phone, AlertCircle, Loader2, Search, Plus, Edit3,
-  Trash2, ArrowLeft, AlertTriangle,
+  UserPlus, Mail, Phone, AlertCircle, Search, Plus, Edit3,
+  Trash2, ArrowLeft, AlertTriangle, UserCheck,
 } from "@/components/icons";
 import {
   getClub,
   getPotentialMembers,
   deletePotentialMember,
+  convertPotentialMember,
 } from "@/services/api";
+import { useFeatureOn } from "@/components/FeatureGate";
+import { Skeleton } from "@/components/dashboard/DashboardSkeleton";
+import { CONTACTS_FEATURE, PROSPECT_STAGES, errorText, label } from "@/lib/contacts";
 import { PotentialMember } from "@/types/potentialMember";
 import { useAuth } from "@/contexts/AuthContext";
 import KpiCard from "@/components/dashboard/KpiCard";
@@ -60,6 +64,10 @@ export default function PotentialMembersV2Page() {
   const [searchInput, setSearchInput] = useState("");
 
   const [deleteTarget, setDeleteTarget] = useState<PotentialMember | null>(null);
+  // Prospect pipeline (feature contacts_growth): stage filter and one-click conversion to a member.
+  const pipelineOn = useFeatureOn(CONTACTS_FEATURE);
+  const [stage, setStage] = useState("");
+  const [convertTarget, setConvertTarget] = useState<PotentialMember | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
@@ -100,7 +108,7 @@ export default function PotentialMembersV2Page() {
   const fetchPage = useCallback(async () => {
     setLoading(true);
     try {
-      const result = await getPotentialMembers(clubId, page, LIST_PAGE_SIZE, search || undefined);
+      const result = await getPotentialMembers(clubId, page, LIST_PAGE_SIZE, search || undefined, stage || undefined);
       setMembers(result.items);
       setTotalCount(result.totalCount);
     } catch {
@@ -109,7 +117,7 @@ export default function PotentialMembersV2Page() {
     } finally {
       setLoading(false);
     }
-  }, [clubId, page, search]);
+  }, [clubId, page, search, stage]);
 
   useEffect(() => { fetchKpiBucket(); }, [fetchKpiBucket]);
   useEffect(() => { fetchPage(); }, [fetchPage]);
@@ -143,6 +151,23 @@ export default function PotentialMembersV2Page() {
       setErrorMessage("Failed to delete potential member.");
     }
   };
+
+  // Creates the member through the member add path (duplicate checks included) and marks the prospect inducted.
+  const handleConvert = async () => {
+    const target = convertTarget;
+    setConvertTarget(null);
+    if (!target) return;
+    try {
+      await convertPotentialMember(clubId, target.id);
+      setSuccessMessage(`${target.name} is now a member of the club.`);
+      fetchPage();
+      fetchKpiBucket();
+    } catch (err) {
+      setErrorMessage(errorText(err, "Could not add this prospect as a member."));
+    }
+  };
+
+  const columnCount = 5 + (pipelineOn ? 2 : 0) + (canManage ? 2 : 0) + (canManage && pipelineOn ? 1 : 0);
 
   return (
     <ProtectedRoute>
@@ -215,6 +240,17 @@ export default function PotentialMembersV2Page() {
               >
                 Search
               </button>
+              {pipelineOn && (
+                <select
+                  aria-label="Stage"
+                  value={stage}
+                  onChange={(e) => { setPage(1); setStage(e.target.value); }}
+                  className="text-xs px-2 py-1.5 rounded-lg border border-slate-200 text-slate-700 bg-white"
+                >
+                  <option value="">All stages</option>
+                  {PROSPECT_STAGES.map((s) => <option key={s} value={s}>{label(s)}</option>)}
+                </select>
+              )}
               {canManage && (
                 <Link
                   href={addUrl}
@@ -229,8 +265,8 @@ export default function PotentialMembersV2Page() {
           {/* Table */}
           <div className="overflow-x-auto">
             {loading ? (
-              <div className="flex items-center justify-center py-12 text-slate-500">
-                <Loader2 className="animate-spin mr-2" size={16} /> Loading potential members…
+              <div className="space-y-3 p-4" aria-label="Loading potential members">
+                {Array.from({ length: 6 }).map((_, i) => <Skeleton key={i} className="h-5 w-full" />)}
               </div>
             ) : (
               <table className="min-w-full text-sm">
@@ -241,6 +277,9 @@ export default function PotentialMembersV2Page() {
                     <th className="px-3 py-2.5 text-left">Email</th>
                     <th className="px-3 py-2.5 text-left">Mobile</th>
                     <th className="px-3 py-2.5 text-left">Reference Details</th>
+                    {pipelineOn && <th className="px-3 py-2.5 text-left">Stage</th>}
+                    {pipelineOn && <th className="px-3 py-2.5 text-left">Owner</th>}
+                    {canManage && pipelineOn && <th className="px-3 py-2.5 text-right w-24">Member</th>}
                     {canManage && <th className="px-3 py-2.5 text-right w-16">Edit</th>}
                     {canManage && <th className="px-3 py-2.5 text-right w-16">Delete</th>}
                   </tr>
@@ -255,6 +294,25 @@ export default function PotentialMembersV2Page() {
                       <td className="px-3 py-2 text-slate-600 max-w-[320px] truncate" title={m.referenceDetails || ""}>
                         {m.referenceDetails || <span className="text-slate-400">, </span>}
                       </td>
+                      {pipelineOn && (
+                        <td className="px-3 py-2 text-slate-700 whitespace-nowrap" title={m.notes || ""}>{label(m.stage)}</td>
+                      )}
+                      {pipelineOn && <td className="px-3 py-2 text-slate-600">{m.ownerName || "-"}</td>}
+                      {canManage && pipelineOn && (
+                        <td className="px-3 py-2 text-right">
+                          {m.convertedMemberId ? (
+                            <span className="text-xs text-emerald-700">Member</span>
+                          ) : (
+                            <button
+                              type="button"
+                              onClick={() => setConvertTarget(m)}
+                              className="inline-flex items-center gap-1 text-xs font-medium px-2 py-1 rounded border border-slate-200 text-slate-700 hover:bg-slate-50"
+                            >
+                              <UserCheck size={13} /> Make member
+                            </button>
+                          )}
+                        </td>
+                      )}
                       {canManage && (
                         <td className="px-3 py-2 text-right">
                           <Link
@@ -282,7 +340,7 @@ export default function PotentialMembersV2Page() {
                   ))}
                   {members.length === 0 && (
                     <tr>
-                      <td colSpan={canManage ? 7 : 5} className="px-4 py-10 text-center text-slate-400">
+                      <td colSpan={columnCount} className="px-4 py-10 text-center text-slate-400">
                         {search ? "No potential members match your search." : "No potential members for this club yet."}
                       </td>
                     </tr>
@@ -337,6 +395,22 @@ export default function PotentialMembersV2Page() {
           onConfirm={handleDelete}
           cancelLabel="Cancel"
           onCancel={() => setDeleteTarget(null)}
+        />
+
+        <AlertModal
+          open={!!convertTarget}
+          onOpenChange={(o) => !o && setConvertTarget(null)}
+          icon={UserCheck}
+          iconClassName="text-azure"
+          title="Make member"
+          description={
+            <>Add <span className="font-semibold text-foreground">{convertTarget?.name}</span> to the club as a member, with the details on this record? The usual duplicate checks on email and mobile apply.</>
+          }
+          confirmLabel="Make member"
+          confirmClassName="bg-azure text-white hover:bg-mint-ink"
+          onConfirm={handleConvert}
+          cancelLabel="Cancel"
+          onCancel={() => setConvertTarget(null)}
         />
 
         <SuccessAlert open={!!successMessage} title="Success" description={successMessage || ""} onOk={() => setSuccessMessage(null)} />

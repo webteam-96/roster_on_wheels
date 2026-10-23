@@ -7,8 +7,8 @@ using MySqlConnector;
 namespace RotaryApi.Services;
 
 /// <summary>
-/// Phone-number helpers. ROW sends no SMS or WhatsApp (decided 2026-10-19): all communication is in-app or email,
-/// so the Twilio / Meta senders that used to live here were removed.
+/// Phone-number helpers. ROW sends no SMS or other phone messages (decided 2026-10-19): all communication is in-app or email,
+/// so the phone-message senders that used to live here were removed.
 /// </summary>
 public static class RowPhone
 {

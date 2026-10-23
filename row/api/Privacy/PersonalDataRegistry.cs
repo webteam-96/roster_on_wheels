@@ -73,15 +73,10 @@ public static class PersonalDataRegistry
         // A governor's name and year are public record; anonymised until counsel says otherwise (master plan Q6).
         Anon("district_governors", "fk_member_id", new() { ["member_name"] = ErasedName, ["profile_photo"] = null, ["email"] = null, ["mobile_number"] = null }),
         Del("district_ag", "fk_member_id"),
-        Del("district_club_moderator", "fk_member_id"),
-        Del("goal_role_assignments", "fk_member_id"),
-        Del("goal_oversight_access", "fk_member_id"),
         Keep("club_attendance_members", "fk_member_id"),
         Anon("club_mass_email_recipients", "fk_member_id", new() { ["MemberName"] = ErasedName, ["Email"] = Erased }),
         Anon("club_leadership_email_log", "fk_member_id", new() { ["Email"] = Erased }),
         Anon("district_report_reminder_log", "fk_member_id", new() { ["member_name"] = ErasedName }),
-        Anon("district_directory_submission_log", "fk_member_id", new() { ["IpAddress"] = null, ["FilledByAdminMobile"] = null }),
-        Keep("directory_data_member_status", "fk_member_id"),
         Anon("event_payment_members", "fk_member_profile_id", new()
         {
             ["MemberName"] = ErasedName, ["Mobile"] = null, ["Email"] = null, ["PartnerName"] = null,
@@ -91,15 +86,23 @@ public static class PersonalDataRegistry
         new("event_payment_otp", MatchBy.Mobile, "Mobile", EraseAction.DeleteRows, null, false),
         Anon("potential_members", "fk_member_master_profile_id_as_referrer", new() { ["fk_member_master_profile_id_as_referrer"] = null }),
 
+        // ── Contacts, prospects and guest invites (N3, 2026-10-23): non-members, tied by address ──
+        new("contacts", MatchBy.Email, "email", EraseAction.DeleteRows),
+        new("contacts", MatchBy.Mobile, "mobile", EraseAction.DeleteRows),
+        new("potential_members", MatchBy.Email, "email", EraseAction.DeleteRows),
+        new("potential_members", MatchBy.Mobile, "mobile_number", EraseAction.DeleteRows),
+        Anon("potential_members", "fk_owner_member_id", new() { ["fk_owner_member_id"] = null }),
+        Anon("club_mass_email_recipients", "Email", new() { ["MemberName"] = ErasedName, ["Email"] = Erased }, MatchBy.Email),
+        Del("member_invite_links", "fk_member_id", export: false),
+        Del("invite_prompt_log", "fk_member_id", export: false),
+
         // ── Message logs: tied by address, not by member ─────────────────────────────────────
         Anon("email_log", "recipient_email", new() { ["recipient_email"] = Erased, ["cc_emails"] = null, ["body_html"] = Erased }, MatchBy.Email),
-        Anon("whatsapp_log", "recipient_mobile", new() { ["recipient_mobile"] = Erased, ["recipient_name"] = Erased, ["body_preview"] = Erased }, MatchBy.Mobile),
-        Anon("whatsapp_log", "fk_member_profile_id", new() { ["recipient_mobile"] = Erased, ["recipient_name"] = Erased, ["body_preview"] = Erased }),
         Del("announcement_push_log", export: false), Del("announcement_reminder_push_log", export: false), Del("event_push_log", export: false),
         Del("event_reminder_push_log", export: false), Del("document_push_log", export: false), Del("newsletter_push_log", export: false),
         Del("project_push_log", export: false),
         Del("greeting_send_log", "fk_member_id"), Del("login_announcement_reads", "fk_member_id"),
-        Del("goal_message_seen", "fk_member_id"), Del("goal_message_thread_seen", "fk_member_id"),
+        Del("goal_message_thread_seen", "fk_member_id"),
 
         // ── Audit ─────────────────────────────────────────────────────────────────────────────
         Anon("audit_log", MemberCol, new() { ["member_name"] = null, ["ip_address"] = null }),
@@ -115,13 +118,44 @@ public static class PersonalDataRegistry
 
         // ── Other references ─────────────────────────────────────────────────────────────────
         Anon("website_training_appointments", "fk_booker_member_id", new() { ["fk_booker_member_id"] = null }),
-        Del("ri_director_credential_email", "fk_member_id", export: false),
         Del("assistant_conversations", "fk_member_id"),
         Del("assistant_turns", "fk_member_id"),
+        // Foundation designations entered by club / district admins (build spec 3.12).
+        Del("member_foundation_designations"),
+        // Membership milestones and PHF highlights with their spotlight card status (build list #26-#28).
+        Del("engagement_events"),
+        // N8 Meetings: the member's own calendar feed (its token is a credential, not exported) and reminder claims.
+        Del("meeting_calendar_feeds", "fk_member_id", export: false),
+        Del("meeting_reminder_log", "fk_member_id"),
+        // N5 Communication: the member's email / push choices, and bounce or complaint suppressions of their address.
+        Del("member_channel_consents", "fk_member_id"),
+        new("comm_suppressions", MatchBy.Email, "email", EraseAction.DeleteRows),
+        // Chat: the member's messages stay in the other members' history with the text erased.
+        Anon("chat_messages", "sender_id", new() { ["body"] = Erased }),
+        Del("chat_members", "member_id"),
+        Anon("chat_reports", "reporter_id", new() { ["reason"] = null }),
 
         // ── Tables created by the privacy work ───────────────────────────────────────────────
         Anon("member_consents", "fk_member_id", new() { ["ip_address"] = null }),
         Keep("privacy_requests", "fk_member_id", export: false),
+
+        // ── Grants (Services/GrantService.cs): the club's application record stays; the member's own rows go ──
+        Keep("grant_applications", "created_by"),
+        Del("grant_application_members", "fk_member_id"),
+        Keep("grant_events", "fk_member_id"),
+        Del("grant_notifications", "fk_member_id"),
+        Keep("grant_payments", "recorded_by"),
+        Keep("grant_attachments", "uploaded_by"),
+
+        // ── Volunteers and speakers (Services/VolunteerService.cs, SpeakerService.cs) ──
+        // Recorded hours are already in the project's total, so sign-ups are anonymised, not deleted.
+        Anon("volunteer_signups", "fk_member_id", new() { ["fk_member_id"] = null, ["name"] = ErasedName, ["email"] = null }),
+        Anon("volunteer_signups", "email", new() { ["name"] = ErasedName, ["email"] = null }, MatchBy.Email),
+        Del("meeting_duties", "fk_member_id"),
+        Anon("club_speakers", "email", new()
+        {
+            ["name"] = ErasedName, ["email"] = null, ["phone"] = null, ["bio"] = null, ["photo_path"] = null, ["show_on_website"] = 0,
+        }, MatchBy.Email),
     };
 
     /// <summary>Column names that look personal (WS7-01 audit).</summary>
@@ -134,11 +168,13 @@ public static class PersonalDataRegistry
     public static readonly IReadOnlySet<string> AuditIgnoredTables = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
     {
         "club_master", "district_master", "zone_master", "club_website_contact_detail", "rotary_org_clubs_cache",
-        "district_directory_config", "pph_camp_attendies", "pph_camp_attendance", "cashfree_kyc", "system_settings",
+        "cashfree_kyc", "system_settings",
         "country_master", "designation_master", "email_templates", "club_websites", "district_websites",
         // Campaign and report settings typed in by admins, not a member's data.
         "club_dues", "membership_dues", "event_payment_links", "club_mass_emails", "district_performance_report_log",
-        // Public office holders, camp venues, club-level Rotary.org credentials, project-sync caller IPs.
-        "international_president", "pph_camps", "club_rotary_org_credentials", "rotary_org_project_sync_log",
+        // Public office holders, club-level Rotary.org credentials, project-sync caller IPs.
+        "international_president", "club_rotary_org_credentials", "rotary_org_project_sync_log",
+        // N5: a club's or district's sender addresses and the Governor's greeting note (a public office holder's text).
+        "comm_settings",
     };
 }

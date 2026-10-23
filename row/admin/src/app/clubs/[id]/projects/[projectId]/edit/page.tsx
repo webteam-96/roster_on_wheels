@@ -3,22 +3,17 @@
 import { useState, useEffect, useRef } from "react";
 import DateField from "@/components/DateField";
 import { useParams, useSearchParams, useRouter } from "next/navigation";
-import { AreaOfFocus, Category, SubCategory, Funding, OngoingProject, ProjectPhotoInput } from "@/types/project";
+import { AreaOfFocus, Funding, OngoingProject, ProjectPhotoInput } from "@/types/project";
 import {
   getClub,
   getModules,
   getAreasOfFocus,
-  getCategories,
-  getSubCategories,
   getFunding,
   getOngoingProjects,
   getProject,
   updateProject,
   moveProject,
   uploadProjectImage,
-  getSystemSetting,
-  createBeneficiaryApprovalRequest,
-  checkClubHasModerator,
 } from "@/services/api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -28,7 +23,7 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import {
-  Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter,
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription,
 } from "@/components/ui/dialog";
 import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
@@ -179,16 +174,11 @@ export default function EditProjectPage() {
 
   // Masters
   const [areasOfFocus, setAreasOfFocus] = useState<AreaOfFocus[]>([]);
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [subCategories, setSubCategories] = useState<SubCategory[]>([]);
   const [fundingList, setFundingList] = useState<Funding[]>([]);
   const [ongoingProjects, setOngoingProjects] = useState<OngoingProject[]>([]);
 
   // Ongoing info dialog
   const [showOngoingInfo, setShowOngoingInfo] = useState(false);
-
-  // Flag to skip useEffect-based category/subcategory fetching during init
-  const [initDone, setInitDone] = useState(false);
 
   // Form state
   const [projectType, setProjectType] = useState<"" | "one_time" | "ongoing_repeat">("");
@@ -207,10 +197,6 @@ export default function EditProjectPage() {
 
   const [selectedAofId, setSelectedAofId] = useState<string>("");
   const [otherAreaOfFocus, setOtherAreaOfFocus] = useState("");
-  const [selectedCatId, setSelectedCatId] = useState<string>("");
-  const [otherCategory, setOtherCategory] = useState("");
-  const [selectedSubCatId, setSelectedSubCatId] = useState<string>("");
-  const [otherSubCategory, setOtherSubCategory] = useState("");
 
   const [projectDate, setProjectDate] = useState("");
   const [projectCost, setProjectCost] = useState("");
@@ -229,14 +215,7 @@ export default function EditProjectPage() {
   const [rotaractorsInvolved, setRotaractorsInvolved] = useState("");
   const [rccInvolved, setRccInvolved] = useState("");
   const [sendEmail, setSendEmail] = useState(false);
-  const [beneficiariesLimit, setBeneficiariesLimit] = useState<number>(0);
-  const [showBeneficiaryConfirm, setShowBeneficiaryConfirm] = useState(false);
   const [showProjectSuccess, setShowProjectSuccess] = useState(false);
-  const [pendingSaveData, setPendingSaveData] = useState<Record<string, unknown> | null>(null);
-  const [hasModerator, setHasModerator] = useState(false);
-  const [moderatorName, setModeratorName] = useState<string | null>(null);
-  const [showModeratorConfirm, setShowModeratorConfirm] = useState(false);
-  const moderatorConfirmedRef = useRef(false);
 
   const [photos, setPhotos] = useState<PhotoItem[]>([]);
   const photoCrop = useImageCropQueue();
@@ -272,21 +251,17 @@ export default function EditProjectPage() {
 
   const onlyDigits = (v: string) => v.replace(/\D/g, "");
   const isOthersAof = selectedAofId === "others";
-  const isOthersCat = selectedCatId === "others";
-  const isOthersSubCat = selectedSubCatId === "others";
 
   // Init — load project + masters and pre-fill
   useEffect(() => {
     async function init() {
       try {
-        const [club, modules, funding, project, limitSetting] = await Promise.all([
+        const [club, modules, funding, project] = await Promise.all([
           getClub(clubId),
           getModules(),
           getFunding(),
           getProject(clubId, yearId, projectId),
-          getSystemSetting("direct_beneficiaries_limit").catch(() => null),
         ]);
-        if (limitSetting?.settingValue) setBeneficiariesLimit(Number(limitSetting.settingValue) || 0);
         setClubName(club.clubName);
         const mod = modules.find(m => m.moduleKey === moduleKey);
         if (mod) {
@@ -327,26 +302,13 @@ export default function EditProjectPage() {
         setDescription(project.description || "");
         setLocation(project.location || "");
 
-        // Classification — load categories/subcategories during init to avoid sequencing issues
+        // Classification
         if (project.areaOfFocusId) {
           setSelectedAofId(String(project.areaOfFocusId));
-          const cats = await getCategories(project.areaOfFocusId);
-          setCategories(cats.filter(c => c.isActive));
-          if (project.categoryId) {
-            setSelectedCatId(String(project.categoryId));
-            const subs = await getSubCategories(project.categoryId);
-            setSubCategories(subs.filter(s => s.isActive));
-            if (project.subCategoryId) setSelectedSubCatId(String(project.subCategoryId));
-            else if (project.otherSubCategory) setSelectedSubCatId("others");
-          } else if (project.otherCategory) {
-            setSelectedCatId("others");
-          }
         } else if (project.otherAreaOfFocus) {
           setSelectedAofId("others");
         }
         setOtherAreaOfFocus(project.otherAreaOfFocus || "");
-        setOtherCategory(project.otherCategory || "");
-        setOtherSubCategory(project.otherSubCategory || "");
 
         setProjectDate(project.projectDate ? project.projectDate.split("T")[0] : "");
         setProjectCost(project.projectCost != null ? String(project.projectCost) : "");
@@ -373,10 +335,6 @@ export default function EditProjectPage() {
           description: p.description || "",
           isPrimary: p.isPrimary,
         })));
-
-        checkClubHasModerator(clubId).then(r => { setHasModerator(r.hasModerator); setModeratorName(r.moderatorName); }).catch(() => {});
-
-        setInitDone(true);
       } catch (err: any) {
         setErrorMessage(err?.response?.data?.message || err?.response?.data || "Failed to initialize.");
       } finally {
@@ -385,40 +343,6 @@ export default function EditProjectPage() {
     }
     init();
   }, [clubId, projectId, moduleKey]);
-
-  // Fetch categories when area of focus changes (skip during init)
-  useEffect(() => {
-    if (!initDone) return;
-    if (!selectedAofId || selectedAofId === "others") {
-      setCategories([]);
-      setSelectedCatId("");
-      return;
-    }
-    async function fetchCats() {
-      try {
-        const cats = await getCategories(Number(selectedAofId));
-        setCategories(cats.filter(c => c.isActive));
-      } catch { setCategories([]); }
-    }
-    fetchCats();
-  }, [selectedAofId, initDone]);
-
-  // Fetch sub-categories when category changes (skip during init)
-  useEffect(() => {
-    if (!initDone) return;
-    if (!selectedCatId || selectedCatId === "others") {
-      setSubCategories([]);
-      setSelectedSubCatId("");
-      return;
-    }
-    async function fetchSubCats() {
-      try {
-        const subs = await getSubCategories(Number(selectedCatId));
-        setSubCategories(subs.filter(s => s.isActive));
-      } catch { setSubCategories([]); }
-    }
-    fetchSubCats();
-  }, [selectedCatId, initDone]);
 
   // Fetch ongoing projects for search — scoped to THIS year only.
   useEffect(() => {
@@ -520,10 +444,6 @@ export default function EditProjectPage() {
     if (!isClubService) {
       if (!selectedAofId) { setErrorMessage("Area of Focus is required."); return; }
       if (isOthersAof && !otherAreaOfFocus.trim()) { setErrorMessage("Please specify the Area of Focus."); return; }
-      if (!isOthersAof && categories.length > 0 && !selectedCatId) { setErrorMessage("Category is required."); return; }
-      if (isOthersCat && !otherCategory.trim()) { setErrorMessage("Please specify the Category."); return; }
-      if (!isOthersCat && !isOthersAof && subCategories.length > 0 && !selectedSubCatId) { setErrorMessage("Sub Category is required."); return; }
-      if (isOthersSubCat && !otherSubCategory.trim()) { setErrorMessage("Please specify the Sub Category."); return; }
     }
     if (!projectCost) { setErrorMessage("Project Cost is required."); return; }
     if (!selectedFundingId) { setErrorMessage("Funding is required."); return; }
@@ -542,12 +462,6 @@ export default function EditProjectPage() {
     if (!rotariansInvolved) { setErrorMessage("Rotarians Involved is required."); return; }
     if (photos.length === 0) { setErrorMessage("At least 1 photo is required."); return; }
     if (photos.some(p => p.uploading)) { setErrorMessage("Please wait for photos to finish uploading."); return; }
-
-    if (hasModerator && !moderatorConfirmedRef.current) {
-      setShowModeratorConfirm(true);
-      return;
-    }
-    moderatorConfirmedRef.current = false;
 
     const photoInputs: ProjectPhotoInput[] = photos.map((p, i) => ({
       imagePath: p.imagePath,
@@ -568,10 +482,6 @@ export default function EditProjectPage() {
       location: location.trim() || null,
       areaOfFocusId: isOthersAof ? null : (selectedAofId ? Number(selectedAofId) : null),
       otherAreaOfFocus: isOthersAof ? otherAreaOfFocus : null,
-      categoryId: isOthersCat ? null : (selectedCatId ? Number(selectedCatId) : null),
-      otherCategory: isOthersCat ? otherCategory : null,
-      subCategoryId: isOthersSubCat ? null : (selectedSubCatId ? Number(selectedSubCatId) : null),
-      otherSubCategory: isOthersSubCat ? otherSubCategory : null,
       projectDate,
       projectCost: projectCost ? Number(projectCost) : null,
       fundingId: selectedFundingId ? Number(selectedFundingId) : null,
@@ -592,33 +502,20 @@ export default function EditProjectPage() {
       photos: photoInputs,
     };
 
-    // If over limit, show confirmation dialog instead of saving directly
-    if (beneficiariesLimit > 0 && Number(directBeneficiaries) > beneficiariesLimit) {
-      setPendingSaveData(saveData);
-      setShowBeneficiaryConfirm(true);
-      return;
-    }
-
-    // Normal save (within limit)
     await doSaveProject(saveData);
   };
 
-  const doSaveProject = async (saveData: Record<string, unknown>, capAtLimit = false) => {
+  const doSaveProject = async (saveData: Record<string, unknown>) => {
     setSaving(true);
     try {
-      const actualBeneficiaries = saveData.directBeneficiaries as number;
-      const dataToSave = capAtLimit
-        ? { ...saveData, directBeneficiaries: beneficiariesLimit }
-        : saveData;
-
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const moveInfo = await updateProject(clubId, yearId, projectId, dataToSave as any);
+      const moveInfo = await updateProject(clubId, yearId, projectId, saveData as any);
 
       // Date crossed into another rotary year — confirm + move (project gets a new id there).
       if (moveInfo) {
         if (window.confirm(moveInfo.message)) {
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          const moved = await moveProject(clubId, moveInfo.fromYearId, projectId, dataToSave as any);
+          const moved = await moveProject(clubId, moveInfo.fromYearId, projectId, saveData as any);
           window.alert(`Project moved to ${moved.newYearLabel}.`);
           router.push(`/clubs/${clubId}/projects/${moved.newId}?module=${moduleKey}&yearId=${moved.newYearId}`);
         }
@@ -626,29 +523,11 @@ export default function EditProjectPage() {
         return;
       }
 
-      if (capAtLimit) {
-        // Create approval request for the over-limit beneficiaries
-        try {
-          await createBeneficiaryApprovalRequest(projectId, actualBeneficiaries, clubId, yearId);
-        } catch {
-          // Approval request failed but project was saved
-        }
-        setShowProjectSuccess(true);
-      } else {
-        setShowProjectSuccess(true);
-      }
+      setShowProjectSuccess(true);
     } catch (err: any) {
       setErrorMessage(err?.response?.data?.message || err?.response?.data || "Failed to update project.");
     } finally {
       setSaving(false);
-    }
-  };
-
-  const handleBeneficiaryConfirm = () => {
-    setShowBeneficiaryConfirm(false);
-    if (pendingSaveData) {
-      doSaveProject(pendingSaveData, true);
-      setPendingSaveData(null);
     }
   };
 
@@ -835,11 +714,11 @@ export default function EditProjectPage() {
 
         {/* ── 3. Classification (hidden for Club Service) ── */}
         {!isClubService && (
-        <Section icon={Target} title="Category" number={3}>
+        <Section icon={Target} title="Area of Focus" number={3}>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div className="space-y-1.5">
               <Req>Area of Focus</Req>
-              <Select value={selectedAofId} onValueChange={(v) => { setSelectedAofId(v); setSelectedCatId(""); setSelectedSubCatId(""); }}>
+              <Select value={selectedAofId} onValueChange={setSelectedAofId}>
                 <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
                 <SelectContent>
                   {areasOfFocus.map(a => (
@@ -852,42 +731,6 @@ export default function EditProjectPage() {
               </Select>
               {isOthersAof && (
                 <Input value={otherAreaOfFocus} onChange={(e) => setOtherAreaOfFocus(e.target.value)} placeholder="Specify area of focus" className="mt-2" />
-              )}
-            </div>
-
-            <div className="space-y-1.5">
-              {categories.length > 0 ? <Req>Category</Req> : <Label className="text-sm font-medium">Category</Label>}
-              <Select value={selectedCatId} onValueChange={(v) => { setSelectedCatId(v); setSelectedSubCatId(""); }} disabled={isOthersAof || categories.length === 0}>
-                <SelectTrigger><SelectValue placeholder={isOthersAof ? "N/A" : "Select"} /></SelectTrigger>
-                <SelectContent>
-                  {categories.map(c => (
-                    <SelectItem key={c.id} value={String(c.id)}>{c.name}</SelectItem>
-                  ))}
-                  {!categories.some(c => (c.name || "").trim().toLowerCase() === "others") && (
-                    <SelectItem value="others">Others</SelectItem>
-                  )}
-                </SelectContent>
-              </Select>
-              {isOthersCat && (
-                <Input value={otherCategory} onChange={(e) => setOtherCategory(e.target.value)} placeholder="Specify category" className="mt-2" />
-              )}
-            </div>
-
-            <div className="space-y-1.5">
-              {subCategories.length > 0 ? <Req>Sub Category</Req> : <Label className="text-sm font-medium">Sub Category</Label>}
-              <Select value={selectedSubCatId} onValueChange={setSelectedSubCatId} disabled={isOthersCat || subCategories.length === 0}>
-                <SelectTrigger><SelectValue placeholder={isOthersCat ? "N/A" : "Select"} /></SelectTrigger>
-                <SelectContent>
-                  {subCategories.map(s => (
-                    <SelectItem key={s.id} value={String(s.id)}>{s.name}</SelectItem>
-                  ))}
-                  {!subCategories.some(s => (s.name || "").trim().toLowerCase() === "others") && (
-                    <SelectItem value="others">Others</SelectItem>
-                  )}
-                </SelectContent>
-              </Select>
-              {isOthersSubCat && (
-                <Input value={otherSubCategory} onChange={(e) => setOtherSubCategory(e.target.value)} placeholder="Specify sub category" className="mt-2" />
               )}
             </div>
           </div>
@@ -1109,11 +952,6 @@ export default function EditProjectPage() {
             </Button>
           </div>
         </div>
-        {sendEmail && hasModerator && (
-          <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded px-3 py-2 mt-2">
-            Note: This project will go for approval to moderator. Email will be sent after moderator approves.
-          </p>
-        )}
 
         {/* ── Ongoing Info Dialog ── */}
         <Dialog open={showOngoingInfo} onOpenChange={setShowOngoingInfo}>
@@ -1129,35 +967,7 @@ export default function EditProjectPage() {
           </DialogContent>
         </Dialog>
 
-        {/* ── Beneficiary Limit Confirmation Dialog ── */}
-        <Dialog open={showBeneficiaryConfirm} onOpenChange={setShowBeneficiaryConfirm}>
-          <DialogContent className="max-w-lg">
-            <DialogHeader>
-              <DialogTitle>Beneficiary Limit Exceeded</DialogTitle>
-              <DialogDescription>Review before proceeding</DialogDescription>
-            </DialogHeader>
-            <div className="text-sm text-muted-foreground space-y-3 py-2">
-              <p>
-                A limit of <span className="font-semibold text-foreground">{beneficiariesLimit}</span> beneficiaries has been set for each project.
-                You have entered <span className="font-semibold text-foreground">{directBeneficiaries}</span> beneficiaries which exceeds the limit.
-              </p>
-              <p>
-                If you confirm, the project will be saved with <span className="font-semibold text-foreground">{beneficiariesLimit}</span> beneficiaries
-                and an approval request for <span className="font-semibold text-foreground">{directBeneficiaries}</span> beneficiaries will be sent
-                to the Zonal Co-ordinator for approval.
-              </p>
-              <p>Once approved, the beneficiary count will be updated to {directBeneficiaries}.</p>
-            </div>
-            <div className="flex gap-3 justify-end">
-              <Button variant="outline" onClick={() => setShowBeneficiaryConfirm(false)}>Cancel</Button>
-              <Button onClick={handleBeneficiaryConfirm} disabled={saving}>
-                {saving ? "Saving..." : "Confirm"}
-              </Button>
-            </div>
-          </DialogContent>
-        </Dialog>
-
-        {/* ── Project Success Dialog (after beneficiary approval request) ── */}
+        {/* ── Project Success Dialog ── */}
         <Dialog open={showProjectSuccess} onOpenChange={() => {}}>
           <DialogContent className="max-w-lg [&>button.absolute]:hidden" onPointerDownOutside={(e) => e.preventDefault()}>
             <DialogHeader>
@@ -1183,25 +993,6 @@ export default function EditProjectPage() {
             >
               OK
             </Button>
-          </DialogContent>
-        </Dialog>
-
-        {/* Moderator Approval Confirmation */}
-        <Dialog open={showModeratorConfirm} onOpenChange={setShowModeratorConfirm}>
-          <DialogContent className="sm:max-w-md">
-            <DialogHeader>
-              <DialogTitle>Project Approval Required</DialogTitle>
-            </DialogHeader>
-            <div className="space-y-3">
-              <p className="text-sm text-muted-foreground">
-                This club has a moderator <strong>{moderatorName}</strong> assigned. Your updated project will be re-submitted for approval.
-              </p>
-              <p className="text-sm text-muted-foreground">Do you want to continue?</p>
-            </div>
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setShowModeratorConfirm(false)}>Cancel</Button>
-              <Button onClick={() => { moderatorConfirmedRef.current = true; setShowModeratorConfirm(false); handleSave(); }}>Submit for Approval</Button>
-            </DialogFooter>
           </DialogContent>
         </Dialog>
 

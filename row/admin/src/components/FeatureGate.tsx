@@ -1,12 +1,12 @@
 "use client";
 
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 import { getFeatures, type PlatformFeature } from "@/services/api";
 
-// Platform module switches (api/Services/FeatureGate.cs). A skipped module, or a flagged one that is off, has its
-// pages replaced by a notice and every link to it hidden. The API refuses its calls too, so this is only the view.
+// Platform module switches (api/Services/FeatureGate.cs). A skipped module, or a flagged one that is off, has every
+// link to it hidden and its pages send the user to the role home ("/"). The API refuses its calls too.
 
 export function offPatterns(features: PlatformFeature[]): RegExp[] {
   return features.filter((f) => f.kind === "skipped" || !f.enabled).flatMap((f) => f.adminPaths.map((p) => new RegExp(p, "i")));
@@ -24,6 +24,13 @@ export function useFeatureOn(key: string): boolean {
   return !f || (f.kind === "flagged" && f.enabled);
 }
 
+/** True only once the switches have loaded and the module is on: gate a flagged module's API calls with this,
+ *  so nothing calls an off module while the switches are still loading. */
+export function useFeatureLoadedOn(key: string): boolean {
+  const f = useContext(FeaturesContext)?.find((x) => x.key === key);
+  return !!f && f.kind === "flagged" && f.enabled;
+}
+
 /** For menus that navigate with buttons: true when the admin path belongs to an off module. */
 export function useIsPathOff(): (path: string) => boolean {
   const features = useContext(FeaturesContext);
@@ -34,6 +41,7 @@ export function useIsPathOff(): (path: string) => boolean {
 export default function FeatureGate({ children }: { children: React.ReactNode }) {
   const { isAuthenticated } = useAuth();
   const pathname = usePathname();
+  const router = useRouter();
   const [features, setFeatures] = useState<PlatformFeature[] | null>(null);
 
   useEffect(() => {
@@ -46,6 +54,12 @@ export default function FeatureGate({ children }: { children: React.ReactNode })
   }, [isAuthenticated]);
 
   const patterns = useMemo(() => offPatterns(features ?? []), [features]);
+  const blocked = isBlocked(pathname, patterns);
+
+  // A typed or bookmarked URL to an off module goes home instead of loading a page whose API calls would fail.
+  useEffect(() => {
+    if (blocked) router.replace("/");
+  }, [blocked, router]);
 
   // Links are spread over many menus, tab bars and cards: hide them all from one place.
   // shortcut: buttons that navigate with router.push are not hidden, the page notice below catches them.
@@ -76,14 +90,7 @@ export default function FeatureGate({ children }: { children: React.ReactNode })
 
   return (
     <FeaturesContext.Provider value={features}>
-      {isBlocked(pathname, patterns) ? (
-        <div className="flex flex-col items-center justify-center py-20 text-center">
-          <h3 className="text-lg font-semibold">Not available</h3>
-          <p className="text-muted-foreground mt-2">This module is not part of ROW, or it is switched off.</p>
-        </div>
-      ) : (
-        children
-      )}
+      {blocked ? null : children}
     </FeaturesContext.Provider>
   );
 }

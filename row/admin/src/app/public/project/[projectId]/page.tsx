@@ -38,8 +38,6 @@ interface PublicProject {
   rotaractorsInvolved?: number | null;
   rccInvolved?: number | null;
   areaOfFocus?: string | null;
-  category?: string | null;
-  subCategory?: string | null;
   funding?: string | null;
   clubName?: string | null;
   clubRotaryId?: string | null;
@@ -270,21 +268,11 @@ export default function PublicProjectPage() {
               </div>
             )}
 
-            {!isClubService && (project.areaOfFocus || project.category || project.subCategory) && (
+            {!isClubService && project.areaOfFocus && (
               <div className="flex flex-wrap gap-1.5 mb-5">
                 {project.areaOfFocus && (
                   <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium bg-blue-50 text-blue-700 ring-1 ring-blue-100">
                     {project.areaOfFocus}
-                  </span>
-                )}
-                {project.category && (
-                  <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium bg-indigo-50 text-indigo-700 ring-1 ring-indigo-100">
-                    {project.category}
-                  </span>
-                )}
-                {project.subCategory && (
-                  <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium bg-purple-50 text-purple-700 ring-1 ring-purple-100">
-                    {project.subCategory}
                   </span>
                 )}
               </div>

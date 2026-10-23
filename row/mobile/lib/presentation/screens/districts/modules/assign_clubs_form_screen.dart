@@ -49,8 +49,7 @@ class AssignClubsAvailable {
 
 /// A rotary year option for the form's year selector. Optional — only the AG
 /// flow supplies these (AG assignments are year-scoped). When the list is empty
-/// the form hides the year selector and omits `yearId` everywhere (Club
-/// Moderator behaviour, unchanged).
+/// the form hides the year selector and omits `yearId` everywhere.
 class AssignClubsYear {
   final int id;
   final String yearLabel;
@@ -86,13 +85,12 @@ class AssignClubsFormInitial {
   });
 }
 
-/// Shared "assign clubs to a member" form. Used for both:
-/// - District → AG (Assistant Governors)
-/// - District → Club Moderators
+/// "Assign clubs to a member" form, used for District → AG (Assistant
+/// Governors).
 ///
 /// Endpoints:
 /// - searchEndpoint: GET ?search=...
-/// - availableClubsEndpoint: GET ?excludeModeratorId=memberId — returns clubs
+/// - availableClubsEndpoint: GET ?excludeMemberId=memberId — returns clubs
 ///   the member could be assigned to.
 /// - saveEndpoint: POST {memberId, clubIds, oldMemberId?} — same for create/update.
 class AssignClubsFormScreen extends StatefulWidget {
@@ -103,7 +101,7 @@ class AssignClubsFormScreen extends StatefulWidget {
   final AssignClubsFormInitial? initial;
 
   /// All rotary years for the year selector. Empty = no year selector and no
-  /// `yearId` is sent (Club Moderator). AG passes the full list.
+  /// `yearId` is sent. AG passes the full list.
   final List<AssignClubsYear> years;
 
   /// Year pre-selected when the form opens (add → current year; edit → the
@@ -281,7 +279,7 @@ class _AssignClubsFormScreenState extends State<AssignClubsFormScreen> {
       final resp = await _api.get<List<dynamic>>(
         widget.availableClubsEndpoint,
         queryParams: {
-          'excludeModeratorId': _memberId,
+          'excludeMemberId': _memberId,
           if (_formYearId != null) 'yearId': _formYearId,
         },
         fromJson: (j) => j as List<dynamic>,
@@ -326,7 +324,7 @@ class _AssignClubsFormScreenState extends State<AssignClubsFormScreen> {
       await _api.post(widget.saveEndpoint, body: body);
       if (!mounted) return;
       // AG flow returns the saved yearId so the caller can jump to that year;
-      // year-less flows (Club Moderator) keep returning `true`.
+      // a year-less call returns `true`.
       Navigator.of(context).pop(_hasYears ? _formYearId : true);
     } catch (e) {
       if (!mounted) return;

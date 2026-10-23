@@ -1,6 +1,7 @@
 ## Start here
 
-**The project is `row/`.** `reference/` (RIZones) is only a source to copy from: never run it, connect to its servers/databases, or treat its settings as ROW's. ROW has no production database yet.
+**The project is `row/`.** `reference/` (RIZones) is only a source to copy from: never run it, connect to its servers/databases, or treat its settings as ROW's. ROW's production database (`row_production`) exists on the server; connection
+details are in `row/.env` (gitignored). Local dev uses a copy of it, `row_prod_copy` (see `row/HANDOFF.md`).
 
 **Resuming work? Read `row/HANDOFF.md` first:** what was done last, the next task, and how to run things locally.
 

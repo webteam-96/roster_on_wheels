@@ -6,16 +6,13 @@ namespace RotaryApi.Services;
 // and answer permission questions. Used by both web-portal JWTs and mobile JWTs.
 //
 // Role mutual exclusion:
-//   SuperAdmin, Admin (district/club), ZonalCoordinator, RIDirector — only ONE of these at a time.
-//   AG, ClubModerator, Member — stackable with any of the above.
+//   SuperAdmin, Admin (district/club) — only ONE of these at a time.
+//   AG, Member — stackable with any of the above.
 public static class UserPermissionHelper
 {
     public const string SuperAdmin = "SuperAdmin";
     public const string Admin = "Admin";
-    public const string ZonalCoordinator = "ZonalCoordinator";
-    public const string RIDirector = "RIDirector";
     public const string AG = "AG";
-    public const string ClubModerator = "ClubModerator";
     public const string Member = "Member";
 
     public static List<string> GetRoles(ClaimsPrincipal? user)
@@ -33,10 +30,7 @@ public static class UserPermissionHelper
 
     public static bool IsSuperAdmin(ClaimsPrincipal? user) => HasRole(user, SuperAdmin);
     public static bool IsAdmin(ClaimsPrincipal? user) => HasRole(user, Admin);
-    public static bool IsZonalCoordinator(ClaimsPrincipal? user) => HasRole(user, ZonalCoordinator);
-    public static bool IsRIDirector(ClaimsPrincipal? user) => HasRole(user, RIDirector);
     public static bool IsAG(ClaimsPrincipal? user) => HasRole(user, AG);
-    public static bool IsClubModerator(ClaimsPrincipal? user) => HasRole(user, ClubModerator);
 
     // ─── CRUD permission rules ───
     //
@@ -45,14 +39,14 @@ public static class UserPermissionHelper
     // Club CRUD:       SuperAdmin only
     // Member Directory CRUD: SuperAdmin only
     //
-    // Everyone else (RIDirector, ZC, Admin, AG, Moderator, Member) is view-only on these.
+    // Everyone else (Admin, AG, Member) is view-only on these.
     public static bool CanCrudZone(ClaimsPrincipal? user) => IsSuperAdmin(user);
     public static bool CanCrudDistrict(ClaimsPrincipal? user) => IsSuperAdmin(user);
     public static bool CanCrudClub(ClaimsPrincipal? user) => IsSuperAdmin(user);
     public static bool CanCrudDirectoryMember(ClaimsPrincipal? user) => IsSuperAdmin(user);
 
-    // Module CRUD (projects, reports, pph-camps, zonal-awards, citation, etc.):
-    // Allowed for: SuperAdmin, RIDirector, ZonalCoordinator (in zone), Admin (in scope), AG, ClubModerator.
+    // Module CRUD (projects, reports, citation, etc.):
+    // Allowed for: SuperAdmin, Admin (in scope), AG.
     // Member / Family: read-only.
     public static bool CanCrudModules(ClaimsPrincipal? user)
     {
@@ -61,11 +55,8 @@ public static class UserPermissionHelper
         // Anyone with an elevated role can CRUD modules (scoped checks happen elsewhere)
         return roles.Any(r =>
             r.Equals(SuperAdmin, StringComparison.OrdinalIgnoreCase) ||
-            r.Equals(RIDirector, StringComparison.OrdinalIgnoreCase) ||
-            r.Equals(ZonalCoordinator, StringComparison.OrdinalIgnoreCase) ||
             r.Equals(Admin, StringComparison.OrdinalIgnoreCase) ||
-            r.Equals(AG, StringComparison.OrdinalIgnoreCase) ||
-            r.Equals(ClubModerator, StringComparison.OrdinalIgnoreCase));
+            r.Equals(AG, StringComparison.OrdinalIgnoreCase));
     }
 
     // Helper: is the member effectively view-only on the org structure (zones/districts/clubs/directory)?
@@ -82,7 +73,7 @@ public static class UserPermissionHelper
     //   10 fields listed in DirectoryMemberLockedFields below — those are admin-
     //   maintained identity fields and a CA shouldn't be able to rewrite them on
     //   another member's record.
-    // All other roles (RIDirector, ZC, AG, ClubModerator, Member): read-only.
+    // All other roles (AG, Member): read-only.
     public static bool CanPartialEditDirectoryMember(ClaimsPrincipal? user) => IsAdmin(user);
 
     // Field names match UpdateMemberDto property names. Used by both:

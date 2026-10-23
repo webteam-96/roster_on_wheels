@@ -14,11 +14,11 @@ namespace RotaryApi.Services;
 /// Allowed to log in if ANY of:
 ///   • has at least one ACTIVE club_members row (isdeleted=0, IsActive=1), OR
 ///   • has any membership in an EXEMPT district (5656 / 1280 / IFRM India — never cascaded), OR
-///   • holds an active non-club-scoped role (SuperAdmin / ZonalCoordinator / RIDirector) —
-///     those roles survive the cascade and must never be locked out.
+///   • holds an active non-club-scoped role (SuperAdmin) —
+///     that role survives the cascade and must never be locked out.
 /// Otherwise → denied.
 ///
-/// Deliberately does NOT exempt club-scoped roles (Admin / ClubModerator / AG / Member) —
+/// Deliberately does NOT exempt club-scoped roles (Admin / AG / Member) —
 /// those are soft-deleted with the club, so a club admin whose club went non-sync is blocked.
 /// </summary>
 public static class NonSyncLoginGuardHelper
@@ -46,7 +46,7 @@ public static class NonSyncLoginGuardHelper
                  JOIN roles r ON r.pk_role_id = mr.fk_role_id
                  WHERE mr.fk_member_master_profile_id = @Id
                    AND mr.IsActive = 1 AND mr.isdeleted = 0
-                   AND r.RoleName IN ('SuperAdmin','ZonalCoordinator','RIDirector')) AS globalRoles",
+                   AND r.RoleName = 'SuperAdmin') AS globalRoles",
             new { Id = memberId, Exempt = ExemptDistrictNumbers });
 
         return r.activeClubs > 0 || r.exemptClubs > 0 || r.globalRoles > 0;

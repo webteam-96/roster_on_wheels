@@ -6,13 +6,13 @@ using Microsoft.Extensions.Configuration;
 namespace RotaryApi.Services;
 
 // AES-256-GCM encrypted, tamper-proof token embedded in the SuperAdmin's Wallet pay links
-// (/pay/w/{token}) for WhatsApp/Email credit top-ups and the "common" pick-a-club links.
+// (/pay/w/{token}) for Email credit top-ups and the "common" pick-a-club links.
 // Sibling of WebsitePayLinkToken — same crypto (AES-GCM, base64url) and same key
 // (Razorpay:PayLinkKey else JwtSettings:Secret), but a wider payload:
 //
 //   { s:scope, p:purpose, e:entityId, x:expiryUnix }
 //     scope   = "club" | "district"
-//     purpose = "website" | "whatsapp" | "email"
+//     purpose = "website" | "email"
 //     entityId = clubId / districtId, or 0 for a "common" link (payer smart-searches on the page)
 //
 // The token carries NO amount — credit pricing (rate/GST) is always re-resolved server-side by
@@ -28,7 +28,7 @@ public static class WalletPayLinkToken
     public sealed class Payload
     {
         public string Scope { get; init; } = "";      // "club" | "district"
-        public string Purpose { get; init; } = "";     // "website" | "whatsapp" | "email"
+        public string Purpose { get; init; } = "";     // "website" | "email"
         public int EntityId { get; init; }             // clubId / districtId, 0 = common (pick on page)
         public long ExpiryUnix { get; init; }
     }

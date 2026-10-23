@@ -2,7 +2,7 @@
 
 /**
  * DistrictMembershipTabBar — the "Directory / District Committee / Assistant
- * Governors / Club Moderators / Clubs" tab strip that appears on every one
+ * Governors / Clubs" tab strip that appears on every one
  * of those pages so users can jump between modules without going back to
  * /district-admin-dashboard/membership first.
  *
@@ -17,13 +17,12 @@
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
-type TabKey = "directory" | "districtCommittee" | "assistantGovernors" | "clubModerators" | "clubs";
+type TabKey = "directory" | "districtCommittee" | "assistantGovernors" | "clubs";
 
 const TAB_LABELS: Record<TabKey, string> = {
   directory: "Directory",
   districtCommittee: "District Committee",
   assistantGovernors: "Assistant Governors",
-  clubModerators: "Club Moderators",
   clubs: "Clubs",
 };
 
@@ -33,7 +32,6 @@ const TAB_PATHS: Record<TabKey, string> = {
   directory: "/district-admin-dashboard/membership",
   districtCommittee: "/district-admin-dashboard/district-committee",
   assistantGovernors: "/district-admin-dashboard/ag",
-  clubModerators: "/district-admin-dashboard/club-moderator",
   clubs: "/district-admin-dashboard/clubs",
 };
 
@@ -42,7 +40,6 @@ function activeTabFromPath(pathname: string): TabKey {
   // "/…/membership" so any URL that starts with it belongs to Directory.
   if (pathname.startsWith("/district-admin-dashboard/district-committee")) return "districtCommittee";
   if (pathname.startsWith("/district-admin-dashboard/ag")) return "assistantGovernors";
-  if (pathname.startsWith("/district-admin-dashboard/club-moderator")) return "clubModerators";
   if (pathname.startsWith("/district-admin-dashboard/clubs")) return "clubs";
   return "directory";
 }

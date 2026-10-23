@@ -15,7 +15,7 @@ const FAQ = [
   { q: "How much does it cost?", a: "USD 10 per member, per year. Districts can contact us for district pricing." },
   { q: "What does the USD 10 include?", a: "The mobile app, an Integrated Club Website, the Club Dues Collection Tool and the Events Module, plus every club feature." },
   { q: "Do members pay for the app?", a: "No. The club pays, and members download the app free." },
-  { q: "Is it easy to use?", a: "Yes. If you can use WhatsApp, you can use ROW." },
+  { q: "Is it easy to use?", a: "Yes. If you can use a smartphone, you can use ROW." },
   { q: "Does it work with My Rotary?", a: "Yes. Your member list comes straight from My Rotary." },
   { q: "Who can see my phone number and email?", a: "You decide. You can show or hide your details at any time." },
   { q: "How do we start?", a: "Book a free demo. We set up your club and help your officers get started." },

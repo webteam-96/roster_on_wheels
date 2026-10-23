@@ -33,7 +33,6 @@ public class WeblinkService : IWeblinkService
                        CASE
                            WHEN w.LogoPath IS NULL OR w.LogoPath = '' THEN NULL
                            WHEN w.LogoPath LIKE '/%' THEN w.LogoPath
-                           WHEN w.Scope = 'ri' THEN CONCAT('/Documents/Weblink/ri/', w.LogoPath)
                            WHEN w.fk_district_id IS NOT NULL THEN CONCAT('/Documents/Weblink/Group', w.fk_district_id, '/', w.LogoPath)
                            ELSE CONCAT('/Documents/Weblink/Group', w.fk_club_id, '/', w.LogoPath)
                        END AS LogoPath";
@@ -41,7 +40,6 @@ public class WeblinkService : IWeblinkService
                        CASE
                            WHEN w.BannerPath IS NULL OR w.BannerPath = '' THEN NULL
                            WHEN w.BannerPath LIKE '/%' THEN w.BannerPath
-                           WHEN w.Scope = 'ri' THEN CONCAT('/Documents/Weblink/ri/', w.BannerPath)
                            WHEN w.fk_district_id IS NOT NULL THEN CONCAT('/Documents/Weblink/Group', w.fk_district_id, '/', w.BannerPath)
                            ELSE CONCAT('/Documents/Weblink/Group', w.fk_club_id, '/', w.BannerPath)
                        END AS BannerPath";
@@ -49,7 +47,6 @@ public class WeblinkService : IWeblinkService
                        CASE
                            WHEN w.PdfPath IS NULL OR w.PdfPath = '' THEN NULL
                            WHEN w.PdfPath LIKE '/%' THEN w.PdfPath
-                           WHEN w.Scope = 'ri' THEN CONCAT('/Documents/Weblink/ri/', w.PdfPath)
                            WHEN w.fk_district_id IS NOT NULL THEN CONCAT('/Documents/Weblink/Group', w.fk_district_id, '/', w.PdfPath)
                            ELSE CONCAT('/Documents/Weblink/Group', w.fk_club_id, '/', w.PdfPath)
                        END AS PdfPath";
@@ -105,14 +102,12 @@ public class WeblinkService : IWeblinkService
                      CASE
                          WHEN LogoPath IS NULL OR LogoPath = '' THEN NULL
                          WHEN LogoPath LIKE '/%' THEN LogoPath
-                         WHEN Scope = 'ri' THEN CONCAT('/Documents/Weblink/ri/', LogoPath)
                          WHEN fk_district_id IS NOT NULL THEN CONCAT('/Documents/Weblink/Group', fk_district_id, '/', LogoPath)
                          ELSE CONCAT('/Documents/Weblink/Group', fk_club_id, '/', LogoPath)
                      END AS LogoPath,
                      CASE
                          WHEN BannerPath IS NULL OR BannerPath = '' THEN NULL
                          WHEN BannerPath LIKE '/%' THEN BannerPath
-                         WHEN Scope = 'ri' THEN CONCAT('/Documents/Weblink/ri/', BannerPath)
                          WHEN fk_district_id IS NOT NULL THEN CONCAT('/Documents/Weblink/Group', fk_district_id, '/', BannerPath)
                          ELSE CONCAT('/Documents/Weblink/Group', fk_club_id, '/', BannerPath)
                      END AS BannerPath,
@@ -120,7 +115,6 @@ public class WeblinkService : IWeblinkService
                      CASE
                          WHEN PdfPath IS NULL OR PdfPath = '' THEN NULL
                          WHEN PdfPath LIKE '/%' THEN PdfPath
-                         WHEN Scope = 'ri' THEN CONCAT('/Documents/Weblink/ri/', PdfPath)
                          WHEN fk_district_id IS NOT NULL THEN CONCAT('/Documents/Weblink/Group', fk_district_id, '/', PdfPath)
                          ELSE CONCAT('/Documents/Weblink/Group', fk_club_id, '/', PdfPath)
                      END AS PdfPath,
@@ -267,21 +261,18 @@ public class WeblinkService : IWeblinkService
                       CASE
                           WHEN LogoPath IS NULL OR LogoPath = '' THEN NULL
                           WHEN LogoPath LIKE '/%' THEN LogoPath
-                          WHEN Scope = 'ri' THEN CONCAT('/Documents/Weblink/ri/', LogoPath)
                           WHEN fk_district_id IS NOT NULL THEN CONCAT('/Documents/Weblink/Group', fk_district_id, '/', LogoPath)
                           ELSE CONCAT('/Documents/Weblink/Group', fk_club_id, '/', LogoPath)
                       END AS LogoPathFull,
                       CASE
                           WHEN BannerPath IS NULL OR BannerPath = '' THEN NULL
                           WHEN BannerPath LIKE '/%' THEN BannerPath
-                          WHEN Scope = 'ri' THEN CONCAT('/Documents/Weblink/ri/', BannerPath)
                           WHEN fk_district_id IS NOT NULL THEN CONCAT('/Documents/Weblink/Group', fk_district_id, '/', BannerPath)
                           ELSE CONCAT('/Documents/Weblink/Group', fk_club_id, '/', BannerPath)
                       END AS BannerPathFull,
                       CASE
                           WHEN PdfPath IS NULL OR PdfPath = '' THEN NULL
                           WHEN PdfPath LIKE '/%' THEN PdfPath
-                          WHEN Scope = 'ri' THEN CONCAT('/Documents/Weblink/ri/', PdfPath)
                           WHEN fk_district_id IS NOT NULL THEN CONCAT('/Documents/Weblink/Group', fk_district_id, '/', PdfPath)
                           ELSE CONCAT('/Documents/Weblink/Group', fk_club_id, '/', PdfPath)
                       END AS PdfPathFull

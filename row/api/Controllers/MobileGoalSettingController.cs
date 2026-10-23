@@ -11,12 +11,10 @@ namespace RotaryApi.Controllers;
 // controller so the mobile auth/route prefix can evolve independently.
 //
 // SuperAdmin is web-portal-only (never authenticates on mobile), so the
-// SuperAdmin-gated endpoints below (role assignment, foundation import/samples,
-// member search, unscoped overview, add-designation, send-emails) are still
-// present for full parity but will simply Forbid for any mobile token. The
-// day-to-day surface used on mobile is: goal entry (club/district), the district
-// admin's club list, the ZC zone list, the scoped oversight views + matrix, the
-// lock/unlock actions, the leadership designation catalog (read), and messaging.
+// SuperAdmin-gated endpoints below (foundation import/samples, unscoped overview)
+// are still present for full parity but will simply Forbid for any mobile token.
+// The day-to-day surface used on mobile is: goal entry (club/district), the
+// district admin's club list, and messaging.
 [ApiController]
 [Route("api/mobile/goal-setting")]
 [Authorize]
@@ -41,14 +39,6 @@ public class MobileGoalSettingController : ControllerBase
     {
         var roles = User.FindFirst("roles")?.Value ?? "";
         return roles.Contains("SuperAdmin");
-    }
-
-    // Zonal Coordinators (or SuperAdmin borrowing a zone) may view/edit/lock the goals
-    // of districts in their zone. The service enforces the actual zone scoping.
-    private bool IsZoneAuthorisedRole()
-    {
-        var roles = User.FindFirst("roles")?.Value ?? "";
-        return roles.Contains("ZonalCoordinator") || roles.Contains("SuperAdmin");
     }
 
     private ObjectResult ForbidWithMessage(string message)
@@ -277,63 +267,6 @@ public class MobileGoalSettingController : ControllerBase
         catch (UnauthorizedAccessException ex) { return ForbidWithMessage(ex.Message); }
     }
 
-    // ── Zonal Coordinator: districts of my zone (mirror of District Admin's clubs) ──
-    [HttpGet("zone/districts/{categoryId:int}")]
-    public async Task<ActionResult<List<GoalDistrictSummaryDto>>> GetZoneDistricts(
-        [FromRoute] int categoryId, [FromQuery] int yearId, [FromQuery] int? zoneId = null)
-    {
-        if (!IsZoneAuthorisedRole()) return Forbid();
-        try
-        {
-            return Ok(await _service.GetZoneDistrictsGoalListAsync(GetMemberId(), categoryId, yearId, zoneId));
-        }
-        catch (UnauthorizedAccessException ex) { return ForbidWithMessage(ex.Message); }
-    }
-
-    [HttpGet("zone/districts/{categoryId:int}/{districtId:int}")]
-    public async Task<ActionResult<GoalCategoryFormDto>> GetZoneDistrictForm(
-        [FromRoute] int categoryId, [FromRoute] int districtId, [FromQuery] int? yearId = null)
-    {
-        if (!IsZoneAuthorisedRole()) return Forbid();
-        try
-        {
-            var r = await _service.GetDistrictGoalFormAsync(GetMemberId(), categoryId, yearId, districtId);
-            return r == null ? NotFound(new { message = "District goals not found." }) : Ok(r);
-        }
-        catch (UnauthorizedAccessException ex) { return ForbidWithMessage(ex.Message); }
-    }
-
-    [HttpPost("zone/districts/{categoryId:int}/{districtId:int}")]
-    public async Task<ActionResult<GoalCategoryFormDto>> SaveZoneDistrictForm(
-        [FromRoute] int categoryId, [FromRoute] int districtId, [FromBody] SaveGoalEntriesRequest request)
-    {
-        if (!IsZoneAuthorisedRole()) return Forbid();
-        try
-        {
-            return Ok(await _service.SaveDistrictGoalFormAsync(GetMemberId(), categoryId, request, districtId));
-        }
-        catch (UnauthorizedAccessException ex) { return ForbidWithMessage(ex.Message); }
-        catch (InvalidOperationException ex) { return BadRequest(new { message = ex.Message }); }
-    }
-
-    [HttpPost("zone/districts/{categoryId:int}/{districtId:int}/lock")]
-    public async Task<ActionResult<GoalLockStatusDto>> LockZoneDistrictGoals(
-        [FromRoute] int categoryId, [FromRoute] int districtId, [FromQuery] int yearId)
-    {
-        if (!IsZoneAuthorisedRole()) return Forbid();
-        try { return Ok(await _service.SetDistrictLockAsync(GetMemberId(), categoryId, yearId, districtId, true)); }
-        catch (UnauthorizedAccessException ex) { return ForbidWithMessage(ex.Message); }
-    }
-
-    [HttpPost("zone/districts/{categoryId:int}/{districtId:int}/unlock")]
-    public async Task<ActionResult<GoalLockStatusDto>> UnlockZoneDistrictGoals(
-        [FromRoute] int categoryId, [FromRoute] int districtId, [FromQuery] int yearId)
-    {
-        if (!IsZoneAuthorisedRole()) return Forbid();
-        try { return Ok(await _service.SetDistrictLockAsync(GetMemberId(), categoryId, yearId, districtId, false)); }
-        catch (UnauthorizedAccessException ex) { return ForbidWithMessage(ex.Message); }
-    }
-
     // ── SuperAdmin read-only Overview matrix (one zone × one category × one year) ──
     [HttpGet("overview")]
     public async Task<ActionResult<GoalOverviewMatrixDto>> GetOverview(
@@ -342,20 +275,6 @@ public class MobileGoalSettingController : ControllerBase
         if (!IsSuperAdminRole()) return Forbid();
         var r = await _service.GetOverviewMatrixAsync(zoneId, categoryId, yearId);
         return r == null ? NotFound(new { message = "Invalid zone or year." }) : Ok(WithoutYouthPct(WithoutSuggestionRows(r)));
-    }
-
-    // ── Role-scoped Overview matrix — for a goal oversight role (RI Director / ZC / DA) on a zone
-    //    they cover. Same grid as /overview, scope enforced in the service. ──
-    [HttpGet("overview-scoped")]
-    public async Task<ActionResult<GoalOverviewMatrixDto>> GetScopedOverview(
-        [FromQuery] int zoneId, [FromQuery] int categoryId, [FromQuery] int? yearId = null)
-    {
-        try
-        {
-            var r = await _service.GetScopedOverviewMatrixAsync(GetMemberId(), zoneId, categoryId, yearId);
-            return r == null ? NotFound(new { message = "Invalid zone or year." }) : Ok(WithoutYouthPct(WithoutSuggestionRows(r)));
-        }
-        catch (UnauthorizedAccessException ex) { return ForbidWithMessage(ex.Message); }
     }
 
     // The overview grid is numbers only, so the 10 Public Image suggestion (text) slots came through as
@@ -367,151 +286,13 @@ public class MobileGoalSettingController : ControllerBase
         return m;
     }
 
-    // Youth Service: no Achievement(%) rows in the oversight overview (user 2026-10-09) - same as the
-    // web grid for the RI Director / ZC / District Assistant. The District Admin's own form keeps them.
+    // Youth Service: no Achievement(%) rows in the overview (user 2026-10-09) - same as the web Goal
+    // Overview grid. The District Admin's own form keeps them.
     private static GoalOverviewMatrixDto WithoutYouthPct(GoalOverviewMatrixDto m)
     {
         if (string.Equals(m.CategoryName, "Youth Service", StringComparison.OrdinalIgnoreCase))
             m.Rows = m.Rows.Where(r => r.DataType != "Percentage").ToList();
         return m;
-    }
-
-    // ── Locking ───────────────────────────────────────────────────────────
-    [HttpPost("clubs/{categoryId:int}/lock")]
-    public async Task<ActionResult<GoalLockStatusDto>> LockClubGoals(
-        [FromRoute] int categoryId, [FromQuery] int yearId, [FromQuery] int clubId)
-    {
-        if (!IsAuthorisedRole()) return Forbid();
-        try { return Ok(await _service.SetClubLockAsync(GetMemberId(), categoryId, yearId, clubId, true)); }
-        catch (UnauthorizedAccessException ex) { return ForbidWithMessage(ex.Message); }
-    }
-
-    [HttpPost("clubs/{categoryId:int}/unlock")]
-    public async Task<ActionResult<GoalLockStatusDto>> UnlockClubGoals(
-        [FromRoute] int categoryId, [FromQuery] int yearId, [FromQuery] int clubId)
-    {
-        if (!IsAuthorisedRole()) return Forbid();
-        try { return Ok(await _service.SetClubLockAsync(GetMemberId(), categoryId, yearId, clubId, false)); }
-        catch (UnauthorizedAccessException ex) { return ForbidWithMessage(ex.Message); }
-    }
-
-    [HttpPost("districts/{categoryId:int}/lock")]
-    public async Task<ActionResult<GoalLockStatusDto>> LockDistrictGoals(
-        [FromRoute] int categoryId, [FromQuery] int yearId, [FromQuery] int districtId)
-    {
-        if (!IsAuthorisedRole()) return Forbid();
-        try { return Ok(await _service.SetDistrictLockAsync(GetMemberId(), categoryId, yearId, districtId, true)); }
-        catch (UnauthorizedAccessException ex) { return ForbidWithMessage(ex.Message); }
-    }
-
-    [HttpPost("districts/{categoryId:int}/unlock")]
-    public async Task<ActionResult<GoalLockStatusDto>> UnlockDistrictGoals(
-        [FromRoute] int categoryId, [FromQuery] int yearId, [FromQuery] int districtId)
-    {
-        if (!IsAuthorisedRole()) return Forbid();
-        try { return Ok(await _service.SetDistrictLockAsync(GetMemberId(), categoryId, yearId, districtId, false)); }
-        catch (UnauthorizedAccessException ex) { return ForbidWithMessage(ex.Message); }
-    }
-
-    // ── Specialized oversight roles (SuperAdmin manages assignments) ────────
-    [HttpGet("role-assignments")]
-    public async Task<ActionResult<List<GoalRoleAssignmentDto>>> GetRoleAssignments()
-    {
-        if (!IsSuperAdminRole()) return Forbid();
-        return Ok(await _service.GetRoleAssignmentsAsync());
-    }
-
-    [HttpPost("role-assignments")]
-    public async Task<ActionResult<GoalRoleAssignmentDto>> CreateRoleAssignment([FromBody] CreateGoalRoleAssignmentRequest request)
-    {
-        if (!IsSuperAdminRole()) return Forbid();
-        try { return Ok(await _service.CreateRoleAssignmentAsync(GetMemberId(), request)); }
-        catch (InvalidOperationException ex) { return BadRequest(new { message = ex.Message }); }
-    }
-
-    [HttpDelete("role-assignments/{assignmentId:int}")]
-    public async Task<ActionResult> RevokeRoleAssignment([FromRoute] int assignmentId)
-    {
-        if (!IsSuperAdminRole()) return Forbid();
-        await _service.RevokeRoleAssignmentAsync(assignmentId, GetMemberId());
-        return Ok(new { message = "Assignment revoked." });
-    }
-
-    // Send the role-assigned email (with login) to EVERYONE currently in the active listing.
-    // zoneId (optional) = same zone filter as the web listing: email ONLY that zone's people.
-    [HttpPost("role-assignments/send-emails")]
-    public async Task<ActionResult> SendRoleAssignmentEmails([FromQuery] int? zoneId = null)
-    {
-        if (!IsSuperAdminRole()) return Forbid();
-        var count = await _service.SendAllRoleAssignmentEmailsAsync(GetMemberId(), zoneId);
-        return Ok(new { sent = count, message = count > 0
-            ? $"Role-assigned email sent to {count} member(s)."
-            : "No members with an email address to notify." });
-    }
-
-    // ── Leadership designation catalog (RMC / ARC / RPIC …) ────────────────────
-    // GET is open to any authenticated member; adding a new designation is SuperAdmin-only.
-    [HttpGet("designations")]
-    public async Task<ActionResult<List<GoalDesignationDto>>> GetDesignations()
-        => Ok(await _service.GetDesignationsAsync());
-
-    [HttpPost("designations")]
-    public async Task<ActionResult<GoalDesignationDto>> AddDesignation([FromBody] CreateGoalDesignationRequest request)
-    {
-        if (!IsSuperAdminRole()) return Forbid();
-        try { return Ok(await _service.AddDesignationAsync(request)); }
-        catch (InvalidOperationException ex) { return BadRequest(new { message = ex.Message }); }
-    }
-
-    // Zone-scoped member search — the assign form only searches members inside the selected zone(s).
-    [HttpGet("zone-members")]
-    public async Task<ActionResult<List<GoalZoneMemberDto>>> SearchZoneMembers([FromQuery] string zoneIds, [FromQuery] string? search)
-    {
-        if (!IsSuperAdminRole()) return Forbid();
-        var ids = (zoneIds ?? "")
-            .Split(',', StringSplitOptions.RemoveEmptyEntries)
-            .Select(s => int.TryParse(s.Trim(), out var n) ? n : 0)
-            .Where(n => n > 0).ToArray();
-        return Ok(await _service.SearchZoneMembersAsync(ids, search));
-    }
-
-    // Global member search — the assign form picks the member first (before any zone).
-    [HttpGet("search-members")]
-    public async Task<ActionResult<List<GoalZoneMemberDto>>> SearchMembers([FromQuery] string? search)
-    {
-        if (!IsSuperAdminRole()) return Forbid();
-        return Ok(await _service.SearchMembersAsync(search));
-    }
-
-    // ── Scoped oversight views — any authenticated member with an active assignment,
-    //    or SuperAdmin. Not gated by IsAuthorisedRole(): assignees need not hold Admin. ──
-    [HttpGet("my-assignments")]
-    public async Task<ActionResult<List<GoalMyAssignmentDto>>> GetMyAssignments()
-        => Ok(await _service.GetMyAssignmentsAsync(GetMemberId()));
-
-    [HttpGet("scoped/districts/{categoryId:int}")]
-    public async Task<ActionResult<List<GoalDistrictSummaryDto>>> GetScopedDistricts(
-        [FromRoute] int categoryId, [FromQuery] int yearId)
-    {
-        try { return Ok(await _service.GetScopedDistrictsGoalListAsync(GetMemberId(), categoryId, yearId)); }
-        catch (UnauthorizedAccessException ex) { return ForbidWithMessage(ex.Message); }
-    }
-
-    [HttpGet("scoped/districts/{categoryId:int}/{districtId:int}")]
-    public async Task<ActionResult<GoalCategoryFormDto>> GetScopedDistrictForm(
-        [FromRoute] int categoryId, [FromRoute] int districtId, [FromQuery] int yearId)
-    {
-        try { return Ok(await _service.GetScopedDistrictGoalFormAsync(GetMemberId(), categoryId, yearId, districtId)); }
-        catch (UnauthorizedAccessException ex) { return ForbidWithMessage(ex.Message); }
-        catch (InvalidOperationException ex) { return BadRequest(new { message = ex.Message }); }
-    }
-
-    [HttpPost("scoped/bulk-lock")]
-    public async Task<ActionResult<GoalBulkLockResultDto>> BulkLockDistricts([FromBody] GoalBulkLockRequest request)
-    {
-        try { return Ok(await _service.BulkLockDistrictsAsync(GetMemberId(), request)); }
-        catch (UnauthorizedAccessException ex) { return ForbidWithMessage(ex.Message); }
-        catch (InvalidOperationException ex) { return BadRequest(new { message = ex.Message }); }
     }
 
     // ── Messaging (two-way; formerly "comments"). Optional clubId>0 selects the Club↔District thread. ──
@@ -532,33 +313,9 @@ public class MobileGoalSettingController : ControllerBase
         catch (InvalidOperationException ex) { return BadRequest(new { message = ex.Message }); }
     }
 
-    // ── Pairwise oversight messaging (RI Director ↔ each DA / ZC), per (category, district, year) ──
-    [HttpGet("threads/{categoryId:int}/{districtId:int}")]
-    public async Task<ActionResult<GoalThreadListDto>> GetThreadList(
-        [FromRoute] int categoryId, [FromRoute] int districtId, [FromQuery] int yearId)
-        => Ok(await _service.GetGoalThreadListAsync(GetMemberId(), categoryId, districtId, yearId));
-
-    [HttpGet("threads/{categoryId:int}/{districtId:int}/{ownerMemberId:int}")]
-    public async Task<ActionResult<List<GoalCommentDto>>> GetThreadMessages(
-        [FromRoute] int categoryId, [FromRoute] int districtId, [FromRoute] int ownerMemberId, [FromQuery] int yearId)
-    {
-        try { return Ok(await _service.GetGoalThreadMessagesAsync(GetMemberId(), categoryId, districtId, yearId, ownerMemberId)); }
-        catch (UnauthorizedAccessException ex) { return ForbidWithMessage(ex.Message); }
-    }
-
-    [HttpPost("threads/{categoryId:int}/{districtId:int}/{ownerMemberId:int}")]
-    public async Task<ActionResult<GoalCommentDto>> PostThreadMessage(
-        [FromRoute] int categoryId, [FromRoute] int districtId, [FromRoute] int ownerMemberId,
-        [FromQuery] int yearId, [FromBody] PostGoalCommentRequest request)
-    {
-        try { return Ok(await _service.PostGoalThreadMessageAsync(GetMemberId(), categoryId, districtId, yearId, ownerMemberId, request.CommentText)); }
-        catch (UnauthorizedAccessException ex) { return ForbidWithMessage(ex.Message); }
-        catch (InvalidOperationException ex) { return BadRequest(new { message = ex.Message }); }
-    }
-
     // ── District Admin / District Governor messages (user 2026-10-09), same as web ──
-    // The district side writes about one category; the District Assistant, Zone Co-ordinator, RI
-    // Director and SuperAdmin read (no replies). GET marks the conversation read for readers.
+    // The district side writes about one category; the SuperAdmin reads (no replies). GET marks the
+    // conversation read for readers.
     [HttpGet("district-messages/{categoryId:int}/{districtId:int}")]
     public async Task<ActionResult<GoalDistrictMessagesDto>> GetDistrictMessages(
         [FromRoute] int categoryId, [FromRoute] int districtId, [FromQuery] int yearId)
@@ -581,34 +338,6 @@ public class MobileGoalSettingController : ControllerBase
     public async Task<ActionResult<List<GoalDistrictConversationDto>>> GetDistrictMessageInbox(
         [FromQuery] int zoneId, [FromQuery] int yearId, [FromQuery] int categoryId = 0, [FromQuery] int districtId = 0)
         => Ok(await _service.GetDistrictMessageInboxAsync(GetMemberId(), zoneId, yearId, categoryId, districtId));
-
-    // Red dot for the Messages button (includes unread District Admin / DG messages).
-    [HttpGet("messages/has-unread")]
-    public async Task<ActionResult<object>> GetHasUnreadMessages([FromQuery] int zoneId, [FromQuery] int yearId)
-        => Ok(new { hasUnread = await _service.HasUnreadZoneMessagesAsync(GetMemberId(), zoneId, yearId) });
-
-    // ── Zone-based messaging (RI Director dashboard): ZC + DA message boxes for one (category, zone) ──
-    [HttpGet("zone-threads/{categoryId:int}/{zoneId:int}")]
-    public async Task<ActionResult<GoalThreadListDto>> GetZoneThreadList(
-        [FromRoute] int categoryId, [FromRoute] int zoneId, [FromQuery] int yearId, [FromQuery] string? act = null)
-        => Ok(await _service.GetGoalZoneThreadListAsync(GetMemberId(), categoryId, zoneId, yearId, act));
-
-    [HttpGet("owner-thread/{categoryId:int}/{ownerMemberId:int}")]
-    public async Task<ActionResult<List<GoalCommentDto>>> GetOwnerThreadMessages(
-        [FromRoute] int categoryId, [FromRoute] int ownerMemberId, [FromQuery] int yearId, [FromQuery] int? zoneId = null)
-    {
-        try { return Ok(await _service.GetGoalOwnerThreadMessagesAsync(GetMemberId(), categoryId, yearId, ownerMemberId, zoneId)); }
-        catch (UnauthorizedAccessException ex) { return ForbidWithMessage(ex.Message); }
-    }
-
-    [HttpPost("owner-thread/{categoryId:int}/{ownerMemberId:int}")]
-    public async Task<ActionResult<GoalCommentDto>> PostOwnerThreadMessage(
-        [FromRoute] int categoryId, [FromRoute] int ownerMemberId, [FromQuery] int yearId, [FromBody] PostGoalCommentRequest request)
-    {
-        try { return Ok(await _service.PostGoalOwnerThreadMessageAsync(GetMemberId(), categoryId, yearId, ownerMemberId, request.CommentText)); }
-        catch (UnauthorizedAccessException ex) { return ForbidWithMessage(ex.Message); }
-        catch (InvalidOperationException ex) { return BadRequest(new { message = ex.Message }); }
-    }
 
     // ── Foundation benchmark import (SuperAdmin only, cumulative till-date) ───
     public class FoundationImportForm

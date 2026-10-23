@@ -6,7 +6,7 @@
  * District-scoped mirror of src/app/clubs/[id]/announcements/v2/add/page.tsx.
  * Same fields, same validation rules, same data shape — only scope differs
  * (district instead of club) and chrome swaps ClubAdminShell for
- * DistrictAdminShell. No moderator-approval flow (district has no equivalent).
+ * DistrictAdminShell.
  *
  * v2 reads ONLY `?returnTo=` — no `returnUrl`, no `backUrl`.
  *

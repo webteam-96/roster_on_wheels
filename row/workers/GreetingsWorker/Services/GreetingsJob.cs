@@ -8,7 +8,7 @@ namespace GreetingsWorker.Services;
 //   • Club greetings  → each active club whose greeting config is enabled greets its members.
 //   • District greetings → each active district whose config is enabled greets members across its clubs.
 //   • "Send both": a member covered by an enabled club AND district gets one greeting from each.
-//   • Channels per config: WhatsApp (approved Meta template) and/or Email (Brevo).
+//   • Channels per config: Email (Brevo) and push (Firebase).
 //   • Credits: each send deducts 1 from the source's club/district credits (unless DeductCredits=false).
 //   • Idempotency: greeting_send_log keys on (member, occasion, channel, sourceType, sourceId, date),
 //     so a re-run never double-sends; a prior 'failed'/'skipped' entry is retried.
@@ -36,8 +36,6 @@ public class GreetingsJob
         public DateTime RunCompletedAt { get; set; }
         public int ClubsProcessed { get; set; }
         public int DistrictsProcessed { get; set; }
-        public int WhatsAppSent { get; set; }
-        public int WhatsAppFailed { get; set; }
         public int EmailSent { get; set; }
         public int EmailFailed { get; set; }
         public int PushSent { get; set; }
@@ -48,11 +46,12 @@ public class GreetingsJob
     // ── config resolved per occasion ──────────────────────────────────────
     private const string Birthday = "Birthday";
     private const string Anniversary = "Anniversary";
-    private const string ChWhatsApp = "WhatsApp";
     private const string ChEmail = "Email";
     private const string ChPush = "Push";
 
-    private record Celebrant(int MemberId, string MemberName, string? Mobile, string? Email, string? DeviceToken);
+    // Language, EmailBlocked, PushBlocked: N5 communication (blocked = unsubscribed or suppressed; 0 while the module is off).
+    private record Celebrant(int MemberId, string MemberName, string? Mobile, string? Email, string? DeviceToken,
+        string? Language, long EmailBlocked, long PushBlocked);
 
     // Holds one source's (club or district) enabled greeting config.
     private class SourceConfig
@@ -61,7 +60,6 @@ public class GreetingsJob
         public bool IsDistrict;
         public string SourceName = "";        // {{3}} — club or district display name
         public bool BirthdayOn, AnniversaryOn;
-        public bool SendWhatsApp;             // IsGreetingSendWhatsapp
         public bool SendEmailChannel;         // club: always true; district: IsGreetingSendEmail
         public bool SendPush;                 // club: on (gated per-occasion by notify flag); district: IsGreetingSendPush
         public bool BirthdayEmailOn, AnniversaryEmailOn;
@@ -71,7 +69,14 @@ public class GreetingsJob
         public string? OfficerName;        // current-year DG (district) / Club President (club)
         public string OfficerTitle = "";   // "District Governor" / "Club President"
         public int? ReviewedYearId;        // GreetingReviewedYearId — year the Greetings Settings page was last saved for
+        // N5 communication (module on): language versions of the 'birthday' / 'anniversary' templates, the source's
+        // language, and for club greetings the district's Governor note (null when the district has it off).
+        public Dictionary<string, RotaryApi.Services.CommsTemplates.Template> BirthdayVersions = new(), AnniversaryVersions = new();
+        public string Language = "";
+        public string? GovernorNoteHtml;
     }
+
+    private bool _comms;              // N5 communication module on (platform_features 'communication')
 
     private bool _dryRun;
     private int _refMonth, _refDay;   // the month/day matched against BirthDate/AnniversaryDate
@@ -98,6 +103,7 @@ public class GreetingsJob
         await using var conn = new MySqlConnection(_conn);
         await conn.OpenAsync();
         if (!dryRun) await EnsureLogTableAsync(conn);   // dry-run is strictly read-only — no schema change
+        _comms = await RotaryApi.Services.CommsTemplates.IsOnAsync(conn);
 
         // Current Rotary year — used to resolve the DG / Club President for the signature.
         var yr = await conn.QueryFirstOrDefaultAsync<dynamic>(
@@ -148,7 +154,7 @@ public class GreetingsJob
         var nameClause = string.IsNullOrWhiteSpace(clubNameFilter) ? "" : " AND ClubName = @ClubName ";
         var clubs = (await conn.QueryAsync<dynamic>($@"
             SELECT pk_club_id AS ClubId, ClubName, fk_district_id AS DistrictId,
-                   IsEnableBirthdayNotification, IsEnableAnniversaryNotification, IsGreetingSendWhatsapp,
+                   IsEnableBirthdayNotification, IsEnableAnniversaryNotification,
                    BirthdayGreeting, AnniversaryGreeting,
                    IsEnableBirthdayEmail, BirthdayEmailSubject, BirthdayEmailMessage,
                    IsEnableAnniversaryEmail, AnniversaryEmailSubject, AnniversaryEmailMessage,
@@ -165,6 +171,7 @@ public class GreetingsJob
                    OR IsEnableBirthdayEmail = 1 OR IsEnableAnniversaryEmail = 1)
               {nameClause}", new { ClubName = clubNameFilter, CurrentYearId = _currentYearId })).ToList();
 
+        var governorNotes = new Dictionary<int, string?>();   // per district, for this run
         foreach (var c in clubs)
         {
             var cfg = new SourceConfig
@@ -174,7 +181,6 @@ public class GreetingsJob
                 SourceName = (string?)c.ClubName ?? "your Rotary Club",
                 BirthdayOn = ToBool(c.IsEnableBirthdayNotification),
                 AnniversaryOn = ToBool(c.IsEnableAnniversaryNotification),
-                SendWhatsApp = ToBool(c.IsGreetingSendWhatsapp),
                 SendEmailChannel = true, // clubs have no separate email-channel master; gated per occasion
                 SendPush = true,         // clubs: push on, gated per-occasion by the notification flag (like email)
                 BirthdayEmailOn = ToBool(c.IsEnableBirthdayEmail),
@@ -186,9 +192,10 @@ public class GreetingsJob
                 ReviewedYearId = c.GreetingReviewedYearId == null ? null : (int?)Convert.ToInt32(c.GreetingReviewedYearId),
             };
             stats.ClubsProcessed++;
+            if (_comms) await LoadCommsAsync(conn, cfg, governorNotes, (int?)c.DistrictId);
             await GreetForSourceAsync(conn, cfg,
-                birthdayMembersSql: ClubMembersByDateSql("BirthDate"),
-                anniversaryMembersSql: ClubMembersByDateSql("AnniversaryDate"),
+                birthdayMembersSql: ClubMembersByDateSql("BirthDate", _comms),
+                anniversaryMembersSql: ClubMembersByDateSql("AnniversaryDate", _comms),
                 sqlParams: new { ClubId = cfg.SourceId, RefMonth = _refMonth, RefDay = _refDay }, stats);
         }
     }
@@ -200,7 +207,7 @@ public class GreetingsJob
         var districts = (await conn.QueryAsync<dynamic>($@"
             SELECT pk_district_id AS DistrictId, DistrictNumber,
                    IsEnableBirthdayNotification, IsEnableAnniversaryNotification,
-                   IsGreetingSendWhatsapp, IsGreetingSendEmail, IsGreetingSendPush,
+                   IsGreetingSendEmail, IsGreetingSendPush,
                    BirthdayGreeting, AnniversaryGreeting,
                    IsEnableBirthdayEmail, BirthdayEmailSubject, BirthdayEmailMessage,
                    IsEnableAnniversaryEmail, AnniversaryEmailSubject, AnniversaryEmailMessage,
@@ -227,7 +234,6 @@ public class GreetingsJob
                 SourceName = $"RI District {(string?)d.DistrictNumber}".Trim(),
                 BirthdayOn = ToBool(d.IsEnableBirthdayNotification),
                 AnniversaryOn = ToBool(d.IsEnableAnniversaryNotification),
-                SendWhatsApp = ToBool(d.IsGreetingSendWhatsapp),
                 SendEmailChannel = ToBool(d.IsGreetingSendEmail),
                 SendPush = ToBool(d.IsGreetingSendPush),
                 BirthdayEmailOn = ToBool(d.IsEnableBirthdayEmail),
@@ -239,25 +245,50 @@ public class GreetingsJob
                 ReviewedYearId = d.GreetingReviewedYearId == null ? null : (int?)Convert.ToInt32(d.GreetingReviewedYearId),
             };
             stats.DistrictsProcessed++;
+            if (_comms) await LoadCommsAsync(conn, cfg, null, null);
             await GreetForSourceAsync(conn, cfg,
-                birthdayMembersSql: DistrictMembersByDateSql("BirthDate"),
-                anniversaryMembersSql: DistrictMembersByDateSql("AnniversaryDate"),
+                birthdayMembersSql: DistrictMembersByDateSql("BirthDate", _comms),
+                anniversaryMembersSql: DistrictMembersByDateSql("AnniversaryDate", _comms),
                 sqlParams: new { DistrictId = cfg.SourceId, RefMonth = _refMonth, RefDay = _refDay }, stats);
         }
     }
 
-    private static string ClubMembersByDateSql(string dateCol) => $@"
+    // N5: the source's template versions and language; a club greeting also carries its district's Governor note.
+    private static async Task LoadCommsAsync(MySqlConnection conn, SourceConfig cfg, Dictionary<int, string?>? governorNotes, int? districtOfClub)
+    {
+        int club = cfg.IsDistrict ? 0 : cfg.SourceId, district = cfg.IsDistrict ? cfg.SourceId : 0;
+        cfg.BirthdayVersions = await RotaryApi.Services.CommsTemplates.LoadAsync(conn, club, district, "birthday");
+        cfg.AnniversaryVersions = await RotaryApi.Services.CommsTemplates.LoadAsync(conn, club, district, "anniversary");
+        cfg.Language = await RotaryApi.Services.CommsTemplates.DefaultLanguageAsync(conn, club, district);
+        if (governorNotes != null && districtOfClub is int d && d > 0)
+        {
+            if (!governorNotes.TryGetValue(d, out var note))
+                governorNotes[d] = note = await RotaryApi.Services.CommsTemplates.GovernorNoteHtmlAsync(conn, d);
+            cfg.GovernorNoteHtml = note;
+        }
+    }
+
+    // N5 columns of a celebrant row: language, and whether email / push are blocked (unsubscribed or suppressed).
+    private static string CommsColumns(bool comms, string clubExpr, string districtExpr) => comms
+        ? $@"m.PrimaryLanguage AS Language,
+               CAST({RotaryApi.Services.CommsTemplates.EmailBlockedSql("m.pk_member_master_profile_id", "m.EmailId", clubExpr, districtExpr)} AS SIGNED) AS EmailBlocked,
+               CAST({RotaryApi.Services.CommsTemplates.PushBlockedSql("m.pk_member_master_profile_id")} AS SIGNED) AS PushBlocked"
+        : "m.PrimaryLanguage AS Language, CAST(0 AS SIGNED) AS EmailBlocked, CAST(0 AS SIGNED) AS PushBlocked";
+
+    private static string ClubMembersByDateSql(string dateCol, bool comms) => $@"
         SELECT m.pk_member_master_profile_id AS MemberId, m.MemberName,
-               m.PrimaryMobileNumber AS Mobile, m.EmailId AS Email, m.LastDeviceToken AS DeviceToken
+               m.PrimaryMobileNumber AS Mobile, m.EmailId AS Email, m.LastDeviceToken AS DeviceToken,
+               {CommsColumns(comms, "@ClubId", "0")}
         FROM club_members cm
         JOIN member_master_profile m ON m.pk_member_master_profile_id = cm.fk_member_master_profile_id AND m.isdeleted = 0
         WHERE cm.fk_club_id = @ClubId AND cm.IsActive = 1 AND cm.isdeleted = 0
           AND m.{dateCol} IS NOT NULL
           AND MONTH(m.{dateCol}) = @RefMonth AND DAY(m.{dateCol}) = @RefDay";
 
-    private static string DistrictMembersByDateSql(string dateCol) => $@"
+    private static string DistrictMembersByDateSql(string dateCol, bool comms) => $@"
         SELECT DISTINCT m.pk_member_master_profile_id AS MemberId, m.MemberName,
-               m.PrimaryMobileNumber AS Mobile, m.EmailId AS Email, m.LastDeviceToken AS DeviceToken
+               m.PrimaryMobileNumber AS Mobile, m.EmailId AS Email, m.LastDeviceToken AS DeviceToken,
+               {CommsColumns(comms, "0", "@DistrictId")}
         FROM club_members cm
         JOIN club_master c ON c.pk_club_id = cm.fk_club_id AND c.isdeleted = 0 AND c.IsActive = 1
         JOIN member_master_profile m ON m.pk_member_master_profile_id = cm.fk_member_master_profile_id AND m.isdeleted = 0
@@ -291,7 +322,7 @@ public class GreetingsJob
 
     // Stale-message pause: the admin-typed text (any of the 4 message fields) often names that year's
     // DG / Club President, so once a new Rotary year starts (1 July) a message that was not re-saved on
-    // the Greetings Settings page pauses EVERY channel for the source — WhatsApp, email, push and the
+    // the Greetings Settings page pauses EVERY channel for the source — email, push and the
     // digest — until someone saves it again. Blank messages never pause (the neutral default goes out).
     private bool IsPaused(SourceConfig cfg)
     {
@@ -426,21 +457,30 @@ public class GreetingsJob
         // The configured greeting bodies are signature-free; we append a dynamic "Warm regards"
         // signed by the source's current-year officer (district → DG, club → Club President).
         var signature = BuildSignature(cfg);
-        var waBase = Coalesce(isBirthday ? cfg.BirthdayGreeting : cfg.AnniversaryGreeting,
+        var baseMessage = Coalesce(isBirthday ? cfg.BirthdayGreeting : cfg.AnniversaryGreeting,
                               isBirthday ? _opt.DefaultBirthdayMessage : _opt.DefaultAnniversaryMessage);
-        var waMessage = waBase + signature;
-        var template = isBirthday ? _opt.BirthdayWhatsAppTemplate : _opt.AnniversaryWhatsAppTemplate;
         var emailSubject = Coalesce(isBirthday ? cfg.BirthdayEmailSubject : cfg.AnniversaryEmailSubject,
                                     isBirthday ? _opt.DefaultBirthdayEmailSubject : _opt.DefaultAnniversaryEmailSubject);
-        var emailBody = Coalesce(isBirthday ? cfg.BirthdayEmailMessage : cfg.AnniversaryEmailMessage, waBase) + signature;
+        var emailBody = Coalesce(isBirthday ? cfg.BirthdayEmailMessage : cfg.AnniversaryEmailMessage, baseMessage) + signature;
+        // N5 (module on): the source's template in the member's language replaces the configured text; the officer's
+        // signature stays. shortcut: the frame ("Greetings from", "Dear Rtn.", push text) stays English.
+        var version = RotaryApi.Services.CommsTemplates.Pick(isBirthday ? cfg.BirthdayVersions : cfg.AnniversaryVersions, m.Language, cfg.Language);
+        if (version != null)
+        {
+            var values = new Dictionary<string, string?> { ["member_name"] = m.MemberName, ["club_name"] = cfg.SourceName };
+            emailSubject = RotaryApi.Services.CommsTemplates.Fill(version.Subject, values, false);
+            emailBody = RotaryApi.Services.CommsTemplates.Fill(version.BodyHtml, values, true)
+                + "<p>" + System.Net.WebUtility.HtmlEncode(signature.Trim()).Replace("\n", "<br>") + "</p>";
+        }
 
-        // ROW has no WhatsApp (2026-10-19): greetings go by email and push only.
 
         // Email
         if (emailOn && cfg.SendEmailChannel)
         {
             if (string.IsNullOrWhiteSpace(m.Email))
                 await LogAsync(conn, m.MemberId, occasion, ChEmail, sourceType, cfg.SourceId, "skipped", "no email address", stats);
+            else if (m.EmailBlocked != 0)
+                await LogAsync(conn, m.MemberId, occasion, ChEmail, sourceType, cfg.SourceId, "skipped", "unsubscribed or address suppressed", stats);
             else if (_dryRun || !await AlreadySentAsync(conn, m.MemberId, occasion, ChEmail, sourceType, cfg.SourceId))
             {
                 if (_opt.DeductCredits && await RemainingCreditsAsync(conn, cfg.SourceId, cfg.IsDistrict, ChEmail) < 1)
@@ -452,7 +492,7 @@ public class GreetingsJob
                 }
                 else
                 {
-                    var html = BuildEmailHtml(cfg.SourceName, m.MemberName ?? "Rotarian", emailBody);
+                    var html = BuildEmailHtml(cfg.SourceName, m.MemberName ?? "Rotarian", emailBody, cfg.GovernorNoteHtml);
                     var ok = await _email.SendAsync(m.Email!, emailSubject, html);
                     if (ok && _opt.DeductCredits)
                         await DeductCreditAsync(conn, cfg.SourceId, cfg.IsDistrict, ChEmail, 1, $"{occasion} email to {m.MemberName} ({sourceType} {cfg.SourceName})", m.MemberId);
@@ -466,6 +506,8 @@ public class GreetingsJob
         {
             if (string.IsNullOrWhiteSpace(m.DeviceToken) || m.DeviceToken == "0")
                 await LogAsync(conn, m.MemberId, occasion, ChPush, sourceType, cfg.SourceId, "skipped", "no device token", stats);
+            else if (m.PushBlocked != 0)
+                await LogAsync(conn, m.MemberId, occasion, ChPush, sourceType, cfg.SourceId, "skipped", "push switched off by the member", stats);
             else if (_dryRun || !await AlreadySentAsync(conn, m.MemberId, occasion, ChPush, sourceType, cfg.SourceId))
             {
                 if (_dryRun)
@@ -514,7 +556,7 @@ public class GreetingsJob
             var c = await conn.QueryFirstOrDefaultAsync<dynamic>(@"
                 SELECT pk_club_id AS ClubId, ClubName, IsActive, isdeleted,
                        IsEnableBirthdayNotification, IsEnableAnniversaryNotification,
-                       IsGreetingSendWhatsapp, IsEnableBirthdayEmail, IsEnableAnniversaryEmail
+                       IsEnableBirthdayEmail, IsEnableAnniversaryEmail
                 FROM club_master WHERE ClubName = @ClubName LIMIT 1",
                 new { ClubName = clubName });
             Console.WriteLine();
@@ -525,7 +567,7 @@ public class GreetingsJob
                 clubId = (int)c.ClubId;
                 Console.WriteLine($"  ClubId={c.ClubId}  IsActive={ToBool(c.IsActive)}  isdeleted={ToBool(c.isdeleted)}");
                 Console.WriteLine($"  IsEnableBirthdayNotification={ToBool(c.IsEnableBirthdayNotification)}  IsEnableAnniversaryNotification={ToBool(c.IsEnableAnniversaryNotification)}");
-                Console.WriteLine($"  IsGreetingSendWhatsapp={ToBool(c.IsGreetingSendWhatsapp)}  IsEnableBirthdayEmail={ToBool(c.IsEnableBirthdayEmail)}  IsEnableAnniversaryEmail={ToBool(c.IsEnableAnniversaryEmail)}");
+                Console.WriteLine($"  IsEnableBirthdayEmail={ToBool(c.IsEnableBirthdayEmail)}  IsEnableAnniversaryEmail={ToBool(c.IsEnableAnniversaryEmail)}");
                 bool anyOn = ToBool(c.IsEnableBirthdayNotification) || ToBool(c.IsEnableAnniversaryNotification)
                     || ToBool(c.IsEnableBirthdayEmail) || ToBool(c.IsEnableAnniversaryEmail);
                 if (!ToBool(c.IsActive) || ToBool(c.isdeleted))
@@ -540,7 +582,7 @@ public class GreetingsJob
             var d = await conn.QueryFirstOrDefaultAsync<dynamic>(@"
                 SELECT pk_district_id AS DistrictId, DistrictNumber, IsActive, isdeleted,
                        IsEnableBirthdayNotification, IsEnableAnniversaryNotification,
-                       IsGreetingSendWhatsapp, IsGreetingSendEmail, IsGreetingSendPush,
+                       IsGreetingSendEmail, IsGreetingSendPush,
                        IsEnableBirthdayEmail, IsEnableAnniversaryEmail
                 FROM district_master WHERE DistrictNumber = @DistrictNumber LIMIT 1",
                 new { DistrictNumber = districtNumber });
@@ -552,7 +594,7 @@ public class GreetingsJob
                 districtId = (int)d.DistrictId;
                 Console.WriteLine($"  DistrictId={d.DistrictId}  IsActive={ToBool(d.IsActive)}  isdeleted={ToBool(d.isdeleted)}");
                 Console.WriteLine($"  IsEnableBirthdayNotification={ToBool(d.IsEnableBirthdayNotification)}  IsEnableAnniversaryNotification={ToBool(d.IsEnableAnniversaryNotification)}");
-                Console.WriteLine($"  IsGreetingSendWhatsapp={ToBool(d.IsGreetingSendWhatsapp)}  IsGreetingSendEmail={ToBool(d.IsGreetingSendEmail)}  IsGreetingSendPush={ToBool(d.IsGreetingSendPush)}");
+                Console.WriteLine($"  IsGreetingSendEmail={ToBool(d.IsGreetingSendEmail)}  IsGreetingSendPush={ToBool(d.IsGreetingSendPush)}");
                 Console.WriteLine($"  IsEnableBirthdayEmail={ToBool(d.IsEnableBirthdayEmail)}  IsEnableAnniversaryEmail={ToBool(d.IsEnableAnniversaryEmail)}");
                 bool anyOn = ToBool(d.IsEnableBirthdayNotification) || ToBool(d.IsEnableAnniversaryNotification)
                     || ToBool(d.IsEnableBirthdayEmail) || ToBool(d.IsEnableAnniversaryEmail);
@@ -573,9 +615,9 @@ public class GreetingsJob
         var todayNow = DateTime.Now;
         if (clubId.HasValue)
         {
-            var bdays = (await conn.QueryAsync<dynamic>(ClubMembersByDateSql("BirthDate"),
+            var bdays = (await conn.QueryAsync<dynamic>(ClubMembersByDateSql("BirthDate", false),
                 new { ClubId = clubId.Value, RefMonth = todayNow.Month, RefDay = todayNow.Day })).ToList();
-            var annivs = (await conn.QueryAsync<dynamic>(ClubMembersByDateSql("AnniversaryDate"),
+            var annivs = (await conn.QueryAsync<dynamic>(ClubMembersByDateSql("AnniversaryDate", false),
                 new { ClubId = clubId.Value, RefMonth = todayNow.Month, RefDay = todayNow.Day })).ToList();
             Console.WriteLine();
             Console.WriteLine($"--- Today's actual birthday/anniversary matches for club (ClubId={clubId}) ---");
@@ -588,9 +630,9 @@ public class GreetingsJob
         }
         if (districtId.HasValue)
         {
-            var bdays = (await conn.QueryAsync<dynamic>(DistrictMembersByDateSql("BirthDate"),
+            var bdays = (await conn.QueryAsync<dynamic>(DistrictMembersByDateSql("BirthDate", false),
                 new { DistrictId = districtId.Value, RefMonth = todayNow.Month, RefDay = todayNow.Day })).ToList();
-            var annivs = (await conn.QueryAsync<dynamic>(DistrictMembersByDateSql("AnniversaryDate"),
+            var annivs = (await conn.QueryAsync<dynamic>(DistrictMembersByDateSql("AnniversaryDate", false),
                 new { DistrictId = districtId.Value, RefMonth = todayNow.Month, RefDay = todayNow.Day })).ToList();
             Console.WriteLine();
             Console.WriteLine($"--- Today's actual birthday/anniversary matches for district (DistrictId={districtId}) ---");
@@ -800,10 +842,8 @@ public class GreetingsJob
             Console.WriteLine($"[DRY] SKIP {channel} {occasion} member#{memberId} via {sourceType}#{sourceId}: {detail}");
         }
 
-        if (status == "sent" && channel == ChWhatsApp) stats.WhatsAppSent++;
-        else if (status == "sent" && channel == ChEmail) stats.EmailSent++;
+        if (status == "sent" && channel == ChEmail) stats.EmailSent++;
         else if (status == "sent" && channel == ChPush) stats.PushSent++;
-        else if (status == "failed" && channel == ChWhatsApp) stats.WhatsAppFailed++;
         else if (status == "failed" && channel == ChEmail) stats.EmailFailed++;
         else if (status == "failed" && channel == ChPush) stats.PushFailed++;
         else if (status == "skipped") stats.Skipped++;
@@ -866,7 +906,8 @@ public class GreetingsJob
         return $"\n\nWarm regards,\n{name}\n{cfg.OfficerTitle}{yr}";
     }
 
-    private static string BuildEmailHtml(string sourceName, string memberName, string message)
+    // governorNoteHtml: N5 leadership block (Governor's name, photo, note) under a club greeting; null when off.
+    private static string BuildEmailHtml(string sourceName, string memberName, string message, string? governorNoteHtml = null)
     {
         // sourceName + memberName are plain text → encode.
         string Esc(string s) => System.Net.WebUtility.HtmlEncode(s);
@@ -883,7 +924,7 @@ public class GreetingsJob
   </div>
   <div style='background:#ffffff;border:1px solid #e2e8f0;border-top:0;padding:24px;border-radius:0 0 8px 8px'>
     <p style='margin:0 0 14px 0'>Dear Rtn. {Esc(memberName)},</p>
-    <div style='margin:0 0 14px 0'>{body}</div>
+    <div style='margin:0 0 14px 0'>{body}</div>{governorNoteHtml}
     <p style='margin:22px 0 0 0;color:#94a3b8;font-size:12px'>This is an automated message from ROW. Please do not reply to this message.</p>
   </div>
 </div>";
@@ -893,8 +934,6 @@ public class GreetingsJob
 // Options bound from the appsettings "Greetings" section.
 public class GreetingsOptions
 {
-    public string? BirthdayWhatsAppTemplate { get; set; }
-    public string? AnniversaryWhatsAppTemplate { get; set; }
     public string DefaultBirthdayMessage { get; set; } = "Wishing you a very happy birthday!";
     public string DefaultAnniversaryMessage { get; set; } = "Warm wishes on your wedding anniversary!";
     public string DefaultBirthdayEmailSubject { get; set; } = "Happy Birthday!";

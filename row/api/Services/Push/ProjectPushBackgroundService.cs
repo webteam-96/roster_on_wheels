@@ -5,8 +5,7 @@ namespace RotaryApi.Services.Push;
 
 /// <summary>
 /// Polls the year-wise project tables (rotary_projects_YYYY_YY) every 60 seconds and fires push
-/// once per project when PushNotificationSent is still 0. Push fires ON CREATION — there is NO
-/// approval gate (moderation happens after the notification, per product decision). Recipient/send/log
+/// once per project when PushNotificationSent is still 0. Push fires ON CREATION. Recipient/send/log
 /// shared via PushDispatcher. Club + district scope only (projects have no RI scope).
 /// </summary>
 public class ProjectPushBackgroundService : BackgroundService

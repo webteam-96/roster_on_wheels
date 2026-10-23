@@ -18,7 +18,7 @@ export default function DistrictDashboardPage() {
   const params = useParams();
   const districtId = Number(params.id);
   const router = useRouter();
-  const { user, isSuperAdmin, isAdmin, isZonalCoordinator, isAG, isClubModerator } = useAuth();
+  const { user, isSuperAdmin, isAdmin, isAG } = useAuth();
   const [data, setData] = useState<DistrictDashboard | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -66,19 +66,17 @@ export default function DistrictDashboardPage() {
     fetchDashboard();
   }, [districtId]);
 
-  // ZC-only users go back to zonal dashboard; others go to home
-  const isZCOnly = isZonalCoordinator && !isSuperAdmin;
   // District-admin-only with single district: no back button (they'd loop)
-  const isDistrictAdminOnly = isAdmin && !isSuperAdmin && !isZonalCoordinator && !isAG && !isClubModerator;
+  const isDistrictAdminOnly = isAdmin && !isSuperAdmin && !isAG;
   // ?returnTo=/some/path overrides the default — used by Settings → Global Search
   // and any other entry point that wants the back button to return to its own page.
   const searchParams = useSearchParams();
   const returnTo = searchParams.get("returnTo");
-  const dashboardBackHref = returnTo ?? (isZCOnly ? "/zonal-dashboard" : "/");
+  const dashboardBackHref = returnTo ?? "/";
 
   const handleModuleClick = (moduleKey: string, routeUrl: string | null) => {
     if (navigatingModule) return;
-    // External URL (e.g. Market Place)
+    // External URL (module hosted on another site)
     if (routeUrl && routeUrl.startsWith("http")) {
       const url = routeUrl.replace("{memberId}", String(user?.memberId || ""));
       window.location.href = url;
@@ -101,12 +99,9 @@ export default function DistrictDashboardPage() {
     else if (moduleKey === "website_data") router.push(`/districts/${districtId}/website-data`);
     else if (moduleKey === "district_committee") router.push(`/districts/${districtId}/district-committee`);
     else if (moduleKey === "club_monthly_report") router.push(`/districts/${districtId}/club-monthly-report`);
-    else if (moduleKey === "club_moderator") router.push(`/districts/${districtId}/club-moderator`);
     else if (moduleKey === "ag") router.push(`/districts/${districtId}/ag`);
-    else if (moduleKey === "pph_camp") router.push(`/districts/${districtId}/pph-camps`);
     else if (moduleKey === "online_event_link") router.push(`/districts/${districtId}/event-payment-links`);
     else if (moduleKey === "citation" || moduleKey === "district_citation") router.push(`/districts/${districtId}/citation`);
-    else if (moduleKey === "zonal_awards") router.push(`/districts/${districtId}/zonal-awards`);
     else if (moduleKey === "reports" || moduleKey === "district_report") router.push(`/districts/${districtId}/district-report`);
     else setNavigatingModule(null);
   };
@@ -116,7 +111,7 @@ export default function DistrictDashboardPage() {
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            {(isSuperAdmin || isZonalCoordinator) && (
+            {isSuperAdmin && (
               <Button variant="outline" size="icon" asChild>
                 <Link href={dashboardBackHref}>
                   <ArrowLeft className="h-4 w-4" />

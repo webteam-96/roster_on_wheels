@@ -1,6 +1,6 @@
 namespace RotaryApi.DTOs;
 
-// Public (token-based, no-login) Wallet pay-link DTOs — WhatsApp/Email credit top-ups and the
+// Public (token-based, no-login) Wallet pay-link DTOs — Email credit top-ups and the
 // "common" pick-a-club/district links. Credit purchase reuses CreateTopupOrderDto/VerifyTopupDto/
 // WalletQuoteResponseDto (WalletDtos.cs); these cover the link-resolve, search and status surfaces.
 
@@ -8,7 +8,7 @@ namespace RotaryApi.DTOs;
 public class PublicWalletInfoDto
 {
     public string Scope { get; set; } = "";        // "club" | "district"
-    public string Purpose { get; set; } = "";       // "website" | "whatsapp" | "email"
+    public string Purpose { get; set; } = "";       // "website" | "email"
     public int EntityId { get; set; }               // 0 when the link is "common" (payer must pick)
     public bool RequiresPick { get; set; }           // EntityId == 0
     public string? EntityName { get; set; }          // resolved when EntityId > 0
@@ -19,7 +19,6 @@ public class PublicWalletInfoDto
 // Status snapshot shown once an entity is known. Website fields are null for districts.
 public class PublicWalletStatusDto
 {
-    public int WhatsAppRemaining { get; set; }
     public int EmailRemaining { get; set; }
     // Website (club scope only)
     public string? WebsiteOrderType { get; set; }    // "New" | "Renewal"

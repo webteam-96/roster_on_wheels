@@ -19,6 +19,7 @@ import { ArrowLeft, Send, RefreshCw, CheckCircle2, XCircle, Clock, Loader2 } fro
 import RotaryLoader from "@/components/RotaryLoader";
 import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";
+import CampaignTrackingCard from "@/components/comms/CampaignTrackingCard";
 
 import { appLocale } from "@/lib/appFormat";
 interface MassEmailDetail {
@@ -207,6 +208,8 @@ export default function MassEmailViewPage() {
             )}
           </CardContent>
         </Card>
+
+        <CampaignTrackingCard scope="clubs" ownerId={clubId} emailId={emailId} />
 
         {/* Recipients Table */}
         <Card>

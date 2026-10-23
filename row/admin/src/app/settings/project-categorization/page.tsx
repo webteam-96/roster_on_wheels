@@ -4,10 +4,10 @@ import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Target, Layers, GitBranch, Download } from "@/components/icons";
+import { ArrowLeft, Target, Download } from "@/components/icons";
 import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";
-import { getModules, getAreasOfFocus, getCategories, getSubCategories } from "@/services/api";
+import { getModules, getAreasOfFocus } from "@/services/api";
 import { exportToCSV } from "@/utils/csvExport";
 import RotaryLoader from "@/components/RotaryLoader";
 
@@ -17,18 +17,6 @@ const cards = [
     description: "Manage areas of focus for service projects",
     icon: Target,
     href: "/settings/area-of-focus",
-  },
-  {
-    title: "Categories",
-    description: "Manage project categories by area of focus",
-    icon: Layers,
-    href: "/settings/categories",
-  },
-  {
-    title: "Sub Categories",
-    description: "Manage project sub-categories by category",
-    icon: GitBranch,
-    href: "/settings/sub-categories",
   },
 ];
 
@@ -47,33 +35,17 @@ export default function ProjectCategorizationPage() {
       for (const mod of projectModules) {
         const areas = await getAreasOfFocus(mod.id);
         if (areas.length === 0) {
-          rows.push({ projectType: mod.moduleName, areaOfFocus: "–", category: "–", subCategory: "–", active: "Yes" });
+          rows.push({ projectType: mod.moduleName, areaOfFocus: "–", active: "Yes" });
           continue;
         }
         for (const aof of areas) {
-          const cats = await getCategories(aof.id);
-          if (cats.length === 0) {
-            rows.push({ projectType: mod.moduleName, areaOfFocus: aof.name, category: "–", subCategory: "–", active: aof.isActive ? "Yes" : "No" });
-            continue;
-          }
-          for (const cat of cats) {
-            const subs = await getSubCategories(cat.id);
-            if (subs.length === 0) {
-              rows.push({ projectType: mod.moduleName, areaOfFocus: aof.name, category: cat.name, subCategory: "–", active: cat.isActive ? "Yes" : "No" });
-              continue;
-            }
-            for (const sub of subs) {
-              rows.push({ projectType: mod.moduleName, areaOfFocus: aof.name, category: cat.name, subCategory: sub.name, active: sub.isActive ? "Yes" : "No" });
-            }
-          }
+          rows.push({ projectType: mod.moduleName, areaOfFocus: aof.name, active: aof.isActive ? "Yes" : "No" });
         }
       }
 
       exportToCSV(rows, "project_categorization_report", [
         { key: "projectType", label: "Project Type" },
         { key: "areaOfFocus", label: "Area of Focus" },
-        { key: "category", label: "Category" },
-        { key: "subCategory", label: "Sub Category" },
         { key: "active", label: "Active" },
       ]);
     } catch {
@@ -104,7 +76,7 @@ export default function ProjectCategorizationPage() {
             </Button>
             <div>
               <h2 className="text-2xl font-bold tracking-tight text-primary">Project Categorization</h2>
-              <p className="text-muted-foreground text-base">Manage areas of focus, categories and sub-categories</p>
+              <p className="text-muted-foreground text-base">Manage areas of focus</p>
             </div>
           </div>
           <Button variant="outline" onClick={handleExportFullReport} disabled={exporting}>

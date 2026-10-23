@@ -286,8 +286,8 @@ export default function DistrictManagement() {
         <CardGrid
           icons={[ICON.calendar, ICON.megaphone, ICON.gift]}
           items={[
-            "Event Notifications: tell members about upcoming district events through the app and WhatsApp",
-            "Announcements: share important district news with all members through the app and WhatsApp",
+            "Event Notifications: tell members about upcoming district events through the app and email",
+            "Announcements: share important district news with all members through the app and email",
             "Greetings: send personal birthday and anniversary wishes to district members automatically",
           ]}
         />

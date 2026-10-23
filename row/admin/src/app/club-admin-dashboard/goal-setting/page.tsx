@@ -68,8 +68,6 @@ export default function ClubAdminGoalSettingPage() {
         onFormLoaded={setForm}
         belowCategories={<GoalTargetSplitPanel form={monthly} onSave={saveSplit} reloadKey={`${catId}-${yearId ?? "cur"}`} />}
       />
-      {/* Messaging removed for Club Admin — goal-setting messages are only between the oversight
-          roles (RI Director / Zone Co-ordinator / District Assistant). */}
     </div>
   );
 }

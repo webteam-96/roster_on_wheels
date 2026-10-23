@@ -162,16 +162,13 @@ public class ClubReportController : ControllerBase
                        p.man_hours AS manHours, p.rotarians_involved AS rotariansInvolved,
                        p.rotaractors_involved AS rotaractorsInvolved,
                        COALESCE(p.rcc_involved,0) AS rccInvolved, p.location,
-                       af.name AS areaOfFocus, cat.name AS category, sc.name AS subCategory,
+                       af.name AS areaOfFocus,
                        f.name AS funding, mm.ModuleName AS moduleName, mm.ModuleKey AS moduleKey,
-                       p.approval_status AS approvalStatus,
                        /* Shareable public photo page — used as Excel HYPERLINK
                           target in the Photos column of each service-module table. */
                        CONCAT('{_frontendUrl}/public/project/', p.pk_project_id, '?year={yearId}') AS publicPhotoUrl
                 FROM `{info.ProjectsTable}` p
                 LEFT JOIN area_of_focus_master af ON af.pk_area_of_focus_id = p.fk_area_of_focus_id
-                LEFT JOIN category_master cat ON cat.pk_category_id = p.fk_category_id
-                LEFT JOIN sub_category_master sc ON sc.pk_sub_category_id = p.fk_sub_category_id
                 LEFT JOIN funding_master f ON f.pk_funding_id = p.fk_funding_id
                 LEFT JOIN module_master mm ON mm.pk_module_id = p.fk_module_id
                 WHERE p.fk_club_id = @ClubId AND p.isdeleted = 0
@@ -186,11 +183,10 @@ public class ClubReportController : ControllerBase
         // Announcements
         var announcements = await conn.QueryAsync<dynamic>(@"
             SELECT a.Title AS title, a.Description AS description, a.PublishDateTime AS publishDate,
-                   a.ExpiryDateTime AS expiryDate, a.IsSendWhatsapp AS isSendWhatsapp, a.IsDisplayOnBanner AS isDisplayOnBanner,
+                   a.ExpiryDateTime AS expiryDate, a.IsDisplayOnBanner AS isDisplayOnBanner,
                    CASE
                        WHEN a.ImagePath IS NULL OR a.ImagePath = '' THEN NULL
                        WHEN a.ImagePath LIKE '/%' THEN a.ImagePath
-                       WHEN a.Scope = 'ri' THEN CONCAT('/Documents/announcement/ri/', a.ImagePath)
                        WHEN a.fk_district_id IS NOT NULL THEN CONCAT('/Documents/announcement/Group', a.fk_district_id, '/', a.ImagePath)
                        ELSE CONCAT('/Documents/announcement/Group', a.fk_club_id, '/', a.ImagePath)
                    END AS imagePath,
@@ -208,7 +204,7 @@ public class ClubReportController : ControllerBase
         var events = await conn.QueryAsync<dynamic>(@"
             SELECT e.Title AS title, e.Description AS description, e.EventDate AS eventDate,
                    e.EventVenue AS eventVenue, e.PublishDate AS publishDate, e.ExpiryDate AS expiryDate,
-                   e.RegistrationLink AS registrationLink, e.IsSendWhatsapp AS isSendWhatsapp,
+                   e.RegistrationLink AS registrationLink,
                    CASE
                        WHEN e.ImagePath IS NULL OR e.ImagePath = '' THEN NULL
                        WHEN e.ImagePath LIKE '/%' THEN e.ImagePath
@@ -231,12 +227,10 @@ public class ClubReportController : ControllerBase
                    CASE
                        WHEN n.FilePath IS NULL OR n.FilePath = '' THEN NULL
                        WHEN n.FilePath LIKE '/%' THEN n.FilePath
-                       WHEN n.Scope = 'ri' THEN CONCAT('/Documents/ebulletin/ri/', n.FilePath)
                        WHEN n.fk_district_id IS NOT NULL AND n.fk_district_id > 0 THEN CONCAT('/Documents/ebulletin/Group', n.fk_district_id, '/', n.FilePath)
                        WHEN n.fk_club_id IS NOT NULL AND n.fk_club_id > 0 THEN CONCAT('/Documents/ebulletin/Group', n.fk_club_id, '/', n.FilePath)
                        ELSE NULL
                    END AS filePath,
-                   n.IsSendWhatsapp AS isSendWhatsapp,
                    CASE WHEN NOW() < n.PublishDateTime THEN 'Unpublished'
                         WHEN NOW() > n.ExpiryDateTime THEN 'Expired' ELSE 'Published' END AS status
             FROM newsletters n
@@ -254,7 +248,6 @@ public class ClubReportController : ControllerBase
                    CASE
                        WHEN d.FilePath IS NULL OR d.FilePath = '' THEN NULL
                        WHEN d.FilePath LIKE '/%' THEN d.FilePath
-                       WHEN d.Scope = 'ri' THEN CONCAT('/Documents/documentsafe/ri/', d.FilePath)
                        WHEN d.fk_district_id IS NOT NULL THEN CONCAT('/Documents/documentsafe/Group', d.fk_district_id, '/', d.FilePath)
                        ELSE CONCAT('/Documents/documentsafe/Group', d.fk_club_id, '/', d.FilePath)
                    END AS filePath,
@@ -601,100 +594,6 @@ public class ClubReportController : ControllerBase
             m.rcc               = monthProjects.Sum(p => (int?)p.rccInvolved ?? 0);
         }
 
-        // PPH Camps — one row per camp (camp itself, not the attendees).
-        var pphCamps = (await conn.QueryAsync<dynamic>(@"
-            SELECT c.CampDate AS campDate,
-                   c.Title    AS campName,
-                   c.Address  AS campAddress,
-                   (SELECT COUNT(*) FROM pph_camp_attendies a WHERE a.fk_camp_id = c.pk_camp_id AND a.isdeleted = 0) AS totalAttendees,
-                   c.Description AS campDescription
-            FROM pph_camps c
-            WHERE c.fk_club_id = @ClubId AND c.isdeleted = 0
-            ORDER BY c.CampDate DESC",
-            new { ClubId = clubId })).ToList();
-
-        // PPH Camp Attendees — this club's camps dated within the selected Rotary year. ONE ROW PER
-        // MEDICAL READING, each with that attendee's OWN values (attendees with no reading still get one
-        // blank row). Legacy rows store isdeleted as NULL, so every isdeleted check is COALESCE'd.
-        var pphCampAttendees = (await conn.QueryAsync<dynamic>(@"
-            SELECT c.CampDate     AS campDate,
-                   c.Title        AS campName,
-                   pa.created_date AS readingDate,
-                   pa.RegistrationNo AS serialNumber,
-                   att.Name       AS name,
-                   att.MobileNo   AS mobileNumber,
-                   att.Address    AS address,
-                   att.Sex        AS gender,
-                   CASE WHEN att.IsConsentedForMessages = 1 THEN 'Yes' ELSE 'No' END AS approvalForSms,
-                   pa.Age         AS age,
-                   pa.BPSystolic  AS bpSystolic,
-                   pa.BPDiastolic AS bpDiastolic,
-                   CASE WHEN pa.BloodSugarType = 'FBS' THEN pa.BloodSugarValue ELSE NULL END AS fbs,
-                   CASE WHEN pa.BloodSugarType = 'RBS' THEN pa.BloodSugarValue ELSE NULL END AS rbs,
-                   pa.HeightCm    AS height,
-                   pa.WeightKg    AS weight,
-                   pa.BMI         AS bmi,
-                   pa.DiabetesStatus  AS diabetes,
-                   pa.BPStatus        AS highBloodPressure,
-                   CASE WHEN pa.IsObese      = 1 THEN 'Yes' ELSE 'No' END AS obese,
-                   CASE WHEN pa.IsOverweight = 1 THEN 'Yes' ELSE 'No' END AS overweight,
-                   pa.Remarks     AS remarks
-            FROM pph_camp_attendies att
-            JOIN pph_camps c ON c.pk_camp_id = att.fk_camp_id AND COALESCE(c.isdeleted, 0) = 0
-            JOIN rotary_year_master y ON y.pk_year_id = @YearId
-            LEFT JOIN pph_camp_attendance pa
-                   ON pa.fk_attendee_id = att.pk_attendee_id AND COALESCE(pa.isdeleted, 0) = 0
-            WHERE c.fk_club_id = @ClubId AND COALESCE(att.isdeleted, 0) = 0
-              AND c.CampDate >= y.StartDate AND c.CampDate < DATE_ADD(y.EndDate, INTERVAL 1 DAY)
-            ORDER BY c.CampDate DESC, att.Name, att.pk_attendee_id, pa.pk_attendance_id",
-            new { ClubId = clubId, YearId = yearId })).ToList();
-
-        // ── DATA COLLECTION REPORTS (3 reports — All Members / BOD / DC) ──
-        // Only emitted when this club's district has an active
-        // district_directory_config row for the selected year. When the config
-        // is absent, dataCollection stays NULL and the frontend hides all three
-        // SectionRows + their titles.
-        dynamic? dataCollection = null;
-        var clubDistrictId = await conn.ExecuteScalarAsync<int?>(
-            "SELECT fk_district_id FROM club_master WHERE pk_club_id = @C AND isdeleted = 0",
-            new { C = clubId });
-
-        if (clubDistrictId.HasValue)
-        {
-            var ddcCfg = await conn.QueryFirstOrDefaultAsync<dynamic>(@"
-                SELECT pk_id AS id,
-                       COALESCE(DcFieldsJson, '[]')     AS dcJson,
-                       COALESCE(BodFieldsJson, '[]')    AS bodJson,
-                       COALESCE(MemberFieldsJson, '[]') AS memberJson
-                FROM district_directory_config
-                WHERE fk_district_id = @D AND fk_year_id = @Y AND isdeleted = 0
-                LIMIT 1",
-                new { D = clubDistrictId.Value, Y = yearId });
-
-            if (ddcCfg != null)
-            {
-                int configId = (int)ddcCfg.id;
-                var dcKeys     = DirectoryDataCollectionFields.DeserializeKeys((string)ddcCfg.dcJson);
-                var bodKeys    = DirectoryDataCollectionFields.DeserializeKeys((string)ddcCfg.bodJson);
-                var memberKeys = DirectoryDataCollectionFields.DeserializeKeys((string)ddcCfg.memberJson);
-
-                // Rows are LAZY-LOADED via 3 dedicated endpoints below
-                // (data-collection/all-members, /bod, /dc). Pre-computing
-                // here was too slow — N queries per member × hundreds of members.
-                dataCollection = new
-                {
-                    configId,
-                    enabled = true,
-                    columns = new
-                    {
-                        allMembers = BuildClubDcColumnSpec(memberKeys),
-                        bod        = BuildClubDcColumnSpec(bodKeys),
-                        dc         = BuildClubDcColumnSpec(dcKeys)
-                    }
-                };
-            }
-        }
-
         // TRF
         var trf = (await conn.QueryAsync<dynamic>(@"
             SELECT t.TrfDate AS trfDate, t.DonorName AS donorName, t.AmountUSD AS amountUsd,
@@ -747,226 +646,7 @@ public class ClubReportController : ControllerBase
             clubDues,
             duesReportOcv,
             monthlyReport,
-            pphCamps,
-            pphCampAttendees,
-            dataCollection,
         });
-    }
-
-    // Excel-friendly render for a Data Collection field value. Different field
-    // types need different stringification so the spreadsheet stays readable:
-    //   image        → "Uploaded" / "" (URLs are too long; legacy convention)
-    //   date         → "dd-MMM" if birthday/anniversary (year=1900 placeholder), else "dd-MMM-yyyy"
-    //   address-bulk → "Address, City, State - PinCode" (comma-joined, no JSON)
-    private static string? RenderForExport(DirectoryDataCollectionFields.FieldDef f, string? v)
-    {
-        // Member Introduction is reported as a simple Yes/No (is an intro written?), not the
-        // full free-text, so the sheet stays scannable (2026-09-09, user request). Checked
-        // before the empty-guard so a blank intro reports "No" rather than an empty cell.
-        if (f.Key == "memberIntroduction")
-            return string.IsNullOrWhiteSpace(v) ? "No" : "Yes";
-        if (string.IsNullOrWhiteSpace(v)) return null;
-        switch (f.Type)
-        {
-            case "image":
-                return "Uploaded";
-            case "date":
-                if (DateTime.TryParse(v, System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out var dt))
-                    return dt.Year == 1900
-                        ? dt.ToString("dd-MMM", System.Globalization.CultureInfo.InvariantCulture)
-                        : dt.ToString("dd-MMM-yyyy", System.Globalization.CultureInfo.InvariantCulture);
-                return v;
-            case "address-bulk":
-                try
-                {
-                    using var doc = System.Text.Json.JsonDocument.Parse(v);
-                    var el = doc.RootElement;
-                    string? G(string n) => el.TryGetProperty(n, out var x) && x.ValueKind != System.Text.Json.JsonValueKind.Null ? x.ToString() : null;
-                    var parts = new List<string>();
-                    var addr = G("Address"); if (!string.IsNullOrWhiteSpace(addr)) parts.Add(addr);
-                    var csp = string.Join(", ", new[] { G("City"), G("State"), G("PinCode") }.Where(p => !string.IsNullOrWhiteSpace(p)));
-                    if (!string.IsNullOrWhiteSpace(csp)) parts.Add(csp);
-                    var phone = G("PhoneNumber"); if (!string.IsNullOrWhiteSpace(phone)) parts.Add("Ph: " + phone);
-                    var biz = G("BusinessName"); if (!string.IsNullOrWhiteSpace(biz)) parts.Add(biz);
-                    return string.Join(" | ", parts);
-                }
-                catch { return v; }
-            default:
-                return v;
-        }
-    }
-
-    // ── Data Collection lazy-load helpers ──
-    // Rows are heavy (N queries per member). Main report endpoint returns just
-    // enabled + columns; the 3 endpoints below build rows on Download click.
-
-    private static List<object> BuildClubDcColumnSpec(List<string> keys)
-    {
-        var prefix = new List<object>
-        {
-            new { key = "clubName",         label = "Club Name" },
-            new { key = "memberName",       label = "Member Name" },
-            new { key = "updatedOn",        label = "Updated On" },
-            new { key = "mobile",           label = "Mobile Number" },
-            new { key = "rotaryId",         label = "Rotary Id" },
-            new { key = "secondaryMobile",  label = "Secondary_mobile_Number" },
-        };
-        var middle = keys
-            .Select(k => DirectoryDataCollectionFields.GetField(k))
-            .Where(f => f != null)
-            .Cast<DirectoryDataCollectionFields.FieldDef>()
-            .Select(f => new { key = f.Key, label = f.Label })
-            .ToList<object>();
-        var suffix = new List<object>
-        {
-            new { key = "donePercent",    label = "Done (%)" },
-            new { key = "pendingPercent", label = "Pending (%)" },
-            new { key = "totalFields",    label = "No. of Total Fields" },
-            new { key = "pendingFields",  label = "No. of Pending Fields" },
-        };
-        return prefix.Concat(middle).Concat(suffix).ToList();
-    }
-
-    private static async Task<Dictionary<string, object?>> BuildClubDcRowAsync(
-        MySqlConnection conn, int configId,
-        int memberId, string memName,
-        string? mobile, string? rotaryId, string? secondaryMobile,
-        List<string> keys, string clubLabel)
-    {
-        var values = await DirectoryDataCollectionFields.LoadValuesAsync(conn, memberId, keys);
-        var (filled, total, _) = DirectoryDataCollectionFields.ComputeCompletion(values, keys);
-        int pendingCount = Math.Max(0, total - filled);
-        int donePct    = total > 0 ? (int)Math.Round(100.0 * filled / total) : 0;
-        int pendingPct = total > 0 ? 100 - donePct : 0;
-        var updatedOn = await conn.ExecuteScalarAsync<DateTime?>(@"
-            SELECT MAX(SubmittedAt) FROM district_directory_submission_log
-            WHERE fk_config_id = @C AND fk_member_id = @M",
-            new { C = configId, M = memberId });
-        var row = new Dictionary<string, object?>
-        {
-            ["clubName"]        = clubLabel,
-            ["memberName"]      = memName,
-            ["updatedOn"]       = updatedOn?.ToString("dd/MMM/yy hh:mm:ss tt"),
-            ["mobile"]          = mobile ?? "",
-            ["rotaryId"]        = rotaryId ?? "",
-            ["secondaryMobile"] = secondaryMobile ?? "",
-            ["donePercent"]     = donePct + "%",
-            ["pendingPercent"]  = pendingPct + "%",
-            ["totalFields"]     = total,
-            ["pendingFields"]   = pendingCount,
-        };
-        foreach (var key in keys)
-        {
-            var f = DirectoryDataCollectionFields.GetField(key);
-            if (f == null) { row[key] = null; continue; }
-            values.TryGetValue(key, out var v);
-            row[key] = RenderForExport(f, v);
-        }
-        return row;
-    }
-
-    // Look up (configId, dcKeys, bodKeys, memberKeys, districtId, clubName).
-    private async Task<(int configId, List<string> dcKeys, List<string> bodKeys, List<string> memberKeys, int districtId, string clubName)?>
-        LoadClubDcConfigAsync(MySqlConnection conn, int clubId, int yearId)
-    {
-        var clubRow = await conn.QueryFirstOrDefaultAsync<(int districtId, string clubName)>(
-            "SELECT IFNULL(fk_district_id, 0) AS districtId, IFNULL(ClubName, '') AS clubName FROM club_master WHERE pk_club_id = @C AND isdeleted = 0",
-            new { C = clubId });
-        if (clubRow.districtId == 0) return null;
-        var ddcCfg = await conn.QueryFirstOrDefaultAsync<dynamic>(@"
-            SELECT pk_id AS id,
-                   COALESCE(DcFieldsJson, '[]')     AS dcJson,
-                   COALESCE(BodFieldsJson, '[]')    AS bodJson,
-                   COALESCE(MemberFieldsJson, '[]') AS memberJson
-            FROM district_directory_config
-            WHERE fk_district_id = @D AND fk_year_id = @Y AND isdeleted = 0
-            LIMIT 1", new { D = clubRow.districtId, Y = yearId });
-        if (ddcCfg == null) return null;
-        return ((int)ddcCfg.id,
-            DirectoryDataCollectionFields.DeserializeKeys((string)ddcCfg.dcJson),
-            DirectoryDataCollectionFields.DeserializeKeys((string)ddcCfg.bodJson),
-            DirectoryDataCollectionFields.DeserializeKeys((string)ddcCfg.memberJson),
-            clubRow.districtId, clubRow.clubName);
-    }
-
-    [HttpGet("data-collection/all-members")]
-    public async Task<ActionResult> DataCollectionAllMembers(int clubId, [FromQuery] int yearId)
-    {
-        if (!await RotaryApi.Services.KillSwitchHelper.IsClubDrillReachableAsync(_connectionString, clubId))
-            return StatusCode(403, new { message = "This club is inactive." });
-        if (yearId <= 0) return BadRequest(new { message = "yearId is required." });
-        using var conn = CreateConnection();
-        await conn.OpenAsync();
-        var cfg = await LoadClubDcConfigAsync(conn, clubId, yearId);
-        if (cfg == null) return Ok(new { rows = new List<object>() });
-        var (configId, _, _, memberKeys, _, clubName) = cfg.Value;
-        var rows = new List<Dictionary<string, object?>>();
-        var members = await conn.QueryAsync<dynamic>(@"
-            SELECT m.pk_member_master_profile_id AS id, m.MemberName AS name,
-                   m.PrimaryMobileNumber AS mobile, m.RotaryId AS rotaryId,
-                   m.SecondaryMobileNumber AS secMobile
-            FROM club_members cm
-            JOIN member_master_profile m ON m.pk_member_master_profile_id = cm.fk_member_master_profile_id AND m.isdeleted = 0
-            WHERE cm.fk_club_id = @C AND cm.IsActive = 1 AND cm.isdeleted = 0
-            ORDER BY m.MemberName", new { C = clubId });
-        foreach (var x in members)
-            rows.Add(await BuildClubDcRowAsync(conn, configId, (int)x.id, (string)x.name, (string?)x.mobile, (string?)x.rotaryId, (string?)x.secMobile, memberKeys, clubName));
-        return Ok(new { rows });
-    }
-
-    [HttpGet("data-collection/bod")]
-    public async Task<ActionResult> DataCollectionBod(int clubId, [FromQuery] int yearId)
-    {
-        if (!await RotaryApi.Services.KillSwitchHelper.IsClubDrillReachableAsync(_connectionString, clubId))
-            return StatusCode(403, new { message = "This club is inactive." });
-        if (yearId <= 0) return BadRequest(new { message = "yearId is required." });
-        using var conn = CreateConnection();
-        await conn.OpenAsync();
-        var cfg = await LoadClubDcConfigAsync(conn, clubId, yearId);
-        if (cfg == null) return Ok(new { rows = new List<object>() });
-        var (configId, _, bodKeys, _, _, clubName) = cfg.Value;
-        var rows = new List<Dictionary<string, object?>>();
-        var members = await conn.QueryAsync<dynamic>(@"
-            SELECT m.pk_member_master_profile_id AS id, m.MemberName AS name,
-                   m.PrimaryMobileNumber AS mobile, m.RotaryId AS rotaryId,
-                   m.SecondaryMobileNumber AS secMobile
-            FROM board_of_directors b
-            JOIN member_master_profile m ON m.pk_member_master_profile_id = b.fk_member_master_profile_id AND m.isdeleted = 0
-            WHERE b.fk_club_id = @C AND b.fk_year_id = @Y AND b.isdeleted = 0
-              AND b.fk_designation_id IN (1, 2)
-            GROUP BY m.pk_member_master_profile_id, m.MemberName, m.PrimaryMobileNumber, m.RotaryId, m.SecondaryMobileNumber
-            ORDER BY m.MemberName", new { C = clubId, Y = yearId });
-        foreach (var x in members)
-            rows.Add(await BuildClubDcRowAsync(conn, configId, (int)x.id, (string)x.name, (string?)x.mobile, (string?)x.rotaryId, (string?)x.secMobile, bodKeys, clubName));
-        return Ok(new { rows });
-    }
-
-    [HttpGet("data-collection/dc")]
-    public async Task<ActionResult> DataCollectionDc(int clubId, [FromQuery] int yearId)
-    {
-        if (!await RotaryApi.Services.KillSwitchHelper.IsClubDrillReachableAsync(_connectionString, clubId))
-            return StatusCode(403, new { message = "This club is inactive." });
-        if (yearId <= 0) return BadRequest(new { message = "yearId is required." });
-        using var conn = CreateConnection();
-        await conn.OpenAsync();
-        var cfg = await LoadClubDcConfigAsync(conn, clubId, yearId);
-        if (cfg == null) return Ok(new { rows = new List<object>() });
-        var (configId, dcKeys, _, _, districtId, clubName) = cfg.Value;
-        var rows = new List<Dictionary<string, object?>>();
-        var members = await conn.QueryAsync<dynamic>(@"
-            SELECT m.pk_member_master_profile_id AS id, m.MemberName AS name,
-                   m.PrimaryMobileNumber AS mobile, m.RotaryId AS rotaryId,
-                   m.SecondaryMobileNumber AS secMobile
-            FROM district_committee_member dcm
-            JOIN member_master_profile m ON m.pk_member_master_profile_id = dcm.fk_member_id AND m.isdeleted = 0
-            JOIN club_members cm        ON cm.fk_member_master_profile_id = m.pk_member_master_profile_id AND cm.isdeleted = 0
-            WHERE dcm.fk_district_id = @D AND dcm.fk_year_id = @Y AND dcm.isdeleted = 0 AND dcm.is_active = 1
-              AND cm.fk_club_id = @C AND cm.IsActive = 1
-            GROUP BY m.pk_member_master_profile_id, m.MemberName, m.PrimaryMobileNumber, m.RotaryId, m.SecondaryMobileNumber
-            ORDER BY m.MemberName", new { D = districtId, C = clubId, Y = yearId });
-        foreach (var x in members)
-            rows.Add(await BuildClubDcRowAsync(conn, configId, (int)x.id, (string)x.name, (string?)x.mobile, (string?)x.rotaryId, (string?)x.secMobile, dcKeys, clubName));
-        return Ok(new { rows });
     }
 
     // ── Avenue of Service Raw Data — Word .docx ───────────────────────

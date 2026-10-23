@@ -55,7 +55,6 @@ public class AnnouncementPushBackgroundService : BackgroundService
               AND IFNULL(PushNotificationSent, 0) = 0
               AND PublishDateTime <= NOW()
               AND (ExpiryDateTime IS NULL OR ExpiryDateTime > NOW())
-              AND IFNULL(Scope, '') <> 'ri'
             ORDER BY PublishDateTime
             LIMIT 5")).ToList();
         if (due.Count == 0) return;

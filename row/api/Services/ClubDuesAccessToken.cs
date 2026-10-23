@@ -7,7 +7,7 @@ namespace RotaryApi.Services;
 // pay page for a specific club without logging in. Uses:
 //   1. An officer (President/Secretary/Treasurer) taps "Copy payment link" and
 //      shares the URL with someone else to pay on the club's behalf.
-//   2. The pay link embedded in the email / WhatsApp dues reminders.
+//   2. The pay link embedded in the email dues reminders.
 //   3. A deep-link surfaced inside the mobile app for the officer themselves.
 //
 // NON-EXPIRING + STABLE (per requirement): the payload carries ONLY the dues +
@@ -19,7 +19,7 @@ namespace RotaryApi.Services;
 // Token format (current): "{base64url(payloadJson)}.{base64url(sigHmacSha256)}"
 // Payload (current): {"d":<duesId>,"c":<clubId>}
 // Payload (legacy, still accepted): {"d":<duesId>,"c":<clubId>,"e":<expiryUnixSeconds>}
-//   Legacy tokens are links already sent out in emails/WhatsApp. They verify by
+//   Legacy tokens are links already sent out in emails. They verify by
 //   signature exactly as before; their "e" is READ but NOT enforced, so nobody
 //   who already received a reminder is locked out. (To re-enable the legacy
 //   deadline, restore the ExpiryUnix check in TryVerify.)

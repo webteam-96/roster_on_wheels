@@ -53,39 +53,6 @@ public class EmailService : IEmailService
         await SendEmailAsync(email, subject, body);
     }
 
-    public async Task SendZonalCoordinatorEmailAsync(string email, string memberName, string mobileNumber, string tempPassword, string zoneName)
-    {
-        var loginUrl = _configuration["FrontendUrl"]?.TrimEnd('/') + "/login";
-        var subject = "Rotary Club - Zonal Co-ordinator Login Details";
-        var hasMobile = !string.IsNullOrWhiteSpace(mobileNumber);
-        var mobileHtml = hasMobile
-            ? $"<p><strong>Username (Mobile):</strong> {mobileNumber}</p>"
-            : "";
-        var loginNote = hasMobile
-            ? "You can login using either your mobile number or email as username."
-            : "You can login using your email as username.";
-        var body = $@"
-            {EMAIL_HEADER}
-                        <h2 style='color: #1a365d; margin-top: 0;'>Zonal Co-ordinator Login Details</h2>
-                        <p>Dear {memberName},</p>
-                        <p>You have been appointed as the <strong>Zonal Co-ordinator</strong> for <strong>{zoneName}</strong>.</p>
-                        <p>Here are your login credentials:</p>
-                        <div style='background-color: #f7fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px; margin: 16px 0;'>
-                            <p><strong>Login URL:</strong> <a href='{loginUrl}' style='color: #3182ce;'>{loginUrl}</a></p>
-                            {mobileHtml}
-                            <p><strong>Username (Email):</strong> {email}</p>
-                            <p><strong>Temporary Password:</strong> {tempPassword}</p>
-                        </div>
-                        <div style='text-align: center; margin: 24px 0;'>
-                            <a href='{loginUrl}' style='background-color: #3182ce; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold;'>Login Now</a>
-                        </div>
-                        <p style='color: #e53e3e;'><strong>Important:</strong> Please change your password after your first login.</p>
-                        <p style='color: #718096;'>{loginNote}</p>
-            {EMAIL_FOOTER}";
-
-        await SendEmailAsync(email, subject, body);
-    }
-
     public async Task SendPasswordResetEmailAsync(string email, string memberName, string resetLink)
     {
         var subject = "Rotary Club - Password Reset Request";
@@ -117,127 +84,6 @@ public class EmailService : IEmailService
             {EMAIL_FOOTER}";
 
         await SendEmailAsync(email, subject, body);
-    }
-
-    // approveUrl/rejectUrl are only passed for the Zonal Coordinator. Null = information copy
-    // for the Club President / Club Secretary / submitter (no Approve/Reject buttons).
-    public async Task SendBeneficiaryApprovalEmailAsync(string coordinatorEmail, string coordinatorName, DTOs.BeneficiaryApprovalDetailDto d, string? approveUrl, string? rejectUrl)
-    {
-        var withLinks = !string.IsNullOrEmpty(approveUrl) && !string.IsNullOrEmpty(rejectUrl);
-        var subject = withLinks
-            ? "Rotary Club - Beneficiary Limit Approval Required"
-            : "Rotary Club - Beneficiary Limit Sent for Approval";
-        var intro = withLinks
-            ? "A project has been submitted with direct beneficiaries exceeding the set limit. Your approval is required."
-            : "A project has been submitted with direct beneficiaries exceeding the set limit. It has been sent to the Zonal Co-ordinator for approval. This email is for your information — you will be informed once the Zonal Co-ordinator approves or rejects it.";
-        var actionHtml = withLinks
-            ? $@"<div style='text-align: center; margin: 30px 0;'>
-                            <a href='{approveUrl}' style='background-color: #38a169; color: white; padding: 14px 32px; text-decoration: none; border-radius: 6px; font-weight: bold; margin-right: 16px; display: inline-block;'>Approve</a>
-                            <a href='{rejectUrl}' style='background-color: #e53e3e; color: white; padding: 14px 32px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;'>Reject</a>
-                        </div>"
-            : "";
-        var body = $@"
-            {EMAIL_HEADER}
-                        <h2 style='color: #1a365d; margin-top: 0;'>{(withLinks ? "Beneficiary Limit Approval Required" : "Beneficiary Limit Sent for Approval")}</h2>
-                        <p>Dear {coordinatorName},</p>
-                        <p>{intro}</p>
-
-                        <h3 style='color: #2d3748; margin-top: 20px;'>Project Details</h3>
-                        <table style='width: 100%; border-collapse: collapse; margin: 12px 0;'>
-                            <tr style='background: #f7fafc;'><td style='padding: 8px; border: 1px solid #e2e8f0; font-weight: bold;'>Project Title</td><td style='padding: 8px; border: 1px solid #e2e8f0;'>{d.ProjectTitle}</td></tr>
-                            <tr><td style='padding: 8px; border: 1px solid #e2e8f0; font-weight: bold;'>Description</td><td style='padding: 8px; border: 1px solid #e2e8f0;'>{d.ProjectDescription ?? "—"}</td></tr>
-                            <tr style='background: #f7fafc;'><td style='padding: 8px; border: 1px solid #e2e8f0; font-weight: bold;'>Project Date</td><td style='padding: 8px; border: 1px solid #e2e8f0;'>{d.ProjectDate?.ToString("dd-MMM-yyyy") ?? "—"}</td></tr>
-                            <tr><td style='padding: 8px; border: 1px solid #e2e8f0; font-weight: bold;'>Project Cost</td><td style='padding: 8px; border: 1px solid #e2e8f0;'>{d.ProjectCost?.ToString("N2") ?? "—"}</td></tr>
-                            <tr style='background: #f7fafc;'><td style='padding: 8px; border: 1px solid #e2e8f0; font-weight: bold;'>Man Hours</td><td style='padding: 8px; border: 1px solid #e2e8f0;'>{d.ManHours?.ToString() ?? "—"}</td></tr>
-                            <tr><td style='padding: 8px; border: 1px solid #e2e8f0; font-weight: bold;'>Rotarians Involved</td><td style='padding: 8px; border: 1px solid #e2e8f0;'>{d.RotariansInvolved?.ToString() ?? "—"}</td></tr>
-                            <tr style='background: #f7fafc;'><td style='padding: 8px; border: 1px solid #e2e8f0; font-weight: bold;'>Rotaractors Involved</td><td style='padding: 8px; border: 1px solid #e2e8f0;'>{d.RotaractorsInvolved?.ToString() ?? "—"}</td></tr>
-                            <tr><td style='padding: 8px; border: 1px solid #e2e8f0; font-weight: bold;'>RCC Involved</td><td style='padding: 8px; border: 1px solid #e2e8f0;'>{d.RccInvolved?.ToString() ?? "—"}</td></tr>
-                        </table>
-
-                        <h3 style='color: #2d3748; margin-top: 20px;'>Beneficiary Details</h3>
-                        <div style='background-color: #fff5f5; border: 1px solid #feb2b2; border-radius: 8px; padding: 16px; margin: 12px 0;'>
-                            <p><strong>Set Limit:</strong> {d.CurrentLimit}</p>
-                            <p><strong>Requested Beneficiaries:</strong> <span style='color: #e53e3e; font-weight: bold;'>{d.RequestedBeneficiaries}</span></p>
-                            <p><strong>Currently Saved As:</strong> {d.CurrentLimit} (capped at limit)</p>
-                        </div>
-
-                        {(d.PhotoUrls.Count > 0 ? $@"
-                        <h3 style='color: #2d3748; margin-top: 20px;'>Project Photos</h3>
-                        <div style='margin: 12px 0;'>
-                            {string.Join("", d.PhotoUrls.Select(url => $"<img src='{url}' alt='Project Photo' style='max-width: 200px; height: 150px; object-fit: cover; border-radius: 6px; margin: 4px; border: 1px solid #e2e8f0;' />"))}
-                        </div>" : "")}
-
-                        <h3 style='color: #2d3748; margin-top: 20px;'>Club &amp; Admin Details</h3>
-                        <table style='width: 100%; border-collapse: collapse; margin: 12px 0;'>
-                            <tr style='background: #f7fafc;'><td style='padding: 8px; border: 1px solid #e2e8f0; font-weight: bold;'>District</td><td style='padding: 8px; border: 1px solid #e2e8f0;'>{d.DistrictNumber}</td></tr>
-                            <tr><td style='padding: 8px; border: 1px solid #e2e8f0; font-weight: bold;'>Club</td><td style='padding: 8px; border: 1px solid #e2e8f0;'>{d.ClubName}</td></tr>
-                            <tr style='background: #f7fafc;'><td style='padding: 8px; border: 1px solid #e2e8f0; font-weight: bold;'>Admin Name</td><td style='padding: 8px; border: 1px solid #e2e8f0;'>{d.RequestedByName}</td></tr>
-                            <tr><td style='padding: 8px; border: 1px solid #e2e8f0; font-weight: bold;'>Admin Mobile</td><td style='padding: 8px; border: 1px solid #e2e8f0;'>{d.RequestedByMobile}</td></tr>
-                            <tr style='background: #f7fafc;'><td style='padding: 8px; border: 1px solid #e2e8f0; font-weight: bold;'>Admin Email</td><td style='padding: 8px; border: 1px solid #e2e8f0;'>{d.RequestedByEmail}</td></tr>
-                        </table>
-
-                        {actionHtml}
-
-                        <p style='color: #718096; font-size: 13px;'>If approved, the beneficiaries will be updated from {d.CurrentLimit} to {d.RequestedBeneficiaries}. If rejected, they will remain at {d.CurrentLimit}.</p>
-            {EMAIL_FOOTER}";
-
-        await SendEmailAsync(coordinatorEmail, subject, body);
-    }
-
-    public async Task SendBeneficiaryDecisionEmailAsync(string adminEmail, string adminName, DTOs.BeneficiaryApprovalDetailDto d, string decision, string? remark)
-    {
-        var isApproved = decision == "approved";
-        var statusColor = isApproved ? "#38a169" : "#e53e3e";
-        var statusLabel = isApproved ? "Approved" : "Rejected";
-        // The ZC may approve a different count than requested (Zonal Dashboard); the email
-        // link approves the requested count, which leaves approved_beneficiaries NULL.
-        var approvedCount = d.ApprovedBeneficiaries ?? d.RequestedBeneficiaries;
-        var beneficiaryNote = isApproved
-            ? $"The beneficiary count has been updated from <strong>{d.CurrentLimit}</strong> to <strong>{approvedCount}</strong>."
-            : $"The beneficiary count will remain at <strong>{d.CurrentLimit}</strong>.";
-
-        var remarkHtml = string.IsNullOrWhiteSpace(remark) ? "" :
-            $@"<div style='background-color: #f7fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px; margin: 16px 0;'>
-                <p><strong>Remark from Zonal Co-ordinator:</strong></p>
-                <p>{remark}</p>
-            </div>";
-
-        var photosHtml = d.PhotoUrls.Count > 0
-            ? $@"<h3 style='color: #2d3748; margin-top: 20px;'>Project Photos</h3>
-                <div style='margin: 12px 0;'>
-                    {string.Join("", d.PhotoUrls.Select(url => $"<img src='{url}' alt='Project Photo' style='max-width: 200px; height: 150px; object-fit: cover; border-radius: 6px; margin: 4px; border: 1px solid #e2e8f0;' />"))}
-                </div>"
-            : "";
-
-        var subject = $"Rotary Club - Beneficiary Request {statusLabel}";
-        var body = $@"
-            {EMAIL_HEADER}
-                        <h2 style='color: {statusColor}; margin-top: 0;'>Beneficiary Request {statusLabel}</h2>
-                        <p>Dear {adminName},</p>
-                        <p>The Zonal Co-ordinator has <strong style='color: {statusColor};'>{decision}</strong> the beneficiary limit request for the following project.</p>
-
-                        <h3 style='color: #2d3748; margin-top: 20px;'>Project Details</h3>
-                        <table style='width: 100%; border-collapse: collapse; margin: 12px 0;'>
-                            <tr style='background: #f7fafc;'><td style='padding: 8px; border: 1px solid #e2e8f0; font-weight: bold;'>Project Title</td><td style='padding: 8px; border: 1px solid #e2e8f0;'>{d.ProjectTitle}</td></tr>
-                            <tr><td style='padding: 8px; border: 1px solid #e2e8f0; font-weight: bold;'>Description</td><td style='padding: 8px; border: 1px solid #e2e8f0;'>{d.ProjectDescription ?? "—"}</td></tr>
-                            <tr style='background: #f7fafc;'><td style='padding: 8px; border: 1px solid #e2e8f0; font-weight: bold;'>Project Date</td><td style='padding: 8px; border: 1px solid #e2e8f0;'>{d.ProjectDate?.ToString("dd-MMM-yyyy") ?? "—"}</td></tr>
-                            <tr><td style='padding: 8px; border: 1px solid #e2e8f0; font-weight: bold;'>Project Cost</td><td style='padding: 8px; border: 1px solid #e2e8f0;'>{d.ProjectCost?.ToString("N2") ?? "—"}</td></tr>
-                        </table>
-
-                        <h3 style='color: #2d3748; margin-top: 20px;'>Beneficiary Details</h3>
-                        <div style='background-color: {(isApproved ? "#f0fff4" : "#fff5f5")}; border: 1px solid {(isApproved ? "#c6f6d5" : "#feb2b2")}; border-radius: 8px; padding: 16px; margin: 12px 0;'>
-                            <p><strong>Status:</strong> <span style='color: {statusColor}; font-weight: bold;'>{statusLabel}</span></p>
-                            <p><strong>Set Limit:</strong> {d.CurrentLimit}</p>
-                            <p><strong>Requested Beneficiaries:</strong> {d.RequestedBeneficiaries}</p>
-                            {(isApproved ? $"<p><strong>Approved Beneficiaries:</strong> {approvedCount}</p>" : "")}
-                            <p>{beneficiaryNote}</p>
-                        </div>
-
-                        {remarkHtml}
-                        {photosHtml}
-            {EMAIL_FOOTER}";
-
-        await SendEmailAsync(adminEmail, subject, body);
     }
 
     public Task SendEmailWithAttachmentAsync(string toEmail, string subject, string htmlBody, byte[] attachment, string attachmentFileName)
@@ -340,13 +186,15 @@ public class EmailService : IEmailService
     // just reference this constant from both, which we do).
     public static string MASS_EMAIL_SENDER_EMAIL => RotaryApi.Services.Brand.CommunicationEmail;
 
-    public async Task SendMassEmailAsync(string toEmail, string subject, string htmlBody,
-        string? fromName, string? replyName, string? replyEmail)
+    // fromEmail: a tenant address on a verified sender domain (N5), else the platform sender above.
+    // headers: extra mail headers (N5: List-Unsubscribe). Returns Brevo's message id, which its webhook events carry.
+    public async Task<string?> SendMassEmailAsync(string toEmail, string subject, string htmlBody,
+        string? fromName, string? replyName, string? replyEmail, string? fromEmail = null, IReadOnlyDictionary<string, string>? headers = null)
     {
         var brevo = _configuration.GetSection("Brevo");
         var apiKey = brevo["ApiKey"] ?? throw new InvalidOperationException("Brevo:ApiKey is not configured.");
         var apiUrl = brevo["ApiUrl"] ?? "https://api.brevo.com/v3/smtp/email";
-        var senderEmail = MASS_EMAIL_SENDER_EMAIL;
+        var senderEmail = string.IsNullOrWhiteSpace(fromEmail) ? MASS_EMAIL_SENDER_EMAIL : fromEmail;
         var defaultSenderName = brevo["SenderName"] ?? "ROW";
         var effectiveFromName = !string.IsNullOrWhiteSpace(fromName) ? fromName!.Trim() : defaultSenderName;
 
@@ -363,6 +211,7 @@ public class EmailService : IEmailService
                 ? new { email = replyEmail!.Trim() } as object
                 : new { email = replyEmail!.Trim(), name = replyName!.Trim() };
         }
+        if (headers is { Count: > 0 }) payload["headers"] = headers;
 
         var json = JsonSerializer.Serialize(payload);
         using var http = _httpClientFactory.CreateClient();
@@ -381,6 +230,12 @@ public class EmailService : IEmailService
             _logger.LogError("Brevo mass-email send failed for {To}: {Status} {Body}", toEmail, resp.StatusCode, respBody);
             throw new InvalidOperationException($"Brevo API error {(int)resp.StatusCode}: {respBody}");
         }
+        try
+        {
+            using var doc = JsonDocument.Parse(respBody);
+            return doc.RootElement.TryGetProperty("messageId", out var mid) ? mid.GetString() : null;
+        }
+        catch (JsonException) { return null; } // the message id is tracking metadata only
     }
 
     // Welcome email when a member is promoted to SuperAdmin. Shows PrimaryMobileNumber as username.
@@ -447,10 +302,9 @@ public class EmailService : IEmailService
   <li>Club event notifications with RSVP + reminders</li>
   <li>Birthday &amp; anniversary reminders</li>
   <li>Global Rotarian search + Club Locator</li>
-  <li>WhatsApp integration</li>
   <li>Rotary Library, Live Rotary news &amp; Blogs</li>
   <li>Free login for spouse &amp; children</li>
-  <li>Mass SMS &amp; Mass Mailing with personalized messages</li>
+  <li>Mass Mailing with personalized messages</li>
 </ul>
 
 <h3 style='color:#1a365d; margin-bottom:6px;'>🌐 Public Image &amp; Branding (optional Club Website)</h3>
@@ -792,13 +646,8 @@ internal static class BrevoEmailLog
         // Mass campaigns are prefixed with "Mass Email:" by ClubMassEmailService.SendAsync — most reliable signal.
         if (s.Contains("Mass Email", StringComparison.OrdinalIgnoreCase)) return "Mass Email";
 
-        // OTPs (auth + directory + cashfree). Catch first — common substring.
+        // OTPs (auth + cashfree). Catch first — common substring.
         if (s.Contains("OTP", StringComparison.Ordinal) || s.Contains("One Time Password", StringComparison.OrdinalIgnoreCase)) return "OTP";
-
-        // Public-directory data collection (saved/reminder).
-        if (s.Contains("Data Collection", StringComparison.OrdinalIgnoreCase)
-            || s.Contains("District Directory", StringComparison.OrdinalIgnoreCase)
-            || s.Contains("Submission Received", StringComparison.OrdinalIgnoreCase)) return "Data Collection";
 
         // Citation auto-points nightly job.
         if (s.Contains("Auto Calculate", StringComparison.OrdinalIgnoreCase)
@@ -810,9 +659,6 @@ internal static class BrevoEmailLog
 
         // Newsletters / e-bulletins.
         if (s.Contains("Newsletter", StringComparison.OrdinalIgnoreCase) || s.Contains("eBulletin", StringComparison.OrdinalIgnoreCase)) return "Newsletter";
-
-        // Beneficiary approval workflow.
-        if (s.Contains("Beneficiary", StringComparison.OrdinalIgnoreCase)) return "Beneficiary";
 
         // Cashfree KYC notifications.
         if (s.Contains("KYC", StringComparison.Ordinal) || s.Contains("Cashfree", StringComparison.OrdinalIgnoreCase)) return "KYC";
@@ -826,7 +672,6 @@ internal static class BrevoEmailLog
 
         // Role assignment / login credential drops.
         if (s.Contains("SuperAdmin", StringComparison.OrdinalIgnoreCase)) return "SuperAdmin";
-        if (s.Contains("Zonal Co-ordinator", StringComparison.OrdinalIgnoreCase) || s.Contains("Zonal Coordinator", StringComparison.OrdinalIgnoreCase)) return "Zonal Coordinator";
         if (s.Contains("Club Admin", StringComparison.OrdinalIgnoreCase) && s.Contains("Designation", StringComparison.OrdinalIgnoreCase)) return "Club Admin Assignment";
         if (s.Contains("Login Credentials", StringComparison.OrdinalIgnoreCase) || s.Contains("Login Details", StringComparison.OrdinalIgnoreCase)) return "Login Credentials";
 

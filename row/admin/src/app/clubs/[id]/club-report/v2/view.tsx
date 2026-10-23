@@ -141,7 +141,7 @@ import {
   Users,
   type LucideIcon,
 } from "@/components/icons";
-import { getClubReport, getClubReportAvailableYears, downloadClubReportWord, getClubDcAllMembers, getClubDcBod, getClubDcDc, getClubAttendanceMatrix, downloadOcvReportExcel, downloadOcvReportWord, downloadClubAnalyticsClub, downloadClubGoalExcel, getClubAdminDashboardRotaryNetwork, getRotaryOrgTerminatedMembers } from "@/services/api";
+import { getClubReport, getClubReportAvailableYears, downloadClubReportWord, getClubAttendanceMatrix, downloadOcvReportExcel, downloadOcvReportWord, downloadClubAnalyticsClub, downloadClubGoalExcel, getClubAdminDashboardRotaryNetwork, getRotaryOrgTerminatedMembers } from "@/services/api";
 import { saveAs } from "file-saver";
 import { fileTimestamp } from "@/lib/dateUtils";
 import { exportToCSV } from "@/utils/csvExport";
@@ -363,21 +363,17 @@ export function ClubReportV2PageImpl({ clubId: propClubId, embedded = false, yea
           { key: "directBeneficiaries", label: "Beneficiaries", width: 14 },
           { key: "manHours", label: "Man Hours", width: 12 },
           { key: "funding", label: "Funding", width: 15 },
-          { key: "approvalStatus", label: "Status", width: 14 },
           { key: "publicPhotoUrl", label: "Photos", width: 12, hyperlink: true, linkText: "Photos" },
         ]
       : [
           { key: "title", label: "Title", width: 25 },
           { key: "projectDate", label: "Date", width: 15 },
           { key: "areaOfFocus", label: "Area of Focus", width: 20 },
-          { key: "category", label: "Category", width: 18 },
-          { key: "subCategory", label: "Sub Category", width: 18 },
           { key: "location", label: "Location", width: 20 },
           { key: "projectCost", label: "Cost", width: 12 },
           { key: "directBeneficiaries", label: "Beneficiaries", width: 14 },
           { key: "manHours", label: "Man Hours", width: 12 },
           { key: "funding", label: "Funding", width: 15 },
-          { key: "approvalStatus", label: "Status", width: 14 },
           { key: "publicPhotoUrl", label: "Photos", width: 12, hyperlink: true, linkText: "Photos" },
         ];
   };
@@ -691,51 +687,6 @@ export function ClubReportV2PageImpl({ clubId: propClubId, embedded = false, yea
                 />
                 )}
 
-                {/* 5–7. Data Collection reports — render ONLY when this club's
-                    district has an active district_directory_config for the
-                    selected year. When the config is absent, report.dataCollection
-                    is null and these 3 rows disappear entirely (including titles). */}
-                {report.dataCollection && (
-                  <>
-                    <SectionRow
-                      title="Data Collection (All Members)"
-                      icon={Users}
-                      count={1}
-                      onExport={async () => {
-                        try {
-                          const rows = await getClubDcAllMembers(clubId, Number(selectedYearId));
-                          exportSection(rows, "Data_Collection_All_Members",
-                            report.dataCollection.columns.allMembers.map((c: any) => ({ key: c.key, label: c.label, width: 18, greenWhen100Percent: c.key === "donePercent" })));
-                        } catch (err: any) { alert("Failed to load Data Collection (All Members)."); }
-                      }}
-                    />
-                    <SectionRow
-                      title="Data Collection (BOD (Club President & Secretary))"
-                      icon={UserCircle}
-                      count={1}
-                      onExport={async () => {
-                        try {
-                          const rows = await getClubDcBod(clubId, Number(selectedYearId));
-                          exportSection(rows, "Data_Collection_President_and_Secretary",
-                            report.dataCollection.columns.bod.map((c: any) => ({ key: c.key, label: c.label, width: 18, greenWhen100Percent: c.key === "donePercent" })));
-                        } catch (err: any) { alert("Failed to load Data Collection (BOD)."); }
-                      }}
-                    />
-                    <SectionRow
-                      title="Data Collection (District Committee (DC))"
-                      icon={UserCircle}
-                      count={1}
-                      onExport={async () => {
-                        try {
-                          const rows = await getClubDcDc(clubId, Number(selectedYearId));
-                          exportSection(rows, "Data_Collection_District_Committee",
-                            report.dataCollection.columns.dc.map((c: any) => ({ key: c.key, label: c.label, width: 18, greenWhen100Percent: c.key === "donePercent" })));
-                        } catch (err: any) { alert("Failed to load Data Collection (DC)."); }
-                      }}
-                    />
-                  </>
-                )}
-
                 {/* ── CLUBS subsection ───────────────────────────────────── */}
                 <SubsectionHeader title="Clubs" />
 
@@ -914,74 +865,6 @@ export function ClubReportV2PageImpl({ clubId: propClubId, embedded = false, yea
                 />
 
                 {/* Word .docx raw-data reports removed for now (will do later). */}
-
-                {/* 8 + 9. PPH Camp + Attendees — ALWAYS shown (even with no camps/attendees:
-                    count 0 + disabled download), matching the district report. */}
-                <>
-                {/* 8. PPH Camp */}
-                <SectionRow
-                  title="PPH Camp"
-                  icon={Award}
-                  count={report.pphCamps?.length || 0}
-                  onExport={() => {
-                    const fmtDt = (v: any) => {
-                      if (!v) return "";
-                      const d = new Date(v);
-                      if (isNaN(d.getTime())) return "";
-                      return d.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" });
-                    };
-                    const data = (report.pphCamps || []).map((r: any) => ({ ...r, campDate: fmtDt(r.campDate) }));
-                    return exportSection(data, "PPH_Camp", [
-                      { key: "campDate",        label: "Camp Date",        width: 14 },
-                      { key: "campName",        label: "Camp Name",        width: 32 },
-                      { key: "campAddress",     label: "Camp Address",     width: 40 },
-                      { key: "totalAttendees",  label: "Total Attendees",  width: 16 },
-                      { key: "campDescription", label: "Camp Description", width: 60, wrap: true },
-                    ]);
-                  }}
-                />
-
-                {/* 9. PPH Camp Attendees — always shown. */}
-                <SectionRow
-                  title="PPH Camp Attendees"
-                  icon={Users}
-                  count={report.pphCampAttendees?.length || 0}
-                  onExport={() => {
-                    const fmtDt = (v: any) => {
-                      if (!v) return "";
-                      const d = new Date(v);
-                      if (isNaN(d.getTime())) return "";
-                      return d.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" });
-                    };
-                    // One row per medical reading (camps in the selected Rotary year).
-                    const data = (report.pphCampAttendees || []).map((r: any) => ({ ...r, campDate: fmtDt(r.campDate), readingDate: fmtDt(r.readingDate) }));
-                    return exportSection(data, "PPH_Camp_Attendees", [
-                      { key: "campDate",          label: "Camp Date",         width: 14 },
-                      { key: "readingDate",       label: "Reading Date",      width: 14 },
-                      { key: "serialNumber",      label: "Serial Number",     width: 14 },
-                      { key: "name",              label: "Name",              width: 25 },
-                      { key: "mobileNumber",      label: "Mobile Number",     width: 16 },
-                      { key: "address",           label: "Address",           width: 40 },
-                      { key: "gender",            label: "Gender",            width: 10 },
-                      { key: "approvalForSms",    label: "Approval for SMS",  width: 14 },
-                      { key: "age",               label: "Age",               width: 8  },
-                      { key: "bpSystolic",        label: "BP (Systolic)",     width: 14 },
-                      { key: "bpDiastolic",       label: "BP (Diastolic)",    width: 14 },
-                      { key: "fbs",               label: "FBS mg/dl",         width: 12 },
-                      { key: "rbs",               label: "RBS mg/dl",         width: 12 },
-                      { key: "height",            label: "Height (Cms)",      width: 12 },
-                      { key: "weight",            label: "Weight (kg)",       width: 12 },
-                      { key: "bmi",               label: "BMI",               width: 10 },
-                      { key: "diabetes",          label: "Diabetes",          width: 22 },
-                      { key: "highBloodPressure", label: "High Blood Pressure", width: 22 },
-                      { key: "obese",             label: "Obese",             width: 10 },
-                      { key: "overweight",        label: "Overweight",        width: 12 },
-                      { key: "remarks",           label: "Remarks",           width: 30 },
-                      { key: "campName",          label: "Camp Name",         width: 32 },
-                    ]);
-                  }}
-                />
-                  </>
 
                 {/* 10. TRF Contributions */}
                 <SectionRow
@@ -1349,8 +1232,6 @@ function AvenueOfServiceRow({
     { key: "clubRole",             label: "Your Club Role",           width: 16 },
     { key: "coHostName",           label: "Co-host Name",             width: 18 },
     { key: "areaOfFocus",          label: "Area of Focus",            width: 22 },
-    { key: "category",             label: "Category",                 width: 22 },
-    { key: "subCategory",          label: "Sub Category",             width: 18 },
     { key: "projectDate",          label: "Date",                     width: 14 },
     { key: "title",                label: "Title",                    width: 28 },
     { key: "description",          label: "Description",              width: 40 },
@@ -1372,8 +1253,6 @@ function AvenueOfServiceRow({
 
   // 20-col project columns (Int'l / Vocational / Public Image legacy layout) — +Image hyperlink.
   const projectColsNarrow: { key: string; label: string; width?: number; hyperlink?: boolean; linkText?: string }[] = [
-    { key: "category",             label: "Category",                 width: 22 },
-    { key: "subCategory",          label: "Sub Category",             width: 18 },
     { key: "projectDate",          label: "Date",                     width: 14 },
     { key: "title",                label: "Title",                    width: 28 },
     { key: "description",          label: "Description",              width: 40 },
@@ -1414,8 +1293,6 @@ function AvenueOfServiceRow({
     clubRole:          p.clubRole || "",
     coHostName:        p.coHostName || "",
     areaOfFocus:       p.areaOfFocus || "",
-    category:          p.category || "",
-    subCategory:       p.subCategory || "",
     projectDate:       fmtDate(p.projectDate),
     title:             p.title || "",
     description:       p.description || "",

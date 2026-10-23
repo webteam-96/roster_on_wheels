@@ -7,12 +7,12 @@
 // club/district endpoint + id — this component has no opinion on entity type.
 
 import { Fragment, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
-import { Loader2, Save, Lock, LockOpen, Info, Plus, Trash2, ExternalLink, Globe, Link2 } from "@/components/icons";
+import { Loader2, Save, Lock, Info, Plus, Trash2, ExternalLink, Globe, Link2 } from "@/components/icons";
 import LoadingButton from "@/components/v2/LoadingButton";
 import { getGoalCategories, getClubWebsiteStatus, getClubSocialLinks } from "@/services/api";
 import type { ClubSocialLink } from "@/types/socialLink";
 import type {
-  GoalCategoryDto, GoalCategoryFormDto, GoalFieldWithValueDto, GoalEntrySaveDto, SaveGoalEntriesRequest, GoalLockStatusDto,
+  GoalCategoryDto, GoalCategoryFormDto, GoalFieldWithValueDto, GoalEntrySaveDto, SaveGoalEntriesRequest,
 } from "@/types/goalSetting";
 import SuccessAlert from "@/components/SuccessAlert";
 
@@ -143,7 +143,6 @@ function fromFields(fields: GoalFieldWithValueDto[]): Record<number, FieldBuffer
 export default function GoalSettingPanel({
   fetchForm,
   saveForm,
-  lockToggle,
   title = "Goal Setting",
   readOnly = false,
   subtitle,
@@ -155,7 +154,6 @@ export default function GoalSettingPanel({
 }: {
   fetchForm: (categoryId: number) => Promise<GoalCategoryFormDto>;
   saveForm?: (categoryId: number, body: SaveGoalEntriesRequest) => Promise<GoalCategoryFormDto>;
-  lockToggle?: (categoryId: number, yearId: number, locked: boolean) => Promise<GoalLockStatusDto>;
   title?: string;
   readOnly?: boolean;
   subtitle?: string;
@@ -178,7 +176,6 @@ export default function GoalSettingPanel({
   const [loadingCategories, setLoadingCategories] = useState(true);
   const [loadingForm, setLoadingForm] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [locking, setLocking] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
@@ -336,23 +333,6 @@ export default function GoalSettingPanel({
     }
   }
 
-  async function handleLockToggle() {
-    if (!form || activeCategoryId == null || !lockToggle) return;
-    setLocking(true); setError(null); setSuccess(null);
-    try {
-      await lockToggle(activeCategoryId, form.yearId, !form.isLocked);
-      const fresh = await fetchForm(activeCategoryId);
-      setForm(fresh);
-      setBuffers(fromFields(fresh.fields));
-      setSuccess(fresh.isLocked ? "Category locked." : "Category unlocked.");
-    } catch (e) {
-      const err = e as { response?: { data?: { message?: string } } };
-      setError(err?.response?.data?.message || "Failed to update lock.");
-    } finally {
-      setLocking(false);
-    }
-  }
-
   if (loadingCategories) {
     return (
       <div className="bg-white rounded-2xl border border-slate-200 p-6 flex items-center justify-center text-slate-500">
@@ -381,30 +361,10 @@ export default function GoalSettingPanel({
           </p>
         </div>
         <div className="flex items-center gap-2 flex-wrap">
-          {form?.isLocked && (
-            <span className="inline-flex items-center gap-1 text-xs font-medium px-2 py-1 rounded-full bg-slate-100 text-slate-600 border border-slate-200 w-fit">
-              <Lock size={11} /> Locked{form.lockedByName ? ` by ${form.lockedByName}` : ""}{form.lockedDate ? ` · ${form.lockedDate}` : ""}
-            </span>
-          )}
-          {form && !form.isLocked && !form.isEditable && (
+          {form && !form.isEditable && (
             <span className="inline-flex items-center gap-1 text-xs font-medium px-2 py-1 rounded-full bg-slate-100 text-slate-600 border border-slate-200 w-fit">
               <Lock size={11} /> {readOnly ? "Read only" : "Past year · read only"}
             </span>
-          )}
-          {form && lockToggle && form.canLock && (
-            <LoadingButton
-              onAction={handleLockToggle}
-              forcePending={locking}
-              spinnerSize={12}
-              className={`inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1.5 rounded-lg border ${
-                form.isLocked
-                  ? "border-emerald-200 text-emerald-700 hover:bg-emerald-50"
-                  : "border-amber-200 text-amber-700 hover:bg-amber-50"
-              }`}
-            >
-              {!locking && (form.isLocked ? <LockOpen size={12} /> : <Lock size={12} />)}
-              {form.isLocked ? "Unlock" : "Lock"}
-            </LoadingButton>
           )}
         </div>
       </div>

@@ -9,8 +9,8 @@ namespace GreetingsWorker.Services;
 // Slim Firebase push sender for the greetings worker — mirrors RotaryApi's FirebasePushService.
 // Reads the service-account JSON from Firebase:ServiceAccountAbsolutePath (absolute, preferred) or
 // Firebase:ServiceAccountPath (relative to the exe dir; default "firebase-admin.json"). If the file
-// is missing, the sender stays "unavailable" and every send is a no-op — greetings still go out over
-// WhatsApp/Email. Push is free, so there is no credit interaction here.
+// is missing, the sender stays "unavailable" and every send is a no-op — greetings still go out by
+// email. Push is free, so there is no credit interaction here.
 public class FirebasePushSender
 {
     private readonly ILogger<FirebasePushSender> _log;

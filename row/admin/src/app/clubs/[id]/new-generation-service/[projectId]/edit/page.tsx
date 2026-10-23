@@ -3,18 +3,16 @@
 import { useState, useEffect, useRef } from "react";
 import DateField from "@/components/DateField";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
-import { AreaOfFocus, Category, Funding, ProjectPhotoInput } from "@/types/project";
+import { AreaOfFocus, Funding, ProjectPhotoInput } from "@/types/project";
 import {
   getClub,
   getModules,
   getAreasOfFocus,
-  getCategories,
   getFunding,
   getProject,
   updateProject,
   moveProject,
   uploadProjectImage,
-  checkClubHasModerator,
 } from "@/services/api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -24,7 +22,7 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import {
-  Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter,
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription,
 } from "@/components/ui/dialog";
 import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
@@ -110,12 +108,10 @@ export default function NewGenerationServiceEditPage() {
   const [moduleId, setModuleId] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [initDone, setInitDone] = useState(false);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const [areasOfFocus, setAreasOfFocus] = useState<AreaOfFocus[]>([]);
-  const [categories, setCategories] = useState<Category[]>([]);
   const [fundingList, setFundingList] = useState<Funding[]>([]);
 
   const [title, setTitle] = useState("");
@@ -124,8 +120,6 @@ export default function NewGenerationServiceEditPage() {
 
   const [selectedAofId, setSelectedAofId] = useState<string>("");
   const [otherAreaOfFocus, setOtherAreaOfFocus] = useState("");
-  const [selectedCatId, setSelectedCatId] = useState<string>("");
-  const [otherCategory, setOtherCategory] = useState("");
 
   const [projectDate, setProjectDate] = useState("");
   const [projectCost, setProjectCost] = useState("");
@@ -145,10 +139,6 @@ export default function NewGenerationServiceEditPage() {
   const [rccInvolved, setRccInvolved] = useState("");
   const [sendEmail, setSendEmail] = useState(false);
   const [showProjectSuccess, setShowProjectSuccess] = useState(false);
-  const [hasModerator, setHasModerator] = useState(false);
-  const [moderatorName, setModeratorName] = useState<string | null>(null);
-  const [showModeratorConfirm, setShowModeratorConfirm] = useState(false);
-  const moderatorConfirmedRef = useRef(false);
 
   const [photos, setPhotos] = useState<PhotoItem[]>([]);
   const photoCrop = useImageCropQueue();
@@ -178,7 +168,6 @@ export default function NewGenerationServiceEditPage() {
   const onlyDigits = (v: string) => v.replace(/\D/g, "");
 
   const isOthersAof = selectedAofId === "others";
-  const isOthersCat = selectedCatId === "others";
 
   useEffect(() => {
     async function init() {
@@ -205,15 +194,10 @@ export default function NewGenerationServiceEditPage() {
 
         if (project.areaOfFocusId) {
           setSelectedAofId(String(project.areaOfFocusId));
-          const cats = await getCategories(project.areaOfFocusId);
-          setCategories(cats.filter(c => c.isActive));
-          if (project.categoryId) setSelectedCatId(String(project.categoryId));
-          else if (project.otherCategory) setSelectedCatId("others");
         } else if (project.otherAreaOfFocus) {
           setSelectedAofId("others");
         }
         setOtherAreaOfFocus(project.otherAreaOfFocus || "");
-        setOtherCategory(project.otherCategory || "");
 
         setProjectDate(project.projectDate ? project.projectDate.split("T")[0] : "");
         setProjectCost(project.projectCost != null ? String(project.projectCost) : "");
@@ -236,10 +220,6 @@ export default function NewGenerationServiceEditPage() {
         setPhotos(project.photos.map(p => ({
           imagePath: p.imagePath, description: p.description || "", isPrimary: p.isPrimary,
         })));
-
-        checkClubHasModerator(clubId).then(r => { setHasModerator(r.hasModerator); setModeratorName(r.moderatorName); }).catch(() => {});
-
-        setInitDone(true);
       } catch (err: any) {
         setErrorMessage(err?.response?.data?.message || err?.response?.data || "Failed to initialize.");
       } finally {
@@ -248,20 +228,6 @@ export default function NewGenerationServiceEditPage() {
     }
     init();
   }, [clubId, projectId]);
-
-  useEffect(() => {
-    if (!initDone) return;
-    if (!selectedAofId || selectedAofId === "others") {
-      setCategories([]); setSelectedCatId(""); return;
-    }
-    async function fetchCats() {
-      try {
-        const cats = await getCategories(Number(selectedAofId));
-        setCategories(cats.filter(c => c.isActive));
-      } catch { setCategories([]); }
-    }
-    fetchCats();
-  }, [selectedAofId, initDone]);
 
   const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
@@ -321,8 +287,6 @@ export default function NewGenerationServiceEditPage() {
     if (!location.trim()) { setErrorMessage("Location is required."); return; }
     if (!selectedAofId) { setErrorMessage("Category is required."); return; }
     if (isOthersAof && !otherAreaOfFocus.trim()) { setErrorMessage("Please specify the Category."); return; }
-    if (!isOthersAof && categories.length > 0 && !selectedCatId) { setErrorMessage("Sub Category is required."); return; }
-    if (isOthersCat && !otherCategory.trim()) { setErrorMessage("Please specify the Sub Category."); return; }
     if (!projectDate) { setErrorMessage("Date is required."); return; }
     if (new Date(projectDate) > new Date()) { setErrorMessage("Date cannot be in the future."); return; }
     if (!projectCost) { setErrorMessage("Project Cost is required."); return; }
@@ -342,12 +306,6 @@ export default function NewGenerationServiceEditPage() {
     if (photos.length === 0) { setErrorMessage("At least 1 photo is required."); return; }
     if (photos.some(p => p.uploading)) { setErrorMessage("Please wait for photos to finish uploading."); return; }
 
-    if (hasModerator && !moderatorConfirmedRef.current) {
-      setShowModeratorConfirm(true);
-      return;
-    }
-    moderatorConfirmedRef.current = false;
-
     const photoInputs: ProjectPhotoInput[] = photos.map((p, i) => ({
       imagePath: p.imagePath, description: p.description || null, isPrimary: p.isPrimary, sortOrder: i,
     }));
@@ -360,8 +318,6 @@ export default function NewGenerationServiceEditPage() {
       location: location.trim() || null,
       areaOfFocusId: isOthersAof ? null : (selectedAofId ? Number(selectedAofId) : null),
       otherAreaOfFocus: isOthersAof ? otherAreaOfFocus : null,
-      categoryId: isOthersCat ? null : (selectedCatId ? Number(selectedCatId) : null),
-      otherCategory: isOthersCat ? otherCategory : null,
       projectDate,
       projectCost: projectCost ? Number(projectCost) : null,
       fundingId: selectedFundingId ? Number(selectedFundingId) : null,
@@ -469,7 +425,7 @@ export default function NewGenerationServiceEditPage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-1.5">
               <Req>Category</Req>
-              <Select value={selectedAofId} onValueChange={(v) => { setSelectedAofId(v); setSelectedCatId(""); }}>
+              <Select value={selectedAofId} onValueChange={setSelectedAofId}>
                 <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
                 <SelectContent>
                   {areasOfFocus.map(a => (<SelectItem key={a.id} value={String(a.id)}>{a.name}</SelectItem>))}
@@ -479,19 +435,6 @@ export default function NewGenerationServiceEditPage() {
                 </SelectContent>
               </Select>
               {isOthersAof && <Input value={otherAreaOfFocus} onChange={(e) => setOtherAreaOfFocus(e.target.value)} placeholder="Specify category" className="mt-2" />}
-            </div>
-            <div className="space-y-1.5">
-              {categories.length > 0 ? <Req>Sub Category</Req> : <Label className="text-sm font-medium">Sub Category</Label>}
-              <Select value={selectedCatId} onValueChange={setSelectedCatId} disabled={isOthersAof || categories.length === 0}>
-                <SelectTrigger><SelectValue placeholder={isOthersAof ? "N/A" : "Select"} /></SelectTrigger>
-                <SelectContent>
-                  {categories.map(c => (<SelectItem key={c.id} value={String(c.id)}>{c.name}</SelectItem>))}
-                  {!categories.some(c => (c.name || "").trim().toLowerCase() === "others") && (
-                    <SelectItem value="others">Others</SelectItem>
-                  )}
-                </SelectContent>
-              </Select>
-              {isOthersCat && <Input value={otherCategory} onChange={(e) => setOtherCategory(e.target.value)} placeholder="Specify sub category" className="mt-2" />}
             </div>
           </div>
         </Section>
@@ -668,11 +611,6 @@ export default function NewGenerationServiceEditPage() {
             </Button>
           </div>
         </div>
-        {sendEmail && hasModerator && (
-          <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded px-3 py-2 mt-2">
-            Note: This project will go for approval to moderator. Email will be sent after moderator approves.
-          </p>
-        )}
 
         {/* Project Success Dialog */}
         <Dialog open={showProjectSuccess} onOpenChange={() => {}}>
@@ -687,25 +625,6 @@ export default function NewGenerationServiceEditPage() {
               <p>Thank you,<br /><span className="font-medium text-foreground">Team ROW</span></p>
             </div>
             <Button className="w-full" onClick={() => { setShowProjectSuccess(false); router.push(returnUrl || `/clubs/${clubId}/new-generation-service`); }}>OK</Button>
-          </DialogContent>
-        </Dialog>
-
-        {/* Moderator Approval Confirmation */}
-        <Dialog open={showModeratorConfirm} onOpenChange={setShowModeratorConfirm}>
-          <DialogContent className="sm:max-w-md">
-            <DialogHeader>
-              <DialogTitle>Project Approval Required</DialogTitle>
-            </DialogHeader>
-            <div className="space-y-3">
-              <p className="text-sm text-muted-foreground">
-                This club has a moderator <strong>{moderatorName}</strong> assigned. Your updated project will be re-submitted for approval.
-              </p>
-              <p className="text-sm text-muted-foreground">Do you want to continue?</p>
-            </div>
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setShowModeratorConfirm(false)}>Cancel</Button>
-              <Button onClick={() => { moderatorConfirmedRef.current = true; setShowModeratorConfirm(false); handleSave(); }}>Submit for Approval</Button>
-            </DialogFooter>
           </DialogContent>
         </Dialog>
 

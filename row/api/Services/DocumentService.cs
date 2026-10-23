@@ -41,7 +41,6 @@ public class DocumentService : IDocumentService
                    CASE
                        WHEN d.FilePath IS NULL OR d.FilePath = '' THEN NULL
                        WHEN d.FilePath LIKE '/%' THEN d.FilePath
-                       WHEN d.Scope = 'ri' THEN CONCAT('/Documents/documentsafe/ri/', d.FilePath)
                        WHEN d.fk_district_id IS NOT NULL THEN CONCAT('/Documents/documentsafe/Group', d.fk_district_id, '/', d.FilePath)
                        ELSE CONCAT('/Documents/documentsafe/Group', d.fk_club_id, '/', d.FilePath)
                    END AS FilePath,
@@ -89,7 +88,6 @@ public class DocumentService : IDocumentService
                      CASE
                          WHEN d.FilePath IS NULL OR d.FilePath = '' THEN NULL
                          WHEN d.FilePath LIKE '/%' THEN d.FilePath
-                         WHEN d.Scope = 'ri' THEN CONCAT('/Documents/documentsafe/ri/', d.FilePath)
                          WHEN d.fk_district_id IS NOT NULL THEN CONCAT('/Documents/documentsafe/Group', d.fk_district_id, '/', d.FilePath)
                          ELSE CONCAT('/Documents/documentsafe/Group', d.fk_club_id, '/', d.FilePath)
                      END AS FilePath,

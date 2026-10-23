@@ -12,14 +12,10 @@ public class UpcomingEventListDto
     public DateTime ExpiryDate { get; set; }
     public string? EventVenue { get; set; }
     public string? RegistrationLink { get; set; }
-    public bool IsSendWhatsapp { get; set; }
     public bool IsSendEmail { get; set; }
     public bool IsRepeatNotification { get; set; }
     public string Status { get; set; } = "";
     public int ReminderCount { get; set; }
-    public DateTime? WhatsAppSentDate { get; set; }
-    public int WhatsAppSentCount { get; set; }
-    public int WhatsAppFailedCount { get; set; }
     public DateTime? EmailSentDate { get; set; }
     public int EmailSentCount { get; set; }
     public int EmailFailedCount { get; set; }
@@ -37,14 +33,9 @@ public class UpcomingEventDetailDto
     public DateTime ExpiryDate { get; set; }
     public string? EventVenue { get; set; }
     public string? RegistrationLink { get; set; }
-    public bool IsSendWhatsapp { get; set; }
     public bool IsSendEmail { get; set; }
     public bool IsRepeatNotification { get; set; }
     public string Status { get; set; } = "";
-    public string? RecipientTarget { get; set; }
-    public string? RecipientZoneIds { get; set; }
-    public string? RecipientDistrictIds { get; set; }
-    public string? RecipientSubgroupIds { get; set; }
     public List<EventReminderDto> Reminders { get; set; } = new();
 }
 
@@ -67,10 +58,6 @@ public class CreateUpcomingEventDto
     public bool IsSendEmail { get; set; }
     public bool IsRepeatNotification { get; set; }
     public List<DateTime>? Reminders { get; set; }
-    public string? RecipientTarget { get; set; }
-    public int[]? RecipientZoneIds { get; set; }
-    public int[]? RecipientDistrictIds { get; set; }
-    public int[]? RecipientSubgroupIds { get; set; }
 }
 
 public class UpdateUpcomingEventDto
@@ -86,8 +73,4 @@ public class UpdateUpcomingEventDto
     public bool IsSendEmail { get; set; }
     public bool IsRepeatNotification { get; set; }
     public List<DateTime>? Reminders { get; set; }
-    public string? RecipientTarget { get; set; }
-    public int[]? RecipientZoneIds { get; set; }
-    public int[]? RecipientDistrictIds { get; set; }
-    public int[]? RecipientSubgroupIds { get; set; }
 }

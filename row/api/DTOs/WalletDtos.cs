@@ -1,6 +1,6 @@
 namespace RotaryApi.DTOs;
 
-// Wallet credit top-up (club/district admins buy WhatsApp/Email credits via Razorpay).
+// Wallet credit top-up (club/district admins buy Email credits via Razorpay).
 // Server is authoritative on pricing: the client only sends a base rupee Amount + scope + type;
 // credits, GST and the total charged are computed server-side (never trust the client).
 
@@ -9,7 +9,7 @@ public class CreateTopupOrderDto
     public string Scope { get; set; } = "";       // "club" | "district"
     public int ClubId { get; set; }                // required when Scope=club
     public int DistrictId { get; set; }            // required when Scope=district
-    public string CreditType { get; set; } = "";   // "WhatsApp" | "Email"
+    public string CreditType { get; set; } = "";   // "Email"
     public decimal Amount { get; set; }            // base amount in rupees (min enforced), GST added on top
 }
 

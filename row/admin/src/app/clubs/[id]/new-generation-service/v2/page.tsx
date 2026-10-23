@@ -6,7 +6,7 @@
  * Visuals mimic NonClubAvenueSection from the Club Admin Dashboard's Service
  * Projects & Public Image page (KPI tiles, colored type chips, dense table)
  * but the data still comes from the existing v1 API endpoints
- * (getProjects + getProjectYears + getClub + checkClubHasModerator).
+ * (getProjects + getProjectYears + getClub).
  *
  * v2 reads ONLY `?returnTo=` — never any other param name.
  */
@@ -16,8 +16,8 @@ import { useRouter, useParams, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import {
   Briefcase, Users, IndianRupee, Clock4, Loader2, Search, Plus, Edit3, Trash2,
-  Download, ArrowLeft, AlertTriangle, Info, BadgeAlert, Eye,
-  Clock, CheckCircle2, XCircle, ChevronLeft, ChevronRight, Puzzle,
+  Download, ArrowLeft, AlertTriangle, Info, Eye,
+  ChevronLeft, ChevronRight, Puzzle,
 } from "@/components/icons";
 import {
   getClub,
@@ -25,7 +25,6 @@ import {
   getProjects,
   deleteProject,
   getProjectYears,
-  checkClubHasModerator,
   getProject,
 } from "@/services/api";
 import { ProjectListItem } from "@/types/project";
@@ -124,7 +123,6 @@ export default function NewGenerationServiceV2Page() {
   const [totalCount, setTotalCount] = useState(0);
   const pageSize = 20;
   const [subTab, setSubTab] = useState<"one_time" | "ongoing">("one_time");
-  const [hasModerator, setHasModerator] = useState(false);
 
   const [showAgreeDialog, setShowAgreeDialog] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<ProjectListItem | null>(null);
@@ -136,10 +134,7 @@ export default function NewGenerationServiceV2Page() {
   const installed = useExtensionStatus();
   const isBotEnabled = isFlowBotEnabled(clubId);
   const [syncTarget, setSyncTarget] = useState<ProjectListItem | null>(null);
-  const canSyncRow = (p: ProjectListItem) => {
-    const status = (p.approvalStatus || "").toLowerCase();
-    return isBotEnabled && installed === true && canManage && (status === "" || status === "approved");
-  };
+  const canSync = isBotEnabled && installed === true && canManage;
 
   // Two-hop returnTo chain: dashboard → listing → add/edit → listing → dashboard.
   // childReturnTo points at THIS listing (with parent's returnTo nested inside),
@@ -166,9 +161,6 @@ export default function NewGenerationServiceV2Page() {
           const current = projectYears.find((y) => y.isCurrent);
           setSelectedYearId(current ? current.id : projectYears[0]?.id ?? null);
         }
-        checkClubHasModerator(clubId).then((r) => {
-          if (!cancelled) setHasModerator(r.hasModerator);
-        }).catch(() => {});
       } catch (err: unknown) {
         const e = err as { response?: { data?: { message?: string } } };
         if (!cancelled) setErrorMessage(e?.response?.data?.message || "Failed to initialize.");
@@ -226,12 +218,6 @@ export default function NewGenerationServiceV2Page() {
   const totalCost          = projects.reduce((s, p) => s + (p.projectCost ?? 0), 0);
   // ProjectListItem doesn't carry manHours — KPI uses 0 unless backend later adds it.
   const totalManHours      = 0;
-
-  // Pending-approval banner rows (visible when this club has a moderator).
-  const pendingApprovals = useMemo(
-    () => projects.filter((p) => (p.approvalStatus || "").toLowerCase() === "pending"),
-    [projects]
-  );
 
   const router = useRouter();
   const handleAddClick = () => setShowAgreeDialog(true);
@@ -386,20 +372,6 @@ export default function NewGenerationServiceV2Page() {
             </div>
           </div>
 
-          {/* Pending approval banner row(s) — above the table */}
-          {hasModerator && pendingApprovals.length > 0 && (
-            <div className="border-b border-slate-100 bg-amber-50/40 divide-y divide-amber-100">
-              {pendingApprovals.map((p) => (
-                <div key={p.id} className="px-5 py-2.5 flex flex-wrap items-center gap-3 text-xs">
-                  <span className="font-semibold text-slate-800 truncate max-w-[260px]">{p.title || "Untitled"}</span>
-                  <span className="inline-flex items-center gap-1 text-[10px] font-medium px-2 py-0.5 rounded-full border bg-amber-100 text-amber-700 border-amber-200">
-                    <BadgeAlert size={10} /> {p.approvalStatus || "pending"}
-                  </span>
-                </div>
-              ))}
-            </div>
-          )}
-
           {/* Table */}
           <div className="overflow-x-auto">
             {loading ? (
@@ -418,7 +390,6 @@ export default function NewGenerationServiceV2Page() {
                     <th className="px-3 py-2.5 text-left">Location</th>
                     <th className="px-3 py-2.5 text-right">Cost</th>
                     <th className="px-3 py-2.5 text-right">Direct Benf</th>
-                    <th className="px-3 py-2.5 text-left">Status</th>
                     <th className="px-3 py-2.5 text-right w-16">View</th>
                     {canManage && <th className="px-3 py-2.5 text-right w-16">Edit</th>}
                     {canManage && <th className="px-3 py-2.5 text-right w-16">Delete</th>}
@@ -445,23 +416,6 @@ export default function NewGenerationServiceV2Page() {
                         </td>
                         <td className="px-3 py-2 text-right text-slate-600">
                           {m.directBeneficiaries && m.directBeneficiaries > 0 ? fmtInt(m.directBeneficiaries) : "–"}
-                        </td>
-                        <td className="px-3 py-2">
-                          {m.approvalStatus === "pending" ? (
-                            <span className="inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 border border-amber-200">
-                              <Clock size={11} /> Pending
-                            </span>
-                          ) : m.approvalStatus === "approved" ? (
-                            <span className="inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 border border-emerald-200">
-                              <CheckCircle2 size={11} /> Approved
-                            </span>
-                          ) : m.approvalStatus === "rejected" ? (
-                            <span className="inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full bg-rose-100 text-rose-700 border border-rose-200">
-                              <XCircle size={11} /> Rejected
-                            </span>
-                          ) : (
-                            <span className="text-xs text-slate-400">, </span>
-                          )}
                         </td>
                         <td className="px-3 py-2 text-right">
                           <Link
@@ -497,7 +451,7 @@ export default function NewGenerationServiceV2Page() {
                         )}
                         {isBotEnabled && installed === true && (
                           <td className="px-3 py-2 text-right">
-                            {canSyncRow(m) && (
+                            {canSync && (
                               <button
                                 type="button"
                                 onClick={() => setSyncTarget(m)}
@@ -518,7 +472,6 @@ export default function NewGenerationServiceV2Page() {
                       <td
                         colSpan={8 /* Sr, Date, Title, Category, Type, Location, Cost, Direct Benf */
                           + 1 /* View: always visible */
-                          + 1
                           + (canManage ? 2 /* Edit, Delete */ : 0)
                           + (isBotEnabled && installed === true ? 1 : 0)}
                         className="px-4 py-10 text-center text-slate-400"

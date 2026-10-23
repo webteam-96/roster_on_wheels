@@ -23,6 +23,7 @@ import AlertModal from "@/components/AlertModal";
 import { ArrowLeft, Plus, Pencil, Trash2, AlertTriangle, Users, Search, X, Upload } from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
 import NonSyncRemovedCommitteeMembers from "@/components/dashboard/NonSyncRemovedCommitteeMembers";
+import CommitteeDocumentsCard from "@/components/membership/CommitteeDocumentsCard";
 import ImageCropDialog from "@/components/ImageCropDialog";
 import { useImageCropUpload } from "@/hooks/useImageCropUpload";
 import Link from "next/link";
@@ -380,6 +381,8 @@ export default function SubGroupDetailPage() {
           onCancel={photoCrop.cancel}
           onSave={handlePhotoCropSave}
         />
+
+        <CommitteeDocumentsCard districtId={districtId} subGroupId={subGroupId} />
 
         <AlertModal open={!!deleteTarget} onOpenChange={(o) => !o && setDeleteTarget(null)} icon={AlertTriangle} iconClassName="text-destructive" title="Delete Member" description="Are you sure? This action cannot be undone." confirmLabel="Delete" confirmClassName="bg-destructive text-destructive-foreground hover:bg-destructive/90" onConfirm={handleDelete} cancelLabel="Cancel" onCancel={() => setDeleteTarget(null)} />
         <SuccessAlert open={!!successMessage} title="Success" description={successMessage || ""} onOk={() => setSuccessMessage(null)} />

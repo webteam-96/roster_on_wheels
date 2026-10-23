@@ -1,4 +1,3 @@
-using System.Data;
 using Dapper;
 using MySqlConnector;
 using RotaryApi.DTOs;
@@ -53,10 +52,13 @@ public class GreetingService : IGreetingService
     {
         using var connection = CreateConnection();
         await connection.OpenAsync();
+        // Inline (not sp_greeting_get_settings), so the read never depends on the procedure on prod.
         var dto = await connection.QueryFirstOrDefaultAsync<GreetingSettingsDto>(
-            "sp_greeting_get_settings",
-            new { p_ClubId = clubId },
-            commandType: CommandType.StoredProcedure);
+            @"SELECT BirthdayGreeting, IsEnableBirthdayNotification, AnniversaryGreeting, IsEnableAnniversaryNotification,
+                     IsEnableBirthdayEmail, BirthdayEmailFrom, BirthdayEmailSubject, BirthdayEmailMessage,
+                     IsEnableAnniversaryEmail, AnniversaryEmailFrom, AnniversaryEmailSubject, AnniversaryEmailMessage
+              FROM club_master WHERE pk_club_id = @ClubId AND isdeleted = 0",
+            new { ClubId = clubId });
         if (dto != null)
         {
             var pause = await GetPauseInfoAsync(connection, "club_master", "pk_club_id", clubId);
@@ -77,7 +79,6 @@ public class GreetingService : IGreetingService
                 IsEnableBirthdayNotification = @IsEnableBirthdayNotification,
                 AnniversaryGreeting = @AnniversaryGreeting,
                 IsEnableAnniversaryNotification = @IsEnableAnniversaryNotification,
-                IsGreetingSendWhatsapp = @IsGreetingSendWhatsapp,
                 IsEnableBirthdayEmail = @IsEnableBirthdayEmail,
                 BirthdayEmailFrom = @BirthdayEmailFrom,
                 BirthdayEmailSubject = @BirthdayEmailSubject,
@@ -96,7 +97,6 @@ public class GreetingService : IGreetingService
                 dto.IsEnableBirthdayNotification,
                 dto.AnniversaryGreeting,
                 dto.IsEnableAnniversaryNotification,
-                IsGreetingSendWhatsapp = false,
                 dto.IsEnableBirthdayEmail,
                 dto.BirthdayEmailFrom,
                 dto.BirthdayEmailSubject,
@@ -115,7 +115,7 @@ public class GreetingService : IGreetingService
         await connection.OpenAsync();
         var dto = await connection.QueryFirstOrDefaultAsync<DistrictGreetingSettingsDto>(
             @"SELECT BirthdayGreeting, IsEnableBirthdayNotification, AnniversaryGreeting, IsEnableAnniversaryNotification,
-                     IsGreetingSendWhatsapp, IsGreetingSendEmail, IsGreetingSendPush,
+                     IsGreetingSendEmail, IsGreetingSendPush,
                      IsEnableBirthdayEmail, BirthdayEmailFrom, BirthdayEmailSubject, BirthdayEmailMessage,
                      IsEnableAnniversaryEmail, AnniversaryEmailFrom, AnniversaryEmailSubject, AnniversaryEmailMessage
               FROM district_master
@@ -139,7 +139,7 @@ public class GreetingService : IGreetingService
             $@"UPDATE district_master SET
                 BirthdayGreeting = @BirthdayGreeting, IsEnableBirthdayNotification = @IsEnableBirthdayNotification,
                 AnniversaryGreeting = @AnniversaryGreeting, IsEnableAnniversaryNotification = @IsEnableAnniversaryNotification,
-                IsGreetingSendWhatsapp = @IsGreetingSendWhatsapp, IsGreetingSendEmail = @IsGreetingSendEmail,
+                IsGreetingSendEmail = @IsGreetingSendEmail,
                 IsGreetingSendPush = @IsGreetingSendPush,
                 IsEnableBirthdayEmail = @IsEnableBirthdayEmail, BirthdayEmailFrom = @BirthdayEmailFrom,
                 BirthdayEmailSubject = @BirthdayEmailSubject, BirthdayEmailMessage = @BirthdayEmailMessage,
@@ -153,7 +153,7 @@ public class GreetingService : IGreetingService
                 DistrictId = districtId,
                 dto.BirthdayGreeting, dto.IsEnableBirthdayNotification,
                 dto.AnniversaryGreeting, dto.IsEnableAnniversaryNotification,
-                IsGreetingSendWhatsapp = false, dto.IsGreetingSendEmail, dto.IsGreetingSendPush,
+                dto.IsGreetingSendEmail, dto.IsGreetingSendPush,
                 dto.IsEnableBirthdayEmail, dto.BirthdayEmailFrom, dto.BirthdayEmailSubject, dto.BirthdayEmailMessage,
                 dto.IsEnableAnniversaryEmail, dto.AnniversaryEmailFrom, dto.AnniversaryEmailSubject, dto.AnniversaryEmailMessage,
                 ModifiedBy = modifiedBy

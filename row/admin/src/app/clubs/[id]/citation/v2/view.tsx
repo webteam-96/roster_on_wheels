@@ -549,8 +549,8 @@ function AutoPointsPanel({
                 {entries.map((e, i) => {
                   const pts = Number(e.pointsEarned || 0);
                   const bns = Number(e.bonusEarned || 0);
-                  // Sub-item lineage: backend ships e.subItemDisplay built as
-                  // "Area of Focus → Category → Sub Category" (CASE in the
+                  // Sub-item lineage: backend ships e.subItemDisplay built from
+                  // the area of focus (CASE in the
                   // /api/clubs/{id}/citation SQL). Fall back to the raw
                   // sub_item_name then the type when nothing else is set.
                   const subItemText = e.subItemDisplay || e.subItemName || e.subItemType || "–";

@@ -24,9 +24,8 @@ enum GoalEntityType { club, district }
 /// whether it's editable — NEVER hardcodes field keys (the DISHA field rebuild
 /// flows through untouched). Targets are always editable; a Reference is editable
 /// only when the system does NOT auto-fill it; Computed values are always
-/// read-only. Past/locked years come back with `isEditable=false` and render
-/// read-only. The District form additionally exposes a Lock control when the
-/// server grants `canLock`; the Club form never locks (matching web).
+/// read-only. Past years come back with `isEditable=false` and render
+/// read-only.
 class GoalSettingEntryScreen extends StatefulWidget {
   final GoalEntityType entityType;
 
@@ -70,7 +69,6 @@ class _GoalSettingEntryScreenState extends State<GoalSettingEntryScreen> {
   int _reload = 0;
 
   bool _saving = false;
-  bool _locking = false;
 
   @override
   void initState() {
@@ -208,27 +206,6 @@ class _GoalSettingEntryScreenState extends State<GoalSettingEntryScreen> {
     }
   }
 
-  Future<void> _toggleLock() async {
-    final form = _form;
-    final cat = _activeCategoryId;
-    if (form == null || cat == null) return;
-    setState(() => _locking = true);
-    try {
-      await _api.setDistrictLock(cat, form.yearId, widget.entityId, !form.isLocked);
-      if (!mounted) return;
-      setState(() => _locking = false);
-      await _loadForm();
-      if (mounted) {
-        SnackbarUtils.showSuccess(
-            context, (_form?.isLocked ?? false) ? 'Category locked.' : 'Category unlocked.');
-      }
-    } catch (e) {
-      if (!mounted) return;
-      setState(() => _locking = false);
-      SnackbarUtils.showError(context, friendlyErrorMessage(e, fallback: 'Failed to update lock.'));
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -294,7 +271,7 @@ class _GoalSettingEntryScreenState extends State<GoalSettingEntryScreen> {
                       ? const SizedBox.shrink()
                       : _formBody(form),
         ),
-        if (form != null && _isEditable && !form.isLocked) _saveBar(form),
+        if (form != null && _isEditable) _saveBar(form),
       ],
     );
   }
@@ -360,15 +337,14 @@ class _GoalSettingEntryScreenState extends State<GoalSettingEntryScreen> {
     return ListView(
       padding: const EdgeInsets.fromLTRB(16, 4, 16, 24),
       children: [
-        if (form.isLocked || !form.isEditable) _statusChip(form),
-        if (_lockControlVisible(form)) _lockCard(form),
+        if (!form.isEditable) _statusChip(),
         for (final g in groups)
           GoalGroupCard(
             groupName: g.key,
             fields: g.value,
             buffers: _buffers,
             reloadTick: _reload,
-            enabled: _isEditable && !form.isLocked,
+            enabled: _isEditable,
             onText: (f, v) => _buffers[f.fieldId]!.text = v,
             onBool: (f, v) => setState(() => _buffers[f.fieldId]!.bool_ = v),
           ),
@@ -383,15 +359,8 @@ class _GoalSettingEntryScreenState extends State<GoalSettingEntryScreen> {
     );
   }
 
-  bool _lockControlVisible(GoalCategoryForm form) =>
-      widget.entityType == GoalEntityType.district && form.canLock;
-
-  Widget _statusChip(GoalCategoryForm form) {
-    final locked = form.isLocked;
-    final text = locked
-        ? 'Locked${form.lockedByName != null ? " by ${form.lockedByName}" : ""}'
-            '${form.lockedDate != null ? " · ${form.lockedDate}" : ""}'
-        : 'Past year · read only';
+  Widget _statusChip() {
+    const text = 'Past year · read only';
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -412,44 +381,6 @@ class _GoalSettingEntryScreenState extends State<GoalSettingEntryScreen> {
                 fontWeight: FontWeight.w600,
                 color: AppColors.slate700,
               ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _lockCard(GoalCategoryForm form) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: AppColors.slate200),
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: Text(
-              form.isLocked
-                  ? 'These goals are locked from further edits.'
-                  : 'Lock these goals once finalised.',
-              style: AppFonts.body(fontSize: 12, color: AppColors.slate700),
-            ),
-          ),
-          const SizedBox(width: 8),
-          OutlinedButton.icon(
-            onPressed: _locking ? null : _toggleLock,
-            icon: _locking
-                ? const SizedBox(
-                    width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 2))
-                : Icon(form.isLocked ? Icons.lock_open_rounded : Icons.lock_rounded, size: 15),
-            label: Text(form.isLocked ? 'Unlock' : 'Lock'),
-            style: OutlinedButton.styleFrom(
-              foregroundColor: form.isLocked ? AppColors.success : AppColors.warning,
-              side: BorderSide(
-                  color: form.isLocked ? AppColors.success : AppColors.warning),
             ),
           ),
         ],

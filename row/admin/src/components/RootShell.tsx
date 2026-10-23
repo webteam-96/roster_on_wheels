@@ -34,7 +34,7 @@ function isSiteRoute(pathname: string): boolean {
 
 // Full-bleed public routes that render their own chrome (e.g. PayPageShell). They must NOT get the
 // admin padded <main>, otherwise the branded header/footer leave white gutters at the screen edges.
-const BARE_PREFIXES = ["/pay/"];
+const BARE_PREFIXES = ["/pay/", "/invite/"]; // /invite/[token]: a guest's RSVP to a member's invite link
 function isBareRoute(pathname: string): boolean {
   return BARE_PREFIXES.some((p) => pathname.startsWith(p));
 }

@@ -19,9 +19,8 @@ namespace RotaryApi.Controllers;
 ///
 /// Both are [AllowAnonymous] — a share link has to open for a logged-out recipient. Unlike the
 /// public directory/stats endpoints, a share link is meant to work as soon as a club creates the
-/// project — waiting on district approval would defeat the point of sharing it — so the filter is
-/// deliberately looser than PublicProjectStatsController's:
-///   isdeleted = 0 AND is_active = 1 AND approval_status <> 'Rejected'   (Pending/blank/Approved all shareable)
+/// project, so the filter is deliberately looser than PublicProjectStatsController's:
+///   isdeleted = 0 AND is_active = 1
 /// plus the club -> district -> zone active chain (the public kill switch).
 ///
 /// shareUrl points at the club's OWN website when that club has a LIVE site
@@ -56,7 +55,7 @@ public class PublicProjectShareController : ControllerBase
     // ── Truncation rules ────────────────────────────────────────────────────
     // Summary: 200 chars, cut on a word boundary, ellipsis appended.
     //   Why 200: title (~70) + club + district (~50) + summary (200) + URL (~60) lands the whole
-    //   shareText near 380 chars. WhatsApp shows ~700 chars before it folds behind "Read more",
+    //   shareText near 380 chars. Chat apps show ~700 chars before folding behind "Read more",
     //   so the message stays fully visible in the chat bubble, and the same 200 chars fills the
     //   card's description block at 16.5pt without overflowing 630px.
     private const int SummaryMaxChars = 200;
@@ -204,7 +203,6 @@ public class PublicProjectShareController : ControllerBase
             LEFT JOIN area_of_focus_master aof ON aof.pk_area_of_focus_id = p.fk_area_of_focus_id
             WHERE p.pk_project_id = @Id
               AND p.isdeleted = 0 AND p.is_active = 1
-              AND COALESCE(p.approval_status,'') <> 'Rejected'
             LIMIT 1";
     }
 
@@ -212,7 +210,7 @@ public class PublicProjectShareController : ControllerBase
     {
         // pk_project_id is only unique WITHIN a year table — when the caller passed yearId, that
         // (id, yearId) pair is the ONE project being asked about. If it doesn't pass the public
-        // filter (not yet approved, inactive, geo chain down, ...), the correct answer is "not
+        // filter (inactive, geo chain down, ...), the correct answer is "not
         // shareable right now" — NOT some other, unrelated project that happens to reuse the same
         // numeric id in a different year. Falling through to the scan-all-years fallback below is
         // only correct when the caller supplied no yearId at all (a legacy link).
@@ -224,7 +222,7 @@ public class PublicProjectShareController : ControllerBase
 
         // Fallback for legacy links that carry no yearId: scan the year tables and take the first
         // row that passes the PUBLIC filter. Scanning on isdeleted alone (as the older public
-        // endpoint does) could stop on a year table holding a non-approved row and 404 a project
+        // endpoint does) could stop on a year table holding an inactive row and 404 a project
         // that is perfectly visible in another year.
         foreach (var t in await _yearTables.GetAllExistingYearTablesAsync(conn))
         {
@@ -340,8 +338,8 @@ public class PublicProjectShareController : ControllerBase
     }
 
     // MULTI-LINE. This text is for the clipboard / the OS native share sheet / the body a member
-    // types into a WhatsApp chat — line breaks are fine there. It is NOT for a WhatsApp *template*
-    // body, which Meta forbids from containing line breaks; use `shareTextSingleLine` for that.
+    // types into a chat — line breaks are fine there. Use `shareTextSingleLine` where line breaks
+    // are not allowed.
     private static string BuildShareText(string title, string club, string? district, string summary, string url)
     {
         var sb = new StringBuilder();
@@ -354,8 +352,7 @@ public class PublicProjectShareController : ControllerBase
         return sb.ToString();
     }
 
-    // SINGLE LINE. Safe to drop into a WhatsApp template variable (Meta rejects template bodies
-    // containing newlines — see the GreetingsWorker rule).
+    // SINGLE LINE. For targets that reject line breaks.
     private static string BuildShareTextSingleLine(string title, string club, string? district, string summary, string url)
     {
         var parts = new List<string> { title, club };

@@ -37,6 +37,7 @@ public class ClubMassEmailsController : ControllerBase
     public async Task<ActionResult> GetDetail(int clubId, int id)
     {
         if (!await RotaryApi.Services.KillSwitchHelper.IsClubDrillReachableAsync(_connectionString, clubId)) return StatusCode(403, new { message = "This club, its district, or its zone is inactive. Reactivate it first to access this data." });
+        if (!await _service.BelongsToAsync(id, clubId, null)) return NotFound(new { message = "Mass email not found." });
         var detail = await _service.GetDetailAsync(id);
         if (detail == null) return NotFound(new { message = "Mass email not found." });
         return Ok(detail);
@@ -59,6 +60,7 @@ public class ClubMassEmailsController : ControllerBase
     [HttpPut("{id}")]
     public async Task<ActionResult> Update(int clubId, int id, [FromBody] CreateMassEmailDto dto)
     {
+        if (!await _service.BelongsToAsync(id, clubId, null)) return NotFound(new { message = "Mass email not found." });
         try
         {
             await _service.UpdateAsync(id, dto, GetUserId());
@@ -73,6 +75,7 @@ public class ClubMassEmailsController : ControllerBase
     [HttpDelete("{id}")]
     public async Task<ActionResult> Delete(int clubId, int id)
     {
+        if (!await _service.BelongsToAsync(id, clubId, null)) return NotFound(new { message = "Mass email not found." });
         try
         {
             await _service.DeleteAsync(id, GetUserId());
@@ -87,6 +90,7 @@ public class ClubMassEmailsController : ControllerBase
     [HttpPost("{id}/send")]
     public async Task<ActionResult> Send(int clubId, int id)
     {
+        if (!await _service.BelongsToAsync(id, clubId, null)) return NotFound(new { message = "Mass email not found." });
         try
         {
             await _service.SendAsync(id, GetUserId());
@@ -102,6 +106,7 @@ public class ClubMassEmailsController : ControllerBase
     public async Task<ActionResult> GetRecipients(int clubId, int id)
     {
         if (!await RotaryApi.Services.KillSwitchHelper.IsClubDrillReachableAsync(_connectionString, clubId)) return StatusCode(403, new { message = "This club, its district, or its zone is inactive. Reactivate it first to access this data." });
+        if (!await _service.BelongsToAsync(id, clubId, null)) return NotFound(new { message = "Mass email not found." });
         var recipients = await _service.GetRecipientsAsync(id);
         return Ok(recipients);
     }
@@ -109,7 +114,7 @@ public class ClubMassEmailsController : ControllerBase
     [HttpGet("recipient-count")]
     public async Task<ActionResult> GetRecipientCount(int clubId,
         [FromQuery] int recipientType, [FromQuery] string? subgroupIds,
-        [FromQuery] string? memberIds)
+        [FromQuery] string? memberIds, [FromQuery] string? contactGroupIds)
     {
         if (!await RotaryApi.Services.KillSwitchHelper.IsClubDrillReachableAsync(_connectionString, clubId)) return StatusCode(403, new { message = "This club, its district, or its zone is inactive. Reactivate it first to access this data." });
         List<int>? parsedSubgroupIds = null;
@@ -120,7 +125,10 @@ public class ClubMassEmailsController : ControllerBase
         if (!string.IsNullOrEmpty(memberIds))
             parsedMemberIds = memberIds.Split(',', StringSplitOptions.RemoveEmptyEntries).Select(int.Parse).ToList();
 
-        var count = await _service.GetRecipientCountAsync(clubId, recipientType, parsedSubgroupIds, parsedMemberIds);
+        var parsedContactGroupIds = contactGroupIds?.Split(',', StringSplitOptions.RemoveEmptyEntries)
+            .Select(s => int.TryParse(s, out var n) ? n : 0).Where(n => n > 0).ToList();
+
+        var count = await _service.GetRecipientCountAsync(clubId, recipientType, parsedSubgroupIds, parsedMemberIds, contactGroupIds: parsedContactGroupIds);
         return Ok(count);
     }
 }

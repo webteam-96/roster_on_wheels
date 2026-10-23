@@ -144,12 +144,7 @@ export default async function ProjectDetailPage({
     },
     date && { label: "Completed", value: date, figure: true },
     p.funding && { label: "Funding", value: p.funding, figure: false },
-    p.category && {
-      label: "Category",
-      value: [p.category, p.subCategory].filter(Boolean).join(" · "),
-      figure: false,
-    },
-    p.location && { label: "Location", value: p.location, figure: false },
+    p.location &&{ label: "Location", value: p.location, figure: false },
   ].filter(Boolean) as { label: string; value: string; figure: boolean }[];
 
   const [lede, body] = p.description ? splitLede(p.description) : [null, ""];

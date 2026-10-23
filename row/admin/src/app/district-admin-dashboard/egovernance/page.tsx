@@ -4,9 +4,9 @@
  * District Admin Dashboard ▸ E-Governance & Reporting (Wave 13D rebuild)
  *
  * Design:
- *   - 3 top KPI tiles  : Monthly Reports (submitted on time count) / PPH Camps /
+ *   - 2 top KPI tiles  : Monthly Reports (submitted on time count) /
  *                        Avg Citation Score (xx/1000)
- *   - 4 sub-tabs       : CMR · PPH Camp · District Citation · Reports
+ *   - sub-tabs       : CMR · District Citation · Reports
  *
  *   CMR sub-tab:
  *     • 4 KPI sub-tiles: Total Clubs · Submitted · On-Time % · Pending
@@ -19,7 +19,6 @@
  *       Click any club row → V2 drill page:
  *         /districts/[id]/egovernance/v2/[clubId]?returnTo=…
  *
- *   PPH Camp sub-tab        — per-club PPH camp count list.
  *   District Citation tab   — per-club citation total + category breakdown.
  *   Reports sub-tab         — downloadable district reports list.
  *
@@ -60,7 +59,6 @@ import SectionHeader from "@/components/dashboard/SectionHeader";
 import { fmtInt } from "@/components/dashboard/formatters";
 import DistrictAwardsModule from "@/components/dashboard/DistrictAwardsModule";
 import DistrictReportContent from "@/components/dashboard/DistrictReportContent";
-import { DistrictZonalAwardsView } from "@/app/districts/[id]/zonal-awards/view";
 import { DistrictRotaryNetworkView } from "@/app/district-admin-dashboard/rotary-network/view";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useFeatureOn } from "@/components/FeatureGate";
@@ -83,7 +81,6 @@ type CmrStatus = "submitted" | "late" | "pending" | "notStarted";
 
 interface ApiKpiBlock {
   monthlyReports?: number;
-  ppsCamps?: number;
   avgCitationScore?: number;
 }
 
@@ -110,13 +107,6 @@ interface ApiCmrTab {
   pending?: number;
   monthlyBreakdown?: ApiCmrMonthlyRow[];
   perClubGrid?: ApiCmrPerClubRow[];
-}
-
-interface ApiPpsCampRow {
-  clubId: number;
-  clubName: string;
-  campsHeld: number;
-  beneficiaries?: number;
 }
 
 interface ApiCitationCategoryBreakdown {
@@ -184,7 +174,6 @@ type EGovernancePayload = {
     clubName: string;
     months: Array<{ month: number; status: string; submittedDate?: string | null }>;
   }>;
-  ppsCamp?: ApiPpsCampRow[];
   districtCitation?: ApiCitationRow[];
   reports?: ApiReportRow[];
 };
@@ -232,25 +221,20 @@ function PendingChip({ label = "Pending" }: { label?: string }) {
 export default function DistrictAdminEGovernancePage() {
   const { eGovernance, status, yearId } = useDistrictAdminCache();
   const searchParams = useSearchParams();
-  const router = useRouter();
   // Tab can be deep-linked via ?tab=citation (also accepts club_points which
   // maps onto the citation sub-tab — used by the V2 club page's Back URL).
   const tabParam = searchParams.get("tab");
   // ROW module switches (components/FeatureGate): skipped or switched-off modules lose their tab
   const on = {
     cmr: useFeatureOn("club_monthly_report"),
-    pps: useFeatureOn("pph_camps"),
-    zonal: useFeatureOn("zonal_awards"),
   };
-  const initialTab: "cmr" | "pps" | "zonal" | "citation" | "network" | "reports" =
-    tabParam === "zonal" && on.zonal ? "zonal"
-    : tabParam === "citation" || tabParam === "club_points" ? "citation"
-    : tabParam === "pps" && on.pps ? "pps"
+  const initialTab: "cmr" | "citation" | "network" | "reports" =
+    tabParam === "citation" || tabParam === "club_points" ? "citation"
     : tabParam === "network" ? "network"
     : tabParam === "reports" ? "reports"
     : on.cmr ? "cmr" : "citation";
   const [activeTab, setActiveTab] = useState<
-    "cmr" | "pps" | "zonal" | "citation" | "network" | "reports"
+    "cmr" | "citation" | "network" | "reports"
   >(initialTab);
   useEffect(() => { setActiveTab(initialTab); }, [initialTab]);
 
@@ -280,11 +264,6 @@ export default function DistrictAdminEGovernancePage() {
         <Tabs
           value={activeTab}
           onValueChange={(v) => {
-            // "PPH Camp" opens the full management page directly instead of the summary tab.
-            if (v === "pps") {
-              router.push(`/districts/${districtId}/pph-camps/v2?returnTo=${encodeURIComponent("/district-admin-dashboard/egovernance?tab=pps")}`);
-              return;
-            }
             setActiveTab(v as typeof activeTab);
           }}
         >
@@ -294,8 +273,6 @@ export default function DistrictAdminEGovernancePage() {
               style={{ backgroundColor: "#17458f" }}
             >
               {on.cmr && <TabsTrigger value="cmr" className="text-sm font-semibold px-3.5 py-1.5 rounded-md text-white hover:bg-white/10 data-[state=active]:bg-marigold data-[state=active]:text-ink data-[state=active]:shadow-sm">Club Monthly Report</TabsTrigger>}
-              {on.pps && <TabsTrigger value="pps" className="text-sm font-semibold px-3.5 py-1.5 rounded-md text-white hover:bg-white/10 data-[state=active]:bg-marigold data-[state=active]:text-ink data-[state=active]:shadow-sm">PPH Camp</TabsTrigger>}
-              {on.zonal && <TabsTrigger value="zonal" className="text-sm font-semibold px-3.5 py-1.5 rounded-md text-white hover:bg-white/10 data-[state=active]:bg-marigold data-[state=active]:text-ink data-[state=active]:shadow-sm">Zonal Awards</TabsTrigger>}
               <TabsTrigger value="citation" className="text-sm font-semibold px-3.5 py-1.5 rounded-md text-white hover:bg-white/10 data-[state=active]:bg-marigold data-[state=active]:text-ink data-[state=active]:shadow-sm">District Awards</TabsTrigger>
               <TabsTrigger value="network" className="text-sm font-semibold px-3.5 py-1.5 rounded-md text-white hover:bg-white/10 data-[state=active]:bg-marigold data-[state=active]:text-ink data-[state=active]:shadow-sm">Rotary Network</TabsTrigger>
               <TabsTrigger value="reports" className="text-sm font-semibold px-3.5 py-1.5 rounded-md text-white hover:bg-white/10 data-[state=active]:bg-marigold data-[state=active]:text-ink data-[state=active]:shadow-sm">Reports</TabsTrigger>
@@ -304,12 +281,6 @@ export default function DistrictAdminEGovernancePage() {
 
           <TabsContent value="cmr" className="p-5 pt-4">
             <CmrTab data={data} districtId={districtId} />
-          </TabsContent>
-          <TabsContent value="pps" className="p-5 pt-4">
-            <PpsCampTab rows={data.ppsCamp} districtId={districtId} />
-          </TabsContent>
-          <TabsContent value="zonal" className="p-5 pt-4">
-            <DistrictZonalAwardsView districtId={districtId} embedded yearId={yearId} />
           </TabsContent>
           <TabsContent value="citation" className="p-5 pt-4">
             <DistrictAwardsModule districtId={districtId} />
@@ -900,124 +871,6 @@ function PerClubGrid({
   );
 }
 
-/* ============================================================ PPH Camp */
-function PpsCampTab({ rows, districtId }: { rows: ApiPpsCampRow[] | undefined; districtId: number }) {
-  const [query, setQuery] = useState("");
-  const [page, setPage] = useState(1);
-  const PAGE_SIZE = 20;
-  const list = rows ?? [];
-  const filtered = useMemo(() => {
-    const q = query.trim().toLowerCase();
-    if (!q) return list;
-    return list.filter((r) => r.clubName.toLowerCase().includes(q));
-  }, [list, query]);
-  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
-  const pageSafe = Math.min(page, totalPages);
-  const pageRows = filtered.slice(
-    (pageSafe - 1) * PAGE_SIZE,
-    pageSafe * PAGE_SIZE,
-  );
-
-  // Note: `rows` (the per-club summary) may be undefined until its backend lands, but PPH camp
-  // management always works via "Manage Camps" — so we render the tab regardless (never "Pending").
-  return (
-    <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
-      <div className="px-5 py-3 border-b border-slate-100 flex items-center justify-between gap-3 flex-wrap">
-        <div>
-          <h4 className="text-sm font-semibold text-slate-800">
-            Per-Club PPH Camps
-          </h4>
-          <p className="text-[11px] text-slate-500 mt-0.5">
-            Camps held by each club this RY
-          </p>
-        </div>
-        <div className="flex items-center gap-2 w-full sm:w-auto">
-          <div className="relative flex-1 sm:w-64">
-            <Search
-              size={14}
-              className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
-            />
-            <input
-              type="text"
-              placeholder="Search club…"
-              value={query}
-              onChange={(e) => {
-                setQuery(e.target.value);
-                setPage(1);
-              }}
-              className="w-full h-9 pl-9 pr-3 rounded-md border border-slate-200 text-sm focus:outline-none focus:ring-1 focus:ring-blue-300 focus:border-blue-400"
-            />
-          </div>
-          <a
-            href={`/districts/${districtId}/pph-camps/v2?returnTo=${encodeURIComponent("/district-admin-dashboard/egovernance?tab=pps")}`}
-            className="inline-flex items-center gap-1 h-9 shrink-0 text-xs font-semibold px-3 rounded-md bg-blue-600 text-white hover:bg-blue-700 whitespace-nowrap"
-          >
-            Manage Camps <ChevronRight size={13} />
-          </a>
-        </div>
-      </div>
-      {pageRows.length === 0 ? (
-        <div className="px-5 py-8 text-xs text-slate-500 text-center">
-          {list.length === 0
-            ? "No PPH camps recorded yet."
-            : "No clubs match your search."}
-        </div>
-      ) : (
-        <table className="min-w-full text-sm">
-          <thead className="bg-slate-50 text-xs uppercase text-slate-500">
-            <tr>
-              <th className="px-4 py-2.5 text-left">Club</th>
-              <th className="px-4 py-2.5 text-right">Camps Held</th>
-              <th className="px-4 py-2.5 text-right">Beneficiaries</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-slate-100">
-            {pageRows.map((r) => (
-              <tr key={r.clubId} className="hover:bg-blue-50/40">
-                <td className="px-4 py-2 font-medium text-slate-800">
-                  {r.clubName}
-                </td>
-                <td className="px-4 py-2 text-right tabular-nums text-purple-700 font-semibold">
-                  {fmtInt(r.campsHeld)}
-                </td>
-                <td className="px-4 py-2 text-right tabular-nums text-slate-700">
-                  {r.beneficiaries == null ? "–" : fmtInt(r.beneficiaries)}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      )}
-
-      {filtered.length > PAGE_SIZE && (
-        <div className="px-5 py-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
-          <span>
-            Page {pageSafe} of {totalPages} · {fmtInt(filtered.length)} clubs
-          </span>
-          <div className="flex items-center gap-1">
-            <button
-              type="button"
-              onClick={() => setPage((p) => Math.max(1, p - 1))}
-              disabled={pageSafe <= 1}
-              className="inline-flex items-center gap-1 px-2 py-1 rounded border border-slate-200 hover:bg-slate-50 disabled:opacity-40"
-            >
-              <ChevronLeft size={12} /> Prev
-            </button>
-            <button
-              type="button"
-              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-              disabled={pageSafe >= totalPages}
-              className="inline-flex items-center gap-1 px-2 py-1 rounded border border-slate-200 hover:bg-slate-50 disabled:opacity-40"
-            >
-              Next <ChevronRight size={12} />
-            </button>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
-
 /* ============================================================== Reports */
 function ReportsTab({ rows, districtId, yearId }: { rows: ApiReportRow[] | undefined; districtId: number; yearId?: number | null }) {
   return (
@@ -1061,7 +914,7 @@ function ReportsTab({ rows, districtId, yearId }: { rows: ApiReportRow[] | undef
       </ul>
 
       {/* Full Reports tab — Members / Clubs / District subsections with
-          dropdowns + Data Collection conditional rows + everything else
+          dropdowns + everything else
           per the District Admin reports spec. servicesOnly was the legacy
           mode that only showed the 5 service avenue rows; removing it
           lights up the entire new subsection structure. */}

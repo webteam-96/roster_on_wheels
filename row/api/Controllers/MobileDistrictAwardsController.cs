@@ -94,22 +94,14 @@ public class MobileDistrictAwardsController : ControllerBase
             var subs = (await conn.QueryAsync<dynamic>(@"
                 SELECT s.pk_id AS id, s.fk_auto_question_id AS autoQuestionId, s.sub_item_type AS subItemType,
                        s.sub_item_id AS subItemId, s.sub_item_name AS subItemName,
-                       s.filter_aof_id AS filterAofId, s.filter_cat_id AS filterCatId,
+                       s.filter_aof_id AS filterAofId,
                        CAST(ROUND(s.points) AS SIGNED) AS points, s.is_bonus AS isBonus,
                        CAST(ROUND(s.bonus_points) AS SIGNED) AS bonusPoints,
                        s.min_bonus AS minBonus, s.max_bonus AS maxBonus,
-                       COALESCE(aof_only.name, aof_for_cat.name, aof_for_sub.name, aof_by_filter.name) AS areaOfFocusName,
-                       COALESCE(cat_only.name, cat_for_sub.name, cat_by_filter.name) AS categoryName,
-                       sub_only.name AS subCategoryName
+                       COALESCE(aof_only.name, aof_by_filter.name) AS areaOfFocusName
                 FROM district_citation_auto_question_sub s
                 LEFT JOIN area_of_focus_master aof_only      ON LOWER(s.sub_item_type) = 'area_of_focus' AND aof_only.pk_area_of_focus_id = s.sub_item_id
-                LEFT JOIN category_master cat_only           ON LOWER(s.sub_item_type) = 'category'      AND cat_only.pk_category_id      = s.sub_item_id
-                LEFT JOIN area_of_focus_master aof_for_cat   ON LOWER(s.sub_item_type) = 'category'      AND aof_for_cat.pk_area_of_focus_id = cat_only.fk_area_of_focus_id
-                LEFT JOIN sub_category_master sub_only       ON LOWER(s.sub_item_type) IN ('sub_category','subcategory') AND sub_only.pk_sub_category_id = s.sub_item_id
-                LEFT JOIN category_master cat_for_sub        ON LOWER(s.sub_item_type) IN ('sub_category','subcategory') AND cat_for_sub.pk_category_id = sub_only.fk_category_id
-                LEFT JOIN area_of_focus_master aof_for_sub   ON LOWER(s.sub_item_type) IN ('sub_category','subcategory') AND aof_for_sub.pk_area_of_focus_id = cat_for_sub.fk_area_of_focus_id
                 LEFT JOIN area_of_focus_master aof_by_filter ON s.filter_aof_id IS NOT NULL AND aof_by_filter.pk_area_of_focus_id = s.filter_aof_id
-                LEFT JOIN category_master cat_by_filter      ON s.filter_cat_id IS NOT NULL AND cat_by_filter.pk_category_id      = s.filter_cat_id
                 WHERE s.fk_auto_question_id IN @Ids AND s.isdeleted = 0
                 ORDER BY s.sort_order",
                 new { Ids = qIds })).ToList();

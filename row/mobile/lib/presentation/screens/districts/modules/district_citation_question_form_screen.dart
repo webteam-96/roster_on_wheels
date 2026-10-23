@@ -12,14 +12,10 @@ import 'package:rotary_flutter_app/core/theme/app_fonts.dart';
 // Web parity: rotary-frontend/src/app/districts/[id]/citation/page.tsx
 //   (Auto Question dialog section).
 //
-// Sub-items are gated by `activity.subType == 1`. Three flavours based on
+// Sub-items are gated by `activity.subType == 1`. Two flavours based on
 // activity name:
-//   • Club Service       → Meeting Type dropdown (no further nesting).
-//   • Community Service  → 3-level cascade (Area of Focus / Category /
-//                          Sub Category) with a "Points For" selector.
-//   • Other services     → 2-level cascade (Category / Sub Category) with a
-//     (Vocational, Intl,  "Points For" selector.
-//      NewGen, PII)
+//   • Club Service    → Meeting Type dropdown (no further nesting).
+//   • Other services  → Area of Focus dropdown.
 // ─────────────────────────────────────────────────────────────────────────────
 
 class CitationQuestionFormOption {
@@ -35,11 +31,9 @@ class CitationQuestionFormOption {
 }
 
 class CitationSubItemInitial {
-  final String subItemType; // meeting_type | area_of_focus | category | sub_category
+  final String subItemType; // meeting_type | area_of_focus
   final int? subItemId;
   final String? subItemName;
-  final int? filterAofId;
-  final int? filterCatId;
   final num points;
   final bool isBonus;
   final num? bonusPoints;
@@ -49,8 +43,6 @@ class CitationSubItemInitial {
     required this.subItemType,
     this.subItemId,
     this.subItemName,
-    this.filterAofId,
-    this.filterCatId,
     required this.points,
     this.isBonus = false,
     this.bonusPoints,
@@ -108,31 +100,25 @@ class DistrictCitationQuestionFormScreen extends StatefulWidget {
       _DistrictCitationQuestionFormScreenState();
 }
 
-// Each sub-item card holds its own draft state + its own AoF/Cat/SubCat
-// lists (loaded lazily once the parent type is known).
+// Each sub-item card holds its own draft state + its own AoF list (loaded
+// lazily once the type is known).
 class _SubItemDraft {
   String subItemType; // empty until user picks
   int? subItemId;
   String? subItemName;
-  int? filterAofId;
-  int? filterCatId;
   final TextEditingController pointsCtrl;
   bool isBonus;
   final TextEditingController bonusPointsCtrl;
   final TextEditingController minBonusCtrl;
   final TextEditingController maxBonusCtrl;
 
-  // Loaded lookup lists (populated lazily as the user picks parents).
+  // Loaded lookup list (populated lazily once the type is picked).
   List<CitationQuestionFormOption> aofList;
-  List<CitationQuestionFormOption> catList;
-  List<CitationQuestionFormOption> subCatList;
 
   _SubItemDraft({
     this.subItemType = '',
     this.subItemId,
     this.subItemName,
-    this.filterAofId,
-    this.filterCatId,
     String points = '',
     this.isBonus = false,
     String bonusPoints = '',
@@ -142,9 +128,7 @@ class _SubItemDraft {
         bonusPointsCtrl = TextEditingController(text: bonusPoints),
         minBonusCtrl = TextEditingController(text: minBonus),
         maxBonusCtrl = TextEditingController(text: maxBonus),
-        aofList = const [],
-        catList = const [],
-        subCatList = const [];
+        aofList = const [];
 
   void dispose() {
     pointsCtrl.dispose();
@@ -157,8 +141,6 @@ class _SubItemDraft {
         subItemType: s.subItemType,
         subItemId: s.subItemId,
         subItemName: s.subItemName,
-        filterAofId: s.filterAofId,
-        filterCatId: s.filterCatId,
         points: s.points.toString(),
         isBonus: s.isBonus,
         bonusPoints: s.bonusPoints?.toString() ?? '',
@@ -170,8 +152,6 @@ class _SubItemDraft {
         'subItemType': subItemType,
         'subItemId': subItemId,
         'subItemName': subItemName,
-        'filterAofId': filterAofId,
-        'filterCatId': filterCatId,
         'points': num.tryParse(pointsCtrl.text.trim()) ?? 0,
         'isBonus': isBonus,
         'bonusPoints': isBonus
@@ -222,9 +202,6 @@ class _DistrictCitationQuestionFormScreenState
 
   bool get _isClubService =>
       (_selectedActivity?.name ?? '').toLowerCase().contains('club service');
-
-  bool get _isCommunityService =>
-      (_selectedActivity?.name ?? '').toLowerCase().contains('community');
 
   @override
   void initState() {
@@ -284,44 +261,8 @@ class _DistrictCitationQuestionFormScreenState
     }
   }
 
-  Future<List<CitationQuestionFormOption>> _loadCategories(int aofId) async {
-    try {
-      final resp = await _api.get<List<dynamic>>(
-        '/api/district-modules/citation/categories',
-        queryParams: {'areaOfFocusId': aofId},
-        fromJson: (j) => j as List<dynamic>,
-      );
-      return (resp.data ?? [])
-          .map((e) => CitationQuestionFormOption(
-                id: (e['id'] as int?) ?? 0,
-                name: e['name']?.toString() ?? '',
-              ))
-          .toList();
-    } on ApiException {
-      return const [];
-    }
-  }
-
-  Future<List<CitationQuestionFormOption>> _loadSubCategories(int catId) async {
-    try {
-      final resp = await _api.get<List<dynamic>>(
-        '/api/district-modules/citation/sub-categories',
-        queryParams: {'categoryId': catId},
-        fromJson: (j) => j as List<dynamic>,
-      );
-      return (resp.data ?? [])
-          .map((e) => CitationQuestionFormOption(
-                id: (e['id'] as int?) ?? 0,
-                name: e['name']?.toString() ?? '',
-              ))
-          .toList();
-    } on ApiException {
-      return const [];
-    }
-  }
-
-  /// Pre-populates AoF/Cat/SubCat lookup lists for each existing sub-item so
-  /// the dropdowns can render the currently-selected values.
+  /// Pre-populates the AoF lookup list for each existing sub-item so the
+  /// dropdown can render the currently-selected value.
   Future<void> _hydrateSubItems() async {
     final act = _selectedActivity;
     if (act == null) return;
@@ -331,10 +272,6 @@ class _DistrictCitationQuestionFormScreenState
       final sub = _subItems[i];
       if (sub.subItemType == 'meeting_type' || sub.subItemType.isEmpty) continue;
       sub.aofList = await _loadAof(moduleKey);
-      final aofId = sub.filterAofId ?? (sub.subItemType == 'area_of_focus' ? sub.subItemId : null);
-      if (aofId != null) sub.catList = await _loadCategories(aofId);
-      final catId = sub.filterCatId ?? (sub.subItemType == 'category' ? sub.subItemId : null);
-      if (catId != null) sub.subCatList = await _loadSubCategories(catId);
       if (mounted) setState(() {});
     }
   }
@@ -359,11 +296,7 @@ class _DistrictCitationQuestionFormScreenState
       s.subItemType = newType;
       s.subItemId = null;
       s.subItemName = null;
-      s.filterAofId = null;
-      s.filterCatId = null;
       s.aofList = const [];
-      s.catList = const [];
-      s.subCatList = const [];
     });
     if (newType.isNotEmpty &&
         newType != 'meeting_type' &&
@@ -375,56 +308,12 @@ class _DistrictCitationQuestionFormScreenState
     }
   }
 
-  Future<void> _onAofChanged(int i, int aofId) async {
+  void _onAofChanged(int i, int aofId) {
     final s = _subItems[i];
-    if (s.subItemType == 'area_of_focus') {
-      final picked =
-          s.aofList.firstWhere((o) => o.id == aofId, orElse: () => const CitationQuestionFormOption(id: 0, name: ''));
-      setState(() {
-        s.subItemId = aofId;
-        s.subItemName = picked.name;
-      });
-    } else {
-      setState(() {
-        s.filterAofId = aofId;
-        s.filterCatId = null;
-        s.subItemId = null;
-        s.subItemName = null;
-        s.catList = const [];
-        s.subCatList = const [];
-      });
-      final list = await _loadCategories(aofId);
-      if (mounted) setState(() => s.catList = list);
-    }
-  }
-
-  Future<void> _onCategoryChanged(int i, int catId) async {
-    final s = _subItems[i];
-    if (s.subItemType == 'category') {
-      final picked =
-          s.catList.firstWhere((o) => o.id == catId, orElse: () => const CitationQuestionFormOption(id: 0, name: ''));
-      setState(() {
-        s.subItemId = catId;
-        s.subItemName = picked.name;
-      });
-    } else {
-      setState(() {
-        s.filterCatId = catId;
-        s.subItemId = null;
-        s.subItemName = null;
-        s.subCatList = const [];
-      });
-      final list = await _loadSubCategories(catId);
-      if (mounted) setState(() => s.subCatList = list);
-    }
-  }
-
-  void _onSubCatChanged(int i, int subCatId) {
-    final s = _subItems[i];
-    final picked = s.subCatList
-        .firstWhere((o) => o.id == subCatId, orElse: () => const CitationQuestionFormOption(id: 0, name: ''));
+    final picked =
+        s.aofList.firstWhere((o) => o.id == aofId, orElse: () => const CitationQuestionFormOption(id: 0, name: ''));
     setState(() {
-      s.subItemId = subCatId;
+      s.subItemId = aofId;
       s.subItemName = picked.name;
     });
   }
@@ -440,17 +329,8 @@ class _DistrictCitationQuestionFormScreenState
         }
       } else if (s.subItemType.isEmpty) {
         return '$label: Please select what the points are for.';
-      } else {
-        if (s.subItemType == 'category' && s.filterAofId == null) {
-          return '$label: Please select Area of Focus first.';
-        }
-        if (s.subItemType == 'sub_category' &&
-            (s.filterAofId == null || s.filterCatId == null)) {
-          return '$label: Please select Area of Focus and Category first.';
-        }
-        if (s.subItemId == null) {
-          return '$label: Please select a value.';
-        }
+      } else if (s.subItemId == null) {
+        return '$label: Please select a value.';
       }
       final pts = num.tryParse(s.pointsCtrl.text.trim()) ?? 0;
       if (pts <= 0) return '$label: Points is required.';
@@ -661,14 +541,7 @@ class _DistrictCitationQuestionFormScreenState
     if (act == null || act.subType != 1) {
       return const SizedBox.shrink();
     }
-    String sectionLabel;
-    if (_isClubService) {
-      sectionLabel = 'Meeting Types';
-    } else if (_isCommunityService) {
-      sectionLabel = 'Area of Focus / Category / Sub Category';
-    } else {
-      sectionLabel = 'Category / Sub Category';
-    }
+    final sectionLabel = _isClubService ? 'Meeting Types' : 'Area of Focus';
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
@@ -814,16 +687,9 @@ class _DistrictCitationQuestionFormScreenState
   }
 
   Widget _pointsForDropdown(int i, _SubItemDraft sub) {
-    final options = _isCommunityService
-        ? const [
-            ['area_of_focus', 'Area of Focus'],
-            ['category', 'Category'],
-            ['sub_category', 'Sub Category'],
-          ]
-        : const [
-            ['category', 'Category'],
-            ['sub_category', 'Sub Category'],
-          ];
+    const options = [
+      ['area_of_focus', 'Area of Focus'],
+    ];
     return DropdownButtonFormField<String>(
       initialValue: sub.subItemType.isEmpty ? null : sub.subItemType,
       decoration: const InputDecoration(
@@ -839,74 +705,19 @@ class _DistrictCitationQuestionFormScreenState
   }
 
   Widget _cascadingDropdowns(int i, _SubItemDraft sub) {
-    // Web labels: for Community Service the level-1 label is "Area of Focus"
-    // and level-2 is "Category"; for other services level-1 is "Category" and
-    // level-2 is "Sub Category". Level-3 is always "Sub Category" (only CS).
-    final aofLabel = _isCommunityService ? 'Area of Focus' : 'Category';
-    final catLabel = _isCommunityService ? 'Category' : 'Sub Category';
-    const subCatLabel = 'Sub Category';
-
-    final isPointsForAof = sub.subItemType == 'area_of_focus';
-    final isPointsForCat = sub.subItemType == 'category';
-    final isPointsForSubCat = sub.subItemType == 'sub_category';
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        DropdownButtonFormField<int>(
-          initialValue: isPointsForAof ? sub.subItemId : sub.filterAofId,
-          decoration: InputDecoration(
-            labelText: aofLabel + (isPointsForAof ? '' : ' (filter)'),
-            isDense: true,
-          ),
-          items: sub.aofList
-              .map((it) =>
-                  DropdownMenuItem<int>(value: it.id, child: Text(it.name)))
-              .toList(),
-          onChanged: _saving
-              ? null
-              : (v) => v == null ? null : _onAofChanged(i, v),
-        ),
-        if ((isPointsForCat || isPointsForSubCat) &&
-            sub.filterAofId != null &&
-            sub.catList.isNotEmpty) ...[
-          const SizedBox(height: 8),
-          DropdownButtonFormField<int>(
-            initialValue: isPointsForCat ? sub.subItemId : sub.filterCatId,
-            decoration: InputDecoration(
-              labelText: catLabel + (isPointsForCat ? '' : ' (filter)'),
-              isDense: true,
-            ),
-            items: sub.catList
-                .map((it) =>
-                    DropdownMenuItem<int>(value: it.id, child: Text(it.name)))
-                .toList(),
-            onChanged: _saving
-                ? null
-                : (v) => v == null ? null : _onCategoryChanged(i, v),
-          ),
-        ],
-        if (isPointsForSubCat &&
-            _isCommunityService &&
-            sub.filterCatId != null &&
-            sub.subCatList.isNotEmpty) ...[
-          const SizedBox(height: 8),
-          DropdownButtonFormField<int>(
-            initialValue: sub.subItemId,
-            decoration: const InputDecoration(
-              labelText: subCatLabel,
-              isDense: true,
-            ),
-            items: sub.subCatList
-                .map((it) =>
-                    DropdownMenuItem<int>(value: it.id, child: Text(it.name)))
-                .toList(),
-            onChanged: _saving
-                ? null
-                : (v) => v == null ? null : _onSubCatChanged(i, v),
-          ),
-        ],
-      ],
+    return DropdownButtonFormField<int>(
+      initialValue: sub.subItemId,
+      decoration: const InputDecoration(
+        labelText: 'Area of Focus',
+        isDense: true,
+      ),
+      items: sub.aofList
+          .map((it) =>
+              DropdownMenuItem<int>(value: it.id, child: Text(it.name)))
+          .toList(),
+      onChanged: _saving
+          ? null
+          : (v) => v == null ? null : _onAofChanged(i, v),
     );
   }
 }

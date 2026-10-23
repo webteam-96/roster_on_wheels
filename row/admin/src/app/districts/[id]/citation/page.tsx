@@ -30,7 +30,7 @@ import {
   getCitationCategoriesByDistrict, createCitationCategory, updateCitationCategory, deleteCitationCategory,
   getCitationDescription, saveCitationDescription,
   getCitationAutoQuestions, createCitationAutoQuestion, updateCitationAutoQuestion, deleteCitationAutoQuestion,
-  getCitationActivities, getCitationMeetingTypes, getCitationAreaOfFocus, getCitationCategories as getCitationAofCategories, getCitationSubCategories,
+  getCitationActivities, getCitationMeetingTypes, getCitationAreaOfFocus,
   getCitationManualCriteria, createCitationManualCriteria, updateCitationManualCriteria, deleteCitationManualCriteria,
   getCitationClubPoints, downloadCitationClubReport, downloadCitationSingleClubReport,
 } from "@/services/api";
@@ -116,7 +116,7 @@ export default function DistrictCitationPage() {
 
   // Sub-item helpers for auto
   const [meetingTypes, setMeetingTypes] = useState<any[]>([]);
-  // Per sub-item loaded data: { [index]: { aofList, catList, subCatList } }
+  // Per sub-item loaded data: { [index]: { aofList } }
   const [subItemData, setSubItemData] = useState<Record<number, any>>({});
 
   // Manual
@@ -225,8 +225,6 @@ export default function DistrictCitationPage() {
       minBonus: String(s.minBonus || ""),
       maxBonus: String(s.maxBonus || ""),
       isBonus: !!s.isBonus,
-      filterAofId: s.filterAofId || null,
-      filterCatId: s.filterCatId || null,
     }));
     setAutoForm({
       categoryId: String(q.categoryId), activityId: String(q.activityId),
@@ -241,38 +239,17 @@ export default function DistrictCitationPage() {
     for (let i = 0; i < subs.length; i++) {
       const sub = subs[i];
       if (sub.subItemType && sub.subItemType !== "meeting_type") {
-        // Always load AoF list first
         await loadAofList(i, actId);
-        // Load category list if filterAofId exists
-        if (sub.filterAofId) {
-          await loadCatList(i, sub.filterAofId);
-        }
-        // Load sub-category list if filterCatId exists
-        if (sub.filterCatId) {
-          await loadSubCatList(i, sub.filterCatId);
-        }
       }
     }
   };
   const handleSaveAuto = async () => {
     if (!autoForm.categoryId || !autoForm.activityId) { setErrorMessage("Category and Activity required."); return; }
-    // Determine whether the selected activity is community service (3-level) or two-level (vocational/etc.)
-    const selActivity = activities.find((a: any) => String(a.id) === autoForm.activityId);
-    const selActName = (selActivity?.activityName || "").toLowerCase();
-    const isCommunityServiceSel = selActName.includes("community service");
     for (let i = 0; i < autoForm.subItems.length; i++) {
       const s = autoForm.subItems[i];
       // Validate final selection is made
       if (!s.subItemId && s.subItemType !== "meeting_type") { setErrorMessage(`Sub Item #${i + 1}: Please select a value.`); return; }
       if (s.subItemType === "meeting_type" && !s.subItemName) { setErrorMessage(`Sub Item #${i + 1}: Please select a Meeting Type.`); return; }
-      // Cascading filter validations (community service only — two-level services have their own simpler chain)
-      if (isCommunityServiceSel) {
-        if (s.subItemType === "sub_category" && !s.filterAofId) { setErrorMessage(`Sub Item #${i + 1}: Please select Area of Focus first.`); return; }
-        if (s.subItemType === "sub_category" && !s.filterCatId) { setErrorMessage(`Sub Item #${i + 1}: Please select Category first.`); return; }
-      } else {
-        // Two-level (Vocational/International/New Generation/Public Image): only Sub Category needs Category filter
-        if (s.subItemType === "sub_category" && !s.filterCatId) { setErrorMessage(`Sub Item #${i + 1}: Please select Category first.`); return; }
-      }
       // Points mandatory for sub items
       if (!s.points || Number(s.points) <= 0) { setErrorMessage(`Sub Item #${i + 1}: Points is required.`); return; }
     }
@@ -283,7 +260,6 @@ export default function DistrictCitationPage() {
         points: Number(autoForm.points) || 0, isBonus: autoForm.isBonus, bonusPoints: Number(autoForm.bonusPoints) || 0,
         minBonus: Number(autoForm.minBonus) || 0, maxBonus: Number(autoForm.maxBonus) || 0, sortOrder: Number(autoForm.sortOrder) || 0,
         subItems: autoForm.subItems.map((s: any) => ({ subItemType: s.subItemType, subItemId: s.subItemId || null, subItemName: s.subItemName || null,
-          filterAofId: s.filterAofId || null, filterCatId: s.filterCatId || null,
           points: Number(s.points) || 0, isBonus: s.isBonus, bonusPoints: Number(s.bonusPoints) || 0, minBonus: Number(s.minBonus) || 0, maxBonus: Number(s.maxBonus) || 0 }))
       };
       if (editingAuto) await updateCitationAutoQuestion(districtId, editingAuto.id, payload);
@@ -319,29 +295,11 @@ export default function DistrictCitationPage() {
     try {
       const list = await getCitationAreaOfFocus(moduleKey);
       console.log("loadAofList result:", list);
-      setSubItemData(prev => ({ ...prev, [index]: { aofList: list, catList: [], subCatList: [] } }));
+      setSubItemData(prev => ({ ...prev, [index]: { aofList: list } }));
     } catch (err) { console.error("loadAofList error:", err); }
   };
 
-  const loadCatList = async (index: number, aofId: number) => {
-    console.log("loadCatList called", { index, aofId });
-    try {
-      const list = await getCitationAofCategories(aofId);
-      console.log("loadCatList result:", list);
-      setSubItemData(prev => ({ ...prev, [index]: { ...prev[index], catList: list, subCatList: [] } }));
-    } catch (err) { console.error("loadCatList error:", err); }
-  };
-
-  const loadSubCatList = async (index: number, catId: number) => {
-    console.log("loadSubCatList called", { index, catId });
-    try {
-      const list = await getCitationSubCategories(catId);
-      console.log("loadSubCatList result:", list);
-      setSubItemData(prev => ({ ...prev, [index]: { ...prev[index], subCatList: list } }));
-    } catch (err) { console.error("loadSubCatList error:", err); }
-  };
-
-  const addAutoSubItem = () => setAutoForm((p: any) => ({ ...p, subItems: [...p.subItems, { subItemType: "", subItemId: null, subItemName: "", filterAofId: null, filterCatId: null, points: "", isBonus: false, bonusPoints: "", minBonus: "", maxBonus: "" }] }));
+  const addAutoSubItem = () => setAutoForm((p: any) => ({ ...p, subItems: [...p.subItems, { subItemType: "", subItemId: null, subItemName: "", points: "", isBonus: false, bonusPoints: "", minBonus: "", maxBonus: "" }] }));
   const removeAutoSubItem = (i: number) => { setAutoForm((p: any) => ({ ...p, subItems: p.subItems.filter((_: any, idx: number) => idx !== i) })); setSubItemData(prev => { const n = { ...prev }; delete n[i]; return n; }); };
   const updateAutoSubItem = (i: number, field: string, value: any) => setAutoForm((p: any) => ({ ...p, subItems: p.subItems.map((s: any, idx: number) => idx === i ? { ...s, [field]: value } : s) }));
 
@@ -539,10 +497,6 @@ export default function DistrictCitationPage() {
                                 let lineage = "";
                                 if (t === "area_of_focus") {
                                   lineage = s.areaOfFocusName || s.subItemName || `#${s.subItemId}`;
-                                } else if (t === "category") {
-                                  lineage = `${s.areaOfFocusName || "?"} → ${s.categoryName || s.subItemName || `#${s.subItemId}`}`;
-                                } else if (t === "sub_category" || t === "subcategory") {
-                                  lineage = `${s.areaOfFocusName || "?"} → ${s.categoryName || "?"} → ${s.subCategoryName || s.subItemName || `#${s.subItemId}`}`;
                                 } else {
                                   lineage = s.subItemName || (s.subItemId ? `#${s.subItemId}` : "");
                                 }
@@ -727,7 +681,7 @@ export default function DistrictCitationPage() {
               const actName = (selectedActivity.activityName || "").toLowerCase();
               const isClubService = actName.includes("club service");
               const isCommunityService = actName.includes("community service");
-              // Vocational, International, New Generation, Public Image = Category + Sub Category only (no Area of Focus)
+              // Vocational, International, New Generation, Public Image: their Area of Focus is labelled "Category"
               const isTwoLevelService = !isClubService && !isCommunityService;
 
               // Determine available sub-item types for this activity
@@ -736,19 +690,12 @@ export default function DistrictCitationPage() {
               if (isClubService) {
                 sectionLabel = "Meeting Types";
               } else if (isCommunityService) {
-                sectionLabel = "Area of Focus / Category / Sub Category";
-                subItemTypeOptions = [
-                  { value: "area_of_focus", label: "Area of Focus" },
-                  { value: "category", label: "Category" },
-                  { value: "sub_category", label: "Sub Category" },
-                ];
+                sectionLabel = "Area of Focus";
+                subItemTypeOptions = [{ value: "area_of_focus", label: "Area of Focus" }];
               } else {
                 // Vocational, International, New Generation, Public Image
-                sectionLabel = "Category / Sub Category";
-                subItemTypeOptions = [
-                  { value: "category", label: "Category" },
-                  { value: "sub_category", label: "Sub Category" },
-                ];
+                sectionLabel = "Category";
+                subItemTypeOptions = [{ value: "category", label: "Category" }];
               }
 
               return (
@@ -783,10 +730,7 @@ export default function DistrictCitationPage() {
                               updateAutoSubItem(i, "subItemType", v);
                               updateAutoSubItem(i, "subItemId", null);
                               updateAutoSubItem(i, "subItemName", "");
-                              updateAutoSubItem(i, "filterAofId", null);
-                              updateAutoSubItem(i, "filterCatId", null);
                               setSubItemData(prev => ({ ...prev, [i]: {} }));
-                              // Load area of focus list for all types (needed as filter or final selection)
                               loadAofList(i, autoForm.activityId);
                             }}>
                               <SelectTrigger className="h-8"><SelectValue placeholder="Select Type" /></SelectTrigger>
@@ -797,102 +741,21 @@ export default function DistrictCitationPage() {
                           </div>
 
                           {sub.subItemType && (() => {
-                            const data = subItemData[i] || {};
-                            const aofList = data.aofList || [];
-                            const catList = data.catList || [];
-                            const subCatList = data.subCatList || [];
-
+                            const aofList = (subItemData[i] || {}).aofList || [];
                             const aofLabel = isCommunityService ? "Area of Focus" : "Category";
-                            const catLabel = isCommunityService ? "Category" : "Sub Category";
-                            const subCatLabel = "Sub Category";
-
-                            const isPointsForAof = sub.subItemType === "area_of_focus";
-                            const isPointsForCat = sub.subItemType === "category";
-                            const isPointsForSubCat = sub.subItemType === "sub_category";
-
-                            // Two-level services (Vocational/International/New Generation/Public Image) have no
-                            // Area of Focus level — level 1 IS the Category, level 2 IS the Sub Category.
-                            // So storage routing changes vs Community Service.
-                            const isLevel1Final = isCommunityService ? isPointsForAof : isPointsForCat;
-                            const isLevel2Final = isCommunityService ? isPointsForCat : isPointsForSubCat;
-                            const showLevel2 = isCommunityService
-                              ? (isPointsForCat || isPointsForSubCat)
-                              : isPointsForSubCat;
-                            const showLevel3 = isCommunityService && isPointsForSubCat;
-                            const level1FilterField = isCommunityService ? "filterAofId" : "filterCatId";
-                            const level1FilterValue = isCommunityService ? sub.filterAofId : sub.filterCatId;
-
-                            return (<>
-                              {/* Level 1: Area of Focus (community service) or Category (two-level) */}
+                            return (
                               <div>
-                                <Label className="text-xs">{aofLabel}{!isLevel1Final && <span className="text-muted-foreground"> (filter)</span>}</Label>
-                                <Select value={isLevel1Final ? (sub.subItemId ? String(sub.subItemId) : "") : (level1FilterValue ? String(level1FilterValue) : "")} onValueChange={v => {
-                                  if (isLevel1Final) {
-                                    const sel = aofList.find((it: any) => String(it.id) === v);
-                                    updateAutoSubItem(i, "subItemId", Number(v));
-                                    updateAutoSubItem(i, "subItemName", sel?.name || "");
-                                    // Clear filter fields when level 1 is final
-                                    updateAutoSubItem(i, "filterAofId", null);
-                                    updateAutoSubItem(i, "filterCatId", null);
-                                  } else {
-                                    updateAutoSubItem(i, level1FilterField, Number(v));
-                                    // Clear other filter + final
-                                    if (isCommunityService) updateAutoSubItem(i, "filterCatId", null);
-                                    else updateAutoSubItem(i, "filterAofId", null);
-                                    updateAutoSubItem(i, "subItemId", null);
-                                    updateAutoSubItem(i, "subItemName", "");
-                                    // Load level-2 list. For community service: getCategories(aofId).
-                                    // For two-level: getSubCategories(catId) since level 2 IS Sub Category.
-                                    if (isCommunityService) loadCatList(i, Number(v));
-                                    else loadSubCatList(i, Number(v));
-                                  }
+                                <Label className="text-xs">{aofLabel}</Label>
+                                <Select value={sub.subItemId ? String(sub.subItemId) : ""} onValueChange={v => {
+                                  const sel = aofList.find((it: any) => String(it.id) === v);
+                                  updateAutoSubItem(i, "subItemId", Number(v));
+                                  updateAutoSubItem(i, "subItemName", sel?.name || "");
                                 }}>
                                   <SelectTrigger className="h-8"><SelectValue placeholder={`Select ${aofLabel}`} /></SelectTrigger>
                                   <SelectContent>{aofList.map((it: any) => <SelectItem key={it.id} value={String(it.id)}>{it.name}</SelectItem>)}</SelectContent>
                                 </Select>
                               </div>
-
-                              {/* Level 2: Category (community service) or Sub Category (two-level) */}
-                              {showLevel2 && level1FilterValue && (
-                                (isCommunityService ? catList.length > 0 : subCatList.length > 0) && (
-                                  <div>
-                                    <Label className="text-xs">{catLabel}{!isLevel2Final && isCommunityService && <span className="text-muted-foreground"> (filter)</span>}</Label>
-                                    <Select value={isLevel2Final ? (sub.subItemId ? String(sub.subItemId) : "") : (sub.filterCatId ? String(sub.filterCatId) : "")} onValueChange={v => {
-                                      const list = isCommunityService ? catList : subCatList;
-                                      if (isLevel2Final) {
-                                        const sel = list.find((it: any) => String(it.id) === v);
-                                        updateAutoSubItem(i, "subItemId", Number(v));
-                                        updateAutoSubItem(i, "subItemName", sel?.name || "");
-                                      } else {
-                                        // Only community service reaches here (filter for level 3)
-                                        updateAutoSubItem(i, "filterCatId", Number(v));
-                                        updateAutoSubItem(i, "subItemId", null);
-                                        updateAutoSubItem(i, "subItemName", "");
-                                        loadSubCatList(i, Number(v));
-                                      }
-                                    }}>
-                                      <SelectTrigger className="h-8"><SelectValue placeholder={`Select ${catLabel}`} /></SelectTrigger>
-                                      <SelectContent>{(isCommunityService ? catList : subCatList).map((it: any) => <SelectItem key={it.id} value={String(it.id)}>{it.name}</SelectItem>)}</SelectContent>
-                                    </Select>
-                                  </div>
-                                )
-                              )}
-
-                              {/* Level 3: Sub Category — only Community Service with subItemType="sub_category" */}
-                              {showLevel3 && sub.filterCatId && subCatList.length > 0 && (
-                                <div>
-                                  <Label className="text-xs">{subCatLabel}</Label>
-                                  <Select value={sub.subItemId ? String(sub.subItemId) : ""} onValueChange={v => {
-                                    const sel = subCatList.find((it: any) => String(it.id) === v);
-                                    updateAutoSubItem(i, "subItemId", Number(v));
-                                    updateAutoSubItem(i, "subItemName", sel?.name || "");
-                                  }}>
-                                    <SelectTrigger className="h-8"><SelectValue placeholder={`Select ${subCatLabel}`} /></SelectTrigger>
-                                    <SelectContent>{subCatList.map((it: any) => <SelectItem key={it.id} value={String(it.id)}>{it.name}</SelectItem>)}</SelectContent>
-                                  </Select>
-                                </div>
-                              )}
-                            </>);
+                            );
                           })()}
                         </div>
                       )}

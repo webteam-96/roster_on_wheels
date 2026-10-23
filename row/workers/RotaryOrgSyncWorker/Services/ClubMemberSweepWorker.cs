@@ -104,7 +104,7 @@ public class ClubMemberSweepWorker
     {
         if (string.IsNullOrWhiteSpace(raw)) return null;
         // Only a MOBILE is cleaned. A landline ("Home"/"Business") is stored exactly as Rotary.org
-        // sent it: it is never used for login or WhatsApp, its length and shape vary by city, and
+        // sent it: it is never used for login or messaging, its length and shape vary by city, and
         // "0171-2631279/2642516" is two numbers, not one (user 2026-09-24). Judging by the type the
         // source gives us also keeps this right for every country - a Sri Lanka mobile is 9 digits,
         // Nepal 10 starting 98 - instead of guessing from the length.
@@ -2153,7 +2153,7 @@ public class ClubMemberSweepWorker
 
             // Re-sync recovery (non-sync cascade): if this member's club-scoped roles were
             // soft-deleted when the club went non-sync, UNDELETE them now that the club is
-            // syncing again (Member / Admin / ClubModerator / AG for THIS club). No-op for a
+            // syncing again (Member / Admin / AG for THIS club). No-op for a
             // genuinely new member (no soft-deleted rows). BOD/DC stay soft-deleted by design.
             await conn.ExecuteAsync(@"
                 UPDATE member_roles
@@ -2370,11 +2370,6 @@ public class ClubMemberSweepWorker
 
             await conn.ExecuteAsync(@"
                 UPDATE district_ag SET isdeleted = 1, is_active = 0, modified_date = NOW()
-                WHERE fk_club_id = @ClubId AND fk_member_id = @MemberId AND isdeleted = 0",
-                new { ClubId = clubId, MemberId = memberId }, tx);
-
-            await conn.ExecuteAsync(@"
-                UPDATE district_club_moderator SET isdeleted = 1, is_active = 0, modified_date = NOW()
                 WHERE fk_club_id = @ClubId AND fk_member_id = @MemberId AND isdeleted = 0",
                 new { ClubId = clubId, MemberId = memberId }, tx);
 

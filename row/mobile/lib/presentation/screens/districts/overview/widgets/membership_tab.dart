@@ -17,10 +17,10 @@ import 'package:rotary_flutter_app/core/theme/app_fonts.dart';
 /// directory). Mirrors the web console's Membership page
 /// (`district-admin-dashboard/membership`):
 /// Layout (top → bottom):
-///   • 5 sub-tab pills (Directory / District Committee / Assistant Governors /
-///     Club Moderators / Clubs). Directory is inline and reveals the KPIs +
-///     Member Directory below; the other four open the standalone screens the
-///     normal District dashboard uses.
+///   • 4 sub-tab pills (Directory / District Committee / Assistant Governors /
+///     Clubs). Directory is inline and reveals the KPIs + Member Directory
+///     below; the other three open the standalone screens the normal District
+///     dashboard uses.
 ///   • 3 KPI tiles (Total / New This Year / Terminated) — the web dropped the
 ///     Goal banner, section header, Active Members KPI and gender breakdown, so
 ///     we do too.
@@ -93,7 +93,6 @@ const List<({String key, String label})> _kSubTabs = [
   (key: 'directors', label: 'Directory'),
   (key: 'district_committee', label: 'District Committee'),
   (key: 'ag', label: 'Assistant Governors'),
-  (key: 'club_moderator', label: 'Club Moderators'),
   (key: 'clubs', label: 'Clubs'),
 ];
 
@@ -115,7 +114,7 @@ class _MembershipBodyState extends State<_MembershipBody> {
   String _activeKey = 'directors';
 
   /// Directory stays inline (shows the KPIs + Member Directory below). The other
-  /// four pills open the standalone screens the normal District dashboard uses.
+  /// three pills open the standalone screens the normal District dashboard uses.
   void _onSelect(String key) {
     if (key == 'directors') {
       setState(() => _activeKey = key);
@@ -125,7 +124,6 @@ class _MembershipBodyState extends State<_MembershipBody> {
     final String? route = switch (key) {
       'district_committee' => RouteNames.districtCommittee(id),
       'ag' => RouteNames.districtAg(id),
-      'club_moderator' => RouteNames.districtClubModerator(id),
       'clubs' => RouteNames.districtClubs(id),
       _ => null,
     };
@@ -729,9 +727,6 @@ class _RoleChip extends StatelessWidget {
     }
     if (r.contains('admin')) {
       return (bg: AppColors.muted, fg: AppColors.primaryPrime);
-    }
-    if (r.contains('moderator')) {
-      return (bg: AppColors.background, fg: AppColors.accentBlue);
     }
     if (r.contains('ag') || r.contains('governor')) {
       return (bg: AppColors.background, fg: AppColors.warningInk);

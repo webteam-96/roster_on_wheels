@@ -125,7 +125,7 @@ const messagesTile = (
   <div className={`tile ${styles.visual}`} data-c="mint" data-tile="chat">
     <div className="tile__demo demo-chat" aria-hidden="true">
       <div className="msg" data-d="msg">
-        <span className="msg__from">WhatsApp</span>
+        <span className="msg__from">ROW</span>
         <span className="msg__text">
           <span className="sample__msg">Weekly meeting this Thursday, 7 pm at Hotel Satkar. See you there!</span>
         </span>
@@ -305,8 +305,8 @@ export default function ClubManagementPage() {
         <CardGrid
           cols={3}
           items={[
-            "Event Notifications: tell members about upcoming events through the app and WhatsApp",
-            "Announcements: share important news with members through the app and WhatsApp",
+            "Event Notifications: tell members about upcoming events through the app and email",
+            "Announcements: share important news with members through the app and email",
             "Newsletters: create and share newsletters about your club's activities and achievements",
             "Greetings: send personal birthday and anniversary wishes to members automatically",
           ]}
@@ -351,7 +351,7 @@ export default function ClubManagementPage() {
       </Section>
 
       <Section id="easy-for-every-officer" title={<>Easy for <Scribble>every officer</Scribble></>} c="marigold" className={styles.closing}>
-        <Lead>If you can use WhatsApp on your phone, you can use ROW. Our team helps your officers get started and is a phone call or an email away.</Lead>
+        <Lead>If you can use a smartphone, you can use ROW. Our team helps your officers get started and is a phone call or an email away.</Lead>
         <div className="demo__ctas" data-reveal>
           <DemoButton />
         </div>

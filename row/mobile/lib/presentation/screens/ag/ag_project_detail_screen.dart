@@ -5,7 +5,6 @@ import '../../../core/services/project_share_service.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/money_format.dart';
 import '../../../data/models/ag_dashboard_models.dart';
-import '../club_moderator/approval_status_utils.dart';
 import 'widgets/ag_async.dart';
 import 'widgets/ag_format.dart';
 import 'package:rotary_flutter_app/core/theme/app_fonts.dart';
@@ -142,8 +141,6 @@ class _Body extends StatelessWidget {
               _F('Club', detail.clubName),
               _F('Date', agFmtDate(detail.date)),
               _F('Avenue of Service', detail.avenue),
-              _F('Category', detail.category),
-              _F('Sub Category', detail.subCategory),
               _F('Area of Focus', detail.areaOfFocus),
               _F('Location', detail.location),
               _F('Funding', detail.funding, chip: _FundingChip(detail.funding)),
@@ -161,8 +158,6 @@ class _Body extends StatelessWidget {
                   detail.rotaractorsInvolved > 0 ? agFmtInt(detail.rotaractorsInvolved) : null),
               _F('Project Type', detail.projectType),
               _F('Joint Project', _jointProject),
-              _F('Approval Status', detail.approvalStatus,
-                  chip: _ApprovalChip(detail.approvalStatus)),
             ]),
           ),
 
@@ -381,63 +376,6 @@ class _FundingChip extends StatelessWidget {
             fontWeight: FontWeight.w800,
             color: s.fg,
           ),
-        ),
-      ),
-    );
-  }
-}
-
-/// Approval chip — mirrors web `ApprovalStatusChip` (pending amber / approved
-/// emerald / rejected rose).
-class _ApprovalChip extends StatelessWidget {
-  final String? raw;
-  const _ApprovalChip(this.raw);
-
-  @override
-  Widget build(BuildContext context) {
-    final s = normalizeApprovalStatus(raw);
-    Color bg, fg;
-    IconData icon;
-    switch (s) {
-      case 'approved':
-        bg = AppColors.background;
-        fg = AppColors.successDark;
-        icon = Icons.check_circle_rounded;
-        break;
-      case 'rejected':
-        bg = AppColors.errorLight;
-        fg = AppColors.errorDark;
-        icon = Icons.cancel_rounded;
-        break;
-      case 'pending':
-      default:
-        bg = AppColors.background;
-        fg = AppColors.warningInk;
-        icon = Icons.schedule_rounded;
-    }
-    final label = s.isEmpty ? '–' : '${s[0].toUpperCase()}${s.substring(1)}';
-    return Align(
-      alignment: Alignment.centerLeft,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-        decoration: BoxDecoration(
-          color: bg,
-          borderRadius: BorderRadius.circular(999),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(icon, size: 11, color: fg),
-            const SizedBox(width: 4),
-            Text(
-              label,
-              style: AppFonts.body(
-                fontSize: 10.5,
-                fontWeight: FontWeight.w800,
-                color: fg,
-              ),
-            ),
-          ],
         ),
       ),
     );

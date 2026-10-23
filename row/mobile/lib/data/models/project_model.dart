@@ -12,11 +12,6 @@ class ProjectModel {
   final double? projectCost;
   final int? areaOfFocusId;
   final String? areaOfFocusName;
-  final int? categoryId;
-  final String? categoryName;
-  final int? subCategoryId;
-  final String? subCategoryName;
-  final String? subCategoryOther;
   final int? fundingId;
   final String? fundingName;
   final int? directBeneficiaries;
@@ -45,11 +40,6 @@ class ProjectModel {
     this.projectCost,
     this.areaOfFocusId,
     this.areaOfFocusName,
-    this.categoryId,
-    this.categoryName,
-    this.subCategoryId,
-    this.subCategoryName,
-    this.subCategoryOther,
     this.fundingId,
     this.fundingName,
     this.directBeneficiaries,
@@ -81,11 +71,6 @@ class ProjectModel {
       projectCost: (json['projectCost'] as num?)?.toDouble(),
       areaOfFocusId: json['areaOfFocusId'] as int?,
       areaOfFocusName: json['areaOfFocusName'] as String?,
-      categoryId: json['categoryId'] as int?,
-      categoryName: json['categoryName'] as String?,
-      subCategoryId: json['subCategoryId'] as int?,
-      subCategoryName: json['subCategoryName'] as String?,
-      subCategoryOther: json['subCategoryOther'] as String?,
       fundingId: json['fundingId'] as int?,
       fundingName: json['fundingName'] as String?,
       directBeneficiaries: json['directBeneficiaries'] as int?,
@@ -110,9 +95,6 @@ class ProjectModel {
     'projectDate': projectDate,
     'projectCost': projectCost,
     'areaOfFocusId': areaOfFocusId,
-    'categoryId': categoryId,
-    'subCategoryId': subCategoryId,
-    'subCategoryOther': subCategoryOther,
     'fundingId': fundingId,
     'directBeneficiaries': directBeneficiaries,
     'attendance': attendance,

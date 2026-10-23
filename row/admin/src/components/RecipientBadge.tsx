@@ -1,22 +1,13 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { getClubRecipientInfo, getDistrictRecipientInfo, getRiDirectorRecipientCount } from "@/services/api";
+import { getClubRecipientInfo, getDistrictRecipientInfo } from "@/services/api";
 
 // Recipient / credit estimate next to the email checkbox: how many email credits a send will use and how many
 // are available. Email is the only outbound channel.
 type Props =
   | { scope: "club"; clubId: number; visible?: boolean; reminderCount?: number }
-  | { scope: "district"; districtId: number; visible?: boolean; reminderCount?: number }
-  | {
-      scope: "ri";
-      target: string;
-      zoneIds?: number[];
-      districtIds?: number[];
-      subgroupIds?: number[];
-      visible?: boolean;
-      reminderCount?: number;
-    };
+  | { scope: "district"; districtId: number; visible?: boolean; reminderCount?: number };
 
 export default function RecipientBadge(props: Props) {
   const [count, setCount] = useState<number | null>(null);
@@ -34,13 +25,6 @@ export default function RecipientBadge(props: Props) {
             setCount(info.emailRecipientCount);
             setAvailable(info.emailRemaining);
           }
-        } else {
-          const c = await getRiDirectorRecipientCount("email", (props.target as any) || "all",
-            props.zoneIds, props.districtIds, props.subgroupIds);
-          if (!cancelled) {
-            setCount(c ?? 0);
-            setAvailable(null);
-          }
         }
       } catch {
         // the estimate is advisory; the send itself checks credits
@@ -51,10 +35,6 @@ export default function RecipientBadge(props: Props) {
     props.scope,
     (props as any).clubId,
     (props as any).districtId,
-    (props as any).target,
-    JSON.stringify((props as any).zoneIds ?? []),
-    JSON.stringify((props as any).districtIds ?? []),
-    JSON.stringify((props as any).subgroupIds ?? []),
   ]);
 
   if (count == null) return null;

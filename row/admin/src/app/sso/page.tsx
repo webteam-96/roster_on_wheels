@@ -63,8 +63,6 @@ function SsoInner() {
           }
         } catch {
           if (response.roles.includes("SuperAdmin")) landingRoute = "/settings/global-search";
-          else if (response.roles.includes("RIDirector")) landingRoute = "/ri-director/v2";
-          else if (response.roles.includes("ZonalCoordinator")) landingRoute = "/zonal-dashboard";
         }
         router.replace(landingRoute);
       } catch (e: unknown) {

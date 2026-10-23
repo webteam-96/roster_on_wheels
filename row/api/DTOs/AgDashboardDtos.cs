@@ -162,7 +162,6 @@ public class AgProjectRowDto
     // Service avenue = module_master.ModuleName via rotary_projects.fk_module_id
     // (Community / Vocational / International / New Generations / Public Image / Club Service).
     public string? Avenue { get; set; }
-    public string? Category { get; set; }
     public string? AreaOfFocus { get; set; }
     public string? Date { get; set; }
     public decimal Cost { get; set; }
@@ -175,10 +174,6 @@ public class AgProjectRowDto
     // (pre-Wave-13A3 schema). Once the column ships, real values flow through
     // and the flag flips to false.
     public bool ManHoursIsPending { get; set; }
-    // Approval workflow status. Null for Club Service / non-approval avenues;
-    // 'pending' / 'approved' / 'rejected' for the 5 approval avenues
-    // (community, vocational, international, new-generations, public-image).
-    public string? ApprovalStatus { get; set; }
 }
 
 public class AgProjectsResponse
@@ -187,7 +182,6 @@ public class AgProjectsResponse
     public List<AgProjectRowDto> Projects { get; set; } = new();
     public Dictionary<string, int> ClubProjectCounts { get; set; } = new(); // clubName -> count
     public Dictionary<string, int> MonthlyProjectCounts { get; set; } = new(); // "Jul 2025" -> count
-    public Dictionary<string, int> CategoryCounts { get; set; } = new();
     public int TotalProjects { get; set; }
     public int TotalBeneficiaries { get; set; }
     public int TotalManHours { get; set; }
@@ -388,8 +382,6 @@ public class AgProjectDetailDto
 
     public string? Avenue { get; set; }
     public string? AreaOfFocus { get; set; }
-    public string? Category { get; set; }
-    public string? SubCategory { get; set; }
 
     public string? Date { get; set; }
     public decimal Cost { get; set; }
@@ -407,7 +399,6 @@ public class AgProjectDetailDto
     public bool IsJointProject { get; set; }
     public string? CoHostName { get; set; }
     public string? ClubRole { get; set; }
-    public string? ApprovalStatus { get; set; }
 
     public List<AgProjectPhotoDto> Photos { get; set; } = new();
 }

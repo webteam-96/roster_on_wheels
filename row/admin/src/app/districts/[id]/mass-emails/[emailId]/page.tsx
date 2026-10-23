@@ -15,6 +15,7 @@ import { ArrowLeft, Send, RefreshCw, CheckCircle2, XCircle, Clock, Loader2 } fro
 import RotaryLoader from "@/components/RotaryLoader";
 import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";
+import CampaignTrackingCard from "@/components/comms/CampaignTrackingCard";
 
 import { appLocale } from "@/lib/appFormat";
 interface MassEmailDetail {
@@ -101,6 +102,8 @@ export default function DistrictMassEmailViewPage() {
             {detail.emailBody && <div className="border-t pt-4"><p className="text-sm text-muted-foreground mb-2">Email Body:</p><div className="bg-muted/50 rounded-md p-4 text-sm whitespace-pre-wrap">{detail.emailBody}</div></div>}
           </CardContent>
         </Card>
+
+        <CampaignTrackingCard scope="districts" ownerId={districtId} emailId={emailId} />
 
         <Card><CardHeader><CardTitle>Recipients ({detail.recipients.length})</CardTitle></CardHeader>
           <CardContent>

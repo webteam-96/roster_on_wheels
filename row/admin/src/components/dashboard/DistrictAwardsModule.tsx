@@ -49,7 +49,7 @@ import {
   getCitationCategoriesByDistrict, createCitationCategory, updateCitationCategory, deleteCitationCategory,
   getCitationDescription, saveCitationDescription,
   getCitationAutoQuestions, createCitationAutoQuestion, updateCitationAutoQuestion, deleteCitationAutoQuestion,
-  getCitationActivities, getCitationMeetingTypes, getCitationAreaOfFocus, getCitationCategories as getCitationAofCategories, getCitationSubCategories,
+  getCitationActivities, getCitationMeetingTypes, getCitationAreaOfFocus,
   getCitationManualCriteria, createCitationManualCriteria, updateCitationManualCriteria, deleteCitationManualCriteria,
   getCitationClubPoints, downloadCitationClubReport, downloadCitationSingleClubReport,
   getAwardsClearStatus, clearAwardsPoints, restoreAwardsPoints, type AwardsClearStatus,
@@ -342,8 +342,6 @@ export default function DistrictAwardsModule({ districtId }: { districtId: numbe
       minBonus: String(s.minBonus || ""),
       maxBonus: String(s.maxBonus || ""),
       isBonus: !!s.isBonus,
-      filterAofId: s.filterAofId || null,
-      filterCatId: s.filterCatId || null,
     }));
     setAutoForm({
       categoryId: String(q.categoryId), activityId: String(q.activityId),
@@ -358,26 +356,15 @@ export default function DistrictAwardsModule({ districtId }: { districtId: numbe
       const sub = subs[i];
       if (sub.subItemType && sub.subItemType !== "meeting_type") {
         await loadAofList(i, actId);
-        if (sub.filterAofId) { await loadCatList(i, sub.filterAofId); }
-        if (sub.filterCatId) { await loadSubCatList(i, sub.filterCatId); }
       }
     }
   };
   const handleSaveAuto = async () => {
     if (!autoForm.categoryId || !autoForm.activityId) { setErrorMessage("Category and Activity required."); return; }
-    const selActivity = activities.find((a: any) => String(a.id) === autoForm.activityId);
-    const selActName = (selActivity?.activityName || "").toLowerCase();
-    const isCommunityServiceSel = selActName.includes("community service");
     for (let i = 0; i < autoForm.subItems.length; i++) {
       const s = autoForm.subItems[i];
       if (!s.subItemId && s.subItemType !== "meeting_type") { setErrorMessage(`Sub Item #${i + 1}: Please select a value.`); return; }
       if (s.subItemType === "meeting_type" && !s.subItemName) { setErrorMessage(`Sub Item #${i + 1}: Please select a Meeting Type.`); return; }
-      if (isCommunityServiceSel) {
-        if (s.subItemType === "sub_category" && !s.filterAofId) { setErrorMessage(`Sub Item #${i + 1}: Please select Area of Focus first.`); return; }
-        if (s.subItemType === "sub_category" && !s.filterCatId) { setErrorMessage(`Sub Item #${i + 1}: Please select Category first.`); return; }
-      } else {
-        if (s.subItemType === "sub_category" && !s.filterCatId) { setErrorMessage(`Sub Item #${i + 1}: Please select Category first.`); return; }
-      }
       if (!s.points || Number(s.points) <= 0) { setErrorMessage(`Sub Item #${i + 1}: Points is required.`); return; }
     }
     setAutoSaving(true);
@@ -387,7 +374,6 @@ export default function DistrictAwardsModule({ districtId }: { districtId: numbe
         points: Number(autoForm.points) || 0, isBonus: autoForm.isBonus, bonusPoints: Number(autoForm.bonusPoints) || 0,
         minBonus: Number(autoForm.minBonus) || 0, maxBonus: Number(autoForm.maxBonus) || 0, sortOrder: Number(autoForm.sortOrder) || 0,
         subItems: autoForm.subItems.map((s: any) => ({ subItemType: s.subItemType, subItemId: s.subItemId || null, subItemName: s.subItemName || null,
-          filterAofId: s.filterAofId || null, filterCatId: s.filterCatId || null,
           points: Number(s.points) || 0, isBonus: s.isBonus, bonusPoints: Number(s.bonusPoints) || 0, minBonus: Number(s.minBonus) || 0, maxBonus: Number(s.maxBonus) || 0 }))
       };
       if (editingAuto) await updateCitationAutoQuestion(districtId, editingAuto.id, payload);
@@ -419,29 +405,15 @@ export default function DistrictAwardsModule({ districtId }: { districtId: numbe
     const moduleKey = getModuleKeyFromActivity(act.activityName);
     try {
       const list = await getCitationAreaOfFocus(moduleKey);
-      setSubItemData(prev => ({ ...prev, [index]: { aofList: list, catList: [], subCatList: [] } }));
+      setSubItemData(prev => ({ ...prev, [index]: { aofList: list } }));
     } catch {}
   };
 
-  const loadCatList = async (index: number, aofId: number) => {
-    try {
-      const list = await getCitationAofCategories(aofId);
-      setSubItemData(prev => ({ ...prev, [index]: { ...prev[index], catList: list, subCatList: [] } }));
-    } catch {}
-  };
-
-  const loadSubCatList = async (index: number, catId: number) => {
-    try {
-      const list = await getCitationSubCategories(catId);
-      setSubItemData(prev => ({ ...prev, [index]: { ...prev[index], subCatList: list } }));
-    } catch {}
-  };
-
-  const addAutoSubItem = () => setAutoForm((p: any) => ({ ...p, subItems: [...p.subItems, { subItemType: "", subItemId: null, subItemName: "", filterAofId: null, filterCatId: null, points: "", isBonus: false, bonusPoints: "", minBonus: "", maxBonus: "" }] }));
+  const addAutoSubItem = () => setAutoForm((p: any) => ({ ...p, subItems: [...p.subItems, { subItemType: "", subItemId: null, subItemName: "", points: "", isBonus: false, bonusPoints: "", minBonus: "", maxBonus: "" }] }));
   const removeAutoSubItem = (i: number) => {
     setAutoForm((p: any) => ({ ...p, subItems: p.subItems.filter((_: any, idx: number) => idx !== i) }));
-    // subItemData is keyed by row index and holds each row's dropdown option lists (aofList/catList/
-    // subCatList). Removing row `i` shifts every later row down by one, so re-key the map to match —
+    // subItemData is keyed by row index and holds each row's dropdown option list (aofList).
+    // Removing row `i` shifts every later row down by one, so re-key the map to match —
     // otherwise the shifted rows read the wrong (or missing) option lists and their dropdowns blank out.
     setSubItemData(prev => {
       const next: Record<number, any> = {};
@@ -741,18 +713,11 @@ export default function DistrictAwardsModule({ districtId }: { districtId: numbe
                               {q.subItems.map((s: any) => {
                                 const t = String(s.subItemType || "").toLowerCase();
                                 // subItemName is the exact label chosen in the edit popup's dropdown (saved on
-                                // select), so it always matches the edit view. The backend-JOINed
-                                // areaOfFocusName/categoryName/subCategoryName can be wrong: for non-Community-
-                                // Service activities the stored id is an area-of-focus id tagged 'category', so the
-                                // JOIN resolves the wrong master row. Prefer subItemName; fall back only if empty.
+                                // select), so it always matches the edit view. Prefer it; fall back only if empty.
                                 let lineage = s.subItemName || "";
                                 if (!lineage) {
                                   if (t === "area_of_focus") {
                                     lineage = s.areaOfFocusName || `#${s.subItemId}`;
-                                  } else if (t === "category") {
-                                    lineage = s.categoryName || `#${s.subItemId}`;
-                                  } else if (t === "sub_category" || t === "subcategory") {
-                                    lineage = s.subCategoryName || `#${s.subItemId}`;
                                   } else {
                                     lineage = s.subItemId ? `#${s.subItemId}` : "";
                                   }
@@ -966,18 +931,11 @@ export default function DistrictAwardsModule({ districtId }: { districtId: numbe
             if (isClubService) {
               sectionLabel = "Meeting Types";
             } else if (isCommunityService) {
-              sectionLabel = "Area of Focus / Category / Sub Category";
-              subItemTypeOptions = [
-                { value: "area_of_focus", label: "Area of Focus" },
-                { value: "category", label: "Category" },
-                { value: "sub_category", label: "Sub Category" },
-              ];
+              sectionLabel = "Area of Focus";
+              subItemTypeOptions = [{ value: "area_of_focus", label: "Area of Focus" }];
             } else {
-              sectionLabel = "Category / Sub Category";
-              subItemTypeOptions = [
-                { value: "category", label: "Category" },
-                { value: "sub_category", label: "Sub Category" },
-              ];
+              sectionLabel = "Category";
+              subItemTypeOptions = [{ value: "category", label: "Category" }];
             }
 
             return (
@@ -1011,8 +969,6 @@ export default function DistrictAwardsModule({ districtId }: { districtId: numbe
                             updateAutoSubItem(i, "subItemType", v);
                             updateAutoSubItem(i, "subItemId", null);
                             updateAutoSubItem(i, "subItemName", "");
-                            updateAutoSubItem(i, "filterAofId", null);
-                            updateAutoSubItem(i, "filterCatId", null);
                             setSubItemData(prev => ({ ...prev, [i]: {} }));
                             loadAofList(i, autoForm.activityId);
                           }}>
@@ -1024,91 +980,21 @@ export default function DistrictAwardsModule({ districtId }: { districtId: numbe
                         </div>
 
                         {sub.subItemType && (() => {
-                          const data = subItemData[i] || {};
-                          const aofList = data.aofList || [];
-                          const catList = data.catList || [];
-                          const subCatList = data.subCatList || [];
-
+                          const aofList = (subItemData[i] || {}).aofList || [];
                           const aofLabel = isCommunityService ? "Area of Focus" : "Category";
-                          const catLabel = isCommunityService ? "Category" : "Sub Category";
-                          const subCatLabel = "Sub Category";
-
-                          const isPointsForAof = sub.subItemType === "area_of_focus";
-                          const isPointsForCat = sub.subItemType === "category";
-                          const isPointsForSubCat = sub.subItemType === "sub_category";
-
-                          const isLevel1Final = isCommunityService ? isPointsForAof : isPointsForCat;
-                          const isLevel2Final = isCommunityService ? isPointsForCat : isPointsForSubCat;
-                          const showLevel2 = isCommunityService
-                            ? (isPointsForCat || isPointsForSubCat)
-                            : isPointsForSubCat;
-                          const showLevel3 = isCommunityService && isPointsForSubCat;
-                          const level1FilterField = isCommunityService ? "filterAofId" : "filterCatId";
-                          const level1FilterValue = isCommunityService ? sub.filterAofId : sub.filterCatId;
-
-                          return (<>
+                          return (
                             <div>
-                              <Label className="text-xs">{aofLabel}{!isLevel1Final && <span className="text-muted-foreground"> (filter)</span>}</Label>
-                              <Select value={isLevel1Final ? (sub.subItemId ? String(sub.subItemId) : "") : (level1FilterValue ? String(level1FilterValue) : "")} onValueChange={v => {
-                                if (isLevel1Final) {
-                                  const sel = aofList.find((it: any) => String(it.id) === v);
-                                  updateAutoSubItem(i, "subItemId", Number(v));
-                                  updateAutoSubItem(i, "subItemName", sel?.name || "");
-                                  updateAutoSubItem(i, "filterAofId", null);
-                                  updateAutoSubItem(i, "filterCatId", null);
-                                } else {
-                                  updateAutoSubItem(i, level1FilterField, Number(v));
-                                  if (isCommunityService) updateAutoSubItem(i, "filterCatId", null);
-                                  else updateAutoSubItem(i, "filterAofId", null);
-                                  updateAutoSubItem(i, "subItemId", null);
-                                  updateAutoSubItem(i, "subItemName", "");
-                                  if (isCommunityService) loadCatList(i, Number(v));
-                                  else loadSubCatList(i, Number(v));
-                                }
+                              <Label className="text-xs">{aofLabel}</Label>
+                              <Select value={sub.subItemId ? String(sub.subItemId) : ""} onValueChange={v => {
+                                const sel = aofList.find((it: any) => String(it.id) === v);
+                                updateAutoSubItem(i, "subItemId", Number(v));
+                                updateAutoSubItem(i, "subItemName", sel?.name || "");
                               }}>
                                 <SelectTrigger className="h-8"><SelectValue placeholder={`Select ${aofLabel}`} /></SelectTrigger>
                                 <SelectContent>{aofList.map((it: any) => <SelectItem key={it.id} value={String(it.id)}>{it.name}</SelectItem>)}</SelectContent>
                               </Select>
                             </div>
-
-                            {showLevel2 && level1FilterValue && (
-                              (isCommunityService ? catList.length > 0 : subCatList.length > 0) && (
-                                <div>
-                                  <Label className="text-xs">{catLabel}{!isLevel2Final && isCommunityService && <span className="text-muted-foreground"> (filter)</span>}</Label>
-                                  <Select value={isLevel2Final ? (sub.subItemId ? String(sub.subItemId) : "") : (sub.filterCatId ? String(sub.filterCatId) : "")} onValueChange={v => {
-                                    const list = isCommunityService ? catList : subCatList;
-                                    if (isLevel2Final) {
-                                      const sel = list.find((it: any) => String(it.id) === v);
-                                      updateAutoSubItem(i, "subItemId", Number(v));
-                                      updateAutoSubItem(i, "subItemName", sel?.name || "");
-                                    } else {
-                                      updateAutoSubItem(i, "filterCatId", Number(v));
-                                      updateAutoSubItem(i, "subItemId", null);
-                                      updateAutoSubItem(i, "subItemName", "");
-                                      loadSubCatList(i, Number(v));
-                                    }
-                                  }}>
-                                    <SelectTrigger className="h-8"><SelectValue placeholder={`Select ${catLabel}`} /></SelectTrigger>
-                                    <SelectContent>{(isCommunityService ? catList : subCatList).map((it: any) => <SelectItem key={it.id} value={String(it.id)}>{it.name}</SelectItem>)}</SelectContent>
-                                  </Select>
-                                </div>
-                              )
-                            )}
-
-                            {showLevel3 && sub.filterCatId && subCatList.length > 0 && (
-                              <div>
-                                <Label className="text-xs">{subCatLabel}</Label>
-                                <Select value={sub.subItemId ? String(sub.subItemId) : ""} onValueChange={v => {
-                                  const sel = subCatList.find((it: any) => String(it.id) === v);
-                                  updateAutoSubItem(i, "subItemId", Number(v));
-                                  updateAutoSubItem(i, "subItemName", sel?.name || "");
-                                }}>
-                                  <SelectTrigger className="h-8"><SelectValue placeholder={`Select ${subCatLabel}`} /></SelectTrigger>
-                                  <SelectContent>{subCatList.map((it: any) => <SelectItem key={it.id} value={String(it.id)}>{it.name}</SelectItem>)}</SelectContent>
-                                </Select>
-                              </div>
-                            )}
-                          </>);
+                          );
                         })()}
                       </div>
                     )}

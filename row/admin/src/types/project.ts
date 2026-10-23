@@ -7,22 +7,6 @@ export interface AreaOfFocus {
   isActive: boolean;
 }
 
-export interface Category {
-  id: number;
-  areaOfFocusId: number;
-  name: string;
-  sortOrder: number;
-  isActive: boolean;
-}
-
-export interface SubCategory {
-  id: number;
-  categoryId: number;
-  name: string;
-  sortOrder: number;
-  isActive: boolean;
-}
-
 export interface Funding {
   id: number;
   name: string;
@@ -55,10 +39,6 @@ export interface ProjectListItem {
   location: string | null;
   areaOfFocusName: string | null;
   otherAreaOfFocus: string | null;
-  categoryName: string | null;
-  otherCategory: string | null;
-  subCategoryName: string | null;
-  otherSubCategory: string | null;
   projectDate: string | null;
   projectCost: number | null;
   currency: string;
@@ -68,7 +48,6 @@ export interface ProjectListItem {
   attendance: number | null;
   attendancePercentage: number | null;
   isActive: boolean;
-  approvalStatus: string | null;
   primaryPhotoPath: string | null;
 }
 
@@ -90,12 +69,6 @@ export interface ProjectDetail {
   areaOfFocusId: number | null;
   areaOfFocusName: string | null;
   otherAreaOfFocus: string | null;
-  categoryId: number | null;
-  categoryName: string | null;
-  otherCategory: string | null;
-  subCategoryId: number | null;
-  subCategoryName: string | null;
-  otherSubCategory: string | null;
   projectDate: string | null;
   projectCost: number | null;
   currency: string;
@@ -144,10 +117,6 @@ export interface CreateProjectRequest {
   location?: string | null;
   areaOfFocusId?: number | null;
   otherAreaOfFocus?: string | null;
-  categoryId?: number | null;
-  otherCategory?: string | null;
-  subCategoryId?: number | null;
-  otherSubCategory?: string | null;
   projectDate?: string | null;
   projectCost?: number | null;
   currency?: string;
@@ -185,10 +154,6 @@ export interface UpdateProjectRequest {
   location?: string | null;
   areaOfFocusId?: number | null;
   otherAreaOfFocus?: string | null;
-  categoryId?: number | null;
-  otherCategory?: string | null;
-  subCategoryId?: number | null;
-  otherSubCategory?: string | null;
   projectDate?: string | null;
   projectCost?: number | null;
   currency?: string;

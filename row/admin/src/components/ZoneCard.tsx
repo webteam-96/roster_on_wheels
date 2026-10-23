@@ -11,7 +11,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { MoreVertical, Pencil, Trash2, MapPin, Building2, Users, Globe, UserCheck, Trophy } from "@/components/icons";
+import { MoreVertical, Pencil, Trash2, MapPin, Building2, Users, Globe } from "@/components/icons";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import RotaryLoader from "@/components/RotaryLoader";
@@ -19,13 +19,10 @@ import RotaryLoader from "@/components/RotaryLoader";
 interface ZoneCardProps {
   zone: ZoneListItem;
   onDelete: (zone: ZoneListItem) => void;
-  onCoordinator?: (zone: ZoneListItem) => void;
-  onToggleZonalAwards?: (zone: ZoneListItem) => void;
-  togglingZoneId?: number | null;
   isSuperAdmin?: boolean;
 }
 
-export default function ZoneCard({ zone, onDelete, onCoordinator, onToggleZonalAwards, togglingZoneId, isSuperAdmin }: ZoneCardProps) {
+export default function ZoneCard({ zone, onDelete, isSuperAdmin }: ZoneCardProps) {
   const router = useRouter();
   const [navigating, setNavigating] = useState(false);
 
@@ -96,20 +93,6 @@ export default function ZoneCard({ zone, onDelete, onCoordinator, onToggleZonalA
                               Edit
                             </Link>
                           </DropdownMenuItem>
-                          <DropdownMenuItem asChild>
-                            <Link href={`/zones/${zone.id}/direct-beneficiaries`}>
-                              <UserCheck className="mr-2 h-4 w-4" />
-                              Direct Beneficiaries
-                            </Link>
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => onCoordinator?.(zone)}>
-                            <Users className="mr-2 h-4 w-4" />
-                            Zonal Co-ordinator
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onSelect={() => onToggleZonalAwards?.(zone)}>
-                            <Trophy className="mr-2 h-4 w-4" />
-                            Zonal Awards: {zone.isZonalAwardsEnabled ? "Enabled" : "Disabled"}
-                          </DropdownMenuItem>
                           <DropdownMenuItem className="text-destructive" onClick={() => onDelete(zone)}>
                             <Trash2 className="mr-2 h-4 w-4" />
                             Delete
@@ -143,12 +126,6 @@ export default function ZoneCard({ zone, onDelete, onCoordinator, onToggleZonalA
             <Users className="h-3.5 w-3.5 flex-shrink-0" />
             <span>{zone.totalMembers} Member{zone.totalMembers !== 1 ? "s" : ""}</span>
           </div>
-          {zone.coordinatorName && (
-            <div className="flex items-center gap-2 text-primary font-medium">
-              <Users className="h-3.5 w-3.5 flex-shrink-0" />
-              <span>ZC: {zone.coordinatorName}</span>
-            </div>
-          )}
         </div>
       </CardContent>
     </Card>

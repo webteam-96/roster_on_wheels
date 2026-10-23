@@ -144,7 +144,6 @@ export interface DistrictAdminProjectListingRow {
   manHours: number;
   avenueName?: string | null;
   areaOfFocus?: string | null;
-  status: string;            // approved / pending / rejected / null → "Upcoming"
   manHoursIsPending?: boolean;
 }
 

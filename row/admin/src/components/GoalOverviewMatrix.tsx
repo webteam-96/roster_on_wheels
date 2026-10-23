@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { getGoalOversightCategories, getGoalOverview } from "@/services/api";
+import { getGoalCategories, getGoalOverview } from "@/services/api";
 import type { GoalCategoryDto, GoalOverviewMatrixDto } from "@/types/goalSetting";
 import type { RotaryYear } from "@/types/rotaryYear";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -31,7 +31,7 @@ export default function GoalOverviewMatrix({
 
   useEffect(() => {
     (async () => {
-      try { setCategories(await getGoalOversightCategories()); } catch { /* ignore: grid just won't offer categories */ }
+      try { setCategories(await getGoalCategories()); } catch { /* ignore: grid just won't offer categories */ }
     })();
   }, []);
 

@@ -5,10 +5,10 @@ import { useParams, useSearchParams, useRouter } from "next/navigation";
 import { ArrowLeft } from "@/components/icons";
 import GoalSettingPanel from "@/components/dashboard/GoalSettingPanel";
 import GoalTargetSplitPanel from "@/components/dashboard/GoalTargetSplitPanel";
-import { getClubGoalForm, saveClubGoalForm, lockClubGoals, unlockClubGoals,
+import { getClubGoalForm, saveClubGoalForm,
          getClubMonthlyGoals, saveClubTargetSplit } from "@/services/api";
 import type { GoalMonthlyForm, SaveGoalTargetSplitRequest } from "@/services/api";
-import type { GoalCategoryFormDto, SaveGoalEntriesRequest, GoalLockStatusDto } from "@/types/goalSetting";
+import type { GoalCategoryFormDto, SaveGoalEntriesRequest } from "@/types/goalSetting";
 
 export default function DistrictAdminGoalClubDetailPage() {
   const params = useParams();
@@ -29,9 +29,6 @@ export default function DistrictAdminGoalClubDetailPage() {
   }, [clubId, yearId]);
   const saveForm = useCallback((catId: number, body: SaveGoalEntriesRequest): Promise<GoalCategoryFormDto> => {
     return saveClubGoalForm(catId, body, clubId);
-  }, [clubId]);
-  const lockToggle = useCallback((catId: number, yrId: number, locked: boolean): Promise<GoalLockStatusDto> => {
-    return locked ? lockClubGoals(catId, yrId, clubId) : unlockClubGoals(catId, yrId, clubId);
   }, [clubId]);
 
   // Quarterly / month-wise split for THIS club — a District Admin may edit it here, same as the club.
@@ -64,7 +61,7 @@ export default function DistrictAdminGoalClubDetailPage() {
         </button>
         <div>
           <h2 className="text-sm font-semibold text-slate-800">Club Goals</h2>
-          <p className="text-xs text-slate-500">View, edit, and lock this club&apos;s goals for the year.</p>
+          <p className="text-xs text-slate-500">View and edit this club&apos;s goals for the year.</p>
         </div>
       </div>
 
@@ -72,15 +69,11 @@ export default function DistrictAdminGoalClubDetailPage() {
         title="Club Goals"
         fetchForm={fetchForm}
         saveForm={saveForm}
-        lockToggle={lockToggle}
         initialCategoryId={categoryId}
         reloadKey={yearId ?? "current"}
         onFormLoaded={setForm}
         belowCategories={<GoalTargetSplitPanel form={monthly} onSave={saveSplit} reloadKey={`${catId}-${yearId ?? "cur"}`} />}
       />
-
-      {/* Messaging removed for District Admin — goal-setting messages are only between the oversight
-          roles (RI Director / Zone Co-ordinator / District Assistant). */}
     </div>
   );
 }

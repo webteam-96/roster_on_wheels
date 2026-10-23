@@ -3,7 +3,7 @@
 // Read-only "Club Goal Setting" matrix for ONE district, used inside the goal-oversight popup.
 // Mirrors the district-admin "View Club Goals" page (category tabs + Goals/Month-wise toggle + club
 // filter), but scoped to a caller-supplied districtId via the goal-oversight-scoped endpoints
-// (getScopedDistrictClubs*Matrix) so RI Director / ZC / DA / SuperAdmin can view any district they oversee.
+// (getScopedDistrictClubs*Matrix) so the SuperAdmin Goal Overview can view any district.
 
 import { useEffect, useState, useCallback, useMemo } from "react";
 import { isAnnualOnlyCategory } from "@/lib/goalCategories";

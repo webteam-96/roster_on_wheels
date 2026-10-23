@@ -90,7 +90,7 @@ const SERVICES: {
     icon: BarChart3,
     title: "Reports & Analytics",
     description:
-      "Dashboards for club admins, assistant governors, district admins, and RI Directors. Membership trends, project impact, fund flows: all derived from live data.",
+      "Dashboards for club admins, assistant governors and district admins. Membership trends, project impact, fund flows: all derived from live data.",
     accent: "green",
   },
 ];
@@ -140,7 +140,7 @@ const PRICING: {
 
 const FEATURES = [
   { icon: Globe, title: "Multi-Zone, Multi-District", body: "One unified portal serving every Rotary club across the zones." },
-  { icon: Users, title: "Role-Based Access", body: "Club Admins, Assistant Governors, District Admins, RI Directors | each sees what they need." },
+  { icon: Users, title: "Role-Based Access", body: "Club Admins, Assistant Governors, District Admins | each sees what they need." },
   { icon: ShieldCheck, title: "Secure by Default", body: "JWT-secured sessions, HTTPS only, encrypted at rest, regular backups." },
   { icon: FileCheck, title: "Statutory Reports", body: "Auto-generated reports aligned with Rotary International and Indian regulatory requirements." },
   { icon: LineChart, title: "Live Dashboards", body: "Membership, projects, events, and fund flows visualised in real time." },

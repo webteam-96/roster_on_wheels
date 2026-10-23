@@ -45,7 +45,6 @@ public class DocumentPushBackgroundService : BackgroundService
               AND IFNULL(PushNotificationSent, 0) = 0
               AND PublishDateTime <= NOW()
               AND (ExpiryDateTime IS NULL OR ExpiryDateTime > NOW())
-              AND IFNULL(Scope, '') <> 'ri'
               AND IFNULL(Status, 'Unpublished') = 'Published'
             ORDER BY PublishDateTime
             LIMIT 5")).ToList();

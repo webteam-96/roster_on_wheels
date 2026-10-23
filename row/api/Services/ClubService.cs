@@ -528,7 +528,7 @@ public class ClubService : IClubService
                     /* District Admin of THIS clubs parent district — DB stores fk_club_id=0 (not NULL) */
                     OR (mr.fk_role_id = 2 AND (mr.fk_club_id IS NULL OR mr.fk_club_id = 0)
                         AND mr.fk_district_id = (SELECT fk_district_id FROM club_master WHERE pk_club_id = @ClubId))
-                    /* Any non-Admin role (Member, AG, ZC, ClubModerator, RIDirector, SuperAdmin) */
+                    /* Any non-Admin role (Member, AG, SuperAdmin) */
                     OR mr.fk_role_id != 2
                 )
             LEFT JOIN roles r ON r.pk_role_id = mr.fk_role_id
@@ -829,7 +829,7 @@ public class ClubService : IClubService
             WHERE fk_club_id = @ClubId AND fk_member_master_profile_id = @MemberId AND isdeleted = 0",
             new { ClubId = clubId, MemberId = memberId, DeletedBy = deletedBy, Reason = reason }, transaction: tx);
 
-        // 2. Soft-delete member_roles for THIS club (Admin, ClubModerator, AG, Member etc. that are tied to this club)
+        // 2. Soft-delete member_roles for THIS club (Admin, AG, Member etc. that are tied to this club)
         await connection.ExecuteAsync(@"
             UPDATE member_roles
             SET isdeleted = 1, IsActive = 0, RevokedDate = NOW(), RevokedBy = @DeletedBy, modified_by = @DeletedBy, modified_date = NOW()
@@ -874,26 +874,19 @@ public class ClubService : IClubService
             WHERE fk_club_id = @ClubId AND fk_member_id = @MemberId AND isdeleted = 0",
             new { ClubId = clubId, MemberId = memberId, DeletedBy = deletedBy }, transaction: tx);
 
-        // 5b. Soft-delete legacy district_club_moderator for THIS club (same reason as district_ag).
-        await connection.ExecuteAsync(@"
-            UPDATE district_club_moderator
-            SET isdeleted = 1, is_active = 0, modified_by = @DeletedBy, modified_date = NOW()
-            WHERE fk_club_id = @ClubId AND fk_member_id = @MemberId AND isdeleted = 0",
-            new { ClubId = clubId, MemberId = memberId, DeletedBy = deletedBy }, transaction: tx);
-
         if (isLastClub)
         {
             // NOTE: member_master_profile is intentionally NOT soft-deleted on member removal.
             // The person record (and its UNIQUE RotaryId) must survive so Family Login keeps working
             // and the member can be re-added / re-synced later. "Not accessible after removal" is
             // enforced by login guards, not by disabling the profile:
-            //   • Web  (AuthService): login requires an active Admin/SuperAdmin/ZC/RID/AG/ClubModerator
+            //   • Web  (AuthService): login requires an active Admin/SuperAdmin/AG
             //     role — all of which are revoked below, so a removed member is denied.
             //   • Mobile (MobileAuthService): NonSyncLoginGuardHelper denies login when the member has
             //     no active club_members row.
             // The removed member stays resurfaceable only in District Committee ("Add as non-member").
 
-            // 7. Soft-delete remaining member_roles (RIDirector, ZonalCoordinator, etc.).
+            // 7. Soft-delete remaining member_roles.
             //    Keep SuperAdmin (role_id=3) — it is portal-level and independent of club membership.
             await connection.ExecuteAsync(@"
                 UPDATE member_roles
@@ -932,13 +925,6 @@ public class ClubService : IClubService
             // 10. Soft-delete legacy district_ag for ALL clubs (defensive — last-club case)
             await connection.ExecuteAsync(@"
                 UPDATE district_ag
-                SET isdeleted = 1, is_active = 0, modified_by = @DeletedBy, modified_date = NOW()
-                WHERE fk_member_id = @MemberId AND isdeleted = 0",
-                new { MemberId = memberId, DeletedBy = deletedBy }, transaction: tx);
-
-            // 11. Soft-delete legacy district_club_moderator for ALL clubs (defensive — last-club case)
-            await connection.ExecuteAsync(@"
-                UPDATE district_club_moderator
                 SET isdeleted = 1, is_active = 0, modified_by = @DeletedBy, modified_date = NOW()
                 WHERE fk_member_id = @MemberId AND isdeleted = 0",
                 new { MemberId = memberId, DeletedBy = deletedBy }, transaction: tx);

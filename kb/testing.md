@@ -20,6 +20,19 @@ The dated results below are kept as history and still mention the NestJS edition
 
 ## Results
 
+### 2026-10-23 (skipped modules removed, 10 new spec modules, uncommitted on top of 31115e2)
+
+- `dotnet build`: API and the 3 workers, 0 errors. Admin `tsc --noEmit` 0 errors, `vitest run` 18 files / 103 tests
+  pass, `check-design.mjs` all counts 0. `club-website` and `district-website` `tsc --noEmit` 0 errors. App:
+  `flutter analyze` / `flutter test` passed in the removal steps (94 + 11 tests); the app was not changed after that.
+- e2e against `row_prod_copy` (API on :5000, Brevo and SMTP pointed at closed or fake local ports): membership_fields
+  40, engagement 44, grants 76, volunteers_speakers 87, contacts_prospects_growth 89, target_dashboard 52,
+  meetings_links_compliance 43, communication_upgrades 65, websites_multilingual 40, chat 84, scope_read_guard 7,
+  feature_gate 10 (incl. removed routes answer 404): all PASS.
+- Trace sweep of the removed modules (84 patterns, all code layers): 0 hits except allowed ones (removed-route list
+  in feature_gate_e2e.py) and false positives (chat moderation, website trial lock, other "category" meanings).
+- Not run: the 8 older e2e scripts that still need the dropped `row_local` (P6); browser checks of the new pages.
+
 ### 2026-10-13, session 4 (India-specific behaviour removed from the .NET edition and the shared admin)
 
 | Check | Result |

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:url_launcher/url_launcher.dart';
 import '../../../../../core/network/api_client.dart';
 import '../../../../../core/services/club_admin_dashboard_api.dart';
 import '../../../../../core/theme/app_colors.dart';
@@ -21,9 +20,8 @@ import 'package:rotary_flutter_app/core/theme/app_fonts.dart';
 /// "All" shows club-wide KPIs + a per-avenue summary; selecting an avenue shows
 /// that avenue's KPIs and detail (Club Service → meeting records; the rest →
 /// one-time / ongoing project records). The React reference's goal-setter,
-/// completion-frequency, promo banner and PPH camp detail are dropped — the
-/// club-admin API exposes none of them (PPH camp readings live in the separate
-/// PPH-Camps module).
+/// completion-frequency and promo banner are dropped — the club-admin API
+/// exposes none of them.
 class ClubAvenueTab extends StatefulWidget {
   final int clubId;
   final int? yearId;
@@ -33,7 +31,7 @@ class ClubAvenueTab extends StatefulWidget {
   State<ClubAvenueTab> createState() => _ClubAvenueTabState();
 }
 
-/// The 7 fixed avenues (key → label/colour), matching the API's avenue keys.
+/// The 6 fixed avenues (key → label/colour), matching the API's avenue keys.
 const List<({String key, String label, int color})> _kAvenues = [
   (key: 'club_service', label: 'Club Service', color: 0xFF003DA5),
   (key: 'community_service', label: 'Community Service', color: 0xFF16A34A),
@@ -41,7 +39,6 @@ const List<({String key, String label, int color})> _kAvenues = [
   (key: 'international_service', label: 'International Service', color: 0xFF9333EA),
   (key: 'new_generation_service', label: 'New Generation', color: 0xFFF59E0B),
   (key: 'public_image_initiative', label: 'Public Image', color: 0xFFE11D48),
-  (key: 'pph_camp', label: 'PPH Camp', color: 0xFF0891B2),
 ];
 
 int _avenueColor(String key) => _kAvenues
@@ -52,8 +49,7 @@ int _avenueColor(String key) => _kAvenues
 /// Avenues that map to a real project module (`ProjectsScreen.moduleType`) and
 /// therefore support Add / Edit / Delete in the projects list. Club Service is
 /// handled separately (it shows meetings, with Add Meeting + per-row Edit
-/// wired to the `club_service` module — see `_MeetingsList`); PPH Camp stays
-/// read-only here.
+/// wired to the `club_service` module — see `_MeetingsList`).
 const Set<String> _kProjectAvenueKeys = {
   'community_service',
   'vocational_service',
@@ -319,35 +315,6 @@ class _CardShell extends StatelessWidget {
   }
 }
 
-({Color bg, Color fg}) _statusStyle(String status) {
-  final s = status.toLowerCase();
-  if (s.contains('approv')) {
-    return (bg: AppColors.successLight, fg: AppColors.successDark);
-  }
-  if (s.contains('reject')) {
-    return (bg: AppColors.errorLight, fg: AppColors.error);
-  }
-  if (s.contains('pending')) {
-    return (bg: AppColors.warningLight, fg: AppColors.warningInk);
-  }
-  return (bg: AppColors.slate100, fg: AppColors.slate500);
-}
-
-Widget _statusBadge(String status) {
-  if (status.isEmpty) return const SizedBox.shrink();
-  final st = _statusStyle(status);
-  return Container(
-    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
-    decoration:
-        BoxDecoration(color: st.bg, borderRadius: BorderRadius.circular(999)),
-    child: Text(
-      status[0].toUpperCase() + status.substring(1),
-      style: AppFonts.body(
-          fontSize: 9.5, fontWeight: FontWeight.w800, color: st.fg),
-    ),
-  );
-}
-
 // ── All view ─────────────────────────────────────────────────────────────────
 
 class _AllView extends StatelessWidget {
@@ -424,44 +391,6 @@ class _AllView extends StatelessWidget {
             ],
           ),
         ),
-        if (ov.pending.isNotEmpty) ...[
-          const SizedBox(height: 14),
-          _CardShell(
-            title: 'Needs Attention',
-            subtitle: '${ov.pending.length} project(s) pending or rejected',
-            child: Column(
-              children: [
-                for (final p in ov.pending)
-                  Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 6),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(p.title,
-                                  style: AppFonts.body(
-                                      fontSize: 12.5,
-                                      fontWeight: FontWeight.w700,
-                                      color: AppColors.textPrimary),
-                                  overflow: TextOverflow.ellipsis),
-                              Text(p.avenueLabel,
-                                  style: AppFonts.body(
-                                      fontSize: 10.5,
-                                      color: AppColors.slate400)),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        _statusBadge(p.approvalStatus),
-                      ],
-                    ),
-                  ),
-              ],
-            ),
-          ),
-        ],
       ],
     );
   }
@@ -633,8 +562,6 @@ class _AvenueView extends StatelessWidget {
         const SizedBox(height: 12),
         if (av.isClubService)
           _clubServiceKpis(color)
-        else if (av.avenueKey == 'pph_camp')
-          const _PphNote()
         else
           _projectKpis(color),
         const SizedBox(height: 14),
@@ -659,10 +586,6 @@ class _AvenueView extends StatelessWidget {
                   onDelete: onDeleteProject,
                 ),
         ),
-        if (av.pendingApprovals.isNotEmpty) ...[
-          const SizedBox(height: 14),
-          _PendingApprovals(rows: av.pendingApprovals),
-        ],
       ],
     );
   }
@@ -1183,106 +1106,7 @@ class _ProjectCard extends StatelessWidget {
     );
     return ExpandableRecordCard(
       collapsedTitle: title,
-      collapsedTrailing:
-          p.approvalStatus.isNotEmpty ? _statusBadge(p.approvalStatus) : null,
       expandedChild: expanded,
-    );
-  }
-}
-
-// ── Pending approvals banner ─────────────────────────────────────────────────
-
-class _PendingApprovals extends StatelessWidget {
-  final List<SpPendingApproval> rows;
-  const _PendingApprovals({required this.rows});
-
-  @override
-  Widget build(BuildContext context) {
-    return _CardShell(
-      title: 'Pending Approvals',
-      subtitle: '${rows.length} awaiting action',
-      child: Column(
-        children: [
-          for (final r in rows)
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 6),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(r.projectTitle,
-                            style: AppFonts.body(
-                                fontSize: 12.5,
-                                fontWeight: FontWeight.w700,
-                                color: AppColors.textPrimary),
-                            overflow: TextOverflow.ellipsis),
-                        Text(
-                            [
-                              r.avenueLabel,
-                              if (r.creatorName.isNotEmpty) 'by ${r.creatorName}',
-                            ].join(' · '),
-                            style: AppFonts.body(
-                                fontSize: 10.5, color: AppColors.slate400)),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(width: 4),
-                  if ((r.mobile ?? '').isNotEmpty)
-                    IconButton(
-                      icon: const Icon(Icons.call_rounded,
-                          size: 18, color: AppColors.statusDone),
-                      visualDensity: VisualDensity.compact,
-                      constraints:
-                          const BoxConstraints(minWidth: 30, minHeight: 30),
-                      padding: EdgeInsets.zero,
-                      tooltip: 'Call ${r.creatorName}',
-                      onPressed: () =>
-                          launchUrl(Uri(scheme: 'tel', path: r.mobile!.trim())),
-                    ),
-                  if ((r.email ?? '').isNotEmpty)
-                    IconButton(
-                      icon: const Icon(Icons.mail_outline_rounded,
-                          size: 18, color: AppColors.rotaryBlue),
-                      visualDensity: VisualDensity.compact,
-                      constraints:
-                          const BoxConstraints(minWidth: 30, minHeight: 30),
-                      padding: EdgeInsets.zero,
-                      tooltip: 'Email ${r.creatorName}',
-                      onPressed: () => launchUrl(
-                          Uri(scheme: 'mailto', path: r.email!.trim())),
-                    ),
-                  const SizedBox(width: 4),
-                  _statusBadge(r.approvalStatus),
-                ],
-              ),
-            ),
-        ],
-      ),
-    );
-  }
-}
-
-/// Note shown instead of project KPIs for PPH Camp (those metrics aren't
-/// collected for camps — matches the web, which hides them).
-class _PphNote extends StatelessWidget {
-  const _PphNote();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: AppColors.slate100,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Text(
-        "PPH camps don't track beneficiaries, cost or man-hours.",
-        style: AppFonts.body(
-            fontSize: 11.5, color: AppColors.slate500),
-      ),
     );
   }
 }

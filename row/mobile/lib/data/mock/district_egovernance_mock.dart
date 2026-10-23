@@ -36,27 +36,6 @@ class MonthlyStatusEntry {
   const MonthlyStatusEntry({required this.submitted, required this.total});
 }
 
-class PphCamp {
-  final int id;
-  final String club;
-  final String date;
-  final String location;
-  final int children;
-  final int rotarians;
-  final int rotaractors;
-  final String coordinator;
-  const PphCamp({
-    required this.id,
-    required this.club,
-    required this.date,
-    required this.location,
-    required this.children,
-    required this.rotarians,
-    required this.rotaractors,
-    required this.coordinator,
-  });
-}
-
 class ReportEntry {
   final String id;
   final String name;
@@ -123,29 +102,6 @@ const kMonthlyStatus = <String, MonthlyStatusEntry>{
   'apr-2026': MonthlyStatusEntry(submitted: 0, total: 6),
 };
 
-const _pphLocations = <String>[
-  'Kopri, Thane East', 'Wagle Estate, Thane', 'Mumbra, Thane', 'Diva, Thane',
-  'Airoli, Navi Mumbai', 'Vashi, Navi Mumbai', 'Nerul, Navi Mumbai', 'Kalyan East',
-  'Dombivli, Thane', 'Bhiwandi, Thane District', 'Mira Road, Thane', 'Vasai, Palghar',
-  'Panvel, Raigad', 'Belapur, Navi Mumbai', 'Ulhasnagar, Thane',
-];
-
-const _pphCoordsM = <String>[
-  'Ramesh Joshi', 'Anil Mehta', 'Sanjay Patel', 'Deepak Verma',
-  'Vijay Shah', 'Rakesh Kumar', 'Suresh Sharma', 'Mahesh Desai',
-];
-
-const _pphCoordsF = <String>[
-  'Sunita Patil', 'Priya Desai', 'Kiran Reddy', 'Divya Menon',
-  'Seema Kapoor', 'Neha Joshi',
-];
-
-const _pphDates = <String>[
-  'Nov 2, 2025', 'Nov 28, 2025', 'Dec 10, 2025', 'Jan 18, 2026',
-  'Jan 25, 2026', 'Feb 2, 2026', 'Feb 14, 2026', 'Mar 5, 2026',
-  'Mar 22, 2026',
-];
-
 // ─────────────────────────────────────────────────────────────────────────
 // Generators (port of egovernanceData.js)
 // ─────────────────────────────────────────────────────────────────────────
@@ -173,34 +129,6 @@ final List<ClubMonthlyReport> kClubMonthlyReports = <ClubMonthlyReport>[
     ),
 ];
 
-final List<PphCamp> kPphCamps = (() {
-  var campId = 0;
-  final out = <PphCamp>[];
-  for (var ci = 0; ci < kClubAnalytics.length; ci++) {
-    final c = kClubAnalytics[ci];
-    final campCount = c.citationScore >= 800
-        ? 2
-        : c.citationScore >= 500
-            ? 1
-            : (ci % 3 == 0 ? 1 : 0);
-    for (var i = 0; i < campCount; i++) {
-      final seed = ci * 3 + i;
-      final coords = seed % 3 == 0 ? _pphCoordsF : _pphCoordsM;
-      out.add(PphCamp(
-        id: ++campId,
-        club: c.name,
-        date: _pphDates[seed % _pphDates.length],
-        location: _pphLocations[seed % _pphLocations.length],
-        children: 150 + (seed * 17 % 251),
-        rotarians: 6 + (seed * 3 % 15),
-        rotaractors: 3 + (seed * 2 % 10),
-        coordinator: coords[seed % coords.length],
-      ));
-    }
-  }
-  return out;
-})();
-
 // ─────────────────────────────────────────────────────────────────────────
 // Report sections (hardcoded)
 // ─────────────────────────────────────────────────────────────────────────
@@ -226,7 +154,6 @@ const kReportSections = <ReportSection>[
     reports: [
       ReportEntry(id: 'd1', name: 'District Citation Report', sub: 'RY 2025–26'),
       ReportEntry(id: 'd2', name: 'DG Visit Summary',         sub: 'All clubs'),
-      ReportEntry(id: 'd3', name: 'PPH Camp Summary',         sub: 'This RY'),
       ReportEntry(id: 'd4', name: 'TRF District Report',      sub: 'RY 2025–26'),
     ],
   ),

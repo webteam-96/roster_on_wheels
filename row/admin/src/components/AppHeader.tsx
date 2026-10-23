@@ -41,7 +41,7 @@ interface CreditNotification {
 }
 
 export default function AppHeader() {
-  const { user, isAuthenticated, isSuperAdmin, isAdmin, isZonalCoordinator, lastLoginTime, sessionRemaining, logout } = useAuth();
+  const { user, isAuthenticated, isSuperAdmin, isAdmin, lastLoginTime, sessionRemaining, logout } = useAuth();
   const brand = useBrand();
   // Only the support details the instance has configured.
   const helpline = [
@@ -92,11 +92,7 @@ export default function AppHeader() {
   const isDashboardRoute =
     pathname.startsWith("/club-admin-dashboard") ||
     pathname.startsWith("/ag-dashboard") ||
-    pathname.startsWith("/district-admin-dashboard") ||
-    // Zonal Dashboard is a self-contained V2 shell (its own slate sidebar); without
-    // this the V1 blue header flashes during the page's auth/data load before the
-    // V2 shell mounts on top.
-    pathname.startsWith("/zonal-dashboard");
+    pathname.startsWith("/district-admin-dashboard");
   // V2 pages live at /clubs/[id]/<module>/v2/... — match any segment-bounded /v2/
   // (or trailing /v2) so we don't accidentally match a slug like "v2x".
   const isV2Page = /\/v2(\/|$)/.test(pathname);
@@ -115,15 +111,10 @@ export default function AppHeader() {
   if (!isAuthenticated) return null;
 
   const isSessionLow = sessionRemaining > 0 && sessionRemaining < 300; // less than 5 min
-  const isZonalOnly = isZonalCoordinator && !isSuperAdmin && !isAdmin;
   // SuperAdmin's logo goes to Global Search (their landing). Scoped to SA on purpose:
   // /settings/global-search is SuperAdmin-only and shows "Access Denied" to anyone else,
   // so Admin/AG must keep their existing target.
-  const homeLink = isZonalOnly
-    ? "/zonal-dashboard"
-    : isSuperAdmin
-    ? "/settings/global-search"
-    : "/";
+  const homeLink = isSuperAdmin ? "/settings/global-search" : "/";
 
   return (
     <>
@@ -158,13 +149,6 @@ export default function AppHeader() {
                   </Link>
                 </Button>
               </>
-            )}
-            {isAuthenticated && isZonalCoordinator && (
-              <Button variant="ghost" className="text-foreground hover:bg-muted gap-2" asChild>
-                <Link href="/zonal-dashboard">
-                  Dashboard
-                </Link>
-              </Button>
             )}
           </nav>
 

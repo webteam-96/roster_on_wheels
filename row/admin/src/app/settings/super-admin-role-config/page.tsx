@@ -12,19 +12,18 @@ import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
 import RotaryLoader from "@/components/RotaryLoader";
 import ProtectedRoute from "@/components/ProtectedRoute";
-import { ArrowLeft, Plus, Trash2, Search, ShieldCheck, AlertTriangle, Loader2, Phone, Mail, Building2 } from "@/components/icons";
+import { ArrowLeft, Plus, Trash2, Search, ShieldCheck, Loader2, Phone, Mail, Building2 } from "@/components/icons";
 import { useAuth } from "@/contexts/AuthContext";
 import {
   listSuperAdmins,
   searchSuperAdminCandidates,
   sendSuperAdminOtp,
   verifySuperAdminOtp,
-  setSuperAdminGoalSettingAccess,
   SuperAdminRow,
   SuperAdminSearchRow,
 } from "@/services/api";
 
-type DialogStep = "search" | "confirm-roles" | "send-otp" | "enter-otp";
+type DialogStep = "search" | "send-otp" | "enter-otp";
 
 export default function SuperAdminRoleConfigPage() {
   const { user, isSuperAdmin } = useAuth();
@@ -45,10 +44,7 @@ export default function SuperAdminRoleConfigPage() {
   const [busy, setBusy] = useState(false);
   const [otpValue, setOtpValue] = useState("");
   // No "Debug OTP" here: showing the code let whoever started the promotion approve it themselves.
-  // The code now only reaches the approver by SMS + email.
-
-  // Per-row "Goal Setting" access toggle (instant save, no OTP).
-  const [goalSavingId, setGoalSavingId] = useState<number | null>(null);
+  // The code now only reaches the approver by email.
 
   // Remove dialog state
   const [removeTarget, setRemoveTarget] = useState<SuperAdminRow | null>(null);
@@ -95,16 +91,10 @@ export default function SuperAdminRoleConfigPage() {
     setAddOpen(true); setStep("search"); setSearchQ(""); setCandidates([]);
     setSelected(null); setOtpValue("");
   };
-  // Only these leadership-tier roles conflict with SuperAdmin and get auto-removed on promote.
-  // Admin / ClubModerator / AG / Member all coexist (member keeps mobile dashboards for those).
-  const CONFLICT_ROLES = ["ZonalCoordinator", "RIDirector"];
-  const rolesArr = (raw: string | null) => (raw ?? "").split(",").map(r => r.trim()).filter(Boolean);
-  const hasConflictingRole = (raw: string | null) => rolesArr(raw).some(r => CONFLICT_ROLES.includes(r));
 
   const pickCandidate = (c: SuperAdminSearchRow) => {
     setSelected(c);
-    // Show confirm screen ONLY if the target has a role that will actually be removed.
-    setStep(hasConflictingRole(c.currentRoles) ? "confirm-roles" : "send-otp");
+    setStep("send-otp");
   };
   const sendOtpForPromote = async () => {
     if (!selected) return;
@@ -112,7 +102,7 @@ export default function SuperAdminRoleConfigPage() {
       setBusy(true);
       const r = await sendSuperAdminOtp(selected.memberId, "PROMOTE");
       setStep("enter-otp");
-      setSuccess(`OTP sent (SMS: ${r.sentSms ? "✓" : "✗"}, Email: ${r.sentEmail ? "✓" : "✗"}). Ask the approver for the code.`);
+      setSuccess(`OTP sent (Email: ${r.sentEmail ? "✓" : "✗"}). Ask the approver for the code.`);
     } catch (e: any) {
       setError(e?.response?.data?.message ?? "Failed to send OTP");
     } finally { setBusy(false); }
@@ -144,7 +134,7 @@ export default function SuperAdminRoleConfigPage() {
       setRemoveBusy(true);
       const r = await sendSuperAdminOtp(removeTarget.memberId, "REMOVE");
       setRemoveStep("enter-otp");
-      setSuccess(`OTP sent (SMS: ${r.sentSms ? "✓" : "✗"}, Email: ${r.sentEmail ? "✓" : "✗"}). Ask the approver for the code.`);
+      setSuccess(`OTP sent (Email: ${r.sentEmail ? "✓" : "✗"}). Ask the approver for the code.`);
     } catch (e: any) {
       setError(e?.response?.data?.message ?? "Failed to send OTP");
     } finally { setRemoveBusy(false); }
@@ -160,18 +150,6 @@ export default function SuperAdminRoleConfigPage() {
     } catch (e: any) {
       setError(e?.response?.data?.message ?? "OTP verification failed");
     } finally { setRemoveBusy(false); }
-  };
-
-  // ── Goal Setting access toggle (instant save; optimistic with revert on error) ──
-  const toggleGoalAccess = async (row: SuperAdminRow, next: boolean) => {
-    setGoalSavingId(row.memberId);
-    setRows((prev) => prev.map((r) => r.memberId === row.memberId ? { ...r, goalSettingEnabled: next } : r));
-    try {
-      await setSuperAdminGoalSettingAccess(row.memberId, next);
-    } catch (e: any) {
-      setError(e?.response?.data?.message ?? "Failed to update Goal Setting access");
-      setRows((prev) => prev.map((r) => r.memberId === row.memberId ? { ...r, goalSettingEnabled: !next } : r)); // revert
-    } finally { setGoalSavingId(null); }
   };
 
   return (
@@ -208,7 +186,6 @@ export default function SuperAdminRoleConfigPage() {
                       <th className="px-3 py-2 text-left">Email</th>
                       <th className="px-3 py-2 text-left">Promoted On</th>
                       <th className="px-3 py-2 text-left">Promoted By</th>
-                      <th className="px-3 py-2 text-center">Enable Goal Setting?</th>
                       <th className="px-3 py-2 text-right">Action</th>
                     </tr>
                   </thead>
@@ -222,18 +199,6 @@ export default function SuperAdminRoleConfigPage() {
                           <td className="px-3 py-2">{r.email ?? "–"}</td>
                           <td className="px-3 py-2">{r.promotedOn ? new Date(r.promotedOn).toLocaleDateString() : "–"}</td>
                           <td className="px-3 py-2">{r.promotedByName ?? "–"}</td>
-                          <td className="px-3 py-2 text-center">
-                            <label className="inline-flex items-center justify-center gap-2 cursor-pointer">
-                              <input
-                                type="checkbox"
-                                className="h-4 w-4 accent-primary cursor-pointer disabled:opacity-50"
-                                checked={!!r.goalSettingEnabled}
-                                disabled={goalSavingId === r.memberId}
-                                onChange={(e) => toggleGoalAccess(r, e.target.checked)}
-                              />
-                              {goalSavingId === r.memberId && <Loader2 className="h-3.5 w-3.5 animate-spin text-muted-foreground" />}
-                            </label>
-                          </td>
                           <td className="px-3 py-2 text-right">
                             <Button
                               size="sm"
@@ -294,39 +259,6 @@ export default function SuperAdminRoleConfigPage() {
                 </div>
               </div>
             )}
-
-            {step === "confirm-roles" && selected && (() => {
-              const all = rolesArr(selected.currentRoles);
-              const toRemove = all.filter(r => CONFLICT_ROLES.includes(r));
-              const toKeep = all.filter(r => !CONFLICT_ROLES.includes(r));
-              return (
-                <div className="space-y-3">
-                  <div className="bg-amber-50 border border-amber-300 rounded-md p-4 flex gap-3">
-                    <AlertTriangle className="h-6 w-6 text-amber-600 shrink-0" />
-                    <div className="text-sm space-y-2">
-                      <div className="font-medium text-amber-800">Role conflict: confirm before promoting</div>
-                      <div className="text-amber-700">
-                        <strong>{selected.memberName}</strong> currently has: <strong>{all.join(", ")}</strong>
-                      </div>
-                      <div className="text-red-700">
-                        <strong>Will be removed:</strong> {toRemove.join(", ")} <br />
-                        <span className="text-xs">(these cannot coexist with SuperAdmin)</span>
-                      </div>
-                      {toKeep.length > 0 && (
-                        <div className="text-green-700">
-                          <strong>Will stay:</strong> {toKeep.join(", ")} <br />
-                          <span className="text-xs">(SuperAdmin is web-only: these keep the member's mobile-app access)</span>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                  <DialogFooter>
-                    <Button variant="outline" onClick={() => setStep("search")}>Cancel</Button>
-                    <Button onClick={() => setStep("send-otp")}>Continue</Button>
-                  </DialogFooter>
-                </div>
-              );
-            })()}
 
             {step === "send-otp" && selected && (
               <div className="space-y-3">

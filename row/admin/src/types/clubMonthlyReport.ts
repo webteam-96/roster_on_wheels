@@ -66,8 +66,6 @@ export interface ReportProject {
   parentProjectId: number | null;
   projectDate: string | null;
   areaOfFocusName: string | null;
-  categoryName: string | null;
-  subCategoryName: string | null;
   projectCost: number | null;
   directBeneficiaries: number | null;
   manHours: number | null;

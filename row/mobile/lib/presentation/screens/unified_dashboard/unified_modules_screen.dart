@@ -2,6 +2,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
+import '../../providers/auth_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../../core/constants/api_constants.dart';
 import '../../../core/network/api_client.dart';
@@ -12,7 +13,6 @@ import '../../../core/utils/dashboard_merger.dart';
 import '../../../data/models/dashboard_module_model.dart';
 import '../../../data/models/merged_dashboard_model.dart';
 import '../../../data/models/module_coming_soon_model.dart';
-import '../../providers/auth_provider.dart';
 import '../../widgets/common/module_status_badge.dart';
 import '../../widgets/common/coming_soon_badge.dart';
 import '../../widgets/common/empty_state_widget.dart';
@@ -184,21 +184,6 @@ class _UnifiedModulesScreenState extends State<UnifiedModulesScreen> {
     if (_comingSoon.isComingSoon(module.moduleKey)) {
       showComingSoonMessage(
           context, module.moduleName, _comingSoon.dateFor(module.moduleKey));
-      return;
-    }
-    // Modules hosted externally (e.g. Market Place) come from the backend
-    // with a populated routeUrl and no native implementation. Mirror the
-    // club/district dashboards by opening them in the in-app webview.
-    final key = module.moduleKey
-        .toLowerCase()
-        .replaceAll(' ', '')
-        .replaceAll('_', '')
-        .replaceAll('-', '');
-    final url = module.routeUrl;
-    if (key == 'marketplace' && url != null && url.isNotEmpty) {
-      final auth = context.read<AuthProvider>();
-      final resolved = url.replaceAll('{memberId}', auth.memberId.toString());
-      context.push(RouteNames.webView(module.moduleName, resolved));
       return;
     }
     context.push(RouteNames.unifiedModuleDetail(

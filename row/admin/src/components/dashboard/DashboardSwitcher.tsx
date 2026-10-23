@@ -2,7 +2,7 @@
 
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { ArrowLeftRight, Check, ChevronUp, Building2, Search } from "@/components/icons";
 import { resolveDashboardLanding, getDistrictAllClubsForAdmin, type DashboardEntry } from "@/services/api";
 import { useAuth } from "@/contexts/AuthContext";
@@ -13,7 +13,7 @@ const CACHE_KEY = "dashboard_available_v2";
 const LEGACY_CACHE_KEY = "dashboard_available";
 
 interface DashboardSwitcherProps {
-  currentKind: "ag" | "club-admin" | "district-admin" | "club-moderator" | "zonal-coordinator" | "goal-oversight" | "ri-director" | "super-admin";
+  currentKind: "ag" | "club-admin" | "district-admin" | "goal-oversight" | "super-admin";
   onNavigate?: () => void;
 }
 
@@ -40,10 +40,8 @@ function writeCache(entries: DashboardEntry[]) {
   }
 }
 
-// Composite key — uniquely identifies an entry across kind + scope. Goal-oversight entries carry no
-// scope but differ by their ?as= role in the route, so key them by route to keep them distinct.
+// Composite key — uniquely identifies an entry across kind + scope.
 function entryKey(e: DashboardEntry): string {
-  if (e.kind === "goal-oversight") return `goal-oversight-${e.route}`;
   const scope = e.clubId ?? e.districtId ?? e.zoneId ?? "global";
   return `${e.kind}-${scope}`;
 }
@@ -56,7 +54,7 @@ function scopeSuffix(e: DashboardEntry): string {
   return "";
 }
 
-// Friendly label: "Club Admin — Rotary Club Mumbai West" or just "RI Director".
+// Friendly label: "Club Admin — Rotary Club Mumbai West" or just the role label.
 function friendlyLabel(e: DashboardEntry): string {
   const suffix = scopeSuffix(e);
   if (!suffix) return e.label;
@@ -71,7 +69,6 @@ function scopeOnlyLabel(e: DashboardEntry): string {
 
 export default function DashboardSwitcher({ currentKind, onNavigate }: DashboardSwitcherProps) {
   const router = useRouter();
-  const searchParams = useSearchParams();
   const auth = useAuth();
   const [available, setAvailable] = useState<DashboardEntry[]>(() => readCache() ?? []);
   const [open, setOpen] = useState(false);
@@ -253,15 +250,9 @@ export default function DashboardSwitcher({ currentKind, onNavigate }: Dashboard
   }, [open]);
 
   // Identify the currently-active entry: match kind + selected scope.
-  const currentAs = searchParams.get("as");
   const currentEntry = useMemo<DashboardEntry | undefined>(() => {
     const sameKind = available.filter((e) => e.kind === currentKind);
     if (sameKind.length === 0) return undefined;
-    // Goal-oversight: several entries (RI Director / ZC / DA) share the kind but differ by ?as= —
-    // tick the one matching the current URL's role.
-    if (currentKind === "goal-oversight") {
-      return sameKind.find((e) => e.route.includes(`as=${currentAs}`)) ?? sameKind[0];
-    }
     if (sameKind.length === 1) return sameKind[0];
     // Multi-scope of same kind: prefer the entry whose scope matches AuthContext.
     const matchScoped = sameKind.find(
@@ -271,7 +262,7 @@ export default function DashboardSwitcher({ currentKind, onNavigate }: Dashboard
         (e.zoneId != null && e.zoneId === auth.selectedZoneId),
     );
     return matchScoped ?? sameKind[0];
-  }, [available, currentKind, currentAs, auth.selectedClubId, auth.selectedDistrictId, auth.selectedZoneId]);
+  }, [available, currentKind, auth.selectedClubId, auth.selectedDistrictId, auth.selectedZoneId]);
 
   // Group entries by kind so multi-scope kinds render under a single header.
   // Preserve first-seen order of kinds.

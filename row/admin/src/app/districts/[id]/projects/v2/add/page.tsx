@@ -28,8 +28,6 @@ import {
   uploadDistrictProjectPhoto,
   getModules,
   getAreasOfFocus,
-  getCategories,
-  getSubCategories,
   getFunding,
 } from "@/services/api";
 import V2FormShell, { useV2ReturnTo } from "@/components/v2/V2FormShell";
@@ -119,10 +117,6 @@ export default function DistrictProjectsV2AddPage() {
   const [location, setLocation] = useState("");
   const [areaOfFocusId, setAreaOfFocusId] = useState("");
   const [otherAreaOfFocus, setOtherAreaOfFocus] = useState("");
-  const [categoryId, setCategoryId] = useState("");
-  const [otherCategory, setOtherCategory] = useState("");
-  const [subCategoryId, setSubCategoryId] = useState("");
-  const [otherSubCategory, setOtherSubCategory] = useState("");
   const [projectDate, setProjectDate] = useState("");
   const [projectCost, setProjectCost] = useState("");
   const [fundingId, setFundingId] = useState("");
@@ -141,8 +135,6 @@ export default function DistrictProjectsV2AddPage() {
   const [rccInvolved, setRccInvolved] = useState("");
 
   const [areasOfFocus, setAreasOfFocus] = useState<Lookup[]>([]);
-  const [categories, setCategories] = useState<Lookup[]>([]);
-  const [subCategories, setSubCategories] = useState<Lookup[]>([]);
   const [fundings, setFundings] = useState<Lookup[]>([]);
 
   const [photos, setPhotos] = useState<{ path: string; preview: string; description: string }[]>([]);
@@ -173,34 +165,6 @@ export default function DistrictProjectsV2AddPage() {
   const isOthersAof =
     areaOfFocusId === "others" ||
     areasOfFocus.find((a) => String(a.id) === areaOfFocusId)?.name?.toLowerCase() === "others";
-  const isOthersCat =
-    categoryId === "others" ||
-    categories.find((c) => String(c.id) === categoryId)?.name?.toLowerCase() === "others";
-  const isOthersSubCat =
-    subCategoryId === "others" ||
-    subCategories.find((s) => String(s.id) === subCategoryId)?.name?.toLowerCase() === "others";
-
-  useEffect(() => {
-    if (areaOfFocusId && areaOfFocusId !== "others") {
-      getCategories(Number(areaOfFocusId)).then(setCategories).catch(() => {});
-    } else {
-      setCategories([]);
-    }
-    setCategoryId("");
-    setSubCategoryId("");
-    setOtherCategory("");
-    setOtherSubCategory("");
-  }, [areaOfFocusId]);
-
-  useEffect(() => {
-    if (categoryId && categoryId !== "others") {
-      getSubCategories(Number(categoryId)).then(setSubCategories).catch(() => {});
-    } else {
-      setSubCategories([]);
-    }
-    setSubCategoryId("");
-    setOtherSubCategory("");
-  }, [categoryId]);
 
   // ── Funding classifier — matches funding name to "global_grant" / "csr" / "" ──
   const onlyDigits = (v: string) => v.replace(/[^0-9]/g, "");
@@ -259,8 +223,6 @@ export default function DistrictProjectsV2AddPage() {
     if (!projectDate) { setErrorMessage("Date is required."); return; }
     if (!areaOfFocusId) { setErrorMessage("Area of Focus is required."); return; }
     if (isOthersAof && !otherAreaOfFocus.trim()) { setErrorMessage("Please specify the Area of Focus."); return; }
-    if (!isOthersAof && !categoryId) { setErrorMessage("Category is required."); return; }
-    if (isOthersCat && !otherCategory.trim()) { setErrorMessage("Please specify the Category."); return; }
     // Funding-conditional validation (mirrors backend)
     if (showGlobalGrantBlock) {
       if (!globalGrantNumber.trim()) { setErrorMessage("Global Grant Number is required for Global Grant."); return; }
@@ -285,10 +247,6 @@ export default function DistrictProjectsV2AddPage() {
         location: location.trim() || null,
         areaOfFocusId: isOthersAof ? null : (Number(areaOfFocusId) || null),
         otherAreaOfFocus: isOthersAof ? otherAreaOfFocus.trim() : null,
-        categoryId: isOthersCat ? null : (Number(categoryId) || null),
-        otherCategory: isOthersCat ? otherCategory.trim() : null,
-        subCategoryId: isOthersSubCat ? null : (subCategoryId ? Number(subCategoryId) : null),
-        otherSubCategory: isOthersSubCat ? otherSubCategory.trim() : null,
         projectDate,
         projectCost: projectCost ? Number(projectCost) : null,
         fundingId: fundingId ? Number(fundingId) : null,
@@ -401,52 +359,6 @@ export default function DistrictProjectsV2AddPage() {
                     value={otherAreaOfFocus}
                     onChange={(e) => setOtherAreaOfFocus(e.target.value)}
                     placeholder="Specify Area of Focus"
-                    className="mt-2 w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                )}
-              </div>
-              <div>
-                <FieldLabel dot="bg-blue-500">Category</FieldLabel>
-                <select
-                  value={categoryId}
-                  onChange={(e) => setCategoryId(e.target.value)}
-                  disabled={isOthersAof || !areaOfFocusId}
-                  className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-slate-50 disabled:text-slate-400"
-                >
-                  <option value="">{isOthersAof ? "N/A" : "Select"}</option>
-                  {categories.map((c) => (
-                    <option key={c.id} value={String(c.id)}>{c.name}</option>
-                  ))}
-                </select>
-                {isOthersCat && (
-                  <input
-                    type="text"
-                    value={otherCategory}
-                    onChange={(e) => setOtherCategory(e.target.value)}
-                    placeholder="Specify Category"
-                    className="mt-2 w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                )}
-              </div>
-              <div className="sm:col-span-2">
-                <FieldLabel dot="bg-blue-500" required={false}>Sub Category</FieldLabel>
-                <select
-                  value={subCategoryId}
-                  onChange={(e) => setSubCategoryId(e.target.value)}
-                  disabled={isOthersAof || isOthersCat || !categoryId}
-                  className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-slate-50 disabled:text-slate-400"
-                >
-                  <option value="">{isOthersAof || isOthersCat ? "N/A" : "Select"}</option>
-                  {subCategories.map((s) => (
-                    <option key={s.id} value={String(s.id)}>{s.name}</option>
-                  ))}
-                </select>
-                {isOthersSubCat && (
-                  <input
-                    type="text"
-                    value={otherSubCategory}
-                    onChange={(e) => setOtherSubCategory(e.target.value)}
-                    placeholder="Specify Sub Category"
                     className="mt-2 w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 )}

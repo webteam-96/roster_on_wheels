@@ -14,12 +14,6 @@ const cards = [
     icon: Coins,
     href: "/settings/credit-management",
   },
-  {
-    title: "RI Director Credits",
-    description: "Manage email credits for RI Director",
-    icon: Coins,
-    href: "/ri-director/credits",
-  },
 ];
 
 export default function EmailCreditsPage() {
@@ -45,7 +39,7 @@ export default function EmailCreditsPage() {
           </Button>
           <div>
             <h2 className="text-2xl font-bold tracking-tight text-primary">Email Credits</h2>
-            <p className="text-muted-foreground text-base">Manage email credits across clubs, districts and RI Director</p>
+            <p className="text-muted-foreground text-base">Manage email credits across clubs and districts</p>
           </div>
         </div>
 

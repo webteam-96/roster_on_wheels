@@ -355,7 +355,7 @@ public class OcvGovService : IOcvGovService
         ("international_service", "International Service", new[] { ("title", "Title"), ("projectDate", "Date"), ("areaOfFocus", "Area of Focus"), ("location", "Location"), ("projectCost", "Cost"), ("directBeneficiaries", "Beneficiaries") }),
         ("new_generation_service", "New Generation Service", new[] { ("title", "Title"), ("projectDate", "Date"), ("areaOfFocus", "Area of Focus"), ("location", "Location"), ("projectCost", "Cost"), ("directBeneficiaries", "Beneficiaries") }),
         ("public_image_initiative", "Public Image Initiative", new[] { ("title", "Title"), ("projectDate", "Date"), ("areaOfFocus", "Area of Focus"), ("location", "Location"), ("projectCost", "Cost"), ("directBeneficiaries", "Beneficiaries") }),
-        ("club_service", "Club Service", new[] { ("title", "Title"), ("projectDate", "Date"), ("location", "Location"), ("manHours", "Man Hours"), ("approvalStatus", "Status") }),
+        ("club_service", "Club Service", new[] { ("title", "Title"), ("projectDate", "Date"), ("location", "Location"), ("manHours", "Man Hours") }),
         ("announcements", "Announcements", new[] { ("title", "Title"), ("publishDate", "Publish Date"), ("expiryDate", "Expiry Date"), ("status", "Status") }),
         ("upcoming_events", "Upcoming Events", new[] { ("title", "Title"), ("eventDate", "Event Date"), ("eventVenue", "Venue"), ("publishDate", "Publish Date"), ("status", "Status") }),
         ("documents", "Documents", new[] { ("title", "Title"), ("accessType", "Access Type"), ("publishDate", "Publish Date"), ("expiryDate", "Expiry Date") }),
@@ -395,15 +395,11 @@ public class OcvGovService : IOcvGovService
                    p.global_grant_number AS globalGrantNumber, p.amount_sanctioned AS amountSanctioned,
                    p.amount_received AS amountReceived, p.amount_spent AS amountSpent,
                    p.host_clubs_districts AS hostClubsDistricts, p.global_partner_clubs_districts AS globalPartnerClubsDistricts,
-                   p.csr_company_name AS csrCompanyName, p.approval_status AS approvalStatus,
+                   p.csr_company_name AS csrCompanyName,
                    af.name AS areaOfFocus, p.other_area_of_focus AS otherAreaOfFocus,
-                   cat.name AS categoryName, p.other_category AS otherCategory,
-                   scat.name AS subCategoryName, p.other_sub_category AS otherSubCategory,
                    f.name AS fundingName
             FROM `{info.ProjectsTable}` p
             LEFT JOIN area_of_focus_master af ON af.pk_area_of_focus_id = p.fk_area_of_focus_id
-            LEFT JOIN category_master cat ON cat.pk_category_id = p.fk_category_id
-            LEFT JOIN sub_category_master scat ON scat.pk_sub_category_id = p.fk_sub_category_id
             LEFT JOIN funding_master f ON f.pk_funding_id = p.fk_funding_id
             JOIN module_master mm ON mm.pk_module_id = p.fk_module_id
             WHERE p.fk_club_id = @ClubId AND p.isdeleted = 0 AND mm.ModuleKey = @ModuleKey
@@ -452,10 +448,8 @@ public class OcvGovService : IOcvGovService
 
             Add("Date", "projectDate");
             Add("Location", "location");
-            // Area of Focus / Category / Sub Category — fall back to the free-text "Other …" value.
+            // Area of Focus — fall back to the free-text "Other …" value.
             AddWithFallback(project, f, "Area of Focus", "areaOfFocus", "otherAreaOfFocus");
-            AddWithFallback(project, f, "Category", "categoryName", "otherCategory");
-            AddWithFallback(project, f, "Sub Category", "subCategoryName", "otherSubCategory");
             Add("Project Type", "projectType");
             Add("Joint Project", "isJointProject");
             Add("Co-Host", "coHostName");
@@ -485,7 +479,6 @@ public class OcvGovService : IOcvGovService
             Add("Host Clubs / Districts", "hostClubsDistricts");
             Add("Global Partner Clubs / Districts", "globalPartnerClubsDistricts");
             Add("CSR Company", "csrCompanyName");
-            Add("Approval Status", "approvalStatus");
 
             if (photosByProject.TryGetValue(projectId, out var imgs))
             {
@@ -630,7 +623,6 @@ public class OcvGovService : IOcvGovService
                      CASE
                          WHEN n.FilePath IS NULL OR n.FilePath = '' THEN NULL
                          WHEN n.FilePath LIKE '/%' THEN n.FilePath
-                         WHEN n.Scope = 'ri' THEN CONCAT('/Documents/ebulletin/ri/', n.FilePath)
                          WHEN n.fk_district_id IS NOT NULL AND n.fk_district_id > 0 THEN CONCAT('/Documents/ebulletin/Group', n.fk_district_id, '/', n.FilePath)
                          WHEN n.fk_club_id IS NOT NULL AND n.fk_club_id > 0 THEN CONCAT('/Documents/ebulletin/Group', n.fk_club_id, '/', n.FilePath)
                          ELSE NULL
@@ -667,8 +659,7 @@ public class OcvGovService : IOcvGovService
                     return await conn.QueryAsync<dynamic>($@"
                         SELECT p.title, p.project_date AS projectDate, p.location,
                                p.project_cost AS projectCost, p.direct_beneficiaries AS directBeneficiaries,
-                               p.man_hours AS manHours, af.name AS areaOfFocus,
-                               p.approval_status AS approvalStatus
+                               p.man_hours AS manHours, af.name AS areaOfFocus
                         FROM `{info.ProjectsTable}` p
                         LEFT JOIN area_of_focus_master af ON af.pk_area_of_focus_id = p.fk_area_of_focus_id
                         JOIN module_master mm ON mm.pk_module_id = p.fk_module_id
