@@ -239,6 +239,13 @@ unless marked "done"; decide them when the area is worked on.
   unlabelled date field. Fixed: `brand-accent-ink` (the accent mixed 60% with black, about 5:1) for accent text on
   light backgrounds in the default classic-blue theme and the shared sections, grey 500, an aria-label; now 0. The
   other 7 club themes were not checked.
+- **Non-functional checks** (Phase 4, build spec 5, 2026-10-26). Email queue: mass email recipients were inserted one
+  row per statement (50,000 took 92 s on a local database, before any network time), now 1,000 rows per INSERT in one
+  transaction (0.7 s for 50,000). Console: page load p95 on the admin production build 1.0-1.1 s for Club Admin,
+  District Admin and AG over 319 pages each (local machine, largest local district 1,871 members; the spec's 5,000
+  member test through the CDN needs the real environment). App: `test/accessibility_test.dart` runs Flutter's tap
+  target, label and contrast guidelines on new screens (pass); cold start under 3 s needs a phone (profile builds
+  do not run on the emulator).
 - **App language switch** (Phase 3b, N13, 2026-10-26). Settings > Language (30 languages, each under its own name).
   `lib/core/i18n/text.dart` is a drop-in `Text` (same arguments, `const` too); every screen imports it in place of
   Flutter's (`hide Text`, 241 files, import lines only). `LiveTranslator` sends missing strings in batches to the
