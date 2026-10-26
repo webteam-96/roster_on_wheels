@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Text;
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../../../../../core/constants/feature_flags.dart';
@@ -17,6 +17,7 @@ import '../../../../widgets/common/dashboard_refresh.dart';
 import '../../modules/trf/trf_screen.dart';
 import 'club_dashboard_async.dart';
 import 'package:rotary_flutter_app/core/theme/app_fonts.dart';
+import 'package:rotary_flutter_app/core/i18n/text.dart';
 
 /// "Foundation" tab on the Club Overview screen — wired to the live
 /// `api/mobile/club-admin-dashboard/foundation` (this club's fund actuals) and

@@ -1,5 +1,5 @@
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Text;
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -13,6 +13,7 @@ import '../../../../../presentation/widgets/common/empty_state_widget.dart';
 import '../../../../../presentation/widgets/common/full_screen_image_view.dart';
 import '../../../../../presentation/widgets/common/loading_widget.dart';
 import 'package:rotary_flutter_app/core/theme/app_fonts.dart';
+import 'package:rotary_flutter_app/core/i18n/text.dart';
 
 /// Read-only detail page for a single Board-of-Directors member.
 ///
@@ -351,7 +352,8 @@ class _BodMemberDetailScreenState extends State<BodMemberDetailScreen> {
       decoration: BoxDecoration(
         color: AppColors.white,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.lightBorder),
+        border: Border.all(color: AppColors.lightBorder),
+
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -507,7 +509,8 @@ class _BodHeroAppBar extends StatelessWidget {
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       border: Border.all(
-                          color: Colors.white.withValues(alpha: 0.5), width: 4),
+                          color: Colors.white.withValues(alpha: 0.5), width: 4),
+
                     ),
                     child: ClipOval(
                       child: photoUrl.isNotEmpty
@@ -658,7 +661,8 @@ class _InfoCard extends StatelessWidget {
           decoration: BoxDecoration(
             color: AppColors.white,
             borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: AppColors.lightBorder),
+            border: Border.all(color: AppColors.lightBorder),
+
           ),
           child: Column(
             children: [

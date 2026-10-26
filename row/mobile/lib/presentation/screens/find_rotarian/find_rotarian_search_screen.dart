@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Text;
 import '../../../core/theme/app_colors.dart';
 import '../../widgets/common/custom_app_bar.dart';
 import '../../widgets/common/custom_button.dart';
@@ -6,6 +6,7 @@ import '../../widgets/common/custom_text_field.dart';
 import 'find_rotarian_results_screen.dart';
 import 'package:rotary_flutter_app/core/brand/brand.dart';
 import 'package:rotary_flutter_app/core/theme/app_fonts.dart';
+import 'package:rotary_flutter_app/core/i18n/text.dart';
 
 class FindRotarianSearchScreen extends StatefulWidget {
   const FindRotarianSearchScreen({super.key});
@@ -185,7 +186,8 @@ class _FindRotarianSearchScreenState extends State<FindRotarianSearchScreen> {
       decoration: BoxDecoration(
         color: AppColors.surface,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.border),
+        border: Border.all(color: AppColors.border),
+
       ),
       child: child,
     );

@@ -1,7 +1,8 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Text;
 
 import '../../../core/theme/app_colors.dart';
 import 'package:rotary_flutter_app/core/theme/app_fonts.dart';
+import 'package:rotary_flutter_app/core/i18n/text.dart';
 
 /// Greetings Settings (club + district) — explains the 1-July pause rule.
 /// Mobile twin of web's `GreetingPauseNotice`.

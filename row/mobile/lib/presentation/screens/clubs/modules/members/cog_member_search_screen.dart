@@ -1,5 +1,5 @@
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Text;
 import 'package:go_router/go_router.dart';
 import '../../../../../core/constants/api_constants.dart';
 import '../../../../../core/network/api_client.dart';
@@ -13,6 +13,7 @@ import '../../../../widgets/common/custom_text_field.dart';
 import '../../../../widgets/common/empty_state_widget.dart';
 import '../../../../widgets/common/loading_widget.dart';
 import 'package:rotary_flutter_app/core/theme/app_fonts.dart';
+import 'package:rotary_flutter_app/core/i18n/text.dart';
 
 // ---------------------------------------------------------------------------
 // COG (Council of Governors) member SEARCH — a dedicated per-field filter page
@@ -271,7 +272,8 @@ class _CogMemberSearchScreenState extends State<CogMemberSearchScreen> {
       decoration: BoxDecoration(
         color: AppColors.surface,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.border),
+        border: Border.all(color: AppColors.border),
+
       ),
       child: child,
     );

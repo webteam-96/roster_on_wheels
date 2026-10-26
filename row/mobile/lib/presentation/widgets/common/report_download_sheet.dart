@@ -1,7 +1,8 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Text;
 
 import '../../../core/services/report_xlsx_export.dart';
 import '../../../core/theme/app_colors.dart';
+import 'package:rotary_flutter_app/core/i18n/text.dart';
 
 /// Bottom sheet that lists every non-empty report section with a per-section
 /// download, plus a "Full Report" option. Mirrors the web report pages where

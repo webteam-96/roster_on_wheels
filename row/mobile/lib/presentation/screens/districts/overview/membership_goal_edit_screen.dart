@@ -1,9 +1,10 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Text;
 import 'package:flutter/services.dart';
 import '../../../../core/services/district_admin_dashboard_api.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../data/models/district_admin_dashboard_models.dart';
 import 'package:rotary_flutter_app/core/theme/app_fonts.dart';
+import 'package:rotary_flutter_app/core/i18n/text.dart';
 
 /// "Set Membership Goal" editor — mobile twin of the web
 /// `/districts/[id]/membership-goal/v2/edit` page.

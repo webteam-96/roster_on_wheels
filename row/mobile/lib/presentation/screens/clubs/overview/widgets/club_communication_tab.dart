@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Text;
 import 'package:url_launcher/url_launcher.dart';
 import '../../../../../core/services/club_admin_dashboard_api.dart';
 import '../../../../../core/theme/app_colors.dart';
@@ -10,6 +10,7 @@ import '../../modules/upcoming_events/upcoming_events_screen.dart';
 import '../../../../widgets/common/dashboard_refresh.dart';
 import 'club_dashboard_async.dart';
 import 'package:rotary_flutter_app/core/theme/app_fonts.dart';
+import 'package:rotary_flutter_app/core/i18n/text.dart';
 
 /// "Communication" hub — mirrors the web Communication landing and the District
 /// dashboard's Communication tab: a compact, mobile-friendly icon-led KPI strip

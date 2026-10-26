@@ -1,5 +1,5 @@
 import 'dart:io';
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Text;
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
@@ -18,6 +18,7 @@ import '../../../../widgets/common/loading_widget.dart';
 import '../../../../widgets/common/pagination_widget.dart';
 import '../../../../widgets/detail/detail_widgets.dart';
 import '../../../../providers/auth_provider.dart';
+import 'package:rotary_flutter_app/core/i18n/text.dart';
 
 // ---------------------------------------------------------------------------
 // Model

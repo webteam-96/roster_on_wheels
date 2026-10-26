@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Text;
 import 'package:open_filex/open_filex.dart';
 import 'package:provider/provider.dart';
 import 'package:share_plus/share_plus.dart';
@@ -12,6 +12,7 @@ import '../../../../widgets/common/loading_widget.dart';
 import '../../../ag_reports/ag_report_configs.dart';
 import '../../../ag_reports/ag_report_xlsx.dart';
 import 'package:rotary_flutter_app/core/theme/app_fonts.dart';
+import 'package:rotary_flutter_app/core/i18n/text.dart';
 
 class LiveDocumentsScreen extends StatefulWidget {
   final int clubId;

@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Text;
 import 'package:provider/provider.dart';
 import '../../../../../core/network/api_client.dart';
 import '../../../../../core/network/api_exceptions.dart';
@@ -9,6 +9,7 @@ import '../../../../widgets/common/custom_app_bar.dart';
 import '../../../../widgets/common/custom_button.dart';
 import '../../../../widgets/common/empty_state_widget.dart';
 import 'district_website_contact_form_screen.dart';
+import 'package:rotary_flutter_app/core/i18n/text.dart';
 
 bool _asBool(dynamic v) {
   if (v is bool) return v;

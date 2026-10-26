@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Text;
 import 'package:provider/provider.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../providers/auth_provider.dart';
@@ -28,6 +28,7 @@ import '../clubs/modules/event_payment_links/event_payment_links_screen.dart';
 import '../clubs/modules/weblinks/weblinks_screen.dart';
 import '../clubs/modules/sub_groups/sub_groups_screen.dart';
 import '../clubs/modules/mass_emails/mass_emails_screen.dart';
+import 'package:rotary_flutter_app/core/i18n/text.dart';
 
 class ScopedModuleScreen extends StatelessWidget {
   final String moduleKey;

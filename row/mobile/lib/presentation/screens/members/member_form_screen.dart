@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Text;
 import 'package:flutter/services.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
@@ -16,6 +16,7 @@ import '../../widgets/common/aspect_ratio_network_image.dart';
 import '../../widgets/common/custom_app_bar.dart';
 import '../../widgets/common/day_month_picker.dart';
 import 'package:rotary_flutter_app/core/theme/app_fonts.dart';
+import 'package:rotary_flutter_app/core/i18n/text.dart';
 
 /// Admin "Add / Edit Member" form with full field parity to the web `MemberForm`
 /// (`rotary-frontend/src/components/MemberForm.tsx`). Five tabs:

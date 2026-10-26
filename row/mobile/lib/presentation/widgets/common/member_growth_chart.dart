@@ -1,8 +1,9 @@
 import 'package:fl_chart/fl_chart.dart';
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Text;
 import '../../../core/theme/app_colors.dart';
 import '../../../data/models/club_overview_models.dart';
 import 'package:rotary_flutter_app/core/theme/app_fonts.dart';
+import 'package:rotary_flutter_app/core/i18n/text.dart';
 
 /// Multi-series membership growth chart — Male / Female / Honorary by month,
 /// with a legend. The composition the web AreaChart shows. Shared by the

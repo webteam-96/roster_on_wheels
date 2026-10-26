@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Text;
 import '../../../../../core/network/api_client.dart';
 import '../../../../../core/network/api_response.dart';
 import '../../../../../core/theme/app_colors.dart';
@@ -8,6 +8,7 @@ import '../../../../../presentation/widgets/common/custom_app_bar.dart';
 import '../../../../../presentation/widgets/common/empty_state_widget.dart';
 import '../../../../../presentation/widgets/common/loading_widget.dart';
 import '../../../../../presentation/widgets/common/pagination_widget.dart';
+import 'package:rotary_flutter_app/core/i18n/text.dart';
 
 class TerminatedMembersScreen extends StatefulWidget {
   final int clubId;
@@ -149,7 +150,8 @@ class _TerminatedCard extends StatelessWidget {
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(12),
+
       ),
       child: Row(
         children: [

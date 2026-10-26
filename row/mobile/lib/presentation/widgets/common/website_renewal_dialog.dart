@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Text;
 import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../core/theme/app_colors.dart';
@@ -6,6 +6,7 @@ import '../../../core/theme/app_gradients.dart';
 import '../../../core/theme/app_text_styles.dart';
 import 'dues_subscription_dialog.dart'
     show kDuesSupportPhones, kDuesSupportEmail, kDuesSupportHours;
+import 'package:rotary_flutter_app/core/i18n/text.dart';
 
 /// Popup shown from the club Website tab / overview when the club's website is
 /// expired or not yet set up. The mobile app cannot run the Razorpay purchase

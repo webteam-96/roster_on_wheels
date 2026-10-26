@@ -1,8 +1,9 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Text;
 import 'package:intl/intl.dart';
 import '../theme/app_colors.dart';
 import 'currency_symbol.dart';
 import 'package:rotary_flutter_app/core/theme/app_fonts.dart';
+import 'package:rotary_flutter_app/core/i18n/text.dart';
 
 // Money and number formatting in the brand's number locale and currency, mirroring the
 // web `createFormat` (row/admin/src/lib/format.ts): whole amounts print without

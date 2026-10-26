@@ -1,10 +1,11 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Text;
 import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_gradients.dart';
 import '../../../core/theme/app_text_styles.dart';
 import 'package:rotary_flutter_app/core/brand/brand.dart';
+import 'package:rotary_flutter_app/core/i18n/text.dart';
 
 // Membership Dues support contact — shown when a club has no dues set up
 // (the backend has no separate "subscription" flag, so any club absent from

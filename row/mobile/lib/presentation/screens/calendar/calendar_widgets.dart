@@ -1,5 +1,5 @@
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Text;
 import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../core/constants/api_constants.dart';
@@ -9,6 +9,7 @@ import '../../../data/models/calendar_model.dart';
 import '../../../data/models/rotarian_model.dart';
 import 'calendar_detail_screens.dart';
 import 'package:rotary_flutter_app/core/theme/app_fonts.dart';
+import 'package:rotary_flutter_app/core/i18n/text.dart';
 
 /// The kinds of things a calendar day can be marked with. Each gets its own
 /// colour dot in the month picker.
@@ -1647,7 +1648,8 @@ class CalendarChoiceTile extends StatelessWidget {
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           color: AppColors.primaryPrime,
-          borderRadius: BorderRadius.circular(18),
+          borderRadius: BorderRadius.circular(18),
+
         ),
         child: Row(
           children: [

@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Text;
 import '../../../../../core/network/api_client.dart';
 import '../../../../../core/network/api_exceptions.dart';
 import '../../../../../core/utils/date_formatter.dart';
@@ -6,6 +6,7 @@ import '../../../../../core/utils/money_format.dart';
 import '../../../../../core/utils/snackbar_utils.dart';
 import '../../../../widgets/common/custom_app_bar.dart';
 import '../../../../widgets/common/loading_widget.dart';
+import 'package:rotary_flutter_app/core/i18n/text.dart';
 
 String grantStatusLabel(String? s) =>
     (s ?? '').replaceAll('_', ' ').replaceFirstMapped(RegExp(r'^\w'), (m) => m[0]!.toUpperCase());

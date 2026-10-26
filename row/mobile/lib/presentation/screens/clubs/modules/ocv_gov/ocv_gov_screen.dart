@@ -1,6 +1,6 @@
 import 'dart:io';
 import 'package:file_picker/file_picker.dart';
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Text;
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
@@ -18,6 +18,7 @@ import '../../../../widgets/common/custom_text_field.dart';
 import '../../../../widgets/common/empty_state_widget.dart';
 import '../../../../widgets/common/rotary_year_bar.dart';
 import 'package:rotary_flutter_app/core/theme/app_fonts.dart';
+import 'package:rotary_flutter_app/core/i18n/text.dart';
 
 // ---------------------------------------------------------------------------
 // Helpers

@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Text;
 import 'package:provider/provider.dart';
 import '../../../../../core/constants/feature_flags.dart';
 import '../../../../../core/network/api_client.dart';
@@ -16,6 +16,7 @@ import '../../../../widgets/common/dues_kpi_cards.dart';
 import '../../../../widgets/common/expandable_record_card.dart';
 import '../../../../widgets/common/labeled_stat.dart';
 import '../../modules/membership_dues/membership_dues_screen.dart';
+import 'package:rotary_flutter_app/core/i18n/text.dart';
 
 /// Full-screen host for the dues management view used by the NORMAL club
 /// dashboard (no KPI cards — those stay exclusive to the overview tab). Owns

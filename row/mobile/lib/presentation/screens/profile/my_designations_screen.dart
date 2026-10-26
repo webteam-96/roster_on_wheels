@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Text;
 import 'package:provider/provider.dart';
 import '../../../core/network/api_client.dart';
 import '../../../core/utils/date_formatter.dart';
@@ -6,6 +6,7 @@ import '../../providers/auth_provider.dart';
 import '../../widgets/common/custom_app_bar.dart';
 import '../../widgets/common/empty_state_widget.dart';
 import '../../widgets/common/loading_widget.dart';
+import 'package:rotary_flutter_app/core/i18n/text.dart';
 
 /// The member's own Rotary Foundation designations (Paul Harris Fellow and so on; feature `membership_fields`).
 /// Read-only: club and district admins record them on the web.

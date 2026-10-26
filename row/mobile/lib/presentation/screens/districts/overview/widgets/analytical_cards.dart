@@ -1,10 +1,11 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Text;
 import '../../../../../core/services/district_analytics_service.dart';
 import '../../../../../core/theme/app_colors.dart';
 import '../../../../../data/models/district_admin_dashboard_models.dart';
 import 'district_dashboard_async.dart';
 import 'donut_chart.dart';
 import 'package:rotary_flutter_app/core/theme/app_fonts.dart';
+import 'package:rotary_flutter_app/core/i18n/text.dart';
 
 /// The four analytical panel cards rendered below the KPI strip on the District
 /// Overview screen. Each card reads the live `/overview` response from

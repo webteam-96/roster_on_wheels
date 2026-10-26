@@ -1,10 +1,11 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Text;
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../../../core/maintenance/maintenance_controller.dart';
 import '../../../core/maintenance/maintenance_dev_bypass.dart';
 import '../../../core/theme/app_colors.dart';
 import 'package:rotary_flutter_app/core/theme/app_fonts.dart';
+import 'package:rotary_flutter_app/core/i18n/text.dart';
 
 /// Shared maintenance UI — used by BOTH the full-screen route gate
 /// (MaintenanceScreen) and dashboard tab bodies (MaintenanceTabGate), so the

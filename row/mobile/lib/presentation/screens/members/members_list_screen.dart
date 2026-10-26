@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Text;
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/constants/api_constants.dart';
@@ -15,6 +15,7 @@ import '../../widgets/common/loading_widget.dart';
 import '../../widgets/common/pagination_widget.dart';
 import '../../widgets/common/search_bar_widget.dart';
 import 'package:rotary_flutter_app/core/theme/app_fonts.dart';
+import 'package:rotary_flutter_app/core/i18n/text.dart';
 
 // ---------------------------------------------------------------------------
 // Model
@@ -338,7 +339,8 @@ class _MemberCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppColors.white,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.lightBorder, width: 1),
+        border: Border.all(color: AppColors.lightBorder, width: 1),
+
       ),
       child: Material(
         color: AppColors.transparent,
@@ -728,7 +730,8 @@ class _DetailRow extends StatelessWidget {
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
               color: AppColors.white,
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(12),
+
             ),
             child: Icon(icon, size: 20, color: AppColors.primaryPrime),
           ),

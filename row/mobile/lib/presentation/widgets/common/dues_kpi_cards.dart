@@ -1,9 +1,10 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Text;
 
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_text_styles.dart';
 import '../../../core/utils/money_format.dart';
 import '../../../data/models/club_admin_dashboard_models.dart';
+import 'package:rotary_flutter_app/core/i18n/text.dart';
 
 /// The four money KPI cards — Total Amount / Collected / Pending / Collection
 /// Rate — plus a full-width collection-progress bar, mirroring the web

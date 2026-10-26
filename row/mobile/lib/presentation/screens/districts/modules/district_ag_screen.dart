@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Text;
 import 'package:provider/provider.dart';
 import '../../../../core/constants/api_constants.dart';
 import '../../../../core/network/api_client.dart';
@@ -11,6 +11,7 @@ import '../../../widgets/common/custom_button.dart';
 import '../../../widgets/common/empty_state_widget.dart';
 import '../../../widgets/common/rotary_year_bar.dart';
 import 'assign_clubs_form_screen.dart';
+import 'package:rotary_flutter_app/core/i18n/text.dart';
 
 // ---------------------------------------------------------------------------
 // Private models

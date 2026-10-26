@@ -1,7 +1,8 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Text;
 import 'package:intl/intl.dart';
 import '../../../core/theme/app_colors.dart';
 import 'package:rotary_flutter_app/core/theme/app_fonts.dart';
+import 'package:rotary_flutter_app/core/i18n/text.dart';
 
 /// Formats the Coming Soon availability date the same way the web admin shows
 /// it (e.g. "12 Jun 2026, 10:00 AM"). Returns '' when no date is set.
@@ -27,7 +28,8 @@ class ComingSoonBadge extends StatelessWidget {
       ),
       decoration: BoxDecoration(
         color: AppColors.warning,
-        borderRadius: BorderRadius.circular(6),
+        borderRadius: BorderRadius.circular(6),
+
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,

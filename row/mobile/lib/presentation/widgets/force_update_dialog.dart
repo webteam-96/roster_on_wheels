@@ -1,9 +1,10 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Text;
 import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../core/services/mobile_version_service.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
+import 'package:rotary_flutter_app/core/i18n/text.dart';
 
 /// Blocking force-update dialog. Cannot be dismissed by tapping outside,
 /// pressing back, or anything other than tapping "Update".
@@ -195,7 +196,8 @@ class _Header extends StatelessWidget {
           height: 76,
           decoration: BoxDecoration(
             color: Colors.white,
-            shape: BoxShape.circle,
+            shape: BoxShape.circle,
+
           ),
           child: Container(
             margin: const EdgeInsets.all(8),

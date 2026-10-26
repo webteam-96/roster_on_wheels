@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Text;
 import 'package:go_router/go_router.dart';
 import '../../../../core/network/api_client.dart';
 import '../../../../core/services/district_admin_dashboard_api.dart';
@@ -22,6 +22,7 @@ import 'package:provider/provider.dart';
 import '../../../../core/maintenance/maintenance_controller.dart';
 import '../../../widgets/maintenance/maintenance_panel.dart';
 import 'package:rotary_flutter_app/core/theme/app_fonts.dart';
+import 'package:rotary_flutter_app/core/i18n/text.dart';
 
 /// Data-rich district analytics dashboard. Reached via the analytics icon on
 /// `DistrictDashboardScreen`'s AppBar. The original module-launcher dashboard

@@ -1,8 +1,9 @@
 import 'dart:io';
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Text;
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 import '../network/api_client.dart';
+import 'package:rotary_flutter_app/core/i18n/text.dart';
 
 /// Shares a project as a social **share card**.
 ///

@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'package:file_picker/file_picker.dart';
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Text;
 import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
@@ -26,6 +26,7 @@ import '../../../../widgets/detail/detail_hero_layout.dart';
 import 'package:rotary_flutter_app/core/brand/brand.dart';
 import 'package:rotary_flutter_app/core/utils/currency_symbol.dart';
 import 'package:rotary_flutter_app/core/theme/app_fonts.dart';
+import 'package:rotary_flutter_app/core/i18n/text.dart';
 
 // Flutter uses string module keys; backend requires numeric moduleId.
 // IDs are looked up dynamically from `/api/modules` (see _resolveModuleId)

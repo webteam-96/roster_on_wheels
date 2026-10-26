@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Text;
 import 'package:geolocator/geolocator.dart';
 import '../../../core/constants/feature_flags.dart';
 import '../../../core/theme/app_colors.dart';
@@ -8,6 +8,7 @@ import '../../widgets/common/custom_button.dart';
 import '../../widgets/common/custom_text_field.dart';
 import 'club_finder_results_screen.dart';
 import 'package:rotary_flutter_app/core/theme/app_fonts.dart';
+import 'package:rotary_flutter_app/core/i18n/text.dart';
 
 class ClubFinderSearchScreen extends StatefulWidget {
   const ClubFinderSearchScreen({super.key});
@@ -211,7 +212,8 @@ class _ClubFinderSearchScreenState extends State<ClubFinderSearchScreen>
         padding: const EdgeInsets.symmetric(vertical: 12),
         decoration: BoxDecoration(
           color: selected ? AppColors.white : Colors.transparent,
-          borderRadius: BorderRadius.circular(10),
+          borderRadius: BorderRadius.circular(10),
+
         ),
         alignment: Alignment.center,
         child: Text(
@@ -356,7 +358,8 @@ class _ClubFinderSearchScreenState extends State<ClubFinderSearchScreen>
       decoration: BoxDecoration(
         color: AppColors.surface,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.border),
+        border: Border.all(color: AppColors.border),
+
       ),
       child: child,
     );

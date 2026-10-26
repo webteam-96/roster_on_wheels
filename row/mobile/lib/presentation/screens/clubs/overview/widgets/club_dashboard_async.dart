@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Text;
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import '../../../../../core/network/api_exceptions.dart';
@@ -6,6 +6,7 @@ import '../../../../../core/routing/route_names.dart';
 import '../../../../../core/theme/app_colors.dart';
 import '../../../../providers/auth_provider.dart';
 import 'package:rotary_flutter_app/core/theme/app_fonts.dart';
+import 'package:rotary_flutter_app/core/i18n/text.dart';
 
 /// Centered loading spinner used while a dashboard tab fetches.
 class ClubDashboardLoading extends StatelessWidget {

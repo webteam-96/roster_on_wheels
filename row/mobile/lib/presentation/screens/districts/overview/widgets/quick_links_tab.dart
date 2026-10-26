@@ -1,9 +1,10 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Text;
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import '../../../../../core/features/feature_controller.dart';
 import '../../../../../core/theme/app_colors.dart';
 import 'package:rotary_flutter_app/core/theme/app_fonts.dart';
+import 'package:rotary_flutter_app/core/i18n/text.dart';
 
 /// "Quick Links" tab of the District Admin dashboard — mirrors the web landing:
 /// a list of cards (Web Links / Sub Groups / Mass Email). Tapping a card opens

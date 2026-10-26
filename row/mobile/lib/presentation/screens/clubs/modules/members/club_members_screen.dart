@@ -1,5 +1,5 @@
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Text;
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import '../../../../../core/constants/api_constants.dart';
@@ -17,6 +17,7 @@ import '../../../../widgets/common/loading_widget.dart';
 import '../../../../widgets/common/pagination_widget.dart';
 import '../../../../widgets/common/search_bar_widget.dart';
 import 'cog_member_search_screen.dart';
+import 'package:rotary_flutter_app/core/i18n/text.dart';
 
 // ---------------------------------------------------------------------------
 // Models
@@ -222,7 +223,8 @@ class _ClubMembersScreenState extends State<ClubMembersScreen> {
         decoration: BoxDecoration(
           color: AppColors.white,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: AppColors.lightBorder, width: 1),
+          border: Border.all(color: AppColors.lightBorder, width: 1),
+
         ),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         child: Row(

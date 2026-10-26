@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Text;
 import 'package:go_router/go_router.dart';
 import '../../../core/preferences/home_layout_controller.dart';
 import 'package:provider/provider.dart';
@@ -12,6 +12,9 @@ import '../../providers/auth_provider.dart';
 import '../../widgets/common/custom_app_bar.dart';
 import 'package:rotary_flutter_app/core/brand/brand.dart';
 import 'package:rotary_flutter_app/core/theme/app_fonts.dart';
+import 'package:rotary_flutter_app/core/i18n/text.dart';
+import '../../../core/i18n/live_translator.dart';
+import 'language_screen.dart';
 
 // ---------------------------------------------------------------------------
 // Tile data model
@@ -88,6 +91,8 @@ class SettingsScreen extends StatelessWidget {
     final auth = context.watch<AuthProvider>();
     // ROW module switches (FeatureController): no tile for a skipped or switched-off module
     final features = context.watch<FeatureController>();
+    // Redraw when the UI language changes: the Language tile shows the current one.
+    context.dependOnInheritedWidgetOfExactType<TranslationScope>();
     final tiles = _tiles.where((t) => t.route == null || !features.isPathOff(t.route!)).toList();
     // Unified Tiles is a member-only convenience (merges the district + club
     // tile on home). It's hidden for every elevated/admin role and shown only to
@@ -160,6 +165,14 @@ class SettingsScreen extends StatelessWidget {
                 subtitle: 'Download your data or withdraw consent',
                 onTap: () => context.push(RouteNames.myData),
               ),
+            _PreferenceTile(
+              icon: Icons.translate_rounded,
+              color: AppColors.primaryPrime,
+              title: 'Language',
+              subtitle: appLanguages.firstWhere((l) => l.$1 == LiveTranslator.instance.language,
+                  orElse: () => appLanguages.first).$2,
+              onTap: () => context.push(RouteNames.language),
+            ),
             if (features.isOn('communication') || features.isOn('meetings'))
               _PreferenceTile(
                 icon: Icons.mark_email_read_outlined,

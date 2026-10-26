@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Text;
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../../../../../core/network/api_client.dart';
@@ -9,6 +9,7 @@ import '../../../../widgets/common/empty_state_widget.dart';
 import '../../../../widgets/common/loading_widget.dart';
 import 'package:rotary_flutter_app/core/theme/app_fonts.dart';
 import 'package:rotary_flutter_app/core/theme/app_colors.dart';
+import 'package:rotary_flutter_app/core/i18n/text.dart';
 
 // Web V2 palette (mirrors rotary-frontend /clubs/[id]/citation/v2).
 const Color _kBlue = AppColors.primaryDeep; // ROTARY_BLUE — primary / auto

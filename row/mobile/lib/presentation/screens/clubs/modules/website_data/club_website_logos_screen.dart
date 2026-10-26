@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Text;
 import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../../../../core/constants/api_constants.dart';
@@ -8,6 +8,7 @@ import '../../../../../core/theme/app_text_styles.dart';
 import '../../../../../core/utils/snackbar_utils.dart';
 import '../../../../widgets/common/custom_app_bar.dart';
 import 'package:rotary_flutter_app/core/theme/app_fonts.dart';
+import 'package:rotary_flutter_app/core/i18n/text.dart';
 
 /// Club Website → Logos management (parity with the web
 /// `/clubs/[id]/website-data/logos` page).

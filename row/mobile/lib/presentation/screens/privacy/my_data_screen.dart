@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Text;
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -6,6 +6,7 @@ import '../../../core/routing/route_names.dart';
 import '../../../core/services/privacy_api.dart';
 import '../../../core/utils/snackbar_utils.dart';
 import '../../providers/auth_provider.dart';
+import 'package:rotary_flutter_app/core/i18n/text.dart';
 
 /// "My data": download everything held about the member, or withdraw consent
 /// (which signs them out, as declining the consent dialog does). WS7 / GDPR set.

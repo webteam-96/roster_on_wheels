@@ -1,5 +1,5 @@
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Text;
 import 'package:url_launcher/url_launcher.dart';
 import '../../../core/constants/api_constants.dart';
 import '../../../core/theme/app_colors.dart';
@@ -7,6 +7,7 @@ import '../../../core/theme/app_text_styles.dart';
 import '../common/custom_app_bar.dart';
 import '../common/empty_state_widget.dart';
 import '../common/loading_widget.dart';
+import 'package:rotary_flutter_app/core/i18n/text.dart';
 
 /// Shared building blocks for read-only "detail" pages across District and Club
 /// modules. Design language: a hero header (banner image / title / status pill),

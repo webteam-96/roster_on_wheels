@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Text;
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
@@ -23,6 +23,7 @@ import '../../../widgets/common/pagination_widget.dart';
 import '../../../widgets/common/rotary_year_bar.dart';
 import '../../../widgets/detail/detail_widgets.dart';
 import '../../../widgets/detail/detail_hero_layout.dart';
+import 'package:rotary_flutter_app/core/i18n/text.dart';
 
 // District events mirror the web add/edit form: Title (English, ≤50),
 // Description (English, ≤1000), Date, and 1-5 photos (each with an optional

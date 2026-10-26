@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Text;
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import '../../../../../../core/constants/api_constants.dart';
@@ -13,6 +13,7 @@ import '../../../../../widgets/common/dashboard_refresh.dart';
 import '../club_dashboard_async.dart';
 import '../membership_summary_card.dart';
 import 'package:rotary_flutter_app/core/theme/app_fonts.dart';
+import 'package:rotary_flutter_app/core/i18n/text.dart';
 
 /// "Directory" sub-tab of the Club Dashboard — wired to the live
 /// `dashboard-directory` endpoint.

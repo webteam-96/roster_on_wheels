@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Text;
 import 'package:url_launcher/url_launcher.dart';
 import '../../../../../../core/network/api_client.dart';
 import '../../../../../../core/services/club_admin_dashboard_api.dart';
@@ -12,6 +12,7 @@ import '../../../modules/board_of_directors/board_of_directors_screen.dart';
 import '../../../../../widgets/common/dashboard_refresh.dart';
 import '../club_dashboard_async.dart';
 import 'package:rotary_flutter_app/core/theme/app_fonts.dart';
+import 'package:rotary_flutter_app/core/i18n/text.dart';
 
 /// Dashboard › Board of Directors sub-tab. Lists the board (from
 /// `/dashboard-bod`) with KPIs + a year filter + search, and full Add / Edit /

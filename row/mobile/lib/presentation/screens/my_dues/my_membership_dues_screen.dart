@@ -1,5 +1,5 @@
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Text;
 import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../core/constants/api_constants.dart';
@@ -12,6 +12,7 @@ import '../../widgets/common/empty_state_widget.dart';
 import '../../widgets/common/loading_widget.dart';
 import 'package:rotary_flutter_app/core/utils/money_format.dart';
 import 'package:rotary_flutter_app/core/theme/app_fonts.dart';
+import 'package:rotary_flutter_app/core/i18n/text.dart';
 
 class MyMembershipDuesScreen extends StatefulWidget {
   /// When embedded (e.g. inside the unified module-detail host that supplies
@@ -252,7 +253,8 @@ class _MyMembershipDuesScreenState extends State<MyMembershipDuesScreen> {
       padding: const EdgeInsets.fromLTRB(18, 16, 18, 18),
       decoration: BoxDecoration(
         color: AppColors.primaryDeep,
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: BorderRadius.circular(18),
+
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -495,7 +497,8 @@ class _DuesCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppColors.surface,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.lightBorder),
+        border: Border.all(color: AppColors.lightBorder),
+
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

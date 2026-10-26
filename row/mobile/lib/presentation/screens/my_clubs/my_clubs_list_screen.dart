@@ -1,9 +1,10 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Text;
 import 'package:go_router/go_router.dart';
 import '../../../core/routing/route_names.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../widgets/common/custom_app_bar.dart';
 import 'package:rotary_flutter_app/core/theme/app_fonts.dart';
+import 'package:rotary_flutter_app/core/i18n/text.dart';
 
 class MyClubsListScreen extends StatelessWidget {
   final List<({int id, String name})> clubs;
@@ -47,7 +48,8 @@ class _ClubCard extends StatelessWidget {
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           color: AppColors.primaryPrime,
-          borderRadius: BorderRadius.circular(18),
+          borderRadius: BorderRadius.circular(18),
+
         ),
         child: Row(
           children: [

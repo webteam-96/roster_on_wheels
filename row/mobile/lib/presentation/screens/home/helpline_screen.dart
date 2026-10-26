@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Text;
 import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../core/routing/route_names.dart';
@@ -7,6 +7,7 @@ import '../../../core/theme/app_text_styles.dart';
 import '../../widgets/common/custom_app_bar.dart';
 import '../../../core/brand/brand.dart';
 import 'package:rotary_flutter_app/core/theme/app_fonts.dart';
+import 'package:rotary_flutter_app/core/i18n/text.dart';
 
 /// "Helpline" contact screen. Reachable from the drawer (Support section). The
 /// contacts are the instance's support details from the brand (api/public/brand);

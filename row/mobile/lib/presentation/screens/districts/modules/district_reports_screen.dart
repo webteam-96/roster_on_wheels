@@ -1,7 +1,7 @@
 import 'dart:io';
 
 import 'package:archive/archive.dart';
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Text;
 import 'package:open_filex/open_filex.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
@@ -16,6 +16,7 @@ import '../../../widgets/common/report_download_sheet.dart';
 import '../../../widgets/common/report_section_table.dart';
 import '../../../widgets/common/rotary_year_bar.dart';
 import 'package:rotary_flutter_app/core/theme/app_fonts.dart';
+import 'package:rotary_flutter_app/core/i18n/text.dart';
 
 /// District report — mobile port of the web district-admin-dashboard report page.
 ///

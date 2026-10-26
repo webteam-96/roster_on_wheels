@@ -16,6 +16,7 @@ class RouteNames {
   static const String chat = '/chat';
   static const String nextYear = '/planning';
   static const String commsPreferences = '/settings/communication';
+  static const String language = '/settings/language';
   static const String myDesignations = '/me/foundation-designations';
   static const String resetPassword = '/reset-password';
   static const String home = '/home';

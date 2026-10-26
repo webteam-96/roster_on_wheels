@@ -1,8 +1,9 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Text;
 import '../../../../../core/theme/app_colors.dart';
 import '../../../../../data/models/district_admin_dashboard_models.dart';
 import 'district_dashboard_async.dart';
 import 'package:rotary_flutter_app/core/theme/app_fonts.dart';
+import 'package:rotary_flutter_app/core/i18n/text.dart';
 
 /// Club leaderboard ranked by overall score, driven by the live `/overview`
 /// response's `clubLeaderboard` list. Each row shows a rank badge (gold for

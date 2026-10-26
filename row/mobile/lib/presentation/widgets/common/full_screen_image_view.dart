@@ -1,5 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Text;
+import 'package:rotary_flutter_app/core/i18n/text.dart';
 
 /// Full-screen, pinch-to-zoom viewer for a single image (typically a member
 /// profile photo). Uses a Hero animation; the source widget should wrap its

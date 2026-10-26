@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Text;
 import '../../../../../core/network/api_client.dart';
 import '../../../../../core/services/club_admin_dashboard_api.dart';
 import '../../../../../core/theme/app_colors.dart';
@@ -13,6 +13,7 @@ import '../../../../widgets/common/labeled_stat.dart';
 import '../../../../widgets/common/expandable_record_card.dart';
 import '../../../../widgets/common/ry_context_chip.dart';
 import 'package:rotary_flutter_app/core/theme/app_fonts.dart';
+import 'package:rotary_flutter_app/core/i18n/text.dart';
 
 /// "Service Projects" tab — wired to the live avenue endpoints
 /// (`service-projects-overview` + `service-projects-avenue?avenueKey=`).

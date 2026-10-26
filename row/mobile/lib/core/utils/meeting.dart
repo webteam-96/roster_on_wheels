@@ -1,4 +1,5 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Text;
+import 'package:rotary_flutter_app/core/i18n/text.dart';
 
 /// Meeting mode on meeting (attendance) records, ROW Wave 1. Same rule as the
 /// API's AttendanceService.NormalizeMeeting and the admin `lib/meeting.ts`.

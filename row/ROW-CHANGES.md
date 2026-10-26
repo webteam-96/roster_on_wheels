@@ -234,6 +234,16 @@ unless marked "done"; decide them when the area is worked on.
   the calendar feed offers "Create my calendar link" (a member has no link until one is made).
   Not built: per-tenant logo and colours (the API has no tenant branding; branding is per instance).
   Check: `kb/tools/app_contract_e2e.py` (every endpoint these screens call answers with the fields they read).
+- **App language switch** (Phase 3b, N13, 2026-10-26). Settings > Language (30 languages, each under its own name).
+  `lib/core/i18n/text.dart` is a drop-in `Text` (same arguments, `const` too); every screen imports it in place of
+  Flutter's (`hide Text`, 241 files, import lines only). `LiveTranslator` sends missing strings in batches to the
+  admin's `POST /api/i18n/translate` with the member's token (same provider, cache and limits as the web; the address
+  is the brand's `adminOrigin`, else the `ADMIN_BASE_URL` build setting) and keeps a cache per language on the device.
+  Only text written in the app's code is translated (`lib/core/i18n/ui_strings.g.dart`, made by
+  `tool/gen_ui_strings.py`; run it after changing UI text), so names, club names and what members write stay as
+  entered. Not translated: text built at run time ("93 Members"), `Tab(text:)`, field labels and hints, tooltips.
+  Production needs a real provider key on the admin (DeepL or LibreTranslate): MyMemory's free quality is weak
+  ("Club Finder" came back as golf clubs).
 
 ## Admin tools and OCV group (ported 2026-10-10)
 

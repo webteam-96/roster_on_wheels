@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Text;
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -15,6 +15,7 @@ import '../../modules/website_data/website_data_modules.dart';
 import 'club_dashboard_async.dart';
 import 'package:rotary_flutter_app/core/brand/brand.dart';
 import 'package:rotary_flutter_app/core/theme/app_fonts.dart';
+import 'package:rotary_flutter_app/core/i18n/text.dart';
 
 /// Pushes the self-service Buy / Renew (Razorpay) screen and, on a confirmed
 /// purchase (`pop(true)`), invokes [onPurchased] so the tab refreshes its

@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Text;
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import '../../../core/constants/api_constants.dart';
@@ -11,6 +11,7 @@ import '../../../data/models/district_model.dart';
 import '../../providers/auth_provider.dart';
 import '../../widgets/common/empty_state_widget.dart';
 import '../../widgets/common/loading_widget.dart';
+import 'package:rotary_flutter_app/core/i18n/text.dart';
 
 /// Zone detail screen: shows Districts and Clubs tabs.
 /// For scoped roles (DistrictAdmin, ClubAdmin), only assigned entities are shown.

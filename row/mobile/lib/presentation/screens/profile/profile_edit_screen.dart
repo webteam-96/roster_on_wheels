@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Text;
 import 'package:flutter/services.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
@@ -16,6 +16,7 @@ import '../../widgets/common/custom_app_bar.dart';
 import '../../widgets/common/day_month_picker.dart';
 import '../share_contact/share_contact_sheet.dart';
 import 'package:rotary_flutter_app/core/theme/app_fonts.dart';
+import 'package:rotary_flutter_app/core/i18n/text.dart';
 
 /// Member-edit screen with full parity to the web `MemberForm`. Five tabs:
 /// Personal · Social · Residential · Business · Family.

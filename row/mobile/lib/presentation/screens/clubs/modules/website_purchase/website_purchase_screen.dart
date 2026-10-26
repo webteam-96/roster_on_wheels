@@ -1,5 +1,5 @@
 import 'dart:async';
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Text;
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
@@ -16,6 +16,7 @@ import '../../../../../presentation/widgets/common/custom_app_bar.dart';
 import '../../../../../presentation/widgets/common/razorpay_checkout.dart';
 import 'package:rotary_flutter_app/core/utils/money_format.dart';
 import 'package:rotary_flutter_app/core/theme/app_fonts.dart';
+import 'package:rotary_flutter_app/core/i18n/text.dart';
 
 /// Club website self-service Buy / Renew (Razorpay). A club admin (role 2) of
 /// the club buys a brand-new website (choosing a subdomain) or renews an

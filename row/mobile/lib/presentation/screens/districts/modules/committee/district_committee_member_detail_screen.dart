@@ -1,5 +1,5 @@
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Text;
 import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../../../core/constants/api_constants.dart';
@@ -7,6 +7,7 @@ import '../../../../../core/theme/app_colors.dart';
 import '../../../../../core/theme/app_gradients.dart';
 import '../../../../widgets/common/full_screen_image_view.dart';
 import 'package:rotary_flutter_app/core/theme/app_fonts.dart';
+import 'package:rotary_flutter_app/core/i18n/text.dart';
 
 /// Read-only detail page for a single District Committee office-bearer.
 ///
@@ -195,7 +196,8 @@ class _HeroAppBar extends StatelessWidget {
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       border: Border.all(
-                          color: Colors.white.withValues(alpha: 0.5), width: 4),
+                          color: Colors.white.withValues(alpha: 0.5), width: 4),
+
                     ),
                     child: ClipOval(
                       child: photoUrl.isNotEmpty
@@ -334,7 +336,8 @@ class _ContactCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppColors.white,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.lightBorder),
+        border: Border.all(color: AppColors.lightBorder),
+
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -458,7 +461,8 @@ class _InfoCard extends StatelessWidget {
           decoration: BoxDecoration(
             color: AppColors.white,
             borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: AppColors.lightBorder),
+            border: Border.all(color: AppColors.lightBorder),
+
           ),
           child: Column(
             children: [

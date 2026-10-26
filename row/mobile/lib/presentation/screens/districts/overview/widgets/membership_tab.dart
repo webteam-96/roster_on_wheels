@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Text;
 import 'package:go_router/go_router.dart';
 import '../../../../../core/constants/api_constants.dart';
 import '../../../../../core/routing/route_names.dart';
@@ -11,6 +11,7 @@ import 'district_dashboard_async.dart';
 import 'stat_card.dart';
 import '../../../../widgets/common/dashboard_refresh.dart';
 import 'package:rotary_flutter_app/core/theme/app_fonts.dart';
+import 'package:rotary_flutter_app/core/i18n/text.dart';
 
 /// "Membership" tab of the District Admin dashboard, wired to
 /// `GET /api/mobile/district-admin-dashboard/membership` (+ `/members` for the

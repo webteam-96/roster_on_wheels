@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Text;
 import '../../../core/network/api_exceptions.dart';
 import '../../../core/services/club_dues_pay_api.dart';
 import '../../../core/theme/app_colors.dart';
@@ -8,6 +8,7 @@ import '../../widgets/common/empty_state_widget.dart';
 import '../../widgets/common/loading_widget.dart';
 import 'club_dues_pay_screen.dart';
 import 'package:rotary_flutter_app/core/theme/app_fonts.dart';
+import 'package:rotary_flutter_app/core/i18n/text.dart';
 
 /// Lists the district dues campaigns the signed-in officer (current-year Club
 /// President / Secretary / Treasurer) may pay for. The server returns only the

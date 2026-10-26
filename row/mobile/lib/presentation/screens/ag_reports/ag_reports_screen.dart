@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Text;
 import 'package:open_filex/open_filex.dart';
 import 'package:provider/provider.dart';
 import '../../../core/features/feature_controller.dart';
@@ -11,6 +11,7 @@ import '../../widgets/common/custom_app_bar.dart';
 import 'ag_report_configs.dart';
 import 'ag_report_xlsx.dart';
 import 'package:rotary_flutter_app/core/theme/app_fonts.dart';
+import 'package:rotary_flutter_app/core/i18n/text.dart';
 
 class _MyClub {
   final int clubId;

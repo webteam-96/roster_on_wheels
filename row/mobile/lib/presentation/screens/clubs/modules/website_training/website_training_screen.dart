@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Text;
 import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -9,6 +9,7 @@ import '../../../../../core/utils/snackbar_utils.dart';
 import '../../../../../data/models/training_appointment_models.dart';
 import '../../../../../presentation/widgets/common/custom_app_bar.dart';
 import 'package:rotary_flutter_app/core/theme/app_fonts.dart';
+import 'package:rotary_flutter_app/core/i18n/text.dart';
 
 /// "Website Training" — a club admin books a Calendly-style 30-minute Zoom
 /// training slot for their club website. Lists upcoming appointments (Join +

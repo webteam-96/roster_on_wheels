@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Text;
 import '../../../core/constants/api_constants.dart';
 import '../../../core/services/ag_dashboard_api.dart';
 import '../../../core/services/project_share_service.dart';
@@ -8,6 +8,7 @@ import '../../../data/models/ag_dashboard_models.dart';
 import 'widgets/ag_async.dart';
 import 'widgets/ag_format.dart';
 import 'package:rotary_flutter_app/core/theme/app_fonts.dart';
+import 'package:rotary_flutter_app/core/i18n/text.dart';
 
 /// AG project detail — full detail + photos for one project, fetched on demand
 /// from `GET /api/mobile/ag-dashboard/projects/{projectId}`. Mirrors the web

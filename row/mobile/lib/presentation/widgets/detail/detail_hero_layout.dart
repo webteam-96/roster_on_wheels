@@ -1,10 +1,11 @@
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Text;
 import '../../../core/theme/app_colors.dart';
 import '../common/aspect_ratio_network_image.dart';
 import '../common/full_screen_image_view.dart';
 import 'detail_widgets.dart' show openDetailLink;
 import 'package:rotary_flutter_app/core/theme/app_fonts.dart';
+import 'package:rotary_flutter_app/core/i18n/text.dart';
 
 /// Shared "club-finder style" detail layout used by Project and Upcoming-Event
 /// detail pages. The design language mirrors

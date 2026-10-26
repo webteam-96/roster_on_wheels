@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Text;
 import 'package:provider/provider.dart';
 
 import '../../../core/constants/api_constants.dart';
@@ -63,6 +63,7 @@ import '../districts/modules/district_events_screen.dart';
 import '../districts/modules/district_club_dues_screen.dart';
 import '../districts/modules/district_citation_screen.dart';
 import '../districts/modules/district_ag_screen.dart';
+import 'package:rotary_flutter_app/core/i18n/text.dart';
 
 // ---------------------------------------------------------------------------
 // Module classification sets (normalized keys: lowercase, no separators)

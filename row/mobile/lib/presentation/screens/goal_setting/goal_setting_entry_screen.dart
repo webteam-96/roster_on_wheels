@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Text;
 
 import '../../../core/network/api_exceptions.dart';
 import '../../../core/services/district_admin_dashboard_api.dart';
@@ -11,6 +11,7 @@ import '../../widgets/common/rotary_year_bar.dart';
 import 'widgets/goal_form_fields.dart';
 import '../../../core/utils/snackbar_utils.dart';
 import 'package:rotary_flutter_app/core/theme/app_fonts.dart';
+import 'package:rotary_flutter_app/core/i18n/text.dart';
 
 /// Which entity's goals this form edits.
 enum GoalEntityType { club, district }

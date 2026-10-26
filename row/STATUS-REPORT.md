@@ -30,7 +30,7 @@ home, calendar, club calendar, notifications) with ROW branding and no exception
 |---|---|
 | 1b (security) | Done 2026-10-26 (uncommitted): ownership checks on records by id, sub group members, payment link writes, wallets, generic errors, temporary passwords; e2e `security_guards`, `scope_read_guard`, `feature_gate` pass. Left for a product decision: club finder member lists, `/api/members` search on hidden phones, public OCV documents. |
 | 3 | Done 2026-10-26 (uncommitted): app screens for N1-N5, N7-N11 (volunteers, meeting duties, guest invite, prospect stage, chat, highlights in the feed, my designations, communication + calendar feed, targets, grants, next-year workspace, group chats, club speakers, grant applications) and District Goal Messages; checked on the Android emulator; Add/Edit Member, Honorary and Public Image already existed. Left: per-tenant logo and colours (no tenant branding in the API yet, needs a decision); Club Dues tile waits for payments. |
-| 3b | App language switch through the translation API |
+| 3b | Done 2026-10-26: Settings > Language, machine translated through the admin's translate route; app text only |
 | 4 | Final assurance: crawl as District Admin, Club Admin and AG (needs local test logins), independent reviews, non-functional checks (WCAG, timing, email throughput) |
 | Later | Rotary Showcase Chrome extension under the ROW brand; exports in the tenant's language; meeting forms to send UTC times |
 

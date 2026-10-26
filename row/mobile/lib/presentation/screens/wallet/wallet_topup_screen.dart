@@ -1,5 +1,5 @@
 import 'dart:async';
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Text;
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../../../core/network/api_exceptions.dart';
@@ -13,6 +13,7 @@ import '../../widgets/common/razorpay_checkout.dart';
 import 'package:rotary_flutter_app/core/utils/money_format.dart';
 import 'package:rotary_flutter_app/core/utils/currency_symbol.dart';
 import 'package:rotary_flutter_app/core/theme/app_fonts.dart';
+import 'package:rotary_flutter_app/core/i18n/text.dart';
 
 // Jakarta Sans direct (matches the dashboard tabs — headings elsewhere route
 // through a configurable heading font, which looked out of place here).

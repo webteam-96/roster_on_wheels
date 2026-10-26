@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Text;
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../../../../core/network/api_client.dart';
@@ -10,6 +10,7 @@ import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/utils/snackbar_utils.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../widgets/common/custom_app_bar.dart';
+import 'package:rotary_flutter_app/core/i18n/text.dart';
 
 // ── Models ────────────────────────────────────────────────────────────────────
 

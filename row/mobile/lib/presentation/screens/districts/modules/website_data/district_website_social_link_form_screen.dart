@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Text;
 import '../../../../../core/network/api_client.dart';
 import '../../../../../core/network/api_exceptions.dart';
 import '../../../../../core/theme/app_colors.dart';
@@ -6,6 +6,7 @@ import '../../../../../core/theme/app_text_styles.dart';
 import '../../../../widgets/common/custom_app_bar.dart';
 import '../../../../widgets/common/custom_text_field.dart';
 import 'package:rotary_flutter_app/core/theme/app_fonts.dart';
+import 'package:rotary_flutter_app/core/i18n/text.dart';
 
 /// Validates an absolute external URL. Catches the common "httpgood" /
 /// "http://httpgood" mistakes by requiring an explicit scheme, a host that

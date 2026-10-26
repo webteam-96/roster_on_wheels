@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Text;
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
@@ -19,6 +19,7 @@ import '../../widgets/detail/detail_widgets.dart';
 import '../find_rotarian/find_rotarian_detail_screen.dart';
 import 'package:rotary_flutter_app/core/utils/money_format.dart';
 import 'package:rotary_flutter_app/core/theme/app_fonts.dart';
+import 'package:rotary_flutter_app/core/i18n/text.dart';
 
 bool _asBool(dynamic v) {
   if (v is bool) return v;

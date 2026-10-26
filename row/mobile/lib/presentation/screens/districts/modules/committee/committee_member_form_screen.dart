@@ -1,5 +1,5 @@
 import 'dart:async';
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Text;
 import 'package:image_picker/image_picker.dart';
 import '../../../../../core/constants/api_constants.dart';
 import '../../../../../core/network/api_client.dart';
@@ -9,6 +9,7 @@ import '../../../../../core/utils/validators.dart';
 import '../../../../widgets/common/custom_app_bar.dart';
 import '../../../../widgets/common/custom_text_field.dart';
 import 'package:rotary_flutter_app/core/theme/app_fonts.dart';
+import 'package:rotary_flutter_app/core/i18n/text.dart';
 
 /// Search-result row returned by the committee `search-members` endpoint.
 class CommitteeSearchResult {

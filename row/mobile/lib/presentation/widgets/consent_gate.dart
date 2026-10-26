@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Text;
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -6,6 +6,7 @@ import '../../core/brand/brand.dart';
 import '../../core/routing/route_names.dart';
 import '../../core/services/privacy_api.dart';
 import '../providers/auth_provider.dart';
+import 'package:rotary_flutter_app/core/i18n/text.dart';
 
 /// Consent at first sign-in after the policy version changes (WS7-05), as the web
 /// ConsentGate: a blocking dialog; declining signs the member out. Never locks a

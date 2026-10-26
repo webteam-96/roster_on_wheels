@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Text;
 import '../../../core/network/api_client.dart';
 import '../../../core/network/api_exceptions.dart';
 import '../../../core/services/district_admin_dashboard_api.dart';
@@ -8,6 +8,7 @@ import '../../../data/models/goal_setting_models.dart';
 import '../../widgets/common/custom_app_bar.dart';
 import '../../widgets/common/empty_state_widget.dart';
 import '../../widgets/common/loading_widget.dart';
+import 'package:rotary_flutter_app/core/i18n/text.dart';
 
 /// District Goal Messages for the current Rotary year (`api/goal-setting/district-messages`): the district's Admin or
 /// District Governor writes about one goal category; SuperAdmins read. Same thread as the web's Goal Setting popup.

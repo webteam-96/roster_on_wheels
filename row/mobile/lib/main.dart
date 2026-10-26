@@ -15,6 +15,7 @@ import 'core/security/biometric_controller.dart';
 import 'core/theme/legacy_prefs.dart';
 import 'core/utils/date_formatter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'core/i18n/live_translator.dart';
 
 /// Debug-only HttpOverrides that accept self-signed / missing-intermediate
 /// certs. Production builds use the OS root cert chain — never registered.
@@ -67,14 +68,20 @@ void main() async {
   //   centerTitle: true,
   // );
 
+  // The member's UI language and its saved translations (N13); English until they pick another.
+  await LiveTranslator.instance.load();
+
   runApp(
-    MultiProvider(
-      providers: [
-        ChangeNotifierProvider(create: (_) => HomeLayoutController()),
-        ChangeNotifierProvider(create: (_) => BiometricController()..init()),
-        ChangeNotifierProvider(create: (_) => FontScaleController()),
-      ],
-      child: const RotaryApp(),
+    TranslationScope(
+      translator: LiveTranslator.instance,
+      child: MultiProvider(
+        providers: [
+          ChangeNotifierProvider(create: (_) => HomeLayoutController()),
+          ChangeNotifierProvider(create: (_) => BiometricController()..init()),
+          ChangeNotifierProvider(create: (_) => FontScaleController()),
+        ],
+        child: const RotaryApp(),
+      ),
     ),
   );
 }

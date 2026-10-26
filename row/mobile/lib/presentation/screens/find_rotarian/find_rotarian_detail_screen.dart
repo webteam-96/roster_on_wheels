@@ -1,7 +1,7 @@
 import 'dart:io';
 
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Text;
 import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
@@ -18,6 +18,7 @@ import '../../widgets/common/empty_state_widget.dart';
 import '../../widgets/common/maps_action_button.dart';
 import '../../widgets/common/loading_widget.dart';
 import 'package:rotary_flutter_app/core/theme/app_fonts.dart';
+import 'package:rotary_flutter_app/core/i18n/text.dart';
 
 class FindRotarianDetailScreen extends StatefulWidget {
   final int memberId;
@@ -210,7 +211,8 @@ class _FindRotarianDetailScreenState extends State<FindRotarianDetailScreen> {
       decoration: BoxDecoration(
         color: AppColors.white,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.lightBorder),
+        border: Border.all(color: AppColors.lightBorder),
+
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -677,7 +679,8 @@ class _HeroAppBar extends StatelessWidget {
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     border: Border.all(
-                        color: Colors.white.withValues(alpha: 0.5), width: 4),
+                        color: Colors.white.withValues(alpha: 0.5), width: 4),
+
                   ),
                   child: ClipOval(
                     child: photoUrl == null
@@ -826,7 +829,8 @@ class _InfoCard extends StatelessWidget {
           decoration: BoxDecoration(
             color: AppColors.white,
             borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: AppColors.lightBorder),
+            border: Border.all(color: AppColors.lightBorder),
+
           ),
           child: Column(
             children: [

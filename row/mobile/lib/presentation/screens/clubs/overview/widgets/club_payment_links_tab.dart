@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Text;
 import 'package:url_launcher/url_launcher.dart';
 import '../../../../../core/constants/api_constants.dart';
 import '../../../../../core/network/api_client.dart';
@@ -10,6 +10,7 @@ import '../../../../widgets/common/labeled_stat.dart';
 import '../../../../widgets/common/expandable_record_card.dart';
 import 'club_dashboard_async.dart';
 import 'package:rotary_flutter_app/core/theme/app_fonts.dart';
+import 'package:rotary_flutter_app/core/i18n/text.dart';
 
 /// "Payment Links" tab — mirrors the web Payment Links module (KPI strip +
 /// the Online Event & Payment Links list). Reads `/api/event-payment-links`;

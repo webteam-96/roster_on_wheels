@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Text;
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -15,6 +15,7 @@ import '../../widgets/common/full_screen_image_view.dart';
 import '../../widgets/common/loading_widget.dart';
 import 'profile_edit_screen.dart';
 import 'package:rotary_flutter_app/core/theme/app_fonts.dart';
+import 'package:rotary_flutter_app/core/i18n/text.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -346,7 +347,8 @@ class _ProfileAppBar extends StatelessWidget {
                     height: 110,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      border: Border.all(color: Colors.white.withOpacity(0.5), width: 4),
+                      border: Border.all(color: Colors.white.withOpacity(0.5), width: 4),
+
                     ),
                     child: ClipOval(
                       child: hasPhoto
@@ -466,7 +468,8 @@ class _InfoCard extends StatelessWidget {
           decoration: BoxDecoration(
             color: AppColors.white,
             borderRadius: BorderRadius.circular(24),
-            border: Border.all(color: AppColors.lightBorder, width: 1),
+            border: Border.all(color: AppColors.lightBorder, width: 1),
+
           ),
           child: Column(
             children: children,

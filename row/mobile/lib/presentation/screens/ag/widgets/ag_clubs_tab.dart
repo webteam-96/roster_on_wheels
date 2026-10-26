@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Text;
 import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../../core/routing/route_names.dart';
@@ -9,6 +9,7 @@ import 'ag_async.dart';
 import 'ag_format.dart';
 import 'package:rotary_flutter_app/core/brand/brand.dart';
 import 'package:rotary_flutter_app/core/theme/app_fonts.dart';
+import 'package:rotary_flutter_app/core/i18n/text.dart';
 
 /// "My Clubs" tab — the AG's Club Directory. Wired to
 /// `GET /api/mobile/ag-dashboard/clubs`.

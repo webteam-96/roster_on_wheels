@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Text;
 import '../../../core/network/api_exceptions.dart';
 import '../../../core/services/volunteer_api.dart';
 import '../../../core/utils/date_formatter.dart';
@@ -6,6 +6,7 @@ import '../../../core/utils/snackbar_utils.dart';
 import '../../widgets/common/custom_app_bar.dart';
 import '../../widgets/common/empty_state_widget.dart';
 import '../../widgets/common/loading_widget.dart';
+import 'package:rotary_flutter_app/core/i18n/text.dart';
 
 /// Volunteer sign-up sheets of the member's clubs (N4): sign up for a slot or cancel.
 class VolunteersScreen extends StatefulWidget {

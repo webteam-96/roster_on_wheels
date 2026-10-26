@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Text;
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import '../../../../../core/features/feature_controller.dart';
@@ -10,6 +10,7 @@ import '../../../../widgets/common/dashboard_refresh.dart';
 import 'club_dashboard_async.dart';
 import 'cmr_month_report_subtab.dart';
 import 'package:rotary_flutter_app/core/theme/app_fonts.dart';
+import 'package:rotary_flutter_app/core/i18n/text.dart';
 
 /// "E-Governance" tab on the Club Overview screen. Shows the live
 /// `egovernance` analytics (Monthly-Report + Attendance summaries) plus an

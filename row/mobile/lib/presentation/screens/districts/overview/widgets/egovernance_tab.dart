@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Text;
 import 'package:go_router/go_router.dart';
 import '../../../../../core/services/district_admin_dashboard_api.dart';
 import '../../../../../core/theme/app_colors.dart';
@@ -11,6 +11,7 @@ import 'district_dashboard_async.dart';
 import 'stat_card.dart';
 import '../../../../widgets/common/dashboard_refresh.dart';
 import 'package:rotary_flutter_app/core/theme/app_fonts.dart';
+import 'package:rotary_flutter_app/core/i18n/text.dart';
 
 /// "E-Governance & Reporting" tab of the District Admin dashboard, wired to
 /// `GET /api/mobile/district-admin-dashboard/egovernance` (+ `/egovernance/per-club`

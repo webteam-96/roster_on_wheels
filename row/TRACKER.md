@@ -190,7 +190,7 @@ Web = admin pages + public sites. All To do unless noted.
 | N10 | Live target dashboard | B.3, #30 | Done 2026-10-23 | n/a | Done 2026-10-23 | Done 2026-10-26 (club + district targets) | lock flow red on the sheet |
 | N11 | Chat | 3.10, #19 | Done 2026-10-23 | Done 2026-10-23 | moderation only | Done 2026-10-26 (direct + group chats, polling every 5 s, report) | |
 | N12 | Time zones and formats (district zone, UTC, no IST) | guide pkg 4 | Done 2026-10-23 | Done 2026-10-23 | Done 2026-10-23 | Done (dates in device locale) | meeting forms still send wall-clock times (shortcut) |
-| N13 | App language switch through the translation API | 3.3, guide pkg 13 | n/a | n/a | Done (live translation) | To do | user picks the provider |
+| N13 | App language switch through the translation API | 3.3, guide pkg 13 | n/a | n/a | Done (live translation) | Done 2026-10-26 (Settings > Language; app text only, data stays as entered) | provider: `TRANSLATE_PROVIDER` on the admin, owner picks |
 
 ## 6. Blocked or on hold
 

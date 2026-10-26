@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Text;
 import '../../../../../core/services/club_admin_dashboard_api.dart';
 import '../../../../../core/theme/app_colors.dart';
 import '../../../../../core/utils/money_format.dart';
@@ -14,6 +14,7 @@ import '../../../../widgets/common/website_renewal_dialog.dart';
 import '../../modules/website_purchase/website_purchase_screen.dart';
 import 'membership_summary_card.dart';
 import 'package:rotary_flutter_app/core/theme/app_fonts.dart';
+import 'package:rotary_flutter_app/core/i18n/text.dart';
 
 /// The club "Dashboard" tab — mirrors the web Club Dashboard's five sub-tabs
 /// (Overview · Directory · Board of Directors · Rotary Network).

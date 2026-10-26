@@ -1,8 +1,9 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Text;
 import '../../../../../core/theme/app_colors.dart';
 import '../../modules/district_events_screen.dart';
 import '../../modules/district_projects_screen.dart';
 import 'package:rotary_flutter_app/core/theme/app_fonts.dart';
+import 'package:rotary_flutter_app/core/i18n/text.dart';
 
 /// "Foundation" tab of the District Admin dashboard.
 ///

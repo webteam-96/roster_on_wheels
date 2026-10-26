@@ -1,7 +1,8 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Text;
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_text_styles.dart';
 import '../../../core/theme/row_tokens.dart';
+import 'package:rotary_flutter_app/core/i18n/text.dart';
 
 enum PillVariant { primary, gold, ghost, onPanel }
 

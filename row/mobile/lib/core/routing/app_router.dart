@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Text;
 import 'package:go_router/go_router.dart';
 import 'route_names.dart';
 import '../maintenance/maintenance_controller.dart';
@@ -132,10 +132,12 @@ import '../../presentation/screens/clubs/modules/speakers/club_speakers_screen.d
 import '../../presentation/screens/goal_setting/district_goal_messages_screen.dart';
 import '../../presentation/screens/planning/next_year_screen.dart';
 import '../../presentation/screens/settings/comms_preferences_screen.dart';
+import '../../presentation/screens/settings/language_screen.dart';
 import '../../presentation/screens/targets/targets_screen.dart';
 import '../../presentation/screens/profile/my_designations_screen.dart';
 import '../../presentation/screens/volunteers/invite_guest_screen.dart';
 import '../../presentation/screens/volunteers/volunteers_screen.dart';
+import 'package:rotary_flutter_app/core/i18n/text.dart';
 
 /// The live [GoRouter], exposed so non-widget code — specifically the push
 /// notification tap handlers in [DeepLinkService] — can navigate without a
@@ -242,6 +244,7 @@ class AppRouter {
         GoRoute(path: RouteNames.chat, builder: (_, __) => const ChatListScreen()),
         GoRoute(path: RouteNames.nextYear, builder: (_, __) => const NextYearScreen()),
         GoRoute(path: RouteNames.commsPreferences, builder: (_, __) => const CommsPreferencesScreen()),
+        GoRoute(path: RouteNames.language, builder: (_, __) => const LanguageScreen()),
         GoRoute(path: '/clubs/:id/targets', builder: (_, state) => TargetsScreen(isDistrict: false, id: int.parse(state.pathParameters['id']!))),
         GoRoute(path: '/districts/:id/targets', builder: (_, state) => TargetsScreen(isDistrict: true, id: int.parse(state.pathParameters['id']!))),
         GoRoute(path: '/districts/:id/goal-messages', builder: (_, state) => DistrictGoalMessagesScreen(districtId: int.parse(state.pathParameters['id']!))),

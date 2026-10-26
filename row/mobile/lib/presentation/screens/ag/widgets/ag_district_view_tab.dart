@@ -1,12 +1,13 @@
 import 'dart:math' as math;
 
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Text;
 import '../../../../core/services/ag_dashboard_api.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../data/models/ag_dashboard_models.dart';
 import 'ag_async.dart';
 import 'ag_format.dart';
 import 'package:rotary_flutter_app/core/theme/app_fonts.dart';
+import 'package:rotary_flutter_app/core/i18n/text.dart';
 
 /// "District View" tab — Club Performance Comparison. Wired to
 /// `GET /api/mobile/ag-dashboard/district`.

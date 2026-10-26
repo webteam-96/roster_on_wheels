@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Text;
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import '../../../core/constants/api_constants.dart';
@@ -17,6 +17,7 @@ import '../../widgets/common/pagination_widget.dart';
 import '../../providers/auth_provider.dart';
 import '../../widgets/common/search_bar_widget.dart';
 import 'package:rotary_flutter_app/core/theme/app_fonts.dart';
+import 'package:rotary_flutter_app/core/i18n/text.dart';
 
 // ---------------------------------------------------------------------------
 // Provider
@@ -328,7 +329,8 @@ class _FilterChip extends StatelessWidget {
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
             color: selected ? AppColors.primaryPrime : AppColors.lightBorder,
-          ),
+          ),
+
         ),
         child: Text(
           label,
@@ -366,7 +368,8 @@ class _ZoneCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppColors.white,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.lightBorder, width: 1),
+        border: Border.all(color: AppColors.lightBorder, width: 1),
+
       ),
       child: Material(
         color: AppColors.transparent,
