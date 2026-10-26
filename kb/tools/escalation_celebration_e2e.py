@@ -318,13 +318,15 @@ try:
         check(f"{who}: cannot read the log (403)", s == 403, s)
 
     # ── Target rule: nobody in the role, a club that catches up stops climbing ──────────────────────────────────
-    sql(f"INSERT INTO club_growth_targets (fk_club_id, fk_year_id, target_net_growth, modified_by) VALUES ({club},{year},50,{M})")
+    sql(f"INSERT INTO club_growth_targets (fk_club_id, fk_year_id, target_net_growth, modified_by) VALUES ({club},{year},500,{M})")
     s, b = call("PUT", S, t["dadmin"], {"targetStatus": "RED", "meetingShortfall": 2, "agDelayDays": 3, "dgDelayDays": 2})
     check("district admin adds the target rule (red)", s == 200 and b["targetStatus"] == "red", (s, b))
     run()
     a = alerts("target")
     check("a club far behind its growth target alerts its president for this month",
-          len(a) == 1 and a[0][:4] == (1, president, "sent", THIS) and "membership growth" in a[0][4] and "of 50" in a[0][4], a)
+          len(a) == 1 and a[0][:4] == (1, president, "sent", THIS) and "membership growth" in a[0][4] and "of 500" in a[0][4],
+          (a, [c for c in (call("GET", f"/api/districts/{district}/targets", t["sa"])[1] or {}).get("clubs", [])
+               if c.get("clubId") == club]))
     sql(f"UPDATE district_ag SET is_active=0 WHERE created_by={M}")
     backdate("target", 1, 3)
     run()

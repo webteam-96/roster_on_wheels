@@ -234,6 +234,11 @@ unless marked "done"; decide them when the area is worked on.
   the calendar feed offers "Create my calendar link" (a member has no link until one is made).
   Not built: per-tenant logo and colours (the API has no tenant branding; branding is per instance).
   Check: `kb/tools/app_contract_e2e.py` (every endpoint these screens call answers with the fields they read).
+- **Accessibility, public sites** (Phase 4, 2026-10-26): `kb/tools/a11y_check.py` (axe-core, WCAG 2.1 AA) on 9 club and
+  7 district pages: district 0 problems; club had gold accent text on white (contrast 1.9:1), grey 400 text and an
+  unlabelled date field. Fixed: `brand-accent-ink` (the accent mixed 60% with black, about 5:1) for accent text on
+  light backgrounds in the default classic-blue theme and the shared sections, grey 500, an aria-label; now 0. The
+  other 7 club themes were not checked.
 - **App language switch** (Phase 3b, N13, 2026-10-26). Settings > Language (30 languages, each under its own name).
   `lib/core/i18n/text.dart` is a drop-in `Text` (same arguments, `const` too); every screen imports it in place of
   Flutter's (`hide Text`, 241 files, import lines only). `LiveTranslator` sends missing strings in batches to the

@@ -217,9 +217,9 @@ Web = admin pages + public sites. All To do unless noted.
 | Phone E.164 | Done |
 | Locale, time zone, currency | Done (N12, 2026-10-23) |
 | App build and store listings | To do |
-| Smoke suites for regression | To do |
+| Smoke suites for regression | Done 2026-10-26: `kb/tools/smoke_all.py` runs the 31 e2e scripts, 31/31 PASS on row_prod_copy |
 | Prod schema catch-up (5 tables the code has, prod lacks) | To do, with the next deploy |
-| Secret scan, rotate committed demo passwords (repo is public) | To do |
+| Secret scan, rotate committed demo passwords (repo is public) | Scan done 2026-10-26: no keys, tokens or private keys in history; old e2e scripts hold demo-account passwords (the dropped demo DB and the local SuperAdmin): change any such password on production before go-live (owner) |
 | Payments, club subdomains | Blocked / on hold |
 
 Code freeze 28 October and launch 15 November 2026 (build guide): **not confirmed by the user**.
