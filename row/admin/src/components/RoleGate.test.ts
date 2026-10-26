@@ -29,8 +29,16 @@ describe("role gate", () => {
     expect(mayOpen("/districts/5", superAdmin)).toBe(true);
   });
 
-  it("does not touch other pages", () => {
+  it("keeps club mass email and the club report to the club's managers", () => {
     expect(mayOpen("/clubs/341/mass-emails", clubAdmin)).toBe(true);
+    expect(mayOpen("/clubs/342/mass-emails/compose", clubAdmin)).toBe(false);
+    expect(mayOpen("/clubs/341/club-report/v2", ag)).toBe(false);
+    expect(mayOpen("/clubs/341/mass-emails", districtAdmin)).toBe(false);
+    expect(mayOpen("/clubs/341/mass-emails", { ...districtAdmin, districtClubAccess: [{ id: 5 } as never] })).toBe(true);
+  });
+
+  it("does not touch other pages", () => {
+    expect(mayOpen("/clubs/341/dashboard", ag)).toBe(true);
     expect(mayOpen("/ag-dashboard/reports", ag)).toBe(true);
     expect(mayOpen("/districtsX", clubAdmin)).toBe(true);
   });

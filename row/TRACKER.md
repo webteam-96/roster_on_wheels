@@ -17,7 +17,7 @@ Stripe), **Removed**.
 | Existing modules, web (93 in scope) | 84 pages exist (+8 app-only, 1 removed) | Error crawl | Fix crawl findings (section 4) | 7 payment modules on hold |
 | Existing modules, mobile app | 59 | | none: the 28 Super Admin tools stay web-only (decision), duplicate check runs in the API | 7 payment modules on hold |
 | Skipped modules (14 sheet rows) | Removed completely (2026-10-22/23) | | Drop leftover objects on prod: `database/maintenance/2026-10-23-drop-removed-modules.sql`, user go-ahead | |
-| Phase 1 web hardening | 3 of 6 | 2 | 1 | |
+| Phase 1 web hardening | 7 of 7 | | | |
 | New spec modules (section 5) | 10 web + API (flags off until a SuperAdmin turns them on) | | N7, N12, app screens | 12 items blocked (section 6) |
 | Launch items (section 7) | 4 | | 5 | 3 |
 
@@ -158,7 +158,7 @@ matched by screen names in `row/mobile`. Error crawl: result of `kb/tools/admin_
 | P2 | Read guard: club and district reads limited to members and managers | Done | `api/Services/ScopeWriteGuardMiddleware.cs`; e2e `kb/tools/scope_read_guard_e2e.py` 7/7 pass |
 | P3 | Error crawl tool | Done | `kb/tools/admin_crawl.py` |
 | P4 | Error crawl as SuperAdmin, fix every finding | Done 2026-10-23 | 319 pages crawled on the merged tree; 6 flagged were dev-server compile noise, clean on re-probe |
-| P5 | Crawl as District Admin, Club Admin, AG | Blocked | needs test logins for those roles (user said: Mukesh only for now) |
+| P5 | Crawl as District Admin, Club Admin, AG | Done 2026-10-26 | local test logins (`kb/tools/local_test_logins.py`); 319 pages each: 17 / 36 / 41 flagged, now 0 / 0 / 1 after `components/RoleGate.tsx` (Super Admin, district and club-manager pages), the goal-report club list and the provisioning card. Left: an AG on a club dashboard is refused the club's credit balance (manager-only, ignored by the page) |
 | P6 | e2e scripts use accounts from env vars | Done 2026-10-23 | every `kb/tools/*_e2e.py` takes `<api> <port> <db>` and signs JWTs; 30 scripts, 1,250 checks PASS |
 | P7 | Reads where the club / district id is in the query string, not the URL | Done 2026-10-23 | 758 GET routes reviewed, 77 fixed; follow-ups in STATUS-REPORT (nested ids under the club prefix) |
 
