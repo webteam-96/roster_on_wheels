@@ -78,11 +78,13 @@ git worktree + DB copy per lane; `integrate.sh <id>` then `resolve.py <id>` merg
 
 ## Known gaps and flags
 
-- Security, open (found 2026-10-23, not fixed): `row/api/App_Data/dp-keys/key-*.xml` (Data Protection key ring) is
-  tracked in the public repo: untrack and rotate. `GET /api/mobile/club-calendar/{id}` and `district-calendar/{id}`
-  let any signed-in user read any club's birthdays, phones and emails. Mass email detail/update/delete/send by id do
-  not check the club. Admin `/api/i18n/translate` has no auth (open translation proxy). `EmailService` logs the
-  recipient address on a failed send. Chat hub tokens travel in the query string: strip it from proxy logs.
+- Security (found 2026-10-23, fixed per `STATUS-REPORT.md`): calendars, mass email, translate route, email logs.
+  Still to do: rotate the Data Protection key (untracked, but `row/api/App_Data/dp-keys/key-*.xml` is in git
+  history); chat hub tokens travel in the query string: strip it from proxy logs.
+- Phase 1b finished 2026-10-26 (uncommitted): generic errors in the remaining 112 catch blocks, see
+  `ROW-CHANGES.md`.
+- Phase 3 app screens done 2026-10-26 (uncommitted), see `ROW-CHANGES.md` and TRACKER section 5; check
+  `kb/tools/app_contract_e2e.py`. Next: Phase 3b (app language switch), then Phase 4.
 
 - **`row/mobile` is in git since 2026-10-21** (user decision). Its RIZones-era notes (`WORK_LOG.txt`, `ANALYSIS.md`,
   `.specs/` and others, see `row/mobile/.gitignore`) stay local: they hold RIZones servers and old dev logins.

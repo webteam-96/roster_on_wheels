@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../core/routing/route_names.dart';
 import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../core/network/api_client.dart';
@@ -95,7 +96,22 @@ final List<_TypeSpec> _kTypes = [
   const _TypeSpec('greeting', 'Greetings', Icons.celebration_rounded, Colors.pink),
   const _TypeSpec('newsletter', 'Newsletters', Icons.article_rounded, Colors.teal),
   const _TypeSpec('document', 'Documents', Icons.description_rounded, Colors.blueGrey),
+  // ROW modules (2026-10-23); the feed sends these only while the module is on
+  const _TypeSpec('highlight', 'Highlights', Icons.emoji_events_rounded, Colors.amber),
+  const _TypeSpec('celebration', 'Celebrations', Icons.flag_rounded, Colors.amber),
+  const _TypeSpec('meeting', 'Meetings', Icons.groups_rounded, Colors.indigo),
+  const _TypeSpec('meeting_duty', 'Meeting duties', Icons.assignment_ind_rounded, Colors.indigo),
+  const _TypeSpec('volunteer', 'Volunteering', Icons.handshake_rounded, Colors.green),
+  const _TypeSpec('grant', 'Grants', Icons.savings_rounded, Colors.teal),
+  const _TypeSpec('invite', 'Invites', Icons.group_add_rounded, AppColors.primaryPrime),
+  const _TypeSpec('escalation', 'Follow-ups', Icons.report_rounded, Colors.redAccent),
 ];
+
+/// Feed types whose tap opens one of the member's own screens.
+const Map<String, String> _kTypeRoutes = {
+  'volunteer': RouteNames.volunteers,
+  'meeting_duty': RouteNames.myDuties,
+};
 
 _TypeSpec _specFor(String type) => _kTypes.firstWhere(
       (t) => t.key == type,
@@ -235,6 +251,11 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   // the type, so the extras are harmless), then route. If the type has no route
   // (e.g. document, or a personal greeting) fall back to an in-app detail sheet.
   void _onTap(_NotifItem item) {
+    final own = _kTypeRoutes[item.type];
+    if (own != null) {
+      context.push(own);
+      return;
+    }
     final dl = item.deepLink;
     if (dl != null && (dl['type'] ?? '').toString().isNotEmpty) {
       final adapted = <String, dynamic>{...dl};
@@ -480,7 +501,8 @@ class _NotifCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppColors.white,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.lightBorder, width: 1),
+        border: Border.all(color: AppColors.lightBorder, width: 1),
+
       ),
       child: Material(
         color: Colors.transparent,

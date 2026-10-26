@@ -11,9 +11,11 @@ export default function ClubAdminDashboardLayout({ children }: { children: React
       <Suspense fallback={null}>
         <NavigationProgress />
       </Suspense>
-      <ClubAdminDashboardLayoutClient>{children}</ClubAdminDashboardLayoutClient>
-      {/* Global top-right card that tracks background club-website provisioning. */}
-      <WebsiteProvisioningToast />
+      <ClubAdminDashboardLayoutClient>
+        {children}
+        {/* Top-right card that tracks club-website provisioning; inside the role check so other roles never call it. */}
+        <WebsiteProvisioningToast />
+      </ClubAdminDashboardLayoutClient>
     </>
   );
 }

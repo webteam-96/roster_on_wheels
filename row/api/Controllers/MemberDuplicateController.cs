@@ -567,7 +567,7 @@ public class MemberDuplicateController : ControllerBase
         {
             await tx.RollbackAsync();
             _logger.LogError(ex, "Member merge failed (keep {Keep}, delete {Del}).", req.KeepId, req.DeleteId);
-            return StatusCode(500, new { message = "Merge failed and was rolled back.", detail = ex.Message });
+            return StatusCode(500, new { message = "Merge failed and was rolled back." });
         }
     }
 
@@ -738,10 +738,10 @@ public class MemberDuplicateController : ControllerBase
                 new { Low = low, High = high, Reason = req.Reason, Note = req.Note, By = by }, tx);
             await tx.CommitAsync();
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             await tx.RollbackAsync();
-            return StatusCode(500, new { message = "Could not save & keep both records.", detail = ex.Message });
+            return StatusCode(500, new { message = "Could not save & keep both records." });
         }
         return Ok(new { success = true });
     }
@@ -872,10 +872,10 @@ public class MemberDuplicateController : ControllerBase
 
             await tx.CommitAsync();
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             await tx.RollbackAsync();
-            return StatusCode(500, new { message = "Revert failed and was rolled back.", detail = ex.Message });
+            return StatusCode(500, new { message = "Revert failed and was rolled back." });
         }
 
         var loserHadRoles = root.TryGetProperty("deleteRoles", out var dr) && dr.ValueKind == JsonValueKind.Array && dr.GetArrayLength() > 0;

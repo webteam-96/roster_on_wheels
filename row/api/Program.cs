@@ -663,14 +663,15 @@ if (app.Environment.IsDevelopment() || builder.Configuration.GetValue<bool>("Swa
         c.RoutePrefix = "swagger";
     });
 }
-// Convert InvalidOperationException (business-rule violations) into 400 with JSON body.
+// Convert InvalidOperationException (business-rule violations) into 400 with JSON body, and the services'
+// KeyNotFoundException / UnauthorizedAccessException into 404 / 403.
 // Log every other unhandled exception with full stack so we can diagnose 500s from the API log.
 app.Use(async (ctx, next) =>
 {
     try { await next(); }
-    catch (InvalidOperationException ex)
+    catch (Exception ex) when (ex is InvalidOperationException or KeyNotFoundException or UnauthorizedAccessException)
     {
-        ctx.Response.StatusCode = 400;
+        ctx.Response.StatusCode = ex is KeyNotFoundException ? 404 : ex is UnauthorizedAccessException ? 403 : 400;
         ctx.Response.ContentType = "application/json";
         await ctx.Response.WriteAsJsonAsync(new { message = ex.Message });
     }

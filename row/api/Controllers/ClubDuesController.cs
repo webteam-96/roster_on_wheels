@@ -347,7 +347,7 @@ public class ClubDuesController : ControllerBase
             return Ok(new { googleSheetId = sheetId, message = "Google Sheet created successfully." });
         }
         catch (KeyNotFoundException ex) { return NotFound(new { message = ex.Message }); }
-        catch (Exception ex) { return StatusCode(500, new { message = $"Failed to create Google Sheet: {ex.Message}" }); }
+        catch (Exception ex) when (ex is InvalidOperationException or ArgumentException) { return StatusCode(500, new { message = $"Failed to create Google Sheet: {ex.Message}" }); }
     }
 
     [HttpDelete("{id}/delete-google-sheet")]
@@ -360,7 +360,7 @@ public class ClubDuesController : ControllerBase
             return Ok(new { message = "Google Sheet deleted from Drive." });
         }
         catch (KeyNotFoundException ex) { return NotFound(new { message = ex.Message }); }
-        catch (Exception ex) { return StatusCode(500, new { message = $"Failed to delete Google Sheet: {ex.Message}" }); }
+        catch (Exception ex) when (ex is InvalidOperationException or ArgumentException) { return StatusCode(500, new { message = $"Failed to delete Google Sheet: {ex.Message}" }); }
     }
 
     // Maintenance action: renames every District Dues sheet still titled "ClubDues_..." to
@@ -375,7 +375,7 @@ public class ClubDuesController : ControllerBase
             var count = await _service.ResyncAllGoogleSheetsAsync();
             return Ok(new { message = $"Resynced {count} Google Sheet(s)." });
         }
-        catch (Exception ex) { return StatusCode(500, new { message = $"Failed to resync Google Sheets: {ex.Message}" }); }
+        catch (Exception ex) when (ex is InvalidOperationException or ArgumentException) { return StatusCode(500, new { message = $"Failed to resync Google Sheets: {ex.Message}" }); }
     }
 
     // ══════════════════════════════════════════════════════════════

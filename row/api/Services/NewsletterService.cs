@@ -136,7 +136,7 @@ public class NewsletterService : INewsletterService
             {
                 using var scope = _scopeFactory.CreateScope();
                 var creditSvc = scope.ServiceProvider.GetRequiredService<ICreditManagementService>();
-                if (!await creditSvc.HasSufficientCreditsAsync(refundEntityIdForCheck, "Email", emailCount))
+                if (!await creditSvc.HasSufficientCreditsAsync(refundEntityIdForCheck, "Email", emailCount, districtId != null))
                     throw new InvalidOperationException($"Insufficient Email credits. Need {emailCount} credit(s).");
             }
         }
@@ -244,7 +244,7 @@ public class NewsletterService : INewsletterService
             {
                 using var scope = _scopeFactory.CreateScope();
                 var creditSvc = scope.ServiceProvider.GetRequiredService<ICreditManagementService>();
-                if (!await creditSvc.HasSufficientCreditsAsync(refundEntityIdForCheck, "Email", emailCount))
+                if (!await creditSvc.HasSufficientCreditsAsync(refundEntityIdForCheck, "Email", emailCount, districtIdForCheck != null))
                     throw new InvalidOperationException($"Insufficient Email credits. Need {emailCount} credit(s).");
             }
         }

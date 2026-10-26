@@ -45,6 +45,7 @@ public class DocumentsController : ControllerBase
     }
 
     [HttpPut("api/clubs/{clubId}/documents/{id}")]
+    [OwnedBy(Owns.ClubDocument, "id", "clubId")]
     public async Task<ActionResult> Update(int clubId, int id, [FromBody] UpdateDocumentDto dto)
     {
         await _service.UpdateAsync(id, dto, GetUserId());
@@ -52,6 +53,7 @@ public class DocumentsController : ControllerBase
     }
 
     [HttpDelete("api/clubs/{clubId}/documents/{id}")]
+    [OwnedBy(Owns.ClubDocument, "id", "clubId")]
     public async Task<ActionResult> Delete(int clubId, int id)
     {
         await _service.DeleteAsync(id, GetUserId());

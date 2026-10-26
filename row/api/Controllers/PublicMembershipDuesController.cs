@@ -69,7 +69,7 @@ public class PublicMembershipDuesController : ControllerBase
             var result = await _service.SendPaymentOtpAsync(id, dto);
             return Ok(new { success = result, message = result ? "OTP sent successfully." : "Failed to send OTP." });
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is InvalidOperationException or ArgumentException)
         {
             return BadRequest(new { success = false, message = ex.Message });
         }
@@ -83,7 +83,7 @@ public class PublicMembershipDuesController : ControllerBase
             var result = await _service.VerifyOtpAsync(id, dto);
             return Ok(new { success = result, message = result ? "OTP verified." : "Invalid or expired OTP." });
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is InvalidOperationException or ArgumentException)
         {
             return BadRequest(new { success = false, message = ex.Message });
         }
@@ -97,7 +97,7 @@ public class PublicMembershipDuesController : ControllerBase
             var result = await _service.CreatePaymentOrderAsync(id, dto);
             return Ok(result);
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is InvalidOperationException or ArgumentException)
         {
             return BadRequest(new { message = ex.Message });
         }
@@ -120,7 +120,7 @@ public class PublicMembershipDuesController : ControllerBase
             var paymentId = await _service.RecordPublicOfflinePaymentAsync(id, dto, attachment, env);
             return Ok(new { paymentId, message = "Offline payment submitted for approval." });
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is InvalidOperationException or ArgumentException)
         {
             return BadRequest(new { message = ex.Message });
         }
@@ -134,7 +134,7 @@ public class PublicMembershipDuesController : ControllerBase
             var result = await _service.VerifyPaymentAsync(id, orderId, paymentId);
             return Ok(result);
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is InvalidOperationException or ArgumentException)
         {
             return BadRequest(new { message = ex.Message });
         }
@@ -150,7 +150,7 @@ public class PublicMembershipDuesController : ControllerBase
             await _service.HandleWebhookAsync(payload);
             return Ok();
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is InvalidOperationException or ArgumentException)
         {
             return BadRequest(new { message = ex.Message });
         }
@@ -182,7 +182,7 @@ public class PublicMembershipDuesController : ControllerBase
         {
             return NotFound(new { message = ex.Message });
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is InvalidOperationException or ArgumentException)
         {
             return StatusCode(500, new { message = $"Failed to export: {ex.Message}" });
         }

@@ -105,9 +105,9 @@ public class ClubMonthlyReportController : ControllerBase
                 .Replace(" ", "_").Replace("/", "-");
             return File(bytes, "application/vnd.openxmlformats-officedocument.wordprocessingml.document", fileName);
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is InvalidOperationException or ArgumentException)
         {
-            return StatusCode(500, new { message = $"Failed to generate Word report: {ex.Message}", detail = ex.InnerException?.Message });
+            return StatusCode(500, new { message = $"Failed to generate Word report: {ex.Message}" });
         }
     }
 
@@ -122,6 +122,7 @@ public class ClubMonthlyReportController : ControllerBase
     }
 
     [HttpPut("member-info/{reportId:int}")]
+    [OwnedBy(Owns.ClubMonthlyReport, "reportId", "clubId")]
     public async Task<IActionResult> SaveMemberInfo(int clubId, int reportId, [FromBody] SaveMemberInfoDto dto)
     {
         try
@@ -129,9 +130,9 @@ public class ClubMonthlyReportController : ControllerBase
             await _service.SaveMemberInfoAsync(reportId, dto, GetUserId());
             return Ok(new { message = "Member info saved." });
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is InvalidOperationException or ArgumentException)
         {
-            return StatusCode(500, new { message = $"Failed to save member info: {ex.Message}", detail = ex.InnerException?.Message });
+            return StatusCode(500, new { message = $"Failed to save member info: {ex.Message}" });
         }
     }
 
@@ -144,9 +145,9 @@ public class ClubMonthlyReportController : ControllerBase
             var preview = await _service.GetPreviewAsync(clubId, yearId, month, GetUserId());
             return Ok(preview);
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is InvalidOperationException or ArgumentException)
         {
-            return StatusCode(500, new { message = $"Failed to load preview: {ex.Message}", detail = ex.InnerException?.Message });
+            return StatusCode(500, new { message = $"Failed to load preview: {ex.Message}" });
         }
     }
 
@@ -177,9 +178,9 @@ public class ClubMonthlyReportController : ControllerBase
             var result = await _service.SendReportEmailAsync(clubId, dto);
             return Ok(result);
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is InvalidOperationException or ArgumentException)
         {
-            return StatusCode(500, new { message = $"Failed to send report email: {ex.Message}", detail = ex.InnerException?.Message });
+            return StatusCode(500, new { message = $"Failed to send report email: {ex.Message}" });
         }
     }
 }

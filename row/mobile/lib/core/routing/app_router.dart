@@ -126,6 +126,16 @@ import '../../presentation/screens/my_dues/my_membership_dues_screen.dart';
 import '../../data/models/wallet_models.dart';
 import '../../presentation/screens/clubs/modules/website_purchase/website_purchase_screen.dart';
 import '../../presentation/screens/privacy/my_data_screen.dart';
+import '../../presentation/screens/chat/chat_screens.dart';
+import '../../presentation/screens/clubs/modules/grants/club_grants_screen.dart';
+import '../../presentation/screens/clubs/modules/speakers/club_speakers_screen.dart';
+import '../../presentation/screens/goal_setting/district_goal_messages_screen.dart';
+import '../../presentation/screens/planning/next_year_screen.dart';
+import '../../presentation/screens/settings/comms_preferences_screen.dart';
+import '../../presentation/screens/targets/targets_screen.dart';
+import '../../presentation/screens/profile/my_designations_screen.dart';
+import '../../presentation/screens/volunteers/invite_guest_screen.dart';
+import '../../presentation/screens/volunteers/volunteers_screen.dart';
 
 /// The live [GoRouter], exposed so non-widget code — specifically the push
 /// notification tap handlers in [DeepLinkService] — can navigate without a
@@ -226,6 +236,18 @@ class AppRouter {
         // Legacy admin password login (kept as fallback)
         GoRoute(path: RouteNames.forgotPassword, builder: (_, __) => const ForgotPasswordScreen()),
         GoRoute(path: RouteNames.myData, builder: (_, __) => const MyDataScreen()),
+        GoRoute(path: RouteNames.volunteers, builder: (_, __) => const VolunteersScreen()),
+        GoRoute(path: RouteNames.myDuties, builder: (_, __) => const MyDutiesScreen()),
+        GoRoute(path: RouteNames.inviteGuest, builder: (_, __) => const InviteGuestScreen()),
+        GoRoute(path: RouteNames.chat, builder: (_, __) => const ChatListScreen()),
+        GoRoute(path: RouteNames.nextYear, builder: (_, __) => const NextYearScreen()),
+        GoRoute(path: RouteNames.commsPreferences, builder: (_, __) => const CommsPreferencesScreen()),
+        GoRoute(path: '/clubs/:id/targets', builder: (_, state) => TargetsScreen(isDistrict: false, id: int.parse(state.pathParameters['id']!))),
+        GoRoute(path: '/districts/:id/targets', builder: (_, state) => TargetsScreen(isDistrict: true, id: int.parse(state.pathParameters['id']!))),
+        GoRoute(path: '/districts/:id/goal-messages', builder: (_, state) => DistrictGoalMessagesScreen(districtId: int.parse(state.pathParameters['id']!))),
+        GoRoute(path: '/clubs/:id/speakers', builder: (_, state) => ClubSpeakersScreen(clubId: int.parse(state.pathParameters['id']!))),
+        GoRoute(path: '/clubs/:id/grants', builder: (_, state) => ClubGrantsScreen(clubId: int.parse(state.pathParameters['id']!))),
+        GoRoute(path: RouteNames.myDesignations, builder: (_, __) => const MyDesignationsScreen()),
         GoRoute(
           path: '/reset-password',
           builder: (_, state) => ResetPasswordScreen(token: state.uri.queryParameters['token']),

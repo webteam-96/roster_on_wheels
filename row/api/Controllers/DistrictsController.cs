@@ -112,7 +112,7 @@ public class DistrictsController : ControllerBase
             await _auditLog.LogAsync(GetCurrentMemberId(), "CREATE", "district", id, dto.DistrictNumber, dto, HttpContext);
             return CreatedAtAction(nameof(GetById), new { id }, new { id });
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is InvalidOperationException or ArgumentException)
         {
             return Conflict(new { message = ex.Message });
         }
@@ -136,7 +136,7 @@ public class DistrictsController : ControllerBase
             await _auditLog.LogAsync(GetCurrentMemberId(), "UPDATE", "district", id, dto.DistrictNumber, dto, HttpContext);
             return NoContent();
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is InvalidOperationException or ArgumentException)
         {
             return Conflict(new { message = ex.Message });
         }

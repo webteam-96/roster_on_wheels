@@ -106,7 +106,7 @@ public class CreditManagementController : ControllerBase
             var id = await _service.AddCreditAsync(dto, proofDocument, GetUserId(), _env);
             return Ok(new { id, message = "Credit added successfully." });
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is InvalidOperationException or ArgumentException)
         {
             return BadRequest(new { message = ex.Message });
         }

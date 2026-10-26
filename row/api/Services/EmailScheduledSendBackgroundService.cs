@@ -504,7 +504,7 @@ public class EmailScheduledSendBackgroundService : BackgroundService
             int entityId = districtId != null ? (int)districtId : (clubId != null ? (int)clubId : 0);
             if (entityId <= 0) return;
             var creditSvc = scopeS.ServiceProvider.GetRequiredService<ICreditManagementService>();
-            await creditSvc.DeductWithHistoryAsync(entityId, "Email", sent, source, sourceId, $"Email sent for {title}", 0);
+            await creditSvc.DeductWithHistoryAsync(entityId, "Email", sent, source, sourceId, $"Email sent for {title}", 0, districtId != null);
         }
         catch (Exception ex)
         {

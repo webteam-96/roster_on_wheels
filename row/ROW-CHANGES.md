@@ -6,6 +6,41 @@ unless marked "done"; decide them when the area is worked on.
 
 ## Security and privacy
 
+- **Records reached by id belong to the URL's club or district** (Phase 1b, 2026-10-23). `[OwnedBy]`
+  (`Services/OwnedByAttribute.cs`, queries in `Services/Owns.cs`) answers 404 unless the record in the route belongs
+  to the club, district or parent record in the same route: 79 actions in 16 controllers (club advertisements,
+  contact details, social links, monthly reports, documents, OCV documents, past presidents, sub groups, TRF
+  contributions, weblinks, announcements, newsletters, upcoming events, board of directors; district events,
+  announcements, newsletters, documents, weblinks, sub groups, website sub-menus, committee groups and sub-groups
+  with their members, club member detail; payment link registrations and designations). Records in year-wise tables
+  are checked inside the action: district project and event update and move, club project photo add, delete and
+  set primary.
+- **Sub group members** must be members of the club (club sub groups) or of the district's clubs (district sub
+  groups); create and update answer 400 otherwise. Former members stay valid when a sub group is edited.
+- **Event payment link writes** (18 actions) follow the read rule: SuperAdmin, or a manager of the link's club or
+  district. Create and update also check the club and district sent in the body.
+- **Club and district credit wallets no longer mix.** The wallet queries matched
+  `fk_club_id = id OR (fk_club_id = 0 AND fk_district_id = id)`, so club 5 could spend district 5's credits. Each
+  method now takes `isDistrict` and matches one wallet; the 7 district callers pass it.
+- **Designation master** (board of directors designations) is SuperAdmin only (`[SuperAdminOnly]`). OCV document
+  types and TRF funds already were (inline `roleName` check).
+- **District governor read**: the District Admin header's DG chip read a SuperAdmin-only list and got 403 on every
+  page. Those who manage a district may now read its own governor (`GET api/district-governors?districtId=`).
+- **Generic errors**: club and district mass email actions return exception text only for validation errors;
+  Rotary.org terminated-members and duplicate-check replies no longer include `detail`. The rest (2026-10-26):
+  112 `catch (Exception ex)` blocks in 26 controllers that replied with `ex.Message` now catch only
+  `InvalidOperationException` / `ArgumentException` (the services' validation messages); anything else reaches the
+  global handler, which logs it and answers a generic 500. Catches with side effects (rollback, Plesk action log,
+  email log) keep running and reply with fixed text or rethrow; Rotary.org failures log a warning and answer
+  "Rotary.org API error." (502); Excel import errors say "Failed to read the Excel file." without the parser text;
+  `detail = ex.InnerException?.Message` is gone. The global handler also maps the services'
+  `KeyNotFoundException` to 404 and `UnauthorizedAccessException` to 403. Duplicate club / zone names and the
+  monthly report "not found" now throw `InvalidOperationException` (were plain `Exception`). Payment gateway
+  errors stay plain `Exception` so the gateway's reply body never reaches the caller.
+- **Temporary passwords and OTPs**: AG and club leadership temporary passwords end in 10 random hex characters from
+  `RandomNumberGenerator` (were 4 digits from `System.Random`); payment and KYC OTPs use `RandomNumberGenerator`.
+- E2E: `kb/tools/security_guards_e2e.py` section 4 (cross-club and cross-district reads and writes, sub group
+  members, wallets, payment links, designation master, year-wise tables).
 - **Club / district writes are role-checked** (done 2026-10-19). `ScopeWriteGuardMiddleware` refuses (403) any
   write under `api/clubs/{id}` or `api/districts/{id}` unless the caller manages that club/district (SuperAdmin,
   RIDirector, the club's Admin / ClubModerator / AG, a district Admin with all-clubs access, the district's Admin,
@@ -184,6 +219,21 @@ unless marked "done"; decide them when the area is worked on.
 - **Calendar**: family birthdays/anniversaries and the spouse name follow `member.familyDetails` (off in ROW → empty lists / null), like the other family data. Month defaults use the brand time zone.
 - **App versions**: a new version with no URL got RIZones' own App Store link; ROW uses `MobileApp:DefaultUpdateUrl` (else null).
 - **Notification feed**: the 30/90-day windows are counted in UTC (RIZones: server IST clock).
+- **App screens for the new modules** (Phase 3, 2026-10-26). Drawer section "Me", each item shown only while its
+  module switch is on: Volunteering (sign up / cancel a slot), My meeting duties, Invite a guest (shares the member's
+  invite link per club), Chat (direct chats in the member's clubs; REST polled every 5 s while a chat is open; long
+  press reports a message), My Foundation designations, Next year (planning roles, launchpad, team and club elects,
+  read-only). Settings > Communication: email and push consent, the email language (read-only until the app language
+  switch), the personal calendar feed link (copy, share, make a new one). Club e-governance tiles Targets and Grants
+  (status, read-only); district quick links Goal Messages and Targets. Prospects show and edit the pipeline stage and
+  notes. The feed labels highlight, celebration, meeting, meeting duty, volunteer, grant, invite and follow-up items;
+  volunteer and meeting-duty items open their screens. Later the same day: group chats (name + members of one club),
+  club Speakers (add, edit, remove; photos on the web) and grant applications (new in an open cycle, edit with expense
+  lines, the club's next steps such as submit or submit the report, comments, history; income lines, partners,
+  qualified members and files stay on the web). Drawer items open on top of home so their screens have a back arrow;
+  the calendar feed offers "Create my calendar link" (a member has no link until one is made).
+  Not built: per-tenant logo and colours (the API has no tenant branding; branding is per instance).
+  Check: `kb/tools/app_contract_e2e.py` (every endpoint these screens call answers with the fields they read).
 
 ## Admin tools and OCV group (ported 2026-10-10)
 

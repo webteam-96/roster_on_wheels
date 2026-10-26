@@ -328,9 +328,9 @@ public class ClubAdminDashboardController : ControllerBase
             });
         }
         catch (UnauthorizedAccessException ex) { return ForbidWithMessage(ex.Message); }
-        catch (HttpRequestException ex)
+        catch (HttpRequestException)
         {
-            return StatusCode(502, new { message = "Rotary.org API call failed.", detail = ex.Message });
+            return StatusCode(502, new { message = "Rotary.org API call failed." }); // upstream detail stays out of the reply
         }
     }
 }

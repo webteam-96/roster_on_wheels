@@ -188,9 +188,9 @@ public class ClubService : IClubService
             commandType: CommandType.StoredProcedure);
 
         if ((int)dup.NameDuplicate > 0)
-            throw new Exception("A club with this name already exists.");
+            throw new InvalidOperationException("A club with this name already exists.");
         if ((int)dup.RotaryIdDuplicate > 0)
-            throw new Exception("A club with this Rotary ID already exists.");
+            throw new InvalidOperationException("A club with this Rotary ID already exists.");
 
         // Inline SQL (bypassing sp_club_create) so new columns Latitude/Longitude persist without SP update.
         var clubId = await connection.ExecuteScalarAsync<int>(@"
@@ -257,9 +257,9 @@ public class ClubService : IClubService
             commandType: CommandType.StoredProcedure);
 
         if ((int)dup.NameDuplicate > 0)
-            throw new Exception("A club with this name already exists.");
+            throw new InvalidOperationException("A club with this name already exists.");
         if ((int)dup.RotaryIdDuplicate > 0)
-            throw new Exception("A club with this Rotary ID already exists.");
+            throw new InvalidOperationException("A club with this Rotary ID already exists.");
 
         var previousDistrictId = await connection.ExecuteScalarAsync<int?>(
             "SELECT fk_district_id FROM club_master WHERE pk_club_id = @Id AND isdeleted = 0", new { Id = id });

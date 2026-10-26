@@ -142,7 +142,7 @@ public class UpcomingEventService : IUpcomingEventService
             {
                 using var scope = _scopeFactory.CreateScope();
                 var creditSvc = scope.ServiceProvider.GetRequiredService<ICreditManagementService>();
-                if (!await creditSvc.HasSufficientCreditsAsync(refundEntityIdForCheck, "Email", emailNeeded))
+                if (!await creditSvc.HasSufficientCreditsAsync(refundEntityIdForCheck, "Email", emailNeeded, districtId != null))
                     throw new InvalidOperationException($"Insufficient Email credits. Need {emailNeeded} credit(s) for {emailCount} members × {1 + reminderCount} sends. Please uncheck 'Send through Email' to save without email notification, or reduce reminders, or purchase more credits.");
             }
         }
@@ -265,7 +265,7 @@ public class UpcomingEventService : IUpcomingEventService
             {
                 using var scope = _scopeFactory.CreateScope();
                 var creditSvc = scope.ServiceProvider.GetRequiredService<ICreditManagementService>();
-                if (!await creditSvc.HasSufficientCreditsAsync(refundEntityIdForCheck, "Email", emailNeeded))
+                if (!await creditSvc.HasSufficientCreditsAsync(refundEntityIdForCheck, "Email", emailNeeded, districtIdForCheck != null))
                     throw new InvalidOperationException($"Insufficient Email credits. Need {emailNeeded} credit(s) for {emailCount} members × {1 + reminderCount} sends. Please uncheck 'Send through Email' to save without email notification, or reduce reminders, or purchase more credits.");
             }
         }

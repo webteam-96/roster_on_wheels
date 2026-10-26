@@ -307,7 +307,7 @@ public class ClubWebsitesController : ControllerBase
         if (!_plesk.IsConfigured) return Ok(new { existsInPlesk = false, pleskConfigured = false });
         bool exists;
         try { exists = await _plesk.DomainAliasExistsAsync(domain); }
-        catch (Exception ex) { return Ok(new { existsInPlesk = false, pleskConfigured = true, error = ex.Message }); }
+        catch { return Ok(new { existsInPlesk = false, pleskConfigured = true, error = "Plesk check failed." }); }
         return Ok(new { existsInPlesk = exists, pleskConfigured = true });
     }
 
@@ -695,7 +695,7 @@ public class ClubWebsitesController : ControllerBase
         catch (Exception ex)
         {
             await LogAction(conn, id, "PleskAliasFailed", ex.Message, userId);
-            return new ProvisionResult(false, $"Adding the domain application failed: {ex.Message}", steps);
+            return new ProvisionResult(false, "Adding the domain application failed.", steps);
         }
     }
 
@@ -842,7 +842,7 @@ public class ClubWebsitesController : ControllerBase
         catch (Exception ex)
         {
             await LogAction(conn, id, "PleskCertRetryFailed", ex.Message, userId);
-            return BadRequest(new { message = $"Cert assignment failed: {ex.Message}" });
+            return BadRequest(new { message = "Cert assignment failed." });
         }
     }
 
@@ -861,7 +861,7 @@ public class ClubWebsitesController : ControllerBase
             var dump = await _plesk.DiagnosticSubdomainAsync(lbl);
             return Content(dump, "text/plain");
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is InvalidOperationException or ArgumentException)
         {
             return BadRequest(new { message = ex.Message });
         }
@@ -878,7 +878,7 @@ public class ClubWebsitesController : ControllerBase
             var (req, res) = await _plesk.DiagnosticRawAsync(type);
             return Ok(new { type, request = req, response = res });
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is InvalidOperationException or ArgumentException)
         {
             return BadRequest(new { message = ex.Message });
         }
@@ -895,7 +895,7 @@ public class ClubWebsitesController : ControllerBase
             var list = await _plesk.ListAllSubdomainsAsync();
             return Ok(new { count = list.Count, subdomains = list.Select(x => new { name = x.Name, id = x.Id }) });
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is InvalidOperationException or ArgumentException)
         {
             return BadRequest(new { message = $"List failed: {ex.Message}" });
         }
@@ -925,7 +925,7 @@ public class ClubWebsitesController : ControllerBase
             await _plesk.DeleteSubdomainAsync(label);
             return Ok(new { success = true, message = $"Deleted '{label}.{_pleskParentDomain}' from Plesk." });
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is InvalidOperationException or ArgumentException)
         {
             return BadRequest(new { message = $"Force-delete failed: {ex.Message}" });
         }
@@ -942,7 +942,7 @@ public class ClubWebsitesController : ControllerBase
             await _plesk.TestConnectionAsync();
             return Ok(new { success = true, message = "Plesk connection OK." });
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is InvalidOperationException or ArgumentException)
         {
             return BadRequest(new { message = $"Plesk test failed: {ex.Message}" });
         }

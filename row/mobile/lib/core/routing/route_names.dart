@@ -9,6 +9,14 @@ class RouteNames {
   static const String login = mobileLogin;
   static const String forgotPassword = '/forgot-password';
   static const String myData = '/settings/my-data';
+  // Member's own items (N3, N4): the paths match the admin's so the volunteers switch hides them
+  static const String volunteers = '/volunteers';
+  static const String myDuties = '/volunteers/duties';
+  static const String inviteGuest = '/invite-guest';
+  static const String chat = '/chat';
+  static const String nextYear = '/planning';
+  static const String commsPreferences = '/settings/communication';
+  static const String myDesignations = '/me/foundation-designations';
   static const String resetPassword = '/reset-password';
   static const String home = '/home';
 

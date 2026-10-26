@@ -60,7 +60,7 @@ public class ClubMassEmailsController : ControllerBase
             var id = await _service.CreateAsync(clubId, dto, GetUserId());
             return Ok(new { id, message = "Mass email created successfully." });
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is InvalidOperationException or ArgumentException) // validation text only; anything else is a generic 500
         {
             return BadRequest(new { message = ex.Message });
         }
@@ -75,7 +75,7 @@ public class ClubMassEmailsController : ControllerBase
             await _service.UpdateAsync(id, dto, GetUserId());
             return Ok(new { message = "Mass email updated successfully." });
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is InvalidOperationException or ArgumentException) // validation text only; anything else is a generic 500
         {
             return BadRequest(new { message = ex.Message });
         }
@@ -90,7 +90,7 @@ public class ClubMassEmailsController : ControllerBase
             await _service.DeleteAsync(id, GetUserId());
             return Ok(new { message = "Mass email deleted successfully." });
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is InvalidOperationException or ArgumentException) // validation text only; anything else is a generic 500
         {
             return BadRequest(new { message = ex.Message });
         }
@@ -105,7 +105,7 @@ public class ClubMassEmailsController : ControllerBase
             await _service.SendAsync(id, GetUserId());
             return Ok(new { message = "Mass email is being sent." });
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is InvalidOperationException or ArgumentException) // validation text only; anything else is a generic 500
         {
             return BadRequest(new { message = ex.Message });
         }

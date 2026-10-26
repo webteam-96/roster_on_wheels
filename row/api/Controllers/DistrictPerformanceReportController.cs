@@ -55,7 +55,7 @@ public class DistrictPerformanceReportController : ControllerBase
             });
         }
         catch (KeyNotFoundException ex) { return NotFound(new { message = ex.Message }); }
-        catch (Exception ex) { return BadRequest(new { message = $"Failed to build the report: {ex.Message}" }); }
+        catch (Exception ex) when (ex is InvalidOperationException or ArgumentException) { return BadRequest(new { message = $"Failed to build the report: {ex.Message}" }); }
     }
 
     [HttpGet("api/district-performance-report/excel")]
@@ -69,7 +69,7 @@ public class DistrictPerformanceReportController : ControllerBase
             return File(r.Excel!, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", r.FileName);
         }
         catch (KeyNotFoundException ex) { return NotFound(new { message = ex.Message }); }
-        catch (Exception ex) { return BadRequest(new { message = $"Failed to build the Excel: {ex.Message}" }); }
+        catch (Exception ex) when (ex is InvalidOperationException or ArgumentException) { return BadRequest(new { message = $"Failed to build the Excel: {ex.Message}" }); }
     }
 
     // Sends to the TEST recipients only (never to the DG) — for checking before go-live.
@@ -84,6 +84,6 @@ public class DistrictPerformanceReportController : ControllerBase
             return Ok(new { message });
         }
         catch (KeyNotFoundException ex) { return NotFound(new { message = ex.Message }); }
-        catch (Exception ex) { return BadRequest(new { message = $"Failed to send the test email: {ex.Message}" }); }
+        catch (Exception ex) when (ex is InvalidOperationException or ArgumentException) { return BadRequest(new { message = $"Failed to send the test email: {ex.Message}" }); }
     }
 }

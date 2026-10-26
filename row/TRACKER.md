@@ -15,7 +15,7 @@ Stripe), **Removed**.
 | Area | Done | In progress | To do | Blocked / on hold |
 |---|---|---|---|---|
 | Existing modules, web (93 in scope) | 84 pages exist (+8 app-only, 1 removed) | Error crawl | Fix crawl findings (section 4) | 7 payment modules on hold |
-| Existing modules, mobile app | 59 | | 33 screens (section 3, "Build app screen"; mostly Super Admin tools) | 7 payment modules on hold |
+| Existing modules, mobile app | 59 | | none: the 28 Super Admin tools stay web-only (decision), duplicate check runs in the API | 7 payment modules on hold |
 | Skipped modules (14 sheet rows) | Removed completely (2026-10-22/23) | | Drop leftover objects on prod: `database/maintenance/2026-10-23-drop-removed-modules.sql`, user go-ahead | |
 | Phase 1 web hardening | 3 of 6 | 2 | 1 | |
 | New spec modules (section 5) | 10 web + API (flags off until a SuperAdmin turns them on) | | N7, N12, app screens | 12 items blocked (section 6) |
@@ -60,7 +60,7 @@ matched by screen names in `row/mobile`. Error crawl: result of `kb/tools/admin_
 | 2 | Communication | Club & District Calendar | In scope | App only | Exists | Done | Pending | Verify in crawl |
 | 3 | Communication | District Events | In scope | Done | Exists | Done | Pending | Verify in crawl |
 | 4 | Communication | Documents | In scope | Done | Exists | Done | Pending | Verify in crawl |
-| 5 | Communication | Login Announcement | In scope | Done | Exists | To do | Pending | Build app screen |
+| 5 | Communication | Login Announcement | In scope | Done | Exists | Web only (Super Admin tool) | Pending | Verify in crawl |
 | 6 | Communication | Mass Email | In scope | Done | Exists | Done | Pending | Verify in crawl |
 | 7 | Communication | Newsletters | In scope | Done | Exists | Done | Pending | Verify in crawl |
 | 8 | Communication | Notification & Privacy Settings | In scope | App only | Exists | Done | Pending | Verify in crawl |
@@ -73,7 +73,7 @@ matched by screen names in `row/mobile`. Error crawl: result of `kb/tools/admin_
 | 15 | Dashboard | District Dashboard (Overview) | In scope | Done | Exists | Done | Pending | Verify in crawl |
 | 16 | Dashboard | Login & Role-based Home | In scope | Done | Exists | Done | Pending | Verify in crawl |
 | 17 | Dashboard | Member Mobile Home | In scope | App only | Exists | Done | Pending | Verify in crawl |
-| 18 | Dashboard | SuperAdmin Settings Hub | In scope | Done | Exists | To do | Pending | Build app screen |
+| 18 | Dashboard | SuperAdmin Settings Hub | In scope | Done | Exists | Web only (Super Admin tool) | Pending | Verify in crawl |
 | 19 | E-Governance | AG Reports | In scope | Done | Exists | Done | Pending | Verify in crawl |
 | 20 | E-Governance | CMR Submission Email Settings | Flagged off | App only | Exists | Done | Pending | Verify in crawl |
 | 21 | E-Governance | Club Award Status & My Rotary Status | In scope | App only | Exists | Done | Pending | Verify in crawl |
@@ -83,21 +83,21 @@ matched by screen names in `row/mobile`. Error crawl: result of `kb/tools/admin_
 | 25 | E-Governance | District Awards (Citation) | In scope | Done | Exists | Done | Pending | Verify in crawl |
 | 26 | E-Governance | District Report | In scope | Done | Exists | Done | Pending | Verify in crawl |
 | 27 | E-Governance | OCV / Governor Visit | Flagged off | Done | Exists | Done | Pending | Verify in crawl |
-| 28 | Foundation/TRF | Foundation Data Import | In scope | Done | Exists | To do | Pending | Build app screen |
+| 28 | Foundation/TRF | Foundation Data Import | In scope | Done | Exists | Web only (Super Admin tool) | Pending | Verify in crawl |
 | 29 | Foundation/TRF | Foundation Goals | Flagged off | Done | Exists | Done | Pending | Verify in crawl |
 | 30 | Foundation/TRF | TRF Contributions | In scope | Done | Exists | Done | Pending | Verify in crawl |
 | 31 | Goal Setting | Club Goal Setting | In scope | Done | Exists | Done | Pending | Verify in crawl |
-| 32 | Goal Setting | District Goal Messages | In scope | Done | Exists | To do | Pending | Build app screen |
+| 32 | Goal Setting | District Goal Messages | In scope | Done | Exists | Done | Pending | Verify in crawl |
 | 33 | Goal Setting | District Goal Setting | In scope | Done | Exists | Done | Pending | Verify in crawl |
 | 34 | Goal Setting | Goal Overview (Oversight) | In scope | Done | Exists | Done | Pending | Verify in crawl |
-| 35 | Goal Setting | Membership & Youth Goal Import | In scope | Done | Exists | To do | Pending | Build app screen |
+| 35 | Goal Setting | Membership & Youth Goal Import | In scope | Done | Exists | Web only (Super Admin tool) | Pending | Verify in crawl |
 | 36 | Goal Setting | Membership Goal | In scope | Done | Exists | Done | Pending | Verify in crawl |
-| 37 | Logs | Audit Log | In scope | Done | Exists | To do | Pending | Build app screen |
-| 38 | Logs | Email Log | In scope | Done | Exists | To do | Pending | Build app screen |
-| 39 | Logs | Login Logs | In scope | Done | Exists | To do | Pending | Build app screen |
-| 40 | Logs | Push Notification Logs | In scope | Done | Exists | To do | Pending | Build app screen |
+| 37 | Logs | Audit Log | In scope | Done | Exists | Web only (Super Admin tool) | Pending | Verify in crawl |
+| 38 | Logs | Email Log | In scope | Done | Exists | Web only (Super Admin tool) | Pending | Verify in crawl |
+| 39 | Logs | Login Logs | In scope | Done | Exists | Web only (Super Admin tool) | Pending | Verify in crawl |
+| 40 | Logs | Push Notification Logs | In scope | Done | Exists | Web only (Super Admin tool) | Pending | Verify in crawl |
 | 41 | Logs | WhatsApp Log | Removed (no WhatsApp) | Removed | Removed | Removed | Pending | Done |
-| 42 | Membership | Add / Edit Member | In scope | Done | Exists | To do | Pending | Build app screen |
+| 42 | Membership | Add / Edit Member | In scope | Done | Exists | Done | Pending | Verify in crawl |
 | 43 | Membership | Assistant Governor Assignment | In scope | Done | Exists | Done | Pending | Verify in crawl |
 | 44 | Membership | Attendance | In scope | Done | Exists | Done | Pending | Verify in crawl |
 | 45 | Membership | Board of Directors | In scope | Done | Exists | Done | Pending | Verify in crawl |
@@ -105,11 +105,11 @@ matched by screen names in `row/mobile`. Error crawl: result of `kb/tools/admin_
 | 47 | Membership | Club Moderator Assignment | In scope | Done | Exists | Done | Pending | Verify in crawl |
 | 48 | Membership | Clubs Management | In scope | Done | Exists | Done | Pending | Verify in crawl |
 | 49 | Membership | District Committee | In scope | Done | Exists | Done | Pending | Verify in crawl |
-| 50 | Membership | Duplicate Member Check | In scope | Done | Exists | To do | Pending | Build app screen |
+| 50 | Membership | Duplicate Member Check | In scope | Done | Exists | Done (the API check also runs on app adds) | Pending | Verify in crawl |
 | 51 | Membership | Global Member Search | In scope | Done | Exists | Done | Pending | Verify in crawl |
-| 52 | Membership | Global Search | In scope | Done | Exists | To do | Pending | Build app screen |
+| 52 | Membership | Global Search | In scope | Done | Exists | Web only (Super Admin tool) | Pending | Verify in crawl |
 | 53 | Membership | Greetings (Birthdays & Anniversaries) | In scope | Done | Exists | Done | Pending | Verify in crawl |
-| 54 | Membership | Honorary Members | In scope | Done | Exists | To do | Pending | Build app screen |
+| 54 | Membership | Honorary Members | In scope | Done | Exists | Done | Pending | Verify in crawl |
 | 55 | Membership | Members Directory | In scope | Done | Exists | Done | Pending | Verify in crawl |
 | 56 | Membership | Membership Analytics | In scope | Done | Exists | Done | Pending | Verify in crawl |
 | 57 | Membership | My Profile | In scope | App only | Exists | Done | Pending | Verify in crawl |
@@ -117,7 +117,7 @@ matched by screen names in `row/mobile`. Error crawl: result of `kb/tools/admin_
 | 59 | Membership | Potential Members | In scope | App only | Exists | Done | Pending | Verify in crawl |
 | 60 | Membership | Rotary Network | In scope | Done | Exists | Done | Pending | Verify in crawl |
 | 61 | Membership | Zones Management | In scope | Done | Exists | Done | Pending | Verify in crawl |
-| 62 | Payments & Dues | Credit Management | In scope | Done | Exists | To do | Pending | Build app screen |
+| 62 | Payments & Dues | Credit Management | In scope | Done | Exists | Web only (Super Admin tool) | Pending | Verify in crawl |
 | 63 | Payments & Dues | District Dues | On hold (payments) | Done | Exists | Done | Pending | Wait for Stripe |
 | 64 | Payments & Dues | Dues Approval | On hold (payments) | Done | Exists | Done | Pending | Wait for Stripe |
 | 65 | Payments & Dues | Event Payment Links | On hold (payments) | Done | Exists | Done | Pending | Wait for Stripe |
@@ -125,29 +125,29 @@ matched by screen names in `row/mobile`. Error crawl: result of `kb/tools/admin_
 | 67 | Payments & Dues | My Membership Dues | On hold (payments) | Done | Exists | Done | Pending | Wait for Stripe |
 | 68 | Payments & Dues | Payment Gateway Setup | On hold (payments) | Done | Exists | To do | Pending | Wait for Stripe |
 | 69 | Payments & Dues | Wallet & Credits | On hold (payments) | Done | Exists | Done | Pending | Wait for Stripe |
-| 70 | Reports | Daily Stats Report | In scope | Done | Exists | To do | Pending | Build app screen |
-| 71 | Reports | District Performance Report | In scope | Done | Exists | To do | Pending | Build app screen |
-| 72 | Reports | Platform Reports | In scope | Done | Exists | To do | Pending | Build app screen |
+| 70 | Reports | Daily Stats Report | In scope | Done | Exists | Web only (Super Admin tool) | Pending | Verify in crawl |
+| 71 | Reports | District Performance Report | In scope | Done | Exists | Web only (Super Admin tool) | Pending | Verify in crawl |
+| 72 | Reports | Platform Reports | In scope | Done | Exists | Web only (Super Admin tool) | Pending | Verify in crawl |
 | 73 | Service Projects | Avenues of Service | In scope | Done | Exists | Done | Pending | Verify in crawl |
 | 74 | Service Projects | District Projects | In scope | Done | Exists | Done | Pending | Verify in crawl |
-| 75 | Service Projects | Project Categorization & Area of Focus | In scope | Done | Exists | To do | Pending | Build app screen |
-| 76 | Service Projects | Public Image Initiatives | In scope | Done | Exists | To do | Pending | Build app screen |
-| 77 | Service Projects | Rotary.org Project Sync | In scope | Done | Exists | To do | Pending | Build app screen |
+| 75 | Service Projects | Project Categorization & Area of Focus | In scope | Done | Exists | Web only (Super Admin tool) | Pending | Verify in crawl |
+| 76 | Service Projects | Public Image Initiatives | In scope | Done | Exists | Done | Pending | Verify in crawl |
+| 77 | Service Projects | Rotary.org Project Sync | In scope | Done | Exists | Web only (Super Admin tool) | Pending | Verify in crawl |
 | 78 | Service Projects | Service Projects | In scope | Done | Exists | Done | Pending | Verify in crawl |
-| 79 | Settings/Masters | Club & District Module Assignment | In scope | Done | Exists | To do | Pending | Build app screen |
-| 80 | Settings/Masters | Currency & Funding | In scope | Done | Exists | To do | Pending | Build app screen |
-| 81 | Settings/Masters | Designations | In scope | Done | Exists | To do | Pending | Build app screen |
-| 82 | Settings/Masters | District Governor / Intl President / RI Director Masters | In scope | Done | Exists | To do | Pending | Build app screen |
-| 83 | Settings/Masters | Event Masters | In scope | Done | Exists | To do | Pending | Build app screen |
-| 84 | Settings/Masters | Mobile App Version & Maintenance | In scope | Done | Exists | To do | Pending | Build app screen |
-| 85 | Settings/Masters | Module Master & Categories | In scope | Done | Exists | To do | Pending | Build app screen |
-| 86 | Settings/Masters | Rotary Years | In scope | Done | Exists | To do | Pending | Build app screen |
-| 87 | Settings/Masters | Rotary.org Sync | In scope | Done | Exists | To do | Pending | Build app screen |
-| 88 | Settings/Masters | Static Pages (About, Contact, Tutorial) | In scope | Done | Exists | To do | Pending | Build app screen |
-| 89 | Settings/Masters | Super Admin Role Config | In scope | Done | Exists | To do | Pending | Build app screen |
+| 79 | Settings/Masters | Club & District Module Assignment | In scope | Done | Exists | Web only (Super Admin tool) | Pending | Verify in crawl |
+| 80 | Settings/Masters | Currency & Funding | In scope | Done | Exists | Web only (Super Admin tool) | Pending | Verify in crawl |
+| 81 | Settings/Masters | Designations | In scope | Done | Exists | Web only (Super Admin tool) | Pending | Verify in crawl |
+| 82 | Settings/Masters | District Governor / Intl President / RI Director Masters | In scope | Done | Exists | Web only (Super Admin tool) | Pending | Verify in crawl |
+| 83 | Settings/Masters | Event Masters | In scope | Done | Exists | Web only (Super Admin tool) | Pending | Verify in crawl |
+| 84 | Settings/Masters | Mobile App Version & Maintenance | In scope | Done | Exists | Web only (Super Admin tool) | Pending | Verify in crawl |
+| 85 | Settings/Masters | Module Master & Categories | In scope | Done | Exists | Web only (Super Admin tool) | Pending | Verify in crawl |
+| 86 | Settings/Masters | Rotary Years | In scope | Done | Exists | Web only (Super Admin tool) | Pending | Verify in crawl |
+| 87 | Settings/Masters | Rotary.org Sync | In scope | Done | Exists | Web only (Super Admin tool) | Pending | Verify in crawl |
+| 88 | Settings/Masters | Static Pages (About, Contact, Tutorial) | In scope | Done | Exists | Web only (Super Admin tool) | Pending | Verify in crawl |
+| 89 | Settings/Masters | Super Admin Role Config | In scope | Done | Exists | Web only (Super Admin tool) | Pending | Verify in crawl |
 | 90 | Website | Club Website | In scope | Done | Exists | Done | Pending | Verify in crawl |
 | 91 | Website | District Website | In scope | Done | Exists | Done | Pending | Verify in crawl |
-| 92 | Website | Website Management (All) | In scope | Done | Exists | To do | Pending | Build app screen |
+| 92 | Website | Website Management (All) | In scope | Done | Exists | Web only (Super Admin tool) | Pending | Verify in crawl |
 | 93 | Website | Website Purchase & Themes | In scope | Done | Exists | Done | Pending | Verify in crawl |
 
 ## 4. Phase 1: web hardening (in progress)
@@ -178,17 +178,17 @@ Web = admin pages + public sites. All To do unless noted.
 
 | # | Module | Spec | API | DB | Web | Mobile app | Notes |
 |---|---|---|---|---|---|---|---|
-| N1 | Membership fields: designations, duplicate check, sub-committees | 3.12, #9 | Done 2026-10-23 | Done 2026-10-23 | Done 2026-10-23 | To do (API ready) | designations entered by hand until RI access |
-| N2 | Grants | 3.8, #17 | Done 2026-10-23 | Done 2026-10-23 | Done 2026-10-23 | To do (API ready) | |
-| N3 | Contacts, prospects, growth, invite prompts | 3.13, #18, #33, #34 | Done 2026-10-23 | Done 2026-10-23 | Done 2026-10-23 | To do (API ready) | join form as a plain form until C8 |
-| N4 | Volunteers and speakers | 3.13, #20 | Done 2026-10-23 | Done 2026-10-23 | Done 2026-10-23 | To do (API ready) | |
-| N5 | Communication upgrades, member language, Governor note | 3.10, #7, #24, #25 | Done 2026-10-23 | Done 2026-10-23 | Done 2026-10-23 | To do (API ready) | Brevo webhook |
+| N1 | Membership fields: designations, duplicate check, sub-committees | 3.12, #9 | Done 2026-10-23 | Done 2026-10-23 | Done 2026-10-23 | Done 2026-10-26 (my designations, read-only) | designations entered by hand until RI access |
+| N2 | Grants | 3.8, #17 | Done 2026-10-23 | Done 2026-10-23 | Done 2026-10-23 | Done 2026-10-26 (club grant applications: new, edit, submit, comments) | |
+| N3 | Contacts, prospects, growth, invite prompts | 3.13, #18, #33, #34 | Done 2026-10-23 | Done 2026-10-23 | Done 2026-10-23 | Done 2026-10-26 (prospect stage + notes, guest invite link) | join form as a plain form until C8 |
+| N4 | Volunteers and speakers | 3.13, #20 | Done 2026-10-23 | Done 2026-10-23 | Done 2026-10-23 | Done 2026-10-26 (volunteer sign-up, my meeting duties, club speakers) | |
+| N5 | Communication upgrades, member language, Governor note | 3.10, #7, #24, #25 | Done 2026-10-23 | Done 2026-10-23 | Done 2026-10-23 | Done 2026-10-26 (email / push consent; language choice with N13) | Brevo webhook |
 | N6 | Multilingual websites, Rotaract template, RI themes | 3.11, #8 | Done 2026-10-23 | Done 2026-10-23 | Done 2026-10-23 | n/a | |
-| N7 | Planning mode without RI or payment | 3.1, #1, #5 | Done 2026-10-23 | Done 2026-10-23 | Done 2026-10-23 | To do (API ready) | flag planning_mode; cut-over RI steps stubbed |
-| N8 | Meetings: pasted links, calendar, compliance | 3.17, #23, #31 | Done 2026-10-23 | Done 2026-10-23 | Done 2026-10-23 | To do (API ready) | Zoom / Google blocked |
-| N9 | Engagement: milestones, PHF, spotlight, escalation, celebration | B.2-B.4 | Done 2026-10-23 | Done 2026-10-23 | Done 2026-10-23 | To do (API ready) | feed + email; push blocked |
-| N10 | Live target dashboard | B.3, #30 | Done 2026-10-23 | n/a | Done 2026-10-23 | To do (API ready) | lock flow red on the sheet |
-| N11 | Chat | 3.10, #19 | Done 2026-10-23 | Done 2026-10-23 | moderation only | To do (API ready) | |
+| N7 | Planning mode without RI or payment | 3.1, #1, #5 | Done 2026-10-23 | Done 2026-10-23 | Done 2026-10-23 | Done 2026-10-26 (next-year workspace, read-only) | flag planning_mode; cut-over RI steps stubbed |
+| N8 | Meetings: pasted links, calendar, compliance | 3.17, #23, #31 | Done 2026-10-23 | Done 2026-10-23 | Done 2026-10-23 | Done 2026-10-26 (calendar feed link) | Zoom / Google blocked |
+| N9 | Engagement: milestones, PHF, spotlight, escalation, celebration | B.2-B.4 | Done 2026-10-23 | Done 2026-10-23 | Done 2026-10-23 | Done 2026-10-26 (highlights, celebrations, follow-ups labelled in the feed) | feed + email; push blocked |
+| N10 | Live target dashboard | B.3, #30 | Done 2026-10-23 | n/a | Done 2026-10-23 | Done 2026-10-26 (club + district targets) | lock flow red on the sheet |
+| N11 | Chat | 3.10, #19 | Done 2026-10-23 | Done 2026-10-23 | moderation only | Done 2026-10-26 (direct + group chats, polling every 5 s, report) | |
 | N12 | Time zones and formats (district zone, UTC, no IST) | guide pkg 4 | Done 2026-10-23 | Done 2026-10-23 | Done 2026-10-23 | Done (dates in device locale) | meeting forms still send wall-clock times (shortcut) |
 | N13 | App language switch through the translation API | 3.3, guide pkg 13 | n/a | n/a | Done (live translation) | To do | user picks the provider |
 
@@ -215,7 +215,7 @@ Web = admin pages + public sites. All To do unless noted.
 | Privacy: export, erasure, consent, audit | Done |
 | Rotary.org sync from configuration | Done (2026-10-21) |
 | Phone E.164 | Done |
-| Locale, time zone, currency | To do (N12) |
+| Locale, time zone, currency | Done (N12, 2026-10-23) |
 | App build and store listings | To do |
 | Smoke suites for regression | To do |
 | Prod schema catch-up (5 tables the code has, prod lacks) | To do, with the next deploy |

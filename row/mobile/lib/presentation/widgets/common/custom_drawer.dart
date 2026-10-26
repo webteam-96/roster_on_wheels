@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import '../../../core/constants/api_constants.dart';
+import '../../../core/features/feature_controller.dart';
 import '../../../core/security/biometric_controller.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_gradients.dart';
@@ -18,8 +19,10 @@ class _DrawerItem {
   final IconData icon;
   final String route;
   final bool superAdminOnly;
+  /// Open on top of the current screen so its app bar offers back (the member's own screens have no other way out).
+  final bool push;
 
-  const _DrawerItem(this.title, this.icon, this.route, {this.superAdminOnly = false});
+  const _DrawerItem(this.title, this.icon, this.route, {this.superAdminOnly = false, this.push = false});
 }
 
 // One entry-point to /settings — that screen now hosts Theme, Font, App Lock,
@@ -27,6 +30,16 @@ class _DrawerItem {
 const _settingsItems = [
   _DrawerItem('Settings', Icons.settings_rounded, RouteNames.settings,
       superAdminOnly: false),
+];
+
+// The member's own items; each shows only while its module switch is on (FeatureController).
+const _meItems = [
+  (feature: 'planning_mode', item: _DrawerItem('Next year', Icons.event_repeat_outlined, RouteNames.nextYear, push: true)),
+  (feature: 'chat', item: _DrawerItem('Chat', Icons.chat_bubble_outline, RouteNames.chat, push: true)),
+  (feature: 'membership_fields', item: _DrawerItem('My Foundation designations', Icons.workspace_premium_outlined, RouteNames.myDesignations, push: true)),
+  (feature: 'volunteers', item: _DrawerItem('Volunteering', Icons.volunteer_activism_outlined, RouteNames.volunteers, push: true)),
+  (feature: 'volunteers', item: _DrawerItem('My meeting duties', Icons.assignment_ind_outlined, RouteNames.myDuties, push: true)),
+  (feature: 'contacts_growth', item: _DrawerItem('Invite a guest', Icons.group_add_outlined, RouteNames.inviteGuest, push: true)),
 ];
 
 const _supportItems = [
@@ -39,6 +52,7 @@ class CustomDrawer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final auth = context.watch<AuthProvider>();
+    final features = context.watch<FeatureController>();
     final currentRoute = GoRouterState.of(context).uri.toString();
 
     return Drawer(
@@ -62,7 +76,8 @@ class CustomDrawer extends StatelessWidget {
               width: double.infinity,
               padding: const EdgeInsets.fromLTRB(AppSpacing.lg, 60, AppSpacing.lg, AppSpacing.lg),
               decoration: BoxDecoration(
-                gradient: AppGradients.royalSweep,
+                gradient: AppGradients.royalSweep,
+
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -75,7 +90,8 @@ class CustomDrawer extends StatelessWidget {
                         height: 68,
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
-                          border: Border.all(color: AppColors.white.withOpacity(0.5), width: 3),
+                          border: Border.all(color: AppColors.white.withOpacity(0.5), width: 3),
+
                         ),
                         child: ClipOval(
                           child: _buildAvatarContent(auth),
@@ -100,7 +116,8 @@ class CustomDrawer extends StatelessWidget {
                               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                               decoration: BoxDecoration(
                                 color: AppColors.goldPrime,
-                                borderRadius: BorderRadius.circular(20),
+                                borderRadius: BorderRadius.circular(20),
+
                               ),
                               child: Text(
                                 'VIEW PROFILE',
@@ -160,6 +177,11 @@ class CustomDrawer extends StatelessWidget {
                 _buildSectionLabel('Preferences'),
                 ..._settingsItems
                     .map((item) => _buildItem(context, item, currentRoute)),
+                if (_meItems.any((m) => features.isOn(m.feature))) ...[
+                  _buildSectionLabel('Me'),
+                  for (final m in _meItems)
+                    if (features.isOn(m.feature)) _buildItem(context, m.item, currentRoute),
+                ],
                 _buildSectionLabel('Support'),
                 ..._supportItems
                     .map((item) => _buildItem(context, item, currentRoute)),
@@ -364,7 +386,7 @@ class CustomDrawer extends StatelessWidget {
         horizontalTitleGap: 12,
         onTap: () {
           Navigator.of(context).pop();
-          context.go(item.route);
+          item.push ? context.push(item.route) : context.go(item.route);
         },
       ),
     );

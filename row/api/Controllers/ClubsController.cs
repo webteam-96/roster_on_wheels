@@ -183,7 +183,7 @@ public class ClubsController : ControllerBase
             await _auditLog.LogAsync(GetCurrentMemberId(), "CREATE", "club", id, dto.ClubName, dto, HttpContext);
             return CreatedAtAction(nameof(GetById), new { id }, new { id });
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is InvalidOperationException or ArgumentException)
         {
             return Conflict(new { message = ex.Message });
         }
@@ -205,7 +205,7 @@ public class ClubsController : ControllerBase
             await _auditLog.LogAsync(GetCurrentMemberId(), "UPDATE", "club", id, dto.ClubName, dto, HttpContext);
             return NoContent();
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is InvalidOperationException or ArgumentException)
         {
             return Conflict(new { message = ex.Message });
         }
@@ -241,7 +241,7 @@ public class ClubsController : ControllerBase
             var memberId = await _clubService.AddMemberAsync(id, dto, GetCurrentMemberId());
             return Ok(new { id = memberId });
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is InvalidOperationException or ArgumentException)
         {
             return Conflict(new { message = ex.Message });
         }

@@ -478,7 +478,7 @@ public class DistrictWebsitesController : ControllerBase
         catch (Exception ex)
         {
             await LogAction(conn, id, "PleskCertRetryFailed", ex.Message, userId);
-            return BadRequest(new { message = $"Cert assignment failed: {ex.Message}" });
+            return BadRequest(new { message = "Cert assignment failed." });
         }
     }
 
@@ -500,7 +500,7 @@ public class DistrictWebsitesController : ControllerBase
             await _plesk.DeleteSubdomainAsync(label);
             return Ok(new { success = true, message = $"Deleted '{label}.{_pleskParentDomain}' from Plesk." });
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is InvalidOperationException or ArgumentException)
         {
             return BadRequest(new { message = $"Force-delete failed: {ex.Message}" });
         }
@@ -512,7 +512,7 @@ public class DistrictWebsitesController : ControllerBase
         if (!IsSuperAdmin()) return Forbid();
         if (!_plesk.IsConfigured) return BadRequest(new { message = "Plesk is not configured." });
         try { await _plesk.TestConnectionAsync(); return Ok(new { success = true, message = "Plesk connection OK." }); }
-        catch (Exception ex) { return BadRequest(new { message = $"Plesk test failed: {ex.Message}" }); }
+        catch (Exception ex) when (ex is InvalidOperationException or ArgumentException) { return BadRequest(new { message = $"Plesk test failed: {ex.Message}" }); }
     }
 
     [HttpGet("plesk/list-subdomains")]
@@ -525,7 +525,7 @@ public class DistrictWebsitesController : ControllerBase
             var list = await _plesk.ListAllSubdomainsAsync();
             return Ok(new { count = list.Count, subdomains = list.Select(x => new { name = x.Name, id = x.Id }) });
         }
-        catch (Exception ex) { return BadRequest(new { message = $"List failed: {ex.Message}" }); }
+        catch (Exception ex) when (ex is InvalidOperationException or ArgumentException) { return BadRequest(new { message = $"List failed: {ex.Message}" }); }
     }
 
     private async Task<ActionResult> PerformActivationAsync(int id, bool skipPlesk, string logAction)
@@ -614,7 +614,7 @@ public class DistrictWebsitesController : ControllerBase
                 await conn.ExecuteAsync(
                     "UPDATE district_websites SET Status = 'ActivationFailed', modified_by = @U WHERE pk_id = @Id",
                     new { Id = id, U = userId });
-                return BadRequest(new { message = $"Plesk activation failed: {ex.Message}", pleskStepsDone });
+                return BadRequest(new { message = "Plesk activation failed.", pleskStepsDone });
             }
         }
         else if (!skipPlesk && !_plesk.IsConfigured)

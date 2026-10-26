@@ -182,7 +182,7 @@ public class PublicOcvLiveDocumentsController : ControllerBase
                 .Replace(" ", "_").Replace("/", "-");
             return File(bytes, "application/vnd.openxmlformats-officedocument.wordprocessingml.document", fileName);
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is InvalidOperationException or ArgumentException)
         {
             return StatusCode(500, new { message = $"Failed to generate Word report: {ex.Message}" });
         }

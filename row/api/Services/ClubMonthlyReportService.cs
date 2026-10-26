@@ -470,7 +470,7 @@ public class ClubMonthlyReportService : IClubMonthlyReportService
             throw new Exception($"[Step1-QueryReport] {ex.Message}", ex);
         }
 
-        if (report == null) throw new Exception($"Report not found for club={clubId}, year={yearId}, month={month}");
+        if (report == null) throw new InvalidOperationException($"Report not found for club={clubId}, year={yearId}, month={month}");
 
         int reportId;
         try { reportId = (int)report.pk_report_id; }

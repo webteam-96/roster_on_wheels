@@ -188,6 +188,7 @@ public class DistrictModulesController : ControllerBase
     }
 
     [HttpPut("api/districts/{districtId}/upcoming-events/{id}")]
+    [OwnedBy(Owns.DistrictEvent, "id", "districtId")]
     public async Task<ActionResult> UpdateDistrictEvent(int districtId, int id, [FromBody] UpdateUpcomingEventDto dto)
     {
         await _eventService.UpdateAsync(id, dto, GetUserId());
@@ -195,6 +196,7 @@ public class DistrictModulesController : ControllerBase
     }
 
     [HttpDelete("api/districts/{districtId}/upcoming-events/{id}")]
+    [OwnedBy(Owns.DistrictEvent, "id", "districtId")]
     public async Task<ActionResult> DeleteDistrictEvent(int districtId, int id)
     {
         await _eventService.DeleteAsync(id, GetUserId());
@@ -248,6 +250,7 @@ public class DistrictModulesController : ControllerBase
     }
 
     [HttpPut("api/districts/{districtId}/announcements/{id}")]
+    [OwnedBy(Owns.DistrictAnnouncement, "id", "districtId")]
     public async Task<ActionResult> UpdateDistrictAnnouncement(int districtId, int id, [FromBody] UpdateAnnouncementDto dto)
     {
         await _announcementService.UpdateAsync(id, dto, GetUserId());
@@ -255,6 +258,7 @@ public class DistrictModulesController : ControllerBase
     }
 
     [HttpDelete("api/districts/{districtId}/announcements/{id}")]
+    [OwnedBy(Owns.DistrictAnnouncement, "id", "districtId")]
     public async Task<ActionResult> DeleteDistrictAnnouncement(int districtId, int id)
     {
         await _announcementService.DeleteAsync(id, GetUserId());
@@ -308,6 +312,7 @@ public class DistrictModulesController : ControllerBase
     }
 
     [HttpPut("api/districts/{districtId}/newsletters/{id}")]
+    [OwnedBy(Owns.DistrictNewsletter, "id", "districtId")]
     public async Task<ActionResult> UpdateDistrictNewsletter(int districtId, int id, [FromBody] UpdateNewsletterDto dto)
     {
         await _newsletterService.UpdateAsync(id, dto, GetUserId());
@@ -315,6 +320,7 @@ public class DistrictModulesController : ControllerBase
     }
 
     [HttpDelete("api/districts/{districtId}/newsletters/{id}")]
+    [OwnedBy(Owns.DistrictNewsletter, "id", "districtId")]
     public async Task<ActionResult> DeleteDistrictNewsletter(int districtId, int id)
     {
         await _newsletterService.DeleteAsync(id, GetUserId());
@@ -379,6 +385,7 @@ public class DistrictModulesController : ControllerBase
     }
 
     [HttpPut("api/districts/{districtId}/documents/{id}")]
+    [OwnedBy(Owns.DistrictDocument, "id", "districtId")]
     public async Task<ActionResult> UpdateDistrictDocument(int districtId, int id, [FromBody] UpdateDocumentDto dto)
     {
         await _documentService.UpdateAsync(id, dto, GetUserId());
@@ -386,6 +393,7 @@ public class DistrictModulesController : ControllerBase
     }
 
     [HttpDelete("api/districts/{districtId}/documents/{id}")]
+    [OwnedBy(Owns.DistrictDocument, "id", "districtId")]
     public async Task<ActionResult> DeleteDistrictDocument(int districtId, int id)
     {
         await _documentService.DeleteAsync(id, GetUserId());
@@ -544,6 +552,7 @@ public class DistrictModulesController : ControllerBase
     }
 
     [HttpDelete("api/districts/{districtId}/weblinks/{weblinkId}")]
+    [OwnedBy(Owns.DistrictWeblink, "weblinkId", "districtId")]
     public async Task<ActionResult> DeleteDistrictWeblink(int districtId, int weblinkId)
     {
         await _weblinkService.DeleteWeblinkAsync(weblinkId, GetUserId());
@@ -551,6 +560,7 @@ public class DistrictModulesController : ControllerBase
     }
 
     [HttpPut("api/districts/{districtId}/weblinks/{weblinkId}/toggle-active")]
+    [OwnedBy(Owns.DistrictWeblink, "weblinkId", "districtId")]
     public async Task<ActionResult> ToggleDistrictWeblinkActive(int districtId, int weblinkId)
     {
         await _weblinkService.ToggleActiveAsync(weblinkId, GetUserId());
@@ -592,21 +602,36 @@ public class DistrictModulesController : ControllerBase
         }
     }
 
+    // District sub group members must be members of the district's clubs (ids come from the request body; former members stay valid on edit).
+    private async Task<bool> SubGroupMembersInDistrictAsync(int districtId, List<int>? memberIds)
+    {
+        var ids = memberIds?.Distinct().ToList() ?? new List<int>();
+        if (ids.Count == 0) return true;
+        using var conn = CreateConnection();
+        return await conn.ExecuteScalarAsync<int>(
+            "SELECT COUNT(DISTINCT cm.fk_member_master_profile_id) FROM club_members cm JOIN club_master c ON c.pk_club_id = cm.fk_club_id WHERE c.fk_district_id = @D AND cm.fk_member_master_profile_id IN @Ids",
+            new { D = districtId, Ids = ids }) == ids.Count;
+    }
+
     [HttpPost("api/districts/{districtId}/sub-groups")]
     public async Task<ActionResult> CreateDistrictSubGroup(int districtId, [FromBody] CreateSubGroupDto dto)
     {
+        if (!await SubGroupMembersInDistrictAsync(districtId, dto.MemberIds)) return BadRequest(new { message = "Every member must belong to a club of this district." });
         var result = await _subGroupService.CreateSubGroupAsync(0, dto, GetUserId(), districtId);
         return Ok(result);
     }
 
     [HttpPut("api/districts/{districtId}/sub-groups/{subGroupId}")]
+    [OwnedBy(Owns.DistrictSubGroup, "subGroupId", "districtId")]
     public async Task<ActionResult> UpdateDistrictSubGroup(int districtId, int subGroupId, [FromBody] UpdateSubGroupDto dto)
     {
+        if (!await SubGroupMembersInDistrictAsync(districtId, dto.MemberIds)) return BadRequest(new { message = "Every member must belong to a club of this district." });
         var result = await _subGroupService.UpdateSubGroupAsync(subGroupId, dto, GetUserId());
         return Ok(result);
     }
 
     [HttpDelete("api/districts/{districtId}/sub-groups/{subGroupId}")]
+    [OwnedBy(Owns.DistrictSubGroup, "subGroupId", "districtId")]
     public async Task<ActionResult> DeleteDistrictSubGroup(int districtId, int subGroupId)
     {
         await _subGroupService.DeleteSubGroupAsync(subGroupId, GetUserId());
@@ -662,7 +687,7 @@ public class DistrictModulesController : ControllerBase
             var id = await _massEmailService.CreateAsync(0, dto, GetUserId(), districtId);
             return Ok(new { id, message = "Mass email created successfully." });
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is InvalidOperationException or ArgumentException) // validation text only; anything else is a generic 500
         {
             return BadRequest(new { message = ex.Message });
         }
@@ -677,7 +702,7 @@ public class DistrictModulesController : ControllerBase
             await _massEmailService.UpdateAsync(id, dto, GetUserId());
             return Ok(new { message = "Mass email updated successfully." });
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is InvalidOperationException or ArgumentException) // validation text only; anything else is a generic 500
         {
             return BadRequest(new { message = ex.Message });
         }
@@ -692,7 +717,7 @@ public class DistrictModulesController : ControllerBase
             await _massEmailService.DeleteAsync(id, GetUserId());
             return Ok(new { message = "Mass email deleted successfully." });
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is InvalidOperationException or ArgumentException) // validation text only; anything else is a generic 500
         {
             return BadRequest(new { message = ex.Message });
         }
@@ -707,7 +732,7 @@ public class DistrictModulesController : ControllerBase
             await _massEmailService.SendAsync(id, GetUserId());
             return Ok(new { message = "Mass email is being sent." });
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is InvalidOperationException or ArgumentException) // validation text only; anything else is a generic 500
         {
             return BadRequest(new { message = ex.Message });
         }
@@ -909,9 +934,9 @@ public class DistrictModulesController : ControllerBase
                 await _emailService.SendGenericEmailAsync((string)member.EmailId, subject, body);
             }
         }
-        catch (Exception ex)
+        catch
         {
-            return Ok(new { message = $"District Admin role assigned successfully. Email failed: {ex.Message}" });
+            return Ok(new { message = "District Admin role assigned successfully. The email could not be sent." });
         }
 
         return Ok(new { message = "District Admin role assigned successfully. Email sent." });
@@ -1186,6 +1211,16 @@ public class DistrictModulesController : ControllerBase
         return Ok(new { items, totalCount, page, pageSize });
     }
 
+    // A district project or event id from another district answers 404 (records live in year-wise tables).
+    private async Task<bool> DistrictRecordInYearAsync(int districtId, int yearId, int id)
+    {
+        using var conn = CreateConnection();
+        await conn.OpenAsync();
+        var info = await _yearTables.ResolveByYearIdAsync(conn, yearId);
+        return info != null && await conn.ExecuteScalarAsync<int?>(
+            $"SELECT 1 FROM `{info.ProjectsTable}` WHERE pk_project_id = @Id AND fk_district_id = @D LIMIT 1", new { Id = id, D = districtId }) == 1;
+    }
+
     [HttpGet("api/districts/{districtId}/projects/{yearId}/{id}")]
     public async Task<ActionResult> GetDistrictProject(int districtId, int yearId, int id)
     {
@@ -1351,7 +1386,7 @@ public class DistrictModulesController : ControllerBase
         {
             return BadRequest(new { message = ex.Message });
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is InvalidOperationException or ArgumentException)
         {
             return StatusCode(500, new { message = $"Failed: {ex.Message}", dtoTitle = dto?.Title, dtoDesc = dto?.Description });
         }
@@ -1360,6 +1395,7 @@ public class DistrictModulesController : ControllerBase
     [HttpPut("api/districts/{districtId}/projects/{yearId}/{id}")]
     public async Task<ActionResult> UpdateDistrictProject(int districtId, int yearId, int id, [FromBody] DistrictProjectDto dto)
     {
+        if (!await DistrictRecordInYearAsync(districtId, yearId, id)) return NotFound(new { message = "Not found." });
         if (dto.Photos == null || dto.Photos.Count == 0)
             return BadRequest(new { message = "At least 1 photo is required to save this project." });
         // Same year-table guard as create. See Services/ProjectDateValidator.
@@ -1582,6 +1618,7 @@ public class DistrictModulesController : ControllerBase
     [HttpPut("api/districts/{districtId}/district-events/{yearId}/{id}")]
     public async Task<ActionResult> UpdateDistrictEventItem(int districtId, int yearId, int id, [FromBody] DistrictEventDto dto)
     {
+        if (!await DistrictRecordInYearAsync(districtId, yearId, id)) return NotFound(new { message = "Not found." });
         if (dto.Photos == null || dto.Photos.Count == 0)
             return BadRequest(new { message = "At least 1 photo is required to save this event." });
         // Same year-table guard as create. See Services/ProjectDateValidator.
@@ -1723,6 +1760,7 @@ public class DistrictModulesController : ControllerBase
     [HttpPost("api/districts/{districtId}/projects/{yearId}/{id}/move")]
     public async Task<ActionResult> MoveDistrictProject(int districtId, int yearId, int id, [FromBody] DistrictProjectDto dto)
     {
+        if (!await DistrictRecordInYearAsync(districtId, yearId, id)) return NotFound(new { message = "Not found." });
         if (dto.Photos == null || dto.Photos.Count == 0)
             return BadRequest(new { message = "At least 1 photo is required to save this project." });
         if (string.IsNullOrWhiteSpace(dto.ProjectDate) || !DateTime.TryParse(dto.ProjectDate, out var parsed))
@@ -1778,16 +1816,17 @@ public class DistrictModulesController : ControllerBase
             await tx.CommitAsync();
             return Ok(new { message = $"District project moved to {tgt.YearLabel} successfully.", newYearId = toYearId, newId, newYearLabel = tgt.YearLabel });
         }
-        catch (Exception ex)
+        catch
         {
             try { await tx.RollbackAsync(); } catch { }
-            return BadRequest(new { message = ex.Message });
+            throw;
         }
     }
 
     [HttpPost("api/districts/{districtId}/district-events/{yearId}/{id}/move")]
     public async Task<ActionResult> MoveDistrictEvent(int districtId, int yearId, int id, [FromBody] DistrictEventDto dto)
     {
+        if (!await DistrictRecordInYearAsync(districtId, yearId, id)) return NotFound(new { message = "Not found." });
         if (dto.Photos == null || dto.Photos.Count == 0)
             return BadRequest(new { message = "At least 1 photo is required to save this event." });
         if (string.IsNullOrWhiteSpace(dto.EventDate) || !DateTime.TryParse(dto.EventDate, out var parsed))
@@ -1829,10 +1868,10 @@ public class DistrictModulesController : ControllerBase
             await tx.CommitAsync();
             return Ok(new { message = $"District event moved to {tgt.YearLabel} successfully.", newYearId = toYearId, newId, newYearLabel = tgt.YearLabel });
         }
-        catch (Exception ex)
+        catch
         {
             try { await tx.RollbackAsync(); } catch { }
-            return BadRequest(new { message = ex.Message });
+            throw;
         }
     }
 
@@ -2554,6 +2593,7 @@ public class DistrictModulesController : ControllerBase
     }
 
     [HttpPost("api/districts/{districtId}/website-data/menus/{menuId}/submenus")]
+    [OwnedBy(Owns.DistrictMenu, "menuId", "districtId")]
     public async Task<ActionResult> CreateDistrictSubMenu(int districtId, int menuId, [FromBody] DistrictSubMenuDto dto)
     {
         using var conn = CreateConnection();
@@ -2567,6 +2607,8 @@ public class DistrictModulesController : ControllerBase
     }
 
     [HttpPut("api/districts/{districtId}/website-data/menus/{menuId}/submenus/{id}")]
+    [OwnedBy(Owns.DistrictMenu, "menuId", "districtId")]
+    [OwnedBy(Owns.SubMenuInMenu, "id", "menuId")]
     public async Task<ActionResult> UpdateDistrictSubMenu(int districtId, int menuId, int id, [FromBody] DistrictSubMenuDto dto)
     {
         using var conn = CreateConnection();
@@ -2584,6 +2626,8 @@ public class DistrictModulesController : ControllerBase
     }
 
     [HttpDelete("api/districts/{districtId}/website-data/menus/{menuId}/submenus/{id}")]
+    [OwnedBy(Owns.DistrictMenu, "menuId", "districtId")]
+    [OwnedBy(Owns.SubMenuInMenu, "id", "menuId")]
     public async Task<ActionResult> DeleteDistrictSubMenu(int districtId, int menuId, int id)
     {
         using var conn = CreateConnection();
@@ -2598,6 +2642,7 @@ public class DistrictModulesController : ControllerBase
     }
 
     [HttpPost("api/districts/{districtId}/website-data/menus/{menuId}/submenus/reorder")]
+    [OwnedBy(Owns.DistrictMenu, "menuId", "districtId")]
     public async Task<ActionResult> ReorderDistrictSubMenus(int districtId, int menuId, [FromBody] DistrictReorderDto dto)
     {
         using var conn = CreateConnection();
@@ -2630,6 +2675,7 @@ public class DistrictModulesController : ControllerBase
     }
 
     [HttpPut("api/districts/{districtId}/website-data/menus/{menuId}/submenus/reorder-bulk")]
+    [OwnedBy(Owns.DistrictMenu, "menuId", "districtId")]
     public async Task<ActionResult> ReorderDistrictSubMenusBulk(int districtId, int menuId, [FromBody] DistrictBulkReorderDto dto)
     {
         using var conn = CreateConnection();
@@ -2823,6 +2869,8 @@ public class DistrictModulesController : ControllerBase
     // ══════════════════════════════════════════════════════════════════════
 
     [HttpGet("api/districts/{districtId}/clubs/{clubId}/member-detail/{memberId}")]
+    [OwnedBy(Owns.ClubInDistrict, "clubId", "districtId")]
+    [OwnedBy(Owns.MemberInClub, "memberId", "clubId")]
     public async Task<ActionResult> GetClubMemberDetail(int districtId, int clubId, int memberId)
     {
         if (!await RotaryApi.Services.KillSwitchHelper.IsClubDrillReachableAsync(_connectionString, clubId)) return StatusCode(403, new { message = "This club, its district, or its zone is inactive. Reactivate it first to access this data." });
@@ -3567,7 +3615,7 @@ public class DistrictModulesController : ControllerBase
         var credExists = await conn.ExecuteScalarAsync<int>("SELECT COUNT(*) FROM member_credentials WHERE fk_member_master_profile_id = @Id AND IsActive = 1 AND isdeleted = 0", new { Id = dto.MemberId });
         if (credExists == 0)
         {
-            tempPassword = "AG@" + new Random().Next(1000, 9999);
+            tempPassword = "AG@" + Convert.ToHexString(System.Security.Cryptography.RandomNumberGenerator.GetBytes(5));
             var hash = BCrypt.Net.BCrypt.HashPassword(tempPassword);
             var updated = await conn.ExecuteAsync("UPDATE member_credentials SET IsActive = 1, isdeleted = 0, PasswordHash = @Hash, IsTemporaryPassword = 1 WHERE fk_member_master_profile_id = @Id", new { Id = dto.MemberId, Hash = hash });
             if (updated == 0)
@@ -5109,6 +5157,7 @@ public class DistrictModulesController : ControllerBase
 
     // ── Non-sync-removed GROUP members + add-as-non-member ──
     [HttpGet("api/districts/{districtId}/committee/groups/{groupId}/members/non-sync-removed")]
+    [OwnedBy(Owns.CommitteeGroup, "groupId", "districtId")]
     public async Task<ActionResult> GetGroupMembersNonSyncRemoved(int districtId, int groupId)
     {
         using var conn = CreateConnection();
@@ -5128,6 +5177,8 @@ public class DistrictModulesController : ControllerBase
     }
 
     [HttpPost("api/districts/{districtId}/committee/groups/{groupId}/members/{id}/add-as-non-member")]
+    [OwnedBy(Owns.CommitteeGroup, "groupId", "districtId")]
+    [OwnedBy(Owns.CommitteeGroupMember, "id", "groupId")]
     public async Task<ActionResult> AddGroupMemberAsNonMember(int districtId, int groupId, int id)
     {
         using var conn = CreateConnection();
@@ -5156,6 +5207,7 @@ public class DistrictModulesController : ControllerBase
 
     // ── Non-sync-removed SUB-GROUP members + add-as-non-member ──
     [HttpGet("api/districts/{districtId}/committee/sub-groups/{subGroupId}/members/non-sync-removed")]
+    [OwnedBy(Owns.CommitteeSubGroup, "subGroupId", "districtId")]
     public async Task<ActionResult> GetSubGroupMembersNonSyncRemoved(int districtId, int subGroupId)
     {
         using var conn = CreateConnection();
@@ -5175,6 +5227,8 @@ public class DistrictModulesController : ControllerBase
     }
 
     [HttpPost("api/districts/{districtId}/committee/sub-groups/{subGroupId}/members/{id}/add-as-non-member")]
+    [OwnedBy(Owns.CommitteeSubGroup, "subGroupId", "districtId")]
+    [OwnedBy(Owns.CommitteeSubGroupMember, "id", "subGroupId")]
     public async Task<ActionResult> AddSubGroupMemberAsNonMember(int districtId, int subGroupId, int id)
     {
         using var conn = CreateConnection();
@@ -5457,6 +5511,7 @@ public class DistrictModulesController : ControllerBase
     }
 
     [HttpPost("api/districts/{districtId}/committee/groups/{groupId}/members")]
+    [OwnedBy(Owns.CommitteeGroup, "groupId", "districtId")]
     public async Task<ActionResult> CreateGroupMember(int districtId, int groupId, [FromBody] DistrictCommitteeMemberDto dto)
     {
         using var conn = CreateConnection();
@@ -5480,6 +5535,8 @@ public class DistrictModulesController : ControllerBase
     }
 
     [HttpPut("api/districts/{districtId}/committee/groups/{groupId}/members/{id}")]
+    [OwnedBy(Owns.CommitteeGroup, "groupId", "districtId")]
+    [OwnedBy(Owns.CommitteeGroupMember, "id", "groupId")]
     public async Task<ActionResult> UpdateGroupMember(int districtId, int groupId, int id, [FromBody] DistrictCommitteeMemberDto dto)
     {
         using var conn = CreateConnection();
@@ -5498,6 +5555,8 @@ public class DistrictModulesController : ControllerBase
     }
 
     [HttpDelete("api/districts/{districtId}/committee/groups/{groupId}/members/{id}")]
+    [OwnedBy(Owns.CommitteeGroup, "groupId", "districtId")]
+    [OwnedBy(Owns.CommitteeGroupMember, "id", "groupId")]
     public async Task<ActionResult> DeleteGroupMember(int districtId, int groupId, int id)
     {
         using var conn = CreateConnection();
@@ -5532,6 +5591,7 @@ public class DistrictModulesController : ControllerBase
     }
 
     [HttpPost("api/districts/{districtId}/committee/groups/{groupId}/sub-groups")]
+    [OwnedBy(Owns.CommitteeGroup, "groupId", "districtId")]
     public async Task<ActionResult> CreateSubGroup(int districtId, int groupId, [FromBody] DistrictCommitteeSubGroupDto dto)
     {
         using var conn = CreateConnection();
@@ -5549,6 +5609,8 @@ public class DistrictModulesController : ControllerBase
     }
 
     [HttpPut("api/districts/{districtId}/committee/groups/{groupId}/sub-groups/{id}")]
+    [OwnedBy(Owns.CommitteeGroup, "groupId", "districtId")]
+    [OwnedBy(Owns.CommitteeSubGroupInGroup, "id", "groupId")]
     public async Task<ActionResult> UpdateSubGroupCommittee(int districtId, int groupId, int id, [FromBody] DistrictCommitteeSubGroupDto dto)
     {
         using var conn = CreateConnection();
@@ -5559,6 +5621,8 @@ public class DistrictModulesController : ControllerBase
     }
 
     [HttpDelete("api/districts/{districtId}/committee/groups/{groupId}/sub-groups/{id}")]
+    [OwnedBy(Owns.CommitteeGroup, "groupId", "districtId")]
+    [OwnedBy(Owns.CommitteeSubGroupInGroup, "id", "groupId")]
     public async Task<ActionResult> DeleteSubGroupCommittee(int districtId, int groupId, int id)
     {
         using var conn = CreateConnection();
@@ -5609,6 +5673,7 @@ public class DistrictModulesController : ControllerBase
     }
 
     [HttpPost("api/districts/{districtId}/committee/sub-groups/{subGroupId}/members")]
+    [OwnedBy(Owns.CommitteeSubGroup, "subGroupId", "districtId")]
     public async Task<ActionResult> CreateSubGroupMember(int districtId, int subGroupId, [FromBody] DistrictCommitteeMemberDto dto)
     {
         using var conn = CreateConnection();
@@ -5629,6 +5694,8 @@ public class DistrictModulesController : ControllerBase
     }
 
     [HttpPut("api/districts/{districtId}/committee/sub-groups/{subGroupId}/members/{id}")]
+    [OwnedBy(Owns.CommitteeSubGroup, "subGroupId", "districtId")]
+    [OwnedBy(Owns.CommitteeSubGroupMember, "id", "subGroupId")]
     public async Task<ActionResult> UpdateSubGroupMember(int districtId, int subGroupId, int id, [FromBody] DistrictCommitteeMemberDto dto)
     {
         using var conn = CreateConnection();
@@ -5644,6 +5711,8 @@ public class DistrictModulesController : ControllerBase
     }
 
     [HttpDelete("api/districts/{districtId}/committee/sub-groups/{subGroupId}/members/{id}")]
+    [OwnedBy(Owns.CommitteeSubGroup, "subGroupId", "districtId")]
+    [OwnedBy(Owns.CommitteeSubGroupMember, "id", "subGroupId")]
     public async Task<ActionResult> DeleteSubGroupMember(int districtId, int subGroupId, int id)
     {
         using var conn = CreateConnection();
@@ -5680,6 +5749,7 @@ public class DistrictModulesController : ControllerBase
     }
 
     [HttpPut("api/districts/{districtId}/committee/groups/{groupId}/members/reorder")]
+    [OwnedBy(Owns.CommitteeGroup, "groupId", "districtId")]
     public async Task<ActionResult> ReorderGroupMembers(int districtId, int groupId, [FromBody] ReorderDto dto)
     {
         using var conn = CreateConnection();
@@ -5691,6 +5761,7 @@ public class DistrictModulesController : ControllerBase
     }
 
     [HttpPut("api/districts/{districtId}/committee/groups/{groupId}/sub-groups/reorder")]
+    [OwnedBy(Owns.CommitteeGroup, "groupId", "districtId")]
     public async Task<ActionResult> ReorderSubGroups(int districtId, int groupId, [FromBody] ReorderDto dto)
     {
         using var conn = CreateConnection();
@@ -5702,6 +5773,7 @@ public class DistrictModulesController : ControllerBase
     }
 
     [HttpPut("api/districts/{districtId}/committee/sub-groups/{subGroupId}/members/reorder")]
+    [OwnedBy(Owns.CommitteeSubGroup, "subGroupId", "districtId")]
     public async Task<ActionResult> ReorderSubGroupMembers(int districtId, int subGroupId, [FromBody] ReorderDto dto)
     {
         using var conn = CreateConnection();

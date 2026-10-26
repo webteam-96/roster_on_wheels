@@ -1222,7 +1222,7 @@ public class EventPaymentLinkService : IEventPaymentLinkService
 
     public async Task<bool> SendPaymentOtpAsync(int linkId, SendOtpRequestDto dto)
     {
-        var otp = new Random().Next(100000, 999999).ToString();
+        var otp = System.Security.Cryptography.RandomNumberGenerator.GetInt32(100000, 1000000).ToString();
         using var conn = GetConnection();
 
         // If memberProfileId provided, look up actual email and mobile

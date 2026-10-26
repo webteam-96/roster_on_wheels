@@ -87,6 +87,7 @@ public class TrfContributionsController : ControllerBase
     }
 
     [HttpDelete("{trfId}")]
+    [OwnedBy(Owns.TrfContribution, "trfId", "clubId")]
     public async Task<ActionResult> DeleteContribution(int clubId, int trfId)
     {
         await _service.DeleteContributionAsync(trfId, GetUserId());

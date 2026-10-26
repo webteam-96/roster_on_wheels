@@ -148,6 +148,7 @@ public class WeblinksController : ControllerBase
     // ── DELETE: soft delete weblink (cascades to children) ──────────────
 
     [HttpDelete("{weblinkId}")]
+    [OwnedBy(Owns.ClubWeblink, "weblinkId", "clubId")]
     public async Task<ActionResult> DeleteWeblink(int clubId, int weblinkId)
     {
         await _service.DeleteWeblinkAsync(weblinkId, GetUserId());
@@ -157,6 +158,7 @@ public class WeblinksController : ControllerBase
     // ── PUT: toggle active status ───────────────────────────────────────
 
     [HttpPut("{weblinkId}/toggle-active")]
+    [OwnedBy(Owns.ClubWeblink, "weblinkId", "clubId")]
     public async Task<ActionResult> ToggleActive(int clubId, int weblinkId)
     {
         await _service.ToggleActiveAsync(weblinkId, GetUserId());

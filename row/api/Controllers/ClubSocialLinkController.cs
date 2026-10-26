@@ -47,6 +47,7 @@ public class ClubSocialLinkController : ControllerBase
     }
 
     [HttpPut("api/clubs/{clubId}/website-data/social_media_links/{id}")]
+    [OwnedBy(Owns.ClubSocialLink, "id", "clubId")]
     public async Task<ActionResult> Update(int clubId, int id, [FromBody] UpdateClubSocialLinkDto dto)
     {
         await _service.UpdateAsync(id, dto, GetUserId());
@@ -54,6 +55,7 @@ public class ClubSocialLinkController : ControllerBase
     }
 
     [HttpDelete("api/clubs/{clubId}/website-data/social_media_links/{id}")]
+    [OwnedBy(Owns.ClubSocialLink, "id", "clubId")]
     public async Task<ActionResult> Delete(int clubId, int id)
     {
         await _service.DeleteAsync(id, GetUserId());

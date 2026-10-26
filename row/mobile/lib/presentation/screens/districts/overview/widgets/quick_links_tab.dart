@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
+import '../../../../../core/features/feature_controller.dart';
 import '../../../../../core/theme/app_colors.dart';
 import 'package:rotary_flutter_app/core/theme/app_fonts.dart';
 
@@ -34,6 +36,21 @@ class QuickLinksTab extends StatelessWidget {
         subtitle: 'Compose & send bulk emails to district recipients',
         route: '/districts/$districtId/mass-emails',
       ),
+      _QuickLink(
+        icon: Icons.forum_outlined,
+        color: AppColors.accentBlue,
+        title: 'Goal Messages',
+        subtitle: 'Write to the zone about a goal category',
+        route: '/districts/$districtId/goal-messages',
+      ),
+      if (context.watch<FeatureController>().isOn('target_dashboard'))
+        _QuickLink(
+          icon: Icons.flag_outlined,
+          color: AppColors.success,
+          title: 'Targets',
+          subtitle: 'Live progress of every club against its goals',
+          route: '/districts/$districtId/targets',
+        ),
     ];
 
     return ListView.separated(

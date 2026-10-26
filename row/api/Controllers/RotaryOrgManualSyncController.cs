@@ -205,7 +205,7 @@ public class RotaryOrgManualSyncController : ControllerBase
         }
         catch (Exception ex)
         {
-            return StatusCode(502, new { message = $"Rotary.org API error: {ex.Message}" });
+            _logger.LogWarning(ex, "Rotary.org call failed"); return StatusCode(502, new { message = "Rotary.org API error." });
         }
     }
 
@@ -526,7 +526,7 @@ public class RotaryOrgManualSyncController : ControllerBase
             if (ex.Message.Contains("Records do not exist", StringComparison.OrdinalIgnoreCase)
                 || ex.Message.Contains(": 400", StringComparison.OrdinalIgnoreCase))
                 return NotFound(new { message = $"Club {req.RotaryClubId} is no longer on Rotary.org (likely terminated) — it's a stale cache entry. Click \"Refresh from Rotary.org\" to remove it from the list." });
-            return StatusCode(502, new { message = $"Rotary.org API error: {ex.Message}" });
+            _logger.LogWarning(ex, "Rotary.org call failed"); return StatusCode(502, new { message = "Rotary.org API error." });
         }
         if (detail == null)
             return NotFound(new { message = $"Club {req.RotaryClubId} is no longer on Rotary.org — refresh the cache to remove it." });
@@ -684,7 +684,7 @@ public class RotaryOrgManualSyncController : ControllerBase
         {
             await tx.RollbackAsync();
             _logger.LogError(ex, "Failed to delete club {Cid}", clubId);
-            return StatusCode(500, new { message = ex.Message });
+            return StatusCode(500, new { message = "Something went wrong. Please try again." });
         }
     }
 
@@ -698,7 +698,7 @@ public class RotaryOrgManualSyncController : ControllerBase
             if (detail == null) return NotFound(new { message = "Not found on Rotary.org" });
             return Ok(detail);
         }
-        catch (Exception ex) { return StatusCode(502, new { message = ex.Message }); }
+        catch (Exception ex) { _logger.LogWarning(ex, "Rotary.org call failed"); return StatusCode(502, new { message = "Rotary.org API error." }); }
     }
 
     [HttpGet("clubs/india-detail/{clubId:int}")]
@@ -1020,7 +1020,7 @@ public class RotaryOrgManualSyncController : ControllerBase
             var seen = new HashSet<long>(active.Select(a => a.MemberId));
             list = active.Concat(honorary.Where(h => seen.Add(h.MemberId))).ToList();
         }
-        catch (Exception ex) { return StatusCode(502, new { message = $"Rotary.org API error: {ex.Message}" }); }
+        catch (Exception ex) { _logger.LogWarning(ex, "Rotary.org call failed"); return StatusCode(502, new { message = "Rotary.org API error." }); }
 
         // Fetch /individuals/{id}/profile for richer data (email, mobile, address, dob, gender, language).
         // One call per member — done 6 at a time (same as the sync worker's --concurrency default) so a
@@ -1245,7 +1245,7 @@ public class RotaryOrgManualSyncController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Delete member {Mid} from club {Cid} failed", memberId, clubId);
-            return StatusCode(500, new { message = ex.Message });
+            return StatusCode(500, new { message = "Something went wrong. Please try again." });
         }
     }
 
@@ -1259,7 +1259,7 @@ public class RotaryOrgManualSyncController : ControllerBase
             if (profile == null) return NotFound(new { message = "Not found on Rotary.org" });
             return Ok(profile);
         }
-        catch (Exception ex) { return StatusCode(502, new { message = ex.Message }); }
+        catch (Exception ex) { _logger.LogWarning(ex, "Rotary.org call failed"); return StatusCode(502, new { message = "Rotary.org API error." }); }
     }
 
     [HttpGet("members/india-detail/{memberId:int}")]
@@ -1510,7 +1510,7 @@ public class RotaryOrgManualSyncController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogWarning(ex, "club-org-count failed for club {C}", clubId);
-            return Ok(new { orgActive = 0, orgHonorary = 0, orgTotal = 0, error = ex.Message });
+            return Ok(new { orgActive = 0, orgHonorary = 0, orgTotal = 0, error = "Rotary.org count unavailable." });
         }
     }
 
@@ -1558,7 +1558,7 @@ public class RotaryOrgManualSyncController : ControllerBase
             active = await _api.GetClubMembersAsync("Rotary Club", rid);
             honorary = await _api.GetClubHonoraryMembersAsync("Rotary Club", rid);
         }
-        catch (Exception ex) { return Ok(new { clubId, error = ex.Message }); }
+        catch (Exception ex) { _logger.LogWarning(ex, "Rotary.org call failed"); return Ok(new { clubId, error = "Rotary.org API error." }); }
 
         var activeIds = new HashSet<long>(active.Select(m => m.MemberId));
         var org = new List<(long MemberId, string Name, bool Honorary)>();
@@ -1753,7 +1753,7 @@ public class RotaryOrgManualSyncController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to launch worker: {Args}", arguments);
-            return StatusCode(500, new { message = "Failed to launch the sync worker: " + ex.Message });
+            return StatusCode(500, new { message = "Failed to launch the sync worker." });
         }
     }
 

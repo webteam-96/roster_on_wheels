@@ -193,9 +193,23 @@ public class ProjectsController : ControllerBase
         return Ok(new { path });
     }
 
+    // A project (and photo) id from another club answers 404 (records live in year-wise tables).
+    private async Task<bool> ProjectInClubAsync(int clubId, int yearId, int projectId, int? photoId = null)
+    {
+        await using var conn = new MySqlConnector.MySqlConnection(_connectionString);
+        await conn.OpenAsync();
+        var info = await HttpContext.RequestServices.GetRequiredService<IYearTableResolver>().ResolveByYearIdAsync(conn, yearId);
+        if (info == null || await Dapper.SqlMapper.ExecuteScalarAsync<int?>(conn,
+                $"SELECT 1 FROM `{info.ProjectsTable}` WHERE pk_project_id = @P AND fk_club_id = @C LIMIT 1", new { P = projectId, C = clubId }) != 1)
+            return false;
+        return photoId == null || await Dapper.SqlMapper.ExecuteScalarAsync<int?>(conn,
+            $"SELECT 1 FROM `{info.PhotosTable}` WHERE pk_photo_id = @Ph AND fk_project_id = @P LIMIT 1", new { Ph = photoId, P = projectId }) == 1;
+    }
+
     [HttpPost("api/clubs/{clubId}/projects/{yearId}/{id}/photos")]
     public async Task<ActionResult> AddPhoto(int clubId, int yearId, int id, [FromBody] ProjectPhotoInput dto)
     {
+        if (!await ProjectInClubAsync(clubId, yearId, id)) return NotFound(new { message = "Not found." });
         var photoId = await _service.AddPhotoAsync(id, yearId, dto.ImagePath, dto.Description, dto.IsPrimary, dto.SortOrder);
         return Ok(new { id = photoId });
     }
@@ -203,6 +217,7 @@ public class ProjectsController : ControllerBase
     [HttpDelete("api/clubs/{clubId}/projects/{yearId}/{projectId}/photos/{photoId}")]
     public async Task<ActionResult> DeletePhoto(int clubId, int yearId, int projectId, int photoId)
     {
+        if (!await ProjectInClubAsync(clubId, yearId, projectId, photoId)) return NotFound(new { message = "Not found." });
         await _service.DeletePhotoAsync(photoId, yearId);
         return Ok(new { message = "Photo deleted successfully." });
     }
@@ -210,6 +225,7 @@ public class ProjectsController : ControllerBase
     [HttpPut("api/clubs/{clubId}/projects/{yearId}/{projectId}/photos/{photoId}/primary")]
     public async Task<ActionResult> SetPrimaryPhoto(int clubId, int yearId, int projectId, int photoId)
     {
+        if (!await ProjectInClubAsync(clubId, yearId, projectId, photoId)) return NotFound(new { message = "Not found." });
         await _service.SetPrimaryPhotoAsync(projectId, photoId, yearId);
         return Ok(new { message = "Primary photo set successfully." });
     }

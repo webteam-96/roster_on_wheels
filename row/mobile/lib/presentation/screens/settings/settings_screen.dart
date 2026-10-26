@@ -160,6 +160,14 @@ class SettingsScreen extends StatelessWidget {
                 subtitle: 'Download your data or withdraw consent',
                 onTap: () => context.push(RouteNames.myData),
               ),
+            if (features.isOn('communication') || features.isOn('meetings'))
+              _PreferenceTile(
+                icon: Icons.mark_email_read_outlined,
+                color: AppColors.primaryPrime,
+                title: 'Communication',
+                subtitle: 'Email and push consent, calendar feed',
+                onTap: () => context.push(RouteNames.commsPreferences),
+              ),
             if (kPrivacySettingsEnabled)
               _PreferenceTile(
                 icon: Icons.shield_outlined,

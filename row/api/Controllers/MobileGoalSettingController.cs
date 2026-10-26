@@ -365,7 +365,7 @@ public class MobileGoalSettingController : ControllerBase
             return Ok(await _service.ImportFoundationMonthlyAsync(GetMemberId(), form.YearId, stream));
         }
         catch (InvalidOperationException ex) { return BadRequest(new { message = ex.Message }); }
-        catch (Exception ex) { return BadRequest(new { message = $"Failed to read the Excel file: {ex.Message}" }); }
+        catch (Exception) { return BadRequest(new { message = "Failed to read the Excel file. Check that it is a valid .xlsx file." }); }
     }
 
     // Club Foundation import — reads EVERY district's clubs from one Rotary MCR Excel (SuperAdmin only).
@@ -382,7 +382,7 @@ public class MobileGoalSettingController : ControllerBase
             return Ok(await _service.ImportFoundationClubAsync(GetMemberId(), form.YearId, stream));
         }
         catch (InvalidOperationException ex) { return BadRequest(new { message = ex.Message }); }
-        catch (Exception ex) { return BadRequest(new { message = $"Failed to read the Excel file: {ex.Message}" }); }
+        catch (Exception) { return BadRequest(new { message = "Failed to read the Excel file. Check that it is a valid .xlsx file." }); }
     }
 
     [HttpGet("foundation-import/sample")]

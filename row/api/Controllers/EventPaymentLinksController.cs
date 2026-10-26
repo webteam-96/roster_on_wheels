@@ -52,6 +52,14 @@ public class EventPaymentLinksController : ControllerBase
         return await ManagesAsync(owner.ClubId, owner.DistrictId);
     }
 
+    // Writes on one member payment: the caller must manage the payment's link (club or district).
+    private async Task<bool> CanManageMemberPaymentAsync(int memberPaymentId)
+    {
+        await using var conn = new MySqlConnection(_connectionString);
+        var linkId = await conn.ExecuteScalarAsync<int?>("SELECT fk_payment_link_id FROM event_payment_members WHERE pk_id = @Id", new { Id = memberPaymentId });
+        return linkId is > 0 && await CanReadLinkAsync(linkId.Value);
+    }
+
     private int? GetAdminClubId()
     {
         var roles = User.FindFirst("roles")?.Value ?? "";
@@ -105,6 +113,7 @@ public class EventPaymentLinksController : ControllerBase
     [HttpPost("")]
     public async Task<ActionResult> CreatePaymentLink([FromForm] CreateEventPaymentLinkDto dto, IFormFile? logo, IFormFile? eventImage, IFormFile? bgImage, IFormFile? emailLogo)
     {
+        if (!await ManagesAsync(dto.FkClubId, dto.FkDistrictMasterId)) return StatusCode(403, new { message = "Access denied." });
         if (!IsSuperAdminOrAdmin()) return StatusCode(403, new { message = "Access denied." });
         var imgErr = ValidateImageFile(logo) ?? ValidateImageFile(eventImage) ?? ValidateImageFile(bgImage) ?? ValidateImageFile(emailLogo);
         if (imgErr != null) return BadRequest(new { message = imgErr });
@@ -113,7 +122,7 @@ public class EventPaymentLinksController : ControllerBase
             var id = await _service.CreatePaymentLinkAsync(dto, logo, eventImage, bgImage, emailLogo, GetUserId(), _env);
             return Ok(new { id, message = "Payment link created." });
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is InvalidOperationException or ArgumentException)
         {
             return StatusCode(500, new { message = $"Failed to create payment link: {ex.Message}" });
         }
@@ -122,6 +131,7 @@ public class EventPaymentLinksController : ControllerBase
     [HttpPost("create-full")]
     public async Task<ActionResult> CreateFullPaymentLink([FromForm] CreateFullEventPaymentLinkDto dto, IFormFile? logo, IFormFile? bgImage, IFormFile? emailLogo)
     {
+        if (!await ManagesAsync(dto.FkClubId, dto.FkDistrictMasterId)) return StatusCode(403, new { message = "Access denied." });
         if (!IsSuperAdminOrAdmin()) return StatusCode(403, new { message = "Access denied." });
         var imgErr = ValidateImageFile(logo) ?? ValidateImageFile(bgImage) ?? ValidateImageFile(emailLogo);
         if (imgErr != null) return BadRequest(new { message = imgErr });
@@ -130,7 +140,7 @@ public class EventPaymentLinksController : ControllerBase
             var id = await _service.CreateFullPaymentLinkAsync(dto, logo, bgImage, emailLogo, GetUserId(), _env);
             return Ok(new { id, message = "Payment link created successfully." });
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is InvalidOperationException or ArgumentException)
         {
             return StatusCode(500, new { message = $"Failed to create payment link: {ex.Message}" });
         }
@@ -139,6 +149,7 @@ public class EventPaymentLinksController : ControllerBase
     [HttpPut("{linkId}/update-full")]
     public async Task<ActionResult> UpdateFullPaymentLink(int linkId, [FromForm] CreateFullEventPaymentLinkDto dto, IFormFile? logo, IFormFile? bgImage, IFormFile? emailLogo)
     {
+        if (!await CanReadLinkAsync(linkId) || !await ManagesAsync(dto.FkClubId, dto.FkDistrictMasterId)) return StatusCode(403, new { message = "Access denied." });
         if (!IsSuperAdminOrAdmin()) return StatusCode(403, new { message = "Access denied." });
         var imgErr = ValidateImageFile(logo) ?? ValidateImageFile(bgImage) ?? ValidateImageFile(emailLogo);
         if (imgErr != null) return BadRequest(new { message = imgErr });
@@ -147,7 +158,7 @@ public class EventPaymentLinksController : ControllerBase
             await _service.UpdateFullPaymentLinkAsync(linkId, dto, logo, bgImage, emailLogo, GetUserId(), _env);
             return Ok(new { message = "Payment link updated successfully." });
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is InvalidOperationException or ArgumentException)
         {
             return StatusCode(500, new { message = $"Failed to update payment link: {ex.Message}" });
         }
@@ -156,6 +167,7 @@ public class EventPaymentLinksController : ControllerBase
     [HttpPut("{linkId}")]
     public async Task<ActionResult> UpdatePaymentLink(int linkId, [FromForm] UpdateEventPaymentLinkDto dto, IFormFile? logo, IFormFile? eventImage, IFormFile? bgImage, IFormFile? emailLogo)
     {
+        if (!await CanReadLinkAsync(linkId) || !await ManagesAsync(dto.FkClubId, dto.FkDistrictMasterId)) return StatusCode(403, new { message = "Access denied." });
         if (!IsSuperAdminOrAdmin()) return StatusCode(403, new { message = "Access denied." });
         var imgErr = ValidateImageFile(logo) ?? ValidateImageFile(eventImage) ?? ValidateImageFile(bgImage) ?? ValidateImageFile(emailLogo);
         if (imgErr != null) return BadRequest(new { message = imgErr });
@@ -164,7 +176,7 @@ public class EventPaymentLinksController : ControllerBase
             await _service.UpdatePaymentLinkAsync(linkId, dto, logo, eventImage, bgImage, emailLogo, GetUserId(), _env);
             return Ok(new { message = "Payment link updated." });
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is InvalidOperationException or ArgumentException)
         {
             return StatusCode(500, new { message = $"Failed to update payment link: {ex.Message}" });
         }
@@ -173,13 +185,14 @@ public class EventPaymentLinksController : ControllerBase
     [HttpDelete("{linkId}")]
     public async Task<ActionResult> DeletePaymentLink(int linkId)
     {
+        if (!await CanReadLinkAsync(linkId)) return StatusCode(403, new { message = "Access denied." });
         if (!IsSuperAdminOrAdmin()) return StatusCode(403, new { message = "Access denied." });
         try
         {
             await _service.DeletePaymentLinkAsync(linkId, GetUserId());
             return Ok(new { message = "Payment link deleted." });
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is InvalidOperationException or ArgumentException)
         {
             return StatusCode(500, new { message = $"Failed to delete payment link: {ex.Message}" });
         }
@@ -188,13 +201,14 @@ public class EventPaymentLinksController : ControllerBase
     [HttpPatch("{linkId}/toggle-active")]
     public async Task<ActionResult> ToggleActive(int linkId)
     {
+        if (!await CanReadLinkAsync(linkId)) return StatusCode(403, new { message = "Access denied." });
         if (!IsSuperAdminOrAdmin()) return StatusCode(403, new { message = "Access denied." });
         try
         {
             await _service.ToggleActiveAsync(linkId, GetUserId());
             return Ok(new { message = "Payment link toggled." });
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is InvalidOperationException or ArgumentException)
         {
             return StatusCode(500, new { message = $"Failed to toggle: {ex.Message}" });
         }
@@ -222,22 +236,27 @@ public class EventPaymentLinksController : ControllerBase
     [HttpPost("{linkId}/registrations")]
     public async Task<ActionResult> SaveRegistration(int linkId, [FromBody] CreateEventRegistrationDto dto)
     {
+        if (!await CanReadLinkAsync(linkId)) return StatusCode(403, new { message = "Access denied." });
         if (!IsSuperAdminOrAdmin()) return StatusCode(403, new { message = "Access denied." });
         var id = await _service.SaveRegistrationAsync(linkId, dto, GetUserId());
         return Ok(new { id, message = "Registration type saved." });
     }
 
     [HttpPut("{linkId}/registrations/{regId}")]
+    [OwnedBy(Owns.EventRegistration, "regId", "linkId")]
     public async Task<ActionResult> UpdateRegistration(int linkId, int regId, [FromBody] CreateEventRegistrationDto dto)
     {
+        if (!await CanReadLinkAsync(linkId)) return StatusCode(403, new { message = "Access denied." });
         if (!IsSuperAdminOrAdmin()) return StatusCode(403, new { message = "Access denied." });
         await _service.UpdateRegistrationAsync(linkId, regId, dto, GetUserId());
         return Ok(new { message = "Registration type updated." });
     }
 
     [HttpDelete("{linkId}/registrations/{regId}")]
+    [OwnedBy(Owns.EventRegistration, "regId", "linkId")]
     public async Task<ActionResult> DeleteRegistration(int linkId, int regId)
     {
+        if (!await CanReadLinkAsync(linkId)) return StatusCode(403, new { message = "Access denied." });
         if (!IsSuperAdminOrAdmin()) return StatusCode(403, new { message = "Access denied." });
         await _service.DeleteRegistrationAsync(regId, GetUserId());
         return Ok(new { message = "Registration type deleted." });
@@ -256,6 +275,7 @@ public class EventPaymentLinksController : ControllerBase
     [HttpPost("{linkId}/vendor-splits")]
     public async Task<ActionResult> SaveVendorSplits(int linkId, [FromBody] SaveVendorSplitsDto dto)
     {
+        if (!await CanReadLinkAsync(linkId)) return StatusCode(403, new { message = "Access denied." });
         if (!IsSuperAdminOrAdmin()) return StatusCode(403, new { message = "Access denied." });
         await _service.SaveVendorSplitsAsync(linkId, dto, GetUserId());
         return Ok(new { message = "Vendor splits saved." });
@@ -274,14 +294,17 @@ public class EventPaymentLinksController : ControllerBase
     [HttpPost("{linkId}/designations")]
     public async Task<ActionResult> SaveDesignation(int linkId, [FromBody] CreateEventDesignationDto dto)
     {
+        if (!await CanReadLinkAsync(linkId)) return StatusCode(403, new { message = "Access denied." });
         if (!IsSuperAdminOrAdmin()) return StatusCode(403, new { message = "Access denied." });
         var id = await _service.SaveDesignationAsync(linkId, dto, GetUserId());
         return Ok(new { id, message = "Designation saved." });
     }
 
     [HttpDelete("{linkId}/designations/{desigId}")]
+    [OwnedBy(Owns.EventDesignation, "desigId", "linkId")]
     public async Task<ActionResult> DeleteDesignation(int linkId, int desigId)
     {
+        if (!await CanReadLinkAsync(linkId)) return StatusCode(403, new { message = "Access denied." });
         if (!IsSuperAdminOrAdmin()) return StatusCode(403, new { message = "Access denied." });
         await _service.DeleteDesignationAsync(desigId, GetUserId());
         return Ok(new { message = "Designation deleted." });
@@ -300,6 +323,7 @@ public class EventPaymentLinksController : ControllerBase
     [HttpPost("{linkId}/members/offline-payment")]
     public async Task<ActionResult> RecordOfflinePayment(int linkId, [FromForm] RecordOfflinePaymentDto dto, IFormFile? attachment)
     {
+        if (!await CanReadLinkAsync(linkId)) return StatusCode(403, new { message = "Access denied." });
         if (!ModelState.IsValid)
         {
             var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage);
@@ -320,7 +344,7 @@ public class EventPaymentLinksController : ControllerBase
             var id = await _service.RecordOfflinePaymentAsync(linkId, dto, attachment, GetUserId(), _env);
             return Ok(new { id, message = "Offline payment recorded." });
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is InvalidOperationException or ArgumentException)
         {
             return StatusCode(500, new { message = $"Failed: {ex.Message}" });
         }
@@ -339,6 +363,7 @@ public class EventPaymentLinksController : ControllerBase
     [HttpPut("members/{memberPaymentId}/update-offline")]
     public async Task<ActionResult> UpdateOfflinePayment(int memberPaymentId, [FromForm] RecordOfflinePaymentDto dto, IFormFile? attachment)
     {
+        if (!await CanManageMemberPaymentAsync(memberPaymentId)) return StatusCode(403, new { message = "Access denied." });
         if (!IsSuperAdminOrAdmin()) return StatusCode(403, new { message = "Access denied." });
 
         if (attachment != null && attachment.Length > 0)
@@ -354,7 +379,7 @@ public class EventPaymentLinksController : ControllerBase
             await _service.UpdateOfflinePaymentAsync(memberPaymentId, dto, attachment, GetUserId(), _env);
             return Ok(new { message = "Offline payment updated." });
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is InvalidOperationException or ArgumentException)
         {
             return StatusCode(500, new { message = $"Failed: {ex.Message}" });
         }
@@ -363,13 +388,14 @@ public class EventPaymentLinksController : ControllerBase
     [HttpPost("members/{memberPaymentId}/send-receipt")]
     public async Task<ActionResult> SendReceipt(int memberPaymentId, [FromBody] SendEmailRemarkDto? dto = null)
     {
+        if (!await CanManageMemberPaymentAsync(memberPaymentId)) return StatusCode(403, new { message = "Access denied." });
         if (!IsSuperAdminOrAdmin()) return StatusCode(403, new { message = "Access denied." });
         try
         {
             await _service.SendReceiptEmailAsync(memberPaymentId, dto?.Remark);
             return Ok(new { message = "Receipt email sent." });
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is InvalidOperationException or ArgumentException)
         {
             return StatusCode(500, new { message = $"Failed: {ex.Message}" });
         }
@@ -378,13 +404,14 @@ public class EventPaymentLinksController : ControllerBase
     [HttpPost("members/{memberPaymentId}/send-reminder-email")]
     public async Task<ActionResult> SendReminderEmail(int memberPaymentId, [FromBody] SendEmailRemarkDto? dto = null)
     {
+        if (!await CanManageMemberPaymentAsync(memberPaymentId)) return StatusCode(403, new { message = "Access denied." });
         if (!IsSuperAdminOrAdmin()) return StatusCode(403, new { message = "Access denied." });
         try
         {
             await _service.SendReminderEmailAsync(memberPaymentId, dto?.Remark);
             return Ok(new { message = "Reminder email sent." });
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is InvalidOperationException or ArgumentException)
         {
             return StatusCode(500, new { message = $"Failed: {ex.Message}" });
         }
@@ -393,13 +420,14 @@ public class EventPaymentLinksController : ControllerBase
     [HttpPost("{linkId}/members/bulk-reminder-email")]
     public async Task<ActionResult> BulkReminderEmail(int linkId, [FromBody] SendEmailRemarkDto? dto = null)
     {
+        if (!await CanReadLinkAsync(linkId)) return StatusCode(403, new { message = "Access denied." });
         if (!IsSuperAdminOrAdmin()) return StatusCode(403, new { message = "Access denied." });
         try
         {
             await _service.BulkSendReminderEmailAsync(linkId, dto?.Remark);
             return Ok(new { message = "Bulk email reminders sent." });
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is InvalidOperationException or ArgumentException)
         {
             return StatusCode(500, new { message = $"Failed: {ex.Message}" });
         }
@@ -408,6 +436,7 @@ public class EventPaymentLinksController : ControllerBase
     [HttpDelete("{linkId}/delete-google-sheet")]
     public async Task<ActionResult> DeleteGoogleSheet(int linkId)
     {
+        if (!await CanReadLinkAsync(linkId)) return StatusCode(403, new { message = "Access denied." });
         if (!IsSuperAdminOrAdmin()) return StatusCode(403, new { message = "Access denied." });
         try
         {
@@ -418,7 +447,7 @@ public class EventPaymentLinksController : ControllerBase
         {
             return NotFound(new { message = ex.Message });
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is InvalidOperationException or ArgumentException)
         {
             return StatusCode(500, new { message = $"Failed to delete Google Sheet: {ex.Message}" });
         }
@@ -427,6 +456,7 @@ public class EventPaymentLinksController : ControllerBase
     [HttpPost("{linkId}/create-google-sheet")]
     public async Task<ActionResult> CreateGoogleSheet(int linkId)
     {
+        if (!await CanReadLinkAsync(linkId)) return StatusCode(403, new { message = "Access denied." });
         if (!IsSuperAdminOrAdmin()) return StatusCode(403, new { message = "Access denied." });
         try
         {
@@ -437,7 +467,7 @@ public class EventPaymentLinksController : ControllerBase
         {
             return NotFound(new { message = ex.Message });
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is InvalidOperationException or ArgumentException)
         {
             return StatusCode(500, new { message = $"Failed to create Google Sheet: {ex.Message}" });
         }
@@ -446,13 +476,14 @@ public class EventPaymentLinksController : ControllerBase
     [HttpPost("{linkId}/settlement-refresh")]
     public async Task<ActionResult> RefreshSettlements(int linkId)
     {
+        if (!await CanReadLinkAsync(linkId)) return StatusCode(403, new { message = "Access denied." });
         if (!IsSuperAdminOrAdmin()) return StatusCode(403, new { message = "Access denied." });
         try
         {
             await _service.RefreshEventSettlementsAsync(linkId);
             return Ok(new { message = "Settlements refreshed." });
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is InvalidOperationException or ArgumentException)
         {
             return StatusCode(500, new { message = $"Failed to refresh settlements: {ex.Message}" });
         }
@@ -467,7 +498,7 @@ public class EventPaymentLinksController : ControllerBase
             var result = await _service.GetEventSettlementReportAsync(linkId);
             return Ok(result);
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is InvalidOperationException or ArgumentException)
         {
             return StatusCode(500, new { message = $"Failed to get settlement report: {ex.Message}" });
         }
@@ -482,7 +513,7 @@ public class EventPaymentLinksController : ControllerBase
             var bytes = await _service.ExportMembersExcelAsync(linkId, isPaid);
             return File(bytes, "text/csv", $"event_members_{(isPaid ? "paid" : "unpaid")}_{linkId}.csv");
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is InvalidOperationException or ArgumentException)
         {
             return StatusCode(500, new { message = $"Failed: {ex.Message}" });
         }

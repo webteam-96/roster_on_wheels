@@ -234,7 +234,7 @@ public class ClubLeadershipController : ControllerBase
             if (credExists == 0)
             {
                 var prefix = designationName == "Club President" ? "Pres@" : "Sec@";
-                var tempPassword = prefix + new Random().Next(1000, 9999);
+                var tempPassword = prefix + Convert.ToHexString(System.Security.Cryptography.RandomNumberGenerator.GetBytes(5));
                 var hash = BCrypt.Net.BCrypt.HashPassword(tempPassword);
                 var updated = await conn.ExecuteAsync(
                     "UPDATE member_credentials SET IsActive = 1, isdeleted = 0, PasswordHash = @Hash, IsTemporaryPassword = 1 WHERE fk_member_master_profile_id = @Id",
@@ -271,10 +271,10 @@ public class ClubLeadershipController : ControllerBase
             await tx.CommitAsync();
             return Ok(new { success = true, message = $"{designationName} saved.", replacedMembers = replacedMemberIds.Count });
         }
-        catch (Exception ex)
+        catch
         {
             await tx.RollbackAsync();
-            return BadRequest(new { message = $"Failed: {ex.Message}" });
+            throw;
         }
     }
 
@@ -379,7 +379,7 @@ public class ClubLeadershipController : ControllerBase
         if (credExists == 0)
         {
             var prefix = designationName == "Club President" ? "Pres@" : "Sec@";
-            tempPassword = prefix + new Random().Next(1000, 9999);
+            tempPassword = prefix + Convert.ToHexString(System.Security.Cryptography.RandomNumberGenerator.GetBytes(5));
             var hash = BCrypt.Net.BCrypt.HashPassword(tempPassword);
             var updated = await conn.ExecuteAsync(
                 "UPDATE member_credentials SET IsActive = 1, isdeleted = 0, PasswordHash = @Hash, IsTemporaryPassword = 1 WHERE fk_member_master_profile_id = @Id",
@@ -429,7 +429,7 @@ public class ClubLeadershipController : ControllerBase
             await conn.ExecuteAsync(
                 "UPDATE club_leadership_email_schedule SET Status = 'Failed', FailedCount = 1 WHERE pk_id = @Id",
                 new { Id = scheduleId });
-            return BadRequest(new { message = $"Email send failed: {ex.Message}" });
+            return BadRequest(new { message = "Email send failed." });
         }
     }
 

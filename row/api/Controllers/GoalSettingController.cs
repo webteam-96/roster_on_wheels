@@ -457,7 +457,7 @@ public class GoalSettingController : ControllerBase
             return Ok(await _service.ImportFoundationMonthlyAsync(GetMemberId(), form.YearId, stream, form.Month));
         }
         catch (InvalidOperationException ex) { return BadRequest(new { message = ex.Message }); }
-        catch (Exception ex) { return BadRequest(new { message = $"Failed to read the Excel file: {ex.Message}" }); }
+        catch (Exception) { return BadRequest(new { message = "Failed to read the Excel file. Check that it is a valid .xlsx file." }); }
     }
 
     // Club Foundation import — reads EVERY district's clubs from one Rotary MCR Excel (SuperAdmin only).
@@ -474,7 +474,7 @@ public class GoalSettingController : ControllerBase
             return Ok(await _service.ImportFoundationClubAsync(GetMemberId(), form.YearId, stream, form.Month));
         }
         catch (InvalidOperationException ex) { return BadRequest(new { message = ex.Message }); }
-        catch (Exception ex) { return BadRequest(new { message = $"Failed to read the Excel file: {ex.Message}" }); }
+        catch (Exception) { return BadRequest(new { message = "Failed to read the Excel file. Check that it is a valid .xlsx file." }); }
     }
 
     // District Membership import (SuperAdmin, user 2026-10-08): Rotary.org "Comparison to 1 July"
@@ -505,7 +505,7 @@ public class GoalSettingController : ControllerBase
                 rotaract, form.RotaractFile?.FileName, interact));
         }
         catch (InvalidOperationException ex) { return BadRequest(new { message = ex.Message }); }
-        catch (Exception ex) { return BadRequest(new { message = $"Failed to read the Excel file: {ex.Message}" }); }
+        catch (Exception) { return BadRequest(new { message = "Failed to read the Excel file. Check that it is a valid .xlsx file." }); }
     }
 
     [HttpGet("foundation-import/sample")]
@@ -540,7 +540,7 @@ public class GoalSettingController : ControllerBase
                 $"foundation_club_import_{ts}.xlsx");
         }
         catch (InvalidOperationException ex) { return BadRequest(new { message = ex.Message }); }
-        catch (Exception ex) { return BadRequest(new { message = $"Failed to read the Excel file: {ex.Message}" }); }
+        catch (Exception) { return BadRequest(new { message = "Failed to read the Excel file. Check that it is a valid .xlsx file." }); }
     }
 
     // Club Foundation sample — MCR layout, one row per current synced club, 0 baseline (SuperAdmin only).

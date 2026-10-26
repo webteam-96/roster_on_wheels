@@ -31,6 +31,7 @@ public class AnnouncementsController : ControllerBase
     }
 
     [HttpGet("api/clubs/{clubId}/announcements/{id}")]
+    [OwnedBy(Owns.ClubAnnouncement, "id", "clubId")]
     public async Task<ActionResult<AnnouncementDetailDto>> GetById(int clubId, int id)
     {
         if (!await RotaryApi.Services.KillSwitchHelper.IsClubDrillReachableAsync(_connectionString, clubId)) return StatusCode(403, new { message = "This club, its district, or its zone is inactive. Reactivate it first to access this data." });
@@ -48,6 +49,7 @@ public class AnnouncementsController : ControllerBase
     }
 
     [HttpPut("api/clubs/{clubId}/announcements/{id}")]
+    [OwnedBy(Owns.ClubAnnouncement, "id", "clubId")]
     public async Task<ActionResult> Update(int clubId, int id, [FromBody] UpdateAnnouncementDto dto)
     {
         await _service.UpdateAsync(id, dto, GetUserId());
@@ -56,6 +58,7 @@ public class AnnouncementsController : ControllerBase
     }
 
     [HttpDelete("api/clubs/{clubId}/announcements/{id}")]
+    [OwnedBy(Owns.ClubAnnouncement, "id", "clubId")]
     public async Task<ActionResult> Delete(int clubId, int id)
     {
         await _service.DeleteAsync(id, GetUserId());

@@ -27,7 +27,10 @@ public class DistrictGovernorController : ControllerBase
     [HttpGet]
     public async Task<ActionResult> GetAll([FromQuery] int? districtId, [FromQuery] int? yearId)
     {
-        if (!IsSuperAdmin()) return Forbid();
+        // SuperAdmin lists every district; those who manage a district read its own governor (district Admin header chip).
+        if (!IsSuperAdmin() && !(districtId is > 0 && await ScopeWriteGuardMiddleware.ReadAllowedAsync(
+                _connectionString, GetUserId(), false, districtId.Value, members: false)))
+            return Forbid();
         using var conn = CreateConnection();
         await conn.OpenAsync();
 

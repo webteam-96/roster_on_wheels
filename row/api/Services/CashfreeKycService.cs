@@ -44,7 +44,7 @@ public class CashfreeKycService : ICashfreeKycService
 
     public async Task<string> SendOtpAsync()
     {
-        var otp = new Random().Next(100000, 999999).ToString();
+        var otp = System.Security.Cryptography.RandomNumberGenerator.GetInt32(100000, 1000000).ToString();
         var otpEmail = _configuration["Cashfree:OtpEmail"] ?? "";
 
         if (string.IsNullOrEmpty(otpEmail))

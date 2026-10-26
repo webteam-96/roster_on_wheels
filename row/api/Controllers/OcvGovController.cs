@@ -107,6 +107,7 @@ public class OcvGovController : ControllerBase
     }
 
     [HttpDelete("documents/{documentId}")]
+    [OwnedBy(Owns.OcvDocument, "documentId", "clubId")]
     public async Task<ActionResult> DeleteDocument(int clubId, int documentId)
     {
         await _service.DeleteDocumentAsync(documentId, GetUserId());
@@ -204,9 +205,9 @@ public class OcvGovController : ControllerBase
                 .Replace(" ", "_").Replace("/", "-");
             return File(bytes, "application/vnd.openxmlformats-officedocument.wordprocessingml.document", fileName);
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is InvalidOperationException or ArgumentException)
         {
-            return StatusCode(500, new { message = $"Failed to generate Word report: {ex.Message}", detail = ex.InnerException?.Message });
+            return StatusCode(500, new { message = $"Failed to generate Word report: {ex.Message}" });
         }
     }
 
@@ -236,9 +237,9 @@ public class OcvGovController : ControllerBase
                 .Replace(" ", "_").Replace("/", "-");
             return File(bytes, "application/vnd.ms-excel", fileName);
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is InvalidOperationException or ArgumentException)
         {
-            return StatusCode(500, new { message = $"Failed to generate Excel report: {ex.Message}", detail = ex.InnerException?.Message });
+            return StatusCode(500, new { message = $"Failed to generate Excel report: {ex.Message}" });
         }
     }
 
@@ -262,7 +263,7 @@ public class OcvGovController : ControllerBase
                 rows = t.Rows,
             }));
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is InvalidOperationException or ArgumentException)
         {
             return StatusCode(500, new { message = $"Failed to load live documents: {ex.Message}" });
         }

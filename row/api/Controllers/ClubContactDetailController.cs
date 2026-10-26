@@ -64,6 +64,7 @@ public class ClubContactDetailController : ControllerBase
     }
 
     [HttpPut("api/clubs/{clubId}/website-data/contact_details/{id}")]
+    [OwnedBy(Owns.ClubContactDetail, "id", "clubId")]
     public async Task<ActionResult> Update(int clubId, int id, [FromBody] UpdateClubContactDetailDto dto)
     {
         await _service.UpdateAsync(id, dto, GetUserId());
@@ -71,6 +72,7 @@ public class ClubContactDetailController : ControllerBase
     }
 
     [HttpDelete("api/clubs/{clubId}/website-data/contact_details/{id}")]
+    [OwnedBy(Owns.ClubContactDetail, "id", "clubId")]
     public async Task<ActionResult> Delete(int clubId, int id)
     {
         await _service.DeleteAsync(id, GetUserId());

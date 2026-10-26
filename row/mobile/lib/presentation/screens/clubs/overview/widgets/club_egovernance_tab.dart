@@ -156,7 +156,13 @@ class _EgovManagementGrid extends StatelessWidget {
     (label: 'District Awards', icon: Icons.workspace_premium_outlined, color: 0xFFE97A10, route: 'citation'),
     (label: 'Reports', icon: Icons.assessment_outlined, color: 0xFF16A34A, route: 'reports'),
     (label: 'Rotary Network', icon: Icons.hub_outlined, color: 0xFF4F46E5, route: 'rotary-network'),
+    (label: 'Targets', icon: Icons.flag_outlined, color: 0xFF0F766E, route: 'targets'),
+    (label: 'Grants', icon: Icons.savings_outlined, color: 0xFF1C5BAE, route: 'grants'),
+    (label: 'Speakers', icon: Icons.record_voice_over_outlined, color: 0xFF9333EA, route: 'speakers'),
   ];
+
+  /// Tiles whose app path differs from the admin's, so the switch is checked by key.
+  static const _tileFeature = {'targets': 'target_dashboard', 'grants': 'grants'};
 
   @override
   Widget build(BuildContext context) {
@@ -188,7 +194,9 @@ class _EgovManagementGrid extends StatelessWidget {
             childAspectRatio: 1.5,
             children: [
               // ROW module switches (FeatureController): skipped or switched-off modules lose their tile
-              for (final t in _tiles.where((t) => !context.watch<FeatureController>().isPathOff('/clubs/$clubId/${t.route}')))
+              for (final t in _tiles.where((t) =>
+                  !context.watch<FeatureController>().isPathOff('/clubs/$clubId/${t.route}') &&
+                  context.watch<FeatureController>().isOn(_tileFeature[t.route] ?? '')))
                 _EgovTile(
                   label: t.label,
                   icon: t.icon,

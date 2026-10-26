@@ -37,7 +37,7 @@ public class AdminController : ControllerBase
         {
             return BadRequest(new { message = ex.Message });
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is InvalidOperationException or ArgumentException)
         {
             return StatusCode(500, new { message = $"Failed to assign admin role: {ex.Message}" });
         }
@@ -58,7 +58,7 @@ public class AdminController : ControllerBase
         {
             return BadRequest(new { message = ex.Message });
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is InvalidOperationException or ArgumentException)
         {
             return StatusCode(500, new { message = $"Failed to remove admin role: {ex.Message}" });
         }
@@ -79,7 +79,7 @@ public class AdminController : ControllerBase
             var result = await _roleService.GetAllMembersWithRolesAsync(page, pageSize, search);
             return Ok(result);
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is InvalidOperationException or ArgumentException)
         {
             return StatusCode(500, new { message = $"Failed to fetch member roles: {ex.Message}" });
         }

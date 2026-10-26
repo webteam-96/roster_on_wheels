@@ -92,7 +92,7 @@ public class MembershipDuesController : ControllerBase
             var id = await _service.CreateAsync(dto, logo, bgImage, emailLogo, GetUserId(), _env);
             return Ok(new { id, message = "Club dues created." });
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is InvalidOperationException or ArgumentException)
         {
             return StatusCode(500, new { message = $"Failed to create club dues: {ex.Message}" });
         }
@@ -109,7 +109,7 @@ public class MembershipDuesController : ControllerBase
             await _service.UpdateAsync(id, dto, logo, bgImage, emailLogo, GetUserId(), _env);
             return Ok(new { message = "Club dues updated." });
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is InvalidOperationException or ArgumentException)
         {
             return StatusCode(500, new { message = $"Failed to update club dues: {ex.Message}" });
         }
@@ -130,7 +130,7 @@ public class MembershipDuesController : ControllerBase
                 emailReminderSubject, emailReminderBody, logo, bgImage, emailLogo, GetUserId(), _env);
             return Ok(new { message = "Club dues updated." });
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is InvalidOperationException or ArgumentException)
         {
             return StatusCode(500, new { message = $"Failed to update: {ex.Message}" });
         }
@@ -145,7 +145,7 @@ public class MembershipDuesController : ControllerBase
             await _service.DeleteAsync(id, GetUserId());
             return Ok(new { message = "Club dues deleted." });
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is InvalidOperationException or ArgumentException)
         {
             return StatusCode(500, new { message = $"Failed to delete club dues: {ex.Message}" });
         }
@@ -160,7 +160,7 @@ public class MembershipDuesController : ControllerBase
             await _service.ToggleActiveAsync(id, GetUserId());
             return Ok(new { message = "Club dues toggled." });
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is InvalidOperationException or ArgumentException)
         {
             return StatusCode(500, new { message = $"Failed to toggle: {ex.Message}" });
         }
@@ -186,7 +186,7 @@ public class MembershipDuesController : ControllerBase
             await _service.AllocateDefaultFeesAsync(id, GetUserId());
             return Ok(new { message = "Default fees allocated." });
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is InvalidOperationException or ArgumentException)
         {
             return StatusCode(500, new { message = $"Failed to allocate fees: {ex.Message}" });
         }
@@ -202,7 +202,7 @@ public class MembershipDuesController : ControllerBase
             await _service.UpdateMemberFeeAsync(id, memberFeeId, dto, GetUserId());
             return Ok(new { message = "Member fee updated.", debug = new { dto.CategoryType, dto.AnnualAmount, dto.Semi1Amount, dto.Semi2Amount } });
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is InvalidOperationException or ArgumentException)
         {
             return StatusCode(500, new { message = $"Failed to update member fee: {ex.Message}" });
         }
@@ -228,7 +228,7 @@ public class MembershipDuesController : ControllerBase
             var paymentId = await _service.RecordOfflinePaymentAsync(id, memberFeeId, dto, attachment, GetUserId(), _env);
             return Ok(new { id = paymentId, message = "Offline payment recorded." });
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is InvalidOperationException or ArgumentException)
         {
             return StatusCode(500, new { message = $"Failed: {ex.Message}" });
         }
@@ -306,7 +306,7 @@ public class MembershipDuesController : ControllerBase
         {
             return BadRequest(new { message = ex.Message });
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is InvalidOperationException or ArgumentException)
         {
             return StatusCode(500, new { message = $"Failed: {ex.Message}" });
         }
@@ -377,7 +377,7 @@ public class MembershipDuesController : ControllerBase
         {
             return BadRequest(new { message = ex.Message });
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is InvalidOperationException or ArgumentException)
         {
             return StatusCode(500, new { message = $"Failed to revert payment: {ex.Message}" });
         }
@@ -433,7 +433,7 @@ public class MembershipDuesController : ControllerBase
         {
             return NotFound(new { message = ex.Message });
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is InvalidOperationException or ArgumentException)
         {
             return StatusCode(500, new { message = $"Failed: {ex.Message}" });
         }
@@ -456,7 +456,7 @@ public class MembershipDuesController : ControllerBase
         }
         catch (KeyNotFoundException ex) { return NotFound(new { message = ex.Message }); }
         catch (InvalidOperationException ex) { return BadRequest(new { message = ex.Message }); }
-        catch (Exception ex) { return StatusCode(500, new { message = $"Failed to send receipt: {ex.Message}" }); }
+        catch (Exception ex) when (ex is InvalidOperationException or ArgumentException) { return StatusCode(500, new { message = $"Failed to send receipt: {ex.Message}" }); }
     }
 
     // Fee-id-based receipt endpoint. Introduced 2026-07-08 as the safe
@@ -476,7 +476,7 @@ public class MembershipDuesController : ControllerBase
         }
         catch (KeyNotFoundException ex) { return NotFound(new { message = ex.Message }); }
         catch (InvalidOperationException ex) { return BadRequest(new { message = ex.Message }); }
-        catch (Exception ex) { return StatusCode(500, new { message = $"Failed to send receipt: {ex.Message}" }); }
+        catch (Exception ex) when (ex is InvalidOperationException or ArgumentException) { return StatusCode(500, new { message = $"Failed to send receipt: {ex.Message}" }); }
     }
 
     [HttpPost("{id}/members/{memberFeeId}/reminder-email")]
@@ -506,7 +506,7 @@ public class MembershipDuesController : ControllerBase
             await _service.RefreshSettlementsAsync(id);
             return Ok(new { message = "Settlements refreshed." });
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is InvalidOperationException or ArgumentException)
         {
             return StatusCode(500, new { message = $"Failed to refresh settlements: {ex.Message}" });
         }
@@ -522,7 +522,7 @@ public class MembershipDuesController : ControllerBase
             var result = await _service.GetSettlementReportAsync(id);
             return Ok(result);
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is InvalidOperationException or ArgumentException)
         {
             return StatusCode(500, new { message = $"Failed to get settlement report: {ex.Message}" });
         }
@@ -551,7 +551,7 @@ public class MembershipDuesController : ControllerBase
         {
             return NotFound(new { message = ex.Message });
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is InvalidOperationException or ArgumentException)
         {
             return StatusCode(500, new { message = $"Failed to export: {ex.Message}" });
         }
@@ -572,7 +572,7 @@ public class MembershipDuesController : ControllerBase
         {
             return NotFound(new { message = ex.Message });
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is InvalidOperationException or ArgumentException)
         {
             return StatusCode(500, new { message = $"Failed to create Google Sheet: {ex.Message}" });
         }
@@ -591,7 +591,7 @@ public class MembershipDuesController : ControllerBase
         {
             return NotFound(new { message = ex.Message });
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is InvalidOperationException or ArgumentException)
         {
             return StatusCode(500, new { message = $"Failed to delete Google Sheet: {ex.Message}" });
         }

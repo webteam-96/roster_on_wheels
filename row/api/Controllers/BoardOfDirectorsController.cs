@@ -34,6 +34,7 @@ public class BoardOfDirectorsController : ControllerBase
     }
 
     [HttpPost("api/designations")]
+    [SuperAdminOnly]
     public async Task<ActionResult> CreateDesignation([FromBody] CreateDesignationDto dto)
     {
         var id = await _designationService.CreateAsync(dto, GetUserId());
@@ -41,6 +42,7 @@ public class BoardOfDirectorsController : ControllerBase
     }
 
     [HttpPut("api/designations/{id}")]
+    [SuperAdminOnly]
     public async Task<ActionResult> UpdateDesignation(int id, [FromBody] UpdateDesignationDto dto)
     {
         await _designationService.UpdateAsync(id, dto, GetUserId());
@@ -48,6 +50,7 @@ public class BoardOfDirectorsController : ControllerBase
     }
 
     [HttpDelete("api/designations/{id}")]
+    [SuperAdminOnly]
     public async Task<ActionResult> DeleteDesignation(int id)
     {
         try
@@ -62,6 +65,7 @@ public class BoardOfDirectorsController : ControllerBase
     }
 
     [HttpPut("api/designations/reorder")]
+    [SuperAdminOnly]
     public async Task<ActionResult> ReorderDesignations([FromBody] ReorderDesignationsDto dto)
     {
         await _designationService.SwapOrderAsync(dto.Id1, dto.Id2);
@@ -70,6 +74,7 @@ public class BoardOfDirectorsController : ControllerBase
 
     // Drag-and-drop full-list reorder. Body: { orderedIds: [3, 1, 2, ...] }
     [HttpPut("api/designations/reorder-all")]
+    [SuperAdminOnly]
     public async Task<ActionResult> ReorderDesignationsAll([FromBody] ReorderDesignationsAllDto dto)
     {
         await _designationService.ReorderAllAsync(dto.OrderedIds);
@@ -95,6 +100,7 @@ public class BoardOfDirectorsController : ControllerBase
     }
 
     [HttpGet("api/clubs/{clubId}/board-of-directors/{id}")]
+    [OwnedBy(Owns.BoardDirector, "id", "clubId")]
     public async Task<ActionResult<BoardDirectorDto>> GetById(int clubId, int id)
     {
         if (!await RotaryApi.Services.KillSwitchHelper.IsClubDrillReachableAsync(_connectionString, clubId)) return StatusCode(403, new { message = "This club, its district, or its zone is inactive. Reactivate it first to access this data." });
@@ -119,6 +125,7 @@ public class BoardOfDirectorsController : ControllerBase
     }
 
     [HttpPut("api/clubs/{clubId}/board-of-directors/{id}")]
+    [OwnedBy(Owns.BoardDirector, "id", "clubId")]
     public async Task<ActionResult> Update(int clubId, int id, [FromBody] UpdateBoardDirectorDto dto)
     {
         try
@@ -134,6 +141,7 @@ public class BoardOfDirectorsController : ControllerBase
     }
 
     [HttpDelete("api/clubs/{clubId}/board-of-directors/{id}")]
+    [OwnedBy(Owns.BoardDirector, "id", "clubId")]
     public async Task<ActionResult> Delete(int clubId, int id)
     {
         await _boardDirectorService.DeleteAsync(id, GetUserId());

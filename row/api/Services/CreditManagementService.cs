@@ -322,15 +322,20 @@ public class CreditManagementService : ICreditManagementService
             new { UserId = userId, Id = id });
     }
 
-    public async Task<CreditBalanceDto> GetClubCreditBalanceAsync(int clubId)
+    // One wallet only: a club wallet (fk_club_id = id) or a district wallet (fk_club_id = 0, fk_district_id = id).
+    // Matching both let club 5 spend district 5's credits. Constant SQL fragments, never input.
+    private static string WalletWhere(bool isDistrict) =>
+        isDistrict ? "fk_club_id = 0 AND fk_district_id = @ClubId" : "fk_club_id = @ClubId";
+
+    public async Task<CreditBalanceDto> GetClubCreditBalanceAsync(int clubId, bool isDistrict = false)
     {
         using var connection = CreateConnection();
         await connection.OpenAsync();
 
         var credits = (await connection.QueryAsync<dynamic>(
-            @"SELECT CreditType, CreditCount, UsedCount, ToDate
+            $@"SELECT CreditType, CreditCount, UsedCount, ToDate
               FROM club_credits
-              WHERE (fk_club_id = @ClubId OR (fk_club_id = 0 AND fk_district_id = @ClubId))
+              WHERE {WalletWhere(isDistrict)}
                 AND IsActive = 1 AND isdeleted = 0
                 AND NOW() <= ToDate
               ORDER BY ToDate ASC",
@@ -353,15 +358,15 @@ public class CreditManagementService : ICreditManagementService
         return result;
     }
 
-    public async Task DeductCreditAsync(int clubId, string creditType, int count)
+    public async Task DeductCreditAsync(int clubId, string creditType, int count, bool isDistrict = false)
     {
         using var connection = CreateConnection();
         await connection.OpenAsync();
 
         var credits = (await connection.QueryAsync<dynamic>(
-            @"SELECT pk_credit_id AS Id, CreditCount, UsedCount
+            $@"SELECT pk_credit_id AS Id, CreditCount, UsedCount
               FROM club_credits
-              WHERE (fk_club_id = @ClubId OR (fk_club_id = 0 AND fk_district_id = @ClubId))
+              WHERE {WalletWhere(isDistrict)}
                 AND CreditType = @CreditType
                 AND IsActive = 1 AND isdeleted = 0
                 AND NOW() <= ToDate
@@ -403,28 +408,29 @@ public class CreditManagementService : ICreditManagementService
         return notifications;
     }
 
-    public async Task<bool> HasSufficientCreditsAsync(int clubId, string creditType, int count)
+    public async Task<bool> HasSufficientCreditsAsync(int clubId, string creditType, int count, bool isDistrict = false)
     {
-        var balance = await GetClubCreditBalanceAsync(clubId);
+        var balance = await GetClubCreditBalanceAsync(clubId, isDistrict);
         var available = creditType == "Email" ? balance.EmailRemaining : 0;
         return available >= count;
     }
 
-    public async Task DeductWithHistoryAsync(int clubId, string creditType, int count, string source, int? sourceId, string? sourceDetail, int userId)
+    public async Task DeductWithHistoryAsync(int clubId, string creditType, int count, string source, int? sourceId, string? sourceDetail, int userId, bool isDistrict = false)
     {
+        if (isDistrict) { await DeductDistrictWithHistoryAsync(clubId, creditType, count, source, sourceId, sourceDetail, userId); return; }
         using var connection = CreateConnection();
         await connection.OpenAsync();
 
         // Get balance before
         var balanceBefore = await connection.ExecuteScalarAsync<int?>(
-            @"SELECT SUM(CreditCount - UsedCount) FROM club_credits
-              WHERE (fk_club_id = @ClubId OR (fk_club_id = 0 AND fk_district_id = @ClubId))
+            $@"SELECT SUM(CreditCount - UsedCount) FROM club_credits
+              WHERE {WalletWhere(isDistrict)}
                 AND CreditType = @CreditType
                 AND IsActive = 1 AND isdeleted = 0 AND NOW() <= ToDate",
             new { ClubId = clubId, CreditType = creditType }) ?? 0;
 
         // Deduct
-        await DeductCreditAsync(clubId, creditType, count);
+        await DeductCreditAsync(clubId, creditType, count, isDistrict);
 
         // Get district id for the club
         var districtId = await connection.ExecuteScalarAsync<int?>(
@@ -478,34 +484,34 @@ public class CreditManagementService : ICreditManagementService
             new { DistrictId = districtId, CreditType = creditType, Count = count, Source = source, SourceId = sourceId, SourceDetail = sourceDetail, BalanceBefore = balanceBefore, BalanceAfter = balanceBefore - count, UserId = userId });
     }
 
-    public async Task<int> GetDeductedAmountAsync(int clubId, string creditType, string source, int sourceId)
+    public async Task<int> GetDeductedAmountAsync(int clubId, string creditType, string source, int sourceId, bool isDistrict = false)
     {
         using var connection = CreateConnection();
         await connection.OpenAsync();
         // Sum of positive deductions (ignores any prior refund entries which are negative)
         return await connection.ExecuteScalarAsync<int?>(
-            @"SELECT COALESCE(SUM(DeductedCount), 0) FROM club_credit_usage_history
-              WHERE (fk_club_id = @ClubId OR fk_district_id = @ClubId)
+            $@"SELECT COALESCE(SUM(DeductedCount), 0) FROM club_credit_usage_history
+              WHERE {WalletWhere(isDistrict)}
                 AND CreditType = @CreditType AND Source = @Source AND SourceId = @SourceId",
             new { ClubId = clubId, CreditType = creditType, Source = source, SourceId = sourceId }) ?? 0;
     }
 
-    public async Task RefundWithHistoryAsync(int clubId, string creditType, int count, string source, int? sourceId, string? sourceDetail, int userId)
+    public async Task RefundWithHistoryAsync(int clubId, string creditType, int count, string source, int? sourceId, string? sourceDetail, int userId, bool isDistrict = false)
     {
         if (count <= 0) return;
         using var connection = CreateConnection();
         await connection.OpenAsync();
 
         var balanceBefore = await connection.ExecuteScalarAsync<int?>(
-            @"SELECT SUM(CreditCount - UsedCount) FROM club_credits
-              WHERE (fk_club_id = @ClubId OR (fk_club_id = 0 AND fk_district_id = @ClubId))
+            $@"SELECT SUM(CreditCount - UsedCount) FROM club_credits
+              WHERE {WalletWhere(isDistrict)}
                 AND CreditType = @CreditType AND IsActive = 1 AND isdeleted = 0",
             new { ClubId = clubId, CreditType = creditType }) ?? 0;
 
         // Fetch credit rows for this club/creditType with UsedCount > 0 in reverse order (newest first)
         var rows = (await connection.QueryAsync<dynamic>(
-            @"SELECT pk_credit_id AS Id, UsedCount FROM club_credits
-              WHERE (fk_club_id = @ClubId OR (fk_club_id = 0 AND fk_district_id = @ClubId))
+            $@"SELECT pk_credit_id AS Id, UsedCount FROM club_credits
+              WHERE {WalletWhere(isDistrict)}
                 AND CreditType = @CreditType AND isdeleted = 0 AND UsedCount > 0
               ORDER BY pk_credit_id DESC",
             new { ClubId = clubId, CreditType = creditType })).ToList();

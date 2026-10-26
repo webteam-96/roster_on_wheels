@@ -101,7 +101,7 @@ public class MobileClubAdminMembershipDuesController : ControllerBase
             var paymentId = await _service.RecordOfflinePaymentAsync(id, memberFeeId, dto, attachment, GetUserId(), _env);
             return Ok(new { id = paymentId, message = "Offline payment recorded." });
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is InvalidOperationException or ArgumentException)
         {
             return StatusCode(500, new { message = $"Failed: {ex.Message}" });
         }
@@ -167,7 +167,7 @@ public class MobileClubAdminMembershipDuesController : ControllerBase
         }
         catch (KeyNotFoundException ex) { return NotFound(new { message = ex.Message }); }
         catch (ArgumentException ex)   { return BadRequest(new { message = ex.Message }); }
-        catch (Exception ex)            { return StatusCode(500, new { message = $"Failed: {ex.Message}" }); }
+        catch (Exception ex) when (ex is InvalidOperationException or ArgumentException)            { return StatusCode(500, new { message = $"Failed: {ex.Message}" }); }
     }
 
     // ── Approve / Reject ───────────────────────────────────────────
@@ -187,7 +187,7 @@ public class MobileClubAdminMembershipDuesController : ControllerBase
         }
         catch (ArgumentException ex) { return BadRequest(new { message = ex.Message }); }
         catch (KeyNotFoundException ex) { return NotFound(new { message = ex.Message }); }
-        catch (Exception ex) { return StatusCode(500, new { message = $"Failed: {ex.Message}" }); }
+        catch (Exception ex) when (ex is InvalidOperationException or ArgumentException) { return StatusCode(500, new { message = $"Failed: {ex.Message}" }); }
     }
 
     // Dashboard alert — one row per dues that has at least one pending offline

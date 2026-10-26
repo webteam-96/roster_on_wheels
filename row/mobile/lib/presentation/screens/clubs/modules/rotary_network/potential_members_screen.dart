@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../../../../core/features/feature_controller.dart';
 import '../../../../../core/network/api_client.dart';
 import '../../../../../core/network/api_response.dart';
 import '../../../../../core/theme/app_colors.dart';
@@ -13,6 +14,10 @@ import '../../../../../presentation/widgets/common/empty_state_widget.dart';
 import '../../../../../presentation/widgets/common/loading_widget.dart';
 import '../../../../../presentation/widgets/common/confirmation_dialog.dart';
 import '../../../../providers/auth_provider.dart';
+
+/// Prospect pipeline stages (N3), the same list as the admin's `PROSPECT_STAGES`.
+const prospectStages = ['inquiry', 'contacted', 'invited', 'attended', 'proposed', 'approved', 'inducted'];
+String stageLabel(String s) => s.isEmpty ? s : s[0].toUpperCase() + s.substring(1);
 
 class PotentialMembersScreen extends StatefulWidget {
   final int clubId;
@@ -193,7 +198,8 @@ class _MemberCard extends StatelessWidget {
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(12),
+
       ),
       child: Row(
         children: [
@@ -210,6 +216,8 @@ class _MemberCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(item['name'] as String? ?? 'Unknown', style: AppTextStyles.bodySemiBold),
+                if (context.watch<FeatureController>().isOn('contacts_growth') && item['stage'] != null)
+                  Text(stageLabel(item['stage'] as String), style: AppTextStyles.caption.copyWith(color: AppColors.primary)),
                 if (item['email'] != null)
                   Text(item['email'] as String, style: AppTextStyles.caption.copyWith(color: AppColors.textSecondary)),
                 if (item['mobileNumber'] != null)
@@ -246,6 +254,8 @@ class _PotentialMemberFormState extends State<_PotentialMemberForm> {
   final _emailCtrl = TextEditingController();
   final _mobileCtrl = TextEditingController();
   final _referenceCtrl = TextEditingController();
+  final _notesCtrl = TextEditingController();
+  String _stage = 'inquiry';
   bool _saving = false;
 
   bool get _isEdit => widget.item != null;
@@ -258,23 +268,29 @@ class _PotentialMemberFormState extends State<_PotentialMemberForm> {
       _emailCtrl.text = widget.item!['email'] as String? ?? '';
       _mobileCtrl.text = widget.item!['mobileNumber'] as String? ?? '';
       _referenceCtrl.text = widget.item!['referenceDetails'] as String? ?? '';
+      _notesCtrl.text = widget.item!['notes'] as String? ?? '';
+      final stage = widget.item!['stage'] as String?;
+      if (prospectStages.contains(stage)) _stage = stage!;
     }
   }
 
   @override
   void dispose() {
-    _nameCtrl.dispose(); _emailCtrl.dispose(); _mobileCtrl.dispose(); _referenceCtrl.dispose();
+    _nameCtrl.dispose(); _emailCtrl.dispose(); _mobileCtrl.dispose(); _referenceCtrl.dispose(); _notesCtrl.dispose();
     super.dispose();
   }
 
   Future<void> _save() async {
     if (!_formKey.currentState!.validate()) return;
+    final pipeline = context.read<FeatureController>().isOn('contacts_growth');
     setState(() => _saving = true);
     final body = {
       'name': _nameCtrl.text.trim(),
       'email': _emailCtrl.text.trim(),
       'mobileNumber': _mobileCtrl.text.trim(),
       'referenceDetails': _referenceCtrl.text.trim(),
+      if (pipeline) 'stage': _stage,
+      if (pipeline) 'notes': _notesCtrl.text.trim(),
     };
     try {
       if (_isEdit) {
@@ -339,6 +355,17 @@ class _PotentialMemberFormState extends State<_PotentialMemberForm> {
               ),
               const SizedBox(height: 12),
               CustomTextField(controller: _referenceCtrl, label: 'Reference Details', hint: 'Reference (optional)'),
+              if (context.watch<FeatureController>().isOn('contacts_growth')) ...[
+                const SizedBox(height: 12),
+                DropdownButtonFormField<String>(
+                  initialValue: _stage,
+                  decoration: const InputDecoration(labelText: 'Stage', border: OutlineInputBorder()),
+                  items: [for (final s in prospectStages) DropdownMenuItem(value: s, child: Text(stageLabel(s)))],
+                  onChanged: (v) => setState(() => _stage = v ?? _stage),
+                ),
+                const SizedBox(height: 12),
+                CustomTextField(controller: _notesCtrl, label: 'Notes', hint: 'Notes (optional)'),
+              ],
               const SizedBox(height: 20),
               SizedBox(width: double.infinity, child: CustomButton(label: _isEdit ? 'Update' : 'Add', isLoading: _saving, onPressed: _save)),
             ],

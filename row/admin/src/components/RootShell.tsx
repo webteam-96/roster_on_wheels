@@ -4,6 +4,7 @@ import { usePathname } from "next/navigation";
 import AppHeader from "@/components/AppHeader";
 import SuperAdminBackToSearch from "@/components/SuperAdminBackToSearch";
 import FeatureGate from "@/components/FeatureGate";
+import RoleGate from "@/components/RoleGate";
 
 /**
  * Chooses the chrome for the current route. Public-website routes (the (site)
@@ -45,7 +46,7 @@ export default function RootShell({ children }: { children: React.ReactNode }) {
   return (
     <>
       <AppHeader />
-      <main className="px-8 py-4"><FeatureGate>{children}</FeatureGate></main>
+      <main className="px-8 py-4"><FeatureGate><RoleGate>{children}</RoleGate></FeatureGate></main>
       {/* SuperAdmin-only floating shortcut back to Global Search (hidden for real DA/CA/AG/CM logins). */}
       <SuperAdminBackToSearch />
       {/* The floating bottom-left role switcher was REMOVED (user 2026-09-29): the dashboards already

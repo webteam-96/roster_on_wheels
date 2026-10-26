@@ -28,7 +28,7 @@ public class DailyStatsReportController : ControllerBase
             await _service.SendDailyReportAsync(HttpContext.RequestAborted, force: true);
             return Ok(new { message = "Daily statistics report sent to the configured recipients. Check the recipient inboxes and the email logs." });
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is InvalidOperationException or ArgumentException)
         {
             return BadRequest(new { message = $"Failed to run the daily statistics report: {ex.Message}" });
         }
@@ -64,7 +64,7 @@ public class DailyStatsReportController : ControllerBase
                 "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
                 r.FileName);
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is InvalidOperationException or ArgumentException)
         {
             return BadRequest(new { message = $"Failed to build the daily statistics report: {ex.Message}" });
         }

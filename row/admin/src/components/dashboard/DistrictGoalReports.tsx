@@ -12,7 +12,7 @@ import { saveAs } from "file-saver";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import RotaryLoader from "@/components/RotaryLoader";
-import { downloadDistrictGoalExcel, downloadClubGoalExcel, downloadAllClubsGoalExcel, getDistrictAllClubsForAdmin } from "@/services/api";
+import { downloadDistrictGoalExcel, downloadClubGoalExcel, downloadAllClubsGoalExcel, getDistrictClubs } from "@/services/api";
 import { fileTimestamp } from "@/lib/dateUtils";
 
 export default function DistrictGoalReports({ districtId, yearId, mode = "both" }: { districtId?: number | null; yearId?: number | null; mode?: "both" | "district" | "club" }) {
@@ -23,8 +23,9 @@ export default function DistrictGoalReports({ districtId, yearId, mode = "both" 
   useEffect(() => {
     if (mode === "district" || !districtId) { setClubs([]); return; }
     let cancelled = false;
-    getDistrictAllClubsForAdmin(districtId)
-      .then((cs) => { if (!cancelled) setClubs(cs.map((c) => ({ clubId: c.clubId, clubName: c.clubName }))); })
+    // The district's club list every district manager and AG may read; the download checks each club again.
+    getDistrictClubs(districtId)
+      .then((cs) => { if (!cancelled) setClubs(cs.map((c) => ({ clubId: c.id, clubName: c.clubName }))); })
       .catch(() => { if (!cancelled) setClubs([]); });
     return () => { cancelled = true; };
   }, [districtId, mode]);

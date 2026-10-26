@@ -53,7 +53,7 @@ public class PublicEventPaymentController : ControllerBase
             var result = await _service.SendPaymentOtpAsync(linkId, dto);
             return Ok(new { success = result, message = result ? "OTP sent successfully." : "Failed to send OTP." });
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is InvalidOperationException or ArgumentException)
         {
             return BadRequest(new { success = false, message = ex.Message });
         }
@@ -67,7 +67,7 @@ public class PublicEventPaymentController : ControllerBase
             var result = await _service.VerifyOtpAsync(linkId, dto);
             return Ok(new { success = result, message = result ? "OTP verified." : "Invalid or expired OTP." });
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is InvalidOperationException or ArgumentException)
         {
             return BadRequest(new { success = false, message = ex.Message });
         }
@@ -81,7 +81,7 @@ public class PublicEventPaymentController : ControllerBase
             var result = await _service.CreatePaymentOrderAsync(linkId, dto);
             return Ok(result);
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is InvalidOperationException or ArgumentException)
         {
             return BadRequest(new { message = ex.Message });
         }
@@ -95,7 +95,7 @@ public class PublicEventPaymentController : ControllerBase
             var result = await _service.VerifyPaymentAsync(linkId, orderId, memberPaymentId);
             return Ok(result);
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is InvalidOperationException or ArgumentException)
         {
             return BadRequest(new { message = ex.Message });
         }
@@ -111,7 +111,7 @@ public class PublicEventPaymentController : ControllerBase
             await _service.HandleWebhookAsync(payload);
             return Ok();
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is InvalidOperationException or ArgumentException)
         {
             return BadRequest(new { message = ex.Message });
         }

@@ -32,6 +32,7 @@ public class PastPresidentsController : ControllerBase
     }
 
     [HttpGet("{id}")]
+    [OwnedBy(Owns.PastPresident, "id", "clubId")]
     public async Task<ActionResult<PastPresidentDto>> GetById(int clubId, int id)
     {
         if (!await RotaryApi.Services.KillSwitchHelper.IsClubDrillReachableAsync(_connectionString, clubId)) return StatusCode(403, new { message = "This club, its district, or its zone is inactive. Reactivate it first to access this data." });
@@ -49,6 +50,7 @@ public class PastPresidentsController : ControllerBase
     }
 
     [HttpPut("{id}")]
+    [OwnedBy(Owns.PastPresident, "id", "clubId")]
     public async Task<ActionResult> Update(int clubId, int id, [FromForm] UpdatePastPresidentDto dto, IFormFile? photo)
     {
         await _pastPresidentService.UpdateAsync(id, dto, photo, GetUserId(), _env);
@@ -56,6 +58,7 @@ public class PastPresidentsController : ControllerBase
     }
 
     [HttpDelete("{id}")]
+    [OwnedBy(Owns.PastPresident, "id", "clubId")]
     public async Task<ActionResult> Delete(int clubId, int id)
     {
         await _pastPresidentService.DeleteAsync(id, GetUserId());

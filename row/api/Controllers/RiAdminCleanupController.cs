@@ -179,10 +179,10 @@ public class RiAdminCleanupController : ControllerBase
                 items = candidates
             });
         }
-        catch (Exception ex)
+        catch
         {
             await tx.RollbackAsync();
-            return BadRequest(new { message = $"Cleanup failed: {ex.Message}" });
+            throw;
         }
     }
 }

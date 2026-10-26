@@ -86,7 +86,7 @@ public class ZoneService : IZoneService
             commandType: CommandType.StoredProcedure);
 
         if (isDuplicate > 0)
-            throw new Exception("A zone with this name already exists.");
+            throw new InvalidOperationException("A zone with this name already exists.");
 
         return await connection.ExecuteScalarAsync<int>(
             "sp_zone_create",
@@ -106,7 +106,7 @@ public class ZoneService : IZoneService
             commandType: CommandType.StoredProcedure);
 
         if (isDuplicate > 0)
-            throw new Exception("A zone with this name already exists.");
+            throw new InvalidOperationException("A zone with this name already exists.");
 
         await connection.ExecuteAsync(
             "sp_zone_update",

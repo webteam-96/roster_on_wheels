@@ -150,7 +150,7 @@ public class RazorpayRouteAccountsController : ControllerBase
         if (string.IsNullOrWhiteSpace(email))
             return BadRequest(new { message = "Your account has no email on file to send the OTP to." });
 
-        var otp = new Random().Next(100000, 999999).ToString();
+        var otp = System.Security.Cryptography.RandomNumberGenerator.GetInt32(100000, 1000000).ToString();
         await conn.ExecuteAsync(@"
             INSERT INTO event_payment_otp (fk_payment_link_id, Email, Mobile, OtpCode, ExpiresAt)
             VALUES (@LinkId, @Email, NULL, @Otp, DATE_ADD(NOW(), INTERVAL 10 MINUTE))",

@@ -111,7 +111,7 @@ open the file for the text. Do not edit by hand.
   -   Configuration (set per server as environment variables; never commit values)
   -   Checks
   -   Refreshing from a newer RIZones copy
-- **row/ROW-CHANGES.md** (43 KB)
+- **row/ROW-CHANGES.md** (48 KB)
   - ROW changes to consider later
   -   Security and privacy
   -   Providers
@@ -163,7 +163,7 @@ open the file for the text. Do not edit by hand.
   -   8. Open decisions (owner: product / company)
   -   9. Working rules agreed with the team
   -   10. How to resume
-- **row/TRACKER.md** (20 KB)
+- **row/TRACKER.md** (21 KB)
   - ROW work tracker
   -   1. Summary
   -   2. Skipped modules: remove completely
