@@ -14,11 +14,11 @@ Stripe), **Removed**.
 
 | Area | Done | In progress | To do | Blocked / on hold |
 |---|---|---|---|---|
-| Existing modules, web (93 in scope) | 84 pages exist (+8 app-only, 1 removed) | Error crawl | Fix crawl findings (section 4) | 7 payment modules on hold |
+| Existing modules, web (93 in scope) | 84 pages exist (+8 app-only, 1 removed); crawled as Super Admin, Club Admin, District Admin, AG | | | 7 payment modules on hold |
 | Existing modules, mobile app | 59 | | none: the 28 Super Admin tools stay web-only (decision), duplicate check runs in the API | 7 payment modules on hold |
 | Skipped modules (14 sheet rows) | Removed completely (2026-10-22/23) | | Drop leftover objects on prod: `database/maintenance/2026-10-23-drop-removed-modules.sql`, user go-ahead | |
 | Phase 1 web hardening | 7 of 7 | | | |
-| New spec modules (section 5) | 10 web + API (flags off until a SuperAdmin turns them on) | | N7, N12, app screens | 12 items blocked (section 6) |
+| New spec modules (section 5) | N1-N13 web + API + app (flags off until a SuperAdmin turns them on) | | | 9 items blocked (section 6) |
 | Launch items (section 7) | 4 | | 5 | 3 |
 
 ## 2. Skipped modules: remove completely
