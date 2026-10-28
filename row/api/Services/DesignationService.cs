@@ -26,6 +26,7 @@ public class DesignationService : IDesignationService
             SELECT d.pk_designation_id AS Id,
                    d.designation_name AS DesignationName,
                    d.sort_order AS SortOrder,
+                   d.ri_title AS RiTitle,
                    (SELECT COUNT(*) FROM board_of_directors b
                       WHERE b.fk_designation_id = d.pk_designation_id AND b.isdeleted = 0) AS BodCount
             FROM designation_master d
@@ -92,6 +93,13 @@ public class DesignationService : IDesignationService
             "sp_designation_update",
             new { p_Id = id, p_DesignationName = dto.DesignationName, p_SortOrder = dto.SortOrder, p_ModifiedBy = modifiedBy },
             commandType: CommandType.StoredProcedure);
+        if (dto.RiTitle != null)
+        {
+            if (dto.RiTitle != "" && !RiCodes.OfficerTitles.Contains(dto.RiTitle))
+                throw new ArgumentException("RI title must be one of: " + string.Join(", ", RiCodes.OfficerTitles) + ".");
+            await connection.ExecuteAsync("UPDATE designation_master SET ri_title = NULLIF(@RiTitle, '') WHERE pk_designation_id = @Id",
+                new { dto.RiTitle, Id = id });
+        }
     }
 
     public async Task DeleteAsync(int id, int deletedBy)

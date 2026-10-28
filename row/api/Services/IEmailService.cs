@@ -31,6 +31,11 @@ public interface IEmailService
     Task SendSuperAdminWelcomeEmailAsync(string email, string memberName, string mobileNumber, string? tempPassword);
     Task SendSuperAdminRevokedEmailAsync(string email, string memberName);
     Task SendNewMemberWelcomeEmailAsync(string memberEmail, string memberName, string clubName, string? districtNumber, string? zoneName, IEnumerable<string>? ccEmails);
+    // Role assignment notice with the member's roles table (rolesHtml) and, for a new login, the temporary password.
+    Task SendRoleAssignmentEmailAsync(string email, string memberName, string? mobile, string? tempPassword, string rolesHtml);
+    // Assistant Governor assigned (with the clubs and the login) and removed.
+    Task SendAgAssignedEmailAsync(string email, string memberName, string districtNumber, IEnumerable<string> clubNames, string? username, string? tempPassword);
+    Task SendAgRemovedEmailAsync(string email, string memberName, string districtNumber);
     Task SendRoleOrMembershipRemovedEmailAsync(string toEmail, string memberName, string removedFromLabel, string? contextLine, IEnumerable<string>? ccEmails);
     Task<string?> SendClubAdminAssignmentEmailAsync(string email, string memberName, string? mobile, string? tempPassword, string designation, string clubName, string yearLabel);
     Task SendClubWebsiteReminderEmailAsync(string email, string memberName, string clubName, string designation, string subdomain, DateTime endDate, int daysLeft, string? payLink = null);

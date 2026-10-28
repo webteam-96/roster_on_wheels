@@ -248,7 +248,7 @@ public class ClubsController : ControllerBase
     }
 
     [HttpDelete("{id}/members/{memberId}")]
-    public async Task<ActionResult> RemoveMember(int id, int memberId, [FromQuery] string? reason = null)
+    public async Task<ActionResult> RemoveMember(int id, int memberId, [FromQuery] string? reason = null, [FromQuery] string? reasonCode = null)
     {
         if (!IsSuperAdminOrAdmin())
             return StatusCode(403, new { message = "Only SuperAdmin or Club Admin can remove members from clubs." });
@@ -257,7 +257,10 @@ public class ClubsController : ControllerBase
         if (club == null)
             return NotFound(new { message = "Club not found" });
 
-        await _clubService.RemoveMemberAsync(id, memberId, GetCurrentMemberId(), reason);
+        await using (var conn = new MySqlConnector.MySqlConnection(_connectionString))
+            if (!await RiCodes.IsValidAsync(conn, "termination_reason", reasonCode))
+                return BadRequest(new { message = "Pick a termination reason from the RI list." });
+        await _clubService.RemoveMemberAsync(id, memberId, GetCurrentMemberId(), reason, reasonCode);
         return NoContent();
     }
 

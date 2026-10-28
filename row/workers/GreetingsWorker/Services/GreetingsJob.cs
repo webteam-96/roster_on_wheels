@@ -1,6 +1,8 @@
+using System.Globalization;
 using Dapper;
 using Microsoft.Extensions.Logging;
 using MySqlConnector;
+using RotaryApi.Services.Localization;
 
 namespace GreetingsWorker.Services;
 
@@ -112,6 +114,7 @@ public class GreetingsJob
         var stats = new RunStats { RunStartedAt = DateTime.Now };
         await using var conn = new MySqlConnection(_conn);
         await conn.OpenAsync();
+        await ServerStrings.LoadAsync(conn); // S5: push wording in the source's language
         if (!dryRun) await EnsureLogTableAsync(conn);   // dry-run is strictly read-only — no schema change
         _zones = await RotaryApi.Services.ZoneTime.DistrictZonesAsync(conn);
         _comms = await RotaryApi.Services.CommsTemplates.IsOnAsync(conn);
@@ -422,7 +425,7 @@ public class GreetingsJob
         int anniversaries = cfg.AnniversaryOn ? (await conn.QueryAsync<Celebrant>(anniversaryMembersSql, sqlParams)).Count() : 0;
         if (birthdays + anniversaries == 0) return;   // nothing to celebrate → no broadcast
 
-        var body = BuildDigestBody(birthdays, anniversaries);
+        var body = await BuildDigestBodyAsync(conn, cfg, birthdays, anniversaries);
 
         if (_dryRun)
         {
@@ -440,7 +443,7 @@ public class GreetingsJob
             return;
         }
 
-        var title = $"Celebrations · {cfg.SourceName}";
+        var title = await TextAsync(conn, cfg, "Celebrations · {0}", cfg.SourceName);
         var data = new Dictionary<string, string> { ["type"] = "celebrations_digest" };
         var (sent, failed) = await _push.SendMulticastAsync(tokens, title, body, data);
         stats.PushSent += sent;
@@ -450,12 +453,30 @@ public class GreetingsJob
             $"{birthdays}b/{anniversaries}a to {tokens.Count} devices (sent={sent}, failed={failed})");
     }
 
-    private static string BuildDigestBody(int birthdays, int anniversaries)
+    private static async Task<string> BuildDigestBodyAsync(MySqlConnection conn, SourceConfig cfg, int birthdays, int anniversaries)
     {
         var parts = new List<string>();
-        if (birthdays > 0) parts.Add($"{birthdays} birthday{(birthdays == 1 ? "" : "s")}");
-        if (anniversaries > 0) parts.Add($"{anniversaries} anniversar{(anniversaries == 1 ? "y" : "ies")}");
-        return $"{string.Join(" and ", parts)} to celebrate today 🎉";
+        if (birthdays > 0) parts.Add(birthdays == 1 ? await TextAsync(conn, cfg, "1 birthday") : await TextAsync(conn, cfg, "{0} birthdays", birthdays));
+        if (anniversaries > 0) parts.Add(anniversaries == 1 ? await TextAsync(conn, cfg, "1 anniversary") : await TextAsync(conn, cfg, "{0} anniversaries", anniversaries));
+        var line = parts.Count == 2
+            ? await TextAsync(conn, cfg, "{0} and {1} to celebrate today", parts[0], parts[1])
+            : await TextAsync(conn, cfg, "{0} to celebrate today", parts[0]);
+        return $"{line} 🎉";
+    }
+
+    /// <summary>
+    /// S5: a fixed text in the source's language (the club's, else its district's), from server_strings. The text is
+    /// recorded for the API's translator; until it is translated, or with no provider, it stays English.
+    /// shortcut: the source's language, not each member's: digests are one multicast per source.
+    /// </summary>
+    private static async Task<string> TextAsync(MySqlConnection conn, SourceConfig cfg, string english, params object[] args)
+    {
+        await ServerStrings.RegisterAsync(conn, english);
+        if (string.IsNullOrEmpty(cfg.Language)) // set by LoadCommsAsync only while the communication module is on
+            cfg.Language = await RotaryApi.Services.CommsTemplates.DefaultLanguageAsync(conn, cfg.IsDistrict ? 0 : cfg.SourceId, cfg.IsDistrict ? cfg.SourceId : 0);
+        var text = ServerStrings.Find(cfg.Language, english) ?? english;
+        try { return string.Format(CultureInfo.InvariantCulture, text, args); }
+        catch (FormatException) { return string.Format(CultureInfo.InvariantCulture, english, args); }
     }
 
     // All active members of the source with a usable device token (club → its members; district → members
@@ -571,8 +592,8 @@ public class GreetingsJob
                 }
                 else
                 {
-                    var pushTitle = isBirthday ? "Happy Birthday! 🎂" : "Happy Anniversary! 🎉";
-                    var pushBody = $"Warm wishes from {cfg.SourceName}";
+                    var pushTitle = isBirthday ? $"{await TextAsync(conn, cfg, "Happy Birthday!")} 🎂" : $"{await TextAsync(conn, cfg, "Happy Anniversary!")} 🎉";
+                    var pushBody = await TextAsync(conn, cfg, "Warm wishes from {0}", cfg.SourceName);
                     // Deep-link contract (Firebase_Notification_Routes.md): personal greeting fired only to the
                     // celebrant → my_birthday / my_anniversary, no IDs (tap just opens the app home).
                     var data = new Dictionary<string, string>

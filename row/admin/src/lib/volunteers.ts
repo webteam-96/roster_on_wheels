@@ -2,8 +2,8 @@ import type { SaveVolunteerSlot, VolunteerSlot } from "@/types/volunteers";
 
 // Small helpers for the volunteer pages (api/Services/VolunteerService.cs holds the rules).
 
-/** API date-time to the "YYYY-MM-DDTHH:mm" a datetime-local input wants ("" when empty). The wall-clock value as
- *  stored, never shifted by a zone, so a save round-trips unchanged. */
+/** API date-time to the "YYYY-MM-DDTHH:mm" a datetime-local input wants ("" when empty). Give it the club's
+ *  wall-clock (startsLocal / endsLocal), so a save round-trips unchanged. */
 export const timeInput = (v: string | null | undefined) => (v ? v.slice(0, 16) : "");
 
 /** One editable slot in the sheet form; places stay text while typed. */
@@ -18,7 +18,7 @@ export interface SlotRow {
 
 export const toRows = (slots: VolunteerSlot[]): SlotRow[] =>
   slots.map((s) => ({
-    id: s.id, task: s.task, startsAt: timeInput(s.startsAt), endsAt: timeInput(s.endsAt), capacity: String(s.capacity), filled: s.filled,
+    id: s.id, task: s.task, startsAt: timeInput(s.startsLocal ?? s.startsAt), endsAt: timeInput(s.endsLocal ?? s.endsAt), capacity: String(s.capacity), filled: s.filled,
   }));
 
 export const toSlots = (rows: SlotRow[]): SaveVolunteerSlot[] =>

@@ -32,6 +32,9 @@ export interface VolunteerSlot {
   task: string;
   startsAt: string;
   endsAt: string | null;
+  /** The club's wall-clock "YYYY-MM-DDTHH:mm" for the form; startsAt / endsAt may be UTC ("…Z"). */
+  startsLocal?: string;
+  endsLocal?: string | null;
   capacity: number;
   filled: number;
   signups: VolunteerSignup[];

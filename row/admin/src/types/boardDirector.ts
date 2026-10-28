@@ -3,6 +3,8 @@ export interface Designation {
   designationName: string;
   sortOrder: number;
   bodCount?: number;
+  /** RI officer title it maps to (build spec 3.12). */
+  riTitle?: string | null;
 }
 
 export interface CreateDesignationRequest {
@@ -13,7 +15,12 @@ export interface CreateDesignationRequest {
 export interface UpdateDesignationRequest {
   designationName: string;
   sortOrder: number;
+  /** "" clears the mapping; omitted keeps it. */
+  riTitle?: string;
 }
+
+/** RI's six officer titles (build spec 3.12); the API accepts only these. */
+export const RI_OFFICER_TITLES = ["President", "Secretary", "Treasurer", "Executive Secretary", "Membership Chair", "Foundation Chair"] as const;
 
 export interface BoardDirector {
   id: number;

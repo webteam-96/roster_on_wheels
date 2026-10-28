@@ -201,10 +201,31 @@ export default function TenantsPage() {
                         <Input id="fixed" type="number" min={0} step="0.01" value={form.platformFeeFixed ?? ""}
                           onChange={(e) => set("platformFeeFixed", e.target.value === "" ? null : Number(e.target.value))} />
                       </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="anon">Anonymise terminated members after (months)</Label>
+                        <Input id="anon" type="number" min={0} max={240} step={1} value={form.anonymiseAfterMonths ?? ""}
+                          onChange={(e) => set("anonymiseAfterMonths", e.target.value === "" ? null : Number(e.target.value))}
+                          placeholder="Off" aria-describedby="anon-help" />
+                        <p id="anon-help" className="text-xs text-muted-foreground">
+                          Personal details are removed; attendance and payment totals stay. Empty or 0 keeps members.
+                        </p>
+                      </div>
                       <label className="flex items-center gap-2 self-end pb-2 text-sm">
                         <Checkbox checked={form.setupFeeWaived} onCheckedChange={(v) => set("setupFeeWaived", v === true)} />
                         Setup fee waived
                       </label>
+                      <div className="space-y-1 self-end pb-2 text-sm">
+                        <label className="flex items-center gap-2">
+                          <Checkbox checked={form.autoRenew !== false} onCheckedChange={(v) => set("autoRenew", v === true)} />
+                          Renews automatically at term end
+                        </label>
+                        {detail.subscription && (detail.subscription.renewalNoticeFor || (detail.subscription.dunningStage ?? 0) > 0) && (
+                          <p className="text-xs text-muted-foreground">
+                            {detail.subscription.renewalNoticeFor && <>60-day notice sent for the term ending {day(detail.subscription.renewalNoticeFor)}. </>}
+                            {(detail.subscription.dunningStage ?? 0) > 0 && <>Overdue reminders sent: {detail.subscription.dunningStage} of 3.</>}
+                          </p>
+                        )}
+                      </div>
                     </div>
 
                     <div className="flex flex-wrap items-center gap-3">

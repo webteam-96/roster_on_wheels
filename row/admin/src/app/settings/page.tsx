@@ -214,6 +214,18 @@ const settingsCards: SettingsCard[] = [
     href: "/settings/designations",
   },
   {
+    title: "RI codes",
+    description: "RI member types and join / termination reasons for the Rotary.org sync",
+    icon: RefreshCw,
+    href: "/settings/ri-codes",
+  },
+  {
+    title: "Booth sign-ups",
+    description: "Governors-elect who signed up at the booth: mark paid to set the district up",
+    icon: ClipboardList,
+    href: "/settings/booth-signups",
+  },
+  {
     title: "Rotary Years",
     description: "View rotary year records",
     icon: Calendar,

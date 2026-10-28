@@ -139,7 +139,10 @@ export default function AttendanceEditPage() {
         // Format eventDateTime as YYYY-MM-DDTHH:mm for datetime-local input
         setMeetingMode((detail.meetingMode as MeetingMode) ?? "in_person");
         setMeetingLink(detail.meetingLink ?? "");
-        if (detail.eventDateTime) {
+        if (detail.eventLocal) {
+          setEventDateTime(detail.eventLocal);
+          setOriginalEventDateTime(detail.eventLocal);
+        } else if (detail.eventDateTime) {
           const dt = new Date(detail.eventDateTime);
           const yyyy = dt.getFullYear();
           const mm = String(dt.getMonth() + 1).padStart(2, "0");

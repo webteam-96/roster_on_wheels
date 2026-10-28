@@ -19,16 +19,8 @@ import {
   Globe, Award, ChevronDown, ChevronUp,
 } from "@/components/icons";
 
-import { appLocale } from "@/lib/appFormat";
-function formatDateTime(dateStr: string): string {
-  return new Date(dateStr).toLocaleString(appLocale(), {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-}
+import { useFormat } from "@/hooks/useFormat";
+import { useEventZone } from "@/hooks/useEventZone";
 
 function CollapsibleCard({
   icon: Icon,
@@ -85,6 +77,8 @@ export default function AttendanceViewPage() {
   const clubId = Number(params.id);
   const attendanceId = Number(params.attendanceId);
   const { isSuperAdmin, isAdmin } = useAuth();
+  const fmt = useFormat();
+  const zone = useEventZone({ clubId });
 
   const [clubName, setClubName] = useState("");
   const [attendance, setAttendance] = useState<AttendanceDetail | null>(null);
@@ -195,7 +189,7 @@ export default function AttendanceViewPage() {
                 Event Date & Time
               </p>
               <p className="text-sm font-medium mt-0.5">
-                {formatDateTime(attendance.eventDateTime)}
+                {fmt.eventDateTime(attendance.eventDateTime, zone)}
               </p>
             </div>
           </CardContent>

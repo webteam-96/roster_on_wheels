@@ -79,6 +79,7 @@ public class MobileAuthService : IMobileAuthService
             throw new UnauthorizedAccessException(invalid);
         }
 
+        await TrialLock.RefuseIfLockedAsync(conn, memberId); // build spec 3.5: an ended trial locks the district out
         await conn.ExecuteAsync("sp_auth_update_success_login", new { p_CredId = credId }, commandType: CommandType.StoredProcedure);
 
         return await IssueSessionAsync(conn, memberId, null, "member", new MobileVerifyOtpDto

@@ -5,6 +5,8 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../../../../../core/constants/api_constants.dart';
 import '../../../../../core/utils/image_crop.dart';
+import '../../../../../core/utils/date_formatter.dart';
+import '../../../../../core/utils/event_zone.dart';
 import '../../../../providers/auth_provider.dart';
 import '../../../../../core/network/api_client.dart';
 import '../../../../../core/network/api_response.dart';
@@ -29,6 +31,7 @@ class _UpcomingEvent {
   final String title;
   final String? description;
   final DateTime? eventDate;
+  final String? eventRaw; // as sent, for DateFormatter.eventDateTime
   final String? eventVenue;
   final String? imagePath;
   final DateTime? publishDate;
@@ -45,6 +48,7 @@ class _UpcomingEvent {
     required this.title,
     this.description,
     this.eventDate,
+    this.eventRaw,
     this.eventVenue,
     this.imagePath,
     this.publishDate,
@@ -64,6 +68,7 @@ class _UpcomingEvent {
         eventDate: j['eventDate'] != null
             ? DateTime.tryParse(j['eventDate'].toString())
             : null,
+        eventRaw: j['eventDate']?.toString(),
         eventVenue: j['eventVenue']?.toString(),
         imagePath: j['imagePath']?.toString(),
         publishDate: j['publishDate'] != null
@@ -120,10 +125,14 @@ class _UpcomingEventsScreenState extends State<UpcomingEventsScreen> {
   int _totalPages = 1;
   int _totalCount = 0;
   static const int _pageSize = 20;
+  String? _zone;
 
   @override
   void initState() {
     super.initState();
+    EventZones.club(widget.clubId).then((z) {
+      if (mounted) setState(() => _zone = z);
+    });
     _fetch(reset: true);
     // Deep-link: open the event's detail directly (it fetches itself by id).
     final openId = widget.autoOpenDetailId;
@@ -367,6 +376,7 @@ class _UpcomingEventsScreenState extends State<UpcomingEventsScreen> {
                                 return _EventCard(
                                   item: item,
                                   df: _df,
+                                  zone: _zone,
                                   canManage: canManage,
                                   onTap: () => _openDetail(item),
                                   onEdit: () => _showForm(existing: item),
@@ -395,6 +405,7 @@ class _UpcomingEventsScreenState extends State<UpcomingEventsScreen> {
 class _EventCard extends StatelessWidget {
   final _UpcomingEvent item;
   final DateFormat df;
+  final String? zone;
   final bool canManage;
   final VoidCallback onEdit;
   final VoidCallback onDelete;
@@ -403,6 +414,7 @@ class _EventCard extends StatelessWidget {
   const _EventCard({
     required this.item,
     required this.df,
+    this.zone,
     required this.canManage,
     required this.onEdit,
     required this.onDelete,
@@ -508,7 +520,7 @@ class _EventCard extends StatelessWidget {
                   const Icon(Icons.calendar_today_outlined, size: 12, color: AppColors.textSecondary),
                   const SizedBox(width: 4),
                   Expanded(
-                    child: Text('Event: ${df.format(item.eventDate!)}',
+                    child: Text('Event: ${DateFormatter.eventDateTime(item.eventRaw, zone)}',
                         style: AppTextStyles.caption,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis),

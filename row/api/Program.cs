@@ -1,4 +1,4 @@
-using System.Text;
+﻿using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.Extensions.Configuration;
@@ -366,6 +366,14 @@ builder.Services.AddScoped<IMobileAuthService, MobileAuthService>();
 builder.Services.AddScoped<IClubRotaryOrgCredentialService, ClubRotaryOrgCredentialService>();
 builder.Services.AddScoped<IAuditLogService, AuditLogService>();
 if (enableBackgroundJobs) builder.Services.AddHostedService<EmailScheduledSendBackgroundService>();
+builder.Services.AddScoped<TenantRenewalService>(); // build spec 3.5 renewal reminders
+// S5 (build spec 3.3, 3.16): server texts through ASP.NET Core localization, translations kept in server_strings.
+builder.Services.AddLocalization();
+builder.Services.AddSingleton<Microsoft.Extensions.Localization.IStringLocalizerFactory, RotaryApi.Services.Localization.DbStringLocalizerFactory>();
+var translationProvider = RotaryApi.Services.Localization.StringTranslationBackgroundService.Provider(builder.Configuration);
+RotaryApi.Services.Localization.ServerStrings.QueueEnabled = translationProvider != "none";
+if (translationProvider != "none") builder.Services.AddHostedService<RotaryApi.Services.Localization.StringTranslationBackgroundService>();
+if (enableBackgroundJobs) builder.Services.AddHostedService<TenantRenewalBackgroundService>();
 if (enableBackgroundJobs) builder.Services.AddHostedService<ClubLeadershipEmailBackgroundService>();
 if (enableBackgroundJobs) builder.Services.AddHostedService<ClubWebsiteReminderBackgroundService>();
 if (enableBackgroundJobs) builder.Services.AddHostedService<EngagementBackgroundService>();
@@ -447,6 +455,13 @@ else
 {
     app.Logger.LogInformation("DatabaseInitializer SKIPPED (Database:SkipInit = true). Toggle off in appsettings if you add new tables/columns.");
 }
+// S5: the stored server-text translations, held in memory (English only if the table is not there yet).
+try
+{
+    await using var stringsConn = new MySqlConnector.MySqlConnection(builder.Configuration.GetConnectionString("DefaultConnection"));
+    await RotaryApi.Services.Localization.ServerStrings.LoadAsync(stringsConn);
+}
+catch (Exception ex) { app.Logger.LogWarning("server strings not loaded: {Message}", ex.Message); }
 // ROW privacy tables: the consent filter in the email and push senders reads member_consents (WS7-05).
 if (RotaryApi.Privacy.PrivacyService.Enabled)
 {
@@ -699,6 +714,7 @@ app.UseRateLimiter();
 app.UseAuthentication();
 app.UseAuthorization();
 app.UseMiddleware<RotaryApi.Services.ScopeWriteGuardMiddleware>(); // club/district writes need a role for that club/district
+app.UseMiddleware<RotaryApi.Services.TrialLockMiddleware>(); // build spec 3.5: an ended trial locks its district out
 app.UseMiddleware<RotaryApi.Services.PlanningWriteGuardMiddleware>(); // planning districts: current year is read-only
 app.UseMiddleware<RotaryApi.Services.MobileJwtRefreshMiddleware>();
 app.UseMiddleware<RotaryApi.Services.AuditMiddleware>();

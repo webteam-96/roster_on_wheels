@@ -20,6 +20,21 @@ The dated results below are kept as history and still mention the NestJS edition
 
 ## Results
 
+### 2026-10-28 (module sheet pass, main tree, uncommitted on top of 69428c7)
+
+- Module sheet (`document/RotaryIndia_Modules_and_Labels.xlsx`, 107 modules) checked against the admin code: every
+  sheet web path exists except those of removed modules (RI Director, Zonal, WhatsApp, Club Moderator, PPH,
+  Categories, Market Place); the 6 orange modules are the flagged ones in `FeatureGate.cs`.
+- Builds: API 0 errors; admin `tsc` 0, `vitest src/lib/volunteers.test.ts` 4/4; app `flutter test` 53/53.
+- e2e on `row_prod_copy` (API :5000, `smoke_all.py`): 33/33 scripts pass (communication_upgrades needs a
+  `Brevo__WebhookSecret` of 16+ characters, or its webhook answers 404).
+- Admin crawl, 319 pages per role, logins from `local_test_logins.py` (club 341, district 5): SuperAdmin 1,
+  Club Admin 4, District Admin 1, AG 0 problems; every one re-probed clean (dev-server restarts at its memory
+  threshold). The 6 flagged modules, switched on for the run and off again: 14 pages as SuperAdmin, 5 as Club Admin,
+  6 as District Admin, 3 as AG, all clean.
+- Not run: the UTC branch of the meeting / volunteer time round trip (this machine is on IST; .NET on Windows
+  ignores TZ); the app screen by screen on the emulator (memory too tight with two sessions).
+
 ### 2026-10-23 evening (security + read review, time zones, planning mode, escalation, rebranding; on 0a1e4b8)
 
 - Builds: API + 3 workers 0 errors; admin `tsc` 0, `vitest` 22 files / 120 tests, `check-design.mjs` 0; app

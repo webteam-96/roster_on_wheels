@@ -523,6 +523,7 @@ public class ClubWebsitePublicDataController : ControllerBase
         public List<BirthdayRow> Birthdays { get; set; } = new();
         public List<AnniversaryRow> Anniversaries { get; set; } = new();
         public List<EventRow> Events { get; set; } = new();
+        public string TimeZone { get; set; } = ""; // the club's zone: event times are in it (spec 3.3)
     }
     public class BirthdayRow      { public int MemberId { get; set; } public string MemberName { get; set; } = ""; public string? ProfilePhotoPath { get; set; } }
     public class AnniversaryRow   { public int MemberId { get; set; } public string MemberName { get; set; } = ""; public string? ProfilePhotoPath { get; set; } }
@@ -615,6 +616,7 @@ public class ClubWebsitePublicDataController : ControllerBase
             Birthdays      = birthdays,
             Anniversaries  = anniversaries,
             Events         = eventRows,
+            TimeZone       = ZoneTime.IanaId(await ZoneTime.OfClubAsync(conn, clubId)),
         });
     }
 
@@ -1073,6 +1075,24 @@ public class ClubWebsitePublicDataController : ControllerBase
 
         var rows = await QueryProjectsAsync(conn, clubId, resolvedYearId, ProjectModuleKeys, includeMeetings: false);
         return Ok(rows);
+    }
+
+    /// <summary>
+    /// Build spec 3.12: the club's service projects for the ROW Showcase extension (row/showcase-extension), for the
+    /// club's and district's managers, whether or not the club has a website. The class is AllowAnonymous, so the
+    /// sign-in and scope are checked here.
+    /// </summary>
+    [HttpGet("/api/clubs/{clubId:int}/showcase/projects")]
+    public async Task<IActionResult> GetShowcaseProjects(int clubId, [FromQuery] int? yearId)
+    {
+        if (User.Identity?.IsAuthenticated != true) return Unauthorized(new { message = "Sign in to ROW first." });
+        var me = int.TryParse(User.FindFirst("memberId")?.Value, out var id) ? id : 0;
+        if (!await ScopeWriteGuardMiddleware.ReadAllowedAsync(_connectionString, me, true, clubId, members: false))
+            return StatusCode(403, new { message = "Only the club's managers publish its projects to Showcase." });
+        using var conn = CreateConn();
+        await conn.OpenAsync();
+        var resolvedYearId = yearId ?? await ResolveYearAsync(conn, clubId);
+        return Ok(await QueryProjectsAsync(conn, clubId, resolvedYearId, ProjectModuleKeys, includeMeetings: false));
     }
 
     // ── Meetings (Club Service only) ───────────────────────────────────────

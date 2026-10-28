@@ -106,3 +106,30 @@ describe("number locale", () => {
     expect(numberLocaleFor("fr", "en-US")).toBe("fr");
   });
 });
+
+describe("event times: event zone, plus the viewer's time when it differs (spec 3.3)", () => {
+  const ny = "America/New_York";
+  it("a wall-clock time is the event zone's; a viewer in the same zone sees it once", () => {
+    const f = createFormat("en-US", "USD", "UTC", ny);
+    expect(f.eventDateTime("2026-10-30T19:00:00", ny)).toBe("Oct 30, 2026, 7:00 PM EDT");
+  });
+  it("a viewer elsewhere also gets their own time, with the date when it differs", () => {
+    const london = createFormat("en-GB", "GBP", "UTC", "Europe/London");
+    expect(london.eventDateTime("2026-10-30T19:00:00", ny)).toBe("30 Oct 2026, 19:00 GMT-4 (23:00 your time)");
+    const tokyo = createFormat("en-US", "USD", "UTC", "Asia/Tokyo");
+    expect(tokyo.eventDateTime("2026-10-30T19:00:00", ny)).toBe("Oct 30, 2026, 7:00 PM EDT (Oct 31, 2026, 8:00 AM your time)");
+  });
+  it("a UTC instant is shown in the event zone", () => {
+    const f = createFormat("en-US", "USD", "UTC", ny);
+    expect(f.eventDateTime("2026-10-30T23:00:00Z", ny)).toBe("Oct 30, 2026, 7:00 PM EDT");
+  });
+  it("daylight saving: the same wall-clock in winter is EST", () => {
+    const f = createFormat("en-US", "USD", "UTC", ny);
+    expect(f.eventDateTime("2026-12-01T19:00:00", ny)).toBe("Dec 01, 2026, 7:00 PM EST");
+  });
+  it("no zone falls back to the instance zone; empty is empty", () => {
+    const f = createFormat("en-US", "USD", "UTC", "UTC");
+    expect(f.eventDateTime("2026-10-30T19:00:00")).toBe("Oct 30, 2026, 7:00 PM UTC");
+    expect(f.eventDateTime(null)).toBe("");
+  });
+});

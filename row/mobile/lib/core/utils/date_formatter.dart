@@ -2,6 +2,8 @@ import 'dart:ui' show PlatformDispatcher;
 
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:intl/intl.dart';
+import 'package:timezone/data/latest.dart' as tzdata;
+import 'package:timezone/timezone.dart' as tz;
 
 /// Dates for display in the device's locale and time zone (N12): the API sends stored UTC times with "Z", so a
 /// time is shown in device time. API values ([toApiFormat]) stay ISO, whatever the locale.
@@ -32,6 +34,39 @@ class DateFormatter {
   static String toDisplayWithTime(DateTime? date) {
     if (isZeroDate(date)) return '-';
     return DateFormat.yMMMd(_locale).add_jm().format(date!.toLocal());
+  }
+
+  static bool _zonesLoaded = false;
+
+  /// An event or meeting time from the API (build spec 3.3), shown in the event's zone (its district's IANA id,
+  /// from /api/time-zone) with the zone's abbreviation, plus the device's own time when its zone differs at that
+  /// moment. [raw] is the API string: with an offset ("Z") it is an instant; without one it is the event zone's
+  /// wall-clock. No [zone] (not loaded yet) shows the value as the device-time display does. [viewer] is for tests.
+  static String eventDateTime(String? raw, String? zone, {tz.Location? viewer, String? locale}) {
+    if (raw == null || raw.isEmpty) return '-';
+    final parsed = DateTime.tryParse(raw);
+    if (parsed == null || parsed.year <= 1) return '-';
+    if (zone == null || zone.isEmpty) return toDisplayWithTime(parsed);
+    if (!_zonesLoaded) {
+      tzdata.initializeTimeZones();
+      _zonesLoaded = true;
+    }
+    final tz.Location loc;
+    try {
+      loc = tz.getLocation(zone);
+    } catch (_) {
+      return toDisplayWithTime(parsed);
+    }
+    final at = parsed.isUtc
+        ? tz.TZDateTime.from(parsed, loc)
+        : tz.TZDateTime(loc, parsed.year, parsed.month, parsed.day, parsed.hour, parsed.minute, parsed.second);
+    final l = locale ?? _locale;
+    final full = DateFormat.yMMMd(l).add_jm();
+    final shown = '${full.format(at)} ${at.timeZoneName}';
+    final DateTime mine = viewer != null ? tz.TZDateTime.from(at, viewer) : at.toLocal();
+    if (mine.timeZoneOffset == at.timeZoneOffset) return shown;
+    final sameDay = mine.year == at.year && mine.month == at.month && mine.day == at.day;
+    return '$shown (${(sameDay ? DateFormat.jm(l) : full).format(mine)} your time)';
   }
 
   static String toApiFormat(DateTime? date) {

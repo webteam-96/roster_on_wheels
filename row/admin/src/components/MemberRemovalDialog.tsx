@@ -18,9 +18,13 @@ interface Props {
   preview: MemberRemovalPreview | null;
   onConfirm: () => void;
   onCancel: () => void;
+  /** RI termination reasons (build spec 3.12); the picker shows only when the list has entries. */
+  terminationReasons?: { code: string; label: string }[];
+  reasonCode?: string;
+  onReasonCodeChange?: (code: string) => void;
 }
 
-export default function MemberRemovalDialog({ open, loading, preview, onConfirm, onCancel }: Props) {
+export default function MemberRemovalDialog({ open, loading, preview, onConfirm, onCancel, terminationReasons, reasonCode, onReasonCodeChange }: Props) {
   const isLast = preview?.isLastClub === true;
 
   return (
@@ -169,6 +173,17 @@ export default function MemberRemovalDialog({ open, loading, preview, onConfirm,
               preview.subGroupMemberships.length === 0 && (
                 <p className="text-muted-foreground italic">No additional module memberships in this club.</p>
               )}
+          </div>
+        )}
+
+        {!!terminationReasons?.length && onReasonCodeChange && (
+          <div className="space-y-1">
+            <label htmlFor="ri-termination" className="text-sm font-medium">Termination reason (RI)</label>
+            <select id="ri-termination" value={reasonCode ?? ""} onChange={(e) => onReasonCodeChange(e.target.value)}
+              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm">
+              <option value="">Not given</option>
+              {terminationReasons.map((r) => <option key={r.code} value={r.code}>{r.label}</option>)}
+            </select>
           </div>
         )}
 

@@ -5,9 +5,15 @@
 import { useAuth } from "@/contexts/AuthContext";
 import { useClubAdminCache } from "@/contexts/ClubAdminDashboardCacheContext";
 import ClubTargets from "@/components/targets/ClubTargets";
+import { ClubTargetProposals } from "@/components/targets/TargetProposals";
 
 export default function ClubTargetsPage() {
   const { selectedClubId } = useAuth();
   const { yearId } = useClubAdminCache();
-  return <ClubTargets clubId={selectedClubId} yearId={yearId} />;
+  return (
+    <>
+      <ClubTargets clubId={selectedClubId} yearId={yearId} />
+      <ClubTargetProposals clubId={selectedClubId} yearId={yearId} />
+    </>
+  );
 }

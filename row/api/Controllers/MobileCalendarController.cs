@@ -207,6 +207,7 @@ public class MobileCalendarController : ControllerBase
             month = m,
             year = y,
             monthLabel = monthStart.ToString("MMMM yyyy"),
+            timeZone = ZoneTime.IanaId(await ZoneTime.OfClubAsync(conn, clubId)), // events are in this zone (spec 3.3)
             birthdays,
             familyBirthdays,
             anniversaries,
@@ -418,6 +419,7 @@ public class MobileCalendarController : ControllerBase
             month = m,
             year = y,
             monthLabel = monthStart.ToString("MMMM yyyy"),
+            timeZone = ZoneTime.IanaId(await ZoneTime.OfDistrictAsync(conn, districtId)), // events are in this zone (spec 3.3)
             birthdays,
             familyBirthdays,
             anniversaries,

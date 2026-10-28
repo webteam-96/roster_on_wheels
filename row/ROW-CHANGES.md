@@ -119,6 +119,14 @@ unless marked "done"; decide them when the area is worked on.
 - Stored time is UTC with "Z" on output (RIZones: IST, no offset). Date-only
   values kept in DATETIME columns need DATE_FORMAT on read (done for member
   birthdays/anniversaries and joined date).
+- **Meeting and volunteer slot times round-trip in the club's zone** (2026-10-28, module sheet pass). Forms send
+  the club's wall-clock; `ZoneTime.ClubInputToStoredAsync` stores it (UTC on a UTC server). Edit forms now load
+  `eventLocal` (attendance detail) and `startsLocal` / `endsLocal` (volunteer slots), written by
+  `ZoneTime.StoredToInput`, so a load and save no longer moves the time (admin attendance edit, v1 and v2; app
+  attendance edit; admin volunteer sheet). Volunteer slot times are now stored like meeting times, so the
+  `starts_at > NOW()` checks are right on a UTC server; the reminder worker compares with UTC and prints the club's
+  wall-clock in its emails, and the in-app volunteer reminder builds its time text in the club's zone. The UTC
+  branch is reviewed, not run: this dev machine is on IST, so check it once on the UTC staging server.
 - Country defaults: RIZones assumed India (id 1); ROW leaves them empty.
 - Zones 4-8 programmes (zonal awards, citation) ported but off by flag; seed
   content removed.
@@ -494,3 +502,102 @@ New (Phase 2), each switched off until a SuperAdmin turns it on unless noted:
 - Rebranding from `row/website`: favicon and icons, email and document palette, money labels follow the brand or
   district currency (no INR / "Rs." in labels), India copy removed from the about page and sync badges, app launcher
   icon and splash. Payment screens and legal pages keep India text until Stripe and legal review.
+
+## 2026-10-28: Build spec completion (plan `docs/superpowers/plans/2026-10-28-build-spec-completion.md`)
+
+- **S1 (in the main tree, tested):** an Assistant Governor can read the credit balance of a club assigned to them
+  (`district_ag`), read-only; other clubs stay 403 (`kb/tools/ag_credit_balance_e2e.py`). Meeting times typed in the
+  forms are the club's wall-clock; when stored times are UTC (`ZoneTime.StoredUtc`) they are converted on save
+  (`ZoneTime.ClubInputToStoredAsync`). Not run on a UTC server yet.
+- **S2:** cookie consent banner on the district website (same as the club site: essential only / allow all, footer
+  "Cookie settings" link, `ConsentGate` for future embeds). It was dropped in the 21 Oct rebuild. Browser-checked.
+- **S3, year switcher (3.16): no code needed.** Checked 2026-10-28 page by page: the club, district and AG dashboards
+  carry a topbar year picker (`?yearId=`) that their pages read; 95 year-scoped admin pages read it or have their own
+  year select. The 40 without one are add/edit forms, pages with the year in the route, token / payment pages and the
+  year master. App: 49 year-scoped screens have a year bar; the 18 without are forms and detail screens that take the
+  year from their parent. The OMS note "found in 2 places" counted only the picker components.
+- **S4, event times in the viewer's zone (3.3):** `GET /api/time-zone?clubId=|districtId=` (signed in) returns the
+  IANA zone events are in (a club uses its district's). The app and public club calendars carry `timeZone`. Shown as
+  the event zone's time with its abbreviation, plus "(… your time)" when the viewer's zone differs at that moment:
+  admin `fmt.eventDateTime` (`lib/format.ts`, `hooks/useEventZone.ts`) on the attendance list and detail and the club
+  upcoming events list; app `DateFormatter.eventDateTime` (package `timezone`, already a transitive dependency) on
+  attendance, upcoming events and calendar event detail; club site `components/EventTime.tsx` on the calendar themes.
+  Lists that show only a date are unchanged. e2e `kb/tools/event_time_zone_e2e.py`.
+- **S5, messages in the member's language (3.3, 3.16; plan `docs/superpowers/plans/2026-10-28-s5-message-language.md`):**
+  ASP.NET Core localization with our own `IStringLocalizerFactory` (`Services/Localization/`): the English text with
+  `{0}` placeholders is the key, translations are machine-made into `server_strings` by
+  `StringTranslationBackgroundService` and held in memory (`ServerStrings`). `MessageCulture.Use(language)` sets
+  `CurrentUICulture` (text) and `CurrentCulture` (dates, numbers) per recipient; call it in the method that writes
+  the text, since a culture set inside an awaited method is undone on return. Only the English wording with
+  placeholders reaches the provider, never names, links, tokens or passwords; a translation that loses or adds a
+  placeholder is refused and the English is sent. Provider `Translation:Provider` = `none` (default, nothing sent,
+  all English) | `libretranslate` | `deepl` | `mymemory`, with `Translation:ApiUrl` / `Translation:ApiKey` from env.
+  A text seen for the first time is stored as a `language = ''` row and translated into every language in use
+  (tenant languages and members' own), so a new language catches up on all known texts.
+  Language: the member's `PrimaryLanguage`, else their club's (club, district, platform). English counts as "not
+  chosen" because the column defaults to 'English' (`shortcut:` in `MessageCulture`).
+  Covered: `EmailService`'s member emails (credentials, password reset and changed, welcome, role assignment, now one
+  shared copy instead of two, role removed, club admin assignment, AG assigned and removed, now shared instead of
+  inline twice, website reminder and activation), planning invites, the CMR not-submitted reminder, renewal and
+  dunning mails, the onboarding nudge, milestone emails, the in-app feed's fixed titles, the CMR submission email
+  and its PDF (club language; it now uses the scoped attachment send with type "Monthly Report"), the club citation
+  export, push titles (tenant language: one multicast per club or district), and the GreetingsWorker digest and
+  personal pushes (it reads `server_strings`; the API translates). Translated senders pass the email-log type from
+  their English subject.
+  Left in English on purpose: Super Admin and operations emails and reports (daily stats, sync and auto-points
+  reports, award-config notices, email log, Rotary.org exports), the payment modules on hold (dues, event payment
+  links, Razorpay, Cashfree, credits, the website pay link and its branch of the reminder), import templates (Goal
+  Setting) and the Word documents. Not yet done: the district performance report, the club analytics export,
+  training appointment emails, the feed's highlight sentences and the project share card.
+  e2e `kb/tools/message_language_e2e.py` (fake Brevo and fake LibreTranslate; 9/9), schema in
+  `DatabaseInitializer.SpecCompletion.cs`, `schema-drift.sql`, undone by the build-spec down script.
+- **S6, speakers in the bulletin (3.13):** a club newsletter email lists the speakers booked for the next 30 days
+  (date, name, topic; never contact details) while the volunteers module is on
+  (`EmailScheduledSendBackgroundService.UpcomingSpeakersAsync`). e2e `kb/tools/bulletin_speakers_e2e.py` (fake Brevo,
+  API with `BackgroundJobs__Enabled=true`).
+- **S7, automatic anonymisation (3.14):** Settings > Tenants has "Anonymise terminated members after (months)"
+  (`tenant_subscriptions.anonymise_after_months`, district row; empty or 0 = off). The daily privacy retention job
+  (`PrivacyService.AnonymiseTerminatedAsync`) erases, through the normal registry erasure that keeps attendance and
+  payment totals, members with no active membership whose every membership ended, with a termination date, longer
+  ago than its district's rule; logged as a system erasure request. Super Admin can run the pass now:
+  `POST /api/privacy/retention/run`. Schema: `DatabaseInitializer.SpecCompletion.cs`, `schema-drift.sql`; undo:
+  `database/maintenance/2026-10-28-build-spec-completion-down.sql`. e2e `kb/tools/anonymise_retention_e2e.py`.
+- **S8, RI fields (3.12):** Settings > Designations sets each designation's RI officer title (one of the six;
+  `designation_master.ri_title`, the six PlanningService mapped by name start mapped, and the cut-over now reads the
+  stored title). Settings > RI codes (new, Super Admin) keeps RI member types (Active and Honorary to start), join
+  reasons and termination reasons (`ri_codes`); enter RI's own codes, none are guessed. Each membership stores
+  `ri_member_type`, `join_reason_code` (member edit page opened from a club) and `termination_reason_code` (picked
+  in the removal dialog, web and app). Sending them to RI waits for Rotary.org access. e2e `kb/tools/ri_fields_e2e.py`;
+  `planning_mode` still passes.
+- **S9, tax labels per country (3.14): deferred to the payments work.** They only have a use on receipts, invoices
+  and statements of the payment modules, which are on hold for the Stripe rebuild.
+- **S10, district target setting (B.29):** `district_target_proposals`; the district's managers propose a target
+  per club, Rotary year and metric (membership growth, meetings, dues collection, service projects, Foundation
+  giving) on District Admin > Targets; the club's managers accept or counter (value and note) on Club Admin >
+  Targets and in the app's Targets screen; both see the status, a new proposal asks the club again. No locking
+  (module sheet). Behind the target_dashboard switch (`/api/{districts|clubs}/{id}/targets/proposals`). e2e
+  `kb/tools/district_targets_e2e.py`.
+- **S11, trial lock-out and renewal reminders (3.5):** when every district a member belongs to (active memberships
+  and district admin roles) is on a trial that has ended, sign-in is refused (web and app, 401 with the reason)
+  and signed-in requests answer 403 `trial_expired` (`TrialLock`, `TrialLockMiddleware`, 2-minute cache cleared when
+  Super Admin extends or converts the trial). Super Admins are never locked; data is kept. Renewal reminders
+  (`TenantRenewalService`, daily with background jobs, or `POST /api/tenants/renewals/run`): the district's admins
+  get a notice 60 days before term end (renews / ends, from the new "Renews automatically" setting) and reminders
+  7, 14 and 30 days after an unrenewed term end; a new term end starts over. Email only; no charge until Stripe;
+  no in-app banner yet (the app shows the API's message on each screen). e2e `kb/tools/trial_renewal_e2e.py`.
+- **S12, DGE booth sign-up and onboarding kit (3.1, 3.2):** public page `/public/booth` (planning mode on): a
+  governor-elect picks the district, plan and member band (`booth_signups`, rate limited; nothing is set up yet).
+  Settings > Booth sign-ups: "Mark paid and set up" is the payment stub until Stripe; it creates the district tenant
+  in planning with Club Basic (or Rotaract) for every club and starts planning with the governor-elect matched by
+  email, who is emailed the launchpad (otherwise the note says to start planning by hand). PE / SE invitations stay
+  on the launchpad. The district's planning page has an onboarding kit per club: a printable page with the steps
+  to authorise ROW in My Rotary and the Showcase extension link (`Brand:Onboarding:RiAuthorisationSteps`,
+  `Brand:Onboarding:ShowcaseExtensionUrl`; RI's own form cannot be pre-filled without Rotary.org access) and an
+  email of it to the club's current president and secretary. Roster snapshot import stays blocked (needs a real My
+  Rotary export). e2e `kb/tools/booth_onboarding_e2e.py`.
+- **S14, Rotary Showcase extension (3.12):** `row/showcase-extension` (Chrome, Manifest V3, ROW-branded popup): sign
+  in to ROW, pick a club and a service project, and fill the Rotary Showcase add-project form in the current tab;
+  the user checks and submits on Showcase. Projects come from the new `GET /api/clubs/{clubId}/showcase/projects`
+  (the club's and district's managers; no website needed). The Showcase form's field selectors are a best guess
+  in `mapping.js` and must be checked with a Showcase account before the store listing; see its README. Tests:
+  `node --test row/showcase-extension/mapping.test.mjs`, e2e `kb/tools/showcase_projects_e2e.py`.

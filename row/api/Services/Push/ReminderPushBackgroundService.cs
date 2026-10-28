@@ -1,6 +1,7 @@
 using Dapper;
 using MySqlConnector;
 
+using RotaryApi.Services.Localization;
 namespace RotaryApi.Services.Push;
 
 /// <summary>
@@ -142,6 +143,7 @@ public class ReminderPushBackgroundService : BackgroundService
         var tokenToMember = await PushDispatcher.ResolveClubDistrictTokensAsync(conn, clubId, districtId);
         if (tokenToMember.Count == 0) return;
 
+        using var pushCulture = MessageCulture.Use(await PushDispatcher.TenantLanguageAsync(conn, clubId, districtId));
         var sourceName = await PushDispatcher.ResolveSourceNameAsync(conn, clubId, districtId);
         var pushTitle = PushDispatcher.ReminderTitle(sourceName);
         var pushBody = string.IsNullOrWhiteSpace(description) ? headline : $"{headline} — {PushDispatcher.Trim(description, 160)}";

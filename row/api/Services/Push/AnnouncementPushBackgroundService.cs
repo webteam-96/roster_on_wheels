@@ -1,6 +1,7 @@
 using Dapper;
 using MySqlConnector;
 
+using RotaryApi.Services.Localization;
 namespace RotaryApi.Services.Push;
 
 /// <summary>
@@ -102,6 +103,7 @@ public class AnnouncementPushBackgroundService : BackgroundService
             return;
         }
 
+        using var pushCulture = MessageCulture.Use(await PushDispatcher.TenantLanguageAsync(conn, clubId, districtId));
         var sourceName = await PushDispatcher.ResolveSourceNameAsync(conn, clubId, districtId);
         var pushTitle = PushDispatcher.SourceTitle("Announcement", sourceName);
         var pushBody = string.IsNullOrWhiteSpace(description) ? headline : $"{headline} — {PushDispatcher.Trim(description, 160)}";

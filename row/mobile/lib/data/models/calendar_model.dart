@@ -86,7 +86,7 @@ class ClubCalendarData {
                 ))
             .toList(),
         upcomingEvents: ((j['upcomingEvents'] as List?) ?? const [])
-            .map((e) => CalendarEvent.fromJson(e as Map<String, dynamic>))
+            .map((e) => CalendarEvent.fromJson(e as Map<String, dynamic>, timeZone: j['timeZone']?.toString()))
             .toList(),
       );
 }
@@ -145,7 +145,7 @@ class DistrictCalendarData {
                 ))
             .toList(),
         upcomingEvents: ((j['upcomingEvents'] as List?) ?? const [])
-            .map((e) => CalendarEvent.fromJson(e as Map<String, dynamic>))
+            .map((e) => CalendarEvent.fromJson(e as Map<String, dynamic>, timeZone: j['timeZone']?.toString()))
             .toList(),
         announcements: ((j['announcements'] as List?) ?? const [])
             .map((e) => CalendarAnnouncement.fromJson(e as Map<String, dynamic>))
@@ -305,6 +305,8 @@ class CalendarEvent {
   final String? description;
   final String? imagePath;
   final DateTime? eventDate;
+  final String? eventRaw; // as sent, for DateFormatter.eventDateTime
+  final String? timeZone; // the club's or district's zone (spec 3.3)
   final String? eventVenue;
   final String? registrationLink;
   final DateTime? publishDate;
@@ -316,18 +318,22 @@ class CalendarEvent {
     this.description,
     this.imagePath,
     this.eventDate,
+    this.eventRaw,
+    this.timeZone,
     this.eventVenue,
     this.registrationLink,
     this.publishDate,
     this.expiryDate,
   });
 
-  factory CalendarEvent.fromJson(Map<String, dynamic> j) => CalendarEvent(
+  factory CalendarEvent.fromJson(Map<String, dynamic> j, {String? timeZone}) => CalendarEvent(
         id: _toInt(j['id']),
         title: j['title']?.toString() ?? '',
         description: j['description']?.toString(),
         imagePath: j['imagePath']?.toString(),
         eventDate: _parseDate(j['eventDate']),
+        eventRaw: j['eventDate']?.toString(),
+        timeZone: timeZone,
         eventVenue: j['eventVenue']?.toString(),
         registrationLink: j['registrationLink']?.toString(),
         publishDate: _parseDate(j['publishDate']),

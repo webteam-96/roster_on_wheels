@@ -35,7 +35,8 @@ import RotaryLoader from "@/components/RotaryLoader";
 import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";
 
-import { appLocale } from "@/lib/appFormat";
+import { useFormat } from "@/hooks/useFormat";
+import { useEventZone } from "@/hooks/useEventZone";
 function CountBadge({ count }: { count: number }) {
   return (
     <span className="inline-flex items-center justify-center min-w-[24px] px-1.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-700">
@@ -68,6 +69,8 @@ export default function AttendancePage() {
   const [searchQuery, setSearchQuery] = useState("");
 
   const canManage = isSuperAdmin || isAdmin;
+  const fmt = useFormat();
+  const zone = useEventZone({ clubId });
 
   useEffect(() => {
     async function init() {
@@ -133,7 +136,7 @@ export default function AttendancePage() {
 
   const formatDateTime = (dateStr: string | null) => {
     if (!dateStr) return "-";
-    return new Date(dateStr).toLocaleString(appLocale(), { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" });
+    return fmt.eventDateTime(dateStr, zone);
   };
 
   const filteredAttendance = attendanceList.filter((item) => {

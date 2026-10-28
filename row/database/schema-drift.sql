@@ -185,3 +185,110 @@ CREATE TABLE IF NOT EXISTS platform_features (
     modified_by INT NULL,
     modified_date DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
+
+-- Build spec completion, 2026-10-28 (DatabaseInitializer.SpecCompletion.cs; undo:
+-- database/maintenance/2026-10-28-build-spec-completion-down.sql).
+-- S7 (3.14): district tenant retention rule for terminated members, in months (NULL or 0 = off).
+SET @has_col := (SELECT COUNT(*) FROM information_schema.COLUMNS
+                 WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'tenant_subscriptions' AND COLUMN_NAME = 'anonymise_after_months');
+SET @sql := IF(@has_col = 0, 'ALTER TABLE tenant_subscriptions ADD COLUMN anonymise_after_months SMALLINT NULL', 'SELECT 1');
+PREPARE stmt FROM @sql;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+-- S8 (3.12): RI fields. A designation's RI officer title (the six PlanningService mapped by name start mapped), the
+-- ri_codes lists (member types, join and termination reasons; Active and Honorary start in the list), and each
+-- membership's codes.
+SET @sql := IF((SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE()
+                AND TABLE_NAME = 'designation_master' AND COLUMN_NAME = 'ri_title') = 0,
+               'ALTER TABLE designation_master ADD COLUMN ri_title VARCHAR(30) NULL', 'SELECT 1');
+PREPARE stmt FROM @sql;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+UPDATE designation_master SET ri_title = CASE designation_name WHEN 'Club President' THEN 'President'
+    WHEN 'Club Secretary' THEN 'Secretary' WHEN 'Club Treasurer' THEN 'Treasurer'
+    WHEN 'Club Executive Secretary/Director' THEN 'Executive Secretary'
+    WHEN 'Club Membership Chair' THEN 'Membership Chair' WHEN 'Club Foundation Chair' THEN 'Foundation Chair' END
+WHERE ri_title IS NULL AND designation_name IN ('Club President', 'Club Secretary', 'Club Treasurer',
+    'Club Executive Secretary/Director', 'Club Membership Chair', 'Club Foundation Chair');
+CREATE TABLE IF NOT EXISTS ri_codes (
+    pk_ri_code_id INT AUTO_INCREMENT PRIMARY KEY,
+    kind VARCHAR(20) NOT NULL,
+    code VARCHAR(40) NOT NULL,
+    label VARCHAR(150) NOT NULL,
+    sort_order INT NOT NULL DEFAULT 0,
+    isdeleted TINYINT(1) NOT NULL DEFAULT 0,
+    modified_by INT NULL,
+    modified_date DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    UNIQUE KEY uk_ri_code (kind, code)
+);
+INSERT IGNORE INTO ri_codes (kind, code, label, sort_order) VALUES
+    ('member_type', 'active', 'Active', 1), ('member_type', 'honorary', 'Honorary', 2);
+SET @sql := IF((SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE()
+                AND TABLE_NAME = 'club_members' AND COLUMN_NAME = 'ri_member_type') = 0,
+               'ALTER TABLE club_members ADD COLUMN ri_member_type VARCHAR(40) NULL', 'SELECT 1');
+PREPARE stmt FROM @sql;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+SET @sql := IF((SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE()
+                AND TABLE_NAME = 'club_members' AND COLUMN_NAME = 'join_reason_code') = 0,
+               'ALTER TABLE club_members ADD COLUMN join_reason_code VARCHAR(40) NULL', 'SELECT 1');
+PREPARE stmt FROM @sql;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+SET @sql := IF((SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE()
+                AND TABLE_NAME = 'club_members' AND COLUMN_NAME = 'termination_reason_code') = 0,
+               'ALTER TABLE club_members ADD COLUMN termination_reason_code VARCHAR(40) NULL', 'SELECT 1');
+PREPARE stmt FROM @sql;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+-- S10 (B.29): district target setting (Services/TargetProposals.cs, same SQL).
+CREATE TABLE IF NOT EXISTS district_target_proposals (
+    pk_proposal_id INT AUTO_INCREMENT PRIMARY KEY,
+    fk_district_id INT NOT NULL,
+    fk_club_id INT NOT NULL,
+    fk_year_id INT NOT NULL,
+    metric VARCHAR(30) NOT NULL,
+    proposed_value DECIMAL(18,2) NOT NULL,
+    status VARCHAR(10) NOT NULL DEFAULT 'proposed',
+    counter_value DECIMAL(18,2) NULL,
+    club_note VARCHAR(500) NULL,
+    proposed_by INT NOT NULL,
+    proposed_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    responded_by INT NULL,
+    responded_at DATETIME NULL,
+    UNIQUE KEY uk_target_proposal (fk_club_id, fk_year_id, metric),
+    KEY ix_target_proposal_district (fk_district_id, fk_year_id)
+);
+-- S11 (3.5): renewal reminders (TenantRenewalService), added together.
+SET @sql := IF((SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE()
+                AND TABLE_NAME = 'tenant_subscriptions' AND COLUMN_NAME = 'auto_renew') = 0,
+               'ALTER TABLE tenant_subscriptions ADD COLUMN auto_renew TINYINT(1) NOT NULL DEFAULT 1, ADD COLUMN renewal_notice_for DATE NULL, ADD COLUMN dunning_for DATE NULL, ADD COLUMN dunning_stage TINYINT NOT NULL DEFAULT 0',
+               'SELECT 1');
+PREPARE stmt FROM @sql;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+-- S12 (3.1): DGE sign-ups at the booth (BoothSignupController.TableSql, same SQL).
+CREATE TABLE IF NOT EXISTS booth_signups (
+    pk_signup_id INT AUTO_INCREMENT PRIMARY KEY,
+    fk_district_id INT NOT NULL,
+    edition_code VARCHAR(20) NOT NULL,
+    member_band VARCHAR(20) NULL,
+    contact_name VARCHAR(150) NOT NULL,
+    contact_email VARCHAR(200) NOT NULL,
+    status VARCHAR(20) NOT NULL DEFAULT 'awaiting_payment',
+    payment_note VARCHAR(200) NULL,
+    result_note VARCHAR(500) NULL,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    decided_by INT NULL,
+    decided_at DATETIME NULL,
+    KEY ix_booth_status (status, created_at)
+);
+-- S5 (3.3, 3.16): machine translations of the server's fixed texts (ServerStrings.TableSql, same SQL).
+CREATE TABLE IF NOT EXISTS server_strings (
+    text_hash CHAR(64) NOT NULL,
+    language VARCHAR(20) NOT NULL,
+    english TEXT NOT NULL,
+    text TEXT NOT NULL,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (text_hash, language)
+);

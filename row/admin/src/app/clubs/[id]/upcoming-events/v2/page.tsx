@@ -39,6 +39,8 @@ import ClubAdminShell from "@/components/v2/ClubAdminShell";
 import { useSyncClubIdFromUrl } from "@/hooks/useSyncClubIdFromUrl";
 
 import { appLocale } from "@/lib/appFormat";
+import { useFormat } from "@/hooks/useFormat";
+import { useEventZone } from "@/hooks/useEventZone";
 const STATUS_OPTIONS = [
   { value: "all",         label: "All" },
   { value: "Published",   label: "Published" },
@@ -75,6 +77,8 @@ export default function UpcomingEventsV2Page() {
   const clubId = Number(params.id);
   const { isSuperAdmin, isAdmin } = useAuth();
   const canManage = isSuperAdmin || isAdmin;
+  const fmt = useFormat();
+  const zone = useEventZone({ clubId });
 
   const [clubName, setClubName] = useState("");
   const [events, setEvents] = useState<UpcomingEventListItem[]>([]);
@@ -341,7 +345,7 @@ export default function UpcomingEventsV2Page() {
                           </span>
                           <SendStatusBadges item={e} />
                         </td>
-                        <td className="px-3 py-2 text-slate-600 whitespace-nowrap">{formatDateTime(e.eventDate)}</td>
+                        <td className="px-3 py-2 text-slate-600 whitespace-nowrap">{e.eventDate ? fmt.eventDateTime(e.eventDate, zone) : "-"}</td>
                         <td className="px-3 py-2 text-slate-600 whitespace-nowrap">{formatDateTime(e.publishDate)}</td>
                         <td className="px-3 py-2 text-slate-600 whitespace-nowrap">{formatDateTime(e.expiryDate)}</td>
                         {canManage && (

@@ -45,6 +45,8 @@ public class BoardOfDirectorsController : ControllerBase
     [SuperAdminOnly]
     public async Task<ActionResult> UpdateDesignation(int id, [FromBody] UpdateDesignationDto dto)
     {
+        if (!string.IsNullOrEmpty(dto.RiTitle) && !RiCodes.OfficerTitles.Contains(dto.RiTitle))
+            return BadRequest(new { message = "RI title must be one of: " + string.Join(", ", RiCodes.OfficerTitles) + "." });
         await _designationService.UpdateAsync(id, dto, GetUserId());
         return Ok(new { message = "Designation updated successfully." });
     }

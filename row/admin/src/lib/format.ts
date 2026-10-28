@@ -27,6 +27,11 @@ export interface Formatters {
   currencySymbol(currency?: string | null): string;
   date(d: string | Date | null | undefined, style?: DateStyle): string;
   dateTime(d: string | Date | null | undefined): string;
+  /**
+   * An event or meeting time (build spec 3.3): shown in the event's zone (its district's; default the instance
+   * zone) with that zone's short name, plus the viewer's own time when their zone differs at that moment.
+   */
+  eventDateTime(d: string | Date | null | undefined, eventZone?: string | null): string;
   time(d: string | Date | null | undefined): string;
   monthName(month1to12: number, style?: "short" | "long"): string;
   weekdayName(day0to6: number, style?: "short" | "long"): string;
@@ -69,6 +74,31 @@ function toInstant(value: string | Date, timeZone: string): { date: Date; zone: 
   return { date: new Date(Date.UTC(+y, +mo - 1, +d, +h, +mi, +sec, ms)), zone: "UTC" };
 }
 
+/** The zone's offset from UTC (ms) at an instant. */
+function zoneOffsetMs(at: Date, zone: string): number {
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone: zone, hourCycle: "h23", year: "numeric", month: "2-digit", day: "2-digit",
+    hour: "2-digit", minute: "2-digit", second: "2-digit",
+  }).formatToParts(at);
+  const n = (t: string) => Number(parts.find((p) => p.type === t)?.value);
+  return Date.UTC(n("year"), n("month") - 1, n("day"), n("hour"), n("minute"), n("second")) - Math.floor(at.getTime() / 1000) * 1000;
+}
+
+/** The instant of a wall-clock time in a zone (the second guess settles daylight-saving edges). */
+function wallToInstant(wallUtcMs: number, zone: string): Date {
+  const first = wallUtcMs - zoneOffsetMs(new Date(wallUtcMs), zone);
+  return new Date(wallUtcMs - zoneOffsetMs(new Date(first), zone));
+}
+
+/** The browser's zone ("UTC" when it cannot be read). */
+export function viewerTimeZone(): string {
+  try {
+    return Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC";
+  } catch {
+    return "UTC";
+  }
+}
+
 const DATE_STYLES: Record<DateStyle, Intl.DateTimeFormatOptions> = {
   short: { day: "2-digit", month: "2-digit", year: "numeric" },
   medium: { day: "2-digit", month: "short", year: "numeric" }, // "01 Aug 2026", today's common style
@@ -87,8 +117,9 @@ const INDIAN_UNITS: ReadonlyArray<[number, string]> = [
  *                  numberLocale, e.g. "en-IN"; otherwise the interface language)
  * @param currency  default ISO 4217 code
  * @param timeZone  IANA zone that timestamps with an offset are shown in
+ * @param viewerZone the viewer's zone for eventDateTime (default: the browser's)
  */
-export function createFormat(locale: string, currency: string, timeZone: string): Formatters {
+export function createFormat(locale: string, currency: string, timeZone: string, viewerZone?: string): Formatters {
   const cache = new Map<string, Intl.NumberFormat | Intl.DateTimeFormat>();
   const nf = (opts: Intl.NumberFormatOptions) => {
     const key = `n${JSON.stringify(opts)}`;
@@ -149,6 +180,24 @@ export function createFormat(locale: string, currency: string, timeZone: string)
     date: (d, style = "medium") => formatInstant(d, DATE_STYLES[style]),
 
     dateTime: (d) => formatInstant(d, { ...DATE_STYLES.medium, hour: "numeric", minute: "2-digit" }),
+
+    eventDateTime: (d, eventZone) => {
+      if (d == null) return "";
+      const zone = eventZone || timeZone;
+      const s = d instanceof Date ? "" : d.trim();
+      if (s && DATE_ONLY.test(s)) return self.date(s);
+      const wall = s && !HAS_OFFSET.test(s) ? toInstant(s, zone) : null;
+      const at = wall ? wallToInstant(wall.date.getTime(), zone) : d instanceof Date ? d : new Date(s);
+      if (isNaN(at.getTime())) return "";
+      const opts: Intl.DateTimeFormatOptions = { ...DATE_STYLES.medium, hour: "numeric", minute: "2-digit" };
+      const shown = df({ ...opts, timeZone: zone, timeZoneName: "short" }).format(at);
+      const viewer = viewerZone ?? viewerTimeZone();
+      if (zoneOffsetMs(at, viewer) === zoneOffsetMs(at, zone)) return shown;
+      const sameDay = todayIn(zone, at) === todayIn(viewer, at);
+      const mine = df(sameDay ? { hour: "numeric", minute: "2-digit", timeZone: viewer }
+        : { ...opts, timeZone: viewer }).format(at);
+      return `${shown} (${mine} your time)`;
+    },
 
     time: (d) => formatInstant(d, { hour: "numeric", minute: "2-digit" }),
 

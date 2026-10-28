@@ -74,7 +74,7 @@ open the file for the text. Do not edit by hand.
   -   19. Gates
   - … 15 more headings
 
-## row (51 documents)
+## row (52 documents)
 
 - **row/HANDOFF.md** (10 KB)
   - ROW: session handoff (read this first)
@@ -111,7 +111,7 @@ open the file for the text. Do not edit by hand.
   -   Configuration (set per server as environment variables; never commit values)
   -   Checks
   -   Refreshing from a newer RIZones copy
-- **row/ROW-CHANGES.md** (48 KB)
+- **row/ROW-CHANGES.md** (61 KB)
   - ROW changes to consider later
   -   Security and privacy
   -   Providers
@@ -136,6 +136,7 @@ open the file for the text. Do not edit by hand.
   -   2026-10-19: Fellowship design port (admin + mobile)
   -   2026-10-23: Skipped modules removed, 10 new spec modules, security fixes
   -   2026-10-23 (part 2): security and read review, time zones, planning mode, escalation, rebranding
+  -   2026-10-28: Build spec completion (plan `docs/superpowers/plans/2026-10-28-build-spec-completion.md`)
 - **row/STATUS-REPORT.md** (6 KB)
   - ROW status report (updated 2026-10-23, evening)
   -   Done (verified on a local copy of production, `row_prod_copy`)
@@ -163,7 +164,7 @@ open the file for the text. Do not edit by hand.
   -   8. Open decisions (owner: product / company)
   -   9. Working rules agreed with the team
   -   10. How to resume
-- **row/TRACKER.md** (21 KB)
+- **row/TRACKER.md** (25 KB)
   - ROW work tracker
   -   1. Summary
   -   2. Skipped modules: remove completely
@@ -529,6 +530,10 @@ open the file for the text. Do not edit by hand.
   - _Copyright 2022 The Figtree Project Authors (https://github.com/erikdkennedy/figtree)_
 - **row/mobile/ios/Runner/Assets.xcassets/LaunchImage.imageset/README.md** (0 KB)
   - Launch Screen Assets
+- **row/showcase-extension/README.md** (1 KB)
+  - ROW Showcase Publisher (Chrome extension)
+  -   Use
+  -   Before publishing to the Chrome Web Store
 - **row/website/AGENTS.md** (0 KB)
   -   This is NOT the Next.js you know
 - **row/website/README.md** (2 KB)

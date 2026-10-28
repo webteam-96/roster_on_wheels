@@ -28,6 +28,8 @@ public class AttendanceDetailDto
     public string EventName { get; set; } = "";
     public string Description { get; set; } = "";
     public DateTime EventDateTime { get; set; }
+    /// EventDateTime as the club's wall-clock ("yyyy-MM-ddTHH:mm") for edit forms; EventDateTime may be UTC.
+    public string EventLocal { get; set; } = "";
     /// in_person | online | hybrid (ROW Wave 1). Online and hybrid may carry an https join link.
     public string MeetingMode { get; set; } = "in_person";
     public string? MeetingLink { get; set; }

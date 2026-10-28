@@ -60,6 +60,9 @@ try:
     check("hybrid meeting with an https link is saved", s == 200 and mid, (s, b))
     s, d = call("GET", f"{base}/{mid}", token=token)
     check("mode and link are read back", d.get("meetingMode") == "hybrid" and d.get("meetingLink") == meeting["meetingLink"], d)
+    # wall-clock storage (a non-UTC server or time.emitOffset off): the typed time is kept as is
+    stored = sql(f"SELECT DATE_FORMAT(EventDateTime, '%Y-%m-%dT%H:%i:%s') FROM club_attendance WHERE pk_attendance_id={int(mid)}")
+    check("a time without an offset is stored as the club's wall-clock", stored == meeting["eventDateTime"], stored)
     s, lst = call("GET", f"{base}?yearId=0", token=token)
     row = next((i for i in lst.get("items", []) if i.get("id") == mid), {})
     check("the list carries the mode", row.get("meetingMode") == "hybrid", row)

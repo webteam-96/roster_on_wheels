@@ -555,7 +555,44 @@ public class PrivacyService
                 if (DateTime.UtcNow - File.GetLastWriteTimeUtc(f) > TimeSpan.FromDays(exportDays)) { File.Delete(f); removed++; }
             if (removed > 0) done.Add($"export files: {removed}");
         }
+
+        var anonymised = await AnonymiseTerminatedAsync(conn);
+        if (anonymised > 0) done.Add($"terminated members anonymised: {anonymised}");
         return done;
+    }
+
+    private const string RetentionReason = "Automatic: the district's retention rule for terminated members";
+
+    /// <summary>
+    /// Build spec 3.14: the district tenant's rule (tenant_subscriptions.anonymise_after_months) anonymises
+    /// terminated members through the normal erasure, which keeps attendance and payment totals. A member qualifies
+    /// when none of their memberships is active and every one ended, with a termination date, longer ago than its
+    /// district's rule; a membership without a termination date, or in a district without a rule, holds them back.
+    /// </summary>
+    public async Task<int> AnonymiseTerminatedAsync(MySqlConnection conn)
+    {
+        // shortcut: 200 members per daily run; a district switching the rule on with a long backlog catches up over days.
+        var due = (await conn.QueryAsync<int>(@"
+            SELECT cm.fk_member_master_profile_id
+            FROM club_members cm
+            JOIN club_master c ON c.pk_club_id = cm.fk_club_id
+            JOIN member_master_profile m ON m.pk_member_master_profile_id = cm.fk_member_master_profile_id AND m.isdeleted = 0
+            LEFT JOIN tenant_subscriptions t ON t.fk_district_id = c.fk_district_id AND t.fk_club_id = 0
+            WHERE NOT EXISTS (SELECT 1 FROM privacy_requests r WHERE r.fk_member_id = cm.fk_member_master_profile_id
+                              AND r.request_type = 'erase' AND r.status IN ('completed', 'processing', 'awaiting_approval'))
+            GROUP BY cm.fk_member_master_profile_id
+            -- a removal soft-deletes the membership and stamps TerminationDate, so deleted rows count as ended
+            HAVING SUM(IFNULL(cm.IsActive, 0) = 1 AND IFNULL(cm.isdeleted, 0) = 0) = 0
+               AND SUM(cm.TerminationDate IS NULL OR IFNULL(t.anonymise_after_months, 0) <= 0
+                       OR cm.TerminationDate + INTERVAL t.anonymise_after_months MONTH > CURDATE()) = 0
+            LIMIT 200")).ToList();
+        foreach (var id in due)
+        {
+            var m = await FactsAsync(conn, id);
+            var requestId = await InsertRequestAsync(conn, "erase", m, 0, "processing", RetentionReason);
+            await RunErasureAsync(conn, requestId, m, 0, RetentionReason);
+        }
+        return due.Count;
     }
 
     private static string Trunc(string s, int n) => s.Length > n ? s[..n] : s;

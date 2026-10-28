@@ -16,6 +16,13 @@ describe("volunteer helpers", () => {
     ]);
   });
 
+  it("puts the club's wall-clock in the form when the API sends UTC times", () => {
+    const rows = toRows([{ id: 5, task: "Cook", startsAt: "2026-11-01T14:30:00Z", endsAt: "2026-11-01T16:00:00Z",
+      startsLocal: "2026-11-01T09:30", endsLocal: "2026-11-01T11:00", capacity: 2, filled: 0, signups: [] }]);
+    expect(rows[0].startsAt).toBe("2026-11-01T09:30");
+    expect(rows[0].endsAt).toBe("2026-11-01T11:00");
+  });
+
   it("turns typed hours into entries and totals them in hundredths", () => {
     const typed = { 7: "0.1", 9: "0.2", 11: "" };
     expect(hoursEntries(typed)).toEqual([

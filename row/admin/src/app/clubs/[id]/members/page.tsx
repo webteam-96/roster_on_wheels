@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useParams, useSearchParams } from "next/navigation";
 import { ClubMemberItem } from "@/types/club";
 import { PagedResult } from "@/types/member";
-import { getClub, getClubMembers, getClubMemberYears, removeClubMember, getPhotoUrl, assignRole, removeRole, getMemberRemovalPreview, getDistricts, getRotaryYears, updateCogDesignation } from "@/services/api";
+import { getClub, getClubMembers, getClubMemberYears, removeClubMember, getPhotoUrl, assignRole, removeRole, getMemberRemovalPreview, getDistricts, getRotaryYears, updateCogDesignation, getRiCodes } from "@/services/api";
 import { MemberRemovalPreview } from "@/types/memberRemoval";
 import { formatDMY } from "@/lib/dateUtils";
 import { useAuth } from "@/contexts/AuthContext";
@@ -62,6 +62,12 @@ export default function ClubMembersPage() {
   const [removeTarget, setRemoveTarget] = useState<{ id: number; name: string } | null>(null);
   const [removalPreview, setRemovalPreview] = useState<MemberRemovalPreview | null>(null);
   const [previewLoading, setPreviewLoading] = useState(false);
+  // RI termination reasons (build spec 3.12) for the removal dialog
+  const [terminationReasons, setTerminationReasons] = useState<{ code: string; label: string }[]>([]);
+  const [reasonCode, setReasonCode] = useState("");
+  useEffect(() => {
+    getRiCodes().then((c) => setTerminationReasons(c.filter((x) => x.kind === "termination_reason"))).catch(() => {});
+  }, []);
   const [roleLoading, setRoleLoading] = useState<number | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [detailMemberId, setDetailMemberId] = useState<number | null>(null);
@@ -202,7 +208,8 @@ export default function ClubMembersPage() {
     if (!removeTarget) return;
     const wasLast = removalPreview?.isLastClub === true;
     try {
-      await removeClubMember(clubId, removeTarget.id);
+      await removeClubMember(clubId, removeTarget.id, undefined, reasonCode || undefined);
+      setReasonCode("");
       const name = removeTarget.name;
       setRemoveTarget(null);
       setRemovalPreview(null);
@@ -700,6 +707,9 @@ export default function ClubMembersPage() {
           preview={removalPreview}
           onConfirm={handleRemoveMember}
           onCancel={() => setRemoveTarget(null)}
+          terminationReasons={terminationReasons}
+          reasonCode={reasonCode}
+          onReasonCodeChange={setReasonCode}
         />
         {/* COG (club 31598) SuperAdmin editor. Saves district number + Rotary year
             back into that member's COG membership row only — the member's own club

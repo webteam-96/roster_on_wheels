@@ -4,6 +4,7 @@ using QuestPDF.Helpers;
 using QuestPDF.Infrastructure;
 using RotaryApi.DTOs;
 
+using RotaryApi.Services.Localization;
 namespace RotaryApi.Services;
 
 // PDF twin of ClubMonthlyReportWordBuilder — same content/design, rendered with QuestPDF.
@@ -21,6 +22,11 @@ public static class ClubMonthlyReportPdfBuilder
     private const string LabelBg = "#EDF4FB";
     private const string Link = "#0067C8";
     private const string Ink = "#1B2C42";
+
+    // S5: fixed labels in the current culture's language; callers set the club's (MessageCulture.Use). Labels
+    // passed to InfoGrid, GridTable and the facts line are literals and are translated where they are drawn.
+    private static string T(string english) => DbStringLocalizer.Instance[english];
+    private static string T(string english, params object[] args) => DbStringLocalizer.Instance[english, args];
 
     private static readonly (string Key, string Label)[] Avenues =
     {
@@ -69,9 +75,9 @@ public static class ClubMonthlyReportPdfBuilder
                     var logo = BrandAssets.PdfLogo;
                     if (logo != null)
                         col.Item().PaddingBottom(6).AlignCenter().Height(50).Image(logo).FitHeight();
-                    col.Item().AlignCenter().Text($"Club Monthly Report — {s.MonthName} {s.YearLabel}").Bold().FontSize(17).FontColor("#1B2C42");
+                    col.Item().AlignCenter().Text(T("Club Monthly Report — {0} {1}", s.MonthName, s.YearLabel)).Bold().FontSize(17).FontColor("#1B2C42");
                     if (s.UploadedToDistrictDate.HasValue)
-                        col.Item().AlignCenter().Text($"Uploaded to District: {FmtDateTime(s.UploadedToDistrictDate.Value)}").FontSize(10).FontColor(Muted);
+                        col.Item().AlignCenter().Text(T("Uploaded to District: {0}", FmtDateTime(s.UploadedToDistrictDate.Value))).FontSize(10).FontColor(Muted);
                     col.Item().PaddingBottom(4);
 
                     // Info grid
@@ -84,8 +90,8 @@ public static class ClubMonthlyReportPdfBuilder
                     });
 
                     // TRF
-                    SubHeading(col, "TRF Contribution");
-                    col.Item().Text($"Current Month: ${s.TrfCurrentMonth.ToString("N2", CultureInfo.InvariantCulture)}     |     This Year: ${s.TrfThisYear.ToString("N2", CultureInfo.InvariantCulture)}").FontSize(10);
+                    SubHeading(col, T("TRF Contribution"));
+                    col.Item().Text(T("Current Month: {0}", "$" + s.TrfCurrentMonth.ToString("N2", CultureInfo.InvariantCulture)) + "     |     " + T("This Year: {0}", "$" + s.TrfThisYear.ToString("N2", CultureInfo.InvariantCulture))).FontSize(10);
                     if (s.TrfEntries.Count > 0)
                     {
                         var rows = s.TrfEntries.Select((e, i) => new[]
@@ -101,7 +107,7 @@ public static class ClubMonthlyReportPdfBuilder
                     }
 
                     // Members
-                    SubHeading(col, "Members");
+                    SubHeading(col, T("Members"));
                     InfoGrid(col, new (string, string, string, string)[]
                     {
                         ("Member count as on last month", s.MemberCountLastMonth.ToString(), "Members Deleted/Terminated", s.MembersDeleted.ToString()),
@@ -109,13 +115,13 @@ public static class ClubMonthlyReportPdfBuilder
                     });
                     if (!string.IsNullOrWhiteSpace(s.AdditionalRemarks))
                     {
-                        col.Item().PaddingTop(4).Text("Additional achievement / participation / hosting of events / projects above club, if any:").Bold().FontColor(Label).FontSize(10);
+                        col.Item().PaddingTop(4).Text(T("Additional achievement / participation / hosting of events / projects above club, if any:")).Bold().FontColor(Label).FontSize(10);
                         col.Item().Text(s.AdditionalRemarks!).FontSize(10.5f);
                     }
 
                     // Meetings
-                    SectionHeading(col, $"Meetings ({meetings.Count})");
-                    if (meetings.Count == 0) col.Item().Text("No meetings recorded for this month.").Italic().FontColor(Muted).FontSize(10);
+                    SectionHeading(col, T("Meetings ({0})", meetings.Count));
+                    if (meetings.Count == 0) col.Item().Text(T("No meetings recorded for this month.")).Italic().FontColor(Muted).FontSize(10);
                     int n = 1;
                     foreach (var m in meetings) Item(col, mediaBase, m, isMeeting: true, index: n++, includePhotos: includePhotos);
 
@@ -123,8 +129,8 @@ public static class ClubMonthlyReportPdfBuilder
                     foreach (var (key, label) in Avenues)
                     {
                         var list = items.Where(i => i.ModuleKey == key).ToList();
-                        SectionHeading(col, $"{label} ({list.Count})");
-                        if (list.Count == 0) col.Item().Text($"No {label} projects recorded for this month.").Italic().FontColor(Muted).FontSize(10);
+                        SectionHeading(col, $"{T(label)} ({list.Count})");
+                        if (list.Count == 0) col.Item().Text(T("No {0} projects recorded for this month.", T(label))).Italic().FontColor(Muted).FontSize(10);
                         n = 1;
                         foreach (var p in list) Item(col, mediaBase, p, isMeeting: false, index: n++, includePhotos: includePhotos);
                     }
@@ -132,17 +138,17 @@ public static class ClubMonthlyReportPdfBuilder
                     // Note
                     col.Item().PaddingTop(12).Text(t =>
                     {
-                        t.Span("Note: ").Bold().Italic().FontSize(8.5f);
-                        t.Span("Agenda, MOM and photographs added to Club Meetings are not shared with the District — only the content displayed here is shared.").Italic().FontSize(8.5f).FontColor(Muted);
+                        t.Span(T("Note:") + " ").Bold().Italic().FontSize(8.5f);
+                        t.Span(T("Agenda, MOM and photographs added to Club Meetings are not shared with the District. Only the content displayed here is shared.")).Italic().FontSize(8.5f).FontColor(Muted);
                     });
                 });
 
                 page.Footer().AlignCenter().Text(t =>
                 {
                     t.DefaultTextStyle(x => x.FontSize(8).FontColor(Muted));
-                    t.Span("Page ");
+                    t.Span(T("Page") + " ");
                     t.CurrentPageNumber();
-                    t.Span(" of ");
+                    t.Span(" " + T("of") + " ");
                     t.TotalPages();
                 });
             });
@@ -152,12 +158,12 @@ public static class ClubMonthlyReportPdfBuilder
     // ── one meeting/project block ──
     private static void Item(ColumnDescriptor col, string mediaBase, CmrWordProjectDto p, bool isMeeting, int index, bool includePhotos = true)
     {
-        col.Item().PaddingTop(8).Text($"{index}.  {(string.IsNullOrWhiteSpace(p.Title) ? "(untitled)" : p.Title)}").Bold().FontSize(12.5f).FontColor(Ink);
+        col.Item().PaddingTop(8).Text($"{index}.  {(string.IsNullOrWhiteSpace(p.Title) ? T("(untitled)") : p.Title)}").Bold().FontSize(12.5f).FontColor(Ink);
 
         var meta = new List<string>();
         if (!string.IsNullOrWhiteSpace(p.ProjectDate)) meta.Add(FmtDate(p.ProjectDate!));
         if (isMeeting && !string.IsNullOrWhiteSpace(p.MeetingType))
-            meta.Add((MeetingTypeLabels.TryGetValue(p.MeetingType!.ToLowerInvariant(), out var lbl) ? lbl : p.MeetingType!) + " meeting");
+            meta.Add(MeetingTypeLabels.TryGetValue(p.MeetingType!.ToLowerInvariant(), out var lbl) ? T("{0} meeting", T(lbl)) : T("{0} meeting", p.MeetingType!));
         if (meta.Count > 0)
             col.Item().Text(string.Join("   ·   ", meta)).Italic().FontColor(Muted).FontSize(9.5f);
 
@@ -179,7 +185,7 @@ public static class ClubMonthlyReportPdfBuilder
             if (p.RotariansInvolved is > 0) facts.Add(("Rotarians", p.RotariansInvolved!.Value.ToString()));
             if (p.RotaractorsInvolved is > 0) facts.Add(("Rotaractors", p.RotaractorsInvolved!.Value.ToString()));
             if (p.RccInvolved is > 0) facts.Add(("RCC", p.RccInvolved!.Value.ToString()));
-            if (p.IsJointProject) facts.Add(("Joint Project", string.IsNullOrWhiteSpace(p.CoHostName) ? "Yes" : $"with {p.CoHostName}"));
+            if (p.IsJointProject) facts.Add(("Joint Project", string.IsNullOrWhiteSpace(p.CoHostName) ? T("Yes") : T("with {0}", p.CoHostName!)));
         }
         if (facts.Count > 0)
         {
@@ -188,7 +194,7 @@ public static class ClubMonthlyReportPdfBuilder
                 for (int i = 0; i < facts.Count; i++)
                 {
                     if (i > 0) t.Span("   ·   ").FontColor(Divider).FontSize(9.5f);
-                    t.Span(facts[i].Item1 + ": ").Bold().FontColor(Label).FontSize(9.5f);
+                    t.Span(T(facts[i].Item1) + ": ").Bold().FontColor(Label).FontSize(9.5f);
                     t.Span(facts[i].Item2).FontSize(9.5f);
                 }
             });
@@ -205,9 +211,9 @@ public static class ClubMonthlyReportPdfBuilder
             col.Item().PaddingTop(3).Row(row =>
             {
                 row.Spacing(10);
-                row.AutoItem().Text("Documents:").Bold().FontColor(Label).FontSize(9.5f);
-                if (agenda != null) row.AutoItem().Hyperlink(agenda).Text("Agenda").FontColor(Link).Underline().FontSize(9.5f);
-                if (mom != null) row.AutoItem().Hyperlink(mom).Text("Minutes of Meeting").FontColor(Link).Underline().FontSize(9.5f);
+                row.AutoItem().Text(T("Documents:")).Bold().FontColor(Label).FontSize(9.5f);
+                if (agenda != null) row.AutoItem().Hyperlink(agenda).Text(T("Agenda")).FontColor(Link).Underline().FontSize(9.5f);
+                if (mom != null) row.AutoItem().Hyperlink(mom).Text(T("Minutes of Meeting")).FontColor(Link).Underline().FontSize(9.5f);
             });
         }
 
@@ -247,9 +253,9 @@ public static class ClubMonthlyReportPdfBuilder
             t.ColumnsDefinition(c => { c.RelativeColumn(2.4f); c.RelativeColumn(2.6f); c.RelativeColumn(2.4f); c.RelativeColumn(2.6f); });
             foreach (var r in rows)
             {
-                t.Cell().Element(LabelCell).Text(r.L1).Bold().FontColor(Label).FontSize(9.5f);
+                t.Cell().Element(LabelCell).Text(T(r.L1)).Bold().FontColor(Label).FontSize(9.5f);
                 t.Cell().Element(ValueCell).Text(r.V1).FontSize(9.5f);
-                t.Cell().Element(LabelCell).Text(r.L2).Bold().FontColor(Label).FontSize(9.5f);
+                t.Cell().Element(LabelCell).Text(T(r.L2)).Bold().FontColor(Label).FontSize(9.5f);
                 t.Cell().Element(ValueCell).Text(r.V2).FontSize(9.5f);
             }
         });
@@ -261,7 +267,7 @@ public static class ClubMonthlyReportPdfBuilder
         {
             t.ColumnsDefinition(c => { foreach (var w in widths) c.RelativeColumn(w); });
             foreach (var h in headers)
-                t.Cell().Element(HeaderCell).Text(h).Bold().FontColor("#FCFDFE").FontSize(9.5f);
+                t.Cell().Element(HeaderCell).Text(T(h)).Bold().FontColor("#FCFDFE").FontSize(9.5f);
             foreach (var r in rows)
                 foreach (var cval in r)
                     t.Cell().Element(ValueCell).Text(cval ?? "").FontSize(9.5f);

@@ -53,7 +53,14 @@ public class CreditManagementController : ControllerBase
                   mr.fk_district_id = (SELECT fk_district_id FROM club_master WHERE pk_club_id = @ClubId)
               )",
             new { MemberId = memberId, ClubId = clubId });
-        return allowed > 0;
+        if (allowed > 0) return true;
+
+        // Assistant Governor of this club (read-only: the AG club dashboard shows the balance).
+        var agAssigned = await conn.ExecuteScalarAsync<int>(@"
+            SELECT COUNT(*) FROM district_ag
+            WHERE fk_member_id = @MemberId AND fk_club_id = @ClubId AND isdeleted = 0 AND is_active = 1",
+            new { MemberId = memberId, ClubId = clubId });
+        return agAssigned > 0;
     }
 
     private async Task<bool> CanViewDistrictBalanceAsync(int districtId)

@@ -113,8 +113,7 @@ public class MeetingsService
         void Line(string s) => sb.Append(Fold(s)).Append("\r\n");
         static string Local(DateTime d) => d.ToString("yyyyMMdd'T'HHmmss", CultureInfo.InvariantCulture);
         // N12: a stored UTC time goes out as UTC ("Z"); a stored wall-clock time is the club's, in its district's zone.
-        // shortcut: the admin and app send meeting times as typed (no offset), which a UTC server stores as if UTC;
-        // send UTC instants from the meeting forms to make them exact.
+        // Meeting forms send the club's wall-clock; AttendanceService converts it to UTC when stored times are UTC.
         static string At(string name, DateTime d, string? tz) =>
             ZoneTime.StoredUtc ? $"{name}:{Local(d)}Z" : $"{name};TZID={ZoneTime.IanaId(ZoneTime.Find(tz))}:{Local(d)}";
 

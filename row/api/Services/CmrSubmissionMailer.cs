@@ -88,6 +88,9 @@ public class CmrSubmissionMailer : ICmrSubmissionMailer
                 foreach (var ph in it.Photos)
                     await CmrMediaLoader.LoadAsync(_env, _mediaRedirectBase, ph);
 
+            // S5: one email to all the officers, so the report and the email are in the club's language
+            using var culture = RotaryApi.Services.Localization.MessageCulture.Use(await CommsTemplates.DefaultLanguageAsync(conn, clubId, 0));
+            var L = RotaryApi.Services.Localization.DbStringLocalizer.Instance;
             var pdf = ClubMonthlyReportPdfBuilder.Build(summary, items, _mediaBaseForLinks);
 
             // Brevo rejects any message over 20 MB. Base64 inflates the attachment by ~37%, so the
@@ -108,13 +111,14 @@ public class CmrSubmissionMailer : ICmrSubmissionMailer
             var fileName = $"{summary.ClubName}_Monthly_Report_{summary.MonthName}_{summary.YearLabel}.pdf"
                 .Replace(" ", "_").Replace("/", "-");
 
-            var subject = $"Club Monthly Report Submitted — {summary.ClubName} — {summary.MonthName} {summary.YearLabel}";
+            string subject = L["Club Monthly Report Submitted — {0} — {1} {2}", summary.ClubName, summary.MonthName, summary.YearLabel];
             var body = BuildBody(summary, recipients, overridden ? _emailOverride : null, photosDropped);
 
             // Dev override: redirect the whole thing to one test address (no CC to real officers).
             string to = overridden ? _emailOverride! : recipients[0].Email;
             var cc = overridden ? new List<string>() : recipients.Skip(1).Select(r => r.Email).ToList();
-            await _email.SendEmailWithAttachmentAsync(to, subject, body, pdf, fileName, cc);
+            // explicit type: the email log's subject guess only knows English wording
+            await _email.SendScopedEmailWithAttachmentAsync(to, subject, body, pdf, fileName, cc, clubId, districtId, "Monthly Report");
 
             _logger.LogInformation("CMR submission email sent for report {Report} (to={To}{Mode}). Real recipients: {Recipients}",
                 reportId, LogMask.Email(to), overridden ? " [TEST OVERRIDE]" : "",
@@ -207,35 +211,35 @@ public class CmrSubmissionMailer : ICmrSubmissionMailer
 
     private static string BuildBody(DTOs.MonthlyReportPreviewDto s, List<(string Name, string Email, string Role)> recipients, string? overrideEmail, bool photosDropped)
     {
+        var L = RotaryApi.Services.Localization.DbStringLocalizer.Instance;
         var who = recipients.Count > 0
             ? string.Join(", ", recipients.Select(r => $"{r.Name} ({r.Role})"))
-            : "(none resolved)";
+            : L["(none resolved)"];
         var testBanner = string.IsNullOrWhiteSpace(overrideEmail) ? "" : $@"
                 <p style='font-size: 13px; line-height: 1.6; background:#FFF3CD; border:1px solid #FFE69C; padding:10px; border-radius:6px;'>
                     <strong>TEST MODE:</strong> this email was redirected to {overrideEmail}. In production it would be sent to the recipients listed below.
                 </p>";
         // Attachment line differs when photos had to be dropped to fit the mail-size limit.
         var attachmentLine = photosDropped
-            ? @"<p style='font-size: 14px; line-height: 1.8;'>
-                    The report — meetings and all service avenues — is attached as a PDF.
-                    <strong>Photos were omitted to keep this email within the size limit;</strong>
-                    the full report with photos is available in the portal.
+            ? $@"<p style='font-size: 14px; line-height: 1.8;'>
+                    {L["The report, with meetings and all service avenues, is attached as a PDF."]}
+                    <strong>{L["Photos were omitted to keep this email within the size limit;"]}</strong>
+                    {L["the full report with photos is available in the portal."]}
                 </p>"
-            : @"<p style='font-size: 14px; line-height: 1.8;'>
-                    The full report — meetings and all service avenues with photos — is attached as a PDF.
+            : $@"<p style='font-size: 14px; line-height: 1.8;'>
+                    {L["The full report, with meetings and all service avenues with photos, is attached as a PDF."]}
                 </p>";
         return $@"
             {EmailService.EMAIL_HEADER}
-                <p style='font-style: italic; font-size: 15px; margin-bottom: 20px;'><strong>Dear Rtn,</strong></p>
+                <p style='font-style: italic; font-size: 15px; margin-bottom: 20px;'><strong>{L["Dear Rtn,"]}</strong></p>
                 {testBanner}
                 <p style='font-size: 14px; line-height: 1.8;'>
-                    The Club Monthly Report for <strong>{s.ClubName}</strong> for
-                    <strong>{s.MonthName} {s.YearLabel}</strong> has been submitted to the District.
+                    {L["The Club Monthly Report for {0} for {1} has been submitted to the District.", $"<strong>{s.ClubName}</strong>", $"<strong>{s.MonthName} {s.YearLabel}</strong>"]}
                 </p>
                 {attachmentLine}
-                <p style='font-size: 13px; color:#64748B; line-height: 1.8;'>Recipients: {who}</p>
+                <p style='font-size: 13px; color:#64748B; line-height: 1.8;'>{L["Recipients: {0}", who]}</p>
                 <p style='font-size: 13px; line-height: 1.8; font-style: italic;'>
-                    This is an autogenerated email from ROW.
+                    {L["This is an autogenerated email from ROW."]}
                 </p>
             {EmailService.EMAIL_FOOTER}";
     }

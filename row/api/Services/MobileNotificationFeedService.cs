@@ -1,3 +1,4 @@
+using System.Globalization;
 using Dapper;
 using MySqlConnector;
 using RotaryApi.DTOs;
@@ -194,11 +195,16 @@ public class MobileNotificationFeedService : IMobileNotificationFeedService
             rows = (await multi.ReadAsync<FeedRow>()).ToList();
         }
 
+        await WithSlotTimesAsync(conn, rows);
+
         // ── 4. Project photos for THIS PAGE only (batched — never per row) ─────────────────
         var photos = await LoadProjectPhotosAsync(conn, rows, yearTables);
 
         // ── 5. Materialise DTOs ────────────────────────────────────────────────────────────
-        var items = rows.Select(r => ToDto(r, clubNames, districtNumbers, photos)).ToList();
+        // S5: the feed's fixed wording and dates in the reader's language (their own, else their club's)
+        List<MobileNotificationDto> items;
+        using (RotaryApi.Services.Localization.MessageCulture.Use(await RotaryApi.Services.Localization.MessageCulture.ForMemberAsync(conn, memberId)))
+            items = rows.Select(r => ToDto(r, clubNames, districtNumbers, photos)).ToList();
 
         return new PagedResult<MobileNotificationDto>
         {
@@ -497,10 +503,11 @@ public class MobileNotificationFeedService : IMobileNotificationFeedService
         {
             Str("'volunteer'"), "sh.pk_sheet_id", "0",
             "sh.fk_club_id", "NULL", Str("'club'"),
-            Str("CONCAT('Reminder: ', sl.task)"), Str("CONCAT(sh.title, ', ', DATE_FORMAT(sl.starts_at, '%d %b %Y %H:%i'))"),
+            Str("CONCAT('Reminder: ', sl.task)"), Str("sh.title"),
             Str("NULL"), Str("NULL"),
             "su.reminder_sent_at",
-            Str("'volunteer_sheet'"), Str("NULL")
+            // the slot time; WithSlotTimes adds it to the body in the club's zone
+            Str("'volunteer_sheet'"), Str("DATE_FORMAT(sl.starts_at, '%Y-%m-%dT%H:%i:%s')")
         },
         FromWhere: @"
             FROM volunteer_signups su
@@ -713,6 +720,21 @@ public class MobileNotificationFeedService : IMobileNotificationFeedService
     // Materialisation
     // ══════════════════════════════════════════════════════════════════════════════════════
 
+    /// <summary>Volunteer reminders: "sheet title, 01 Nov 2026 09:30" with the slot time in the club's zone.</summary>
+    private static async Task WithSlotTimesAsync(MySqlConnection conn, List<FeedRow> rows)
+    {
+        var zones = new Dictionary<int, TimeZoneInfo>();
+        foreach (var r in rows.Where(r => r.Type == "volunteer"))
+        {
+            if (DateTime.TryParse(r.Extra, CultureInfo.InvariantCulture, DateTimeStyles.None, out var at) && r.ClubId is int club)
+            {
+                if (!zones.TryGetValue(club, out var zone)) zones[club] = zone = await ZoneTime.OfClubAsync(conn, club);
+                r.Body = $"{r.Body}, {ZoneTime.StoredToLocal(zone, at).ToString("dd MMM yyyy HH:mm", CultureInfo.InvariantCulture)}";
+            }
+            r.Extra = null;
+        }
+    }
+
     private sealed class FeedRow
     {
         public string Type { get; set; } = "";
@@ -771,6 +793,7 @@ public class MobileNotificationFeedService : IMobileNotificationFeedService
         Dictionary<int, string> clubNames, Dictionary<int, string> districtNumbers,
         Dictionary<(int, int), string> photos)
     {
+        var L = RotaryApi.Services.Localization.DbStringLocalizer.Instance;
         var dto = new MobileNotificationDto
         {
             Type = r.Type,
@@ -807,8 +830,8 @@ public class MobileNotificationFeedService : IMobileNotificationFeedService
                 if (r.Extra != null && r.Extra.StartsWith("self_", StringComparison.OrdinalIgnoreCase))
                 {
                     bool bd = r.Extra.EndsWith("Birthday", StringComparison.OrdinalIgnoreCase);
-                    dto.Title = bd ? "Happy Birthday!" : "Happy Anniversary!";
-                    dto.Body = $"Warm wishes from {dto.SourceName}.";
+                    dto.Title = bd ? L["Happy Birthday!"] : L["Happy Anniversary!"];
+                    dto.Body = L["Warm wishes from {0}.", dto.SourceName ?? ""];
                     dto.DeepLink.EntityId = r.Id;   // the member's own profile
                     break;
                 }
@@ -816,16 +839,21 @@ public class MobileNotificationFeedService : IMobileNotificationFeedService
                 var (bCount, aCount) = ParseCelebrationCounts(r.Extra);
                 if (bCount + aCount == 1)
                 {
-                    dto.Title = $"{names}'s {(bCount == 1 ? "Birthday" : "Anniversary")}";
+                    dto.Title = bCount == 1 ? L["{0}'s Birthday", names] : L["{0}'s Anniversary", names];
                     dto.Body = $"{names} · {dto.SourceName}";
                 }
                 else
                 {
                     // Same phrasing GreetingsJob.BuildDigestBody uses for the push itself.
                     var parts = new List<string>();
-                    if (bCount > 0) parts.Add($"{bCount} birthday{(bCount == 1 ? "" : "s")}");
-                    if (aCount > 0) parts.Add($"{aCount} anniversar{(aCount == 1 ? "y" : "ies")}");
-                    dto.Title = string.Join(" and ", parts) + " to celebrate";
+                    if (bCount > 0) parts.Add(bCount == 1 ? L["1 birthday"] : L["{0} birthdays", bCount]);
+                    if (aCount > 0) parts.Add(aCount == 1 ? L["1 anniversary"] : L["{0} anniversaries", aCount]);
+                    dto.Title = parts.Count switch
+                    {
+                        2 => L["{0} and {1} to celebrate", parts[0], parts[1]],
+                        1 => L["{0} to celebrate", parts[0]],
+                        _ => dto.Title,
+                    };
                     dto.Body = Trim(names);
                 }
                 // celebrations_digest carries no entity id (Firebase_Notification_Routes.md) —
@@ -852,16 +880,16 @@ public class MobileNotificationFeedService : IMobileNotificationFeedService
                 // Extra holds "<mode>|<meeting time>": the reminder names the time, the mode and, online or hybrid, the join link.
                 var parts = (r.Extra ?? "").Split('|', 2);
                 var at = parts.Length == 2 && DateTime.TryParse(parts[1], out var md) ? md.ToString("dd MMM yyyy, h:mm tt") : null;
-                dto.Title = $"Meeting reminder: {dto.Title}";
+                dto.Title = L["Meeting reminder: {0}", dto.Title];
                 dto.Body = string.Join(" · ", new[] { at, MeetingsService.ModeLabel(parts[0]), r.LinkUrl }
                     .Where(s => !string.IsNullOrEmpty(s)));
                 break;
             }
             case "newsletter":
-                dto.Body ??= "A new newsletter has been published.";
+                dto.Body ??= L["A new newsletter has been published."];
                 break;
             case "document":
-                dto.Body ??= "A new document has been published.";
+                dto.Body ??= L["A new document has been published."];
                 break;
             case "highlight":
             {

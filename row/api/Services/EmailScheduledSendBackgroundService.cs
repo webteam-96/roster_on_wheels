@@ -183,7 +183,8 @@ public class EmailScheduledSendBackgroundService : BackgroundService
                 ? ((string?)rec.LinkUrl ?? "")
                 : BuildAbsoluteUrl(BuildMediaPath("ebulletin", Nz(rec.ClubId), Nz(rec.DistrictId), (string?)rec.FilePath));
             var subject = $"Newsletter from {sourceName}: {(string)rec.Title}";
-            string html =BuildNewsletterHtml(sourceName, (string)rec.Title, link);
+            var speakers = scope == "club" ? await UpcomingSpeakersAsync(conn, (int?)Nz(rec.ClubId) ?? 0) : new List<SpeakerLine>();
+            string html =BuildNewsletterHtml(sourceName, (string)rec.Title, link, speakers);
             await SendBatchAsync(recipients, subject, html, async (sent, failed) =>
             {
                 await MarkSentAsync("newsletters", "pk_newsletter_id", id, sent, failed);
@@ -584,12 +585,34 @@ public class EmailScheduledSendBackgroundService : BackgroundService
         return Shell(sourceName, heading, inner);
     }
 
-    private static string BuildNewsletterHtml(string sourceName, string title, string? link)
+    internal sealed record SpeakerLine(DateTime MeetingDate, string Name, string? Topic);
+
+    /// <summary>
+    /// Speakers booked for the club's next 30 days, for the bulletin (build spec 3.13), while the volunteers and
+    /// speakers module is on. Members-only mail, so every booked speaker; never their contact details.
+    /// </summary>
+    private async Task<List<SpeakerLine>> UpcomingSpeakersAsync(MySqlConnection conn, int clubId)
+    {
+        if (clubId <= 0 || !await FeatureGate.IsOnAsync("volunteers", _connectionString)) return new();
+        return (await conn.QueryAsync<SpeakerLine>(@"
+            SELECT meeting_date AS MeetingDate, name AS Name, topic AS Topic FROM club_speakers
+            WHERE fk_club_id = @clubId AND meeting_date >= CURDATE() AND meeting_date < CURDATE() + INTERVAL 30 DAY
+            ORDER BY meeting_date, pk_speaker_id LIMIT 10", new { clubId })).ToList();
+    }
+
+    private static string BuildNewsletterHtml(string sourceName, string title, string? link, IReadOnlyList<SpeakerLine>? speakers = null)
     {
         var inner =
             $"<p style='margin:0 0 14px 0'><strong>{Esc(sourceName)}</strong> has published a new newsletter:</p>" +
             $"<p style='margin:0 0 8px 0;font-size:16px'><strong>{Esc(title)}</strong></p>" +
             LinkButton(link ?? "", "View / Download newsletter");
+        if (speakers is { Count: > 0 })
+            inner += "<p style='margin:20px 0 8px 0'><strong>Upcoming speakers</strong></p>" +
+                "<table style='border-collapse:collapse;width:100%;border:1px solid #D5DEE8'>" +
+                string.Concat(speakers.Select(s => Row(
+                    s.MeetingDate.ToString("ddd d MMM", System.Globalization.CultureInfo.InvariantCulture),
+                    string.IsNullOrWhiteSpace(s.Topic) ? s.Name : $"{s.Name}: {s.Topic}"))) +
+                "</table>";
         return Shell(sourceName, $"Newsletter: {title}", inner);
     }
 

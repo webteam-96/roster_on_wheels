@@ -5,9 +5,15 @@
 import { useSearchParams } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 import TargetDashboard from "@/components/targets/TargetDashboard";
+import { DistrictTargetProposals } from "@/components/targets/TargetProposals";
 
 export default function DistrictTargetsPage() {
   const { selectedDistrictId } = useAuth();
   const yearId = Number(useSearchParams()?.get("yearId")) || null;
-  return <TargetDashboard districtId={selectedDistrictId} yearId={yearId} clubPageHref={(id) => `/district-admin-dashboard/clubs/${id}`} />;
+  return (
+    <>
+      <TargetDashboard districtId={selectedDistrictId} yearId={yearId} clubPageHref={(id) => `/district-admin-dashboard/clubs/${id}`} />
+      <DistrictTargetProposals districtId={selectedDistrictId} yearId={yearId} />
+    </>
+  );
 }

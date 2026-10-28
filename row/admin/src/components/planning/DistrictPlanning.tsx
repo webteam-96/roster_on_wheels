@@ -10,7 +10,7 @@ import SuccessAlert from "@/components/SuccessAlert";
 import { useFormat } from "@/hooks/useFormat";
 import { asUtc, launchpadProgress } from "@/lib/planning";
 import {
-  appointPlanningRole, getPlanningOverview, invitePlanningRole, revokePlanningRole, runCutover, searchDistrictCommitteeMembers,
+  appointPlanningRole, getPlanningOverview, invitePlanningRole, revokePlanningRole, runCutover, searchDistrictCommitteeMembers, getOnboardingKitHtml, sendOnboardingNudge,
 } from "@/services/api";
 import { ROLE_NAMES, type PlanningClub, type PlanningOverview } from "@/types/planning";
 import MemberPicker, { type MemberOption } from "./MemberPicker";
@@ -165,6 +165,25 @@ function Team({ o, districtId, search, onDone, onError }: PartProps & { search: 
 }
 
 function Clubs({ o, districtId, search, onDone, onError }: PartProps & { search: (q: string) => Promise<MemberOption[]> }) {
+  // Onboarding kit (build spec 3.2): the printable steps, or emailed to the club's president and secretary.
+  async function openKit(clubId: number) {
+    const tab = window.open("", "_blank");
+    try {
+      const html = await getOnboardingKitHtml(districtId, clubId);
+      if (tab) { tab.document.open(); tab.document.write(html); tab.document.close(); }
+    } catch (err) {
+      tab?.close();
+      onError(errorMessage(err, "Could not open the onboarding kit."));
+    }
+  }
+  async function nudge(c: PlanningClub) {
+    try {
+      const r = await sendOnboardingNudge(districtId, c.clubId);
+      onDone(`Onboarding kit emailed to ${r.sent} officer${r.sent === 1 ? "" : "s"} of ${c.clubName}.`);
+    } catch (err) {
+      onError(errorMessage(err, "Could not send the onboarding kit."));
+    }
+  }
   const [inviting, setInviting] = useState<{ club: PlanningClub; role: "PE" | "SE" } | null>(null);
   const [member, setMember] = useState<MemberOption | null>(null);
   const [busy, setBusy] = useState(false);
@@ -229,6 +248,7 @@ function Clubs({ o, districtId, search, onDone, onError }: PartProps & { search:
               <th className="py-2 font-medium">Club</th>
               <th className="py-2 font-medium">President-elect</th>
               <th className="py-2 font-medium">Secretary-elect</th>
+              <th className="py-2 font-medium">Onboarding kit</th>
             </tr>
           </thead>
           <tbody>
@@ -237,6 +257,10 @@ function Clubs({ o, districtId, search, onDone, onError }: PartProps & { search:
                 <td className="py-2 pr-4">{c.clubName}</td>
                 {cell(c, "PE")}
                 {cell(c, "SE")}
+                <td className="py-2 whitespace-nowrap">
+                  <Button size="sm" variant="ghost" onClick={() => openKit(c.clubId)}>Open</Button>
+                  <Button size="sm" variant="ghost" onClick={() => nudge(c)}>Email to president and secretary</Button>
+                </td>
               </tr>
             ))}
           </tbody>

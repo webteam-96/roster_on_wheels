@@ -5,6 +5,7 @@ import '../../widgets/common/custom_app_bar.dart';
 import '../../widgets/common/empty_state_widget.dart';
 import '../../widgets/common/loading_widget.dart';
 import 'package:rotary_flutter_app/core/i18n/text.dart';
+import 'target_proposals_section.dart';
 
 /// Live target dashboard for a club or district (feature `target_dashboard`, `api/{clubs|districts}/{id}/targets`).
 /// Read-only, for the club's or district's managers; the API narrows what each one sees.
@@ -88,6 +89,7 @@ class _TargetsScreenState extends State<TargetsScreen> {
                             children: _metricTiles((c['metrics'] as Map?)?.cast<String, dynamic>() ?? const {}),
                           ),
                       ],
+                      TargetProposalsSection(isDistrict: widget.isDistrict, id: widget.id),
                     ],
                   ),
                 ),

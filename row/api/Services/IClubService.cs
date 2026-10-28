@@ -16,7 +16,7 @@ public interface IClubService
     Task<(string? DistrictNumber, string? YearLabel)> GetCogDesignationAsync(int clubId, int memberId);
     Task<bool> UpdateCogDesignationAsync(int clubId, int memberId, string districtNumber, string yearLabel, int modifiedBy);
     Task<int> AddMemberAsync(int clubId, AddClubMemberDto dto, int createdBy);
-    Task RemoveMemberAsync(int clubId, int memberId, int deletedBy, string? terminationReason = null);
+    Task RemoveMemberAsync(int clubId, int memberId, int deletedBy, string? terminationReason = null, string? terminationReasonCode = null);
     Task<MemberRemovalPreviewDto?> GetMemberRemovalPreviewAsync(int clubId, int memberId);
     Task<string> UploadLogoAsync(IFormFile file);
     Task<string> UploadClubLogoToGroupAsync(IFormFile file);

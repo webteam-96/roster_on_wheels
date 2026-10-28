@@ -65,8 +65,9 @@ public class VolunteerReminderBackgroundService : BackgroundService
         foreach (var (tz, zone) in await ZoneTime.ZonesAsync(c))
         {
             var now = ZoneTime.Local(zone);
-            var at = new { Now = now, Today = now.Date, Tz = tz };
-            slots.AddRange(await c.QueryAsync<Due>($@"
+            // slot times are stored like meeting times (UTC on a UTC server); duty dates are the club's calendar day
+            var at = new { Now = ZoneTime.StoredUtc ? DateTime.UtcNow : now, Today = now.Date, Tz = tz };
+            slots.AddRange((await c.QueryAsync<Due>($@"
             SELECT su.pk_signup_id AS Id, COALESCE(m.EmailId, su.email) AS Email, COALESCE(m.MemberName, su.name) AS Name,
                    su.fk_member_id IS NOT NULL AS IsMember, sl.task AS What, sh.title AS Detail, sl.starts_at AS `When`,
                    sl.ends_at AS Until, sh.fk_club_id AS ClubId, cl.fk_district_id AS DistrictId, cl.ClubName
@@ -78,7 +79,12 @@ public class VolunteerReminderBackgroundService : BackgroundService
             LEFT JOIN member_master_profile m ON m.pk_member_master_profile_id = su.fk_member_id AND IFNULL(m.isdeleted, 0) = 0
             WHERE su.reminder_sent_at IS NULL
               AND sl.starts_at > @Now AND sl.starts_at <= @Now + INTERVAL 24 HOUR AND {ZoneTime.Filter("dz")}
-            ORDER BY sl.starts_at LIMIT 200", at));
+            ORDER BY sl.starts_at LIMIT 200", at)).Select(r =>
+            {
+                r.When = ZoneTime.StoredToLocal(zone, r.When);   // emails print the club's wall-clock
+                if (r.Until is { } u) r.Until = ZoneTime.StoredToLocal(zone, u);
+                return r;
+            }));
             duties.AddRange(await c.QueryAsync<Due>($@"
             SELECT d.pk_duty_id AS Id, m.EmailId AS Email, m.MemberName AS Name, 1 AS IsMember, d.duty AS What, d.note AS Detail,
                    d.meeting_date AS `When`, d.fk_club_id AS ClubId, cl.fk_district_id AS DistrictId, cl.ClubName

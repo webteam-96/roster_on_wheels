@@ -1468,6 +1468,13 @@ export interface TenantSubscription {
   platformFeePct: number | null;
   platformFeeFixed: number | null;
   feeWaiverUntil: string | null;
+  /** Build spec 3.14: anonymise terminated members this many months after termination; null = off. */
+  anonymiseAfterMonths?: number | null;
+  /** Build spec 3.5: renews at term end (default on). */
+  autoRenew?: boolean | null;
+  // read only (renewal reminders)
+  renewalNoticeFor?: string | null;
+  dunningStage?: number;
   // read only (planning mode and trials, flag "planning_mode")
   trialEnds?: string | null;
   planningYearLabel?: string | null;
@@ -1807,8 +1814,8 @@ export async function addClubMember(clubId: number, data: AddClubMemberRequest):
   return response.data;
 }
 
-export async function removeClubMember(clubId: number, memberId: number, reason?: string): Promise<void> {
-  await api.delete(`/api/clubs/${clubId}/members/${memberId}`, { params: reason ? { reason } : undefined });
+export async function removeClubMember(clubId: number, memberId: number, reason?: string, reasonCode?: string): Promise<void> {
+  await api.delete(`/api/clubs/${clubId}/members/${memberId}`, { params: reason || reasonCode ? { reason, reasonCode } : undefined });
 }
 
 export async function getMemberRemovalPreview(clubId: number, memberId: number): Promise<import("@/types/memberRemoval").MemberRemovalPreview> {
@@ -7277,4 +7284,75 @@ export async function getUnsubscribe(token: string): Promise<UnsubscribeInfo> {
 }
 export async function setUnsubscribe(token: string, subscribe: boolean): Promise<UnsubscribeInfo> {
   return (await publicApi.post(`/api/public/comms/unsubscribe/${encodeURIComponent(token)}`, { subscribe })).data;
+}
+
+/** The IANA zone a club's or district's events are in (build spec 3.3). */
+export async function getEventTimeZone(scope: { clubId: number } | { districtId: number }): Promise<string> {
+  const res = await api.get<{ timeZone: string }>("/api/time-zone", { params: scope });
+  return res.data.timeZone;
+}
+
+// ── RI fields (build spec 3.12) ──────────────────────────────────────────────
+export type RiCodeKind = "member_type" | "join_reason" | "termination_reason";
+export interface RiCode { id: number; kind: RiCodeKind; code: string; label: string; sortOrder: number }
+export interface MembershipRiFields { riMemberType: string | null; joinReasonCode: string | null; terminationReasonCode?: string | null }
+
+export async function getRiCodes(): Promise<RiCode[]> {
+  return (await api.get<RiCode[]>("/api/ri-codes")).data;
+}
+export async function saveRiCode(data: Omit<RiCode, "id">, id?: number): Promise<void> {
+  if (id) await api.put(`/api/ri-codes/${id}`, data);
+  else await api.post("/api/ri-codes", data);
+}
+export async function deleteRiCode(id: number): Promise<void> {
+  await api.delete(`/api/ri-codes/${id}`);
+}
+export async function getMembershipRiFields(clubId: number, memberId: number): Promise<MembershipRiFields> {
+  return (await api.get<MembershipRiFields>(`/api/clubs/${clubId}/members/${memberId}/ri-fields`)).data;
+}
+export async function setMembershipRiFields(clubId: number, memberId: number, data: MembershipRiFields): Promise<void> {
+  await api.put(`/api/clubs/${clubId}/members/${memberId}/ri-fields`, data);
+}
+
+// ── District target setting (build spec B.29) ────────────────────────────────
+export type ProposalMetric = "membership_growth" | "meetings" | "dues_collection" | "service_projects" | "foundation_giving";
+export interface TargetProposal {
+  id: number; clubId: number; clubName: string; yearId: number; metric: ProposalMetric; proposedValue: number;
+  status: "proposed" | "accepted" | "countered"; counterValue: number | null; clubNote: string | null;
+  proposedAt: string; respondedAt: string | null;
+}
+export async function getDistrictTargetProposals(districtId: number, yearId: number | null): Promise<TargetProposal[]> {
+  return (await api.get<TargetProposal[]>(`/api/districts/${districtId}/targets/proposals`, { params: yearId ? { yearId } : undefined })).data;
+}
+export async function proposeClubTarget(districtId: number, data: { clubId: number; yearId: number | null; metric: ProposalMetric; value: number }): Promise<TargetProposal> {
+  return (await api.put<TargetProposal>(`/api/districts/${districtId}/targets/proposals`, data)).data;
+}
+export async function getClubTargetProposals(clubId: number, yearId: number | null): Promise<TargetProposal[]> {
+  return (await api.get<TargetProposal[]>(`/api/clubs/${clubId}/targets/proposals`, { params: yearId ? { yearId } : undefined })).data;
+}
+export async function answerTargetProposal(clubId: number, id: number, answer: { accept: true } | { value: number; note?: string }): Promise<TargetProposal> {
+  const path = `/api/clubs/${clubId}/targets/proposals/${id}`;
+  return "accept" in answer ? (await api.post<TargetProposal>(`${path}/accept`)).data : (await api.post<TargetProposal>(`${path}/counter`, answer)).data;
+}
+
+// ── Booth sign-ups and onboarding kits (build spec 3.1, 3.2) ─────────────────
+export interface BoothSignup {
+  id: number; districtId: number; districtNumber: string | null; editionCode: string; memberBand: string | null;
+  contactName: string; contactEmail: string; status: "awaiting_payment" | "provisioned" | "rejected";
+  paymentNote: string | null; resultNote: string | null; createdAt: string;
+}
+export async function getBoothSignups(): Promise<BoothSignup[]> {
+  return (await api.get<BoothSignup[]>("/api/booth/signups")).data;
+}
+export async function provisionBoothSignup(id: number, paymentNote: string): Promise<{ result: string }> {
+  return (await api.post<{ result: string }>(`/api/booth/signups/${id}/provision`, { paymentNote })).data;
+}
+export async function rejectBoothSignup(id: number): Promise<void> {
+  await api.post(`/api/booth/signups/${id}/reject`);
+}
+export async function getOnboardingKitHtml(districtId: number, clubId: number): Promise<string> {
+  return (await api.get<string>(`/api/districts/${districtId}/onboarding-kit/clubs/${clubId}`, { responseType: "text" })).data;
+}
+export async function sendOnboardingNudge(districtId: number, clubId: number): Promise<{ sent: number }> {
+  return (await api.post<{ sent: number }>(`/api/districts/${districtId}/onboarding-kit/clubs/${clubId}/nudge`)).data;
 }

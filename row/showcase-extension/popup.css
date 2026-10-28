@@ -1,0 +1,12 @@
+/* ROW brand: cream background, ink text, Rotary royal blue for the main action, hairline borders. */
+:root { --cream: #fbfaf7; --ink: #1b2430; --azure: #17458f; --line: #d9d4c7; }
+body { margin: 0; width: 320px; background: var(--cream); color: var(--ink); font: 14px/1.4 system-ui, sans-serif; }
+header { padding: 10px 14px; border-bottom: 1px solid var(--line); }
+main { padding: 12px 14px; display: grid; gap: 10px; }
+form, section { display: grid; gap: 10px; }
+label { display: grid; gap: 4px; font-weight: 600; }
+input, select { font: inherit; padding: 6px 8px; border: 1px solid var(--line); border-radius: 8px; background: #fffdf8; color: var(--ink); }
+button { font: inherit; font-weight: 600; padding: 8px 12px; border-radius: 999px; border: 1px solid var(--azure); background: var(--azure); color: var(--cream); cursor: pointer; }
+button.quiet { background: transparent; color: var(--azure); }
+button:focus-visible, input:focus-visible, select:focus-visible { outline: 2px solid var(--azure); outline-offset: 2px; }
+.hint, #status { margin: 0; font-size: 12px; }

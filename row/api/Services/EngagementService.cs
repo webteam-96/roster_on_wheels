@@ -174,10 +174,12 @@ public class EngagementService
     private async Task SendMilestoneEmailAsync(MySqlConnection conn, Candidate c, string? governorMessage, Dictionary<int, string?> governors,
         string foundationLink)
     {
-        // Language hook: the member's language preference (another lane) is resolved here. shortcut: every member gets
-        // the tenant default (Brand.DefaultLanguage) and these texts are English, ROW's default; choose the text by the
-        // member's language here once per-language templates (3.10) exist.
-        var label = Label("MILESTONE", c.Years);
+        // S5: the fixed wording in the member's language (their own, else their club's). The district's Governor
+        // message is sent as the district wrote it.
+        using var culture = RotaryApi.Services.Localization.MessageCulture.Use(
+            await RotaryApi.Services.Localization.MessageCulture.ForMemberAsync(conn, c.MemberId));
+        var L = RotaryApi.Services.Localization.DbStringLocalizer.Instance;
+        string label = c.Years == 1 ? L["1 year in Rotary"] : L["{0} years in Rotary", c.Years];
         static string Html(string s) => WebUtility.HtmlEncode(s).Replace("\r\n", "\n").Replace("\n", "<br/>");
         string text, signature = "", give = "";
         if (!string.IsNullOrWhiteSpace(governorMessage))
@@ -187,25 +189,26 @@ public class EngagementService
                 .Replace("{club}", c.ClubName ?? "").Replace("{foundation_link}", foundationLink);
             if (!governors.TryGetValue(c.DistrictId, out var governor))
                 governors[c.DistrictId] = governor = await CurrentGovernorAsync(conn, c.DistrictId);
-            var role = $"District Governor, District {c.DistrictNumber}";
+            string role = L["District Governor, District {0}", c.DistrictNumber ?? ""];
             signature = $"<p>{(string.IsNullOrWhiteSpace(governor) ? "" : Html(governor) + "<br/>")}{Html(role)}</p>";
         }
         else
         {
-            text = $"Congratulations on {c.Years} {(c.Years == 1 ? "year" : "years")} of Rotary membership with {c.ClubName}. "
-                 + "Thank you for your service to your club and your community.";
+            text = (c.Years == 1 ? L["Congratulations on 1 year of Rotary membership with {0}.", c.ClubName ?? ""]
+                                 : L["Congratulations on {0} years of Rotary membership with {1}.", c.Years, c.ClubName ?? ""])
+                 + " " + L["Thank you for your service to your club and your community."];
             // the district's template places {foundation_link} itself; the standard text adds a line when there is a link
             if (foundationLink.Length > 0)
-                give = $"<p>Celebrate with a gift to The Rotary Foundation: <a href=\"{Html(foundationLink)}\">{Html(foundationLink)}</a></p>";
+                give = $"<p>{L["Celebrate with a gift to The Rotary Foundation: {0}", $"<a href=\"{Html(foundationLink)}\">{Html(foundationLink)}</a>"]}</p>";
         }
         var html = $@"{EmailService.EMAIL_HEADER}
-                        <h2 style='color: #17458F; margin-top: 0;'>Congratulations on {Html(label)}</h2>
-                        <p>Dear {Html(c.MemberName)},</p>
+                        <h2 style='color: #17458F; margin-top: 0;'>{L["Congratulations on {0}", Html(label)]}</h2>
+                        <p>{L["Dear {0},", Html(c.MemberName)]}</p>
                         <p>{Html(text)}</p>
                         {give}
                         {signature}
             {EmailService.EMAIL_FOOTER}";
-        await _email.SendScopedEmailAsync(c.Email!, $"Congratulations on {label}", html, c.ClubId, c.DistrictId);
+        await _email.SendScopedEmailAsync(c.Email!, L["Congratulations on {0}", label], html, c.ClubId, c.DistrictId);
     }
 
     /// <summary>Name of this Rotary year's District Governor (member or not), or null when none is set.</summary>

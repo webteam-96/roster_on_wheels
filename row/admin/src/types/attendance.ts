@@ -56,6 +56,8 @@ export interface AttendanceDetail {
   eventName: string;
   description: string;
   eventDateTime: string;
+  /** The club's wall-clock "YYYY-MM-DDTHH:mm", for the datetime-local input. */
+  eventLocal?: string;
   meetingMode?: string;
   meetingLink?: string | null;
   members: AttendanceMember[];

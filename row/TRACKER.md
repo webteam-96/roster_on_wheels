@@ -52,72 +52,72 @@ the API and admin build, and the crawl shows no request to a removed path.
 ## 3. Existing modules (the module sheet, 93 in scope)
 
 Web page: the admin page exists. API + DB: endpoints and tables exist (not re-verified one by one). Mobile app:
-matched by screen names in `row/mobile`. Error crawl: result of `kb/tools/admin_crawl.py` as SuperAdmin.
+matched by screen names in `row/mobile`. Error crawl: result of `kb/tools/admin_crawl.py` (2026-10-28: SuperAdmin, Club Admin, District Admin and AG, 319 pages each, every problem rechecked clean; the 6 switched-off modules crawled with their switch on, as SuperAdmin and their roles).
 
 | # | Category | Module | Scope | Web page | API + DB | Mobile app | Error crawl | Next step |
 |---|---|---|---|---|---|---|---|---|
-| 1 | Communication | Announcements | In scope | Done | Exists | Done | Pending | Verify in crawl |
-| 2 | Communication | Club & District Calendar | In scope | App only | Exists | Done | Pending | Verify in crawl |
-| 3 | Communication | District Events | In scope | Done | Exists | Done | Pending | Verify in crawl |
-| 4 | Communication | Documents | In scope | Done | Exists | Done | Pending | Verify in crawl |
-| 5 | Communication | Login Announcement | In scope | Done | Exists | Web only (Super Admin tool) | Pending | Verify in crawl |
-| 6 | Communication | Mass Email | In scope | Done | Exists | Done | Pending | Verify in crawl |
-| 7 | Communication | Newsletters | In scope | Done | Exists | Done | Pending | Verify in crawl |
-| 8 | Communication | Notification & Privacy Settings | In scope | App only | Exists | Done | Pending | Verify in crawl |
-| 9 | Communication | Push Notifications | In scope | App only | Exists | Done | Pending | Verify in crawl |
-| 10 | Communication | Sub Groups | Flagged off | Done | Exists | Done | Pending | Verify in crawl |
-| 11 | Communication | Upcoming Events | In scope | Done | Exists | Done | Pending | Verify in crawl |
-| 12 | Communication | Web Links | In scope | Done | Exists | Done | Pending | Verify in crawl |
-| 13 | Dashboard | Assistant Governor Dashboard | In scope | Done | Exists | Done | Pending | Verify in crawl |
-| 14 | Dashboard | Club Dashboard (Overview) | In scope | Done | Exists | Done | Pending | Verify in crawl |
-| 15 | Dashboard | District Dashboard (Overview) | In scope | Done | Exists | Done | Pending | Verify in crawl |
-| 16 | Dashboard | Login & Role-based Home | In scope | Done | Exists | Done | Pending | Verify in crawl |
-| 17 | Dashboard | Member Mobile Home | In scope | App only | Exists | Done | Pending | Verify in crawl |
-| 18 | Dashboard | SuperAdmin Settings Hub | In scope | Done | Exists | Web only (Super Admin tool) | Pending | Verify in crawl |
-| 19 | E-Governance | AG Reports | In scope | Done | Exists | Done | Pending | Verify in crawl |
-| 20 | E-Governance | CMR Submission Email Settings | Flagged off | App only | Exists | Done | Pending | Verify in crawl |
-| 21 | E-Governance | Club Award Status & My Rotary Status | In scope | App only | Exists | Done | Pending | Verify in crawl |
-| 22 | E-Governance | Club Excellence / Youth Tracking | Flagged off | Done | Exists | Done | Pending | Verify in crawl |
-| 23 | E-Governance | Club Monthly Report | Flagged off | Done | Exists | Done | Pending | Verify in crawl |
-| 24 | E-Governance | Club Report / Annual Report | In scope | Done | Exists | Done | Pending | Verify in crawl |
-| 25 | E-Governance | District Awards (Citation) | In scope | Done | Exists | Done | Pending | Verify in crawl |
-| 26 | E-Governance | District Report | In scope | Done | Exists | Done | Pending | Verify in crawl |
-| 27 | E-Governance | OCV / Governor Visit | Flagged off | Done | Exists | Done | Pending | Verify in crawl |
-| 28 | Foundation/TRF | Foundation Data Import | In scope | Done | Exists | Web only (Super Admin tool) | Pending | Verify in crawl |
-| 29 | Foundation/TRF | Foundation Goals | Flagged off | Done | Exists | Done | Pending | Verify in crawl |
-| 30 | Foundation/TRF | TRF Contributions | In scope | Done | Exists | Done | Pending | Verify in crawl |
-| 31 | Goal Setting | Club Goal Setting | In scope | Done | Exists | Done | Pending | Verify in crawl |
-| 32 | Goal Setting | District Goal Messages | In scope | Done | Exists | Done | Pending | Verify in crawl |
-| 33 | Goal Setting | District Goal Setting | In scope | Done | Exists | Done | Pending | Verify in crawl |
-| 34 | Goal Setting | Goal Overview (Oversight) | In scope | Done | Exists | Done | Pending | Verify in crawl |
-| 35 | Goal Setting | Membership & Youth Goal Import | In scope | Done | Exists | Web only (Super Admin tool) | Pending | Verify in crawl |
-| 36 | Goal Setting | Membership Goal | In scope | Done | Exists | Done | Pending | Verify in crawl |
-| 37 | Logs | Audit Log | In scope | Done | Exists | Web only (Super Admin tool) | Pending | Verify in crawl |
-| 38 | Logs | Email Log | In scope | Done | Exists | Web only (Super Admin tool) | Pending | Verify in crawl |
-| 39 | Logs | Login Logs | In scope | Done | Exists | Web only (Super Admin tool) | Pending | Verify in crawl |
-| 40 | Logs | Push Notification Logs | In scope | Done | Exists | Web only (Super Admin tool) | Pending | Verify in crawl |
+| 1 | Communication | Announcements | In scope | Done | Exists | Done | Clean 2026-10-28, 4 roles | Manual test (OMS page 12) |
+| 2 | Communication | Club & District Calendar | In scope | App only | Exists | Done | n/a (app only) | Manual test in the app (OMS page 12) |
+| 3 | Communication | District Events | In scope | Done | Exists | Done | Clean 2026-10-28, 4 roles | Manual test (OMS page 12) |
+| 4 | Communication | Documents | In scope | Done | Exists | Done | Clean 2026-10-28, 4 roles | Manual test (OMS page 12) |
+| 5 | Communication | Login Announcement | In scope | Done | Exists | Web only (Super Admin tool) | Clean 2026-10-28, 4 roles | Manual test (OMS page 12) |
+| 6 | Communication | Mass Email | In scope | Done | Exists | Done | Clean 2026-10-28, 4 roles | Manual test (OMS page 12) |
+| 7 | Communication | Newsletters | In scope | Done | Exists | Done | Clean 2026-10-28, 4 roles | Manual test (OMS page 12) |
+| 8 | Communication | Notification & Privacy Settings | In scope | App only | Exists | Done | n/a (app only) | Manual test in the app (OMS page 12) |
+| 9 | Communication | Push Notifications | In scope | App only | Exists | Done | n/a (app only) | Manual test in the app (OMS page 12) |
+| 10 | Communication | Sub Groups | Flagged off | Done | Exists | Done | Clean 2026-10-28, 4 roles | Manual test (OMS page 12) |
+| 11 | Communication | Upcoming Events | In scope | Done | Exists | Done | Clean 2026-10-28, 4 roles | Manual test (OMS page 12) |
+| 12 | Communication | Web Links | In scope | Done | Exists | Done | Clean 2026-10-28, 4 roles | Manual test (OMS page 12) |
+| 13 | Dashboard | Assistant Governor Dashboard | In scope | Done | Exists | Done | Clean 2026-10-28, 4 roles | Manual test (OMS page 12) |
+| 14 | Dashboard | Club Dashboard (Overview) | In scope | Done | Exists | Done | Clean 2026-10-28, 4 roles | Manual test (OMS page 12) |
+| 15 | Dashboard | District Dashboard (Overview) | In scope | Done | Exists | Done | Clean 2026-10-28, 4 roles | Manual test (OMS page 12) |
+| 16 | Dashboard | Login & Role-based Home | In scope | Done | Exists | Done | Clean 2026-10-28, 4 roles | Manual test (OMS page 12) |
+| 17 | Dashboard | Member Mobile Home | In scope | App only | Exists | Done | n/a (app only) | Manual test in the app (OMS page 12) |
+| 18 | Dashboard | SuperAdmin Settings Hub | In scope | Done | Exists | Web only (Super Admin tool) | Clean 2026-10-28, 4 roles | Manual test (OMS page 12) |
+| 19 | E-Governance | AG Reports | In scope | Done | Exists | Done | Clean 2026-10-28, 4 roles | Manual test (OMS page 12) |
+| 20 | E-Governance | CMR Submission Email Settings | Flagged off | App only | Exists | Done | n/a (app only) | Manual test in the app (OMS page 12) |
+| 21 | E-Governance | Club Award Status & My Rotary Status | In scope | App only | Exists | Done | n/a (app only) | Manual test in the app (OMS page 12) |
+| 22 | E-Governance | Club Excellence / Youth Tracking | Flagged off | Done | Exists | Done | Clean 2026-10-28, 4 roles | Manual test (OMS page 12) |
+| 23 | E-Governance | Club Monthly Report | Flagged off | Done | Exists | Done | Clean 2026-10-28, 4 roles | Manual test (OMS page 12) |
+| 24 | E-Governance | Club Report / Annual Report | In scope | Done | Exists | Done | Clean 2026-10-28, 4 roles | Manual test (OMS page 12) |
+| 25 | E-Governance | District Awards (Citation) | In scope | Done | Exists | Done | Clean 2026-10-28, 4 roles | Manual test (OMS page 12) |
+| 26 | E-Governance | District Report | In scope | Done | Exists | Done | Clean 2026-10-28, 4 roles | Manual test (OMS page 12) |
+| 27 | E-Governance | OCV / Governor Visit | Flagged off | Done | Exists | Done | Clean 2026-10-28, 4 roles | Manual test (OMS page 12) |
+| 28 | Foundation/TRF | Foundation Data Import | In scope | Done | Exists | Web only (Super Admin tool) | Clean 2026-10-28, 4 roles | Manual test (OMS page 12) |
+| 29 | Foundation/TRF | Foundation Goals | Flagged off | Done | Exists | Done | Clean 2026-10-28, 4 roles | Manual test (OMS page 12) |
+| 30 | Foundation/TRF | TRF Contributions | In scope | Done | Exists | Done | Clean 2026-10-28, 4 roles | Manual test (OMS page 12) |
+| 31 | Goal Setting | Club Goal Setting | In scope | Done | Exists | Done | Clean 2026-10-28, 4 roles | Manual test (OMS page 12) |
+| 32 | Goal Setting | District Goal Messages | In scope | Done | Exists | Done | Clean 2026-10-28, 4 roles | Manual test (OMS page 12) |
+| 33 | Goal Setting | District Goal Setting | In scope | Done | Exists | Done | Clean 2026-10-28, 4 roles | Manual test (OMS page 12) |
+| 34 | Goal Setting | Goal Overview (Oversight) | In scope | Done | Exists | Done | Clean 2026-10-28, 4 roles | Manual test (OMS page 12) |
+| 35 | Goal Setting | Membership & Youth Goal Import | In scope | Done | Exists | Web only (Super Admin tool) | Clean 2026-10-28, 4 roles | Manual test (OMS page 12) |
+| 36 | Goal Setting | Membership Goal | In scope | Done | Exists | Done | Clean 2026-10-28, 4 roles | Manual test (OMS page 12) |
+| 37 | Logs | Audit Log | In scope | Done | Exists | Web only (Super Admin tool) | Clean 2026-10-28, 4 roles | Manual test (OMS page 12) |
+| 38 | Logs | Email Log | In scope | Done | Exists | Web only (Super Admin tool) | Clean 2026-10-28, 4 roles | Manual test (OMS page 12) |
+| 39 | Logs | Login Logs | In scope | Done | Exists | Web only (Super Admin tool) | Clean 2026-10-28, 4 roles | Manual test (OMS page 12) |
+| 40 | Logs | Push Notification Logs | In scope | Done | Exists | Web only (Super Admin tool) | Clean 2026-10-28, 4 roles | Manual test (OMS page 12) |
 | 41 | Logs | WhatsApp Log | Removed (no WhatsApp) | Removed | Removed | Removed | Pending | Done |
-| 42 | Membership | Add / Edit Member | In scope | Done | Exists | Done | Pending | Verify in crawl |
-| 43 | Membership | Assistant Governor Assignment | In scope | Done | Exists | Done | Pending | Verify in crawl |
-| 44 | Membership | Attendance | In scope | Done | Exists | Done | Pending | Verify in crawl |
-| 45 | Membership | Board of Directors | In scope | Done | Exists | Done | Pending | Verify in crawl |
-| 46 | Membership | Club Leadership Master | In scope | Done | Exists | Done | Pending | Verify in crawl |
-| 47 | Membership | Club Moderator Assignment | In scope | Done | Exists | Done | Pending | Verify in crawl |
-| 48 | Membership | Clubs Management | In scope | Done | Exists | Done | Pending | Verify in crawl |
-| 49 | Membership | District Committee | In scope | Done | Exists | Done | Pending | Verify in crawl |
-| 50 | Membership | Duplicate Member Check | In scope | Done | Exists | Done (the API check also runs on app adds) | Pending | Verify in crawl |
-| 51 | Membership | Global Member Search | In scope | Done | Exists | Done | Pending | Verify in crawl |
-| 52 | Membership | Global Search | In scope | Done | Exists | Web only (Super Admin tool) | Pending | Verify in crawl |
-| 53 | Membership | Greetings (Birthdays & Anniversaries) | In scope | Done | Exists | Done | Pending | Verify in crawl |
-| 54 | Membership | Honorary Members | In scope | Done | Exists | Done | Pending | Verify in crawl |
-| 55 | Membership | Members Directory | In scope | Done | Exists | Done | Pending | Verify in crawl |
-| 56 | Membership | Membership Analytics | In scope | Done | Exists | Done | Pending | Verify in crawl |
-| 57 | Membership | My Profile | In scope | App only | Exists | Done | Pending | Verify in crawl |
-| 58 | Membership | Past Presidents | In scope | Done | Exists | Done | Pending | Verify in crawl |
-| 59 | Membership | Potential Members | In scope | App only | Exists | Done | Pending | Verify in crawl |
-| 60 | Membership | Rotary Network | In scope | Done | Exists | Done | Pending | Verify in crawl |
-| 61 | Membership | Zones Management | In scope | Done | Exists | Done | Pending | Verify in crawl |
-| 62 | Payments & Dues | Credit Management | In scope | Done | Exists | Web only (Super Admin tool) | Pending | Verify in crawl |
+| 42 | Membership | Add / Edit Member | In scope | Done | Exists | Done | Clean 2026-10-28, 4 roles | Manual test (OMS page 12) |
+| 43 | Membership | Assistant Governor Assignment | In scope | Done | Exists | Done | Clean 2026-10-28, 4 roles | Manual test (OMS page 12) |
+| 44 | Membership | Attendance | In scope | Done | Exists | Done | Clean 2026-10-28, 4 roles | Manual test (OMS page 12) |
+| 45 | Membership | Board of Directors | In scope | Done | Exists | Done | Clean 2026-10-28, 4 roles | Manual test (OMS page 12) |
+| 46 | Membership | Club Leadership Master | In scope | Done | Exists | Done | Clean 2026-10-28, 4 roles | Manual test (OMS page 12) |
+| 47 | Membership | Club Moderator Assignment | In scope | Done | Exists | Done | Clean 2026-10-28, 4 roles | Manual test (OMS page 12) |
+| 48 | Membership | Clubs Management | In scope | Done | Exists | Done | Clean 2026-10-28, 4 roles | Manual test (OMS page 12) |
+| 49 | Membership | District Committee | In scope | Done | Exists | Done | Clean 2026-10-28, 4 roles | Manual test (OMS page 12) |
+| 50 | Membership | Duplicate Member Check | In scope | Done | Exists | Done (the API check also runs on app adds) | Clean 2026-10-28, 4 roles | Manual test (OMS page 12) |
+| 51 | Membership | Global Member Search | In scope | Done | Exists | Done | Clean 2026-10-28, 4 roles | Manual test (OMS page 12) |
+| 52 | Membership | Global Search | In scope | Done | Exists | Web only (Super Admin tool) | Clean 2026-10-28, 4 roles | Manual test (OMS page 12) |
+| 53 | Membership | Greetings (Birthdays & Anniversaries) | In scope | Done | Exists | Done | Clean 2026-10-28, 4 roles | Manual test (OMS page 12) |
+| 54 | Membership | Honorary Members | In scope | Done | Exists | Done | Clean 2026-10-28, 4 roles | Manual test (OMS page 12) |
+| 55 | Membership | Members Directory | In scope | Done | Exists | Done | Clean 2026-10-28, 4 roles | Manual test (OMS page 12) |
+| 56 | Membership | Membership Analytics | In scope | Done | Exists | Done | Clean 2026-10-28, 4 roles | Manual test (OMS page 12) |
+| 57 | Membership | My Profile | In scope | App only | Exists | Done | n/a (app only) | Manual test in the app (OMS page 12) |
+| 58 | Membership | Past Presidents | In scope | Done | Exists | Done | Clean 2026-10-28, 4 roles | Manual test (OMS page 12) |
+| 59 | Membership | Potential Members | In scope | App only | Exists | Done | n/a (app only) | Manual test in the app (OMS page 12) |
+| 60 | Membership | Rotary Network | In scope | Done | Exists | Done | Clean 2026-10-28, 4 roles | Manual test (OMS page 12) |
+| 61 | Membership | Zones Management | In scope | Done | Exists | Done | Clean 2026-10-28, 4 roles | Manual test (OMS page 12) |
+| 62 | Payments & Dues | Credit Management | In scope | Done | Exists | Web only (Super Admin tool) | Clean 2026-10-28, 4 roles | Manual test (OMS page 12) |
 | 63 | Payments & Dues | District Dues | On hold (payments) | Done | Exists | Done | Pending | Wait for Stripe |
 | 64 | Payments & Dues | Dues Approval | On hold (payments) | Done | Exists | Done | Pending | Wait for Stripe |
 | 65 | Payments & Dues | Event Payment Links | On hold (payments) | Done | Exists | Done | Pending | Wait for Stripe |
@@ -125,30 +125,30 @@ matched by screen names in `row/mobile`. Error crawl: result of `kb/tools/admin_
 | 67 | Payments & Dues | My Membership Dues | On hold (payments) | Done | Exists | Done | Pending | Wait for Stripe |
 | 68 | Payments & Dues | Payment Gateway Setup | On hold (payments) | Done | Exists | To do | Pending | Wait for Stripe |
 | 69 | Payments & Dues | Wallet & Credits | On hold (payments) | Done | Exists | Done | Pending | Wait for Stripe |
-| 70 | Reports | Daily Stats Report | In scope | Done | Exists | Web only (Super Admin tool) | Pending | Verify in crawl |
-| 71 | Reports | District Performance Report | In scope | Done | Exists | Web only (Super Admin tool) | Pending | Verify in crawl |
-| 72 | Reports | Platform Reports | In scope | Done | Exists | Web only (Super Admin tool) | Pending | Verify in crawl |
-| 73 | Service Projects | Avenues of Service | In scope | Done | Exists | Done | Pending | Verify in crawl |
-| 74 | Service Projects | District Projects | In scope | Done | Exists | Done | Pending | Verify in crawl |
-| 75 | Service Projects | Project Categorization & Area of Focus | In scope | Done | Exists | Web only (Super Admin tool) | Pending | Verify in crawl |
-| 76 | Service Projects | Public Image Initiatives | In scope | Done | Exists | Done | Pending | Verify in crawl |
-| 77 | Service Projects | Rotary.org Project Sync | In scope | Done | Exists | Web only (Super Admin tool) | Pending | Verify in crawl |
-| 78 | Service Projects | Service Projects | In scope | Done | Exists | Done | Pending | Verify in crawl |
-| 79 | Settings/Masters | Club & District Module Assignment | In scope | Done | Exists | Web only (Super Admin tool) | Pending | Verify in crawl |
-| 80 | Settings/Masters | Currency & Funding | In scope | Done | Exists | Web only (Super Admin tool) | Pending | Verify in crawl |
-| 81 | Settings/Masters | Designations | In scope | Done | Exists | Web only (Super Admin tool) | Pending | Verify in crawl |
-| 82 | Settings/Masters | District Governor / Intl President / RI Director Masters | In scope | Done | Exists | Web only (Super Admin tool) | Pending | Verify in crawl |
-| 83 | Settings/Masters | Event Masters | In scope | Done | Exists | Web only (Super Admin tool) | Pending | Verify in crawl |
-| 84 | Settings/Masters | Mobile App Version & Maintenance | In scope | Done | Exists | Web only (Super Admin tool) | Pending | Verify in crawl |
-| 85 | Settings/Masters | Module Master & Categories | In scope | Done | Exists | Web only (Super Admin tool) | Pending | Verify in crawl |
-| 86 | Settings/Masters | Rotary Years | In scope | Done | Exists | Web only (Super Admin tool) | Pending | Verify in crawl |
-| 87 | Settings/Masters | Rotary.org Sync | In scope | Done | Exists | Web only (Super Admin tool) | Pending | Verify in crawl |
-| 88 | Settings/Masters | Static Pages (About, Contact, Tutorial) | In scope | Done | Exists | Web only (Super Admin tool) | Pending | Verify in crawl |
-| 89 | Settings/Masters | Super Admin Role Config | In scope | Done | Exists | Web only (Super Admin tool) | Pending | Verify in crawl |
-| 90 | Website | Club Website | In scope | Done | Exists | Done | Pending | Verify in crawl |
-| 91 | Website | District Website | In scope | Done | Exists | Done | Pending | Verify in crawl |
-| 92 | Website | Website Management (All) | In scope | Done | Exists | Web only (Super Admin tool) | Pending | Verify in crawl |
-| 93 | Website | Website Purchase & Themes | In scope | Done | Exists | Done | Pending | Verify in crawl |
+| 70 | Reports | Daily Stats Report | In scope | Done | Exists | Web only (Super Admin tool) | Clean 2026-10-28, 4 roles | Manual test (OMS page 12) |
+| 71 | Reports | District Performance Report | In scope | Done | Exists | Web only (Super Admin tool) | Clean 2026-10-28, 4 roles | Manual test (OMS page 12) |
+| 72 | Reports | Platform Reports | In scope | Done | Exists | Web only (Super Admin tool) | Clean 2026-10-28, 4 roles | Manual test (OMS page 12) |
+| 73 | Service Projects | Avenues of Service | In scope | Done | Exists | Done | Clean 2026-10-28, 4 roles | Manual test (OMS page 12) |
+| 74 | Service Projects | District Projects | In scope | Done | Exists | Done | Clean 2026-10-28, 4 roles | Manual test (OMS page 12) |
+| 75 | Service Projects | Project Categorization & Area of Focus | In scope | Done | Exists | Web only (Super Admin tool) | Clean 2026-10-28, 4 roles | Manual test (OMS page 12) |
+| 76 | Service Projects | Public Image Initiatives | In scope | Done | Exists | Done | Clean 2026-10-28, 4 roles | Manual test (OMS page 12) |
+| 77 | Service Projects | Rotary.org Project Sync | In scope | Done | Exists | Web only (Super Admin tool) | Clean 2026-10-28, 4 roles | Manual test (OMS page 12) |
+| 78 | Service Projects | Service Projects | In scope | Done | Exists | Done | Clean 2026-10-28, 4 roles | Manual test (OMS page 12) |
+| 79 | Settings/Masters | Club & District Module Assignment | In scope | Done | Exists | Web only (Super Admin tool) | Clean 2026-10-28, 4 roles | Manual test (OMS page 12) |
+| 80 | Settings/Masters | Currency & Funding | In scope | Done | Exists | Web only (Super Admin tool) | Clean 2026-10-28, 4 roles | Manual test (OMS page 12) |
+| 81 | Settings/Masters | Designations | In scope | Done | Exists | Web only (Super Admin tool) | Clean 2026-10-28, 4 roles | Manual test (OMS page 12) |
+| 82 | Settings/Masters | District Governor / Intl President / RI Director Masters | In scope | Done | Exists | Web only (Super Admin tool) | Clean 2026-10-28, 4 roles | Manual test (OMS page 12) |
+| 83 | Settings/Masters | Event Masters | In scope | Done | Exists | Web only (Super Admin tool) | Clean 2026-10-28, 4 roles | Manual test (OMS page 12) |
+| 84 | Settings/Masters | Mobile App Version & Maintenance | In scope | Done | Exists | Web only (Super Admin tool) | Clean 2026-10-28, 4 roles | Manual test (OMS page 12) |
+| 85 | Settings/Masters | Module Master & Categories | In scope | Done | Exists | Web only (Super Admin tool) | Clean 2026-10-28, 4 roles | Manual test (OMS page 12) |
+| 86 | Settings/Masters | Rotary Years | In scope | Done | Exists | Web only (Super Admin tool) | Clean 2026-10-28, 4 roles | Manual test (OMS page 12) |
+| 87 | Settings/Masters | Rotary.org Sync | In scope | Done | Exists | Web only (Super Admin tool) | Clean 2026-10-28, 4 roles | Manual test (OMS page 12) |
+| 88 | Settings/Masters | Static Pages (About, Contact, Tutorial) | In scope | Done | Exists | Web only (Super Admin tool) | Clean 2026-10-28, 4 roles | Manual test (OMS page 12) |
+| 89 | Settings/Masters | Super Admin Role Config | In scope | Done | Exists | Web only (Super Admin tool) | Clean 2026-10-28, 4 roles | Manual test (OMS page 12) |
+| 90 | Website | Club Website | In scope | Done | Exists | Done | Clean 2026-10-28, 4 roles | Manual test (OMS page 12) |
+| 91 | Website | District Website | In scope | Done | Exists | Done | Clean 2026-10-28, 4 roles | Manual test (OMS page 12) |
+| 92 | Website | Website Management (All) | In scope | Done | Exists | Web only (Super Admin tool) | Clean 2026-10-28, 4 roles | Manual test (OMS page 12) |
+| 93 | Website | Website Purchase & Themes | In scope | Done | Exists | Done | Clean 2026-10-28, 4 roles | Manual test (OMS page 12) |
 
 ## 4. Phase 1: web hardening (in progress)
 
@@ -189,7 +189,7 @@ Web = admin pages + public sites. All To do unless noted.
 | N9 | Engagement: milestones, PHF, spotlight, escalation, celebration | B.2-B.4 | Done 2026-10-23 | Done 2026-10-23 | Done 2026-10-23 | Done 2026-10-26 (highlights, celebrations, follow-ups labelled in the feed) | feed + email; push blocked |
 | N10 | Live target dashboard | B.3, #30 | Done 2026-10-23 | n/a | Done 2026-10-23 | Done 2026-10-26 (club + district targets) | lock flow red on the sheet |
 | N11 | Chat | 3.10, #19 | Done 2026-10-23 | Done 2026-10-23 | moderation only | Done 2026-10-26 (direct + group chats, polling every 5 s, report) | |
-| N12 | Time zones and formats (district zone, UTC, no IST) | guide pkg 4 | Done 2026-10-23 | Done 2026-10-23 | Done 2026-10-23 | Done (dates in device locale) | meeting forms still send wall-clock times (shortcut) |
+| N12 | Time zones and formats (district zone, UTC, no IST) | guide pkg 4 | Done 2026-10-23 | Done 2026-10-23 | Done 2026-10-23 | Done (dates in device locale) | meeting and volunteer slot forms round-trip in the club zone (2026-10-28); UTC branch to check on staging |
 | N13 | App language switch through the translation API | 3.3, guide pkg 13 | n/a | n/a | Done (live translation) | Done 2026-10-26 (Settings > Language; app text only, data stays as entered) | provider: `TRANSLATE_PROVIDER` on the admin, owner picks |
 
 ## 6. Blocked or on hold

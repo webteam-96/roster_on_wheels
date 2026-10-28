@@ -93,6 +93,7 @@ public class AttendanceService : IAttendanceService
             new { Id = id });
 
         if (detail == null) return null;
+        detail.EventLocal = await ZoneTime.StoredToClubInputAsync(connection, detail.ClubId, detail.EventDateTime);
 
         detail.Members = (await connection.QueryAsync<AttendanceMemberDto>(
             @"SELECT am.pk_id AS Id, am.fk_member_id AS MemberId, m.MemberName
@@ -135,6 +136,7 @@ public class AttendanceService : IAttendanceService
         // connection's active transaction" when it sees a command without the txn parameter.
         var (mode, link) = NormalizeMeeting(dto.MeetingMode, dto.MeetingLink);
         var yearId = await GetRotaryYearIdAsync(connection, dto.EventDateTime);
+        var at = await ZoneTime.ClubInputToStoredAsync(connection, clubId, dto.EventDateTime);
 
         using var transaction = await connection.BeginTransactionAsync();
 
@@ -151,7 +153,7 @@ public class AttendanceService : IAttendanceService
                     YearId = yearId,
                     dto.EventName,
                     dto.Description,
-                    dto.EventDateTime,
+                    EventDateTime = at,
                     MeetingMode = mode,
                     MeetingLink = link,
                     CreatedBy = createdBy
@@ -181,6 +183,7 @@ public class AttendanceService : IAttendanceService
             "SELECT COUNT(*) FROM club_attendance WHERE pk_attendance_id = @Id AND fk_club_id = @ClubId AND isdeleted = 0",
             new { Id = id, ClubId = clubId });
         if (owned == 0) return false;
+        var at = await ZoneTime.ClubInputToStoredAsync(connection, clubId, dto.EventDateTime);
 
         using var transaction = await connection.BeginTransactionAsync();
 
@@ -205,7 +208,7 @@ public class AttendanceService : IAttendanceService
                     MeetingLink = link,
                     dto.EventName,
                     dto.Description,
-                    dto.EventDateTime,
+                    EventDateTime = at,
                     ModifiedBy = modifiedBy
                 },
                 transaction);

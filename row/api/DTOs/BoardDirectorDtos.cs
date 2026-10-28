@@ -7,6 +7,8 @@ public class DesignationDto
     public string DesignationName { get; set; } = "";
     public int SortOrder { get; set; }
     public int BodCount { get; set; }
+    /// <summary>The RI officer title this designation maps to (build spec 3.12), one of RiCodes.OfficerTitles.</summary>
+    public string? RiTitle { get; set; }
 }
 
 public class CreateDesignationDto
@@ -19,6 +21,8 @@ public class UpdateDesignationDto
 {
     public string DesignationName { get; set; } = "";
     public int SortOrder { get; set; }
+    /// <summary>Null keeps the current mapping; "" clears it.</summary>
+    public string? RiTitle { get; set; }
 }
 
 public class ReorderDesignationsDto

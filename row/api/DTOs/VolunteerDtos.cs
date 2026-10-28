@@ -35,6 +35,9 @@ public class VolunteerSlotDto
     public string Task { get; set; } = "";
     public DateTime StartsAt { get; set; }
     public DateTime? EndsAt { get; set; }
+    /// StartsAt / EndsAt as the club's wall-clock ("yyyy-MM-ddTHH:mm") for the edit form; the DateTimes may be UTC.
+    public string StartsLocal { get; set; } = "";
+    public string? EndsLocal { get; set; }
     public int Capacity { get; set; }
     public int Filled { get; set; }
     public List<VolunteerSignupDto> Signups { get; set; } = new();

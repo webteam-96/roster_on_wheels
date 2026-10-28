@@ -119,7 +119,10 @@ public class DocumentPushBackgroundService : BackgroundService
             ["isReminder"] = "false",
         };
 
-        var results = await push.SendMulticastAsync(tokenToMember.Keys, title, "New document published", data, ct);
+        string body;
+        using (RotaryApi.Services.Localization.MessageCulture.Use(await PushDispatcher.TenantLanguageAsync(conn, clubId, districtId)))
+            body = RotaryApi.Services.Localization.DbStringLocalizer.Instance["New document published"];
+        var results = await push.SendMulticastAsync(tokenToMember.Keys, title, body, data, ct);
 
         foreach (var r in results)
         {

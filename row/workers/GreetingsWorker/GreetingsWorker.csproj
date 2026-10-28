@@ -41,5 +41,7 @@
     <Compile Include="../../api/Services/LogMask.cs" Link="LogMask.cs" />
     <!-- N12 time zones: each district's zone (district_master.Timezone), same code as the API. -->
     <Compile Include="../../api/Services/ZoneTime.cs" Link="ZoneTime.cs" />
+    <!-- S5: the server's translated fixed texts (server_strings, read here; the API translates). -->
+    <Compile Include="../../api/Services/Localization/ServerStrings.cs" Link="ServerStrings.cs" />
   </ItemGroup>
 </Project>

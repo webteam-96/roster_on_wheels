@@ -3,6 +3,7 @@ import 'package:flutter/material.dart' hide Text;
 import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../core/constants/api_constants.dart';
+import '../../../core/utils/date_formatter.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../data/models/calendar_model.dart';
 import '../../widgets/common/custom_app_bar.dart';
@@ -41,7 +42,9 @@ class CalendarEventDetailScreen extends StatelessWidget {
             _InfoRow(
               icon: Icons.calendar_today_rounded,
               label: 'Date',
-              value: _formatDateTime(event.eventDate!),
+              value: event.timeZone != null
+                  ? DateFormatter.eventDateTime(event.eventRaw, event.timeZone)
+                  : _formatDateTime(event.eventDate!),
             ),
           if ((event.eventVenue ?? '').isNotEmpty)
             _InfoRow(

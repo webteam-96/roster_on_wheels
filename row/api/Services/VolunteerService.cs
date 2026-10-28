@@ -169,7 +169,13 @@ public partial class VolunteerService
             JOIN volunteer_slots sl ON sl.pk_slot_id = su.fk_slot_id
             LEFT JOIN member_master_profile m ON m.pk_member_master_profile_id = su.fk_member_id
             WHERE sl.fk_sheet_id = @id ORDER BY su.pk_signup_id", new { id })).ToList();
-        foreach (var slot in s.Slots) slot.Signups = signups.Where(x => x.SlotId == slot.Id).ToList();
+        var zone = await ZoneTime.OfClubAsync(c, clubId);
+        foreach (var slot in s.Slots)
+        {
+            slot.Signups = signups.Where(x => x.SlotId == slot.Id).ToList();
+            slot.StartsLocal = ZoneTime.StoredToInput(zone, slot.StartsAt);
+            if (slot.EndsAt is { } end) slot.EndsLocal = ZoneTime.StoredToInput(zone, end);
+        }
         s.TotalHours = signups.Sum(x => x.Hours ?? 0);
         return s;
     }
@@ -204,6 +210,19 @@ public partial class VolunteerService
                 SELECT COUNT(*) FROM `{table}` WHERE pk_project_id = @projectId AND fk_club_id = @clubId AND IFNULL(isdeleted, 0) = 0",
                 new { projectId, clubId }) == 0))
             throw new InvalidOperationException("Project not found.");
+    }
+
+    /// <summary>
+    /// Slot times are typed as the club's wall-clock; they are stored like meeting times (UTC on a UTC server), so
+    /// NOW() comparisons and reminders line up. Runs before the transaction: ZoneTime queries without it.
+    /// </summary>
+    private static async Task ToStoredTimesAsync(MySqlConnection c, int clubId, SaveVolunteerSheetDto d)
+    {
+        foreach (var s in d.Slots)
+        {
+            s.StartsAt = await ZoneTime.ClubInputToStoredAsync(c, clubId, s.StartsAt);
+            if (s.EndsAt is { } end) s.EndsAt = await ZoneTime.ClubInputToStoredAsync(c, clubId, end);
+        }
     }
 
     /// <summary>Updates, adds and removes slots; a slot keeps at least its sign-ups' places and is only removed empty.</summary>
@@ -243,6 +262,7 @@ public partial class VolunteerService
         await using var c = new MySqlConnection(_cs);
         await c.OpenAsync();
         await CheckTargetsAsync(c, clubId, d, (await ProjectTablesAsync(c))(d.YearId));
+        await ToStoredTimesAsync(c, clubId, d);
         await using var tx = await c.BeginTransactionAsync();
         var id = await c.ExecuteScalarAsync<int>(@"
             INSERT INTO volunteer_sheets (fk_club_id, title, description, fk_event_id, fk_year_id, fk_project_id, public_token, is_public, status, created_by)
@@ -262,6 +282,7 @@ public partial class VolunteerService
             await c.OpenAsync();
             var tableOf = await ProjectTablesAsync(c);
             await CheckTargetsAsync(c, clubId, d, tableOf(d.YearId));
+            await ToStoredTimesAsync(c, clubId, d);
             await using var tx = await c.BeginTransactionAsync();
             var s = await LockSheetAsync(c, tx, clubId, id);
             if (s == null) return null;

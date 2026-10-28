@@ -174,6 +174,9 @@ public class AuthService : IAuthService
         }
         catch { /* SP may not exist yet on first run */ }
 
+        // Build spec 3.5: an ended trial locks its district's members out (the password was right, so say why).
+        await TrialLock.RefuseIfLockedAsync(connection, memberId);
+
         // Success: reset failed attempts and update last login
         await connection.ExecuteAsync(
             "sp_auth_update_success_login",
@@ -234,6 +237,7 @@ public class AuthService : IAuthService
         if (roles.Count == 0 && await PlanningAccess.IsElectAsync(connection, _connectionString, memberId)) roles.Add("Elect");
         // no admin role → no web session
         if (roles.Count == 0) return null;
+        await TrialLock.RefuseIfLockedAsync(connection, memberId);
 
         var expiryMinutes = int.Parse(_configuration["JwtSettings:ExpiryMinutes"] ?? "480");
         var token = GenerateJwtToken(memberId, memberName, email, roles);

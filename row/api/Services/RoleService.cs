@@ -135,7 +135,7 @@ public class RoleService : IRoleService
                     await using var emailConn = CreateConnection();
                     await emailConn.OpenAsync();
                     var rolesHtml = await BuildAllRolesHtmlAsync(emailConn, request.MemberId);
-                    await SendRoleAssignmentEmailAsync(emailToSend, memberNameToSend, mobileToSend, tempPassword, rolesHtml);
+                    await _emailService.SendRoleAssignmentEmailAsync(emailToSend, memberNameToSend, mobileToSend, tempPassword, rolesHtml);
                 }
                 catch (Exception ex)
                 {
@@ -377,38 +377,6 @@ public class RoleService : IRoleService
 
         html += "</table>";
         return html;
-    }
-
-    private async Task SendRoleAssignmentEmailAsync(string email, string memberName, string? mobile, string? tempPassword, string rolesHtml)
-    {
-        var loginUrl = _configuration["FrontendUrl"]?.TrimEnd('/') + "/login";
-        var subject = "Rotary Club - Your Role Assignment";
-
-        var credentialsHtml = tempPassword != null
-            ? $@"<div style='background-color: #F7F9FC; border: 1px solid #D5DEE8; border-radius: 8px; padding: 16px; margin: 16px 0;'>
-                    <p><strong>Login URL:</strong> <a href='{loginUrl}' style='color: #17458F;'>{loginUrl}</a></p>
-                    {(!string.IsNullOrWhiteSpace(mobile) ? $"<p><strong>Username (Mobile):</strong> {mobile}</p>" : "")}
-                    <p><strong>Username (Email):</strong> {email}</p>
-                    <p><strong>Temporary Password:</strong> {tempPassword}</p>
-                </div>
-                <p style='color: #e53e3e;'><strong>Important:</strong> Please change your password after your first login.</p>"
-            : $@"<div style='background-color: #F7F9FC; border: 1px solid #D5DEE8; border-radius: 8px; padding: 16px; margin: 16px 0;'>
-                    <p><strong>Login URL:</strong> <a href='{loginUrl}' style='color: #17458F;'>{loginUrl}</a></p>
-                    <p>Please use your existing credentials to login.</p>
-                </div>";
-
-        var body = $@"{EmailService.EMAIL_HEADER}
-                    <h2 style='color: #17458F; margin-top: 0;'>Role Assignment Notification</h2>
-                    <p>Dear {memberName},</p>
-                    <p>You have been assigned the following role(s) on {RotaryApi.Services.Brand.ProductName}:</p>
-                    {rolesHtml}
-                    {credentialsHtml}
-                    <div style='text-align: center; margin: 24px 0;'>
-                        <a href='{loginUrl}' style='background-color: #17458F; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold;'>Login Now</a>
-                    </div>
-            {EmailService.EMAIL_FOOTER}";
-
-        await _emailService.SendGenericEmailAsync(email, subject, body);
     }
 
     private static string GenerateTempPassword()

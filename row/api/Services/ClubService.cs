@@ -804,7 +804,7 @@ public class ClubService : IClubService
         return clubMemberId;
     }
 
-    public async Task RemoveMemberAsync(int clubId, int memberId, int deletedBy, string? terminationReason = null)
+    public async Task RemoveMemberAsync(int clubId, int memberId, int deletedBy, string? terminationReason = null, string? terminationReasonCode = null)
     {
         using var connection = CreateConnection();
         await connection.OpenAsync();
@@ -827,9 +827,9 @@ public class ClubService : IClubService
         await connection.ExecuteAsync(@"
             UPDATE club_members
             SET isdeleted = 1, deleted_by = @DeletedBy, deleted_date = NOW(),
-                TerminationDate = CURDATE(), TerminationReason = @Reason
+                TerminationDate = CURDATE(), TerminationReason = @Reason, termination_reason_code = NULLIF(@Code, '')
             WHERE fk_club_id = @ClubId AND fk_member_master_profile_id = @MemberId AND isdeleted = 0",
-            new { ClubId = clubId, MemberId = memberId, DeletedBy = deletedBy, Reason = reason }, transaction: tx);
+            new { ClubId = clubId, MemberId = memberId, DeletedBy = deletedBy, Reason = reason, Code = terminationReasonCode }, transaction: tx);
 
         // 2. Soft-delete member_roles for THIS club (Admin, AG, Member etc. that are tied to this club)
         await connection.ExecuteAsync(@"

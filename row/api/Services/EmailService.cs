@@ -1,6 +1,9 @@
 ﻿using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
+using Microsoft.Extensions.Localization;
+using MySqlConnector;
+using RotaryApi.Services.Localization;
 
 namespace RotaryApi.Services;
 
@@ -9,6 +12,7 @@ public class EmailService : IEmailService
     private readonly IConfiguration _configuration;
     private readonly ILogger<EmailService> _logger;
     private readonly IHttpClientFactory _httpClientFactory;
+    private readonly IStringLocalizer L;
 
     public static string EMAIL_HEADER => $@"
             <html>
@@ -28,62 +32,88 @@ public class EmailService : IEmailService
             </body>
             </html>";
 
-    public EmailService(IConfiguration configuration, ILogger<EmailService> logger, IHttpClientFactory httpClientFactory)
+    public EmailService(IConfiguration configuration, ILogger<EmailService> logger, IHttpClientFactory httpClientFactory,
+        IStringLocalizer<EmailService> localizer)
     {
         _configuration = configuration;
         _logger = logger;
         _httpClientFactory = httpClientFactory;
+        L = localizer;
+    }
+
+    /// <summary>
+    /// S5: the recipient's language (their own, else their club's), for MessageCulture.Use in the sender. An address
+    /// that is not a member, or a database error, gives null: the text stays English.
+    /// </summary>
+    private async Task<string?> LanguageForAsync(string email)
+    {
+        try
+        {
+            await using var conn = new MySqlConnection(_configuration.GetConnectionString("DefaultConnection"));
+            return await MessageCulture.ForEmailAsync(conn, email);
+        }
+        catch (MySqlException ex)
+        {
+            _logger.LogWarning("Message language not resolved: {Message}", ex.Message);
+            return null;
+        }
     }
 
     public async Task SendCredentialEmailAsync(string email, string memberName, string tempPassword)
     {
-        var subject = $"{Brand.ProductName} - Your Login Credentials";
+        var type = BrevoEmailLog.ClassifyType($"{Brand.ProductName} - Your Login Credentials");
+        using var culture = MessageCulture.Use(await LanguageForAsync(email));
+        var subject = L["{0} - Your Login Credentials", Brand.ProductName];
         var body = $@"
             {EMAIL_HEADER}
-                        <h2 style='color: #17458F; margin-top: 0;'>Welcome to {Brand.ProductName}</h2>
-                        <p>Dear {memberName},</p>
-                        <p>Your admin account has been created. Here are your login credentials:</p>
+                        <h2 style='color: #17458F; margin-top: 0;'>{L["Welcome to {0}", Brand.ProductName]}</h2>
+                        <p>{L["Dear {0},", memberName]}</p>
+                        <p>{L["Your admin account has been created. Here are your login credentials:"]}</p>
                         <div style='background-color: #F7F9FC; border: 1px solid #D5DEE8; border-radius: 8px; padding: 16px; margin: 16px 0;'>
-                            <p><strong>Email:</strong> {email}</p>
-                            <p><strong>Temporary Password:</strong> {tempPassword}</p>
+                            <p><strong>{L["Email:"]}</strong> {email}</p>
+                            <p><strong>{L["Temporary Password:"]}</strong> {tempPassword}</p>
                         </div>
-                        <p style='color: #e53e3e;'><strong>Important:</strong> Please change your password after your first login.</p>
+                        <p style='color: #e53e3e;'><strong>{L["Important:"]}</strong> {L["Please change your password after your first login."]}</p>
             {EMAIL_FOOTER}";
 
-        await SendEmailAsync(email, subject, body);
+        await SendEmailAsync(email, subject, body, emailType: type);
     }
 
     public async Task SendPasswordResetEmailAsync(string email, string memberName, string resetLink)
     {
-        var subject = $"{Brand.ProductName} - Password Reset Request";
+        var type = BrevoEmailLog.ClassifyType($"{Brand.ProductName} - Password Reset Request");
+        using var culture = MessageCulture.Use(await LanguageForAsync(email));
+        var subject = L["{0} - Password Reset Request", Brand.ProductName];
         var body = $@"
             {EMAIL_HEADER}
-                        <h2 style='color: #17458F; margin-top: 0;'>Password Reset Request</h2>
-                        <p>Dear {memberName},</p>
-                        <p>We received a request to reset your password. Click the button below to set a new password:</p>
+                        <h2 style='color: #17458F; margin-top: 0;'>{L["Password Reset Request"]}</h2>
+                        <p>{L["Dear {0},", memberName]}</p>
+                        <p>{L["We received a request to reset your password. Click the button below to set a new password:"]}</p>
                         <div style='text-align: center; margin: 24px 0;'>
-                            <a href='{resetLink}' style='background-color: #17458F; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold;'>Reset Password</a>
+                            <a href='{resetLink}' style='background-color: #17458F; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold;'>{L["Reset Password"]}</a>
                         </div>
-                        <p>If the button doesn't work, copy and paste this link into your browser:</p>
+                        <p>{L["If the button doesn't work, copy and paste this link into your browser:"]}</p>
                         <p style='word-break: break-all; color: #17458F;'>{resetLink}</p>
-                        <p style='color: #64748B;'>This link will expire in 30 minutes. If you didn't request this reset, please ignore this email.</p>
+                        <p style='color: #64748B;'>{L["This link will expire in 30 minutes. If you didn't request this reset, please ignore this email."]}</p>
             {EMAIL_FOOTER}";
 
-        await SendEmailAsync(email, subject, body);
+        await SendEmailAsync(email, subject, body, emailType: type);
     }
 
     public async Task SendPasswordChangedEmailAsync(string email, string memberName)
     {
-        var subject = $"{Brand.ProductName} - Password Changed Successfully";
+        var type = BrevoEmailLog.ClassifyType($"{Brand.ProductName} - Password Changed Successfully");
+        using var culture = MessageCulture.Use(await LanguageForAsync(email));
+        var subject = L["{0} - Password Changed Successfully", Brand.ProductName];
         var body = $@"
             {EMAIL_HEADER}
-                        <h2 style='color: #17458F; margin-top: 0;'>Password Changed</h2>
-                        <p>Dear {memberName},</p>
-                        <p>Your password has been changed successfully.</p>
-                        <p style='color: #e53e3e;'><strong>If you did not make this change, please contact the administrator immediately.</strong></p>
+                        <h2 style='color: #17458F; margin-top: 0;'>{L["Password Changed"]}</h2>
+                        <p>{L["Dear {0},", memberName]}</p>
+                        <p>{L["Your password has been changed successfully."]}</p>
+                        <p style='color: #e53e3e;'><strong>{L["If you did not make this change, please contact the administrator immediately."]}</strong></p>
             {EMAIL_FOOTER}";
 
-        await SendEmailAsync(email, subject, body);
+        await SendEmailAsync(email, subject, body, emailType: type);
     }
 
     public Task SendEmailWithAttachmentAsync(string toEmail, string subject, string htmlBody, byte[] attachment, string attachmentFileName)
@@ -285,56 +315,40 @@ public class EmailService : IEmailService
     {
         var androidUrl = _configuration["MobileApp:AndroidUrl"] ?? "#";
         var iosUrl = _configuration["MobileApp:IosUrl"] ?? "#";
-        var subject = $"ROW — Welcome to {clubName}";
-        var contextLine = $"<strong>{System.Net.WebUtility.HtmlEncode(clubName)}</strong>"
-            + (!string.IsNullOrWhiteSpace(districtNumber) ? $" (District <strong>{System.Net.WebUtility.HtmlEncode(districtNumber)}</strong>" : "")
-            + (!string.IsNullOrWhiteSpace(zoneName) ? $", Zone <strong>{System.Net.WebUtility.HtmlEncode(zoneName)}</strong>)" : (!string.IsNullOrWhiteSpace(districtNumber) ? ")" : ""));
+        var type = BrevoEmailLog.ClassifyType($"ROW — Welcome to {clubName}");
+        using var culture = MessageCulture.Use(await LanguageForAsync(memberEmail));
+        var subject = L["ROW — Welcome to {0}", clubName];
+        string E(string v) => System.Net.WebUtility.HtmlEncode(v);
+        var club = $"<strong>{E(clubName)}</strong>";
+        var contextLine = string.IsNullOrWhiteSpace(districtNumber) ? club
+            : string.IsNullOrWhiteSpace(zoneName) ? L["{0} (District {1})", club, $"<strong>{E(districtNumber)}</strong>"]
+            : L["{0} (District {1}, Zone {2})", club, $"<strong>{E(districtNumber)}</strong>", $"<strong>{E(zoneName)}</strong>"];
+        string Section(string title, params string[] items) => $@"
+<h3 style='color:#17458F; margin-bottom:6px;'>{E(L[title])}</h3>
+<ul style='margin-top:4px; color:#2A3F5C;'>
+{string.Concat(items.Select(i => $"  <li>{E(L[i])}</li>\n"))}</ul>
+";
 
         var body = $@"{EMAIL_HEADER}
-<h2 style='color:#17458F; margin-top:0;'>Welcome, {System.Net.WebUtility.HtmlEncode(memberName)}!</h2>
-<p>You have been added to {contextLine} — part of the <strong>ROW</strong> platform.</p>
-<p>ROW is powered by <strong>Roster On Wheels (ROW)</strong>, an R.I. Official Licensee mobile application created to connect fellow Rotarians around the world.</p>
-<p>This is the complete solution for <strong>Communication, Public Image and E-Governance</strong> for Rotary clubs and districts.</p>
-
-<h3 style='color:#17458F; margin-bottom:6px;'>Communication &amp; Directory</h3>
-<ul style='margin-top:4px; color:#2A3F5C;'>
-  <li>Digitized Club Directory (call / message / email)</li>
-  <li>Club event notifications with RSVP + reminders</li>
-  <li>Birthday &amp; anniversary reminders</li>
-  <li>Global Rotarian search + Club Locator</li>
-  <li>Rotary Library, Live Rotary news &amp; Blogs</li>
-  <li>Free login for spouse &amp; children</li>
-  <li>Mass Mailing with personalized messages</li>
-</ul>
-
-<h3 style='color:#17458F; margin-bottom:6px;'>Public Image &amp; Branding (optional Club Website)</h3>
-<ul style='margin-top:4px; color:#2A3F5C;'>
-  <li>Instantly update your website from mobile</li>
-  <li>Showcase projects, events, newsletters</li>
-  <li>Birthday / anniversary calendar</li>
-  <li>Social media integration</li>
-  <li>No hosting charges — info saved forever</li>
-  <li>Revenue via advertisement banners</li>
-  <li>Gateway to CSR Funds &amp; Global Grants</li>
-</ul>
-
-<h3 style='color:#17458F; margin-bottom:6px;'>E-Governance</h3>
-<ul style='margin-top:4px; color:#2A3F5C;'>
-  <li>Club Monthly Report generation</li>
-  <li>Digital Attendance register</li>
-  <li>TRF contribution / Members / Projects / Meeting reports</li>
-  <li>Address label printing</li>
-</ul>
-
-<h3 style='color:#17458F; margin-bottom:6px;'>Official Licence Benefits</h3>
-<ul style='margin-top:4px; color:#2A3F5C;'>
-  <li>Data integration with Rotary.org</li>
-  <li>Assured data privacy per R.I. norms</li>
-  <li>Free for spouse &amp; family members</li>
-</ul>
-
+<h2 style='color:#17458F; margin-top:0;'>{L["Welcome, {0}!", E(memberName)]}</h2>
+<p>{L["You have been added to {0}, part of the {1} platform.", contextLine, "<strong>ROW</strong>"]}</p>
+<p>{L["ROW is powered by {0}, an R.I. Official Licensee mobile application created to connect fellow Rotarians around the world.", "<strong>Roster On Wheels (ROW)</strong>"]}</p>
+<p>{L["This is the complete solution for {0} for Rotary clubs and districts.", $"<strong>{E(L["Communication, Public Image and E-Governance"])}</strong>"]}</p>
+{Section("Communication & Directory",
+    "Digitized Club Directory (call / message / email)", "Club event notifications with RSVP + reminders",
+    "Birthday & anniversary reminders", "Global Rotarian search + Club Locator", "Rotary Library, Live Rotary news & Blogs",
+    "Free login for spouse & children", "Mass Mailing with personalized messages")}
+{Section("Public Image & Branding (optional Club Website)",
+    "Instantly update your website from mobile", "Showcase projects, events, newsletters", "Birthday / anniversary calendar",
+    "Social media integration", "No hosting charges, info saved forever", "Revenue via advertisement banners",
+    "Gateway to CSR Funds & Global Grants")}
+{Section("E-Governance",
+    "Club Monthly Report generation", "Digital Attendance register", "TRF contribution / Members / Projects / Meeting reports",
+    "Address label printing")}
+{Section("Official Licence Benefits",
+    "Data integration with Rotary.org", "Assured data privacy per R.I. norms", "Free for spouse & family members")}
 <div style='margin-top:20px; padding:16px; background:#F7F9FC; border:1px solid #D5DEE8; border-radius:8px; text-align:center;'>
-  <p style='margin:0 0 12px; font-weight:bold; color:#17458F;'>Download the app</p>
+  <p style='margin:0 0 12px; font-weight:bold; color:#17458F;'>{L["Download the app"]}</p>
   <a href='{androidUrl}' style='display:inline-block; margin:4px; padding:10px 18px; background:#17458F; color:white; text-decoration:none; border-radius:6px; font-weight:bold;'>Android</a>
   <a href='{iosUrl}' style='display:inline-block; margin:4px; padding:10px 18px; background:#17458F; color:white; text-decoration:none; border-radius:6px; font-weight:bold;'>iOS</a>
 </div>
@@ -342,31 +356,106 @@ public class EmailService : IEmailService
 <p style='color:#64748b; font-size:13px; margin-top:20px;'>
   {Brand.ContactHtml()}
 </p>
-<p>Regards,<br/><strong>Team ROW</strong></p>
+<p>{L["Regards,"]}<br/><strong>{L["Team ROW"]}</strong></p>
 {EMAIL_FOOTER}";
 
-        await SendEmailAsync(memberEmail, subject, body, ccEmails);
+        await SendEmailAsync(memberEmail, subject, body, ccEmails, emailType: type);
+    }
+
+    public async Task SendRoleAssignmentEmailAsync(string email, string memberName, string? mobile, string? tempPassword, string rolesHtml)
+    {
+        var loginUrl = _configuration["FrontendUrl"]?.TrimEnd('/') + "/login";
+        var type = BrevoEmailLog.ClassifyType("Rotary Club - Your Role Assignment");
+        using var culture = MessageCulture.Use(await LanguageForAsync(email));
+        var subject = L["Rotary Club - Your Role Assignment"];
+
+        var credentialsHtml = tempPassword != null
+            ? $@"<div style='background-color: #F7F9FC; border: 1px solid #D5DEE8; border-radius: 8px; padding: 16px; margin: 16px 0;'>
+                    <p><strong>{L["Login URL:"]}</strong> <a href='{loginUrl}' style='color: #17458F;'>{loginUrl}</a></p>
+                    {(!string.IsNullOrWhiteSpace(mobile) ? $"<p><strong>{L["Username (Mobile):"]}</strong> {mobile}</p>" : "")}
+                    <p><strong>{L["Username (Email):"]}</strong> {email}</p>
+                    <p><strong>{L["Temporary Password:"]}</strong> {tempPassword}</p>
+                </div>
+                <p style='color: #e53e3e;'><strong>{L["Important:"]}</strong> {L["Please change your password after your first login."]}</p>"
+            : $@"<div style='background-color: #F7F9FC; border: 1px solid #D5DEE8; border-radius: 8px; padding: 16px; margin: 16px 0;'>
+                    <p><strong>{L["Login URL:"]}</strong> <a href='{loginUrl}' style='color: #17458F;'>{loginUrl}</a></p>
+                    <p>{L["Please use your existing credentials to login."]}</p>
+                </div>";
+
+        var body = $@"{EMAIL_HEADER}
+                    <h2 style='color: #17458F; margin-top: 0;'>{L["Role Assignment Notification"]}</h2>
+                    <p>{L["Dear {0},", memberName]}</p>
+                    <p>{L["You have been assigned the following role(s) on {0}:", Brand.ProductName]}</p>
+                    {rolesHtml}
+                    {credentialsHtml}
+                    <div style='text-align: center; margin: 24px 0;'>
+                        <a href='{loginUrl}' style='background-color: #17458F; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold;'>{L["Login Now"]}</a>
+                    </div>
+            {EMAIL_FOOTER}";
+
+        await SendEmailAsync(email, subject, body, emailType: type);
+    }
+
+    public async Task SendAgAssignedEmailAsync(string email, string memberName, string districtNumber, IEnumerable<string> clubNames,
+        string? username, string? tempPassword)
+    {
+        var type = BrevoEmailLog.ClassifyType("ROW - AG Assignment");
+        using var culture = MessageCulture.Use(await LanguageForAsync(email));
+        var clubListHtml = string.Join("", clubNames.Select(c => $"<li style='padding:4px 0;'>{c}</li>"));
+        var credentialHtml = tempPassword != null
+            ? $@"<div style='background-color:#F7F9FC;border:1px solid #D5DEE8;border-radius:8px;padding:16px;margin:16px 0;'><p><strong>{L["Username:"]}</strong> {username}</p><p><strong>{L["Temporary Password:"]}</strong> {tempPassword}</p></div><p style='color:#e53e3e;'><strong>{L["Important:"]}</strong> {L["Please change your password after your first login."]}</p>"
+            : $@"<div style='background-color:#F7F9FC;border:1px solid #D5DEE8;border-radius:8px;padding:16px;margin:16px 0;'><p><strong>{L["Username:"]}</strong> {username}</p><p>{L["Use your existing password to login."]}</p></div>";
+        var body = $@"<div style='font-family:Figtree, Arial,sans-serif;max-width:600px;margin:0 auto;'>
+                <div style='background:#17458F;color:white;padding:20px;text-align:center;border-radius:8px 8px 0 0;'><h2 style='margin:0;'>{L["Assistant Governor (AG) Assignment"]}</h2></div>
+                <div style='padding:24px;border:1px solid #D5DEE8;border-top:none;border-radius:0 0 8px 8px;'>
+                    <p>{L["Dear {0},", $"<strong>{memberName}</strong>"]}</p>
+                    <p>{L["You have been assigned as {0} for District {1}.", $"<strong>{L["Assistant Governor (AG)"]}</strong>", $"<strong>{districtNumber}</strong>"]}</p>
+                    <h3 style='color:#17458F;margin-top:20px;'>{L["Assigned Clubs:"]}</h3>
+                    <ul style='background:#F7F9FC;border:1px solid #D5DEE8;border-radius:8px;padding:16px 16px 16px 32px;margin:8px 0;'>{clubListHtml}</ul>
+                    <h3 style='color:#17458F;margin-top:20px;'>{L["Login Details:"]}</h3>
+                    {credentialHtml}
+                    <p style='color:#64748B;font-size:12px;margin-top:24px;'>{L["This is an automated notification from ROW."]}</p>
+                </div></div>";
+        await SendEmailAsync(email, L["ROW - AG Assignment"], body, emailType: type);
+    }
+
+    public async Task SendAgRemovedEmailAsync(string email, string memberName, string districtNumber)
+    {
+        var type = BrevoEmailLog.ClassifyType("ROW - AG Role Removed");
+        using var culture = MessageCulture.Use(await LanguageForAsync(email));
+        var body = $@"<div style='font-family:Figtree, Arial,sans-serif;max-width:600px;margin:0 auto;'>
+                <div style='background:#dc2626;color:white;padding:20px;text-align:center;border-radius:8px 8px 0 0;'><h2 style='margin:0;'>{L["Assistant Governor Role Removed"]}</h2></div>
+                <div style='padding:24px;border:1px solid #D5DEE8;border-top:none;border-radius:0 0 8px 8px;'>
+                    <p>{L["Dear {0},", $"<strong>{memberName}</strong>"]}</p>
+                    <p>{L["Your {0} role for District {1} has been removed.", $"<strong>{L["Assistant Governor (AG)"]}</strong>", $"<strong>{districtNumber}</strong>"]}</p>
+                    <p>{L["If you have any questions, please contact your district administrator."]}</p>
+                    <p style='color:#64748B;font-size:12px;margin-top:24px;'>{L["This is an automated notification from ROW."]}</p>
+                </div></div>";
+        await SendEmailAsync(email, L["ROW - AG Role Removed"], body, emailType: type);
     }
 
     // Reusable notification for any role / club-membership removal. Keeps all removal emails consistent.
     public async Task SendRoleOrMembershipRemovedEmailAsync(string toEmail, string memberName, string removedFromLabel, string? contextLine, IEnumerable<string>? ccEmails)
     {
-        var subject = $"ROW — {removedFromLabel} removed";
+        // removedFromLabel and contextLine come from the caller (role and club names): kept as written
+        var type = BrevoEmailLog.ClassifyType($"ROW — {removedFromLabel} removed");
+        using var culture = MessageCulture.Use(await LanguageForAsync(toEmail));
+        var subject = L["ROW — {0} removed", removedFromLabel];
         var contextHtml = string.IsNullOrWhiteSpace(contextLine)
             ? ""
             : $"<p style='color:#4A5A70;'>{System.Net.WebUtility.HtmlEncode(contextLine)}</p>";
         var body = $@"{EMAIL_HEADER}
-<h2 style='color:#17458F; margin-top:0;'>Access update</h2>
-<p>Dear {System.Net.WebUtility.HtmlEncode(memberName)},</p>
-<p>Your <strong>{System.Net.WebUtility.HtmlEncode(removedFromLabel)}</strong> has been removed by an administrator.</p>
+<h2 style='color:#17458F; margin-top:0;'>{L["Access update"]}</h2>
+<p>{L["Dear {0},", System.Net.WebUtility.HtmlEncode(memberName)]}</p>
+<p>{L["Your {0} has been removed by an administrator.", $"<strong>{System.Net.WebUtility.HtmlEncode(removedFromLabel)}</strong>"]}</p>
 {contextHtml}
-<p>If you believe this was done in error, please contact your club / district administrator.</p>
+<p>{L["If you believe this was done in error, please contact your club / district administrator."]}</p>
 <p style='color:#64748b; font-size:13px; margin-top:20px;'>
   {Brand.ContactHtml()}
 </p>
-<p>Regards,<br/><strong>Team ROW</strong></p>
+<p>{L["Regards,"]}<br/><strong>{L["Team ROW"]}</strong></p>
 {EMAIL_FOOTER}";
-        await SendEmailAsync(toEmail, subject, body, ccEmails);
+        await SendEmailAsync(toEmail, subject, body, ccEmails, emailType: type);
     }
 
     public async Task<string?> SendClubAdminAssignmentEmailAsync(string email, string memberName, string? mobile, string? tempPassword, string designation, string clubName, string yearLabel)
@@ -379,109 +468,106 @@ public class EmailService : IEmailService
         // Return the verification reason so caller can capture warnings (e.g., ACCEPT_ALL) into the log
 
         var loginUrl = _configuration["FrontendUrl"]?.TrimEnd('/') + "/login";
-        var subject = $"Rotary Club - You've been assigned as {designation} ({clubName})";
+        var type = BrevoEmailLog.ClassifyType($"Rotary Club - You've been assigned as {designation} ({clubName})");
+        using var culture = MessageCulture.Use(await LanguageForAsync(email));
+        var subject = L["Rotary Club - You've been assigned as {0} ({1})", designation, clubName];
 
         var credentialsHtml = !string.IsNullOrWhiteSpace(tempPassword)
             ? $@"<div style='background-color: #F7F9FC; border: 1px solid #D5DEE8; border-radius: 8px; padding: 16px; margin: 16px 0;'>
-                    <p style='margin:0 0 6px 0;'><strong>Login URL:</strong> <a href='{loginUrl}' style='color: #17458F;'>{loginUrl}</a></p>
-                    {(!string.IsNullOrWhiteSpace(mobile) ? $"<p style='margin:0 0 6px 0;'><strong>Username (Mobile):</strong> {mobile}</p>" : "")}
-                    <p style='margin:0 0 6px 0;'><strong>Username (Email):</strong> {email}</p>
-                    <p style='margin:0;'><strong>Temporary Password:</strong> {tempPassword}</p>
+                    <p style='margin:0 0 6px 0;'><strong>{L["Login URL:"]}</strong> <a href='{loginUrl}' style='color: #17458F;'>{loginUrl}</a></p>
+                    {(!string.IsNullOrWhiteSpace(mobile) ? $"<p style='margin:0 0 6px 0;'><strong>{L["Username (Mobile):"]}</strong> {mobile}</p>" : "")}
+                    <p style='margin:0 0 6px 0;'><strong>{L["Username (Email):"]}</strong> {email}</p>
+                    <p style='margin:0;'><strong>{L["Temporary Password:"]}</strong> {tempPassword}</p>
                 </div>
-                <p style='color: #e53e3e;'><strong>Important:</strong> Please change your password after your first login.</p>"
+                <p style='color: #e53e3e;'><strong>{L["Important:"]}</strong> {L["Please change your password after your first login."]}</p>"
             : $@"<div style='background-color: #F7F9FC; border: 1px solid #D5DEE8; border-radius: 8px; padding: 16px; margin: 16px 0;'>
-                    <p style='margin:0 0 6px 0;'><strong>Login URL:</strong> <a href='{loginUrl}' style='color: #17458F;'>{loginUrl}</a></p>
-                    <p style='margin:0;'>Please use your existing credentials to login.</p>
+                    <p style='margin:0 0 6px 0;'><strong>{L["Login URL:"]}</strong> <a href='{loginUrl}' style='color: #17458F;'>{loginUrl}</a></p>
+                    <p style='margin:0;'>{L["Please use your existing credentials to login."]}</p>
                 </div>";
 
-        var rolesHtml = $@"<table style='width: 100%; border-collapse: collapse; margin: 16px 0;'>
+        string Row(string label, string value, string width = "") => $@"
             <tr>
-                <td style='padding: 8px 12px; border: 1px solid #D5DEE8; background-color: #EDF4FB; font-weight: bold; width: 150px;'>Role</td>
-                <td style='padding: 8px 12px; border: 1px solid #D5DEE8;'>Club Admin</td>
-            </tr>
-            <tr>
-                <td style='padding: 8px 12px; border: 1px solid #D5DEE8; background-color: #EDF4FB; font-weight: bold;'>Designation</td>
-                <td style='padding: 8px 12px; border: 1px solid #D5DEE8;'>{designation}</td>
-            </tr>
-            <tr>
-                <td style='padding: 8px 12px; border: 1px solid #D5DEE8; background-color: #EDF4FB; font-weight: bold;'>Club</td>
-                <td style='padding: 8px 12px; border: 1px solid #D5DEE8;'>{clubName}</td>
-            </tr>
-            <tr>
-                <td style='padding: 8px 12px; border: 1px solid #D5DEE8; background-color: #EDF4FB; font-weight: bold;'>Rotary Year</td>
-                <td style='padding: 8px 12px; border: 1px solid #D5DEE8;'>{yearLabel}</td>
-            </tr>
+                <td style='padding: 8px 12px; border: 1px solid #D5DEE8; background-color: #EDF4FB; font-weight: bold;{width}'>{L[label]}</td>
+                <td style='padding: 8px 12px; border: 1px solid #D5DEE8;'>{value}</td>
+            </tr>";
+        var rolesHtml = $@"<table style='width: 100%; border-collapse: collapse; margin: 16px 0;'>{Row("Role", L["Club Admin"], " width: 150px;")}{Row("Designation", designation)}{Row("Club", clubName)}{Row("Rotary Year", yearLabel)}
         </table>";
 
         var body = $@"{EMAIL_HEADER}
-                    <h2 style='color: #17458F; margin-top: 0;'>Club Admin Role Assigned</h2>
-                    <p>Dear {memberName},</p>
-                    <p>Congratulations! You have been assigned as <strong>{designation}</strong> of <strong>{clubName}</strong> for the Rotary Year <strong>{yearLabel}</strong> and granted <strong>Club Admin</strong> access on {Brand.ProductName}.</p>
+                    <h2 style='color: #17458F; margin-top: 0;'>{L["Club Admin Role Assigned"]}</h2>
+                    <p>{L["Dear {0},", memberName]}</p>
+                    <p>{L["Congratulations! You have been assigned as {0} of {1} for the Rotary Year {2} and granted {3} access on {4}.",
+                        $"<strong>{designation}</strong>", $"<strong>{clubName}</strong>", $"<strong>{yearLabel}</strong>", $"<strong>{L["Club Admin"]}</strong>", Brand.ProductName]}</p>
                     {rolesHtml}
                     {credentialsHtml}
                     <div style='text-align: center; margin: 24px 0;'>
-                        <a href='{loginUrl}' style='background-color: #17458F; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold;'>Login Now</a>
+                        <a href='{loginUrl}' style='background-color: #17458F; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold;'>{L["Login Now"]}</a>
                     </div>
             {EMAIL_FOOTER}";
 
-        await SendEmailAsync(email, subject, body, throwOnFailure: true);
+        await SendEmailAsync(email, subject, body, throwOnFailure: true, emailType: type);
         return verify.Reason; // null = verified OK; non-null = warning (e.g., ACCEPT_ALL)
     }
 
     public async Task SendClubWebsiteReminderEmailAsync(string email, string memberName, string clubName, string designation, string subdomain, DateTime endDate, int daysLeft, string? payLink = null)
     {
-        var subject = $"Renew your club website — {daysLeft} day(s) left ({clubName})";
+        var type = BrevoEmailLog.ClassifyType($"Renew your club website — {daysLeft} day(s) left ({clubName})");
+        using var culture = MessageCulture.Use(await LanguageForAsync(email));
+        var subject = L["Renew your club website — {0} day(s) left ({1})", daysLeft, clubName];
         var urgencyColor = daysLeft <= 3 ? "#e53e3e" : daysLeft <= 7 ? "#dd6b20" : "#17458F";
         // When a pay link is available, drive a one-click renewal; otherwise fall back to "contact us".
+        // shortcut: the pay-link branch (Razorpay, a payment module on hold) stays English; translate it with payments.
         var payHtml = string.IsNullOrWhiteSpace(payLink)
-            ? "<p>To renew, please get in touch with the ROW admin team using the contact details below.</p>"
+            ? $"<p>{L["To renew, please get in touch with the ROW admin team using the contact details below."]}</p>"
             : $@"<p>Renew now in a few clicks — your payment is secure (Razorpay):</p>
                  <div style='text-align:center; margin:20px 0;'>
                      <a href='{payLink}' style='background-color:#17458F; color:white; padding:14px 28px; text-decoration:none; border-radius:6px; font-weight:bold; font-size:16px;'>Renew Now</a>
                  </div>
                  <p style='font-size:13px;color:#64748B;'>Or copy this link into your browser:<br/><a href='{payLink}' style='color:#17458F;word-break:break-all;'>{payLink}</a></p>";
         var body = $@"{EMAIL_HEADER}
-            <h2 style='color: #17458F; margin-top: 0;'>Your Club Website expires soon</h2>
-            <p>Dear {memberName},</p>
-            <p>As the <strong>{designation}</strong> of <strong>{clubName}</strong>, this is a reminder that your club website subscription is expiring soon.</p>
+            <h2 style='color: #17458F; margin-top: 0;'>{L["Your Club Website expires soon"]}</h2>
+            <p>{L["Dear {0},", memberName]}</p>
+            <p>{L["As the {0} of {1}, this is a reminder that your club website subscription is expiring soon.", $"<strong>{designation}</strong>", $"<strong>{clubName}</strong>"]}</p>
             <div style='background-color: #F7F9FC; border: 1px solid #D5DEE8; border-radius: 8px; padding: 16px; margin: 16px 0;'>
-                <p style='margin:0 0 6px 0;'><strong>Website:</strong> {subdomain}</p>
-                <p style='margin:0 0 6px 0;'><strong>Expiry Date:</strong> {endDate:dd MMM yyyy}</p>
-                <p style='margin:0; font-size: 18px; color: {urgencyColor};'><strong>Days Remaining: {daysLeft}</strong></p>
+                <p style='margin:0 0 6px 0;'><strong>{L["Website:"]}</strong> {subdomain}</p>
+                <p style='margin:0 0 6px 0;'><strong>{L["Expiry Date:"]}</strong> {endDate:dd MMM yyyy}</p>
+                <p style='margin:0; font-size: 18px; color: {urgencyColor};'><strong>{L["Days Remaining: {0}", daysLeft]}</strong></p>
             </div>
-            <p>Please renew your subscription to keep your club website active. If the subscription expires, your website will become inaccessible.</p>
+            <p>{L["Please renew your subscription to keep your club website active. If the subscription expires, your website will become inaccessible."]}</p>
             {payHtml}
-            <p>Warm regards,<br/>ROW Admin Team</p>
+            <p>{L["Warm regards,"]}<br/>{L["ROW Admin Team"]}</p>
             <div style='margin-top:20px; padding:16px; background:#F7F9FC; border:1px solid #D5DEE8; border-radius:8px;'>
-                <p style='margin:0 0 8px; font-weight:bold; color:#17458F;'>Need help?</p>
+                <p style='margin:0 0 8px; font-weight:bold; color:#17458F;'>{L["Need help?"]}</p>
                 <p style='margin:0; color:#4A5A70; font-size:14px; line-height:1.7;'>
                     {Brand.ContactHtml()}
                 </p>
             </div>
         {EMAIL_FOOTER}";
-        await SendEmailAsync(email, subject, body);
+        await SendEmailAsync(email, subject, body, emailType: type);
     }
 
     public async Task SendClubWebsiteActivationEmailAsync(string email, string memberName, string clubName, string designation, string subdomain, string? clientDomain, DateTime startDate, DateTime endDate, string? ccEmail = null)
     {
-        var subject = $"Your Club Website is Live — {clubName}";
-        var urls = $@"<p style='margin:0 0 6px 0;'><strong>Website URL:</strong> <a href='https://{subdomain}' style='color:#17458F;'>https://{subdomain}</a></p>";
+        var type = BrevoEmailLog.ClassifyType($"Your Club Website is Live — {clubName}");
+        using var culture = MessageCulture.Use(await LanguageForAsync(email));
+        var subject = L["Your Club Website is Live — {0}", clubName];
+        var urls = $@"<p style='margin:0 0 6px 0;'><strong>{L["Website URL:"]}</strong> <a href='https://{subdomain}' style='color:#17458F;'>https://{subdomain}</a></p>";
         if (!string.IsNullOrWhiteSpace(clientDomain))
-            urls += $@"<p style='margin:0 0 6px 0;'><strong>Your Domain:</strong> <a href='https://{clientDomain}' style='color:#17458F;'>https://{clientDomain}</a></p>";
+            urls += $@"<p style='margin:0 0 6px 0;'><strong>{L["Your Domain:"]}</strong> <a href='https://{clientDomain}' style='color:#17458F;'>https://{clientDomain}</a></p>";
         var body = $@"{EMAIL_HEADER}
-            <h2 style='color: #17458F; margin-top: 0;'>Your Club Website is now LIVE!</h2>
-            <p>Dear {memberName},</p>
-            <p>Congratulations! As the <strong>{designation}</strong> of <strong>{clubName}</strong>, we're pleased to inform you that your club website has been activated.</p>
+            <h2 style='color: #17458F; margin-top: 0;'>{L["Your Club Website is now LIVE!"]}</h2>
+            <p>{L["Dear {0},", memberName]}</p>
+            <p>{L["Congratulations! As the {0} of {1}, we're pleased to inform you that your club website has been activated.", $"<strong>{designation}</strong>", $"<strong>{clubName}</strong>"]}</p>
             <div style='background-color: #f0fff4; border: 1px solid #9ae6b4; border-radius: 8px; padding: 16px; margin: 16px 0;'>
                 {urls}
-                <p style='margin:0 0 6px 0;'><strong>Valid From:</strong> {startDate:dd MMM yyyy}</p>
-                <p style='margin:0;'><strong>Valid Until:</strong> {endDate:dd MMM yyyy}</p>
+                <p style='margin:0 0 6px 0;'><strong>{L["Valid From:"]}</strong> {startDate:dd MMM yyyy}</p>
+                <p style='margin:0;'><strong>{L["Valid Until:"]}</strong> {endDate:dd MMM yyyy}</p>
             </div>
-            <p>Your website will automatically show content managed from the ROW portal. Any updates you make to your club profile, members, events, or newsletters will reflect on the website.</p>
-            <p>We will send you renewal reminders before expiry.</p>
-            <p>Warm regards,<br/>ROW Admin Team</p>
+            <p>{L["Your website will automatically show content managed from the ROW portal. Any updates you make to your club profile, members, events, or newsletters will reflect on the website."]}</p>
+            <p>{L["We will send you renewal reminders before expiry."]}</p>
+            <p>{L["Warm regards,"]}<br/>{L["ROW Admin Team"]}</p>
         {EMAIL_FOOTER}";
-        await SendEmailAsync(email, subject, body, ccEmail);
+        await SendEmailAsync(email, subject, body, ccEmail, emailType: type);
     }
 
     // SuperAdmin bulk buy/renew reminder with a one-click encrypted pay link. New => "buy",
@@ -525,7 +611,7 @@ public class EmailService : IEmailService
 
     // Overload that accepts a list of CC addresses — filters empties, dedupes case-insensitively,
     // and also excludes the primary To address from the CC list to avoid duplicate delivery.
-    private Task SendEmailAsync(string toEmail, string subject, string htmlBody, IEnumerable<string>? ccEmails, bool throwOnFailure = false)
+    private Task SendEmailAsync(string toEmail, string subject, string htmlBody, IEnumerable<string>? ccEmails, bool throwOnFailure = false, string? emailType = null)
     {
         var list = (ccEmails ?? Array.Empty<string>())
             .Where(e => !string.IsNullOrWhiteSpace(e))
@@ -534,7 +620,7 @@ public class EmailService : IEmailService
             .Distinct(StringComparer.OrdinalIgnoreCase)
             .ToList();
         var joined = list.Count == 0 ? null : string.Join(",", list);
-        return SendEmailAsync(toEmail, subject, htmlBody, joined, throwOnFailure);
+        return SendEmailAsync(toEmail, subject, htmlBody, joined, throwOnFailure, emailType: emailType);
     }
 
     // Club/District-tagged send for the scheduled communication emails (announcements, events,
@@ -543,12 +629,14 @@ public class EmailService : IEmailService
     public async Task SendScopedEmailAsync(string toEmail, string subject, string htmlBody, int? clubId, int? districtId)
         => await SendEmailAsync(toEmail, subject, htmlBody, ccEmail: null, throwOnFailure: false, clubId: clubId, districtId: districtId);
 
-    private async Task SendEmailAsync(string toEmail, string subject, string htmlBody, string? ccEmail = null, bool throwOnFailure = false, int? clubId = null, int? districtId = null)
+    // emailType: the email_log type; null = guessed from the subject. Translated senders pass the guess from their
+    // English subject, since the guess only knows English wording.
+    private async Task SendEmailAsync(string toEmail, string subject, string htmlBody, string? ccEmail = null, bool throwOnFailure = false, int? clubId = null, int? districtId = null, string? emailType = null)
     {
         long? logId = null;
         try
         {
-            logId = await BrevoEmailLog.InsertPendingAsync(_configuration, toEmail, ccEmail, subject, htmlBody, BrevoEmailLog.ClassifyType(subject), _logger, clubId, districtId);
+            logId = await BrevoEmailLog.InsertPendingAsync(_configuration, toEmail, ccEmail, subject, htmlBody, emailType ?? BrevoEmailLog.ClassifyType(subject), _logger, clubId, districtId);
             var brevoMessageId = await SendViaBrevoAsync(toEmail, subject, htmlBody, ccEmail, null, null);
             await BrevoEmailLog.MarkSentAsync(_configuration, logId, brevoMessageId, _logger);
             _logger.LogInformation("Email sent successfully to {Email} (Brevo id={Id})", LogMask.Email(toEmail), brevoMessageId);

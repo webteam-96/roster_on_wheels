@@ -41,6 +41,36 @@ public static class ZoneTime
         Find(await conn.ExecuteScalarAsync<string?>(
             "SELECT Timezone FROM district_master WHERE pk_district_id = @D", new { D = districtId }));
 
+    /// <summary>
+    /// The value to store for a time a club form sent. A time without an offset is the club's wall-clock (its
+    /// district's zone); when stored times are UTC it is converted, otherwise kept as typed.
+    /// </summary>
+    public static async Task<DateTime> ClubInputToStoredAsync(MySqlConnection conn, int clubId, DateTime value)
+    {
+        if (!StoredUtc) return value;
+        return value.Kind switch
+        {
+            DateTimeKind.Utc => value,
+            DateTimeKind.Local => value.ToUniversalTime(),
+            _ => TimeZoneInfo.ConvertTimeToUtc(value, await OfClubAsync(conn, clubId)),
+        };
+    }
+
+    /// <summary>
+    /// A stored time as the club's wall-clock "yyyy-MM-ddTHH:mm", the value an edit form shows; the inverse of
+    /// <see cref="ClubInputToStoredAsync"/>, so loading and saving a form never moves the time.
+    /// </summary>
+    public static async Task<string> StoredToClubInputAsync(MySqlConnection conn, int clubId, DateTime stored) =>
+        StoredToInput(StoredUtc ? await OfClubAsync(conn, clubId) : Brand.TimeZone, stored);
+
+    /// <summary><see cref="StoredToClubInputAsync"/> with the club's zone already known.</summary>
+    public static string StoredToInput(TimeZoneInfo clubZone, DateTime stored) =>
+        StoredToLocal(clubZone, stored).ToString("yyyy-MM-dd'T'HH:mm", System.Globalization.CultureInfo.InvariantCulture);
+
+    /// <summary>A stored time as wall-clock in the zone (stored times are UTC only when <see cref="StoredUtc"/>).</summary>
+    public static DateTime StoredToLocal(TimeZoneInfo zone, DateTime stored) =>
+        StoredUtc ? TimeZoneInfo.ConvertTimeFromUtc(DateTime.SpecifyKind(stored, DateTimeKind.Utc), zone) : stored;
+
     /// <summary>A club's zone: its district's.</summary>
     public static async Task<TimeZoneInfo> OfClubAsync(MySqlConnection conn, int clubId) =>
         Find(await conn.ExecuteScalarAsync<string?>(@"

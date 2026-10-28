@@ -4,7 +4,9 @@ using System.Text;
 using System.Text.RegularExpressions;
 using Dapper;
 using MySqlConnector;
+using Microsoft.Extensions.Localization;
 using RotaryApi.DTOs;
+using RotaryApi.Services.Localization;
 
 namespace RotaryApi.Services;
 
@@ -23,11 +25,9 @@ public class PlanningService
         ["DGE"] = "governor-elect", ["DS"] = "district secretary", ["DT"] = "district treasurer",
         ["PE"] = "president-elect", ["SE"] = "secretary-elect",
     };
-    // RI's six officer titles (spec 3.2) by ROW designation; other designations are not pushed to RI.
-    private const string RiTitleSql = @"CASE ds.designation_name WHEN 'Club President' THEN 'President'
-        WHEN 'Club Secretary' THEN 'Secretary' WHEN 'Club Treasurer' THEN 'Treasurer'
-        WHEN 'Club Executive Secretary/Director' THEN 'Executive Secretary'
-        WHEN 'Club Membership Chair' THEN 'Membership Chair' WHEN 'Club Foundation Chair' THEN 'Foundation Chair' END";
+    // RI's six officer titles (spec 3.2, 3.12) as Super Admin maps them to designations (designation_master.ri_title,
+    // Settings > Designations); other designations are not pushed to RI.
+    private const string RiTitleSql = "ds.ri_title";
 
     private const string StateSql = @"
         SELECT ts.fk_district_id AS DistrictId, d.DistrictNumber, ts.state AS State,
@@ -244,9 +244,9 @@ public class PlanningService
         await _audit.LogAsync(by, "START", "planning", districtId, label,
             new { planningYearId = p, dgeMemberId = dgeId, dgeFromRi = fromRi, electsFromRi = fromRiElects, cutoverAt }, ctx);
         var number = await DistrictNumberAsync(conn, districtId);
-        await NotifyAsync(conn, dgeId, $"Plan {label} for District {number}",
-            $"You can now plan Rotary year {Enc(label)} for District {Enc(number)} as governor-elect. Sign in to open the planning workspace.",
-            "Open the planning workspace", Brand.PortalOrigin + "/planning");
+        await NotifyAsync(conn, dgeId, L => (L["Plan {0} for District {1}", label, number],
+            L["You can now plan Rotary year {0} for District {1} as governor-elect. Sign in to open the planning workspace.", Enc(label), Enc(number)],
+            L["Open the planning workspace"]), Brand.PortalOrigin + "/planning");
         return new { districtId, planningYearId = p, planningYearLabel = label, cutoverAt, dgeMemberId = dgeId, electsFromRi = fromRiElects };
     }
 
@@ -277,9 +277,9 @@ public class PlanningService
         }
         await _audit.LogAsync(by, "APPOINT", "planning", districtId, role, new { roleId, role, memberId, planningYearId = p }, ctx);
         var (label, number) = await LabelsAsync(conn, districtId, p);
-        await NotifyAsync(conn, memberId, $"You are {RoleNames[role]} for {label}",
-            $"You have been appointed {RoleNames[role]} of District {Enc(number)} for Rotary year {Enc(label)}. Sign in to plan the year.",
-            "Open the planning workspace", Brand.PortalOrigin + "/planning");
+        await NotifyAsync(conn, memberId, L => (L["You are {0} for {1}", L[RoleNames[role]], label],
+            L["You have been appointed {0} of District {1} for Rotary year {2}. Sign in to plan the year.", L[RoleNames[role]], Enc(number), Enc(label)],
+            L["Open the planning workspace"]), Brand.PortalOrigin + "/planning");
         return new { roleId };
     }
 
@@ -324,10 +324,10 @@ public class PlanningService
             await tx.CommitAsync();
         }
         var (label, number) = await LabelsAsync(conn, districtId, p);
-        await NotifyAsync(conn, memberId, $"Plan {label} for {clubName}",
-            $"District {Enc(number)} invites you to plan Rotary year {Enc(label)} for {Enc(clubName)} as {RoleNames[role]}. " +
-            $"The link works once, for {InviteDays} days. After accepting, sign in to the admin (use Forgot password if you have no password yet).",
-            "Accept the invitation", Brand.PortalOrigin + "/planning/accept/" + token);
+        await NotifyAsync(conn, memberId, L => (L["Plan {0} for {1}", label, clubName],
+            L["District {0} invites you to plan Rotary year {1} for {2} as {3}.", Enc(number), Enc(label), Enc(clubName), L[RoleNames[role]]] + " " +
+            L["The link works once, for {0} days. After accepting, sign in to the admin (use Forgot password if you have no password yet).", InviteDays],
+            L["Accept the invitation"]), Brand.PortalOrigin + "/planning/accept/" + token);
         await conn.ExecuteAsync("UPDATE planning_roles SET email_sent_at = UTC_TIMESTAMP() WHERE pk_planning_role_id = @roleId", new { roleId });
         await _audit.LogAsync(by, "INVITE", "planning", districtId, role, new { roleId, clubId, role, memberId, planningYearId = p }, ctx);
         return new { roleId };
@@ -507,14 +507,19 @@ public class PlanningService
          await DistrictNumberAsync(conn, districtId));
 
     /// <summary>Emails a member (best effort: the send is logged in email_log and never fails the request).
-    /// <paramref name="introHtml"/> is HTML whose dynamic parts are already encoded.</summary>
-    private async Task NotifyAsync(MySqlConnection conn, int memberId, string subject, string introHtml, string linkText, string link)
+    /// <paramref name="text"/> builds the subject, the intro (HTML whose dynamic parts are already encoded) and the
+    /// link text inside the member's language (S5).</summary>
+    private async Task NotifyAsync(MySqlConnection conn, int memberId,
+        Func<IStringLocalizer, (string Subject, string IntroHtml, string LinkText)> text, string link)
     {
         var m = await conn.QueryFirstOrDefaultAsync<(string? Name, string? Email)?>(
             "SELECT MemberName, EmailId FROM member_master_profile WHERE pk_member_master_profile_id = @memberId AND isdeleted = 0", new { memberId });
         if (m is not { Email: { Length: > 0 } email } who) return;
+        using var culture = MessageCulture.Use(await MessageCulture.ForMemberAsync(conn, memberId));
+        var L = DbStringLocalizer.Instance;
+        var (subject, introHtml, linkText) = text(L);
         var html = $@"<div style=""font-family:Arial,Helvetica,sans-serif;font-size:15px;color:#1f2937;line-height:1.6;max-width:640px"">
-            <p>Dear {Enc(who.Name ?? "")},</p><p>{introHtml}</p>
+            <p>{L["Dear {0},", Enc(who.Name ?? "")]}</p><p>{introHtml}</p>
             <p><a href=""{Enc(link)}"">{Enc(linkText)}</a></p>
             <p style=""color:#6b7280;font-size:13px"">{Enc(Brand.ProductName)}</p></div>";
         await _email.SendGenericEmailAsync(email, $"{Brand.ProductName}: {subject}", html);

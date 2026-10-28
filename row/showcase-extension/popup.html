@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>ROW Showcase Publisher</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <header><strong>ROW</strong> Showcase Publisher</header>
+  <main>
+    <form id="signin" hidden>
+      <label>ROW address <input id="api" type="url" required placeholder="https://api.your-row-domain"></label>
+      <label>Email <input id="email" type="email" required autocomplete="username"></label>
+      <label>Password <input id="password" type="password" required autocomplete="current-password"></label>
+      <button type="submit">Sign in</button>
+    </form>
+    <section id="work" hidden>
+      <label>Club <select id="club"></select></label>
+      <label>Project <select id="project"></select></label>
+      <p class="hint">Open the Rotary Showcase "add project" page in this tab, then fill it. Check every field before you submit it on Showcase.</p>
+      <button id="fill" type="button">Fill the Showcase form</button>
+      <button id="signout" type="button" class="quiet">Sign out</button>
+    </section>
+    <p id="status" role="status"></p>
+  </main>
+  <script type="module" src="popup.js"></script>
+</body>
+</html>

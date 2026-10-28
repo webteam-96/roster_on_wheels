@@ -1,6 +1,7 @@
 using Dapper;
 using MySqlConnector;
 
+using RotaryApi.Services.Localization;
 namespace RotaryApi.Services.Push;
 
 /// <summary>
@@ -96,6 +97,7 @@ public class ProjectPushBackgroundService : BackgroundService
         var tokenToMember = await PushDispatcher.ResolveClubDistrictTokensAsync(conn, clubId, districtId);
         if (tokenToMember.Count == 0) { _logger.LogInformation("Project {Id}: no FCM tokens", projectId); return; }
 
+        using var pushCulture = MessageCulture.Use(await PushDispatcher.TenantLanguageAsync(conn, clubId, districtId));
         var sourceName = await PushDispatcher.ResolveSourceNameAsync(conn, clubId, districtId);
         // Title carries the project TYPE (module display name → "New Community Service · <club>"),
         // falling back to the generic "Project" only when the module is unknown.

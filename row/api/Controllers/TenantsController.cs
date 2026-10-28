@@ -33,6 +33,14 @@ public class TenantsController : ControllerBase
     private int GetCurrentMemberId() => int.Parse(User.FindFirst("memberId")?.Value ?? "0");
     private ObjectResult Forbidden() => StatusCode(403, new { message = "Only SuperAdmin can manage tenants and editions." });
 
+    /// <summary>Build spec 3.5: sends the due renewal notices and overdue reminders now (the daily job does the same).</summary>
+    [HttpPost("tenants/renewals/run")]
+    public async Task<IActionResult> RunRenewals([FromServices] TenantRenewalService renewals)
+    {
+        if (!IsSuperAdmin()) return Forbidden();
+        return Ok(new { done = await renewals.RunAsync() });
+    }
+
     // ===== EDITIONS =====
 
     [HttpGet("editions")]
@@ -88,7 +96,8 @@ public class TenantsController : ControllerBase
                ts.setup_fee_waived AS SetupFeeWaived, ts.platform_fee_pct AS PlatformFeePct,
                ts.platform_fee_fixed AS PlatformFeeFixed, ts.fee_waiver_until AS FeeWaiverUntil,
                ts.trial_ends AS TrialEnds, py.YearLabel AS PlanningYearLabel, ts.cutover_at AS CutoverAt,
-               ts.cutover_done_at AS CutoverDoneAt
+               ts.cutover_done_at AS CutoverDoneAt, ts.anonymise_after_months AS AnonymiseAfterMonths,
+               ts.auto_renew = 1 AS AutoRenew, ts.renewal_notice_for AS RenewalNoticeFor, ts.dunning_stage AS DunningStage
         FROM tenant_subscriptions ts
         LEFT JOIN district_master d ON d.pk_district_id = ts.fk_district_id
         LEFT JOIN rotary_year_master py ON py.pk_year_id = ts.planning_year_id
@@ -138,18 +147,20 @@ public class TenantsController : ControllerBase
         await conn.ExecuteAsync(@"
             INSERT INTO tenant_subscriptions
                 (fk_district_id, fk_club_id, edition_code, member_band, term_start, term_end, state, region,
-                 bridge_start, bridge_end, setup_fee_waived, platform_fee_pct, platform_fee_fixed, fee_waiver_until, created_by)
+                 bridge_start, bridge_end, setup_fee_waived, platform_fee_pct, platform_fee_fixed, fee_waiver_until,
+                 anonymise_after_months, auto_renew, created_by)
             VALUES (@districtId, 0, @EditionCode, @MemberBand, @TermStart, @TermEnd, @State, @Region,
-                 @BridgeStart, @BridgeEnd, @SetupFeeWaived, @PlatformFeePct, @PlatformFeeFixed, @FeeWaiverUntil, @by)
+                 @BridgeStart, @BridgeEnd, @SetupFeeWaived, @PlatformFeePct, @PlatformFeeFixed, @FeeWaiverUntil,
+                 @AnonymiseAfterMonths, @AutoRenew, @by)
             ON DUPLICATE KEY UPDATE edition_code = VALUES(edition_code), member_band = VALUES(member_band),
                 term_start = VALUES(term_start), term_end = VALUES(term_end), state = VALUES(state), region = VALUES(region),
                 bridge_start = VALUES(bridge_start), bridge_end = VALUES(bridge_end),
                 setup_fee_waived = VALUES(setup_fee_waived), platform_fee_pct = VALUES(platform_fee_pct),
                 platform_fee_fixed = VALUES(platform_fee_fixed), fee_waiver_until = VALUES(fee_waiver_until),
-                modified_by = @by",
+                anonymise_after_months = VALUES(anonymise_after_months), auto_renew = VALUES(auto_renew), modified_by = @by",
             new { districtId, dto.EditionCode, dto.MemberBand, dto.TermStart, dto.TermEnd, dto.State, dto.Region,
                   dto.BridgeStart, dto.BridgeEnd, dto.SetupFeeWaived, dto.PlatformFeePct, dto.PlatformFeeFixed,
-                  dto.FeeWaiverUntil, by }, tx);
+                  dto.FeeWaiverUntil, AnonymiseAfterMonths = dto.AnonymiseAfterMonths is > 0 ? dto.AnonymiseAfterMonths : null, AutoRenew = dto.AutoRenew ?? true, by }, tx);
         // A district subscription provisions every club: club_basic, or rotaract for Rotaract clubs. INSERT IGNORE
         // keeps a club that already has its own edition.
         var provisioned = await conn.ExecuteAsync(@"
@@ -228,6 +239,7 @@ public class TenantsController : ControllerBase
         var trialEnds = await conn.ExecuteScalarAsync<DateTime>(
             "SELECT trial_ends FROM tenant_subscriptions WHERE fk_district_id = @districtId AND fk_club_id = 0", new { districtId });
         await _auditLog.LogAsync(GetCurrentMemberId(), "TRIAL", "tenant_subscription", districtId, null, new { trialEnds }, HttpContext);
+        TrialLock.Forget(); // an extended trial lets its members back in at once
         return Ok(new { districtId, trialEnds });
     }
 
@@ -243,6 +255,7 @@ public class TenantsController : ControllerBase
             WHERE fk_district_id = @districtId AND fk_club_id = 0 AND trial_ends IS NOT NULL", new { districtId, by = GetCurrentMemberId() });
         if (n == 0) return Conflict(new { message = "This district is not on a trial." });
         await _auditLog.LogAsync(GetCurrentMemberId(), "CONVERT", "tenant_subscription", districtId, null, new { converted = true }, HttpContext);
+        TrialLock.Forget();
         return Ok(new { districtId, trialEnds = (DateTime?)null });
     }
 
@@ -266,6 +279,7 @@ public class TenantsController : ControllerBase
         if (dto.BridgeStart > dto.BridgeEnd) return "The bridge period must end after it starts.";
         if (dto.PlatformFeePct is < 0 or > 100) return "Platform fee must be between 0 and 100 percent.";
         if (dto.PlatformFeeFixed is < 0 or > 99999999) return "Fixed platform fee is out of range.";
+        if (dto.AnonymiseAfterMonths is < 0 or > 240) return "Anonymise after must be 0 to 240 months.";
         return null;
     }
 }

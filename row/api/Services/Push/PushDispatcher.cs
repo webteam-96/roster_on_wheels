@@ -1,6 +1,7 @@
 using Dapper;
 using MySqlConnector;
 
+using RotaryApi.Services.Localization;
 namespace RotaryApi.Services.Push;
 
 /// <summary>
@@ -48,6 +49,17 @@ public static class PushDispatcher
         return tokenToMember;
     }
 
+    /// <summary>
+    /// S5: push text in the tenant's language (the club's, else its district's). One multicast goes to the whole club
+    /// or district, so the text is per tenant. shortcut: a member's own language is not used for push; group the
+    /// tokens by member language if members ask for it.
+    /// </summary>
+    public static async Task<string?> TenantLanguageAsync(MySqlConnection conn, int clubId, int? districtId)
+    {
+        try { return await CommsTemplates.DefaultLanguageAsync(conn, clubId, districtId ?? 0); }
+        catch (MySqlException) { return null; }
+    }
+
     // Human-readable source for the notification title: club name (club scope) or "District <num>".
     public static async Task<string> ResolveSourceNameAsync(MySqlConnection conn, int clubId, int? districtId)
     {
@@ -57,7 +69,7 @@ public static class PushDispatcher
             {
                 var num = await conn.ExecuteScalarAsync<string?>(
                     "SELECT DistrictNumber FROM district_master WHERE pk_district_id = @Id", new { Id = districtId.Value });
-                return $"District {num ?? "-"}";
+                return DbStringLocalizer.Instance["District {0}", num ?? "-"];
             }
             var name = await conn.ExecuteScalarAsync<string?>(
                 "SELECT ClubName FROM club_master WHERE pk_club_id = @Id", new { Id = clubId });
@@ -67,9 +79,10 @@ public static class PushDispatcher
     }
 
     // Source-prefixed title, e.g. SourceTitle("Announcement", "RC Mumbai") => "New Announcement · RC Mumbai".
-    public static string SourceTitle(string typeLabel, string sourceName) => $"New {typeLabel} · {sourceName}";
+    public static string SourceTitle(string typeLabel, string sourceName)
+        => DbStringLocalizer.Instance["New {0} · {1}", DbStringLocalizer.Instance[typeLabel], sourceName];
     // Reminder title, e.g. "Reminder · RC Mumbai".
-    public static string ReminderTitle(string sourceName) => $"Reminder · {sourceName}";
+    public static string ReminderTitle(string sourceName) => DbStringLocalizer.Instance["Reminder · {0}", sourceName];
 
     public static string Trim(string? s, int max)
         => string.IsNullOrEmpty(s) ? "" : (s.Length <= max ? s : s[..max] + "…");

@@ -1,6 +1,7 @@
 using Dapper;
 using MySqlConnector;
 
+using RotaryApi.Services.Localization;
 namespace RotaryApi.Services.Push;
 
 /// <summary>
@@ -82,6 +83,7 @@ public class NewsletterPushBackgroundService : BackgroundService
         var tokenToMember = await PushDispatcher.ResolveClubDistrictTokensAsync(conn, clubId, districtId);
         if (tokenToMember.Count == 0) { _logger.LogInformation("Newsletter {Id}: no FCM tokens", newsletterId); return; }
 
+        using var pushCulture = MessageCulture.Use(await PushDispatcher.TenantLanguageAsync(conn, clubId, districtId));
         var sourceName = await PushDispatcher.ResolveSourceNameAsync(conn, clubId, districtId);
         var pushTitle = PushDispatcher.SourceTitle("Newsletter", sourceName);
         var pushBody = string.IsNullOrWhiteSpace(title) ? "A new newsletter has been published." : title;

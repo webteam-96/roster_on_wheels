@@ -74,6 +74,11 @@ Mapped {api/clubs/{clubId}/board-of-directors/{id}, Put}
 Mapped {api/clubs/{clubId}/board-of-directors/{id}, Delete}
 Mapped {api/clubs/{clubId}/board-of-directors/search-members, Get}
 Mapped {api/clubs/{clubId}/board-of-directors/reorder, Put}
+Mapped {api/public/booth/options, Get}
+Mapped {api/public/booth/signups, Post}
+Mapped {api/booth/signups, Get}
+Mapped {api/booth/signups/{id:int}/provision, Post}
+Mapped {api/booth/signups/{id:int}/reject, Post}
 Mapped {api/cashfree-kyc, Get}
 Mapped {api/cashfree-kyc/send-otp, Post}
 Mapped {api/cashfree-kyc/verify-and-save, Post}
@@ -278,6 +283,7 @@ Mapped {api/public/district/{districtId:int}/clubs/{clubId:int}/projects/{projec
 Mapped {api/public/district/{districtId:int}/projects, Get}
 Mapped {api/public/district/{districtId:int}/snapshot, Get}
 Mapped {api/public/club/{clubId:int}/projects, Get}
+Mapped {api/clubs/{clubId:int}/showcase/projects, Get}
 Mapped {api/public/club/{clubId:int}/meetings, Get}
 Mapped {api/public/club/{clubId:int}/menus, Get}
 Mapped {api/public/club/{clubId:int}/international-president, Get}
@@ -1055,6 +1061,8 @@ Mapped {api/clubs/{clubId}/ocv-gov/report/live-tables, Get}
 Mapped {api/clubs/{clubId}/ocv-gov/settings/document-types, Post}
 Mapped {api/clubs/{clubId}/ocv-gov/settings/document-types/{typeId}, Put}
 Mapped {api/clubs/{clubId}/ocv-gov/settings/document-types/{typeId}, Delete}
+Mapped {api/districts/{districtId:int}/onboarding-kit/clubs/{clubId:int}, Get}
+Mapped {api/districts/{districtId:int}/onboarding-kit/clubs/{clubId:int}/nudge, Post}
 Mapped {api/clubs/{clubId}/past-presidents, Get}
 Mapped {api/clubs/{clubId}/past-presidents/{id}, Get}
 Mapped {api/clubs/{clubId}/past-presidents, Post}
@@ -1215,6 +1223,12 @@ Mapped {api/admin/reports/ocv-documents, Get}
 Mapped {api/admin/reports/club-social-links, Get}
 Mapped {api/admin/ri-admin-cleanup/preview, Get}
 Mapped {api/admin/ri-admin-cleanup/execute, Post}
+Mapped {api/ri-codes, Get}
+Mapped {api/ri-codes, Post}
+Mapped {api/ri-codes/{id:int}, Put}
+Mapped {api/ri-codes/{id:int}, Delete}
+Mapped {api/clubs/{clubId:int}/members/{memberId:int}/ri-fields, Get}
+Mapped {api/clubs/{clubId:int}/members/{memberId:int}/ri-fields, Put}
 Mapped {api/admin/rotary-org-manual-sync/clubs/compare, Get}
 Mapped {api/admin/rotary-org-manual-sync/clubs/refresh-cache, Post}
 Mapped {api/admin/rotary-org-manual-sync/summary, Get}
@@ -1272,6 +1286,12 @@ Mapped {api/admin/super-admins/send-otp, Post}
 Mapped {api/admin/super-admins/verify-otp, Post}
 Mapped {api/districts/{districtId:int}/targets, Get}
 Mapped {api/clubs/{clubId:int}/targets, Get}
+Mapped {api/districts/{districtId:int}/targets/proposals, Get}
+Mapped {api/districts/{districtId:int}/targets/proposals, Put}
+Mapped {api/clubs/{clubId:int}/targets/proposals, Get}
+Mapped {api/clubs/{clubId:int}/targets/proposals/{id:int}/accept, Post}
+Mapped {api/clubs/{clubId:int}/targets/proposals/{id:int}/counter, Post}
+Mapped {api/tenants/renewals/run, Post}
 Mapped {api/editions, Get}
 Mapped {api/editions/{code}, Put}
 Mapped {api/tenants, Get}
@@ -1286,6 +1306,7 @@ Mapped {api/themes, Post}
 Mapped {api/themes/{id}, Put}
 Mapped {api/themes/{id}, Delete}
 Mapped {api/themes/upload, Post}
+Mapped {api/time-zone, Get}
 Mapped {api/training-appointments/availability, Get}
 Mapped {api/training-appointments/book, Post}
 Mapped {api/training-appointments/mine, Get}

@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import '../../../../../core/constants/api_constants.dart';
 import '../../../../../core/network/api_client.dart';
+import '../../../../../core/utils/ri_codes.dart';
 import '../../../../../core/network/api_response.dart';
 import '../../../../../core/routing/route_names.dart';
 import '../../../../../core/utils/member_count_label.dart';
@@ -244,9 +245,28 @@ class _ClubMembersScreenState extends State<ClubMembersScreen> {
     );
   }
 
-  Future<void> _removeMember(int memberId, String memberName) async {
+  /// The RI termination reason for a removal (build spec 3.12): '' when not given or the list is empty, null when
+  /// the user backs out.
+  Future<String?> _pickTerminationReason() async {
+    final reasons = await RiCodes.of('termination_reason');
+    if (reasons.isEmpty || !mounted) return '';
+    return showDialog<String>(
+      context: context,
+      builder: (ctx) => SimpleDialog(
+        title: const Text('Termination reason (RI)'),
+        children: [
+          for (final r in reasons)
+            SimpleDialogOption(onPressed: () => Navigator.pop(ctx, r.code), child: Text(r.label)),
+          SimpleDialogOption(onPressed: () => Navigator.pop(ctx, ''), child: const Text('Not given')),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _removeMember(int memberId, String memberName, [String reasonCode = '']) async {
     try {
-      await _api.delete('/api/clubs/${widget.clubId}/members/$memberId');
+      final q = reasonCode.isEmpty ? '' : '?reasonCode=${Uri.encodeQueryComponent(reasonCode)}';
+      await _api.delete('/api/clubs/${widget.clubId}/members/$memberId$q');
       setState(() => _items.removeWhere((m) => m.memberId == memberId));
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -472,7 +492,9 @@ class _ClubMembersScreenState extends State<ClubMembersScreen> {
                                       title: 'Remove Member',
                                       message: 'Remove "${member.memberName}" from this club?',
                                     );
-                                    if (ok) _removeMember(member.memberId, member.memberName);
+                                    if (!ok) return;
+                                    final code = await _pickTerminationReason();
+                                    if (code != null) _removeMember(member.memberId, member.memberName, code);
                                   },
                                   // Club Directory members list → the member
                                   // detail offers the Edit button (still gated to

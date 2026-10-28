@@ -86,6 +86,14 @@ public class PrivacyController : ControllerBase
         return await Guarded(async () => await _svc.UnlistedColumnsAsync());
     }
 
+    /// <summary>Runs the daily retention pass now, including the tenant rule for terminated members (SuperAdmin).</summary>
+    [HttpPost("retention/run")]
+    public async Task<IActionResult> RunRetention()
+    {
+        if (!IsSuperAdmin) return StatusCode(403, new { message = "SuperAdmin only." });
+        return await Guarded(async () => new { done = await _svc.ApplyRetentionAsync() });
+    }
+
     /// <summary>The ZIP behind an export's signed link (opened from a plain link, so no bearer token).</summary>
     [HttpGet("exports/{guid}")]
     [AllowAnonymous]

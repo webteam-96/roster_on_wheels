@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useCallback, useEffect } from "react";
-import { Designation } from "@/types/boardDirector";
+import { Designation, RI_OFFICER_TITLES } from "@/types/boardDirector";
 import {
   getDesignations,
   createDesignation,
@@ -46,6 +46,7 @@ export default function DesignationsPage() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingDesignation, setEditingDesignation] = useState<Designation | null>(null);
   const [desName, setDesName] = useState("");
+  const [desRiTitle, setDesRiTitle] = useState("");
   const [saving, setSaving] = useState(false);
 
   // Delete state
@@ -74,6 +75,7 @@ export default function DesignationsPage() {
   const openEditDialog = (des: Designation) => {
     setEditingDesignation(des);
     setDesName(des.designationName);
+    setDesRiTitle(des.riTitle ?? "");
     setDialogOpen(true);
   };
 
@@ -82,7 +84,7 @@ export default function DesignationsPage() {
     setSaving(true);
     try {
       if (editingDesignation) {
-        await updateDesignation(editingDesignation.id, { designationName: desName.trim(), sortOrder: editingDesignation.sortOrder });
+        await updateDesignation(editingDesignation.id, { designationName: desName.trim(), sortOrder: editingDesignation.sortOrder, riTitle: desRiTitle });
         setSuccessMessage("Designation updated successfully.");
       } else {
         const maxSort = designations.length > 0 ? Math.max(...designations.map(d => d.sortOrder)) : 0;
@@ -243,7 +245,10 @@ export default function DesignationsPage() {
                     return (
                       <TableRow key={des.id} className="hover:bg-primary/5 transition-colors">
                         <TableCell>{i + 1}</TableCell>
-                        <TableCell className="font-medium">{des.designationName}</TableCell>
+                        <TableCell className="font-medium">
+                          {des.designationName}
+                          {des.riTitle && <span className="ml-2 text-xs font-normal text-muted-foreground">RI: {des.riTitle}</span>}
+                        </TableCell>
                         <TableCell className="text-center">
                           <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${inUse ? "bg-blue-100 text-blue-800" : "bg-muted text-muted-foreground"}`}>
                             {bodCount}
@@ -301,6 +306,17 @@ export default function DesignationsPage() {
                 <Label>Designation Name<span className="text-destructive ml-1">*</span></Label>
                 <Input value={desName} onChange={(e) => setDesName(e.target.value)} placeholder="e.g. Club President" autoFocus />
               </div>
+              {editingDesignation && (
+                <div className="space-y-2">
+                  <Label htmlFor="ri-title">RI officer title</Label>
+                  <select id="ri-title" value={desRiTitle} onChange={(e) => setDesRiTitle(e.target.value)}
+                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm">
+                    <option value="">Not sent to RI</option>
+                    {RI_OFFICER_TITLES.map((t) => <option key={t} value={t}>{t}</option>)}
+                  </select>
+                  <p className="text-xs text-muted-foreground">The title this designation is reported as in the Rotary.org sync.</p>
+                </div>
+              )}
             </div>
             <DialogFooter>
               <Button variant="outline" onClick={() => setDialogOpen(false)} disabled={saving}>Cancel</Button>

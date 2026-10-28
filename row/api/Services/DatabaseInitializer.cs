@@ -5187,6 +5187,7 @@ public partial class DatabaseInitializer
                 await EnsureEscalationCelebrationSchemaAsync(connection);
                 // Planning mode and cut-over (ROW build spec 3.1): DatabaseInitializer.Planning.cs.
                 await EnsurePlanningTablesAsync(connection);
+                await EnsureSpecCompletionAsync(connection);
 
                 // Never reset any user's password on boot: passwords change only through
                 // explicit SuperAdmin reset flows.

@@ -1,0 +1,11 @@
+{
+  "manifest_version": 3,
+  "name": "ROW Showcase Publisher",
+  "short_name": "ROW Showcase",
+  "description": "Publish your club's ROW service projects to Rotary Showcase in one click.",
+  "version": "1.0.0",
+  "action": { "default_title": "ROW Showcase Publisher", "default_popup": "popup.html" },
+  "permissions": ["storage", "activeTab", "scripting"],
+  "optional_host_permissions": ["https://*/*", "http://localhost/*", "http://127.0.0.1/*"],
+  "minimum_chrome_version": "116"
+}

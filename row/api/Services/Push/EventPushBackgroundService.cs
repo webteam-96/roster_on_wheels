@@ -1,6 +1,7 @@
 using Dapper;
 using MySqlConnector;
 
+using RotaryApi.Services.Localization;
 namespace RotaryApi.Services.Push;
 
 /// <summary>
@@ -92,6 +93,7 @@ public class EventPushBackgroundService : BackgroundService
         var tokenToMember = await PushDispatcher.ResolveClubDistrictTokensAsync(conn, clubId, districtId);
         if (tokenToMember.Count == 0) return;
 
+        using var pushCulture = MessageCulture.Use(await PushDispatcher.TenantLanguageAsync(conn, clubId, districtId));
         var sourceName = await PushDispatcher.ResolveSourceNameAsync(conn, clubId, districtId);
         var pushTitle = isReminder ? PushDispatcher.ReminderTitle(sourceName) : PushDispatcher.SourceTitle("Event", sourceName);
         var datePart = eventDate.HasValue ? $" · {eventDate.Value:dd MMM yyyy}" : "";

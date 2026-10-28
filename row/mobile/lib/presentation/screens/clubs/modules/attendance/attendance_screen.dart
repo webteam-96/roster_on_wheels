@@ -4,6 +4,8 @@ import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../../../core/utils/meeting.dart';
 import '../../../../../core/network/api_client.dart';
+import '../../../../../core/utils/date_formatter.dart';
+import '../../../../../core/utils/event_zone.dart';
 import '../../../../providers/auth_provider.dart';
 import '../../../../../core/network/api_response.dart';
 import '../../../../../core/theme/app_colors.dart';
@@ -49,6 +51,7 @@ class _AttendanceRecord {
   final int? yearId;
   final String eventName;
   final DateTime? eventDateTime;
+  final String? eventRaw; // as sent, for DateFormatter.eventDateTime
   final int membersCount;
   final int annsCount;
   final int annetsCount;
@@ -62,6 +65,7 @@ class _AttendanceRecord {
     this.yearId,
     this.eventName = '',
     this.eventDateTime,
+    this.eventRaw,
     this.membersCount = 0,
     this.annsCount = 0,
     this.annetsCount = 0,
@@ -85,6 +89,7 @@ class _AttendanceRecord {
       yearId: (j['yearId'] as num?)?.toInt(),
       eventName: (j['eventName'] ?? '').toString(),
       eventDateTime: _dt(j['eventDateTime'] ?? j['meetingDate']),
+      eventRaw: (j['eventDateTime'] ?? j['meetingDate'])?.toString(),
       membersCount: _i(j['membersCount']),
       annsCount: _i(j['annsCount']),
       annetsCount: _i(j['annetsCount']),
@@ -150,7 +155,12 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
     _bootstrap();
   }
 
+  String? _zone;
+
   Future<void> _bootstrap() async {
+    EventZones.club(widget.clubId).then((z) {
+      if (mounted) setState(() => _zone = z);
+    });
     await _loadYears();
     await _fetch(reset: true);
   }
@@ -287,6 +297,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
           clubId: widget.clubId,
           record: record,
           df: _df,
+          zone: _zone,
         ),
       ),
     );
@@ -396,6 +407,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                           return _AttendanceCard(
                             record: rec,
                             df: _df,
+                            zone: _zone,
                             canManage: canManage,
                             onTap: () => _openDetailPage(rec),
                             onEdit: () => _showEditSheet(rec),
@@ -420,6 +432,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
 class _AttendanceCard extends StatelessWidget {
   final _AttendanceRecord record;
   final DateFormat df;
+  final String? zone;
   final bool canManage;
   final VoidCallback onTap;
   final VoidCallback onEdit;
@@ -428,6 +441,7 @@ class _AttendanceCard extends StatelessWidget {
   const _AttendanceCard({
     required this.record,
     required this.df,
+    this.zone,
     required this.canManage,
     required this.onTap,
     required this.onEdit,
@@ -497,7 +511,7 @@ class _AttendanceCard extends StatelessWidget {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      record.eventDateTime != null ? df.format(record.eventDateTime!) : '',
+                      record.eventDateTime != null ? DateFormatter.eventDateTime(record.eventRaw, zone) : '',
                       style: AppTextStyles.caption,
                     ),
                     const SizedBox(height: 4),
@@ -626,7 +640,8 @@ class _CreateAttendanceScreenState extends State<_CreateAttendanceScreen> {
     _descCtrl.text = (data['description'] ?? '').toString();
     _meetingMode = meetingModes.containsKey(data['meetingMode']) ? data['meetingMode'] as String : 'in_person';
     _meetingLinkCtrl.text = (data['meetingLink'] ?? '').toString();
-    final dt = DateTime.tryParse((data['eventDateTime'] ?? data['meetingDate'] ?? '').toString());
+    // eventLocal is the club's wall-clock; eventDateTime may be UTC ("…Z").
+    final dt = DateTime.tryParse((data['eventLocal'] ?? data['eventDateTime'] ?? data['meetingDate'] ?? '').toString());
     if (dt != null) {
       _meetingDate = dt;
       if (dt.hour != 0 || dt.minute != 0) {
@@ -1277,11 +1292,13 @@ class _AttendanceDetailPage extends StatefulWidget {
   final int clubId;
   final _AttendanceRecord record;
   final DateFormat df;
+  final String? zone;
 
   const _AttendanceDetailPage({
     required this.clubId,
     required this.record,
     required this.df,
+    this.zone,
   });
 
   @override
@@ -1403,7 +1420,7 @@ class _AttendanceDetailPageState extends State<_AttendanceDetailPage> {
                         style: AppTextStyles.caption),
                   if (widget.record.eventDateTime != null) ...[
                     const SizedBox(height: 4),
-                    Text(widget.df.format(widget.record.eventDateTime!),
+                    Text(DateFormatter.eventDateTime(widget.record.eventRaw, widget.zone),
                         style: AppTextStyles.caption),
                   ],
                   if ((data['meetingLink'] ?? '').toString().isNotEmpty) ...[
