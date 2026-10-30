@@ -67,3 +67,6 @@ index (`~/.claude/projects/E--websites-row/memory/MEMORY.md`) and in `row/HANDOF
   side-by-side visual check of every theme x page against RIZones.
 - 2026-10-30: Asked to run the club website and see all the themes, with a theme switcher option to change
   between them.
+- 2026-10-30: Remove the district website code built so far; the owner will give the district website themes code
+  later. Events and QR: the owner will give that code when it is done. Commit and push all other work to main with
+  the webteam-96 GitHub account.

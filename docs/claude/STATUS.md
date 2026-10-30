@@ -276,3 +276,9 @@ NOT VERIFIED / open:
   update, 30 Oct" added. Page 16: "Plan status, 30 Oct" added. Proof: each page re-read after Save shows the new
   text and "updated 30/10/2026", editor closed.
 - Not updated: pages 2-14 (Work Done, Pending, Blocked, Timeline etc.) still dated 27-29 Oct.
+
+## 2026-10-30: district website code removed (user: "remove all the code related to the district website which was done")
+- User chose "site folders only": deleted row/district-website and row/district-website.bak-2026-10-29 (both
+  git-ignored, never committed). Archive first: E:\websites\row-district-website-archive-2026-10-30.tar.gz (168
+  files, node_modules/.next excluded). Kept: API DistrictWebsitePublicDataController and admin district Website Data
+  screens, for the owner's district themes code later. Events and QR code also comes from the owner later.
