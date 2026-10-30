@@ -164,7 +164,7 @@ class _MembersListScreenState extends State<MembersListScreen> {
       drawer: const CustomDrawer(),
       appBar: CustomAppBar(
         title: 'Members',
-        titleStyle: AppFonts.body(fontWeight: FontWeight.bold, fontSize: 22),
+        titleStyle: AppFonts.display(fontWeight: FontWeight.w600, fontSize: 22),
         showBack: false,
         leading: Builder(
           builder: (ctx) => IconButton(
@@ -181,12 +181,11 @@ class _MembersListScreenState extends State<MembersListScreen> {
               borderRadius: BorderRadius.circular(12),
             ),
             child: Text(
-              '$_totalCount TOTAL',
+              '$_totalCount total',
               style: AppFonts.body(
-                fontSize: 10,
+                fontSize: 13,
                 fontWeight: FontWeight.w800,
                 color: AppColors.primaryPrime,
-                letterSpacing: 0.5,
               ),
             ),
           ),
@@ -198,7 +197,7 @@ class _MembersListScreenState extends State<MembersListScreen> {
         foregroundColor: AppColors.white,
         icon: const Icon(Icons.person_add_rounded),
         label: const Text('Add Member'),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        shape: const StadiumBorder(),
       ),
       body: Column(
         children: [
@@ -226,7 +225,7 @@ class _MembersListScreenState extends State<MembersListScreen> {
             children: [
               Expanded(
                 child: _DropdownFilter(
-                  label: 'BLOOD GROUP',
+                  label: 'Blood group',
                   value: _bloodGroup,
                   items: _bloodGroups,
                   onChanged: (v) {
@@ -238,7 +237,7 @@ class _MembersListScreenState extends State<MembersListScreen> {
               const SizedBox(width: 12),
               Expanded(
                 child: _DropdownFilter(
-                  label: 'GENDER',
+                  label: 'Gender',
                   value: _gender,
                   items: _genders,
                   onChanged: (v) {
@@ -273,7 +272,7 @@ class _MembersListScreenState extends State<MembersListScreen> {
       color: AppColors.primaryPrime,
       onRefresh: () => _fetchMembers(reset: true),
       child: ListView.separated(
-        padding: const EdgeInsets.fromLTRB(AppSpacing.md, AppSpacing.sm, AppSpacing.md, 100),
+        padding: (const EdgeInsets.fromLTRB(AppSpacing.md, AppSpacing.sm, AppSpacing.md, 100)).add(const EdgeInsets.only(bottom: 88)),
         itemCount: _members.length + 1,
         separatorBuilder: (_, __) => const SizedBox(height: 12),
         itemBuilder: (ctx, i) {
@@ -333,6 +332,10 @@ class _MemberCard extends StatelessWidget {
     required this.onDelete,
   });
 
+  static String _meta(dynamic m) => [m.gender, m.bloodGroup]
+      .where((v) => v != null && '$v'.isNotEmpty)
+      .join(' · ');
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -360,8 +363,8 @@ class _MemberCard extends StatelessWidget {
                       Text(
                         member.memberName,
                         style: AppFonts.body(
-                          fontWeight: FontWeight.w800,
-                          fontSize: 15,
+                          fontWeight: FontWeight.w600,
+                          fontSize: 16,
                           color: AppColors.textPrimary,
                         ),
                         maxLines: 1,
@@ -376,54 +379,32 @@ class _MemberCard extends StatelessWidget {
                           overflow: TextOverflow.ellipsis,
                         ),
                       ],
-                      const SizedBox(height: 8),
-                      Row(
-                        children: [
-                          if (member.bloodGroup != null && member.bloodGroup!.isNotEmpty)
-                            _Badge(label: member.bloodGroup!, color: AppColors.error, bgColor: AppColors.errorLight),
-                          if (member.bloodGroup != null && member.gender != null)
-                            const SizedBox(width: 6),
-                          if (member.gender != null && member.gender!.isNotEmpty)
-                            _Badge(label: member.gender!, color: AppColors.primaryPrime, bgColor: AppColors.primaryPrime.withOpacity(0.08)),
-                        ],
-                      ),
+                      if (_meta(member).isNotEmpty) ...[
+                        const SizedBox(height: 2),
+                        Text(
+                          _meta(member),
+                          style: AppTextStyles.caption.copyWith(color: AppColors.textSecondary),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
                     ],
                   ),
                 ),
-                Column(
-                  children: [
-                    _ActionButton(icon: Icons.edit_rounded, color: AppColors.primaryPrime, onTap: onEdit),
-                    const SizedBox(height: 8),
-                    _ActionButton(icon: Icons.delete_rounded, color: AppColors.error, onTap: onDelete),
+                // Row actions live in one menu (design.md 8.6): no permanent red delete on every row.
+                PopupMenuButton<String>(
+                  tooltip: 'Member actions',
+                  icon: const Icon(Icons.more_vert_rounded, color: AppColors.textSecondary),
+                  onSelected: (v) => v == 'edit' ? onEdit() : onDelete(),
+                  itemBuilder: (_) => const [
+                    PopupMenuItem(value: 'edit', child: Text('Edit')),
+                    PopupMenuItem(value: 'delete', child: Text('Delete', style: TextStyle(color: AppColors.error))),
                   ],
                 ),
               ],
             ),
           ),
         ),
-      ),
-    );
-  }
-}
-
-class _ActionButton extends StatelessWidget {
-  final IconData icon;
-  final Color color;
-  final VoidCallback onTap;
-
-  const _ActionButton({required this.icon, required this.color, required this.onTap});
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.all(8),
-        decoration: BoxDecoration(
-          color: color.withOpacity(0.08),
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: Icon(icon, size: 18, color: color),
       ),
     );
   }
@@ -503,11 +484,11 @@ class _Badge extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(color: bgColor, borderRadius: BorderRadius.circular(8)),
       child: Text(
-        label.toUpperCase(),
+        label,
         style: AppFonts.body(
           color: color,
           fontWeight: FontWeight.w800,
-          fontSize: 10,
+          fontSize: 13,
           letterSpacing: 0.3,
         ),
       ),
@@ -547,10 +528,9 @@ class _DropdownFilter extends StatelessWidget {
           decoration: InputDecoration(
             labelText: label,
             labelStyle: AppFonts.body(
-              fontSize: 10,
+              fontSize: 13,
               fontWeight: FontWeight.w800,
               color: AppColors.textSecondary,
-              letterSpacing: 0.5,
             ),
             border: InputBorder.none,
             enabledBorder: InputBorder.none,
@@ -562,7 +542,7 @@ class _DropdownFilter extends StatelessWidget {
             fontSize: 13,
             fontWeight: FontWeight.w600,
           ),
-          items: items.map((g) => DropdownMenuItem(value: g, child: Text(g.isEmpty ? 'ALL' : g.toUpperCase()))).toList(),
+          items: items.map((g) => DropdownMenuItem(value: g, child: Text(g.isEmpty ? 'All' : g))).toList(),
           onChanged: onChanged,
         ),
       ),
@@ -598,7 +578,7 @@ class _MemberDetailSheet extends StatelessWidget {
           Expanded(
             child: ListView(
               controller: ctrl,
-              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+              padding: (const EdgeInsets.symmetric(horizontal: AppSpacing.lg)).add(const EdgeInsets.only(bottom: 88)),
               children: [
                 Center(
                   child: Container(
@@ -646,9 +626,9 @@ class _MemberDetailSheet extends StatelessWidget {
                 const SizedBox(height: 32),
                 _buildInfoSection('Contact Information', [
                   if (member.emailId != null && member.emailId!.isNotEmpty)
-                    _DetailRow(icon: Icons.email_rounded, label: 'EMAIL ADDRESS', value: member.emailId!),
+                    _DetailRow(icon: Icons.email_rounded, label: 'Email address', value: member.emailId!),
                   if (member.primaryMobileNumber != null && member.primaryMobileNumber!.isNotEmpty)
-                    _DetailRow(icon: Icons.phone_rounded, label: 'MOBILE NUMBER', value: member.primaryMobileNumber!),
+                    _DetailRow(icon: Icons.phone_rounded, label: 'Mobile number', value: member.primaryMobileNumber!),
                 ]),
                 const SizedBox(height: 20),
               ],
@@ -665,12 +645,11 @@ class _MemberDetailSheet extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          title.toUpperCase(),
+          title,
           style: AppFonts.body(
-            fontSize: 11,
+            fontSize: 13,
             fontWeight: FontWeight.w800,
             color: AppColors.textMuted,
-            letterSpacing: 1.2,
           ),
         ),
         const SizedBox(height: 16),
@@ -743,10 +722,9 @@ class _DetailRow extends StatelessWidget {
                 Text(
                   label,
                   style: AppFonts.body(
-                    fontSize: 10,
+                    fontSize: 13,
                     fontWeight: FontWeight.w800,
                     color: AppColors.textSecondary,
-                    letterSpacing: 0.5,
                   ),
                 ),
                 Text(

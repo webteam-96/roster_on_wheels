@@ -202,7 +202,7 @@ class _Header extends StatelessWidget {
               Text(
                 'AG: $agName · RY $year · Data as of ${agToday()}',
                 style: AppFonts.body(
-                  fontSize: 11,
+                  fontSize: 13,
                   color: AppColors.slate500,
                 ),
               ),
@@ -220,7 +220,7 @@ class _Header extends StatelessWidget {
           child: Text(
             '$clubCount club${clubCount == 1 ? "" : "s"} · $district',
             style: AppFonts.body(
-              fontSize: 9.5,
+              fontSize: 13,
               fontWeight: FontWeight.w700,
               color: AppColors.slate500,
             ),
@@ -258,10 +258,9 @@ class _LiveChip extends StatelessWidget {
           Text(
             'LIVE',
             style: AppFonts.body(
-              fontSize: 8.5,
+              fontSize: 13,
               fontWeight: FontWeight.w800,
               color: AppColors.slate500,
-              letterSpacing: 0.6,
             ),
           ),
         ],
@@ -313,7 +312,7 @@ class _OverviewCard extends StatelessWidget {
           Text(
             'All $n club${n == 1 ? "" : "s"} · ${data.ag.districtNumber.isEmpty ? ": " : data.ag.districtNumber} · Year ${data.ag.yearLabel.isEmpty ? ": " : data.ag.yearLabel}',
             style: AppFonts.body(
-              fontSize: 11,
+              fontSize: 13,
               color: AppColors.slate400,
             ),
           ),
@@ -412,9 +411,9 @@ class _KpiCard extends StatelessWidget {
               const SizedBox(width: 6),
               Expanded(
                 child: Text(
-                  title.toUpperCase(),
+                  title,
                   style: AppFonts.body(
-                    fontSize: 9.5,
+                    fontSize: 13,
                     fontWeight: FontWeight.w800,
                     color: AppColors.slate500,
                     letterSpacing: 0.4,
@@ -439,7 +438,7 @@ class _KpiCard extends StatelessWidget {
           Text(
             subtitle,
             style: AppFonts.body(
-              fontSize: 10,
+              fontSize: 13,
               color: AppColors.slate400,
             ),
           ),
@@ -496,7 +495,7 @@ class _ChartCard extends StatelessWidget {
           Text(
             subtitle,
             style: AppFonts.body(
-              fontSize: 11,
+              fontSize: 13,
               color: AppColors.slate400,
             ),
           ),
@@ -520,7 +519,7 @@ class _EmptyNote extends StatelessWidget {
         child: Text(
           text,
           style: AppFonts.body(
-            fontSize: 12,
+            fontSize: 13,
             fontWeight: FontWeight.w600,
             color: AppColors.slate400,
           ),
@@ -569,7 +568,7 @@ class _ComparisonBody extends StatelessWidget {
           Text(
             clubs[i].clubName,
             style: AppFonts.body(
-              fontSize: 12,
+              fontSize: 13,
               fontWeight: FontWeight.w800,
               color: AppColors.textPrimary,
             ),
@@ -635,7 +634,7 @@ class _MetricBar extends StatelessWidget {
             child: Text(
               label,
               style: AppFonts.body(
-                fontSize: 10.5,
+                fontSize: 13,
                 color: AppColors.slate500,
               ),
             ),
@@ -658,7 +657,7 @@ class _MetricBar extends StatelessWidget {
               agFmtInt(value),
               textAlign: TextAlign.right,
               style: AppFonts.body(
-                fontSize: 11,
+                fontSize: 13,
                 fontWeight: FontWeight.w800,
                 color: color,
                 fontFeatures: const [FontFeature.tabularFigures()],
@@ -690,7 +689,7 @@ class _LegendDot extends StatelessWidget {
         Text(
           label,
           style: AppFonts.body(
-            fontSize: 10.5,
+            fontSize: 13,
             color: AppColors.slate500,
           ),
         ),
@@ -745,7 +744,7 @@ class _ActivityBody extends StatelessWidget {
                       child: Text(
                         c.clubName,
                         style: AppFonts.body(
-                          fontSize: 11.5,
+                          fontSize: 13,
                           fontWeight: FontWeight.w700,
                           color: AppColors.textPrimary,
                         ),
@@ -755,7 +754,7 @@ class _ActivityBody extends StatelessWidget {
                     Text(
                       '${agFmtInt(c.meetings)} M · ${agFmtInt(c.totalProjects)} P',
                       style: AppFonts.body(
-                        fontSize: 10,
+                        fontSize: 13,
                         fontWeight: FontWeight.w700,
                         color: AppColors.slate500,
                         fontFeatures: const [FontFeature.tabularFigures()],
@@ -901,7 +900,7 @@ class _DistributionDonut extends StatelessWidget {
                           Text(
                             'Members',
                             style: AppFonts.body(
-                              fontSize: 10,
+                              fontSize: 13,
                               color: AppColors.slate500,
                             ),
                           ),
@@ -933,7 +932,7 @@ class _DistributionDonut extends StatelessWidget {
                                 child: Text(
                                   clubs[i].clubName,
                                   style: AppFonts.body(
-                                    fontSize: 11,
+                                    fontSize: 13,
                                     color: AppColors.slate700,
                                   ),
                                   overflow: TextOverflow.ellipsis,
@@ -942,7 +941,7 @@ class _DistributionDonut extends StatelessWidget {
                               Text(
                                 agFmtInt(clubs[i].members),
                                 style: AppFonts.body(
-                                  fontSize: 11,
+                                  fontSize: 13,
                                   fontWeight: FontWeight.w800,
                                   color: AppColors.slate700,
                                   fontFeatures: const [
@@ -1043,7 +1042,7 @@ class _DetailTable extends StatelessWidget {
                 Text(
                   '${rows.length} club${rows.length == 1 ? "" : "s"} · tap chip to sort',
                   style: AppFonts.body(
-                    fontSize: 10,
+                    fontSize: 13,
                     color: AppColors.slate400,
                   ),
                 ),
@@ -1103,10 +1102,9 @@ class _DetailTable extends StatelessWidget {
                   Text(
                     'AG TOTAL (${rows.length} CLUB${rows.length == 1 ? "" : "S"})',
                     style: AppFonts.body(
-                      fontSize: 11,
+                      fontSize: 13,
                       fontWeight: FontWeight.w800,
                       color: AppColors.rotaryBlue,
-                      letterSpacing: 0.5,
                     ),
                   ),
                   const SizedBox(height: 6),
@@ -1165,7 +1163,7 @@ class _SortChip extends StatelessWidget {
               Text(
                 label,
                 style: AppFonts.body(
-                  fontSize: 10.5,
+                  fontSize: 13,
                   fontWeight: FontWeight.w800,
                   color: isActive ? Colors.white : AppColors.slate500,
                 ),
@@ -1223,7 +1221,7 @@ class _ClubRow extends StatelessWidget {
                 child: Text(
                   club.clubName,
                   style: AppFonts.body(
-                    fontSize: 12.5,
+                    fontSize: 13,
                     fontWeight: FontWeight.w800,
                     color: AppColors.textPrimary,
                   ),
@@ -1278,7 +1276,7 @@ class _RankBadge extends StatelessWidget {
             Text(
               'Pending',
               style: AppFonts.body(
-                fontSize: 9.5,
+                fontSize: 13,
                 fontWeight: FontWeight.w800,
                 color: AppColors.slate500,
               ),
@@ -1297,7 +1295,7 @@ class _RankBadge extends StatelessWidget {
       child: Text(
         '#$rank / ${totalClubsInDistrict > 0 ? totalClubsInDistrict : ": "}',
         style: AppFonts.body(
-          fontSize: 9.5,
+          fontSize: 13,
           fontWeight: FontWeight.w800,
           color: AppColors.rotaryBlue,
           fontFeatures: const [FontFeature.tabularFigures()],
@@ -1323,14 +1321,14 @@ class _GcsChip extends StatelessWidget {
         Text(
           'GCs ',
           style: AppFonts.body(
-            fontSize: 10,
+            fontSize: 13,
             color: AppColors.slate400,
           ),
         ),
         Text(
           agFmtInt(value),
           style: AppFonts.body(
-            fontSize: 11.5,
+            fontSize: 13,
             fontWeight: FontWeight.w800,
             color: AppColors.textPrimary,
             fontFeatures: const [FontFeature.tabularFigures()],
@@ -1354,14 +1352,14 @@ class _StatChip extends StatelessWidget {
         Text(
           '$label ',
           style: AppFonts.body(
-            fontSize: 10,
+            fontSize: 13,
             color: AppColors.slate400,
           ),
         ),
         Text(
           value,
           style: AppFonts.body(
-            fontSize: 11.5,
+            fontSize: 13,
             fontWeight: FontWeight.w800,
             color: AppColors.textPrimary,
             fontFeatures: const [FontFeature.tabularFigures()],
@@ -1398,7 +1396,7 @@ class _Footnote extends StatelessWidget {
         'GCs = goals/citations earned (district_citation_club_entry, points > 0) · '
         'District rank based on total projects among $inDistrict clubs in $district.',
         style: AppFonts.body(
-          fontSize: 10.5,
+          fontSize: 13,
           color: AppColors.slate500,
           height: 1.4,
         ),

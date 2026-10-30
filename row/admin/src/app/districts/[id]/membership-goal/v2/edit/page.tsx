@@ -46,6 +46,7 @@ import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { useSyncDistrictIdFromUrl } from "@/hooks/useSyncDistrictIdFromUrl";
+import { ListPageSkeleton } from "@/components/row/AppKit";
 
 const DEFAULT_BACK = "/district-admin-dashboard/membership";
 
@@ -257,7 +258,7 @@ export default function DistrictMembershipGoalV2EditPage() {
           activeNavHref="/district-admin-dashboard/membership"
         >
           <div className="flex items-center justify-center py-20">
-            <RotaryLoader size="lg" />
+            <ListPageSkeleton />
           </div>
         </DistrictAdminShell>
       </ProtectedRoute>
@@ -300,12 +301,12 @@ export default function DistrictMembershipGoalV2EditPage() {
           onSave={handleSave}
         >
           {/* 1. Rotary year ── */}
-          <SectionCard number={1} icon={Calendar} title="Rotary Year" dot="bg-amber-500">
-            <FieldLabel dot="bg-amber-500" required>Rotary Year</FieldLabel>
+          <SectionCard number={1} icon={Calendar} title="Rotary Year" dot="bg-[#17458F]">
+            <FieldLabel dot="bg-[#17458F]" required>Rotary Year</FieldLabel>
             <select
               value={selectedYearId || ""}
               onChange={(e) => setSelectedYearId(Number(e.target.value))}
-              className="w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full rounded-[12px] border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
             >
               <option value="" disabled>Select rotary year…</option>
               {allYears.map((y) => (
@@ -321,8 +322,8 @@ export default function DistrictMembershipGoalV2EditPage() {
           </SectionCard>
 
           {/* 2. Current Total (read-only) ── */}
-          <SectionCard number={2} icon={Users} title="Current Standing" dot="bg-blue-600">
-            <FieldLabel dot="bg-blue-500">Current Total Members</FieldLabel>
+          <SectionCard number={2} icon={Users} title="Current Standing" dot="bg-[#17458F]">
+            <FieldLabel dot="bg-[#17458F]">Current Total Members</FieldLabel>
             <input
               type="text"
               readOnly
@@ -335,10 +336,10 @@ export default function DistrictMembershipGoalV2EditPage() {
           </SectionCard>
 
           {/* 3. Targets ── */}
-          <SectionCard number={3} icon={Target} title="Membership Targets" dot="bg-emerald-600">
+          <SectionCard number={3} icon={Target} title="Membership Targets" dot="bg-[#17458F]">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <FieldLabel dot="bg-emerald-500" required>Target Total Members</FieldLabel>
+                <FieldLabel dot="bg-[#17458F]" required>Target Total Members</FieldLabel>
                 <input
                   type="number"
                   min={0}
@@ -347,11 +348,11 @@ export default function DistrictMembershipGoalV2EditPage() {
                   value={targetTotal}
                   onChange={(e) => setTargetTotal(e.target.value)}
                   placeholder="e.g. 1200"
-                  className="w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full rounded-[12px] border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
                 />
               </div>
               <div>
-                <FieldLabel dot="bg-emerald-500" required>
+                <FieldLabel dot="bg-[#17458F]" required>
                   <span className="inline-flex items-center gap-1">
                     <UserPlus size={11} className="text-slate-400" /> Target New Members
                   </span>
@@ -364,11 +365,11 @@ export default function DistrictMembershipGoalV2EditPage() {
                   value={targetNewMembers}
                   onChange={(e) => setTargetNewMembers(e.target.value)}
                   placeholder="e.g. 150"
-                  className="w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full rounded-[12px] border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
                 />
               </div>
               <div className="sm:col-span-2">
-                <FieldLabel dot="bg-emerald-500" required hint="(0–100)">
+                <FieldLabel dot="bg-[#17458F]" required hint="(0–100)">
                   <span className="inline-flex items-center gap-1">
                     <Percent size={11} className="text-slate-400" /> Target Retention %
                   </span>
@@ -382,7 +383,7 @@ export default function DistrictMembershipGoalV2EditPage() {
                   value={targetRetentionPercent}
                   onChange={(e) => setTargetRetentionPercent(e.target.value)}
                   placeholder="e.g. 92.5"
-                  className="w-full sm:max-w-[200px] rounded-md border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full sm:max-w-[200px] rounded-[12px] border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
                 />
               </div>
             </div>

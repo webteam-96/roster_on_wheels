@@ -98,6 +98,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
               : RefreshIndicator(
                   onRefresh: _load,
                   child: ListView.separated(
+  padding: const EdgeInsets.only(bottom: 88),
                     itemCount: chats.length,
                     separatorBuilder: (_, __) => const Divider(height: 1),
                     itemBuilder: (_, i) {
@@ -225,7 +226,7 @@ class _ChatScreenState extends State<ChatScreen> {
                 ? const LoadingWidget()
                 : ListView.builder(
                     reverse: true,
-                    padding: const EdgeInsets.all(12),
+                    padding: (const EdgeInsets.all(12)).add(const EdgeInsets.only(bottom: 88)),
                     itemCount: _messages.length,
                     itemBuilder: (_, i) {
                       final m = _messages[_messages.length - 1 - i];
@@ -407,6 +408,7 @@ class _PickMemberScreenState extends State<_PickMemberScreen> {
                 : members.isEmpty
                     ? const EmptyStateWidget(icon: Icons.person_search_outlined, title: 'No members found', subtitle: '')
                     : ListView.builder(
+  padding: const EdgeInsets.only(bottom: 88),
                         itemCount: members.length,
                         itemBuilder: (_, i) {
                           final m = members[i];

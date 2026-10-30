@@ -17,6 +17,7 @@ import '../../../../../presentation/widgets/common/razorpay_checkout.dart';
 import 'package:rotary_flutter_app/core/utils/money_format.dart';
 import 'package:rotary_flutter_app/core/theme/app_fonts.dart';
 import 'package:rotary_flutter_app/core/i18n/text.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/skeleton_list.dart';
 
 /// Club website self-service Buy / Renew (Razorpay). A club admin (role 2) of
 /// the club buys a brand-new website (choosing a subdomain) or renews an
@@ -297,7 +298,7 @@ class _WebsitePurchaseScreenState extends State<WebsitePurchaseScreen> {
 
   Widget _formBody() {
     if (_loadingQuote) {
-      return const Center(child: CircularProgressIndicator());
+      return const RowSkeletonList();
     }
     if (_quoteError != null || _quote == null) {
       return _ErrorState(
@@ -480,7 +481,7 @@ class _TypeBadge extends StatelessWidget {
       child: Text(
         renewal ? 'RENEWAL' : 'NEW',
         style: AppFonts.body(
-          fontSize: 10.5,
+          fontSize: 13,
           fontWeight: FontWeight.w800,
           letterSpacing: 0.4,
           color: color,
@@ -735,11 +736,10 @@ class _ActiveSiteLinkCardState extends State<_ActiveSiteLinkCard> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Text(
-            'YOUR WEBSITE',
+            'Your website',
             style: AppFonts.body(
-              fontSize: 10,
+              fontSize: 13,
               fontWeight: FontWeight.w800,
-              letterSpacing: 0.6,
               color: AppColors.textMuted,
             ),
           ),
@@ -777,8 +777,7 @@ class _ActiveSiteLinkCardState extends State<_ActiveSiteLinkCard> {
                     side: BorderSide(
                         color: _copied ? AppColors.success : AppColors.border),
                     padding: const EdgeInsets.symmetric(vertical: 10),
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(9)),
+                    shape: const StadiumBorder(),
                   ),
                 ),
               ),
@@ -792,8 +791,7 @@ class _ActiveSiteLinkCardState extends State<_ActiveSiteLinkCard> {
                     backgroundColor: AppColors.primary,
                     foregroundColor: Colors.white,
                     padding: const EdgeInsets.symmetric(vertical: 10),
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(9)),
+                    shape: const StadiumBorder(),
                   ),
                 ),
               ),
@@ -847,7 +845,7 @@ class _CurrentSubdomainCard extends StatelessWidget {
             ),
             child: Text('KEPT',
                 style: AppFonts.body(
-                    fontSize: 9.5,
+                    fontSize: 13,
                     fontWeight: FontWeight.w800,
                     letterSpacing: 0.4,
                     color: AppColors.slate500)),
@@ -934,7 +932,7 @@ class _PayBar extends StatelessWidget {
             disabledBackgroundColor: AppColors.slate200,
             padding: const EdgeInsets.symmetric(vertical: 14),
             shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                const StadiumBorder(),
           ),
           onPressed: enabled ? onPay : null,
           child: paying
@@ -1000,8 +998,7 @@ class _DoneView extends StatelessWidget {
               style: FilledButton.styleFrom(
                 backgroundColor: AppColors.primary,
                 padding: const EdgeInsets.symmetric(vertical: 14),
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12)),
+                shape: const StadiumBorder(),
               ),
               onPressed: onDone,
               child: Text('Done', style: AppTextStyles.button),

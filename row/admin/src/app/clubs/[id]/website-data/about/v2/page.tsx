@@ -45,6 +45,7 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 import ClubAdminShell from "@/components/v2/ClubAdminShell";
 import "react-quill-new/dist/quill.snow.css";
 import { useSyncClubIdFromUrl } from "@/hooks/useSyncClubIdFromUrl";
+import { SkeletonRows } from "@/components/row/AppKit";
 
 const ReactQuill = dynamic(() => import("react-quill-new"), { ssr: false });
 
@@ -282,9 +283,7 @@ export default function AboutV2Page() {
 
         {/* Loading */}
         {loading && (
-          <div className="bg-white rounded-2xl border border-slate-200 p-10 flex items-center justify-center text-slate-500">
-            <Loader2 className="animate-spin mr-2" size={16} /> Loading about content…
-          </div>
+          <SkeletonRows />
         )}
 
         {/* Read-only banner for non-managers */}
@@ -322,7 +321,7 @@ export default function AboutV2Page() {
                 <button
                   type="button"
                   onClick={openAddDialog}
-                  className="mt-5 inline-flex items-center gap-1 text-sm font-semibold px-4 py-1.5 rounded-lg bg-blue-600 text-white hover:bg-blue-700"
+                  className="mt-5 inline-flex items-center gap-1 text-sm font-semibold px-4 py-1.5 rounded-full bg-[#17458F] text-white hover:bg-[#17458F]"
                 >
                   <Plus size={14} /> Add About
                 </button>
@@ -362,7 +361,7 @@ export default function AboutV2Page() {
             {/* Preview card */}
             <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
               <div className="px-5 py-3 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-blue-50">
-                <div className="flex items-center gap-2">
+                <div className="flex flex-wrap items-center gap-2">
                   <div className="w-9 h-9 rounded-lg bg-blue-100 text-blue-700 flex items-center justify-center">
                     <FileText size={18} />
                   </div>
@@ -376,21 +375,21 @@ export default function AboutV2Page() {
                     <button
                       type="button"
                       onClick={handleToggleActive}
-                      className="inline-flex items-center gap-1 text-xs font-medium px-3 py-1.5 rounded-lg border border-slate-200 text-slate-700 hover:bg-slate-50"
+                      className="inline-flex items-center gap-1 text-xs font-medium px-3 py-1.5 rounded-full border border-slate-200 text-slate-700 hover:bg-slate-50"
                     >
                       {about.isActive ? <><EyeOff size={13} /> Deactivate</> : <><Eye size={13} /> Activate</>}
                     </button>
                     <button
                       type="button"
                       onClick={openEditDialog}
-                      className="inline-flex items-center gap-1 text-xs font-semibold px-3 py-1.5 rounded-lg bg-blue-600 text-white hover:bg-blue-700"
+                      className="inline-flex items-center gap-1 text-xs font-semibold px-3 py-1.5 rounded-full bg-[#17458F] text-white hover:bg-[#17458F]"
                     >
                       <Pencil size={13} /> Edit
                     </button>
                     <button
                       type="button"
                       onClick={() => setShowDeleteConfirm(true)}
-                      className="inline-flex items-center gap-1 text-xs font-medium px-3 py-1.5 rounded-lg border border-rose-200 text-rose-700 hover:bg-rose-50"
+                      className="inline-flex items-center gap-1 text-xs font-medium px-3 py-1.5 rounded-full border border-rose-200 text-rose-700 hover:bg-rose-50"
                     >
                       <Trash2 size={13} /> Delete
                     </button>
@@ -449,7 +448,7 @@ export default function AboutV2Page() {
                 <select
                   value={formIsActive}
                   onChange={(e) => setFormIsActive(e.target.value)}
-                  className="w-40 px-3 py-1.5 text-sm border border-slate-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-40 px-3 h-10 py-0 text-sm border border-slate-200 rounded-[12px] bg-white focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
                 >
                   <option value="1">Active</option>
                   <option value="0">Inactive</option>
@@ -461,7 +460,7 @@ export default function AboutV2Page() {
                 type="button"
                 onClick={() => setDialogOpen(false)}
                 disabled={saving}
-                className="inline-flex items-center gap-1 text-sm font-medium px-3 py-1.5 rounded-lg border border-slate-200 text-slate-700 hover:bg-slate-50 disabled:opacity-50"
+                className="inline-flex items-center gap-1 text-sm font-medium px-3 py-1.5 rounded-full border border-slate-200 text-slate-700 hover:bg-slate-50 disabled:opacity-50"
               >
                 Cancel
               </button>
@@ -469,7 +468,7 @@ export default function AboutV2Page() {
                 type="button"
                 onClick={handleSave}
                 disabled={saving || formCharOver}
-                className="inline-flex items-center gap-1 text-sm font-semibold px-4 py-1.5 rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50"
+                className="inline-flex items-center gap-1 text-sm font-semibold px-4 py-1.5 rounded-full bg-[#17458F] text-white hover:bg-[#17458F] disabled:opacity-50"
               >
                 {saving ? <Loader2 className="animate-spin" size={14} /> : null}
                 {saving ? "Saving…" : editing ? "Update" : "Add"}
@@ -509,7 +508,7 @@ function KpiTile({
   const palette = {
     blue:    { bg: "bg-blue-100",    fg: "text-blue-700" },
     emerald: { bg: "bg-emerald-100", fg: "text-emerald-700" },
-    purple:  { bg: "bg-purple-100",  fg: "text-purple-700" },
+    purple:  { bg: "bg-[#CFE2F6]",  fg: "text-purple-700" },
     slate:   { bg: "bg-slate-100",   fg: "text-slate-600" },
   }[color];
   return (

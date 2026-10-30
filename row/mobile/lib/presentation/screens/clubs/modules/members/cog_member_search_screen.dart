@@ -14,6 +14,7 @@ import '../../../../widgets/common/empty_state_widget.dart';
 import '../../../../widgets/common/loading_widget.dart';
 import 'package:rotary_flutter_app/core/theme/app_fonts.dart';
 import 'package:rotary_flutter_app/core/i18n/text.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/skeleton_list.dart';
 
 // ---------------------------------------------------------------------------
 // COG (Council of Governors) member SEARCH — a dedicated per-field filter page
@@ -255,7 +256,7 @@ class _CogMemberSearchScreenState extends State<CogMemberSearchScreen> {
               'You can search by just a name, a mobile number, or any '
               'of the fields below.',
               style: AppFonts.body(
-                fontSize: 12.5,
+                fontSize: 13,
                 color: AppColors.textSecondary,
                 height: 1.35,
               ),
@@ -408,7 +409,7 @@ class _CogMemberResultsScreenState extends State<CogMemberResultsScreen> {
             child: Text(
               '$_totalCount result${_totalCount == 1 ? '' : 's'}',
               style: AppFonts.body(
-                fontSize: 12,
+                fontSize: 13,
                 color: AppColors.textSecondary,
                 fontWeight: FontWeight.w600,
               ),
@@ -425,7 +426,7 @@ class _CogMemberResultsScreenState extends State<CogMemberResultsScreen> {
               if (i >= _items.length) {
                 return const Padding(
                   padding: EdgeInsets.all(16),
-                  child: Center(child: CircularProgressIndicator()),
+                  child: const RowSkeletonList(),
                 );
               }
               final m = _items[i];

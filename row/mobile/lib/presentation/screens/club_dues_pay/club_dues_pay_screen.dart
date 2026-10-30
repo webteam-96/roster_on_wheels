@@ -294,7 +294,7 @@ class _ClubDuesPayScreenState extends State<ClubDuesPayScreen> {
             const SizedBox(height: 2),
             Text(label,
                 style: AppFonts.body(
-                    fontSize: 11, color: AppColors.textSecondary)),
+                    fontSize: 13, color: AppColors.textSecondary)),
           ],
         ),
       ),
@@ -331,7 +331,7 @@ class _ClubDuesPayScreenState extends State<ClubDuesPayScreen> {
             Text(
               '${d.unpaidCount} unpaid × ${_inr(d.perMemberRate)} per member',
               style: AppFonts.body(
-                  fontSize: 12, color: Colors.white.withValues(alpha: 0.9)),
+                  fontSize: 13, color: Colors.white.withValues(alpha: 0.9)),
             ),
           ],
           if (d.isPending && !paid) ...[
@@ -345,7 +345,7 @@ class _ClubDuesPayScreenState extends State<ClubDuesPayScreen> {
               child: Text(
                 'An offline payment is awaiting approval',
                 style: AppFonts.body(
-                    fontSize: 11,
+                    fontSize: 13,
                     color: Colors.white,
                     fontWeight: FontWeight.w600),
               ),
@@ -382,7 +382,7 @@ class _ClubDuesPayScreenState extends State<ClubDuesPayScreen> {
                 const SizedBox(height: 2),
                 Text(d.lastRejectedReason!,
                     style: AppFonts.body(
-                        fontSize: 12.5, color: AppColors.textSecondary)),
+                        fontSize: 13, color: AppColors.textSecondary)),
               ],
             ),
           ),
@@ -403,12 +403,12 @@ class _ClubDuesPayScreenState extends State<ClubDuesPayScreen> {
                   width: 110,
                   child: Text(k,
                       style: AppFonts.body(
-                          fontSize: 12.5, color: AppColors.textSecondary)),
+                          fontSize: 13, color: AppColors.textSecondary)),
                 ),
                 Expanded(
                   child: Text(v,
                       style: AppFonts.body(
-                          fontSize: 12.5, fontWeight: FontWeight.w600)),
+                          fontSize: 13, fontWeight: FontWeight.w600)),
                 ),
               ],
             ),
@@ -479,8 +479,7 @@ class _ClubDuesPayScreenState extends State<ClubDuesPayScreen> {
                   foregroundColor: Colors.white,
                   textStyle: AppFonts.body(
                       fontSize: 15, fontWeight: FontWeight.w700),
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12)),
+                  shape: const StadiumBorder(),
                 ),
               ),
             ),
@@ -499,8 +498,7 @@ class _ClubDuesPayScreenState extends State<ClubDuesPayScreen> {
                       side: const BorderSide(color: AppColors.primaryPrime),
                       textStyle: AppFonts.body(
                           fontSize: 14, fontWeight: FontWeight.w700),
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12)),
+                      shape: const StadiumBorder(),
                     ),
                   ),
                 ),
@@ -522,8 +520,7 @@ class _ClubDuesPayScreenState extends State<ClubDuesPayScreen> {
                       side: const BorderSide(color: AppColors.primaryPrime),
                       textStyle: AppFonts.body(
                           fontSize: 14, fontWeight: FontWeight.w700),
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12)),
+                      shape: const StadiumBorder(),
                     ),
                   ),
                 ),

@@ -95,7 +95,7 @@ class DayPicker extends StatelessWidget {
                     Text(
                       DateFormat('EEEE').format(date),
                       style: AppFonts.body(
-                        fontSize: 11,
+                        fontSize: 13,
                         fontWeight: FontWeight.w600,
                         color: AppColors.textSecondary,
                       ),
@@ -271,7 +271,7 @@ class _MonthCalendarSheetState extends State<_MonthCalendarSheet> {
                           d,
                           textAlign: TextAlign.center,
                           style: AppFonts.body(
-                            fontSize: 11,
+                            fontSize: 13,
                             fontWeight: FontWeight.w700,
                             color: AppColors.textSecondary,
                           ),
@@ -343,7 +343,7 @@ class _MonthCalendarSheetState extends State<_MonthCalendarSheet> {
                           Text(
                             kCalendarMarkLabels[k]!,
                             style: AppFonts.body(
-                              fontSize: 11,
+                              fontSize: 13,
                               fontWeight: FontWeight.w600,
                               color: AppColors.textSecondary,
                             ),
@@ -506,7 +506,7 @@ class CalendarPersonTile extends StatelessWidget {
                       Text(
                         _roleLabel,
                         style: AppFonts.body(
-                          fontSize: 11,
+                          fontSize: 13,
                           fontWeight: FontWeight.w500,
                           color: AppColors.textSecondary,
                         ),
@@ -525,7 +525,7 @@ class CalendarPersonTile extends StatelessWidget {
                             child: Text(
                               person.clubName!,
                               style: AppFonts.body(
-                                fontSize: 11,
+                                fontSize: 13,
                                 fontWeight: FontWeight.w600,
                                 color: AppColors.primary,
                               ),
@@ -693,7 +693,7 @@ class CalendarFamilyTile extends StatelessWidget {
                             child: Text(
                               _contextLine,
                               style: AppFonts.body(
-                                fontSize: 11,
+                                fontSize: 13,
                                 fontWeight: FontWeight.w500,
                                 color: AppColors.textSecondary,
                               ),
@@ -715,7 +715,7 @@ class CalendarFamilyTile extends StatelessWidget {
                             child: Text(
                               item.clubName!,
                               style: AppFonts.body(
-                                fontSize: 11,
+                                fontSize: 13,
                                 fontWeight: FontWeight.w600,
                                 color: AppColors.primary,
                               ),
@@ -1138,7 +1138,7 @@ class _ContactChooserCard extends StatelessWidget {
                       Text(
                         target.subtitle,
                         style: AppFonts.body(
-                          fontSize: 11,
+                          fontSize: 13,
                           fontWeight: FontWeight.w600,
                           color: AppColors.primary,
                         ),
@@ -1149,7 +1149,7 @@ class _ContactChooserCard extends StatelessWidget {
                       Text(
                         enabled && detail.isNotEmpty ? detail : hint,
                         style: AppFonts.body(
-                          fontSize: 12,
+                          fontSize: 13,
                           fontWeight: FontWeight.w500,
                           fontStyle: enabled ? FontStyle.normal : FontStyle.italic,
                           color: AppColors.textSecondary,
@@ -1259,7 +1259,7 @@ class CalendarEventTile extends StatelessWidget {
                         child: Text(
                           event.eventVenue!,
                           style: AppFonts.body(
-                            fontSize: 11,
+                            fontSize: 13,
                             color: AppColors.textSecondary,
                           ),
                           overflow: TextOverflow.ellipsis,
@@ -1273,7 +1273,7 @@ class CalendarEventTile extends StatelessWidget {
                   Text(
                     event.description!,
                     style: AppFonts.body(
-                      fontSize: 12,
+                      fontSize: 13,
                       color: AppColors.textPrimary,
                       height: 1.4,
                     ),
@@ -1289,7 +1289,7 @@ class CalendarEventTile extends StatelessWidget {
                     label: Text(
                       'Register',
                       style: AppFonts.body(
-                        fontSize: 12,
+                        fontSize: 13,
                         fontWeight: FontWeight.w700,
                       ),
                     ),
@@ -1333,10 +1333,9 @@ class CalendarEventTile extends StatelessWidget {
           Text(
             DateFormat('MMM').format(d).toUpperCase(),
             style: AppFonts.body(
-              fontSize: 9,
+              fontSize: 13,
               fontWeight: FontWeight.w700,
               color: Colors.white.withValues(alpha: 0.85),
-              letterSpacing: 0.8,
             ),
           ),
         ],
@@ -1423,7 +1422,7 @@ class CalendarAnnouncementTile extends StatelessWidget {
                   Text(
                     DateFormat('d MMM yyyy').format(announcement.publishDate!),
                     style: AppFonts.body(
-                      fontSize: 11,
+                      fontSize: 13,
                       color: AppColors.textSecondary,
                     ),
                   ),
@@ -1433,7 +1432,7 @@ class CalendarAnnouncementTile extends StatelessWidget {
                   Text(
                     announcement.description!,
                     style: AppFonts.body(
-                      fontSize: 12,
+                      fontSize: 13,
                       color: AppColors.textPrimary,
                       height: 1.4,
                     ),

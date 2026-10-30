@@ -133,12 +133,12 @@ export default function GoalCommentPanel({
           onKeyDown={(e) => { if (e.key === "Enter") handlePost(); }}
           placeholder="Type a message…"
           disabled={posting}
-          className="flex-1 px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-slate-50"
+          className="flex-1 px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42] disabled:bg-slate-50"
         />
         <button
           onClick={handlePost}
           disabled={posting || !text.trim()}
-          className="inline-flex items-center gap-1 text-xs font-semibold px-3 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50"
+          className="inline-flex items-center gap-1 text-xs font-semibold px-3 py-2 rounded-full bg-[#17458F] text-white hover:bg-[#17458F] disabled:opacity-50"
         >
           {posting ? <Loader2 size={13} className="animate-spin" /> : <Send size={13} />} Send
         </button>

@@ -80,7 +80,7 @@ const intOnly = (v: string) => v.replace(/[.,]/g, "").replace(/[^\d-]/g, "");
 function BonusFieldsInner({ form, setField }: { form: any; setField: (f: string, v: any) => void }) {
   return (
     <div className="space-y-2 pl-4 border-l-2 border-amber-200">
-      <div className="flex items-center gap-2">
+      <div className="flex flex-wrap items-center gap-2">
         <Switch checked={form.isBonus} onCheckedChange={v => setField("isBonus", v)} /><Label className="text-sm">Bonus</Label>
       </div>
       {form.isBonus && (
@@ -609,7 +609,7 @@ export default function DistrictAwardsModule({ districtId }: { districtId: numbe
                   <p className="text-sm text-slate-500">No categories. Add one to get started.</p>
                 </div>
               ) : (
-                <ul className="rounded-xl border border-slate-200 bg-white divide-y divide-slate-100 overflow-hidden">
+                <ul className="rounded-[20px] border border-slate-200 bg-white divide-y divide-slate-100 overflow-hidden">
                   {categories.map((c: any) => (
                     <li key={c.id} className="px-5 py-3 flex items-center justify-between hover:bg-blue-50/40 transition">
                       <div className="flex items-center gap-3">
@@ -636,8 +636,8 @@ export default function DistrictAwardsModule({ districtId }: { districtId: numbe
 
           {/* Description Tab */}
           <TabsContent value="description" className="p-5 pt-4">
-            <div className="rounded-xl border border-slate-200 bg-white p-5 space-y-4">
-              <div className="flex items-center justify-between">
+            <div className="rounded-[20px] border border-slate-200 bg-white p-5 space-y-4">
+              <div className="flex flex-wrap items-center justify-between gap-3">
                 <div>
                   <Label className="text-sm font-semibold text-slate-800">Description</Label>
                   <p className="text-[11px] text-slate-500 mt-0.5">Visible to clubs · max {fmtInt(CITATION_DESC_MAX_CHARS)} characters</p>
@@ -697,7 +697,7 @@ export default function DistrictAwardsModule({ districtId }: { districtId: numbe
               ) : (
                 <div className="space-y-3">
                   {autoQuestions.map((q: any) => (
-                    <div key={q.id} className="rounded-xl border border-slate-200 bg-white p-4 hover:shadow-sm transition">
+                    <div key={q.id} className="rounded-[20px] border border-slate-200 bg-white p-4 hover:shadow-sm transition">
                       <div className="flex items-start justify-between gap-3">
                         <div className="min-w-0 flex-1">
                           <div className="flex items-center gap-2 flex-wrap">
@@ -764,7 +764,7 @@ export default function DistrictAwardsModule({ districtId }: { districtId: numbe
               ) : (
                 <div className="space-y-3">
                   {manualCriteria.map((mc: any) => (
-                    <div key={mc.id} className="rounded-xl border border-slate-200 bg-white p-4 hover:shadow-sm transition">
+                    <div key={mc.id} className="rounded-[20px] border border-slate-200 bg-white p-4 hover:shadow-sm transition">
                       <div className="flex items-start justify-between gap-3">
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 flex-wrap">
@@ -822,7 +822,7 @@ export default function DistrictAwardsModule({ districtId }: { districtId: numbe
               {clubPointsLoading ? (
                 <div className="flex justify-center py-10"><RotaryLoader size="lg" /></div>
               ) : (
-                <div className="rounded-xl border border-slate-200 bg-white overflow-hidden">
+                <div className="rounded-[20px] border border-slate-200 bg-white overflow-hidden">
                   <Table>
                     <TableHeader>
                       <TableRow className="bg-slate-50 hover:bg-slate-50 border-b border-slate-200">
@@ -940,7 +940,7 @@ export default function DistrictAwardsModule({ districtId }: { districtId: numbe
 
             return (
               <div className="space-y-3 border rounded-lg p-3">
-                <div className="flex items-center justify-between">
+                <div className="flex flex-wrap items-center justify-between gap-3">
                   <Label className="font-semibold">{sectionLabel}</Label>
                   <Button size="sm" variant="outline" onClick={addAutoSubItem}><Plus className="h-3 w-3 mr-1" />Add</Button>
                 </div>
@@ -1032,7 +1032,7 @@ export default function DistrictAwardsModule({ districtId }: { districtId: numbe
           <div><Label>Sort Order</Label><Input type="number" step="1" value={manualForm.sortOrder} onChange={e => setManualForm((p: any) => ({ ...p, sortOrder: intOnly(e.target.value) }))} /></div>
 
           <div className="space-y-3 border rounded-lg p-3">
-            <div className="flex items-center justify-between"><Label className="font-semibold">Sub Criteria</Label><Button size="sm" variant="outline" onClick={addManualSub}><Plus className="h-3 w-3 mr-1" />Add Sub Criteria</Button></div>
+            <div className="flex flex-wrap items-center justify-between gap-3"><Label className="font-semibold">Sub Criteria</Label><Button size="sm" variant="outline" onClick={addManualSub}><Plus className="h-3 w-3 mr-1" />Add Sub Criteria</Button></div>
             {manualForm.subCriteria.map((sc: any, i: number) => (
               <Card key={i}><CardContent className="p-3 space-y-2">
                 <div className="flex justify-between items-center">
@@ -1059,7 +1059,7 @@ export default function DistrictAwardsModule({ districtId }: { districtId: numbe
                 {sc.answerType === "number" && <BonusFields form={sc} setField={(f, v) => updateManualSub(i, f, v)} />}
                 {sc.answerType === "choose_one" && (
                   <div className="space-y-2 pl-3 border-l-2 border-blue-200">
-                    <div className="flex items-center justify-between"><Label className="text-xs font-medium">Options</Label><Button size="sm" variant="outline" className="h-6 text-xs" onClick={() => addManualOption(i)}><Plus className="h-2 w-2 mr-1" />Add Option</Button></div>
+                    <div className="flex flex-wrap items-center justify-between gap-3"><Label className="text-xs font-medium">Options</Label><Button size="sm" variant="outline" className="h-6 text-xs" onClick={() => addManualOption(i)}><Plus className="h-2 w-2 mr-1" />Add Option</Button></div>
                     {sc.options.map((o: any, j: number) => (
                       <div key={j} className="flex gap-2 items-center">
                         <Input className="h-7 text-xs flex-1" value={o.optionText} onChange={e => updateManualOption(i, j, "optionText", e.target.value)} placeholder="Option text" />

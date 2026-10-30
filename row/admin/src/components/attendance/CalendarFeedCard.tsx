@@ -71,7 +71,7 @@ export default function CalendarFeedCard({ clubId, canManage }: { clubId: number
             <button
               type="button"
               onClick={copy}
-              className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 px-2.5 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50"
+              className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 px-2.5 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50"
             >
               <Copy size={13} /> Copy
             </button>
@@ -84,7 +84,7 @@ export default function CalendarFeedCard({ clubId, canManage }: { clubId: number
             type="button"
             onClick={issue}
             disabled={busy}
-            className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 px-2.5 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-60"
+            className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 px-2.5 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-60"
           >
             <RefreshCw size={13} /> {url ? "New link" : "Create link"}
           </button>

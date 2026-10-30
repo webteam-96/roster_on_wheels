@@ -24,6 +24,7 @@ import Link from "next/link";
 import Image from "next/image";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import MapPicker from "@/components/MapPicker";
+import { ListPageSkeleton } from "@/components/row/AppKit";
 
 function NewClubForm() {
   const router = useRouter();
@@ -127,12 +128,12 @@ function NewClubForm() {
   return (
     <>
       <form onSubmit={handleSubmit} className="space-y-6">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-4">
             <Button variant="ghost" size="icon" asChild><Link href={backUrl}><ArrowLeft className="h-4 w-4" /></Link></Button>
             <div><h2 className="text-2xl font-bold tracking-tight text-primary">New Club</h2><p className="text-muted-foreground text-base">Create a new Rotary club</p></div>
           </div>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             <Button type="button" variant="outline" onClick={() => router.push(backUrl)}>Cancel</Button>
             <Button type="submit" disabled={loading}>{loading && <RotaryLoader size="sm" />}Create Club</Button>
           </div>
@@ -217,9 +218,9 @@ function NewClubForm() {
                 <div className="space-y-2"><Label>Active To Date<span className="text-destructive ml-1">*</span></Label><DateField value={form.activeToDate} onChange={(v: string) => updateForm("activeToDate", v)} required /><p className="text-xs text-muted-foreground">Active To Date is required</p></div>
               </div>
               <div className="space-y-3">
-                <div className="flex items-center gap-2"><input type="checkbox" id="autoReminder" checked={form.isAutomaticMeetingReminder} onChange={(e) => updateForm("isAutomaticMeetingReminder", e.target.checked)} className="h-4 w-4" /><Label htmlFor="autoReminder">Automatic Meeting Reminder</Label></div>
-                <div className="flex items-center gap-2"><input type="checkbox" id="familyLogin" checked={form.isFamilyLogin} onChange={(e) => updateForm("isFamilyLogin", e.target.checked)} className="h-4 w-4" /><Label htmlFor="familyLogin">Family Login</Label></div>
-                <div className="flex items-center gap-2"><input type="checkbox" id="isActive" checked={form.isActive} onChange={(e) => updateForm("isActive", e.target.checked)} className="h-4 w-4" /><Label htmlFor="isActive">Active</Label></div>
+                <div className="flex flex-wrap items-center gap-2"><input type="checkbox" id="autoReminder" checked={form.isAutomaticMeetingReminder} onChange={(e) => updateForm("isAutomaticMeetingReminder", e.target.checked)} className="h-4 w-4" /><Label htmlFor="autoReminder">Automatic Meeting Reminder</Label></div>
+                <div className="flex flex-wrap items-center gap-2"><input type="checkbox" id="familyLogin" checked={form.isFamilyLogin} onChange={(e) => updateForm("isFamilyLogin", e.target.checked)} className="h-4 w-4" /><Label htmlFor="familyLogin">Family Login</Label></div>
+                <div className="flex flex-wrap items-center gap-2"><input type="checkbox" id="isActive" checked={form.isActive} onChange={(e) => updateForm("isActive", e.target.checked)} className="h-4 w-4" /><Label htmlFor="isActive">Active</Label></div>
               </div>
             </CardContent></Card>
           </TabsContent>
@@ -244,7 +245,7 @@ function NewClubForm() {
 export default function NewClubPage() {
   return (
     <ProtectedRoute>
-      <Suspense fallback={<div className="flex items-center justify-center py-20"><RotaryLoader size="lg" /></div>}>
+      <Suspense fallback={<div className="flex items-center justify-center py-20"><ListPageSkeleton /></div>}>
         <NewClubForm />
       </Suspense>
     </ProtectedRoute>

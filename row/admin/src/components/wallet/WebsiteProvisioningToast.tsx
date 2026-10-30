@@ -88,7 +88,7 @@ export default function WebsiteProvisioningToast() {
   const dismiss = () => { rememberDismissed(order.websiteOrderId); stopPolling(); setOrder(null); };
 
   return (
-    <div className="fixed top-4 right-4 z-[100] w-80 max-w-[calc(100vw-2rem)] rounded-xl border bg-white shadow-lg p-4 text-sm">
+    <div className="fixed top-4 right-4 z-[100] w-80 max-w-[calc(100vw-2rem)] rounded-[20px] border bg-white shadow-lg p-4 text-sm">
       <div className="flex items-start gap-3">
         <div className={`mt-0.5 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg ${active ? "bg-emerald-50 text-emerald-600" : failed ? "bg-amber-50 text-amber-600" : "bg-blue-50 text-azure"}`}>
           {provisioning ? (

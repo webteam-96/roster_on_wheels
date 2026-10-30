@@ -27,6 +27,7 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
 import { useSyncClubIdFromUrl } from "@/hooks/useSyncClubIdFromUrl";
+import { SkeletonRows } from "@/components/row/AppKit";
 
 interface PaymentLink {
   id: number;
@@ -142,14 +143,14 @@ export default function EventPaymentLinksV2ListingPage() {
                 </p>
               </div>
               <div className="flex flex-wrap items-center gap-2">
-                <div className="relative">
+                <div className="relative w-full sm:w-auto">
                   <Search size={14} className="absolute left-2 top-1/2 -translate-y-1/2 text-slate-400" />
                   <input
                     type="text"
                     placeholder="Search title…"
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
-                    className="pl-7 pr-3 py-1.5 text-sm border border-slate-200 rounded-lg w-full sm:w-56 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="pl-7 pr-3 h-10 py-0 text-sm border border-slate-200 rounded-[12px] w-full sm:w-56 focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
                   />
                 </div>
                 {/* NO Add button on V2 — admin only edits existing links. */}
@@ -157,13 +158,11 @@ export default function EventPaymentLinksV2ListingPage() {
             </div>
 
             {loading ? (
-              <div className="flex items-center justify-center py-12 text-slate-500">
-                <Loader2 className="animate-spin mr-2" size={16} /> Loading payment links…
-              </div>
+              <SkeletonRows />
             ) : (
               <div className="overflow-x-auto">
-                <table className="min-w-full text-sm">
-                  <thead className="bg-slate-50 text-xs uppercase text-slate-500">
+                <table className="w-full min-w-[640px] md:min-w-full text-sm">
+                  <thead className="bg-[#EDF4FB] text-[13px] text-[#64748B]">
                     <tr>
                       <th className="px-3 py-2.5 text-left">Title</th>
                       <th className="px-3 py-2.5 text-left">Type</th>

@@ -15,12 +15,20 @@ namespace RotaryApi.Services.Localization;
 /// </summary>
 public static class MessageCulture
 {
+    // The language of the innermost Use scope. Texts are translated only inside one, so code that sets no scope
+    // stays English whatever culture the server's OS runs in.
+    private static readonly AsyncLocal<string?> Scope = new();
+
+    /// <summary>The language messages are being written in, or null outside a <see cref="Use"/> scope.</summary>
+    public static string? Language => Scope.Value;
+
     public static IDisposable Use(string? language)
     {
-        var (ui, fmt) = (CultureInfo.CurrentUICulture, CultureInfo.CurrentCulture);
+        var (ui, fmt, outer) = (CultureInfo.CurrentUICulture, CultureInfo.CurrentCulture, Scope.Value);
         var culture = Resolve(language);
         if (culture != null) CultureInfo.CurrentUICulture = CultureInfo.CurrentCulture = culture;
-        return new Restore(ui, fmt);
+        Scope.Value = culture?.Name;
+        return new Restore(ui, fmt, outer);
     }
 
     private static CultureInfo? Resolve(string? language)
@@ -31,9 +39,9 @@ public static class MessageCulture
         catch (CultureNotFoundException) { return null; }
     }
 
-    private sealed class Restore(CultureInfo ui, CultureInfo fmt) : IDisposable
+    private sealed class Restore(CultureInfo ui, CultureInfo fmt, string? outer) : IDisposable
     {
-        public void Dispose() { CultureInfo.CurrentUICulture = ui; CultureInfo.CurrentCulture = fmt; }
+        public void Dispose() { CultureInfo.CurrentUICulture = ui; CultureInfo.CurrentCulture = fmt; Scope.Value = outer; }
     }
 
     /// <summary>

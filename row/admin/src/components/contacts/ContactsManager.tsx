@@ -102,7 +102,7 @@ export default function ContactsManager({ scope, ownerId }: { scope: ContactScop
         <div className="flex flex-wrap gap-2">
           {scope === "clubs" && (
             <Link href={`/clubs/${ownerId}/rotary-network/potential-members/v2`}
-              className="inline-flex h-9 items-center gap-1.5 rounded-md border border-slate-200 px-3 text-sm font-medium text-slate-700 hover:bg-slate-50">
+              className="inline-flex h-9 items-center gap-1.5 rounded-full border border-slate-200 px-3 text-sm font-medium text-slate-700 hover:bg-slate-50">
               <UserPlus className="h-4 w-4" /> Prospects
             </Link>
           )}
@@ -133,10 +133,10 @@ export default function ContactsManager({ scope, ownerId }: { scope: ContactScop
           </div>
 
           {data === null ? <TableSkeleton rows={8} /> : (
-            <div className="overflow-hidden rounded-xl border border-slate-200 bg-white">
+            <div className="overflow-hidden rounded-[20px] border border-slate-200 bg-white">
               <div className="overflow-x-auto">
                 <table className="min-w-full text-sm">
-                  <thead className="bg-slate-50 text-xs uppercase text-slate-500">
+                  <thead className="bg-[#EDF4FB] text-[13px] text-[#64748B]">
                     <tr>
                       <th className="px-3 py-2.5 text-left">Name</th>
                       <th className="px-3 py-2.5 text-left">Type</th>
@@ -187,7 +187,7 @@ export default function ContactsManager({ scope, ownerId }: { scope: ContactScop
           )}
         </div>
 
-        <aside className="h-fit rounded-xl border border-slate-200 bg-white p-4">
+        <aside className="h-fit rounded-[20px] border border-slate-200 bg-white p-4">
           <h3 className="text-sm font-semibold text-slate-800">Groups</h3>
           <p className="mt-0.5 text-xs text-slate-500">Pick a group as the recipients of a mass email or an event invite.</p>
           <div className="mt-3 space-y-1">

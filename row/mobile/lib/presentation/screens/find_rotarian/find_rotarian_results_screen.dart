@@ -11,6 +11,7 @@ import '../../widgets/common/empty_state_widget.dart';
 import '../../widgets/common/loading_widget.dart';
 import 'package:rotary_flutter_app/core/theme/app_fonts.dart';
 import 'package:rotary_flutter_app/core/i18n/text.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/skeleton_list.dart';
 
 class FindRotarianResultsScreen extends StatefulWidget {
   final Map<String, dynamic> queryParams;
@@ -144,7 +145,7 @@ class _FindRotarianResultsScreenState extends State<FindRotarianResultsScreen> {
               child: Text(
                 '$_totalCount result${_totalCount == 1 ? '' : 's'}',
                 style: AppFonts.body(
-                  fontSize: 12,
+                  fontSize: 13,
                   color: AppColors.textSecondary,
                   fontWeight: FontWeight.w600,
                 ),
@@ -161,7 +162,7 @@ class _FindRotarianResultsScreenState extends State<FindRotarianResultsScreen> {
               if (i >= _items.length) {
                 return const Padding(
                   padding: EdgeInsets.all(16),
-                  child: Center(child: CircularProgressIndicator()),
+                  child: const RowSkeletonList(),
                 );
               }
               return _RotarianCard(item: _items[i]);
@@ -215,7 +216,7 @@ class _RotarianCard extends StatelessWidget {
                       Text(
                         'Rotary ID: ${item.rotaryId}',
                         style: AppFonts.body(
-                          fontSize: 12,
+                          fontSize: 13,
                           color: AppColors.textSecondary,
                         ),
                       ),
@@ -275,7 +276,7 @@ class _RotarianCard extends StatelessWidget {
       child: Text(
         label,
         style: AppFonts.body(
-          fontSize: 11,
+          fontSize: 13,
           color: AppColors.primary,
           fontWeight: FontWeight.w600,
         ),

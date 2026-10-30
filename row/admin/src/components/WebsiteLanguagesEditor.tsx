@@ -223,7 +223,7 @@ export default function WebsiteLanguagesEditor({ scope, ownerId, fallbackBack }:
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="add-language">Add a language</Label>
-                  <div className="flex gap-2">
+                  <div className="flex flex-wrap gap-2">
                     <select id="add-language" className={SELECT} value={adding} onChange={(e) => setAdding(e.target.value)}>
                       <option value="">Choose a language</option>
                       {WORLD_LANGUAGE_CODES.filter((c) => !draft.languages.includes(c)).map((c) => (

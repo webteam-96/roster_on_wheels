@@ -1232,7 +1232,7 @@ class _DistrictReportsScreenState extends State<DistrictReportsScreen> {
         padding: const EdgeInsets.fromLTRB(14, 4, 14, 28),
         children: [
           for (final group in const ['MEMBERS', 'CLUBS', 'DISTRICT']) ...[
-            _groupHeader(group),
+            _groupHeader(group[0] + group.substring(1).toLowerCase()), // keys stay upper case; shown in sentence case
             _groupPanel(specs.where((s) => s.group == group).toList()),
           ],
         ],
@@ -1323,9 +1323,8 @@ class _DistrictReportsScreenState extends State<DistrictReportsScreen> {
       child: Text(
         text,
         style: AppFonts.body(
-          fontSize: 12,
+          fontSize: 13,
           fontWeight: FontWeight.w800,
-          letterSpacing: 0.8,
           color: AppColors.textMuted,
         ),
       ),
@@ -1531,7 +1530,7 @@ class _FilterChip extends StatelessWidget {
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: AppFonts.body(
-                  fontSize: 12,
+                  fontSize: 13,
                   fontWeight: FontWeight.w600,
                   color: isDefault ? AppColors.textSecondary : accent,
                 ),
@@ -1588,7 +1587,7 @@ class _ComingSoonRow extends StatelessWidget {
                 Text(
                   'Coming Soon',
                   style: AppFonts.body(
-                    fontSize: 11.5,
+                    fontSize: 13,
                     fontWeight: FontWeight.w700,
                     color: AppColors.accentAmber,
                   ),
@@ -1636,7 +1635,7 @@ class _DownloadPill extends StatelessWidget {
               Text(
                 'Download',
                 style: AppFonts.body(
-                  fontSize: 12,
+                  fontSize: 13,
                   fontWeight: FontWeight.w700,
                   color: color,
                 ),
@@ -1698,7 +1697,7 @@ class _DownloadRow extends StatelessWidget {
                 Text(
                   subtitle,
                   style: AppFonts.body(
-                    fontSize: 11.5,
+                    fontSize: 13,
                     fontWeight: FontWeight.w600,
                     color: AppColors.textSecondary,
                   ),
@@ -1802,7 +1801,7 @@ class _GoalReportRowState extends State<_GoalReportRow> {
                     Text(
                       widget.subtitle,
                       style: AppFonts.body(
-                        fontSize: 11.5,
+                        fontSize: 13,
                         fontWeight: FontWeight.w600,
                         color: AppColors.textSecondary,
                       ),
@@ -1869,7 +1868,7 @@ class _GoalReportRowState extends State<_GoalReportRow> {
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: AppFonts.body(
-                  fontSize: 12.5,
+                  fontSize: 13,
                   fontWeight: FontWeight.w600,
                   color: AppColors.textPrimary,
                 ),
@@ -1969,7 +1968,7 @@ class _OcvReportRowState extends State<_OcvReportRow> {
                           ? widget.readyText
                           : 'Select ${widget.entityLabel == 'AG' ? 'an' : 'a'} ${widget.entityLabel} to download',
                       style: AppFonts.body(
-                        fontSize: 11.5,
+                        fontSize: 13,
                         fontWeight: FontWeight.w600,
                         color: hasSel
                             ? AppColors.textSecondary
@@ -2038,7 +2037,7 @@ class _OcvReportRowState extends State<_OcvReportRow> {
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: AppFonts.body(
-                  fontSize: 12.5,
+                  fontSize: 13,
                   fontWeight: FontWeight.w600,
                   color: selName.isEmpty
                       ? AppColors.textSecondary
@@ -2108,7 +2107,7 @@ class _FormatPill extends StatelessWidget {
               Text(
                 label,
                 style: AppFonts.body(
-                  fontSize: 12,
+                  fontSize: 13,
                   fontWeight: FontWeight.w700,
                   color: c,
                 ),

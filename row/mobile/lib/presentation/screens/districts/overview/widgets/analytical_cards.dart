@@ -78,7 +78,7 @@ class _PanelCard extends StatelessWidget {
                     Text(
                       subtitle,
                       style: AppFonts.body(
-                        fontSize: 11,
+                        fontSize: 13,
                         fontWeight: FontWeight.w500,
                         color: AppColors.slate500,
                       ),
@@ -125,7 +125,7 @@ class _ProgressRow extends StatelessWidget {
               child: Text(
                 label,
                 style: AppFonts.body(
-                  fontSize: 11.5,
+                  fontSize: 13,
                   color: AppColors.slate500,
                   fontWeight: FontWeight.w500,
                 ),
@@ -137,7 +137,7 @@ class _ProgressRow extends StatelessWidget {
             Text(
               valueDisplay,
               style: AppFonts.body(
-                fontSize: 11.5,
+                fontSize: 13,
                 fontWeight: FontWeight.w700,
                 color: color,
                 fontFeatures: const [FontFeature.tabularFigures()],
@@ -181,7 +181,7 @@ class _FooterRow extends StatelessWidget {
           child: Text(
             label,
             style: AppFonts.body(
-              fontSize: 11.5,
+              fontSize: 13,
               color: AppColors.slate500,
             ),
             maxLines: 1,
@@ -192,7 +192,7 @@ class _FooterRow extends StatelessWidget {
         Text(
           value,
           style: AppFonts.body(
-            fontSize: 12.5,
+            fontSize: 13,
             fontWeight: FontWeight.w800,
             color: AppColors.slate700,
             fontFeatures: const [FontFeature.tabularFigures()],
@@ -253,7 +253,7 @@ class MembershipCard extends StatelessWidget {
               child: Text(
                 'total members',
                 style: AppFonts.body(
-                  fontSize: 11,
+                  fontSize: 13,
                   color: AppColors.slate400,
                 ),
               ),
@@ -353,7 +353,7 @@ class TrfGoalCard extends StatelessWidget {
               padding: const EdgeInsets.only(bottom: 4),
               child: Text('raised',
                   style: AppFonts.body(
-                      fontSize: 11, color: AppColors.slate400)),
+                      fontSize: 13, color: AppColors.slate400)),
             ),
           ],
         ),
@@ -497,7 +497,7 @@ class CitationCard extends StatelessWidget {
                 const SizedBox(height: 2),
                 Text('avg / 1000',
                     style: AppFonts.body(
-                        fontSize: 11, color: AppColors.slate500)),
+                        fontSize: 13, color: AppColors.slate500)),
               ],
             ),
           ),
@@ -509,7 +509,7 @@ class CitationCard extends StatelessWidget {
             child: Center(
               child: Text('No categories configured',
                   style: AppFonts.body(
-                      fontSize: 12, color: AppColors.slate400)),
+                      fontSize: 13, color: AppColors.slate400)),
             ),
           )
         else ...[
@@ -561,7 +561,7 @@ class _CitationLegend extends StatelessWidget {
         const SizedBox(width: 5),
         Text(label,
             style: AppFonts.body(
-                fontSize: 10.5,
+                fontSize: 13,
                 fontWeight: FontWeight.w600,
                 color: AppColors.slate500)),
       ],
@@ -598,7 +598,7 @@ class _CitationRow extends StatelessWidget {
               child: Text(
                 cat.categoryName,
                 style: AppFonts.body(
-                  fontSize: 11.5,
+                  fontSize: 13,
                   color: AppColors.slate500,
                   fontWeight: FontWeight.w500,
                 ),
@@ -614,7 +614,7 @@ class _CitationRow extends StatelessWidget {
             Text(
               cat.pointsEarned.toStringAsFixed(cat.pointsEarned % 1 == 0 ? 0 : 1),
               style: AppFonts.body(
-                fontSize: 11.5,
+                fontSize: 13,
                 fontWeight: FontWeight.w700,
                 color: color,
                 fontFeatures: const [FontFeature.tabularFigures()],
@@ -659,7 +659,7 @@ class _StatusPill extends StatelessWidget {
       child: Text(
         s.isEmpty ? '' : '${s[0].toUpperCase()}${s.substring(1)}',
         style: AppFonts.body(
-          fontSize: 9,
+          fontSize: 13,
           fontWeight: FontWeight.w800,
           color: c,
         ),

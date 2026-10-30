@@ -35,6 +35,7 @@ import { ArrowLeft, Plus, Pencil, Trash2, AlertTriangle, UserCog, Search, Buildi
 import RotaryLoader from "@/components/RotaryLoader";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import type { RotaryYear } from "@/types/rotaryYear";
+import { ListPageSkeleton } from "@/components/row/AppKit";
 
 interface AGGroup {
   memberId: number;
@@ -336,7 +337,7 @@ export default function AGV2Page() {
             </div>
             <div className="flex items-center gap-3 flex-wrap">
               {!loading && dataYears.length > 0 && (
-                <div className="flex items-center gap-2">
+                <div className="flex flex-wrap items-center gap-2">
                   <Calendar className="h-4 w-4 text-slate-500 shrink-0" />
                   <Select value={selectedYearId} onValueChange={setSelectedYearId}>
                     <SelectTrigger className="w-[180px] border-slate-200 bg-white focus:border-azure focus:ring-azure/20 text-sm">
@@ -364,7 +365,7 @@ export default function AGV2Page() {
 
         {(loading || loadingList) && (
           <div className="flex items-center justify-center py-20">
-            <RotaryLoader size="lg" />
+            <ListPageSkeleton />
           </div>
         )}
 

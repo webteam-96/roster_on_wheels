@@ -187,8 +187,8 @@ export default function WalletReportsTab() {
         <div className="text-sm text-muted-foreground py-10 text-center">No purchases found for these filters.</div>
       ) : (
         <div className="overflow-x-auto border rounded-lg">
-          <table className="min-w-full text-sm">
-            <thead className="bg-slate-50 text-xs uppercase text-slate-500">
+          <table className="w-full min-w-[640px] md:min-w-full text-sm">
+            <thead className="bg-[#EDF4FB] text-[13px] text-[#64748B]">
               <tr>
                 <th className="px-3 py-2.5 text-left whitespace-nowrap">Sr No</th>
                 {!isDistrict && <th className="px-3 py-2.5 text-left whitespace-nowrap">District No</th>}

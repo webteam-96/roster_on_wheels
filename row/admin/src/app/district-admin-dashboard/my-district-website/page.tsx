@@ -30,6 +30,7 @@ import {
 } from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
 import { useIsPathOff } from "@/components/FeatureGate";
+import { ListPageSkeleton } from "@/components/row/AppKit";
 
 type ModuleKey = "banners" | "advertisements" | "social-media-links" | "contact-details" | "menu-list" | "about" | "languages";
 
@@ -147,7 +148,7 @@ export default function MyDistrictWebsitePage() {
 
       {loading && (
         <div className="flex items-center justify-center py-20">
-          <RotaryLoader size="lg" />
+          <ListPageSkeleton />
         </div>
       )}
 
@@ -220,7 +221,7 @@ export default function MyDistrictWebsitePage() {
               href={`https://${publicUrl}`}
               target="_blank"
               rel="noreferrer"
-              className="inline-flex items-center gap-2 rounded-lg bg-azure px-5 py-2.5 text-sm font-semibold text-white hover:bg-mint-ink"
+              className="inline-flex items-center gap-2 rounded-full bg-azure px-5 py-2.5 text-sm font-semibold text-white hover:bg-mint-ink"
             >
               Open District Website <ExternalLink size={15} />
             </a>

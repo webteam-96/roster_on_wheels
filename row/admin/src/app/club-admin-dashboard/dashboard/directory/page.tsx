@@ -22,6 +22,7 @@ import { fmtInt } from "@/components/dashboard/formatters";
 import { formatBirthAnniversary } from "@/lib/dateUtils";
 
 import { appLocale } from "@/lib/appFormat";
+import { ListPageSkeleton } from "@/components/row/AppKit";
 const PAGE_SIZE_OPTIONS = [10, 20, 50, 100] as const;
 const DEFAULT_PAGE_SIZE = 20;
 const PAGE_SIZE_STORAGE_KEY = "directory_page_size";
@@ -91,7 +92,7 @@ function MemberRow({
             <span className="text-[10px] uppercase tracking-wide font-semibold text-amber-700 bg-amber-100 border border-amber-200 rounded px-1.5 py-0.5">admin</span>
           )}
           {row.isDistrictAdmin && (
-            <span className="text-[10px] uppercase tracking-wide font-semibold text-indigo-700 bg-indigo-100 border border-indigo-200 rounded px-1.5 py-0.5">district admin</span>
+            <span className="text-[10px] uppercase tracking-wide font-semibold text-indigo-700 bg-[#CFE2F6] border border-indigo-200 rounded px-1.5 py-0.5">district admin</span>
           )}
         </div>
         {row.designation && (
@@ -286,7 +287,7 @@ export default function DashboardDirectoryPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-20">
-        <RotaryLoader size="lg" label="Loading directory…" />
+        <ListPageSkeleton />
       </div>
     );
   }
@@ -314,14 +315,14 @@ export default function DashboardDirectoryPage() {
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-2">
-            <div className="relative">
+            <div className="relative w-full sm:w-auto">
               <Search size={14} className="absolute left-2 top-1/2 -translate-y-1/2 text-slate-400" />
               <input
                 type="text"
                 placeholder="Search name, email or mobile…"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="pl-7 pr-3 py-1.5 text-sm border border-slate-200 rounded-lg w-full sm:w-64 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="pl-7 pr-3 h-10 py-0 text-sm border border-slate-200 rounded-[12px] w-full sm:w-64 focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
               />
             </div>
             <label className="flex items-center gap-1.5 text-xs text-slate-500 whitespace-nowrap">
@@ -329,7 +330,7 @@ export default function DashboardDirectoryPage() {
               <select
                 value={pageSize}
                 onChange={(e) => handlePageSizeChange(parseInt(e.target.value, 10))}
-                className="py-1.5 pl-2 pr-6 text-sm border border-slate-200 rounded-lg bg-white text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="h-10 py-0 pl-2 pr-6 text-sm border border-slate-200 rounded-[12px] bg-white text-slate-700 focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
               >
                 {PAGE_SIZE_OPTIONS.map((n) => (
                   <option key={n} value={n}>{n}</option>
@@ -345,8 +346,8 @@ export default function DashboardDirectoryPage() {
         </div>
 
         <div className="overflow-x-auto">
-          <table className="min-w-full text-sm">
-            <thead className="bg-slate-50 text-xs uppercase text-slate-500">
+          <table className="w-full min-w-[640px] md:min-w-full text-sm">
+            <thead className="bg-[#EDF4FB] text-[13px] text-[#64748B]">
               <tr>
                 <th className="px-4 py-2.5 text-left w-16">Photo</th>
                 <th className="px-4 py-2.5 text-left">Name</th>
@@ -506,7 +507,7 @@ function MemberDetailModal({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 p-4"
       onClick={onClose}
       role="dialog"
       aria-modal="true"
@@ -543,7 +544,7 @@ function MemberDetailModal({
                     as a data field in the Membership section below. SuperAdmin
                     can toggle it from there. */}
                 {row.isClubAdmin && (
-                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-purple-100 text-purple-700 border border-purple-200">
+                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-[#CFE2F6] text-purple-700 border border-purple-200">
                     <ShieldCheck size={10} /> Club Admin
                   </span>
                 )}
@@ -554,7 +555,7 @@ function MemberDetailModal({
             type="button"
             onClick={onClose}
             aria-label="Close"
-            className="text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-lg p-1.5 transition-colors flex-shrink-0"
+            className="text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-full p-1.5 transition-colors flex-shrink-0"
           >
             <X size={18} />
           </button>
@@ -589,7 +590,7 @@ function MemberDetailModal({
           </Section>
 
           {/* Membership */}
-          <Section title="Membership" dotColor="bg-purple-500">
+          <Section title="Membership" dotColor="bg-[#A9C6EA]">
             <DetailField
               icon={Briefcase}
               label="Designation"
@@ -639,7 +640,7 @@ function MemberDetailModal({
           {profile?.addresses && profile.addresses.length > 0 && (
             <section>
               <div className="flex items-center gap-1.5 mb-2.5">
-                <span className="w-1.5 h-1.5 rounded-full bg-orange-500" />
+                <span className="w-1.5 h-1.5 rounded-full bg-[#FFC65C]" />
                 <h3 className="text-xs font-semibold text-slate-700 uppercase tracking-wide">Address</h3>
               </div>
               <div className="space-y-3 pl-3">
@@ -664,7 +665,7 @@ function MemberDetailModal({
           {showFamily && profile?.familyMembers && profile.familyMembers.length > 0 && (
             <section>
               <div className="flex items-center gap-1.5 mb-2.5">
-                <span className="w-1.5 h-1.5 rounded-full bg-pink-500" />
+                <span className="w-1.5 h-1.5 rounded-full bg-[#A9C6EA]" />
                 <h3 className="text-xs font-semibold text-slate-700 uppercase tracking-wide">Family</h3>
               </div>
               <div className="space-y-2 pl-3">
@@ -695,7 +696,7 @@ function MemberDetailModal({
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-1.5 text-sm font-medium rounded-lg border border-slate-200 bg-white text-slate-700 hover:bg-slate-100 transition-colors"
+            className="px-4 py-1.5 text-sm font-medium rounded-full border border-slate-200 bg-white text-slate-700 hover:bg-slate-100 transition-colors"
           >
             Close
           </button>

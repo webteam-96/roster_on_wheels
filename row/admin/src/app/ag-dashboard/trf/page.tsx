@@ -17,6 +17,7 @@ import SectionHeader from "@/components/dashboard/SectionHeader";
 import {
   fmtUsd, fmtUsdShort, ROTARY_BLUE, ROTARY_GOLD, POLIO_PURPLE, ROTARY_GREEN, truncate,
 } from "@/components/dashboard/formatters";
+import { ListPageSkeleton } from "@/components/row/AppKit";
 
 // Backend (Wave 12A) attaches PercentOfAgTotal at the club row level.
 // The TS type doesn't yet expose it, so we read it via a narrow widening cast.
@@ -73,7 +74,7 @@ export default function AgTrfPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-20">
-        <RotaryLoader size="lg" label="Loading TRF…" />
+        <ListPageSkeleton />
       </div>
     );
   }
@@ -167,7 +168,7 @@ export default function AgTrfPage() {
         <div className="absolute -top-10 -right-10 w-40 h-40 rounded-full bg-white/10 blur-2xl pointer-events-none" />
         <div className="absolute -bottom-12 left-1/3 w-48 h-48 rounded-full bg-amber-300/10 blur-3xl pointer-events-none" />
         <div className="relative flex items-center gap-5 flex-wrap">
-          <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-white/15 backdrop-blur ring-1 ring-white/20">
+          <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-white ring-1 ring-white/20">
             <Heart size={26} className="text-white" />
           </div>
           <div className="flex-1 min-w-[180px]">
@@ -238,7 +239,7 @@ export default function AgTrfPage() {
 
         <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm">
           <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <Trophy size={16} className="text-amber-500" />
               <h3 className="text-base font-semibold text-slate-800">Top Giving Clubs</h3>
             </div>
@@ -271,7 +272,7 @@ export default function AgTrfPage() {
       {/* ── MY CLUBS TRF SUMMARY · Per-club contribution bars ────────── */}
       <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
         <div className="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <PieChart size={18} className="text-blue-700" />
             <h3 className="text-base font-semibold text-slate-800 tracking-wide">
               MY CLUBS TRF SUMMARY <span className="text-slate-400 font-normal">,  Per-club contribution</span>
@@ -353,8 +354,8 @@ export default function AgTrfPage() {
           <span className="text-xs text-slate-400">Click column headers to sort</span>
         </div>
         <div className="overflow-x-auto">
-          <table className="min-w-full text-sm">
-            <thead className="bg-slate-50 border-b border-slate-200">
+          <table className="w-full min-w-[640px] md:min-w-full text-sm">
+            <thead className="bg-[#EDF4FB] border-b border-slate-200">
               <tr>
                 {([
                   ["Club Name", "name"],

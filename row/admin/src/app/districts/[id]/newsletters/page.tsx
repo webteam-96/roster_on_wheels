@@ -23,6 +23,7 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 import SendStatusBadges from "@/components/SendStatusBadges";
 
 import { appLocale } from "@/lib/appFormat";
+import { ListPageSkeleton } from "@/components/row/AppKit";
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 const STATUS_OPTIONS = [{ value: "all", label: "All" }, { value: "Published", label: "Published" }, { value: "Expired", label: "Expired" }, { value: "Unpublished", label: "Unpublished" }];
 
@@ -33,7 +34,7 @@ function StatusBadge({ status }: { status: string }) {
 
 function TypeBadge({ type }: { type: string }) {
   const isLink = type === "link";
-  return <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${isLink ? "bg-blue-100 text-blue-700" : "bg-purple-100 text-purple-700"}`}>{isLink ? "Link" : "File"}</span>;
+  return <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${isLink ? "bg-blue-100 text-blue-700" : "bg-[#CFE2F6] text-purple-700"}`}>{isLink ? "Link" : "File"}</span>;
 }
 
 export default function DistrictNewslettersPage() {
@@ -138,7 +139,7 @@ export default function DistrictNewslettersPage() {
           </div>
         </div>
 
-        {loading && <div className="flex items-center justify-center py-20"><RotaryLoader size="lg" /></div>}
+        {loading && <div className="flex items-center justify-center py-20"><ListPageSkeleton /></div>}
         {!loading && newsletters.length > 0 && <SearchBox value={searchQuery} onChange={setSearchQuery} placeholder="Search by title, date..." />}
         {!loading && newsletters.length === 0 && <div className="flex flex-col items-center justify-center py-20 text-center"><FolderOpen className="h-12 w-12 text-muted-foreground mb-4" /><h3 className="text-lg font-semibold">No newsletters found</h3></div>}
 

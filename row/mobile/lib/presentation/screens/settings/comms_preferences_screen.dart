@@ -149,7 +149,12 @@ class _CommsPreferencesScreenState extends State<CommsPreferencesScreen> {
                     ),
                   ],
                 ],
-                if (prefs == null && !_feedOn) const ListTile(title: Text('Nothing to set here yet.')),
+                if (prefs == null && !_feedOn)
+                  const ListTile(
+                    leading: Icon(Icons.info_outline),
+                    title: Text('No communication settings yet'),
+                    subtitle: Text('Settings appear here once your club turns on emails or a calendar feed.'),
+                  ),
               ],
             ),
     );

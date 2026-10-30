@@ -53,6 +53,7 @@ import {
 import MassEmailSection from "./MassEmailSection";
 import SubGroupsSection from "./SubGroupsSection";
 import WebLinksSection from "./WebLinksSection";
+import { ListPageSkeleton } from "@/components/row/AppKit";
 
 // ──────────────────────────────────────────────────────────────────────────
 // Tab keys
@@ -109,7 +110,7 @@ export default function ClubAdminCommunicationPage() {
   if (status === "loading" && !communication) {
     return (
       <div className="flex items-center justify-center py-20">
-        <RotaryLoader size="lg" label="Loading…" />
+        <ListPageSkeleton />
       </div>
     );
   }
@@ -205,8 +206,7 @@ function CommTabBar({ active, onChange }: { active: CommTab; onChange: (k: CommT
   return (
     <div className="overflow-x-auto">
       <div
-        className="inline-flex items-center gap-1 rounded-xl p-1.5"
-        style={{ backgroundColor: "#17458f" }}
+        className="inline-flex items-center gap-1 rounded-full p-1.5 bg-muted"
       >
         {COMM_TABS.map((t) => {
           const isActive = active === t.key;
@@ -214,14 +214,9 @@ function CommTabBar({ active, onChange }: { active: CommTab; onChange: (k: CommT
             <button
               key={t.key}
               onClick={() => onChange(t.key)}
-              className={`px-3.5 py-2 text-sm font-semibold rounded-lg whitespace-nowrap transition ${
-                isActive ? "shadow-sm" : "text-white hover:bg-white/10"
+              className={`inline-flex h-9 items-center px-4 text-sm font-semibold rounded-full whitespace-nowrap transition-colors ${
+                isActive ? "bg-card text-foreground ring-1 ring-[color:var(--row-line)]" : "text-muted-foreground hover:text-foreground"
               }`}
-              style={
-                isActive
-                  ? { backgroundColor: "#F7A81B", color: "#17458f" }
-                  : undefined
-              }
             >
               {t.label}
             </button>

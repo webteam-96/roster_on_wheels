@@ -41,6 +41,7 @@ import AlertModal from "@/components/AlertModal";
 import { ArrowLeft, Plus, Pencil, Trash2, AlertTriangle, Eye, EyeOff, Phone, Mail } from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
 import ProtectedRoute from "@/components/ProtectedRoute";
+import { ListPageSkeleton } from "@/components/row/AppKit";
 
 export default function DistrictAdminContactDetailsPage() {
   const { isSuperAdmin, isAdmin, selectedDistrictId } = useAuth();
@@ -214,7 +215,7 @@ export default function DistrictAdminContactDetailsPage() {
             <button
               type="button"
               onClick={goBack}
-              className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 hover:text-slate-800"
+              className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 hover:text-slate-800"
               aria-label="Back"
             >
               <ArrowLeft className="h-4 w-4" />
@@ -240,7 +241,7 @@ export default function DistrictAdminContactDetailsPage() {
 
         {loading && (
           <div className="flex items-center justify-center py-20">
-            <RotaryLoader size="lg" />
+            <ListPageSkeleton />
           </div>
         )}
 
@@ -248,7 +249,7 @@ export default function DistrictAdminContactDetailsPage() {
 
         {loadingContact && (
           <div className="flex items-center justify-center py-12">
-            <RotaryLoader size="lg" />
+            <ListPageSkeleton />
           </div>
         )}
 
@@ -269,7 +270,7 @@ export default function DistrictAdminContactDetailsPage() {
             {/* Gold accent strip */}
             <div className="h-1 bg-marigold" />
             <div className="p-6 space-y-5">
-              <div className="flex items-center justify-between">
+              <div className="flex flex-wrap items-center justify-between gap-3">
                 <Badge
                   variant="outline"
                   className={

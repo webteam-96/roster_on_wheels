@@ -1,3 +1,5 @@
+<!-- WORKFLOW: product -->
+
 ## Start here
 
 **The project is `row/`.** `reference/` (RIZones) is only a source to copy from: never run it, connect to its servers/databases, or treat its settings as ROW's. ROW's production database (`row_production`) exists on the server; connection

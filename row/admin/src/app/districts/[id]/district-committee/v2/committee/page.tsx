@@ -42,6 +42,7 @@ import NonSyncRemovedCommitteeMembers from "@/components/dashboard/NonSyncRemove
 import ImageCropDialog from "@/components/ImageCropDialog";
 import { useImageCropUpload } from "@/hooks/useImageCropUpload";
 import ProtectedRoute from "@/components/ProtectedRoute";
+import { ListPageSkeleton } from "@/components/row/AppKit";
 
 const PAGE_SIZE = 20;
 
@@ -357,7 +358,7 @@ export default function DistrictCommitteeMembersV2Page() {
           )}
         </div>
 
-        {loading && <div className="flex items-center justify-center py-20"><RotaryLoader size="lg" /></div>}
+        {loading && <div className="flex items-center justify-center py-20"><ListPageSkeleton /></div>}
 
         {!loading && allYears.length > 0 && (
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center bg-slate-50 p-4 rounded-2xl border border-slate-200">
@@ -411,7 +412,7 @@ export default function DistrictCommitteeMembersV2Page() {
           </div>
         )}
 
-        {loadingMembers && <div className="flex items-center justify-center py-12"><RotaryLoader size="lg" /></div>}
+        {loadingMembers && <div className="flex items-center justify-center py-12"><ListPageSkeleton /></div>}
 
         {!loading && !loadingMembers && selectedYearId && members.length === 0 && (
           <div className="flex flex-col items-center justify-center py-20 text-center rounded-2xl border border-slate-200 bg-white shadow-sm">
@@ -459,7 +460,7 @@ export default function DistrictCommitteeMembersV2Page() {
                       )}
                     </TableCell>
                     <TableCell>
-                      <div className="flex items-center gap-2">
+                      <div className="flex flex-wrap items-center gap-2">
                         <span className="font-semibold text-slate-800">{m.name}</span>
                         {m.isMember ? <MemberChip /> : <NonMemberChip />}
                       </div>
@@ -522,7 +523,7 @@ export default function DistrictCommitteeMembersV2Page() {
                 <div className="space-y-2">
                   <Label className="text-slate-500 text-xs font-semibold uppercase tracking-wide">Search Member</Label>
                   <div className="relative">
-                    <div className="flex items-center gap-2">
+                    <div className="flex flex-wrap items-center gap-2">
                       <div className="relative flex-1">
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
                         <Input

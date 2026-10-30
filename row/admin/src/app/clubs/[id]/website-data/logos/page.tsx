@@ -28,6 +28,7 @@ import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
 import ImageCropDialog from "@/components/ImageCropDialog";
 import { useImageCropUpload } from "@/hooks/useImageCropUpload";
+import { ListPageSkeleton } from "@/components/row/AppKit";
 
 // Per-logo crop targets:
 //   • Club Logo   → SQUARE (1:1) — typical circular/square club emblem.
@@ -172,13 +173,13 @@ export default function ClubWebsiteLogosPage() {
         </div>
 
         {loading ? (
-          <div className="flex justify-center py-20"><RotaryLoader size="lg" /></div>
+          <div className="flex justify-center py-20"><ListPageSkeleton /></div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Club Logo (same column as the club add/edit page) */}
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2"><ImageIcon className="h-5 w-5" /> Club Logo</CardTitle>
+                <CardTitle className="flex flex-wrap items-center gap-2"><ImageIcon className="h-5 w-5" /> Club Logo</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <p className="text-xs text-muted-foreground">
@@ -208,7 +209,7 @@ export default function ClubWebsiteLogosPage() {
             {/* Rotary Logo */}
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2"><ImageIcon className="h-5 w-5" /> Rotary Logo</CardTitle>
+                <CardTitle className="flex flex-wrap items-center gap-2"><ImageIcon className="h-5 w-5" /> Rotary Logo</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <p className="text-xs text-muted-foreground">

@@ -3044,7 +3044,7 @@ export async function getMonthlyReportYears(clubId: number): Promise<ReportYear[
   return response.data;
 }
 
-// TRF pages pick a year from the club's monthly-report years; with that module switched off, from every rotary year.
+// TRF and OCV pages pick a year from the club's monthly-report years; with that module switched off, from every rotary year.
 export async function getTrfYears(clubId: number, monthlyReportOn: boolean): Promise<ReportYear[]> {
   return monthlyReportOn ? getMonthlyReportYears(clubId) : getRotaryYears();
 }

@@ -217,7 +217,7 @@ class _Header extends StatelessWidget {
               Text(
                 'District Awards scores, goal tracking, and award status: RY $ry',
                 style: AppFonts.body(
-                  fontSize: 11,
+                  fontSize: 13,
                   color: AppColors.slate500,
                 ),
               ),
@@ -225,7 +225,7 @@ class _Header extends StatelessWidget {
                 Text(
                   'AG: $agName',
                   style: AppFonts.body(
-                    fontSize: 10.5,
+                    fontSize: 13,
                     color: AppColors.slate400,
                   ),
                 ),
@@ -274,7 +274,7 @@ class _EmptyNote extends StatelessWidget {
           text,
           textAlign: TextAlign.center,
           style: AppFonts.body(
-            fontSize: 12,
+            fontSize: 13,
             fontWeight: FontWeight.w600,
             color: AppColors.slate400,
           ),
@@ -432,9 +432,9 @@ class _KpiTile extends StatelessWidget {
               const SizedBox(width: 6),
               Expanded(
                 child: Text(
-                  label.toUpperCase(),
+                  label,
                   style: AppFonts.body(
-                    fontSize: 9.5,
+                    fontSize: 13,
                     fontWeight: FontWeight.w800,
                     color: AppColors.slate500,
                     letterSpacing: 0.4,
@@ -459,7 +459,7 @@ class _KpiTile extends StatelessWidget {
           Text(
             sub,
             style: AppFonts.body(
-              fontSize: 10,
+              fontSize: 13,
               color: AppColors.slate400,
             ),
             maxLines: 1,
@@ -527,7 +527,7 @@ class _CitationScoresCard extends StatelessWidget {
           Text(
             'Stacked bar: each colour is a scoring category',
             style: AppFonts.body(
-              fontSize: 11,
+              fontSize: 13,
               color: AppColors.slate400,
             ),
           ),
@@ -580,7 +580,7 @@ class _CitationStackedRow extends StatelessWidget {
               child: Text(
                 clubName,
                 style: AppFonts.body(
-                  fontSize: 11.5,
+                  fontSize: 13,
                   fontWeight: FontWeight.w800,
                   color: AppColors.textPrimary,
                 ),
@@ -589,7 +589,7 @@ class _CitationStackedRow extends StatelessWidget {
             Text(
               agFmtInt(breakdown.total),
               style: AppFonts.body(
-                fontSize: 12,
+                fontSize: 13,
                 fontWeight: FontWeight.w800,
                 color: AppColors.rotaryBlue,
                 fontFeatures: const [FontFeature.tabularFigures()],
@@ -660,7 +660,7 @@ class _LegendDot extends StatelessWidget {
         Text(
           label,
           style: AppFonts.body(
-            fontSize: 10.5,
+            fontSize: 13,
             color: AppColors.slate500,
           ),
         ),
@@ -738,7 +738,7 @@ class _CitationBreakdownRow extends StatelessWidget {
               Text(
                 '#${index + 1}',
                 style: AppFonts.body(
-                  fontSize: 10.5,
+                  fontSize: 13,
                   color: AppColors.slate400,
                   fontWeight: FontWeight.w800,
                 ),
@@ -748,7 +748,7 @@ class _CitationBreakdownRow extends StatelessWidget {
                 child: Text(
                   breakdown.clubName.isEmpty ? '–' : breakdown.clubName,
                   style: AppFonts.body(
-                    fontSize: 12.5,
+                    fontSize: 13,
                     fontWeight: FontWeight.w800,
                     color: AppColors.textPrimary,
                   ),
@@ -764,7 +764,7 @@ class _CitationBreakdownRow extends StatelessWidget {
                 child: Text(
                   agFmtInt(breakdown.total),
                   style: AppFonts.body(
-                    fontSize: 12,
+                    fontSize: 13,
                     fontWeight: FontWeight.w800,
                     color: AppColors.rotaryBlue,
                     fontFeatures: const [FontFeature.tabularFigures()],
@@ -819,14 +819,14 @@ class _CategoryChip extends StatelessWidget {
         Text(
           '$label ',
           style: AppFonts.body(
-            fontSize: 10,
+            fontSize: 13,
             color: AppColors.slate400,
           ),
         ),
         Text(
           agFmtInt(value),
           style: AppFonts.body(
-            fontSize: 11,
+            fontSize: 13,
             fontWeight: FontWeight.w800,
             color: AppColors.slate700,
             fontFeatures: const [FontFeature.tabularFigures()],
@@ -851,7 +851,7 @@ class _GoalsLegendNote extends StatelessWidget {
       child: Text.rich(
         TextSpan(
           style: AppFonts.body(
-            fontSize: 10.5,
+            fontSize: 13,
             color: AppColors.slate400,
           ),
           children: const [
@@ -938,7 +938,7 @@ class _GoalsClubCard extends StatelessWidget {
                 child: Text(
                   '${row.members} member${row.members == 1 ? '' : 's'}',
                   style: AppFonts.body(
-                    fontSize: 10,
+                    fontSize: 13,
                     fontWeight: FontWeight.w800,
                     color: Colors.white,
                   ),
@@ -948,7 +948,7 @@ class _GoalsClubCard extends StatelessWidget {
               Text(
                 '$achieved / $counted',
                 style: AppFonts.body(
-                  fontSize: 11.5,
+                  fontSize: 13,
                   fontWeight: FontWeight.w800,
                   color: overallColor,
                   fontFeatures: const [FontFeature.tabularFigures()],
@@ -1031,7 +1031,7 @@ class _GoalBar extends StatelessWidget {
               child: Text(
                 goal.label,
                 style: AppFonts.body(
-                  fontSize: 11,
+                  fontSize: 13,
                   fontWeight: FontWeight.w600,
                   color: AppColors.slate500,
                 ),
@@ -1048,7 +1048,7 @@ class _GoalBar extends StatelessWidget {
                 child: Text(
                   'Pending',
                   style: AppFonts.body(
-                    fontSize: 9.5,
+                    fontSize: 13,
                     fontWeight: FontWeight.w800,
                     color: AppColors.slate500,
                   ),
@@ -1058,7 +1058,7 @@ class _GoalBar extends StatelessWidget {
               Text.rich(
                 TextSpan(
                   style: AppFonts.body(
-                    fontSize: 10.5,
+                    fontSize: 13,
                     color: AppColors.slate500,
                     fontFeatures: const [FontFeature.tabularFigures()],
                   ),
@@ -1128,12 +1128,11 @@ class _GoalsTargetsRef extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'GOAL TARGETS',
+            'Goal targets',
             style: AppFonts.body(
-              fontSize: 9.5,
+              fontSize: 13,
               fontWeight: FontWeight.w800,
               color: AppColors.slate500,
-              letterSpacing: 0.6,
             ),
           ),
           const SizedBox(height: 4),
@@ -1145,7 +1144,7 @@ class _GoalsTargetsRef extends StatelessWidget {
                 Text.rich(
                   TextSpan(
                     style: AppFonts.body(
-                      fontSize: 10.5,
+                      fontSize: 13,
                       color: AppColors.slate500,
                     ),
                     children: [
@@ -1243,10 +1242,9 @@ class _AwardPendingPlaceholder extends StatelessWidget {
             child: Text(
               'PENDING',
               style: AppFonts.body(
-                fontSize: 10,
+                fontSize: 13,
                 fontWeight: FontWeight.w800,
                 color: AppColors.slate500,
-                letterSpacing: 0.6,
               ),
             ),
           ),
@@ -1255,7 +1253,7 @@ class _AwardPendingPlaceholder extends StatelessWidget {
             'Award status: data entry needed.',
             textAlign: TextAlign.center,
             style: AppFonts.body(
-              fontSize: 12.5,
+              fontSize: 13,
               fontWeight: FontWeight.w700,
               color: AppColors.slate700,
             ),
@@ -1265,7 +1263,7 @@ class _AwardPendingPlaceholder extends StatelessWidget {
             'Award statuses will appear here once club_award_status rows are populated for this RY.',
             textAlign: TextAlign.center,
             style: AppFonts.body(
-              fontSize: 11,
+              fontSize: 13,
               color: AppColors.slate400,
               height: 1.4,
             ),
@@ -1319,7 +1317,7 @@ class _AwardClubRow extends StatelessWidget {
                 child: Text(
                   row.clubName.isEmpty ? '–' : row.clubName,
                   style: AppFonts.body(
-                    fontSize: 12.5,
+                    fontSize: 13,
                     fontWeight: FontWeight.w800,
                     color: AppColors.textPrimary,
                   ),
@@ -1338,7 +1336,7 @@ class _AwardClubRow extends StatelessWidget {
               child: Text(
                 'Pending',
                 style: AppFonts.body(
-                  fontSize: 9.5,
+                  fontSize: 13,
                   fontWeight: FontWeight.w800,
                   color: AppColors.slate500,
                 ),
@@ -1429,7 +1427,7 @@ class _AwardChip extends StatelessWidget {
           Text(
             label,
             style: AppFonts.body(
-              fontSize: 9.5,
+              fontSize: 13,
               fontWeight: FontWeight.w800,
               color: p.fg,
             ),
@@ -1455,7 +1453,7 @@ class _AwardLegend extends StatelessWidget {
         Text(
           hint,
           style: AppFonts.body(
-            fontSize: 10,
+            fontSize: 13,
             color: AppColors.slate500,
           ),
         ),
@@ -1551,7 +1549,7 @@ class _MonthlyTrackingCardState extends State<_MonthlyTrackingCard> {
           Text(
             'RY ${widget.ry} · All clubs compared',
             style: AppFonts.body(
-              fontSize: 11,
+              fontSize: 13,
               color: AppColors.slate400,
             ),
           ),
@@ -1568,7 +1566,7 @@ class _MonthlyTrackingCardState extends State<_MonthlyTrackingCard> {
                 for (final m in const [
                   (key: _MetricKey.projects, label: 'Service Projects'),
                   (key: _MetricKey.meetings, label: 'Meetings Held'),
-                  (key: _MetricKey.trf, label: 'TRF (USD)'),
+                  (key: _MetricKey.trf, label: 'TRF (usd)'),
                 ])
                   Expanded(
                     child: Material(
@@ -1586,7 +1584,7 @@ class _MonthlyTrackingCardState extends State<_MonthlyTrackingCard> {
                               m.label,
                               textAlign: TextAlign.center,
                               style: AppFonts.body(
-                                fontSize: 11,
+                                fontSize: 13,
                                 fontWeight: FontWeight.w800,
                                 color: _metric == m.key
                                     ? AppColors.slate700
@@ -1629,7 +1627,7 @@ class _MonthlyTrackingCardState extends State<_MonthlyTrackingCard> {
                         m,
                         textAlign: TextAlign.center,
                         style: AppFonts.body(
-                          fontSize: 9.5,
+                          fontSize: 13,
                           color: AppColors.slate400,
                         ),
                       ),
@@ -1677,7 +1675,7 @@ class _MonthlySeriesRow extends StatelessWidget {
               child: Text(
                 clubName,
                 style: AppFonts.body(
-                  fontSize: 11.5,
+                  fontSize: 13,
                   fontWeight: FontWeight.w800,
                   color: AppColors.textPrimary,
                 ),
@@ -1686,7 +1684,7 @@ class _MonthlySeriesRow extends StatelessWidget {
             Text(
               'Peak ${formatValue(maxV)}',
               style: AppFonts.body(
-                fontSize: 10,
+                fontSize: 13,
                 fontWeight: FontWeight.w700,
                 color: color,
                 fontFeatures: const [FontFeature.tabularFigures()],

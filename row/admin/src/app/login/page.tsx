@@ -105,7 +105,7 @@ export default function LoginPage() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4 py-10">
       {/* The logo artwork has a white field, so it sits on the light card itself: no dark band, no plate. */}
-      <Card className="w-full max-w-md overflow-hidden rounded-[var(--row-panel-r)] border border-[color:var(--row-line)] shadow-none">
+      <Card className="w-full max-w-md overflow-hidden rounded-[20px] border border-[color:var(--row-line)]">
         <CardHeader className="gap-6 px-7 pb-2 pt-7">
           <div className="flex items-start justify-between gap-3">
             <BrandLogo className="h-14" />
@@ -154,7 +154,7 @@ export default function LoginPage() {
               </div>
             </div>
 
-            <div className="flex items-center justify-between">
+            <div className="flex flex-wrap items-center justify-between gap-3">
               <label className="flex items-center gap-2 cursor-pointer">
                 <input
                   type="checkbox"

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
-import { getMonthlyReportYears, getClub } from "@/services/api";
+import { getTrfYears, getClub } from "@/services/api";
 import { ReportYear } from "@/types/clubMonthlyReport";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -13,6 +13,8 @@ import RotaryLoader from "@/components/RotaryLoader";
 import ErrorAlert from "@/components/ErrorAlert";
 import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";
+import { useFeatureLoadedOn } from "@/components/FeatureGate";
+import { ListPageSkeleton } from "@/components/row/AppKit";
 
 interface OcvCard {
   key: string;
@@ -143,13 +145,14 @@ export default function OcvGovPage() {
   const [loading, setLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
+  const cmrOn = useFeatureLoadedOn("club_monthly_report");
   useEffect(() => {
     async function fetchData() {
       setLoading(true);
       try {
         const [club, yearsData] = await Promise.all([
           getClub(clubId),
-          getMonthlyReportYears(clubId),
+          getTrfYears(clubId, cmrOn),
         ]);
         setClubName(club.clubName);
         setYears(yearsData);
@@ -175,7 +178,7 @@ export default function OcvGovPage() {
       }
     }
     fetchData();
-  }, [clubId]);
+  }, [clubId, cmrOn]);
 
   const cards: OcvCard[] = [
     {
@@ -310,7 +313,7 @@ export default function OcvGovPage() {
         {/* Loading */}
         {loading && (
           <div className="flex items-center justify-center py-20">
-            <RotaryLoader size="lg" />
+            <ListPageSkeleton />
           </div>
         )}
 

@@ -6,8 +6,9 @@ namespace RotaryApi.Services.Localization;
 /// <summary>
 /// S5: ASP.NET Core's IStringLocalizer over <see cref="ServerStrings"/> in place of .resx files (the owner rule is
 /// machine translation, no hand-written resource files). The key is the English text ("keys are the default text"),
-/// so a missing translation returns the key. The language is CultureInfo.CurrentUICulture, set per recipient with
-/// <see cref="MessageCulture.Use"/>. One shared localizer for every type: the texts are not partitioned by class.
+/// so a missing translation returns the key. The language is the one <see cref="MessageCulture.Use"/> set for the
+/// recipient (it also sets CurrentUICulture); outside such a scope the text is English, whatever the server's culture.
+/// One shared localizer for every type: the texts are not partitioned by class.
 /// </summary>
 public sealed class DbStringLocalizer : IStringLocalizer
 {
@@ -18,7 +19,7 @@ public sealed class DbStringLocalizer : IStringLocalizer
     {
         get
         {
-            var t = ServerStrings.Find(CultureInfo.CurrentUICulture.Name, name);
+            var t = ServerStrings.Find(MessageCulture.Language, name);
             return new LocalizedString(name, t ?? name, resourceNotFound: t == null);
         }
     }
@@ -41,7 +42,9 @@ public sealed class DbStringLocalizer : IStringLocalizer
     }
 
     public IEnumerable<LocalizedString> GetAllStrings(bool includeParentCultures)
-        => ServerStrings.All(CultureInfo.CurrentUICulture.Name).Select(p => new LocalizedString(p.Key, p.Value));
+        => MessageCulture.Language is { } lang
+            ? ServerStrings.All(lang).Select(p => new LocalizedString(p.Key, p.Value))
+            : Enumerable.Empty<LocalizedString>();
 }
 
 public sealed class DbStringLocalizerFactory : IStringLocalizerFactory

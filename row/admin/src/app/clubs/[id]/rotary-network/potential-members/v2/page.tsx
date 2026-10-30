@@ -212,7 +212,7 @@ export default function PotentialMembersV2Page() {
               <p className="text-xs text-slate-500 mt-0.5">Prospective members the club may invite to join</p>
             </div>
             <div className="flex flex-wrap items-center gap-2">
-              <div className="relative">
+              <div className="relative w-full sm:w-auto">
                 <Search size={14} className="absolute left-2 top-1/2 -translate-y-1/2 text-slate-400" />
                 <input
                   type="text"
@@ -220,7 +220,7 @@ export default function PotentialMembersV2Page() {
                   value={searchInput}
                   onChange={(e) => setSearchInput(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && handleSearch()}
-                  className="pl-7 pr-7 py-1.5 text-sm border border-slate-200 rounded-lg w-full sm:w-64 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="pl-7 pr-7 h-10 py-0 text-sm border border-slate-200 rounded-[12px] w-full sm:w-64 focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
                 />
                 {searchInput && (
                   <button
@@ -236,7 +236,7 @@ export default function PotentialMembersV2Page() {
               <button
                 type="button"
                 onClick={handleSearch}
-                className="inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1.5 rounded-lg border border-slate-200 text-slate-700 hover:bg-slate-50"
+                className="inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1.5 rounded-full border border-slate-200 text-slate-700 hover:bg-slate-50"
               >
                 Search
               </button>
@@ -254,7 +254,7 @@ export default function PotentialMembersV2Page() {
               {canManage && (
                 <Link
                   href={addUrl}
-                  className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg bg-blue-600 text-white hover:bg-blue-700"
+                  className="inline-flex items-center gap-1.5 text-xs font-semibold px-4 h-10 rounded-full bg-[#17458F] text-white hover:bg-[#17458F]"
                 >
                   <Plus size={13} /> Add Potential Member
                 </Link>
@@ -270,7 +270,7 @@ export default function PotentialMembersV2Page() {
               </div>
             ) : (
               <table className="min-w-full text-sm">
-                <thead className="bg-slate-50 text-xs uppercase text-slate-500">
+                <thead className="bg-[#EDF4FB] text-[13px] text-[#64748B]">
                   <tr>
                     <th className="px-3 py-2.5 text-left w-12">Sr</th>
                     <th className="px-3 py-2.5 text-left">Name</th>

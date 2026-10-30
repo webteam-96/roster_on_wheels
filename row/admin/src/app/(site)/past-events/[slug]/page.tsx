@@ -74,11 +74,11 @@ export default function EventDetailPage({ params }: { params: { slug: string } }
               {event.title}
             </h1>
             <div className="mt-6 flex flex-wrap items-center gap-x-7 gap-y-2 text-[14px] text-cream/70">
-              <span className="flex items-center gap-2">
+              <span className="flex flex-wrap items-center gap-2">
                 <CalendarDays className="h-4 w-4 flex-shrink-0 text-gold" />
                 <span className="figure">{event.date}</span>
               </span>
-              <span className="flex items-center gap-2">
+              <span className="flex flex-wrap items-center gap-2">
                 <MapPin className="h-4 w-4 flex-shrink-0 text-gold" />
                 {event.venue}
               </span>

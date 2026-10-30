@@ -3,7 +3,7 @@
 /**
  * OCV / GOV v2 Report — frontend overhaul replacement for the v1 report page.
  *
- * Same APIs as v1: getOcvReport, getMonthlyReportYears, getClub,
+ * Same APIs as v1: getOcvReport, getTrfYears, getClub,
  * downloadOcvDocumentBlob. Filters: year, module (categoryName), status
  * (all/yes/no). Groups results by category, shows summary KPIs, supports
  * "Download All as Excel" and per-row View / Download.
@@ -19,7 +19,7 @@ import {
   CheckCircle2, AlertCircle, BarChart3,
 } from "@/components/icons";
 import {
-  getClub, getMonthlyReportYears, getOcvReport, downloadOcvDocumentBlob,
+  getClub, getTrfYears, getOcvReport, downloadOcvDocumentBlob,
   downloadOcvReportWord, downloadOcvReportExcel,
 } from "@/services/api";
 import { fileTimestamp } from "@/lib/dateUtils";
@@ -31,6 +31,8 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 import ErrorAlert from "@/components/ErrorAlert";
 import ClubAdminShell from "@/components/v2/ClubAdminShell";
 import { useSyncClubIdFromUrl } from "@/hooks/useSyncClubIdFromUrl";
+import { useFeatureLoadedOn } from "@/components/FeatureGate";
+import { SkeletonRows } from "@/components/row/AppKit";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
@@ -60,13 +62,14 @@ export default function OcvReportV2Page() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   // Initial: club + years
+  const cmrOn = useFeatureLoadedOn("club_monthly_report");
   useEffect(() => {
     let cancelled = false;
     async function init() {
       try {
         const [club, yrs] = await Promise.all([
           getClub(clubId),
-          getMonthlyReportYears(clubId),
+          getTrfYears(clubId, cmrOn),
         ]);
         if (cancelled) return;
         setClubName(club.clubName);
@@ -86,7 +89,7 @@ export default function OcvReportV2Page() {
     init();
     return () => { cancelled = true; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [clubId]);
+  }, [clubId, cmrOn]);
 
   // Report on year/status change
   useEffect(() => {
@@ -297,7 +300,7 @@ export default function OcvReportV2Page() {
                 <select
                   value={selectedYearId ?? ""}
                   onChange={(e) => setSelectedYearId(e.target.value ? Number(e.target.value) : null)}
-                  className="w-full pl-7 pr-3 py-1.5 text-sm border border-slate-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full pl-7 pr-3 h-10 py-0 text-sm border border-slate-200 rounded-[12px] bg-white focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
                 >
                   {years.length === 0 && <option value="">No years</option>}
                   {years.map((y) => (
@@ -313,7 +316,7 @@ export default function OcvReportV2Page() {
               <select
                 value={categoryFilter}
                 onChange={(e) => setCategoryFilter(e.target.value)}
-                className="w-full px-2 py-1.5 text-sm border border-slate-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-2 h-10 py-0 text-sm border border-slate-200 rounded-[12px] bg-white focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
               >
                 <option value="all">All Modules</option>
                 {categories.map((c) => (
@@ -328,7 +331,7 @@ export default function OcvReportV2Page() {
               <select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
-                className="w-full px-2 py-1.5 text-sm border border-slate-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-2 h-10 py-0 text-sm border border-slate-200 rounded-[12px] bg-white focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
               >
                 <option value="all">All</option>
                 <option value="yes">Uploaded</option>
@@ -345,7 +348,7 @@ export default function OcvReportV2Page() {
                   onClick={handleExcelDownload}
                   disabled={!selectedYearId || downloadingExcel}
                   title="Full OCV checklist with document download links (matches the official OCV Excel)"
-                  className="w-full inline-flex items-center justify-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg border border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 disabled:opacity-50"
+                  className="w-full inline-flex items-center justify-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-full border border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 disabled:opacity-50"
                 >
                   {downloadingExcel ? (
                     <>
@@ -362,7 +365,7 @@ export default function OcvReportV2Page() {
                   onClick={handleWordDownload}
                   disabled={!selectedYearId || downloadingWord}
                   title="Documents, photos and live module data in one Word file"
-                  className="w-full inline-flex items-center justify-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg border border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100 disabled:opacity-50"
+                  className="w-full inline-flex items-center justify-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-full border border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100 disabled:opacity-50"
                 >
                   {downloadingWord ? (
                     <>
@@ -401,9 +404,7 @@ export default function OcvReportV2Page() {
 
         {/* Loading */}
         {isLoading && (
-          <div className="flex items-center justify-center py-20 text-slate-500">
-            <Loader2 className="animate-spin mr-2" size={18} /> Loading report…
-          </div>
+          <SkeletonRows />
         )}
 
         {/* Empty */}
@@ -429,8 +430,8 @@ export default function OcvReportV2Page() {
                   </span>
                 </div>
                 <div className="overflow-x-auto">
-                  <table className="min-w-full text-sm">
-                    <thead className="bg-slate-50 text-xs uppercase text-slate-500">
+                  <table className="w-full min-w-[640px] md:min-w-full text-sm">
+                    <thead className="bg-[#EDF4FB] text-[13px] text-[#64748B]">
                       <tr>
                         <th className="px-3 py-2.5 text-left w-12">Sr</th>
                         <th className="px-3 py-2.5 text-left">Document Type</th>

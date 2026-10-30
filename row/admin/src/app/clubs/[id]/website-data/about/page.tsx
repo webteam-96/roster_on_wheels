@@ -23,6 +23,7 @@ import RotaryLoader from "@/components/RotaryLoader";
 import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import "react-quill-new/dist/quill.snow.css";
+import { ListPageSkeleton } from "@/components/row/AppKit";
 
 const ReactQuill = dynamic(() => import("react-quill-new"), { ssr: false });
 
@@ -188,7 +189,7 @@ export default function AboutPage() {
           )}
         </div>
 
-        {loading && <div className="flex items-center justify-center py-20"><RotaryLoader size="lg" /></div>}
+        {loading && <div className="flex items-center justify-center py-20"><ListPageSkeleton /></div>}
 
         {!loading && !about && (
           <div className="flex flex-col items-center justify-center py-20 text-center">
@@ -201,10 +202,10 @@ export default function AboutPage() {
         {!loading && about && (
           <Card className="border-primary/20 overflow-hidden">
             <CardContent className="p-6 space-y-4 overflow-hidden">
-              <div className="flex items-center justify-between">
+              <div className="flex flex-wrap items-center justify-between gap-3">
                 <Badge variant={about.isActive ? "default" : "secondary"}>{about.isActive ? "Active" : "Inactive"}</Badge>
                 {canManage && (
-                  <div className="flex items-center gap-2">
+                  <div className="flex flex-wrap items-center gap-2">
                     <Button variant="outline" size="sm" onClick={handleToggleActive}>
                       {about.isActive ? <><EyeOff className="mr-1 h-4 w-4" />Deactivate</> : <><Eye className="mr-1 h-4 w-4" />Activate</>}
                     </Button>

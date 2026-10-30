@@ -214,7 +214,7 @@ class _ClubsListScreenState extends State<ClubsListScreen> {
                 },
                 icon: const Icon(Icons.add_rounded),
                 label: const Text('Add Club'),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(20))),
               )
             : null,
         body: Consumer<ClubsProvider>(
@@ -268,7 +268,7 @@ class _ClubsListScreenState extends State<ClubsListScreen> {
           onRefresh: _onRefresh,
           color: AppColors.primaryPrime,
           child: ListView.separated(
-            padding: const EdgeInsets.fromLTRB(AppSpacing.md, AppSpacing.sm, AppSpacing.md, 100),
+            padding: (const EdgeInsets.fromLTRB(AppSpacing.md, AppSpacing.sm, AppSpacing.md, 100)).add(const EdgeInsets.only(bottom: 88)),
             itemCount: provider.clubs.length,
             separatorBuilder: (_, __) => const SizedBox(height: 12),
             itemBuilder: (ctx, index) {
@@ -304,7 +304,7 @@ class _FilterRow extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        SingleChildScrollView(
+        Align(alignment: Alignment.centerLeft, child: SingleChildScrollView(
           scrollDirection: Axis.horizontal,
           padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.sm),
           child: Row(
@@ -328,7 +328,7 @@ class _FilterRow extends StatelessWidget {
               ),
             ],
           ),
-        ),
+        )),
         if (provider.districts.isNotEmpty)
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: 4),
@@ -363,7 +363,7 @@ class _Chip extends StatelessWidget {
           style: AppFonts.body(
             color: selected ? AppColors.white : AppColors.textSecondary,
             fontWeight: FontWeight.w700,
-            fontSize: 12,
+            fontSize: 13,
           ),
         ),
       ),
@@ -550,7 +550,7 @@ class _InfoBadge extends StatelessWidget {
           Text(
             label,
             style: AppFonts.body(
-              fontSize: 11,
+              fontSize: 13,
               fontWeight: FontWeight.w700,
               color: AppColors.primaryPrime,
             ),
@@ -601,8 +601,7 @@ class _StatusBadge extends StatelessWidget {
         style: AppFonts.body(
           color: isActive ? AppColors.success : AppColors.error,
           fontWeight: FontWeight.w800,
-          fontSize: 9,
-          letterSpacing: 0.5,
+          fontSize: 13,
         ),
       ),
     );
@@ -619,7 +618,7 @@ class _ClubsShimmer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListView.separated(
-      padding: const EdgeInsets.all(AppSpacing.md),
+      padding: (const EdgeInsets.all(AppSpacing.md)).add(const EdgeInsets.only(bottom: 88)),
       itemCount: 7,
       separatorBuilder: (_, __) => const SizedBox(height: 12),
       itemBuilder: (_, __) => const _ShimmerCard(),

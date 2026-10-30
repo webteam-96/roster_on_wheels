@@ -32,6 +32,7 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 import SearchBox from "@/components/SearchBox";
 
 import { appLocale, currencySymbol } from "@/lib/appFormat";
+import { ListPageSkeleton } from "@/components/row/AppKit";
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
 // Read-only preview of the member's submitted offline payment — shown inside
@@ -698,7 +699,7 @@ export default function ClubMembershipDuesMembersPage() {
         </div>
 
         {loading ? (
-          <div className="flex justify-center py-10"><RotaryLoader size="lg" /></div>
+          <div className="flex justify-center py-10"><ListPageSkeleton /></div>
         ) : (
           <>
             <div className="overflow-x-auto border rounded-lg">
@@ -765,7 +766,7 @@ export default function ClubMembershipDuesMembersPage() {
 
                         <TableCell>
                           {!isNew && getUnpaidFeeTypes(m).length > 0 && (
-                            <div className="flex gap-2">
+                            <div className="flex flex-wrap gap-2">
                               <button className="text-orange-600 hover:text-orange-800" title="Send Email Reminder" onClick={() => { setEmailRemarkMemberFeeId(m.memberFeeId); setEmailRemark(""); setEmailRemarkDialogOpen(true); }}>
                                 <Mail className="h-4 w-4" />
                               </button>
@@ -933,14 +934,14 @@ export default function ClubMembershipDuesMembersPage() {
                   )}
                   {/* Send Email Receipt — only for new entries (not for updates) */}
                   {offlineUpdatePaymentId === 0 && (
-                    <div className="flex items-center gap-2">
+                    <div className="flex flex-wrap items-center gap-2">
                       <Checkbox checked={offlineSendEmail} onCheckedChange={c => setOfflineSendEmail(!!c)} id="offlineSendEmail" />
                       <Label htmlFor="offlineSendEmail">Send Email Receipt</Label>
                     </div>
                   )}
                   {/* Send updated receipt — only when updating an already-Approved row */}
                   {offlineUpdatePaymentId > 0 && offlineUpdateIsApproved && (
-                    <div className="flex items-center gap-2">
+                    <div className="flex flex-wrap items-center gap-2">
                       <Checkbox checked={offlineSendReceiptOnUpdate} onCheckedChange={c => setOfflineSendReceiptOnUpdate(!!c)} id="offlineSendReceiptOnUpdate" />
                       <Label htmlFor="offlineSendReceiptOnUpdate">Send updated receipt to member</Label>
                     </div>

@@ -12,7 +12,6 @@ import '../../../core/constants/api_constants.dart';
 import '../../../core/network/api_client.dart';
 import '../../../core/utils/maps_utils.dart';
 import '../../../core/theme/app_colors.dart';
-import '../../../core/theme/app_gradients.dart';
 import '../../../data/models/rotarian_model.dart';
 import '../../widgets/common/empty_state_widget.dart';
 import '../../widgets/common/maps_action_button.dart';
@@ -336,29 +335,29 @@ class _FindRotarianDetailScreenState extends State<FindRotarianDetailScreen> {
     if (m.isPersonalDetailsVisible) {
       final email = (m.email ?? '').trim();
       if (email.isNotEmpty) {
-        rows.add(_InfoRow('EMAIL', email,
+        rows.add(_InfoRow('Email', email,
             tappable: true, onTap: () => _openUrl('mailto:$email')));
       }
       final primary = _fullPhone(m.primaryPhoneCode, m.primaryMobile);
       if (primary != null) {
-        rows.add(_InfoRow('PRIMARY MOBILE', primary,
+        rows.add(_InfoRow('Primary mobile', primary,
             tappable: true, onTap: () => _openUrl('tel:${_digitsOnly(primary)}')));
       }
       final secondary = _fullPhone(m.secondaryPhoneCode, m.secondaryMobile);
       if (secondary != null) {
-        rows.add(_InfoRow('SECONDARY MOBILE', secondary,
+        rows.add(_InfoRow('Secondary mobile', secondary,
             tappable: true,
             onTap: () => _openUrl('tel:${_digitsOnly(secondary)}')));
       }
     }
     if ((m.bloodGroup ?? '').isNotEmpty) {
-      rows.add(_InfoRow('BLOOD GROUP', m.bloodGroup!));
+      rows.add(_InfoRow('Blood group', m.bloodGroup!));
     }
     if (m.birthDate != null) {
-      rows.add(_InfoRow('BIRTHDAY', _fmtDayMonth(m.birthDate!)));
+      rows.add(_InfoRow('Birthday', _fmtDayMonth(m.birthDate!)));
     }
     if (m.anniversaryDate != null) {
-      rows.add(_InfoRow('ANNIVERSARY', _fmtDayMonth(m.anniversaryDate!)));
+      rows.add(_InfoRow('Anniversary', _fmtDayMonth(m.anniversaryDate!)));
     }
     // _InfoCard self-hides when there are no rows.
     return _InfoCard(
@@ -377,30 +376,30 @@ class _FindRotarianDetailScreenState extends State<FindRotarianDetailScreen> {
     final designation = (club?.designation ?? '').trim();
     final classification = (club?.classification ?? '').trim();
     if (designation.isNotEmpty) {
-      rows.add(_InfoRow('DESIGNATION', designation));
+      rows.add(_InfoRow('Designation', designation));
     }
     if (classification.isNotEmpty) {
-      rows.add(_InfoRow('CLASSIFICATION', classification));
+      rows.add(_InfoRow('Classification', classification));
     }
     for (final a in addrs) {
       if ((a.businessName ?? '').isNotEmpty) {
-        rows.add(_InfoRow('BUSINESS NAME', a.businessName!));
+        rows.add(_InfoRow('Business name', a.businessName!));
       }
       if ((a.keywords ?? '').isNotEmpty) {
-        rows.add(_InfoRow('KEYWORDS', a.keywords!));
+        rows.add(_InfoRow('Keywords', a.keywords!));
       }
       if ((a.businessEmail ?? '').isNotEmpty) {
-        rows.add(_InfoRow('BUSINESS EMAIL', a.businessEmail!,
+        rows.add(_InfoRow('Business email', a.businessEmail!,
             tappable: true, onTap: () => _openUrl('mailto:${a.businessEmail}')));
       }
       if ((a.phoneNumber ?? '').isNotEmpty) {
-        rows.add(_InfoRow('PHONE', a.phoneNumber!,
+        rows.add(_InfoRow('Phone', a.phoneNumber!,
             tappable: true,
             onTap: () => _openUrl('tel:${_digitsOnly(a.phoneNumber!)}')));
       }
       final loc = _join([a.address, a.city, a.state, a.pinCode, a.country]);
       if (loc.isNotEmpty) {
-        rows.add(_InfoRow('ADDRESS', loc,
+        rows.add(_InfoRow('Address', loc,
             tappable: true,
             valueIcon: Icons.location_on_rounded,
             onTap: () => _openMaps(loc)));
@@ -630,7 +629,7 @@ class _HeroAppBar extends StatelessWidget {
           final collapsed = constraints.biggest.height <=
               kToolbarHeight + MediaQuery.of(context).padding.top + 12;
           return FlexibleSpaceBar(
-            centerTitle: true,
+            centerTitle: false,
             titlePadding: const EdgeInsetsDirectional.only(
                 start: 48, end: 48, bottom: 16),
             title: AnimatedOpacity(
@@ -655,7 +654,7 @@ class _HeroAppBar extends StatelessWidget {
               fit: StackFit.expand,
               children: [
             Container(
-              decoration: const BoxDecoration(gradient: AppGradients.royalSweep),
+              decoration: const BoxDecoration(color: AppColors.primaryPrime),
             ),
             Positioned(
               top: -50,
@@ -697,7 +696,7 @@ class _HeroAppBar extends StatelessWidget {
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 24),
                   child: Text(
-                    member.memberName.toUpperCase(),
+                    member.memberName,
                     textAlign: TextAlign.center,
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
@@ -705,7 +704,6 @@ class _HeroAppBar extends StatelessWidget {
                       color: Colors.white,
                       fontSize: 22,
                       fontWeight: FontWeight.w800,
-                      letterSpacing: 1,
                     ),
                   ),
                 ),
@@ -728,7 +726,7 @@ class _HeroAppBar extends StatelessWidget {
                           'Honorary Member',
                           style: AppFonts.body(
                             color: Colors.white,
-                            fontSize: 11.5,
+                            fontSize: 13,
                             fontWeight: FontWeight.w700,
                             letterSpacing: 0.3,
                           ),
@@ -813,12 +811,11 @@ class _InfoCard extends StatelessWidget {
               Icon(icon, size: 18, color: AppColors.primaryPrime),
               const SizedBox(width: 8),
               Text(
-                title.toUpperCase(),
+                title,
                 style: AppFonts.body(
-                  fontSize: 11,
+                  fontSize: 13,
                   fontWeight: FontWeight.w800,
                   color: AppColors.textMuted,
-                  letterSpacing: 1.2,
                 ),
               ),
             ],
@@ -873,22 +870,22 @@ class _InfoRow extends StatelessWidget {
     final showMapButton = tappable && onTap != null && valueIcon != null;
     final isLink = tappable && onTap != null && !showMapButton;
     final valueStyle = AppFonts.body(
-      fontSize: 14,
-      fontWeight: FontWeight.w700,
+      fontSize: 16,
+      fontWeight: FontWeight.w500,
       color: isLink ? AppColors.primaryPrime : AppColors.textPrimary,
     );
     final labelStyle = AppFonts.body(
-      fontSize: 10,
-      fontWeight: FontWeight.w800,
-      color: AppColors.textMuted,
-      letterSpacing: 0.5,
+      fontSize: 13,
+      fontWeight: FontWeight.w500,
+      color: AppColors.textSecondary,
     );
 
     // Address rows STACK the label + map button on top and give the value the
     // full card width below, so a long address isn't squeezed into a narrow
     // column (the two-column layout below is for short values only).
     if (showMapButton) {
-      return Padding(
+      return Container(
+        width: double.infinity, // full width so the stacked label/value stay left
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -907,14 +904,15 @@ class _InfoRow extends StatelessWidget {
       );
     }
 
-    final body = Padding(
+    final body = Container(
+      width: double.infinity, // full width so the stacked label/value stay left
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-      child: Row(
+      child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Expanded(flex: 2, child: Text(label, style: labelStyle)),
-          const SizedBox(width: 12),
-          Expanded(flex: 3, child: Text(value, style: valueStyle)),
+          Text(label, style: labelStyle),
+          const SizedBox(height: 4),
+          Text(value, style: valueStyle),
         ],
       ),
     );
@@ -971,7 +969,7 @@ class _ContactAction extends StatelessWidget {
             Text(
               label,
               style: AppFonts.body(
-                fontSize: 11,
+                fontSize: 13,
                 fontWeight: FontWeight.w600,
                 color: AppColors.textSecondary,
               ),

@@ -8,6 +8,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { ArrowLeft, UserX, UserPlus } from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
 import ProtectedRoute from "@/components/ProtectedRoute";
+import { ListPageSkeleton } from "@/components/row/AppKit";
 
 const subModules = [
   {
@@ -69,7 +70,7 @@ export default function RotaryNetworkPage() {
 
         {loading ? (
           <div className="flex items-center justify-center py-20">
-            <RotaryLoader size="lg" />
+            <ListPageSkeleton />
           </div>
         ) : (
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4">

@@ -18,6 +18,7 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 import { useAuth } from "@/contexts/AuthContext";
 import { ArrowLeft, Plus, Smartphone, Loader2 } from "@/components/icons";
 import { getMobileVersions, createMobileVersion } from "@/services/api";
+import { ListPageSkeleton } from "@/components/row/AppKit";
 
 const DEFAULT_URL = process.env.NEXT_PUBLIC_IOS_APP_URL ?? "";
 // Default store URLs — pre-filled but fully editable in the Add dialog.
@@ -91,7 +92,7 @@ export default function MobileVersionPage() {
           <Button onClick={openAdd}><Plus className="h-4 w-4 mr-2" />Add Version</Button>
         </div>
 
-        {loading && <div className="flex justify-center py-12"><RotaryLoader size="lg" /></div>}
+        {loading && <div className="flex justify-center py-12"><ListPageSkeleton /></div>}
 
         {!loading && (
           <Card>

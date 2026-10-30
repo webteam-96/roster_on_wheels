@@ -26,6 +26,7 @@ import Link from "next/link";
 import Image from "next/image";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import MemberDetailDialog from "@/components/MemberDetailDialog";
+import { ListPageSkeleton } from "@/components/row/AppKit";
 
 export default function DistrictMembersPage() {
   const params = useParams();
@@ -184,7 +185,7 @@ export default function DistrictMembersPage() {
         </div>
 
 
-        {loading && <div className="flex items-center justify-center py-20"><RotaryLoader size="lg" /></div>}
+        {loading && <div className="flex items-center justify-center py-20"><ListPageSkeleton /></div>}
 
         {!loading && data && data.items.length === 0 && (
           <div className="flex flex-col items-center justify-center py-20 text-center">
@@ -274,31 +275,31 @@ export default function DistrictMembersPage() {
                         </div>
                         <div className="border-t px-4 py-3 space-y-2 text-sm text-muted-foreground group-hover:bg-primary/5 transition-colors">
                           {member.clubName && (
-                            <div className="flex items-center gap-2">
+                            <div className="flex flex-wrap items-center gap-2">
                               <Building2 className="h-3.5 w-3.5 flex-shrink-0" />
                               <span className="truncate">{member.clubName}</span>
                             </div>
                           )}
                           {member.rotaryId && (
-                            <div className="flex items-center gap-2">
+                            <div className="flex flex-wrap items-center gap-2">
                               <IdCard className="h-3.5 w-3.5 flex-shrink-0" />
                               <span className="truncate">{member.rotaryId}</span>
                             </div>
                           )}
                           {member.emailId && (
-                            <div className="flex items-center gap-2">
+                            <div className="flex flex-wrap items-center gap-2">
                               <Mail className="h-3.5 w-3.5 flex-shrink-0" />
                               <span className="truncate">{member.emailId}</span>
                             </div>
                           )}
                           {member.primaryMobileNumber && (
-                            <div className="flex items-center gap-2">
+                            <div className="flex flex-wrap items-center gap-2">
                               <Phone className="h-3.5 w-3.5 flex-shrink-0" />
                               <span>{member.primaryMobileNumber}</span>
                             </div>
                           )}
                           {member.joinedDate && (
-                            <div className="flex items-center gap-2">
+                            <div className="flex flex-wrap items-center gap-2">
                               <Calendar className="h-3.5 w-3.5 flex-shrink-0" />
                               <span>Joined {formatDMY(member.joinedDate)}</span>
                             </div>

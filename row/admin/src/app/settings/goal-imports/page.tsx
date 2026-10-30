@@ -22,6 +22,7 @@ import ErrorAlert from "@/components/ErrorAlert";
 import { ArrowLeft, Upload, FileSpreadsheet, AlertTriangle, Download } from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
 import ProtectedRoute from "@/components/ProtectedRoute";
+import { ListPageSkeleton } from "@/components/row/AppKit";
 
 export default function GoalImportsPage() {
   const { isSuperAdmin } = useAuth();
@@ -171,7 +172,7 @@ export default function GoalImportsPage() {
   if (loading) {
     return (
       <ProtectedRoute>
-        <div className="flex justify-center items-center py-20 min-h-[60vh]"><RotaryLoader size="lg" /></div>
+        <div className="flex justify-center items-center py-20 min-h-[60vh]"><ListPageSkeleton /></div>
       </ProtectedRoute>
     );
   }
@@ -372,7 +373,7 @@ export default function GoalImportsPage() {
                         </div>
                         <div className="max-h-64 overflow-auto">
                           <table className="w-full text-xs">
-                            <thead className="sticky top-0 bg-amber-100/80 text-amber-900">
+                            <thead className="bg-[#EDF4FB] text-[13px] text-[#64748B] sticky top-0">
                               <tr>
                                 <th className="text-left px-3 py-1.5 font-medium">Row</th>
                                 <th className="text-left px-3 py-1.5 font-medium">Club No</th>

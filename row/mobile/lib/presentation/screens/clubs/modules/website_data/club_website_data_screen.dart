@@ -250,9 +250,6 @@ class _ClubWebsiteDataScreenState extends State<ClubWebsiteDataScreen> {
           _buildYearSelector(),
           const TabBar(
             isScrollable: true,
-            labelColor: AppColors.primary,
-            unselectedLabelColor: Colors.grey,
-            indicatorColor: AppColors.primary,
             tabs: _tabs,
           ),
           Expanded(child: gatedTabViews),
@@ -266,9 +263,6 @@ class _ClubWebsiteDataScreenState extends State<ClubWebsiteDataScreen> {
           title: 'Website Data',
           bottom: const TabBar(
             isScrollable: true,
-            labelColor: Colors.white,
-            unselectedLabelColor: Colors.white60,
-            indicatorColor: AppColors.goldPrime,
             tabs: _tabs,
           ),
         ),
@@ -705,7 +699,7 @@ class _BannersTabState extends State<_BannersTab>
                         ? Colors.red[700]
                         : Colors.green[700],
                     fontWeight: FontWeight.w600,
-                    fontSize: 11,
+                    fontSize: 13,
                   ),
                 ),
               ),
@@ -715,7 +709,7 @@ class _BannersTabState extends State<_BannersTab>
             child: _banners.isEmpty
                 ? const EmptyStateWidget(title: 'No banners added')
                 : ListView.separated(
-                    padding: const EdgeInsets.all(16),
+                    padding: (const EdgeInsets.all(16)).add(const EdgeInsets.only(bottom: 88)),
                     itemCount: _banners.length,
                     separatorBuilder: (_, __) => const SizedBox(height: 8),
                     itemBuilder: (_, i) {
@@ -723,8 +717,7 @@ class _BannersTabState extends State<_BannersTab>
                       final imgPath = b['bannerImagePath']?.toString();
                       final active = _asBool(b['isActive']);
                       return Card(
-                        shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10)),
+                        shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(20))),
                         child: ListTile(
                           leading: (imgPath != null && imgPath.isNotEmpty)
                               ? ClipRRect(
@@ -762,7 +755,7 @@ class _BannersTabState extends State<_BannersTab>
                                 ),
                                 child: Text(active ? 'Active' : 'Inactive',
                                     style: AppTextStyles.caption
-                                        .copyWith(fontSize: 10)),
+                                        .copyWith(fontSize: 13)),
                               ),
                             ],
                           ),
@@ -957,7 +950,7 @@ class _AdsTabState extends State<_AdsTab> with AutomaticKeepAliveClientMixin {
                         ? Colors.red[700]
                         : Colors.green[700],
                     fontWeight: FontWeight.w600,
-                    fontSize: 11,
+                    fontSize: 13,
                   ),
                 ),
               ),
@@ -967,7 +960,7 @@ class _AdsTabState extends State<_AdsTab> with AutomaticKeepAliveClientMixin {
             child: _ads.isEmpty
                 ? const EmptyStateWidget(title: 'No ads configured')
                 : ListView.separated(
-                    padding: const EdgeInsets.all(16),
+                    padding: (const EdgeInsets.all(16)).add(const EdgeInsets.only(bottom: 88)),
                     itemCount: _ads.length,
                     separatorBuilder: (_, __) => const SizedBox(height: 8),
                     itemBuilder: (_, i) {
@@ -976,8 +969,7 @@ class _AdsTabState extends State<_AdsTab> with AutomaticKeepAliveClientMixin {
                       final docPath = a['documentPath']?.toString();
                       final active = _asBool(a['isActive']);
                       return Card(
-                        shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10)),
+                        shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(20))),
                         child: ListTile(
                           leading: (imgPath != null && imgPath.isNotEmpty)
                               ? ClipRRect(
@@ -1016,7 +1008,7 @@ class _AdsTabState extends State<_AdsTab> with AutomaticKeepAliveClientMixin {
                                     ),
                                     child: Text('Doc',
                                         style: AppTextStyles.caption.copyWith(
-                                            fontSize: 10,
+                                            fontSize: 13,
                                             color: Colors.blue[700])),
                                   ),
                                 ),
@@ -1031,7 +1023,7 @@ class _AdsTabState extends State<_AdsTab> with AutomaticKeepAliveClientMixin {
                                 ),
                                 child: Text(active ? 'Active' : 'Inactive',
                                     style: AppTextStyles.caption
-                                        .copyWith(fontSize: 10)),
+                                        .copyWith(fontSize: 13)),
                               ),
                             ],
                           ),
@@ -1308,7 +1300,7 @@ class _MenuTabState extends State<_MenuTab> with AutomaticKeepAliveClientMixin {
                     color:
                         _menus.length >= 9 ? Colors.red[700] : Colors.blue[700],
                     fontWeight: FontWeight.w600,
-                    fontSize: 11,
+                    fontSize: 13,
                   ),
                 ),
               ),
@@ -1318,7 +1310,7 @@ class _MenuTabState extends State<_MenuTab> with AutomaticKeepAliveClientMixin {
             child: _menus.isEmpty
                 ? const EmptyStateWidget(title: 'No menu items')
                 : ListView.builder(
-                    padding: const EdgeInsets.all(16),
+                    padding: (const EdgeInsets.all(16)).add(const EdgeInsets.only(bottom: 88)),
                     itemCount: _menus.length,
                     itemBuilder: (_, i) {
                       final m = _menus[i];
@@ -1331,8 +1323,7 @@ class _MenuTabState extends State<_MenuTab> with AutomaticKeepAliveClientMixin {
                       return Column(
                         children: [
                           Card(
-                            shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(10)),
+                            shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(20))),
                             child: ListTile(
                               leading: InkWell(
                                 onTap: () => _toggleExpand(menuId),
@@ -1361,7 +1352,7 @@ class _MenuTabState extends State<_MenuTab> with AutomaticKeepAliveClientMixin {
                                     child: Text(
                                         m['linkType']?.toString() ?? 'page',
                                         style: AppTextStyles.caption
-                                            .copyWith(fontSize: 10)),
+                                            .copyWith(fontSize: 13)),
                                   ),
                                   const SizedBox(width: 6),
                                   Container(
@@ -1375,7 +1366,7 @@ class _MenuTabState extends State<_MenuTab> with AutomaticKeepAliveClientMixin {
                                     ),
                                     child: Text(active ? 'Active' : 'Inactive',
                                         style: AppTextStyles.caption
-                                            .copyWith(fontSize: 10)),
+                                            .copyWith(fontSize: 13)),
                                   ),
                                   const SizedBox(width: 6),
                                   Container(
@@ -1388,7 +1379,7 @@ class _MenuTabState extends State<_MenuTab> with AutomaticKeepAliveClientMixin {
                                     ),
                                     child: Text('$subCount',
                                         style: AppTextStyles.caption
-                                            .copyWith(fontSize: 10)),
+                                            .copyWith(fontSize: 13)),
                                   ),
                                 ],
                               ),
@@ -1456,9 +1447,8 @@ class _MenuTabState extends State<_MenuTab> with AutomaticKeepAliveClientMixin {
                               return Padding(
                                 padding: const EdgeInsets.only(left: 24),
                                 child: Card(
-                                  elevation: 1,
-                                  shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(8)),
+                                  elevation: 0,
+                                  shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(20))),
                                   child: ListTile(
                                     leading: Text('\u2514',
                                         style: TextStyle(
@@ -1484,7 +1474,7 @@ class _MenuTabState extends State<_MenuTab> with AutomaticKeepAliveClientMixin {
                                               s['linkType']?.toString() ??
                                                   'page',
                                               style: AppTextStyles.caption
-                                                  .copyWith(fontSize: 10)),
+                                                  .copyWith(fontSize: 13)),
                                         ),
                                         const SizedBox(width: 6),
                                         Container(
@@ -1500,7 +1490,7 @@ class _MenuTabState extends State<_MenuTab> with AutomaticKeepAliveClientMixin {
                                           child: Text(
                                               subActive ? 'Active' : 'Inactive',
                                               style: AppTextStyles.caption
-                                                  .copyWith(fontSize: 10)),
+                                                  .copyWith(fontSize: 13)),
                                         ),
                                       ],
                                     ),
@@ -1728,7 +1718,7 @@ class _SocialLinksTabState extends State<_SocialLinksTab>
       body: _links.isEmpty
           ? const EmptyStateWidget(title: 'No social links added')
           : ListView.separated(
-              padding: const EdgeInsets.all(16),
+              padding: (const EdgeInsets.all(16)).add(const EdgeInsets.only(bottom: 88)),
               itemCount: _links.length,
               separatorBuilder: (_, __) => const SizedBox(height: 8),
               itemBuilder: (_, i) {
@@ -1737,8 +1727,7 @@ class _SocialLinksTabState extends State<_SocialLinksTab>
                 final linkUrl = m['linkUrl']?.toString() ?? '';
                 final active = _asBool(m['isActive'] ?? true);
                 return Card(
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10)),
+                  shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(20))),
                   child: ListTile(
                     leading: CircleAvatar(
                       backgroundColor:
@@ -1910,7 +1899,7 @@ class _AboutTabState extends State<_AboutTab>
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Card(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(20))),
         child: Padding(
           padding: const EdgeInsets.all(16),
           child: Column(
@@ -1931,7 +1920,7 @@ class _AboutTabState extends State<_AboutTab>
                     child: Text(active ? 'Active' : 'Inactive',
                         style: AppTextStyles.caption.copyWith(
                           fontWeight: FontWeight.w600,
-                          fontSize: 11,
+                          fontSize: 13,
                           color: active ? Colors.green[700] : Colors.grey[700],
                         )),
                   ),
@@ -2112,7 +2101,7 @@ class _ContactTabState extends State<_ContactTab>
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Card(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(20))),
         child: Padding(
           padding: const EdgeInsets.all(16),
           child: Column(
@@ -2133,7 +2122,7 @@ class _ContactTabState extends State<_ContactTab>
                     child: Text(active ? 'Active' : 'Inactive',
                         style: AppTextStyles.caption.copyWith(
                           fontWeight: FontWeight.w600,
-                          fontSize: 11,
+                          fontSize: 13,
                           color: active ? Colors.green[700] : Colors.grey[700],
                         )),
                   ),
@@ -3445,10 +3434,10 @@ class _AboutFormPageState extends State<_AboutFormPage> {
                     width: 18,
                     height: 18,
                     child: CircularProgressIndicator(
-                        strokeWidth: 2, color: Colors.white))
+                        strokeWidth: 2, color: AppColors.primaryPrime))
                 : Text(_isEdit ? 'Update' : 'Save',
                     style: const TextStyle(
-                        color: Colors.white, fontWeight: FontWeight.bold)),
+                        color: AppColors.primaryPrime, fontWeight: FontWeight.bold)),
           ),
           const SizedBox(width: 8),
         ],

@@ -4,7 +4,6 @@ import 'package:provider/provider.dart';
 import '../../../core/routing/route_names.dart';
 import '../../../core/security/biometric_controller.dart';
 import '../../../core/theme/app_colors.dart';
-import '../../../core/theme/app_gradients.dart';
 import '../../providers/auth_provider.dart';
 import 'package:rotary_flutter_app/core/brand/brand.dart';
 import 'package:rotary_flutter_app/core/theme/app_fonts.dart';
@@ -90,7 +89,7 @@ class _AppLockScreenState extends State<AppLockScreen>
       child: Scaffold(
         body: Container(
           width: double.infinity,
-          decoration: const BoxDecoration(gradient: AppGradients.royalSweep),
+          decoration: const BoxDecoration(color: AppColors.primaryPrime),
           child: SafeArea(
             child: Padding(
               padding: const EdgeInsets.all(24),
@@ -163,9 +162,7 @@ class _AppLockScreenState extends State<AppLockScreen>
                           backgroundColor: AppColors.goldPrime,
                           foregroundColor: AppColors.darkBg,
                           padding: const EdgeInsets.symmetric(vertical: 14),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
+                          shape: const StadiumBorder(),
                           elevation: 0,
                         ),
                       ),

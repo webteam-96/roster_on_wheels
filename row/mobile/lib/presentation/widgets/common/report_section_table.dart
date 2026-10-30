@@ -332,7 +332,7 @@ class _ReportTable extends StatelessWidget {
                         width: _colWidth(c),
                         padding: const EdgeInsets.symmetric(
                             horizontal: 10, vertical: 9),
-                        child: Text(c.label.toUpperCase(),
+                        child: Text(c.label,
                             style: headerStyle,
                             maxLines: 2,
                             overflow: TextOverflow.ellipsis),

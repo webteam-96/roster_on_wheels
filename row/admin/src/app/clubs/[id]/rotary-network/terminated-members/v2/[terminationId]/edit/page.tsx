@@ -31,6 +31,7 @@ import RotaryLoader from "@/components/RotaryLoader";
 import ErrorAlert from "@/components/ErrorAlert";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { useSyncClubIdFromUrl } from "@/hooks/useSyncClubIdFromUrl";
+import { ListPageSkeleton } from "@/components/row/AppKit";
 
 const TERMINATION_REASONS = [
   { value: "Lack of Participation", label: "Lack of Participation" },
@@ -156,7 +157,7 @@ export default function TerminatedMembersV2EditPage() {
           activeNavHref="/club-admin-dashboard/dashboard"
         >
           <div className="flex items-center justify-center py-20">
-            <RotaryLoader size="lg" />
+            <ListPageSkeleton />
           </div>
         </ClubAdminShell>
       </ProtectedRoute>
@@ -219,8 +220,8 @@ export default function TerminatedMembersV2EditPage() {
         }
       >
         {/* 1. Member (read-only — member cannot be swapped on edit) */}
-        <SectionCard number={1} icon={UserMinus} title="Member" dot="bg-amber-600">
-          <FieldLabel dot="bg-amber-500" required={false}>Member (locked)</FieldLabel>
+        <SectionCard number={1} icon={UserMinus} title="Member" dot="bg-[#17458F]">
+          <FieldLabel dot="bg-[#17458F]" required={false}>Member (locked)</FieldLabel>
           <div className="flex items-center gap-3 p-3 border rounded-lg bg-slate-50 border-slate-200">
             <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white border border-slate-200 text-slate-400">
               <User className="h-5 w-5" />
@@ -236,21 +237,21 @@ export default function TerminatedMembersV2EditPage() {
         </SectionCard>
 
         {/* 2. Termination Details (editable) */}
-        <SectionCard number={2} icon={Calendar} title="Termination Details" dot="bg-rose-600">
+        <SectionCard number={2} icon={Calendar} title="Termination Details" dot="bg-[#17458F]">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <FieldLabel dot="bg-rose-500">Termination Date</FieldLabel>
-              <DateField value={terminationDate} onChange={setTerminationDate} max={today} className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500" />
+              <FieldLabel dot="bg-[#17458F]">Termination Date</FieldLabel>
+              <DateField value={terminationDate} onChange={setTerminationDate} max={today} className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]" />
             </div>
             <div>
-              <FieldLabel dot="bg-rose-500">Termination Reason</FieldLabel>
+              <FieldLabel dot="bg-[#17458F]">Termination Reason</FieldLabel>
               <select
                 value={terminationReason}
                 onChange={(e) => {
                   setTerminationReason(e.target.value);
                   setReasonIsCustom(e.target.value === "Other");
                 }}
-                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-rose-500"
+                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] bg-white focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
               >
                 <option value="">Select a reason…</option>
                 {TERMINATION_REASONS.map((r) => (
@@ -264,7 +265,7 @@ export default function TerminatedMembersV2EditPage() {
                   onChange={(e) => setCustomReason(e.target.value)}
                   placeholder="Custom reason"
                   maxLength={200}
-                  className="mt-2 w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500"
+                  className="mt-2 w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
                 />
               )}
             </div>
@@ -280,7 +281,7 @@ export default function TerminatedMembersV2EditPage() {
             placeholder="Any context to record alongside the termination…"
             rows={4}
             maxLength={1000}
-            className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-400"
+            className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
           />
           <p className="text-xs text-slate-400 text-right mt-0.5">{notes.length}/1000</p>
         </SectionCard>

@@ -18,6 +18,7 @@ import ErrorAlert from "@/components/ErrorAlert";
 import { Link2, RefreshCw } from "@/components/icons";
 
 import { appLocale, currencySymbol } from "@/lib/appFormat";
+import { ListPageSkeleton } from "@/components/row/AppKit";
 declare global { interface Window { Razorpay?: any } }
 
 interface OfficerClub {
@@ -48,7 +49,7 @@ export default function ClubAdminClubDuesPage() {
     })();
   }, []);
 
-  if (loading) return <div className="flex justify-center py-20"><RotaryLoader size="lg" /></div>;
+  if (loading) return <div className="flex justify-center py-20"><ListPageSkeleton /></div>;
   const shown = openClubId ? clubs.filter((c) => c.clubId === openClubId) : [];
 
   return (

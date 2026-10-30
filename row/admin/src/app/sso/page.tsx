@@ -12,6 +12,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 import { ssoExchange, resolveDashboardLanding } from "@/services/api";
 import RotaryLoader from "@/components/RotaryLoader";
+import { ListPageSkeleton } from "@/components/row/AppKit";
 
 function SsoInner() {
   const router = useRouter();
@@ -83,7 +84,7 @@ function SsoInner() {
   }
   return (
     <div className="flex min-h-[80vh] flex-col items-center justify-center gap-4">
-      <RotaryLoader size="lg" />
+      <ListPageSkeleton />
       <p className="text-muted-foreground">Signing you in…</p>
     </div>
   );
@@ -91,7 +92,7 @@ function SsoInner() {
 
 export default function SsoPage() {
   return (
-    <Suspense fallback={<div className="flex min-h-[80vh] items-center justify-center"><RotaryLoader size="lg" /></div>}>
+    <Suspense fallback={<div className="flex min-h-[80vh] items-center justify-center"><ListPageSkeleton /></div>}>
       <SsoInner />
     </Suspense>
   );

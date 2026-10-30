@@ -366,7 +366,7 @@ class _AgReportsScreenState extends State<AgReportsScreen> {
             Text(
               'Club',
               style: AppFonts.body(
-                fontSize: 12,
+                fontSize: 13,
                 fontWeight: FontWeight.w600,
                 color: AppColors.textSecondary,
               ),
@@ -417,11 +417,10 @@ class _AgReportsScreenState extends State<AgReportsScreen> {
     return Padding(
       padding: const EdgeInsets.fromLTRB(4, 16, 4, 8),
       child: Text(
-        text.toUpperCase(),
+        text,
         style: AppFonts.body(
-          fontSize: 12,
+          fontSize: 13,
           fontWeight: FontWeight.w800,
-          letterSpacing: 0.8,
           color: AppColors.textMuted,
         ),
       ),
@@ -558,7 +557,7 @@ class _DownloadPill extends StatelessWidget {
               Text(
                 'Download',
                 style: AppFonts.body(
-                  fontSize: 12,
+                  fontSize: 13,
                   fontWeight: FontWeight.w700,
                   color: color,
                 ),

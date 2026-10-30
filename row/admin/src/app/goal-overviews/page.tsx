@@ -15,6 +15,7 @@ import {
 } from "@/services/api";
 import type { GoalCategoryDto, GoalDistrictSummaryDto } from "@/types/goalSetting";
 import type { RotaryYear } from "@/types/rotaryYear";
+import { ListPageSkeleton } from "@/components/row/AppKit";
 
 export default function GoalOversightPage() {
   const { isSuperAdmin } = useAuth();
@@ -67,7 +68,7 @@ export default function GoalOversightPage() {
   if (loading) {
     return (
       <ProtectedRoute>
-        <div className="flex justify-center items-center py-20 min-h-[60vh]"><RotaryLoader size="lg" /></div>
+        <div className="flex justify-center items-center py-20 min-h-[60vh]"><ListPageSkeleton /></div>
       </ProtectedRoute>
     );
   }
@@ -97,7 +98,7 @@ export default function GoalOversightPage() {
               <select
                 value={yearId ?? ""}
                 onChange={(e) => setYearId(e.target.value ? Number(e.target.value) : null)}
-                className="h-9 rounded-md border border-slate-300 bg-white px-3 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="h-9 rounded-[12px] border border-slate-300 bg-white px-3 text-sm text-slate-700 focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
               >
                 {years.map((y) => <option key={y.id} value={y.id}>{y.yearLabel}{y.isCurrent ? " (current)" : ""}</option>)}
               </select>

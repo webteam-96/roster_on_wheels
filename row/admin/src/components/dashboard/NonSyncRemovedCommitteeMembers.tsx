@@ -116,7 +116,7 @@ export default function NonSyncRemovedCommitteeMembers({
             <button
               type="button"
               onClick={() => setAddTarget(m)}
-              className="inline-flex shrink-0 items-center gap-1 rounded-md bg-azure px-3 py-1.5 text-xs font-medium text-white hover:bg-mint-ink"
+              className="inline-flex shrink-0 items-center gap-1 rounded-full bg-azure px-3 py-1.5 text-xs font-medium text-white hover:bg-mint-ink"
             >
               <UserPlus className="h-3.5 w-3.5" /> Add as non-member
             </button>

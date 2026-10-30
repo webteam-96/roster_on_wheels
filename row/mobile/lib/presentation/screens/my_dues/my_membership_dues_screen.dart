@@ -289,7 +289,7 @@ class _MyMembershipDuesScreenState extends State<MyMembershipDuesScreen> {
                       Text(
                         'All cleared',
                         style: AppFonts.body(
-                          fontSize: 11,
+                          fontSize: 13,
                           fontWeight: FontWeight.w700,
                           color: Colors.white,
                         ),
@@ -324,7 +324,7 @@ class _MyMembershipDuesScreenState extends State<MyMembershipDuesScreen> {
           Text(
             label,
             style: AppFonts.body(
-              fontSize: 11,
+              fontSize: 13,
               fontWeight: FontWeight.w600,
               color: Colors.white.withValues(alpha: 0.75),
             ),
@@ -417,7 +417,7 @@ class _MyMembershipDuesScreenState extends State<MyMembershipDuesScreen> {
           child: Text(
             year,
             style: AppFonts.body(
-              fontSize: 12,
+              fontSize: 13,
               fontWeight: FontWeight.w800,
               color: AppColors.primary,
               letterSpacing: 0.3,
@@ -428,7 +428,7 @@ class _MyMembershipDuesScreenState extends State<MyMembershipDuesScreen> {
         Text(
           count == 1 ? '1 dues' : '$count dues',
           style: AppFonts.body(
-            fontSize: 12,
+            fontSize: 13,
             color: AppColors.textSecondary,
             fontWeight: FontWeight.w600,
           ),
@@ -600,9 +600,7 @@ class _DuesCard extends StatelessWidget {
                     backgroundColor: AppColors.primary,
                     foregroundColor: Colors.white,
                     padding: const EdgeInsets.symmetric(vertical: 12),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
-                    ),
+                    shape: const StadiumBorder(),
                   ),
                   onPressed: () => _pay(context),
                 ),
@@ -630,7 +628,7 @@ class _DuesCard extends StatelessWidget {
             Text(
               'Paid',
               style: AppFonts.body(
-                fontSize: 11,
+                fontSize: 13,
                 fontWeight: FontWeight.w700,
                 color: AppColors.success,
               ),
@@ -648,7 +646,7 @@ class _DuesCard extends StatelessWidget {
       child: Text(
         'Due',
         style: AppFonts.body(
-          fontSize: 11,
+          fontSize: 13,
           fontWeight: FontWeight.w700,
           color: AppColors.error,
         ),
@@ -696,7 +694,7 @@ class _DuesCard extends StatelessWidget {
                   child: Text(
                     _paidLine(f),
                     style: AppFonts.body(
-                      fontSize: 11,
+                      fontSize: 13,
                       color: AppColors.textSecondary,
                     ),
                     overflow: TextOverflow.ellipsis,
@@ -720,7 +718,7 @@ class _DuesCard extends StatelessWidget {
       label: Text(
         'Receipt',
         style: AppFonts.body(
-          fontSize: 12,
+          fontSize: 13,
           fontWeight: FontWeight.w700,
         ),
       ),
@@ -730,7 +728,7 @@ class _DuesCard extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
         minimumSize: const Size(0, 30),
         tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        shape: const StadiumBorder(),
       ),
     );
   }
@@ -750,7 +748,7 @@ class _DuesCard extends StatelessWidget {
             child: Text(
               note,
               style: AppFonts.body(
-                fontSize: 11.5,
+                fontSize: 13,
                 fontWeight: FontWeight.w600,
                 color: AppColors.textSecondary,
               ),
@@ -818,7 +816,7 @@ class _DuesCard extends StatelessWidget {
       child: Text(
         f.paymentStatus,
         style: AppFonts.body(
-          fontSize: 10,
+          fontSize: 13,
           color: fg,
           fontWeight: FontWeight.w700,
           letterSpacing: 0.3,
@@ -873,7 +871,7 @@ class _DuesCard extends StatelessWidget {
       child: Text(
         label,
         style: AppFonts.body(
-          fontSize: 11,
+          fontSize: 13,
           color: color,
           fontWeight: FontWeight.w600,
         ),

@@ -14,6 +14,7 @@ import ErrorAlert from "@/components/ErrorAlert";
 import { Plus, Search, Power, PowerOff, FileSpreadsheet, Trash2 } from "@/components/icons";
 
 import { appLocale, currencySymbol } from "@/lib/appFormat";
+import { ListPageSkeleton } from "@/components/row/AppKit";
 interface ClubDuesRow {
   id: number;
   districtNumber?: string;
@@ -69,7 +70,7 @@ export default function ClubDuesListPage() {
   return (
     <ProtectedRoute>
       <div className="space-y-6">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
             <h2 className="text-2xl font-bold tracking-tight text-primary">District Dues</h2>
             <p className="text-muted-foreground text-base">District-wise dues collection</p>
@@ -88,13 +89,13 @@ export default function ClubDuesListPage() {
         </div>
 
         {loading ? (
-          <div className="flex justify-center py-20"><RotaryLoader size="lg" /></div>
+          <div className="flex justify-center py-20"><ListPageSkeleton /></div>
         ) : rows.length === 0 ? (
           <div className="text-center py-20 text-muted-foreground">No district dues campaigns yet.</div>
         ) : (
           <div className="rounded-md border overflow-x-auto">
             <table className="w-full text-sm">
-              <thead>
+              <thead className="bg-[#EDF4FB] text-[13px] text-[#64748B]">
                 <tr className="border-b bg-muted/50 text-left">
                   <th className="px-4 py-3 font-medium">District</th>
                   <th className="px-4 py-3 font-medium">Year</th>

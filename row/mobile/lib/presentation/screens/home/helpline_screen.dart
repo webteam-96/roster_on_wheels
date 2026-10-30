@@ -40,12 +40,19 @@ class HelplineScreen extends StatelessWidget {
         children: [
           _buildHero(),
           const SizedBox(height: 24),
-          _buildSectionLabel('Office hours'),
-          const SizedBox(height: 12),
-          _buildOfficeHoursCard(),
-          const SizedBox(height: 24),
-          _buildSectionLabel('Get in touch'),
-          const SizedBox(height: 12),
+          // Sections without data stay hidden instead of showing a bare dash or an empty heading.
+          if (_brand.supportHours.isNotEmpty) ...[
+            _buildSectionLabel('Office hours'),
+            const SizedBox(height: 12),
+            _buildOfficeHoursCard(),
+            const SizedBox(height: 24),
+          ],
+          if (_brand.supportPhones.isNotEmpty ||
+              _brand.supportEmail.isNotEmpty ||
+              _brand.adminOrigin.isNotEmpty) ...[
+            _buildSectionLabel('Get in touch'),
+            const SizedBox(height: 12),
+          ],
           for (final phone in _brand.supportPhones) ...[
             _ContactCard(
               icon: Icons.phone_rounded,
@@ -130,11 +137,10 @@ class HelplineScreen extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.only(left: 4),
       child: Text(
-        label.toUpperCase(),
+        label,
         style: AppFonts.body(
-          fontSize: 11,
+          fontSize: 13,
           fontWeight: FontWeight.w800,
-          letterSpacing: 1.2,
           color: AppColors.textMuted,
         ),
       ),
@@ -231,7 +237,7 @@ class _ContactCard extends StatelessWidget {
                       label,
                       style: AppTextStyles.caption.copyWith(
                         color: AppColors.textSecondary,
-                        fontSize: 12,
+                        fontSize: 13,
                       ),
                     ),
                     const SizedBox(height: 3),

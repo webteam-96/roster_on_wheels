@@ -12132,3 +12132,12 @@ DELIMITER ;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
+
+-- Club website visitor counter (api/Controllers/ClubWebsiteVisitsController.cs, 2026-10-30): one row per club, day
+-- and visitor; the visitor is a hash salted per day (no IP stored).
+CREATE TABLE IF NOT EXISTS club_website_visits (
+    fk_club_id INT NOT NULL,
+    visit_date DATE NOT NULL,
+    visitor_hash CHAR(64) NOT NULL,
+    PRIMARY KEY (fk_club_id, visit_date, visitor_hash)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

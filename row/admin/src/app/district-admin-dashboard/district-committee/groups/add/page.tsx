@@ -33,6 +33,7 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 import DistrictMembershipTabBar from "@/components/dashboard/DistrictMembershipTabBar";
 import ImageCropDialog from "@/components/ImageCropDialog";
 import { useImageCropUpload } from "@/hooks/useImageCropUpload";
+import { ListPageSkeleton } from "@/components/row/AppKit";
 
 const PHOTO_ASPECT = 1;
 const PHOTO_MAX_OUTPUT = 500;
@@ -253,7 +254,7 @@ export default function DistrictAdminDashboardGroupAddPage() {
           </div>
         </div>
 
-        {loading && <div className="flex items-center justify-center py-20"><RotaryLoader size="lg" /></div>}
+        {loading && <div className="flex items-center justify-center py-20"><ListPageSkeleton /></div>}
 
         {!loading && (
           <>
@@ -285,7 +286,7 @@ export default function DistrictAdminDashboardGroupAddPage() {
 
             {/* Members */}
             <div className="space-y-3">
-              <div className="flex items-center justify-between">
+              <div className="flex flex-wrap items-center justify-between gap-3">
                 <h3 className="text-lg font-semibold text-ink flex items-center gap-2">
                   <Users className="h-5 w-5" />Members <span className="text-slate-400 font-normal">({staged.length})</span>
                 </h3>
@@ -328,7 +329,7 @@ export default function DistrictAdminDashboardGroupAddPage() {
                               )}
                             </TableCell>
                             <TableCell>
-                              <div className="flex items-center gap-2">
+                              <div className="flex flex-wrap items-center gap-2">
                                 <span className="font-medium">{m.name}</span>
                                 {m.isMember ? <MemberChip /> : <NonMemberChip />}
                               </div>
@@ -353,7 +354,7 @@ export default function DistrictAdminDashboardGroupAddPage() {
             </div>
 
             {/* Save bar */}
-            <div className="flex items-center justify-end gap-2 pt-2">
+            <div className="flex flex-wrap items-center justify-end gap-2 pt-2">
               <Button variant="outline" onClick={goBack} disabled={saving} className="border-slate-200 text-slate-700 hover:bg-slate-50">Cancel</Button>
               <Button onClick={handleSave} disabled={saving || !groupName.trim() || !formYearId || staged.length === 0}
                 className="bg-azure hover:bg-mint-ink text-white">
@@ -375,7 +376,7 @@ export default function DistrictAdminDashboardGroupAddPage() {
                 <div className="space-y-2">
                   <Label>Search Member</Label>
                   <div className="relative">
-                    <div className="flex items-center gap-2">
+                    <div className="flex flex-wrap items-center gap-2">
                       <div className="relative flex-1">
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                         <Input className="pl-9" placeholder="Search by name, mobile, email..." value={memberSearch}

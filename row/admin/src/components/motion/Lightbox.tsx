@@ -85,7 +85,7 @@ export function Lightbox({
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: reduce ? 0 : 0.25 }}
-          className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-midnight/85 p-4 backdrop-blur-xl focus:outline-none sm:p-8"
+          className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-midnight/85 p-4 focus:outline-none sm:p-8"
           onClick={(e) => {
             if (e.target === e.currentTarget) onClose();
           }}

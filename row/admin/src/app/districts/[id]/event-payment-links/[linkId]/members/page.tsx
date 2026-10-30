@@ -23,6 +23,7 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 import SearchBox from "@/components/SearchBox";
 
 import { currencySymbol } from "@/lib/appFormat";
+import { ListPageSkeleton } from "@/components/row/AppKit";
 interface EventMember {
   id: number;
   memberName?: string;
@@ -85,7 +86,7 @@ export default function DistrictEventMembersPage() {
   }
 
   const renderTable = (members: EventMember[], loading: boolean, isPaidTab: boolean) => {
-    if (loading) return <div className="flex justify-center py-10"><RotaryLoader size="lg" /></div>;
+    if (loading) return <div className="flex justify-center py-10"><ListPageSkeleton /></div>;
     return (
       <div className="overflow-x-auto"><Table><TableHeader><TableRow>
         <TableHead>Name</TableHead><TableHead>Mobile</TableHead><TableHead>Email</TableHead>
@@ -135,7 +136,7 @@ export default function DistrictEventMembersPage() {
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           <div className="flex items-center justify-between flex-wrap gap-2">
             <TabsList><TabsTrigger value="paid">Paid ({paidMembers.length})</TabsTrigger><TabsTrigger value="unpaid">Unpaid ({unpaidMembers.length})</TabsTrigger></TabsList>
-            {activeTab === "unpaid" && <div className="flex gap-2">
+            {activeTab === "unpaid" && <div className="flex flex-wrap gap-2">
               <Button variant="outline" size="sm" onClick={async () => { setBulkSending(true); try { await bulkReminderEmail(linkId); setSuccessMessage("Sent."); } catch { setErrorMessage("Failed."); } setBulkSending(false); }} disabled={bulkSending}><Mail className="h-4 w-4 mr-1" />Bulk Email</Button>
             </div>}
           </div>

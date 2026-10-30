@@ -17,6 +17,7 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 import { useAuth } from "@/contexts/AuthContext";
 import { ArrowLeft, RefreshCw, Eye, Send, Loader2, Bell, AlertTriangle } from "@/components/icons";
 import { getRecentPushLogs, getPushRecipients, getStuckPushes, sendPushNow } from "@/services/api";
+import { ListPageSkeleton } from "@/components/row/AppKit";
 
 export default function PushLogsPage() {
   const { isSuperAdmin } = useAuth();
@@ -97,7 +98,7 @@ export default function PushLogsPage() {
               <p className="text-muted-foreground text-base">Last 5 days of push activity (older logs auto-deleted at 04:00)</p>
             </div>
           </div>
-          <div className="flex items-end gap-3">
+          <div className="flex flex-wrap items-end gap-3">
             <div>
               <Label className="text-xs text-muted-foreground">Type</Label>
               <Select value={filterType} onValueChange={setFilterType}>
@@ -116,7 +117,7 @@ export default function PushLogsPage() {
           </div>
         </div>
 
-        {loading && <div className="flex justify-center py-12"><RotaryLoader size="lg" /></div>}
+        {loading && <div className="flex justify-center py-12"><ListPageSkeleton /></div>}
 
         {!loading && (
           <Tabs defaultValue="recent">
@@ -231,7 +232,7 @@ export default function PushLogsPage() {
               <DialogTitle>Recipients: {recipientsTarget?.title}</DialogTitle>
             </DialogHeader>
             {loadingRecipients ? (
-              <div className="flex justify-center py-8"><RotaryLoader size="lg" /></div>
+              <div className="flex justify-center py-8"><ListPageSkeleton /></div>
             ) : (
               <Table>
                 <TableHeader>

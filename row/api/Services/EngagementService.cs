@@ -42,19 +42,23 @@ public class EngagementService
     public static async Task<bool> IsOnAsync(string connectionString)
         => (await FeatureGate.OnAsync(connectionString)).Contains(FeatureKey);
 
-    /// <summary>"5 years in Rotary" or "Paul Harris Fellow +2".</summary>
+    /// <summary>"5 years in Rotary" or "Paul Harris Fellow +2", in the current culture's language (S5).</summary>
     public static string Label(string type, int level) => type == "PHF"
         ? FoundationDesignationsController.Label("PHF", level)
-        : $"{level} {(level == 1 ? "year" : "years")} in Rotary";
+        : level == 1 ? L["1 year in Rotary"] : L["{0} years in Rotary", level];
 
-    /// <summary>The congratulation line used by the feed, the highlights list and the spotlight card.</summary>
+    /// <summary>The congratulation line used by the feed, the highlights list and the spotlight card, in the current
+    /// culture's language (S5; the feed sets the reader's).</summary>
     public static string Sentence(string type, int level, string memberName, string? clubName)
     {
-        var of = string.IsNullOrWhiteSpace(clubName) ? "" : $" of {clubName}";
+        var who = string.IsNullOrWhiteSpace(clubName) ? memberName : L["{0} of {1}", memberName, clubName];
         return type == "PHF"
-            ? $"Congratulations to {memberName}{of}, recognised as a {Label(type, level)}."
-            : $"Congratulations to {memberName}{of} on {level} {(level == 1 ? "year" : "years")} of Rotary membership.";
+            ? L["Congratulations to {0}, recognised as a {1}.", who, Label(type, level)]
+            : level == 1 ? L["Congratulations to {0} on 1 year of Rotary membership.", who]
+            : L["Congratulations to {0} on {1} years of Rotary membership.", who, level];
     }
+
+    private static RotaryApi.Services.Localization.DbStringLocalizer L => RotaryApi.Services.Localization.DbStringLocalizer.Instance;
 
     /// <summary>"1, 3,5" → [1, 3, 5]; null when an entry is not a whole number from 1 to 100 or there are more than 10.</summary>
     public static int[]? ParseYears(string? text)

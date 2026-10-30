@@ -25,6 +25,7 @@ import { ArrowLeft, ArrowRight, ChevronsUpDown, Check, Plus, X, Save, Upload } f
 import EmailTokenChips, { CLUB_DUES_RECEIPT_TOKENS, CLUB_DUES_REMINDER_TOKENS } from "@/components/club-dues/EmailTokenChips";
 
 import { currencySymbol } from "@/lib/appFormat";
+import { ListPageSkeleton } from "@/components/row/AppKit";
 // forwardedRef-capable dynamic import so we can reach the Quill editor to insert tokens at the cursor.
 const ReactQuill = dynamic(async () => {
   const { default: RQ } = await import("react-quill-new");
@@ -663,7 +664,7 @@ function CreateClubDuesInner() {
             <Button type="button" variant="ghost" size="icon" onClick={() => removeRow(i)} disabled={rows.length === 1}><X className="h-4 w-4" /></Button>
           </div>
         ))}
-        <div className="flex items-center justify-between">
+        <div className="flex flex-wrap items-center justify-between gap-3">
           <Button type="button" variant="outline" size="sm" onClick={addRow}><Plus className="mr-1 h-4 w-4" />Add account</Button>
           {filled.length > 0 && (
             <span className={`text-sm ${ok ? "text-green-600" : "text-red-600"}`}>
@@ -696,7 +697,7 @@ function CreateClubDuesInner() {
         <p className="text-xs text-muted-foreground max-w-2xl">
           Online and Offline are fully independent: each has its own per-member rate and account split. A club only needs <b>one</b> of them fully paid to be marked Paid.
         </p>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <Label>Split by</Label>
           <div className="inline-flex rounded-md border overflow-hidden text-sm">
             <button type="button" onClick={() => setAmountType("2")} className={`px-3 py-1 disabled:opacity-60 ${amountType === "2" ? "bg-primary text-primary-foreground" : "bg-background"}`}>Percentage</button>
@@ -716,7 +717,7 @@ function CreateClubDuesInner() {
               <Input type="email" value={approverEmail} onChange={(e) => setApproverEmail(e.target.value)} placeholder="treasurer@example.com" />
               <p className="text-xs text-muted-foreground">Used only when a club submits an <b>offline</b> payment: the approve/reject email is sent here.</p>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <input type="checkbox" id="showBankInd" checked={showBankInReceipt} onChange={(e) => setShowBankInReceipt(e.target.checked)} className="h-4 w-4" />
               <Label htmlFor="showBankInd">Do you want to send Bank details in Receipt?</Label>
             </div>
@@ -778,7 +779,7 @@ function CreateClubDuesInner() {
           <div>
             <h3 className="font-semibold text-base mb-2">Online Split (Razorpay Route)</h3>
             <div className="space-y-3 rounded-md border p-3">
-              <div className="flex items-center justify-between">
+              <div className="flex flex-wrap items-center justify-between gap-3">
                 <Label>Split by</Label>
                 <div className="inline-flex rounded-md border overflow-hidden text-sm">
                   <button type="button" onClick={() => setAmountType("2")} className={`px-3 py-1 disabled:opacity-60 ${amountType === "2" ? "bg-primary text-primary-foreground" : "bg-background"}`}>Percentage</button>
@@ -811,7 +812,7 @@ function CreateClubDuesInner() {
                   <Button type="button" variant="ghost" size="icon" onClick={() => removeRow(i)} disabled={vendorRows.length === 1}><X className="h-4 w-4" /></Button>
                 </div>
               ))}
-              <div className="flex items-center justify-between">
+              <div className="flex flex-wrap items-center justify-between gap-3">
                 <Button type="button" variant="outline" size="sm" onClick={addRow}><Plus className="mr-1 h-4 w-4" />Add account</Button>
                 {filledRows.length > 0 && (
                   <span className={`text-sm ${splitOk ? "text-green-600" : "text-red-600"}`}>
@@ -835,7 +836,7 @@ function CreateClubDuesInner() {
                 <Input type="email" value={approverEmail} onChange={(e) => setApproverEmail(e.target.value)} placeholder="treasurer@example.com" />
                 <p className="text-xs text-muted-foreground">Used only when a club submits an <b>offline</b> payment: the approve/reject email is sent here.</p>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2">
                 <input type="checkbox" id="showBank" checked={showBankInReceipt} onChange={(e) => setShowBankInReceipt(e.target.checked)} className="h-4 w-4" />
                 <Label htmlFor="showBank">Do you want to send Bank details in Receipt?</Label>
               </div>
@@ -874,7 +875,7 @@ function CreateClubDuesInner() {
         ) : (
           <div className="overflow-x-auto max-h-[440px] border rounded-md">
             <table className="w-full text-sm">
-              <thead className="bg-muted/50 text-left sticky top-0">
+              <thead className="bg-[#EDF4FB] text-[13px] text-[#64748B] text-left sticky top-0">
                 <tr>
                   <th className="p-2">Club</th>
                   <th className="p-2 text-center">Members</th>
@@ -949,7 +950,7 @@ function CreateClubDuesInner() {
         ) : (
           <div className="overflow-x-auto max-h-[440px] border rounded-md">
             <table className="w-full text-sm">
-              <thead className="bg-muted/50 text-left sticky top-0">
+              <thead className="bg-[#EDF4FB] text-[13px] text-[#64748B] text-left sticky top-0">
                 <tr>
                   <th className="p-2">Club</th>
                   <th className="p-2 text-center">Members</th>
@@ -1004,7 +1005,7 @@ function CreateClubDuesInner() {
             /* eslint-disable-next-line @next/next/no-img-element */
             <img src={clubDuesAssetUrl(existing)} alt="" className="h-12 w-12 rounded border object-contain bg-white" />
           )}
-          <Label className="inline-flex items-center gap-2 cursor-pointer rounded-md border px-3 py-2 text-sm hover:bg-accent">
+          <Label className="inline-flex items-center gap-2 cursor-pointer rounded-full border px-3 py-2 text-sm hover:bg-accent">
             <Upload className="h-4 w-4" />{existing ? "Replace" : "Upload"}
             <input type="file" accept=".jpg,.jpeg,.png,.gif,.webp,.svg" className="hidden" onChange={(e) => setFile(e.target.files?.[0] || null)} />
           </Label>
@@ -1092,7 +1093,7 @@ function CreateClubDuesInner() {
   if (!isSuperAdmin) {
     return <ProtectedRoute><div className="flex flex-col items-center justify-center py-20"><h3 className="text-lg font-semibold">Access Denied</h3><p className="text-muted-foreground">Only SuperAdmin can manage district dues.</p></div></ProtectedRoute>;
   }
-  if (!ready) return <ProtectedRoute><div className="flex justify-center py-20"><RotaryLoader size="lg" /></div></ProtectedRoute>;
+  if (!ready) return <ProtectedRoute><div className="flex justify-center py-20"><ListPageSkeleton /></div></ProtectedRoute>;
 
   const isLastStep = currentStep === totalSteps - 1;
   const stepContent = [renderBasic, renderPayment, renderClubs, renderImagesEmail][currentStep];
@@ -1117,7 +1118,7 @@ function CreateClubDuesInner() {
         {/* Step Indicator */}
         <div className="flex items-center gap-2 mb-6 flex-wrap">
           {STEP_LABELS.map((s, i) => (
-            <div key={i} className="flex items-center gap-2">
+            <div key={i} className="flex flex-wrap items-center gap-2">
               <div className={`flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium ${
                 i < currentStep ? "bg-green-600 text-white" :
                 i === currentStep ? "bg-primary text-primary-foreground" :

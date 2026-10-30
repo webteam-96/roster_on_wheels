@@ -146,7 +146,7 @@ class GoalGroupCard extends StatelessWidget {
                     Text(
                       note,
                       style: AppFonts.body(
-                        fontSize: 10.5,
+                        fontSize: 13,
                         height: 1.35,
                         color: AppColors.slate500,
                       ),
@@ -400,7 +400,7 @@ class _YesNo extends StatelessWidget {
             child: Text(
               label,
               style: AppFonts.body(
-                fontSize: 12,
+                fontSize: 13,
                 fontWeight: FontWeight.w800,
                 color: selected ? Colors.white : AppColors.slate500,
               ),

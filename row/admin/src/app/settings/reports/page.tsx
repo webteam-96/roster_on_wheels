@@ -38,6 +38,7 @@ function stripYearFromBirthAnnivRows<T extends Record<string, unknown>>(rows: T[
 import { exportToCSV } from "@/utils/csvExport";
 
 import { appLocale } from "@/lib/appFormat";
+import { ListPageSkeleton } from "@/components/row/AppKit";
 interface ReportColumn { key: string; label: string; width?: number; hyperlink?: boolean; linkText?: string }
 interface ReportItem {
   id: string;              // unique key
@@ -747,7 +748,7 @@ export default function ReportsPage() {
         </div>
 
         {loading ? (
-          <div className="flex justify-center py-12"><RotaryLoader size="lg" /></div>
+          <div className="flex justify-center py-12"><ListPageSkeleton /></div>
         ) : (
           <div className="space-y-5">
             {/* Club Analytics — per-club counts .xlsx (uses the District + Year pickers above). */}

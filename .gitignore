@@ -18,6 +18,7 @@ __pycache__/
 # Club website and mobile app are not published to this repo
 /row/club-website/
 /row/district-website/
+/row/district-website.bak-*/
 # /row/mobile/ is versioned since 2026-10-21 (user decision)
 /kb/club-website-diff.md
 /kb/mobile-diff.md
@@ -27,6 +28,8 @@ __pycache__/
 
 # Runtime data written by the API (privacy exports, uploads): never commit
 row/api/App_Data/
+# Firebase service-account key for the GreetingsWorker (a secret; the API's lives in App_Data above)
+row/workers/GreetingsWorker/firebase-admin.json
 
 # /jury evidence (screenshots, audits)
 /.jury/

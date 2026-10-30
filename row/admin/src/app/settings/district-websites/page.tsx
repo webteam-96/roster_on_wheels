@@ -31,6 +31,7 @@ import {
 } from "@/services/api";
 
 import { appLocale } from "@/lib/appFormat";
+import { ListPageSkeleton } from "@/components/row/AppKit";
 type Row = {
   id: number;
   districtId: number;
@@ -351,7 +352,7 @@ export default function DistrictWebsitesPage() {
     <ProtectedRoute>
       {/* Full-screen loader during long operations */}
       {busyId && (
-        <div className="fixed inset-0 z-[100] bg-black/40 backdrop-blur-sm flex items-center justify-center">
+        <div className="fixed inset-0 z-[100] bg-black/40 flex items-center justify-center">
           <div className="bg-background rounded-lg p-6 shadow-xl flex flex-col items-center gap-3">
             <Loader2 className="h-10 w-10 animate-spin text-primary" />
             <p className="text-sm text-muted-foreground">Processing… please wait</p>
@@ -426,7 +427,7 @@ export default function DistrictWebsitesPage() {
             </div>
 
             {loading ? (
-              <div className="flex justify-center py-12"><RotaryLoader size="lg" /></div>
+              <div className="flex justify-center py-12"><ListPageSkeleton /></div>
             ) : filtered.length === 0 ? (
               <div className="text-center py-12 text-muted-foreground">No district websites found.</div>
             ) : (
@@ -448,7 +449,7 @@ export default function DistrictWebsitesPage() {
                     return (
                     <TableRow key={r.id}>
                       <TableCell className="font-medium">
-                        <div className="flex items-center gap-2">
+                        <div className="flex flex-wrap items-center gap-2">
                           <span>{r.districtNumber}</span>
                           {chainInactive && <Badge variant="destructive">Inactive</Badge>}
                         </div>
@@ -595,7 +596,7 @@ export default function DistrictWebsitesPage() {
           <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
             <DialogHeader><DialogTitle>Activity Log</DialogTitle></DialogHeader>
             {logsLoading ? (
-              <div className="flex justify-center py-12"><RotaryLoader size="lg" /></div>
+              <div className="flex justify-center py-12"><ListPageSkeleton /></div>
             ) : logs.length === 0 ? (
               <div className="text-center py-12 text-muted-foreground">No activity yet.</div>
             ) : (
@@ -626,7 +627,7 @@ export default function DistrictWebsitesPage() {
           <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
             <DialogHeader><DialogTitle>All Subdomains in Plesk ({pleskList.length})</DialogTitle></DialogHeader>
             {pleskListLoading ? (
-              <div className="flex justify-center py-12"><RotaryLoader size="lg" /></div>
+              <div className="flex justify-center py-12"><ListPageSkeleton /></div>
             ) : pleskList.length === 0 ? (
               <div className="text-center py-12 text-muted-foreground">No subdomains found in Plesk.</div>
             ) : (

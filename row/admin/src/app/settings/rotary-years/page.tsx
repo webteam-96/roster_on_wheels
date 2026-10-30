@@ -17,6 +17,7 @@ import RotaryLoader from "@/components/RotaryLoader";
 import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import SearchBox from "@/components/SearchBox";
+import { ListPageSkeleton } from "@/components/row/AppKit";
 
 export default function RotaryYearsPage() {
   const { isSuperAdmin } = useAuth();
@@ -101,7 +102,7 @@ export default function RotaryYearsPage() {
 
         {loading && (
           <div className="flex items-center justify-center py-20">
-            <RotaryLoader size="lg" />
+            <ListPageSkeleton />
           </div>
         )}
 
@@ -129,7 +130,7 @@ export default function RotaryYearsPage() {
                 <div key={yr.id} className="flex items-center justify-between border rounded-md p-3">
                   <div>
                     <p className="font-medium">{yr.yearLabel}</p>
-                    <p className="text-xs text-muted-foreground">{yr.startDate}: {yr.endDate}</p>
+                    <p className="text-xs text-muted-foreground">{yr.startDate.slice(0, 10)} to {yr.endDate.slice(0, 10)}</p>
                   </div>
                   {yr.isCurrent && <Badge variant="default">Current</Badge>}
                 </div>
@@ -153,8 +154,8 @@ export default function RotaryYearsPage() {
                     <TableRow key={yr.id} className="hover:bg-primary/5 transition-colors">
                       <TableCell>{i + 1}</TableCell>
                       <TableCell className="font-medium">{yr.yearLabel}</TableCell>
-                      <TableCell>{yr.startDate}</TableCell>
-                      <TableCell>{yr.endDate}</TableCell>
+                      <TableCell>{yr.startDate.slice(0, 10)}</TableCell>
+                      <TableCell>{yr.endDate.slice(0, 10)}</TableCell>
                       <TableCell>
                         {yr.isCurrent ? (
                           <Badge variant="default">Current</Badge>

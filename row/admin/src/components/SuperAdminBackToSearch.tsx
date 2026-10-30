@@ -11,6 +11,10 @@ import { ArrowLeft } from "@/components/icons";
 // Hidden on the SuperAdmin's own areas (settings / admin / login) where dedicated navigation already
 // exists — including the Global Search page itself, so we don't show "Back to Search" while on search.
 const HIDE_PREFIXES = ["/settings", "/admin", "/login"];
+// Public policy pages have their own header, and add/edit forms have a pinned save bar this button would cover.
+const PUBLIC_PAGES = ["/forgot-password", "/reset-password", "/about-us", "/contact-us", "/terms-and-conditions", "/refunds-and-cancellations",
+  "/privacy-policy", "/cookies", "/data-processing-agreement", "/tutorial", "/pay", "/report"];
+const isFormPage = (path: string) => /\/(add|edit|new|create)(\/|$)/.test(path);
 
 export default function SuperAdminBackToSearch() {
   const { token } = useAuth();
@@ -25,16 +29,18 @@ export default function SuperAdminBackToSearch() {
 
   if (!isSuperAdminLogin) return null;
   if (pathname === "/" || HIDE_PREFIXES.some((p) => pathname === p || pathname.startsWith(p + "/"))) return null;
+  if (PUBLIC_PAGES.some((p) => pathname === p || pathname.startsWith(p + "/")) || isFormPage(pathname)) return null;
 
   return (
     <button
       type="button"
       onClick={() => router.push("/settings/global-search")}
       title="Return to Global Search (SuperAdmin)"
-      className="fixed bottom-5 right-5 z-40 inline-flex items-center gap-2 rounded-full bg-primary px-4 py-2.5 text-sm font-semibold text-white shadow-lg ring-1 ring-black/10 transition hover:bg-primary/90 hover:shadow-xl"
+      aria-label="Back to Search"
+      className="fixed bottom-5 right-5 z-40 inline-flex h-11 min-w-11 items-center justify-center gap-2 rounded-full bg-primary px-3 sm:px-4 text-sm font-semibold text-white ring-1 ring-black/10 transition-colors hover:bg-primary/90"
     >
       <ArrowLeft className="h-4 w-4" />
-      Back to Search
+      <span className="hidden sm:inline">Back to Search</span>
     </button>
   );
 }

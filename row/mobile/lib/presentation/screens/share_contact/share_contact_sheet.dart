@@ -295,9 +295,7 @@ class _ShareContactSheetState extends State<ShareContactSheet> {
                     backgroundColor: AppColors.primaryPrime.withValues(alpha: 0.08),
                     foregroundColor: AppColors.primaryPrime,
                     padding: const EdgeInsets.symmetric(vertical: 14),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
+                    shape: const StadiumBorder(),
                   ),
                   onPressed: () => Navigator.of(context).pop(),
                   child: Text(

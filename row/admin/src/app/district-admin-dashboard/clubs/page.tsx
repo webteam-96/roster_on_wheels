@@ -50,6 +50,7 @@ import RotaryLoader from "@/components/RotaryLoader";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import DistrictMembershipTabBar from "@/components/dashboard/DistrictMembershipTabBar";
 import Pagination from "@/components/Pagination";
+import { ListPageSkeleton } from "@/components/row/AppKit";
 
 // -----------------------------------------------------------------------------
 // DA-dashboard table (list-only view; V2 grid toggle removed).
@@ -385,7 +386,7 @@ export default function DistrictAdminClubsPage() {
               className="pl-9 border-slate-200 bg-white focus:border-azure focus:ring-azure/20 text-sm"
             />
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <Button
               onClick={handleSearch}
               size="sm"
@@ -403,7 +404,7 @@ export default function DistrictAdminClubsPage() {
             {meetingsOn && (
               <Link
                 href="/district-admin-dashboard/meeting-compliance"
-                className="inline-flex items-center rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50"
+                className="inline-flex items-center rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50"
               >
                 Meeting rule
               </Link>
@@ -416,7 +417,7 @@ export default function DistrictAdminClubsPage() {
 
         {loading && (
           <div className="flex items-center justify-center py-20">
-            <RotaryLoader size="lg" />
+            <ListPageSkeleton />
           </div>
         )}
 

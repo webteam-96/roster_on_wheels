@@ -15,6 +15,7 @@ import { AlertCircle } from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
+import { ListPageSkeleton } from "@/components/row/AppKit";
 
 export default function EditMemberPage() {
   const router = useRouter();
@@ -96,7 +97,7 @@ export default function EditMemberPage() {
     return (
       <ProtectedRoute>
         <div className="flex items-center justify-center py-20">
-          <RotaryLoader size="lg" />
+          <ListPageSkeleton />
         </div>
       </ProtectedRoute>
     );

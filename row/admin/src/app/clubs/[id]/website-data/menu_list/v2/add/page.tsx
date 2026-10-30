@@ -35,6 +35,7 @@ import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { useSyncClubIdFromUrl } from "@/hooks/useSyncClubIdFromUrl";
+import { ListPageSkeleton } from "@/components/row/AppKit";
 
 const ReactQuill = dynamic(() => import("react-quill-new"), { ssr: false });
 
@@ -210,7 +211,7 @@ export default function MenuListV2AddPage() {
           activeNavHref="/club-admin-dashboard/my-club-website"
         >
           <div className="flex items-center justify-center py-20">
-            <RotaryLoader size="lg" />
+            <ListPageSkeleton />
           </div>
         </ClubAdminShell>
       </ProtectedRoute>
@@ -248,25 +249,25 @@ export default function MenuListV2AddPage() {
         }
       >
         {/* 1. Identity */}
-        <SectionCard number={1} icon={FileText} title="Menu Identity" dot="bg-blue-600">
-          <FieldLabel dot="bg-blue-500" required>Menu Name</FieldLabel>
+        <SectionCard number={1} icon={FileText} title="Menu Identity" dot="bg-[#17458F]">
+          <FieldLabel dot="bg-[#17458F]" required>Menu Name</FieldLabel>
           <input
             type="text"
             placeholder="e.g. Our Initiatives"
             value={formName}
             onChange={(e) => setFormName(e.target.value)}
-            className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
             autoFocus
           />
         </SectionCard>
 
         {/* 2. Link target */}
-        <SectionCard number={2} icon={Link2} title="Link Target" dot="bg-violet-600">
-          <FieldLabel dot="bg-violet-500" required>Link Type</FieldLabel>
+        <SectionCard number={2} icon={Link2} title="Link Target" dot="bg-[#17458F]">
+          <FieldLabel dot="bg-[#17458F]" required>Link Type</FieldLabel>
           <select
             value={formLinkType}
             onChange={(e) => { setFormLinkType(e.target.value); setFormLinkValue(""); setFormContentHtml(""); }}
-            className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white mb-4"
+            className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42] bg-white mb-4"
           >
             {LINK_TYPES.map((t) => (
               <option key={t.value} value={t.value}>{t.label}</option>
@@ -275,7 +276,7 @@ export default function MenuListV2AddPage() {
 
           {formLinkType === "html" && (
             <div>
-              <FieldLabel dot="bg-emerald-500" required>Content</FieldLabel>
+              <FieldLabel dot="bg-[#17458F]" required>Content</FieldLabel>
               <ReactQuill
                 theme="snow"
                 value={formContentHtml}
@@ -291,7 +292,7 @@ export default function MenuListV2AddPage() {
 
           {formLinkType === "document" && (
             <div>
-              <FieldLabel dot="bg-amber-500" required>Document</FieldLabel>
+              <FieldLabel dot="bg-[#17458F]" required>Document</FieldLabel>
               {formLinkValue ? (
                 <div className="flex items-center gap-2 p-2 border border-slate-200 rounded-md bg-slate-50">
                   <FileText className="h-4 w-4 text-slate-500 flex-shrink-0" />
@@ -332,11 +333,11 @@ export default function MenuListV2AddPage() {
 
           {formLinkType === "page" && (
             <div>
-              <FieldLabel dot="bg-blue-500" required>Page</FieldLabel>
+              <FieldLabel dot="bg-[#17458F]" required>Page</FieldLabel>
               <select
                 value={formLinkValue}
                 onChange={(e) => setFormLinkValue(e.target.value)}
-                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42] bg-white"
               >
                 <option value="">Select an existing page…</option>
                 {pageOptions.map((p) => (
@@ -351,14 +352,14 @@ export default function MenuListV2AddPage() {
 
           {formLinkType === "external" && (
             <div>
-              <FieldLabel dot="bg-blue-500" required>URL</FieldLabel>
+              <FieldLabel dot="bg-[#17458F]" required>URL</FieldLabel>
               <input
                 type="url"
                 inputMode="url"
                 placeholder="https://example.com/page"
                 value={formLinkValue}
                 onChange={(e) => setFormLinkValue(e.target.value)}
-                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
               />
               <p className="text-[11px] text-slate-500 mt-1.5">
                 Must be a full URL starting with <code>http://</code> or <code>https://</code>.
@@ -368,24 +369,24 @@ export default function MenuListV2AddPage() {
         </SectionCard>
 
         {/* 3. Display */}
-        <SectionCard number={3} icon={Settings} title="Display" dot="bg-emerald-600">
+        <SectionCard number={3} icon={Settings} title="Display" dot="bg-[#17458F]">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <FieldLabel dot="bg-emerald-500"><Hash className="h-3 w-3 inline-block mr-0.5 -mt-0.5" />Sort Order</FieldLabel>
+              <FieldLabel dot="bg-[#17458F]"><Hash className="h-3 w-3 inline-block mr-0.5 -mt-0.5" />Sort Order</FieldLabel>
               <input
                 type="number"
                 min={1}
                 value={formSortOrder}
                 onChange={(e) => setFormSortOrder(Number(e.target.value))}
-                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
               />
             </div>
             <div>
-              <FieldLabel dot="bg-emerald-500">Status</FieldLabel>
+              <FieldLabel dot="bg-[#17458F]">Status</FieldLabel>
               <select
                 value={formIsActive}
                 onChange={(e) => setFormIsActive(e.target.value)}
-                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42] bg-white"
               >
                 <option value="1">Active</option>
                 <option value="0">Inactive</option>

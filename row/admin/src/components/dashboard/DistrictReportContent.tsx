@@ -132,7 +132,7 @@ function ReportSection({ title, icon: Icon, count, onExport }: { title: string; 
   };
   return (
     <Card>
-      <CardContent className="p-4 flex items-center justify-between gap-3">
+      <CardContent className="p-4 flex flex-col items-stretch gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-3 min-w-0">
           <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
             <Icon className="h-5 w-5 text-primary" />
@@ -191,7 +191,7 @@ function NetworkDownloadRow({
   };
   return (
     <Card>
-      <CardContent className="p-4 flex items-center justify-between gap-3">
+      <CardContent className="p-4 flex flex-col items-stretch gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-3 min-w-0">
           <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
             <Icon className="h-5 w-5 text-primary" />
@@ -204,7 +204,7 @@ function NetworkDownloadRow({
             </p>
           </div>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <Select value={clubId} onValueChange={(v) => { setClubId(v); setNoRecords(false); }}>
             <SelectTrigger className="w-40 h-8 text-xs"><SelectValue placeholder="All" /></SelectTrigger>
             <SelectContent>
@@ -278,7 +278,7 @@ function ClubFilterRow({
   const Icon = icon;
   return (
     <Card>
-      <CardContent className="p-4 flex items-center justify-between gap-3">
+      <CardContent className="p-4 flex flex-col items-stretch gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-3 min-w-0">
           <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
             <Icon className="h-5 w-5 text-primary" />
@@ -289,7 +289,7 @@ function ClubFilterRow({
             {renderNote && <div className="mt-0.5">{renderNote(filtered)}</div>}
           </div>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           {!hideClub && (
           <Select value={clubId} onValueChange={setClubId}>
             <SelectTrigger className="w-40 h-8 text-xs"><SelectValue placeholder="All Clubs" /></SelectTrigger>
@@ -384,7 +384,7 @@ function DuesReportRow({
 
   return (
     <Card>
-      <CardContent className="p-4 flex items-center justify-between gap-3">
+      <CardContent className="p-4 flex flex-col items-stretch gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-3 min-w-0">
           <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
             <IndianRupee className="h-5 w-5 text-primary" />
@@ -396,7 +396,7 @@ function DuesReportRow({
             </p>
           </div>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <Select value={clubId} onValueChange={setClubId}>
             <SelectTrigger className="w-40 h-8 text-xs"><SelectValue placeholder="All Clubs" /></SelectTrigger>
             <SelectContent>
@@ -531,7 +531,7 @@ function ClubMonthlyProjectDetailsRow({
   };
   return (
     <Card>
-      <CardContent className="p-4 flex items-center justify-between gap-3">
+      <CardContent className="p-4 flex flex-col items-stretch gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-3 min-w-0">
           <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
             <ClipboardList className="h-5 w-5 text-primary" />
@@ -543,7 +543,7 @@ function ClubMonthlyProjectDetailsRow({
               : <p className="text-xs text-muted-foreground">{targetClubs.length} {targetClubs.length === 1 ? "club" : "clubs"} · months across</p>}
           </div>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           {isAgMode ? (
             <Select value={agId} onValueChange={setAgId}>
               <SelectTrigger className="w-44 h-8 text-xs"><SelectValue placeholder="Select AG" /></SelectTrigger>
@@ -599,7 +599,7 @@ function AgFilterRow({
   const Icon = icon;
   return (
     <Card>
-      <CardContent className="p-4 flex items-center justify-between gap-3">
+      <CardContent className="p-4 flex flex-col items-stretch gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-3 min-w-0">
           <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
             <Icon className="h-5 w-5 text-primary" />
@@ -613,7 +613,7 @@ function AgFilterRow({
             </p>
           </div>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <Select value={agId} onValueChange={setAgId}>
             <SelectTrigger className="w-44 h-8 text-xs"><SelectValue placeholder="Select AG" /></SelectTrigger>
             <SelectContent>
@@ -677,7 +677,7 @@ function AvenueFilterRow({
   const Icon = icon;
   return (
     <Card>
-      <CardContent className="p-4 flex items-center justify-between gap-3">
+      <CardContent className="p-4 flex flex-col items-stretch gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-3 min-w-0">
           <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
             <Icon className="h-5 w-5 text-primary" />
@@ -689,7 +689,7 @@ function AvenueFilterRow({
               : <p className="text-xs text-muted-foreground">{filtered.length} {filtered.length === 1 ? "record" : "records"}</p>}
           </div>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           {ags && (
             <Select value={agId} onValueChange={setAgId}>
               <SelectTrigger className="w-44 h-8 text-xs"><SelectValue placeholder={agMandatory ? "Select AG" : "All AGs"} /></SelectTrigger>
@@ -776,7 +776,7 @@ function AvenueCountRow({
   };
   return (
     <Card>
-      <CardContent className="p-4 flex items-center justify-between gap-3">
+      <CardContent className="p-4 flex flex-col items-stretch gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-3 min-w-0">
           <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
             <Icon className="h-5 w-5 text-primary" />
@@ -786,7 +786,7 @@ function AvenueCountRow({
             <p className="text-xs text-muted-foreground">{list.length} {list.length === 1 ? "club" : "clubs"}</p>
           </div>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           {clubs && (
             <Select value={clubId} onValueChange={setClubId}>
               <SelectTrigger className="w-40 h-8 text-xs"><SelectValue placeholder="All Clubs" /></SelectTrigger>
@@ -860,7 +860,7 @@ function OcvReportRow({
 
   return (
     <Card>
-      <CardContent className="p-4 flex items-center justify-between gap-3">
+      <CardContent className="p-4 flex flex-col items-stretch gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-3 min-w-0">
           <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
             <Crown className="h-5 w-5 text-primary" />
@@ -874,7 +874,7 @@ function OcvReportRow({
             </p>
           </div>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <Select value={sel} onValueChange={setSel}>
             <SelectTrigger className="w-52 h-8 text-xs"><SelectValue placeholder={isAg ? "Select AG" : "Select Club"} /></SelectTrigger>
             <SelectContent>
@@ -937,7 +937,7 @@ function BodMultiFilterRow({
   const Icon = icon;
   return (
     <Card>
-      <CardContent className="p-4 flex items-center justify-between gap-3">
+      <CardContent className="p-4 flex flex-col items-stretch gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-3 min-w-0">
           <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
             <Icon className="h-5 w-5 text-primary" />
@@ -947,7 +947,7 @@ function BodMultiFilterRow({
             <p className="text-xs text-muted-foreground">{filtered.length} {filtered.length === 1 ? "record" : "records"}{(clubId !== "all" || designation !== "all") && " · filtered"}</p>
           </div>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <Select value={designation} onValueChange={setDesignation}>
             <SelectTrigger className="w-36 h-8 text-xs"><SelectValue placeholder="All Designations" /></SelectTrigger>
             <SelectContent>
@@ -1017,7 +1017,7 @@ function AwardsClubFilterRow({
   };
   return (
     <Card>
-      <CardContent className="p-4 flex items-center justify-between gap-3">
+      <CardContent className="p-4 flex flex-col items-stretch gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-3 min-w-0">
           <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
             <Icon className="h-5 w-5 text-primary" />
@@ -1027,7 +1027,7 @@ function AwardsClubFilterRow({
             <p className="text-xs text-muted-foreground">{clubId === "all" ? "All clubs" : clubs.find((c) => String(c.clubId) === clubId)?.clubName}</p>
           </div>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           {!hideClub && (
           <Select value={clubId} onValueChange={setClubId}>
             <SelectTrigger className="w-40 h-8 text-xs"><SelectValue placeholder="All Clubs" /></SelectTrigger>
@@ -1089,7 +1089,7 @@ function AwardsAgFilterRow({
   const hasSelection = !!agId;
   return (
     <Card>
-      <CardContent className="p-4 flex items-center justify-between gap-3">
+      <CardContent className="p-4 flex flex-col items-stretch gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-3 min-w-0">
           <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
             <Icon className="h-5 w-5 text-primary" />
@@ -1099,7 +1099,7 @@ function AwardsAgFilterRow({
             <p className="text-xs text-amber-600">{hasSelection ? `${uniqueAgs.find((a) => String(a.id) === agId)?.name}` : "Please select an AG to download"}</p>
           </div>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <Select value={agId} onValueChange={setAgId}>
             <SelectTrigger className="w-44 h-8 text-xs"><SelectValue placeholder="Select AG" /></SelectTrigger>
             <SelectContent>
@@ -1120,7 +1120,7 @@ function ComingSoonRow({ title, icon }: { title: string; icon: React.ElementType
   const Icon = icon;
   return (
     <Card className="opacity-60">
-      <CardContent className="p-4 flex items-center justify-between gap-3">
+      <CardContent className="p-4 flex flex-col items-stretch gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-3 min-w-0">
           <div className="h-10 w-10 rounded-lg bg-slate-100 flex items-center justify-center shrink-0">
             <Icon className="h-5 w-5 text-slate-500" />
@@ -1407,7 +1407,7 @@ export default function DistrictReportContent({ districtId, initialYearId, servi
                   <p className="text-xs text-slate-500 mt-0.5">Delivery status of email sent to your district&apos;s members</p>
                 </div>
                 <div className="p-4 flex flex-wrap gap-3">
-                  <Link href="/district-admin-dashboard/email-log" className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-2 rounded-lg border border-slate-200 text-slate-700 hover:bg-blue-50 hover:text-blue-700 hover:border-blue-200">
+                  <Link href="/district-admin-dashboard/email-log" className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-2 rounded-full border border-slate-200 text-slate-700 hover:bg-blue-50 hover:text-blue-700 hover:border-blue-200">
                     <Mail size={14} /> Email Log
                   </Link>
                 </div>

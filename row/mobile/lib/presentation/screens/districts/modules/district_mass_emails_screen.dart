@@ -15,6 +15,7 @@ import '../../../widgets/common/loading_widget.dart';
 import '../../../widgets/common/pagination_widget.dart';
 import '../../../widgets/detail/detail_widgets.dart';
 import 'package:rotary_flutter_app/core/i18n/text.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/skeleton_list.dart';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -1134,12 +1135,12 @@ class _MassEmailComposePageState extends State<_MassEmailComposePage> {
                     width: 18,
                     height: 18,
                     child: CircularProgressIndicator(
-                        strokeWidth: 2, color: Colors.white),
+                        strokeWidth: 2, color: AppColors.primaryPrime),
                   )
                 : const Text(
                     'Save',
                     style: TextStyle(
-                        color: Colors.white, fontWeight: FontWeight.bold),
+                        color: AppColors.primaryPrime, fontWeight: FontWeight.bold),
                   ),
           ),
           const SizedBox(width: 8),
@@ -1344,7 +1345,7 @@ class _MassEmailComposePageState extends State<_MassEmailComposePage> {
           child: _loadingSubgroups
               ? const Padding(
                   padding: EdgeInsets.all(16),
-                  child: Center(child: CircularProgressIndicator()),
+                  child: const RowSkeletonList(),
                 )
               : _subgroups.isEmpty
                   ? Padding(

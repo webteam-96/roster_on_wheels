@@ -38,6 +38,7 @@ import RotaryLoader from "@/components/RotaryLoader";
 import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import SearchBox from "@/components/SearchBox";
+import { ListPageSkeleton } from "@/components/row/AppKit";
 
 // Only these modules have Area of Focus (not club_service)
 const SERVICE_MODULE_KEYS = [
@@ -188,7 +189,7 @@ export default function AreaOfFocusPage() {
               <p className="text-muted-foreground text-base">Manage areas of focus by service module</p>
             </div>
           </div>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             <Button variant="outline" onClick={() => exportToCSV(items, "area_of_focus", [
               { key: "name", label: "Name" }, { key: "moduleName", label: "Module" },
               { key: "isActive", label: "Active" },
@@ -219,7 +220,7 @@ export default function AreaOfFocusPage() {
 
         {loading && (
           <div className="flex items-center justify-center py-20">
-            <RotaryLoader size="lg" />
+            <ListPageSkeleton />
           </div>
         )}
 

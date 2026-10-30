@@ -69,7 +69,7 @@ function districtWebsiteUrl(raw: string | null | undefined): string | null {
 }
 
 function badge(type: ResultRow["type"]) {
-  if (type === "zone")     return { label: "Zone",     icon: Globe,    color: "bg-purple-100 text-purple-700 border-purple-200" };
+  if (type === "zone")     return { label: "Zone",     icon: Globe,    color: "bg-[#CFE2F6] text-purple-700 border-purple-200" };
   if (type === "district") return { label: "District", icon: MapPin,   color: "bg-blue-100   text-blue-700   border-blue-200"   };
   return                         { label: "Club",     icon: Building, color: "bg-emerald-100 text-emerald-700 border-emerald-200" };
 }
@@ -309,7 +309,7 @@ export default function GlobalSearchPage() {
                       <Icon className="h-5 w-5" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2">
+                      <div className="flex flex-wrap items-center gap-2">
                         <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold uppercase tracking-wide border ${b.color}`}>
                           {b.label}
                         </span>

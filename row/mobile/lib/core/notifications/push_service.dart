@@ -87,7 +87,9 @@ class PushService {
   /// Called from main.dart after Firebase.initializeApp().
   Future<void> init() async {
     // Local notifications init (used to display foreground banners).
-    const androidInit = AndroidInitializationSettings('@mipmap/ic_launcher');
+    // White-on-transparent status-bar icon (res/drawable-*/ic_notification.png); the full-colour launcher icon
+    // renders as a plain circle there.
+    const androidInit = AndroidInitializationSettings('@drawable/ic_notification');
     // We already request notification permission via FirebaseMessaging in
     // ensureToken(), so don't request again here.
     const iosInit = DarwinInitializationSettings(
@@ -232,7 +234,7 @@ class PushService {
             channelDescription: _channel.description,
             importance: Importance.high,
             priority: Priority.high,
-            icon: '@mipmap/ic_launcher',
+            icon: '@drawable/ic_notification',
             playSound: true,
             sound: _androidSound,
           ),
@@ -266,7 +268,7 @@ class PushService {
           channelDescription: _channel.description,
           importance: Importance.high,
           priority: Priority.high,
-          icon: '@mipmap/ic_launcher',
+          icon: '@drawable/ic_notification',
           playSound: true,
           sound: _androidSound,
         ),

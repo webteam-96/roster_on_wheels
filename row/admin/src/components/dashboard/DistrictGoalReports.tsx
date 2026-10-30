@@ -105,7 +105,7 @@ export default function DistrictGoalReports({ districtId, yearId, mode = "both" 
                 <p className="text-xs text-muted-foreground">Month wise &amp; Till date · all categories</p>
               </div>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <select
                 className="h-9 rounded-md border border-input bg-background px-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
                 value={clubId ?? ""} onChange={(e) => setClubId(e.target.value ? Number(e.target.value) : null)}>

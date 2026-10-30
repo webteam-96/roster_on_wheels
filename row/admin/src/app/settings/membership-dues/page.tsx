@@ -24,6 +24,7 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 import SearchBox from "@/components/SearchBox";
 
 import { appLocale } from "@/lib/appFormat";
+import { ListPageSkeleton } from "@/components/row/AppKit";
 interface MembershipDuesItem {
   id: number;
   districtNumber?: string;
@@ -203,7 +204,7 @@ export default function MembershipDuesPage() {
         </div>
 
         {loading ? (
-          <div className="flex justify-center py-10"><RotaryLoader size="lg" /></div>
+          <div className="flex justify-center py-10"><ListPageSkeleton /></div>
         ) : (
           <div className="overflow-x-auto border rounded-lg">
             <Table>
@@ -410,7 +411,7 @@ export default function MembershipDuesPage() {
               <DialogTitle>Settlement Report</DialogTitle>
             </DialogHeader>
             {settlementReportLoading ? (
-              <div className="flex justify-center py-10"><RotaryLoader size="lg" /></div>
+              <div className="flex justify-center py-10"><ListPageSkeleton /></div>
             ) : settlementReportData.length === 0 ? (
               <p className="text-center text-muted-foreground py-8">No settlement data found.</p>
             ) : (

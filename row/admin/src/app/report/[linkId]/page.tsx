@@ -7,6 +7,7 @@ import { fileTimestamp } from "@/lib/dateUtils";
 
 import { appLocale } from "@/lib/appFormat";
 import { formatMoney } from "@/lib/currency";
+import { SkeletonRows } from "@/components/row/AppKit";
 interface ReportMember {
   srNo: number;
   memberName: string | null;
@@ -139,7 +140,7 @@ export default function PublicReportPage() {
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-azure mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading report...</p>
+          <SkeletonRows />
         </div>
       </div>
     );
@@ -190,7 +191,7 @@ export default function PublicReportPage() {
       <div className="max-w-7xl mx-auto px-4 py-4 flex justify-end">
         <button
           onClick={() => downloadCSV(data)}
-          className="inline-flex items-center gap-2 px-4 py-2 bg-azure text-white rounded-md hover:bg-mint-ink transition-colors text-sm font-medium"
+          className="inline-flex items-center gap-2 px-4 py-2 bg-azure text-white rounded-full hover:bg-mint-ink transition-colors text-sm font-medium"
         >
           <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
@@ -204,8 +205,8 @@ export default function PublicReportPage() {
       {/* Table */}
       <div className="max-w-7xl mx-auto px-4 pb-8">
         <div className="bg-white rounded-lg shadow overflow-x-auto">
-          <table className="min-w-full text-sm">
-            <thead>
+          <table className="w-full min-w-[640px] md:min-w-full text-sm">
+            <thead className="bg-[#EDF4FB] text-[13px] text-[#64748B]">
               <tr className="bg-azure text-white">
                 <th className="px-3 py-3 text-left font-medium whitespace-nowrap">Sr.No</th>
                 <th className="px-3 py-3 text-left font-medium whitespace-nowrap">Member Name</th>

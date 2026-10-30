@@ -400,7 +400,7 @@ class _SyncedBadge extends StatelessWidget {
             style: AppTextStyles.caption.copyWith(
               color: AppColors.primary,
               fontWeight: FontWeight.w700,
-              fontSize: 9.5,
+              fontSize: 13,
             ),
           ),
         ],

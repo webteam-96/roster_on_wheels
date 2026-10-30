@@ -290,16 +290,14 @@ class DetailSectionCard extends StatelessWidget {
           padding: const EdgeInsets.fromLTRB(6, 0, 6, 9),
           child: Row(
             children: [
-              Icon(icon, size: 15, color: AppColors.primary),
-              const SizedBox(width: 7),
+              Icon(icon, size: 18, color: AppColors.primaryPrime),
+              const SizedBox(width: 8),
               Expanded(
                 child: Text(
-                  title.toUpperCase(),
-                  style: AppTextStyles.caption.copyWith(
-                    color: AppColors.textSecondary,
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: 0.8,
-                    fontSize: 11.5,
+                  title,
+                  style: AppTextStyles.bodySemiBold.copyWith(
+                    color: AppColors.textPrimary,
+                    fontSize: 15,
                   ),
                 ),
               ),
@@ -328,18 +326,17 @@ class DetailFieldLabel extends StatelessWidget {
   Widget build(BuildContext context) => Padding(
         padding: const EdgeInsets.only(top: 12, bottom: 4),
         child: Text(
-          label.toUpperCase(),
+          label,
           style: AppTextStyles.caption.copyWith(
             color: AppColors.textSecondary,
             fontWeight: FontWeight.w600,
-            letterSpacing: 0.5,
           ),
         ),
       );
 }
 
-/// Inline label/value row with a thin bottom divider. Labels share a fixed
-/// left column so values line up across the card.
+/// Label over value with a thin bottom divider (design.md 8.6): stacked so long values get the full width
+/// on phones.
 class DetailRow extends StatelessWidget {
   final String label;
   final String value;
@@ -353,26 +350,24 @@ class DetailRow extends StatelessWidget {
         ),
       ),
       padding: const EdgeInsets.symmetric(vertical: 12),
-      child: Row(
+      child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          SizedBox(
-            width: 118,
-            child: Text(
-              label,
-              style: AppTextStyles.bodyMedium.copyWith(
-                color: AppColors.textSecondary,
-                fontWeight: FontWeight.w500,
-                height: 1.35,
-              ),
+          Text(
+            label,
+            style: AppTextStyles.bodyMedium.copyWith(
+              color: AppColors.textSecondary,
+              fontSize: 13,
+              height: 1.3,
             ),
           ),
-          const SizedBox(width: 14),
-          Expanded(
+          const SizedBox(height: 4),
+          SizedBox(
+            width: double.infinity,
             child: Text(
               value,
               style: AppTextStyles.bodyMedium.copyWith(
-                fontWeight: FontWeight.w600,
+                fontSize: 16,
                 height: 1.35,
               ),
             ),
@@ -397,22 +392,20 @@ class DetailLinkRow extends StatelessWidget {
         ),
       ),
       padding: const EdgeInsets.symmetric(vertical: 12),
-      child: Row(
+      child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          SizedBox(
-            width: 118,
-            child: Text(
-              label,
-              style: AppTextStyles.bodyMedium.copyWith(
-                color: AppColors.textSecondary,
-                fontWeight: FontWeight.w500,
-                height: 1.35,
-              ),
+          Text(
+            label,
+            style: AppTextStyles.bodyMedium.copyWith(
+              color: AppColors.textSecondary,
+              fontSize: 13,
+              height: 1.3,
             ),
           ),
-          const SizedBox(width: 14),
-          Expanded(
+          const SizedBox(height: 4),
+          SizedBox(
+            width: double.infinity,
             child: InkWell(
               onTap: () => openDetailLink(context, url),
               child: Row(

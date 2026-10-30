@@ -194,7 +194,7 @@ class _ZonesListScreenState extends State<ZonesListScreen> {
                 },
                 icon: const Icon(Icons.add_rounded),
                 label: const Text('Add Zone'),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(20))),
               )
             : null,
         body: Consumer<ZonesProvider>(
@@ -250,7 +250,7 @@ class _ZonesListScreenState extends State<ZonesListScreen> {
           onRefresh: _onRefresh,
           color: AppColors.primaryPrime,
           child: ListView.separated(
-            padding: const EdgeInsets.fromLTRB(AppSpacing.md, AppSpacing.sm, AppSpacing.md, 100),
+            padding: (const EdgeInsets.fromLTRB(AppSpacing.md, AppSpacing.sm, AppSpacing.md, 100)).add(const EdgeInsets.only(bottom: 88)),
             itemCount: provider.zones.length,
             separatorBuilder: (_, __) => const SizedBox(height: 12),
             itemBuilder: (ctx, index) {
@@ -337,7 +337,7 @@ class _FilterChip extends StatelessWidget {
           style: AppFonts.body(
             color: selected ? AppColors.white : AppColors.textSecondary,
             fontWeight: FontWeight.w700,
-            fontSize: 12,
+            fontSize: 13,
           ),
         ),
       ),
@@ -492,8 +492,7 @@ class _StatusBadge extends StatelessWidget {
         style: AppFonts.body(
           color: isActive ? AppColors.success : AppColors.error,
           fontWeight: FontWeight.w800,
-          fontSize: 9,
-          letterSpacing: 0.5,
+          fontSize: 13,
         ),
       ),
     );
@@ -510,7 +509,7 @@ class _ZonesShimmer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListView.separated(
-      padding: const EdgeInsets.all(AppSpacing.md),
+      padding: (const EdgeInsets.all(AppSpacing.md)).add(const EdgeInsets.only(bottom: 88)),
       itemCount: 8,
       separatorBuilder: (_, __) => const SizedBox(height: 12),
       itemBuilder: (_, __) => const _ShimmerCard(),

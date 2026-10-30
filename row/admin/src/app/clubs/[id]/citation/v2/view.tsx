@@ -43,6 +43,7 @@ import DistrictEgovernanceKpis from "@/components/dashboard/DistrictEgovernanceK
 import { useSyncClubIdFromUrl } from "@/hooks/useSyncClubIdFromUrl";
 
 import { appLocale } from "@/lib/appFormat";
+import { SkeletonRows } from "@/components/row/AppKit";
 // ── Types ───────────────────────────────────────────────────────────────────
 // Citation responses are loosely typed in the v1 API, so we mirror that shape
 // with permissive `any`-shaped helpers rather than introducing a new type file.
@@ -279,9 +280,7 @@ export function ClubCitationV2View({ clubId: propClubId, embedded = false, readO
     const loadingBody = (
       <div className="space-y-5">
         {districtTopBar}
-        <div className="flex items-center justify-center py-20 text-slate-500">
-          <Loader2 className="animate-spin mr-2" size={18} /> Loading award data…
-        </div>
+        <SkeletonRows />
       </div>
     );
     if (embedded) return loadingBody;
@@ -515,7 +514,7 @@ function AutoPointsPanel({
               forcePending={refreshing}
               loadingLabel="Refreshing…"
               spinnerSize={13}
-              className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg border border-blue-200 text-blue-700 hover:bg-blue-50 disabled:opacity-50"
+              className="inline-flex items-center gap-1.5 text-xs font-semibold px-4 h-10 rounded-full border border-blue-200 text-blue-700 hover:bg-blue-50 disabled:opacity-50"
             >
               {!refreshing && <RefreshCw size={13} />}
               Refresh Auto Points
@@ -532,8 +531,8 @@ function AutoPointsPanel({
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="min-w-full text-sm">
-              <thead className="bg-slate-50 text-xs uppercase text-slate-500">
+            <table className="w-full min-w-[640px] md:min-w-full text-sm">
+              <thead className="bg-[#EDF4FB] text-[13px] text-[#64748B]">
                 <tr>
                   <th className="px-3 py-2.5 text-left w-10">#</th>
                   <th className="px-3 py-2.5 text-left">Category</th>
@@ -649,7 +648,7 @@ function ManualPointsPanel({
             forcePending={saving}
             loadingLabel="Saving…"
             spinnerSize={13}
-            className="inline-flex items-center gap-1.5 text-xs font-semibold px-4 py-2 rounded-lg bg-amber-500 text-white hover:bg-amber-600 disabled:opacity-50"
+            className="inline-flex items-center gap-1.5 text-xs font-semibold px-4 py-2 rounded-full bg-amber-500 text-white hover:bg-amber-600 disabled:opacity-50"
           >
             {!saving && <Save size={13} />}
             Save Manual Points

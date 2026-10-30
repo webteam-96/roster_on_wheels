@@ -69,7 +69,7 @@ export default function RouteLoadingIndicator() {
         <div className="h-full bg-primary animate-loading-bar" />
       </div>
       {/* Full screen overlay with Rotary logo spinner */}
-      <div className="fixed inset-0 z-[99] flex items-center justify-center bg-background/60 backdrop-blur-sm">
+      <div className="fixed inset-0 z-[99] flex items-center justify-center bg-background">
         <div className="flex flex-col items-center gap-3">
           <Image
             src="/brand/row-mark.png"

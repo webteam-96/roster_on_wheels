@@ -219,7 +219,7 @@ class _DistrictsListScreenState extends State<DistrictsListScreen> {
                 },
                 icon: const Icon(Icons.add_rounded),
                 label: const Text('Add District'),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(20))),
               )
             : null,
         body: Consumer<DistrictsProvider>(
@@ -274,7 +274,7 @@ class _DistrictsListScreenState extends State<DistrictsListScreen> {
           onRefresh: _onRefresh,
           color: AppColors.primaryPrime,
           child: ListView.separated(
-            padding: const EdgeInsets.fromLTRB(AppSpacing.md, AppSpacing.sm, AppSpacing.md, 100),
+            padding: (const EdgeInsets.fromLTRB(AppSpacing.md, AppSpacing.sm, AppSpacing.md, 100)).add(const EdgeInsets.only(bottom: 88)),
             itemCount: provider.districts.length,
             separatorBuilder: (_, __) => const SizedBox(height: 12),
             itemBuilder: (ctx, index) {
@@ -310,7 +310,7 @@ class _FilterRow extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        SingleChildScrollView(
+        Align(alignment: Alignment.centerLeft, child: SingleChildScrollView(
           scrollDirection: Axis.horizontal,
           padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.sm),
           child: Row(
@@ -334,7 +334,7 @@ class _FilterRow extends StatelessWidget {
               ),
             ],
           ),
-        ),
+        )),
         if (provider.zones.isNotEmpty)
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: 4),
@@ -369,7 +369,7 @@ class _Chip extends StatelessWidget {
           style: AppFonts.body(
             color: selected ? AppColors.white : AppColors.textSecondary,
             fontWeight: FontWeight.w700,
-            fontSize: 12,
+            fontSize: 13,
           ),
         ),
       ),
@@ -522,7 +522,7 @@ class _DistrictCard extends StatelessWidget {
                           Text(
                             '${district.totalClubs ?? 0} Clubs',
                             style: AppFonts.body(
-                              fontSize: 11,
+                              fontSize: 13,
                               fontWeight: FontWeight.w700,
                               color: AppColors.primaryPrime,
                             ),
@@ -596,8 +596,7 @@ class _StatusBadge extends StatelessWidget {
         style: AppFonts.body(
           color: isActive ? AppColors.success : AppColors.error,
           fontWeight: FontWeight.w800,
-          fontSize: 9,
-          letterSpacing: 0.5,
+          fontSize: 13,
         ),
       ),
     );
@@ -614,7 +613,7 @@ class _DistrictsShimmer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListView.separated(
-      padding: const EdgeInsets.all(AppSpacing.md),
+      padding: (const EdgeInsets.all(AppSpacing.md)).add(const EdgeInsets.only(bottom: 88)),
       itemCount: 7,
       separatorBuilder: (_, __) => const SizedBox(height: 12),
       itemBuilder: (_, __) => const _ShimmerCard(),

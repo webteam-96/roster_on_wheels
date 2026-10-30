@@ -137,7 +137,7 @@ export default function DistrictAdminYearSelector() {
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
-        className="inline-flex items-center gap-2 h-9 px-3 rounded-md border border-slate-200 bg-white hover:bg-slate-50 text-sm font-medium text-slate-700 transition-colors"
+        className="inline-flex items-center gap-2 h-9 px-3 rounded-full border border-slate-200 bg-white hover:bg-slate-50 text-sm font-medium text-slate-700 transition-colors"
         title="Rotary Year"
       >
         <Calendar className="h-4 w-4 text-slate-500" />

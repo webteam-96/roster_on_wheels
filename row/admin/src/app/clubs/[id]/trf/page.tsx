@@ -55,6 +55,7 @@ import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";
 
 import { appLocale } from "@/lib/appFormat";
+import { ListPageSkeleton } from "@/components/row/AppKit";
 function TrfIcon() {
   return (
     <svg
@@ -447,7 +448,7 @@ export default function TrfContributionPage() {
         {/* Loading */}
         {loading && (
           <div className="flex items-center justify-center py-20">
-            <RotaryLoader size="lg" />
+            <ListPageSkeleton />
           </div>
         )}
 

@@ -32,6 +32,7 @@ import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { useSyncClubIdFromUrl } from "@/hooks/useSyncClubIdFromUrl";
+import { ListPageSkeleton } from "@/components/row/AppKit";
 
 const TOP_MESSAGE = "Update an existing donor contribution to The Rotary Foundation. Changes flow into the club's monthly report and district / zone foundation totals.";
 
@@ -219,7 +220,7 @@ export default function TrfV2EditPage() {
           activeNavHref="/club-admin-dashboard/foundation"
         >
           <div className="flex items-center justify-center py-20">
-            <RotaryLoader size="lg" />
+            <ListPageSkeleton />
           </div>
         </ClubAdminShell>
       </ProtectedRoute>
@@ -248,29 +249,29 @@ export default function TrfV2EditPage() {
         }
       >
         {/* 1. Donor */}
-        <SectionCard number={1} icon={FileText} title="Donor Details" dot="bg-blue-600">
+        <SectionCard number={1} icon={FileText} title="Donor Details" dot="bg-[#17458F]">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="sm:col-span-2">
-              <FieldLabel hint="(max 200 chars)" dot="bg-blue-500">Donor / Member Name</FieldLabel>
+              <FieldLabel hint="(max 200 chars)" dot="bg-[#17458F]">Donor / Member Name</FieldLabel>
               <input
                 type="text"
                 value={donorName}
                 onChange={(e) => setDonorName(e.target.value)}
                 placeholder="Enter donor name"
                 maxLength={200}
-                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
               />
               <p className="text-xs text-slate-400 text-right mt-0.5">{donorName.length}/200</p>
             </div>
             <div>
-              <FieldLabel dot="bg-blue-500">Date &amp; Time</FieldLabel>
+              <FieldLabel dot="bg-[#17458F]">Date &amp; Time</FieldLabel>
               <input
                 type="datetime-local"
                 value={trfDate}
                 min={lockedMinIso}
                 max={lockedMaxIso}
                 onChange={(e) => setTrfDate(e.target.value)}
-                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
               />
               {isFromCmrMonth && lockedCalendarYear && lockedMonth && (
                 <p className="text-xs text-slate-500 mt-1">
@@ -285,10 +286,10 @@ export default function TrfV2EditPage() {
         </SectionCard>
 
         {/* 2. Fund */}
-        <SectionCard number={2} icon={Calendar} title="Fund Allocation" dot="bg-violet-600">
+        <SectionCard number={2} icon={Calendar} title="Fund Allocation" dot="bg-[#17458F]">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <FieldLabel dot="bg-violet-500">Fund Type</FieldLabel>
+              <FieldLabel dot="bg-[#17458F]">Fund Type</FieldLabel>
               <select
                 value={fundId || ""}
                 onChange={(e) => {
@@ -297,7 +298,7 @@ export default function TrfV2EditPage() {
                   const f = funds.find((x) => x.id === next);
                   if (f?.fundName !== "Others") setOtherFundName("");
                 }}
-                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-violet-500"
+                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] bg-white focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
               >
                 <option value="">Select fund type</option>
                 {funds.map((f) => (
@@ -307,13 +308,13 @@ export default function TrfV2EditPage() {
             </div>
             {selectedFund?.fundName === "Others" && (
               <div>
-                <FieldLabel dot="bg-violet-500">Specify Fund Name</FieldLabel>
+                <FieldLabel dot="bg-[#17458F]">Specify Fund Name</FieldLabel>
                 <input
                   type="text"
                   value={otherFundName}
                   onChange={(e) => setOtherFundName(e.target.value)}
                   placeholder="Enter fund name"
-                  className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500"
+                  className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
                 />
               </div>
             )}
@@ -321,10 +322,10 @@ export default function TrfV2EditPage() {
         </SectionCard>
 
         {/* 3. Amount */}
-        <SectionCard number={3} icon={DollarSign} title="Amount" dot="bg-emerald-600">
+        <SectionCard number={3} icon={DollarSign} title="Amount" dot="bg-[#17458F]">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <FieldLabel hint="(USD)" dot="bg-emerald-500">Amount USD</FieldLabel>
+              <FieldLabel hint="(USD)" dot="bg-[#17458F]">Amount USD</FieldLabel>
               <div className="relative">
                 <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-sm">$</span>
                 <input
@@ -334,7 +335,7 @@ export default function TrfV2EditPage() {
                   placeholder="0.00"
                   min={0}
                   step="0.01"
-                  className="w-full pl-7 pr-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  className="w-full pl-7 pr-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
                 />
               </div>
             </div>

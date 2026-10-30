@@ -24,6 +24,7 @@ import {
   getPhotoUrl,
 } from "@/services/api";
 import "react-quill-new/dist/quill.snow.css";
+import { ListPageSkeleton } from "@/components/row/AppKit";
 
 const ReactQuill = dynamic(() => import("react-quill-new"), { ssr: false });
 
@@ -224,11 +225,11 @@ export default function InternationalPresidentPage() {
         </div>
 
         {loading ? (
-          <div className="flex justify-center py-12"><RotaryLoader size="lg" /></div>
+          <div className="flex justify-center py-12"><ListPageSkeleton /></div>
         ) : (
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2"><UserCircle2 className="h-5 w-5" />Profile</CardTitle>
+              <CardTitle className="flex flex-wrap items-center gap-2"><UserCircle2 className="h-5 w-5" />Profile</CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="grid gap-4 sm:grid-cols-2">

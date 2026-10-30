@@ -22,6 +22,7 @@ import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { useFeatureLoadedOn } from "@/components/FeatureGate";
 import ComposeComms from "@/components/comms/ComposeComms";
+import { ListPageSkeleton } from "@/components/row/AppKit";
 
 interface ClubOption { id: number; clubName: string; }
 interface SubGroupOption { id: number; groupName: string; memberCount: number; }
@@ -184,7 +185,7 @@ function DistrictComposeContent() {
   const toggleClub = (id: number) => setSelectedClubIds(prev => { const n = new Set(prev); if (n.has(id)) n.delete(id); else n.add(id); return n; });
   const toggleSubgroup = (id: number) => setSelectedSubgroupIds(prev => { const n = new Set(prev); if (n.has(id)) n.delete(id); else n.add(id); return n; });
 
-  if (loading) return <div className="flex justify-center py-20"><RotaryLoader size="lg" /></div>;
+  if (loading) return <div className="flex justify-center py-20"><ListPageSkeleton /></div>;
 
   return (
     <div className="space-y-6 max-w-4xl mx-auto">
@@ -301,11 +302,11 @@ function DistrictComposeContent() {
       </Card>
 
       {/* Actions */}
-      <div className="flex items-center justify-between pb-8">
+      <div className="flex flex-wrap items-center justify-between gap-3 pb-8">
         <Button variant="ghost" onClick={() => router.push(`/districts/${districtId}/mass-emails`)}>
           <ArrowLeft className="h-4 w-4 mr-2" />Discard
         </Button>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <Button variant="outline" onClick={() => handleSave(true)} disabled={saving}>
             {saving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Save className="h-4 w-4 mr-2" />}
             Save as Draft
@@ -323,7 +324,7 @@ function DistrictComposeContent() {
 export default function DistrictComposeMassEmailPage() {
   return (
     <ProtectedRoute>
-      <Suspense fallback={<div className="flex justify-center py-20"><RotaryLoader size="lg" /></div>}>
+      <Suspense fallback={<div className="flex justify-center py-20"><ListPageSkeleton /></div>}>
         <DistrictComposeContent />
       </Suspense>
     </ProtectedRoute>

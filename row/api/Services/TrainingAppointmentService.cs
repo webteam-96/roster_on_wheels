@@ -413,28 +413,42 @@ public class TrainingAppointmentService : ITrainingAppointmentService
                 ? "<p>The Zoom meeting link will be shared shortly.</p>"
                 : $"<p><strong>Zoom link:</strong> <a href=\"{joinUrl}\">{joinUrl}</a></p>";
 
-            // 1. Personal confirmation to whoever booked it.
-            if (!string.IsNullOrWhiteSpace(bookerEmail))
+            // S5: the booker's and the club admins' emails in the club's language; the internal team email below
+            // stays English.
+            using (RotaryApi.Services.Localization.MessageCulture.Use(await CommsTemplates.DefaultLanguageAsync(conn, clubId, 0)))
             {
-                var body = $@"<p>Hi {bookerName},</p>
-<p>Your website training session for <strong>{clubName}</strong> has been {verb} for:</p>
-<p style=""font-size:16px""><strong>{when} ({Brand.TimeZoneLabel})</strong></p>
-{linkHtml}
-<p>Please join a few minutes early. If you need to change the time, use the Reschedule option in your dashboard.</p>";
-                await SendSafe(bookerEmail, $"Website Training {(isReschedule ? "Rescheduled" : "Confirmed")} — {when}", body,
-                    cc: RotaryApi.Services.Brand.InternalCc);
-            }
+                var L = RotaryApi.Services.Localization.DbStringLocalizer.Instance;
+                string whenLocal = $"{slot.ToString("dddd, dd MMM yyyy, h:mm tt", CultureInfo.CurrentCulture)} ({Brand.TimeZoneLabel})";
+                string localLink = string.IsNullOrWhiteSpace(joinUrl)
+                    ? $"<p>{L["The Zoom meeting link will be shared shortly."]}</p>"
+                    : $"<p><strong>{L["Zoom link:"]}</strong> <a href=\"{joinUrl}\">{joinUrl}</a></p>";
 
-            // 2. FYI to all active club admins (skips the booker via the de-dupe set).
-            var adminBody = $@"<p>A website training session for <strong>{clubName}</strong> has been {verb}:</p>
+                // 1. Personal confirmation to whoever booked it.
+                if (!string.IsNullOrWhiteSpace(bookerEmail))
+                {
+                    var body = $@"<p>{L["Hi {0},", bookerName]}</p>
+<p>{(isReschedule ? L["Your website training session for {0} has been rescheduled for:", $"<strong>{clubName}</strong>"]
+                  : L["Your website training session for {0} has been confirmed for:", $"<strong>{clubName}</strong>"])}</p>
+<p style=""font-size:16px""><strong>{whenLocal}</strong></p>
+{localLink}
+<p>{L["Please join a few minutes early. If you need to change the time, use the Reschedule option in your dashboard."]}</p>";
+                    await SendSafe(bookerEmail, isReschedule ? L["Website Training Rescheduled — {0}", whenLocal] : L["Website Training Confirmed — {0}", whenLocal], body,
+                        cc: RotaryApi.Services.Brand.InternalCc);
+                }
+
+                // 2. FYI to all active club admins (skips the booker via the de-dupe set).
+                var adminBody = $@"<p>{(isReschedule ? L["A website training session for {0} has been rescheduled:", $"<strong>{clubName}</strong>"]
+                                       : L["A website training session for {0} has been confirmed:", $"<strong>{clubName}</strong>"])}</p>
 <ul>
-  <li><strong>When:</strong> {when} ({Brand.TimeZoneLabel})</li>
-  <li><strong>Booked by:</strong> {bookerName}</li>
+  <li><strong>{L["When:"]}</strong> {whenLocal}</li>
+  <li><strong>{L["Booked by:"]}</strong> {bookerName}</li>
 </ul>
-{linkHtml}
-<p>Any club admin may join using the link above. To change the time, use the Reschedule option in the club admin dashboard.</p>";
-            foreach (var admin in await ClubAdminRecipientsAsync(conn, clubId))
-                await SendSafe(admin.Email, $"Website Training {(isReschedule ? "Rescheduled" : "Scheduled")} — {clubName} ({when})", adminBody);
+{localLink}
+<p>{L["Any club admin may join using the link above. To change the time, use the Reschedule option in the club admin dashboard."]}</p>";
+                foreach (var admin in await ClubAdminRecipientsAsync(conn, clubId))
+                    await SendSafe(admin.Email, isReschedule ? L["Website Training Rescheduled — {0} ({1})", clubName, whenLocal]
+                                                             : L["Website Training Scheduled — {0} ({1})", clubName, whenLocal], adminBody);
+            }
 
             // 3. Internal team list (config-driven; currently empty by default).
             var teamBody = $@"<p>A website training appointment was {verb}:</p>

@@ -40,6 +40,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { ListPageSkeleton } from "@/components/row/AppKit";
 
 const NEW_GEN_COLOR = ROTARY_GOLD;
 const VOCATIONAL_COLOR = ROTARY_BLUE;
@@ -153,7 +154,7 @@ function ClubDetailCard({
       </CardHeader>
       <CardContent className="p-4 pt-4 space-y-2.5">
         <div className="flex items-center justify-between text-sm">
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <span
               className="inline-block w-2 h-2 rounded-full"
               style={{ backgroundColor: NEW_GEN_COLOR }}
@@ -165,7 +166,7 @@ function ClubDetailCard({
           </span>
         </div>
         <div className="flex items-center justify-between text-sm">
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <span
               className="inline-block w-2 h-2 rounded-full"
               style={{ backgroundColor: VOCATIONAL_COLOR }}
@@ -177,7 +178,7 @@ function ClubDetailCard({
           </span>
         </div>
         <div className="flex items-center justify-between text-sm">
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <span
               className="inline-block w-2 h-2 rounded-full"
               style={{ backgroundColor: INTERNATIONAL_COLOR }}
@@ -278,7 +279,7 @@ export default function AgYouthPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-20">
-        <RotaryLoader size="lg" label="Loading…" />
+        <ListPageSkeleton />
       </div>
     );
   }
@@ -340,7 +341,7 @@ export default function AgYouthPage() {
       </div>
 
       {/* Per-Club New Generation Service Count */}
-      <div className="bg-white rounded-xl border border-slate-200 p-6">
+      <div className="bg-white rounded-[20px] border border-slate-200 p-6">
         <h3 className="text-base font-semibold text-slate-800 mb-1">
           Per-Club New Generation Service Count
         </h3>
@@ -363,7 +364,7 @@ export default function AgYouthPage() {
       </div>
 
       {/* Stacked Per-Club Service Breakdown */}
-      <div className="bg-white rounded-xl border border-slate-200 p-6">
+      <div className="bg-white rounded-[20px] border border-slate-200 p-6">
         <h3 className="text-base font-semibold text-slate-800 mb-1">
           Per-Club Service Breakdown
         </h3>
@@ -423,7 +424,7 @@ export default function AgYouthPage() {
       </div>
 
       {/* Club-wise Service Activity table */}
-      <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
+      <div className="bg-white rounded-[20px] border border-slate-200 overflow-hidden">
         <div className="px-6 py-4 border-b border-slate-100">
           <h3 className="text-base font-semibold text-slate-800">
             Club-wise Service Activity
@@ -434,7 +435,7 @@ export default function AgYouthPage() {
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
-            <thead className="bg-slate-50 text-slate-500 border-b border-slate-200">
+            <thead className="bg-[#EDF4FB] text-slate-500 border-b border-slate-200">
               <tr>
                 <SortTh
                   label="Club Name"

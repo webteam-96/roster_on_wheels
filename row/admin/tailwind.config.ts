@@ -125,6 +125,8 @@ const config: Config = {
   			// NOTE: `muted` intentionally NOT redefined here (see header comment)
   		},
   		borderRadius: {
+  			// Panels and cards use one deliberate radius (design.md 8.1, FRONTEND-RULES #23).
+  			'2xl': '20px',
   			lg: 'var(--radius)',
   			md: 'calc(var(--radius) - 2px)',
   			sm: 'calc(var(--radius) - 4px)'

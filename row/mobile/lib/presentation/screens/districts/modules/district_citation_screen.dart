@@ -383,17 +383,9 @@ class _DistrictCitationScreenState extends State<DistrictCitationScreen> {
                         child: TabBar(
                           isScrollable: true,
                           tabAlignment: TabAlignment.start,
-                          labelColor: Colors.white,
-                          unselectedLabelColor: AppColors.textSecondary,
-                          dividerColor: Colors.transparent,
-                          indicatorSize: TabBarIndicatorSize.tab,
                           padding: const EdgeInsets.all(4),
                           labelPadding: const EdgeInsets.symmetric(
                               horizontal: 14, vertical: 0),
-                          indicator: BoxDecoration(
-                            color: AppColors.primary,
-                            borderRadius: BorderRadius.circular(8),
-                          ),
                           labelStyle: AppTextStyles.bodyMedium
                               .copyWith(fontWeight: FontWeight.w700),
                           unselectedLabelStyle: AppTextStyles.bodyMedium,
@@ -1312,7 +1304,7 @@ class _AutoQuestionsTabState extends State<_AutoQuestionsTab> {
         color: color.withValues(alpha: 0.12),
         borderRadius: BorderRadius.circular(10),
       ),
-      child: Text(label, style: TextStyle(fontSize: 11, color: color)),
+      child: Text(label, style: TextStyle(fontSize: 13, color: color)),
     );
   }
 }

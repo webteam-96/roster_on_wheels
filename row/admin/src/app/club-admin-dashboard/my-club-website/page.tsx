@@ -37,6 +37,7 @@ import { fmtInt, fmtDate } from "@/components/dashboard/formatters";
 import ClubTrainingSection from "@/components/training/ClubTrainingSection";
 
 import { appLocale } from "@/lib/appFormat";
+import { ListPageSkeleton } from "@/components/row/AppKit";
 // ───────────────────────────────────────────────────────────────────────────
 // Status chip config
 
@@ -235,7 +236,7 @@ export default function ClubAdminMyClubWebsitePage() {
   if (cacheStatus === "loading" && !website) {
     return (
       <div className="flex items-center justify-center py-20">
-        <RotaryLoader size="lg" label="Loading website…" />
+        <ListPageSkeleton />
       </div>
     );
   }
@@ -330,7 +331,7 @@ export default function ClubAdminMyClubWebsitePage() {
         {showRenewButton && (
           <Link
             href="/club-admin-dashboard/website-purchase"
-            className="inline-flex items-center gap-2 self-start rounded-lg bg-azure px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-azure"
+            className="inline-flex items-center gap-2 self-start rounded-full bg-azure px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-azure"
           >
             <Plus size={16} />
             Renew Club Website
@@ -361,7 +362,7 @@ export default function ClubAdminMyClubWebsitePage() {
           </p>
           <Link
             href="/club-admin-dashboard/website-purchase"
-            className="inline-flex items-center gap-2 rounded-lg bg-azure px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-azure"
+            className="inline-flex items-center gap-2 rounded-full bg-azure px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-azure"
           >
             <Plus size={16} />
             Buy Club Website
@@ -437,7 +438,7 @@ export default function ClubAdminMyClubWebsitePage() {
               target={AD_TARGET}
               percent={adPct}
               icon={Megaphone}
-              barClass="bg-purple-500"
+              barClass="bg-[#A9C6EA]"
               tintFrom="bg-purple-50"
               accent="text-purple-600"
               bg="bg-purple-50"
@@ -520,7 +521,7 @@ function MediaTile({
     <div className={`relative rounded-2xl border border-slate-200 ${tintFrom} p-5 overflow-hidden`}>
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <div className={`flex h-9 w-9 items-center justify-center rounded-lg ${bg} ${accent}`}>
               <Icon size={18} />
             </div>

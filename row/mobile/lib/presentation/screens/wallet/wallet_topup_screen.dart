@@ -244,7 +244,7 @@ class _WalletTopupScreenState extends State<WalletTopupScreen> {
     return showDialog<void>(
       context: context,
       builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(20))),
         title: Row(
           children: [
             const Icon(Icons.check_circle_rounded,
@@ -431,8 +431,7 @@ class _WalletTopupScreenState extends State<WalletTopupScreen> {
                 backgroundColor: AppColors.primary,
                 disabledBackgroundColor: AppColors.slate200,
                 padding: const EdgeInsets.symmetric(vertical: 13),
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12)),
+                shape: const StadiumBorder(),
               ),
               onPressed: _canPay ? _pay : null,
               child: _paying

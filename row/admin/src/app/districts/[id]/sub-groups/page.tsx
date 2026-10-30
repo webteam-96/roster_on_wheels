@@ -25,6 +25,7 @@ import RotaryLoader from "@/components/RotaryLoader";
 import Link from "next/link";
 import Image from "next/image";
 import ProtectedRoute from "@/components/ProtectedRoute";
+import { ListPageSkeleton } from "@/components/row/AppKit";
 
 export default function DistrictSubGroupsPage() {
   const params = useParams();
@@ -149,7 +150,7 @@ export default function DistrictSubGroupsPage() {
           {canManage && !loading && selectedYearId && <Button onClick={openAddDialog}><Plus className="mr-2 h-4 w-4" />Add Sub Group</Button>}
         </div>
 
-        {loading && <div className="flex items-center justify-center py-20"><RotaryLoader size="lg" /></div>}
+        {loading && <div className="flex items-center justify-center py-20"><ListPageSkeleton /></div>}
         {!loading && allYears.length > 0 && (
           <div className="max-w-xs">
             <Select value={selectedYearId} onValueChange={setSelectedYearId}>
@@ -159,7 +160,7 @@ export default function DistrictSubGroupsPage() {
           </div>
         )}
 
-        {loadingGroups && <div className="flex items-center justify-center py-12"><RotaryLoader size="lg" /></div>}
+        {loadingGroups && <div className="flex items-center justify-center py-12"><ListPageSkeleton /></div>}
         {!loading && !loadingGroups && selectedYearId && groups.length === 0 && (
           <div className="flex flex-col items-center justify-center py-20 text-center"><Users className="h-12 w-12 text-muted-foreground mb-4" /><h3 className="text-lg font-semibold">No sub groups found</h3></div>
         )}

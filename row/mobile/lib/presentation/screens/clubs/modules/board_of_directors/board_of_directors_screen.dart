@@ -310,7 +310,7 @@ class _BoardOfDirectorsScreenState extends State<BoardOfDirectorsScreen> {
                     : RefreshIndicator(
                         onRefresh: () => _loadDirectors(),
                         child: ListView.separated(
-                          padding: const EdgeInsets.all(16),
+                          padding: (const EdgeInsets.all(16)).add(const EdgeInsets.only(bottom: 88)),
                           itemCount: _directors.length,
                           separatorBuilder: (_, __) => const SizedBox(height: 10),
                           itemBuilder: (_, i) => _buildDirectorCard(_directors[i]),
@@ -332,8 +332,8 @@ class _BoardOfDirectorsScreenState extends State<BoardOfDirectorsScreen> {
         (director['isMember'] == null && director['memberId'] == null);
 
     return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      elevation: 0,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(20))),
       clipBehavior: Clip.antiAlias,
       child: InkWell(
         onTap: () => _openDetail(director),
@@ -895,7 +895,7 @@ class _BodDirectorFormScreenState extends State<BodDirectorFormScreen> {
             ),
             child: ListView(
               shrinkWrap: true,
-              padding: EdgeInsets.zero,
+              padding: (EdgeInsets.zero).add(const EdgeInsets.only(bottom: 88)),
               children: [
                 for (final r in _searchResults)
                   if (r is Map<String, dynamic>) _memberResultTile(r),
@@ -909,7 +909,7 @@ class _BodDirectorFormScreenState extends State<BodDirectorFormScreen> {
           child: Text(
             'Pick a member, or add a non-member (past years only) if the '
             'person isn’t in the system.',
-            style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
+            style: TextStyle(color: Colors.grey.shade600, fontSize: 13),
           ),
         ),
       ],
@@ -983,7 +983,7 @@ class _BodDirectorFormScreenState extends State<BodDirectorFormScreen> {
       ),
       child: Text(
         label,
-        style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: color),
+        style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: color),
       ),
     );
   }
@@ -1025,7 +1025,7 @@ class _NonMemberTag extends StatelessWidget {
       child: Text(
         'Non-Member',
         style: TextStyle(
-          fontSize: 9.5,
+          fontSize: 13,
           fontWeight: FontWeight.w700,
           color: Colors.grey.shade700,
         ),

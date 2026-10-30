@@ -38,6 +38,7 @@ import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";
 
 import { appLocale, currencySymbol } from "@/lib/appFormat";
+import { ListPageSkeleton } from "@/components/row/AppKit";
 interface KycItem {
   id: number;
   vendorId: string;
@@ -852,7 +853,7 @@ function CreateEditMembershipDuesPage() {
   }
 
   if (loading) {
-    return (<ProtectedRoute><div className="flex justify-center py-20"><RotaryLoader size="lg" /></div></ProtectedRoute>);
+    return (<ProtectedRoute><div className="flex justify-center py-20"><ListPageSkeleton /></div></ProtectedRoute>);
   }
 
   const isLastStep = currentStep === totalSteps - 1;
@@ -1124,7 +1125,7 @@ function CreateEditMembershipDuesPage() {
       <CardHeader>
         <div className="flex items-center justify-between flex-wrap gap-3">
           <CardTitle>Vendor Splits{amountType ? ` (${amountType === "1" ? "Amount" : "Percentage %"})` : ""}</CardTitle>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <Label className="text-sm">Amount Type:</Label>
             <Select value={amountType} onValueChange={(val) => {
               setAmountType(val);
@@ -1286,8 +1287,8 @@ function CreateEditMembershipDuesPage() {
                   ))}
                 </TableBody>
               </Table>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div className="flex flex-wrap items-center gap-2">
                   <Checkbox checked={splitIsSelf} onCheckedChange={(c) => setSplitIsSelf(!!c)} id="splitIsSelf" />
                   <Label htmlFor="splitIsSelf" className="text-sm">Is Self?</Label>
                 </div>
@@ -1772,7 +1773,7 @@ function CreateEditMembershipDuesPage() {
       </CardHeader>
       <CardContent>
         {clubMembersLoading ? (
-          <div className="flex justify-center py-10"><RotaryLoader size="lg" /></div>
+          <div className="flex justify-center py-10"><ListPageSkeleton /></div>
         ) : clubMembers.length === 0 ? (
           <div className="text-center py-10 text-muted-foreground">No members found for this club.</div>
         ) : (
@@ -1868,7 +1869,7 @@ function CreateEditMembershipDuesPage() {
             </Table>
             <div className="flex items-center justify-between p-3 border-t">
               <span className="text-sm text-muted-foreground">Page {newMemberPage} of {totalNewPages} ({clubMembers.length} members)</span>
-              <div className="flex gap-2">
+              <div className="flex flex-wrap gap-2">
                 <Button size="sm" variant="outline" disabled={newMemberPage <= 1} onClick={() => setNewMemberPage(p => p - 1)}><ChevronLeft className="h-4 w-4" /></Button>
                 <Button size="sm" variant="outline" disabled={newMemberPage >= totalNewPages} onClick={() => setNewMemberPage(p => p + 1)}><ChevronRight className="h-4 w-4" /></Button>
               </div>
@@ -1908,7 +1909,7 @@ function CreateEditMembershipDuesPage() {
         </CardHeader>
         <CardContent>
           {editMembersLoading ? (
-            <div className="flex justify-center py-10"><RotaryLoader size="lg" /></div>
+            <div className="flex justify-center py-10"><ListPageSkeleton /></div>
           ) : paged.length === 0 ? (
             <div className="text-center py-10 text-muted-foreground">No members found.</div>
           ) : (
@@ -2042,7 +2043,7 @@ function CreateEditMembershipDuesPage() {
                           </TableCell>
                           <TableCell>
                             {!isNew && getUnpaidFeeTypes(m).length > 0 && (
-                              <div className="flex gap-2">
+                              <div className="flex flex-wrap gap-2">
                                 <button className="text-orange-600 hover:text-orange-800" title="Send Email Reminder" onClick={() => { setEmailRemarkMemberFeeId(m.memberFeeId); setEmailRemark(""); setEmailRemarkDialogOpen(true); }}>
                                   <Mail className="h-4 w-4" />
                                 </button>
@@ -2073,7 +2074,7 @@ function CreateEditMembershipDuesPage() {
               {/* Pagination */}
               <div className="flex items-center justify-between p-3 border-t">
                 <span className="text-sm text-muted-foreground">Page {editMemberPage} of {totalPages} ({searched.length} members)</span>
-                <div className="flex gap-2">
+                <div className="flex flex-wrap gap-2">
                   <Button size="sm" variant="outline" disabled={editMemberPage <= 1} onClick={() => setEditMemberPage(p => p - 1)}><ChevronLeft className="h-4 w-4" /></Button>
                   <Button size="sm" variant="outline" disabled={editMemberPage >= totalPages} onClick={() => setEditMemberPage(p => p + 1)}><ChevronRight className="h-4 w-4" /></Button>
                 </div>
@@ -2178,7 +2179,7 @@ function CreateEditMembershipDuesPage() {
                         target="_blank" className="text-xs text-blue-600 hover:underline mt-1 inline-block">View existing attachment</a>
                     )}
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex flex-wrap items-center gap-2">
                     <Checkbox checked={offlineSendEmail} onCheckedChange={c => setOfflineSendEmail(!!c)} id="offlineSendEmail" />
                     <Label htmlFor="offlineSendEmail">Send Email Receipt</Label>
                   </div>
@@ -2444,7 +2445,7 @@ function CreateEditMembershipDuesPage() {
         {/* Step Indicator */}
         <div className="flex items-center gap-2 mb-6 flex-wrap">
           {activeStepLabels.map((s, i) => (
-            <div key={i} className="flex items-center gap-2">
+            <div key={i} className="flex flex-wrap items-center gap-2">
               <div className={`flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium ${
                 i < currentStep ? "bg-green-600 text-white" :
                 i === currentStep ? "bg-primary text-primary-foreground" :
@@ -2466,7 +2467,7 @@ function CreateEditMembershipDuesPage() {
           <Button variant="outline" onClick={handleBack} disabled={currentStep === 0}>
             <ArrowLeft className="h-4 w-4 mr-2" />Back
           </Button>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             {isLastStep ? (
               <Button onClick={handleSubmit} disabled={saving} className="bg-green-600 hover:bg-green-700">
                 {saving ? <RotaryLoader size="sm" className="mr-2" /> : <Save className="h-4 w-4 mr-2" />}

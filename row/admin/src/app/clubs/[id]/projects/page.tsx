@@ -39,6 +39,7 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 import { formatMoney } from "@/lib/currency";
 
 import { appLocale } from "@/lib/appFormat";
+import { ListPageSkeleton } from "@/components/row/AppKit";
 const MODULE_LABELS: Record<string, string> = {
   club_service: "Club Service",
   community_service: "Community Service",
@@ -239,7 +240,7 @@ export default function ProjectsPage() {
           {isChild ? "" : (page - 1) * pageSize + index + 1}
         </TableCell>
         <TableCell>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             {isChild && <span className="text-muted-foreground ml-2">↳</span>}
             {project.primaryPhotoPath && (
               <img
@@ -386,7 +387,7 @@ export default function ProjectsPage() {
 
         {loading && (
           <div className="flex items-center justify-center py-20">
-            <RotaryLoader size="lg" />
+            <ListPageSkeleton />
           </div>
         )}
 

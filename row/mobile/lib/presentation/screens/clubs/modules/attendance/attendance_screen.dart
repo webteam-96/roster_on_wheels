@@ -18,6 +18,7 @@ import '../../../../widgets/common/loading_widget.dart';
 import '../../../../widgets/common/pagination_widget.dart';
 import '../../../../widgets/common/rotary_year_bar.dart';
 import 'package:rotary_flutter_app/core/i18n/text.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/form_action_bar.dart';
 
 // ---------------------------------------------------------------------------
 // Models
@@ -388,7 +389,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                       color: AppColors.primary,
                       onRefresh: () => _fetch(reset: true),
                       child: ListView.separated(
-                        padding: const EdgeInsets.all(16),
+                        padding: (const EdgeInsets.all(16)).add(const EdgeInsets.only(bottom: 88)),
                         itemCount: _records.length + 1,
                         separatorBuilder: (_, __) => const SizedBox(height: 10),
                         itemBuilder: (ctx, i) {
@@ -460,7 +461,7 @@ class _AttendanceCard extends StatelessWidget {
       child: Text(
         '$label: $count',
         style: AppTextStyles.caption.copyWith(
-          fontSize: 11,
+          fontSize: 13,
           color: AppColors.textSecondary,
           fontWeight: FontWeight.w500,
         ),
@@ -1038,6 +1039,12 @@ class _CreateAttendanceScreenState extends State<_CreateAttendanceScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      bottomNavigationBar: RowFormActionBar(child: CustomButton(
+                            label: 'Save',
+                            onPressed: _saving ? null : _save,
+                            isLoading: _saving,
+                            fullWidth: true,
+                          )),
       backgroundColor: AppColors.surface,
       appBar: CustomAppBar(
         title: widget.isEdit ? 'Edit Attendance' : 'New Attendance',
@@ -1272,13 +1279,7 @@ class _CreateAttendanceScreenState extends State<_CreateAttendanceScreen> {
                               }),
                             ),
                           ),
-                          const SizedBox(height: 16),
-                          CustomButton(
-                            label: 'Save',
-                            onPressed: _saving ? null : _save,
-                            isLoading: _saving,
-                            fullWidth: true,
-                          ),
+                          
                         ]),
                       ),
     );
@@ -1346,7 +1347,7 @@ class _AttendanceDetailPageState extends State<_AttendanceDetailPage> {
       child: Text(
         '$n',
         style: TextStyle(
-          fontSize: 12,
+          fontSize: 13,
           fontWeight: FontWeight.w600,
           color: color,
         ),
@@ -1371,7 +1372,7 @@ class _AttendanceDetailPageState extends State<_AttendanceDetailPage> {
                 color: color.withValues(alpha: 0.12),
                 borderRadius: BorderRadius.circular(10),
               ),
-              child: Text('$count', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: color)),
+              child: Text('$count', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: color)),
             ),
           ],
         ),
@@ -1443,7 +1444,7 @@ class _AttendanceDetailPageState extends State<_AttendanceDetailPage> {
                 : _error != null
                     ? Center(child: Text(_error!, style: AppTextStyles.caption.copyWith(color: AppColors.error)))
                     : ListView(
-                        padding: const EdgeInsets.all(12),
+                        padding: (const EdgeInsets.all(12)).add(const EdgeInsets.only(bottom: 88)),
                         children: [
                           _buildCollapsibleCard('Members', Icons.people, Colors.blue, members.length,
                             Column(

@@ -15,6 +15,7 @@ import { Loader2 } from "@/components/icons";
 import { useDistrictAdminCache } from "@/contexts/DistrictAdminDashboardCacheContext";
 import DistrictFoundationTabBar from "@/components/dashboard/DistrictFoundationTabBar";
 import { DistrictProjectsSection, DistrictEventsSection } from "./sections";
+import { SkeletonRows } from "@/components/row/AppKit";
 
 export default function DistrictAdminFoundationPage() {
   const { foundation, status } = useDistrictAdminCache();
@@ -23,9 +24,7 @@ export default function DistrictAdminFoundationPage() {
   /* ───────────── loading / error / no-data ───────────── */
   if (status === "loading" && !foundation) {
     return (
-      <div className="flex items-center justify-center py-20 text-slate-500">
-        <Loader2 className="animate-spin mr-2" /> Loading…
-      </div>
+      <SkeletonRows />
     );
   }
   if (status === "error" && !foundation) {

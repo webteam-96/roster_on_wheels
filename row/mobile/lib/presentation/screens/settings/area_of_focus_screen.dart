@@ -152,7 +152,7 @@ class _AreaOfFocusScreenState extends State<AreaOfFocusScreen> {
                       color: AppColors.primary,
                       onRefresh: _fetch,
                       child: ListView.separated(
-                        padding: const EdgeInsets.all(16),
+                        padding: (const EdgeInsets.all(16)).add(const EdgeInsets.only(bottom: 88)),
                         itemCount: _items.length,
                         separatorBuilder: (_, __) => const SizedBox(height: 10),
                         itemBuilder: (ctx, i) {

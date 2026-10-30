@@ -56,7 +56,7 @@ export default function VolunteerSheetsPage() {
         <Card>
           <CardContent className="overflow-x-auto p-0">
             <table className="w-full min-w-[760px] text-sm">
-              <thead>
+              <thead className="bg-[#EDF4FB] text-[13px] text-[#64748B]">
                 <tr className="border-b text-left text-muted-foreground">
                   <th className="p-3 font-medium">Sheet</th>
                   <th className="p-3 font-medium">For</th>

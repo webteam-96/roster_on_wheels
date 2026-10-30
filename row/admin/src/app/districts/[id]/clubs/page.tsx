@@ -19,6 +19,7 @@ import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import Pagination from "@/components/Pagination";
 import SearchBox from "@/components/SearchBox";
+import { ListPageSkeleton } from "@/components/row/AppKit";
 
 export default function DistrictClubsPage() {
   const params = useParams();
@@ -137,7 +138,7 @@ export default function DistrictClubsPage() {
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-primary" />
             <Input placeholder="Search by club name or Rotary ID..." value={search} onChange={(e) => setSearch(e.target.value)} onKeyDown={handleKeyDown} className="pl-9 border-primary/30 focus:border-primary text-base" />
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <Button onClick={handleSearch} size="sm">
               <Search className="mr-2 h-4 w-4" />Search
             </Button>
@@ -158,7 +159,7 @@ export default function DistrictClubsPage() {
 
         {loading && (
           <div className="flex items-center justify-center py-20">
-            <RotaryLoader size="lg" />
+            <ListPageSkeleton />
           </div>
         )}
 

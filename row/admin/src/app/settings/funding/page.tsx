@@ -31,6 +31,7 @@ import RotaryLoader from "@/components/RotaryLoader";
 import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import SearchBox from "@/components/SearchBox";
+import { ListPageSkeleton } from "@/components/row/AppKit";
 
 export default function FundingPage() {
   const { isSuperAdmin } = useAuth();
@@ -143,7 +144,7 @@ export default function FundingPage() {
               <p className="text-muted-foreground text-base">Manage project funding sources</p>
             </div>
           </div>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             <Button variant="outline" onClick={() => exportToCSV(items, "funding", [
               { key: "name", label: "Funding Name" }, { key: "sortOrder", label: "Sort Order" }, { key: "isActive", label: "Active" },
             ])} disabled={items.length === 0}><Download className="mr-2 h-4 w-4" />Export CSV</Button>
@@ -155,7 +156,7 @@ export default function FundingPage() {
 
         {loading && (
           <div className="flex items-center justify-center py-20">
-            <RotaryLoader size="lg" />
+            <ListPageSkeleton />
           </div>
         )}
 

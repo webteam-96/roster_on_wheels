@@ -144,7 +144,7 @@ class _WebsiteTrainingScreenState extends State<WebsiteTrainingScreen> {
       builder: (ctx) => AlertDialog(
         backgroundColor: AppColors.white,
         shape:
-            RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(20))),
         title: Row(
           children: [
             const Icon(Icons.lock_outline_rounded,
@@ -253,8 +253,7 @@ class _WebsiteTrainingScreenState extends State<WebsiteTrainingScreen> {
               backgroundColor: AppColors.primary,
               foregroundColor: AppColors.white,
               padding: const EdgeInsets.symmetric(vertical: 13),
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12)),
+              shape: const StadiumBorder(),
             ),
             icon: const Icon(Icons.video_call_rounded, size: 20),
             label: Text('Book training',
@@ -312,7 +311,7 @@ class _IntroCard extends StatelessWidget {
                   'Pick an open 30-minute slot and our team will host a live '
                   'Zoom walkthrough of your club website tools.',
                   style: AppFonts.body(
-                    fontSize: 11.5,
+                    fontSize: 13,
                     height: 1.4,
                     color: AppColors.slate500,
                   ),
@@ -380,7 +379,7 @@ class _AppointmentCard extends StatelessWidget {
                     Text(
                       timeText,
                       style: AppFonts.body(
-                        fontSize: 11.5,
+                        fontSize: 13,
                         color: AppColors.slate500,
                       ),
                     ),
@@ -410,14 +409,13 @@ class _AppointmentCard extends StatelessWidget {
                   icon: const Icon(Icons.schedule_rounded, size: 16),
                   label: Text('Reschedule',
                       style: AppFonts.body(
-                          fontSize: 12.5, fontWeight: FontWeight.w700)),
+                          fontSize: 13, fontWeight: FontWeight.w700)),
                   style: OutlinedButton.styleFrom(
                     foregroundColor: AppColors.primary,
                     side: BorderSide(
                         color: AppColors.primary.withValues(alpha: 0.4)),
                     padding: const EdgeInsets.symmetric(vertical: 9),
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10)),
+                    shape: const StadiumBorder(),
                   ),
                 ),
               ),
@@ -428,15 +426,14 @@ class _AppointmentCard extends StatelessWidget {
                   icon: const Icon(Icons.videocam_rounded, size: 16),
                   label: Text('Join',
                       style: AppFonts.body(
-                          fontSize: 12.5, fontWeight: FontWeight.w800)),
+                          fontSize: 13, fontWeight: FontWeight.w800)),
                   style: FilledButton.styleFrom(
                     backgroundColor: AppColors.statusDone,
                     foregroundColor: AppColors.white,
                     disabledBackgroundColor: AppColors.slate200,
                     disabledForegroundColor: AppColors.slate400,
                     padding: const EdgeInsets.symmetric(vertical: 9),
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10)),
+                    shape: const StadiumBorder(),
                   ),
                 ),
               ),
@@ -448,7 +445,7 @@ class _AppointmentCard extends StatelessWidget {
               child: Text(
                 'The meeting link will appear here once it is ready.',
                 style: AppFonts.body(
-                    fontSize: 10.5, color: AppColors.slate400),
+                    fontSize: 13, color: AppColors.slate400),
               ),
             ),
         ],
@@ -483,7 +480,7 @@ class _MetaRow extends StatelessWidget {
           child: Text(
             text,
             style: AppFonts.body(
-                fontSize: 11.5, color: AppColors.slate500, height: 1.35),
+                fontSize: 13, color: AppColors.slate500, height: 1.35),
           ),
         ),
       ],
@@ -506,9 +503,9 @@ class _Pill extends StatelessWidget {
         border: Border.all(color: color.withValues(alpha: 0.25)),
       ),
       child: Text(
-        text.toUpperCase(),
+        text,
         style: AppFonts.body(
-          fontSize: 9.5,
+          fontSize: 13,
           fontWeight: FontWeight.w800,
           letterSpacing: 0.3,
           color: color,
@@ -561,7 +558,7 @@ class _EmptyState extends StatelessWidget {
             'Tap "Book training" below to pick a Zoom session slot.',
             textAlign: TextAlign.center,
             style: AppFonts.body(
-              fontSize: 11.5,
+              fontSize: 13,
               height: 1.4,
               color: AppColors.slate500,
             ),
@@ -619,12 +616,12 @@ class _ErrorState extends StatelessWidget {
             icon: const Icon(Icons.refresh_rounded, size: 16),
             label: Text('Retry',
                 style: AppFonts.body(
-                    fontSize: 12.5, fontWeight: FontWeight.w700)),
+                    fontSize: 13, fontWeight: FontWeight.w700)),
             style: OutlinedButton.styleFrom(
               foregroundColor: AppColors.primary,
               side: BorderSide(color: AppColors.primary.withValues(alpha: 0.4)),
               shape:
-                  RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                  const StadiumBorder(),
             ),
           ),
         ),
@@ -799,7 +796,7 @@ class _SlotPickerSheetState extends State<_SlotPickerSheet> {
                           hintText:
                               'Anything you want the trainer to focus on…',
                           hintStyle: AppFonts.body(
-                              fontSize: 12.5, color: AppColors.slate400),
+                              fontSize: 13, color: AppColors.slate400),
                           isDense: true,
                           contentPadding: const EdgeInsets.all(12),
                           border: OutlineInputBorder(
@@ -837,8 +834,7 @@ class _SlotPickerSheetState extends State<_SlotPickerSheet> {
                     disabledBackgroundColor: AppColors.slate200,
                     disabledForegroundColor: AppColors.slate400,
                     padding: const EdgeInsets.symmetric(vertical: 13),
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12)),
+                    shape: const StadiumBorder(),
                   ),
                   child: Text(
                     widget.confirmLabel,
@@ -859,7 +855,7 @@ class _SlotPickerSheetState extends State<_SlotPickerSheet> {
   Widget _sectionLabel(String text) => Text(
         text,
         style: AppFonts.body(
-          fontSize: 12,
+          fontSize: 13,
           fontWeight: FontWeight.w800,
           color: AppColors.slate700,
         ),
@@ -895,7 +891,7 @@ class _ChoiceChip extends StatelessWidget {
           child: Text(
             label,
             style: AppFonts.body(
-              fontSize: 12.5,
+              fontSize: 13,
               fontWeight: FontWeight.w700,
               color: selected ? AppColors.white : AppColors.slate700,
             ),

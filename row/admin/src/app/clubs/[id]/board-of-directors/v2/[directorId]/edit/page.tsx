@@ -34,6 +34,7 @@ import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { useSyncClubIdFromUrl } from "@/hooks/useSyncClubIdFromUrl";
+import { ListPageSkeleton } from "@/components/row/AppKit";
 
 function FieldLabel({
   children, hint, dot, required = false,
@@ -228,7 +229,7 @@ export default function BoardOfDirectorsV2EditPage() {
     return (
       <ProtectedRoute>
         <div className="flex items-center justify-center py-20">
-          <RotaryLoader size="lg" />
+          <ListPageSkeleton />
         </div>
       </ProtectedRoute>
     );
@@ -251,7 +252,7 @@ export default function BoardOfDirectorsV2EditPage() {
         {/* 1. Member / Non-Member */}
         {/* allowOverflow: lets the absolute search-results popover escape
             the card's rounded clip so the dropdown is visible. */}
-        <SectionCard number={1} icon={UserCircle} title="Board Member" dot="bg-blue-600" allowOverflow>
+        <SectionCard number={1} icon={UserCircle} title="Board Member" dot="bg-[#17458F]" allowOverflow>
           {/* Person-type toggle — "Non-member" is only selectable for PAST rotary years. */}
           <div className="inline-flex rounded-lg border border-slate-200 p-0.5 bg-slate-50 mb-3">
             <button
@@ -291,39 +292,39 @@ export default function BoardOfDirectorsV2EditPage() {
                 Enter the details of a person who is not in the system. All three fields are required.
               </div>
               <div>
-                <FieldLabel dot="bg-blue-500" required>Name</FieldLabel>
+                <FieldLabel dot="bg-[#17458F]" required>Name</FieldLabel>
                 <input
                   type="text"
                   placeholder="Full name"
                   value={nonMemberName}
                   onChange={(e) => setNonMemberName(e.target.value)}
-                  className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
                 />
               </div>
               <div>
-                <FieldLabel dot="bg-blue-500" required>Mobile Number</FieldLabel>
+                <FieldLabel dot="bg-[#17458F]" required>Mobile Number</FieldLabel>
                 <input
                   type="tel"
                   placeholder="Mobile number"
                   value={nonMemberMobile}
                   onChange={(e) => setNonMemberMobile(e.target.value)}
-                  className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
                 />
               </div>
               <div>
-                <FieldLabel dot="bg-blue-500" required>Email</FieldLabel>
+                <FieldLabel dot="bg-[#17458F]" required>Email</FieldLabel>
                 <input
                   type="email"
                   placeholder="Email address"
                   value={nonMemberEmail}
                   onChange={(e) => setNonMemberEmail(e.target.value)}
-                  className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
                 />
               </div>
             </div>
           ) : (
           <>
-          <FieldLabel dot="bg-blue-500" required>Club Member</FieldLabel>
+          <FieldLabel dot="bg-[#17458F]" required>Club Member</FieldLabel>
           {selectedMemberId ? (
             <div className="flex items-center gap-3 p-3 border border-slate-200 rounded-lg bg-blue-50/50">
               <div className="relative h-10 w-10 flex-shrink-0 overflow-hidden rounded-full bg-slate-100">
@@ -352,7 +353,7 @@ export default function BoardOfDirectorsV2EditPage() {
                 placeholder="Search club members…"
                 value={memberSearch}
                 onChange={(e) => setMemberSearch(e.target.value)}
-                className="w-full pl-9 pr-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full pl-9 pr-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
                 autoFocus
               />
               {searchLoading && (
@@ -398,12 +399,12 @@ export default function BoardOfDirectorsV2EditPage() {
         </SectionCard>
 
         {/* 2. Designation */}
-        <SectionCard number={2} icon={Award} title="Designation" dot="bg-amber-600">
-          <FieldLabel dot="bg-amber-500" required>Designation</FieldLabel>
+        <SectionCard number={2} icon={Award} title="Designation" dot="bg-[#17458F]">
+          <FieldLabel dot="bg-[#17458F]" required>Designation</FieldLabel>
           <select
             value={selectedDesignationId}
             onChange={(e) => setSelectedDesignationId(e.target.value)}
-            className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+            className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42] bg-white"
           >
             <option value="">Select a designation</option>
             {designations.map((d) => (
@@ -412,26 +413,26 @@ export default function BoardOfDirectorsV2EditPage() {
           </select>
           {isOtherDesignation && (
             <div className="mt-3">
-              <FieldLabel dot="bg-amber-500" required>Designation name</FieldLabel>
+              <FieldLabel dot="bg-[#17458F]" required>Designation name</FieldLabel>
               <input
                 type="text"
                 placeholder="Enter the designation name"
                 value={customDesignation}
                 maxLength={150}
                 onChange={(e) => setCustomDesignation(e.target.value)}
-                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
               />
             </div>
           )}
         </SectionCard>
 
         {/* 3. Rotary Year */}
-        <SectionCard number={3} icon={Calendar} title="Rotary Year" dot="bg-emerald-600">
-          <FieldLabel dot="bg-emerald-500" required>Rotary Year</FieldLabel>
+        <SectionCard number={3} icon={Calendar} title="Rotary Year" dot="bg-[#17458F]">
+          <FieldLabel dot="bg-[#17458F]" required>Rotary Year</FieldLabel>
           <select
             value={selectedYearId}
             onChange={(e) => setSelectedYearId(e.target.value)}
-            className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+            className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42] bg-white"
           >
             <option value="">Select a year</option>
             {allYears.map((y) => (

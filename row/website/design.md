@@ -204,3 +204,96 @@ the shared component contract across platforms.
    and panel radii for application screens rather than inventing new values.
 
 > When any token changes, change it **here first**, then in each surface. Treat this file as the contract.
+
+---
+
+## 8. Application screens (admin portal and mobile app)
+
+Added 29 Oct 2026 for the design overhaul (`docs/plans/row-design-overhaul.md`). Same tokens as §1 to §6; this
+section fixes the layout and parts for working screens, which are denser than the marketing site.
+
+### 8.1 Application tokens
+
+| Token | Admin (web) | App (Flutter) | Use |
+|---|---|---|---|
+| `--app-r-panel` | 20px | 20 | Panels, cards, KPI tiles, dialogs |
+| `--app-r-field` | 12px | 12 | Inputs, selects, table wrapper, chips are pills |
+| `--app-gap` | 24px desktop, 16px phone | 16 | Space between panels |
+| `--app-pad` | 24px desktop, 16px phone | 16 | Inside panels |
+| `--app-row-h` | 52px | 64 | Table row / list row height |
+| `--app-field-h` | 44px | 52 | Input, select, button height (buttons stay pills) |
+
+Type in application screens: page title Bricolage 600 at 28px (phone 24px), line-height 1.1, tracking -.02em;
+panel title Bricolage 600 at 18px; body Figtree 400 at 15px (phone 16px), line-height 1.5; table text 14px;
+labels Figtree 600 at 13px; numbers in KPI tiles Bricolage 600 at 32px with tabular figures.
+
+### 8.2 Shell (admin)
+- **Sidebar** (≥1024px, 264px wide, cream-2 surface, 1px line on the right): logo, scope switcher (role,
+  club or district), grouped navigation (group label in ink-soft caps 12px), the active item is an azure pill
+  with cream text, icons Phosphor 20px. Below 1024px the sidebar becomes a full-height drawer from a menu button.
+- **Top bar** (64px, cream, 1px line below): page title area on the left (breadcrumb 13px ink-soft, then the
+  title), on the right the Rotary year switcher, status chips (credits), language picker, user menu. No shadow.
+- **Content**: cream background, max width 1312px, `--app-pad` gutters.
+
+### 8.3 Parts
+- **PageHeader**: breadcrumb, title, one-line description (ink-soft), actions on the right (one primary pill
+  with the marigold arrow chip, the rest outline or ghost). On phone the actions wrap under the title.
+- **Panel**: `--app-r-panel`, card surface `#FCFDFE`, 1px line, optional title row (title, short help, actions).
+  A tone panel (`data-c`) is used only for summaries and calls to action, never for forms or tables.
+- **KpiTile**: tone tile (cycle sky, lilac, cream-2, coral) with label, big number, change line, optional
+  link. 4 per row desktop, 2 tablet, 1 phone.
+- **ListPage**: PageHeader, filter bar (search field, up to 3 selects, "More filters" sheet), table panel,
+  pagination. Table: header row cream-2, 13px caps-free labels, rows 52px, 1px line between rows, hover cream-2,
+  row actions in a kebab menu, selected rows with a sky fill. Phone: each row becomes a stacked card (title,
+  2 to 3 key fields, actions).
+- **FormPage**: PageHeader, form in sections (Panel per section, two columns ≥1024px, one on phone), label
+  above field, help under field in ink-soft, error under field in error red with an icon, required marked in
+  text. Sticky action bar at the bottom of the viewport (Cancel ghost, Save primary).
+- **DetailPage**: header with avatar or image, name, status badges, actions; tabs (pill tabs) for sections;
+  key facts in a 2-column description list.
+- **Dialog**: `--app-r-panel`, max 560px, title, body, actions right; destructive confirm uses a red primary.
+- **Tabs**: pill tabs on cream-2 track; the active tab is ink text on card surface with a 1px line.
+- **Badge / status**: pill, 12px, tinted fill with the matching dark text (success, warning, error, neutral,
+  azure).
+- **EmptyState**: line illustration or icon in a tone well, one sentence, one action.
+- **ErrorState**: what failed in plain words, a Retry button, no stack traces.
+- **Skeleton**: cream-2 bars in the shape of the content (table rows, tiles, form fields). Every async area.
+- **Toast**: bottom right (phone: bottom), card surface, 1px line, icon by status.
+- **Charts**: series colours azure, marigold, mint, coral, lilac in that order; 1px line gridlines; no shadows
+  or gradients; values in the tooltip and in an accessible table.
+
+### 8.4 Mobile app
+- **App bar**: cream, title Bricolage 20px, back button 44px round; no elevation, 1px line under when scrolled.
+- **Bottom navigation**: 4 to 5 items, active item azure pill behind the icon with label, cream background,
+  1px line above.
+- **Home**: greeting and role chip, a tone hero card (next meeting or key number), a 2-column grid of module
+  tiles (ToneCard, cycling tones), then lists (upcoming events, announcements).
+- **List row**: 64px, avatar or icon well (12px radius), title 16px, subtitle 14px ink-soft, trailing value or
+  chevron; 1px line divider inset from the text.
+- **Section header**: Bricolage 18px with an optional "See all" text button.
+- **Forms**: one column, 52px fields, labels above, sticky bottom action with a full-width PillButton.
+- **Sheets**: bottom sheet with 20px top radius and a grab handle for filters and actions.
+- Empty, error and skeleton states as in §8.3.
+
+### 8.5 Rules that apply on every screen
+- One primary action per screen region. Destructive actions are never primary on the page, only in the dialog.
+- Gold appears as the arrow chip, icons, active underline or rule, never as a panel fill.
+- No pure white page backgrounds, no shadows, no gradients, no em dashes or emoji in copy (FRONTEND-RULES).
+- Every interactive element has the §6 focus ring; touch targets are at least 44px.
+
+### 8.6 Mobile layout rules (added 29 Oct 2026 after the user's review)
+
+The first app pass changed the look; these rules fix the layout. Every screen follows them.
+- **App bar:** title left-aligned (Android convention), back button on the left, at most two actions on the
+  right (icons or one short pill such as "Admin"). Nothing floats over content.
+- **One primary action per screen.** List screens: the floating "+" (flat azure pill, bottom right). The empty
+  state then explains it ("Tap + to ...") and does not repeat it as a second button. Lists leave 88px at the
+  bottom so the last row scrolls clear of the "+".
+- **Filters:** search field full width, then filter chips starting at the left edge (scroll sideways if they do
+  not fit). Never centred.
+- **List rows:** title 16/600, one secondary line (14, ink-soft), optional quiet meta line ("Male · O+"), row
+  actions in a trailing "more" menu. No permanent red delete buttons on rows; destructive items live in the menu.
+- **Tabs:** light: ink labels, the active tab on a sky pill, no coloured band, no divider.
+- **Empty, error and loading states:** placed in the upper third of the free space, max 320px wide, 88px icon
+  well in sky, title 20, text 15. Loading uses skeleton rows.
+- **Colour:** module groups and icons use the brand azure only; status colours only for status.

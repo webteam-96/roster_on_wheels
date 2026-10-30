@@ -24,6 +24,7 @@ import DistrictEgovernanceKpis from "@/components/dashboard/DistrictEgovernanceK
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 import { appLocale } from "@/lib/appFormat";
+import { ListPageSkeleton } from "@/components/row/AppKit";
 function formatDate(d: string | null) {
   if (!d) return "-";
   try { return new Date(d).toLocaleDateString(appLocale(), { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" }); } catch { return d; }
@@ -232,7 +233,7 @@ export default function MonthDetailPage() {
           </div>
         </div>
 
-        {loading && <div className="flex items-center justify-center py-20"><RotaryLoader size="lg" /></div>}
+        {loading && <div className="flex items-center justify-center py-20"><ListPageSkeleton /></div>}
 
         {!loading && (
           <>
@@ -269,7 +270,7 @@ export default function MonthDetailPage() {
 
             {/* Toolbar — view radio (Submitted / Not Submitted) + AG filter (applies to both). */}
             <div className="flex flex-wrap items-center justify-between gap-3">
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2">
                 <button
                   type="button"
                   onClick={() => setView("submitted")}
@@ -451,7 +452,7 @@ export default function MonthDetailPage() {
               )}
 
               <div className="rounded-lg border p-3 space-y-2">
-                <div className="flex items-center justify-between">
+                <div className="flex flex-wrap items-center justify-between gap-3">
                   <div className="flex items-center gap-2 text-sm">
                     <Mail className="h-4 w-4 text-blue-600" />
                     <span>Email Balance:</span>

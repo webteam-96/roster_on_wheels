@@ -142,7 +142,7 @@ export default function DistrictOfflinePaymentPage() {
               <Switch checked={sendEmail} onCheckedChange={setSendEmail} />
               <Label>Send receipt email to member</Label>
             </div>
-            <div className="flex justify-end gap-3">
+            <div className="flex flex-wrap justify-end gap-3">
               <Button variant="outline" asChild>
                 <Link href={`/districts/${districtId}/event-payment-links/${linkId}/members`}>Cancel</Link>
               </Button>

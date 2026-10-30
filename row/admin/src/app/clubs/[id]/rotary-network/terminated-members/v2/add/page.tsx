@@ -42,6 +42,7 @@ import ErrorAlert from "@/components/ErrorAlert";
 import AlertModal from "@/components/AlertModal";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { useSyncClubIdFromUrl } from "@/hooks/useSyncClubIdFromUrl";
+import { ListPageSkeleton } from "@/components/row/AppKit";
 
 const TOP_MESSAGE =
   "Terminating a member soft-deletes their membership for THIS club only. " +
@@ -253,7 +254,7 @@ export default function TerminatedMembersV2AddPage() {
           activeNavHref="/club-admin-dashboard/dashboard"
         >
           <div className="flex items-center justify-center py-20">
-            <RotaryLoader size="lg" />
+            <ListPageSkeleton />
           </div>
         </ClubAdminShell>
       </ProtectedRoute>
@@ -282,8 +283,8 @@ export default function TerminatedMembersV2AddPage() {
         }
       >
         {/* 1. Member */}
-        <SectionCard number={1} icon={UserMinus} title="Member" dot="bg-amber-600">
-          <FieldLabel dot="bg-amber-500">Select an Active Club Member</FieldLabel>
+        <SectionCard number={1} icon={UserMinus} title="Member" dot="bg-[#17458F]">
+          <FieldLabel dot="bg-[#17458F]">Select an Active Club Member</FieldLabel>
           {selectedMember ? (
             <div className="flex items-center gap-3 p-3 border rounded-lg bg-amber-50/60 border-amber-100">
               <div className="relative h-10 w-10 flex-shrink-0 overflow-hidden rounded-full bg-white border border-slate-200">
@@ -311,7 +312,7 @@ export default function TerminatedMembersV2AddPage() {
               <button
                 type="button"
                 onClick={clearSelectedMember}
-                className="text-xs font-medium px-2.5 py-1 rounded-md border border-slate-200 text-slate-600 hover:bg-white"
+                className="text-xs font-medium px-2.5 py-1 rounded-full border border-slate-200 text-slate-600 hover:bg-white"
               >
                 Change
               </button>
@@ -324,7 +325,7 @@ export default function TerminatedMembersV2AddPage() {
                 placeholder="Search active members by name, Rotary ID, email…"
                 value={memberSearch}
                 onChange={(e) => { setMemberSearch(e.target.value); setShowResults(true); }}
-                className="w-full pl-9 pr-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500"
+                className="w-full pl-9 pr-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
                 autoFocus
               />
               {showResults && memberSearch.trim() && memberResults.length > 0 && (
@@ -372,19 +373,19 @@ export default function TerminatedMembersV2AddPage() {
         </SectionCard>
 
         {/* 2. Termination Details */}
-        <SectionCard number={2} icon={Calendar} title="Termination Details (will be ignored by backend: pending API)" dot="bg-rose-600">
+        <SectionCard number={2} icon={Calendar} title="Termination Details (will be ignored by backend: pending API)" dot="bg-[#17458F]">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <FieldLabel dot="bg-rose-500">Termination Date <span className="text-slate-400 font-normal">(ignored by API)</span></FieldLabel>
-              <DateField value={terminationDate} onChange={setTerminationDate} max={today} className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500" />
+              <FieldLabel dot="bg-[#17458F]">Termination Date <span className="text-slate-400 font-normal">(ignored by API)</span></FieldLabel>
+              <DateField value={terminationDate} onChange={setTerminationDate} max={today} className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]" />
               <p className="text-xs text-slate-400 mt-0.5">Defaults to today. Backend stamps its own date.</p>
             </div>
             <div>
-              <FieldLabel dot="bg-rose-500">Termination Reason</FieldLabel>
+              <FieldLabel dot="bg-[#17458F]">Termination Reason</FieldLabel>
               <select
                 value={terminationReason}
                 onChange={(e) => setTerminationReason(e.target.value)}
-                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-rose-500"
+                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] bg-white focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
               >
                 <option value="">Select a reason…</option>
                 {TERMINATION_REASONS.map((r) => (
@@ -405,7 +406,7 @@ export default function TerminatedMembersV2AddPage() {
             placeholder="Any context to record alongside the termination… (not persisted)"
             rows={4}
             maxLength={1000}
-            className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-400"
+            className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
           />
           <p className="text-xs text-slate-400 text-right mt-0.5">{notes.length}/1000</p>
         </SectionCard>

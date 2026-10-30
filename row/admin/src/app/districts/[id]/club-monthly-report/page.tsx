@@ -12,6 +12,7 @@ import { ArrowLeft, BarChart3, CheckCircle2, XCircle, AlertCircle } from "@/comp
 import RotaryLoader from "@/components/RotaryLoader";
 import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";
+import { ListPageSkeleton } from "@/components/row/AppKit";
 
 export default function DistrictClubMonthlyReportPage() {
   const params = useParams();
@@ -74,7 +75,7 @@ export default function DistrictClubMonthlyReportPage() {
           </div>
         </div>
 
-        {loading && <div className="flex items-center justify-center py-20"><RotaryLoader size="lg" /></div>}
+        {loading && <div className="flex items-center justify-center py-20"><ListPageSkeleton /></div>}
 
         {!loading && years.length > 0 && (
           <div className="flex items-center gap-4">
@@ -89,7 +90,7 @@ export default function DistrictClubMonthlyReportPage() {
           </div>
         )}
 
-        {loadingMonths && <div className="flex items-center justify-center py-12"><RotaryLoader size="lg" /></div>}
+        {loadingMonths && <div className="flex items-center justify-center py-12"><ListPageSkeleton /></div>}
 
         {!loading && !loadingMonths && months.length === 0 && selectedYearId && (
           <div className="flex flex-col items-center justify-center py-20 text-center">

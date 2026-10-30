@@ -35,6 +35,7 @@ import {
 import RotaryLoader from "@/components/RotaryLoader";
 import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";
+import { ListPageSkeleton } from "@/components/row/AppKit";
 
 export default function ContactDetailsPage() {
   const params = useParams();
@@ -239,7 +240,7 @@ export default function ContactDetailsPage() {
 
         {loading && (
           <div className="flex items-center justify-center py-20">
-            <RotaryLoader size="lg" />
+            <ListPageSkeleton />
           </div>
         )}
 
@@ -265,7 +266,7 @@ export default function ContactDetailsPage() {
 
         {loadingContact && (
           <div className="flex items-center justify-center py-12">
-            <RotaryLoader size="lg" />
+            <ListPageSkeleton />
           </div>
         )}
 
@@ -284,12 +285,12 @@ export default function ContactDetailsPage() {
         {!loading && !loadingContact && contact && (
           <Card className="border-primary/20 max-w-lg">
             <CardContent className="p-6 space-y-4">
-              <div className="flex items-center justify-between">
+              <div className="flex flex-wrap items-center justify-between gap-3">
                 <Badge variant={contact.isActive ? "default" : "secondary"}>
                   {contact.isActive ? "Active" : "Inactive"}
                 </Badge>
                 {canManage && (
-                  <div className="flex items-center gap-2">
+                  <div className="flex flex-wrap items-center gap-2">
                     <Button variant="outline" size="sm" onClick={handleToggleActive}>
                       {contact.isActive ? (
                         <><EyeOff className="mr-1 h-4 w-4" />Deactivate</>

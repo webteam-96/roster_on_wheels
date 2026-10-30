@@ -91,7 +91,7 @@ public static class ProjectShareCardBuilder
                                     c.Item().AlignCenter().Text("ROTARY")
                                         .FontSize(58).Bold().FontColor("#FCFDFE").LetterSpacing(0.18f);
                                     c.Item().PaddingTop(14).AlignCenter().Width(150).Height(4).Background(Gold);
-                                    c.Item().PaddingTop(16).AlignCenter().Text(d.PanelLabel)
+                                    c.Item().PaddingTop(16).AlignCenter().Text(RotaryApi.Services.Localization.DbStringLocalizer.Instance[d.PanelLabel].Value)
                                         .FontSize(16).SemiBold().FontColor(Gold).LetterSpacing(0.26f);
                                 });
                             }
@@ -120,7 +120,7 @@ public static class ProjectShareCardBuilder
 
                             if (!string.IsNullOrWhiteSpace(d.DistrictNumber))
                             {
-                                col.Item().PaddingTop(5).Text($"Rotary International District {d.DistrictNumber}")
+                                col.Item().PaddingTop(5).Text(RotaryApi.Services.Localization.DbStringLocalizer.Instance["Rotary International District {0}", d.DistrictNumber].Value)
                                     .FontSize(17).FontColor(Muted);
                             }
 

@@ -44,6 +44,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import ImageCropDialog from "@/components/ImageCropDialog";
 import { useImageCropUpload } from "@/hooks/useImageCropUpload";
 import { TEXT_INPUT_REGEX } from "@/lib/textInput";
+import { ListPageSkeleton } from "@/components/row/AppKit";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 const MAX_PHOTOS = 5;
@@ -261,7 +262,7 @@ export default function DistrictEventsV2EditPage() {
           activeNavHref="/district-admin-dashboard/foundation"
         >
           <div className="flex items-center justify-center py-20">
-            <RotaryLoader size="lg" />
+            <ListPageSkeleton />
           </div>
         </DistrictAdminShell>
       </ProtectedRoute>
@@ -283,7 +284,7 @@ export default function DistrictEventsV2EditPage() {
           defaultBack={`/districts/${districtId}/district-events/v2`}
           saving={saving}
           saveLabel="Update Event"
-          saveTone="bg-marigold text-ink hover:bg-yellow-600"
+          saveTone="bg-[#17458F] text-[#F7F9FC] hover:bg-[#12376F]"
           onSave={handleSave}
           banner={
             <div className="flex items-start gap-2 text-blue-800">
@@ -293,41 +294,41 @@ export default function DistrictEventsV2EditPage() {
           }
         >
           {/* 1. Event Details */}
-          <SectionCard number={1} icon={FileText} title="Event Details" dot="bg-blue-600">
+          <SectionCard number={1} icon={FileText} title="Event Details" dot="bg-[#17458F]">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="sm:col-span-2">
-                <FieldLabel hint="(max 50 chars)" dot="bg-blue-500">Title</FieldLabel>
+                <FieldLabel hint="(max 50 chars)" dot="bg-[#17458F]">Title</FieldLabel>
                 <input
                   type="text"
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
                   placeholder="Event title"
                   maxLength={50}
-                  className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
                 />
                 <p className="text-xs text-slate-400 text-right mt-0.5">{title.length}/50</p>
               </div>
               <div className="sm:col-span-2">
-                <FieldLabel hint="(max 1000 chars)" dot="bg-blue-500" required={false}>Description</FieldLabel>
+                <FieldLabel hint="(max 1000 chars)" dot="bg-[#17458F]" required={false}>Description</FieldLabel>
                 <textarea
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                   placeholder="Event description"
                   rows={4}
                   maxLength={1000}
-                  className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-y"
+                  className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42] resize-y"
                 />
                 <p className="text-xs text-slate-400 text-right mt-0.5">{description.length}/1000</p>
               </div>
               <div>
-                <FieldLabel dot="bg-blue-500">Date</FieldLabel>
-                <DateField value={eventDate} onChange={setEventDate} className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                <FieldLabel dot="bg-[#17458F]">Date</FieldLabel>
+                <DateField value={eventDate} onChange={setEventDate} className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]" />
               </div>
             </div>
           </SectionCard>
 
           {/* 2. Photos */}
-          <SectionCard number={2} icon={ImageIcon} title={`Photos (max ${MAX_PHOTOS}, at least 1 mandatory)`} dot="bg-emerald-600">
+          <SectionCard number={2} icon={ImageIcon} title={`Photos (max ${MAX_PHOTOS}, at least 1 mandatory)`} dot="bg-[#17458F]">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {photos.map((photo, idx) => (
                 <div key={idx} className="border border-slate-200 rounded-lg overflow-hidden">
@@ -356,7 +357,7 @@ export default function DistrictEventsV2EditPage() {
                       placeholder="Photo description (max 500 chars)"
                       rows={3}
                       maxLength={500}
-                      className="w-full px-2 py-1.5 text-xs border border-slate-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+                      className="w-full px-2 h-10 py-0 text-xs border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42] resize-none"
                     />
                     <p className="text-xs text-slate-400 text-right">{photo.description.length}/500</p>
                   </div>

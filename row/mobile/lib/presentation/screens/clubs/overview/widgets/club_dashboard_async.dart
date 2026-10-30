@@ -98,7 +98,7 @@ class ClubDashboardError extends StatelessWidget {
               message,
               textAlign: TextAlign.center,
               style: AppFonts.body(
-                fontSize: 12.5,
+                fontSize: 13,
                 color: AppColors.slate500,
                 height: 1.4,
               ),
@@ -111,16 +111,14 @@ class ClubDashboardError extends StatelessWidget {
                 label: Text(
                   'Retry',
                   style: AppFonts.body(
-                    fontSize: 12.5,
+                    fontSize: 13,
                     fontWeight: FontWeight.w700,
                   ),
                 ),
                 style: OutlinedButton.styleFrom(
                   foregroundColor: AppColors.rotaryBlue,
                   side: const BorderSide(color: AppColors.slate200),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
+                  shape: const StadiumBorder(),
                 ),
               ),
             ],
@@ -163,7 +161,7 @@ class _RoleChangedRelogin extends StatelessWidget {
               'Please log in again to access your new admin features.',
               textAlign: TextAlign.center,
               style: AppFonts.body(
-                fontSize: 12.5,
+                fontSize: 13,
                 color: AppColors.slate500,
                 height: 1.4,
               ),
@@ -175,15 +173,13 @@ class _RoleChangedRelogin extends StatelessWidget {
               label: Text(
                 'Log in again',
                 style: AppFonts.body(
-                  fontSize: 12.5,
+                  fontSize: 13,
                   fontWeight: FontWeight.w700,
                 ),
               ),
               style: FilledButton.styleFrom(
                 backgroundColor: AppColors.rotaryBlue,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
+                shape: const StadiumBorder(),
               ),
             ),
           ],

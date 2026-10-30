@@ -648,7 +648,7 @@ export default function MembershipDuesPaymentPage() {
                               "hover:bg-muted cursor-pointer"
                             }`}
                           >
-                            <div className="flex items-center justify-between">
+                            <div className="flex flex-wrap items-center justify-between gap-3">
                               <div>
                                 <p className="font-medium">{fee.label}</p>
                                 <p className="text-lg font-semibold">&#8377;{fee.offlineAmount}</p>
@@ -836,7 +836,7 @@ export default function MembershipDuesPaymentPage() {
 
               <div>
                 <Label>Attachment (Receipt/Proof)</Label>
-                <div className="flex items-center gap-2">
+                <div className="flex flex-wrap items-center gap-2">
                   <Input
                     type="file"
                     accept="image/*,.pdf"

@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useFeature } from "@/contexts/BrandContext";
 import { useParams, useSearchParams } from "next/navigation";
-import { getClub, getMonthlyReportYears, getLiveDocumentsExport } from "@/services/api";
+import { getClub, getTrfYears, getLiveDocumentsExport } from "@/services/api";
 import { exportToCSV } from "@/utils/csvExport";
 import { formatBirthAnniversary } from "@/lib/dateUtils";
 
@@ -29,6 +29,8 @@ import { ArrowLeft, Download, FileSpreadsheet, FolderOpen, Users, Calendar } fro
 import RotaryLoader from "@/components/RotaryLoader";
 import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";
+import { useFeatureLoadedOn } from "@/components/FeatureGate";
+import { ListPageSkeleton } from "@/components/row/AppKit";
 
 interface ModuleItem {
   key: string;
@@ -161,10 +163,11 @@ export default function LiveDocumentsPage() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
+  const cmrOn = useFeatureLoadedOn("club_monthly_report");
   useEffect(() => {
     (async () => {
       try {
-        const [club, yrs] = await Promise.all([getClub(clubId), getMonthlyReportYears(clubId)]);
+        const [club, yrs] = await Promise.all([getClub(clubId), getTrfYears(clubId, cmrOn)]);
         setClubName(club.clubName);
         setYears(yrs);
         if (urlYearId) setSelectedYearId(urlYearId);
@@ -175,7 +178,7 @@ export default function LiveDocumentsPage() {
       } catch { setErrorMessage("Failed to load."); }
       finally { setLoading(false); }
     })();
-  }, [clubId, urlYearId]);
+  }, [clubId, urlYearId, cmrOn]);
 
   const handleDownload = async (mod: ModuleItem) => {
     if (!selectedYearId) { setErrorMessage("Please select a Rotary Year."); return; }
@@ -236,7 +239,7 @@ export default function LiveDocumentsPage() {
         </div>
 
         {loading ? (
-          <div className="flex justify-center py-20"><RotaryLoader size="lg" /></div>
+          <div className="flex justify-center py-20"><ListPageSkeleton /></div>
         ) : (
           <>
             {/* OCV/GOV Section */}

@@ -367,7 +367,7 @@ class _OcvGovScreenState extends State<OcvGovScreen> {
       backgroundColor: AppColors.background,
       appBar: widget.embedded
           ? null
-          : const CustomAppBar(title: 'OCV / GOV'),
+          : const CustomAppBar(title: 'OCV / gov'),
       body: content,
     );
   }
@@ -387,10 +387,9 @@ class _OcvGovScreenState extends State<OcvGovScreen> {
             child: Text(
               'CATEGORIES',
               style: AppFonts.body(
-                fontSize: 12,
+                fontSize: 13,
                 fontWeight: FontWeight.w800,
                 color: AppColors.primaryPrime,
-                letterSpacing: 1.4,
               ),
             ),
           ),
@@ -449,7 +448,7 @@ class _OcvGovScreenState extends State<OcvGovScreen> {
             'Club Visit and Governor\'s Official Visit. Use the categories '
             'below or jump straight to the compliance report.',
             style: AppFonts.body(
-              fontSize: 12.5,
+              fontSize: 13,
               height: 1.4,
               color: AppColors.textSecondary,
             ),
@@ -471,10 +470,9 @@ class _OcvGovScreenState extends State<OcvGovScreen> {
           : Text(
               'RY $label',
               style: AppFonts.body(
-                fontSize: 11.5,
+                fontSize: 13,
                 fontWeight: FontWeight.w700,
                 color: AppColors.textMuted,
-                letterSpacing: 0.5,
               ),
             );
     }
@@ -499,7 +497,7 @@ class _OcvGovScreenState extends State<OcvGovScreen> {
                     child: Text(
                       'RY ${y.yearLabel}',
                       style: AppFonts.body(
-                        fontSize: 12,
+                        fontSize: 13,
                         fontWeight: FontWeight.w800,
                         color: AppColors.primaryPrime,
                         letterSpacing: 0.3,
@@ -513,7 +511,7 @@ class _OcvGovScreenState extends State<OcvGovScreen> {
                     child: Text(
                       'RY ${y.yearLabel}${y.isCurrent ? " (Current)" : ""}',
                       style: AppFonts.body(
-                        fontSize: 12.5,
+                        fontSize: 13,
                         fontWeight: FontWeight.w600,
                         color: AppColors.textPrimary,
                       ),
@@ -673,7 +671,7 @@ class _OcvListRow extends StatelessWidget {
                     Text(
                       subtitle,
                       style: AppFonts.body(
-                        fontSize: 11.5,
+                        fontSize: 13,
                         color: AppColors.textMuted,
                       ),
                       maxLines: 1,
@@ -1079,7 +1077,7 @@ class __OcvGovCategoryScreenState extends State<_OcvGovCategoryScreen> {
           Text(
             'Allowed file types: PDF, DOC, DOCX, XLS, XLSX, JPG, JPEG, PNG, GIF.',
             style: AppFonts.body(
-              fontSize: 11,
+              fontSize: 13,
               color: AppColors.textMuted,
             ),
           ),
@@ -1163,9 +1161,7 @@ class __OcvGovCategoryScreenState extends State<_OcvGovCategoryScreen> {
               side: const BorderSide(color: AppColors.border),
               alignment: Alignment.centerLeft,
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10),
-              ),
+              shape: const StadiumBorder(),
             ),
           ),
           const SizedBox(height: 14),
@@ -1190,9 +1186,7 @@ class __OcvGovCategoryScreenState extends State<_OcvGovCategoryScreen> {
                 disabledForegroundColor: Colors.white,
                 elevation: 0,
                 padding: const EdgeInsets.symmetric(vertical: 14),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
+                shape: const StadiumBorder(),
               ),
             ),
           ),
@@ -1206,7 +1200,7 @@ class __OcvGovCategoryScreenState extends State<_OcvGovCategoryScreen> {
         child: Text(
           text,
           style: AppFonts.body(
-            fontSize: 11.5,
+            fontSize: 13,
             fontWeight: FontWeight.w700,
             color: AppColors.textSecondary,
           ),
@@ -1300,7 +1294,7 @@ class __OcvGovCategoryScreenState extends State<_OcvGovCategoryScreen> {
                   '$total record${total == 1 ? '' : 's'} · '
                   '$_typesCovered/$totalTypes types covered',
                   style: AppFonts.body(
-                    fontSize: 11.5,
+                    fontSize: 13,
                     color: AppColors.textMuted,
                   ),
                 ),
@@ -1355,7 +1349,7 @@ class __OcvGovCategoryScreenState extends State<_OcvGovCategoryScreen> {
                           ? 'No documents uploaded for selected year.'
                           : 'No documents match your filter.',
                       style: AppFonts.body(
-                          fontSize: 12.5, color: AppColors.textSecondary),
+                          fontSize: 13, color: AppColors.textSecondary),
                     ),
                   ),
                 ],
@@ -1422,7 +1416,7 @@ class __OcvGovCategoryScreenState extends State<_OcvGovCategoryScreen> {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: AppFonts.body(
-                    fontSize: 11.5,
+                    fontSize: 13,
                     color: AppColors.textSecondary,
                   ),
                 ),
@@ -1433,7 +1427,7 @@ class __OcvGovCategoryScreenState extends State<_OcvGovCategoryScreen> {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: AppFonts.body(
-                      fontSize: 10.5,
+                      fontSize: 13,
                       color: AppColors.textMuted,
                     ),
                   ),
@@ -2098,7 +2092,7 @@ class _OcvReportScreenState extends State<_OcvReportScreen> {
           Text(
             'Document compliance report',
             style: AppFonts.body(
-              fontSize: 12.5,
+              fontSize: 13,
               color: AppColors.textSecondary,
             ),
           ),
@@ -2210,9 +2204,7 @@ class _OcvReportScreenState extends State<_OcvReportScreen> {
                 foregroundColor: AppColors.primary,
                 side: const BorderSide(color: AppColors.border),
                 padding: const EdgeInsets.symmetric(vertical: 12),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
+                shape: const StadiumBorder(),
               ),
             ),
           ),
@@ -2226,7 +2218,7 @@ class _OcvReportScreenState extends State<_OcvReportScreen> {
         child: Text(
           text,
           style: AppFonts.body(
-            fontSize: 11,
+            fontSize: 13,
             fontWeight: FontWeight.w700,
             color: AppColors.textMuted,
           ),
@@ -2305,7 +2297,7 @@ class _OcvReportScreenState extends State<_OcvReportScreen> {
                   child: Text(
                     '$up/${items.length} uploaded',
                     style: AppFonts.body(
-                      fontSize: 11,
+                      fontSize: 13,
                       fontWeight: FontWeight.w700,
                       color: AppColors.textSecondary,
                     ),
@@ -2335,7 +2327,7 @@ class _OcvReportScreenState extends State<_OcvReportScreen> {
             child: Text(
               '$sno',
               style: AppFonts.body(
-                fontSize: 12,
+                fontSize: 13,
                 fontWeight: FontWeight.w700,
                 color: AppColors.textMuted,
               ),
@@ -2365,7 +2357,7 @@ class _OcvReportScreenState extends State<_OcvReportScreen> {
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: AppFonts.body(
-                            fontSize: 11,
+                            fontSize: 13,
                             color: AppColors.textSecondary,
                           ),
                         ),
@@ -2417,7 +2409,7 @@ class _OcvReportScreenState extends State<_OcvReportScreen> {
       child: Text(
         uploaded ? 'Uploaded' : 'Pending',
         style: AppFonts.body(
-          fontSize: 10.5,
+          fontSize: 13,
           fontWeight: FontWeight.w700,
           color: fg,
         ),
@@ -2439,7 +2431,7 @@ class _OcvReportScreenState extends State<_OcvReportScreen> {
               Text(
                 '$label ',
                 style: AppFonts.body(
-                  fontSize: 12,
+                  fontSize: 13,
                   fontWeight: FontWeight.w600,
                   color: AppColors.textSecondary,
                 ),

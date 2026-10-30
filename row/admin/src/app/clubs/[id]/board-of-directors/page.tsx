@@ -45,6 +45,7 @@ import RotaryLoader from "@/components/RotaryLoader";
 import Link from "next/link";
 import Image from "next/image";
 import ProtectedRoute from "@/components/ProtectedRoute";
+import { ListPageSkeleton } from "@/components/row/AppKit";
 
 export default function BoardOfDirectorsPage() {
   const params = useParams();
@@ -311,7 +312,7 @@ export default function BoardOfDirectorsPage() {
 
         {loading && (
           <div className="flex items-center justify-center py-20">
-            <RotaryLoader size="lg" />
+            <ListPageSkeleton />
           </div>
         )}
 
@@ -335,7 +336,7 @@ export default function BoardOfDirectorsPage() {
 
         {loadingRecords && (
           <div className="flex items-center justify-center py-12">
-            <RotaryLoader size="lg" />
+            <ListPageSkeleton />
           </div>
         )}
 

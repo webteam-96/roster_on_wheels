@@ -42,6 +42,7 @@ import { Button } from "@/components/ui/button";
 import { useSyncClubIdFromUrl } from "@/hooks/useSyncClubIdFromUrl";
 import ImageCropDialog from "@/components/ImageCropDialog";
 import { useImageCropQueue } from "@/hooks/useImageCropQueue";
+import { ListPageSkeleton } from "@/components/row/AppKit";
 
 // Project photos are shown 16:9 on the public site (components/pages/projects/shared.tsx),
 // so the crop is locked to that shape. 1600×900 keeps the widest card retina-sharp.
@@ -385,7 +386,7 @@ export default function ClubServiceV2AddPage() {
     return (
       <ProtectedRoute>
         <div className="flex items-center justify-center py-20">
-          <RotaryLoader size="lg" />
+          <ListPageSkeleton />
         </div>
       </ProtectedRoute>
     );
@@ -413,42 +414,42 @@ export default function ClubServiceV2AddPage() {
         }
       >
         {/* 1. Meeting Details */}
-        <SectionCard number={1} icon={FileText} title="Meeting Details" dot="bg-blue-600">
+        <SectionCard number={1} icon={FileText} title="Meeting Details" dot="bg-[#17458F]">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="sm:col-span-2">
-              <FieldLabel hint="(max 50 chars)" dot="bg-blue-500">Title</FieldLabel>
+              <FieldLabel hint="(max 50 chars)" dot="bg-[#17458F]">Title</FieldLabel>
               <input
                 type="text"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 placeholder="Meeting title"
                 maxLength={50}
-                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
               />
               <p className="text-xs text-slate-400 text-right mt-0.5">{title.length}/50</p>
             </div>
             <div className="sm:col-span-2">
-              <FieldLabel hint="(max 1000 chars)" dot="bg-blue-500">Description</FieldLabel>
+              <FieldLabel hint="(max 1000 chars)" dot="bg-[#17458F]">Description</FieldLabel>
               <textarea
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 placeholder="Describe the meeting…"
                 rows={4}
                 maxLength={1000}
-                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
               />
               <p className="text-xs text-slate-400 text-right mt-0.5">{description.length}/1000</p>
             </div>
             <div>
-              <FieldLabel dot="bg-blue-500">Date</FieldLabel>
-              <DateField value={projectDate} onChange={setProjectDate} max={frozenMonth ? frozenDateMax : new Date().toISOString().split("T")[0]} min={frozenMonth ? frozenDateMin : undefined} className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" />
+              <FieldLabel dot="bg-[#17458F]">Date</FieldLabel>
+              <DateField value={projectDate} onChange={setProjectDate} max={frozenMonth ? frozenDateMax : new Date().toISOString().split("T")[0]} min={frozenMonth ? frozenDateMin : undefined} className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]" />
             </div>
           </div>
         </SectionCard>
 
         {/* 2. Meeting Type */}
-        <SectionCard number={2} icon={Calendar} title="Meeting Type" dot="bg-violet-600">
-          <FieldLabel dot="bg-violet-500">Select Meeting Type</FieldLabel>
+        <SectionCard number={2} icon={Calendar} title="Meeting Type" dot="bg-[#17458F]">
+          <FieldLabel dot="bg-[#17458F]">Select Meeting Type</FieldLabel>
           <div className="flex flex-wrap gap-2 mt-1">
             {MEETING_TYPES.map((mt) => (
               <RadioPill
@@ -462,10 +463,10 @@ export default function ClubServiceV2AddPage() {
         </SectionCard>
 
         {/* 3. Documents */}
-        <SectionCard number={3} icon={FileUp} title="Documents" dot="bg-amber-600">
+        <SectionCard number={3} icon={FileUp} title="Documents" dot="bg-[#17458F]">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <FieldLabel dot="bg-amber-500" optional>Agenda</FieldLabel>
+              <FieldLabel dot="bg-[#17458F]" optional>Agenda</FieldLabel>
               {agendaDocument ? (
                 <div className="flex items-center gap-2 px-3 py-2 bg-emerald-50 border border-emerald-200 rounded-lg">
                   <FileText className="h-4 w-4 text-emerald-600" />
@@ -487,7 +488,7 @@ export default function ClubServiceV2AddPage() {
               )}
             </div>
             <div>
-              <FieldLabel dot="bg-amber-500" optional>Minutes of Meeting</FieldLabel>
+              <FieldLabel dot="bg-[#17458F]" optional>Minutes of Meeting</FieldLabel>
               {minutesDocument ? (
                 <div className="flex items-center gap-2 px-3 py-2 bg-emerald-50 border border-emerald-200 rounded-lg">
                   <FileText className="h-4 w-4 text-emerald-600" />
@@ -512,21 +513,21 @@ export default function ClubServiceV2AddPage() {
         </SectionCard>
 
         {/* 4. Attendance */}
-        <SectionCard number={4} icon={Users} title="Attendance" dot="bg-emerald-600">
+        <SectionCard number={4} icon={Users} title="Attendance" dot="bg-[#17458F]">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <FieldLabel dot="bg-emerald-500">{`Attendance (${effectiveLabel}: ${effectiveTotal})`}</FieldLabel>
+              <FieldLabel dot="bg-[#17458F]">{`Attendance (${effectiveLabel}: ${effectiveTotal})`}</FieldLabel>
               <input
                 type="number"
                 value={attendance}
                 onChange={(e) => setAttendance(e.target.value)}
                 placeholder="Number of attendees"
                 min={0}
-                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
               />
             </div>
             <div>
-              <FieldLabel dot="bg-emerald-500">Attendance (%)</FieldLabel>
+              <FieldLabel dot="bg-[#17458F]">Attendance (%)</FieldLabel>
               <input
                 type="number"
                 value={attendancePercentage}
@@ -535,7 +536,7 @@ export default function ClubServiceV2AddPage() {
                 step="0.01"
                 min={0}
                 max={100}
-                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
               />
               <p className="text-xs text-slate-400 mt-0.5">Auto-calculated, but you can change it</p>
             </div>
@@ -543,10 +544,10 @@ export default function ClubServiceV2AddPage() {
         </SectionCard>
 
         {/* 5. Photos */}
-        <SectionCard number={5} icon={Camera} title="Photos" dot="bg-rose-600">
+        <SectionCard number={5} icon={Camera} title="Photos" dot="bg-[#17458F]">
           <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <FieldLabel dot="bg-rose-500">Upload Photos (1 mandatory, max 5)</FieldLabel>
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <FieldLabel dot="bg-[#17458F]">Upload Photos (1 mandatory, max 5)</FieldLabel>
               <span className="text-xs text-slate-500">{photos.length}/5</span>
             </div>
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 items-start">
@@ -635,7 +636,7 @@ export default function ClubServiceV2AddPage() {
       <Dialog open={agreementOpen} onOpenChange={(o) => !o && handleAgreeCancel()}>
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
+            <DialogTitle className="flex flex-wrap items-center gap-2">
               <Info className="text-blue-600" size={20} />
               I Agree
             </DialogTitle>

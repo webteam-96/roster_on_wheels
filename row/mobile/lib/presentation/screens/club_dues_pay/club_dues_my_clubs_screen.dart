@@ -156,7 +156,7 @@ class _ClubDuesMyClubsScreenState extends State<ClubDuesMyClubsScreen> {
                       Text(
                         subtitle,
                         style: AppFonts.body(
-                            fontSize: 12, color: AppColors.textMuted),
+                            fontSize: 13, color: AppColors.textMuted),
                       ),
                     ],
                   ],

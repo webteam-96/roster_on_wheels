@@ -32,6 +32,7 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 import SearchBox from "@/components/SearchBox";
 import MemberDetailDialog from "@/components/MemberDetailDialog";
 import SearchableCombo from "@/components/SearchableCombo";
+import { ListPageSkeleton } from "@/components/row/AppKit";
 
 export default function ClubMembersPage() {
   const params = useParams();
@@ -441,7 +442,7 @@ export default function ClubMembersPage() {
           />
         )}
 
-        {loading && <div className="flex items-center justify-center py-20"><RotaryLoader size="lg" /></div>}
+        {loading && <div className="flex items-center justify-center py-20"><ListPageSkeleton /></div>}
 
         {!loading && data && data.items.length === 0 && (
           <div className="flex flex-col items-center justify-center py-20 text-center">
@@ -544,19 +545,19 @@ export default function ClubMembersPage() {
                         </div>
                         <div className="border-t px-4 py-3 space-y-2 text-sm text-muted-foreground group-hover:bg-primary/5 transition-colors">
                           {member.rotaryId && (
-                            <div className="flex items-center gap-2">
+                            <div className="flex flex-wrap items-center gap-2">
                               <IdCard className="h-3.5 w-3.5 flex-shrink-0" />
                               <span className="truncate">{member.rotaryId}</span>
                             </div>
                           )}
                           {member.emailId && (
-                            <div className="flex items-center gap-2">
+                            <div className="flex flex-wrap items-center gap-2">
                               <Mail className="h-3.5 w-3.5 flex-shrink-0" />
                               <span className="truncate">{member.emailId}</span>
                             </div>
                           )}
                           {member.primaryMobileNumber && (
-                            <div className="flex items-center gap-2">
+                            <div className="flex flex-wrap items-center gap-2">
                               <Phone className="h-3.5 w-3.5 flex-shrink-0" />
                               <span>{member.primaryMobileNumber}</span>
                             </div>
@@ -569,13 +570,13 @@ export default function ClubMembersPage() {
                           {isCog ? (
                             <>
                               {member.cogDistrictNumber && (
-                                <div className="flex items-center gap-2">
+                                <div className="flex flex-wrap items-center gap-2">
                                   <MapPin className="h-3.5 w-3.5 flex-shrink-0" />
                                   <span>District {member.cogDistrictNumber}</span>
                                 </div>
                               )}
                               {member.cogYear && (
-                                <div className="flex items-center gap-2">
+                                <div className="flex flex-wrap items-center gap-2">
                                   <Calendar className="h-3.5 w-3.5 flex-shrink-0" />
                                   <span>{member.cogYear}</span>
                                 </div>
@@ -583,7 +584,7 @@ export default function ClubMembersPage() {
                             </>
                           ) : (
                             member.joinedDate && (
-                              <div className="flex items-center gap-2">
+                              <div className="flex flex-wrap items-center gap-2">
                                 <Calendar className="h-3.5 w-3.5 flex-shrink-0" />
                                 <span>Joined {formatDMY(member.joinedDate)}</span>
                               </div>

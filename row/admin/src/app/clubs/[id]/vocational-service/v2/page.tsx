@@ -43,6 +43,7 @@ import { isFlowBotEnabled, AVENUE_LABELS, buildOrgExportFromDetail, triggerAddTo
 import AddToOrgConfirmDialog from "@/components/AddToOrgConfirmDialog";
 
 import { appLocale } from "@/lib/appFormat";
+import { SkeletonRows } from "@/components/row/AppKit";
 const SYNC_API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
 const AGREE_MESSAGE = `The data I will enter is for a Vocational service project conducted by my club that has benefitted my community. E.g., Career Guidance and Skill Development, Computer Literacy, etc.
@@ -278,7 +279,7 @@ export default function VocationalServiceV2Page() {
               <select
                 value={selectedYearId ?? ""}
                 onChange={(e) => { setSelectedYearId(e.target.value ? Number(e.target.value) : null); setPage(1); }}
-                className="px-2 py-1.5 text-sm border border-slate-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="px-2 h-10 py-0 text-sm border border-slate-200 rounded-[12px] bg-white focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
               >
                 {years.length === 0 && <option value="">No years</option>}
                 {years.map((y) => (
@@ -287,7 +288,7 @@ export default function VocationalServiceV2Page() {
                   </option>
                 ))}
               </select>
-              <div className="relative">
+              <div className="relative w-full sm:w-auto">
                 <Search size={14} className="absolute left-2 top-1/2 -translate-y-1/2 text-slate-400" />
                 <input
                   type="text"
@@ -295,13 +296,13 @@ export default function VocationalServiceV2Page() {
                   value={searchInput}
                   onChange={(e) => setSearchInput(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && handleSearch()}
-                  className="pl-7 pr-3 py-1.5 text-sm border border-slate-200 rounded-lg w-full sm:w-48 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="pl-7 pr-3 h-10 py-0 text-sm border border-slate-200 rounded-[12px] w-full sm:w-48 focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
                 />
               </div>
               <button
                 type="button"
                 onClick={handleSearch}
-                className="inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1.5 rounded-lg border border-slate-200 text-slate-700 hover:bg-slate-50"
+                className="inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1.5 rounded-full border border-slate-200 text-slate-700 hover:bg-slate-50"
               >
                 Search
               </button>
@@ -309,7 +310,7 @@ export default function VocationalServiceV2Page() {
                 <button
                   type="button"
                   onClick={clearSearch}
-                  className="inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1.5 rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50"
+                  className="inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1.5 rounded-full border border-slate-200 text-slate-500 hover:bg-slate-50"
                 >
                   Clear
                 </button>
@@ -317,7 +318,7 @@ export default function VocationalServiceV2Page() {
               <button
                 type="button"
                 onClick={() => exportToCsv(filtered, yearLabel, clubName || "club")}
-                className="inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1.5 rounded-lg border border-slate-200 text-slate-700 hover:bg-slate-50"
+                className="inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1.5 rounded-full border border-slate-200 text-slate-700 hover:bg-slate-50"
               >
                 <Download size={13} /> Export to Excel
               </button>
@@ -325,7 +326,7 @@ export default function VocationalServiceV2Page() {
                 <button
                   type="button"
                   onClick={handleAddClick}
-                  className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg bg-emerald-600 text-white hover:bg-emerald-700"
+                  className="inline-flex items-center gap-1.5 text-xs font-semibold px-4 h-10 rounded-full bg-[#17458F] text-white hover:bg-[#17458F]"
                 >
                   <Plus size={13} /> Add Project
                 </button>
@@ -336,12 +337,10 @@ export default function VocationalServiceV2Page() {
           {/* Table */}
           <div className="overflow-x-auto">
             {loading ? (
-              <div className="flex items-center justify-center py-12 text-slate-500">
-                <Loader2 className="animate-spin mr-2" size={16} /> Loading projects…
-              </div>
+              <SkeletonRows />
             ) : (
-              <table className="min-w-full text-sm">
-                <thead className="bg-slate-50 text-xs uppercase text-slate-500">
+              <table className="w-full min-w-[640px] md:min-w-full text-sm">
+                <thead className="bg-[#EDF4FB] text-[13px] text-[#64748B]">
                   <tr>
                     <th className="px-3 py-2.5 text-left w-10">Sr</th>
                     <th className="px-3 py-2.5 text-left whitespace-nowrap">Date</th>

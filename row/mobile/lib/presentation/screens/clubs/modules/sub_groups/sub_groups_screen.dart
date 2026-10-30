@@ -14,6 +14,8 @@ import '../../../../../presentation/widgets/common/confirmation_dialog.dart';
 import '../../../../../presentation/widgets/common/pagination_widget.dart';
 import '../../../../../presentation/widgets/common/rotary_year_bar.dart';
 import 'package:rotary_flutter_app/core/i18n/text.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/skeleton_list.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/form_action_bar.dart';
 
 bool _asBool(dynamic v) {
   if (v is bool) return v;
@@ -191,6 +193,7 @@ class _SubGroupsScreenState extends State<SubGroupsScreen> {
           child: members.isEmpty
               ? const Text('No members assigned')
               : ListView.separated(
+  padding: const EdgeInsets.only(bottom: 88),
                   shrinkWrap: true,
                   itemCount: members.length,
                   separatorBuilder: (_, __) => const Divider(height: 1),
@@ -306,7 +309,7 @@ class _SubGroupsScreenState extends State<SubGroupsScreen> {
                               children: [
                                 Expanded(
                                   child: ListView.separated(
-                                    padding: const EdgeInsets.all(16),
+                                    padding: (const EdgeInsets.all(16)).add(const EdgeInsets.only(bottom: 88)),
                                     itemCount: _filteredGroups.length,
                                     separatorBuilder: (_, __) =>
                                         const SizedBox(height: 8),
@@ -337,8 +340,8 @@ class _SubGroupsScreenState extends State<SubGroupsScreen> {
     final memberCount = group['memberCount'] as int? ?? 0;
 
     return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      elevation: 0,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(20))),
       child: Padding(
         padding: EdgeInsets.fromLTRB(isNested ? 28 : 16, 12, 8, 12),
         child: Row(
@@ -581,6 +584,14 @@ class _SubGroupFormScreenState extends State<_SubGroupFormScreen> {
         });
 
     return Scaffold(
+      bottomNavigationBar: RowFormActionBar(child: CustomButton(
+                label: _isEdit
+                    ? 'Update Sub-Group'
+                    : 'Create Sub-Group',
+                onPressed: _saving ? null : _save,
+                isLoading: _saving,
+                fullWidth: true,
+              )),
       backgroundColor: Colors.white,
       appBar: CustomAppBar(
         title: _isEdit ? 'Edit Sub-Group' : 'Create Sub-Group',
@@ -660,8 +671,7 @@ class _SubGroupFormScreenState extends State<_SubGroupFormScreen> {
                       if (_loadingMembers)
                         const Padding(
                           padding: EdgeInsets.all(24),
-                          child: Center(
-                              child: CircularProgressIndicator()),
+                          child: const RowSkeletonList(),
                         )
                       else
                         ...filtered.map((m) {
@@ -702,15 +712,7 @@ class _SubGroupFormScreenState extends State<_SubGroupFormScreen> {
                             },
                           );
                         }),
-              const SizedBox(height: 24),
-              CustomButton(
-                label: _isEdit
-                    ? 'Update Sub-Group'
-                    : 'Create Sub-Group',
-                onPressed: _saving ? null : _save,
-                isLoading: _saving,
-                fullWidth: true,
-              ),
+              
             ],
           ),
         ),

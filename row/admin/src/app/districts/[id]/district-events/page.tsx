@@ -16,6 +16,7 @@ import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";
 
 import { appLocale } from "@/lib/appFormat";
+import { ListPageSkeleton } from "@/components/row/AppKit";
 export default function DistrictEventsPage() {
   const params = useParams();
   const router = useRouter();
@@ -100,7 +101,7 @@ export default function DistrictEventsPage() {
           </div>
         </div>
 
-        {loading ? <div className="flex justify-center py-10"><RotaryLoader size="lg" /></div> : items.length === 0 ? (
+        {loading ? <div className="flex justify-center py-10"><ListPageSkeleton /></div> : items.length === 0 ? (
           <div className="text-center py-20 text-muted-foreground">No events found. Click &quot;Add Event&quot; to create one.</div>
         ) : (
           <>

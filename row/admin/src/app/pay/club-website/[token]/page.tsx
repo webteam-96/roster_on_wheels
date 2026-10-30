@@ -27,6 +27,7 @@ import {
 } from "@/services/api";
 
 import { appLocale, currencySymbol } from "@/lib/appFormat";
+import { SkeletonRows } from "@/components/row/AppKit";
 type Step = "subdomain" | "confirm" | "pay" | "done";
 
 const BENEFITS = [
@@ -158,7 +159,7 @@ export default function PublicClubWebsitePayPage() {
     <PayPageShell wide>
       <div className="py-24 text-center">
         <div className="mx-auto h-8 w-8 animate-spin rounded-full border-2 border-slate-200 border-t-azure" />
-        <p className="mt-4 text-sm text-slate-500">Loading…</p>
+        <SkeletonRows />
       </div>
     </PayPageShell>
   );
@@ -301,7 +302,7 @@ export default function PublicClubWebsitePayPage() {
             {steps.map((s, i) => {
               const done = i < stepIndex, current = i === stepIndex;
               return (
-                <li key={s.key} className="flex items-center gap-2">
+                <li key={s.key} className="flex flex-wrap items-center gap-2">
                   <span className={`flex h-6 w-6 items-center justify-center rounded-full text-[11px] font-bold ${
                     done ? "bg-emerald-600 text-white"
                       : current ? "bg-azure text-white"
@@ -380,7 +381,7 @@ export default function PublicClubWebsitePayPage() {
               <div className="mt-5 flex flex-col gap-2.5 sm:flex-row">
                 {!isRenewal && (
                   <button type="button" onClick={() => { setConfirmChecked(false); setStep("subdomain"); }}
-                    className="rounded-xl border border-slate-300 px-6 py-3.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 sm:order-1">
+                    className="rounded-full border border-slate-300 px-6 py-3.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 sm:order-1">
                     Back
                   </button>
                 )}
@@ -430,12 +431,12 @@ export default function PublicClubWebsitePayPage() {
 
               <div className="mt-4 flex flex-col gap-2.5 sm:flex-row">
                 <button type="button" onClick={() => setStep("confirm")}
-                  className="rounded-xl border border-slate-300 px-6 py-4 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 sm:order-1">
+                  className="rounded-full border border-slate-300 px-6 py-4 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 sm:order-1">
                   Back
                 </button>
                 <button
                   type="button" disabled={busy} onClick={handlePay}
-                  className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-azure py-4 text-sm font-bold text-white shadow-sm transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-60 sm:order-2"
+                  className="flex flex-1 items-center justify-center gap-2 rounded-full bg-azure py-4 text-sm font-bold text-white shadow-sm transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-60 sm:order-2"
                 >
                   <Lock className="h-4 w-4" />
                   {busy ? "Processing…" : `Pay ${inr(info.totalAmount)}`}

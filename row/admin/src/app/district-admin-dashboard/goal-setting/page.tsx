@@ -62,7 +62,7 @@ export default function DistrictAdminGoalSettingPage() {
         </div>
         <Link
           href={clubGoalsHref}
-          className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg bg-azure text-white hover:bg-mint-ink"
+          className="inline-flex items-center gap-1.5 text-xs font-semibold px-4 h-10 rounded-full bg-azure text-white hover:bg-mint-ink"
         >
           <Building2 size={13} /> View Club Goals
         </Link>
@@ -81,7 +81,7 @@ export default function DistrictAdminGoalSettingPage() {
               type="button"
               onClick={() => setMsgOpen(true)}
               disabled={catId == null}
-              className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg border border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100 disabled:opacity-50"
+              className="inline-flex items-center gap-1.5 text-xs font-semibold px-4 h-10 rounded-full border border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100 disabled:opacity-50"
             >
               <MessagesSquare size={14} /> Messages
             </button>
@@ -97,7 +97,7 @@ export default function DistrictAdminGoalSettingPage() {
       <Dialog open={msgOpen} onOpenChange={setMsgOpen}>
         <DialogContent className="max-w-2xl w-[95vw] max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2"><MessagesSquare size={18} className="text-blue-600" /> Messages</DialogTitle>
+            <DialogTitle className="flex flex-wrap items-center gap-2"><MessagesSquare size={18} className="text-blue-600" /> Messages</DialogTitle>
           </DialogHeader>
           <DistrictGoalMessages districtId={threadKey?.districtId ?? selectedDistrictId ?? null}
             yearId={threadKey?.yearId ?? yearId} initialCategoryId={catId} lockCategory />

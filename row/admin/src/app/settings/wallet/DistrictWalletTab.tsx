@@ -60,7 +60,7 @@ export default function DistrictWalletTab() {
 
       {/* Common (pick-a-district) shareable links */}
       {commonLinks && (
-        <div className="rounded-xl border border-slate-200 bg-white p-4">
+        <div className="rounded-[20px] border border-slate-200 bg-white p-4">
           <div className="text-sm font-medium text-slate-700">Shareable links: any district</div>
           <p className="text-[11px] text-slate-400 mt-0.5 mb-3">Each opens a search: the district admin picks their district, sees its balance, and pays. Copy &amp; share.</p>
           <div className="flex flex-wrap gap-2">
@@ -81,7 +81,7 @@ export default function DistrictWalletTab() {
       <div className="flex flex-wrap items-end gap-3">
         <div className="space-y-1">
           <Label className="text-xs text-slate-500">Search district</Label>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             <Input value={search} onChange={(e) => setSearch(e.target.value)} onKeyDown={(e) => e.key === "Enter" && load()} placeholder="District number" className="w-48" />
             <Button variant="outline" onClick={load} disabled={loading}>
               {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}

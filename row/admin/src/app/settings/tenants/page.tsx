@@ -215,7 +215,7 @@ export default function TenantsPage() {
                         Setup fee waived
                       </label>
                       <div className="space-y-1 self-end pb-2 text-sm">
-                        <label className="flex items-center gap-2">
+                        <label className="flex flex-wrap items-center gap-2">
                           <Checkbox checked={form.autoRenew !== false} onCheckedChange={(v) => set("autoRenew", v === true)} />
                           Renews automatically at term end
                         </label>
@@ -257,7 +257,7 @@ export default function TenantsPage() {
                     <CardContent className="p-6">
                       <h3 className="mb-3 text-base font-semibold">Clubs ({detail.clubs.length})</h3>
                       <table className="w-full text-sm">
-                        <thead><tr className="border-b text-left text-muted-foreground"><th className="py-2 font-medium">Club</th><th className="py-2 font-medium">Edition</th></tr></thead>
+                        <thead className="bg-[#EDF4FB] text-[13px] text-[#64748B]"><tr className="border-b text-left text-muted-foreground"><th className="py-2 font-medium">Club</th><th className="py-2 font-medium">Edition</th></tr></thead>
                         <tbody>
                           {detail.clubs.map((c) => (
                             <tr key={c.clubId} className="border-b last:border-0">

@@ -99,8 +99,8 @@ export default function CurrencySettingsPage() {
           <RotaryLoader />
         ) : (
           <div className="overflow-x-auto border rounded-lg bg-white">
-            <table className="min-w-full text-sm">
-              <thead className="bg-slate-50 text-xs uppercase text-slate-500">
+            <table className="w-full min-w-[640px] md:min-w-full text-sm">
+              <thead className="bg-[#EDF4FB] text-[13px] text-[#64748B]">
                 <tr>
                   <th className="px-4 py-2.5 text-left">District</th>
                   <th className="px-4 py-2.5 text-left">Zone</th>

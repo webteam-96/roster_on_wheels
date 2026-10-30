@@ -3,7 +3,7 @@
 /**
  * OCV / GOV v2 landing — frontend overhaul replacement for the v1 page.
  *
- * Data semantics identical to v1: getMonthlyReportYears, getClub. Same 8 category
+ * Data semantics identical to v1: getTrfYears, getClub. Same 8 category
  * cards (Static / Financial / Trust / Grants / Additional / Dues / Live Documents /
  * Newsletters) plus a "Generate OCV Report" CTA.
  *
@@ -36,13 +36,15 @@ import {
   ChevronRight,
 } from "@/components/icons";
 import type { LucideIcon } from "@/components/icons";
-import { getClub, getMonthlyReportYears } from "@/services/api";
+import { getClub, getTrfYears } from "@/services/api";
 import type { ReportYear } from "@/types/clubMonthlyReport";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import ErrorAlert from "@/components/ErrorAlert";
 import LoadingLink from "@/components/v2/LoadingLink";
 import ClubAdminShell from "@/components/v2/ClubAdminShell";
 import { useSyncClubIdFromUrl } from "@/hooks/useSyncClubIdFromUrl";
+import { useFeatureLoadedOn } from "@/components/FeatureGate";
+import { SkeletonRows } from "@/components/row/AppKit";
 
 const DEFAULT_BACK = "/club-admin-dashboard/e-governance";
 
@@ -184,6 +186,7 @@ export function OcvGovV2View({ clubId: propClubId, embedded = false, yearId: glo
   const [loading, setLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
+  const cmrOn = useFeatureLoadedOn("club_monthly_report");
   useEffect(() => {
     let cancelled = false;
     async function load() {
@@ -191,7 +194,7 @@ export function OcvGovV2View({ clubId: propClubId, embedded = false, yearId: glo
       try {
         const [club, yrs] = await Promise.all([
           getClub(clubId),
-          getMonthlyReportYears(clubId),
+          getTrfYears(clubId, cmrOn),
         ]);
         if (cancelled) return;
         setClubName(club.clubName);
@@ -224,7 +227,7 @@ export function OcvGovV2View({ clubId: propClubId, embedded = false, yearId: glo
     };
     // urlYearId is consumed once at mount
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [clubId]);
+  }, [clubId, cmrOn]);
 
   // Embedded in the dashboard → follow the GLOBAL dashboard year, not the module's own dropdown.
   useEffect(() => {
@@ -273,14 +276,14 @@ export function OcvGovV2View({ clubId: propClubId, embedded = false, yearId: glo
 
           {/* Year picker — hidden when embedded: the dashboard's global year drives it. */}
           {!embedded && !loading && years.length > 0 && (
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <span className="text-xs font-medium text-slate-500 flex items-center gap-1">
                 <Calendar size={13} /> Year
               </span>
               <select
                 value={selectedYearId ?? ""}
                 onChange={(e) => setSelectedYearId(e.target.value ? Number(e.target.value) : null)}
-                className="px-2 py-1.5 text-sm border border-slate-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 min-w-[10rem]"
+                className="px-2 h-10 py-0 text-sm border border-slate-200 rounded-[12px] bg-white focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42] min-w-[10rem]"
               >
                 {years.map((y) => (
                   <option key={y.id} value={y.id}>
@@ -295,9 +298,7 @@ export function OcvGovV2View({ clubId: propClubId, embedded = false, yearId: glo
 
         {/* Loading guard */}
         {loading && (
-          <div className="flex items-center justify-center py-20 text-slate-500">
-            <Loader2 className="animate-spin mr-2" size={18} /> Loading…
-          </div>
+          <SkeletonRows />
         )}
 
         {!loading && (

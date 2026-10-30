@@ -36,6 +36,7 @@ import SearchBox from "@/components/SearchBox";
 import SendStatusBadges from "@/components/SendStatusBadges";
 
 import { appLocale } from "@/lib/appFormat";
+import { ListPageSkeleton } from "@/components/row/AppKit";
 const STATUS_OPTIONS = [
   { value: "Published", label: "Published" },
   { value: "Unpublished", label: "Unpublished" },
@@ -230,7 +231,7 @@ export default function AnnouncementsPage() {
 
         {loading && (
           <div className="flex items-center justify-center py-20">
-            <RotaryLoader size="lg" />
+            <ListPageSkeleton />
           </div>
         )}
 

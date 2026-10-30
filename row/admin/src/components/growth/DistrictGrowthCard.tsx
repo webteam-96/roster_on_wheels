@@ -30,7 +30,7 @@ export default function DistrictGrowthCard({ districtId, yearId }: { districtId:
   if (!on || growth === null) return null;
   if (growth === undefined) {
     return (
-      <div className="space-y-3 rounded-xl border border-slate-200 bg-white p-5">
+      <div className="space-y-3 rounded-[20px] border border-slate-200 bg-white p-5">
         <Skeleton className="h-4 w-56" />
         <div className="grid grid-cols-2 gap-3 md:grid-cols-5">{[0, 1, 2, 3, 4].map((i) => <Skeleton key={i} className="h-14" />)}</div>
         <Skeleton className="h-40 w-full" />
@@ -39,7 +39,7 @@ export default function DistrictGrowthCard({ districtId, yearId }: { districtId:
   }
 
   return (
-    <div className="rounded-xl border border-slate-200 bg-white p-5">
+    <div className="rounded-[20px] border border-slate-200 bg-white p-5">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <h3 className="text-sm font-semibold text-slate-800">Membership growth by club</h3>
@@ -63,7 +63,7 @@ export default function DistrictGrowthCard({ districtId, yearId }: { districtId:
 
       <div className="mt-4 max-h-96 overflow-auto rounded-lg border border-slate-200">
         <table className="min-w-full text-sm">
-          <thead className="sticky top-0 bg-slate-50 text-xs uppercase text-slate-500">
+          <thead className="sticky top-0 bg-[#EDF4FB] text-[13px] text-[#64748B]">
             <tr>
               <th className="px-3 py-2 text-left">Club</th>
               <th className="px-3 py-2 text-right">Target</th>
@@ -84,7 +84,7 @@ export default function DistrictGrowthCard({ districtId, yearId }: { districtId:
                 <td className="px-3 py-2 text-right tabular-nums font-medium text-slate-800">{c.netGrowth}</td>
                 <td className="px-3 py-2">
                   {c.progressPercent === null ? <span className="text-xs text-slate-400">No target</span> : (
-                    <div className="flex items-center gap-2"><ProgressBar percent={c.progressPercent} /><span className="text-xs tabular-nums text-slate-500">{c.progressPercent}%</span></div>
+                    <div className="flex flex-wrap items-center gap-2"><ProgressBar percent={c.progressPercent} /><span className="text-xs tabular-nums text-slate-500">{c.progressPercent}%</span></div>
                   )}
                 </td>
                 <td className="px-3 py-2 text-right tabular-nums text-slate-600">{c.openProspects}</td>

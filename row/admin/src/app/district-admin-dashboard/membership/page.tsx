@@ -52,6 +52,7 @@ import {
   getDistrictMembers, getPhotoUrl,
   assignDistrictAdmin, removeDistrictAdmin, assignDistrictAdminByDistrictAdmin,
 } from "@/services/api";
+import { ListPageSkeleton, SkeletonRows } from "@/components/row/AppKit";
 
 // -----------------------------------------------------------------------------
 // Wave 13A2 extended shape (loose-typed — not yet on the strong DTO).
@@ -199,9 +200,7 @@ export default function DistrictAdminMembershipPage() {
   // ── Early returns — AFTER all hooks above (Rules of Hooks) ──────────────
   if (status === "loading" && !membership) {
     return (
-      <div className="flex items-center justify-center py-20 text-slate-500">
-        <Loader2 className="animate-spin mr-2" /> Loading membership…
-      </div>
+      <SkeletonRows />
     );
   }
   if (status === "error" && !membership) {
@@ -268,8 +267,8 @@ export default function DistrictAdminMembershipPage() {
     <div className="space-y-4">
       {/* Full-screen loader while a Make/Remove Admin request is in flight. */}
       {roleLoading !== null && (
-        <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center gap-3 bg-slate-950/60 backdrop-blur-sm">
-          <RotaryLoader size="lg" />
+        <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center gap-3 bg-slate-950/60">
+          <ListPageSkeleton />
           <p className="text-sm font-medium text-slate-100">Updating admin role…</p>
         </div>
       )}
@@ -293,14 +292,13 @@ export default function DistrictAdminMembershipPage() {
         >
           <div className="flex items-center justify-between gap-3 flex-wrap">
             <TabsList
-              className="h-auto flex-wrap gap-1 p-1.5"
-              style={{ backgroundColor: "#17458f" }}
+              className="h-auto flex-wrap gap-1 p-1.5 rounded-full bg-muted"
             >
               {(Object.keys(TAB_LABELS) as TabKey[]).map((k) => (
                 <TabsTrigger
                   key={k}
                   value={k}
-                  className="text-sm font-semibold px-3.5 py-1.5 rounded-md text-white hover:bg-white/10 data-[state=active]:bg-marigold data-[state=active]:text-ink data-[state=active]:shadow-sm"
+                  className="text-sm font-semibold px-3.5 py-1.5 rounded-full"
                 >
                   {TAB_LABELS[k]}
                 </TabsTrigger>
@@ -373,7 +371,7 @@ export default function DistrictAdminMembershipPage() {
               </div>
             </div>
 
-            {dirLoading && <div className="flex items-center justify-center py-20"><RotaryLoader size="lg" /></div>}
+            {dirLoading && <div className="flex items-center justify-center py-20"><ListPageSkeleton /></div>}
 
             {!dirLoading && dirData && dirData.items.length === 0 && (
               <div className="flex flex-col items-center justify-center py-20 text-center">

@@ -39,6 +39,7 @@ import {
 } from "@/components/icons";
 
 import { appLocale } from "@/lib/appFormat";
+import { ListPageSkeleton } from "@/components/row/AppKit";
 const BASE = "/district-admin-dashboard/quick-links/mass-email";
 
 function withSearch(base: string, extra: Record<string, string | null | undefined>) {
@@ -201,7 +202,7 @@ export default function DistrictAdminMassEmailListPage() {
 
         {/* Table */}
         {loading ? (
-          <div className="flex items-center justify-center py-20"><RotaryLoader size="lg" /></div>
+          <div className="flex items-center justify-center py-20"><ListPageSkeleton /></div>
         ) : (
           <div className="rounded-2xl border border-slate-200 shadow-sm overflow-hidden bg-white">
             <div className="overflow-x-auto">
@@ -270,7 +271,7 @@ export default function DistrictAdminMassEmailListPage() {
                 <p className="text-sm text-slate-500">
                   Showing {(page - 1) * pageSize + 1}-{Math.min(page * pageSize, totalCount)} of {totalCount}
                 </p>
-                <div className="flex gap-2">
+                <div className="flex flex-wrap gap-2">
                   <Button variant="outline" size="sm" className="border-slate-200" onClick={() => setPage((p) => p - 1)} disabled={page <= 1}>Previous</Button>
                   <Button variant="outline" size="sm" className="border-slate-200" onClick={() => setPage((p) => p + 1)} disabled={page >= totalPages}>Next</Button>
                 </div>

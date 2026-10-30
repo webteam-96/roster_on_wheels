@@ -41,7 +41,7 @@ class Top20ClubsCard extends StatelessWidget {
           Text(
             'Largest clubs in the district',
             style: AppFonts.body(
-              fontSize: 11,
+              fontSize: 13,
               fontWeight: FontWeight.w500,
               color: AppColors.slate500,
             ),
@@ -54,7 +54,7 @@ class Top20ClubsCard extends StatelessWidget {
                 child: Text(
                   'No clubs yet.',
                   style: AppFonts.body(
-                    fontSize: 12,
+                    fontSize: 13,
                     color: AppColors.slate400,
                   ),
                 ),
@@ -100,7 +100,7 @@ class _BarRow extends StatelessWidget {
           child: Text(
             rank.toString().padLeft(2, '0'),
             style: AppFonts.body(
-              fontSize: 11,
+              fontSize: 13,
               fontWeight: FontWeight.w800,
               color: AppColors.slate400,
               fontFeatures: const [FontFeature.tabularFigures()],
@@ -119,7 +119,7 @@ class _BarRow extends StatelessWidget {
                     child: Text(
                       club.clubName,
                       style: AppFonts.body(
-                        fontSize: 12.5,
+                        fontSize: 13,
                         fontWeight: FontWeight.w700,
                         color: AppColors.textPrimary,
                       ),
@@ -131,7 +131,7 @@ class _BarRow extends StatelessWidget {
                   Text(
                     '${club.members}',
                     style: AppFonts.body(
-                      fontSize: 12.5,
+                      fontSize: 13,
                       fontWeight: FontWeight.w800,
                       color: color,
                       fontFeatures: const [FontFeature.tabularFigures()],

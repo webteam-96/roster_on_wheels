@@ -16,6 +16,7 @@ import { fmtInt, fmtInr, fmtInrShort, fmtDate, ROTARY_BLUE, ROTARY_GOLD } from "
 import KpiCard from "@/components/dashboard/KpiCard";
 import { useAgYearId } from "@/hooks/useAgYearId";
 import { formatMoney } from "@/lib/currency";
+import { ListPageSkeleton } from "@/components/row/AppKit";
 
 export default function AgClubDetailPage() {
   const params = useParams();
@@ -42,7 +43,7 @@ export default function AgClubDetailPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-20">
-        <RotaryLoader size="lg" label="Loading…" />
+        <ListPageSkeleton />
       </div>
     );
   }
@@ -73,7 +74,7 @@ export default function AgClubDetailPage() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-white rounded-xl border border-slate-200 p-5">
+        <div className="bg-white rounded-[20px] border border-slate-200 p-5">
           <h3 className="text-sm font-semibold text-slate-800 mb-3">Monthly Activity</h3>
           {monthly.length === 0 ? (
             <p className="text-xs text-slate-400">No monthly data for this year yet.</p>
@@ -92,7 +93,7 @@ export default function AgClubDetailPage() {
           )}
         </div>
 
-        <div className="bg-white rounded-xl border border-slate-200 p-5">
+        <div className="bg-white rounded-[20px] border border-slate-200 p-5">
           <h3 className="text-sm font-semibold text-slate-800 mb-3">TRF Breakdown</h3>
           {trf.totalInr === 0 ? (
             <p className="text-xs text-slate-400">No TRF contributions recorded.</p>
@@ -118,7 +119,7 @@ export default function AgClubDetailPage() {
         </div>
       </div>
 
-      <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
+      <div className="bg-white rounded-[20px] border border-slate-200 overflow-hidden">
         <div className="px-5 py-3 border-b border-slate-100">
           <h3 className="text-sm font-semibold text-slate-800">Recent Projects</h3>
           <p className="text-xs text-slate-500 mt-0.5">Top 10 most recent</p>
@@ -128,7 +129,7 @@ export default function AgClubDetailPage() {
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
-              <thead className="bg-slate-50 text-xs uppercase tracking-wide text-slate-500 border-b border-slate-200">
+              <thead className="bg-[#EDF4FB] text-xs text-slate-500 border-b border-slate-200">
                 <tr>
                   <th className="px-4 py-2.5 text-left">Date</th>
                   <th className="px-4 py-2.5 text-left">Title</th>

@@ -87,7 +87,7 @@ export default function FoundationDesignationsCard({ memberId }: { memberId: num
   };
 
   return (
-    <section className="rounded-xl border border-slate-200 overflow-hidden mb-4 bg-white">
+    <section className="rounded-[20px] border border-slate-200 overflow-hidden mb-4 bg-white">
       <header className="flex items-center gap-2 px-4 py-2.5 bg-slate-50 border-b border-slate-100">
         <Award className="h-4 w-4 text-slate-500" />
         <h3 className="text-sm font-semibold text-slate-800">Foundation designations</h3>

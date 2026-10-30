@@ -19,6 +19,7 @@ import RotaryLoader from "@/components/RotaryLoader";
 import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import SearchBox from "@/components/SearchBox";
+import { ListPageSkeleton } from "@/components/row/AppKit";
 
 interface PaymentLink {
   id: number;
@@ -86,7 +87,7 @@ export default function ClubEventPaymentLinksPage() {
         <SearchBox value={search} onChange={setSearch} placeholder="Search by title..." />
 
         {loading ? (
-          <div className="flex justify-center py-10"><RotaryLoader size="lg" /></div>
+          <div className="flex justify-center py-10"><ListPageSkeleton /></div>
         ) : (
           <div className="overflow-x-auto">
             <Table>

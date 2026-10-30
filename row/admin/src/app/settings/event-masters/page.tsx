@@ -28,6 +28,7 @@ import RotaryLoader from "@/components/RotaryLoader";
 import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import SearchBox from "@/components/SearchBox";
+import { ListPageSkeleton } from "@/components/row/AppKit";
 
 interface MasterItem {
   id: number;
@@ -145,7 +146,7 @@ export default function EventMastersPage() {
       return name.includes(search.toLowerCase());
     });
 
-    if (loading) return <div className="flex justify-center py-10"><RotaryLoader size="lg" /></div>;
+    if (loading) return <div className="flex justify-center py-10"><ListPageSkeleton /></div>;
 
     return (
       <Table>
@@ -202,7 +203,7 @@ export default function EventMastersPage() {
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <div className="flex items-center justify-between">
+          <div className="flex flex-wrap items-center justify-between gap-3">
             <TabsList>
               <TabsTrigger value="tshirt">T-shirt Sizes</TabsTrigger>
               <TabsTrigger value="food">Food Preferences</TabsTrigger>

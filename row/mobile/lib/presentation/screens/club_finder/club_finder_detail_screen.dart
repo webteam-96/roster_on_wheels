@@ -16,6 +16,7 @@ import '../../widgets/common/empty_state_widget.dart';
 import '../../widgets/common/loading_widget.dart';
 import 'package:rotary_flutter_app/core/theme/app_fonts.dart';
 import 'package:rotary_flutter_app/core/i18n/text.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/skeleton_list.dart';
 
 class ClubFinderDetailScreen extends StatefulWidget {
   final int clubId;
@@ -97,11 +98,6 @@ class _ClubFinderDetailScreenState extends State<ClubFinderDetailScreen>
         controller: _tabCtrl,
         isScrollable: false,
         labelPadding: EdgeInsets.zero,
-        labelColor: AppColors.primaryPrime,
-        unselectedLabelColor: AppColors.textSecondary,
-        indicatorColor: AppColors.primaryPrime,
-        indicatorWeight: 3,
-        dividerColor: Colors.transparent,
         labelStyle: AppFonts.body(
           fontSize: 14,
           fontWeight: FontWeight.w700,
@@ -383,7 +379,7 @@ class _InfoTabState extends State<_InfoTab>
           Text(
             label,
             style: AppFonts.body(
-              fontSize: 11,
+              fontSize: 13,
               color: AppColors.textSecondary,
               fontWeight: FontWeight.w600,
             ),
@@ -497,7 +493,7 @@ class _InfoTabState extends State<_InfoTab>
                   Text(
                     role,
                     style: AppFonts.body(
-                      fontSize: 12,
+                      fontSize: 13,
                       color: AppColors.textSecondary,
                       fontWeight: FontWeight.w600,
                     ),
@@ -588,7 +584,7 @@ class _InfoTabState extends State<_InfoTab>
     final labelText = Text(
       label,
       style: AppFonts.body(
-        fontSize: 12,
+        fontSize: 13,
         color: AppColors.textSecondary,
         fontWeight: FontWeight.w600,
       ),
@@ -624,7 +620,7 @@ class _InfoTabState extends State<_InfoTab>
           Text(
             label,
             style: AppFonts.body(
-              fontSize: 12,
+              fontSize: 13,
               color: AppColors.textSecondary,
               fontWeight: FontWeight.w600,
             ),
@@ -776,7 +772,7 @@ class _ContactAction extends StatelessWidget {
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: AppFonts.body(
-                fontSize: 11,
+                fontSize: 13,
                 fontWeight: FontWeight.w600,
                 color: AppColors.textSecondary,
               ),
@@ -996,7 +992,7 @@ class _MemberTabState extends State<_MemberTab>
         if (i >= _items.length) {
           return const Padding(
             padding: EdgeInsets.all(16),
-            child: Center(child: CircularProgressIndicator()),
+            child: const RowSkeletonList(),
           );
         }
         return _memberRow(_items[i]);
@@ -1083,7 +1079,7 @@ class _MemberTabState extends State<_MemberTab>
       child: Text(
         'Honorary',
         style: AppFonts.body(
-          fontSize: 9.5,
+          fontSize: 13,
           fontWeight: FontWeight.w700,
           color: AppColors.warning,
         ),
@@ -1241,7 +1237,7 @@ class _EventsTabState extends State<_EventsTab>
                             if (i >= filtered.length) {
                               return const Padding(
                                 padding: EdgeInsets.all(16),
-                                child: Center(child: CircularProgressIndicator()),
+                                child: const RowSkeletonList(),
                               );
                             }
                             return _eventRow(filtered[i]);
@@ -1304,7 +1300,7 @@ class _EventsTabState extends State<_EventsTab>
                   child: Text(
                     venue,
                     style: AppFonts.body(
-                      fontSize: 12,
+                      fontSize: 13,
                       color: AppColors.textSecondary,
                     ),
                     overflow: TextOverflow.ellipsis,
@@ -1320,7 +1316,7 @@ class _EventsTabState extends State<_EventsTab>
               child: Text(
                 _fmtDate(dt),
                 style: AppFonts.body(
-                  fontSize: 12,
+                  fontSize: 13,
                   color: AppColors.primaryPrime,
                   fontWeight: FontWeight.w700,
                 ),
@@ -1552,7 +1548,7 @@ class _ActivityTabState extends State<_ActivityTab>
                             if (i >= filtered.length) {
                               return const Padding(
                                 padding: EdgeInsets.all(16),
-                                child: Center(child: CircularProgressIndicator()),
+                                child: const RowSkeletonList(),
                               );
                             }
                             return _projectRow(filtered[i]);
@@ -1678,7 +1674,7 @@ class _ActivityTabState extends State<_ActivityTab>
                       child: Text(
                         DateFormat('dd-MMM-yyyy').format(dt),
                         style: AppFonts.body(
-                          fontSize: 12,
+                          fontSize: 13,
                           color: AppColors.primaryPrime,
                           fontWeight: FontWeight.w700,
                         ),

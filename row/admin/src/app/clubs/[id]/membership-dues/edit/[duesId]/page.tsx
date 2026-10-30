@@ -18,6 +18,7 @@ import RotaryLoader from "@/components/RotaryLoader";
 import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import "react-quill-new/dist/quill.snow.css";
+import { ListPageSkeleton } from "@/components/row/AppKit";
 
 // ReactQuill must be client-only — SSR would crash on `document`.
 const ReactQuill = dynamic(() => import("react-quill-new"), { ssr: false });
@@ -132,7 +133,7 @@ export default function ClubMembershipDuesEditPage() {
   }
 
   if (loading) {
-    return <ProtectedRoute><div className="flex justify-center py-20"><RotaryLoader size="lg" /></div></ProtectedRoute>;
+    return <ProtectedRoute><div className="flex justify-center py-20"><ListPageSkeleton /></div></ProtectedRoute>;
   }
 
   const renderImageUpload = (label: string, preview: string | null, onChange: (f: File | null) => void) => (
@@ -143,8 +144,8 @@ export default function ClubMembershipDuesEditPage() {
           <img src={preview} alt={label} className="w-full h-full object-contain" />
         </div>
       )}
-      <div className="flex items-center gap-2">
-        <label className="cursor-pointer inline-flex items-center gap-2 px-3 py-2 border rounded-md text-sm hover:bg-muted">
+      <div className="flex flex-wrap items-center gap-2">
+        <label className="cursor-pointer inline-flex items-center gap-2 px-3 py-2 border rounded-full text-sm hover:bg-muted">
           <Upload className="h-4 w-4" />
           {preview ? "Change" : "Upload"}
           <input type="file" accept=".jpg,.jpeg,.png,.gif,.webp" className="hidden" onChange={e => onChange(e.target.files?.[0] || null)} />

@@ -37,7 +37,7 @@ export default function CreditBadges({ scope, entityId }: { scope: "club" | "dis
   if (!bal) return null;
 
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex flex-wrap items-center gap-2">
       <Badge icon={MessageSquare} title="Email Credits" value={bal.emailRemaining ?? 0} color="bg-sky-500" />
     </div>
   );

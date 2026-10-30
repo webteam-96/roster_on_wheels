@@ -43,6 +43,7 @@ import RotaryLoader from "@/components/RotaryLoader";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import DistrictMembershipTabBar from "@/components/dashboard/DistrictMembershipTabBar";
 import type { RotaryYear } from "@/types/rotaryYear";
+import { ListPageSkeleton } from "@/components/row/AppKit";
 
 interface AGGroup {
   memberId: number;
@@ -362,7 +363,7 @@ export default function DistrictAdminAGPage() {
 
         {(loading || loadingList) && (
           <div className="flex items-center justify-center py-20">
-            <RotaryLoader size="lg" />
+            <ListPageSkeleton />
           </div>
         )}
 

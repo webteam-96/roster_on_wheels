@@ -3,6 +3,11 @@
 Last session: **2026-10-23**. A new session starts here, then continues with **"Next task"** below without
 re-reading whole codebases (use `kb/README.md` and the graphify commands in the root `CLAUDE.md`).
 
+**2026-10-29, club website themes:** the club site's themes are now a port of the RIZones club site's 11 themes
+(`E:\websites\Club-Website-reactjs\Club-Website-reactjs`, copy-source only). Plan, how it works and progress:
+`docs/plans/2026-10-29-club-themes-rizones-port.md`; proof and open items: `docs/claude/STATUS.md`. Earlier club
+and district themes were deleted (archive: `E:\websites\row-theme-archive-2026-10-29\`).
+
 ## Ground rules (from the user)
 
 - `row/` is the project. `reference/` (RIZones) is copy-source only: never run it or connect to its servers.
@@ -95,7 +100,19 @@ git worktree + DB copy per lane; `integrate.sh <id>` then `resolve.py <id>` merg
 - The repo is public and its history holds old demo logins: rotate any password that was ever committed.
 - WhatsApp-named columns left the code and schema 2026-10-23; existing databases keep them until the cleanup
   script runs (user go-ahead).
-- Store ids: iOS `com.kaizen.row`, Android `com.SampleApp.row` (Android id still a placeholder).
+- Store ids: `com.kaizen.roww` for both iOS and Android (decided 2026-10-28; Firebase project `roww-54213`).
+- Push (2026-10-28): Android works end to end. On the emulator (Google APIs image) the app got an FCM token, the API
+  stored it, and an announcement push arrived. The config files sit outside git: `mobile/android/app/google-services.json`,
+  `mobile/ios/Runner/GoogleService-Info.plist`, and the server key at `api/App_Data/firebase-admin.json` (or
+  `Firebase__ServiceAccountAbsolutePath`; the GreetingsWorker uses the same setting). Push jobs run only with
+  `BackgroundJobs:Enabled`. Still to do:
+  - iOS: the APNs .p8 key uploaded in Firebase Cloud Messaging; on a Mac, the plist added to the Runner target plus
+    the Push Notifications and Background Modes (Remote notifications) capabilities.
+  Fixed and checked on the emulator on 2026-10-28:
+  - Status-bar icon: `res/drawable-*/ic_notification.png`, a white ROW handshake. Set in the manifest and in
+    `push_service.dart`, accent `notification_accent` (#17458F).
+  - Push time: FirebaseAdmin's `event_time` defaulted to year 1, so Android showed "2032y". The API and the worker
+    now set `EventTimestamp = DateTime.UtcNow`.
 - 19 analyzer warnings in the app (unused locals such as `grad`) and some admin lint warnings are pre-existing.
 
 ## Run locally (dev only)

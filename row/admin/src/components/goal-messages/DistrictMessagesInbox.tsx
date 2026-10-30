@@ -73,7 +73,7 @@ export default function DistrictMessagesInbox({
         <div className="relative">
           <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" />
           <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search district, name, text…"
-            className="w-full pl-7 pr-2 py-1.5 text-xs border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" />
+            className="w-full pl-7 pr-2 py-1.5 text-xs border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]" />
         </div>
         <label className="inline-flex items-center gap-1.5 text-[11px] text-slate-600 cursor-pointer select-none">
           <input type="checkbox" checked={unreadOnly} onChange={(e) => setUnreadOnly(e.target.checked)} className="h-3.5 w-3.5 accent-red-500" />
@@ -127,7 +127,7 @@ export default function DistrictMessagesInbox({
   );
 
   return (
-    <div className="rounded-xl border border-slate-200 bg-white overflow-hidden h-[60vh] min-h-[360px] grid md:grid-cols-[300px_1fr]">
+    <div className="rounded-[20px] border border-slate-200 bg-white overflow-hidden h-[60vh] min-h-[360px] grid md:grid-cols-[300px_1fr]">
       <div className={`${active ? "hidden md:flex" : "flex"} flex-col min-h-0 border-r border-slate-100`}>{list}</div>
       <div className={`${active ? "flex" : "hidden md:flex"} flex-col min-h-0`}>{pane}</div>
     </div>

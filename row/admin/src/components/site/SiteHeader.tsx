@@ -136,8 +136,8 @@ export function SiteHeader() {
         // below keeps the document height stable, so the condense is pure paint.
         "fixed inset-x-0 top-0 z-50 border-b transition-all duration-300 ease-out-expo",
         scrolled
-          ? "border-navy-950/[0.10] bg-paper/[0.85] shadow-soft backdrop-blur-xl"
-          : "border-transparent bg-paper/[0.72] backdrop-blur-md"
+          ? "border-navy-950/[0.10] bg-paper"
+          : "border-transparent bg-paper"
       )}
     >
       <div
@@ -182,7 +182,7 @@ export function SiteHeader() {
                   )}
                 >
                   {/* Dark-glass panel — the brand register, not a white popover */}
-                  <div className="overflow-hidden rounded-2xl bg-midnight/[0.92] p-2 shadow-lift ring-1 ring-cream/10 backdrop-blur-xl">
+                  <div className="overflow-hidden rounded-2xl bg-midnight/[0.92] p-2 shadow-lift ring-1 ring-cream/10">
                     {item.children.map((c) => (
                       <Link
                         key={c.label}
@@ -208,7 +208,7 @@ export function SiteHeader() {
           )}
         </nav>
 
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <a
             href={ADMIN_LOGIN_URL}
             target="_blank"
@@ -248,7 +248,7 @@ export function SiteHeader() {
             initial={reduce ? { opacity: 1 } : { opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: reduce ? 0 : 0.25 }}
-            className="fixed inset-0 z-[70] flex flex-col bg-midnight/[0.94] text-cream backdrop-blur-xl xl:hidden"
+            className="fixed inset-0 z-[70] flex flex-col bg-midnight/[0.94] text-cream xl:hidden"
           >
             <div className="container-wide flex h-[76px] shrink-0 items-center justify-between">
               <Logo tone="inverse" />

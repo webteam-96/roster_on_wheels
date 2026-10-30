@@ -49,6 +49,7 @@ import AlertModal from "@/components/AlertModal";
 import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
 import ClubAdminShell from "@/components/v2/ClubAdminShell";
+import { SkeletonRows } from "@/components/row/AppKit";
 
 function FieldLabel({
   children, dot, required = false,
@@ -292,9 +293,7 @@ export default function ContactDetailsV2Page() {
           pageSubtitle="Public contact information"
           activeNavHref="/club-admin-dashboard/my-club-website"
         >
-          <div className="flex items-center justify-center py-20 text-slate-500">
-            <Loader2 className="animate-spin mr-2" size={16} /> Loading contact details…
-          </div>
+          <SkeletonRows />
         </ClubAdminShell>
       </ProtectedRoute>
     );
@@ -342,7 +341,7 @@ export default function ContactDetailsV2Page() {
         <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
           {/* Header bar */}
           <div className="px-5 py-3 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-blue-50">
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <div className="w-9 h-9 rounded-lg bg-blue-100 text-blue-700 flex items-center justify-center">
                 <Phone size={18} />
               </div>
@@ -356,7 +355,7 @@ export default function ContactDetailsV2Page() {
                 <select
                   value={selectedYearId}
                   onChange={(e) => setSelectedYearId(e.target.value)}
-                  className="px-2 py-1.5 text-sm border border-slate-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="px-2 h-10 py-0 text-sm border border-slate-200 rounded-[12px] bg-white focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
                 >
                   {dataYears.map((y) => (
                     <option key={y.id} value={String(y.id)}>
@@ -380,14 +379,12 @@ export default function ContactDetailsV2Page() {
 
           {/* Form body */}
           {loadingContact ? (
-            <div className="flex items-center justify-center py-12 text-slate-500">
-              <Loader2 className="animate-spin mr-2" size={16} /> Loading…
-            </div>
+            <SkeletonRows />
           ) : (
             <div className="p-5 grid grid-cols-1 md:grid-cols-2 gap-4">
               {/* Email */}
               <div>
-                <FieldLabel dot="bg-blue-500" required>Email</FieldLabel>
+                <FieldLabel dot="bg-[#17458F]" required>Email</FieldLabel>
                 <div className="relative">
                   <Mail size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" />
                   <input
@@ -396,14 +393,14 @@ export default function ContactDetailsV2Page() {
                     value={formEmail}
                     disabled={!canManage || saving}
                     onChange={(e) => setFormEmail(e.target.value)}
-                    className="w-full pl-7 pr-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-slate-50 disabled:cursor-not-allowed"
+                    className="w-full pl-7 pr-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42] disabled:bg-slate-50 disabled:cursor-not-allowed"
                   />
                 </div>
               </div>
 
               {/* Phone */}
               <div>
-                <FieldLabel dot="bg-emerald-500" required>Phone</FieldLabel>
+                <FieldLabel dot="bg-[#17458F]" required>Phone</FieldLabel>
                 <div className="relative">
                   <Phone size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" />
                   <input
@@ -412,19 +409,19 @@ export default function ContactDetailsV2Page() {
                     value={formPhone}
                     disabled={!canManage || saving}
                     onChange={(e) => setFormPhone(e.target.value)}
-                    className="w-full pl-7 pr-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 disabled:bg-slate-50 disabled:cursor-not-allowed"
+                    className="w-full pl-7 pr-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42] disabled:bg-slate-50 disabled:cursor-not-allowed"
                   />
                 </div>
               </div>
 
               {/* Status */}
               <div>
-                <FieldLabel dot="bg-amber-500">Status</FieldLabel>
+                <FieldLabel dot="bg-[#17458F]">Status</FieldLabel>
                 <select
                   value={formIsActive}
                   onChange={(e) => setFormIsActive(e.target.value)}
                   disabled={!canManage || saving}
-                  className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 bg-white disabled:bg-slate-50 disabled:cursor-not-allowed"
+                  className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42] bg-white disabled:bg-slate-50 disabled:cursor-not-allowed"
                 >
                   <option value="1">Active</option>
                   <option value="0">Inactive</option>
@@ -434,12 +431,12 @@ export default function ContactDetailsV2Page() {
               {/* Rotary Year — only when no record yet AND nothing is selected (first add). */}
               {!contact && !selectedYearId && (
                 <div>
-                  <FieldLabel dot="bg-purple-500" required>Rotary Year</FieldLabel>
+                  <FieldLabel dot="bg-[#17458F]" required>Rotary Year</FieldLabel>
                   <select
                     value={formYearId}
                     onChange={(e) => setFormYearId(e.target.value)}
                     disabled={!canManage || saving}
-                    className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 bg-white disabled:bg-slate-50 disabled:cursor-not-allowed"
+                    className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42] bg-white disabled:bg-slate-50 disabled:cursor-not-allowed"
                   >
                     <option value="">Select a year</option>
                     {allYears.map((y) => (
@@ -465,14 +462,14 @@ export default function ContactDetailsV2Page() {
                       ? "Pick a Rotary year above to create the first contact"
                       : "Adding new contact"}
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2">
                 {contact && (
                   <>
                     <button
                       type="button"
                       onClick={handleToggleActive}
                       disabled={saving}
-                      className="inline-flex items-center gap-1 text-xs font-medium px-3 py-1.5 rounded-lg border border-slate-200 text-slate-700 hover:bg-slate-50 disabled:opacity-50"
+                      className="inline-flex items-center gap-1 text-xs font-medium px-3 py-1.5 rounded-full border border-slate-200 text-slate-700 hover:bg-slate-50 disabled:opacity-50"
                     >
                       {contact.isActive ? <EyeOff size={13} /> : <Eye size={13} />}
                       {contact.isActive ? "Deactivate" : "Activate"}
@@ -481,7 +478,7 @@ export default function ContactDetailsV2Page() {
                       type="button"
                       onClick={() => setShowDeleteConfirm(true)}
                       disabled={saving}
-                      className="inline-flex items-center gap-1 text-xs font-medium px-3 py-1.5 rounded-lg border border-rose-200 text-rose-700 hover:bg-rose-50 disabled:opacity-50"
+                      className="inline-flex items-center gap-1 text-xs font-medium px-3 py-1.5 rounded-full border border-rose-200 text-rose-700 hover:bg-rose-50 disabled:opacity-50"
                     >
                       <Trash2 size={13} /> Delete
                     </button>
@@ -491,7 +488,7 @@ export default function ContactDetailsV2Page() {
                   type="button"
                   onClick={handleSave}
                   disabled={saving || !formEmail.trim() || !formPhone.trim() || (!contact && !selectedYearId && !formYearId)}
-                  className="inline-flex items-center gap-1 text-xs font-semibold px-3 py-1.5 rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50"
+                  className="inline-flex items-center gap-1 text-xs font-semibold px-3 py-1.5 rounded-full bg-[#17458F] text-white hover:bg-[#17458F] disabled:opacity-50"
                 >
                   {saving ? <Loader2 className="animate-spin" size={13} /> : (contact ? <Save size={13} /> : <Plus size={13} />)}
                   {saving ? "Saving…" : (contact ? "Save Changes" : "Add Contact")}

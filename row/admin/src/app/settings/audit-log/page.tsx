@@ -23,12 +23,12 @@ const actionColors: Record<string, string> = {
   Create: "bg-green-500 hover:bg-green-600",
   Update: "bg-blue-500 hover:bg-blue-600",
   Delete: "bg-red-500 hover:bg-red-600",
-  Upload: "bg-purple-500 hover:bg-purple-600",
+  Upload: "bg-[#A9C6EA] hover:bg-[#17458F]",
   Reorder: "bg-amber-500 hover:bg-amber-600",
   Approve: "bg-emerald-500 hover:bg-emerald-600",
   Reject: "bg-red-400 hover:bg-red-500",
-  Assign: "bg-indigo-500 hover:bg-indigo-600",
-  Remove: "bg-orange-500 hover:bg-orange-600",
+  Assign: "bg-[#A9C6EA] hover:bg-[#17458F]",
+  Remove: "bg-[#FFC65C] hover:bg-[#17458F]",
 };
 
 // Local YYYY-MM-DD (device timezone) — the log view defaults to today's entries.
@@ -177,7 +177,7 @@ export default function AuditLogPage() {
                 <DateField value={toDate} onChange={setToDate} />
               </div>
             </div>
-            <div className="flex justify-end gap-2 mt-3">
+            <div className="flex flex-wrap justify-end gap-2 mt-3">
               <Button variant="outline" onClick={resetFilters} disabled={loading}>
                 <RotateCcw className="h-4 w-4 mr-1" /> Reset
               </Button>
@@ -254,11 +254,11 @@ export default function AuditLogPage() {
 
         {/* Pagination */}
         {totalPages > 1 && (
-          <div className="flex items-center justify-between">
+          <div className="flex flex-wrap items-center justify-between gap-3">
             <p className="text-sm text-muted-foreground">
               Page {page} of {totalPages}: {totalCount} entries
             </p>
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-2">
               <Button variant="outline" size="sm" disabled={page <= 1 || loading} onClick={() => fetchLogs(page - 1)}>Previous</Button>
               <Button variant="outline" size="sm" disabled={page >= totalPages || loading} onClick={() => fetchLogs(page + 1)}>Next</Button>
             </div>

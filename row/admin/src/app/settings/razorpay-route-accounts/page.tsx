@@ -244,7 +244,7 @@ export default function RazorpayRouteAccountsPage() {
             <h1 className="text-2xl font-bold text-azure">Razorpay Route Accounts</h1>
             <p className="text-sm text-slate-500">Linked accounts (acc_…) that club-website payments can be routed to. Adding one creates it on Razorpay.</p>
           </div>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             <Button variant="outline" onClick={load} disabled={loading}>
               {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
             </Button>
@@ -258,7 +258,7 @@ export default function RazorpayRouteAccountsPage() {
 
         <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white">
           <table className="w-full text-sm">
-            <thead className="bg-slate-50 text-slate-600">
+            <thead className="bg-[#EDF4FB] text-slate-600">
               <tr>
                 <th className="text-left px-4 py-2.5 font-medium">Name</th>
                 <th className="text-left px-4 py-2.5 font-medium">Account ID</th>

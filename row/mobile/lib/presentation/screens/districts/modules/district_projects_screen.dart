@@ -27,6 +27,7 @@ import '../../../widgets/common/rotary_year_bar.dart';
 import '../../../widgets/detail/detail_widgets.dart';
 import '../../../widgets/detail/detail_hero_layout.dart';
 import 'package:rotary_flutter_app/core/i18n/text.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/form_action_bar.dart';
 
 // ---------------------------------------------------------------------------
 // Form constants — mirror the web district-project add page exactly.
@@ -507,7 +508,7 @@ class _DistrictProjectsScreenState extends State<DistrictProjectsScreen> {
             )
           else
             SliverPadding(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 104),
               sliver: SliverList(
                 delegate: SliverChildBuilderDelegate(
                   (ctx, i) {
@@ -592,7 +593,7 @@ class _DistrictProjectsScreenState extends State<DistrictProjectsScreen> {
       color: AppColors.primary,
       onRefresh: () => _fetch(reset: true),
       child: ListView.separated(
-        padding: const EdgeInsets.all(16),
+        padding: (const EdgeInsets.all(16)).add(const EdgeInsets.only(bottom: 88)),
         itemCount: _items.length + 1,
         separatorBuilder: (_, __) => const SizedBox(height: 10),
         itemBuilder: (ctx, i) {
@@ -1410,6 +1411,12 @@ class _ProjectFormPageState extends State<_ProjectFormPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      bottomNavigationBar: RowFormActionBar(child: CustomButton(
+                      label: _isEditing ? 'Update' : 'Save Project',
+                      onPressed: _save,
+                      isLoading: _saving,
+                      fullWidth: true,
+                    )),
       backgroundColor: AppColors.background,
       appBar: CustomAppBar(
         title: _isEditing ? 'Edit District Project' : 'Add District Project',
@@ -1563,13 +1570,7 @@ class _ProjectFormPageState extends State<_ProjectFormPage> {
                             onSetPrimary: _markPrimary,
                             onRemove: _removePhoto,
                           ),
-                    const SizedBox(height: 20),
-                    CustomButton(
-                      label: _isEditing ? 'Update' : 'Save Project',
-                      onPressed: _save,
-                      isLoading: _saving,
-                      fullWidth: true,
-                    ),
+                    
                   ],
                 ),
               ),
@@ -1706,7 +1707,7 @@ class _ProjectFormPageState extends State<_ProjectFormPage> {
           _amountField('Amount Sanctioned (${currencySymbolFor(null)}) *', _amtSanctionedCtrl),
           _amountField('Amount Received (${currencySymbolFor(null)}) *', _amtReceivedCtrl),
           _amountField('Amount spent till date (${currencySymbolFor(null)}) *', _amtSpentCtrl),
-          _textField('Host Clubs/Districts *', _hostCtrl, 'e.g., RC Pune, RC Mumbai'),
+          _textField('Host Clubs/Districts *', _hostCtrl, 'e.g., RC Springfield, RC Riverside'),
           _textField('Global Partner Clubs/Districts *', _partnerCtrl, 'e.g., RC Tokyo'),
         ],
       );
@@ -2181,7 +2182,7 @@ class _ProjectDetailScreenState extends State<_ProjectDetailScreen> {
         ];
 
         return ListView(
-          padding: EdgeInsets.zero,
+          padding: (EdgeInsets.zero).add(const EdgeInsets.only(bottom: 88)),
           children: [
             DetailHeroGallery(urls: galleryUrls, captions: galleryCaptions),
             Padding(

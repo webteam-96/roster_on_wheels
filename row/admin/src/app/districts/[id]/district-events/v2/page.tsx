@@ -44,6 +44,7 @@ import ErrorAlert from "@/components/ErrorAlert";
 import DistrictAdminShell from "@/components/v2/DistrictAdminShell";
 
 import { appLocale } from "@/lib/appFormat";
+import { SkeletonRows } from "@/components/row/AppKit";
 interface EventListItem {
   id: number;
   title: string | null;
@@ -243,7 +244,7 @@ export default function DistrictEventsV2Page() {
                 <select
                   value={yearId}
                   onChange={(e) => { setYearId(e.target.value); setPage(1); }}
-                  className="px-2 py-1.5 text-sm border border-slate-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="px-2 h-10 py-0 text-sm border border-slate-200 rounded-[12px] bg-white focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
                 >
                   {years.map((y) => (
                     <option key={y.id} value={String(y.id)}>
@@ -251,7 +252,7 @@ export default function DistrictEventsV2Page() {
                     </option>
                   ))}
                 </select>
-                <div className="relative">
+                <div className="relative w-full sm:w-auto">
                   <Search size={14} className="absolute left-2 top-1/2 -translate-y-1/2 text-slate-400" />
                   <input
                     type="text"
@@ -259,19 +260,19 @@ export default function DistrictEventsV2Page() {
                     value={searchInput}
                     onChange={(e) => setSearchInput(e.target.value)}
                     onKeyDown={(e) => e.key === "Enter" && applySearch()}
-                    className="pl-7 pr-3 py-1.5 text-sm border border-slate-200 rounded-lg w-full sm:w-56 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="pl-7 pr-3 h-10 py-0 text-sm border border-slate-200 rounded-[12px] w-full sm:w-56 focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
                   />
                 </div>
                 <button
                   type="button"
                   onClick={applySearch}
-                  className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg border border-slate-200 text-slate-700 hover:bg-slate-50"
+                  className="inline-flex items-center gap-1.5 text-xs font-semibold px-4 h-10 rounded-full border border-slate-200 text-slate-700 hover:bg-slate-50"
                 >
                   <Search size={13} /> Search
                 </button>
                 <Link
                   href={addUrl}
-                  className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg bg-emerald-600 text-white hover:bg-emerald-700"
+                  className="inline-flex items-center gap-1.5 text-xs font-semibold px-4 h-10 rounded-full bg-[#17458F] text-white hover:bg-[#17458F]"
                 >
                   <Plus size={13} /> Add Event
                 </Link>
@@ -280,12 +281,10 @@ export default function DistrictEventsV2Page() {
 
             <div className="overflow-x-auto">
               {loading ? (
-                <div className="flex items-center justify-center py-12 text-slate-500">
-                  <Loader2 className="animate-spin mr-2" size={16} /> Loading events…
-                </div>
+                <SkeletonRows />
               ) : (
-                <table className="min-w-full text-sm">
-                  <thead className="bg-slate-50 text-xs uppercase text-slate-500">
+                <table className="w-full min-w-[640px] md:min-w-full text-sm">
+                  <thead className="bg-[#EDF4FB] text-[13px] text-[#64748B]">
                     <tr>
                       <th className="px-3 py-2.5 text-left w-10">Sr</th>
                       <th className="px-3 py-2.5 text-left">Title</th>

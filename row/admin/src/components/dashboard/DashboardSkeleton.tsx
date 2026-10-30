@@ -27,7 +27,7 @@ export function Skeleton({
 
 export function KpiTileSkeleton() {
   return (
-    <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+    <div className="rounded-[20px] border border-slate-200 bg-white p-4 shadow-sm">
       <Skeleton className="h-3 w-20" />
       <Skeleton className="mt-3 h-7 w-28" />
       <Skeleton className="mt-2 h-3 w-16" />
@@ -37,7 +37,7 @@ export function KpiTileSkeleton() {
 
 export function TableSkeleton({ rows = 6 }: { rows?: number }) {
   return (
-    <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+    <div className="rounded-[20px] border border-slate-200 bg-white p-4 shadow-sm">
       <Skeleton className="h-4 w-40" />
       <div className="mt-4 space-y-3">
         {Array.from({ length: rows }).map((_, i) => (
@@ -54,7 +54,7 @@ export function TableSkeleton({ rows = 6 }: { rows?: number }) {
 
 export function ChartSkeleton({ height = 240 }: { height?: number }) {
   return (
-    <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+    <div className="rounded-[20px] border border-slate-200 bg-white p-4 shadow-sm">
       <Skeleton className="h-4 w-44" />
       <div className="mt-4 w-full" style={{ height }}>
         <Skeleton className="h-full w-full" />

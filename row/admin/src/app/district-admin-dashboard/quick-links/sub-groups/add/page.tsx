@@ -337,7 +337,7 @@ export default function DistrictAdminAddSubGroupPage() {
             )}
           </div>
 
-          <div className="flex items-center justify-end gap-2 pt-2">
+          <div className="flex flex-wrap items-center justify-end gap-2 pt-2">
             <Button variant="outline" onClick={goBack} disabled={saving} className="border-slate-200 text-slate-700 hover:bg-slate-50">
               Cancel
             </Button>

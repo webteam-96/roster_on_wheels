@@ -54,7 +54,7 @@ export default function UnsubscribePage() {
             </p>
             {done && <p role="status" className="mt-3 text-sm text-emerald-700">{done}</p>}
             <button type="button" disabled={busy} onClick={() => change(!info.subscribed)}
-              className="mt-5 rounded-lg bg-azure px-4 py-2 text-sm font-semibold text-cream hover:bg-mint-ink disabled:opacity-60">
+              className="mt-5 rounded-full bg-azure px-4 py-2 text-sm font-semibold text-cream hover:bg-mint-ink disabled:opacity-60">
               {info.subscribed ? "Unsubscribe" : "Subscribe again"}
             </button>
             <p className="mt-4 text-xs text-slate-500">

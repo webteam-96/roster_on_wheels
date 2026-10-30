@@ -19,6 +19,7 @@ import 'package:rotary_flutter_app/core/utils/money_format.dart';
 import 'package:rotary_flutter_app/core/utils/currency_symbol.dart';
 import 'package:rotary_flutter_app/core/theme/app_fonts.dart';
 import 'package:rotary_flutter_app/core/i18n/text.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/skeleton_list.dart';
 
 /// District admin's **District Dues** management view — mobile port of the web
 /// district-admin "District Dues" page. Two tabs:
@@ -248,7 +249,7 @@ class _DistrictClubDuesScreenState extends State<DistrictClubDuesScreen> {
                 'Track which clubs have paid, approve offline payments, and edit '
                 "the branding & email content for your district's dues.",
                 style: AppFonts.body(
-                    fontSize: 12.5,
+                    fontSize: 13,
                     color: AppColors.textSecondary,
                     height: 1.35),
               ),
@@ -370,7 +371,7 @@ class _DistrictClubDuesScreenState extends State<DistrictClubDuesScreen> {
         if (_loadingClubs)
           const Padding(
             padding: EdgeInsets.only(top: 24),
-            child: Center(child: CircularProgressIndicator()),
+            child: const RowSkeletonList(),
           )
         else if (filtered.isEmpty)
           Padding(
@@ -459,7 +460,7 @@ class _DistrictClubDuesScreenState extends State<DistrictClubDuesScreen> {
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: AppFonts.body(
-                  fontSize: 11, color: AppColors.textSecondary)),
+                  fontSize: 13, color: AppColors.textSecondary)),
           const SizedBox(height: 4),
           FittedBox(
             fit: BoxFit.scaleDown,
@@ -473,7 +474,7 @@ class _DistrictClubDuesScreenState extends State<DistrictClubDuesScreen> {
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
               style: AppFonts.body(
-                  fontSize: 10.5, color: subColor ?? AppColors.textSecondary)),
+                  fontSize: 13, color: subColor ?? AppColors.textSecondary)),
         ],
       ),
     );
@@ -493,7 +494,7 @@ class _DistrictClubDuesScreenState extends State<DistrictClubDuesScreen> {
               showCheckmark: false,
               onSelected: (_) => setState(() => _statusFilter = s),
               labelStyle: AppFonts.body(
-                fontSize: 12.5,
+                fontSize: 13,
                 fontWeight: FontWeight.w600,
                 color: sel ? Colors.white : AppColors.textSecondary,
               ),
@@ -547,13 +548,13 @@ class _DistrictClubDuesScreenState extends State<DistrictClubDuesScreen> {
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
           style: AppFonts.body(
-              fontSize: 12.5, fontWeight: FontWeight.w600)),
+              fontSize: 13, fontWeight: FontWeight.w600)),
       style: OutlinedButton.styleFrom(
         foregroundColor: AppColors.textPrimary,
         minimumSize: const Size(0, 40),
         side: const BorderSide(color: AppColors.border),
         shape:
-            RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            const StadiumBorder(),
       ),
     );
   }
@@ -603,7 +604,7 @@ class _DistrictClubDuesScreenState extends State<DistrictClubDuesScreen> {
                   '${c.memberCount} member${c.memberCount == 1 ? '' : 's'} · '
                   '${c.paidCount} paid + ${c.unpaidCount} unpaid',
                   style: AppFonts.body(
-                      fontSize: 12, color: AppColors.textSecondary),
+                      fontSize: 13, color: AppColors.textSecondary),
                 ),
               ),
             ],
@@ -626,7 +627,7 @@ class _DistrictClubDuesScreenState extends State<DistrictClubDuesScreen> {
             children: [
               Text('Total Paid',
                   style: AppFonts.body(
-                      fontSize: 12, color: AppColors.textSecondary)),
+                      fontSize: 13, color: AppColors.textSecondary)),
               const SizedBox(width: 6),
               Text(_money2(c.totalPaid),
                   style: AppFonts.body(
@@ -673,7 +674,7 @@ class _DistrictClubDuesScreenState extends State<DistrictClubDuesScreen> {
           textStyle: AppFonts.body(
               fontSize: 13, fontWeight: FontWeight.w700),
           shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(9)),
+              const StadiumBorder(),
         ),
         child: Text(label),
       ),
@@ -693,7 +694,7 @@ class _DistrictClubDuesScreenState extends State<DistrictClubDuesScreen> {
           textStyle: AppFonts.body(
               fontSize: 13, fontWeight: FontWeight.w700),
           shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(9)),
+              const StadiumBorder(),
         ),
         child: Text(label),
       ),
@@ -716,7 +717,7 @@ class _DistrictClubDuesScreenState extends State<DistrictClubDuesScreen> {
           foregroundColor: AppColors.textSecondary,
           side: const BorderSide(color: AppColors.border),
           shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(9)),
+              const StadiumBorder(),
         ),
         child: busy
             ? const SizedBox(
@@ -753,7 +754,7 @@ class _DistrictClubDuesScreenState extends State<DistrictClubDuesScreen> {
               const SizedBox(width: 6),
               Text(title,
                   style: AppFonts.body(
-                      fontSize: 12.5,
+                      fontSize: 13,
                       fontWeight: FontWeight.w800,
                       color: AppColors.textPrimary)),
               const Spacer(),
@@ -769,7 +770,7 @@ class _DistrictClubDuesScreenState extends State<DistrictClubDuesScreen> {
             alignment: Alignment.centerRight,
             child: Text('Paid ${_money2(paid)}',
                 style: AppFonts.body(
-                    fontSize: 11,
+                    fontSize: 13,
                     color:
                         paid > 0 ? AppColors.success : AppColors.textSecondary)),
           ),
@@ -797,13 +798,13 @@ class _DistrictClubDuesScreenState extends State<DistrictClubDuesScreen> {
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             style: AppFonts.body(
-                fontSize: 11, color: AppColors.textSecondary),
+                fontSize: 13, color: AppColors.textSecondary),
           ),
         ),
         const SizedBox(width: 6),
         Text(_money2(a.amount),
             style: AppFonts.body(
-                fontSize: 11.5,
+                fontSize: 13,
                 fontWeight: FontWeight.w700,
                 color: AppColors.textPrimary)),
         const SizedBox(width: 6),
@@ -818,7 +819,7 @@ class _DistrictClubDuesScreenState extends State<DistrictClubDuesScreen> {
     if (c.paidOnline == null) {
       return Text('Not paid',
           style: AppFonts.body(
-              fontSize: 11, color: AppColors.textMuted));
+              fontSize: 13, color: AppColors.textMuted));
     }
     final online = c.paidOnline!;
     return _pill(online ? 'Online' : 'Offline',
@@ -843,7 +844,7 @@ class _DistrictClubDuesScreenState extends State<DistrictClubDuesScreen> {
       ),
       child: Text(text,
           style: AppFonts.body(
-              fontSize: 10.5, fontWeight: FontWeight.w700, color: color)),
+              fontSize: 13, fontWeight: FontWeight.w700, color: color)),
     );
   }
 
@@ -853,7 +854,7 @@ class _DistrictClubDuesScreenState extends State<DistrictClubDuesScreen> {
       context: context,
       builder: (ctx) => AlertDialog(
         shape:
-            RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+            const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(20))),
         title: Text(title,
             style: AppFonts.body(
                 fontSize: 17, fontWeight: FontWeight.w800)),
@@ -874,8 +875,7 @@ class _DistrictClubDuesScreenState extends State<DistrictClubDuesScreen> {
               backgroundColor: AppColors.primaryPrime,
               foregroundColor: Colors.white,
               elevation: 0,
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10)),
+              shape: const StadiumBorder(),
             ),
             child: Text(confirmLabel,
                 style: AppFonts.body(
@@ -1243,7 +1243,7 @@ class _DistrictClubDuesScreenState extends State<DistrictClubDuesScreen> {
 
   Widget _contentView() {
     if (_loadingContent && !_contentLoaded) {
-      return const Center(child: CircularProgressIndicator());
+      return const RowSkeletonList();
     }
     return ListView(
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
@@ -1276,7 +1276,7 @@ class _DistrictClubDuesScreenState extends State<DistrictClubDuesScreen> {
                 "text: it's filled in when the email is sent. If you don't add "
                 'an amount/members value, a summary is appended for you.',
                 style: AppFonts.body(
-                    fontSize: 11.5,
+                    fontSize: 13,
                     height: 1.35,
                     color: AppColors.textSecondary),
               ),
@@ -1317,8 +1317,7 @@ class _DistrictClubDuesScreenState extends State<DistrictClubDuesScreen> {
               elevation: 0,
               textStyle: AppFonts.body(
                   fontSize: 15, fontWeight: FontWeight.w700),
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12)),
+              shape: const StadiumBorder(),
             ),
             child: _savingContent
                 ? const SizedBox(
@@ -1401,14 +1400,13 @@ class _DistrictClubDuesScreenState extends State<DistrictClubDuesScreen> {
                           ? 'Replace'
                           : 'Upload',
                       style: AppFonts.body(
-                          fontSize: 12.5, fontWeight: FontWeight.w600),
+                          fontSize: 13, fontWeight: FontWeight.w600),
                     ),
                     style: OutlinedButton.styleFrom(
                       foregroundColor: AppColors.textPrimary,
                       minimumSize: const Size(0, 36),
                       side: const BorderSide(color: AppColors.border),
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(9)),
+                      shape: const StadiumBorder(),
                     ),
                   ),
                   if (file != null) ...[
@@ -1511,7 +1509,7 @@ class _DistrictClubDuesScreenState extends State<DistrictClubDuesScreen> {
           const SizedBox(height: 2),
           Text('Uses the text above with sample values.',
               style: AppFonts.body(
-                  fontSize: 11.5, color: AppColors.textSecondary)),
+                  fontSize: 13, color: AppColors.textSecondary)),
           const SizedBox(height: 10),
           _textField(_testEmailCtrl,
               hint: 'you@example.com',
@@ -1553,7 +1551,7 @@ class _DistrictClubDuesScreenState extends State<DistrictClubDuesScreen> {
       children: [
         Text('Insert:',
             style: AppFonts.body(
-                fontSize: 11, color: AppColors.textSecondary)),
+                fontSize: 13, color: AppColors.textSecondary)),
         ...tokens.map((t) => InkWell(
               onTap: () => onInsert(t.token),
               borderRadius: BorderRadius.circular(999),
@@ -1568,7 +1566,7 @@ class _DistrictClubDuesScreenState extends State<DistrictClubDuesScreen> {
                 ),
                 child: Text(t.label,
                     style: AppFonts.body(
-                        fontSize: 11,
+                        fontSize: 13,
                         fontWeight: FontWeight.w600,
                         color: AppColors.primary)),
               ),
@@ -1598,7 +1596,7 @@ class _DistrictClubDuesScreenState extends State<DistrictClubDuesScreen> {
         padding: const EdgeInsets.only(bottom: 5),
         child: Text(s,
             style: AppFonts.body(
-                fontSize: 12.5, fontWeight: FontWeight.w600)),
+                fontSize: 13, fontWeight: FontWeight.w600)),
       );
 
   Widget _textField(
@@ -1759,7 +1757,7 @@ class _OfflineRecordSheetState extends State<_OfflineRecordSheet> {
           if (widget.accounts.isNotEmpty) ...[
             Text('Account',
                 style: AppFonts.body(
-                    fontSize: 12.5, fontWeight: FontWeight.w600)),
+                    fontSize: 13, fontWeight: FontWeight.w600)),
             const SizedBox(height: 6),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -1797,14 +1795,14 @@ class _OfflineRecordSheetState extends State<_OfflineRecordSheet> {
             'Covers ${widget.club.unpaidCount} member(s). '
             'Amount: $amountText. This marks the club as paid immediately.',
             style: AppFonts.body(
-                fontSize: 12.5,
+                fontSize: 13,
                 height: 1.35,
                 color: AppColors.textSecondary),
           ),
           const SizedBox(height: 16),
           Text('Mode',
               style: AppFonts.body(
-                  fontSize: 12.5, fontWeight: FontWeight.w600)),
+                  fontSize: 13, fontWeight: FontWeight.w600)),
           const SizedBox(height: 6),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -1828,13 +1826,13 @@ class _OfflineRecordSheetState extends State<_OfflineRecordSheet> {
           const SizedBox(height: 12),
           Text('Transaction / reference',
               style: AppFonts.body(
-                  fontSize: 12.5, fontWeight: FontWeight.w600)),
+                  fontSize: 13, fontWeight: FontWeight.w600)),
           const SizedBox(height: 6),
           _sheetField(_txnCtrl),
           const SizedBox(height: 12),
           Text('Remark',
               style: AppFonts.body(
-                  fontSize: 12.5, fontWeight: FontWeight.w600)),
+                  fontSize: 13, fontWeight: FontWeight.w600)),
           const SizedBox(height: 6),
           _sheetField(_remarkCtrl),
           const SizedBox(height: 18),
@@ -1846,8 +1844,7 @@ class _OfflineRecordSheetState extends State<_OfflineRecordSheet> {
                   style: OutlinedButton.styleFrom(
                     minimumSize: const Size(0, 48),
                     side: const BorderSide(color: AppColors.border),
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12)),
+                    shape: const StadiumBorder(),
                   ),
                   child: Text('Cancel',
                       style: AppFonts.body(
@@ -1864,8 +1861,7 @@ class _OfflineRecordSheetState extends State<_OfflineRecordSheet> {
                     foregroundColor: Colors.white,
                     minimumSize: const Size(0, 48),
                     elevation: 0,
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12)),
+                    shape: const StadiumBorder(),
                   ),
                   child: _busy
                       ? const SizedBox(
@@ -2041,8 +2037,7 @@ class _ReviewPageState extends State<_ReviewPage> {
                         elevation: 0,
                         textStyle: AppFonts.body(
                             fontSize: 15, fontWeight: FontWeight.w700),
-                        shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12)),
+                        shape: const StadiumBorder(),
                       ),
                       child: const Text('Reject'),
                     ),
@@ -2058,8 +2053,7 @@ class _ReviewPageState extends State<_ReviewPage> {
                         elevation: 0,
                         textStyle: AppFonts.body(
                             fontSize: 15, fontWeight: FontWeight.w700),
-                        shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12)),
+                        shape: const StadiumBorder(),
                       ),
                       child: _busy
                           ? const SizedBox(

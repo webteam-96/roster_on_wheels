@@ -184,7 +184,7 @@ export default function RotaryOrgPage() {
             <p className="text-xs text-muted-foreground mb-4">Synced vs non-synced clubs per region (excludes the 3 manually-managed districts and Zone 0).</p>
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
-                <thead>
+                <thead className="bg-[#EDF4FB] text-[13px] text-[#64748B]">
                   <tr className="border-b text-left text-muted-foreground">
                     <th className="py-2 pr-4 font-medium">Region</th>
                     <th className="py-2 px-4 font-medium text-right">Synced Clubs</th>

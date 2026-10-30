@@ -40,6 +40,7 @@ import { useSyncClubIdFromUrl } from "@/hooks/useSyncClubIdFromUrl";
 import { sanitizeText } from "@/lib/textInput";
 import MeetingModeFields from "@/components/attendance/MeetingModeFields";
 import { meetingPayload, validateMeeting, type MeetingMode } from "@/lib/meeting";
+import { ListPageSkeleton } from "@/components/row/AppKit";
 
 type AnnItem = { tempId: string; annName: string };
 type AnnetItem = { tempId: string; annetName: string };
@@ -236,7 +237,7 @@ export default function AttendanceV2AddPage() {
     return (
       <ProtectedRoute>
         <div className="flex items-center justify-center py-20">
-          <RotaryLoader size="lg" />
+          <ListPageSkeleton />
         </div>
       </ProtectedRoute>
     );
@@ -257,39 +258,39 @@ export default function AttendanceV2AddPage() {
         onSave={handleSave}
       >
         {/* 1. Event Details */}
-        <SectionCard number={1} icon={FileText} title="Event Details" dot="bg-blue-600">
+        <SectionCard number={1} icon={FileText} title="Event Details" dot="bg-[#17458F]">
           <div className="grid grid-cols-1 gap-4">
             <div>
-              <FieldLabel hint="(max 500 chars)" dot="bg-blue-500">Event Name</FieldLabel>
+              <FieldLabel hint="(max 500 chars)" dot="bg-[#17458F]">Event Name</FieldLabel>
               <input
                 type="text"
                 value={eventName}
                 onChange={handleEventNameChange}
                 placeholder="Event name"
                 maxLength={500}
-                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
               />
               <p className="text-xs text-slate-400 text-right mt-0.5">{eventName.length}/500</p>
             </div>
             <div>
-              <FieldLabel hint="(max 10000 chars)" dot="bg-blue-500">Description</FieldLabel>
+              <FieldLabel hint="(max 10000 chars)" dot="bg-[#17458F]">Description</FieldLabel>
               <textarea
                 value={description}
                 onChange={handleDescriptionChange}
                 placeholder="Describe the event…"
                 rows={4}
                 maxLength={10000}
-                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
               />
               <p className="text-xs text-slate-400 text-right mt-0.5">{description.length}/10000</p>
             </div>
             <div>
-              <FieldLabel dot="bg-blue-500">Event Date &amp; Time</FieldLabel>
+              <FieldLabel dot="bg-[#17458F]">Event Date &amp; Time</FieldLabel>
               <input
                 type="datetime-local"
                 value={eventDateTime}
                 onChange={(e) => setEventDateTime(e.target.value)}
-                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
               />
             </div>
             <MeetingModeFields mode={meetingMode} link={meetingLink} onModeChange={setMeetingMode} onLinkChange={setMeetingLink} />
@@ -297,7 +298,7 @@ export default function AttendanceV2AddPage() {
         </SectionCard>
 
         {/* 2. Attendance Sub-records */}
-        <SectionCard number={2} icon={Users} title="Attendance" dot="bg-emerald-600">
+        <SectionCard number={2} icon={Users} title="Attendance" dot="bg-[#17458F]">
           <p className="text-xs text-slate-500 mb-3">Click any tile to manage attendees of that category.</p>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
             <CountTile onClick={() => setMembersDialogOpen(true)}   icon={Users}     label="Members"               count={selectedMemberIds.length} accent="text-blue-600" />
@@ -505,7 +506,7 @@ function SimpleListDialog<T extends { tempId: string }>({
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
         </DialogHeader>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <Input
             placeholder={placeholder}
             value={inputValue}
@@ -598,7 +599,7 @@ function VisitorsDialog({
         <DialogHeader>
           <DialogTitle>Manage Visitors</DialogTitle>
         </DialogHeader>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <Input placeholder="Visitor Name" value={nameVal} onChange={(e) => setNameVal(e.target.value)} className="flex-1" />
           <Input placeholder="Invited By" value={invitedByVal} onChange={(e) => setInvitedByVal(e.target.value)} className="flex-1" />
           <Button onClick={handleAdd} size="sm"><Plus className="h-4 w-4 mr-1" />Add</Button>
@@ -682,7 +683,7 @@ function RotariansDialog({
         <DialogHeader>
           <DialogTitle>Manage Rotarians (Other Club)</DialogTitle>
         </DialogHeader>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <Input placeholder="Rotarian Name" value={nameVal} onChange={(e) => setNameVal(e.target.value)} className="flex-1" />
           <Input placeholder="Club Name" value={clubVal} onChange={(e) => setClubVal(e.target.value)} className="flex-1" />
           <Button onClick={handleAdd} size="sm"><Plus className="h-4 w-4 mr-1" />Add</Button>

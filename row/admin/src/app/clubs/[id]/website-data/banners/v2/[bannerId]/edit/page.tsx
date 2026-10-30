@@ -37,6 +37,7 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 import ImageCropDialog from "@/components/ImageCropDialog";
 import { useImageCropUpload } from "@/hooks/useImageCropUpload";
 import { useSyncClubIdFromUrl } from "@/hooks/useSyncClubIdFromUrl";
+import { ListPageSkeleton } from "@/components/row/AppKit";
 
 const MAX_ACTIVE = 6;
 
@@ -219,7 +220,7 @@ export default function BannerPhotosV2EditPage() {
           activeNavHref="/club-admin-dashboard/my-club-website"
         >
           <div className="flex items-center justify-center py-20">
-            <RotaryLoader size="lg" />
+            <ListPageSkeleton />
           </div>
         </ClubAdminShell>
       </ProtectedRoute>
@@ -249,8 +250,8 @@ export default function BannerPhotosV2EditPage() {
         }
       >
         {/* 1. Banner Image */}
-        <SectionCard number={1} icon={ImageIcon} title="Banner Image" dot="bg-blue-600">
-          <FieldLabel dot="bg-blue-500" required>Image</FieldLabel>
+        <SectionCard number={1} icon={ImageIcon} title="Banner Image" dot="bg-[#17458F]">
+          <FieldLabel dot="bg-[#17458F]" required>Image</FieldLabel>
           {imagePath ? (
             <div className="relative aspect-[8/3] w-full overflow-hidden rounded-lg border border-slate-200 bg-slate-100">
               <Image src={getPhotoUrl(imagePath)} alt="Banner preview" fill className="object-cover" unoptimized />
@@ -287,26 +288,26 @@ export default function BannerPhotosV2EditPage() {
         </SectionCard>
 
         {/* 2. Description */}
-        <SectionCard number={2} icon={FileText} title="Description" dot="bg-amber-600">
-          <FieldLabel dot="bg-amber-500" hint="(max 500 chars)">Description</FieldLabel>
+        <SectionCard number={2} icon={FileText} title="Description" dot="bg-[#17458F]">
+          <FieldLabel dot="bg-[#17458F]" hint="(max 500 chars)">Description</FieldLabel>
           <textarea
             placeholder="Optional description for this banner"
             value={description}
             onChange={(e) => setDescription(e.target.value.slice(0, 500))}
             rows={3}
             maxLength={500}
-            className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-y"
+            className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42] resize-y"
           />
           <p className="text-xs text-slate-400 text-right mt-1">{description.length}/500</p>
         </SectionCard>
 
         {/* 3. Status */}
-        <SectionCard number={3} icon={ToggleLeft} title="Status" dot="bg-emerald-600">
-          <FieldLabel dot="bg-emerald-500">Visibility</FieldLabel>
+        <SectionCard number={3} icon={ToggleLeft} title="Status" dot="bg-[#17458F]">
+          <FieldLabel dot="bg-[#17458F]">Visibility</FieldLabel>
           <select
             value={isActive}
             onChange={(e) => setIsActive(e.target.value)}
-            className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+            className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42] bg-white"
           >
             <option value="1">Active (shown on website)</option>
             <option value="0">Inactive (hidden)</option>
@@ -314,8 +315,8 @@ export default function BannerPhotosV2EditPage() {
         </SectionCard>
 
         {/* Document or Link (optional) */}
-        <SectionCard number={5} icon={FileText} title="Document or Link (optional)" dot="bg-amber-600">
-          <FieldLabel dot="bg-amber-500" hint="(document or link. Not both)">Attached Document / Link</FieldLabel>
+        <SectionCard number={5} icon={FileText} title="Document or Link (optional)" dot="bg-[#17458F]">
+          <FieldLabel dot="bg-[#17458F]" hint="(document or link. Not both)">Attached Document / Link</FieldLabel>
           <DocumentOrLinkField
             value={{ documentPath, documentName, linkUrl }}
             onChange={(v) => { setDocumentPath(v.documentPath); setDocumentName(v.documentName); setLinkUrl(v.linkUrl); }}

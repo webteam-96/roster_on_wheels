@@ -14,6 +14,7 @@ import { ArrowLeft } from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
 import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";
+import { ListPageSkeleton } from "@/components/row/AppKit";
 
 export default function EditZonePage() {
   const router = useRouter();
@@ -81,7 +82,7 @@ export default function EditZonePage() {
     return (
       <ProtectedRoute>
         <div className="flex items-center justify-center py-20">
-          <RotaryLoader size="lg" />
+          <ListPageSkeleton />
         </div>
       </ProtectedRoute>
     );
@@ -90,7 +91,7 @@ export default function EditZonePage() {
   return (
     <ProtectedRoute>
       <form onSubmit={handleSubmit} className="space-y-6">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-4">
             <Button variant="ghost" size="icon" asChild>
               <Link href="/admin"><ArrowLeft className="h-4 w-4" /></Link>
@@ -100,7 +101,7 @@ export default function EditZonePage() {
               <p className="text-muted-foreground text-base">Update zone details</p>
             </div>
           </div>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             <Button type="button" variant="outline" onClick={() => router.push("/admin")}>Cancel</Button>
             <Button type="submit" disabled={loading}>
               {loading && <RotaryLoader size="sm" />}
@@ -119,7 +120,7 @@ export default function EditZonePage() {
                   <Input id="zoneName" value={zoneName} onChange={(e) => setZoneName(e.target.value)} placeholder="e.g., South Asia" maxLength={100} required />
                   <p className="text-xs text-muted-foreground">Zone Name is required</p>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex flex-wrap items-center gap-2">
                   <input type="checkbox" id="isActive" checked={isActive} onChange={(e) => setIsActive(e.target.checked)} className="h-4 w-4" />
                   <Label htmlFor="isActive">Active</Label>
                 </div>

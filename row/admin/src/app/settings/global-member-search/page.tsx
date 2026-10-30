@@ -19,6 +19,7 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 import { formatBirthAnniversary } from "@/lib/dateUtils";
 
 import { appLocale, currencySymbol } from "@/lib/appFormat";
+import { ListPageSkeleton } from "@/components/row/AppKit";
 // Field keys (case-insensitive) that should display DD-MM only — project rule.
 const BIRTH_ANNIV_KEYS = new Set(["birthdate", "anniversarydate"]);
 
@@ -223,7 +224,7 @@ export default function GlobalMemberSearchPage() {
 
         {/* Results */}
         {loading ? (
-          <div className="flex justify-center py-20"><RotaryLoader size="lg" /></div>
+          <div className="flex justify-center py-20"><ListPageSkeleton /></div>
         ) : !searched ? (
           <div className="flex flex-col items-center py-20 text-center">
             <Search className="h-12 w-12 text-muted-foreground mb-4" />
@@ -547,7 +548,7 @@ export default function GlobalMemberSearchPage() {
                 <Input value={editEmail} onChange={(e) => setEditEmail(e.target.value)} placeholder="Email address" />
               </div>
             </div>
-            <div className="flex justify-end gap-2">
+            <div className="flex flex-wrap justify-end gap-2">
               <Button variant="outline" onClick={() => setEditing(null)} disabled={saving}>Cancel</Button>
               <Button onClick={handleSaveEdit} disabled={saving}>{saving ? <RotaryLoader size="sm" /> : "Save"}</Button>
             </div>
@@ -566,7 +567,7 @@ export default function GlobalMemberSearchPage() {
                 ? <> and moves their primary mobile <span className="font-semibold text-foreground">{deleting.PrimaryMobileNumber}</span> to secondary, freeing the number for another member.</>
                 : <>.</>}
             </div>
-            <div className="flex justify-end gap-2">
+            <div className="flex flex-wrap justify-end gap-2">
               <Button variant="outline" onClick={() => setDeleting(null)} disabled={deleteBusy}>Cancel</Button>
               <Button variant="destructive" onClick={handleConfirmDelete} disabled={deleteBusy}>{deleteBusy ? <RotaryLoader size="sm" /> : "Delete"}</Button>
             </div>

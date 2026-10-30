@@ -142,7 +142,7 @@ class _PotentialMembersScreenState extends State<PotentialMembersScreen> {
                         color: AppColors.primary,
                         onRefresh: () => _fetch(page: 1),
                         child: ListView.separated(
-                          padding: const EdgeInsets.fromLTRB(12, 0, 12, 80),
+                          padding: (const EdgeInsets.fromLTRB(12, 0, 12, 80)).add(const EdgeInsets.only(bottom: 88)),
                           itemCount: _items.length,
                           separatorBuilder: (_, __) => const SizedBox(height: 8),
                           itemBuilder: (_, i) {

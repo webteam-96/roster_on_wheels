@@ -159,9 +159,9 @@ class _ClubMembershipTabState extends State<ClubMembershipTab>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(title.toUpperCase(),
+          Text(title,
               style: AppFonts.body(
-                  fontSize: 10,
+                  fontSize: 13,
                   fontWeight: FontWeight.w700,
                   letterSpacing: 0.4,
                   color: AppColors.slate500)),
@@ -177,9 +177,9 @@ class _ClubMembershipTabState extends State<ClubMembershipTab>
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: [
-        Text(label.toUpperCase(),
+        Text(label,
             style: AppFonts.body(
-                fontSize: 9.5,
+                fontSize: 13,
                 fontWeight: FontWeight.w700,
                 letterSpacing: 0.3,
                 color: AppColors.slate500)),
@@ -225,7 +225,7 @@ class _Header extends StatelessWidget {
               if (yearLabel.isNotEmpty) 'RY $yearLabel',
             ].join(' · '),
             style: AppFonts.body(
-                fontSize: 11.5, color: AppColors.slate500)),
+                fontSize: 13, color: AppColors.slate500)),
         const SizedBox(height: 10),
         Row(
           children: [
@@ -235,14 +235,13 @@ class _Header extends StatelessWidget {
                 icon: const Icon(Icons.group_rounded, size: 16),
                 label: Text('Manage Members',
                     style: AppFonts.body(
-                        fontSize: 12, fontWeight: FontWeight.w700)),
+                        fontSize: 13, fontWeight: FontWeight.w700)),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.rotaryBlue,
                   foregroundColor: Colors.white,
                   elevation: 0,
                   padding: const EdgeInsets.symmetric(vertical: 11),
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8)),
+                  shape: const StadiumBorder(),
                 ),
               ),
             ),
@@ -253,13 +252,12 @@ class _Header extends StatelessWidget {
                 icon: const Icon(Icons.workspace_premium_outlined, size: 16),
                 label: Text('Past Presidents',
                     style: AppFonts.body(
-                        fontSize: 12, fontWeight: FontWeight.w700)),
+                        fontSize: 13, fontWeight: FontWeight.w700)),
                 style: OutlinedButton.styleFrom(
                   foregroundColor: AppColors.rotaryBlue,
                   side: const BorderSide(color: AppColors.slate200),
                   padding: const EdgeInsets.symmetric(vertical: 11),
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8)),
+                  shape: const StadiumBorder(),
                 ),
               ),
             ),
@@ -321,7 +319,7 @@ class _RecentJoinersCard extends StatelessWidget {
         maxLines: 1,
         overflow: TextOverflow.ellipsis,
         style: AppFonts.body(
-            fontSize: 12.5,
+            fontSize: 13,
             fontWeight: FontWeight.w800,
             color: AppColors.textPrimary));
     final expanded = Column(
@@ -334,7 +332,7 @@ class _RecentJoinersCard extends StatelessWidget {
         if ((m.mobile ?? '').isEmpty && (m.email ?? '').isEmpty)
           Text('No contact details',
               style: AppFonts.body(
-                  fontSize: 11, color: AppColors.slate400)),
+                  fontSize: 13, color: AppColors.slate400)),
       ],
     );
     return ExpandableRecordCard(
@@ -445,7 +443,7 @@ class _DirectoryCard extends StatelessWidget {
                         ? 'No members'
                         : 'No members match "$search"',
                     style: AppFonts.body(
-                        fontSize: 12, color: AppColors.slate400)),
+                        fontSize: 13, color: AppColors.slate400)),
               ),
             )
           else
@@ -474,7 +472,7 @@ class _DirectoryCard extends StatelessWidget {
                     child: Text(
                         'Showing ${start + 1}–$end of ${filtered.length}',
                         style: AppFonts.body(
-                            fontSize: 11, color: AppColors.slate500),
+                            fontSize: 13, color: AppColors.slate500),
                         overflow: TextOverflow.ellipsis),
                   ),
                   Row(
@@ -484,7 +482,7 @@ class _DirectoryCard extends StatelessWidget {
                       const SizedBox(width: 6),
                       Text('$p / $totalPages',
                           style: AppFonts.body(
-                              fontSize: 12,
+                              fontSize: 13,
                               fontWeight: FontWeight.w700,
                               color: AppColors.textPrimary)),
                       const SizedBox(width: 6),
@@ -511,7 +509,7 @@ class _DirectoryCard extends StatelessWidget {
               BoxDecoration(color: color, borderRadius: BorderRadius.circular(9)),
           child: Text(_initials(m.name),
               style: AppFonts.body(
-                  fontSize: 12, fontWeight: FontWeight.w800, color: Colors.white)),
+                  fontSize: 13, fontWeight: FontWeight.w800, color: Colors.white)),
         ),
         const SizedBox(width: 10),
         Expanded(
@@ -537,7 +535,7 @@ class _DirectoryCard extends StatelessWidget {
           if ((m.mobile ?? '').isEmpty && (m.email ?? '').isEmpty)
             Text('No contact details',
                 style: AppFonts.body(
-                    fontSize: 11, color: AppColors.slate400)),
+                    fontSize: 13, color: AppColors.slate400)),
         ],
       ),
     );
@@ -602,7 +600,7 @@ class _Card extends StatelessWidget {
           if (subtitle.isNotEmpty)
             Text(subtitle,
                 style: AppFonts.body(
-                    fontSize: 11, color: AppColors.slate500)),
+                    fontSize: 13, color: AppColors.slate500)),
           const SizedBox(height: 12),
           child,
         ],
@@ -615,7 +613,7 @@ Widget _empty(String text) => Padding(
       padding: const EdgeInsets.symmetric(vertical: 8),
       child: Text(text,
           style: AppFonts.body(
-              fontSize: 12, color: AppColors.slate400)),
+              fontSize: 13, color: AppColors.slate400)),
     );
 
 /// Icon + value contact line used inside the expanded member / joiner cards.
@@ -630,7 +628,7 @@ Widget _contactLine(IconData icon, String value) => Padding(
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: AppFonts.body(
-                    fontSize: 11.5, color: AppColors.slate500)),
+                    fontSize: 13, color: AppColors.slate500)),
           ),
         ],
       ),

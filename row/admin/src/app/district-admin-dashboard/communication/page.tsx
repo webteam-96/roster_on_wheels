@@ -51,6 +51,7 @@ import {
   DocumentsSection,
   NewslettersSection,
 } from "./sections";
+import { ListPageSkeleton } from "@/components/row/AppKit";
 
 // ──────────────────────────────────────────────────────────────────────────
 // Tab keys
@@ -82,7 +83,7 @@ export default function DistrictAdminCommunicationPage() {
   if (status === "loading" && !communication) {
     return (
       <div className="flex items-center justify-center py-20">
-        <RotaryLoader size="lg" label="Loading…" />
+        <ListPageSkeleton />
       </div>
     );
   }

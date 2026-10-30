@@ -316,7 +316,7 @@ class _ClubWebsiteBannersScreenState extends State<ClubWebsiteBannersScreen> {
                       itemCount: _banners.length,
                       onReorder: _onReorder,
                       proxyDecorator: (child, _, __) => Material(
-                        elevation: 6,
+                        elevation: 0,
                         color: Colors.transparent,
                         borderRadius: BorderRadius.circular(12),
                         child: child,

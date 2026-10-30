@@ -476,7 +476,7 @@ export function CommitteeMembersView({ embedded = false }: { embedded?: boolean 
                       )}
                     </TableCell>
                     <TableCell>
-                      <div className="flex items-center gap-2">
+                      <div className="flex flex-wrap items-center gap-2">
                         <span className="font-semibold text-slate-800">{m.name}</span>
                         {m.isMember ? <MemberChip /> : <NonMemberChip />}
                       </div>
@@ -539,7 +539,7 @@ export function CommitteeMembersView({ embedded = false }: { embedded?: boolean 
                 <div className="space-y-2">
                   <Label className="text-slate-500 text-xs font-semibold uppercase tracking-wide">Search Member</Label>
                   <div className="relative">
-                    <div className="flex items-center gap-2">
+                    <div className="flex flex-wrap items-center gap-2">
                       <div className="relative flex-1">
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
                         <Input

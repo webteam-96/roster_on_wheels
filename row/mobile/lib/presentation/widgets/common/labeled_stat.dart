@@ -28,7 +28,7 @@ class LabeledStat extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         Text(
-          label.toUpperCase(),
+          label,
           textAlign: align,
           style: AppFonts.body(
             fontSize: 9.5,

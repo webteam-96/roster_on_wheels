@@ -76,7 +76,8 @@ class _CustomButtonState extends State<CustomButton> with SingleTickerProviderSt
           );
 
     final effectivePadding = widget.padding ?? const EdgeInsets.symmetric(horizontal: 24, vertical: 12);
-    final borderRadius = BorderRadius.circular(12);
+    // ROW buttons are full pills (design.md 5).
+    final borderRadius = BorderRadius.circular(999);
 
     Widget buttonBody;
     if (isGradient && widget.onPressed != null && !widget.isLoading) {

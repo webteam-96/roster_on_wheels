@@ -28,6 +28,7 @@ import 'package:rotary_flutter_app/core/brand/brand.dart';
 import 'package:rotary_flutter_app/core/utils/money_format.dart';
 import 'package:rotary_flutter_app/core/theme/app_fonts.dart';
 import 'package:rotary_flutter_app/core/i18n/text.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/skeleton_list.dart';
 
 class MembershipDuesScreen extends StatefulWidget {
   final int clubId;
@@ -645,7 +646,7 @@ class _MembershipDuesScreenState extends State<MembershipDuesScreen> {
         elevation: 0,
         minimumSize: const Size.fromHeight(44),
         padding: const EdgeInsets.symmetric(horizontal: 12),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        shape: const StadiumBorder(),
       ),
     );
   }
@@ -708,9 +709,9 @@ class _MembershipDuesScreenState extends State<MembershipDuesScreen> {
                             color: statusColor.withValues(alpha: 0.12),
                             borderRadius: BorderRadius.circular(20),
                           ),
-                          child: Text(isActive ? 'ACTIVE' : 'INACTIVE',
+                          child: Text(isActive ? 'Active' : 'Inactive',
                               style: AppTextStyles.caption.copyWith(
-                                  fontSize: 10,
+                                  fontSize: 13,
                                   color: statusColor,
                                   fontWeight: FontWeight.w700)),
                         ),
@@ -962,7 +963,7 @@ class _DueFormScreenState extends State<_DueFormScreen> {
       backgroundColor: AppColors.background,
       appBar: const CustomAppBar(title: 'Edit Club Dues'),
       body: !ready
-          ? const Center(child: CircularProgressIndicator())
+          ? const RowSkeletonList()
           : Form(
               key: _formKey,
               autovalidateMode: AutovalidateMode.onUserInteraction,
@@ -1152,7 +1153,7 @@ class _DueFormScreenState extends State<_DueFormScreen> {
           Text(template,
               style: const TextStyle(
                   fontFamily: 'monospace',
-                  fontSize: 11,
+                  fontSize: 13,
                   height: 1.4,
                   color: AppColors.textSecondary)),
         ],
@@ -1798,7 +1799,7 @@ class DuesRosterScreenState extends State<DuesRosterScreen> {
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: AppTextStyles.caption.copyWith(
-                  fontSize: 11,
+                  fontSize: 13,
                   fontWeight: FontWeight.w600,
                   color: AppColors.textSecondary)),
         ],
@@ -2163,7 +2164,7 @@ class DuesRosterScreenState extends State<DuesRosterScreen> {
       ),
       child: Text(status,
           style: TextStyle(
-              fontSize: 11, fontWeight: FontWeight.w700, color: fg)),
+              fontSize: 13, fontWeight: FontWeight.w700, color: fg)),
     );
   }
 
@@ -2176,7 +2177,7 @@ class DuesRosterScreenState extends State<DuesRosterScreen> {
         ),
         child: Text(text,
             style: TextStyle(
-                fontSize: 10, fontWeight: FontWeight.w700, color: fg)),
+                fontSize: 13, fontWeight: FontWeight.w700, color: fg)),
       );
 
   /// A visible tinted action button (icon + label) for the per-member row
@@ -2202,7 +2203,7 @@ class DuesRosterScreenState extends State<DuesRosterScreen> {
               const SizedBox(width: 6),
               Text(label,
                   style: AppTextStyles.caption.copyWith(
-                      fontSize: 12,
+                      fontSize: 13,
                       fontWeight: FontWeight.w700,
                       color: color)),
             ],
@@ -2613,12 +2614,12 @@ class DuesOfflinePaymentDialogState extends State<DuesOfflinePaymentDialog> {
               child: Text(label,
                   style: AppTextStyles.caption.copyWith(
                     color: Colors.orange[700],
-                    fontSize: 11,
+                    fontSize: 13,
                   )),
             ),
             Expanded(
               child: Text(value,
-                  style: AppTextStyles.caption.copyWith(fontSize: 11)),
+                  style: AppTextStyles.caption.copyWith(fontSize: 13)),
             ),
           ],
         ),

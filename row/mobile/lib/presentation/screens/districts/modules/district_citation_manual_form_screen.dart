@@ -362,12 +362,10 @@ class _DistrictCitationManualFormScreenState
             child: TextButton(
               onPressed: _saving ? null : _save,
               style: TextButton.styleFrom(
-                backgroundColor: AppColors.goldPrime,
+                backgroundColor: AppColors.primaryPrime,
                 foregroundColor: AppColors.darkBg,
                 padding: const EdgeInsets.symmetric(horizontal: 14),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
+                shape: const StadiumBorder(),
               ),
               child: _saving
                   ? const SizedBox(
@@ -427,7 +425,7 @@ class _DistrictCitationManualFormScreenState
                             ? 'No categories exist yet. Add one from the Categories tab first, then create a manual criterion.'
                             : 'All categories already have a manual criterion. Add a new Category to create another.',
                         style: const TextStyle(
-                            fontSize: 12, color: AppColors.textSecondary),
+                            fontSize: 13, color: AppColors.textSecondary),
                       ),
                     ),
                 ],
@@ -640,13 +638,13 @@ class _DistrictCitationManualFormScreenState
               const Expanded(
                 child: Text('Options',
                     style: TextStyle(
-                        fontSize: 12, fontWeight: FontWeight.w700)),
+                        fontSize: 13, fontWeight: FontWeight.w700)),
               ),
               TextButton.icon(
                 onPressed: _saving ? null : () => _addOption(subIdx),
                 icon: const Icon(Icons.add, size: 14),
                 label: const Text('Add Option',
-                    style: TextStyle(fontSize: 12)),
+                    style: TextStyle(fontSize: 13)),
               ),
             ],
           ),
@@ -656,7 +654,7 @@ class _DistrictCitationManualFormScreenState
               child: const Text(
                 'No options yet.',
                 style: const TextStyle(
-                    fontSize: 12, color: AppColors.textSecondary),
+                    fontSize: 13, color: AppColors.textSecondary),
               ),
             )
           else

@@ -427,29 +427,36 @@ class _ClubDashboardScreenState extends State<ClubDashboardScreen>
               slivers: [
             SliverAppBar(
               pinned: true,
-              backgroundColor: AppColors.primaryPrime,
-              foregroundColor: Colors.white,
+              backgroundColor: AppColors.lightBg,
+              foregroundColor: AppColors.textPrimary,
               elevation: 0,
-              centerTitle: true,
+              centerTitle: false,
               leading: IconButton(
-                icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white),
+                icon: const Icon(Icons.arrow_back_ios_new_rounded, color: AppColors.textPrimary),
                 onPressed: () => context.pop(),
               ),
               title: Text(
-                _clubName.isEmpty ? 'Club Dashboard' : _clubName.toUpperCase(),
+                _clubName.isEmpty ? 'Club Dashboard' : _clubName,
                 style: AppFonts.body(
                   fontWeight: FontWeight.w800,
                   fontSize: 16,
-                  color: Colors.white,
-                  letterSpacing: 1,
+                  color: AppColors.textPrimary,
                 ),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
               actions: [
+                // Admin access sits in the bar (design.md 8.6), not floating over the module list.
+                if (showBadge)
+                  Padding(
+                    padding: const EdgeInsets.only(right: 4),
+                    child: Center(
+                      child: _buildAdminPill(onTap: () => context.push(RouteNames.clubOverview(widget.clubId))),
+                    ),
+                  ),
                 IconButton(
                   tooltip: 'Choose a layout',
-                  icon: const Icon(Icons.dashboard_customize_rounded, color: Colors.white),
+                  icon: const Icon(Icons.dashboard_customize_rounded, color: AppColors.textPrimary),
                   onPressed: _showVariantPicker,
                 ),
               ],
@@ -479,15 +486,6 @@ class _ClubDashboardScreenState extends State<ClubDashboardScreen>
               ],
             ),
           ),
-          if (showBadge)
-            Positioned(
-              right: 16,
-              bottom: 20,
-              child: _buildAdminPill(
-                onTap: () => context.push(RouteNames.clubOverview(widget.clubId)),
-                elevated: true,
-              ),
-            ),
         ],
       ),
     );
@@ -520,8 +518,7 @@ class _ClubDashboardScreenState extends State<ClubDashboardScreen>
                   style: AppFonts.body(
                     color: Colors.white,
                     fontWeight: FontWeight.w800,
-                    fontSize: 12,
-                    letterSpacing: 0.8,
+                    fontSize: 13,
                   ),
                 ),
               ],
@@ -603,7 +600,7 @@ class _ClubDashboardScreenState extends State<ClubDashboardScreen>
             color: selected ? AppColors.primaryPrime : AppColors.textPrimary,
           )),
       subtitle: Text(subtitle,
-          style: AppFonts.body(fontSize: 12, color: AppColors.textMuted)),
+          style: AppFonts.body(fontSize: 13, color: AppColors.textMuted)),
       activeColor: AppColors.primaryPrime,
       contentPadding: const EdgeInsets.symmetric(horizontal: 12),
       dense: true,
@@ -797,12 +794,11 @@ class _ClubDashboardScreenState extends State<ClubDashboardScreen>
     return Padding(
       padding: EdgeInsets.only(left: 4, bottom: bottomGap, top: 8),
       child: Text(
-        categoryName.toUpperCase(),
-        style: AppFonts.body(
-          fontSize: 12,
-          fontWeight: FontWeight.w800,
-          color: color,
-          letterSpacing: 1.5,
+        categoryName,
+        style: AppFonts.display(
+          fontSize: 18,
+          fontWeight: FontWeight.w600,
+          color: AppColors.textPrimary,
         ),
       ),
     );
@@ -813,32 +809,14 @@ class _ClubDashboardScreenState extends State<ClubDashboardScreen>
 // Category color mapping
 // ---------------------------------------------------------------------------
 
-const _kCategoryFallbackPalette = <Color>[
-  AppColors.accentBlue, // blue
-  AppColors.success, // green
-  AppColors.accentBlue, // purple
-  AppColors.accentBlue, // teal
-  AppColors.warningDark, // amber
-  AppColors.chart5, // cyan
-];
 
 /// Normalizes a moduleKey the same way [_routeFor] does (lowercase, no spaces/
 /// underscores/dashes) so badge lookups match regardless of backend casing.
 String _normKey(String k) =>
     k.toLowerCase().replaceAll(' ', '').replaceAll('_', '').replaceAll('-', '');
 
-Color _categoryColor(String categoryName, int categoryId) {
-  final key = categoryName.toLowerCase();
-  if (key.contains('communication')) return AppColors.accentBlue;
-  if (key.contains('event') || key.contains('activit')) return AppColors.success;
-  if (key.contains('report') || key.contains('cmr')) return AppColors.accentBlue;
-  if (key.contains('people') || key.contains('directory') || key.contains('member')) return AppColors.accentBlue;
-  if (key.contains('foundation') || key.contains('trf')) return AppColors.warningDark;
-  if (key.contains('master')) return AppColors.warningDark; // orange
-  if (key.contains('setting')) return AppColors.textSecondary;
-  if (key.contains('website') || key.contains('web')) return AppColors.chart5;
-  return _kCategoryFallbackPalette[categoryId.abs() % _kCategoryFallbackPalette.length];
-}
+// One brand colour for every module group (design.md 1: no rainbow colouring).
+Color _categoryColor(String categoryName, int categoryId) => AppColors.primaryPrime;
 
 // ---------------------------------------------------------------------------
 // Module tile (variant A & D — 3-col tinted)
@@ -921,7 +899,7 @@ class _ModuleTile extends StatelessWidget {
                 child: Text(
                   module.moduleName,
                   style: AppFonts.body(
-                    fontSize: 10,
+                    fontSize: 13,
                     fontWeight: FontWeight.w700,
                     color: AppColors.textPrimary,
                     height: 1.2,

@@ -18,6 +18,7 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 
 import { currencySymbol } from "@/lib/appFormat";
 import { TEXT_INPUT_REGEX } from "@/lib/textInput";
+import { ListPageSkeleton } from "@/components/row/AppKit";
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
 export default function DistrictProjectEditPage() {
@@ -208,7 +209,7 @@ export default function DistrictProjectEditPage() {
     finally { setSaving(false); }
   };
 
-  if (loading) return <ProtectedRoute><div className="flex justify-center py-20"><RotaryLoader size="lg" /></div></ProtectedRoute>;
+  if (loading) return <ProtectedRoute><div className="flex justify-center py-20"><ListPageSkeleton /></div></ProtectedRoute>;
 
   return (
     <ProtectedRoute>

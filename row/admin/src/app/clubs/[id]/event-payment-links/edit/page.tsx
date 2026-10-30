@@ -32,6 +32,7 @@ import { ArrowLeft, Save, Loader2 } from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
 import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";
+import { ListPageSkeleton } from "@/components/row/AppKit";
 
 interface Registration { id: number; registrationName: string; amount: number; }
 interface VendorSplit { id: number; fkRegistrationId: number; registrationName?: string; fkKycId: number; vendorId?: string; vendorName?: string; splitAmount: number; }
@@ -268,7 +269,7 @@ export default function ClubEditPaymentLinkPage() {
   if (!isSuperAdmin && !isAdmin) {
     return (<ProtectedRoute><div className="flex flex-col items-center justify-center py-20"><h3 className="text-lg font-semibold">Access Denied</h3></div></ProtectedRoute>);
   }
-  if (loading) return (<ProtectedRoute><div className="flex justify-center py-20"><RotaryLoader size="lg" /></div></ProtectedRoute>);
+  if (loading) return (<ProtectedRoute><div className="flex justify-center py-20"><ListPageSkeleton /></div></ProtectedRoute>);
 
   return (
     <ProtectedRoute>

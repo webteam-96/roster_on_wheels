@@ -211,7 +211,7 @@ class _Header extends StatelessWidget {
               Text(
                 'Charitable contributions · RY $yearLabel · AG: $agName',
                 style: AppFonts.body(
-                  fontSize: 11,
+                  fontSize: 13,
                   color: AppColors.slate500,
                 ),
               ),
@@ -329,9 +329,9 @@ class _KpiCard extends StatelessWidget {
               const SizedBox(width: 6),
               Expanded(
                 child: Text(
-                  label.toUpperCase(),
+                  label,
                   style: AppFonts.body(
-                    fontSize: 9.5,
+                    fontSize: 13,
                     fontWeight: FontWeight.w800,
                     color: AppColors.slate500,
                     letterSpacing: 0.4,
@@ -356,7 +356,7 @@ class _KpiCard extends StatelessWidget {
           Text(
             sub,
             style: AppFonts.body(
-              fontSize: 10,
+              fontSize: 13,
               color: AppColors.slate400,
             ),
             overflow: TextOverflow.ellipsis,
@@ -406,10 +406,9 @@ class _AgBanner extends StatelessWidget {
                     Text(
                       'TOTAL TRF GIVING',
                       style: AppFonts.body(
-                        fontSize: 10,
+                        fontSize: 13,
                         fontWeight: FontWeight.w800,
                         color: Colors.white.withValues(alpha: 0.85),
-                        letterSpacing: 1.0,
                       ),
                     ),
                     const SizedBox(height: 6),
@@ -427,7 +426,7 @@ class _AgBanner extends StatelessWidget {
                     Text(
                       'AG: $agName · $clubCount club${clubCount == 1 ? "" : "s"} · RY $yearLabel',
                       style: AppFonts.body(
-                        fontSize: 11.5,
+                        fontSize: 13,
                         fontWeight: FontWeight.w700,
                         color: Colors.white,
                       ),
@@ -444,7 +443,7 @@ class _AgBanner extends StatelessWidget {
                       'ANNUAL + POLIOPLUS + ENDOWMENT + OTHER',
                       textAlign: TextAlign.right,
                       style: AppFonts.body(
-                        fontSize: 9,
+                        fontSize: 13,
                         fontWeight: FontWeight.w800,
                         color: Colors.white.withValues(alpha: 0.9),
                         letterSpacing: 0.3,
@@ -455,7 +454,7 @@ class _AgBanner extends StatelessWidget {
                       'Combined giving across $givingClubs contributing club${givingClubs == 1 ? "" : "s"}',
                       textAlign: TextAlign.right,
                       style: AppFonts.body(
-                        fontSize: 9.5,
+                        fontSize: 13,
                         color: Colors.white.withValues(alpha: 0.8),
                       ),
                     ),
@@ -527,7 +526,7 @@ class _StackedBreakdownCard extends StatelessWidget {
                     Text(
                       'Stacked by fund type · clubs with giving only',
                       style: AppFonts.body(
-                        fontSize: 10.5,
+                        fontSize: 13,
                         color: AppColors.slate400,
                       ),
                     ),
@@ -546,7 +545,7 @@ class _StackedBreakdownCard extends StatelessWidget {
                 child: Text(
                   'No TRF giving recorded yet.',
                   style: AppFonts.body(
-                    fontSize: 12,
+                    fontSize: 13,
                     color: AppColors.slate400,
                   ),
                 ),
@@ -594,7 +593,7 @@ class _StackedRow extends StatelessWidget {
               child: Text(
                 club.clubName,
                 style: AppFonts.body(
-                  fontSize: 11.5,
+                  fontSize: 13,
                   fontWeight: FontWeight.w800,
                   color: AppColors.textPrimary,
                 ),
@@ -604,7 +603,7 @@ class _StackedRow extends StatelessWidget {
             Text(
               agFmtUsd(t.totalInr),
               style: AppFonts.body(
-                fontSize: 11.5,
+                fontSize: 13,
                 fontWeight: FontWeight.w800,
                 color: AppColors.rotaryBlue,
                 fontFeatures: const [FontFeature.tabularFigures()],
@@ -703,7 +702,7 @@ class _LegendDot extends StatelessWidget {
         Text(
           label,
           style: AppFonts.body(
-            fontSize: 10.5,
+            fontSize: 13,
             color: AppColors.slate500,
           ),
         ),
@@ -761,7 +760,7 @@ class _LeaderboardCard extends StatelessWidget {
                 child: Text(
                   'My Clubs',
                   style: AppFonts.body(
-                    fontSize: 10,
+                    fontSize: 13,
                     fontWeight: FontWeight.w800,
                     color: AppColors.slate500,
                   ),
@@ -777,7 +776,7 @@ class _LeaderboardCard extends StatelessWidget {
                 child: Text(
                   'No giving yet.',
                   style: AppFonts.body(
-                    fontSize: 12,
+                    fontSize: 13,
                     color: AppColors.slate400,
                   ),
                 ),
@@ -834,7 +833,7 @@ class _LeaderboardRow extends StatelessWidget {
                     Text(
                       club.clubName,
                       style: AppFonts.body(
-                        fontSize: 12.5,
+                        fontSize: 13,
                         fontWeight: FontWeight.w800,
                         color: AppColors.textPrimary,
                       ),
@@ -843,7 +842,7 @@ class _LeaderboardRow extends StatelessWidget {
                     Text(
                       '${club.members} member${club.members == 1 ? "" : "s"}',
                       style: AppFonts.body(
-                        fontSize: 10.5,
+                        fontSize: 13,
                         color: AppColors.slate400,
                       ),
                     ),
@@ -910,16 +909,15 @@ class _ContributionCard extends StatelessWidget {
                       TextSpan(
                         text: 'MY CLUBS TRF SUMMARY',
                         style: AppFonts.body(
-                          fontSize: 11,
+                          fontSize: 13,
                           fontWeight: FontWeight.w800,
                           color: AppColors.slate700,
-                          letterSpacing: 0.5,
                         ),
                       ),
                       TextSpan(
                         text: ': Per-club contribution',
                         style: AppFonts.body(
-                          fontSize: 11,
+                          fontSize: 13,
                           fontWeight: FontWeight.w600,
                           color: AppColors.slate400,
                         ),
@@ -938,7 +936,7 @@ class _ContributionCard extends StatelessWidget {
                 child: Text(
                   'No TRF contributions recorded yet.',
                   style: AppFonts.body(
-                    fontSize: 12,
+                    fontSize: 13,
                     color: AppColors.slate400,
                   ),
                 ),
@@ -955,7 +953,7 @@ class _ContributionCard extends StatelessWidget {
               'Combined giving across $clubCount club${clubCount == 1 ? "" : "s"}',
               textAlign: TextAlign.right,
               style: AppFonts.body(
-                fontSize: 10,
+                fontSize: 13,
                 color: AppColors.slate400,
               ),
             ),
@@ -983,7 +981,7 @@ class _ContributionRow extends StatelessWidget {
               child: Text(
                 club.clubName,
                 style: AppFonts.body(
-                  fontSize: 11.5,
+                  fontSize: 13,
                   fontWeight: FontWeight.w700,
                   color: AppColors.slate700,
                 ),
@@ -993,7 +991,7 @@ class _ContributionRow extends StatelessWidget {
             Text(
               '${pct.toStringAsFixed(1)}% of AG total',
               style: AppFonts.body(
-                fontSize: 10.5,
+                fontSize: 13,
                 fontWeight: FontWeight.w800,
                 color: AppColors.rotaryBlue,
                 fontFeatures: const [FontFeature.tabularFigures()],
@@ -1031,7 +1029,7 @@ class _AgTotalContributionRow extends StatelessWidget {
               child: Text(
                 'AG Total (All Clubs)',
                 style: AppFonts.body(
-                  fontSize: 11.5,
+                  fontSize: 13,
                   fontWeight: FontWeight.w800,
                   color: AppColors.slate700,
                 ),
@@ -1040,7 +1038,7 @@ class _AgTotalContributionRow extends StatelessWidget {
             Text(
               '100% of AG total',
               style: AppFonts.body(
-                fontSize: 10.5,
+                fontSize: 13,
                 fontWeight: FontWeight.w800,
                 color: AppColors.goldPrime,
                 fontFeatures: const [FontFeature.tabularFigures()],
@@ -1108,14 +1106,14 @@ class _DetailTable extends StatelessWidget {
               Text(
                 'Tap a fund to sort',
                 style: AppFonts.body(
-                  fontSize: 10,
+                  fontSize: 13,
                   color: AppColors.slate400,
                 ),
               ),
             ],
           ),
           const SizedBox(height: 10),
-          SingleChildScrollView(
+          Align(alignment: Alignment.centerLeft, child: SingleChildScrollView(
             scrollDirection: Axis.horizontal,
             padding: const EdgeInsets.symmetric(vertical: 2),
             child: Row(
@@ -1132,7 +1130,7 @@ class _DetailTable extends StatelessWidget {
                   ),
               ],
             ),
-          ),
+          )),
           const SizedBox(height: 12),
           if (rows.isEmpty)
             Padding(
@@ -1141,7 +1139,7 @@ class _DetailTable extends StatelessWidget {
                 child: Text(
                   'No clubs found.',
                   style: AppFonts.body(
-                    fontSize: 12,
+                    fontSize: 13,
                     color: AppColors.slate400,
                   ),
                 ),
@@ -1210,7 +1208,7 @@ class _TrfSortChip extends StatelessWidget {
               Text(
                 label,
                 style: AppFonts.body(
-                  fontSize: 11,
+                  fontSize: 13,
                   fontWeight: FontWeight.w700,
                   color: active ? Colors.white : AppColors.slate500,
                 ),
@@ -1281,7 +1279,7 @@ class _TrfClubCard extends StatelessWidget {
                 child: Text(
                   t.totalInr <= 0 ? '–' : agFmtUsd(t.totalInr),
                   style: AppFonts.body(
-                    fontSize: 12,
+                    fontSize: 13,
                     fontWeight: FontWeight.w800,
                     color: AppColors.rotaryBlue,
                   ),
@@ -1328,9 +1326,9 @@ class _TrfFundTile extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            label.toUpperCase(),
+            label,
             style: AppFonts.body(
-              fontSize: 8,
+              fontSize: 13,
               fontWeight: FontWeight.w800,
               color: AppColors.slate400,
               letterSpacing: 0.3,
@@ -1342,7 +1340,7 @@ class _TrfFundTile extends StatelessWidget {
           Text(
             value,
             style: AppFonts.body(
-              fontSize: 11.5,
+              fontSize: 13,
               fontWeight: FontWeight.w800,
               color: empty ? AppColors.slate400 : AppColors.textPrimary,
               fontFeatures: const [FontFeature.tabularFigures()],
@@ -1410,9 +1408,9 @@ class _AgTotalCard extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        funds[i].$1.toUpperCase(),
+                        funds[i].$1,
                         style: AppFonts.body(
-                          fontSize: 8,
+                          fontSize: 13,
                           fontWeight: FontWeight.w800,
                           color: Colors.white.withValues(alpha: 0.6),
                           letterSpacing: 0.3,
@@ -1424,7 +1422,7 @@ class _AgTotalCard extends StatelessWidget {
                       Text(
                         _fundShort(funds[i].$2),
                         style: AppFonts.body(
-                          fontSize: 11.5,
+                          fontSize: 13,
                           fontWeight: FontWeight.w800,
                           color: Colors.white,
                           fontFeatures: const [FontFeature.tabularFigures()],

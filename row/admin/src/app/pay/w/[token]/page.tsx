@@ -29,6 +29,7 @@ import {
 } from "@/services/api";
 
 import { appLocale, currencySymbol } from "@/lib/appFormat";
+import { SkeletonRows } from "@/components/row/AppKit";
 const PRESETS = [500, 1000, 2000, 5000];
 const POPULAR = 1000;                         // the tile carrying the "Popular" flag
 
@@ -279,7 +280,7 @@ export default function PublicWalletPayPage() {
     body = (
       <div className="py-24 text-center">
         <div className="mx-auto h-8 w-8 animate-spin rounded-full border-2 border-slate-200 border-t-azure" />
-        <p className="mt-4 text-sm text-slate-500">Loading…</p>
+        <SkeletonRows />
       </div>
     );
   } else if (loadError) {
@@ -439,7 +440,7 @@ export default function PublicWalletPayPage() {
                           : "Set up a new website for this club."}
                       </p>
                       <button onClick={handleWebsite} disabled={busy}
-                        className="mt-4 w-full rounded-xl bg-azure py-3.5 text-sm font-bold text-white shadow-sm transition hover:brightness-110 disabled:opacity-60">
+                        className="mt-4 w-full rounded-full bg-azure py-3.5 text-sm font-bold text-white shadow-sm transition hover:brightness-110 disabled:opacity-60">
                         {busy ? "Loading…" : "Continue to website purchase →"}
                       </button>
                     </>
@@ -526,7 +527,7 @@ export default function PublicWalletPayPage() {
 
                   <button
                     onClick={handleCreditPay} disabled={busy || !quote || !!quote?.error}
-                    className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl bg-azure py-4 text-sm font-bold text-white shadow-sm transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-60"
+                    className="mt-4 flex w-full items-center justify-center gap-2 rounded-full bg-azure py-4 text-sm font-bold text-white shadow-sm transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-60"
                   >
                     <Lock className="h-4 w-4" />
                     {busy ? "Processing…" : `Pay ${quote && !quote.error ? inr(quote.totalAmount) : ""}`}

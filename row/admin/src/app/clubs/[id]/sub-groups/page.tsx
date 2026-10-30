@@ -47,6 +47,7 @@ import RotaryLoader from "@/components/RotaryLoader";
 import Link from "next/link";
 import Image from "next/image";
 import ProtectedRoute from "@/components/ProtectedRoute";
+import { ListPageSkeleton } from "@/components/row/AppKit";
 
 export default function SubGroupsPage() {
   const params = useParams();
@@ -355,7 +356,7 @@ export default function SubGroupsPage() {
 
         {loading && (
           <div className="flex items-center justify-center py-20">
-            <RotaryLoader size="lg" />
+            <ListPageSkeleton />
           </div>
         )}
 
@@ -379,7 +380,7 @@ export default function SubGroupsPage() {
 
         {loadingGroups && (
           <div className="flex items-center justify-center py-12">
-            <RotaryLoader size="lg" />
+            <ListPageSkeleton />
           </div>
         )}
 
@@ -416,7 +417,7 @@ export default function SubGroupsPage() {
               {filteredGroups.map((group) => (
                 <Card key={group.id} className="border-primary/20">
                   <CardContent className="p-4">
-                    <div className="flex items-center justify-between">
+                    <div className="flex flex-wrap items-center justify-between gap-3">
                       <div className="flex-1 min-w-0">
                         <button
                           className="font-semibold text-primary truncate hover:underline text-left"

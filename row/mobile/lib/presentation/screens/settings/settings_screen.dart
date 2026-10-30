@@ -120,7 +120,7 @@ class SettingsScreen extends StatelessWidget {
       appBar: CustomAppBar(
         title: 'Settings',
         showBack: true,
-        centerTitle: true,
+        centerTitle: false,
         onBack: () => context.go(RouteNames.home),
         titleStyle:
             AppFonts.body(fontWeight: FontWeight.bold, fontSize: 22),
@@ -298,7 +298,7 @@ class _PreferenceTile extends StatelessWidget {
                       Text(
                         subtitle,
                         style: AppFonts.body(
-                          fontSize: 12,
+                          fontSize: 13,
                           color: AppColors.textSecondary,
                           fontWeight: FontWeight.w500,
                         ),
@@ -396,7 +396,7 @@ class _SettingsTileCard extends StatelessWidget {
                     Text(
                       tile.subtitle,
                       style: AppFonts.body(
-                        fontSize: 11,
+                        fontSize: 13,
                         color: AppColors.textSecondary,
                         fontWeight: FontWeight.w500,
                         height: 1.3,

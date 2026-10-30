@@ -22,6 +22,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { getGoalCategories, getDistrictClubsGoalMatrix, getDistrictClubsMonthlyMatrix, downloadAllClubsGoalExcel } from "@/services/api";
 import { fileTimestamp } from "@/lib/dateUtils";
 import type { GoalCategoryDto, GoalClubMatrixDto, GoalMatrixColumnDto, GoalClubMonthlyMatrixDto } from "@/types/goalSetting";
+import { ListPageSkeleton } from "@/components/row/AppKit";
 
 // `cell` fills the whole RAG cell with the band colour (this comparison view is read-only oversight;
 // the district's / club's own Goal Setting form is untouched).
@@ -203,7 +204,7 @@ export default function DistrictAdminGoalClubsPage() {
               type="button"
               onClick={downloadReport}
               disabled={dlBusy}
-              className="inline-flex items-center gap-1.5 h-9 rounded-lg border border-blue-200 bg-blue-50 px-3 text-xs font-medium text-blue-700 hover:bg-blue-100 disabled:opacity-40"
+              className="inline-flex items-center gap-1.5 h-9 rounded-full border border-blue-200 bg-blue-50 px-3 text-xs font-medium text-blue-700 hover:bg-blue-100 disabled:opacity-40"
               title="Download the Club Goal Setting report (all clubs of this district)"
             >
               {dlBusy ? <Loader2 size={13} className="animate-spin" /> : <Download size={13} />} Download report
@@ -257,7 +258,7 @@ export default function DistrictAdminGoalClubsPage() {
             <select
               value={metricKey ?? ""}
               onChange={(e) => setMetricKey(e.target.value || null)}
-              className="h-9 rounded-lg border border-slate-300 bg-white px-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="h-9 rounded-[12px] border border-slate-300 bg-white px-3 text-sm focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
             >
               {monthly.fields.map((f) => (
                 <option key={f.fieldKey} value={f.fieldKey}>{metricLabel(f, monthly?.fields || [])}</option>
@@ -278,7 +279,7 @@ export default function DistrictAdminGoalClubsPage() {
                   value={clubQuery}
                   onChange={(e) => setClubQuery(e.target.value)}
                   placeholder="Filter clubs by name…"
-                  className="w-full h-9 pl-8 pr-3 rounded-lg border border-slate-300 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full h-9 pl-8 pr-3 rounded-[12px] border border-slate-300 bg-white text-sm focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
                 />
               </div>
               <span className="text-xs text-slate-500">{shown} of {total} club{total === 1 ? "" : "s"}</span>
@@ -288,7 +289,7 @@ export default function DistrictAdminGoalClubsPage() {
         })()}
 
         {loading && (
-          <div className="flex items-center justify-center py-16"><RotaryLoader size="lg" /></div>
+          <div className="flex items-center justify-center py-16"><ListPageSkeleton /></div>
         )}
 
         {!loading && error && (
@@ -318,14 +319,14 @@ export default function DistrictAdminGoalClubsPage() {
             )}
             <div className="overflow-x-auto">
               <table className="text-sm border-collapse">
-                <thead>
+                <thead className="bg-[#EDF4FB] text-[13px] text-[#64748B]">
                   <tr className="border-b border-marigold" style={{ backgroundColor: "#17458f" }}>
-                    <th rowSpan={2} className="sticky left-0 z-20 bg-azure text-left px-4 py-2 text-white text-xs font-semibold uppercase tracking-wide border-r border-white/20">Club</th>
+                    <th rowSpan={2} className="sticky left-0 z-20 bg-azure text-left px-4 py-2 text-white text-xs font-semibold border-r border-white/20">Club</th>
                     {isMembership && (
-                      <th rowSpan={2} className="px-3 py-2 text-white text-xs font-semibold uppercase tracking-wide border-r border-white/20 text-left">RAG</th>
+                      <th rowSpan={2} className="px-3 py-2 text-white text-xs font-semibold border-r border-white/20 text-left">RAG</th>
                     )}
                     {groups.map((g, gi) => (
-                      <th key={gi} colSpan={g.cols.length} className="px-3 py-2 text-white text-[11px] font-semibold uppercase tracking-wide text-center border-l border-white/20">
+                      <th key={gi} colSpan={g.cols.length} className="px-3 py-2 text-white text-[11px] font-semibold text-center border-l border-white/20">
                         {g.name}
                       </th>
                     ))}
@@ -381,15 +382,15 @@ export default function DistrictAdminGoalClubsPage() {
             </div>
             <div className="overflow-x-auto">
               <table className="text-sm border-collapse">
-                <thead>
+                <thead className="bg-[#EDF4FB] text-[13px] text-[#64748B]">
                   <tr className="border-b border-marigold" style={{ backgroundColor: "#17458f" }}>
-                    <th className="sticky left-0 z-20 bg-azure text-left px-4 py-2 text-white text-xs font-semibold uppercase tracking-wide border-r border-white/20">Club</th>
+                    <th className="sticky left-0 z-20 bg-azure text-left px-4 py-2 text-white text-xs font-semibold border-r border-white/20">Club</th>
                     {monthly.months.map((m) => (
-                      <th key={m.month} className={`px-3 py-2 text-[11px] font-semibold uppercase tracking-wide text-right border-l border-white/10 whitespace-nowrap ${m.isAvailable ? "text-white" : "text-white/40"}`}>
+                      <th key={m.month} className={`px-3 py-2 text-[13px] font-semibold text-right border-l border-white/10 whitespace-nowrap ${m.isAvailable ? "text-white" : "text-white/40"}`}>
                         {m.label}
                       </th>
                     ))}
-                    <th className="px-3 py-2 text-white text-[11px] font-semibold uppercase tracking-wide text-right border-l border-white/20">Total</th>
+                    <th className="px-3 py-2 text-white text-[11px] font-semibold text-right border-l border-white/20">Total</th>
                   </tr>
                 </thead>
                 <tbody>

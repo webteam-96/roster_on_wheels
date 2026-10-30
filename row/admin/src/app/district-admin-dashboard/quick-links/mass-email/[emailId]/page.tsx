@@ -35,6 +35,7 @@ import {
 } from "@/components/icons";
 
 import { appLocale } from "@/lib/appFormat";
+import { ListPageSkeleton } from "@/components/row/AppKit";
 const BASE = "/district-admin-dashboard/quick-links/mass-email";
 
 function withSearch(base: string, extra: Record<string, string | null | undefined>) {
@@ -127,7 +128,7 @@ export default function DistrictAdminMassEmailDetailPage() {
   };
 
   if (!districtId) return null;
-  if (loading) return <div className="flex justify-center py-20"><RotaryLoader size="lg" /></div>;
+  if (loading) return <div className="flex justify-center py-20"><ListPageSkeleton /></div>;
   if (!detail) return <div className="text-center py-20 text-slate-500">Email not found.</div>;
 
   const isDraft = detail.status === "Draft";

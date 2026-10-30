@@ -53,6 +53,7 @@ import SearchBox from "@/components/SearchBox";
 import ImageCropDialog from "@/components/ImageCropDialog";
 import DocumentOrLinkField from "@/components/website-data/DocumentOrLinkField";
 import { useImageCropUpload } from "@/hooks/useImageCropUpload";
+import { ListPageSkeleton } from "@/components/row/AppKit";
 
 // Ads are sponsor posters/flyers in many shapes, so the crop stays FREE-FORM
 // (no locked aspect). Matches the upload validator's own 2560 px compression
@@ -351,7 +352,7 @@ export default function AdvertisementsPage() {
 
         {loading && (
           <div className="flex items-center justify-center py-20">
-            <RotaryLoader size="lg" />
+            <ListPageSkeleton />
           </div>
         )}
 
@@ -382,7 +383,7 @@ export default function AdvertisementsPage() {
 
         {loadingAds && (
           <div className="flex items-center justify-center py-12">
-            <RotaryLoader size="lg" />
+            <ListPageSkeleton />
           </div>
         )}
 
@@ -418,7 +419,7 @@ export default function AdvertisementsPage() {
                     {canManage && !isSearching && (
                       <div
                         {...dragProps(idx)}
-                        className="absolute top-2 left-2 z-10 bg-background/80 backdrop-blur rounded p-1 text-muted-foreground"
+                        className="absolute top-2 left-2 z-10 bg-background rounded p-1 text-muted-foreground"
                         title="Drag to reorder"
                       >
                         <GripVertical className="h-4 w-4 cursor-grab" />
@@ -434,7 +435,7 @@ export default function AdvertisementsPage() {
                           </div>
                         )}
                       </div>
-                      <div className="flex items-center justify-between">
+                      <div className="flex flex-wrap items-center justify-between gap-3">
                         <div className="flex-1 min-w-0">
                           <p className="text-sm text-muted-foreground truncate">{ad.description || "No description"}</p>
                           <div className="flex items-center gap-2 mt-1">

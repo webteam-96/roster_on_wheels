@@ -475,6 +475,7 @@ class _DistrictCommitteeGroupDetailScreenState
             child: const CircularProgressIndicator(color: AppColors.primary));
       }
       return ListView(
+  padding: const EdgeInsets.only(bottom: 88),
         physics: const AlwaysScrollableScrollPhysics(),
         children: [
           const SizedBox(height: 80),
@@ -493,7 +494,7 @@ class _DistrictCommitteeGroupDetailScreenState
 
     return ListView(
       physics: const AlwaysScrollableScrollPhysics(),
-      padding: const EdgeInsets.fromLTRB(16, 4, 16, 96),
+      padding: (const EdgeInsets.fromLTRB(16, 4, 16, 96)).add(const EdgeInsets.only(bottom: 88)),
       children: children,
     );
   }
@@ -719,7 +720,7 @@ class _GroupMemberCard extends StatelessWidget {
                             style: AppTextStyles.caption.copyWith(
                               color: AppColors.warning,
                               fontWeight: FontWeight.w600,
-                              fontSize: 10,
+                              fontSize: 13,
                             ),
                           ),
                         ),
@@ -914,11 +915,10 @@ class _SectionHeader extends StatelessWidget {
         ),
         const SizedBox(width: 8),
         Text(
-          label.toUpperCase(),
+          label,
           style: AppTextStyles.caption.copyWith(
             color: AppColors.textSecondary,
             fontWeight: FontWeight.w800,
-            letterSpacing: 0.6,
           ),
         ),
       ],

@@ -37,6 +37,7 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 import SearchBox from "@/components/SearchBox";
 
 import { appLocale } from "@/lib/appFormat";
+import { ListPageSkeleton } from "@/components/row/AppKit";
 const MEETING_TYPE_LABELS: Record<string, string> = {
   regular: "Regular",
   fellowship: "Fellowship",
@@ -236,7 +237,7 @@ export default function ClubServicePage() {
 
         {loading && (
           <div className="flex items-center justify-center py-20">
-            <RotaryLoader size="lg" />
+            <ListPageSkeleton />
           </div>
         )}
 
@@ -280,7 +281,7 @@ export default function ClubServicePage() {
                     <TableRow key={project.id}>
                       <TableCell className="font-medium">{(page - 1) * pageSize + index + 1}</TableCell>
                       <TableCell>
-                        <div className="flex items-center gap-2">
+                        <div className="flex flex-wrap items-center gap-2">
                           {project.primaryPhotoPath && (
                             <img
                               src={`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"}${project.primaryPhotoPath}`}
@@ -292,7 +293,7 @@ export default function ClubServicePage() {
                         </div>
                       </TableCell>
                       <TableCell>
-                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-700">
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-[#CFE2F6] text-purple-700">
                           {MEETING_TYPE_LABELS[project.meetingType || ""] || project.meetingType || "-"}
                         </span>
                       </TableCell>

@@ -19,6 +19,7 @@ import RotaryLoader from "@/components/RotaryLoader";
 import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import SearchBox from "@/components/SearchBox";
+import { ListPageSkeleton } from "@/components/row/AppKit";
 
 export default function ClubsPage() {
   const { isSuperAdmin } = useAuth();
@@ -137,7 +138,7 @@ export default function ClubsPage() {
           </div>
         )}
 
-        {loading && <div className="flex items-center justify-center py-20"><RotaryLoader size="lg" /></div>}
+        {loading && <div className="flex items-center justify-center py-20"><ListPageSkeleton /></div>}
 
         {error && (
           <div className="flex flex-col items-center justify-center py-20 text-center">

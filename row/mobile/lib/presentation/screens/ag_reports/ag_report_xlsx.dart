@@ -48,35 +48,35 @@ Future<AgReportExportResult> exportAgReportToXlsx({
     horizontalAlign: HorizontalAlign.Left,
   );
   CellStyle subtitleStyle = CellStyle(
-    fontSize: 10,
+    fontSize: 13,
     italic: true,
     fontColorHex: ExcelColor.fromHexString('#555555'),
     horizontalAlign: HorizontalAlign.Left,
   );
   CellStyle infoStyle = CellStyle(
-    fontSize: 10,
+    fontSize: 13,
     fontColorHex: ExcelColor.fromHexString('#666666'),
     horizontalAlign: HorizontalAlign.Left,
   );
   CellStyle headerStyle = CellStyle(
     bold: true,
-    fontSize: 11,
+    fontSize: 13,
     fontColorHex: ExcelColor.fromHexString('#FFFFFF'),
     backgroundColorHex: ExcelColor.fromHexString('#1F4E79'),
     horizontalAlign: HorizontalAlign.Center,
     verticalAlign: VerticalAlign.Center,
   );
   CellStyle oddRowStyle = CellStyle(
-    fontSize: 10,
+    fontSize: 13,
     backgroundColorHex: ExcelColor.fromHexString('#FFFFFF'),
   );
   CellStyle evenRowStyle = CellStyle(
-    fontSize: 10,
+    fontSize: 13,
     backgroundColorHex: ExcelColor.fromHexString('#F2F7FB'),
   );
   CellStyle footerStyle = CellStyle(
     bold: true,
-    fontSize: 10,
+    fontSize: 13,
     fontColorHex: ExcelColor.fromHexString('#1F4E79'),
     backgroundColorHex: ExcelColor.fromHexString('#E8EEF4'),
   );
@@ -158,7 +158,7 @@ Future<AgReportExportResult> exportAgReportToXlsx({
           (raw.startsWith('http://') || raw.startsWith('https://'))) {
         cell.value = FormulaCellValue('HYPERLINK("$raw","View")');
         cell.cellStyle = CellStyle(
-          fontSize: 10,
+          fontSize: 13,
           underline: Underline.Single,
           fontColorHex: ExcelColor.fromHexString('#0563C1'),
         );

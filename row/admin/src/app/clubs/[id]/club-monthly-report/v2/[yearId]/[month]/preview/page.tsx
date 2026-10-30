@@ -184,7 +184,7 @@ function ClubMonthlyReportV2PreviewInner() {
         <button
           type="button"
           onClick={handlePrevious}
-          className="inline-flex items-center gap-1 text-sm font-medium px-3 py-1.5 rounded-lg border border-slate-200 text-slate-700 hover:bg-slate-50"
+          className="inline-flex items-center gap-1 text-sm font-medium px-3 py-1.5 rounded-full border border-slate-200 text-slate-700 hover:bg-slate-50"
         >
           <ArrowLeft size={14} /> Back to Edit
         </button>
@@ -213,7 +213,7 @@ function ClubMonthlyReportV2PreviewInner() {
           <button
             type="button"
             onClick={handlePrevious}
-            className="mt-0.5 inline-flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50"
+            className="mt-0.5 inline-flex h-8 w-8 items-center justify-center rounded-full border border-slate-200 text-slate-500 hover:bg-slate-50"
             aria-label="Back to wizard"
           >
             <ArrowLeft size={15} />
@@ -256,7 +256,7 @@ function ClubMonthlyReportV2PreviewInner() {
         {report.trfEntries.length > 0 ? (
           <div className="overflow-x-auto">
             <table className="min-w-full text-sm border border-slate-200">
-              <thead className="bg-slate-50 text-xs uppercase text-slate-500">
+              <thead className="bg-[#EDF4FB] text-[13px] text-[#64748B]">
                 <tr>
                   <th className="px-3 py-2 text-left border border-slate-200 w-12">#</th>
                   <th className="px-3 py-2 text-left border border-slate-200">Date</th>
@@ -297,7 +297,7 @@ function ClubMonthlyReportV2PreviewInner() {
               </h4>
               <div className="overflow-x-auto">
                 <table className="min-w-full text-sm border border-slate-200">
-                  <thead className="bg-slate-50 text-xs uppercase text-slate-500">
+                  <thead className="bg-[#EDF4FB] text-[13px] text-[#64748B]">
                     <tr>
                       <th className="px-3 py-2 text-left border border-slate-200 w-12">#</th>
                       <th className="px-3 py-2 text-left border border-slate-200">Date</th>
@@ -335,7 +335,7 @@ function ClubMonthlyReportV2PreviewInner() {
           <SectionCard key={key} icon={FolderOpen} title={label}>
             <div className="overflow-x-auto">
               <table className="min-w-full text-sm border border-slate-200">
-                <thead className="bg-slate-50 text-xs uppercase text-slate-500">
+                <thead className="bg-[#EDF4FB] text-[13px] text-[#64748B]">
                   <tr>
                     <th className="px-3 py-2 text-left border border-slate-200 w-12">#</th>
                     <th className="px-3 py-2 text-left border border-slate-200">Date</th>
@@ -442,11 +442,11 @@ function ClubMonthlyReportV2PreviewInner() {
       </div>
 
       {/* Sticky bottom action bar */}
-      <div className="sticky bottom-0 -mx-2 sm:-mx-0 bg-white/95 backdrop-blur border-t border-slate-200 px-4 py-3 flex flex-wrap items-center justify-between gap-2 print:hidden">
+      <div className="sticky bottom-0 -mx-2 sm:-mx-0 bg-white border-t border-slate-200 px-4 py-3 flex flex-wrap items-center justify-between gap-2 print:hidden">
         <button
           type="button"
           onClick={handlePrevious}
-          className="inline-flex items-center gap-1 text-sm font-medium px-3 py-1.5 rounded-lg border border-slate-200 text-slate-700 hover:bg-slate-50"
+          className="inline-flex items-center gap-1 text-sm font-medium px-3 py-1.5 rounded-full border border-slate-200 text-slate-700 hover:bg-slate-50"
         >
           <ArrowLeft size={14} /> Previous (Edit)
         </button>
@@ -457,7 +457,7 @@ function ClubMonthlyReportV2PreviewInner() {
             onAction={handleUpload}
             loadingLabel="Uploading…"
             spinnerSize={14}
-            className="inline-flex items-center gap-1 text-sm font-semibold px-4 py-1.5 rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50"
+            className="inline-flex items-center gap-1 text-sm font-semibold px-4 py-1.5 rounded-full bg-[#17458F] text-white hover:bg-[#17458F] disabled:opacity-50"
           >
             <Upload size={14} /> Upload to District
           </LoadingButton>

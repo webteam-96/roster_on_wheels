@@ -29,12 +29,12 @@ export default function WebsiteTrainingAppointmentsTab() {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h2 className="text-lg font-semibold text-slate-800">Website Training Appointments</h2>
           <p className="text-sm text-slate-500">All booked training sessions with their Zoom links.</p>
         </div>
-        <button onClick={load} className="inline-flex items-center gap-2 rounded-lg border border-slate-300 px-3 py-1.5 text-sm hover:bg-slate-50">
+        <button onClick={load} className="inline-flex items-center gap-2 rounded-full border border-slate-300 px-3 py-1.5 text-sm hover:bg-slate-50">
           <RefreshCw size={14} /> Refresh
         </button>
       </div>

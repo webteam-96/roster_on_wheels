@@ -19,6 +19,7 @@ import RotaryLoader from "@/components/RotaryLoader";
 import Link from "next/link";
 import Image from "next/image";
 import ProtectedRoute from "@/components/ProtectedRoute";
+import { ListPageSkeleton } from "@/components/row/AppKit";
 
 export default function DistrictLogoPage() {
   const params = useParams();
@@ -101,7 +102,7 @@ export default function DistrictLogoPage() {
 
         {loading && (
           <div className="flex items-center justify-center py-20">
-            <RotaryLoader size="lg" />
+            <ListPageSkeleton />
           </div>
         )}
 
@@ -140,7 +141,7 @@ export default function DistrictLogoPage() {
                     onClick={() => fileInputRef.current?.click()}
                     disabled={uploading}
                   >
-                    <div className="flex items-center gap-2">
+                    <div className="flex flex-wrap items-center gap-2">
                       <Upload className="h-5 w-5 text-muted-foreground" />
                       <span className="text-sm text-muted-foreground">
                         {uploading ? "Uploading..." : "Click to upload new logo"}

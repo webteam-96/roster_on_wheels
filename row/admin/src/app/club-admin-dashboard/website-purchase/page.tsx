@@ -163,7 +163,7 @@ export default function WebsitePurchasePage() {
   // Active site with plenty of validity left — renewal isn't open yet.
   if (quote && quote.canPurchase === false) return (
     <div className="max-w-2xl mx-auto p-6">
-      <div className="rounded-xl border bg-white p-6 text-center space-y-3">
+      <div className="rounded-[20px] border bg-white p-6 text-center space-y-3">
         <CheckCircle2 className="h-8 w-8 text-green-600" aria-hidden />
         <h1 className="text-lg font-semibold text-azure">Your club website is active</h1>
         <p className="text-sm text-slate-600">{quote.purchaseBlockedReason || "Renewal opens closer to expiry."}</p>
@@ -183,7 +183,7 @@ export default function WebsitePurchasePage() {
       </div>
 
       {/* Price summary — always visible */}
-      <div className="rounded-xl border bg-white p-5 text-sm space-y-1.5">
+      <div className="rounded-[20px] border bg-white p-5 text-sm space-y-1.5">
         {isRenewal && (
           <>
             <div className="flex justify-between"><span className="text-slate-600">Current site</span><span className="font-medium">{quote.currentSubdomain}.{parentDomain}</span></div>
@@ -198,7 +198,7 @@ export default function WebsitePurchasePage() {
 
       {/* Step: subdomain (New only) */}
       {step === "subdomain" && (
-        <div className="rounded-xl border bg-white p-5 space-y-4">
+        <div className="rounded-[20px] border bg-white p-5 space-y-4">
           <div className="font-semibold text-slate-800">Choose your website address</div>
           <div className="flex items-stretch rounded-lg border border-slate-300 overflow-hidden focus-within:ring-2 focus-within:ring-azure">
             <span className="flex items-center px-3 bg-slate-50 text-slate-500 text-sm border-r">{prefix}</span>
@@ -234,7 +234,7 @@ export default function WebsitePurchasePage() {
 
       {/* Step: confirm (hyper-focused, New only) */}
       {step === "confirm" && (
-        <div className="rounded-xl border-2 border-azure bg-white p-6 space-y-5 text-center">
+        <div className="rounded-[20px] border-2 border-azure bg-white p-6 space-y-5 text-center">
           <div className="text-sm text-slate-500">Your website address will be</div>
           <div className="text-2xl sm:text-3xl font-extrabold text-azure break-all tracking-tight">
             {prefix}{subInput}.{parentDomain}
@@ -257,7 +257,7 @@ export default function WebsitePurchasePage() {
 
       {/* Step: reminder */}
       {step === "reminder" && (
-        <div className="rounded-xl border bg-white p-5 space-y-4">
+        <div className="rounded-[20px] border bg-white p-5 space-y-4">
           {!isRenewal && (
             <div className="text-sm text-slate-600">Address: <span className="font-semibold text-slate-800">{prefix}{subInput}.{parentDomain}</span></div>
           )}
@@ -284,7 +284,7 @@ export default function WebsitePurchasePage() {
 
       {/* Step: pay */}
       {step === "pay" && (
-        <div className="rounded-xl border bg-white p-5 space-y-4">
+        <div className="rounded-[20px] border bg-white p-5 space-y-4">
           <div className="font-semibold text-slate-800">Review &amp; pay</div>
           <div className="text-sm space-y-1">
             <div className="flex justify-between"><span className="text-slate-600">Website</span><span className="font-medium">{isRenewal ? quote.currentSubdomain : prefix + subInput}.{parentDomain}</span></div>
@@ -297,7 +297,7 @@ export default function WebsitePurchasePage() {
             <button type="button" onClick={() => setStep("reminder")}
               className="px-5 py-2.5 rounded-lg border border-slate-300 text-slate-700 font-medium">Back</button>
             <button type="button" disabled={busy} onClick={handlePay}
-              className="px-6 py-2.5 rounded-lg bg-azure text-white font-medium disabled:opacity-50">
+              className="px-6 py-2.5 rounded-full bg-azure text-white font-medium disabled:opacity-50">
               {busy ? "Processing…" : `Pay ${inr(quote.totalAmount)} with Razorpay`}
             </button>
           </div>
@@ -307,7 +307,7 @@ export default function WebsitePurchasePage() {
 
       {/* Step: done */}
       {step === "done" && result && (
-        <div className="rounded-xl border bg-white p-6 space-y-4 text-center">
+        <div className="rounded-[20px] border bg-white p-6 space-y-4 text-center">
           <CheckCircle2 className="h-10 w-10 text-green-600" aria-hidden />
           <div className="text-lg font-semibold text-slate-800">Payment successful</div>
           {result.provisionStatus === "Active" ? (

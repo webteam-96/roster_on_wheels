@@ -243,7 +243,7 @@ class _DirectoryCard extends StatelessWidget {
               child: Text(
                 clubName,
                 style: AppFonts.body(
-                  fontSize: 11,
+                  fontSize: 13,
                   color: AppColors.slate500,
                 ),
               ),
@@ -265,7 +265,7 @@ class _DirectoryCard extends StatelessWidget {
                           ? 'No members found'
                           : 'No members match your search',
                       style: AppFonts.body(
-                          fontSize: 12, color: AppColors.slate400),
+                          fontSize: 13, color: AppColors.slate400),
                     ),
                   ],
                 ),
@@ -291,7 +291,7 @@ class _DirectoryCard extends StatelessWidget {
             Text(
               'Showing ${filtered.length} of $totalMembers members',
               style: AppFonts.body(
-                fontSize: 10.5,
+                fontSize: 13,
                 color: AppColors.slate400,
               ),
             ),
@@ -313,14 +313,14 @@ class _SearchField extends StatelessWidget {
       controller: controller,
       onChanged: onChanged,
       style: AppFonts.body(
-        fontSize: 12.5,
+        fontSize: 13,
         color: AppColors.textPrimary,
       ),
       decoration: InputDecoration(
         isDense: true,
         hintText: 'Search members by name, email or mobile…',
         hintStyle: AppFonts.body(
-          fontSize: 12.5,
+          fontSize: 13,
           color: AppColors.slate400,
         ),
         prefixIcon: const Icon(Icons.search_rounded,
@@ -446,7 +446,7 @@ class _MemberRowState extends State<_MemberRow> {
             child: Text(
               _initialsOf(member.name),
               style: AppFonts.body(
-                fontSize: 12.5,
+                fontSize: 13,
                 fontWeight: FontWeight.w800,
                 color: color,
               ),
@@ -489,7 +489,7 @@ class _MemberRowState extends State<_MemberRow> {
                   Text(
                     member.designation,
                     style: AppFonts.body(
-                      fontSize: 10.5,
+                      fontSize: 13,
                       fontWeight: FontWeight.w600,
                       color: AppColors.slate400,
                     ),
@@ -558,7 +558,7 @@ class _RolePill extends StatelessWidget {
       child: Text(
         label,
         style: AppFonts.body(
-          fontSize: 9,
+          fontSize: 13,
           fontWeight: FontWeight.w800,
           color: fg,
         ),
@@ -583,7 +583,7 @@ class _ContactLine extends StatelessWidget {
           child: Text(
             text,
             style: AppFonts.body(
-              fontSize: 11.5,
+              fontSize: 13,
               color: AppColors.slate500,
             ),
             overflow: TextOverflow.ellipsis,

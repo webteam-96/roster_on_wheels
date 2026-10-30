@@ -133,7 +133,7 @@ class _ClubPaymentLinksTabState extends State<ClubPaymentLinksTab>
                       color: AppColors.textPrimary)),
               Text('Online event registrations, payment links & tracking',
                   style: AppFonts.body(
-                      fontSize: 11, color: AppColors.slate500)),
+                      fontSize: 13, color: AppColors.slate500)),
               const SizedBox(height: 12),
               _kpis(total, active, paid, unpaid),
               const SizedBox(height: 12),
@@ -142,14 +142,13 @@ class _ClubPaymentLinksTabState extends State<ClubPaymentLinksTab>
                 icon: const Icon(Icons.add_rounded, size: 16),
                 label: Text('Add / Manage Payment Links',
                     style: AppFonts.body(
-                        fontSize: 12, fontWeight: FontWeight.w700)),
+                        fontSize: 13, fontWeight: FontWeight.w700)),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.rotaryBlue,
                   foregroundColor: Colors.white,
                   elevation: 0,
                   padding: const EdgeInsets.symmetric(vertical: 11),
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8)),
+                  shape: const StadiumBorder(),
                 ),
               ),
               const SizedBox(height: 14),
@@ -170,7 +169,7 @@ class _ClubPaymentLinksTabState extends State<ClubPaymentLinksTab>
                             color: AppColors.textPrimary)),
                     Text('Showing ${filtered.length} of $total links',
                         style: AppFonts.body(
-                            fontSize: 11, color: AppColors.slate500)),
+                            fontSize: 13, color: AppColors.slate500)),
                     const SizedBox(height: 12),
                     _searchField(),
                     const SizedBox(height: 12),
@@ -183,7 +182,7 @@ class _ClubPaymentLinksTabState extends State<ClubPaymentLinksTab>
                                   ? 'No payment links yet'
                                   : 'No links match "$_search"',
                               style: AppFonts.body(
-                                  fontSize: 12, color: AppColors.slate400)),
+                                  fontSize: 13, color: AppColors.slate400)),
                         ),
                       )
                     else
@@ -310,7 +309,7 @@ class _LinkCard extends StatelessWidget {
         maxLines: 1,
         overflow: TextOverflow.ellipsis,
         style: AppFonts.body(
-            fontSize: 12.5,
+            fontSize: 13,
             fontWeight: FontWeight.w800,
             color: AppColors.textPrimary));
     final statusPill = Container(
@@ -321,7 +320,7 @@ class _LinkCard extends StatelessWidget {
       ),
       child: Text(isActive ? 'Active' : 'Inactive',
           style: AppFonts.body(
-              fontSize: 9.5,
+              fontSize: 13,
               fontWeight: FontWeight.w800,
               color:
                   isActive ? AppColors.successDark : AppColors.slate500)),
@@ -351,14 +350,13 @@ class _LinkCard extends StatelessWidget {
               icon: const Icon(Icons.assessment_outlined, size: 15),
               label: Text('Report',
                   style: AppFonts.body(
-                      fontSize: 11.5, fontWeight: FontWeight.w700)),
+                      fontSize: 13, fontWeight: FontWeight.w700)),
               style: OutlinedButton.styleFrom(
                 foregroundColor: AppColors.slate700,
                 side: const BorderSide(color: AppColors.slate200),
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                 minimumSize: const Size(0, 0),
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8)),
+                shape: const StadiumBorder(),
               ),
             ),
             const SizedBox(width: 8),
@@ -367,14 +365,13 @@ class _LinkCard extends StatelessWidget {
               icon: const Icon(Icons.settings_outlined, size: 15),
               label: Text('Manage',
                   style: AppFonts.body(
-                      fontSize: 11.5, fontWeight: FontWeight.w700)),
+                      fontSize: 13, fontWeight: FontWeight.w700)),
               style: OutlinedButton.styleFrom(
                 foregroundColor: AppColors.rotaryBlue,
                 side: BorderSide(color: AppColors.rotaryBlue.withValues(alpha: 0.4)),
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                 minimumSize: const Size(0, 0),
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8)),
+                shape: const StadiumBorder(),
               ),
             ),
           ],

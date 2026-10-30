@@ -34,6 +34,7 @@ import KpiCard from "@/components/dashboard/KpiCard";
 import { fmtInt, fmtInr, fmtDate } from "@/components/dashboard/formatters";
 
 import { defaultCurrency } from "@/lib/appFormat";
+import { ListPageSkeleton } from "@/components/row/AppKit";
 // Base URL the RI Flow-Bot export uses to build absolute photo URLs for the extension.
 const SYNC_API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
@@ -207,7 +208,7 @@ export default function ServiceProjectsAndPublicImagePage() {
   if (status === "loading" && !overview) {
     return (
       <div className="flex items-center justify-center py-20">
-        <RotaryLoader size="lg" label="Loading Service Projects…" />
+        <ListPageSkeleton />
       </div>
     );
   }
@@ -264,8 +265,7 @@ function AvenueTabBar({ active, onChange }: { active: AvenueTab; onChange: (k: A
   return (
     <div className="overflow-x-auto">
       <div
-        className="inline-flex items-center gap-1 rounded-xl p-1.5"
-        style={{ backgroundColor: "#17458f" }}
+        className="inline-flex items-center gap-1 rounded-full p-1.5 bg-muted"
       >
         {AVENUE_TABS.map((t) => {
           const isActive = active === t.key;
@@ -273,16 +273,11 @@ function AvenueTabBar({ active, onChange }: { active: AvenueTab; onChange: (k: A
             <button
               key={t.key}
               onClick={() => onChange(t.key)}
-              className={`px-3.5 py-2 text-sm font-semibold rounded-lg whitespace-nowrap transition ${
+              className={`inline-flex h-9 items-center px-4 text-sm font-semibold rounded-full whitespace-nowrap transition-colors ${
                 isActive
-                  ? "shadow-sm"
-                  : "text-white hover:bg-white/10"
+                  ? "bg-card text-foreground ring-1 ring-[color:var(--row-line)]"
+                  : "text-muted-foreground hover:text-foreground"
               }`}
-              style={
-                isActive
-                  ? { backgroundColor: "#F7A81B", color: "#17458f" }
-                  : undefined
-              }
             >
               {t.label}
             </button>
@@ -313,8 +308,8 @@ function OverviewSection({ overview }: { overview: ServiceProjectsOverviewRespon
           <p className="text-xs text-slate-500 mt-0.5">Summary by avenue · {overview.selectedYearLabel}</p>
         </div>
         <div className="overflow-x-auto">
-          <table className="min-w-full text-sm">
-            <thead className="bg-slate-50 text-xs uppercase text-slate-500">
+          <table className="w-full min-w-[640px] md:min-w-full text-sm">
+            <thead className="bg-[#EDF4FB] text-[13px] text-[#64748B]">
               <tr>
                 <th className="px-4 py-2.5 text-left">Avenue</th>
                 <th className="px-4 py-2.5 text-right">Projects</th>
@@ -360,7 +355,7 @@ function AvenueSection({
   if (loading && !data) {
     return (
       <div className="flex items-center justify-center py-20">
-        <RotaryLoader size="lg" label={`Loading ${AVENUE_TABS.find((t) => t.key === tab)?.label}…`} />
+        <ListPageSkeleton />
       </div>
     );
   }
@@ -463,8 +458,8 @@ function ClubServiceSection({
         </div>
 
         <div className="overflow-x-auto">
-          <table className="min-w-full text-sm">
-            <thead className="bg-slate-50 text-xs uppercase text-slate-500">
+          <table className="w-full min-w-[640px] md:min-w-full text-sm">
+            <thead className="bg-[#EDF4FB] text-[13px] text-[#64748B]">
               <tr>
                 <th className="px-3 py-2.5 text-left w-10">Sr</th>
                 <th className="px-3 py-2.5 text-left">Date</th>
@@ -542,7 +537,7 @@ function ClubServiceSection({
             <span>
               Showing {(safePage - 1) * PAGE_SIZE + 1}–{Math.min(safePage * PAGE_SIZE, filtered.length)} of {filtered.length}
             </span>
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <button
                 onClick={() => setPage((p) => Math.max(1, p - 1))}
                 disabled={safePage === 1}
@@ -600,7 +595,7 @@ function ClubServiceSection({
       )}
 
       {isDeleting && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-slate-900/40 backdrop-blur-sm">
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-slate-900/40">
           <div className="flex items-center gap-3 rounded-lg bg-white px-5 py-4 shadow-xl">
             <RotaryLoader size="sm" />
             <span className="text-sm font-semibold text-slate-700">Deleting…</span>
@@ -785,32 +780,21 @@ function NonClubAvenueSection({
           <div className="flex flex-wrap items-center gap-2">
             {showTypeFilter && (
               <div
-                className="inline-flex rounded-lg overflow-hidden text-xs p-1 gap-1"
-                style={{ backgroundColor: "#17458f" }}
+                className="inline-flex rounded-full overflow-hidden text-xs p-1 gap-1 bg-muted"
               >
                 <button
                   onClick={() => setSubTab("one_time")}
                   className={`px-3 py-1 rounded-md font-semibold transition ${
-                    subTab === "one_time" ? "shadow-sm" : "text-white hover:bg-white/10"
+                    subTab === "one_time" ? "bg-card text-foreground ring-1 ring-[color:var(--row-line)]" : "text-muted-foreground hover:text-foreground"
                   }`}
-                  style={
-                    subTab === "one_time"
-                      ? { backgroundColor: "#F7A81B", color: "#17458f" }
-                      : undefined
-                  }
                 >
                   One time Project
                 </button>
                 <button
                   onClick={() => setSubTab("ongoing")}
                   className={`px-3 py-1 rounded-md font-semibold transition ${
-                    subTab === "ongoing" ? "shadow-sm" : "text-white hover:bg-white/10"
+                    subTab === "ongoing" ? "bg-card text-foreground ring-1 ring-[color:var(--row-line)]" : "text-muted-foreground hover:text-foreground"
                   }`}
-                  style={
-                    subTab === "ongoing"
-                      ? { backgroundColor: "#F7A81B", color: "#17458f" }
-                      : undefined
-                  }
                 >
                   Ongoing/Repeat Projects
                 </button>
@@ -823,8 +807,8 @@ function NonClubAvenueSection({
         </div>
 
         <div className="overflow-x-auto">
-          <table className="min-w-full text-sm">
-            <thead className="bg-slate-50 text-xs uppercase text-slate-500">
+          <table className="w-full min-w-[640px] md:min-w-full text-sm">
+            <thead className="bg-[#EDF4FB] text-[13px] text-[#64748B]">
               <tr>
                 <th className="px-3 py-2.5 text-left w-10">Sr</th>
                 <th className="px-3 py-2.5 text-left whitespace-nowrap">Date</th>
@@ -1050,7 +1034,7 @@ function NonClubAvenueSection({
             <span>
               Showing {(safePage - 1) * PAGE_SIZE + 1}–{Math.min(safePage * PAGE_SIZE, filtered.length)} of {filtered.length}
             </span>
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <button
                 onClick={() => setPage((p) => Math.max(1, p - 1))}
                 disabled={safePage === 1}
@@ -1100,7 +1084,7 @@ function NonClubAvenueSection({
       )}
 
       {isDeleting && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-slate-900/40 backdrop-blur-sm">
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-slate-900/40">
           <div className="flex items-center gap-3 rounded-lg bg-white px-5 py-4 shadow-xl">
             <RotaryLoader size="sm" />
             <span className="text-sm font-semibold text-slate-700">Deleting…</span>
@@ -1113,7 +1097,7 @@ function NonClubAvenueSection({
           initiative on Rotary.org when the first one really was published - support has to
           check there before confirming. */}
       {resetTarget && (
-        <div className="fixed inset-0 z-[70] flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4">
+        <div className="fixed inset-0 z-[70] flex items-center justify-center bg-slate-900/40 p-4">
           <div className="w-full max-w-md rounded-xl bg-white p-5 shadow-xl">
             <div className="flex items-start gap-3">
               <span className="mt-0.5 inline-flex h-9 w-9 items-center justify-center rounded-full bg-amber-50 text-amber-600">
@@ -1138,7 +1122,7 @@ function NonClubAvenueSection({
                 type="button"
                 onClick={() => setResetTarget(null)}
                 disabled={resetting}
-                className="px-3 py-2 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-100"
+                className="px-3 py-2 rounded-full text-sm font-medium text-slate-600 hover:bg-slate-100"
               >
                 Cancel
               </button>
@@ -1146,7 +1130,7 @@ function NonClubAvenueSection({
                 type="button"
                 onClick={handleResetConfirm}
                 disabled={resetting}
-                className="px-4 py-2 rounded-lg text-sm font-semibold text-white bg-amber-600 hover:bg-amber-700 disabled:opacity-60"
+                className="px-4 py-2 rounded-full text-sm font-semibold text-white bg-amber-600 hover:bg-amber-700 disabled:opacity-60"
               >
                 {resetting ? "Resetting…" : "OK, reset"}
               </button>
@@ -1184,7 +1168,7 @@ function YearSelect({
     <select
       value={yearId ?? data.selectedYearId ?? ""}
       onChange={(e) => onYearChange(e.target.value ? Number(e.target.value) : null)}
-      className="px-2 py-1.5 text-xs border border-slate-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+      className="px-2 h-10 py-0 text-xs border border-slate-200 rounded-[12px] bg-white focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
     >
       {data.availableYears.length === 0 && <option value="">No years</option>}
       {data.availableYears.map((y) => (
@@ -1203,7 +1187,7 @@ function SearchBox({ value, onChange }: { value: string; onChange: (s: string) =
         placeholder="Search…"
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="pl-7 pr-3 py-1.5 text-xs border border-slate-200 rounded-lg w-44 focus:outline-none focus:ring-2 focus:ring-blue-500"
+        className="pl-7 pr-3 h-10 py-0 text-xs border border-slate-200 rounded-[12px] w-44 focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
       />
     </div>
   );

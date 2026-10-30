@@ -18,6 +18,7 @@ import { toLocalDateParts } from "@/lib/dateUtils";
 import ImageCropDialog from "@/components/ImageCropDialog";
 import { useImageCropUpload } from "@/hooks/useImageCropUpload";
 import { TEXT_INPUT_REGEX } from "@/lib/textInput";
+import { ListPageSkeleton } from "@/components/row/AppKit";
 
 // Event photos render as landscape tiles here and in the district website
 // gallery — locked to 4:3 at 1200×900.
@@ -110,7 +111,7 @@ export default function DistrictEventEditPage() {
     finally { setSaving(false); }
   };
 
-  if (loading) return <ProtectedRoute><div className="flex justify-center py-20"><RotaryLoader size="lg" /></div></ProtectedRoute>;
+  if (loading) return <ProtectedRoute><div className="flex justify-center py-20"><ListPageSkeleton /></div></ProtectedRoute>;
 
   return (
     <ProtectedRoute>

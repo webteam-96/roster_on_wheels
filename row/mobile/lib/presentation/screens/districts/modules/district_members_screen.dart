@@ -344,7 +344,7 @@ class _MemberTile extends StatelessWidget {
                                     r,
                                     style: AppTextStyles.caption.copyWith(
                                       color: AppColors.primary,
-                                      fontSize: 10,
+                                      fontSize: 13,
                                       fontWeight: FontWeight.w700,
                                     ),
                                   ),
@@ -374,7 +374,7 @@ class _MemberTile extends StatelessWidget {
                         color: member.isActive
                             ? AppColors.success
                             : AppColors.textSecondary,
-                        fontSize: 10,
+                        fontSize: 13,
                       ),
                     ),
                   ),

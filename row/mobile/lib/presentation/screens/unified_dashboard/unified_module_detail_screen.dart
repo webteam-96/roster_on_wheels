@@ -256,9 +256,6 @@ class _UnifiedModuleDetailScreenState extends State<UnifiedModuleDetailScreen>
             ? TabBar(
                 controller: _tabController,
                 tabs: const [Tab(text: 'Club'), Tab(text: 'District')],
-                labelColor: Colors.white,
-                indicatorColor: AppColors.goldPrime,
-                unselectedLabelColor: Colors.white70,
                 labelStyle: AppTextStyles.bodySemiBold,
               )
             : null,

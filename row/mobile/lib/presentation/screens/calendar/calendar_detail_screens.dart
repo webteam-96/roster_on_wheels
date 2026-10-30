@@ -84,9 +84,7 @@ class CalendarEventDetailScreen extends StatelessWidget {
                   foregroundColor: Colors.white,
                   elevation: 0,
                   padding: const EdgeInsets.symmetric(vertical: 14),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
+                  shape: const StadiumBorder(),
                 ),
               ),
             ),
@@ -178,12 +176,11 @@ Widget _heroImage(String url, IconData fallback) {
 }
 
 Widget _sectionTitle(String text) => Text(
-      text.toUpperCase(),
+      text,
       style: AppFonts.body(
-        fontSize: 11,
+        fontSize: 13,
         fontWeight: FontWeight.w800,
         color: AppColors.textSecondary,
-        letterSpacing: 1,
       ),
     );
 
@@ -215,12 +212,11 @@ class _InfoRow extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  label.toUpperCase(),
+                  label,
                   style: AppFonts.body(
-                    fontSize: 10.5,
+                    fontSize: 13,
                     fontWeight: FontWeight.w700,
                     color: AppColors.textSecondary,
-                    letterSpacing: 0.6,
                   ),
                 ),
                 const SizedBox(height: 2),

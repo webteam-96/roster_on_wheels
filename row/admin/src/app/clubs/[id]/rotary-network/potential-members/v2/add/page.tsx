@@ -22,6 +22,7 @@ import ErrorAlert from "@/components/ErrorAlert";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { useSyncClubIdFromUrl } from "@/hooks/useSyncClubIdFromUrl";
 import ProspectPipelineFields, { type PipelineValue } from "@/components/contacts/ProspectPipelineFields";
+import { ListPageSkeleton } from "@/components/row/AppKit";
 
 const TOP_MESSAGE = "Capture prospective members the club may invite to join. Provide as much contact information as possible so the club can follow up.";
 
@@ -124,7 +125,7 @@ export default function PotentialMembersV2AddPage() {
           activeNavHref="/club-admin-dashboard/dashboard"
         >
           <div className="flex items-center justify-center py-20">
-            <RotaryLoader size="lg" />
+            <ListPageSkeleton />
           </div>
         </ClubAdminShell>
       </ProtectedRoute>
@@ -153,36 +154,36 @@ export default function PotentialMembersV2AddPage() {
         }
       >
         {/* 1. Identity */}
-        <SectionCard number={1} icon={User} title="Identity" dot="bg-blue-600">
+        <SectionCard number={1} icon={User} title="Identity" dot="bg-[#17458F]">
           <div className="grid grid-cols-1 gap-4">
             <div>
-              <FieldLabel required dot="bg-blue-500">Name</FieldLabel>
+              <FieldLabel required dot="bg-[#17458F]">Name</FieldLabel>
               <input
                 type="text"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="Full name"
-                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
               />
             </div>
           </div>
         </SectionCard>
 
         {/* 2. Contact */}
-        <SectionCard number={2} icon={Mail} title="Contact Information" dot="bg-emerald-600">
+        <SectionCard number={2} icon={Mail} title="Contact Information" dot="bg-[#17458F]">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <FieldLabel dot="bg-emerald-500">Email</FieldLabel>
+              <FieldLabel dot="bg-[#17458F]">Email</FieldLabel>
               <input
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="email@example.com"
-                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
               />
             </div>
             <div>
-              <FieldLabel dot="bg-emerald-500" hint="(e.g. +1 555 123 4567)">Mobile Number</FieldLabel>
+              <FieldLabel dot="bg-[#17458F]" hint="(e.g. +1 555 123 4567)">Mobile Number</FieldLabel>
               <div className="relative">
                 <Phone className="absolute left-2 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400" />
                 <input
@@ -190,7 +191,7 @@ export default function PotentialMembersV2AddPage() {
                   value={mobile}
                   onChange={(e) => setMobile(e.target.value)}
                   placeholder="+1 555 123 4567"
-                  className="w-full pl-7 pr-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  className="w-full pl-7 pr-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
                 />
               </div>
             </div>
@@ -198,14 +199,14 @@ export default function PotentialMembersV2AddPage() {
         </SectionCard>
 
         {/* 3. Reference */}
-        <SectionCard number={3} icon={FileText} title="Reference Details" dot="bg-violet-600">
-          <FieldLabel dot="bg-violet-500" hint="(who referred this person, notes, etc.)">Reference</FieldLabel>
+        <SectionCard number={3} icon={FileText} title="Reference Details" dot="bg-[#17458F]">
+          <FieldLabel dot="bg-[#17458F]" hint="(who referred this person, notes, etc.)">Reference</FieldLabel>
           <textarea
             value={reference}
             onChange={(e) => setReference(e.target.value)}
             placeholder="Who referred this person, any notes…"
             rows={4}
-            className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500"
+            className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
           />
         </SectionCard>
 

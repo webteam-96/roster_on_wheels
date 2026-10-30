@@ -55,7 +55,7 @@ class AgError extends StatelessWidget {
                   : 'Check your connection and try again.',
               textAlign: TextAlign.center,
               style: AppFonts.body(
-                  fontSize: 11.5, color: AppColors.slate500, height: 1.4),
+                  fontSize: 13, color: AppColors.slate500, height: 1.4),
             ),
             const SizedBox(height: 14),
             OutlinedButton.icon(
@@ -63,7 +63,7 @@ class AgError extends StatelessWidget {
               icon: const Icon(Icons.refresh_rounded, size: 16),
               label: Text('Retry',
                   style: AppFonts.body(
-                      fontSize: 12, fontWeight: FontWeight.w700)),
+                      fontSize: 13, fontWeight: FontWeight.w700)),
             ),
           ],
         ),

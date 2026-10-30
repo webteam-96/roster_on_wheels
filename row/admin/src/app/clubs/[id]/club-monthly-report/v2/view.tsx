@@ -211,7 +211,7 @@ export function ClubMonthlyReportV2View({ clubId: propClubId, embedded = false, 
           <select
             value={selectedYearId ?? ""}
             onChange={(e) => setSelectedYearId(e.target.value ? Number(e.target.value) : null)}
-            className="px-3 py-1.5 text-sm border border-slate-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="px-3 h-10 py-0 text-sm border border-slate-200 rounded-[12px] bg-white focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
           >
             {years.map((y) => (
               <option key={y.id} value={y.id}>
@@ -312,8 +312,8 @@ export function ClubMonthlyReportV2View({ clubId: propClubId, embedded = false, 
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="min-w-full text-sm">
-              <thead className="bg-slate-50 text-xs uppercase text-slate-500">
+            <table className="w-full min-w-[640px] md:min-w-full text-sm">
+              <thead className="bg-[#EDF4FB] text-[13px] text-[#64748B]">
                 <tr>
                   <th className="px-4 py-2.5 text-left w-12">#</th>
                   <th className="px-4 py-2.5 text-left">Month</th>
@@ -352,12 +352,12 @@ export function ClubMonthlyReportV2View({ clubId: propClubId, embedded = false, 
                         )}
                       </td>
                       <td className="px-4 py-2.5">
-                        <div className="flex items-center justify-end gap-2 flex-wrap">
+                        <div className="flex flex-wrap items-center justify-end gap-2 flex-wrap">
                           {item.isCreated ? (
                             <>
                               <LoadingLink
                                 href={detailHref}
-                                className="inline-flex items-center gap-1 text-xs font-medium px-2.5 py-1 rounded-lg border border-slate-200 text-slate-700 hover:bg-blue-50 hover:text-blue-700"
+                                className="inline-flex items-center gap-1 text-xs font-medium px-2.5 py-1 rounded-full border border-slate-200 text-slate-700 hover:bg-blue-50 hover:text-blue-700"
                               >
                                 <Pencil size={12} /> Edit
                               </LoadingLink>
@@ -370,7 +370,7 @@ export function ClubMonthlyReportV2View({ clubId: propClubId, embedded = false, 
                                     type="button"
                                     onClick={() => handleDownload(item.month, "pdf")}
                                     disabled={isDownloading}
-                                    className="inline-flex items-center gap-1 text-xs font-medium px-2.5 py-1 rounded-lg border border-slate-200 text-slate-700 hover:bg-blue-50 hover:text-blue-700 disabled:opacity-50"
+                                    className="inline-flex items-center gap-1 text-xs font-medium px-2.5 py-1 rounded-full border border-slate-200 text-slate-700 hover:bg-blue-50 hover:text-blue-700 disabled:opacity-50"
                                   >
                                     {isDownloading && downloadFormat === "pdf" ? (
                                       <Loader2 className="animate-spin" size={12} />
@@ -383,7 +383,7 @@ export function ClubMonthlyReportV2View({ clubId: propClubId, embedded = false, 
                                     type="button"
                                     onClick={() => handleDownload(item.month, "word")}
                                     disabled={isDownloading}
-                                    className="inline-flex items-center gap-1 text-xs font-medium px-2.5 py-1 rounded-lg border border-slate-200 text-slate-700 hover:bg-blue-50 hover:text-blue-700 disabled:opacity-50"
+                                    className="inline-flex items-center gap-1 text-xs font-medium px-2.5 py-1 rounded-full border border-slate-200 text-slate-700 hover:bg-blue-50 hover:text-blue-700 disabled:opacity-50"
                                   >
                                     {isDownloading && downloadFormat === "word" ? (
                                       <Loader2 className="animate-spin" size={12} />
@@ -398,7 +398,7 @@ export function ClubMonthlyReportV2View({ clubId: propClubId, embedded = false, 
                           ) : (
                             <LoadingLink
                               href={detailHref}
-                              className="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-lg bg-emerald-600 text-white hover:bg-emerald-700"
+                              className="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full bg-[#17458F] text-white hover:bg-[#17458F]"
                             >
                               <Plus size={12} /> Create
                             </LoadingLink>

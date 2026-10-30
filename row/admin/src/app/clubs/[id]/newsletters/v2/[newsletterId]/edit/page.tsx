@@ -35,6 +35,7 @@ import { toLocalDateParts } from "@/lib/dateUtils";
 import { useSyncClubIdFromUrl } from "@/hooks/useSyncClubIdFromUrl";
 
 import { TEXT_INPUT_REGEX } from "@/lib/textInput";
+import { ListPageSkeleton } from "@/components/row/AppKit";
 
 const TOP_MESSAGE = "Edit publish window, attachment or notification options. Existing past dates remain valid unless you change them.";
 
@@ -240,7 +241,7 @@ export default function NewslettersV2EditPage() {
     return (
       <ProtectedRoute>
         <div className="flex items-center justify-center py-20">
-          <RotaryLoader size="lg" />
+          <ListPageSkeleton />
         </div>
       </ProtectedRoute>
     );
@@ -269,17 +270,17 @@ export default function NewslettersV2EditPage() {
         <div className="">
         <div className="min-w-0">
         {/* 1. Newsletter Details */}
-        <SectionCard number={1} icon={FileText} title="Newsletter Details" dot="bg-blue-600">
+        <SectionCard number={1} icon={FileText} title="Newsletter Details" dot="bg-[#17458F]">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="sm:col-span-2">
-              <FieldLabel hint="(max 50 chars)" dot="bg-blue-500">Title</FieldLabel>
+              <FieldLabel hint="(max 50 chars)" dot="bg-[#17458F]">Title</FieldLabel>
               <input
                 type="text"
                 value={title}
                 onChange={handleTitleChange}
                 placeholder="Newsletter title"
                 maxLength={50}
-                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
               />
               <p className="text-xs text-slate-400 text-right mt-0.5">{title.length}/50</p>
             </div>
@@ -287,26 +288,26 @@ export default function NewslettersV2EditPage() {
         </SectionCard>
 
         {/* 2. Publish Window */}
-        <SectionCard number={2} icon={Calendar} title="Publish Window" dot="bg-violet-600">
+        <SectionCard number={2} icon={Calendar} title="Publish Window" dot="bg-[#17458F]">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <FieldLabel dot="bg-violet-500">Publish Date</FieldLabel>
-              <DateField value={publishDate} onChange={setPublishDate} className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500" />
+              <FieldLabel dot="bg-[#17458F]">Publish Date</FieldLabel>
+              <DateField value={publishDate} onChange={setPublishDate} className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]" />
             </div>
             <div>
-              <FieldLabel dot="bg-violet-500">Publish Time</FieldLabel>
+              <FieldLabel dot="bg-[#17458F]">Publish Time</FieldLabel>
               <input
                 type="time"
                 value={publishTime}
                 onChange={(e) => setPublishTime(e.target.value)}
-                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500"
+                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
               />
             </div>
           </div>
         </SectionCard>
 
         {/* 3. Attachment */}
-        <SectionCard number={3} icon={Link2} title="Attachment" dot="bg-amber-600">
+        <SectionCard number={3} icon={Link2} title="Attachment" dot="bg-[#17458F]">
           <div className="space-y-4">
             <div className="flex flex-wrap gap-2">
               <RadioPill
@@ -325,20 +326,20 @@ export default function NewslettersV2EditPage() {
 
             {attachmentType === "link" && (
               <div>
-                <FieldLabel dot="bg-amber-500">Link URL</FieldLabel>
+                <FieldLabel dot="bg-[#17458F]">Link URL</FieldLabel>
                 <input
                   type="url"
                   value={linkUrl}
                   onChange={(e) => setLinkUrl(e.target.value)}
                   placeholder="https://example.com"
-                  className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500"
+                  className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
                 />
               </div>
             )}
 
             {attachmentType === "file" && (
               <div>
-                <FieldLabel dot="bg-amber-500">PDF File</FieldLabel>
+                <FieldLabel dot="bg-[#17458F]">PDF File</FieldLabel>
                 {fileName ? (
                   <div className="flex items-center gap-2 px-3 py-2 bg-emerald-50 border border-emerald-200 rounded-lg">
                     <FileUp className="h-4 w-4 text-emerald-600" />
@@ -368,7 +369,7 @@ export default function NewslettersV2EditPage() {
         </SectionCard>
 
         {/* 4. Notification */}
-        <SectionCard number={4} icon={Bell} title="Notification Settings" dot="bg-emerald-600">
+        <SectionCard number={4} icon={Bell} title="Notification Settings" dot="bg-[#17458F]">
           <label className="flex items-center gap-3 cursor-pointer mt-3">
             <input
               type="checkbox"

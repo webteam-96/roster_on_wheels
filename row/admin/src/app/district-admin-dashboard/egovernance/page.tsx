@@ -72,6 +72,7 @@ import {
   DialogDescription,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { SkeletonRows } from "@/components/row/AppKit";
 
 /* ------------------------------------------------------------------ types */
 /* Wave 13A1 additive contract — treated as optional so the page degrades
@@ -240,9 +241,7 @@ export default function DistrictAdminEGovernancePage() {
 
   if (status === "loading" && !eGovernance) {
     return (
-      <div className="flex items-center justify-center py-20 text-slate-500">
-        <Loader2 className="animate-spin mr-2" /> Loading…
-      </div>
+      <SkeletonRows />
     );
   }
   if (status === "error" && !eGovernance) {
@@ -272,10 +271,10 @@ export default function DistrictAdminEGovernancePage() {
               className="h-auto w-full justify-start sm:w-auto p-1.5 gap-1"
               style={{ backgroundColor: "#17458f" }}
             >
-              {on.cmr && <TabsTrigger value="cmr" className="text-sm font-semibold px-3.5 py-1.5 rounded-md text-white hover:bg-white/10 data-[state=active]:bg-marigold data-[state=active]:text-ink data-[state=active]:shadow-sm">Club Monthly Report</TabsTrigger>}
-              <TabsTrigger value="citation" className="text-sm font-semibold px-3.5 py-1.5 rounded-md text-white hover:bg-white/10 data-[state=active]:bg-marigold data-[state=active]:text-ink data-[state=active]:shadow-sm">District Awards</TabsTrigger>
-              <TabsTrigger value="network" className="text-sm font-semibold px-3.5 py-1.5 rounded-md text-white hover:bg-white/10 data-[state=active]:bg-marigold data-[state=active]:text-ink data-[state=active]:shadow-sm">Rotary Network</TabsTrigger>
-              <TabsTrigger value="reports" className="text-sm font-semibold px-3.5 py-1.5 rounded-md text-white hover:bg-white/10 data-[state=active]:bg-marigold data-[state=active]:text-ink data-[state=active]:shadow-sm">Reports</TabsTrigger>
+              {on.cmr && <TabsTrigger value="cmr" className="text-sm font-semibold px-3.5 py-1.5 rounded-full">Club Monthly Report</TabsTrigger>}
+              <TabsTrigger value="citation" className="text-sm font-semibold px-3.5 py-1.5 rounded-full">District Awards</TabsTrigger>
+              <TabsTrigger value="network" className="text-sm font-semibold px-3.5 py-1.5 rounded-full">Rotary Network</TabsTrigger>
+              <TabsTrigger value="reports" className="text-sm font-semibold px-3.5 py-1.5 rounded-full">Reports</TabsTrigger>
             </TabsList>
           </div>
 
@@ -461,7 +460,7 @@ function CmrEmailSettingsButton({ districtId }: { districtId: number }) {
           type="button"
           title="Club Monthly Report: Submission Email settings"
           aria-label="Submission email settings"
-          className="inline-flex items-center justify-center h-7 w-7 rounded-md text-slate-500 hover:bg-slate-100 hover:text-slate-700"
+          className="inline-flex items-center justify-center h-7 w-7 rounded-full text-slate-500 hover:bg-slate-100 hover:text-slate-700"
         >
           <Settings className="h-4 w-4" />
         </button>
@@ -526,7 +525,7 @@ function CmrEmailSettingsButton({ districtId }: { districtId: number }) {
                   value={ccEmails}
                   onChange={(e) => setCcEmails(e.target.value)}
                   placeholder="e.g. secretary@example.org, chair@example.org"
-                  className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
                 />
                 <p className="text-[11px] text-slate-500 mt-1">
                   These addresses are always copied on the submission email (whether or not the District Governor is emailed).
@@ -538,7 +537,7 @@ function CmrEmailSettingsButton({ districtId }: { districtId: number }) {
                   type="button"
                   onClick={save}
                   disabled={saving}
-                  className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg bg-emerald-600 text-white hover:bg-emerald-700 disabled:opacity-60"
+                  className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-full bg-[#17458F] text-white hover:bg-[#17458F] disabled:opacity-60"
                 >
                   {saving && <Loader2 className="h-4 w-4 animate-spin" />}
                   Save
@@ -584,7 +583,7 @@ function MonthlySummary({
   };
 
   return (
-    <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
+    <div className="bg-white rounded-[20px] border border-slate-200 overflow-hidden">
       <div className="px-5 py-3 border-b border-slate-100 flex items-center justify-between flex-wrap gap-2">
         <div>
           <div className="flex items-center gap-1.5">
@@ -643,7 +642,7 @@ function MonthlySummary({
                     />
                   </span>
 
-                  <span className="inline-flex items-center gap-1 text-xs font-semibold text-blue-600 px-2 py-1 rounded-md border border-blue-200 bg-blue-50 group-hover:bg-blue-100 shrink-0">
+                  <span className="inline-flex items-center gap-1 text-xs font-semibold text-blue-600 px-2 py-1 rounded-full border border-blue-200 bg-blue-50 group-hover:bg-blue-100 shrink-0">
                     View <ChevronRight size={14} />
                   </span>
                 </button>
@@ -729,7 +728,7 @@ function PerClubGrid({
   );
 
   return (
-    <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
+    <div className="bg-white rounded-[20px] border border-slate-200 overflow-hidden">
       <div className="px-5 py-3 border-b border-slate-100">
         <div className="flex items-center justify-between gap-3 flex-wrap">
           <div>
@@ -874,7 +873,7 @@ function PerClubGrid({
 /* ============================================================== Reports */
 function ReportsTab({ rows, districtId, yearId }: { rows: ApiReportRow[] | undefined; districtId: number; yearId?: number | null }) {
   return (
-    <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
+    <div className="bg-white rounded-[20px] border border-slate-200 overflow-hidden">
       <ul className="divide-y divide-slate-100">
         {(rows ?? []).map((r) => (
           <li
@@ -902,7 +901,7 @@ function ReportsTab({ rows, districtId, yearId }: { rows: ApiReportRow[] | undef
             {r.downloadUrl ? (
               <a
                 href={r.downloadUrl}
-                className="inline-flex items-center gap-1.5 rounded-md bg-blue-50 px-3 py-1.5 text-xs font-semibold text-blue-700 hover:bg-blue-100"
+                className="inline-flex items-center gap-1.5 rounded-full bg-blue-50 px-3 py-1.5 text-xs font-semibold text-blue-700 hover:bg-blue-100"
               >
                 <Download size={12} /> Download
               </a>

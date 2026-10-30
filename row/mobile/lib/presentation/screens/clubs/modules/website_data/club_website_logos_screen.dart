@@ -9,6 +9,7 @@ import '../../../../../core/utils/snackbar_utils.dart';
 import '../../../../widgets/common/custom_app_bar.dart';
 import 'package:rotary_flutter_app/core/theme/app_fonts.dart';
 import 'package:rotary_flutter_app/core/i18n/text.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/skeleton_list.dart';
 
 /// Club Website → Logos management (parity with the web
 /// `/clubs/[id]/website-data/logos` page).
@@ -213,7 +214,7 @@ class _ClubWebsiteLogosScreenState extends State<ClubWebsiteLogosScreen> {
         onBack: _busy ? null : () => Navigator.of(context).pop(),
       ),
       body: _loading
-          ? const Center(child: CircularProgressIndicator())
+          ? const RowSkeletonList()
           : ListView(
               padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
               children: [
@@ -255,9 +256,7 @@ class _ClubWebsiteLogosScreenState extends State<ClubWebsiteLogosScreen> {
                     backgroundColor: AppColors.primary,
                     foregroundColor: Colors.white,
                     padding: const EdgeInsets.symmetric(vertical: 14),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
-                    ),
+                    shape: const StadiumBorder(),
                   ),
                   child: _saving
                       ? const SizedBox(

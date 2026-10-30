@@ -187,7 +187,6 @@ class _PreviewCard extends StatelessWidget {
             style: AppTextStyles.caption.copyWith(
               color: AppColors.textSecondary,
               fontWeight: FontWeight.w600,
-              letterSpacing: 0.5,
             ),
           ),
           const SizedBox(height: 10),

@@ -458,7 +458,7 @@ export default function DashboardSwitcher({ currentKind, onNavigate }: Dashboard
   return (
     <div className="relative" ref={dropdownRef}>
       {switching && (
-        <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center gap-3 bg-slate-950/80 backdrop-blur-sm">
+        <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center gap-3 bg-slate-950/80">
           <RotaryLoader size="lg" />
           <p className="text-sm font-medium text-slate-200">Opening club dashboard…</p>
         </div>

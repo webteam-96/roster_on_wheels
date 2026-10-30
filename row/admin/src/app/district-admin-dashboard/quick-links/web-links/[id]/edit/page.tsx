@@ -33,6 +33,7 @@ import { ArrowLeft, Loader2, Link2 } from "@/components/icons";
 
 const ReactQuill = dynamic(() => import("react-quill-new"), { ssr: false });
 import "react-quill-new/dist/quill.snow.css";
+import { ListPageSkeleton } from "@/components/row/AppKit";
 
 const WEB_LINKS_BASE = "/district-admin-dashboard/quick-links/web-links";
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
@@ -201,7 +202,7 @@ export default function EditWebLinkPage() {
         </div>
 
         {loading ? (
-          <div className="flex items-center justify-center py-20"><RotaryLoader size="lg" /></div>
+          <div className="flex items-center justify-center py-20"><ListPageSkeleton /></div>
         ) : notFound ? (
           <div className="flex flex-col items-center justify-center py-20 text-center rounded-2xl border border-slate-200 bg-white shadow-sm">
             <h3 className="text-lg font-semibold text-slate-800">Web link not found</h3>
@@ -358,7 +359,7 @@ export default function EditWebLinkPage() {
               <Label className="text-slate-700 text-sm font-medium">Active</Label>
             </div>
 
-            <div className="flex justify-end gap-2 pt-2 border-t border-slate-100">
+            <div className="flex flex-wrap justify-end gap-2 pt-2 border-t border-slate-100">
               <Button
                 variant="outline"
                 onClick={goBack}

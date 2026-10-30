@@ -209,7 +209,7 @@ export default function DateField({
 
             {showMonthList ? (
               <div className="space-y-2">
-                <div className="flex items-center justify-between">
+                <div className="flex flex-wrap items-center justify-between gap-3">
                   <button type="button" onClick={() => setView((v) => ({ ...v, y: v.y - 1 }))} className="rounded p-1 hover:bg-muted" aria-label="Previous year">
                     <ChevronLeft className="h-4 w-4" />
                   </button>

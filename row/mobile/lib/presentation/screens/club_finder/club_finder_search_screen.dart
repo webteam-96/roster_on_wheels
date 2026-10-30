@@ -255,7 +255,7 @@ class _ClubFinderSearchScreenState extends State<ClubFinderSearchScreen>
                     'Searches club name, Rotary ID, city, state, country, '
                     'district number, zone and meeting day.',
                     style: AppFonts.body(
-                      fontSize: 12,
+                      fontSize: 13,
                       height: 1.4,
                       color: AppColors.textMuted,
                     ),
@@ -305,7 +305,7 @@ class _ClubFinderSearchScreenState extends State<ClubFinderSearchScreen>
             Text(
               'We\'ll use your current location to find clubs within the selected range.',
               style: AppFonts.body(
-                fontSize: 12,
+                fontSize: 13,
                 color: AppColors.textSecondary,
               ),
             ),

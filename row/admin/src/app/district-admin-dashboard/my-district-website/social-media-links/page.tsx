@@ -66,6 +66,7 @@ import {
 import RotaryLoader from "@/components/RotaryLoader";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import SearchBox from "@/components/SearchBox";
+import { ListPageSkeleton } from "@/components/row/AppKit";
 
 function getPlatformLabel(value: string): string {
   return SOCIAL_PLATFORMS.find((p) => p.value === value)?.label || value;
@@ -73,7 +74,7 @@ function getPlatformLabel(value: string): string {
 
 function getPlatformIcon(platform: string) {
   const colors: Record<string, string> = {
-    facebook: "bg-blue-600", instagram: "bg-purple-500",
+    facebook: "bg-blue-600", instagram: "bg-[#A9C6EA]",
     twitter: "bg-black", linkedin: "bg-blue-700", youtube: "bg-red-600",
     threads: "bg-black", googleplus: "bg-red-500", website: "bg-gray-600",
   };
@@ -300,7 +301,7 @@ export default function DistrictAdminSocialLinksPage() {
 
         {loading && (
           <div className="flex items-center justify-center py-20">
-            <RotaryLoader size="lg" />
+            <ListPageSkeleton />
           </div>
         )}
 
@@ -317,7 +318,7 @@ export default function DistrictAdminSocialLinksPage() {
 
         {loadingLinks && (
           <div className="flex items-center justify-center py-12">
-            <RotaryLoader size="lg" />
+            <ListPageSkeleton />
           </div>
         )}
 

@@ -46,6 +46,7 @@ import {
 import RotaryLoader from "@/components/RotaryLoader";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import Pagination from "@/components/Pagination";
+import { ListPageSkeleton } from "@/components/row/AppKit";
 
 // -----------------------------------------------------------------------------
 // V2 Grid card — inline, dashboard palette. (V1's shared ClubCard is left
@@ -146,7 +147,7 @@ function ClubCardV2({
       {/* Body */}
       <div className="px-4 py-3 space-y-2 text-sm text-slate-600">
         {club.meetingDay && (
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <Calendar className="h-3.5 w-3.5 flex-shrink-0 text-slate-500" />
             <span>
               {club.meetingDay}
@@ -156,12 +157,12 @@ function ClubCardV2({
           </div>
         )}
         {(club.city || club.state) && (
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <MapPin className="h-3.5 w-3.5 flex-shrink-0 text-slate-500" />
             <span className="truncate">{[club.city, club.state].filter(Boolean).join(", ")}</span>
           </div>
         )}
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <Users className="h-3.5 w-3.5 flex-shrink-0 text-slate-500" />
           <span>
             {club.totalMembers} Member{club.totalMembers !== 1 ? "s" : ""}
@@ -456,7 +457,7 @@ export default function DistrictClubsV2Page() {
               className="pl-9 border-slate-200 bg-white focus:border-azure focus:ring-azure/20 text-sm"
             />
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <Button
               onClick={handleSearch}
               size="sm"
@@ -519,7 +520,7 @@ export default function DistrictClubsV2Page() {
 
         {loading && (
           <div className="flex items-center justify-center py-20">
-            <RotaryLoader size="lg" />
+            <ListPageSkeleton />
           </div>
         )}
 

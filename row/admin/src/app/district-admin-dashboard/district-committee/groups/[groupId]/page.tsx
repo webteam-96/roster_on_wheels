@@ -35,6 +35,7 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 import DistrictMembershipTabBar from "@/components/dashboard/DistrictMembershipTabBar";
 import ImageCropDialog from "@/components/ImageCropDialog";
 import { useImageCropUpload } from "@/hooks/useImageCropUpload";
+import { ListPageSkeleton } from "@/components/row/AppKit";
 
 const PAGE_SIZE = 20;
 
@@ -327,9 +328,9 @@ export default function DistrictAdminDashboardGroupDetailPage() {
             <ArrowLeft className="h-4 w-4" />
           </Button>
           <div>
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               {editingName ? (
-                <div className="flex items-center gap-2">
+                <div className="flex flex-wrap items-center gap-2">
                   <Input
                     value={nameDraft}
                     onChange={(e) => setNameDraft(e.target.value)}
@@ -369,7 +370,7 @@ export default function DistrictAdminDashboardGroupDetailPage() {
           </div>
         </div>
 
-        {loading && <div className="flex items-center justify-center py-20"><RotaryLoader size="lg" /></div>}
+        {loading && <div className="flex items-center justify-center py-20"><ListPageSkeleton /></div>}
 
         {!loading && (
           <div className="space-y-8">
@@ -445,7 +446,7 @@ export default function DistrictAdminDashboardGroupDetailPage() {
                               )}
                             </TableCell>
                             <TableCell>
-                              <div className="flex items-center gap-2">
+                              <div className="flex flex-wrap items-center gap-2">
                                 <span className="font-medium">{m.name}</span>
                                 {m.isMember ? <MemberChip /> : <NonMemberChip />}
                               </div>
@@ -484,7 +485,7 @@ export default function DistrictAdminDashboardGroupDetailPage() {
 
             {/* ---- Sub Groups (stacked below members; add on top, table with edit/delete/sort) ---- */}
             <div className="space-y-4">
-              <div className="flex items-center justify-between">
+              <div className="flex flex-wrap items-center justify-between gap-3">
                 <h3 className="text-lg font-semibold text-ink flex items-center gap-2">
                   <Layers className="h-5 w-5" />Sub Groups <span className="text-slate-400 font-normal">({subGroups.length})</span>
                 </h3>
@@ -500,8 +501,8 @@ export default function DistrictAdminDashboardGroupDetailPage() {
                 </div>
               ) : (
                 <div className="overflow-x-auto rounded-2xl border border-slate-200 bg-white shadow-sm">
-                  <table className="min-w-full text-sm">
-                    <thead className="bg-slate-50 text-xs uppercase text-slate-500">
+                  <table className="w-full min-w-[640px] md:min-w-full text-sm">
+                    <thead className="bg-[#EDF4FB] text-[13px] text-[#64748B]">
                       <tr>
                         <th className="px-4 py-3 text-left w-12">#</th>
                         <th className="px-4 py-3 text-left">Sub-Group Name</th>
@@ -565,7 +566,7 @@ export default function DistrictAdminDashboardGroupDetailPage() {
                 <div className="space-y-2">
                   <Label>Search Member</Label>
                   <div className="relative">
-                    <div className="flex items-center gap-2">
+                    <div className="flex flex-wrap items-center gap-2">
                       <div className="relative flex-1">
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                         <Input className="pl-9" placeholder="Search by name, mobile, email..." value={memberSearch}

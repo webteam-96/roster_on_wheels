@@ -3,4 +3,6 @@
     <color name="ic_launcher_background">#1E1C20</color>
     <!-- Launch screen field: ROW azure, the same as the Flutter splash (AppColors.primaryPrime) -->
     <color name="launch_background">#17458F</color>
+    <!-- Push notification accent (AndroidManifest default_notification_color): ROW azure -->
+    <color name="notification_accent">#17458F</color>
 </resources>

@@ -35,6 +35,7 @@ import RotaryLoader from "@/components/RotaryLoader";
 import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import SearchBox from "@/components/SearchBox";
+import { ListPageSkeleton } from "@/components/row/AppKit";
 
 const PAN_REGEX = /^[A-Z]{5}[0-9]{4}[A-Z]{1}$/;
 
@@ -310,7 +311,7 @@ export default function CashfreeKycPage() {
               <p className="text-muted-foreground text-base">Manage vendor KYC records for Cashfree</p>
             </div>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <Button variant="outline" onClick={handleRefreshAll} disabled={refreshingAll}>
               <RefreshCw className={`mr-2 h-4 w-4 ${refreshingAll ? "animate-spin" : ""}`} />
               {refreshingAll ? "Refreshing..." : "Refresh All"}
@@ -324,7 +325,7 @@ export default function CashfreeKycPage() {
         {/* Loading */}
         {loading && (
           <div className="flex items-center justify-center py-20">
-            <RotaryLoader size="lg" />
+            <ListPageSkeleton />
           </div>
         )}
 

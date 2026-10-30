@@ -387,7 +387,7 @@ class _DistrictAnnouncementsScreenState
       color: AppColors.primary,
       onRefresh: () => _fetch(reset: true),
       child: ListView.separated(
-        padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+        padding: (const EdgeInsets.fromLTRB(16, 8, 16, 16)).add(const EdgeInsets.only(bottom: 88)),
         itemCount: _items.length + 1,
         separatorBuilder: (_, __) => const SizedBox(height: 10),
         itemBuilder: (ctx, i) {
@@ -814,12 +814,12 @@ class _AnnouncementEditorPageState extends State<_AnnouncementEditorPage> {
                     width: 18,
                     height: 18,
                     child: CircularProgressIndicator(
-                        strokeWidth: 2, color: Colors.white),
+                        strokeWidth: 2, color: AppColors.primaryPrime),
                   )
                 : Text(
                     _isEdit ? 'Update' : 'Save',
                     style: const TextStyle(
-                        color: Colors.white, fontWeight: FontWeight.bold),
+                        color: AppColors.primaryPrime, fontWeight: FontWeight.bold),
                   ),
           ),
           const SizedBox(width: 8),
@@ -1234,7 +1234,7 @@ class _AnnouncementDetailScreenState
     final img = _absUrl(a.imagePath);
 
     return ListView(
-      padding: const EdgeInsets.all(16),
+      padding: (const EdgeInsets.all(16)).add(const EdgeInsets.only(bottom: 88)),
       children: [
         DetailHeader(
           title: a.title,

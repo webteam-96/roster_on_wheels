@@ -11,6 +11,7 @@ import '../../widgets/common/empty_state_widget.dart';
 import '../../widgets/common/loading_widget.dart';
 import 'package:rotary_flutter_app/core/theme/app_fonts.dart';
 import 'package:rotary_flutter_app/core/i18n/text.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/skeleton_list.dart';
 
 enum ClubFinderMode { anyClub, nearMe }
 
@@ -157,7 +158,7 @@ class _ClubFinderResultsScreenState extends State<ClubFinderResultsScreen> {
               child: Text(
                 '$_totalCount result${_totalCount == 1 ? '' : 's'}',
                 style: AppFonts.body(
-                  fontSize: 12,
+                  fontSize: 13,
                   color: AppColors.textSecondary,
                   fontWeight: FontWeight.w600,
                 ),
@@ -174,7 +175,7 @@ class _ClubFinderResultsScreenState extends State<ClubFinderResultsScreen> {
               if (i >= _items.length) {
                 return const Padding(
                   padding: EdgeInsets.all(16),
-                  child: Center(child: CircularProgressIndicator()),
+                  child: const RowSkeletonList(),
                 );
               }
               return _ClubCard(item: _items[i]);
@@ -254,7 +255,7 @@ class _ClubCard extends StatelessWidget {
                       Text(
                         'Rotary ID: ${item.clubRotaryId}',
                         style: AppFonts.body(
-                          fontSize: 12,
+                          fontSize: 13,
                           color: AppColors.textSecondary,
                         ),
                       ),
@@ -285,7 +286,7 @@ class _ClubCard extends StatelessWidget {
                             child: Text(
                               item.meetingDay!,
                               style: AppFonts.body(
-                                fontSize: 12,
+                                fontSize: 13,
                                 color: AppColors.textSecondary,
                               ),
                               overflow: TextOverflow.ellipsis,
@@ -336,7 +337,7 @@ class _ClubCard extends StatelessWidget {
       child: Text(
         label,
         style: AppFonts.body(
-          fontSize: 11,
+          fontSize: 13,
           color: AppColors.primary,
           fontWeight: FontWeight.w600,
         ),

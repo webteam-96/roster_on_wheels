@@ -69,8 +69,8 @@ class _LoginScreenState extends State<LoginScreen> {
                 padding: const EdgeInsets.all(24),
                 decoration: BoxDecoration(
                   color: AppColors.surface,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: AppColors.border),
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: AppColors.line),
                 ),
                 child: Form(
                   key: _formKey,

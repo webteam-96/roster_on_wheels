@@ -40,7 +40,7 @@ export default function ClubTrainingSection({ clubId, active }: { clubId: number
         </div>
         <button
           onClick={() => { setRescheduleId(null); setOpen(true); }}
-          className="inline-flex items-center gap-2 rounded-lg bg-azure px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-azure"
+          className="inline-flex items-center gap-2 rounded-full bg-azure px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-azure"
         >
           <Calendar size={16} /> Request a Training Date
         </button>

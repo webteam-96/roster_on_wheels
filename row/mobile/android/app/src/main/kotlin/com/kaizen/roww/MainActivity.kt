@@ -1,4 +1,4 @@
-package com.SampleApp.row
+package com.kaizen.roww
 
 import androidx.biometric.BiometricManager
 import androidx.biometric.BiometricPrompt

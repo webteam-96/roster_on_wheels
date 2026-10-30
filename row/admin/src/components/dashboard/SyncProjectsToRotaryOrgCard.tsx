@@ -109,7 +109,7 @@ export default function SyncProjectsToRotaryOrgCard({ clubId }: { clubId: number
               href={ADD_TO_ORG_WEBSTORE_URL}
               target="_blank"
               rel="noopener noreferrer"
-              className="ml-auto inline-flex items-center gap-1 rounded-lg border border-amber-300 bg-amber-50 px-2.5 py-1 text-xs font-semibold text-amber-800 hover:bg-amber-100"
+              className="ml-auto inline-flex items-center gap-1 rounded-full border border-amber-300 bg-amber-50 px-2.5 py-1 text-xs font-semibold text-amber-800 hover:bg-amber-100"
             >
               Install extension <ExternalLink className="h-3 w-3" />
             </a>
@@ -118,7 +118,7 @@ export default function SyncProjectsToRotaryOrgCard({ clubId }: { clubId: number
             <button
               type="button"
               onClick={() => setOpen(true)}
-              className="ml-auto inline-flex items-center gap-1 rounded-lg border border-amber-300 bg-amber-50 px-2.5 py-1 text-xs font-semibold text-amber-800 hover:bg-amber-100"
+              className="ml-auto inline-flex items-center gap-1 rounded-full border border-amber-300 bg-amber-50 px-2.5 py-1 text-xs font-semibold text-amber-800 hover:bg-amber-100"
             >
               Add Rotary.org login
             </button>

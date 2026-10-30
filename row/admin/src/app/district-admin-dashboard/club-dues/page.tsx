@@ -18,6 +18,7 @@ import { Upload, X, RefreshCw, Bell, FileText, Send } from "@/components/icons";
 import EmailTokenChips, { CLUB_DUES_RECEIPT_TOKENS, CLUB_DUES_REMINDER_TOKENS } from "@/components/club-dues/EmailTokenChips";
 
 import { appLocale, currencySymbol } from "@/lib/appFormat";
+import { ListPageSkeleton } from "@/components/row/AppKit";
 // forwardedRef-capable dynamic import so we can reach the Quill editor to insert tokens at the cursor.
 const ReactQuill = dynamic(async () => {
   const { default: RQ } = await import("react-quill-new");
@@ -204,7 +205,7 @@ export default function DistrictAdminClubDuesPage() {
             /* eslint-disable-next-line @next/next/no-img-element */
             <img src={clubDuesAssetUrl(existing)} alt="" className="h-12 w-12 rounded border object-contain bg-white" />
           )}
-          <Label className="inline-flex items-center gap-2 cursor-pointer rounded-md border px-3 py-2 text-sm hover:bg-accent">
+          <Label className="inline-flex items-center gap-2 cursor-pointer rounded-full border px-3 py-2 text-sm hover:bg-accent">
             <Upload className="h-4 w-4" />{existing ? "Replace" : "Upload"}
             <input type="file" accept=".jpg,.jpeg,.png,.gif,.webp,.svg" className="hidden" onChange={(e) => setFile(e.target.files?.[0] || null)} />
           </Label>
@@ -213,7 +214,7 @@ export default function DistrictAdminClubDuesPage() {
     </div>
   );
 
-  if (loading) return <div className="flex justify-center py-20"><RotaryLoader size="lg" /></div>;
+  if (loading) return <div className="flex justify-center py-20"><ListPageSkeleton /></div>;
 
   return (
     <div className="space-y-5">
@@ -256,7 +257,7 @@ export default function DistrictAdminClubDuesPage() {
           {tab === "clubs" ? (
             selectedId != null && <ClubsSection duesId={selectedId} onSuccess={setSuccess} onError={setError} />
           ) : loadingContent ? (
-            <div className="flex justify-center py-16"><RotaryLoader size="lg" /></div>
+            <div className="flex justify-center py-16"><ListPageSkeleton /></div>
           ) : (
             <>
               <Card>
@@ -400,7 +401,7 @@ function ClubsSection({ duesId, onSuccess, onError }: { duesId: number; onSucces
   const maxOfflineAccountCols = rows.reduce((m, r) => Math.max(m, r.offlineAccountBreakdown?.length || 0), 0);
   const maxOnlineAccountCols = rows.reduce((m, r) => Math.max(m, r.onlineAccountBreakdown?.length || 0), 0);
 
-  if (loading) return <div className="flex justify-center py-16"><RotaryLoader size="lg" /></div>;
+  if (loading) return <div className="flex justify-center py-16"><ListPageSkeleton /></div>;
 
   return (
     <div className="space-y-4">
@@ -456,7 +457,7 @@ function ClubsSection({ duesId, onSuccess, onError }: { duesId: number; onSucces
         title="Send Email Reminder to All Clubs"
         description="Send an email reminder to every unpaid club in this campaign? This cannot be undone."
         confirmLabel="Send"
-        confirmClassName="bg-orange-600 text-white hover:bg-orange-700"
+        confirmClassName="bg-[#17458F] text-white hover:bg-[#17458F]"
         onConfirm={() => { setBulkConfirmChannel(null); emailAll(); }}
         cancelLabel="Cancel"
         onCancel={() => setBulkConfirmChannel(null)}
@@ -466,7 +467,7 @@ function ClubsSection({ duesId, onSuccess, onError }: { duesId: number; onSucces
       <Card>
         <CardContent className="p-0 overflow-x-auto">
           <table className="w-full text-sm">
-            <thead className="bg-muted/50 text-left">
+            <thead className="bg-[#EDF4FB] text-[13px] text-[#64748B] text-left">
               <tr>
                 <th className="p-3">Club</th>
                 <th className="p-3 text-center">Total Members</th>

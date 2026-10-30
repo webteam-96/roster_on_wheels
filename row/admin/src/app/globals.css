@@ -94,6 +94,12 @@
   body {
     @apply bg-background text-foreground;
   }
+  /* ROW application headings (design.md 8.1): Bricolage display face, tight tracking. Utility
+     classes on an element still win, so a page can size or recolour its own heading. */
+  h1, h2, h3 {
+    font-family: var(--font-display), "Bricolage Grotesque", system-ui, sans-serif;
+    letter-spacing: -0.015em;
+  }
 }
 
 @keyframes loading-bar {

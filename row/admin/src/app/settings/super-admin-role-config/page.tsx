@@ -155,11 +155,11 @@ export default function SuperAdminRoleConfigPage() {
   return (
     <ProtectedRoute>
       <div className="space-y-4">
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3">
           <Button variant="outline" size="icon" asChild>
             <Link href="/settings"><ArrowLeft className="h-4 w-4" /></Link>
           </Button>
-          <div className="flex-1">
+          <div className="flex-1 min-w-0">
             <h2 className="text-2xl font-bold tracking-tight text-primary flex items-center gap-2">
               <ShieldCheck className="h-6 w-6" /> Super Admin Role Config
             </h2>
@@ -179,7 +179,7 @@ export default function SuperAdminRoleConfigPage() {
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
-                  <thead className="text-xs uppercase text-muted-foreground bg-muted/40">
+                  <thead className="bg-[#EDF4FB] text-[13px] text-[#64748B]">
                     <tr>
                       <th className="px-3 py-2 text-left">Name</th>
                       <th className="px-3 py-2 text-left">Mobile</th>

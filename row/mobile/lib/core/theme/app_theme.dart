@@ -53,7 +53,8 @@ class AppTheme {
         foregroundColor: AppColors.textPrimary,
         elevation: 0,
         scrolledUnderElevation: 0,
-        centerTitle: true,
+        // Left-aligned titles (design.md 8.6): they never collide with actions on the right.
+        centerTitle: false,
         titleTextStyle: AppTextStyles.h4,
         iconTheme: const IconThemeData(color: AppColors.textPrimary, size: 24),
       ),
@@ -96,10 +97,13 @@ class AppTheme {
           textStyle: AppTextStyles.button,
         ),
       ),
+      // One field style across the app (design.md 8.6): outlined, label always shown on the border.
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: AppColors.surface,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        floatingLabelBehavior: FloatingLabelBehavior.always,
+        floatingLabelStyle: AppTextStyles.bodySemiBold.copyWith(color: AppColors.textPrimary, fontSize: 14),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
         border: const OutlineInputBorder(
           borderRadius: BorderRadius.all(Radius.circular(12)),
           borderSide: BorderSide(color: AppColors.lightBorder),
@@ -119,13 +123,27 @@ class AppTheme {
         labelStyle: AppTextStyles.bodyMedium.copyWith(color: AppColors.textSecondary),
         hintStyle: AppTextStyles.body.copyWith(color: AppColors.textMuted),
       ),
+      // Light tabs (design.md 8.6): ink labels, the active tab on a sky pill, no band, no divider.
       tabBarTheme: TabBarThemeData(
-        labelColor: AppColors.primaryPrime,
+        labelColor: AppColors.textPrimary,
         unselectedLabelColor: AppColors.textSecondary,
-        indicatorColor: AppColors.goldPrime,
-        indicatorSize: TabBarIndicatorSize.label,
+        indicator: BoxDecoration(color: RowTone.sky.fill, borderRadius: BorderRadius.circular(RowRadii.pill)),
+        indicatorSize: TabBarIndicatorSize.tab,
+        dividerColor: AppColors.transparent,
+        labelPadding: const EdgeInsets.symmetric(horizontal: 16),
         labelStyle: AppTextStyles.bodySemiBold,
         unselectedLabelStyle: AppTextStyles.body,
+      ),
+      // One primary action per screen: a flat azure pill, bottom right (design.md 8.6).
+      floatingActionButtonTheme: const FloatingActionButtonThemeData(
+        backgroundColor: AppColors.primaryPrime,
+        foregroundColor: AppColors.lightBg,
+        elevation: 0,
+        focusElevation: 0,
+        hoverElevation: 0,
+        highlightElevation: 0,
+        shape: StadiumBorder(),
+        extendedTextStyle: TextStyle(fontWeight: FontWeight.w600, fontSize: 15),
       ),
       dialogTheme: DialogThemeData(
         backgroundColor: AppColors.surface,

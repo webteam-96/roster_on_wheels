@@ -133,7 +133,7 @@ export default function MemberCard({ member, onDelete, isSuperAdmin, isAdmin: is
         <Link href={`/members/edit/${member.id}`} className="block">
           <div className="border-t px-4 py-3 space-y-2 text-sm text-muted-foreground group-hover:bg-primary/5 transition-colors">
             {member.designation && member.businessName && (
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2">
                 <Briefcase className="h-3.5 w-3.5 flex-shrink-0" />
                 <span className="truncate">
                   {member.designation}, {member.businessName}
@@ -141,7 +141,7 @@ export default function MemberCard({ member, onDelete, isSuperAdmin, isAdmin: is
               </div>
             )}
             {(member.resCity || member.resState) && (
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2">
                 <MapPin className="h-3.5 w-3.5 flex-shrink-0" />
                 <span className="truncate">
                   {[member.resCity, member.resState].filter(Boolean).join(", ")}
@@ -149,13 +149,13 @@ export default function MemberCard({ member, onDelete, isSuperAdmin, isAdmin: is
               </div>
             )}
             {member.primaryMobileNumber && (
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2">
                 <Phone className="h-3.5 w-3.5 flex-shrink-0" />
                 <span>{member.primaryCountryPhoneCode ? `${member.primaryCountryPhoneCode}-${member.primaryMobileNumber}` : member.primaryMobileNumber}</span>
               </div>
             )}
             {member.emailId && (
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2">
                 <Mail className="h-3.5 w-3.5 flex-shrink-0" />
                 <span className="truncate">{member.emailId}</span>
               </div>

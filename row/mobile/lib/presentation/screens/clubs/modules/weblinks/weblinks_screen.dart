@@ -16,6 +16,7 @@ import '../../../../../presentation/widgets/common/loading_widget.dart';
 import '../../../../../presentation/widgets/common/empty_state_widget.dart';
 import '../../../../../presentation/widgets/common/confirmation_dialog.dart';
 import 'package:rotary_flutter_app/core/i18n/text.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/form_action_bar.dart';
 
 class WeblinksScreen extends StatefulWidget {
   final int clubId;
@@ -239,7 +240,7 @@ class _WeblinksScreenState extends State<WeblinksScreen> {
                     : RefreshIndicator(
                         onRefresh: _loadWeblinks,
                         child: ListView.separated(
-                          padding: const EdgeInsets.all(16),
+                          padding: (const EdgeInsets.all(16)).add(const EdgeInsets.only(bottom: 88)),
                           itemCount: _weblinks.length,
                           separatorBuilder: (_, __) => const SizedBox(height: 8),
                           itemBuilder: (_, i) => _buildWeblinkTile(_weblinks[i]),
@@ -262,8 +263,8 @@ class _WeblinksScreenState extends State<WeblinksScreen> {
     return Opacity(
       opacity: isActive ? 1.0 : 0.55,
       child: Card(
-        elevation: 2,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        elevation: 0,
+        shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(20))),
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
           child: Row(
@@ -305,7 +306,7 @@ class _WeblinksScreenState extends State<WeblinksScreen> {
                             linkType,
                             style: AppTextStyles.caption.copyWith(
                               color: _linkTypeBadgeTextColor(linkType),
-                              fontSize: 10,
+                              fontSize: 13,
                               fontWeight: FontWeight.w600,
                             ),
                           ),
@@ -321,7 +322,7 @@ class _WeblinksScreenState extends State<WeblinksScreen> {
                           child: Text(
                             '$childCount',
                             style: AppTextStyles.caption.copyWith(
-                              fontSize: 10,
+                              fontSize: 13,
                               color: Colors.grey[700],
                             ),
                           ),
@@ -656,6 +657,12 @@ class _WeblinkFormScreenState extends State<_WeblinkFormScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      bottomNavigationBar: RowFormActionBar(child: CustomButton(
+                label: _isEdit ? 'Update Weblink' : 'Add Weblink',
+                onPressed: _saving ? null : _save,
+                isLoading: _saving,
+                fullWidth: true,
+              )),
       backgroundColor: AppColors.background,
       appBar: CustomAppBar(
         title: _isEdit ? 'Edit Weblink' : 'Add Weblink',
@@ -792,13 +799,7 @@ class _WeblinkFormScreenState extends State<_WeblinkFormScreen> {
                 ],
               ),
 
-              const SizedBox(height: 8),
-              CustomButton(
-                label: _isEdit ? 'Update Weblink' : 'Add Weblink',
-                onPressed: _saving ? null : _save,
-                isLoading: _saving,
-                fullWidth: true,
-              ),
+              
             ],
           ),
         ),
@@ -865,7 +866,7 @@ class _WeblinkFormScreenState extends State<_WeblinkFormScreen> {
             padding: const EdgeInsets.only(top: 6),
             child: Text(helper,
                 style: AppTextStyles.caption
-                    .copyWith(color: Colors.grey, fontSize: 11)),
+                    .copyWith(color: Colors.grey, fontSize: 13)),
           ),
       ],
     );
@@ -929,7 +930,7 @@ class _WlSectionCard extends StatelessWidget {
                     '$number',
                     style: const TextStyle(
                       color: Colors.white,
-                      fontSize: 12,
+                      fontSize: 13,
                       fontWeight: FontWeight.bold,
                     ),
                   ),

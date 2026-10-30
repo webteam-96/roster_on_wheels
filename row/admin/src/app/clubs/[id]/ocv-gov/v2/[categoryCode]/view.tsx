@@ -60,6 +60,7 @@ import { useSyncClubIdFromUrl } from "@/hooks/useSyncClubIdFromUrl";
 
 import { appLocale } from "@/lib/appFormat";
 import { formatMoney } from "@/lib/currency";
+import { SkeletonRows } from "@/components/row/AppKit";
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
 const CATEGORY_VISUAL: Record<
@@ -362,7 +363,7 @@ export function OcvCategoryV2View({
               </Link>
             )}
             <div className="min-w-0">
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2">
                 <span className={`inline-flex h-8 w-8 items-center justify-center rounded-lg ${visual.bg} ${visual.accent}`}>
                   <Icon size={16} />
                 </span>
@@ -426,7 +427,7 @@ export function OcvCategoryV2View({
                   <select
                     value={typeId}
                     onChange={(e) => setTypeId(e.target.value)}
-                    className="w-full px-2 py-1.5 text-sm border border-slate-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-2 h-10 py-0 text-sm border border-slate-200 rounded-[12px] bg-white focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
                   >
                     <option value="">Select type…</option>
                     {docTypes.filter((t) => t.isActive).map((t) => (
@@ -444,7 +445,7 @@ export function OcvCategoryV2View({
                       placeholder="Enter document name"
                       value={customName}
                       onChange={(e) => setCustomName(e.target.value)}
-                      className="w-full px-2 py-1.5 text-sm border border-slate-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-2 h-10 py-0 text-sm border border-slate-200 rounded-[12px] bg-white focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
                     />
                   </div>
                 )}
@@ -471,14 +472,14 @@ export function OcvCategoryV2View({
                       placeholder="0.00"
                       value={amount}
                       onChange={(e) => setAmount(e.target.value)}
-                      className="w-full px-2 py-1.5 text-sm border border-slate-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-2 h-10 py-0 text-sm border border-slate-200 rounded-[12px] bg-white focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
                     />
                   </div>
                 )}
                 {isDues && (
                   <div className="space-y-1.5">
                     <label className="text-xs font-medium text-slate-600">Paid On</label>
-                    <DateField value={paidOn} onChange={setPaidOn} className="w-full px-2 py-1.5 text-sm border border-slate-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                    <DateField value={paidOn} onChange={setPaidOn} className="w-full px-2 h-10 py-0 text-sm border border-slate-200 rounded-[12px] bg-white focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]" />
                   </div>
                 )}
 
@@ -526,16 +527,14 @@ export function OcvCategoryV2View({
                   placeholder="Filter documents…"
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  className="w-full pl-7 pr-3 py-1.5 text-sm border border-slate-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full pl-7 pr-3 h-10 py-0 text-sm border border-slate-200 rounded-[12px] bg-white focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
                 />
               </div>
             </div>
 
             <div className="overflow-x-auto">
               {loading ? (
-                <div className="flex items-center justify-center py-12 text-slate-500">
-                  <Loader2 className="animate-spin mr-2" size={16} /> Loading…
-                </div>
+                <SkeletonRows />
               ) : documents.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-12 text-center text-slate-500">
                   <Upload size={28} className="text-slate-300 mb-2" />
@@ -549,7 +548,7 @@ export function OcvCategoryV2View({
                 </div>
               ) : (
                 <table className="min-w-full text-sm">
-                  <thead className="bg-slate-50 text-xs uppercase text-slate-500">
+                  <thead className="bg-[#EDF4FB] text-[13px] text-[#64748B]">
                     <tr>
                       <th className="px-3 py-2.5 text-left w-10">Sr</th>
                       <th className="px-3 py-2.5 text-left">Document Type</th>
@@ -640,7 +639,7 @@ export function OcvCategoryV2View({
                 <select
                   value={editTypeId}
                   onChange={(e) => setEditTypeId(e.target.value)}
-                  className="w-full px-2 py-1.5 text-sm border border-slate-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-2 h-10 py-0 text-sm border border-slate-200 rounded-[12px] bg-white focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
                 >
                   <option value="">Select type…</option>
                   {docTypes.filter((t) => t.isActive).map((t) => (
@@ -657,7 +656,7 @@ export function OcvCategoryV2View({
                     placeholder="Enter document name"
                     value={editCustomName}
                     onChange={(e) => setEditCustomName(e.target.value)}
-                    className="w-full px-2 py-1.5 text-sm border border-slate-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-2 h-10 py-0 text-sm border border-slate-200 rounded-[12px] bg-white focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
                   />
                 </div>
               )}
@@ -686,12 +685,12 @@ export function OcvCategoryV2View({
                       placeholder="0.00"
                       value={editAmount}
                       onChange={(e) => setEditAmount(e.target.value)}
-                      className="w-full px-2 py-1.5 text-sm border border-slate-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-2 h-10 py-0 text-sm border border-slate-200 rounded-[12px] bg-white focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
                     />
                   </div>
                   <div className="space-y-1.5">
                     <label className="text-xs font-medium text-slate-600">Paid On</label>
-                    <DateField value={editPaidOn} onChange={setEditPaidOn} className="w-full px-2 py-1.5 text-sm border border-slate-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                    <DateField value={editPaidOn} onChange={setEditPaidOn} className="w-full px-2 h-10 py-0 text-sm border border-slate-200 rounded-[12px] bg-white focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]" />
                   </div>
                 </>
               )}
@@ -702,7 +701,7 @@ export function OcvCategoryV2View({
                 type="button"
                 onClick={() => setEditDoc(null)}
                 disabled={saving}
-                className="inline-flex items-center gap-1 text-sm font-medium px-3 py-1.5 rounded-lg border border-slate-200 text-slate-700 hover:bg-slate-50 disabled:opacity-50"
+                className="inline-flex items-center gap-1 text-sm font-medium px-3 py-1.5 rounded-full border border-slate-200 text-slate-700 hover:bg-slate-50 disabled:opacity-50"
               >
                 Cancel
               </button>
@@ -712,7 +711,7 @@ export function OcvCategoryV2View({
                 forcePending={saving}
                 loadingLabel="Saving…"
                 spinnerSize={14}
-                className="inline-flex items-center gap-1 text-sm font-semibold px-4 py-1.5 rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50"
+                className="inline-flex items-center gap-1 text-sm font-semibold px-4 py-1.5 rounded-full bg-[#17458F] text-white hover:bg-[#17458F] disabled:opacity-50"
               >
                 Save Changes
               </LoadingButton>

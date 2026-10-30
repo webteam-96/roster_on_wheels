@@ -84,14 +84,14 @@ export default function MeetingCompliancePage() {
                 type="month"
                 value={month}
                 onChange={(e) => setMonth(e.target.value)}
-                className="rounded-lg border border-slate-200 px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="rounded-[12px] border border-slate-200 px-3 py-1.5 text-sm focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
               />
             </div>
             <div>
               <label htmlFor="mc-default" className="mb-1 block text-sm font-medium text-slate-700">
                 District rule: meetings per month
               </label>
-              <div className="flex gap-2">
+              <div className="flex flex-wrap gap-2">
                 <input
                   id="mc-default"
                   type="number"
@@ -99,13 +99,13 @@ export default function MeetingCompliancePage() {
                   max={31}
                   value={defaultInput}
                   onChange={(e) => setDefaultInput(e.target.value)}
-                  className="w-20 rounded-lg border border-slate-200 px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-20 rounded-[12px] border border-slate-200 px-3 py-1.5 text-sm focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
                 />
                 <button
                   type="button"
                   onClick={() => save(parseMeetingCount(defaultInput))}
                   disabled={busy || !data}
-                  className="rounded-lg bg-azure px-3 py-1.5 text-sm font-semibold text-cream hover:bg-mint-ink disabled:opacity-60"
+                  className="rounded-full bg-azure px-3 py-1.5 text-sm font-semibold text-cream hover:bg-mint-ink disabled:opacity-60"
                 >
                   Save
                 </button>
@@ -128,7 +128,7 @@ export default function MeetingCompliancePage() {
         ) : (
           <div className="overflow-x-auto rounded-2xl border border-slate-200 bg-white">
             <table className="w-full text-sm">
-              <thead className="border-b border-slate-200 bg-slate-50 text-left text-xs font-semibold uppercase tracking-wide text-slate-600">
+              <thead className="border-b border-slate-200 bg-[#EDF4FB] text-left text-xs font-semibold text-slate-600">
                 <tr>
                   <th className="px-4 py-2.5">Club</th>
                   <th className="px-4 py-2.5">Held in {monthLabel(data.month)}</th>
@@ -154,7 +154,7 @@ export default function MeetingCompliancePage() {
                       </span>
                     </td>
                     <td className="px-4 py-2.5">
-                      <div className="flex items-center gap-2">
+                      <div className="flex flex-wrap items-center gap-2">
                         <input
                           type="number"
                           min={0}
@@ -163,13 +163,13 @@ export default function MeetingCompliancePage() {
                           placeholder={String(data.districtDefault)}
                           value={overrides[c.clubId] ?? ""}
                           onChange={(e) => setOverrides((o) => ({ ...o, [c.clubId]: e.target.value }))}
-                          className="w-16 rounded-lg border border-slate-200 px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          className="w-16 rounded-[12px] border border-slate-200 px-2 py-1 text-sm focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
                         />
                         <button
                           type="button"
                           onClick={() => save(parseMeetingCount(overrides[c.clubId] ?? ""), c.clubId)}
                           disabled={busy}
-                          className="rounded-lg border border-slate-200 px-2.5 py-1 text-xs font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-60"
+                          className="rounded-full border border-slate-200 px-2.5 py-1 text-xs font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-60"
                         >
                           Save
                         </button>

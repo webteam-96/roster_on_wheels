@@ -82,7 +82,7 @@ export default function ClubAdminMassEmailViewPage() {
   return (
     <ProtectedRoute>
       <div className="space-y-6 max-w-5xl mx-auto">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-3">
             <Button variant="outline" size="icon" onClick={() => router.push(returnTo)} aria-label="Back"><ArrowLeft className="h-4 w-4" /></Button>
             <div>
@@ -98,7 +98,7 @@ export default function ClubAdminMassEmailViewPage() {
         </div>
 
         <Card>
-          <CardHeader><div className="flex items-center justify-between"><CardTitle>{detail.subject}</CardTitle>{statusBadge(detail.status)}</div></CardHeader>
+          <CardHeader><div className="flex flex-wrap items-center justify-between gap-3"><CardTitle>{detail.subject}</CardTitle>{statusBadge(detail.status)}</div></CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
               <div><span className="text-muted-foreground">From: </span><span className="font-medium">{detail.fromName}</span><span className="text-muted-foreground"> &lt;support@example.org&gt;</span></div>

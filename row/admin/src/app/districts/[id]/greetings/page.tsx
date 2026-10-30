@@ -16,12 +16,13 @@ import DistrictAdminShell from "@/components/v2/DistrictAdminShell";
 import { useSyncDistrictIdFromUrl } from "@/hooks/useSyncDistrictIdFromUrl";
 import { useAuth } from "@/contexts/AuthContext";
 import GreetingPauseNotice from "@/components/GreetingPauseNotice";
+import { ListPageSkeleton } from "@/components/row/AppKit";
 
 function Section({ icon: Icon, title, number, children }: {
   icon: React.ElementType; title: string; number: number; children: React.ReactNode;
 }) {
   return (
-    <div className="bg-card rounded-xl border shadow-sm overflow-hidden">
+    <div className="bg-card rounded-[20px] border shadow-sm overflow-hidden">
       <div className="flex items-center gap-3 px-5 py-3.5 bg-muted/40 border-b">
         <div className="flex items-center justify-center h-7 w-7 rounded-full bg-primary text-primary-foreground text-xs font-bold">{number}</div>
         <Icon className="h-4 w-4 text-primary" />
@@ -144,7 +145,7 @@ export default function DistrictGreetingsSettingsPage() {
   };
 
   if (loading) {
-    return <DistrictAdminShell pageTitle="Greetings Settings" activeNavHref="/district-admin-dashboard/communication"><div className="flex items-center justify-center py-20"><RotaryLoader size="lg" /></div></DistrictAdminShell>;
+    return <DistrictAdminShell pageTitle="Greetings Settings" activeNavHref="/district-admin-dashboard/communication"><div className="flex items-center justify-center py-20"><ListPageSkeleton /></div></DistrictAdminShell>;
   }
 
   return (

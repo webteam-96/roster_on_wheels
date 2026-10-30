@@ -27,6 +27,7 @@ import ProjectDetailModal from "@/components/ProjectDetailModal";
 import { formatMoney } from "@/lib/currency";
 
 import { appLocale } from "@/lib/appFormat";
+import { ListPageSkeleton } from "@/components/row/AppKit";
 function formatTime(t: string | null) {
   if (!t) return "";
   return t.substring(0, 5);
@@ -177,7 +178,7 @@ export default function ClubDetailViewPage() {
 
   if (loading) return (
     <ProtectedRoute>
-      <div className="flex items-center justify-center py-20"><RotaryLoader size="lg" /></div>
+      <div className="flex items-center justify-center py-20"><ListPageSkeleton /></div>
     </ProtectedRoute>
   );
 
@@ -220,18 +221,18 @@ export default function ClubDetailViewPage() {
               </div>
               {/* Details Grid */}
               <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 text-sm">
-                <div className="flex items-center gap-2">
+                <div className="flex flex-wrap items-center gap-2">
                   <Award className="h-4 w-4 text-primary flex-shrink-0" />
                   <div><span className="text-muted-foreground">Rotary ID:</span> <strong>{club.clubRotaryId}</strong></div>
                 </div>
                 {club.meetingDay && (
-                  <div className="flex items-center gap-2">
+                  <div className="flex flex-wrap items-center gap-2">
                     <Calendar className="h-4 w-4 text-primary flex-shrink-0" />
                     <div><span className="text-muted-foreground">Meeting:</span> <strong>{club.meetingDay}</strong></div>
                   </div>
                 )}
                 {(club.meetingFromTime || club.meetingToTime) && (
-                  <div className="flex items-center gap-2">
+                  <div className="flex flex-wrap items-center gap-2">
                     <Clock className="h-4 w-4 text-primary flex-shrink-0" />
                     <div><span className="text-muted-foreground">Time:</span> <strong>{formatTime(club.meetingFromTime)}{club.meetingToTime ? ` - ${formatTime(club.meetingToTime)}` : ""}</strong></div>
                   </div>
@@ -243,24 +244,24 @@ export default function ClubDetailViewPage() {
                   </div>
                 )}
                 {(club.city || club.state) && (
-                  <div className="flex items-center gap-2">
+                  <div className="flex flex-wrap items-center gap-2">
                     <MapPin className="h-4 w-4 text-primary flex-shrink-0" />
                     <div>{[club.city, club.state].filter(Boolean).join(", ")}{club.pincode ? ` - ${club.pincode}` : ""}</div>
                   </div>
                 )}
                 {club.clubCharterDate && (
-                  <div className="flex items-center gap-2">
+                  <div className="flex flex-wrap items-center gap-2">
                     <CalendarDays className="h-4 w-4 text-primary flex-shrink-0" />
                     <div><span className="text-muted-foreground">Charter:</span> {formatDate(club.clubCharterDate)}</div>
                   </div>
                 )}
                 {club.clubWebsite && (
-                  <div className="flex items-center gap-2">
+                  <div className="flex flex-wrap items-center gap-2">
                     <Globe className="h-4 w-4 text-primary flex-shrink-0" />
                     <a href={club.clubWebsite.startsWith("http") ? club.clubWebsite : `https://${club.clubWebsite}`} target="_blank" rel="noopener noreferrer" className="text-primary underline truncate">{club.clubWebsite}</a>
                   </div>
                 )}
-                <div className="flex items-center gap-2">
+                <div className="flex flex-wrap items-center gap-2">
                   <Users className="h-4 w-4 text-primary flex-shrink-0" />
                   <div><strong>{club.totalMembers}</strong> <span className="text-muted-foreground">Rotarians</span></div>
                 </div>
@@ -301,7 +302,7 @@ export default function ClubDetailViewPage() {
               )}
             </div>
 
-            {loadingMembers && <div className="flex justify-center py-12"><RotaryLoader size="lg" /></div>}
+            {loadingMembers && <div className="flex justify-center py-12"><ListPageSkeleton /></div>}
 
             {/* Rotarians List */}
             {memberFilter === "rotarians" && !loadingMembers && (
@@ -320,7 +321,7 @@ export default function ClubDetailViewPage() {
                           <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-sm font-bold text-primary">{m.memberName?.charAt(0)}</div>
                         )}
                         <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2">
+                          <div className="flex flex-wrap items-center gap-2">
                             <p className="font-medium text-sm truncate">{m.memberName}</p>
                             {m.roles && m.roles.length > 0 && m.roles.map(r => (
                               <Badge key={r} variant="outline" className="text-xs">{r}</Badge>
@@ -339,28 +340,28 @@ export default function ClubDetailViewPage() {
                           ) : memberDetails[m.id] ? (
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                               {memberDetails[m.id].emailId && (
-                                <div className="flex items-center gap-2"><Mail className="h-3.5 w-3.5 text-muted-foreground" /><span>{memberDetails[m.id].emailId}</span></div>
+                                <div className="flex flex-wrap items-center gap-2"><Mail className="h-3.5 w-3.5 text-muted-foreground" /><span>{memberDetails[m.id].emailId}</span></div>
                               )}
                               {memberDetails[m.id].businessName && (
-                                <div className="flex items-center gap-2"><Briefcase className="h-3.5 w-3.5 text-muted-foreground" /><span className="font-medium">{memberDetails[m.id].businessName}</span></div>
+                                <div className="flex flex-wrap items-center gap-2"><Briefcase className="h-3.5 w-3.5 text-muted-foreground" /><span className="font-medium">{memberDetails[m.id].businessName}</span></div>
                               )}
                               {memberDetails[m.id].designation && (
-                                <div className="flex items-center gap-2"><Award className="h-3.5 w-3.5 text-muted-foreground" /><span>{memberDetails[m.id].designation}</span></div>
+                                <div className="flex flex-wrap items-center gap-2"><Award className="h-3.5 w-3.5 text-muted-foreground" /><span>{memberDetails[m.id].designation}</span></div>
                               )}
                               {memberDetails[m.id].classificationProfession && (
-                                <div className="flex items-center gap-2"><FolderKanban className="h-3.5 w-3.5 text-muted-foreground" /><span>{memberDetails[m.id].classificationProfession}</span></div>
+                                <div className="flex flex-wrap items-center gap-2"><FolderKanban className="h-3.5 w-3.5 text-muted-foreground" /><span>{memberDetails[m.id].classificationProfession}</span></div>
                               )}
                               {memberDetails[m.id].rotaryId && (
-                                <div className="flex items-center gap-2"><Award className="h-3.5 w-3.5 text-muted-foreground" /><span>Rotary ID: {memberDetails[m.id].rotaryId}</span></div>
+                                <div className="flex flex-wrap items-center gap-2"><Award className="h-3.5 w-3.5 text-muted-foreground" /><span>Rotary ID: {memberDetails[m.id].rotaryId}</span></div>
                               )}
                               {showBloodGroup && memberDetails[m.id].bloodGroup && (
-                                <div className="flex items-center gap-2"><span className="text-muted-foreground">Blood:</span> {memberDetails[m.id].bloodGroup}</div>
+                                <div className="flex flex-wrap items-center gap-2"><span className="text-muted-foreground">Blood:</span> {memberDetails[m.id].bloodGroup}</div>
                               )}
                               {memberDetails[m.id].businessPhone && (
-                                <div className="flex items-center gap-2"><Phone className="h-3.5 w-3.5 text-muted-foreground" /><span>{memberDetails[m.id].businessPhone}</span></div>
+                                <div className="flex flex-wrap items-center gap-2"><Phone className="h-3.5 w-3.5 text-muted-foreground" /><span>{memberDetails[m.id].businessPhone}</span></div>
                               )}
                               {memberDetails[m.id].businessCity && (
-                                <div className="flex items-center gap-2"><MapPin className="h-3.5 w-3.5 text-muted-foreground" /><span>{[memberDetails[m.id].businessCity, memberDetails[m.id].businessState].filter(Boolean).join(", ")}</span></div>
+                                <div className="flex flex-wrap items-center gap-2"><MapPin className="h-3.5 w-3.5 text-muted-foreground" /><span>{[memberDetails[m.id].businessCity, memberDetails[m.id].businessState].filter(Boolean).join(", ")}</span></div>
                               )}
                             </div>
                           ) : (
@@ -406,7 +407,7 @@ export default function ClubDetailViewPage() {
 
           {/* ── Communication Tab ── */}
           <TabsContent value="communication" className="space-y-6">
-            {loadingComm && <div className="flex justify-center py-12"><RotaryLoader size="lg" /></div>}
+            {loadingComm && <div className="flex justify-center py-12"><ListPageSkeleton /></div>}
 
             {!loadingComm && (
               <>
@@ -511,7 +512,7 @@ export default function ClubDetailViewPage() {
               </Select>
             </div>
 
-            {loadingProjects && <div className="flex justify-center py-12"><RotaryLoader size="lg" /></div>}
+            {loadingProjects && <div className="flex justify-center py-12"><ListPageSkeleton /></div>}
 
             {!loadingProjects && projects.length === 0 && (
               <div className="text-center py-12 text-muted-foreground">

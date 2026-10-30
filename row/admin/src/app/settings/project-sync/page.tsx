@@ -36,7 +36,7 @@ function formatDay(d: string | null) {
 function statusBadge(status: string) {
   const cls =
     status === "Published" ? "bg-emerald-100 text-emerald-700 border-emerald-200" :
-    status === "Published (before log)" ? "bg-teal-100 text-teal-700 border-teal-200" :
+    status === "Published (before log)" ? "bg-[#CFE2F6] text-teal-700 border-teal-200" :
     status === "Reset" ? "bg-slate-200 text-slate-700 border-slate-300" :
     "bg-amber-100 text-amber-700 border-amber-200";
   return (
@@ -130,7 +130,7 @@ export default function ProjectSyncPage() {
   return (
     <ProtectedRoute requireSuperAdmin>
       <div className="p-6 max-w-7xl mx-auto space-y-4">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
             <h1 className="text-2xl font-bold flex items-center gap-2"><RefreshCw className="h-6 w-6" /> Project Sync</h1>
             <p className="text-sm text-slate-500">

@@ -266,7 +266,7 @@ class _RotaryNetworkTabState extends State<RotaryNetworkTab> {
                             color: AppColors.textPrimary)),
                     Text('Terminated and prospective members across the district',
                         style: AppFonts.body(
-                            fontSize: 11, color: AppColors.slate500)),
+                            fontSize: 13, color: AppColors.slate500)),
                   ],
                 ),
               ),
@@ -323,7 +323,7 @@ class _RotaryNetworkTabState extends State<RotaryNetworkTab> {
       label: Text(
         running ? 'Refreshing…' : 'Refresh',
         style: AppFonts.body(
-            fontSize: 11.5, fontWeight: FontWeight.w700),
+            fontSize: 13, fontWeight: FontWeight.w700),
       ),
     );
   }
@@ -412,7 +412,7 @@ class _RotaryNetworkTabState extends State<RotaryNetworkTab> {
                     ),
                     child: Text('${rows[i].count}',
                         style: AppFonts.body(
-                            fontSize: 11.5,
+                            fontSize: 13,
                             fontWeight: FontWeight.w800,
                             color: AppColors.error)),
                   ),
@@ -430,7 +430,7 @@ class _RotaryNetworkTabState extends State<RotaryNetworkTab> {
         Text(
           'Tap a club to view its terminated members',
           style: AppFonts.body(
-              fontSize: 10.5, color: AppColors.slate400),
+              fontSize: 13, color: AppColors.slate400),
         ),
       ],
     );
@@ -472,7 +472,7 @@ class _RotaryNetworkTabState extends State<RotaryNetworkTab> {
           '${rows.length == 1 ? '' : 's'}'
           '${q.isEmpty ? '' : ' (filtered)'}',
           style: AppFonts.body(
-              fontSize: 10.5, color: AppColors.slate400),
+              fontSize: 13, color: AppColors.slate400),
         ),
       ],
     );
@@ -483,7 +483,7 @@ class _RotaryNetworkTabState extends State<RotaryNetworkTab> {
         child: Center(
           child: Text(text,
               style: AppFonts.body(
-                  fontSize: 12.5, color: AppColors.slate400)),
+                  fontSize: 13, color: AppColors.slate400)),
         ),
       );
 }
@@ -521,7 +521,7 @@ class _RefreshProgress extends StatelessWidget {
                       ? 'Refreshing from Rotary.org: $done of $total clubs (runs in the background)'
                       : 'Refreshing from Rotary.org (runs in the background)',
                   style: AppFonts.body(
-                      fontSize: 11.5,
+                      fontSize: 13,
                       fontWeight: FontWeight.w600,
                       color: AppColors.accentBlue),
                 ),
@@ -569,7 +569,7 @@ class _Banner extends StatelessWidget {
           Expanded(
             child: Text(text,
                 style: AppFonts.body(
-                    fontSize: 11.5, fontWeight: FontWeight.w600, color: fg)),
+                    fontSize: 13, fontWeight: FontWeight.w600, color: fg)),
           ),
         ],
       ),
@@ -610,7 +610,7 @@ class _ToggleBar extends StatelessWidget {
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             style: AppFonts.body(
-              fontSize: 12,
+              fontSize: 13,
               fontWeight: active ? FontWeight.w800 : FontWeight.w600,
               color: active ? Colors.white : AppColors.slate500,
             ),
@@ -707,7 +707,7 @@ class _MemberRow extends StatelessWidget {
                     const SizedBox(width: 8),
                     Text(row.memberId,
                         style: AppFonts.body(
-                            fontSize: 10.5,
+                            fontSize: 13,
                             fontWeight: FontWeight.w700,
                             color: AppColors.slate500)),
                   ],
@@ -716,7 +716,7 @@ class _MemberRow extends StatelessWidget {
               if (row.clubName.isNotEmpty)
                 Text(row.clubName,
                     style: AppFonts.body(
-                        fontSize: 11, color: AppColors.slate500),
+                        fontSize: 13, color: AppColors.slate500),
                     overflow: TextOverflow.ellipsis),
               if (row.memberType.isNotEmpty) ...[
                 const SizedBox(height: 4),
@@ -735,7 +735,7 @@ class _MemberRow extends StatelessWidget {
                   const SizedBox(height: 2),
                   Text(notes,
                       style: AppFonts.body(
-                          fontSize: 11, color: AppColors.slate500)),
+                          fontSize: 13, color: AppColors.slate500)),
                 ],
               ],
               if (mobile.isNotEmpty || email.isNotEmpty) ...[
@@ -756,13 +756,13 @@ class _MemberRow extends StatelessWidget {
           TextSpan(
               text: '$label: ',
               style: AppFonts.body(
-                  fontSize: 11,
+                  fontSize: 13,
                   fontWeight: FontWeight.w700,
                   color: AppColors.slate500)),
           TextSpan(
               text: value,
               style: AppFonts.body(
-                  fontSize: 11, color: AppColors.slate500)),
+                  fontSize: 13, color: AppColors.slate500)),
         ])),
       );
 
@@ -774,7 +774,7 @@ class _MemberRow extends StatelessWidget {
           Expanded(
             child: Text(value,
                 style: AppFonts.body(
-                    fontSize: 11, color: AppColors.slate500),
+                    fontSize: 13, color: AppColors.slate500),
                 overflow: TextOverflow.ellipsis),
           ),
         ]),
@@ -789,7 +789,7 @@ class _MemberRow extends StatelessWidget {
         ),
         child: Text(type,
             style: AppFonts.body(
-                fontSize: 10,
+                fontSize: 13,
                 fontWeight: FontWeight.w700,
                 color: AppColors.slate700)),
       );
@@ -802,7 +802,7 @@ class _MemberRow extends StatelessWidget {
           BoxDecoration(color: style.bg, borderRadius: BorderRadius.circular(6)),
       child: Text(reason,
           style: AppFonts.body(
-              fontSize: 10.5, fontWeight: FontWeight.w700, color: style.fg)),
+              fontSize: 13, fontWeight: FontWeight.w700, color: style.fg)),
     );
   }
 

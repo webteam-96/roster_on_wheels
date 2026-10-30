@@ -367,7 +367,7 @@ class _DistrictGreetingsScreenState extends State<DistrictGreetingsScreen> {
       children: [
         _checkbox(
           value: _isEnableBirthdayNotification,
-          label: 'Is Enable Birthday Notification?',
+          label: 'Birthday notifications',
           onChanged: (v) =>
               setState(() => _isEnableBirthdayNotification = v ?? false),
         ),
@@ -385,7 +385,7 @@ class _DistrictGreetingsScreenState extends State<DistrictGreetingsScreen> {
         const SizedBox(height: 12),
         _checkbox(
           value: _isEnableAnniversaryNotification,
-          label: 'Is Enable Anniversary Notification?',
+          label: 'Anniversary notifications',
           onChanged: (v) =>
               setState(() => _isEnableAnniversaryNotification = v ?? false),
         ),
@@ -413,7 +413,7 @@ class _DistrictGreetingsScreenState extends State<DistrictGreetingsScreen> {
       children: [
         _emailSubCard(
           title: 'Birthday Email',
-          checkboxLabel: 'Is Enable Birthday Email?',
+          checkboxLabel: 'Send birthday emails',
           isEnabled: _isEnableBirthdayEmail,
           onToggle: (v) =>
               setState(() => _isEnableBirthdayEmail = v ?? false),
@@ -423,7 +423,7 @@ class _DistrictGreetingsScreenState extends State<DistrictGreetingsScreen> {
         const SizedBox(height: 14),
         _emailSubCard(
           title: 'Anniversary Email',
-          checkboxLabel: 'Is Enable Anniversary Email?',
+          checkboxLabel: 'Send anniversary emails',
           isEnabled: _isEnableAnniversaryEmail,
           onToggle: (v) =>
               setState(() => _isEnableAnniversaryEmail = v ?? false),

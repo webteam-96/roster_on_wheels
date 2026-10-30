@@ -21,6 +21,7 @@ import {
 } from "@/components/dashboard/formatters";
 
 import { appLocale } from "@/lib/appFormat";
+import { ListPageSkeleton } from "@/components/row/AppKit";
 // Wave 13A2: backend sends `goalsCitations` per club but the shared TS type
 // hasn't been regenerated yet — extend it locally so we can render the GCs
 // column without breaking the contract type.
@@ -120,7 +121,7 @@ export default function AgMembershipPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-20">
-        <RotaryLoader size="lg" label="Loading membership…" />
+        <ListPageSkeleton />
       </div>
     );
   }
@@ -240,7 +241,7 @@ export default function AgMembershipPage() {
       </div>
 
       {/* ── CLUB-BY-CLUB COMPARISON BAR ───────────────────────────────────── */}
-      <div className="bg-white rounded-xl border border-slate-200 p-5">
+      <div className="bg-white rounded-[20px] border border-slate-200 p-5">
         <div className="flex items-center justify-between mb-1">
           <h3 className="text-sm font-bold text-slate-700 inline-flex items-center gap-2">
             <BarChart3 size={14} className="text-azure" />
@@ -272,7 +273,7 @@ export default function AgMembershipPage() {
 
       {/* ── CLUB ACTIVITY AT A GLANCE  +  MEMBERS DISTRIBUTION ────────────── */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2 bg-white rounded-xl border border-slate-200 p-5">
+        <div className="lg:col-span-2 bg-white rounded-[20px] border border-slate-200 p-5">
           <div className="flex items-center justify-between mb-1">
             <h3 className="text-sm font-bold text-slate-700 inline-flex items-center gap-2">
               <Activity size={14} className="text-emerald-600" />
@@ -301,7 +302,7 @@ export default function AgMembershipPage() {
           )}
         </div>
 
-        <div className="bg-white rounded-xl border border-slate-200 p-5 flex flex-col">
+        <div className="bg-white rounded-[20px] border border-slate-200 p-5 flex flex-col">
           <div className="flex items-center justify-between mb-2">
             <h3 className="text-sm font-bold text-slate-700 inline-flex items-center gap-2">
               <PieIcon size={14} className="text-azure" />
@@ -358,14 +359,14 @@ export default function AgMembershipPage() {
       </div>
 
       {/* ── CLUB-WISE DETAIL TABLE ────────────────────────────────────────── */}
-      <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
+      <div className="bg-white rounded-[20px] border border-slate-200 overflow-hidden">
         <div className="px-5 py-3 border-b border-slate-100 flex items-center justify-between flex-wrap gap-2">
           <h3 className="text-sm font-bold text-slate-700">Club-wise Detail</h3>
           <span className="text-xs text-slate-400">Click headers to sort · {sorted.length} club{sorted.length === 1 ? "" : "s"}</span>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-xs border-collapse">
-            <thead className="bg-slate-50 border-b border-slate-200">
+            <thead className="bg-[#EDF4FB] border-b border-slate-200">
               <tr>
                 <Th label="Club Name"     colKey="clubName"      sortKey={sortKey} sortDir={sortDir} onSort={toggleSort} className="min-w-[200px]" />
                 <Th label="Members"       colKey="members"       sortKey={sortKey} sortDir={sortDir} onSort={toggleSort} align="right" />
@@ -478,7 +479,7 @@ export default function AgMembershipPage() {
               return (
                 <div
                   key={c.clubId}
-                  className="bg-white rounded-xl border border-slate-200 p-4 flex flex-col gap-2 shadow-sm hover:shadow-md transition-shadow relative overflow-hidden"
+                  className="bg-white rounded-[20px] border border-slate-200 p-4 flex flex-col gap-2 shadow-sm hover:shadow-md transition-shadow relative overflow-hidden"
                 >
                   <span className="absolute top-0 left-0 right-0 h-1" style={{ background: color }} />
                   <div className="flex items-start justify-between gap-2 mt-1">

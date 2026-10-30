@@ -9,7 +9,6 @@ import '../../../../core/network/api_client.dart';
 import '../../../../core/utils/maps_utils.dart';
 import '../../../../core/routing/route_names.dart';
 import '../../../../core/theme/app_colors.dart';
-import '../../../../core/theme/app_gradients.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../data/models/rotarian_model.dart';
 import '../../../../data/models/member_model.dart';
@@ -368,12 +367,11 @@ class _DirectoryMemberDetailScreenState
                           borderRadius: BorderRadius.circular(6),
                         ),
                         child: Text(
-                          f.relation.toUpperCase(),
+                          f.relation,
                           style: AppFonts.body(
-                            fontSize: 9,
+                            fontSize: 13,
                             fontWeight: FontWeight.w800,
                             color: AppColors.primaryPrime,
-                            letterSpacing: 0.5,
                           ),
                         ),
                       ),
@@ -393,7 +391,7 @@ class _DirectoryMemberDetailScreenState
                           style: AppFonts.body(
                             color: AppColors.primaryPrime,
                             fontWeight: FontWeight.w700,
-                            fontSize: 12,
+                            fontSize: 13,
                           ),
                           overflow: TextOverflow.ellipsis,
                         ),
@@ -412,7 +410,7 @@ class _DirectoryMemberDetailScreenState
                       style: AppFonts.body(
                         color: AppColors.textMuted,
                         fontWeight: FontWeight.w500,
-                        fontSize: 12,
+                        fontSize: 13,
                       ),
                     ),
                     Text(
@@ -420,7 +418,7 @@ class _DirectoryMemberDetailScreenState
                       style: AppFonts.body(
                         color: AppColors.textPrimary,
                         fontWeight: FontWeight.w700,
-                        fontSize: 12,
+                        fontSize: 13,
                       ),
                     ),
                   ]),
@@ -436,7 +434,7 @@ class _DirectoryMemberDetailScreenState
                       style: AppFonts.body(
                         color: AppColors.textMuted,
                         fontWeight: FontWeight.w500,
-                        fontSize: 12,
+                        fontSize: 13,
                       ),
                     ),
                     Text(
@@ -444,7 +442,7 @@ class _DirectoryMemberDetailScreenState
                       style: AppFonts.body(
                         color: AppColors.textPrimary,
                         fontWeight: FontWeight.w700,
-                        fontSize: 12,
+                        fontSize: 13,
                       ),
                     ),
                   ]),
@@ -621,7 +619,7 @@ class _DirectoryMemberDetailScreenState
               : const [],
         ),
         SliverPadding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+          padding: const EdgeInsets.fromLTRB(16, 20, 16, 108),
           sliver: SliverList(
             delegate: SliverChildListDelegate([
               if (m.isPersonalDetailsVisible) ...[
@@ -638,15 +636,15 @@ class _DirectoryMemberDetailScreenState
                 title: 'Personal Details',
                 icon: Icons.person_rounded,
                 children: [
-                  _InfoRow('FULL NAME', m.memberName),
+                  _InfoRow('Full name', m.memberName),
                   if (m.isPersonalDetailsVisible) ...[
                     if ((m.email ?? '').isNotEmpty)
-                      _InfoRow('EMAIL', m.email!,
+                      _InfoRow('Email', m.email!,
                           tappable: true,
                           onTap: () => _openUrl('mailto:${m.email}')),
                     if ((m.primaryMobile ?? '').isNotEmpty)
                       _InfoRow(
-                        'PRIMARY MOBILE',
+                        'Primary mobile',
                         _formatPhone(m.primaryPhoneCode, m.primaryMobile),
                         tappable: true,
                         onTap: () =>
@@ -654,7 +652,7 @@ class _DirectoryMemberDetailScreenState
                       ),
                     if ((m.secondaryMobile ?? '').isNotEmpty)
                       _InfoRow(
-                        'SECONDARY MOBILE',
+                        'Secondary mobile',
                         _formatPhone(m.secondaryPhoneCode, m.secondaryMobile),
                         tappable: true,
                         onTap: () =>
@@ -666,26 +664,26 @@ class _DirectoryMemberDetailScreenState
                   // are day-month only (year hidden).
                   if (m.isPersonalDetailsVisible &&
                       m.birthDate != null)
-                    _InfoRow('BIRTHDAY', _formatDayMonth(m.birthDate!)),
+                    _InfoRow('Birthday', _formatDayMonth(m.birthDate!)),
                   if (m.isPersonalDetailsVisible &&
                       m.anniversaryDate != null)
-                    _InfoRow('ANNIVERSARY', _formatDayMonth(m.anniversaryDate!)),
+                    _InfoRow('Anniversary', _formatDayMonth(m.anniversaryDate!)),
                   // COG only: designation lives here (Personal Details) instead
                   // of the Business card — below Anniversary, above Rotary ID.
                   if (isCog && (primaryClub?.designation ?? '').isNotEmpty)
-                    _InfoRow('DESIGNATION', primaryClub!.designation!),
+                    _InfoRow('Designation', primaryClub!.designation!),
                   if ((m.bloodGroup ?? '').isNotEmpty)
-                    _InfoRow('BLOOD GROUP', m.bloodGroup!),
+                    _InfoRow('Blood group', m.bloodGroup!),
                   if ((m.rotaryId ?? '').isNotEmpty)
-                    _InfoRow('ROTARY ID', m.rotaryId!),
+                    _InfoRow('Rotary ID', m.rotaryId!),
                   // Joining date is PER-CLUB (RotarianClub.joinedDate) — shows
                   // the date this member joined the club this page is scoped to.
                   // Ungated like Rotary ID; full date incl. year.
                   if (primaryClub?.joinedDate != null)
                     _InfoRow(
-                        'JOINING DATE', _formatFullDate(primaryClub!.joinedDate!)),
+                        'Joining date', _formatFullDate(primaryClub!.joinedDate!)),
                   if ((m.donorRecognition ?? '').isNotEmpty)
-                    _InfoRow('DONOR RECOGNITION', m.donorRecognition!),
+                    _InfoRow('Donor recognition', m.donorRecognition!),
                 ],
               ),
               const SizedBox(height: 16),
@@ -705,25 +703,25 @@ class _DirectoryMemberDetailScreenState
                   children: [
                     // COG shows designation in Personal Details, not here.
                     if (!isCog && (primaryClub?.designation ?? '').isNotEmpty)
-                      _InfoRow('DESIGNATION', primaryClub!.designation!),
+                      _InfoRow('Designation', primaryClub!.designation!),
                     if ((primaryClub?.classification ?? '').isNotEmpty)
-                      _InfoRow('CLASSIFICATION', primaryClub!.classification!),
+                      _InfoRow('Classification', primaryClub!.classification!),
                     if ((business.businessName ?? '').isNotEmpty)
-                      _InfoRow('BUSINESS NAME', business.businessName!),
+                      _InfoRow('Business name', business.businessName!),
                     if ((business.keywords ?? '').isNotEmpty)
-                      _InfoRow('KEYWORDS', business.keywords!),
+                      _InfoRow('Keywords', business.keywords!),
                     if ((business.businessEmail ?? '').isNotEmpty)
-                      _InfoRow('BUSINESS EMAIL', business.businessEmail!,
+                      _InfoRow('Business email', business.businessEmail!,
                           tappable: true,
                           onTap: () =>
                               _openUrl('mailto:${business.businessEmail}')),
                     if ((business.phoneNumber ?? '').isNotEmpty)
-                      _InfoRow('PHONE', business.phoneNumber!,
+                      _InfoRow('Phone', business.phoneNumber!,
                           tappable: true,
                           onTap: () => _openUrl(
                               'tel:${_digits(business.phoneNumber!)}')),
                     if (_addressLine(business).isNotEmpty)
-                      _InfoRow('ADDRESS', _addressLine(business),
+                      _InfoRow('Address', _addressLine(business),
                           tappable: true,
                           valueIcon: Icons.location_on_rounded,
                           onTap: () => _openMaps(_addressLine(business))),
@@ -739,12 +737,12 @@ class _DirectoryMemberDetailScreenState
                   icon: Icons.home_rounded,
                   children: [
                     if ((residential.phoneNumber ?? '').isNotEmpty)
-                      _InfoRow('PHONE', residential.phoneNumber!,
+                      _InfoRow('Phone', residential.phoneNumber!,
                           tappable: true,
                           onTap: () => _openUrl(
                               'tel:${_digits(residential.phoneNumber!)}')),
                     if (_addressLine(residential).isNotEmpty)
-                      _InfoRow('ADDRESS', _addressLine(residential),
+                      _InfoRow('Address', _addressLine(residential),
                           tappable: true,
                           valueIcon: Icons.location_on_rounded,
                           onTap: () => _openMaps(_addressLine(residential))),
@@ -759,32 +757,32 @@ class _DirectoryMemberDetailScreenState
                   icon: Icons.public_rounded,
                   children: [
                     if ((m.facebook ?? '').isNotEmpty)
-                      _InfoRow('FACEBOOK', m.facebook!,
+                      _InfoRow('Facebook', m.facebook!,
                           tappable: true,
                           linkStyle: true,
                           onTap: () => _openUrl(m.facebook!)),
                     if ((m.instagram ?? '').isNotEmpty)
-                      _InfoRow('INSTAGRAM', m.instagram!,
+                      _InfoRow('Instagram', m.instagram!,
                           tappable: true,
                           linkStyle: true,
                           onTap: () => _openUrl(m.instagram!)),
                     if ((m.linkedIn ?? '').isNotEmpty)
-                      _InfoRow('LINKEDIN', m.linkedIn!,
+                      _InfoRow('Linkedin', m.linkedIn!,
                           tappable: true,
                           linkStyle: true,
                           onTap: () => _openUrl(m.linkedIn!)),
                     if ((m.twitter ?? '').isNotEmpty)
-                      _InfoRow('TWITTER / X', m.twitter!,
+                      _InfoRow('Twitter / X', m.twitter!,
                           tappable: true,
                           linkStyle: true,
                           onTap: () => _openUrl(m.twitter!)),
                     if ((m.youtube ?? '').isNotEmpty)
-                      _InfoRow('YOUTUBE', m.youtube!,
+                      _InfoRow('Youtube', m.youtube!,
                           tappable: true,
                           linkStyle: true,
                           onTap: () => _openUrl(m.youtube!)),
                     if ((m.website ?? '').isNotEmpty)
-                      _InfoRow('WEBSITE', m.website!,
+                      _InfoRow('Website', m.website!,
                           tappable: true,
                           linkStyle: true,
                           onTap: () => _openUrl(m.website!)),
@@ -1005,7 +1003,7 @@ class _ProfileHeroAppBar extends StatelessWidget {
           final collapsed = constraints.biggest.height <=
               kToolbarHeight + MediaQuery.of(context).padding.top + 12;
           return FlexibleSpaceBar(
-            centerTitle: true,
+            centerTitle: false,
             titlePadding: const EdgeInsetsDirectional.only(
                 start: 48, end: 48, bottom: 16),
             title: AnimatedOpacity(
@@ -1030,7 +1028,7 @@ class _ProfileHeroAppBar extends StatelessWidget {
               fit: StackFit.expand,
           children: [
             Container(
-              decoration: const BoxDecoration(gradient: AppGradients.royalSweep),
+              decoration: const BoxDecoration(color: AppColors.primaryPrime),
             ),
             Positioned(
               top: -50,
@@ -1087,7 +1085,7 @@ class _ProfileHeroAppBar extends StatelessWidget {
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 24),
                   child: Text(
-                    member.memberName.toUpperCase(),
+                    member.memberName,
                     textAlign: TextAlign.center,
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
@@ -1095,7 +1093,6 @@ class _ProfileHeroAppBar extends StatelessWidget {
                       color: Colors.white,
                       fontSize: 22,
                       fontWeight: FontWeight.w800,
-                      letterSpacing: 1,
                     ),
                   ),
                 ),
@@ -1123,12 +1120,11 @@ class _ProfileHeroAppBar extends StatelessWidget {
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: Text(
-                      'ROTARY ID: ${member.rotaryId}',
+                      'Rotary ID: ${member.rotaryId}',
                       style: AppFonts.body(
                         color: AppColors.darkBg,
-                        fontSize: 10,
+                        fontSize: 13,
                         fontWeight: FontWeight.w800,
-                        letterSpacing: 0.5,
                       ),
                     ),
                   ),
@@ -1191,12 +1187,11 @@ class _InfoCard extends StatelessWidget {
               Icon(icon, size: 18, color: AppColors.primaryPrime),
               const SizedBox(width: 8),
               Text(
-                title.toUpperCase(),
+                title,
                 style: AppFonts.body(
-                  fontSize: 11,
+                  fontSize: 13,
                   fontWeight: FontWeight.w800,
                   color: AppColors.textMuted,
-                  letterSpacing: 1.2,
                 ),
               ),
             ],
@@ -1258,8 +1253,8 @@ class _InfoRow extends StatelessWidget {
     // Social Presence rows (linkStyle) render as bright-blue underlined web
     // links. Other tappable rows (email/phone) keep the primary colour.
     final valueStyle = AppFonts.body(
-      fontSize: 14,
-      fontWeight: FontWeight.w700,
+      fontSize: 16,
+      fontWeight: FontWeight.w500,
       color: linkStyle
           ? AppColors.info
           : (isLink ? AppColors.primaryPrime : AppColors.textPrimary),
@@ -1267,17 +1262,17 @@ class _InfoRow extends StatelessWidget {
       decorationColor: linkStyle ? AppColors.info : null,
     );
     final labelStyle = AppFonts.body(
-      fontSize: 10,
-      fontWeight: FontWeight.w800,
-      color: AppColors.textMuted,
-      letterSpacing: 0.5,
+      fontSize: 13,
+      fontWeight: FontWeight.w500,
+      color: AppColors.textSecondary,
     );
 
     // Address rows STACK the label + map button on top and give the value the
     // full card width below, so a long address isn't squeezed into a narrow
     // column (the two-column layout below is for short values only).
     if (showMapButton) {
-      return Padding(
+      return Container(
+        width: double.infinity, // full width so the stacked label/value stay left
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -1296,14 +1291,15 @@ class _InfoRow extends StatelessWidget {
       );
     }
 
-    final body = Padding(
+    final body = Container(
+      width: double.infinity, // full width so the stacked label/value stay left
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-      child: Row(
+      child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Expanded(flex: 2, child: Text(label, style: labelStyle)),
-          const SizedBox(width: 12),
-          Expanded(flex: 3, child: Text(value, style: valueStyle)),
+          Text(label, style: labelStyle),
+          const SizedBox(height: 4),
+          Text(value, style: valueStyle),
         ],
       ),
     );
@@ -1470,7 +1466,7 @@ class _ContactAction extends StatelessWidget {
             Text(
               label,
               style: AppFonts.body(
-                fontSize: 11,
+                fontSize: 13,
                 fontWeight: FontWeight.w600,
                 color: AppColors.textSecondary,
               ),

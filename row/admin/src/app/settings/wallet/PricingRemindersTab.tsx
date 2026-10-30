@@ -397,7 +397,7 @@ export default function PricingRemindersTab() {
 
       {/* Common (pick-a-club) shareable links — open a search, payer picks their club, sees status, pays. */}
       {commonLinks && (
-        <div className="rounded-xl border border-slate-200 bg-white p-4">
+        <div className="rounded-[20px] border border-slate-200 bg-white p-4">
           <div className="text-sm font-medium text-slate-700">Shareable links: any club</div>
           <p className="text-[11px] text-slate-400 mt-0.5 mb-3">Each opens a search: the club leader picks their club, sees its status, and pays. Copy &amp; share. These links have no expiry.</p>
           <div className="flex flex-wrap gap-2">
@@ -415,7 +415,7 @@ export default function PricingRemindersTab() {
       )}
 
       {/* One global Route account for ALL club-website Route payments */}
-      <div className="rounded-xl border border-slate-200 bg-white p-4">
+      <div className="rounded-[20px] border border-slate-200 bg-white p-4">
         <div className="flex flex-wrap items-end gap-3">
           <div className="space-y-1">
             <Label className="text-xs text-slate-500">Club-website Route account</Label>
@@ -483,7 +483,7 @@ export default function PricingRemindersTab() {
         </div>
         <div className="space-y-1">
           <Label className="text-xs text-slate-500">Search club</Label>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             <Input value={search} onChange={(e) => setSearch(e.target.value)} onKeyDown={(e) => e.key === "Enter" && load()} placeholder="Club name / Rotary ID" className="w-56" />
             <Button variant="outline" onClick={load} disabled={loading}>
               {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
@@ -724,7 +724,7 @@ export default function PricingRemindersTab() {
       <Dialog open={balanceOpen} onOpenChange={setBalanceOpen}>
         <DialogContent className="max-w-5xl">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
+            <DialogTitle className="flex flex-wrap items-center gap-2">
               <Wallet className="h-5 w-5 text-slate-600" /> Clubs with credit balance
             </DialogTitle>
           </DialogHeader>

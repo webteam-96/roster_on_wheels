@@ -34,6 +34,7 @@ import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
 
 import { appLocale } from "@/lib/appFormat";
+import { ListPageSkeleton } from "@/components/row/AppKit";
 interface EventPaymentLinkRow {
   id: number;
   formType: number;
@@ -101,7 +102,7 @@ export default function ClubAdminPaymentLinksPage() {
   if (status === "loading" && !membershipDues) {
     return (
       <div className="flex items-center justify-center py-20">
-        <RotaryLoader size="lg" label="Loading payment links…" />
+        <ListPageSkeleton />
       </div>
     );
   }
@@ -168,14 +169,14 @@ export default function ClubAdminPaymentLinksPage() {
 
       {/* Search bar */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-end">
-        <div className="relative">
+        <div className="relative w-full sm:w-auto">
           <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" />
           <input
             type="text"
             placeholder="Search title…"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="pl-8 pr-3 py-1.5 text-sm border border-slate-200 rounded-lg w-64 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="pl-8 pr-3 h-10 py-0 text-sm border border-slate-200 rounded-[12px] w-64 focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
           />
         </div>
       </div>
@@ -201,8 +202,8 @@ export default function ClubAdminPaymentLinksPage() {
         </div>
 
         <div className="overflow-x-auto">
-          <table className="min-w-full text-sm">
-            <thead className="bg-slate-50 text-xs uppercase text-slate-500">
+          <table className="w-full min-w-[640px] md:min-w-full text-sm">
+            <thead className="bg-[#EDF4FB] text-[13px] text-[#64748B]">
               <tr>
                 <th className="px-4 py-2.5 text-left">Title</th>
                 <th className="px-4 py-2.5 text-left">Type</th>

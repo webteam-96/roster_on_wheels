@@ -172,7 +172,7 @@ class DuesKpiCards extends StatelessWidget {
             ),
             const SizedBox(width: 8),
             Expanded(
-              child: Text(title.toUpperCase(),
+              child: Text(title,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: AppTextStyles.caption.copyWith(

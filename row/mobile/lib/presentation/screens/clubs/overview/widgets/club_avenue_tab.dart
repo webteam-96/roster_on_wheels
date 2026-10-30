@@ -213,7 +213,7 @@ class _AvenuePillBar extends StatelessWidget {
               child: Text(
                 label,
                 style: AppFonts.body(
-                  fontSize: 12,
+                  fontSize: 13,
                   fontWeight: isActive ? FontWeight.w800 : FontWeight.w600,
                   color: isActive ? Colors.white : AppColors.slate500,
                 ),
@@ -305,7 +305,7 @@ class _CardShell extends StatelessWidget {
               if (subtitle.isNotEmpty)
                 Text(subtitle,
                     style: AppFonts.body(
-                        fontSize: 11, color: AppColors.slate500)),
+                        fontSize: 13, color: AppColors.slate500)),
             ],
           ),
           const SizedBox(height: 12),
@@ -373,7 +373,7 @@ class _AllView extends StatelessWidget {
                   padding: const EdgeInsets.symmetric(vertical: 8),
                   child: Text('No project data for this year',
                       style: AppFonts.body(
-                          fontSize: 12, color: AppColors.slate400)),
+                          fontSize: 13, color: AppColors.slate400)),
                 ),
               for (var i = 0; i < ov.avenues.length; i++) ...[
                 _AvenueSummaryCard(
@@ -462,12 +462,12 @@ class _AvenueSummaryCard extends StatelessWidget {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: AppFonts.body(
-                      fontSize: 12.5,
+                      fontSize: 13,
                       fontWeight: FontWeight.w800,
                       color: AppColors.textPrimary)),
               Text(countLabel,
                   style: AppFonts.body(
-                      fontSize: 11,
+                      fontSize: 13,
                       fontWeight: FontWeight.w700,
                       color: AppColors.slate500)),
             ],
@@ -482,7 +482,7 @@ class _AvenueSummaryCard extends StatelessWidget {
             child: Text(
               'Club Service tracks meetings, not project metrics.',
               style: AppFonts.body(
-                  fontSize: 11, color: AppColors.slate400),
+                  fontSize: 13, color: AppColors.slate400),
             ),
           )
         : Padding(
@@ -519,7 +519,7 @@ class _AvenueSummaryCard extends StatelessWidget {
                     ),
                     child: Text('View all ${row.avenueName} →',
                         style: AppFonts.body(
-                            fontSize: 11.5,
+                            fontSize: 13,
                             fontWeight: FontWeight.w800,
                             color: color)),
                   ),
@@ -700,14 +700,13 @@ class _MeetingsListState extends State<_MeetingsList> {
             icon: const Icon(Icons.add_rounded, size: 16),
             label: Text('Add Meeting',
                 style: AppFonts.body(
-                    fontSize: 12, fontWeight: FontWeight.w700)),
+                    fontSize: 13, fontWeight: FontWeight.w700)),
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.statusDone,
               foregroundColor: Colors.white,
               elevation: 0,
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 11),
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8)),
+              shape: const StadiumBorder(),
             ),
           ),
           const SizedBox(height: 10),
@@ -725,7 +724,7 @@ class _MeetingsListState extends State<_MeetingsList> {
         if (filtered.isEmpty)
           Text(_q.isEmpty ? 'No meetings recorded' : 'No meetings match "$_q"',
               style: AppFonts.body(
-                  fontSize: 12, color: AppColors.slate400))
+                  fontSize: 13, color: AppColors.slate400))
         else ...[
           for (var i = 0; i < visible.length; i++) ...[
             _MeetingCard(
@@ -747,7 +746,7 @@ class _MeetingsListState extends State<_MeetingsList> {
                 onPressed: () => setState(() => _shown += 20),
                 child: Text('Show more',
                     style: AppFonts.body(
-                        fontSize: 12,
+                        fontSize: 13,
                         fontWeight: FontWeight.w700,
                         color: AppColors.rotaryBlue)),
               ),
@@ -755,7 +754,7 @@ class _MeetingsListState extends State<_MeetingsList> {
           const SizedBox(height: 6),
           Text('Showing ${visible.length} of ${filtered.length} meetings',
               style: AppFonts.body(
-                  fontSize: 10.5, color: AppColors.slate400)),
+                  fontSize: 13, color: AppColors.slate400)),
         ],
       ],
     );
@@ -781,13 +780,13 @@ class _MeetingCard extends StatelessWidget {
       maxLines: 1,
       overflow: TextOverflow.ellipsis,
       style: AppFonts.body(
-          fontSize: 12.5,
+          fontSize: 13,
           fontWeight: FontWeight.w700,
           color: AppColors.textPrimary),
     );
     final trailing = Text('${m.attendancePercent.round()}%',
         style: AppFonts.body(
-            fontSize: 12,
+            fontSize: 13,
             fontWeight: FontWeight.w800,
             color: attColor,
             fontFeatures: const [FontFeature.tabularFigures()]));
@@ -810,7 +809,7 @@ class _MeetingCard extends StatelessWidget {
               icon: const Icon(Icons.edit_outlined, size: 15),
               label: Text('Edit',
                   style: AppFonts.body(
-                      fontSize: 11.5, fontWeight: FontWeight.w700)),
+                      fontSize: 13, fontWeight: FontWeight.w700)),
               style: TextButton.styleFrom(
                   padding:
                       const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
@@ -901,14 +900,13 @@ class _ProjectsSectionState extends State<_ProjectsSection> {
             icon: const Icon(Icons.add_rounded, size: 16),
             label: Text('Add Project',
                 style: AppFonts.body(
-                    fontSize: 12, fontWeight: FontWeight.w700)),
+                    fontSize: 13, fontWeight: FontWeight.w700)),
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.statusDone,
               foregroundColor: Colors.white,
               elevation: 0,
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 11),
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8)),
+              shape: const StadiumBorder(),
             ),
           ),
           const SizedBox(height: 10),
@@ -932,7 +930,7 @@ class _ProjectsSectionState extends State<_ProjectsSection> {
                           horizontal: 10, vertical: 5),
                       child: Text(f.label,
                           style: AppFonts.body(
-                              fontSize: 10.5,
+                              fontSize: 13,
                               fontWeight: FontWeight.w700,
                               color: f.id == widget.filter
                                   ? Colors.white
@@ -955,7 +953,7 @@ class _ProjectsSectionState extends State<_ProjectsSection> {
         if (filtered.isEmpty)
           Text(_q.isEmpty ? 'No projects recorded' : 'No projects match "$_q"',
               style: AppFonts.body(
-                  fontSize: 12, color: AppColors.slate400))
+                  fontSize: 13, color: AppColors.slate400))
         else ...[
           for (var i = 0; i < visible.length; i++) ...[
             _ProjectCard(
@@ -979,7 +977,7 @@ class _ProjectsSectionState extends State<_ProjectsSection> {
                 onPressed: () => setState(() => _shown += 20),
                 child: Text('Show more',
                     style: AppFonts.body(
-                        fontSize: 12,
+                        fontSize: 13,
                         fontWeight: FontWeight.w700,
                         color: AppColors.rotaryBlue)),
               ),
@@ -987,7 +985,7 @@ class _ProjectsSectionState extends State<_ProjectsSection> {
           const SizedBox(height: 6),
           Text('Showing ${visible.length} of ${filtered.length} projects',
               style: AppFonts.body(
-                  fontSize: 10.5, color: AppColors.slate400)),
+                  fontSize: 13, color: AppColors.slate400)),
         ],
       ],
     );
@@ -1019,7 +1017,7 @@ class _ProjectCard extends StatelessWidget {
           width: 22,
           child: Text('$sr',
               style: AppFonts.body(
-                  fontSize: 10.5,
+                  fontSize: 13,
                   fontWeight: FontWeight.w800,
                   color: AppColors.slate400,
                   fontFeatures: const [FontFeature.tabularFigures()])),
@@ -1029,7 +1027,7 @@ class _ProjectCard extends StatelessWidget {
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: AppFonts.body(
-                  fontSize: 12.5,
+                  fontSize: 13,
                   fontWeight: FontWeight.w700,
                   color: AppColors.textPrimary)),
         ),
@@ -1072,13 +1070,12 @@ class _ProjectCard extends StatelessWidget {
                   icon: const Icon(Icons.edit_outlined, size: 16),
                   label: Text('Edit',
                       style: AppFonts.body(
-                          fontSize: 12, fontWeight: FontWeight.w700)),
+                          fontSize: 13, fontWeight: FontWeight.w700)),
                   style: OutlinedButton.styleFrom(
                     foregroundColor: AppColors.rotaryBlue,
                     side: const BorderSide(color: AppColors.slate200),
                     padding: const EdgeInsets.symmetric(vertical: 9),
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8)),
+                    shape: const StadiumBorder(),
                   ),
                 ),
               ),
@@ -1089,14 +1086,13 @@ class _ProjectCard extends StatelessWidget {
                   icon: const Icon(Icons.delete_outline_rounded, size: 16),
                   label: Text('Delete',
                       style: AppFonts.body(
-                          fontSize: 12, fontWeight: FontWeight.w700)),
+                          fontSize: 13, fontWeight: FontWeight.w700)),
                   style: OutlinedButton.styleFrom(
                     foregroundColor: AppColors.error,
                     side: BorderSide(
                         color: AppColors.error.withValues(alpha: 0.4)),
                     padding: const EdgeInsets.symmetric(vertical: 9),
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8)),
+                    shape: const StadiumBorder(),
                   ),
                 ),
               ),

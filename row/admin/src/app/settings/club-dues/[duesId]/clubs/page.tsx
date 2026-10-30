@@ -18,6 +18,7 @@ import AlertModal from "@/components/AlertModal";
 import { ArrowLeft, RefreshCw, Download, Bell, Link2, Check, ChevronLeft, ChevronRight, Receipt, Pencil, Split, Plus, X, FileText, Send } from "@/components/icons";
 
 import { appLocale, currencySymbol } from "@/lib/appFormat";
+import { ListPageSkeleton } from "@/components/row/AppKit";
 interface AccountBreakdown {
   fkRouteAccountId: number;
   accountLabel: string | null;
@@ -174,7 +175,7 @@ export default function ClubDuesClubsPage() {
               <p className="text-muted-foreground text-base">Each club owes members × rate. Track payment status and send reminders.</p>
             </div>
           </div>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             <Button variant="outline" size="sm" onClick={async () => { setBusy(true); try { await syncClubDues(duesId); await load(); } finally { setBusy(false); } }} disabled={busy}><RefreshCw className="mr-2 h-4 w-4" />Sync members</Button>
             <Button variant="outline" size="sm" onClick={() => setBulkConfirmChannel("email")}><Bell className="mr-2 h-4 w-4" />Email all</Button>
             <Button variant="outline" size="sm" onClick={copyReportLink} title="Copy public report link"><FileText className="mr-2 h-4 w-4" />Copy report link</Button>
@@ -218,12 +219,12 @@ export default function ClubDuesClubsPage() {
         </div>
 
         {loading ? (
-          <div className="flex justify-center py-20"><RotaryLoader size="lg" /></div>
+          <div className="flex justify-center py-20"><ListPageSkeleton /></div>
         ) : (
           <Card>
             <CardContent className="p-0 overflow-x-auto">
               <table className="w-full text-sm">
-                <thead className="bg-muted/50 text-left">
+                <thead className="bg-[#EDF4FB] text-[13px] text-[#64748B] text-left">
                   <tr>
                     <th className="p-3">Club</th>
                     <th className="p-3 text-center">Total Members</th>
@@ -365,7 +366,7 @@ export default function ClubDuesClubsPage() {
                 <span className="text-muted-foreground">
                   {(page - 1) * PAGE_SIZE + 1}–{Math.min(page * PAGE_SIZE, filtered.length)} of {filtered.length}
                 </span>
-                <div className="flex items-center gap-2">
+                <div className="flex flex-wrap items-center gap-2">
                   <Button variant="outline" size="sm" onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page === 1}><ChevronLeft className="h-4 w-4" /></Button>
                   <span>Page {page} / {totalPages}</span>
                   <Button variant="outline" size="sm" onClick={() => setPage((p) => Math.min(totalPages, p + 1))} disabled={page === totalPages}><ChevronRight className="h-4 w-4" /></Button>
@@ -403,7 +404,7 @@ export default function ClubDuesClubsPage() {
         title="Send Email Reminder to All Clubs"
         description="Send an email reminder to every unpaid club in this campaign? This cannot be undone."
         confirmLabel="Send"
-        confirmClassName="bg-orange-600 text-white hover:bg-orange-700"
+        confirmClassName="bg-[#17458F] text-white hover:bg-[#17458F]"
         onConfirm={async () => {
           setBulkConfirmChannel(null);
           try {
@@ -551,7 +552,7 @@ function SplitDialog({ duesId, club, isOnline, routeAccounts, onClose, onDone, o
   return (
     <Modal title={`${isOnline ? "Online" : "Offline"} split: ${club.clubName}`} onClose={onClose}>
       <p className="text-sm text-muted-foreground">Overrides the campaign&apos;s {isOnline ? "online" : "offline"} split for this club only (rate {currencySymbol()}{rate}/member). Clear all to use the campaign default.</p>
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <Label>Split by</Label>
         <div className="inline-flex rounded-md border overflow-hidden text-sm">
           <button type="button" onClick={() => setAmountType("2")} className={`px-3 py-1 ${amountType === "2" ? "bg-primary text-primary-foreground" : "bg-background"}`}>Percentage</button>
@@ -570,7 +571,7 @@ function SplitDialog({ duesId, club, isOnline, routeAccounts, onClose, onDone, o
           <Button variant="ghost" size="icon" onClick={() => setRows((p) => (p.length > 1 ? p.filter((_, idx) => idx !== i) : p))} disabled={rows.length === 1}><X className="h-4 w-4" /></Button>
         </div>
       ))}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <Button variant="outline" size="sm" onClick={() => setRows((p) => [...p, { routeAccountId: "", value: "" }])}><Plus className="mr-1 h-4 w-4" />Add</Button>
         {filled.length > 0 && <span className={`text-sm ${ok ? "text-green-600" : "text-red-600"}`}>Total: {amountType === "2" ? `${total}% / 100%` : `${currencySymbol()}${total} / ${currencySymbol()}${rate}`}</span>}
       </div>

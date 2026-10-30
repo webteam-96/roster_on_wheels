@@ -5,6 +5,7 @@ import '../../../../../core/theme/app_colors.dart';
 import '../../../../widgets/detail/detail_widgets.dart';
 import 'package:rotary_flutter_app/core/theme/app_fonts.dart';
 import 'package:rotary_flutter_app/core/i18n/text.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/skeleton_list.dart';
 
 /// E-Governance · Club Monthly Report sub-tab (EGOV-2).
 ///
@@ -338,7 +339,7 @@ class _StatusChip extends StatelessWidget {
       child: Text(
         label,
         style: AppFonts.body(
-          fontSize: 10,
+          fontSize: 13,
           fontWeight: FontWeight.w800,
           color: c.fg,
         ),
@@ -482,7 +483,7 @@ class _CmrMonthReportSubtabState extends State<CmrMonthReportSubtab> {
     if (_loading) {
       return const Padding(
         padding: EdgeInsets.symmetric(vertical: 28),
-        child: Center(child: CircularProgressIndicator()),
+        child: const RowSkeletonList(),
       );
     }
     if (_error != null) {
@@ -526,7 +527,7 @@ class _CmrMonthReportSubtabState extends State<CmrMonthReportSubtab> {
                   Text(
                     'Submission status by month',
                     style: AppFonts.body(
-                      fontSize: 11,
+                      fontSize: 13,
                       color: AppColors.slate400,
                     ),
                   ),
@@ -581,7 +582,7 @@ class _CmrMonthReportSubtabState extends State<CmrMonthReportSubtab> {
             child: Text(
               'No months for this year',
               style: AppFonts.body(
-                  fontSize: 12, color: AppColors.slate400),
+                  fontSize: 13, color: AppColors.slate400),
             ),
           )
         else
@@ -614,7 +615,7 @@ class _CmrMonthReportSubtabState extends State<CmrMonthReportSubtab> {
               child: Text(
                 '${y.label}${y.isCurrent ? ' (Current)' : ''}',
                 style: AppFonts.body(
-                  fontSize: 12,
+                  fontSize: 13,
                   fontWeight: y.id == _yearId
                       ? FontWeight.w800
                       : FontWeight.w500,
@@ -629,7 +630,7 @@ class _CmrMonthReportSubtabState extends State<CmrMonthReportSubtab> {
               child: Text(
                 selLabel,
                 style: AppFonts.body(
-                  fontSize: 11.5,
+                  fontSize: 13,
                   fontWeight: FontWeight.w700,
                   color: AppColors.slate700,
                 ),
@@ -657,7 +658,7 @@ class _CmrMonthReportSubtabState extends State<CmrMonthReportSubtab> {
                 child: Text(
                   'Submission Progress',
                   style: AppFonts.body(
-                    fontSize: 11.5,
+                    fontSize: 13,
                     fontWeight: FontWeight.w700,
                     color: AppColors.slate700,
                   ),
@@ -666,7 +667,7 @@ class _CmrMonthReportSubtabState extends State<CmrMonthReportSubtab> {
               Text(
                 '$submitted of $total ($pct%)',
                 style: AppFonts.body(
-                  fontSize: 11.5,
+                  fontSize: 13,
                   fontWeight: FontWeight.w800,
                   color: AppColors.statusDone,
                 ),
@@ -724,7 +725,7 @@ class _KpiTile extends StatelessWidget {
           Text(
             label,
             style: AppFonts.body(
-                fontSize: 10.5, color: AppColors.slate500),
+                fontSize: 13, color: AppColors.slate500),
             textAlign: TextAlign.center,
           ),
         ],
@@ -772,7 +773,7 @@ class _MonthRow extends StatelessWidget {
                       Text(
                         'Submitted: ${row.submissionDate}  ·  On time: ${row.onTime}',
                         style: AppFonts.body(
-                          fontSize: 10.5,
+                          fontSize: 13,
                           color: AppColors.slate400,
                         ),
                       ),
@@ -809,7 +810,7 @@ class _InlineMessage extends StatelessWidget {
             text,
             textAlign: TextAlign.center,
             style: AppFonts.body(
-                fontSize: 12, color: AppColors.slate500),
+                fontSize: 13, color: AppColors.slate500),
           ),
           if (onRetry != null) ...[
             const SizedBox(height: 8),
@@ -939,7 +940,7 @@ class _CmrDetailSheetState extends State<_CmrDetailSheet> {
 
   Widget _body(ScrollController controller) {
     if (_loading) {
-      return const Center(child: CircularProgressIndicator());
+      return const RowSkeletonList();
     }
     if (!widget.row.isCreated) {
       return _InlineMessage(
@@ -1080,7 +1081,7 @@ class _CmrDetailSheetState extends State<_CmrDetailSheet> {
                       child: Text(
                         '${_avenueLabels[k]} (${d.projects[k]!.length})',
                         style: AppFonts.body(
-                          fontSize: 11.5,
+                          fontSize: 13,
                           fontWeight: FontWeight.w800,
                           color: AppColors.primary,
                         ),
@@ -1129,7 +1130,7 @@ class _CmrDetailSheetState extends State<_CmrDetailSheet> {
         child: Text(
           d.additionalRemarks ?? '',
           style: AppFonts.body(
-              fontSize: 12.5, color: AppColors.textPrimary, height: 1.4),
+              fontSize: 13, color: AppColors.textPrimary, height: 1.4),
         ),
       ),
     );
@@ -1161,7 +1162,7 @@ class _MiniRow extends StatelessWidget {
                 Text(
                   title.isEmpty ? '–' : title,
                   style: AppFonts.body(
-                    fontSize: 12.5,
+                    fontSize: 13,
                     fontWeight: FontWeight.w700,
                     color: AppColors.textPrimary,
                   ),
@@ -1170,7 +1171,7 @@ class _MiniRow extends StatelessWidget {
                   Text(
                     line2,
                     style: AppFonts.body(
-                        fontSize: 10.5, color: AppColors.slate500),
+                        fontSize: 13, color: AppColors.slate500),
                   ),
               ],
             ),
@@ -1180,7 +1181,7 @@ class _MiniRow extends StatelessWidget {
             Text(
               trailing!,
               style: AppFonts.body(
-                fontSize: 12,
+                fontSize: 13,
                 fontWeight: FontWeight.w800,
                 color: AppColors.textPrimary,
               ),

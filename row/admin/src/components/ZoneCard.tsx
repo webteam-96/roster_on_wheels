@@ -114,15 +114,15 @@ export default function ZoneCard({ zone, onDelete, isSuperAdmin }: ZoneCardProps
           </div>
         </div>
         <div className="border-t px-4 py-3 space-y-2 text-sm text-muted-foreground group-hover:bg-primary/5 transition-colors">
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <MapPin className="h-3.5 w-3.5 flex-shrink-0" />
             <span>{zone.totalDistricts} District{zone.totalDistricts !== 1 ? "s" : ""}</span>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <Building2 className="h-3.5 w-3.5 flex-shrink-0" />
             <span>{zone.totalClubs} Club{zone.totalClubs !== 1 ? "s" : ""}</span>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <Users className="h-3.5 w-3.5 flex-shrink-0" />
             <span>{zone.totalMembers} Member{zone.totalMembers !== 1 ? "s" : ""}</span>
           </div>

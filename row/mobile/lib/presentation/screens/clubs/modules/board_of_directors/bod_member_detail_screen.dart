@@ -6,7 +6,6 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../../../../core/constants/api_constants.dart';
 import '../../../../../core/network/api_client.dart';
 import '../../../../../core/theme/app_colors.dart';
-import '../../../../../core/theme/app_gradients.dart';
 import '../../../../../core/theme/app_text_styles.dart';
 import '../../../../../data/models/rotarian_model.dart';
 import '../../../../../presentation/widgets/common/empty_state_widget.dart';
@@ -179,35 +178,35 @@ class _BodMemberDetailScreenState extends State<BodMemberDetailScreen> {
         title: 'Personal Details',
         icon: Icons.person_rounded,
         children: [
-          _InfoRow('FULL NAME', m.memberName),
+          _InfoRow('Full name', m.memberName),
           if (m.isPersonalDetailsVisible) ...[
             if ((m.email ?? '').isNotEmpty)
-              _InfoRow('EMAIL', m.email!,
+              _InfoRow('Email', m.email!,
                   tappable: true, onTap: () => _openUrl('mailto:${m.email}')),
             if ((m.primaryMobile ?? '').isNotEmpty)
               _InfoRow(
-                'PRIMARY MOBILE',
+                'Primary mobile',
                 _formatPhone(m.primaryPhoneCode, m.primaryMobile),
                 tappable: true,
                 onTap: () => _openUrl('tel:${_digits(m.primaryMobile!)}'),
               ),
             if ((m.secondaryMobile ?? '').isNotEmpty)
               _InfoRow(
-                'SECONDARY MOBILE',
+                'Secondary mobile',
                 _formatPhone(m.secondaryPhoneCode, m.secondaryMobile),
                 tappable: true,
                 onTap: () => _openUrl('tel:${_digits(m.secondaryMobile!)}'),
               ),
             if (m.birthDate != null)
-              _InfoRow('BIRTHDAY', _formatDayMonth(m.birthDate!)),
+              _InfoRow('Birthday', _formatDayMonth(m.birthDate!)),
             if (m.anniversaryDate != null)
-              _InfoRow('ANNIVERSARY', _formatDayMonth(m.anniversaryDate!)),
+              _InfoRow('Anniversary', _formatDayMonth(m.anniversaryDate!)),
           ],
           if ((m.bloodGroup ?? '').isNotEmpty)
-            _InfoRow('BLOOD GROUP', m.bloodGroup!),
-          if ((m.rotaryId ?? '').isNotEmpty) _InfoRow('ROTARY ID', m.rotaryId!),
+            _InfoRow('Blood group', m.bloodGroup!),
+          if ((m.rotaryId ?? '').isNotEmpty) _InfoRow('Rotary ID', m.rotaryId!),
           if ((m.donorRecognition ?? '').isNotEmpty)
-            _InfoRow('DONOR RECOGNITION', m.donorRecognition!),
+            _InfoRow('Donor recognition', m.donorRecognition!),
         ],
       ))
       ..add(const SizedBox(height: 16));
@@ -218,13 +217,13 @@ class _BodMemberDetailScreenState extends State<BodMemberDetailScreen> {
           title: 'Club',
           icon: Icons.business_rounded,
           children: [
-            _InfoRow('CLUB NAME', primaryClub.clubName),
+            _InfoRow('Club name', primaryClub.clubName),
             if (primaryClub.districtNumber.isNotEmpty)
-              _InfoRow('DISTRICT', 'D${primaryClub.districtNumber}'),
+              _InfoRow('District', 'D${primaryClub.districtNumber}'),
             if ((primaryClub.city ?? '').isNotEmpty)
               _InfoRow('CITY', primaryClub.city!),
             if (primaryClub.joinedDate != null)
-              _InfoRow('JOINED', _formatDate(primaryClub.joinedDate!)),
+              _InfoRow('Joined', _formatDate(primaryClub.joinedDate!)),
           ],
         ))
         ..add(const SizedBox(height: 16));
@@ -237,21 +236,21 @@ class _BodMemberDetailScreenState extends State<BodMemberDetailScreen> {
           icon: Icons.work_rounded,
           children: [
             if ((business.businessName ?? '').isNotEmpty)
-              _InfoRow('BUSINESS NAME', business.businessName!),
+              _InfoRow('Business name', business.businessName!),
             if ((business.designation ?? '').isNotEmpty)
-              _InfoRow('DESIGNATION', business.designation!),
+              _InfoRow('Designation', business.designation!),
             if ((business.classification ?? '').isNotEmpty)
-              _InfoRow('CLASSIFICATION', business.classification!),
+              _InfoRow('Classification', business.classification!),
             if ((business.businessEmail ?? '').isNotEmpty)
-              _InfoRow('BUSINESS EMAIL', business.businessEmail!,
+              _InfoRow('Business email', business.businessEmail!,
                   tappable: true,
                   onTap: () => _openUrl('mailto:${business.businessEmail}')),
             if ((business.phoneNumber ?? '').isNotEmpty)
-              _InfoRow('PHONE', business.phoneNumber!,
+              _InfoRow('Phone', business.phoneNumber!,
                   tappable: true,
                   onTap: () => _openUrl('tel:${_digits(business.phoneNumber!)}')),
             if (_addressLine(business).isNotEmpty)
-              _InfoRow('ADDRESS', _addressLine(business)),
+              _InfoRow('Address', _addressLine(business)),
           ],
         ))
         ..add(const SizedBox(height: 16));
@@ -264,12 +263,12 @@ class _BodMemberDetailScreenState extends State<BodMemberDetailScreen> {
           icon: Icons.home_rounded,
           children: [
             if ((residential.phoneNumber ?? '').isNotEmpty)
-              _InfoRow('PHONE', residential.phoneNumber!,
+              _InfoRow('Phone', residential.phoneNumber!,
                   tappable: true,
                   onTap: () =>
                       _openUrl('tel:${_digits(residential.phoneNumber!)}')),
             if (_addressLine(residential).isNotEmpty)
-              _InfoRow('ADDRESS', _addressLine(residential)),
+              _InfoRow('Address', _addressLine(residential)),
           ],
         ))
         ..add(const SizedBox(height: 16));
@@ -282,22 +281,22 @@ class _BodMemberDetailScreenState extends State<BodMemberDetailScreen> {
           icon: Icons.public_rounded,
           children: [
             if ((m.facebook ?? '').isNotEmpty)
-              _InfoRow('FACEBOOK', m.facebook!,
+              _InfoRow('Facebook', m.facebook!,
                   tappable: true, onTap: () => _openUrl(m.facebook!)),
             if ((m.instagram ?? '').isNotEmpty)
-              _InfoRow('INSTAGRAM', m.instagram!,
+              _InfoRow('Instagram', m.instagram!,
                   tappable: true, onTap: () => _openUrl(m.instagram!)),
             if ((m.linkedIn ?? '').isNotEmpty)
-              _InfoRow('LINKEDIN', m.linkedIn!,
+              _InfoRow('Linkedin', m.linkedIn!,
                   tappable: true, onTap: () => _openUrl(m.linkedIn!)),
             if ((m.twitter ?? '').isNotEmpty)
-              _InfoRow('TWITTER / X', m.twitter!,
+              _InfoRow('Twitter / X', m.twitter!,
                   tappable: true, onTap: () => _openUrl(m.twitter!)),
             if ((m.youtube ?? '').isNotEmpty)
-              _InfoRow('YOUTUBE', m.youtube!,
+              _InfoRow('Youtube', m.youtube!,
                   tappable: true, onTap: () => _openUrl(m.youtube!)),
             if ((m.website ?? '').isNotEmpty)
-              _InfoRow('WEBSITE', m.website!,
+              _InfoRow('Website', m.website!,
                   tappable: true, onTap: () => _openUrl(m.website!)),
           ],
         ))
@@ -335,9 +334,9 @@ class _BodMemberDetailScreenState extends State<BodMemberDetailScreen> {
       icon: Icons.workspace_premium_rounded,
       children: [
         if (widget.designationName.isNotEmpty)
-          _InfoRow('DESIGNATION', widget.designationName),
+          _InfoRow('Designation', widget.designationName),
         if (widget.yearLabel.isNotEmpty)
-          _InfoRow('ROTARY YEAR', widget.yearLabel),
+          _InfoRow('Rotary year', widget.yearLabel),
         if (clubName.isNotEmpty) _InfoRow('CLUB', clubName),
       ],
     );
@@ -483,7 +482,7 @@ class _BodHeroAppBar extends StatelessWidget {
           fit: StackFit.expand,
           children: [
             Container(
-              decoration: const BoxDecoration(gradient: AppGradients.royalSweep),
+              decoration: const BoxDecoration(color: AppColors.primaryPrime),
             ),
             Positioned(
               top: -50,
@@ -539,7 +538,7 @@ class _BodHeroAppBar extends StatelessWidget {
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 24),
                   child: Text(
-                    memberName.toUpperCase(),
+                    memberName,
                     textAlign: TextAlign.center,
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
@@ -547,7 +546,6 @@ class _BodHeroAppBar extends StatelessWidget {
                       color: Colors.white,
                       fontSize: 22,
                       fontWeight: FontWeight.w800,
-                      letterSpacing: 1,
                     ),
                   ),
                 ),
@@ -581,9 +579,8 @@ class _BodHeroAppBar extends StatelessWidget {
                       yearLabel,
                       style: AppFonts.body(
                         color: AppColors.darkBg,
-                        fontSize: 11,
+                        fontSize: 13,
                         fontWeight: FontWeight.w800,
-                        letterSpacing: 0.5,
                       ),
                     ),
                   ),
@@ -645,12 +642,11 @@ class _InfoCard extends StatelessWidget {
               Icon(icon, size: 18, color: AppColors.primaryPrime),
               const SizedBox(width: 8),
               Text(
-                title.toUpperCase(),
+                title,
                 style: AppFonts.body(
-                  fontSize: 11,
+                  fontSize: 13,
                   fontWeight: FontWeight.w800,
                   color: AppColors.textMuted,
-                  letterSpacing: 1.2,
                 ),
               ),
             ],
@@ -692,37 +688,31 @@ class _InfoRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final body = Padding(
+    final body = Container(
+      width: double.infinity, // full width so the stacked label/value stay left
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-      child: Row(
+      child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Expanded(
-            flex: 2,
-            child: Text(
+          Text(
               label,
               style: AppFonts.body(
-                fontSize: 10,
-                fontWeight: FontWeight.w800,
-                color: AppColors.textMuted,
-                letterSpacing: 0.5,
+                fontSize: 13,
+                fontWeight: FontWeight.w500,
+                color: AppColors.textSecondary,
               ),
             ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            flex: 3,
-            child: Text(
+          const SizedBox(height: 4),
+          Text(
               value,
               style: AppFonts.body(
-                fontSize: 14,
-                fontWeight: FontWeight.w700,
+                fontSize: 16,
+                fontWeight: FontWeight.w500,
                 color: tappable && onTap != null
                     ? AppColors.primaryPrime
                     : AppColors.textPrimary,
               ),
             ),
-          ),
         ],
       ),
     );
@@ -872,7 +862,7 @@ class _ContactAction extends StatelessWidget {
             Text(
               label,
               style: AppFonts.body(
-                fontSize: 11,
+                fontSize: 13,
                 fontWeight: FontWeight.w600,
                 color: AppColors.textSecondary,
               ),

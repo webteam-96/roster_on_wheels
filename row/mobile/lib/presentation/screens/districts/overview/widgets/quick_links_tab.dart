@@ -131,7 +131,7 @@ class _QuickLinkCard extends StatelessWidget {
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                       style: AppFonts.body(
-                        fontSize: 11.5,
+                        fontSize: 13,
                         color: AppColors.slate500,
                         height: 1.35,
                       ),

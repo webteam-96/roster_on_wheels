@@ -102,18 +102,18 @@ export default function ClubCard({ club, onDelete, isSuperAdmin, districtId, vie
         </div>
         <div className="border-t px-4 py-3 space-y-2 text-sm text-muted-foreground group-hover:bg-primary/5 transition-colors">
           {club.meetingDay && (
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <Calendar className="h-3.5 w-3.5 flex-shrink-0" />
               <span>{club.meetingDay}{club.meetingFromTime ? ` | ${formatMeetingTime12Hour(club.meetingFromTime)}` : ""}{club.meetingToTime ? ` - ${formatMeetingTime12Hour(club.meetingToTime)}` : ""}</span>
             </div>
           )}
           {(club.city || club.state) && (
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <MapPin className="h-3.5 w-3.5 flex-shrink-0" />
               <span className="truncate">{[club.city, club.state].filter(Boolean).join(", ")}</span>
             </div>
           )}
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <Users className="h-3.5 w-3.5 flex-shrink-0" />
             <span>{club.totalMembers} Member{club.totalMembers !== 1 ? "s" : ""}</span>
           </div>

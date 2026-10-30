@@ -112,7 +112,7 @@ class DistrictWebsiteDataScreen extends StatelessWidget {
             Text(
               'Edit your public district website content',
               style: AppFonts.body(
-                fontSize: 11,
+                fontSize: 13,
                 color: AppColors.slate500,
               ),
             ),
@@ -124,7 +124,7 @@ class DistrictWebsiteDataScreen extends StatelessWidget {
                 crossAxisCount: 2,
                 crossAxisSpacing: 10,
                 mainAxisSpacing: 10,
-                mainAxisExtent: 112,
+                mainAxisExtent: 124,
               ),
               children: [
                 for (final t in tiles)
@@ -181,7 +181,7 @@ class _HubTile extends StatelessWidget {
                   tile.label,
                   textAlign: TextAlign.center,
                   style: AppFonts.body(
-                    fontSize: 11.5,
+                    fontSize: 13,
                     fontWeight: FontWeight.w700,
                     color: AppColors.textPrimary,
                   ),

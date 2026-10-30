@@ -17,6 +17,8 @@ import '../../widgets/common/custom_app_bar.dart';
 import '../../widgets/common/day_month_picker.dart';
 import 'package:rotary_flutter_app/core/theme/app_fonts.dart';
 import 'package:rotary_flutter_app/core/i18n/text.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/form_action_bar.dart';
+import 'package:rotary_flutter_app/presentation/widgets/common/custom_button.dart';
 
 /// Admin "Add / Edit Member" form with full field parity to the web `MemberForm`
 /// (`rotary-frontend/src/components/MemberForm.tsx`). Five tabs:
@@ -614,55 +616,22 @@ class _MemberFormScreenState extends State<MemberFormScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      bottomNavigationBar: _loading || _error != null
+          ? null
+          : RowFormActionBar(
+              child: CustomButton(label: _isEditing ? 'Save' : 'Create', onPressed: _save, isLoading: _saving, fullWidth: true),
+            ),
       backgroundColor: AppColors.background,
       appBar: CustomAppBar(
         title: _isEditing ? 'Edit Member' : 'Add Member',
-        actions: [
-          if (!_loading && _error == null)
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-              child: TextButton(
-                onPressed: _saving ? null : _save,
-                style: TextButton.styleFrom(
-                  backgroundColor: AppColors.goldPrime,
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(horizontal: 14),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                ),
-                child: _saving
-                    ? const SizedBox(
-                        width: 18,
-                        height: 18,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2.2,
-                          color: Colors.black54,
-                        ),
-                      )
-                    : Text(
-                        _isEditing ? 'Save' : 'Create',
-                        style: AppFonts.body(
-                          fontWeight: FontWeight.w800,
-                          fontSize: 13,
-                          letterSpacing: 0.3,
-                        ),
-                      ),
-              ),
-            ),
-        ],
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(48),
           child: Material(
-            color: AppColors.primary,
+            color: AppColors.lightBg,
             child: TabBar(
               controller: _tab,
               isScrollable: true,
               tabAlignment: TabAlignment.start,
-              indicatorColor: AppColors.goldPrime,
-              indicatorWeight: 3,
-              labelColor: Colors.white,
-              unselectedLabelColor: Colors.white70,
               labelStyle: AppFonts.body(
                 fontWeight: FontWeight.w700,
                 fontSize: 13,

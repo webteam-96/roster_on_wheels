@@ -25,6 +25,7 @@ import {
 import { exportToCSV } from "@/utils/csvExport";
 
 import { appLocale } from "@/lib/appFormat";
+import { ListPageSkeleton } from "@/components/row/AppKit";
 type Row = {
   clubId: number; clubName: string; clubRotaryId: string;
   presidentMemberId: number | null; presidentName: string | null;
@@ -310,7 +311,7 @@ export default function ClubLeadershipPage() {
               </SelectContent>
             </Select>
             <Input placeholder="Search club / name..." value={search} onChange={(e) => setSearch(e.target.value)} />
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-2">
               <Button variant="outline" onClick={exportExcel} disabled={rows.length === 0} className="flex-1">
                 <Download className="mr-2 h-4 w-4" />Export Excel
               </Button>
@@ -334,7 +335,7 @@ export default function ClubLeadershipPage() {
         <Card>
           <CardContent className="p-0 overflow-x-auto">
             {loading ? (
-              <div className="flex justify-center py-20"><RotaryLoader size="lg" /></div>
+              <div className="flex justify-center py-20"><ListPageSkeleton /></div>
             ) : !districtId || !yearId ? (
               <div className="text-center py-20 text-muted-foreground">Select District and Year to load clubs.</div>
             ) : filteredRows.length === 0 ? (
@@ -354,7 +355,7 @@ export default function ClubLeadershipPage() {
                     return (
                     <TableRow key={r.clubId}>
                       <TableCell className="align-top">
-                        <div className="flex items-center gap-2">
+                        <div className="flex flex-wrap items-center gap-2">
                           <div className="font-medium">{r.clubName}</div>
                           {chainInactive && <Badge variant="destructive">Inactive</Badge>}
                         </div>
@@ -531,7 +532,7 @@ export default function ClubLeadershipPage() {
               <DialogTitle>All Email Schedules (across all districts &amp; years)</DialogTitle>
             </DialogHeader>
             {allLoading ? (
-              <div className="flex justify-center py-12"><RotaryLoader size="lg" /></div>
+              <div className="flex justify-center py-12"><ListPageSkeleton /></div>
             ) : allSchedules.length === 0 ? (
               <div className="text-center py-12 text-muted-foreground">No schedules yet.</div>
             ) : (

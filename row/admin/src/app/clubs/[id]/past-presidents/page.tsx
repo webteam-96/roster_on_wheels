@@ -42,6 +42,7 @@ import Image from "next/image";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import ImageCropDialog from "@/components/ImageCropDialog";
 import { useImageCropUpload } from "@/hooks/useImageCropUpload";
+import { ListPageSkeleton } from "@/components/row/AppKit";
 
 // Past-president photos render in round avatars everywhere (cards, table, member
 // search results), so the crop is locked square and stored at 500×500.
@@ -351,7 +352,7 @@ export default function PastPresidentsPage() {
 
         {loading && (
           <div className="flex items-center justify-center py-20">
-            <RotaryLoader size="lg" />
+            <ListPageSkeleton />
           </div>
         )}
 
@@ -412,7 +413,7 @@ export default function PastPresidentsPage() {
                           )}
                         </div>
                         <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2">
+                          <div className="flex flex-wrap items-center gap-2">
                             <p className="font-semibold text-primary truncate">{rec.memberName}</p>
                             {rec.isMember ? <MemberChip /> : <NonMemberChip />}
                           </div>
@@ -482,7 +483,7 @@ export default function PastPresidentsPage() {
                           </div>
                         </TableCell>
                         <TableCell className="font-semibold text-primary">
-                          <div className="flex items-center gap-2">
+                          <div className="flex flex-wrap items-center gap-2">
                             <span>{rec.memberName}</span>
                             {rec.isMember ? <MemberChip /> : <NonMemberChip />}
                           </div>
@@ -564,7 +565,7 @@ export default function PastPresidentsPage() {
                           )}
                         </div>
                         <div className="flex-1">
-                          <div className="flex items-center gap-2">
+                          <div className="flex flex-wrap items-center gap-2">
                             <span className="font-medium">{selectedMemberName}</span>
                             <MemberChip />
                           </div>
@@ -679,8 +680,8 @@ export default function PastPresidentsPage() {
                                     </div>
                                   )}
                                 </div>
-                                <div className="flex items-center gap-2">
-                                  <label className="cursor-pointer text-xs font-medium px-3 py-1.5 rounded-md border text-foreground hover:bg-accent">
+                                <div className="flex flex-wrap items-center gap-2">
+                                  <label className="cursor-pointer text-xs font-medium px-3 py-1.5 rounded-full border text-foreground hover:bg-accent">
                                     {shownPhoto ? "Change" : "Upload"}
                                     <input
                                       type="file"

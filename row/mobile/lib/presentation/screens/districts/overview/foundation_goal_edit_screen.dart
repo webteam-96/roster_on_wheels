@@ -329,18 +329,18 @@ class _FoundationGoalEditScreenState extends State<FoundationGoalEditScreen> {
     return Scaffold(
       backgroundColor: AppColors.lightBg,
       appBar: AppBar(
-        backgroundColor: AppColors.primaryPrime,
-        foregroundColor: Colors.white,
+        backgroundColor: AppColors.lightBg,
+        foregroundColor: AppColors.textPrimary,
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new_rounded,
-              color: Colors.white, size: 20),
+              color: AppColors.textPrimary, size: 20),
           onPressed: () => Navigator.of(context).pop(),
         ),
         title: Text(
           'Set Foundation Goals',
           style: AppFonts.body(
-              fontWeight: FontWeight.w800, fontSize: 16, color: Colors.white),
+              fontWeight: FontWeight.w800, fontSize: 16, color: AppColors.textPrimary),
         ),
       ),
       body: _loading
@@ -380,7 +380,7 @@ class _FoundationGoalEditScreenState extends State<FoundationGoalEditScreen> {
             '${widget.districtNumber.isEmpty ? '–' : widget.districtNumber}'
             ' · RY ${widget.yearLabel.isEmpty ? '–' : widget.yearLabel}',
             style: AppFonts.body(
-                fontSize: 12,
+                fontSize: 13,
                 fontWeight: FontWeight.w600,
                 color: AppColors.slate500),
           ),
@@ -438,7 +438,7 @@ class _FoundationGoalEditScreenState extends State<FoundationGoalEditScreen> {
                     'Targets are entered in USD. “Raised so far” is this '
                     'year’s TRF contributions.',
                     style: AppFonts.body(
-                        fontSize: 10.5,
+                        fontSize: 13,
                         color: AppColors.slate500,
                         height: 1.4),
                   ),
@@ -488,7 +488,7 @@ class _FoundationGoalEditScreenState extends State<FoundationGoalEditScreen> {
                       Expanded(
                         child: Text('Total target across all funds',
                             style: AppFonts.body(
-                                fontSize: 11.5,
+                                fontSize: 13,
                                 fontWeight: FontWeight.w600,
                                 color: AppColors.slate500)),
                       ),
@@ -526,7 +526,7 @@ class _FoundationGoalEditScreenState extends State<FoundationGoalEditScreen> {
                     'Target number of projects per avenue for the year. '
                     '“Done” is what clubs have reported so far.',
                     style: AppFonts.body(
-                        fontSize: 10.5,
+                        fontSize: 13,
                         color: AppColors.slate500,
                         height: 1.4),
                   ),
@@ -549,8 +549,7 @@ class _FoundationGoalEditScreenState extends State<FoundationGoalEditScreen> {
                     style: OutlinedButton.styleFrom(
                       foregroundColor: AppColors.warningDark,
                       side: const BorderSide(color: AppColors.warningDark),
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10)),
+                      shape: const StadiumBorder(),
                     ),
                     icon: _savingTargets
                         ? const SizedBox(
@@ -584,7 +583,7 @@ class _FoundationGoalEditScreenState extends State<FoundationGoalEditScreen> {
             foregroundColor: Colors.white,
             elevation: 0,
             shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                const StadiumBorder(),
           ),
           child: _saving
               ? const SizedBox(
@@ -650,7 +649,7 @@ class _FundField extends StatelessWidget {
             const SizedBox(width: 6),
             Text(name,
                 style: AppFonts.body(
-                    fontSize: 12.5,
+                    fontSize: 13,
                     fontWeight: FontWeight.w800,
                     color: AppColors.textPrimary)),
             const SizedBox(width: 6),
@@ -659,7 +658,7 @@ class _FundField extends StatelessWidget {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: AppFonts.body(
-                      fontSize: 10.5, color: AppColors.slate400)),
+                      fontSize: 13, color: AppColors.slate400)),
             ),
           ],
         ),
@@ -704,7 +703,7 @@ class _FundField extends StatelessWidget {
         const SizedBox(height: 4),
         Text('Raised so far: $raised',
             style: AppFonts.body(
-                fontSize: 10.5, color: AppColors.slate500)),
+                fontSize: 13, color: AppColors.slate500)),
       ],
     );
   }
@@ -733,14 +732,14 @@ class _AvenueTargetRow extends StatelessWidget {
             children: [
               Text(name,
                   style: AppFonts.body(
-                      fontSize: 12.5,
+                      fontSize: 13,
                       fontWeight: FontWeight.w800,
                       color: AppColors.textPrimary)),
               const SizedBox(height: 2),
               Text(
                 'Done: $completed · ${percent.toStringAsFixed(0)}%',
                 style: AppFonts.body(
-                    fontSize: 10.5, color: AppColors.slate500),
+                    fontSize: 13, color: AppColors.slate500),
               ),
             ],
           ),
@@ -826,7 +825,7 @@ class _SectionCard extends StatelessWidget {
                       color: AppColors.rotaryBlue, shape: BoxShape.circle),
                   child: Text('$number',
                       style: AppFonts.body(
-                          fontSize: 11,
+                          fontSize: 13,
                           fontWeight: FontWeight.w800,
                           color: Colors.white)),
                 ),

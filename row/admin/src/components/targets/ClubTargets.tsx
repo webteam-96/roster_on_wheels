@@ -48,7 +48,7 @@ export function MetricGrid({ metrics }: { metrics: TargetClubRow["metrics"] }) {
 
 export function ClubTargetCard({ row, yearLabel }: { row: TargetClubRow; yearLabel: string }) {
   return (
-    <section className="rounded-xl border border-slate-200 bg-white p-5">
+    <section className="rounded-[20px] border border-slate-200 bg-white p-5">
       <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
         <div>
           <h3 className="text-base font-semibold text-slate-800">{row.clubName}</h3>
@@ -86,11 +86,11 @@ export default function ClubTargets({ clubId, yearId }: { clubId: number | null;
   }, [on, clubId, yearId]);
 
   if (!on) return null;
-  if (!clubId) return <p className="rounded-xl border border-slate-200 bg-white p-5 text-sm text-slate-600">Select a club first.</p>;
-  if (error) return <p className="rounded-xl border border-slate-200 bg-white p-5 text-sm text-slate-600">{error}</p>;
+  if (!clubId) return <p className="rounded-[20px] border border-slate-200 bg-white p-5 text-sm text-slate-600">Select a club first.</p>;
+  if (error) return <p className="rounded-[20px] border border-slate-200 bg-white p-5 text-sm text-slate-600">{error}</p>;
   if (!data) {
     return (
-      <div className="space-y-3 rounded-xl border border-slate-200 bg-white p-5">
+      <div className="space-y-3 rounded-[20px] border border-slate-200 bg-white p-5">
         <Skeleton className="h-4 w-56" />
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">{METRICS.map((m) => <Skeleton key={m.key} className="h-20" />)}</div>
       </div>

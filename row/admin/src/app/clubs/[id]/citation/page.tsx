@@ -18,6 +18,7 @@ import { ArrowLeft, RefreshCw, Save, Trophy, Calculator } from "@/components/ico
 import RotaryLoader from "@/components/RotaryLoader";
 import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";
+import { ListPageSkeleton } from "@/components/row/AppKit";
 
 export default function ClubCitationPage() {
   const params = useParams();
@@ -145,7 +146,7 @@ export default function ClubCitationPage() {
   const totalManual = Object.values(manualAnswers).reduce((sum, a) => sum + a.points + a.bonus, 0);
   const grandTotal = totalAuto + totalManual;
 
-  if (loading) return <ProtectedRoute><div className="flex justify-center py-20"><RotaryLoader size="lg" /></div></ProtectedRoute>;
+  if (loading) return <ProtectedRoute><div className="flex justify-center py-20"><ListPageSkeleton /></div></ProtectedRoute>;
 
   return (
     <ProtectedRoute>
@@ -319,7 +320,7 @@ export default function ClubCitationPage() {
 
                               {normalizedType === "yesno" && (
                                 <div className="flex items-center gap-4">
-                                  <div className="flex items-center gap-2">
+                                  <div className="flex flex-wrap items-center gap-2">
                                     <Switch checked={answer.value === "yes"}
                                       onCheckedChange={v => updateManualAnswer(sc.id, v ? "yes" : "no", sc)}
                                       disabled={!canManage} />

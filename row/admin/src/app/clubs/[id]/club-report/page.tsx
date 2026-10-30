@@ -14,6 +14,7 @@ import { ArrowLeft, Calendar, Download, FileSpreadsheet, BarChart3, Users, Megap
 import RotaryLoader from "@/components/RotaryLoader";
 import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";
+import { ListPageSkeleton } from "@/components/row/AppKit";
 
 function StatCard({ icon: Icon, label, value, color }: { icon: React.ElementType; label: string; value: any; color: string }) {
   return (
@@ -106,7 +107,7 @@ export default function ClubReportPage() {
     setSuccessMessage(`${sectionName} exported.`);
   };
 
-  if (loading) return <ProtectedRoute><div className="flex justify-center py-20"><RotaryLoader size="lg" /></div></ProtectedRoute>;
+  if (loading) return <ProtectedRoute><div className="flex justify-center py-20"><ListPageSkeleton /></div></ProtectedRoute>;
 
   return (
     <ProtectedRoute>
@@ -140,7 +141,7 @@ export default function ClubReportPage() {
         </div>
 
         {reportLoading ? (
-          <div className="flex justify-center py-20"><RotaryLoader size="lg" /></div>
+          <div className="flex justify-center py-20"><ListPageSkeleton /></div>
         ) : !report ? (
           <div className="text-center py-20 text-muted-foreground">No report data available.</div>
         ) : (
@@ -152,16 +153,16 @@ export default function ClubReportPage() {
                 Summary: {yearLabel}
               </h3>
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-                <StatCard icon={Award} label="Projects" value={report.summary.totalProjects} color="bg-blue-500" />
-                <StatCard icon={Megaphone} label="Announcements" value={report.summary.totalAnnouncements} color="bg-purple-500" />
-                <StatCard icon={CalendarClock} label="Events" value={report.summary.totalEvents} color="bg-indigo-500" />
-                <StatCard icon={Newspaper} label="Newsletters" value={report.summary.totalNewsletters} color="bg-pink-500" />
-                <StatCard icon={FileText} label="Documents" value={report.summary.totalDocuments} color="bg-amber-500" />
-                <StatCard icon={CheckSquare} label="Meetings" value={`${report.summary.totalMeetings} (${report.summary.avgAttendancePercent}%)`} color="bg-green-500" />
-                <StatCard icon={Users} label="Members" value={report.summary.activeMembers} color="bg-cyan-500" />
-                <StatCard icon={UserCircle} label="BOD" value={report.summary.bodCount} color="bg-emerald-500" />
-                <StatCard icon={IndianRupee} label="TRF Amount (USD)" value={`$${Number(report.summary.totalTrfAmount).toLocaleString("en-US")}`} color="bg-rose-500" />
-                <StatCard icon={IndianRupee} label="TRF Entries" value={report.summary.totalTrfContributions} color="bg-orange-500" />
+                <StatCard icon={Award} label="Projects" value={report.summary.totalProjects} color="bg-[#17458F]" />
+                <StatCard icon={Megaphone} label="Announcements" value={report.summary.totalAnnouncements} color="bg-[#17458F]" />
+                <StatCard icon={CalendarClock} label="Events" value={report.summary.totalEvents} color="bg-[#17458F]" />
+                <StatCard icon={Newspaper} label="Newsletters" value={report.summary.totalNewsletters} color="bg-[#17458F]" />
+                <StatCard icon={FileText} label="Documents" value={report.summary.totalDocuments} color="bg-[#17458F]" />
+                <StatCard icon={CheckSquare} label="Meetings" value={`${report.summary.totalMeetings} (${report.summary.avgAttendancePercent}%)`} color="bg-[#17458F]" />
+                <StatCard icon={Users} label="Members" value={report.summary.activeMembers} color="bg-[#17458F]" />
+                <StatCard icon={UserCircle} label="BOD" value={report.summary.bodCount} color="bg-[#17458F]" />
+                <StatCard icon={IndianRupee} label="TRF Amount (USD)" value={`$${Number(report.summary.totalTrfAmount).toLocaleString("en-US")}`} color="bg-[#17458F]" />
+                <StatCard icon={IndianRupee} label="TRF Entries" value={report.summary.totalTrfContributions} color="bg-[#17458F]" />
               </div>
             </div>
 

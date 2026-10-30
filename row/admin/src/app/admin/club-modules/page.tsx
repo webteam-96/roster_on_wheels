@@ -14,6 +14,7 @@ import { ArrowLeft, AlertCircle, Save, Search } from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
 import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";
+import { ListPageSkeleton } from "@/components/row/AppKit";
 
 interface CategoryGroup {
   categoryId: number;
@@ -264,7 +265,7 @@ export default function ClubModulesPage() {
 
         {loadingModules && (
           <div className="flex items-center justify-center py-12">
-            <RotaryLoader size="lg" />
+            <ListPageSkeleton />
           </div>
         )}
 

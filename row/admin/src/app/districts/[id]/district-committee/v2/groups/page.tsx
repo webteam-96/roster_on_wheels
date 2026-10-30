@@ -39,6 +39,7 @@ import { ArrowLeft, Plus, Pencil, Trash2, AlertTriangle, UsersRound, Users, More
 import RotaryLoader from "@/components/RotaryLoader";
 import Pagination from "@/components/Pagination";
 import ProtectedRoute from "@/components/ProtectedRoute";
+import { ListPageSkeleton } from "@/components/row/AppKit";
 
 const PAGE_SIZE = 20;
 
@@ -223,7 +224,7 @@ export default function GroupCommitteeV2Page() {
           )}
         </div>
 
-        {loading && <div className="flex items-center justify-center py-20"><RotaryLoader size="lg" /></div>}
+        {loading && <div className="flex items-center justify-center py-20"><ListPageSkeleton /></div>}
 
         {!loading && allYears.length > 0 && (
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center bg-slate-50 p-4 rounded-2xl border border-slate-200">
@@ -277,7 +278,7 @@ export default function GroupCommitteeV2Page() {
           </div>
         )}
 
-        {loadingGroups && <div className="flex items-center justify-center py-12"><RotaryLoader size="lg" /></div>}
+        {loadingGroups && <div className="flex items-center justify-center py-12"><ListPageSkeleton /></div>}
 
         {!loading && !loadingGroups && selectedYearId && groups.length === 0 && (
           <div className="flex flex-col items-center justify-center py-20 text-center rounded-2xl border border-slate-200 bg-white shadow-sm">

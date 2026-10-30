@@ -16,6 +16,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { ArrowLeft, Search, User, Plus, Mail, Phone, IdCard, UserPlus } from "@/components/icons";
 import Image from "next/image";
 import Link from "next/link";
+import { ListPageSkeleton } from "@/components/row/AppKit";
 
 function NewMemberForm() {
   const router = useRouter();
@@ -121,7 +122,7 @@ function NewMemberForm() {
     <>
       <div className="space-y-6">
         {/* Header */}
-        <div className="flex items-center justify-between">
+        <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-3">
             <Button variant="outline" size="icon" asChild>
               <Link href={backUrl}><ArrowLeft className="h-4 w-4" /></Link>
@@ -152,7 +153,7 @@ function NewMemberForm() {
         </div>
 
         {/* Loading */}
-        {searching && <div className="flex items-center justify-center py-10"><RotaryLoader size="lg" /></div>}
+        {searching && <div className="flex items-center justify-center py-10"><ListPageSkeleton /></div>}
 
         {/* Search results */}
         {!searching && searchResults !== null && (
@@ -182,19 +183,19 @@ function NewMemberForm() {
                           </div>
                           <div className="border-t px-4 py-3 space-y-2 text-sm text-muted-foreground">
                             {member.rotaryId && (
-                              <div className="flex items-center gap-2">
+                              <div className="flex flex-wrap items-center gap-2">
                                 <IdCard className="h-3.5 w-3.5 flex-shrink-0" />
                                 <span className="truncate">{member.rotaryId}</span>
                               </div>
                             )}
                             {member.emailId && (
-                              <div className="flex items-center gap-2">
+                              <div className="flex flex-wrap items-center gap-2">
                                 <Mail className="h-3.5 w-3.5 flex-shrink-0" />
                                 <span className="truncate">{member.emailId}</span>
                               </div>
                             )}
                             {member.primaryMobileNumber && (
-                              <div className="flex items-center gap-2">
+                              <div className="flex flex-wrap items-center gap-2">
                                 <Phone className="h-3.5 w-3.5 flex-shrink-0" />
                                 <span>{member.primaryMobileNumber}</span>
                               </div>
@@ -253,7 +254,7 @@ function NewMemberForm() {
 export default function NewMemberPage() {
   return (
     <ProtectedRoute>
-      <Suspense fallback={<div className="flex items-center justify-center py-20"><RotaryLoader size="lg" /></div>}>
+      <Suspense fallback={<div className="flex items-center justify-center py-20"><ListPageSkeleton /></div>}>
         <NewMemberForm />
       </Suspense>
     </ProtectedRoute>

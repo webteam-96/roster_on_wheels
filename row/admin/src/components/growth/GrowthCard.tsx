@@ -57,7 +57,7 @@ export default function GrowthCard({ clubId, yearId, canManage }: { clubId: numb
   if (!on || growth === null) return null;
   if (growth === undefined) {
     return (
-      <div className="space-y-3 rounded-xl border border-slate-200 bg-white p-5">
+      <div className="space-y-3 rounded-[20px] border border-slate-200 bg-white p-5">
         <Skeleton className="h-4 w-48" />
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">{[0, 1, 2, 3].map((i) => <Skeleton key={i} className="h-14" />)}</div>
         <Skeleton className="h-2 w-full" />
@@ -73,7 +73,7 @@ export default function GrowthCard({ clubId, yearId, canManage }: { clubId: numb
   };
 
   return (
-    <div className="rounded-xl border border-slate-200 bg-white p-5">
+    <div className="rounded-[20px] border border-slate-200 bg-white p-5">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <h3 className="text-sm font-semibold text-slate-800">Membership growth</h3>

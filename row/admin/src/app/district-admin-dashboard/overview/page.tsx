@@ -41,6 +41,7 @@ import {
   fmtInt, fmtUsdShort, ROTARY_BLUE,
 } from "@/components/dashboard/formatters";
 import DistrictGrowthCard from "@/components/growth/DistrictGrowthCard";
+import { KpiTile as RowKpiTile, MetricBar, Panel, SkeletonRows, type Tone } from "@/components/row/AppKit";
 
 /* ------------------------------------------------------------------ */
 /*  Local view-model — accesses Wave 13A4 additive fields as optional  */
@@ -129,10 +130,14 @@ interface OverviewVM {
 }
 
 /* ------------------------------------------------------------------ */
-/*  KPI tile — colored top border strip                                */
+/*  KPI tile, panel, metric row: ROW kit parts (components/row/AppKit)  */
 /* ------------------------------------------------------------------ */
+const ACCENT_TONE: Record<"blue" | "green" | "gold" | "red", Tone> = {
+  blue: "sky", green: "lilac", gold: "coral", red: "cream2",
+};
+
 function KpiTile({
-  label, value, subtitle, subtitleTone = "muted", accent,
+  label, value, subtitle, accent,
 }: {
   label: string;
   value: React.ReactNode;
@@ -140,85 +145,10 @@ function KpiTile({
   subtitleTone?: "muted" | "gold" | "red";
   accent: "blue" | "green" | "gold" | "red";
 }) {
-  const borderMap: Record<string, string> = {
-    blue: "border-t-blue-600",
-    green: "border-t-emerald-500",
-    gold: "border-t-amber-500",
-    red: "border-t-rose-500",
-  };
-  const subMap: Record<string, string> = {
-    muted: "text-slate-400",
-    gold: "text-amber-600",
-    red: "text-rose-600",
-  };
-  return (
-    <div className={`bg-white rounded-lg border border-slate-200 border-t-2 ${borderMap[accent]} shadow-sm p-4`}>
-      <p className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">{label}</p>
-      <p className="text-3xl font-bold text-slate-900 tabular-nums mt-1 leading-tight">{value}</p>
-      {subtitle && (
-        <p className={`text-xs mt-1 ${subMap[subtitleTone]}`}>{subtitle}</p>
-      )}
-    </div>
-  );
+  return <RowKpiTile label={label} value={value} note={subtitle} tone={ACCENT_TONE[accent]} />;
 }
 
-/* ------------------------------------------------------------------ */
-/*  Panel shell                                                        */
-/* ------------------------------------------------------------------ */
-function Panel({
-  title, subtitle, headerRight, children, footer,
-}: {
-  title: string;
-  subtitle?: string;
-  headerRight?: React.ReactNode;
-  children: React.ReactNode;
-  footer?: React.ReactNode;
-}) {
-  return (
-    <div className="bg-white rounded-lg border border-slate-200 shadow-sm flex flex-col">
-      <div className="px-5 pt-4 pb-3 flex items-start justify-between gap-2">
-        <div className="min-w-0">
-          <h3 className="text-sm font-semibold text-slate-800 truncate">{title}</h3>
-          {subtitle && <p className="text-[11px] text-slate-500 truncate mt-0.5">{subtitle}</p>}
-        </div>
-        {headerRight}
-      </div>
-      <div className="flex-1 px-5 pb-3">{children}</div>
-      {footer && (
-        <div className="border-t border-slate-100 px-5 py-2.5 flex items-center justify-between text-xs">
-          {footer}
-        </div>
-      )}
-    </div>
-  );
-}
-
-/* ------------------------------------------------------------------ */
-/*  Metric row (mini progress bar)                                     */
-/* ------------------------------------------------------------------ */
-function MetricRow({
-  label, value, percent, color,
-}: {
-  label: string;
-  value: React.ReactNode;
-  percent: number;
-  color: string;
-}) {
-  return (
-    <div className="mb-2.5 last:mb-0">
-      <div className="flex items-center justify-between text-xs mb-1">
-        <span className="text-slate-600">{label}</span>
-        <span className="text-slate-800 font-semibold tabular-nums">{value}</span>
-      </div>
-      <div className="h-1.5 w-full rounded-full bg-slate-100 overflow-hidden">
-        <div
-          className="h-full rounded-full"
-          style={{ width: `${Math.max(0, Math.min(100, percent))}%`, background: color }}
-        />
-      </div>
-    </div>
-  );
-}
+const MetricRow = MetricBar;
 
 /* ------------------------------------------------------------------ */
 /*  Donut                                                              */
@@ -372,9 +302,7 @@ export default function DistrictAdminOverviewPage() {
   /* ---- Loading / error ---- */
   if (status === "loading" && !data) {
     return (
-      <div className="flex items-center justify-center py-20 text-slate-500">
-        <Loader2 className="animate-spin mr-2" /> Loading district overview…
-      </div>
+      <SkeletonRows />
     );
   }
   if (status === "error" && !data) {
@@ -433,12 +361,12 @@ export default function DistrictAdminOverviewPage() {
   const topClubs = data.top20ClubsByMembers ?? [];
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       {/* ─── 1. KPI TILES ─────────────────────────────────────────── */}
       {/* District Citation tile was removed — its value duplicates the
           "District Citation" panel in the row below and the tile added
           little on its own. */}
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3">
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
         <KpiTile
           accent="blue"
           label="Total Clubs"
@@ -469,7 +397,7 @@ export default function DistrictAdminOverviewPage() {
       {selectedDistrictId && <DistrictGrowthCard districtId={selectedDistrictId} yearId={awardsYearId} />}
 
       {/* ─── 2. FOUR-PANEL ROW ────────────────────────────────────── */}
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3">
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
         {/* Membership -------------------------------------------------- */}
         <Panel
           title="Membership"
@@ -494,7 +422,7 @@ export default function DistrictAdminOverviewPage() {
           }
         >
           <div className="mb-3 flex items-baseline gap-2">
-            <span className="text-3xl font-bold text-slate-900 tabular-nums leading-none">
+            <span className="font-display text-[32px] font-semibold text-[#1B2C42] tabular-nums leading-none tracking-[-0.02em]">
               {fmtInt(totalMembers)}
             </span>
             <span className="text-xs text-slate-500">total members</span>
@@ -524,7 +452,7 @@ export default function DistrictAdminOverviewPage() {
           }
         >
           <div className="mb-3 flex items-baseline gap-2">
-            <span className="text-3xl font-bold text-slate-900 tabular-nums leading-none">
+            <span className="font-display text-[32px] font-semibold text-[#1B2C42] tabular-nums leading-none tracking-[-0.02em]">
               {fmtUsdShort(fundTotal || trfRaised)}
             </span>
             <span className="text-xs text-slate-500">raised</span>
@@ -652,11 +580,11 @@ export default function DistrictAdminOverviewPage() {
       </div>
 
       {/* ─── 3. BOTTOM ROW — Top 20 clubs + Leaderboard ───────────── */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         {/* Top 20 Clubs — vertical bar chart -------------------------- */}
-        <div className="lg:col-span-2 bg-white rounded-lg border border-slate-200 shadow-sm">
+        <div className="lg:col-span-2 rounded-[20px] border border-[color:var(--row-line)] bg-[#FCFDFE]">
           <div className="px-5 pt-4 pb-2">
-            <h3 className="text-sm font-semibold text-slate-800">Top 10 Clubs: Member Count</h3>
+            <h3 className="font-display text-[18px] font-semibold leading-tight text-[#1B2C42]">Top 10 Clubs: Member Count</h3>
             <p className="text-[11px] text-slate-500 mt-0.5">Members by club (highest first)</p>
           </div>
           <div className="px-2 pb-3">
@@ -701,9 +629,9 @@ export default function DistrictAdminOverviewPage() {
         </div>
 
         {/* Club Leaderboard ------------------------------------------ */}
-        <div className="bg-white rounded-lg border border-slate-200 shadow-sm flex flex-col">
+        <div className="rounded-[20px] border border-[color:var(--row-line)] bg-[#FCFDFE] flex flex-col">
           <div className="px-5 pt-4 pb-2 border-b border-slate-100">
-            <h3 className="text-sm font-semibold text-slate-800">Club Leaderboard</h3>
+            <h3 className="font-display text-[18px] font-semibold leading-tight text-[#1B2C42]">Club Leaderboard</h3>
           </div>
           <div className="px-3 py-2 border-b border-slate-100">
             <div className="relative">

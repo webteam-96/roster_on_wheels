@@ -1351,7 +1351,7 @@ class _ClubReportScreenState extends State<ClubReportScreen> {
                     Text(
                       ryLine,
                       style: AppFonts.body(
-                        fontSize: 12,
+                        fontSize: 13,
                         color: AppColors.textSecondary,
                         fontWeight: FontWeight.w500,
                       ),
@@ -1376,7 +1376,7 @@ class _ClubReportScreenState extends State<ClubReportScreen> {
           Text(
             'Download each module as a styled Excel workbook.',
             style: AppFonts.body(
-              fontSize: 12,
+              fontSize: 13,
               color: AppColors.textSecondary,
             ),
           ),
@@ -1391,11 +1391,10 @@ class _ClubReportScreenState extends State<ClubReportScreen> {
       child: Row(
         children: [
           Text(
-            text.toUpperCase(),
+            text,
             style: AppFonts.body(
-              fontSize: 11.5,
+              fontSize: 13,
               fontWeight: FontWeight.w800,
-              letterSpacing: 0.8,
               color: AppColors.textMuted,
             ),
           ),
@@ -1551,7 +1550,7 @@ class _ReportTile extends StatelessWidget {
                     Text(
                       subtitle,
                       style: AppFonts.body(
-                        fontSize: 11.5,
+                        fontSize: 13,
                         fontWeight: FontWeight.w600,
                         color: subtitleColor ?? AppColors.textMuted,
                       ),
@@ -1580,10 +1579,10 @@ class _ExcelButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final enabled = onTap != null;
-    final fg = enabled ? AppColors.success : AppColors.textMuted;
+    final fg = enabled ? AppColors.primaryPrime : AppColors.textMuted; // ROW actions are azure, not status green
     return Material(
       color: enabled
-          ? AppColors.success.withValues(alpha: 0.10)
+          ? AppColors.primaryPrime.withValues(alpha: 0.10)
           : AppColors.muted,
       borderRadius: BorderRadius.circular(10),
       child: InkWell(
@@ -1599,7 +1598,7 @@ class _ExcelButton extends StatelessWidget {
               Text(
                 'Excel',
                 style: AppFonts.body(
-                  fontSize: 12.5,
+                  fontSize: 13,
                   fontWeight: FontWeight.w700,
                   color: fg,
                 ),
@@ -1638,7 +1637,7 @@ class _WordButton extends StatelessWidget {
               Text(
                 'Word',
                 style: AppFonts.body(
-                  fontSize: 12.5,
+                  fontSize: 13,
                   fontWeight: FontWeight.w700,
                   color: fg,
                 ),
@@ -1665,7 +1664,7 @@ class _SoonPill extends StatelessWidget {
       child: Text(
         'Soon',
         style: AppFonts.body(
-          fontSize: 11.5,
+          fontSize: 13,
           fontWeight: FontWeight.w700,
           color: AppColors.accentAmber,
         ),

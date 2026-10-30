@@ -122,7 +122,7 @@ export default function ContactImportDialog({ open, onClose, scope, ownerId, gro
                 </table>
               </div>
               <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm">
-                <label className="flex items-center gap-2">
+                <label className="flex flex-wrap items-center gap-2">
                   Add to group
                   <select value={groupId} onChange={(e) => setGroupId(Number(e.target.value))}
                     className="h-8 rounded-md border border-input bg-background px-2 text-sm">
@@ -130,7 +130,7 @@ export default function ContactImportDialog({ open, onClose, scope, ownerId, gro
                     {groups.map((g) => <option key={g.id} value={g.id}>{g.name}</option>)}
                   </select>
                 </label>
-                <label className="flex items-center gap-2">
+                <label className="flex flex-wrap items-center gap-2">
                   <Checkbox checked={updateExisting} onCheckedChange={(v) => setUpdateExisting(v === true)} />
                   Fill in missing details of duplicates
                 </label>

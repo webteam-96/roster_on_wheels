@@ -76,7 +76,7 @@ class _ClubSpeakersScreenState extends State<ClubSpeakersScreen> {
               : RefreshIndicator(
                   onRefresh: _load,
                   child: ListView.separated(
-                    padding: const EdgeInsets.only(bottom: 80),
+                    padding: (const EdgeInsets.only(bottom: 80)).add(const EdgeInsets.only(bottom: 88)),
                     itemCount: speakers.length,
                     separatorBuilder: (_, __) => const Divider(height: 1),
                     itemBuilder: (_, i) {

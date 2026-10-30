@@ -35,6 +35,7 @@ import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";
 
 import { appLocale } from "@/lib/appFormat";
+import { ListPageSkeleton } from "@/components/row/AppKit";
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
 const STATUS_OPTIONS = [
@@ -60,7 +61,7 @@ function StatusBadge({ status }: { status: string }) {
 function AccessTypeBadge({ accessType }: { accessType: string }) {
   const isViewOnly = accessType === "view_only";
   return (
-    <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${isViewOnly ? "bg-orange-100 text-orange-700" : "bg-green-100 text-green-700"}`}>
+    <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${isViewOnly ? "bg-[#FFC65C] text-orange-700" : "bg-green-100 text-green-700"}`}>
       {isViewOnly ? "View Only" : "Downloadable"}
     </span>
   );
@@ -222,7 +223,7 @@ export default function DocumentsPage() {
 
         {loading && (
           <div className="flex items-center justify-center py-20">
-            <RotaryLoader size="lg" />
+            <ListPageSkeleton />
           </div>
         )}
 

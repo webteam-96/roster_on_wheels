@@ -35,6 +35,7 @@ import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
 import ClubAdminShell from "@/components/v2/ClubAdminShell";
 import { useSyncClubIdFromUrl } from "@/hooks/useSyncClubIdFromUrl";
+import { SkeletonRows } from "@/components/row/AppKit";
 
 export default function PastPresidentsV2ListingPage() {
   useSyncClubIdFromUrl();
@@ -258,27 +259,27 @@ export default function PastPresidentsV2ListingPage() {
               <select
                 value={selectedYearId === "all" ? "" : String(selectedYearId)}
                 onChange={(e) => setSelectedYearId(e.target.value === "" ? "all" : Number(e.target.value))}
-                className="px-2 py-1.5 text-sm border border-slate-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="px-2 h-10 py-0 text-sm border border-slate-200 rounded-[12px] bg-white focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
               >
                 <option value="">All Years</option>
                 {yearOptions.map((y) => (
                   <option key={y.id} value={y.id}>{y.label}</option>
                 ))}
               </select>
-              <div className="relative">
+              <div className="relative w-full sm:w-auto">
                 <Search size={14} className="absolute left-2 top-1/2 -translate-y-1/2 text-slate-400" />
                 <input
                   type="text"
                   placeholder="Search…"
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  className="pl-7 pr-3 py-1.5 text-sm border border-slate-200 rounded-lg w-full sm:w-48 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="pl-7 pr-3 h-10 py-0 text-sm border border-slate-200 rounded-[12px] w-full sm:w-48 focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
                 />
               </div>
               {canManage && (
                 <Link
                   href={addUrl}
-                  className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg bg-blue-600 text-white hover:bg-blue-700"
+                  className="inline-flex items-center gap-1.5 text-xs font-semibold px-4 h-10 rounded-full bg-[#17458F] text-white hover:bg-[#17458F]"
                 >
                   <Plus size={13} /> Add Past President
                 </Link>
@@ -287,9 +288,7 @@ export default function PastPresidentsV2ListingPage() {
           </div>
 
           {loading ? (
-            <div className="flex items-center justify-center py-12 text-slate-500">
-              <Loader2 className="animate-spin mr-2" size={16} /> Loading past presidents…
-            </div>
+            <SkeletonRows />
           ) : (
             <>
               {/* Mobile card view (<sm) — replaces horizontally scrolling table */}
@@ -384,8 +383,8 @@ export default function PastPresidentsV2ListingPage() {
 
               {/* Desktop table view (sm+) */}
               <div className="hidden sm:block overflow-x-auto">
-                <table className="min-w-full text-sm">
-                <thead className="bg-slate-50 text-xs uppercase text-slate-500">
+                <table className="w-full min-w-[640px] md:min-w-full text-sm">
+                <thead className="bg-[#EDF4FB] text-[13px] text-[#64748B]">
                   <tr>
                     <th className="px-3 py-2.5 text-left w-12">Photo</th>
                     <th className="px-3 py-2.5 text-left">Name</th>

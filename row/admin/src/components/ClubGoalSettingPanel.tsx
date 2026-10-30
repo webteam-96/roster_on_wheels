@@ -163,7 +163,7 @@ export default function ClubGoalSettingPanel(
             ))}
           </div>
         )}
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <div className="inline-flex rounded-lg border border-slate-200 bg-white p-0.5">
             <button
               onClick={() => setView("goals")}
@@ -185,7 +185,7 @@ export default function ClubGoalSettingPanel(
             type="button"
             onClick={downloadReport}
             disabled={dlBusy}
-            className="inline-flex items-center gap-1.5 h-9 rounded-lg border border-blue-200 bg-blue-50 px-3 text-xs font-medium text-blue-700 hover:bg-blue-100 disabled:opacity-40"
+            className="inline-flex items-center gap-1.5 h-9 rounded-full border border-blue-200 bg-blue-50 px-3 text-xs font-medium text-blue-700 hover:bg-blue-100 disabled:opacity-40"
             title="Download the Club Goal Setting report (all clubs of this district)"
           >
             {dlBusy ? <Loader2 size={13} className="animate-spin" /> : <Download size={13} />} Download report
@@ -199,7 +199,7 @@ export default function ClubGoalSettingPanel(
           <select
             value={metricKey ?? ""}
             onChange={(e) => setMetricKey(e.target.value || null)}
-            className="h-9 rounded-lg border border-slate-300 bg-white px-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="h-9 rounded-[12px] border border-slate-300 bg-white px-3 text-sm focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
           >
             {monthly.fields.map((f) => (
               <option key={f.fieldKey} value={f.fieldKey}>{metricLabel(f, monthly?.fields || [])}</option>
@@ -220,7 +220,7 @@ export default function ClubGoalSettingPanel(
                 value={clubQuery}
                 onChange={(e) => setClubQuery(e.target.value)}
                 placeholder="Filter clubs by name…"
-                className="w-full h-9 pl-8 pr-3 rounded-lg border border-slate-300 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full h-9 pl-8 pr-3 rounded-[12px] border border-slate-300 bg-white text-sm focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
               />
             </div>
             <span className="text-xs text-slate-500">{shown} of {total} club{total === 1 ? "" : "s"}</span>

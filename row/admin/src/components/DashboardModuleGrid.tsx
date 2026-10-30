@@ -345,7 +345,7 @@ export default function DashboardModuleGrid({
               .filter((g) => g.categoryId === activeCategory)
               .map((group) => (
                 <div key={group.categoryId} className="space-y-4">
-                  <div className="flex items-center justify-between">
+                  <div className="flex flex-wrap items-center justify-between gap-3">
                     <h3 className="text-xl font-bold text-primary">{group.categoryName}</h3>
                     <span className="text-sm text-muted-foreground">{group.modules.length} modules</span>
                   </div>

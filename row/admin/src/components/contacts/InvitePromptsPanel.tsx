@@ -43,7 +43,7 @@ export default function InvitePromptsPanel({ clubId }: { clubId: number }) {
   const today = new Date().toLocaleDateString("en-CA"); // YYYY-MM-DD in the viewer's zone
 
   return (
-    <section className="rounded-xl border border-slate-200 bg-white p-4">
+    <section className="rounded-[20px] border border-slate-200 bg-white p-4">
       <h3 className="text-sm font-semibold text-slate-800">Guest invite prompts</h3>
       <p className="mt-0.5 max-w-3xl text-xs text-slate-500">
         Before a meeting, every member gets an email and an app notice asking them to bring a guest, with their personal
@@ -79,7 +79,7 @@ export default function InvitePromptsPanel({ clubId }: { clubId: number }) {
         ) : (
           <div className="overflow-x-auto rounded-lg border border-slate-200">
             <table className="min-w-full text-sm">
-              <thead className="bg-slate-50 text-xs uppercase text-slate-500">
+              <thead className="bg-[#EDF4FB] text-[13px] text-[#64748B]">
                 <tr><th className="px-3 py-2 text-left">Meeting</th><th className="px-3 py-2 text-left">Sends on</th>
                   <th className="px-3 py-2 text-left">Status</th><th className="px-3 py-2 text-left">Note</th>
                   <th className="px-3 py-2 text-right"><span className="sr-only">Actions</span></th></tr>

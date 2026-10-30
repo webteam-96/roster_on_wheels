@@ -140,7 +140,7 @@ function SectionShell({
             <PopoverTrigger asChild>
               <button
                 type="button"
-                className="inline-flex items-center gap-1 px-2 py-1 rounded-md border border-slate-200 text-[11px] font-medium text-slate-600 hover:bg-slate-50"
+                className="inline-flex items-center gap-1 px-2 py-1 rounded-full border border-slate-200 text-[11px] font-medium text-slate-600 hover:bg-slate-50"
                 title="Filter by status"
               >
                 <Filter size={11} />
@@ -173,13 +173,13 @@ function SectionShell({
               placeholder="Search…"
               value={search}
               onChange={(e) => onSearchChange(e.target.value)}
-              className="pl-6 pr-2 py-1 text-[11px] border border-slate-200 rounded-md w-28 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="pl-6 pr-2 py-1 text-[11px] border border-slate-200 rounded-[12px] w-28 focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
             />
           </div>
 
           <Link
             href={addHref}
-            className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-semibold"
+            className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-[#17458F] hover:bg-[#17458F] text-white text-[11px] font-semibold"
           >
             <Plus size={12} /> Add
           </Link>

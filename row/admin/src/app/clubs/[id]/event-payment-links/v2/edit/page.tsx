@@ -47,6 +47,7 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 import { useSyncClubIdFromUrl } from "@/hooks/useSyncClubIdFromUrl";
 
 import { appLocale, currencySymbol } from "@/lib/appFormat";
+import { ListPageSkeleton } from "@/components/row/AppKit";
 interface Registration { id: number; registrationName: string; amount: number; }
 interface VendorSplit {
   id: number;
@@ -417,7 +418,7 @@ export default function EventPaymentLinkV2EditPage() {
           pageSubtitle="Update payment configuration"
           activeNavHref="/club-admin-dashboard/membership-dues"
         >
-          <div className="flex justify-center py-20"><RotaryLoader size="lg" /></div>
+          <div className="flex justify-center py-20"><ListPageSkeleton /></div>
         </ClubAdminShell>
       </ProtectedRoute>
     );
@@ -481,7 +482,7 @@ export default function EventPaymentLinkV2EditPage() {
                     <select
                       value={formType}
                       onChange={(e) => setFormType(e.target.value)}
-                      className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] bg-white focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
                     >
                       <option value="1">Standard</option>
                       <option value="2">Dynamic</option>
@@ -492,7 +493,7 @@ export default function EventPaymentLinkV2EditPage() {
                     <select
                       value={amountType}
                       onChange={(e) => setAmountType(e.target.value)}
-                      className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] bg-white focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
                     >
                       <option value="1">Fixed</option>
                       <option value="2">Variable</option>
@@ -506,7 +507,7 @@ export default function EventPaymentLinkV2EditPage() {
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
                     placeholder="Event title"
-                    className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
                   />
                 </div>
                 <div>
@@ -515,7 +516,7 @@ export default function EventPaymentLinkV2EditPage() {
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
                     rows={3}
-                    className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
                   />
                 </div>
                 <ToggleRow label="Hide Convenience Charges" checked={isHideCharges} onChange={setIsHideCharges} />
@@ -571,7 +572,7 @@ export default function EventPaymentLinkV2EditPage() {
                       value={foodPreferenceIds}
                       onChange={(e) => setFoodPreferenceIds(e.target.value)}
                       placeholder="e.g. 1,2,3"
-                      className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
                     />
                   </div>
                 )}
@@ -595,7 +596,7 @@ export default function EventPaymentLinkV2EditPage() {
                         value={remark1Title}
                         onChange={(e) => setRemark1Title(e.target.value)}
                         placeholder="Remark 1 label"
-                        className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
                       />
                     )}
                   </div>
@@ -607,7 +608,7 @@ export default function EventPaymentLinkV2EditPage() {
                         value={remark2Title}
                         onChange={(e) => setRemark2Title(e.target.value)}
                         placeholder="Remark 2 label"
-                        className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
                       />
                     )}
                   </div>
@@ -619,7 +620,7 @@ export default function EventPaymentLinkV2EditPage() {
                         value={remark3Title}
                         onChange={(e) => setRemark3Title(e.target.value)}
                         placeholder="Remark 3 label"
-                        className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
                       />
                     )}
                   </div>
@@ -631,17 +632,17 @@ export default function EventPaymentLinkV2EditPage() {
                         value={designationLabel}
                         onChange={(e) => setDesignationLabel(e.target.value)}
                         placeholder="Designation field label"
-                        className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
                       />
                     )}
                   </div>
                 </div>
               </SectionCard>
 
-              <div className="flex justify-end gap-2">
+              <div className="flex flex-wrap justify-end gap-2">
                 <LoadingLink
                   href={backHref}
-                  className="inline-flex items-center gap-1 text-sm font-medium px-3 py-1.5 rounded-lg border border-slate-200 text-slate-700 hover:bg-slate-50"
+                  className="inline-flex items-center gap-1 text-sm font-medium px-3 py-1.5 rounded-full border border-slate-200 text-slate-700 hover:bg-slate-50"
                 >
                   <X size={14} /> Cancel
                 </LoadingLink>
@@ -649,7 +650,7 @@ export default function EventPaymentLinkV2EditPage() {
                   onAction={handleSaveLink}
                   forcePending={saving}
                   loadingLabel="Saving…"
-                  className="inline-flex items-center gap-1 text-sm font-semibold px-4 py-1.5 rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50"
+                  className="inline-flex items-center gap-1 text-sm font-semibold px-4 py-1.5 rounded-full bg-[#17458F] text-white hover:bg-[#17458F] disabled:opacity-50"
                 >
                   {!saving && <Save size={14} />} Update
                 </LoadingButton>
@@ -676,7 +677,7 @@ export default function EventPaymentLinkV2EditPage() {
                     value={emailCc}
                     onChange={(e) => setEmailCc(e.target.value)}
                     placeholder="cc1@example.com, cc2@example.com"
-                    className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
                   />
                 </div>
               </SectionCard>
@@ -688,7 +689,7 @@ export default function EventPaymentLinkV2EditPage() {
                     type="text"
                     value={emailSubject}
                     onChange={(e) => setEmailSubject(e.target.value)}
-                    className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
                   />
                 </div>
                 <div>
@@ -697,7 +698,7 @@ export default function EventPaymentLinkV2EditPage() {
                     value={emailBody}
                     onChange={(e) => setEmailBody(e.target.value)}
                     rows={6}
-                    className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg font-mono focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] font-mono focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
                   />
                 </div>
               </SectionCard>
@@ -709,7 +710,7 @@ export default function EventPaymentLinkV2EditPage() {
                     type="text"
                     value={emailReminderSubject}
                     onChange={(e) => setEmailReminderSubject(e.target.value)}
-                    className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
                   />
                 </div>
                 <div>
@@ -718,15 +719,15 @@ export default function EventPaymentLinkV2EditPage() {
                     value={emailReminderBody}
                     onChange={(e) => setEmailReminderBody(e.target.value)}
                     rows={6}
-                    className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg font-mono focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] font-mono focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
                   />
                 </div>
               </SectionCard>
 
-              <div className="flex justify-end gap-2">
+              <div className="flex flex-wrap justify-end gap-2">
                 <LoadingLink
                   href={backHref}
-                  className="inline-flex items-center gap-1 text-sm font-medium px-3 py-1.5 rounded-lg border border-slate-200 text-slate-700 hover:bg-slate-50"
+                  className="inline-flex items-center gap-1 text-sm font-medium px-3 py-1.5 rounded-full border border-slate-200 text-slate-700 hover:bg-slate-50"
                 >
                   <X size={14} /> Cancel
                 </LoadingLink>
@@ -734,7 +735,7 @@ export default function EventPaymentLinkV2EditPage() {
                   onAction={handleSaveLink}
                   forcePending={saving}
                   loadingLabel="Saving…"
-                  className="inline-flex items-center gap-1 text-sm font-semibold px-4 py-1.5 rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50"
+                  className="inline-flex items-center gap-1 text-sm font-semibold px-4 py-1.5 rounded-full bg-[#17458F] text-white hover:bg-[#17458F] disabled:opacity-50"
                 >
                   {!saving && <Save size={14} />} Save Email Settings
                 </LoadingButton>
@@ -754,14 +755,14 @@ export default function EventPaymentLinkV2EditPage() {
                   <button
                     type="button"
                     onClick={() => openRegDialog()}
-                    className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg bg-blue-600 text-white hover:bg-blue-700"
+                    className="inline-flex items-center gap-1.5 text-xs font-semibold px-4 h-10 rounded-full bg-[#17458F] text-white hover:bg-[#17458F]"
                   >
                     <Plus size={13} /> Add Registration
                   </button>
                 </div>
                 <div className="overflow-x-auto">
-                  <table className="min-w-full text-sm">
-                    <thead className="bg-slate-50 text-xs uppercase text-slate-500">
+                  <table className="w-full min-w-[640px] md:min-w-full text-sm">
+                    <thead className="bg-[#EDF4FB] text-[13px] text-[#64748B]">
                       <tr>
                         <th className="px-3 py-2.5 text-left">Name</th>
                         <th className="px-3 py-2.5 text-right">Amount</th>
@@ -824,14 +825,14 @@ export default function EventPaymentLinkV2EditPage() {
                     onAction={handleSaveSplits}
                     forcePending={splitsSaving}
                     loadingLabel="Saving…"
-                    className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50"
+                    className="inline-flex items-center gap-1.5 text-xs font-semibold px-4 h-10 rounded-full bg-[#17458F] text-white hover:bg-[#17458F] disabled:opacity-50"
                   >
                     {!splitsSaving && <Save size={13} />} Save Splits
                   </LoadingButton>
                 </div>
                 <div className="overflow-x-auto">
-                  <table className="min-w-full text-sm">
-                    <thead className="bg-slate-50 text-xs uppercase text-slate-500">
+                  <table className="w-full min-w-[640px] md:min-w-full text-sm">
+                    <thead className="bg-[#EDF4FB] text-[13px] text-[#64748B]">
                       <tr>
                         <th className="px-3 py-2.5 text-left">Registration</th>
                         <th className="px-3 py-2.5 text-left">Vendor</th>
@@ -862,7 +863,7 @@ export default function EventPaymentLinkV2EditPage() {
                                 next[idx] = { ...next[idx], splitAmount: Number(e.target.value) || 0 };
                                 setVendorSplits(next);
                               }}
-                              className="w-28 px-2 py-1 text-sm text-right tabular-nums border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                              className="w-28 px-2 py-1 text-sm text-right tabular-nums border border-slate-200 rounded focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
                             />
                           </td>
                         </tr>
@@ -889,20 +890,20 @@ export default function EventPaymentLinkV2EditPage() {
                       value={desigName}
                       onChange={(e) => setDesigName(e.target.value)}
                       placeholder="Designation name"
-                      className="flex-1 px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="flex-1 px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
                     />
                     <LoadingButton
                       onAction={handleSaveDesig}
                       forcePending={desigSaving}
                       loadingLabel="Adding…"
-                      className="inline-flex items-center gap-1.5 text-sm font-semibold px-4 py-1.5 rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50"
+                      className="inline-flex items-center gap-1.5 text-sm font-semibold px-4 py-1.5 rounded-full bg-[#17458F] text-white hover:bg-[#17458F] disabled:opacity-50"
                     >
                       {!desigSaving && <Plus size={14} />} Add
                     </LoadingButton>
                   </div>
                   <div className="overflow-x-auto">
-                    <table className="min-w-full text-sm">
-                      <thead className="bg-slate-50 text-xs uppercase text-slate-500">
+                    <table className="w-full min-w-[640px] md:min-w-full text-sm">
+                      <thead className="bg-[#EDF4FB] text-[13px] text-[#64748B]">
                         <tr>
                           <th className="px-3 py-2.5 text-left">Designation</th>
                           <th className="px-3 py-2.5 text-right w-16">Delete</th>
@@ -953,7 +954,7 @@ export default function EventPaymentLinkV2EditPage() {
                   value={regName}
                   onChange={(e) => setRegName(e.target.value)}
                   placeholder="e.g. Regular"
-                  className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
                 />
               </div>
               <div>
@@ -965,7 +966,7 @@ export default function EventPaymentLinkV2EditPage() {
                   placeholder="0"
                   min={0}
                   step="0.01"
-                  className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
                 />
               </div>
             </div>
@@ -973,7 +974,7 @@ export default function EventPaymentLinkV2EditPage() {
               <button
                 type="button"
                 onClick={() => setRegDialogOpen(false)}
-                className="inline-flex items-center gap-1 text-sm font-medium px-3 py-1.5 rounded-lg border border-slate-200 text-slate-700 hover:bg-slate-50"
+                className="inline-flex items-center gap-1 text-sm font-medium px-3 py-1.5 rounded-full border border-slate-200 text-slate-700 hover:bg-slate-50"
               >
                 Cancel
               </button>
@@ -981,7 +982,7 @@ export default function EventPaymentLinkV2EditPage() {
                 onAction={handleSaveReg}
                 forcePending={regSaving}
                 loadingLabel="Saving…"
-                className="inline-flex items-center gap-1 text-sm font-semibold px-4 py-1.5 rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50"
+                className="inline-flex items-center gap-1 text-sm font-semibold px-4 py-1.5 rounded-full bg-[#17458F] text-white hover:bg-[#17458F] disabled:opacity-50"
               >
                 {!regSaving && <Save size={14} />} Save
               </LoadingButton>

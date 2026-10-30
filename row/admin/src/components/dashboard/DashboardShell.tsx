@@ -74,7 +74,7 @@ export interface DashboardShellProps {
 
 // ROW "Fellowship": a light sidebar so the full-colour ROW mark sits on its natural
 // white surface; azure (Rotary Royal Blue) marks the selected item.
-const SIDEBAR_BG = "#FCFDFE";
+const SIDEBAR_BG = "#EDF4FB";
 const ACTIVE_BG = "#17458F";
 const ACTIVE_TEXT = "#FCFDFE";
 
@@ -220,12 +220,12 @@ export default function DashboardShell({
 
   return (
     <div
-      className="fixed inset-0 z-[60] flex h-screen overflow-hidden bg-slate-50"
+      className="fixed inset-0 z-[60] flex h-screen overflow-hidden bg-[#F7F9FC]"
       style={{ top: 0, left: 0 }}
     >
       {/* Desktop sidebar */}
       <aside
-        className="hidden lg:flex flex-col w-60 flex-shrink-0 border-r border-[color:var(--row-line)]"
+        className="hidden lg:flex flex-col w-[264px] flex-shrink-0 border-r border-[color:var(--row-line)]"
         style={{ background: SIDEBAR_BG }}
       >
         {sidebar}
@@ -235,11 +235,11 @@ export default function DashboardShell({
       {open && (
         <div className="lg:hidden fixed inset-0 z-50 flex">
           <div
-            className="absolute inset-0 bg-black/60"
+            className="absolute inset-0 bg-[#1B2C42]/50"
             onClick={() => setOpen(false)}
           />
           <aside
-            className="relative flex flex-col w-60 z-10 shadow-2xl"
+            className="relative flex flex-col w-[264px] z-10 border-r border-[color:var(--row-line)]"
             style={{ background: SIDEBAR_BG }}
           >
             <button
@@ -260,22 +260,21 @@ export default function DashboardShell({
         <HelplineBar />
 
         <header
-          className="bg-white border-b-2 px-6 h-14 flex items-center justify-between flex-shrink-0 gap-3"
-          style={{ borderBottomColor: ACTIVE_BG }}
+          className="bg-[#F7F9FC] border-b border-[color:var(--row-line)] px-4 md:px-8 h-16 flex items-center justify-between flex-shrink-0 gap-3"
         >
           <div className="flex items-center gap-3 min-w-0">
             <button
-              className="lg:hidden p-1.5 rounded-md text-slate-500 hover:bg-slate-100"
+              className="lg:hidden flex h-11 w-11 items-center justify-center rounded-full text-[#1B2C42] hover:bg-[#EDF4FB]" aria-label="Open menu"
               onClick={() => setOpen(true)}
             >
               <Menu size={20} />
             </button>
             <div className="min-w-0">
-              <p className="text-slate-800 font-semibold text-base leading-tight truncate">
+              <p className="font-display text-[20px] font-semibold leading-tight tracking-[-0.02em] text-[#1B2C42] truncate">
                 {pageTitle}
               </p>
               {pageSubtitle && (
-                <p className="text-slate-400 text-xs mt-0.5 truncate">{pageSubtitle}</p>
+                <p className="text-[13px] text-[#64748B] mt-0.5 truncate">{pageSubtitle}</p>
               )}
             </div>
           </div>
@@ -370,7 +369,7 @@ export default function DashboardShell({
           </div>
         </header>
 
-        <main className="flex-1 overflow-y-auto p-6">
+        <main className="flex-1 overflow-y-auto px-4 py-6 md:px-8 md:py-8">
           {currentItem?.feature && !isFeatureOn(brandInfo, currentItem.feature) ? (
             <div className="flex min-h-[60vh] items-center justify-center text-center">
               <div className="max-w-md rounded-2xl border bg-white p-8 shadow-sm">

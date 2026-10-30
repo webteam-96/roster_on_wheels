@@ -114,7 +114,7 @@ class _ClubEgovernanceTabState extends State<ClubEgovernanceTab>
                         if (data.yearLabel.isNotEmpty) 'RY ${data.yearLabel}',
                       ].join(' · '),
                       style: AppFonts.body(
-                        fontSize: 11,
+                        fontSize: 13,
                         color: AppColors.slate500,
                       ),
                     ),
@@ -152,7 +152,7 @@ class _EgovManagementGrid extends StatelessWidget {
   static const _tiles =
       <({String label, IconData icon, int color, String route})>[
     (label: 'Club Monthly Report', icon: Icons.event_note_outlined, color: 0xFF9333EA, route: 'club-monthly-report'),
-    (label: 'OCV / GOV', icon: Icons.folder_copy_outlined, color: 0xFF1C5BAE, route: 'ocv-gov'),
+    (label: 'OCV / gov', icon: Icons.folder_copy_outlined, color: 0xFF1C5BAE, route: 'ocv-gov'),
     (label: 'Attendance', icon: Icons.how_to_reg_outlined, color: 0xFF0D9488, route: 'attendance'),
     (label: 'District Awards', icon: Icons.workspace_premium_outlined, color: 0xFFE97A10, route: 'citation'),
     (label: 'Reports', icon: Icons.assessment_outlined, color: 0xFF16A34A, route: 'reports'),
@@ -184,7 +184,7 @@ class _EgovManagementGrid extends StatelessWidget {
                   color: AppColors.textPrimary)),
           Text('Manage reports, documents, attendance & awards',
               style: AppFonts.body(
-                  fontSize: 11, color: AppColors.slate500)),
+                  fontSize: 13, color: AppColors.slate500)),
           const SizedBox(height: 12),
           GridView.count(
             crossAxisCount: 2,
@@ -254,7 +254,7 @@ class _EgovTile extends StatelessWidget {
               Text(label,
                   textAlign: TextAlign.center,
                   style: AppFonts.body(
-                      fontSize: 11.5,
+                      fontSize: 13,
                       fontWeight: FontWeight.w700,
                       color: AppColors.textPrimary),
                   maxLines: 2,
@@ -381,7 +381,7 @@ class _PillTabBar extends StatelessWidget {
                     child: Text(
                       t.label,
                       style: AppFonts.body(
-                        fontSize: 12,
+                        fontSize: 13,
                         fontWeight: active == t.id
                             ? FontWeight.w800
                             : FontWeight.w600,
@@ -425,7 +425,7 @@ class _AttendanceSubTab extends StatelessWidget {
           const SizedBox(width: 4),
           Text(t,
               style: AppFonts.body(
-                  fontSize: 10, color: AppColors.slate500)),
+                  fontSize: 13, color: AppColors.slate500)),
         ],
       );
 
@@ -468,7 +468,7 @@ class _AttendanceSubTab extends StatelessWidget {
         Text(
           'Per-session attendance records',
           style: AppFonts.body(
-            fontSize: 11,
+            fontSize: 13,
             color: AppColors.slate400,
           ),
         ),
@@ -489,7 +489,7 @@ class _AttendanceSubTab extends StatelessWidget {
             child: Text(
               'No meetings recorded',
               style: AppFonts.body(
-                fontSize: 12,
+                fontSize: 13,
                 color: AppColors.slate400,
               ),
             ),
@@ -508,7 +508,7 @@ class _AttendanceSubTab extends StatelessWidget {
           Text(
             '${meetings.length} sessions recorded',
             style: AppFonts.body(
-              fontSize: 10.5,
+              fontSize: 13,
               color: AppColors.slate400,
             ),
           ),
@@ -550,7 +550,7 @@ class _AttendanceRow extends StatelessWidget {
                 child: Text(
                   '${index + 1}',
                   style: AppFonts.body(
-                    fontSize: 11,
+                    fontSize: 13,
                     fontWeight: FontWeight.w800,
                     color: AppColors.slate400,
                     fontFeatures: const [FontFeature.tabularFigures()],
@@ -573,7 +573,7 @@ class _AttendanceRow extends StatelessWidget {
                       Text(
                         meeting.date,
                         style: AppFonts.body(
-                          fontSize: 10.5,
+                          fontSize: 13,
                           color: AppColors.slate400,
                         ),
                       ),
@@ -590,7 +590,7 @@ class _AttendanceRow extends StatelessWidget {
                 child: Text(
                   badge.label,
                   style: AppFonts.body(
-                    fontSize: 10,
+                    fontSize: 13,
                     fontWeight: FontWeight.w800,
                     color: badge.fg,
                   ),
@@ -604,7 +604,7 @@ class _AttendanceRow extends StatelessWidget {
               Text(
                 '${meeting.present}/${meeting.total}',
                 style: AppFonts.body(
-                  fontSize: 12.5,
+                  fontSize: 13,
                   fontWeight: FontWeight.w800,
                   color: AppColors.slate700,
                   fontFeatures: const [FontFeature.tabularFigures()],

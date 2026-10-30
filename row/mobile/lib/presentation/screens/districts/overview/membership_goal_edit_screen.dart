@@ -190,12 +190,12 @@ class _MembershipGoalEditScreenState extends State<MembershipGoalEditScreen> {
     return Scaffold(
       backgroundColor: AppColors.lightBg,
       appBar: AppBar(
-        backgroundColor: AppColors.primaryPrime,
-        foregroundColor: Colors.white,
+        backgroundColor: AppColors.lightBg,
+        foregroundColor: AppColors.textPrimary,
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new_rounded,
-              color: Colors.white, size: 20),
+              color: AppColors.textPrimary, size: 20),
           onPressed: () => Navigator.of(context).pop(),
         ),
         title: Text(
@@ -203,7 +203,7 @@ class _MembershipGoalEditScreenState extends State<MembershipGoalEditScreen> {
           style: AppFonts.body(
             fontWeight: FontWeight.w800,
             fontSize: 16,
-            color: Colors.white,
+            color: AppColors.textPrimary,
           ),
         ),
       ),
@@ -244,7 +244,7 @@ class _MembershipGoalEditScreenState extends State<MembershipGoalEditScreen> {
             '${widget.districtNumber.isEmpty ? '–' : widget.districtNumber}'
             ' · RY ${widget.yearLabel.isEmpty ? '–' : widget.yearLabel}',
             style: AppFonts.body(
-                fontSize: 12,
+                fontSize: 13,
                 fontWeight: FontWeight.w600,
                 color: AppColors.slate500),
           ),
@@ -285,7 +285,7 @@ class _MembershipGoalEditScreenState extends State<MembershipGoalEditScreen> {
                   'Goals are stored one row per (district, year). Switching the '
                   'year loads that RY’s saved values, if any.',
                   style: AppFonts.body(
-                      fontSize: 10.5, color: AppColors.slate400, height: 1.4),
+                      fontSize: 13, color: AppColors.slate400, height: 1.4),
                 ),
               ],
             ),
@@ -304,7 +304,7 @@ class _MembershipGoalEditScreenState extends State<MembershipGoalEditScreen> {
                 Text(
                   'Live district-wide member count from the dashboard.',
                   style: AppFonts.body(
-                      fontSize: 10.5, color: AppColors.slate400),
+                      fontSize: 13, color: AppColors.slate400),
                 ),
               ],
             ),
@@ -360,8 +360,7 @@ class _MembershipGoalEditScreenState extends State<MembershipGoalEditScreen> {
             backgroundColor: AppColors.warningDark,
             foregroundColor: Colors.white,
             elevation: 0,
-            shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10)),
+            shape: const StadiumBorder(),
           ),
           child: _saving
               ? const SizedBox(
@@ -443,7 +442,7 @@ class _SectionCard extends StatelessWidget {
                   ),
                   child: Text('$number',
                       style: AppFonts.body(
-                          fontSize: 11,
+                          fontSize: 13,
                           fontWeight: FontWeight.w800,
                           color: Colors.white)),
                 ),
@@ -564,7 +563,7 @@ class _FieldLabel extends StatelessWidget {
     return Text(
       text,
       style: AppFonts.body(
-        fontSize: 11.5,
+        fontSize: 13,
         fontWeight: FontWeight.w700,
         color: AppColors.slate700,
       ),

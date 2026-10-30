@@ -78,7 +78,9 @@ public class FirebasePushService : IFirebasePushService
                 Android = new AndroidConfig
                 {
                     Priority = Priority.High,
-                    Notification = new AndroidNotification { ChannelId = "high_importance_channel_sound", Sound = "notification" },
+                    // EventTimestamp: FirebaseAdmin always sends event_time and defaults it to year 1, so Android showed
+                    // the push as thousands of years old ("2032y"); stamp the send time.
+                    Notification = new AndroidNotification { ChannelId = "high_importance_channel_sound", Sound = "notification", EventTimestamp = DateTime.UtcNow },
                 },
                 Apns = new ApnsConfig
                 {

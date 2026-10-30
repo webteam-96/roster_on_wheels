@@ -38,6 +38,7 @@ import ImageCropDialog from "@/components/ImageCropDialog";
 import { useImageCropQueue } from "@/hooks/useImageCropQueue";
 
 import { currencySymbol } from "@/lib/appFormat";
+import { ListPageSkeleton } from "@/components/row/AppKit";
 // Project photos are shown 16:9 on the public site (components/pages/projects/shared.tsx),
 // so the crop is locked to that shape. 1600×900 keeps the widest card retina-sharp.
 const PROJECT_PHOTO_ASPECT = 16 / 9;
@@ -57,7 +58,7 @@ function Section({ icon: Icon, title, children, number }: {
   icon: React.ElementType; title: string; children: React.ReactNode; number: number;
 }) {
   return (
-    <div className="relative bg-white rounded-xl border shadow-sm overflow-hidden">
+    <div className="relative bg-white rounded-[20px] border shadow-sm overflow-hidden">
       <div className="flex items-center gap-3 px-5 py-3.5 bg-primary/5 border-b">
         <div className="flex items-center justify-center h-8 w-8 rounded-full bg-primary text-primary-foreground text-sm font-bold shrink-0">{number}</div>
         <Icon className="h-5 w-5 text-primary shrink-0" />
@@ -367,7 +368,7 @@ export default function VocationalServiceEditPage() {
   };
 
   if (loading) {
-    return <ProtectedRoute><div className="flex items-center justify-center py-20"><RotaryLoader size="lg" /></div></ProtectedRoute>;
+    return <ProtectedRoute><div className="flex items-center justify-center py-20"><ListPageSkeleton /></div></ProtectedRoute>;
   }
 
   const todayStr = new Date().toISOString().split("T")[0];
@@ -545,7 +546,7 @@ export default function VocationalServiceEditPage() {
         {/* 5. Photos */}
         <Section icon={Camera} title="Photos" number={4}>
           <div className="space-y-4">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-wrap items-center justify-between gap-3">
               <p className="text-sm text-muted-foreground">Upload 1-5 photos. First photo is set as primary by default.</p>
               {photos.length < 5 && (
                 <div>

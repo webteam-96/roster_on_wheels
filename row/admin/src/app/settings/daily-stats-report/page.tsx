@@ -90,7 +90,7 @@ export default function DailyStatsReportPage() {
             {downloading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Download className="mr-2 h-4 w-4" />}
             Download Excel
           </Button>
-          <Button onClick={sendNow} disabled={sending} className="bg-emerald-600 hover:bg-emerald-700 text-white">
+          <Button onClick={sendNow} disabled={sending} className="bg-[#17458F] hover:bg-[#123A78] text-white">
             {sending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Mail className="mr-2 h-4 w-4" />}
             Send Email Now
           </Button>
@@ -103,7 +103,7 @@ export default function DailyStatsReportPage() {
         )}
 
         {counts && (
-          <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
+          <div className="bg-white rounded-[20px] border border-slate-200 overflow-hidden">
             <div className="px-4 py-2.5 border-b border-slate-100 text-sm font-medium text-slate-700">{subject || "Counts"}</div>
             <table className="min-w-full text-sm">
               <tbody className="divide-y divide-slate-100">
@@ -119,11 +119,11 @@ export default function DailyStatsReportPage() {
         )}
 
         {breakdowns.map((b, bi) => (
-          <div key={bi} className="bg-white rounded-xl border border-slate-200 overflow-hidden">
+          <div key={bi} className="bg-white rounded-[20px] border border-slate-200 overflow-hidden">
             <div className="px-4 py-2.5 border-b border-slate-100 text-sm font-medium text-slate-700">{b.title}: by Avenue</div>
             <div className="overflow-x-auto">
-              <table className="min-w-full text-sm">
-                <thead>
+              <table className="w-full min-w-[640px] md:min-w-full text-sm">
+                <thead className="bg-[#EDF4FB] text-[13px] text-[#64748B]">
                   <tr className="bg-slate-50 text-slate-600">
                     <th className="px-4 py-2 text-left font-medium">Avenue</th>
                     <th className="px-4 py-2 text-right font-medium">One-Time</th>

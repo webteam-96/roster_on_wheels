@@ -290,9 +290,6 @@ class _DistrictCalendarScreenState extends State<DistrictCalendarScreen> {
           marksLoader: _marksForMonth,
         ),
         TabBar(
-          labelColor: AppColors.primary,
-          unselectedLabelColor: AppColors.textSecondary,
-          indicatorColor: AppColors.primary,
           isScrollable: true,
           tabAlignment: TabAlignment.start,
           labelStyle:

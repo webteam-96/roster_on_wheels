@@ -339,7 +339,7 @@ class _ClubWebsiteAdvertisementsScreenState extends State<ClubWebsiteAdvertiseme
                       itemCount: _ads.length,
                       onReorder: _onReorder,
                       proxyDecorator: (child, _, __) => Material(
-                        elevation: 6,
+                        elevation: 0,
                         color: Colors.transparent,
                         borderRadius: BorderRadius.circular(12),
                         child: child,

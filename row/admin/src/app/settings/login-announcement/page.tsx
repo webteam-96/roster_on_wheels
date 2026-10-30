@@ -29,6 +29,7 @@ import {
 } from "@/utils/loginAnnouncementRoles";
 
 import { appLocale } from "@/lib/appFormat";
+import { ListPageSkeleton } from "@/components/row/AppKit";
 // Read an image file, downscale to a sane max width and re-compress, and return a
 // data: URL. Embedding inline (base64) keeps the announcement self-contained — no
 // upload endpoint, no host/media-routing juggling, no broken links for any viewer.
@@ -79,7 +80,7 @@ function StepSection({ number, icon: Icon, title, subtitle, action, children }: 
   action?: React.ReactNode; children: React.ReactNode;
 }) {
   return (
-    <section className="rounded-xl border bg-card overflow-hidden">
+    <section className="rounded-[20px] border bg-card overflow-hidden">
       <div className="flex flex-wrap items-center justify-between gap-2 px-4 py-3 bg-muted/40 border-b">
         <div className="flex items-center gap-3 min-w-0">
           <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground text-xs font-bold">{number}</span>
@@ -538,7 +539,7 @@ export default function LoginAnnouncementPage() {
         </div>
 
         {loading ? (
-          <div className="flex justify-center py-20"><RotaryLoader size="lg" /></div>
+          <div className="flex justify-center py-20"><ListPageSkeleton /></div>
         ) : items.length === 0 ? (
           <div className="flex flex-col items-center py-20 text-center">
             <Megaphone className="h-12 w-12 text-muted-foreground mb-4" />
@@ -560,7 +561,7 @@ export default function LoginAnnouncementPage() {
                 <Card key={item.id} className={`${item.isActive ? "border-green-300" : "border-gray-200 opacity-70"}`}>
                   <CardHeader className="pb-2">
                     <div className="flex flex-wrap items-center justify-between gap-2">
-                      <div className="flex items-center gap-2">
+                      <div className="flex flex-wrap items-center gap-2">
                         <Megaphone className="h-5 w-5 text-primary" />
                         <CardTitle className="text-base">Announcement #{item.id}</CardTitle>
                         <Badge className={item.isActive ? "bg-green-500 hover:bg-green-600" : "bg-gray-400"}>

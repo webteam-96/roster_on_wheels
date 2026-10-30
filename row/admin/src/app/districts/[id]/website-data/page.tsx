@@ -9,6 +9,7 @@ import { ArrowLeft, AlertCircle, Globe, ImageIcon, Megaphone, Share2, Phone, Lis
 import RotaryLoader from "@/components/RotaryLoader";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { useIsPathOff } from "@/components/FeatureGate";
+import { ListPageSkeleton } from "@/components/row/AppKit";
 
 const DISTRICT_WEBSITE_MODULES = [
   { key: "banners", name: "Banner Photos", icon: "ImageIcon", route: "banners" },
@@ -80,7 +81,7 @@ export default function DistrictWebsiteDataPage() {
 
         {loading && (
           <div className="flex items-center justify-center py-20">
-            <RotaryLoader size="lg" />
+            <ListPageSkeleton />
           </div>
         )}
 

@@ -30,6 +30,7 @@ import ErrorAlert from "@/components/ErrorAlert";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { useSyncClubIdFromUrl } from "@/hooks/useSyncClubIdFromUrl";
 import { TEXT_INPUT_REGEX } from "@/lib/textInput";
+import { ListPageSkeleton } from "@/components/row/AppKit";
 
 const TOP_MESSAGE = "Upload club documents (constitution, bylaws, forms, attachments). Choose 'View Only' to restrict downloads or 'Downloadable' to let members save the file locally.";
 
@@ -206,7 +207,7 @@ export default function DocumentsV2AddPage() {
     return (
       <ProtectedRoute>
         <div className="flex items-center justify-center py-20">
-          <RotaryLoader size="lg" />
+          <ListPageSkeleton />
         </div>
       </ProtectedRoute>
     );
@@ -233,22 +234,22 @@ export default function DocumentsV2AddPage() {
         }
       >
         {/* 1. Document Details */}
-        <SectionCard number={1} icon={FileText} title="Document Details" dot="bg-blue-600">
+        <SectionCard number={1} icon={FileText} title="Document Details" dot="bg-[#17458F]">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="sm:col-span-2">
-              <FieldLabel hint="(max 50 chars)" dot="bg-blue-500">Title</FieldLabel>
+              <FieldLabel hint="(max 50 chars)" dot="bg-[#17458F]">Title</FieldLabel>
               <input
                 type="text"
                 value={title}
                 onChange={handleTitleChange}
                 placeholder="Document title"
                 maxLength={50}
-                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
               />
               <p className="text-xs text-slate-400 text-right mt-0.5">{title.length}/50</p>
             </div>
             <div className="sm:col-span-2">
-              <FieldLabel dot="bg-blue-500">Access Type</FieldLabel>
+              <FieldLabel dot="bg-[#17458F]">Access Type</FieldLabel>
               <div className="flex flex-wrap gap-2 mt-1">
                 <RadioPill
                   checked={accessType === "view_only"}
@@ -268,9 +269,9 @@ export default function DocumentsV2AddPage() {
         </SectionCard>
 
         {/* 2. Attachment */}
-        <SectionCard number={2} icon={FileUp} title="Attachment" dot="bg-amber-600">
+        <SectionCard number={2} icon={FileUp} title="Attachment" dot="bg-[#17458F]">
           <div className="space-y-2">
-            <FieldLabel dot="bg-amber-500">File</FieldLabel>
+            <FieldLabel dot="bg-[#17458F]">File</FieldLabel>
             {fileName ? (
               <div className="flex items-center gap-3 p-3 rounded-lg border border-emerald-200 bg-emerald-50">
                 <FileUp className="h-5 w-5 text-emerald-600 shrink-0" />
@@ -309,32 +310,32 @@ export default function DocumentsV2AddPage() {
         </SectionCard>
 
         {/* 3. Schedule */}
-        <SectionCard number={3} icon={Calendar} title="Schedule" dot="bg-emerald-600">
+        <SectionCard number={3} icon={Calendar} title="Schedule" dot="bg-[#17458F]">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <FieldLabel dot="bg-emerald-500">Publish Date</FieldLabel>
-              <DateField value={publishDate} onChange={setPublishDate} min={today} className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+              <FieldLabel dot="bg-[#17458F]">Publish Date</FieldLabel>
+              <DateField value={publishDate} onChange={setPublishDate} min={today} className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]" />
             </div>
             <div>
-              <FieldLabel dot="bg-emerald-500">Publish Time</FieldLabel>
+              <FieldLabel dot="bg-[#17458F]">Publish Time</FieldLabel>
               <input
                 type="time"
                 value={publishTime}
                 onChange={(e) => setPublishTime(e.target.value)}
-                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
               />
             </div>
             <div>
-              <FieldLabel dot="bg-emerald-500">Expiry Date</FieldLabel>
-              <DateField value={expiryDate} onChange={setExpiryDate} min={today} className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+              <FieldLabel dot="bg-[#17458F]">Expiry Date</FieldLabel>
+              <DateField value={expiryDate} onChange={setExpiryDate} min={today} className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]" />
             </div>
             <div>
-              <FieldLabel dot="bg-emerald-500">Expiry Time</FieldLabel>
+              <FieldLabel dot="bg-[#17458F]">Expiry Time</FieldLabel>
               <input
                 type="time"
                 value={expiryTime}
                 onChange={(e) => setExpiryTime(e.target.value)}
-                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
               />
             </div>
           </div>

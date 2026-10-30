@@ -153,7 +153,7 @@ class CustomDrawer extends StatelessWidget {
                                           AppColors.white.withOpacity(0.2)),
                                 ),
                                 child: Text(
-                                  label.toUpperCase(),
+                                  label,
                                   style: AppFonts.body(
                                     color: AppColors.white,
                                     fontSize: 9,
@@ -352,11 +352,11 @@ class CustomDrawer extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.fromLTRB(AppSpacing.md, AppSpacing.sm, AppSpacing.md, AppSpacing.sm),
       child: Text(
-        label.toUpperCase(),
+        label,
         style: AppFonts.body(
-          fontWeight: FontWeight.w800,
-          letterSpacing: 1.5,
-          fontSize: 10,
+          fontWeight: FontWeight.w600,
+          letterSpacing: 0,
+          fontSize: 13,
           color: AppColors.textMuted,
         ),
       ),

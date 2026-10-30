@@ -288,7 +288,7 @@ class _MemberSettingsScreenState extends State<MemberSettingsScreen> {
               Text(
                 subtitle,
                 style: AppFonts.body(
-                  fontSize: 12.5,
+                  fontSize: 13,
                   color: AppColors.textSecondary,
                   fontWeight: FontWeight.w500,
                   height: 1.3,
@@ -341,7 +341,7 @@ class _MemberSettingsScreenState extends State<MemberSettingsScreen> {
                 Text(
                   sublabel,
                   style: AppFonts.body(
-                    fontSize: 11.5,
+                    fontSize: 13,
                     color: AppColors.textSecondary,
                     fontWeight: FontWeight.w500,
                   ),

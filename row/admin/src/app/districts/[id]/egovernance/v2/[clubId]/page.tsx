@@ -89,6 +89,7 @@ import RotaryLoader from "@/components/RotaryLoader";
 import ErrorAlert from "@/components/ErrorAlert";
 import LoadingLink from "@/components/v2/LoadingLink";
 import ProtectedRoute from "@/components/ProtectedRoute";
+import { ListPageSkeleton } from "@/components/row/AppKit";
 
 /* ------------------------------------------------------------------ types */
 
@@ -402,7 +403,7 @@ function DistrictAdminEGovClubDetailInner() {
                   e.target.value ? Number(e.target.value) : null,
                 )
               }
-              className="px-3 py-1.5 text-sm border border-slate-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="px-3 h-10 py-0 text-sm border border-slate-200 rounded-[12px] bg-white focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
             >
               {years.map((y) => (
                 <option key={y.id} value={y.id}>
@@ -417,7 +418,7 @@ function DistrictAdminEGovClubDetailInner() {
         {/* Loading / error guards */}
         {loadingTop ? (
           <div className="flex items-center justify-center py-20">
-            <RotaryLoader size="lg" />
+            <ListPageSkeleton />
           </div>
         ) : (
           <>
@@ -489,7 +490,7 @@ function DistrictAdminEGovClubDetailInner() {
 
               {loadingMonths ? (
                 <div className="flex items-center justify-center py-12">
-                  <RotaryLoader size="lg" />
+                  <ListPageSkeleton />
                 </div>
               ) : months.length === 0 ? (
                 <div className="px-5 py-12 text-center text-slate-500">
@@ -634,7 +635,7 @@ function ExpandedDetail({
         {item.isCreated && (
           <LoadingLink
             href={cmrHref}
-            className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-md border border-slate-200 text-blue-700 bg-white hover:bg-blue-50"
+            className="inline-flex items-center gap-1.5 text-xs font-semibold px-4 h-10 rounded-full border border-slate-200 text-blue-700 bg-white hover:bg-blue-50"
           >
             <ExternalLink size={12} /> View CMR
           </LoadingLink>
@@ -690,7 +691,7 @@ function ExpandedDetail({
       <div className="flex items-center justify-end">
         <LoadingLink
           href={cmrHref}
-          className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-md border border-slate-200 text-blue-700 bg-white hover:bg-blue-50"
+          className="inline-flex items-center gap-1.5 text-xs font-semibold px-4 h-10 rounded-full border border-slate-200 text-blue-700 bg-white hover:bg-blue-50"
         >
           <ExternalLink size={12} /> View CMR
         </LoadingLink>

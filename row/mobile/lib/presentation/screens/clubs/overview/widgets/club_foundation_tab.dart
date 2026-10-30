@@ -184,7 +184,7 @@ class _Header extends StatelessWidget {
                   if (yearLabel.isNotEmpty) 'RY $yearLabel',
                 ].join(' · '),
                 style: AppFonts.body(
-                  fontSize: 11,
+                  fontSize: 13,
                   color: AppColors.slate400,
                 ),
               ),
@@ -372,7 +372,7 @@ class _GoalsCardState extends State<_GoalsCard> {
         padding: const EdgeInsets.symmetric(vertical: 8),
         child: Text('No rotary year available for goals.',
             style: AppFonts.body(
-                fontSize: 12, color: AppColors.slate400)),
+                fontSize: 13, color: AppColors.slate400)),
       );
 
   Widget _headerRow(FoundationGoal g) {
@@ -397,7 +397,7 @@ class _GoalsCardState extends State<_GoalsCard> {
                   Text(
                     'RY ${g.yearLabel}',
                     style: AppFonts.body(
-                      fontSize: 11,
+                      fontSize: 13,
                       color: AppColors.slate500,
                     ),
                   ),
@@ -425,7 +425,7 @@ class _GoalsCardState extends State<_GoalsCard> {
             child: Text(
               y.yearLabel + (y.hasGoal ? '  •' : ''),
               style: AppFonts.body(
-                fontSize: 12,
+                fontSize: 13,
                 fontWeight:
                     y.yearId == g.yearId ? FontWeight.w800 : FontWeight.w500,
               ),
@@ -445,7 +445,7 @@ class _GoalsCardState extends State<_GoalsCard> {
             Text(
               g.yearLabel,
               style: AppFonts.body(
-                fontSize: 12,
+                fontSize: 13,
                 fontWeight: FontWeight.w700,
                 color: AppColors.slate700,
               ),
@@ -486,8 +486,7 @@ class _GoalsCardState extends State<_GoalsCard> {
                     foregroundColor: AppColors.slate500,
                     side: const BorderSide(color: AppColors.slate200),
                     padding: const EdgeInsets.symmetric(vertical: 12),
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8)),
+                    shape: const StadiumBorder(),
                   ),
                   child: Text('Cancel',
                       style: AppFonts.body(
@@ -505,8 +504,7 @@ class _GoalsCardState extends State<_GoalsCard> {
                   foregroundColor: Colors.white,
                   elevation: 0,
                   padding: const EdgeInsets.symmetric(vertical: 12),
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8)),
+                  shape: const StadiumBorder(),
                 ),
                 child: _saving
                     ? const SizedBox(
@@ -533,7 +531,7 @@ class _GoalsCardState extends State<_GoalsCard> {
           child: Text(
             label,
             style: AppFonts.body(
-              fontSize: 11,
+              fontSize: 13,
               fontWeight: FontWeight.w800,
               color: color,
             ),
@@ -551,7 +549,7 @@ class _GoalsCardState extends State<_GoalsCard> {
               prefixText: '\$ ',
               hintText: '0',
               hintStyle: AppFonts.body(
-                  fontSize: 12, color: AppColors.slate400),
+                  fontSize: 13, color: AppColors.slate400),
               isDense: true,
               contentPadding:
                   const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
@@ -594,7 +592,7 @@ class _GoalsCardState extends State<_GoalsCard> {
                   ? 'No goals set for this year yet.'
                   : 'No goals were set for this year.',
               style: AppFonts.body(
-                  fontSize: 11.5, color: AppColors.slate500),
+                  fontSize: 13, color: AppColors.slate500),
             ),
           ),
         for (var i = 0; i < rows.length; i++) ...[
@@ -609,10 +607,10 @@ class _GoalsCardState extends State<_GoalsCard> {
           children: [
             Text('Total goal',
                 style: AppFonts.body(
-                    fontSize: 11.5, color: AppColors.slate500)),
+                    fontSize: 13, color: AppColors.slate500)),
             Text(hasAnyGoal ? _fmtUsd(g.totalGoal) : '–',
                 style: AppFonts.body(
-                    fontSize: 12.5,
+                    fontSize: 13,
                     fontWeight: FontWeight.w800,
                     color: AppColors.slate700)),
           ],
@@ -623,7 +621,7 @@ class _GoalsCardState extends State<_GoalsCard> {
             'Last updated${g.updatedDate != null ? ' ${g.updatedDate}' : ''}'
             '${g.updatedBy != null ? ' by ${g.updatedBy}' : ''}',
             style: AppFonts.body(
-                fontSize: 10, color: AppColors.slate400),
+                fontSize: 13, color: AppColors.slate400),
           ),
         ],
         if (kFoundationGoalsEnabled && g.isEditable) ...[
@@ -638,14 +636,13 @@ class _GoalsCardState extends State<_GoalsCard> {
                   icon: const Icon(Icons.edit_rounded, size: 15),
                   label: Text(hasAnyGoal ? 'Edit Goals' : 'Set Goals',
                       style: AppFonts.body(
-                          fontSize: 12.5, fontWeight: FontWeight.w700)),
+                          fontSize: 13, fontWeight: FontWeight.w700)),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.avenuePublicImage,
                     foregroundColor: Colors.white,
                     elevation: 0,
                     padding: const EdgeInsets.symmetric(vertical: 11),
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8)),
+                    shape: const StadiumBorder(),
                   ),
                 ),
               ),
@@ -659,8 +656,7 @@ class _GoalsCardState extends State<_GoalsCard> {
                         color: AppColors.error.withValues(alpha: 0.4)),
                     padding: const EdgeInsets.symmetric(
                         horizontal: 14, vertical: 11),
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8)),
+                    shape: const StadiumBorder(),
                   ),
                   child: const Icon(Icons.delete_outline_rounded, size: 18),
                 ),
@@ -690,13 +686,13 @@ class _GoalsCardState extends State<_GoalsCard> {
               Expanded(
                 child: Text(label,
                     style: AppFonts.body(
-                        fontSize: 11.5,
+                        fontSize: 13,
                         fontWeight: FontWeight.w700,
                         color: AppColors.slate700)),
               ),
               Text('$pct%',
                   style: AppFonts.body(
-                      fontSize: 11,
+                      fontSize: 13,
                       fontWeight: FontWeight.w800,
                       color: color,
                       fontFeatures: const [FontFeature.tabularFigures()])),
@@ -707,14 +703,14 @@ class _GoalsCardState extends State<_GoalsCard> {
             children: [
               Text(_fmtUsd(actual),
                   style: AppFonts.body(
-                      fontSize: 12.5,
+                      fontSize: 13,
                       fontWeight: FontWeight.w800,
                       color: color,
                       fontFeatures: const [FontFeature.tabularFigures()])),
               const SizedBox(width: 4),
               Text('/ ${goal > 0 ? _fmtUsd(goal) : '–'}',
                   style: AppFonts.body(
-                      fontSize: 11, color: AppColors.slate400)),
+                      fontSize: 13, color: AppColors.slate400)),
             ],
           ),
           const SizedBox(height: 4),
@@ -740,7 +736,7 @@ class _GoalsCardState extends State<_GoalsCard> {
         ),
         child: Text(text,
             style: AppFonts.body(
-                fontSize: 9.5, fontWeight: FontWeight.w800, color: color)),
+                fontSize: 13, fontWeight: FontWeight.w800, color: color)),
       );
 }
 
@@ -829,11 +825,11 @@ class _KpiCard extends StatelessWidget {
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
-                  spec.label.toUpperCase(),
+                  spec.label,
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                   style: AppFonts.body(
-                    fontSize: 9,
+                    fontSize: 13,
                     fontWeight: FontWeight.w800,
                     letterSpacing: 0.3,
                     height: 1.15,
@@ -861,7 +857,7 @@ class _KpiCard extends StatelessWidget {
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             style: AppFonts.body(
-              fontSize: 9.5,
+              fontSize: 13,
               color: AppColors.slate400,
             ),
           ),
@@ -1074,7 +1070,7 @@ class _ContributionRecordsState extends State<_ContributionRecords> {
                             color: AppColors.textPrimary)),
                     Text('Donor-wise contributions to The Rotary Foundation',
                         style: AppFonts.body(
-                            fontSize: 11, color: AppColors.slate500)),
+                            fontSize: 13, color: AppColors.slate500)),
                   ],
                 ),
               ),
@@ -1094,7 +1090,7 @@ class _ContributionRecordsState extends State<_ContributionRecords> {
             decoration: InputDecoration(
               hintText: 'Search donor…',
               hintStyle: AppFonts.body(
-                  fontSize: 12, color: AppColors.slate400),
+                  fontSize: 13, color: AppColors.slate400),
               prefixIcon: const Icon(Icons.search_rounded,
                   size: 18, color: AppColors.slate400),
               isDense: true,
@@ -1128,7 +1124,7 @@ class _ContributionRecordsState extends State<_ContributionRecords> {
               child: Center(
                 child: Text(_all.isEmpty ? 'No contributions yet.' : 'No matches.',
                     style: AppFonts.body(
-                        fontSize: 12.5, color: AppColors.slate400)),
+                        fontSize: 13, color: AppColors.slate400)),
               ),
             )
           else ...[
@@ -1145,10 +1141,10 @@ class _ContributionRecordsState extends State<_ContributionRecords> {
               children: [
                 Text('${_filtered.length} record${_filtered.length == 1 ? '' : 's'}',
                     style: AppFonts.body(
-                        fontSize: 11, color: AppColors.slate500)),
+                        fontSize: 13, color: AppColors.slate500)),
                 Text('Total: ${formatMoney(_total, 'USD')}',
                     style: AppFonts.body(
-                        fontSize: 12.5,
+                        fontSize: 13,
                         fontWeight: FontWeight.w800,
                         color: AppColors.textPrimary,
                         fontFeatures: const [FontFeature.tabularFigures()])),
@@ -1189,7 +1185,7 @@ class _ContributionRecordsState extends State<_ContributionRecords> {
             ),
             child: Text('${i + 1}',
                 style: AppFonts.body(
-                    fontSize: 11,
+                    fontSize: 13,
                     fontWeight: FontWeight.w800,
                     color: AppColors.rotaryGold)),
           ),
@@ -1219,7 +1215,7 @@ class _ContributionRecordsState extends State<_ContributionRecords> {
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               style: AppFonts.body(
-                                  fontSize: 10,
+                                  fontSize: 13,
                                   fontWeight: FontWeight.w700,
                                   color: AppColors.rotaryBlue)),
                         ),
@@ -1228,7 +1224,7 @@ class _ContributionRecordsState extends State<_ContributionRecords> {
                       const SizedBox(width: 8),
                       Text(date,
                           style: AppFonts.body(
-                              fontSize: 10.5, color: AppColors.slate400)),
+                              fontSize: 13, color: AppColors.slate400)),
                     ],
                   ],
                 ),
@@ -1287,7 +1283,7 @@ class _AddContributionButton extends StatelessWidget {
               const SizedBox(width: 4),
               Text('Add',
                   style: AppFonts.body(
-                      fontSize: 12,
+                      fontSize: 13,
                       fontWeight: FontWeight.w800,
                       color: Colors.white)),
             ],

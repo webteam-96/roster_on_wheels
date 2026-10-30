@@ -750,7 +750,7 @@ class _SubGroupMemberCard extends StatelessWidget {
                             style: AppTextStyles.caption.copyWith(
                               color: AppColors.warning,
                               fontWeight: FontWeight.w600,
-                              fontSize: 10,
+                              fontSize: 13,
                             ),
                           ),
                         ),

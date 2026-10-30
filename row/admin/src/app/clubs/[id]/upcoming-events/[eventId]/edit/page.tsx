@@ -27,6 +27,7 @@ import RecipientBadge from "@/components/RecipientBadge";
 import ImageCropDialog from "@/components/ImageCropDialog";
 import { useImageCropUpload } from "@/hooks/useImageCropUpload";
 import { TEXT_INPUT_REGEX } from "@/lib/textInput";
+import { ListPageSkeleton } from "@/components/row/AppKit";
 
 // The attached image is shown as a landscape poster on the detail view and is
 // pushed out with email notifications — locked to 4:3 at 1200×900.
@@ -54,7 +55,7 @@ function Section({ icon: Icon, title, number, children }: {
   icon: React.ElementType; title: string; number: number; children: React.ReactNode;
 }) {
   return (
-    <div className="bg-card rounded-xl border shadow-sm overflow-hidden">
+    <div className="bg-card rounded-[20px] border shadow-sm overflow-hidden">
       <div className="flex items-center gap-3 px-5 py-3.5 bg-muted/40 border-b">
         <div className="flex items-center justify-center h-7 w-7 rounded-full bg-primary text-primary-foreground text-xs font-bold">{number}</div>
         <Icon className="h-4 w-4 text-primary" />
@@ -287,7 +288,7 @@ export default function UpcomingEventEditPage() {
     return (
       <ProtectedRoute>
         <div className="flex items-center justify-center py-20">
-          <RotaryLoader size="lg" />
+          <ListPageSkeleton />
         </div>
       </ProtectedRoute>
     );

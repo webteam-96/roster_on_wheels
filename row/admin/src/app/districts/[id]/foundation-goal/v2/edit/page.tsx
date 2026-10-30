@@ -64,6 +64,7 @@ import ErrorAlert from "@/components/ErrorAlert";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { useSyncDistrictIdFromUrl } from "@/hooks/useSyncDistrictIdFromUrl";
 import { fmtInr, fmtInt } from "@/components/dashboard/formatters";
+import { ListPageSkeleton } from "@/components/row/AppKit";
 
 const DEFAULT_BACK = "/district-admin-dashboard/foundation";
 
@@ -126,7 +127,7 @@ const FUND_ROWS: {
   dot: string;
 }[] = [
   { key: "annual",    label: "Annual Fund",         hint: "Unrestricted giving",          icon: Target,    dot: "bg-blue-500" },
-  { key: "polio",     label: "PolioPlus",           hint: "Polio eradication",            icon: Heart,     dot: "bg-purple-500" },
+  { key: "polio",     label: "PolioPlus",           hint: "Polio eradication",            icon: Heart,     dot: "bg-[#A9C6EA]" },
   { key: "endowment", label: "Endowment",           hint: "Long-term programme funding",  icon: Sparkles,  dot: "bg-amber-500" },
   { key: "other",     label: "Other Designated",    hint: "Restricted / other",           icon: IndianRupee, dot: "bg-emerald-500" },
 ];
@@ -421,7 +422,7 @@ export default function DistrictFoundationGoalV2EditPage() {
           activeNavHref="/district-admin-dashboard/foundation"
         >
           <div className="flex items-center justify-center py-20">
-            <RotaryLoader size="lg" />
+            <ListPageSkeleton />
           </div>
         </DistrictAdminShell>
       </ProtectedRoute>
@@ -475,12 +476,12 @@ export default function DistrictFoundationGoalV2EditPage() {
           onSave={onSave}
         >
           {/* 1. Rotary year ── */}
-          <SectionCard number={1} icon={Calendar} title="Rotary Year" dot="bg-amber-500">
-            <FieldLabel dot="bg-amber-500" required>Rotary Year</FieldLabel>
+          <SectionCard number={1} icon={Calendar} title="Rotary Year" dot="bg-[#17458F]">
+            <FieldLabel dot="bg-[#17458F]" required>Rotary Year</FieldLabel>
             <select
               value={selectedYearId || ""}
               onChange={(e) => setSelectedYearId(Number(e.target.value))}
-              className="w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full rounded-[12px] border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
             >
               <option value="" disabled>Select rotary year…</option>
               {allYears.map((y) => (
@@ -496,7 +497,7 @@ export default function DistrictFoundationGoalV2EditPage() {
           </SectionCard>
 
           {/* 2. Tabbed targets ── */}
-          <SectionCard number={2} icon={Target} title="Targets" dot="bg-blue-600">
+          <SectionCard number={2} icon={Target} title="Targets" dot="bg-[#17458F]">
             <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as "goals" | "targets")}>
               <TabsList className="bg-slate-50 border border-slate-200 rounded-lg p-1 h-auto mb-4">
                 <TabsTrigger
@@ -560,7 +561,7 @@ export default function DistrictFoundationGoalV2EditPage() {
                                 setFundForm((p) => ({ ...p, [row.key]: e.target.value }))
                               }
                               placeholder="0"
-                              className="w-full rounded-md border border-slate-200 bg-white pl-6 pr-3 py-2 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                              className="w-full rounded-[12px] border border-slate-200 bg-white pl-6 pr-3 py-2 text-sm text-slate-700 focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
                             />
                           </div>
                         </div>
@@ -601,18 +602,18 @@ export default function DistrictFoundationGoalV2EditPage() {
 
                 <div className="overflow-x-auto">
                   <table className="min-w-full text-sm border border-slate-200 rounded-lg overflow-hidden">
-                    <thead className="bg-slate-50">
+                    <thead className="bg-[#EDF4FB]">
                       <tr>
-                        <th className="px-3 py-2 text-left text-[11px] font-semibold text-slate-500 uppercase whitespace-nowrap">
+                        <th className="px-3 py-2 text-left text-[11px] font-semibold text-slate-500 whitespace-nowrap">
                           Avenue
                         </th>
-                        <th className="px-3 py-2 text-right text-[11px] font-semibold text-slate-500 uppercase whitespace-nowrap w-40">
+                        <th className="px-3 py-2 text-right text-[11px] font-semibold text-slate-500 whitespace-nowrap w-40">
                           Target
                         </th>
-                        <th className="px-3 py-2 text-right text-[11px] font-semibold text-slate-500 uppercase whitespace-nowrap w-28">
+                        <th className="px-3 py-2 text-right text-[11px] font-semibold text-slate-500 whitespace-nowrap w-28">
                           Current
                         </th>
-                        <th className="px-3 py-2 text-right text-[11px] font-semibold text-slate-500 uppercase whitespace-nowrap w-20">
+                        <th className="px-3 py-2 text-right text-[11px] font-semibold text-slate-500 whitespace-nowrap w-20">
                           %
                         </th>
                       </tr>
@@ -648,7 +649,7 @@ export default function DistrictFoundationGoalV2EditPage() {
                                   setTargetForm((p) => ({ ...p, [a.key]: e.target.value }))
                                 }
                                 placeholder="0"
-                                className="w-full rounded-md border border-slate-200 bg-white px-2 py-1.5 text-sm text-slate-700 text-right tabular-nums focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-slate-50 disabled:text-slate-400"
+                                className="w-full rounded-[12px] border border-slate-200 bg-white px-2 py-1.5 text-sm text-slate-700 text-right tabular-nums focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42] disabled:bg-slate-50 disabled:text-slate-400"
                               />
                             </td>
                             <td className="px-3 py-2 text-right tabular-nums text-slate-700">

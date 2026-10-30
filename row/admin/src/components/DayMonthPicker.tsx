@@ -108,7 +108,7 @@ export function DayMonthPicker({ value, onChange, disabled = false }: DayMonthPi
           type="button"
           variant="outline"
           disabled={disabled}
-          className="w-full justify-start text-left font-normal"
+          className="h-11 w-full justify-start rounded-[12px] border border-input bg-card px-3.5 text-left text-sm font-normal hover:bg-card"
         >
           <CalendarIcon className="mr-2 h-4 w-4 flex-shrink-0" />
           <span className={selectedDay ? "" : "text-muted-foreground"}>{display}</span>

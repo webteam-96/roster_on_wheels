@@ -72,6 +72,7 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 import ImageCropDialog from "@/components/ImageCropDialog";
 import DocumentOrLinkField from "@/components/website-data/DocumentOrLinkField";
 import { useImageCropUpload } from "@/hooks/useImageCropUpload";
+import { ListPageSkeleton } from "@/components/row/AppKit";
 
 const BANNER_ASPECT = 16 / 5;
 const BANNER_MAX_WIDTH = 1920;
@@ -355,7 +356,7 @@ export default function DistrictAdminBannerPhotosPage() {
             <button
               type="button"
               onClick={goBack}
-              className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 hover:text-slate-800"
+              className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 hover:text-slate-800"
               aria-label="Back"
             >
               <ArrowLeft className="h-4 w-4" />
@@ -382,7 +383,7 @@ export default function DistrictAdminBannerPhotosPage() {
 
         {loading && (
           <div className="flex items-center justify-center py-20">
-            <RotaryLoader size="lg" />
+            <ListPageSkeleton />
           </div>
         )}
 
@@ -406,7 +407,7 @@ export default function DistrictAdminBannerPhotosPage() {
             so we don't render two spinners at the same time on first load. */}
         {!loading && loadingBanners && (
           <div className="flex items-center justify-center py-12">
-            <RotaryLoader size="lg" />
+            <ListPageSkeleton />
           </div>
         )}
 
@@ -460,7 +461,7 @@ export default function DistrictAdminBannerPhotosPage() {
                     {canManage && !isSearching && (
                       <div
                         {...dragProps(idx)}
-                        className="absolute top-2 left-2 z-10 bg-white/90 backdrop-blur rounded p-1 text-slate-500 ring-1 ring-slate-200"
+                        className="absolute top-2 left-2 z-10 bg-white rounded p-1 text-slate-500 ring-1 ring-slate-200"
                         title="Drag to reorder"
                       >
                         <GripVertical className="h-4 w-4 cursor-grab" />
@@ -476,7 +477,7 @@ export default function DistrictAdminBannerPhotosPage() {
                           </div>
                         )}
                       </div>
-                      <div className="flex items-center justify-between">
+                      <div className="flex flex-wrap items-center justify-between gap-3">
                         <div className="flex-1 min-w-0">
                           <p className="text-sm text-slate-600 truncate">{banner.description || "No description"}</p>
                           <Badge

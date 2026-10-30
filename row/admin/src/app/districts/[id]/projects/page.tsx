@@ -18,6 +18,7 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 import { formatMoney } from "@/lib/currency";
 
 import { appLocale, currencySymbol } from "@/lib/appFormat";
+import { ListPageSkeleton } from "@/components/row/AppKit";
 export default function DistrictProjectsPage() {
   const params = useParams();
   const router = useRouter();
@@ -103,7 +104,7 @@ export default function DistrictProjectsPage() {
           </div>
         </div>
 
-        {loading ? <div className="flex justify-center py-10"><RotaryLoader size="lg" /></div> : items.length === 0 ? (
+        {loading ? <div className="flex justify-center py-10"><ListPageSkeleton /></div> : items.length === 0 ? (
           <div className="text-center py-20 text-muted-foreground">No projects found. Click &quot;Add Project&quot; to create one.</div>
         ) : (
           <>

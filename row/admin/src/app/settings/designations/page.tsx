@@ -32,6 +32,7 @@ import RotaryLoader from "@/components/RotaryLoader";
 import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import SearchBox from "@/components/SearchBox";
+import { ListPageSkeleton } from "@/components/row/AppKit";
 
 export default function DesignationsPage() {
   const { isSuperAdmin } = useAuth();
@@ -155,7 +156,7 @@ export default function DesignationsPage() {
               <p className="text-muted-foreground text-base">Manage board of directors designations</p>
             </div>
           </div>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             <Button variant="outline" onClick={() => exportToCSV(
               designations.map((d, i) => ({ ...d, srNo: i + 1 })),
               "designations",
@@ -172,7 +173,7 @@ export default function DesignationsPage() {
 
         {loading && (
           <div className="flex items-center justify-center py-20">
-            <RotaryLoader size="lg" />
+            <ListPageSkeleton />
           </div>
         )}
 

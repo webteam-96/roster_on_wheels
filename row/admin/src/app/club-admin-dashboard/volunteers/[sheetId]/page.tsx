@@ -239,7 +239,7 @@ export default function VolunteerSheetPage() {
             <h3 className="text-base font-semibold">Slots</h3>
             <div className="overflow-x-auto">
               <table className="w-full min-w-[720px] text-sm">
-                <thead>
+                <thead className="bg-[#EDF4FB] text-[13px] text-[#64748B]">
                   <tr className="text-left text-muted-foreground">
                     <th className="pb-2 pr-2 font-medium">Task</th>
                     <th className="pb-2 pr-2 font-medium">Starts</th>
@@ -328,7 +328,7 @@ export default function VolunteerSheetPage() {
                 ) : (
                   <div className="overflow-x-auto">
                     <table className="w-full min-w-[640px] text-sm">
-                      <thead>
+                      <thead className="bg-[#EDF4FB] text-[13px] text-[#64748B]">
                         <tr className="border-b text-left text-muted-foreground">
                           <th className="p-2 font-medium">Name</th>
                           <th className="p-2 font-medium">Signed up as</th>

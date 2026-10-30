@@ -42,6 +42,7 @@ import {
 import { exportToCSV } from "@/utils/csvExport";
 
 import { appLocale, currencySymbol } from "@/lib/appFormat";
+import { ListPageSkeleton } from "@/components/row/AppKit";
 type Row = {
   id: number; clubId: number; clubName: string; clubRotaryId: string;
   districtNumber: string; subdomain: string; clientDomain: string | null;
@@ -883,7 +884,7 @@ export default function ClubWebsitesPage() {
         <Card>
           <CardContent className="p-0 overflow-x-auto">
             {loading ? (
-              <div className="flex justify-center py-20"><RotaryLoader size="lg" /></div>
+              <div className="flex justify-center py-20"><ListPageSkeleton /></div>
             ) : filteredRows.length === 0 ? (
               <div className="text-center py-20 text-muted-foreground">No websites found.</div>
             ) : (
@@ -931,7 +932,7 @@ export default function ClubWebsitesPage() {
                       </TableCell>
                       <TableCell className="font-medium">D{r.districtNumber}</TableCell>
                       <TableCell>
-                        <div className="flex items-center gap-2">
+                        <div className="flex flex-wrap items-center gap-2">
                           <div className="font-medium">{r.clubName}</div>
                           {chainInactive && <Badge variant="destructive">Inactive</Badge>}
                         </div>
@@ -1328,7 +1329,7 @@ export default function ClubWebsitesPage() {
           <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
             <DialogHeader><DialogTitle>Activity Log</DialogTitle></DialogHeader>
             {logsLoading ? (
-              <div className="flex justify-center py-12"><RotaryLoader size="lg" /></div>
+              <div className="flex justify-center py-12"><ListPageSkeleton /></div>
             ) : logs.length === 0 ? (
               <div className="text-center py-12 text-muted-foreground">No log entries.</div>
             ) : (
@@ -1362,7 +1363,7 @@ export default function ClubWebsitesPage() {
               <Button size="sm" variant={diagType === "list-webspaces" ? "default" : "outline"} onClick={() => runDiag("list-webspaces")}>Webspaces</Button>
             </div>
             {diagLoading ? (
-              <div className="flex justify-center py-12"><RotaryLoader size="lg" /></div>
+              <div className="flex justify-center py-12"><ListPageSkeleton /></div>
             ) : diagData ? (
               <div className="space-y-3">
                 <div>
@@ -1386,7 +1387,7 @@ export default function ClubWebsitesPage() {
           <DialogContent className="max-w-4xl max-h-[85vh] overflow-y-auto">
             <DialogHeader><DialogTitle>SSL Diagnostic (raw Plesk XML)</DialogTitle></DialogHeader>
             {sslDiagLoading ? (
-              <div className="flex justify-center py-12"><RotaryLoader size="lg" /></div>
+              <div className="flex justify-center py-12"><ListPageSkeleton /></div>
             ) : (
               <>
                 <p className="text-xs text-muted-foreground mb-2">Copy this full output and paste it back in chat. It shows exactly how Plesk represents this subdomain and which endpoint exposes cert properties.</p>
@@ -1405,7 +1406,7 @@ export default function ClubWebsitesPage() {
           <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
             <DialogHeader><DialogTitle>All Subdomains in Plesk ({pleskList.length})</DialogTitle></DialogHeader>
             {pleskListLoading ? (
-              <div className="flex justify-center py-12"><RotaryLoader size="lg" /></div>
+              <div className="flex justify-center py-12"><ListPageSkeleton /></div>
             ) : pleskList.length === 0 ? (
               <div className="text-center py-12 text-muted-foreground">No subdomains found in Plesk.</div>
             ) : (

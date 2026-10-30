@@ -72,7 +72,7 @@ export default function DistrictMassEmailViewPage() {
   return (
     <ProtectedRoute>
       <div className="space-y-6 max-w-5xl mx-auto">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-3">
             <Button variant="outline" size="icon" asChild><Link href={`/districts/${districtId}/mass-emails`}><ArrowLeft className="h-4 w-4" /></Link></Button>
             <div><h2 className="text-2xl font-bold tracking-tight text-primary">Mass Email Detail</h2><p className="text-muted-foreground text-base">{districtName}</p></div>
@@ -83,7 +83,7 @@ export default function DistrictMassEmailViewPage() {
         </div>
 
         <Card>
-          <CardHeader><div className="flex items-center justify-between"><CardTitle>{detail.subject}</CardTitle>{getStatusBadge(detail.status)}</div></CardHeader>
+          <CardHeader><div className="flex flex-wrap items-center justify-between gap-3"><CardTitle>{detail.subject}</CardTitle>{getStatusBadge(detail.status)}</div></CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
               <div><span className="text-muted-foreground">From: </span><span className="font-medium">{detail.fromName}</span></div>

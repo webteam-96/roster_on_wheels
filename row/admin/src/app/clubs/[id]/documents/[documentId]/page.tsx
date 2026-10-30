@@ -15,13 +15,14 @@ import {
 } from "@/components/icons";
 
 import { appLocale } from "@/lib/appFormat";
+import { ListPageSkeleton } from "@/components/row/AppKit";
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
 function Section({ icon: Icon, title, number, children }: {
   icon: React.ElementType; title: string; number: number; children: React.ReactNode;
 }) {
   return (
-    <div className="relative bg-white rounded-xl border shadow-sm overflow-hidden">
+    <div className="relative bg-white rounded-[20px] border shadow-sm overflow-hidden">
       <div className="flex items-center gap-3 px-5 py-3.5 bg-primary/5 border-b">
         <div className="flex items-center justify-center h-8 w-8 rounded-full bg-primary text-primary-foreground text-sm font-bold shrink-0">{number}</div>
         <Icon className="h-5 w-5 text-primary shrink-0" />
@@ -58,7 +59,7 @@ function StatusBadge({ status }: { status: string }) {
 function AccessTypeBadge({ accessType }: { accessType: string }) {
   const isViewOnly = accessType === "view_only";
   return (
-    <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${isViewOnly ? "bg-orange-100 text-orange-700" : "bg-green-100 text-green-700"}`}>
+    <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${isViewOnly ? "bg-[#FFC65C] text-orange-700" : "bg-green-100 text-green-700"}`}>
       {isViewOnly ? "View Only" : "Downloadable"}
     </span>
   );
@@ -107,7 +108,7 @@ export default function DocumentViewPage() {
     return (
       <ProtectedRoute>
         <div className="flex items-center justify-center py-20">
-          <RotaryLoader size="lg" />
+          <ListPageSkeleton />
         </div>
       </ProtectedRoute>
     );
@@ -185,7 +186,7 @@ export default function DocumentViewPage() {
               {document.accessType === "view_only" ? (
                 <button
                   onClick={() => window.open(fileUrl, "_blank")}
-                  className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border bg-muted/30 hover:bg-muted/50 transition-colors text-sm font-medium text-primary"
+                  className="inline-flex items-center gap-2 px-4 py-2 rounded-full border bg-muted/30 hover:bg-muted/50 transition-colors text-sm font-medium text-primary"
                 >
                   <FileUp className="h-4 w-4" />
                   View
@@ -195,7 +196,7 @@ export default function DocumentViewPage() {
                 <a
                   href={fileUrl}
                   download
-                  className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border bg-muted/30 hover:bg-muted/50 transition-colors text-sm font-medium text-primary"
+                  className="inline-flex items-center gap-2 px-4 py-2 rounded-full border bg-muted/30 hover:bg-muted/50 transition-colors text-sm font-medium text-primary"
                 >
                   <FileUp className="h-4 w-4" />
                   Download

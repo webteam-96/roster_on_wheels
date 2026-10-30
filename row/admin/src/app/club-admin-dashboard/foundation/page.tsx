@@ -6,6 +6,7 @@ import { useClubAdminCache } from "@/contexts/ClubAdminDashboardCacheContext";
 import FoundationGoalsCard from "@/components/dashboard/FoundationGoalsCard";
 import ClubFoundationAchievedCard from "@/components/dashboard/ClubFoundationAchievedCard";
 import { TrfV2View } from "@/app/clubs/[id]/trf/v2/view";
+import { ListPageSkeleton } from "@/components/row/AppKit";
 
 // User 2026-10-08: the page shows only the Goal Setting Foundation Achieved figures (as on the last
 // import). The goals editor and Contribution Records are HIDDEN, not removed - flip this to true to
@@ -20,7 +21,7 @@ export default function ClubAdminFoundationPage() {
   if (status === "loading" && !foundation) {
     return (
       <div className="flex items-center justify-center py-20">
-        <RotaryLoader size="lg" label="Loading foundation data…" />
+        <ListPageSkeleton />
       </div>
     );
   }

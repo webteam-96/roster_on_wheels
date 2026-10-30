@@ -5183,6 +5183,8 @@ public partial class DatabaseInitializer
                 await EnsureGrantTablesAsync(connection);
                 // Volunteers and speakers (ROW build spec 3.13): tables in DatabaseInitializer.Volunteers.cs.
                 await EnsureVolunteerTablesAsync(connection);
+                // Club website visitor counter: table in DatabaseInitializer.Visits.cs.
+                await EnsureVisitTablesAsync(connection);
                 // Escalation ladder, target celebration, Foundation giving link: DatabaseInitializer.Escalation.cs.
                 await EnsureEscalationCelebrationSchemaAsync(connection);
                 // Planning mode and cut-over (ROW build spec 3.1): DatabaseInitializer.Planning.cs.

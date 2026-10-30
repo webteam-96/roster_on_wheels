@@ -225,7 +225,7 @@ export default function ClubMembershipDuesV2Page() {
               <button
                 type="button"
                 onClick={() => window.open("https://club.example.org/", "_blank")}
-                className="inline-flex items-center gap-2 text-sm font-semibold px-5 py-2.5 rounded-lg bg-blue-600 text-white hover:bg-blue-700"
+                className="inline-flex items-center gap-2 text-sm font-semibold px-5 py-2.5 rounded-full bg-[#17458F] text-white hover:bg-[#17458F]"
               >
                 Learn More
               </button>
@@ -246,21 +246,21 @@ export default function ClubMembershipDuesV2Page() {
                   <select
                     value={yearFilter}
                     onChange={(e) => setYearFilter(e.target.value)}
-                    className="px-2 py-1.5 text-sm border border-slate-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="px-2 h-10 py-0 text-sm border border-slate-200 rounded-[12px] bg-white focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
                   >
                     <option value="">All Years</option>
                     {availableYears.map((y) => (
                       <option key={y} value={y}>{y}</option>
                     ))}
                   </select>
-                  <div className="relative">
+                  <div className="relative w-full sm:w-auto">
                     <Search size={14} className="absolute left-2 top-1/2 -translate-y-1/2 text-slate-400" />
                     <input
                       type="text"
                       placeholder="Search title or year…"
                       value={searchInput}
                       onChange={(e) => setSearchInput(e.target.value)}
-                      className="pl-7 pr-7 py-1.5 text-sm border border-slate-200 rounded-lg w-full sm:w-56 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="pl-7 pr-7 h-10 py-0 text-sm border border-slate-200 rounded-[12px] w-full sm:w-56 focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
                     />
                     {searchInput && (
                       <button
@@ -287,7 +287,7 @@ export default function ClubMembershipDuesV2Page() {
                   </div>
                 ) : (
                   <table className="min-w-full text-sm">
-                    <thead className="bg-slate-50 text-xs uppercase text-slate-500">
+                    <thead className="bg-[#EDF4FB] text-[13px] text-[#64748B]">
                       <tr>
                         <th className="px-3 py-2.5 text-left w-10">Sr</th>
                         <th className="px-3 py-2.5 text-left">Year</th>

@@ -56,12 +56,11 @@ class StatCard extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  label.toUpperCase(),
+                  label,
                   style: AppFonts.body(
-                    fontSize: 10,
+                    fontSize: 13,
                     fontWeight: FontWeight.w700,
                     color: AppColors.slate500,
-                    letterSpacing: 0.6,
                   ),
                   // Allow a long label (e.g. "TRF CONTRIBUTION") to wrap in a
                   // narrow 3-across tile instead of truncating. Short labels
@@ -92,7 +91,7 @@ class StatCard extends StatelessWidget {
                   Text(
                     sub!,
                     style: AppFonts.body(
-                      fontSize: 11,
+                      fontSize: 13,
                       fontWeight: FontWeight.w500,
                       color: _subColor,
                     ),

@@ -24,6 +24,7 @@ import '../../../widgets/common/rotary_year_bar.dart';
 import '../../../widgets/detail/detail_widgets.dart';
 import '../../../widgets/detail/detail_hero_layout.dart';
 import 'package:rotary_flutter_app/core/i18n/text.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/form_action_bar.dart';
 
 // District events mirror the web add/edit form: Title (English, ≤50),
 // Description (English, ≤1000), Date, and 1-5 photos (each with an optional
@@ -378,7 +379,7 @@ class _DistrictEventsScreenState extends State<DistrictEventsScreen> {
                             color: AppColors.primary,
                             onRefresh: () => _fetch(reset: true),
                             child: ListView.separated(
-                              padding: const EdgeInsets.all(16),
+                              padding: (const EdgeInsets.all(16)).add(const EdgeInsets.only(bottom: 88)),
                               itemCount: _items.length + 1,
                               separatorBuilder: (_, __) => const SizedBox(height: 10),
                               itemBuilder: (ctx, i) {
@@ -473,7 +474,7 @@ class _DistrictEventsScreenState extends State<DistrictEventsScreen> {
             )
           else
             SliverPadding(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 104),
               sliver: SliverList(
                 delegate: SliverChildBuilderDelegate(
                   (ctx, i) {
@@ -947,6 +948,12 @@ class _EventFormPageState extends State<_EventFormPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      bottomNavigationBar: RowFormActionBar(child: CustomButton(
+                label: _isEditing ? 'Update' : 'Create',
+                onPressed: _save,
+                isLoading: _saving,
+                fullWidth: true,
+              )),
       backgroundColor: AppColors.background,
       appBar: CustomAppBar(title: _isEditing ? 'Edit Event' : 'New District Event'),
       body: SingleChildScrollView(
@@ -1002,13 +1009,7 @@ class _EventFormPageState extends State<_EventFormPage> {
                       onSetPrimary: _markPrimary,
                       onRemove: _removePhoto,
                     ),
-              const SizedBox(height: 20),
-              CustomButton(
-                label: _isEditing ? 'Update' : 'Create',
-                onPressed: _save,
-                isLoading: _saving,
-                fullWidth: true,
-              ),
+              
             ],
           ),
         ),
@@ -1340,7 +1341,7 @@ class _EventDetailScreenState extends State<_EventDetailScreen> {
         // and a bordered info card — no separate hero + gallery of the same
         // images.
         return ListView(
-          padding: EdgeInsets.zero,
+          padding: (EdgeInsets.zero).add(const EdgeInsets.only(bottom: 88)),
           children: [
             DetailHeroGallery(urls: _photoUrls, captions: _photoCaptions),
             Padding(

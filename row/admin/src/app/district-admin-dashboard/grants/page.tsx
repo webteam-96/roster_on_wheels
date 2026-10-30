@@ -171,7 +171,7 @@ export default function DistrictGrantsPage() {
                 <Card>
                   <CardContent className="overflow-x-auto p-0">
                     <table className="w-full min-w-[820px] text-sm">
-                      <thead>
+                      <thead className="bg-[#EDF4FB] text-[13px] text-[#64748B]">
                         <tr className="border-b text-left text-muted-foreground">
                           <th className="p-3 font-medium">Club</th>
                           <th className="p-3 font-medium">Project</th>
@@ -213,7 +213,7 @@ export default function DistrictGrantsPage() {
                 <Card>
                   <CardContent className="overflow-x-auto p-0">
                     <table className="w-full min-w-[720px] text-sm">
-                      <thead>
+                      <thead className="bg-[#EDF4FB] text-[13px] text-[#64748B]">
                         <tr className="border-b text-left text-muted-foreground">
                           <th className="p-3 font-medium">Paid on</th>
                           <th className="p-3 font-medium">Club and project</th>
@@ -349,7 +349,7 @@ function CycleForm({ districtId, cycle, onSaved, onClose, onError }: {
             <Textarea id="cy-rules" rows={4} maxLength={4000} value={form.rules ?? ""} onChange={(e) => set("rules", orNull(e.target.value))}
               placeholder="For example: the club has signed the district MOU and two members attended the grant management seminar." />
           </div>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             <Button type="submit" disabled={busy || !form.yearId} className="gap-1.5">
               {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />} Save cycle
             </Button>

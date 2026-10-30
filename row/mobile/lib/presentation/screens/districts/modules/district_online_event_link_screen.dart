@@ -421,7 +421,7 @@ class _DistrictOnlineEventLinkScreenState
             Text(
               label,
               style: AppTextStyles.caption
-                  .copyWith(color: color, fontSize: 11),
+                  .copyWith(color: color, fontSize: 13),
             ),
           ],
         ),

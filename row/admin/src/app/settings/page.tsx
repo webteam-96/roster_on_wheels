@@ -392,8 +392,8 @@ export default function SettingsPage() {
             }));
             return columns.map((col, colIdx) => (
               <div key={colIdx} className="overflow-x-auto rounded-2xl border border-slate-200 bg-white shadow-sm">
-                <table className="min-w-full text-sm">
-                  <thead className="bg-slate-50 text-xs uppercase text-slate-500">
+                <table className="w-full min-w-[640px] md:min-w-full text-sm">
+                  <thead className="bg-[#EDF4FB] text-[13px] text-[#64748B]">
                     <tr>
                       <th className="px-4 py-3 text-left w-12">#</th>
                       <th className="px-4 py-3 text-left w-16"><span className="sr-only">Icon</span></th>

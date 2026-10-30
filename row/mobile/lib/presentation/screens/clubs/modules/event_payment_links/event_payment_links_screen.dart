@@ -21,6 +21,7 @@ import '../../../../../presentation/widgets/common/confirmation_dialog.dart';
 import '../../../../../presentation/widgets/common/pagination_widget.dart';
 import 'package:rotary_flutter_app/core/utils/currency_symbol.dart';
 import 'package:rotary_flutter_app/core/i18n/text.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/form_action_bar.dart';
 
 class EventPaymentLinksScreen extends StatefulWidget {
   final int clubId;
@@ -216,7 +217,7 @@ class _EventPaymentLinksScreenState extends State<EventPaymentLinksScreen> {
                           children: [
                             Expanded(
                               child: ListView.separated(
-                          padding: const EdgeInsets.all(16),
+                          padding: (const EdgeInsets.all(16)).add(const EdgeInsets.only(bottom: 88)),
                           itemCount: _links.length,
                           separatorBuilder: (_, __) => const SizedBox(height: 8),
                           itemBuilder: (_, i) => _buildLinkCard(_links[i], canManage),
@@ -248,8 +249,8 @@ class _EventPaymentLinksScreenState extends State<EventPaymentLinksScreen> {
     final unpaidCount = link['unpaidCount'] as int? ?? 0;
 
     return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      elevation: 0,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(20))),
       child: InkWell(
         onTap: () => _viewParticipants(link as Map<String, dynamic>),
         borderRadius: BorderRadius.circular(12),
@@ -515,6 +516,12 @@ class _PaymentLinkFormScreenState extends State<_PaymentLinkFormScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      bottomNavigationBar: RowFormActionBar(child: CustomButton(
+                label: _isEdit ? 'Update' : 'Create Link',
+                onPressed: _saving ? null : _save,
+                isLoading: _saving,
+                fullWidth: true,
+              )),
       backgroundColor: Colors.white,
       appBar: CustomAppBar(
         title: _isEdit ? 'Edit Payment Link' : 'Create Payment Link',
@@ -601,13 +608,7 @@ class _PaymentLinkFormScreenState extends State<_PaymentLinkFormScreen> {
                         onChanged: (v) => setState(() => _isActive = v),
                         title: Text('Active', style: AppTextStyles.body),
                       ),
-              const SizedBox(height: 16),
-              CustomButton(
-                label: _isEdit ? 'Update' : 'Create Link',
-                onPressed: _saving ? null : _save,
-                isLoading: _saving,
-                fullWidth: true,
-              ),
+              
             ],
           ),
         ),
@@ -741,7 +742,7 @@ class _ParticipantsScreenState extends State<_ParticipantsScreen> {
           : _participants.isEmpty
               ? const EmptyStateWidget(title: 'No participants yet')
               : ListView.separated(
-                  padding: const EdgeInsets.all(16),
+                  padding: (const EdgeInsets.all(16)).add(const EdgeInsets.only(bottom: 88)),
                   itemCount: _participants.length,
                   separatorBuilder: (_, __) => const Divider(height: 1),
                   itemBuilder: (_, i) {

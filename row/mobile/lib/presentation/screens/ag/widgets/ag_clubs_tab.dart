@@ -91,7 +91,7 @@ class _AgClubsTabState extends State<AgClubsTab>
                 'AG: ${data.ag.name.isEmpty ? ": " : data.ag.name} · ${data.clubs.length} club${data.clubs.length == 1 ? "" : "s"}',
                 textAlign: TextAlign.center,
                 style: AppFonts.body(
-                    fontSize: 11.5, color: AppColors.slate500),
+                    fontSize: 13, color: AppColors.slate500),
               ),
               const SizedBox(height: 14),
               Wrap(
@@ -138,7 +138,7 @@ class _AgClubsTabState extends State<AgClubsTab>
               Text(
                 'Data as of ${agToday()}',
                 style: AppFonts.body(
-                    fontSize: 10, color: AppColors.slate400),
+                    fontSize: 13, color: AppColors.slate400),
                 textAlign: TextAlign.right,
               ),
             ],
@@ -167,7 +167,7 @@ class _EmptyState extends StatelessWidget {
             text,
             textAlign: TextAlign.center,
             style: AppFonts.body(
-                fontSize: 12.5,
+                fontSize: 13,
                 fontWeight: FontWeight.w600,
                 color: AppColors.slate500),
           ),
@@ -177,7 +177,7 @@ class _EmptyState extends StatelessWidget {
               onPressed: onClear,
               child: Text('Clear search',
                   style: AppFonts.body(
-                      fontSize: 12, color: AppColors.rotaryBlue)),
+                      fontSize: 13, color: AppColors.rotaryBlue)),
             ),
           ],
         ],
@@ -216,7 +216,7 @@ class _SummaryChip extends StatelessWidget {
           Text(
             label,
             style: AppFonts.body(
-                fontSize: 11,
+                fontSize: 13,
                 color: AppColors.slate500,
                 fontWeight: FontWeight.w600),
           ),
@@ -329,7 +329,7 @@ class _ClubCard extends StatelessWidget {
                     child: Text.rich(
                       TextSpan(
                         style: AppFonts.body(
-                            fontSize: 11, color: AppColors.slate500),
+                            fontSize: 13, color: AppColors.slate500),
                         children: [
                           const TextSpan(
                               text: 'President: ',
@@ -356,7 +356,7 @@ class _ClubCard extends StatelessWidget {
                       child: Text.rich(
                         TextSpan(
                           style: AppFonts.body(
-                              fontSize: 11, color: AppColors.slate500),
+                              fontSize: 13, color: AppColors.slate500),
                           children: [
                             const TextSpan(
                                 text: 'Secretary: ',
@@ -394,7 +394,7 @@ class _ClubCard extends StatelessWidget {
                       value: agFmtInt(club.totalProjects)),
                   _StatCell(
                       icon: Icons.emoji_events_rounded,
-                      label: 'TRF (USD)',
+                      label: 'TRF (usd)',
                       value: agFmtUsdShort(club.trfTotalInr),
                       accent: true),
                 ],
@@ -426,7 +426,7 @@ class _MiniPill extends StatelessWidget {
       child: Text(
         label,
         style: AppFonts.body(
-          fontSize: 9,
+          fontSize: 13,
           fontWeight: FontWeight.w800,
           color: fg,
           letterSpacing: 0.4,
@@ -451,7 +451,7 @@ class _SyncPill extends StatelessWidget {
             fg: AppColors.successDark,
           )
         : const _MiniPill(
-            label: 'NON-SYNC',
+            label: 'Non-sync',
             bg: AppColors.slate100,
             fg: AppColors.slate500,
           );
@@ -508,7 +508,7 @@ class _WebsitePill extends StatelessWidget {
                   Text(
                     host,
                     style: AppFonts.body(
-                      fontSize: 9.5,
+                      fontSize: 13,
                       fontWeight: FontWeight.w800,
                       color: AppColors.rotaryBlue,
                     ),
@@ -574,7 +574,7 @@ class _StatCell extends StatelessWidget {
                 Text(
                   label,
                   style: AppFonts.body(
-                    fontSize: 8.5,
+                    fontSize: 13,
                     fontWeight: FontWeight.w700,
                     color: AppColors.slate400,
                     letterSpacing: 0.4,
@@ -583,7 +583,7 @@ class _StatCell extends StatelessWidget {
                 Text(
                   value,
                   style: AppFonts.body(
-                    fontSize: 12.5,
+                    fontSize: 13,
                     fontWeight: FontWeight.w800,
                     color: AppColors.textPrimary,
                     fontFeatures: const [FontFeature.tabularFigures()],

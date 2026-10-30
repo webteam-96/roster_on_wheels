@@ -173,7 +173,7 @@ class _TerminatedCard extends StatelessWidget {
                     if (joinedDate != null)
                       Text('Joined: $joinedDate', style: AppTextStyles.caption.copyWith(color: AppColors.textMuted)),
                     if (joinedDate != null && terminationDate != null)
-                      const Text('  ·  ', style: TextStyle(color: AppColors.textMuted, fontSize: 11)),
+                      const Text('  ·  ', style: TextStyle(color: AppColors.textMuted, fontSize: 13)),
                     if (terminationDate != null)
                       Text('Left: $terminationDate', style: AppTextStyles.caption.copyWith(color: AppColors.error)),
                   ],

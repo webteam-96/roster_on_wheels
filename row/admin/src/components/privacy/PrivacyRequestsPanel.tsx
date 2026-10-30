@@ -267,7 +267,7 @@ export default function PrivacyRequestsPanel({ districtId }: { districtId: numbe
           <h2 className="text-xl font-semibold text-slate-900">{t("title")}</h2>
           <p className="mt-1 max-w-2xl text-sm text-slate-600">{t("intro")}</p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <Button variant="outline" onClick={load} className="gap-1.5">
             <RefreshCw className="h-4 w-4" />
             {t("refresh")}
@@ -287,7 +287,7 @@ export default function PrivacyRequestsPanel({ districtId }: { districtId: numbe
           <Loader2 className="h-4 w-4 animate-spin" /> {t("loading")}
         </div>
       ) : rows.length === 0 ? (
-        !error && <div className="rounded-xl border border-dashed bg-white p-8 text-center text-sm text-slate-600">{t("empty")}</div>
+        !error && <div className="rounded-[20px] border border-dashed bg-white p-8 text-center text-sm text-slate-600">{t("empty")}</div>
       ) : (
         <div className="overflow-x-auto rounded-xl border bg-white">
           <Table className="min-w-[720px]">
@@ -320,7 +320,7 @@ export default function PrivacyRequestsPanel({ districtId }: { districtId: numbe
                     <span className="block text-xs text-slate-500">{t("requestedBy", { name: r.requestedBy })}</span>
                   </TableCell>
                   <TableCell className="text-right">
-                    <div className="flex justify-end gap-2">
+                    <div className="flex flex-wrap justify-end gap-2">
                       {r.kind === "export" && r.status === "completed" && r.downloadUrl && (
                         <Button asChild size="sm" variant="outline" className="gap-1.5">
                           <a href={r.downloadUrl} title={r.downloadExpiresAt ? t("downloadUntil", { date: fmt.date(r.downloadExpiresAt) }) : undefined}>

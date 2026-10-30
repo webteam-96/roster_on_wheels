@@ -71,6 +71,7 @@ import {
 import RotaryLoader from "@/components/RotaryLoader";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import SearchBox from "@/components/SearchBox";
+import { ListPageSkeleton } from "@/components/row/AppKit";
 
 function getLinkTypeLabel(value: string): string {
   return LINK_TYPES.find((t) => t.value === value)?.label || value;
@@ -699,7 +700,7 @@ export default function DistrictAdminMenuListPage() {
 
         {loading && (
           <div className="flex items-center justify-center py-20">
-            <RotaryLoader size="lg" />
+            <ListPageSkeleton />
           </div>
         )}
 

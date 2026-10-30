@@ -33,6 +33,7 @@ import RotaryLoader from "@/components/RotaryLoader";
 import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import SearchBox from "@/components/SearchBox";
+import { ListPageSkeleton } from "@/components/row/AppKit";
 
 export default function ModulesPage() {
   const { isSuperAdmin } = useAuth();
@@ -201,7 +202,7 @@ export default function ModulesPage() {
               <p className="text-muted-foreground text-base">Manage system modules</p>
             </div>
           </div>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             <Button variant="outline" onClick={() => exportToCSV(modules, "modules", [
               { key: "moduleName", label: "Module Name" }, { key: "moduleKey", label: "Key" },
               { key: "categoryName", label: "Category" }, { key: "moduleLevel", label: "Level" },
@@ -215,7 +216,7 @@ export default function ModulesPage() {
 
         {loading && (
           <div className="flex items-center justify-center py-20">
-            <RotaryLoader size="lg" />
+            <ListPageSkeleton />
           </div>
         )}
 
@@ -294,7 +295,7 @@ export default function ModulesPage() {
                       </Badge>
                     </TableCell>
                     <TableCell>
-                      <div className="flex items-center gap-2">
+                      <div className="flex flex-wrap items-center gap-2">
                         {cs?.isComingSoon ? (
                           <Badge className="bg-amber-100 text-amber-800 border-amber-300 hover:bg-amber-100">
                             {formatCsDate(cs.comingSoonDate) || "Coming Soon"}

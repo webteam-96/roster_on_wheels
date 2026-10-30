@@ -50,6 +50,7 @@ import ImageCropDialog from "@/components/ImageCropDialog";
 import { useImageCropUpload } from "@/hooks/useImageCropUpload";
 import { useSyncClubIdFromUrl } from "@/hooks/useSyncClubIdFromUrl";
 import DocumentOrLinkField from "@/components/website-data/DocumentOrLinkField";
+import { ListPageSkeleton } from "@/components/row/AppKit";
 
 const MAX_ACTIVE = 10;
 
@@ -256,7 +257,7 @@ export default function AdvertisementsV2AddPage() {
           activeNavHref="/club-admin-dashboard/my-club-website"
         >
           <div className="flex items-center justify-center py-20">
-            <RotaryLoader size="lg" />
+            <ListPageSkeleton />
           </div>
         </ClubAdminShell>
       </ProtectedRoute>
@@ -285,8 +286,8 @@ export default function AdvertisementsV2AddPage() {
         }
       >
         {/* 1. Advertisement Image */}
-        <SectionCard number={1} icon={ImageIcon} title="Advertisement Image" dot="bg-blue-600">
-          <FieldLabel dot="bg-blue-500" required hint="(JPG, JPEG, PNG, GIF, WEBP)">
+        <SectionCard number={1} icon={ImageIcon} title="Advertisement Image" dot="bg-[#17458F]">
+          <FieldLabel dot="bg-[#17458F]" required hint="(JPG, JPEG, PNG, GIF, WEBP)">
             Banner Image
           </FieldLabel>
           {imagePath ? (
@@ -327,8 +328,8 @@ export default function AdvertisementsV2AddPage() {
         </SectionCard>
 
         {/* 2. Document or Link (optional) */}
-        <SectionCard number={2} icon={FileText} title="Document or Link (optional)" dot="bg-amber-600">
-          <FieldLabel dot="bg-amber-500" hint="(document or link. Not both)">
+        <SectionCard number={2} icon={FileText} title="Document or Link (optional)" dot="bg-[#17458F]">
+          <FieldLabel dot="bg-[#17458F]" hint="(document or link. Not both)">
             Attached Document / Link
           </FieldLabel>
           <DocumentOrLinkField
@@ -340,28 +341,28 @@ export default function AdvertisementsV2AddPage() {
         </SectionCard>
 
         {/* 3. Description */}
-        <SectionCard number={3} icon={Type} title="Description" dot="bg-emerald-600">
-          <FieldLabel dot="bg-emerald-500" hint="(optional, max 500 chars)">Caption</FieldLabel>
+        <SectionCard number={3} icon={Type} title="Description" dot="bg-[#17458F]">
+          <FieldLabel dot="bg-[#17458F]" hint="(optional, max 500 chars)">Caption</FieldLabel>
           <textarea
             value={description}
             onChange={(e) => setDescription(e.target.value.slice(0, 500))}
             placeholder="Optional description for this advertisement"
             rows={3}
             maxLength={500}
-            className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 resize-none"
+            className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42] resize-none"
           />
           <p className="text-xs text-slate-400 text-right mt-0.5">{description.length}/500</p>
         </SectionCard>
 
         {/* 4. Status + Rotary Year */}
-        <SectionCard number={4} icon={Power} title="Status & Rotary Year" dot="bg-violet-600">
+        <SectionCard number={4} icon={Power} title="Status & Rotary Year" dot="bg-[#17458F]">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <FieldLabel dot="bg-violet-500" required>Status</FieldLabel>
+              <FieldLabel dot="bg-[#17458F]" required>Status</FieldLabel>
               <select
                 value={isActive}
                 onChange={(e) => setIsActive(e.target.value)}
-                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-violet-500"
+                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] bg-white focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
               >
                 <option value="1">Active</option>
                 <option value="0">Inactive</option>
@@ -371,13 +372,13 @@ export default function AdvertisementsV2AddPage() {
               </p>
             </div>
             <div>
-              <FieldLabel dot="bg-violet-500" required>
+              <FieldLabel dot="bg-[#17458F]" required>
                 <Calendar className="inline h-3 w-3 mr-1 mb-0.5" /> Rotary Year
               </FieldLabel>
               <select
                 value={yearId}
                 onChange={(e) => setYearId(e.target.value)}
-                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-violet-500"
+                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] bg-white focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
               >
                 <option value="">Select a year</option>
                 {allYears.map((y) => (

@@ -167,8 +167,10 @@ public class EngagementController : ControllerBase
         if (download && r.CardStatus != "approved")
             return Conflict(new { message = "Approve the card before downloading it." });
 
-        // Language: the tenant default (English texts for now), like the milestone email in EngagementService.
+        // S5: the card's fixed wording in the club's language, like the milestone email in EngagementService.
         // shortcut: rendered on every request, no cache; cache it like PublicProjectShareController if previews get heavy.
+        using var culture = RotaryApi.Services.Localization.MessageCulture.Use(await CommsTemplates.DefaultLanguageAsync(conn, r.ClubId, 0));
+        var L = RotaryApi.Services.Localization.DbStringLocalizer.Instance;
         var png = ProjectShareCardBuilder.Render(new ProjectShareCardData
         {
             Title = r.MemberName,
@@ -177,9 +179,10 @@ public class EngagementController : ControllerBase
             DistrictNumber = r.DistrictNumber ?? "",
             Summary = r.Type switch
             {
-                "PHF" => $"Recognised by The Rotary Foundation as a {EngagementService.Label(r.Type, r.Level)}.",
-                "TARGET" => CelebrationService.Sentence(r.TargetKey, r.Level, r.ClubName) + " Thank you to every member.",
-                _ => $"Celebrating {r.Level} {(r.Level == 1 ? "year" : "years")} of Rotary membership. Thank you for your service.",
+                "PHF" => L["Recognised by The Rotary Foundation as a {0}.", EngagementService.Label(r.Type, r.Level)],
+                "TARGET" => CelebrationService.Sentence(r.TargetKey, r.Level, r.ClubName) + " " + L["Thank you to every member."],
+                _ => r.Level == 1 ? L["Celebrating 1 year of Rotary membership. Thank you for your service."]
+                                  : L["Celebrating {0} years of Rotary membership. Thank you for your service.", r.Level],
             },
             FooterHost = Brand.PortalDomain.Length > 0 ? Brand.PortalDomain : Brand.ProductName,
             PhotoBytes = await CmrMediaLoader.LoadBytesAsync(_env, _config["Media:RedirectBaseUrl"], r.PhotoUrl),

@@ -37,6 +37,7 @@ import { fileTimestamp } from "@/lib/dateUtils";
 import { useSyncClubIdFromUrl } from "@/hooks/useSyncClubIdFromUrl";
 
 import { appLocale } from "@/lib/appFormat";
+import { SkeletonRows } from "@/components/row/AppKit";
 function attendancePercentChip(pct: number): string {
   if (pct >= 75) return "bg-emerald-100 text-emerald-700";
   if (pct >= 50) return "bg-amber-100 text-amber-700";
@@ -337,7 +338,7 @@ export function AttendanceV2View({ clubId: propClubId, embedded = false }: { clu
             <div className="flex flex-wrap items-center gap-2">
               {/* Local year picker removed — global topbar year selector
                   drives ?yearId= which this page reads on load + on change. */}
-              <div className="relative">
+              <div className="relative w-full sm:w-auto">
                 <Search size={14} className="absolute left-2 top-1/2 -translate-y-1/2 text-slate-400" />
                 <input
                   type="text"
@@ -345,13 +346,13 @@ export function AttendanceV2View({ clubId: propClubId, embedded = false }: { clu
                   value={searchInput}
                   onChange={(e) => setSearchInput(e.target.value)}
                   onKeyDown={(e) => { if (e.key === "Enter") handleSearchSubmit(); }}
-                  className="pl-7 pr-3 py-1.5 text-sm border border-slate-200 rounded-lg w-full sm:w-48 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="pl-7 pr-3 h-10 py-0 text-sm border border-slate-200 rounded-[12px] w-full sm:w-48 focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
                 />
               </div>
               <button
                 type="button"
                 onClick={handleSearchSubmit}
-                className="inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1.5 rounded-lg border border-slate-200 text-slate-700 hover:bg-slate-50"
+                className="inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1.5 rounded-full border border-slate-200 text-slate-700 hover:bg-slate-50"
               >
                 Search
               </button>
@@ -359,7 +360,7 @@ export function AttendanceV2View({ clubId: propClubId, embedded = false }: { clu
                 <button
                   type="button"
                   onClick={handleSearchClear}
-                  className="inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1.5 rounded-lg border border-slate-200 text-slate-700 hover:bg-slate-50"
+                  className="inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1.5 rounded-full border border-slate-200 text-slate-700 hover:bg-slate-50"
                 >
                   Clear
                 </button>
@@ -379,14 +380,14 @@ export function AttendanceV2View({ clubId: propClubId, embedded = false }: { clu
                     exportToCsv(records, yearLabel, clubName || "club", memberCount);
                   }
                 }}
-                className="inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1.5 rounded-lg border border-slate-200 text-slate-700 hover:bg-slate-50"
+                className="inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1.5 rounded-full border border-slate-200 text-slate-700 hover:bg-slate-50"
               >
                 <Download size={13} /> Export to Excel
               </button>
               {canManage && (
                 <Link
                   href={addUrl}
-                  className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg bg-emerald-600 text-white hover:bg-emerald-700"
+                  className="inline-flex items-center gap-1.5 text-xs font-semibold px-4 h-10 rounded-full bg-[#17458F] text-white hover:bg-[#17458F]"
                 >
                   <Plus size={13} /> Add Attendance
                 </Link>
@@ -397,12 +398,10 @@ export function AttendanceV2View({ clubId: propClubId, embedded = false }: { clu
           {/* Table */}
           <div className="overflow-x-auto">
             {loading ? (
-              <div className="flex items-center justify-center py-12 text-slate-500">
-                <Loader2 className="animate-spin mr-2" size={16} /> Loading attendance…
-              </div>
+              <SkeletonRows />
             ) : (
-              <table className="min-w-full text-sm">
-                <thead className="bg-slate-50 text-xs uppercase text-slate-500">
+              <table className="w-full min-w-[640px] md:min-w-full text-sm">
+                <thead className="bg-[#EDF4FB] text-[13px] text-[#64748B]">
                   <tr>
                     <th className="px-3 py-2.5 text-left w-10">Sr</th>
                     <th className="px-3 py-2.5 text-left">Title</th>

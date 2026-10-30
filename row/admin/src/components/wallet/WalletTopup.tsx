@@ -122,7 +122,7 @@ export default function WalletTopup({ scope, clubId, districtId }: { scope: Scop
 
       {/* Balances */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div className="rounded-xl border bg-white p-5">
+        <div className="rounded-[20px] border bg-white p-5">
           <div className="text-sm text-gray-500">Email balance</div>
           <div className="text-3xl font-bold text-blue-600">{loadingBalance ? "…" : emailRemaining}</div>
           <div className="text-xs text-gray-400">credits remaining</div>
@@ -130,7 +130,7 @@ export default function WalletTopup({ scope, clubId, districtId }: { scope: Scop
       </div>
 
       {/* Top-up card */}
-      <div className="rounded-xl border bg-white p-5 space-y-4">
+      <div className="rounded-[20px] border bg-white p-5 space-y-4">
         <div className="font-semibold text-gray-800">Add balance</div>
 
         {/* Amount */}

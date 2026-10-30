@@ -36,6 +36,7 @@ import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";
 
 import { appLocale } from "@/lib/appFormat";
+import { ListPageSkeleton } from "@/components/row/AppKit";
 const STATUS_OPTIONS = [
   { value: "all", label: "All" },
   { value: "Published", label: "Published" },
@@ -193,7 +194,7 @@ export default function DistrictUpcomingEventsPage() {
           </div>
         </div>
 
-        {loading && <div className="flex items-center justify-center py-20"><RotaryLoader size="lg" /></div>}
+        {loading && <div className="flex items-center justify-center py-20"><ListPageSkeleton /></div>}
 
         {!loading && events.length > 0 && <SearchBox value={searchQuery} onChange={setSearchQuery} placeholder="Search by title, date, status..." />}
 
@@ -225,7 +226,7 @@ export default function DistrictUpcomingEventsPage() {
                     <TableRow key={event.id}>
                       <TableCell className="font-medium">{(page - 1) * pageSize + index + 1}</TableCell>
                       <TableCell>
-                        <div className="flex items-center gap-2">
+                        <div className="flex flex-wrap items-center gap-2">
                           {event.imagePath && (
                             <img src={`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"}${event.imagePath}`} alt="" className="h-10 w-10 rounded object-cover" />
                           )}

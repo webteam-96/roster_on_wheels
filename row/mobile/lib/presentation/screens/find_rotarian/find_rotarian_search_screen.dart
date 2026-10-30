@@ -169,7 +169,7 @@ class _FindRotarianSearchScreenState extends State<FindRotarianSearchScreen> {
               "Search any Rotarian from '${Brand.current.productName}' subscribed clubs. "
               "Fill any combination of filters below.",
               style: AppFonts.body(
-                fontSize: 12.5,
+                fontSize: 13,
                 color: AppColors.textSecondary,
                 height: 1.35,
               ),

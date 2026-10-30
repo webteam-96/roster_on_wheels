@@ -24,6 +24,7 @@ const isManHoursPending = (r: AgProjectRow): boolean =>
 import KpiCard from "@/components/dashboard/KpiCard";
 import { fmtInt, fmtInr, fmtDate, ROTARY_BLUE, ROTARY_GOLD, CLUB_PALETTE } from "@/components/dashboard/formatters";
 import { formatMoney } from "@/lib/currency";
+import { ListPageSkeleton } from "@/components/row/AppKit";
 
 const PAGE_SIZE = 20;
 
@@ -161,7 +162,7 @@ function ProjectDetailModal({
 
         {loading ? (
           <div className="flex items-center justify-center py-16">
-            <RotaryLoader size="lg" label="Loading project…" />
+            <ListPageSkeleton />
           </div>
         ) : err ? (
           <div className="m-5 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">{err}</div>
@@ -356,7 +357,7 @@ export default function AgProjectsPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-20">
-        <RotaryLoader size="lg" label="Loading projects…" />
+        <ListPageSkeleton />
       </div>
     );
   }
@@ -410,7 +411,7 @@ export default function AgProjectsPage() {
 
       {/* ───────── Two-up charts: Projects by Club + Monthly Trend ───────── */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-white rounded-xl border border-slate-200 p-5 shadow-sm">
+        <div className="bg-white rounded-[20px] border border-slate-200 p-5 shadow-sm">
           <h3 className="text-sm font-semibold text-slate-800">Projects by Club</h3>
           <p className="text-[11px] text-slate-500 mb-3">Total projects executed per club</p>
           {clubBarData.length === 0 ? (
@@ -433,7 +434,7 @@ export default function AgProjectsPage() {
           )}
         </div>
 
-        <div className="bg-white rounded-xl border border-slate-200 p-5 shadow-sm">
+        <div className="bg-white rounded-[20px] border border-slate-200 p-5 shadow-sm">
           <h3 className="text-sm font-semibold text-slate-800">Monthly Projects Trend</h3>
           <p className="text-[11px] text-slate-500 mb-3">Project count by month (RY {yearLabel})</p>
           {monthlyData.length === 0 ? (
@@ -458,7 +459,7 @@ export default function AgProjectsPage() {
       </div>
 
       {/* ───────── All Projects table ───────── */}
-      <div className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
+      <div className="bg-white rounded-[20px] border border-slate-200 overflow-hidden shadow-sm">
         <div className="px-5 py-4 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div>
             <h3 className="text-sm font-semibold text-slate-800">All Projects: Detailed View</h3>
@@ -474,7 +475,7 @@ export default function AgProjectsPage() {
             <select
               value={avenue}
               onChange={(e) => setAvenue(e.target.value)}
-              className="border border-slate-200 rounded-lg px-3 py-1.5 text-sm bg-white text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="border border-slate-200 rounded-[12px] px-3 py-1.5 text-sm bg-white text-slate-700 focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42] focus:border-blue-500"
               aria-label="Filter by Avenue of Service"
             >
               <option value="all">All Avenues of Service</option>
@@ -488,7 +489,7 @@ export default function AgProjectsPage() {
                 placeholder="Search projects, clubs…"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="border border-slate-200 rounded-lg pl-8 pr-3 py-1.5 text-sm w-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="border border-slate-200 rounded-[12px] pl-8 pr-3 py-1.5 text-sm w-full focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42] focus:border-blue-500"
               />
             </div>
           </div>
@@ -496,7 +497,7 @@ export default function AgProjectsPage() {
 
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
-            <thead className="bg-slate-50 text-slate-500 text-[11px] uppercase tracking-wide border-b border-slate-200">
+            <thead className="bg-[#EDF4FB] text-slate-500 text-[11px] border-b border-slate-200">
               <tr>
                 <th className="px-3 py-3 text-left font-semibold whitespace-nowrap">Club</th>
                 <th className="px-3 py-3 text-left font-semibold whitespace-nowrap">Date</th>
@@ -591,7 +592,7 @@ export default function AgProjectsPage() {
               <button
                 onClick={() => setPage((p) => Math.max(1, p - 1))}
                 disabled={safePage === 1}
-                className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium rounded-md border border-slate-200 text-slate-600 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed"
+                className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium rounded-full border border-slate-200 text-slate-600 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed"
               >
                 <ChevronLeft size={14} /> Prev
               </button>
@@ -622,7 +623,7 @@ export default function AgProjectsPage() {
               <button
                 onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                 disabled={safePage === totalPages}
-                className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium rounded-md border border-slate-200 text-slate-600 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed"
+                className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium rounded-full border border-slate-200 text-slate-600 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed"
               >
                 Next <ChevronRight size={14} />
               </button>

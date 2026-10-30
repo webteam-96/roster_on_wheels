@@ -78,8 +78,8 @@ const MEETING_TYPE_LABELS: Record<string, string> = {
 
 const MEETING_TYPE_COLORS: Record<string, string> = {
   regular: "bg-blue-100 text-blue-800",
-  fellowship: "bg-purple-100 text-purple-800",
-  bod: "bg-orange-100 text-orange-800",
+  fellowship: "bg-[#CFE2F6] text-purple-800",
+  bod: "bg-[#FFC65C] text-orange-800",
   assembly: "bg-green-100 text-green-800",
   trust: "bg-red-100 text-red-800",
 };
@@ -493,7 +493,7 @@ export default function ClubMonthlyReportWizardPage() {
 
         {/* Step Indicator */}
         <div className="mb-8">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-wrap items-center justify-between gap-3">
             {STEPS.map((step, index) => {
               const StepIcon = step.icon;
               const isActive = index === currentStep;
@@ -550,7 +550,7 @@ export default function ClubMonthlyReportWizardPage() {
             {currentStep === 0 && (
               <div>
                 <div className="flex items-center justify-between mb-4">
-                  <CardTitle className="flex items-center gap-2">
+                  <CardTitle className="flex flex-wrap items-center gap-2">
                     <Calendar className="h-5 w-5" />
                     Meetings
                   </CardTitle>
@@ -652,7 +652,7 @@ export default function ClubMonthlyReportWizardPage() {
             {currentStep === 1 && (
               <div>
                 <div className="flex items-center justify-between mb-4">
-                  <CardTitle className="flex items-center gap-2">
+                  <CardTitle className="flex flex-wrap items-center gap-2">
                     <DollarSign className="h-5 w-5" />
                     TRF Contributions
                   </CardTitle>
@@ -726,11 +726,11 @@ export default function ClubMonthlyReportWizardPage() {
             {currentStep === 2 && (
               <div>
                 <div className="flex items-center justify-between mb-4">
-                  <CardTitle className="flex items-center gap-2">
+                  <CardTitle className="flex flex-wrap items-center gap-2">
                     <FolderOpen className="h-5 w-5" />
                     Projects
                   </CardTitle>
-                  <div className="flex items-center gap-2">
+                  <div className="flex flex-wrap items-center gap-2">
                     <Select value={addProjectType} onValueChange={setAddProjectType}>
                       <SelectTrigger className="w-[200px]">
                         <SelectValue placeholder="Select service type" />
@@ -780,7 +780,7 @@ export default function ClubMonthlyReportWizardPage() {
                             className="w-full flex items-center justify-between p-4 hover:bg-muted/50 transition-colors"
                             onClick={() => toggleSection(serviceType)}
                           >
-                            <div className="flex items-center gap-2">
+                            <div className="flex flex-wrap items-center gap-2">
                               <span className="font-semibold">{label}</span>
                               <Badge variant="secondary">{items.length}</Badge>
                             </div>
@@ -816,19 +816,19 @@ export default function ClubMonthlyReportWizardPage() {
                                       <TableCell>{index + 1}</TableCell>
                                       <TableCell>{formatDate(project.projectDate)}</TableCell>
                                       <TableCell className="font-medium">
-                                        <span className="flex items-center gap-2">
+                                        <span className="flex flex-wrap items-center gap-2">
                                           {project.title}
                                           {(serviceType === "community_service" || serviceType === "public_image_initiative") && (
                                             <>
                                               {project.projectType && (
                                                 <Badge className={project.projectType === "one_time"
                                                   ? "bg-blue-100 text-blue-800 border-blue-300 text-xs"
-                                                  : "bg-purple-100 text-purple-800 border-purple-300 text-xs"}>
+                                                  : "bg-[#CFE2F6] text-purple-800 border-purple-300 text-xs"}>
                                                   {project.projectType === "one_time" ? "One Time" : "Ongoing"}
                                                 </Badge>
                                               )}
                                               {project.parentProjectId && (
-                                                <Badge className="bg-orange-100 text-orange-800 border-orange-300 text-xs">
+                                                <Badge className="bg-[#FFC65C] text-orange-800 border-orange-300 text-xs">
                                                   Child Project
                                                 </Badge>
                                               )}
@@ -945,7 +945,7 @@ export default function ClubMonthlyReportWizardPage() {
                     />
                   </div>
                   <div className="bg-muted/50 rounded-lg p-4">
-                    <div className="flex items-center justify-between">
+                    <div className="flex flex-wrap items-center justify-between gap-3">
                       <span className="font-medium">Current No. Of Members</span>
                       <span className="text-2xl font-bold text-primary">
                         {memberCountLastMonth - membersDeleted + membersAdded}
@@ -982,7 +982,7 @@ export default function ClubMonthlyReportWizardPage() {
               </Button>
             )}
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             {currentStep < 3 && (
               <Button onClick={handleNext} disabled={saving}>
                 {saving ? <RotaryLoader size="sm" /> : <Save className="h-4 w-4 mr-1" />}

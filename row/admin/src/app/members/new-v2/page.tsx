@@ -40,6 +40,7 @@ import ErrorAlert from "@/components/ErrorAlert";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { DayMonthPicker } from "@/components/DayMonthPicker";
 import { MEMBER_NAME_FILTER } from "@/lib/textInput";
+import { ListPageSkeleton } from "@/components/row/AppKit";
 
 /* ----- helpers ----- */
 
@@ -587,7 +588,7 @@ function AddMemberV2Form() {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-20">
-        <RotaryLoader size="lg" />
+        <ListPageSkeleton />
       </div>
     );
   }
@@ -621,14 +622,14 @@ function AddMemberV2Form() {
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               onKeyDown={handleSearchKeyDown}
-              className="w-full pl-9 pr-3 py-2 text-sm border border-blue-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full pl-9 pr-3 py-2 text-sm border border-blue-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
             />
           </div>
           <button
             type="button"
             onClick={handleSearch}
             disabled={searching || !searchTerm.trim()}
-            className="inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-semibold rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-semibold rounded-full bg-[#17458F] text-white hover:bg-[#17458F] disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <Search className="h-4 w-4" />
             {searching ? "Searching..." : "Search"}
@@ -638,7 +639,7 @@ function AddMemberV2Form() {
         {/* Loading */}
         {searching && (
           <div className="flex items-center justify-center py-10">
-            <RotaryLoader size="lg" />
+            <ListPageSkeleton />
           </div>
         )}
 
@@ -656,7 +657,7 @@ function AddMemberV2Form() {
                     return (
                       <div
                         key={member.id}
-                        className="overflow-hidden rounded-xl border border-slate-200 bg-white hover:shadow-md transition-shadow"
+                        className="overflow-hidden rounded-[20px] border border-slate-200 bg-white hover:shadow-md transition-shadow"
                       >
                         <div className="flex items-center gap-3 p-4 bg-blue-600 text-white">
                           <div className="relative h-12 w-12 flex-shrink-0 overflow-hidden rounded-full bg-white/20 border-2 border-white/40">
@@ -680,19 +681,19 @@ function AddMemberV2Form() {
                         </div>
                         <div className="border-t border-slate-100 px-4 py-3 space-y-1.5 text-xs text-slate-600">
                           {member.rotaryId && (
-                            <div className="flex items-center gap-2">
+                            <div className="flex flex-wrap items-center gap-2">
                               <IdCard className="h-3.5 w-3.5 flex-shrink-0" />
                               <span className="truncate">{member.rotaryId}</span>
                             </div>
                           )}
                           {member.emailId && (
-                            <div className="flex items-center gap-2">
+                            <div className="flex flex-wrap items-center gap-2">
                               <Mail className="h-3.5 w-3.5 flex-shrink-0" />
                               <span className="truncate">{member.emailId}</span>
                             </div>
                           )}
                           {member.primaryMobileNumber && (
-                            <div className="flex items-center gap-2">
+                            <div className="flex flex-wrap items-center gap-2">
                               <Phone className="h-3.5 w-3.5 flex-shrink-0" />
                               <span>{member.primaryMobileNumber}</span>
                             </div>
@@ -731,7 +732,7 @@ function AddMemberV2Form() {
                   setFormData((prev) => ({ ...prev, ...seedFromSearchTerm(searchTerm) }));
                   setShowForm(true);
                 }}
-                className="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-semibold rounded-lg border border-slate-300 bg-white text-slate-700 hover:bg-slate-50"
+                className="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-semibold rounded-full border border-slate-300 bg-white text-slate-700 hover:bg-slate-50"
               >
                 <Plus className="h-4 w-4" />
                 Create New Member
@@ -792,7 +793,7 @@ function AddMemberV2Form() {
       }
     >
       {/* 1 — Personal */}
-      <SectionCard number={1} icon={User} title="Personal Details" dot="bg-blue-600">
+      <SectionCard number={1} icon={User} title="Personal Details" dot="bg-[#17458F]">
         <div className="flex flex-col sm:flex-row gap-6 mb-4">
           <PhotoUpload
             currentPath={formData.profilePhotoPath || null}
@@ -809,7 +810,7 @@ function AddMemberV2Form() {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           <div>
-            <FieldLabel dot="bg-blue-500">Date of Birth</FieldLabel>
+            <FieldLabel dot="bg-[#17458F]">Date of Birth</FieldLabel>
             {/* Day + month only — year never asked; backend saves as 1900-MM-DD. */}
             <DayMonthPicker
               value={formData.birthDate}
@@ -817,12 +818,12 @@ function AddMemberV2Form() {
             />
           </div>
           <div>
-            <FieldLabel dot="bg-blue-500" required>Date of Joining</FieldLabel>
+            <FieldLabel dot="bg-[#17458F]" required>Date of Joining</FieldLabel>
             <DateField max={todayIso()} value={formatDateForInput(formData.joinedDate)} onChange={(v: string) => updateField("joinedDate", v || null)} className={errors.joinedDate ? errInputCls : inputCls} />
             {errors.joinedDate && <p className="text-xs text-rose-600 mt-0.5">{errors.joinedDate}</p>}
           </div>
           <div>
-            <FieldLabel dot="bg-blue-500">Anniversary Date</FieldLabel>
+            <FieldLabel dot="bg-[#17458F]">Anniversary Date</FieldLabel>
             <DayMonthPicker
               value={formData.anniversaryDate}
               onChange={(v) => updateField("anniversaryDate", v)}
@@ -873,7 +874,7 @@ function AddMemberV2Form() {
         </div>
 
         <div className="mt-4">
-          <FieldLabel dot="bg-blue-500">Introduction</FieldLabel>
+          <FieldLabel dot="bg-[#17458F]">Introduction</FieldLabel>
           <textarea
             value={formData.memberIntroduction || ""}
             onChange={(e) => updateField("memberIntroduction", e.target.value)}
@@ -885,24 +886,24 @@ function AddMemberV2Form() {
       </SectionCard>
 
       {/* 2 — Social */}
-      <SectionCard number={2} icon={Share2} title="Social Media" dot="bg-violet-600">
+      <SectionCard number={2} icon={Share2} title="Social Media" dot="bg-[#17458F]">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          {renderInput("facebook",  "Facebook URL",   { type: "url", dot: "bg-violet-500" })}
-          {renderInput("instagram", "Instagram URL",  { type: "url", dot: "bg-violet-500" })}
-          {renderInput("linkedIn",  "LinkedIn URL",   { type: "url", dot: "bg-violet-500" })}
-          {renderInput("twitter",   "Twitter/X URL",  { type: "url", dot: "bg-violet-500" })}
-          {renderInput("youtube",   "YouTube URL",    { type: "url", dot: "bg-violet-500" })}
-          {renderInput("website",   "Website URL",    { type: "url", dot: "bg-violet-500" })}
+          {renderInput("facebook",  "Facebook URL",   { type: "url", dot: "bg-[#A9C6EA]" })}
+          {renderInput("instagram", "Instagram URL",  { type: "url", dot: "bg-[#A9C6EA]" })}
+          {renderInput("linkedIn",  "LinkedIn URL",   { type: "url", dot: "bg-[#A9C6EA]" })}
+          {renderInput("twitter",   "Twitter/X URL",  { type: "url", dot: "bg-[#A9C6EA]" })}
+          {renderInput("youtube",   "YouTube URL",    { type: "url", dot: "bg-[#A9C6EA]" })}
+          {renderInput("website",   "Website URL",    { type: "url", dot: "bg-[#A9C6EA]" })}
         </div>
       </SectionCard>
 
       {/* 3 — Residential Address */}
-      <SectionCard number={3} icon={Home} title="Residential Address" dot="bg-emerald-600">
+      <SectionCard number={3} icon={Home} title="Residential Address" dot="bg-[#17458F]">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {renderAddrCountrySelect("Residential", resAddr, "Country")}
           {renderAddrInput("Residential", resAddr, "phoneNumber", "Phone Number", "tel")}
           <div className="sm:col-span-2">
-            <FieldLabel dot="bg-emerald-500">Address</FieldLabel>
+            <FieldLabel dot="bg-[#17458F]">Address</FieldLabel>
             <textarea
               value={getAddrField(resAddr, "address")}
               onChange={(e) => updateAddress("Residential", "address", e.target.value)}
@@ -917,7 +918,7 @@ function AddMemberV2Form() {
       </SectionCard>
 
       {/* 4 — Business Details */}
-      <SectionCard number={4} icon={Briefcase} title="Business Details" dot="bg-amber-600">
+      <SectionCard number={4} icon={Briefcase} title="Business Details" dot="bg-[#17458F]">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {/* Designation + Classification are MEMBER-level (stored on club_members), shared across all clubs */}
           {renderInput("designation", "Designation", { dot: "bg-amber-500" })}
@@ -928,7 +929,7 @@ function AddMemberV2Form() {
           {renderAddrCountrySelect("Business", busAddr, "Country", "bg-amber-500")}
           {renderAddrInput("Business", busAddr, "phoneNumber", "Phone Number", "tel", "bg-amber-500")}
           <div className="sm:col-span-2">
-            <FieldLabel dot="bg-amber-500">Address</FieldLabel>
+            <FieldLabel dot="bg-[#17458F]">Address</FieldLabel>
             <textarea
               value={getAddrField(busAddr, "address")}
               onChange={(e) => updateAddress("Business", "address", e.target.value)}
@@ -944,7 +945,7 @@ function AddMemberV2Form() {
 
       {/* 5 — Family */}
       {showFamily && (
-      <SectionCard number={5} icon={Users} title="Family Details" dot="bg-rose-600">
+      <SectionCard number={5} icon={Users} title="Family Details" dot="bg-[#17458F]">
         <div className="flex flex-col sm:flex-row gap-6 items-start mb-4">
           <PhotoUpload
             currentPath={formData.familyPhotoPath || null}
@@ -967,7 +968,7 @@ function AddMemberV2Form() {
           <button
             type="button"
             onClick={addFamilyMember}
-            className="inline-flex items-center gap-1 text-xs font-semibold px-3 py-1.5 rounded-lg border border-rose-200 text-rose-700 hover:bg-rose-50"
+            className="inline-flex items-center gap-1 text-xs font-semibold px-3 py-1.5 rounded-full border border-rose-200 text-rose-700 hover:bg-rose-50"
           >
             <Plus className="h-3.5 w-3.5" /> Add Family Member
           </button>
@@ -994,7 +995,7 @@ function AddMemberV2Form() {
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                   <div>
-                    <FieldLabel dot="bg-rose-500">Name</FieldLabel>
+                    <FieldLabel dot="bg-[#17458F]">Name</FieldLabel>
                     <input
                       type="text"
                       value={fm.name || ""}
@@ -1003,7 +1004,7 @@ function AddMemberV2Form() {
                     />
                   </div>
                   <div>
-                    <FieldLabel dot="bg-rose-500">Relation</FieldLabel>
+                    <FieldLabel dot="bg-[#17458F]">Relation</FieldLabel>
                     <select
                       value={fm.relation || ""}
                       onChange={(e) => updateFamilyMember(index, "relation", e.target.value)}
@@ -1017,7 +1018,7 @@ function AddMemberV2Form() {
                   </div>
                   {showBloodGroup && (
                   <div>
-                    <FieldLabel dot="bg-rose-500">Blood Group</FieldLabel>
+                    <FieldLabel dot="bg-[#17458F]">Blood Group</FieldLabel>
                     <select
                       value={fm.bloodGroup || ""}
                       onChange={(e) => updateFamilyMember(index, "bloodGroup", e.target.value)}
@@ -1031,7 +1032,7 @@ function AddMemberV2Form() {
                   </div>
                   )}
                   <div>
-                    <FieldLabel dot="bg-rose-500">Country</FieldLabel>
+                    <FieldLabel dot="bg-[#17458F]">Country</FieldLabel>
                     <select
                       value={String(fm.fkCountryId || 1)}
                       onChange={(e) => handleFamilyCountryChange(index, e.target.value)}
@@ -1043,7 +1044,7 @@ function AddMemberV2Form() {
                     </select>
                   </div>
                   <div>
-                    <FieldLabel dot="bg-rose-500">Phone Number</FieldLabel>
+                    <FieldLabel dot="bg-[#17458F]">Phone Number</FieldLabel>
                     <input
                       type="tel"
                       value={fm.phoneNumber || ""}
@@ -1052,7 +1053,7 @@ function AddMemberV2Form() {
                     />
                   </div>
                   <div>
-                    <FieldLabel dot="bg-rose-500">Email</FieldLabel>
+                    <FieldLabel dot="bg-[#17458F]">Email</FieldLabel>
                     <input
                       type="email"
                       value={fm.emailId || ""}
@@ -1061,14 +1062,14 @@ function AddMemberV2Form() {
                     />
                   </div>
                   <div>
-                    <FieldLabel dot="bg-rose-500">Date of Birth</FieldLabel>
+                    <FieldLabel dot="bg-[#17458F]">Date of Birth</FieldLabel>
                     <DayMonthPicker
                       value={fm.birthDate}
                       onChange={(v) => updateFamilyMember(index, "birthDate", v)}
                     />
                   </div>
                   <div>
-                    <FieldLabel dot="bg-rose-500">Anniversary</FieldLabel>
+                    <FieldLabel dot="bg-[#17458F]">Anniversary</FieldLabel>
                     <DayMonthPicker
                       value={fm.anniversaryDate}
                       onChange={(v) => updateFamilyMember(index, "anniversaryDate", v)}
@@ -1118,7 +1119,7 @@ export default function NewMemberV2Page() {
       <Suspense
         fallback={
           <div className="flex items-center justify-center py-20">
-            <RotaryLoader size="lg" />
+            <ListPageSkeleton />
           </div>
         }
       >

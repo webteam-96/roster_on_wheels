@@ -118,20 +118,20 @@ export default function V2FormShell({
         </div>
       )}
 
-      <div className="bg-white rounded-2xl border border-slate-200 p-5 pb-8">
+      <div className="rounded-[20px] border border-[color:var(--row-line)] bg-card p-5 pb-8 md:p-6">
         {children}
       </div>
 
       {!hideFooter && (
-      <div className="sticky bottom-0 flex flex-wrap items-center gap-x-4 gap-y-3 py-3">
+      <div className="sticky bottom-0 z-10 -mx-4 mt-4 flex flex-wrap items-center gap-x-4 gap-y-3 border-t border-[color:var(--row-line)] bg-[#F7F9FC] px-4 py-3 md:-mx-8 md:px-8">
         {footerStart && (
           <div className="flex flex-wrap items-center gap-2">{footerStart}</div>
         )}
-        <div className="ml-auto flex flex-wrap items-center justify-end gap-3 rounded-xl border border-slate-200 bg-white/95 px-3 py-2 shadow-sm backdrop-blur">
+        <div className="ml-auto flex flex-wrap items-center justify-end gap-3">
           {!hideCancel && (
             <Link
               href={cancelHref}
-              className="inline-flex items-center gap-2 rounded-xl border border-slate-300 px-4 py-2.5 text-[15px] font-semibold text-slate-700 hover:bg-slate-100"
+              className="inline-flex items-center gap-2 rounded-full border border-slate-300 px-4 py-2.5 text-[15px] font-semibold text-slate-700 hover:bg-slate-100"
             >
               <X size={17} /> Cancel
             </Link>
@@ -142,7 +142,7 @@ export default function V2FormShell({
               onClick={secondaryAction.onClick}
               disabled={secondaryAction.disabled || saving}
               title={secondaryAction.disabled ? "Install the Add-to-Org extension to use this" : undefined}
-              className="inline-flex items-center gap-2 rounded-xl bg-amber-400 px-5 py-2.5 text-[15px] font-bold text-blue-950 shadow-sm ring-1 ring-amber-500/50 hover:bg-amber-500 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-400 disabled:shadow-none disabled:ring-0"
+              className="inline-flex items-center gap-2 rounded-full bg-amber-400 px-5 py-2.5 text-[15px] font-bold text-blue-950 shadow-sm ring-1 ring-amber-500/50 hover:bg-amber-500 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-400 disabled:shadow-none disabled:ring-0"
             >
               <Send size={17} />
               {secondaryAction.label}

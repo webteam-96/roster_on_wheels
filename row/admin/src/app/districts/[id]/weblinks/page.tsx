@@ -28,6 +28,7 @@ import { ArrowLeft, Plus, Pencil, Trash2, MoreHorizontal, FolderOpen, AlertTrian
 
 const ReactQuill = dynamic(() => import("react-quill-new"), { ssr: false });
 import "react-quill-new/dist/quill.snow.css";
+import { ListPageSkeleton } from "@/components/row/AppKit";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 const quillModules = { toolbar: [["bold", "italic", "underline"], [{ list: "ordered" }, { list: "bullet" }], ["link"], ["clean"]] };
@@ -162,7 +163,7 @@ export default function DistrictWeblinksPage() {
         )}
 
         {!loading && weblinks.length > 0 && <SearchBox value={searchQuery} onChange={setSearchQuery} placeholder="Quick filter by title, type..." className="max-w-md" />}
-        {loading && <div className="flex items-center justify-center py-20"><RotaryLoader size="lg" /></div>}
+        {loading && <div className="flex items-center justify-center py-20"><ListPageSkeleton /></div>}
         {!loading && weblinks.length === 0 && <div className="flex flex-col items-center justify-center py-20 text-center"><FolderOpen className="h-12 w-12 text-muted-foreground mb-4" /><h3 className="text-lg font-semibold">No weblinks found</h3><p className="text-muted-foreground mt-2">{canManage ? 'Click "Add Weblink" to create one.' : "No weblinks available."}</p></div>}
 
         {!loading && filteredWeblinks.length > 0 && (

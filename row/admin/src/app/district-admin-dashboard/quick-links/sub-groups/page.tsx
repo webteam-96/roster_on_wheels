@@ -42,6 +42,7 @@ import {
   ArrowLeft, Plus, Pencil, Trash2, Users, User,
   AlertTriangle, ChevronDown, ChevronRight, CalendarClock,
 } from "@/components/icons";
+import { ListPageSkeleton } from "@/components/row/AppKit";
 
 function withSearch(base: string, extra: Record<string, string | null | undefined>) {
   const p = new URLSearchParams();
@@ -172,7 +173,7 @@ export default function DistrictAdminSubGroupsPage() {
         {yearId && (
           <>
             {loading && (
-              <div className="flex items-center justify-center py-20"><RotaryLoader size="lg" /></div>
+              <div className="flex items-center justify-center py-20"><ListPageSkeleton /></div>
             )}
 
             {!loading && groups.length > 0 && (

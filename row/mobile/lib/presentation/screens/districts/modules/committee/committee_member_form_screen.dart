@@ -354,12 +354,10 @@ class _CommitteeMemberFormScreenState extends State<CommitteeMemberFormScreen> {
             child: TextButton(
               onPressed: _busy ? null : _save,
               style: TextButton.styleFrom(
-                backgroundColor: AppColors.goldPrime,
+                backgroundColor: AppColors.primaryPrime,
                 foregroundColor: AppColors.darkBg,
                 padding: const EdgeInsets.symmetric(horizontal: 14),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
+                shape: const StadiumBorder(),
               ),
               child: _saving
                   ? const SizedBox(
@@ -529,7 +527,7 @@ class _CommitteeMemberFormScreenState extends State<CommitteeMemberFormScreen> {
                           style: const TextStyle(
                             color: AppColors.primary,
                             fontWeight: FontWeight.bold,
-                            fontSize: 12,
+                            fontSize: 13,
                           ),
                         )
                       : null,

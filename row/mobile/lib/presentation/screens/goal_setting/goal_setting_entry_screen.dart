@@ -12,6 +12,7 @@ import 'widgets/goal_form_fields.dart';
 import '../../../core/utils/snackbar_utils.dart';
 import 'package:rotary_flutter_app/core/theme/app_fonts.dart';
 import 'package:rotary_flutter_app/core/i18n/text.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/skeleton_list.dart';
 
 /// Which entity's goals this form edits.
 enum GoalEntityType { club, district }
@@ -213,7 +214,7 @@ class _GoalSettingEntryScreenState extends State<GoalSettingEntryScreen> {
       backgroundColor: AppColors.background,
       appBar: CustomAppBar(title: widget._isClub ? 'Goal Setting' : 'District Goals'),
       body: _loading
-          ? const Center(child: CircularProgressIndicator())
+          ? const RowSkeletonList()
           : _bootError != null
               ? _errorState(_bootError!)
               : _content(),
@@ -265,7 +266,7 @@ class _GoalSettingEntryScreenState extends State<GoalSettingEntryScreen> {
         _categoryPills(),
         Expanded(
           child: _loadingForm
-              ? const Center(child: CircularProgressIndicator())
+              ? const RowSkeletonList()
               : _formError != null
                   ? _errorState(_formError!)
                   : form == null
@@ -304,7 +305,7 @@ class _GoalSettingEntryScreenState extends State<GoalSettingEntryScreen> {
               widget._isClub
                   ? "Set your club's targets for the year, by category"
                   : 'District-level targets for the year, by category',
-              style: AppFonts.body(fontSize: 12, color: AppColors.slate500),
+              style: AppFonts.body(fontSize: 13, color: AppColors.slate500),
             ),
           ],
         ),
@@ -353,7 +354,7 @@ class _GoalSettingEntryScreenState extends State<GoalSettingEntryScreen> {
           padding: const EdgeInsets.only(top: 4),
           child: Text(
             '${form.fields.length} fields',
-            style: AppFonts.body(fontSize: 11, color: AppColors.slate400),
+            style: AppFonts.body(fontSize: 13, color: AppColors.slate400),
           ),
         ),
       ],
@@ -378,7 +379,7 @@ class _GoalSettingEntryScreenState extends State<GoalSettingEntryScreen> {
             child: Text(
               text,
               style: AppFonts.body(
-                fontSize: 12,
+                fontSize: 13,
                 fontWeight: FontWeight.w600,
                 color: AppColors.slate700,
               ),
@@ -412,7 +413,7 @@ class _GoalSettingEntryScreenState extends State<GoalSettingEntryScreen> {
             style: FilledButton.styleFrom(
               backgroundColor: AppColors.rotaryBlue,
               padding: const EdgeInsets.symmetric(vertical: 13),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              shape: const StadiumBorder(),
               textStyle: AppFonts.body(fontSize: 14, fontWeight: FontWeight.w700),
             ),
           ),

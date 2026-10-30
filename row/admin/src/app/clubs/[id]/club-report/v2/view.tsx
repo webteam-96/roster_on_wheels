@@ -75,12 +75,12 @@ function ClubReportV2PageStub() {
       <div className="space-y-4">
         <Link
           href={back}
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-lg border border-slate-200 text-slate-700 hover:bg-slate-50"
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-full border border-slate-200 text-slate-700 hover:bg-slate-50"
         >
           <ArrowLeft size={14} /> Back
         </Link>
 
-        <div className="bg-white rounded-xl border border-slate-200 p-6">
+        <div className="bg-white rounded-[20px] border border-slate-200 p-6">
           <div className="flex items-start gap-4">
             <div className="rounded-full bg-blue-100 p-3">
               <Award className="h-6 w-6 text-blue-700" />
@@ -96,7 +96,7 @@ function ClubReportV2PageStub() {
                   type="button"
                   onClick={() => handleDownload(true)}
                   disabled={downloading !== null || !club}
-                  className="h-9 inline-flex items-center gap-1.5 px-4 rounded-md bg-blue-600 text-white text-sm font-semibold hover:bg-blue-700 disabled:opacity-60"
+                  className="h-9 inline-flex items-center gap-1.5 px-4 rounded-full bg-[#17458F] text-white text-sm font-semibold hover:bg-[#17458F] disabled:opacity-60"
                 >
                   {downloading === "extended" ? <Loader2 size={14} className="animate-spin" /> : <Download size={14} />}
                   <span>District Awards</span>
@@ -105,7 +105,7 @@ function ClubReportV2PageStub() {
                   type="button"
                   onClick={() => handleDownload(false)}
                   disabled={downloading !== null || !club}
-                  className="h-9 inline-flex items-center gap-1.5 px-4 rounded-md bg-indigo-600 text-white text-sm font-semibold hover:bg-indigo-700 disabled:opacity-60"
+                  className="h-9 inline-flex items-center gap-1.5 px-4 rounded-full bg-[#17458F] text-white text-sm font-semibold hover:bg-[#17458F] disabled:opacity-60"
                 >
                   {downloading === "full" ? <Loader2 size={14} className="animate-spin" /> : <Download size={14} />}
                   <span>District Awards Extended</span>
@@ -153,6 +153,7 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
 import { useSyncClubIdFromUrl } from "@/hooks/useSyncClubIdFromUrl";
+import { SkeletonRows } from "@/components/row/AppKit";
 
 // Default back target — Reports tab on the Club Admin dashboard.
 const DEFAULT_BACK = "/club-admin-dashboard/e-governance";
@@ -334,9 +335,7 @@ export function ClubReportV2PageImpl({ clubId: propClubId, embedded = false, yea
   // ── render ─────────────────────────────────────────────────────────────
   if (loading) {
     const loadingBody = (
-      <div className="flex items-center justify-center py-20 text-slate-500">
-        <Loader2 className="animate-spin mr-2" size={16} /> Loading…
-      </div>
+      <SkeletonRows />
     );
     if (embedded) return loadingBody;
     return (
@@ -417,7 +416,7 @@ export function ClubReportV2PageImpl({ clubId: propClubId, embedded = false, yea
             <select
               value={selectedYearId}
               onChange={(e) => setSelectedYearId(e.target.value)}
-              className="px-3 py-1.5 text-xs border border-slate-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 sm:w-56"
+              className="px-3 h-10 py-0 text-xs border border-slate-200 rounded-[12px] bg-white focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42] sm:w-56"
             >
               {years.map((y) => (
                 <option key={y.id} value={String(y.id)}>
@@ -430,9 +429,7 @@ export function ClubReportV2PageImpl({ clubId: propClubId, embedded = false, yea
         </div>
 
         {reportLoading ? (
-          <div className="flex items-center justify-center py-20 text-slate-500">
-            <Loader2 className="animate-spin mr-2" size={16} /> Loading report…
-          </div>
+          <SkeletonRows />
         ) : !report ? (
           <div className="rounded-2xl border border-slate-200 bg-white p-10 text-center text-sm text-slate-400">
             No report data available.
@@ -451,7 +448,7 @@ export function ClubReportV2PageImpl({ clubId: propClubId, embedded = false, yea
                   <p className="text-xs text-slate-500 mt-0.5">Delivery status of email sent to your club&apos;s members</p>
                 </div>
                 <div className="p-4 flex flex-wrap gap-3">
-                  <Link href="/club-admin-dashboard/email-log" className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-2 rounded-lg border border-slate-200 text-slate-700 hover:bg-blue-50 hover:text-blue-700 hover:border-blue-200">
+                  <Link href="/club-admin-dashboard/email-log" className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-2 rounded-full border border-slate-200 text-slate-700 hover:bg-blue-50 hover:text-blue-700 hover:border-blue-200">
                     <Mail size={14} /> Email Log
                   </Link>
                 </div>
@@ -1100,7 +1097,7 @@ function WordReportRow({
       </div>
       <LoadingButton
         onAction={async () => { await onDownload(); }}
-        className="inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1.5 rounded-lg border border-slate-200 text-slate-700 hover:bg-blue-50 hover:text-blue-700"
+        className="inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1.5 rounded-full border border-slate-200 text-slate-700 hover:bg-blue-50 hover:text-blue-700"
       >
         <Download size={13} /> Word
       </LoadingButton>
@@ -1125,16 +1122,16 @@ function OcvClubReportRow({ clubId, yearId, clubName, yearLabel }: {
           <p className="text-xs text-slate-500 truncate">All sub-modules + uploaded documents · RY {yearLabel}</p>
         </div>
       </div>
-      <div className="flex items-center gap-2">
+      <div className="flex flex-wrap items-center gap-2">
         <LoadingButton
           onAction={async () => { await downloadOcvReportExcel(clubId, yearId, base); }}
-          className="inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1.5 rounded-lg border border-emerald-200 text-emerald-700 hover:bg-emerald-50"
+          className="inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1.5 rounded-full border border-emerald-200 text-emerald-700 hover:bg-emerald-50"
         >
           <FileSpreadsheet size={13} /> Excel
         </LoadingButton>
         <LoadingButton
           onAction={async () => { await downloadOcvReportWord(clubId, yearId, base); }}
-          className="inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1.5 rounded-lg border border-blue-200 text-blue-700 hover:bg-blue-50"
+          className="inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1.5 rounded-full border border-blue-200 text-blue-700 hover:bg-blue-50"
         >
           <FileText size={13} /> Word
         </LoadingButton>
@@ -1382,11 +1379,11 @@ function AvenueOfServiceRow({
           </p>
         </div>
       </div>
-      <div className="flex items-center gap-2">
+      <div className="flex flex-wrap items-center gap-2">
         <select
           value={avenue}
           onChange={(e) => setAvenue(e.target.value as Avenue)}
-          className="text-xs border border-slate-200 rounded-md px-2 py-1 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 max-w-[200px]"
+          className="text-xs border border-slate-200 rounded-[12px] px-2 py-1 bg-white focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42] max-w-[200px]"
         >
           <option value="all">All</option>
           <option value="club_service">Club Service</option>
@@ -1398,7 +1395,7 @@ function AvenueOfServiceRow({
         <LoadingButton
           onAction={async () => { await onExport(); }}
           disabled={!hasData}
-          className="inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1.5 rounded-lg border border-slate-200 text-slate-700 hover:bg-blue-50 hover:text-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1.5 rounded-full border border-slate-200 text-slate-700 hover:bg-blue-50 hover:text-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <Download size={13} /> Excel
         </LoadingButton>
@@ -1470,11 +1467,11 @@ function BodSectionRow({
           </p>
         </div>
       </div>
-      <div className="flex items-center gap-2">
+      <div className="flex flex-wrap items-center gap-2">
         <select
           value={designation}
           onChange={(e) => setDesignation(e.target.value)}
-          className="text-xs border border-slate-200 rounded-md px-2 py-1 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 max-w-[180px]"
+          className="text-xs border border-slate-200 rounded-[12px] px-2 py-1 bg-white focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42] max-w-[180px]"
         >
           <option value="__all__">All Designations</option>
           {designations.map((d) => (
@@ -1484,7 +1481,7 @@ function BodSectionRow({
         <LoadingButton
           onAction={async () => { await onExport(); }}
           disabled={!hasData}
-          className="inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1.5 rounded-lg border border-slate-200 text-slate-700 hover:bg-blue-50 hover:text-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1.5 rounded-full border border-slate-200 text-slate-700 hover:bg-blue-50 hover:text-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <Download size={13} /> Excel
         </LoadingButton>
@@ -1549,7 +1546,7 @@ function SectionRow({
           await onExport();
         }}
         disabled={!hasData}
-        className="inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1.5 rounded-lg border border-slate-200 text-slate-700 hover:bg-blue-50 hover:text-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+        className="inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1.5 rounded-full border border-slate-200 text-slate-700 hover:bg-blue-50 hover:text-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
       >
         <Download size={13} /> Excel
       </LoadingButton>

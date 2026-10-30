@@ -21,6 +21,7 @@ import {
 
 import { useFormat } from "@/hooks/useFormat";
 import { useEventZone } from "@/hooks/useEventZone";
+import { ListPageSkeleton } from "@/components/row/AppKit";
 
 function CollapsibleCard({
   icon: Icon,
@@ -43,8 +44,8 @@ function CollapsibleCard({
         className="cursor-pointer select-none py-3 px-4"
         onClick={() => setOpen(!open)}
       >
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex flex-wrap items-center gap-2">
             <Icon className="h-5 w-5 text-primary" />
             <CardTitle className="text-sm font-semibold">{title}</CardTitle>
             <span className="inline-flex items-center justify-center min-w-[24px] px-1.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-700">
@@ -109,7 +110,7 @@ export default function AttendanceViewPage() {
     return (
       <ProtectedRoute>
         <div className="flex items-center justify-center py-20">
-          <RotaryLoader size="lg" />
+          <ListPageSkeleton />
         </div>
       </ProtectedRoute>
     );
@@ -164,7 +165,7 @@ export default function AttendanceViewPage() {
         {/* Event Info Card */}
         <Card>
           <CardHeader className="pb-2">
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <CalendarDays className="h-5 w-5 text-primary" />
               <CardTitle className="text-base font-semibold">Event Information</CardTitle>
             </div>

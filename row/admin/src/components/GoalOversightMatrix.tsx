@@ -173,7 +173,7 @@ export default function GoalOversightMatrix({
 
   return (
     <div className="space-y-4">
-      <div className="rounded-xl border border-slate-200 bg-white p-4">
+      <div className="rounded-[20px] border border-slate-200 bg-white p-4">
         <div className="text-sm font-semibold text-slate-800">{title}: districts (read-only)</div>
         <p className="text-xs text-slate-500 mt-0.5 mb-3">Pick a zone to see every district&apos;s Membership / Foundation / Youth Service / Public Image progress. Click a district row to see its month-wise collection.</p>
         <div className="flex flex-wrap gap-3">
@@ -200,7 +200,7 @@ export default function GoalOversightMatrix({
                 type="button"
                 onClick={() => districtFilter ? downloadDistrictSetting(districtFilter) : downloadReport(null)}
                 disabled={dl !== null}
-                className="inline-flex items-center gap-1.5 h-9 rounded-md border border-blue-200 bg-blue-50 px-3 text-xs font-medium text-blue-700 hover:bg-blue-100 disabled:opacity-40"
+                className="inline-flex items-center gap-1.5 h-9 rounded-full border border-blue-200 bg-blue-50 px-3 text-xs font-medium text-blue-700 hover:bg-blue-100 disabled:opacity-40"
                 title="Download report for the current selection"
               >
                 {(dl === "scope" || (districtFilter != null && dl === districtFilter)) ? <Loader2 size={13} className="animate-spin" /> : <Download size={13} />}
@@ -213,7 +213,7 @@ export default function GoalOversightMatrix({
               <button
                 type="button"
                 onClick={openMessages}
-                className="relative inline-flex items-center gap-1.5 h-9 rounded-md border border-blue-200 bg-blue-50 px-3 text-xs font-medium text-blue-700 hover:bg-blue-100"
+                className="relative inline-flex items-center gap-1.5 h-9 rounded-full border border-blue-200 bg-blue-50 px-3 text-xs font-medium text-blue-700 hover:bg-blue-100"
                 title="Read messages from District Admins and Governors"
               >
                 <MessagesSquare size={14} /> Messages
@@ -331,7 +331,7 @@ export default function GoalOversightMatrix({
                       <button
                         type="button"
                         onClick={(e) => { e.stopPropagation(); setClubDistrict({ id: d.districtId, number: d.districtNumber }); }}
-                        className="inline-flex items-center gap-1 rounded-md border border-blue-200 bg-blue-50 px-2 py-1 text-[11px] font-medium text-blue-700 hover:bg-blue-100"
+                        className="inline-flex items-center gap-1 rounded-full border border-blue-200 bg-blue-50 px-2 py-1 text-[11px] font-medium text-blue-700 hover:bg-blue-100"
                         title={`View all clubs' goal setting for D ${d.districtNumber}`}
                       >
                         <Building2 size={12} /> View clubs
@@ -404,7 +404,7 @@ export default function GoalOversightMatrix({
         <DialogContent className="max-w-[96vw] sm:max-w-[96vw] w-[96vw] h-[88vh] flex flex-col overflow-hidden">
           <DialogHeader className="shrink-0">
             <div className="flex items-center justify-between gap-3 pr-8">
-              <DialogTitle className="flex items-center gap-2">
+              <DialogTitle className="flex flex-wrap items-center gap-2">
                 <Calendar size={18} className="text-blue-600" /> Month-wise Collection: District {monthDistrict?.number}
               </DialogTitle>
               {monthDistrict && (
@@ -412,7 +412,7 @@ export default function GoalOversightMatrix({
                   type="button"
                   onClick={() => downloadDistrictSetting(monthDistrict.id)}
                   disabled={dl !== null}
-                  className="inline-flex items-center gap-1.5 h-8 rounded-md border border-blue-200 bg-blue-50 px-3 text-xs font-medium text-blue-700 hover:bg-blue-100 disabled:opacity-40 shrink-0"
+                  className="inline-flex items-center gap-1.5 h-8 rounded-full border border-blue-200 bg-blue-50 px-3 text-xs font-medium text-blue-700 hover:bg-blue-100 disabled:opacity-40 shrink-0"
                   title="Download this district's District Goal Setting report (YTD + Month-wise)"
                 >
                   {dl === monthDistrict.id ? <Loader2 size={13} className="animate-spin" /> : <Download size={13} />} Download report
@@ -432,7 +432,7 @@ export default function GoalOversightMatrix({
       <Dialog open={!!clubDistrict} onOpenChange={(o) => { if (!o) setClubDistrict(null); }}>
         <DialogContent className="max-w-6xl w-[97vw] h-[90vh] flex flex-col overflow-hidden">
           <DialogHeader className="shrink-0">
-            <DialogTitle className="flex items-center gap-2">
+            <DialogTitle className="flex flex-wrap items-center gap-2">
               <Building2 size={18} className="text-blue-600" /> Club Goal Setting: District {clubDistrict?.number}
             </DialogTitle>
           </DialogHeader>
@@ -448,7 +448,7 @@ export default function GoalOversightMatrix({
       <Dialog open={msgOpen} onOpenChange={setMsgOpen}>
         <DialogContent className="max-w-4xl w-[95vw] h-[85vh] flex flex-col overflow-hidden">
           <DialogHeader className="shrink-0">
-            <DialogTitle className="flex items-center gap-2">
+            <DialogTitle className="flex flex-wrap items-center gap-2">
               <MessagesSquare size={18} className="text-blue-600" /> Messages{zoneName ? `: ${zoneName}` : ""}
             </DialogTitle>
           </DialogHeader>
@@ -457,14 +457,14 @@ export default function GoalOversightMatrix({
           <div className="shrink-0 flex flex-wrap items-end gap-2 border-b border-slate-100 pb-3 pr-8">
             <label className="flex flex-col gap-1 text-[11px] text-slate-500">
               Category
-              <select value={rptCat} onChange={(e) => setRptCat(Number(e.target.value))} className="h-8 rounded-md border border-slate-300 bg-white px-2 text-xs text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
+              <select value={rptCat} onChange={(e) => setRptCat(Number(e.target.value))} className="h-8 rounded-[12px] border border-slate-300 bg-white px-2 text-xs text-slate-700 focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]">
                 <option value={0}>All categories</option>
                 {cats.map((c) => <option key={c.categoryId} value={c.categoryId}>{c.name}</option>)}
               </select>
             </label>
             <label className="flex flex-col gap-1 text-[11px] text-slate-500">
               District
-              <select value={rptDistrict} onChange={(e) => setRptDistrict(Number(e.target.value))} className="h-8 rounded-md border border-slate-300 bg-white px-2 text-xs text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
+              <select value={rptDistrict} onChange={(e) => setRptDistrict(Number(e.target.value))} className="h-8 rounded-[12px] border border-slate-300 bg-white px-2 text-xs text-slate-700 focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]">
                 <option value={0}>All districts</option>
                 {(matrix?.districts || []).map((d) => <option key={d.districtId} value={d.districtId}>{d.districtNumber}</option>)}
               </select>
@@ -473,7 +473,7 @@ export default function GoalOversightMatrix({
               type="button"
               onClick={downloadMessagesReport}
               disabled={rptBusy}
-              className="inline-flex items-center gap-1.5 h-8 rounded-md border border-blue-200 bg-blue-50 px-3 text-xs font-medium text-blue-700 hover:bg-blue-100 disabled:opacity-40"
+              className="inline-flex items-center gap-1.5 h-8 rounded-full border border-blue-200 bg-blue-50 px-3 text-xs font-medium text-blue-700 hover:bg-blue-100 disabled:opacity-40"
               title="Download the goal messages report for the selected filters"
             >
               {rptBusy ? <Loader2 size={13} className="animate-spin" /> : <Download size={13} />} Download report

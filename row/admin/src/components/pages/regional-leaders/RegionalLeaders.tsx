@@ -25,7 +25,7 @@ export function RegionalLeaders() {
       </PageBanner>
 
       {/* Sticky zone control — azure pill tabs */}
-      <div className="sticky top-[60px] z-30 border-b border-navy-950/10 bg-paper/90 backdrop-blur-md">
+      <div className="sticky top-[60px] z-30 border-b border-navy-950/10 bg-paper">
         <div className="container-rotary">
           <div
             role="tablist"

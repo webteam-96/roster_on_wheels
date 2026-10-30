@@ -26,6 +26,7 @@ import { useImageCropUpload } from "@/hooks/useImageCropUpload";
 import RotaryLoader from "@/components/RotaryLoader";
 import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";
+import { ListPageSkeleton } from "@/components/row/AppKit";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
@@ -291,7 +292,7 @@ export default function DistrictGovernorPage() {
         <SuccessAlert open={!!successMessage} title="Success" description={successMessage || ""} onOk={() => setSuccessMessage(null)} />
         <ErrorAlert open={!!errorMessage} title="Error" description={errorMessage || ""} onOk={() => setErrorMessage(null)} />
 
-        <div className="flex items-center justify-between">
+        <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-3">
             <Button variant="outline" size="icon" asChild>
               <Link href="/settings"><ArrowLeft className="h-4 w-4" /></Link>
@@ -342,7 +343,7 @@ export default function DistrictGovernorPage() {
 
         {/* List */}
         {loading ? (
-          <div className="flex justify-center py-20"><RotaryLoader size="lg" /></div>
+          <div className="flex justify-center py-20"><ListPageSkeleton /></div>
         ) : items.length === 0 ? (
           <div className="flex flex-col items-center py-20 text-center">
             <Crown className="h-12 w-12 text-muted-foreground mb-4" />
@@ -379,7 +380,7 @@ export default function DistrictGovernorPage() {
                         )}
                       </TableCell>
                       <TableCell className="font-medium">
-                        <div className="flex items-center gap-2">
+                        <div className="flex flex-wrap items-center gap-2">
                           <span>{item.memberName}</span>
                           {!item.memberId && <Badge variant="outline">Not a member</Badge>}
                           {rowInactive && <Badge variant="destructive">Inactive</Badge>}
@@ -448,7 +449,7 @@ export default function DistrictGovernorPage() {
                 <Label>Search Member <span className="text-destructive">*</span></Label>
                 {nonMember ? (
                   <div className="space-y-3 p-3 border rounded-lg bg-muted/30">
-                    <div className="flex items-center justify-between">
+                    <div className="flex flex-wrap items-center justify-between gap-3">
                       <Badge variant="secondary">Not a member</Badge>
                       <button
                         type="button"

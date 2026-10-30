@@ -176,7 +176,7 @@ export default function MassEmailSection({ clubId }: { clubId: number }) {
           {totalPages > 1 && (
             <div className="flex items-center justify-between px-4 py-3 border-t border-slate-100">
               <p className="text-sm text-slate-500">Showing {(page - 1) * pageSize + 1}-{Math.min(page * pageSize, totalCount)} of {totalCount}</p>
-              <div className="flex gap-2">
+              <div className="flex flex-wrap gap-2">
                 <Button variant="outline" size="sm" className="border-slate-200" onClick={() => setPage((p) => p - 1)} disabled={page <= 1}>Previous</Button>
                 <Button variant="outline" size="sm" className="border-slate-200" onClick={() => setPage((p) => p + 1)} disabled={page >= totalPages}>Next</Button>
               </div>

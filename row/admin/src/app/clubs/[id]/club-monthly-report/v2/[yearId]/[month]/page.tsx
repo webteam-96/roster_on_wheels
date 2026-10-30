@@ -121,7 +121,7 @@ function SectionCard({
   return (
     <div className="rounded-xl border border-slate-200 overflow-hidden">
       <div className="flex items-center justify-between gap-3 px-4 py-2.5 bg-slate-50 border-b border-slate-100">
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <Icon className="h-4 w-4 text-slate-500" />
           <h3 className="text-sm font-semibold text-slate-800">{title}</h3>
         </div>
@@ -575,7 +575,7 @@ function ClubMonthlyReportV2WizardInner() {
           action={
             <LoadingLink
               href={addMeetingHref}
-              className="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-lg bg-emerald-600 text-white hover:bg-emerald-700"
+              className="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full bg-[#17458F] text-white hover:bg-[#17458F]"
             >
               <Plus size={12} /> Add Meeting
             </LoadingLink>
@@ -594,8 +594,8 @@ function ClubMonthlyReportV2WizardInner() {
             </div>
           ) : (
             <div className="overflow-x-auto">
-              <table className="min-w-full text-sm">
-                <thead className="bg-slate-50 text-xs uppercase text-slate-500">
+              <table className="w-full min-w-[640px] md:min-w-full text-sm">
+                <thead className="bg-[#EDF4FB] text-[13px] text-[#64748B]">
                   <tr>
                     <th className="px-3 py-2.5 text-left w-12">#</th>
                     <th className="px-3 py-2.5 text-left">Date</th>
@@ -665,7 +665,7 @@ function ClubMonthlyReportV2WizardInner() {
           action={
             <LoadingLink
               href={addTrfHref}
-              className="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-lg bg-emerald-600 text-white hover:bg-emerald-700"
+              className="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full bg-[#17458F] text-white hover:bg-[#17458F]"
             >
               <Plus size={12} /> Add TRF
             </LoadingLink>
@@ -679,8 +679,8 @@ function ClubMonthlyReportV2WizardInner() {
             </div>
           ) : (
             <div className="overflow-x-auto">
-              <table className="min-w-full text-sm">
-                <thead className="bg-slate-50 text-xs uppercase text-slate-500">
+              <table className="w-full min-w-[640px] md:min-w-full text-sm">
+                <thead className="bg-[#EDF4FB] text-[13px] text-[#64748B]">
                   <tr>
                     <th className="px-3 py-2.5 text-left w-12">#</th>
                     <th className="px-3 py-2.5 text-left">Date</th>
@@ -745,11 +745,11 @@ function ClubMonthlyReportV2WizardInner() {
           icon={FolderOpen}
           title="Projects"
           action={
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <select
                 value={addProjectType}
                 onChange={(e) => setAddProjectType(e.target.value)}
-                className="px-2 py-1 text-xs border border-slate-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="px-2 py-1 text-xs border border-slate-200 rounded-[12px] bg-white focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
               >
                 <option value="">Select service type…</option>
                 {Object.entries(PROJECT_LABELS).map(([key, label]) => (
@@ -766,7 +766,7 @@ function ClubMonthlyReportV2WizardInner() {
                 }}
                 className={`inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-lg ${
                   addProjectType
-                    ? "bg-emerald-600 text-white hover:bg-emerald-700"
+                    ? "bg-[#17458F] text-white hover:bg-[#123A78]"
                     : "bg-slate-200 text-slate-500 cursor-not-allowed"
                 }`}
               >
@@ -795,7 +795,7 @@ function ClubMonthlyReportV2WizardInner() {
                       className="w-full flex items-center justify-between px-4 py-2.5 bg-slate-50 hover:bg-slate-100 transition-colors"
                       onClick={() => toggleSection(serviceType)}
                     >
-                      <div className="flex items-center gap-2">
+                      <div className="flex flex-wrap items-center gap-2">
                         <span className="text-sm font-semibold text-slate-800">{label}</span>
                         <span className="inline-flex items-center text-xs font-medium px-1.5 py-0.5 rounded-full bg-blue-100 text-blue-700">
                           {items.length}
@@ -808,8 +808,8 @@ function ClubMonthlyReportV2WizardInner() {
                     </button>
                     {!isCollapsed && (
                       <div className="overflow-x-auto">
-                        <table className="min-w-full text-sm">
-                          <thead className="bg-white text-xs uppercase text-slate-500 border-b border-slate-100">
+                        <table className="w-full min-w-[640px] md:min-w-full text-sm">
+                          <thead className="bg-[#EDF4FB] text-[13px] text-[#64748B] border-b border-slate-100">
                             <tr>
                               <th className="px-3 py-2.5 text-left w-12">#</th>
                               <th className="px-3 py-2.5 text-left">Date</th>
@@ -910,7 +910,7 @@ function ClubMonthlyReportV2WizardInner() {
               type="button"
               onClick={recalcMemberStats}
               disabled={recalculating}
-              className="inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-lg border border-slate-200 text-slate-700 hover:bg-blue-50 hover:text-blue-700 disabled:opacity-50"
+              className="inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-full border border-slate-200 text-slate-700 hover:bg-blue-50 hover:text-blue-700 disabled:opacity-50"
             >
               {recalculating ? <Loader2 size={12} className="animate-spin" /> : <RefreshCw size={12} />}
               Recalculate from members
@@ -932,7 +932,7 @@ function ClubMonthlyReportV2WizardInner() {
                 min={0}
                 value={memberCountLastMonth}
                 onChange={(e) => setMemberCountLastMonth(parseInt(e.target.value) || 0)}
-                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] bg-white focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
               />
             </div>
             <div>
@@ -944,7 +944,7 @@ function ClubMonthlyReportV2WizardInner() {
                 min={0}
                 value={membersDeleted}
                 onChange={(e) => setMembersDeleted(parseInt(e.target.value) || 0)}
-                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] bg-white focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
               />
             </div>
             <div>
@@ -956,7 +956,7 @@ function ClubMonthlyReportV2WizardInner() {
                 min={0}
                 value={membersAdded}
                 onChange={(e) => setMembersAdded(parseInt(e.target.value) || 0)}
-                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] bg-white focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
               />
             </div>
             <div className="rounded-xl border border-blue-100 bg-blue-50 px-4 py-3 flex items-center justify-between">
@@ -975,7 +975,7 @@ function ClubMonthlyReportV2WizardInner() {
                 value={additionalRemarks}
                 onChange={(e) => setAdditionalRemarks(e.target.value)}
                 placeholder="Please input details of participation /hosting of events or projects above club level with Date, short description, Participated Rotarians etc."
-                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] bg-white focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
               />
               <p className="text-[10px] text-slate-500 mt-1 text-right tabular-nums">
                 {additionalRemarks.length}/1000 characters
@@ -986,23 +986,23 @@ function ClubMonthlyReportV2WizardInner() {
       )}
 
       {/* Sticky bottom action bar */}
-      <div className="sticky bottom-0 -mx-2 sm:-mx-0 bg-white/95 backdrop-blur border-t border-slate-200 px-4 py-3 flex flex-wrap items-center justify-between gap-2">
+      <div className="sticky bottom-0 -mx-2 sm:-mx-0 bg-white border-t border-slate-200 px-4 py-3 flex flex-wrap items-center justify-between gap-2">
         {currentStep > 0 ? (
           <LoadingButton
             type="button"
             onAction={handlePrevious}
             forcePending={saving}
             spinnerSize={14}
-            className="inline-flex items-center gap-1 text-sm font-medium px-3 py-1.5 rounded-lg border border-slate-200 text-slate-700 hover:bg-slate-50 disabled:opacity-50"
+            className="inline-flex items-center gap-1 text-sm font-medium px-3 py-1.5 rounded-full border border-slate-200 text-slate-700 hover:bg-slate-50 disabled:opacity-50"
           >
             <ArrowLeft size={14} /> Previous
           </LoadingButton>
         ) : <span />}
 
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <Link
             href={cmrLandingHref}
-            className="inline-flex items-center gap-1 text-sm font-medium px-3 py-1.5 rounded-lg border border-slate-200 text-slate-700 hover:bg-slate-50"
+            className="inline-flex items-center gap-1 text-sm font-medium px-3 py-1.5 rounded-full border border-slate-200 text-slate-700 hover:bg-slate-50"
           >
             <ArrowLeft size={14} /> Back
           </Link>
@@ -1013,7 +1013,7 @@ function ClubMonthlyReportV2WizardInner() {
               forcePending={saving}
               loadingLabel="Saving…"
               spinnerSize={14}
-              className="inline-flex items-center gap-1 text-sm font-semibold px-4 py-1.5 rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50"
+              className="inline-flex items-center gap-1 text-sm font-semibold px-4 py-1.5 rounded-full bg-[#17458F] text-white hover:bg-[#17458F] disabled:opacity-50"
             >
               Save and Next <ArrowRight size={14} />
             </LoadingButton>
@@ -1024,7 +1024,7 @@ function ClubMonthlyReportV2WizardInner() {
               forcePending={saving}
               loadingLabel="Saving…"
               spinnerSize={14}
-              className="inline-flex items-center gap-1 text-sm font-semibold px-4 py-1.5 rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50"
+              className="inline-flex items-center gap-1 text-sm font-semibold px-4 py-1.5 rounded-full bg-[#17458F] text-white hover:bg-[#17458F] disabled:opacity-50"
             >
               <FileText size={14} /> Save &amp; Generate Report
             </LoadingButton>

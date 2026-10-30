@@ -239,7 +239,7 @@ class _ClubDuesOfflineScreenState extends State<ClubDuesOfflineScreen> {
               'Amount ${_inr(widget.dues.amountOwed)} for ${widget.dues.unpaidCount} '
               'unpaid member(s). This will be submitted for approval by the district.',
               style: AppFonts.body(
-                  fontSize: 12.5, color: AppColors.textSecondary, height: 1.35),
+                  fontSize: 13, color: AppColors.textSecondary, height: 1.35),
             ),
           ),
         ],

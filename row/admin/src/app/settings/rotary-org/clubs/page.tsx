@@ -22,6 +22,7 @@ import {
   deleteClubManualSync, getClubOrgDetail, refreshClubsCache, markClubSynced,
   getClubOrgMemberCount, getClubMemberDiff, reconcileDistrictMembers, softDeleteClubMemberLinks,
 } from "@/services/api";
+import { ListPageSkeleton } from "@/components/row/AppKit";
 
 interface DistrictOption { id: number; districtNumber: string }
 
@@ -483,7 +484,7 @@ export default function RotaryOrgClubsPage() {
               <p className="text-muted-foreground text-base">Compare clubs in a district side-by-side and sync manually</p>
             </div>
           </div>
-          <div className="flex items-end gap-3">
+          <div className="flex flex-wrap items-end gap-3">
             <div>
               <Label className="text-xs text-muted-foreground">District</Label>
               <Select value={districtId} onValueChange={setDistrictId}>
@@ -500,7 +501,7 @@ export default function RotaryOrgClubsPage() {
           </div>
         </div>
 
-        {loading && <div className="flex justify-center py-12"><RotaryLoader size="lg" /></div>}
+        {loading && <div className="flex justify-center py-12"><ListPageSkeleton /></div>}
 
         {!loading && data && (
           <>

@@ -51,6 +51,7 @@ import SearchBox from "@/components/SearchBox";
 import ImageCropDialog from "@/components/ImageCropDialog";
 import DocumentOrLinkField from "@/components/website-data/DocumentOrLinkField";
 import { useImageCropUpload } from "@/hooks/useImageCropUpload";
+import { ListPageSkeleton } from "@/components/row/AppKit";
 
 const BANNER_ASPECT = 16 / 5;
 const BANNER_MAX_WIDTH = 1920;
@@ -317,7 +318,7 @@ export default function DistrictBannerPhotosPage() {
 
         {loading && (
           <div className="flex items-center justify-center py-20">
-            <RotaryLoader size="lg" />
+            <ListPageSkeleton />
           </div>
         )}
 
@@ -347,7 +348,7 @@ export default function DistrictBannerPhotosPage() {
 
         {loadingBanners && (
           <div className="flex items-center justify-center py-12">
-            <RotaryLoader size="lg" />
+            <ListPageSkeleton />
           </div>
         )}
 
@@ -376,7 +377,7 @@ export default function DistrictBannerPhotosPage() {
                     {canManage && !isSearching && (
                       <div
                         {...dragProps(idx)}
-                        className="absolute top-2 left-2 z-10 bg-background/80 backdrop-blur rounded p-1 text-muted-foreground"
+                        className="absolute top-2 left-2 z-10 bg-background rounded p-1 text-muted-foreground"
                         title="Drag to reorder"
                       >
                         <GripVertical className="h-4 w-4 cursor-grab" />
@@ -392,7 +393,7 @@ export default function DistrictBannerPhotosPage() {
                           </div>
                         )}
                       </div>
-                      <div className="flex items-center justify-between">
+                      <div className="flex flex-wrap items-center justify-between gap-3">
                         <div className="flex-1 min-w-0">
                           <p className="text-sm text-muted-foreground truncate">{banner.description || "No description"}</p>
                           <Badge variant={banner.isActive ? "default" : "secondary"} className="mt-1">

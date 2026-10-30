@@ -36,6 +36,7 @@ import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";
 
 import { appLocale } from "@/lib/appFormat";
+import { ListPageSkeleton } from "@/components/row/AppKit";
 const STATUS_OPTIONS = [
   { value: "all", label: "All" },
   { value: "Published", label: "Published" },
@@ -212,7 +213,7 @@ export default function UpcomingEventsPage() {
 
         {loading && (
           <div className="flex items-center justify-center py-20">
-            <RotaryLoader size="lg" />
+            <ListPageSkeleton />
           </div>
         )}
 

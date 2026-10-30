@@ -52,6 +52,7 @@ import ImageCropDialog from "@/components/ImageCropDialog";
 import { useImageCropQueue } from "@/hooks/useImageCropQueue";
 
 import { defaultCurrency } from "@/lib/appFormat";
+import { ListPageSkeleton } from "@/components/row/AppKit";
 // Project photos are shown 16:9 on the public site (components/pages/projects/shared.tsx),
 // so the crop is locked to that shape. 1600×900 keeps the widest card retina-sharp.
 const PROJECT_PHOTO_ASPECT = 16 / 9;
@@ -552,7 +553,7 @@ export default function PublicImageInitiativeV2AddPage() {
     return (
       <ProtectedRoute>
         <div className="flex items-center justify-center py-20">
-          <RotaryLoader size="lg" />
+          <ListPageSkeleton />
         </div>
       </ProtectedRoute>
     );
@@ -582,8 +583,8 @@ export default function PublicImageInitiativeV2AddPage() {
         }
       >
         {/* 1. Project Type */}
-        <SectionCard number={1} icon={FileText} title="Project Type" dot="bg-blue-600">
-          <FieldLabel dot="bg-blue-500">Select Project Type</FieldLabel>
+        <SectionCard number={1} icon={FileText} title="Project Type" dot="bg-[#17458F]">
+          <FieldLabel dot="bg-[#17458F]">Select Project Type</FieldLabel>
           <div className="flex flex-wrap gap-2 mt-1">
             <RadioPill checked={projectType === "one_time"} onChange={() => handleProjectTypeChange("one_time")} label="One Time Project" />
             <RadioPill checked={projectType === "ongoing_repeat"} onChange={() => handleProjectTypeChange("ongoing_repeat")} label="Ongoing / Repeat Project" />
@@ -592,7 +593,7 @@ export default function PublicImageInitiativeV2AddPage() {
           {projectType === "ongoing_repeat" && (
             <div className="space-y-4 mt-4 pl-5 border-l-2 border-blue-200 ml-2">
               <div>
-                <FieldLabel dot="bg-blue-500">Ongoing/Repeat Type</FieldLabel>
+                <FieldLabel dot="bg-[#17458F]">Ongoing/Repeat Type</FieldLabel>
                 <div className="flex flex-wrap gap-2 mt-1">
                   <RadioPill checked={ongoingSubType === "new"} onChange={() => { setOngoingSubType("new"); setIsJointProject(null); setClubRole(""); }} label="Create New" />
                   <RadioPill checked={ongoingSubType === "existing"} onChange={() => { setOngoingSubType("existing"); setIsJointProject(null); setClubRole(""); }} label="Select Existing" />
@@ -601,20 +602,20 @@ export default function PublicImageInitiativeV2AddPage() {
 
               {ongoingSubType === "new" && (
                 <div>
-                  <FieldLabel dot="bg-blue-500">Title of Ongoing/Repeat Project</FieldLabel>
+                  <FieldLabel dot="bg-[#17458F]">Title of Ongoing/Repeat Project</FieldLabel>
                   <input
                     type="text"
                     value={ongoingGroupTitle}
                     onChange={(e) => setOngoingGroupTitle(e.target.value)}
                     placeholder="Enter ongoing/repeat project title"
-                    className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
                   />
                 </div>
               )}
 
               {ongoingSubType === "existing" && (
                 <div>
-                  <FieldLabel dot="bg-blue-500">Search Existing Project</FieldLabel>
+                  <FieldLabel dot="bg-[#17458F]">Search Existing Project</FieldLabel>
                   <div className="relative">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
                     <input
@@ -622,7 +623,7 @@ export default function PublicImageInitiativeV2AddPage() {
                       value={ongoingSearch}
                       onChange={(e) => { setOngoingSearch(e.target.value); setSelectedParentId(null); }}
                       placeholder="Type to search existing projects..."
-                      className="w-full pl-9 pr-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full pl-9 pr-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
                     />
                     {ongoingSearch && (
                       <button type="button" onClick={() => { setOngoingSearch(""); setSelectedParentId(null); }} className="absolute right-3 top-1/2 -translate-y-1/2">
@@ -660,7 +661,7 @@ export default function PublicImageInitiativeV2AddPage() {
 
           {(projectType === "one_time" || (projectType === "ongoing_repeat" && ongoingSubType)) && (
             <div className="mt-4 pt-4 border-t border-dashed border-slate-200">
-              <FieldLabel dot="bg-blue-500">Is this a joint project with any other Rotary Club / Organisation?</FieldLabel>
+              <FieldLabel dot="bg-[#17458F]">Is this a joint project with any other Rotary Club / Organisation?</FieldLabel>
               <div className="flex flex-wrap gap-2 mt-1">
                 <RadioPill checked={isJointProject === true} onChange={() => setIsJointProject(true)} label="Yes" />
                 <RadioPill checked={isJointProject === false} onChange={() => setIsJointProject(false)} label="No" />
@@ -673,17 +674,17 @@ export default function PublicImageInitiativeV2AddPage() {
                     <p>Project uploaded by co-host Rotary club will be displayed only in the club monthly report &amp; club website (If subscribed through ROW)</p>
                   </div>
                   <div>
-                    <FieldLabel dot="bg-blue-500">Name of Co-host Rotary Club / Partner Organisation</FieldLabel>
+                    <FieldLabel dot="bg-[#17458F]">Name of Co-host Rotary Club / Partner Organisation</FieldLabel>
                     <input
                       type="text"
                       value={coHostName}
                       onChange={(e) => setCoHostName(e.target.value)}
                       placeholder="Enter co-host name"
-                      className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
                     />
                   </div>
                   <div>
-                    <FieldLabel dot="bg-blue-500">Your Club Role</FieldLabel>
+                    <FieldLabel dot="bg-[#17458F]">Your Club Role</FieldLabel>
                     <div className="flex flex-wrap gap-2 mt-1">
                       <RadioPill checked={clubRole === "lead"} onChange={() => setClubRole("lead")} label="Lead Club" />
                       <RadioPill checked={clubRole === "co_host"} onChange={() => setClubRole("co_host")} label="Co-Host Club" />
@@ -696,51 +697,51 @@ export default function PublicImageInitiativeV2AddPage() {
         </SectionCard>
 
         {/* 2. Project Details */}
-        <SectionCard number={2} icon={MapPin} title="Project Details" dot="bg-violet-600">
+        <SectionCard number={2} icon={MapPin} title="Project Details" dot="bg-[#17458F]">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="sm:col-span-2">
-              <FieldLabel hint="(max 50 chars)" dot="bg-violet-500">Title</FieldLabel>
+              <FieldLabel hint="(max 50 chars)" dot="bg-[#17458F]">Title</FieldLabel>
               <input
                 type="text"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 placeholder="Project title"
                 maxLength={50}
-                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500"
+                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
               />
               <p className="text-xs text-slate-400 text-right mt-0.5">{title.length}/50</p>
             </div>
             <div className="sm:col-span-2">
-              <FieldLabel hint="(max 1000 chars)" dot="bg-violet-500">Description</FieldLabel>
+              <FieldLabel hint="(max 1000 chars)" dot="bg-[#17458F]">Description</FieldLabel>
               <textarea
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 placeholder="Describe the project, its objectives, and impact…"
                 rows={4}
                 maxLength={1000}
-                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500"
+                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
               />
               <p className="text-xs text-slate-400 text-right mt-0.5">{description.length}/1000</p>
             </div>
             <div>
-              <FieldLabel dot="bg-violet-500">Location of Project</FieldLabel>
+              <FieldLabel dot="bg-[#17458F]">Location of Project</FieldLabel>
               <input
                 type="text"
                 value={location}
                 onChange={(e) => setLocation(e.target.value)}
                 placeholder="City, Venue, etc."
-                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500"
+                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
               />
             </div>
             <div>
-              <FieldLabel dot="bg-violet-500">Date of Project</FieldLabel>
-              <DateField value={projectDate} onChange={setProjectDate} max={frozenMonth ? frozenDateMax : todayStr} min={frozenMonth ? frozenDateMin : undefined} className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500" />
+              <FieldLabel dot="bg-[#17458F]">Date of Project</FieldLabel>
+              <DateField value={projectDate} onChange={setProjectDate} max={frozenMonth ? frozenDateMax : todayStr} min={frozenMonth ? frozenDateMin : undefined} className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]" />
             </div>
           </div>
         </SectionCard>
 
         {/* 3. Classification */}
-        <SectionCard number={3} icon={Target} title="Category" dot="bg-amber-600">
+        <SectionCard number={3} icon={Target} title="Category" dot="bg-[#17458F]">
           <ClassificationAssist
             clubId={clubId}
             moduleId={moduleId}
@@ -756,11 +757,11 @@ export default function PublicImageInitiativeV2AddPage() {
           />
           <div className={`grid grid-cols-1 sm:grid-cols-2 gap-4 ${classUnlocked ? "" : "opacity-50 pointer-events-none select-none"}`}>
             <div>
-              <FieldLabel dot="bg-amber-500">Category</FieldLabel>
+              <FieldLabel dot="bg-[#17458F]">Category</FieldLabel>
               <select
                 value={selectedAofId}
                 onChange={(e) => setSelectedAofId(e.target.value)}
-                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-amber-500"
+                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] bg-white focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
               >
                 <option value="">Select</option>
                 {areasOfFocus.map((a) => (
@@ -776,7 +777,7 @@ export default function PublicImageInitiativeV2AddPage() {
                   value={otherAreaOfFocus}
                   onChange={(e) => setOtherAreaOfFocus(e.target.value)}
                   placeholder="Specify category"
-                  className="w-full mt-2 px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500"
+                  className="w-full mt-2 px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
                 />
               )}
             </div>
@@ -784,14 +785,14 @@ export default function PublicImageInitiativeV2AddPage() {
         </SectionCard>
 
         {/* 4. Financial & Impact */}
-        <SectionCard number={4} icon={moneyIcon(currency)} title="Financial & Impact" dot="bg-emerald-600">
+        <SectionCard number={4} icon={moneyIcon(currency)} title="Financial & Impact" dot="bg-[#17458F]">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             <div>
-              <FieldLabel dot="bg-emerald-500">Currency</FieldLabel>
+              <FieldLabel dot="bg-[#17458F]">Currency</FieldLabel>
               <select
                 value={currency}
                 onChange={(e) => setCurrency(e.target.value)}
-                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] bg-white focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
               >
                 {currencyOptions().map((c) => (
                   <option key={c.code} value={c.code}>{c.label}</option>
@@ -799,22 +800,22 @@ export default function PublicImageInitiativeV2AddPage() {
               </select>
             </div>
             <div>
-              <FieldLabel dot="bg-emerald-500">Project Cost ({getCurrencySymbol(currency)})</FieldLabel>
+              <FieldLabel dot="bg-[#17458F]">Project Cost ({getCurrencySymbol(currency)})</FieldLabel>
               <input
                 type="number"
                 value={projectCost}
                 onChange={(e) => setProjectCost(e.target.value)}
                 placeholder="0"
                 min={0}
-                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
               />
             </div>
             <div>
-              <FieldLabel dot="bg-emerald-500">Funding</FieldLabel>
+              <FieldLabel dot="bg-[#17458F]">Funding</FieldLabel>
               <select
                 value={selectedFundingId}
                 onChange={(e) => handleFundingChange(e.target.value)}
-                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] bg-white focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
               >
                 <option value="">Select</option>
                 {fundingList.map((f) => (
@@ -828,40 +829,40 @@ export default function PublicImageInitiativeV2AddPage() {
                 <h4 className="text-sm font-semibold text-emerald-700">Global Grant Details</h4>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   <div>
-                    <FieldLabel dot="bg-emerald-500" required={false}>Global Grant Number</FieldLabel>
+                    <FieldLabel dot="bg-[#17458F]" required={false}>Global Grant Number</FieldLabel>
                     <input inputMode="numeric" pattern="[0-9]*" value={globalGrantNumber}
                       onChange={(e) => setGlobalGrantNumber(onlyDigits(e.target.value))} placeholder="e.g., 2434521"
-                      className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+                      className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]" />
                   </div>
                   <div>
-                    <FieldLabel dot="bg-emerald-500" required={false}>Amount Sanctioned ({getCurrencySymbol(currency)})</FieldLabel>
+                    <FieldLabel dot="bg-[#17458F]" required={false}>Amount Sanctioned ({getCurrencySymbol(currency)})</FieldLabel>
                     <input inputMode="numeric" pattern="[0-9]*" value={amountSanctioned}
                       onChange={(e) => setAmountSanctioned(onlyDigits(e.target.value))} placeholder="0"
-                      className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+                      className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]" />
                   </div>
                   <div>
-                    <FieldLabel dot="bg-emerald-500" required={false}>Amount Received ({getCurrencySymbol(currency)})</FieldLabel>
+                    <FieldLabel dot="bg-[#17458F]" required={false}>Amount Received ({getCurrencySymbol(currency)})</FieldLabel>
                     <input inputMode="numeric" pattern="[0-9]*" value={amountReceived}
                       onChange={(e) => setAmountReceived(onlyDigits(e.target.value))} placeholder="0"
-                      className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+                      className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]" />
                   </div>
                   <div>
-                    <FieldLabel dot="bg-emerald-500" required={false}>Amount spent till date ({getCurrencySymbol(currency)})</FieldLabel>
+                    <FieldLabel dot="bg-[#17458F]" required={false}>Amount spent till date ({getCurrencySymbol(currency)})</FieldLabel>
                     <input inputMode="numeric" pattern="[0-9]*" value={amountSpent}
                       onChange={(e) => setAmountSpent(onlyDigits(e.target.value))} placeholder="0"
-                      className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+                      className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]" />
                   </div>
                   <div className="md:col-span-2">
-                    <FieldLabel dot="bg-emerald-500">Host Clubs/Districts</FieldLabel>
+                    <FieldLabel dot="bg-[#17458F]">Host Clubs/Districts</FieldLabel>
                     <input type="text" value={hostClubsDistricts}
                       onChange={(e) => setHostClubsDistricts(e.target.value)} placeholder="e.g., RC Chicago, RC Paris"
-                      className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+                      className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]" />
                   </div>
                   <div className="md:col-span-2">
-                    <FieldLabel dot="bg-emerald-500">Global Partner Clubs/Districts</FieldLabel>
+                    <FieldLabel dot="bg-[#17458F]">Global Partner Clubs/Districts</FieldLabel>
                     <input type="text" value={globalPartnerClubsDistricts}
                       onChange={(e) => setGlobalPartnerClubsDistricts(e.target.value)} placeholder="e.g., RC Tokyo"
-                      className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+                      className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]" />
                   </div>
                 </div>
               </div>
@@ -872,55 +873,55 @@ export default function PublicImageInitiativeV2AddPage() {
                 <h4 className="text-sm font-semibold text-emerald-700">CSR Details</h4>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   <div className="md:col-span-2">
-                    <FieldLabel dot="bg-emerald-500">Name of the CSR Company</FieldLabel>
+                    <FieldLabel dot="bg-[#17458F]">Name of the CSR Company</FieldLabel>
                     <input type="text" value={csrCompanyName}
                       onChange={(e) => setCsrCompanyName(e.target.value)} placeholder="e.g., ABC Industries Ltd"
-                      className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+                      className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]" />
                   </div>
                   <div>
-                    <FieldLabel dot="bg-emerald-500">Amount Sanctioned ({getCurrencySymbol(currency)})</FieldLabel>
+                    <FieldLabel dot="bg-[#17458F]">Amount Sanctioned ({getCurrencySymbol(currency)})</FieldLabel>
                     <input inputMode="numeric" pattern="[0-9]*" value={amountSanctioned}
                       onChange={(e) => setAmountSanctioned(onlyDigits(e.target.value))} placeholder="0"
-                      className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+                      className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]" />
                   </div>
                   <div>
-                    <FieldLabel dot="bg-emerald-500">Amount Received ({getCurrencySymbol(currency)})</FieldLabel>
+                    <FieldLabel dot="bg-[#17458F]">Amount Received ({getCurrencySymbol(currency)})</FieldLabel>
                     <input inputMode="numeric" pattern="[0-9]*" value={amountReceived}
                       onChange={(e) => setAmountReceived(onlyDigits(e.target.value))} placeholder="0"
-                      className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+                      className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]" />
                   </div>
                 </div>
               </div>
             )}
 
             <div>
-              <FieldLabel hint="(Rotarians x Hours)" dot="bg-emerald-500">Man Hours</FieldLabel>
+              <FieldLabel hint="(Rotarians x Hours)" dot="bg-[#17458F]">Man Hours</FieldLabel>
               <input type="number" value={manHours} onChange={(e) => setManHours(e.target.value)} placeholder="0" min={0}
-                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]" />
             </div>
             <div>
-              <FieldLabel dot="bg-emerald-500">Rotarians Involved</FieldLabel>
+              <FieldLabel dot="bg-[#17458F]">Rotarians Involved</FieldLabel>
               <input type="number" value={rotariansInvolved} onChange={(e) => setRotariansInvolved(e.target.value)} placeholder="0" min={0}
-                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]" />
             </div>
             <div>
-              <FieldLabel dot="bg-emerald-500" required={false}>Rotaractors Involved</FieldLabel>
+              <FieldLabel dot="bg-[#17458F]" required={false}>Rotaractors Involved</FieldLabel>
               <input type="number" value={rotaractorsInvolved} onChange={(e) => setRotaractorsInvolved(e.target.value)} placeholder="0" min={0}
-                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]" />
             </div>
             <div>
-              <FieldLabel dot="bg-emerald-500" required={false}>RCC Involved</FieldLabel>
+              <FieldLabel dot="bg-[#17458F]" required={false}>RCC Involved</FieldLabel>
               <input type="number" value={rccInvolved} onChange={(e) => setRccInvolved(e.target.value)} placeholder="0" min={0}
-                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]" />
             </div>
           </div>
         </SectionCard>
 
         {/* 5. Photos */}
-        <SectionCard number={5} icon={Camera} title="Photos" dot="bg-rose-600">
+        <SectionCard number={5} icon={Camera} title="Photos" dot="bg-[#17458F]">
           <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <FieldLabel dot="bg-rose-500">Upload Photos (1 mandatory, max 5)</FieldLabel>
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <FieldLabel dot="bg-[#17458F]">Upload Photos (1 mandatory, max 5)</FieldLabel>
               <span className="text-xs text-slate-500">{photos.length}/5</span>
             </div>
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
@@ -1046,7 +1047,7 @@ export default function PublicImageInitiativeV2AddPage() {
       <Dialog open={agreementOpen} onOpenChange={(o) => !o && handleAgreeCancel()}>
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
+            <DialogTitle className="flex flex-wrap items-center gap-2">
               <Info className="text-blue-600" size={20} />
               I Agree
             </DialogTitle>

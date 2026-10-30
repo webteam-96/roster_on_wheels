@@ -85,7 +85,7 @@ export default function AddToOrgInstallDialog({
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
       <DialogContent className="sm:max-w-xl">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
+          <DialogTitle className="flex flex-wrap items-center gap-2">
             <Puzzle className="h-5 w-5 text-blue-600" />
             Sync Projects to Rotary.org: Setup
           </DialogTitle>
@@ -181,7 +181,7 @@ export default function AddToOrgInstallDialog({
                 </div>
               </div>
               {credError && <p className="text-xs text-red-600">{credError}</p>}
-              <div className="flex gap-2">
+              <div className="flex flex-wrap gap-2">
                 <Button size="sm" onClick={handleSaveCredentials} disabled={saving}>
                   {saving ? "Saving…" : "Save"}
                 </Button>

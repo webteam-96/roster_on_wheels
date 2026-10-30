@@ -69,7 +69,7 @@ export default function DistrictGoalMessages({
   return (
     <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
       <div className="px-5 py-3 border-b border-slate-100 bg-blue-50">
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <MessagesSquare size={16} className="text-blue-600" />
           <h3 className="text-sm font-semibold text-slate-800">{lockCategory && catName ? `${catName} Messages` : "Messages"}</h3>
           {data?.districtNumber && <span className="text-xs text-slate-500">District {data.districtNumber}</span>}
@@ -106,12 +106,12 @@ export default function DistrictGoalMessages({
             maxLength={4000}
             disabled={sending}
             placeholder={`Write your ${catName} message…`}
-            className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-slate-50"
+            className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42] disabled:bg-slate-50"
           />
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <span className="text-[11px] text-slate-400">{text.length}/4000</span>
             <button onClick={send} disabled={sending || !text.trim()}
-              className="ml-auto inline-flex items-center gap-1.5 text-xs font-semibold px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50">
+              className="ml-auto inline-flex items-center gap-1.5 text-xs font-semibold px-4 py-2 rounded-full bg-[#17458F] text-white hover:bg-[#17458F] disabled:opacity-50">
               {sending ? <Loader2 size={13} className="animate-spin" /> : <Send size={13} />} Send
             </button>
           </div>

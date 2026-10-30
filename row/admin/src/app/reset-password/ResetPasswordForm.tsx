@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import BrandLogo from "@/components/BrandLogo";
 import { resetPassword } from "@/services/api";
 
 interface PasswordCheck {
@@ -75,15 +76,16 @@ export function ResetPasswordForm() {
   };
 
   return (
-    <div className="flex min-h-[80vh] items-center justify-center">
-      <Card className="w-full max-w-md">
-        <CardHeader className="bg-primary text-primary-foreground rounded-t-xl">
-          <CardTitle className="text-xl">Reset Password</CardTitle>
-          <p className="text-sm text-primary-foreground/70">
+    <div className="flex min-h-screen items-center justify-center bg-background px-4 py-10">
+      <Card className="w-full max-w-md overflow-hidden rounded-[20px] border border-[color:var(--row-line)] shadow-none">
+        <CardHeader className="gap-6 px-7 pb-2 pt-7">
+          <BrandLogo className="h-14 self-start" />
+          <CardTitle className="font-display text-3xl font-semibold tracking-tight text-foreground">Reset Password</CardTitle>
+          <p className="text-sm text-muted-foreground">
             Create a new password for your account
           </p>
         </CardHeader>
-        <CardContent className="pt-6">
+        <CardContent className="px-7 pb-7 pt-6">
           {success ? (
             <div className="space-y-4">
               <p className="text-sm text-green-600 font-medium">
@@ -174,6 +176,7 @@ export function ResetPasswordForm() {
 
               <Button
                 type="submit"
+                size="lg"
                 className="w-full"
                 disabled={isLoading || !allChecksPassed || !passwordsMatch}
               >

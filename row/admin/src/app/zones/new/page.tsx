@@ -62,7 +62,7 @@ export default function NewZonePage() {
   return (
     <ProtectedRoute>
       <form onSubmit={handleSubmit} className="space-y-6">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-4">
             <Button variant="ghost" size="icon" asChild>
               <Link href="/"><ArrowLeft className="h-4 w-4" /></Link>
@@ -72,7 +72,7 @@ export default function NewZonePage() {
               <p className="text-muted-foreground text-base">Create a new Rotary zone</p>
             </div>
           </div>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             <Button type="button" variant="outline" onClick={() => router.push("/")}>Cancel</Button>
             <Button type="submit" disabled={loading}>
               {loading && <RotaryLoader size="sm" />}
@@ -92,7 +92,7 @@ export default function NewZonePage() {
                   <p className="text-xs text-muted-foreground">Zone Name is required</p>
                 </div>
 
-                <div className="flex items-center gap-2">
+                <div className="flex flex-wrap items-center gap-2">
                   <input type="checkbox" id="isActive" checked={isActive} onChange={(e) => setIsActive(e.target.checked)} className="h-4 w-4" />
                   <Label htmlFor="isActive">Active</Label>
                 </div>

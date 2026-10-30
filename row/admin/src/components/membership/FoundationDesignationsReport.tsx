@@ -56,7 +56,7 @@ export default function FoundationDesignationsReport({ scope, scopeId }: { scope
       ) : rows === null ? (
         <TableSkeleton rows={5} />
       ) : (
-        <div className="rounded-xl border border-slate-200 bg-white overflow-hidden">
+        <div className="rounded-[20px] border border-slate-200 bg-white overflow-hidden">
           <p className="px-4 py-3 text-xs text-slate-500 border-b border-slate-100">
             {rows.length} {rows.length === 1 ? "member" : "members"}
           </p>

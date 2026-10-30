@@ -19,6 +19,7 @@ import SearchBox from "@/components/SearchBox";
 import * as XLSX from "xlsx-js-style";
 
 import { appLocale } from "@/lib/appFormat";
+import { ListPageSkeleton } from "@/components/row/AppKit";
 export default function TerminatedMembersPage() {
   const params = useParams();
   const clubId = Number(params.id);
@@ -123,7 +124,7 @@ export default function TerminatedMembersPage() {
         </div>
 
         {/* Search */}
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <div className="relative flex-1 max-w-sm">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
@@ -152,7 +153,7 @@ export default function TerminatedMembersPage() {
 
         {loading && (
           <div className="flex items-center justify-center py-20">
-            <RotaryLoader size="lg" />
+            <ListPageSkeleton />
           </div>
         )}
 

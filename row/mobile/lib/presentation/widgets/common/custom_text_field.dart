@@ -97,89 +97,53 @@ class _CustomTextFieldState extends State<CustomTextField> {
             ? TextInputAction.newline
             : widget.textInputAction;
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.only(left: 4, bottom: 8),
-          child: Text(
-            widget.label,
-            style: AppFonts.body(color: isFocused ? AppColors.primaryPrime : AppColors.textPrimary,
-              fontWeight: isFocused ? FontWeight.w700 : FontWeight.w600,
-              fontSize: 13,
-            ),
-          ),
-        ),
-        TextFormField(
-          controller: widget.controller,
-          initialValue: widget.controller == null ? widget.initialValue : null,
-          validator: widget.validator,
-          keyboardType: effectiveKeyboardType,
-          textInputAction: effectiveTextInputAction,
-          obscureText: widget.obscureText ? _obscure : false,
-          readOnly: widget.readOnly,
-          onTap: widget.onTap,
-          onChanged: widget.onChanged,
-          onFieldSubmitted: widget.onSubmitted,
-          maxLines: widget.obscureText ? 1 : widget.maxLines,
-          maxLength: widget.maxLength,
-          inputFormatters: widget.inputFormatters,
-          enabled: widget.enabled,
-          focusNode: _internalFocusNode,
-          style: AppFonts.body(fontWeight: FontWeight.w500,
-            fontSize: 14,
-            color: widget.enabled ? AppColors.textPrimary : AppColors.textMuted,
-          ),
-          decoration: InputDecoration(
-            hintText: widget.hint,
-            hintStyle: AppFonts.body(color: AppColors.textMuted, fontSize: 14),
-            prefixIcon: widget.prefixIcon != null
-                ? Icon(
-                    widget.prefixIcon,
-                    size: 20,
-                    color: isFocused ? AppColors.primaryPrime : AppColors.textSecondary,
-                  )
-                : null,
-            suffixIcon: widget.obscureText
-                ? IconButton(
-                    icon: Icon(
-                      _obscure ? Icons.visibility_off_outlined : Icons.visibility_outlined,
-                      size: 20,
-                      color: isFocused ? AppColors.primaryPrime : AppColors.textSecondary,
-                    ),
-                    onPressed: () => setState(() => _obscure = !_obscure),
-                  )
-                : widget.suffixIcon,
-            counterText: '',
-            // Allow validation messages to wrap instead of clipping to one
-            // line with an ellipsis (e.g. the country-aware phone error).
-            errorMaxLines: 2,
-            filled: true,
-            fillColor: AppColors.primaryPrime.withOpacity(0.04),
-            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: AppColors.primaryPrime.withOpacity(0.5), width: 1),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: AppColors.goldPrime, width: 2),
-            ),
-            errorBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: AppColors.error, width: 1.5),
-            ),
-            focusedErrorBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: AppColors.error, width: 2),
-            ),
-            disabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: AppColors.lightBorder.withOpacity(0.5), width: 1),
-            ),
-          ),
-        ),
-      ],
+    // Field style comes from the app theme (design.md 8.6): outlined, label on the border, ink focus ring.
+    return TextFormField(
+      controller: widget.controller,
+      initialValue: widget.controller == null ? widget.initialValue : null,
+      validator: widget.validator,
+      keyboardType: effectiveKeyboardType,
+      textInputAction: effectiveTextInputAction,
+      obscureText: widget.obscureText ? _obscure : false,
+      readOnly: widget.readOnly,
+      onTap: widget.onTap,
+      onChanged: widget.onChanged,
+      onFieldSubmitted: widget.onSubmitted,
+      maxLines: widget.obscureText ? 1 : widget.maxLines,
+      maxLength: widget.maxLength,
+      inputFormatters: widget.inputFormatters,
+      enabled: widget.enabled,
+      focusNode: _internalFocusNode,
+      style: AppFonts.body(
+        fontSize: 16,
+        color: widget.enabled ? AppColors.textPrimary : AppColors.textMuted,
+      ),
+      decoration: InputDecoration(
+        label: Text(widget.label), // the i18n Text widget, so labels are translated
+        hintText: widget.hint,
+        prefixIcon: widget.prefixIcon != null
+            ? Icon(
+                widget.prefixIcon,
+                size: 20,
+                color: isFocused ? AppColors.textPrimary : AppColors.textSecondary,
+              )
+            : null,
+        suffixIcon: widget.obscureText
+            ? IconButton(
+                icon: Icon(
+                  _obscure ? Icons.visibility_off_outlined : Icons.visibility_outlined,
+                  size: 20,
+                  color: AppColors.textSecondary,
+                ),
+                onPressed: () => setState(() => _obscure = !_obscure),
+              )
+            : widget.suffixIcon,
+        counterText: '',
+        // Allow validation messages to wrap instead of clipping to one
+        // line with an ellipsis (e.g. the country-aware phone error).
+        errorMaxLines: 2,
+        alignLabelWithHint: isMultiline,
+      ),
     );
   }
 }

@@ -84,6 +84,7 @@ class _ClubGrantsScreenState extends State<ClubGrantsScreen> {
                   : RefreshIndicator(
                       onRefresh: _load,
                       child: ListView.separated(
+  padding: const EdgeInsets.only(bottom: 88),
                         itemCount: apps.length,
                         separatorBuilder: (_, __) => const Divider(height: 1),
                         itemBuilder: (_, i) {

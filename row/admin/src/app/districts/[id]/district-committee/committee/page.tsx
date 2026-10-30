@@ -31,6 +31,7 @@ import ImageCropDialog from "@/components/ImageCropDialog";
 import { useImageCropUpload } from "@/hooks/useImageCropUpload";
 
 import ProtectedRoute from "@/components/ProtectedRoute";
+import { ListPageSkeleton } from "@/components/row/AppKit";
 
 const PAGE_SIZE = 20;
 
@@ -330,7 +331,7 @@ export default function DistrictCommitteeMembersPage() {
           )}
         </div>
 
-        {loading && <div className="flex items-center justify-center py-20"><RotaryLoader size="lg" /></div>}
+        {loading && <div className="flex items-center justify-center py-20"><ListPageSkeleton /></div>}
 
         {!loading && allYears.length > 0 && (
           <div className="flex items-center gap-3 flex-wrap">
@@ -363,7 +364,7 @@ export default function DistrictCommitteeMembersPage() {
           </div>
         )}
 
-        {loadingMembers && <div className="flex items-center justify-center py-12"><RotaryLoader size="lg" /></div>}
+        {loadingMembers && <div className="flex items-center justify-center py-12"><ListPageSkeleton /></div>}
 
         {!loading && !loadingMembers && selectedYearId && members.length === 0 && (
           <div className="flex flex-col items-center justify-center py-20 text-center">
@@ -406,7 +407,7 @@ export default function DistrictCommitteeMembersPage() {
                         )}
                       </TableCell>
                       <TableCell>
-                        <div className="flex items-center gap-2">
+                        <div className="flex flex-wrap items-center gap-2">
                           <span className="font-medium">{m.name}</span>
                           {m.isMember ? <MemberChip /> : <NonMemberChip />}
                         </div>
@@ -468,7 +469,7 @@ export default function DistrictCommitteeMembersPage() {
                 <div className="space-y-2">
                   <Label>Search Member</Label>
                   <div className="relative">
-                    <div className="flex items-center gap-2">
+                    <div className="flex flex-wrap items-center gap-2">
                       <div className="relative flex-1">
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                         <Input

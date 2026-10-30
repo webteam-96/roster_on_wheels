@@ -333,14 +333,6 @@ class _ClubCitationScreenState extends State<ClubCitationScreen>
         ),
         child: TabBar(
           controller: _tabs,
-          dividerColor: Colors.transparent,
-          indicatorSize: TabBarIndicatorSize.tab,
-          indicator: BoxDecoration(
-            color: _kBlue,
-            borderRadius: BorderRadius.circular(10),
-          ),
-          labelColor: Colors.white,
-          unselectedLabelColor: _kSlate700,
           labelStyle:
               AppFonts.body(fontSize: 13, fontWeight: FontWeight.w700),
           unselectedLabelStyle:
@@ -379,7 +371,7 @@ class _ClubCitationScreenState extends State<ClubCitationScreen>
                       child: Text(
                         '${ry}District Awards Score',
                         style: AppFonts.body(
-                          fontSize: 12,
+                          fontSize: 13,
                           fontWeight: FontWeight.w600,
                           color: Colors.white.withValues(alpha: 0.9),
                         ),
@@ -401,7 +393,7 @@ class _ClubCitationScreenState extends State<ClubCitationScreen>
                 Text(
                   'Auto ${_fmtPts(_totalAuto)}   +   Manual ${_fmtPts(_totalManual)}',
                   style: AppFonts.body(
-                    fontSize: 12,
+                    fontSize: 13,
                     fontWeight: FontWeight.w600,
                     color: Colors.white.withValues(alpha: 0.8),
                   ),
@@ -451,7 +443,7 @@ class _ClubCitationScreenState extends State<ClubCitationScreen>
               icon: Icons.emoji_events_rounded,
               accent: _kEmerald,
               accentBg: _kEmeraldBg,
-              label: 'MANUAL',
+              label: 'Manual',
               value: _fmtPts(_totalManual),
               sub: 'Self-declared',
             ),
@@ -462,7 +454,7 @@ class _ClubCitationScreenState extends State<ClubCitationScreen>
               icon: Icons.flag_rounded,
               accent: AppColors.warningInk,
               accentBg: AppColors.background,
-              label: 'TOTAL',
+              label: 'Total',
               value: _fmtPts(_grandTotal),
               sub: 'Auto + Manual',
             ),
@@ -489,7 +481,7 @@ class _ClubCitationScreenState extends State<ClubCitationScreen>
           const SizedBox(width: 8),
           Text('Rotary Year',
               style: AppFonts.body(
-                  fontSize: 12,
+                  fontSize: 13,
                   fontWeight: FontWeight.w600,
                   color: _kSlate500)),
           const Spacer(),
@@ -595,7 +587,7 @@ class _ClubCitationScreenState extends State<ClubCitationScreen>
                   Text(
                     'Derived from system data (projects, meetings, members…).',
                     style: AppFonts.body(
-                        fontSize: 11.5, color: _kSlate500),
+                        fontSize: 13, color: _kSlate500),
                   ),
                 ],
               ),
@@ -644,7 +636,7 @@ class _ClubCitationScreenState extends State<ClubCitationScreen>
               const SizedBox(width: 6),
               Text('Refresh',
                   style: AppFonts.body(
-                      fontSize: 12,
+                      fontSize: 13,
                       fontWeight: FontWeight.w700,
                       color: _kBlue)),
             ],
@@ -725,8 +717,7 @@ class _ClubCitationScreenState extends State<ClubCitationScreen>
                 foregroundColor: Colors.white,
                 disabledBackgroundColor: _kGold.withValues(alpha: 0.5),
                 elevation: 0,
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12)),
+                shape: const StadiumBorder(),
               ),
               icon: _saving
                   ? const SizedBox(
@@ -856,7 +847,7 @@ class _KpiCard extends StatelessWidget {
           Text(
             label,
             style: AppFonts.body(
-              fontSize: 10,
+              fontSize: 13,
               fontWeight: FontWeight.w700,
               letterSpacing: 0.4,
               color: _kSlate400,
@@ -881,7 +872,7 @@ class _KpiCard extends StatelessWidget {
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             style: AppFonts.body(
-                fontSize: 9.5, color: _kSlate400),
+                fontSize: 13, color: _kSlate400),
           ),
         ],
       ),
@@ -950,7 +941,7 @@ class _AutoEntryCard extends StatelessWidget {
                 const SizedBox(height: 3),
                 Text(path,
                     style: AppFonts.body(
-                        fontSize: 12, color: _kSlate500, height: 1.35)),
+                        fontSize: 13, color: _kSlate500, height: 1.35)),
               ],
               const SizedBox(height: 6),
               Row(
@@ -960,7 +951,7 @@ class _AutoEntryCard extends StatelessWidget {
                   const SizedBox(width: 4),
                   Text('Tap for breakdown',
                       style: AppFonts.body(
-                          fontSize: 11,
+                          fontSize: 13,
                           fontWeight: FontWeight.w600,
                           color: _kSlate400)),
                 ],
@@ -1033,7 +1024,7 @@ void _showAutoEntryDetail(BuildContext context, _AutoEntry e) {
                     ),
                     Text('Total points',
                         style: AppFonts.body(
-                            fontSize: 11.5,
+                            fontSize: 13,
                             fontWeight: FontWeight.w600,
                             color: Colors.white.withValues(alpha: 0.85))),
                   ],
@@ -1091,7 +1082,7 @@ class _AutoDetailRow extends StatelessWidget {
           Expanded(
             child: Text(label,
                 style: AppFonts.body(
-                    fontSize: 12.5,
+                    fontSize: 13,
                     fontWeight: FontWeight.w600,
                     color: _kSlate500)),
           ),
@@ -1176,7 +1167,7 @@ class _ManualCategoryCard extends StatelessWidget {
                   child: Text(
                     _fmtPts(category.totalEarned),
                     style: AppFonts.body(
-                        fontSize: 12,
+                        fontSize: 13,
                         fontWeight: FontWeight.w800,
                         color: AppColors.successDark),
                   ),
@@ -1290,7 +1281,7 @@ class _SubCriteriaRowState extends State<_SubCriteriaRow> {
                     Text(
                       _fmtPts(earned),
                       style: AppFonts.body(
-                          fontSize: 12,
+                          fontSize: 13,
                           fontWeight: FontWeight.w800,
                           color: hasEarned
                               ? AppColors.successDark
@@ -1305,7 +1296,7 @@ class _SubCriteriaRowState extends State<_SubCriteriaRow> {
             const SizedBox(height: 3),
             Text(sub.remark!,
                 style: AppFonts.body(
-                    fontSize: 11.5, color: _kSlate500, height: 1.35)),
+                    fontSize: 13, color: _kSlate500, height: 1.35)),
           ],
           const SizedBox(height: 10),
           _inputFor(sub),
@@ -1328,7 +1319,7 @@ class _SubCriteriaRowState extends State<_SubCriteriaRow> {
             Expanded(
               child: Text('${sub.points.round()} pts if Yes',
                   style: AppFonts.body(
-                      fontSize: 11.5, color: _kSlate500)),
+                      fontSize: 13, color: _kSlate500)),
             ),
           ],
         );
@@ -1390,7 +1381,7 @@ class _SubCriteriaRowState extends State<_SubCriteriaRow> {
             Expanded(
               child: Text(hint,
                   style: AppFonts.body(
-                      fontSize: 11.5, color: _kSlate500)),
+                      fontSize: 13, color: _kSlate500)),
             ),
           ],
         );
@@ -1444,7 +1435,7 @@ class _YesNoToggle extends StatelessWidget {
         child: Text(
           text,
           style: AppFonts.body(
-            fontSize: 12.5,
+            fontSize: 13,
             fontWeight: FontWeight.w700,
             color: selected ? Colors.white : _kSlate500,
           ),
@@ -1508,7 +1499,7 @@ class _OptionTile extends StatelessWidget {
             Text(
               '$points',
               style: AppFonts.body(
-                fontSize: 12.5,
+                fontSize: 13,
                 fontWeight: FontWeight.w800,
                 color: selected ? _kBlue : _kSlate400,
               ),

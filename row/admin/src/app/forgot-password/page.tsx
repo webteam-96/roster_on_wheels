@@ -34,8 +34,8 @@ export default function ForgotPasswordPage() {
   };
 
   return (
-    <div className="flex min-h-[80vh] items-center justify-center bg-slate-50">
-      <Card className="w-full max-w-md overflow-hidden rounded-[var(--row-panel-r)] border border-[color:var(--row-line)] shadow-none">
+    <div className="flex min-h-screen items-center justify-center bg-background px-4 py-10">
+      <Card className="w-full max-w-md overflow-hidden rounded-[20px] border border-[color:var(--row-line)] shadow-none">
         <CardHeader className="gap-6 px-7 pb-2 pt-7">
           <BrandLogo className="h-14 self-start" />
           <div>
@@ -43,7 +43,7 @@ export default function ForgotPasswordPage() {
             <p className="mt-1 text-sm text-muted-foreground">Reset your account password</p>
           </div>
         </CardHeader>
-        <CardContent className="pt-6">
+        <CardContent className="px-7 pb-7 pt-6">
           {submitted ? (
             <div className="space-y-4">
               <p className="text-sm text-muted-foreground">
@@ -82,8 +82,8 @@ export default function ForgotPasswordPage() {
 
               <Button
                 type="submit"
-                className="w-full font-semibold hover:opacity-90"
-                style={{ backgroundColor: "#F7A81B", color: "#17458f" }}
+                size="lg"
+                className="w-full"
                 disabled={isLoading}
               >
                 {isLoading && <RotaryLoader size="sm" />}

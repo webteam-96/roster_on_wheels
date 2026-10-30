@@ -17,6 +17,7 @@ import '../../../../widgets/common/expandable_record_card.dart';
 import '../../../../widgets/common/labeled_stat.dart';
 import '../../modules/membership_dues/membership_dues_screen.dart';
 import 'package:rotary_flutter_app/core/i18n/text.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/skeleton_list.dart';
 
 /// Full-screen host for the dues management view used by the NORMAL club
 /// dashboard (no KPI cards — those stay exclusive to the overview tab). Owns
@@ -126,7 +127,7 @@ class _DuesManagementScreenState extends State<DuesManagementScreen> {
                   const SizedBox(width: 4),
                   Text(selLabel.isEmpty ? 'Year' : selLabel,
                       style: AppTextStyles.caption.copyWith(
-                          fontSize: 11,
+                          fontSize: 13,
                           color: Colors.white,
                           fontWeight: FontWeight.w700)),
                   const Icon(Icons.arrow_drop_down_rounded,
@@ -373,12 +374,7 @@ class _DuesManagementViewState extends State<DuesManagementView> {
   @override
   Widget build(BuildContext context) {
     if (_loading) {
-      return const Center(
-        child: Padding(
-          padding: EdgeInsets.symmetric(vertical: 36),
-          child: CircularProgressIndicator(),
-        ),
-      );
+      return const RowSkeletonList(rows: 3);
     }
     if (_error != null) {
       return _message(Icons.error_outline_rounded, _error!, onRetry: _bootstrap);
@@ -563,8 +559,7 @@ class _DuesManagementViewState extends State<DuesManagementView> {
           backgroundColor: AppColors.primary.withValues(alpha: 0.06),
           side: BorderSide(color: AppColors.primary.withValues(alpha: 0.25)),
           padding: const EdgeInsets.symmetric(vertical: 11),
-          shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(10)),
+          shape: const StadiumBorder(),
           textStyle: AppTextStyles.body.copyWith(fontWeight: FontWeight.w700),
         ),
       ),
@@ -697,7 +692,7 @@ class _DuesManagementViewState extends State<DuesManagementView> {
             const SizedBox(width: 4),
             Text(t,
                 style: AppTextStyles.caption.copyWith(
-                    fontSize: 10, color: AppColors.textSecondary)),
+                    fontSize: 13, color: AppColors.textSecondary)),
           ],
         );
     return Padding(
@@ -734,7 +729,7 @@ class _DuesManagementViewState extends State<DuesManagementView> {
               style: TextStyle(
                   color: Color(m.colorArgb),
                   fontWeight: FontWeight.w700,
-                  fontSize: 11)),
+                  fontSize: 13)),
         ),
         const SizedBox(width: 10),
         Expanded(
@@ -753,7 +748,7 @@ class _DuesManagementViewState extends State<DuesManagementView> {
       ),
       child: Text(label,
           style: TextStyle(
-              fontSize: 10, fontWeight: FontWeight.w800, color: color)),
+              fontSize: 13, fontWeight: FontWeight.w800, color: color)),
     );
     final expanded = Padding(
       padding: const EdgeInsets.only(left: 42),
@@ -823,7 +818,7 @@ class _DuesManagementViewState extends State<DuesManagementView> {
         side: BorderSide(color: color.withValues(alpha: 0.4)),
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
         minimumSize: const Size(0, 0),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        shape: const StadiumBorder(),
       ),
     );
   }

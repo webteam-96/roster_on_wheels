@@ -490,7 +490,7 @@ class _ClubMonthlyReportScreenState extends State<ClubMonthlyReportScreen> {
                 style: AppTextStyles.caption.copyWith(
                     color: Colors.green.shade800,
                     fontWeight: FontWeight.w600,
-                    fontSize: 11)),
+                    fontSize: 13)),
           ],
         ),
       );
@@ -510,7 +510,7 @@ class _ClubMonthlyReportScreenState extends State<ClubMonthlyReportScreen> {
               style: AppTextStyles.caption.copyWith(
                   color: Colors.grey.shade800,
                   fontWeight: FontWeight.w600,
-                  fontSize: 11)),
+                  fontSize: 13)),
         ],
       ),
     );
@@ -529,7 +529,7 @@ class _ClubMonthlyReportScreenState extends State<ClubMonthlyReportScreen> {
           style: AppTextStyles.caption.copyWith(
               color: Colors.blue.shade800,
               fontWeight: FontWeight.w600,
-              fontSize: 10)),
+              fontSize: 13)),
     );
   }
 
@@ -557,7 +557,7 @@ class _ClubMonthlyReportScreenState extends State<ClubMonthlyReportScreen> {
           child: ElevatedButton.icon(
             onPressed: () => _onMonthTap(item),
             icon: const Icon(Icons.add, size: 14),
-            label: const Text('Create', style: TextStyle(fontSize: 12)),
+            label: const Text('Create', style: TextStyle(fontSize: 13)),
             style: ElevatedButton.styleFrom(
               padding:
                   const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
@@ -1402,7 +1402,7 @@ class _MonthlyReportTabsPageState extends State<_MonthlyReportTabsPage> {
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: AppTextStyles.caption.copyWith(
-                          fontSize: 10,
+                          fontSize: 13,
                           fontWeight: FontWeight.w600,
                           color: isActive
                               ? AppColors.primary
@@ -2711,7 +2711,7 @@ class _AddEditMeetingPageState extends State<_AddEditMeetingPage> {
                               child: Text(
                                 'Primary',
                                 style: AppTextStyles.caption.copyWith(
-                                    color: Colors.white, fontSize: 9),
+                                    color: Colors.white, fontSize: 13),
                               ),
                             ),
                           ),

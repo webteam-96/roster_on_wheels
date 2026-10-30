@@ -160,7 +160,7 @@ export default function FoundationGoalsCard() {
     <div className="space-y-4">
       <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
         <div className="px-5 py-3 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-blue-50">
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <div className="w-9 h-9 rounded-lg bg-blue-100 text-blue-700 flex items-center justify-center">
               <Target size={18} />
             </div>
@@ -173,7 +173,7 @@ export default function FoundationGoalsCard() {
             <select
               value={selectedYearId ?? ""}
               onChange={(e) => setSelectedYearId(e.target.value ? Number(e.target.value) : null)}
-              className="px-2 py-1.5 text-sm border border-slate-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="px-2 py-1.5 text-sm border border-slate-200 rounded-[12px] bg-white focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
             >
               {data.years.length === 0 && <option value="">No years</option>}
               {data.years.map((y) => (
@@ -244,7 +244,7 @@ export default function FoundationGoalsCard() {
             value={form.remarks}
             disabled={!isEditable || saving}
             onChange={(e) => onChange("remarks", e.target.value)}
-            className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-slate-50 disabled:cursor-not-allowed"
+            className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42] disabled:bg-slate-50 disabled:cursor-not-allowed"
             placeholder={isEditable ? "Add context for this goal…" : "No remarks recorded."}
           />
         </div>
@@ -260,7 +260,7 @@ export default function FoundationGoalsCard() {
               </span>
             )}
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             {error && <span className="text-xs text-rose-700">{error}</span>}
             {success && (
               <span className="inline-flex items-center gap-1 text-xs text-emerald-700">
@@ -272,7 +272,7 @@ export default function FoundationGoalsCard() {
                 onAction={handleDelete}
                 forcePending={saving}
                 spinnerSize={13}
-                className="inline-flex items-center gap-1 text-xs font-medium px-3 py-1.5 rounded-lg border border-rose-200 text-rose-700 hover:bg-rose-50 disabled:opacity-50"
+                className="inline-flex items-center gap-1 text-xs font-medium px-3 py-1.5 rounded-full border border-rose-200 text-rose-700 hover:bg-rose-50 disabled:opacity-50"
               >
                 {!saving && <Trash2 size={13} />} Delete
               </LoadingButton>
@@ -283,7 +283,7 @@ export default function FoundationGoalsCard() {
                 forcePending={saving}
                 loadingLabel="Saving…"
                 spinnerSize={13}
-                className="inline-flex items-center gap-1 text-xs font-semibold px-3 py-1.5 rounded-lg bg-amber-500 text-white hover:bg-amber-600 disabled:opacity-50"
+                className="inline-flex items-center gap-1 text-xs font-semibold px-3 py-1.5 rounded-full bg-amber-500 text-white hover:bg-amber-600 disabled:opacity-50"
               >
                 {selection?.goalId == null ? <Plus size={13} /> : <Save size={13} />}
                 {selection?.goalId == null ? "Activate Goal" : "Save Goal"}

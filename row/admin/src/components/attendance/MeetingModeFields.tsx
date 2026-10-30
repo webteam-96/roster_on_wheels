@@ -52,7 +52,7 @@ export default function MeetingModeFields({
             onChange={(e) => onLinkChange(e.target.value)}
             placeholder="https://zoom.us/j/… or a Google Meet / Teams link"
             maxLength={1000}
-            className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full rounded-[12px] border border-slate-200 px-3 py-2 text-sm focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
           />
         </div>
       )}

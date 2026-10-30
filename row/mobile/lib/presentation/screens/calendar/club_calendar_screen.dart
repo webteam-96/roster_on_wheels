@@ -273,9 +273,6 @@ class _ClubCalendarScreenState extends State<ClubCalendarScreen> {
           ],
         ),
         TabBar(
-          labelColor: AppColors.primary,
-          unselectedLabelColor: AppColors.textSecondary,
-          indicatorColor: AppColors.primary,
           isScrollable: true,
           tabAlignment: TabAlignment.start,
           labelStyle:

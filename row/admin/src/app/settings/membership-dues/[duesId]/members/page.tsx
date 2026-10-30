@@ -41,6 +41,7 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 import SearchBox from "@/components/SearchBox";
 
 import { appLocale, currencySymbol } from "@/lib/appFormat";
+import { ListPageSkeleton } from "@/components/row/AppKit";
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
 // Read-only preview of the member's submitted offline payment, shown inside
@@ -948,7 +949,7 @@ export default function MembershipDuesMembersPage() {
           {["all", "paid", "unpaid", "pending"].map(tab => (
             <TabsContent key={tab} value={tab}>
               {loading ? (
-                <div className="flex justify-center py-10"><RotaryLoader size="lg" /></div>
+                <div className="flex justify-center py-10"><ListPageSkeleton /></div>
               ) : (
                 <div className="overflow-x-auto">
                   <Table>
@@ -1251,7 +1252,7 @@ export default function MembershipDuesMembersPage() {
                   </div>
                   <div>
                     <Label>Attachment</Label>
-                    <div className="flex items-center gap-2">
+                    <div className="flex flex-wrap items-center gap-2">
                       <input
                         ref={fileInputRef}
                         type="file"
@@ -1286,7 +1287,7 @@ export default function MembershipDuesMembersPage() {
                     </div>
                   )}
                   {offlineUpdatePaymentId === 0 && (
-                    <div className="flex items-center gap-2">
+                    <div className="flex flex-wrap items-center gap-2">
                       <Checkbox
                         id="sendReceiptCheckbox"
                         checked={offlineSendReceipt}
@@ -1296,7 +1297,7 @@ export default function MembershipDuesMembersPage() {
                     </div>
                   )}
                   {offlineUpdatePaymentId > 0 && offlineUpdateIsApproved && (
-                    <div className="flex items-center gap-2">
+                    <div className="flex flex-wrap items-center gap-2">
                       <Checkbox
                         id="sendReceiptOnUpdateCheckbox"
                         checked={offlineSendReceiptOnUpdate}
@@ -1358,7 +1359,7 @@ export default function MembershipDuesMembersPage() {
                     <div className="border rounded-md p-3 bg-muted/30 space-y-2">
                       <Label className="text-xs font-semibold text-muted-foreground">{fees1Label} Vendor Accounts</Label>
                       {editMember.annualVendors.map(v => (
-                        <div key={v.vendorId} className="flex items-center gap-2">
+                        <div key={v.vendorId} className="flex flex-wrap items-center gap-2">
                           <span className="text-xs w-32 truncate" title={v.vendorName || v.vendorId}>
                             {v.vendorName || v.vendorId}
                             {v.isDefault && <Lock className="h-3 w-3 inline ml-1 text-muted-foreground" />}
@@ -1398,7 +1399,7 @@ export default function MembershipDuesMembersPage() {
                     <div className="border rounded-md p-3 bg-muted/30 space-y-2">
                       <Label className="text-xs font-semibold text-muted-foreground">{fees2Label} Vendor Accounts</Label>
                       {editMember.semi1Vendors.map(v => (
-                        <div key={v.vendorId} className="flex items-center gap-2">
+                        <div key={v.vendorId} className="flex flex-wrap items-center gap-2">
                           <span className="text-xs w-32 truncate" title={v.vendorName || v.vendorId}>
                             {v.vendorName || v.vendorId}
                             {v.isDefault && <Lock className="h-3 w-3 inline ml-1 text-muted-foreground" />}
@@ -1438,7 +1439,7 @@ export default function MembershipDuesMembersPage() {
                     <div className="border rounded-md p-3 bg-muted/30 space-y-2">
                       <Label className="text-xs font-semibold text-muted-foreground">{fees3Label} Vendor Accounts</Label>
                       {editMember.semi2Vendors.map(v => (
-                        <div key={v.vendorId} className="flex items-center gap-2">
+                        <div key={v.vendorId} className="flex flex-wrap items-center gap-2">
                           <span className="text-xs w-32 truncate" title={v.vendorName || v.vendorId}>
                             {v.vendorName || v.vendorId}
                             {v.isDefault && <Lock className="h-3 w-3 inline ml-1 text-muted-foreground" />}

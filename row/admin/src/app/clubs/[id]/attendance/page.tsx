@@ -37,6 +37,7 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 
 import { useFormat } from "@/hooks/useFormat";
 import { useEventZone } from "@/hooks/useEventZone";
+import { ListPageSkeleton } from "@/components/row/AppKit";
 function CountBadge({ count }: { count: number }) {
   return (
     <span className="inline-flex items-center justify-center min-w-[24px] px-1.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-700">
@@ -212,7 +213,7 @@ export default function AttendancePage() {
 
         {loading && (
           <div className="flex items-center justify-center py-20">
-            <RotaryLoader size="lg" />
+            <ListPageSkeleton />
           </div>
         )}
 

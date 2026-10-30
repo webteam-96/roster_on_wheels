@@ -234,7 +234,7 @@ class _Header extends StatelessWidget {
               Text(
                 'Project activity, community impact, and monthly trends across your AG group',
                 style: AppFonts.body(
-                  fontSize: 11,
+                  fontSize: 13,
                   color: AppColors.slate500,
                 ),
               ),
@@ -359,9 +359,9 @@ class _KpiTile extends StatelessWidget {
               const SizedBox(width: 6),
               Expanded(
                 child: Text(
-                  label.toUpperCase(),
+                  label,
                   style: AppFonts.body(
-                    fontSize: 9.5,
+                    fontSize: 13,
                     fontWeight: FontWeight.w800,
                     color: AppColors.slate500,
                     letterSpacing: 0.4,
@@ -386,7 +386,7 @@ class _KpiTile extends StatelessWidget {
           Text(
             sub,
             style: AppFonts.body(
-              fontSize: 10,
+              fontSize: 13,
               color: AppColors.slate400,
             ),
             maxLines: 1,
@@ -425,17 +425,16 @@ class _ImpactBanner extends StatelessWidget {
                 child: Text(
                   'AG GROUP IMPACT SUMMARY',
                   style: AppFonts.body(
-                    fontSize: 10,
+                    fontSize: 13,
                     fontWeight: FontWeight.w800,
                     color: Colors.white.withValues(alpha: 0.7),
-                    letterSpacing: 0.8,
                   ),
                 ),
               ),
               Text(
                 'RY $year',
                 style: AppFonts.body(
-                  fontSize: 10,
+                  fontSize: 13,
                   fontWeight: FontWeight.w800,
                   color: Colors.white.withValues(alpha: 0.7),
                   letterSpacing: 0.4,
@@ -531,7 +530,7 @@ class _ImpactTile extends StatelessWidget {
                 Text(
                   label,
                   style: AppFonts.body(
-                    fontSize: 9.5,
+                    fontSize: 13,
                     color: AppColors.chart5,
                   ),
                 ),
@@ -578,7 +577,7 @@ class _ProjectsByClubCard extends StatelessWidget {
           Text(
             'Total projects executed per club',
             style: AppFonts.body(
-              fontSize: 11,
+              fontSize: 13,
               color: AppColors.slate400,
             ),
           ),
@@ -625,7 +624,7 @@ class _ClubBarRow extends StatelessWidget {
           child: Text(
             clubName,
             style: AppFonts.body(
-              fontSize: 11,
+              fontSize: 13,
               fontWeight: FontWeight.w700,
               color: AppColors.slate700,
             ),
@@ -650,7 +649,7 @@ class _ClubBarRow extends StatelessWidget {
             agFmtInt(value),
             textAlign: TextAlign.right,
             style: AppFonts.body(
-              fontSize: 12,
+              fontSize: 13,
               fontWeight: FontWeight.w800,
               color: color,
               fontFeatures: const [FontFeature.tabularFigures()],
@@ -714,7 +713,7 @@ class _MonthlyTrendCard extends StatelessWidget {
           Text(
             'Project count by month (combined across clubs)',
             style: AppFonts.body(
-              fontSize: 11,
+              fontSize: 13,
               color: AppColors.slate400,
             ),
           ),
@@ -737,7 +736,7 @@ class _MonthlyTrendCard extends StatelessWidget {
                             Text(
                               '${entries[i].value}',
                               style: AppFonts.body(
-                                fontSize: 9.5,
+                                fontSize: 13,
                                 fontWeight: FontWeight.w800,
                                 color: i == peakIdx
                                     ? AppColors.goldPrime
@@ -768,7 +767,7 @@ class _MonthlyTrendCard extends StatelessWidget {
                               _shortLabel(entries[i].key),
                               textAlign: TextAlign.center,
                               style: AppFonts.body(
-                                fontSize: 9,
+                                fontSize: 13,
                                 color: AppColors.slate400,
                               ),
                               maxLines: 1,
@@ -785,7 +784,7 @@ class _MonthlyTrendCard extends StatelessWidget {
             Text(
               'Gold bar = peak month',
               style: AppFonts.body(
-                fontSize: 10,
+                fontSize: 13,
                 color: AppColors.slate400,
               ),
             ),
@@ -878,7 +877,7 @@ class _ProjectsTable extends StatelessWidget {
                       ? 'Showing $shownCount of $totalCount projects'
                       : 'Showing $shownCount of $totalCount projects · filtered',
                   style: AppFonts.body(
-                    fontSize: 10.5,
+                    fontSize: 13,
                     color: AppColors.slate400,
                   ),
                 ),
@@ -908,7 +907,7 @@ class _ProjectsTable extends StatelessWidget {
                 child: Text(
                   'No projects match your search.',
                   style: AppFonts.body(
-                    fontSize: 12,
+                    fontSize: 13,
                     color: AppColors.slate400,
                   ),
                 ),
@@ -966,7 +965,7 @@ class _Pager extends StatelessWidget {
           Text(
             'Page ${page + 1} of $pageCount',
             style: AppFonts.body(
-              fontSize: 11,
+              fontSize: 13,
               fontWeight: FontWeight.w700,
               color: AppColors.slate500,
             ),
@@ -1005,7 +1004,7 @@ class _PagerBtn extends StatelessWidget {
       Text(
         label,
         style: AppFonts.body(
-          fontSize: 11.5,
+          fontSize: 13,
           fontWeight: FontWeight.w800,
           color: fg,
         ),
@@ -1077,14 +1076,14 @@ class _AvenueDropdown extends StatelessWidget {
                 icon: const Icon(Icons.keyboard_arrow_down_rounded,
                     size: 18, color: AppColors.slate400),
                 style: AppFonts.body(
-                    fontSize: 12.5, color: AppColors.textPrimary),
+                    fontSize: 13, color: AppColors.textPrimary),
                 borderRadius: BorderRadius.circular(12),
                 items: [
                   DropdownMenuItem(
                       value: allValue,
                       child: Text('All Avenues of Service',
                           style: AppFonts.body(
-                              fontSize: 12.5,
+                              fontSize: 13,
                               fontWeight: FontWeight.w700,
                               color: AppColors.textPrimary))),
                   for (final a in options)
@@ -1093,13 +1092,13 @@ class _AvenueDropdown extends StatelessWidget {
                         child: Text(a,
                             overflow: TextOverflow.ellipsis,
                             style: AppFonts.body(
-                                fontSize: 12.5, color: AppColors.textPrimary))),
+                                fontSize: 13, color: AppColors.textPrimary))),
                   if (hasBlank)
                     DropdownMenuItem(
                         value: noneValue,
                         child: Text('(No avenue set)',
                             style: AppFonts.body(
-                                fontSize: 12.5,
+                                fontSize: 13,
                                 fontStyle: FontStyle.italic,
                                 color: AppColors.slate500))),
                 ],
@@ -1145,7 +1144,7 @@ class _SearchInput extends StatelessWidget {
               decoration: InputDecoration(
                 hintText: 'Search projects, clubs…',
                 hintStyle: AppFonts.body(
-                  fontSize: 12,
+                  fontSize: 13,
                   color: AppColors.slate400,
                 ),
                 isDense: true,
@@ -1233,7 +1232,7 @@ class _ProjectRow extends StatelessWidget {
                 child: Text(
                   project.clubName.isEmpty ? '–' : project.clubName,
                   style: AppFonts.body(
-                    fontSize: 9.5,
+                    fontSize: 13,
                     fontWeight: FontWeight.w800,
                     color: Colors.white,
                   ),
@@ -1243,7 +1242,7 @@ class _ProjectRow extends StatelessWidget {
               Text(
                 agFmtDate(project.date),
                 style: AppFonts.body(
-                  fontSize: 10,
+                  fontSize: 13,
                   color: AppColors.slate400,
                   fontFeatures: const [FontFeature.tabularFigures()],
                 ),
@@ -1259,7 +1258,7 @@ class _ProjectRow extends StatelessWidget {
           Text(
             _truncTitle(project.title),
             style: AppFonts.body(
-              fontSize: 12.5,
+              fontSize: 13,
               fontWeight: FontWeight.w800,
               color: AppColors.textPrimary,
               height: 1.3,
@@ -1303,7 +1302,7 @@ class _ProjectRow extends StatelessWidget {
                 child: Text(
                   project.funding.isEmpty ? '–' : project.funding,
                   style: AppFonts.body(
-                    fontSize: 9.5,
+                    fontSize: 13,
                     fontWeight: FontWeight.w800,
                     color: fs.fg,
                   ),
@@ -1345,7 +1344,7 @@ class _MetricChip extends StatelessWidget {
         Text(
           value,
           style: AppFonts.body(
-            fontSize: 10.5,
+            fontSize: 13,
             fontWeight: FontWeight.w700,
             color: muted ? AppColors.slate400 : AppColors.slate500,
             fontFeatures: const [FontFeature.tabularFigures()],
@@ -1372,7 +1371,7 @@ class _CardEmpty extends StatelessWidget {
         child: Text(
           text,
           style: AppFonts.body(
-            fontSize: 12,
+            fontSize: 13,
             color: AppColors.slate400,
           ),
         ),

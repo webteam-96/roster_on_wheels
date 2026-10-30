@@ -66,7 +66,8 @@ public class FirebasePushSender
                 Token = token,
                 Notification = new Notification { Title = title, Body = body },
                 Data = data != null ? new Dictionary<string, string>(data) : new Dictionary<string, string>(),
-                Android = new AndroidConfig { Priority = Priority.High, Notification = new AndroidNotification { ChannelId = "high_importance_channel_sound", Sound = "notification" } },
+                // EventTimestamp: FirebaseAdmin defaults event_time to year 1 (Android showed "2032y"); stamp the send time.
+                Android = new AndroidConfig { Priority = Priority.High, Notification = new AndroidNotification { ChannelId = "high_importance_channel_sound", Sound = "notification", EventTimestamp = DateTime.UtcNow } },
                 Apns = new ApnsConfig { Aps = new Aps { Sound = "notification.caf", ContentAvailable = true } },
             };
             await _messaging.SendAsync(msg, ct);
@@ -97,7 +98,7 @@ public class FirebasePushSender
                 Tokens = batch,
                 Notification = new Notification { Title = title, Body = body },
                 Data = data != null ? new Dictionary<string, string>(data) : new Dictionary<string, string>(),
-                Android = new AndroidConfig { Priority = Priority.High, Notification = new AndroidNotification { ChannelId = "high_importance_channel_sound", Sound = "notification" } },
+                Android = new AndroidConfig { Priority = Priority.High, Notification = new AndroidNotification { ChannelId = "high_importance_channel_sound", Sound = "notification", EventTimestamp = DateTime.UtcNow } },
                 Apns = new ApnsConfig { Aps = new Aps { Sound = "notification.caf", ContentAvailable = true } },
             };
             try

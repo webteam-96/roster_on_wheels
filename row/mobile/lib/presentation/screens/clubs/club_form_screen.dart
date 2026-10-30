@@ -331,17 +331,11 @@ class _ClubFormScreenState extends State<ClubFormScreen> {
               title: 'Basic Information',
               children: [
                 // District dropdown
-                Text('District', style: AppTextStyles.bodySemiBold),
-                const SizedBox(height: 6),
                 _loadingDistricts
                     ? const LinearProgressIndicator()
-                    : Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 12),
-                        decoration: BoxDecoration(
-                          border: Border.all(color: AppColors.border),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: DropdownButtonHideUnderline(
+                    : InputDecorator(
+  decoration: const InputDecoration(label: Text('District'), contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 4)),
+  child: DropdownButtonHideUnderline(
                           child: DropdownButton<int?>(
                             value: _selectedDistrictId,
                             isExpanded: true,
@@ -356,6 +350,14 @@ class _ClubFormScreenState extends State<ClubFormScreen> {
                                   child: Text('${d.districtName} (${d.districtNumber})'),
                                 ),
                               ),
+                              // The club's own district may be missing from the loaded list; keep it
+                              // selectable so the dropdown does not assert and saving keeps the value.
+                              if (_selectedDistrictId != null &&
+                                  !_districts.any((d) => d.id == _selectedDistrictId))
+                                DropdownMenuItem<int?>(
+                                  value: _selectedDistrictId,
+                                  child: Text('District #$_selectedDistrictId'),
+                                ),
                             ],
                             onChanged: (v) => setState(() => _selectedDistrictId = v),
                           ),
@@ -371,7 +373,7 @@ class _ClubFormScreenState extends State<ClubFormScreen> {
                 CustomTextField(
                   controller: _clubNameCtrl,
                   label: 'Club Name *',
-                  hint: 'e.g. Rotary Club of Mumbai',
+                  hint: 'e.g. Rotary Club of Springfield',
                   validator: (v) => Validators.required(v, 'Club name'),
                 ),
                 const SizedBox(height: 16),
@@ -390,13 +392,10 @@ class _ClubFormScreenState extends State<ClubFormScreen> {
             _SectionCard(
               title: 'Meeting Details',
               children: [
-                Text('Meeting Day', style: AppTextStyles.bodySemiBold),
-                const SizedBox(height: 6),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12),
-                  decoration: BoxDecoration(
-                    border: Border.all(color: AppColors.border),
-                    borderRadius: BorderRadius.circular(8),
+                InputDecorator(
+                  decoration: const InputDecoration(
+                    label: Text('Meeting Day'),
+                    contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                   ),
                   child: DropdownButtonHideUnderline(
                     child: DropdownButton<String?>(
@@ -410,6 +409,10 @@ class _ClubFormScreenState extends State<ClubFormScreen> {
                         ..._weekdays.map(
                           (d) => DropdownMenuItem<String?>(value: d, child: Text(d)),
                         ),
+                        // Stored days can be short forms ("Fri") that are not in the list; keep them
+                        // selectable so the dropdown does not assert and saving keeps the value.
+                        if (_selectedMeetingDay != null && !_weekdays.contains(_selectedMeetingDay))
+                          DropdownMenuItem<String?>(value: _selectedMeetingDay, child: Text(_selectedMeetingDay!)),
                       ],
                       onChanged: (v) => setState(() => _selectedMeetingDay = v),
                     ),
@@ -450,7 +453,7 @@ class _ClubFormScreenState extends State<ClubFormScreen> {
             _SectionCard(
               title: 'Location',
               children: [
-                CustomTextField(controller: _cityCtrl, label: 'City', hint: 'Mumbai'),
+                CustomTextField(controller: _cityCtrl, label: 'City', hint: 'e.g. Springfield'),
                 const SizedBox(height: 16),
                 CustomTextField(controller: _stateCtrl, label: 'State', hint: 'Maharashtra'),
                 const SizedBox(height: 16),
@@ -611,34 +614,22 @@ class _TimePicker extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
+    // Same outlined field as the rest of the form (design.md 8.6).
+    return InkWell(
       onTap: onTap,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(label, style: AppTextStyles.bodySemiBold),
-          const SizedBox(height: 6),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
-            decoration: BoxDecoration(
-              border: Border.all(color: AppColors.border),
-              borderRadius: BorderRadius.circular(8),
-              color: AppColors.surface,
-            ),
-            child: Row(
-              children: [
-                const Icon(Icons.access_time, size: 18, color: AppColors.textSecondary),
-                const SizedBox(width: 8),
-                Text(
-                  time != null ? time!.format(context) : 'Select',
-                  style: AppTextStyles.body.copyWith(
-                    color: time != null ? AppColors.textPrimary : AppColors.textMuted,
-                  ),
-                ),
-              ],
-            ),
+      borderRadius: BorderRadius.circular(12),
+      child: InputDecorator(
+        decoration: InputDecoration(
+          label: Text(label),
+          prefixIcon: const Icon(Icons.access_time, size: 20, color: AppColors.textSecondary),
+        ),
+        child: Text(
+          time != null ? time!.format(context) : 'Select',
+          style: AppTextStyles.body.copyWith(
+            fontSize: 16,
+            color: time != null ? AppColors.textPrimary : AppColors.textMuted,
           ),
-        ],
+        ),
       ),
     );
   }

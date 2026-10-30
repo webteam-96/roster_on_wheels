@@ -95,7 +95,7 @@ function Rules({ districtId }: { districtId: number }) {
   };
 
   return (
-    <section className="overflow-hidden rounded-xl border border-slate-200 bg-white">
+    <section className="overflow-hidden rounded-[20px] border border-slate-200 bg-white">
       <header className="border-b border-slate-100 bg-slate-50 px-4 py-2.5">
         <h2 className="text-sm font-semibold text-slate-800">Rules</h2>
       </header>

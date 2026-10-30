@@ -191,7 +191,7 @@ class _RotaryNetworkCardState extends State<_RotaryNetworkCard> {
                   color: AppColors.textPrimary)),
           Text('Manage terminated and prospective members',
               style: AppFonts.body(
-                  fontSize: 11, color: AppColors.slate500)),
+                  fontSize: 13, color: AppColors.slate500)),
           const SizedBox(height: 12),
           _ToggleBar(
             showTerminated: isTerminated,
@@ -213,7 +213,7 @@ class _RotaryNetworkCardState extends State<_RotaryNetworkCard> {
                       ? 'No terminated members.'
                       : 'No potential members.',
                   style: AppFonts.body(
-                      fontSize: 12.5, color: AppColors.slate400),
+                      fontSize: 13, color: AppColors.slate400),
                 ),
               ),
             )
@@ -237,7 +237,7 @@ class _RotaryNetworkCardState extends State<_RotaryNetworkCard> {
                     '${rows.length == 1 ? '' : 's'}'
                     '${_query.trim().isEmpty ? '' : ' (filtered)'}',
             style: AppFonts.body(
-                fontSize: 10.5, color: AppColors.slate400),
+                fontSize: 13, color: AppColors.slate400),
           ),
         ],
       ),
@@ -280,7 +280,7 @@ class _ToggleBar extends StatelessWidget {
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: AppFonts.body(
-                  fontSize: 12,
+                  fontSize: 13,
                   fontWeight: active ? FontWeight.w800 : FontWeight.w600,
                   color: active ? Colors.white : AppColors.slate500,
                 ),
@@ -384,7 +384,7 @@ class _MemberRow extends StatelessWidget {
                     Text(
                       row.memberId,
                       style: AppFonts.body(
-                          fontSize: 10.5,
+                          fontSize: 13,
                           fontWeight: FontWeight.w700,
                           color: AppColors.slate500),
                     ),
@@ -421,14 +421,14 @@ class _MemberRow extends StatelessWidget {
           TextSpan(
             text: '$label: ',
             style: AppFonts.body(
-                fontSize: 11,
+                fontSize: 13,
                 fontWeight: FontWeight.w700,
                 color: AppColors.slate500),
           ),
           TextSpan(
             text: value,
             style: AppFonts.body(
-                fontSize: 11, color: AppColors.slate500),
+                fontSize: 13, color: AppColors.slate500),
           ),
         ]),
       ),
@@ -446,7 +446,7 @@ class _MemberRow extends StatelessWidget {
       child: Text(
         type,
         style: AppFonts.body(
-            fontSize: 10,
+            fontSize: 13,
             fontWeight: FontWeight.w700,
             color: AppColors.slate700),
       ),
@@ -464,7 +464,7 @@ class _MemberRow extends StatelessWidget {
       child: Text(
         reason,
         style: AppFonts.body(
-            fontSize: 10.5, fontWeight: FontWeight.w700, color: style.fg),
+            fontSize: 13, fontWeight: FontWeight.w700, color: style.fg),
       ),
     );
   }

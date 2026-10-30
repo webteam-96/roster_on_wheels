@@ -48,6 +48,7 @@ import ImageCropDialog from "@/components/ImageCropDialog";
 import { useImageCropQueue } from "@/hooks/useImageCropQueue";
 
 import { defaultCurrency } from "@/lib/appFormat";
+import { ListPageSkeleton } from "@/components/row/AppKit";
 // Project photos are shown 16:9 on the public site (components/pages/projects/shared.tsx),
 // so the crop is locked to that shape. 1600×900 keeps the widest card retina-sharp.
 const PROJECT_PHOTO_ASPECT = 16 / 9;
@@ -422,7 +423,7 @@ export default function VocationalServiceV2EditPage() {
     return (
       <ProtectedRoute>
         <div className="flex items-center justify-center py-20">
-          <RotaryLoader size="lg" />
+          <ListPageSkeleton />
         </div>
       </ProtectedRoute>
     );
@@ -456,51 +457,51 @@ export default function VocationalServiceV2EditPage() {
         }
       >
         {/* 1. Project Details */}
-        <SectionCard number={1} icon={MapPin} title="Project Details" dot="bg-blue-600">
+        <SectionCard number={1} icon={MapPin} title="Project Details" dot="bg-[#17458F]">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="sm:col-span-2">
-              <FieldLabel hint="(max 50 chars)" dot="bg-blue-500">Title</FieldLabel>
+              <FieldLabel hint="(max 50 chars)" dot="bg-[#17458F]">Title</FieldLabel>
               <input
                 type="text"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 placeholder="Project title"
                 maxLength={50}
-                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
               />
               <p className="text-xs text-slate-400 text-right mt-0.5">{title.length}/50</p>
             </div>
             <div className="sm:col-span-2">
-              <FieldLabel hint="(max 1000 chars)" dot="bg-blue-500">Description</FieldLabel>
+              <FieldLabel hint="(max 1000 chars)" dot="bg-[#17458F]">Description</FieldLabel>
               <textarea
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 placeholder="Describe the project…"
                 rows={4}
                 maxLength={1000}
-                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
               />
               <p className="text-xs text-slate-400 text-right mt-0.5">{description.length}/1000</p>
             </div>
             <div>
-              <FieldLabel dot="bg-blue-500">Location of Project</FieldLabel>
+              <FieldLabel dot="bg-[#17458F]">Location of Project</FieldLabel>
               <input
                 type="text"
                 value={location}
                 onChange={(e) => setLocation(e.target.value)}
                 placeholder="City, Venue, etc."
-                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
               />
             </div>
             <div>
-              <FieldLabel dot="bg-blue-500">Date of Project</FieldLabel>
-              <DateField value={projectDate} onChange={setProjectDate} max={frozenMonth ? frozenDateMax : todayStr} min={frozenMonth ? frozenDateMin : undefined} className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" />
+              <FieldLabel dot="bg-[#17458F]">Date of Project</FieldLabel>
+              <DateField value={projectDate} onChange={setProjectDate} max={frozenMonth ? frozenDateMax : todayStr} min={frozenMonth ? frozenDateMin : undefined} className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]" />
             </div>
           </div>
         </SectionCard>
 
         {/* 2. Classification */}
-        <SectionCard number={2} icon={Target} title="Category" dot="bg-violet-600">
+        <SectionCard number={2} icon={Target} title="Category" dot="bg-[#17458F]">
           <ClassificationAssist
             clubId={clubId}
             moduleId={moduleId}
@@ -513,11 +514,11 @@ export default function VocationalServiceV2EditPage() {
           />
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <FieldLabel dot="bg-violet-500">Category</FieldLabel>
+              <FieldLabel dot="bg-[#17458F]">Category</FieldLabel>
               <select
                 value={selectedAofId}
                 onChange={(e) => setSelectedAofId(e.target.value)}
-                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-violet-500"
+                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] bg-white focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
               >
                 <option value="">Select</option>
                 {areasOfFocus.map((a) => (
@@ -533,7 +534,7 @@ export default function VocationalServiceV2EditPage() {
                   value={otherAreaOfFocus}
                   onChange={(e) => setOtherAreaOfFocus(e.target.value)}
                   placeholder="Specify category"
-                  className="mt-2 w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500"
+                  className="mt-2 w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
                 />
               )}
             </div>
@@ -541,14 +542,14 @@ export default function VocationalServiceV2EditPage() {
         </SectionCard>
 
         {/* 3. Financial & Impact */}
-        <SectionCard number={3} icon={IndianRupee} title="Financial & Impact" dot="bg-amber-600">
+        <SectionCard number={3} icon={IndianRupee} title="Financial & Impact" dot="bg-[#17458F]">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             <div>
-              <FieldLabel dot="bg-amber-500">Currency</FieldLabel>
+              <FieldLabel dot="bg-[#17458F]">Currency</FieldLabel>
               <select
                 value={currency}
                 onChange={(e) => setCurrency(e.target.value)}
-                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-amber-500"
+                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] bg-white focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
               >
                 {currencyOptions().map((c) => (
                   <option key={c.code} value={c.code}>{c.label}</option>
@@ -556,22 +557,22 @@ export default function VocationalServiceV2EditPage() {
               </select>
             </div>
             <div>
-              <FieldLabel dot="bg-amber-500">Project Cost ({getCurrencySymbol(currency)})</FieldLabel>
+              <FieldLabel dot="bg-[#17458F]">Project Cost ({getCurrencySymbol(currency)})</FieldLabel>
               <input
                 type="number"
                 value={projectCost}
                 onChange={(e) => setProjectCost(e.target.value)}
                 placeholder="0"
                 min={0}
-                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500"
+                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
               />
             </div>
             <div>
-              <FieldLabel dot="bg-amber-500">Funding</FieldLabel>
+              <FieldLabel dot="bg-[#17458F]">Funding</FieldLabel>
               <select
                 value={selectedFundingId}
                 onChange={(e) => handleFundingChange(e.target.value)}
-                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-amber-500"
+                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] bg-white focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
               >
                 <option value="">Select</option>
                 {fundingList.map((f) => (
@@ -586,40 +587,40 @@ export default function VocationalServiceV2EditPage() {
                 <h4 className="text-sm font-semibold text-amber-700">Global Grant Details</h4>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <FieldLabel dot="bg-amber-500" required={false}>Global Grant Number</FieldLabel>
+                    <FieldLabel dot="bg-[#17458F]" required={false}>Global Grant Number</FieldLabel>
                     <input inputMode="numeric" pattern="[0-9]*" value={globalGrantNumber}
                       onChange={(e) => setGlobalGrantNumber(onlyDigits(e.target.value))} placeholder="e.g., 2434521"
-                      className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500" />
+                      className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]" />
                   </div>
                   <div>
-                    <FieldLabel dot="bg-amber-500" required={false}>Amount Sanctioned ({getCurrencySymbol(currency)})</FieldLabel>
+                    <FieldLabel dot="bg-[#17458F]" required={false}>Amount Sanctioned ({getCurrencySymbol(currency)})</FieldLabel>
                     <input inputMode="numeric" pattern="[0-9]*" value={amountSanctioned}
                       onChange={(e) => setAmountSanctioned(onlyDigits(e.target.value))} placeholder="0"
-                      className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500" />
+                      className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]" />
                   </div>
                   <div>
-                    <FieldLabel dot="bg-amber-500" required={false}>Amount Received ({getCurrencySymbol(currency)})</FieldLabel>
+                    <FieldLabel dot="bg-[#17458F]" required={false}>Amount Received ({getCurrencySymbol(currency)})</FieldLabel>
                     <input inputMode="numeric" pattern="[0-9]*" value={amountReceived}
                       onChange={(e) => setAmountReceived(onlyDigits(e.target.value))} placeholder="0"
-                      className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500" />
+                      className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]" />
                   </div>
                   <div>
-                    <FieldLabel dot="bg-amber-500" required={false}>Amount spent till date ({getCurrencySymbol(currency)})</FieldLabel>
+                    <FieldLabel dot="bg-[#17458F]" required={false}>Amount spent till date ({getCurrencySymbol(currency)})</FieldLabel>
                     <input inputMode="numeric" pattern="[0-9]*" value={amountSpent}
                       onChange={(e) => setAmountSpent(onlyDigits(e.target.value))} placeholder="0"
-                      className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500" />
+                      className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]" />
                   </div>
                   <div className="md:col-span-2">
-                    <FieldLabel dot="bg-amber-500">Host Clubs/Districts</FieldLabel>
+                    <FieldLabel dot="bg-[#17458F]">Host Clubs/Districts</FieldLabel>
                     <input type="text" value={hostClubsDistricts}
                       onChange={(e) => setHostClubsDistricts(e.target.value)} placeholder="e.g., RC Chicago, RC Paris"
-                      className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500" />
+                      className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]" />
                   </div>
                   <div className="md:col-span-2">
-                    <FieldLabel dot="bg-amber-500">Global Partner Clubs/Districts</FieldLabel>
+                    <FieldLabel dot="bg-[#17458F]">Global Partner Clubs/Districts</FieldLabel>
                     <input type="text" value={globalPartnerClubsDistricts}
                       onChange={(e) => setGlobalPartnerClubsDistricts(e.target.value)} placeholder="e.g., RC Tokyo"
-                      className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500" />
+                      className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]" />
                   </div>
                 </div>
               </div>
@@ -631,90 +632,90 @@ export default function VocationalServiceV2EditPage() {
                 <h4 className="text-sm font-semibold text-amber-700">CSR Details</h4>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="md:col-span-2">
-                    <FieldLabel dot="bg-amber-500">Name of the CSR Company</FieldLabel>
+                    <FieldLabel dot="bg-[#17458F]">Name of the CSR Company</FieldLabel>
                     <input type="text" value={csrCompanyName}
                       onChange={(e) => setCsrCompanyName(e.target.value)} placeholder="e.g., ABC Industries Ltd"
-                      className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500" />
+                      className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]" />
                   </div>
                   <div>
-                    <FieldLabel dot="bg-amber-500">Amount Sanctioned ({getCurrencySymbol(currency)})</FieldLabel>
+                    <FieldLabel dot="bg-[#17458F]">Amount Sanctioned ({getCurrencySymbol(currency)})</FieldLabel>
                     <input inputMode="numeric" pattern="[0-9]*" value={amountSanctioned}
                       onChange={(e) => setAmountSanctioned(onlyDigits(e.target.value))} placeholder="0"
-                      className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500" />
+                      className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]" />
                   </div>
                   <div>
-                    <FieldLabel dot="bg-amber-500">Amount Received ({getCurrencySymbol(currency)})</FieldLabel>
+                    <FieldLabel dot="bg-[#17458F]">Amount Received ({getCurrencySymbol(currency)})</FieldLabel>
                     <input inputMode="numeric" pattern="[0-9]*" value={amountReceived}
                       onChange={(e) => setAmountReceived(onlyDigits(e.target.value))} placeholder="0"
-                      className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500" />
+                      className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]" />
                   </div>
                 </div>
               </div>
             )}
 
             <div>
-              <FieldLabel dot="bg-amber-500">Direct Beneficiaries</FieldLabel>
+              <FieldLabel dot="bg-[#17458F]">Direct Beneficiaries</FieldLabel>
               <input
                 type="number"
                 value={directBeneficiaries}
                 onChange={(e) => setDirectBeneficiaries(e.target.value)}
                 placeholder="0"
                 min={0}
-                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500"
+                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
               />
             </div>
             <div>
-              <FieldLabel hint="(Rotarians x Hours)" dot="bg-amber-500">Man Hours</FieldLabel>
+              <FieldLabel hint="(Rotarians x Hours)" dot="bg-[#17458F]">Man Hours</FieldLabel>
               <input
                 type="number"
                 value={manHours}
                 onChange={(e) => setManHours(e.target.value)}
                 placeholder="0"
                 min={0}
-                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500"
+                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
               />
             </div>
             <div>
-              <FieldLabel dot="bg-amber-500">Rotarians Involved</FieldLabel>
+              <FieldLabel dot="bg-[#17458F]">Rotarians Involved</FieldLabel>
               <input
                 type="number"
                 value={rotariansInvolved}
                 onChange={(e) => setRotariansInvolved(e.target.value)}
                 placeholder="0"
                 min={0}
-                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500"
+                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
               />
             </div>
             <div>
-              <FieldLabel dot="bg-amber-500" required={false}>Rotaractors Involved</FieldLabel>
+              <FieldLabel dot="bg-[#17458F]" required={false}>Rotaractors Involved</FieldLabel>
               <input
                 type="number"
                 value={rotaractorsInvolved}
                 onChange={(e) => setRotaractorsInvolved(e.target.value)}
                 placeholder="0"
                 min={0}
-                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500"
+                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
               />
             </div>
             <div>
-              <FieldLabel dot="bg-amber-500" required={false}>RCC Involved</FieldLabel>
+              <FieldLabel dot="bg-[#17458F]" required={false}>RCC Involved</FieldLabel>
               <input
                 type="number"
                 value={rccInvolved}
                 onChange={(e) => setRccInvolved(e.target.value)}
                 placeholder="0"
                 min={0}
-                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500"
+                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
               />
             </div>
           </div>
         </SectionCard>
 
         {/* 4. Photos */}
-        <SectionCard number={4} icon={Camera} title="Photos" dot="bg-rose-600">
+        <SectionCard number={4} icon={Camera} title="Photos" dot="bg-[#17458F]">
           <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <FieldLabel dot="bg-rose-500">Upload Photos (1 mandatory, max 5)</FieldLabel>
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <FieldLabel dot="bg-[#17458F]">Upload Photos (1 mandatory, max 5)</FieldLabel>
               <span className="text-xs text-slate-500">{photos.length}/5</span>
             </div>
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">

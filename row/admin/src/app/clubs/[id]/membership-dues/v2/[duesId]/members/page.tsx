@@ -782,21 +782,21 @@ export default function ClubMembershipDuesV2MembersPage() {
                 <select
                   value={filter}
                   onChange={(e) => setFilter(e.target.value)}
-                  className="px-2 py-1.5 text-sm border border-slate-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="px-2 h-10 py-0 text-sm border border-slate-200 rounded-[12px] bg-white focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
                 >
                   <option value="">All Members</option>
                   <option value="paid">Paid</option>
                   <option value="unpaid">Unpaid</option>
                   <option value="pending">Pending Approval</option>
                 </select>
-                <div className="relative">
+                <div className="relative w-full sm:w-auto">
                   <Search size={14} className="absolute left-2 top-1/2 -translate-y-1/2 text-slate-400" />
                   <input
                     type="text"
                     placeholder="Search by name…"
                     value={searchInput}
                     onChange={(e) => setSearchInput(e.target.value)}
-                    className="pl-7 pr-7 py-1.5 text-sm border border-slate-200 rounded-lg w-full sm:w-56 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="pl-7 pr-7 h-10 py-0 text-sm border border-slate-200 rounded-[12px] w-full sm:w-56 focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
                   />
                   {searchInput && (
                     <button
@@ -813,7 +813,7 @@ export default function ClubMembershipDuesV2MembersPage() {
                   type="button"
                   onClick={() => setBulkEmailConfirmOpen(true)}
                   title="Click here to send Email reminders to all unpaid members"
-                  className="inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1.5 rounded-lg border border-blue-200 text-blue-700 bg-blue-50 hover:bg-blue-100"
+                  className="inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1.5 rounded-full border border-blue-200 text-blue-700 bg-blue-50 hover:bg-blue-100"
                 >
                   <Mail size={13} /> Click here to send Email reminders to all unpaid members
                 </button>
@@ -838,7 +838,7 @@ export default function ClubMembershipDuesV2MembersPage() {
                 </div>
               ) : (
                 <table className="min-w-full text-sm">
-                  <thead className="bg-slate-50 text-xs uppercase text-slate-500">
+                  <thead className="bg-[#EDF4FB] text-[13px] text-[#64748B]">
                     <tr>
                       <th className="px-3 py-2.5 text-left w-10">Sr</th>
                       <th className="px-3 py-2.5 text-left">Name</th>
@@ -925,7 +925,7 @@ export default function ClubMembershipDuesV2MembersPage() {
                               <div className="inline-flex items-center gap-2">
                                 <button
                                   type="button"
-                                  className="inline-flex items-center justify-center w-7 h-7 rounded-lg text-amber-600 hover:bg-amber-50"
+                                  className="inline-flex items-center justify-center w-7 h-7 rounded-full text-amber-600 hover:bg-amber-50"
                                   title="Send Email Reminder"
                                   onClick={() => {
                                     if (window.confirm(`Send email reminder to ${m.memberName || "this member"}?`)) {
@@ -1003,7 +1003,7 @@ export default function ClubMembershipDuesV2MembersPage() {
                 type="button"
                 onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
                 disabled={currentPage === 1}
-                className="px-3 py-1.5 text-xs font-medium rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 disabled:opacity-40"
+                className="px-3 py-1.5 text-xs font-medium rounded-full border border-slate-200 text-slate-600 hover:bg-slate-50 disabled:opacity-40"
               >
                 Prev
               </button>
@@ -1014,7 +1014,7 @@ export default function ClubMembershipDuesV2MembersPage() {
                 type="button"
                 onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
                 disabled={currentPage === totalPages}
-                className="px-3 py-1.5 text-xs font-medium rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 disabled:opacity-40"
+                className="px-3 py-1.5 text-xs font-medium rounded-full border border-slate-200 text-slate-600 hover:bg-slate-50 disabled:opacity-40"
               >
                 Next
               </button>
@@ -1230,7 +1230,7 @@ export default function ClubMembershipDuesV2MembersPage() {
                       </div>
                     )}
                     {offlineUpdatePaymentId === 0 && (
-                      <div className="flex items-center gap-2">
+                      <div className="flex flex-wrap items-center gap-2">
                         <Checkbox
                           checked={offlineSendEmail}
                           onCheckedChange={(c) => setOfflineSendEmail(!!c)}
@@ -1240,7 +1240,7 @@ export default function ClubMembershipDuesV2MembersPage() {
                       </div>
                     )}
                     {offlineUpdatePaymentId > 0 && offlineUpdateIsApproved && (
-                      <div className="flex items-center gap-2">
+                      <div className="flex flex-wrap items-center gap-2">
                         <Checkbox
                           checked={offlineSendReceiptOnUpdate}
                           onCheckedChange={(c) => setOfflineSendReceiptOnUpdate(!!c)}
@@ -1331,7 +1331,7 @@ export default function ClubMembershipDuesV2MembersPage() {
               </DialogHeader>
               <div className="space-y-4">
                 <p className="text-sm text-slate-700">Do you want to send Mail to all unpaid members?</p>
-                <div className="flex justify-end gap-2">
+                <div className="flex flex-wrap justify-end gap-2">
                   <Button variant="outline" onClick={() => setBulkEmailConfirmOpen(false)}>Cancel</Button>
                   <Button onClick={handleBulkEmailReminder}>Send</Button>
                 </div>

@@ -515,7 +515,7 @@ export default function CreditManagementPanel({ embedded = false, onChanged }: {
                       <p className="text-sm text-muted-foreground">
                         Showing {(page - 1) * pageSize + 1}-{Math.min(page * pageSize, totalCount)} of {totalCount}
                       </p>
-                      <div className="flex gap-2">
+                      <div className="flex flex-wrap gap-2">
                         <Button variant="outline" size="sm" onClick={() => setPage(p => p - 1)} disabled={page <= 1}>
                           Previous
                         </Button>

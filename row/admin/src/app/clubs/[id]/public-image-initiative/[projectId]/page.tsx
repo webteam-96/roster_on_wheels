@@ -17,6 +17,7 @@ import {
 import { getCurrencySymbol } from "@/lib/currency";
 
 import { appLocale } from "@/lib/appFormat";
+import { ListPageSkeleton } from "@/components/row/AppKit";
 /* -- Section wrapper with icon + title -- */
 function Section({ icon: Icon, title, children, number }: {
   icon: React.ElementType;
@@ -25,7 +26,7 @@ function Section({ icon: Icon, title, children, number }: {
   number: number;
 }) {
   return (
-    <div className="relative bg-white rounded-xl border shadow-sm overflow-hidden">
+    <div className="relative bg-white rounded-[20px] border shadow-sm overflow-hidden">
       <div className="flex items-center gap-3 px-5 py-3.5 bg-primary/5 border-b">
         <div className="flex items-center justify-center h-8 w-8 rounded-full bg-primary text-primary-foreground text-sm font-bold shrink-0">
           {number}
@@ -99,7 +100,7 @@ export default function PublicImageInitiativeViewPage() {
     return (
       <ProtectedRoute>
         <div className="flex items-center justify-center py-20">
-          <RotaryLoader size="lg" />
+          <ListPageSkeleton />
         </div>
       </ProtectedRoute>
     );

@@ -135,9 +135,13 @@ public class ClubAnalyticsController : ControllerBase
 
         // Single club → an attractive, print-friendly one-page report (vertical, sectioned). District /
         // all-clubs modes keep the existing one-row-per-club table (untouched).
-        var bytes = (clubId is > 0 && rows.Count > 0)
-            ? BuildClubReportExcel(rows[0], yearLabel, ocvDues)
-            : BuildExcel(rows);
+        // S5: labels in the club's or district's language; the all-clubs (Super Admin) export stays English.
+        string? language = allClubs ? null : await CommsTemplates.DefaultLanguageAsync(conn, clubId ?? 0, districtId ?? 0);
+        byte[] bytes;
+        using (RotaryApi.Services.Localization.MessageCulture.Use(language))
+            bytes = (clubId is > 0 && rows.Count > 0)
+                ? BuildClubReportExcel(rows[0], yearLabel, ocvDues)
+                : BuildExcel(rows);
         return File(bytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
             $"club-analytics-{DateTime.Now:yyyyMMdd-HHmm}.xlsx");
     }
@@ -176,7 +180,7 @@ public class ClubAnalyticsController : ControllerBase
 
         ws.Range(r, 1, r, 2).Merge();
         var sub = ws.Cell(r, 1);
-        sub.Value = $"District {S(row.districtNumber)}   ·   Rotary Year {yearLabel}   ·   Club ID {S(row.clubRotaryId)}";
+        sub.Value = $"{T("District {0}", S(row.districtNumber))}   ·   {T("Rotary Year {0}", yearLabel)}   ·   {T("Club ID {0}", S(row.clubRotaryId))}";
         sub.Style.Font.FontSize = 10;
         sub.Style.Font.FontColor = XLColor.FromHtml("#475569");
         sub.Style.Fill.BackgroundColor = XLColor.FromHtml("#eef2f7");
@@ -185,7 +189,7 @@ public class ClubAnalyticsController : ControllerBase
 
         ws.Range(r, 1, r, 2).Merge();
         var gen = ws.Cell(r, 1);
-        gen.Value = $"Generated {DateTime.Now:dd MMM yyyy, hh:mm tt}";
+        gen.Value = T("Generated {0}", DateTime.Now.ToString("dd MMM yyyy, hh:mm tt"));
         gen.Style.Font.FontSize = 8;
         gen.Style.Font.Italic = true;
         gen.Style.Font.FontColor = XLColor.FromHtml("#94a3b8");
@@ -196,7 +200,7 @@ public class ClubAnalyticsController : ControllerBase
         {
             ws.Range(r, 1, r, 2).Merge();
             var c = ws.Cell(r, 1);
-            c.Value = label;
+            c.Value = T(label);
             c.Style.Font.Bold = true;
             c.Style.Font.FontColor = XLColor.White;
             c.Style.Fill.BackgroundColor = blue;
@@ -205,12 +209,12 @@ public class ClubAnalyticsController : ControllerBase
         }
         void KV(string key, object? val)
         {
-            var k = ws.Cell(r, 1); k.Value = key;
+            var k = ws.Cell(r, 1); k.Value = T(key);
             k.Style.Font.Bold = true;
             k.Style.Font.FontColor = XLColor.FromHtml("#334155");
             k.Style.Fill.BackgroundColor = labelBg;
             var v = ws.Cell(r, 2);
-            if (val is string vs) v.Value = vs; else v.Value = N(val);
+            if (val is string vs) v.Value = vs is "Yes" or "No" or "No dues records" ? T(vs) : vs; else v.Value = N(val);
             var rng = ws.Range(r, 1, r, 2);
             rng.Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
             rng.Style.Border.OutsideBorderColor = border;
@@ -220,7 +224,7 @@ public class ClubAnalyticsController : ControllerBase
         // Money rows (Foundation) — real number with 2 decimals, right-aligned.
         void KVamt(string key, object? val)
         {
-            var k = ws.Cell(r, 1); k.Value = key;
+            var k = ws.Cell(r, 1); k.Value = T(key);
             k.Style.Font.Bold = true; k.Style.Font.FontColor = XLColor.FromHtml("#334155");
             k.Style.Fill.BackgroundColor = labelBg;
             var v = ws.Cell(r, 2);
@@ -300,6 +304,11 @@ public class ClubAnalyticsController : ControllerBase
         return ms.ToArray();
     }
 
+    // S5: a fixed label in the language of the caller's MessageCulture scope (English outside one).
+    private static string T(string english, params object[] args) => args.Length == 0
+        ? RotaryApi.Services.Localization.DbStringLocalizer.Instance[english]
+        : RotaryApi.Services.Localization.DbStringLocalizer.Instance[english, args];
+
     private static byte[] BuildExcel(List<dynamic> rows)
     {
         // Column order = the reference file, with three extra COUNT columns (Club Service,
@@ -317,7 +326,7 @@ public class ClubAnalyticsController : ControllerBase
 
         using var wb = new XLWorkbook();
         var ws = wb.Worksheets.Add("Club Analytics");
-        for (int i = 0; i < headers.Length; i++) ws.Cell(1, i + 1).Value = headers[i];
+        for (int i = 0; i < headers.Length; i++) ws.Cell(1, i + 1).Value = T(headers[i]);
         ws.Row(1).Style.Font.SetBold();
         ws.Row(1).Style.Fill.SetBackgroundColor(XLColor.FromHtml("#2d7fc7"));
         ws.Row(1).Style.Font.SetFontColor(XLColor.White);

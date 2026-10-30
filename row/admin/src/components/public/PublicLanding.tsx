@@ -197,7 +197,7 @@ export default function PublicLanding() {
                 </a>
                 <a
                   href="#pricing"
-                  className="inline-flex items-center gap-2 px-5 py-3 rounded-md text-sm font-semibold border-2 hover:bg-white/10 transition"
+                  className="inline-flex items-center gap-2 px-5 py-3 rounded-full text-sm font-semibold border-2 hover:bg-white/10 transition"
                   style={{ borderColor: "rgba(255,255,255,0.4)", color: "white" }}
                 >
                   View Pricing
@@ -246,7 +246,7 @@ export default function PublicLanding() {
               { icon: HandHeart, title: "What We Do", body: "Provide secure digital tools for member management, event administration, project documentation, and online collection of dues, fees, and contributions in INR." },
               { icon: Building2, title: "Who We Serve", body: "Rotary club Presidents, Secretaries, Treasurers, Directors, Members; District Governors, Assistant Governors, District Admins; Rotary International Directors." },
             ].map((b) => (
-              <div key={b.title} className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm">
+              <div key={b.title} className="bg-white border border-slate-200 rounded-[20px] p-6 shadow-sm">
                 <div className="h-11 w-11 rounded-lg flex items-center justify-center mb-4" style={{ background: "rgba(247,168,27,0.12)", color: BRAND_GOLD }}>
                   <b.icon size={20} />
                 </div>
@@ -308,7 +308,7 @@ export default function PublicLanding() {
               every payment.
             </p>
           </div>
-          <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
+          <div className="bg-white border border-slate-200 rounded-[20px] overflow-hidden shadow-sm">
             <div className="hidden md:grid grid-cols-12 px-6 py-3 bg-slate-50 border-b border-slate-200 text-xs font-semibold uppercase tracking-wider text-slate-500">
               <div className="col-span-4">Service</div>
               <div className="col-span-3">Amount (INR)</div>
@@ -419,7 +419,7 @@ export default function PublicLanding() {
             </Link>
             <Link
               href="/about-us"
-              className="inline-flex items-center gap-2 px-6 py-3 rounded-md text-sm font-semibold border-2 hover:bg-white/10 transition"
+              className="inline-flex items-center gap-2 px-6 py-3 rounded-full text-sm font-semibold border-2 hover:bg-white/10 transition"
               style={{ borderColor: "rgba(255,255,255,0.35)", color: "white" }}
             >
               About the Platform

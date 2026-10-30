@@ -127,6 +127,10 @@ unless marked "done"; decide them when the area is worked on.
   `starts_at > NOW()` checks are right on a UTC server; the reminder worker compares with UTC and prints the club's
   wall-clock in its emails, and the in-app volunteer reminder builds its time text in the club's zone. The UTC
   branch is reviewed, not run: this dev machine is on IST, so check it once on the UTC staging server.
+- **OCV pages no longer need the club monthly report switch** (2026-10-28). The 6 OCV pages (v1 and v2: visit,
+  report, live documents) took their year list from `/monthly-reports/years`, which answers 404 while
+  `club_monthly_report` is off, so OCV on alone showed "not available". They now use `getTrfYears` like the TRF
+  pages: monthly-report years when that module is on, every rotary year otherwise.
 - Country defaults: RIZones assumed India (id 1); ROW leaves them empty.
 - Zones 4-8 programmes (zonal awards, citation) ported but off by flag; seed
   content removed.
@@ -547,8 +551,14 @@ New (Phase 2), each switched off until a SuperAdmin turns it on unless noted:
   Left in English on purpose: Super Admin and operations emails and reports (daily stats, sync and auto-points
   reports, award-config notices, email log, Rotary.org exports), the payment modules on hold (dues, event payment
   links, Razorpay, Cashfree, credits, the website pay link and its branch of the reminder), import templates (Goal
-  Setting) and the Word documents. Not yet done: the district performance report, the club analytics export,
-  training appointment emails, the feed's highlight sentences and the project share card.
+  Setting) and the Word documents. Added after the first commit: training appointment emails (booker and club
+  admins in the club's language; the internal team copy stays English), the feed's and highlight list's
+  congratulation sentences (`EngagementService.Label` / `Sentence`), the club analytics export (club or district
+  language; the all-clubs Super Admin export stays English), and the share and spotlight cards (club language; the
+  public card's cache key now includes the language). Texts are translated only inside a `MessageCulture.Use`
+  scope, so code without one stays English whatever the server OS culture is.
+  shortcut: the district performance report stays English. Its rendering compares header text (`PctHeader`, "#")
+  to style cells, so translate it at the three render points (email HTML, two Excel layouts) and not in the model.
   e2e `kb/tools/message_language_e2e.py` (fake Brevo and fake LibreTranslate; 9/9), schema in
   `DatabaseInitializer.SpecCompletion.cs`, `schema-drift.sql`, undone by the build-spec down script.
 - **S6, speakers in the bulletin (3.13):** a club newsletter email lists the speakers booked for the next 30 days

@@ -147,7 +147,7 @@ function Applications({ data }: { data: GrantClubOverview }) {
         <Card>
           <CardContent className="overflow-x-auto p-0">
             <table className="w-full min-w-[720px] text-sm">
-              <thead>
+              <thead className="bg-[#EDF4FB] text-[13px] text-[#64748B]">
                 <tr className="border-b text-left text-muted-foreground">
                   <th className="p-3 font-medium">Project</th>
                   <th className="p-3 font-medium">Year</th>
@@ -239,7 +239,7 @@ function LightMode({ clubId, onError }: { clubId: number; onError: (m: string) =
         <Card>
           <CardContent className="overflow-x-auto p-0">
             <table className="w-full min-w-[720px] text-sm">
-              <thead>
+              <thead className="bg-[#EDF4FB] text-[13px] text-[#64748B]">
                 <tr className="border-b text-left text-muted-foreground">
                   <th className="p-3 font-medium">Project</th>
                   <th className="p-3 font-medium">Grant amount</th>

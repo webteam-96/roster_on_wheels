@@ -38,6 +38,7 @@ import { useSyncClubIdFromUrl } from "@/hooks/useSyncClubIdFromUrl";
 import SendStatusBadges from "@/components/SendStatusBadges";
 
 import { appLocale } from "@/lib/appFormat";
+import { SkeletonRows } from "@/components/row/AppKit";
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
 const STATUS_OPTIONS = [
@@ -280,7 +281,7 @@ export default function NewslettersV2Page() {
               <select
                 value={selectedYearId ?? ""}
                 onChange={(e) => { setSelectedYearId(e.target.value ? Number(e.target.value) : null); setPage(1); }}
-                className="px-2 py-1.5 text-sm border border-slate-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="px-2 h-10 py-0 text-sm border border-slate-200 rounded-[12px] bg-white focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
               >
                 {years.length === 0 && <option value="">No years</option>}
                 {years.map((y) => (
@@ -292,7 +293,7 @@ export default function NewslettersV2Page() {
               <select
                 value={statusFilter}
                 onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }}
-                className="px-2 py-1.5 text-sm border border-slate-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="px-2 h-10 py-0 text-sm border border-slate-200 rounded-[12px] bg-white focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
               >
                 {STATUS_OPTIONS.map((s) => (
                   <option key={s.value} value={s.value}>{s.label}</option>
@@ -301,13 +302,13 @@ export default function NewslettersV2Page() {
               <select
                 value={typeFilter}
                 onChange={(e) => setTypeFilter(e.target.value)}
-                className="px-2 py-1.5 text-sm border border-slate-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="px-2 h-10 py-0 text-sm border border-slate-200 rounded-[12px] bg-white focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
               >
                 {TYPE_OPTIONS.map((t) => (
                   <option key={t.value} value={t.value}>{t.label}</option>
                 ))}
               </select>
-              <div className="relative">
+              <div className="relative w-full sm:w-auto">
                 <Search size={14} className="absolute left-2 top-1/2 -translate-y-1/2 text-slate-400" />
                 <input
                   type="text"
@@ -315,13 +316,13 @@ export default function NewslettersV2Page() {
                   value={searchInput}
                   onChange={(e) => setSearchInput(e.target.value)}
                   onKeyDown={(e) => { if (e.key === "Enter") handleSearch(); }}
-                  className="pl-7 pr-3 py-1.5 text-sm border border-slate-200 rounded-lg w-full sm:w-48 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="pl-7 pr-3 h-10 py-0 text-sm border border-slate-200 rounded-[12px] w-full sm:w-48 focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
                 />
               </div>
               <button
                 type="button"
                 onClick={handleSearch}
-                className="inline-flex items-center text-xs font-semibold px-3 py-1.5 rounded-lg border border-slate-200 text-slate-700 hover:bg-slate-50"
+                className="inline-flex items-center text-xs font-semibold px-3 py-1.5 rounded-full border border-slate-200 text-slate-700 hover:bg-slate-50"
               >
                 Search
               </button>
@@ -329,7 +330,7 @@ export default function NewslettersV2Page() {
                 <button
                   type="button"
                   onClick={clearSearch}
-                  className="inline-flex items-center text-xs font-semibold px-3 py-1.5 rounded-lg border border-slate-200 text-slate-700 hover:bg-slate-50"
+                  className="inline-flex items-center text-xs font-semibold px-3 py-1.5 rounded-full border border-slate-200 text-slate-700 hover:bg-slate-50"
                 >
                   Clear
                 </button>
@@ -337,7 +338,7 @@ export default function NewslettersV2Page() {
               {canManage && (
                 <Link
                   href={addUrl}
-                  className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg bg-emerald-600 text-white hover:bg-emerald-700"
+                  className="inline-flex items-center gap-1.5 text-xs font-semibold px-4 h-10 rounded-full bg-[#17458F] text-white hover:bg-[#17458F]"
                 >
                   <Plus size={13} /> Add Newsletter
                 </Link>
@@ -348,12 +349,10 @@ export default function NewslettersV2Page() {
           {/* Table */}
           <div className="overflow-x-auto">
             {loading ? (
-              <div className="flex items-center justify-center py-12 text-slate-500">
-                <Loader2 className="animate-spin mr-2" size={16} /> Loading newsletters…
-              </div>
+              <SkeletonRows />
             ) : (
-              <table className="min-w-full text-sm">
-                <thead className="bg-slate-50 text-xs uppercase text-slate-500">
+              <table className="w-full min-w-[640px] md:min-w-full text-sm">
+                <thead className="bg-[#EDF4FB] text-[13px] text-[#64748B]">
                   <tr>
                     <th className="px-3 py-2.5 text-left w-10">Sr</th>
                     <th className="px-3 py-2.5 text-left">Title</th>

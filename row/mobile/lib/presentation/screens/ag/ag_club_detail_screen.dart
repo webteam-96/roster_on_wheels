@@ -37,21 +37,20 @@ class _AgClubDetailScreenState extends State<AgClubDetailScreen> {
     return Scaffold(
       backgroundColor: AppColors.lightBg,
       appBar: AppBar(
-        backgroundColor: AppColors.primaryPrime,
-        foregroundColor: Colors.white,
+        backgroundColor: AppColors.lightBg,
+        foregroundColor: AppColors.textPrimary,
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new_rounded,
-              color: Colors.white),
+              color: AppColors.textPrimary),
           onPressed: () => context.pop(),
         ),
         title: Text(
-          'CLUB DETAILS',
+          'Club details',
           style: AppFonts.body(
             fontWeight: FontWeight.w800,
             fontSize: 13,
-            color: Colors.white,
-            letterSpacing: 0.8,
+            color: AppColors.textPrimary,
           ),
         ),
       ),
@@ -93,7 +92,7 @@ class _AgClubDetailScreenState extends State<AgClubDetailScreen> {
       _Kpi(label: 'Members', value: agFmtInt(s.members), icon: Icons.groups_rounded, accent: AppColors.rotaryBlue),
       _Kpi(label: 'Meetings', value: agFmtInt(s.meetings), icon: Icons.event_rounded, accent: AppColors.avenueNewGen),
       _Kpi(label: 'Projects', value: agFmtInt(s.totalProjects), icon: Icons.work_outline_rounded, accent: AppColors.avenueVocational),
-      _Kpi(label: 'TRF (USD)', value: agFmtUsdShort(s.trfTotalInr), icon: Icons.emoji_events_rounded, accent: AppColors.avenuePublicImage),
+      _Kpi(label: 'TRF (usd)', value: agFmtUsdShort(s.trfTotalInr), icon: Icons.emoji_events_rounded, accent: AppColors.avenuePublicImage),
       _Kpi(label: 'OCV', value: agFmtInt(s.ocv), icon: Icons.verified_outlined, accent: AppColors.avenueInternational),
     ];
     final rows = <Widget>[];
@@ -166,7 +165,7 @@ class _HeaderCard extends StatelessWidget {
                           ? 'National Rank: Pending'
                           : '#${summary.nationalRank} nationally',
                       style: AppFonts.body(
-                          fontSize: 10,
+                          fontSize: 13,
                           fontWeight: FontWeight.w800,
                           color: AppColors.slate500),
                     ),
@@ -176,11 +175,11 @@ class _HeaderCard extends StatelessWidget {
               if (summary.presidentName.isNotEmpty)
                 Text('President: ${summary.presidentName}',
                     style: AppFonts.body(
-                        fontSize: 11, color: AppColors.slate500)),
+                        fontSize: 13, color: AppColors.slate500)),
               if (summary.districtNumber.isNotEmpty)
                 Text(summary.districtNumber,
                     style: AppFonts.body(
-                        fontSize: 11, color: AppColors.slate500)),
+                        fontSize: 13, color: AppColors.slate500)),
             ],
           ),
         ],
@@ -235,7 +234,7 @@ class _Kpi extends StatelessWidget {
                         fontFeatures: const [FontFeature.tabularFigures()])),
                 Text(label,
                     style: AppFonts.body(
-                        fontSize: 10, color: AppColors.slate500)),
+                        fontSize: 13, color: AppColors.slate500)),
               ],
             ),
           ),
@@ -288,10 +287,10 @@ class _TrfCard extends StatelessWidget {
               Expanded(
                   child: Text(label,
                       style: AppFonts.body(
-                          fontSize: 12, color: AppColors.slate500))),
+                          fontSize: 13, color: AppColors.slate500))),
               Text(v == 0 ? '–' : agFmtUsd(v),
                   style: AppFonts.body(
-                      fontSize: 12.5,
+                      fontSize: 13,
                       fontWeight: FontWeight.w800,
                       color: v == 0 ? AppColors.slate400 : AppColors.textPrimary)),
             ],
@@ -320,7 +319,7 @@ class _TrfCard extends StatelessWidget {
                 Expanded(
                     child: Text('Total Giving',
                         style: AppFonts.body(
-                            fontSize: 12.5,
+                            fontSize: 13,
                             fontWeight: FontWeight.w800,
                             color: AppColors.textPrimary))),
                 Text(agFmtUsd(trf.totalInr),
@@ -391,7 +390,7 @@ class _MonthlyCard extends StatelessWidget {
                           Text(
                             _shortMonth(p.month),
                             style: AppFonts.body(
-                                fontSize: 8, color: AppColors.slate400),
+                                fontSize: 13, color: AppColors.slate400),
                             maxLines: 1,
                             overflow: TextOverflow.clip,
                           ),
@@ -424,7 +423,7 @@ class _MonthlyCard extends StatelessWidget {
           const SizedBox(width: 4),
           Text(label,
               style: AppFonts.body(
-                  fontSize: 10, color: AppColors.slate500)),
+                  fontSize: 13, color: AppColors.slate500)),
         ],
       );
 }
@@ -466,7 +465,7 @@ class _RecentProjectsCard extends StatelessWidget {
             children: [
               Text(p.title,
                   style: AppFonts.body(
-                      fontSize: 12.5,
+                      fontSize: 13,
                       fontWeight: FontWeight.w800,
                       color: AppColors.textPrimary),
                   maxLines: 2,
@@ -475,7 +474,7 @@ class _RecentProjectsCard extends StatelessWidget {
               Text(
                 agFmtDate(p.date),
                 style: AppFonts.body(
-                    fontSize: 10.5, color: AppColors.slate500),
+                    fontSize: 13, color: AppColors.slate500),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
@@ -488,7 +487,7 @@ class _RecentProjectsCard extends StatelessWidget {
           children: [
             Text(p.cost > 0 ? agFmtInrShort(p.cost) : '–',
                 style: AppFonts.body(
-                    fontSize: 12,
+                    fontSize: 13,
                     fontWeight: FontWeight.w800,
                     color: AppColors.rotaryBlue)),
             Text(
@@ -498,7 +497,7 @@ class _RecentProjectsCard extends StatelessWidget {
                         ? '${agFmtInt(p.beneficiaries)} ben.'
                         : '–'),
                 style: AppFonts.body(
-                    fontSize: 10, color: AppColors.slate400)),
+                    fontSize: 13, color: AppColors.slate400)),
           ],
         ),
       ],
@@ -515,7 +514,7 @@ class _EmptyLine extends StatelessWidget {
         child: Center(
           child: Text(text,
               style: AppFonts.body(
-                  fontSize: 12, color: AppColors.slate400)),
+                  fontSize: 13, color: AppColors.slate400)),
         ),
       );
 }

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useParams, useSearchParams } from "next/navigation";
-import { getOcvReport, getMonthlyReportYears, getClub, downloadOcvDocumentBlob } from "@/services/api";
+import { getOcvReport, getTrfYears, getClub, downloadOcvDocumentBlob } from "@/services/api";
 import { exportToCSV } from "@/utils/csvExport";
 import { OCV_LIVE_DOCUMENTS_TITLE, ocvLiveDocumentsNote, fetchOcvLiveDocumentTables } from "@/lib/ocvLiveDocuments";
 import { OcvReportItem } from "@/types/ocvGov";
@@ -17,6 +17,8 @@ import RotaryLoader from "@/components/RotaryLoader";
 import ErrorAlert from "@/components/ErrorAlert";
 import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";
+import { useFeatureLoadedOn } from "@/components/FeatureGate";
+import { ListPageSkeleton } from "@/components/row/AppKit";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
@@ -39,10 +41,11 @@ export default function OcvReportPage() {
   const [downloadingExcel, setDownloadingExcel] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
+  const cmrOn = useFeatureLoadedOn("club_monthly_report");
   useEffect(() => {
     async function fetchYears() {
       try {
-        const [club, data] = await Promise.all([getClub(clubId), getMonthlyReportYears(clubId)]);
+        const [club, data] = await Promise.all([getClub(clubId), getTrfYears(clubId, cmrOn)]);
         setClubName(club.clubName);
         setYears(data);
         if (!selectedYearId) {
@@ -56,7 +59,7 @@ export default function OcvReportPage() {
       }
     }
     fetchYears();
-  }, [clubId]); // eslint-disable-line
+  }, [clubId, cmrOn]); // eslint-disable-line
 
   useEffect(() => {
     if (!selectedYearId) return;
@@ -240,7 +243,7 @@ export default function OcvReportPage() {
 
         {/* Loading */}
         {isLoading && (
-          <div className="flex items-center justify-center py-20"><RotaryLoader size="lg" /></div>
+          <div className="flex items-center justify-center py-20"><ListPageSkeleton /></div>
         )}
 
         {/* Empty */}
@@ -313,15 +316,15 @@ export default function OcvReportPage() {
         {/* Summary */}
         {!isLoading && filteredItems.length > 0 && (
           <div className="flex gap-4 text-sm flex-wrap">
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <Badge className="bg-green-100 text-green-800 hover:bg-green-100">Uploaded</Badge>
               <span className="text-muted-foreground">{uploadedCount}</span>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <Badge variant="destructive" className="bg-red-100 text-red-800 hover:bg-red-100">Pending</Badge>
               <span className="text-muted-foreground">{pendingCount}</span>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <span className="text-muted-foreground font-medium">Total: {filteredItems.length} document types</span>
             </div>
           </div>

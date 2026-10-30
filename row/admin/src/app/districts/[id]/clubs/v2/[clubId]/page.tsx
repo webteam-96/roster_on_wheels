@@ -43,6 +43,7 @@ import ProjectDetailModal from "@/components/ProjectDetailModal";
 import { formatMoney } from "@/lib/currency";
 
 import { appLocale } from "@/lib/appFormat";
+import { ListPageSkeleton } from "@/components/row/AppKit";
 function formatTime(t: string | null) {
   if (!t) return "";
   return t.substring(0, 5);
@@ -203,7 +204,7 @@ export default function ClubDetailViewV2Page() {
   if (loading) return (
     <ProtectedRoute>
       <div className="flex items-center justify-center py-20">
-        <RotaryLoader size="lg" />
+        <ListPageSkeleton />
       </div>
     </ProtectedRoute>
   );
@@ -263,7 +264,7 @@ export default function ClubDetailViewV2Page() {
               )}
             </div>
             <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 text-sm">
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2">
                 <Award className="h-4 w-4 text-ink flex-shrink-0" />
                 <div>
                   <span className="text-slate-500">Rotary ID:</span>{" "}
@@ -271,7 +272,7 @@ export default function ClubDetailViewV2Page() {
                 </div>
               </div>
               {club.meetingDay && (
-                <div className="flex items-center gap-2">
+                <div className="flex flex-wrap items-center gap-2">
                   <Calendar className="h-4 w-4 text-ink flex-shrink-0" />
                   <div>
                     <span className="text-slate-500">Meeting:</span>{" "}
@@ -280,7 +281,7 @@ export default function ClubDetailViewV2Page() {
                 </div>
               )}
               {(club.meetingFromTime || club.meetingToTime) && (
-                <div className="flex items-center gap-2">
+                <div className="flex flex-wrap items-center gap-2">
                   <Clock className="h-4 w-4 text-ink flex-shrink-0" />
                   <div>
                     <span className="text-slate-500">Time:</span>{" "}
@@ -301,7 +302,7 @@ export default function ClubDetailViewV2Page() {
                 </div>
               )}
               {(club.city || club.state) && (
-                <div className="flex items-center gap-2">
+                <div className="flex flex-wrap items-center gap-2">
                   <MapPin className="h-4 w-4 text-ink flex-shrink-0" />
                   <div className="text-slate-700">
                     {[club.city, club.state].filter(Boolean).join(", ")}
@@ -310,7 +311,7 @@ export default function ClubDetailViewV2Page() {
                 </div>
               )}
               {club.clubCharterDate && (
-                <div className="flex items-center gap-2">
+                <div className="flex flex-wrap items-center gap-2">
                   <CalendarDays className="h-4 w-4 text-ink flex-shrink-0" />
                   <div>
                     <span className="text-slate-500">Charter:</span>{" "}
@@ -331,7 +332,7 @@ export default function ClubDetailViewV2Page() {
                   </a>
                 </div>
               )}
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2">
                 <Users className="h-4 w-4 text-ink flex-shrink-0" />
                 <div>
                   <strong className="text-slate-800">{club.totalMembers}</strong>{" "}
@@ -356,24 +357,23 @@ export default function ClubDetailViewV2Page() {
         <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-3">
           <Tabs value={activeTab} onValueChange={setActiveTab}>
             <TabsList
-              className="h-auto flex-wrap gap-1 p-1.5"
-              style={{ backgroundColor: "#17458f" }}
+              className="h-auto flex-wrap gap-1 p-1.5 rounded-full bg-muted"
             >
               <TabsTrigger
                 value="members"
-                className="text-sm font-semibold px-3.5 py-1.5 rounded-md text-white hover:bg-white/10 data-[state=active]:bg-marigold data-[state=active]:text-ink data-[state=active]:shadow-sm"
+                className="text-sm font-semibold px-3.5 py-1.5 rounded-full"
               >
                 <Users className="h-4 w-4 mr-2" />Rotarians &amp; BOD
               </TabsTrigger>
               <TabsTrigger
                 value="communication"
-                className="text-sm font-semibold px-3.5 py-1.5 rounded-md text-white hover:bg-white/10 data-[state=active]:bg-marigold data-[state=active]:text-ink data-[state=active]:shadow-sm"
+                className="text-sm font-semibold px-3.5 py-1.5 rounded-full"
               >
                 <Newspaper className="h-4 w-4 mr-2" />Communication
               </TabsTrigger>
               <TabsTrigger
                 value="projects"
-                className="text-sm font-semibold px-3.5 py-1.5 rounded-md text-white hover:bg-white/10 data-[state=active]:bg-marigold data-[state=active]:text-ink data-[state=active]:shadow-sm"
+                className="text-sm font-semibold px-3.5 py-1.5 rounded-full"
               >
                 <FolderKanban className="h-4 w-4 mr-2" />Projects
               </TabsTrigger>
@@ -425,7 +425,7 @@ export default function ClubDetailViewV2Page() {
               </div>
 
               {loadingMembers && (
-                <div className="flex justify-center py-12"><RotaryLoader size="lg" /></div>
+                <div className="flex justify-center py-12"><ListPageSkeleton /></div>
               )}
 
               {/* Rotarians List */}
@@ -606,7 +606,7 @@ export default function ClubDetailViewV2Page() {
             {/* ── Communication Tab ───────────────────────────────────── */}
             <TabsContent value="communication" className="mt-4 space-y-6">
               {loadingComm && (
-                <div className="flex justify-center py-12"><RotaryLoader size="lg" /></div>
+                <div className="flex justify-center py-12"><ListPageSkeleton /></div>
               )}
 
               {!loadingComm && (
@@ -764,7 +764,7 @@ export default function ClubDetailViewV2Page() {
               </div>
 
               {loadingProjects && (
-                <div className="flex justify-center py-12"><RotaryLoader size="lg" /></div>
+                <div className="flex justify-center py-12"><ListPageSkeleton /></div>
               )}
 
               {!loadingProjects && projects.length === 0 && (

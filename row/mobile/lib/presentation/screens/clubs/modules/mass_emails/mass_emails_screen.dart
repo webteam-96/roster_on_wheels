@@ -302,8 +302,8 @@ class _MassEmailsScreenState extends State<MassEmailsScreen> {
                           // never collides with the FAB. Bottom inset clears the
                           // floating button for the last card.
                           child: ListView.separated(
-                            padding: EdgeInsets.fromLTRB(
-                                16, 16, 16, canManage ? 88 : 16),
+                            padding: (EdgeInsets.fromLTRB(
+                                16, 16, 16, canManage ? 88 : 16)).add(const EdgeInsets.only(bottom: 88)),
                             itemCount: _emails.length + 1,
                             separatorBuilder: (_, __) =>
                                 const SizedBox(height: 8),
@@ -448,8 +448,8 @@ class _MassEmailsScreenState extends State<MassEmailsScreen> {
         ?.toString();
 
     return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      elevation: 0,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(20))),
       child: InkWell(
         onTap: () => _showDetailDialog(email),
         borderRadius: BorderRadius.circular(12),
@@ -478,7 +478,7 @@ class _MassEmailsScreenState extends State<MassEmailsScreen> {
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Text(
-                      status.toUpperCase(),
+                      status,
                       style: AppTextStyles.caption.copyWith(
                         color: _statusColor(status),
                         fontWeight: FontWeight.w600,
@@ -792,7 +792,7 @@ class _MassEmailDetailScreenState extends State<_MassEmailDetailScreen> {
                       height: 18,
                       child: CircularProgressIndicator(
                         strokeWidth: 2,
-                        color: Colors.white,
+                        color: AppColors.primaryPrime,
                       ),
                     )
                   : const Icon(Icons.refresh),
@@ -1001,7 +1001,7 @@ class _StatCard extends StatelessWidget {
           Text(
             label,
             style: TextStyle(
-              fontSize: 11,
+              fontSize: 13,
               color: color,
               fontWeight: FontWeight.w600,
             ),
@@ -1607,6 +1607,7 @@ class _ComposeEmailScreenState extends State<_ComposeEmailScreen> {
                               ),
                               constraints: const BoxConstraints(maxHeight: 200),
                               child: ListView(
+  padding: const EdgeInsets.only(bottom: 88),
                                 shrinkWrap: true,
                                 children: _subGroups.map<Widget>((g) {
                                   final id = g['id'] as int?;
@@ -1623,7 +1624,7 @@ class _ComposeEmailScreenState extends State<_ComposeEmailScreen> {
                                     subtitle: memberCount != null
                                         ? Text('$memberCount members',
                                             style: AppTextStyles.caption.copyWith(
-                                              fontSize: 11,
+                                              fontSize: 13,
                                               color: Colors.grey[500],
                                             ))
                                         : null,
@@ -1674,6 +1675,7 @@ class _ComposeEmailScreenState extends State<_ComposeEmailScreen> {
                               ),
                               constraints: const BoxConstraints(maxHeight: 250),
                               child: ListView(
+  padding: const EdgeInsets.only(bottom: 88),
                                 shrinkWrap: true,
                                 children: filteredMembers.map<Widget>((m) {
                                   final id = (m['memberId'] ?? m['id']) as int?;
@@ -1689,7 +1691,7 @@ class _ComposeEmailScreenState extends State<_ComposeEmailScreen> {
                                     subtitle: email.isNotEmpty
                                         ? Text(email,
                                             style: AppTextStyles.caption.copyWith(
-                                              fontSize: 11,
+                                              fontSize: 13,
                                               color: Colors.grey[500],
                                             ))
                                         : null,

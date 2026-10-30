@@ -283,7 +283,7 @@ class _SubTabPill extends StatelessWidget {
             overflow: TextOverflow.ellipsis,
             textAlign: TextAlign.center,
             style: AppFonts.body(
-              fontSize: 11.5,
+              fontSize: 13,
               fontWeight: isActive ? FontWeight.w800 : FontWeight.w600,
               color: isActive ? AppColors.primaryDeep : AppColors.slate700,
             ),
@@ -432,7 +432,7 @@ class _MemberDirectoryState extends State<_MemberDirectory> {
                     ? '· …'
                     : '· $total member${total == 1 ? '' : 's'}',
                 style: AppFonts.body(
-                  fontSize: 11,
+                  fontSize: 13,
                   color: AppColors.slate500,
                 ),
               ),
@@ -485,7 +485,7 @@ class _MemberDirectoryState extends State<_MemberDirectory> {
             text,
             textAlign: TextAlign.center,
             style: AppFonts.body(
-              fontSize: 12.5,
+              fontSize: 13,
               color: AppColors.slate400,
               height: 1.4,
             ),
@@ -497,7 +497,7 @@ class _MemberDirectoryState extends State<_MemberDirectory> {
               icon: const Icon(Icons.refresh_rounded, size: 15),
               label: Text('Retry',
                   style: AppFonts.body(
-                      fontSize: 12, fontWeight: FontWeight.w700)),
+                      fontSize: 13, fontWeight: FontWeight.w700)),
             ),
           ],
         ],
@@ -532,7 +532,7 @@ class _MemberDirectoryState extends State<_MemberDirectory> {
             child: Text(
               'Showing $start–$end of ${page.totalCount}',
               style: AppFonts.body(
-                  fontSize: 11, color: AppColors.slate500),
+                  fontSize: 13, color: AppColors.slate500),
             ),
           ),
           _PagerBtn(
@@ -544,7 +544,7 @@ class _MemberDirectoryState extends State<_MemberDirectory> {
           Text(
             '${page.page}/${page.totalPages}',
             style: AppFonts.body(
-              fontSize: 11,
+              fontSize: 13,
               fontWeight: FontWeight.w700,
               color: AppColors.slate700,
             ),
@@ -586,7 +586,7 @@ class _PagerBtn extends StatelessWidget {
         child: Text(
           label,
           style: AppFonts.body(
-            fontSize: 11,
+            fontSize: 13,
             fontWeight: FontWeight.w700,
             color: enabled ? AppColors.slate700 : AppColors.slate400,
           ),
@@ -635,7 +635,7 @@ class _MemberRow extends StatelessWidget {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: AppFonts.body(
-                      fontSize: 10.5,
+                      fontSize: 13,
                       color: AppColors.slate500,
                     ),
                   ),
@@ -647,7 +647,7 @@ class _MemberRow extends StatelessWidget {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: AppFonts.body(
-                      fontSize: 10,
+                      fontSize: 13,
                       color: AppColors.slate400,
                     ),
                   ),
@@ -690,7 +690,7 @@ class _Avatar extends StatelessWidget {
       child: Text(
         _initials.isEmpty ? '?' : _initials,
         style: AppFonts.body(
-          fontSize: 11,
+          fontSize: 13,
           fontWeight: FontWeight.w800,
           color: AppColors.slate500,
         ),
@@ -747,7 +747,7 @@ class _RoleChip extends StatelessWidget {
       child: Text(
         role,
         style: AppFonts.body(
-          fontSize: 10,
+          fontSize: 13,
           fontWeight: FontWeight.w700,
           color: c.fg,
         ),

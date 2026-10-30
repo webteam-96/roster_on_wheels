@@ -254,8 +254,8 @@ export default function AllCreditsList({ refreshKey = 0 }: { refreshKey?: number
       ) : (
         <>
           <div className="overflow-x-auto border rounded-lg">
-            <table className="min-w-full text-sm">
-              <thead className="bg-slate-50 text-xs uppercase text-slate-500">
+            <table className="w-full min-w-[640px] md:min-w-full text-sm">
+              <thead className="bg-[#EDF4FB] text-[13px] text-[#64748B]">
                 <tr>
                   <th className="px-3 py-2.5 text-left whitespace-nowrap">Sr No</th>
                   <th className="px-3 py-2.5 text-left whitespace-nowrap">Date</th>
@@ -311,7 +311,7 @@ export default function AllCreditsList({ refreshKey = 0 }: { refreshKey?: number
             </table>
           </div>
           {totalPages > 1 && (
-            <div className="flex items-center justify-end gap-2 text-sm">
+            <div className="flex flex-wrap items-center justify-end gap-2 text-sm">
               <Button variant="outline" size="sm" disabled={page <= 1} onClick={() => setPage(page - 1)}>Previous</Button>
               <span className="text-muted-foreground">Page {page} of {totalPages}</span>
               <Button variant="outline" size="sm" disabled={page >= totalPages} onClick={() => setPage(page + 1)}>Next</Button>

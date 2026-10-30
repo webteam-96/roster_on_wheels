@@ -21,6 +21,7 @@ import '../../../../widgets/common/pagination_widget.dart';
 import '../../../../widgets/common/rotary_year_bar.dart';
 import '../../../../widgets/detail/detail_widgets.dart';
 import 'package:rotary_flutter_app/core/i18n/text.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/form_action_bar.dart';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -459,7 +460,7 @@ class _NewslettersScreenState extends State<NewslettersScreen> {
                       color: AppColors.primary,
                       onRefresh: () => _fetch(reset: true),
                       child: ListView.separated(
-                        padding: const EdgeInsets.all(16),
+                        padding: (const EdgeInsets.all(16)).add(const EdgeInsets.only(bottom: 88)),
                         itemCount: _items.length + 1,
                         separatorBuilder: (_, __) => const SizedBox(height: 10),
                         itemBuilder: (ctx, i) {
@@ -606,7 +607,7 @@ class _NewsletterCard extends StatelessWidget {
                             child: Text(
                               _statusLabel,
                               style: TextStyle(
-                                  fontSize: 10,
+                                  fontSize: 13,
                                   fontWeight: FontWeight.w700,
                                   color: _statusColor),
                             ),
@@ -625,7 +626,7 @@ class _NewsletterCard extends StatelessWidget {
                               child: Text(
                                 _typeLabel,
                                 style: TextStyle(
-                                    fontSize: 10,
+                                    fontSize: 13,
                                     fontWeight: FontWeight.w700,
                                     color: _typeLabel == 'Link'
                                         ? Colors.blue
@@ -797,7 +798,7 @@ class _NewsletterDetailScreenState extends State<_NewsletterDetailScreen> {
     final fileUrl = detailMediaUrl(n.filePath);
 
     return ListView(
-      padding: const EdgeInsets.all(16),
+      padding: (const EdgeInsets.all(16)).add(const EdgeInsets.only(bottom: 88)),
       children: [
         DetailHeader(
           title: n.title,
@@ -1032,6 +1033,12 @@ class _NewsletterFormScreenState extends State<_NewsletterFormScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      bottomNavigationBar: RowFormActionBar(child: CustomButton(
+                label: _isEditing ? 'Update' : 'Create',
+                onPressed: _save,
+                isLoading: _saving,
+                fullWidth: true,
+              )),
       backgroundColor: AppColors.surface,
       appBar: CustomAppBar(
         title: _isEditing ? 'Edit Newsletter' : 'New Newsletter',
@@ -1200,13 +1207,7 @@ class _NewsletterFormScreenState extends State<_NewsletterFormScreen> {
                 contentPadding: EdgeInsets.zero,
                 dense: true,
               ),
-              const SizedBox(height: 16),
-              CustomButton(
-                label: _isEditing ? 'Update' : 'Create',
-                onPressed: _save,
-                isLoading: _saving,
-                fullWidth: true,
-              ),
+              
             ],
           ),
         ),

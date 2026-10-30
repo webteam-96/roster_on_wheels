@@ -247,16 +247,12 @@ class _DistrictFormScreenState extends State<DistrictFormScreen> {
               title: 'Basic Information',
               children: [
                 // Zone dropdown
-                Text('Zone', style: AppTextStyles.bodySemiBold),
-                const SizedBox(height: 6),
                 _loadingZones
                     ? const LinearProgressIndicator()
-                    : Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 12),
-                        decoration: BoxDecoration(
-                          border: Border.all(color: AppColors.border),
-                          borderRadius: BorderRadius.circular(8),
-                          color: AppColors.surface,
+                    : InputDecorator(
+                        decoration: const InputDecoration(
+                          label: Text('Zone'),
+                          contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                         ),
                         child: DropdownButtonHideUnderline(
                           child: DropdownButton<int?>(
@@ -332,7 +328,7 @@ class _DistrictFormScreenState extends State<DistrictFormScreen> {
             _SectionCard(
               title: 'Location',
               children: [
-                CustomTextField(controller: _cityCtrl, label: 'City', hint: 'Mumbai'),
+                CustomTextField(controller: _cityCtrl, label: 'City', hint: 'e.g. Springfield'),
                 const SizedBox(height: 16),
                 CustomTextField(controller: _stateCtrl, label: 'State', hint: 'Maharashtra'),
                 const SizedBox(height: 16),

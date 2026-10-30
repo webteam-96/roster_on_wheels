@@ -526,7 +526,7 @@ export default function MemberForm({
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-4">
           <Button variant="ghost" size="icon" asChild>
             <Link href={backUrl}>
@@ -534,17 +534,17 @@ export default function MemberForm({
             </Link>
           </Button>
           <div>
-            <h2 className="text-2xl font-bold text-primary">
+            <h2 className="font-display text-[24px] font-semibold leading-[1.1] tracking-[-0.02em] text-foreground md:text-[28px]">
               {isEdit ? "Edit Member" : "Add New Member"}
             </h2>
-            <p className="text-muted-foreground text-base">
+            <p className="mt-1 text-[15px] text-muted-foreground">
               {isEdit
                 ? "Update member information"
                 : "Fill in the details to add a new member"}
             </p>
           </div>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <Button variant="outline" asChild>
             <Link href={backUrl}>Cancel</Link>
           </Button>
@@ -560,20 +560,20 @@ export default function MemberForm({
       </div>
 
       <Tabs defaultValue="personal" className="w-full">
-        <TabsList className={`grid w-full grid-cols-3 ${showFamily ? "lg:grid-cols-5" : "lg:grid-cols-4"} bg-primary h-12 rounded-lg`}>
-          <TabsTrigger value="personal" className="text-primary-foreground text-base font-semibold data-[state=active]:bg-white data-[state=active]:text-primary data-[state=active]:shadow-md rounded-md">Personal</TabsTrigger>
-          <TabsTrigger value="social" className="text-primary-foreground text-base font-semibold data-[state=active]:bg-white data-[state=active]:text-primary data-[state=active]:shadow-md rounded-md">Social</TabsTrigger>
-          <TabsTrigger value="residential" className="text-primary-foreground text-base font-semibold data-[state=active]:bg-white data-[state=active]:text-primary data-[state=active]:shadow-md rounded-md">Residential</TabsTrigger>
-          <TabsTrigger value="business" className="text-primary-foreground text-base font-semibold data-[state=active]:bg-white data-[state=active]:text-primary data-[state=active]:shadow-md rounded-md">Business</TabsTrigger>
-          {showFamily && <TabsTrigger value="family" className="text-primary-foreground text-base font-semibold data-[state=active]:bg-white data-[state=active]:text-primary data-[state=active]:shadow-md rounded-md">Family</TabsTrigger>}
+        <TabsList className={`grid w-full grid-cols-3 ${showFamily ? "lg:grid-cols-5" : "lg:grid-cols-4"} h-12`}>
+          <TabsTrigger value="personal" className="text-[15px]">Personal</TabsTrigger>
+          <TabsTrigger value="social" className="text-[15px]">Social</TabsTrigger>
+          <TabsTrigger value="residential" className="text-[15px]">Residential</TabsTrigger>
+          <TabsTrigger value="business" className="text-[15px]">Business</TabsTrigger>
+          {showFamily && <TabsTrigger value="family" className="text-[15px]">Family</TabsTrigger>}
         </TabsList>
 
         <TabsContent value="personal" className="space-y-6 mt-6">
           <Card>
-            <CardHeader className="bg-primary/5 rounded-t-lg border-b border-primary/20">
-              <CardTitle className="text-primary text-lg">Personal Details</CardTitle>
+            <CardHeader className="border-b border-[color:var(--row-line)] pb-4">
+              <CardTitle>Personal Details</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-6">
+            <CardContent className="space-y-6 pt-6">
               <div className="flex flex-col sm:flex-row gap-6">
                 {isReadOnly ? (
                   <div className="relative h-24 w-24 flex-shrink-0 overflow-hidden rounded-full bg-muted border">
@@ -724,10 +724,10 @@ export default function MemberForm({
 
         <TabsContent value="social" className="space-y-6 mt-6">
           <Card>
-            <CardHeader className="bg-primary/5 rounded-t-lg border-b border-primary/20">
-              <CardTitle className="text-primary text-lg">Social Media</CardTitle>
+            <CardHeader className="border-b border-[color:var(--row-line)] pb-4">
+              <CardTitle>Social Media</CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="pt-6">
               <div className="grid gap-4 sm:grid-cols-2">
                 {renderInput("facebook", "Facebook URL", "url")}
                 {renderInput("instagram", "Instagram URL", "url")}
@@ -742,10 +742,10 @@ export default function MemberForm({
 
         <TabsContent value="residential" className="space-y-6 mt-6">
           <Card>
-            <CardHeader className="bg-primary/5 rounded-t-lg border-b border-primary/20">
-              <CardTitle className="text-primary text-lg">Residential Address</CardTitle>
+            <CardHeader className="border-b border-[color:var(--row-line)] pb-4">
+              <CardTitle>Residential Address</CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="pt-6">
               <div className="grid gap-4 sm:grid-cols-2">
                 {renderAddrCountrySelect("Residential", resAddr, "Country")}
                 {renderAddrInput("Residential", resAddr, "phoneNumber", "Phone Number", "tel")}
@@ -767,10 +767,10 @@ export default function MemberForm({
 
         <TabsContent value="business" className="space-y-6 mt-6">
           <Card>
-            <CardHeader className="bg-primary/5 rounded-t-lg border-b border-primary/20">
-              <CardTitle className="text-primary text-lg">Business Details</CardTitle>
+            <CardHeader className="border-b border-[color:var(--row-line)] pb-4">
+              <CardTitle>Business Details</CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="pt-6">
               <div className="grid gap-4 sm:grid-cols-2">
                 {/* Designation + Classification are MEMBER-level (stored on club_members), shared across all clubs */}
                 {renderInput("designation", "Designation")}
@@ -799,10 +799,10 @@ export default function MemberForm({
         {showFamily && (
         <TabsContent value="family" className="space-y-6 mt-6">
           <Card>
-            <CardHeader className="bg-primary/5 rounded-t-lg border-b border-primary/20">
-              <CardTitle className="text-primary text-lg">Family Details</CardTitle>
+            <CardHeader className="border-b border-[color:var(--row-line)] pb-4">
+              <CardTitle>Family Details</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-6">
+            <CardContent className="space-y-6 pt-6">
               <div className="flex flex-col sm:flex-row gap-6 items-start">
                 <PhotoUpload
                   currentPath={formData.familyPhotoPath || null}
@@ -824,7 +824,7 @@ export default function MemberForm({
 
               <Separator />
 
-              <div className="flex items-center justify-between">
+              <div className="flex flex-wrap items-center justify-between gap-3">
                 <h3 className="text-lg font-semibold text-primary">Family Members</h3>
                 <Button type="button" variant="outline" onClick={addFamilyMember}>
                   <Plus className="mr-2 h-4 w-4" />

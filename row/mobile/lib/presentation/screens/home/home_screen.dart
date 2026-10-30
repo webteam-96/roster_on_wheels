@@ -1,3 +1,5 @@
+import 'package:rotary_flutter_app/presentation/widgets/row/tone_card.dart';
+import 'package:rotary_flutter_app/core/theme/row_tokens.dart';
 import 'package:flutter/material.dart' hide Text;
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
@@ -10,7 +12,6 @@ import '../../../core/notifications/notification_badge_service.dart';
 import '../../../core/preferences/home_layout_controller.dart';
 import '../../../core/routing/route_names.dart';
 import '../../../core/theme/app_colors.dart';
-import '../../../core/theme/app_gradients.dart';
 import '../../../core/theme/app_text_styles.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../data/models/club_model.dart';
@@ -33,6 +34,7 @@ import '../../../core/brand/brand.dart';
 import '../../widgets/consent_gate.dart';
 import 'package:rotary_flutter_app/core/theme/app_fonts.dart';
 import 'package:rotary_flutter_app/core/i18n/text.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/skeleton_list.dart';
 
 class _ConnectionItem {
   final int id;
@@ -420,9 +422,10 @@ class _HomeScreenState extends State<HomeScreen> {
               expandedHeight: 260,
               pinned: true,
               stretch: true,
-              backgroundColor: AppColors.primaryDeep,
+              backgroundColor: AppColors.lightBg,
+              surfaceTintColor: AppColors.lightBg,
               elevation: 0,
-              centerTitle: true,
+              centerTitle: false,
               title: _showLogoInAppBar
                   ? Row(
                       mainAxisSize: MainAxisSize.min,
@@ -435,7 +438,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             alignment: Alignment.centerLeft,
                             child: Text(Brand.current.productName,
                                 maxLines: 1,
-                                style: AppFonts.body(color: Colors.white,
+                                style: AppFonts.body(color: AppColors.textPrimary,
                                     fontWeight: FontWeight.w800,
                                     fontSize: 15)),
                           ),
@@ -446,7 +449,7 @@ class _HomeScreenState extends State<HomeScreen> {
               leading: IconButton(
                 onPressed: () => _scaffoldKey.currentState?.openDrawer(),
                 icon: const Icon(Icons.menu_rounded,
-                    color: Colors.white, size: 26),
+                    color: AppColors.textPrimary, size: 26),
               ),
               actions: [
                 _NotificationBell(
@@ -463,10 +466,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 background: Stack(
                   fit: StackFit.expand,
                   children: [
-                    // Gradient background
-                    Container(
-                        decoration:
-                            const BoxDecoration(gradient: AppGradients.royalSweep)),
+                    const ColoredBox(color: AppColors.lightBg),
                     // Header content
                     Positioned(
                       top: 0,
@@ -487,7 +487,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             SliverToBoxAdapter(
               child: Transform.translate(
-                offset: const Offset(0, -40),
+                offset: Offset.zero, // the light header has no band to overlap any more
                 child: const Padding(
                   padding:
                       EdgeInsets.symmetric(horizontal: AppSpacing.md),
@@ -504,6 +504,7 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
               sliver: SliverList(
                 delegate: SliverChildListDelegate([
+                  const SizedBox(height: AppSpacing.lg),
                   const _SectionHeader(title: 'My Connections', centered: true),
                   const SizedBox(height: AppSpacing.md),
                   // A member whose context carries a SuperAdmin role (web-only
@@ -536,7 +537,6 @@ class _HomeScreenState extends State<HomeScreen> {
                   const SizedBox(height: AppSpacing.md),
                   _MyRotaryGrid(auth: auth),
                   const SizedBox(height: AppSpacing.md),
-                  const Divider(color: AppColors.border, thickness: 2),
                   const SizedBox(height: AppSpacing.lg),
                 ]),
               ),
@@ -565,7 +565,7 @@ class _NotificationBell extends StatelessWidget {
             IconButton(
               onPressed: onPressed,
               icon: const Icon(Icons.notifications_none_rounded,
-                  color: Colors.white, size: 26),
+                  color: AppColors.textPrimary, size: 26),
             ),
             if (count > 0)
               Positioned(
@@ -585,7 +585,7 @@ class _NotificationBell extends StatelessWidget {
                     count > 9 ? '9+' : '$count',
                     style: const TextStyle(
                       color: Colors.white,
-                      fontSize: 9,
+                      fontSize: 13,
                       fontWeight: FontWeight.w800,
                       height: 1.1,
                     ),
@@ -618,7 +618,7 @@ class _HeaderContent extends StatelessWidget {
       child: Text(
         _initials(memberName),
         style: AppFonts.body(
-            color: Colors.white, fontWeight: FontWeight.w900, fontSize: 16),
+            color: AppColors.textPrimary, fontWeight: FontWeight.w900, fontSize: 16),
       ),
     );
   }
@@ -630,20 +630,20 @@ class _HeaderContent extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          // ROW lockup (white, on the azure header)
+          // ROW lockup, full colour on the light header (design.md 5: the white
+          // version is only for dark surfaces, which this header no longer is)
           Image.asset(
-            'assets/images/row-logo-inverse.png',
+            'assets/images/row-logo.png',
             height: 56,
             errorBuilder: (_, __, ___) => Row(
               mainAxisSize: MainAxisSize.min,
               children: [
                 const Icon(Icons.rotate_right, color: AppColors.goldPrime, size: 28),
                 const SizedBox(width: 8),
-                Text(Brand.current.productName.toUpperCase(),
-                    style: AppFonts.body(color: Colors.white,
+                Text(Brand.current.productName,
+                    style: AppFonts.body(color: AppColors.textPrimary,
                         fontSize: 16,
-                        fontWeight: FontWeight.w900,
-                        letterSpacing: 2)),
+                        fontWeight: FontWeight.w900)),
               ],
             ),
           ),
@@ -654,9 +654,8 @@ class _HeaderContent extends StatelessWidget {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.13),
-                borderRadius: BorderRadius.circular(18),
-                border: Border.all(color: Colors.white.withOpacity(0.18)),
+                color: RowTone.sky.fill,
+                borderRadius: BorderRadius.circular(RowRadii.tile),
               ),
               child: Row(
                 children: [
@@ -667,7 +666,7 @@ class _HeaderContent extends StatelessWidget {
                     decoration: BoxDecoration(
                       color: AppColors.goldPrime,
                       shape: BoxShape.circle,
-                      border: Border.all(color: Colors.white, width: 2),
+                      border: Border.all(color: AppColors.surface, width: 2),
                     ),
                     clipBehavior: Clip.antiAlias,
                     // ClipOval guarantees the photo is clipped to a circle.
@@ -697,14 +696,14 @@ class _HeaderContent extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text('Welcome,',
-                            style: AppFonts.body(color: Colors.white.withOpacity(0.7),
-                                fontSize: 11,
+                            style: AppFonts.body(color: AppColors.textSecondary,
+                                fontSize: 13,
                                 fontWeight: FontWeight.w500)),
                         Text(
                           memberName.isNotEmpty ? memberName : 'Rotarian',
-                          style: AppFonts.body(color: Colors.white,
-                              fontSize: 15,
-                              fontWeight: FontWeight.w800),
+                          style: AppFonts.display(color: AppColors.textPrimary,
+                              fontSize: 18,
+                              fontWeight: FontWeight.w600),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
@@ -715,12 +714,12 @@ class _HeaderContent extends StatelessWidget {
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             Text('View profile',
-                                style: AppFonts.body(color: AppColors.goldPrime,
-                                    fontSize: 11,
+                                style: AppFonts.body(color: AppColors.primaryPrime,
+                                    fontSize: 13,
                                     fontWeight: FontWeight.w700)),
                             const SizedBox(width: 2),
                             const Icon(Icons.chevron_right_rounded,
-                                color: AppColors.goldPrime, size: 16),
+                                color: AppColors.primaryPrime, size: 16),
                           ],
                         ),
                       ],
@@ -741,14 +740,11 @@ class _HeaderContent extends StatelessWidget {
                       height: 44,
                       alignment: Alignment.center,
                       decoration: BoxDecoration(
-                        color: AppColors.goldPrime.withOpacity(0.25),
+                        color: AppColors.primaryPrime,
                         shape: BoxShape.circle,
-                        border: Border.all(
-                            color: AppColors.goldPrime.withOpacity(0.7),
-                            width: 1.5),
                       ),
                       child: const Icon(Icons.qr_code_rounded,
-                          color: Colors.white, size: 24),
+                          color: AppColors.lightBg, size: 24),
                     ),
                   ),
                 ],
@@ -777,34 +773,16 @@ class _SectionHeader extends StatelessWidget {
     this.fontSize = 16,
   });
 
+  // Fellowship section header (design.md 8.4): left-aligned display heading, no
+  // divider rules. [centered] and [fontSize] are kept for existing callers.
   @override
   Widget build(BuildContext context) {
-    if (centered) {
-      return Row(
-        children: [
-          const Expanded(child: const Divider(color: AppColors.border, thickness: 2)),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12),
-            child: Text(
-              title,
-              style: AppTextStyles.h2.copyWith(
-                fontSize: fontSize,
-                fontWeight: FontWeight.w700,
-                color: AppColors.textPrimary,
-                letterSpacing: 0.3,
-                height: 1.0,
-              ),
-            ),
-          ),
-          const Expanded(child: const Divider(color: AppColors.border, thickness: 2)),
-        ],
-      );
-    }
     return Text(
       title,
-      style: AppTextStyles.h2.copyWith(
+      style: AppFonts.display(
+        fontSize: 20,
+        fontWeight: FontWeight.w600,
         color: AppColors.textPrimary,
-        fontWeight: FontWeight.bold,
       ),
     );
   }
@@ -888,26 +866,10 @@ class _ImportantLinksCardState extends State<_ImportantLinksCard> {
         children: [
           Row(
             children: [
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                decoration: BoxDecoration(
-                  color: AppColors.goldPrime.withOpacity(0.18),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Icon(Icons.bolt_rounded,
-                        color: AppColors.goldPrime, size: 13),
-                    const SizedBox(width: 4),
-                    Text('QUICK ACCESS',
-                        style: AppFonts.body(color: AppColors.goldPrime,
-                            fontWeight: FontWeight.w800,
-                            fontSize: 9,
-                            letterSpacing: 1)),
-                  ],
-                ),
-              ),
+              Text('Quick access',
+                  style: AppFonts.display(color: AppColors.lightBg,
+                      fontWeight: FontWeight.w600,
+                      fontSize: 18)),
             ],
           ),
           const SizedBox(height: 14),
@@ -1438,19 +1400,17 @@ class _LinkChip extends StatelessWidget {
           // entry ("Calendar") lines up with the two-line ones, not floating
           // above them.
           SizedBox(
-            height: 26,
+            height: 36,
             child: Center(
-              child: FittedBox(
-                fit: BoxFit.scaleDown,
-                child: Text(
-                  link.label,
-                  textAlign: TextAlign.center,
-                  maxLines: 2,
-                  style: AppFonts.body(color: Colors.white.withOpacity(0.9),
-                    fontWeight: FontWeight.w600,
-                    fontSize: 9.5,
-                    height: 1.3,
-                  ),
+              child: Text(
+                link.label,
+                textAlign: TextAlign.center,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: AppFonts.body(color: Colors.white.withOpacity(0.9),
+                  fontWeight: FontWeight.w600,
+                  fontSize: 13,
+                  height: 1.3,
                 ),
               ),
             ),
@@ -1484,7 +1444,7 @@ class _MyClubsCard extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         decoration: BoxDecoration(
-          gradient: AppGradients.royalSweep,
+          color: AppColors.primaryPrime,
           borderRadius: BorderRadius.circular(18),
         ),
         child: Row(
@@ -1508,8 +1468,7 @@ class _MyClubsCard extends StatelessWidget {
                     'MY CLUB',
                     style: AppFonts.body(color: Colors.white.withValues(alpha: 0.75),
                       fontWeight: FontWeight.w700,
-                      fontSize: 9,
-                      letterSpacing: 1,
+                      fontSize: 13,
                     ),
                   ),
                   const SizedBox(height: 2),
@@ -1556,7 +1515,7 @@ class _ConnectionCards extends StatelessWidget {
           color: Colors.white,
           borderRadius: BorderRadius.circular(24),
         ),
-        child: const Center(child: CircularProgressIndicator()),
+        child: const RowSkeletonList(),
       );
     }
 
@@ -1609,7 +1568,7 @@ class _ConnectionCards extends StatelessWidget {
               crossAxisCount: 2,
               crossAxisSpacing: 8,
               mainAxisSpacing: 8,
-              mainAxisExtent: 116,
+              mainAxisExtent: 152,
             ),
             itemCount: rest.length,
             itemBuilder: (ctx, i) => _ConnectionCard(
@@ -1631,7 +1590,7 @@ class _ConnectionCards extends StatelessWidget {
         crossAxisCount: 2,
         crossAxisSpacing: 8,
         mainAxisSpacing: 8,
-        mainAxisExtent: 116,
+        mainAxisExtent: 152,
       ),
       itemCount: connections.length,
       itemBuilder: (ctx, i) => _ConnectionCard(
@@ -1696,7 +1655,7 @@ class _ConnectionCard extends StatelessWidget {
                 alignment: Alignment.bottomLeft,
                 child: Text(
                   title,
-                  style: AppFonts.body(fontSize: 11,
+                  style: AppFonts.body(fontSize: 13,
                       fontWeight: FontWeight.w800,
                       height: 1.2,
                       color: Colors.white),
@@ -1746,7 +1705,7 @@ class _MyRotaryGrid extends StatelessWidget {
       physics: const NeverScrollableScrollPhysics(),
       padding: EdgeInsets.zero,
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 3,
+        crossAxisCount: 2,
         // Pin each tile to a fixed height so it does NOT scale with screen
         // width. (childAspectRatio derives height from width, which made tiles
         // — and the centered whitespace around the icon — grow on larger
@@ -1755,12 +1714,12 @@ class _MyRotaryGrid extends StatelessWidget {
         // gives a constant height across devices, sized to always fit the
         // icon (48) + gap (8) + two text lines + padding, with headroom for
         // larger system font scales.
-        mainAxisExtent: 118,
+        mainAxisExtent: 112,
         crossAxisSpacing: 12,
         mainAxisSpacing: 12,
       ),
       itemCount: items.length,
-      itemBuilder: (ctx, i) => _RotaryTile(item: items[i]),
+      itemBuilder: (ctx, i) => _RotaryTile(item: items[i], tone: _kTileTones[i % _kTileTones.length]),
     );
   }
 }
@@ -1773,53 +1732,38 @@ class _RotaryItem {
   const _RotaryItem(this.label, this.icon, this.color, [this.onTap]);
 }
 
+// Tone cycle for module tiles (design.md section 1: gold is never a fill).
+const _kTileTones = [RowTone.sky, RowTone.lilac, RowTone.cream2, RowTone.coral];
+
 class _RotaryTile extends StatelessWidget {
   final _RotaryItem item;
-  const _RotaryTile({required this.item});
+  final RowTone tone;
+  const _RotaryTile({required this.item, required this.tone});
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: item.onTap,
-      child: Container(
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(18),
-          border: Border.all(color: AppColors.lightBorder, width: 1),
-        ),
-        // Top-align content so the icon sits near the card's top (less white
-        // space below the "My Rotary" header) without shrinking the card.
-        padding: const EdgeInsets.all(10),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              width: 48,
-              height: 48,
-              decoration: BoxDecoration(
-                color: item.color.withOpacity(0.1),
-                shape: BoxShape.circle,
+    return Semantics(
+      button: true,
+      label: item.label,
+      child: InkWell(
+        onTap: item.onTap,
+        borderRadius: BorderRadius.circular(RowRadii.tile),
+        child: ToneCard(
+          tone: tone,
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Icon(item.icon, size: 26),
+              Text(
+                item.label,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: AppFonts.body(fontSize: 15, fontWeight: FontWeight.w600, height: 1.25),
               ),
-              child: Icon(item.icon, color: item.color, size: 24),
-            ),
-            const SizedBox(height: 8),
-            Flexible(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 6),
-                child: Text(
-                  item.label,
-                  textAlign: TextAlign.center,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: AppFonts.body(fontSize: 10,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.textPrimary,
-                    height: 1.3,
-                  ),
-                ),
-              ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -1986,7 +1930,7 @@ class _RoleBasedConnectionsState extends State<_RoleBasedConnections> {
           color: Colors.white,
           borderRadius: BorderRadius.circular(24),
         ),
-        child: const Center(child: CircularProgressIndicator()),
+        child: const RowSkeletonList(),
       );
     }
 
@@ -2287,7 +2231,7 @@ class _SecondaryTilesGrid extends StatelessWidget {
         crossAxisCount: 2,
         crossAxisSpacing: 8,
         mainAxisSpacing: 8,
-        mainAxisExtent: 116,
+        mainAxisExtent: 152,
       ),
       itemCount: items.length,
       itemBuilder: (ctx, i) => _RoleScopeCard(
@@ -2353,12 +2297,12 @@ class _RoleScopeCard extends StatelessWidget {
                     ),
                     child: Text(
                       badge,
-                      maxLines: 1,
+                      maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                       style: AppFonts.body(color: Colors.white,
-                        fontSize: 9,
+                        fontSize: 13,
                         fontWeight: FontWeight.w700,
-                        letterSpacing: 0.3,
+                        height: 1.2,
                       ),
                     ),
                   ),
@@ -2389,7 +2333,7 @@ class _RoleScopeCard extends StatelessWidget {
                    const SizedBox(height: 1),
                   Text(
                     statsLine,
-                    style: AppFonts.body(fontSize: 10,
+                    style: AppFonts.body(fontSize: 13,
                       fontWeight: FontWeight.w500,
                       color: Colors.white.withOpacity(0.85),
                     ),
@@ -2490,11 +2434,10 @@ class _SuperAdminConnectionCardState extends State<_SuperAdminConnectionCard> {
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Text(
-                      'SUPER ADMIN',
+                      'Super admin',
                       style: AppFonts.body(color: AppColors.goldLight,
-                        fontSize: 9,
+                        fontSize: 13,
                         fontWeight: FontWeight.w800,
-                        letterSpacing: 0.5,
                       ),
                     ),
                   ),
@@ -2514,7 +2457,7 @@ class _SuperAdminConnectionCardState extends State<_SuperAdminConnectionCard> {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: AppFonts.body(color: Colors.white.withOpacity(0.7),
-                      fontSize: 11,
+                      fontSize: 13,
                     ),
                   ),
                 ],

@@ -37,6 +37,7 @@ import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";
 
 import { appLocale } from "@/lib/appFormat";
+import { ListPageSkeleton } from "@/components/row/AppKit";
 const AGREE_MESSAGE = `The data I will enter is for a Public Image Initiative conducted by my club. E.g., Hoardings, Marathons, Rotary Stories on News Papers / Radio / TV ads, etc.
 
 Please Note: The content posted here will be displayed on the ROW Website, District Website, Club Monthly Report & ROW Integrated Club Website`;
@@ -191,7 +192,7 @@ export default function PublicImageInitiativePage() {
           {isChild ? "" : (page - 1) * pageSize + index + 1}
         </TableCell>
         <TableCell>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             {isChild && <span className="text-muted-foreground ml-2">&#8627;</span>}
             {project.primaryPhotoPath && (
               <img
@@ -338,7 +339,7 @@ export default function PublicImageInitiativePage() {
 
         {loading && (
           <div className="flex items-center justify-center py-20">
-            <RotaryLoader size="lg" />
+            <ListPageSkeleton />
           </div>
         )}
 

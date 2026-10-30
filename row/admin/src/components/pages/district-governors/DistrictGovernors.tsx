@@ -190,7 +190,7 @@ export function DistrictGovernors() {
             <div className="mt-6">
               {groups.map(([zone, rows]) => (
                 <section key={zone} aria-label={zone}>
-                  <h2 className="sticky top-[60px] z-10 border-b border-navy-950/15 bg-paper/90 py-3 pl-2 font-display text-xl font-[560] tracking-[-0.01em] text-navy-950 backdrop-blur-sm sm:pl-3">
+                  <h2 className="sticky top-[60px] z-10 border-b border-navy-950/15 bg-paper py-3 pl-2 font-display text-xl font-[560] tracking-[-0.01em] text-navy-950 sm:pl-3">
                     {zone}
                     <span className="figure ml-3 align-middle text-[13px] font-semibold text-muted">
                       {rows.length}

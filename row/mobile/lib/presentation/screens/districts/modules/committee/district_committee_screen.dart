@@ -1077,7 +1077,7 @@ class _MemberRow extends StatelessWidget {
                               style: AppTextStyles.caption.copyWith(
                                 color: AppColors.warning,
                                 fontWeight: FontWeight.w600,
-                                fontSize: 10,
+                                fontSize: 13,
                               ),
                             ),
                           ),
@@ -1205,7 +1205,7 @@ class _CountChip extends StatelessWidget {
             style: AppTextStyles.caption.copyWith(
               color: AppColors.primary,
               fontWeight: FontWeight.w600,
-              fontSize: 11,
+              fontSize: 13,
             ),
           ),
         ],

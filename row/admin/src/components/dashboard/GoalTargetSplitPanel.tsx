@@ -152,13 +152,13 @@ export default function GoalTargetSplitPanel({
         <span className="text-xs font-medium text-slate-500">Target split:</span>
         <button
           onClick={() => setOpen("quarter")}
-          className="inline-flex items-center gap-1.5 h-9 rounded-lg border border-blue-200 bg-blue-50 px-3 text-xs font-semibold text-blue-700 hover:bg-blue-100"
+          className="inline-flex items-center gap-1.5 h-9 rounded-full border border-blue-200 bg-blue-50 px-3 text-xs font-semibold text-blue-700 hover:bg-blue-100"
         >
           <CalendarRange size={13} /> Quarterly
         </button>
         <button
           onClick={() => setOpen("month")}
-          className="inline-flex items-center gap-1.5 h-9 rounded-lg border border-blue-200 bg-blue-50 px-3 text-xs font-semibold text-blue-700 hover:bg-blue-100"
+          className="inline-flex items-center gap-1.5 h-9 rounded-full border border-blue-200 bg-blue-50 px-3 text-xs font-semibold text-blue-700 hover:bg-blue-100"
         >
           <CalendarDays size={13} /> Month-wise
         </button>
@@ -198,7 +198,7 @@ export default function GoalTargetSplitPanel({
                 const base = baseOf(f);
                 const st = stateOf(f.fieldId, base);
                 return (
-                  <div key={f.fieldId} className="bg-white rounded-xl border border-slate-200 overflow-hidden">
+                  <div key={f.fieldId} className="bg-white rounded-[20px] border border-slate-200 overflow-hidden">
                     <div className="px-3 sm:px-5 py-2.5 sm:py-3 border-b-2 border-amber-300 flex flex-wrap items-center gap-x-3 gap-y-1.5">
                       <h4 className="text-sm font-bold text-ink">{f.groupName || f.fieldLabel}</h4>
                       <span className="text-xs text-slate-500">{f.fieldLabel}</span>
@@ -305,14 +305,14 @@ export default function GoalTargetSplitPanel({
                     onClick={save}
                     disabled={saving || !allMatch}
                     title={allMatch ? undefined : "Every section must total its yearly target before this can be saved"}
-                    className="inline-flex items-center gap-1.5 h-9 rounded-lg bg-azure px-4 text-xs font-semibold text-white hover:bg-mint-ink disabled:opacity-40"
+                    className="inline-flex items-center gap-1.5 h-9 rounded-full bg-azure px-4 text-xs font-semibold text-white hover:bg-mint-ink disabled:opacity-40"
                   >
                     {saving ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />} Save
                   </button>
                   <button
                     onClick={reset}
                     disabled={saving}
-                    className="inline-flex items-center gap-1.5 h-9 rounded-lg border border-slate-200 px-3 text-xs font-medium text-slate-600 hover:bg-slate-50 disabled:opacity-40"
+                    className="inline-flex items-center gap-1.5 h-9 rounded-full border border-slate-200 px-3 text-xs font-medium text-slate-600 hover:bg-slate-50 disabled:opacity-40"
                   >
                     Reset
                   </button>
@@ -330,7 +330,7 @@ export default function GoalTargetSplitPanel({
               )}
               <button
                 onClick={() => setOpen(null)}
-                className="ml-auto inline-flex items-center h-9 rounded-lg border border-slate-200 px-4 text-xs font-medium text-slate-600 hover:bg-slate-50"
+                className="ml-auto inline-flex items-center h-9 rounded-full border border-slate-200 px-4 text-xs font-medium text-slate-600 hover:bg-slate-50"
               >
                 Close
               </button>

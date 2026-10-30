@@ -331,7 +331,7 @@ class _ProgressRing extends StatelessWidget {
             style: AppTextStyles.caption.copyWith(
               color: color,
               fontWeight: FontWeight.w800,
-              fontSize: 11,
+              fontSize: 13,
             ),
           ),
         ],

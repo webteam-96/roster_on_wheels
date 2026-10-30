@@ -40,6 +40,7 @@ import ErrorAlert from "@/components/ErrorAlert";
 import RotaryLoader from "@/components/RotaryLoader";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { ArrowLeft, Search, X, User } from "@/components/icons";
+import { ListPageSkeleton } from "@/components/row/AppKit";
 
 function withSearch(base: string, extra: Record<string, string | null | undefined>) {
   const p = new URLSearchParams();
@@ -193,7 +194,7 @@ export default function DistrictAdminEditSubGroupPage() {
         </div>
 
         {loading ? (
-          <div className="flex items-center justify-center py-20"><RotaryLoader size="lg" /></div>
+          <div className="flex items-center justify-center py-20"><ListPageSkeleton /></div>
         ) : (
           <div className="rounded-2xl border border-slate-200 shadow-sm bg-white p-5 space-y-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -337,7 +338,7 @@ export default function DistrictAdminEditSubGroupPage() {
               </div>
             </div>
 
-            <div className="flex items-center justify-end gap-2 pt-2">
+            <div className="flex flex-wrap items-center justify-end gap-2 pt-2">
               <Button variant="outline" onClick={goBack} disabled={saving} className="border-slate-200 text-slate-700 hover:bg-slate-50">
                 Cancel
               </Button>

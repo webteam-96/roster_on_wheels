@@ -107,7 +107,7 @@ class _DistrictOverviewScreenState extends State<DistrictOverviewScreen> {
                     Text(
                       y.yearLabel,
                       style: AppFonts.body(
-                        fontSize: 12.5,
+                        fontSize: 13,
                         fontWeight: y.id == selId
                             ? FontWeight.w800
                             : FontWeight.w500,
@@ -125,7 +125,7 @@ class _DistrictOverviewScreenState extends State<DistrictOverviewScreen> {
                         child: Text(
                           'Current',
                           style: AppFonts.body(
-                            fontSize: 9,
+                            fontSize: 13,
                             fontWeight: FontWeight.w700,
                             color: AppColors.primaryPrime,
                           ),
@@ -152,7 +152,7 @@ class _DistrictOverviewScreenState extends State<DistrictOverviewScreen> {
                 Text(
                   selLabel.isEmpty ? 'Year' : selLabel,
                   style: AppFonts.body(
-                    fontSize: 11.5,
+                    fontSize: 13,
                     fontWeight: FontWeight.w700,
                     color: Colors.white,
                   ),
@@ -199,12 +199,12 @@ class _DistrictOverviewScreenState extends State<DistrictOverviewScreen> {
       child: Scaffold(
         backgroundColor: AppColors.lightBg,
         appBar: AppBar(
-          backgroundColor: AppColors.primaryPrime,
-          foregroundColor: Colors.white,
+          backgroundColor: AppColors.lightBg,
+          foregroundColor: AppColors.textPrimary,
           elevation: 0,
-          centerTitle: true,
+          centerTitle: false,
           leading: IconButton(
-            icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white),
+            icon: const Icon(Icons.arrow_back_ios_new_rounded, color: AppColors.textPrimary),
             onPressed: () => context.pop(),
           ),
           title: Text(
@@ -212,8 +212,7 @@ class _DistrictOverviewScreenState extends State<DistrictOverviewScreen> {
             style: AppFonts.body(
               fontWeight: FontWeight.w800,
               fontSize: 16,
-              color: Colors.white,
-              letterSpacing: 1,
+              color: AppColors.textPrimary,
             ),
           ),
           actions: _yearActions(),
@@ -225,11 +224,6 @@ class _DistrictOverviewScreenState extends State<DistrictOverviewScreen> {
               onTap: (_) => context.read<MaintenanceController>().refresh(),
               isScrollable: true,
               tabAlignment: TabAlignment.start,
-              labelColor: Colors.white,
-              unselectedLabelColor: Colors.white.withValues(alpha: 0.62),
-              indicatorColor: AppColors.goldPrime,
-              indicatorWeight: 3,
-              dividerColor: Colors.transparent,
               labelPadding: const EdgeInsets.symmetric(horizontal: 14),
               labelStyle: AppFonts.body(
                 fontSize: 13,
@@ -455,12 +449,12 @@ class _KpiCol extends StatelessWidget {
           ),
           const SizedBox(height: 6),
           Text(
-            label.toUpperCase(),
+            label,
             textAlign: TextAlign.center,
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
             style: AppFonts.body(
-              fontSize: 9.5,
+              fontSize: 13,
               fontWeight: FontWeight.w700,
               color: AppColors.slate500,
               letterSpacing: 0.4,
@@ -474,7 +468,7 @@ class _KpiCol extends StatelessWidget {
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
             style: AppFonts.body(
-              fontSize: 9,
+              fontSize: 13,
               fontWeight: FontWeight.w500,
               color: AppColors.slate400,
               height: 1.2,

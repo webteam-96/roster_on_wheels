@@ -109,7 +109,7 @@ member** (new `api/mobile/auth/login` + `forgot-password`, rate-limited; OTP scr
 | WS10-06 payment flows (Razorpay checkout, 18 files) | Rebuild on Stripe (decided 2026-10-19), Wave 2 of `docs/superpowers/plans/2026-10-19-row-build-spec-plan.md` |
 | WS10-07 push notifications | External: needs a ROW Firebase project (open decision 6) |
 | WS10-03 translation | String catalogue API done 2026-10-21 (`GET api/i18n/{locale}`, Wave 1 Task 6); app ARB generation from it not started |
-| WS10-09 store listings and app IDs | Decision: iOS bundle ID is `com.kaizen.row`, Android applicationId is the placeholder `com.SampleApp.row` |
+| WS10-09 store listings and app IDs | Decision (2026-10-28): both apps use `com.kaizen.roww` (iOS bundle ID and Android applicationId) |
 | WhatsApp screens | Removed 2026-10-19 (Wave 1 Task 4) |
 | Version control | `row/mobile` is ignored by the repo and is not a repository itself: changes are not tracked anywhere |
 

@@ -79,7 +79,7 @@ export default function PublicHeader() {
               <Link
                 key={l.href}
                 href={l.href}
-                className="px-3 py-2 text-sm font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-50 rounded-md transition-colors"
+                className="px-3 py-2 text-sm font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-50 rounded-full transition-colors"
               >
                 {l.label}
               </Link>
@@ -108,7 +108,7 @@ export default function PublicHeader() {
                 key={l.href}
                 href={l.href}
                 onClick={() => setMobileOpen(false)}
-                className="block px-3 py-2 text-sm font-medium text-slate-700 rounded-md hover:bg-slate-50"
+                className="block px-3 py-2 text-sm font-medium text-slate-700 rounded-full hover:bg-slate-50"
               >
                 {l.label}
               </Link>

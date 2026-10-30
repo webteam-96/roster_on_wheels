@@ -184,7 +184,7 @@ class _DashboardBodSubtabState extends State<DashboardBodSubtab> {
                               Text(
                                   '${bod.clubName.isEmpty ? 'This club' : bod.clubName} · RY ${bod.selectedYearLabel}',
                                   style: AppFonts.body(
-                                      fontSize: 11.5,
+                                      fontSize: 13,
                                       color: AppColors.slate500)),
                             ],
                           ),
@@ -209,7 +209,7 @@ class _DashboardBodSubtabState extends State<DashboardBodSubtab> {
                         child: Center(
                           child: Text('No board members found',
                               style: AppFonts.body(
-                                  fontSize: 12, color: AppColors.slate400)),
+                                  fontSize: 13, color: AppColors.slate400)),
                         ),
                       )
                     else
@@ -230,7 +230,7 @@ class _DashboardBodSubtabState extends State<DashboardBodSubtab> {
                                   ? '${bod.directors.length} board positions · RY ${bod.selectedYearLabel}'
                                   : 'Showing ${filtered.length} of ${bod.directors.length} board positions · RY ${bod.selectedYearLabel}',
                               style: AppFonts.body(
-                                  fontSize: 10.5, color: AppColors.slate400)),
+                                  fontSize: 13, color: AppColors.slate400)),
                         ],
                       ),
                   ],
@@ -293,13 +293,13 @@ class _DashboardBodSubtabState extends State<DashboardBodSubtab> {
       icon: const Icon(Icons.add_rounded, size: 16),
       label: Text('Add',
           style: AppFonts.body(
-              fontSize: 12, fontWeight: FontWeight.w700)),
+              fontSize: 13, fontWeight: FontWeight.w700)),
       style: ElevatedButton.styleFrom(
         backgroundColor: AppColors.rotaryBlue,
         foregroundColor: Colors.white,
         elevation: 0,
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        shape: const StadiumBorder(),
       ),
     );
   }
@@ -310,12 +310,12 @@ class _DashboardBodSubtabState extends State<DashboardBodSubtab> {
       icon: const Icon(Icons.file_download_outlined, size: 16),
       label: Text('Excel',
           style: AppFonts.body(
-              fontSize: 12, fontWeight: FontWeight.w700)),
+              fontSize: 13, fontWeight: FontWeight.w700)),
       style: OutlinedButton.styleFrom(
         foregroundColor: AppColors.success,
         side: BorderSide(color: AppColors.success.withValues(alpha: 0.45)),
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        shape: const StadiumBorder(),
       ),
     );
   }
@@ -400,7 +400,7 @@ class _DirectorRow extends StatelessWidget {
             width: 20,
             child: Text('${index + 1}',
                 style: AppFonts.body(
-                    fontSize: 11,
+                    fontSize: 13,
                     fontWeight: FontWeight.w800,
                     color: AppColors.slate400)),
           ),
@@ -412,7 +412,7 @@ class _DirectorRow extends StatelessWidget {
             alignment: Alignment.center,
             child: Text(director.initials,
                 style: AppFonts.body(
-                    fontSize: 11.5,
+                    fontSize: 13,
                     fontWeight: FontWeight.w800,
                     color: Colors.white)),
           ),
@@ -441,7 +441,7 @@ class _DirectorRow extends StatelessWidget {
                         ),
                         child: Text('Non-Member',
                             style: AppFonts.body(
-                                fontSize: 9,
+                                fontSize: 13,
                                 fontWeight: FontWeight.w700,
                                 color: AppColors.slate500)),
                       ),
@@ -463,7 +463,7 @@ class _DirectorRow extends StatelessWidget {
                           ? director.designation
                           : 'No designation',
                       style: AppFonts.body(
-                          fontSize: 10,
+                          fontSize: 13,
                           fontWeight: FontWeight.w800,
                           color: director.designation.isNotEmpty
                               ? color
@@ -482,7 +482,7 @@ class _DirectorRow extends StatelessWidget {
                         const SizedBox(width: 3),
                         Text(director.mobile,
                             style: AppFonts.body(
-                                fontSize: 11,
+                                fontSize: 13,
                                 color: AppColors.rotaryBlue,
                                 fontWeight: FontWeight.w600)),
                       ]),
@@ -501,7 +501,7 @@ class _DirectorRow extends StatelessWidget {
                         Expanded(
                           child: Text(director.email,
                               style: AppFonts.body(
-                                  fontSize: 11, color: AppColors.rotaryBlue),
+                                  fontSize: 13, color: AppColors.rotaryBlue),
                               overflow: TextOverflow.ellipsis),
                         ),
                       ]),

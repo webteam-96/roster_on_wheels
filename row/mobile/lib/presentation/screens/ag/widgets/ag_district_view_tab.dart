@@ -122,7 +122,7 @@ class _Header extends StatelessWidget {
         Text(
           'How your $n club${n == 1 ? "" : "s"} compare across key metrics',
           style: AppFonts.body(
-            fontSize: 12,
+            fontSize: 13,
             color: AppColors.slate500,
           ),
         ),
@@ -130,7 +130,7 @@ class _Header extends StatelessWidget {
         Text(
           'AG: $name · $district · RY $year',
           style: AppFonts.body(
-            fontSize: 10.5,
+            fontSize: 13,
             color: AppColors.slate400,
           ),
         ),
@@ -155,10 +155,9 @@ class _LeaderboardsSection extends StatelessWidget {
         Text(
           'LEADERBOARDS',
           style: AppFonts.body(
-            fontSize: 10,
+            fontSize: 13,
             fontWeight: FontWeight.w800,
             color: AppColors.slate500,
-            letterSpacing: 0.7,
           ),
         ),
         const SizedBox(height: 8),
@@ -234,12 +233,11 @@ class _LeaderCard extends StatelessWidget {
               Icon(icon, size: 16, color: AppColors.rotaryBlue),
               const SizedBox(width: 6),
               Text(
-                title.toUpperCase(),
+                title,
                 style: AppFonts.body(
-                  fontSize: 11,
+                  fontSize: 13,
                   fontWeight: FontWeight.w800,
                   color: AppColors.slate500,
-                  letterSpacing: 0.5,
                 ),
               ),
             ],
@@ -251,7 +249,7 @@ class _LeaderCard extends StatelessWidget {
               child: Text(
                 'No data',
                 style: AppFonts.body(
-                  fontSize: 12,
+                  fontSize: 13,
                   fontWeight: FontWeight.w600,
                   color: AppColors.slate400,
                 ),
@@ -305,7 +303,7 @@ class _LeaderCard extends StatelessWidget {
                       child: Text(
                         '${i + 1}',
                         style: AppFonts.body(
-                          fontSize: 9,
+                          fontSize: 13,
                           fontWeight: FontWeight.w800,
                           color: Colors.white,
                         ),
@@ -316,7 +314,7 @@ class _LeaderCard extends StatelessWidget {
                       child: Text(
                         indexed[i].club.clubName,
                         style: AppFonts.body(
-                          fontSize: 12,
+                          fontSize: 13,
                           color: AppColors.slate700,
                         ),
                         overflow: TextOverflow.ellipsis,
@@ -325,7 +323,7 @@ class _LeaderCard extends StatelessWidget {
                     Text(
                       formatter(accessor(indexed[i].club)),
                       style: AppFonts.body(
-                        fontSize: 11.5,
+                        fontSize: 13,
                         fontWeight: FontWeight.w800,
                         color: AppColors.textPrimary,
                         fontFeatures: const [FontFeature.tabularFigures()],
@@ -414,17 +412,16 @@ class _ComparisonSectionState extends State<_ComparisonSection> {
         Text(
           'HEAD-TO-HEAD COMPARISON',
           style: AppFonts.body(
-            fontSize: 10,
+            fontSize: 13,
             fontWeight: FontWeight.w800,
             color: AppColors.slate500,
-            letterSpacing: 0.7,
           ),
         ),
         const SizedBox(height: 2),
         Text(
           'Choose a metric to rank your clubs against each other.',
           style: AppFonts.body(
-            fontSize: 11,
+            fontSize: 13,
             color: AppColors.slate500,
           ),
         ),
@@ -454,7 +451,7 @@ class _ComparisonSectionState extends State<_ComparisonSection> {
               'No club data available for this AG group.',
               textAlign: TextAlign.center,
               style: AppFonts.body(
-                fontSize: 12.5,
+                fontSize: 13,
                 fontWeight: FontWeight.w600,
                 color: AppColors.slate400,
               ),
@@ -491,7 +488,7 @@ class _ComparisonSectionState extends State<_ComparisonSection> {
           'Ranked high → low by ${selected.label}. National Rank is awaiting '
           'publication.',
           style: AppFonts.body(
-            fontSize: 10.5,
+            fontSize: 13,
             color: AppColors.slate400,
           ),
         ),
@@ -526,7 +523,7 @@ class _ComparisonSectionState extends State<_ComparisonSection> {
                 child: Text(
                   '${rank + 1}',
                   style: AppFonts.body(
-                    fontSize: 11,
+                    fontSize: 13,
                     fontWeight: FontWeight.w800,
                     color: color,
                   ),
@@ -614,7 +611,7 @@ class _MetricChip extends StatelessWidget {
           child: Text(
             label,
             style: AppFonts.body(
-              fontSize: 11.5,
+              fontSize: 13,
               fontWeight: FontWeight.w700,
               color: active ? Colors.white : AppColors.slate500,
             ),
@@ -641,10 +638,9 @@ class _ChartsSection extends StatelessWidget {
         Text(
           'CLUB METRICS AT A GLANCE',
           style: AppFonts.body(
-            fontSize: 10,
+            fontSize: 13,
             fontWeight: FontWeight.w800,
             color: AppColors.slate500,
-            letterSpacing: 0.7,
           ),
         ),
         const SizedBox(height: 8),
@@ -719,7 +715,7 @@ class _MetricBars extends StatelessWidget {
                 'No club data available for this AG group.',
                 textAlign: TextAlign.center,
                 style: AppFonts.body(
-                  fontSize: 11.5,
+                  fontSize: 13,
                   fontWeight: FontWeight.w600,
                   color: AppColors.slate400,
                 ),
@@ -737,7 +733,7 @@ class _MetricBars extends StatelessWidget {
                       child: Text(
                         entries[i].key,
                         style: AppFonts.body(
-                          fontSize: 11,
+                          fontSize: 13,
                           fontWeight: FontWeight.w700,
                           color: AppColors.slate700,
                         ),
@@ -764,7 +760,7 @@ class _MetricBars extends StatelessWidget {
                         formatter(entries[i].value),
                         textAlign: TextAlign.right,
                         style: AppFonts.body(
-                          fontSize: 11.5,
+                          fontSize: 13,
                           fontWeight: FontWeight.w800,
                           color: Color(agClubColor(i)),
                           fontFeatures: const [FontFeature.tabularFigures()],
@@ -818,10 +814,9 @@ class _RadarSection extends StatelessWidget {
         Text(
           'MULTI-METRIC RADAR',
           style: AppFonts.body(
-            fontSize: 10,
+            fontSize: 13,
             fontWeight: FontWeight.w800,
             color: AppColors.slate500,
-            letterSpacing: 0.7,
           ),
         ),
         const SizedBox(height: 8),
@@ -839,7 +834,7 @@ class _RadarSection extends StatelessWidget {
                 'All metrics normalised 0-100 so clubs can be compared across '
                 'dimensions. Outer edge = leader in that axis.',
                 style: AppFonts.body(
-                  fontSize: 11,
+                  fontSize: 13,
                   color: AppColors.slate500,
                 ),
               ),
@@ -851,7 +846,7 @@ class _RadarSection extends StatelessWidget {
                     'No club data available for this AG group.',
                     textAlign: TextAlign.center,
                     style: AppFonts.body(
-                      fontSize: 12,
+                      fontSize: 13,
                       fontWeight: FontWeight.w600,
                       color: AppColors.slate400,
                     ),
@@ -885,7 +880,7 @@ class _RadarSection extends StatelessWidget {
                           Text(
                             points[i].clubName,
                             style: AppFonts.body(
-                              fontSize: 11,
+                              fontSize: 13,
                               fontWeight: FontWeight.w600,
                               color: AppColors.slate700,
                             ),
@@ -962,7 +957,7 @@ class _RadarPainter extends CustomPainter {
         text: TextSpan(
           text: _kRadarAxes[i].label,
           style: AppFonts.body(
-            fontSize: 10.5,
+            fontSize: 13,
             fontWeight: FontWeight.w700,
             color: AppColors.slate500,
           ),
@@ -1036,10 +1031,9 @@ class _TotalsBanner extends StatelessWidget {
           Text(
             'AG GROUP COMBINED TOTALS',
             style: AppFonts.body(
-              fontSize: 10,
+              fontSize: 13,
               fontWeight: FontWeight.w800,
               color: Colors.white.withValues(alpha: 0.7),
-              letterSpacing: 1.2,
             ),
           ),
           const SizedBox(height: 10),
@@ -1104,7 +1098,7 @@ class _TotalsTile extends StatelessWidget {
         Text(
           label,
           style: AppFonts.body(
-            fontSize: 10.5,
+            fontSize: 13,
             color: AppColors.chart5,
           ),
         ),

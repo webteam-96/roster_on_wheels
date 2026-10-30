@@ -33,6 +33,7 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 import DistrictMembershipTabBar from "@/components/dashboard/DistrictMembershipTabBar";
 import ImageCropDialog from "@/components/ImageCropDialog";
 import { useImageCropUpload } from "@/hooks/useImageCropUpload";
+import { ListPageSkeleton } from "@/components/row/AppKit";
 
 // Committee photos render as small circular thumbnails in the list and on the
 // public site — square crop, 500×500 stored for retina.
@@ -249,9 +250,9 @@ export default function DistrictAdminDashboardSubGroupDetailPage() {
             <ArrowLeft className="h-4 w-4" />
           </Button>
           <div>
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               {editingName ? (
-                <div className="flex items-center gap-2">
+                <div className="flex flex-wrap items-center gap-2">
                   <Input
                     value={nameDraft}
                     onChange={(e) => setNameDraft(e.target.value)}
@@ -281,11 +282,11 @@ export default function DistrictAdminDashboardSubGroupDetailPage() {
           </div>
         </div>
 
-        {loading && <div className="flex items-center justify-center py-20"><RotaryLoader size="lg" /></div>}
+        {loading && <div className="flex items-center justify-center py-20"><ListPageSkeleton /></div>}
 
         {!loading && (
           <>
-            <div className="flex items-center justify-between">
+            <div className="flex flex-wrap items-center justify-between gap-3">
               <h3 className="text-lg font-semibold text-ink flex items-center gap-2">
                 <Users className="h-5 w-5" />Members <span className="text-slate-400 font-normal">({members.length})</span>
               </h3>
@@ -332,7 +333,7 @@ export default function DistrictAdminDashboardSubGroupDetailPage() {
                             )}
                           </TableCell>
                           <TableCell>
-                            <div className="flex items-center gap-2">
+                            <div className="flex flex-wrap items-center gap-2">
                               <span className="font-medium">{m.name}</span>
                               {m.isMember ? <MemberChip /> : <NonMemberChip />}
                             </div>
@@ -380,7 +381,7 @@ export default function DistrictAdminDashboardSubGroupDetailPage() {
                 <div className="space-y-2">
                   <Label>Search Member</Label>
                   <div className="relative">
-                    <div className="flex items-center gap-2">
+                    <div className="flex flex-wrap items-center gap-2">
                       <div className="relative flex-1">
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                         <Input className="pl-9" placeholder="Search by name, mobile, email..." value={memberSearch}

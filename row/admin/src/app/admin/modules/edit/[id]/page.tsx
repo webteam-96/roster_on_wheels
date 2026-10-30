@@ -22,6 +22,7 @@ import { ArrowLeft, Upload, X } from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
 import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";
+import { ListPageSkeleton } from "@/components/row/AppKit";
 
 export default function EditModulePage() {
   const router = useRouter();
@@ -156,7 +157,7 @@ export default function EditModulePage() {
     return (
       <ProtectedRoute>
         <div className="flex items-center justify-center py-20">
-          <RotaryLoader size="lg" />
+          <ListPageSkeleton />
         </div>
       </ProtectedRoute>
     );
@@ -165,7 +166,7 @@ export default function EditModulePage() {
   return (
     <ProtectedRoute>
       <form onSubmit={handleSubmit} className="space-y-6">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-4">
             <Button variant="ghost" size="icon" asChild>
               <Link href="/admin/modules"><ArrowLeft className="h-4 w-4" /></Link>
@@ -175,7 +176,7 @@ export default function EditModulePage() {
               <p className="text-muted-foreground text-base">Update module details</p>
             </div>
           </div>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             <Button type="button" variant="outline" onClick={() => router.push("/admin/modules")}>Cancel</Button>
             <Button type="submit" disabled={loading}>
               {loading && <RotaryLoader size="sm" />}
@@ -244,7 +245,7 @@ export default function EditModulePage() {
                 </div>
 
                 <div className="rounded-md border p-3 space-y-2 bg-muted/30">
-                  <div className="flex items-center gap-2">
+                  <div className="flex flex-wrap items-center gap-2">
                     <input
                       type="checkbox"
                       id="assignToAll"
@@ -278,7 +279,7 @@ export default function EditModulePage() {
                     <div>
                       <Label
                         htmlFor="iconUpload"
-                        className="inline-flex items-center gap-2 cursor-pointer rounded-md border px-3 py-2 text-sm hover:bg-accent"
+                        className="inline-flex items-center gap-2 cursor-pointer rounded-full border px-3 py-2 text-sm hover:bg-accent"
                       >
                         <Upload className="h-4 w-4" />
                         {uploadingIcon ? "Uploading..." : "Upload Icon Image"}
@@ -331,7 +332,7 @@ export default function EditModulePage() {
                   />
                 </div>
 
-                <div className="flex items-center gap-2">
+                <div className="flex flex-wrap items-center gap-2">
                   <input
                     type="checkbox"
                     id="isDefaultForDistrict"
@@ -342,7 +343,7 @@ export default function EditModulePage() {
                   <Label htmlFor="isDefaultForDistrict">Default for District</Label>
                 </div>
 
-                <div className="flex items-center gap-2">
+                <div className="flex flex-wrap items-center gap-2">
                   <input
                     type="checkbox"
                     id="isDefaultForClub"
@@ -358,7 +359,7 @@ export default function EditModulePage() {
                     sees only modules with this flag; club/district admins see
                     everything) is enforced server-side in the mobile login
                     response, not here. */}
-                <div className="flex items-center gap-2">
+                <div className="flex flex-wrap items-center gap-2">
                   <input
                     type="checkbox"
                     id="isDefaultForMember"
@@ -380,7 +381,7 @@ export default function EditModulePage() {
                   />
                 </div>
 
-                <div className="flex items-center gap-2">
+                <div className="flex flex-wrap items-center gap-2">
                   <input
                     type="checkbox"
                     id="isActive"

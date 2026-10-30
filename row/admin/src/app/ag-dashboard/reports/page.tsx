@@ -19,6 +19,7 @@ import RotaryLoader from "@/components/RotaryLoader";
 import DistrictReportContent from "@/components/dashboard/DistrictReportContent";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAgYearId } from "@/hooks/useAgYearId";
+import { ListPageSkeleton } from "@/components/row/AppKit";
 
 function AgReportsInner() {
   const { user, selectedDistrictId } = useAuth();
@@ -58,7 +59,7 @@ export default function AgReportsPage() {
     <Suspense
       fallback={
         <div className="flex items-center justify-center py-20">
-          <RotaryLoader size="lg" label="Loading reports…" />
+          <ListPageSkeleton />
         </div>
       }
     >

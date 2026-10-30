@@ -42,6 +42,7 @@ import RotaryLoader from "@/components/RotaryLoader";
 import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import SearchBox from "@/components/SearchBox";
+import { ListPageSkeleton } from "@/components/row/AppKit";
 
 function getPlatformLabel(value: string): string {
   return SOCIAL_PLATFORMS.find((p) => p.value === value)?.label || value;
@@ -51,7 +52,7 @@ function getPlatformIcon(platform: string) {
   // Return a colored circle/badge with initial for visual distinction
   const colors: Record<string, string> = {
     facebook: "bg-blue-600",
-    instagram: "bg-purple-500",
+    instagram: "bg-[#A9C6EA]",
     twitter: "bg-black",
     linkedin: "bg-blue-700",
     youtube: "bg-red-600",
@@ -254,7 +255,7 @@ export default function SocialLinksPage() {
 
         {loading && (
           <div className="flex items-center justify-center py-20">
-            <RotaryLoader size="lg" />
+            <ListPageSkeleton />
           </div>
         )}
 
@@ -268,7 +269,7 @@ export default function SocialLinksPage() {
 
         {loadingLinks && (
           <div className="flex items-center justify-center py-12">
-            <RotaryLoader size="lg" />
+            <ListPageSkeleton />
           </div>
         )}
 

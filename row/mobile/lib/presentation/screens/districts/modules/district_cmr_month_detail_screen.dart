@@ -11,6 +11,7 @@ import '../../../../core/utils/snackbar_utils.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../widgets/common/custom_app_bar.dart';
 import 'package:rotary_flutter_app/core/i18n/text.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/skeleton_list.dart';
 
 // ── Models ────────────────────────────────────────────────────────────────────
 
@@ -373,7 +374,7 @@ class _DistrictCmrMonthDetailScreenState
         actions: [
           IconButton(
             tooltip: 'Refresh',
-            icon: const Icon(Icons.refresh, color: Colors.white),
+            icon: const Icon(Icons.refresh, color: AppColors.primaryPrime),
             onPressed: _loading ? null : _fetchAll,
           ),
         ],
@@ -384,7 +385,7 @@ class _DistrictCmrMonthDetailScreenState
 
   Widget _buildBody(bool isAdmin) {
     if (_loading) {
-      return const Center(child: CircularProgressIndicator());
+      return const RowSkeletonList();
     }
     if (_error != null) {
       return Center(
@@ -436,9 +437,7 @@ class _DistrictCmrMonthDetailScreenState
                   backgroundColor: _orange,
                   foregroundColor: Colors.white,
                   padding: const EdgeInsets.symmetric(vertical: 14),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
+                  shape: const StadiumBorder(),
                 ),
                 icon: const Icon(Icons.send_rounded, size: 18),
                 label: Text(
@@ -674,7 +673,7 @@ class _DistrictCmrMonthDetailScreenState
         side: BorderSide(color: color.withValues(alpha: 0.4)),
         padding: const EdgeInsets.symmetric(vertical: 9),
         shape:
-            RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            const StadiumBorder(),
         textStyle: AppTextStyles.caption.copyWith(fontWeight: FontWeight.w700),
       ),
       icon: busy
@@ -805,11 +804,11 @@ class _DistrictCmrMonthDetailScreenState
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          label.toUpperCase(),
+          label,
           style: AppTextStyles.caption.copyWith(
             color: AppColors.textMuted,
             fontWeight: FontWeight.w700,
-            fontSize: 10,
+            fontSize: 13,
             letterSpacing: 0.3,
           ),
         ),
@@ -823,7 +822,7 @@ class _DistrictCmrMonthDetailScreenState
             name!.trim(),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: AppTextStyles.bodySemiBold.copyWith(fontSize: 12.5),
+            style: AppTextStyles.bodySemiBold.copyWith(fontSize: 13),
           ),
           if ((mobile ?? '').trim().isNotEmpty)
             Text(

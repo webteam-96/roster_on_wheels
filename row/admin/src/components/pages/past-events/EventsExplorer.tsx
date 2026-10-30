@@ -140,7 +140,7 @@ export function EventsExplorer() {
         {filtered.length > 0 ? (
           groups.map(([groupYear, items]) => (
             <div key={groupYear} className="mt-12 first:mt-12">
-              <div className="sticky top-[60px] z-20 -mx-4 bg-paper/85 px-4 py-3 backdrop-blur-sm sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8">
+              <div className="sticky top-[60px] z-20 -mx-4 bg-paper px-4 py-3 sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8">
                 <div className="flex items-baseline gap-4">
                   <h2 className="font-display text-heading font-[450] leading-none tracking-[-0.02em] text-navy-950">
                     {groupYear}

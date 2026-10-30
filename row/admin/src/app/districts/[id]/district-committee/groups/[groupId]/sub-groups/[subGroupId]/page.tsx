@@ -29,6 +29,7 @@ import { useImageCropUpload } from "@/hooks/useImageCropUpload";
 import Link from "next/link";
 
 import ProtectedRoute from "@/components/ProtectedRoute";
+import { ListPageSkeleton } from "@/components/row/AppKit";
 
 // Committee photos render as small circular thumbnails in the list and on the
 // public site — square crop, 500×500 stored for retina.
@@ -213,7 +214,7 @@ export default function SubGroupDetailPage() {
           </div>
         </div>
 
-        {loading && <div className="flex items-center justify-center py-20"><RotaryLoader size="lg" /></div>}
+        {loading && <div className="flex items-center justify-center py-20"><ListPageSkeleton /></div>}
 
         {!loading && (
           <>
@@ -261,7 +262,7 @@ export default function SubGroupDetailPage() {
                             )}
                           </TableCell>
                           <TableCell>
-                            <div className="flex items-center gap-2">
+                            <div className="flex flex-wrap items-center gap-2">
                               <span className="font-medium">{m.name}</span>
                               {m.isMember ? <MemberChip /> : <NonMemberChip />}
                             </div>
@@ -309,7 +310,7 @@ export default function SubGroupDetailPage() {
                 <div className="space-y-2">
                   <Label>Search Member</Label>
                   <div className="relative">
-                    <div className="flex items-center gap-2">
+                    <div className="flex flex-wrap items-center gap-2">
                       <div className="relative flex-1">
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                         <Input className="pl-9" placeholder="Search by name, mobile, email..." value={memberSearch}

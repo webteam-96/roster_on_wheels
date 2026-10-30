@@ -26,6 +26,7 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 import RotaryLoader from "@/components/RotaryLoader";
 
 import { currencySymbol } from "@/lib/appFormat";
+import { ListPageSkeleton } from "@/components/row/AppKit";
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
 interface Registration { id: number; registrationName: string; amount: number; }
@@ -334,7 +335,7 @@ function OfflinePaymentContent() {
   if (loading) {
     return (
       <ProtectedRoute>
-        <div className="flex justify-center py-20"><RotaryLoader size="lg" /></div>
+        <div className="flex justify-center py-20"><ListPageSkeleton /></div>
       </ProtectedRoute>
     );
   }
@@ -630,7 +631,7 @@ function OfflinePaymentContent() {
         </Card>
 
         {/* E) Submit */}
-        <div className="flex justify-end gap-3">
+        <div className="flex flex-wrap justify-end gap-3">
           <Button variant="outline" asChild>
             <Link href={`/settings/event-payment-links/${linkId}/members`}>Cancel</Link>
           </Button>
@@ -659,7 +660,7 @@ function OfflinePaymentContent() {
 
 export default function OfflinePaymentPage() {
   return (
-    <Suspense fallback={<div className="flex justify-center py-20"><RotaryLoader size="lg" /></div>}>
+    <Suspense fallback={<div className="flex justify-center py-20"><ListPageSkeleton /></div>}>
       <OfflinePaymentContent />
     </Suspense>
   );

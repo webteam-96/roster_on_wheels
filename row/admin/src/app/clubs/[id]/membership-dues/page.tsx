@@ -16,6 +16,7 @@ import RotaryLoader from "@/components/RotaryLoader";
 import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import SearchBox from "@/components/SearchBox";
+import { ListPageSkeleton } from "@/components/row/AppKit";
 
 interface MembershipDuesItem {
   id: number;
@@ -115,7 +116,7 @@ export default function ClubMembershipDuesPage() {
         </div>
 
         {loading ? (
-          <div className="flex justify-center py-10"><RotaryLoader size="lg" /></div>
+          <div className="flex justify-center py-10"><ListPageSkeleton /></div>
         ) : !loading && items.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 space-y-6">
             <div className="text-center max-w-lg space-y-3">

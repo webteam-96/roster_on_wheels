@@ -78,7 +78,7 @@ function Committees({ districtId, year, search, onChanged, onError }: Props) {
           {groups.map((g) => (
             <li key={g.id} className="flex flex-wrap items-center justify-between gap-2 py-2">
               <span>{g.groupName} <span className="text-muted-foreground">({g.memberCount} members)</span></span>
-              <span className="flex gap-2">
+              <span className="flex flex-wrap gap-2">
                 <Button size="sm" variant="outline" onClick={() => { setChairFor(g.id); setChair(null); }}>Add chair</Button>
                 <Button size="sm" variant="ghost" aria-label={`Delete ${g.groupName}`} disabled={busy}
                   onClick={() => run(() => deleteCommitteeGroup(districtId, g.id), "Could not delete the committee.")}>
@@ -164,7 +164,7 @@ function Ags({ districtId, year, clubs, search, onChanged, onError }: Props) {
           <fieldset className="grid max-h-56 gap-2 overflow-y-auto rounded-md border p-3 text-sm sm:grid-cols-2">
             <legend className="px-1 text-muted-foreground">Clubs</legend>
             {clubs.filter((c) => !taken.has(c.clubName)).map((c) => (
-              <label key={c.clubId} className="flex items-center gap-2">
+              <label key={c.clubId} className="flex flex-wrap items-center gap-2">
                 <Checkbox checked={clubIds.includes(c.clubId)}
                   onCheckedChange={(v) => setClubIds((ids) => v === true ? [...ids, c.clubId] : ids.filter((x) => x !== c.clubId))} />
                 {c.clubName}

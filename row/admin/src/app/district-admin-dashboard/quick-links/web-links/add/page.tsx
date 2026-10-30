@@ -36,6 +36,7 @@ import { ArrowLeft, Loader2, Link2 } from "@/components/icons";
 
 const ReactQuill = dynamic(() => import("react-quill-new"), { ssr: false });
 import "react-quill-new/dist/quill.snow.css";
+import { ListPageSkeleton } from "@/components/row/AppKit";
 
 const WEB_LINKS_BASE = "/district-admin-dashboard/quick-links/web-links";
 const quillModules = { toolbar: [["bold", "italic", "underline"], [{ list: "ordered" }, { list: "bullet" }], ["link"], ["clean"]] };
@@ -179,7 +180,7 @@ export default function AddWebLinkPage() {
         </div>
 
         {loading ? (
-          <div className="flex items-center justify-center py-20"><RotaryLoader size="lg" /></div>
+          <div className="flex items-center justify-center py-20"><ListPageSkeleton /></div>
         ) : (
           <div className="rounded-2xl border border-slate-200 shadow-sm bg-white p-6 space-y-5">
             <div className="space-y-2">
@@ -316,7 +317,7 @@ export default function AddWebLinkPage() {
               <Label className="text-slate-700 text-sm font-medium">Active</Label>
             </div>
 
-            <div className="flex justify-end gap-2 pt-2 border-t border-slate-100">
+            <div className="flex flex-wrap justify-end gap-2 pt-2 border-t border-slate-100">
               <Button
                 variant="outline"
                 onClick={goBack}

@@ -194,7 +194,7 @@ export default function EmailLogPanel({ base, backHref }: { base: string; backHr
           {total > pageSize && (
             <div className="p-3 flex items-center justify-between text-xs border-t">
               <div>Showing {(page - 1) * pageSize + 1}–{Math.min(page * pageSize, total)} of {total}</div>
-              <div className="flex gap-2">
+              <div className="flex flex-wrap gap-2">
                 <Button size="sm" variant="outline" disabled={page <= 1} onClick={() => fetchLogs(page - 1)}>Prev</Button>
                 <span>Page {page} / {totalPages}</span>
                 <Button size="sm" variant="outline" disabled={page >= totalPages} onClick={() => fetchLogs(page + 1)}>Next</Button>

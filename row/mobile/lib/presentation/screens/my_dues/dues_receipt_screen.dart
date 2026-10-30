@@ -159,8 +159,7 @@ class _DuesReceiptScreenState extends State<DuesReceiptScreen> {
           ),
           style: FilledButton.styleFrom(
             backgroundColor: AppColors.primary,
-            shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12)),
+            shape: const StadiumBorder(),
           ),
         ),
       ),
@@ -237,7 +236,7 @@ class _DuesReceiptScreenState extends State<DuesReceiptScreen> {
                 : '${r.organisationName}  •  Generated ${r.generatedOn}',
             textAlign: TextAlign.center,
             style: AppFonts.body(
-                fontSize: 11, color: AppColors.textMuted),
+                fontSize: 13, color: AppColors.textMuted),
           ),
         ),
       ],
@@ -276,7 +275,7 @@ class _DuesReceiptScreenState extends State<DuesReceiptScreen> {
                 const SizedBox(height: 2),
                 Text(r.organisationName,
                     style: AppFonts.body(
-                        fontSize: 11.5, color: AppColors.textSecondary)),
+                        fontSize: 13, color: AppColors.textSecondary)),
               ],
             ),
           ),
@@ -295,7 +294,7 @@ class _DuesReceiptScreenState extends State<DuesReceiptScreen> {
             width: 120,
             child: Text(label,
                 style: AppFonts.body(
-                    fontSize: 12.5,
+                    fontSize: 13,
                     fontWeight: FontWeight.w600,
                     color: AppColors.textSecondary)),
           ),
@@ -303,7 +302,7 @@ class _DuesReceiptScreenState extends State<DuesReceiptScreen> {
           Expanded(
             child: Text(value,
                 style: AppFonts.body(
-                    fontSize: 12.5,
+                    fontSize: 13,
                     fontWeight: FontWeight.w700,
                     color: valueColor ?? AppColors.textPrimary)),
           ),
@@ -360,12 +359,12 @@ class _DuesReceiptScreenState extends State<DuesReceiptScreen> {
           TextSpan(
             text: '$label: ',
             style: AppFonts.body(
-                fontSize: 11, color: AppColors.textMuted),
+                fontSize: 13, color: AppColors.textMuted),
           ),
           TextSpan(
             text: value,
             style: AppFonts.body(
-                fontSize: 11,
+                fontSize: 13,
                 fontWeight: FontWeight.w600,
                 color: AppColors.textSecondary),
           ),

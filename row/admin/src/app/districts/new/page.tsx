@@ -23,6 +23,7 @@ import { currencyOptions } from "@/lib/currency";
 import DistrictTimeZoneField from "@/components/DistrictTimeZoneField";
 
 import { defaultCurrency as instanceCurrency } from "@/lib/appFormat";
+import { ListPageSkeleton } from "@/components/row/AppKit";
 function NewDistrictForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -119,7 +120,7 @@ function NewDistrictForm() {
   return (
     <>
       <form onSubmit={handleSubmit} className="space-y-6">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-4">
             <Button variant="ghost" size="icon" asChild>
               <Link href={backUrl}><ArrowLeft className="h-4 w-4" /></Link>
@@ -129,7 +130,7 @@ function NewDistrictForm() {
               <p className="text-muted-foreground text-base">Create a new Rotary district</p>
             </div>
           </div>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             <Button type="button" variant="outline" onClick={() => router.push(backUrl)}>Cancel</Button>
             <Button type="submit" disabled={loading}>
               {loading && <RotaryLoader size="sm" />}
@@ -225,7 +226,7 @@ function NewDistrictForm() {
                   <p className="text-xs text-muted-foreground">District Number is required</p>
                 </div>
 
-                <div className="flex items-center gap-2">
+                <div className="flex flex-wrap items-center gap-2">
                   <input type="checkbox" id="isActive" checked={isActive} onChange={(e) => setIsActive(e.target.checked)} className="h-4 w-4" />
                   <Label htmlFor="isActive">Active</Label>
                 </div>
@@ -243,7 +244,7 @@ function NewDistrictForm() {
 export default function NewDistrictPage() {
   return (
     <ProtectedRoute>
-      <Suspense fallback={<div className="flex items-center justify-center py-20"><RotaryLoader size="lg" /></div>}>
+      <Suspense fallback={<div className="flex items-center justify-center py-20"><ListPageSkeleton /></div>}>
         <NewDistrictForm />
       </Suspense>
     </ProtectedRoute>

@@ -22,6 +22,7 @@ import { ArrowLeft, Plus, Pencil, Trash2, AlertTriangle, Eye, EyeOff, Phone, Mai
 import RotaryLoader from "@/components/RotaryLoader";
 import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";
+import { ListPageSkeleton } from "@/components/row/AppKit";
 
 export default function DistrictContactDetailsPage() {
   const params = useParams();
@@ -126,7 +127,7 @@ export default function DistrictContactDetailsPage() {
           )}
         </div>
 
-        {loading && <div className="flex items-center justify-center py-20"><RotaryLoader size="lg" /></div>}
+        {loading && <div className="flex items-center justify-center py-20"><ListPageSkeleton /></div>}
 
         {!loading && allYears.length > 0 && (
           <div className="flex items-center gap-4 flex-wrap">
@@ -139,7 +140,7 @@ export default function DistrictContactDetailsPage() {
           </div>
         )}
 
-        {loadingContact && <div className="flex items-center justify-center py-12"><RotaryLoader size="lg" /></div>}
+        {loadingContact && <div className="flex items-center justify-center py-12"><ListPageSkeleton /></div>}
 
         {!loading && !loadingContact && selectedYearId && !contact && (
           <div className="flex flex-col items-center justify-center py-20 text-center">
@@ -152,10 +153,10 @@ export default function DistrictContactDetailsPage() {
         {!loading && !loadingContact && contact && (
           <Card className="border-primary/20 max-w-lg">
             <CardContent className="p-6 space-y-4">
-              <div className="flex items-center justify-between">
+              <div className="flex flex-wrap items-center justify-between gap-3">
                 <Badge variant={contact.isActive ? "default" : "secondary"}>{contact.isActive ? "Active" : "Inactive"}</Badge>
                 {canManage && (
-                  <div className="flex items-center gap-2">
+                  <div className="flex flex-wrap items-center gap-2">
                     <Button variant="outline" size="sm" onClick={handleToggleActive}>{contact.isActive ? <><EyeOff className="mr-1 h-4 w-4" />Deactivate</> : <><Eye className="mr-1 h-4 w-4" />Activate</>}</Button>
                     <Button variant="outline" size="sm" onClick={openEditDialog}><Pencil className="mr-1 h-4 w-4" />Edit</Button>
                     <Button variant="outline" size="sm" className="text-destructive hover:text-destructive" onClick={() => setShowDeleteConfirm(true)}><Trash2 className="mr-1 h-4 w-4" />Delete</Button>

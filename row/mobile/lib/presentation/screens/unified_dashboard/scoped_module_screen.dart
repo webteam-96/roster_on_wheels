@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart' hide Text;
 import 'package:provider/provider.dart';
-import '../../../core/theme/app_colors.dart';
 import '../../providers/auth_provider.dart';
 import '../../widgets/common/custom_app_bar.dart';
 import '../districts/modules/district_members_screen.dart';
@@ -141,9 +140,6 @@ class ScopedModuleScreen extends StatelessWidget {
               Tab(text: 'Club'),
               Tab(text: 'District'),
             ],
-            labelColor: Colors.white,
-            indicatorColor: AppColors.goldPrime,
-            unselectedLabelColor: Colors.white70,
           ),
         ),
         body: TabBarView(

@@ -22,6 +22,7 @@ import { ArrowLeft, Check, Palette, AlertCircle } from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
 import Image from "next/image";
 import ProtectedRoute from "@/components/ProtectedRoute";
+import { ListPageSkeleton } from "@/components/row/AppKit";
 
 // Visual swatches per theme — pure CSS, no API call needed.
 // Keys match the slug the public resolver will compute from theme_name.
@@ -120,7 +121,7 @@ export default function ChangeThemePage() {
 
         {loading && (
           <div className="flex items-center justify-center py-20">
-            <RotaryLoader size="lg" />
+            <ListPageSkeleton />
           </div>
         )}
 

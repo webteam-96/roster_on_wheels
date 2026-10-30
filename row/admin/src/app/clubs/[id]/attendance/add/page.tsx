@@ -42,6 +42,7 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 import { sanitizeText } from "@/lib/textInput";
 import MeetingModeFields from "@/components/attendance/MeetingModeFields";
 import { meetingPayload, validateMeeting, type MeetingMode } from "@/lib/meeting";
+import { ListPageSkeleton } from "@/components/row/AppKit";
 
 function Req({ children, hint }: { children: React.ReactNode; hint?: string }) {
   return (
@@ -56,7 +57,7 @@ function Section({ icon: Icon, title, number, children }: {
   icon: React.ElementType; title: string; number: number; children: React.ReactNode;
 }) {
   return (
-    <div className="bg-card rounded-xl border shadow-sm overflow-hidden">
+    <div className="bg-card rounded-[20px] border shadow-sm overflow-hidden">
       <div className="flex items-center gap-3 px-5 py-3.5 bg-muted/40 border-b">
         <div className="flex items-center justify-center h-7 w-7 rounded-full bg-primary text-primary-foreground text-xs font-bold">{number}</div>
         <Icon className="h-4 w-4 text-primary" />
@@ -215,7 +216,7 @@ export default function AttendanceAddPage() {
     return (
       <ProtectedRoute>
         <div className="flex items-center justify-center py-20">
-          <RotaryLoader size="lg" />
+          <ListPageSkeleton />
         </div>
       </ProtectedRoute>
     );
@@ -290,7 +291,7 @@ export default function AttendanceAddPage() {
             >
               <UserPlus className="h-5 w-5 text-purple-600" />
               <span className="font-medium text-sm flex-1">Annets</span>
-              <span className="inline-flex items-center justify-center h-6 min-w-[1.5rem] px-1.5 rounded-full bg-purple-100 text-purple-700 text-xs font-bold">
+              <span className="inline-flex items-center justify-center h-6 min-w-[1.5rem] px-1.5 rounded-full bg-[#CFE2F6] text-purple-700 text-xs font-bold">
                 {annets.length}
               </span>
             </div>
@@ -302,7 +303,7 @@ export default function AttendanceAddPage() {
             >
               <UserCheck className="h-5 w-5 text-orange-600" />
               <span className="font-medium text-sm flex-1">Visitors</span>
-              <span className="inline-flex items-center justify-center h-6 min-w-[1.5rem] px-1.5 rounded-full bg-orange-100 text-orange-700 text-xs font-bold">
+              <span className="inline-flex items-center justify-center h-6 min-w-[1.5rem] px-1.5 rounded-full bg-[#FFC65C] text-orange-700 text-xs font-bold">
                 {visitors.length}
               </span>
             </div>
@@ -314,7 +315,7 @@ export default function AttendanceAddPage() {
             >
               <Globe className="h-5 w-5 text-teal-600" />
               <span className="font-medium text-sm flex-1">Rotarians (Other Club)</span>
-              <span className="inline-flex items-center justify-center h-6 min-w-[1.5rem] px-1.5 rounded-full bg-teal-100 text-teal-700 text-xs font-bold">
+              <span className="inline-flex items-center justify-center h-6 min-w-[1.5rem] px-1.5 rounded-full bg-[#CFE2F6] text-teal-700 text-xs font-bold">
                 {rotarians.length}
               </span>
             </div>
@@ -539,7 +540,7 @@ function SimpleListDialog<T extends { tempId: string }>({
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
         </DialogHeader>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <Input
             placeholder={placeholder}
             value={inputValue}
@@ -632,7 +633,7 @@ function VisitorsDialog({
         <DialogHeader>
           <DialogTitle>Manage Visitors</DialogTitle>
         </DialogHeader>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <Input placeholder="Visitor Name" value={nameVal} onChange={(e) => setNameVal(e.target.value)} className="flex-1" />
           <Input placeholder="Invited By" value={invitedByVal} onChange={(e) => setInvitedByVal(e.target.value)} className="flex-1" />
           <Button onClick={handleAdd} size="sm"><Plus className="h-4 w-4 mr-1" />Add</Button>
@@ -716,7 +717,7 @@ function RotariansDialog({
         <DialogHeader>
           <DialogTitle>Manage Rotarians (Other Club)</DialogTitle>
         </DialogHeader>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <Input placeholder="Rotarian Name" value={nameVal} onChange={(e) => setNameVal(e.target.value)} className="flex-1" />
           <Input placeholder="Club Name" value={clubVal} onChange={(e) => setClubVal(e.target.value)} className="flex-1" />
           <Button onClick={handleAdd} size="sm"><Plus className="h-4 w-4 mr-1" />Add</Button>

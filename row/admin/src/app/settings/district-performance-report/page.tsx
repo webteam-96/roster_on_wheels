@@ -125,8 +125,8 @@ function ReportBody({ highlights, sections, scopeNote, tilesPerRow = 3 }: { high
                     )}
                     {s.tableHeaders && s.tableRows && s.tableRows.length > 0 && (
                       <div className="overflow-x-auto">
-                        <table className="min-w-full text-sm">
-                          <thead>
+                        <table className="w-full min-w-[640px] md:min-w-full text-sm">
+                          <thead className="bg-[#EDF4FB] text-[13px] text-[#64748B]">
                             <tr className="bg-slate-50 text-slate-600">
                               {s.tableHeaders.map((h, hi) => (
                                 <th key={hi} className={`px-3 py-2 font-medium ${isTextCol(s.tableHeaders, hi) ? "text-left" : "text-right"}`}>{h}</th>
@@ -334,7 +334,7 @@ export default function DistrictPerformanceReportPage() {
             {downloading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Download className="mr-2 h-4 w-4" />}
             {downloading ? "Preparing Excel…" : "Download Excel"}
           </Button>
-          <Button onClick={sendTest} disabled={sending || !districtId || !settings} className="bg-emerald-600 hover:bg-emerald-700 text-white">
+          <Button onClick={sendTest} disabled={sending || !districtId || !settings} className="bg-[#17458F] hover:bg-[#123A78] text-white">
             {sending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Mail className="mr-2 h-4 w-4" />}
             {sending ? "Sending…" : "Send Test Email"}
           </Button>
@@ -352,7 +352,7 @@ export default function DistrictPerformanceReportPage() {
 
         {report && (
           <div className="space-y-4">
-            <div className="bg-white rounded-xl border border-slate-200 p-4">
+            <div className="bg-white rounded-[20px] border border-slate-200 p-4">
               <div className="text-base font-semibold text-slate-800">District {report.districtNumber}</div>
               <div className="text-xs text-slate-500">{report.zoneName} · Rotary Year {report.yearLabel} · {report.periodLabel}</div>
               {report.governorEmail ? (
@@ -378,7 +378,7 @@ export default function DistrictPerformanceReportPage() {
           </div>
 
         {settings && sendRows.length > 0 && (
-          <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
+          <div className="bg-white rounded-[20px] border border-slate-200 overflow-hidden">
             <div className="px-4 py-2.5 border-b border-slate-100 flex flex-wrap items-center gap-2">
               <span className="text-sm font-medium text-slate-700">
                 Sends to District Governors
@@ -399,8 +399,8 @@ export default function DistrictPerformanceReportPage() {
             </div>
 
             <div className="overflow-x-auto">
-              <table className="min-w-full text-sm">
-                <thead>
+              <table className="w-full min-w-[640px] md:min-w-full text-sm">
+                <thead className="bg-[#EDF4FB] text-[13px] text-[#64748B]">
                   <tr className="bg-slate-50 text-slate-600">
                     <th className="px-3 py-2 text-left font-medium">When</th>
                     <th className="px-3 py-2 text-left font-medium">District</th>

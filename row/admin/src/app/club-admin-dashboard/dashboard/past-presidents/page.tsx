@@ -21,6 +21,7 @@ import { useClubAdminCache } from "@/contexts/ClubAdminDashboardCacheContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { getPastPresidents, deletePastPresident, getPhotoUrl } from "@/services/api";
 import type { PastPresident } from "@/types/pastPresident";
+import { ListPageSkeleton } from "@/components/row/AppKit";
 
 const RETURN_TO = "/club-admin-dashboard/dashboard/past-presidents";
 
@@ -111,7 +112,7 @@ export default function DashboardPastPresidentsPage() {
   // wait on the year any more: all-years IS the load state, so there is nothing to
   // snap from once the year resolves.
   if (authLoading || (clubId && loading && rows.length === 0)) {
-    return <div className="flex items-center justify-center py-20"><RotaryLoader size="lg" label="Loading Past Presidents…" /></div>;
+    return <div className="flex items-center justify-center py-20"><ListPageSkeleton /></div>;
   }
   if (!clubId) {
     return <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">No club selected.</div>;
@@ -126,10 +127,10 @@ export default function DashboardPastPresidentsPage() {
             Club leadership history · {showAllYears ? "All years" : selectedYearLabel}
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <Link
             href={`/clubs/${clubId}/past-presidents/v2/add?returnTo=${encodeURIComponent(RETURN_TO)}`}
-            className="inline-flex items-center gap-1.5 h-9 text-xs font-semibold px-3 rounded-lg bg-emerald-600 text-white hover:bg-emerald-700"
+            className="inline-flex items-center gap-1.5 h-9 text-xs font-semibold px-3 rounded-full bg-[#17458F] text-white hover:bg-[#17458F]"
           >
             <Plus size={13} /> Add Past President
           </Link>
@@ -164,8 +165,8 @@ export default function DashboardPastPresidentsPage() {
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="min-w-full text-sm">
-              <thead className="bg-slate-50 text-xs uppercase tracking-wider text-slate-500">
+            <table className="w-full min-w-[640px] md:min-w-full text-sm">
+              <thead className="bg-[#EDF4FB] text-xs text-slate-500">
                 <tr>
                   <th className="px-4 py-2.5 text-left w-14">#</th>
                   <th className="px-4 py-2.5 text-left w-16">Photo</th>
@@ -191,7 +192,7 @@ export default function DashboardPastPresidentsPage() {
                         )}
                       </td>
                       <td className="px-4 py-2.5 font-medium text-slate-800">
-                        <div className="flex items-center gap-2">
+                        <div className="flex flex-wrap items-center gap-2">
                           <span>{r.memberName}</span>
                           <span
                             className={`inline-flex items-center text-[11px] font-medium px-2 py-0.5 rounded-full ${
@@ -207,14 +208,14 @@ export default function DashboardPastPresidentsPage() {
                         <div className="flex items-center justify-end gap-1.5">
                           <Link
                             href={`/clubs/${clubId}/past-presidents/v2/${r.id}/edit?returnTo=${encodeURIComponent(RETURN_TO)}`}
-                            className="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1.5 rounded-lg border border-slate-200 text-slate-700 hover:bg-blue-50 hover:text-blue-700"
+                            className="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1.5 rounded-full border border-slate-200 text-slate-700 hover:bg-blue-50 hover:text-blue-700"
                           >
                             <Edit3 className="h-3.5 w-3.5" />Edit
                           </Link>
                           <button
                             type="button"
                             onClick={() => setDeleteTarget(r)}
-                            className="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1.5 rounded-lg border border-slate-200 text-rose-600 hover:bg-rose-50"
+                            className="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1.5 rounded-full border border-slate-200 text-rose-600 hover:bg-rose-50"
                           >
                             <Trash2 className="h-3.5 w-3.5" />Delete
                           </button>

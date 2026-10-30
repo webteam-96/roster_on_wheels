@@ -43,6 +43,7 @@ import ContactGroupPicker from "@/components/contacts/ContactGroupPicker";
 import { CONTACTS_FEATURE } from "@/lib/contacts";
 
 import { appLocale } from "@/lib/appFormat";
+import { ListPageSkeleton } from "@/components/row/AppKit";
 const BASE = "/district-admin-dashboard/quick-links/mass-email";
 
 function withSearch(base: string, extra: Record<string, string | null | undefined>) {
@@ -273,7 +274,7 @@ export default function DistrictAdminMassEmailComposePage() {
   const toggleSubgroup = (id: number) => setSelectedSubgroupIds((prev) => { const n = new Set(prev); if (n.has(id)) n.delete(id); else n.add(id); return n; });
 
   if (!districtId) return null;
-  if (loading) return <div className="flex justify-center py-20"><RotaryLoader size="lg" /></div>;
+  if (loading) return <div className="flex justify-center py-20"><ListPageSkeleton /></div>;
 
   return (
     <ProtectedRoute>
@@ -441,7 +442,7 @@ export default function DistrictAdminMassEmailComposePage() {
           <Button variant="ghost" onClick={goBack} className="text-slate-600 hover:text-slate-800 hover:bg-slate-50">
             <ArrowLeft className="h-4 w-4 mr-2" />Cancel
           </Button>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             <Button variant="outline" className="border-slate-200 text-slate-700 hover:bg-slate-50" onClick={() => handleSave(true)} disabled={saving}>
               {saving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Save className="h-4 w-4 mr-2" />}
               Save Draft

@@ -4,7 +4,6 @@ import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../../../core/constants/api_constants.dart';
 import '../../../../../core/theme/app_colors.dart';
-import '../../../../../core/theme/app_gradients.dart';
 import '../../../../widgets/common/full_screen_image_view.dart';
 import 'package:rotary_flutter_app/core/theme/app_fonts.dart';
 import 'package:rotary_flutter_app/core/i18n/text.dart';
@@ -78,19 +77,19 @@ class DistrictCommitteeMemberDetailScreen extends StatelessWidget {
                   icon: Icons.badge_rounded,
                   children: [
                     if (designation.trim().isNotEmpty)
-                      _InfoRow('DESIGNATION', designation.trim()),
+                      _InfoRow('Designation', designation.trim()),
                     if (clubName.trim().isNotEmpty)
                       _InfoRow('CLUB', clubName.trim()),
                     if (phone.isNotEmpty)
-                      _InfoRow('MOBILE', phone,
+                      _InfoRow('Mobile', phone,
                           tappable: true,
                           onTap: () => _openUrl('tel:${_digits(phone)}')),
                     if (mail.isNotEmpty)
-                      _InfoRow('EMAIL', mail,
+                      _InfoRow('Email', mail,
                           tappable: true,
                           onTap: () => _openUrl('mailto:$mail')),
                     if (remark.trim().isNotEmpty)
-                      _InfoRow('REMARK', remark.trim()),
+                      _InfoRow('Remark', remark.trim()),
                   ],
                 ),
                 if (groups.isNotEmpty) ...[
@@ -172,7 +171,7 @@ class _HeroAppBar extends StatelessWidget {
         background: Stack(
           fit: StackFit.expand,
           children: [
-            Container(decoration: const BoxDecoration(gradient: AppGradients.royalSweep)),
+            Container(decoration: const BoxDecoration(color: AppColors.primaryPrime)),
             Positioned(
               top: -50,
               right: -50,
@@ -225,7 +224,7 @@ class _HeroAppBar extends StatelessWidget {
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 24),
                   child: Text(
-                    (name.isEmpty ? 'Unnamed' : name).toUpperCase(),
+                    (name.isEmpty ? 'Unnamed' : name),
                     textAlign: TextAlign.center,
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
@@ -233,7 +232,6 @@ class _HeroAppBar extends StatelessWidget {
                       color: Colors.white,
                       fontSize: 22,
                       fontWeight: FontWeight.w800,
-                      letterSpacing: 1,
                     ),
                   ),
                 ),
@@ -267,9 +265,8 @@ class _HeroAppBar extends StatelessWidget {
                       'NON-MEMBER',
                       style: AppFonts.body(
                         color: AppColors.darkBg,
-                        fontSize: 10,
+                        fontSize: 13,
                         fontWeight: FontWeight.w800,
-                        letterSpacing: 0.5,
                       ),
                     ),
                   ),
@@ -408,7 +405,7 @@ class _ContactAction extends StatelessWidget {
             Text(
               label,
               style: AppFonts.body(
-                fontSize: 11,
+                fontSize: 13,
                 fontWeight: FontWeight.w600,
                 color: AppColors.textSecondary,
               ),
@@ -445,12 +442,11 @@ class _InfoCard extends StatelessWidget {
               Icon(icon, size: 18, color: AppColors.primaryPrime),
               const SizedBox(width: 8),
               Text(
-                title.toUpperCase(),
+                title,
                 style: AppFonts.body(
-                  fontSize: 11,
+                  fontSize: 13,
                   fontWeight: FontWeight.w800,
                   color: AppColors.textMuted,
-                  letterSpacing: 1.2,
                 ),
               ),
             ],
@@ -526,7 +522,7 @@ class _GroupsCard extends StatelessWidget {
                           Text(
                             g.name,
                             style: AppFonts.body(
-                              fontSize: 12,
+                              fontSize: 13,
                               color: AppColors.textSecondary,
                             ),
                             maxLines: 2,
@@ -557,37 +553,31 @@ class _InfoRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final body = Padding(
+    final body = Container(
+      width: double.infinity, // full width so the stacked label/value stay left
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-      child: Row(
+      child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Expanded(
-            flex: 2,
-            child: Text(
+          Text(
               label,
               style: AppFonts.body(
-                fontSize: 10,
-                fontWeight: FontWeight.w800,
-                color: AppColors.textMuted,
-                letterSpacing: 0.5,
+                fontSize: 13,
+                fontWeight: FontWeight.w500,
+                color: AppColors.textSecondary,
               ),
             ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            flex: 3,
-            child: Text(
+          const SizedBox(height: 4),
+          Text(
               value,
               style: AppFonts.body(
-                fontSize: 14,
-                fontWeight: FontWeight.w700,
+                fontSize: 16,
+                fontWeight: FontWeight.w500,
                 color: tappable && onTap != null
                     ? AppColors.primaryPrime
                     : AppColors.textPrimary,
               ),
             ),
-          ),
         ],
       ),
     );

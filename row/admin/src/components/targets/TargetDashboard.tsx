@@ -109,7 +109,7 @@ export default function TargetDashboard({ districtId, yearId, clubPageHref }: {
 
           <div className="mt-4 max-h-[36rem] overflow-auto rounded-lg border border-slate-200">
             <table className="min-w-full text-sm">
-              <thead className="sticky top-0 bg-slate-50 text-xs uppercase text-slate-500">
+              <thead className="sticky top-0 bg-[#EDF4FB] text-[13px] text-[#64748B]">
                 <tr>
                   <th className="px-3 py-2 text-left">Club</th>
                   <th className="px-3 py-2 text-left">Status</th>

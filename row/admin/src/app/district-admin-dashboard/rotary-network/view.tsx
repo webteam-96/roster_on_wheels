@@ -297,7 +297,7 @@ export function DistrictRotaryNetworkView({ embedded = false }: { embedded?: boo
         const pct = total > 0 ? Math.min(100, Math.round((done / total) * 100)) : 8;
         return (
           <div className="rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 text-xs text-blue-700 space-y-2">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-wrap items-center justify-between gap-3">
               <span className="font-medium">
                 {total > 0
                   ? `Refreshing from Rotary.org: ${done} of ${total} clubs (runs in the background: safe to leave this page)`
@@ -333,7 +333,7 @@ export function DistrictRotaryNetworkView({ embedded = false }: { embedded?: boo
                 onClick={handleRefreshFromRotaryOrg}
                 disabled={refreshing}
                 title="Warms the cache for every linked club in the district, a few at a time: safe to leave running in the background."
-                className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg border border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100 disabled:opacity-50"
+                className="inline-flex items-center gap-1.5 text-xs font-semibold px-4 h-10 rounded-full border border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100 disabled:opacity-50"
               >
                 <RefreshCw size={13} className={refreshing ? "animate-spin" : undefined} />
                 {refreshing ? "Refreshing…" : "Refresh from Rotary.org"}
@@ -344,7 +344,7 @@ export function DistrictRotaryNetworkView({ embedded = false }: { embedded?: boo
                 type="button"
                 onClick={handleDownloadAllExcel}
                 disabled={data.terminatedMembers.length === 0}
-                className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg border border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 disabled:opacity-50"
+                className="inline-flex items-center gap-1.5 text-xs font-semibold px-4 h-10 rounded-full border border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 disabled:opacity-50"
               >
                 <Download size={13} /> Download All as Excel
               </button>
@@ -353,23 +353,21 @@ export function DistrictRotaryNetworkView({ embedded = false }: { embedded?: boo
               <button
                 type="button"
                 onClick={() => handleDownloadClubExcel(clubId, selectedClubName)}
-                className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg border border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
+                className="inline-flex items-center gap-1.5 text-xs font-semibold px-4 h-10 rounded-full border border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
               >
                 <Download size={13} /> Download as Excel
               </button>
             )}
-            <div className="inline-flex items-center gap-1 rounded-lg p-1 text-sm" style={{ backgroundColor: "#17458f" }}>
+            <div className="inline-flex items-center gap-1 rounded-full p-1 text-sm bg-muted">
               <button
                 onClick={() => handleViewChange("terminated")}
-                className={`px-3 py-1.5 font-semibold rounded-md transition ${view === "terminated" ? "shadow-sm" : "text-white hover:bg-white/10"}`}
-                style={view === "terminated" ? { backgroundColor: "#F7A81B", color: "#17458f" } : undefined}
+                className={`inline-flex h-9 items-center px-4 font-semibold rounded-full transition-colors ${view === "terminated" ? "bg-card text-foreground ring-1 ring-[color:var(--row-line)]" : "text-muted-foreground hover:text-foreground"}`}
               >
                 Terminated Members
               </button>
               <button
                 onClick={() => handleViewChange("potential")}
-                className={`px-3 py-1.5 font-semibold rounded-md transition ${view === "potential" ? "shadow-sm" : "text-white hover:bg-white/10"}`}
-                style={view === "potential" ? { backgroundColor: "#F7A81B", color: "#17458f" } : undefined}
+                className={`inline-flex h-9 items-center px-4 font-semibold rounded-full transition-colors ${view === "potential" ? "bg-card text-foreground ring-1 ring-[color:var(--row-line)]" : "text-muted-foreground hover:text-foreground"}`}
               >
                 Potential Members
               </button>
@@ -384,7 +382,7 @@ export function DistrictRotaryNetworkView({ embedded = false }: { embedded?: boo
                 value={clubId ? selectedClubName : clubQuery}
                 onFocus={() => setClubDropdownOpen(true)}
                 onChange={(e) => { setClubId(null); setClubQuery(e.target.value); setClubDropdownOpen(true); }}
-                className="pl-7 pr-7 py-1.5 text-sm border border-slate-200 rounded-lg w-full sm:w-52 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="pl-7 pr-7 h-10 py-0 text-sm border border-slate-200 rounded-[12px] w-full sm:w-52 focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
               />
               {clubId && (
                 <button
@@ -412,14 +410,14 @@ export function DistrictRotaryNetworkView({ embedded = false }: { embedded?: boo
               )}
             </div>
 
-            <div className="relative">
+            <div className="relative w-full sm:w-auto">
               <Search size={14} className="absolute left-2 top-1/2 -translate-y-1/2 text-slate-400" />
               <input
                 type="text"
                 placeholder={showClubSummary ? "Search club…" : "Search…"}
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="pl-7 pr-3 py-1.5 text-sm border border-slate-200 rounded-lg w-full sm:w-48 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="pl-7 pr-3 h-10 py-0 text-sm border border-slate-200 rounded-[12px] w-full sm:w-48 focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
               />
             </div>
           </div>
@@ -428,8 +426,8 @@ export function DistrictRotaryNetworkView({ embedded = false }: { embedded?: boo
         {showClubSummary ? (
           <>
             <div className="overflow-x-auto">
-              <table className="min-w-full text-sm">
-                <thead className="bg-slate-50 text-xs uppercase text-slate-500">
+              <table className="w-full min-w-[640px] md:min-w-full text-sm">
+                <thead className="bg-[#EDF4FB] text-[13px] text-[#64748B]">
                   <tr>
                     <th className="px-3 py-2.5 text-left w-12">Sr No</th>
                     <th className="px-3 py-2.5 text-left">Club</th>
@@ -487,8 +485,8 @@ export function DistrictRotaryNetworkView({ embedded = false }: { embedded?: boo
         ) : (
         <>
         <div className="overflow-x-auto">
-          <table className="min-w-full text-sm">
-            <thead className="bg-slate-50 text-xs uppercase text-slate-500">
+          <table className="w-full min-w-[640px] md:min-w-full text-sm">
+            <thead className="bg-[#EDF4FB] text-[13px] text-[#64748B]">
               <tr>
                 <th className="px-3 py-2.5 text-left w-12">Sr No</th>
                 <th className="px-3 py-2.5 text-left">Club</th>

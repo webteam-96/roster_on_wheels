@@ -46,6 +46,7 @@ import SearchBox from "@/components/SearchBox";
 
 import { appLocale } from "@/lib/appFormat";
 import { formatMoney } from "@/lib/currency";
+import { ListPageSkeleton } from "@/components/row/AppKit";
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
 export default function OcvCategoryPage() {
@@ -330,7 +331,7 @@ export default function OcvCategoryPage() {
         {/* Loading */}
         {loading && (
           <div className="flex items-center justify-center py-20">
-            <RotaryLoader size="lg" />
+            <ListPageSkeleton />
           </div>
         )}
 

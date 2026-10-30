@@ -169,11 +169,11 @@ export default function RoleBasedHome() {
                       </div>
                     </div>
                     <div className="border-t px-4 py-3 space-y-2 text-sm text-muted-foreground group-hover:bg-primary/5 transition-colors">
-                      <div className="flex items-center gap-2">
+                      <div className="flex flex-wrap items-center gap-2">
                         <Building2 className="h-3.5 w-3.5 flex-shrink-0" />
                         <span>{d.totalClubs || 0} Club{(d.totalClubs || 0) !== 1 ? "s" : ""}</span>
                       </div>
-                      <div className="flex items-center gap-2">
+                      <div className="flex flex-wrap items-center gap-2">
                         <Users className="h-3.5 w-3.5 flex-shrink-0" />
                         <span>{d.totalMembers || 0} Member{(d.totalMembers || 0) !== 1 ? "s" : ""}</span>
                       </div>
@@ -208,7 +208,7 @@ export default function RoleBasedHome() {
                       </div>
                     </div>
                     <div className="border-t px-4 py-3 space-y-2 text-sm text-muted-foreground group-hover:bg-primary/5 transition-colors">
-                      <div className="flex items-center gap-2">
+                      <div className="flex flex-wrap items-center gap-2">
                         <Users className="h-3.5 w-3.5 flex-shrink-0" />
                         <span>{c.totalMembers || 0} Member{(c.totalMembers || 0) !== 1 ? "s" : ""}</span>
                       </div>

@@ -12,6 +12,7 @@ import RotaryLoader from "@/components/RotaryLoader";
 import ModuleIcon from "@/components/ModuleIcon";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { useAuth } from "@/contexts/AuthContext";
+import { ListPageSkeleton } from "@/components/row/AppKit";
 
 export default function ClubWebsiteDataPage() {
   const params = useParams();
@@ -68,7 +69,7 @@ export default function ClubWebsiteDataPage() {
 
         {loading && (
           <div className="flex items-center justify-center py-20">
-            <RotaryLoader size="lg" />
+            <ListPageSkeleton />
           </div>
         )}
 

@@ -234,7 +234,7 @@ export function AttachmentList({ app, side, scopeId, onDelete, children }: {
                   {a.kind === "report" ? "Report" : "Application"}, {Math.max(1, Math.round(a.sizeBytes / 1024))} KB, {fmt.date(a.createdDate)}
                 </span>
               </span>
-              <span className="flex gap-2">
+              <span className="flex flex-wrap gap-2">
                 <Button size="sm" variant="outline" className="gap-1.5" onClick={() => download(a.id)}>
                   <Download className="h-3.5 w-3.5" /> Download
                 </Button>

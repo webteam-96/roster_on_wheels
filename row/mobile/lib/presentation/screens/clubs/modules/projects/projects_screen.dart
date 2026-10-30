@@ -947,7 +947,7 @@ class _ProjectsScreenState extends State<ProjectsScreen> {
       builder: (ctx) => Dialog(
         backgroundColor: Colors.white,
         insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(20))),
         child: ConstrainedBox(
           constraints: BoxConstraints(maxHeight: maxH, maxWidth: 420),
           child: Padding(
@@ -998,8 +998,7 @@ class _ProjectsScreenState extends State<ProjectsScreen> {
                       backgroundColor: AppColors.primary,
                       foregroundColor: Colors.white,
                       elevation: 0,
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10)),
+                      shape: const StadiumBorder(),
                     ),
                     child: const Text('I Agree & Continue',
                         style: TextStyle(fontWeight: FontWeight.w600)),
@@ -1013,8 +1012,7 @@ class _ProjectsScreenState extends State<ProjectsScreen> {
                     style: OutlinedButton.styleFrom(
                       foregroundColor: AppColors.textSecondary,
                       side: const BorderSide(color: AppColors.border),
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10)),
+                      shape: const StadiumBorder(),
                     ),
                     child: const Text('Cancel'),
                   ),
@@ -1076,7 +1074,7 @@ class _ProjectsScreenState extends State<ProjectsScreen> {
                     const SizedBox(width: 8),
                     Text('Rotary Year',
                         style: AppFonts.body(
-                          fontSize: 12,
+                          fontSize: 13,
                           fontWeight: FontWeight.w600,
                           color: AppColors.textSecondary,
                         )),
@@ -1179,7 +1177,7 @@ class _ProjectsScreenState extends State<ProjectsScreen> {
       },
       selectedColor: AppColors.primary.withValues(alpha: 0.15),
       labelStyle: AppFonts.body(
-        fontSize: 12.5,
+        fontSize: 13,
         color: selected ? AppColors.primaryPrime : AppColors.textSecondary,
         fontWeight: selected ? FontWeight.w700 : FontWeight.w600,
       ),
@@ -1217,7 +1215,7 @@ class _ProjectsScreenState extends State<ProjectsScreen> {
                       color: AppColors.primary,
                       onRefresh: () => _fetch(reset: true),
                       child: ListView.separated(
-                        padding: const EdgeInsets.all(16),
+                        padding: (const EdgeInsets.all(16)).add(const EdgeInsets.only(bottom: 88)),
                         itemCount: _projects.length + 1,
                         separatorBuilder: (_, __) => const SizedBox(height: 12),
                         itemBuilder: (ctx, i) {
@@ -1390,7 +1388,7 @@ class _ProjectCard extends StatelessWidget {
                 const SizedBox(height: 8),
                 Text('Co-host: ${project.coHostName}',
                     style: AppFonts.body(
-                      fontSize: 11,
+                      fontSize: 13,
                       color: AppColors.textMuted,
                     )),
               ],
@@ -1458,7 +1456,7 @@ class _JointPill extends StatelessWidget {
       child: Text(
         'JOINT',
         style: AppFonts.body(
-          fontSize: 10,
+          fontSize: 13,
           fontWeight: FontWeight.w800,
           color: AppColors.primaryPrime,
           letterSpacing: 0.4,
@@ -1485,7 +1483,7 @@ class _MetaFact extends StatelessWidget {
           child: Text(
             text,
             style: AppFonts.body(
-              fontSize: 11.5,
+              fontSize: 13,
               color: AppColors.textSecondary,
             ),
             maxLines: 1,
@@ -1513,7 +1511,7 @@ class _CountPill extends StatelessWidget {
       child: Text(
         text,
         style: AppFonts.body(
-          fontSize: 11,
+          fontSize: 13,
           fontWeight: FontWeight.w700,
           color: AppColors.primaryPrime,
           letterSpacing: 0.2,
@@ -1874,7 +1872,7 @@ class _ProjectDetailScreenState extends State<_ProjectDetailScreen> {
     ];
 
     return ListView(
-      padding: EdgeInsets.zero,
+      padding: (EdgeInsets.zero).add(const EdgeInsets.only(bottom: 88)),
       children: [
         DetailHeroGallery(urls: galleryUrls, captions: galleryCaptions),
         Padding(
@@ -1901,7 +1899,7 @@ class _ProjectDetailScreenState extends State<_ProjectDetailScreen> {
                           'Showing summary only. Full details (documents, '
                           'photos, attendance) could not be loaded.',
                           style: AppFonts.body(
-                              fontSize: 11.5, color: AppColors.textSecondary),
+                              fontSize: 13, color: AppColors.textSecondary),
                         ),
                       ),
                     ],
@@ -1999,9 +1997,9 @@ class _DocLink extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    label.toUpperCase(),
+                    label,
                     style: AppFonts.body(
-                      fontSize: 10.5,
+                      fontSize: 13,
                       fontWeight: FontWeight.w700,
                       color: AppColors.textSecondary,
                       letterSpacing: 0.4,
@@ -3672,7 +3670,7 @@ class _ProjectFormScreenState extends State<_ProjectFormScreen> {
                         foregroundColor: AppColors.textSecondary,
                         side: const BorderSide(color: AppColors.lightBorder),
                         padding: const EdgeInsets.symmetric(vertical: 13),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                        shape: const StadiumBorder(),
                       ),
                     ),
                   ),
@@ -3693,7 +3691,7 @@ class _ProjectFormScreenState extends State<_ProjectFormScreen> {
                         foregroundColor: Colors.white,
                         elevation: 0,
                         padding: const EdgeInsets.symmetric(vertical: 13),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                        shape: const StadiumBorder(),
                       ),
                     ),
                   ),
@@ -3732,7 +3730,7 @@ class _ProjectFormScreenState extends State<_ProjectFormScreen> {
         _fundingAmountField('Amount Sanctioned ($sym) *', _amtSanctionedCtrl),
         _fundingAmountField('Amount Received ($sym) *', _amtReceivedCtrl),
         _fundingAmountField('Amount spent till date ($sym) *', _amtSpentCtrl),
-        _fundingTextField('Host Clubs/Districts *', _hostCtrl, 'e.g., RC Pune, RC Mumbai'),
+        _fundingTextField('Host Clubs/Districts *', _hostCtrl, 'e.g., RC Springfield, RC Riverside'),
         _fundingTextField('Global Partner Clubs/Districts *', _partnerCtrl, 'e.g., RC Tokyo'),
       ];
     }
@@ -3991,7 +3989,7 @@ class _ProjectFormScreenState extends State<_ProjectFormScreen> {
               ),
               child: Text('AREA',
                   style: AppTextStyles.caption.copyWith(
-                      color: _kViolet, fontWeight: FontWeight.w700, fontSize: 10)),
+                      color: _kViolet, fontWeight: FontWeight.w700, fontSize: 13)),
             ),
             const SizedBox(width: 8),
             Expanded(child: Text(r.areaOfFocusName, style: AppTextStyles.body)),
@@ -4153,7 +4151,7 @@ class _SectionCard extends StatelessWidget {
                     '$number',
                     style: const TextStyle(
                       color: Colors.white,
-                      fontSize: 12,
+                      fontSize: 13,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -4337,7 +4335,7 @@ class _PhotoGallery extends StatelessWidget {
                       Text(
                         disabled ? 'Maximum photos reached' : 'Add photo',
                         style: AppFonts.body(
-                          fontSize: 12.5,
+                          fontSize: 13,
                           fontWeight: FontWeight.w700,
                           color: disabled
                               ? AppColors.textMuted
@@ -4469,7 +4467,7 @@ class _PhotoCardState extends State<_PhotoCard> {
                   keyboardType: TextInputType.multiline,
                   textInputAction: TextInputAction.newline,
                   style: AppFonts.body(
-                    fontSize: 12.5,
+                    fontSize: 13,
                     color: AppColors.textPrimary,
                   ),
                   onChanged: (v) {
@@ -4490,7 +4488,7 @@ class _PhotoCardState extends State<_PhotoCard> {
                     fillColor: AppColors.background,
                     hintText: 'Add a description (optional)',
                     hintStyle: AppFonts.body(
-                      fontSize: 12,
+                      fontSize: 13,
                       color: AppColors.textMuted,
                     ),
                     contentPadding:
@@ -4530,7 +4528,7 @@ class _PhotoCardState extends State<_PhotoCard> {
                             Text(
                               'PRIMARY',
                               style: AppFonts.body(
-                                fontSize: 10,
+                                fontSize: 13,
                                 fontWeight: FontWeight.w800,
                                 letterSpacing: 0.4,
                                 color: AppColors.warning,
@@ -4555,7 +4553,7 @@ class _PhotoCardState extends State<_PhotoCard> {
                               Text(
                                 'Set as primary',
                                 style: AppFonts.body(
-                                  fontSize: 11,
+                                  fontSize: 13,
                                   fontWeight: FontWeight.w600,
                                   color: AppColors.textSecondary,
                                 ),
@@ -4571,7 +4569,7 @@ class _PhotoCardState extends State<_PhotoCard> {
                         child: Text(
                           '$_len/$_kProjPhotoDescMaxChars',
                           style: AppFonts.body(
-                            fontSize: 10,
+                            fontSize: 13,
                             color: AppColors.textMuted,
                           ),
                         ),
@@ -4713,6 +4711,7 @@ class _ParentProjectPickerState extends State<_ParentProjectPicker> {
                           ),
                         )
                       : ListView.separated(
+  padding: const EdgeInsets.only(bottom: 88),
                           itemCount: _results.length,
                           separatorBuilder: (_, __) => const Divider(height: 1),
                           itemBuilder: (_, i) {

@@ -156,7 +156,7 @@ export default function TrainingAvailabilityTab() {
       </p>
 
       {/* ── 1. the repeating week ── */}
-      <div className="rounded-xl border border-slate-200 bg-white overflow-hidden">
+      <div className="rounded-[20px] border border-slate-200 bg-white overflow-hidden">
         <div className="px-4 sm:px-5 py-3 border-b border-slate-100 bg-blue-50 flex flex-wrap items-center gap-2">
           <Clock size={16} className="text-blue-600" />
           <h3 className="text-sm font-semibold text-slate-800">Working hours</h3>
@@ -164,7 +164,7 @@ export default function TrainingAvailabilityTab() {
           <button
             onClick={saveWeek}
             disabled={saving}
-            className="ml-auto inline-flex items-center gap-1.5 h-8 rounded-lg bg-azure px-3 text-xs font-semibold text-white hover:bg-mint-ink disabled:opacity-40"
+            className="ml-auto inline-flex items-center gap-1.5 h-8 rounded-full bg-azure px-3 text-xs font-semibold text-white hover:bg-mint-ink disabled:opacity-40"
           >
             {saving ? <Loader2 size={13} className="animate-spin" /> : <Save size={13} />} Save hours
           </button>
@@ -196,14 +196,14 @@ export default function TrainingAvailabilityTab() {
                         type="time"
                         value={r.start}
                         onChange={(e) => setRange(d.dayOfWeek, i, { start: e.target.value })}
-                        className="h-8 w-28 rounded-md border border-slate-300 px-2 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="h-8 w-28 rounded-[12px] border border-slate-300 px-2 text-sm text-slate-700 focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
                       />
                       <span className="text-slate-400 text-sm">–</span>
                       <input
                         type="time"
                         value={r.end}
                         onChange={(e) => setRange(d.dayOfWeek, i, { end: e.target.value })}
-                        className="h-8 w-28 rounded-md border border-slate-300 px-2 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="h-8 w-28 rounded-[12px] border border-slate-300 px-2 text-sm text-slate-700 focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
                       />
                       <button
                         onClick={() => setDay(d.dayOfWeek, { ranges: d.ranges.filter((_, ix) => ix !== i) })}
@@ -239,14 +239,14 @@ export default function TrainingAvailabilityTab() {
       </div>
 
       {/* ── 2. one-off blocked dates ── */}
-      <div className="rounded-xl border border-slate-200 bg-white overflow-hidden">
+      <div className="rounded-[20px] border border-slate-200 bg-white overflow-hidden">
         <div className="px-4 sm:px-5 py-3 border-b border-slate-100 bg-amber-50 flex flex-wrap items-center gap-2">
           <CalendarX2 size={16} className="text-amber-600" />
           <h3 className="text-sm font-semibold text-slate-800">Blocked dates</h3>
           <span className="text-xs text-slate-400">days the team is away, or free only part of the day</span>
           <button
             onClick={() => { setBlockOpen((v) => !v); setSuccess(null); }}
-            className="ml-auto inline-flex items-center gap-1.5 h-8 rounded-lg border border-amber-200 bg-amber-50 px-3 text-xs font-semibold text-amber-800 hover:bg-amber-100"
+            className="ml-auto inline-flex items-center gap-1.5 h-8 rounded-full border border-amber-200 bg-amber-50 px-3 text-xs font-semibold text-amber-800 hover:bg-amber-100"
           >
             <Plus size={13} /> Block a date
           </button>
@@ -268,7 +268,7 @@ export default function TrainingAvailabilityTab() {
                     </>
                   )}
                 </div>
-                <div className="rounded-xl border border-slate-200 bg-white p-4">
+                <div className="rounded-[20px] border border-slate-200 bg-white p-4">
                   <div className="flex items-center justify-between mb-2">
                     <button
                       type="button"
@@ -366,13 +366,13 @@ export default function TrainingAvailabilityTab() {
                     <input
                       type="time" value={r.start}
                       onChange={(e) => setBlockRanges((p) => p.map((x, ix) => (ix === i ? { ...x, start: e.target.value } : x)))}
-                      className="h-8 w-28 rounded-md border border-slate-300 px-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="h-8 w-28 rounded-[12px] border border-slate-300 px-2 text-sm focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
                     />
                     <span className="text-slate-400 text-sm">–</span>
                     <input
                       type="time" value={r.end}
                       onChange={(e) => setBlockRanges((p) => p.map((x, ix) => (ix === i ? { ...x, end: e.target.value } : x)))}
-                      className="h-8 w-28 rounded-md border border-slate-300 px-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="h-8 w-28 rounded-[12px] border border-slate-300 px-2 text-sm focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
                     />
                     {blockRanges.length > 1 && (
                       <button onClick={() => setBlockRanges((p) => p.filter((_, ix) => ix !== i))} className="text-slate-400 hover:text-rose-600"><X size={15} /></button>
@@ -391,7 +391,7 @@ export default function TrainingAvailabilityTab() {
                 type="text" value={reason} maxLength={200}
                 onChange={(e) => setReason(e.target.value)}
                 placeholder="e.g. Team training day"
-                className="h-9 rounded-md border border-slate-300 px-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="h-9 rounded-[12px] border border-slate-300 px-2.5 text-sm focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
               />
             </label>
 
@@ -399,14 +399,14 @@ export default function TrainingAvailabilityTab() {
               <button
                 onClick={saveBlock} disabled={saving || blockDates.length === 0}
                 title={blockDates.length > 0 ? undefined : "Pick at least one date on the calendar"}
-                className="inline-flex items-center gap-1.5 h-9 rounded-lg bg-azure px-4 text-xs font-semibold text-white hover:bg-mint-ink disabled:opacity-40"
+                className="inline-flex items-center gap-1.5 h-9 rounded-full bg-azure px-4 text-xs font-semibold text-white hover:bg-mint-ink disabled:opacity-40"
               >
                 {saving ? <Loader2 size={13} className="animate-spin" /> : <Save size={13} />}
                 {blockDates.length > 1 ? `Save ${blockDates.length} dates` : "Save date"}
               </button>
               <button
                 onClick={() => setBlockOpen(false)}
-                className="h-9 rounded-lg border border-slate-200 px-3 text-xs font-medium text-slate-600 hover:bg-slate-50"
+                className="h-9 rounded-full border border-slate-200 px-3 text-xs font-medium text-slate-600 hover:bg-slate-50"
               >
                 Cancel
               </button>

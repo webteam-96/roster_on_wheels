@@ -10,7 +10,6 @@ import '../../../core/network/api_client.dart';
 import '../../../core/network/api_exceptions.dart';
 import '../../../core/network/api_response.dart';
 import '../../../core/theme/app_colors.dart';
-import '../../../core/theme/app_gradients.dart';
 import '../../../core/theme/app_text_styles.dart';
 import '../../widgets/common/custom_app_bar.dart';
 import '../../widgets/common/empty_state_widget.dart';
@@ -20,6 +19,7 @@ import '../find_rotarian/find_rotarian_detail_screen.dart';
 import 'package:rotary_flutter_app/core/utils/money_format.dart';
 import 'package:rotary_flutter_app/core/theme/app_fonts.dart';
 import 'package:rotary_flutter_app/core/i18n/text.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/skeleton_list.dart';
 
 bool _asBool(dynamic v) {
   if (v is bool) return v;
@@ -190,16 +190,8 @@ class _ClubInfoScreenState extends State<ClubInfoScreen> {
           child: TabBar(
             isScrollable: true,
             tabAlignment: TabAlignment.start,
-            labelColor: Colors.white,
-            unselectedLabelColor: AppColors.textSecondary,
-            dividerColor: Colors.transparent,
-            indicatorSize: TabBarIndicatorSize.tab,
             padding: const EdgeInsets.all(4),
             labelPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
-            indicator: BoxDecoration(
-              color: AppColors.primary,
-              borderRadius: BorderRadius.circular(8),
-            ),
             labelStyle: AppTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.w700),
             unselectedLabelStyle: AppTextStyles.bodyMedium,
             tabs: [
@@ -289,7 +281,7 @@ class _ClubInfoScreenState extends State<ClubInfoScreen> {
               style: AppTextStyles.caption.copyWith(
                 color: badgeFg,
                 fontWeight: FontWeight.w700,
-                fontSize: 10,
+                fontSize: 13,
                 height: 1.0,
               ),
             ),
@@ -383,7 +375,7 @@ class _ClubInfoHeaderState extends State<_ClubInfoHeader> {
     final subtitle = c != null ? _buildSubtitle(c) : '';
 
     return Container(
-      decoration: const BoxDecoration(gradient: AppGradients.royalSweep),
+      decoration: const BoxDecoration(color: AppColors.primaryPrime),
       padding: EdgeInsets.fromLTRB(8, top + 4, 16, _collapsed ? 10 : 16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -422,7 +414,7 @@ class _ClubInfoHeaderState extends State<_ClubInfoHeader> {
                           subtitle,
                           style: AppFonts.body(
                             color: Colors.white.withOpacity(0.85),
-                            fontSize: 11,
+                            fontSize: 13,
                             fontWeight: FontWeight.w500,
                           ),
                         ),
@@ -620,7 +612,7 @@ class _MetaCell extends StatelessWidget {
                   label,
                   style: AppFonts.body(
                     color: Colors.white.withOpacity(0.75),
-                    fontSize: 10,
+                    fontSize: 13,
                     fontWeight: FontWeight.w600,
                     letterSpacing: 0.3,
                   ),
@@ -630,7 +622,7 @@ class _MetaCell extends StatelessWidget {
                   value,
                   style: AppFonts.body(
                     color: Colors.white,
-                    fontSize: 12,
+                    fontSize: 13,
                     fontWeight: FontWeight.w600,
                   ),
                   maxLines: maxLines,
@@ -668,7 +660,7 @@ class _MetaChip extends StatelessWidget {
             text,
             style: AppFonts.body(
               color: Colors.white,
-              fontSize: 11,
+              fontSize: 13,
               fontWeight: FontWeight.w600,
             ),
           ),
@@ -697,7 +689,7 @@ class _ActiveBadge extends StatelessWidget {
         isActive ? 'Active' : 'Inactive',
         style: AppFonts.body(
           color: Colors.white,
-          fontSize: 11,
+          fontSize: 13,
           fontWeight: FontWeight.w700,
         ),
       ),
@@ -955,7 +947,7 @@ class _MemberCard extends StatelessWidget {
                           style: AppTextStyles.caption.copyWith(
                             color: AppColors.success,
                             fontWeight: FontWeight.w700,
-                            fontSize: 10,
+                            fontSize: 13,
                           ),
                         ),
                       ),
@@ -1009,7 +1001,7 @@ class _RoleChip extends StatelessWidget {
         style: AppTextStyles.caption.copyWith(
           color: AppColors.primary,
           fontWeight: FontWeight.w600,
-          fontSize: 10,
+          fontSize: 13,
         ),
       ),
     );
@@ -1888,7 +1880,7 @@ class _StatusBadge extends StatelessWidget {
         style: AppTextStyles.caption.copyWith(
           color: fg,
           fontWeight: FontWeight.w700,
-          fontSize: 10,
+          fontSize: 13,
         ),
       ),
     );
@@ -2256,7 +2248,7 @@ class _ProjectCard extends StatelessWidget {
                         style: AppTextStyles.caption.copyWith(
                           color: AppColors.warning,
                           fontWeight: FontWeight.w700,
-                          fontSize: 10,
+                          fontSize: 13,
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
@@ -2691,8 +2683,7 @@ class _LoadMoreButton extends StatelessWidget {
             side: BorderSide(color: AppColors.primary.withValues(alpha: 0.4)),
             padding:
                 const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-            shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10)),
+            shape: const StadiumBorder(),
           ),
         ),
       ),
@@ -2961,7 +2952,7 @@ class _ProjectDetailPageState extends State<_ProjectDetailPage> {
               width: double.infinity,
               placeholder: (_, __) => Container(
                 color: AppColors.muted,
-                child: const Center(child: CircularProgressIndicator()),
+                child: const RowSkeletonList(),
               ),
               errorWidget: (_, __, ___) => Container(
                 color: AppColors.muted,
@@ -3070,7 +3061,7 @@ class _ProjectDetailPageState extends State<_ProjectDetailPage> {
           Text(
             text,
             style: AppFonts.body(
-              fontSize: 12,
+              fontSize: 13,
               fontWeight: FontWeight.w600,
               color: AppColors.textPrimary,
             ),

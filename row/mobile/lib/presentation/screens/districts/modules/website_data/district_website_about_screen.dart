@@ -331,11 +331,11 @@ class _AboutEditorPageState extends State<_AboutEditorPage> {
                 ? const SizedBox(
                     width: 18,
                     height: 18,
-                    child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                    child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.primaryPrime),
                   )
                 : Text(
                     isEdit ? 'Update' : 'Save',
-                    style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                    style: const TextStyle(color: AppColors.primaryPrime, fontWeight: FontWeight.bold),
                   ),
           ),
           const SizedBox(width: 8),

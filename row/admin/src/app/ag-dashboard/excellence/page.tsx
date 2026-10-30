@@ -18,6 +18,7 @@ import SectionHeader from "@/components/dashboard/SectionHeader";
 import {
   fmtInt, fmtInr, CLUB_PALETTE,
 } from "@/components/dashboard/formatters";
+import { ListPageSkeleton } from "@/components/row/AppKit";
 
 // ---------------------------------------------------------------------------
 // Wave 13A2 — Club Excellence rebuild.
@@ -224,7 +225,7 @@ export default function AgExcellencePage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-20">
-        <RotaryLoader size="lg" label="Loading…" />
+        <ListPageSkeleton />
       </div>
     );
   }
@@ -362,16 +363,16 @@ export default function AgExcellencePage() {
             <h3 className="text-sm font-semibold text-slate-800">Category Breakdown</h3>
           </div>
           <div className="overflow-x-auto">
-            <table className="min-w-full text-sm">
-              <thead className="bg-slate-50 border-b border-slate-200">
+            <table className="w-full min-w-[640px] md:min-w-full text-sm">
+              <thead className="bg-[#EDF4FB] border-b border-slate-200">
                 <tr>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Club</th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500">Club</th>
                   {CITATION_CATEGORIES.map((cat) => (
-                    <th key={cat.key} className="px-4 py-3 text-right text-xs font-semibold text-slate-500 uppercase tracking-wider whitespace-nowrap">
+                    <th key={cat.key} className="px-4 py-3 text-right text-xs font-semibold text-slate-500 whitespace-nowrap">
                       {cat.label}
                     </th>
                   ))}
-                  <th className="px-4 py-3 text-right text-xs font-semibold text-slate-700 uppercase tracking-wider bg-blue-50">Total</th>
+                  <th className="px-4 py-3 text-right text-xs font-semibold text-slate-700 bg-blue-50">Total</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
@@ -489,15 +490,15 @@ export default function AgExcellencePage() {
             </div>
           ) : (
             <div className="overflow-x-auto">
-              <table className="min-w-full text-sm">
-                <thead className="bg-slate-50 border-b border-slate-200">
+              <table className="w-full min-w-[640px] md:min-w-full text-sm">
+                <thead className="bg-[#EDF4FB] border-b border-slate-200">
                   <tr>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Club</th>
-                    <th className="px-4 py-3 text-center text-xs font-semibold text-slate-500 uppercase tracking-wider">On Track</th>
-                    <th className="px-4 py-3 text-center text-xs font-semibold text-slate-500 uppercase tracking-wider">Achieved</th>
-                    <th className="px-4 py-3 text-center text-xs font-semibold text-slate-500 uppercase tracking-wider whitespace-nowrap">Presidential Citation</th>
-                    <th className="px-4 py-3 text-center text-xs font-semibold text-slate-500 uppercase tracking-wider whitespace-nowrap">District Awards</th>
-                    <th className="px-4 py-3 text-center text-xs font-semibold text-slate-500 uppercase tracking-wider whitespace-nowrap">Membership Excellence</th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500">Club</th>
+                    <th className="px-4 py-3 text-center text-xs font-semibold text-slate-500">On Track</th>
+                    <th className="px-4 py-3 text-center text-xs font-semibold text-slate-500">Achieved</th>
+                    <th className="px-4 py-3 text-center text-xs font-semibold text-slate-500 whitespace-nowrap">Presidential Citation</th>
+                    <th className="px-4 py-3 text-center text-xs font-semibold text-slate-500 whitespace-nowrap">District Awards</th>
+                    <th className="px-4 py-3 text-center text-xs font-semibold text-slate-500 whitespace-nowrap">Membership Excellence</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
@@ -535,8 +536,7 @@ export default function AgExcellencePage() {
           <h2 className="text-base font-semibold text-slate-800">Monthly Goal Tracking</h2>
         </div>
         <div
-          className="rounded-xl p-1.5 inline-flex gap-1 mb-4"
-          style={{ backgroundColor: "#17458f" }}
+          className="rounded-full p-1.5 inline-flex gap-1 mb-4 bg-muted"
         >
           {(["projects", "meetings", "trf"] as const).map((m) => {
             const isActive = metric === m;
@@ -545,13 +545,8 @@ export default function AgExcellencePage() {
                 key={m}
                 onClick={() => setMetric(m)}
                 className={`text-sm font-semibold px-3.5 py-1.5 rounded-md transition ${
-                  isActive ? "shadow-sm" : "text-white hover:bg-white/10"
+                  isActive ? "bg-card text-foreground ring-1 ring-[color:var(--row-line)]" : "text-muted-foreground hover:text-foreground"
                 }`}
-                style={
-                  isActive
-                    ? { backgroundColor: "#F7A81B", color: "#17458f" }
-                    : undefined
-                }
               >
                 {m === "projects" ? "Service Projects" : m === "meetings" ? "Meetings Held" : "TRF"}
               </button>

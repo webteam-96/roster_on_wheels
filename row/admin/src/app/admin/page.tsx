@@ -20,6 +20,7 @@ import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import RoleBasedHome from "@/components/RoleBasedHome";
 import PublicLanding from "@/components/public/PublicLanding";
+import { ListPageSkeleton } from "@/components/row/AppKit";
 
 export default function Home() {
   const { isSuperAdmin, isAdmin, isAG, isAuthenticated, loading: authLoading } = useAuth();
@@ -158,7 +159,7 @@ export default function Home() {
 
         {loading && (
           <div className="flex items-center justify-center py-20">
-            <RotaryLoader size="lg" />
+            <ListPageSkeleton />
           </div>
         )}
 

@@ -33,6 +33,7 @@ import AlertModal from "@/components/AlertModal";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import ClubAdminShell from "@/components/v2/ClubAdminShell";
 import { useSyncClubIdFromUrl } from "@/hooks/useSyncClubIdFromUrl";
+import { SkeletonRows } from "@/components/row/AppKit";
 
 // Visual swatches per theme — pure CSS, no API call needed.
 // Keys match the slug the public resolver will compute from theme_name.
@@ -159,9 +160,7 @@ export default function ChangeThemeV2Page() {
 
         {/* Loading */}
         {loading && (
-          <div className="bg-white rounded-2xl border border-slate-200 p-10 flex items-center justify-center text-slate-500">
-            <Loader2 className="animate-spin mr-2" size={16} /> Loading themes…
-          </div>
+          <SkeletonRows />
         )}
 
         {/* No website yet — banner */}

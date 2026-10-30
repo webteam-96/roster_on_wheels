@@ -279,7 +279,7 @@ class _LiveDocumentsScreenState extends State<LiveDocumentsScreen> {
                 Text(
                   'Download Excel reports module-wise',
                   style: AppFonts.body(
-                    fontSize: 11,
+                    fontSize: 13,
                     color: AppColors.textSecondary,
                   ),
                 ),
@@ -388,7 +388,7 @@ class _LiveDocumentsScreenState extends State<LiveDocumentsScreen> {
                     child: Text(
                       yearLabel,
                       style: AppFonts.body(
-                        fontSize: 10,
+                        fontSize: 13,
                         fontWeight: FontWeight.w700,
                         color: AppColors.primary,
                       ),
@@ -436,7 +436,7 @@ class _LiveDocumentsScreenState extends State<LiveDocumentsScreen> {
               icon: const Icon(Icons.download_rounded, size: 16),
               label: Text(
                 'Download',
-                style: AppFonts.body(fontSize: 12, fontWeight: FontWeight.w600),
+                style: AppFonts.body(fontSize: 13, fontWeight: FontWeight.w600),
               ),
             ),
     );

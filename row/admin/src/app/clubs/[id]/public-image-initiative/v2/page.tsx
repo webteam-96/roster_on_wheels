@@ -51,6 +51,7 @@ import { isFlowBotEnabled, AVENUE_LABELS, buildOrgExportFromDetail, triggerAddTo
 import AddToOrgConfirmDialog from "@/components/AddToOrgConfirmDialog";
 
 import { currencySymbol } from "@/lib/appFormat";
+import { SkeletonRows } from "@/components/row/AppKit";
 const SYNC_API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
 const MODULE_KEY = "public_image_initiative";
@@ -321,7 +322,7 @@ export default function PublicImageInitiativeV2Page() {
             Ongoing
             {childCount > 0 && (
               <>
-                <span className="bg-violet-600 text-white rounded-full px-1.5 py-0 text-[10px] ml-0.5">{childCount}</span>
+                <span className="bg-[#17458F] text-white rounded-full px-1.5 py-0 text-[10px] ml-0.5">{childCount}</span>
                 {isExpanded ? <ChevronDown size={11} /> : <ChevronRight size={11} />}
               </>
             )}
@@ -333,7 +334,7 @@ export default function PublicImageInitiativeV2Page() {
         <td className="px-3 py-2 text-slate-500">{isChild ? "" : (page - 1) * pageSize + index + 1}</td>
         <td className="px-3 py-2 text-slate-700 whitespace-nowrap">{fmtDate(project.projectDate)}</td>
         <td className="px-3 py-2">
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             {isChild && <span className="text-slate-400 ml-2">&#8627;</span>}
             <span className="font-medium text-slate-800">{project.title || "–"}</span>
           </div>
@@ -456,7 +457,7 @@ export default function PublicImageInitiativeV2Page() {
                 <button
                   type="button"
                   onClick={() => { setSubTab("ongoing"); setPage(1); }}
-                  className={`px-3 py-1.5 border-l border-slate-200 ${subTab === "ongoing" ? "bg-violet-600 text-white" : "text-slate-600 hover:bg-slate-50"}`}
+                  className={`px-3 py-1.5 border-l border-slate-200 ${subTab === "ongoing" ? "bg-[#17458F] text-white" : "text-slate-600 hover:bg-slate-50"}`}
                 >
                   Ongoing-Repeat
                 </button>
@@ -465,7 +466,7 @@ export default function PublicImageInitiativeV2Page() {
               <select
                 value={projectTypeFilter}
                 onChange={(e) => { setProjectTypeFilter(e.target.value as "all" | "one_time" | "ongoing_repeat"); setPage(1); }}
-                className="px-2 py-1.5 text-sm border border-slate-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="px-2 h-10 py-0 text-sm border border-slate-200 rounded-[12px] bg-white focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
               >
                 <option value="all">All Types</option>
                 <option value="one_time">One Time</option>
@@ -474,7 +475,7 @@ export default function PublicImageInitiativeV2Page() {
               <select
                 value={selectedYearId ?? ""}
                 onChange={(e) => { setSelectedYearId(e.target.value ? Number(e.target.value) : null); setPage(1); }}
-                className="px-2 py-1.5 text-sm border border-slate-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="px-2 h-10 py-0 text-sm border border-slate-200 rounded-[12px] bg-white focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
               >
                 {years.length === 0 && <option value="">No years</option>}
                 {years.map((y) => (
@@ -483,7 +484,7 @@ export default function PublicImageInitiativeV2Page() {
                   </option>
                 ))}
               </select>
-              <div className="relative">
+              <div className="relative w-full sm:w-auto">
                 <Search size={14} className="absolute left-2 top-1/2 -translate-y-1/2 text-slate-400" />
                 <input
                   type="text"
@@ -491,7 +492,7 @@ export default function PublicImageInitiativeV2Page() {
                   value={searchInput}
                   onChange={(e) => setSearchInput(e.target.value)}
                   onKeyDown={(e) => { if (e.key === "Enter") handleSearchSubmit(); }}
-                  className="pl-7 pr-7 py-1.5 text-sm border border-slate-200 rounded-lg w-full sm:w-48 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="pl-7 pr-7 h-10 py-0 text-sm border border-slate-200 rounded-[12px] w-full sm:w-48 focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
                 />
                 {searchInput && (
                   <button
@@ -507,14 +508,14 @@ export default function PublicImageInitiativeV2Page() {
               <button
                 type="button"
                 onClick={handleSearchSubmit}
-                className="inline-flex items-center text-xs font-medium px-2.5 py-1.5 rounded-lg border border-slate-200 text-slate-700 hover:bg-slate-50"
+                className="inline-flex items-center text-xs font-medium px-2.5 py-1.5 rounded-full border border-slate-200 text-slate-700 hover:bg-slate-50"
               >
                 Search
               </button>
               <button
                 type="button"
                 onClick={() => exportToCsv(visible, yearLabel, clubName || "club")}
-                className="inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1.5 rounded-lg border border-slate-200 text-slate-700 hover:bg-slate-50"
+                className="inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1.5 rounded-full border border-slate-200 text-slate-700 hover:bg-slate-50"
               >
                 <Download size={13} /> Export to Excel
               </button>
@@ -522,7 +523,7 @@ export default function PublicImageInitiativeV2Page() {
                 <button
                   type="button"
                   onClick={handleAddClick}
-                  className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg bg-emerald-600 text-white hover:bg-emerald-700"
+                  className="inline-flex items-center gap-1.5 text-xs font-semibold px-4 h-10 rounded-full bg-[#17458F] text-white hover:bg-[#17458F]"
                 >
                   <Plus size={13} /> Add Project
                 </button>
@@ -533,12 +534,10 @@ export default function PublicImageInitiativeV2Page() {
           {/* Table */}
           <div className="overflow-x-auto">
             {loading ? (
-              <div className="flex items-center justify-center py-12 text-slate-500">
-                <Loader2 className="animate-spin mr-2" size={16} /> Loading projects…
-              </div>
+              <SkeletonRows />
             ) : (
-              <table className="min-w-full text-sm">
-                <thead className="bg-slate-50 text-xs uppercase text-slate-500">
+              <table className="w-full min-w-[640px] md:min-w-full text-sm">
+                <thead className="bg-[#EDF4FB] text-[13px] text-[#64748B]">
                   <tr>
                     <th className="px-3 py-2.5 text-left w-10">Sr</th>
                     <th className="px-3 py-2.5 text-left">Date</th>

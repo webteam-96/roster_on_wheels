@@ -72,7 +72,7 @@ export default function HeaderAdminDashboardLink() {
       type="button"
       onClick={goBack}
       title={`Back to ${label}${scopeName}`}
-      className="inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-semibold bg-white/20 text-primary-foreground hover:bg-white/30 transition"
+      className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-semibold bg-white/20 text-primary-foreground hover:bg-white/30 transition"
     >
       <LayoutDashboard className="h-4 w-4" />
       <span className="hidden sm:inline">Back to {label}{scopeName}</span>

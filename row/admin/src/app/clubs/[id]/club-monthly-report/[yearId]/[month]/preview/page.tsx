@@ -394,19 +394,19 @@ function MonthlyReportPreviewPage() {
                         <TableCell className="border">{idx + 1}</TableCell>
                         <TableCell className="whitespace-nowrap border">{formatDate(project.projectDate)}</TableCell>
                         <TableCell className="border">
-                          <span className="flex items-center gap-2">
+                          <span className="flex flex-wrap items-center gap-2">
                             {project.title}
                             {(key === "community_service" || key === "public_image_initiative") && (
                               <>
                                 {project.projectType && (
                                   <Badge className={project.projectType === "one_time"
                                     ? "bg-blue-100 text-blue-800 border-blue-300 text-xs"
-                                    : "bg-purple-100 text-purple-800 border-purple-300 text-xs"}>
+                                    : "bg-[#CFE2F6] text-purple-800 border-purple-300 text-xs"}>
                                     {project.projectType === "one_time" ? "One Time" : "Ongoing"}
                                   </Badge>
                                 )}
                                 {project.parentProjectId && (
-                                  <Badge className="bg-orange-100 text-orange-800 border-orange-300 text-xs">
+                                  <Badge className="bg-[#FFC65C] text-orange-800 border-orange-300 text-xs">
                                     Child Project
                                   </Badge>
                                 )}

@@ -46,6 +46,7 @@ import {
   ArrowLeft, Plus, Pencil, Trash2, MoreHorizontal, FolderOpen,
   AlertTriangle, ChevronRight, ChevronDown, Link2, Folder, ExternalLink,
 } from "@/components/icons";
+import { ListPageSkeleton } from "@/components/row/AppKit";
 
 const WEB_LINKS_BASE = "/district-admin-dashboard/quick-links/web-links";
 
@@ -262,7 +263,7 @@ export default function DistrictAdminWebLinksPage() {
 
         {loading && (
           <div className="flex items-center justify-center py-20">
-            <RotaryLoader size="lg" />
+            <ListPageSkeleton />
           </div>
         )}
 

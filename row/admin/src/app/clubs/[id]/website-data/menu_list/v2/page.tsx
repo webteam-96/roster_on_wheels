@@ -39,6 +39,7 @@ import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
 import ClubAdminShell from "@/components/v2/ClubAdminShell";
 import { useSyncClubIdFromUrl } from "@/hooks/useSyncClubIdFromUrl";
+import { SkeletonRows } from "@/components/row/AppKit";
 
 function getLinkTypeLabel(value: string): string {
   return LINK_TYPES.find((t) => t.value === value)?.label || value;
@@ -362,14 +363,14 @@ export default function MenuListV2Page() {
               </p>
             </div>
             <div className="flex flex-wrap items-center gap-2">
-              <div className="relative">
+              <div className="relative w-full sm:w-auto">
                 <Search size={14} className="absolute left-2 top-1/2 -translate-y-1/2 text-slate-400" />
                 <input
                   type="text"
                   placeholder="Search menus…"
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  className="pl-7 pr-3 py-1.5 text-sm border border-slate-200 rounded-lg w-full sm:w-48 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="pl-7 pr-3 h-10 py-0 text-sm border border-slate-200 rounded-[12px] w-full sm:w-48 focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
                 />
               </div>
               {canManage && (
@@ -382,7 +383,7 @@ export default function MenuListV2Page() {
                   className={`inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg ${
                     addMenuDisabled
                       ? "bg-slate-200 text-slate-400 cursor-not-allowed"
-                      : "bg-emerald-600 text-white hover:bg-emerald-700"
+                      : "bg-[#17458F] text-white hover:bg-[#123A78]"
                   }`}
                   aria-disabled={addMenuDisabled}
                 >
@@ -395,12 +396,10 @@ export default function MenuListV2Page() {
           {/* Table */}
           <div className="overflow-x-auto">
             {loading || loadingRecords ? (
-              <div className="flex items-center justify-center py-12 text-slate-500">
-                <Loader2 className="animate-spin mr-2" size={16} /> Loading menus…
-              </div>
+              <SkeletonRows />
             ) : (
-              <table className="min-w-full text-sm">
-                <thead className="bg-slate-50 text-xs uppercase text-slate-500">
+              <table className="w-full min-w-[640px] md:min-w-full text-sm">
+                <thead className="bg-[#EDF4FB] text-[13px] text-[#64748B]">
                   <tr>
                     <th className="px-3 py-2.5 text-left w-10">Sr</th>
                     <th className="px-3 py-2.5 text-left">Menu Name</th>
@@ -668,9 +667,7 @@ function Row(props: RowProps) {
       {isExpanded && isLoadingSubs && (
         <tr>
           <td colSpan={totalCols} className="py-4">
-            <div className="flex items-center justify-center text-slate-500 text-xs">
-              <Loader2 className="animate-spin mr-2" size={14} /> Loading sub-menus…
-            </div>
+            <SkeletonRows />
           </td>
         </tr>
       )}

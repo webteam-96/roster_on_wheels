@@ -16,6 +16,7 @@ import ErrorAlert from "@/components/ErrorAlert";
 import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { downloadPDF, downloadWord } from "@/utils/reportDownload";
+import { ListPageSkeleton } from "@/components/row/AppKit";
 
 export default function ClubMonthlyReportPage() {
   const params = useParams();
@@ -150,7 +151,7 @@ export default function ClubMonthlyReportPage() {
         {/* Loading */}
         {isLoading && (
           <div className="flex items-center justify-center py-20">
-            <RotaryLoader size="lg" />
+            <ListPageSkeleton />
           </div>
         )}
 
@@ -195,7 +196,7 @@ export default function ClubMonthlyReportPage() {
                         {index + 1}
                       </TableCell>
                       <TableCell>
-                        <div className="flex items-center gap-2">
+                        <div className="flex flex-wrap items-center gap-2">
                           <Calendar className="h-4 w-4 text-muted-foreground" />
                           <span className="font-medium">{item.monthName}</span>
                         </div>

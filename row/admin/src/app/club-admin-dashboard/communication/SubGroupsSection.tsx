@@ -297,7 +297,7 @@ export default function SubGroupsSection({ clubId }: { clubId: number }) {
             {filteredGroups.map((group) => (
               <Card key={group.id} className="border-primary/20">
                 <CardContent className="p-4">
-                  <div className="flex items-center justify-between">
+                  <div className="flex flex-wrap items-center justify-between gap-3">
                     <div className="flex-1 min-w-0">
                       <button className="font-semibold text-primary truncate hover:underline text-left" onClick={() => openViewDialog(group)}>
                         {group.groupName}

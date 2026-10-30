@@ -8,6 +8,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { ArrowLeft, Users, UsersRound, AlertCircle } from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
 import ProtectedRoute from "@/components/ProtectedRoute";
+import { ListPageSkeleton } from "@/components/row/AppKit";
 
 const COMMITTEE_MODULES = [
   { key: "committee", name: "District Committee", description: "Manage direct committee members", icon: "Users", route: "committee" },
@@ -62,7 +63,7 @@ export default function DistrictCommitteePage() {
 
         {loading && (
           <div className="flex items-center justify-center py-20">
-            <RotaryLoader size="lg" />
+            <ListPageSkeleton />
           </div>
         )}
 

@@ -321,7 +321,7 @@ class _ClubWebsiteSocialLinksScreenState extends State<ClubWebsiteSocialLinksScr
                       itemCount: _links.length,
                       onReorder: _onReorder,
                       proxyDecorator: (child, _, __) => Material(
-                        elevation: 6,
+                        elevation: 0,
                         color: Colors.transparent,
                         borderRadius: BorderRadius.circular(10),
                         child: child,

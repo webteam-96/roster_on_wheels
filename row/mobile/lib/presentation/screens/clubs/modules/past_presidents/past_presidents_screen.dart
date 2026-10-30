@@ -164,7 +164,7 @@ class _PastPresidentsScreenState extends State<PastPresidentsScreen> {
                       : RefreshIndicator(
                           onRefresh: () => _loadPresidents(),
                           child: ListView.separated(
-                            padding: const EdgeInsets.all(16),
+                            padding: (const EdgeInsets.all(16)).add(const EdgeInsets.only(bottom: 88)),
                             itemCount: _presidents.length,
                             separatorBuilder: (_, __) => const SizedBox(height: 10),
                             itemBuilder: (_, i) => _buildCard(_presidents[i]),
@@ -182,8 +182,8 @@ class _PastPresidentsScreenState extends State<PastPresidentsScreen> {
     final yearName = (president['yearLabel'] ?? president['yearName'])?.toString() ?? '';
 
     return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      elevation: 0,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(20))),
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Row(
@@ -759,7 +759,7 @@ class _PresidentFormScreenState extends State<_PresidentFormScreen> {
                                 'Pick a member, or add a non-member if the '
                                 'person isn’t in the system.',
                                 style: TextStyle(
-                                    color: Colors.grey.shade600, fontSize: 12),
+                                    color: Colors.grey.shade600, fontSize: 13),
                               ),
                             ),
                         ],
@@ -827,7 +827,7 @@ class _PresidentFormScreenState extends State<_PresidentFormScreen> {
       ),
       child: ListView(
         shrinkWrap: true,
-        padding: EdgeInsets.zero,
+        padding: (EdgeInsets.zero).add(const EdgeInsets.only(bottom: 88)),
         children: [
           for (final r in _searchResults)
             if (r is Map<String, dynamic>) _memberResultTile(r),
@@ -907,7 +907,7 @@ class _PresidentFormScreenState extends State<_PresidentFormScreen> {
       child: Text(
         label,
         style: TextStyle(
-            fontSize: 10, fontWeight: FontWeight.w700, color: color),
+            fontSize: 13, fontWeight: FontWeight.w700, color: color),
       ),
     );
   }

@@ -23,6 +23,7 @@ import SearchBox from "@/components/SearchBox";
 import SendStatusBadges from "@/components/SendStatusBadges";
 
 import { appLocale } from "@/lib/appFormat";
+import { ListPageSkeleton } from "@/components/row/AppKit";
 const STATUS_OPTIONS = [
   { value: "Published", label: "Published" },
   { value: "Unpublished", label: "Unpublished" },
@@ -134,7 +135,7 @@ export default function DistrictAnnouncementsPage() {
         </div>
 
         {!loading && announcements.length > 0 && <SearchBox value={searchQuery} onChange={setSearchQuery} placeholder="Quick filter by title, status..." className="max-w-md" />}
-        {loading && <div className="flex items-center justify-center py-20"><RotaryLoader size="lg" /></div>}
+        {loading && <div className="flex items-center justify-center py-20"><ListPageSkeleton /></div>}
         {!loading && announcements.length === 0 && (
           <div className="flex flex-col items-center justify-center py-20 text-center"><FolderOpen className="h-12 w-12 text-muted-foreground mb-4" /><h3 className="text-lg font-semibold">No announcements found</h3></div>
         )}
@@ -157,7 +158,7 @@ export default function DistrictAnnouncementsPage() {
                 {filteredAnnouncements.map((ann, index) => (
                   <TableRow key={ann.id}>
                     <TableCell className="font-medium">{(page - 1) * pageSize + index + 1}</TableCell>
-                    <TableCell><div className="flex items-center gap-2">{ann.imagePath && <img src={`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"}${ann.imagePath}`} alt="" className="h-10 w-10 rounded object-cover" />}<p className="font-medium">{ann.title}</p></div></TableCell>
+                    <TableCell><div className="flex flex-wrap items-center gap-2">{ann.imagePath && <img src={`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"}${ann.imagePath}`} alt="" className="h-10 w-10 rounded object-cover" />}<p className="font-medium">{ann.title}</p></div></TableCell>
                     <TableCell>{formatDateTime(ann.publishDateTime)}</TableCell>
                     <TableCell>{formatDateTime(ann.expiryDateTime)}</TableCell>
                     <TableCell className="text-center"><BannerBadge value={ann.isDisplayOnBanner} /></TableCell>

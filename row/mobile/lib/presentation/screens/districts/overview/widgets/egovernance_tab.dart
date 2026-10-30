@@ -314,7 +314,7 @@ class _SubTabPill extends StatelessWidget {
           child: Text(
             label,
             style: AppFonts.body(
-              fontSize: 11.5,
+              fontSize: 13,
               fontWeight: isActive ? FontWeight.w800 : FontWeight.w600,
               color: isActive ? AppColors.primaryDeep : AppColors.slate500,
             ),
@@ -445,7 +445,7 @@ class _CmrErrorCard extends StatelessWidget {
             'Couldn’t load the monthly report data.',
             textAlign: TextAlign.center,
             style: AppFonts.body(
-                fontSize: 12.5, color: AppColors.slate400),
+                fontSize: 13, color: AppColors.slate400),
           ),
           const SizedBox(height: 12),
           OutlinedButton.icon(
@@ -453,7 +453,7 @@ class _CmrErrorCard extends StatelessWidget {
             icon: const Icon(Icons.refresh_rounded, size: 15),
             label: Text('Retry',
                 style: AppFonts.body(
-                    fontSize: 12, fontWeight: FontWeight.w700)),
+                    fontSize: 13, fontWeight: FontWeight.w700)),
           ),
         ],
       ),
@@ -591,7 +591,7 @@ class _MonthSummaryCard extends StatelessWidget {
                 Text(
                   'Tap a month to see each club’s report status',
                   style: AppFonts.body(
-                    fontSize: 11,
+                    fontSize: 13,
                     color: AppColors.slate500,
                   ),
                 ),
@@ -607,7 +607,7 @@ class _MonthSummaryCard extends StatelessWidget {
                 'No clubs available for this district.',
                 textAlign: TextAlign.center,
                 style: AppFonts.body(
-                    fontSize: 12, color: AppColors.slate400),
+                    fontSize: 13, color: AppColors.slate400),
               ),
             )
           else
@@ -686,7 +686,7 @@ class _MonthRow extends StatelessWidget {
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: AppFonts.body(
-                  fontSize: 12.5,
+                  fontSize: 13,
                   fontWeight: FontWeight.w700,
                   color: AppColors.textPrimary,
                 ),
@@ -698,7 +698,7 @@ class _MonthRow extends StatelessWidget {
             Text(
               '$submitted/$total',
               style: AppFonts.body(
-                fontSize: 10.5,
+                fontSize: 13,
                 color: AppColors.slate500,
                 fontFeatures: const [FontFeature.tabularFigures()],
               ),
@@ -826,7 +826,7 @@ class _PerClubBreakdownState extends State<_PerClubBreakdown> {
                 Text(
                   'Each club’s month-by-month reporting status',
                   style: AppFonts.body(
-                    fontSize: 11,
+                    fontSize: 13,
                     color: AppColors.slate500,
                   ),
                 ),
@@ -904,7 +904,7 @@ class _PerClubBreakdownState extends State<_PerClubBreakdown> {
           text,
           textAlign: TextAlign.center,
           style: AppFonts.body(
-              fontSize: 12.5, color: AppColors.slate400),
+              fontSize: 13, color: AppColors.slate400),
         ),
       ),
     );
@@ -936,7 +936,7 @@ class _StatusLegend extends StatelessWidget {
               Text(
                 _cmrLabel(s),
                 style: AppFonts.body(
-                  fontSize: 10,
+                  fontSize: 13,
                   fontWeight: FontWeight.w600,
                   color: AppColors.slate500,
                 ),
@@ -984,7 +984,7 @@ class _ClubRow extends StatelessWidget {
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             style: AppFonts.body(
-              fontSize: 12.5,
+              fontSize: 13,
               fontWeight: FontWeight.w700,
               color: AppColors.textPrimary,
             ),
@@ -998,7 +998,7 @@ class _ClubRow extends StatelessWidget {
                 child: Text(
                   '$onTime on-time · $late late · $pendingTotal pending',
                   style: AppFonts.body(
-                    fontSize: 10.5,
+                    fontSize: 13,
                     color: AppColors.slate500,
                   ),
                 ),
@@ -1006,7 +1006,7 @@ class _ClubRow extends StatelessWidget {
               Text(
                 '$completedPct%',
                 style: AppFonts.body(
-                  fontSize: 11,
+                  fontSize: 13,
                   fontWeight: FontWeight.w800,
                   color: AppColors.success,
                 ),
@@ -1087,7 +1087,7 @@ class _Pager extends StatelessWidget {
             child: Text(
               'Page $page of $totalPages · $total clubs',
               style: AppFonts.body(
-                  fontSize: 11, color: AppColors.slate500),
+                  fontSize: 13, color: AppColors.slate500),
             ),
           ),
           _ChevBtn(

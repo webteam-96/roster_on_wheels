@@ -7,7 +7,6 @@ import '../../../core/network/api_client.dart';
 import '../../../core/network/api_exceptions.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_theme.dart';
-import '../../../core/theme/app_gradients.dart';
 import '../../../data/models/member_model.dart';
 import '../../providers/auth_provider.dart';
 import '../../widgets/common/empty_state_widget.dart';
@@ -69,7 +68,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       slivers: [
                         _ProfileAppBar(member: _member!),
                         SliverPadding(
-                          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.xl),
+                          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.xl).add(const EdgeInsets.only(bottom: 88)),
                           sliver: SliverList(
                             delegate: SliverChildListDelegate([
                               if ((_member!.memberIntroduction ?? '').isNotEmpty) ...[
@@ -85,25 +84,25 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 title: 'Personal Details',
                                 icon: Icons.person_rounded,
                                 children: [
-                                  _InfoRow('FULL NAME', _member!.memberName),
+                                  _InfoRow('Full name', _member!.memberName),
                                   if (_member!.emailId?.isNotEmpty == true)
-                                    _InfoRow('EMAIL ADDRESS', _member!.emailId!),
+                                    _InfoRow('Email address', _member!.emailId!),
                                   if (_member!.primaryMobileNumber?.isNotEmpty == true)
-                                    _InfoRow('PRIMARY MOBILE',
+                                    _InfoRow('Primary mobile',
                                         '${_member!.primaryCountryPhoneCode ?? ''} ${_member!.primaryMobileNumber!}'.trim()),
                                   if (_member!.secondaryMobileNumber?.isNotEmpty == true)
-                                    _InfoRow('SECONDARY MOBILE',
+                                    _InfoRow('Secondary mobile',
                                         '${_member!.secondaryCountryPhoneCode ?? ''} ${_member!.secondaryMobileNumber!}'.trim()),
                                   if (_member!.birthDate?.isNotEmpty == true)
-                                    _InfoRow('DATE OF BIRTH', _formatDate(_member!.birthDate!)),
+                                    _InfoRow('Date of birth', _formatDate(_member!.birthDate!)),
                                   if (_member!.anniversaryDate?.isNotEmpty == true)
-                                    _InfoRow('ANNIVERSARY', _formatDate(_member!.anniversaryDate!)),
+                                    _InfoRow('Anniversary', _formatDate(_member!.anniversaryDate!)),
                                   if (_member!.bloodGroup?.isNotEmpty == true)
-                                    _InfoRow('BLOOD GROUP', _member!.bloodGroup!),
+                                    _InfoRow('Blood group', _member!.bloodGroup!),
                                   if (_member!.rotaryId?.isNotEmpty == true)
-                                    _InfoRow('ROTARY ID', _member!.rotaryId!),
+                                    _InfoRow('Rotary ID', _member!.rotaryId!),
                                   if (_member!.donorRecognition?.isNotEmpty == true)
-                                    _InfoRow('DONOR RECOGNITION', _member!.donorRecognition!),
+                                    _InfoRow('Donor recognition', _member!.donorRecognition!),
                                   if (_member!.isHonoraryMember || _member!.isYouth)
                                     _InfoRow(
                                       'STATUS',
@@ -131,17 +130,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                   icon: Icons.public_rounded,
                                   children: [
                                     if (_member!.facebook?.isNotEmpty == true)
-                                      _InfoRow('FACEBOOK', _member!.facebook!),
+                                      _InfoRow('Facebook', _member!.facebook!),
                                     if (_member!.instagram?.isNotEmpty == true)
-                                      _InfoRow('INSTAGRAM', _member!.instagram!),
+                                      _InfoRow('Instagram', _member!.instagram!),
                                     if (_member!.linkedIn?.isNotEmpty == true)
-                                      _InfoRow('LINKEDIN', _member!.linkedIn!),
+                                      _InfoRow('Linkedin', _member!.linkedIn!),
                                     if (_member!.twitter?.isNotEmpty == true)
-                                      _InfoRow('TWITTER / X', _member!.twitter!),
+                                      _InfoRow('Twitter / X', _member!.twitter!),
                                     if (_member!.youtube?.isNotEmpty == true)
-                                      _InfoRow('YOUTUBE', _member!.youtube!),
+                                      _InfoRow('Youtube', _member!.youtube!),
                                     if (_member!.website?.isNotEmpty == true)
-                                      _InfoRow('WEBSITE', _member!.website!),
+                                      _InfoRow('Website', _member!.website!),
                                   ],
                                 ),
                                 const SizedBox(height: AppSpacing.lg),
@@ -179,7 +178,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               foregroundColor: AppColors.white,
               icon: const Icon(Icons.edit_rounded),
               label: const Text('Edit My Profile'),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              shape: const StadiumBorder(),
             )
           : null,
     );
@@ -226,17 +225,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
         icon: Icons.work_rounded,
         children: [
           if ((business.businessName ?? '').isNotEmpty)
-            _InfoRow('BUSINESS NAME', business.businessName!),
+            _InfoRow('Business name', business.businessName!),
           if ((designation ?? '').isNotEmpty)
-            _InfoRow('DESIGNATION', designation!),
+            _InfoRow('Designation', designation!),
           if ((classification ?? '').isNotEmpty)
-            _InfoRow('CLASSIFICATION', classification!),
+            _InfoRow('Classification', classification!),
           if ((business.keywords ?? '').isNotEmpty)
-            _InfoRow('KEYWORDS', business.keywords!),
+            _InfoRow('Keywords', business.keywords!),
           if ((business.businessEmailId ?? '').isNotEmpty)
-            _InfoRow('BUSINESS EMAIL', business.businessEmailId!),
+            _InfoRow('Business email', business.businessEmailId!),
           if ((business.phoneNumber ?? '').isNotEmpty)
-            _InfoRow('PHONE', business.phoneNumber!),
+            _InfoRow('Phone', business.phoneNumber!),
         ],
       ),
       const SizedBox(height: AppSpacing.lg),
@@ -256,9 +255,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ? Icons.business_center_rounded
             : Icons.home_rounded,
         children: [
-          if (line.isNotEmpty) _InfoRow('ADDRESS', line),
+          if (line.isNotEmpty) _InfoRow('Address', line),
           if ((a.phoneNumber ?? '').isNotEmpty)
-            _InfoRow('PHONE', a.phoneNumber!),
+            _InfoRow('Phone', a.phoneNumber!),
         ],
       ));
       out.add(const SizedBox(height: AppSpacing.lg));
@@ -313,7 +312,7 @@ class _ProfileAppBar extends StatelessWidget {
           children: [
             Container(
               decoration: const BoxDecoration(
-                gradient: AppGradients.royalSweep,
+                color: AppColors.primaryPrime,
               ),
             ),
             // Decorative shapes
@@ -374,12 +373,11 @@ class _ProfileAppBar extends StatelessWidget {
                 }),
                 const SizedBox(height: 16),
                 Text(
-                  member.memberName.toUpperCase(),
+                  member.memberName,
                   style: AppFonts.display(
-                    color: Colors.white,
-                    fontSize: 22,
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: 1,
+                    color: AppColors.lightBg,
+                    fontSize: 24,
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
                 const SizedBox(height: 4),
@@ -391,12 +389,11 @@ class _ProfileAppBar extends StatelessWidget {
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: Text(
-                      'ROTARY ID: ${member.rotaryId}',
+                      'Rotary ID: ${member.rotaryId}',
                       style: AppFonts.body(
                         color: AppColors.darkBg,
-                        fontSize: 10,
+                        fontSize: 13,
                         fontWeight: FontWeight.w800,
-                        letterSpacing: 0.5,
                       ),
                     ),
                   ),
@@ -452,12 +449,11 @@ class _InfoCard extends StatelessWidget {
               Icon(icon, size: 18, color: AppColors.primaryPrime),
               const SizedBox(width: 8),
               Text(
-                title.toUpperCase(),
+                title,
                 style: AppFonts.body(
-                  fontSize: 11,
+                  fontSize: 13,
                   fontWeight: FontWeight.w800,
                   color: AppColors.textMuted,
-                  letterSpacing: 1.2,
                 ),
               ),
             ],
@@ -467,8 +463,8 @@ class _InfoCard extends StatelessWidget {
           width: double.infinity,
           decoration: BoxDecoration(
             color: AppColors.white,
-            borderRadius: BorderRadius.circular(24),
-            border: Border.all(color: AppColors.lightBorder, width: 1),
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: AppColors.line, width: 1),
 
           ),
           child: Column(
@@ -487,35 +483,29 @@ class _InfoRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
+    return Container(
+      width: double.infinity, // full width so the stacked label/value stay left
       padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: 16),
-      child: Row(
+      child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Expanded(
-            flex: 2,
-            child: Text(
+          Text(
               label,
               style: AppFonts.body(
-                fontSize: 10,
-                fontWeight: FontWeight.w800,
-                color: AppColors.textMuted,
-                letterSpacing: 0.5,
+                fontSize: 13,
+                fontWeight: FontWeight.w500,
+                color: AppColors.textSecondary,
               ),
             ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            flex: 3,
-            child: Text(
+          const SizedBox(height: 4),
+          Text(
               value,
               style: AppFonts.body(
-                fontSize: 14,
-                fontWeight: FontWeight.w700,
+                fontSize: 16,
+                fontWeight: FontWeight.w500,
                 color: AppColors.textPrimary,
               ),
             ),
-          ),
         ],
       ),
     );
@@ -584,12 +574,11 @@ class _FamilyRow extends StatelessWidget {
                           borderRadius: BorderRadius.circular(6),
                         ),
                         child: Text(
-                          member.relation.toUpperCase(),
+                          member.relation,
                           style: AppFonts.body(
-                            fontSize: 9,
+                            fontSize: 13,
                             fontWeight: FontWeight.w800,
                             color: AppColors.primaryPrime,
-                            letterSpacing: 0.5,
                           ),
                         ),
                       ),
@@ -600,7 +589,7 @@ class _FamilyRow extends StatelessWidget {
                   Text(
                     secondaryBits.join(' · '),
                     style: AppFonts.body(
-                      fontSize: 11,
+                      fontSize: 13,
                       fontWeight: FontWeight.w600,
                       color: AppColors.textMuted,
                     ),
@@ -616,7 +605,7 @@ class _FamilyRow extends StatelessWidget {
                       style: AppFonts.body(
                         color: AppColors.primaryPrime,
                         fontWeight: FontWeight.w700,
-                        fontSize: 12,
+                        fontSize: 13,
                       ),
                     ),
                   ]),
@@ -631,7 +620,7 @@ class _FamilyRow extends StatelessWidget {
                         member.email!,
                         style: AppFonts.body(
                           color: AppColors.textSecondary,
-                          fontSize: 12,
+                          fontSize: 13,
                           fontWeight: FontWeight.w500,
                         ),
                         overflow: TextOverflow.ellipsis,

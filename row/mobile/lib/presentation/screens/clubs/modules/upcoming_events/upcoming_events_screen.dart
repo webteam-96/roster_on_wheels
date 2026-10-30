@@ -357,7 +357,7 @@ class _UpcomingEventsScreenState extends State<UpcomingEventsScreen> {
                             color: AppColors.primary,
                             onRefresh: () => _fetch(reset: true),
                             child: ListView.separated(
-                              padding: const EdgeInsets.all(16),
+                              padding: (const EdgeInsets.all(16)).add(const EdgeInsets.only(bottom: 88)),
                               itemCount: _items.length + 1,
                               separatorBuilder: (_, __) => const SizedBox(height: 10),
                               itemBuilder: (ctx, i) {
@@ -488,7 +488,7 @@ class _EventCard extends StatelessWidget {
                             child: Text(
                               _statusLabel,
                               style: TextStyle(
-                                  fontSize: 10,
+                                  fontSize: 13,
                                   fontWeight: FontWeight.w700,
                                   color: _statusColor),
                             ),
@@ -1521,7 +1521,7 @@ class _UpcomingEventDetailScreenState
     ];
 
     return ListView(
-      padding: EdgeInsets.zero,
+      padding: (EdgeInsets.zero).add(const EdgeInsets.only(bottom: 88)),
       children: [
         DetailHeroGallery(urls: [if (imageUrl != null) imageUrl]),
         Padding(

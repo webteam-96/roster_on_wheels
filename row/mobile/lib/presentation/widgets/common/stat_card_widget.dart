@@ -72,11 +72,11 @@ class StatCardWidget extends StatelessWidget {
                   ),
                   const SizedBox(height: 2),
                   Text(
-                    title.toUpperCase(),
+                    title,
                     style: AppFonts.body(fontSize: 10,
                       fontWeight: FontWeight.w800,
                       color: AppColors.textSecondary,
-                      letterSpacing: 1.0,
+                      letterSpacing: 0,
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,

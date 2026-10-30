@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import RotaryLoader from "@/components/RotaryLoader";
 
 import { appLocale, currencySymbol } from "@/lib/appFormat";
+import { ListPageSkeleton } from "@/components/row/AppKit";
 declare global { interface Window { Razorpay?: any } }
 
 function PayInner() {
@@ -86,7 +87,7 @@ function PayInner() {
     }
   };
 
-  if (loading) return <div className="min-h-screen flex items-center justify-center"><RotaryLoader size="lg" /></div>;
+  if (loading) return <div className="min-h-screen flex items-center justify-center"><ListPageSkeleton /></div>;
   if (err && !data) return <div className="min-h-screen flex items-center justify-center p-6 text-center text-red-600">{err}</div>;
 
   const bgUrl = clubDuesAssetUrl(data.backgroundImage);

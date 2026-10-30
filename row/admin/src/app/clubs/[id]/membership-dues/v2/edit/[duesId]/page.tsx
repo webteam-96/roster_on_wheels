@@ -37,6 +37,7 @@ import ErrorAlert from "@/components/ErrorAlert";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { useSyncClubIdFromUrl } from "@/hooks/useSyncClubIdFromUrl";
 import "react-quill-new/dist/quill.snow.css";
+import { ListPageSkeleton } from "@/components/row/AppKit";
 
 // ReactQuill must be client-only — SSR would crash on `document`.
 const ReactQuill = dynamic(() => import("react-quill-new"), { ssr: false });
@@ -92,7 +93,7 @@ function ImageUploadField({
           <img src={preview} alt={label} className="w-full h-full object-contain" />
         </div>
       )}
-      <label className="inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-slate-200 text-sm text-slate-700 hover:bg-slate-50 cursor-pointer">
+      <label className="inline-flex items-center gap-2 px-3 py-2 rounded-full border border-slate-200 text-sm text-slate-700 hover:bg-slate-50 cursor-pointer">
         <Upload className="h-4 w-4" />
         {preview ? "Change image" : "Upload image"}
         <input
@@ -261,7 +262,7 @@ export default function ClubMembershipDuesV2EditPage() {
           activeNavHref="/club-admin-dashboard/membership-dues"
         >
           <div className="flex items-center justify-center py-20">
-            <RotaryLoader size="lg" />
+            <ListPageSkeleton />
           </div>
         </ClubAdminShell>
       </ProtectedRoute>
@@ -286,20 +287,20 @@ export default function ClubMembershipDuesV2EditPage() {
           onSave={handleSave}
         >
           {/* 1. Basic Information */}
-          <SectionCard number={1} icon={FileText} title="Basic Information" dot="bg-blue-600">
+          <SectionCard number={1} icon={FileText} title="Basic Information" dot="bg-[#17458F]">
             <div className="grid grid-cols-1 gap-4">
               <div>
-                <FieldLabel dot="bg-blue-500" required>Purpose / Title</FieldLabel>
+                <FieldLabel dot="bg-[#17458F]" required>Purpose / Title</FieldLabel>
                 <input
                   type="text"
                   value={purpose}
                   onChange={(e) => setPurpose(e.target.value)}
                   placeholder="Title / Purpose"
-                  className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
                 />
               </div>
               <div>
-                <FieldLabel dot="bg-blue-500">Description</FieldLabel>
+                <FieldLabel dot="bg-[#17458F]">Description</FieldLabel>
                 <ReactQuill
                   theme="snow"
                   value={description}
@@ -312,50 +313,50 @@ export default function ClubMembershipDuesV2EditPage() {
           </SectionCard>
 
           {/* 2. Images */}
-          <SectionCard number={2} icon={ImageIcon} title="Images" dot="bg-amber-600">
+          <SectionCard number={2} icon={ImageIcon} title="Images" dot="bg-[#17458F]">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <ImageUploadField
                 label="Logo"
                 preview={logoPreview}
                 onChange={(f) => handleImageChange(f, setLogoFile, setLogoPreview)}
-                dot="bg-amber-500"
+                dot="bg-[#17458F]"
               />
               <ImageUploadField
                 label="Background Image"
                 preview={bgImagePreview}
                 onChange={(f) => handleImageChange(f, setBgImageFile, setBgImagePreview)}
-                dot="bg-amber-500"
+                dot="bg-[#17458F]"
               />
               <ImageUploadField
                 label="Email Logo"
                 preview={emailLogoPreview}
                 onChange={(f) => handleImageChange(f, setEmailLogoFile, setEmailLogoPreview)}
-                dot="bg-amber-500"
+                dot="bg-[#17458F]"
               />
             </div>
           </SectionCard>
 
           {/* 3. Email Settings */}
-          <SectionCard number={3} icon={Mail} title="Email Settings" dot="bg-emerald-600">
+          <SectionCard number={3} icon={Mail} title="Email Settings" dot="bg-[#17458F]">
             <div className="grid grid-cols-1 gap-4">
               <div>
-                <FieldLabel dot="bg-emerald-500">Email CC</FieldLabel>
+                <FieldLabel dot="bg-[#17458F]">Email CC</FieldLabel>
                 <input
                   type="text"
                   value={emailCc}
                   onChange={(e) => setEmailCc(e.target.value)}
                   placeholder="CC email address"
-                  className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
                 />
               </div>
               <div>
-                <FieldLabel dot="bg-emerald-500">Email Subject</FieldLabel>
+                <FieldLabel dot="bg-[#17458F]">Email Subject</FieldLabel>
                 <input
                   type="text"
                   value={emailSubject}
                   onChange={(e) => setEmailSubject(e.target.value)}
                   placeholder="Subject"
-                  className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
                 />
               </div>
               <div>
@@ -372,7 +373,7 @@ Date and time : ****
 Method of payment : ****
 Transaction ID : ****`}</pre>
                 </div>
-                <FieldLabel dot="bg-emerald-500">Email Body</FieldLabel>
+                <FieldLabel dot="bg-[#17458F]">Email Body</FieldLabel>
                 <ReactQuill
                   theme="snow"
                   value={emailBody}
@@ -382,13 +383,13 @@ Transaction ID : ****`}</pre>
                 />
               </div>
               <div>
-                <FieldLabel dot="bg-emerald-500">Reminder Email Subject</FieldLabel>
+                <FieldLabel dot="bg-[#17458F]">Reminder Email Subject</FieldLabel>
                 <input
                   type="text"
                   value={emailReminderSubject}
                   onChange={(e) => setEmailReminderSubject(e.target.value)}
                   placeholder="Reminder subject"
-                  className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
                 />
               </div>
               <div>
@@ -403,7 +404,7 @@ Outstanding amount : ****/-
 Status : ****
 Click on the link : ****`}</pre>
                 </div>
-                <FieldLabel dot="bg-emerald-500">Reminder Email Body</FieldLabel>
+                <FieldLabel dot="bg-[#17458F]">Reminder Email Body</FieldLabel>
                 <ReactQuill
                   theme="snow"
                   value={emailReminderBody}

@@ -18,6 +18,7 @@ import { X, Download } from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
 
 import { appLocale } from "@/lib/appFormat";
+import { ListPageSkeleton } from "@/components/row/AppKit";
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
 interface PublicPhoto {
@@ -189,7 +190,7 @@ export default function PublicProjectPage() {
       <main className="flex-1 w-full max-w-5xl mx-auto px-4 py-6">
         {loading ? (
           <div className="flex justify-center py-20">
-            <RotaryLoader size="lg" />
+            <ListPageSkeleton />
           </div>
         ) : errorMsg || !project ? (
           <div className="flex flex-col items-center py-20 text-center text-slate-500">
@@ -234,7 +235,7 @@ export default function PublicProjectPage() {
 
             {/* Club Service meeting — only the Club Service add/edit fields. */}
             {isClubService && (meetingTypeLabel || attendanceText || project.agendaDocument || project.minutesDocument) && (
-              <div className="bg-white rounded-xl border border-slate-200 mb-6 overflow-hidden">
+              <div className="bg-white rounded-[20px] border border-slate-200 mb-6 overflow-hidden">
                 <dl className="divide-y divide-slate-100 text-sm">
                   {meetingTypeLabel && (
                     <div className="flex gap-4 px-4 py-2.5">
@@ -279,7 +280,7 @@ export default function PublicProjectPage() {
             )}
 
             {project.description && (
-              <div className="bg-white rounded-xl border border-slate-200 p-4 sm:p-5 mb-6">
+              <div className="bg-white rounded-[20px] border border-slate-200 p-4 sm:p-5 mb-6">
                 <p className="text-sm text-slate-700 whitespace-pre-wrap break-words">
                   {project.description}
                 </p>
@@ -300,7 +301,7 @@ export default function PublicProjectPage() {
                     type="button"
                     onClick={handleDownloadAll}
                     disabled={bulkDownloading}
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-md border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 disabled:opacity-60 disabled:cursor-wait"
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-full border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 disabled:opacity-60 disabled:cursor-wait"
                   >
                     <Download className="h-3.5 w-3.5" />
                     {bulkDownloading ? "Downloading…" : `Download all (${photos.length})`}
@@ -312,7 +313,7 @@ export default function PublicProjectPage() {
                       key={i}
                       type="button"
                       onClick={() => setLightboxIdx(i)}
-                      className="text-left bg-white rounded-xl border border-slate-200 overflow-hidden hover:shadow-md transition group"
+                      className="text-left bg-white rounded-[20px] border border-slate-200 overflow-hidden hover:shadow-md transition group"
                     >
                       <div className="aspect-square w-full bg-slate-100 overflow-hidden">
                         {/* eslint-disable-next-line @next/next/no-img-element */}

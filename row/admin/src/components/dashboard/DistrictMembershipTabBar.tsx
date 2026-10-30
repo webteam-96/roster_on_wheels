@@ -73,14 +73,13 @@ export default function DistrictMembershipTabBar() {
       <Tabs value={active} onValueChange={(v) => go(v as TabKey)}>
         <div className="flex items-center justify-between gap-3 flex-wrap">
           <TabsList
-            className="h-auto flex-wrap gap-1 p-1.5"
-            style={{ backgroundColor: "#17458f" }}
+            className="h-auto flex-wrap gap-1 p-1.5 rounded-full bg-muted"
           >
             {(Object.keys(TAB_LABELS) as TabKey[]).map((k) => (
               <TabsTrigger
                 key={k}
                 value={k}
-                className="text-sm font-semibold px-3.5 py-1.5 rounded-md text-white hover:bg-white/10 data-[state=active]:bg-marigold data-[state=active]:text-ink data-[state=active]:shadow-sm"
+                className="text-sm font-semibold px-3.5 py-1.5 rounded-full"
               >
                 {TAB_LABELS[k]}
               </TabsTrigger>

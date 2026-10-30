@@ -222,7 +222,7 @@ class _SubTabPill extends StatelessWidget {
           child: Text(
             label,
             style: AppFonts.body(
-              fontSize: 11.5,
+              fontSize: 13,
               fontWeight: isActive ? FontWeight.w800 : FontWeight.w600,
               color: isActive ? AppColors.primaryDeep : AppColors.slate500,
             ),
@@ -356,7 +356,7 @@ class _MiniKpi extends StatelessWidget {
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                   style: AppFonts.body(
-                    fontSize: 10.5,
+                    fontSize: 13,
                     fontWeight: FontWeight.w600,
                     color: AppColors.slate500,
                     height: 1.15,
@@ -451,7 +451,7 @@ class _EmptyBody extends StatelessWidget {
             text,
             textAlign: TextAlign.center,
             style: AppFonts.body(
-              fontSize: 12,
+              fontSize: 13,
               color: AppColors.slate400,
             ),
           ),
@@ -563,7 +563,7 @@ class _SegPill extends StatelessWidget {
             child: Text(
               label,
               style: AppFonts.body(
-                fontSize: 11.5,
+                fontSize: 13,
                 fontWeight: active ? FontWeight.w800 : FontWeight.w600,
                 color: active ? AppColors.primaryDeep : AppColors.slate500,
               ),
@@ -601,7 +601,7 @@ class _GreetingRow extends StatelessWidget {
       child: Text(
         _initials.isEmpty ? '?' : _initials,
         style: AppFonts.body(
-          fontSize: 11,
+          fontSize: 13,
           fontWeight: FontWeight.w800,
           color: AppColors.slate500,
         ),
@@ -634,7 +634,7 @@ class _GreetingRow extends StatelessWidget {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: AppFonts.body(
-                    fontSize: 12.5,
+                    fontSize: 13,
                     fontWeight: FontWeight.w700,
                     color: AppColors.textPrimary,
                   ),
@@ -646,7 +646,7 @@ class _GreetingRow extends StatelessWidget {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: AppFonts.body(
-                      fontSize: 10,
+                      fontSize: 13,
                       color: AppColors.slate500,
                     ),
                   ),
@@ -687,7 +687,7 @@ class _GreetingKindBadge extends StatelessWidget {
           Text(
             label,
             style: AppFonts.body(
-              fontSize: 9.5,
+              fontSize: 13,
               fontWeight: FontWeight.w700,
               color: fg,
             ),

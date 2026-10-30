@@ -169,7 +169,7 @@ export default async function OcvLiveDocumentsPage({
               ) : (
                 <div className="mt-8 overflow-x-auto rounded-lg border border-navy-950/10">
                   <table className="w-full border-collapse text-left text-[14px]">
-                    <thead>
+                    <thead className="bg-[#EDF4FB] text-[13px] text-[#64748B]">
                       <tr className="bg-navy-950/5">
                         {data.table.headers.map((h, i) => (
                           <th key={i} className="whitespace-nowrap px-4 py-3 font-semibold text-navy-900">

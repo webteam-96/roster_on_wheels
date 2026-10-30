@@ -7,7 +7,6 @@ import '../../../core/routing/route_names.dart';
 import '../../../core/security/biometric_controller.dart';
 import '../../../core/services/mobile_version_service.dart';
 import '../../../core/theme/app_colors.dart';
-import '../../../core/theme/app_gradients.dart';
 import '../../providers/auth_provider.dart';
 import '../../widgets/force_update_dialog.dart';
 import 'package:rotary_flutter_app/core/brand/brand.dart';
@@ -149,9 +148,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
       key: const Key('splash_screen_root'),
       body: Container(
         width: double.infinity,
-        decoration: const BoxDecoration(
-          gradient: AppGradients.royalSweep,
-        ),
+        color: AppColors.lightBg,
         child: SafeArea(
           child: Column(
             children: [
@@ -163,9 +160,9 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        // ROW lockup (white, on the azure field)
+                        // ROW lockup, full colour on the light field
                         Image.asset(
-                          'assets/images/row-logo-inverse.png',
+                          'assets/images/row-logo.png',
                           width: 220,
                           semanticLabel: Brand.current.productName,
                         ),
@@ -174,7 +171,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                           width: 40,
                           height: 2,
                           child: const LinearProgressIndicator(
-                            backgroundColor: Colors.white24,
+                            backgroundColor: AppColors.line,
                             valueColor: const AlwaysStoppedAnimation<Color>(AppColors.goldPrime),
                           ),
                         ),
@@ -182,10 +179,9 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                         Text(
                           'CONNECTING MEMBERS',
                           style: AppFonts.body(
-                            color: AppColors.white.withOpacity(0.6),
-                            fontSize: 12,
+                            color: AppColors.textSecondary,
+                            fontSize: 13,
                             fontWeight: FontWeight.w700,
-                            letterSpacing: 2,
                           ),
                         ),
                       ],
@@ -205,9 +201,9 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                       //   'CONNECTING MEMBERS',
                       //   style: AppFonts.body(
                       //     color: AppColors.white.withOpacity(0.6),
-                      //     fontSize: 12,
+                      //     fontSize: 13,
                       //     fontWeight: FontWeight.w700,
-                      //     letterSpacing: 2,
+                      //,
                       //   ),
                       // ),
                       // const SizedBox(height: 24),

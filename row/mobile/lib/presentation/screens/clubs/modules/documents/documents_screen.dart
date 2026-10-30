@@ -19,6 +19,7 @@ import '../../../../widgets/common/loading_widget.dart';
 import '../../../../widgets/common/pagination_widget.dart';
 import '../../../../widgets/detail/detail_widgets.dart';
 import 'package:rotary_flutter_app/core/i18n/text.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/form_action_bar.dart';
 
 // ---------------------------------------------------------------------------
 // Model
@@ -315,7 +316,7 @@ class _DocumentsScreenState extends State<DocumentsScreen> {
                       labelStyle: TextStyle(
                         color: selected ? AppColors.primary : AppColors.textSecondary,
                         fontWeight: selected ? FontWeight.w600 : FontWeight.normal,
-                        fontSize: 12,
+                        fontSize: 13,
                       ),
                       onSelected: (_) {
                         setState(() => _statusFilter = f);
@@ -342,7 +343,7 @@ class _DocumentsScreenState extends State<DocumentsScreen> {
                       title: 'No Documents',
                       subtitle: !canManage
                           ? 'No documents have been uploaded yet.'
-                          : 'Upload a document using the button above.',
+                          : 'Tap + to upload a document.',
                       icon: Icons.folder_outlined,
                       actionLabel: !canManage ? null : 'Add Document',
                       onAction: !canManage ? null : () => _openForm(),
@@ -351,7 +352,7 @@ class _DocumentsScreenState extends State<DocumentsScreen> {
                       color: AppColors.primary,
                       onRefresh: () => _fetch(reset: true),
                       child: ListView.separated(
-                        padding: const EdgeInsets.all(16),
+                        padding: (const EdgeInsets.all(16)).add(const EdgeInsets.only(bottom: 88)),
                         itemCount: _items.length + 1,
                         separatorBuilder: (_, __) => const SizedBox(height: 8),
                         itemBuilder: (ctx, i) {
@@ -519,7 +520,7 @@ class _DocumentTile extends StatelessWidget {
                                 child: Text(
                                   _statusLabel,
                                   style: TextStyle(
-                                      fontSize: 9,
+                                      fontSize: 13,
                                       fontWeight: FontWeight.w700,
                                       color: _statusColor),
                                 ),
@@ -539,7 +540,7 @@ class _DocumentTile extends StatelessWidget {
                                       ? 'View Only'
                                       : 'Downloadable',
                                   style: TextStyle(
-                                    fontSize: 9,
+                                    fontSize: 13,
                                     fontWeight: FontWeight.w700,
                                     color: item.accessType == 'view_only'
                                         ? Colors.orange
@@ -798,6 +799,12 @@ class _DocumentFormScreenState extends State<_DocumentFormScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      bottomNavigationBar: RowFormActionBar(child: CustomButton(
+                label: _isEdit ? 'Update' : 'Add Document',
+                onPressed: _saving ? null : _save,
+                isLoading: _saving,
+                fullWidth: true,
+              )),
       backgroundColor: Colors.white,
       appBar: CustomAppBar(
         title: _isEdit ? 'Edit Document' : 'Add Document',
@@ -920,14 +927,7 @@ class _DocumentFormScreenState extends State<_DocumentFormScreen> {
                           ),
                         ],
                       ),
-                      const SizedBox(height: 24),
-
-              CustomButton(
-                label: _isEdit ? 'Update' : 'Add Document',
-                onPressed: _saving ? null : _save,
-                isLoading: _saving,
-                fullWidth: true,
-              ),
+                      
             ],
           ),
         ),
@@ -1095,7 +1095,7 @@ class _DocumentDetailScreenState extends State<_DocumentDetailScreen> {
     final fileUrl = detailMediaUrl(d.filePath);
 
     return ListView(
-      padding: const EdgeInsets.all(16),
+      padding: (const EdgeInsets.all(16)).add(const EdgeInsets.only(bottom: 88)),
       children: [
         DetailHeader(
           title: d.title,

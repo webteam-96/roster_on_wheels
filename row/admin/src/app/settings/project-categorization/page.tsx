@@ -69,7 +69,7 @@ export default function ProjectCategorizationPage() {
   return (
     <ProtectedRoute>
       <div className="space-y-6">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-3">
             <Button variant="outline" size="icon" asChild>
               <Link href="/settings"><ArrowLeft className="h-4 w-4" /></Link>

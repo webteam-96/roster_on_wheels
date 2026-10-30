@@ -152,26 +152,6 @@ class _GreetingsScreenState extends State<GreetingsScreen> {
           ? null
           : CustomAppBar(
               title: 'Greetings Settings',
-              actions: [
-                if (canManage)
-                  TextButton(
-                    onPressed: _saving || _loading ? null : _saveGreetings,
-                    child: _saving
-                        ? const SizedBox(
-                            width: 18,
-                            height: 18,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              color: Colors.white,
-                            ),
-                          )
-                        : const Text('Save',
-                            style: TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.w600,
-                                fontSize: 15)),
-                  ),
-              ],
             ),
       body: _loading
           ? const LoadingWidget()
@@ -219,9 +199,7 @@ class _GreetingsScreenState extends State<GreetingsScreen> {
                               backgroundColor: AppColors.primary,
                               foregroundColor: Colors.white,
                               padding: const EdgeInsets.symmetric(vertical: 14),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
-                              ),
+                              shape: const StadiumBorder(),
                             ),
                           ),
                         ),
@@ -467,24 +445,11 @@ class _GreetingsScreenState extends State<GreetingsScreen> {
 
   Widget _card({required Widget child}) {
     return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      elevation: 0,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(20))),
       child: Padding(padding: const EdgeInsets.all(16), child: child),
     );
   }
 
-  Widget _sectionTitle(String title) => Row(
-        children: [
-          Container(
-            width: 4,
-            height: 20,
-            decoration: BoxDecoration(
-              color: AppColors.primary,
-              borderRadius: BorderRadius.circular(2),
-            ),
-          ),
-          const SizedBox(width: 8),
-          Text(title, style: AppTextStyles.h3),
-        ],
-      );
+  Widget _sectionTitle(String title) => Text(title, style: AppTextStyles.h3);
 }

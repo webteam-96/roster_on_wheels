@@ -45,6 +45,7 @@ import ErrorAlert from "@/components/ErrorAlert";
 import AlertModal from "@/components/AlertModal";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import "react-quill-new/dist/quill.snow.css";
+import { SkeletonRows } from "@/components/row/AppKit";
 
 const ReactQuill = dynamic(() => import("react-quill-new"), { ssr: false });
 
@@ -262,7 +263,7 @@ export default function DistrictAdminAboutPage() {
             <button
               type="button"
               onClick={goBack}
-              className="mt-0.5 inline-flex h-9 w-9 items-center justify-center rounded-md border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 hover:text-slate-800"
+              className="mt-0.5 inline-flex h-9 w-9 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 hover:text-slate-800"
               aria-label="Back"
             >
               <ArrowLeft className="h-4 w-4" />
@@ -292,9 +293,7 @@ export default function DistrictAdminAboutPage() {
 
         {/* Loading */}
         {loading && (
-          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-10 flex items-center justify-center text-slate-500">
-            <Loader2 className="animate-spin mr-2" size={16} /> Loading about content…
-          </div>
+          <SkeletonRows />
         )}
 
         {/* Read-only banner for non-managers */}
@@ -332,7 +331,7 @@ export default function DistrictAdminAboutPage() {
                 <button
                   type="button"
                   onClick={openAddDialog}
-                  className="mt-5 inline-flex items-center gap-1 text-sm font-semibold px-4 py-1.5 rounded-lg bg-azure text-white hover:bg-mint-ink"
+                  className="mt-5 inline-flex items-center gap-1 text-sm font-semibold px-4 py-1.5 rounded-full bg-azure text-white hover:bg-mint-ink"
                 >
                   <Plus size={14} /> Add About
                 </button>
@@ -349,7 +348,7 @@ export default function DistrictAdminAboutPage() {
             {/* Preview card */}
             <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
               <div className="px-5 py-3 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-azure/5">
-                <div className="flex items-center gap-2">
+                <div className="flex flex-wrap items-center gap-2">
                   <div className="w-9 h-9 rounded-lg bg-azure/10 text-ink flex items-center justify-center">
                     <FileText size={18} />
                   </div>
@@ -363,21 +362,21 @@ export default function DistrictAdminAboutPage() {
                     <button
                       type="button"
                       onClick={handleToggleActive}
-                      className="inline-flex items-center gap-1 text-xs font-medium px-3 py-1.5 rounded-lg border border-slate-200 text-slate-700 hover:bg-slate-50"
+                      className="inline-flex items-center gap-1 text-xs font-medium px-3 py-1.5 rounded-full border border-slate-200 text-slate-700 hover:bg-slate-50"
                     >
                       {about.isActive ? <><EyeOff size={13} /> Deactivate</> : <><Eye size={13} /> Activate</>}
                     </button>
                     <button
                       type="button"
                       onClick={openEditDialog}
-                      className="inline-flex items-center gap-1 text-xs font-semibold px-3 py-1.5 rounded-lg bg-azure text-white hover:bg-mint-ink"
+                      className="inline-flex items-center gap-1 text-xs font-semibold px-3 py-1.5 rounded-full bg-azure text-white hover:bg-mint-ink"
                     >
                       <Pencil size={13} /> Edit
                     </button>
                     <button
                       type="button"
                       onClick={() => setShowDeleteConfirm(true)}
-                      className="inline-flex items-center gap-1 text-xs font-medium px-3 py-1.5 rounded-lg border border-rose-200 text-rose-700 hover:bg-rose-50"
+                      className="inline-flex items-center gap-1 text-xs font-medium px-3 py-1.5 rounded-full border border-rose-200 text-rose-700 hover:bg-rose-50"
                     >
                       <Trash2 size={13} /> Delete
                     </button>
@@ -462,7 +461,7 @@ export default function DistrictAdminAboutPage() {
                 type="button"
                 onClick={() => setDialogOpen(false)}
                 disabled={saving}
-                className="inline-flex items-center gap-1 text-sm font-medium px-3 py-1.5 rounded-lg border border-slate-200 text-slate-700 hover:bg-slate-50 disabled:opacity-50"
+                className="inline-flex items-center gap-1 text-sm font-medium px-3 py-1.5 rounded-full border border-slate-200 text-slate-700 hover:bg-slate-50 disabled:opacity-50"
               >
                 Cancel
               </button>
@@ -470,7 +469,7 @@ export default function DistrictAdminAboutPage() {
                 type="button"
                 onClick={handleSave}
                 disabled={saving || formCharOver}
-                className="inline-flex items-center gap-1 text-sm font-semibold px-4 py-1.5 rounded-lg bg-azure text-white hover:bg-mint-ink disabled:opacity-50"
+                className="inline-flex items-center gap-1 text-sm font-semibold px-4 py-1.5 rounded-full bg-azure text-white hover:bg-mint-ink disabled:opacity-50"
               >
                 {saving ? <Loader2 className="animate-spin" size={14} /> : null}
                 {saving ? "Saving…" : editing ? "Update" : "Add"}

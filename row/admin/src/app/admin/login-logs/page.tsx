@@ -30,6 +30,7 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 import { Search, ArrowLeft, CheckCircle, XCircle, Monitor, FileSearch } from "@/components/icons";
 
 import { appLocale } from "@/lib/appFormat";
+import { ListPageSkeleton } from "@/components/row/AppKit";
 export default function LoginLogsPage() {
   const { isSuperAdmin } = useAuth();
   const router = useRouter();
@@ -91,7 +92,7 @@ export default function LoginLogsPage() {
         </div>
 
         {/* Filters */}
-        <div className="bg-white rounded-xl border shadow-sm p-4 space-y-3">
+        <div className="bg-white rounded-[20px] border shadow-sm p-4 space-y-3">
           <p className="text-xs text-muted-foreground">
             Apply at least one filter and click Search. Records are not loaded automatically.
           </p>
@@ -161,7 +162,7 @@ export default function LoginLogsPage() {
         <div className="bg-white rounded-xl border shadow-sm">
           {loading ? (
             <div className="flex items-center justify-center py-16">
-              <RotaryLoader size="lg" />
+              <ListPageSkeleton />
             </div>
           ) : !hasSearched ? (
             <div className="flex flex-col items-center justify-center py-16 text-center">

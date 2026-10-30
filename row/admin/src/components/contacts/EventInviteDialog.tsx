@@ -64,7 +64,7 @@ export default function EventInviteDialog({ open, onClose, scope, ownerId, group
         {draftId ? (
           <div className="space-y-3 text-sm text-slate-700">
             <p>The invitation is saved as a mass email draft. Check it and send it from Mass Email.</p>
-            <Link href={massEmailHref} className="inline-flex h-9 items-center rounded-md bg-azure px-4 font-medium text-white hover:bg-mint-ink">
+            <Link href={massEmailHref} className="inline-flex h-9 items-center rounded-full bg-azure px-4 font-medium text-white hover:bg-mint-ink">
               Open Mass Email
             </Link>
           </div>

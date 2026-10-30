@@ -402,7 +402,7 @@ function RouteRow({ row, locked, onSaved, onError }: RowProps) {
         </button>
 
         <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <span
               className={`truncate font-medium ${
                 isGlobal ? "text-red-700 text-base" : "text-slate-800 text-sm"

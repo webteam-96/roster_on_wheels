@@ -55,7 +55,7 @@ export default function DistrictAdminGoalClubDetailPage() {
       <div className="bg-white rounded-2xl border border-slate-200 p-4 flex items-center gap-3">
         <button
           onClick={goBack}
-          className="inline-flex items-center justify-center h-9 w-9 rounded-lg border border-slate-200 text-slate-700 hover:bg-slate-100"
+          className="inline-flex items-center justify-center h-9 w-9 rounded-full border border-slate-200 text-slate-700 hover:bg-slate-100"
         >
           <ArrowLeft size={16} />
         </button>

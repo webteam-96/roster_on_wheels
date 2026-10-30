@@ -80,7 +80,7 @@ class DaError extends StatelessWidget {
                   : 'Check your connection and try again.',
               textAlign: TextAlign.center,
               style: AppFonts.body(
-                  fontSize: 11.5, color: AppColors.slate500, height: 1.4),
+                  fontSize: 13, color: AppColors.slate500, height: 1.4),
             ),
             const SizedBox(height: 14),
             OutlinedButton.icon(
@@ -88,7 +88,7 @@ class DaError extends StatelessWidget {
               icon: const Icon(Icons.refresh_rounded, size: 16),
               label: Text('Retry',
                   style: AppFonts.body(
-                      fontSize: 12, fontWeight: FontWeight.w700)),
+                      fontSize: 13, fontWeight: FontWeight.w700)),
             ),
           ],
         ),
@@ -128,7 +128,7 @@ class _DaRoleChangedRelogin extends StatelessWidget {
               'Please log in again to access your new admin features.',
               textAlign: TextAlign.center,
               style: AppFonts.body(
-                  fontSize: 11.5, color: AppColors.slate500, height: 1.4),
+                  fontSize: 13, color: AppColors.slate500, height: 1.4),
             ),
             const SizedBox(height: 14),
             FilledButton.icon(
@@ -136,12 +136,10 @@ class _DaRoleChangedRelogin extends StatelessWidget {
               icon: const Icon(Icons.login_rounded, size: 16),
               label: Text('Log in again',
                   style: AppFonts.body(
-                      fontSize: 12, fontWeight: FontWeight.w700)),
+                      fontSize: 13, fontWeight: FontWeight.w700)),
               style: FilledButton.styleFrom(
                 backgroundColor: AppColors.rotaryBlue,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
+                shape: const StadiumBorder(),
               ),
             ),
           ],
@@ -197,7 +195,7 @@ class DaPendingChip extends StatelessWidget {
           Text(
             label,
             style: AppFonts.body(
-              fontSize: 9.5,
+              fontSize: 13,
               fontWeight: FontWeight.w800,
               color: AppColors.warningInk,
             ),

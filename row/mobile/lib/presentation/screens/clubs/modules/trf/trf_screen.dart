@@ -259,7 +259,7 @@ class _TrfScreenState extends State<TrfScreen> {
                     : RefreshIndicator(
                         onRefresh: () => _loadContributions(),
                         child: ListView.separated(
-                          padding: const EdgeInsets.all(16),
+                          padding: (const EdgeInsets.all(16)).add(const EdgeInsets.only(bottom: 88)),
                           itemCount: _contributions.length + 1, // +1 for total row
                           separatorBuilder: (_, __) => const SizedBox(height: 8),
                           itemBuilder: (_, i) {
@@ -308,8 +308,8 @@ class _TrfScreenState extends State<TrfScreen> {
         : fundType;
 
     return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      elevation: 0,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(20))),
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Row(

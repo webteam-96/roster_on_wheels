@@ -92,8 +92,8 @@ export default function Sidebar({
       </div>
 
       {/* Nav */}
-      <ScrollArea className="flex-1 px-2 py-4">
-        <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest px-3 pb-2">Navigation</p>
+      <ScrollArea className="flex-1 px-3 py-4">
+        <p className="text-[12px] font-semibold text-[#64748B] px-4 pb-2">Navigation</p>
         <nav className="flex flex-col gap-0.5">
           {nav.map((item) => {
             const isActive = item.to
@@ -101,14 +101,14 @@ export default function Sidebar({
               : !!item.key && activeKey === item.key;
             const Icon = item.icon;
             const cls = cn(
-              "flex items-center gap-2.5 px-3 py-2.5 mx-0.5 my-0.5 rounded-xl text-sm font-medium text-left transition-all duration-150 w-full",
-              isActive ? "font-semibold shadow-sm" : "text-foreground/70 hover:text-foreground hover:bg-muted",
+              "flex min-h-[44px] items-center gap-3 px-4 py-2.5 rounded-full text-[14px] font-medium text-left transition-colors duration-150 w-full",
+              isActive ? "font-semibold" : "text-[#1B2C42]/75 hover:text-[#1B2C42] hover:bg-[#CFE2F6]/60",
             );
             const style = isActive ? { backgroundColor: ACTIVE_BG, color: ACTIVE_TEXT } : undefined;
             const inner = (
               <>
                 {variant === "icon" && Icon ? (
-                  <Icon size={17} className="flex-shrink-0" />
+                  <Icon size={20} className="flex-shrink-0" />
                 ) : (
                   <span className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ background: isActive ? ACTIVE_TEXT : "#5E93D6" }} />
                 )}

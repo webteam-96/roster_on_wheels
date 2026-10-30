@@ -89,7 +89,7 @@ function AccountCard({ account, onChange }: { account: PaymentAccount; onChange:
   const status = !account.isActive ? "inactive" : account.verifiedAt ? "verified" : "unverified";
 
   return (
-    <div className="rounded-xl border bg-white p-5 shadow-sm">
+    <div className="rounded-[20px] border bg-white p-5 shadow-sm">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-2">
@@ -387,7 +387,7 @@ export default function PaymentAccountsPanel({ ownerType, ownerId }: { ownerType
           <Loader2 className="h-4 w-4 animate-spin" /> {t("accounts.loading")}
         </div>
       ) : accounts.length === 0 ? (
-        !error && <div className="rounded-xl border border-dashed bg-white p-8 text-center text-sm text-slate-600">{t("accounts.empty")}</div>
+        !error && <div className="rounded-[20px] border border-dashed bg-white p-8 text-center text-sm text-slate-600">{t("accounts.empty")}</div>
       ) : (
         <div className="space-y-4">
           {accounts.map((a) => (

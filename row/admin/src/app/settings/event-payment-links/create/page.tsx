@@ -33,6 +33,7 @@ import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";
 
 import { currencySymbol } from "@/lib/appFormat";
+import { ListPageSkeleton } from "@/components/row/AppKit";
 interface Registration { tempId: number; id?: number; registrationName: string; amount: number; }
 interface VendorSplit { fkRegistrationTempId: number; fkRegistrationId?: number; fkKycId: number; vendorId?: string; vendorName?: string; splitAmount: number; }
 interface Designation { id?: number; designationName: string; }
@@ -548,7 +549,7 @@ function CreateEditPaymentLinkPage() {
   }
 
   if (loading) {
-    return (<ProtectedRoute><div className="flex justify-center py-20"><RotaryLoader size="lg" /></div></ProtectedRoute>);
+    return (<ProtectedRoute><div className="flex justify-center py-20"><ListPageSkeleton /></div></ProtectedRoute>);
   }
 
   const isLastStep = currentStep === totalSteps - 1;
@@ -590,7 +591,7 @@ function CreateEditPaymentLinkPage() {
             <Label>Select Districts</Label>
             <div className="border rounded-lg p-3 max-h-48 overflow-y-auto grid grid-cols-2 md:grid-cols-3 gap-2">
               {allDistricts.map(d => (
-                <div key={d.id} className="flex items-center gap-2">
+                <div key={d.id} className="flex flex-wrap items-center gap-2">
                   <Checkbox
                     checked={selectedDistrictIds.includes(d.id)}
                     onCheckedChange={(c) => {
@@ -670,7 +671,7 @@ function CreateEditPaymentLinkPage() {
                 <Label>Subgroups</Label>
                 <div className="border rounded-lg p-3 max-h-48 overflow-y-auto grid grid-cols-1 md:grid-cols-2 gap-2 bg-white">
                   {subGroups.map(sg => (
-                    <div key={sg.id} className="flex items-center gap-2">
+                    <div key={sg.id} className="flex flex-wrap items-center gap-2">
                       <Checkbox
                         checked={selectedSubGroupIds.includes(sg.id)}
                         onCheckedChange={(c) => {
@@ -725,7 +726,7 @@ function CreateEditPaymentLinkPage() {
                       const selectedIds = foodPreferenceIds.split(",").filter(Boolean).map(Number);
                       const isChecked = selectedIds.includes(f.id);
                       return (
-                        <div key={f.id} className="flex items-center gap-2">
+                        <div key={f.id} className="flex flex-wrap items-center gap-2">
                           <Checkbox
                             checked={isChecked}
                             onCheckedChange={(c) => {
@@ -909,7 +910,7 @@ function CreateEditPaymentLinkPage() {
       <CardHeader>
         <div className="flex items-center justify-between flex-wrap gap-3">
           <CardTitle>Vendor Splits ({amountType === "1" ? "Amount ₹" : "Percentage %"})</CardTitle>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <Label className="text-sm">Amount Type:</Label>
             <Select value={amountType} onValueChange={setAmountType}>
               <SelectTrigger className="w-44"><SelectValue /></SelectTrigger>
@@ -1236,7 +1237,7 @@ function CreateEditPaymentLinkPage() {
         {/* Step Indicator */}
         <div className="flex items-center gap-2 mb-6 flex-wrap">
           {STEP_LABELS.map((s, i) => (
-            <div key={i} className="flex items-center gap-2">
+            <div key={i} className="flex flex-wrap items-center gap-2">
               <div className={`flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium ${
                 i < currentStep ? "bg-green-600 text-white" :
                 i === currentStep ? "bg-primary text-primary-foreground" :
@@ -1258,7 +1259,7 @@ function CreateEditPaymentLinkPage() {
           <Button variant="outline" onClick={handleBack} disabled={currentStep === 0}>
             <ArrowLeft className="h-4 w-4 mr-2" />Back
           </Button>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             {isLastStep ? (
               <Button onClick={handleSubmit} disabled={saving} className="bg-green-600 hover:bg-green-700">
                 {saving ? <RotaryLoader size="sm" className="mr-2" /> : <Save className="h-4 w-4 mr-2" />}

@@ -19,6 +19,7 @@ import '../../../../widgets/common/pagination_widget.dart';
 import '../../../../widgets/detail/detail_widgets.dart';
 import '../../../../providers/auth_provider.dart';
 import 'package:rotary_flutter_app/core/i18n/text.dart';
+import 'package:rotary_flutter_app/presentation/widgets/row/form_action_bar.dart';
 
 // ---------------------------------------------------------------------------
 // Model
@@ -308,7 +309,7 @@ class _AnnouncementsScreenState extends State<AnnouncementsScreen> {
           ),
           // Status filter is admin-only; members see the Published list only.
           if (canManage)
-            SingleChildScrollView(
+            Align(alignment: Alignment.centerLeft, child: SingleChildScrollView(
               scrollDirection: Axis.horizontal,
               padding: const EdgeInsets.fromLTRB(16, 4, 16, 4),
               child: Row(
@@ -332,7 +333,7 @@ class _AnnouncementsScreenState extends State<AnnouncementsScreen> {
                     ),
                 ],
               ),
-            ),
+            )),
           Expanded(
             child: _loading
                 ? const ShimmerList(itemCount: 6, itemHeight: 100)
@@ -352,7 +353,7 @@ class _AnnouncementsScreenState extends State<AnnouncementsScreen> {
                             color: AppColors.primary,
                             onRefresh: () => _fetch(reset: true),
                             child: ListView.separated(
-                              padding: const EdgeInsets.all(16),
+                              padding: (const EdgeInsets.all(16)).add(const EdgeInsets.only(bottom: 88)),
                               itemCount: _items.length + 1,
                               separatorBuilder: (_, __) => const SizedBox(height: 10),
                               itemBuilder: (ctx, i) {
@@ -500,7 +501,7 @@ class _AnnouncementCard extends StatelessWidget {
                               child: Text(
                                 _statusLabel,
                                 style: TextStyle(
-                                    fontSize: 10,
+                                    fontSize: 13,
                                     fontWeight: FontWeight.w700,
                                     color: _statusColor),
                               ),
@@ -791,6 +792,12 @@ class _AnnouncementFormScreenState extends State<_AnnouncementFormScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      bottomNavigationBar: RowFormActionBar(child: CustomButton(
+                label: _isEditing ? 'Update' : 'Create',
+                onPressed: _save,
+                isLoading: _saving,
+                fullWidth: true,
+              )),
       backgroundColor: AppColors.surface,
       appBar: CustomAppBar(
         title: _isEditing ? 'Edit Announcement' : 'New Announcement',
@@ -982,13 +989,7 @@ class _AnnouncementFormScreenState extends State<_AnnouncementFormScreen> {
                   ),
                 ),
               ],
-              const SizedBox(height: 16),
-              CustomButton(
-                label: _isEditing ? 'Update' : 'Create',
-                onPressed: _save,
-                isLoading: _saving,
-                fullWidth: true,
-              ),
+              
             ],
           ),
         ),
@@ -1213,7 +1214,7 @@ class _AnnouncementDetailScreenState
     final status = _computeStatus(a);
     final imageUrl = detailMediaUrl(a.imagePath);
     return ListView(
-      padding: const EdgeInsets.all(16),
+      padding: (const EdgeInsets.all(16)).add(const EdgeInsets.only(bottom: 88)),
       children: [
         DetailHeader(
           title: a.title,

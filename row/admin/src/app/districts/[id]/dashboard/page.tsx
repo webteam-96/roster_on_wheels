@@ -13,6 +13,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { useAuth } from "@/contexts/AuthContext";
+import { ListPageSkeleton } from "@/components/row/AppKit";
 
 export default function DistrictDashboardPage() {
   const params = useParams();
@@ -109,7 +110,7 @@ export default function DistrictDashboardPage() {
   return (
     <ProtectedRoute>
       <div className="space-y-6">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-3">
             {isSuperAdmin && (
               <Button variant="outline" size="icon" asChild>
@@ -142,7 +143,7 @@ export default function DistrictDashboardPage() {
 
         {loading && (
           <div className="flex items-center justify-center py-20">
-            <RotaryLoader size="lg" />
+            <ListPageSkeleton />
           </div>
         )}
 

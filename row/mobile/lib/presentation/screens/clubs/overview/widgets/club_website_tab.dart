@@ -193,7 +193,7 @@ class _WebsiteManagementGrid extends StatelessWidget {
                   ? 'Edit your public club website content'
                   : 'Set up your website to manage its content',
               style: AppFonts.body(
-                  fontSize: 11, color: AppColors.slate500)),
+                  fontSize: 13, color: AppColors.slate500)),
           const SizedBox(height: 12),
           // Fixed tile HEIGHT (mainAxisExtent) instead of childAspectRatio: a
           // ratio makes height shrink with screen width, so on narrow phones
@@ -207,7 +207,7 @@ class _WebsiteManagementGrid extends StatelessWidget {
               crossAxisCount: 2,
               crossAxisSpacing: 10,
               mainAxisSpacing: 10,
-              mainAxisExtent: 112,
+              mainAxisExtent: 124,
             ),
             children: [
               for (final m in kClubWebsiteDataModules)
@@ -275,7 +275,7 @@ class _ManageTile extends StatelessWidget {
                 child: Text(label,
                     textAlign: TextAlign.center,
                     style: AppFonts.body(
-                        fontSize: 11.5,
+                        fontSize: 13,
                         fontWeight: FontWeight.w700,
                         color: labelColor),
                     maxLines: 2,
@@ -333,7 +333,7 @@ class _Header extends StatelessWidget {
                   if (yearLabel.isNotEmpty) 'RY $yearLabel',
                 ].join(' · '),
                 style: AppFonts.body(
-                  fontSize: 11,
+                  fontSize: 13,
                   color: AppColors.slate400,
                 ),
               ),
@@ -368,7 +368,7 @@ class _StatusChip extends StatelessWidget {
       child: Text(
         text,
         style: AppFonts.body(
-          fontSize: 11,
+          fontSize: 13,
           fontWeight: FontWeight.w800,
           color: color,
         ),
@@ -441,7 +441,7 @@ class WebsiteNotConfiguredCard extends StatelessWidget {
                     'support if you need more information.',
             textAlign: TextAlign.center,
             style: AppFonts.body(
-              fontSize: 11.5,
+              fontSize: 13,
               color: AppColors.slate500,
               height: 1.4,
             ),
@@ -469,8 +469,7 @@ class WebsiteNotConfiguredCard extends StatelessWidget {
                   backgroundColor: AppColors.primary,
                   foregroundColor: Colors.white,
                   padding: const EdgeInsets.symmetric(vertical: 12),
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(11)),
+                  shape: const StadiumBorder(),
                 ),
               ),
             ),
@@ -483,7 +482,7 @@ class WebsiteNotConfiguredCard extends StatelessWidget {
             label: Text(
               'Contact support',
               style: AppFonts.body(
-                fontSize: 12,
+                fontSize: 13,
                 fontWeight: FontWeight.w700,
               ),
             ),
@@ -630,7 +629,7 @@ class _TrainingEntryCard extends StatelessWidget {
                     Text(
                       'Book a live Zoom session to learn your website tools',
                       style: AppFonts.body(
-                        fontSize: 11,
+                        fontSize: 13,
                         color: AppColors.slate500,
                         height: 1.3,
                       ),
@@ -673,7 +672,7 @@ class _KillSwitchBanner extends StatelessWidget {
             child: Text(
               'Your website is hidden by district administration (kill switch enabled).',
               style: AppFonts.body(
-                  fontSize: 11.5,
+                  fontSize: 13,
                   fontWeight: FontWeight.w600,
                   color: AppColors.errorDark),
             ),
@@ -732,7 +731,7 @@ class _ShareBarState extends State<_ShareBar> {
                 child: Text(
                   widget.url,
                   style: AppFonts.body(
-                    fontSize: 11,
+                    fontSize: 13,
                     color: AppColors.slate500,
                   ),
                   maxLines: 1,
@@ -809,7 +808,7 @@ class _ShareBtn extends StatelessWidget {
               Text(
                 label,
                 style: AppFonts.body(
-                  fontSize: 10.5,
+                  fontSize: 13,
                   fontWeight: FontWeight.w800,
                   color: fg,
                 ),
@@ -863,7 +862,7 @@ class _ExpiredBanner extends StatelessWidget {
                 Text(
                   'Website Subscription Expired',
                   style: AppFonts.body(
-                    fontSize: 12.5,
+                    fontSize: 13,
                     fontWeight: FontWeight.w800,
                     color: AppColors.statusNone,
                   ),
@@ -873,7 +872,7 @@ class _ExpiredBanner extends StatelessWidget {
                       ? 'Expired on $expiryDate. Renew to restore your website.'
                       : 'Renew to restore your website.',
                   style: AppFonts.body(
-                    fontSize: 10.5,
+                    fontSize: 13,
                     color: AppColors.statusNone.withValues(alpha: 0.8),
                   ),
                 ),
@@ -894,14 +893,12 @@ class _ExpiredBanner extends StatelessWidget {
               elevation: 0,
               padding:
                   const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
+              shape: const StadiumBorder(),
             ),
             child: Text(
               'Renew',
               style: AppFonts.body(
-                fontSize: 11.5,
+                fontSize: 13,
                 fontWeight: FontWeight.w800,
               ),
             ),

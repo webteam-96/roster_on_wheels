@@ -75,23 +75,22 @@ class _AgOverviewScreenState extends State<AgOverviewScreen> {
       child: Scaffold(
         backgroundColor: AppColors.lightBg,
         appBar: AppBar(
-          backgroundColor: AppColors.primaryPrime,
-          foregroundColor: Colors.white,
+          backgroundColor: AppColors.lightBg,
+          foregroundColor: AppColors.textPrimary,
           elevation: 0,
-          centerTitle: true,
+          centerTitle: false,
           titleSpacing: 0,
           leading: IconButton(
             icon: const Icon(Icons.arrow_back_ios_new_rounded,
-                color: Colors.white),
+                color: AppColors.textPrimary),
             onPressed: () => context.pop(),
           ),
           title: Text(
-            'AG DASHBOARD',
+            'AG Dashboard',
             style: AppFonts.body(
               fontWeight: FontWeight.w800,
               fontSize: 14,
-              color: Colors.white,
-              letterSpacing: 1,
+              color: AppColors.textPrimary,
             ),
           ),
           actions: [
@@ -110,11 +109,6 @@ class _AgOverviewScreenState extends State<AgOverviewScreen> {
               onTap: (_) => context.read<MaintenanceController>().refresh(),
               isScrollable: true,
               tabAlignment: TabAlignment.start,
-              labelColor: Colors.white,
-              unselectedLabelColor: Colors.white.withValues(alpha: 0.62),
-              indicatorColor: AppColors.goldPrime,
-              indicatorWeight: 3,
-              dividerColor: Colors.transparent,
               labelPadding: const EdgeInsets.symmetric(horizontal: 14),
               labelStyle: AppFonts.body(
                 fontSize: 13,
@@ -205,7 +199,7 @@ class _AgYearPicker extends StatelessWidget {
           Text(
             _label.isEmpty ? 'Year' : _label,
             style: AppFonts.body(
-              fontSize: 11.5,
+              fontSize: 13,
               fontWeight: FontWeight.w700,
               color: Colors.white,
             ),
@@ -230,7 +224,7 @@ class _AgYearPicker extends StatelessWidget {
         tooltip: 'Rotary Year',
         offset: const Offset(0, 44),
         shape:
-            RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(20))),
         color: Colors.white,
         onSelected: onPicked,
         itemBuilder: (context) => [
@@ -270,7 +264,7 @@ class _AgYearPicker extends StatelessWidget {
                       child: Text(
                         'Current',
                         style: AppFonts.body(
-                          fontSize: 8.5,
+                          fontSize: 13,
                           fontWeight: FontWeight.w800,
                           color: AppColors.successDark,
                           letterSpacing: 0.3,

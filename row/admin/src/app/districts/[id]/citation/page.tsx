@@ -53,11 +53,12 @@ import { ArrowLeft, Plus, Pencil, Trash2, Save, AlertTriangle, FolderOpen, Downl
 import RotaryLoader from "@/components/RotaryLoader";
 import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";
+import { ListPageSkeleton } from "@/components/row/AppKit";
 
 function BonusFieldsInner({ form, setField }: { form: any; setField: (f: string, v: any) => void }) {
   return (
     <div className="space-y-2 pl-4 border-l-2 border-amber-200">
-      <div className="flex items-center gap-2">
+      <div className="flex flex-wrap items-center gap-2">
         <Switch checked={form.isBonus} onCheckedChange={v => setField("isBonus", v)} /><Label className="text-sm">Bonus</Label>
       </div>
       {form.isBonus && (
@@ -377,7 +378,7 @@ export default function DistrictCitationPage() {
 
   const BonusFields = BonusFieldsInner;
 
-  if (loading) return <ProtectedRoute><div className="flex justify-center py-20"><RotaryLoader size="lg" /></div></ProtectedRoute>;
+  if (loading) return <ProtectedRoute><div className="flex justify-center py-20"><ListPageSkeleton /></div></ProtectedRoute>;
 
   return (
     <ProtectedRoute>
@@ -485,7 +486,7 @@ export default function DistrictCitationPage() {
                     <Card key={q.id}><CardContent className="p-4">
                       <div className="flex items-start justify-between">
                         <div>
-                          <div className="flex items-center gap-2">
+                          <div className="flex flex-wrap items-center gap-2">
                             <Badge variant="outline">{q.categoryName}</Badge>
                             <p className="font-semibold">{q.activityName}</p>
                           </div>
@@ -535,7 +536,7 @@ export default function DistrictCitationPage() {
                     <Card key={mc.id}><CardContent className="p-4">
                       <div className="flex items-start justify-between">
                         <div className="flex-1">
-                          <div className="flex items-center gap-2">
+                          <div className="flex flex-wrap items-center gap-2">
                             <Badge variant="outline">{mc.categoryName}</Badge>
                             <p className="font-semibold">{mc.criteriaName}</p>
                           </div>
@@ -583,7 +584,7 @@ export default function DistrictCitationPage() {
                   }}>{downloading ? <><RotaryLoader size="sm" /><span className="ml-2">Downloading...</span></> : <><Download className="h-4 w-4 mr-2" />Download Report</>}</Button>
                 </div>
               )}
-              {clubPointsLoading ? <div className="flex justify-center py-10"><RotaryLoader size="lg" /></div> : (
+              {clubPointsLoading ? <div className="flex justify-center py-10"><ListPageSkeleton /></div> : (
                 <Card><CardContent className="p-0 overflow-x-auto">
                   <Table>
                     <TableHeader><TableRow className="bg-primary hover:bg-primary">
@@ -700,7 +701,7 @@ export default function DistrictCitationPage() {
 
               return (
                 <div className="space-y-3 border rounded-lg p-3">
-                  <div className="flex items-center justify-between">
+                  <div className="flex flex-wrap items-center justify-between gap-3">
                     <Label className="font-semibold">{sectionLabel}</Label>
                     <Button size="sm" variant="outline" onClick={addAutoSubItem}><Plus className="h-3 w-3 mr-1" />Add</Button>
                   </div>
@@ -793,7 +794,7 @@ export default function DistrictCitationPage() {
             <div><Label>Sort Order</Label><Input type="number" value={manualForm.sortOrder} onChange={e => setManualForm((p: any) => ({ ...p, sortOrder: e.target.value }))} /></div>
 
             <div className="space-y-3 border rounded-lg p-3">
-              <div className="flex items-center justify-between"><Label className="font-semibold">Sub Criteria</Label><Button size="sm" variant="outline" onClick={addManualSub}><Plus className="h-3 w-3 mr-1" />Add Sub Criteria</Button></div>
+              <div className="flex flex-wrap items-center justify-between gap-3"><Label className="font-semibold">Sub Criteria</Label><Button size="sm" variant="outline" onClick={addManualSub}><Plus className="h-3 w-3 mr-1" />Add Sub Criteria</Button></div>
               {manualForm.subCriteria.map((sc: any, i: number) => (
                 <Card key={i}><CardContent className="p-3 space-y-2">
                   <div className="flex justify-between items-center"><Label className="text-sm font-medium">Sub Criteria #{i + 1}</Label><Button variant="ghost" size="icon" className="h-6 w-6 text-destructive" onClick={() => removeManualSub(i)}><Trash2 className="h-3 w-3" /></Button></div>
@@ -814,7 +815,7 @@ export default function DistrictCitationPage() {
                   {sc.answerType === "number" && <BonusFields form={sc} setField={(f, v) => updateManualSub(i, f, v)} />}
                   {sc.answerType === "choose_one" && (
                     <div className="space-y-2 pl-3 border-l-2 border-blue-200">
-                      <div className="flex items-center justify-between"><Label className="text-xs font-medium">Options</Label><Button size="sm" variant="outline" className="h-6 text-xs" onClick={() => addManualOption(i)}><Plus className="h-2 w-2 mr-1" />Add Option</Button></div>
+                      <div className="flex flex-wrap items-center justify-between gap-3"><Label className="text-xs font-medium">Options</Label><Button size="sm" variant="outline" className="h-6 text-xs" onClick={() => addManualOption(i)}><Plus className="h-2 w-2 mr-1" />Add Option</Button></div>
                       {sc.options.map((o: any, j: number) => (
                         <div key={j} className="flex gap-2 items-center">
                           <Input className="h-7 text-xs flex-1" value={o.optionText} onChange={e => updateManualOption(i, j, "optionText", e.target.value)} placeholder="Option text" />

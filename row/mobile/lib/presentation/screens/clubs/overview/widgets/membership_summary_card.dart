@@ -54,10 +54,9 @@ class MembershipSummaryCard extends StatelessWidget {
                 child: Text(
                   'MEMBERSHIP',
                   style: AppFonts.body(
-                    fontSize: 11,
+                    fontSize: 13,
                     fontWeight: FontWeight.w700,
                     color: AppColors.slate500,
-                    letterSpacing: 0.6,
                   ),
                 ),
               ),
@@ -72,7 +71,7 @@ class MembershipSummaryCard extends StatelessWidget {
                   child: Text(
                     '+$newThisYear this RY',
                     style: AppFonts.body(
-                      fontSize: 10.5,
+                      fontSize: 13,
                       fontWeight: FontWeight.w700,
                       color: AppColors.success,
                     ),
@@ -169,7 +168,7 @@ class _BreakdownStat extends StatelessWidget {
             Text(
               label,
               style: AppFonts.body(
-                fontSize: 12.5,
+                fontSize: 13,
                 fontWeight: FontWeight.w500,
                 color: AppColors.textSecondary,
               ),

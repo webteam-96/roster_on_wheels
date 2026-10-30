@@ -41,6 +41,7 @@ import RotaryLoader from "@/components/RotaryLoader";
 import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import SearchBox from "@/components/SearchBox";
+import { ListPageSkeleton } from "@/components/row/AppKit";
 
 function getPlatformLabel(value: string): string {
   return SOCIAL_PLATFORMS.find((p) => p.value === value)?.label || value;
@@ -48,7 +49,7 @@ function getPlatformLabel(value: string): string {
 
 function getPlatformIcon(platform: string) {
   const colors: Record<string, string> = {
-    facebook: "bg-blue-600", instagram: "bg-purple-500",
+    facebook: "bg-blue-600", instagram: "bg-[#A9C6EA]",
     twitter: "bg-black", linkedin: "bg-blue-700", youtube: "bg-red-600",
     threads: "bg-black", googleplus: "bg-red-500", website: "bg-gray-600",
   };
@@ -175,7 +176,7 @@ export default function DistrictSocialLinksPage() {
           {canManage && (<Button onClick={openAddDialog}><Plus className="mr-2 h-4 w-4" />Add Link</Button>)}
         </div>
 
-        {loading && (<div className="flex items-center justify-center py-20"><RotaryLoader size="lg" /></div>)}
+        {loading && (<div className="flex items-center justify-center py-20"><ListPageSkeleton /></div>)}
 
         {!loading && !loadingLinks && links.length > 0 && (
           <div className="flex items-center gap-4 flex-wrap">
@@ -183,7 +184,7 @@ export default function DistrictSocialLinksPage() {
           </div>
         )}
 
-        {loadingLinks && (<div className="flex items-center justify-center py-12"><RotaryLoader size="lg" /></div>)}
+        {loadingLinks && (<div className="flex items-center justify-center py-12"><ListPageSkeleton /></div>)}
 
         {!loading && !loadingLinks && links.length === 0 && (
           <div className="flex flex-col items-center justify-center py-20 text-center">

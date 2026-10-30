@@ -3,7 +3,7 @@
 /**
  * OCV / GOV v2 Live Documents — frontend overhaul replacement.
  *
- * Same APIs as v1: getClub, getMonthlyReportYears, getLiveDocumentsExport.
+ * Same APIs as v1: getClub, getTrfYears, getLiveDocumentsExport.
  * Same module catalog grouped into OCV/GOV (6 modules) and Club (12 modules).
  * Per-row Download button hits the export endpoint and streams to CSV via
  * exportToCSV with the same column configs as v1.
@@ -18,7 +18,7 @@ import Link from "next/link";
 import {
   ArrowLeft, Calendar, Download, FileSpreadsheet, FolderOpen, Users, Loader2, Search,
 } from "@/components/icons";
-import { getClub, getMonthlyReportYears, getLiveDocumentsExport } from "@/services/api";
+import { getClub, getTrfYears, getLiveDocumentsExport } from "@/services/api";
 import type { ReportYear } from "@/types/clubMonthlyReport";
 import { exportToCSV } from "@/utils/csvExport";
 import { formatBirthAnniversary } from "@/lib/dateUtils";
@@ -42,6 +42,8 @@ import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
 import ClubAdminShell from "@/components/v2/ClubAdminShell";
 import { useSyncClubIdFromUrl } from "@/hooks/useSyncClubIdFromUrl";
+import { useFeatureLoadedOn } from "@/components/FeatureGate";
+import { SkeletonRows } from "@/components/row/AppKit";
 
 // ── Module catalog (same shape & columns as v1) ────────────────────────────
 interface ModuleItem {
@@ -182,13 +184,14 @@ export default function LiveDocumentsV2Page() {
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
+  const cmrOn = useFeatureLoadedOn("club_monthly_report");
   useEffect(() => {
     let cancelled = false;
     async function load() {
       try {
         const [club, yrs] = await Promise.all([
           getClub(clubId),
-          getMonthlyReportYears(clubId),
+          getTrfYears(clubId, cmrOn),
         ]);
         if (cancelled) return;
         setClubName(club.clubName);
@@ -208,7 +211,7 @@ export default function LiveDocumentsV2Page() {
     load();
     return () => { cancelled = true; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [clubId]);
+  }, [clubId, cmrOn]);
 
   const yearLabel = years.find((y) => y.id === selectedYearId)?.yearLabel ?? "–";
 
@@ -276,14 +279,14 @@ export default function LiveDocumentsV2Page() {
           </div>
 
           {!loading && years.length > 0 && (
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <span className="text-xs font-medium text-slate-500 flex items-center gap-1">
                 <Calendar size={13} /> Year
               </span>
               <select
                 value={selectedYearId ?? ""}
                 onChange={(e) => setSelectedYearId(e.target.value ? Number(e.target.value) : null)}
-                className="px-2 py-1.5 text-sm border border-slate-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 min-w-[10rem]"
+                className="px-2 h-10 py-0 text-sm border border-slate-200 rounded-[12px] bg-white focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42] min-w-[10rem]"
               >
                 {years.map((y) => (
                   <option key={y.id} value={y.id}>
@@ -339,7 +342,7 @@ export default function LiveDocumentsV2Page() {
                 placeholder="Search modules…"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="w-full pl-7 pr-3 py-1.5 text-sm border border-slate-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full pl-7 pr-3 h-10 py-0 text-sm border border-slate-200 rounded-[12px] bg-white focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
               />
             </div>
             <span className="text-xs text-slate-500 whitespace-nowrap">
@@ -349,9 +352,7 @@ export default function LiveDocumentsV2Page() {
         )}
 
         {loading ? (
-          <div className="flex items-center justify-center py-20 text-slate-500">
-            <Loader2 className="animate-spin mr-2" size={18} /> Loading…
-          </div>
+          <SkeletonRows />
         ) : (
           <>
             {/* OCV/GOV Section */}
@@ -377,7 +378,7 @@ export default function LiveDocumentsV2Page() {
                         type="button"
                         onClick={() => handleDownload(mod)}
                         disabled={downloading === mod.key || !selectedYearId}
-                        className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg border border-slate-200 text-slate-700 hover:bg-blue-50 hover:text-blue-700 disabled:opacity-50"
+                        className="inline-flex items-center gap-1.5 text-xs font-semibold px-4 h-10 rounded-full border border-slate-200 text-slate-700 hover:bg-blue-50 hover:text-blue-700 disabled:opacity-50"
                       >
                         {downloading === mod.key ? (
                           <>
@@ -418,7 +419,7 @@ export default function LiveDocumentsV2Page() {
                         type="button"
                         onClick={() => handleDownload(mod)}
                         disabled={downloading === mod.key || !selectedYearId}
-                        className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg border border-slate-200 text-slate-700 hover:bg-blue-50 hover:text-blue-700 disabled:opacity-50"
+                        className="inline-flex items-center gap-1.5 text-xs font-semibold px-4 h-10 rounded-full border border-slate-200 text-slate-700 hover:bg-blue-50 hover:text-blue-700 disabled:opacity-50"
                       >
                         {downloading === mod.key ? (
                           <>

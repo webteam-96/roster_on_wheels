@@ -32,6 +32,7 @@ import { useSyncClubIdFromUrl } from "@/hooks/useSyncClubIdFromUrl";
 import ImageCropDialog from "@/components/ImageCropDialog";
 import { useImageCropUpload } from "@/hooks/useImageCropUpload";
 import { TEXT_INPUT_REGEX } from "@/lib/textInput";
+import { ListPageSkeleton } from "@/components/row/AppKit";
 
 // The attached image is shown as a landscape poster on the detail view and is
 // pushed out with email notifications — locked to 4:3 at 1200×900.
@@ -228,7 +229,7 @@ export default function AnnouncementsV2AddPage() {
     return (
       <ProtectedRoute>
         <div className="flex items-center justify-center py-20">
-          <RotaryLoader size="lg" />
+          <ListPageSkeleton />
         </div>
       </ProtectedRoute>
     );
@@ -251,64 +252,64 @@ export default function AnnouncementsV2AddPage() {
         <div className="">
         <div className="min-w-0">
         {/* 1. Announcement Details */}
-        <SectionCard number={1} icon={FileText} title="Announcement Details" dot="bg-blue-600">
+        <SectionCard number={1} icon={FileText} title="Announcement Details" dot="bg-[#17458F]">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="sm:col-span-2">
-              <FieldLabel hint="(max 50 chars)" dot="bg-blue-500" required>Title</FieldLabel>
+              <FieldLabel hint="(max 50 chars)" dot="bg-[#17458F]" required>Title</FieldLabel>
               <input
                 type="text"
                 value={title}
                 onChange={handleTitleChange}
                 placeholder="Announcement title"
                 maxLength={50}
-                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
               />
               <p className="text-xs text-slate-400 text-right mt-0.5">{title.length}/50</p>
             </div>
             <div className="sm:col-span-2">
-              <FieldLabel hint="(max 520 chars)" dot="bg-blue-500">Description</FieldLabel>
+              <FieldLabel hint="(max 520 chars)" dot="bg-[#17458F]">Description</FieldLabel>
               <textarea
                 value={description}
                 onChange={handleDescriptionChange}
                 placeholder="Describe the announcement…"
                 rows={4}
                 maxLength={520}
-                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
               />
               <p className="text-xs text-slate-400 text-right mt-0.5">{description.length}/520</p>
             </div>
             <div>
-              <FieldLabel dot="bg-blue-500" required>Publish Date</FieldLabel>
-              <DateField value={publishDate} onChange={setPublishDate} min={today} className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" />
+              <FieldLabel dot="bg-[#17458F]" required>Publish Date</FieldLabel>
+              <DateField value={publishDate} onChange={setPublishDate} min={today} className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]" />
             </div>
             <div>
-              <FieldLabel dot="bg-blue-500" required>Publish Time</FieldLabel>
+              <FieldLabel dot="bg-[#17458F]" required>Publish Time</FieldLabel>
               <input
                 type="time"
                 value={publishTime}
                 onChange={(e) => setPublishTime(e.target.value)}
-                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
               />
             </div>
             <div>
-              <FieldLabel dot="bg-blue-500" required>Expiry Date</FieldLabel>
-              <DateField value={expiryDate} onChange={setExpiryDate} min={today} className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" />
+              <FieldLabel dot="bg-[#17458F]" required>Expiry Date</FieldLabel>
+              <DateField value={expiryDate} onChange={setExpiryDate} min={today} className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]" />
             </div>
             <div>
-              <FieldLabel dot="bg-blue-500" required>Expiry Time</FieldLabel>
+              <FieldLabel dot="bg-[#17458F]" required>Expiry Time</FieldLabel>
               <input
                 type="time"
                 value={expiryTime}
                 onChange={(e) => setExpiryTime(e.target.value)}
-                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
               />
             </div>
           </div>
         </SectionCard>
 
         {/* 2. Image */}
-        <SectionCard number={2} icon={ImageIcon} title="Image" dot="bg-rose-600">
-          <FieldLabel dot="bg-rose-500">Announcement Image</FieldLabel>
+        <SectionCard number={2} icon={ImageIcon} title="Image" dot="bg-[#17458F]">
+          <FieldLabel dot="bg-[#17458F]">Announcement Image</FieldLabel>
           {imagePreview ? (
             <div className="relative inline-block mt-1">
               {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -350,7 +351,7 @@ export default function AnnouncementsV2AddPage() {
         </SectionCard>
 
         {/* 3. Display & Notification Settings */}
-        <SectionCard number={3} icon={Bell} title="Display & Notification Settings" dot="bg-amber-600">
+        <SectionCard number={3} icon={Bell} title="Display & Notification Settings" dot="bg-[#17458F]">
           <div className="space-y-3">
             {/* "Display on Banner" hidden 2026-08-12 per request — kept for future use (value still saved). */}
             {false && (
@@ -390,13 +391,13 @@ export default function AnnouncementsV2AddPage() {
             {isRepeatNotification && (
               <div className="space-y-3 pl-7 pt-1">
                 {reminders.map((reminder) => (
-                  <div key={reminder.id} className="flex items-center gap-2">
-                    <DateField value={reminder.date} onChange={(v: string) => updateReminder(reminder.id, "date", v)} className="w-40 px-2 py-1.5 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                  <div key={reminder.id} className="flex flex-wrap items-center gap-2">
+                    <DateField value={reminder.date} onChange={(v: string) => updateReminder(reminder.id, "date", v)} className="w-40 px-2 h-10 py-0 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]" />
                     <input
                       type="time"
                       value={reminder.time}
                       onChange={(e) => updateReminder(reminder.id, "time", e.target.value)}
-                      className="w-32 px-2 py-1.5 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-32 px-2 h-10 py-0 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
                     />
                     <button
                       type="button"
@@ -411,7 +412,7 @@ export default function AnnouncementsV2AddPage() {
                 <button
                   type="button"
                   onClick={addReminder}
-                  className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg border border-slate-200 text-slate-700 hover:bg-slate-50"
+                  className="inline-flex items-center gap-1.5 text-xs font-semibold px-4 h-10 rounded-full border border-slate-200 text-slate-700 hover:bg-slate-50"
                 >
                   <Plus className="h-3.5 w-3.5" /> Add Reminder
                 </button>

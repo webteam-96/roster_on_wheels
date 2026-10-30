@@ -275,7 +275,7 @@ class _DistrictEventPaymentLinkMembersScreenState
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Text(
-                    status.toUpperCase(),
+                    status,
                     style: AppTextStyles.caption.copyWith(
                       color: fg,
                       fontWeight: FontWeight.w700,
@@ -488,7 +488,7 @@ class _RecordPaymentDialogState extends State<_RecordPaymentDialog> {
   @override
   Widget build(BuildContext context) {
     return Dialog(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(20))),
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 520),
         child: Padding(

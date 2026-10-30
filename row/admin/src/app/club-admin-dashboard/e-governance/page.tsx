@@ -18,6 +18,7 @@ import { AttendanceV2View } from "@/app/clubs/[id]/attendance/v2/view";
 import { ClubCitationV2View } from "@/app/clubs/[id]/citation/v2/view";
 import { ClubReportV2PageImpl } from "@/app/clubs/[id]/club-report/v2/view";
 import { DashboardRotaryNetworkView } from "@/app/club-admin-dashboard/dashboard/rotary-network/view";
+import { ListPageSkeleton } from "@/components/row/AppKit";
 
 // Tabs render their module inline (embedded) rather than navigating away.
 // Default tab = Club Monthly Report.
@@ -70,7 +71,7 @@ export default function ClubAdminEGovernancePage() {
   if (status === "loading" && !eGovernance && !overview) {
     return (
       <div className="flex items-center justify-center py-20">
-        <RotaryLoader size="lg" label="Loading e-governance…" />
+        <ListPageSkeleton />
       </div>
     );
   }
@@ -131,8 +132,7 @@ function EGovTabBar({ active, onChange }: { active: EGovTab; onChange: (k: EGovT
   return (
     <div className="overflow-x-auto">
       <div
-        className="inline-flex items-center gap-1 rounded-xl p-1.5"
-        style={{ backgroundColor: "#17458f" }}
+        className="inline-flex items-center gap-1 rounded-full p-1.5 bg-muted"
       >
         {EGOV_TABS.filter((t) => tabOn[t.key]).map((t) => {
           const isActive = active === t.key;
@@ -140,10 +140,9 @@ function EGovTabBar({ active, onChange }: { active: EGovTab; onChange: (k: EGovT
             <button
               key={t.key}
               onClick={() => onChange(t.key)}
-              className={`px-3.5 py-2 text-sm font-semibold rounded-lg whitespace-nowrap transition ${
-                isActive ? "shadow-sm" : "text-white hover:bg-white/10"
+              className={`inline-flex h-9 items-center px-4 text-sm font-semibold rounded-full whitespace-nowrap transition-colors ${
+                isActive ? "bg-card text-foreground ring-1 ring-[color:var(--row-line)]" : "text-muted-foreground hover:text-foreground"
               }`}
-              style={isActive ? { backgroundColor: "#F7A81B", color: "#17458f" } : undefined}
             >
               {t.label}
             </button>

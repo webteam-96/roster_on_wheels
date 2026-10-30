@@ -216,11 +216,11 @@ export default function MapPicker({ open, onOpenChange, initialLat, initialLng, 
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2"><MapPin className="h-4 w-4" />Pick Club Location</DialogTitle>
+          <DialogTitle className="flex flex-wrap items-center gap-2"><MapPin className="h-4 w-4" />Pick Club Location</DialogTitle>
         </DialogHeader>
 
         <div className="space-y-2">
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             <div className="flex-1 flex gap-2">
               <Input
                 placeholder="Search city / address (e.g., 'Paris' or '1 Main Street, Toronto')"

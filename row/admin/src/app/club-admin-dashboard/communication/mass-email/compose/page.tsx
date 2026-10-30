@@ -31,6 +31,7 @@ import ContactGroupPicker from "@/components/contacts/ContactGroupPicker";
 import { CONTACTS_FEATURE } from "@/lib/contacts";
 import { useFeatureLoadedOn } from "@/components/FeatureGate";
 import ComposeComms from "@/components/comms/ComposeComms";
+import { SkeletonRows } from "@/components/row/AppKit";
 
 interface SubGroupOption { id: number; groupName: string; memberCount: number; }
 interface MemberOption { memberId: number; memberName: string; email: string; }
@@ -219,7 +220,7 @@ export default function ClubAdminComposeMassEmailPage() {
                   <Input value={memberSearch} onChange={(e) => setMemberSearch(e.target.value)} placeholder="Search members..." className="pl-10" />
                 </div>
                 {loadingMembers ? (
-                  <div className="text-center py-4 text-muted-foreground">Loading members...</div>
+                  <SkeletonRows />
                 ) : (
                   <div className="max-h-60 overflow-y-auto border rounded-md divide-y">
                     {filteredMembers.map((m) => (

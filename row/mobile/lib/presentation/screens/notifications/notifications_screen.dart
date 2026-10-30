@@ -453,7 +453,7 @@ class _FilterChip extends StatelessWidget {
                 style: AppFonts.body(
                   color: selected ? spec.color : AppColors.textMuted,
                   fontWeight: FontWeight.w700,
-                  fontSize: 12,
+                  fontSize: 13,
                 ),
               ),
             ],
@@ -475,12 +475,11 @@ class _GroupHeader extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(
           AppSpacing.md, AppSpacing.md, AppSpacing.md, AppSpacing.sm),
       child: Text(
-        label.toUpperCase(),
+        label,
         style: AppFonts.body(
           color: AppColors.textMuted,
           fontWeight: FontWeight.w800,
-          fontSize: 10,
-          letterSpacing: 1.2,
+          fontSize: 13,
         ),
       ),
     );
@@ -548,7 +547,7 @@ class _NotifCard extends StatelessWidget {
                               _timeAgo(item.date!),
                               style: AppFonts.body(
                                 color: AppColors.textMuted,
-                                fontSize: 10,
+                                fontSize: 13,
                                 fontWeight: FontWeight.w600,
                               ),
                             ),
@@ -591,12 +590,11 @@ class _SourcePill extends StatelessWidget {
         borderRadius: BorderRadius.circular(8),
       ),
       child: Text(
-        label.toUpperCase(),
+        label,
         style: AppFonts.body(
           color: spec.color,
-          fontSize: 9,
+          fontSize: 13,
           fontWeight: FontWeight.w800,
-          letterSpacing: 0.5,
         ),
       ),
     );
@@ -665,9 +663,8 @@ class _DetailSheet extends StatelessWidget {
                               .toUpperCase(),
                           style: AppFonts.body(
                             color: spec.color,
-                            fontSize: 10,
+                            fontSize: 13,
                             fontWeight: FontWeight.w800,
-                            letterSpacing: 0.5,
                           ),
                         ),
                       ],
@@ -705,7 +702,7 @@ class _DetailSheet extends StatelessWidget {
                           _formatFull(item.date!),
                           style: AppFonts.body(
                             color: AppColors.textMuted,
-                            fontSize: 12,
+                            fontSize: 13,
                             fontWeight: FontWeight.w600,
                           ),
                         ),
@@ -732,8 +729,7 @@ class _DetailSheet extends StatelessWidget {
                         style: FilledButton.styleFrom(
                           backgroundColor: spec.color,
                           padding: const EdgeInsets.symmetric(vertical: 14),
-                          shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(14)),
+                          shape: const StadiumBorder(),
                         ),
                         onPressed: () => _openLink(item.linkUrl!),
                         icon: const Icon(Icons.open_in_new_rounded, size: 18),

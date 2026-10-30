@@ -137,7 +137,7 @@ import '../../presentation/screens/targets/targets_screen.dart';
 import '../../presentation/screens/profile/my_designations_screen.dart';
 import '../../presentation/screens/volunteers/invite_guest_screen.dart';
 import '../../presentation/screens/volunteers/volunteers_screen.dart';
-import 'package:rotary_flutter_app/core/i18n/text.dart';
+import 'package:rotary_flutter_app/presentation/widgets/common/empty_state_widget.dart';
 
 /// The live [GoRouter], exposed so non-widget code — specifically the push
 /// notification tap handlers in [DeepLinkService] — can navigate without a
@@ -680,9 +680,15 @@ class AppRouter {
               MaintenanceScreen(routeKey: state.uri.queryParameters['key']),
         ),
       ],
-      errorBuilder: (_, state) => Scaffold(
-        body: Center(child: Text('Page not found: ${state.error}')),
-      ),
+      // Friendly dead end with a way out; the raw router error goes to the debug log only.
+      errorBuilder: (context, state) {
+        debugPrint('Route not found: ${state.uri}');
+        return const _DeadEndScreen(
+          icon: Icons.explore_off_outlined,
+          title: 'Page not found',
+          subtitle: 'This page does not exist or has moved.',
+        );
+      },
     );
     // Expose the live instance for context-free navigation from push handlers.
     appRouter = router;
@@ -695,20 +701,32 @@ class _FeatureOffScreen extends StatelessWidget {
   const _FeatureOffScreen();
 
   @override
+  Widget build(BuildContext context) => const _DeadEndScreen(
+        icon: Icons.block_outlined,
+        title: 'Not available',
+        subtitle: 'This module is not part of ROW, or it is switched off.',
+      );
+}
+
+/// Empty page with a back arrow when there is history, and a "Go to home" button either way (design.md 8.6).
+class _DeadEndScreen extends StatelessWidget {
+  const _DeadEndScreen({required this.icon, required this.title, required this.subtitle});
+
+  final IconData icon;
+  final String title;
+  final String subtitle;
+
+  @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     return Scaffold(
       appBar: AppBar(),
-      body: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(mainAxisSize: MainAxisSize.min, children: [
-            Text('Not available', style: theme.textTheme.titleLarge),
-            const SizedBox(height: 8),
-            Text('This module is not part of ROW, or it is switched off.',
-                textAlign: TextAlign.center, style: theme.textTheme.bodyMedium),
-          ]),
-        ),
+      body: EmptyStateWidget(
+        icon: icon,
+        title: title,
+        subtitle: subtitle,
+        actionLabel: 'Go to home',
+        actionIcon: Icons.home_outlined,
+        onAction: () => context.go(RouteNames.home),
       ),
     );
   }

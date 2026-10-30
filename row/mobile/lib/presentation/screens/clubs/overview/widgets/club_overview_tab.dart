@@ -113,7 +113,7 @@ class _DashboardSubTabBar extends StatelessWidget {
                       child: Text(
                         labels[i],
                         style: AppFonts.body(
-                          fontSize: 12,
+                          fontSize: 13,
                           fontWeight:
                               i == active ? FontWeight.w800 : FontWeight.w600,
                           color: i == active ? Colors.white : AppColors.slate500,
@@ -372,7 +372,7 @@ class _CreditChip extends StatelessWidget {
           Text(
             '$label  $value',
             style: AppFonts.body(
-              fontSize: 11,
+              fontSize: 13,
               fontWeight: FontWeight.w800,
               color: color,
             ),
@@ -415,7 +415,7 @@ class _AlertRow extends StatelessWidget {
               Text(
                 text,
                 style: AppFonts.body(
-                  fontSize: 12,
+                  fontSize: 13,
                   fontWeight: FontWeight.w800,
                   color: textColor,
                 ),
@@ -424,7 +424,7 @@ class _AlertRow extends StatelessWidget {
                 Text(
                   sub!,
                   style: AppFonts.body(
-                    fontSize: 10.5,
+                    fontSize: 13,
                     color: textColor.withValues(alpha: 0.7),
                   ),
                 ),
@@ -501,7 +501,7 @@ class _HowToEnableButton extends StatelessWidget {
                       child: Text(
                         '${i + 1}',
                         style: AppFonts.body(
-                          fontSize: 10,
+                          fontSize: 13,
                           fontWeight: FontWeight.w800,
                           color: AppColors.statusPart,
                         ),
@@ -512,7 +512,7 @@ class _HowToEnableButton extends StatelessWidget {
                       child: Text(
                         _syncSteps[i],
                         style: AppFonts.body(
-                          fontSize: 12.5,
+                          fontSize: 13,
                           color: AppColors.slate700,
                         ),
                       ),
@@ -539,7 +539,7 @@ class _HowToEnableButton extends StatelessWidget {
           child: Text(
             'How?',
             style: AppFonts.body(
-              fontSize: 10.5,
+              fontSize: 13,
               fontWeight: FontWeight.w800,
               color: AppColors.statusPart,
             ),
@@ -566,7 +566,7 @@ class _RenewButton extends StatelessWidget {
           child: Text(
             'Renew',
             style: AppFonts.body(
-              fontSize: 10.5,
+              fontSize: 13,
               fontWeight: FontWeight.w800,
               color: Colors.white,
             ),
@@ -604,7 +604,7 @@ class _SetupButton extends StatelessWidget {
           child: Text(
             'Set up',
             style: AppFonts.body(
-              fontSize: 10.5,
+              fontSize: 13,
               fontWeight: FontWeight.w800,
               color: Colors.white,
             ),
@@ -766,12 +766,12 @@ class _MetricCell extends StatelessWidget {
           ),
           const SizedBox(height: 5),
           Text(
-            label.toUpperCase(),
+            label,
             textAlign: TextAlign.center,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             style: AppFonts.body(
-              fontSize: 9.5,
+              fontSize: 13,
               fontWeight: FontWeight.w700,
               color: AppColors.slate500,
               letterSpacing: 0.4,
@@ -784,7 +784,7 @@ class _MetricCell extends StatelessWidget {
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             style: AppFonts.body(
-              fontSize: 10,
+              fontSize: 13,
               fontWeight: FontWeight.w500,
               color: AppColors.textMuted,
             ),
@@ -913,7 +913,7 @@ class _CollapsedRow extends StatelessWidget {
                 Text(
                   sub,
                   style: AppFonts.body(
-                    fontSize: 11,
+                    fontSize: 13,
                     color: AppColors.slate400,
                   ),
                 ),
@@ -1002,7 +1002,7 @@ class _MembershipBody extends StatelessWidget {
                     Text(
                       'RY ${d.yearLabel} snapshot',
                       style: AppFonts.body(
-                        fontSize: 11,
+                        fontSize: 13,
                         color: AppColors.slate500,
                       ),
                     ),
@@ -1019,7 +1019,7 @@ class _MembershipBody extends StatelessWidget {
                 child: Text(
                   '+${kClubStats.newMembersThisYear} new',
                   style: AppFonts.body(
-                    fontSize: 10.5,
+                    fontSize: 13,
                     fontWeight: FontWeight.w800,
                     color: AppColors.successDark,
                   ),
@@ -1047,7 +1047,7 @@ class _MembershipBody extends StatelessWidget {
                 child: Text(
                   'total members',
                   style: AppFonts.body(
-                    fontSize: 11,
+                    fontSize: 13,
                     color: AppColors.slate400,
                   ),
                 ),
@@ -1073,14 +1073,14 @@ class _MembershipBody extends StatelessWidget {
               Text(
                 'Terminated this RY',
                 style: AppFonts.body(
-                  fontSize: 11.5,
+                  fontSize: 13,
                   color: AppColors.slate500,
                 ),
               ),
               Text(
                 '${kClubStats.terminatedThisYear}',
                 style: AppFonts.body(
-                  fontSize: 12.5,
+                  fontSize: 13,
                   fontWeight: FontWeight.w800,
                   color: AppColors.slate700,
                   fontFeatures: const [FontFeature.tabularFigures()],
@@ -1153,7 +1153,7 @@ class _TrfBody extends StatelessWidget {
                 ? '${shortMoney(kClubStats.trfGoal, 'USD')} target this year'
                 : 'Fund contributions this year',
             style: AppFonts.body(
-              fontSize: 11,
+              fontSize: 13,
               color: AppColors.slate500,
             ),
           ),
@@ -1192,7 +1192,7 @@ class _TrfBody extends StatelessWidget {
                         Text(
                           'of goal',
                           style: AppFonts.body(
-                            fontSize: 10,
+                            fontSize: 13,
                             color: AppColors.slate400,
                           ),
                         ),
@@ -1231,7 +1231,7 @@ class _TrfBody extends StatelessWidget {
               Text(
                 'Remaining to goal',
                 style: AppFonts.body(
-                  fontSize: 11.5,
+                  fontSize: 13,
                   color: AppColors.slate500,
                 ),
               ),
@@ -1240,7 +1240,7 @@ class _TrfBody extends StatelessWidget {
                     ? shortMoney(d.trfRemaining, 'USD')
                     : '–',
                 style: AppFonts.body(
-                  fontSize: 12.5,
+                  fontSize: 13,
                   fontWeight: FontWeight.w800,
                   color: AppColors.error,
                   fontFeatures: const [FontFeature.tabularFigures()],
@@ -1290,7 +1290,7 @@ class _AvenueBody extends StatelessWidget {
           Text(
             'Project completion this RY',
             style: AppFonts.body(
-              fontSize: 11,
+              fontSize: 13,
               color: AppColors.slate500,
             ),
           ),
@@ -1301,7 +1301,7 @@ class _AvenueBody extends StatelessWidget {
               child: Text(
                 'No projects recorded this year',
                 style: AppFonts.body(
-                  fontSize: 11.5,
+                  fontSize: 13,
                   color: AppColors.slate400,
                 ),
               ),
@@ -1324,7 +1324,7 @@ class _AvenueBody extends StatelessWidget {
               Text(
                 'Total projects',
                 style: AppFonts.body(
-                  fontSize: 11.5,
+                  fontSize: 13,
                   color: AppColors.slate500,
                 ),
               ),
@@ -1388,7 +1388,7 @@ class _CitationBody extends StatelessWidget {
           Text(
             'RY ${d.yearLabel} scorecard',
             style: AppFonts.body(
-              fontSize: 11,
+              fontSize: 13,
               color: AppColors.slate500,
             ),
           ),
@@ -1424,7 +1424,7 @@ class _CitationBody extends StatelessWidget {
                     Text(
                       'score',
                       style: AppFonts.body(
-                        fontSize: 10,
+                        fontSize: 13,
                         color: AppColors.slate400,
                       ),
                     ),
@@ -1481,7 +1481,7 @@ class _LegendDot extends StatelessWidget {
         Text(
           label,
           style: AppFonts.body(
-            fontSize: 10.5,
+            fontSize: 13,
             color: AppColors.slate500,
           ),
         ),
@@ -1515,7 +1515,7 @@ class _ProgressRow extends StatelessWidget {
               child: Text(
                 label,
                 style: AppFonts.body(
-                  fontSize: 11.5,
+                  fontSize: 13,
                   color: AppColors.slate500,
                 ),
                 overflow: TextOverflow.ellipsis,
@@ -1525,7 +1525,7 @@ class _ProgressRow extends StatelessWidget {
             Text(
               valueDisplay,
               style: AppFonts.body(
-                fontSize: 11.5,
+                fontSize: 13,
                 fontWeight: FontWeight.w800,
                 color: color,
                 fontFeatures: const [FontFeature.tabularFigures()],
@@ -1593,7 +1593,7 @@ class _CardChart extends StatelessWidget {
           Text(
             _subtitle,
             style: AppFonts.body(
-              fontSize: 11,
+              fontSize: 13,
               color: AppColors.slate500,
             ),
           ),
@@ -1609,7 +1609,7 @@ class _CardChart extends StatelessWidget {
         child: Text(
           text,
           style: AppFonts.body(
-            fontSize: 11.5,
+            fontSize: 13,
             color: AppColors.slate400,
           ),
         ),
@@ -1713,7 +1713,7 @@ class _HorizBarRow extends StatelessWidget {
               child: Text(
                 label,
                 style: AppFonts.body(
-                  fontSize: 12,
+                  fontSize: 13,
                   fontWeight: FontWeight.w700,
                   color: AppColors.textPrimary,
                 ),
@@ -1724,7 +1724,7 @@ class _HorizBarRow extends StatelessWidget {
             Text(
               value,
               style: AppFonts.body(
-                fontSize: 12,
+                fontSize: 13,
                 fontWeight: FontWeight.w800,
                 color: color,
                 fontFeatures: const [FontFeature.tabularFigures()],
@@ -1790,7 +1790,7 @@ class _EventsCard extends StatelessWidget {
               child: Text(
                 'No upcoming events',
                 style: AppFonts.body(
-                  fontSize: 12,
+                  fontSize: 13,
                   color: AppColors.slate400,
                 ),
               ),
@@ -1853,9 +1853,9 @@ class _EventRow extends StatelessWidget {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Text(
-                      _month.toUpperCase(),
+                      _month,
                       style: AppFonts.body(
-                        fontSize: 9.5,
+                        fontSize: 13,
                         fontWeight: FontWeight.w800,
                         color: AppColors.slate400,
                       ),
@@ -1890,7 +1890,7 @@ class _EventRow extends StatelessWidget {
                     Text(
                       '${event.time} · ${event.venue}',
                       style: AppFonts.body(
-                        fontSize: 11,
+                        fontSize: 13,
                         color: AppColors.slate400,
                       ),
                       maxLines: 1,
@@ -1910,7 +1910,7 @@ class _EventRow extends StatelessWidget {
                 child: Text(
                   event.type,
                   style: AppFonts.body(
-                    fontSize: 10,
+                    fontSize: 13,
                     fontWeight: FontWeight.w800,
                     color: palette.text,
                   ),

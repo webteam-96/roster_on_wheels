@@ -1,23 +1,13 @@
 import { type LucideIcon } from "@/components/icons";
+import { PageHeader } from "@/components/row/AppKit";
 
 interface SectionHeaderProps {
   title: string;
   subtitle?: string;
+  /** Kept for existing callers; the ROW page header shows no icon. */
   icon?: LucideIcon;
 }
 
-export default function SectionHeader({ title, subtitle, icon: Icon }: SectionHeaderProps) {
-  return (
-    <div className="flex items-start gap-3">
-      {Icon && (
-        <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-azure/10 text-azure">
-          <Icon size={18} />
-        </div>
-      )}
-      <div className="min-w-0">
-        <h1 className="text-lg font-bold text-slate-800 leading-tight">{title}</h1>
-        {subtitle && <p className="text-xs text-slate-500 mt-0.5">{subtitle}</p>}
-      </div>
-    </div>
-  );
+export default function SectionHeader({ title, subtitle }: SectionHeaderProps) {
+  return <PageHeader title={title} description={subtitle} />;
 }

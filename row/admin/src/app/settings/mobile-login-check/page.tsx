@@ -174,8 +174,8 @@ export default function MobileLoginCheckPage() {
                     </div>
                   ) : (
                     <div className="overflow-x-auto rounded-md border border-slate-200">
-                      <table className="min-w-full text-sm">
-                        <thead className="bg-slate-50">
+                      <table className="w-full min-w-[640px] md:min-w-full text-sm">
+                        <thead className="bg-[#EDF4FB]">
                           <tr>
                             <th className="px-3 py-2 text-left font-semibold text-slate-600">Club</th>
                             <th className="px-3 py-2 text-left font-semibold text-slate-600">Code</th>

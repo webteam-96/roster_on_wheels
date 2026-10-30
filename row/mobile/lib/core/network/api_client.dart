@@ -80,6 +80,17 @@ class ApiClient {
     }
   }
 
+  /// True only when a 401 rejected the token the app holds now. A request sent without a token, or
+  /// with a token a newer sign-in has replaced, must not end the live session (it raced a login).
+  static bool rejectsCurrentSession(String? sentAuthHeader, String? currentToken) =>
+      sentAuthHeader != null && currentToken != null && sentAuthHeader == 'Bearer $currentToken';
+
+  Future<void> _endSessionIfCurrent(String? sentAuthHeader, String? reason) async {
+    if (rejectsCurrentSession(sentAuthHeader, await _token)) {
+      onUnauthorized?.call(reason: reason);
+    }
+  }
+
   Future<Map<String, String>> _headers({bool requiresAuth = true}) async {
     final headers = <String, String>{
       'Content-Type': 'application/json',
@@ -562,7 +573,8 @@ class ApiClient {
           ? (bodyMessage ??
               'Your mobile number was updated by an admin. Please log in again.')
           : null;
-      onUnauthorized?.call(reason: reason);
+      async_lib.unawaited(_endSessionIfCurrent(
+          response.request?.headers['Authorization'], reason));
       throw UnauthorizedException(
           reason ?? bodyMessage ?? 'Unauthorized. Please log in again.');
     }

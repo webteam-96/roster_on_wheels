@@ -17,8 +17,6 @@ const DASHBOARD_TABS: DashboardTab[] = [
   // Rotary Network moved into the E-Governance tab strip (after District Awards).
 ];
 
-const ACTIVE_BG = "#F7A81B";
-const ACTIVE_TEXT = "#17458f";
 
 // Visual mirrors the AvenueTabBar in
 // /club-admin-dashboard/service-projects-and-public-image — same navy container,
@@ -28,10 +26,8 @@ export default function DashboardTabs() {
 
   return (
     <div className="overflow-x-auto mb-5">
-      <div
-        className="inline-flex items-center gap-1 rounded-xl p-1.5"
-        style={{ backgroundColor: "#17458f" }}
-      >
+      {/* Same light pill track as the shared Tabs (design.md 8.6): no azure band. */}
+      <div className="inline-flex items-center gap-1 rounded-full bg-muted p-1">
         {DASHBOARD_TABS.map((tab) => {
           const isActive = pathname === tab.href || pathname.startsWith(tab.href + "/");
           return (
@@ -39,10 +35,10 @@ export default function DashboardTabs() {
               key={tab.href}
               href={tab.href}
               className={cn(
-                "px-3.5 py-2 text-sm font-semibold rounded-lg whitespace-nowrap transition",
-                isActive ? "shadow-sm" : "text-white hover:bg-white/10"
+                "inline-flex h-9 items-center px-4 text-sm font-semibold rounded-full whitespace-nowrap transition-colors",
+                isActive ? "bg-card text-foreground ring-1 ring-[color:var(--row-line)]" : "text-muted-foreground hover:text-foreground"
               )}
-              style={isActive ? { backgroundColor: ACTIVE_BG, color: ACTIVE_TEXT } : undefined}
+              aria-current={isActive ? "page" : undefined}
             >
               {tab.label}
             </Link>

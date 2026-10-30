@@ -38,7 +38,7 @@ class LeaderboardCard extends StatelessWidget {
           Text(
             'Ranked by overall score',
             style: AppFonts.body(
-              fontSize: 11,
+              fontSize: 13,
               fontWeight: FontWeight.w500,
               color: AppColors.slate500,
             ),
@@ -51,7 +51,7 @@ class LeaderboardCard extends StatelessWidget {
                 child: Text(
                   'No clubs yet.',
                   style: AppFonts.body(
-                    fontSize: 12,
+                    fontSize: 13,
                     color: AppColors.slate400,
                   ),
                 ),
@@ -109,7 +109,7 @@ class _LeaderboardRow extends StatelessWidget {
             child: Text(
               '${row.rank}',
               style: AppFonts.body(
-                fontSize: 11,
+                fontSize: 13,
                 fontWeight: FontWeight.w800,
                 color: badge.fg,
                 fontFeatures: const [FontFeature.tabularFigures()],
@@ -121,7 +121,7 @@ class _LeaderboardRow extends StatelessWidget {
             child: Text(
               row.clubName,
               style: AppFonts.body(
-                fontSize: 12.5,
+                fontSize: 13,
                 fontWeight: FontWeight.w700,
                 color: AppColors.textPrimary,
               ),
@@ -147,7 +147,7 @@ class _LeaderboardRow extends StatelessWidget {
               Text(
                 'score',
                 style: AppFonts.body(
-                  fontSize: 8.5,
+                  fontSize: 13,
                   fontWeight: FontWeight.w700,
                   color: AppColors.slate400,
                   letterSpacing: 0.4,

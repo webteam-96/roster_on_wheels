@@ -450,6 +450,7 @@ public class ClubWebsitePublicDataV2Controller : ControllerBase
         public decimal? Latitude { get; set; }
         public decimal? Longitude { get; set; }
         public string Currency { get; set; } = RotaryApi.Services.Brand.DefaultCurrency;   // club's district DefaultCurrency
+        public string TimeZone { get; set; } = "";   // the club's IANA zone: event times are wall-clock times in it (spec 3.3)
     }
     public class ContactRow { public int YearId { get; set; } public string Email { get; set; } = ""; public string Phone { get; set; } = ""; }
     public class SocialRow  { public string Platform { get; set; } = ""; public string LinkUrl { get; set; } = ""; }
@@ -535,6 +536,7 @@ public class ClubWebsitePublicDataV2Controller : ControllerBase
             Latitude        = (decimal?)about.latitude,
             Longitude       = (decimal?)about.longitude,
             Currency        = (string?)about.currency ?? RotaryApi.Services.Brand.DefaultCurrency,
+            TimeZone        = ZoneTime.IanaId(await ZoneTime.OfClubAsync(conn, clubId)),
         });
     }
 

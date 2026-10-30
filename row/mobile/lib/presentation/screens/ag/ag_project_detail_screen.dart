@@ -51,15 +51,15 @@ class _AgProjectDetailScreenState extends State<AgProjectDetailScreen> {
     return Scaffold(
       backgroundColor: AppColors.lightBg,
       appBar: AppBar(
-        backgroundColor: AppColors.primaryPrime,
-        foregroundColor: Colors.white,
+        backgroundColor: AppColors.lightBg,
+        foregroundColor: AppColors.textPrimary,
         elevation: 0,
         title: Text(
           'Project Details',
           style: AppFonts.body(
             fontWeight: FontWeight.w800,
             fontSize: 15,
-            color: Colors.white,
+            color: AppColors.textPrimary,
           ),
         ),
         actions: [
@@ -129,7 +129,7 @@ class _Body extends StatelessWidget {
                 ? detail.clubName
                 : '${detail.clubName} · RY ${detail.yearLabel}',
             style: AppFonts.body(
-              fontSize: 12,
+              fontSize: 13,
               color: AppColors.slate500,
               fontWeight: FontWeight.w600,
             ),
@@ -174,7 +174,7 @@ class _Body extends StatelessWidget {
                   Text(
                     detail.description!.trim(),
                     style: AppFonts.body(
-                      fontSize: 12.5,
+                      fontSize: 13,
                       color: AppColors.textPrimary,
                       height: 1.5,
                     ),
@@ -200,7 +200,7 @@ class _Body extends StatelessWidget {
                     child: Text(
                       'No photos uploaded for this project.',
                       style: AppFonts.body(
-                        fontSize: 11.5,
+                        fontSize: 13,
                         color: AppColors.slate400,
                       ),
                     ),
@@ -286,7 +286,7 @@ class _FieldView extends StatelessWidget {
           Text(
             empty ? '–' : field.value!,
             style: AppFonts.body(
-              fontSize: 12.5,
+              fontSize: 13,
               fontWeight: FontWeight.w600,
               color: empty
                   ? AppColors.slate400
@@ -306,12 +306,11 @@ class _FieldLabel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Text(
-      text.toUpperCase(),
+      text,
       style: AppFonts.body(
-        fontSize: 9.5,
+        fontSize: 13,
         fontWeight: FontWeight.w800,
         color: AppColors.slate400,
-        letterSpacing: 0.5,
       ),
     );
   }
@@ -373,7 +372,7 @@ class _FundingChip extends StatelessWidget {
         child: Text(
           funding,
           style: AppFonts.body(
-            fontSize: 10.5,
+            fontSize: 13,
             fontWeight: FontWeight.w800,
             color: s.fg,
           ),
@@ -422,7 +421,7 @@ class _PhotoTile extends StatelessWidget {
                   child: Text(
                     'PRIMARY',
                     style: AppFonts.body(
-                      fontSize: 8,
+                      fontSize: 13,
                       fontWeight: FontWeight.w800,
                       color: AppColors.slate700,
                       letterSpacing: 0.4,
@@ -519,7 +518,7 @@ class _LightboxState extends State<_Lightbox> {
                     child: Text(
                       '${_index + 1} / ${widget.photos.length}',
                       style: AppFonts.body(
-                        fontSize: 11,
+                        fontSize: 13,
                         fontWeight: FontWeight.w700,
                         color: Colors.white,
                       ),

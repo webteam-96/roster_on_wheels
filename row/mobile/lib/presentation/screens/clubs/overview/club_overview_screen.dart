@@ -97,7 +97,7 @@ class _ClubOverviewScreenState extends State<ClubOverviewScreen> {
                     Text(
                       y.label,
                       style: AppFonts.body(
-                        fontSize: 12.5,
+                        fontSize: 13,
                         fontWeight: y.id == selId
                             ? FontWeight.w800
                             : FontWeight.w500,
@@ -115,7 +115,7 @@ class _ClubOverviewScreenState extends State<ClubOverviewScreen> {
                         child: Text(
                           'Current',
                           style: AppFonts.body(
-                            fontSize: 9,
+                            fontSize: 13,
                             fontWeight: FontWeight.w700,
                             color: AppColors.primaryPrime,
                           ),
@@ -142,7 +142,7 @@ class _ClubOverviewScreenState extends State<ClubOverviewScreen> {
                 Text(
                   selLabel.isEmpty ? 'Year' : selLabel,
                   style: AppFonts.body(
-                    fontSize: 11.5,
+                    fontSize: 13,
                     fontWeight: FontWeight.w700,
                     color: Colors.white,
                   ),
@@ -178,7 +178,7 @@ class _ClubOverviewScreenState extends State<ClubOverviewScreen> {
     }
   }
 
-  String get _title => (_clubName ?? 'Club Dashboard').toUpperCase();
+  String get _title => (_clubName ?? 'Club Dashboard');
 
   @override
   Widget build(BuildContext context) {
@@ -189,13 +189,13 @@ class _ClubOverviewScreenState extends State<ClubOverviewScreen> {
       child: Scaffold(
         backgroundColor: AppColors.lightBg,
         appBar: AppBar(
-          backgroundColor: AppColors.primaryPrime,
-          foregroundColor: Colors.white,
+          backgroundColor: AppColors.lightBg,
+          foregroundColor: AppColors.textPrimary,
           elevation: 0,
-          centerTitle: true,
+          centerTitle: false,
           leading: IconButton(
             icon: const Icon(Icons.arrow_back_ios_new_rounded,
-                color: Colors.white),
+                color: AppColors.textPrimary),
             onPressed: () => context.pop(),
           ),
           title: Text(
@@ -203,8 +203,7 @@ class _ClubOverviewScreenState extends State<ClubOverviewScreen> {
             style: AppFonts.body(
               fontWeight: FontWeight.w800,
               fontSize: 15,
-              color: Colors.white,
-              letterSpacing: 1,
+              color: AppColors.textPrimary,
             ),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
@@ -218,11 +217,6 @@ class _ClubOverviewScreenState extends State<ClubOverviewScreen> {
               onTap: (_) => context.read<MaintenanceController>().refresh(),
               isScrollable: true,
               tabAlignment: TabAlignment.start,
-              labelColor: Colors.white,
-              unselectedLabelColor: Colors.white.withValues(alpha: 0.62),
-              indicatorColor: AppColors.goldPrime,
-              indicatorWeight: 3,
-              dividerColor: Colors.transparent,
               labelPadding: const EdgeInsets.symmetric(horizontal: 14),
               labelStyle: AppFonts.body(
                 fontSize: 13,

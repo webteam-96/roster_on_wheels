@@ -10,6 +10,7 @@ import RotaryLoader from "@/components/RotaryLoader";
 import { CheckCircle2, XCircle } from "@/components/icons";
 
 import { appLocale, currencySymbol } from "@/lib/appFormat";
+import { ListPageSkeleton } from "@/components/row/AppKit";
 const MODES: Record<string, string> = { "1": "Cash", "2": "Cheque", "3": "NEFT", "4": "UPI", "5": "Other" };
 
 export default function ClubDuesApprovalPage() {
@@ -42,7 +43,7 @@ export default function ClubDuesApprovalPage() {
     } catch (e: any) { setErr(e?.response?.data?.message || "Failed."); } finally { setBusy(false); }
   };
 
-  if (loading) return <div className="min-h-screen flex items-center justify-center"><RotaryLoader size="lg" /></div>;
+  if (loading) return <div className="min-h-screen flex items-center justify-center"><ListPageSkeleton /></div>;
   if (err) return <div className="min-h-screen flex items-center justify-center p-6 text-center text-red-600">{err}</div>;
 
   return (
@@ -76,7 +77,7 @@ export default function ClubDuesApprovalPage() {
                 className={reasonErr ? "border-red-500" : ""} placeholder="Why is this being rejected?" />
               {reasonErr && <p className="text-xs text-red-600">Please enter a reason to reject this payment.</p>}
             </div>
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-2">
               <Button variant="destructive" className="flex-1" onClick={() => decide(false)} disabled={busy}>Reject</Button>
               <Button className="flex-1" onClick={() => decide(true)} disabled={busy}>{busy && <RotaryLoader size="sm" />}Approve</Button>
             </div>

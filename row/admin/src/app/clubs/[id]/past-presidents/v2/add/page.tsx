@@ -39,6 +39,7 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 import ImageCropDialog from "@/components/ImageCropDialog";
 import { useImageCropUpload } from "@/hooks/useImageCropUpload";
 import { useSyncClubIdFromUrl } from "@/hooks/useSyncClubIdFromUrl";
+import { ListPageSkeleton } from "@/components/row/AppKit";
 
 // Past-president photos render in round avatars everywhere, so the crop is
 // locked square and stored at 500×500.
@@ -250,7 +251,7 @@ export default function PastPresidentsV2AddPage() {
     return (
       <ProtectedRoute>
         <div className="flex items-center justify-center py-20">
-          <RotaryLoader size="lg" />
+          <ListPageSkeleton />
         </div>
       </ProtectedRoute>
     );
@@ -277,8 +278,8 @@ export default function PastPresidentsV2AddPage() {
         }
       >
         {/* 1. Member / Non-Member */}
-        <SectionCard number={1} icon={Crown} title="Past President" dot="bg-blue-600">
-          <FieldLabel dot="bg-blue-500">Select a Club Member or add a Non-Member</FieldLabel>
+        <SectionCard number={1} icon={Crown} title="Past President" dot="bg-[#17458F]">
+          <FieldLabel dot="bg-[#17458F]">Select a Club Member or add a Non-Member</FieldLabel>
           {selectedMemberId ? (
             <div className="flex items-center gap-3 p-3 border rounded-lg bg-blue-50/60 border-blue-100">
               <div className="relative h-10 w-10 flex-shrink-0 overflow-hidden rounded-full bg-white border border-slate-200">
@@ -303,7 +304,7 @@ export default function PastPresidentsV2AddPage() {
               <button
                 type="button"
                 onClick={clearSelectedMember}
-                className="text-xs font-medium px-2.5 py-1 rounded-md border border-slate-200 text-slate-600 hover:bg-white"
+                className="text-xs font-medium px-2.5 py-1 rounded-full border border-slate-200 text-slate-600 hover:bg-white"
               >
                 Change
               </button>
@@ -335,7 +336,7 @@ export default function PastPresidentsV2AddPage() {
                 <button
                   type="button"
                   onClick={clearSelectedMember}
-                  className="text-xs font-medium px-2.5 py-1 rounded-md border border-slate-200 text-slate-600 hover:bg-white"
+                  className="text-xs font-medium px-2.5 py-1 rounded-full border border-slate-200 text-slate-600 hover:bg-white"
                 >
                   Change
                 </button>
@@ -354,8 +355,8 @@ export default function PastPresidentsV2AddPage() {
                       </div>
                     )}
                   </div>
-                  <div className="flex items-center gap-2">
-                    <label className="cursor-pointer text-xs font-medium px-3 py-1.5 rounded-md border border-slate-200 text-slate-700 hover:bg-slate-50">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <label className="cursor-pointer text-xs font-medium px-3 py-1.5 rounded-full border border-slate-200 text-slate-700 hover:bg-slate-50">
                       {photoPreview ? "Change photo" : "Upload photo"}
                       <input
                         type="file"
@@ -368,7 +369,7 @@ export default function PastPresidentsV2AddPage() {
                       <button
                         type="button"
                         onClick={clearPhoto}
-                        className="text-xs font-medium px-3 py-1.5 rounded-md border border-rose-200 text-rose-600 hover:bg-rose-50"
+                        className="text-xs font-medium px-3 py-1.5 rounded-full border border-rose-200 text-rose-600 hover:bg-rose-50"
                       >
                         Remove
                       </button>
@@ -387,7 +388,7 @@ export default function PastPresidentsV2AddPage() {
                 placeholder="Search club members by name…"
                 value={memberSearch}
                 onChange={(e) => setMemberSearch(e.target.value)}
-                className="w-full pl-10 pr-3 py-2.5 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full pl-10 pr-3 py-2.5 text-sm border border-slate-200 rounded-[12px] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
                 autoFocus
               />
               {searchLoading && (
@@ -450,12 +451,12 @@ export default function PastPresidentsV2AddPage() {
         </SectionCard>
 
         {/* 2. Rotary Year */}
-        <SectionCard number={2} icon={Calendar} title="Rotary Year" dot="bg-amber-600">
-          <FieldLabel dot="bg-amber-500" hint="(past years only)">Year of Presidency</FieldLabel>
+        <SectionCard number={2} icon={Calendar} title="Rotary Year" dot="bg-[#17458F]">
+          <FieldLabel dot="bg-[#17458F]" hint="(past years only)">Year of Presidency</FieldLabel>
           <select
             value={selectedYearId}
             onChange={(e) => setSelectedYearId(e.target.value)}
-            className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-amber-500"
+            className="w-full px-3 py-2 text-sm border border-slate-200 rounded-[12px] bg-white focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[#1B2C42]"
           >
             <option value="">Select a year…</option>
             {yearOptions.map((y) => (

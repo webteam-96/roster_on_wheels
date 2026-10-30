@@ -79,6 +79,8 @@ export default function AppHeader() {
     "/cookies",
     "/data-processing-agreement",
     "/about-us",
+    "/admin/about-us",
+    "/admin/contact-us",
     "/tutorial",
   ];
   const isPublicPage = pathname.startsWith("/pay/") || pathname.startsWith("/report/") || pathname.startsWith("/public/") || hideOnPages.some(p => pathname.startsWith(p));
@@ -153,7 +155,7 @@ export default function AppHeader() {
             )}
           </nav>
 
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             {isAuthenticated && sessionRemaining > 0 && (
               <div className={`hidden sm:flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-full ${isSessionLow ? "bg-red-500 text-white animate-pulse" : "bg-muted text-foreground"}`}>
                 <Clock className="h-3 w-3" />

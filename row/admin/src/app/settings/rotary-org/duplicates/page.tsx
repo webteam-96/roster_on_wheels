@@ -202,7 +202,7 @@ export default function DuplicatesPage() {
         </div>
 
         {/* Filter chips */}
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           {filters.map((f) => (
             <Button
               key={f.key}
@@ -242,7 +242,7 @@ export default function DuplicatesPage() {
             <CardContent className="p-0">
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
-                  <thead>
+                  <thead className="bg-[#EDF4FB] text-[13px] text-[#64748B]">
                     <tr className="border-b bg-slate-50 text-left text-muted-foreground">
                       <th className="py-3 px-4 font-medium">Merged on</th>
                       <th className="py-3 px-4 font-medium">Kept</th>
@@ -297,7 +297,7 @@ export default function DuplicatesPage() {
           <CardContent className="p-0">
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
-                <thead>
+                <thead className="bg-[#EDF4FB] text-[13px] text-[#64748B]">
                   <tr className="border-b bg-slate-50 text-left text-muted-foreground">
                     <th className="py-3 px-4 font-medium w-28">Type</th>
                     <th className="py-3 px-4 font-medium">Member A</th>

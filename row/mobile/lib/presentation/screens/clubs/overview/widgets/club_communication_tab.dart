@@ -230,7 +230,7 @@ class _SubTabPill extends StatelessWidget {
           child: Text(
             label,
             style: AppFonts.body(
-              fontSize: 11.5,
+              fontSize: 13,
               fontWeight: isActive ? FontWeight.w800 : FontWeight.w600,
               color: isActive ? AppColors.primaryDeep : AppColors.slate500,
             ),
@@ -364,7 +364,7 @@ class _MiniKpi extends StatelessWidget {
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                   style: AppFonts.body(
-                    fontSize: 10.5,
+                    fontSize: 13,
                     fontWeight: FontWeight.w600,
                     color: AppColors.slate500,
                     height: 1.15,
@@ -452,7 +452,7 @@ class _GreetingsCardState extends State<_GreetingsCard> {
                 ),
                 child: Text('${items.length}',
                     style: AppFonts.body(
-                        fontSize: 10.5,
+                        fontSize: 13,
                         fontWeight: FontWeight.w800,
                         color: AppColors.slate500)),
               ),
@@ -482,7 +482,7 @@ class _GreetingsCardState extends State<_GreetingsCard> {
                           _segs[i],
                           textAlign: TextAlign.center,
                           style: AppFonts.body(
-                            fontSize: 11,
+                            fontSize: 13,
                             fontWeight:
                                 _seg == i ? FontWeight.w800 : FontWeight.w600,
                             color: _seg == i
@@ -521,7 +521,7 @@ class _GreetingsCardState extends State<_GreetingsCard> {
                           ? 'No greetings this week'
                           : 'No greetings this month',
                   style: AppFonts.body(
-                      fontSize: 12, color: AppColors.slate400),
+                      fontSize: 13, color: AppColors.slate400),
                 ),
               ),
             )
@@ -546,7 +546,7 @@ class _GreetingsCardState extends State<_GreetingsCard> {
           const SizedBox(width: 4),
           Text(t,
               style: AppFonts.body(
-                  fontSize: 10.5, color: AppColors.slate500)),
+                  fontSize: 13, color: AppColors.slate500)),
         ],
       );
 }
@@ -585,7 +585,7 @@ class _GreetingRow extends StatelessWidget {
             children: [
               Text(row.name,
                   style: AppFonts.body(
-                      fontSize: 12.5,
+                      fontSize: 13,
                       fontWeight: FontWeight.w800,
                       color: AppColors.textPrimary),
                   maxLines: 1,
@@ -602,7 +602,7 @@ class _GreetingRow extends StatelessWidget {
                   Text(
                     row.isAnniversary ? 'Anniversary' : 'Birthday',
                     style: AppFonts.body(
-                        fontSize: 10.5,
+                        fontSize: 13,
                         fontWeight: FontWeight.w600,
                         color: color),
                   ),

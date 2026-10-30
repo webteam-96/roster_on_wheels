@@ -23,6 +23,7 @@ import RotaryLoader from "@/components/RotaryLoader";
 import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import type { RotaryYear } from "@/types/rotaryYear";
+import { ListPageSkeleton } from "@/components/row/AppKit";
 
 interface AGGroup {
   memberId: number;
@@ -313,7 +314,7 @@ export default function AGPage() {
           </div>
           <div className="flex items-center gap-3">
             {!loading && dataYears.length > 0 && (
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2">
                 <Calendar className="h-4 w-4 text-muted-foreground shrink-0" />
                 <Select value={selectedYearId} onValueChange={setSelectedYearId}>
                   <SelectTrigger className="w-[170px]"><SelectValue placeholder="Select year" /></SelectTrigger>
@@ -331,7 +332,7 @@ export default function AGPage() {
           </div>
         </div>
 
-        {(loading || loadingList) && <div className="flex items-center justify-center py-20"><RotaryLoader size="lg" /></div>}
+        {(loading || loadingList) && <div className="flex items-center justify-center py-20"><ListPageSkeleton /></div>}
 
         {!loading && !loadingList && agList.length === 0 && (
           <div className="flex flex-col items-center justify-center py-20 text-center">
@@ -508,7 +509,7 @@ export default function AGPage() {
         <Dialog open={!!deleteTarget} onOpenChange={(o) => { if (!o && !deleting) setDeleteTarget(null); }}>
           <DialogContent className="max-w-sm">
             <DialogHeader>
-              <DialogTitle className="flex items-center gap-2"><AlertTriangle className="h-5 w-5 text-destructive" />Remove Assistant Governor</DialogTitle>
+              <DialogTitle className="flex flex-wrap items-center gap-2"><AlertTriangle className="h-5 w-5 text-destructive" />Remove Assistant Governor</DialogTitle>
               <DialogDescription>Remove {deleteTarget?.memberName} as Assistant Governor? All club assignments will be removed and a removal email will be sent.</DialogDescription>
             </DialogHeader>
             <DialogFooter>

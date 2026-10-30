@@ -33,6 +33,7 @@ import ImageCropDialog from "@/components/ImageCropDialog";
 import { useImageCropUpload } from "@/hooks/useImageCropUpload";
 
 import ProtectedRoute from "@/components/ProtectedRoute";
+import { ListPageSkeleton } from "@/components/row/AppKit";
 
 const PAGE_SIZE = 20;
 
@@ -302,7 +303,7 @@ export default function GroupDetailPage() {
             <Link href={`/districts/${districtId}/district-committee/groups`}><ArrowLeft className="h-4 w-4" /></Link>
           </Button>
           <div>
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <h2 className="text-2xl font-bold tracking-tight text-primary">{groupName || "Group"}</h2>
               {isAutoManaged && (
                 <Badge variant="secondary" className="flex items-center gap-1" title="Auto-managed by BOD: members are added/removed via Board of Directors">
@@ -317,7 +318,7 @@ export default function GroupDetailPage() {
           </div>
         </div>
 
-        {loading && <div className="flex items-center justify-center py-20"><RotaryLoader size="lg" /></div>}
+        {loading && <div className="flex items-center justify-center py-20"><ListPageSkeleton /></div>}
 
         {!loading && (
           <Tabs value={activeTab} onValueChange={setActiveTab}>
@@ -395,7 +396,7 @@ export default function GroupDetailPage() {
                               )}
                             </TableCell>
                             <TableCell>
-                              <div className="flex items-center gap-2">
+                              <div className="flex flex-wrap items-center gap-2">
                                 <span className="font-medium">{m.name}</span>
                                 {m.isMember ? <MemberChip /> : <NonMemberChip />}
                               </div>
@@ -504,7 +505,7 @@ export default function GroupDetailPage() {
                 <div className="space-y-2">
                   <Label>Search Member</Label>
                   <div className="relative">
-                    <div className="flex items-center gap-2">
+                    <div className="flex flex-wrap items-center gap-2">
                       <div className="relative flex-1">
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                         <Input className="pl-9" placeholder="Search by name, mobile, email..." value={memberSearch}

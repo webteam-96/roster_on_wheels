@@ -18,6 +18,7 @@ import RotaryLoader from "@/components/RotaryLoader";
 import SectionHeader from "@/components/dashboard/SectionHeader";
 import DistrictAwardsModule from "@/components/dashboard/DistrictAwardsModule";
 import { getDistrict } from "@/services/api";
+import { ListPageSkeleton } from "@/components/row/AppKit";
 
 export default function DistrictCitationV2Page() {
   const params = useParams();
@@ -38,7 +39,7 @@ export default function DistrictCitationV2Page() {
   }, [districtId]);
 
   if (headerLoading) {
-    return <ProtectedRoute><div className="flex justify-center py-20"><RotaryLoader size="lg" /></div></ProtectedRoute>;
+    return <ProtectedRoute><div className="flex justify-center py-20"><ListPageSkeleton /></div></ProtectedRoute>;
   }
 
   return (

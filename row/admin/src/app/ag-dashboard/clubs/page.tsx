@@ -16,6 +16,7 @@ import { useAgYearId } from "@/hooks/useAgYearId";
 import { clubWebsiteUrl } from "@/lib/clubWebsite";
 
 import { appLocale } from "@/lib/appFormat";
+import { ListPageSkeleton } from "@/components/row/AppKit";
 const PAGE_SIZE = 20;
 
 /* ── Sync + website pills ─────────────────────────────────────────── */
@@ -182,7 +183,7 @@ export default function AgClubsPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-20">
-        <RotaryLoader size="lg" label="Loading AG clubs…" />
+        <ListPageSkeleton />
       </div>
     );
   }
@@ -256,7 +257,7 @@ export default function AgClubsPage() {
               <button
                 onClick={() => setPage((p) => Math.max(1, p - 1))}
                 disabled={page === 1}
-                className="inline-flex items-center gap-1 rounded-md border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-600 shadow-sm hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed"
+                className="inline-flex items-center gap-1 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-600 shadow-sm hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed"
               >
                 <ChevronLeft size={14} /> Prev
               </button>
@@ -266,7 +267,7 @@ export default function AgClubsPage() {
               <button
                 onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                 disabled={page === totalPages}
-                className="inline-flex items-center gap-1 rounded-md border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-600 shadow-sm hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed"
+                className="inline-flex items-center gap-1 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-600 shadow-sm hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed"
               >
                 Next <ChevronRight size={14} />
               </button>

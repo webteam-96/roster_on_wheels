@@ -70,7 +70,7 @@ export default function ConsentGate() {
         onInteractOutside={(e) => e.preventDefault()}
       >
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
+          <DialogTitle className="flex flex-wrap items-center gap-2">
             <ShieldCheck className="h-5 w-5 text-primary" />
             {t("title")}
           </DialogTitle>

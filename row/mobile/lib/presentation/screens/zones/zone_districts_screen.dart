@@ -130,10 +130,6 @@ class _ZoneDistrictsScreenState extends State<ZoneDistrictsScreen>
             color: AppColors.primary,
             child: TabBar(
               controller: _tabController,
-              indicatorColor: Colors.white,
-              indicatorWeight: 3,
-              labelColor: Colors.white,
-              unselectedLabelColor: Colors.white60,
               labelStyle: AppTextStyles.bodySemiBold,
               tabs: const [
                 Tab(text: 'Clubs'),

@@ -33,6 +33,7 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 import RecipientBadge from "@/components/RecipientBadge";
 import ImageCropDialog from "@/components/ImageCropDialog";
 import { useImageCropQueue } from "@/hooks/useImageCropQueue";
+import { ListPageSkeleton } from "@/components/row/AppKit";
 
 // Project photos are shown 16:9 on the public site (components/pages/projects/shared.tsx),
 // so the crop is locked to that shape. 1600×900 keeps the widest card retina-sharp.
@@ -94,7 +95,7 @@ function Section({ icon: Icon, title, number, children }: {
   icon: React.ElementType; title: string; number: number; children: React.ReactNode;
 }) {
   return (
-    <div className="bg-card rounded-xl border shadow-sm overflow-hidden">
+    <div className="bg-card rounded-[20px] border shadow-sm overflow-hidden">
       <div className="flex items-center gap-3 px-5 py-3.5 bg-muted/40 border-b">
         <div className="flex items-center justify-center h-7 w-7 rounded-full bg-primary text-primary-foreground text-xs font-bold">{number}</div>
         <Icon className="h-4 w-4 text-primary" />
@@ -380,7 +381,7 @@ export default function ClubServiceAddPage() {
     return (
       <ProtectedRoute>
         <div className="flex items-center justify-center py-20">
-          <RotaryLoader size="lg" />
+          <ListPageSkeleton />
         </div>
       </ProtectedRoute>
     );
@@ -506,7 +507,7 @@ export default function ClubServiceAddPage() {
         {/* ── 5. Photos ── */}
         <Section icon={Camera} title="Photos" number={5}>
           <div className="space-y-4">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-wrap items-center justify-between gap-3">
               <Req>Upload Photos (1 mandatory, max 5)</Req>
               <span className="text-sm text-muted-foreground">{photos.length}/5</span>
             </div>

@@ -1,0 +1,93 @@
+name: CI
+
+# Build, type check, lint and test. Nothing here deploys.
+# row/club-website and row/district-website are git-ignored, so CI cannot check them.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  dotnet:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        project:
+          - row/api/RotaryApi.csproj
+          - row/workers/AwardsAutoCalcWorker/AwardsAutoCalcWorker.csproj
+          - row/workers/GreetingsWorker/GreetingsWorker.csproj
+          - row/workers/RotaryOrgSyncWorker/RotaryOrgSyncWorker.csproj
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+      # No .NET test projects exist yet; build only.
+      - run: dotnet build ${{ matrix.project }} -c Release --nologo
+
+  admin:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: row/admin
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: row/admin/package-lock.json
+      - run: npm ci
+      - run: npx tsc --noEmit
+      - run: npm test
+      # shortcut: 29 pre-existing lint errors (29 Oct 2026) would fail every run, so lint only reports; make it blocking once they are fixed.
+      - run: npm run lint
+        continue-on-error: true
+
+  website:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: row/website
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: row/website/package-lock.json
+      - run: npm ci
+      # Next 16 route and image types are generated and git-ignored.
+      - run: npx next typegen
+      - run: npx tsc --noEmit
+      - run: npm run lint
+
+  mobile:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    defaults:
+      run:
+        working-directory: row/mobile
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: 3.47.7
+          channel: stable
+          cache: true
+      - run: flutter pub get
+      # shortcut: 21 pre-existing analyzer warnings (29 Oct 2026); only errors fail the run until they are fixed.
+      - run: flutter analyze --no-fatal-infos --no-fatal-warnings
+      - run: flutter test

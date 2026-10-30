@@ -50,6 +50,7 @@ import SearchBox from "@/components/SearchBox";
 import ImageCropDialog from "@/components/ImageCropDialog";
 import DocumentOrLinkField from "@/components/website-data/DocumentOrLinkField";
 import { useImageCropUpload } from "@/hooks/useImageCropUpload";
+import { ListPageSkeleton } from "@/components/row/AppKit";
 
 // Ads are sponsor posters/flyers in many shapes, so the crop stays FREE-FORM
 // (no locked aspect). Matches the upload validator's own 2560 px compression
@@ -231,7 +232,7 @@ export default function DistrictAdvertisementsPage() {
           {canManage && (<Button onClick={openAddDialog} disabled={!selectedYearId}><Plus className="mr-2 h-4 w-4" />Add Advertisement</Button>)}
         </div>
 
-        {loading && (<div className="flex items-center justify-center py-20"><RotaryLoader size="lg" /></div>)}
+        {loading && (<div className="flex items-center justify-center py-20"><ListPageSkeleton /></div>)}
 
         {!loading && allYears.length > 0 && (
           <div className="flex items-center gap-4 flex-wrap">
@@ -245,7 +246,7 @@ export default function DistrictAdvertisementsPage() {
           </div>
         )}
 
-        {loadingAds && (<div className="flex items-center justify-center py-12"><RotaryLoader size="lg" /></div>)}
+        {loadingAds && (<div className="flex items-center justify-center py-12"><ListPageSkeleton /></div>)}
 
         {!loading && !loadingAds && selectedYearId && advertisements.length === 0 && (
           <div className="flex flex-col items-center justify-center py-20 text-center">
@@ -270,7 +271,7 @@ export default function DistrictAdvertisementsPage() {
                     {canManage && !isSearching && (
                       <div
                         {...dragProps(idx)}
-                        className="absolute top-2 left-2 z-10 bg-background/80 backdrop-blur rounded p-1 text-muted-foreground"
+                        className="absolute top-2 left-2 z-10 bg-background rounded p-1 text-muted-foreground"
                         title="Drag to reorder"
                       >
                         <GripVertical className="h-4 w-4 cursor-grab" />
@@ -280,7 +281,7 @@ export default function DistrictAdvertisementsPage() {
                       <div className="relative aspect-video w-full overflow-hidden rounded-md bg-muted">
                         {photoUrl ? (<Image src={photoUrl} alt={ad.description || "Advertisement"} fill className="object-cover" unoptimized />) : (<div className="flex h-full w-full items-center justify-center bg-primary/10 text-primary"><ImageIcon className="h-8 w-8" /></div>)}
                       </div>
-                      <div className="flex items-center justify-between">
+                      <div className="flex flex-wrap items-center justify-between gap-3">
                         <div className="flex-1 min-w-0">
                           <p className="text-sm text-muted-foreground truncate">{ad.description || "No description"}</p>
                           <div className="flex items-center gap-2 mt-1">

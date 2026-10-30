@@ -455,7 +455,7 @@ class _ClubMembersScreenState extends State<ClubMembersScreen> {
                             child: Builder(builder: (context) {
                               final display = _display;
                               return ListView.separated(
-                              padding: const EdgeInsets.fromLTRB(16, 16, 16, 80),
+                              padding: (const EdgeInsets.fromLTRB(16, 16, 16, 80)).add(const EdgeInsets.only(bottom: 88)),
                               itemCount: display.length + 1,
                               separatorBuilder: (_, __) => const SizedBox(height: 8),
                               itemBuilder: (ctx, i) {
@@ -653,7 +653,7 @@ class _MemberTile extends StatelessWidget {
                                       r,
                                       style: AppTextStyles.caption.copyWith(
                                         color: AppColors.primary,
-                                        fontSize: 10,
+                                        fontSize: 13,
                                         fontWeight: FontWeight.w700,
                                       ),
                                     ),
@@ -856,7 +856,7 @@ class _AddMemberDialogState extends State<_AddMemberDialog> {
   @override
   Widget build(BuildContext context) {
     return Dialog(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(20))),
       child: Padding(
         padding: const EdgeInsets.all(20),
         child: Column(
@@ -886,6 +886,7 @@ class _AddMemberDialogState extends State<_AddMemberDialog> {
                           child: Text('No members found', style: AppTextStyles.body.copyWith(color: AppColors.textMuted)),
                         )
                       : ListView.builder(
+  padding: const EdgeInsets.only(bottom: 88),
                           itemCount: _filtered.length,
                           itemBuilder: (ctx, i) {
                             final m = _filtered[i];
@@ -910,7 +911,7 @@ class _AddMemberDialogState extends State<_AddMemberDialog> {
                                   : null,
                               selected: isSelected,
                               selectedTileColor: AppColors.primaryLight,
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                              shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(20))),
                               onTap: () => setState(() => _selectedMemberId = isSelected ? null : m.id),
                               trailing: isSelected
                                   ? const Icon(Icons.check_circle, color: AppColors.primary, size: 20)

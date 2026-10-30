@@ -24,6 +24,7 @@ import Link from "next/link";
 import Image from "next/image";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import MapPicker from "@/components/MapPicker";
+import { ListPageSkeleton } from "@/components/row/AppKit";
 
 export default function EditClubPage() {
   const router = useRouter();
@@ -152,18 +153,18 @@ export default function EditClubPage() {
   }
 
   if (fetching) {
-    return <ProtectedRoute><div className="flex items-center justify-center py-20"><RotaryLoader size="lg" /></div></ProtectedRoute>;
+    return <ProtectedRoute><div className="flex items-center justify-center py-20"><ListPageSkeleton /></div></ProtectedRoute>;
   }
 
   return (
     <ProtectedRoute>
       <form onSubmit={handleSubmit} className="space-y-6">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-4">
             <Button variant="ghost" size="icon" asChild><Link href={backUrl}><ArrowLeft className="h-4 w-4" /></Link></Button>
             <div><h2 className="text-2xl font-bold tracking-tight text-primary">Edit Club</h2><p className="text-muted-foreground text-base">Update club details</p></div>
           </div>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             <Button type="button" variant="outline" onClick={() => router.push(backUrl)}>Cancel</Button>
             <Button type="submit" disabled={loading}>{loading && <RotaryLoader size="sm" />}Update Club</Button>
           </div>
@@ -242,9 +243,9 @@ export default function EditClubPage() {
                 <div className="space-y-2"><Label>Active To Date<span className="text-destructive ml-1">*</span></Label><DateField value={form.activeToDate} onChange={(v: string) => updateForm("activeToDate", v)} required /><p className="text-xs text-muted-foreground">Active To Date is required</p></div>
               </div>
               <div className="space-y-3">
-                <div className="flex items-center gap-2"><input type="checkbox" id="autoReminder" checked={form.isAutomaticMeetingReminder} onChange={(e) => updateForm("isAutomaticMeetingReminder", e.target.checked)} className="h-4 w-4" /><Label htmlFor="autoReminder">Automatic Meeting Reminder</Label></div>
-                <div className="flex items-center gap-2"><input type="checkbox" id="familyLogin" checked={form.isFamilyLogin} onChange={(e) => updateForm("isFamilyLogin", e.target.checked)} className="h-4 w-4" /><Label htmlFor="familyLogin">Family Login</Label></div>
-                <div className="flex items-center gap-2"><input type="checkbox" id="isActive" checked={form.isActive} onChange={(e) => updateForm("isActive", e.target.checked)} className="h-4 w-4" /><Label htmlFor="isActive">Active</Label></div>
+                <div className="flex flex-wrap items-center gap-2"><input type="checkbox" id="autoReminder" checked={form.isAutomaticMeetingReminder} onChange={(e) => updateForm("isAutomaticMeetingReminder", e.target.checked)} className="h-4 w-4" /><Label htmlFor="autoReminder">Automatic Meeting Reminder</Label></div>
+                <div className="flex flex-wrap items-center gap-2"><input type="checkbox" id="familyLogin" checked={form.isFamilyLogin} onChange={(e) => updateForm("isFamilyLogin", e.target.checked)} className="h-4 w-4" /><Label htmlFor="familyLogin">Family Login</Label></div>
+                <div className="flex flex-wrap items-center gap-2"><input type="checkbox" id="isActive" checked={form.isActive} onChange={(e) => updateForm("isActive", e.target.checked)} className="h-4 w-4" /><Label htmlFor="isActive">Active</Label></div>
               </div>
             </CardContent></Card>
           </TabsContent>

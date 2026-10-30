@@ -151,7 +151,7 @@ class _TabPill extends StatelessWidget {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: AppFonts.body(
-                    fontSize: 12,
+                    fontSize: 13,
                     fontWeight: isActive ? FontWeight.w800 : FontWeight.w600,
                     color: isActive ? Colors.white : AppColors.slate500,
                   ),

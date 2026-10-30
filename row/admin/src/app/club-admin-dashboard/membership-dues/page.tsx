@@ -39,6 +39,7 @@ import KpiCard from "@/components/dashboard/KpiCard";
 import { fmtInr, fmtInrShort } from "@/components/dashboard/formatters";
 import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
+import { ListPageSkeleton } from "@/components/row/AppKit";
 
 interface DuesSetup {
   id: number;
@@ -165,7 +166,7 @@ export default function ClubAdminMembershipDuesPage() {
   if (status === "loading" && !membershipDues && !overview) {
     return (
       <div className="flex items-center justify-center py-20">
-        <RotaryLoader size="lg" label="Loading Club Dues…" />
+        <ListPageSkeleton />
       </div>
     );
   }
@@ -229,7 +230,7 @@ export default function ClubAdminMembershipDuesPage() {
             <button
               type="button"
               onClick={() => router.push("/settings/membership-dues/create")}
-              className="inline-flex items-center gap-1.5 rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-blue-700"
+              className="inline-flex items-center gap-1.5 rounded-full bg-[#17458F] px-3 py-1.5 text-xs font-semibold text-white hover:bg-[#17458F]"
             >
               <Plus size={13} /> Create Dues Setup
             </button>
@@ -287,8 +288,8 @@ export default function ClubAdminMembershipDuesPage() {
       {/* Dues records table — new-design styling: slate-50 header, light rows */}
       <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
         <div className="overflow-x-auto">
-          <table className="min-w-full text-sm">
-            <thead className="bg-slate-50 text-xs uppercase text-slate-500">
+          <table className="w-full min-w-[640px] md:min-w-full text-sm">
+            <thead className="bg-[#EDF4FB] text-[13px] text-[#64748B]">
               <tr>
                 <th className="px-3 py-2.5 text-left font-semibold w-[60px]">Sr. No.</th>
                 <th className="px-3 py-2.5 text-left font-semibold">Year</th>

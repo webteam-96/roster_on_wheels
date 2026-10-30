@@ -605,7 +605,7 @@ class _Badge extends StatelessWidget {
         style: AppTextStyles.caption.copyWith(
           color: soft ? color : Colors.white,
           fontWeight: FontWeight.w600,
-          fontSize: 11,
+          fontSize: 13,
         ),
       ),
     );

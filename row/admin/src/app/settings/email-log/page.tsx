@@ -39,12 +39,12 @@ function typeBadge(type: string | null) {
   if (!type) return <span className="text-slate-400">, </span>;
   const palette: Record<string, string> = {
     "OTP":                        "bg-blue-100   text-blue-700   border-blue-200",
-    "Mass Email":                 "bg-violet-100 text-violet-700 border-violet-200",
-    "Citation":                   "bg-orange-100 text-orange-700 border-orange-200",
-    "Monthly Report":             "bg-teal-100   text-teal-700   border-teal-200",
-    "Newsletter":                 "bg-fuchsia-100 text-fuchsia-700 border-fuchsia-200",
+    "Mass Email":                 "bg-[#CFE2F6] text-violet-700 border-violet-200",
+    "Citation":                   "bg-[#FFC65C] text-orange-700 border-orange-200",
+    "Monthly Report":             "bg-[#CFE2F6]   text-teal-700   border-teal-200",
+    "Newsletter":                 "bg-[#CFE2F6] text-fuchsia-700 border-fuchsia-200",
     "KYC":                        "bg-rose-100   text-rose-700   border-rose-200",
-    "Club Website":               "bg-indigo-100 text-indigo-700 border-indigo-200",
+    "Club Website":               "bg-[#CFE2F6] text-indigo-700 border-indigo-200",
     "Password Reset":             "bg-amber-100  text-amber-700  border-amber-200",
     "Password Changed":           "bg-amber-100  text-amber-700  border-amber-200",
     "SuperAdmin":                 "bg-red-100    text-red-700    border-red-200",
@@ -52,7 +52,7 @@ function typeBadge(type: string | null) {
     "Login Credentials":          "bg-emerald-100 text-emerald-700 border-emerald-200",
     "Welcome":                    "bg-green-100  text-green-700  border-green-200",
     "Role / Membership Removed":  "bg-slate-200  text-slate-700  border-slate-300",
-    "Club Leadership":            "bg-purple-100 text-purple-700 border-purple-200",
+    "Club Leadership":            "bg-[#CFE2F6] text-purple-700 border-purple-200",
     "Reminder":                   "bg-yellow-100 text-yellow-700 border-yellow-200",
     "Attachment":                 "bg-stone-100  text-stone-700  border-stone-200",
     "Other":                      "bg-slate-100  text-slate-600  border-slate-200",
@@ -172,7 +172,7 @@ export default function EmailLogPage() {
   return (
     <ProtectedRoute requireSuperAdmin>
       <div className="p-6 max-w-7xl mx-auto space-y-4">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
             <h1 className="text-2xl font-bold flex items-center gap-2"><Mail className="h-6 w-6" /> Email Log</h1>
             <p className="text-sm text-slate-500">Every email sent via Brevo. Click a row to view the full HTML body.</p>
@@ -213,7 +213,7 @@ export default function EmailLogPage() {
                   </SelectContent>
                 </Select>
               </div>
-              <div className="md:col-span-5 flex gap-2 mt-1">
+              <div className="md:col-span-5 flex flex-wrap gap-2 mt-1">
                 <Button onClick={() => fetchLogs(1)} className="flex-1 md:flex-none"><Search className="h-4 w-4 mr-1" /> Search</Button>
                 <Button variant="outline" onClick={resetFilters}><RotateCcw className="h-4 w-4 mr-1" /> Reset</Button>
                 <Button variant="outline" onClick={handleExport} disabled={exporting || total === 0} title="Export the current filtered rows to Excel">
@@ -262,7 +262,7 @@ export default function EmailLogPage() {
             {total > pageSize && (
               <div className="p-3 flex items-center justify-between text-xs border-t">
                 <div>Showing {(page - 1) * pageSize + 1}–{Math.min(page * pageSize, total)} of {total}</div>
-                <div className="flex gap-2">
+                <div className="flex flex-wrap gap-2">
                   <Button size="sm" variant="outline" disabled={page <= 1} onClick={() => fetchLogs(page - 1)}>Prev</Button>
                   <span>Page {page} / {totalPages}</span>
                   <Button size="sm" variant="outline" disabled={page >= totalPages} onClick={() => fetchLogs(page + 1)}>Next</Button>
