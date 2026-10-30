@@ -22,6 +22,9 @@ import SyncProjectsToRotaryOrgCard from "@/components/dashboard/SyncProjectsToRo
 import GrowthCard from "@/components/growth/GrowthCard";
 import { ListPageSkeleton } from "@/components/row/AppKit";
 
+// Series colours are tuned for bars; as small text on white the orange and green are too faint (<3:1).
+const textShade = (c: string) => (c === "#F7A81B" ? "#8A5B08" : c === "#16a34a" ? "#15803D" : c);
+
 export default function ClubAdminDashboardOverviewPage() {
   const { overview, status, yearId } = useClubAdminCache();
   const router = useRouter();
@@ -157,7 +160,7 @@ export default function ClubAdminDashboardOverviewPage() {
               <div key={s.label}>
                 <div className="flex justify-between mb-0.5">
                   <span className="text-xs text-slate-500">{s.label}</span>
-                  <span className="text-xs font-semibold" style={{ color: s.color }}>{s.value}</span>
+                  <span className="text-xs font-semibold" style={{ color: textShade(s.color) }}>{s.value}</span>
                 </div>
                 <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
                   <div className="h-full rounded-full" style={{ width: `${data.totalMembers > 0 ? (s.value / data.totalMembers) * 100 : 0}%`, backgroundColor: s.color }} />
@@ -180,7 +183,7 @@ export default function ClubAdminDashboardOverviewPage() {
             <div key={r.label} className="mb-2.5">
               <div className="flex justify-between mb-1">
                 <span className="text-xs text-slate-500">{r.label}</span>
-                <span className="text-xs font-semibold" style={{ color: r.color }}>
+                <span className="text-xs font-semibold" style={{ color: textShade(r.color) }}>
                   {r.suffix ? `${r.val}${r.suffix}` : fmtUsd(r.val)}
                 </span>
               </div>
@@ -264,8 +267,8 @@ export default function ClubAdminDashboardOverviewPage() {
                   </linearGradient>
                 </defs>
                 <CartesianGrid vertical={false} stroke="#edf4fb" />
-                <XAxis dataKey="month" tick={{ fontSize: 11, fill: "#8796aa" }} />
-                <YAxis tick={{ fontSize: 11, fill: "#8796aa" }} width={28} />
+                <XAxis dataKey="month" tick={{ fontSize: 11, fill: "#66768C" }} />
+                <YAxis tick={{ fontSize: 11, fill: "#66768C" }} width={28} />
                 <Tooltip contentStyle={{ fontSize: 12, borderRadius: 6 }} />
                 <Legend wrapperStyle={{ fontSize: 11 }} />
                 <Area type="monotone" dataKey="male" name="Male" stroke="#17458F" fill="url(#grMale)" strokeWidth={2} />

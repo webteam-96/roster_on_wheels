@@ -433,6 +433,20 @@ builder.Services.AddDataProtection()
 
 var app = builder.Build();
 app.UseForwardedHeaders(); // first, so the rate limiter, audit log and HTTPS checks see the real client
+// Hosted as the IIS application "/api" inside the site (test go-live, row/deploy/iis/README.md): IIS moves "/api" into
+// PathBase, but every route starts with "api/", so put it back. Media folders (uploads, Documents, ...) are served
+// from wwwroot at the app root and keep the stripped path.
+app.Use((ctx, next) =>
+{
+    var media = ctx.Request.Path.StartsWithSegments("/uploads") || ctx.Request.Path.StartsWithSegments("/Documents")
+        || ctx.Request.Path.StartsWithSegments("/tempdocument") || ctx.Request.Path.StartsWithSegments("/images");
+    if (!media && ctx.Request.PathBase.Equals("/api", StringComparison.OrdinalIgnoreCase))
+    {
+        ctx.Request.Path = ctx.Request.PathBase.Add(ctx.Request.Path);
+        ctx.Request.PathBase = PathString.Empty;
+    }
+    return next();
+});
 
 // Startup banner — tells the morning admin which background services are
 // armed without having to grep the codebase. Visible in stdout / Plesk log
@@ -708,6 +722,8 @@ app.Use(async (ctx, next) =>
     }
 });
 
+// Explicit, so routes match AFTER the "/api" PathBase fix near the top (an implicit UseRouting runs first and 404s).
+app.UseRouting();
 app.UseCors();
 app.UseMiddleware<RotaryApi.Services.FeatureGateMiddleware>(); // skipped / switched-off modules answer 404
 app.UseRateLimiter();

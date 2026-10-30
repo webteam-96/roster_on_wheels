@@ -33,6 +33,7 @@ import SearchBox from "@/components/SearchBox";
 
 import { appLocale, currencySymbol } from "@/lib/appFormat";
 import { ListPageSkeleton } from "@/components/row/AppKit";
+import Pagination from "@/components/Pagination";
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
 // Read-only preview of the member's submitted offline payment — shown inside
@@ -706,16 +707,16 @@ export default function ClubMembershipDuesMembersPage() {
               <Table>
                 <TableHeader>
                   <TableRow className="bg-primary hover:bg-primary">
-                    <TableHead className="text-primary-foreground w-[50px]">Sr.</TableHead>
-                    <TableHead className="text-primary-foreground">Name</TableHead>
-                    <TableHead className="text-primary-foreground">Category</TableHead>
+                    <TableHead className="w-[50px]">Sr.</TableHead>
+                    <TableHead>Name</TableHead>
+                    <TableHead>Category</TableHead>
                     {enabledFeeTypes.map(ft => (
                       <TableHead key={ft.type} className="text-primary-foreground text-center">{ft.label}</TableHead>
                     ))}
-                    <TableHead className="text-primary-foreground text-center">Offline Entry</TableHead>
-                    <TableHead className="text-primary-foreground text-center">Reminder</TableHead>
-                    <TableHead className="text-primary-foreground text-center">Receipt</TableHead>
-                    <TableHead className="text-primary-foreground text-center">Approve/Reject</TableHead>
+                    <TableHead className="text-center">Offline Entry</TableHead>
+                    <TableHead className="text-center">Reminder</TableHead>
+                    <TableHead className="text-center">Receipt</TableHead>
+                    <TableHead className="text-center">Approve/Reject</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -799,11 +800,7 @@ export default function ClubMembershipDuesMembersPage() {
 
             {/* Pagination */}
             {totalPages > 1 && (
-              <div className="flex items-center justify-center gap-2 mt-4">
-                <Button size="sm" variant="outline" onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1}>Prev</Button>
-                <span className="text-sm text-muted-foreground">Page {currentPage} of {totalPages}</span>
-                <Button size="sm" variant="outline" onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} disabled={currentPage === totalPages}>Next</Button>
-              </div>
+              <div className="mt-4"><Pagination page={currentPage} totalPages={totalPages} totalCount={members.length} pageSize={pageSize} onPageChange={setCurrentPage} /></div>
             )}
           </>
         )}

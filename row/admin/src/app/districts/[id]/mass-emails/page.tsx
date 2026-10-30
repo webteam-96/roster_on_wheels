@@ -20,6 +20,7 @@ import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";
 
 import { appLocale } from "@/lib/appFormat";
+import Pagination from "@/components/Pagination";
 interface MassEmailItem {
   id: number; subject: string; status: string; recipientType: number;
   totalRecipients: number; sentCount: number; failedCount: number;
@@ -148,13 +149,7 @@ export default function DistrictMassEmailsPage() {
               </TableBody>
             </Table>
             {totalPages > 1 && (
-              <div className="flex items-center justify-between mt-4">
-                <p className="text-sm text-muted-foreground">Showing {(page - 1) * pageSize + 1}-{Math.min(page * pageSize, totalCount)} of {totalCount}</p>
-                <div className="flex flex-wrap gap-2">
-                  <Button variant="outline" size="sm" onClick={() => setPage(p => p - 1)} disabled={page <= 1}>Previous</Button>
-                  <Button variant="outline" size="sm" onClick={() => setPage(p => p + 1)} disabled={page >= totalPages}>Next</Button>
-                </div>
-              </div>
+              <div className="mt-4"><Pagination page={page} totalPages={totalPages} totalCount={totalCount} pageSize={pageSize} onPageChange={setPage} /></div>
             )}
           </CardContent></Card>
         )}

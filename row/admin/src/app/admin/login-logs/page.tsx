@@ -181,13 +181,13 @@ export default function LoginLogsPage() {
                 <Table>
                   <TableHeader>
                     <TableRow className="bg-primary hover:bg-primary">
-                      <TableHead className="text-primary-foreground">Status</TableHead>
-                      <TableHead className="text-primary-foreground">Name</TableHead>
-                      <TableHead className="text-primary-foreground">Email / Mobile</TableHead>
-                      <TableHead className="text-primary-foreground">Login Time</TableHead>
-                      <TableHead className="text-primary-foreground">IP Address</TableHead>
-                      <TableHead className="text-primary-foreground">Reason</TableHead>
-                      <TableHead className="text-primary-foreground">Browser</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Name</TableHead>
+                      <TableHead>Email / Mobile</TableHead>
+                      <TableHead>Login Time</TableHead>
+                      <TableHead>IP Address</TableHead>
+                      <TableHead>Reason</TableHead>
+                      <TableHead>Browser</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>

@@ -24,6 +24,7 @@ import { User, LogOut, Key, Settings, Clock, ClipboardList, Bell } from "@/compo
 import ChangePasswordDialog from "@/components/ChangePasswordDialog";
 import LanguagePicker from "@/components/LanguagePicker";
 import BrandLogo from "@/components/BrandLogo";
+import SuperAdminBackToSearch from "@/components/SuperAdminBackToSearch";
 
 import { appLocale } from "@/lib/appFormat";
 function formatTime(totalSeconds: number): string {
@@ -156,6 +157,7 @@ export default function AppHeader() {
           </nav>
 
           <div className="flex flex-wrap items-center gap-2">
+            {isAuthenticated && <SuperAdminBackToSearch />}
             {isAuthenticated && sessionRemaining > 0 && (
               <div className={`hidden sm:flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-full ${isSessionLow ? "bg-red-500 text-white animate-pulse" : "bg-muted text-foreground"}`}>
                 <Clock className="h-3 w-3" />

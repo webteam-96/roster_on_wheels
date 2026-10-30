@@ -20,6 +20,7 @@ import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";
 
 import { appLocale } from "@/lib/appFormat";
+import Pagination from "@/components/Pagination";
 function formatDate(d: string | null) {
   if (!d) return "–";
   const dt = new Date(d);
@@ -29,9 +30,9 @@ function formatDate(d: string | null) {
 
 function statusBadge(status: string) {
   const cls =
-    status === "Sent" ? "bg-emerald-500 hover:bg-emerald-600" :
+    status === "Sent" ? "bg-emerald-700 hover:bg-emerald-800" :
     status === "Failed" ? "bg-red-500 hover:bg-red-600" :
-    "bg-amber-500 hover:bg-amber-600";
+    "bg-amber-700 hover:bg-amber-800";
   return <Badge className={cls}>{status}</Badge>;
 }
 
@@ -260,14 +261,7 @@ export default function EmailLogPage() {
             )}
 
             {total > pageSize && (
-              <div className="p-3 flex items-center justify-between text-xs border-t">
-                <div>Showing {(page - 1) * pageSize + 1}–{Math.min(page * pageSize, total)} of {total}</div>
-                <div className="flex flex-wrap gap-2">
-                  <Button size="sm" variant="outline" disabled={page <= 1} onClick={() => fetchLogs(page - 1)}>Prev</Button>
-                  <span>Page {page} / {totalPages}</span>
-                  <Button size="sm" variant="outline" disabled={page >= totalPages} onClick={() => fetchLogs(page + 1)}>Next</Button>
-                </div>
-              </div>
+              <div className="p-3 border-t"><Pagination page={page} totalPages={totalPages} totalCount={total} pageSize={pageSize} onPageChange={fetchLogs} /></div>
             )}
           </CardContent>
         </Card>

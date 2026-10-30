@@ -121,7 +121,7 @@ export default function PublicFooter() {
                   {MERCHANT.phones.map((phone) => (
                     <a key={phone} href={telHref(phone)} className="hover:text-white block">{phone}</a>
                   ))}
-                  <span className="text-[11px] text-slate-400 block mt-0.5">{MERCHANT.workingHours}</span>
+                  <span className="text-[11px] text-white/70 block mt-0.5">{MERCHANT.workingHours}</span>
                 </span>
               </li>
               <li className="flex items-start gap-2">
@@ -141,11 +141,11 @@ export default function PublicFooter() {
 
         {/* Bottom row */}
         <div className="mt-12 pt-6 border-t flex flex-col md:flex-row items-start md:items-center justify-between gap-3" style={{ borderColor: "rgba(255,255,255,0.08)" }}>
-          <p className="text-xs text-slate-400">
+          <p className="text-xs text-white/70">
             © {year} {MERCHANT.legalName}. All rights reserved.
           </p>
           {usesCashfree && (
-            <p className="text-[11px] text-slate-500">
+            <p className="text-[11px] text-white/70">
               Payments powered by Cashfree Payments India Pvt. Ltd. · INR (₹) only
             </p>
           )}

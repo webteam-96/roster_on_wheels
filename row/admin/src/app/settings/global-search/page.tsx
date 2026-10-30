@@ -13,6 +13,7 @@ import {
 } from "@/components/icons";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { globalSearchAll, type GlobalSearchResult, type GlobalSearchRow } from "@/services/api";
+import Pagination from "@/components/Pagination";
 
 type ResultRow = GlobalSearchRow & { type: "zone" | "district" | "club" };
 
@@ -426,19 +427,7 @@ export default function GlobalSearchPage() {
             })}
 
             {pageCount > 1 && (
-              <div className="flex flex-wrap items-center justify-between gap-2 pt-2">
-                <span className="text-xs text-slate-500">Page {safePage} of {pageCount}</span>
-                <div className="flex items-center gap-1">
-                  <button type="button" disabled={safePage === 1} onClick={() => setPage(1)}
-                    className="h-7 rounded-md border border-slate-200 px-2 text-xs text-slate-600 hover:bg-slate-50 disabled:opacity-40">First</button>
-                  <button type="button" disabled={safePage === 1} onClick={() => setPage((p) => p - 1)}
-                    className="h-7 rounded-md border border-slate-200 px-2 text-xs text-slate-600 hover:bg-slate-50 disabled:opacity-40">Previous</button>
-                  <button type="button" disabled={safePage === pageCount} onClick={() => setPage((p) => p + 1)}
-                    className="h-7 rounded-md border border-slate-200 px-2 text-xs text-slate-600 hover:bg-slate-50 disabled:opacity-40">Next</button>
-                  <button type="button" disabled={safePage === pageCount} onClick={() => setPage(pageCount)}
-                    className="h-7 rounded-md border border-slate-200 px-2 text-xs text-slate-600 hover:bg-slate-50 disabled:opacity-40">Last</button>
-                </div>
-              </div>
+              <div className="pt-2"><Pagination page={safePage} totalPages={pageCount} totalCount={totalCount} pageSize={PAGE_SIZE} onPageChange={setPage} /></div>
             )}
           </div>
         )}

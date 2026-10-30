@@ -394,14 +394,14 @@ export default function DistrictAdminMembershipPage() {
                         className="hover:opacity-100 border-b-2 border-marigold"
                         style={{ backgroundColor: "#17458f" }}
                       >
-                        <TableHead className="w-12 text-white/90"></TableHead>
-                        <TableHead className="text-white text-xs font-semibold uppercase tracking-wide">Member Name</TableHead>
-                        <TableHead className="hidden md:table-cell text-white text-xs font-semibold uppercase tracking-wide">Rotary ID</TableHead>
-                        <TableHead className="hidden md:table-cell text-white text-xs font-semibold uppercase tracking-wide">Email</TableHead>
-                        <TableHead className="hidden lg:table-cell text-white text-xs font-semibold uppercase tracking-wide">Phone</TableHead>
-                        <TableHead className="hidden lg:table-cell text-white text-xs font-semibold uppercase tracking-wide">Club</TableHead>
-                        <TableHead className="text-white text-xs font-semibold uppercase tracking-wide">Roles</TableHead>
-                        <TableHead className="w-12 text-white/90"></TableHead>
+                        <TableHead className="w-12/90"></TableHead>
+                        <TableHead className="text-xs font-semibold uppercase tracking-wide">Member Name</TableHead>
+                        <TableHead className="hidden md:table-cell text-xs font-semibold uppercase tracking-wide">Rotary ID</TableHead>
+                        <TableHead className="hidden md:table-cell text-xs font-semibold uppercase tracking-wide">Email</TableHead>
+                        <TableHead className="hidden lg:table-cell text-xs font-semibold uppercase tracking-wide">Phone</TableHead>
+                        <TableHead className="hidden lg:table-cell text-xs font-semibold uppercase tracking-wide">Club</TableHead>
+                        <TableHead className="text-xs font-semibold uppercase tracking-wide">Roles</TableHead>
+                        <TableHead className="w-12/90"></TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>

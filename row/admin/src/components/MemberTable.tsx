@@ -69,16 +69,16 @@ export default function MemberTable({
       <Table>
         <TableHeader>
           <TableRow className="bg-primary hover:bg-primary">
-            <TableHead className="w-12 text-primary-foreground"></TableHead>
-            <TableHead className="text-primary-foreground text-base font-semibold">Name</TableHead>
-            <TableHead className="hidden md:table-cell text-primary-foreground text-base font-semibold">Rotary ID</TableHead>
-            <TableHead className="hidden md:table-cell text-primary-foreground text-base font-semibold">Role</TableHead>
-            <TableHead className="hidden lg:table-cell text-primary-foreground text-base font-semibold">Business</TableHead>
-            <TableHead className="hidden md:table-cell text-primary-foreground text-base font-semibold">City</TableHead>
-            <TableHead className="hidden sm:table-cell text-primary-foreground text-base font-semibold">Phone</TableHead>
-            <TableHead className="hidden lg:table-cell text-primary-foreground text-base font-semibold">Email</TableHead>
-            {showBloodGroup && <TableHead className="hidden sm:table-cell text-primary-foreground text-base font-semibold">Blood Group</TableHead>}
-            <TableHead className="w-12 text-primary-foreground"></TableHead>
+            <TableHead className="w-12"></TableHead>
+            <TableHead className="text-base font-semibold">Name</TableHead>
+            <TableHead className="hidden md:table-cell text-base font-semibold">Rotary ID</TableHead>
+            <TableHead className="hidden md:table-cell text-base font-semibold">Role</TableHead>
+            <TableHead className="hidden lg:table-cell text-base font-semibold">Business</TableHead>
+            <TableHead className="hidden md:table-cell text-base font-semibold">City</TableHead>
+            <TableHead className="hidden sm:table-cell text-base font-semibold">Phone</TableHead>
+            <TableHead className="hidden lg:table-cell text-base font-semibold">Email</TableHead>
+            {showBloodGroup && <TableHead className="hidden sm:table-cell text-base font-semibold">Blood Group</TableHead>}
+            <TableHead className="w-12"></TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>

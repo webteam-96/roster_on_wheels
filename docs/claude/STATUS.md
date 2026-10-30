@@ -172,7 +172,7 @@ current session's ask and proof only.
   build ok. Final runs: app tour 101 screens 0 problems; web crawl Club Admin 130, District Admin 94, AG 11,
   Super Admin 321 routes x 2 widths, 0 layout problems after fixing the one flag (role-config 3px overflow,
   re-checked 0px). 98 Super Admin pages log API 404s in the console (SA has no club/district of its own there).
-  Screenshots refreshed in E:\websites\row-design-screenshots\2026-10-29\ (outside the repo).
+  Screenshots refreshed in E:\websites\row\_local\design-screenshots\2026-10-29\ (outside the repo).
 ow-design-screenshots6-10-29\ (outside the repo).
 - NOT DONE / NOT VERIFIED: bottom-sheet forms inside app module screens (tour does not open them); SuperAdmin
   viewing club/district-admin dashboards without a selected club/district shows bare "Failed to load" alerts or
@@ -196,7 +196,7 @@ ow-design-screenshots6-10-29\ (outside the repo).
 Asked: same designs/templates as the RIZones club site, 11 themes (no madras-legacy, handloom), ROW branding,
 full rewrite to Next.js routes, delete earlier club + district themes.
 Done (with proof):
-- Old themes archived to E:\websites\row-theme-archive-2026-10-29\ then deleted. District site src restored from
+- Old themes archived to E:\websites\row\_local\archive\theme-archive-2026-10-29\ then deleted. District site src restored from
   district-website.bak-2026-10-29 (diff -rq identical; tsc exit 0).
 - Foundation: src/site (routes, menus, media, config, ClubContext, YearSelect, ThemeScripts, SitePage, clubApi +
   http + apiCache server-safe), src/themes (assets, registry, shared/{loaders,homeData,rotaryPage,money,
@@ -279,6 +279,115 @@ NOT VERIFIED / open:
 
 ## 2026-10-30: district website code removed (user: "remove all the code related to the district website which was done")
 - User chose "site folders only": deleted row/district-website and row/district-website.bak-2026-10-29 (both
-  git-ignored, never committed). Archive first: E:\websites\row-district-website-archive-2026-10-30.tar.gz (168
+  git-ignored, never committed). Archive first: E:\websites\row\_local\archive\row-district-website-archive-2026-10-30.tar.gz (168
   files, node_modules/.next excluded). Kept: API DistrictWebsitePublicDataController and admin district Website Data
   screens, for the owner's district themes code later. Events and QR code also comes from the owner later.
+
+## 2026-10-30: prepare test go-live (IIS, test.rosteronwheels.com, production DB)
+Done (with proof):
+- Backup: E:\websites\row\_local\backups\row_production-2026-10-30-before-golive.sql (19.4 MB, "Dump completed").
+- Correction given to the user: the startup routine is NOT purely "nothing dropped" in code; the measured change
+  for row_production was additive only (schema diff before: 61 tables/25 columns only local, 0 only in prod).
+- Startup routine run once against row_production (background jobs, reminders, daily stats, translation off; no
+  bootstrap password). After: all 25 columns present; tables 194 -> 249; remaining local-only tables are
+  bak_member_dup_merge (local test leftover), 3 created on first use (district_cmr_email_settings,
+  member_dup_ignored, member_dup_remark) and the 2027-28 year tables (rollover).
+- Theme list applied to row_production: 0 -> 11 rows.
+- Builds in E:\websites\row\_local\deploy\ (not git): api (dotnet publish Release, no Development settings; prod
+  appsettings has no secrets), admin (standalone, 135 MB, 0 localhost URLs, 112 chunks with the test host),
+  club-website (standalone, 49 MB). IIS files: row/deploy/iis/admin-site.web.config (one host: /api, /uploads,
+  /Documents, /tempdocument proxied to 127.0.0.1:5080), club-website web.config + INTERNAL_API_URL,
+  row/deploy/iis/README.md (server steps, environment table, smoke test). HANDOFF updated.
+NOT done / open:
+- Nothing deployed: copying to the IIS server, DNS, SSL, server env secrets = user/server team.
+- Club website host names not chosen; no club_websites row in production yet.
+- Admin@123 check on production admin accounts: denied to Claude (credential exploration); user to check.
+- Git push from 2026-10-29/30 still blocked (OAuth token lacks `workflow` scope); new deploy files uncommitted.
+
+## 2026-10-30 (late): test go-live follow-ups (IN PROGRESS)
+- Admin uploaded to test.rosteronwheels.com httpdocs root by the user: login page loads (http only; needs Let's
+  Encrypt in Plesk). Server = Plesk on IIS; add-ons already installed. The user's uploaded web.config may be the
+  OLD one (proxy to 127.0.0.1:5080): replace with row-deploy\web\admin\web.config (proxy -> api.test subdomain).
+- NEW user layout (FACTS 2026-10-30): everything on test.rosteronwheels.com: "/" = ROW public website
+  (row/website), Login -> admin login/panels, backend in an `api` folder. Conflict to solve: two Next.js apps on
+  one host. Plan: website (row/website) answers the marketing paths (/, /pricing, /faq, /club-management,
+  /district-management, /how-to-get-started, /mobile-app, /about-us, /contact-us, legal pages) via IIS rewrite
+  (proxy to the website app on its own Plesk subdomain or port); everything else (login, dashboards, /api...) =
+  admin. Admin's own RIZones-era (site) pages at the same paths would be shadowed. API "folder": the API as an
+  IIS application at /api needs PathBase handling (routes already start with /api) -> verify before choosing.
+- Accounts (approved by the user): new password for SuperAdmin member 1 + one TEST account per ROW
+  role type in row_production. Not done yet: list roles (roles table) first, then create.
+- Login credentials: none known for production; give the user the new ones once created.
+- 2026-10-30 14:57: NEW production password set for SuperAdmin member 1; stored hash verified; password in E:\websites\row\_local\backups\test-logins.txt (outside git); rollback SQL beside it. Test accounts per role: NOT created yet (existing club not named).
+- 2026-10-30 15:10: Server folder (user screenshot): D:\Inetpub\vhosts\rosteronwheels.com\test.rosteronwheels.com = site root with admin frontend files at root + api folder (backend). Plan now: api folder = IIS application at /api (Program.cs restores /api prefix; PathBase cleared in appsettings.Production.json); root web.config rewrites media to api/. Not yet verified on the server.
+- 2026-10-30 15:40: Plesk: created virtual directory 'api' -> /test.rosteronwheels.com/api with Create application (done in browser at user's request). API now runs: /api/... returns the API's own JSON 500 (every route), i.e. a startup-config/DB problem inside the API; api\web.config on the server most likely lacks the environment variables. NOT VERIFIED which.
+- 2026-10-30 15:45: E:\websites\row\_local\deploy\api\web.config now holds the full server settings (prod DB conn from row/.env, new JWT + visit secrets). Outside git. Tested locally with those settings: /api/public/brand 200.
+- 2026-10-30 15:50: Live /api returned 404 after web.config: implicit UseRouting matched before the /api PathBase fix. Added explicit app.UseRouting() before UseCors in Program.cs; republished row-deploy\api (server web.config kept). Local 200; IIS path NOT VERIFIED until uploaded.
+- 2026-10-30 15:55: LIVE: https://test.rosteronwheels.com/api/public/brand 200; POST /api/auth/login with empty body 400 (route reached). Login by user not yet confirmed.
+- 2026-10-30 16:10: Tester login fails with 'Network problem': live cert on test.rosteronwheels.com is CN=rosteronwheels.com (Let's Encrypt), name mismatch (SEC_E_WRONG_PRINCIPAL). Browsers that did not click through the warning block the https /api calls. Fix: Let's Encrypt cert for test.rosteronwheels.com in Plesk. Live sweep of 10 settings pages: all API calls 200; /api/districts?pageSize=9999 takes ~3.9s.
+- 2026-10-30 16:40 LIVE TEST (SuperAdmin, read-only), test.rosteronwheels.com:
+  - OK: login, global search, all 41 /settings pages, /admin/login-logs, /clubs, /goal-overviews, district dashboard
+    (district 2031) 26 sections, club dashboard 22 sections: no API errors.
+  - BUG: /district-admin-dashboard/payment-accounts and /club-admin-dashboard/payment-accounts show "Something went
+    wrong": admin calls /api/payments/accounts and /api/payments/coverage (admin/src/services/api.ts:6676-6685) but no
+    API controller serves them (404). Payments wait for Stripe; page should be hidden or the API built. Not fixed.
+  - SLOW: /api/districts?pageSize=9999&isActive=1 ~3.9 s (settings/district-governor, settings/tenants, others).
+  - Expected (not bugs): /zones, /members, /report have no index page (404); flagged-off modules redirect to /admin;
+    wallet "not available" (modules.wallet=false); /ag-reports "Access Denied" for SuperAdmin; /planning -> /admin.
+  - District 2031 shows 0 members (data, not verified why).
+  - TLS: cert is for rosteronwheels.com, not test.rosteronwheels.com -> other browsers get "Network problem" on login.
+
+## 2026-10-30: Rotary.org data (outside India)
+- Asked: compare ROW's Rotary.org code with RIZones, fix gaps, fetch clubs/districts/members outside India (Monrovia first).
+- Done (proof in chat): code compared file by file; every RIZones Rotary.org file has a ROW copy; differences are deliberate
+  ROW changes; ClubProfileReport not ported on purpose (ROW-CHANGES.md:193). No code gap fixed (none found).
+  `--ping` with the RIZones login: auth OK, /clubs 4215 clubs, 65 outside India.
+  `--world-clubs --dry-run` on row_production: 222 countries, 31749 clubs on Rotary.org, 31726 already in DB, 23 would be
+  inserted, 0 new districts, 0 errors, no writes, no email.
+- Production (read-only check): 31729 active clubs, 64 synced (2056 members), 30312 clubs with no enabled module
+  (world import adds clubs without modules). Monrovia (Liberia, D9101) synced, 65 members, 30 modules;
+  Monrovia (USA, D5300) non-sync, 0 members, 0 modules.
+- Done 2026-10-30 (user OK): default modules backfill on row_production via POST /api/clubs/modules/bulk-assign-defaults-to-empty
+  (SuperAdmin session on test.rosteronwheels.com): 200, clubsTouched 30312, rowsInserted 848736. DB check: 0 of 31729
+  clubs without an enabled module; Monrovia USA (28409) now 28 modules.
+- Done 2026-10-30 16:42 (user OK): `--world-clubs` on row_production: 23 clubs inserted, 0 districts, 0 errors (222
+  countries). Default modules for them by the same INSERT as the backfill endpoint (browser session had expired):
+  644 rows; 0 of 31752 active clubs without a module.
+- 2026-10-30: top tab bar on /district-admin-dashboard/egovernance had an inline #17458f background (grey labels on
+  blue); removed. Local, NOT deployed.
+- 2026-10-30 UI fixes (local, NOT deployed to live): 507 table header cells in 71 admin files had white text over the
+  light `TableHead` background, now use the standard dark text; SuperAdmin "Back to Search" button now has a spacer
+  so it no longer covers pagination. tsc 0 errors. NOT VERIFIED in browser yet.
+- 2026-10-30: tab bars showed a vertical scrollbar (TabsList overflow-x-auto implies overflow-y auto); added overflow-y-hidden in components/ui/tabs.tsx (31 files use it). Local, NOT deployed.
+- Open: pagination looks different on different pages: 52 pages use components/Pagination, about 30 roll their own.
+- 2026-10-30 evening, LOCAL UI testing (user: "TESTING TO BE DONE IN LOCAL AND BE SURE OF THE ISSUE"):
+  - New crawl checks kb/tools/ui_checks.js (unreadable text, scrollbars in small elements, controls under fixed
+    elements, pagination style), wired into kb/tools/design_crawl.py. Proven on a fixture copying the user's 4 issues:
+    all 4 caught (scratchpad ui_fixture_test.py). Old crawl only checked page overflow: that is why they were missed.
+  - Run 1 (all 4 roles x 2 widths, 1112 page views): 0 inner scrollbars, 0 overflow/errors; Back to Search still
+    covered controls (board of directors, club report, theme page); helper text slate-400 3.0:1; sidebar
+    "Switch dashboard" 1.61:1; custom pagination on several pages; theme page previews missing for 10 themes.
+  - Fixed (local, tsc 0, lint 29 errors = baseline): slate-400 -> #66768C (4.63:1); Back to Search moved into the
+    AppHeader (no longer floating) and shown for every SuperAdmin in the dashboard header; switcher trigger restyled
+    for the light sidebar; 24 files moved to components/Pagination (scratchpad swap_pagers.py); theme previews added
+    for the 10 club themes (v1 + v2 pages).
+  - Run 3 (all fixes, 1112 page views): inner scrollbars 0, controls covered 0, overflow/errors 0; pagination shared
+    on 57 routes, still custom on /ag-dashboard/projects and /club-admin-dashboard/dashboard/directory; 8 low-contrast
+    texts left (orange 'Female 30' and '$0' on white 1.95, 'Active' badge on /admin 2.87, upload hint 2.67, about-us
+    footer 1.99, audit/email log badges 2.24/2.54). NOT fixed yet.
+- 2026-10-30 18:20 Deploy build: admin rebuilt (NEXT_PUBLIC_API_URL=https://test.rosteronwheels.com, URL in 112 chunks,
+  0 localhost) and copied into _local/deploy/web/admin (web.config kept); local smoke /login 200, CSS 200. API and
+  club site unchanged since their last publish (no newer sources). NOT uploaded to the server.
+- Folders tidied (user request): row-deploy, row-backups, row-design-screenshots, theme + district archives moved to
+  E:\websites
+ow\_local\ (git-ignored, check-ignore proven); row-build deleted. _mysql-row (old Aug local MySQL with
+  rotaryindia_local + row_production) left in place: user to decide.
+- 2026-10-30 19:00 Last 8 faint texts fixed (user: "fix all 8 and rebuild the deploy folder"): white-on-green/amber
+  badges -> 700 shades (audit log, email log, zone/district cards, member search; goal matrix Super Green -> 800 to
+  keep its order); text-muted-foreground/70 -> text-muted-foreground (10); public footer text -> white/70 on blue;
+  club overview orange/green value text -> darker shades; all Recharts legend labels -> ink (globals.css); chart
+  ticks #8796aa -> #66768C; members directory pager -> components/Pagination. Proof: local rebuild, contrast probe
+  on the 7 flagged pages returns nothing; directory shows "Showing 1-20 out of 65 records". tsc 0, lint 29 (baseline).
+  /ag-dashboard/projects "custom pagination" was a checker false positive (its heading text), pager already shared.
+
+- 2026-10-30 18:43 Deploy folder rebuilt with all UI fixes: _local/deploy/web/admin (build in _local/build/admin, git-ignored). URL https://test.rosteronwheels.com in 112 chunks, 0 localhost; smoke /login 200, CSS 200, legend + green-700 rules present. NOT uploaded to the server.

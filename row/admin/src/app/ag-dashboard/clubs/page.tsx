@@ -4,8 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import {
   Search, Users, Calendar, Briefcase, IndianRupee, User as UserIcon,
-  ChevronLeft, ChevronRight,
-} from "@/components/icons";
+  } from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
 import { getAgDashboardClubs } from "@/services/api";
 import type { AgClubsResponse, AgClubSummary } from "@/types/agDashboard";
@@ -17,6 +16,7 @@ import { clubWebsiteUrl } from "@/lib/clubWebsite";
 
 import { appLocale } from "@/lib/appFormat";
 import { ListPageSkeleton } from "@/components/row/AppKit";
+import Pagination from "@/components/Pagination";
 const PAGE_SIZE = 20;
 
 /* ── Sync + website pills ─────────────────────────────────────────── */
@@ -253,25 +253,7 @@ export default function AgClubsPage() {
 
           {/* Pagination — only when > 20 clubs match */}
           {totalPages > 1 && (
-            <div className="flex items-center justify-center gap-2 pt-2">
-              <button
-                onClick={() => setPage((p) => Math.max(1, p - 1))}
-                disabled={page === 1}
-                className="inline-flex items-center gap-1 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-600 shadow-sm hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed"
-              >
-                <ChevronLeft size={14} /> Prev
-              </button>
-              <span className="text-xs text-slate-500 tabular-nums px-2">
-                Page {page} of {totalPages} · {filtered.length} clubs
-              </span>
-              <button
-                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                disabled={page === totalPages}
-                className="inline-flex items-center gap-1 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-600 shadow-sm hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed"
-              >
-                Next <ChevronRight size={14} />
-              </button>
-            </div>
+            <div className="pt-2"><Pagination page={page} totalPages={totalPages} totalCount={filtered.length} pageSize={PAGE_SIZE} onPageChange={setPage} /></div>
           )}
         </>
       )}

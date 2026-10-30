@@ -42,6 +42,7 @@ import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
 import ClubAdminShell from "@/components/v2/ClubAdminShell";
 import { useSyncClubIdFromUrl } from "@/hooks/useSyncClubIdFromUrl";
+import Pagination from "@/components/Pagination";
 
 const KPI_PAGE_SIZE = 1000;
 const LIST_PAGE_SIZE = 20;
@@ -356,28 +357,8 @@ export default function PotentialMembersV2Page() {
               {totalCount} potential member{totalCount === 1 ? "" : "s"}
               {search ? " (filtered)" : ""}
             </span>
-            {totalPages > 1 && (
-              <div className="flex items-center gap-1">
-                <button
-                  type="button"
-                  onClick={() => setPage((p) => Math.max(1, p - 1))}
-                  disabled={page <= 1}
-                  className="px-2 py-1 rounded border border-slate-200 text-slate-600 hover:bg-slate-50 disabled:opacity-40"
-                >
-                  Prev
-                </button>
-                <span className="px-2">Page {page} of {totalPages}</span>
-                <button
-                  type="button"
-                  onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                  disabled={page >= totalPages}
-                  className="px-2 py-1 rounded border border-slate-200 text-slate-600 hover:bg-slate-50 disabled:opacity-40"
-                >
-                  Next
-                </button>
-              </div>
-            )}
           </div>
+          {totalPages > 1 && <div className="px-5 py-3 border-t border-slate-100"><Pagination page={page} totalPages={totalPages} totalCount={totalCount} pageSize={LIST_PAGE_SIZE} onPageChange={setPage} /></div>}
         </div>
 
         {/* Delete confirm */}

@@ -33,3 +33,6 @@ row/workers/GreetingsWorker/firebase-admin.json
 
 # /jury evidence (screenshots, audits)
 /.jury/
+
+# Machine-only files (deploy output with server secrets, DB backups, screenshots with member data): never commit
+/_local/

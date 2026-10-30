@@ -19,16 +19,17 @@ import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";
 
 import { appLocale } from "@/lib/appFormat";
+import Pagination from "@/components/Pagination";
 const actionColors: Record<string, string> = {
-  Create: "bg-green-500 hover:bg-green-600",
+  Create: "bg-green-700 hover:bg-green-800",
   Update: "bg-blue-500 hover:bg-blue-600",
   Delete: "bg-red-500 hover:bg-red-600",
-  Upload: "bg-[#A9C6EA] hover:bg-[#17458F]",
-  Reorder: "bg-amber-500 hover:bg-amber-600",
-  Approve: "bg-emerald-500 hover:bg-emerald-600",
-  Reject: "bg-red-400 hover:bg-red-500",
-  Assign: "bg-[#A9C6EA] hover:bg-[#17458F]",
-  Remove: "bg-[#FFC65C] hover:bg-[#17458F]",
+  Upload: "bg-[#17458F] hover:bg-[#123A78]",
+  Reorder: "bg-amber-700 hover:bg-amber-800",
+  Approve: "bg-emerald-700 hover:bg-emerald-800",
+  Reject: "bg-red-600 hover:bg-red-700",
+  Assign: "bg-[#17458F] hover:bg-[#123A78]",
+  Remove: "bg-amber-700 hover:bg-amber-800",
 };
 
 // Local YYYY-MM-DD (device timezone) — the log view defaults to today's entries.
@@ -254,15 +255,7 @@ export default function AuditLogPage() {
 
         {/* Pagination */}
         {totalPages > 1 && (
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <p className="text-sm text-muted-foreground">
-              Page {page} of {totalPages}: {totalCount} entries
-            </p>
-            <div className="flex flex-wrap gap-2">
-              <Button variant="outline" size="sm" disabled={page <= 1 || loading} onClick={() => fetchLogs(page - 1)}>Previous</Button>
-              <Button variant="outline" size="sm" disabled={page >= totalPages || loading} onClick={() => fetchLogs(page + 1)}>Next</Button>
-            </div>
-          </div>
+          <Pagination page={page} totalPages={totalPages} totalCount={totalCount} pageSize={pageSize} onPageChange={fetchLogs} />
         )}
       </div>
     </ProtectedRoute>

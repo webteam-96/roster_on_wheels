@@ -289,13 +289,13 @@ export default function WebLinksSection({ clubId }: { clubId: number }) {
             <Table>
               <TableHeader>
                 <TableRow className="hover:opacity-100" style={{ backgroundColor: "#17458f" }}>
-                  <TableHead className="w-12 text-white text-base font-semibold">S.No.</TableHead>
-                  <TableHead className="text-white text-base font-semibold">Logo</TableHead>
-                  <TableHead className="text-white text-base font-semibold">Title</TableHead>
-                  <TableHead className="text-white text-base font-semibold text-center">Type</TableHead>
-                  <TableHead className="text-white text-base font-semibold text-center">Children</TableHead>
-                  <TableHead className="text-white text-base font-semibold text-center">Active</TableHead>
-                  {canManage && <TableHead className="w-12 text-white"></TableHead>}
+                  <TableHead className="w-12 text-base font-semibold">S.No.</TableHead>
+                  <TableHead className="text-base font-semibold">Logo</TableHead>
+                  <TableHead className="text-base font-semibold">Title</TableHead>
+                  <TableHead className="text-base font-semibold text-center">Type</TableHead>
+                  <TableHead className="text-base font-semibold text-center">Children</TableHead>
+                  <TableHead className="text-base font-semibold text-center">Active</TableHead>
+                  {canManage && <TableHead className="w-12"></TableHead>}
                 </TableRow>
               </TableHeader>
               <TableBody>

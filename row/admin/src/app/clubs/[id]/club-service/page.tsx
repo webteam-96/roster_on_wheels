@@ -265,14 +265,14 @@ export default function ClubServicePage() {
               <Table>
                 <TableHeader>
                   <TableRow className="bg-primary hover:bg-primary">
-                    <TableHead className="w-12 text-primary-foreground text-base font-semibold">S.No.</TableHead>
-                    <TableHead className="text-primary-foreground text-base font-semibold">Title</TableHead>
-                    <TableHead className="text-primary-foreground text-base font-semibold">Meeting Type</TableHead>
-                    <TableHead className="text-primary-foreground text-base font-semibold">Date</TableHead>
-                    <TableHead className="text-primary-foreground text-base font-semibold text-center">Attendance</TableHead>
-                    <TableHead className="text-primary-foreground text-base font-semibold text-center">Attendance %</TableHead>
+                    <TableHead className="w-12 text-base font-semibold">S.No.</TableHead>
+                    <TableHead className="text-base font-semibold">Title</TableHead>
+                    <TableHead className="text-base font-semibold">Meeting Type</TableHead>
+                    <TableHead className="text-base font-semibold">Date</TableHead>
+                    <TableHead className="text-base font-semibold text-center">Attendance</TableHead>
+                    <TableHead className="text-base font-semibold text-center">Attendance %</TableHead>
                     {canManage && (
-                      <TableHead className="w-12 text-primary-foreground"></TableHead>
+                      <TableHead className="w-12"></TableHead>
                     )}
                   </TableRow>
                 </TableHeader>

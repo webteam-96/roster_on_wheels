@@ -31,13 +31,14 @@ export default function SuperAdminBackToSearch() {
   if (pathname === "/" || HIDE_PREFIXES.some((p) => pathname === p || pathname.startsWith(p + "/"))) return null;
   if (PUBLIC_PAGES.some((p) => pathname === p || pathname.startsWith(p + "/")) || isFormPage(pathname)) return null;
 
+  // Sits in the AppHeader (not floating), so it never covers page content such as pagination.
   return (
     <button
       type="button"
       onClick={() => router.push("/settings/global-search")}
       title="Return to Global Search (SuperAdmin)"
       aria-label="Back to Search"
-      className="fixed bottom-5 right-5 z-40 inline-flex h-11 min-w-11 items-center justify-center gap-2 rounded-full bg-primary px-3 sm:px-4 text-sm font-semibold text-white ring-1 ring-black/10 transition-colors hover:bg-primary/90"
+      className="inline-flex h-10 min-w-10 shrink-0 items-center justify-center gap-2 rounded-full bg-primary px-3 sm:px-4 text-sm font-semibold text-white transition-colors hover:bg-primary/90"
     >
       <ArrowLeft className="h-4 w-4" />
       <span className="hidden sm:inline">Back to Search</span>

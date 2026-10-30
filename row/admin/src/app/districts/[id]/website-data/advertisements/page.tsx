@@ -311,12 +311,12 @@ export default function DistrictAdvertisementsPage() {
               <Table>
                 <TableHeader>
                   <TableRow className="bg-primary hover:bg-primary">
-                    <TableHead className="w-24 text-primary-foreground">Thumbnail</TableHead>
-                    <TableHead className="text-primary-foreground text-base font-semibold">Description</TableHead>
-                    <TableHead className="w-24 text-primary-foreground text-base font-semibold">Document</TableHead>
-                    <TableHead className="w-24 text-primary-foreground text-base font-semibold">Status</TableHead>
-                    {canManage && <TableHead className="w-12 text-primary-foreground"></TableHead>}
-                    {canManage && <TableHead className="w-20 text-primary-foreground text-base font-semibold text-center">Sorting</TableHead>}
+                    <TableHead className="w-24">Thumbnail</TableHead>
+                    <TableHead className="text-base font-semibold">Description</TableHead>
+                    <TableHead className="w-24 text-base font-semibold">Document</TableHead>
+                    <TableHead className="w-24 text-base font-semibold">Status</TableHead>
+                    {canManage && <TableHead className="w-12"></TableHead>}
+                    {canManage && <TableHead className="w-20 text-base font-semibold text-center">Sorting</TableHead>}
                   </TableRow>
                 </TableHeader>
                 <TableBody>

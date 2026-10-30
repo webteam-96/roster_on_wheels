@@ -30,7 +30,7 @@ import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, Command
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
-import { ArrowLeft, ArrowRight, Plus, Trash2, Save, Loader2, Check, ChevronsUpDown, Eye, Lock, Mail, FileText, CheckCircle, XCircle, ChevronLeft, ChevronRight, Search as SearchIcon, Upload, RefreshCw } from "@/components/icons";
+import { ArrowLeft, ArrowRight, Plus, Trash2, Save, Loader2, Check, ChevronsUpDown, Eye, Lock, Mail, FileText, CheckCircle, XCircle, Search as SearchIcon, Upload, RefreshCw } from "@/components/icons";
 import { Badge } from "@/components/ui/badge";
 
 import RotaryLoader from "@/components/RotaryLoader";
@@ -39,6 +39,7 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 
 import { appLocale, currencySymbol } from "@/lib/appFormat";
 import { ListPageSkeleton } from "@/components/row/AppKit";
+import Pagination from "@/components/Pagination";
 interface KycItem {
   id: number;
   vendorId: string;
@@ -1781,21 +1782,21 @@ function CreateEditMembershipDuesPage() {
             <Table>
               <TableHeader>
                 <TableRow className="bg-primary hover:bg-primary">
-                  <TableHead className="text-primary-foreground sticky left-0 z-30 bg-primary w-16 min-w-[64px]">Sr.No</TableHead>
-                  <TableHead className="text-primary-foreground sticky left-[64px] z-30 bg-primary w-48 min-w-[192px]">Name</TableHead>
-                  <TableHead className="text-primary-foreground sticky left-[256px] z-30 bg-primary w-32 min-w-[128px] border-r border-slate-300">Category</TableHead>
+                  <TableHead className="sticky left-0 z-30 bg-primary w-16 min-w-[64px]">Sr.No</TableHead>
+                  <TableHead className="sticky left-[64px] z-30 bg-primary w-48 min-w-[192px]">Name</TableHead>
+                  <TableHead className="sticky left-[256px] z-30 bg-primary w-32 min-w-[128px] border-r border-slate-300">Category</TableHead>
                   {enabledFeeTypes.map(ft => (
                     <React.Fragment key={ft.type}>
-                      <TableHead className="text-primary-foreground">{ft.label}</TableHead>
+                      <TableHead>{ft.label}</TableHead>
                       {addedVendorIds.map(kycId => (
                         <TableHead key={kycId} className="text-primary-foreground" title={kycVendors.find(k => k.id === kycId)?.name || ""}>{getAccountLabel(kycId)}</TableHead>
                       ))}
-                      <TableHead className="text-primary-foreground">Balance</TableHead>
-                      <TableHead className="text-primary-foreground">Status</TableHead>
-                      <TableHead className="text-primary-foreground">Payment Info</TableHead>
+                      <TableHead>Balance</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Payment Info</TableHead>
                     </React.Fragment>
                   ))}
-                  <TableHead className="text-primary-foreground">Approve/Reject</TableHead>
+                  <TableHead>Approve/Reject</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -1867,13 +1868,7 @@ function CreateEditMembershipDuesPage() {
                 })}
               </TableBody>
             </Table>
-            <div className="flex items-center justify-between p-3 border-t">
-              <span className="text-sm text-muted-foreground">Page {newMemberPage} of {totalNewPages} ({clubMembers.length} members)</span>
-              <div className="flex flex-wrap gap-2">
-                <Button size="sm" variant="outline" disabled={newMemberPage <= 1} onClick={() => setNewMemberPage(p => p - 1)}><ChevronLeft className="h-4 w-4" /></Button>
-                <Button size="sm" variant="outline" disabled={newMemberPage >= totalNewPages} onClick={() => setNewMemberPage(p => p + 1)}><ChevronRight className="h-4 w-4" /></Button>
-              </div>
-            </div>
+            <div className="p-3 border-t"><Pagination page={newMemberPage} totalPages={totalNewPages} totalCount={clubMembers.length} pageSize={PAGE_SIZE} onPageChange={setNewMemberPage} /></div>
           </div>
         )}
       </CardContent>
@@ -1918,24 +1913,24 @@ function CreateEditMembershipDuesPage() {
                 <Table>
                   <TableHeader>
                     <TableRow className="bg-primary hover:bg-primary">
-                      <TableHead className="text-primary-foreground sticky left-0 z-30 bg-primary w-16 min-w-[64px]">Sr.No</TableHead>
-                      <TableHead className="text-primary-foreground sticky left-[64px] z-30 bg-primary w-48 min-w-[192px]">Name</TableHead>
-                      <TableHead className="text-primary-foreground sticky left-[256px] z-30 bg-primary w-32 min-w-[128px] border-r border-slate-300">Category</TableHead>
+                      <TableHead className="sticky left-0 z-30 bg-primary w-16 min-w-[64px]">Sr.No</TableHead>
+                      <TableHead className="sticky left-[64px] z-30 bg-primary w-48 min-w-[192px]">Name</TableHead>
+                      <TableHead className="sticky left-[256px] z-30 bg-primary w-32 min-w-[128px] border-r border-slate-300">Category</TableHead>
                       {enabledFeeTypes.map(ft => (
                         <React.Fragment key={ft.type}>
-                          <TableHead className="text-primary-foreground">{ft.label}</TableHead>
+                          <TableHead>{ft.label}</TableHead>
                           {(getEditVendors(paged[0] || {}, ft.type)).map((v: any, i: number) => (
                             <TableHead key={i} className="text-primary-foreground" title={v.vendorName || v.VendorName || ""}>{v.accountLabel || `A/C${i+1}`}</TableHead>
                           ))}
-                          <TableHead className="text-primary-foreground">Balance</TableHead>
-                          <TableHead className="text-primary-foreground">Status</TableHead>
-                          <TableHead className="text-primary-foreground">Payment</TableHead>
+                          <TableHead>Balance</TableHead>
+                          <TableHead>Status</TableHead>
+                          <TableHead>Payment</TableHead>
                         </React.Fragment>
                       ))}
-                      <TableHead className="text-primary-foreground">Offline</TableHead>
-                      <TableHead className="text-primary-foreground">Reminder</TableHead>
-                      <TableHead className="text-primary-foreground">Receipt</TableHead>
-                      <TableHead className="text-primary-foreground">Approve/Reject</TableHead>
+                      <TableHead>Offline</TableHead>
+                      <TableHead>Reminder</TableHead>
+                      <TableHead>Receipt</TableHead>
+                      <TableHead>Approve/Reject</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -2072,13 +2067,7 @@ function CreateEditMembershipDuesPage() {
                 </Table>
               </div>
               {/* Pagination */}
-              <div className="flex items-center justify-between p-3 border-t">
-                <span className="text-sm text-muted-foreground">Page {editMemberPage} of {totalPages} ({searched.length} members)</span>
-                <div className="flex flex-wrap gap-2">
-                  <Button size="sm" variant="outline" disabled={editMemberPage <= 1} onClick={() => setEditMemberPage(p => p - 1)}><ChevronLeft className="h-4 w-4" /></Button>
-                  <Button size="sm" variant="outline" disabled={editMemberPage >= totalPages} onClick={() => setEditMemberPage(p => p + 1)}><ChevronRight className="h-4 w-4" /></Button>
-                </div>
-              </div>
+              <div className="p-3 border-t"><Pagination page={editMemberPage} totalPages={totalPages} totalCount={searched.length} pageSize={PAGE_SIZE} onPageChange={setEditMemberPage} /></div>
             </>
           )}
 

@@ -6,7 +6,11 @@ re-reading whole codebases (use `kb/README.md` and the graphify commands in the 
 **2026-10-29, club website themes:** the club site's themes are now a port of the RIZones club site's 11 themes
 (`E:\websites\Club-Website-reactjs\Club-Website-reactjs`, copy-source only). Plan, how it works and progress:
 `docs/plans/2026-10-29-club-themes-rizones-port.md`; proof and open items: `docs/claude/STATUS.md`. Earlier club
-and district themes were deleted (archive: `E:\websites\row-theme-archive-2026-10-29\`).
+and district themes were deleted (archive: `E:\websites\row\_local\archive\theme-archive-2026-10-29\`).
+
+**2026-10-30, test go-live:** IIS, one host `test.rosteronwheels.com` (admin + API under `/api`), production DB.
+Guide and IIS config: `row/deploy/iis/README.md`; ready-to-copy builds in `E:\websites\row\_local\deploy\` (not in git);
+production backup before the schema update: `E:\websites\row\_local\backups\`.
 
 ## Ground rules (from the user)
 
@@ -14,7 +18,7 @@ and district themes were deleted (archive: `E:\websites\row-theme-archive-2026-1
 - ROW has **no WhatsApp and no SMS**. Communication is in-app (push, feed) and email only.
 - Commit and push only when the user asks. Scan every added file for secrets before committing.
 - Work solo (no multi-agent), the user's token budget is limited.
-- Hosting is undecided (IIS or AWS): keep code hosting-neutral, add no deploy files.
+- Hosting: IIS for the 2026-10-30 test go-live (row/deploy/iis); keep app config in environment variables.
 - Payments: Stripe (Wave 2). Database: MySQL. Separate backend per project.
 - Copy RIZones design and code only, never its data, branding or India-only integrations.
 

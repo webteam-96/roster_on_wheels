@@ -84,21 +84,21 @@ function ClubTableDA({
             className="hover:opacity-100 border-b-2 border-marigold"
             style={{ backgroundColor: "#17458f" }}
           >
-            <TableHead className="w-12 text-white/90"></TableHead>
-            <TableHead className="text-white text-xs font-semibold uppercase tracking-wide">Club Name</TableHead>
-            <TableHead className="hidden md:table-cell text-white text-xs font-semibold uppercase tracking-wide">Club ID</TableHead>
-            <TableHead className="hidden md:table-cell text-white text-xs font-semibold uppercase tracking-wide">District</TableHead>
-            <TableHead className="hidden lg:table-cell text-white text-xs font-semibold uppercase tracking-wide">Meeting Day</TableHead>
-            <TableHead className="hidden md:table-cell text-white text-xs font-semibold uppercase tracking-wide">City</TableHead>
-            <TableHead className="text-white text-xs font-semibold uppercase tracking-wide">Members</TableHead>
+            <TableHead className="w-12/90"></TableHead>
+            <TableHead className="text-xs font-semibold uppercase tracking-wide">Club Name</TableHead>
+            <TableHead className="hidden md:table-cell text-xs font-semibold uppercase tracking-wide">Club ID</TableHead>
+            <TableHead className="hidden md:table-cell text-xs font-semibold uppercase tracking-wide">District</TableHead>
+            <TableHead className="hidden lg:table-cell text-xs font-semibold uppercase tracking-wide">Meeting Day</TableHead>
+            <TableHead className="hidden md:table-cell text-xs font-semibold uppercase tracking-wide">City</TableHead>
+            <TableHead className="text-xs font-semibold uppercase tracking-wide">Members</TableHead>
             {meetings !== undefined && (
-              <TableHead className="text-white text-xs font-semibold uppercase tracking-wide">
+              <TableHead className="text-xs font-semibold uppercase tracking-wide">
                 Meetings{meetingsMonth ? ` ${monthLabel(meetingsMonth)}` : ""}
               </TableHead>
             )}
-            <TableHead className="text-white text-xs font-semibold uppercase tracking-wide">Sync</TableHead>
-            <TableHead className="min-w-[240px] text-white text-xs font-semibold uppercase tracking-wide">Website</TableHead>
-            <TableHead className="text-white text-xs font-semibold uppercase tracking-wide">Status</TableHead>
+            <TableHead className="text-xs font-semibold uppercase tracking-wide">Sync</TableHead>
+            <TableHead className="min-w-[240px] text-xs font-semibold uppercase tracking-wide">Website</TableHead>
+            <TableHead className="text-xs font-semibold uppercase tracking-wide">Status</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>

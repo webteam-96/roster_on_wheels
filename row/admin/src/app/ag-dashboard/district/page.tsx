@@ -360,7 +360,7 @@ export default function AgDistrictPage() {
               <RadarChart data={radarPoints} margin={{ top: 16, right: 40, bottom: 16, left: 40 }}>
                 <PolarGrid stroke="#d5dee8" />
                 <PolarAngleAxis dataKey="metric" tick={{ fontSize: 12, fill: "#2A3F5C", fontWeight: 600 }} />
-                <PolarRadiusAxis angle={90} domain={[0, 100]} tick={{ fontSize: 10, fill: "#8796aa" }} tickCount={5} />
+                <PolarRadiusAxis angle={90} domain={[0, 100]} tick={{ fontSize: 10, fill: "#66768C" }} tickCount={5} />
                 {data.clubs.map((c, idx) => (
                   <Radar
                     key={c.clubId}

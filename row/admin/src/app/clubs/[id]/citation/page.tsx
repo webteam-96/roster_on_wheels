@@ -221,15 +221,15 @@ export default function ClubCitationPage() {
                   <Table>
                     <TableHeader>
                       <TableRow className="bg-primary hover:bg-primary">
-                        <TableHead className="text-primary-foreground">#</TableHead>
-                        <TableHead className="text-primary-foreground">Category</TableHead>
-                        <TableHead className="text-primary-foreground">Activity</TableHead>
-                        <TableHead className="text-primary-foreground">Sub Item</TableHead>
-                        <TableHead className="text-primary-foreground text-center">Count</TableHead>
-                        <TableHead className="text-primary-foreground text-center">Base Points</TableHead>
-                        <TableHead className="text-primary-foreground text-center">Points</TableHead>
-                        <TableHead className="text-primary-foreground text-center">Bonus</TableHead>
-                        <TableHead className="text-primary-foreground text-center">Total</TableHead>
+                        <TableHead>#</TableHead>
+                        <TableHead>Category</TableHead>
+                        <TableHead>Activity</TableHead>
+                        <TableHead>Sub Item</TableHead>
+                        <TableHead className="text-center">Count</TableHead>
+                        <TableHead className="text-center">Base Points</TableHead>
+                        <TableHead className="text-center">Points</TableHead>
+                        <TableHead className="text-center">Bonus</TableHead>
+                        <TableHead className="text-center">Total</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>

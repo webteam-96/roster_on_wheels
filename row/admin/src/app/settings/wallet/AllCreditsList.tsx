@@ -26,6 +26,7 @@ import {
 } from "@/services/api";
 
 import { appLocale, currencySymbol } from "@/lib/appFormat";
+import Pagination from "@/components/Pagination";
 const PAGE_SIZE = 50;
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
@@ -311,11 +312,7 @@ export default function AllCreditsList({ refreshKey = 0 }: { refreshKey?: number
             </table>
           </div>
           {totalPages > 1 && (
-            <div className="flex flex-wrap items-center justify-end gap-2 text-sm">
-              <Button variant="outline" size="sm" disabled={page <= 1} onClick={() => setPage(page - 1)}>Previous</Button>
-              <span className="text-muted-foreground">Page {page} of {totalPages}</span>
-              <Button variant="outline" size="sm" disabled={page >= totalPages} onClick={() => setPage(page + 1)}>Next</Button>
-            </div>
+            <Pagination page={page} totalPages={totalPages} totalCount={rows.length} pageSize={PAGE_SIZE} onPageChange={setPage} />
           )}
         </>
       )}

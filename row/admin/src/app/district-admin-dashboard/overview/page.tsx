@@ -610,7 +610,7 @@ export default function DistrictAdminOverviewPage() {
                     angle={0}
                   />
                   <YAxis
-                    tick={{ fontSize: 10, fill: "#8796aa" }}
+                    tick={{ fontSize: 10, fill: "#66768C" }}
                     axisLine={false}
                     tickLine={false}
                     width={30}

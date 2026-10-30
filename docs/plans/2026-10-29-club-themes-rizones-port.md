@@ -10,7 +10,7 @@ Source (copy-source only, never run against its servers): `E:\websites\Club-Webs
   Selaiyur, DGN page, Innerwheel/Rotaract, Technical Training Centre, ProofDesign, under-maintenance).
 - ROW branding only. No RIZones names, logos, domains or photos; copy designs, not data.
 - All previous themes deleted (club: 8 old + heritage; district: ledger, quiet). Archive outside the repo:
-  `E:\websites\row-theme-archive-2026-10-29\`. District site restored to `district-website.bak-2026-10-29`.
+  `E:\websites\row\_local\archive\theme-archive-2026-10-29\`. District site restored to `district-website.bak-2026-10-29`.
 - Method: full rewrite to Next.js routes with server rendering. No react-router, no client-side SPA mount.
 - All 11 straight through; no per-theme review gate.
 

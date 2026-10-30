@@ -23,6 +23,7 @@ import { formatBirthAnniversary } from "@/lib/dateUtils";
 
 import { appLocale } from "@/lib/appFormat";
 import { ListPageSkeleton } from "@/components/row/AppKit";
+import Pagination from "@/components/Pagination";
 const PAGE_SIZE_OPTIONS = [10, 20, 50, 100] as const;
 const DEFAULT_PAGE_SIZE = 20;
 const PAGE_SIZE_STORAGE_KEY = "directory_page_size";
@@ -380,40 +381,7 @@ export default function DashboardDirectoryPage() {
           </table>
         </div>
 
-        <div className="px-5 py-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
-          <span>
-            Showing {filtered.length === 0 ? 0 : (safePage - 1) * pageSize + 1}-{Math.min(safePage * pageSize, filtered.length)} of {filtered.length} members
-          </span>
-          <div className="flex items-center gap-1">
-            <button
-              onClick={() => setPage((p) => Math.max(1, p - 1))}
-              disabled={safePage === 1}
-              className="px-2 py-1 rounded border border-slate-200 disabled:opacity-40 hover:bg-slate-100"
-            >
-              Prev
-            </button>
-            {Array.from({ length: Math.min(5, totalPages) }, (_, i) => i + 1).map((n) => (
-              <button
-                key={n}
-                onClick={() => setPage(n)}
-                className={`px-2.5 py-1 rounded border text-xs ${
-                  n === safePage
-                    ? "bg-blue-600 text-white border-blue-600"
-                    : "border-slate-200 text-slate-600 hover:bg-slate-100"
-                }`}
-              >
-                {n}
-              </button>
-            ))}
-            <button
-              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-              disabled={safePage === totalPages}
-              className="px-2 py-1 rounded border border-slate-200 disabled:opacity-40 hover:bg-slate-100"
-            >
-              Next
-            </button>
-          </div>
-        </div>
+        <div className="px-5 py-3 border-t border-slate-100"><Pagination page={safePage} totalPages={totalPages} totalCount={filtered.length} pageSize={pageSize} onPageChange={setPage} /></div>
       </div>
 
       {viewRow && (

@@ -183,21 +183,21 @@ export default function EventPaymentLinksPage() {
             <Table>
               <TableHeader>
                 <TableRow className="bg-primary text-primary-foreground hover:bg-primary">
-                  <TableHead className="text-primary-foreground w-[50px]">Sr. No.</TableHead>
-                  <TableHead className="text-primary-foreground">Form Type</TableHead>
-                  <TableHead className="text-primary-foreground">District Number</TableHead>
-                  <TableHead className="text-primary-foreground">Club Name</TableHead>
-                  <TableHead className="text-primary-foreground">Purpose</TableHead>
-                  <TableHead className="text-primary-foreground text-center">Edit</TableHead>
-                  <TableHead className="text-primary-foreground text-center">Member Details</TableHead>
-                  <TableHead className="text-primary-foreground text-center">View | Copy URL</TableHead>
-                  <TableHead className="text-primary-foreground text-center">Delete</TableHead>
-                  <TableHead className="text-primary-foreground text-center">Report</TableHead>
-                  <TableHead className="text-primary-foreground text-center">Report Link</TableHead>
-                  <TableHead className="text-primary-foreground text-center">Disable Link</TableHead>
-                  <TableHead className="text-primary-foreground text-center">GoogleSheet</TableHead>
-                  <TableHead className="text-primary-foreground text-center">Settlement Refresh</TableHead>
-                  <TableHead className="text-primary-foreground text-center">Settlement Report</TableHead>
+                  <TableHead className="w-[50px]">Sr. No.</TableHead>
+                  <TableHead>Form Type</TableHead>
+                  <TableHead>District Number</TableHead>
+                  <TableHead>Club Name</TableHead>
+                  <TableHead>Purpose</TableHead>
+                  <TableHead className="text-center">Edit</TableHead>
+                  <TableHead className="text-center">Member Details</TableHead>
+                  <TableHead className="text-center">View | Copy URL</TableHead>
+                  <TableHead className="text-center">Delete</TableHead>
+                  <TableHead className="text-center">Report</TableHead>
+                  <TableHead className="text-center">Report Link</TableHead>
+                  <TableHead className="text-center">Disable Link</TableHead>
+                  <TableHead className="text-center">GoogleSheet</TableHead>
+                  <TableHead className="text-center">Settlement Refresh</TableHead>
+                  <TableHead className="text-center">Settlement Report</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>

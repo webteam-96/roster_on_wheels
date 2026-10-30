@@ -45,15 +45,15 @@ export default function ClubTable({ clubs, onDelete, isSuperAdmin, districtId, v
       <Table>
         <TableHeader>
           <TableRow className="bg-primary hover:bg-primary">
-            <TableHead className="w-12 text-primary-foreground"></TableHead>
-            <TableHead className="text-primary-foreground text-base font-semibold">Club Name</TableHead>
-            <TableHead className="hidden md:table-cell text-primary-foreground text-base font-semibold">Rotary ID</TableHead>
-            <TableHead className="hidden md:table-cell text-primary-foreground text-base font-semibold">District</TableHead>
-            <TableHead className="hidden lg:table-cell text-primary-foreground text-base font-semibold">Meeting Day</TableHead>
-            <TableHead className="hidden md:table-cell text-primary-foreground text-base font-semibold">City</TableHead>
-            <TableHead className="text-primary-foreground text-base font-semibold">Members</TableHead>
-            <TableHead className="text-primary-foreground text-base font-semibold">Status</TableHead>
-            <TableHead className="w-12 text-primary-foreground"></TableHead>
+            <TableHead className="w-12"></TableHead>
+            <TableHead className="text-base font-semibold">Club Name</TableHead>
+            <TableHead className="hidden md:table-cell text-base font-semibold">Rotary ID</TableHead>
+            <TableHead className="hidden md:table-cell text-base font-semibold">District</TableHead>
+            <TableHead className="hidden lg:table-cell text-base font-semibold">Meeting Day</TableHead>
+            <TableHead className="hidden md:table-cell text-base font-semibold">City</TableHead>
+            <TableHead className="text-base font-semibold">Members</TableHead>
+            <TableHead className="text-base font-semibold">Status</TableHead>
+            <TableHead className="w-12"></TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>

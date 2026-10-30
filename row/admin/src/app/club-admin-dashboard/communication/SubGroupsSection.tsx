@@ -327,9 +327,9 @@ export default function SubGroupsSection({ clubId }: { clubId: number }) {
             <Table>
               <TableHeader>
                 <TableRow className="hover:opacity-100" style={{ backgroundColor: "#17458f" }}>
-                  <TableHead className="text-white text-base font-semibold">Group Name</TableHead>
-                  <TableHead className="text-white text-base font-semibold text-center">Members</TableHead>
-                  <TableHead className="w-12 text-white"></TableHead>
+                  <TableHead className="text-base font-semibold">Group Name</TableHead>
+                  <TableHead className="text-base font-semibold text-center">Members</TableHead>
+                  <TableHead className="w-12"></TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>

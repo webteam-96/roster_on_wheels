@@ -242,12 +242,12 @@ export default function WebsiteDataModulesPage() {
               <Table>
                 <TableHeader>
                   <TableRow className="bg-primary hover:bg-primary">
-                    <TableHead className="w-12 text-primary-foreground">#</TableHead>
-                    <TableHead className="text-primary-foreground text-base font-semibold">Module Name</TableHead>
-                    <TableHead className="text-primary-foreground text-base font-semibold">Key</TableHead>
-                    <TableHead className="text-primary-foreground text-base font-semibold">Icon</TableHead>
-                    <TableHead className="w-24 text-primary-foreground text-base font-semibold text-center">Order</TableHead>
-                    <TableHead className="w-12 text-primary-foreground"></TableHead>
+                    <TableHead className="w-12">#</TableHead>
+                    <TableHead className="text-base font-semibold">Module Name</TableHead>
+                    <TableHead className="text-base font-semibold">Key</TableHead>
+                    <TableHead className="text-base font-semibold">Icon</TableHead>
+                    <TableHead className="w-24 text-base font-semibold text-center">Order</TableHead>
+                    <TableHead className="w-12"></TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>

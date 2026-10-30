@@ -227,11 +227,11 @@ export default function DistrictAdminMassEmailDetailPage() {
             <Table>
               <TableHeader>
                 <TableRow className="hover:opacity-100 border-b-2 border-marigold" style={{ backgroundColor: "#17458f" }}>
-                  <TableHead className="text-white text-xs font-semibold uppercase tracking-wide">Name</TableHead>
-                  <TableHead className="text-white text-xs font-semibold uppercase tracking-wide">Email</TableHead>
-                  <TableHead className="text-white text-xs font-semibold uppercase tracking-wide">Status</TableHead>
-                  <TableHead className="text-white text-xs font-semibold uppercase tracking-wide">Sent Date</TableHead>
-                  <TableHead className="text-white text-xs font-semibold uppercase tracking-wide">Error</TableHead>
+                  <TableHead className="text-xs font-semibold uppercase tracking-wide">Name</TableHead>
+                  <TableHead className="text-xs font-semibold uppercase tracking-wide">Email</TableHead>
+                  <TableHead className="text-xs font-semibold uppercase tracking-wide">Status</TableHead>
+                  <TableHead className="text-xs font-semibold uppercase tracking-wide">Sent Date</TableHead>
+                  <TableHead className="text-xs font-semibold uppercase tracking-wide">Error</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>

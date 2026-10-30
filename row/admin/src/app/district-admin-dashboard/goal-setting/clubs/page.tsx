@@ -29,8 +29,8 @@ import { ListPageSkeleton } from "@/components/row/AppKit";
 const RAG_STYLE: Record<string, { dot: string; label: string; text: string; cell: string }> = {
   Red: { dot: "bg-red-500", label: "Red", text: "text-red-700", cell: "bg-red-500 text-white" },
   Amber: { dot: "bg-amber-500", label: "Amber", text: "text-amber-700", cell: "bg-amber-500 text-white" },
-  Green: { dot: "bg-emerald-500", label: "Green", text: "text-emerald-700", cell: "bg-emerald-500 text-white" },
-  SuperGreen: { dot: "bg-emerald-600", label: "Super Green", text: "text-emerald-800", cell: "bg-emerald-600 text-white" },
+  Green: { dot: "bg-emerald-500", label: "Green", text: "text-emerald-700", cell: "bg-emerald-700 text-white" },
+  SuperGreen: { dot: "bg-emerald-600", label: "Super Green", text: "text-emerald-800", cell: "bg-emerald-800 text-white" },
   None: { dot: "bg-slate-300", label: "–", text: "text-slate-400", cell: "bg-slate-100 text-slate-400" },
 };
 

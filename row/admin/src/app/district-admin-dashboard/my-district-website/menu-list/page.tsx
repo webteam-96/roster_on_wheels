@@ -849,12 +849,12 @@ export default function DistrictAdminMenuListPage() {
               <Table>
                 <TableHeader>
                   <TableRow className="bg-azure hover:bg-azure">
-                    <TableHead className="text-white text-base font-semibold">Menu Name</TableHead>
-                    <TableHead className="w-32 text-white text-base font-semibold">Link Type</TableHead>
-                    <TableHead className="w-24 text-white text-base font-semibold">Status</TableHead>
-                    <TableHead className="w-24 text-white text-base font-semibold">Sub-Menus</TableHead>
-                    {canManage && <TableHead className="w-16 text-center text-white text-base font-semibold">Sort</TableHead>}
-                    {canManage && <TableHead className="w-12 text-white"></TableHead>}
+                    <TableHead className="text-base font-semibold">Menu Name</TableHead>
+                    <TableHead className="w-32 text-base font-semibold">Link Type</TableHead>
+                    <TableHead className="w-24 text-base font-semibold">Status</TableHead>
+                    <TableHead className="w-24 text-base font-semibold">Sub-Menus</TableHead>
+                    {canManage && <TableHead className="w-16 text-center text-base font-semibold">Sort</TableHead>}
+                    {canManage && <TableHead className="w-12"></TableHead>}
                   </TableRow>
                 </TableHeader>
                 <TableBody>

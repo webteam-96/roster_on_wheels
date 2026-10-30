@@ -70,3 +70,36 @@ index (`~/.claude/projects/E--websites-row/memory/MEMORY.md`) and in `row/HANDOF
 - 2026-10-30: Remove the district website code built so far; the owner will give the district website themes code
   later. Events and QR: the owner will give that code when it is done. Commit and push all other work to main with
   the webteam-96 GitHub account.
+- 2026-10-30: Going live for a TEST on a subdomain. Hosting = IIS (for now). The server uses the PRODUCTION
+  database (row_production on the server's MySQL), which Claude can reach. Asked to prepare for making it live.
+- 2026-10-30 (go-live answers): live in this test = API, admin web app, club websites (not the district site).
+  Deploy = Claude builds ready-to-copy folders + IIS guide; the user/server team copies them and sets secrets.
+  Production DB: approved to take a full backup, then apply the additive schema update + theme list + visitor
+  table to row_production. Host names: the user will give them.
+- 2026-10-30: Prod DB: user approved (after the corrected, additive-only facts) "Backup, then run the API startup
+  routine once" against row_production, plus the 11-theme list. Layout: ONE host test.rosteronwheels.com for the
+  admin, with the API under test.rosteronwheels.com/api (IIS URL Rewrite + ARR); club sites need their own hosts.
+- 2026-10-30: Club website addresses for the test: <clubname>.test.rosteronwheels.com (wildcard under test.rosteronwheels.com). Deploy folder layout asked: web (frontend), api, sql (scripts for Workbench).
+- 2026-10-30: Server is managed by Plesk (IIS add-ons already installed). Kept one host via proxy; API = Plesk subdomain api.test.rosteronwheels.com. Admin uploaded to test.rosteronwheels.com httpdocs root: login page loads.
+- 2026-10-30: User wants the ROW public website (row/website) as the starting page of the test domain, with Login leading to the admin login (admin currently at test.rosteronwheels.com root).
+- 2026-10-30: Test layout (user): EVERYTHING on test.rosteronwheels.com: all frontend files at the root, an `api`
+  folder for the backend. "/" shows the ROW public website; Login opens the login page, then the admin panel and the
+  other logins. Login: set a new password for the user's account AND create test accounts for every account type
+  ROW has (as RIZones has different account types), in the production database (approved by the user).
+- 2026-10-30: Test accounts: user said 'both' (a new 'ROW Test Club' AND an existing club; existing club not named yet). Admins creating other accounts from the panel is wanted.
+- 2026-10-30: User logged in on live (test.rosteronwheels.com/settings/global-search). Asked: start testing the project on live. Testing is READ-ONLY on production data unless the user OKs a write.
+- 2026-10-30: Asked to compare ROW's Rotary.org code with RIZones, fix gaps, and fetch Rotary.org data for clubs and
+  districts outside India, mainly Monrovia and the clubs and districts related to it.
+- 2026-10-30: Rotary.org fetch decisions: use the same Rotary.org Data Integration API login as RIZones (user's
+  explicit choice, overriding the "never use reference settings" rule for this login only); target database
+  row_production; scope = whole world except India.
+- 2026-10-30: Approved: assign the default club modules to all clubs in row_production (option a, via the live
+  Settings page https://test.rosteronwheels.com/settings).
+- 2026-10-30: Approved: add the 23 missing clubs to row_production with `--world-clubs`.
+- 2026-10-30: On test accounts the user said "DO WHATEVER U WANT I WANT TO BE TESTED PROPERLY FOR ALL THE LOGINS":
+  choice of club(s) left to Claude; goal = every login type tested properly on test.rosteronwheels.com.
+- 2026-10-30: Testing must be done LOCALLY, and issues must be proven, not assumed. The user found 4 UI issues
+  (grey table headers, Back to Search covering pagination, scrollbar in a tab bar, grey top tab bar) after Claude said
+  the UI was complete; the old crawl only checked page overflow. Do not create live test accounts for this.
+- 2026-10-30: Asked: build the project, put the files in the deploy folder, and tidy the folders created under
+  E:\websites: delete the ones not needed, move the needed ones into the row folder.

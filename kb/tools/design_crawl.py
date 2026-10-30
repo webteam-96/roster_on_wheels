@@ -18,6 +18,7 @@ sys.path.insert(0, str(Path(__file__).parent))
 import admin_crawl  # noqa: E402  (routes() and the error-text pattern)
 
 token = os.environ['ROW_DESIGN_TOKEN']
+UI_CHECKS = (Path(__file__).parent / 'ui_checks.js').read_text(encoding='utf-8').split('\n', 5)[5]  # drop header comment
 WIDTHS = {'desktop': (1440, 900), 'phone': (390, 844)}
 
 
@@ -55,17 +56,24 @@ def main():
                 info = page.evaluate("""() => ({
                     over: document.documentElement.scrollWidth - window.innerWidth,
                     text: document.body ? document.body.innerText.slice(0, 4000) : '' })""")
+                try:
+                    ui = page.evaluate(UI_CHECKS)
+                except Exception as e:  # page navigated away mid-check
+                    ui = {'lowContrast': [], 'innerScroll': [], 'covered': [], 'pagination': None, 'error': str(e)[:120]}
                 slug = re.sub(r'[^A-Za-z0-9]+', '_', route).strip('_') or 'home'
                 page.screenshot(path=str(shots / f'{n:03d}_{slug}.png'))
                 results.append({
                     'role': role, 'width': wname, 'n': n, 'route': route, 'final': page.url.replace(base, ''),
                     'overflow_px': info['over'], 'error_screen': bool(admin_crawl.ERROR_TEXT.search(info['text'])),
                     'page_errors': errors, 'console_errors': console[:5],
+                    'low_contrast': ui['lowContrast'], 'inner_scroll': ui['innerScroll'],
+                    'covered': ui['covered'], 'pagination': ui['pagination'],
                 })
             ctx.close()
         browser.close()
     (out_dir / f'{role}.json').write_text(json.dumps(results, indent=1), encoding='utf-8')
-    bad = [r for r in results if r['overflow_px'] > 2 or r['error_screen'] or r['page_errors']]
+    bad = [r for r in results if r['overflow_px'] > 2 or r['error_screen'] or r['page_errors']
+           or r['low_contrast'] or r['inner_scroll'] or r['covered'] or r['pagination'] == 'custom']
     print(f'{role}: {len(pages)} routes x {len(WIDTHS)} widths, {len(bad)} entries flagged')
 
 

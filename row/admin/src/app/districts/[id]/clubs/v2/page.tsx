@@ -217,15 +217,15 @@ function ClubTableV2({
             className="hover:opacity-100 border-b-2 border-marigold"
             style={{ backgroundColor: "#17458f" }}
           >
-            <TableHead className="w-12 text-white/90"></TableHead>
-            <TableHead className="text-white text-xs font-semibold uppercase tracking-wide">Club Name</TableHead>
-            <TableHead className="hidden md:table-cell text-white text-xs font-semibold uppercase tracking-wide">Rotary ID</TableHead>
-            <TableHead className="hidden md:table-cell text-white text-xs font-semibold uppercase tracking-wide">District</TableHead>
-            <TableHead className="hidden lg:table-cell text-white text-xs font-semibold uppercase tracking-wide">Meeting Day</TableHead>
-            <TableHead className="hidden md:table-cell text-white text-xs font-semibold uppercase tracking-wide">City</TableHead>
-            <TableHead className="text-white text-xs font-semibold uppercase tracking-wide">Members</TableHead>
-            <TableHead className="text-white text-xs font-semibold uppercase tracking-wide">Status</TableHead>
-            <TableHead className="w-12 text-white/90"></TableHead>
+            <TableHead className="w-12/90"></TableHead>
+            <TableHead className="text-xs font-semibold uppercase tracking-wide">Club Name</TableHead>
+            <TableHead className="hidden md:table-cell text-xs font-semibold uppercase tracking-wide">Rotary ID</TableHead>
+            <TableHead className="hidden md:table-cell text-xs font-semibold uppercase tracking-wide">District</TableHead>
+            <TableHead className="hidden lg:table-cell text-xs font-semibold uppercase tracking-wide">Meeting Day</TableHead>
+            <TableHead className="hidden md:table-cell text-xs font-semibold uppercase tracking-wide">City</TableHead>
+            <TableHead className="text-xs font-semibold uppercase tracking-wide">Members</TableHead>
+            <TableHead className="text-xs font-semibold uppercase tracking-wide">Status</TableHead>
+            <TableHead className="w-12/90"></TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>

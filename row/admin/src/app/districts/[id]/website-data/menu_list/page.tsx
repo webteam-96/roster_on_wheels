@@ -761,12 +761,12 @@ export default function DistrictMenuListPage() {
               <Table>
                 <TableHeader>
                   <TableRow className="bg-primary hover:bg-primary">
-                    <TableHead className="text-primary-foreground text-base font-semibold">Menu Name</TableHead>
-                    <TableHead className="w-32 text-primary-foreground text-base font-semibold">Link Type</TableHead>
-                    <TableHead className="w-24 text-primary-foreground text-base font-semibold">Status</TableHead>
-                    <TableHead className="w-24 text-primary-foreground text-base font-semibold">Sub-Menus</TableHead>
-                    {canManage && <TableHead className="w-16 text-center text-primary-foreground text-base font-semibold">Sort</TableHead>}
-                    {canManage && <TableHead className="w-12 text-primary-foreground"></TableHead>}
+                    <TableHead className="text-base font-semibold">Menu Name</TableHead>
+                    <TableHead className="w-32 text-base font-semibold">Link Type</TableHead>
+                    <TableHead className="w-24 text-base font-semibold">Status</TableHead>
+                    <TableHead className="w-24 text-base font-semibold">Sub-Menus</TableHead>
+                    {canManage && <TableHead className="w-16 text-center text-base font-semibold">Sort</TableHead>}
+                    {canManage && <TableHead className="w-12"></TableHead>}
                   </TableRow>
                 </TableHeader>
                 <TableBody>

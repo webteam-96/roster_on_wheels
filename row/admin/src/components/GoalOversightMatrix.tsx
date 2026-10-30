@@ -21,8 +21,8 @@ import { isAnnualOnlyCategory } from "@/lib/goalCategories";
 const RAG_CELL: Record<string, string> = {
   Red: "bg-red-500 text-white",
   Amber: "bg-amber-500 text-white",
-  Green: "bg-emerald-500 text-white",
-  SuperGreen: "bg-emerald-600 text-white",
+  Green: "bg-emerald-700 text-white",
+  SuperGreen: "bg-emerald-800 text-white",
 };
 // Single-value metrics (RAG bands, Summary figures) are 1 column; every other metric is the
 // 4-column baseline / target / achieved / % block.

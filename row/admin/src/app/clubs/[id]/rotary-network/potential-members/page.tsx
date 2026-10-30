@@ -251,13 +251,13 @@ export default function PotentialMembersPage() {
               <Table>
                 <TableHeader>
                   <TableRow className="bg-primary hover:bg-primary">
-                    <TableHead className="w-16 text-primary-foreground text-base font-semibold">S.No.</TableHead>
-                    <TableHead className="text-primary-foreground text-base font-semibold">Name</TableHead>
-                    <TableHead className="text-primary-foreground text-base font-semibold">Email</TableHead>
-                    <TableHead className="text-primary-foreground text-base font-semibold">Mobile Number</TableHead>
-                    <TableHead className="text-primary-foreground text-base font-semibold">Reference Details</TableHead>
+                    <TableHead className="w-16 text-base font-semibold">S.No.</TableHead>
+                    <TableHead className="text-base font-semibold">Name</TableHead>
+                    <TableHead className="text-base font-semibold">Email</TableHead>
+                    <TableHead className="text-base font-semibold">Mobile Number</TableHead>
+                    <TableHead className="text-base font-semibold">Reference Details</TableHead>
                     {canManage && (
-                      <TableHead className="w-24 text-primary-foreground text-base font-semibold">Actions</TableHead>
+                      <TableHead className="w-24 text-base font-semibold">Actions</TableHead>
                     )}
                   </TableRow>
                 </TableHeader>

@@ -50,8 +50,7 @@ import {
   AlertCircle,
   Download,
   FileText,
-  ChevronLeft,
-} from "@/components/icons";
+  } from "@/components/icons";
 import { useMemo, useState, useEffect } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useDistrictAdminCache } from "@/contexts/DistrictAdminDashboardCacheContext";
@@ -73,6 +72,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { SkeletonRows } from "@/components/row/AppKit";
+import Pagination from "@/components/Pagination";
 
 /* ------------------------------------------------------------------ types */
 /* Wave 13A1 additive contract — treated as optional so the page degrades
@@ -269,7 +269,6 @@ export default function DistrictAdminEGovernancePage() {
           <div className="px-5 pt-3">
             <TabsList
               className="h-auto w-full justify-start sm:w-auto p-1.5 gap-1"
-              style={{ backgroundColor: "#17458f" }}
             >
               {on.cmr && <TabsTrigger value="cmr" className="text-sm font-semibold px-3.5 py-1.5 rounded-full">Club Monthly Report</TabsTrigger>}
               <TabsTrigger value="citation" className="text-sm font-semibold px-3.5 py-1.5 rounded-full">District Awards</TabsTrigger>
@@ -842,29 +841,7 @@ function PerClubGrid({
 
       {/* pagination */}
       {filtered.length > PAGE_SIZE && (
-        <div className="px-5 py-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
-          <span>
-            Page {pageSafe} of {totalPages} · {fmtInt(filtered.length)} clubs
-          </span>
-          <div className="flex items-center gap-1">
-            <button
-              type="button"
-              onClick={() => setPage((p) => Math.max(1, p - 1))}
-              disabled={pageSafe <= 1}
-              className="inline-flex items-center gap-1 px-2 py-1 rounded border border-slate-200 hover:bg-slate-50 disabled:opacity-40"
-            >
-              <ChevronLeft size={12} /> Prev
-            </button>
-            <button
-              type="button"
-              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-              disabled={pageSafe >= totalPages}
-              className="inline-flex items-center gap-1 px-2 py-1 rounded border border-slate-200 hover:bg-slate-50 disabled:opacity-40"
-            >
-              Next <ChevronRight size={12} />
-            </button>
-          </div>
-        </div>
+        <div className="px-5 py-3 border-t border-slate-100"><Pagination page={pageSafe} totalPages={totalPages} totalCount={filtered.length} pageSize={PAGE_SIZE} onPageChange={setPage} /></div>
       )}
     </div>
   );

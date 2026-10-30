@@ -295,12 +295,12 @@ export default function DistrictAdminWebLinksPage() {
                 <Table>
                   <TableHeader>
                     <TableRow className="hover:opacity-100 border-b-2 border-marigold" style={{ backgroundColor: "#17458f" }}>
-                      <TableHead className="w-12 text-white text-xs font-semibold uppercase tracking-wide">#</TableHead>
-                      <TableHead className="text-white text-xs font-semibold uppercase tracking-wide">Title</TableHead>
-                      <TableHead className="w-28 text-white text-xs font-semibold uppercase tracking-wide">Type</TableHead>
-                      <TableHead className="text-white text-xs font-semibold uppercase tracking-wide">Target</TableHead>
-                      <TableHead className="w-24 text-white text-xs font-semibold uppercase tracking-wide text-center">Status</TableHead>
-                      {canManage && <TableHead className="w-12 text-white/90"></TableHead>}
+                      <TableHead className="w-12 text-xs font-semibold uppercase tracking-wide">#</TableHead>
+                      <TableHead className="text-xs font-semibold uppercase tracking-wide">Title</TableHead>
+                      <TableHead className="w-28 text-xs font-semibold uppercase tracking-wide">Type</TableHead>
+                      <TableHead className="text-xs font-semibold uppercase tracking-wide">Target</TableHead>
+                      <TableHead className="w-24 text-xs font-semibold uppercase tracking-wide text-center">Status</TableHead>
+                      {canManage && <TableHead className="w-12/90"></TableHead>}
                     </TableRow>
                   </TableHeader>
                   <TableBody>

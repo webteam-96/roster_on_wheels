@@ -59,7 +59,7 @@ export default function ZoneCard({ zone, onDelete, isSuperAdmin }: ZoneCardProps
             <div className="flex items-start justify-between">
               <div>
                 <h3 className="font-semibold text-lg text-white">{zone.zoneName}</h3>
-                <Badge className={`text-xs mt-1 ${zone.isActive ? "bg-green-500/80 text-white border-green-400/50" : "bg-red-500/80 text-white border-red-400/50"}`}>
+                <Badge className={`text-xs mt-1 ${zone.isActive ? "bg-green-700 text-white border-green-400/50" : "bg-red-500/80 text-white border-red-400/50"}`}>
                   {zone.isActive ? "Active" : "Inactive"}
                 </Badge>
               </div>

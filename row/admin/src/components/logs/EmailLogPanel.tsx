@@ -22,6 +22,7 @@ import ErrorAlert from "@/components/ErrorAlert";
 import { Mail, Search, Filter, RotateCcw, Download, ArrowLeft } from "@/components/icons";
 import Link from "next/link";
 import RotaryLoader from "@/components/RotaryLoader";
+import Pagination from "@/components/Pagination";
 
 import { appLocale } from "@/lib/appFormat";
 function fmtDate(d: string | null) {
@@ -192,13 +193,8 @@ export default function EmailLogPanel({ base, backHref }: { base: string; backHr
             </div>
           )}
           {total > pageSize && (
-            <div className="p-3 flex items-center justify-between text-xs border-t">
-              <div>Showing {(page - 1) * pageSize + 1}–{Math.min(page * pageSize, total)} of {total}</div>
-              <div className="flex flex-wrap gap-2">
-                <Button size="sm" variant="outline" disabled={page <= 1} onClick={() => fetchLogs(page - 1)}>Prev</Button>
-                <span>Page {page} / {totalPages}</span>
-                <Button size="sm" variant="outline" disabled={page >= totalPages} onClick={() => fetchLogs(page + 1)}>Next</Button>
-              </div>
+            <div className="p-3 border-t">
+              <Pagination page={page} totalPages={totalPages} totalCount={total} pageSize={pageSize} onPageChange={fetchLogs} />
             </div>
           )}
         </CardContent>

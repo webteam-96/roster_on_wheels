@@ -15,8 +15,7 @@ import { useParams, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import {
   CalendarDays, Users, Activity, Loader2, Search, Plus, Edit3, Trash2,
-  Download, ArrowLeft, AlertTriangle, Layers, ChevronLeft, ChevronRight,
-} from "@/components/icons";
+  Download, ArrowLeft, AlertTriangle, Layers, } from "@/components/icons";
 import {
   getClub,
   getAttendanceList,
@@ -38,6 +37,7 @@ import { useSyncClubIdFromUrl } from "@/hooks/useSyncClubIdFromUrl";
 
 import { appLocale } from "@/lib/appFormat";
 import { SkeletonRows } from "@/components/row/AppKit";
+import Pagination from "@/components/Pagination";
 function attendancePercentChip(pct: number): string {
   if (pct >= 75) return "bg-emerald-100 text-emerald-700";
   if (pct >= 50) return "bg-amber-100 text-amber-700";
@@ -487,32 +487,8 @@ export function AttendanceV2View({ clubId: propClubId, embedded = false }: { clu
                 ? `Showing ${(page - 1) * PAGE_SIZE + 1}-${Math.min(page * PAGE_SIZE, totalCount)} of ${totalCount} record${totalCount === 1 ? "" : "s"} · ${yearLabel}`
                 : `0 records · ${yearLabel}`}
             </span>
-            {totalPages > 1 && (
-              <div className="flex items-center gap-1">
-                <button
-                  type="button"
-                  onClick={() => setPage((p) => Math.max(1, p - 1))}
-                  disabled={page <= 1}
-                  className="inline-flex items-center justify-center h-7 w-7 rounded border border-slate-200 text-slate-600 hover:bg-slate-50 disabled:opacity-40 disabled:hover:bg-transparent"
-                  aria-label="Previous page"
-                >
-                  <ChevronLeft size={14} />
-                </button>
-                <span className="px-2">
-                  Page {page} of {totalPages}
-                </span>
-                <button
-                  type="button"
-                  onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                  disabled={page >= totalPages}
-                  className="inline-flex items-center justify-center h-7 w-7 rounded border border-slate-200 text-slate-600 hover:bg-slate-50 disabled:opacity-40 disabled:hover:bg-transparent"
-                  aria-label="Next page"
-                >
-                  <ChevronRight size={14} />
-                </button>
-              </div>
-            )}
           </div>
+          {totalPages > 1 && <div className="px-5 py-3 border-t border-slate-100"><Pagination page={page} totalPages={totalPages} totalCount={totalCount} pageSize={PAGE_SIZE} onPageChange={setPage} /></div>}
         </div>
 
         <CalendarFeedCard clubId={clubId} canManage={canManage} />

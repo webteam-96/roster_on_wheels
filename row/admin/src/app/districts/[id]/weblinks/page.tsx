@@ -171,13 +171,13 @@ export default function DistrictWeblinksPage() {
             <Table>
               <TableHeader>
                 <TableRow className="bg-primary hover:bg-primary">
-                  <TableHead className="w-12 text-primary-foreground text-base font-semibold">S.No.</TableHead>
-                  <TableHead className="text-primary-foreground text-base font-semibold">Logo</TableHead>
-                  <TableHead className="text-primary-foreground text-base font-semibold">Title</TableHead>
-                  <TableHead className="text-primary-foreground text-base font-semibold text-center">Type</TableHead>
-                  <TableHead className="text-primary-foreground text-base font-semibold text-center">Children</TableHead>
-                  <TableHead className="text-primary-foreground text-base font-semibold text-center">Active</TableHead>
-                  {canManage && <TableHead className="w-12 text-primary-foreground"></TableHead>}
+                  <TableHead className="w-12 text-base font-semibold">S.No.</TableHead>
+                  <TableHead className="text-base font-semibold">Logo</TableHead>
+                  <TableHead className="text-base font-semibold">Title</TableHead>
+                  <TableHead className="text-base font-semibold text-center">Type</TableHead>
+                  <TableHead className="text-base font-semibold text-center">Children</TableHead>
+                  <TableHead className="text-base font-semibold text-center">Active</TableHead>
+                  {canManage && <TableHead className="w-12"></TableHead>}
                 </TableRow>
               </TableHeader>
               <TableBody>

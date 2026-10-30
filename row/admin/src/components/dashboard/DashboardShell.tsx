@@ -11,6 +11,7 @@ import {
   useSelectedDistrict,
   useDistrictAdminDistricts,
   useAgDistricts,
+  decodeJwt,
 } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
 import Sidebar from "./Sidebar";
@@ -97,7 +98,9 @@ export default function DashboardShell({
 }: DashboardShellProps) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
-  const { logout, user, selectScope, selectedClubId } = useAuth();
+  const { logout, user, selectScope, selectedClubId, token } = useAuth();
+  // The JWT keeps SuperAdmin even when a borrowed scope strips it from user.roles.
+  const isSuperAdminLogin = !!token && (decodeJwt(token)?.roles ?? []).includes("SuperAdmin");
   const isSuperAdmin = user?.roles?.includes("SuperAdmin") ?? false;
   const { byKey: comingSoonByKey } = useComingSoonModules();
 
@@ -355,7 +358,7 @@ export default function DashboardShell({
             </div>
             {/* Back — SuperAdmin global-search flow only. Right corner so it's the clear
                 way out of a borrowed dashboard; stays visible on mobile. */}
-            {fromSuperAdminSearch && (
+            {(fromSuperAdminSearch || isSuperAdminLogin) && (
               <button
                 onClick={handleBack}
                 title="Back to search"

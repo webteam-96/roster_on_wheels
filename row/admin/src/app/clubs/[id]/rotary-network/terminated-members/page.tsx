@@ -191,12 +191,12 @@ export default function TerminatedMembersPage() {
                     <Table>
                       <TableHeader>
                         <TableRow className="bg-primary hover:bg-primary">
-                          <TableHead className="w-16 text-primary-foreground text-base font-semibold">S.No.</TableHead>
-                          <TableHead className="text-primary-foreground text-base font-semibold">Member ID</TableHead>
-                          <TableHead className="text-primary-foreground text-base font-semibold">Member Name</TableHead>
-                          <TableHead className="text-primary-foreground text-base font-semibold">Joined Date</TableHead>
-                          <TableHead className="text-primary-foreground text-base font-semibold">Termination Date</TableHead>
-                          <TableHead className="text-primary-foreground text-base font-semibold">Termination Reason</TableHead>
+                          <TableHead className="w-16 text-base font-semibold">S.No.</TableHead>
+                          <TableHead className="text-base font-semibold">Member ID</TableHead>
+                          <TableHead className="text-base font-semibold">Member Name</TableHead>
+                          <TableHead className="text-base font-semibold">Joined Date</TableHead>
+                          <TableHead className="text-base font-semibold">Termination Date</TableHead>
+                          <TableHead className="text-base font-semibold">Termination Reason</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>

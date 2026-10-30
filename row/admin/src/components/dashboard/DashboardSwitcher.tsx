@@ -470,7 +470,7 @@ export default function DashboardSwitcher({ currentKind, onNavigate }: Dashboard
           e.stopPropagation();
           setOpen((v) => !v);
         }}
-        className="w-full flex items-center justify-between gap-2 px-3 py-2 rounded-lg text-xs font-medium text-slate-300 hover:text-white hover:bg-white/10 transition-all border border-white/10"
+        className="w-full flex items-center justify-between gap-2 px-3 py-2 rounded-lg text-xs font-medium text-foreground hover:bg-muted transition-colors border border-border"
       >
         <span className="flex items-center gap-2 min-w-0">
           <ArrowLeftRight size={13} className="flex-shrink-0" />

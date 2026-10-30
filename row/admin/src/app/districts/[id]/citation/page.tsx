@@ -588,10 +588,10 @@ export default function DistrictCitationPage() {
                 <Card><CardContent className="p-0 overflow-x-auto">
                   <Table>
                     <TableHeader><TableRow className="bg-primary hover:bg-primary">
-                      <TableHead className="text-primary-foreground w-12">#</TableHead>
-                      <TableHead className="text-primary-foreground">Club</TableHead>
-                      <TableHead className="text-primary-foreground text-center">Total Points</TableHead>
-                      <TableHead className="text-primary-foreground text-center w-28">Action</TableHead>
+                      <TableHead className="w-12">#</TableHead>
+                      <TableHead>Club</TableHead>
+                      <TableHead className="text-center">Total Points</TableHead>
+                      <TableHead className="text-center w-28">Action</TableHead>
                     </TableRow></TableHeader>
                     <TableBody>
                       {clubPoints.length === 0 ? (

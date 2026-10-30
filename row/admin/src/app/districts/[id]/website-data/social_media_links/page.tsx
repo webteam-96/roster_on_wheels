@@ -238,12 +238,12 @@ export default function DistrictSocialLinksPage() {
               <Table>
                 <TableHeader>
                   <TableRow className="bg-primary hover:bg-primary">
-                    <TableHead className="w-12 text-primary-foreground"></TableHead>
-                    <TableHead className="text-primary-foreground text-base font-semibold">Platform</TableHead>
-                    <TableHead className="text-primary-foreground text-base font-semibold">Link URL</TableHead>
-                    <TableHead className="w-24 text-primary-foreground text-base font-semibold">Status</TableHead>
-                    {canManage && <TableHead className="w-12 text-primary-foreground"></TableHead>}
-                    {canManage && <TableHead className="w-20 text-primary-foreground text-base font-semibold text-center">Sorting</TableHead>}
+                    <TableHead className="w-12"></TableHead>
+                    <TableHead className="text-base font-semibold">Platform</TableHead>
+                    <TableHead className="text-base font-semibold">Link URL</TableHead>
+                    <TableHead className="w-24 text-base font-semibold">Status</TableHead>
+                    {canManage && <TableHead className="w-12"></TableHead>}
+                    {canManage && <TableHead className="w-20 text-base font-semibold text-center">Sorting</TableHead>}
                   </TableRow>
                 </TableHeader>
                 <TableBody>

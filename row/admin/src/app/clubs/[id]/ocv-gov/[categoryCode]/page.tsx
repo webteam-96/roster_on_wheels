@@ -477,32 +477,32 @@ export default function OcvCategoryPage() {
                 <Table>
                   <TableHeader>
                     <TableRow className="bg-primary hover:bg-primary">
-                      <TableHead className="w-12 text-primary-foreground text-base font-semibold">
+                      <TableHead className="w-12 text-base font-semibold">
                         S.No
                       </TableHead>
-                      <TableHead className="text-primary-foreground text-base font-semibold">
+                      <TableHead className="text-base font-semibold">
                         Doc Type
                       </TableHead>
-                      <TableHead className="text-primary-foreground text-base font-semibold">
+                      <TableHead className="text-base font-semibold">
                         File Name
                       </TableHead>
-                      <TableHead className="text-primary-foreground text-base font-semibold">
+                      <TableHead className="text-base font-semibold">
                         Size
                       </TableHead>
                       {isDuesCategory && (
                         <>
-                          <TableHead className="text-primary-foreground text-base font-semibold">
+                          <TableHead className="text-base font-semibold">
                             Amount
                           </TableHead>
-                          <TableHead className="text-primary-foreground text-base font-semibold">
+                          <TableHead className="text-base font-semibold">
                             Paid On
                           </TableHead>
                         </>
                       )}
-                      <TableHead className="text-primary-foreground text-base font-semibold">
+                      <TableHead className="text-base font-semibold">
                         Date & Time
                       </TableHead>
-                      <TableHead className="text-primary-foreground text-base font-semibold text-center">
+                      <TableHead className="text-base font-semibold text-center">
                         Actions
                       </TableHead>
                     </TableRow>

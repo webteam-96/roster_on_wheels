@@ -353,17 +353,17 @@ export default function CashfreeKycPage() {
                 <Table>
                   <TableHeader>
                     <TableRow className="bg-primary hover:bg-primary">
-                      <TableHead className="w-12 text-primary-foreground">#</TableHead>
-                      <TableHead className="text-primary-foreground text-base font-semibold">Vendor ID</TableHead>
-                      <TableHead className="text-primary-foreground text-base font-semibold">Name</TableHead>
-                      <TableHead className="text-primary-foreground text-base font-semibold">Email</TableHead>
-                      <TableHead className="text-primary-foreground text-base font-semibold">Mobile</TableHead>
-                      <TableHead className="text-primary-foreground text-base font-semibold">PAN</TableHead>
-                      <TableHead className="text-primary-foreground text-base font-semibold">Account No</TableHead>
-                      <TableHead className="text-primary-foreground text-base font-semibold">IFSC</TableHead>
-                      <TableHead className="text-primary-foreground text-base font-semibold text-center">Status</TableHead>
-                      <TableHead className="text-primary-foreground text-base font-semibold text-center">Active</TableHead>
-                      <TableHead className="w-12 text-primary-foreground"></TableHead>
+                      <TableHead className="w-12">#</TableHead>
+                      <TableHead className="text-base font-semibold">Vendor ID</TableHead>
+                      <TableHead className="text-base font-semibold">Name</TableHead>
+                      <TableHead className="text-base font-semibold">Email</TableHead>
+                      <TableHead className="text-base font-semibold">Mobile</TableHead>
+                      <TableHead className="text-base font-semibold">PAN</TableHead>
+                      <TableHead className="text-base font-semibold">Account No</TableHead>
+                      <TableHead className="text-base font-semibold">IFSC</TableHead>
+                      <TableHead className="text-base font-semibold text-center">Status</TableHead>
+                      <TableHead className="text-base font-semibold text-center">Active</TableHead>
+                      <TableHead className="w-12"></TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>

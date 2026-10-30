@@ -15,10 +15,11 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
 import AlertModal from "@/components/AlertModal";
-import { ArrowLeft, RefreshCw, Download, Bell, Link2, Check, ChevronLeft, ChevronRight, Receipt, Pencil, Split, Plus, X, FileText, Send } from "@/components/icons";
+import { ArrowLeft, RefreshCw, Download, Bell, Link2, Check, Receipt, Pencil, Split, Plus, X, FileText, Send } from "@/components/icons";
 
 import { appLocale, currencySymbol } from "@/lib/appFormat";
 import { ListPageSkeleton } from "@/components/row/AppKit";
+import Pagination from "@/components/Pagination";
 interface AccountBreakdown {
   fkRouteAccountId: number;
   accountLabel: string | null;
@@ -362,16 +363,7 @@ export default function ClubDuesClubsPage() {
               </table>
             </CardContent>
             {filtered.length > PAGE_SIZE && (
-              <div className="flex items-center justify-between p-3 border-t text-sm">
-                <span className="text-muted-foreground">
-                  {(page - 1) * PAGE_SIZE + 1}–{Math.min(page * PAGE_SIZE, filtered.length)} of {filtered.length}
-                </span>
-                <div className="flex flex-wrap items-center gap-2">
-                  <Button variant="outline" size="sm" onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page === 1}><ChevronLeft className="h-4 w-4" /></Button>
-                  <span>Page {page} / {totalPages}</span>
-                  <Button variant="outline" size="sm" onClick={() => setPage((p) => Math.min(totalPages, p + 1))} disabled={page === totalPages}><ChevronRight className="h-4 w-4" /></Button>
-                </div>
-              </div>
+              <div className="p-3 border-t"><Pagination page={page} totalPages={totalPages} totalCount={filtered.length} pageSize={PAGE_SIZE} onPageChange={setPage} /></div>
             )}
           </Card>
         )}

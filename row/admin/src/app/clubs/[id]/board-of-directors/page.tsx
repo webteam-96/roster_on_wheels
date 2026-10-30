@@ -424,11 +424,11 @@ export default function BoardOfDirectorsPage() {
               <Table>
                 <TableHeader>
                   <TableRow className="bg-primary hover:bg-primary">
-                    <TableHead className="w-12 text-primary-foreground"></TableHead>
-                    <TableHead className="text-primary-foreground text-base font-semibold">Member Name</TableHead>
-                    <TableHead className="text-primary-foreground text-base font-semibold">Designation</TableHead>
-                    {canManage && <TableHead className="w-12 text-primary-foreground"></TableHead>}
-                    {canManage && <TableHead className="w-16 text-primary-foreground text-center text-base font-semibold">Sort</TableHead>}
+                    <TableHead className="w-12"></TableHead>
+                    <TableHead className="text-base font-semibold">Member Name</TableHead>
+                    <TableHead className="text-base font-semibold">Designation</TableHead>
+                    {canManage && <TableHead className="w-12"></TableHead>}
+                    {canManage && <TableHead className="w-16 text-center text-base font-semibold">Sort</TableHead>}
                   </TableRow>
                 </TableHeader>
                 <TableBody>

@@ -505,7 +505,7 @@ export default function ClubMonthlyReportWizardPage() {
                       className={`
                         flex items-center justify-center w-10 h-10 rounded-full border-2 mb-2 transition-colors
                         ${isActive ? "border-primary bg-primary text-primary-foreground" : ""}
-                        ${isCompleted ? "border-green-500 bg-green-500 text-white" : ""}
+                        ${isCompleted ? "border-green-500 bg-green-700 text-white" : ""}
                         ${!isActive && !isCompleted ? "border-muted-foreground/30 text-muted-foreground" : ""}
                       `}
                     >

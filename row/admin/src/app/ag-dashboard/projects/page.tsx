@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import {
-  Briefcase, Users, Clock, IndianRupee, ChevronLeft, ChevronRight, Search,
+  Briefcase, Users, Clock, IndianRupee, Search,
   X,
 } from "@/components/icons";
 import RotaryLoader from "@/components/RotaryLoader";
@@ -25,6 +25,7 @@ import KpiCard from "@/components/dashboard/KpiCard";
 import { fmtInt, fmtInr, fmtDate, ROTARY_BLUE, ROTARY_GOLD, CLUB_PALETTE } from "@/components/dashboard/formatters";
 import { formatMoney } from "@/lib/currency";
 import { ListPageSkeleton } from "@/components/row/AppKit";
+import Pagination from "@/components/Pagination";
 
 const PAGE_SIZE = 20;
 
@@ -584,51 +585,7 @@ export default function AgProjectsPage() {
 
         {/* Pagination */}
         {sortedRows.length > 0 && (
-          <div className="px-5 py-3 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-            <p className="text-[11px] text-slate-500">
-              Page {safePage} of {totalPages} · {PAGE_SIZE} per page
-            </p>
-            <div className="inline-flex items-center gap-1">
-              <button
-                onClick={() => setPage((p) => Math.max(1, p - 1))}
-                disabled={safePage === 1}
-                className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium rounded-full border border-slate-200 text-slate-600 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed"
-              >
-                <ChevronLeft size={14} /> Prev
-              </button>
-              {Array.from({ length: totalPages }, (_, i) => i + 1)
-                .filter((p) => p === 1 || p === totalPages || Math.abs(p - safePage) <= 1)
-                .reduce<(number | "…")[]>((acc, p, i, arr) => {
-                  if (i > 0 && p - (arr[i - 1] as number) > 1) acc.push("…");
-                  acc.push(p);
-                  return acc;
-                }, [])
-                .map((p, i) =>
-                  p === "…" ? (
-                    <span key={`e${i}`} className="px-1.5 text-slate-400 text-xs">…</span>
-                  ) : (
-                    <button
-                      key={p}
-                      onClick={() => setPage(p)}
-                      className={`min-w-[32px] px-2 py-1.5 text-xs font-medium rounded-md border ${
-                        p === safePage
-                          ? "bg-blue-600 text-white border-blue-600"
-                          : "border-slate-200 text-slate-600 hover:bg-slate-50"
-                      }`}
-                    >
-                      {p}
-                    </button>
-                  )
-                )}
-              <button
-                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                disabled={safePage === totalPages}
-                className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium rounded-full border border-slate-200 text-slate-600 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed"
-              >
-                Next <ChevronRight size={14} />
-              </button>
-            </div>
-          </div>
+          <div className="px-5 py-3 border-t border-slate-100"><Pagination page={safePage} totalPages={totalPages} totalCount={sortedRows.length} pageSize={PAGE_SIZE} onPageChange={setPage} /></div>
         )}
       </div>
 

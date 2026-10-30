@@ -46,6 +46,7 @@ import ClubAdminShell from "@/components/v2/ClubAdminShell";
 import { useSyncClubIdFromUrl } from "@/hooks/useSyncClubIdFromUrl";
 
 import { appLocale, currencySymbol } from "@/lib/appFormat";
+import Pagination from "@/components/Pagination";
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
 
@@ -998,27 +999,7 @@ export default function ClubMembershipDuesV2MembersPage() {
 
           {/* Pagination */}
           {!loading && totalPages > 1 && (
-            <div className="flex items-center justify-center gap-2">
-              <button
-                type="button"
-                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                disabled={currentPage === 1}
-                className="px-3 py-1.5 text-xs font-medium rounded-full border border-slate-200 text-slate-600 hover:bg-slate-50 disabled:opacity-40"
-              >
-                Prev
-              </button>
-              <span className="text-xs text-slate-500">
-                Page {currentPage} of {totalPages}
-              </span>
-              <button
-                type="button"
-                onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-                disabled={currentPage === totalPages}
-                className="px-3 py-1.5 text-xs font-medium rounded-full border border-slate-200 text-slate-600 hover:bg-slate-50 disabled:opacity-40"
-              >
-                Next
-              </button>
-            </div>
+            <Pagination page={currentPage} totalPages={totalPages} totalCount={members.length} pageSize={pageSize} onPageChange={setCurrentPage} />
           )}
 
           {/* Offline Payment Dialog — EXACT logic from v1 */}

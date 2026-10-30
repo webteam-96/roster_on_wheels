@@ -67,7 +67,7 @@ export default function DistrictCard({ district, onDelete, isSuperAdmin, zoneId 
             <div className="flex items-start justify-between">
               <div>
                 <h3 className="font-semibold text-lg text-white">District {district.districtNumber}</h3>
-                <Badge className={`text-xs mt-1 ${district.isActive ? "bg-green-500/80 text-white border-green-400/50" : "bg-red-500/80 text-white border-red-400/50"}`}>
+                <Badge className={`text-xs mt-1 ${district.isActive ? "bg-green-700 text-white border-green-400/50" : "bg-red-500/80 text-white border-red-400/50"}`}>
                   {district.isActive ? "Active" : "Inactive"}
                 </Badge>
               </div>

@@ -9,12 +9,13 @@ import { Badge } from "@/components/ui/badge";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { useAuth } from "@/contexts/AuthContext";
-import { ArrowLeft, Loader2, Smartphone, Mail, ChevronLeft, ChevronRight, Search, X, Download, StickyNote, Pencil } from "@/components/icons";
+import { ArrowLeft, Loader2, Smartphone, Mail, Search, X, Download, StickyNote, Pencil } from "@/components/icons";
 import { getDuplicateList, getAllDuplicates, saveDuplicateRemark, getMergeHistory, revertMerge, type DupPair, type MergeHistoryRow } from "@/services/api";
 import { exportToCSV } from "@/utils/csvExport";
 import MergeDialog from "./MergeDialog";
 
 import { appLocale } from "@/lib/appFormat";
+import Pagination from "@/components/Pagination";
 const PAGE_SIZE = 20;
 type FilterType = "all" | "mobile" | "email" | "both";
 
@@ -356,15 +357,7 @@ export default function DuplicatesPage() {
 
         {/* Pagination */}
         {total > PAGE_SIZE && (
-          <div className="flex items-center justify-center gap-3">
-            <Button variant="outline" size="sm" disabled={page <= 1 || loading} onClick={() => setPage((p) => Math.max(1, p - 1))}>
-              <ChevronLeft className="h-4 w-4 mr-1" /> Prev
-            </Button>
-            <span className="text-sm text-muted-foreground">Page {page} of {totalPages}</span>
-            <Button variant="outline" size="sm" disabled={page >= totalPages || loading} onClick={() => setPage((p) => Math.min(totalPages, p + 1))}>
-              Next <ChevronRight className="h-4 w-4 ml-1" />
-            </Button>
-          </div>
+          <Pagination page={page} totalPages={totalPages} totalCount={total} pageSize={PAGE_SIZE} onPageChange={setPage} />
         )}
         </>
         )}

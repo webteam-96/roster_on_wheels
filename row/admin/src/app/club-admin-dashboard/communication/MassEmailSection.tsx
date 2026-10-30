@@ -23,6 +23,7 @@ import RotaryLoader from "@/components/RotaryLoader";
 import { Plus, MoreHorizontal, Eye, Pencil, Trash2, Send, Mail, AlertTriangle } from "@/components/icons";
 
 import { appLocale } from "@/lib/appFormat";
+import Pagination from "@/components/Pagination";
 const BASE = "/club-admin-dashboard/communication/mass-email";
 const RETURN_TO = "/club-admin-dashboard/communication?tab=massemail";
 
@@ -129,13 +130,13 @@ export default function MassEmailSection({ clubId }: { clubId: number }) {
             <Table>
               <TableHeader>
                 <TableRow className="hover:opacity-100 border-b-2 border-marigold" style={{ backgroundColor: "#17458f" }}>
-                  <TableHead className="text-white text-xs font-semibold uppercase tracking-wide">Subject</TableHead>
-                  <TableHead className="text-white text-xs font-semibold uppercase tracking-wide">Status</TableHead>
-                  <TableHead className="text-white text-xs font-semibold uppercase tracking-wide">Recipients</TableHead>
-                  <TableHead className="text-white text-xs font-semibold uppercase tracking-wide text-center">Sent</TableHead>
-                  <TableHead className="text-white text-xs font-semibold uppercase tracking-wide text-center">Failed</TableHead>
-                  <TableHead className="text-white text-xs font-semibold uppercase tracking-wide">Created</TableHead>
-                  {canManage && <TableHead className="text-white text-xs font-semibold uppercase tracking-wide text-right">Actions</TableHead>}
+                  <TableHead className="text-xs font-semibold uppercase tracking-wide">Subject</TableHead>
+                  <TableHead className="text-xs font-semibold uppercase tracking-wide">Status</TableHead>
+                  <TableHead className="text-xs font-semibold uppercase tracking-wide">Recipients</TableHead>
+                  <TableHead className="text-xs font-semibold uppercase tracking-wide text-center">Sent</TableHead>
+                  <TableHead className="text-xs font-semibold uppercase tracking-wide text-center">Failed</TableHead>
+                  <TableHead className="text-xs font-semibold uppercase tracking-wide">Created</TableHead>
+                  {canManage && <TableHead className="text-xs font-semibold uppercase tracking-wide text-right">Actions</TableHead>}
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -174,13 +175,7 @@ export default function MassEmailSection({ clubId }: { clubId: number }) {
             </Table>
           </div>
           {totalPages > 1 && (
-            <div className="flex items-center justify-between px-4 py-3 border-t border-slate-100">
-              <p className="text-sm text-slate-500">Showing {(page - 1) * pageSize + 1}-{Math.min(page * pageSize, totalCount)} of {totalCount}</p>
-              <div className="flex flex-wrap gap-2">
-                <Button variant="outline" size="sm" className="border-slate-200" onClick={() => setPage((p) => p - 1)} disabled={page <= 1}>Previous</Button>
-                <Button variant="outline" size="sm" className="border-slate-200" onClick={() => setPage((p) => p + 1)} disabled={page >= totalPages}>Next</Button>
-              </div>
-            </div>
+            <div className="px-4 py-3 border-t border-slate-100"><Pagination page={page} totalPages={totalPages} totalCount={totalCount} pageSize={pageSize} onPageChange={setPage} /></div>
           )}
         </div>
       )}

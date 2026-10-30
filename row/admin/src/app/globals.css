@@ -521,3 +521,6 @@
     display: none;
   }
 }
+
+/* Recharts paints legend labels in the series colour; orange/light series were unreadable on white. */
+.recharts-legend-item-text { color: hsl(var(--foreground)) !important; }

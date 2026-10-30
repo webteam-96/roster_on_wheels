@@ -17,7 +17,7 @@ import Link from "next/link";
 import {
   Briefcase, Users, IndianRupee, Clock4, Loader2, Search, Plus, Edit3, Trash2,
   Download, ArrowLeft, AlertTriangle, Info, Eye,
-  ChevronLeft, ChevronRight, Puzzle,
+  Puzzle,
 } from "@/components/icons";
 import {
   getClub,
@@ -45,6 +45,7 @@ import AddToOrgConfirmDialog from "@/components/AddToOrgConfirmDialog";
 
 import { currencySymbol } from "@/lib/appFormat";
 import { SkeletonRows } from "@/components/row/AppKit";
+import Pagination from "@/components/Pagination";
 const SYNC_API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
 const AGREE_MESSAGE = `The data I will enter is for a New generation Service Project conducted by my club that has benefitted my community. E.g., Formation of an Interact Club, Formation of a Rotaract Club, etc.
@@ -489,30 +490,8 @@ export default function NewGenerationServiceV2Page() {
               {totalCount} total project{totalCount === 1 ? "" : "s"} · {yearLabel}
               {search && ` · matching "${search}"`}
             </span>
-            {totalPages > 1 && (
-              <div className="flex items-center gap-1">
-                <button
-                  type="button"
-                  onClick={() => setPage((p) => Math.max(1, p - 1))}
-                  disabled={page <= 1}
-                  className="inline-flex items-center px-2 py-1 rounded border border-slate-200 text-slate-600 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed"
-                  aria-label="Previous page"
-                >
-                  <ChevronLeft size={13} />
-                </button>
-                <span className="px-2">Page {page} of {totalPages}</span>
-                <button
-                  type="button"
-                  onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                  disabled={page >= totalPages}
-                  className="inline-flex items-center px-2 py-1 rounded border border-slate-200 text-slate-600 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed"
-                  aria-label="Next page"
-                >
-                  <ChevronRight size={13} />
-                </button>
-              </div>
-            )}
           </div>
+          {totalPages > 1 && <div className="px-5 py-3 border-t border-slate-100"><Pagination page={page} totalPages={totalPages} totalCount={totalCount} pageSize={pageSize} onPageChange={setPage} /></div>}
         </div>
 
         {/* Agree dialog (kept from v1 — required disclaimer before creating a project) */}

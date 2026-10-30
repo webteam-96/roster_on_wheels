@@ -449,16 +449,16 @@ export function CommitteeMembersView({ embedded = false }: { embedded?: boolean 
                   className="hover:opacity-100 border-b-2 border-marigold"
                   style={{ backgroundColor: "#17458f" }}
                 >
-                  <TableHead className="w-12 text-white text-xs font-semibold uppercase tracking-wide">#</TableHead>
-                  <TableHead className="text-white text-xs font-semibold uppercase tracking-wide">Photo</TableHead>
-                  <TableHead className="text-white text-xs font-semibold uppercase tracking-wide">Name</TableHead>
-                  <TableHead className="text-white text-xs font-semibold uppercase tracking-wide">Mobile</TableHead>
-                  <TableHead className="text-white text-xs font-semibold uppercase tracking-wide">Email</TableHead>
-                  <TableHead className="text-white text-xs font-semibold uppercase tracking-wide">Designation</TableHead>
-                  <TableHead className="text-white text-xs font-semibold uppercase tracking-wide">Club</TableHead>
-                  <TableHead className="text-white text-xs font-semibold uppercase tracking-wide">Remark</TableHead>
-                  {canManage && <TableHead className="text-right text-white text-xs font-semibold uppercase tracking-wide">Actions</TableHead>}
-                  {canManage && <TableHead className="text-center w-14 text-white text-xs font-semibold uppercase tracking-wide">Sort</TableHead>}
+                  <TableHead className="w-12 text-xs font-semibold uppercase tracking-wide">#</TableHead>
+                  <TableHead className="text-xs font-semibold uppercase tracking-wide">Photo</TableHead>
+                  <TableHead className="text-xs font-semibold uppercase tracking-wide">Name</TableHead>
+                  <TableHead className="text-xs font-semibold uppercase tracking-wide">Mobile</TableHead>
+                  <TableHead className="text-xs font-semibold uppercase tracking-wide">Email</TableHead>
+                  <TableHead className="text-xs font-semibold uppercase tracking-wide">Designation</TableHead>
+                  <TableHead className="text-xs font-semibold uppercase tracking-wide">Club</TableHead>
+                  <TableHead className="text-xs font-semibold uppercase tracking-wide">Remark</TableHead>
+                  {canManage && <TableHead className="text-right text-xs font-semibold uppercase tracking-wide">Actions</TableHead>}
+                  {canManage && <TableHead className="text-center w-14 text-xs font-semibold uppercase tracking-wide">Sort</TableHead>}
                 </TableRow>
               </TableHeader>
               <TableBody>

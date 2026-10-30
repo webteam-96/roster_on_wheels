@@ -527,7 +527,7 @@ export default function InternationalServiceAddPage() {
               <div onClick={() => fileInputRef.current?.click()} className="flex flex-col items-center justify-center py-10 border-2 border-dashed rounded-xl cursor-pointer hover:border-primary/40 hover:bg-primary/5 transition-colors">
                 <Camera className="h-10 w-10 text-muted-foreground/50 mb-2" />
                 <p className="text-sm text-muted-foreground">Click to upload photos</p>
-                <p className="text-xs text-muted-foreground/70 mt-1">Allowed: JPG, JPEG, PNG, GIF, WEBP &middot; up to 5 MB &middot; auto-compressed if larger</p>
+                <p className="text-xs text-muted-foreground mt-1">Allowed: JPG, JPEG, PNG, GIF, WEBP &middot; up to 5 MB &middot; auto-compressed if larger</p>
               </div>
             )}
             {photos.length > 0 && (

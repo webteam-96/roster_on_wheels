@@ -19,6 +19,7 @@ import { formatMoney } from "@/lib/currency";
 
 import { appLocale, currencySymbol } from "@/lib/appFormat";
 import { ListPageSkeleton } from "@/components/row/AppKit";
+import Pagination from "@/components/Pagination";
 export default function DistrictProjectsPage() {
   const params = useParams();
   const router = useRouter();
@@ -112,13 +113,13 @@ export default function DistrictProjectsPage() {
               <Table>
                 <TableHeader>
                   <TableRow className="bg-primary hover:bg-primary">
-                    <TableHead className="text-primary-foreground">Sr.</TableHead>
-                    <TableHead className="text-primary-foreground">Title</TableHead>
-                    <TableHead className="text-primary-foreground">Date</TableHead>
-                    <TableHead className="text-primary-foreground text-right">Cost ({currencySymbol()})</TableHead>
-                    <TableHead className="text-primary-foreground text-center">Beneficiaries</TableHead>
-                    <TableHead className="text-primary-foreground">Area of Focus</TableHead>
-                    <TableHead className="text-primary-foreground w-12"></TableHead>
+                    <TableHead>Sr.</TableHead>
+                    <TableHead>Title</TableHead>
+                    <TableHead>Date</TableHead>
+                    <TableHead className="text-right">Cost ({currencySymbol()})</TableHead>
+                    <TableHead className="text-center">Beneficiaries</TableHead>
+                    <TableHead>Area of Focus</TableHead>
+                    <TableHead className="w-12"></TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -145,11 +146,7 @@ export default function DistrictProjectsPage() {
               </Table>
             </div>
             {totalPages > 1 && (
-              <div className="flex justify-center gap-2">
-                <Button size="sm" variant="outline" disabled={page <= 1} onClick={() => setPage(p => p - 1)}>Previous</Button>
-                <span className="text-sm text-muted-foreground py-2">Page {page} of {totalPages}</span>
-                <Button size="sm" variant="outline" disabled={page >= totalPages} onClick={() => setPage(p => p + 1)}>Next</Button>
-              </div>
+              <Pagination page={page} totalPages={totalPages} totalCount={totalCount} pageSize={20} onPageChange={setPage} />
             )}
           </>
         )}

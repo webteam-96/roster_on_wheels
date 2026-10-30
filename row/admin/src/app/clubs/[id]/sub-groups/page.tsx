@@ -465,9 +465,9 @@ export default function SubGroupsPage() {
               <Table>
                 <TableHeader>
                   <TableRow className="bg-primary hover:bg-primary">
-                    <TableHead className="text-primary-foreground text-base font-semibold">Group Name</TableHead>
-                    <TableHead className="text-primary-foreground text-base font-semibold text-center">Members</TableHead>
-                    <TableHead className="w-12 text-primary-foreground"></TableHead>
+                    <TableHead className="text-base font-semibold">Group Name</TableHead>
+                    <TableHead className="text-base font-semibold text-center">Members</TableHead>
+                    <TableHead className="w-12"></TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>

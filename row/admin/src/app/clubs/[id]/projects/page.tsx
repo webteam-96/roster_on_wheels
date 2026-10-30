@@ -407,15 +407,15 @@ export default function ProjectsPage() {
               <Table>
                 <TableHeader>
                   <TableRow className="bg-primary hover:bg-primary">
-                    <TableHead className="w-12 text-primary-foreground text-base font-semibold">S.No.</TableHead>
-                    <TableHead className="text-primary-foreground text-base font-semibold">Title</TableHead>
-                    <TableHead className="text-primary-foreground text-base font-semibold">Type</TableHead>
-                    <TableHead className="text-primary-foreground text-base font-semibold">Area of Focus</TableHead>
-                    <TableHead className="text-primary-foreground text-base font-semibold">Date</TableHead>
-                    <TableHead className="text-primary-foreground text-base font-semibold">Location</TableHead>
-                    <TableHead className="text-primary-foreground text-base font-semibold text-right">Cost</TableHead>
+                    <TableHead className="w-12 text-base font-semibold">S.No.</TableHead>
+                    <TableHead className="text-base font-semibold">Title</TableHead>
+                    <TableHead className="text-base font-semibold">Type</TableHead>
+                    <TableHead className="text-base font-semibold">Area of Focus</TableHead>
+                    <TableHead className="text-base font-semibold">Date</TableHead>
+                    <TableHead className="text-base font-semibold">Location</TableHead>
+                    <TableHead className="text-base font-semibold text-right">Cost</TableHead>
                     {canManage && (
-                      <TableHead className="w-12 text-primary-foreground"></TableHead>
+                      <TableHead className="w-12"></TableHead>
                     )}
                   </TableRow>
                 </TableHeader>

@@ -35,6 +35,17 @@ const THEME_PREVIEW: Record<string, { gradient: string; primary: string; accent:
   "compact-card":   { gradient: "from-[#17458F] to-[#17458F]",   primary: "#17458F", accent: "#FF7600", ink: "#1C1917", bg: "#FDF8F0", tagline: "Dense tile grid in Royal Blue and Rotary Orange.",        font: "Arial, sans-serif" },
   "banner":         { gradient: "from-[#17458F] to-[#17458F]",   primary: "#17458F", accent: "#F7A81B", ink: "#0E1B33", bg: "#ECEEF2", tagline: "The club's banner wall: projects hang as pennants.",     font: "sans-serif" },
   "rotaract":       { gradient: "from-[#D41367] to-[#D41367]",   primary: "#D41367", accent: "#F7A81B", ink: "#0E1B33", bg: "#F5F5F8", tagline: "Rotaract template: the banner wall in cranberry.",       font: "sans-serif" },
+  // ROW club themes (club-website/src/themes): main colour + accent taken from each theme's own styles.
+  "warm-modern":        { gradient: "from-[#7C2D12] to-[#7C2D12]", primary: "#7C2D12", accent: "#F26430", ink: "#2A140A", bg: "#FAF7F2", tagline: "Warm tones, ticket-style events.", font: "Georgia, serif" },
+  "civic-bold":         { gradient: "from-[#061634] to-[#061634]", primary: "#061634", accent: "#D4A429", ink: "#061634", bg: "#FBFAF7", tagline: "Bold civic layout.", font: "Arial, sans-serif" },
+  "verdigris-ledger":   { gradient: "from-[#3A0E3C] to-[#3A0E3C]", primary: "#3A0E3C", accent: "#901F93", ink: "#3A0E3C", bg: "#F0ECF5", tagline: "Ledger-style editorial layout.", font: "Georgia, serif" },
+  "gold":               { gradient: "from-[#09192F] to-[#09192F]", primary: "#09192F", accent: "#E2820C", ink: "#09192F", bg: "#F4E8CE", tagline: "Navy and gold.", font: "Georgia, serif" },
+  "cinematic":          { gradient: "from-[#070B1A] to-[#070B1A]", primary: "#070B1A", accent: "#F7A81B", ink: "#070B1A", bg: "#F3F5FB", tagline: "Full-screen imagery.", font: "Arial, sans-serif" },
+  "split-story":        { gradient: "from-[#0B2350] to-[#0B2350]", primary: "#0B2350", accent: "#F7A81B", ink: "#0B2350", bg: "#EAF3FC", tagline: "Split-screen storytelling.", font: "Arial, sans-serif" },
+  "liquid-motion":      { gradient: "from-[#2A2A33] to-[#2A2A33]", primary: "#2A2A33", accent: "#0067C8", ink: "#2A2A33", bg: "#F6F5F1", tagline: "Smooth motion, calm palette.", font: "Arial, sans-serif" },
+  "horizontal-journey": { gradient: "from-[#5E2690] to-[#5E2690]", primary: "#5E2690", accent: "#FF7A3D", ink: "#2A1440", bg: "#FFF7E6", tagline: "A sideways scrolling journey.", font: "Arial, sans-serif" },
+  "photo-collage":      { gradient: "from-[#1B2C42] to-[#1B2C42]", primary: "#1B2C42", accent: "#F7A81B", ink: "#1B2C42", bg: "#FCF9F3", tagline: "Photo-led collage layout.", font: "Georgia, serif" },
+  "sunrise":            { gradient: "from-[#4B2F86] to-[#4B2F86]", primary: "#4B2F86", accent: "#FFC46B", ink: "#13183A", bg: "#FFF3DE", tagline: "Sunrise colours.", font: "Arial, sans-serif" },
 };
 
 function themeKey(themeName: string): string {

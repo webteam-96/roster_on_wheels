@@ -20,6 +20,7 @@ import { formatBirthAnniversary } from "@/lib/dateUtils";
 
 import { appLocale, currencySymbol } from "@/lib/appFormat";
 import { ListPageSkeleton } from "@/components/row/AppKit";
+import Pagination from "@/components/Pagination";
 // Field keys (case-insensitive) that should display DD-MM only — project rule.
 const BIRTH_ANNIV_KEYS = new Set(["birthdate", "anniversarydate"]);
 
@@ -303,15 +304,7 @@ export default function GlobalMemberSearchPage() {
               </Table>
 
               {pageCount > 1 && (
-                <div className="flex flex-wrap items-center justify-between gap-2 px-4 py-3 border-t">
-                  <span className="text-xs text-muted-foreground">Page {page} of {pageCount}</span>
-                  <div className="flex items-center gap-1">
-                    <Button variant="outline" size="sm" disabled={page === 1} onClick={() => setPage(1)}>First</Button>
-                    <Button variant="outline" size="sm" disabled={page === 1} onClick={() => setPage((p) => p - 1)}>Previous</Button>
-                    <Button variant="outline" size="sm" disabled={page === pageCount} onClick={() => setPage((p) => p + 1)}>Next</Button>
-                    <Button variant="outline" size="sm" disabled={page === pageCount} onClick={() => setPage(pageCount)}>Last</Button>
-                  </div>
-                </div>
+                <div className="px-4 py-3 border-t"><Pagination page={page} totalPages={pageCount} totalCount={results.length} pageSize={PAGE_SIZE} onPageChange={setPage} /></div>
               )}
             </CardContent>
           </Card>
@@ -365,7 +358,7 @@ export default function GlobalMemberSearchPage() {
                         <div className="flex items-center gap-2 flex-wrap">
                           <span className="font-medium">{c.clubName}</span>
                           {c.clubRotaryId && <Badge variant="outline" className="text-xs">{c.clubRotaryId}</Badge>}
-                          <Badge className={c.isActive ? "bg-green-500 text-xs text-white" : "bg-gray-400 text-xs text-white"}>
+                          <Badge className={c.isActive ? "bg-green-700 text-xs text-white" : "bg-gray-600 text-xs text-white"}>
                             {c.isActive ? "Active" : "Inactive"}
                           </Badge>
                         </div>
@@ -499,7 +492,7 @@ export default function GlobalMemberSearchPage() {
                       <div key={i} className="text-sm flex items-center gap-2 flex-wrap">
                         <span className="font-medium">{e.eventTitle || "Event"}</span>
                         {e.amount != null && <span className="text-xs text-muted-foreground">{currencySymbol()}{Number(e.amount).toLocaleString(appLocale())}</span>}
-                        <Badge className={e.isPaid ? "bg-green-500 text-xs text-white" : "bg-amber-500 text-xs text-white"}>{e.isPaid ? "Paid" : "Unpaid"}</Badge>
+                        <Badge className={e.isPaid ? "bg-green-700 text-xs text-white" : "bg-amber-700 text-xs text-white"}>{e.isPaid ? "Paid" : "Unpaid"}</Badge>
                         {e.paymentDate && <span className="text-xs text-muted-foreground">{new Date(e.paymentDate).toLocaleDateString(appLocale(), { day: "2-digit", month: "short", year: "numeric" })}</span>}
                         {e.clubName && <span className="text-xs text-muted-foreground">,  {e.clubName}</span>}
                       </div>
@@ -516,7 +509,7 @@ export default function GlobalMemberSearchPage() {
                         {d.rotaryYear && <Badge variant="secondary" className="text-xs">{d.rotaryYear}</Badge>}
                         <span className="font-medium">{d.purpose}</span>
                         {d.amount != null && <span className="text-xs text-muted-foreground">{currencySymbol()}{Number(d.amount).toLocaleString(appLocale())}</span>}
-                        <Badge className={d.isPaid ? "bg-green-500 text-xs text-white" : "bg-amber-500 text-xs text-white"}>{d.isPaid ? "Paid" : (d.paymentStatus || "Pending")}</Badge>
+                        <Badge className={d.isPaid ? "bg-green-700 text-xs text-white" : "bg-amber-700 text-xs text-white"}>{d.isPaid ? "Paid" : (d.paymentStatus || "Pending")}</Badge>
                         <span className="text-xs text-muted-foreground">,  {d.clubName}</span>
                       </div>
                     ))}

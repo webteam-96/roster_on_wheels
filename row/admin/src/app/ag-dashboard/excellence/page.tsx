@@ -173,7 +173,7 @@ function MonthlyChart({
           <LineChart data={flat} margin={{ top: 4, right: 16, left: 0, bottom: 4 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="#edf4fb" vertical={false} />
             <XAxis dataKey="month" tick={{ fontSize: 11, fill: "#64748b" }} />
-            <YAxis tick={{ fontSize: 11, fill: "#8796aa" }} />
+            <YAxis tick={{ fontSize: 11, fill: "#66768C" }} />
             <Tooltip contentStyle={{ borderRadius: 10, fontSize: 12 }} />
             <Legend iconType="circle" wrapperStyle={{ fontSize: 11, paddingTop: 12 }} />
             {clubNames.map((name, i) => (
@@ -337,7 +337,7 @@ export default function AgExcellencePage() {
               <BarChart data={citationBarData} barSize={56}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#edf4fb" />
                 <XAxis dataKey="name" tick={{ fontSize: 11, fill: "#64748b" }} />
-                <YAxis tick={{ fontSize: 11, fill: "#8796aa" }} />
+                <YAxis tick={{ fontSize: 11, fill: "#66768C" }} />
                 <Tooltip
                   formatter={(v, n) => [Number(v).toLocaleString(), String(n)] as [string, string]}
                   contentStyle={{ borderRadius: 10, fontSize: 12 }}

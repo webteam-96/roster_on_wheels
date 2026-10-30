@@ -35,6 +35,7 @@ import { fmtInt, fmtInr, fmtDate } from "@/components/dashboard/formatters";
 
 import { defaultCurrency } from "@/lib/appFormat";
 import { ListPageSkeleton } from "@/components/row/AppKit";
+import Pagination from "@/components/Pagination";
 // Base URL the RI Flow-Bot export uses to build absolute photo URLs for the extension.
 const SYNC_API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
@@ -533,24 +534,7 @@ function ClubServiceSection({
         </div>
 
         {filtered.length > PAGE_SIZE && (
-          <div className="px-5 py-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-600">
-            <span>
-              Showing {(safePage - 1) * PAGE_SIZE + 1}–{Math.min(safePage * PAGE_SIZE, filtered.length)} of {filtered.length}
-            </span>
-            <div className="flex flex-wrap items-center gap-2">
-              <button
-                onClick={() => setPage((p) => Math.max(1, p - 1))}
-                disabled={safePage === 1}
-                className="px-3 py-1 border border-slate-200 rounded-md hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed"
-              >Prev</button>
-              <span className="text-slate-500">Page {safePage} / {totalPages}</span>
-              <button
-                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                disabled={safePage === totalPages}
-                className="px-3 py-1 border border-slate-200 rounded-md hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed"
-              >Next</button>
-            </div>
-          </div>
+          <div className="px-5 py-3 border-t border-slate-100"><Pagination page={safePage} totalPages={totalPages} totalCount={filtered.length} pageSize={PAGE_SIZE} onPageChange={setPage} /></div>
         )}
       </div>
 
@@ -1030,24 +1014,7 @@ function NonClubAvenueSection({
         </div>
 
         {filtered.length > PAGE_SIZE && (
-          <div className="px-5 py-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-600">
-            <span>
-              Showing {(safePage - 1) * PAGE_SIZE + 1}–{Math.min(safePage * PAGE_SIZE, filtered.length)} of {filtered.length}
-            </span>
-            <div className="flex flex-wrap items-center gap-2">
-              <button
-                onClick={() => setPage((p) => Math.max(1, p - 1))}
-                disabled={safePage === 1}
-                className="px-3 py-1 border border-slate-200 rounded-md hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed"
-              >Prev</button>
-              <span className="text-slate-500">Page {safePage} / {totalPages}</span>
-              <button
-                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                disabled={safePage === totalPages}
-                className="px-3 py-1 border border-slate-200 rounded-md hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed"
-              >Next</button>
-            </div>
-          </div>
+          <div className="px-5 py-3 border-t border-slate-100"><Pagination page={safePage} totalPages={totalPages} totalCount={filtered.length} pageSize={PAGE_SIZE} onPageChange={setPage} /></div>
         )}
       </div>
 

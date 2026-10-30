@@ -142,11 +142,11 @@ export default function RotaryYearsPage() {
               <Table>
                 <TableHeader>
                   <TableRow className="bg-primary hover:bg-primary">
-                    <TableHead className="w-12 text-primary-foreground">#</TableHead>
-                    <TableHead className="text-primary-foreground text-base font-semibold">Year Label</TableHead>
-                    <TableHead className="text-primary-foreground text-base font-semibold">Start Date</TableHead>
-                    <TableHead className="text-primary-foreground text-base font-semibold">End Date</TableHead>
-                    <TableHead className="w-24 text-primary-foreground text-base font-semibold">Status</TableHead>
+                    <TableHead className="w-12">#</TableHead>
+                    <TableHead className="text-base font-semibold">Year Label</TableHead>
+                    <TableHead className="text-base font-semibold">Start Date</TableHead>
+                    <TableHead className="text-base font-semibold">End Date</TableHead>
+                    <TableHead className="w-24 text-base font-semibold">Status</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>

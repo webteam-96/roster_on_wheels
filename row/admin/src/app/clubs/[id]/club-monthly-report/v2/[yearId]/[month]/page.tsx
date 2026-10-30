@@ -531,7 +531,7 @@ function ClubMonthlyReportV2WizardInner() {
                     className={`
                       flex items-center justify-center w-10 h-10 rounded-full border-2 mb-2 transition-colors
                       ${isActive    ? "border-blue-600 bg-blue-600 text-white" : ""}
-                      ${isCompleted ? "border-emerald-500 bg-emerald-500 text-white" : ""}
+                      ${isCompleted ? "border-emerald-500 bg-emerald-700 text-white" : ""}
                       ${!isActive && !isCompleted ? "border-slate-300 text-slate-400 group-hover:border-slate-400" : ""}
                     `}
                   >

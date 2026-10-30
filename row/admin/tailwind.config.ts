@@ -14,7 +14,7 @@ const fellowshipBlue = {
   600: "#1F56A8", 700: "#17458F", 800: "#0B3F7A", 900: "#12376F", 950: "#0A2547",
 };
 const fellowshipNeutral = {
-  50: "#F7F9FC", 100: "#EDF4FB", 200: "#D5DEE8", 300: "#B7C3D2", 400: "#8796AA", 500: "#64748B",
+  50: "#F7F9FC", 100: "#EDF4FB", 200: "#D5DEE8", 300: "#B7C3D2", 400: "#66768C", 500: "#64748B",  // 400 darkened from #8796AA: helper text was 3.0:1 on white
   600: "#4A5A70", 700: "#2A3F5C", 800: "#1B2C42", 900: "#132033", 950: "#0B1422",
 };
 const marigold = {

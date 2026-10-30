@@ -524,11 +524,11 @@ export default function DistrictAdminBannerPhotosPage() {
                     className="hover:opacity-100 border-b-2 border-marigold"
                     style={{ backgroundColor: "#17458f" }}
                   >
-                    <TableHead className="w-24 text-white text-xs font-semibold uppercase tracking-wide">Thumbnail</TableHead>
-                    <TableHead className="text-white text-xs font-semibold uppercase tracking-wide">Description</TableHead>
-                    <TableHead className="w-24 text-white text-xs font-semibold uppercase tracking-wide">Status</TableHead>
-                    {canManage && <TableHead className="w-12 text-white/90"></TableHead>}
-                    {canManage && <TableHead className="w-20 text-white text-xs font-semibold uppercase tracking-wide text-center">Sorting</TableHead>}
+                    <TableHead className="w-24 text-xs font-semibold uppercase tracking-wide">Thumbnail</TableHead>
+                    <TableHead className="text-xs font-semibold uppercase tracking-wide">Description</TableHead>
+                    <TableHead className="w-24 text-xs font-semibold uppercase tracking-wide">Status</TableHead>
+                    {canManage && <TableHead className="w-12/90"></TableHead>}
+                    {canManage && <TableHead className="w-20 text-xs font-semibold uppercase tracking-wide text-center">Sorting</TableHead>}
                   </TableRow>
                 </TableHeader>
                 <TableBody>

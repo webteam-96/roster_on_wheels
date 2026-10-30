@@ -175,16 +175,16 @@ export default function ClubMonthlyReportPage() {
               <Table>
                 <TableHeader>
                   <TableRow className="bg-primary hover:bg-primary">
-                    <TableHead className="w-12 text-primary-foreground text-base font-semibold">
+                    <TableHead className="w-12 text-base font-semibold">
                       S.No.
                     </TableHead>
-                    <TableHead className="text-primary-foreground text-base font-semibold">
+                    <TableHead className="text-base font-semibold">
                       Month
                     </TableHead>
-                    <TableHead className="text-primary-foreground text-base font-semibold text-center">
+                    <TableHead className="text-base font-semibold text-center">
                       Status
                     </TableHead>
-                    <TableHead className="text-primary-foreground text-base font-semibold text-center">
+                    <TableHead className="text-base font-semibold text-center">
                       Actions
                     </TableHead>
                   </TableRow>

@@ -20,6 +20,7 @@ import {
 } from "@/services/api";
 
 import { appLocale } from "@/lib/appFormat";
+import Pagination from "@/components/Pagination";
 const PCT_HEADER = "Percentage Achieved";
 
 // Text columns align left, numbers right: the first column, plus the club name in "#"-ranked tables.
@@ -426,22 +427,7 @@ export default function DistrictPerformanceReportPage() {
             </div>
 
             {sendPageCount > 1 && (
-              <div className="flex flex-wrap items-center justify-between gap-2 px-4 py-2.5 border-t border-slate-100">
-                <span className="text-xs text-slate-500">
-                  Showing {sendStart + 1}–{Math.min(sendStart + SEND_PAGE_SIZE, sendRows.length)} of {sendRows.length}
-                </span>
-                <div className="flex items-center gap-1">
-                  <button type="button" disabled={sendPage === 1} onClick={() => setSendPage(1)}
-                    className="h-7 rounded-md border border-slate-200 px-2 text-xs text-slate-600 hover:bg-slate-50 disabled:opacity-40">First</button>
-                  <button type="button" disabled={sendPage === 1} onClick={() => setSendPage((x) => x - 1)}
-                    className="h-7 rounded-md border border-slate-200 px-2 text-xs text-slate-600 hover:bg-slate-50 disabled:opacity-40">Previous</button>
-                  <span className="text-xs text-slate-500 px-1">Page {sendPage} of {sendPageCount}</span>
-                  <button type="button" disabled={sendPage === sendPageCount} onClick={() => setSendPage((x) => x + 1)}
-                    className="h-7 rounded-md border border-slate-200 px-2 text-xs text-slate-600 hover:bg-slate-50 disabled:opacity-40">Next</button>
-                  <button type="button" disabled={sendPage === sendPageCount} onClick={() => setSendPage(sendPageCount)}
-                    className="h-7 rounded-md border border-slate-200 px-2 text-xs text-slate-600 hover:bg-slate-50 disabled:opacity-40">Last</button>
-                </div>
-              </div>
+              <div className="px-4 py-2.5 border-t border-slate-100"><Pagination page={sendPage} totalPages={sendPageCount} totalCount={sendRows.length} pageSize={SEND_PAGE_SIZE} onPageChange={setSendPage} /></div>
             )}
           </div>
         )}

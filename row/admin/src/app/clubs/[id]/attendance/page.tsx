@@ -249,17 +249,17 @@ export default function AttendancePage() {
               <Table>
                 <TableHeader>
                   <TableRow className="bg-primary hover:bg-primary">
-                    <TableHead className="w-12 text-primary-foreground text-base font-semibold">S.No.</TableHead>
-                    <TableHead className="text-primary-foreground text-base font-semibold">Event Name</TableHead>
-                    <TableHead className="text-primary-foreground text-base font-semibold">Event Date</TableHead>
-                    <TableHead className="text-primary-foreground text-base font-semibold text-center">Members</TableHead>
-                    <TableHead className="text-primary-foreground text-base font-semibold text-center">Anns</TableHead>
-                    <TableHead className="text-primary-foreground text-base font-semibold text-center">Annets</TableHead>
-                    <TableHead className="text-primary-foreground text-base font-semibold text-center">Visitors</TableHead>
-                    <TableHead className="text-primary-foreground text-base font-semibold text-center">Rotarians</TableHead>
-                    <TableHead className="text-primary-foreground text-base font-semibold text-center">Delegates</TableHead>
+                    <TableHead className="w-12 text-base font-semibold">S.No.</TableHead>
+                    <TableHead className="text-base font-semibold">Event Name</TableHead>
+                    <TableHead className="text-base font-semibold">Event Date</TableHead>
+                    <TableHead className="text-base font-semibold text-center">Members</TableHead>
+                    <TableHead className="text-base font-semibold text-center">Anns</TableHead>
+                    <TableHead className="text-base font-semibold text-center">Annets</TableHead>
+                    <TableHead className="text-base font-semibold text-center">Visitors</TableHead>
+                    <TableHead className="text-base font-semibold text-center">Rotarians</TableHead>
+                    <TableHead className="text-base font-semibold text-center">Delegates</TableHead>
                     {canManage && (
-                      <TableHead className="w-12 text-primary-foreground"></TableHead>
+                      <TableHead className="w-12"></TableHead>
                     )}
                   </TableRow>
                 </TableHeader>
