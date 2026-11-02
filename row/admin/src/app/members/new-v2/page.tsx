@@ -512,7 +512,7 @@ function AddMemberV2Form() {
     <div>
       <FieldLabel dot={dot}>{label}</FieldLabel>
       <select
-        value={String((formData as Record<string, unknown>)[field] || 1)}
+        value={String((formData as Record<string, unknown>)[field] || "")}
         onChange={(e) => handleCountryChange(field, e.target.value)}
         className={inputCls}
       >
@@ -574,7 +574,7 @@ function AddMemberV2Form() {
     <div>
       <FieldLabel dot={dot}>{label}</FieldLabel>
       <select
-        value={String(addr?.fkCountryId || 1)}
+        value={String(addr?.fkCountryId || "")}
         onChange={(e) => handleAddrCountryChange(type, e.target.value)}
         className={inputCls}
       >
@@ -1034,7 +1034,7 @@ function AddMemberV2Form() {
                   <div>
                     <FieldLabel dot="bg-[#17458F]">Country</FieldLabel>
                     <select
-                      value={String(fm.fkCountryId || 1)}
+                      value={String(fm.fkCountryId || "")}
                       onChange={(e) => handleFamilyCountryChange(index, e.target.value)}
                       className={inputCls}
                     >

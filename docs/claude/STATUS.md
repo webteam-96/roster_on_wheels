@@ -391,3 +391,30 @@ ow\_local\ (git-ignored, check-ignore proven); row-build deleted. _mysql-row (ol
   /ag-dashboard/projects "custom pagination" was a checker false positive (its heading text), pager already shared.
 
 - 2026-10-30 18:43 Deploy folder rebuilt with all UI fixes: _local/deploy/web/admin (build in _local/build/admin, git-ignored). URL https://test.rosteronwheels.com in 112 chunks, 0 localhost; smoke /login 200, CSS 200, legend + green-700 rules present. NOT uploaded to the server.
+- 2026-10-30: Pushed main to GitHub as webteam-96 (workflow scope granted): 69428c7..21de307 (4 commits incl. CI file); origin/main == HEAD (0 0). document/RotaryIndia_Modules_and_Labels.xlsx and _local/ not committed.
+
+## 2026-11-02: test logins on production (user: "create a district and give a login ... do the same for the club")
+- Created in row_production through the SuperAdmin UI on test.rosteronwheels.com: district 5657 (id 483, Other Zones,
+  United States, USD); club "ROW Test Club" (id 31753, Rotary ID 99565701); members District Tester
+  (tester@kaizeninfotech.com, made District Admin of 5657) and Club Tester (web@kaizeninfotech.com, Club President +
+  club admin, 2026-27). Fake US 555-01xx mobiles and test Rotary IDs 99565702/03.
+- District 5656 already existed (id 1, India demo club "Thane City View"); left untouched.
+- BLOCKER: every email fails on the server (132/132 in the email log), "Brevo 401: authentication not found in
+  headers" = Brevo__ApiKey not set in the IIS environment. Nobody received a temporary password.
+- Bugs found: New Club district dropdown lists only the first 100 districts; club name field strips digits; member
+  form country and secondary country default to India; saving a President in Settings > Club Leadership creates a
+  temp password that is never emailed, and "Resend" sends no password once credentials exist.
+- 2026-11-02 later (user: "fix the 4 bugs" + "create those account using sql workbench script"):
+  - SQL for the two test logins: E:\websites\row\_local\test-logins\set-test-passwords.sql (git-ignored; bcrypt
+    hashes, IsTemporaryPassword=1, waits for a manual COMMIT); passwords in test-logins-PASSWORDS.txt next to it.
+    NOT run: the user runs it in Workbench on row_production.
+  - Fixed locally, NOT deployed: (1) district pickers loaded only 100/200/400 districts (prod has 483): New/Edit Club,
+    Clubs list, club members, member edit v2, district modules, credit management, club dues create now load all;
+    (2) club name filter allowed only A-Z and spaces: now letters in any language, digits, space . , ' & ( ) / -
+    (new + edit); (3) member country selects showed India (id 1) when empty: now show the placeholder (MemberForm,
+    new-v2, edit-v2), and a new member added to a club defaults to the district's country; (4) Club Leadership save
+    no longer creates an unsent temp password; Make admin / Resend issues a fresh temp password whenever the member
+    has no own password yet. Proof: dotnet build OK, admin tsc 0, eslint 0 errors, vitest 131/131, name filter checked
+    in node. NOT run end to end in the browser.
+  - Left as-is (follow-up): API DTO defaults Country = "India" (ClubDtos, DistrictDtos, MemberDetailDto, address and
+    family DTOs, Club model, DistrictService fallback).

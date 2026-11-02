@@ -118,7 +118,7 @@ export default function ClubMembersPage() {
   useEffect(() => {
     if (!isCog) return;
     getClubMemberYears(clubId).then(setAvailableYears).catch(() => {});
-    getDistricts(1, 400)
+    getDistricts(1, 9999)
       .then((d) => setDistrictNumbers(
         Array.from(new Set(d.items.map((x) => (x.districtNumber ?? "").trim()).filter((x) => /^\d{3,5}$/.test(x))))
           .sort((a, b) => Number(a) - Number(b))

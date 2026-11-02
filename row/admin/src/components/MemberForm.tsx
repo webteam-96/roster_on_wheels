@@ -49,6 +49,8 @@ interface MemberFormProps {
   isSelfEdit?: boolean;
   isAdminPartial?: boolean;
   backUrl?: string;
+  // Create flow only: the country of the club's district (district_master.Country, a name). Wins over the brand default.
+  defaultCountryName?: string | null;
 }
 
 // Field names match UpdateMemberDto property names (camelCased here for the
@@ -181,6 +183,7 @@ export default function MemberForm({
   isSelfEdit = false,
   isAdminPartial = false,
   backUrl = "/",
+  defaultCountryName = null,
 }: MemberFormProps) {
   // Three-tier resolution: full edit (SA / self) → partial edit (Admin) → read-only.
   // For non-edit (create) flow, never read-only.
@@ -210,10 +213,14 @@ export default function MemberForm({
       .catch(() => setCountries([]));
   }, []);
 
-  // ROW: a new member starts in the brand's default country (Brand:Locale:DefaultCountryId); none when it is 0.
+  // ROW: a new member starts in their district's country, else the brand's default country
+  // (Brand:Locale:DefaultCountryId); none when neither is known. Edits keep the stored value.
   const brand = useBrand();
   useEffect(() => {
-    const c = countries.find((x) => x.id === brand.locale.defaultCountryId);
+    if (isEdit) return;
+    const wanted = defaultCountryName?.trim().toLowerCase();
+    const c = (wanted && countries.find((x) => x.countryName.toLowerCase() === wanted))
+      || countries.find((x) => x.id === brand.locale.defaultCountryId);
     if (!c) return;
     setFormData((p) => (p.fkPrimaryCountryId ? p : {
       ...p,
@@ -221,7 +228,7 @@ export default function MemberForm({
       fkSecondaryCountryId: p.fkSecondaryCountryId || c.id, secondaryCountry: p.secondaryCountry || c.countryName,
       secondaryCountryPhoneCode: p.secondaryCountryPhoneCode || c.phoneCode,
     }));
-  }, [countries, brand.locale.defaultCountryId]);
+  }, [countries, brand.locale.defaultCountryId, defaultCountryName, isEdit]);
 
   const resAddr = getAddress(formData.addresses as MemberAddress[], "Residential");
   const busAddr = getAddress(formData.addresses as MemberAddress[], "Business");
@@ -406,7 +413,7 @@ export default function MemberForm({
       <div className="space-y-2">
         <Label className="text-sm font-semibold text-foreground">{label}</Label>
         <Select
-          value={String((formData as Record<string, unknown>)[field] || 1)}
+          value={String((formData as Record<string, unknown>)[field] || "")}
           onValueChange={(v) => handleCountryChange(field, v)}
           disabled={locked}
         >
@@ -433,7 +440,7 @@ export default function MemberForm({
     <div className="space-y-2">
       <Label className="text-sm font-semibold text-foreground">{label}</Label>
       <Select
-        value={String(addr?.fkCountryId || 1)}
+        value={String(addr?.fkCountryId || "")}
         onValueChange={(v) => handleAddrCountryChange(type, v)}
       >
         <SelectTrigger>
@@ -899,7 +906,7 @@ export default function MemberForm({
                       <div className="space-y-2">
                         <Label className="text-sm font-semibold text-foreground">Country</Label>
                         <Select
-                          value={String(fm.fkCountryId || 1)}
+                          value={String(fm.fkCountryId || "")}
                           onValueChange={(v) => handleFamilyCountryChange(index, v)}
                         >
                           <SelectTrigger>

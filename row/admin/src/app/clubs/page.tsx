@@ -42,7 +42,7 @@ export default function ClubsPage() {
   useEffect(() => {
     async function fetchDistricts() {
       try {
-        const result = await getDistricts(1, 100);
+        const result = await getDistricts(1, 9999);
         setDistricts([...result.items].sort((a: any, b: any) => String(a.districtNumber).localeCompare(String(b.districtNumber), undefined, { numeric: true })));
       } catch { /* ignore */ }
     }

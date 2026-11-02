@@ -358,7 +358,7 @@ function EditMemberV2Form() {
   // would return their real club's value for the 840 dual-membership members).
   useEffect(() => {
     if (!isCog || !Number.isFinite(memberId) || memberId <= 0) return;
-    getDistricts(1, 400)
+    getDistricts(1, 9999)
       .then((d) => setDistrictNumbers(
         Array.from(new Set(d.items.map((x) => (x.districtNumber ?? "").trim()).filter((x) => /^\d{3,5}$/.test(x))))
           .sort((a, b) => Number(a) - Number(b))
@@ -659,7 +659,7 @@ function EditMemberV2Form() {
       <div>
         <FieldLabel dot={dot}>{label}</FieldLabel>
         <select
-          value={String((formData as Record<string, unknown>)[field] || 1)}
+          value={String((formData as Record<string, unknown>)[field] || "")}
           onChange={(e) => handleCountryChange(field, e.target.value)}
           disabled={locked}
           className={locked ? lockedInputCls : inputCls}
@@ -723,7 +723,7 @@ function EditMemberV2Form() {
     <div>
       <FieldLabel dot={dot}>{label}</FieldLabel>
       <select
-        value={String(addr?.fkCountryId || 1)}
+        value={String(addr?.fkCountryId || "")}
         onChange={(e) => handleAddrCountryChange(type, e.target.value)}
         className={inputCls}
       >
@@ -1235,7 +1235,7 @@ function EditMemberV2Form() {
                   <div>
                     <FieldLabel dot="bg-[#17458F]">Country</FieldLabel>
                     <select
-                      value={String(fm.fkCountryId || 1)}
+                      value={String(fm.fkCountryId || "")}
                       onChange={(e) => handleFamilyCountryChange(index, e.target.value)}
                       className={inputCls}
                     >

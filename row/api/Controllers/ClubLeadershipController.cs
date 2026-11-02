@@ -227,23 +227,9 @@ public class ClubLeadershipController : ControllerBase
             const int ADMIN_ROLE_ID = 2;
             await ClubAdminAccessHelper.EnsureActiveClubAdminRoleAsync(conn, req.MemberId, req.ClubId, userId, tx);
 
-            // Ensure credentials exist
-            var credExists = await conn.ExecuteScalarAsync<int>(
-                "SELECT COUNT(*) FROM member_credentials WHERE fk_member_master_profile_id = @Id AND IsActive = 1 AND isdeleted = 0",
-                new { Id = req.MemberId }, tx);
-            if (credExists == 0)
-            {
-                var prefix = designationName == "Club President" ? "Pres@" : "Sec@";
-                var tempPassword = prefix + Convert.ToHexString(System.Security.Cryptography.RandomNumberGenerator.GetBytes(5));
-                var hash = BCrypt.Net.BCrypt.HashPassword(tempPassword);
-                var updated = await conn.ExecuteAsync(
-                    "UPDATE member_credentials SET IsActive = 1, isdeleted = 0, PasswordHash = @Hash, IsTemporaryPassword = 1 WHERE fk_member_master_profile_id = @Id",
-                    new { Id = req.MemberId, Hash = hash }, tx);
-                if (updated == 0)
-                    await conn.ExecuteAsync(
-                        "INSERT INTO member_credentials (fk_member_master_profile_id, PasswordHash, IsTemporaryPassword) VALUES (@Id, @Hash, 1)",
-                        new { Id = req.MemberId, Hash = hash }, tx);
-            }
+            // No credentials here (2026-11-02): a password made on save was never sent to anyone, and the
+            // later "Make admin / Resend" then saw existing credentials and emailed no password, locking the
+            // new President/Secretary out. MakeAdmin now creates the temporary password and emails it.
 
             // Revoke Club Admin role from replaced old members IF they hold no other Pres/Sec role in THIS club+year
             foreach (var oldMemberId in replacedMemberIds)
@@ -371,12 +357,14 @@ public class ClubLeadershipController : ControllerBase
         // soft-deleted/inactive/duplicate rows can't leave the member without a usable admin row.
         await ClubAdminAccessHelper.EnsureActiveClubAdminRoleAsync(conn, req.MemberId, req.ClubId, userId);
 
-        // Ensure credentials
+        // Ensure credentials. A fresh temporary password is issued when the member has no usable login yet
+        // OR still has an unused temporary one (never signed in and changed it), so "Resend" always carries a
+        // password the member can use. A member who set their own password keeps it (email has no password).
         string? tempPassword = null;
-        var credExists = await conn.ExecuteScalarAsync<int>(
-            "SELECT COUNT(*) FROM member_credentials WHERE fk_member_master_profile_id = @Id AND IsActive = 1 AND isdeleted = 0",
+        var usableOwnPassword = await conn.ExecuteScalarAsync<int>(
+            "SELECT COUNT(*) FROM member_credentials WHERE fk_member_master_profile_id = @Id AND IsActive = 1 AND isdeleted = 0 AND COALESCE(IsTemporaryPassword, 0) = 0",
             new { Id = req.MemberId });
-        if (credExists == 0)
+        if (usableOwnPassword == 0)
         {
             var prefix = designationName == "Club President" ? "Pres@" : "Sec@";
             tempPassword = prefix + Convert.ToHexString(System.Security.Cryptography.RandomNumberGenerator.GetBytes(5));

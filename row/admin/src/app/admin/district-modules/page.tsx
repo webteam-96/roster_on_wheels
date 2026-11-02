@@ -49,7 +49,7 @@ export default function DistrictModulesPage() {
   useEffect(() => {
     async function fetchDistricts() {
       try {
-        const result = await getDistricts(1, 200);
+        const result = await getDistricts(1, 9999);
         setDistricts([...result.items].sort((a: any, b: any) => String(a.districtNumber).localeCompare(String(b.districtNumber), undefined, { numeric: true })));
       } catch (err: any) {
         setErrorMessage(err?.response?.data?.message || err?.response?.data || "Failed to load districts.");

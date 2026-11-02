@@ -148,7 +148,7 @@ export default function CreditManagementPanel({ embedded = false, onChanged }: {
   useEffect(() => {
     async function loadDistricts() {
       try {
-        const res = await getDistricts(1, 200);
+        const res = await getDistricts(1, 9999);
         setDistricts(res.items.map((d: any) => ({ id: d.id, districtNumber: d.districtNumber })).sort((a: any, b: any) => String(a.districtNumber).localeCompare(String(b.districtNumber), undefined, { numeric: true })));
       } catch { /* ignore */ }
     }

@@ -238,7 +238,7 @@ function CreateClubDuesInner() {
   useEffect(() => {
     (async () => {
       try {
-        const [d, y, k] = await Promise.all([getDistricts(1, 400), getRotaryYears(), getRazorpayRouteAccounts(true)]);
+        const [d, y, k] = await Promise.all([getDistricts(1, 9999), getRotaryYears(), getRazorpayRouteAccounts(true)]);
         const sortedDistricts = [...d.items].sort((a, b) => {
           const na = parseInt(a.districtNumber ?? "", 10), nb = parseInt(b.districtNumber ?? "", 10);
           if (!isNaN(na) && !isNaN(nb) && na !== nb) return na - nb;

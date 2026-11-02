@@ -85,7 +85,7 @@ export default function EditClubPage() {
           const d = await getDistrict(parseInt(paramDistrictId));
           setDistrictNumber(d.districtNumber);
         } else {
-          const distResult = await getDistricts(1, 100);
+          const distResult = await getDistricts(1, 9999);
           setDistricts([...distResult.items].sort((a: any, b: any) => String(a.districtNumber).localeCompare(String(b.districtNumber), undefined, { numeric: true })));
         }
       } catch (err: any) {
@@ -194,7 +194,7 @@ export default function EditClubPage() {
                   <p className="text-xs text-muted-foreground">District is required</p>
                 </div>
                 <div className="space-y-2"><Label>Club Rotary ID<span className="text-destructive ml-1">*</span></Label><Input value={form.clubRotaryId} onChange={(e) => updateForm("clubRotaryId", e.target.value.replace(/[^0-9]/g, ""))} required /><p className="text-xs text-muted-foreground">Club Rotary ID is required</p></div>
-                <div className="space-y-2 sm:col-span-2"><Label>Club Name<span className="text-destructive ml-1">*</span></Label><Input value={form.clubName} onChange={(e) => updateForm("clubName", e.target.value.replace(/[^a-zA-Z\s]/g, ""))} required /><p className="text-xs text-muted-foreground">Club Name is required</p></div>
+                <div className="space-y-2 sm:col-span-2"><Label>Club Name<span className="text-destructive ml-1">*</span></Label><Input value={form.clubName} onChange={(e) => updateForm("clubName", e.target.value.replace(/[^\p{L}\p{M}\p{N}\s.,'’&()/-]/gu, ""))} required /><p className="text-xs text-muted-foreground">Club Name is required</p></div>
                 <div className="space-y-2"><Label>Charter Date<span className="text-destructive ml-1">*</span></Label><DateField value={form.clubCharterDate} onChange={(v: string) => updateForm("clubCharterDate", v)} required /><p className="text-xs text-muted-foreground">Charter Date is required</p></div>
                 <div className="space-y-2"><Label>Website</Label><Input value={form.clubWebsite} onChange={(e) => updateForm("clubWebsite", e.target.value)} /></div>
               </div>

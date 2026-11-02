@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import MemberForm from "@/components/MemberForm";
 import { useAuth } from "@/contexts/AuthContext";
@@ -8,7 +8,7 @@ import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import RotaryLoader from "@/components/RotaryLoader";
-import { createMember, getMembers, addClubMember, getPhotoUrl } from "@/services/api";
+import { createMember, getMembers, addClubMember, getPhotoUrl, getClub, getDistrict } from "@/services/api";
 import { Member, MemberListItem } from "@/types/member";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -34,6 +34,19 @@ function NewMemberForm() {
   const [searchResults, setSearchResults] = useState<MemberListItem[] | null>(null);
   const [searching, setSearching] = useState(false);
   const [showForm, setShowForm] = useState(!paramClubId); // Show form directly if no clubId
+
+  // New members default to their district's country (not a hard-coded one).
+  const [districtCountry, setDistrictCountry] = useState<string | null>(null);
+  useEffect(() => {
+    const clubId = paramClubId ? parseInt(paramClubId) : 0;
+    if (!clubId) return;
+    let cancelled = false;
+    getClub(clubId)
+      .then((club) => (club.fkDistrictId ? getDistrict(club.fkDistrictId) : null))
+      .then((district) => { if (!cancelled) setDistrictCountry(district?.country ?? null); })
+      .catch(() => { /* no default country; the brand default still applies */ });
+    return () => { cancelled = true; };
+  }, [paramClubId]);
 
   const handleSearch = async () => {
     if (!searchTerm.trim()) return;
@@ -105,6 +118,7 @@ function NewMemberForm() {
           backUrl={backUrl}
           initialData={buildInitialData(searchTerm)}
           isSuperAdmin={isSuperAdmin}
+          defaultCountryName={districtCountry}
         />
         <SuccessAlert
           open={showSuccess}

@@ -5,6 +5,8 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   // .next/standalone: a self-contained server (server.js + only the node_modules it needs) for the IIS deploy
   output: "standalone",
+  // Test go-live: the site runs as the IIS application "/site" beside the admin on one host (row/deploy/iis/README.md).
+  basePath: process.env.SITE_BASE_PATH || undefined,
   // Pages from the first content version now live under the V2 page names.
   async redirects() {
     return [
