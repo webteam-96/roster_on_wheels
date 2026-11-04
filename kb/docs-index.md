@@ -74,9 +74,9 @@ open the file for the text. Do not edit by hand.
   -   19. Gates
   - … 15 more headings
 
-## row (54 documents)
+## row (49 documents)
 
-- **row/HANDOFF.md** (11 KB)
+- **row/HANDOFF.md** (12 KB)
   - ROW: session handoff (read this first)
   -   Ground rules (from the user)
   -   Done on 2026-10-19
@@ -111,7 +111,7 @@ open the file for the text. Do not edit by hand.
   -   Configuration (set per server as environment variables; never commit values)
   -   Checks
   -   Refreshing from a newer RIZones copy
-- **row/ROW-CHANGES.md** (62 KB)
+- **row/ROW-CHANGES.md** (65 KB)
   - ROW changes to consider later
   -   Security and privacy
   -   Providers
@@ -137,6 +137,7 @@ open the file for the text. Do not edit by hand.
   -   2026-10-23: Skipped modules removed, 10 new spec modules, security fixes
   -   2026-10-23 (part 2): security and read review, time zones, planning mode, escalation, rebranding
   -   2026-10-28: Build spec completion (plan `docs/superpowers/plans/2026-10-28-build-spec-completion.md`)
+  - … 1 more headings
 - **row/STATUS-REPORT.md** (6 KB)
   - ROW status report (updated 2026-10-23, evening)
   -   Done (verified on a local copy of production, `row_prod_copy`)
@@ -203,56 +204,14 @@ open the file for the text. Do not edit by hand.
   -   10. Performance — DB indexes
   -   Known gaps (track separately, not blocking launch)
   -   Sample seed for fresh dev DB
-- **row/district-website/README.md** (2 KB)
-  - District Website
-  -   Phases
-  -   Local dev
-  -   Deploy
-  -   Architecture key bits
-  -   Themes contract
-- **row/district-website/TESTING.md** (9 KB)
-  - Club Website — Test Plan
-  -   0. Prerequisites
-  - C:\Windows\System32\drivers\etc\hosts  (run editor as Administrator)
-  -   1. Tenant resolution
-  -   2. Status states — all 4 transitions
-  -   3. All 8 default menus
-  -   4. Year filter
-  -   5. All 5 themes
-  -   6. Menu cap (8 default + 1 custom)
-  -   7. Privacy (PII)
-  -   8. Reminder emails (dry run)
-  -   9. Cache + ISR
-  -   10. Performance — DB indexes
-  -   Known gaps (track separately, not blocking launch)
-  -   Sample seed for fresh dev DB
-- **row/district-website/src/components/wall/DESIGN.md** (1 KB)
-  - Wall of clubs: district website theme
-- **row/district-website.bak-2026-10-29/README.md** (2 KB)
-  - District Website
-  -   Phases
-  -   Local dev
-  -   Deploy
-  -   Architecture key bits
-  -   Themes contract
-- **row/district-website.bak-2026-10-29/TESTING.md** (9 KB)
-  - Club Website — Test Plan
-  -   0. Prerequisites
-  - C:\Windows\System32\drivers\etc\hosts  (run editor as Administrator)
-  -   1. Tenant resolution
-  -   2. Status states — all 4 transitions
-  -   3. All 8 default menus
-  -   4. Year filter
-  -   5. All 5 themes
-  -   6. Menu cap (8 default + 1 custom)
-  -   7. Privacy (PII)
-  -   8. Reminder emails (dry run)
-  -   9. Cache + ISR
-  -   10. Performance — DB indexes
-  -   Known gaps (track separately, not blocking launch)
-  -   Sample seed for fresh dev DB
-- **row/district-website.bak-2026-10-29/src/components/wall/DESIGN.md** (1 KB)
-  - Wall of clubs: district website theme
+- **row/deploy/iis/README.md** (8 KB)
+  - ROW test go-live on IIS (test.rosteronwheels.com)
+  -   1. Server prerequisites (once)
+  -   2. API: Plesk subdomain `api.test.rosteronwheels.com`
+  -   3. Site "row-web" (test.rosteronwheels.com)
+  -   4. Site "row-club-websites"
+  -   5. Before opening it to anyone
+  -   6. Smoke test after copying
 - **row/mobile/ANALYSIS.md** (7 KB)
   - Frontend Analysis Report — Rotary Zones 4,5,6,7 & 8 Admin
   -   1. PROJECT OVERVIEW

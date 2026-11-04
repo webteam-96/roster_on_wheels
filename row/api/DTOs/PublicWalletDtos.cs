@@ -38,6 +38,7 @@ public class PublicWalletSearchResultDto
 
 public class PublicWalletCreateOrderRequest
 {
+    public string? ReturnPath { get; set; }
     public int EntityId { get; set; }   // ignored (forced) when the token already bakes an entity
     public decimal Amount { get; set; }
 }

@@ -5,6 +5,7 @@ using ClosedXML.Excel;
 using Dapper;
 using MySqlConnector;
 using RotaryApi.DTOs;
+using RotaryApi.Services.Payments;
 
 namespace RotaryApi.Services;
 
@@ -27,10 +28,14 @@ public class MembershipDuesService : IMembershipDuesService
     private readonly HttpClient _httpClient;
     private readonly ILogger<MembershipDuesService> _logger;
 
+    private readonly PaymentCheckoutService _checkout;
+
     public MembershipDuesService(IConfiguration config, IEmailService emailService, IHttpClientFactory httpClientFactory, IGoogleSheetsService googleSheetsService,
         ICreditManagementService creditService,
+        PaymentCheckoutService checkout,
         ILogger<MembershipDuesService> logger)
     {
+        _checkout = checkout;
         _connStr = config.GetConnectionString("DefaultConnection")!;
         _config = config;
         _emailService = emailService;
@@ -2694,6 +2699,16 @@ public class MembershipDuesService : IMembershipDuesService
         };
 
         var splitsJson = JsonSerializer.Serialize(orderSplits);
+
+        if (_checkout.Enabled)
+        {
+            var session = await _checkout.CreateAsync(new CheckoutRequest(PaymentSettlementService.FlowMembershipDues, paymentId, orderId,
+                amount, Brand.DefaultCurrency, "Membership dues", returnUrl, $"{frontendUrl}/pay/dues/{duesId}"));
+            await conn.ExecuteAsync("UPDATE membership_dues_payments SET TransactionId=@OrderId, OrderSplitsJson=@SplitsJson WHERE pk_id=@Id",
+                new { OrderId = orderId, SplitsJson = splitsJson, Id = paymentId });
+            return new DuesPaymentSessionResponseDto { OrderId = orderId, PaymentId = paymentId, Checkout = session };
+        }
+
         Console.WriteLine($"[MembershipDues Payment] DuesId={duesId}, OrderId={orderId}, Amount={amount}, Splits={splitsJson}");
 
         var json = JsonSerializer.Serialize(orderPayload, new JsonSerializerOptions { DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull });
@@ -2763,6 +2778,32 @@ public class MembershipDuesService : IMembershipDuesService
 
     public async Task<VerifyPaymentResponseDto> VerifyPaymentAsync(int duesId, string orderId, int paymentId)
     {
+        if (_checkout.Enabled)
+        {
+            // A hosted gateway settles on the server; the thank-you page only reads the result.
+            using var read = GetConnection();
+            var row = await read.QueryFirstOrDefaultAsync<dynamic>(@"
+                SELECT p.IsPaid, p.Amount, p.PaymentDate, m.MemberName, p.FeeType, md.Fees1Text, md.Fees2Text, md.Fees3Text
+                FROM membership_dues_payments p
+                JOIN member_master_profile m ON p.fk_member_profile_id = m.pk_member_master_profile_id
+                JOIN membership_dues md ON p.fk_membership_dues_id = md.pk_membership_dues_id
+                WHERE p.pk_id=@Id AND p.fk_membership_dues_id=@DuesId AND p.TransactionId=@OrderId",
+                new { Id = paymentId, DuesId = duesId, OrderId = orderId });
+            if (row == null || Convert.ToInt32(row.IsPaid) == 0)
+                return new VerifyPaymentResponseDto { IsSuccess = false, OrderStatus = "PENDING" };
+            return new VerifyPaymentResponseDto
+            {
+                IsSuccess = true, OrderStatus = "PAID", MemberName = row.MemberName, Amount = row.Amount, PaymentDate = row.PaymentDate,
+                RegistrationType = (int)row.FeeType switch
+                {
+                    1 => (string?)row.Fees1Text ?? "Annual",
+                    2 => (string?)row.Fees2Text ?? "Semi-Annual 1",
+                    3 => (string?)row.Fees3Text ?? "Semi-Annual 2",
+                    _ => "Dues"
+                }
+            };
+        }
+
         var cf = _config.GetSection("CashfreePayment");
         var request = new HttpRequestMessage(HttpMethod.Get, $"{cf["BaseUrl"]}orders/{orderId}");
         request.Headers.Add("x-client-id", cf["ClientId"]);
@@ -3612,6 +3653,27 @@ public class MembershipDuesService : IMembershipDuesService
     public async Task RefreshSettlementsAsync(int duesId)
     {
         using var conn = GetConnection();
+
+        if (_checkout.IsSimulated)
+        {
+            // Only sessions the simulator took: a real gateway's paid rows never get made-up settlements.
+            var paid = await conn.QueryAsync<dynamic>(@"
+                SELECT p.pk_id AS PaymentId, p.CfOrderId, p.Amount, p.OrderSplitsJson
+                FROM membership_dues_payments p
+                JOIN payment_checkout_sessions s ON s.merchant_order_id = p.CfOrderId AND s.gateway = 'simulated'
+                WHERE p.fk_membership_dues_id=@DuesId AND p.IsPaid=1 AND p.isdeleted=0
+                  AND NOT EXISTS (SELECT 1 FROM membership_dues_settlements x WHERE x.fk_payment_id = p.pk_id)",
+                new { DuesId = duesId });
+            foreach (var p in paid)
+                foreach (var (vendorId, splitAmount) in SimulatedSettlements.Split((string?)p.OrderSplitsJson, (decimal)p.Amount))
+                    await conn.ExecuteAsync(@"
+                        INSERT INTO membership_dues_settlements (fk_membership_dues_id, fk_payment_id, CfOrderId, VendorId,
+                            Amount, SettlementStatus, SettlementId, SettlementUtr, SettlementTime, ServiceCharge, ServiceTax)
+                        VALUES (@DuesId, @PaymentId, @CfOrderId, @VendorId, @Amount, 'SUCCESS', @SettlementId, 'SIMULATED', NOW(), 0, 0)",
+                        new { DuesId = duesId, PaymentId = (int)p.PaymentId, CfOrderId = (string)p.CfOrderId, VendorId = vendorId,
+                              Amount = splitAmount, SettlementId = $"sim_{(int)p.PaymentId}" });
+            return;
+        }
 
         // Get all paid payments with CfOrderId for this duesId
         var payments = await conn.QueryAsync<dynamic>(@"

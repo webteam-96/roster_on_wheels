@@ -36,10 +36,13 @@ public class CreateWebsiteOrderDto
     public string? SubdomainInput { get; set; }      // required for New; ignored for Renewal
     public int ReminderDays { get; set; }            // days before expiry to remind
     public int? ThemeId { get; set; }                // optional; default theme when null (New)
+    public string? ReturnPath { get; set; }          // local page to come back to after a hosted checkout
 }
 
 public class CreateWebsiteOrderResponseDto
 {
+    // Set when a hosted gateway is on (Services/Payments): send the payer to Checkout.RedirectUrl.
+    public RotaryApi.Services.Payments.CheckoutSessionDto? Checkout { get; set; }
     public long WebsiteOrderId { get; set; }
     public string RazorpayOrderId { get; set; } = "";
     public string KeyId { get; set; } = "";          // public Razorpay key (safe for the browser)

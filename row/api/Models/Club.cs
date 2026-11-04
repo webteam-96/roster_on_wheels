@@ -14,7 +14,7 @@ public class Club
     public TimeSpan? MeetingFromTime { get; set; }
     public TimeSpan? MeetingToTime { get; set; }
     public string? MeetingAddress { get; set; }
-    public string Country { get; set; } = "India";
+    public string Country { get; set; } = "";
     public string? State { get; set; }
     public string? City { get; set; }
     public string? Pincode { get; set; }

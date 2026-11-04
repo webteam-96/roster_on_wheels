@@ -51,7 +51,7 @@ export default function PayPageShell({ title, wide, children }: { title?: ReactN
       <div className="w-full border-t border-slate-200 bg-white">
         <div className="px-4 sm:px-8 py-4 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-xs text-slate-500">
           <span className="inline-flex items-center gap-1.5"><ShieldCheck className="h-4 w-4 text-emerald-600" /> 256-bit SSL encrypted</span>
-          <span className="inline-flex items-center gap-1.5"><Lock className="h-4 w-4 text-slate-500" /> Secured by Razorpay</span>
+          <span className="inline-flex items-center gap-1.5"><Lock className="h-4 w-4 text-slate-500" /> Secure checkout</span>
           <span className="inline-flex items-center gap-1.5"><BadgeCheck className="h-4 w-4" style={{ color: NAVY }} /> Roster On Wheels</span>
         </div>
       </div>

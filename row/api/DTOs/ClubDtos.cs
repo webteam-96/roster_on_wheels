@@ -48,8 +48,8 @@ public class ClubDetailDto
     public TimeSpan? MeetingFromTime { get; set; }
     public TimeSpan? MeetingToTime { get; set; }
     public string? MeetingAddress { get; set; }
-    public string Country { get; set; } = "India";
-    // The club's OWN Country field (above) defaults to "India" regardless of reality — unreliable
+    public string Country { get; set; } = "";
+    // The club's OWN Country field (above) is often empty or an old default — unreliable
     // for currency defaulting. This is the club's DISTRICT's Country instead, used as a fallback
     // guess for a project's default currency when DistrictDefaultCurrency (below) isn't set yet.
     public string? DistrictCountry { get; set; }
@@ -86,7 +86,7 @@ public class CreateClubDto
     public TimeSpan? MeetingFromTime { get; set; }
     public TimeSpan? MeetingToTime { get; set; }
     public string? MeetingAddress { get; set; }
-    public string Country { get; set; } = "India";
+    public string Country { get; set; } = "";
     public string? State { get; set; }
     public string? City { get; set; }
     public string? Pincode { get; set; }
@@ -112,7 +112,7 @@ public class UpdateClubDto
     public TimeSpan? MeetingFromTime { get; set; }
     public TimeSpan? MeetingToTime { get; set; }
     public string? MeetingAddress { get; set; }
-    public string Country { get; set; } = "India";
+    public string Country { get; set; } = "";
     public string? State { get; set; }
     public string? City { get; set; }
     public string? Pincode { get; set; }

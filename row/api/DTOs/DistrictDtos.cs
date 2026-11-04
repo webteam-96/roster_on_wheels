@@ -43,7 +43,7 @@ public class CreateDistrictDto
     public string? DistrictLogoPath { get; set; }
     public bool IsActive { get; set; } = true;
     public int? FkZoneId { get; set; }
-    public string? Country { get; set; } = "India";
+    public string? Country { get; set; } = "";
     public string? DefaultCurrency { get; set; }
     /// <summary>IANA time zone (N12); null = the brand's zone.</summary>
     public string? Timezone { get; set; }
@@ -55,7 +55,7 @@ public class UpdateDistrictDto
     public string? DistrictLogoPath { get; set; }
     public bool IsActive { get; set; } = true;
     public int? FkZoneId { get; set; }
-    public string? Country { get; set; } = "India";
+    public string? Country { get; set; } = "";
     public string? DefaultCurrency { get; set; }
     /// <summary>IANA time zone (N12); null = the brand's zone.</summary>
     public string? Timezone { get; set; }

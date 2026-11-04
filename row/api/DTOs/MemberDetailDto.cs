@@ -6,7 +6,7 @@ public class MemberDetailDto
     public string MemberName { get; set; } = string.Empty;
     public string? ProfilePhotoPath { get; set; }
     public int FkPrimaryCountryId { get; set; }   // ROW: no default country (the original: 1 = India)
-    public string PrimaryCountry { get; set; } = "India";
+    public string PrimaryCountry { get; set; } = "";
     public string? PrimaryCountryPhoneCode { get; set; }
     public string? PrimaryMobileNumber { get; set; }
     public string? EmailId { get; set; }
@@ -14,7 +14,7 @@ public class MemberDetailDto
     public DateTime? AnniversaryDate { get; set; }
     public string? BloodGroup { get; set; }
     public int FkSecondaryCountryId { get; set; }   // ROW: no default country (the original: 1 = India)
-    public string SecondaryCountry { get; set; } = "India";
+    public string SecondaryCountry { get; set; } = "";
     public string? SecondaryCountryPhoneCode { get; set; }
     public string? SecondaryMobileNumber { get; set; }
     public bool IsPersonalDetailsVisible { get; set; }

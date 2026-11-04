@@ -3,6 +3,7 @@ using System.Text.Json;
 using Dapper;
 using MySqlConnector;
 using RotaryApi.DTOs;
+using RotaryApi.Services.Payments;
 
 namespace RotaryApi.Services;
 
@@ -13,8 +14,11 @@ public class CashfreeKycService : ICashfreeKycService
     private readonly IEmailService _emailService;
     private readonly ILogger<CashfreeKycService> _logger;
 
-    public CashfreeKycService(IConfiguration configuration, IEmailService emailService, ILogger<CashfreeKycService> logger)
+    private readonly PaymentCheckoutService _checkout;
+
+    public CashfreeKycService(IConfiguration configuration, IEmailService emailService, PaymentCheckoutService checkout, ILogger<CashfreeKycService> logger)
     {
+        _checkout = checkout;
         _connectionString = configuration.GetConnectionString("DefaultConnection")!;
         _configuration = configuration;
         _emailService = emailService;
@@ -388,6 +392,7 @@ public class CashfreeKycService : ICashfreeKycService
     private async Task<(bool Success, string Status, string ErrorMessage)> CallCashfreeAddEditAsync(
         string method, string endpoint, CashfreeVerifyOtpDto dto)
     {
+        if (_checkout.IsSimulated) return (true, "ACTIVE", ""); // no gateway: the vendor is recorded locally only
         var baseUrl = _configuration["Cashfree:BaseUrl"] ?? "https://api.cashfree.com/pg";
         var clientId = _configuration["Cashfree:ClientId"] ?? "";
         var clientSecret = _configuration["Cashfree:ClientSecret"] ?? "";
@@ -543,6 +548,7 @@ public class CashfreeKycService : ICashfreeKycService
 
     private async Task<(bool Success, string Status, string Json)> GetCashfreeVendorAsync(string vendorId)
     {
+        if (_checkout.IsSimulated) return (true, "ACTIVE", "{}");
         var baseUrl = _configuration["Cashfree:BaseUrl"] ?? "https://api.cashfree.com/pg";
         var clientId = _configuration["Cashfree:ClientId"] ?? "";
         var clientSecret = _configuration["Cashfree:ClientSecret"] ?? "";

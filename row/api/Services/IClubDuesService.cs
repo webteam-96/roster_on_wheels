@@ -51,6 +51,7 @@ public interface IClubDuesService
     Task<PublicClubDuesDto?> GetPublicDuesAsync(int duesId, int clubId);
     Task<ClubDuesPaymentSessionResponseDto> CreatePaymentOrderAsync(int duesId, PublicClubDuesPaymentSubmitDto dto);
     Task<VerifyPaymentResponseDto> VerifyPaymentAsync(int duesId, ClubDuesVerifyDto dto);
+    Task SettleOnlineAsync(int paymentId, string gatewayPaymentId);
     Task HandleWebhookAsync(string rawBody, string signatureHeader);
     // Non-expiring, stable shareable pay link for a club (ClubDuesAccessToken).
     ClubDuesPayLinkDto GeneratePayLink(int duesId, int clubId, string frontendUrl);

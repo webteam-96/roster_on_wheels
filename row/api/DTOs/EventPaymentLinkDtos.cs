@@ -412,6 +412,8 @@ public class PublicPaymentSubmitDto
 
 public class PaymentSessionResponseDto
 {
+    // Set when a hosted gateway is on (Services/Payments): send the payer to Checkout.RedirectUrl.
+    public RotaryApi.Services.Payments.CheckoutSessionDto? Checkout { get; set; }
     public string PaymentSessionId { get; set; } = "";
     public string CfOrderId { get; set; } = "";
     public string OrderId { get; set; } = "";

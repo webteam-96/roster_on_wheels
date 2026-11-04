@@ -5,6 +5,7 @@ using ClosedXML.Excel;
 using Dapper;
 using MySqlConnector;
 using RotaryApi.DTOs;
+using RotaryApi.Services.Payments;
 
 namespace RotaryApi.Services;
 
@@ -23,8 +24,11 @@ public class ClubDuesService : IClubDuesService
     private readonly HttpClient _httpClient;
     private readonly ILogger<ClubDuesService> _logger;
 
-    public ClubDuesService(IConfiguration config, IEmailService emailService, IGoogleSheetsService googleSheetsService, IHttpClientFactory httpClientFactory, ILogger<ClubDuesService> logger)
+    private readonly PaymentCheckoutService _checkout;
+
+    public ClubDuesService(IConfiguration config, PaymentCheckoutService checkout, IEmailService emailService, IGoogleSheetsService googleSheetsService, IHttpClientFactory httpClientFactory, ILogger<ClubDuesService> logger)
     {
+        _checkout = checkout;
         _connStr = config.GetConnectionString("DefaultConnection")!;
         _config = config;
         _emailService = emailService;
@@ -1690,6 +1694,25 @@ own separate approval request.</p>
             SELECT LAST_INSERT_ID();",
             new { DuesId = duesId, ClubId = dto.FkClubId, Amount = onlineOwed, Count = rates.Unpaid, PaidBy = dto.PaidByMemberId });
 
+        if (_checkout.Enabled)
+        {
+            var merchantOrderId = $"{receipt}_{paymentId}";
+            var frontend = (_config["FrontendUrl"] ?? "http://localhost:3000").TrimEnd('/');
+            var clubName = (string?)club?.ClubName ?? "";
+            var session = await _checkout.CreateAsync(new CheckoutRequest(PaymentSettlementService.FlowClubDues, paymentId, merchantOrderId,
+                onlineOwed, Brand.DefaultCurrency, $"District dues: {clubName}",
+                $"{frontend}/pay/club-dues/{duesId}/thank-you?paid=1&amount={onlineOwed.ToString(System.Globalization.CultureInfo.InvariantCulture)}&club={Uri.EscapeDataString(clubName)}",
+                null));
+            await conn.ExecuteAsync("UPDATE club_dues_payments SET RazorpayOrderId=@Rid WHERE pk_club_dues_payment_id=@Id",
+                new { Rid = merchantOrderId, Id = paymentId });
+            return new ClubDuesPaymentSessionResponseDto
+            {
+                RazorpayOrderId = merchantOrderId, AmountPaise = amountPaise, Receipt = receipt, PaymentId = paymentId,
+                CustomerName = (string?)officer?.MemberName ?? clubName, CustomerEmail = (string?)officer?.EmailId,
+                CustomerPhone = (string?)officer?.PrimaryMobileNumber, Checkout = session
+            };
+        }
+
         // Razorpay Route: build transfers to the linked account(s). Prefer this CLUB's own split
         // override (club_dues_club_vendors) if it has one; otherwise fall back to the campaign default
         // (club_dues_vendors). Percentages of the live total; last account absorbs paise rounding.
@@ -1777,6 +1800,9 @@ own separate approval request.</p>
         // IsPaid is TINYINT(1) → MySqlConnector maps it to bool; Convert.ToInt32 handles bool/sbyte/int.
         if (Convert.ToInt32(payment.IsPaid) == 0)
         {
+            // A hosted gateway settles on the server; verify only reports the result.
+            if (_checkout.Enabled)
+                return new VerifyPaymentResponseDto { IsSuccess = false, OrderStatus = "PENDING" };
             if (!RazorpayGatewayProxy.VerifyPaymentSignature(_config, dto.RazorpayOrderId, dto.RazorpayPaymentId, dto.RazorpaySignature))
                 return new VerifyPaymentResponseDto { IsSuccess = false, OrderStatus = "SIGNATURE_FAILED" };
             await conn.ExecuteAsync(@"
@@ -1800,6 +1826,27 @@ own separate approval request.</p>
             MemberName = (string?)info?.ClubName, Amount = info?.Amount,
             RegistrationType = "District Dues", PaymentDate = DateTime.Now
         };
+    }
+
+    // Gateway confirmed the money (Services/Payments). Same steps as a verified payment; a repeat changes nothing.
+    public async Task SettleOnlineAsync(int paymentId, string gatewayPaymentId)
+    {
+        using var conn = GetConnection();
+        var payment = await conn.QueryFirstOrDefaultAsync<dynamic>(
+            "SELECT fk_club_dues_id, fk_club_id, MemberCountCovered FROM club_dues_payments WHERE pk_club_dues_payment_id=@Id AND isdeleted=0",
+            new { Id = paymentId });
+        if (payment == null) throw new KeyNotFoundException("Club dues payment not found.");
+        var claimed = await conn.ExecuteAsync(@"
+            UPDATE club_dues_payments SET IsPaid=1, IsOnline=1, PaymentStatus='PAID', PaidSource='Page',
+                RazorpayPaymentId=@Pid, PaymentDate=NOW()
+            WHERE pk_club_dues_payment_id=@Id AND IsPaid=0",
+            new { Pid = gatewayPaymentId, Id = paymentId });
+        if (claimed == 0) return;
+        int duesId = (int)payment.fk_club_dues_id;
+        var settledAccountIds = await ResolveSettledAccountIdsAsync(conn, duesId, (int)payment.fk_club_id, isOnline: true, null);
+        await CoverUnpaidMembersAsync(conn, duesId, (int)payment.fk_club_id, paymentId, (int)payment.MemberCountCovered, settledAccountIds);
+        await SyncGoogleSheetIfEnabledAsync(duesId);
+        _ = Task.Run(async () => { try { await SendReceiptEmailAsync(paymentId); } catch { } });
     }
 
     // Razorpay webhook (X-Razorpay-Signature) — idempotent backstop for order.paid / payment.captured.

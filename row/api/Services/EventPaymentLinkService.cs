@@ -4,6 +4,7 @@ using System.Text.Json.Serialization;
 using Dapper;
 using MySqlConnector;
 using RotaryApi.DTOs;
+using RotaryApi.Services.Payments;
 
 namespace RotaryApi.Services;
 
@@ -16,9 +17,13 @@ public class EventPaymentLinkService : IEventPaymentLinkService
     private readonly HttpClient _httpClient;
     private readonly ILogger<EventPaymentLinkService> _logger;
 
+    private readonly PaymentCheckoutService _checkout;
+
     public EventPaymentLinkService(IConfiguration config, IEmailService emailService, IHttpClientFactory httpClientFactory, IGoogleSheetsService googleSheetsService,
+        PaymentCheckoutService checkout,
         ILogger<EventPaymentLinkService> logger)
     {
+        _checkout = checkout;
         _connStr = config.GetConnectionString("DefaultConnection")!;
         _config = config;
         _emailService = emailService;
@@ -1437,6 +1442,16 @@ public class EventPaymentLinkService : IEventPaymentLinkService
         };
 
         var splitsJson = JsonSerializer.Serialize(orderSplits);
+
+        if (_checkout.Enabled)
+        {
+            var session = await _checkout.CreateAsync(new CheckoutRequest(PaymentSettlementService.FlowEventLink, memberPaymentId, orderId,
+                amount, Brand.DefaultCurrency, "Event payment", returnUrl, $"{frontendUrl}/pay/{linkId}"));
+            await conn.ExecuteAsync("UPDATE event_payment_members SET CfOrderId=@OrderId, PaymentStatus='ACTIVE', OrderSplitsJson=@SplitsJson WHERE pk_id=@Id",
+                new { OrderId = orderId, SplitsJson = splitsJson, Id = memberPaymentId });
+            return new PaymentSessionResponseDto { OrderId = orderId, MemberPaymentId = memberPaymentId, Checkout = session };
+        }
+
         Console.WriteLine($"[EventPayment Payment] LinkId={linkId}, OrderId={orderId}, Amount={amount}, Splits={splitsJson}");
 
         var json = JsonSerializer.Serialize(orderPayload, new JsonSerializerOptions { DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull });
@@ -1489,8 +1504,46 @@ public class EventPaymentLinkService : IEventPaymentLinkService
         };
     }
 
+    // Gateway confirmed the money (Services/Payments). Same steps as the webhook; a repeat changes nothing.
+    public async Task SettleOnlineAsync(int memberPaymentId, string gatewayPaymentId)
+    {
+        using var conn = GetConnection();
+        var claimed = await conn.ExecuteAsync(@"
+            UPDATE event_payment_members SET IsPaid=1, IsOnline=1, PaymentStatus='PAID', PaidSource='Page', PaymentDate=NOW()
+            WHERE pk_id=@Id AND IsPaid=0", new { Id = memberPaymentId });
+        if (claimed == 0) return;
+        var linkId = await conn.ExecuteScalarAsync<int>("SELECT fk_payment_link_id FROM event_payment_members WHERE pk_id=@Id", new { Id = memberPaymentId });
+        _logger.LogInformation("Event payment {Id} settled, gateway payment {GatewayPaymentId}.", memberPaymentId, gatewayPaymentId);
+        try { await SendReceiptEmailAsync(memberPaymentId); } catch (Exception ex) { _logger.LogError(ex, "Receipt failed for event payment {Id}", memberPaymentId); }
+        _ = Task.Run(async () =>
+        {
+            try { await AppendPaymentToSheetAsync(linkId, memberPaymentId); }
+            catch (Exception ex) { _logger.LogError(ex, "Failed to append to Google Sheet for payment {Id}", memberPaymentId); }
+        });
+        _ = Task.Run(async () => { try { await RefreshEventSettlementsAsync(linkId); } catch { } });
+    }
+
     public async Task<VerifyPaymentResponseDto> VerifyPaymentAsync(int linkId, string orderId, int memberPaymentId)
     {
+        if (_checkout.Enabled)
+        {
+            // A hosted gateway settles on the server; the thank-you page only reads the result.
+            using var read = GetConnection();
+            var row = await read.QueryFirstOrDefaultAsync<dynamic>(@"
+                SELECT pm.IsPaid, pm.MemberName, pm.Amount, pm.PaymentDate, r.RegistrationName
+                FROM event_payment_members pm
+                LEFT JOIN event_payment_registrations r ON pm.fk_registration_id = r.pk_id
+                WHERE pm.pk_id=@Id AND pm.fk_payment_link_id=@LinkId AND pm.CfOrderId=@OrderId",
+                new { Id = memberPaymentId, LinkId = linkId, OrderId = orderId });
+            if (row == null || Convert.ToInt32(row.IsPaid) == 0)
+                return new VerifyPaymentResponseDto { IsSuccess = false, OrderStatus = "PENDING" };
+            return new VerifyPaymentResponseDto
+            {
+                IsSuccess = true, OrderStatus = "PAID", MemberName = row.MemberName, Amount = row.Amount,
+                RegistrationType = row.RegistrationName, PaymentDate = row.PaymentDate
+            };
+        }
+
         var cf = _config.GetSection("CashfreePayment");
         var request = new HttpRequestMessage(HttpMethod.Get, $"{cf["BaseUrl"]}orders/{orderId}");
         request.Headers.Add("x-client-id", cf["ClientId"]);
@@ -1924,6 +1977,27 @@ public class EventPaymentLinkService : IEventPaymentLinkService
     public async Task RefreshEventSettlementsAsync(int linkId)
     {
         using var conn = GetConnection();
+
+        if (_checkout.IsSimulated)
+        {
+            // Only sessions the simulator took: a real gateway's paid rows never get made-up settlements.
+            var paid = await conn.QueryAsync<dynamic>(@"
+                SELECT p.pk_id, p.CfOrderId, p.Amount, p.OrderSplitsJson
+                FROM event_payment_members p
+                JOIN payment_checkout_sessions s ON s.merchant_order_id = p.CfOrderId AND s.gateway = 'simulated'
+                WHERE p.fk_payment_link_id=@LinkId AND p.IsPaid=1
+                  AND NOT EXISTS (SELECT 1 FROM event_payment_settlements x WHERE x.fk_member_payment_id = p.pk_id)",
+                new { LinkId = linkId });
+            foreach (var p in paid)
+                foreach (var (vendorId, splitAmount) in SimulatedSettlements.Split((string?)p.OrderSplitsJson, (decimal)p.Amount))
+                    await conn.ExecuteAsync(@"
+                        INSERT INTO event_payment_settlements (fk_payment_link_id, fk_member_payment_id, CfOrderId, VendorId, Amount,
+                            SettlementStatus, SettlementId, SettlementUtr, SettlementTime, ServiceCharge, ServiceTax)
+                        VALUES (@LinkId, @PId, @CfOrderId, @VId, @Amt, 'SUCCESS', @SId, 'SIMULATED', NOW(), 0, 0)",
+                        new { LinkId = linkId, PId = (int)p.pk_id, CfOrderId = (string)p.CfOrderId, VId = vendorId, Amt = splitAmount,
+                              SId = $"sim_{(int)p.pk_id}" });
+            return;
+        }
         var paidPayments = await conn.QueryAsync<dynamic>(@"
             SELECT pk_id, CfOrderId FROM event_payment_members
             WHERE fk_payment_link_id=@LinkId AND IsPaid=1 AND IsOnline=1 AND CfOrderId IS NOT NULL AND CfOrderId != '' AND isdeleted=0",

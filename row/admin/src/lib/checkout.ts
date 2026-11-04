@@ -5,12 +5,36 @@
  * runs in the browser, so no gateway script is ever loaded here.
  */
 import type { CheckoutSession, CheckoutStatus, CheckoutUrls } from "@/types/payments";
-import { withBase } from "@/lib/basePath";
+import { stripBase, withBase } from "@/lib/basePath";
+import { getCheckoutSession } from "@/services/api";
 
 /** The return and cancel URLs for a pay page, with our order id added by the API as ?orderId=. */
 export function checkoutUrls(returnPath: string, cancelPath?: string): CheckoutUrls {
   const origin = typeof window !== "undefined" ? window.location.origin : "";
   return { returnUrl: `${origin}${withBase(returnPath)}`, cancelUrl: `${origin}${cancelPath ?? window.location.pathname}` };
+}
+
+/** This page as a local path, sent with a create-order call so a hosted checkout comes back here. */
+export function checkoutReturnPath(): string {
+  return stripBase(window.location.pathname);
+}
+
+/**
+ * On a page a hosted checkout returned to: the outcome from the server (never from the URL), or null when the page was
+ * opened normally. The token is removed from the address so a reload does not repeat the message.
+ */
+export async function readCheckoutReturn(): Promise<CheckoutStatus | null> {
+  const url = new URL(window.location.href);
+  const token = url.searchParams.get("checkout");
+  if (!token) return null;
+  url.searchParams.delete("checkout");
+  window.history.replaceState(null, "", url.toString());
+  try {
+    const session = await getCheckoutSession(token);
+    return session.status === "open" ? "pending" : session.status;
+  } catch {
+    return "pending";
+  }
 }
 
 /** Pull the session out of an API response that carries it under `checkout` (or is the session itself). */

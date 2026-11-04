@@ -5185,6 +5185,8 @@ public partial class DatabaseInitializer
                 await EnsureVolunteerTablesAsync(connection);
                 // Club website visitor counter: table in DatabaseInitializer.Visits.cs.
                 await EnsureVisitTablesAsync(connection);
+                // Hosted checkout and connected payment accounts: DatabaseInitializer.Payments.cs.
+                await EnsurePaymentCheckoutTablesAsync(connection);
                 // Escalation ladder, target celebration, Foundation giving link: DatabaseInitializer.Escalation.cs.
                 await EnsureEscalationCelebrationSchemaAsync(connection);
                 // Planning mode and cut-over (ROW build spec 3.1): DatabaseInitializer.Planning.cs.

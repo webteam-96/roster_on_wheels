@@ -611,3 +611,32 @@ New (Phase 2), each switched off until a SuperAdmin turns it on unless noted:
   (the club's and district's managers; no website needed). The Showcase form's field selectors are a best guess
   in `mapping.js` and must be checked with a Showcase account before the store listing; see its README. Tests:
   `node --test row/showcase-extension/mapping.test.mjs`, e2e `kb/tools/showcase_projects_e2e.py`.
+
+## 2026-11-04: Simulated payments behind a gateway seam; India defaults removed
+
+Owner's ask: build and test every payment module with a simulated gateway now, add Stripe later without touching the
+modules. The 2026-10-26 gate "payments after the Stripe meeting" is lifted for this part only.
+
+- **Seam:** `api/Services/Payments/PaymentCheckoutService.cs`: `IPaymentGateway` (one hosted page), `PaymentCheckoutService`
+  (picks the gateway from `Payments:Provider`, stores sessions), `PaymentSettlementService` (marks the record paid).
+- **Flows on the seam:** wallet top-up, club website purchase, district (club) dues, membership dues, event payment
+  links. Web pay pages, dashboards and the app all go through it. Each flow's existing paid logic is reused and stays idempotent.
+- **Simulator:** `/pay/simulated/{token}` (admin) with Pay, Simulate a decline, Cancel; API `api/public/payments/checkout/{token}`.
+- **Set-up modules without a gateway:** Cashfree vendor accounts and Razorpay Route accounts save locally when simulated;
+  settlement reports get `SIMULATED` rows, only for sessions the simulator took.
+- **Payment accounts:** `/api/payments/accounts` and `/coverage` built (the `/payment-accounts` pages were 404).
+- **Safety:** provider unset = old code paths unchanged. Simulated is refused in Production unless
+  `Payments__AllowSimulatedInProduction=true`. Amounts always come from the server; return URLs are local paths only;
+  a paid session cannot change; sessions expire after 1 hour.
+- **To add Stripe:** implement `IPaymentGateway` with a Checkout Session (Flow, FlowRef, token in metadata), register it in
+  `Program.cs`, set `Payments__Provider=stripe`, add a signed webhook that closes the session and calls
+  `PaymentSettlementService.SettleAsync`, add credentials to `payment_accounts`. No module changes.
+- **Not simulated or still to do:** wallet and website prices still add the 18% tax from `Razorpay:GstPercent` (tax labels are
+  planned with Stripe); vendor forms still ask for IFSC and PAN; Razorpay settlement sync has no simulated rows; platform fee
+  modes, proration, late fees, invoices, donations and subscriptions are not built; old Razorpay and Cashfree code remains until Stripe replaces it.
+- **Fixed:** event thank-you page read `orderId` while the return URL sends `order_id`.
+- **India defaults:** API models and DTOs default Country to empty; `club_master.Country` default is NULL.
+- **Database:** `database/maintenance/2026-11-04-payment-checkout.sql` and `2026-11-04-club-country-default.sql` (each with a
+  `-down` script), applied to `row_prod_copy` and `row_production` on 2026-11-04.
+- **Checks:** `kb/tools/payments_simulated_e2e.py` all pass; browser run of an event payment to its thank-you page; dotnet
+  build 0 errors; admin tsc 0, vitest 131/131; app analyze 0 errors, tests 61/61. A real phone run of the app flow is not done.

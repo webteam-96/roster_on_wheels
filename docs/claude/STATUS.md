@@ -437,3 +437,12 @@ ow\_local\ (git-ignored, check-ignore proven); row-build deleted. _mysql-row (ol
   fixed in 16.4.3). Prod audit 0 vulnerabilities. Website rebuilt for the site root (no base path, Login ->
   https://test.rosteronwheels.com/admin/login): build exit 0; deploy copy served locally: / and 5 pages 200, CSS 200.
   Now in _local/deploy/web/root with root-site.web.config; old _local/deploy/web/site (/site build) removed.
+
+## 2026-11-04: OMS update, commits, India defaults, simulated payments
+Asked: update OMS; finish test site; fix /payment-accounts and India defaults; commit; club website in git; simulated payments for every payment module.
+Done (with proof):
+- OMS: dated notes on pages 1-13, 15, 17 (each read back; page 9 relocked). Live check 4 Nov: /, /admin/login, /api/public/brand 200; certificate valid for the host.
+- Commits bb69b64 (65 changed files, secret scan clean) and fe0e408 (club website, 409 files, scan clean). Not pushed; the repo is public.
+- Payments: see row/ROW-CHANGES.md 2026-11-04. Proof: payments_simulated_e2e all pass, browser run, builds and tests.
+- row_production: 2 additive scripts applied (tables present, Country default NULL; 31,753 clubs, 0 dues, 0 links).
+NOT done / NOT verified: nothing uploaded by Claude (server files, env settings, Brevo key, test logins remain with the user); simulated flow in the app on a device; dashboard wallet and website return notices in a browser; create-order for club dues and website against real pricing (their settlement is tested from a stored session).

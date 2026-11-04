@@ -3758,6 +3758,30 @@ export async function verifyMembershipDuesOtp(id: number, data: any) {
   const res = await publicApi.post(`/api/public/membership-dues/${id}/verify-otp`, data);
   return res.data;
 }
+/** A hosted checkout session as the public API reports it (no personal data). */
+export interface CheckoutSessionView {
+  status: "open" | "paid" | "failed" | "cancelled";
+  amount: number;
+  currency: string;
+  description: string;
+  gateway: string;
+  merchantOrderId: string;
+  returnUrl: string | null;
+  cancelUrl: string | null;
+  simulated: boolean;
+  expired: boolean;
+}
+
+export async function getCheckoutSession(token: string): Promise<CheckoutSessionView> {
+  const res = await publicApi.get(`/api/public/payments/checkout/${encodeURIComponent(token)}`);
+  return res.data;
+}
+
+export async function simulateCheckout(token: string, outcome: "paid" | "failed" | "cancelled"): Promise<CheckoutSessionView> {
+  const res = await publicApi.post(`/api/public/payments/checkout/${encodeURIComponent(token)}/simulate`, { outcome });
+  return res.data;
+}
+
 export async function createMembershipDuesPaymentOrder(id: number, data: any) {
   const res = await publicApi.post(`/api/public/membership-dues/${id}/pay`, data);
   return res.data;
@@ -3831,7 +3855,7 @@ export async function walletQuote(creditType: string, amount: number) {
   return res.data;
 }
 export async function createWalletTopupOrder(payload: {
-  scope: "club" | "district"; clubId?: number; districtId?: number; creditType: string; amount: number;
+  scope: "club" | "district"; clubId?: number; districtId?: number; creditType: string; amount: number; returnPath?: string;
 }) {
   const res = await api.post(`/api/wallet/create-order`, payload);
   return res.data;
@@ -3853,7 +3877,7 @@ export async function checkWebsiteSubdomain(input: string, clubId?: number) {
   return res.data;
 }
 export async function createWebsiteOrder(payload: {
-  clubId: number; subdomainInput?: string; reminderDays: number; themeId?: number;
+  clubId: number; subdomainInput?: string; reminderDays: number; themeId?: number; returnPath?: string;
 }) {
   const res = await api.post(`/api/website-billing/create-order`, payload);
   return res.data;
@@ -5597,7 +5621,7 @@ export async function checkPublicClubWebsiteSubdomain(token: string, input: stri
   const { data } = await publicApi.get(`/api/public/club-website/${token}/check-subdomain`, { params: { input } });
   return data;
 }
-export async function createPublicClubWebsiteOrder(token: string, payload: { subdomainInput?: string }) {
+export async function createPublicClubWebsiteOrder(token: string, payload: { subdomainInput?: string; returnPath?: string }) {
   const { data } = await publicApi.post(`/api/public/club-website/${token}/create-order`, payload);
   return data;
 }
@@ -5644,7 +5668,7 @@ export async function resolvePublicWalletWebsiteToken(token: string, entityId: n
   const { data } = await publicApi.post(`/api/public/wallet/${token}/website-token`, { entityId });
   return data;
 }
-export async function createPublicWalletOrder(token: string, payload: { entityId: number; amount: number }) {
+export async function createPublicWalletOrder(token: string, payload: { entityId: number; amount: number; returnPath?: string }) {
   const { data } = await publicApi.post(`/api/public/wallet/${token}/create-order`, payload);
   return data;
 }

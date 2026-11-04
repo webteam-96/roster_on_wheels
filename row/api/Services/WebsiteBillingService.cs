@@ -4,6 +4,7 @@ using System.Text.Json;
 using Dapper;
 using MySqlConnector;
 using RotaryApi.DTOs;
+using RotaryApi.Services.Payments;
 
 namespace RotaryApi.Services;
 
@@ -22,9 +23,12 @@ public class WebsiteBillingService : IWebsiteBillingService
     private readonly IConfiguration _config;
     private readonly ILogger<WebsiteBillingService> _logger;
 
+    private readonly PaymentCheckoutService _checkout;
+
     public WebsiteBillingService(IConfiguration config, IHttpClientFactory httpFactory,
-        IClubWebsiteActivationService activation, IEmailService email, ILogger<WebsiteBillingService> logger)
+        IClubWebsiteActivationService activation, IEmailService email, PaymentCheckoutService checkout, ILogger<WebsiteBillingService> logger)
     {
+        _checkout = checkout;
         _config = config;
         _conn = config.GetConnectionString("DefaultConnection")!;
         _httpFactory = httpFactory;
@@ -317,11 +321,12 @@ public class WebsiteBillingService : IWebsiteBillingService
                  BaseAmount, GstAmount, TotalAmount, Currency, GatewayType, fk_route_account_id,
                  PaymentStatus, IsProvisioned, created_by, created_date, isdeleted)
             VALUES (@Club, @District, @Type, @Sub, @Theme, @Rem, @Months,
-                 @Base, @Gst, @Total, 'INR', @Gateway, @RouteAccountId, 'CREATED', 0, @User, NOW(), 0);
+                 @Base, @Gst, @Total, @Currency, @Gateway, @RouteAccountId, 'CREATED', 0, @User, NOW(), 0);
             SELECT LAST_INSERT_ID();",
             new { Club = dto.ClubId, District = fkDistrictId, Type = orderType, Sub = label, Theme = themeId,
                   Rem = reminderDays, Months = months, Base = p.Base, Gst = p.Gst, Total = p.Total,
-                  Gateway = cfg.GatewayType, RouteAccountId = cfg.RouteAccountId, User = userId });
+                  Gateway = cfg.GatewayType, RouteAccountId = cfg.RouteAccountId, User = userId,
+                  Currency = _checkout.Enabled ? Brand.DefaultCurrency : "INR" });
 
         var keyId = _config["Razorpay:KeyId"] ?? "";
         // Accountant-friendly metadata: club name + which account settles this payment. A normal order
@@ -332,6 +337,23 @@ public class WebsiteBillingService : IWebsiteBillingService
         string accountNote = cfg.GatewayType == "route"
             ? (await conn.ExecuteScalarAsync<string?>("SELECT Name FROM razorpay_route_accounts WHERE pk_id = @Id", new { Id = cfg.RouteAccountId }) ?? "route")
             : "2321";
+        if (_checkout.Enabled)
+        {
+            var merchantOrderId = $"CWO{orderId}";
+            var back = _checkout.LocalUrl(dto.ReturnPath);
+            var session = await _checkout.CreateAsync(new CheckoutRequest(PaymentSettlementService.FlowWebsite, orderId, merchantOrderId,
+                p.Total, Brand.DefaultCurrency, $"Club website {orderType}: {clubName}", back, back));
+            await conn.ExecuteAsync(
+                "UPDATE club_website_orders SET RazorpayOrderId = @Rid, PaymentStatus = 'ACTIVE', modified_date = NOW() WHERE pk_id = @Id",
+                new { Rid = merchantOrderId, Id = orderId });
+            return new CreateWebsiteOrderResponseDto
+            {
+                WebsiteOrderId = orderId, RazorpayOrderId = merchantOrderId, AmountPaise = p.TotalPaise,
+                Currency = Brand.DefaultCurrency, OrderType = orderType, Subdomain = label,
+                BaseAmount = p.Base, GstAmount = p.Gst, TotalAmount = p.Total, ClubName = clubName, Checkout = session
+            };
+        }
+
         var razorpayOrderId = await CreateRazorpayOrderAsync(p.TotalPaise, $"CWO{orderId}", orderId, dto.ClubId, orderType,
             cfg.GatewayType == "route" ? cfg.RouteAccountAcc : null, clubName, accountNote);
 
@@ -417,6 +439,9 @@ public class WebsiteBillingService : IWebsiteBillingService
         bool alreadyPaid = (string?)order.PaymentStatus == "PAID";
         if (!alreadyPaid)
         {
+            // A hosted gateway settles on the server; verify only reports the result.
+            if (_checkout.Enabled)
+                return new VerifyWebsiteOrderResponseDto { IsSuccess = false, Message = "Payment not completed." };
             if (!RazorpayGatewayProxy.VerifyPaymentSignature(_config, dto.RazorpayOrderId, dto.RazorpayPaymentId, dto.RazorpaySignature))
             {
                 _logger.LogWarning("Website verify failed: payment signature verification failed for order {WebsiteOrderId} (razorpay order {RazorpayOrderId}, payment {PaymentId}). Order left UNPAID.",
@@ -437,6 +462,14 @@ public class WebsiteBillingService : IWebsiteBillingService
             ProvisionStatus = "Provisioning",
             Message = "Payment received. Your website is being set up in the background."
         };
+    }
+
+    // Gateway confirmed the money (Services/Payments). The provisioning worker picks the order up as usual.
+    public async Task SettleOnlineAsync(long websiteOrderId, string gatewayPaymentId)
+    {
+        await using var conn = NewConn();
+        await conn.OpenAsync();
+        await MarkPaidAsync(conn, websiteOrderId, gatewayPaymentId, "");
     }
 
     // Idempotent payment capture. Provisioning is claimed separately by the worker.

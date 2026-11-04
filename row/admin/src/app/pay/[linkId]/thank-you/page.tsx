@@ -13,7 +13,7 @@ export default function ThankYouPage() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const linkId = Number(params.linkId);
-  const orderId = searchParams.get("orderId") || "";
+  const orderId = searchParams.get("orderId") || searchParams.get("order_id") || "";
   const memberPaymentId = searchParams.get("memberPaymentId") || "0";
 
   const [loading, setLoading] = useState(true);

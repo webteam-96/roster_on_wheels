@@ -30,7 +30,8 @@ import {
 import type { AccountOwnerType, GatewayCode, GatewayCoverage, PaymentAccount } from "@/types/payments";
 
 /** Credential fields per gateway; names are the keys of ConnectAccountRequest.credentials. */
-const CREDENTIAL_FIELDS: Record<"stripe" | "paypal", { name: string; secret: boolean }[]> = {
+const CREDENTIAL_FIELDS: Record<"stripe" | "paypal" | "simulated", { name: string; secret: boolean }[]> = {
+  simulated: [],
   stripe: [
     { name: "secretKey", secret: true },
     { name: "webhookSecret", secret: true },
@@ -42,7 +43,7 @@ const CREDENTIAL_FIELDS: Record<"stripe" | "paypal", { name: string; secret: boo
   ],
 };
 
-const CONNECTABLE: GatewayCode[] = ["stripe", "paypal"];
+const CONNECTABLE: GatewayCode[] = ["stripe", "paypal", "simulated"];
 
 function CopyButton({ value }: { value: string }) {
   const t = useTranslations("payments.accounts");
@@ -145,7 +146,7 @@ function AccountCard({ account, onChange }: { account: PaymentAccount; onChange:
         </div>
       </div>
 
-      <div className="mt-4">
+      {account.webhookUrl && <div className="mt-4">
         <Label className="text-xs font-medium uppercase tracking-wide text-slate-500">{t("accounts.webhook")}</Label>
         <div className="mt-1 flex items-center gap-2">
           <code className="min-w-0 flex-1 truncate rounded-md border bg-slate-50 px-3 py-2 text-xs text-slate-700" title={account.webhookUrl}>
@@ -154,7 +155,7 @@ function AccountCard({ account, onChange }: { account: PaymentAccount; onChange:
           <CopyButton value={account.webhookUrl} />
         </div>
         <p className="mt-1 text-xs text-slate-500">{t("accounts.webhookHelp", { gateway: gatewayName })}</p>
-      </div>
+      </div>}
 
       {error && <p className="mt-3 text-sm text-red-600" role="alert">{error}</p>}
     </div>
@@ -196,7 +197,7 @@ function ConnectDialog({
     }
   }, [open, gateways, brand.locale.defaultCurrency]);
 
-  const fields = CREDENTIAL_FIELDS[gateway as "stripe" | "paypal"] ?? [];
+  const fields = CREDENTIAL_FIELDS[gateway as "stripe" | "paypal" | "simulated"] ?? [];
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -305,7 +306,6 @@ function ConnectDialog({
 export default function PaymentAccountsPanel({ ownerType, ownerId }: { ownerType: AccountOwnerType; ownerId: number | null }) {
   const t = useTranslations("payments");
   const tRoot = useTranslations();
-  const brand = useBrand();
   const [accounts, setAccounts] = useState<PaymentAccount[] | null>(null);
   const [coverage, setCoverage] = useState<GatewayCoverage | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -330,14 +330,8 @@ export default function PaymentAccountsPanel({ ownerType, ownerId }: { ownerType
     load();
   }, [load]);
 
-  // Offer a gateway only if the instance uses it, it can receive money in the owner's country, and we can connect it here.
-  const gateways = useMemo(
-    () =>
-      CONNECTABLE.filter(
-        (g) => brand.paymentGateways.includes(g) && (!coverage || coverage.gateways.includes(g)),
-      ),
-    [brand.paymentGateways, coverage],
-  );
+  // The API lists only the gateway switched on for this instance (Payments:Provider).
+  const gateways = useMemo(() => CONNECTABLE.filter((g) => coverage?.gateways.includes(g)), [coverage]);
   const gatewayList = gateways.map((g) => t(`gateways.${g}`)).join(", ");
 
   const replace = (updated: PaymentAccount) => {
@@ -371,7 +365,7 @@ export default function PaymentAccountsPanel({ ownerType, ownerId }: { ownerType
           <Info className="mt-0.5 h-4 w-4 shrink-0" />
           <span>
             {gateways.length === 0
-              ? t("accounts.noCoverage", { country: coverage.countryName ?? coverage.countryIso ?? "–" })
+              ? t("accounts.notAvailable")
               : coverage.countryName
                 ? t("accounts.coverage", { country: coverage.countryName, gateways: gatewayList })
                 : t("accounts.coverageUnknown", { gateways: gatewayList })}

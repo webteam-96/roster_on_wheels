@@ -4,6 +4,7 @@ using System.Text.Json;
 using Dapper;
 using MySqlConnector;
 using RotaryApi.DTOs;
+using RotaryApi.Services.Payments;
 
 namespace RotaryApi.Services;
 
@@ -22,6 +23,7 @@ public class WalletService : IWalletService
     private readonly string _conn;
     private readonly IHttpClientFactory _httpFactory;
     private readonly ICreditManagementService _credit;
+    private readonly PaymentCheckoutService _checkout;
     private readonly IWebsiteBillingService _websiteBilling;
     private readonly IClubDuesService _clubDues;
     private readonly IConfiguration _config;
@@ -29,8 +31,9 @@ public class WalletService : IWalletService
 
     public WalletService(IConfiguration config, IHttpClientFactory httpFactory,
         ICreditManagementService credit, IWebsiteBillingService websiteBilling,
-        IClubDuesService clubDues, ILogger<WalletService> logger)
+        IClubDuesService clubDues, PaymentCheckoutService checkout, ILogger<WalletService> logger)
     {
+        _checkout = checkout;
         _config = config;
         _conn = config.GetConnectionString("DefaultConnection")!;
         _httpFactory = httpFactory;
@@ -113,16 +116,34 @@ public class WalletService : IWalletService
             INSERT INTO wallet_topup_orders
                 (fk_district_id, fk_club_id, ScopeType, CreditType, BaseAmount, GstAmount, TotalAmount,
                  CreditCount, RatePaise, Currency, PaymentStatus, IsCredited, created_by, created_date, isdeleted)
-            VALUES (@District, @Club, @Scope, @Type, @Base, @Gst, @Total, @Credits, @Rate, 'INR', 'CREATED', 0, @User, NOW(), 0);
+            VALUES (@District, @Club, @Scope, @Type, @Base, @Gst, @Total, @Credits, @Rate, @Currency, 'CREATED', 0, @User, NOW(), 0);
             SELECT LAST_INSERT_ID();",
             new { District = fkDistrictId, Club = fkClubId, Scope = scope, Type = dto.CreditType,
-                  Base = c.BaseAmount, Gst = c.Gst, Total = c.Total, Credits = c.Credits, Rate = c.RatePaise, User = userId });
+                  Base = c.BaseAmount, Gst = c.Gst, Total = c.Total, Credits = c.Credits, Rate = c.RatePaise, User = userId,
+                  Currency = _checkout.Enabled ? Brand.DefaultCurrency : "INR" });
 
         var keyId = _config["Razorpay:KeyId"] ?? "";
         // Entity name (for the Razorpay description/notes so the accountant can sort by club/district).
         string entityName = scope == "club"
             ? (await conn.ExecuteScalarAsync<string?>("SELECT ClubName FROM club_master WHERE pk_club_id = @Id", new { Id = fkClubId }) ?? $"Club {fkClubId}")
             : ("District " + (await conn.ExecuteScalarAsync<string?>("SELECT DistrictNumber FROM district_master WHERE pk_district_id = @Id", new { Id = fkDistrictId }) ?? fkDistrictId.ToString()));
+        if (_checkout.Enabled)
+        {
+            var merchantOrderId = $"WTP{topupOrderId}";
+            var back = _checkout.LocalUrl(dto.ReturnPath);
+            var session = await _checkout.CreateAsync(new CheckoutRequest(PaymentSettlementService.FlowWallet, topupOrderId, merchantOrderId,
+                c.Total, Brand.DefaultCurrency, $"{c.Credits} {dto.CreditType} credits: {entityName}", back, back));
+            await conn.ExecuteAsync(
+                "UPDATE wallet_topup_orders SET RazorpayOrderId = @Rid, PaymentStatus = 'ACTIVE', modified_date = NOW() WHERE pk_id = @Id",
+                new { Rid = merchantOrderId, Id = topupOrderId });
+            return new CreateTopupOrderResponseDto
+            {
+                TopupOrderId = topupOrderId, RazorpayOrderId = merchantOrderId, AmountPaise = c.TotalPaise,
+                Currency = Brand.DefaultCurrency, CreditCount = c.Credits, BaseAmount = c.BaseAmount,
+                GstAmount = c.Gst, TotalAmount = c.Total, Checkout = session
+            };
+        }
+
         var razorpayOrderId = await CreateRazorpayOrderAsync(c.TotalPaise, $"WTP{topupOrderId}", topupOrderId, scope, dto.CreditType, entityName);
 
         await conn.ExecuteAsync(
@@ -196,6 +217,9 @@ public class WalletService : IWalletService
 
         if (!alreadyCredited)
         {
+            // A hosted gateway settles on the server; verify only reports the result.
+            if (_checkout.Enabled)
+                return new VerifyTopupResponseDto { IsSuccess = false, Message = "Payment not completed." };
             if (!RazorpayGatewayProxy.VerifyPaymentSignature(_config, dto.RazorpayOrderId, dto.RazorpayPaymentId, dto.RazorpaySignature))
                 return new VerifyTopupResponseDto { IsSuccess = false, Message = "Payment signature verification failed." };
             await CreditOnceAsync(conn, dto.TopupOrderId, dto.RazorpayPaymentId, dto.RazorpaySignature, "verify", userId);
@@ -209,6 +233,14 @@ public class WalletService : IWalletService
             IsSuccess = true, PaymentStatus = "PAID", CreditCount = creditCount,
             NewBalance = balance, Message = alreadyCredited ? "Already credited." : null
         };
+    }
+
+    // Gateway confirmed the money (Services/Payments). CreditOnceAsync's atomic claim makes a repeat a no-op.
+    public async Task SettleOnlineAsync(long topupOrderId, string gatewayPaymentId)
+    {
+        await using var conn = NewConn();
+        await conn.OpenAsync();
+        await CreditOnceAsync(conn, topupOrderId, gatewayPaymentId, "", "checkout", 0);
     }
 
     // ── webhook ──────────────────────────────────────────────────────────────

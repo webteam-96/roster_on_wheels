@@ -39,7 +39,7 @@ public class PublicClubWebsiteController : ControllerBase
         return true;
     }
 
-    public class PublicCreateOrderRequest { public string? SubdomainInput { get; set; } }
+    public class PublicCreateOrderRequest { public string? SubdomainInput { get; set; } public string? ReturnPath { get; set; } }
     public class PublicVerifyRequest
     {
         public long WebsiteOrderId { get; set; }
@@ -110,7 +110,8 @@ public class PublicClubWebsiteController : ControllerBase
                 ClubId = clubId,
                 SubdomainInput = req?.SubdomainInput,
                 ReminderDays = 0,   // server default
-                ThemeId = null      // server picks the default theme
+                ThemeId = null,     // server picks the default theme
+                ReturnPath = req?.ReturnPath
             };
             // created_by = 0 (public/no-login): activation emails still go to President/Secretary.
             var res = await _billing.CreateOrderAsync(dto, 0, yearId);

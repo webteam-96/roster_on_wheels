@@ -300,6 +300,7 @@ Mapped {api/public/club/{clubId:int}/v2/gallery, Get}
 Mapped {api/public/club/{clubId:int}/v2/projects, Get}
 Mapped {api/clubs/{clubId:int}/website/active-theme, Get}
 Mapped {api/clubs/{clubId:int}/website/active-theme, Put}
+Mapped {api/public/club-website/visits, Get}
 Mapped {api/clubs/{clubId}/website-status, Get}
 Mapped {api/admin/club-websites, Get}
 Mapped {api/admin/club-websites/{id}/logs, Get}
@@ -1069,6 +1070,11 @@ Mapped {api/clubs/{clubId}/past-presidents, Post}
 Mapped {api/clubs/{clubId}/past-presidents/{id}, Put}
 Mapped {api/clubs/{clubId}/past-presidents/{id}, Delete}
 Mapped {api/clubs/{clubId}/past-presidents/search-members, Get}
+Mapped {api/payments/accounts, Get}
+Mapped {api/payments/coverage, Get}
+Mapped {api/payments/accounts, Post}
+Mapped {api/payments/accounts/{id:int}/verify, Post}
+Mapped {api/payments/accounts/{id:int}/active, Put}
 Mapped {api/planning/state, Get}
 Mapped {api/planning/me, Get}
 Mapped {api/planning/districts/{districtId:int}, Get}
@@ -1145,6 +1151,8 @@ Mapped {api/public/membership-dues/{id}/report, Get}
 Mapped {api/public/membership-dues/{id}/report/export, Get}
 Mapped {api/public/ocv-live-documents, Get}
 Mapped {api/public/ocv-live-documents/word, Get}
+Mapped {api/public/payments/checkout/{token}, Get}
+Mapped {api/public/payments/checkout/{token}/simulate, Post}
 Mapped {api/public/projects/{id}, Get}
 Mapped {api/public/projects/{id:int}/share, Get}
 Mapped {api/public/projects/{id:int}/share-image.png, Get}

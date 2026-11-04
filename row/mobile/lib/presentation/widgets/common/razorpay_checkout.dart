@@ -1,5 +1,8 @@
 import 'dart:async';
 import 'package:razorpay_flutter/razorpay_flutter.dart';
+import 'package:url_launcher/url_launcher.dart';
+
+import '../../../core/network/api_client.dart';
 
 /// Outcome of a Razorpay checkout run.
 ///
@@ -39,6 +42,50 @@ class RazorpayCheckoutResult {
 
   const RazorpayCheckoutResult.failed(String message)
       : this._(success: false, error: message);
+}
+
+/// Runs a hosted checkout (simulated today, Stripe later): opens the gateway's page in the browser and waits for the
+/// server's answer, which is the only thing trusted. Same results as [openRazorpayCheckout]; the server has already
+/// settled a paid order, so the id and signature are empty and `verify` only reports it.
+Future<RazorpayCheckoutResult?> openHostedCheckout({
+  required String redirectUrl,
+  required String token,
+  required String orderId,
+}) async {
+  final opened = await launchUrl(
+    Uri.parse(redirectUrl),
+    mode: LaunchMode.externalApplication,
+  );
+  if (!opened) {
+    return const RazorpayCheckoutResult.failed('Could not open the payment page.');
+  }
+  final api = ApiClient();
+  final deadline = DateTime.now().add(const Duration(minutes: 10));
+  while (DateTime.now().isBefore(deadline)) {
+    await Future<void>.delayed(const Duration(seconds: 3));
+    try {
+      final res = await api.get<Map<String, dynamic>>(
+        '/api/public/payments/checkout/$token',
+        fromJson: (j) => (j as Map).cast<String, dynamic>(),
+        requiresAuth: false,
+      );
+      switch (res.data?['status']) {
+        case 'paid':
+          return RazorpayCheckoutResult.success(
+            paymentId: '',
+            orderId: orderId,
+            signature: '',
+          );
+        case 'failed':
+          return const RazorpayCheckoutResult.failed('Payment failed.');
+        case 'cancelled':
+          return null;
+      }
+    } catch (_) {
+      // A dropped connection while the payer is in the browser: keep waiting.
+    }
+  }
+  return const RazorpayCheckoutResult.failed('Payment not confirmed. Please check again shortly.');
 }
 
 /// Opens the native Razorpay checkout and resolves to:

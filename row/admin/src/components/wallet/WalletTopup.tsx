@@ -4,6 +4,8 @@ import { useCallback, useEffect, useState } from "react";
 import { getClubCreditBalance, getDistrictCreditBalance, createWalletTopupOrder, verifyWalletTopup } from "@/services/api";
 
 import { appLocale, currencySymbol } from "@/lib/appFormat";
+import { checkoutReturnPath, sessionFrom, startCheckout } from "@/lib/checkout";
+import CheckoutReturnNotice from "@/components/payments/CheckoutReturnNotice";
 // Client-side pricing MIRRORS the server (server is authoritative on the actual credit + charge).
 const PRICING = {
   Email: { rate: 0.3, min: 500, label: "Email" },
@@ -68,8 +70,9 @@ export default function WalletTopup({ scope, clubId, districtId }: { scope: Scop
     setBusy(true);
     try {
       const order = await createWalletTopupOrder({
-        scope, clubId: clubId ?? undefined, districtId: districtId ?? undefined, creditType, amount: amt,
+        scope, clubId: clubId ?? undefined, districtId: districtId ?? undefined, creditType, amount: amt, returnPath: checkoutReturnPath(),
       });
+      if (sessionFrom(order)) { startCheckout(order); return; }
       const ok = await loadRazorpayScript();
       if (!ok) { setError("Could not load the payment gateway. Please try again."); setBusy(false); return; }
 
@@ -115,6 +118,7 @@ export default function WalletTopup({ scope, clubId, districtId }: { scope: Scop
 
   return (
     <div className="max-w-3xl space-y-6">
+      <CheckoutReturnNotice onPaid={loadBalance} />
       <div>
         <h1 className="text-2xl font-bold text-azure">Wallet &amp; Credits</h1>
         <p className="text-sm text-gray-500">Top up your {scope === "club" ? "club" : "district"} email notification credits.</p>
@@ -164,7 +168,7 @@ export default function WalletTopup({ scope, clubId, districtId }: { scope: Scop
           onClick={handlePay}
           className="w-full sm:w-auto px-6 py-2.5 rounded-lg bg-azure text-white font-medium disabled:opacity-50"
         >
-          {busy ? "Processing…" : `Pay ${inr(total)} with Razorpay`}
+          {busy ? "Processing…" : `Pay ${inr(total)}`}
         </button>
         <p className="text-xs text-gray-400">Credits are valid for 1 year from purchase. GST is charged on top of the credit amount.</p>
       </div>

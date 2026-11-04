@@ -123,6 +123,8 @@ class ClubDuesPublic {
 
 /// Razorpay checkout session (POST /{duesId}/pay).
 class ClubDuesPaySession {
+  final String? checkoutUrl;
+  final String? checkoutToken;
   final String keyId;
   final String razorpayOrderId;
   final int amountPaise;
@@ -133,6 +135,8 @@ class ClubDuesPaySession {
   final String? customerPhone;
 
   const ClubDuesPaySession({
+    this.checkoutUrl,
+    this.checkoutToken,
     required this.keyId,
     required this.razorpayOrderId,
     required this.amountPaise,
@@ -145,6 +149,8 @@ class ClubDuesPaySession {
 
   factory ClubDuesPaySession.fromJson(Map<String, dynamic> j) =>
       ClubDuesPaySession(
+        checkoutUrl: ((j['checkout'] ?? j['Checkout']) as Map?)?['redirectUrl'] as String?,
+        checkoutToken: ((j['checkout'] ?? j['Checkout']) as Map?)?['token'] as String?,
         keyId: _asStr(j['keyId'] ?? j['KeyId']) ?? '',
         razorpayOrderId:
             _asStr(j['razorpayOrderId'] ?? j['RazorpayOrderId']) ?? '',

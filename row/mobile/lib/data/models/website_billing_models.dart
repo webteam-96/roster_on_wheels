@@ -107,6 +107,8 @@ class SubdomainCheck {
 /// Server response to `POST /api/website-billing/create-order` — everything the
 /// Razorpay checkout needs (keyId is the public key; no secret on the device).
 class WebsiteOrder {
+  final String? checkoutUrl;
+  final String? checkoutToken;
   final int websiteOrderId;
   final String razorpayOrderId;
   final String keyId;
@@ -119,6 +121,8 @@ class WebsiteOrder {
   final double totalAmount;
 
   const WebsiteOrder({
+    this.checkoutUrl,
+    this.checkoutToken,
     required this.websiteOrderId,
     required this.razorpayOrderId,
     required this.keyId,
@@ -132,6 +136,8 @@ class WebsiteOrder {
   });
 
   factory WebsiteOrder.fromJson(Map<String, dynamic> j) => WebsiteOrder(
+        checkoutUrl: (j['checkout'] as Map?)?['redirectUrl'] as String?,
+        checkoutToken: (j['checkout'] as Map?)?['token'] as String?,
         websiteOrderId: _i(j['websiteOrderId']),
         razorpayOrderId: '${j['razorpayOrderId'] ?? ''}',
         keyId: '${j['keyId'] ?? ''}',

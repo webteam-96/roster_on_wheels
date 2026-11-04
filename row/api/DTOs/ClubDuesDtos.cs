@@ -333,6 +333,8 @@ public class PublicClubDuesPaymentSubmitDto
 // ── Payment session response (Razorpay Checkout) ────────────────
 public class ClubDuesPaymentSessionResponseDto
 {
+    // Set when a hosted gateway is on (Services/Payments): send the payer to Checkout.RedirectUrl.
+    public RotaryApi.Services.Payments.CheckoutSessionDto? Checkout { get; set; }
     public string KeyId { get; set; } = "";           // rzp_live_... (sent to browser)
     public string RazorpayOrderId { get; set; } = ""; // order_...
     public long AmountPaise { get; set; }

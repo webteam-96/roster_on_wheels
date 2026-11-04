@@ -11,6 +11,7 @@ import RotaryLoader from "@/components/RotaryLoader";
 import { appLocale, currencySymbol } from "@/lib/appFormat";
 import { ListPageSkeleton } from "@/components/row/AppKit";
 import { withBase } from "@/lib/basePath";
+import { sessionFrom, startCheckout } from "@/lib/checkout";
 declare global { interface Window { Razorpay?: any } }
 
 function PayInner() {
@@ -50,6 +51,7 @@ function PayInner() {
     setPaying(true); setErr(null);
     try {
       const res = await payPublicClubDues(duesId, token, { fkClubId: clubId });
+      if (sessionFrom(res)) { startCheckout(res); return; }
       if (!window.Razorpay) {
         await new Promise<void>((resolve, reject) => {
           const s = document.createElement("script");

@@ -239,6 +239,7 @@ public class PublicWalletController : ControllerBase
             DistrictId = t.Scope == "district" ? entityId : 0,
             CreditType = creditType,
             Amount = req.Amount,
+            ReturnPath = req.ReturnPath,
         };
         try
         {

@@ -51,7 +51,7 @@ export function PayTrustRows({ activationNote }: { activationNote: string }) {
         <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600" />
         <div>
           <div className="text-[13px] font-semibold text-slate-800">100% secure payments</div>
-          <p className="text-[12px] text-slate-500">Your payment is encrypted and handled by Razorpay.</p>
+          <p className="text-[12px] text-slate-500">Your payment is encrypted and handled by our payment provider.</p>
         </div>
       </div>
       <div className="flex items-start gap-3">

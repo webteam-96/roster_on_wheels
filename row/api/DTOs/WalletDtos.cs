@@ -11,10 +11,13 @@ public class CreateTopupOrderDto
     public int DistrictId { get; set; }            // required when Scope=district
     public string CreditType { get; set; } = "";   // "Email"
     public decimal Amount { get; set; }            // base amount in rupees (min enforced), GST added on top
+    public string? ReturnPath { get; set; }        // local page to come back to after a hosted checkout
 }
 
 public class CreateTopupOrderResponseDto
 {
+    // Set when a hosted gateway is on (Services/Payments): send the payer to Checkout.RedirectUrl.
+    public RotaryApi.Services.Payments.CheckoutSessionDto? Checkout { get; set; }
     public long TopupOrderId { get; set; }
     public string RazorpayOrderId { get; set; } = "";
     public string KeyId { get; set; } = "";        // public Razorpay key (safe for the browser)

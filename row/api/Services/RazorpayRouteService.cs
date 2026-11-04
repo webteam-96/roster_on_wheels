@@ -2,6 +2,7 @@ using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
 using RotaryApi.DTOs;
+using RotaryApi.Services.Payments;
 
 namespace RotaryApi.Services;
 
@@ -15,8 +16,11 @@ public class RazorpayRouteService : IRazorpayRouteService
     private readonly IHttpClientFactory _httpFactory;
     private readonly ILogger<RazorpayRouteService> _logger;
 
-    public RazorpayRouteService(IConfiguration config, IHttpClientFactory httpFactory, ILogger<RazorpayRouteService> logger)
+    private readonly PaymentCheckoutService _checkout;
+
+    public RazorpayRouteService(PaymentCheckoutService checkout, IConfiguration config, IHttpClientFactory httpFactory, ILogger<RazorpayRouteService> logger)
     {
+        _checkout = checkout;
         _config = config;
         _httpFactory = httpFactory;
         _logger = logger;
@@ -83,6 +87,16 @@ public class RazorpayRouteService : IRazorpayRouteService
 
     public async Task<RouteOnboardingResult> CreateLinkedAccountAsync(RazorpayRouteOnboardingDto dto)
     {
+        if (_checkout.IsSimulated)
+        {
+            // No gateway: a local-only account so split setup and dues can be tested.
+            var sim = Guid.NewGuid().ToString("N")[..14];
+            return new RouteOnboardingResult
+            {
+                AccountId = $"acc_sim{sim}", StakeholderId = $"sth_sim{sim}", ProductConfigId = $"acc_prd_sim{sim}",
+                Status = "activated", RawJson = "{}"
+            };
+        }
         var result = new RouteOnboardingResult();
         var creds = Credentials();
         if (creds == null) { result.FatalError = "Razorpay is not configured."; return result; }
@@ -191,6 +205,7 @@ public class RazorpayRouteService : IRazorpayRouteService
 
     public async Task<RouteStatusResult> GetLinkedAccountAsync(string accountId)
     {
+        if (_checkout.IsSimulated) return new RouteStatusResult("activated", "{}");
         var creds = Credentials();
         if (creds == null) return new RouteStatusResult(null, "");
         var basic = Convert.ToBase64String(Encoding.UTF8.GetBytes($"{creds.Value.keyId}:{creds.Value.keySecret}"));
@@ -200,6 +215,7 @@ public class RazorpayRouteService : IRazorpayRouteService
 
     public async Task<RouteStatusResult> GetRouteProductAsync(string accountId, string productId)
     {
+        if (_checkout.IsSimulated) return new RouteStatusResult("activated", "{}");
         var creds = Credentials();
         if (creds == null) return new RouteStatusResult(null, "");
         var basic = Convert.ToBase64String(Encoding.UTF8.GetBytes($"{creds.Value.keyId}:{creds.Value.keySecret}"));

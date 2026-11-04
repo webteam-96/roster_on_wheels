@@ -28,6 +28,8 @@ import {
 
 import { appLocale, currencySymbol } from "@/lib/appFormat";
 import { SkeletonRows } from "@/components/row/AppKit";
+import { checkoutReturnPath, sessionFrom, startCheckout } from "@/lib/checkout";
+import CheckoutReturnNotice from "@/components/payments/CheckoutReturnNotice";
 type Step = "subdomain" | "confirm" | "pay" | "done";
 
 const BENEFITS = [
@@ -115,7 +117,8 @@ export default function PublicClubWebsitePayPage() {
     if (!info) return;
     setError(null); setBusy(true);
     try {
-      const order = await createPublicClubWebsiteOrder(token, { subdomainInput: isRenewal ? undefined : subInput });
+      const order = await createPublicClubWebsiteOrder(token, { subdomainInput: isRenewal ? undefined : subInput, returnPath: checkoutReturnPath() });
+      if (sessionFrom(order)) { startCheckout(order); return; }
       const ok = await loadRazorpayScript();
       if (!ok) { setError("Could not load the payment gateway. Please try again."); setBusy(false); return; }
 
@@ -284,6 +287,7 @@ export default function PublicClubWebsitePayPage() {
 
   return (
     <PayPageShell wide>
+      <CheckoutReturnNotice />
       <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_330px] lg:items-start">
         {/* ── Left: the payer's path ─────────────────────────────────────── */}
         <div className="space-y-5">
@@ -445,7 +449,7 @@ export default function PublicClubWebsitePayPage() {
 
               <p className="mt-3 text-center text-[11px] leading-relaxed text-slate-400">
                 <ShieldCheck className="mr-1 inline-block h-3.5 w-3.5 align-[-3px]" />
-                Secure payment via Razorpay. Valid for {info.validityMonths} months from payment.
+                Secure payment. Valid for {info.validityMonths} months from payment.
               </p>
             </Card>
           )}

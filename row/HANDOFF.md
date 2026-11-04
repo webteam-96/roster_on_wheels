@@ -12,6 +12,11 @@ and district themes were deleted (archive: `E:\websites\row\_local\archive\theme
 Guide and IIS config: `row/deploy/iis/README.md`; ready-to-copy builds in `E:\websites\row\_local\deploy\` (not in git);
 production backup before the schema update: `E:\websites\row\_local\backups\`.
 
+**2026-11-04, simulated payments:** all five money flows run through one gateway seam with a simulator, so Stripe plugs in
+without touching the modules. Read `ROW-CHANGES.md` (2026-11-04). Local test: API with `Payments__Provider=simulated`, then
+`python -I kb/tools/payments_simulated_e2e.py <api> 3317 <db>`. Team: district themes are with the owner and a designer;
+Events and QR with another developer. Work on the production DB is allowed; do not disturb anything else.
+
 ## Ground rules (from the user)
 
 - `row/` is the project. `reference/` (RIZones) is copy-source only: never run it or connect to its servers.
@@ -153,7 +158,7 @@ git worktree + DB copy per lane; `integrate.sh <id>` then `resolve.py <id>` merg
   `contacts_prospects_growth` (`ROW_E2E_EMAIL_SAFE=1`), `target_dashboard`, `meetings_links_compliance`,
   `communication_upgrades` (see its header: fake Brevo + DNS ports), `websites_multilingual`, `chat`,
   `calendar_scope`, `mass_email_scope`, `read_review_a_l`, `read_review_m_z`, `time_zones`, `planning_mode`,
-  `escalation_celebration`, `rebranding`, `security_guards`. All 30 scripts take the same three arguments.
+  `escalation_celebration`, `rebranding`, `security_guards`, `payments_simulated`. All scripts take the same three arguments.
 - Admin: `npx tsc --noEmit -p tsconfig.json`, `npx vitest run`, `node scripts/check-design.mjs`.
 - App: `flutter analyze` (errors print as `  error -`), `flutter test`.
 - Then `bash kb/rebuild.sh`.

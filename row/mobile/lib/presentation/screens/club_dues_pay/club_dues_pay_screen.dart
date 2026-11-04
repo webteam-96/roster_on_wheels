@@ -82,7 +82,13 @@ class _ClubDuesPayScreenState extends State<ClubDuesPayScreen> {
     try {
       final session = await _api.createPayOrder(widget.duesId, widget.clubId);
       if (!mounted) return;
-      final result = await openRazorpayCheckout(
+      final result = session.checkoutUrl != null
+          ? await openHostedCheckout(
+              redirectUrl: session.checkoutUrl!,
+              token: session.checkoutToken ?? '',
+              orderId: session.razorpayOrderId,
+            )
+          : await openRazorpayCheckout(
         keyId: session.keyId,
         orderId: session.razorpayOrderId,
         amountPaise: session.amountPaise,

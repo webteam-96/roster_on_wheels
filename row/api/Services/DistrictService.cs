@@ -158,7 +158,7 @@ public class DistrictService : IDistrictService
 
         // No duplicate validation — same DistrictNumber can exist across (or even within) zones/countries.
         // Inline SQL (replaces sp_district_create) — supports new Country column.
-        var country = string.IsNullOrWhiteSpace(dto.Country) ? "India" : dto.Country.Trim();
+        var country = string.IsNullOrWhiteSpace(dto.Country) ? null : dto.Country.Trim();
         var defaultCurrency = CurrencyHelper.Normalize(dto.DefaultCurrency);
 
         var insertSql = @"
@@ -197,7 +197,7 @@ public class DistrictService : IDistrictService
 
         // No duplicate validation — same DistrictNumber can exist across (or even within) zones/countries.
         // Inline SQL (replaces sp_district_update) — supports new Country column.
-        var country = string.IsNullOrWhiteSpace(dto.Country) ? "India" : dto.Country.Trim();
+        var country = string.IsNullOrWhiteSpace(dto.Country) ? null : dto.Country.Trim();
         var defaultCurrency = CurrencyHelper.Normalize(dto.DefaultCurrency);
 
         var updateSql = @"

@@ -23,7 +23,8 @@
     "reverify": "⟦Vérífý ágáín~~~~~⟧",
     "deactivate": "⟦Déáctíváté~~~~⟧",
     "activate": "⟦Áctíváté~~~⟧",
-    "updated": "⟦Áccöünt üpdátéd.~~~~~~⟧"
+    "updated": "⟦Áccöünt üpdátéd.~~~~~~⟧",
+    "notAvailable": "⟦Önlíné páýménts áré nöt swítchéd ön ýét. Ýöü cán stíll récörd páýménts récéívéd öfflíné.~~~~~~~~~~~~~~~~~~~~⟧"
   },
   "connect": {
     "title": "⟦Cönnéct á páýmént áccöünt~~~~~~~~~~⟧",
@@ -42,7 +43,8 @@
     "stripe": "⟦Strípé~~⟧",
     "paypal": "⟦PáýPál~~⟧",
     "cashfree": "⟦Cáshfréé~~~⟧",
-    "razorpay": "⟦Rázörpáý~~~⟧"
+    "razorpay": "⟦Rázörpáý~~~⟧",
+    "simulated": "⟦Símüláted (nö réál möney)~~~~~~~⟧"
   },
   "fields": {
     "stripe": {

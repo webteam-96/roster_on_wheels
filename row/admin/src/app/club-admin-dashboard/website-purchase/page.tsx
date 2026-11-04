@@ -20,6 +20,8 @@ import {
 } from "@/services/api";
 
 import { appLocale, currencySymbol } from "@/lib/appFormat";
+import { checkoutReturnPath, sessionFrom, startCheckout } from "@/lib/checkout";
+import CheckoutReturnNotice from "@/components/payments/CheckoutReturnNotice";
 type Step = "subdomain" | "confirm" | "reminder" | "pay" | "done";
 
 function loadRazorpayScript(): Promise<boolean> {
@@ -115,7 +117,9 @@ export default function WebsitePurchasePage() {
         clubId: selectedClubId,
         subdomainInput: isRenewal ? undefined : subInput,
         reminderDays: rem,
+        returnPath: checkoutReturnPath(),
       });
+      if (sessionFrom(order)) { startCheckout(order); return; }
       const ok = await loadRazorpayScript();
       if (!ok) { setError("Could not load the payment gateway. Please try again."); setBusy(false); return; }
 
@@ -173,6 +177,7 @@ export default function WebsitePurchasePage() {
 
   return (
     <div className="max-w-2xl mx-auto p-6 space-y-6">
+      <CheckoutReturnNotice onPaid={loadQuote} />
       <div>
         <h1 className="text-2xl font-bold text-azure">{isRenewal ? "Renew Club Website" : "Buy Club Website"}</h1>
         <p className="text-sm text-slate-500">
@@ -298,7 +303,7 @@ export default function WebsitePurchasePage() {
               className="px-5 py-2.5 rounded-lg border border-slate-300 text-slate-700 font-medium">Back</button>
             <button type="button" disabled={busy} onClick={handlePay}
               className="px-6 py-2.5 rounded-full bg-azure text-white font-medium disabled:opacity-50">
-              {busy ? "Processing…" : `Pay ${inr(quote.totalAmount)} with Razorpay`}
+              {busy ? "Processing…" : `Pay ${inr(quote.totalAmount)}`}
             </button>
           </div>
           <p className="text-xs text-slate-400">Valid for {quote.validityMonths} months from payment. GST is charged on top.</p>

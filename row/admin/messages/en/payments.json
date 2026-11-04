@@ -23,7 +23,8 @@
     "reverify": "Verify again",
     "deactivate": "Deactivate",
     "activate": "Activate",
-    "updated": "Account updated."
+    "updated": "Account updated.",
+    "notAvailable": "Online payments are not switched on yet. You can still record payments received offline."
   },
   "connect": {
     "title": "Connect a payment account",
@@ -42,7 +43,8 @@
     "stripe": "Stripe",
     "paypal": "PayPal",
     "cashfree": "Cashfree",
-    "razorpay": "Razorpay"
+    "razorpay": "Razorpay",
+    "simulated": "Simulated (no real money)"
   },
   "fields": {
     "stripe": {

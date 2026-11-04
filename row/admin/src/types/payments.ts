@@ -2,7 +2,7 @@
 // A district or club connects its own gateway account; the platform never holds
 // the money and takes no split.
 
-export type GatewayCode = "stripe" | "paypal" | "cashfree" | "razorpay";
+export type GatewayCode = "stripe" | "paypal" | "cashfree" | "razorpay" | "simulated";
 export type AccountOwnerType = "district" | "club";
 
 export interface PaymentAccount {

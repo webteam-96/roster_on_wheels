@@ -61,6 +61,8 @@ class WalletQuote {
 /// Server response to `POST /api/wallet/create-order` — everything the Razorpay
 /// checkout needs (keyId is the public key; no secret on the device).
 class WalletTopupOrder {
+  final String? checkoutUrl;
+  final String? checkoutToken;
   final int topupOrderId;
   final String razorpayOrderId;
   final String keyId;
@@ -72,6 +74,8 @@ class WalletTopupOrder {
   final double totalAmount;
 
   const WalletTopupOrder({
+    this.checkoutUrl,
+    this.checkoutToken,
     required this.topupOrderId,
     required this.razorpayOrderId,
     required this.keyId,
@@ -84,6 +88,8 @@ class WalletTopupOrder {
   });
 
   factory WalletTopupOrder.fromJson(Map<String, dynamic> j) => WalletTopupOrder(
+        checkoutUrl: (j['checkout'] as Map?)?['redirectUrl'] as String?,
+        checkoutToken: (j['checkout'] as Map?)?['token'] as String?,
         topupOrderId: _i(j['topupOrderId']),
         razorpayOrderId: '${j['razorpayOrderId'] ?? ''}',
         keyId: '${j['keyId'] ?? ''}',

@@ -186,7 +186,13 @@ class _WalletTopupScreenState extends State<WalletTopupScreen> {
       );
       if (!mounted) return;
 
-      final result = await openRazorpayCheckout(
+      final result = order.checkoutUrl != null
+          ? await openHostedCheckout(
+              redirectUrl: order.checkoutUrl!,
+              token: order.checkoutToken ?? '',
+              orderId: order.razorpayOrderId,
+            )
+          : await openRazorpayCheckout(
         keyId: order.keyId,
         orderId: order.razorpayOrderId,
         amountPaise: order.amountPaise,

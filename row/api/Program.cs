@@ -330,6 +330,10 @@ builder.Services.AddHostedService<DistrictPerformanceReportBackgroundService>();
 builder.Services.AddScoped<IOcvGovService, OcvGovService>();
 builder.Services.AddScoped<ITrfContributionService, TrfContributionService>();
 builder.Services.AddScoped<ICashfreeKycService, CashfreeKycService>();
+// Hosted checkout seam (Services/Payments). To add Stripe: register its IPaymentGateway here, set Payments__Provider=stripe.
+builder.Services.AddSingleton<RotaryApi.Services.Payments.IPaymentGateway, RotaryApi.Services.Payments.SimulatedPaymentGateway>();
+builder.Services.AddSingleton<RotaryApi.Services.Payments.PaymentCheckoutService>();
+builder.Services.AddScoped<RotaryApi.Services.Payments.PaymentSettlementService>();
 builder.Services.AddScoped<IWeblinkService, WeblinkService>();
 builder.Services.AddScoped<ISubGroupService, SubGroupService>();
 builder.Services.AddScoped<IEventPaymentLinkService, EventPaymentLinkService>();

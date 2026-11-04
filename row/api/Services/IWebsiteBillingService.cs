@@ -8,6 +8,7 @@ namespace RotaryApi.Services;
 // the site (Plesk vhost + wildcard SSL) + emails the buyer — so it survives the user leaving.
 public interface IWebsiteBillingService
 {
+    Task SettleOnlineAsync(long websiteOrderId, string gatewayPaymentId);
     Task<WebsiteQuoteResponseDto> QuoteAsync(int clubId, int? yearId = null);  // per-club/year price+gateway (current year when null)
     SubdomainCheckResponseDto ValidateSubdomainInput(string? input);          // format-only (sync)
     Task<SubdomainCheckResponseDto> CheckSubdomainAsync(string? input, int? clubId = null);  // format + availability (clubId ignores own pending orders)

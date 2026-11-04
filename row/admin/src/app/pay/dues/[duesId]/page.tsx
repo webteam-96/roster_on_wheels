@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/select";
 import { AlertCircle, CheckCircle2, Loader2, Upload, Clock, XCircle } from "@/components/icons";
 import { withBase, BASE_PATH } from "@/lib/basePath";
+import { sessionFrom, startCheckout } from "@/lib/checkout";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
@@ -337,6 +338,7 @@ export default function MembershipDuesPaymentPage() {
       };
       const result = await createMembershipDuesPaymentOrder(duesId, payload);
       setStep("paying");
+      if (sessionFrom(result)) { startCheckout(result); return; }
 
       // Preferred path: redirect to the shared Cashfree proxy on example.org
       // (which Cashfree has whitelisted). The proxy renders the SDK + handles the return.

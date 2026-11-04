@@ -57,6 +57,7 @@ public interface IEventPaymentLinkService
     Task<bool> VerifyOtpAsync(int linkId, VerifyOtpRequestDto dto);
     Task<PaymentSessionResponseDto> CreatePaymentOrderAsync(int linkId, PublicPaymentSubmitDto dto);
     Task<VerifyPaymentResponseDto> VerifyPaymentAsync(int linkId, string orderId, int memberPaymentId);
+    Task SettleOnlineAsync(int memberPaymentId, string gatewayPaymentId);
     Task HandleWebhookAsync(string payload);
     Task<PublicReportDto?> GetPublicReportAsync(int linkId);
     Task<string> CreateGoogleSheetForLinkAsync(int linkId);

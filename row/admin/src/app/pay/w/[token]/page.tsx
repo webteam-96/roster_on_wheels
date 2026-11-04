@@ -30,6 +30,8 @@ import {
 
 import { appLocale, currencySymbol } from "@/lib/appFormat";
 import { SkeletonRows } from "@/components/row/AppKit";
+import { checkoutReturnPath, sessionFrom, startCheckout } from "@/lib/checkout";
+import CheckoutReturnNotice from "@/components/payments/CheckoutReturnNotice";
 const PRESETS = [500, 1000, 2000, 5000];
 const POPULAR = 1000;                         // the tile carrying the "Popular" flag
 
@@ -195,7 +197,8 @@ export default function PublicWalletPayPage() {
     if (!amt || Number.isNaN(amt)) { setError("Enter an amount."); return; }
     setBusy(true); setError(null);
     try {
-      const order = await createPublicWalletOrder(token, { entityId: entity.entityId, amount: amt });
+      const order = await createPublicWalletOrder(token, { entityId: entity.entityId, amount: amt, returnPath: checkoutReturnPath() });
+      if (sessionFrom(order)) { startCheckout(order); return; }
       const ok = await loadRazorpayScript();
       if (!ok) { setError("Could not load the payment gateway. Please try again."); setBusy(false); return; }
 
@@ -535,7 +538,7 @@ export default function PublicWalletPayPage() {
 
                   <p className="mt-3 text-center text-[11px] leading-relaxed text-slate-400">
                     <ShieldCheck className="mr-1 inline-block h-3.5 w-3.5 align-[-3px]" />
-                    Secure payment via Razorpay. Credits are added automatically once payment succeeds.
+                    Secure payment. Credits are added automatically once payment succeeds.
                   </p>
                 </Card>
               )}
@@ -549,5 +552,5 @@ export default function PublicWalletPayPage() {
     );
   }
 
-  return <PayPageShell wide>{body}</PayPageShell>;
+  return <PayPageShell wide><CheckoutReturnNotice />{body}</PayPageShell>;
 }
