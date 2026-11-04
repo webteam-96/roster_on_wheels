@@ -1,0 +1,157 @@
+/* ─────────────────────────────────────────────────────────────────────────────
+   LIQUID MOTION — home only. Shared pieces (bands, figures, cards, rows,
+   marquee) are in theme.css.
+   ───────────────────────────────────────────────────────────────────────────── */
+
+/* ── hero: the club name on one line, then the banner slideshow ─────────────── */
+.liq-hero{--liq-r:clamp(16px,2vw,28px);position:relative;display:flex;flex-direction:column;gap:clamp(14px,2.4vh,24px);
+  padding:calc(var(--liq-hh) + clamp(18px,4vh,44px)) var(--liq-pad) clamp(28px,5vh,56px);color:#fff;
+  background:radial-gradient(60% 55% at 88% 0%,rgba(0,103,200,.34),transparent 70%),radial-gradient(45% 45% at 0% 100%,rgba(247,168,27,.1),transparent 70%),var(--liq-ink)}
+.liq-hero > *{width:100%;max-width:var(--liq-max);margin-inline:auto}
+.liq-hero__title{margin:0;font-weight:400;line-height:.9}
+.liq-hero__pre{display:block;margin-bottom:.12em;color:var(--liq-azure-hi);font:italic 400 clamp(24px,2.8vw,42px)/1.1 var(--liq-serif)}
+/* one line: this is the largest size; useOneLine shrinks it until the name's ink fits the column */
+.liq-hero__name{display:block;white-space:nowrap;font:700 min(11.5vw,180px)/.92 var(--liq-display);letter-spacing:-.045em}
+/* the banner is shown whole (contain) over a blurred copy of itself, so no banner shape is ever cropped;
+   8:3 is the dashboard's 1920x720. Short screens cap the height so name + banner stay on one screen. */
+.liq-stage{position:relative;aspect-ratio:8 / 3;max-height:max(180px,calc(100svh - var(--liq-hh) - 16rem));overflow:hidden;isolation:isolate;touch-action:pan-y pinch-zoom;border-radius:var(--liq-r);background:var(--liq-ink-2)}
+.liq-stage__slide{position:absolute;inset:0;display:block;overflow:hidden;visibility:hidden}
+.liq-stage__slide.liq-is-prev{visibility:visible;z-index:1}
+.liq-stage__slide.liq-is-on{visibility:visible;z-index:2}
+/* a focused banner link: the ring goes round the stage (the slide's own is clipped by it) */
+.liq-stage:has(.liq-stage__slide:focus-visible){outline:3px solid var(--liq-focus);outline-offset:3px}
+.liq-stage__bg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transform:scale(1.2);filter:blur(28px) brightness(.55) saturate(1.2)}
+.liq-stage__img{position:relative;display:block;width:100%;height:100%;object-fit:contain}
+.liq-hero__meta{display:flex;flex-wrap:wrap;align-items:center;gap:8px 18px;color:var(--liq-mute);font:600 12.5px/1 var(--liq-sans);letter-spacing:.16em;text-transform:uppercase}
+.liq-hero__count b{color:#fff}
+.liq-hero__track{position:relative;flex:1 1 40px;height:2px;overflow:hidden;border-radius:2px;background:rgba(255,255,255,.14)}
+/* the dwell timer: Home advances the slide when this animation ends */
+.liq-hero__track i{position:absolute;inset:0;background:linear-gradient(90deg,var(--liq-azure-hi),var(--liq-gold));transform:scaleX(0);transform-origin:0 50%;animation:liqTrack 6s linear forwards}
+@keyframes liqTrack{to{transform:scaleX(1)}}
+/* two rules: :has() is not forgiving, and the pause button must work everywhere. The button itself doesn't
+   pause on focus - its own state rules, so its label always says what the slideshow is doing. */
+.liq-hero.liq-is-paused .liq-hero__track i{animation-play-state:paused}
+.liq-hero:has(:focus-visible:not(.liq-hero__pause)) .liq-hero__track i{animation-play-state:paused}
+@media (hover:hover){ .liq-stage:hover ~ .liq-hero__meta .liq-hero__track i{animation-play-state:paused} }
+.liq-hero__ctrl{display:flex;flex-wrap:wrap;align-items:center;margin-left:auto}
+.liq-dot{display:grid;place-items:center;width:24px;height:24px;padding:0;border:0;background:none;cursor:pointer}
+.liq-dot::before{content:"";width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,.35);transition:background-color .3s,transform .3s}
+.liq-dot:hover::before{background:rgba(255,255,255,.7)}
+.liq-dot[aria-current="true"]::before{background:var(--liq-gold);transform:scale(1.3)}
+.liq-hero__pause{display:grid;place-items:center;width:36px;height:36px;margin-left:10px;padding:0;border:1px solid rgba(255,255,255,.25);border-radius:50%;background:none;color:#fff;cursor:pointer;transition:border-color .3s}
+.liq-hero__pause:hover{border-color:#fff}
+.liq-hero__pause svg{width:12px;height:12px;fill:currentColor}
+@media (max-width:899px){
+  .liq-hero__name{font-size:min(17vw,120px);line-height:.95}
+}
+
+/* ── the figures ("Our projects") ───────────────────────────────────────────────────── */
+.liq-numbers__bg{position:absolute;inset:0;overflow:hidden;pointer-events:none}
+.liq-glow{position:absolute;aspect-ratio:1;border-radius:50%}
+.liq-glow--a{left:-22%;top:-30%;width:80%;background:radial-gradient(closest-side,rgba(120,190,255,.18),rgba(120,190,255,0))}
+.liq-glow--b{right:-28%;bottom:-40%;width:80%;background:radial-gradient(closest-side,rgba(0,24,74,.6),rgba(0,24,74,0))}
+.liq-numbers__h{margin-bottom:clamp(40px,6vw,88px)}
+
+/* ── featured projects: two staggered, interlocking columns ────────────────── */
+.liq-pgrid{--stagger:clamp(90px,14vw,230px);display:grid;grid-template-columns:repeat(2,minmax(0,1fr));align-items:start;column-gap:clamp(32px,6vw,104px);row-gap:clamp(72px,9vw,136px);padding-bottom:var(--stagger)}
+.liq-pgrid > .liq-pcard:nth-child(even){transform:translateY(var(--stagger))}
+.liq-pgrid .liq-pcard--port .liq-media,.liq-pgrid .liq-pcard--port .liq-pcard__meta{width:78%;max-width:none}
+.liq-pgrid .liq-pcard--port:nth-child(4n+2) .liq-media,.liq-pgrid .liq-pcard--port:nth-child(4n+2) .liq-pcard__meta,
+.liq-pgrid .liq-pcard--port:nth-child(4n+3) .liq-media,.liq-pgrid .liq-pcard--port:nth-child(4n+3) .liq-pcard__meta{margin-left:auto}
+.liq-projects__end{display:flex;justify-content:center;margin-top:clamp(48px,6vw,80px)}
+@media (max-width:899px){
+  .liq-pgrid{grid-template-columns:minmax(0,1fr);padding-bottom:0}
+  .liq-pgrid > .liq-pcard:nth-child(even){transform:none}
+  .liq-pgrid .liq-pcard--port .liq-media{width:86%}
+  .liq-pgrid .liq-pcard--port .liq-pcard__meta{width:auto;max-width:560px}
+  .liq-pgrid .liq-pcard--port:nth-child(4n+2) .liq-media,.liq-pgrid .liq-pcard--port:nth-child(4n+2) .liq-pcard__meta,
+  .liq-pgrid .liq-pcard--port:nth-child(4n+3) .liq-media,.liq-pgrid .liq-pcard--port:nth-child(4n+3) .liq-pcard__meta{margin-left:0}
+  .liq-pgrid .liq-pcard--port:nth-child(even) .liq-media{margin-left:auto}
+}
+
+/* "Read more" under a leader's bio and under a project's description */
+.liq-person__more{margin-top:18px}
+.liq-pcard__more{margin-top:20px}
+
+/* ── gold: one row (client, 2026-09-28). The next event is the one loud thing - an ink panel with a
+   gold date tile; the newsletters and the meeting sit flat on the gold, split by a hairline. ── */
+.liq-trio__row{display:grid;gap:clamp(40px,6vw,64px)}
+.liq-trio__col{display:flex;flex-direction:column;align-items:flex-start;min-width:0}
+.liq-trio__col > *{max-width:100%}
+.liq-trio__col:not(.liq-trio__col--event) + .liq-trio__col{padding-top:clamp(40px,6vw,64px);border-top:1px solid rgba(10,10,15,.28)}
+@media (min-width:1024px){
+  .liq-trio__row{display:flex;align-items:stretch;gap:0}
+  .liq-trio__col{flex:1 1 0;padding-inline:clamp(28px,3vw,48px)}
+  .liq-trio__col--event{flex-grow:1.3}
+  .liq-trio__col:not(.liq-trio__col--event):last-child{padding-right:0}
+  .liq-trio__col:not(.liq-trio__col--event) + .liq-trio__col{padding-top:0;border-top:0;border-left:1px solid rgba(10,10,15,.28)}
+}
+.liq-trio__head{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:4px 16px;align-self:stretch;margin-bottom:clamp(20px,2.4vw,28px)}
+.liq-trio__h{margin:0;font:600 clamp(22px,1.9vw,28px)/1.15 var(--liq-display);letter-spacing:-.02em}
+.liq-trio__all{display:inline-flex;align-items:center;min-height:44px;color:inherit;font:600 15px/1.2 var(--liq-sans);text-decoration:underline;text-underline-offset:.25em;text-decoration-thickness:1px}
+.liq-trio__all:hover{text-decoration-thickness:2px}
+/* icon + text lines (time, venue) */
+.liq-icons{display:grid;gap:10px;margin:0;padding:0;list-style:none;font:500 16px/1.45 var(--liq-sans);overflow-wrap:anywhere}
+.liq-icons li{display:grid;grid-template-columns:20px minmax(0,1fr);gap:12px;align-items:start}
+.liq-icons .liq-ico{width:20px;height:20px;margin-top:2px}
+.liq-icons:empty{display:none}
+
+/* the next event: ink panel, gold date tile */
+.liq-trio__col--event{--liq-focus:var(--liq-gold);align-self:stretch;padding:clamp(24px,3vw,40px);border-radius:32px 32px 32px 10px;background:var(--liq-ink);color:#fff}
+.liq-trio__col--event .liq-trio__all{color:var(--liq-gold)}
+.liq-up{display:grid;grid-template-columns:auto minmax(0,1fr);gap:clamp(18px,2vw,28px);align-items:start;width:100%}
+.liq-up__date{display:grid;justify-items:center;gap:8px;min-width:clamp(92px,8vw,116px);margin:0;padding:18px 12px 16px;border-radius:22px 22px 22px 6px;background:var(--liq-gold);color:var(--liq-ink);text-align:center}
+.liq-up__date b{font:800 clamp(46px,4.2vw,66px)/.85 var(--liq-display);letter-spacing:-.05em}
+.liq-up__date span{font:600 13.5px/1.2 var(--liq-sans)}
+.liq-up__body{display:grid;gap:16px;justify-items:start;min-width:0}
+.liq-up__t{margin:0;font:600 clamp(20px,1.7vw,26px)/1.2 var(--liq-display);letter-spacing:-.02em;overflow-wrap:anywhere}
+.liq-up__t a{color:#fff;text-decoration:none}
+.liq-up__t a:hover{text-decoration:underline;text-decoration-color:var(--liq-gold);text-decoration-thickness:2px;text-underline-offset:.14em}
+.liq-trio__col--event .liq-icons{color:rgba(255,255,255,.8)}
+.liq-trio__col--event .liq-icons .liq-ico{color:var(--liq-gold)}
+.liq-up__go{margin-top:4px}
+.liq-trio__empty{display:grid;justify-items:start;gap:20px}
+.liq-trio__empty p{max-width:36ch;margin:0;color:rgba(255,255,255,.8)}
+@media (max-width:479px){ .liq-up{grid-template-columns:minmax(0,1fr)} .liq-up__date{justify-self:start} }
+
+/* newsletters: each issue a row - document mark, title and date, an ink wipe on hover */
+.liq-issues{align-self:stretch;margin:0;padding:0;list-style:none;border-top:1px solid rgba(10,10,15,.28)}
+.liq-issue{position:relative;isolation:isolate;display:grid;grid-template-columns:40px minmax(0,1fr) auto;grid-template-areas:"i t go" "i d go";align-items:center;gap:2px 14px;min-height:72px;padding:12px 10px;border-bottom:1px solid rgba(10,10,15,.28);color:inherit;text-decoration:none}
+.liq-issue::before{content:"";position:absolute;inset:0;z-index:-1;border-radius:14px;background:var(--liq-ink);clip-path:inset(0 100% 0 0 round 14px);transition:clip-path .55s var(--liq-ease)}
+.liq-issue:hover,.liq-issue:focus-visible{color:#fff}
+.liq-issue:hover::before,.liq-issue:focus-visible::before{clip-path:inset(0 0 0 0 round 14px)}
+.liq-issue__ico{grid-area:i;display:grid;place-items:center;width:40px;height:40px;border-radius:12px 12px 12px 4px;background:var(--liq-ink);color:var(--liq-gold);transition:background-color .3s,color .3s}
+.liq-issue__ico .liq-ico{width:20px;height:20px}
+.liq-issue:hover .liq-issue__ico,.liq-issue:focus-visible .liq-issue__ico{background:var(--liq-gold);color:var(--liq-ink)}
+.liq-issue__t{grid-area:t;font:600 16px/1.3 var(--liq-display);letter-spacing:-.01em;overflow-wrap:anywhere}
+.liq-issue__d{grid-area:d;color:#2A2A33;font:500 14px/1.3 var(--liq-sans);transition:color .3s}
+.liq-issue:hover .liq-issue__d,.liq-issue:focus-visible .liq-issue__d{color:rgba(255,255,255,.72)}
+.liq-issue__go{grid-area:go;display:grid}
+.liq-issue__go .liq-ico{width:20px;height:20px}
+
+/* where we meet: the day in the serif, then the time, the venue and directions */
+.liq-meet__day{margin:0 0 20px;font:italic 400 clamp(52px,5vw,80px)/.95 var(--liq-serif);letter-spacing:-.01em;overflow-wrap:anywhere}
+.liq-meet .liq-icons{margin-bottom:26px}
+
+/* ── the club's ads: a native modal popup (Esc, focus kept inside, backdrop click closes) ── */
+.liq-adpop{max-width:calc(100% - 24px);max-height:calc(100% - 24px);margin:auto;padding:0;overflow:visible;border:0;background:none;color:#fff}
+.liq-adpop::backdrop{background:rgba(10,10,15,.82);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
+.liq-adpop__in{display:flex;flex-direction:column;align-items:center;gap:12px;padding-top:60px}
+.liq-adpop__x{position:absolute;top:0;right:0;display:grid;place-items:center;width:48px;height:48px;padding:0;border:1px solid var(--liq-ink-line);border-radius:50%;background:var(--liq-ink);color:#fff;cursor:pointer;transition:background-color .3s,color .3s,border-color .3s}
+.liq-adpop__x:hover{border-color:var(--liq-gold);background:var(--liq-gold);color:var(--liq-ink)}
+.liq-adpop__x .liq-ico{width:18px;height:18px}
+.liq-adpop__frame{display:grid;place-items:center;min-width:min(78vw,320px);min-height:180px;max-width:100%;overflow:hidden;border-radius:var(--liq-r);background:#fff}
+.liq-adpop__link{display:block}
+html[data-theme="liquid-motion"] .liq-adpop__link:focus-visible{outline-offset:-4px}
+.liq-adpop__img{display:block;width:auto;height:auto;max-width:min(88vw,740px);max-height:min(70svh,660px,calc(100svh - 140px));object-fit:contain}
+.liq-adpop__ctrl{display:flex;flex-wrap:wrap;align-items:center;justify-content:center}
+.liq-adpop__step{display:grid;place-items:center;width:44px;height:44px;margin:0 8px;padding:0;border:1px solid rgba(255,255,255,.3);border-radius:50%;background:none;color:#fff;cursor:pointer;transition:border-color .3s,color .3s}
+.liq-adpop__step:hover{border-color:var(--liq-gold);color:var(--liq-gold)}
+html[data-theme="liquid-motion"]:has(.liq-adpop[open]){overflow:hidden}
+@media (prefers-reduced-motion:no-preference){
+  .liq-adpop[open] .liq-adpop__frame{animation:liqAdIn .8s var(--liq-ease)}
+  .liq-adpop[open]::backdrop{animation:liqAdFade .4s ease}
+  .liq-adpop__img{animation:liqAdFade .5s ease}
+}
+@keyframes liqAdIn{from{clip-path:circle(0% at 50% 100%)}to{clip-path:circle(150% at 50% 100%)}}
+@keyframes liqAdFade{from{opacity:0}}

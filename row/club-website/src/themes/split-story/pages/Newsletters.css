@@ -1,0 +1,24 @@
+/* Split Story · Newsletters (spl-nl-*). Kit pieces are only adjusted through
+   spl-nl- modifiers. No hidden start states: motion sets them from JS. */
+
+/* ── hero tools: the latest issue + search ──────────────────────────────── */
+.spl-nl-tools{display:grid;gap:28px 56px;align-items:end;min-width:0}
+@media (min-width:900px){ .spl-nl-tools.is-pair{grid-template-columns:minmax(0,1fr) minmax(0,420px)} }
+.spl-nl-latest{display:grid;justify-items:start;gap:8px;min-width:0;max-width:680px}
+.spl-nl-latest-k{margin:0;color:var(--spl-gold);font-size:.9375rem;font-weight:800}
+.spl-nl-latest-t{margin:0 0 8px;font-family:var(--spl-display);font-stretch:78%;font-weight:800;font-size:clamp(24px,2.6vw,36px);line-height:1.05;overflow-wrap:anywhere}
+.spl-nl-find{display:grid;gap:12px;min-width:0}
+
+/* ── month subheads + rows ──────────────────────────────────────────────── */
+.spl-nl-flat .spl-x{max-width:1180px}
+.spl-nl-group + .spl-nl-group{margin-top:clamp(44px,8vh,80px)}
+.spl-nl-head{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:4px 16px;margin:0 0 clamp(14px,2.4vh,22px);min-width:0}
+.spl-nl-month{min-width:0;margin:0;color:var(--spl-royal);font-family:var(--spl-display);font-stretch:68%;font-weight:800;font-size:clamp(34px,4.4vw,64px);line-height:.92;letter-spacing:-.01em;overflow-wrap:anywhere}
+.spl-nl-n{margin:0;color:var(--spl-muted);font-weight:800}
+.spl-nl-rows .spl-row-meta{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px}
+
+/* ── the month chapters ─────────────────────────────────────────────────── */
+.spl-nl-split .spl-nl-ch{padding-block:clamp(28px,5vh,56px)}
+.spl-nl-split .spl-nl-ch:first-child{padding-top:clamp(48px,9vh,96px)}
+.spl-nl-split .spl-nl-ch:last-child{padding-bottom:clamp(64px,12vh,128px)}
+/* a full Rotary year is 12 months (+ Undated): the kit's dense rail (two columns) keeps the panel inside 100svh */

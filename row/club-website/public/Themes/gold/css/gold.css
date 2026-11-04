@@ -1,0 +1,1745 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   GOLD — theme 6.  "Luxury Meets Rotary"
+   Home-page redesign pass 2026-08-12 (master prompt): premium editorial /
+   institutional register, one motion vocabulary, hundreds-of-clubs-proof.
+
+   Loads AFTER classic-blue/css/rotary-design.css (see themeAssets.js), the same
+   way madras-legacy does: the shared inner pages (Projects, Directory, Calendar)
+   are Tailwind-classed markup and keep working inside this shell. Everything
+   this theme owns is namespaced `gld-`, so nothing here can reach those pages.
+
+   THE SIGNATURE — the section-header motif. Gold eyebrow in letterspaced caps,
+   Playfair title clip-revealed from a mask, a short gold rule drawn left-to-
+   right. Identical on every section; the REPETITION is what reads as designed.
+
+   MOTION TOKENS — defined once on the root scope, used everywhere. Nothing
+   bounces or spins; reveal travel ≤24px, scale ≤1.06, stagger 60ms capped at 6.
+
+   SPECIFICITY TRAPS documented in earlier passes and still true:
+   · html[data-theme=gold] .reveal (0,2,1) BEATS the shared sheet's
+     .reveal.is-visible (0,2,0) — every override of .reveal's base state MUST
+     restate its .is-visible state in the same scope or nothing ever appears.
+   · [hidden] loses to display:flex — .gld-hd__contact[hidden] rule below.
+   · `.gld-hd__contact i` beats `.gld-hd__sep` — divider styled via `a i`.
+   · The ad slider's slides ship class="opacity-0" and rotary-anim swaps in
+     .opacity-100 (0,1,0): never hard-code opacity on `.gld-ad__stage > a`.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* Registered so the dignitary ring can DRAW clockwise (transition on the angle).
+   Browsers without @property simply show the ring instantly — graceful. */
+@property --gld-ring {
+  syntax: '<angle>';
+  inherits: false;
+  initial-value: 0deg;
+}
+
+html[data-theme="gold"] {
+  /* ── Brand tokens (master prompt, verbatim) ── */
+  --g-gold-deep: #C9A227;
+  --g-gold:      #D4AF37;
+  --g-gold-lite: #E6C76A;
+  --g-navy:      #09192F;
+  --g-navy-2:    #0B1F3A;
+  --g-bg:        #FAF7F0;
+  --g-card:      #FFFFFF;
+  --g-border:    #EFE6D0;
+  --g-hairline:  rgba(201, 162, 39, .22);   /* gold hairline divider system */
+  --g-ink:       #111111;
+  --g-ink-2:     #3E4550;
+  --g-ink-3:     #77716A;
+
+  /* Anton IS the display face (user's pick 2026-08-14: the family the
+     dignitary section wore, everywhere). One weight (400), uppercase by
+     convention, no italic — accents are colored, not slanted. */
+  --g-display: 'Anton', 'Arial Narrow', sans-serif;
+  --g-body: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  /* RETIRED as a separate face (2026-08-14): the two-register system —
+     Playfair narrative + Anton posters — read as inconsistency, not identity.
+     Kept as an alias so any missed user degrades to the display face. */
+  --g-cond: var(--g-display);
+
+  /* ── Motion tokens — no ad-hoc values anywhere below ── */
+  --g-dur-instant: 120ms;   /* hover colour, icon tint */
+  --g-dur-fast:    220ms;   /* buttons, chips, small state changes */
+  --g-dur-base:    420ms;   /* card lift, image zoom, reveals */
+  --g-dur-slow:    700ms;   /* hero layers, section entry */
+  --g-ease-out:    cubic-bezier(.22, 1, .36, 1);
+  --g-ease-inout:  cubic-bezier(.65, 0, .35, 1);
+  --g-ease-enter:  cubic-bezier(.16, 1, .3, 1);
+  --g-ease: var(--g-ease-out);          /* legacy alias used by the shell */
+
+  /* 8px system for component-level gaps */
+  --g-1: 8px;  --g-2: 16px; --g-3: 24px; --g-4: 32px;
+  --g-5: 40px; --g-6: 48px; --g-8: 64px;
+
+  /* ── Vertical rhythm — ONE scale, applied everywhere (mobile values; the
+        768px media block below lifts them to 96/128/160) ── */
+  --g-sp-1: 56px;
+  --g-sp-2: 72px;
+  --g-sp-3: 96px;
+
+  --g-shadow: 0 1px 2px rgba(9, 25, 47, .04), 0 8px 24px rgba(9, 25, 47, .06);
+  --g-shadow-lift: 0 2px 4px rgba(9, 25, 47, .06), 0 24px 48px rgba(9, 25, 47, .12);
+}
+@media (min-width: 768px) {
+  html[data-theme="gold"] { --g-sp-1: 96px; --g-sp-2: 128px; --g-sp-3: 160px; }
+}
+
+/* REQUIRED for Lenis (and the old lag's root cause): the shared sheet sets
+   `html { scroll-behavior: smooth }`, which made every programmatic scroll —
+   including the smoother's own per-frame writes — start a browser smooth-
+   scroll animation. Easing stacked on easing read as heavy input lag. */
+html[data-theme="gold"] { scroll-behavior: auto; }
+
+html[data-theme="gold"] body {
+  background: var(--g-bg);
+  color: var(--g-ink-2);
+  font-family: var(--g-body);
+  font-size: 16px;
+  line-height: 1.65;
+  -webkit-font-smoothing: antialiased;
+}
+
+html[data-theme="gold"] ::selection { background: var(--g-gold-lite); color: var(--g-navy); }
+
+/* De-layerize the page once the route entrance has played. The shared sheet's
+   .route-enter keeps `will-change: opacity, transform` and a filled identity
+   transform on <main> FOREVER, which promotes the whole ~9000px page into one
+   giant GPU layer — real scroll jank. `backwards` still plays the entrance
+   but lets every retained style fall away when it ends. */
+html[data-theme="gold"] .route-enter { animation-fill-mode: backwards; will-change: auto; }
+
+/* Every interactive thing keeps a visible focus ring (WCAG AA). */
+html[data-theme="gold"] :focus-visible {
+  outline: 2px solid var(--g-gold-deep);
+  outline-offset: 3px;
+  border-radius: 2px;
+}
+
+/* ── Layout ───────────────────────────────────────────────────────────────── */
+.gld-wrap { width: 100%; }
+.gld-x { width: 100%; max-width: 1280px; margin: 0 auto; padding-inline: var(--g-3); }
+@media (min-width: 768px) { .gld-x { padding-inline: var(--g-5); } }
+/* Tighter measure for text-led sections (the join band) — one container width
+   for everything made prose swim in the 1280 frame. */
+.gld-x--narrow { max-width: 1040px; }
+
+/* Sections: the rhythm scale, plus alternating band backgrounds
+   (cream → white → cream → navy) so the eye gets structure instead of void. */
+.gld-sec { padding-block: var(--g-sp-1); }
+.gld-sec--roomy { padding-block: var(--g-sp-2); }
+.gld-sec--white { background: var(--g-card); }
+
+/* ── Reveal vocabulary (gold scope) ───────────────────────────────────────────
+   The shared sheet's .reveal is 28px + scale + a `transition` shorthand; gold's
+   is 16–24px travel, 420ms, entrance ease — done as an ANIMATION, not a
+   transition. The transition approach poisoned every card: the scoped reveal
+   rule (0,2,1) out-specified .gld-dig/.gld-card's own transition shorthands
+   (0,1,0), so hovers ran at the wrong speed with no shadow/border easing, and
+   the stagger's transition-delay stuck to the hover forever — the exact trap
+   the verdigris pass documented. An animation owns nothing after it finishes,
+   so hover transitions stay the cards' own. `backwards` holds the from-state
+   through the stagger delay. */
+/* No `transition` declaration here ON PURPOSE: this scoped rule (0,2,1) beats
+   every card's own transition shorthand (0,1,0), so declaring one — even
+   `none` — killed the 220ms hover lift on .gld-dig/.gld-card. The shared
+   sheet's .reveal transition ties the cards at (0,1,0) and loses to them on
+   source order (gold.css loads last); on non-card reveals it only eases
+   opacity, which the entrance animation overrides while it runs. */
+html[data-theme="gold"] .reveal {
+  opacity: 0;
+  transform: none;                       /* neutralise the shared sheet's 28px+scale */
+}
+html[data-theme="gold"] .reveal.is-visible {
+  opacity: 1;
+  animation: gldReveal var(--g-dur-base) var(--g-ease-enter) backwards;
+}
+@keyframes gldReveal {
+  from { opacity: 0; transform: translateY(var(--gld-rise, 20px)); }
+}
+
+/* Sibling stagger: 60ms steps, capped at 6, remainder batched at .36s —
+   animation-delay, so hover is never delayed. */
+.gld-stagger > .reveal.is-visible:nth-child(2) { animation-delay: .06s; }
+.gld-stagger > .reveal.is-visible:nth-child(3) { animation-delay: .12s; }
+.gld-stagger > .reveal.is-visible:nth-child(4) { animation-delay: .18s; }
+.gld-stagger > .reveal.is-visible:nth-child(5) { animation-delay: .24s; }
+.gld-stagger > .reveal.is-visible:nth-child(6) { animation-delay: .3s; }
+.gld-stagger > .reveal.is-visible:nth-child(n+7) { animation-delay: .36s; }
+
+/* ── Type ─────────────────────────────────────────────────────────────────── */
+.gld-h1, .gld-h2, .gld-h3 {
+  font-family: var(--g-display);
+  color: var(--g-navy);
+  font-weight: 400;
+  letter-spacing: .01em;
+  text-transform: uppercase;
+  line-height: 1.08;
+  margin: 0;
+}
+/* Sized so "Impact Beyond Measure." holds ONE line inside the copy column —
+   Playfair runs wider than the Cormorant it replaced. */
+/* Hero only (nothing else uses .gld-h1). The year's Rotary theme is the one
+   thing on the banner people should read from across the room, and at the old
+   3.5rem cap it sat smaller than the section titles further down the page. */
+.gld-h1 { font-size: clamp(2.6rem, 5.6vw, 4.6rem); line-height: 1.06; }
+.gld-h2 { font-size: clamp(1.9rem, 3.6vw, 2.7rem); }
+.gld-h3 { font-size: clamp(1.25rem, 2vw, 1.6rem); line-height: 1.25; }
+
+/* The caption register (hero eyebrow) — letterspaced caps with a drawn lead. */
+/* EYEBROW register — same spec as .gld-shead__e. */
+.gld-cap {
+  font-family: var(--g-body);
+  font-size: .68rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: .22em;
+  color: var(--g-gold-deep);
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0 0 var(--g-2);
+}
+.gld-cap::before {
+  content: "";
+  width: 26px; height: 1px;
+  background: linear-gradient(90deg, transparent, var(--g-gold));
+}
+
+.gld-lede { font-size: 1.05rem; color: var(--g-ink-2); max-width: 62ch; margin: var(--g-2) 0 0; }
+
+/* ── THE SECTION-HEADER MOTIF — identical on every section ────────────────────
+   gold eyebrow → Playfair title (clip-revealed upward from a mask) → short
+   gold rule drawn left-to-right over 500ms. The container's own .reveal is
+   opacity-only so the pieces below carry all of the movement. */
+.gld-shead {
+  display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between;
+  gap: var(--g-2) var(--g-3);
+  margin-bottom: var(--g-5);
+}
+/* The motif container fades only — its pieces below carry the movement. */
+html[data-theme="gold"] .gld-shead.reveal.is-visible { animation-name: gldFadeOnly; }
+@keyframes gldFadeOnly { from { opacity: 0; } }
+.gld-shead__main { min-width: 0; }
+.gld-shead__e {
+  margin: 0 0 10px;
+  font-size: .68rem; font-weight: 800;
+  /* TRACKING-IN: starts airy, settles to the register's .22em as it fades up */
+  letter-spacing: .34em; text-transform: uppercase;
+  color: var(--g-gold-deep);
+  opacity: 0;
+  transition: opacity var(--g-dur-base) var(--g-ease-enter),
+              letter-spacing 700ms var(--g-ease-out);
+}
+.gld-shead__t { overflow: hidden; font-family: var(--g-display); font-weight: 400; color: var(--g-navy); font-size: clamp(1.9rem, 3.6vw, 2.7rem); line-height: 1.05; letter-spacing: .01em; text-transform: uppercase; margin: 0; }
+/* SPLIT TEXT (ReactBits-style): SHead renders each word as its own mask
+   (.gld-w) with an inner span that rises, rotates and sharpens — staggered by
+   --wi, replaying on every viewport entry via the is-visible toggle. */
+.gld-shead__t .gld-w { display: inline-block; overflow: hidden; vertical-align: bottom; }
+.gld-shead__t .gld-w > span { display: inline-block; transform: translateY(115%); }
+html[data-theme="gold"] .gld-shead.is-visible .gld-shead__t .gld-w > span {
+  animation: gldWordUp 620ms var(--g-ease-enter) both;
+  animation-delay: calc(var(--wi, 0) * 70ms + 60ms);
+}
+@keyframes gldWordUp {
+  from { transform: translateY(115%) rotate(5deg); filter: blur(5px); }
+  to   { transform: none; filter: none; }
+}
+/* the gold tail words */
+.gld-shead__t .gld-w--em > span { color: var(--g-gold-deep); }
+.gld-shead__t em { font-style: normal; color: var(--g-gold-deep); }
+.gld-shead__r {
+  display: block; width: 52px; height: 3px; margin-top: 14px;
+  background: var(--g-gold);
+  transform: scaleX(0); transform-origin: 0 50%;
+  transition: transform 500ms var(--g-ease-enter) .18s;
+}
+.gld-shead.is-visible .gld-shead__e { opacity: 1; letter-spacing: .22em; }
+.gld-shead.is-visible .gld-shead__r { transform: scaleX(1); }
+
+/* ── Buttons ──────────────────────────────────────────────────────────────── */
+.gld-btn {
+  display: inline-flex; align-items: center; gap: 10px;
+  min-height: 48px;
+  padding: 0 var(--g-3);
+  font-family: var(--g-body);
+  font-size: .82rem; font-weight: 800;
+  text-transform: uppercase; letter-spacing: .12em;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  cursor: pointer;
+  text-decoration: none;
+  transition: transform var(--g-dur-fast) var(--g-ease-out), box-shadow var(--g-dur-fast) var(--g-ease-out),
+              background-color var(--g-dur-fast) var(--g-ease-out), color var(--g-dur-fast) var(--g-ease-out),
+              border-color var(--g-dur-fast) var(--g-ease-out), background-position var(--g-dur-fast) var(--g-ease-out);
+}
+.gld-btn svg { width: 16px; height: 16px; transition: transform var(--g-dur-fast) var(--g-ease-out); }
+
+.gld-btn--gold {
+  color: var(--g-navy);
+  background-image: linear-gradient(120deg, var(--g-gold-lite), var(--g-gold) 45%, var(--g-gold-deep));
+  background-size: 180% 100%;
+  background-position: 0% 0;
+  box-shadow: 0 8px 24px rgba(201, 162, 39, .28);
+}
+.gld-btn--gold:hover {
+  background-position: 100% 0;
+  box-shadow: 0 14px 32px rgba(201, 162, 39, .38);
+}
+.gld-btn--ghost { color: var(--g-navy); border-color: var(--g-border); background: var(--g-card); }
+.gld-btn--ghost:hover { border-color: var(--g-gold); color: var(--g-gold-deep); }
+/* On navy the ghost gets a defined GOLD hairline — the old white .35 border
+   was near-invisible against a photograph. */
+.gld-btn--onnavy { color: #fff; border-color: rgba(230, 199, 106, .55); background: rgba(9, 25, 47, .18); }
+.gld-btn--onnavy:hover { border-color: var(--g-gold-lite); color: var(--g-gold-lite); background: rgba(230, 199, 106, .08); }
+.gld-btn--xs { padding: 5px 12px; font-size: 11px; white-space: nowrap; min-height: 32px; flex: none; }
+
+/* ═══ Header + navigation ═════════════════════════════════════════════════════
+   Two rows, per the reference header. Row 1 is the masthead — contact left, the
+   club lockup centred inside its gold arc flourish, year + admin right. Row 2 is
+   the whole menu on one centred line.
+   ─────────────────────────────────────────────────────────────────────────── */
+.gld-hd {
+  position: sticky; top: 0; z-index: 50;
+  background: var(--g-card);
+  border-bottom: 1px solid transparent;
+  transition: border-color var(--g-dur-fast) var(--g-ease), box-shadow var(--g-dur-fast) var(--g-ease);
+}
+/* rotary-anim.js adds .pt-2 past 8px of scroll — reused as the "scrolled" flag
+   so the rule + shadow appear without a second scroll listener. The HEIGHT is
+   deliberately identical in both states: it used to drop 84px → 72px, which
+   read as the masthead jumping every time you left the top of the page. */
+.gld-hd.pt-2 {
+  border-bottom-color: rgba(9, 25, 47, .08);
+  box-shadow: 0 4px 24px rgba(9, 25, 47, .06);
+}
+/* Those are Tailwind utilities from the shared sheet: rotary-anim swaps pt-4 for
+   pt-2 to float classic-blue's navbar off the top edge. Gold's masthead is flush,
+   so the padding they carry has to go — the class stays because the script and
+   the .pt-2 rule above both key off it. */
+.gld-hd.pt-4, .gld-hd.pt-2 { padding-top: 0; }
+
+/* ── Row 1: masthead ──
+   The lockup is centred on the PAGE with position:absolute, not by flex: the
+   contact block and the pill group are different widths — and the contact block
+   collapses to nothing for a club that files no phone or email — so a
+   flex-centred lockup would sit off-centre by half that difference. */
+.gld-hd__main { position: relative; background: var(--g-card); }
+.gld-hd__swoosh {
+  position: absolute; left: 50%; top: 0; transform: translateX(-50%);
+  height: 100%; width: 580px; pointer-events: none;
+}
+.gld-hd__in {
+  position: relative; z-index: 1;
+  display: flex; align-items: center; gap: var(--g-2); height: 104px;
+}
+.gld-brand {
+  position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
+  display: flex; align-items: center; text-decoration: none;
+}
+.gld-brand img { height: 74px; width: auto; max-width: 260px; object-fit: contain; }
+
+/* Contact block: two pill CHIPS, not one grey panel — the panel was the one
+   rectangle in a header whose every other control is a pill. Each chip: icon
+   on a gold-tinted disc, number/address beside it; hover fills the disc solid
+   gold (the same grammar as the PDF chip and the card CTAs). */
+.gld-hd__contact { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.gld-hd__contact[hidden] { display: none; }   /* [hidden] loses to display:flex */
+.gld-hd__contact a {
+  display: inline-flex; align-items: center; gap: 10px;
+  padding: 5px 16px 5px 6px;
+  border: 1px solid var(--g-border); border-radius: 999px;
+  background: var(--g-card);
+  font-size: .82rem; font-weight: 600; color: var(--g-ink); text-decoration: none;
+  white-space: nowrap;
+  transition: border-color var(--g-dur-fast) var(--g-ease),
+              color var(--g-dur-fast) var(--g-ease),
+              box-shadow var(--g-dur-fast) var(--g-ease);
+}
+.gld-hd__contact a:hover {
+  border-color: var(--g-gold); color: var(--g-gold-deep);
+  box-shadow: 0 4px 14px rgba(201, 162, 39, .18);
+}
+/* `a i` and not `i`: the (now retired) divider was an <i> too, and the bare
+   selector was more specific than its class. */
+.gld-hd__contact a i {
+  display: grid; place-items: center; width: 28px; height: 28px; flex: none;
+  border-radius: 999px;
+  background: rgba(212, 175, 55, .16); color: var(--g-gold-deep);
+  transition: background-color var(--g-dur-fast) var(--g-ease),
+              color var(--g-dur-fast) var(--g-ease);
+}
+.gld-hd__contact a i svg { width: 13px; height: 13px; display: block; }
+html[data-theme="gold"] .gld-hd__contact a:hover i {
+  background: var(--g-gold); color: var(--g-navy);
+}
+/* retired with the shared panel — the chips separate themselves */
+.gld-hd__sep { display: none; }
+.gld-hd__pills { display: flex; align-items: center; gap: 10px; margin-left: auto; }
+.gld-hd__admin {
+  display: inline-flex; align-items: center; gap: 8px; height: 40px; padding: 0 20px;
+  border-radius: 999px; background: var(--g-navy); color: #fff; text-decoration: none;
+  font-size: .78rem; font-weight: 800; letter-spacing: .12em; text-transform: uppercase;
+  white-space: nowrap; transition: background-color var(--g-dur-fast) var(--g-ease);
+}
+.gld-hd__admin:hover { background: var(--g-navy-2); }
+.gld-hd__admin svg { width: 16px; height: 16px; flex: none; }
+
+/* ── Row 2: the menu, one centred line ──
+   Wrapping instead of splitting: a club with fourteen menu items just gets a
+   taller row, so nothing has to measure whether the menu clears the wheel. */
+.gld-hd__navrow { background: var(--g-card); border-top: 1px solid rgba(9, 25, 47, .04); }
+.gld-nav { display: none; }
+@media (min-width: 1200px) {
+  .gld-nav {
+    display: flex; flex-wrap: wrap; align-items: center; justify-content: center;
+    gap: 2px 22px; min-height: 50px; padding-block: 4px;
+  }
+}
+.gld-nav > * { flex: none; }
+.gld-nav a {
+  position: relative;
+  display: block; padding: 8px 2px 11px;
+  font-size: .82rem; font-weight: 700;
+  letter-spacing: .02em; text-transform: uppercase;
+  color: var(--g-ink);
+  text-decoration: none;
+  white-space: nowrap;
+  transition: color var(--g-dur-fast) var(--g-ease);
+}
+.gld-nav a:hover { color: var(--g-gold-deep); }
+/* Underline the width of the label, drawn from the centre on hover and held
+   open on the current page — the reference's gold rule under HOME. */
+.gld-nav a::after {
+  content: ""; position: absolute; left: 0; right: 0; bottom: 0;
+  height: 3px; border-radius: 2px; background: var(--g-gold-deep);
+  transform: scaleX(0); transform-origin: 50% 50%;
+  transition: transform var(--g-dur-fast) var(--g-ease);
+}
+.gld-nav a:hover::after { transform: scaleX(1); }
+.gld-nav a[aria-current="page"] { color: var(--g-gold-deep); }
+.gld-nav a[aria-current="page"]::after { transform: scaleX(1); }
+
+/* Desktop sub-menu. Hover only — a pointer affordance; the drawer carries the
+   same children inline for touch, where there is no hover to rely on. */
+.gld-nav__grp { position: relative; }
+.gld-nav__grp > a { display: inline-flex; align-items: center; gap: 6px; }
+.gld-nav__grp > a svg { transition: transform var(--g-dur-fast) var(--g-ease); }
+.gld-nav__grp:hover > a svg { transform: rotate(180deg); }
+.gld-nav__grp > ul {
+  position: absolute; top: 100%; left: 4px; z-index: 60;
+  min-width: 232px; margin: 0; padding: 8px; list-style: none;
+  background: var(--g-card);
+  border: 1px solid var(--g-border);
+  border-radius: 4px;
+  box-shadow: var(--g-shadow-lift);
+  opacity: 0; visibility: hidden; transform: translateY(-6px);
+  transition: opacity var(--g-dur-fast) var(--g-ease), transform var(--g-dur-fast) var(--g-ease), visibility var(--g-dur-fast);
+}
+.gld-nav__grp:hover > ul, .gld-nav__grp:focus-within > ul { opacity: 1; visibility: visible; transform: translateY(0); }
+.gld-nav__grp > ul a { display: block; padding: 9px 12px; border-radius: 4px; letter-spacing: .04em; text-transform: none; font-size: .82rem; font-weight: 600; }
+.gld-nav__grp > ul a::after { display: none; }
+.gld-nav__grp > ul a:hover { background: rgba(212, 175, 55, .12); color: var(--g-navy); }
+
+/* ── Header responsive collapse ──
+   Under 1200 the menu row goes to the drawer, so the masthead is the whole
+   header: lockup on the left (un-centred — there is nothing to centre it
+   against), pills and burger on the right. The flourish is anchored to a
+   centred lockup, so it goes too. */
+@media (max-width: 1199px) {
+  .gld-hd__navrow { display: none; }
+  .gld-hd__swoosh { display: none; }
+  .gld-hd__in { height: 76px; justify-content: space-between; }
+  .gld-brand { position: static; transform: none; }
+  .gld-brand img { height: 52px; }
+  /* Phone and email live in the footer too; on a narrow masthead the lockup
+     needs the room more. */
+  .gld-hd__contact { display: none; }
+  .gld-hd__pills { margin-left: 0; }
+}
+@media (max-width: 620px) {
+  /* Admin login still reaches the visitor from the drawer. */
+  .gld-hd__admin { display: none; }
+  .gld-hd__in { height: 68px; }
+  .gld-brand img { height: 44px; max-width: 175px; }
+}
+
+/* Between 1200 and the reference's own width the contact labels are the first
+   thing to give — the pills and the lockup are fixed. */
+@media (min-width: 1200px) and (max-width: 1339px) {
+  .gld-hd__contact a span { display: none; }
+  .gld-hd__contact { gap: 12px; padding-inline: 14px; }
+}
+
+/* Year pill: gold-outlined, calendar glyph on the left. The glyph is a ::before
+   because the control is a real <select> — civic-bold's picker script and the
+   keyboard both depend on that, so nothing may be nested inside it. */
+.gld-yr { position: relative; display: flex; }
+.gld-yr select {
+  height: 40px; padding: 0 34px 0 38px;
+  font-family: var(--g-body); font-size: .92rem; font-weight: 600;
+  color: var(--g-ink); background: var(--g-card);
+  border: 1px solid var(--g-border); border-radius: 999px;
+  appearance: none; cursor: pointer;
+  transition: border-color var(--g-dur-fast) var(--g-ease), box-shadow var(--g-dur-fast) var(--g-ease);
+}
+.gld-yr select:hover { border-color: var(--g-gold); box-shadow: 0 0 0 3px rgba(201, 162, 39, .1); }
+.gld-yr::before {
+  content: ""; position: absolute; left: 15px; top: 50%; margin-top: -8px;
+  width: 16px; height: 16px; pointer-events: none;
+  background: no-repeat center/contain
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23C9A227' stroke-width='2' stroke-linecap='round'%3E%3Crect x='3' y='4' width='18' height='18' rx='2'/%3E%3Cpath d='M16 2v4M8 2v4M3 10h18'/%3E%3C/svg%3E");
+}
+.gld-yr::after {
+  content: ""; position: absolute; right: 15px; top: 50%; pointer-events: none;
+  width: 7px; height: 7px; margin-top: -6px;
+  border-right: 2px solid var(--g-ink); border-bottom: 2px solid var(--g-ink);
+  transform: rotate(45deg);
+}
+.gld-burger {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 44px; height: 44px; flex: none;
+  border: 1px solid var(--g-border); border-radius: 999px;
+  background: var(--g-card); color: var(--g-navy); cursor: pointer;
+  transition: border-color var(--g-dur-fast) var(--g-ease), color var(--g-dur-fast) var(--g-ease);
+}
+.gld-burger:hover { border-color: var(--g-gold); color: var(--g-gold-deep); }
+@media (min-width: 1200px) { .gld-burger { display: none; } }
+
+/* ≤480 — the row's min-content was 398px, so at 320/360 the BURGER sat past
+   the viewport edge and the nav was unreachable. Everything gives a little.
+   (This block must sit AFTER the .gld-yr/.gld-burger bases: same specificity,
+   so source order is what lets these win.) */
+@media (max-width: 480px) {
+  .gld-hd .gld-x { padding-inline: 16px; }
+  .gld-hd__in { height: 60px; gap: 10px; }
+  .gld-brand img { height: 36px; max-width: 34vw; }
+  .gld-hd__pills { gap: 8px; }
+  .gld-yr select { height: 36px; font-size: .78rem; padding: 0 24px 0 30px; }
+  .gld-yr::before { left: 10px; width: 14px; height: 14px; margin-top: -7px; }
+  .gld-yr::after { right: 10px; }
+  .gld-burger { width: 40px; height: 40px; }
+}
+
+/* Mobile drawer — structure matches the other themes so the shared
+   rotary-anim.js drawer (and its year-change / menu-tap close) drives it. */
+.gld-drawer { background: var(--g-bg); }
+.gld-drawer__hd { display: flex; align-items: center; justify-content: space-between; padding: var(--g-2) var(--g-3); border-bottom: 1px solid var(--g-border); }
+.gld-drawer__hd img { height: 42px; width: auto; }
+.gld-drawer nav { padding: var(--g-2); }
+.gld-drawer nav a, .gld-drawer nav button {
+  display: flex; align-items: center; justify-content: space-between; width: 100%;
+  padding: 14px 16px; border-radius: 8px; border: 0; background: none;
+  font-family: var(--g-body); font-size: .82rem; font-weight: 700;
+  letter-spacing: .08em; text-transform: uppercase;
+  color: var(--g-navy); text-decoration: none; cursor: pointer;
+}
+.gld-drawer nav a:hover, .gld-drawer nav button:hover { background: rgba(212, 175, 55, .1); }
+.gld-drawer nav ul a { padding: 10px 16px; font-size: .72rem; font-weight: 600; letter-spacing: .04em; text-transform: none; color: var(--g-ink-2); }
+.gld-drawer__ft { margin-top: auto; padding: var(--g-3); border-top: 1px solid var(--g-border); display: grid; gap: 12px; }
+
+/* ═══ SECTION 1 · HERO ════════════════════════════════════════════════════════
+   The stage takes its height from --gld-hero-r (the showing banner's natural
+   ratio, published by HomeGold) so a 16:5 upload is shown whole instead of
+   being cropped; the floor keeps room for the copy, the cap stops a
+   near-square upload producing a 1150px hero (contain pillarboxes past it).
+   `aspect-ratio` + `min-height` must NOT be used here: the pair transfers the
+   floor across axes into a minimum WIDTH and blew the stage to 1504px once. */
+.gld-hero { position: relative; overflow: hidden; background: #fff; }
+.gld-hero__stage { position: relative; display: grid; height: clamp(620px, calc(100vw / var(--gld-hero-r, 3.2)), 78vh); }
+/* Floors sized for the copy stack PLUS the reserved stats-card overlap — a
+   shorter floor let the centred column overflow the track and slide the
+   indicators under the lifted card (the padding reserve alone can't hold an
+   overflowing grid item). Past the floor, `contain` letterboxes on white. */
+@media (min-width: 768px) { .gld-hero__stage { height: clamp(470px, calc(100vw / var(--gld-hero-r, 3.2)), 78vh); } }
+/* from 1100, not 1280: the lifted stats band pulls up ~70px in this range,
+   and on the 470px floor it buried the hero CTAs and the dash row. */
+@media (min-width: 1100px) { .gld-hero__stage { height: clamp(560px, calc(100vw / var(--gld-hero-r, 3.2)), 80vh); } }
+
+/* Slides: 600ms crossfade; the OUTGOING slide drifts 1.5% as it leaves. The
+   slider is driven by HomeGold itself (is-active / is-leaving) — not by
+   rotary-anim — because hover must pause both the timer and the indicator
+   fill, which the shared script cannot do. */
+.gld-hero__slide {
+  position: absolute; inset: 0;
+  opacity: 0;
+  transition: opacity 600ms var(--g-ease-inout), transform 600ms var(--g-ease-inout);
+}
+.gld-hero__slide.is-active { opacity: 1; z-index: 1; }
+.gld-hero__slide.is-leaving { opacity: 0; transform: translateX(-1.5%); }
+
+/* FIVE DIFFERENT ENTRANCES, one per slide index (HomeGold stamps .is-a0…4), so
+   consecutive advances never repeat the same move — "every time a new
+   animation". They run on the INCOMING slide only, and are deliberately short
+   (matching the 600ms crossfade) so the picture is settled well before the next
+   6s advance. The entrance sets `transform`, which the base rule also
+   transitions; using an animation rather than a transition means it owns the
+   property only while it runs and hands it straight back afterwards. */
+.gld-hero__slide.is-active.is-a0 { animation: gldSlideA0 900ms var(--g-ease-out) both; }
+.gld-hero__slide.is-active.is-a1 { animation: gldSlideA1 900ms var(--g-ease-out) both; }
+.gld-hero__slide.is-active.is-a2 { animation: gldSlideA2 900ms var(--g-ease-out) both; }
+.gld-hero__slide.is-active.is-a3 { animation: gldSlideA3 900ms var(--g-ease-out) both; }
+.gld-hero__slide.is-active.is-a4 { animation: gldSlideA4 900ms var(--g-ease-out) both; }
+@keyframes gldSlideA0 {   /* push in from the right */
+  from { opacity: 0; transform: translateX(6%); } to { opacity: 1; transform: none; }
+}
+@keyframes gldSlideA1 {   /* rise from below */
+  from { opacity: 0; transform: translateY(5%); } to { opacity: 1; transform: none; }
+}
+@keyframes gldSlideA2 {   /* pull back out of a push-in */
+  from { opacity: 0; transform: scale(1.09); } to { opacity: 1; transform: none; }
+}
+@keyframes gldSlideA3 {   /* push in from the left */
+  from { opacity: 0; transform: translateX(-6%); } to { opacity: 1; transform: none; }
+}
+@keyframes gldSlideA4 {   /* settle down out of a slight zoom */
+  from { opacity: 0; transform: scale(1.06) translateY(-3%); } to { opacity: 1; transform: none; }
+}
+/* COVER at every size: the banner always fills the full stage width, edge to
+   edge — no white pillarbox bars. The stage still sizes itself to the image's
+   own ratio (--gld-hero-r), so at the natural height nothing is cropped; only
+   the floor/cap trims a sliver instead of drawing bars. */
+.gld-hero__slide img { width: 100%; height: 100%; object-fit: cover; object-position: center; display: block; }
+
+/* Ambient Ken Burns: ±2% over 20s; paused when the tab is hidden (HomeGold
+   toggles .is-hidden on visibilitychange). The is-leaving slide KEEPS the same
+   animation declaration — dropping it snapped the still-visible outgoing image
+   from its mid-drift scale back to 1.0 at the start of every crossfade. */
+.gld-hero__slide.is-active img,
+.gld-hero__slide.is-leaving img { animation: gldKen 20s var(--g-ease-inout) infinite alternate; }
+@keyframes gldKen {
+  from { transform: scale(1) translate3d(0, 0, 0); }
+  to   { transform: scale(1.02) translate3d(-.6%, -.4%, 0); }
+}
+.gld-hero__stage.is-hidden .gld-hero__slide img,
+.gld-hero__stage.is-hidden .gld-hero__dot i { animation-play-state: paused; }
+
+/* Layered navy scrim: opaque left → transparent right, PLUS a bottom fade the
+   lifted stats card and the indicators sit against. Below the two-column
+   breakpoint the copy runs full width, so the wedge becomes a flat wash. */
+.gld-hero__scrim {
+  position: absolute; inset: 0; z-index: 2; pointer-events: none;
+  background:
+    linear-gradient(90deg,
+      rgba(9, 25, 47, .86) 0%, rgba(9, 25, 47, .66) 28%, rgba(9, 25, 47, .3) 52%,
+      rgba(9, 25, 47, .06) 70%, rgba(9, 25, 47, 0) 80%),
+    linear-gradient(180deg,
+      rgba(9, 25, 47, 0) 55%, rgba(9, 25, 47, .34) 84%, rgba(9, 25, 47, .52) 100%);
+}
+@media (max-width: 1023px) {
+  .gld-hero__scrim { background: linear-gradient(180deg, rgba(9, 25, 47, .6) 0%, rgba(9, 25, 47, .78) 100%); }
+}
+
+/* First-paint choreography (once per session — HomeGold gates on sessionStorage):
+   navy curtain wipes upward 700ms; the active slide settles 1.06 → 1.00 over
+   1200ms while the scrim fades in. Never re-runs on back-navigation. */
+.gld-hero__curtain {
+  position: absolute; inset: 0; z-index: 6; pointer-events: none;
+  background: linear-gradient(180deg, var(--g-navy), var(--g-navy-2));
+}
+.gld-hero__curtain::after {
+  content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 2px;
+  background: linear-gradient(90deg, transparent, var(--g-gold), transparent);
+}
+.gld-hero__curtain.is-up { animation: gldCurtain var(--g-dur-slow) var(--g-ease-inout) .12s forwards; }
+@keyframes gldCurtain { to { transform: translateY(-101%); } }
+
+.gld-hero__stage.is-enter .gld-hero__slide.is-active { animation: gldSettle 1.2s var(--g-ease-out) both; }
+@keyframes gldSettle { from { transform: scale(1.06); } to { transform: scale(1); } }
+.gld-hero__stage.is-enter .gld-hero__scrim { animation: gldFade var(--g-dur-slow) var(--g-ease-out) both; }
+@keyframes gldFade { from { opacity: 0; } }
+
+/* Copy column: constrained to the calm third of the frame. The bottom padding
+   RESERVES the lifted stats card's overlap depth — the column is centred, so
+   without it a short hero slid the indicators under the card. */
+.gld-hero__in { position: relative; z-index: 3; display: grid; align-items: center; padding-block: var(--g-6); padding-bottom: calc(var(--g-6) + 32px); }
+/* The copy column is a full-stage grid item ON TOP of the banner picture, so it
+   swallowed every click aimed at a banner that carries a link or a document.
+   Only its real CONTROLS take pointer events; the eyebrow, headline and body
+   text let the press through to the picture behind them (which also means the
+   gaps between the buttons and between the indicators fall through). The cost is
+   that the hero copy can't be text-selected — a fair trade for a banner the club
+   deliberately made clickable. Anything interactive added to this column must
+   opt back in here. */
+.gld-hero__in { pointer-events: none; }
+.gld-hero__cta > *, .gld-hero__dots > * { pointer-events: auto; }
+@media (min-width: 1024px) { .gld-hero__in { padding-bottom: calc(var(--g-6) + clamp(48px, 6vw, 88px)); } }
+.gld-hero__copy { color: #fff; max-width: 640px; }
+.gld-hero__copy .gld-cap { color: var(--g-gold-lite); }
+.gld-hero__copy .gld-cap::before { background: linear-gradient(90deg, transparent, var(--g-gold-lite)); }
+.gld-hero h1 { color: #fff; }
+.gld-h1__a, .gld-h1__b { display: block; overflow: hidden; }
+.gld-h1__a > span, .gld-h1__b > span { display: block; }
+.gld-h1__b { color: var(--g-gold); }
+/* SHINY TEXT (ReactBits-style): a sheen travels the gold type. Guarded — on an
+   engine without background-clip:text the gradient would paint as a slab.
+   TRAP: clip:text must sit ON the element that owns the text. On a parent it
+   silently paints NOTHING once a child carries a filter/transform layer (the
+   split-word spans do; even a settled blur(0px) breaks it) — the gold words
+   vanished. So: the marquee em and the hero's .gld-shinetxt clip themselves,
+   and the split words carry the shine as a SECOND animation on the same span. */
+@supports (-webkit-background-clip: text) or (background-clip: text) {
+  .gld-shinetxt,
+  .gld-marq b em {
+    background: linear-gradient(110deg, var(--g-gold) 42%, #FFEDB0 50%, var(--g-gold) 58%);
+    background-size: 240% 100%;
+    -webkit-background-clip: text; background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: gldShineTxt 4.5s linear infinite 1.2s;
+  }
+  .gld-shead__t .gld-w--em > span {
+    background: linear-gradient(110deg, var(--g-gold-deep) 42%, #F5DE9E 50%, var(--g-gold-deep) 58%);
+    background-size: 240% 100%;
+    -webkit-background-clip: text; background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  html[data-theme="gold"] .gld-shead.is-visible .gld-shead__t .gld-w--em > span {
+    animation: gldWordUp 620ms var(--g-ease-enter) both,
+               gldShineTxt 4.5s linear infinite;
+    animation-delay: calc(var(--wi, 0) * 70ms + 60ms),
+                     calc(var(--wi, 0) * 70ms + 900ms);
+  }
+  @keyframes gldShineTxt { from { background-position: 240% 0; } to { background-position: 0% 0; } }
+}
+/* Near-white body copy — it was grey-on-photo and unreadable. */
+.gld-hero__sub { color: rgba(255, 255, 255, .92); font-size: 1.05rem; max-width: 46ch; margin: var(--g-3) 0 0; }
+.gld-hero__cta { display: flex; flex-wrap: wrap; gap: 12px; margin-top: var(--g-5); }
+
+/* Text resolves in sequence — eyebrow → line 1 → line 2 → body → CTAs, each
+   420ms, 80ms apart; headline lines clip-reveal upward from their masks.
+   .is-hold hides the copy until the curtain starts to lift. .is-soft is the
+   same choreography at half duration — used on back-navigation and re-run on
+   every slide change (HomeGold re-keys the column). Base state is fully
+   visible, so no-JS and reduced-motion never lose the copy. */
+.gld-hero__copy.is-hold { opacity: 0; }
+.is-enter.gld-hero__copy .gld-cap        { animation: gldRise var(--g-dur-base) var(--g-ease-enter) .25s both; }
+.is-enter.gld-hero__copy .gld-h1__a > span { animation: gldClipUp var(--g-dur-base) var(--g-ease-enter) .33s both; }
+.is-enter.gld-hero__copy .gld-h1__b > span { animation: gldClipUp var(--g-dur-base) var(--g-ease-enter) .41s both; }
+.is-enter.gld-hero__copy .gld-hero__sub  { animation: gldRise var(--g-dur-base) var(--g-ease-enter) .49s both; }
+.is-enter.gld-hero__copy .gld-hero__cta  { animation: gldRise var(--g-dur-base) var(--g-ease-enter) .57s both; }
+.is-soft.gld-hero__copy .gld-cap         { animation: gldRise 210ms var(--g-ease-enter) .04s both; }
+.is-soft.gld-hero__copy .gld-h1__a > span { animation: gldClipUp 210ms var(--g-ease-enter) .08s both; }
+.is-soft.gld-hero__copy .gld-h1__b > span { animation: gldClipUp 210ms var(--g-ease-enter) .12s both; }
+.is-soft.gld-hero__copy .gld-hero__sub   { animation: gldRise 210ms var(--g-ease-enter) .16s both; }
+.is-soft.gld-hero__copy .gld-hero__cta   { animation: gldRise 210ms var(--g-ease-enter) .2s both; }
+@keyframes gldRise { from { opacity: 0; transform: translateY(14px); } }
+@keyframes gldClipUp { from { transform: translateY(112%); filter: blur(6px); } }
+
+/* Indicators: gold lines that FILL left-to-right over the autoplay interval —
+   progress bar and indicator in one. They live at the foot of the copy column
+   (the lifted stats card owns the hero's bottom edge, so nothing may sit
+   there). The fill <i> is re-keyed by HomeGold each cycle; hover on the stage
+   pauses fill and timer together (.is-held). */
+.gld-hero__dots { display: flex; flex-wrap: wrap; gap: 4px 12px; margin-top: var(--g-4); }
+/* 44px tall for the thumb; the negative block margin keeps the dash row's
+   visual height where it was. The drawn dash is still the 2px line. */
+.gld-hero__dot { position: relative; width: 40px; height: 44px; margin-block: -14px; padding: 0; border: 0; background: none; cursor: pointer; }
+/* 24px: ten dashes must fit one row in a 342px column (28px wrapped, leaving
+   one orphan dash on a second line). */
+@media (max-width: 640px) { .gld-hero__dots { gap: 4px 8px; } .gld-hero__dot { width: 24px; } }
+/* 320: ten 24px dashes wrapped, and the 44px tap boxes of the two rows then
+   overlapped each other — narrower dashes keep them to one row. */
+@media (max-width: 360px) { .gld-hero__dots { gap: 4px 6px; } .gld-hero__dot { width: 20px; } }
+.gld-hero__dot::before {
+  content: ""; position: absolute; left: 0; right: 0; top: calc(50% - 1px); height: 2px;
+  border-radius: 2px; background: rgba(255, 255, 255, .32);
+  transition: background-color var(--g-dur-instant) var(--g-ease-out);
+}
+.gld-hero__dot:hover::before { background: rgba(255, 255, 255, .55); }
+/* The 24px dash is narrower than a thumb, and widening the button would wrap
+   ten of them onto a second row — so the target claims the flex gap instead,
+   transparently and without reflow. */
+.gld-hero__dot::after { content: ""; position: absolute; inset-block: 0; inset-inline: -4px; }
+@media (max-width: 360px) { .gld-hero__dot::after { inset-inline: -5px; } }
+.gld-hero__dot i {
+  position: absolute; left: 0; right: 0; top: calc(50% - 1px); height: 2px; border-radius: 2px;
+  background: var(--g-gold-lite);
+  transform: scaleX(0); transform-origin: 0 50%;
+  animation: gldDotFill linear forwards;   /* duration set inline to the interval */
+}
+@keyframes gldDotFill { to { transform: scaleX(1); } }
+.gld-hero__stage.is-held .gld-hero__dot i { animation-play-state: paused; }
+
+/* Arrows: small navy/gold glass pills at the banner's edges. */
+.gld-hero__nav {
+  position: absolute; z-index: 4; top: 50%; margin-top: -23px;
+  display: flex; align-items: center; justify-content: center; width: 46px; height: 46px;
+  border-radius: 999px;
+  border: 1px solid rgba(230, 199, 106, .45);
+  background: rgba(9, 25, 47, .42);
+  backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+  color: #fff; cursor: pointer;
+  transition: transform var(--g-dur-fast) var(--g-ease-out),
+              border-color var(--g-dur-fast) var(--g-ease-out),
+              background-color var(--g-dur-fast) var(--g-ease-out);
+}
+.gld-hero__nav:hover { border-color: var(--g-gold-lite); background: rgba(9, 25, 47, .58); }
+.gld-hero__nav svg { transition: transform var(--g-dur-instant) var(--g-ease-out); }
+.gld-hero__nav--prev { left: clamp(10px, 1.6vw, 26px); }
+.gld-hero__nav--next { right: clamp(10px, 1.6vw, 26px); }
+/* Below 1440 the arrows sat ON the hero copy (at 1280 the prev arrow covered
+   the paragraph's first word; on tablets its first letters). Only at 1440+ is
+   the copy inset far enough (120px) to clear them. The dash indicators are
+   real <button>s, so slide control survives everywhere else. */
+@media (max-width: 1439px) { .gld-hero__nav { display: none; } }
+
+/* ═══ SECTION 2 · STATS BAR ═══════════════════════════════════════════════════
+   One white card sitting deliberately on the hero's lower edge: soft elevation,
+   a thin gold top rule, Playfair numerals in tabular figures, Inter caps
+   labels, icons at 60% weight so the numbers lead. Enters as ONE unit — 24px
+   rise, 700ms, after the hero has settled. */
+.gld-stats { position: relative; z-index: 3; margin-top: clamp(-88px, -6vw, -48px); }
+@media (max-width: 1023px) { .gld-stats { margin-top: -32px; } }
+
+.gld-statgrid {
+  display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4px;
+  background: var(--g-card);
+  border: 1px solid var(--g-border);
+  /* hairline base — the ::before below DRAWS the full-gold rule on reveal */
+  border-top: 2px solid rgba(201, 162, 39, .28);
+  border-radius: 4px;
+  box-shadow: 0 24px 60px -30px rgba(9, 25, 47, .38);
+  padding: 20px clamp(10px, 1.6vw, 24px);
+}
+/* 720-1099: three across via a 6-track grid, so the 2-tile last row can sit
+   CENTRED instead of leaving a permanent hole under the third column. */
+@media (min-width: 720px) and (max-width: 1099px) {
+  .gld-statgrid { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+  .gld-stat { grid-column: span 2; }
+  .gld-stat:nth-child(4):nth-last-child(2) { grid-column: 2 / span 2; }
+  .gld-stat--wide { grid-column: 1 / -1; }
+}
+/* min-content, not 0: the cell holding a crore-scale rupee figure takes the
+   width that figure actually needs and the other four share what is left,
+   instead of all five being forced equal and the long one spilling over the
+   hairline into its neighbour. */
+@media (min-width: 1100px) { .gld-statgrid { grid-template-columns: repeat(5, minmax(min-content, 1fr)); gap: 0; } }
+/* five stats in two columns leave the fifth alone beside an empty cell */
+@media (max-width: 719px) { .gld-stat:last-child:nth-child(odd) { grid-column: 1 / -1; } }
+/* One unit, 24px, 700ms — the delay is a CSS var so HomeGold can push the
+   entrance past the hero's first-paint choreography (spec: "after the hero
+   settles"). Animation-based, so nothing here can strand a transform. */
+html[data-theme="gold"] .gld-statgrid.reveal.is-visible {
+  --gld-rise: 24px;
+  animation-duration: var(--g-dur-slow);
+  animation-delay: var(--gld-stats-delay, .25s);
+}
+
+/* Rich tiles, not flat cells: boxed gold assay-punch icon at full strength,
+   big Playfair numerals, a lift on the hovered cell only. */
+.gld-stat {
+  position: relative; text-align: center; min-width: 0;
+  padding: 18px 12px 14px;
+  border-radius: 4px;
+  transition: transform var(--g-dur-fast) var(--g-ease-out), background-color var(--g-dur-fast) var(--g-ease-out);
+}
+.gld-stat:hover { background: rgba(230, 199, 106, .07); }
+/* hairline separators between the five figures (desktop track only) */
+@media (min-width: 1100px) { .gld-stat + .gld-stat { border-left: 1px solid var(--g-border); } }
+.gld-stat__ico {
+  width: 46px; height: 46px; margin: 0 auto 12px;
+  display: grid; place-items: center;
+  color: var(--g-gold-deep);
+  border: 1px solid rgba(201, 162, 39, .4);
+  border-radius: 12px 4px 12px 4px;          /* the assay punch */
+  transition: transform var(--g-dur-fast) var(--g-ease-out), box-shadow var(--g-dur-fast) var(--g-ease-out);
+}
+.gld-stat__ico svg { width: 20px; height: 20px; }
+/* Numerals lead. ONE fixed size — 30px — in every Rotary year and at every
+   width (user's call), and every figure printed in full: no ₹ Cr / ₹ L
+   compaction. A club's lifetime total cost is ₹21,567,204,235, fifteen glyphs
+   and ~199px at this size, so the LAYOUT is what makes room for it — see the
+   min-content tracks and .gld-stat--wide below. */
+.gld-stat__n {
+  font-family: var(--g-display);
+  font-size: 30px;
+  font-weight: 400; color: var(--g-navy); line-height: 1.1;
+  font-variant-numeric: lining-nums tabular-nums;
+  letter-spacing: .01em;
+  white-space: nowrap;
+}
+/* A half-width phone cell holds ~134px; ₹21,567,204,235 needs ~199px at 30px.
+   Rather than shrink the type, the long figure takes the WHOLE row — the band
+   stays three rows on a phone and the amount is never abbreviated or clipped.
+   HomeGold puts the class on any figure past 11 glyphs. */
+@media (max-width: 1099px) { .gld-stat--wide { grid-column: 1 / -1; } }
+/* Under 360px a half-width cell holds ~99px — not even ₹390,347 at 30px — so
+   the band drops to one column rather than the type dropping below 30. */
+@media (max-width: 359px) { .gld-statgrid { grid-template-columns: minmax(0, 1fr); } }
+.gld-stat__l { margin-top: 5px; font-size: .6rem; font-weight: 800; letter-spacing: .16em; text-transform: uppercase; color: var(--g-ink-3); }
+
+/* ═══ SECTION 3 · DIGNITARIES & LEADERS — the fanned card deck ════════════════
+   The reference site's hero: a giant condensed headline with a hand of
+   rounded photo cards fanned across its lower half (rotations ±5–14°,
+   graduated sizes, 24px radius). Each leader is one card; the geometry
+   (--o = signed offset from the centre) is computed per card in HomeGold.
+   Entrance: the deck DEALS — cards start stacked dead-centre and swing out
+   to their fan positions, staggered, when the section scrolls in. */
+.gld-fanwrap { overflow: hidden; text-align: center; }
+
+/* Centered SHead: the section is text-align:center, only the drawn rule needs
+   re-anchoring (it is a fixed-width block, so text-align cannot move it). */
+.gld-fanwrap .gld-shead { justify-content: center; }
+.gld-fanwrap .gld-shead__r { margin-inline: auto; }
+
+.gld-fan {
+  position: relative;
+  height: clamp(360px, 42vw, 540px);
+  /* no negative pull any more — the ride-up existed for the old 7rem poster
+     headline; over the standard section motif it swallowed the title */
+  margin-top: 0;
+}
+/* SCROLL-TRIGGERED SPREAD. --fp is the spread progress (0 = collapsed pile,
+   1 = full fan), driven per frame by HomeGold's scroll engine. The pile still
+   reads as cards at --fp:0 (tiny per-card offset + tilt). Fallback var(--fp, 1):
+   no-JS and reduced-motion render the finished fan. */
+/* Collapsed tilted pile (fp 0) → ONE STRAIGHT LINE of upright cards (fp 1):
+   rotation fades OUT as the spread completes and the spacing opens to a full
+   card width, so the finished state is a clean row, not a fan. */
+.gld-fan__card {
+  position: absolute; left: 50%; top: 50%;
+  /* one step of the spread — a var so the phone override below can shrink it
+     without restating the whole transform */
+  --fan-step: clamp(80px, 23.5vw, 336px);
+  width: clamp(150px, 22vw, 320px);
+  aspect-ratio: 3 / 4;
+  border-radius: 24px;   /* deliberate: reference geometry, the one non-20px card */
+  overflow: hidden;
+  background: linear-gradient(160deg, var(--g-navy-2), var(--g-navy));
+  box-shadow: 0 24px 60px -18px rgba(9, 25, 47, .45);
+  z-index: var(--z, 1);
+  transform: translate(-50%, -50%)
+             translateX(calc(var(--o) * (var(--fan-step) * var(--fp, 1) + 7px)))
+             rotate(calc(var(--o) * 6deg * (1 - var(--fp, 1))))
+             scale(calc(1 - (1 - var(--fp, 1)) * (.06 + var(--ao) * .03)));
+  transition: box-shadow var(--g-dur-fast) var(--g-ease-out);
+}
+/* hover: shadow deepens and the card comes to the top — no motion */
+.gld-fan__card:hover {
+  z-index: 20;
+  box-shadow: 0 34px 80px -20px rgba(9, 25, 47, .55);
+}
+.gld-fan__card img { width: 100%; height: 100%; object-fit: cover; object-position: top; display: block; }
+@media (max-width: 640px) {
+  /* Phones drop the deck entirely: the spread ALWAYS overlaps cards (that is
+     what a fanned deck is), and at phone widths the overlap ate the names. One
+     card per row instead — full portraits, nothing covered, normal scrolling.
+     transform:none makes the JS spread progress (--fp) irrelevant here. */
+  .gld-fan {
+    height: auto;
+    display: grid; gap: 16px; justify-items: center;
+  }
+  .gld-fan__card {
+    /* relative, NOT static: the name plate is position:absolute and anchors
+       to the card — static sent every plate to the section instead. */
+    position: relative; left: auto; top: auto;
+    width: min(300px, 84vw);
+    transform: none;
+  }
+  .gld-fan__card:hover { transform: none; z-index: auto; }
+}
+.gld-fan__card img.is-ph { object-fit: contain; padding: 26%; }
+/* name plate on a navy fade at the card's foot */
+.gld-fan__plate {
+  position: absolute; left: 0; right: 0; bottom: 0;
+  padding: 44px 16px 16px;
+  background: linear-gradient(180deg, rgba(9, 25, 47, 0), rgba(9, 25, 47, .88) 62%);
+  text-align: center;
+}
+.gld-fan__plate b {
+  display: block;
+  font-family: var(--g-display); font-weight: 400;
+  font-size: clamp(.95rem, 1.5vw, 1.35rem);
+  letter-spacing: .03em; text-transform: uppercase;
+  color: #fff; line-height: 1.05;
+}
+.gld-fan__plate i {
+  display: block; margin-top: 6px; font-style: normal;
+  font-size: .6rem; font-weight: 800; letter-spacing: .16em; text-transform: uppercase;
+  color: var(--g-gold-lite);
+}
+/* "Read more" on the plate. Not a real control — the card anchor owns the
+   click — so it is styled, not focusable. ALWAYS VISIBLE: it was hidden until
+   hover, which meant the only sign these cards were clickable appeared after
+   you had already guessed and pointed at one. Hover now only fills it gold —
+   a state change on something already there, not a reveal. */
+.gld-fan__btn {
+  display: inline-flex; align-items: center; gap: 8px;
+  margin-top: 12px; padding: 8px 16px; white-space: nowrap;
+  border: 1px solid rgba(255, 255, 255, .38); border-radius: 999px;
+  font-size: .62rem; font-weight: 800; letter-spacing: .14em; text-transform: uppercase;
+  color: #fff;
+  transition: background-color var(--g-dur-fast) var(--g-ease-out),
+              border-color var(--g-dur-fast) var(--g-ease-out),
+              color var(--g-dur-fast) var(--g-ease-out);
+}
+.gld-fan__btn svg { width: 13px; height: 13px; flex: none; }
+html[data-theme="gold"] .gld-fan__card:hover .gld-fan__btn {
+  background: var(--g-gold); border-color: var(--g-gold); color: var(--g-navy);
+}
+
+/* ═══ SECTION 4 · CLUB LIFE (Events · Newsletters · Meeting · Ad) ═════════════
+   The reference's "Our Expertise" cards: generous rounded panels on cream —
+   2px soft border, 20px radius, a small glyph parked top-left, whitespace,
+   condensed caps title, content below. */
+/* The reference's card proportions exactly: max 445px wide, 342px min-height,
+   grid centred — never stretched into wide slabs. */
+/* ── BENTO ──────────────────────────────────────────────────────────────────
+   Tile size follows content weight: the event is the only panel with a photo
+   AND a paragraph -> 2x2 hero; the others take the right-hand column.
+
+   EMPTY PANELS ARE NOT RENDERED (HomeGold drops them), so the layout is keyed
+   off two facts only: is the events hero present (.is-ev), and how many
+   right-hand tiles survived (.is-r1/2/3). The survivors are tagged --r1/--r2/
+   --r3 by POSITION, so these rules never need to know WHICH panel is missing —
+   which is what keeps this to a handful of cases instead of one per
+   combination.
+
+      .is-ev.is-r3          .is-ev.is-r2        .is-ev.is-r1      .is-r3 (no ev)
+      ┌──────┬──┬──┐        ┌──────┬─────┐      ┌──────┬─────┐    ┌───┬───┬───┐
+      │      │r1│r2│        │      │ r1  │      │      │     │    │r1 │r2 │r3 │
+      │  ev  ├──┴──┤        │  ev  ├─────┤      │  ev  │ r1  │    └───┴───┴───┘
+      │      │ r3  │        │      │ r2  │      │      │     │
+      └──────┴─────┘        └──────┴─────┘      └──────┴─────┘                */
+/* ── Section tone ──
+   White, between the cream Dignitaries band above and the navy Projects band
+   below — three cream sections in a row (stats, dignitaries, club life) read as
+   one long field with no edges. It also gives the bento tiles something to sit
+   ON: they are `--g-bg` cream with a hairline border, so on a cream section only
+   the border defined them. */
+.gld-clublife { background: var(--g-card); }
+
+.gld-bento {
+  display: grid;
+  gap: 22px;
+  margin-top: var(--g-5);
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-rows: repeat(2, minmax(198px, auto));
+}
+/* A tile that carries its own "view all" link beneath it. The wrapper is the
+   grid child, so the button travels with the card into whatever area the
+   layout hands it. */
+.gld-stack       { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+.gld-stack .gld-qcard { flex: 1; }
+.gld-stack__all  { align-self: flex-start; }
+.gld-ev          { grid-area: ev; }
+.gld-qcard--r1   { grid-area: r1; }
+.gld-qcard--r2   { grid-area: r2; }
+.gld-qcard--r3   { grid-area: r3; }
+
+/* events + all three right tiles — the full arrangement */
+.gld-bento.is-ev.is-r3 { grid-template-areas: "ev ev r1 r2" "ev ev r3 r3"; }
+/* events + two: each right tile takes a full-width row beside the hero */
+.gld-bento.is-ev.is-r2 { grid-template-areas: "ev ev r1 r1" "ev ev r2 r2"; }
+/* events + one: that tile spans both rows, so the hero keeps its 2x2 mass */
+.gld-bento.is-ev.is-r1 { grid-template-areas: "ev ev r1 r1" "ev ev r1 r1"; }
+
+/* no events — the survivors share the width evenly, single row */
+.gld-bento.is-r3:not(.is-ev) { grid-template-columns: repeat(3, minmax(0, 1fr)); grid-template-rows: minmax(280px, auto); grid-template-areas: "r1 r2 r3"; }
+.gld-bento.is-r2:not(.is-ev) { grid-template-columns: repeat(2, minmax(0, 1fr)); grid-template-rows: minmax(280px, auto); grid-template-areas: "r1 r2"; }
+.gld-bento.is-r1:not(.is-ev) { grid-template-columns: minmax(0, 1fr);            grid-template-rows: minmax(240px, auto); grid-template-areas: "r1"; }
+
+/* The 342px floor is for the old uniform quad; here the grid rows set height and
+   the floor would force the short tiles to overflow their track. */
+.gld-bento .gld-qcard { min-height: 0; }
+
+/* Hero tile: the photo is the point. It FILLS the tile's spare height rather
+   than taking a fixed one — at 2 rows tall a fixed height left ~300px of dead
+   air between the image and the text pinned at the bottom by __body's
+   margin-top:auto. */
+html[data-theme="gold"] .gld-qcard--ev .gld-qcard__media {
+  /* basis 0, NOT auto: with `height:auto` an auto basis measures the img's
+     intrinsic height, so the tile grew to the photo's natural size (1025px at
+     1440, 1293px at 900) instead of the photo filling the tile. */
+  flex: 1 1 0; height: auto; width: auto; min-height: clamp(150px, 15vw, 220px);
+  align-self: auto;
+}
+.gld-qcard--ev .gld-qcard__t { font-size: clamp(1.7rem, 2.5vw, 2.3rem); }
+.gld-qcard--ev .gld-qcard__d { -webkit-line-clamp: 4; }
+
+/* shared small parts: the caption above a title, and a date/time line under it */
+/* LABEL register (.6rem/800/.16em) — shared with the meeting field labels,
+   the fan plates' role lines, the work-card tags and the stat labels. */
+.gld-qcard__cap {
+  display: block; margin-bottom: 10px;
+  font-size: .6rem; font-weight: 800; letter-spacing: .16em; text-transform: uppercase;
+  color: var(--g-gold-deep);
+}
+.gld-qcard__when {
+  display: block; margin-top: 8px;
+  font-size: .78rem; font-weight: 700; letter-spacing: .04em;
+  color: var(--g-navy);
+}
+
+/* Weekly meeting: three captioned fields instead of one run-on sentence. */
+.gld-meet { display: flex; flex-wrap: wrap; gap: 14px 44px; margin-top: 14px; }
+.gld-meet__f { display: flex; flex-direction: column; gap: 5px; min-width: 0; }
+.gld-meet__f i {
+  font-style: normal; font-size: .6rem; font-weight: 800;
+  letter-spacing: .16em; text-transform: uppercase; color: var(--g-ink-3);
+}
+.gld-meet__f b {
+  font-family: var(--g-display); font-weight: 400;
+  font-size: clamp(1rem, 1.4vw, 1.25rem);
+  letter-spacing: .02em; text-transform: uppercase; color: var(--g-ink);
+  line-height: 1.15;
+}
+/* Nothing keys off :last-child any more. Fields are dropped when a club hasn't
+   published them, so "last" is whichever survived — with no venue it was the
+   TIME that silently lost its condensed face. The per-field rules below are
+   named instead. */
+
+/* ── Weekly meeting — WHEN | WHERE ─────────────────────────────────────────
+   This tile is the widest and shortest in the bento, and it is STRETCHED to the
+   events column beside it, so its design has to genuinely use ~315px x 589px.
+
+   Three 1fr columns did not: "Tuesday" and "13:30 - 14:30" each took a third
+   they didn't need while a real street address wrapped to six lines in the
+   remaining 174px, and the column rules ran the full stretched height past
+   content that stopped a third of the way down. So: column 1 sizes to the two
+   short facts, column 2 takes everything left, and one hairline under the
+   caption replaces the rules that made this read as a spreadsheet. */
+.gld-qcard--meet .gld-qcard__body {
+  /* padding-top:0 removes the base card's glyph clearance — clamp(40px,7vw,90px)
+     of air reserved for an icon this tile no longer has.
+     No justify-content: .gld-meet below is the flexible child and absorbs the
+     slack itself, which centres the fields and drops the link to the foot. */
+  margin-top: 0; width: 100%; flex: 1 1 auto; padding-top: 0;
+  display: flex; flex-direction: column; gap: 18px;
+}
+/* The card's own rule, under the caption, full width. */
+.gld-qcard--meet .gld-qcard__cap {
+  margin-bottom: 0; padding-bottom: 14px;
+  border-bottom: 1px solid var(--g-hairline);
+}
+.gld-qcard--meet .gld-meet {
+  flex: 1 1 auto;
+  display: grid;
+  /* one column, day -> time -> venue, at every width: the tile is ~385px wide, so a
+     venue column beside day/time got 121px and set the address in six lines */
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-areas: "day" "time" "venue";
+  align-content: center;
+  column-gap: clamp(28px, 4vw, 52px); row-gap: 16px;
+  margin-top: 0;
+}
+/* Placed by NAME, never by position: an unpublished field is not rendered at
+   all, so nth-child would move the survivors into the wrong columns. */
+.gld-meet__f--day   { grid-area: day; }
+.gld-meet__f--time  { grid-area: time; }
+.gld-meet__f--venue { grid-area: venue; }
+.gld-qcard--meet .gld-meet__f { padding: 0; border: 0; gap: 6px; }
+
+/* The day is the fact people opened the card for — it carries the tile. */
+.gld-qcard--meet .gld-meet__f--day b {
+  font-size: clamp(1.9rem, 2.6vw, 2.55rem); line-height: .95;
+}
+.gld-qcard--meet .gld-meet__f--time b {
+  font-size: clamp(1.05rem, 1.4vw, 1.25rem); color: var(--g-ink-2);
+}
+/* An address is prose, not a headline: body face, sentence case, and now with a
+   column wide enough to set it in two lines instead of six. */
+.gld-qcard--meet .gld-meet__f--venue b {
+  font-family: inherit; font-weight: 600; font-size: .95rem;
+  text-transform: none; letter-spacing: 0; line-height: 1.5;
+  color: var(--g-ink-2);
+}
+.gld-qcard--meet .gld-qcard__cta { align-self: flex-start; margin-top: 0; }
+
+
+/* Advertisement: NO heading, artwork edge to edge. It carries no title now, so
+   the tile is just the frame — the 32px card padding and `object-fit:contain`
+   were what made the ad read as a stamp floating in a big empty card. */
+/* Scoped: `.gld-qcard{padding:32px}` is declared later in this file and wins on
+   equal specificity — that 32px inset is exactly what kept the ad looking like a
+   stamp in a big empty card. */
+html[data-theme="gold"] .gld-qcard--ad { padding: 0; overflow: hidden; }
+.gld-qcard--ad .gld-qcard__art { margin-top: 0; flex: 1; }
+/* A REAL height, not a stretch. Left to fill the grid row the card ran 416px
+   tall while `contain` painted the artwork at its own ratio inside — the empty
+   bands top and bottom were the gap between the two. */
+.gld-qcard--ad .gld-ad__stage { height: clamp(215px, 23vw, 310px); min-height: 0; }
+
+/* Newsletter and advertisement size to their CONTENT; only the events hero and
+   the meeting strip stretch. Both were being pulled to the height of the events
+   column beside them, which is where their empty top and bottom came from.
+
+   The ROW, though, has to end level. Every tile beside another tile stretches
+   to the row so their bottoms line up — the ad sitting at its natural height
+   while its neighbours filled the row is what left it hanging 34px short of the
+   newsletter and 62px short of the meeting strip. The ad's picture stage grows
+   with it rather than leaving dead space under the artwork. */
+.gld-bento > .gld-stack:not(.gld-ev) { align-self: start; }
+.gld-bento > .gld-qcard--ad { align-self: stretch; }
+/* ONLY where the row actually has a height to fill. Below 720px the bento is a
+   single column and the ad's area is content-sized, so an unscoped height:100%
+   resolved against an indefinite parent, collapsed the stage to 0 and the whole
+   advertisement vanished on phones. Under that width the stage keeps its own
+   clamp height. */
+@media (min-width: 720px) { .gld-bento > .gld-qcard--ad .gld-ad__stage { height: 100%; } }
+
+/* The PDF chip IS this tile's glyph and already sits above the text, so the
+   base card's clamp(40px,7vw,90px) icon clearance is 90px of nothing.
+   The tile also carries a "view all" button BELOW its card, so at its old
+   natural height the newsletter COLUMN was the tallest thing in the row and set
+   the row height for everyone (user: "decrease the height of newsletter").
+   Tightened so the card plus its button is no taller than the ad beside it. */
+.gld-qcard--news .gld-qcard__body { padding-top: 10px; padding-bottom: 14px; }
+.gld-qcard--news .gld-pdf { margin-bottom: 4px; }
+/* CONTAIN, never cover: an advertisement is artwork a club paid for — cropping
+   it cuts off logos and phone numbers. With the card padding removed above, the
+   whole ad still fills the tile as large as its own ratio allows. */
+.gld-qcard--ad .gld-ad__stage img { object-fit: contain; }
+
+/* PDF chip on the newsletters tile — the document mark the other five themes
+   use, in gold's navy/gold palette. */
+.gld-pdf {
+  display: inline-flex; flex-direction: column; align-items: center; justify-content: center;
+  width: 58px; height: 58px; flex: none;
+  border-radius: 14px;
+  background: var(--g-navy); color: var(--g-gold);
+  transition: transform var(--g-dur-fast) var(--g-ease-out),
+              background-color var(--g-dur-fast) var(--g-ease-out),
+              color var(--g-dur-fast) var(--g-ease-out);
+}
+.gld-pdf svg { width: 21px; height: 21px; }
+.gld-pdf b { margin-top: 2px; font-size: 9px; font-weight: 800; letter-spacing: .08em; }
+html[data-theme="gold"] .gld-qcard--news:hover .gld-pdf {
+  background: var(--g-gold); color: var(--g-navy);
+}
+
+/* "Read more" inside the events tile. A span, styled — the tile is the link. */
+.gld-qcard__cta {
+  display: inline-flex; align-items: center; gap: 8px;
+  margin-top: 16px; padding: 8px 16px;
+  border: 1px solid rgba(9, 25, 47, .22); border-radius: 999px;
+  font-size: .62rem; font-weight: 800; letter-spacing: .14em; text-transform: uppercase;
+  color: var(--g-navy);
+  transition: background-color var(--g-dur-fast) var(--g-ease-out),
+              border-color var(--g-dur-fast) var(--g-ease-out),
+              gap var(--g-dur-fast) var(--g-ease-out);
+}
+.gld-qcard__cta svg { width: 13px; height: 13px; }
+/* EVERY card's chip fills on its card's hover — it was events-only, so
+   "Read online" and "Open in maps" looked like different components. */
+html[data-theme="gold"] .gld-qcard:hover .gld-qcard__cta {
+  background: var(--g-gold); border-color: var(--g-gold); color: var(--g-navy);
+}
+
+
+@media (max-width: 1100px) {
+  .gld-bento,
+  .gld-bento.is-r1:not(.is-ev),
+  .gld-bento.is-r2:not(.is-ev),
+  .gld-bento.is-r3:not(.is-ev) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-rows: auto;
+  }
+  /* two columns: the hero spans both, then the survivors pair up */
+  .gld-bento.is-ev.is-r3 { grid-template-areas: "ev ev" "r1 r2" "r3 r3"; }
+  .gld-bento.is-ev.is-r2 { grid-template-areas: "ev ev" "r1 r2"; }
+  .gld-bento.is-ev.is-r1 { grid-template-areas: "ev ev" "r1 r1"; }
+  .gld-bento.is-r3:not(.is-ev) { grid-template-areas: "r1 r2" "r3 r3"; }
+  .gld-bento.is-r2:not(.is-ev) { grid-template-areas: "r1 r2"; }
+  .gld-bento.is-r1:not(.is-ev) { grid-template-areas: "r1 r1"; }
+  .gld-bento .gld-qcard { min-height: 300px; }
+  /* not the ad: its stage is a fixed-height frame, so the 300px floor just
+     appended ~85px of empty card below the artwork */
+  .gld-bento .gld-qcard--ad { min-height: 0; }
+  /* Stacked layouts sized the event photo as a 150px letterbox strip — a
+     portrait creative lost ~85% of itself to the crop. (Scoped to out-specify
+     the html[data-theme] base rule.) */
+  html[data-theme="gold"] .gld-qcard--ev .gld-qcard__media {
+    flex: none; height: auto; aspect-ratio: 16 / 9; min-height: 0;
+  }
+}
+@media (max-width: 640px) {
+  /* one column: every tile on its own row, in DOM order */
+  .gld-bento,
+  .gld-bento.is-ev.is-r1, .gld-bento.is-ev.is-r2, .gld-bento.is-ev.is-r3,
+  .gld-bento.is-r1:not(.is-ev), .gld-bento.is-r2:not(.is-ev), .gld-bento.is-r3:not(.is-ev) {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas: none;
+  }
+  .gld-ev, .gld-qcard--r1, .gld-qcard--r2, .gld-qcard--r3 { grid-area: auto; }
+  .gld-stack__all { align-self: stretch; justify-content: center; }
+}
+/* The reference card's exact hover: the whole card LIFTS 40px and TILTS -2°
+   while the soft border snaps solid (.35s) — and the icon plays. */
+.gld-qcard {
+  position: relative;
+  display: flex; flex-direction: column; min-height: 342px; padding: 32px;
+  background: var(--g-bg);            /* page tone — the border defines the card */
+  border: 2px solid rgba(9, 25, 47, .12);
+  border-radius: 20px;
+  transition: transform var(--g-dur-base) var(--g-ease-out),
+              border-color var(--g-dur-base) var(--g-ease-out),
+              box-shadow var(--g-dur-base) var(--g-ease-out);
+}
+/* Scoped to out-specify the reveal base's `transform: none` (0,2,1) — the
+   documented trap: an unscoped .gld-qcard:hover (0,2,0) silently loses. */
+html[data-theme="gold"] .gld-qcard:hover {
+  border-color: var(--g-navy);
+  box-shadow: 0 34px 70px -34px rgba(9, 25, 47, .35);
+  z-index: 5;
+}
+
+/* glyph parked top-left, generous air under it — the reference parks a 64px
+   Lottie there that PLAYS on hover; ours does a springy morph-style pop. */
+.gld-qcard { text-decoration: none; color: inherit; }
+a.gld-qcard, .gld-qcard a { cursor: pointer; }
+.gld-qcard__glyph { width: 64px; height: 64px; flex: none; color: var(--g-navy); }
+.gld-qcard__glyph svg { width: 100%; height: 100%; }
+@media (max-width: 640px) { .gld-qcard__glyph { width: 48px; height: 48px; } }
+
+/* Events card: the event's own photo stands in for the glyph. Sized to the
+   glyph's 64px row height + the air the other cards get from __body's padding,
+   so all four cards keep the SAME height and the quad stays a clean grid. */
+.gld-qcard__media {
+  display: block;
+  width: 100%;
+  /* Deliberately NOT an aspect ratio. The quad is a 2x2 grid, so a ratio-sized
+     photo grows with card width and drags its whole row taller than the
+     glyph-only row below it — the cards stop looking like one set. A height
+     close to the glyph block's own footprint (64px + its body padding) keeps
+     all four level at every width. */
+  height: clamp(128px, 12vw, 172px);
+  overflow: hidden;
+  border-radius: 14px;
+  background: rgba(9, 25, 47, .06);
+}
+/* contain, NOT cover: the media block is a fixed 128-172px band (and a flexed
+   150-220px one on the events tile), while event photos are 4:3 — cover was
+   cutting the picture. White backing by request; on the img rather than the
+   block, so the block's own tint still shows when a card has no photo. */
+.gld-qcard__media img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  background: #fff;
+  display: block;
+  transition: transform var(--g-dur-slow) var(--g-ease-out);
+}
+/* With a photo above it the body needs less air than the glyph layout's 40–90px,
+   or this card grows taller than its three siblings. */
+.gld-qcard__media + .gld-qcard__body { padding-top: clamp(20px, 3vw, 40px); }
+
+/* ── The icons animate CONTINUOUSLY — the reference's Lottie marks run on
+   autoplay+loop (its DOM says so), and these SVG rebuilds do the same.
+   Dots breathe in staggered waves, the pinwheel and burst spin. The global
+   reduced-motion block freezes all of it. */
+.gld-qcard__glyph .gi-dots circle {
+  transform-box: fill-box; transform-origin: center;
+  animation: giDot 2.6s var(--g-ease-inout) infinite;
+  animation-delay: var(--gd, 0s);
+}
+@keyframes giDot { 0%, 100% { transform: scale(1); } 50% { transform: scale(.42); } }
+.gld-qcard__glyph .gi-rotg {
+  transform-box: view-box; transform-origin: 32px 32px;
+  animation: giSpinCont 7s linear infinite;
+}
+.gld-qcard__glyph .gi-rotg.gi-slow { animation-duration: 12s; }
+@keyframes giSpinCont { to { transform: rotate(360deg); } }
+.gld-qcard__glyph .gi-rotg rect {
+  transform-box: fill-box; transform-origin: center;
+  animation: giBar 1.9s var(--g-ease-inout) infinite;
+  animation-delay: var(--gd, 0s);
+}
+@keyframes giBar { 0%, 100% { transform: scaleY(1); opacity: 1; } 50% { transform: scaleY(.45); opacity: .55; } }
+
+/* Title + grey description ANCHORED AT THE BOTTOM — the field of air between
+   the icon and the text is the reference card's whole idea. */
+.gld-qcard__body { display: block; margin-top: auto; padding-top: clamp(40px, 7vw, 90px); }
+.gld-qcard__t {
+  margin: 0;
+  font-family: var(--g-display); font-weight: 400;
+  font-size: clamp(1.55rem, 2.1vw, 1.9rem);
+  letter-spacing: .02em; line-height: 1.05;
+  text-transform: uppercase; color: var(--g-ink);
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+}
+.gld-qcard__d {
+  margin: 10px 0 0;
+  font-size: 1rem; font-weight: 600; line-height: 1.45;
+  color: var(--g-ink-3);
+  display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
+}
+
+/* Advertisement artwork rides the air between icon and text. The slides keep
+   the shared rotary-anim contract (class="opacity-0" swapped for
+   .opacity-100): never hard-code opacity on the stage's children. */
+.gld-qcard__art { display: flex; flex: 1; min-height: 0; margin-top: 14px; }
+.gld-qcard__art + .gld-qcard__body { padding-top: 14px; }
+.gld-ad__stage { position: relative; display: block; flex: 1; min-height: 130px; overflow: hidden; }
+.gld-ad__stage > * { position: absolute; inset: 0; transition: opacity var(--g-dur-slow) var(--g-ease-inout); display: block; }
+.gld-ad__stage img { width: 100%; height: 100%; object-fit: contain; display: block; }
+
+/* ═══ SECTION 5 · OUR PROJECTS — "THE WORK" band ══════════════════════════════
+   Near-black band, huge condensed two-line headline left, small condensed
+   label right, a full-width rule with the "(n) caption" index row under it,
+   then an edge-bleed horizontal row of big media cards. */
+/* NO overflow on the section: a clipping ancestor becomes the sticky pin's
+   containment box and the pinned gallery never latches to the viewport. The
+   .gld-workpin wrapper does the clipping instead. */
+.gld-work { background: var(--g-navy); color: #fff; }
+/* the standard motif, on navy */
+.gld-work .gld-shead__e { color: var(--g-gold-lite); }
+.gld-work .gld-shead__t { color: #fff; }
+
+/* Edge-bleed row. TWO modes:
+   · default — native horizontal scroll (reduced-motion, and rows shorter than
+     the viewport);
+   · .is-pin (set by HomeGold when the row overflows) — the reference's PINNED
+     GALLERY: .gld-workpin sticks for the whole section height while vertical
+     scroll is scrubbed into the row's horizontal translate. The section's
+     inline height (100vh + horizontal overflow) provides the scroll length. */
+.gld-workrow {
+  display: flex; gap: clamp(16px, 2vw, 28px);
+  margin-top: var(--g-5);
+  overflow-x: auto;
+  scroll-snap-type: x proximity;
+  padding-inline: max(var(--g-3), calc((100vw - 1280px) / 2 + 40px));
+  padding-bottom: 10px;
+  scrollbar-width: none;
+}
+.gld-workrow::-webkit-scrollbar { display: none; }
+.gld-work.is-pin { padding-block: 0; }
+.gld-work.is-pin .gld-workpin {
+  position: sticky; top: 0;
+  min-height: 100vh; box-sizing: border-box;
+  display: flex; flex-direction: column; justify-content: flex-start;
+  padding-top: clamp(150px, 17vh, 200px);   /* clears the sticky masthead */
+  padding-bottom: 34px;
+  overflow: hidden;
+}
+.gld-work.is-pin .gld-workrow {
+  overflow: visible;
+  scroll-snap-type: none;
+  will-change: transform;                    /* translateX set per frame by HomeGold */
+  margin-top: clamp(18px, 3vh, 40px);
+}
+/* While pinned the whole card must fit under the headline within one viewport:
+   cap the width against the height that is actually left. */
+.gld-work.is-pin .gld-workcard { width: min(clamp(300px, 52vw, 720px), calc((100vh - 500px) * 1.6)); min-width: 300px; }
+.gld-workcard {
+  flex: none; width: clamp(300px, 52vw, 720px);
+  scroll-snap-align: center;
+  text-decoration: none;
+}
+.gld-workcard__media { position: relative; display: block; overflow: hidden; border-radius: 4px; aspect-ratio: 16 / 10; background: var(--g-navy-2); }
+.gld-workcard__media img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform var(--g-dur-slow) var(--g-ease-out); }
+.gld-workcard__tag {
+  position: absolute; left: 14px; top: 14px;
+  padding: 5px 11px; border-radius: 999px;
+  font-size: .6rem; font-weight: 800; letter-spacing: .16em; text-transform: uppercase;
+  /* No background here: the avenue's own bg-* class paints it (this sheet loads
+     last, so a background set here would flatten every avenue back to one
+     color). White text reads on all seven avenue hues and on bg-navy. */
+  color: #fff;
+}
+.gld-workcard__meta { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, .9fr); gap: 8px var(--g-4); align-items: start; margin-top: 16px; }
+@media (max-width: 640px) { .gld-workcard__meta { grid-template-columns: 1fr; } }
+.gld-workcard__t {
+  margin: 0;
+  font-family: var(--g-display); font-weight: 400;
+  font-size: clamp(1.2rem, 2vw, 1.7rem);
+  line-height: 1.05; letter-spacing: .02em; text-transform: uppercase;
+  color: #fff;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+  transition: color var(--g-dur-instant) var(--g-ease-out);
+}
+.gld-workcard:hover .gld-workcard__t { color: var(--g-gold-lite); }
+.gld-workcard__d {
+  margin: 2px 0 0; font-size: .88rem; font-weight: 600; color: rgba(255, 255, 255, .55); line-height: 1.5;
+  display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
+}
+.gld-work__all { margin-top: var(--g-4); }
+/* empty state recolored for the dark band */
+.gld-work .gld-empty { background: rgba(255, 255, 255, .04); border-color: rgba(255, 255, 255, .18); margin-top: var(--g-5); }
+.gld-work .gld-empty b { color: #fff; }
+.gld-work .gld-empty span { color: rgba(255, 255, 255, .6); }
+.gld-work .gld-empty i { color: var(--g-gold-lite); border-color: rgba(255, 255, 255, .2); }
+
+
+/* ═══ SECTION 4-b · THE MARQUEE + INDEX HEAD (cream sections) ═════════════════
+   Giant condensed text sliding on an infinite loop — the reference's
+   "WHAT WE DO" band — then the same indexed rule in ink. */
+.gld-marq { overflow: hidden; white-space: nowrap; }
+.gld-marq__track { display: inline-flex; animation: gldMarquee 26s linear infinite; will-change: transform; }
+/* Scroll-linked mode: HomeGold drives translateX per frame (auto drift + the
+   page's own scroll), so the time-based fallback animation steps aside. */
+.gld-marq__track.is-js { animation: none; }
+.gld-marq:hover .gld-marq__track { animation-play-state: paused; }
+.gld-marq b {
+  font-family: var(--g-display); font-weight: 400;
+  font-size: clamp(4rem, 11vw, 9rem);
+  line-height: 1; letter-spacing: .01em; text-transform: uppercase;
+  color: var(--g-navy);
+  padding-right: .45em;
+}
+.gld-marq b em { font-style: normal; color: var(--g-gold); }
+@keyframes gldMarquee { to { transform: translateX(-50%); } }
+
+/* ═══ SECTION 7 · JOIN — the LIGHT band that closes the page ══════════════════
+   It used to be navy-2 (#0B1F3A) sitting between the navy (#09192F) projects
+   band and the navy footer: two points of difference on either side, which is
+   no difference at all — the last third of the page was one undivided dark
+   slab. Light here is what makes all three read as separate bands.
+
+   The heading and lede overrides went with the dark background: the shared
+   .gld-shead / .gld-lede defaults ARE the light-section treatment (gold-deep
+   eyebrow, navy title, ink-2 lede), so restating them here would only be a
+   second copy to keep in sync. The gold CTA needs no change — it is navy type
+   on a gold gradient either way. */
+.gld-join { position: relative; overflow: hidden; background: var(--g-bg); }
+.gld-join::before {
+  content: ""; position: absolute; inset: 0; pointer-events: none;
+  background: radial-gradient(60% 70% at 50% 0%, rgba(212, 175, 55, .16), transparent 70%);
+}
+/* Shorter than a normal section: this band is one row of copy with the two
+   actions beside it, not a full stacked section. */
+.gld-join { padding-block: clamp(44px, 4.4vw, 68px); }
+/* Copy left, actions right, both centred on the same row. Below 900px the
+   actions drop under the copy and the row becomes a stack. */
+.gld-join__in {
+  position: relative; z-index: 1;
+  display: grid; gap: var(--g-4); align-items: center;
+}
+@media (min-width: 900px) {
+  .gld-join__in { grid-template-columns: minmax(0, 1fr) auto; gap: var(--g-8); }
+}
+.gld-join .gld-shead { margin-bottom: 0; }
+/* BLUR TEXT (ReactBits-style): the lede's words resolve from a blur one
+   after another on every entry. HomeGold wraps each word in a .gld-w span. */
+.gld-join__about .gld-w { display: inline-block; }
+html[data-theme="gold"] .gld-join__about.is-visible .gld-w {
+  animation: gldBlurIn 480ms var(--g-ease-out) both;
+  animation-delay: min(calc(var(--wi, 0) * 30ms + 80ms), 1.1s);
+}
+@keyframes gldBlurIn {
+  from { opacity: 0; filter: blur(7px); transform: translateY(6px); }
+  to   { opacity: 1; filter: none; transform: none; }
+}
+
+/* Club-published copy, so its length is unknown: three lines, then ellipsis —
+   the full text is one click away on /about. */
+.gld-join__about {
+  max-width: 68ch; margin-top: var(--g-2);
+  display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.gld-join__cta { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 0; }
+
+/* ── Footer ───────────────────────────────────────────────────────────────── */
+.gld-ft { background: var(--g-navy); color: rgba(255, 255, 255, .68); }
+.gld-ft__top { height: 3px; background: linear-gradient(90deg, transparent, var(--g-gold-deep), var(--g-gold-lite), var(--g-gold-deep), transparent); }
+/* FOUR columns: club | quick links (two of them) | find us. The links list
+   flows in two CSS columns inside its span, so the split needs no second
+   heading and no second render — it re-balances itself as the menu grows. */
+.gld-ft__grid { display: grid; gap: var(--g-6); padding-block: var(--g-sp-1); }
+@media (min-width: 768px) {
+  .gld-ft__grid { grid-template-columns: 1.25fr 1fr 1fr 1.1fr; gap: var(--g-6); }
+  .gld-ft__quick { grid-column: span 2; }
+  .gld-ft__links { columns: 2; column-gap: var(--g-6); }
+}
+/* `columns` needs a normal flow — the shared .gld-ft ul is a grid, and a grid
+   container ignores column-count entirely. Written `ul.gld-ft__links` because
+   `.gld-ft ul` (0,1,1) out-specifies a bare class and the list stayed a
+   one-column grid. */
+.gld-ft ul.gld-ft__links { display: block; }
+.gld-ft__links li { break-inside: avoid; margin-bottom: 10px; }
+.gld-ft h4 { font-size: .82rem; font-weight: 800; letter-spacing: .16em; text-transform: uppercase; color: var(--g-gold-lite); margin: 0 0 var(--g-3); }
+.gld-ft img.gld-ft__logo { height: clamp(112px, 10vw, 150px); width: auto; max-width: 330px; object-fit: contain; margin-bottom: var(--g-2); }
+/* the credit is a link now, and has to look like one against the bar's tone */
+.gld-ft__row { color: var(--g-gold-lite); text-decoration: none; }
+.gld-ft__row:hover { color: #fff; text-decoration: underline; }
+.gld-ft p { font-size: .88rem; margin: 0; }
+.gld-ft ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.gld-ft ul a { color: rgba(255, 255, 255, .68); text-decoration: none; font-size: .88rem; position: relative; display: inline-block; }
+.gld-ft ul a::after { content: ""; position: absolute; left: 0; right: 0; bottom: -2px; height: 1px; background: var(--g-gold); transform: scaleX(0); transform-origin: 0 50%; transition: transform var(--g-dur-fast) var(--g-ease); }
+.gld-ft ul a:hover { color: #fff; }
+.gld-ft ul a:hover::after { transform: scaleX(1); }
+.gld-ft__soc { display: flex; flex-wrap: wrap; gap: 10px; }
+.gld-ft__soc a {
+  width: 46px; height: 46px; display: grid; place-items: center;
+  border: 1px solid rgba(255, 255, 255, .16); border-radius: 999px;
+  color: rgba(255, 255, 255, .78);
+  transition: transform var(--g-dur-fast) var(--g-ease), border-color var(--g-dur-fast) var(--g-ease), color var(--g-dur-fast) var(--g-ease), background-color var(--g-dur-fast) var(--g-ease);
+}
+.gld-ft__soc a:hover { border-color: var(--g-gold); color: var(--g-navy); background: var(--g-gold); }
+.gld-ft__soc svg { width: 18px; height: 18px; }
+/* padding-right: the fixed back-to-top button (46px at right:20) parked
+   exactly on the "Roster On Wheels" link at the page's end. */
+.gld-ft__bar { border-top: 1px solid rgba(255, 255, 255, .1); padding-block: var(--g-3); padding-right: 76px; display: flex; flex-wrap: wrap; gap: var(--g-2); align-items: center; justify-content: space-between; font-size: .78rem; }
+
+.gld-top {
+  position: fixed; right: 20px; bottom: 20px; z-index: 40;
+  width: 46px; height: 46px; display: grid; place-items: center;
+  border: 1px solid var(--g-border); border-radius: 999px;
+  background: var(--g-card); color: var(--g-navy); cursor: pointer;
+  box-shadow: var(--g-shadow);
+  opacity: 0; visibility: hidden; transform: translateY(10px);
+  transition: opacity var(--g-dur-fast) var(--g-ease), transform var(--g-dur-fast) var(--g-ease), visibility var(--g-dur-fast);
+}
+.gld-top.is-on { opacity: 1; visibility: visible; transform: translateY(0); }
+.gld-top:hover { border-color: var(--g-gold); color: var(--g-gold-deep); }
+
+/* ── Page-level empty state (projects) ────────────────────────────────────── */
+.gld-empty {
+  border: 1px dashed var(--g-border); border-radius: 4px;
+  background: var(--g-card);
+  padding: var(--g-8) var(--g-3); text-align: center;
+}
+.gld-empty i { display: grid; place-items: center; width: 56px; height: 56px; margin: 0 auto var(--g-2); color: var(--g-gold-deep); border: 1px solid rgba(201, 162, 39, .4); border-radius: 12px 4px 12px 4px; }
+.gld-empty i svg { width: 22px; height: 22px; }
+.gld-empty b { display: block; font-family: var(--g-display); font-size: 1.25rem; font-weight: 400; text-transform: uppercase; letter-spacing: .02em; color: var(--g-navy); }
+.gld-empty span { font-size: .88rem; color: var(--g-ink-3); }
+
+/* ── Motion, and the switch that turns it all off ─────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  html[data-theme="gold"] *,
+  html[data-theme="gold"] *::before,
+  html[data-theme="gold"] *::after {
+    animation-duration: .001ms !important;
+    animation-delay: 0s !important;       /* stagger/entrance delays would leak a blink-in */
+    animation-iteration-count: 1 !important;
+    transition-duration: .001ms !important;
+    transition-delay: 0s !important;
+    scroll-behavior: auto !important;
+  }
+  .gld-hero__slide.is-active img { animation: none; }
+  .gld-hero__copy.is-hold { opacity: 1; }
+  .gld-hero__curtain { display: none; }
+  .gld-hero__dot i { display: none; }
+  .gld-hero__dot.is-on::before { background: var(--g-gold-lite); }
+}
+
+/* ═══ INNER PAGES (Stage A: the shared classic design system inside the gold
+   shell) ══════════════════════════════════════════════════════════════════════
+   The compiled shared sheet paints royal blue #0A2472 (`navy`) and orange-gold
+   #F7A600 (`gold`). Between a #09192F header and footer those read as a
+   different site. This file loads LAST, so the utility classes the inner pages
+   use are retinted to the shell's palette — colors only, no layout.
+   (Scoped to the theme root out of habit; only gold ever loads this file.) */
+html[data-theme="gold"] .text-navy { color: var(--g-navy); }
+html[data-theme="gold"] .bg-navy { background-color: var(--g-navy); }
+html[data-theme="gold"] .border-navy { border-color: var(--g-navy); }
+html[data-theme="gold"] .text-gold { color: var(--g-gold); }
+html[data-theme="gold"] .bg-gold { background-color: var(--g-gold); }
+/* The page-title band takes the shell's poster face — and one casing: /about
+   and /newsletters were title-case while the other h1s were uppercase. */
+html[data-theme="gold"] main h1.font-heading {
+  font-family: var(--g-display); font-weight: 400;
+  text-transform: uppercase; letter-spacing: .02em;
+}
+/* Rectangular one-offs in a pill shell: the directory view toggle and
+   pagination. Scoped to button so panels using the same utilities keep theirs. */
+html[data-theme="gold"] main button.rounded-lg,
+html[data-theme="gold"] main button.rounded-xl { border-radius: 999px; }
+
+/* ═══ MICRO-INTERACTIONS (2026-08-14) ═════════════════════════════════════════
+   Ambient loops are few, slow and small; hover states answer the pointer in
+   --g-dur-fast; entrance flourishes key off the shared .is-visible reveal.
+   The prefers-reduced-motion block above flattens all of it. */
+
+/* ── banner: the indicator dash thickens under the pointer ── */
+/* the eyebrow's drawn lead breathes, once every few seconds */
+.gld-hero__copy .gld-cap::before { animation: gldBreathe 5s var(--g-ease-inout) infinite alternate; }
+
+/* ── counters: the gold rule draws across the band as it reveals; numerals
+      answer a hover in gold ── */
+.gld-statgrid { position: relative; }
+.gld-statgrid::before {
+  content: ""; position: absolute; left: 0; right: 0; top: -2px; height: 2px;
+  background: var(--g-gold);
+  transform: scaleX(0); transform-origin: 0 50%;
+  transition: transform 900ms var(--g-ease-out) .25s;
+}
+html[data-theme="gold"] .gld-statgrid.reveal.is-visible::before { transform: scaleX(1); }
+
+/* ── upcoming events: a light sweep crosses the photo on card hover.
+      No transition at rest, so it resets instantly and replays next hover. ── */
+.gld-qcard__media { position: relative; }
+.gld-qcard__media::after {
+  content: ""; position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(105deg, transparent 40%, rgba(255, 255, 255, .3) 50%, transparent 60%);
+  transform: translateX(-130%);
+}
+/* the sweep now plays on every viewport ENTRY (is-visible is toggled) */
+html[data-theme="gold"] .gld-qcard.is-visible .gld-qcard__media::after {
+  animation: gldShine 900ms var(--g-ease-out) .5s both;
+}
+@keyframes gldShine { to { transform: translateX(130%); } }
+
+/* ── newsletter: the PDF chip floats at idle (the hover pop above suspends it) ── */
+.gld-pdf { animation: gldFloat 3.8s var(--g-ease-inout) infinite; }
+
+/* ── weekly meeting: the caption's hairline draws, then the three fields land
+      one after another ── */
+.gld-qcard--meet .gld-qcard__cap { position: relative; border-bottom-color: transparent; }
+.gld-qcard--meet .gld-qcard__cap::after {
+  content: ""; position: absolute; left: 0; right: 0; bottom: -1px; height: 1px;
+  background: var(--g-hairline);
+  transform: scaleX(0); transform-origin: 0 50%;
+  transition: transform 800ms var(--g-ease-out) .2s;
+}
+html[data-theme="gold"] .gld-qcard--meet.reveal.is-visible .gld-qcard__cap::after { transform: scaleX(1); }
+html[data-theme="gold"] .gld-qcard--meet.reveal.is-visible .gld-meet__f { animation: gldRise var(--g-dur-base) var(--g-ease-enter) both; }
+html[data-theme="gold"] .gld-qcard--meet.reveal.is-visible .gld-meet__f--day   { animation-delay: .28s; }
+html[data-theme="gold"] .gld-qcard--meet.reveal.is-visible .gld-meet__f--time  { animation-delay: .38s; }
+html[data-theme="gold"] .gld-qcard--meet.reveal.is-visible .gld-meet__f--venue { animation-delay: .48s; }
+
+/* ── CTA band: the gold glow breathes; the primary button's arrow beckons
+      until the pointer arrives, then follows it ── */
+.gld-join::before { animation: gldBreathe 8s var(--g-ease-inout) infinite alternate; }
+.gld-join .gld-btn--gold svg { animation: gldNudge 2.6s var(--g-ease-inout) infinite; }
+
+/* ── header: the lockup and the burger acknowledge the pointer ── */
+
+/* ── footer: a glint travels the gold top rule; links step toward the pointer;
+      the lockup answers a hover ── */
+.gld-ft__top { background-size: 220% 100%; animation: gldShimmer 9s linear infinite; }
+
+@keyframes gldBreathe { from { opacity: .55; } to { opacity: 1; } }
+@keyframes gldFloat { 50% { transform: translateY(-4px); } }
+@keyframes gldNudge { 0%, 55%, 100% { transform: none; } 30% { transform: translateX(5px); } }
+@keyframes gldShimmer { from { background-position: 0% 0; } to { background-position: 220% 0; } }
+
+/* ═══ VIEWPORT-ENTRY MOTION (2026-08-14) ══════════════════════════════════════
+   HomeGold/SiteGold toggle `is-visible` OFF once an element is fully out of
+   the viewport, so every is-visible animation here REPLAYS on each entry.
+   (The removal happens fully off-screen — the reset to the hidden base state
+   is never visible.) */
+
+/* card photos settle from a gentle zoom on every entry */
+html[data-theme="gold"] .gld-qcard.is-visible .gld-qcard__media img {
+  animation: gldImgSettle 1100ms var(--g-ease-out) both;
+}
+@keyframes gldImgSettle { from { transform: scale(1.07); } }
+
+/* counter icons pop in one after another as the band lands */
+html[data-theme="gold"] .gld-statgrid.is-visible .gld-stat__ico {
+  animation: gldPop 500ms var(--g-ease-enter) backwards;
+}
+html[data-theme="gold"] .gld-statgrid.is-visible .gld-stat:nth-child(2) .gld-stat__ico { animation-delay: .08s; }
+html[data-theme="gold"] .gld-statgrid.is-visible .gld-stat:nth-child(3) .gld-stat__ico { animation-delay: .16s; }
+html[data-theme="gold"] .gld-statgrid.is-visible .gld-stat:nth-child(4) .gld-stat__ico { animation-delay: .24s; }
+html[data-theme="gold"] .gld-statgrid.is-visible .gld-stat:nth-child(5) .gld-stat__ico { animation-delay: .32s; }
+@keyframes gldPop { from { opacity: 0; transform: scale(.6); } }
+
+/* footer: the three columns rise as they enter (SiteGold toggles these) */
+.gld-ft__grid > div.reveal { --gld-rise: 16px; }
+
+/* ═══ HEADING ENTRANCES (2026-08-14) ══════════════════════════════════════════
+   Card titles pop a beat after their card lands (replaying with the viewport
+   toggle); inner-page title-band H1s play on every route mount. */
+html[data-theme="gold"] .gld-qcard.is-visible .gld-qcard__t {
+  animation: gldHeadIn 560ms var(--g-ease-enter) .18s both;
+}
+html[data-theme="gold"] main h1.font-heading {
+  animation: gldHeadIn 700ms var(--g-ease-enter) .1s both;
+}
+@keyframes gldHeadIn {
+  from { opacity: 0; transform: translateY(16px); filter: blur(6px); }
+  to   { opacity: 1; transform: none; filter: none; }
+}

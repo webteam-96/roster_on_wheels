@@ -1,0 +1,125 @@
+/* ═════════════════════════════════════════════════════════════════════════════
+   SUNRISE · CALENDAR (sun-cal-*) — the month sky.
+   Tokens only (theme.css); every mode colour comes from --sun-*.
+   Kinds read by SHAPE (disc / ring / diamond) and by word, never colour alone.
+   ═════════════════════════════════════════════════════════════════════════════ */
+
+/* ---------- the month switcher (PageHero children) ---------- */
+.sun-cal-sw{display:grid;grid-template-columns:48px minmax(0,1fr) 48px;align-items:center;gap:12px;max-width:640px}
+.sun-cal-sw__btn{display:grid;place-items:center;width:48px;height:48px;border-radius:50%;border:1.5px solid var(--sun-btn-line);
+  color:var(--sun-ink);text-decoration:none;transition:border-color .25s,color .25s,background-color .25s}
+.sun-cal-sw__btn:hover{border-color:var(--sun-accent);color:var(--sun-accent);background:var(--sun-tint)}
+.sun-cal-sw__btn svg{width:18px;height:18px}
+/* a size container: between the two arrows a long month is held to the room it has (cqi, below:
+   Unbounded 600 runs ~.74em a letter; --sun-len = the name's letters, so October keeps the heading size) */
+.sun-cal-mon{position:relative;min-width:0;text-align:center;container-type:inline-size}
+.sun-cal-mon__now,.sun-cal-mon__was{display:flex;flex-wrap:wrap;justify-content:center;align-items:baseline;gap:0 .32em;min-width:0}
+/* the month we came from: a decorative twin that only the roll ever shows */
+.sun-cal-mon__was{position:absolute;inset:0;visibility:hidden;pointer-events:none}
+/* the month and the list's title are headings: the one heading size (client, 2026-10-05) */
+.sun-cal-mon__m{min-width:0;padding-bottom:.08em;font:600 var(--sun-h2-size)/1.08 var(--sun-display);font-size:min(var(--sun-h2-size),calc(96cqi / (var(--sun-len,9) * .74)));letter-spacing:-.035em;overflow-wrap:anywhere;
+  background:var(--sun-name-grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+.sun-cal-mon__y{font:italic 400 calc(var(--sun-h2-size) * .85)/1.08 var(--sun-serif);color:var(--sun-accent)}
+/* phones: at that size "September 2026" wraps and "May 2026" does not, so paging months made the page
+   jump - the year always goes under the month there, every month the same height */
+@media (max-width:599px){ .sun-cal-mon__now,.sun-cal-mon__was{flex-direction:column;align-items:center} }
+
+/* ---------- body: the month panel (sticky on wide) + the agenda ---------- */
+.sun-cal-body{display:grid;gap:clamp(28px,4vw,48px);align-items:start}
+.sun-cal-side,.sun-cal-main{min-width:0}
+@media (min-width:900px){
+  .sun-cal-body{grid-template-columns:minmax(300px,380px) minmax(0,1fr)}
+}
+/* pinned only where the whole month fits under the bar (a 430px-tall screen hid its last weeks) */
+@media (min-width:900px) and (min-height:640px){ .sun-cal-side{position:sticky;top:calc(var(--sun-hh) + 24px)} }
+
+/* ---------- the month: a panel of days, suns in the days that hold something ---------- */
+.sun-cal-month{padding:clamp(14px,2.2vw,26px)}
+.sun-cal-week,.sun-cal-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px}
+.sun-cal-week{margin-bottom:6px;text-align:center;font-size:12px;font-weight:600;letter-spacing:.16em;color:var(--sun-mist)}
+.sun-cal-g{position:relative;display:grid;place-items:center;aspect-ratio:1;min-height:44px;padding:0;border:0;border-radius:50%;
+  background:none;color:var(--sun-mist);font:500 15px/1 var(--sun-display);cursor:pointer;transition:background-color .25s,color .25s}
+.sun-cal-g:hover{background:var(--sun-tint);color:var(--sun-ink)}
+.sun-cal-g.has-any{color:var(--sun-ink);font-weight:600}
+.sun-cal-g__sun{position:absolute;inset:4%;border-radius:50%;background:var(--sun-sun-glow);pointer-events:none}
+.sun-cal-g__n{position:relative}
+.sun-cal-g__mks{position:absolute;left:0;right:0;bottom:11%;display:flex;justify-content:center;gap:3px;pointer-events:none}
+.sun-cal-g.is-today{box-shadow:inset 0 0 0 1.5px var(--sun-accent)}
+.sun-cal-g.is-sel{background:var(--sun-sunbtn);color:var(--sun-dk)}
+.sun-cal-g.is-sel .sun-cal-g__sun{display:none}
+.sun-cal-g.is-sel .sun-cal-mk{--sun-cal-mk:var(--sun-dk)}
+
+/* the three shapes */
+.sun-cal-mk{--sun-cal-mk:var(--sun-accent);flex:none;display:inline-block;width:6px;height:6px}
+.sun-cal-mk--birthdays{border-radius:50%;background:var(--sun-cal-mk)}
+.sun-cal-mk--anniversaries{border-radius:50%;box-shadow:inset 0 0 0 1.5px var(--sun-cal-mk)}
+.sun-cal-mk--events{--sun-cal-mk:var(--sun-ink);background:var(--sun-cal-mk);transform:rotate(45deg) scale(.86)}
+
+.sun-cal-key{display:flex;flex-wrap:wrap;gap:6px 18px;margin-top:16px;padding-top:14px;border-top:1px solid var(--sun-line);font-size:13.5px;color:var(--sun-mist)}
+.sun-cal-key li{display:inline-flex;align-items:center;gap:8px}
+.sun-cal-key .sun-cal-mk{width:9px;height:9px}
+
+/* ---------- scope line + kind chips ---------- */
+.sun-cal-scope{display:flex;flex-wrap:wrap;align-items:center;gap:10px 20px;margin-bottom:18px}
+.sun-cal-scope__t{flex:1 1 auto;min-width:0;font:600 var(--sun-h2-size)/1.15 var(--sun-display);letter-spacing:-.025em;overflow-wrap:anywhere}
+.sun-cal-chips{margin-bottom:clamp(20px,3vw,32px)}
+
+/* ---------- the agenda: one card per day, its date sun on the left ---------- */
+.sun-cal-days{display:grid;gap:14px}
+.sun-cal-day{position:relative;display:grid;grid-template-columns:72px minmax(0,1fr);gap:14px clamp(16px,2.4vw,28px);align-items:start;min-width:0;
+  padding:clamp(16px,2vw,22px);border-radius:22px;background:var(--sun-card-bg);border:1px solid var(--sun-card-line);box-shadow:var(--sun-card-shadow)}
+.sun-cal-day.is-today{border-color:var(--sun-hover-line)}
+.sun-cal-day__when{display:flex;flex-direction:column;align-items:center;gap:8px;padding-top:4px}
+.sun-cal-day__wk,.sun-cal-day__today{font-size:11.5px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:var(--sun-mist)}
+.sun-cal-day__today{margin-top:-4px;color:var(--sun-accent)}
+.sun-cal-day__list{display:grid;min-width:0}
+
+.sun-cal-e{position:relative;display:grid;grid-template-columns:44px minmax(0,1fr) auto;align-items:center;gap:14px;padding:10px 0;min-width:0}
+.sun-cal-e+.sun-cal-e{border-top:1px solid var(--sun-line)}
+/* people: a small arch; events: a disc with the calendar mark */
+.sun-cal-e__pic{display:grid;place-items:center;width:44px;height:54px;overflow:hidden;border-radius:999px 999px 10px 10px;background:var(--sun-card-img)}
+.sun-cal-e__img{width:100%;height:100%;object-fit:cover;object-position:50% 22%}
+.sun-cal-e__mono{display:grid;place-items:center;width:100%;height:100%;font:700 14px/1 var(--sun-display);letter-spacing:-.02em;color:var(--sun-ink);background:var(--sun-sun-glow)}
+.sun-cal-e--events .sun-cal-e__pic{height:44px;border-radius:50%;color:var(--sun-accent);box-shadow:inset 0 0 0 1.5px var(--sun-hover-line)}
+.sun-cal-e__pic svg{width:18px;height:18px}
+.sun-cal-e__b{display:flex;flex-direction:column;align-items:flex-start;gap:3px;min-width:0}
+.sun-cal-e__kind{display:inline-flex;align-items:center;gap:8px;font-size:11.5px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:var(--sun-accent)}
+.sun-cal-e__kind .sun-cal-mk{width:8px;height:8px}
+.sun-cal-e__n{max-width:100%;font:600 clamp(15px,1.35vw,18px)/1.3 var(--sun-display);letter-spacing:-.015em;color:var(--sun-ink);overflow-wrap:anywhere}
+.sun-cal-e__m{max-width:100%;font-size:14.5px;line-height:1.45;color:var(--sun-mist);overflow-wrap:anywhere}
+/* the event title's link covers its whole row */
+.sun-cal-e__link{text-decoration:none;transition:color .25s}
+.sun-cal-e__link::after{content:"";position:absolute;inset:0;z-index:1;border-radius:12px}
+.sun-cal-e__link:focus-visible{outline:none}
+.sun-cal-e:has(.sun-cal-e__link:focus-visible){outline:3px solid var(--sun-accent);outline-offset:4px;border-radius:12px}
+.sun-cal-e--events:hover .sun-cal-e__n{color:var(--sun-accent)}
+.sun-cal-e__go{width:16px;height:16px;color:var(--sun-mist);transition:translate .25s,color .25s}
+.sun-cal-e--events:hover .sun-cal-e__go{color:var(--sun-accent);translate:3px 0}
+
+/* ---------- phones: agenda layout, full-width switcher, 44px day targets ---------- */
+@media (max-width:599px){
+  .sun-cal-sw{max-width:none}
+  .sun-cal-month{padding:12px}
+  .sun-cal-week,.sun-cal-grid{gap:2px}
+  .sun-cal-day{grid-template-columns:60px minmax(0,1fr);gap:12px 14px;padding:14px}
+  .sun-cal-e{grid-template-columns:40px minmax(0,1fr) auto;gap:12px}
+  .sun-cal-e__pic{width:40px;height:50px}
+  .sun-cal-e--events .sun-cal-e__pic{height:40px}
+}
+/* under 375px the day's sun moves above its list, which takes the card's whole width: beside it the
+   text had 66px on a 280px Fold (a word, or half a word, per line). The week has 32px columns there:
+   the days are circles of the column, not 44px ones overflowing it */
+@media (max-width:374px){
+  .sun-cal-day{grid-template-columns:minmax(0,1fr);gap:10px}
+  .sun-cal-day__when{flex-direction:row;justify-content:flex-start;gap:12px;padding-top:0}
+  .sun-cal-day__today{margin-top:0}
+  .sun-cal-g{min-height:0;font-size:13px}
+  /* an event row drops its disc (it only repeats the calendar mark): the title gets the width back.
+     Birthdays and anniversaries keep their portraits */
+  .sun-cal-e--events{grid-template-columns:minmax(0,1fr) auto}
+  .sun-cal-e--events .sun-cal-e__pic{display:none}
+}
+/* a phone on its side: a smaller month, nearly whole on the screen (full width, a week was 84px tall),
+   and the switcher over it as wide as it, so its arrows bracket the month they turn (here, after the
+   phone rules above: the same specificity) */
+@media (max-height:500px) and (max-width:899px){ .sun-cal-month,.sun-cal-sw{max-width:340px} }

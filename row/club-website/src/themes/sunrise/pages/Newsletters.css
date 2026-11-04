@@ -1,0 +1,43 @@
+/* ═════════════════════════════════════════════════════════════════════════════
+   SUNRISE · NEWSLETTERS (sun-nl-*). The sheet and covers come from theme.css
+   (one palette in both modes: dark text on cream/white, night-sky covers), so
+   only --sun-dk / --sun-dk2 / --sun-berry are used on the sheet. Hovers move the
+   <a> with `translate` - the covers themselves carry standUp's inline transform.
+   ═════════════════════════════════════════════════════════════════════════════ */
+.sun-nl-body{padding-top:clamp(24px,3vw,48px)}
+.sun-nl-sheet{grid-template-columns:minmax(0,1fr)}
+
+/* ---------- the latest issue: title + action beside a large cover ---------- */
+.sun-nl-lead{display:grid;gap:28px 56px;align-items:center}
+@media (min-width:760px){ .sun-nl-lead{grid-template-columns:minmax(0,7fr) minmax(0,5fr)} }
+.sun-nl-lead__txt{min-width:0}
+.sun-nl-lead__title{margin-top:12px;font:600 var(--sun-h2-size)/1.08 var(--sun-display);letter-spacing:-.03em;color:var(--sun-dk);overflow-wrap:anywhere;text-wrap:balance}
+.sun-nl-lead__date{margin-top:14px;font-size:15.5px;font-weight:500;color:var(--sun-dk2)}
+.sun-nl-lead .sun-btn{margin-top:26px}
+.sun-nl-lead__cover{display:block;justify-self:center;width:min(100%,340px);border-radius:16px;text-decoration:none;transition:translate .5s cubic-bezier(.2,.7,.2,1)}
+.sun-nl-lead__cover:hover{translate:0 -6px}
+.sun-nl-lead__cover .sun-cover__name{font-size:clamp(26px,3vw,44px)}
+@media (max-width:759px){ .sun-nl-lead__cover{width:min(72%,280px)} }
+
+/* ---------- earlier issues: a shelf of covers ---------- */
+.sun-nl-lead+.sun-nl-more{padding-top:clamp(28px,4vw,48px);border-top:1px solid rgba(28,18,54,.12)}
+/* both headings here take the one heading size (client, 2026-10-05) */
+.sun-nl-h{margin-bottom:clamp(20px,3vw,32px);font:600 var(--sun-h2-size)/1.2 var(--sun-display);letter-spacing:-.02em;color:var(--sun-dk)}
+.sun-nl-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:clamp(22px,3vw,40px) clamp(14px,2.4vw,28px)}
+@media (min-width:700px){ .sun-nl-grid{grid-template-columns:repeat(3,minmax(0,1fr))} }
+@media (min-width:1100px){ .sun-nl-grid{grid-template-columns:repeat(4,minmax(0,1fr))} }
+/* a phone on its side: four across, a cover whole on the screen with its date (two across, it was taller) */
+@media (max-height:500px) and (min-width:560px){ .sun-nl-grid{grid-template-columns:repeat(4,minmax(0,1fr))} }
+.sun-nl-issue{min-width:0}
+.sun-nl-issue a{display:flex;flex-direction:column;height:100%;border-radius:16px;text-decoration:none;color:inherit;transition:translate .5s cubic-bezier(.2,.7,.2,1)}
+.sun-nl-issue a:hover{translate:0 -6px}
+.sun-nl-issue .sun-cover__name{font-size:clamp(19px,1.9vw,28px);font-size:min(clamp(19px,1.9vw,28px),25cqi,calc(96cqi / (var(--sun-lw,1) * .46)))}
+.sun-nl-issue__foot{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:2px 10px;min-height:44px;margin-top:10px;font-size:14px;line-height:1.35}
+/* a narrow card (two across on phones, three or four on tablets): the date over the link on every card,
+   so neighbouring rows line up - side by side it fitted on some ("10 Jul 2026 Open") and wrapped on others */
+.sun-nl-issue a{container-type:inline-size}
+@container (max-width:219px){ .sun-nl-issue__foot{flex-direction:column;align-items:flex-start;justify-content:center} }
+.sun-nl-issue__date{color:var(--sun-dk2);font-weight:500;white-space:nowrap}
+.sun-nl-issue__cta{display:inline-flex;align-items:center;gap:6px;font-weight:600;color:var(--sun-dk)}
+.sun-nl-issue__cta svg{width:14px;height:14px}
+.sun-nl-issue a:hover .sun-nl-issue__cta{color:var(--sun-berry)}

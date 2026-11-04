@@ -1,0 +1,328 @@
+/* ─────────────────────────────────────────────────────────────────────────────
+   HORIZONTAL JOURNEY — home (Home.jsx). Tokens and shared pieces: theme.css.
+   Vertical flow is the default (phones, tablets, short windows, reduced
+   motion); the pinned horizontal journey is .hj-jr.is-h, added by the scene.
+   ───────────────────────────────────────────────────────────────────────────── */
+.hj-home{position:relative}
+
+/* ── hero: dawn over the hills ─────────────────────────────────────────────── */
+.hj-hero{
+  position:relative;isolation:isolate;overflow:clip;color:var(--hj-cream);--hj-focus:#fff;
+  min-height:calc(100vh - var(--hj-hh));min-height:calc(100svh - var(--hj-hh));display:flex;flex-direction:column;
+  --hj-fr:clamp(56px,16vw,120px);
+}
+@media (min-width:900px){
+  .hj-hero{height:calc(100vh - var(--hj-hh));height:calc(100svh - var(--hj-hh));min-height:540px;--hj-fr:clamp(70px,19vh,190px)}
+}
+.hj-hero__sky{
+  position:absolute;inset:0;z-index:-4;
+  background-image:var(--hj-noise),linear-gradient(180deg,#0D1F5C 0%,#28307F 22%,#5E2690 42%,#A11C80 58%,#D6336F 70%,#FF7A3D 82%,#FFB54D 92%,#FFD27A 100%);
+}
+.hj-hero__stars{position:absolute;inset:0 0 50% 0;background-image:var(--hj-stars);opacity:.8}
+/* the warmer light the sunrise scrubs in; an effect layer only, content never depends on it */
+.hj-hero__dawn{position:absolute;inset:0;opacity:0;background:linear-gradient(180deg,rgba(40,48,127,0) 0%,rgba(255,122,61,.28) 55%,rgba(255,196,110,.5) 100%)}
+.hj-hero__sunwrap{position:absolute;inset:0;z-index:-3;pointer-events:none}
+.hj-hero__sun{
+  position:absolute;left:44%;top:62%;width:clamp(110px,22vh,210px);aspect-ratio:1;border-radius:50%;
+  background:radial-gradient(circle at 50% 44%,#FFFBEA 0%,#FFE7A6 38%,#FFC857 68%,#FF9F3A 100%);
+  box-shadow:0 0 46px 12px rgba(255,196,110,.55),0 0 130px 36px rgba(255,140,70,.3);
+}
+@media (max-width:899px){ .hj-hero__sun{left:auto;right:7%;top:auto;bottom:calc(var(--hj-fr) + 4vw);width:clamp(84px,24vw,150px)} }
+.hj-hero__hills{position:absolute;left:0;right:0;bottom:0;height:46%;z-index:-2;pointer-events:none}
+.hj-rg--hmid{height:72%}
+.hj-hero__in{
+  position:relative;z-index:1;flex:1;display:grid;align-content:center;gap:clamp(22px,4vw,36px);
+  padding:clamp(28px,5vh,56px) var(--hj-gut) calc(var(--hj-fr) + clamp(24px,5vh,56px));
+}
+/* the banner alone fills the hero (client, 2026-09-29): as wide as the page allows, as tall as the photo's shape
+   lets it be within the screen above the front ridge (--hj-ar: the current slide's width / height) */
+.hj-hero__in{justify-items:center}
+/* the advertisements beside the banner (client, 2026-09-29): a poster-shaped card to its right on wide
+   screens, under it on phones; the banner takes the rest of the width */
+.hj-hero__ad{width:min(100%,300px);min-width:0}
+.hj-hero__ad .hj-news__box{aspect-ratio:3/4;width:100%}
+.hj-hero__ad .hj-ad__ctrl{color:#fff}
+@media (min-width:900px){
+  .hj-hero__in:has(.hj-hero__ad){grid-template-columns:minmax(0,1fr) auto;align-items:center;column-gap:clamp(20px,2.4vw,40px)}
+  /* banner left, ad right (client, 2026-09-29) - the ad's width is capped so it always fits inside the page */
+  .hj-hero__in:has(.hj-hero__ad) .hj-hero__banner{grid-column:1;grid-row:1}
+  .hj-hero__in:has(.hj-hero__ad) .hj-hero__ad{grid-column:2;grid-row:1;max-width:min(26vw,340px)}
+  .hj-hero__ad{width:auto}
+  .hj-hero__ad .hj-news__box{height:min(calc(100svh - var(--hj-hh) - var(--hj-fr) - 170px),460px);width:auto}
+}
+.hj-hero__copy{min-width:0}
+.hj-hero__h{margin:0;font:inherit}
+.hj-hero__pre{display:block;margin-bottom:14px;font:750 clamp(12px,1.1vw,15px)/1.2 var(--hj-sans);letter-spacing:.26em;text-transform:uppercase}
+/* size follows the longest line (--hj-len, in characters) so any club's name fits its column */
+.hj-hero__big{
+  display:block;font-family:var(--hj-disp);font-weight:800;line-height:.9;letter-spacing:-.035em;text-transform:uppercase;
+  font-size:clamp(30px,min(14vw,calc((100vw - 2 * var(--hj-gut)) * 1.25 / var(--hj-len))),150px);
+}
+@media (min-width:900px){
+  .hj-hero__big{font-size:clamp(36px,min(9vw,calc(34vh / var(--hj-lines)),calc((45vw - 84px) * 1.25 / var(--hj-len))),150px)}
+}
+.hj-hero__line{display:block;overflow-wrap:anywhere}
+.hj-hero__line + .hj-hero__line{padding-left:.5em}
+.hj-hero__meta{margin-top:clamp(18px,3.4vh,32px);display:flex;flex-direction:column;align-items:flex-start;gap:18px}
+.hj-hero__facts{display:flex;flex-wrap:wrap;gap:4px 20px;margin:0;font-size:16px;font-weight:600}
+.hj-hero__facts:empty{display:none}
+.hj-hero__facts b{font-weight:800}
+.hj-hero__cta{display:flex;flex-wrap:wrap;gap:12px}
+.hj-hero__banner{margin:0;min-width:0;width:100%;display:flex;flex-direction:column;align-items:center}
+.hj-bn-card{
+  position:relative;width:min(100%,calc((100svh - var(--hj-hh) - var(--hj-fr) - 150px) * var(--hj-ar,3)));
+  aspect-ratio:var(--hj-ar,3);border-radius:22px;overflow:hidden;background:#2A1846;
+  box-shadow:0 40px 90px -24px rgba(18,6,48,.75),0 0 0 1px rgba(255,255,255,.3);transition:aspect-ratio .6s,width .6s;
+}
+/* phones: the hero hugs the banner instead of filling the screen */
+@media (max-width:899px){
+  .hj-hero{min-height:0}
+  .hj-bn-card{width:100%;border-radius:16px}
+}
+.hj-bn__s{position:absolute;inset:0;display:block;visibility:hidden;z-index:0}
+.hj-bn__s.is-on{visibility:visible;z-index:1}
+.hj-bn__s.is-top{z-index:2}
+.hj-bn__fill{position:absolute;inset:0;width:100%;height:100%;max-width:none;object-fit:cover;filter:blur(22px) saturate(1.3);transform:scale(1.2)}
+.hj-bn__img{position:absolute;inset:0;width:100%;height:100%;max-width:none;object-fit:contain}
+a.hj-bn__s:focus-visible{outline-offset:-5px}
+.hj-bn__ctrl{display:flex;align-items:center;gap:2px;margin-top:8px}
+.hj-bn__dots{display:flex;flex-wrap:wrap}
+.hj-dot{display:grid;place-items:center;width:44px;height:44px;border:0;background:none;cursor:pointer;border-radius:50%;color:inherit}
+.hj-dot span[aria-hidden]{display:block;width:10px;height:10px;border-radius:5px;background:rgba(255,246,234,.55);transition:width .3s,background-color .3s}
+.hj-dot[aria-current="true"] span[aria-hidden]{width:28px;background:var(--hj-cream)}
+.hj-bn__pause{display:grid;place-items:center;width:44px;height:44px;margin-left:6px;border:1.5px solid rgba(255,246,234,.55);border-radius:50%;background:none;color:inherit;cursor:pointer}
+.hj-bn__pause svg{width:14px;height:14px;fill:var(--hj-cream)}
+/* phones: the controls sit low on the orange end of the sky, so give them a dusk backing (4.8:1) */
+@media (max-width:899px){ .hj-bn__ctrl{width:max-content;max-width:100%;padding:0 4px;border-radius:999px;background:rgba(13,31,92,.38)} }
+.hj-hero__fw{position:absolute;inset:0;z-index:2;pointer-events:none}
+.hj-hero__front{position:absolute;left:0;right:0;top:calc(100% - var(--hj-fr));height:150%;display:flex;flex-direction:column}
+.hj-hero__front .hj-rg{position:relative;flex:none;width:100%;height:clamp(50px,13vh,130px)}
+.hj-hero__front i{flex:1;margin-top:-1px;background:var(--hj-first,var(--hj-cran))}
+
+/* ── the journey: vertical chapters (default) ──────────────────────────────── */
+.hj-jr{position:relative}
+.hj-jr__wait{min-height:calc(100svh - var(--hj-hh));background:var(--hj-first,var(--hj-cran))}
+.hj-sky,.hj-sun,.hj-hills{display:none}
+.hj-pn{
+  position:relative;isolation:isolate;overflow:clip;color:var(--hj-fg);--hj-focus:var(--hj-fg);
+  background-color:var(--hj-c);background-image:var(--hj-noise);
+  --hj-rh:clamp(64px,12vw,160px);
+  padding:clamp(56px,9vw,120px) var(--hj-gut) calc(var(--hj-rh) + clamp(32px,5vw,64px));
+}
+.hj-pn__ridge{position:absolute;left:0;right:0;bottom:-1px;height:var(--hj-rh);z-index:1;pointer-events:none}
+.hj-pn__num{
+  position:absolute;right:var(--hj-gut);bottom:calc(var(--hj-rh) * .45);z-index:0;pointer-events:none;user-select:none;
+  font:800 clamp(120px,36vw,300px)/.8 var(--hj-disp);letter-spacing:-.05em;color:transparent;-webkit-text-stroke:1.5px var(--hj-numc);
+}
+.hj-pn__in{position:relative;z-index:2;max-width:var(--hj-max);margin:0 auto}
+.hj-chap{margin-bottom:clamp(28px,5vw,48px);min-width:0}
+.hj-chap__sub{margin:14px 0 0;font-weight:650;font-size:16px}
+.hj-chap__act{display:flex;flex-wrap:wrap;gap:10px;margin:22px 0 0}
+.hj-pn--projects{--hj-ring:#fff}
+
+/* story */
+.hj-story__text{
+  margin:22px 0 26px;max-width:62ch;font-size:clamp(16.5px,1.3vw,19px);line-height:1.6;overflow-wrap:anywhere;
+  display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:5;line-clamp:5;overflow:hidden;   /* five lines (client) */
+}
+.hj-ms-list{list-style:none;margin:0;padding:0;display:grid;gap:34px}
+@media (min-width:760px){ .hj-ms-list{grid-template-columns:repeat(3,minmax(0,1fr))} }
+.hj-ms{min-width:0}
+.hj-ms__yr{position:relative;display:inline-block;font:800 clamp(56px,15vw,104px)/1 var(--hj-disp);letter-spacing:-.04em}
+.hj-ms__o{color:transparent;-webkit-text-stroke:2px rgba(255,255,255,.9)}
+.hj-ms__f{position:absolute;inset:0;color:var(--hj-gold-lt)} /* 3.2:1 on cranberry, large text only */
+.hj-ms p{margin:12px 0 0;font-size:16px;line-height:1.55;max-width:46ch;overflow-wrap:anywhere}
+.hj-story__more{margin:0;font-size:16.5px;line-height:1.6;max-width:62ch;overflow-wrap:anywhere}
+
+/* numbers: a Bauhaus skyline, one shape per figure */
+/* each figure is a silhouette of what it counts - a person, two people, a clipboard, a stopwatch, a money
+   bag - with its number inside the body (client, 2026-09-29); all in one view */
+.hj-figs{list-style:none;margin:0 auto;padding:0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px 14px;width:100%;max-width:1180px}
+@media (min-width:700px){ .hj-figs{grid-template-columns:repeat(var(--hj-n,5),minmax(0,1fr));gap:2.4vw} }
+.hj-fg{position:relative;min-width:0;aspect-ratio:120/140;container-type:inline-size;color:#fff}
+.hj-fg:last-child:nth-child(odd){grid-column:1 / -1;justify-self:center;width:calc(50% - 7px)}
+@media (min-width:700px){ .hj-fg:last-child:nth-child(odd){grid-column:auto;width:auto} }
+.hj-fg__shape{position:absolute;inset:0;width:100%;height:100%;overflow:visible;fill:var(--fg-bg,var(--hj-royal));filter:drop-shadow(0 16px 22px rgba(18,6,48,.35))}
+.hj-fg--royal{--fg-bg:var(--hj-royal)}
+.hj-fg--cran{--fg-bg:var(--hj-cran)}
+.hj-fg--ink{--fg-bg:var(--hj-ink)}
+.hj-fg--azure{--fg-bg:#0E5FA0}
+.hj-fg--violet{--fg-bg:var(--hj-violet)}
+.hj-fg__t{position:absolute;left:8%;right:8%;top:var(--ty,60%);transform:translateY(-50%);display:flex;flex-direction:column;align-items:center;gap:4px;text-align:center}
+/* the number and the label FIT their shape at any width and any figure length (client, 2026-10-01): the size is
+   the width the shape allows at that height (--hj-nw / --hj-lw, Home.jsx FIG_SHAPE) over the text's width in em */
+.hj-fg__n{font:700 15px/1 var(--hj-disp);font-size:min(44px,15cqi,calc(var(--hj-nw,60cqi) / var(--hj-nem,4)));letter-spacing:-.03em;font-variant-numeric:tabular-nums;white-space:nowrap}
+.hj-fg__l{font:750 13px/1.15 var(--hj-sans);font-size:min(13px,calc(var(--hj-lw,80cqi) / var(--hj-lem,6.6)));letter-spacing:.04em;text-transform:uppercase;white-space:nowrap}
+/* tablets held upright: three shapes a row (the rest centred below), still all in one view - five across left
+   each shape ~100px wide, too small for a figure and its label */
+@media (min-width:600px) and (max-width:899px) and (min-height:700px){
+  .hj-figs{display:flex;flex-wrap:wrap;justify-content:center;gap:22px 3vw;max-width:720px}
+  .hj-fg,.hj-fg:last-child:nth-child(odd){flex:0 0 calc((100% - 6vw) / 3);width:auto}
+}
+
+/* projects */
+.hj-pj-list{list-style:none;margin:0;padding:0}
+.hj-pj .hj-card__m{aspect-ratio:auto;height:clamp(190px,54vw,260px)}
+.hj-pj-empty{max-width:560px}
+/* phones: one project under another, no sideways scroll (client, 2026-09-29); tablets: two across */
+@media (max-width:899px){ .hj-pj-list{display:grid;grid-template-columns:minmax(0,1fr);gap:22px} }
+@media (min-width:600px) and (max-width:899px){ .hj-pj-list{grid-template-columns:repeat(2,minmax(0,1fr))} }
+@media (min-width:900px){ .hj-pj-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:24px} }
+
+/* leaders */
+.hj-ld-list{list-style:none;margin:0;padding:0;display:grid;gap:30px}
+/* phones: one leader under another, no sideways scroll (client, 2026-09-29) */
+@media (max-width:599px){
+  .hj-ld-list{grid-template-columns:minmax(0,1fr);gap:34px;justify-items:center}
+  .hj-ld{width:min(100%,300px)}
+}
+@media (min-width:600px){ .hj-ld-list{grid-template-columns:repeat(auto-fit,minmax(200px,1fr))} }
+.hj-ld{position:relative;min-width:0}
+.hj-ld__r{margin:20px 0 6px;font:750 12.5px/1.3 var(--hj-sans);letter-spacing:.14em;text-transform:uppercase;overflow-wrap:anywhere}
+.hj-ld__n{margin:0;font:700 clamp(17px,1.5vw,21px)/1.25 var(--hj-disp);letter-spacing:-.015em;overflow-wrap:anywhere}
+.hj-ld__more{margin-top:14px;position:relative;z-index:2}
+
+/* club news: printed covers, an event ticket, a notice card */
+.hj-news{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:clamp(14px,3vw,32px);max-width:760px}
+.hj-news__item{min-width:0}
+.hj-news__box{position:relative;display:flex;flex-direction:column;aspect-ratio:1/1.414;border-radius:14px;overflow:hidden;text-decoration:none;box-shadow:0 34px 60px -24px rgba(30,6,40,.7)}
+.hj-cv .hj-news__box,.hj-tk .hj-news__box{transition:translate .35s var(--hj-ease)}
+.hj-cv .hj-news__box:hover,.hj-tk .hj-news__box:hover{translate:0 -10px}
+.hj-cv .hj-news__box{padding:clamp(14px,2.4vw,26px)}
+.hj-cv--0 .hj-news__box{background:var(--hj-gold);color:var(--hj-ink);--hj-sunc:var(--hj-cran);--hj-hillc:var(--hj-royal);--hj-focus:#fff}
+.hj-cv--1 .hj-news__box{background:#fff;color:var(--hj-violet);--hj-sunc:var(--hj-gold);--hj-hillc:var(--hj-violet);--hj-focus:#fff}
+.hj-cv__tag{align-self:flex-start;padding:6px 9px;border:1.5px solid currentColor;border-radius:6px;font:800 11px/1 var(--hj-sans);letter-spacing:.16em}
+.hj-cv__name{margin-top:clamp(12px,2vw,22px);font:800 clamp(19px,3.6vw,40px)/.98 var(--hj-disp);letter-spacing:-.035em;overflow-wrap:anywhere;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:4;overflow:hidden}
+.hj-cv__name.is-long{font-size:clamp(15px,2.4vw,26px);line-height:1.05}
+/* small phones: a cover title word never splits mid-letter */
+@media (max-width:420px){ .hj-cv__name{font-size:clamp(15px,4.6vw,19px);overflow-wrap:break-word;hyphens:auto} }
+.hj-cv__ed{margin-top:8px;font-weight:750;font-size:clamp(12px,1.3vw,15px);letter-spacing:.04em}
+.hj-cv__art{position:absolute;left:0;right:0;bottom:0;height:44%;pointer-events:none}
+.hj-cv__art::before{content:"";position:absolute;left:54%;bottom:44%;width:34%;aspect-ratio:1;border-radius:50%;background:var(--hj-sunc)}
+.hj-cv__art::after{content:"";position:absolute;left:0;right:0;bottom:0;height:64%;background:var(--hj-hillc);clip-path:polygon(0 36%,16% 12%,32% 30%,50% 0,68% 26%,84% 8%,100% 26%,100% 100%,0 100%)}
+.hj-cv__date{position:relative;z-index:1;margin-top:auto;display:flex;align-items:center;justify-content:space-between;gap:8px;color:#fff;font-weight:750;font-size:clamp(12px,1.2vw,14.5px)}
+.hj-cv__date svg{width:18px;height:18px;flex:none}
+
+.hj-tk .hj-news__box{background:#fff;color:var(--hj-ink);--hj-focus:#fff}
+/* the upcoming-events chapter holds the ticket alone: on phones and tablets it takes the width and its own height */
+@media (max-width:899px){ .hj-pn--events .hj-news{grid-template-columns:minmax(0,1fr);max-width:440px} .hj-pn--events .hj-tk .hj-news__box{aspect-ratio:auto;min-height:0} }
+.hj-tk__stub{display:flex;align-items:baseline;flex-wrap:wrap;gap:4px 10px;padding:clamp(12px,2vw,20px) clamp(14px,2.2vw,22px);background:var(--hj-gold);border-bottom:2px dashed rgba(20,26,51,.4)}
+.hj-tk__day{font:800 clamp(34px,6vw,64px)/.9 var(--hj-disp);letter-spacing:-.04em}
+.hj-tk__mon{font:750 clamp(12px,1.3vw,15px)/1.2 var(--hj-sans);letter-spacing:.12em;text-transform:uppercase}
+.hj-tk__body{flex:1;min-height:0;display:flex;flex-direction:column;gap:6px;padding:clamp(12px,2vw,20px) clamp(14px,2.2vw,22px)}
+.hj-tk__k{font:750 12px/1.2 var(--hj-sans);letter-spacing:.18em;text-transform:uppercase;color:var(--hj-violet)}
+.hj-tk__t{font:700 clamp(15px,1.7vw,20px)/1.2 var(--hj-disp);letter-spacing:-.015em;overflow-wrap:anywhere;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:4;overflow:hidden}
+.hj-tk__m{font-size:14px;line-height:1.4;color:var(--hj-ink-2);overflow-wrap:anywhere;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden}
+.hj-tk__go{margin-top:auto;display:flex;align-items:center;gap:8px;font:750 14px/1.2 var(--hj-sans);color:var(--hj-violet)}
+
+.hj-ad__frame{background:#fff;color:var(--hj-ink)}
+.hj-ad__s{position:absolute;inset:0;display:block;visibility:hidden}
+.hj-ad__s.is-on{visibility:visible}
+.hj-ad__s img{width:100%;height:100%;max-width:none;object-fit:contain}
+a.hj-ad__s:focus-visible{outline-offset:-5px;outline-color:var(--hj-violet)}
+.hj-ad__ctrl{display:flex;align-items:center;justify-content:center;gap:10px;margin-top:10px;font:700 14px/1 var(--hj-sans)}
+.hj-ad__ctrl button{display:grid;place-items:center;width:44px;height:44px;border:1.5px solid rgba(255,255,255,.55);border-radius:50%;background:none;color:inherit;cursor:pointer}
+.hj-ad__ctrl svg{width:16px;height:16px}
+
+/* where we meet */
+.hj-night{position:absolute;inset:0;z-index:0;pointer-events:none}
+.hj-night .hj-stars{inset:0 0 40% 0;opacity:1}
+.hj-night .hj-moon{position:absolute;top:clamp(20px,6vw,64px);right:6%;width:clamp(58px,15vw,170px);aspect-ratio:1}
+.hj-meet__dl{margin:0 0 30px;display:grid;gap:22px}
+.hj-meet__dl dt{margin-bottom:6px;font:750 12.5px/1.2 var(--hj-sans);letter-spacing:.18em;text-transform:uppercase}
+.hj-meet__dl dd{margin:0;font-size:18px;line-height:1.5;max-width:40ch;overflow-wrap:anywhere}
+.hj-meet__day dd{max-width:none;font:800 clamp(34px,min(12.5vw,calc(118vw / var(--hj-len))),150px)/.95 var(--hj-disp);letter-spacing:-.04em;color:var(--hj-gold)} /* gold on royal 4.6:1, large */
+.hj-meet__dayt{display:block;white-space:nowrap}
+.hj-meet__dayt.is-long{white-space:normal;overflow-wrap:anywhere}
+.hj-meet__time dd{font:600 clamp(24px,4vw,42px)/1.1 var(--hj-disp);letter-spacing:-.02em}
+.hj-meet__none{margin:0 0 26px;font-size:18px;max-width:40ch}
+
+/* phones: each chapter a screen that settles into place (home only) */
+/* (sections no longer fill a screen each, so there is no snapping between them) */
+
+/* ── the horizontal journey (wide + motion; the scene adds .is-h) ──────────── */
+.hj-jr.is-h{
+  height:calc(100vh - var(--hj-hh));height:calc(100svh - var(--hj-hh));min-height:520px;overflow:clip;
+  container-type:inline-size;background:var(--hj-first,var(--hj-cran));
+  --blend:10cqw;--pt:clamp(28px,8vh,84px);--pl:calc(var(--blend) + 40px);--pr:calc(var(--blend) + 40px);
+  --sun:clamp(70px,11vh,112px);
+}
+/* client: the leaders come up WITH the wave. The track starts right under the hero's risen front hill
+   (its ridge bottom at the end of the hero pin: hill height - --hj-fr - the .66 hero-height climb in
+   Home.jsx) instead of after the teal the hill leaves behind (~560px of empty teal at 1440x900) */
+.hj-jr.is-h{margin-top:calc(clamp(50px,13vh,130px) - clamp(70px,19vh,190px) - .66 * max(540px,100svh - var(--hj-hh)))}
+.hj-jr.is-h .hj-track{position:relative;display:flex;width:max-content;height:100%}
+.hj-jr.is-h .hj-sky{display:block;position:absolute;inset:0;z-index:0;background-image:var(--hj-noise),var(--hj-sky,linear-gradient(90deg,var(--hj-cran),var(--hj-royal)))}
+.hj-jr.is-h .hj-sun{
+  display:block;position:absolute;left:0;top:0;z-index:1;width:var(--sun);height:var(--sun);border-radius:50%;pointer-events:none;
+  background:radial-gradient(circle at 50% 44%,#FFFDF2 0%,#FFEFC2 45%,#FFD98A 100%);
+  box-shadow:0 0 36px 10px rgba(255,220,150,.45),0 0 90px 30px rgba(255,196,120,.14);
+}
+.hj-sun b{position:absolute;inset:0;border-radius:50%;opacity:0;background:radial-gradient(circle at 50% 44%,#FFD08A 0%,#FF7600 62%,#E02927 100%)}
+.hj-jr.is-h .hj-hills{display:block;position:absolute;left:0;bottom:0;width:100%;height:40%;z-index:2;pointer-events:none}
+.hj-jr.is-h .hj-hills--front{height:15%;z-index:4}
+.hj-hl{position:absolute;left:0;bottom:0;height:100%;display:block}
+.hj-hl--mid{height:78%}
+.hj-jr.is-h .hj-pn{flex:none;height:100%;min-height:0;padding:0;background:none;overflow:visible;isolation:auto}
+.hj-jr.is-h .hj-pn__ridge{display:none}
+.hj-jr.is-h .hj-pn__in{height:100%;max-width:none;margin:0;z-index:3;display:flex;align-items:flex-start;gap:4cqw;padding:var(--pt) var(--pr) 0 var(--pl)}
+.hj-jr.is-h .hj-pn__num{z-index:1;right:auto;left:calc(var(--pl) + 12cqw);bottom:15%;font-size:min(46vh,420px)}
+.hj-jr.is-h .hj-night{z-index:1}
+.hj-jr.is-h .hj-chap{flex:none;width:34cqw;margin:0}
+.hj-jr.is-h .hj-h2{font-size:clamp(40px,4.8cqw,84px)}
+/* "Newsletters" is one 11-letter word (~7.9em in Unbounded 800): it must fit the column whole, never break mid-word */
+.hj-jr.is-h .hj-pn--news .hj-chap{width:38cqw}
+.hj-jr.is-h .hj-pn--news .hj-h2{font-size:clamp(34px,4.3cqw,76px)}
+
+/* the first chapter (whichever it is) starts at the screen's edge: nothing blends into it from the left */
+.hj-jr.is-h .hj-pn:first-of-type .hj-pn__in{--pl:clamp(24px,5cqw,80px);padding-left:var(--pl)}
+.hj-jr.is-h .hj-pn--story .hj-chap{width:48cqw}
+.hj-jr.is-h .hj-story__text{font-size:clamp(16px,1.3cqw,19px)}
+
+/* impact: the title above, the five cards across the screen - all in one view */
+.hj-jr.is-h .hj-pn--numbers{width:100cqw}
+.hj-jr.is-h .hj-pn--numbers .hj-pn__in{flex-direction:column;align-items:stretch;gap:5vh;padding-right:var(--pl)}
+.hj-jr.is-h .hj-pn--numbers .hj-chap{width:auto}
+.hj-jr.is-h .hj-figs{flex:none;gap:1.6cqw}
+/* the shapes' height is what the screen leaves under the title, so all five stay in view */
+.hj-jr.is-h .hj-figs{width:min(100%,calc((100vh - var(--hj-hh) - var(--pt) - 310px) * 1.03 * var(--hj-n,5)))}
+
+.hj-jr.is-h .hj-pj-list{flex:none;display:flex;align-items:flex-start;gap:4.5cqw}
+/* photo height is what is left after the card body, the 6vh stagger, the 30px drift and room at the foot */
+.hj-jr.is-h .hj-pj{--mh:clamp(140px,min(38vh,100vh - var(--hj-hh) - var(--pt) - 6vh - 322px),350px);flex:none;width:clamp(280px,calc(var(--mh) * var(--hj-ar,1.333)),34cqw)}
+.hj-jr.is-h .hj-pj .hj-card__m{height:var(--mh)}
+.hj-jr.is-h .hj-pj .hj-card__d{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:3;overflow:hidden}
+.hj-jr.is-h .hj-pj:nth-child(even){margin-top:6vh}
+.hj-jr.is-h .hj-pj-empty{flex:none;width:34cqw;align-self:center}
+
+.hj-jr.is-h .hj-ld-list{flex:none;display:flex;gap:3.5cqw}
+/* portrait width capped so the tallest text block ends above the mid ridge (ink on turquoise stays >= 5.1:1) */
+.hj-jr.is-h .hj-ld{--aw:clamp(100px,min(24vh,(0.763 * (100vh - var(--hj-hh)) - var(--pt) - 250px) / 1.25),230px);width:max(var(--aw),250px)}
+.hj-jr.is-h .hj-ld .hj-arch{width:var(--aw)}
+
+.hj-jr.is-h .hj-news{flex:none;display:flex;align-items:flex-start;gap:4cqw;align-self:center;max-width:none;margin-top:-4vh}
+.hj-jr.is-h .hj-news__box{height:min(52vh,440px)}
+.hj-jr.is-h .hj-cv__name{font-size:clamp(22px,2.4cqw,40px)}
+.hj-jr.is-h .hj-cv__name.is-long{font-size:clamp(16px,1.6cqw,26px)}
+.hj-jr.is-h .hj-chap__act .hj-btn--sm{min-height:44px}
+
+.hj-jr.is-h .hj-pn--meet{width:100cqw}
+.hj-jr.is-h .hj-pn--meet .hj-pn__in{--pr:clamp(24px,5cqw,80px);display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);grid-template-rows:auto auto auto 1fr;row-gap:0;column-gap:5cqw;align-content:start}
+.hj-jr.is-h .hj-meet{display:contents}
+.hj-jr.is-h .hj-meet .hj-chap{grid-column:1;grid-row:1;width:auto}
+.hj-jr.is-h .hj-meet__dl{display:contents}
+.hj-jr.is-h .hj-meet__day{grid-column:1;grid-row:2 / span 2;margin-top:4vh}
+.hj-jr.is-h .hj-meet__day dd{font-size:clamp(44px,min(6.2cqw,calc(60cqw / var(--hj-len))),120px)}
+.hj-jr.is-h .hj-meet__time{grid-column:2;grid-row:2;margin-top:4vh}
+.hj-jr.is-h .hj-meet__venue{grid-column:2;grid-row:3;margin-top:20px}
+.hj-jr.is-h .hj-meet__go{grid-column:2;grid-row:4;align-self:start;justify-self:start;margin-top:26px}
+.hj-jr.is-h .hj-meet__none{grid-column:1 / span 2;grid-row:2;margin-top:4vh;font-size:clamp(18px,1.6cqw,26px)}
+.hj-jr.is-h .hj-night .hj-moon{top:6%;right:6cqw;width:min(17vh,160px)}
+
+/* tablets in portrait: the four leaders in one row (3 + a lone 4th before) */
+@media (min-width:600px) and (max-width:899px){ .hj-ld-list{grid-template-columns:repeat(auto-fit,minmax(150px,1fr))} }
+/* phones held sideways: portraits and covers fit the short screen with their names */
+@media (min-width:600px) and (max-height:500px){
+  .hj-ld .hj-arch{max-height:52svh;width:auto;aspect-ratio:4/5}
+  .hj-news__box{max-height:62svh;width:auto;margin-inline:auto}
+}

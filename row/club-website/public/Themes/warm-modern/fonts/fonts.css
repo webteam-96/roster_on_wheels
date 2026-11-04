@@ -1,0 +1,13 @@
+/* Warm Modern self-hosted fonts (latin subset, woff2 only).
+   Bricolage Grotesque = headings, Figtree = body, Caveat = script accents. */
+@font-face { font-family: 'Bricolage Grotesque'; font-style: normal; font-weight: 500; font-display: swap; src: url('../webfonts/bricolage-grotesque-500.woff2') format('woff2'); }
+@font-face { font-family: 'Bricolage Grotesque'; font-style: normal; font-weight: 600; font-display: swap; src: url('../webfonts/bricolage-grotesque-600.woff2') format('woff2'); }
+@font-face { font-family: 'Bricolage Grotesque'; font-style: normal; font-weight: 700; font-display: swap; src: url('../webfonts/bricolage-grotesque-700.woff2') format('woff2'); }
+@font-face { font-family: 'Bricolage Grotesque'; font-style: normal; font-weight: 800; font-display: swap; src: url('../webfonts/bricolage-grotesque-800.woff2') format('woff2'); }
+@font-face { font-family: 'Figtree'; font-style: normal; font-weight: 300; font-display: swap; src: url('../webfonts/figtree-300.woff2') format('woff2'); }
+@font-face { font-family: 'Figtree'; font-style: normal; font-weight: 400; font-display: swap; src: url('../webfonts/figtree-regular.woff2') format('woff2'); }
+@font-face { font-family: 'Figtree'; font-style: normal; font-weight: 500; font-display: swap; src: url('../webfonts/figtree-500.woff2') format('woff2'); }
+@font-face { font-family: 'Figtree'; font-style: normal; font-weight: 600; font-display: swap; src: url('../webfonts/figtree-600.woff2') format('woff2'); }
+@font-face { font-family: 'Figtree'; font-style: normal; font-weight: 700; font-display: swap; src: url('../webfonts/figtree-700.woff2') format('woff2'); }
+@font-face { font-family: 'Caveat'; font-style: normal; font-weight: 600; font-display: swap; src: url('../webfonts/caveat-600.woff2') format('woff2'); }
+@font-face { font-family: 'Caveat'; font-style: normal; font-weight: 700; font-display: swap; src: url('../webfonts/caveat-700.woff2') format('woff2'); }

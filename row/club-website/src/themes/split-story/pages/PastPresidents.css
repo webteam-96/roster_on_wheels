@@ -1,0 +1,14 @@
+/* Split Story · Past presidents (spl-pp-). The roll reuses the Directory's
+   cards, decade marks and split (Directory.css, client 2026-10-27); only the
+   hero search lives here. */
+
+.spl-pp-find{display:grid;gap:12px;max-width:560px}
+
+/* the panel and rail hold "1960s", not one letter */
+@media (min-width:1000px){
+  .spl-pp-split .spl-p-title{font-size:min(24cqi,18vh)}
+  .spl-split.spl-pp-split .spl-p-rail{grid-template-columns:repeat(auto-fill,minmax(76px,1fr))}
+}
+
+/* whole surnames on one line ("Samarasinghe"), never split mid-word */
+.spl-pp .spl-dir-grid .spl-person-name{font-size:clamp(1.05rem,1.25vw,1.2rem);overflow-wrap:break-word;word-break:normal}

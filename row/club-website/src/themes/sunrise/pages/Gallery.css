@@ -1,0 +1,86 @@
+/* SUNRISE · GALLERY (sun-gal-*). Tokens, the tunnel, cards, chips and states come
+   from theme.css; this file places them and draws the albums, tiles and pager.
+   Mode colours are tokens only, so both modes follow. */
+
+/* ── the tunnel: shown only while photoTunnel runs (wide + motion). Everywhere
+   else the albums below already hold every photo, so the trailer stays out. ── */
+.sun-gal-tunnel:not(.is-tunnel){display:none}
+/* the card's title is a button (it opens the viewer), dressed as the card link */
+.sun-gal-tcard{display:inline;padding:0;border:0;background:none;font:inherit;color:inherit;text-align:left;cursor:pointer;overflow-wrap:anywhere}
+
+/* ── albums: head beside its photos on wide screens, above them on phones ── */
+.sun-gal-albums:focus{outline:none}
+.sun-gal-album{position:relative;display:grid;grid-template-columns:minmax(0,1fr);gap:20px 48px;padding-block:clamp(28px,4vw,52px)}
+.sun-gal-album:first-child{padding-top:0}
+.sun-gal-album+.sun-gal-album::before{content:"";position:absolute;left:0;right:0;top:0;height:1px;
+  background:linear-gradient(90deg,transparent,var(--sun-hover-line) 30%,var(--sun-hover-line) 70%,transparent)}
+.sun-gal-album__head{min-width:0;display:flex;flex-direction:column;align-items:flex-start;gap:8px}
+/* a small sun on its horizon; it rises as the album arrives (motion only) */
+/* cut along the horizon only (clip-path, as .sun-rise): overflow:hidden squared the sun's glow off into a box */
+.sun-gal-album__rise{position:relative;display:block;width:52px;height:26px;clip-path:inset(-30px -30px 0 -30px);margin-bottom:4px}
+.sun-gal-album__rise::after{content:"";position:absolute;left:0;right:0;bottom:0;height:1px;background:linear-gradient(90deg,transparent,var(--sun-accent),transparent)}
+.sun-gal-album__sun{position:absolute;left:0;top:0;width:52px;height:52px;border-radius:50%;background:var(--sun-sunbtn);box-shadow:0 0 22px 2px var(--sun-hover-line)}
+/* an album's title heads its section: the one heading size (client, 2026-10-05). Its column is 5/12
+   wide so whole words fit at that size; lowercase long words hyphenate (Chrome never hyphenates
+   capitalised ones - those break only when a single word is wider than the column) */
+.sun-gal-album__title{font:600 var(--sun-h2-size)/1.1 var(--sun-display);letter-spacing:-.025em;text-wrap:balance;overflow-wrap:anywhere;hyphens:auto;
+  background:var(--sun-name-grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+.sun-gal-album__n{font-size:14px;font-weight:600;letter-spacing:.06em;color:var(--sun-mist)}
+@media (min-width:900px){
+  .sun-gal-album{grid-template-columns:minmax(0,5fr) minmax(0,7fr);align-items:start}
+  .sun-gal-album__head{position:sticky;top:calc(var(--sun-hh) + 28px)}
+}
+
+/* ── tiles: cover-cropped, a warm light rising from the foot on hover ── */
+.sun-gal-tiles{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;min-width:0}
+.sun-gal-tile{min-width:0}
+.sun-gal-tile__btn{position:relative;display:block;width:100%;aspect-ratio:4/3;padding:0;border:0;border-radius:16px;overflow:hidden;cursor:zoom-in;
+  background:var(--sun-sun-glow) 50% 130%/150% 150% no-repeat,var(--sun-card-img);box-shadow:var(--sun-card-shadow)}
+.sun-gal-tile__btn::before{content:"";position:absolute;inset:0;z-index:1;border-radius:inherit;pointer-events:none;
+  box-shadow:inset 0 0 0 1px var(--sun-card-line);transition:box-shadow .3s}
+.sun-gal-tile__btn::after{content:"";position:absolute;inset:0;z-index:1;pointer-events:none;
+  background:linear-gradient(0deg,var(--sun-hover-line),transparent 45%);opacity:0;transition:opacity .45s}
+.sun-gal-tile__btn:hover::before{box-shadow:inset 0 0 0 2px var(--sun-hover-line)}
+.sun-gal-tile__btn:hover::after{opacity:.85}
+.sun-gal-tile__img{width:100%;height:100%;object-fit:cover;transition:scale .8s cubic-bezier(.2,.7,.2,1)}
+.sun-gal-tile__btn:hover .sun-gal-tile__img{scale:1.05}
+.sun-gal-tile__n{position:absolute;left:10px;bottom:10px;z-index:2;padding:3px 9px;border-radius:999px;font:600 11px/1.4 var(--sun-sans);letter-spacing:.14em;
+  color:var(--sun-night-ink);background:color-mix(in srgb,var(--sun-dk) 72%,transparent);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
+/* the theme's global focus ring squares corners to 6px; keep the tile's */
+html[data-theme="sunrise"] .sun-gal-tile__btn:focus-visible{border-radius:16px}
+
+/* album shapes: phones pair the photos (an odd first one takes the row); wider,
+   a lead photo takes 2x2 beside the next two */
+@media (max-width:599px){
+  .sun-gal-tiles.is-odd>li:first-child{grid-column:1/-1}
+}
+@media (min-width:600px){
+  .sun-gal-tiles{grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+  .sun-gal-tiles.is-one>li:first-child{grid-column:span 2}
+  .sun-gal-tiles.is-lead>li:first-child{grid-column:span 2;grid-row:span 2}
+  .sun-gal-tiles.is-lead>li:first-child .sun-gal-tile__btn{aspect-ratio:auto;height:100%}
+  /* out of the flow, so a tall photo cannot stretch the two rows it spans past the tiles beside it */
+  .sun-gal-tiles.is-lead>li:first-child .sun-gal-tile__img{position:absolute;inset:0}
+}
+
+/* ── pager ── */
+.sun-gal-pager{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:12px 16px;padding-bottom:clamp(24px,4vw,56px)}
+.sun-gal-pager__nums{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:6px}
+.sun-gal-pager__n{display:inline-grid;place-items:center;min-width:48px;height:48px;padding:0 12px;border-radius:999px;border:1px solid var(--sun-line);
+  background:var(--sun-field-bg);color:var(--sun-ink);font:600 15px/1 var(--sun-display);letter-spacing:-.01em;text-decoration:none;transition:border-color .25s,color .25s}
+a.sun-gal-pager__n:hover{border-color:var(--sun-hover-line);color:var(--sun-accent)}
+.sun-gal-pager__n.is-on{background:var(--sun-sunbtn);border-color:transparent;color:var(--sun-dk)}
+.sun-gal-pager__gap{min-width:16px;text-align:center;color:var(--sun-mist)}
+.sun-gal-pager__step{display:inline-flex;align-items:center;gap:10px;min-height:48px;padding:0 22px;border-radius:999px;border:1.5px solid var(--sun-btn-line);
+  color:var(--sun-ink);font:600 15px/1.2 var(--sun-sans);text-decoration:none;transition:border-color .25s,color .25s}
+a.sun-gal-pager__step:hover{border-color:var(--sun-accent);color:var(--sun-accent)}
+.sun-gal-pager__step svg{width:16px;height:16px;flex:none}
+.sun-gal-pager__step.is-off{opacity:.4}
+html[data-theme="sunrise"] .sun-gal-pager a:focus-visible{border-radius:999px}
+@media (max-width:599px){
+  /* numbers on their own row, previous / next under them */
+  .sun-gal-pager{display:grid;grid-template-columns:1fr 1fr;justify-items:start}
+  .sun-gal-pager__nums{grid-column:1/-1;order:-1;justify-self:center}
+  .sun-gal-pager__step--next{justify-self:end}
+  .sun-gal-pager__n{min-width:44px;height:44px;padding:0 8px;font-size:14px}
+}

@@ -1,0 +1,46 @@
+/* Split Story · Event detail (spl-evd-*). Hero, buttons, prose and states are kit pieces in theme.css. */
+
+.spl-evd-grid{display:grid;grid-template-columns:minmax(0,1fr);align-items:start;gap:clamp(32px,6vh,56px) clamp(32px,4.5vw,72px)}
+.spl-evd-side{display:grid;justify-items:start;gap:20px;min-width:0}
+.spl-evd-grid:not(.has-main) .spl-evd-side{max-width:560px}
+.spl-evd-main{min-width:0}
+@media (min-width:1000px){
+  .spl-evd-grid.has-main{grid-template-columns:minmax(0,5fr) minmax(0,7fr)}
+}
+/* the ticket stays beside the reading only where it fits the viewport */
+@media (min-width:1000px) and (min-height:760px){
+  .spl-evd-side{position:sticky;top:clamp(20px,4vh,40px)}
+}
+
+/* the gold date plate (a ticket: date, tear line, facts, Register) */
+.spl-evd-plate{position:relative;width:100%;overflow:hidden;padding:clamp(24px,3vw,40px);border-radius:var(--spl-radius);background:var(--spl-gold);color:var(--spl-night);container-type:inline-size;box-shadow:var(--spl-shadow)}
+.spl-evd-ring{position:absolute;right:-22cqi;top:-22cqi;width:64cqi;aspect-ratio:1;border:2px solid var(--spl-royal);border-radius:50%;opacity:.3;pointer-events:none}
+.spl-evd-ring i{position:absolute;left:50%;bottom:-7px;width:14px;height:14px;margin-left:-7px;border-radius:50%;background:var(--spl-royal)}
+.spl-evd-date{position:relative;display:flex;flex-direction:column;align-items:flex-start;margin:0;font-family:var(--spl-display);font-stretch:68%;font-weight:800;line-height:.85}
+.spl-evd-day{color:var(--spl-royal);font-size:clamp(88px,38cqi,190px);letter-spacing:-.02em}
+.spl-evd-my{margin-top:10px;font-size:clamp(28px,9cqi,44px)}
+.spl-evd-wd{margin-top:8px;font-family:var(--spl-body);font-stretch:100%;font-size:1.0625rem;font-weight:800;line-height:1.3}
+.spl-evd-facts{position:relative;display:grid;gap:16px;margin:clamp(20px,3vh,28px) 0 0;padding-top:clamp(18px,3vh,24px);border-top:2px dashed rgba(11,35,80,.5)}
+.spl-evd-plate > .spl-evd-facts:nth-child(2){margin-top:0;padding-top:0;border-top:0}
+.spl-evd-facts > div{min-width:0}
+.spl-evd-facts dt{font-size:.875rem;font-weight:800}
+.spl-evd-facts dd{margin:2px 0 0;font-size:1.0625rem;font-weight:700;line-height:1.45;overflow-wrap:anywhere}
+.spl-evd-facts dd.spl-evd-time{font-family:var(--spl-display);font-stretch:78%;font-weight:800;font-size:clamp(28px,3vw,38px);line-height:1.05}
+.spl-evd-facts address{font-style:normal}
+.spl-evd-plate .spl-textlink{color:var(--spl-night)}
+.spl-evd-plate .spl-textlink:hover{color:var(--spl-royal)}
+html[data-theme="split-story"] .spl-evd-plate :focus-visible{outline-color:var(--spl-night)}
+.spl-evd-cta{position:relative;margin-top:22px}
+.spl-evd-side .spl-back{color:var(--spl-royal)}
+
+/* the poster: contained over a blurred fill, so a flyer is never cropped */
+.spl-evd-poster{position:relative;overflow:hidden;margin:0 0 clamp(32px,6vh,56px);border-radius:var(--spl-radius);background:var(--spl-night)}
+.spl-evd-fill{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;filter:blur(28px) brightness(.65);transform:scale(1.15)}
+.spl-evd-shot{position:relative;display:block;width:100%;padding:0;border:0;background:none;cursor:zoom-in}
+.spl-evd-shot img{display:block;width:100%;height:auto;max-height:min(78vh,860px);object-fit:contain}
+html[data-theme="split-story"] .spl-evd-shot:focus-visible{outline:3px solid var(--spl-gold);outline-offset:-6px}
+.spl-evd-zoom{position:absolute;right:14px;bottom:14px;padding:8px 14px;border-radius:999px;background:var(--spl-royal);color:#fff;font-size:.8125rem;font-weight:800;line-height:1.2;transition:background-color .25s,color .25s}
+.spl-evd-shot:hover .spl-evd-zoom,.spl-evd-shot:focus-visible .spl-evd-zoom{background:var(--spl-gold);color:var(--spl-night)}
+
+/* the club's own description */
+.spl-evd-cap{margin:0 0 18px;color:var(--spl-royal);font-family:var(--spl-display);font-stretch:72%;font-weight:800;font-size:clamp(30px,3.4vw,48px);line-height:1;overflow-wrap:anywhere}

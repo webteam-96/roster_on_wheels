@@ -1,0 +1,518 @@
+/* ─────────────────────────────────────────────────────────────────────────────
+   LIQUID MOTION — tokens, base, shell (header / menu / footer), the kit's
+   shared components, and a light restyle of the SHARED fallback pages.
+   Every selector is a liq- class or sits under html[data-theme="liquid-motion"]:
+   this sheet arrives with the theme's lazy chunk and must never touch another theme.
+
+   Contrast (WCAG 2.x, flat colours) - from the approved sample:
+     #FFF on ink #0A0A0F 19.8:1 · mute #A3A3B2 on ink 7.9:1 (on ink-2 7.4:1)
+     gold #F7A81B on ink 10.0:1 · azure-hi #4DA3FF on ink 7.5:1
+     ink on paper #F6F5F1 18.1:1 · mute-p #55555F on paper 6.9:1 · azure-ink #0057A8 on paper 6.6:1
+     #FFF on azure #0067C8 5.6:1 · ink on gold 10.0:1
+   Gold is NEVER text on paper (1.8:1) or on azure (2.8:1). #0067C8 is a fill only.
+   Focus: gold on ink, azure-ink on paper, white on azure, ink on gold.
+   ───────────────────────────────────────────────────────────────────────────── */
+
+html[data-theme="liquid-motion"]{
+  --liq-ink:#0A0A0F; --liq-ink-2:#14141C; --liq-ink-3:#1D1D28; --liq-ink-line:rgba(255,255,255,.13);
+  --liq-paper:#F6F5F1; --liq-paper-2:#ECEAE3; --liq-paper-line:rgba(10,10,15,.13);
+  --liq-azure:#0067C8; --liq-azure-ink:#0057A8; --liq-azure-hi:#4DA3FF; --liq-gold:#F7A81B;
+  --liq-mute:#A3A3B2; --liq-mute-p:#55555F;
+  --liq-hh:76px;
+  --liq-pad:clamp(16px,4vw,48px);
+  --liq-max:1344px;
+  --liq-r:clamp(16px,2vw,28px);
+  --liq-display:"Unbounded","Arial Black",system-ui,sans-serif;
+  --liq-serif:"Instrument Serif",Georgia,"Times New Roman",serif;
+  --liq-sans:"Geist","Segoe UI",system-ui,-apple-system,sans-serif;
+  --liq-ease:cubic-bezier(.2,.7,.1,1);
+  /* band semantics - every band re-points these, components only read them */
+  --liq-bg:var(--liq-ink); --liq-fg:#fff; --liq-fg-2:var(--liq-mute); --liq-line:var(--liq-ink-line);
+  --liq-accent:var(--liq-gold); --liq-link:var(--liq-azure-hi); --liq-stroke:var(--liq-azure-hi);
+  --liq-focus:var(--liq-gold); --liq-card:var(--liq-ink-2);
+  color-scheme:only light;
+  scroll-behavior:auto; /* Lenis owns smooth scrolling; the base sheet's `smooth` fights it */
+  background:var(--liq-ink);
+  -webkit-text-size-adjust:100%;
+}
+/* --liq-hh = the whole header (strip + bar); pages pad under it */
+@media (min-width:700px){ html[data-theme="liquid-motion"]{ --liq-hh:120px } }
+@media (min-width:1200px){ html[data-theme="liquid-motion"]{ --liq-hh:132px } }
+
+html[data-theme="liquid-motion"] body{margin:0;background:var(--liq-ink);color:#fff;font:400 17px/1.65 var(--liq-sans);-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
+/* film grain over everything except header / menu / cursor (it also sits over the WebGL canvas) */
+html[data-theme="liquid-motion"] body::after{content:"";position:fixed;inset:0;z-index:50;pointer-events:none;opacity:.05;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
+html[data-theme="liquid-motion"] ::selection{background:var(--liq-gold);color:var(--liq-ink)}
+html[data-theme="liquid-motion"] :focus-visible{outline:3px solid var(--liq-focus);outline-offset:3px}
+html[data-theme="liquid-motion"] #main{display:block;min-height:60vh}
+html[data-theme="liquid-motion"] #main:focus{outline:none}
+html[data-theme="liquid-motion"].liq-menu-open{overflow:hidden}
+@media (prefers-reduced-motion:reduce){
+  html[data-theme="liquid-motion"] *,html[data-theme="liquid-motion"] *::before,html[data-theme="liquid-motion"] *::after{transition:none!important;animation:none!important}
+}
+
+.liq-sr{position:absolute!important;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
+.liq-ico{width:1em;height:1em;flex:none}
+
+/* ── boot loader + the shared lightbox the fallback pages use ─────────────── */
+html[data-theme="liquid-motion"] #rotary-loader{position:fixed;inset:0;z-index:500;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;background:var(--liq-ink);color:#fff;font:600 15px/1.3 var(--liq-sans);letter-spacing:.14em;text-transform:uppercase;transition:opacity .5s ease,visibility .5s ease}
+html[data-theme="liquid-motion"] #rotary-loader.rotary-loader--hidden{opacity:0;visibility:hidden;pointer-events:none}
+html[data-theme="liquid-motion"] #rotary-loader img{width:60px;height:60px}
+html[data-theme="liquid-motion"] .rotary-lightbox{position:fixed;inset:0;z-index:410;display:flex;align-items:center;justify-content:center;background:rgba(10,10,15,.95)}
+html[data-theme="liquid-motion"] .rotary-lightbox img{max-width:92vw;max-height:88vh}
+html[data-theme="liquid-motion"] .rotary-lightbox__close{position:absolute;top:18px;right:24px;font-size:40px;line-height:1;color:#fff;background:none;border:0;cursor:pointer}
+/* the shared PhotoLightbox (Gallery, ProjectDetail, EventDetail) on the theme's ink, gold on hover */
+html[data-theme="liquid-motion"] .pdm-lb__bg{background:rgba(10,10,15,.95)}
+html[data-theme="liquid-motion"] .pdm-lb__btn{border-color:var(--liq-ink-line);background:var(--liq-ink-2);transition:background-color .3s,color .3s,border-color .3s}
+html[data-theme="liquid-motion"] .pdm-lb__btn:hover{border-color:var(--liq-gold);background:var(--liq-gold);color:var(--liq-ink)}
+html[data-theme="liquid-motion"] .pdm-lb__cap,html[data-theme="liquid-motion"] .pdm-lb__count{font-family:var(--liq-sans)}
+
+/* ── skip link ─────────────────────────────────────────────────────────────── */
+.liq-skip{position:absolute;left:16px;top:-140px;z-index:400;padding:12px 18px;border-radius:12px;background:var(--liq-gold);color:var(--liq-ink);font:700 15px/1.2 var(--liq-sans);text-decoration:none}
+.liq-skip:focus{top:12px;outline-color:var(--liq-ink)}
+
+/* ── header (client, 2026-09-29 - option C): a dark strip that scrolls away, then a solid bar that stays ── */
+/* sticky with a negative top = the strip's height: the strip leaves, the bar pins at the top */
+.liq-hdr{--liq-uh:48px;position:sticky;top:calc(-1 * var(--liq-uh));z-index:100;height:var(--liq-hh);margin-bottom:calc(-1 * var(--liq-hh))}
+.liq-util{height:var(--liq-uh);background:var(--liq-ink-2);border-bottom:1px solid var(--liq-ink-line);color:var(--liq-mute);font:500 14.5px/1 var(--liq-sans)}
+.liq-util__in{display:flex;align-items:center;justify-content:space-between;gap:16px;max-width:var(--liq-max);height:100%;margin:0 auto;padding:0 var(--liq-pad)}
+@media (min-width:1400px){ .liq-util__in{padding:0} }
+.liq-util__contact{display:flex;align-items:center;gap:6px 22px;min-width:0;margin:0;padding:0;list-style:none}
+.liq-util__contact li{min-width:0}
+.liq-util__contact a{display:inline-flex;align-items:center;gap:8px;min-height:32px;color:#fff;text-decoration:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.liq-util__contact a:hover{color:var(--liq-gold)}
+.liq-util__contact .liq-ico{flex:none;width:16px;height:16px;color:var(--liq-gold)}
+.liq-util__end{flex:none;display:flex;align-items:center;gap:14px}
+.liq-select.liq-select--util{height:36px;padding:0 34px 0 14px;border-color:rgba(255,255,255,.3);background-color:transparent;background-position:right 13px center;color:#fff;font-size:14.5px}
+.liq-select--util option{color:var(--liq-ink)}
+.liq-util__admin{display:inline-flex;align-items:center;min-height:36px;padding:0 20px;border-radius:999px;background:var(--liq-gold);color:var(--liq-ink);font:700 14.5px/1 var(--liq-sans);text-decoration:none;transition:background-color .3s}
+.liq-util__admin:hover{background:#fff}
+.liq-bar{--liq-focus:var(--liq-azure-ink);position:relative;display:flex;align-items:center;gap:20px;height:calc(var(--liq-hh) - var(--liq-uh));padding:0 max(var(--liq-pad),calc((100% - var(--liq-max)) / 2));
+  background:var(--liq-paper);color:#2A2A33;box-shadow:0 12px 30px -16px rgba(0,0,0,.6)}
+.liq-brand{flex:none;display:flex;align-items:center;min-height:44px;min-width:44px;border-radius:10px}
+.liq-brand img{display:block;height:60px;width:auto;max-width:min(300px,52vw);object-fit:contain}
+@media (max-width:1199px){ .liq-brand img{height:52px} }
+@media (max-width:699px){
+  .liq-hdr{--liq-uh:0px}
+  .liq-util{display:none}
+  .liq-bar{gap:10px}
+  .liq-brand img{height:40px;max-width:min(200px,48vw)}
+}
+.liq-bar__admin{display:none;align-items:center;min-height:40px;padding:0 16px;border-radius:999px;background:var(--liq-gold);color:var(--liq-ink);font:700 13.5px/1 var(--liq-sans);text-decoration:none}
+@media (max-width:699px){ .liq-bar__admin{display:inline-flex} }
+
+.liq-nav{display:none;flex:1;min-width:0}
+.liq-nav > ul{display:flex;align-items:center;justify-content:flex-end;list-style:none;margin:0;padding:0}
+.liq-nav__item.liq-is-over{display:none}
+.liq-nav__sub.liq-nav__sub--more{left:auto;right:0}
+.liq-nav__grp{padding:12px 14px 4px;color:var(--liq-mute-p);font:600 12.5px/1.2 var(--liq-sans)}
+.liq-nav__kid a{padding-left:26px}
+.liq-nav__item{position:relative;display:flex;align-items:center}
+.liq-nav__a{display:flex;align-items:center;gap:4px;min-height:44px;padding:0 12px;border-radius:999px;border:0;background:none;color:inherit;font:500 14.5px/1 var(--liq-sans);text-decoration:none;white-space:nowrap;cursor:pointer;transition:background-color .3s,color .3s}
+.liq-nav__a:hover,.liq-nav__item.liq-is-active > .liq-nav__a{background:rgba(0,87,168,.09);color:var(--liq-azure-ink)}
+.liq-nav__a[aria-current="page"]{background:none;color:var(--liq-azure-ink);box-shadow:inset 0 -3px 0 var(--liq-gold);border-radius:0}
+.liq-nav__btn{display:grid;place-items:center;width:30px;height:44px;margin-left:-6px;border:0;border-radius:999px;background:none;color:inherit;cursor:pointer}
+.liq-nav__btn:hover{color:var(--liq-azure-ink)}
+.liq-nav__btn .liq-ico,.liq-nav__a .liq-ico{width:14px;height:14px;transition:transform .35s var(--liq-ease)}
+.liq-nav__item.liq-is-open > .liq-nav__btn .liq-ico,.liq-nav__item.liq-is-open > .liq-nav__a .liq-ico{transform:rotate(180deg)}
+.liq-nav__sub{display:none;position:absolute;top:calc(100% + 10px);left:0;z-index:5;min-width:230px;max-width:320px;margin:0;padding:8px;list-style:none;border-radius:22px;
+  background:rgba(246,245,241,.98);color:#2A2A33;box-shadow:0 24px 50px -20px rgba(0,0,0,.6),inset 0 0 0 1px rgba(10,10,15,.06)}
+.liq-nav__sub::before{content:"";position:absolute;left:0;right:0;top:-12px;height:12px}
+.liq-nav__item.liq-is-open > .liq-nav__sub{display:block}
+@media (hover:hover){ .liq-nav__item--sub:hover > .liq-nav__sub{display:block} }
+.liq-nav__sub a{display:flex;align-items:center;min-height:44px;padding:10px 14px;border-radius:14px;font:500 14.5px/1.3 var(--liq-sans);text-decoration:none;overflow-wrap:anywhere}
+.liq-nav__sub a:hover{background:rgba(0,87,168,.09);color:var(--liq-azure-ink)}
+.liq-nav__sub a[aria-current="page"]{background:var(--liq-ink);color:#fff}
+
+.liq-bar__end{display:flex;align-items:center;gap:8px;margin-left:auto}
+.liq-select{-webkit-appearance:none;appearance:none;cursor:pointer;height:44px;max-width:100%;padding:0 36px 0 16px;border-radius:999px;border:1px solid rgba(10,10,15,.16);font:600 14px/1 var(--liq-sans);
+  background:#fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1.5 6 6.5 11 1.5' fill='none' stroke='%230057A8' stroke-width='1.8'/%3E%3C/svg%3E") no-repeat right 14px center;color:var(--liq-ink)}
+.liq-burger{display:inline-grid;place-items:center;width:46px;height:46px;border:0;border-radius:50%;background:var(--liq-ink);cursor:pointer}
+.liq-burger__bars{position:relative;width:18px;height:10px}
+.liq-burger__bars i{position:absolute;left:0;right:0;height:2px;border-radius:2px;background:#fff;transition:transform .4s var(--liq-ease)}
+.liq-burger__bars i:first-child{top:0}
+.liq-burger__bars i:last-child{bottom:0}
+.liq-burger[aria-expanded="true"] .liq-burger__bars i:first-child{transform:translateY(4px) rotate(45deg)}
+.liq-burger[aria-expanded="true"] .liq-burger__bars i:last-child{transform:translateY(-4px) rotate(-45deg)}
+.liq-bar__prog{display:none;position:absolute;left:0;right:0;bottom:0;height:2px;border-radius:2px;background:linear-gradient(90deg,var(--liq-azure),var(--liq-gold));transform-origin:0 50%;transform:scaleX(0);pointer-events:none}
+html.liq-motion .liq-bar__prog{display:block}
+@media (min-width:1200px){
+  .liq-nav{display:block}
+  .liq-burger{display:none}
+  .liq-bar__end{margin-left:0}
+}
+
+/* ── mobile menu (sits under the capsule so the burger stays reachable) ────── */
+.liq-menu{position:fixed;inset:0;z-index:90;display:flex;flex-direction:column;gap:28px;padding:calc(var(--liq-hh) + 28px) var(--liq-pad) 40px;overflow-y:auto;overscroll-behavior:contain;background:var(--liq-ink);color:#fff;
+  background-image:radial-gradient(70% 50% at 100% 0%,rgba(0,103,200,.35),transparent 70%)}
+.liq-menu[hidden]{display:none}
+.liq-menu__list{list-style:none;margin:0;padding:0}
+.liq-menu__row{display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--liq-ink-line)}
+.liq-menu__a{flex:1;min-width:0;display:flex;align-items:center;min-height:56px;padding:6px 0;border:0;background:none;color:inherit;text-align:left;font:600 clamp(22px,6vw,40px)/1.1 var(--liq-display);letter-spacing:-.02em;text-decoration:none;overflow-wrap:anywhere;cursor:pointer}
+.liq-menu__a:hover{color:var(--liq-azure-hi)}
+.liq-menu__a[aria-current="page"]{color:var(--liq-gold)}
+.liq-menu__tog{flex:none;display:grid;place-items:center;width:48px;height:48px;border:1px solid var(--liq-ink-line);border-radius:50%;background:none;color:#fff;cursor:pointer}
+.liq-menu__tog .liq-ico{width:18px;height:18px;transition:transform .35s var(--liq-ease)}
+.liq-menu__tog[aria-expanded="true"] .liq-ico{transform:rotate(180deg)}
+.liq-menu__sub{list-style:none;margin:0;padding:6px 0 14px 4px;border-bottom:1px solid var(--liq-ink-line)}
+.liq-menu__sub[hidden]{display:none}
+.liq-menu__sub a{display:flex;align-items:center;min-height:44px;color:var(--liq-mute);font:500 18px/1.3 var(--liq-sans);text-decoration:none;overflow-wrap:anywhere}
+.liq-menu__sub a:hover,.liq-menu__sub a[aria-current="page"]{color:#fff}
+.liq-menu__foot{display:flex;flex-wrap:wrap;align-items:center;gap:14px 20px}
+.liq-menu__year{display:flex;align-items:center;gap:14px;color:var(--liq-mute);font:600 12.5px/1 var(--liq-sans);letter-spacing:.16em;text-transform:uppercase}
+
+/* ── layout primitives ─────────────────────────────────────────────────────── */
+.liq-wrap{position:relative;width:min(100% - 2 * var(--liq-pad),var(--liq-max));margin-inline:auto}
+.liq-band{position:relative;overflow-x:clip;padding-block:clamp(96px,12vw,176px);background:var(--liq-bg);color:var(--liq-fg)}
+.liq-band--tight{padding-block:clamp(56px,7vw,104px)}
+.liq-band--ink{--liq-bg:var(--liq-ink)}
+.liq-band--ink2{--liq-bg:var(--liq-ink-2);--liq-card:var(--liq-ink-3)}
+.liq-band--paper{--liq-bg:var(--liq-paper);--liq-fg:var(--liq-ink);--liq-fg-2:var(--liq-mute-p);--liq-line:var(--liq-paper-line);--liq-accent:var(--liq-azure-ink);--liq-link:var(--liq-azure-ink);--liq-stroke:var(--liq-azure-ink);--liq-focus:var(--liq-azure-ink);--liq-card:#fff}
+.liq-band--azure{--liq-bg:var(--liq-azure);--liq-fg:#fff;--liq-fg-2:#fff;--liq-line:rgba(255,255,255,.35);--liq-accent:#fff;--liq-link:#fff;--liq-stroke:#fff;--liq-focus:#fff;--liq-card:rgba(255,255,255,.1)}
+.liq-band--gold{--liq-bg:var(--liq-gold);--liq-fg:var(--liq-ink);--liq-fg-2:#2A2A33;--liq-line:rgba(10,10,15,.3);--liq-accent:var(--liq-ink);--liq-link:var(--liq-ink);--liq-stroke:var(--liq-ink);--liq-focus:var(--liq-ink);--liq-card:rgba(255,255,255,.32)}
+/* the liquid band edge: flat at rest, bulges with scroll velocity (path written by motion.js) */
+.liq-edge{position:absolute;left:0;bottom:calc(100% - 1px);display:block;width:100%;height:clamp(48px,7vw,100px);fill:var(--liq-bg);pointer-events:none}
+
+/* ── type ──────────────────────────────────────────────────────────────────── */
+.liq-kicker{display:flex;align-items:center;gap:12px;margin:0 0 clamp(18px,2.4vw,30px);color:var(--liq-accent);font:600 12.5px/1.3 var(--liq-sans);letter-spacing:.18em;text-transform:uppercase}
+.liq-kicker::before{content:"";flex:none;width:28px;height:2px;background:currentColor}
+.liq-h2{margin:0;font:600 clamp(34px,5.6vw,88px)/1 var(--liq-display);letter-spacing:-.035em;overflow-wrap:anywhere}
+.liq-h3{margin:0;font:600 clamp(22px,2.1vw,30px)/1.15 var(--liq-display);letter-spacing:-.02em;overflow-wrap:anywhere}
+.liq-h3--sm{font-size:15px;letter-spacing:.02em}
+.liq-lede{max-width:60ch;margin:0;color:var(--liq-fg-2);font-size:clamp(17px,1.4vw,20px);line-height:1.6}
+.liq-serif{font-family:var(--liq-serif);font-style:italic;font-weight:400}
+.liq-em{font-family:var(--liq-serif);font-style:italic;color:var(--liq-link)}
+.liq-outline{color:transparent;-webkit-text-stroke:1.5px var(--liq-stroke)}
+.liq-prose{max-width:68ch;color:var(--liq-fg-2);font-size:17.5px;line-height:1.7;overflow-wrap:anywhere}
+.liq-prose > * + *{margin-top:1.1em}
+/* the lead size only when more follows: a whole bio in one <p> stays body size */
+.liq-prose p:first-child:not(:only-child){color:var(--liq-fg);font-size:clamp(19px,1.5vw,22px);line-height:1.55}
+.liq-prose a,.liq-prose a[style]{color:var(--liq-link)!important;text-underline-offset:.2em}
+.liq-prose ul{list-style:disc;padding-left:1.3em}
+.liq-prose ol{list-style:decimal;padding-left:2em}
+.liq-prose img{max-width:100%;height:auto;border-radius:12px}
+.liq-prose h2,.liq-prose h3,.liq-prose h4{color:var(--liq-fg);font:600 clamp(20px,2vw,26px)/1.2 var(--liq-display);letter-spacing:-.02em}
+/* admin HTML (About, project / event descriptions, bios): pasted inline styles must not fight the
+   band (fonts, white text, grounds), and nothing may be wider than its column on a phone */
+.liq-prose *{max-width:100%}
+.liq-prose [style]{color:inherit!important;background-color:transparent!important;font-family:inherit!important}
+.liq-prose font{color:inherit;font-family:inherit}
+.liq-prose :is(h2,h3,h4,h5,h6):not(:first-child){margin-top:1.6em}
+/* admin headings carry inline font-family (neutralised above): they keep the display face */
+.liq-prose :is(h1,h2,h3,h4,h5,h6)[style]{font-family:var(--liq-display)!important}
+/* justified admin text rivers badly in a phone column */
+@media (max-width:599px){ .liq-prose [style*="justify"]{text-align:start!important} }
+.liq-prose :is(strong,b){color:var(--liq-fg);font-weight:600}
+.liq-prose li + li{margin-top:.4em}
+.liq-prose li::marker{color:var(--liq-link)}
+.liq-prose table{display:block;overflow-x:auto;border-collapse:collapse}
+.liq-prose :is(td,th){padding:6px 10px;border:1px solid var(--liq-line)}
+.liq-prose iframe{width:100%;border:0;border-radius:12px}
+.liq-prose pre{white-space:pre-wrap}
+.liq-link{display:inline-flex;align-items:center;gap:8px;min-height:44px;color:var(--liq-link);font:600 15px/1.2 var(--liq-sans);text-decoration:underline;text-underline-offset:.25em;text-decoration-thickness:1px}
+.liq-link:hover{text-decoration-thickness:2px}
+
+/* char / word splits (kit <Chars>, <Words>) */
+.liq-split{display:inline}
+.liq-word{display:inline-block;white-space:nowrap}
+.liq-ch{display:inline-block}
+.liq-chm{display:inline-block;overflow-x:visible;overflow-y:clip;padding:.1em 0 .14em;margin:-.1em 0 -.14em}
+.liq-w{display:inline}
+
+/* outline -> ink fill (kit <OutlineFill>) */
+.liq-fill{position:relative;display:inline-block;max-width:100%}
+.liq-fill__base{display:block;color:transparent;-webkit-text-stroke:1px var(--liq-fg);opacity:.32}
+.liq-fill__ink{position:absolute;inset:0;color:var(--liq-fg)}
+
+/* ── the pill ──────────────────────────────────────────────────────────────── */
+.liq-pill{display:inline-flex;align-items:center;justify-content:center;gap:10px;min-height:48px;padding:0 22px;border:1px solid transparent;border-radius:999px;font:600 15px/1.2 var(--liq-sans);text-align:center;text-decoration:none;cursor:pointer;transition:background-color .3s,color .3s,border-color .3s}
+.liq-pill .liq-ico{transition:transform .4s var(--liq-ease)}
+.liq-pill:hover .liq-ico{transform:translateX(4px)}
+.liq-pill--back:hover .liq-ico{transform:translateX(-4px)}
+.liq-pill--ink{background:var(--liq-ink);color:#fff}
+.liq-pill--ink:hover{background:var(--liq-azure-ink)}
+.liq-pill--light{background:#fff;color:var(--liq-ink)}
+.liq-pill--light:hover{background:var(--liq-gold)}
+.liq-pill--ghost{border-color:var(--liq-line);color:var(--liq-fg)}
+.liq-pill--ghost:hover{border-color:var(--liq-accent);color:var(--liq-accent)}
+.liq-pill--line{border-color:var(--liq-paper-line);color:var(--liq-ink)}
+.liq-pill--line:hover{border-color:var(--liq-azure-ink);color:var(--liq-azure-ink)}
+.liq-pill[aria-pressed="true"]{background:var(--liq-fg);color:var(--liq-bg);border-color:var(--liq-fg)}
+
+/* ── section head ──────────────────────────────────────────────────────────── */
+.liq-sh{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:24px 40px;margin-bottom:clamp(40px,6vw,88px)}
+.liq-sh__main{min-width:0;flex:1 1 520px}
+.liq-sh__lede{max-width:56ch;margin-top:clamp(18px,2vw,28px);color:var(--liq-fg-2);font-size:clamp(17px,1.4vw,20px)}
+.liq-sh__act{flex:none}
+/* the giant two-line title: solid line, then an outlined line indented under it */
+/* line-height 1.15: the box holds the descenders (the "j" of "projects" lost its tail at .95) */
+.liq-bigtitle{--liq-lw:8;margin:0;white-space:nowrap;font:800 min(7vw,112px,calc((100vw - 2 * var(--liq-pad)) / (var(--liq-lw) * .98)))/1.1 var(--liq-display);letter-spacing:-.04em}
+/* every heading in capitals (client, 2026-09-29); the fits above use a wider per-letter estimate for them */
+.liq-bigtitle,.liq-h2,.liq-ph__name,.liq-trio__h{text-transform:uppercase}
+.liq-bt{display:inline}
+.liq-bt--2{color:var(--liq-stroke)}
+
+/* ── page hero (kit <PageHero>) ────────────────────────────────────────────── */
+.liq-ph{--liq-bg:var(--liq-ink);position:relative;overflow-x:clip;padding:calc(var(--liq-hh) + clamp(20px,2.6vw,36px)) 0 clamp(32px,4vw,56px);color:#fff;
+  background:radial-gradient(60% 55% at 88% 0%,rgba(0,103,200,.34),transparent 70%),radial-gradient(45% 45% at 0% 100%,rgba(247,168,27,.1),transparent 70%),var(--liq-ink)}
+.liq-ph__top{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:6px 16px;color:var(--liq-mute);font:600 12.5px/1.3 var(--liq-sans);letter-spacing:.16em;text-transform:uppercase}
+.liq-crumbs ol{display:flex;flex-wrap:wrap;align-items:center;gap:0 10px;margin:0;padding:0;list-style:none}
+.liq-crumbs li{display:inline-flex;align-items:center;gap:10px;min-width:0}
+.liq-crumbs li:first-child::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--liq-gold);box-shadow:0 0 14px var(--liq-gold)}
+.liq-crumbs li + li::before{content:"/";color:rgba(255,255,255,.35)}
+.liq-crumbs a{display:inline-flex;align-items:center;min-height:32px;color:var(--liq-mute);text-decoration:none}
+.liq-crumbs a:hover{color:#fff;text-decoration:underline;text-underline-offset:.3em}
+.liq-crumbs [aria-current]{color:#fff;overflow-wrap:anywhere}
+.liq-ph__title{position:relative;margin:clamp(12px,1.6vw,20px) 0 0;font-weight:400;line-height:.9}
+/* a shorter band: the heading tops out at 88px (it was 140) */
+.liq-ph__name{--liq-lw:8;display:block;font:700 min(6.4vw,var(--liq-h1-max,88px),calc((100vw - 2 * var(--liq-pad)) / (var(--liq-lw) * .95)))/.98 var(--liq-display);letter-spacing:-.04em}
+.liq-ph__name--md{--liq-h1-max:68px;font-size:min(5vw,var(--liq-h1-max),calc((100vw - 2 * var(--liq-pad)) / (var(--liq-lw) * .95)))}
+.liq-ph__name--sm{--liq-h1-max:48px;font-size:min(max(26px,3.6vw),var(--liq-h1-max),calc((100vw - 2 * var(--liq-pad)) / (var(--liq-lw) * .95)));line-height:1.08;letter-spacing:-.03em}
+.liq-ph__slot{position:relative;margin-top:clamp(18px,2.4vw,28px)}
+
+/* ── media (kit <Media>) ───────────────────────────────────────────────────── */
+.liq-media{position:relative;overflow:hidden;aspect-ratio:var(--liq-ar,4 / 3);background:var(--liq-ink-2)}
+.liq-band--paper .liq-media{background:var(--liq-paper-2)}
+.liq-media img{display:block;width:100%;height:100%;object-fit:cover}
+.liq-media--whole img{object-fit:contain}
+.liq-media.liq-is-gl{background:transparent}
+.liq-media.liq-is-gl img{opacity:0}
+.liq-media__ph{position:absolute;inset:0;display:grid;place-items:center;padding:16px;color:transparent;-webkit-text-stroke:1px rgba(77,163,255,.45);font:800 clamp(22px,3vw,44px)/1 var(--liq-display);letter-spacing:-.03em;text-align:center;text-transform:uppercase;overflow-wrap:anywhere}
+.liq-band--paper .liq-media__ph{-webkit-text-stroke-color:rgba(0,87,168,.35)}
+
+/* ── project card (kit <ProjectCard>) ──────────────────────────────────────── */
+.liq-pcard{min-width:0}
+.liq-pcard__meta{max-width:560px;padding-top:24px}
+.liq-pcard__row{display:flex;flex-wrap:wrap;align-items:center;gap:6px 14px;margin:0 0 12px;color:var(--liq-fg-2);font:600 12px/1.4 var(--liq-sans);letter-spacing:.14em;text-transform:uppercase}
+.liq-pcard__n{color:var(--liq-accent);font:600 13px/1 var(--liq-display)}
+.liq-pcard__av{color:var(--liq-link)}
+.liq-pcard__t{margin:0;font:500 clamp(20px,1.85vw,27px)/1.25 var(--liq-display);letter-spacing:-.02em;overflow-wrap:anywhere}
+.liq-pcard__t a{display:block;min-height:44px;color:inherit;text-decoration:none;text-underline-offset:.18em;text-decoration-thickness:1px}
+.liq-pcard__t a:hover{text-decoration-line:underline;text-decoration-color:var(--liq-gold)}
+.liq-pcard__d{margin:12px 0 0;color:var(--liq-fg-2);font-size:16px;overflow-wrap:anywhere}
+
+/* ── card + facts (kit <Card>, <Facts>) ────────────────────────────────────── */
+.liq-card{display:grid;gap:22px;align-content:start;min-width:0;padding:clamp(24px,3vw,40px);border:1px solid var(--liq-line);border-radius:28px;background:var(--liq-card)}
+.liq-band--paper .liq-card{border-color:transparent;box-shadow:0 30px 60px -40px rgba(10,10,15,.35)}
+.liq-card > .liq-pill{justify-self:start}
+.liq-facts{display:grid;margin:0}
+.liq-facts > div{display:grid;grid-template-columns:minmax(88px,auto) minmax(0,1fr);gap:4px 18px;padding:12px 0;border-top:1px solid var(--liq-line)}
+.liq-facts dt{color:var(--liq-accent);font:600 12px/1.6 var(--liq-sans);letter-spacing:.14em;text-transform:uppercase}
+.liq-facts dd{margin:0;font:500 16.5px/1.45 var(--liq-sans);overflow-wrap:anywhere}
+.liq-facts a{color:var(--liq-link)}
+
+/* ── portraits + leadership rows (kit <Portrait>, <PersonRow>) ─────────────── */
+.liq-portrait{display:block;aspect-ratio:4 / 5;overflow:hidden;border-radius:999px 999px 18px 18px;background:#E6E4DE}
+.liq-band--ink .liq-portrait,.liq-band--ink2 .liq-portrait,.liq-ph .liq-portrait{background:var(--liq-ink-3)}
+.liq-portrait__img{display:block;width:100%;height:100%;object-fit:cover;object-position:50% 22%}
+.liq-portrait__mono{display:grid;place-items:center;width:100%;height:100%;color:var(--liq-azure-ink);font:700 clamp(22px,3vw,44px)/1 var(--liq-display);letter-spacing:-.03em}
+.liq-band--ink .liq-portrait__mono,.liq-band--ink2 .liq-portrait__mono,.liq-ph .liq-portrait__mono{color:var(--liq-azure-hi)}
+.liq-roll{margin:0;padding:0;list-style:none;border-bottom:1px solid var(--liq-line)}
+.liq-person{display:grid;grid-template-columns:clamp(84px,11vw,152px) minmax(0,1fr);align-items:center;gap:clamp(18px,3.4vw,52px);padding:clamp(24px,3vw,40px) 0;border-top:1px solid var(--liq-line)}
+.liq-person__role{margin:0 0 8px;color:var(--liq-accent);font:600 12.5px/1.3 var(--liq-sans);letter-spacing:.16em;text-transform:uppercase}
+.liq-person__name{position:relative;margin:0;font:600 clamp(25px,4.6vw,68px)/1.04 var(--liq-display);letter-spacing:-.035em;overflow-wrap:anywhere}
+.liq-person__name a{color:inherit;text-decoration:none}
+.liq-person__name a:hover .liq-fill__ink{text-decoration:underline;text-decoration-thickness:2px;text-underline-offset:.12em;text-decoration-color:var(--liq-gold)}
+.liq-person__bio{max-width:66ch;margin:12px 0 0;color:var(--liq-fg-2);font-size:16px}
+/* phones: the photo on top, the details below it (client, 2026-09-29) */
+@media (max-width:699px){ .liq-person{grid-template-columns:minmax(0,1fr);align-items:start;gap:18px} .liq-person__pic{width:min(200px,60%)} }
+
+/* ── numbers (kit <Odometer>, <Figures>, <StatRow>) ────────────────────────── */
+.liq-odo{display:inline-flex;align-items:flex-start;line-height:1;white-space:nowrap;font-variant-numeric:tabular-nums}
+.liq-odo__vis{display:inline-flex;line-height:1}
+.liq-odo__sep{white-space:pre} /* keeps the space in "LKR 9,869,474": a flex item of only a space collapses to 0 */
+.liq-odo__col{position:relative;display:inline-block;height:1em;overflow:hidden}
+.liq-odo__ghost{display:block;visibility:hidden}
+.liq-odo__strip{position:absolute;left:0;right:0;display:flex;flex-direction:column;align-items:center}
+.liq-odo__strip span{display:block;height:1em}
+.liq-figs{margin:0;padding:0;list-style:none;border-bottom:1px solid var(--liq-line)}
+.liq-fig{position:relative;display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:end;gap:8px 16px;padding:clamp(18px,2.4vw,30px) 0}
+.liq-fig__line{position:absolute;left:0;right:0;top:0;height:1px;background:var(--liq-line)}
+/* no rule right under the section heading (client, 2026-09-29) */
+.liq-fig:first-child .liq-fig__line{display:none}
+.liq-fig__i{padding-bottom:.9em;font:600 12.5px/1 var(--liq-display)}
+.liq-fig__label{padding-bottom:.55em;font:600 clamp(14px,1.3vw,18px)/1.3 var(--liq-sans);letter-spacing:.12em;text-transform:uppercase}
+.liq-fig__val{font:600 clamp(48px,8vw,122px)/1 var(--liq-display);letter-spacing:-.04em;white-space:nowrap}
+@media (max-width:899px){
+  .liq-fig{grid-template-columns:minmax(0,1fr)}
+  .liq-fig__val{grid-column:1 / -1;font-size:clamp(34px,11vw,96px)}
+}
+.liq-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,180px),1fr));gap:0;margin:0;border-top:1px solid var(--liq-line)}
+.liq-stat{min-width:0;padding:18px 20px 18px 0;border-bottom:1px solid var(--liq-line)}
+.liq-stat__l{color:var(--liq-fg-2);font:600 12px/1.3 var(--liq-sans);letter-spacing:.14em;text-transform:uppercase}
+.liq-stat__v{margin:10px 0 0;font:600 clamp(28px,3.4vw,48px)/1 var(--liq-display);letter-spacing:-.03em;overflow-wrap:anywhere}
+
+/* ── controls (kit <Chips>, <SearchField>, <ResultCount>) ──────────────────── */
+.liq-chips{display:flex;flex-wrap:wrap;gap:8px}
+.liq-chip{position:relative;display:inline-flex;align-items:center;gap:10px;min-height:44px;padding:0 18px;overflow:hidden;border:1px solid var(--liq-line);border-radius:999px;background:transparent;color:var(--liq-fg);font:600 14.5px/1.2 var(--liq-sans);cursor:pointer;isolation:isolate;transition:color .35s,border-color .35s}
+.liq-chip::before{content:"";position:absolute;inset:0;z-index:-1;background:var(--liq-fg);clip-path:circle(0 at 50% 100%);transition:clip-path .5s var(--liq-ease)}
+.liq-chip:hover{border-color:var(--liq-accent)}
+.liq-chip{text-decoration:none}
+.liq-chip[aria-pressed="true"],.liq-chip[aria-current="page"]{border-color:var(--liq-fg);color:var(--liq-bg)}
+.liq-chip[aria-pressed="true"]::before,.liq-chip[aria-current="page"]::before{clip-path:circle(150% at 50% 100%)}
+.liq-chip__n{display:inline-grid;place-items:center;min-width:26px;height:22px;padding:0 7px;border-radius:999px;background:var(--liq-card);color:var(--liq-fg);font:600 12px/1 var(--liq-sans);font-variant-numeric:tabular-nums}
+.liq-chip[aria-pressed="true"] .liq-chip__n{background:var(--liq-accent);color:var(--liq-bg)}
+.liq-band--paper .liq-chip[aria-pressed="true"] .liq-chip__n{background:var(--liq-gold);color:var(--liq-ink)}
+.liq-search{position:relative;display:flex;align-items:center;width:100%;max-width:560px}
+.liq-search > .liq-ico{position:absolute;left:20px;width:20px;height:20px;color:var(--liq-fg-2);pointer-events:none}
+.liq-search input{width:100%;min-height:56px;padding:0 52px 0 54px;border:1px solid var(--liq-line);border-radius:999px;background:var(--liq-card);color:var(--liq-fg);font:500 17px/1.2 var(--liq-sans)}
+.liq-search input::placeholder{color:var(--liq-fg-2);opacity:1}
+.liq-search input::-webkit-search-cancel-button{-webkit-appearance:none;appearance:none}
+.liq-search input:focus-visible{outline:3px solid var(--liq-focus);outline-offset:2px}
+.liq-search__clear{position:absolute;right:6px;display:grid;place-items:center;width:44px;height:44px;border:0;border-radius:50%;background:none;color:var(--liq-fg);cursor:pointer}
+.liq-search__clear .liq-ico{width:18px;height:18px}
+.liq-count{margin:0;color:var(--liq-fg-2);font:600 13px/1.4 var(--liq-sans);letter-spacing:.12em;text-transform:uppercase}
+.liq-count b{color:var(--liq-fg);font-weight:700}
+
+/* ── liquid-fill rows (kit <RowLink>) ──────────────────────────────────────── */
+.liq-rows{margin:0;padding:0;list-style:none;border-bottom:1px solid var(--liq-line)}
+.liq-row{--liq-row-fill:var(--liq-ink);--liq-row-on:#fff;position:relative;display:grid;grid-template-columns:minmax(0,1fr) auto auto;align-items:center;gap:12px 32px;min-height:88px;padding:20px clamp(12px,2vw,28px);overflow:hidden;border-top:1px solid var(--liq-line);color:inherit;text-decoration:none}
+.liq-band--gold .liq-row{--liq-row-on:var(--liq-gold)}
+.liq-band--ink .liq-row,.liq-band--ink2 .liq-row{--liq-row-fill:var(--liq-azure)}
+.liq-band--azure .liq-row{--liq-row-fill:var(--liq-ink)}
+.liq-row::before{content:"";position:absolute;inset:0;background:var(--liq-row-fill);clip-path:circle(0 at var(--liq-mx,50%) var(--liq-my,50%))}
+.liq-row > span{position:relative;min-width:0}
+.liq-row__t{font:600 clamp(20px,2.4vw,34px)/1.15 var(--liq-display);letter-spacing:-.02em;overflow-wrap:anywhere}
+.liq-row__m{font:600 13px/1.3 var(--liq-sans);letter-spacing:.14em;text-transform:uppercase}
+.liq-row__go{display:inline-flex;align-items:center;gap:8px;min-height:44px;font:700 14px/1 var(--liq-sans);letter-spacing:.1em;text-transform:uppercase}
+.liq-row:hover,.liq-row:focus-visible{color:var(--liq-row-on)}
+.liq-row:hover::before,.liq-row:focus-visible::before{clip-path:circle(150% at var(--liq-mx,50%) var(--liq-my,50%))}
+.liq-band--gold .liq-row:focus-visible{outline-color:var(--liq-ink)}
+@media (prefers-reduced-motion:no-preference){ .liq-row::before{transition:clip-path .7s var(--liq-ease)} .liq-row{transition:color .4s} }
+@media (max-width:699px){
+  .liq-row{grid-template-columns:minmax(0,1fr) auto}
+  .liq-row__t{grid-column:1 / -1}
+}
+
+/* ── states (kit <EmptyState>, <Loading>) ──────────────────────────────────── */
+.liq-empty{display:grid;justify-items:start;gap:14px;max-width:640px;padding:clamp(28px,4vw,48px);border:1px dashed var(--liq-line);border-radius:28px}
+.liq-empty__drop{display:grid;place-items:center;width:56px;height:56px;border-radius:50%;background:var(--liq-card);color:var(--liq-link)}
+.liq-empty__drop .liq-ico{width:26px;height:26px}
+.liq-empty__t{margin:0;font:600 clamp(22px,2.4vw,32px)/1.15 var(--liq-display);letter-spacing:-.02em}
+.liq-empty__x{max-width:52ch;margin:0;color:var(--liq-fg-2)}
+.liq-empty__a{display:flex;flex-wrap:wrap;gap:10px;margin-top:6px}
+.liq-loading{display:grid;gap:14px;max-width:420px;padding:24px 0}
+.liq-loading__bar{position:relative;display:block;height:2px;overflow:hidden;border-radius:2px;background:var(--liq-line)}
+.liq-loading__bar i{position:absolute;inset:0;width:40%;background:linear-gradient(90deg,var(--liq-azure-hi),var(--liq-gold));animation:liqLoad 1.2s var(--liq-ease) infinite}
+.liq-loading__l{color:var(--liq-fg-2);font:600 12.5px/1.3 var(--liq-sans);letter-spacing:.16em;text-transform:uppercase}
+@keyframes liqLoad{from{transform:translateX(-100%)}to{transform:translateX(250%)}}
+
+
+/* ── footer ────────────────────────────────────────────────────────────────── */
+.liq-foot{padding-block:clamp(88px,10vw,140px) 24px}
+.liq-foot__top{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:28px 40px}
+/* the logo on a white rectangle (client, 2026-09-28: not a circle) - the plate takes the logo's own shape */
+.liq-foot__logo{flex:none;display:flex;align-items:center;justify-content:center;max-width:min(296px,100%);height:clamp(96px,8.4vw,124px);padding:12px 18px;border-radius:14px;background:#fff}
+/* flex, not grid: in a grid box the img height:100% did not resolve, so a square logo grew to max-width and spilled out of the box */
+.liq-foot__logo img{display:block;width:auto;height:100%;max-width:100%;min-width:0;object-fit:contain}
+.liq-foot__vc{flex:0 1 340px;min-width:0}
+.liq-foot__vc:empty{display:none}
+.liq-foot__act{display:flex;flex-wrap:wrap;align-items:center;gap:14px}
+.liq-socials{display:flex;flex-wrap:wrap;gap:10px;margin:0;padding:0;list-style:none}
+.liq-socials a{display:grid;place-items:center;width:48px;height:48px;border:1px solid var(--liq-ink-line);border-radius:50%;color:#fff;transition:background-color .3s,color .3s,border-color .3s}
+.liq-socials a:hover{background:var(--liq-gold);border-color:var(--liq-gold);color:var(--liq-ink)}
+.liq-socials svg{width:20px;height:20px;fill:currentColor}
+/* row 2: the club's menu */
+.liq-foot__nav{margin-top:clamp(36px,5vw,64px);padding-top:clamp(18px,2vw,26px);border-top:1px solid var(--liq-ink-line)}
+.liq-foot__nav ul{display:flex;flex-wrap:wrap;justify-content:center;gap:4px 6px;margin:0;padding:0;list-style:none}
+.liq-foot__nav a{display:inline-flex;align-items:center;min-height:44px;padding:0 14px;border-radius:999px;color:#fff;font:500 15px/1.2 var(--liq-sans);text-decoration:none;transition:background-color .3s,color .3s}
+.liq-foot__nav a:hover{background:rgba(255,255,255,.08);color:var(--liq-gold)}
+.liq-foot__nav a[aria-current="page"]{color:var(--liq-gold)}
+@media (max-width:699px){ .liq-foot__top{flex-direction:column;justify-content:center} .liq-foot__vc{flex:none;width:min(100%,340px)} .liq-foot__act{justify-content:center} }
+/* tablet up: row 1 stays ONE row - the counter card gives up width (it copes down to 180px) before anything wraps */
+@media (min-width:700px){ .liq-foot__top{flex-wrap:nowrap} .liq-foot__vc{min-width:180px} .liq-foot__act{flex:none;justify-content:flex-end} .liq-foot__logo{flex:0 1 auto;min-width:0} }
+@media (min-width:700px) and (max-width:1023px){ .liq-foot__top{column-gap:24px} .liq-foot__logo{max-width:200px;height:88px;padding:10px 14px} }
+/* padding-right: the floating back-to-top button sits over this corner at the page end */
+.liq-foot__bottom{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 24px;margin-top:clamp(28px,4vw,48px);padding:16px 76px 0 0;border-top:1px solid var(--liq-ink-line);color:var(--liq-mute);font-size:14.5px}
+.liq-foot__bottom p{margin:0}
+.liq-foot__by a{display:inline-flex;align-items:center;min-height:44px;color:#fff;text-decoration:underline;text-underline-offset:.22em;text-decoration-thickness:1px}
+.liq-foot__by a:hover{color:var(--liq-gold)}
+/* floating back to top: gold with an ink ring, so it reads on ink AND gold bands */
+.liq-fab{position:fixed;right:max(16px,env(safe-area-inset-right));bottom:max(16px,env(safe-area-inset-bottom));z-index:80;display:grid;place-items:center;width:52px;height:52px;padding:0;border:2px solid var(--liq-ink);border-radius:50%;background:var(--liq-gold);color:var(--liq-ink);box-shadow:0 14px 30px -12px rgba(0,0,0,.6);cursor:pointer;opacity:0;visibility:hidden;translate:0 14px;transition:opacity .35s,translate .45s var(--liq-ease),visibility 0s .45s,background-color .3s}
+.liq-fab.liq-is-on{opacity:1;visibility:visible;translate:0 0;transition:opacity .35s,translate .45s var(--liq-ease),visibility 0s,background-color .3s}
+.liq-fab:hover{background:#fff}
+/* two-tone ring (ink between white) so it shows on ink, paper, azure and gold */
+html[data-theme="liquid-motion"] .liq-fab:focus-visible{outline:3px solid var(--liq-ink);outline-offset:2px;box-shadow:0 0 0 8px #fff}
+.liq-fab svg{width:22px;height:22px}
+html[data-theme="liquid-motion"].liq-menu-open .liq-fab{opacity:0;visibility:hidden}
+/* the shared visitor counter, grounded on the footer ink */
+html[data-theme="liquid-motion"] .rv-vc{--rv-bg1:#1E1E2A;--rv-bg2:var(--liq-ink-2);--rv-edge:var(--liq-ink-line);--rv-today:var(--liq-gold);--rv-total:#fff;--rv-rule:var(--liq-ink-line);--rv-label:var(--liq-mute);font-family:var(--liq-sans);box-shadow:none}
+
+/* ── WebGL canvas + cursor bubble ──────────────────────────────────────────── */
+.liq-gl{position:fixed;left:0;top:0;z-index:2;pointer-events:none}
+.liq-cursor{position:fixed;left:0;top:0;z-index:300;width:44px;height:44px;border-radius:50%;background:#fff;mix-blend-mode:difference;pointer-events:none}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   SHARED FALLBACK PAGES (e.g. /sister-clubs, the bespoke legacy pages) render
+   the classic design system inside this shell. Restyle only surface: fonts,
+   colours, grounds. Layout classes are left alone.
+   ───────────────────────────────────────────────────────────────────────────── */
+/* their sections assume a light page: give any non-theme block a paper ground at ZERO specificity, so their own bg-* / text-* classes still win */
+:where(html[data-theme="liquid-motion"] #main > :not([class*="liq-"])){background-color:var(--liq-paper);color:var(--liq-ink)}
+/* their breadcrumb band: -mt-24 slides it under classic's pill; ours overlays the top, so drop the pull and pad for the capsule */
+html[data-theme="liquid-motion"] #main section.-mt-24{margin-top:0;background:radial-gradient(60% 55% at 88% 0%,rgba(0,103,200,.34),transparent 70%),var(--liq-ink)}
+html[data-theme="liquid-motion"] #main section.-mt-24 > .container-x{padding-top:calc(var(--liq-hh) + 40px);padding-bottom:40px}
+/* their breadcrumb links are 20px tall: give them the 24px minimum target */
+html[data-theme="liquid-motion"] #main section.-mt-24 nav a{display:inline-flex;align-items:center;min-height:24px}
+html[data-theme="liquid-motion"] #main section.-mt-24 h1{font-family:var(--liq-display);font-weight:700;letter-spacing:-.03em;line-height:1.05}
+html[data-theme="liquid-motion"] #main section.-mt-24 .aurora,
+html[data-theme="liquid-motion"] #main section.-mt-24 .breadcrumb-wheel{display:none}
+html[data-theme="liquid-motion"] #main .label-eyebrow{color:var(--liq-gold);font-family:var(--liq-sans);letter-spacing:.18em}
+html[data-theme="liquid-motion"] #main .font-heading{font-family:var(--liq-display);letter-spacing:-.02em}
+html[data-theme="liquid-motion"] #main .bg-canvas,
+html[data-theme="liquid-motion"] #main .bg-lightest{background-color:var(--liq-paper);color:var(--liq-ink)}
+html[data-theme="liquid-motion"] #main .bg-white{color:var(--liq-ink)}
+html[data-theme="liquid-motion"] #main .text-navy{color:var(--liq-ink)}
+html[data-theme="liquid-motion"] #main .text-muted{color:var(--liq-mute-p)}
+html[data-theme="liquid-motion"] #main .text-gold-cta,
+html[data-theme="liquid-motion"] #main .group:hover .group-hover\:text-gold-cta{color:var(--liq-azure-ink)}
+html[data-theme="liquid-motion"] #main .bg-navy{background-color:var(--liq-ink)}
+html[data-theme="liquid-motion"] #main .border-navy\/10{border-color:var(--liq-paper-line)}
+html[data-theme="liquid-motion"] #main .rounded-2xl{border-radius:22px}
+html[data-theme="liquid-motion"] #main .font-sans{font-family:var(--liq-sans)}
+html[data-theme="liquid-motion"] #main :where(.bg-canvas,.bg-white,.bg-lightest) :where(h1,h2,h3,h4){color:var(--liq-ink)}
+
+/* header menu in capitals, its dropdowns included (client, 2026-10-01) */
+html[data-theme="liquid-motion"] .liq-nav{text-transform:uppercase;letter-spacing:.04em}
+/* ...but the dropdown items in title case (client, 2026-10-01) */
+html[data-theme="liquid-motion"] .liq-nav .liq-nav__sub{text-transform:capitalize;letter-spacing:normal}
+
+/* leadership: two cards to a row on wide screens (client, 2026-10-01) - photo, then the role, name, bio, Read more */
+@media (min-width:900px){
+  .liq-roll{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 clamp(32px,4vw,64px);border-bottom:0}
+  .liq-roll .liq-person{grid-template-columns:clamp(110px,10vw,150px) minmax(0,1fr);align-items:start;border-bottom:1px solid var(--liq-line)}
+  .liq-roll .liq-person__name{font-size:clamp(24px,2.4vw,38px)}
+}
+
+/* our impact: the figures in ONE row (client, 2026-10-01) - number on top, label under, the odometer roll unchanged */
+@media (min-width:900px){
+  .liq-figs{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);border-bottom:0;border-top:1px solid var(--liq-line)}
+  .liq-fig{grid-template-columns:minmax(0,1fr);align-content:start;gap:12px;padding:clamp(22px,2.4vw,32px) clamp(12px,1.4vw,22px) 0}
+  .liq-fig + .liq-fig{border-left:1px solid var(--liq-line)}
+  .liq-fig:first-child{padding-left:0}
+  .liq-fig .liq-fig__line{display:none}
+  .liq-fig__i{padding:0}
+  /* each figure fits its own column: long amounts (₹4,60,725) step down, short counts stay big */
+  .liq-fig{container-type:inline-size}
+  .liq-fig__val{order:-1;font-size:clamp(26px,3.4vw,56px)}
+  /* ONE size for every figure (2026-10-06): measured on the whole row (the first column has no left padding, so a
+     per-column measure gave it a bigger number) - a column's share minus its padding, for the longest figure */
+  .liq-figs{container-type:inline-size}
+  .liq-fig{container-type:normal}
+  @supports (width:1cqi){ .liq-fig__val{font-size:min(56px,calc((100cqi / var(--n,4) - 44px) / (var(--len,4) * .74)))} }
+  .liq-fig__label{padding:0;font-size:clamp(12px,1vw,14px)}
+}
+
+/* responsive pass (2026-10-01) */
+/* very narrow phones (Galaxy Fold 280px): logo + Admin + burger overran the bar - Admin login stays in the burger menu */
+@media (max-width:359px){ .liq-bar__admin{display:none} }
+/* the shared visitor card shrinks its labels to 8.5px on phones - keep them readable, let them wrap */
+html[data-theme="liquid-motion"] .rv-vc{--rv-lab:11px}
+html[data-theme="liquid-motion"] .rv-vc .rv-vc__l{font-size:11px;white-space:normal;line-height:1.25}
+
+/* banner: dots only (2026-10-06) - the progress line is kept, invisible, because its animation times the autoplay */
+.liq-hero__track.is-silent{position:absolute;width:1px;height:1px;overflow:hidden;opacity:0;pointer-events:none}
+/* a very long figure (the all-years cost) gets a double-width cell, so the row's one shared size stays large (2026-10-06) */
+.liq-stats{grid-auto-flow:row dense}
+.liq-stat.is-long{grid-column:span 2}

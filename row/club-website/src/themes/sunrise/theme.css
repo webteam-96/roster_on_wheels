@@ -1,0 +1,707 @@
+/* ═════════════════════════════════════════════════════════════════════════════
+   SUNRISE — Theme 8 option H ("Sunrise Depth, day and night"), React port.
+   Reference: Theme8-Samples/H-sunrise-modes/index.html (approved).
+
+   One sky for the whole page: pre-dawn navy -> Rotary royal blue -> violet dusk
+   -> rose/peach/gold sunrise (dark), or morning sky -> periwinkle -> lilac ->
+   apricot golden hour (light). A fixed band (.sun-sky) is scrubbed by scroll
+   when motion is allowed; without motion the body / each home section paints
+   its own static slice of the same stops.
+
+   Scoping: every token lives on html[data-theme="sunrise"] and is prefixed
+   --sun-; every class starts with sun-; every element selector is scoped under
+   html[data-theme="sunrise"]. The mode is html[data-sun-mode="light|dark"]
+   (Site.jsx owns it). The footer, newsletter covers/sheet and the sunrise block
+   keep ONE palette in both modes (they sit on their own grounds).
+
+   Contrast (WCAG 2.x, from the sample): dark ink #FFF6EC / mist #D9D4F5 /
+   accent #FFC46B hold over s0..x4 (navy -> violet). Light ink #13183A 12.2:1,
+   mist #3F4670 6.4:1, accent #A3234A 5.1:1 over every light stop. Dark-mode
+   light text must NOT sit on s6..s9 (rose/peach/gold) - inner pages are kept
+   in the 0..0.72 range of the sky for exactly that reason (see motion.js
+   skyDriver) and the dawn band above the footer paints the sunrise itself.
+   ═════════════════════════════════════════════════════════════════════════════ */
+
+html[data-theme="sunrise"]{
+  color-scheme:dark;
+  /* sky stops, top of the page to the bottom */
+  --sun-s0:#060D26; --sun-s1:#0A1840; --sun-s2:#17458F; --sun-s3:#2C3A8E; --sun-s4:#4B2F86; --sun-s5:#6B2F80;
+  --sun-s6:#A34C82; --sun-s7:#E0746F; --sun-s8:#F6A87C; --sun-s9:#FFD58C;
+  --sun-x1:#204090; --sun-x2:#2A3B8E; --sun-x3:#502F85; --sun-x4:#873E81;
+  --sun-ink:#FFF6EC; --sun-mist:#D9D4F5; --sun-accent:#FFC46B; --sun-line:rgba(217,212,245,.16);
+  --sun-hdr-bg:rgba(6,13,38,.8); --sun-field-bg:rgba(10,24,64,.7);
+  --sun-strip-bg:rgba(2,5,20,.45);
+  --sun-brand-glow:0 0 0 4px rgba(255,196,107,.08),0 12px 34px -14px rgba(255,170,120,.6);
+  --sun-chev:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5 6 6.5 11 1.5' fill='none' stroke='%23FFC46B' stroke-width='1.8'/%3E%3C/svg%3E");
+  --sun-hover-line:rgba(255,196,107,.6);
+  --sun-menu-bg:radial-gradient(120% 55% at 50% 112%,rgba(246,168,124,.5),transparent 62%),linear-gradient(180deg,#060D26,#1B2A6B 55%,#4B2F86);
+  --sun-name-grad:linear-gradient(180deg,#FFF9F0 22%,#FFE2BE 60%,#FFC996 100%);
+  --sun-num-grad:linear-gradient(180deg,#FFFFFF 15%,#FFD58C 100%);
+  --sun-dot:rgba(255,246,236,.55); --sun-btn-line:rgba(255,246,236,.45);
+  --sun-win-bg:#0A1840;
+  --sun-win-shadow:0 0 0 1px rgba(255,214,170,.32),0 30px 90px -24px rgba(0,0,0,.7),0 0 140px -6px rgba(255,170,120,.34);
+  --sun-ring:rgba(255,214,170,.34); --sun-ring-dash:rgba(255,214,170,.28); --sun-ring-in:rgba(255,214,170,.5);
+  --sun-card-bg:rgba(14,18,54,.88); --sun-card-line:rgba(217,212,245,.16); --sun-card-img:#141A4A; --sun-card-shadow:0 30px 70px -30px rgba(3,6,20,.8);
+  --sun-tint:rgba(255,246,236,.06);
+  --sun-scrim:0 0 34px rgba(6,13,38,.9),0 2px 12px rgba(6,13,38,.75);
+  --sun-spark:#FFE6C2; --sun-spark-glow:rgba(255,200,150,.7);
+  --sun-glow-a:rgba(126,96,230,.26);
+  --sun-sun-glow:radial-gradient(circle,rgba(255,213,140,.30),rgba(224,116,111,.12) 42%,transparent 68%);
+  --sun-sheet:#FFF4E8; --sun-sheet-shadow:0 50px 120px -50px rgba(20,8,40,.7);
+  --sun-hill-back:#B85E86; --sun-hill-mid:#74377C;
+  --sun-arch-line:rgba(255,220,170,.9);
+  --sun-grain:.07;
+  /* one palette in both modes */
+  --sun-dk:#1C1236; --sun-dk2:#3E2447; --sun-berry:#A8364A; --sun-hill:#2A1843;
+  --sun-night-ink:#FFF6EC; --sun-night-mist:#D9D4F5; --sun-night-accent:#FFC46B;
+  --sun-dawn:linear-gradient(90deg,#17458F,#4B2F86,#A34C82,#E0746F,#FFD58C);
+  --sun-sunbtn:linear-gradient(90deg,#FFD58C,#F6A87C);
+  /* type */
+  --sun-display:"Unbounded","Arial Black",system-ui,sans-serif;
+  --sun-serif:"Instrument Serif",Georgia,"Times New Roman",serif;
+  --sun-sans:"Geist","Segoe UI",system-ui,-apple-system,sans-serif;
+  /* every section heading, one size (client, 2026-10-05: "keep all heading font size same"). Under
+     360px the floor follows the screen: "Newsletters" split mid-word on a 280px Fold at 30px */
+  --sun-h2-size:clamp(min(30px,8.4vw),3.4vw,52px);
+  /* layout: --sun-hh = the header BAR that stays pinned (sticky offsets use it);
+     --sun-strip = the strip above it, which scrolls away. Both change in fit mode (below) */
+  --sun-hh:88px; --sun-strip:56px;
+  --sun-pad:clamp(16px,4vw,48px);
+  /* the header's side inset: the content column's (.sun-wrap, 1240px) edge, so the logo and tools line
+     up with the page's h1 and footer (at 1280 they sat 20px outside them on wide screens) */
+  --sun-side:max(var(--sun-pad),calc(50% - 620px));
+}
+/* day: the same journey in daylight */
+html[data-theme="sunrise"][data-sun-mode="light"]{
+  color-scheme:light only;
+  --sun-s0:#F7F9FF; --sun-s1:#EEF3FF; --sun-s2:#D8E6FF; --sun-s3:#DCDDFF; --sun-s4:#E6D9FA; --sun-s5:#F0D7EE;
+  --sun-s6:#F7D4DF; --sun-s7:#FBD0C2; --sun-s8:#FDD6B0; --sun-s9:#FFE4B2;
+  --sun-x1:#D9E2FF; --sun-x2:#DCDDFF; --sun-x3:#E9D8F6; --sun-x4:#F4D5E6;
+  --sun-ink:#13183A; --sun-mist:#3F4670; --sun-accent:#A3234A; --sun-line:rgba(19,24,58,.14);
+  --sun-hdr-bg:rgba(247,249,255,.8); --sun-field-bg:rgba(255,255,255,.75);
+  --sun-strip-bg:rgba(39,65,143,.07);
+  --sun-brand-glow:0 0 0 4px rgba(255,190,140,.2),0 12px 30px -16px rgba(163,35,74,.4);
+  --sun-chev:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5 6 6.5 11 1.5' fill='none' stroke='%23A3234A' stroke-width='1.8'/%3E%3C/svg%3E");
+  --sun-hover-line:rgba(163,35,74,.55);
+  --sun-menu-bg:radial-gradient(120% 55% at 50% 112%,rgba(253,214,176,.8),transparent 62%),linear-gradient(180deg,#F7F9FF,#E2E8FF 55%,#EBDAF7);
+  --sun-name-grad:linear-gradient(180deg,#13183A 20%,#27418F 62%,#7A2E78 100%);
+  --sun-num-grad:linear-gradient(180deg,#13183A 15%,#A3234A 100%);
+  --sun-dot:rgba(19,24,58,.32); --sun-btn-line:rgba(19,24,58,.4);
+  --sun-win-bg:#E3E8F8;
+  --sun-win-shadow:0 0 0 1px rgba(19,24,58,.1),0 30px 80px -26px rgba(40,50,110,.4),0 0 140px -6px rgba(255,170,120,.3);
+  --sun-ring:rgba(39,65,143,.26); --sun-ring-dash:rgba(39,65,143,.22); --sun-ring-in:rgba(163,35,74,.34);
+  --sun-card-bg:rgba(255,255,255,.9); --sun-card-line:rgba(19,24,58,.1); --sun-card-img:#E3E8F8; --sun-card-shadow:0 30px 70px -30px rgba(40,40,100,.38);
+  --sun-tint:rgba(19,24,58,.05);
+  --sun-scrim:0 0 34px rgba(247,249,255,.95),0 2px 12px rgba(247,249,255,.85);
+  --sun-spark:#8E63D8; --sun-spark-glow:rgba(142,99,216,.45);
+  --sun-glow-a:rgba(255,236,190,.7);
+  --sun-sun-glow:radial-gradient(circle,rgba(255,206,150,.55),rgba(247,180,196,.22) 42%,transparent 68%);
+  --sun-sheet:#FFFFFF; --sun-sheet-shadow:0 50px 120px -50px rgba(70,40,110,.4);
+  --sun-hill-back:#E39AB0; --sun-hill-mid:#9A4C8C;
+  --sun-arch-line:rgba(163,35,74,.6);
+  --sun-grain:.04;
+}
+@media (max-width:899px){ html[data-theme="sunrise"]{ --sun-hh:76px } }
+@media (max-width:599px){ html[data-theme="sunrise"]{ --sun-hh:68px } }
+/* a phone on its side (or any short window): the pinned bar slims, it took a fifth of a 430px screen */
+@media (max-height:500px){ html[data-theme="sunrise"]{ --sun-hh:60px } }
+/* fit mode (Site.jsx: the whole menu fits on a row of its own, 900px+): the strip is the logo plate
+   + the tools, the pinned bar the menu alone. Outranks the width and touch rules in any order */
+html[data-theme="sunrise"]:has(.sun-hdr.is-fit){--sun-strip:104px;--sun-hh:60px}
+@media (max-width:1099px){ html[data-theme="sunrise"]:has(.sun-hdr.is-fit){--sun-strip:96px} }
+
+/* ---------- base (element selectors scoped to the theme) ---------- */
+html[data-theme="sunrise"]{background:var(--sun-s0);scroll-behavior:auto;-webkit-text-size-adjust:100%}
+/* static sky for pages without motion: pre-dawn at the top, violet dusk at the
+   bottom - never the warm stops, which light ink cannot sit on (the dawn band
+   above the footer paints the sunrise itself) */
+html[data-theme="sunrise"] body{
+  margin:0;color:var(--sun-ink);font-family:var(--sun-sans);font-size:17px;line-height:1.65;font-weight:400;
+  -webkit-font-smoothing:antialiased;
+  background:linear-gradient(180deg,var(--sun-s0) 0,var(--sun-s1) 700px,var(--sun-s2) 40%,var(--sun-s3) 62%,var(--sun-s4) 82%,var(--sun-s5) 100%);
+}
+/* body is not a stacking context: its own background would paint ABOVE the
+   z-index:-1 sky. html keeps the base colour; body goes clear while it is live. */
+html[data-theme="sunrise"].sun-sky-live body{background:transparent}
+/* the lock goes on <html>, not <body>: html already clips x, so overflow:hidden on body made the BODY a
+   scroll box and the sticky header (with the menu's close button) stuck to it - off the top of the screen
+   when the menu was opened far down a page (client, 2026-10-06: "no close button") */
+html[data-theme="sunrise"].sun-menu-open{overflow:hidden}
+html[data-theme="sunrise"] ::selection{background:var(--sun-accent);color:var(--sun-s0)}
+/* :where() keeps this at (0,1,0): a component's own :focus-visible rule (a card
+   link that hands its ring to the card, a control with its own offset) wins, and
+   no control's border-radius is squared off while it has focus */
+:where(html[data-theme="sunrise"]) :focus-visible{outline:3px solid var(--sun-accent);outline-offset:3px}
+html[data-theme="sunrise"] .sun-on-light :focus-visible{outline-color:var(--sun-dk)}
+html[data-theme="sunrise"] .sun-foot :focus-visible{outline-color:var(--sun-night-accent)}
+/* the mode switch: the new mode spreads from the button as a circle (Site.jsx) */
+html[data-theme="sunrise"]::view-transition-old(root),
+html[data-theme="sunrise"]::view-transition-new(root){animation:none;mix-blend-mode:normal}
+
+.sun-sr{position:absolute!important;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
+.sun-skip{position:absolute;left:16px;top:-120px;z-index:400;background:var(--sun-night-accent);color:var(--sun-dk);font-weight:700;padding:12px 18px;border-radius:12px;text-decoration:none}
+.sun-skip:focus{top:12px}
+.sun-main{display:block;overflow-x:clip}
+.sun-main:focus{outline:none}
+.sun-main section[id]{scroll-margin-top:var(--sun-hh)}
+
+/* ---------- the sky (motion only; Site adds html.sun-sky-live) ---------- */
+.sun-sky{position:fixed;inset:0;z-index:-1;overflow:hidden;pointer-events:none;display:none;contain:strict}
+html.sun-sky-live .sun-sky{display:block}
+.sun-sky__band{
+  position:absolute;left:0;top:0;width:100%;height:100%;transform-origin:0 0;will-change:transform;transform:scaleY(30);
+  background:linear-gradient(180deg,var(--sun-s0) 0%,var(--sun-s1) 10%,var(--sun-s2) 30%,var(--sun-s3) 52%,var(--sun-s4) 64%,var(--sun-s5) 76%,var(--sun-s6) 80%,var(--sun-s7) 84.5%,var(--sun-s8) 90%,var(--sun-s9) 100%);
+}
+.sun-sky__stars{position:absolute;left:0;right:0;top:0;height:112%;will-change:transform,opacity}
+html[data-sun-mode="light"] .sun-sky__stars{display:none}
+.sun-st{position:absolute;left:0;top:0;width:1px;height:1px;border-radius:50%}
+html.sun-sky-live .sun-st--b{animation:sun-twinkle 3.6s ease-in-out infinite alternate}
+@keyframes sun-twinkle{from{opacity:.35}to{opacity:1}}
+.sun-sky__glow{position:absolute;border-radius:50%;will-change:transform,opacity}
+.sun-sky__glow--a{width:80vmax;height:80vmax;left:-28vmax;top:-26vmax;background:radial-gradient(circle,var(--sun-glow-a),transparent 62%)}
+.sun-sky__glow--b{width:90vmax;height:90vmax;right:-34vmax;bottom:-50vmax;background:radial-gradient(circle,rgba(255,168,130,.28),transparent 62%)}
+.sun-sky__horizon{position:absolute;left:-10%;right:-10%;bottom:-34vh;height:72vh;will-change:transform,opacity;
+  background:radial-gradient(50% 50% at 50% 50%,rgba(255,226,170,.45),rgba(255,160,120,.16) 45%,transparent 72%)}
+.sun-sky__grain{position:absolute;inset:0;opacity:var(--sun-grain);
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
+
+/* ---------- header: a strip that scrolls away over the bar that stays ----------
+   Sticky at minus the strip's height: the strip scrolls off and .sun-hdr__bar,
+   var(--sun-hh) tall, pins. Two layouts (Site.jsx measures): when the whole menu
+   fits on a row of its own (.is-fit) the strip is the logo plate + the tools (year,
+   Admin login, light/dark) and the bar is the menu alone, centred; else the strip
+   is the tools and the bar is the logo plate + the burger. */
+.sun-hdr{
+  position:sticky;top:calc(-1 * var(--sun-strip));z-index:100;background:var(--sun-hdr-bg);
+  -webkit-backdrop-filter:blur(16px) saturate(1.3);backdrop-filter:blur(16px) saturate(1.3);
+}
+/* Shift+Tab back into the scrolled-away strip brings it down: a focus ring is never off screen */
+.sun-hdr:has(.sun-hdr__strip :focus-visible){top:0}
+.sun-hdr__dawn{position:absolute;left:0;right:0;bottom:-1px;height:2px;transform-origin:0 50%;transform:scaleX(0);display:none;background:var(--sun-dawn)}
+html.sun-sky-live .sun-hdr__dawn{display:block}
+/* the strip: a deeper band; its controls are one family of 34px pills (44px on touch), on the right */
+.sun-hdr__strip{display:flex;align-items:center;gap:12px;height:var(--sun-strip);padding:0 var(--sun-side);background:var(--sun-strip-bg);border-bottom:1px solid var(--sun-line)}
+.sun-hdr__tools{display:flex;align-items:center;gap:8px;margin-left:auto;flex:none}
+/* a ring that fits inside the band */
+.sun-hdr__strip :focus-visible{outline-offset:1px}
+.sun-hdr__bar{position:relative;display:flex;align-items:center;gap:12px;height:var(--sun-hh);padding:0 var(--sun-side);border-bottom:1px solid var(--sun-line)}
+/* the lockup on a white plate (it must read in both modes) in a dawn-gradient ring and a soft glow; the footer's logo plate too */
+.sun-brand,.sun-foot__logo{border:1.5px solid transparent;background:linear-gradient(#fff,#fff) padding-box,var(--sun-dawn) border-box}
+.sun-brand{flex:none;display:flex;align-items:center;min-height:44px;padding:5px 14px;border-radius:16px;box-shadow:var(--sun-brand-glow);text-decoration:none;color:#13183A}
+/* sizes: the bar (--sun-hh) keeps ~7px above and below the plate */
+.sun-brand img{height:60px;width:auto;max-width:min(300px,calc(100vw - 2 * var(--sun-pad) - 90px));object-fit:contain}
+.sun-brand__text{font:600 14px/1.2 var(--sun-display);padding:6px 4px;max-width:200px}
+@media (max-width:899px){ .sun-brand img{height:48px} }
+@media (max-width:599px){ .sun-brand{padding:4px 8px;border-radius:12px} .sun-brand img{height:44px} }
+@media (max-height:500px){ .sun-brand{padding:4px 8px;border-radius:12px} .sun-brand img{height:40px} }
+/* fit mode: the plate leads the strip where the district was, bigger (client, 2026-10-05). Its glow
+   stays in the strip: none is left on the pinned bar once the strip has scrolled away */
+.sun-hdr.is-fit .sun-hdr__strip{overflow:hidden;overflow:clip}
+.sun-hdr.is-fit .sun-brand img{height:72px;max-width:420px}
+@media (max-width:1099px){ .sun-hdr.is-fit .sun-brand img{height:64px} }
+
+/* desktop nav. Rendered always so its natural width can be measured; the shell
+   adds .is-fit when it fits on the bar by itself (centred), else the burger shows. */
+.sun-nav{margin-inline:auto;min-width:0}
+.sun-nav__list{display:flex;width:max-content}
+/* measuring state: zero-width and clipped, so the max-content list can never widen the page */
+.sun-hdr:not(.is-fit) .sun-nav{position:absolute;left:0;top:0;width:0;height:0;overflow:hidden;visibility:hidden;pointer-events:none}
+.sun-hdr.is-fit .sun-burger{display:none}
+.sun-nav__item{position:relative;display:flex;align-items:center}
+.sun-nav__link{position:relative;display:flex;align-items:center;min-height:44px;padding:0 11px;font-size:15px;font-weight:500;color:var(--sun-mist);text-decoration:none;white-space:nowrap;transition:color .25s;background:none;border:0;cursor:pointer;font-family:inherit}
+/* a little tighter under 1100px, so eight menus still get their own row at 1024 */
+@media (max-width:1099px){ .sun-nav__link{padding:0 9px} }
+.sun-nav__link:hover,.sun-nav__link[aria-current="page"],.sun-nav__item.is-here>.sun-nav__link{color:var(--sun-ink)}
+/* the sun-dot: rises faintly on hover, lit on the current page */
+.sun-nav__link::after{content:"";position:absolute;left:50%;bottom:4px;width:6px;height:6px;margin-left:-3px;border-radius:50%;background:var(--sun-accent);box-shadow:0 0 10px 2px var(--sun-hover-line);opacity:0;scale:.4;transition:opacity .3s,scale .3s}
+.sun-nav__link:hover::after{opacity:.5;scale:1}
+.sun-nav__link[aria-current="page"]::after,.sun-nav__item.is-here>.sun-nav__link::after{opacity:1;scale:1}
+.sun-nav__toggle{display:grid;place-items:center;width:26px;height:44px;margin-left:-8px;margin-right:2px;padding:0;border:0;background:none;color:var(--sun-mist);cursor:pointer;border-radius:8px}
+.sun-nav__toggle:hover{color:var(--sun-ink)}
+.sun-nav__toggle svg,.sun-nav__link svg{width:12px;height:12px;transition:transform .3s}
+.sun-nav__toggle[aria-expanded="true"] svg{transform:rotate(180deg)}
+/* touch (a tablet with the whole menu on its bar): a 44px target, not 26 (Site.jsx measures the wider list) */
+@media (pointer:coarse){ .sun-nav__toggle{width:44px} }
+.sun-sub{position:absolute;top:100%;left:0;z-index:5;display:none;min-width:220px;max-width:320px;padding:8px;border-radius:16px;
+  background:var(--sun-card-bg);border:1px solid var(--sun-card-line);box-shadow:var(--sun-card-shadow)}
+.sun-nav__item:nth-last-child(-n+2)>.sun-sub{left:auto;right:0}
+.sun-nav__item.is-open>.sun-sub{display:block}
+@media (hover:hover){ .sun-nav__item:hover>.sun-sub{display:block} }
+.sun-sub a{display:flex;align-items:center;min-height:40px;padding:6px 12px;border-radius:10px;font-size:14.5px;line-height:1.35;color:var(--sun-mist);text-decoration:none}
+.sun-sub a:hover,.sun-sub a[aria-current="page"]{color:var(--sun-ink);background:var(--sun-tint)}
+.sun-sub a[aria-current="page"]{box-shadow:inset 3px 0 0 var(--sun-accent)}
+
+.sun-year select,.sun-menu select,.sun-select{
+  -webkit-appearance:none;appearance:none;cursor:pointer;height:44px;padding:0 38px 0 16px;border-radius:999px;
+  border:1px solid var(--sun-line);font:600 14.5px var(--sun-sans);color:var(--sun-ink);
+  background:var(--sun-field-bg) var(--sun-chev) no-repeat right 15px center;
+}
+.sun-year select option,.sun-menu select option,.sun-select option{color:var(--sun-dk);background:#fff}
+.sun-year select:hover,.sun-menu select:hover,.sun-select:hover{border-color:var(--sun-hover-line)}
+/* the strip's pills: year, Admin login (kit Button), light/dark */
+.sun-hdr__strip .sun-year{display:flex}
+/* 44px tall, bigger type (client, 2026-10-06; were 34px with 13 / 11.5px) */
+.sun-hdr__strip select{height:44px;padding:0 36px 0 16px;font-size:15px;font-weight:600;background-position:right 13px center}
+.sun-hdr__strip .sun-btn{min-height:44px;padding:0 18px;gap:8px;border:1px solid var(--sun-line);background:var(--sun-field-bg);font-size:13px;letter-spacing:.14em;text-transform:uppercase}
+/* the line above outranks .sun-btn--line:hover's border: light it up like the select and the switch beside it */
+.sun-hdr__strip .sun-btn:hover{border-color:var(--sun-hover-line)}
+.sun-hdr__strip .sun-btn svg{width:13px;height:13px;color:var(--sun-accent)}
+.sun-hdr__strip .sun-mode{width:44px;height:44px}
+.sun-burger,.sun-mode{display:inline-grid;place-items:center;flex:none;padding:0;border-radius:50%;border:1px solid var(--sun-line);color:var(--sun-ink);cursor:pointer}
+.sun-burger{width:48px;height:48px;margin-left:auto;background:transparent}
+.sun-mode{width:34px;height:34px;background:var(--sun-field-bg)}
+.sun-burger:hover,.sun-mode:hover{border-color:var(--sun-hover-line)}
+/* the 44px tools at full size need 345px: under 390 they take the smaller type, under 360 the side
+   padding and gaps shrink too */
+@media (max-width:389px){ .sun-hdr__strip select{padding:0 30px 0 12px;font-size:13px} .sun-hdr__strip .sun-btn{padding:0 14px;font-size:11.5px;letter-spacing:.12em} }
+@media (max-width:359px){ .sun-hdr__strip{padding-inline:8px} .sun-hdr__tools{gap:6px} }
+/* under 360px "Admin login" reads "Admin" (the full name stays for screen readers): the tools ran 32px
+   past a 280px screen and cut the light/dark switch off */
+@media (max-width:359px){ .sun-hdr__login{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap} }
+.sun-burger__bars{position:relative;width:20px;height:10px}
+.sun-burger__bars i{position:absolute;left:0;right:0;height:2px;border-radius:2px;background:var(--sun-ink);transition:transform .35s cubic-bezier(.7,0,.2,1)}
+.sun-burger__bars i:first-child{top:0}
+.sun-burger__bars i:last-child{bottom:0}
+.sun-burger[aria-expanded="true"] .sun-burger__bars i:first-child{transform:translateY(4px) rotate(45deg)}
+.sun-burger[aria-expanded="true"] .sun-burger__bars i:last-child{transform:translateY(-4px) rotate(-45deg)}
+
+/* sun in the day, moon at night: the moon's bite slides over the disc and the rays fold away */
+.sun-mode svg{width:18px;height:18px;overflow:visible}
+.sun-mode__disc{fill:var(--sun-accent);transition:r .5s cubic-bezier(.7,0,.2,1)}
+.sun-mode__bite{fill:#000;transition:transform .5s cubic-bezier(.7,0,.2,1)}
+.sun-mode__rays{stroke:var(--sun-accent);stroke-width:2;stroke-linecap:round;transform-origin:12px 12px;transition:transform .5s cubic-bezier(.7,0,.2,1),opacity .35s}
+html[data-sun-mode="light"] .sun-mode__disc{r:5px}
+html[data-sun-mode="light"] .sun-mode__bite{transform:translate(14px,-14px)}
+html[data-theme="sunrise"]:not([data-sun-mode="light"]) .sun-mode__rays{transform:rotate(-60deg) scale(.4);opacity:0}
+
+/* ---------- mobile menu ---------- */
+.sun-menu{
+  position:fixed;inset:0;z-index:90;overflow-y:auto;overscroll-behavior:contain;
+  padding:calc(var(--sun-hh) + 32px) var(--sun-side) 48px;display:flex;flex-direction:column;gap:32px;
+  background:var(--sun-menu-bg);color:var(--sun-ink);
+}
+.sun-menu[hidden]{display:none}
+.sun-menu__list>li{border-bottom:1px solid var(--sun-line)}
+.sun-menu__row{display:flex;align-items:center;gap:8px}
+.sun-menu__link{flex:1;min-width:0;display:flex;align-items:center;min-height:56px;padding:2px 0;text-decoration:none;
+  font:600 clamp(20px,5.6vw,34px)/1.1 var(--sun-display);letter-spacing:-.02em;overflow-wrap:anywhere;color:var(--sun-ink);background:none;border:0;text-align:left;cursor:pointer}
+.sun-menu__link[aria-current="page"],.sun-menu__link:hover{color:var(--sun-accent)}
+.sun-menu__toggle{flex:none;display:grid;place-items:center;width:48px;height:48px;border-radius:50%;border:1px solid var(--sun-line);background:none;color:var(--sun-ink);cursor:pointer}
+.sun-menu__toggle svg{width:14px;height:14px;transition:transform .3s}
+.sun-menu__toggle[aria-expanded="true"] svg{transform:rotate(180deg)}
+.sun-menu__sub{padding:0 0 14px 4px}
+.sun-menu__sub[hidden]{display:none}
+.sun-menu__sub a{display:flex;align-items:center;min-height:44px;font-size:17px;font-weight:500;color:var(--sun-mist);text-decoration:none}
+.sun-menu__sub a:hover,.sun-menu__sub a[aria-current="page"]{color:var(--sun-accent)}
+.sun-menu__foot{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:20px}
+.sun-menu .sun-year{display:flex;flex-direction:column;gap:8px;font-size:14px;font-weight:600;color:var(--sun-mist);max-width:220px}
+.sun-menu select{height:48px}
+/* Admin login + light/dark stay together when the foot wraps under the year */
+.sun-menu__acts{display:flex;align-items:center;gap:12px}
+.sun-menu .sun-mode{width:48px;height:48px}
+.sun-menu .sun-mode svg{width:22px;height:22px}
+
+/* ---------- shared layout + type ---------- */
+.sun-wrap{width:min(1240px,calc(100% - 2 * var(--sun-pad)));margin-inline:auto}
+/* 64px floor: 88 left a third of a 568px phone screen empty between two sections */
+.sun-sec{position:relative;padding-block:clamp(64px,12vw,168px)}
+.sun-block{position:relative;padding-block:clamp(40px,6vw,88px)}
+.sun-eyebrow{font-size:12.5px;font-weight:600;letter-spacing:.2em;text-transform:uppercase;color:var(--sun-accent)}
+.sun-h2{font:600 var(--sun-h2-size)/1.02 var(--sun-display);letter-spacing:-.035em;text-wrap:balance;overflow-wrap:anywhere}
+.sun-h3{font:600 clamp(18px,1.6vw,22px)/1.25 var(--sun-display);letter-spacing:-.02em;overflow-wrap:anywhere}
+.sun-lead{font:400 clamp(22px,2.4vw,36px)/1.18 var(--sun-serif);letter-spacing:-.005em;text-wrap:pretty}
+.sun-lead em{font-style:italic;color:var(--sun-accent)}
+.sun-text{color:var(--sun-mist);max-width:66ch}
+.sun-text p+p{margin-top:1em}
+.sun-prose{color:var(--sun-mist);max-width:70ch;overflow-wrap:anywhere}
+.sun-prose p,.sun-prose ul,.sun-prose ol{margin:0 0 1em}
+.sun-prose ul{list-style:disc;padding-left:1.3em}
+.sun-prose ol{list-style:decimal;padding-left:1.3em}
+.sun-prose h1,.sun-prose h2,.sun-prose h3,.sun-prose h4{margin:1.4em 0 .5em;font:600 1.2em/1.3 var(--sun-display);letter-spacing:-.02em;color:var(--sun-ink)}
+.sun-prose a{color:var(--sun-accent);text-decoration:underline;text-underline-offset:3px}
+.sun-prose strong,.sun-prose b{color:var(--sun-ink);font-weight:600}
+.sun-prose img{height:auto;border-radius:12px;margin:1em 0}
+.sun-prose table{display:block;max-width:100%;overflow-x:auto;border-collapse:collapse}
+.sun-prose td,.sun-prose th{border:1px solid var(--sun-line);padding:6px 10px}
+.sun-prose [style*="font-size"]{font-size:inherit!important}
+.sun-prose [style*="line-height"]{line-height:inherit!important}
+.sun-prose [style*="color"]{color:inherit!important}
+.sun-prose [style*="background"]{background:none!important}
+.sun-prose [style*="text-align:justify"],.sun-prose [style*="text-align: justify"]{text-align:start!important}
+
+.sun-shead{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:20px 32px;margin-bottom:clamp(28px,4vw,56px)}
+.sun-shead__main{min-width:0;max-width:880px}
+.sun-shead .sun-h2{margin-top:10px}
+.sun-shead__intro{margin-top:16px;color:var(--sun-mist);max-width:60ch}
+.sun-shead--center{justify-content:center;text-align:center}
+.sun-shead--center .sun-shead__main{margin-inline:auto}
+.sun-shead--center .sun-shead__intro{margin-inline:auto}
+
+/* ---------- buttons ---------- */
+.sun-btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:10px;min-height:48px;padding:0 26px;border-radius:999px;border:0;
+  font:600 15px/1.2 var(--sun-sans);text-decoration:none;text-align:center;cursor:pointer;
+  transition:background-color .25s,border-color .25s,color .25s,box-shadow .25s;
+}
+.sun-btn svg{width:16px;height:16px;flex:none}
+.sun-btn--sun{background:var(--sun-sunbtn);color:var(--sun-dk);box-shadow:0 10px 40px -12px rgba(246,168,124,.8)}
+.sun-btn--sun:hover{box-shadow:0 12px 48px -8px rgba(255,213,140,.95)}
+.sun-btn--line{border:1.5px solid var(--sun-btn-line);color:var(--sun-ink);background:transparent}
+.sun-btn--line:hover{border-color:var(--sun-accent);color:var(--sun-accent)}
+.sun-btn--dark{background:var(--sun-dk);color:var(--sun-night-ink)}
+.sun-btn--dark:hover{background:#34225E}
+.sun-btn--sm{min-height:44px;padding:0 18px;font-size:14px}
+.sun-btn[disabled],.sun-btn[aria-disabled="true"]{opacity:.45;cursor:not-allowed}
+.sun-link{display:inline-flex;align-items:center;gap:6px;min-height:44px;font-weight:600;color:var(--sun-ink);text-decoration:none}
+.sun-link svg{width:14px;height:14px}
+.sun-link:hover{color:var(--sun-accent)}
+
+/* ---------- page head (kit PageHero): a short band - the breadcrumb and the h1,
+   nothing else (client, 2026-09-29). A page's tools follow it in .sun-ph-after.
+   The sun and ring are sized for the band: centred low on its right edge, so the
+   ring's arc rises out of the horizon line. ---------- */
+.sun-ph{position:relative;isolation:isolate;overflow:hidden;overflow:clip;padding:clamp(18px,3vw,44px) 0 clamp(28px,3.6vw,56px)}
+.sun-ph__sun{position:absolute;z-index:-1;right:max(-10vw,-120px);top:clamp(-90px,-6vw,-8px);width:min(60vw,520px);aspect-ratio:1;border-radius:50%;background:var(--sun-sun-glow);pointer-events:none;will-change:transform}
+.sun-ph__ring{position:absolute;z-index:-1;right:max(-4vw,-60px);top:clamp(14px,3vw,44px);width:min(40vw,380px);aspect-ratio:1;border-radius:50%;border:1px solid var(--sun-ring);pointer-events:none}
+.sun-ph__ring::after{content:"";position:absolute;inset:14%;border-radius:50%;border:1px dashed var(--sun-ring-dash)}
+.sun-ph__title{margin-top:clamp(8px,1.2vw,16px);padding:0 .04em .08em 0;font:700 clamp(min(36px,11vw),6.4vw,96px)/1 var(--sun-display);letter-spacing:-.045em;text-wrap:balance;overflow-wrap:anywhere}
+.sun-ph__title:not(.is-split),.sun-ph__title .sun-c{background:var(--sun-name-grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+.sun-ph__title .sun-c{padding:0 .05em;margin:0 -.05em}
+.sun-ph--md .sun-ph__title{font-size:clamp(28px,4.6vw,66px);letter-spacing:-.035em;line-height:1.05}
+.sun-ph__horizon{position:absolute;left:0;right:0;bottom:0;height:1px;background:linear-gradient(90deg,transparent,var(--sun-hover-line) 30%,var(--sun-hover-line) 70%,transparent)}
+/* PageHero's children (search + count, chips, a month switch, stats): the first row of the page body */
+.sun-ph-after{padding-top:clamp(20px,2.6vw,32px)}
+/* always in the DOM, so the entrance catches tools that arrive with the data; empty, it takes no room */
+.sun-ph-after:empty{display:none}
+
+.sun-crumbs ol{display:flex;flex-wrap:wrap;align-items:center;gap:2px 12px;font-size:13.5px;font-weight:500;color:var(--sun-mist)}
+.sun-crumbs li{display:flex;align-items:center;gap:12px;min-width:0}
+.sun-crumbs li+li::before{content:"";flex:none;width:5px;height:5px;border-radius:50%;background:var(--sun-accent)}
+.sun-crumbs a{display:inline-flex;align-items:center;min-height:32px;text-decoration:none;color:var(--sun-mist)}
+/* touch: a 44px target that still takes 32px of the row */
+@media (pointer:coarse){ .sun-crumbs a{min-height:44px;margin-block:-6px} }
+.sun-crumbs a:hover{color:var(--sun-ink)}
+.sun-crumbs [aria-current="page"]{color:var(--sun-ink);overflow-wrap:anywhere}
+
+/* ---------- cards (the sample's project card) ---------- */
+.sun-grid{display:grid;gap:22px;grid-template-columns:repeat(auto-fill,minmax(min(100%,300px),1fr))}
+.sun-card{position:relative;display:flex;flex-direction:column;height:100%;min-width:0;border-radius:20px;overflow:hidden;
+  background:var(--sun-card-bg);border:1px solid var(--sun-card-line);box-shadow:var(--sun-card-shadow);color:var(--sun-ink)}
+.sun-card:has(.sun-card__link:focus-visible){outline:3px solid var(--sun-accent);outline-offset:3px}
+.sun-card__img{position:relative;aspect-ratio:var(--sun-ar,4/3);overflow:hidden;
+  background:radial-gradient(70% 60% at 50% 115%,rgba(255,213,140,.38),transparent 70%),var(--sun-card-img)}
+.sun-card__img img{width:100%;height:100%;object-fit:cover;transition:scale .8s cubic-bezier(.2,.7,.2,1)}
+.sun-card:hover .sun-card__img img{scale:1.04}
+/* fit="contain": the whole photo, never cropped, over a blurred and dimmed fill of
+   itself (the window's technique). The fill is oversized so the blur's soft edge
+   stays outside the frame, even under a scale tween (tiltRise's '.sun-card__img img'
+   finds the fill first); no hover zoom here - a scale would crop the photo. */
+.sun-card__img--contain img{position:relative;object-fit:contain}
+.sun-card__img .sun-card__fill{position:absolute;left:-15%;top:-15%;width:130%;height:130%;max-width:none;object-fit:cover;filter:blur(18px) saturate(1.15) brightness(.7)}
+html[data-sun-mode="light"] .sun-card__img .sun-card__fill{filter:blur(18px) saturate(1.1) brightness(.92)}
+.sun-card:hover .sun-card__img--contain img{scale:none}
+.sun-card__body{display:flex;flex-direction:column;gap:8px;flex:1;min-width:0;padding:18px 20px 20px}
+.sun-card__meta{display:flex;flex-wrap:wrap;gap:2px 14px;font-size:12px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--sun-accent)}
+.sun-card__meta time,.sun-card__meta .sun-card__muted{color:var(--sun-mist)}
+.sun-card__title{font:600 clamp(16px,1.3vw,19px)/1.28 var(--sun-display);letter-spacing:-.02em;overflow-wrap:anywhere}
+.sun-card__link{text-decoration:none;color:inherit}
+.sun-card__link::after{content:"";position:absolute;inset:0;z-index:1}
+.sun-card__link:focus-visible{outline:none}
+.sun-card__desc{font-size:15px;line-height:1.55;color:var(--sun-mist);display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;overflow-wrap:anywhere}
+.sun-card__more{margin-top:auto;padding-top:4px;font-size:14px;font-weight:600;color:var(--sun-ink)}
+.sun-card:hover .sun-card__more{color:var(--sun-accent)}
+.sun-panel{position:relative;border-radius:24px;background:var(--sun-card-bg);border:1px solid var(--sun-card-line);box-shadow:var(--sun-card-shadow);padding:clamp(20px,3vw,36px);min-width:0}
+
+/* ---------- chips, search, count ---------- */
+.sun-tools{display:flex;flex-wrap:wrap;align-items:center;gap:14px 20px}
+.sun-chips{display:flex;flex-wrap:wrap;gap:8px}
+.sun-chip{display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:0 18px;border-radius:999px;border:1px solid var(--sun-line);
+  background:var(--sun-field-bg);color:var(--sun-mist);font:600 14px/1.2 var(--sun-sans);cursor:pointer;transition:border-color .25s,color .25s,background-color .25s}
+.sun-chip:hover{border-color:var(--sun-hover-line);color:var(--sun-ink)}
+.sun-chip[aria-pressed="true"],.sun-chip[aria-selected="true"]{background:var(--sun-sunbtn);border-color:transparent;color:var(--sun-dk)}
+.sun-chip__n{font-size:12px;font-weight:600;opacity:.75}
+.sun-search{position:relative;display:flex;align-items:center;width:min(100%,420px)}
+.sun-search__ico{position:absolute;left:16px;width:18px;height:18px;color:var(--sun-mist);pointer-events:none}
+.sun-search input{width:100%;height:48px;padding:0 48px 0 46px;border-radius:999px;border:1px solid var(--sun-line);text-overflow:ellipsis;
+  background:var(--sun-field-bg);color:var(--sun-ink);font:500 16px var(--sun-sans);-webkit-appearance:none;appearance:none}
+.sun-search input::placeholder{color:var(--sun-mist);opacity:.85}
+/* empty, the clear button is hidden: the hint gets its 48px ("Search by name or prof..." at 320px) */
+.sun-search input:placeholder-shown{padding-right:16px}
+.sun-search input:hover{border-color:var(--sun-hover-line)}
+.sun-search input::-webkit-search-cancel-button{display:none}
+.sun-search__clear{position:absolute;right:4px;display:grid;place-items:center;width:40px;height:40px;border-radius:50%;border:0;background:none;color:var(--sun-mist);cursor:pointer}
+.sun-search__clear:hover{color:var(--sun-ink)}
+.sun-search__clear svg{width:16px;height:16px}
+.sun-count{font-size:14px;font-weight:600;letter-spacing:.06em;color:var(--sun-mist)}
+.sun-count b{font:600 1.15em/1 var(--sun-display);color:var(--sun-ink);letter-spacing:-.01em}
+
+/* ---------- figures (StatRow) ---------- */
+/* 150px: two across on a 390px phone (170 made four figures a whole screen tall) */
+.sun-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,150px),1fr));gap:28px 20px}
+/* numbers must fit their column at every width (a 2-up row on a 400px phone):
+   capped by the column's own width (cqi); older browsers keep the plain clamp */
+.sun-stat{min-width:0;container-type:inline-size}
+.sun-stat__num{font:700 clamp(30px,3.4vw,50px)/1.05 var(--sun-display);font-size:min(clamp(30px,3.4vw,50px),15cqi);letter-spacing:-.04em;white-space:nowrap;
+  background:var(--sun-num-grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+.sun-stat--long .sun-stat__num{font-size:clamp(22px,2.2vw,32px);font-size:min(clamp(22px,2.2vw,32px),11cqi);white-space:normal;overflow-wrap:anywhere}
+.sun-stat__label{margin-top:10px;font-size:12.5px;font-weight:600;letter-spacing:.2em;text-transform:uppercase;color:var(--sun-mist)}
+/* under 360px two across all the same (one per row made four figures more than a screen), the labels
+   tighter so BENEFICIARIES fits its half */
+@media (max-width:359px){ .sun-stats{grid-template-columns:repeat(2,minmax(0,1fr));gap:24px 14px} .sun-stat__label{font-size:11px;letter-spacing:.08em} }
+.sun-stats--center{text-align:center}
+
+/* ---------- empty / loading ---------- */
+.sun-empty{position:relative;display:flex;flex-direction:column;align-items:center;gap:12px;max-width:560px;margin:0 auto;padding:clamp(28px,4vw,48px) clamp(20px,3vw,40px);text-align:center;
+  border-radius:24px;background:var(--sun-card-bg);border:1px solid var(--sun-card-line);box-shadow:var(--sun-card-shadow);overflow:hidden}
+.sun-empty__sun{position:relative;width:88px;height:44px;overflow:hidden;margin-bottom:6px}
+.sun-empty__sun::before{content:"";position:absolute;left:4px;right:4px;top:4px;aspect-ratio:1;border-radius:50%;background:radial-gradient(circle,#FFF4D6 0 24%,#FFD58C 40%,#F6A87C 58%,rgba(224,116,111,.4) 70%,transparent 72%)}
+.sun-empty__sun::after{content:"";position:absolute;left:0;right:0;bottom:0;height:1px;background:linear-gradient(90deg,transparent,var(--sun-accent),transparent)}
+.sun-empty__t{font:600 clamp(18px,1.8vw,24px)/1.25 var(--sun-display);letter-spacing:-.02em;overflow-wrap:anywhere}
+.sun-empty__m{color:var(--sun-mist);max-width:46ch}
+.sun-empty .sun-btn,.sun-empty .sun-link{margin-top:8px}
+.sun-loading{display:flex;flex-direction:column;align-items:center;gap:14px;padding:clamp(40px,8vw,96px) 0;color:var(--sun-mist);font-size:14px;font-weight:600;letter-spacing:.14em;text-transform:uppercase}
+.sun-loading__sun{width:56px;height:56px;border-radius:50%;background:radial-gradient(circle,#FFF4D6 0 22%,#FFD58C 40%,rgba(246,168,124,.5) 60%,transparent 70%);animation:sun-pulse 1.6s ease-in-out infinite alternate}
+@keyframes sun-pulse{from{transform:scale(.8);opacity:.6}to{transform:scale(1.05);opacity:1}}
+
+/* ---------- date sun (events, calendar) ---------- */
+.sun-date{position:relative;flex:none;display:grid;place-content:center;justify-items:center;width:84px;aspect-ratio:1;border-radius:50%;color:var(--sun-dk);text-align:center;
+  background:radial-gradient(circle at 50% 38%,#FFF7E2 0 30%,#FFD58C 62%,#F6A87C 100%);box-shadow:0 0 0 6px rgba(255,213,140,.14),0 14px 36px -12px rgba(246,168,124,.8)}
+.sun-date__d{font:700 26px/1 var(--sun-display);letter-spacing:-.04em}
+.sun-date__m{margin-top:3px;font-size:11px;font-weight:700;letter-spacing:.18em;text-transform:uppercase}
+/* a date sun rising off a horizon inside rings (kit DateRise). The horizon is the
+   box's bottom edge: clip-path cuts only below it, so the disc's foot and the
+   rings' lower halves sit "under the ground". --d = disc size. */
+.sun-rise{--d:112px;position:relative;flex:none;display:flex;align-items:flex-end;justify-content:center;
+  width:calc(var(--d) * 2.3);max-width:100%;height:calc(var(--d) * 1.5);clip-path:inset(-40px -40px 0 -40px)}
+.sun-rise::after{content:"";position:absolute;left:-8%;right:-8%;bottom:0;height:1px;background:linear-gradient(90deg,transparent,var(--sun-accent),transparent)}
+.sun-rise .sun-date{width:var(--d);margin-bottom:calc(var(--d) * -.18)}
+.sun-rise .sun-date__d{font-size:calc(var(--d) * .32)}
+.sun-rise .sun-date__m{font-size:max(11px,calc(var(--d) * .115))}
+.sun-rise__ring{--k:1.5;position:absolute;left:50%;width:calc(var(--d) * var(--k));aspect-ratio:1;margin-left:calc(var(--d) * var(--k) / -2);
+  bottom:calc(var(--d) * (.32 - var(--k) / 2));border-radius:50%;border:1px solid var(--sun-ring);pointer-events:none}
+.sun-rise__ring--2{--k:2.1;border-style:dashed;border-color:var(--sun-ring-dash)}
+.sun-date--sm{width:60px}
+.sun-date--sm .sun-date__d{font-size:19px}
+.sun-date--sm .sun-date__m{font-size:11px;letter-spacing:.12em}
+
+/* ---------- arches: portraits rising like suns ---------- */
+.sun-people{display:flex;flex-wrap:wrap;justify-content:center;gap:48px 16px;max-width:1160px;margin:0 auto}
+.sun-people>li,.sun-people>div{flex:0 1 calc(50% - 8px);max-width:280px;min-width:0}
+@media (min-width:900px){ .sun-people{gap:48px 36px} .sun-people>li,.sun-people>div{flex-basis:calc(25% - 27px)} }
+/* a phone on its side: four across, so a portrait and its name share the 300px under the bar */
+@media (max-height:500px) and (min-width:560px) and (max-width:899px){ .sun-people>li,.sun-people>div{flex-basis:calc(25% - 12px)} }
+/* short screens: tighter section spacing (two sections' padding was half of a 300px view) */
+@media (max-height:500px){ .sun-sec{padding-block:52px} }
+.sun-person{position:relative;display:flex;flex-direction:column;align-items:center;text-align:center;min-width:0}
+.sun-arch{position:relative;width:min(100%,250px);margin-bottom:22px}
+.sun-arch__halo{position:absolute;inset:-8% -8% 8%;border-radius:50%;background:radial-gradient(circle at 50% 58%,rgba(255,206,150,.6),rgba(255,140,130,.2) 45%,transparent 70%)}
+.sun-arch__win{position:relative;aspect-ratio:4/5;border-radius:999px 999px 14px 14px;overflow:hidden;background:linear-gradient(#4B2F86,#6B2F80)}
+.sun-arch__win::after{content:"";position:absolute;inset:0;border-radius:inherit;box-shadow:inset 0 0 0 1px rgba(255,226,196,.45);pointer-events:none}
+.sun-arch__img{width:100%;height:100%;object-fit:cover;object-position:50% 22%}
+.sun-arch__mono{display:grid;place-items:center;width:100%;height:100%;font:700 clamp(28px,4vw,52px)/1 var(--sun-display);letter-spacing:-.03em;color:#FFE2BE;
+  background:radial-gradient(circle at 50% 110%,rgba(255,213,140,.55),transparent 60%),linear-gradient(#2C3A8E,#6B2F80)}
+.sun-arch::after{content:"";position:absolute;left:-6%;right:-6%;bottom:-1px;height:1px;background:linear-gradient(90deg,transparent,var(--sun-arch-line),transparent)}
+.sun-arch--sm{width:min(100%,160px);margin-bottom:16px}
+.sun-person__role{font-size:12px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:var(--sun-mist);overflow-wrap:anywhere}
+/* held to its card (cqi of .sun-person below): a 12-letter surname runs ~9.2em in Unbounded, so
+   "Selvanayagam" split in a 116-136px card (a 280-320px phone, a phone on its side). Wide cards keep the clamp */
+.sun-person__name{margin-top:8px;font:600 clamp(16px,1.5vw,20px)/1.25 var(--sun-display);font-size:min(clamp(16px,1.5vw,20px),10.6cqi);letter-spacing:-.02em;overflow-wrap:anywhere}
+.sun-person__name a{text-decoration:none;color:inherit}
+.sun-person__name a::after{content:"";position:absolute;inset:0;z-index:1}
+/* keyed to the name's stretched link, not any link: a child action (a Read more button)
+   keeps its own ring and hover, and never lights or rings the whole card */
+.sun-person:has(.sun-person__name a:focus-visible){outline:3px solid var(--sun-accent);outline-offset:6px;border-radius:18px}
+.sun-person__name a:focus-visible{outline:none}
+.sun-person:has(.sun-person__name a):hover .sun-person__name{color:var(--sun-accent)}
+.sun-person__bio{margin-top:10px;max-width:34ch;font-size:14.5px;line-height:1.55;color:var(--sun-mist);display:-webkit-box;-webkit-line-clamp:5;-webkit-box-orient:vertical;overflow:hidden;overflow-wrap:anywhere}
+.sun-person__more{margin-top:10px;font-size:14px;font-weight:600;color:var(--sun-ink)}
+.sun-person:has(.sun-person__name a):hover .sun-person__more{color:var(--sun-accent)}
+@media (max-width:599px){ .sun-person__bio{font-size:14px;-webkit-line-clamp:4} }
+/* each card is a size container: the name scales with it (cqi, above), and a narrow one - two across on a
+   280px Fold, four across on a 568px phone on its side, both ~118px - sets its role tighter so
+   INTERNATIONAL fits whole, and its Read more stays on one line without the arrow */
+.sun-people>.sun-person{container-type:inline-size}
+@container (max-width:130px){ .sun-person__role{font-size:11px;letter-spacing:.1em} .sun-person__more.sun-btn svg{display:none} }
+/* "View profile" at each card's foot, so a row's links line up when a name or role wraps */
+.sun-people>.sun-person>.sun-person__more:not(.sun-btn){margin-top:auto;padding-top:10px}
+
+/* ---------- the crest (kit Emblem: home "about", About page) ---------- */
+.sun-emblem{position:relative;display:grid;place-items:center;width:min(100%,420px);aspect-ratio:1;margin-inline:auto}
+@media (max-width:899px){ .sun-emblem{width:min(78%,300px)} }
+.sun-emblem__glow{position:absolute;inset:4%;border-radius:50%;background:radial-gradient(circle,rgba(255,206,150,.55),rgba(255,150,130,.18) 45%,transparent 70%)}
+.sun-emblem__ring{position:absolute;border-radius:50%;border:1px solid var(--sun-ring)}
+.sun-emblem__ring:nth-of-type(2){inset:0}
+.sun-emblem__ring:nth-of-type(3){inset:11%;border-style:dashed;border-color:var(--sun-ring-dash)}
+.sun-emblem__ring:nth-of-type(4){inset:22%;border-color:var(--sun-ring-in)}
+.sun-emblem__plate{position:relative;display:grid;place-items:center;width:min(52%,210px);aspect-ratio:1;border-radius:50%;background:#fff;overflow:hidden;
+  box-shadow:0 0 0 8px rgba(255,255,255,.1),0 0 90px 10px rgba(255,190,130,.45)}
+.sun-emblem__plate img{width:78%;height:78%;object-fit:contain}
+
+/* ---------- the sheet + covers (one palette in both modes) ---------- */
+.sun-sheet{
+  position:relative;display:grid;gap:clamp(28px,4vw,56px);color:var(--sun-dk);background:var(--sun-sheet);
+  border-radius:clamp(20px,3vw,36px);padding:clamp(28px,5vw,72px);box-shadow:var(--sun-sheet-shadow);
+}
+.sun-sheet::before{content:"";position:absolute;left:clamp(28px,5vw,72px);right:clamp(28px,5vw,72px);top:0;height:4px;border-radius:0 0 4px 4px;background:var(--sun-dawn)}
+.sun-sheet .sun-eyebrow{color:var(--sun-berry)}
+.sun-sheet .sun-h2{color:var(--sun-dk)}
+.sun-sheet__text{margin-top:18px;color:var(--sun-dk2);max-width:40ch}
+.sun-cover{
+  position:relative;aspect-ratio:3/4;overflow:hidden;border-radius:16px;color:var(--sun-night-ink);container-type:inline-size;
+  display:flex;flex-direction:column;gap:8px;padding:clamp(14px,2vw,26px);
+  background:linear-gradient(172deg,#0A1840 0%,#2C3A8E 48%,#6B2F80 100%);box-shadow:0 26px 50px -26px rgba(28,18,54,.75);
+}
+.sun-cover__sun{position:absolute;left:5%;right:5%;bottom:-40%;aspect-ratio:1;border-radius:50%;
+  background:radial-gradient(circle,#FFF4D6 0 22%,#FFD58C 34%,#F6A87C 46%,rgba(224,116,111,.45) 58%,transparent 70%)}
+/* the name is held to the cover's width (cqi): on a 90px cover the 22px floor split "Newsletter" and
+   squeezed the fourth line to a sliver over the month */
+.sun-cover__name{position:relative;font:italic 400 clamp(22px,2.6vw,40px)/1.02 var(--sun-serif);font-size:min(clamp(22px,2.6vw,40px),25cqi,calc(96cqi / (var(--sun-lw,1) * .46)));overflow-wrap:anywhere;display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden}
+.sun-cover__month{position:relative;font-size:clamp(11px,1vw,13px);font-weight:600;letter-spacing:.2em;text-transform:uppercase}
+.sun-cover__short{display:none}
+@container (max-width:86px){ .sun-cover__long{display:none} .sun-cover__short{display:inline} .sun-cover__month{letter-spacing:.14em} }
+
+/* ---------- the drum (a list turning under the reading line) ---------- */
+.sun-drum{position:relative;max-width:980px;margin:0 auto;counter-reset:sun-m}
+.sun-drum>li{
+  display:grid;grid-template-columns:auto 1fr;gap:6px 20px;align-items:baseline;padding:clamp(14px,2vh,22px) 0;min-width:0;
+  border-top:1px solid var(--sun-line);font:500 clamp(18px,2.3vw,32px)/1.22 var(--sun-display);letter-spacing:-.025em;overflow-wrap:anywhere;
+}
+.sun-drum>li::before{counter-increment:sun-m;content:counter(sun-m,decimal-leading-zero);font:600 13px/1 var(--sun-sans);letter-spacing:.16em;color:var(--sun-accent)}
+.sun-drum a{text-decoration:none;color:inherit}
+.sun-drum a:hover{color:var(--sun-accent)}
+.sun-drum.is-live>li{grid-template-columns:minmax(0,1fr);justify-items:center;text-align:center;border-top-color:transparent;will-change:transform,opacity}
+.sun-drum.is-live>li::before{color:var(--sun-mist);transition:color .3s}
+.sun-drum.is-live>li.is-on::before{color:var(--sun-accent)}
+
+/* ---------- the window (kit WinSlide + SlideCtrl): a picture shown whole (contain)
+   over a blurred fill of itself, never cropped; dots + pause ---------- */
+.sun-win{position:relative;aspect-ratio:2.2/1;border-radius:clamp(14px,2vw,28px);overflow:hidden;background:var(--sun-win-bg);box-shadow:var(--sun-win-shadow)}
+.sun-win::after{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;box-shadow:inset 0 0 0 1px rgba(255,236,210,.25),inset 0 -60px 80px -40px rgba(6,13,38,.35)}
+.sun-win__slides{position:absolute;inset:0;border-radius:inherit}
+.sun-win__slide{position:absolute;inset:0;display:block;overflow:hidden;opacity:0;visibility:hidden;pointer-events:none;
+  transition:opacity 1.4s ease,visibility 0s linear 1.4s}
+.sun-win__slide.is-on{opacity:1;visibility:visible;pointer-events:auto;transition:opacity 1.4s ease,visibility 0s}
+/* a linked slide's focus ring: inside it, on the frame's curve (the frame's overflow:hidden
+   clips a ring outside), and over its pictures - positioned layers paint over the slide's
+   own outline unless the slide isolates them underneath */
+.sun-win__slide:focus-visible{outline-offset:-6px;border-radius:inherit;isolation:isolate}
+.sun-win__slide:focus-visible>img{z-index:-1}
+.sun-win__fill{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transform:scale(1.2);filter:blur(22px) saturate(1.15);opacity:.75}
+.sun-win__img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;transform:scale(1.04);transition:transform 7s linear}
+.sun-win__slide.is-on .sun-win__img{transform:scale(1)}
+.sun-slidectrl{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:2px}
+.sun-dot{position:relative;width:44px;height:44px;padding:0;border:0;background:none;cursor:pointer;border-radius:50%}
+.sun-dot::before{content:"";position:absolute;left:50%;top:50%;width:8px;height:8px;margin:-4px;border-radius:4px;background:var(--sun-dot);transition:width .35s,margin .35s,background-color .35s}
+.sun-dot[aria-current="true"]::before{width:26px;margin-left:-13px;background:var(--sun-accent)}
+.sun-pause{display:grid;place-items:center;width:44px;height:44px;margin-left:6px;padding:0;border-radius:50%;border:1px solid var(--sun-line);background:transparent;cursor:pointer}
+.sun-pause svg{width:12px;height:12px;fill:var(--sun-ink)}
+.sun-pause:hover{border-color:var(--sun-hover-line)}
+
+/* ---------- the tunnel of photos (desktop + motion; a grid otherwise) ---------- */
+.sun-tunnel{position:relative;padding:clamp(64px,11vw,150px) var(--sun-pad)}
+/* short screens, as .sun-sec (here, after the rule above: the same specificity) */
+@media (max-height:500px){ .sun-tunnel{padding-block:52px} }
+.sun-tunnel__head{text-align:center;margin-bottom:clamp(36px,5vw,64px)}
+.sun-tunnel__head .sun-h2{margin-top:10px}
+.sun-tunnel__cards{display:grid;gap:22px;max-width:1240px;margin:0 auto;grid-template-columns:repeat(auto-fill,minmax(min(100%,300px),1fr))}
+.sun-tunnel__end{margin-top:48px;text-align:center}
+.sun-tunnel__light,.sun-tunnel__sparks{display:none}
+/* clip (not hidden): no scroll container, so focusing a card can never scroll the stage's contents */
+.sun-tunnel.is-tunnel{height:calc(100svh - var(--sun-hh));padding:0;overflow:hidden;overflow:clip}
+.is-tunnel .sun-tunnel__cards{position:absolute;inset:0;z-index:2;display:block;max-width:none;perspective:900px;pointer-events:none}
+.is-tunnel .sun-tunnel__card{position:absolute;left:50%;top:50%;width:var(--sun-w,min(38vw,560px));will-change:transform,opacity;pointer-events:auto}
+.is-tunnel .sun-card__img{aspect-ratio:var(--sun-tar,4/3)}
+.is-tunnel .sun-card__desc{display:none}
+.is-tunnel .sun-tunnel__head,.is-tunnel .sun-tunnel__end{position:absolute;inset:0;z-index:3;margin:0;display:grid;place-content:center;text-align:center;pointer-events:none}
+.is-tunnel .sun-tunnel__head>div{text-shadow:var(--sun-scrim)}
+.is-tunnel .sun-tunnel__end{z-index:1}
+.is-tunnel .sun-tunnel__end .sun-btn{pointer-events:auto}
+.is-tunnel .sun-tunnel__light{display:block;position:absolute;left:50%;top:50%;width:70vmin;height:70vmin;margin:-35vmin 0 0 -35vmin;border-radius:50%;z-index:0;will-change:transform;
+  background:radial-gradient(circle,rgba(255,222,170,.42),rgba(255,150,130,.12) 42%,transparent 70%)}
+.is-tunnel .sun-tunnel__sparks{display:block;position:absolute;inset:0;z-index:1;perspective:900px;pointer-events:none}
+.sun-spark{position:absolute;left:50%;top:50%;width:3px;height:3px;margin:-1.5px;border-radius:2px;background:var(--sun-spark);box-shadow:0 0 8px 1px var(--sun-spark-glow)}
+
+/* ---------- hills + dawn band (every inner page ends at sunrise) ---------- */
+.sun-hills{position:absolute;left:0;right:0;bottom:-1px;height:clamp(120px,20vw,300px);z-index:1;pointer-events:none}
+.sun-hill{position:absolute;left:0;bottom:0;width:100%;height:100%}
+.sun-hill--back path{fill:var(--sun-hill-back)}
+.sun-hill--mid path{fill:var(--sun-hill-mid)}
+.sun-hill--front path{fill:var(--sun-hill)}
+/* the mask fades the sun's glow out before the band's top edge (no hard line on the sky) */
+/* RIZO-28: less room above the footer - a lower band, no margin, and a short last section (was ~415px of space at 1440) */
+.sun-main > .sun-page > :last-child{padding-bottom:clamp(24px,3vw,44px)}
+.sun-dawnband{position:relative;overflow:hidden;height:clamp(110px,12vw,180px);
+  -webkit-mask-image:linear-gradient(transparent,#000 32%);mask-image:linear-gradient(transparent,#000 32%);
+  background:linear-gradient(180deg,transparent 0%,color-mix(in srgb,var(--sun-s6) 70%,transparent) 42%,var(--sun-s7) 72%,var(--sun-s8) 100%)}
+/* centre just under the back hill's crest (45% down), so the bright core peeks over the hills */
+.sun-dawnband__sun{position:absolute;left:50%;top:calc(45% - min(40vw,380px));width:min(80vw,760px);aspect-ratio:1;margin-left:calc(min(80vw,760px) / -2);border-radius:50%;
+  background:radial-gradient(circle,#FFFBEF 0 16%,#FFEDBE 26%,rgba(255,213,140,.8) 38%,rgba(246,168,124,.4) 54%,transparent 70%)}
+.sun-dawnband .sun-hills{height:100%}
+
+/* ---------- footer: the front hill (night palette in both modes) ---------- */
+.sun-foot{position:relative;margin-top:-1px;background:var(--sun-hill);color:var(--sun-night-ink);padding:clamp(12px,1.5vw,20px) 0 clamp(28px,4vw,48px)}
+.sun-foot a{color:inherit}
+.sun-foot__row{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:24px}
+.sun-foot__row+.sun-foot__row{margin-top:28px;padding-top:24px;border-top:1px solid rgba(217,212,245,.14)}
+/* the club's logo where its name was (client, 2026-09-29): the whole mark, any shape, on the header's plate */
+.sun-foot__logo{height:96px;width:auto;max-width:min(300px,100%);padding:10px 18px;border-radius:18px;object-fit:contain;
+  box-shadow:0 0 0 5px rgba(255,214,170,.07),0 20px 50px -22px rgba(255,170,120,.55)}
+@media (max-width:599px){ .sun-foot__logo{height:72px;padding:8px 14px;border-radius:14px} }
+.sun-socials{display:flex;flex-wrap:wrap;gap:8px}
+.sun-socials a{display:grid;place-items:center;width:44px;height:44px;border-radius:50%;border:1px solid rgba(217,212,245,.28);transition:border-color .25s,color .25s}
+.sun-socials a:hover{border-color:var(--sun-night-accent);color:var(--sun-night-accent)}
+.sun-socials svg{width:18px;height:18px}
+/* copyright + Powered by: right of the counter, under it on phones */
+.sun-foot__legal{flex:1 1 200px;min-width:0;text-align:right;font-size:13.5px;line-height:1.5;color:var(--sun-night-mist);overflow-wrap:anywhere}
+.sun-foot__legal a{display:inline-flex;align-items:center;min-height:44px;font-weight:600;color:var(--sun-night-ink);text-decoration:underline;text-decoration-color:rgba(255,196,107,.55);text-underline-offset:3px}
+.sun-foot__legal a:hover{color:var(--sun-night-accent)}
+@media (max-width:599px){ .sun-foot__legal{text-align:left} }
+/* a fixed column: the wrap is a size container, so an auto width collapses it and the two labels collide */
+.sun-foot .rv-vc-wrap{flex:none;width:300px;max-width:100%}
+/* the card's own <=344px step sets its labels at 8.5px, and this column is always under it: 11px,
+   wrapping onto a second line rather than shrinking (as cinematic and liquid-motion do) */
+html[data-theme="sunrise"] .sun-foot .rv-vc{--rv-lab:11px}
+html[data-theme="sunrise"] .sun-foot .rv-vc .rv-vc__l{font-size:11px;white-space:normal;line-height:1.25}
+/* the two figures level at the card's foot: TODAY'S VISITORS takes two lines beside the badge, TOTAL one */
+html[data-theme="sunrise"] .sun-foot .rv-vc .rv-vc__stats{align-items:end}
+html[data-theme="sunrise"] .rv-vc{--rv-bg1:#3E2447;--rv-bg2:#1C1236;--rv-edge:rgba(255,214,170,.28);--rv-today:#FFC46B;--rv-rule:rgba(255,214,170,.22);--rv-label:#D9D4F5;font-family:var(--sun-sans)}
+
+/* ---------- fallback shared pages (classic Tailwind markup inside this shell) ----
+   A light restyle only: type, colours and grounds, never layout. Scoped away from
+   this theme's own pages (.sun-page). */
+html[data-theme="sunrise"] .sun-main :is(.font-heading,h1,h2,h3):not(.sun-page *){font-family:var(--sun-display);letter-spacing:-.02em}
+html[data-theme="sunrise"] .sun-main :is(.bg-canvas,.bg-gray-50,.bg-surface):not(.sun-page *){background:transparent}
+html[data-theme="sunrise"] .sun-main .bg-white:not(.sun-page *){background:var(--sun-card-bg);color:var(--sun-ink)}
+html[data-theme="sunrise"] .sun-main :is(.text-navy,.text-ink,.text-gray-900,.text-gray-800):not(.sun-page *){color:var(--sun-ink)}
+html[data-theme="sunrise"] .sun-main :is(.text-muted,.text-gray-600,.text-gray-500):not(.sun-page *){color:var(--sun-mist)}
+html[data-theme="sunrise"] .sun-main :is(.text-gold,.text-gold-cta,.label-eyebrow):not(.sun-page *){color:var(--sun-accent)}
+html[data-theme="sunrise"] .sun-main :is(.border-navy\/10,.border-gray-100,.border-gray-200):not(.sun-page *){border-color:var(--sun-card-line)}
+html[data-theme="sunrise"] .sun-main .shadow-card:not(.sun-page *){box-shadow:var(--sun-card-shadow)}
+/* the classic page band floats under a glass pill header (-mt-24, pt-28); here the
+   header is solid and in flow, so the band sits below it on the sky */
+html[data-theme="sunrise"] .sun-main section.\-mt-24:not(.sun-page *){margin-top:0;background:transparent;color:var(--sun-ink)}
+/* no aurora or wheel, and no eyebrow: the head holds the breadcrumb and the h1 only, like
+   every sunrise page (client, 2026-09-29) */
+html[data-theme="sunrise"] .sun-main section.\-mt-24 .aurora,
+html[data-theme="sunrise"] .sun-main section.\-mt-24 .breadcrumb-wheel,
+html[data-theme="sunrise"] .sun-main section.\-mt-24 .label-eyebrow{display:none}
+html[data-theme="sunrise"] .sun-main section.\-mt-24>.container-x{padding-top:clamp(32px,5vw,64px);padding-bottom:clamp(24px,3vw,40px)}
+/* solid, not the gradient clip: rotary-anim splits this h1 into transformed spans,
+   and a parent's background-clip:text does not reach them */
+html[data-theme="sunrise"] .sun-main section.\-mt-24 h1{font:700 clamp(34px,6vw,84px)/1.02 var(--sun-display);letter-spacing:-.04em;color:var(--sun-ink)}
+html[data-theme="sunrise"] .sun-main section.\-mt-24 nav{color:var(--sun-mist)}
+html[data-theme="sunrise"] .sun-main section.\-mt-24 nav a{display:inline-flex;align-items:center;min-height:32px}
+html[data-theme="sunrise"] .sun-main section.\-mt-24 nav .text-white{color:var(--sun-ink)}
+
+@media (prefers-reduced-motion:reduce){
+  html[data-theme="sunrise"] *,html[data-theme="sunrise"] *::before,html[data-theme="sunrise"] *::after{transition:none!important;animation:none!important}
+}
+
+/* header menu in capitals, its dropdowns included (client, 2026-10-01) */
+html[data-theme="sunrise"] .sun-nav{text-transform:uppercase;letter-spacing:.04em}
+/* ...but the dropdown items in title case (client, 2026-10-01) */
+html[data-theme="sunrise"] .sun-nav .sun-sub{text-transform:capitalize;letter-spacing:normal}
+/* a very long figure (the all-years cost) gets a double-width cell, so the row's one shared size stays large (2026-10-06) */
+.sun-stats{grid-auto-flow:row dense}
+.sun-stat.is-long{grid-column:span 2}
+.sun-stat.is-long .sun-stat__num{white-space:nowrap;overflow-wrap:normal}

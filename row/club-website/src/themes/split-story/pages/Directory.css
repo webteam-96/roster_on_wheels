@@ -1,0 +1,45 @@
+/* Split Story · Directory (spl-dir-*). Kit pieces are only adjusted through
+   spl-dir- modifiers. There are no hidden start states: motion sets them from JS. */
+
+/* ── hero tools: search + count, then the A–Z chips ─────────────────────── */
+.spl-dir-tools{display:grid;gap:18px 32px;align-items:end;min-width:0}
+.spl-dir-az .spl-chip{justify-content:center;min-width:44px;padding:0 12px}
+@media (min-width:760px){
+  .spl-dir-tools{grid-template-columns:minmax(0,520px) minmax(0,1fr)}
+  .spl-dir-az{grid-column:1 / -1;grid-row:2}
+  .spl-dir-count{justify-self:end;padding-bottom:14px;text-align:right}
+}
+
+/* ── member cards ───────────────────────────────────────────────────────── */
+.spl-dir-grid{--spl-min:160px}
+/* client, 2026-10-05: five cards a row on desktop, ONE a row on phones (centred at a readable size) */
+@media (max-width:599.98px){ .spl-dir-grid{grid-template-columns:minmax(0,320px);justify-content:center} }
+@media (min-width:1200px){ .spl-dir-grid{grid-template-columns:repeat(5,minmax(0,1fr))} }
+.spl-dir-grid > li{display:flex}
+.spl-dir-grid .spl-person{flex:1}
+.spl-dir-grid .spl-person-body{padding:12px 14px 16px}
+.spl-dir-grid .spl-person-role{overflow-wrap:anywhere}
+.spl-dir-grid .spl-person-name{font-size:clamp(1.2rem,1.6vw,1.45rem)}
+.spl-dir-grid .spl-person-mono{font-size:clamp(44px,5vw,72px)}
+
+/* ── the letter chapters ────────────────────────────────────────────────── */
+.spl-dir-split .spl-dir-ch{padding-block:clamp(24px,4.5vh,48px)}
+.spl-dir-split .spl-dir-ch:first-child{padding-top:clamp(40px,8vh,88px)}
+.spl-dir-split .spl-dir-ch:last-child{padding-bottom:clamp(56px,11vh,120px)}
+.spl-dir-mark{display:flex;align-items:center;gap:14px;margin:0 0 clamp(14px,2.4vh,24px);color:var(--spl-royal);font-family:var(--spl-display);font-stretch:68%;font-weight:800;font-size:clamp(40px,5vw,64px);line-height:.9}
+.spl-dir-mark::after{content:"";flex:1;min-width:0;height:3px;border-radius:3px;background:linear-gradient(90deg,var(--spl-gold),var(--spl-line))}
+
+/* the panel: the letter is the gold figure, the head-count sits under it in white */
+.spl-dir-split .spl-p-title{color:var(--spl-gold)}
+.spl-dir-split .spl-p-mid .spl-p-fig{color:#fff}
+@media (min-width:1000px){
+  .spl-split.spl-dir-split{grid-template-columns:minmax(0,36fr) minmax(0,64fr)}
+  .spl-dir-split .spl-dir-ch{padding-inline:clamp(28px,3.4vw,56px)}
+  .spl-dir-split .spl-p-title{min-height:0;font-size:min(50cqi,30vh);line-height:.9}
+  .spl-dir-split .spl-p-mid .spl-p-fig{font-size:min(var(--spl-fs,12cqi),10vh)}
+  /* the rail becomes an A–Z plate, the current letter lit gold */
+  .spl-split.spl-dir-split .spl-p-rail{grid-template-columns:repeat(auto-fill,minmax(34px,1fr));grid-template-rows:none;grid-auto-flow:row;gap:4px}
+  .spl-dir-split .spl-p-rail li{justify-content:center;height:34px;border-radius:9px;background:rgba(255,255,255,.08);color:rgba(255,255,255,.78);font-family:var(--spl-display);font-stretch:80%;font-size:1rem;font-weight:800;transition:background-color .35s var(--spl-ease),color .35s var(--spl-ease)}
+  .spl-dir-split .spl-p-rail li::before{content:none}
+  .spl-dir-split .spl-p-rail li.is-on{background:var(--spl-gold);color:var(--spl-night)}
+}

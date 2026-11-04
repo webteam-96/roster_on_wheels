@@ -1,0 +1,196 @@
+/* ─────────────────────────────────────────────────────────────────────────────
+   CINEMATIC · CALENDAR — the call sheet. Page classes are cin-cal-*; shared
+   pieces (hero, buttons, chips, stats, date stamp, empty/loading) are styled in
+   ../theme.css. No hidden start states: every rule is the finished look.
+   ───────────────────────────────────────────────────────────────────────────── */
+
+/* ───────────── hero meta: the month switcher ───────────── */
+.cin-cal-switch { display: flex; flex-wrap: wrap; align-items: center; gap: 16px 28px; width: 100%; }
+.cin-cal-mon { flex: 1 1 100%; min-width: 0; margin: 0; line-height: .95; }
+@media (min-width: 900px) { .cin-cal-mon { flex: 0 1 auto; } }
+.cin-cal-mon__vis { display: inline-flex; flex-wrap: wrap; align-items: baseline; gap: 0 .3em; max-width: 100%; font-size: clamp(30px, 4.6vw, 60px); }
+.cin-cal-mon__m {
+  font-stretch: var(--cin-wide); font-weight: 800; text-transform: uppercase; letter-spacing: -.01em;
+  font-size: clamp(30px, 4.6vw, 60px); color: var(--cin-ink); overflow-wrap: anywhere;
+}
+.cin-cal-mon__y {
+  font-stretch: var(--cin-cond); font-weight: 800; font-size: clamp(30px, 4.6vw, 60px);
+  color: var(--cin-gold-ink); font-variant-numeric: tabular-nums;
+}
+.cin-cal-switch__nav { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 12px; }
+
+/* ───────────── the call sheet ───────────── */
+.cin-cal-sheet {
+  padding-top: clamp(40px, 6vw, 72px);
+  background: radial-gradient(55% 40% at 0% 0%, rgba(23, 69, 143, .22), transparent 70%);
+}
+.cin-cal-top { display: grid; gap: clamp(28px, 4vw, 56px); }
+@media (min-width: 1000px) {
+  .cin-cal-top { grid-template-columns: minmax(0, 460px) minmax(0, 1fr); align-items: stretch; }
+}
+
+/* the mini-month: a lit frame (royal glow capped at .45 so mist day numbers stay AA) */
+.cin-cal-month {
+  position: relative; min-width: 0; padding: clamp(10px, 2vw, 22px); border-radius: var(--cin-r-lg);
+  background: radial-gradient(90% 80% at 100% 0%, rgba(23, 69, 143, .45), transparent 65%), var(--cin-night-2);
+  border: 1px solid var(--cin-line);
+  box-shadow: 0 0 0 1px rgba(247, 168, 27, .08), 0 40px 90px -44px rgba(247, 168, 27, .4);
+}
+.cin-cal-week, .cin-cal-days { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px; }
+.cin-cal-week span {
+  padding-bottom: 8px; text-align: center; font-size: 12.5px; font-weight: 700; letter-spacing: .08em; color: var(--cin-mist);
+}
+.cin-cal-day {
+  position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px;
+  min-width: 0; min-height: 44px; aspect-ratio: 1 / 1; padding: 0;
+  border: 1px solid transparent; border-radius: var(--cin-r-sm); background: transparent;
+  font: inherit; color: var(--cin-mist); cursor: pointer;
+  transition: background-color .2s, border-color .2s, color .2s, box-shadow .2s;
+}
+.cin-cal-day--pad { cursor: default; }
+.cin-cal-day__n {
+  font-stretch: var(--cin-cond); font-weight: 800; font-size: clamp(18px, 1.7vw, 22px); line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+.cin-cal-day__mks { display: flex; align-items: center; gap: 3px; height: 8px; }
+.cin-cal-day.has-any { color: var(--cin-ink); background: rgba(243, 245, 251, .05); border-color: var(--cin-line); }
+button.cin-cal-day:hover { color: var(--cin-ink); border-color: rgba(247, 168, 27, .6); }
+.cin-cal-day[aria-current="date"] { color: var(--cin-ink); box-shadow: inset 0 0 0 2px var(--cin-gold); }
+.cin-cal-day.is-sel { background: var(--cin-gold); border-color: var(--cin-gold); color: var(--cin-on-gold); box-shadow: 0 0 26px rgba(247, 168, 27, .45); }
+.cin-cal-day.is-sel[aria-current="date"] { box-shadow: inset 0 0 0 2px var(--cin-night), 0 0 26px rgba(247, 168, 27, .45); }
+.cin-cal-day.is-sel:hover { color: var(--cin-on-gold); }
+
+/* the marks: shape carries the meaning (circle / diamond / frame), not colour */
+.cin-cal-mk { display: inline-block; flex: none; width: 7px; height: 7px; background: var(--cin-gold); }
+.cin-cal-mk--birthdays { border-radius: 50%; }
+.cin-cal-mk--anniversaries { width: 9px; height: 9px; clip-path: polygon(50% 0, 100% 50%, 50% 100%, 0 50%); }
+.cin-cal-mk--events { width: 9px; height: 6px; border-radius: 1px; background: var(--cin-ink); }
+.cin-cal-day.is-sel .cin-cal-mk { background: var(--cin-night); }
+
+.cin-cal-legend {
+  display: flex; flex-wrap: wrap; gap: 6px 20px; margin: 14px 0 0; padding: 12px 4px 0; list-style: none;
+  border-top: 1px solid var(--cin-line); font-size: 14px; color: var(--cin-mist);
+}
+.cin-cal-legend li { display: inline-flex; align-items: center; gap: 8px; }
+
+/* the scope: its name, and its counts as condensed gold figures */
+.cin-cal-scope { display: flex; flex-direction: column; justify-content: flex-end; gap: clamp(18px, 2.4vw, 28px); min-width: 0; }
+.cin-cal-scope__t {
+  margin: 0; font-stretch: 118%; font-weight: 760; font-size: clamp(26px, 3.2vw, 46px); line-height: 1.05;
+  letter-spacing: -.01em; overflow-wrap: anywhere; text-wrap: balance;
+}
+/* columns sized by their words, so "Anniversaries" never splits */
+.cin-cal-scope .cin-stats { grid-template-columns: repeat(3, auto); justify-content: start; gap: 16px clamp(20px, 4vw, 40px); }
+.cin-cal-scope .cin-stat__l { font-size: 13.5px; }
+.cin-cal-scope__foot { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 20px; min-height: 44px; }
+
+/* ───────────── the strip of slates ───────────── */
+.cin-cal-tabs { margin-top: clamp(36px, 5vw, 56px); }
+.cin-cal-cols { display: grid; gap: 20px; margin-top: 20px; }
+@media (max-width: 999px) {
+  .cin-cal-col.is-off { display: none; }
+}
+@media (min-width: 1000px) {
+  .cin-cal-sheet .cin-cal-tabs { display: none; }
+  /* one column per kind that has something this month (an empty kind is not shown) */
+  .cin-cal-cols { grid-template-columns: repeat(var(--n, 3), minmax(0, 1fr)); align-items: start; margin-top: clamp(44px, 5vw, 72px); }
+  .cin-cal-cols.is-one { max-width: 720px; }
+}
+.cin-cal-col {
+  position: relative; min-width: 0; overflow: hidden; border-radius: var(--cin-r-lg);
+  background: var(--cin-night-2); border: 1px solid var(--cin-line);
+}
+/* the clapperboard stripe along each slate's top */
+.cin-cal-col::before {
+  content: ""; display: block; height: 10px;
+  background: repeating-linear-gradient(-55deg, rgba(243, 245, 251, .88) 0 11px, transparent 11px 22px);
+}
+.cin-cal-col__h {
+  display: flex; align-items: center; gap: 12px;
+  padding: 16px clamp(16px, 1.8vw, 24px) 14px; border-bottom: 1px solid var(--cin-line);
+}
+.cin-cal-col__ico { display: grid; place-items: center; flex: none; color: var(--cin-gold-ink); }
+.cin-cal-col__ico svg { width: 24px; height: 24px; }
+.cin-cal-col__t {
+  display: flex; flex: 1 1 auto; align-items: baseline; justify-content: space-between; gap: 12px; min-width: 0; margin: 0;
+  font-stretch: 118%; font-weight: 740; font-size: clamp(18px, 1.5vw, 21px); line-height: 1.1;
+}
+.cin-cal-col__t > span:first-child { min-width: 0; overflow-wrap: anywhere; }
+.cin-cal-col__n {
+  flex: none; font-stretch: var(--cin-cond); font-weight: 800; font-size: 30px; line-height: 1;
+  color: var(--cin-gold-ink); font-variant-numeric: tabular-nums;
+}
+
+.cin-cal-list { margin: 0; padding: 0 clamp(16px, 1.8vw, 24px) 8px; list-style: none; }
+.cin-cal-row {
+  position: relative; display: grid; grid-template-columns: 74px 44px minmax(0, 1fr); align-items: center; gap: 12px;
+  padding: 14px 0;
+}
+.cin-cal-row + .cin-cal-row { border-top: 1px solid var(--cin-line); }
+.cin-cal-row--go { grid-template-columns: 74px 44px minmax(0, 1fr) auto; }
+.cin-cal-row__date { display: block; min-width: 0; }
+.cin-cal-row .cin-date { gap: 8px; }
+.cin-cal-row .cin-date__d { font-size: 34px; }
+.cin-cal-row .cin-date__my { gap: 3px; font-size: 12px; }
+.cin-cal-row__ph { display: block; width: 44px; height: 44px; border-radius: 50%; overflow: hidden; background: var(--cin-royal); }
+.cin-cal-row__img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: 50% 20%; }
+.cin-cal-row__mono {
+  display: grid; place-items: center; width: 100%; height: 100%;
+  font-stretch: var(--cin-wide); font-weight: 750; font-size: 14px; color: var(--cin-ink);
+}
+.cin-cal-row__ico {
+  display: grid; place-items: center; width: 44px; height: 44px; border-radius: var(--cin-r-sm);
+  background: var(--cin-royal); color: var(--cin-ink);
+}
+.cin-cal-row__ico svg { width: 22px; height: 22px; }
+.cin-cal-row__b { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.cin-cal-row__t { font-size: 16px; font-weight: 620; line-height: 1.3; color: var(--cin-ink); overflow-wrap: anywhere; }
+a.cin-cal-row__t { text-decoration: none; transition: color .2s; }
+a.cin-cal-row__t::after { content: ""; position: absolute; inset: 0; border-radius: var(--cin-r-sm); }
+a.cin-cal-row__t:focus-visible { outline: none; }
+.cin-cal-row:has(a:focus-visible) { outline: 3px solid var(--cin-gold); outline-offset: 2px; border-radius: var(--cin-r-sm); }
+.cin-cal-row--go:hover .cin-cal-row__t { color: var(--cin-gold-hi); }
+.cin-cal-row__m { font-size: 14px; line-height: 1.4; color: var(--cin-mist); overflow-wrap: anywhere; }
+.cin-cal-row__go { display: grid; place-items: center; color: var(--cin-gold-ink); }
+.cin-cal-row__go .cin-ico { transition: transform .3s var(--cin-ease); }
+.cin-cal-row--go:hover .cin-cal-row__go .cin-ico { transform: translateX(4px); }
+
+/* an empty slate: the theme's empty card, sized for a column */
+.cin-cal-col .cin-cal-none { max-width: none; margin: clamp(16px, 1.8vw, 24px); padding: 22px; gap: 12px; border-radius: var(--cin-r); }
+.cin-cal-none .cin-empty__ico { width: 40px; height: 40px; }
+.cin-cal-none .cin-empty__ico span { inset: 10px; }
+.cin-cal-none .cin-empty__t { font-size: 17px; font-stretch: 110%; }
+
+.cin-cal-sheet .cin-loading { padding-inline: 0; }
+@media (min-width: 600px) and (max-height: 500px) {
+  .cin-cal-day { aspect-ratio: auto; height: 48px; }
+}
+
+/* no birthdays, anniversaries or events at all this month: one quiet line under the calendar */
+.cin-cal-nothing { margin-top: clamp(36px, 5vw, 64px); }
+
+/* narrow phones: the event's ticket icon steps aside so the title keeps the width and words stay whole */
+@media (max-width: 420px) {
+  .cin-cal-row--go { grid-template-columns: 64px minmax(0, 1fr) auto; gap: 10px; }
+  .cin-cal-row--go .cin-cal-row__ico { display: none; }
+  .cin-cal-row__t, .cin-cal-row__m { overflow-wrap: break-word; }
+}
+
+/* ───────── light mode (html[data-cin-mode="light"]) ───────── */
+html[data-cin-mode="light"] .cin-cal-sheet { background: radial-gradient(55% 40% at 0% 0%, rgba(23, 69, 143, .08), transparent 70%); }
+html[data-cin-mode="light"] .cin-cal-month {
+  background: radial-gradient(90% 80% at 100% 0%, rgba(23, 69, 143, .08), transparent 65%), var(--cin-night-2);
+  box-shadow: 0 0 0 1px rgba(247, 168, 27, .1), 0 30px 70px -44px var(--cin-shadow);
+}
+html[data-cin-mode="light"] .cin-cal-day.has-any:not(.is-sel) { background: rgba(11, 20, 51, .04); }
+/* today: a bronze ring (gold on white is 1.9:1); selected: no halo; selected + today: a navy ring on the gold */
+html[data-cin-mode="light"] .cin-cal-day[aria-current="date"]:not(.is-sel) { box-shadow: inset 0 0 0 2px var(--cin-gold-ink); }
+html[data-cin-mode="light"] .cin-cal-day.is-sel { box-shadow: none; }
+html[data-cin-mode="light"] .cin-cal-day.is-sel[aria-current="date"] { box-shadow: inset 0 0 0 2px var(--cin-on-gold); }
+html[data-cin-mode="light"] .cin-cal-day.is-sel .cin-cal-mk { background: var(--cin-on-gold); }
+/* the clapperboard stripe in ink on the white slate */
+html[data-cin-mode="light"] .cin-cal-col::before { background: repeating-linear-gradient(-55deg, rgba(11, 20, 51, .85) 0 11px, transparent 11px 22px); }
+/* royal avatar / event tiles keep their light glyphs */
+html[data-cin-mode="light"] :is(.cin-cal-row__mono, .cin-cal-row__ico) { color: #F3F5FB; }
+html[data-cin-mode="light"] .cin-cal-row--go:hover .cin-cal-row__t { color: var(--cin-gold-ink); }
+html[data-cin-mode="light"] .cin-cal-row:has(a:focus-visible) { outline-color: var(--cin-gold-ink); }

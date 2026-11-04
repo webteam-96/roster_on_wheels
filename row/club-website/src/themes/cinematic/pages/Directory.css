@@ -1,0 +1,140 @@
+/* ─────────────────────────────────────────────────────────────────────────────
+   CINEMATIC · DIRECTORY — the cast list. Every class is cin-dir-*; shared kit
+   classes (.cin-chip) are only restyled under .cin-dir-az. No hidden start
+   states: with motion off everything below is simply visible.
+   ───────────────────────────────────────────────────────────────────────────── */
+
+.cin-sec.cin-dir-body {
+  --cin-dir-az-top: calc(var(--cin-hh) + 12px);   /* strip floats just under the header */
+  --cin-dir-az-h: 78px;                           /* strip height: 10+6+44+6+10 + borders */
+  padding-top: clamp(28px, 4vw, 48px);
+  background: radial-gradient(900px 560px at 0 0, rgba(23, 69, 143, .26), transparent 70%);
+}
+
+/* ── the A–Z film strip: sticky, sprocket holes along both edges ── */
+.cin-dir-az {
+  position: sticky; top: var(--cin-dir-az-top); z-index: 20;
+  margin-bottom: clamp(28px, 4vw, 48px);
+  padding: 10px 8px;
+  border-radius: var(--cin-r);
+  border: 1px solid var(--cin-line);
+  background: rgba(13, 22, 51, .92);
+  -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px);
+  box-shadow: 0 18px 40px -24px rgba(0, 0, 0, .85);
+}
+.cin-dir-az::before, .cin-dir-az::after {
+  content: ""; position: absolute; left: 16px; right: 16px; height: 4px; pointer-events: none;
+  background: repeating-linear-gradient(90deg, rgba(167, 179, 209, .24) 0 9px, transparent 9px 20px);
+}
+.cin-dir-az::before { top: 4px; }
+.cin-dir-az::after { bottom: 4px; }
+/* 6px inside the scroller so the focus outline is not clipped */
+.cin-dir-az .cin-dir-az__chips {
+  flex-wrap: nowrap; gap: 6px; padding: 6px;
+  overflow-x: auto; overscroll-behavior-x: contain; scroll-padding-inline: 6px;
+  scrollbar-width: thin; scrollbar-color: var(--cin-royal) transparent;
+}
+.cin-dir-az .cin-chip {
+  flex: none; justify-content: center; min-width: 44px; padding: 0 12px;
+  font-stretch: var(--cin-cond); font-weight: 800; font-size: 19px; font-variant-numeric: tabular-nums;
+}
+.cin-dir-az .cin-chip:first-child { padding: 0 18px; font-stretch: 100%; font-weight: 650; font-size: 14.5px; }
+
+/* ── scenes ── */
+.cin-dir-list { display: grid; gap: clamp(36px, 5vw, 64px); }
+.cin-dir-group { display: grid; gap: 18px; min-width: 0; }
+.cin-dir-group:not(.is-flat) { padding-top: 22px; border-top: 1px solid var(--cin-line); }
+.cin-dir-letter {
+  margin: 0; min-width: 0;
+  font-stretch: var(--cin-cond); font-weight: 800; line-height: .82;
+  font-size: clamp(52px, 8vw, 116px); color: var(--cin-gold-ink);
+  text-shadow: 0 0 36px rgba(247, 168, 27, .35);
+}
+@media (min-width: 900px) {
+  .cin-dir-group:not(.is-flat) { grid-template-columns: clamp(96px, 9vw, 140px) minmax(0, 1fr); gap: 32px; }
+  /* the slate rides beside its scene, below the strip */
+  .cin-dir-letter { position: sticky; top: calc(var(--cin-dir-az-top) + var(--cin-dir-az-h) + 24px); align-self: start; }
+}
+
+/* ── cast cards ── */
+.cin-dir-grid {
+  display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px;
+  min-width: 0; margin: 0; padding: 0; list-style: none;
+}
+@media (min-width: 600px) {
+  .cin-dir-grid { grid-template-columns: repeat(auto-fill, minmax(min(250px, 100%), 1fr)); gap: 18px; }
+}
+.cin-dir-card {
+  position: relative; min-width: 0;
+  display: flex; flex-direction: column; align-items: center; text-align: center;
+  padding: 24px 16px 22px; border-radius: var(--cin-r);
+  border: 1px solid var(--cin-line);
+  /* a stage light on the portrait; text sits below it on night-2 */
+  background: radial-gradient(80% 55% at 50% 0%, rgba(23, 69, 143, .55), transparent 72%), var(--cin-night-2);
+  transition: border-color .3s var(--cin-ease);
+}
+.cin-dir-card:hover { border-color: rgba(247, 168, 27, .5); }
+.cin-dir-card__ph {
+  position: relative; display: block; flex: none; width: clamp(120px, 10vw, 148px); aspect-ratio: 1;   /* larger portraits (client, 2026-09-25) */
+  border-radius: 50%; overflow: hidden; background: var(--cin-night-3);
+  box-shadow: 0 0 0 1px var(--cin-line-2), 0 0 0 5px rgba(7, 11, 26, .6);
+  transition: box-shadow .4s var(--cin-ease);
+}
+.cin-dir-card:hover .cin-dir-card__ph { box-shadow: 0 0 0 2px var(--cin-gold), 0 0 32px 2px var(--cin-glow); }
+.cin-dir-card__img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: 50% 22%; }
+.cin-dir-card__mono {
+  display: grid; place-items: center; width: 100%; height: 100%;
+  background: radial-gradient(70% 70% at 30% 20%, var(--cin-royal), var(--cin-night-2));
+  font-stretch: var(--cin-wide); font-weight: 800; font-size: 40px; line-height: 1; color: var(--cin-gold);
+}
+.cin-dir-card__txt { min-width: 0; max-width: 100%; margin-top: 16px; }
+.cin-dir-card__n {
+  margin: 0;
+  font-stretch: var(--cin-wide); font-weight: 700; font-size: clamp(15px, 1.2vw, 17px); line-height: 1.22;
+  overflow-wrap: anywhere; color: var(--cin-ink);
+}
+.cin-dir-card__w { margin: 6px 0 0; font-size: 14.5px; line-height: 1.45; color: var(--cin-mist); overflow-wrap: anywhere; }
+
+/* phones: one column of cast rows - portrait left, so long names never break mid-word */
+@media (max-width: 599px) {
+  .cin-dir-grid { grid-template-columns: minmax(0, 1fr); gap: 10px; }
+  .cin-dir-card {
+    flex-direction: row; text-align: left; gap: 16px; padding: 14px 16px;
+    background: radial-gradient(40% 120% at 0% 50%, rgba(23, 69, 143, .55), transparent 70%), var(--cin-night-2);
+  }
+  .cin-dir-card__ph { width: 92px; }
+  .cin-dir-card__mono { font-size: 28px; }
+  .cin-dir-card__txt { flex: 1 1 auto; margin-top: 0; }
+  .cin-dir-card__n { font-size: 16px; }
+}
+@media (max-width: 380px) {
+  .cin-dir-card { gap: 12px; padding: 12px 14px; }
+  .cin-dir-card__ph { width: 70px; }
+  .cin-dir-card__mono { font-size: 22px; }
+  .cin-dir-card__n { font-size: 15px; overflow-wrap: break-word; }
+}
+/* The strip docks flush under the header (a 12px slot let cut lines of cards show through),
+   and on phones its letters fade out at the right edge so the row reads as scrollable */
+@media (max-width: 899px) {
+  .cin-dir-az .cin-dir-az__chips {
+    padding-right: 44px;
+    -webkit-mask-image: linear-gradient(90deg, #000 calc(100% - 44px), transparent);
+    mask-image: linear-gradient(90deg, #000 calc(100% - 44px), transparent);
+  }
+}
+.cin-sec.cin-dir-body { --cin-dir-az-top: var(--cin-hh); }
+.cin-dir-az { border-top-left-radius: 0; border-top-right-radius: 0; }
+
+/* ───────── light mode (html[data-cin-mode="light"]) ───────── */
+html[data-cin-mode="light"] .cin-dir-body { background: radial-gradient(900px 560px at 0 0, rgba(23, 69, 143, .08), transparent 70%); }
+html[data-cin-mode="light"] .cin-dir-az { background: rgba(255, 255, 255, .92); box-shadow: 0 18px 40px -24px var(--cin-shadow); }
+html[data-cin-mode="light"] .cin-dir-az::before, html[data-cin-mode="light"] .cin-dir-az::after { background: repeating-linear-gradient(90deg, rgba(11, 20, 51, .16) 0 9px, transparent 9px 20px); }
+html[data-cin-mode="light"] .cin-dir-letter { text-shadow: none; }
+html[data-cin-mode="light"] .cin-dir-card { background: radial-gradient(80% 55% at 50% 0%, rgba(23, 69, 143, .08), transparent 72%), var(--cin-night-2); }
+@media (max-width: 599px) {
+  html[data-cin-mode="light"] .cin-dir-card { background: radial-gradient(40% 120% at 0% 50%, rgba(23, 69, 143, .08), transparent 70%), var(--cin-night-2); }
+}
+html[data-cin-mode="light"] .cin-dir-card__ph { box-shadow: 0 0 0 1px var(--cin-line-2), 0 0 0 5px rgba(11, 20, 51, .06); }
+html[data-cin-mode="light"] .cin-dir-card:hover .cin-dir-card__ph { box-shadow: 0 0 0 2px var(--cin-gold); }
+/* the monogram stays a dark avatar (gold initials on royal → night) */
+html[data-cin-mode="light"] .cin-dir-card__mono { background: radial-gradient(70% 70% at 30% 20%, var(--cin-royal), #0D1633); }

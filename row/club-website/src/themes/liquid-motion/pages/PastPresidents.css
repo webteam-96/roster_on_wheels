@@ -1,0 +1,71 @@
+/* ─────────────────────────────────────────────────────────────────────────────
+   LIQUID MOTION · PAST PRESIDENTS (pages/PastPresidents.jsx). Every class is
+   liq-pp-*; kit pieces are only re-tuned inside .liq-pp. Nothing starts hidden
+   except the decorative gold fill of the decade numerals (the outline always
+   carries the glyph, and screen readers get the label from .liq-sr).
+   ───────────────────────────────────────────────────────────────────────────── */
+
+/* ── hero controls ─────────────────────────────────────────────────────────── */
+.liq-pp-find{display:flex;flex-wrap:wrap;align-items:center;gap:16px 28px}
+
+/* ── current president (paper) ─────────────────────────────────────────────── */
+.liq-pp-now{display:grid;grid-template-columns:minmax(0,1fr);gap:28px;align-items:end}
+.liq-pp-now:not(:last-child){margin-bottom:clamp(56px,7vw,104px)}
+.liq-pp-now__pic{width:min(62%,240px)}
+.liq-pp .liq-pp-now__pic .liq-portrait__mono{font-size:clamp(44px,7vw,96px)}
+.liq-pp-now__txt{min-width:0;container-type:inline-size}
+.liq-pp-now__tag{display:inline-flex;align-items:center;gap:10px;min-height:34px;margin:0 0 clamp(18px,2.2vw,28px);padding:6px 16px;border-radius:999px;background:var(--liq-gold);color:var(--liq-ink);font:700 12.5px/1.25 var(--liq-sans);letter-spacing:.14em;text-transform:uppercase}
+.liq-pp-now__tag::before{content:"";flex:none;width:8px;height:8px;border-radius:50%;background:currentColor}
+/* the name fits its own column: the longest word never breaks (container units; clamp() fallback) */
+.liq-pp-now__name{--liq-lw:8;margin:0;color:var(--liq-fg);font:700 clamp(30px,5.6vw,88px)/1.02 var(--liq-display);letter-spacing:-.04em}
+@supports (width:1cqi){ .liq-pp-now__name{font-size:min(112px,14cqi,calc(100cqi / (var(--liq-lw) * .8)))} }
+.liq-pp-now__act{margin-top:clamp(24px,3vw,40px)}
+@media (min-width:700px){
+  .liq-pp-now{grid-template-columns:clamp(190px,24vw,330px) minmax(0,1fr);gap:clamp(28px,5vw,80px)}
+  .liq-pp-now__pic{width:100%}
+}
+
+/* ── the roll: decades ─────────────────────────────────────────────────────── */
+.liq-pp-roll{display:grid;gap:clamp(56px,7vw,112px)}
+.liq-pp-dec{display:grid;grid-template-columns:minmax(0,1fr);gap:20px;min-width:0}
+.liq-pp-dec__head{min-width:0}
+.liq-pp-dec__h{margin:0;line-height:1}
+.liq-pp-dec__glyph{position:relative;display:inline-block;font:800 clamp(56px,16vw,96px)/.86 var(--liq-display);letter-spacing:-.05em;white-space:nowrap}
+.liq-pp-dec__line{display:block;color:transparent;-webkit-text-stroke:1.5px var(--liq-stroke)}
+.liq-pp-dec__ink{position:absolute;inset:0;color:var(--liq-accent);clip-path:inset(100% 0 0 0)}
+.liq-pp-dec__n{margin:14px 0 0;color:var(--liq-fg-2);font:600 12.5px/1.3 var(--liq-sans);letter-spacing:.16em;text-transform:uppercase}
+.liq-pp-dec--x .liq-pp-dec__glyph{font-size:clamp(34px,8vw,64px);white-space:normal}
+
+/* ── the roll: rows (the home's figure list: hairline, gold year, portrait, name) ── */
+.liq-pp-list{margin:0;padding:0;list-style:none;border-bottom:1px solid var(--liq-line)}
+.liq-pp-row{position:relative;display:grid;grid-template-columns:clamp(104px,10vw,150px) clamp(56px,5.6vw,80px) minmax(0,1fr);align-items:center;gap:clamp(14px,2vw,28px);padding:clamp(16px,1.8vw,24px) 0}
+.liq-pp-row__line{position:absolute;left:0;right:0;top:0;height:1px;background:var(--liq-line)}
+.liq-pp-row__yr{margin:0;color:var(--liq-accent);font:600 clamp(17px,1.5vw,22px)/1.2 var(--liq-display);letter-spacing:-.01em;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.liq-pp-row__pic{width:100%}
+.liq-pp .liq-pp-row__pic .liq-portrait__mono{font-size:clamp(16px,1.6vw,22px)}
+.liq-pp-row__who{min-width:0}
+.liq-pp-row__n{margin:0;color:var(--liq-fg);font:500 clamp(20px,1.9vw,28px)/1.2 var(--liq-display);letter-spacing:-.02em;overflow-wrap:anywhere}
+.liq-pp-row__tag{display:inline-flex;align-items:center;margin:10px 0 0;padding:5px 12px;border:1px solid var(--liq-accent);border-radius:999px;color:var(--liq-accent);font:600 11.5px/1.2 var(--liq-sans);letter-spacing:.14em;text-transform:uppercase}
+@media (hover:hover) and (prefers-reduced-motion:no-preference){
+  /* individual `translate`: the row itself is GSAP-revealed, its text is not */
+  .liq-pp-row__who{transition:translate .5s var(--liq-ease)}
+  .liq-pp-row:hover .liq-pp-row__who{translate:8px 0}
+}
+
+/* ── desktop: the decade numeral sticks in a left column ───────────────────── */
+@media (min-width:900px){
+  .liq-pp-dec{grid-template-columns:minmax(0,5fr) minmax(0,7fr);align-items:start;gap:0 clamp(32px,4vw,64px)}
+  .liq-pp-dec__head{position:sticky;top:calc(var(--liq-hh) + 32px)}
+  .liq-pp-dec__glyph{font-size:min(8vw,120px)}
+}
+
+/* ── phones: portrait left, year above the name ───────────────────────────── */
+@media (max-width:599px){
+  .liq-pp-row{grid-template-columns:56px minmax(0,1fr);gap:4px 16px;padding:14px 0}
+  .liq-pp-row__pic{grid-area:1 / 1 / 3 / 2;align-self:center}
+  .liq-pp-row__yr{grid-area:1 / 2;align-self:end;font-size:15px}
+  .liq-pp-row__who{grid-area:2 / 2;align-self:start}
+  .liq-pp-row__n{font-size:19px}
+}
+
+/* ── gold bookend: the earliest year rolls ─────────────────────────────────── */

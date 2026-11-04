@@ -1,0 +1,64 @@
+/* ─────────────────────────────────────────────────────────────────────────────
+   Theme 8 · the calendar's month picker (MonthJump in _shared/kit.jsx).
+   One structure for all six themes; each theme dresses it through the --mp-*
+   variables below (colours, fonts, corners), so it reads as part of that theme
+   instead of the browser's own grey month picker (client, 2026-10-06).
+   ───────────────────────────────────────────────────────────────────────────── */
+.t8-mp{
+  --mp-bg:#fff; --mp-fg:#141A33; --mp-muted:#5A6180; --mp-line:rgba(20,26,51,.12);
+  --mp-accent:#17458F; --mp-accent-fg:#fff; --mp-now:#F7A81B; --mp-hover:rgba(23,69,143,.08);
+  --mp-radius:18px; --mp-cell-radius:12px; --mp-display:inherit; --mp-display-weight:800; --mp-display-stretch:normal;
+  --mp-shadow:0 24px 60px -18px rgba(8,14,40,.45),0 0 0 1px var(--mp-line);
+  position:fixed;z-index:2147483000;width:min(320px,calc(100vw - 32px));padding:16px;border-radius:var(--mp-radius);
+  background:var(--mp-bg);color:var(--mp-fg);box-shadow:var(--mp-shadow);
+  font-family:inherit;font-size:15px;line-height:1.2;letter-spacing:normal;text-transform:none;text-align:left;
+  animation:t8MpIn .22s cubic-bezier(.2,.8,.2,1)
+}
+@keyframes t8MpIn{from{opacity:0;transform:translateY(-6px) scale(.98)}}
+@media (prefers-reduced-motion:reduce){ .t8-mp{animation:none} }
+.t8-mp__head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:0 0 12px}
+.t8-mp__yr{margin:0;font-family:var(--mp-display);font-weight:var(--mp-display-weight);font-stretch:var(--mp-display-stretch);font-size:22px;line-height:1;color:var(--mp-fg)}
+.t8-mp__step{display:grid;place-items:center;width:40px;height:40px;padding:0;border:1px solid var(--mp-line);border-radius:999px;background:transparent;color:var(--mp-fg);cursor:pointer;transition:background-color .2s,color .2s,border-color .2s}
+.t8-mp__step svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+.t8-mp__step:hover:not(:disabled){background:var(--mp-accent);border-color:var(--mp-accent);color:var(--mp-accent-fg)}
+.t8-mp__step:disabled{opacity:.3;cursor:default}
+.t8-mp__grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+.t8-mp__m{position:relative;min-height:44px;padding:0 4px;border:0;border-radius:var(--mp-cell-radius);background:transparent;color:var(--mp-fg);font:inherit;font-weight:700;cursor:pointer;transition:background-color .2s,color .2s}
+.t8-mp__m:hover{background:var(--mp-hover)}
+.t8-mp__m[data-now]{box-shadow:inset 0 0 0 2px var(--mp-now)}
+.t8-mp__m[aria-current]{background:var(--mp-accent);color:var(--mp-accent-fg)}
+.t8-mp__m:disabled{opacity:.3;cursor:default}
+.t8-mp__foot{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:12px;padding-top:12px;border-top:1px solid var(--mp-line)}
+.t8-mp__now{min-height:40px;padding:0 4px;border:0;background:none;color:var(--mp-accent);font:inherit;font-weight:800;cursor:pointer;text-decoration:underline;text-underline-offset:4px;text-decoration-thickness:2px}
+.t8-mp__close{min-height:40px;padding:0 14px;border:1px solid var(--mp-line);border-radius:999px;background:transparent;color:var(--mp-muted);font:inherit;font-weight:700;cursor:pointer}
+.t8-mp__close:hover{color:var(--mp-fg);border-color:var(--mp-fg)}
+.t8-mp :focus-visible{outline:3px solid var(--mp-now);outline-offset:2px}
+.t8-mp__sr{position:absolute;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
+
+/* ── each theme's dress ─────────────────────────────────────────────────── */
+/* cinematic: the night panel, gold accent - follows its light / dark mode through its own variables */
+html[data-theme="cinematic"] .t8-mp{--mp-bg:var(--cin-night);--mp-fg:var(--cin-ink);--mp-muted:var(--cin-mist);--mp-line:var(--cin-line);
+  --mp-accent:var(--cin-gold);--mp-accent-fg:#0B1433;--mp-now:var(--cin-gold);--mp-hover:rgba(247,168,27,.14);--mp-radius:20px;--mp-display:var(--cin-sans);font-family:var(--cin-sans)}
+html[data-theme="cinematic"][data-cin-mode="light"] .t8-mp{--mp-accent:var(--cin-royal);--mp-accent-fg:#fff;--mp-now:var(--cin-gold);--mp-hover:rgba(23,69,143,.08)}
+/* split-story: white card, royal fill, gold ring on this month, the condensed display face */
+html[data-theme="split-story"] .t8-mp{--mp-bg:#fff;--mp-fg:var(--spl-night);--mp-muted:#4A5B7A;--mp-line:var(--spl-line);--mp-accent:var(--spl-royal);--mp-accent-fg:#fff;
+  --mp-now:var(--spl-gold);--mp-hover:var(--spl-mist);--mp-radius:var(--spl-radius-sm);--mp-display:var(--spl-display);--mp-display-stretch:68%;font-family:var(--spl-body)}
+html[data-theme="split-story"] .t8-mp__yr{font-size:28px}
+/* liquid-motion: ink panel, gold fill, the wide display face */
+html[data-theme="liquid-motion"] .t8-mp{--mp-bg:var(--liq-ink-2);--mp-fg:#fff;--mp-muted:var(--liq-mute);--mp-line:rgba(255,255,255,.12);--mp-accent:var(--liq-gold);--mp-accent-fg:var(--liq-ink);
+  --mp-now:var(--liq-azure);--mp-hover:rgba(255,255,255,.08);--mp-radius:22px;--mp-cell-radius:999px;--mp-display:var(--liq-display);--mp-display-weight:600;font-family:var(--liq-sans)}
+html[data-theme="liquid-motion"] .t8-mp__yr{font-size:20px;letter-spacing:-.02em}
+/* horizontal-journey: white card, cranberry fill, gold ring, round month pills */
+html[data-theme="horizontal-journey"] .t8-mp{--mp-bg:#fff;--mp-fg:var(--hj-ink);--mp-muted:var(--hj-ink-2);--mp-line:var(--hj-line);--mp-accent:var(--hj-cran);--mp-accent-fg:#fff;
+  --mp-now:var(--hj-gold);--mp-hover:var(--hj-cream);--mp-radius:22px;--mp-cell-radius:999px;--mp-display:var(--hj-sans);font-family:var(--hj-sans)}
+/* photo-collage: a paper card with a taped edge, cranberry fill, the handwritten year */
+html[data-theme="photo-collage"] .t8-mp{--mp-bg:var(--col-paper);--mp-fg:var(--col-ink);--mp-muted:var(--col-ink-2);--mp-line:rgba(28,35,64,.14);--mp-accent:var(--col-cran);--mp-accent-fg:#fff;
+  --mp-now:var(--col-gold);--mp-hover:rgba(247,168,27,.18);--mp-radius:6px;--mp-cell-radius:6px;--mp-display:var(--col-hand);--mp-display-weight:700;font-family:var(--col-body);
+  --mp-shadow:0 2px 2px rgba(28,35,64,.08),0 22px 44px -16px rgba(28,35,64,.4)}
+html[data-theme="photo-collage"] .t8-mp::before{content:"";position:absolute;top:-11px;left:50%;width:96px;height:22px;transform:translateX(-50%) rotate(-3deg);
+  background:repeating-linear-gradient(-45deg,rgba(247,168,27,.75) 0 7px,rgba(247,168,27,.55) 7px 14px);mix-blend-mode:multiply}
+html[data-theme="photo-collage"] .t8-mp__yr{font-size:26px}
+/* sunrise: the night window, warm accent - follows its light / dark mode */
+html[data-theme="sunrise"] .t8-mp{--mp-bg:var(--sun-win-bg);--mp-fg:var(--sun-ink);--mp-muted:var(--sun-mist);--mp-line:var(--sun-line);--mp-accent:var(--sun-accent);--mp-accent-fg:#13183A;
+  --mp-now:var(--sun-accent);--mp-hover:rgba(255,196,107,.14);--mp-radius:22px;--mp-cell-radius:999px;--mp-display:var(--sun-display);--mp-display-weight:600;font-family:var(--sun-sans)}
+html[data-theme="sunrise"][data-sun-mode="light"] .t8-mp{--mp-bg:#fff;--mp-accent-fg:#fff;--mp-hover:rgba(163,35,74,.08)}

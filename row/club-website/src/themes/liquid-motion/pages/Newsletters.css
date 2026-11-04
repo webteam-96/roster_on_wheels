@@ -1,0 +1,43 @@
+/* LIQUID MOTION · NEWSLETTERS — every class is liq-nws-*; kit classes are only read, never redefined.
+   Nothing here hides content waiting for JS (motion.js does the entrances). */
+
+/* ── hero controls ── */
+.liq-nws-tools{display:flex;flex-wrap:wrap;align-items:center;gap:16px 28px}
+.liq-nws-tools .liq-search{flex:1 1 300px}
+
+/* ── the latest issue ── */
+.liq-nws-feat{position:relative;isolation:isolate}
+/* its month, drifting behind in outline (decorative; the band clips it sideways) */
+.liq-nws-feat__grid{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:end;gap:28px clamp(32px,6vw,112px)}
+.liq-nws-feat__main{order:-1;min-width:0;container-type:inline-size}
+/* the fit uses the column (cqi), so no whole word can outgrow it beside the date plate */
+.liq-nws-feat__t{--liq-lw:8;max-width:14em;margin:0;font:700 min(max(30px,6.6vw),108px,calc(100cqi / (var(--liq-lw) * .8)))/.98 var(--liq-display);letter-spacing:-.045em;overflow-wrap:anywhere}
+.liq-nws-feat__t--long{max-width:20em;font-size:min(max(26px,4.4vw),68px,calc(100cqi / (var(--liq-lw) * .8)));line-height:1.06;letter-spacing:-.03em}
+.liq-nws-feat__by{margin:24px 0 0;color:var(--liq-fg-2);font:600 13px/1.4 var(--liq-sans);letter-spacing:.14em;text-transform:uppercase;overflow-wrap:anywhere}
+.liq-nws-feat__act{margin-top:clamp(24px,3vw,36px)}
+.liq-nws-feat__none{margin:0;color:var(--liq-fg-2)}
+/* the date plate: the day rolls (Odometer), month + year under a rule */
+.liq-nws-plate{display:grid;justify-items:end;margin:0;text-align:right}
+.liq-nws-plate__d{font:800 clamp(88px,12vw,196px)/.9 var(--liq-display);letter-spacing:-.05em}
+.liq-nws-plate__m{margin-top:14px;padding-top:12px;border-top:2px solid currentColor;font:600 13px/1.3 var(--liq-sans);letter-spacing:.2em;text-transform:uppercase}
+@media (max-width:699px){
+  .liq-nws-feat__grid{grid-template-columns:minmax(0,1fr);gap:20px}
+  .liq-nws-feat__main{order:0}
+  .liq-nws-plate{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 16px;text-align:left}
+  .liq-nws-plate__d{font-size:clamp(64px,20vw,96px)}
+  .liq-nws-plate__m{margin:0;padding:0;border:0}
+}
+
+/* ── back issues ── */
+.liq-nws-feat + .liq-nws-arch{margin-top:clamp(72px,10vw,144px)}
+.liq-nws-group + .liq-nws-group{margin-top:clamp(36px,4vw,56px)}
+.liq-nws-month{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 12px;margin:0 0 14px;font:600 clamp(20px,1.8vw,26px)/1.2 var(--liq-display);letter-spacing:-.02em;overflow-wrap:anywhere}
+.liq-nws-month__n{color:var(--liq-fg-2);font:600 12px/1.3 var(--liq-sans);letter-spacing:.16em;text-transform:uppercase}
+/* desktop: the month sticks in a left column while its issues scroll past */
+@media (min-width:900px){
+  .liq-nws-group{display:grid;grid-template-columns:minmax(0,220px) minmax(0,1fr);align-items:start;gap:0 40px}
+  .liq-nws-month{position:sticky;top:calc(var(--liq-hh) + 24px);flex-direction:column;align-items:flex-start;margin:0;padding-top:24px}
+}
+/* an issue with no file: same row, no flood, not a link */
+.liq-nws .liq-nws-off,.liq-nws .liq-nws-off:hover{color:var(--liq-fg-2)}
+.liq-nws .liq-nws-off::before{content:none}

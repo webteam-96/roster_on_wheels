@@ -1,0 +1,52 @@
+/* ─────────────────────────────────────────────────────────────────────────────
+   Split Story · About (spl-about-*). The split, panel, person cards, wipe rows
+   and gold band are kit pieces in theme.css; this file adds the crest, the
+   meeting ticket, the leadership pair and the onward links. No hidden start
+   states: motion sets them from JS.
+   ───────────────────────────────────────────────────────────────────────────── */
+
+/* chapter: our story (crest, lead, admin HTML) */
+.spl-about-crest{position:relative;width:clamp(112px,12vw,168px);aspect-ratio:1;margin:12px 0 clamp(28px,5vh,48px) 12px}
+.spl-about-crest-orbit{position:absolute;inset:-12px;border:1.5px solid rgba(23,69,143,.35);border-radius:50%;pointer-events:none}
+.spl-about-crest-orbit i{position:absolute;left:50%;bottom:-6px;width:12px;height:12px;margin-left:-6px;border-radius:50%;background:var(--spl-gold)}
+.spl-about-crest-plate{position:relative;width:100%;height:100%;overflow:hidden;border-radius:50%;background:#fff;box-shadow:0 0 0 1px var(--spl-line),var(--spl-shadow)}
+.spl-about-crest-plate img{width:100%;height:100%;padding:14%;object-fit:contain}
+.spl-about-prose :where(img,video,iframe,figure,div,table,pre){max-width:100%}
+.spl-about-prose :where(iframe,video){width:100%;height:auto;aspect-ratio:16/9}
+.spl-about-prose pre{white-space:pre-wrap}
+
+/* chapter: where we meet (a royal ticket) */
+.spl-about-ticket{position:relative;overflow:hidden;padding:clamp(22px,3.4vw,44px);border-radius:var(--spl-radius);background:var(--spl-royal);color:#fff;container-type:inline-size}
+.spl-about-ticket-orbit{position:absolute;right:-22%;top:-34%;width:62%;aspect-ratio:1;border:1.5px solid rgba(60,196,255,.55);border-radius:50%;pointer-events:none}
+.spl-about-ticket-orbit i{position:absolute;left:50%;bottom:-8px;width:16px;height:16px;margin-left:-8px;border-radius:50%;background:var(--spl-gold)}
+.spl-about-facts{position:relative;display:grid;grid-template-columns:minmax(0,1fr);gap:18px;margin:0}
+.spl-about-facts > div{min-width:0;padding-top:12px;border-top:2px solid rgba(255,255,255,.35)}
+.spl-about-facts > .is-day{padding-top:0;border-top:0}
+.spl-about-facts dt{color:var(--spl-gold);font-size:.875rem;font-weight:800}
+.spl-about-facts dd{margin:6px 0 0;font-family:var(--spl-display);font-stretch:80%;font-weight:800;font-size:clamp(24px,2.4vw,34px);line-height:1.1;overflow-wrap:anywhere}
+.spl-about-facts .spl-about-day{margin-top:4px;color:var(--spl-gold);font-stretch:68%;font-size:clamp(52px,17cqi,128px);line-height:.88;letter-spacing:-.01em}
+.spl-about-facts .is-wordy .spl-about-day{font-size:clamp(34px,9cqi,72px);line-height:.95}
+.spl-about-facts .is-long dd{font-family:var(--spl-body);font-stretch:100%;font-weight:700;font-size:clamp(1.05rem,1.4vw,1.25rem);line-height:1.5}
+.spl-about-ticket .spl-btn{position:relative;margin-top:clamp(22px,3.4vh,34px)}
+
+/* chapter: leadership (president + secretary) */
+.spl-about-people{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:clamp(14px,2vw,28px);max-width:680px;margin:0;padding:0;list-style:none}
+.spl-about-people.is-one{grid-template-columns:minmax(0,340px)}
+.spl-about-people > li{min-width:0}
+.spl-about-people .spl-person{height:100%}
+
+/* chapter: contact (gold wipe rows, a size down from the newsletter rows) */
+.spl-about-contact .spl-row-title{font-size:clamp(24px,2.8vw,40px)}
+.spl-about-contact .spl-row-meta{overflow-wrap:anywhere}
+
+/* closing band: onward links (night wipes in, text turns gold) */
+.spl-about-next{margin:clamp(28px,6vh,56px) 0 0;padding:0;border-top:3px solid var(--spl-night);list-style:none}
+.spl-about-next > li{border-bottom:3px solid var(--spl-night)}
+.spl-about-next-link{position:relative;isolation:isolate;display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:clamp(14px,2.4vw,32px);min-height:64px;padding:clamp(16px,2.6vh,26px) clamp(8px,1.2vw,16px);color:var(--spl-night);text-decoration:none;transition:color .3s}
+.spl-about-next-link::before{content:"";position:absolute;inset:0;z-index:-1;background:var(--spl-night);clip-path:inset(0 100% 0 0);transition:clip-path .55s var(--spl-ease)}
+.spl-about-next-link:hover,.spl-about-next-link:focus-visible{color:var(--spl-gold)}
+.spl-about-next-link:hover::before,.spl-about-next-link:focus-visible::before{clip-path:inset(0 0 0 0)}
+.spl-about-next-n{font-family:var(--spl-display);font-stretch:68%;font-weight:800;font-size:clamp(18px,1.6vw,24px);line-height:1;font-variant-numeric:tabular-nums}
+.spl-about-next-t{min-width:0;font-family:var(--spl-display);font-stretch:68%;font-weight:800;font-size:clamp(32px,5.4vw,80px);line-height:.95;letter-spacing:-.01em;overflow-wrap:anywhere}
+.spl-about-next-link .spl-ico{width:clamp(24px,2.4vw,36px);height:clamp(24px,2.4vw,36px);transition:translate .35s var(--spl-ease)}
+.spl-about-next-link:hover .spl-ico,.spl-about-next-link:focus-visible .spl-ico{translate:8px 0}

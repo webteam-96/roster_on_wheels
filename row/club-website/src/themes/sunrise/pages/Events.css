@@ -1,0 +1,89 @@
+/* ═════════════════════════════════════════════════════════════════════════════
+   SUNRISE · EVENTS (sun-evs-*) — the next event's sun rising off its horizon,
+   then the agenda by month, each row's date sun on its own horizon line.
+   Tokens only (both modes); no hidden start states (motion sets its own).
+   ═════════════════════════════════════════════════════════════════════════════ */
+
+/* the next event's rising date sun is the kit DateRise (theme.css .sun-rise) */
+
+/* ---------- the next event ---------- */
+.sun-evs-next{padding-bottom:clamp(12px,2vw,24px)}
+.sun-evs-feat{position:relative;display:grid;gap:clamp(24px,3.4vw,48px);align-items:center;min-width:0;
+  padding:clamp(20px,3.4vw,44px);border-radius:28px;background:var(--sun-card-bg);border:1px solid var(--sun-card-line);box-shadow:var(--sun-card-shadow)}
+@media (min-width:900px){ .sun-evs-feat.has-shot{grid-template-columns:minmax(0,6fr) minmax(0,5fr)} }
+/* one column held to the card (minmax 0): the date sun's 258px box widened an auto column past a 280px
+   screen and the title and text ran off the card. The sun itself scales down under 400px */
+.sun-evs-feat__main{display:grid;grid-template-columns:minmax(0,1fr);gap:clamp(18px,2.4vw,28px);min-width:0}
+.sun-rise.sun-evs-feat__rise{--d:clamp(80px,28vw,112px)}
+@media (min-width:700px){
+  .sun-evs-feat:not(.has-shot) .sun-evs-feat__main{grid-template-columns:auto minmax(0,1fr);align-items:center;gap:clamp(28px,4vw,56px)}
+}
+.sun-evs-feat__body{min-width:0}
+.sun-evs-feat__kick{display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px}
+.sun-evs-feat__near{display:inline-flex;align-items:center;min-height:28px;padding:0 12px;border-radius:999px;background:var(--sun-sunbtn);color:var(--sun-dk);letter-spacing:.08em}
+.sun-evs-feat__title{margin-top:12px;font:600 var(--sun-h2-size)/1.08 var(--sun-display);letter-spacing:-.03em;text-wrap:balance;overflow-wrap:anywhere}
+.sun-evs-feat__title a{text-decoration:none;background:var(--sun-name-grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+.sun-evs-feat__title a:hover{text-decoration:underline;text-decoration-color:var(--sun-accent);text-decoration-thickness:2px;text-underline-offset:6px}
+.sun-evs-meta{display:flex;flex-direction:column;gap:8px;margin-top:18px;font-size:16px;line-height:1.5;color:var(--sun-mist)}
+.sun-evs-meta li{display:flex;align-items:flex-start;gap:10px;min-width:0;overflow-wrap:anywhere}
+.sun-evs-meta li>span{min-width:0}
+.sun-evs-meta svg{flex:none;width:16px;height:16px;margin-top:4px;color:var(--sun-accent)}
+.sun-evs-feat__desc{margin-top:16px;max-width:58ch;font-size:16px;color:var(--sun-mist);overflow-wrap:anywhere}
+.sun-evs-feat__cta{display:flex;flex-wrap:wrap;gap:12px;margin-top:24px}
+.sun-evs-feat__win{aspect-ratio:4/3;min-width:0}
+@media (min-width:900px){ .sun-evs-feat__win{aspect-ratio:1/1;max-height:560px} }
+
+/* ---------- the agenda ---------- */
+.sun-evs-agenda{display:grid;gap:clamp(56px,7vw,104px)}
+.sun-evs-month{min-width:0}
+.sun-evs-month__head{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:8px 24px}
+.sun-evs-month__head .sun-h2{min-width:0}
+.sun-evs-month__n{font-size:13px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:var(--sun-mist)}
+/* phones: the count under every month (beside "October 2026" it fitted, under "December 2026" it wrapped) */
+@media (max-width:599px){ .sun-evs-month__head{flex-direction:column;align-items:flex-start;gap:6px} }
+.sun-evs-month__rule{display:block;height:2px;margin:18px 0 6px;border-radius:2px;background:var(--sun-dawn);transform-origin:0 50%}
+
+.sun-evs-rows{display:grid}
+.sun-evs-row{position:relative;isolation:isolate;display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:14px clamp(16px,2.6vw,32px);
+  padding:clamp(16px,2.2vw,24px) clamp(4px,1.2vw,14px);border-bottom:1px solid var(--sun-line)}
+.sun-evs-row::before{content:"";position:absolute;inset:4px -8px;z-index:-1;border-radius:18px;background:var(--sun-tint);opacity:0;transition:opacity .3s}
+.sun-evs-row:hover::before{opacity:1}
+.sun-evs-row:has(.sun-evs-row__link:focus-visible){outline:3px solid var(--sun-accent);outline-offset:2px;border-radius:14px}
+/* each date sun stands on its own horizon */
+.sun-evs-row__sun{position:relative;padding-bottom:8px}
+.sun-evs-row__sun::after{content:"";position:absolute;left:-12px;right:-12px;bottom:0;height:1px;background:linear-gradient(90deg,transparent,var(--sun-hover-line),transparent)}
+.sun-evs-row__main{min-width:0}
+.sun-evs-row__when{font-size:12px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--sun-accent);overflow-wrap:anywhere}
+.sun-evs-row__title{margin-top:4px;font:600 clamp(17px,1.6vw,22px)/1.25 var(--sun-display);letter-spacing:-.02em;overflow-wrap:anywhere;transition:color .25s}
+.sun-evs-row__link{color:inherit;text-decoration:none}
+.sun-evs-row__link::after{content:"";position:absolute;inset:0;z-index:1}
+.sun-evs-row__link:focus-visible{outline:none}
+.sun-evs-row:hover .sun-evs-row__title{color:var(--sun-accent)}
+.sun-evs-row__venue{display:flex;align-items:flex-start;gap:8px;margin-top:6px;font-size:15px;line-height:1.5;color:var(--sun-mist);overflow-wrap:anywhere}
+.sun-evs-row__venue>span{min-width:0}
+.sun-evs-row__venue svg{flex:none;width:15px;height:15px;margin-top:4px;color:var(--sun-accent)}
+/* View details (+ Register) under the text at every width; above the title's row-wide link */
+.sun-evs-row__acts{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px}
+.sun-evs-row__acts .sun-btn{position:relative;z-index:2}
+.sun-evs-row__img{width:128px;height:96px;border-radius:12px;object-fit:cover;background:var(--sun-card-img)}
+/* past: the sun has set */
+.sun-evs-row.is-past .sun-date{filter:saturate(.25);box-shadow:none;opacity:.85}
+@media (max-width:699px){
+  .sun-evs-row{grid-template-columns:auto minmax(0,1fr);align-items:start;column-gap:16px}
+  .sun-evs-row__img{display:none}
+}
+
+/* ---------- nothing scheduled: empty state + the weekly meeting ---------- */
+.sun-evs-none__grid{display:grid;gap:clamp(20px,3vw,32px)}
+@media (min-width:900px){
+  .sun-evs-none__grid.is-two{grid-template-columns:minmax(0,1fr) minmax(0,1fr);align-items:stretch;max-width:1080px;margin-inline:auto}
+  .sun-evs-none__grid.is-two .sun-empty{max-width:none;margin:0;justify-content:center}
+}
+.sun-evs-meet{container-type:inline-size;display:flex;flex-direction:column;align-items:flex-start;gap:12px;overflow:hidden}
+.sun-evs-meet__day{margin:4px 0 6px;max-width:100%}
+.sun-evs-meet__big{display:block;font:700 clamp(30px,13cqi,76px)/1.02 var(--sun-display);letter-spacing:-.035em;overflow-wrap:anywhere}
+.sun-evs-meet__big,.sun-evs-meet__big .sun-c{background:var(--sun-name-grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+.sun-evs-meet__line{display:flex;align-items:flex-start;gap:10px;font-size:16px;line-height:1.5;font-style:normal;color:var(--sun-mist);overflow-wrap:anywhere}
+.sun-evs-meet__line>span{min-width:0}
+.sun-evs-meet__line svg{flex:none;width:16px;height:16px;margin-top:4px;color:var(--sun-accent)}
+.sun-evs-meet__map{margin-top:10px}

@@ -1,0 +1,77 @@
+/* ─────────────────────────────────────────────────────────────────────────────
+   HORIZONTAL JOURNEY · Event detail (pages/EventDetail.jsx) — every class hj-ed-*.
+   Self-contained: never relies on Events.css (a visitor can land here first).
+   Violet hero with the gold ticket stub hanging in its sky; cream ground with a
+   white "when / where" ticket, the poster (sticky on wide, fits the viewport),
+   the club's description. Contrast: ink on gold 8.6:1, violet on white 7.5:1.
+   No hidden start states: motion (GSAP, motion allowed only) adds them.
+   ───────────────────────────────────────────────────────────────────────────── */
+
+/* the page ends on cream: its own room for the footer ridge (see .hj-endpad) */
+.hj-ed.hj-endpad{padding-bottom:var(--hj-ftr)}
+.hj-ed-ico{width:18px;height:18px;flex:none}
+.hj-ed-wait{min-height:60vh;display:grid;place-items:center}
+
+/* ── hero aside: the listing's stub, hanging on a string in the dusk sky ───── */
+.hj-ed-hang{position:relative;width:clamp(150px,17vw,230px);margin:4px 0 0 4px;transform:rotate(-5deg);transform-origin:50% 0}
+.hj-ed-stub{
+  position:relative;display:flex;flex-direction:column;align-items:flex-start;gap:6px;overflow:hidden;
+  padding:36px 18px 0;border-radius:18px;background:var(--hj-gold);color:var(--hj-ink);
+  box-shadow:0 30px 50px -24px rgba(20,4,30,.6);transform-origin:50% 0;
+}
+/* the punched hole the string runs through (the hero's violet shows through) */
+.hj-ed-stub::before{content:"";position:absolute;left:50%;top:12px;width:14px;height:14px;margin-left:-7px;border-radius:50%;background:var(--hj-violet);box-shadow:inset 0 1px 2px rgba(0,0,0,.35)}
+.hj-ed-stub__day{font:800 clamp(60px,7.5vw,108px)/.85 var(--hj-disp);letter-spacing:-.05em;font-variant-numeric:tabular-nums}
+.hj-ed-stub__mon{font:750 clamp(13px,1.2vw,15px)/1.25 var(--hj-sans);letter-spacing:.14em;text-transform:uppercase}
+.hj-ed-stub__wd,.hj-ed-stub__time{font:650 14px/1.3 var(--hj-sans);overflow-wrap:anywhere;max-width:100%}
+/* the sample's cover art: a low sun behind royal hills, under a perforation */
+.hj-ed-stub__art{position:relative;align-self:stretch;height:clamp(70px,7vw,100px);margin:14px -18px 0;border-top:2px dashed rgba(20,26,51,.4)}
+.hj-ed-stub__art::before{content:"";position:absolute;left:54%;bottom:34%;width:34%;aspect-ratio:1;border-radius:50%;background:var(--hj-cran)}
+.hj-ed-stub__art::after{content:"";position:absolute;left:0;right:0;bottom:0;height:62%;background:var(--hj-royal);clip-path:polygon(0 36%,16% 12%,32% 30%,50% 0,68% 26%,84% 8%,100% 26%,100% 100%,0 100%)}
+@media (min-width:900px){
+  .hj-ed-hang{margin:0 0 0 clamp(8px,2vw,28px)}
+  /* the string, up into the sky (wide only: on phones it would cross the title) */
+  .hj-ed-hang::before{content:"";position:absolute;left:50%;bottom:calc(100% - 20px);width:2px;height:clamp(60px,9vw,130px);margin-left:-1px;background:linear-gradient(0deg,rgba(255,255,255,.8),rgba(255,255,255,0))}
+}
+
+/* ── body: facts, poster, description ──────────────────────────────────────── */
+.hj-ed .hj-ed-body{display:grid;grid-template-columns:minmax(0,1fr);gap:clamp(28px,4vw,44px);max-width:calc(880px + 2 * var(--hj-gut))}
+.hj-ed .hj-ed-body.has-shot{max-width:calc(var(--hj-max) + 2 * var(--hj-gut))}
+@media (min-width:900px){
+  .hj-ed .hj-ed-body.has-shot{
+    grid-template-columns:minmax(0,1.15fr) minmax(0,.85fr);grid-template-areas:"facts shot" "about shot" "back shot";
+    column-gap:clamp(40px,5vw,72px);align-items:start;
+  }
+  .hj-ed-body.has-shot .hj-ed-facts{grid-area:facts}
+  .hj-ed-body.has-shot .hj-ed-about{grid-area:about}
+  .hj-ed-body.has-shot .hj-ed-back{grid-area:back}
+  /* the poster stays with you while you read; its image is capped to fit the viewport */
+  .hj-ed-body.has-shot .hj-ed-aside{grid-area:shot;position:sticky;top:calc(var(--hj-hh) + 24px)}
+}
+
+/* when / where: a white ticket body with a gold edge, rows split by a perforation */
+.hj-ed-facts{display:grid;gap:22px;min-width:0}
+.hj-ed-dl{margin:0;display:grid;min-width:0;background:#fff;color:var(--hj-ink);border-radius:22px;border-left:10px solid var(--hj-gold);box-shadow:var(--hj-shadow)}
+.hj-ed-fact{display:grid;gap:8px;min-width:0;padding:clamp(18px,2.6vw,28px)}
+.hj-ed-fact + .hj-ed-fact{border-top:2px dashed rgba(20,26,51,.16)}
+.hj-ed-fact dt{display:flex;align-items:center;gap:8px;font:750 12.5px/1.2 var(--hj-sans);letter-spacing:.18em;text-transform:uppercase;color:var(--hj-violet)}
+.hj-ed-fact dd{margin:0;display:flex;flex-direction:column;align-items:flex-start;gap:4px;min-width:0}
+.hj-ed-fact__v{max-width:100%;font:700 clamp(18px,2vw,24px)/1.3 var(--hj-disp);letter-spacing:-.015em;overflow-wrap:anywhere}
+.hj-ed-fact__s{font:650 16px/1.4 var(--hj-sans);color:var(--hj-ink-2)}
+.hj-ed-fact__a{margin-top:8px}
+.hj-ed-cta{display:flex;flex-wrap:wrap;gap:12px;margin:0}
+
+/* the poster: whole picture (contain), never taller than the screen */
+.hj-ed-aside{min-width:0}
+.hj-ed-shot{
+  position:relative;display:block;width:100%;padding:0;border:0;border-radius:22px;overflow:hidden;
+  background:#fff;box-shadow:var(--hj-shadow);cursor:zoom-in;--hj-focus:var(--hj-violet);
+}
+.hj-ed-shot img{display:block;width:100%;height:auto;max-width:none;max-height:calc(100vh - var(--hj-hh) - 64px);max-height:calc(100svh - var(--hj-hh) - 64px);object-fit:contain;transition:scale .6s var(--hj-ease)}
+.hj-ed-shot:hover img{scale:1.03}
+.hj-ed-shot__hint{position:absolute;right:12px;bottom:12px;padding:6px 12px;border-radius:999px;background:rgba(20,26,51,.8);color:#fff;font:750 12.5px/1.2 var(--hj-sans);letter-spacing:.04em;pointer-events:none}
+
+.hj-ed-about{min-width:0}
+.hj-ed-h2{margin:0 0 18px;font:700 clamp(22px,3vw,32px)/1.1 var(--hj-disp);letter-spacing:-.025em;overflow-wrap:anywhere}
+.hj-ed-prose{max-width:68ch}
+.hj-ed-back{margin:0}

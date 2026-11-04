@@ -1,0 +1,1979 @@
+/* ============================================================================
+   civic-motion.css — hand-written motion & micro-interaction layer for the
+   Civic Bold theme. Loaded AFTER the compiled theme.css (which cannot be
+   recompiled from this workspace — its Tailwind config lives in the external
+   design repo), so everything here is plain CSS on top of the compiled build.
+
+   Inspiration: Awwwards SOTY 2025 (OFF+BRAND / Lando Norris — bold accent
+   type, cinematic scroll) and React Bits (marquee, click spark, magnet,
+   spotlight — the JS halves live in this theme's rotary-anim.js).
+
+   All color comes from the theme's RGB-triple tokens (--c-canvas, --c-ink,
+   --c-gold, --c-navy, --c-muted) so the light default AND the visitor's
+   optional dark mode both work untouched. Every animation is neutralised
+   under prefers-reduced-motion at the bottom of this file.
+   ========================================================================== */
+
+/* ── Smooth anchor scrolling ──────────────────────────────────────────────
+   The COMPILED theme.css ships html{scroll-behavior:smooth}, which turns
+   every keyboard/programmatic scroll into an animation — on slow machines
+   Chrome's scroll-animation queue can wedge, freezing scrolling entirely
+   (observed live: scrollTo/scrollTop silently ignored). Neutralise it here
+   (this file loads after theme.css, so the later rule wins); in-page anchor
+   clicks still glide via the JS handler in rotary-anim.js. */
+html { scroll-behavior: auto; }
+
+/* ── Scroll progress hairline (fixed, above the sticky header) ───────────── */
+#cv-progress {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    z-index: 100;
+    pointer-events: none;
+    background: transparent;
+}
+#cv-progress > span {
+    display: block;
+    height: 100%;
+    width: 0;
+    background: rgb(var(--c-gold));
+    transition: width .12s linear;
+}
+
+/* ── Marquee: two-row kinetic band (counter-scrolling), theme-aware strip ──
+   A light surface band in light mode / dark band in dark mode — it now FLIPS
+   with the theme (was an always-dark near-black slab that looked heavy on the
+   light theme). Row A scrolls left, Row B (outlined ghost) scrolls right at a
+   different speed → woven kinetic typography. Gold hairlines top & bottom, soft
+   edge fades, pauses on hover. Text uses the ink token so it flips with the
+   band; gold accents/dots/hairlines read on the surface in both modes. */
+.cv-marquee {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    overflow: hidden;
+    padding: 1.15rem 0;
+    background: rgb(var(--c-surface));
+    user-select: none;
+    -webkit-mask-image: linear-gradient(to right, transparent 0, #000 7%, #000 93%, transparent 100%);
+            mask-image: linear-gradient(to right, transparent 0, #000 7%, #000 93%, transparent 100%);
+}
+/* gold hairlines top & bottom (faded at the ends by the band's mask) */
+.cv-marquee::before,
+.cv-marquee::after {
+    content: "";
+    position: absolute;
+    left: 0; right: 0;
+    height: 1px;
+    background: linear-gradient(to right, transparent, rgb(var(--c-gold) / 0.75) 18%, rgb(var(--c-gold) / 0.75) 82%, transparent);
+    z-index: 2;
+}
+.cv-marquee::before { top: 0; }
+.cv-marquee::after { bottom: 0; }
+.cv-marquee__row { overflow: hidden; }
+.cv-marquee__track {
+    display: flex;
+    width: max-content;
+    animation: cv-marquee-scroll 90s linear infinite;
+}
+.cv-marquee__track--b { animation-duration: 120s; animation-direction: reverse; }
+.cv-marquee:hover .cv-marquee__track { animation-play-state: paused; }
+.cv-marquee__group {
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+}
+.cv-marquee__item {
+    font-family: ui-monospace, SF Mono, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: clamp(0.95rem, 1.9vw, 1.45rem);
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.13em;
+    color: rgb(var(--c-ink) / 0.92);
+    white-space: nowrap;
+    padding: 0 1.4rem;
+}
+/* gold-accent word (the club name) — pops on the dark band */
+.cv-marquee__item--accent {
+    color: rgb(var(--c-gold));
+    text-shadow: 0 0 22px rgb(var(--c-gold) / 0.35);
+}
+/* Row B: every word outlined for depth + a touch smaller than Row A */
+.cv-marquee__group--ghost .cv-marquee__item {
+    color: transparent;
+    -webkit-text-stroke: 1px rgb(var(--c-ink) / 0.38);
+    font-size: clamp(0.9rem, 1.7vw, 1.3rem);
+    text-shadow: none;
+}
+.cv-marquee__group--ghost .cv-marquee__item--accent {
+    -webkit-text-stroke-color: rgb(var(--c-gold) / 0.85);
+}
+.cv-marquee__dot {
+    color: rgb(var(--c-gold));
+    font-size: 11px;
+    flex-shrink: 0;
+    opacity: 0.85;
+}
+@keyframes cv-marquee-scroll {
+    from { transform: translateX(0); }
+    to   { transform: translateX(-50%); }
+}
+
+/* ── Civic re-tints for the shared motion systems ─────────────────────────
+   The compiled design system's split-char hover and spotlight glow use the
+   shared orange --brand-gold; re-point them at this theme's accent tokens. */
+.split.is-visible .split-char:hover { color: rgb(var(--c-gold-cta)); }
+.spotlight-card { --spot-color: rgb(var(--c-gold) / 0.15); }
+
+/* ── Light-mode fix: hover:bg-navy cards turned near-black under dark text.
+   In the light default, hover lifts to the white panel instead (the accent
+   underline + spotlight glow carry the hover state); dark mode keeps the
+   original navy flip, where ink is light and stays readable. ─────────────── */
+:root:not([data-civic-mode=dark]) .hover\:bg-navy:hover {
+    background-color: rgb(var(--c-panel));
+}
+
+/* ── Nav links: accent underline sweeps in from the left ─────────────────── */
+.civic-nav-link::after {
+    content: "";
+    position: absolute;
+    left: 0.5rem; right: 0.5rem; bottom: 0.15rem;
+    height: 2px;
+    background: rgb(var(--c-gold));
+    transform: scaleX(0);
+    transform-origin: left center;
+    transition: transform .3s var(--ease-emphasized, cubic-bezier(0.22, 1, 0.36, 1));
+}
+.civic-nav-link:hover::after,
+.civic-nav-link--active::after { transform: scaleX(1); }
+
+/* ══ Section viewport reveal — each below-the-fold section's content rises into
+   place as it scrolls in ═══════════════════════════════════════════════════
+   A whole-block entrance layered UNDER the existing per-element .reveal fades.
+   Deliberately transform-ONLY (no opacity): the inner .reveal elements already
+   own the fade, so adding a second opacity ramp here would double-dim them and
+   look muddy. Instead the section's content lifts as one unit (the section's
+   static background texture — cv-waves / civic-gridlines / bg tints, which are
+   siblings of the marked wrapper — stays put) while the inner items fade+stagger
+   on top. Driven by the same observer as .reveal (initReveal watches
+   [data-reveal-sect] too), so it inherits the IO + scroll-sweep robustness and
+   fires once. */
+[data-reveal-sect] {
+    transform: translateY(34px);
+    will-change: transform;
+    transition: transform .8s var(--ease-emphasized, cubic-bezier(0.22, 1, 0.36, 1));
+}
+[data-reveal-sect].is-visible { transform: none; }
+
+/* ══ On-load entrance — the header assembles from the top (utility strip → logo →
+   nav cascade → hamburger → hairline) to complement main.route-enter, which fades
+   the body up. Start-states live under html.civic-preload (set pre-paint by an
+   inline script; absent if JS off / reduced-motion → content always visible). JS
+   then adds .civic-loaded on window-load to play it once. Transform/opacity only. */
+html.civic-preload [data-onload] { opacity: 0; will-change: opacity, transform; }
+html.civic-preload [data-onload="down"] { transform: translateY(-14px); }
+html.civic-preload [data-onload="left"] { transform: translateX(-18px); }
+html.civic-preload [data-onload="line"] { transform: scaleX(0); transform-origin: center; opacity: 1; }
+html.civic-preload.civic-loaded [data-onload] {
+    opacity: 1;
+    transform: none;
+    transition: opacity .6s var(--ease-emphasized, cubic-bezier(0.22, 1, 0.36, 1)),
+                transform .6s var(--ease-emphasized, cubic-bezier(0.22, 1, 0.36, 1));
+    transition-delay: var(--od, 0s);
+}
+html.civic-preload.civic-loaded [data-onload="line"] { transition-duration: .85s; }
+/* desktop nav links cascade in after the logo */
+html.civic-preload .civic-nav-link { opacity: 0; transform: translateY(-10px); will-change: opacity, transform; }
+html.civic-preload.civic-loaded .civic-nav-link {
+    opacity: 1; transform: none;
+    transition: opacity .5s ease, transform .55s var(--ease-emphasized, cubic-bezier(0.22, 1, 0.36, 1));
+}
+html.civic-preload.civic-loaded .civic-nav-link:nth-child(1) { transition-delay: .30s; }
+html.civic-preload.civic-loaded .civic-nav-link:nth-child(2) { transition-delay: .35s; }
+html.civic-preload.civic-loaded .civic-nav-link:nth-child(3) { transition-delay: .40s; }
+html.civic-preload.civic-loaded .civic-nav-link:nth-child(4) { transition-delay: .45s; }
+html.civic-preload.civic-loaded .civic-nav-link:nth-child(5) { transition-delay: .50s; }
+html.civic-preload.civic-loaded .civic-nav-link:nth-child(6) { transition-delay: .55s; }
+html.civic-preload.civic-loaded .civic-nav-link:nth-child(7) { transition-delay: .60s; }
+html.civic-preload.civic-loaded .civic-nav-link:nth-child(8) { transition-delay: .65s; }
+html.civic-preload.civic-loaded .civic-nav-link:nth-child(9) { transition-delay: .70s; }
+
+/* Home above-the-fold joins the same one-shot: the banner settles in with a
+   subtle scale-down and the kinetic marquee band slides up last — handing off
+   to the scroll-.reveal numbers section below. Neutralise the compiled block
+   main.route-enter while armed so these are the single choreography source
+   (no double move); no-JS/reduced-motion keep route-enter as the fallback. */
+html.civic-preload main.route-enter { animation: none; }
+html.civic-preload [data-onload="up"]   { transform: translateY(16px); }
+html.civic-preload [data-onload="zoom"] { transform: scale(1.045); transform-origin: 50% 45%; }
+/* belt-and-braces: reduced-motion never hides (inline script also skips preload) */
+@media (prefers-reduced-motion: reduce) {
+    html.civic-preload [data-onload],
+    html.civic-preload .civic-nav-link { opacity: 1 !important; transform: none !important; }
+    html.civic-preload main.route-enter { animation: revert; }
+}
+
+/* ══ RESPONSIVE FIXES (civic-bold) — from the cross-page responsive audit.
+   Kept here (loads only under the civic master) to dodge the purged-Tailwind
+   trap and never touch the other themes. ══════════════════════════════════ */
+
+/* HIGH — the mobile drawer's primary CTA used bare .civic-btn-accent, which has
+   no display/padding, so it collapsed to a ~24px inline chip. Give the drawer
+   instance real button geometry (also raises the touch target to 44px). */
+[data-nav-drawer] .civic-btn-accent {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    width: 100%;
+    height: 2.75rem;
+    padding: 0 1rem;
+    font-size: 12px;
+}
+
+/* Projects counter: the 2×2 stat grid never collapsed on phones and the nowrap
+   ₹ values were clipped by the cell's overflow:hidden. Collapse to one column
+   and shrink the number + padding on the narrowest screens. */
+@media (max-width: 480px) {
+    .cv-stat-grid.grid-cols-2 { grid-template-columns: 1fr; }
+    .cv-stat:not(.cv-stat--feature) .civic-num { font-size: 1.6rem; }
+    .cv-stat { padding-left: 1.25rem; padding-right: 1.25rem; }
+}
+
+/* The full-bleed 3D projects ring is a tall 480px band on phones — trim it. */
+@media (max-width: 640px) {
+    .cv-arc { height: 360px; }
+}
+
+/* Header bar: the desktop nav can wrap to a 2nd row around 1280–1400px; let the
+   bar grow rather than spill its content past the fixed 68px height. */
+header > .container-x { height: auto; min-height: 68px; }
+
+/* A long single-word club name shouldn't push the About headline past a narrow
+   phone viewport — allow it to break. */
+.cv-about-title { overflow-wrap: break-word; hyphens: auto; }
+
+/* ══ Year selector — refined two-cell "ticket" chip (topbar + mobile drawer) ══
+   Replaces the flat near-black box. A gold calendar cell (fills solid on hover)
+   + a raised panel field with the Rotary year, hairline border → gold, animated
+   chevron. Square corners keep the civic-bold language; all colours are tokens,
+   so it flips correctly in dark mode. */
+.cv-yearsel {
+    --yr-h: 32px;
+    position: relative;
+    display: inline-flex;
+    align-items: stretch;
+    height: var(--yr-h);
+    background: rgb(var(--c-panel));
+    border: 1px solid rgb(var(--c-line));
+    box-shadow: 0 1px 2px rgb(var(--c-navy) / 0.06);
+    transition: border-color .28s var(--ease-emphasized, cubic-bezier(0.22, 1, 0.36, 1)),
+                box-shadow .28s var(--ease-emphasized, cubic-bezier(0.22, 1, 0.36, 1));
+}
+.cv-yearsel:hover { border-color: rgb(var(--c-gold)); box-shadow: 0 2px 10px rgb(var(--c-gold) / 0.16); }
+.cv-yearsel:focus-within { border-color: rgb(var(--c-gold)); box-shadow: 0 0 0 3px rgb(var(--c-gold) / 0.22); }
+
+/* leading calendar cell — gold-tinted, fills solid on hover/focus */
+.cv-yearsel__ico {
+    flex: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: calc(var(--yr-h) - 2px);
+    color: rgb(var(--c-gold));
+    background: rgb(var(--c-gold) / 0.10);
+    border-right: 1px solid rgb(var(--c-line));
+    transition: background-color .28s var(--ease-emphasized, cubic-bezier(0.22, 1, 0.36, 1)),
+                color .28s var(--ease-emphasized, cubic-bezier(0.22, 1, 0.36, 1));
+}
+.cv-yearsel:hover .cv-yearsel__ico,
+.cv-yearsel:focus-within .cv-yearsel__ico { background: rgb(var(--c-gold)); color: rgb(var(--c-on-gold)); }
+.cv-yearsel__ico svg { width: 15px; height: 15px; }
+
+/* native <select>, fully stripped — the chip is the visible control */
+.cv-yearsel__native {
+    -webkit-appearance: none; -moz-appearance: none; appearance: none;
+    border: 0; outline: 0; margin: 0;
+    height: 100%;
+    padding: 0 30px 0 12px;
+    background: transparent;
+    color: rgb(var(--c-ink));
+    font: 700 12px/1 ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+    letter-spacing: .07em;
+    text-transform: uppercase;
+    cursor: pointer;
+}
+.cv-yearsel__native option { color: rgb(var(--c-ink)); background: rgb(var(--c-panel)); font-weight: 600; }
+
+/* trailing chevron — nudges down + turns gold in sympathy with the cell */
+.cv-yearsel__chev {
+    position: absolute; right: 10px; top: 50%;
+    width: 13px; height: 13px;
+    transform: translateY(-50%);
+    color: rgb(var(--c-muted));
+    pointer-events: none;
+    transition: color .28s var(--ease-emphasized, cubic-bezier(0.22, 1, 0.36, 1)),
+                transform .28s var(--ease-spring, cubic-bezier(0.34, 1.32, 0.46, 1));
+}
+.cv-yearsel:hover .cv-yearsel__chev,
+.cv-yearsel:focus-within .cv-yearsel__chev { color: rgb(var(--c-gold)); transform: translateY(-50%) translateY(2px); }
+
+/* full-width variant for the mobile drawer */
+.cv-yearsel--block { display: flex; width: 100%; --yr-h: 44px; }
+.cv-yearsel--block .cv-yearsel__ico { width: 44px; }
+.cv-yearsel--block .cv-yearsel__native { flex: 1 1 auto; width: 100%; padding-left: 14px; }
+
+/* counter-band variant: a touch larger so the picker balances the section's big heading. */
+.cv-yearsel--counter { --yr-h: 40px; }
+
+/* ══ React Bits "Waves" — animated Perlin wave-field section background ══════
+   rotary-anim.js (initWaves) injects a <canvas> and strokes lines in the
+   canvas' CSS `color`, so the field flips light/dark with the theme. The mask
+   melts the field softly into the section edges; pointer-events:none keeps it
+   from ever blocking clicks or scroll. */
+.cv-waves {
+    position: absolute;
+    inset: 0;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    pointer-events: none;
+    z-index: 0;
+    -webkit-mask-image: radial-gradient(135% 125% at 50% 42%, #000 58%, transparent 100%);
+            mask-image: radial-gradient(135% 125% at 50% 42%, #000 58%, transparent 100%);
+}
+.cv-waves__canvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+    color: rgb(var(--c-gold) / 0.22);   /* stroke colour, read by initWaves() */
+}
+:root[data-civic-mode=dark] .cv-waves__canvas { color: rgb(var(--c-gold) / 0.34); }
+
+/* ══════════════════════════════════════════════════════════════════════════
+   RESPONSIVE FIXES (hand-written so they can't be purged; scoped to civic-bold
+   because civic-motion.css only loads under SiteCivicBold.Master). Address the
+   concrete breakages the responsive audit surfaced.
+   ══════════════════════════════════════════════════════════════════════════ */
+
+/* [HIGH] Mobile-drawer "Admin Login": .civic-btn-accent carries only colour/
+   border (no display or padding), so the bare class + w-full/justify-center
+   collapsed to a tiny left-aligned chip on the inline <a>. Make the drawer
+   instance a real full-width 44px button (also a proper touch target). */
+[data-nav-drawer] a.civic-btn-accent {
+    display: inline-flex;
+    width: 100%;
+    min-height: 44px;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0 1rem;
+    font-size: 12px;
+}
+
+/* [MED] Projects counter is a hard grid-cols-2; on narrow phones each half-cell
+   is too tight and long ₹ values (nowrap, inside overflow:hidden) get clipped
+   mid-digit. Collapse that group to a single column on small phones so every
+   value has the full width. (Membership grid has no grid-cols-2 → unaffected.) */
+@media (max-width: 560px) {
+    .cv-stat-grid.grid-cols-2 { grid-template-columns: 1fr; }
+}
+
+/* [MED] Desktop nav (appears at xl) is flex-wrap inside a hard h-[68px] bar, so
+   a full menu that doesn't fit wraps to a 2nd row and spills over the hairline.
+   Let the header row grow instead of overflowing. */
+header > .container-x { height: auto; min-height: 68px; }
+
+/* [LOW] The full-bleed 3D projects ring is a fixed 480px band — too tall on a
+   phone fold. Trim it on small screens (geometry still centres fine). */
+@media (max-width: 640px) {
+    .cv-arc { height: 360px; }
+}
+
+/* [LOW] A long single-word club name in the giant About headline can't wrap and
+   could push the page wider than a phone; allow breaking. */
+.cv-about-title { overflow-wrap: break-word; hyphens: auto; }
+
+/* [LOW] On touch devices the top-strip year chip is a 32px target; bump it to
+   40px (the drawer's --block variant is already 44px and is left untouched). */
+@media (hover: none) {
+    .cv-yearsel:not(.cv-yearsel--block) { --yr-h: 40px; }
+}
+
+/* ── Buttons: sweep fills, hard Swiss shadows, arrow nudge, press feedback ── */
+.civic-btn, .civic-btn-accent, .civic-btn-dark {
+    position: relative;
+    overflow: hidden;
+    isolation: isolate;
+    transform: translate(var(--tx, 0), var(--ty, 0));  /* magnet ([data-magnetic]) */
+    transition-property: color, background-color, border-color, transform, box-shadow;
+    transition-duration: .25s;
+    transition-timing-function: var(--ease-emphasized, cubic-bezier(0.22, 1, 0.36, 1));
+}
+.civic-btn:active, .civic-btn-accent:active, .civic-btn-dark:active {
+    transform: translate(var(--tx, 0), var(--ty, 0)) scale(.96);
+}
+/* the trailing → arrow inside every button nudges right on hover */
+.civic-btn span[aria-hidden], .civic-btn-accent span[aria-hidden], .civic-btn-dark span[aria-hidden] {
+    display: inline-block;
+    transition: transform .3s var(--ease-spring, cubic-bezier(0.34, 1.32, 0.46, 1));
+}
+.civic-btn:hover span[aria-hidden],
+.civic-btn-accent:hover span[aria-hidden],
+.civic-btn-dark:hover span[aria-hidden] { transform: translateX(5px); }
+/* outline button: accent fill SWEEPS in from the left, text flips */
+.civic-btn::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background: rgb(var(--c-gold));
+    transform: scaleX(0);
+    transform-origin: left center;
+    transition: transform .3s var(--ease-emphasized, cubic-bezier(0.22, 1, 0.36, 1));
+}
+.civic-btn:hover { border-color: rgb(var(--c-gold)); color: rgb(var(--c-on-gold)); }
+.civic-btn:hover::before { transform: scaleX(1); }
+/* accent (primary) button: lifts onto a hard offset shadow — Swiss poster move */
+.civic-btn-accent:hover {
+    transform: translate(calc(var(--tx, 0px) - 2px), calc(var(--ty, 0px) - 2px));
+    box-shadow: 4px 4px 0 0 rgb(var(--c-navy) / 0.35);
+    filter: brightness(1.06);
+}
+/* dark button (gold band): same lift, shadow punched in the on-accent ink */
+.civic-btn-dark:hover {
+    transform: translate(calc(var(--tx, 0px) - 2px), calc(var(--ty, 0px) - 2px));
+    box-shadow: 4px 4px 0 0 rgb(var(--c-on-gold) / 0.45);
+}
+
+/* ── Click spark (React Bits "Click Spark") — spawned by rotary-anim.js ──── */
+.cv-spark {
+    position: absolute;
+    width: 0; height: 0;
+    pointer-events: none;
+    z-index: 5;
+}
+.cv-spark i {
+    position: absolute;
+    left: -1px; top: -8px;
+    width: 2px; height: 8px;
+    background: rgb(var(--c-gold));
+    border-radius: 1px;
+    transform-origin: 50% 100%;
+    transform: rotate(var(--a)) translateY(0);
+    animation: cv-spark-fly .45s var(--ease-exit, cubic-bezier(0.4, 0, 0.6, 1)) forwards;
+}
+.on-accent .cv-spark i, .civic-btn-accent .cv-spark i, .civic-btn-dark .cv-spark i {
+    background: rgb(var(--c-on-gold));
+}
+@keyframes cv-spark-fly {
+    to { transform: rotate(var(--a)) translateY(-18px) scaleY(.3); opacity: 0; }
+}
+
+/* ── Mode toggle: sun/moon swap rotates in ───────────────────────────────── */
+[data-mode-toggle] svg {
+    transition: transform .45s var(--ease-spring, cubic-bezier(0.34, 1.32, 0.46, 1)),
+                opacity .2s ease;
+}
+[data-mode-toggle]:hover svg { transform: rotate(40deg) scale(1.1); }
+
+/* ── Hero banner: cinematic Ken Burns drift on the active slide only ─────── */
+[data-hero-banner] [data-hero-slide].opacity-100 img {
+    animation: cv-kenburns 9s var(--ease-exit, cubic-bezier(0.4, 0, 0.6, 1)) forwards;
+}
+@keyframes cv-kenburns {
+    from { transform: scale(1); }
+    to   { transform: scale(1.07); }
+}
+
+/* ── Grid stagger: repeater items cascade instead of popping together ────── */
+.cv-stagger > .reveal:nth-child(1)  { transition-delay: 0s; }
+.cv-stagger > .reveal:nth-child(2)  { transition-delay: .08s; }
+.cv-stagger > .reveal:nth-child(3)  { transition-delay: .16s; }
+.cv-stagger > .reveal:nth-child(4)  { transition-delay: .24s; }
+.cv-stagger > .reveal:nth-child(5)  { transition-delay: .32s; }
+.cv-stagger > .reveal:nth-child(6)  { transition-delay: .40s; }
+.cv-stagger > .reveal:nth-child(7)  { transition-delay: .48s; }
+.cv-stagger > .reveal:nth-child(8)  { transition-delay: .56s; }
+.cv-stagger > .reveal:nth-child(n+9) { transition-delay: .64s; }
+
+/* ── Stat cells: icon pinned top, number+label anchored bottom, and a full
+   accent WASH that rises from the floor on hover, inverting the content. ── */
+.cv-stat {
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 1.75rem;
+    min-height: 188px;
+}
+.cv-stat > * { position: relative; z-index: 1; }
+/* the wash — a solid accent panel scaling up from the bottom edge */
+.cv-stat::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    background: rgb(var(--c-gold));
+    transform: scaleY(0);
+    transform-origin: bottom center;
+    transition: transform .45s var(--ease-emphasized, cubic-bezier(0.22, 1, 0.36, 1));
+}
+.cv-stat:hover::before { transform: scaleY(1); }
+.cv-stat .civic-num,
+.cv-stat .civic-eyebrow,
+.cv-stat .cv-stat-index { transition: color .3s ease; }
+.cv-stat .civic-num { transition: color .3s ease, transform .35s var(--ease-emphasized, cubic-bezier(0.22, 1, 0.36, 1)); }
+.cv-stat:hover .civic-num { color: rgb(var(--c-on-gold)); transform: translateX(3px); }
+.cv-stat:hover .civic-eyebrow,
+.cv-stat:hover .cv-stat-index { color: rgb(var(--c-on-gold) / 0.75); }
+/* corner registration tick — a small crop-mark that snaps in on hover */
+.cv-stat-index {
+    position: absolute;
+    top: 1.25rem; right: 1.5rem;
+    font-family: ui-monospace, SF Mono, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 10px;
+    letter-spacing: 0.16em;
+    color: rgb(var(--c-muted));
+    pointer-events: none;
+}
+/* Project numbers: cap the size so wide values (₹50,000 and up) don't spill
+   past the half-width cell; scales down on narrow viewports. The huge feature
+   number stays dominant. tabular-nums (from .civic-num) keeps digits aligned. */
+.cv-stat:not(.cv-stat--feature) .civic-num {
+    font-size: clamp(1.9rem, 3.3vw, 2.6rem);
+    white-space: nowrap;
+}
+
+/* ── Editorial duotone photos: grayscale at rest, full color on hover ────── */
+.cv-duotone {
+    filter: grayscale(65%) contrast(1.04);
+    transition: filter .5s ease, transform .5s var(--ease-emphasized, cubic-bezier(0.22, 1, 0.36, 1)), opacity .5s ease;
+}
+a:hover .cv-duotone, .group:hover .cv-duotone { filter: grayscale(0%) contrast(1); }
+
+/* ── Footer wordmark: ink→accent wipe on hover ───────────────────────────── */
+.cv-wordmark { position: relative; cursor: default; }
+.cv-wordmark .split-char { transition-property: opacity, transform, filter, color; }
+.cv-wordmark:hover .split-char { color: rgb(var(--c-gold)); transition-delay: calc(var(--ci, 0) * 0s); }
+
+/* ══ HOME PAGE COMPOSITION PIECES ═════════════════════════════════════════ */
+
+/* Swiss section index — occupies the mission band's empty right column on
+   wide screens; hidden below xl where the column doesn't exist. */
+.cv-section-index {
+    display: none;
+    position: absolute;
+    right: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    flex-direction: column;
+    border-left: 1px solid rgb(var(--c-navy) / 0.12);
+}
+@media (min-width: 1280px) { .cv-section-index { display: flex; } }
+.cv-index-link {
+    display: flex;
+    align-items: baseline;
+    gap: 0.9rem;
+    padding: 0.55rem 0 0.55rem 1.4rem;
+    font-family: ui-monospace, SF Mono, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    color: rgb(var(--c-muted));
+    position: relative;
+    transition: color .25s ease;
+}
+.cv-index-link > span {
+    font-weight: 700;
+    color: rgb(var(--c-gold-cta));
+}
+.cv-index-link::before {
+    content: "";
+    position: absolute;
+    left: -1px; top: 0;
+    width: 2px; height: 100%;
+    background: rgb(var(--c-gold));
+    transform: scaleY(0);
+    transition: transform .3s var(--ease-emphasized, cubic-bezier(0.22, 1, 0.36, 1));
+}
+.cv-index-link:hover { color: rgb(var(--c-ink)); }
+.cv-index-link:hover::before { transform: scaleY(1); }
+
+/* About-section club-name headline — sized here (not via Tailwind text-[…]
+   arbitrary utilities, which may be purged) so it fills the 8-col column. */
+.cv-about-title {
+    font-size: clamp(2.6rem, 7vw, 5.5rem);
+    line-height: 0.86;
+}
+
+/* Giant outlined "ghost" Rotary-year in the numbers section header. */
+.cv-year-ghost {
+    font-family: ui-monospace, SF Mono, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: clamp(2.2rem, 6vw, 4.5rem);
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    line-height: 0.9;
+    color: transparent;
+    -webkit-text-stroke: 1.5px rgb(var(--c-navy) / 0.28);
+    user-select: none;
+}
+
+/* Mono index numerals stamped on repeated cards (leaders, projects). */
+.cv-card-index {
+    position: absolute;
+    top: 0.65rem; right: 0.75rem;
+    z-index: 2;
+    font-family: ui-monospace, SF Mono, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    color: rgb(var(--c-muted));
+    pointer-events: none;
+}
+.cv-card-index--onimage {
+    color: #fff;
+    background: rgb(0 0 0 / 0.45);
+    padding: 0.2rem 0.45rem;
+    backdrop-filter: blur(2px);
+}
+
+/* Two-column counter — a "Projects" group (2×2 of the four project stats)
+   beside a "Membership" group (Members only, shown large). The grid template
+   is defined HERE, not via Tailwind col-span/grid-cols utilities (those are
+   purged from the compiled build, which left an empty third column). Stacks
+   to one column below lg. minmax(0,…) stops the nowrap ₹ value overflowing. */
+.cv-stat-cols { display: grid; gap: 1.5rem; }
+@media (min-width: 1024px) {
+    .cv-stat-cols {
+        grid-template-columns: minmax(0, 1.75fr) minmax(0, 1fr);
+        gap: 2rem;
+    }
+}
+.cv-stat-group { display: flex; flex-direction: column; }
+.cv-stat-grid { flex: 1 1 auto; }
+.cv-group-label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.9rem;
+    padding-bottom: 0.65rem;
+    border-bottom: 1px solid rgb(var(--c-navy) / 0.14);
+    font-family: ui-monospace, SF Mono, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+    color: rgb(var(--c-ink));
+}
+/* Membership feature cell: the section's FOCAL POINT — a solid accent block
+   (the lone filled tile among hairline ones), content pre-inverted, big
+   number centred. Rhymes with the gold "Join" band lower on the page. */
+.cv-stat--feature {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;
+    gap: 0;
+    min-height: 240px;
+    overflow: hidden;
+    border-color: rgb(var(--c-gold));
+    background-color: rgb(var(--c-gold));
+    /* Layered "membership" background so the big card isn't a flat green slab:
+       (1) soft light sheen from the top-left, (2) concentric community-ripple
+       rings radiating from the bottom-right corner, (3) a fine halftone dot
+       texture, (4) a tonal gold→deep-gold base. All tokens → works in dark. */
+    background-image:
+        radial-gradient(135% 115% at 4% -14%, rgb(255 255 255 / 0.18), transparent 52%),
+        repeating-radial-gradient(circle at 116% 122%, transparent 0 33px, rgb(var(--c-on-gold) / 0.08) 33px 34.5px),
+        radial-gradient(rgb(var(--c-on-gold) / 0.06) 1px, transparent 1.5px),
+        linear-gradient(150deg, rgb(var(--c-gold)) 0%, rgb(var(--c-gold-cta)) 100%);
+    background-size: auto, auto, 15px 15px, auto;
+    background-repeat: no-repeat, no-repeat, repeat, no-repeat;
+    background-position: center, center, center, center;
+    transition: transform .4s var(--ease-emphasized, cubic-bezier(0.22, 1, 0.36, 1)),
+                box-shadow .4s var(--ease-emphasized, cubic-bezier(0.22, 1, 0.36, 1)),
+                background-size .5s var(--ease-emphasized, cubic-bezier(0.22, 1, 0.36, 1));
+}
+.cv-stat--feature::before { display: none; }         /* already solid — no wash */
+.cv-stat--feature:hover .civic-num { transform: none; }
+/* hover: the whole card lifts onto a hard navy offset shadow (Swiss poster move,
+   matching the buttons) and the ripple rings breathe outward a touch */
+.cv-stat--feature:hover {
+    transform: translateY(-3px);
+    box-shadow: 9px 9px 0 0 rgb(var(--c-navy) / 0.16);
+    background-size: auto, 118% 118%, 15px 15px, auto;
+}
+.cv-stat--feature .civic-num,
+.cv-stat--feature .civic-eyebrow { color: rgb(var(--c-on-gold)); }
+.cv-stat--feature .cv-stat-icon {
+    width: 2.9rem; height: 2.9rem; margin-bottom: 1.1rem;
+    border-color: rgb(var(--c-on-gold) / 0.4);
+    background: rgb(var(--c-on-gold) / 0.1);
+    color: rgb(var(--c-on-gold));
+}
+.cv-stat--feature:hover .cv-stat-icon { background: rgb(var(--c-on-gold) / 0.18); color: rgb(var(--c-on-gold)); }
+.cv-stat--feature .cv-stat-icon svg { width: 1.4rem; height: 1.4rem; }
+/* Big feature number (text-6xl/7xl are purged from the compiled build, so
+   size it here — this selector outranks the .text-5xl fallback in markup). */
+.cv-stat--feature .civic-num { font-size: clamp(3.25rem, 6vw, 4.75rem); line-height: 0.88; text-shadow: 0 2px 0 rgb(var(--c-navy) / 0.14); }
+/* corner crop-marks on the feature block (drawn in the inverted ink) — a
+   registration tick at top-left (::after) and bottom-right (::before, which
+   the base wash rule would otherwise own but is neutralised here). */
+.cv-stat--feature::after {
+    content: "";
+    position: absolute;
+    top: 0.7rem; left: 0.7rem;
+    width: 14px; height: 14px;
+    border-top: 1.5px solid rgb(var(--c-on-gold) / 0.5);
+    border-left: 1.5px solid rgb(var(--c-on-gold) / 0.5);
+    pointer-events: none;
+}
+.cv-stat--feature::before {
+    content: "";
+    display: block;
+    position: absolute;
+    inset: auto 0.7rem 0.7rem auto;
+    width: 14px; height: 14px;
+    background: none;
+    transform: none;
+    border-bottom: 1.5px solid rgb(var(--c-on-gold) / 0.5);
+    border-right: 1.5px solid rgb(var(--c-on-gold) / 0.5);
+    pointer-events: none;
+}
+
+/* Stat tiles: small accent icon medallion above each number (mirrors the
+   classic-blue counters — HomePageBase supplies the Icon SVG per stat, so
+   all five tiles, Members included, read as one family). */
+.cv-stat-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.4rem; height: 2.4rem;
+    margin-bottom: 0.9rem;
+    border: 1px solid rgb(var(--c-gold) / 0.45);
+    color: rgb(var(--c-gold-cta));
+    background: rgb(var(--c-gold) / 0.08);
+    transition: border-color .25s ease, background-color .25s ease, color .25s ease;
+}
+.cv-stat-icon svg { width: 1.15rem; height: 1.15rem; }
+/* on hover the whole project cell washes gold, so invert the medallion to the
+   on-accent ink (exclude the feature block — it manages its own hover). */
+.cv-stat:not(.cv-stat--feature):hover .cv-stat-icon {
+    border-color: rgb(var(--c-on-gold) / 0.5);
+    background: rgb(var(--c-on-gold) / 0.14);
+    color: rgb(var(--c-on-gold));
+}
+
+/* Section background textures (React Bits-style, static = jank-free;
+   bg-dotgrid and bg-mesh come compiled in theme.css). */
+.cv-bg-grid {
+    background-image:
+        linear-gradient(rgb(var(--c-navy) / 0.05) 1px, transparent 1px),
+        linear-gradient(90deg, rgb(var(--c-navy) / 0.05) 1px, transparent 1px);
+    background-size: 44px 44px;
+}
+.cv-bg-stripes {
+    background-image: repeating-linear-gradient(
+        -45deg,
+        rgb(var(--c-on-gold) / 0.05) 0 14px,
+        transparent 14px 28px);
+}
+
+/* ══ LEADERSHIP CARDS — immersive portrait tiles ══════════════════════════
+   Full-bleed photo with the role + name overlaid at the base over a gradient
+   scrim (replacing the side-by-side photo/text card). Overlay text is light
+   because it sits on the image, so it reads identically in light and dark
+   mode. Hover: photo blooms to colour + zooms, the scrim deepens, the name
+   lifts, "View profile" reveals, and an accent bar wipes across the base. */
+/* Fixed 4-column grid (not auto-fit/auto-fill): a club with only 2-3
+   dignitaries just leaves the remaining grid cell(s) blank, so every real
+   card keeps the exact same size and position a full 4-up row would give it
+   — auto-fit stretched sparse rows to fill the width (cards too big),
+   auto-fill let the browser add MORE than 4 tracks on wide viewports and
+   shrank them (cards too small). Neither is what's wanted: always 4 equal
+   columns, missing members just leave empty space, other columns untouched. */
+.cv-leader-row {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+}
+@media (min-width: 1024px) {
+    .cv-leader-row { grid-template-columns: repeat(4, 1fr); }
+}
+.cv-leader {
+    position: relative;
+    display: block;
+    overflow: hidden;
+    aspect-ratio: 3 / 4;            /* portrait tile — faces sit fully in frame */
+    background: rgb(var(--c-navy));
+    isolation: isolate;
+    z-index: 0;
+    transition: box-shadow .35s ease, z-index 0s;
+}
+.cv-leader:hover { box-shadow: inset 0 0 0 1.5px rgb(var(--c-gold)); z-index: 1; }
+/* advertisement tile — matches the leader tile shape, slider fills it */
+.cv-adtile {
+    position: relative;
+    overflow: hidden;
+    aspect-ratio: 3 / 4;
+    background: rgb(var(--c-navy));
+}
+.cv-adtile__slider { position: absolute; inset: 0; }
+.cv-adtile__label {
+    position: absolute;
+    top: 0.8rem; left: 0.9rem;
+    z-index: 20;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-family: ui-monospace, SF Mono, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: #fff;
+    background: rgb(0 0 0 / 0.4);
+    padding: 0.25rem 0.55rem;
+    backdrop-filter: blur(3px);
+}
+.cv-leader__img {
+    position: absolute;
+    inset: 0;
+    width: 100%; height: 100%;
+    object-fit: cover;
+    /* x-centre keeps the face; y-top keeps the head and crops the shoulders. */
+    object-position: center top;
+    transition: transform .7s var(--ease-emphasized, cubic-bezier(0.22, 1, 0.36, 1)), filter .55s ease;
+}
+.cv-leader:hover .cv-leader__img { transform: scale(1.07); }
+/* gradient scrim so the overlaid name/role stay readable over any photo */
+.cv-leader__scrim {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+    background: linear-gradient(to top,
+        rgb(8 11 6 / 0.92) 0%,
+        rgb(8 11 6 / 0.55) 30%,
+        rgb(8 11 6 / 0.06) 62%,
+        transparent 100%);
+    transition: opacity .4s ease;
+}
+.cv-leader:hover .cv-leader__scrim { opacity: 0.97; }
+/* accent bar wiping across the base of the tile on hover */
+.cv-leader__bar {
+    position: absolute;
+    left: 0; right: 0; bottom: 0;
+    height: 3px;
+    z-index: 3;
+    background: rgb(var(--c-gold));
+    transform: scaleX(0);
+    transform-origin: left center;
+    transition: transform .45s var(--ease-emphasized, cubic-bezier(0.22, 1, 0.36, 1));
+    pointer-events: none;
+}
+.cv-leader:hover .cv-leader__bar { transform: scaleX(1); }
+.cv-leader__overlay {
+    position: absolute;
+    left: 0; right: 0; bottom: 0;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    padding: 1.35rem 1.4rem;
+}
+.cv-leader__role {
+    font-family: ui-monospace, SF Mono, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 10.5px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    line-height: 1.3;
+    color: rgb(var(--c-gold-light));
+    margin-bottom: 0.45rem;
+    display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden;
+}
+.cv-leader__name {
+    font-family: Helvetica Neue, Arial, Segoe UI, sans-serif;
+    font-size: clamp(1.05rem, 1.5vw, 1.25rem);
+    font-weight: 800;
+    line-height: 1.05;
+    letter-spacing: -0.015em;
+    text-transform: uppercase;
+    color: #fff;
+    display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; overflow: hidden;
+    transition: transform .4s var(--ease-emphasized, cubic-bezier(0.22, 1, 0.36, 1));
+}
+.cv-leader:hover .cv-leader__name { transform: translateY(-2px); }
+/* "View profile" — always visible below the name (not hover-revealed) */
+.cv-leader__cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 0.6rem;
+    font-family: ui-monospace, SF Mono, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    color: rgb(255 255 255 / 0.88);
+    transition: color .25s ease;
+}
+.cv-leader:hover .cv-leader__cta { color: #fff; }
+.cv-leader__cta span { display: inline-block; transition: transform .3s var(--ease-spring, cubic-bezier(0.34, 1.32, 0.46, 1)); }
+.cv-leader:hover .cv-leader__cta span { transform: translateX(4px); }
+@media (prefers-reduced-motion: reduce) {
+    .cv-leader, .cv-leader__img, .cv-leader__scrim, .cv-leader__bar,
+    .cv-leader__name, .cv-leader__cta, .cv-leader__cta span { transition: none; }
+    .cv-leader:hover .cv-leader__img { transform: none; }
+    .cv-leader:hover .cv-leader__name { transform: none; }
+    .cv-leader:hover .cv-leader__cta span { transform: none; }
+}
+
+/* ══ PROJECTS — 3D globe/cylinder slider ═══════════════════════════════════
+   Cards ride a rotating 3D ring: the perspective container (.cv-arc) frames a
+   preserve-3d track (.cv-arc__track) that spins; each card is placed around the
+   ring with rotateY + translateZ by initArcSlider() in rotary-anim.js, which
+   also drives per-card opacity/title from how front-facing it is. */
+.cv-arc {
+    position: relative;
+    /* full-bleed: span the whole viewport regardless of the container-x wrapper */
+    width: 100vw;
+    left: 50%;
+    margin-left: -50vw;
+    height: 480px;                 /* ring viewport height */
+    overflow: hidden;
+    perspective: 1300px;           /* JS also sets this (ARC.PERSP) */
+    -webkit-mask-image: linear-gradient(to right, transparent 0, #000 2%, #000 98%, transparent 100%);
+            mask-image: linear-gradient(to right, transparent 0, #000 2%, #000 98%, transparent 100%);
+}
+.cv-arc__track {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform-style: preserve-3d;
+    will-change: transform;
+    /* width / height / centring margins set by JS (one card box, the ring pivot) */
+}
+.cv-arc__item {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 200px;                  /* JS sets this (ARC.TILE) */
+    height: 100%;
+    transform-origin: center center;
+    -webkit-backface-visibility: hidden;
+            backface-visibility: hidden;
+    will-change: transform, opacity;
+}
+.cv-arc__media {
+    position: relative;
+    width: calc(100% - 10px);     /* 5px each side → 10px gap between cards */
+    height: 100%;
+    margin: 0 auto;
+    overflow: hidden;
+    border-radius: 16px;
+    background: rgb(var(--c-navy));
+}
+.cv-arc__media img {
+    position: absolute; inset: 0;
+    width: 100%; height: 100%;
+    object-fit: cover;
+}
+/* A 404'd photo left a bare navy rectangle that reads as a rendering fault.
+   Give the tile a deliberate no-photo face — civic hairline grid on navy-deep,
+   ruled mono slug — so the chip and title below sit on something designed. */
+.cv-arc__media--noimg {
+    background-color: rgb(var(--c-navy-deep));
+    background-image:
+        linear-gradient(rgb(255 255 255 / 0.07) 1px, transparent 1px),
+        linear-gradient(90deg, rgb(255 255 255 / 0.07) 1px, transparent 1px);
+    background-size: 26px 26px;
+}
+.cv-arc__media--noimg img { display: none; }
+.cv-arc__media--noimg::after {
+    content: "NO PHOTOGRAPH";
+    position: absolute;
+    left: 0; right: 0; top: 34%;
+    margin: 0 20%;
+    padding: 0.4rem 0;
+    text-align: center;
+    white-space: nowrap;          /* off-front tiles are ~70px wide — clip, don't wrap */
+    pointer-events: none;
+    font-family: ui-monospace, SF Mono, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 8.5px;
+    font-weight: 700;
+    letter-spacing: 0.22em;
+    color: rgb(var(--c-gold));
+    border-top: 1px solid rgb(var(--c-gold) / 0.5);
+    border-bottom: 1px solid rgb(var(--c-gold) / 0.5);
+}
+/* scrim + title opacity are driven per-frame by JS (shown on the front card). */
+.cv-arc__scrim {
+    position: absolute; inset: 0;
+    pointer-events: none;
+    opacity: 0;
+    /* holds white text over a WHITE photo, not just a dark one: the caption band
+       (bottom ~30%) stays above 0.88 alpha instead of dropping to 0.64 */
+    background: linear-gradient(to top, rgb(8 11 6 / 0.97) 0%, rgb(8 11 6 / 0.9) 28%, rgb(8 11 6 / 0.45) 52%, transparent 78%);
+}
+.cv-arc__cap {
+    position: absolute; left: 0; right: 0; bottom: 0;
+    padding: 0.85rem 0.95rem 1rem;
+    opacity: 0;
+}
+.cv-arc__tag {
+    display: inline-block;
+    font-family: ui-monospace, SF Mono, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 8.5px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: rgb(var(--c-on-gold));
+    background: rgb(var(--c-gold));
+    padding: 0.16rem 0.4rem;
+}
+.cv-arc__title {
+    margin-top: 0.45rem;
+    font-family: Helvetica Neue, Arial, Segoe UI, sans-serif;
+    font-size: 0.8rem;
+    font-weight: 800;
+    line-height: 1.08;
+    letter-spacing: -0.01em;
+    text-transform: uppercase;
+    color: #fff;
+    display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; overflow: hidden;
+}
+/* "Read more" pill in the front card's caption (the whole tile is the link; this
+   is a visual affordance). Outlined on the dark scrim → mode-agnostic; fills the
+   accent when the front card is hovered. */
+.cv-arc__more {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    margin-top: 0.6rem;
+    font-family: ui-monospace, SF Mono, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 8.5px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: #fff;
+    border: 1px solid rgb(255 255 255 / 0.55);
+    padding: 0.34rem 0.72rem;
+    border-radius: 100px;
+    transition: background .3s ease, border-color .3s ease, transform .3s ease;
+}
+.cv-arc__item:hover .cv-arc__more {
+    background: rgb(var(--c-gold));
+    border-color: transparent;
+    transform: translateY(-1px);
+}
+@media (prefers-reduced-motion: reduce) {
+    .cv-arc__media img, .cv-arc__item:hover .cv-arc__media img { transition: none; transform: none; }
+    .cv-arc__item:hover .cv-arc__more { transform: none; }
+}
+
+/* ══ CIVIC RESKIN OF THE SHARED INNER PAGES ═══════════════════════════════
+   The 33 shared content pages emit theme-neutral markup (the classic-blue
+   arm: rounded white cards, soft shadows, pill buttons). Because this file
+   loads ONLY under the civic master, these overrides re-cut that markup to
+   the civic identity — square corners, hairline rules, mono uppercase
+   controls — without touching what other themes render. */
+
+/* Square Swiss geometry: kill the rounded corners (rounded-full survives —
+   avatars, monograms and dot pagers stay circular). */
+main .rounded, main .rounded-md, main .rounded-lg, main .rounded-xl,
+main .rounded-2xl, main .rounded-3xl { border-radius: 0; }
+
+/* Cards: soft drop-shadows become hairline rules; hover answers with an
+   accent hairline + a hard offset shadow instead of a blur. */
+main .shadow-card {
+    box-shadow: none;
+    border: 1px solid rgb(var(--c-navy) / 0.12);
+}
+main .shadow-card:hover,
+main .shadow-cardHover:hover {
+    box-shadow: 6px 6px 0 0 rgb(var(--c-gold) / 0.35);
+    border-color: rgb(var(--c-gold));
+}
+
+/* ══ CALENDAR PAGE (AllSpecialDates.aspx) — civic restyle, BOTH modes ══════
+   That page is SHARED by all five themes and is written in generic Tailwind:
+   literal `bg-white` cards, `border-gray-100` hairlines, `text-navy` headings
+   and pastel emerald/orange/blue/purple chips. Two problems on civic:
+
+     • DARK MODE was broken outright. `bg-white` is a literal, so the cards
+       stayed white slabs on the near-black page, and `text-navy` resolves to
+       --c-navy, which stays DARK in dark mode (unlike --c-ink, which flips) —
+       so the headings and member names sat dark-on-dark.
+     • LIGHT MODE was off-brand: pastel chips and generic blues against a
+       theme built on ink and gold.
+
+   Everything here hangs off `.cv-cal`, a hook added to that page's wrapper, and
+   is prefixed with [data-theme="civic-bold"], so the other four themes render
+   the page byte-identically. Colours come from the theme tokens, which already
+   flip with the mode — only the gold accent needs a per-mode value, because the
+   deep gold that reads on paper is too dark on near-black and vice versa. */
+[data-theme="civic-bold"] .cv-cal {
+    /* #8C6711, a step darker than the theme's usual #9C7413 deep gold: the chip
+       these glyphs sit in is a gold tint over the panel (~#F9F2E1), which is a
+       LIGHTER and more gold-similar ground than plain white, so #9C7413 lands at
+       3.82:1 there. #8C6711 clears 4.5:1 against the tint. */
+    --cal-accent: #8C6711;
+    --cal-accent-bg: rgba(212, 164, 41, 0.14);
+}
+[data-theme="civic-bold"][data-civic-mode="dark"] .cv-cal {
+    --cal-accent: #F0CE72;                      /* light gold — legible on ink  */
+    --cal-accent-bg: rgba(240, 206, 114, 0.16);
+}
+/* cards + the "Show whole month" control follow the mode instead of being white */
+[data-theme="civic-bold"] .cv-cal .bg-white {
+    background: rgb(var(--c-panel));
+    border-color: rgb(var(--c-line));
+}
+/* headings and member names: --c-navy stays dark in dark mode, --c-ink flips */
+[data-theme="civic-bold"] .cv-cal .text-navy { color: rgb(var(--c-ink)); }
+/* count pills */
+[data-theme="civic-bold"] .cv-cal .bg-canvas { background: rgb(var(--c-surface)); }
+/* the Events chip, its row icons and the legend dot → the theme's gold.
+   Civic shows EVENTS only on this page, so the blue/emerald/orange colour
+   coding carried no information here — one accent reads cleaner. */
+[data-theme="civic-bold"] .cv-cal .bg-blue-100,
+[data-theme="civic-bold"] .cv-cal .bg-blue-50 { background: var(--cal-accent-bg); }
+[data-theme="civic-bold"] .cv-cal .text-blue-600 { color: var(--cal-accent); }
+[data-theme="civic-bold"] .cv-cal .bg-blue-500 { background: rgb(var(--c-gold)); }
+/* row hover: `hover:bg-canvas` is its own utility, so .bg-canvas above can't
+   reach it */
+[data-theme="civic-bold"] .cv-cal [data-cal-item]:hover { background: rgb(var(--c-surface)); }
+/* avatar ring was a fixed light gray */
+[data-theme="civic-bold"] .cv-cal .ring-gray-100 { --tw-ring-color: rgb(var(--c-line)); }
+
+/* Classic-arm buttons: pill → square mono civic controls. */
+main .btn-gold, main .btn-navy {
+    border-radius: 0;
+    font-family: ui-monospace, SF Mono, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+}
+
+/* Inputs (Directory / Past-Presidents search, filters): square + hairline. */
+main input[type="text"], main input[type="search"], main select, main textarea {
+    border-radius: 0;
+}
+
+/* Dark mode: the classic-arm cards are hard-coded bg-white with navy/gray
+   text — glaring white boxes on the dark canvas, and remapping only the
+   background would leave dark-on-dark text. Remap the full card palette. */
+:root[data-civic-mode=dark] main .bg-white { background-color: rgb(var(--c-panel)); }
+:root[data-civic-mode=dark] main .bg-white .text-navy,
+:root[data-civic-mode=dark] main .bg-white .text-navy-deep,
+:root[data-civic-mode=dark] main .bg-white .text-gray-900,
+:root[data-civic-mode=dark] main .bg-white .text-gray-800,
+:root[data-civic-mode=dark] main .bg-white .text-gray-700 { color: rgb(var(--c-ink)); }
+:root[data-civic-mode=dark] main .bg-white .text-gray-600,
+:root[data-civic-mode=dark] main .bg-white .text-gray-500,
+:root[data-civic-mode=dark] main .bg-white .text-gray-400 { color: rgb(var(--c-muted)); }
+:root[data-civic-mode=dark] main .bg-white [class*="border-gray"],
+:root[data-civic-mode=dark] main [class*="border-gray"] { border-color: rgb(var(--c-line)); }
+:root[data-civic-mode=dark] main .bg-gray-50,
+:root[data-civic-mode=dark] main .bg-gray-100 { background-color: rgb(var(--c-surface)); }
+
+/* ── Reduced motion: hand-written effects go quiet, content stays visible ── */
+@media (prefers-reduced-motion: reduce) {
+    .cv-marquee__track { animation: none; transform: none; }
+    [data-hero-banner] [data-hero-slide].opacity-100 img { animation: none; }
+    .cv-spark i { animation: none; opacity: 0; }
+    .cv-stagger > .reveal { transition-delay: 0s !important; }
+    [data-reveal-sect] { transform: none; transition: none; }
+    .civic-nav-link::after { transition: none; }
+    .civic-btn::before { transition: none; }
+    .civic-btn, .civic-btn-accent, .civic-btn-dark,
+    .civic-btn span[aria-hidden], .civic-btn-accent span[aria-hidden], .civic-btn-dark span[aria-hidden],
+    [data-mode-toggle] svg, .cv-stat .civic-num, .cv-duotone {
+        transition: none;
+        transform: none;
+    }
+    .cv-duotone { filter: none; }
+    #cv-progress > span { transition: none; }
+    /* Stat cells: no gold wash (a full block snapping in is jarring, and the
+       on-gold inversion is unreadable without the wash present). Fall back to
+       a quiet border+number accent; the feature block stays solid gold. */
+    .cv-stat::before { display: none; }
+    .cv-stat:hover .civic-num { color: rgb(var(--c-gold-cta)); transform: none; }
+    .cv-stat:hover .civic-eyebrow, .cv-stat:hover .cv-stat-index { color: rgb(var(--c-muted)); }
+    .cv-stat:not(.cv-stat--feature):hover .cv-stat-icon {
+        border-color: rgb(var(--c-gold)); background: rgb(var(--c-gold) / 0.08); color: rgb(var(--c-gold-cta));
+    }
+    .cv-stat--feature .civic-num, .cv-stat--feature .civic-eyebrow { color: rgb(var(--c-on-gold)); }
+}
+
+/* ══ SMALL-TEXT FONT → Poppins ════════════════════════════════════════════
+   The theme originally sets every small UI label in a monospace stack. Per
+   club request, all small text (buttons, the top-strip phone/email, the ◆
+   Projects / ◆ Membership group labels, eyebrows, card date/venue meta, the
+   year chip, marquee words, footer line, mode toggle, etc.) now uses Poppins,
+   loaded via a Google Fonts <link> in SiteCivicBold.Master.
+
+   This block is at the END of the file ON PURPOSE: several of the classes
+   below (e.g. .cv-marquee__item, .cv-group-label) declare the mono stack
+   earlier in THIS file, so the override must come last to win at equal
+   specificity. It covers the Tailwind .font-mono utility (most markup labels)
+   plus the civic component classes and buttons. Large display numerals
+   (.cv-year-ghost, the .civic-num stat figures) are intentionally left alone. */
+.font-mono,
+.civic-eyebrow,
+.cv-group-label,
+.cv-marquee__item,
+.cv-stat-index,
+.cv-card-index,
+.cv-index-link,
+.cv-yearsel__native,
+.cv-arc__tag,
+.cv-leader__role,
+.cv-leader__cta,
+.cv-adtile__label,
+.civic-btn, .civic-btn-accent, .civic-btn-dark,
+main .btn-gold, main .btn-navy {
+    font-family: "Poppins", "Helvetica Neue", Arial, sans-serif;
+}
+
+/* ══ SOFTENED CORNERS ═════════════════════════════════════════════════════
+   The Civic Bold theme is hard-edged by design (border-radius:0 everywhere).
+   Per club request, gently round the boxy surfaces so they read friendlier
+   while keeping the theme's Swiss weight. Two steps on the scale: a larger
+   radius for panels/media, a small one for controls. Placed at the END so it
+   wins over the theme's square defaults AND the earlier reskin rule that force
+   border-radius:0 on shared pages. rounded-full (avatars, dots) is untouched. */
+:root { --cv-r: 12px; --cv-r-sm: 8px; }
+
+/* Panels, cards, media tiles — clip children (images/slides) to the radius. */
+.civic-card,
+.cv-leader,
+.cv-adtile,
+.tilted-card,
+[data-hero-banner],
+.cv-stat--feature,
+.cv-stat-grid,
+main .shadow-card,
+main .img-zoom {
+    border-radius: var(--cv-r);
+    overflow: hidden;
+}
+.civic-map { border-radius: var(--cv-r); }
+
+/* Controls — buttons, the year chip, inputs, the small stat medallions,
+   the mode/menu toggles. Buttons already carry overflow:hidden for the sweep. */
+.civic-btn, .civic-btn-accent, .civic-btn-dark,
+main .btn-gold, main .btn-navy,
+.cv-yearsel,
+.cv-stat-icon,
+[data-mode-toggle],
+[data-nav-toggle],
+main input[type="text"], main input[type="search"], main select, main textarea {
+    border-radius: var(--cv-r-sm);
+}
+/* Year chip: round the leading calendar cell's OUTER corners to match. */
+.cv-yearsel__ico { border-top-left-radius: var(--cv-r-sm); border-bottom-left-radius: var(--cv-r-sm); }
+
+/* Re-round the shared inner-page cards the civic reskin had squared off. */
+main .rounded-lg, main .rounded-xl, main .rounded-2xl, main .rounded-3xl { border-radius: var(--cv-r); }
+main .rounded, main .rounded-md { border-radius: var(--cv-r-sm); }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   MERIDIAN TOKEN RETUNE (2026-07-29) — the tokens finally join the shell.
+   History: this block previously painted the tokens "Rotary Azure" (#0067C8
+   lead + #F0A214 gold). The LATER Meridian redesign (civic-shell.css masthead/
+   header/footer + civic-home.css) hardcodes paper #FBFAF7 / ink #061634 /
+   royal #0B2C6F / champagne gold #D4A429–#F0CE72 — but only in its own layers,
+   so every token-driven inner page still rendered azure inside a champagne
+   frame: two accent systems on one screen. This retune moves the tokens to the
+   SAME Meridian palette, so all shared markup (headings, chips, CTAs, stat
+   tiles, avatars) recolors into the shell's world at once.
+   NOTE --c-on-gold: the accent is now a LIGHT gold, so text on it must be INK,
+   not white — shell rules like #directorSearchBtn read this token and stay
+   correct automatically. Overrides compiled theme.css (loads first); wins at
+   equal specificity by loading last. ══════════════════════════════════════ */
+:root,
+:root[data-civic-mode=light] {
+    --c-canvas:    251 250 247;   /* Meridian paper #FBFAF7        */
+    --c-surface:   245 240 231;   /* warm parchment section ground */
+    --c-panel:     255 255 255;   /* white cards on paper          */
+    --c-navy:       11  44 111;   /* royal #0B2C6F — structure     */
+    --c-navy-deep:   6  22  52;   /* ink #061634                   */
+    --c-gold:      212 164  41;   /* champagne gold #D4A429 — PRIMARY ACCENT */
+    --c-gold-light:240 206 114;   /* #F0CE72                       */
+    --c-gold-cta:  156 116  19;   /* #9C7413 deep gold — text-safe on paper */
+    --c-ink:         6  22  52;   /* ink text                      */
+    --c-muted:      90  99 119;   /* #5A6377 warm slate            */
+    --c-on-gold:     6  22  52;   /* INK on the light gold accent  */
+    --c-line:      227 222 211;   /* #E3DED3 paper hairline        */
+    --c-line-hi:   205 196 178;
+}
+:root[data-civic-mode=dark] {
+    --c-canvas:      7  17  36;   /* deep ink-navy (blue-black)    */
+    --c-surface:    10  24  50;
+    --c-panel:      12  27  55;
+    --c-navy:       16  35  70;
+    --c-navy-deep:   5  13  30;
+    --c-gold:      240 206 114;   /* light gold pops on ink        */
+    --c-gold-light:247 222 148;
+    --c-gold-cta:  212 164  41;
+    --c-ink:       233 238 247;
+    --c-muted:     148 160 182;
+    --c-on-gold:     6  22  52;   /* ink on gold, both modes       */
+    --c-line:       28  45  80;
+    --c-line-hi:    60  84 128;
+}
+
+/* De-edge: drop the brutalist "/01 /02" index tags on the stat + card grids —
+   the most avant-garde motif, and the one that reads least "Rotary". */
+.cv-stat-index,
+.cv-card-index { display: none; }
+
+/* Soften the big Swiss section headings — Title/sentence case instead of shouty
+   ALL-CAPS, a shade less heavy and less tight, a touch more line-height — so they
+   read professional and friendly (Rotary), not brutalist. Only the display
+   headings (hN.font-heading); the small uppercase eyebrows/labels stay crisp so
+   the hierarchy is preserved. */
+main h1.font-heading,
+main h2.font-heading,
+main h3.font-heading {
+    text-transform: none;
+    font-weight: 700;
+    letter-spacing: -0.005em;
+    line-height: 1.12;
+}
+
+/* MERIDIAN TYPE PASS (2026-07-29): the masthead + footer set page titles in
+   light Fraunces, but body h1/h2 stayed heavy Helvetica — inner pages read as a
+   different site below the band. Large display headings now use the same serif.
+   DELIBERATELY h1/h2 only: at h3/h4 card-title sizes a 400-weight serif goes
+   weak and muddy, so those keep the grotesque — serif display over sans detail
+   is the intended hierarchy, mirroring the masthead-over-content relationship. */
+main h1.font-heading,
+main h2.font-heading {
+    font-family: 'Fraunces', 'Times New Roman', serif;
+    font-weight: 400;
+    letter-spacing: -0.02em;
+    line-height: 1.06;
+}
+
+/* Counter compaction — the "Impact" band was very tall: stat tiles were
+   min-height 188px with a 1.75rem internal gap + py-8, the feature number ran to
+   4.75rem, all inside a py-16/20 section. Tighten the tile height/gap/padding, the
+   big number, and the band's own vertical padding so the section is far shorter.
+   The membership feature tile flexes to the projects grid, so it shrinks in step. */
+#numbers .container-x { padding-top: 2rem; padding-bottom: 2rem; }
+.cv-stat {
+    min-height: 100px;
+    gap: 0.5rem;
+    padding-top: 0.95rem;
+    padding-bottom: 0.95rem;
+}
+.cv-stat--feature .civic-num { font-size: clamp(2.3rem, 4.2vw, 3.2rem); }
+.cv-stat--feature .cv-stat-icon { margin-bottom: 0.5rem; }
+
+/* Dignitaries & Leaders — space the portrait tiles apart (they were a flush
+   hairline grid). Drop the grid frame, give each tile its own full hairline
+   border + a gap; the theme radius already rounds them into cards. */
+.cv-leader-row { gap: 1rem; border: 0; }
+.cv-leader { border: 1px solid rgb(var(--c-navy) / 0.12); }
+
+/* ══ YEAR PICKER — the register card ═══════════════════════════════════════
+   Paired with initYearPicker() in Themes/civic-bold/js/rotary-anim.js, which
+   hides the native <select>, inserts a <button.cv-yrp__btn.cv-yearsel__native>
+   as the visible trigger (so it inherits the strip/drawer chip rules from
+   civic-shell.css unchanged), and appends ONE panel per chip to <body>.
+
+   Structural notes / traps:
+   • The panel is a BODY child, so no descendant selector from the strip
+     (`form > .sm\:block …`) or the drawer (`[data-nav-drawer] …`) can reach it
+     — the drawer's always-ink variant is a JS-set class, .cv-yrp-panel--drawer.
+   • .cv-yrp-panel sets display:flex, which BEATS the UA [hidden] rule — the
+     explicit `[hidden]{display:none}` below is what actually keeps it closed.
+   • The chip's open-state rules carry a :root prefix on purpose: the strip
+     override `form > .sm\:block .cv-yearsel` is (0,2,1) and civic-shell.css
+     loads AFTER this file, so a bare `.cv-yearsel.is-open` (0,2,0) would lose.
+   ------------------------------------------------------------------------- */
+
+/* trigger — geometry only; colour/type still come from .cv-yearsel__native */
+.cv-yrp__btn {
+    display: inline-flex;
+    align-items: center;
+    text-align: left;
+    white-space: nowrap;
+}
+.cv-yrp__btn:focus-visible { outline: 2px solid rgb(var(--c-gold)); outline-offset: -3px; }
+
+/* open: the chip lights up and the chevron flips, so trigger + panel read as
+   one object */
+:root .cv-yearsel.is-open { border-color: rgb(var(--c-gold)); }
+:root .cv-yearsel.is-open .cv-yearsel__ico { background: rgb(var(--c-gold)); color: rgb(var(--c-on-gold)); }
+:root .cv-yearsel.is-open .cv-yearsel__chev {
+    color: rgb(var(--c-gold));
+    transform: translateY(-50%) rotate(180deg);
+}
+
+.cv-yrp-panel {
+    position: fixed;
+    z-index: 120;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    overflow: hidden;
+    background: rgb(var(--c-panel));
+    border: 1px solid rgb(var(--c-line));
+    border-radius: var(--cv-r);
+    box-shadow: 0 28px 64px rgb(var(--c-navy-deep) / 0.24),
+                0 2px 8px rgb(var(--c-navy-deep) / 0.10);
+}
+.cv-yrp-panel[hidden] { display: none; }
+
+/* header — a ruled caption band, like the theme's other micro-labels */
+.cv-yrp-panel__head {
+    flex: none;
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 10px 14px 9px;
+    background: rgb(var(--c-gold) / 0.08);
+    border-bottom: 1px solid rgb(var(--c-line));
+}
+.cv-yrp-panel__cap,
+.cv-yrp-grp__cap {
+    font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 9px;
+    font-weight: 500;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    line-height: 1;
+}
+.cv-yrp-panel__cap { color: rgb(var(--c-gold-cta)); }
+
+.cv-yrp-panel__scroll {
+    position: relative;          /* cell.offsetTop is measured against this */
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding: 8px;
+    scrollbar-width: thin;
+    scrollbar-color: rgb(var(--c-line-hi)) transparent;
+}
+.cv-yrp-panel__scroll::-webkit-scrollbar { width: 9px; }
+.cv-yrp-panel__scroll::-webkit-scrollbar-track { background: transparent; }
+.cv-yrp-panel__scroll::-webkit-scrollbar-thumb {
+    background: rgb(var(--c-line-hi));
+    border: 3px solid transparent;
+    background-clip: content-box;
+    border-radius: 99px;
+}
+
+/* decade caption + the hairline that runs out to the panel edge */
+.cv-yrp-grp__cap {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    padding: 11px 4px 7px;
+    color: rgb(var(--c-muted));
+    /* "2020s", not "2020S" — the shared caption rule above uppercases, which
+       turns the decade's plural into a stray capital after the digits. */
+    text-transform: none;
+    letter-spacing: 0.16em;
+}
+.cv-yrp-grp__cap::after {
+    content: '';
+    flex: 1 1 auto;
+    height: 1px;
+    background: rgb(var(--c-line));
+}
+.cv-yrp-panel__scroll > .cv-yrp-grp__cap:first-child { padding-top: 3px; }
+
+.cv-yrp-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 5px;
+}
+
+.cv-yrp-opt {
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 34px;
+    margin: 0;
+    padding: 0 2px;
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: var(--cv-r-sm);
+    color: rgb(var(--c-ink));
+    font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.03em;
+    cursor: pointer;
+    transition: background-color .18s ease, border-color .18s ease, color .18s ease;
+}
+.cv-yrp-opt:hover,
+.cv-yrp-opt:focus-visible {
+    background: rgb(var(--c-gold) / 0.14);
+    border-color: rgb(var(--c-gold) / 0.5);
+    /* --c-gold-cta, NOT --c-navy: navy is #0B2C6F on paper (fine) but #102346 in
+       dark mode — darker than the panel it sits on, so the hovered year vanished.
+       The deep/champagne gold pair reads on both grounds. */
+    color: rgb(var(--c-gold-cta));
+}
+.cv-yrp-opt:focus-visible { outline: 0; box-shadow: 0 0 0 2px rgb(var(--c-gold) / 0.45); }
+.cv-yrp-opt.is-selected {
+    background: linear-gradient(110deg, rgb(var(--c-gold)), rgb(var(--c-gold-light)));
+    border-color: transparent;
+    color: rgb(var(--c-on-gold));
+    font-weight: 700;
+    box-shadow: 0 4px 12px rgb(var(--c-gold) / 0.32);
+}
+
+/* the picked year is loading — freeze the panel and mark the cell */
+.cv-yrp-panel.is-busy { pointer-events: none; }
+.cv-yrp-panel.is-busy .cv-yrp-opt:not(.is-going) { opacity: 0.35; }
+.cv-yrp-opt.is-going {
+    background: linear-gradient(110deg, rgb(var(--c-gold)), rgb(var(--c-gold-light)));
+    border-color: transparent;
+    color: rgb(var(--c-on-gold));
+    font-weight: 700;
+}
+.cv-yrp-opt.is-going::after {
+    content: '';
+    position: absolute;
+    left: 0; right: 0; bottom: 0;
+    height: 2px;
+    background: rgb(var(--c-navy-deep) / 0.45);
+    transform-origin: 0 50%;
+    animation: cvYrpGo 1s linear infinite;
+}
+@keyframes cvYrpGo {
+    0%   { transform: scaleX(0); }
+    50%  { transform: scaleX(1); }
+    100% { transform: scaleX(0) translateX(100%); }
+}
+
+/* entrance — grows out of the chip it hangs from */
+@media (prefers-reduced-motion: no-preference) {
+    .cv-yrp-panel.is-in {
+        animation: cvYrpIn .2s var(--ease-emphasized, cubic-bezier(0.22, 1, 0.36, 1)) both;
+        transform-origin: 100% 0;
+    }
+    .cv-yrp-panel--up.is-in {
+        animation-name: cvYrpInUp;
+        transform-origin: 100% 100%;
+    }
+}
+@keyframes cvYrpIn {
+    from { opacity: 0; transform: translateY(-8px) scale(0.98); }
+    to   { opacity: 1; transform: none; }
+}
+@keyframes cvYrpInUp {
+    from { opacity: 0; transform: translateY(8px) scale(0.98); }
+    to   { opacity: 1; transform: none; }
+}
+
+/* ── drawer variant: the drawer is ink in BOTH modes, so this panel doesn't
+      follow the light/dark tokens — it stays ink like its host. ──────────── */
+.cv-yrp-panel--drawer {
+    background: #0C1B37;
+    border-color: rgba(255, 255, 255, 0.16);
+    box-shadow: 0 -24px 60px rgba(0, 0, 0, 0.52), 0 0 0 1px rgba(0, 0, 0, 0.3);
+}
+.cv-yrp-panel--drawer .cv-yrp-panel__head {
+    background: rgba(212, 164, 41, 0.12);
+    border-bottom-color: rgba(255, 255, 255, 0.12);
+}
+.cv-yrp-panel--drawer .cv-yrp-panel__cap { color: #F0CE72; }
+.cv-yrp-panel--drawer .cv-yrp-grp__cap { color: rgba(255, 255, 255, 0.5); }
+.cv-yrp-panel--drawer .cv-yrp-grp__cap::after { background: rgba(255, 255, 255, 0.13); }
+.cv-yrp-panel--drawer .cv-yrp-panel__scroll { scrollbar-color: rgba(255, 255, 255, 0.24) transparent; }
+.cv-yrp-panel--drawer .cv-yrp-panel__scroll::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.24); }
+.cv-yrp-panel--drawer .cv-yrp-opt { color: rgba(255, 255, 255, 0.86); }
+.cv-yrp-panel--drawer .cv-yrp-opt:hover,
+.cv-yrp-panel--drawer .cv-yrp-opt:focus-visible {
+    background: rgba(240, 206, 114, 0.16);
+    border-color: rgba(240, 206, 114, 0.45);
+    color: #F0CE72;
+}
+.cv-yrp-panel--drawer .cv-yrp-opt.is-selected,
+.cv-yrp-panel--drawer .cv-yrp-opt.is-going {
+    background: linear-gradient(110deg, #D4A429, #F0CE72);
+    color: #061634;
+}
+
+/* ══ AMBIENT MOTION — the always-on layer ══════════════════════════════════
+   Every other interaction in this file waits for a hover, a click or a scroll.
+   This layer keeps a few of the theme's GOLD ACCENT ATOMS quietly alive at
+   rest, so a page nobody is touching still breathes.
+
+   House rules for the layer — this is what keeps it "alive" and not "busy":
+   • gold accents only. Never body text, never a whole card, image or section.
+   • long cycles (2.6s–7s), tiny amplitudes, and the sweeps idle offscreen for
+     most of their cycle so they read as an occasional glint, not a strobe.
+   • only opacity / transform / box-shadow / background-position — cheap, and
+     mostly compositor-driven. ~12-18 animated elements on a page.
+   • ⚠ NEVER animate a transform that a hover state also sets: a running
+     animation BEATS a transition, so the hover would silently die. Where an
+     element already owns its `transform` (.cv2-stat__icon is rotated 45° into a
+     diamond; the shared stat tiles use group-hover:scale-110) this layer
+     animates the INDIVIDUAL `scale` property, which composes with `transform`
+     instead of replacing it — and the → arrow drift explicitly stands down
+     (animation:none) on hover to hand the transform back.
+   • the whole layer sits inside prefers-reduced-motion:no-preference, so a
+     visitor who asks for stillness gets a completely static page — no need to
+     re-neutralise any of it in the reduce blocks above.
+   ------------------------------------------------------------------------- */
+@media (prefers-reduced-motion: no-preference) {
+
+    /* 1. current nav item — a slow light travels along its gold underline.
+          :root prefix: civic-shell.css loads later and sets a flat gold
+          background on .civic-nav-link::after at equal specificity. */
+    :root .civic-nav-link--active::after {
+        background: linear-gradient(90deg,
+            rgb(var(--c-gold)) 0%, rgb(var(--c-gold-light)) 34%,
+            rgb(var(--c-gold)) 68%, rgb(var(--c-gold)) 100%);
+        background-size: 280% 100%;
+        animation: cvAmbRail 5.5s linear infinite;
+    }
+
+    /* 2. the gold hairline under the header — one glint crosses the full width,
+          then waits out the rest of the cycle offscreen */
+    header.sticky > .h-px { position: relative; overflow: hidden; }
+    header.sticky > .h-px::after {
+        content: "";
+        position: absolute;
+        top: 0; bottom: 0; left: 0;
+        width: 16%;
+        background: linear-gradient(90deg, transparent, rgb(var(--c-gold-light)), transparent);
+        animation: cvAmbGlint 7s cubic-bezier(0.4, 0, 0.25, 1) infinite;
+    }
+
+    /* 3. the gold Admin Login pill — an occasional diagonal shine */
+    .civic-btn-accent::after {
+        content: "";
+        position: absolute;
+        top: -60%; bottom: -60%; left: 0;
+        width: 30%;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.32), transparent);
+        pointer-events: none;
+        animation: cvAmbGloss 6.5s ease-in-out infinite;
+    }
+
+    /* 4. section eyebrows — the 26px gold ledger dash breathes out and back */
+    .cv2-head__eyebrow::before {
+        transform-origin: left center;
+        animation: cvAmbTick 2.9s ease-in-out infinite;
+    }
+
+    /* 4b. the ◆ marker in front of group / pane labels — a slow low pulse.
+           Both are flex items, so they're already blockified and take a
+           transform. NOT the same span as the buttons' → arrow (rule 6). */
+    .cv2-group-label span,
+    .cv2-panehead__label span[aria-hidden] {
+        animation: cvAmbDot 3.2s ease-in-out infinite;
+    }
+
+    /* 5. icon medallions — the cap swells and brightens.
+          A box-shadow halo was tried first and was effectively INVISIBLE, for
+          three compounding reasons: the home caps are per-badge ROYAL/AZURE/INK
+          /gold, so one hardcoded gold halo is the wrong colour on most of them;
+          the halo falls on the white diamond card behind it at low alpha; and
+          .cv2-statgrid is overflow:hidden, which clips it. Pulsing the cap
+          itself reads on every badge colour and can't be clipped.
+          It animates the INDIVIDUAL `scale` property — not `transform` — so it
+          composes with (instead of destroying) the 45° `transform:rotate()`
+          that makes the home badges diamonds and the shared tiles'
+          `group-hover:scale-110`. The home row is de-synced per badge; the
+          shared four-up tiles pulse in step, which reads deliberate. */
+    .cv2-stat__icon,
+    .cv-stat-icon,
+    main .rounded-xl.from-gold.to-gold-light {
+        animation: cvAmbSwell 3.8s ease-in-out infinite;
+    }
+    .cv2-stat:nth-child(even) .cv2-stat__icon { animation-duration: 4.6s; }
+    .cv2-stat:nth-child(3n) .cv2-stat__icon { animation-delay: -1.7s; }
+
+    /* 6. trailing → arrows drift right and settle; on hover the animation
+          stands down so the theme's own 5px hover nudge takes the transform */
+    .civic-btn span[aria-hidden],
+    .civic-btn-accent span[aria-hidden],
+    .civic-btn-dark span[aria-hidden],
+    .cv2-more span {
+        animation: cvAmbNudge 2.6s ease-in-out infinite;
+    }
+    .civic-btn:hover span[aria-hidden],
+    .civic-btn-accent:hover span[aria-hidden],
+    .civic-btn-dark:hover span[aria-hidden],
+    .cv2-event:hover .cv2-more span,
+    .cv2-news:hover .cv2-more span { animation: none; }
+
+    /* 7. the next-event date tile — a "coming up" pulse ring. Scoped to the
+          hero tile, whose base shadow is repeated in the keyframe (an animated
+          box-shadow replaces the property outright). */
+    .cv2-hero3__events .cv2-ev__date { animation: cvAmbSoon 3.4s ease-in-out infinite; }
+
+    /* ══ WAVE 2 — the same layer, extended off the home page ══════════════
+       Rules 1-7 above are home-shaped: five of them key off `.cv2-*`, which
+       only exists in HomeCivicBold.aspx. On the 27 SHARED pages the only
+       ambient motion was the header glint and the button arrows — everything
+       below the header sat still. These rules animate what every shared page
+       DOES have: the masthead band emitted by RotaryPage.Breadcrumb()'s civic
+       branch, and the cards / eyebrows inside <main>.
+       Same house rules as above; the amplitude is dialled up, the element
+       count and the cycle lengths are not. */
+
+    /* 8. the masthead band — a wide light bar crosses it top to bottom, then
+          idles offscreen for the rest of the cycle. `.civic-gridlines` is
+          already `absolute inset-0` + `overflow:hidden` (civic-shell.css:355),
+          so the sweep is clipped to the band for free, and ::before is taken by
+          the hairline rules — this is ::after. No z-index anywhere: the band is
+          a SIBLING BEFORE `~ .container-x`, so the crumb and title paint over
+          it by document order. Adding a z-index here would put the sweep on top
+          of the title. */
+    [data-theme="civic-bold"] .civic-gridlines::after {
+        content: "";
+        position: absolute;
+        left: 0; right: 0;
+        top: 0;
+        height: 42%;
+        background: linear-gradient(180deg,
+            transparent,
+            rgb(var(--c-gold) / 0.20) 45%,
+            rgb(var(--c-gold-light) / 0.30) 60%,
+            transparent);
+        pointer-events: none;
+        animation: cvAmbScan 6.5s cubic-bezier(0.4, 0, 0.25, 1) infinite;
+    }
+
+    /* 9. the hairline column rules breathe. This is a slow OPACITY pulse, not
+          a horizontal pan: the rules are a repeating-linear-gradient sized to
+          the element, so `background-position` can't shift it (a same-size
+          image has a zero percentage offset) and translating it would need the
+          column period and the element width to stay in lockstep. Fading the
+          whole masked layer gives the same "the grid is alive" read with no
+          geometry to keep in sync. */
+    [data-theme="civic-bold"] .civic-gridlines::before {
+        animation: cvAmbGrid 6.8s ease-in-out infinite;
+    }
+
+    /* 10. the breadcrumb rail — a short gold segment runs along the hairline
+           the crumb's own border-bottom draws. Travel stops at exactly
+           translateX(614%): 14% wide × 7.14 = 100%, so the segment lands flush
+           on the right edge and never overflows the band. That's why the nav
+           needs no overflow:hidden — which would clip the crumb's descenders. */
+    [data-theme="civic-bold"] .civic-gridlines ~ .container-x > nav { position: relative; }
+    [data-theme="civic-bold"] .civic-gridlines ~ .container-x > nav::after {
+        content: "";
+        position: absolute;
+        left: 0;
+        bottom: -1px;
+        width: 14%;
+        height: 1px;
+        background: linear-gradient(90deg, transparent, rgb(var(--c-gold)), transparent);
+        pointer-events: none;
+        animation: cvAmbRun 5.2s ease-in-out infinite;
+    }
+
+    /* 11. the title's gold terminal dot blinks like a cursor. The ::after
+           already exists (content:"." — civic-shell.css:443); this only adds
+           the animation, so the glyph and its colour stay where they're
+           declared. */
+    [data-theme="civic-bold"] .civic-gridlines ~ .container-x > h1::after {
+        animation: cvAmbBeacon 2.8s steps(1, end) infinite;
+    }
+
+    /* 12. a gold highlight sweeps the page title, letter by letter — the
+           footer wordmark's shimmer, brought to the masthead. Reuses the --ci
+           per-char index that initSplit already sets on every .split-char
+           (rotary-anim.js:105), so the stagger costs nothing.
+           ⚠ colour only. .split-char owns a `transform` for its entrance
+           reveal, and a running animation beats a transition — animating
+           transform here would kill the reveal. The peak is the band's deep
+           gold (#9C7413, the same tone the crumb links use), not the light
+           accent, so the title stays readable on champagne throughout. */
+    [data-theme="civic-bold"] .civic-gridlines ~ .container-x > h1 .split-char {
+        animation: cvAmbTitle 4.4s ease-in-out infinite;
+        animation-delay: calc(var(--ci, 0) * 0.085s);
+    }
+    [data-theme="civic-bold"][data-civic-mode="dark"] .civic-gridlines ~ .container-x > h1 .split-char {
+        animation-name: cvAmbTitleDark;
+    }
+
+    /* 13. shared content cards — a gold segment traces the top edge, phased in
+           threes so a grid ripples instead of pulsing in unison (the
+           column-phased nth-child stagger verdigris uses on its directory
+           grid, ledger.css:900-955).
+           ⚠ PSEUDO-ELEMENT ONLY — never a transform on the card itself. Card
+           hover answers with box-shadow + border-color here (line 1054), and
+           the shared markup carries Tailwind hover-lift utilities on top; a
+           continuous transform would silently swallow both. */
+    main .shadow-card { position: relative; }
+    /* ⚠ CAPPED AT THE FIRST 6 PER CONTAINER — measured, not guessed: Directory
+       renders 77 `.shadow-card`s and AllProjects 88. Tracing all of them would
+       put ~90 running animations on one page, an order of magnitude past this
+       layer's 12-18 budget, and would read as static noise rather than an
+       accent. Six covers the first row or two — the cards you actually see at
+       rest — and everything below scroll is left still. */
+    main .shadow-card:nth-child(-n+6)::after {
+        content: "";
+        position: absolute;
+        top: -1px;
+        left: 0;
+        width: 22%;
+        height: 2px;
+        background: linear-gradient(90deg, transparent, rgb(var(--c-gold)), transparent);
+        pointer-events: none;      /* the whole card is usually a link */
+        animation: cvAmbTrace 5.8s ease-in-out infinite;
+    }
+    main .shadow-card:nth-child(3n+2)::after { animation-delay: -1.9s; }
+    main .shadow-card:nth-child(3n)::after   { animation-delay: -3.8s; }
+    /* hover hands the edge back to the border-colour change */
+    main .shadow-card:hover::after { animation: none; opacity: 0; }
+
+    /* 14. mono eyebrows get a terminal cursor. Rule 4's dash only reaches
+           `.cv2-head__eyebrow` (home); the shared pages label their sections
+           with plain `.civic-eyebrow`, which had nothing.
+           Scoped to <main>: the masthead's own .civic-eyebrow is display:none
+           (civic-shell.css:411) and the footer uses the class for a static
+           tagline. The two home eyebrows are excluded so they keep rule 4's
+           dash rather than wearing both. */
+    main .civic-eyebrow:not(.cv2-head__eyebrow):not(.cv2-cta__eyebrow)::after {
+        content: "";
+        display: inline-block;
+        width: 0.5em;
+        height: 0.95em;
+        margin-left: 0.45em;
+        vertical-align: -0.1em;
+        background: rgb(var(--c-gold));
+        animation: cvAmbCaret 2.6s steps(1, end) infinite;
+    }
+
+    /* 15. the scroll-progress hairline gets a comet head, so it reads as
+           travelling rather than just getting longer. The head sits at the
+           BAR'S right edge and extends left; at scroll 0 the bar has width:0,
+           which parks the head at x=-34px — `overflow:hidden` on the fixed
+           full-width track clips it away, so nothing shows until you scroll.
+           Both structural properties live inside this media block: a
+           reduced-motion visitor gets the untouched original bar. */
+    #cv-progress { overflow: hidden; }
+    #cv-progress > span { position: relative; }
+    #cv-progress > span::after {
+        content: "";
+        position: absolute;
+        top: 0; bottom: 0;
+        right: 0;
+        width: 34px;
+        background: linear-gradient(90deg, transparent, rgb(var(--c-gold-light)));
+        box-shadow: 0 0 10px 1px rgb(var(--c-gold) / 0.7);
+        animation: cvAmbComet 2.9s ease-in-out infinite;
+    }
+}
+
+@keyframes cvAmbRail {
+    from { background-position: 0 0; }
+    to   { background-position: -280% 0; }
+}
+/* the two sweeps hold full brightness across the travel and fade only at the
+   far edge — ramping down mid-crossing made them read as a flicker */
+@keyframes cvAmbGlint {
+    0%, 5%   { transform: translateX(-140%); opacity: 0; }
+    13%      { opacity: 1; }
+    36%      { opacity: 1; }
+    44%      { transform: translateX(660%); opacity: 0; }
+    100%     { transform: translateX(660%); opacity: 0; }
+}
+@keyframes cvAmbGloss {
+    0%, 9%   { transform: translateX(-170%) skewX(-18deg); opacity: 0; }
+    16%      { opacity: 1; }
+    35%      { opacity: 1; }
+    42%      { transform: translateX(400%) skewX(-18deg); opacity: 0; }
+    100%     { transform: translateX(400%) skewX(-18deg); opacity: 0; }
+}
+@keyframes cvAmbTick {
+    0%, 100% { transform: scaleX(1);    opacity: 0.82; }
+    50%      { transform: scaleX(1.5);  opacity: 1; }
+}
+@keyframes cvAmbDot {
+    0%, 100% { transform: scale(1);    opacity: 0.72; }
+    50%      { transform: scale(1.32); opacity: 1; }
+}
+@keyframes cvAmbSwell {
+    0%, 100% { scale: 1;     filter: brightness(1) saturate(1); }
+    50%      { scale: 1.075; filter: brightness(1.13) saturate(1.06); }
+}
+@keyframes cvAmbNudge {
+    0%, 60%, 100% { transform: translateX(0); }
+    78%           { transform: translateX(3px); }
+}
+@keyframes cvAmbSoon {
+    0%   { box-shadow: 0 8px 20px rgba(6, 22, 52, 0.35), 0 0 0 0 rgb(var(--c-gold) / 0.45); }
+    55%  { box-shadow: 0 8px 20px rgba(6, 22, 52, 0.35), 0 0 0 10px rgb(var(--c-gold) / 0); }
+    100% { box-shadow: 0 8px 20px rgba(6, 22, 52, 0.35), 0 0 0 10px rgb(var(--c-gold) / 0); }
+}
+
+/* ── Wave 2 keyframes ─────────────────────────────────────────────────────
+   The travelling ones (Scan / Run / Trace / Glint) all share one shape: cross
+   at full opacity, then sit parked and invisible for the back half of the
+   cycle. That idle tail is what makes them read as an occasional glint
+   instead of a strobe — don't compress it to "make it more visible". */
+@keyframes cvAmbScan {
+    0%, 4%   { transform: translateY(-115%); opacity: 0; }
+    12%      { opacity: 1; }
+    40%      { opacity: 1; }
+    50%      { transform: translateY(255%); opacity: 0; }
+    100%     { transform: translateY(255%); opacity: 0; }
+}
+@keyframes cvAmbGrid {
+    0%, 100% { opacity: 0.55; }
+    50%      { opacity: 1; }
+}
+/* 14% wide × 7.14 = 100% → the segment finishes flush with the right edge */
+@keyframes cvAmbRun {
+    0%, 6%   { transform: translateX(0);     opacity: 0; }
+    14%      { opacity: 1; }
+    46%      { opacity: 1; }
+    56%      { transform: translateX(614%);  opacity: 0; }
+    100%     { transform: translateX(614%);  opacity: 0; }
+}
+/* 22% wide × 4.545 = 100% → same flush landing on a card's top edge */
+@keyframes cvAmbTrace {
+    0%, 8%   { transform: translateX(0);     opacity: 0; }
+    16%      { opacity: 1; }
+    44%      { opacity: 1; }
+    54%      { transform: translateX(354%);  opacity: 0; }
+    100%     { transform: translateX(354%);  opacity: 0; }
+}
+/* steps(1) = a hard on/off, the way a real terminal cursor blinks. Both hold
+   ON for most of the cycle so the page doesn't read as flashing. */
+@keyframes cvAmbBeacon {
+    0%, 62%  { opacity: 1; }
+    63%, 88% { opacity: 0.15; }
+    89%      { opacity: 1; }
+}
+@keyframes cvAmbCaret {
+    0%, 58%  { opacity: 0.9; }
+    59%, 84% { opacity: 0; }
+    85%      { opacity: 0.9; }
+}
+/* colour only — see rule 12 */
+@keyframes cvAmbTitle {
+    0%, 100% { color: #061634; }
+    46%      { color: #9C7413; }
+    62%      { color: #9C7413; }
+}
+@keyframes cvAmbTitleDark {
+    0%, 100% { color: #fff; }
+    46%      { color: #F0CE72; }
+    62%      { color: #F0CE72; }
+}
+@keyframes cvAmbComet {
+    0%, 100% { opacity: 0.55; }
+    50%      { opacity: 1; }
+}

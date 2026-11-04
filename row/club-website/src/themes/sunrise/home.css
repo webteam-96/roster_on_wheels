@@ -1,0 +1,290 @@
+/* ═════════════════════════════════════════════════════════════════════════════
+   SUNRISE — home page (Home.jsx). Shared pieces (cards, drum, tunnel, arches,
+   sheet, covers, hills, buttons) live in theme.css; this is the home's own
+   composition. Tokens: theme.css.
+   ═════════════════════════════════════════════════════════════════════════════ */
+
+/* ---------- static sky: each section paints its own slice (motion off) ---------- */
+.sun-home .sun-intro{background:linear-gradient(var(--sun-s0),var(--sun-s1) 32%,var(--sun-s2))}
+/* the optional sections (leaders, the event) are flat at the stop they sit on, so the sky joins up
+   with or without them. The event sits on x3, not x4: the accent eyebrow over flat x4 is only 4.4:1;
+   x3 -> x4 happens at the top of the finale, behind its sheet */
+.sun-home .sun-leaders{background:var(--sun-s2)}
+.sun-home .sun-about{background:linear-gradient(var(--sun-s2),var(--sun-x1) 50%,var(--sun-x2))}
+.sun-home .sun-projects{background:linear-gradient(var(--sun-x2),var(--sun-x3))}
+.sun-home .sun-coming{background:var(--sun-x3)}
+.sun-home .sun-sunrise{background:linear-gradient(var(--sun-x3),var(--sun-x4) 12%,var(--sun-s7) 40%,var(--sun-s8) 68%,var(--sun-s9))}
+html.sun-sky-live .sun-home :is(.sun-intro,.sun-about,.sun-projects,.sun-leaders,.sun-coming,.sun-sunrise){background:none}
+
+/* ---------- intro: hero window + figures ---------- */
+.sun-intro{position:relative}
+/* the first screen: under the whole header at scroll 0 (the strip + the bar) */
+.sun-hero{
+  position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;
+  gap:clamp(16px,3vh,32px);min-height:calc(100svh - var(--sun-hh) - var(--sun-strip));padding:clamp(20px,4vh,48px) var(--sun-pad);
+}
+.sun-hero__head{display:flex;flex-direction:column;align-items:center;gap:clamp(10px,1.8vh,18px);max-width:100%}
+.sun-hero__eyebrow{display:flex;flex-wrap:wrap;justify-content:center;gap:4px 26px}
+.sun-hero__eyebrow>span+span::before{content:"";display:inline-block;width:5px;height:5px;margin:0 16px 2px -16px;border-radius:50%;background:currentColor;vertical-align:middle}
+/* phones: district over year, no dot - wrapped, the dot led the second line on its own (after the rule
+   above: same specificity) */
+@media (max-width:419px){ .sun-hero__eyebrow{flex-direction:column;align-items:center} .sun-hero__eyebrow>span+span::before{display:none} }
+.sun-hero__h1{font-weight:400;line-height:1;max-width:100%}
+.sun-hero__pre{display:block;margin-bottom:.2em;font:italic 400 clamp(24px,2.8vw,42px)/1.1 var(--sun-serif);color:var(--sun-accent)}
+/* the name is sized by its own length so it never leaves the screen */
+.sun-hero__name{
+  display:block;padding:0 .08em .06em;white-space:nowrap;
+  font:700 clamp(24px,min(9.6vw,15.5svh,calc(88vw / (var(--sun-len,12) * .78))),156px)/.98 var(--sun-display);letter-spacing:-.045em;
+}
+.sun-hero__name.is-long{white-space:normal;text-wrap:balance;font-size:clamp(28px,min(7.4vw,11svh),120px);line-height:1.02}
+.sun-hero__name:not(.is-split),.sun-hero__name .sun-c{background:var(--sun-name-grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+.sun-hero__name .sun-c{padding:0 .07em;margin:0 -.07em}
+/* the resting window: what the first screen has left under the WHOLE header (strip + bar) after the
+   name and the dots (~320px) */
+.sun-hero__win{width:max(min(260px,100%),min(820px,100%,(100svh - var(--sun-hh) - var(--sun-strip) - 320px) * 2.2))}
+/* the banner sits in a frame of ITS OWN shape (--sun-bar = the showing picture's width/height, set by
+   Home.jsx; registered so it eases from one slide's shape to the next): the whole picture, nothing
+   cropped and no blurred bands (client, 2026-10-05). .sun-win is only the box the frame fits in - the
+   resting box, then whatever the scroll scene grows it to */
+@property --sun-bar{syntax:'<number>';inherits:true;initial-value:3.2}
+.sun-hero .sun-win{background:none;box-shadow:none;border-radius:0;overflow:visible;container-type:size;transition:--sun-bar .9s cubic-bezier(.2,.7,.2,1)}
+.sun-hero .sun-win::after,.sun-hero .sun-win__fill{display:none}
+/* --sun-fk (0 at rest, 1 grown - the intro scene tweens it) settles the picture to the foot of its box,
+   just over the dots + pause under it, whatever its shape: centred, a 16:5 banner left them 160px adrift */
+.sun-win__frame{position:absolute;inset:0;margin:auto;width:min(100cqw,100cqh * var(--sun-bar));height:min(100cqh,100cqw / var(--sun-bar));
+  transform:translateY(calc(var(--sun-fk,0) * (100cqh - min(100cqh,100cqw / var(--sun-bar))) / 2));
+  border-radius:clamp(14px,2vw,28px);overflow:hidden;background:var(--sun-win-bg);box-shadow:var(--sun-win-shadow)}
+/* no slow zoom on the showing slide: it would crop the edges the frame just fitted */
+.sun-hero .sun-win__img,.sun-hero .sun-win__slide.is-on .sun-win__img{transform:none}
+
+.sun-figs{position:relative;padding:clamp(72px,10vw,140px) var(--sun-pad) clamp(88px,11vw,150px);text-align:center}
+.sun-figs__head{margin-bottom:clamp(36px,5vw,64px)}
+.sun-figs__head .sun-h2{margin-top:10px}
+.sun-figs__list{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,200px),1fr));gap:36px 24px;max-width:1240px;margin:0 auto}
+.sun-fig{min-width:0}
+/* phones and tablets: no pinned scene (Home.jsx), so the hero is as tall as its content and the figures
+   a tight two-up grid right under their heading (client, 2026-10-06: too much space) */
+@media (max-width:899px){
+  .sun-hero{min-height:0;padding-block:clamp(28px,6vw,48px) clamp(32px,7vw,56px)}
+  .sun-figs{padding-block:clamp(36px,8vw,64px) clamp(28px,6vw,48px)}
+  .sun-figs__head{margin-bottom:28px}
+  .sun-figs__list{grid-template-columns:repeat(auto-fit,minmax(min(100%,140px),1fr));gap:28px 16px}
+}
+.sun-fig__num{font:700 clamp(34px,3.8vw,54px)/1.05 var(--sun-display);letter-spacing:-.04em;white-space:nowrap;
+  background:var(--sun-num-grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+.sun-fig__label{margin-top:12px;font-size:12.5px;font-weight:600;letter-spacing:.2em;text-transform:uppercase;color:var(--sun-mist)}
+/* under 360px tighter: the scene sizes the labels to their slots, and BENEFICIARIES at .2em came out 10.8px */
+@media (max-width:359px){ .sun-fig__label{letter-spacing:.1em} }
+
+/* the scene (the intro scene adds .is-3d under motion): the banner window leaves the flow for its
+   resting box (which keeps the hero's layout) and grows as a real layout box; the figures, placed
+   by the scene, settle into a row on a horizon */
+.sun-intro.is-3d{height:calc(100svh - var(--sun-hh));overflow:hidden;overflow:clip}
+/* the stage is sized for the pinned header (the bar alone); at scroll 0 the strip above it pushes its
+   foot below the fold, so the hero centres in the part that is on screen (the 104px logo row of the
+   fit-mode header would drop the dots off a laptop screen) */
+.sun-intro.is-3d .sun-hero{position:absolute;inset:0;z-index:2;min-height:0;padding-bottom:calc(clamp(20px,4vh,48px) + var(--sun-strip))}
+/* the name's letters fly apart BEHIND the growing banner, which is stacked over the head: the name
+   never lies across the picture (client); nothing in the head takes the pointer */
+.sun-intro.is-3d .sun-hero__head{position:relative;z-index:1;pointer-events:none}
+/* the dots + pause stay over the window while it grows and holds: a banner of another shape grows over them,
+   so grown they sit on a solid pill of the header's ground (legible on a light poster; no blur) */
+.sun-intro.is-3d .sun-hero__ctrl{position:relative;z-index:3;border-radius:999px;transition:background-color .4s}
+.sun-intro.is-3d.is-grown .sun-hero__ctrl{background:var(--sun-hdr-bg)}
+.sun-intro.is-3d .sun-hero__name{perspective:700px}
+/* min-height 0: when the head (a club name on two lines) and the dots need more than the stage, the
+   window gives up the height - the frame inside fits whatever is left - instead of the head being
+   pushed up past the stage's top */
+.sun-intro.is-3d .sun-hero__win{position:relative;z-index:2;aspect-ratio:2.2/1;min-height:0}
+.sun-intro.is-3d .sun-win{position:absolute;left:0;top:0;width:100%;height:100%}
+/* the resting window leans toward the pointer (the scene sets the angles); scrolled, it squares up */
+.sun-intro.is-lean .sun-win{transition:transform .9s cubic-bezier(.2,.7,.2,1),--sun-bar .9s cubic-bezier(.2,.7,.2,1)}
+.sun-intro.is-lean:not(.is-grown) .sun-win{transform:perspective(1000px) rotateX(var(--sun-rx,0deg)) rotateY(var(--sun-ry,0deg))}
+.sun-intro.is-3d .sun-figs{position:absolute;inset:0;z-index:1;padding:0}
+.sun-intro.is-3d .sun-figs::before{content:"";position:absolute;left:50%;top:56%;width:min(900px,120vw,(100svh - var(--sun-hh)) * 1.2);aspect-ratio:1;transform:translate(-50%,-50%);border-radius:50%;
+  background:radial-gradient(circle,rgba(255,213,140,.2),rgba(163,76,130,.12) 40%,transparent 68%)}
+.sun-intro.is-3d .sun-figs__head{position:absolute;left:0;right:0;top:clamp(20px,6vh,64px);margin:0;padding:0 var(--sun-pad)}
+.sun-intro.is-3d .sun-figs__list{position:absolute;inset:0;display:block;max-width:none;perspective:1100px}
+.sun-intro.is-3d .sun-figs__list::after{content:"";position:absolute;left:50%;top:var(--sun-row-y,100%);width:var(--sun-row-w,0px);height:1px;margin-left:calc(var(--sun-row-w,0px) / -2);
+  background:linear-gradient(90deg,transparent,var(--sun-accent),transparent)}
+/* a column, so the number and the label are each as wide as their own text (the scene measures them) */
+.sun-intro.is-3d .sun-fig{position:absolute;left:50%;top:57%;display:flex;flex-direction:column;align-items:center;width:max-content;max-width:92vw}
+.sun-intro.is-3d .sun-fig__num{font-size:clamp(56px,min(12vw,22svh),184px);line-height:1}
+.sun-intro.is-3d .sun-fig--long .sun-fig__num{font-size:clamp(30px,min(8vw,15svh),124px)}
+.sun-intro.is-3d .sun-fig__label{font-size:clamp(12.5px,1.25vw,16px);margin-top:.9em}
+
+/* ---------- about: "About", four lines + Read more; the advertisements beside (else the crest) ---------- */
+.sun-about__grid{display:grid;gap:clamp(40px,6vw,96px);align-items:center}
+@media (min-width:900px){ .sun-about__grid{grid-template-columns:minmax(0,7fr) minmax(0,5fr)} }
+.sun-about__text{min-width:0}
+/* the club's own words, four lines exactly (the rest is on /about) */
+.sun-about__lead{margin-top:.6em;font:400 clamp(22px,2.3vw,34px)/1.24 var(--sun-serif);letter-spacing:-.005em;overflow-wrap:anywhere;
+  display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden}
+.sun-about__lead em{font-style:italic;color:var(--sun-accent)}
+.sun-about__cta{margin-top:28px}
+/* the advertisements: the picture alone - no window ground, glow, ring or blurred fill (client) -
+   shown whole. Side by side it is as tall as the About text (the row's height comes from the text:
+   the slides are out of flow); stacked on phones each picture keeps its own height */
+/* (.sun-about first: theme.css's .sun-win rules have one class too, and the two sheets load in no
+   fixed order - a tie would let the window's blue ground come back) */
+.sun-about__ads{display:flex;flex-direction:column;min-width:0}
+.sun-about__ads .sun-slidectrl{margin-top:12px}
+.sun-about .sun-about__win{background:none;box-shadow:none;border-radius:0}
+.sun-about .sun-about__win::after,.sun-about__win .sun-win__fill{display:none}
+.sun-about__win .sun-win__img,.sun-about__win .sun-win__slide.is-on .sun-win__img{transform:none}
+@media (min-width:900px){
+  .sun-about__grid:has(.sun-about__ads){align-items:stretch}
+  .sun-about .sun-about__win{flex:1;aspect-ratio:auto;min-height:220px}
+}
+@media (max-width:899px){
+  .sun-about .sun-about__win{aspect-ratio:auto;overflow:visible}
+  .sun-about__win .sun-win__slides{position:relative;display:grid}
+  /* the stack is as tall as the tallest picture (nothing jumps as they change); a shorter one sits
+     centred in it, its link no taller than itself */
+  .sun-about__win .sun-win__slide{position:relative;grid-area:1/1;align-self:center}
+  .sun-about__win .sun-win__img{position:relative;display:block;height:auto;max-height:75svh}
+}
+
+/* ---------- projects: bigger cards; every photo whole (its frame takes the photo's own ratio,
+   --sun-tar; Gallery's tunnel keeps its own sizes) ---------- */
+.sun-home .sun-tunnel .sun-card__img{aspect-ratio:var(--sun-tar,4/3)}
+.sun-home .sun-tunnel .sun-card__img img{object-fit:contain}
+.sun-home .sun-tunnel .sun-card:hover .sun-card__img img{scale:none}   /* a hover zoom would crop it */
+/* the grid (phones, tablets, reduced motion, fewer than two photos); a tall photo is held to the screen */
+.sun-home .sun-tunnel:not(.is-tunnel) .sun-tunnel__cards{grid-template-columns:repeat(auto-fill,minmax(min(100%,320px),1fr));align-items:start}
+.sun-home .sun-tunnel:not(.is-tunnel) .sun-card__img{max-height:min(80svh,560px)}
+/* a phone on its side: two or three across, a photo and its title on one screen; the two covers of the
+   newsletters smaller (each was taller than the view) */
+@media (max-height:500px){
+  .sun-home .sun-tunnel:not(.is-tunnel) .sun-tunnel__cards{grid-template-columns:repeat(auto-fill,minmax(min(100%,240px),1fr))}
+  .sun-home .sun-tunnel:not(.is-tunnel) .sun-card__img{max-height:60svh}
+  /* .sun-news: outranks the base .sun-issues further down (align-self:stretch put the pair at the left) */
+  .sun-news .sun-issues{align-self:center;width:100%;max-width:400px}
+  /* the next event's photo whole on the screen under the bar (16:9 of 760px was 427px of a 370px view) */
+  .sun-event__img{max-height:calc(100svh - var(--sun-hh) - 32px)}
+}
+/* the tunnel: each card as big as the pinned stage allows. Its width follows its photo's ratio, so
+   the photo plus the body is .82 of the stage: the lowest card (+7% drift, turned 12deg) brings its
+   near edge to about full scale, so .82 keeps every resting card ~10px+ inside the stage (.86 does
+   not). --sun-bh = the body at its tallest: padding, two title lines (the title holds to two), the
+   meta | Read more row, borders - keep it in step with the type */
+/* --sun-ih = the photo's height. A tall photo would make a sliver of a card (a phone screenshot on a
+   laptop: 160px, its title split mid-word): the card holds 380px - room for COMMUNITY SERVICE beside
+   Read more (at 300 it read "COMMUNITY S...") - and the photo keeps the height,
+   shown whole in the middle (contain) */
+.sun-home .is-tunnel .sun-tunnel__card{--sun-tt:clamp(18px,1.55vw,24px);--sun-bh:calc(66px + 2.5 * var(--sun-tt));
+  --sun-ih:calc((100svh - var(--sun-hh) - var(--sun-th,0px)) * var(--sun-tk,.82) - var(--sun-bh));
+  width:min(52vw,760px,max(380px,var(--sun-ih) * var(--sun-tar,1.333)))}
+.sun-home .is-tunnel .sun-card__img{max-height:var(--sun-ih)}
+/* the heading stays at the top of the stage (client): a compact title over the band where the cards
+   fly (--sun-th = its height, set by the tunnel). Half the vertical drift there, so .88 of the band */
+.sun-home .is-tunnel.is-headtop{--sun-tk:.88}
+.sun-home .is-tunnel.is-headtop .sun-tunnel__head{inset:0 0 auto;display:block;padding:clamp(14px,3vh,30px) var(--sun-pad) clamp(10px,2vh,20px)}
+.sun-home .is-tunnel.is-headtop .sun-tunnel__head .sun-h2{margin-top:6px}
+.sun-home .is-tunnel.is-headtop .sun-tunnel__end{top:var(--sun-th,0px)}
+.sun-home .is-tunnel.is-headtop .sun-tunnel__light{top:calc(50% + var(--sun-th,0px) / 2)}
+/* the meta and Read more share one row under the title: the photo keeps the height */
+.sun-home .is-tunnel .sun-card__body{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:8px 12px;padding:16px 22px 18px}
+.sun-home .is-tunnel .sun-card__meta{font-size:13px;line-height:1.4}
+.sun-home .is-tunnel .sun-card__meta span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sun-home .is-tunnel .sun-card__title{grid-row:1;grid-column:1/-1;font-size:var(--sun-tt);line-height:1.25;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.sun-home .is-tunnel .sun-card__more{grid-column:2;padding-top:0;font-size:15px;line-height:1.4}
+
+/* ---------- leadership: a Read more button under each name. A card is as tall as its row, so
+   the button takes the free space above it and the row's buttons line up ---------- */
+/* right after the figures' stage, which already leaves sky under its row: a short top padding (only
+   then - without figures the leaders follow the hero, with the usual space) */
+.sun-home:has(.sun-figs) .sun-leaders{padding-top:clamp(24px,3vw,48px)}
+/* RIZO-27: Leadership runs straight on into About (the two section paddings left ~325px between them at 1440) */
+.sun-home .sun-leaders{padding-bottom:clamp(28px,4vw,56px)}
+.sun-home .sun-leaders + .sun-about{padding-top:clamp(28px,4vw,56px)}
+.sun-leaders__h{text-align:center;margin-bottom:clamp(44px,6vw,84px)}
+.sun-leaders .sun-person__name{margin-bottom:18px}
+.sun-leaders .sun-person__more{margin-top:auto}
+
+/* ---------- upcoming events: the next event ---------- */
+.sun-event{position:relative;display:flex;flex-direction:column;max-width:760px;margin-inline:auto;border-radius:24px;overflow:hidden;min-width:0;
+  background:var(--sun-card-bg);border:1px solid var(--sun-card-line);box-shadow:var(--sun-card-shadow)}
+.sun-event:has(.sun-event__link:focus-visible){outline:3px solid var(--sun-accent);outline-offset:3px}
+.sun-event__img{aspect-ratio:16/9;overflow:hidden;background:var(--sun-card-img)}
+.sun-event__img img{width:100%;height:100%;object-fit:cover;transition:scale .8s cubic-bezier(.2,.7,.2,1)}
+.sun-event:hover .sun-event__img img{scale:1.04}
+.sun-event__body{display:flex;gap:clamp(16px,2.4vw,28px);align-items:flex-start;padding:clamp(20px,3vw,32px)}
+.sun-event__text{min-width:0;flex:1}
+.sun-event__title{margin-top:8px;font:600 clamp(20px,2.2vw,30px)/1.2 var(--sun-display);letter-spacing:-.025em;overflow-wrap:anywhere}
+.sun-event__link{text-decoration:none;color:inherit}
+.sun-event__link::after{content:"";position:absolute;inset:0;z-index:1}
+.sun-event__link:focus-visible{outline:none}
+.sun-event:hover .sun-event__title{color:var(--sun-accent)}
+.sun-event__meta{display:flex;flex-direction:column;gap:6px;margin-top:14px;font-size:15px;color:var(--sun-mist)}
+.sun-event__meta li{display:flex;align-items:flex-start;gap:10px;overflow-wrap:anywhere}
+.sun-event__meta svg{flex:none;width:16px;height:16px;margin-top:4px;color:var(--sun-accent)}
+.sun-event__desc{margin-top:14px;font-size:15.5px;color:var(--sun-mist);overflow-wrap:anywhere}
+.sun-event__all{position:relative;z-index:2;align-self:flex-start;margin:0 clamp(20px,3vw,32px) clamp(12px,2vw,20px)}
+@media (max-width:520px){ .sun-event__body{flex-direction:column} }
+
+/* ---------- the finale: one sheet over the sunrise (the same warm ground in both modes) -
+   the newsletters | where we meet, a dawn line between them ---------- */
+.sun-sunrise{position:relative;overflow:hidden;padding-top:clamp(40px,4vw,64px)}
+/* the sun's core sits just under the back hill's crest: it rises into the gap between the sheet and the hills */
+.sun-sunrise__sun{position:absolute;left:50%;bottom:calc(clamp(100px,12vw,180px) * .6 - min(96vw,900px) / 2);width:min(96vw,900px);aspect-ratio:1;margin-left:calc(min(96vw,900px) / -2);border-radius:50%;z-index:0;
+  background:radial-gradient(circle,#FFFBEF 0 18%,#FFEDBE 28%,rgba(255,213,140,.8) 40%,rgba(246,168,124,.4) 55%,transparent 70%)}
+/* RIZO-28: lower hills and less sky under the last sheet (was ~430px between it and the footer at 1440) */
+.sun-sunrise .sun-hills{height:clamp(100px,12vw,180px)}
+.sun-sunrise__wrap{position:relative;z-index:2;padding-bottom:clamp(110px,13vw,190px)}
+.sun-sunrise .sun-sheet{--sun-gap:clamp(56px,8vw,72px);gap:var(--sun-gap);text-align:center}
+.sun-sunrise .sun-sheet:not(.is-two){max-width:760px;margin-inline:auto}
+@media (min-width:900px){ .sun-sunrise .sun-sheet.is-two{--sun-gap:clamp(64px,7vw,112px);grid-template-columns:minmax(0,1fr) minmax(0,1fr)} }
+.sun-news,.sun-meet{display:flex;flex-direction:column;align-items:center;min-width:0}
+/* both columns open on the year eyebrow, so the two h2s share a line side by side */
+.sun-sheet .sun-eyebrow+.sun-h2{margin-top:10px}
+/* the dawn between the columns: across when they stack, down the middle side by side (--sun-dawn upright) */
+.sun-sheet.is-two .sun-meet{position:relative}
+.sun-sheet.is-two .sun-meet::before{content:"";position:absolute;left:10%;right:10%;top:calc(var(--sun-gap) / -2 - 1px);height:2px;border-radius:2px;background:var(--sun-dawn)}
+@media (min-width:900px){
+  .sun-sheet.is-two .sun-meet::before{left:calc(var(--sun-gap) / -2 - 1px);right:auto;top:4%;bottom:4%;width:2px;height:auto;
+    background:linear-gradient(180deg,#17458F,#4B2F86,#A34C82,#E0746F,#FFD58C)}
+}
+
+/* the newsletters: the latest two as covers whose suns rise */
+.sun-issues{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:clamp(14px,2.4vw,28px);align-self:stretch;margin-top:clamp(24px,3vw,36px);text-align:left}
+.sun-issues.is-one{grid-template-columns:minmax(0,1fr);align-self:center;width:min(100%,320px)}
+.sun-issue a{display:flex;flex-direction:column;height:100%;text-decoration:none;color:inherit;border-radius:16px;container-type:inline-size}
+/* a narrow card puts the link under the date on both covers: side by side, "Open" fitted beside one date
+   and "Open PDF" wrapped under the other, and the two rows stood at different heights */
+@container (max-width:219px){ .sun-issue__foot{flex-direction:column;align-items:flex-start;justify-content:center} }
+.sun-issue__foot{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:4px 10px;min-height:44px;margin-top:12px;font-size:14.5px}
+.sun-issue__date{color:var(--sun-dk2);font-weight:500;white-space:nowrap}
+.sun-issue__cta{display:inline-flex;align-items:center;gap:6px;font-weight:600}
+.sun-issue__cta svg{width:14px;height:14px}
+.sun-issue a:hover .sun-issue__cta{color:var(--sun-berry)}
+.sun-news__cta{margin-top:24px}
+
+/* where we meet: the day in big display type, sized to its column (cqi) */
+.sun-meet{container-type:inline-size}
+.sun-meet__day{margin:.3em 0 .12em;font:800 clamp(34px,6vw,112px)/.95 var(--sun-display);font-size:clamp(24px,calc(62cqi / (var(--sun-len,9) * .86)),72px);letter-spacing:-.05em}
+.sun-meet__day-vis{display:inline-block;perspective:600px;white-space:nowrap}
+.sun-meet__day.is-long{font-size:clamp(24px,2.8vw,44px);font-size:clamp(24px,8cqi,44px);line-height:1.02}
+.sun-meet__day.is-long .sun-meet__day-vis{white-space:normal;text-wrap:balance}
+.sun-meet__day-vis .sun-c,.sun-meet__day-vis .sun-w{display:inline-block}
+/* time + venue: one card, a row each */
+.sun-meet__facts{width:100%;margin:18px 0 0;text-align:left;border-radius:18px;background:#F7F2FB;border:1px solid rgba(28,18,54,.08)}
+.sun-meet__fact{display:grid;grid-template-columns:40px minmax(0,1fr);column-gap:14px;align-items:center;padding:12px 18px 12px 12px}
+.sun-meet__fact + .sun-meet__fact{border-top:1px solid rgba(28,18,54,.08)}
+.sun-meet__ico{grid-row:span 2;display:grid;place-items:center;width:40px;height:40px;border-radius:50%;color:#fff;background:linear-gradient(135deg,#4B2F86,#A34C82 55%,#E0746F)}
+.sun-meet__ico svg{width:18px;height:18px}
+.sun-meet__fact dt{font-size:11px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--sun-berry)}
+.sun-meet__fact dd{margin:2px 0 0;font:600 16px/1.4 var(--sun-display);letter-spacing:-.01em;color:var(--sun-dk);overflow-wrap:anywhere}
+/* the map takes the rest of the column (beside the newsletters it grows to their height) */
+.sun-meet__map{position:relative;flex:1 1 auto;width:100%;min-height:260px;margin-top:12px;border-radius:20px;overflow:hidden;background:#ECE6F4;
+  box-shadow:0 0 0 1px rgba(28,18,54,.1),0 26px 50px -30px rgba(28,18,54,.55)}
+.sun-meet__map iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+.sun-sheet:not(.is-two) .sun-meet__map{flex:none;min-height:0;aspect-ratio:16/9}
+@media (max-width:899px){ .sun-meet__map{flex:none;min-height:0;aspect-ratio:4/3;max-height:380px} }
+.sun-meet__none{max-width:34ch;margin-top:16px;font:400 clamp(20px,2vw,28px)/1.25 var(--sun-serif)}
+
+/* client: less sky after the projects tunnel and before the last sheet. The pinned stage's
+   "View all projects" sits low on the stage, so Upcoming events follows it closely */
+.sun-home .is-tunnel .sun-tunnel__end{align-content:end;padding-bottom:clamp(40px,7vh,72px)}
+.sun-home .sun-coming{padding-block:clamp(40px,4vw,64px) clamp(32px,3vw,48px)}
+.sun-home .sun-tunnel:not(.is-tunnel){padding-bottom:clamp(24px,3vw,40px)}

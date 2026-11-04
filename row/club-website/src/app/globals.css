@@ -1,0 +1,51 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Colours and fonts for ROW's own components (status bar, cookie notice, join form) via Tailwind brand-*. */
+:root {
+  --brand: #17458F;
+  --brand-accent: #F7A81B;
+  --brand-accent-ink: color-mix(in srgb, var(--brand-accent) 60%, black);
+  --brand-ink: #1A1A1A;
+  --brand-bg: #FBFAF7;
+  --brand-muted: #F5F5F7;
+  --font-heading: Georgia, "Times New Roman", serif;
+  --font-body: Arial, "Helvetica Neue", Helvetica, sans-serif;
+}
+
+
+/* No html/body/heading rules here: each theme's own stylesheet sets its page colours and fonts. */
+
+/* Rich-text content from About — keep typography readable AND contained.
+   Admin pastes content with inline widths, large images, long URLs — all of
+   which can overflow the parent card. The overflow-wrap + max-width rules
+   below clamp every descendant inside the card. */
+.rich-text {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  max-width: 100%;
+}
+.rich-text * { max-width: 100%; box-sizing: border-box; }
+.rich-text :where(p) { margin-block: 0.75rem; line-height: 1.7; }
+.rich-text :where(h1, h2, h3) { margin-top: 1.5rem; margin-bottom: 0.5rem; word-break: break-word; }
+.rich-text :where(ul, ol) { margin-block: 0.75rem; padding-left: 1.5rem; }
+.rich-text :where(ul) { list-style: disc; }
+.rich-text :where(ol) { list-style: decimal; }
+.rich-text :where(a) { color: var(--brand); text-decoration: underline; overflow-wrap: anywhere; }
+.rich-text :where(img) { max-width: 100%; height: auto; margin-block: 1rem; display: block; }
+.rich-text :where(table) { display: block; max-width: 100%; overflow-x: auto; border-collapse: collapse; }
+.rich-text :where(pre, code) { white-space: pre-wrap; word-break: break-word; }
+.rich-text :where(iframe, video) { max-width: 100%; }
+.rich-text :where(blockquote) { border-left: 3px solid var(--brand-accent); padding-left: 1rem; margin-block: 1rem; color: #555; }
+
+/* Reset default text colour for links so they take page colour unless overridden. */
+a { color: inherit; }
+
+/* Keyboard users' "Skip to content" link: off-screen until focused. */
+.skip-link {
+  position: absolute; left: 1rem; top: -4rem; z-index: 300;
+  padding: 0.6rem 1rem; border-radius: 6px;
+  background: #0b1f5e; color: #fff; font-weight: 600;
+}
+.skip-link:focus { top: 1rem; }

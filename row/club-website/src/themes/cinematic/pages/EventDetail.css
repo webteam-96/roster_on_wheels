@@ -1,0 +1,89 @@
+/* ─────────────────────────────────────────────────────────────────────────────
+   CINEMATIC · EVENT DETAIL — the ticket, torn off. Every class is cin-evd-*.
+   Contrast: the stub sits on night-2 with a royal glow in its top corner, where
+   only the LARGE gold date sits; captions are ink, never mist, over the glow.
+   ───────────────────────────────────────────────────────────────────────────── */
+
+.cin-evd-body { display: grid; grid-template-columns: minmax(0, 1fr); gap: clamp(28px, 4vw, 48px); align-items: start; }
+
+/* ───────────── the stub ───────────── */
+.cin-evd-stub {
+  position: relative; overflow: hidden; min-width: 0; max-width: 720px;
+  display: flex; flex-direction: column; align-items: flex-start; gap: 22px;
+  padding: clamp(24px, 3.4vw, 44px) clamp(24px, 3.4vw, 44px) calc(clamp(24px, 3.4vw, 44px) + 12px); border-radius: var(--cin-r-lg);
+  background: radial-gradient(90% 70% at 0% 0%, rgba(23, 69, 143, .9), rgba(23, 69, 143, 0) 70%), var(--cin-night-2);
+  box-shadow: inset 0 0 0 1px var(--cin-line);
+}
+/* the stub's torn edge: a dashed tear line along its foot */
+.cin-evd-stub::after {
+  content: ""; position: absolute; left: 22px; right: 22px; bottom: 10px; height: 0; pointer-events: none;
+  border-top: 2px dashed var(--cin-line-2);
+}
+
+.cin-evd-date { gap: 16px; }
+.cin-evd-date .cin-date__d { font-size: clamp(88px, 12vw, 164px); line-height: .82; text-shadow: 0 0 40px rgba(247, 168, 27, .25); }
+.cin-evd-date .cin-date__my { font-size: clamp(15px, 1.4vw, 19px); gap: 6px; }
+
+.cin-evd-facts { display: grid; gap: 18px; width: 100%; margin: 0; }
+.cin-evd-facts > div { display: grid; gap: 4px; min-width: 0; padding-top: 14px; border-top: 1px solid var(--cin-line); }
+.cin-evd-facts dt { font-size: 13px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--cin-ink); }
+.cin-evd-facts dd { margin: 0; min-width: 0; font-size: clamp(17px, 1.5vw, 20px); line-height: 1.45; overflow-wrap: anywhere; }
+.cin-evd-facts address { font-style: normal; }
+.cin-evd-facts .cin-evd-time {
+  font-stretch: var(--cin-cond); font-weight: 800; font-size: clamp(36px, 4.4vw, 56px); line-height: 1;
+  color: var(--cin-gold-ink); font-variant-numeric: tabular-nums;
+}
+.cin-evd-cta { display: flex; flex-wrap: wrap; gap: 12px; }
+
+/* ───────────── the poster: a lit screen ───────────── */
+.cin-evd-aside { position: relative; min-width: 0; }
+/* the light spill is box-shadow (ink overflow), so it can never widen the page on a phone */
+.cin-evd-screen {
+  position: relative; overflow: hidden; border-radius: var(--cin-r); background: var(--cin-night);
+  box-shadow: 0 0 0 1px rgba(247, 168, 27, .35), 0 0 90px 6px rgba(247, 168, 27, .16), 0 0 180px 30px rgba(23, 69, 143, .45);
+}
+.cin-evd-screen__fill {
+  position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover;
+  filter: blur(30px) saturate(1.3) brightness(.7); transform: scale(1.25); opacity: .8;
+}
+.cin-evd-shot {
+  position: relative; display: block; width: 100%; padding: 0; border: 0; background: none; cursor: zoom-in;
+}
+.cin-evd-shot:focus-visible { outline-offset: -6px; }
+/* the whole poster, never cropped; tall ones are held to the screen so the sticky frame fits the viewport */
+.cin-evd-shot__im {
+  display: block; width: 100%; height: auto; object-fit: contain;
+  max-height: calc(100vh - var(--cin-hh) - 72px); max-height: calc(100svh - var(--cin-hh) - 72px);
+  transition: scale .8s var(--cin-ease);
+}
+.cin-evd-shot:hover .cin-evd-shot__im { scale: 1.02; }
+
+/* ───────────── the description ───────────── */
+.cin-evd-copy { min-width: 0; max-width: 68ch; }
+.cin-evd-cap {
+  display: flex; align-items: center; gap: 14px; margin: 0 0 18px;
+  font-size: 14px; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; color: var(--cin-gold-ink);
+}
+.cin-evd-cap::after { content: ""; flex: 1 1 auto; height: 1px; background: linear-gradient(90deg, rgba(247, 168, 27, .6), rgba(247, 168, 27, 0)); }
+
+/* ───────────── wide: stub + copy on the left, the poster held beside them ───────────── */
+@media (min-width: 900px) {
+  .cin-evd-body.has-shot { grid-template-columns: minmax(0, 1fr) minmax(0, .82fr); column-gap: clamp(40px, 6vw, 96px); }
+  .cin-evd-body.has-shot > * { grid-column: 1; }
+  .cin-evd-body.has-shot > .cin-evd-aside {
+    grid-column: 2; grid-row: 1 / span 3; position: sticky; top: calc(var(--cin-hh) + 32px);
+  }
+}
+
+/* wide, no poster: the stub on the left, the club's words beside it */
+@media (min-width: 900px) {
+  .cin-evd-body:not(.has-shot):has(.cin-evd-copy) { grid-template-columns: minmax(0, 440px) minmax(0, 1fr); column-gap: clamp(40px, 6vw, 96px); }
+  .cin-evd-body:not(.has-shot):has(.cin-evd-copy) > .cin-evd-stub { grid-row: 1 / span 2; }
+  .cin-evd-body:not(.has-shot):has(.cin-evd-copy) > :not(.cin-evd-stub) { grid-column: 2; }
+}
+
+/* ───────── light mode (html[data-cin-mode="light"]) ───────── */
+/* the stub is a night island (theme.css list); the poster's screen sits on paper: no gold halo, a soft lift, a faint royal spill */
+html[data-cin-mode="light"] .cin-evd-screen {
+  box-shadow: 0 0 0 1px rgba(247, 168, 27, .35), 0 24px 60px -30px var(--cin-shadow), 0 0 140px 20px rgba(23, 69, 143, .08);
+}

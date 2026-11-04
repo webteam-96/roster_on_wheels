@@ -1,0 +1,113 @@
+/* ─────────────────────────────────────────────────────────────────────────────
+   Split Story — home only (spl-home-*). The split, panel, stacked cards,
+   timeline, wipe rows, slider and gold band are kit pieces in theme.css.
+   ───────────────────────────────────────────────────────────────────────────── */
+
+/* hero: club name, meta, the iris-open banner */
+.spl-home-hero{padding:clamp(28px,6vh,72px) var(--spl-gutter) clamp(28px,5vh,56px);background:var(--spl-royal);color:#fff}
+.spl-home-h1{margin:0;font-family:var(--spl-display);font-stretch:68%;font-weight:800;font-size:clamp(42px,11vw,158px);line-height:.9;letter-spacing:-.012em;overflow-wrap:anywhere}
+.spl-home-h1 > span{display:block}
+.spl-home-meta{display:flex;flex-wrap:wrap;gap:6px 28px;margin:clamp(16px,3vh,28px) 0 clamp(24px,5vh,48px);color:var(--spl-gold);font-size:clamp(1rem,1.5vw,1.3rem);font-weight:800}
+.spl-home-meta p{margin:0}
+
+/* chapter 1: story */
+.spl-home-prose p{max-width:62ch;margin:0 0 1.1em;font-size:1.0625rem;line-height:1.75;text-wrap:pretty;overflow-wrap:anywhere}
+.spl-home-more{display:flex;flex-wrap:wrap;gap:12px 20px;margin-top:clamp(24px,4vh,40px)}
+
+/* chapter: coming up (one event ticket) */
+.spl-home-ev{overflow:hidden;border-radius:var(--spl-radius);background:var(--spl-royal);color:#fff}
+.spl-home-ev-photo{aspect-ratio:16/9;overflow:hidden;background:var(--spl-night)}
+.spl-home-ev-photo img{width:100%;height:100%;object-fit:cover}
+.spl-home-ev-body{display:grid;grid-template-columns:auto minmax(0,1fr);align-items:start;gap:10px clamp(18px,2.4vw,32px);padding:clamp(22px,3vw,40px)}
+.spl-home-ev-date{grid-row:span 3;display:flex;flex-direction:column;margin:0;color:var(--spl-gold);font-family:var(--spl-display);font-stretch:68%;font-weight:800;line-height:.85}
+.spl-home-ev-day{font-size:clamp(76px,9vw,124px);font-variant-numeric:tabular-nums}
+.spl-home-ev-mon{margin-top:6px;color:#fff;font-size:clamp(22px,2.4vw,30px)}
+.spl-home-ev-title{margin:0;font-family:var(--spl-display);font-stretch:78%;font-weight:800;font-size:clamp(1.6rem,2.6vw,2.3rem);line-height:1.05;overflow-wrap:anywhere}
+.spl-home-ev-meta{margin:0;color:rgba(255,255,255,.86);font-weight:700;overflow-wrap:anywhere}
+.spl-home-ev-desc{display:-webkit-box;margin:0;overflow:hidden;color:rgba(255,255,255,.82);-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow-wrap:anywhere}
+.spl-home-ev-actions{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:12px;margin-top:10px}
+@media (max-width:599.98px){
+  .spl-home-ev-body{grid-template-columns:minmax(0,1fr)}
+  .spl-home-ev-date{grid-row:auto;flex-direction:row;align-items:baseline;gap:12px}
+}
+
+/* chapter: leaders — a grid / phone scroller, and on wide + motion a 3D ring turned by scroll or drag */
+.spl-home-track{max-width:720px}
+.spl-home-people{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px;margin:0;padding:0;list-style:none}
+.spl-home-people.is-one{grid-template-columns:minmax(0,340px)}
+.spl-home-leader{min-width:0}
+.spl-home-leader .spl-person{height:100%}
+.spl-home-stage-hint,.spl-home-stage-ctrl{display:none}
+@media (max-width:999.98px){
+  .spl-home-people{display:flex;gap:14px;margin-inline:calc(var(--spl-gutter) * -1);padding:4px var(--spl-gutter) 12px;overflow-x:auto;scroll-snap-type:x mandatory;scroll-padding-inline:var(--spl-gutter);overscroll-behavior-x:contain}
+  .spl-home-leader{flex:0 0 min(78%,320px);scroll-snap-align:start}
+}
+.spl-home-leaders.is-3d{padding:0}
+.spl-home-leaders.is-3d .spl-home-track{max-width:none;height:calc(100vh + var(--n,3) * 55vh);height:calc(100svh + var(--n,3) * 55vh)}
+.spl-home-leaders.is-3d .spl-home-stage{position:sticky;top:0;height:100vh;height:100svh;overflow:clip;perspective:1400px;cursor:grab;user-select:none;touch-action:pan-y}
+.spl-home-leaders.is-3d .spl-home-stage.is-drag{cursor:grabbing}
+.spl-home-leaders.is-3d .spl-home-people{position:absolute;inset:0;display:block;transform-style:preserve-3d}
+.spl-home-leaders.is-3d .spl-home-leader{position:absolute;left:50%;top:48%;width:clamp(200px,min(40%,40vh),300px)}
+.spl-home-leaders.is-3d .spl-person{box-shadow:var(--spl-shadow)}
+.spl-home-leaders.is-3d .spl-person:hover{translate:none}
+.spl-home-leaders.is-3d img{pointer-events:none;-webkit-user-drag:none}
+.spl-home-leaders.is-3d .spl-home-stage-hint{position:absolute;left:0;right:0;top:clamp(16px,4vh,40px);display:block;margin:0;color:var(--spl-muted);font-size:.875rem;font-weight:700;text-align:center}
+.spl-home-leaders.is-3d .spl-home-stage-ctrl{position:absolute;left:0;right:0;bottom:clamp(14px,3.5vh,36px);z-index:200;display:flex;justify-content:center;gap:12px}
+.spl-home-leaders.is-3d .spl-home-after{padding:0 clamp(40px,5.5vw,96px) clamp(56px,12vh,128px)}
+.spl-home-ctrl{display:grid;place-items:center;width:52px;height:52px;padding:0;border:2px solid var(--spl-royal);border-radius:50%;background:#fff;color:var(--spl-royal);cursor:pointer}
+.spl-home-ctrl:hover{background:var(--spl-royal);color:#fff}
+.spl-home-ctrl .spl-ico{width:20px;height:20px}
+
+/* closing band: meeting facts */
+.spl-home-meet-empty{max-width:52ch;margin:clamp(20px,4vh,36px) 0 0;font-size:clamp(1.05rem,1.4vw,1.3rem);font-weight:700}
+.spl-home-meet-actions{display:flex;flex-wrap:wrap;gap:12px;margin-top:clamp(24px,4vh,40px)}
+
+/* ── 2026-10-05 ── */
+
+/* Our leaders (client, 2026-10-06): one consistent card, TWO a row everywhere (one below 360px) - the photo
+   in a rounded frame with a gold base, then role / name / Read more centred under it. The pile still deals out. */
+.spl-home-deal{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:clamp(12px,1.8vw,24px);margin:0;padding:0;list-style:none}
+.spl-home-deal.is-one{grid-template-columns:minmax(0,340px)}
+.spl-home-deal .spl-home-leader{position:relative;min-width:0}
+.spl-home-deal .spl-person{flex-direction:column;height:100%;padding:clamp(8px,1vw,12px);border:0;border-radius:var(--spl-radius-sm);background:#fff;
+  box-shadow:0 0 0 1px rgba(23,69,143,.1),0 22px 44px -30px rgba(11,35,80,.55);text-align:center}
+.spl-home-deal .spl-person-photo{position:relative;flex:none;aspect-ratio:4/5;overflow:hidden;border-radius:calc(var(--spl-radius-sm) - 6px);background:var(--spl-mist)}
+.spl-home-deal .spl-person-photo::after{content:"";position:absolute;left:0;right:0;bottom:0;height:5px;background:var(--spl-gold)}
+.spl-home-deal .spl-person-img{transition:transform .6s var(--spl-ease)}
+@media (hover:hover) and (pointer:fine){ .spl-home-deal .spl-person:hover .spl-person-img{transform:scale(1.05)} }
+.spl-home-deal .spl-person-body{display:flex;flex-direction:column;align-items:center;flex:1;min-width:0;padding:clamp(12px,1.6vw,18px) 6px clamp(4px,.8vw,8px)}
+.spl-home-deal .spl-person-role{margin:0 0 6px;color:var(--spl-azure);font-size:clamp(.6875rem,.85vw,.75rem);letter-spacing:.1em;text-transform:uppercase}
+/* the designation on ONE line (client, 2026-10-06): never wraps; on a narrow card it shrinks to fit its width */
+.spl-home-deal .spl-home-leader{container-type:inline-size}
+.spl-home-deal .spl-person-role{max-width:100%;white-space:nowrap;letter-spacing:.06em}
+@supports (width:1cqi){ .spl-home-deal .spl-person-role{font-size:clamp(8.5px,calc((100cqi - 40px) / (var(--rl,14) * .68)),12px)} }
+.spl-home-deal .spl-person-name{margin:0 0 clamp(12px,1.4vw,16px);font-size:clamp(1.05rem,1.7vw,1.6rem)}
+.spl-home-deal .spl-person:hover .spl-person-more{background:var(--spl-royal);color:#fff}
+.spl-home-deal .spl-person:hover .spl-person-more::after{transform:translateX(3px)}
+@media (max-width:359.98px){ .spl-home-deal{grid-template-columns:minmax(0,1fr)} }
+
+/* Where we meet as a chapter: at least a screen tall, its card centred - so the side panel switches to it and stays
+   fully on screen while it is in view (client, 2026-10-06) */
+.spl-home-meet .spl-facts{margin:0 0 24px}
+@media (min-width:1000px){ .spl-chapter.spl-home-meet{display:flex;flex-direction:column;justify-content:center;min-height:100vh;min-height:100svh} }
+
+/* the advertisements popup (native modal dialog) */
+.spl-adpop{max-width:calc(100% - 24px);max-height:calc(100% - 24px);margin:auto;padding:0;overflow:visible;border:0;background:none;color:var(--spl-night)}
+.spl-adpop::backdrop{background:rgba(11,35,80,.72);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
+.spl-adpop-in{display:flex;flex-direction:column;align-items:center;gap:14px;padding-top:58px}
+.spl-adpop-x{position:absolute;top:0;right:0;display:grid;place-items:center;width:48px;height:48px;padding:0;border:0;border-radius:50%;background:#fff;color:var(--spl-night);font-size:30px;line-height:1;cursor:pointer;box-shadow:var(--spl-shadow)}
+.spl-adpop-x:hover{background:var(--spl-gold)}
+.spl-adpop-card{padding:10px;border-radius:var(--spl-radius-sm);background:#fff;box-shadow:var(--spl-shadow)}
+.spl-adpop-link{display:block}
+.spl-adpop-img{display:block;width:auto;height:auto;max-width:min(86vw,720px);max-height:min(66svh,640px,calc(100svh - 150px));border-radius:calc(var(--spl-radius-sm) - 6px);object-fit:contain;background:var(--spl-mist)}
+.spl-adpop-ctrl{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:6px}
+.spl-adpop-step{display:grid;place-items:center;width:44px;height:44px;padding:0;border:0;border-radius:50%;background:#fff;color:var(--spl-royal);cursor:pointer}
+.spl-adpop-dot{display:grid;place-items:center;width:28px;height:44px;padding:0;border:0;background:none;cursor:pointer}
+.spl-adpop-dot i{display:block;width:10px;height:10px;border-radius:50%;background:rgba(255,255,255,.55)}
+.spl-adpop-dot[aria-current="true"] i{background:var(--spl-gold)}
+html[data-theme="split-story"]:has(.spl-adpop[open]){overflow:hidden}
+@media (prefers-reduced-motion:no-preference){ .spl-adpop[open] .spl-adpop-card{animation:splAdIn .5s cubic-bezier(.2,.8,.2,1)} }
+@keyframes splAdIn{from{opacity:0;transform:translateY(32px) scale(.96)}}
+
+/* Our Impact uses the column's full width, not the 720px text measure, so its three cards are bigger (client, 2026-10-06) */
+#spl-ch-numbers .spl-wrap{max-width:none}

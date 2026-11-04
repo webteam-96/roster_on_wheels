@@ -1,0 +1,94 @@
+/* ─────────────────────────────────────────────────────────────────────────────
+   HORIZONTAL JOURNEY · Newsletters (pages/Newsletters.jsx). Every class starts
+   hj-nl-; element selectors sit under a page class. No hidden start states:
+   motion (GSAP, motion.js) sets and clears its own. Tokens come from theme.css.
+   The cover look is the sample's (.cv) — restated here, never borrowed from
+   home.css, which may not be loaded.
+   ───────────────────────────────────────────────────────────────────────────── */
+
+/* the page ends on cream: the footer ridge rises over this room, not a white strip */
+.hj-nl.hj-endpad{padding-bottom:var(--hj-ftr)}
+
+/* ── hero: search + count on the violet sky ────────────────────────────────── */
+.hj-nl-find{display:flex;flex-wrap:wrap;align-items:center;gap:14px 22px}
+
+/* ── the printed cover ─────────────────────────────────────────────────────── */
+/* the cover's type scales with the cover (cqw), so 2-up on a phone and 5-up on a desktop read alike */
+.hj-nl-cv,.hj-nl-lead__cv{container-type:inline-size;min-width:0}
+.hj-nl-cv__box{
+  position:relative;display:flex;flex-direction:column;aspect-ratio:1/1.414;padding:clamp(12px,8.5cqw,26px);
+  border-radius:14px;overflow:hidden;text-decoration:none;box-shadow:0 34px 60px -24px rgba(30,6,40,.55);
+  transition:translate .35s var(--hj-ease);--hj-focus:var(--hj-violet);
+}
+/* translate (not transform): GSAP tweens the <li>, never this box */
+a.hj-nl-cv__box:hover{translate:0 -10px}
+.hj-nl-cv--0{background:var(--hj-gold);color:var(--hj-ink);--hj-sunc:var(--hj-cran);--hj-hillc:var(--hj-royal)}
+.hj-nl-cv--1{background:#fff;color:var(--hj-violet);--hj-sunc:var(--hj-gold);--hj-hillc:var(--hj-violet)}
+.hj-nl-cv__tag,.hj-nl-cv__name,.hj-nl-cv__ed{position:relative;z-index:1}
+.hj-nl-cv__tag{align-self:flex-start;padding:6px 9px;border:1.5px solid currentColor;border-radius:6px;font:800 11px/1 var(--hj-sans);letter-spacing:.16em;text-transform:uppercase}
+.hj-nl-cv__new{position:absolute;z-index:1;top:clamp(12px,8.5cqw,26px);right:clamp(12px,8.5cqw,26px);padding:5px 9px;border-radius:999px;background:var(--hj-violet);color:#fff;font:800 11px/1 var(--hj-sans);letter-spacing:.12em;text-transform:uppercase}
+.hj-nl-cv__name{
+  margin-top:clamp(10px,7cqw,22px);font:800 clamp(16px,11cqw,40px)/.98 var(--hj-disp);letter-spacing:-.035em;overflow-wrap:anywhere;
+  display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:4;overflow:hidden;
+}
+.hj-nl-cv__name.is-long{font-size:clamp(13px,7.4cqw,26px);line-height:1.05}
+.hj-nl-cv__ed{margin-top:8px;font-weight:750;font-size:clamp(11px,5.6cqw,15px);line-height:1.25;letter-spacing:.04em;overflow-wrap:anywhere;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden}
+/* hills + a low sun printed on the cover */
+.hj-nl-cv__art{position:absolute;left:0;right:0;bottom:0;height:44%;pointer-events:none}
+.hj-nl-cv__art::before{content:"";position:absolute;left:54%;bottom:44%;width:34%;aspect-ratio:1;border-radius:50%;background:var(--hj-sunc)}
+.hj-nl-cv__art::after{content:"";position:absolute;left:0;right:0;bottom:0;height:64%;background:var(--hj-hillc);clip-path:polygon(0 36%,16% 12%,32% 30%,50% 0,68% 26%,84% 8%,100% 26%,100% 100%,0 100%)}
+.hj-nl-cv__date{position:relative;z-index:1;margin-top:auto;display:flex;align-items:center;justify-content:space-between;gap:8px;color:#fff;font-weight:750;font-size:clamp(12px,5.8cqw,14.5px);line-height:1.2}
+.hj-nl-cv__date svg{width:18px;height:18px;flex:none}
+
+/* ── the latest issue: a cover standing on the hills of its own dusk ───────── */
+.hj-nl-lead{display:grid;gap:clamp(28px,4vw,64px);align-items:center}
+@media (min-width:800px){ .hj-nl-lead{grid-template-columns:minmax(0,1fr) minmax(0,1.1fr)} }
+.hj-nl-lead__sky{
+  position:relative;isolation:isolate;overflow:hidden;min-width:0;display:grid;place-items:end center;
+  min-height:clamp(320px,44vw,520px);padding:clamp(32px,5vw,56px) 20px clamp(26px,4vw,44px);border-radius:28px;
+  background-image:var(--hj-noise),linear-gradient(0deg,color-mix(in srgb,var(--hj-violet) 58%,#FFC857) 0,var(--hj-violet) 46%,#4A1A74 100%);
+  background-color:var(--hj-violet);box-shadow:0 30px 60px -30px rgba(40,8,60,.55);
+}
+.hj-nl-lead__sky .hj-stars{z-index:0}
+.hj-nl-lead__sun{
+  position:absolute;right:13%;bottom:34%;z-index:1;width:clamp(68px,10vw,130px);aspect-ratio:1;border-radius:50%;
+  background:radial-gradient(circle at 50% 44%,#FFFBEA 0%,#FFE7A6 38%,#FFC857 68%,#FF9F3A 100%);
+  box-shadow:0 0 46px 12px rgba(255,196,110,.45),0 0 120px 30px rgba(255,140,70,.22);
+}
+.hj-nl-lead__hills{position:absolute;left:0;right:0;bottom:-1px;height:42%;z-index:2;pointer-events:none}
+.hj-nl-lead__cv{position:relative;z-index:3;width:min(62%,290px)}
+.hj-nl-lead__cv .hj-nl-cv__box{transform:rotate(-3deg);box-shadow:0 40px 60px -22px rgba(20,4,40,.75)}
+.hj-nl-lead__txt{min-width:0}
+.hj-nl-lead__k{color:var(--hj-violet)}
+.hj-nl-lead__t{margin:0;color:var(--hj-ink);font:800 clamp(26px,4.2vw,52px)/1.02 var(--hj-disp);letter-spacing:-.03em;text-wrap:balance;overflow-wrap:anywhere}
+.hj-nl-lead__meta{margin:16px 0 0;font:650 16px/1.5 var(--hj-sans);color:var(--hj-ink-2)}
+.hj-nl-lead__go{margin:26px 0 0}
+.hj-nl-lead + .hj-nl-arch{padding-top:0}
+
+/* ── the archive: month by month ───────────────────────────────────────────── */
+.hj-nl-mo + .hj-nl-mo{margin-top:clamp(40px,6vw,72px)}
+.hj-nl-mo__hd{
+  position:relative;display:flex;flex-wrap:wrap;align-items:baseline;align-content:flex-end;gap:6px 16px;
+  min-height:calc(clamp(56px,10vw,120px) * .8);
+}
+/* the month's short name, outlined like the chapter numerals, kept inside the header's box */
+.hj-nl-mo__big{
+  position:absolute;right:0;bottom:0;z-index:0;pointer-events:none;user-select:none;white-space:nowrap;
+  font:800 clamp(56px,10vw,120px)/.8 var(--hj-disp);letter-spacing:-.05em;color:transparent;-webkit-text-stroke:1.5px rgba(144,31,147,.24);
+}
+@media (max-width:599px){ .hj-nl-mo__big{display:none} }
+.hj-nl-mo__t{position:relative;z-index:1;min-width:0;margin:0;color:var(--hj-ink);font:700 clamp(22px,3.4vw,36px)/1.1 var(--hj-disp);letter-spacing:-.025em;overflow-wrap:anywhere}
+.hj-nl-mo__n{position:relative;z-index:1;margin:0;color:var(--hj-violet);font:750 12.5px/1.2 var(--hj-sans);letter-spacing:.16em;text-transform:uppercase}
+.hj-nl-mo__line{position:relative;height:clamp(18px,2.4vw,28px);margin:8px 0 clamp(20px,3vw,32px)}
+
+.hj-nl-grid{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:clamp(14px,2.6vw,32px)}
+@media (min-width:640px){ .hj-nl-grid{grid-template-columns:repeat(3,minmax(0,1fr))} }
+@media (min-width:980px){ .hj-nl-grid{grid-template-columns:repeat(4,minmax(0,1fr))} }
+@media (min-width:1260px){ .hj-nl-grid{grid-template-columns:repeat(5,minmax(0,1fr))} }
+
+/* states on a cream page: the cream card needs a white one to stand out */
+.hj-nl .hj-empty{background:#fff;box-shadow:0 0 0 1px var(--hj-line)}
+
+/* small covers: a title word never splits mid-letter */
+.hj-nl-cv__name{overflow-wrap:break-word;hyphens:auto}
+@media (max-width:420px){ .hj-nl-cv__name{font-size:clamp(14px,8cqw,22px)} }

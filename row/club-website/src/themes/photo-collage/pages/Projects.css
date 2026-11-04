@@ -1,0 +1,58 @@
+/* ═════════════════════════════════════════════════════════════════════════════
+   PHOTO COLLAGE · PROJECTS (col-pj-*). The home wall, extended: tools on
+   paper strips in the page hero, the filtered totals as stickers, then the
+   year's work as taped prints over paper notes. Motion lives in Projects.jsx
+   (GSAP); nothing here hides anything.
+   ═════════════════════════════════════════════════════════════════════════════ */
+
+/* ── tools (inside PageHero) ─────────────────────────────────────────────── */
+.col-pj-tools{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,210px),1fr));gap:18px clamp(14px,2vw,24px);align-items:end}
+.col-pj-tools.is-solo{grid-template-columns:minmax(0,1fr)}
+.col-pj-find{grid-column:1 / -1;display:flex;flex-wrap:wrap;align-items:flex-end;gap:12px clamp(14px,2vw,24px);min-width:0}
+.col-pj .col-pj-tools .col-search{flex:1 1 260px;width:auto;max-width:520px;min-width:0}
+.col-pj-clear:disabled{opacity:.45;cursor:default;pointer-events:none}
+.col-pj-field{min-width:0}
+.col-pj-field-label{display:block;margin:0 0 6px;font-family:var(--col-hand);font-weight:700;font-size:1.2rem;line-height:1.3;color:var(--col-ink)}
+.col-pj-select{appearance:none;-webkit-appearance:none;display:block;width:100%;min-height:52px;padding:0 42px 0 14px;border:2px solid var(--col-ink);border-radius:4px;background:var(--col-white) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5l5 5 5-5' fill='none' stroke='%231C2340' stroke-width='2'/%3E%3C/svg%3E") no-repeat right 14px center/12px 8px;box-shadow:4px 4px 0 var(--col-kraft);color:var(--col-ink);font:inherit;font-size:1rem;font-weight:700;line-height:1.3;text-overflow:ellipsis;cursor:pointer;transform:rotate(.5deg)}
+.col-pj-field:nth-child(even) .col-pj-select{transform:rotate(-.5deg)}
+.col-pj-select:focus-visible{outline:3px solid var(--col-azure);outline-offset:3px}
+.col-pj-field.is-off .col-pj-select{border-style:dashed;background-color:var(--col-paper);color:var(--col-ink-2);box-shadow:none;cursor:not-allowed}
+
+/* ── the filtered totals ─────────────────────────────────────────────────── */
+.col-pj .col-pj-totals{padding-top:clamp(28px,5vh,64px);padding-bottom:clamp(40px,8vh,96px)}
+.col-pj-totals-h{max-width:var(--col-max);margin:0 auto clamp(24px,5vh,48px);font-family:var(--col-hand);font-weight:700;font-size:clamp(1.35rem,2.4vw,1.9rem);line-height:1.3;text-align:center;color:var(--col-ink)}
+.col-pj-counting{width:fit-content;max-width:100%;margin:0 auto;padding:18px 28px;background:var(--col-kraft) var(--col-grain);box-shadow:var(--col-lift);font-family:var(--col-hand);font-weight:700;font-size:clamp(1.3rem,2.2vw,1.7rem);line-height:1.3;color:var(--col-ink);transform:rotate(-2deg)}
+
+/* ── the wall ────────────────────────────────────────────────────────────── */
+.col-pj .col-pj-body{padding-top:clamp(24px,4vh,48px)}
+.col-pj-grid{display:grid;gap:clamp(44px,6vh,72px) clamp(20px,2.6vw,40px);max-width:var(--col-max);margin:0 auto;padding:0;list-style:none}
+.col-pj-card{position:relative;min-width:0}
+/* static note: the link's ::after then spans the whole print + note (one tab stop, whole card clickable) */
+.col-pj .col-pj-note{position:static;margin-top:14px}
+.col-pj-meta{display:flex;flex-wrap:wrap;align-items:center;gap:6px 12px;margin:0;color:var(--col-ink-2);font-size:.875rem;font-weight:700}
+.col-pj-desc{margin:.55em 0 .2em;font-size:1rem;line-height:1.6;overflow-wrap:anywhere}
+.col-pj-upd{display:flex;align-items:center;gap:8px;margin:.45em 0 0;font-family:var(--col-hand);font-weight:700;font-size:1.15rem;line-height:1.3;color:var(--col-royal)}
+.col-pj-upd::before{content:"";flex:none;width:20px;height:7px;border:2px solid #7D8597;border-bottom:0;border-radius:2px 2px 0 0}
+.col-pj-note .col-link::after{content:"";position:absolute;inset:0;z-index:4}
+.col-pj-note .col-link:focus-visible{outline:none}
+.col-pj-note .col-link:focus-visible::after{outline:3px solid var(--col-azure);outline-offset:6px}
+.col-pj-card:focus-within .col-print{box-shadow:var(--col-lift-hi)}
+@media (hover:hover) and (pointer:fine){
+  .col-pj-card:hover .col-print{transform:translateY(-6px) rotate(calc(var(--col-r,0deg) * .3)) scale(1.03);box-shadow:var(--col-lift-hi)}
+  .col-pj-card:hover .col-link{text-decoration-thickness:3px}
+}
+/* masonry (client, 2026-10-06): 4px rows, each card spans its own height (+ --col-pj-gap) - set by Projects.jsx */
+@media (min-width:600px){
+  .col-pj-grid{--col-pj-gap:clamp(40px,5vh,60px);grid-template-columns:repeat(2,minmax(0,1fr));grid-auto-rows:4px;row-gap:0;align-items:start}
+  .col-pj-card{align-self:start}
+}
+@media (min-width:1000px){ .col-pj-grid{grid-template-columns:repeat(3,minmax(0,1fr))} }
+@media (min-width:1400px){ .col-pj-grid{grid-template-columns:repeat(4,minmax(0,1fr))} }
+@media (max-width:599.98px){
+  .col-pj-card{width:94%}
+  .col-pj-card:nth-child(even){margin-left:auto}
+}
+
+/* ── show more ───────────────────────────────────────────────────────────── */
+.col-pj-more{display:flex;flex-direction:column;align-items:center;gap:12px;margin-top:clamp(48px,8vh,88px);text-align:center}
+.col-pj-more-n{margin:0;font-family:var(--col-hand);font-weight:700;font-size:1.2rem;line-height:1.35;color:var(--col-ink-2)}

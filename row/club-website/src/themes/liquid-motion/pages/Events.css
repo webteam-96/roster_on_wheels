@@ -1,0 +1,65 @@
+/* LIQUID MOTION · EVENTS — every class is liq-evt-*; kit classes are only read, never redefined.
+   Nothing here hides content waiting for JS (the flood, reveals and rolls are motion.js, motion-only). */
+
+/* ── the next event, on gold ── */
+.liq-evt-next__grid{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);align-items:center;gap:clamp(32px,5vw,96px)}
+.liq-evt-next__grid--solo{grid-template-columns:minmax(0,1fr);max-width:980px}
+.liq-evt-next__poster{display:block;min-width:0;overflow:hidden;border-radius:var(--liq-r);box-shadow:0 40px 70px -40px rgba(10,10,15,.55)}
+.liq-evt-next__body{min-width:0}
+.liq-evt-next__top{display:flex;flex-wrap:wrap;align-items:center;gap:12px 18px;margin-bottom:clamp(20px,3vw,40px)}
+.liq-evt-next__top .liq-kicker{margin:0}
+/* countdown: gold on ink, 10:1 */
+.liq-evt-when{display:inline-flex;align-items:center;min-height:32px;padding:0 14px;border-radius:999px;background:var(--liq-ink);color:var(--liq-gold);font:700 12.5px/1 var(--liq-sans);letter-spacing:.14em;text-transform:uppercase}
+
+/* the date plate: the day rolls (Odometer), month + year in caps, the weekday in the serif */
+.liq-evt-plate{display:grid;grid-template-columns:auto minmax(0,1fr);align-items:end;gap:6px clamp(14px,1.6vw,22px);margin:0 0 clamp(20px,2.6vw,32px)}
+.liq-evt-plate__d{grid-row:span 2;font:800 clamp(80px,8.4vw,112px)/.85 var(--liq-display);letter-spacing:-.05em}
+.liq-evt-plate__m{font:600 13px/1.2 var(--liq-sans);letter-spacing:.16em;text-transform:uppercase}
+.liq-evt-plate__w{font:italic 400 clamp(22px,2.2vw,32px)/1.1 var(--liq-serif);overflow-wrap:anywhere}
+
+.liq-evt-next__t{margin:0;font:600 clamp(30px,4.2vw,64px)/1.02 var(--liq-display);letter-spacing:-.035em;overflow-wrap:anywhere}
+.liq-evt-next__t a{color:inherit;text-decoration:none;text-underline-offset:.12em;text-decoration-thickness:2px}
+.liq-evt-next__t a:hover{text-decoration-line:underline}
+.liq-evt-next__v{max-width:52ch;margin:clamp(14px,1.6vw,20px) 0 0;font:500 clamp(17px,1.4vw,19px)/1.45 var(--liq-sans);overflow-wrap:anywhere}
+.liq-evt-next__x{max-width:56ch;margin:14px 0 0;color:var(--liq-fg-2);font-size:16.5px;overflow-wrap:anywhere}
+.liq-evt-next__cta{display:flex;flex-wrap:wrap;gap:10px;margin-top:clamp(24px,3vw,36px)}
+@media (max-width:899px){
+  .liq-evt-next__grid{grid-template-columns:minmax(0,1fr)}
+  .liq-evt-next__poster{max-width:520px}
+}
+
+/* ── the diary ── */
+.liq-evt-month + .liq-evt-month{margin-top:clamp(56px,7vw,104px)}
+.liq-evt-month__h{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 14px;margin:0 0 clamp(16px,2vw,24px)}
+.liq-evt-month__name{min-width:0;font:600 clamp(28px,3.6vw,52px)/1.02 var(--liq-display);letter-spacing:-.03em;overflow-wrap:anywhere}
+.liq-evt-month__yr{font:italic 400 clamp(26px,3.3vw,48px)/1 var(--liq-serif);color:var(--liq-link)}
+.liq-evt-month__n{margin-left:auto;color:var(--liq-fg-2);font:600 12.5px/1.3 var(--liq-sans);letter-spacing:.16em;text-transform:uppercase}
+
+/* a row: date plate | title + weekday/venue | action - the kit row, recomposed inside its title cell */
+.liq-evt-row .liq-row__t{display:flex;align-items:center;gap:clamp(16px,2.6vw,40px);font:inherit;letter-spacing:normal}
+.liq-evt-row__date{flex:none;display:grid;justify-items:center;width:clamp(72px,7vw,100px);text-align:center}
+.liq-evt-row__date b{font:700 clamp(34px,4vw,56px)/.9 var(--liq-display);letter-spacing:-.04em}
+.liq-evt-row__date span{margin-top:6px;font:600 12px/1.25 var(--liq-sans);letter-spacing:.16em;text-transform:uppercase}
+.liq-evt-row__txt{display:grid;gap:6px;min-width:0}
+.liq-evt-row__t{font:600 clamp(19px,2vw,28px)/1.18 var(--liq-display);letter-spacing:-.02em;overflow-wrap:anywhere}
+.liq-evt-row__sub{color:var(--liq-fg-2);font:500 15.5px/1.45 var(--liq-sans);overflow-wrap:anywhere}
+/* on the ink flood the paper greys would sink: mute is 7.9:1 on ink */
+.liq-evt-row:hover .liq-evt-row__sub,.liq-evt-row:focus-visible .liq-evt-row__sub{color:var(--liq-mute)}
+.liq-evt-row--past .liq-evt-row__t,.liq-evt-row--past .liq-evt-row__date{color:var(--liq-fg-2)}
+.liq-evt-row--past:hover .liq-evt-row__t,.liq-evt-row--past:hover .liq-evt-row__date,
+.liq-evt-row--past:focus-visible .liq-evt-row__t,.liq-evt-row--past:focus-visible .liq-evt-row__date{color:inherit}
+.liq-evt-month--past .liq-evt-month__name{font-size:clamp(22px,2.6vw,36px)}
+
+/* ── nothing listed: the weekly meeting floods in instead (the home's meeting, not pinned) ── */
+.liq-evt-meet__day{--liq-lw:8;margin:0 0 clamp(24px,3vw,40px);font:800 min(13vw,210px,calc((100vw - 2 * var(--liq-pad)) / (var(--liq-lw) * .84)))/.9 var(--liq-display);letter-spacing:-.05em}
+.liq-evt-meet__info{display:flex;flex-wrap:wrap;align-items:center;gap:20px 40px;padding-top:24px;border-top:1px solid var(--liq-line)}
+.liq-evt-meet__time{margin:0;font:600 clamp(24px,2.6vw,36px)/1.1 var(--liq-display);letter-spacing:-.02em}
+.liq-evt-meet__venue{flex:1 1 280px;min-width:0;max-width:44ch;margin:0;font-size:17px;overflow-wrap:anywhere}
+/* phones: each event is one full-width card - the date on top, then the title and details, then the action (client, 2026-09-29) */
+@media (max-width:699px){
+  .liq-row.liq-evt-row{grid-template-columns:minmax(0,1fr);gap:12px;padding:18px 16px}
+  .liq-evt-row .liq-row__t{flex-direction:column;align-items:flex-start;gap:10px;grid-column:1 / -1}
+  .liq-evt-row__date{display:flex;align-items:baseline;gap:8px;width:auto;text-align:left}
+  .liq-evt-row__date span{margin-top:0}
+  .liq-evt-row .liq-row__go{justify-self:start}
+}

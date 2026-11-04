@@ -1,0 +1,37 @@
+/* LIQUID MOTION · ABOUT — every class is liq-abt-*; kit classes are only read, never redefined.
+   Nothing here hides content waiting for JS (motion.js does the entrances). */
+
+/* ── the statement + the drifting outlined year (home.css is not loaded here) ── */
+.liq-abt-lead{position:relative;margin-bottom:clamp(56px,7vw,112px)}
+.liq-abt-statement{position:relative;max-width:20.5em;margin:0;font:400 clamp(28px,4.2vw,66px)/1.08 var(--liq-serif);letter-spacing:-.01em;overflow-wrap:anywhere}
+.liq-abt-statement .liq-em{color:var(--liq-azure-ink)}
+
+/* ── the club's HTML beside the sticky card ── */
+.liq-abt-cols{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:32px;align-items:start}
+.liq-abt-body{grid-column:1 / span 7;min-width:0}
+.liq-abt-card{grid-column:9 / span 4}
+@media (max-width:1199px){ .liq-abt-card{grid-column:8 / span 5} }
+/* sticky only where the card fits the screen */
+@media (min-width:900px) and (min-height:720px){ .liq-abt-card{position:sticky;top:calc(var(--liq-hh) + 24px)} }
+/* one track under 900px: 12 tracks keep 11 x 32px of gaps, wider than a phone */
+@media (max-width:899px){
+  .liq-abt-cols{grid-template-columns:minmax(0,1fr);gap:48px}
+  .liq-abt-body,.liq-abt-card{grid-column:1 / -1}
+}
+
+/* ── the card: crest + club name, then the facts ── */
+.liq-abt-card__head{display:flex;align-items:center;gap:18px;min-width:0}
+.liq-abt-crest{flex:none;display:grid;place-items:center;width:96px;height:96px;overflow:hidden;border-radius:50%;background:#fff;box-shadow:0 0 0 1px var(--liq-paper-line),0 0 0 7px var(--liq-paper)}
+.liq-abt-crest img{display:block;width:84%;height:84%;object-fit:contain}
+.liq-abt-card__id{min-width:0}
+.liq-abt-card__cap{margin:0 0 6px;color:var(--liq-accent);font:600 12px/1.3 var(--liq-sans);letter-spacing:.16em;text-transform:uppercase}
+.liq-abt-card__name{margin:0;font:600 clamp(18px,1.6vw,22px)/1.2 var(--liq-display);letter-spacing:-.02em;overflow-wrap:anywhere}
+.liq-abt-venue{display:block}
+.liq-abt-card .liq-link{margin-top:2px}
+.liq-abt-soc{display:flex;flex-wrap:wrap;gap:8px;margin:2px 0 0;padding:0;list-style:none}
+.liq-abt-soc .liq-chip{padding:0 16px}
+.liq-abt-soc .liq-chip .liq-ico{width:14px;height:14px}
+@media (max-width:420px){ .liq-abt-crest{width:76px;height:76px} }
+
+/* ── keep exploring ── */
+.liq-abt-more .liq-sh{margin-bottom:clamp(32px,4vw,64px)}

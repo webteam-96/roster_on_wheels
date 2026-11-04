@@ -1,0 +1,74 @@
+/* ─────────────────────────────────────────────────────────────────────────────
+   HORIZONTAL JOURNEY · Projects (pages/Projects.jsx). Every class is hj-proj-*;
+   kit classes (.hj-stats, .hj-card…) are only restyled UNDER a page class.
+   No hidden start states here: the entrances live in the page's GSAP scenes.
+   ───────────────────────────────────────────────────────────────────────────── */
+
+/* ── hero aside: the filtered totals as the shape skyline ───────────────────── */
+.hj-proj-stats{display:grid;gap:12px;justify-items:start;min-width:0}
+/* shapes sized so every label fits its shape at 390px (Beneficiaries needs a 108px circle) */
+.hj-proj-stats .hj-stats{--s:clamp(120px,34vw,150px);gap:12px;justify-content:flex-start}
+.hj-proj-stats .hj-stat__n{font-size:clamp(17px,4.4vw,24px)}
+.hj-proj-stats .hj-stat__l{font-size:12px;letter-spacing:.04em}
+.hj-proj-stats__note{margin:0;font:650 14px/1.4 var(--hj-sans)}
+@media (min-width:900px){
+  .hj-proj-stats{justify-items:end;text-align:right}
+  .hj-proj-stats .hj-stats{justify-content:flex-end}
+}
+
+/* ── hero aside: the year's count as one giant outlined figure (fill wipes in) ─ */
+.hj-proj-tally{display:flex;flex-direction:column;align-items:flex-start;min-width:0}
+.hj-proj-tally__n{
+  position:relative;margin:0;white-space:nowrap;
+  font:800 min(200px,calc(560px / var(--hj-d,3)),calc(100vw / var(--hj-d,3)))/.86 var(--hj-disp);letter-spacing:-.05em;
+}
+.hj-proj-tally__o{color:transparent;-webkit-text-stroke:2px rgba(255,255,255,.85)}
+.hj-proj-tally__f{position:absolute;inset:0;color:#fff}
+.hj-proj-tally__l{margin:12px 0 0;font:750 13px/1.2 var(--hj-sans);letter-spacing:.2em;text-transform:uppercase}
+@media (min-width:900px){ .hj-proj-tally{align-items:flex-end;text-align:right} }
+
+/* ── the filter panel, standing on the hero's front ridge ──────────────────── */
+.hj-proj-tools{position:relative;z-index:2;margin-top:calc(-1 * clamp(28px,5vw,72px))}
+.hj-proj-panel{
+  display:grid;gap:clamp(16px,2vw,22px);padding:clamp(18px,3vw,32px);
+  background:#fff;color:var(--hj-ink);border-radius:24px;box-shadow:var(--hj-shadow);--hj-focus:var(--hj-ink);
+}
+.hj-proj-fields{display:grid;gap:14px 18px;grid-template-columns:minmax(0,1fr)}
+@media (min-width:700px){ .hj-proj-fields{grid-template-columns:repeat(auto-fit,minmax(210px,1fr))} }
+@media (min-width:1100px){ .hj-proj-field--q{grid-column:span 2} }
+.hj-proj-field{display:grid;gap:7px;min-width:0;align-content:start}
+.hj-proj-field__l{font:750 12px/1.2 var(--hj-sans);letter-spacing:.16em;text-transform:uppercase;color:var(--hj-ink-2)}
+.hj-proj-field .hj-search{max-width:none}
+.hj-proj-sel{position:relative;min-width:0}
+.hj-proj-sel select{
+  display:block;width:100%;height:52px;padding:0 44px 0 18px;border-radius:999px;border:1.5px solid rgba(20,26,51,.22);
+  background:#fff;color:var(--hj-ink);font:600 15.5px/1 var(--hj-sans);text-overflow:ellipsis;cursor:pointer;
+  -webkit-appearance:none;appearance:none;
+}
+.hj-proj-sel select:hover:not(:disabled){border-color:var(--hj-ink)}
+.hj-proj-sel select:focus-visible{outline:3px solid var(--hj-cran);outline-offset:2px}
+.hj-proj-sel select:disabled{color:var(--hj-ink-2);background:var(--hj-cream);cursor:default}
+.hj-proj-sel svg{position:absolute;right:18px;top:50%;width:12px;height:8px;margin-top:-4px;pointer-events:none;color:var(--hj-cran)}
+
+/* ── the list ──────────────────────────────────────────────────────────────── */
+.hj-proj-list{padding-top:clamp(40px,6vw,80px)}
+.hj-proj-head{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:10px 28px;margin-bottom:clamp(24px,3.4vw,44px)}
+.hj-proj-head .hj-sh{margin:0;flex:1 1 320px;min-width:0}
+.hj-proj-head .hj-kicker{color:var(--hj-azure)}
+.hj-proj-head .hj-count{padding-bottom:6px}
+
+.hj-proj-grid{list-style:none;margin:0;padding:0;display:grid;gap:clamp(22px,2.6vw,34px);grid-template-columns:minmax(0,1fr)}
+@media (min-width:620px){ .hj-proj-grid{grid-template-columns:repeat(2,minmax(0,1fr))} }
+/* three across: the middle column walks lower, like the sample's staggered cards.
+   Margins, not `translate`: the reveal tweens these li and GSAP writes an inline
+   translate:none. The negative bottom keeps the card its row's height. */
+@media (min-width:1100px){
+  .hj-proj-grid{grid-template-columns:repeat(3,minmax(0,1fr));padding-bottom:56px}
+  .hj-proj-grid > li:nth-child(3n+2){margin-top:56px;margin-bottom:-56px}
+}
+.hj-proj-grid .hj-card{--hj-ring:var(--hj-azure)}
+.hj-proj-grid .hj-card__d{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:3;overflow:hidden}
+.hj-proj-upd{display:inline-flex;align-items:center;gap:8px;margin:auto 0 0;padding-top:4px;font:750 12.5px/1.2 var(--hj-sans);letter-spacing:.08em;text-transform:uppercase;color:var(--hj-azure)}
+.hj-proj-upd__ico{width:20px;height:12px;flex:none}
+
+.hj-proj-more{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:12px 22px;margin-top:clamp(36px,5vw,64px)}

@@ -1,0 +1,44 @@
+/* Split Story · Directors (spl-bod-). Kit classes are not restyled here.
+   Board rows: white card, 4:5 portrait left, azure role, condensed night name.
+   Leads (president/secretary): night plate, gold role, big condensed name, sky orbit.
+   Phones: rows keep the photo beside the name with the bio full width below;
+   lead plates stack with the photo on top (max 320px). */
+
+.spl-bod-find{display:grid;gap:12px;max-width:560px}
+
+.spl-bod-list{display:grid;gap:clamp(16px,2.4vw,28px);margin:0;padding:0;list-style:none}
+
+.spl-bod-item{position:relative;display:grid;grid-template-columns:clamp(112px,32%,210px) minmax(0,1fr);grid-template-rows:auto 1fr;column-gap:clamp(16px,2.4vw,32px);min-width:0;padding:clamp(12px,1.2vw,16px);overflow:hidden;border:1px solid var(--spl-line);border-radius:24px;background:#fff}
+.spl-bod-photo{position:relative;grid-column:1;grid-row:1/span 2;align-self:start;aspect-ratio:4/5;overflow:hidden;border-radius:16px;background:var(--spl-mist);container-type:inline-size}
+.spl-bod-img{display:block;width:100%;height:100%;object-fit:cover;object-position:50% 22%}
+.spl-bod-mono{display:grid;place-items:center;width:100%;height:100%;background:var(--spl-royal);color:var(--spl-gold);font-family:var(--spl-display);font-stretch:68%;font-weight:800;font-size:40cqi;line-height:1}
+.spl-bod-head{grid-column:2;grid-row:1;min-width:0;padding-top:clamp(2px,.8vw,10px)}
+.spl-bod-text{grid-column:2;grid-row:2;min-width:0}
+.spl-bod-role{margin:0 0 6px;color:var(--spl-azure);font-size:.8125rem;font-weight:800;line-height:1.35;overflow-wrap:anywhere}
+.spl-bod-name{margin:0;color:var(--spl-night);font-family:var(--spl-display);font-stretch:78%;font-weight:800;font-size:clamp(1.45rem,2.3vw,2.1rem);line-height:1.02;letter-spacing:-.005em;overflow-wrap:anywhere}
+.spl-bod-bio{margin:12px 0 0;color:var(--spl-muted);font-size:.9375rem;line-height:1.6;overflow-wrap:anywhere;text-wrap:pretty}
+.spl-bod-more{margin-top:14px}
+
+/* leads: the night plates */
+.spl-bod-item--lead{grid-template-columns:minmax(0,42%) minmax(0,1fr);column-gap:clamp(20px,3vw,40px);padding:clamp(14px,1.8vw,24px);border:0;border-radius:var(--spl-radius);background:var(--spl-night);color:#fff;box-shadow:var(--spl-shadow)}
+.spl-bod-item--lead .spl-bod-photo{border-radius:var(--spl-radius-sm)}
+.spl-bod-item--lead .spl-bod-head,.spl-bod-item--lead .spl-bod-text{position:relative}
+.spl-bod-item--lead .spl-bod-head{padding-top:clamp(8px,2vw,28px)}
+.spl-bod-item--lead .spl-bod-role{margin-bottom:10px;color:var(--spl-gold);font-size:.9375rem}
+.spl-bod-item--lead .spl-bod-name{color:#fff;font-stretch:68%;font-size:clamp(2.1rem,3.8vw,3.5rem);line-height:.92;letter-spacing:-.01em}
+.spl-bod-item--lead .spl-bod-bio{margin-top:16px;color:rgba(255,255,255,.82);font-size:1rem}
+.spl-bod-ring{position:absolute;right:-70px;top:-70px;width:240px;aspect-ratio:1;border:1.5px solid rgba(60,196,255,.5);border-radius:50%;pointer-events:none}
+.spl-bod-ring i{position:absolute;left:50%;bottom:-7px;width:14px;height:14px;margin-left:-7px;border-radius:50%;background:var(--spl-gold)}
+
+@media (max-width:599.98px){
+  .spl-bod-item{grid-template-columns:minmax(0,38%) minmax(0,1fr);grid-template-rows:auto auto;column-gap:14px}
+  .spl-bod-photo{grid-row:1}
+  .spl-bod-head{align-self:center;padding-top:0}
+  .spl-bod-text{grid-column:1/-1}
+  .spl-bod-bio{margin-top:14px}
+  .spl-bod-item--lead{grid-template-columns:minmax(0,1fr)}
+  .spl-bod-item--lead .spl-bod-photo{width:100%;max-width:320px}
+  .spl-bod-item--lead .spl-bod-head{grid-column:1;grid-row:2;align-self:start;padding-top:18px}
+  .spl-bod-item--lead .spl-bod-text{grid-column:1;grid-row:3}
+  .spl-bod-ring{right:-90px;top:-90px}
+}

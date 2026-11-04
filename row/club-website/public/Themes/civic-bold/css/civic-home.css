@@ -1,0 +1,2024 @@
+/* ============================================================================
+   civic-home.css — HOME-ONLY premium composition layer for Civic Bold ("Azure
+   Editorial Cinema" redesign). Linked from HomeCivicBold.aspx's HeadContent so
+   it loads AFTER theme.css + civic-motion.css and only on the home page.
+
+   Everything reads the theme's RGB-triple tokens (--c-canvas/-surface/-panel/
+   -navy/-gold[azure]/-gold-cta[warm gold]/-ink/-muted/-on-gold/-line) so the
+   light default AND dark mode both work untouched. Layout is hand-written CSS
+   (no new Tailwind utilities → no purge risk). Honors the club's standing
+   decisions: Rotary azure/gold palette, Poppins small text, 12px soft corners,
+   sentence-case display headings, full 16:5 banner always visible.
+
+   Perf: animations are transform/opacity only; blurs are static; everything is
+   neutralised under prefers-reduced-motion at the bottom.
+   ========================================================================== */
+
+:root {
+    --cv2-ease: var(--ease-emphasized, cubic-bezier(0.22, 1, 0.36, 1));
+    --cv2-spring: var(--ease-spring, cubic-bezier(0.34, 1.32, 0.46, 1));
+    --cv2-font-ui: "Poppins", "Helvetica Neue", Arial, sans-serif;
+    /* film-grain noise (SVG turbulence, self-contained data URI) */
+    --cv2-noise: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.55'/%3E%3C/svg%3E");
+}
+
+/* ── Accessibility: visible, on-brand focus ring everywhere on the page ──── */
+main :is(a, button, select, input):focus-visible {
+    outline: 2px solid rgb(var(--c-gold));
+    outline-offset: 2px;
+    border-radius: var(--cv-r-sm, 8px);
+}
+::selection { background: rgb(var(--c-gold) / 0.22); }
+
+/* ══════════════════════════════════════════════════════════════════════════
+   SHARED ATMOSPHERE PIECES — grain, aurora glows, fine grid
+   ══════════════════════════════════════════════════════════════════════════ */
+.cv2-noise {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+    background-image: var(--cv2-noise);
+    background-size: 140px 140px;
+    opacity: 0.05;
+}
+:root[data-civic-mode=dark] .cv2-noise { opacity: 0.09; }
+
+/* aurora — two soft glow blobs that drift very slowly (transform only) */
+.cv2-aurora {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    overflow: hidden;
+    pointer-events: none;
+}
+.cv2-aurora::before,
+.cv2-aurora::after {
+    content: "";
+    position: absolute;
+    width: 46vw; height: 46vw;
+    min-width: 380px; min-height: 380px;
+    border-radius: 50%;
+    filter: blur(70px);
+    will-change: transform;
+}
+.cv2-aurora::before {
+    top: -18%; right: -10%;
+    background: radial-gradient(circle at 40% 40%, rgb(var(--c-gold) / 0.20), transparent 62%);
+    animation: cv2-drift-a 22s ease-in-out infinite alternate;
+}
+.cv2-aurora::after {
+    bottom: -30%; left: -14%;
+    background: radial-gradient(circle at 60% 50%, rgb(var(--c-gold-cta) / 0.13), transparent 60%);
+    animation: cv2-drift-b 28s ease-in-out infinite alternate;
+}
+:root[data-civic-mode=dark] .cv2-aurora::before {
+    background: radial-gradient(circle at 40% 40%, rgb(var(--c-gold) / 0.28), transparent 62%);
+}
+:root[data-civic-mode=dark] .cv2-aurora::after {
+    background: radial-gradient(circle at 60% 50%, rgb(var(--c-gold-cta) / 0.16), transparent 60%);
+}
+@keyframes cv2-drift-a {
+    from { transform: translate3d(0, 0, 0) scale(1); }
+    to   { transform: translate3d(-7%, 9%, 0) scale(1.12); }
+}
+@keyframes cv2-drift-b {
+    from { transform: translate3d(0, 0, 0) scale(1.06); }
+    to   { transform: translate3d(9%, -7%, 0) scale(0.96); }
+}
+
+/* fine blueprint grid, faded out toward the edges */
+.cv2-grid {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    background-image:
+        linear-gradient(rgb(var(--c-navy) / 0.05) 1px, transparent 1px),
+        linear-gradient(90deg, rgb(var(--c-navy) / 0.05) 1px, transparent 1px);
+    background-size: 46px 46px;
+    -webkit-mask-image: radial-gradient(120% 100% at 50% 40%, #000 45%, transparent 92%);
+            mask-image: radial-gradient(120% 100% at 50% 40%, #000 45%, transparent 92%);
+}
+
+/* floating geometric shapes (diamond / ring / plus) with pointer parallax */
+.cv2-shape {
+    position: absolute;
+    z-index: 0;
+    pointer-events: none;
+    color: rgb(var(--c-gold) / 0.5);
+    will-change: transform;
+    transition: transform .6s var(--cv2-ease);
+    animation: cv2-float 7s ease-in-out infinite alternate;
+}
+.cv2-shape--ring {
+    width: 54px; height: 54px;
+    border: 1.5px solid rgb(var(--c-gold) / 0.32);
+    border-radius: 50%;
+    animation-duration: 9s;
+}
+.cv2-shape--diamond {
+    width: 16px; height: 16px;
+    background: rgb(var(--c-gold-cta) / 0.4);
+    rotate: 45deg;      /* `rotate` property — survives the JS parallax transform */
+    animation-duration: 8s;
+}
+.cv2-shape--plus { font-size: 26px; line-height: 1; font-weight: 300; color: rgb(var(--c-navy) / 0.28); }
+@keyframes cv2-float {
+    from { translate: 0 0; }
+    to   { translate: 0 -14px; }
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   1 · HERO — typographic identity + floating banner poster-frame
+   ══════════════════════════════════════════════════════════════════════════ */
+.cv2-hero {
+    position: relative;
+    overflow: hidden;
+    /* Meridian night-sky treatment — always dark, in BOTH site modes */
+    background: #061634;
+    border-bottom: 1px solid rgb(255 255 255 / 0.08);
+}
+.cv2-hero > .container-x { position: relative; z-index: 2; }
+
+/* starfield canvas host (initStarfield injects the <canvas>) */
+.cv2-hero__bg { position: absolute; inset: 0; z-index: 0; pointer-events: none; }
+.cv2-stars__canvas { display: block; width: 100%; height: 100%; }
+/* azure + gold veil over the field (from the reference .hero-veil) */
+.cv2-hero__veil {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+    background:
+        radial-gradient(115% 78% at 76% 22%, rgb(46 107 230 / 0.30), transparent 58%),
+        radial-gradient(85% 62% at 12% 88%, rgb(212 164 41 / 0.20), transparent 62%),
+        linear-gradient(178deg, rgb(6 22 52 / 0.30) 0%, rgb(6 22 52 / 0.72) 68%, #061634 100%);
+}
+.cv2-hero .cv2-noise { opacity: 0.07; }
+
+/* pane labels flip light on the night sky */
+.cv2-hero .cv2-panehead__label { color: #F0CE72; }
+.cv2-hero .cv2-panehead__link { color: rgb(255 255 255 / 0.55); }
+.cv2-hero .cv2-panehead__link:hover { color: #fff; }
+
+/* Banner card: white frame; the stage shows the blurred cover-fill so a wide
+   16:5 banner FILLS the box (no white letterbox voids) while the sharp
+   object-contain image stays uncropped on top. (Re-enabled the blur fill that
+   was previously hidden, which left the image floating in white.) */
+.cv2-hero .cv2-frame { background: #fff; border-color: rgb(255 255 255 / 0.7); }
+.cv2-hero .cv2-frame__stage { background: #fff; }
+.cv2-hero .cv2-frame__stage img.blur-xl { display: block; }
+/* inactive slider dots were white-on-white on the white stage */
+.cv2-hero .cv2-frame__dots .bg-white\/60 { background-color: rgb(6 22 52 / 0.30); }
+
+/* side panes: readable white cards in BOTH site modes on the dark band */
+.cv2-hero .cv2-adframe { background: rgb(255 255 255 / 0.92); border-color: rgb(255 255 255 / 0.6); }
+.cv2-hero .cv2-ev { background: rgb(255 255 255 / 0.94); border-color: rgb(255 255 255 / 0.55); }
+.cv2-hero .cv2-ev__title { color: #102034; }
+.cv2-hero .cv2-ev__meta { color: #5A6A80; }
+/* empty pane goes glass-dark, like the reference's hero panel */
+.cv2-hero .cv2-empty {
+    background: rgb(255 255 255 / 0.06);
+    border-color: rgb(255 255 255 / 0.28);
+    color: rgb(255 255 255 / 0.7);
+    -webkit-backdrop-filter: blur(8px);
+            backdrop-filter: blur(8px);
+}
+.cv2-hero .cv2-empty::before { color: #F0CE72; }
+
+.cv2-hero__head {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding-top: clamp(3rem, 7vh, 5.5rem);
+}
+
+/* eyebrow chip */
+.cv2-eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+    padding: 0.45rem 0.95rem;
+    border: 1px solid rgb(var(--c-line));
+    border-radius: 999px;
+    background: rgb(var(--c-panel) / 0.72);
+    -webkit-backdrop-filter: blur(8px);
+            backdrop-filter: blur(8px);
+    font-family: var(--cv2-font-ui);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: rgb(var(--c-muted));
+    box-shadow: 0 1px 2px rgb(var(--c-navy) / 0.05);
+}
+.cv2-eyebrow em { font-style: normal; color: rgb(var(--c-gold)); }
+
+/* giant headline (split-text). Sentence case per the club's standing request. */
+.cv2-hero__title {
+    margin-top: 1.4rem;
+    max-width: 20ch;
+    font-family: "Helvetica Neue", Arial, "Segoe UI", sans-serif;
+    font-size: clamp(2.5rem, 6.2vw, 5rem);
+    font-weight: 700;
+    line-height: 1.04;
+    letter-spacing: -0.02em;
+    color: rgb(var(--c-ink));
+}
+.cv2-hero__title .cv2-dot { color: rgb(var(--c-gold)); }
+
+.cv2-hero__sub {
+    margin-top: 1.15rem;
+    max-width: 56ch;
+    font-size: clamp(1rem, 1.35vw, 1.15rem);
+    line-height: 1.7;
+    color: rgb(var(--c-ink) / 0.72);
+}
+
+.cv2-hero__ctas {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.8rem;
+    margin-top: 1.9rem;
+}
+/* The compiled .civic-btn-accent carries ONLY colours (no display/padding/type
+   — see the drawer fix in civic-motion.css). Give the hero instance real
+   button geometry so it matches the ghost civic-btn beside it. */
+.cv2-hero__ctas .civic-btn-accent {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.8rem 1.5rem;
+    font-family: var(--cv2-font-ui);
+    font-size: 12.5px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    box-shadow: 0 10px 26px -12px rgb(var(--c-gold) / 0.7);
+}
+
+/* trust chips row */
+.cv2-hero__chips {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.55rem;
+    margin-top: 1.6rem;
+}
+.cv2-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.42rem 0.85rem;
+    border: 1px solid rgb(var(--c-line));
+    border-radius: 999px;
+    background: rgb(var(--c-panel) / 0.6);
+    -webkit-backdrop-filter: blur(6px);
+            backdrop-filter: blur(6px);
+    font-family: var(--cv2-font-ui);
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    color: rgb(var(--c-muted));
+    transition: border-color .3s var(--cv2-ease), color .3s var(--cv2-ease), transform .3s var(--cv2-ease);
+}
+.cv2-chip:hover { border-color: rgb(var(--c-gold) / 0.55); color: rgb(var(--c-ink)); transform: translateY(-1px); }
+.cv2-chip svg { width: 13px; height: 13px; color: rgb(var(--c-gold)); flex: none; }
+
+/* ── the floating banner poster-frame ── */
+.cv2-framewrap {
+    position: relative;
+    z-index: 2;
+    padding: clamp(2rem, 4.5vh, 3.25rem) 0 clamp(2.4rem, 5vh, 3.5rem);
+    perspective: 1400px;
+}
+.cv2-frame {
+    position: relative;
+    padding: 10px;
+    border-radius: calc(var(--cv-r, 12px) + 8px);
+    background: rgb(var(--c-panel) / 0.72);
+    -webkit-backdrop-filter: blur(10px);
+            backdrop-filter: blur(10px);
+    border: 1px solid rgb(var(--c-line));
+    box-shadow:
+        0 1px 0 rgb(255 255 255 / 0.55) inset,
+        0 24px 70px -28px rgb(var(--c-gold) / 0.4),
+        0 12px 34px -18px rgb(var(--c-navy) / 0.25);
+    transition: box-shadow .5s var(--cv2-ease);
+}
+:root[data-civic-mode=dark] .cv2-frame {
+    box-shadow:
+        0 1px 0 rgb(255 255 255 / 0.07) inset,
+        0 26px 80px -26px rgb(var(--c-gold) / 0.5),
+        0 12px 34px -18px rgb(0 0 0 / 0.6);
+}
+.cv2-frame:hover {
+    box-shadow:
+        0 1px 0 rgb(255 255 255 / 0.55) inset,
+        0 30px 90px -26px rgb(var(--c-gold) / 0.55),
+        0 14px 40px -18px rgb(var(--c-navy) / 0.3);
+}
+/* soft gradient halo behind the frame */
+.cv2-framewrap::before {
+    content: "";
+    position: absolute;
+    inset: 8% -4% 4% -4%;
+    z-index: -1;
+    background:
+        radial-gradient(52% 68% at 30% 42%, rgb(var(--c-gold) / 0.16), transparent 68%),
+        radial-gradient(46% 60% at 74% 60%, rgb(var(--c-gold-cta) / 0.12), transparent 66%);
+    filter: blur(34px);
+    pointer-events: none;
+}
+/* the slider stage: TRUE 8:3 banner ratio — the site-wide standard every theme
+   now uses, so a 1920x720 upload fits exactly (object-contain); older odd-ratio
+   uploads letterbox over the blurred cover fill and are never cropped. */
+.cv2-frame__stage {
+    position: relative;
+    overflow: hidden;
+    border-radius: var(--cv-r, 12px);
+    aspect-ratio: 8 / 3;
+    min-height: 210px;
+    background: rgb(var(--c-navy));
+    transform: translateZ(0);   /* isolate the Ken Burns repaint */
+}
+
+/* controls — glass cluster, bottom-right */
+.cv2-frame__controls {
+    position: absolute;
+    right: 14px; bottom: 12px;
+    z-index: 20;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+.cv2-frame__btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px; height: 34px;
+    border: 1px solid rgb(255 255 255 / 0.28);
+    border-radius: var(--cv-r-sm, 8px);
+    background: rgb(10 16 26 / 0.42);
+    color: #fff;
+    -webkit-backdrop-filter: blur(8px);
+            backdrop-filter: blur(8px);
+    transition: background-color .25s ease, border-color .25s ease, transform .25s var(--cv2-spring);
+}
+.cv2-frame__btn:hover {
+    background: rgb(var(--c-gold) / 0.9);
+    border-color: rgb(var(--c-gold));
+    transform: translateY(-1px);
+}
+.cv2-frame__btn:active { transform: scale(0.94); }
+.cv2-frame__btn svg { width: 16px; height: 16px; }
+.cv2-frame__count {
+    display: inline-flex;
+    align-items: center;
+    height: 34px;
+    padding: 0 12px;
+    border: 1px solid rgb(255 255 255 / 0.28);
+    border-radius: var(--cv-r-sm, 8px);
+    background: rgb(10 16 26 / 0.42);
+    -webkit-backdrop-filter: blur(8px);
+            backdrop-filter: blur(8px);
+    font-family: var(--cv2-font-ui);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    color: #fff;
+    font-variant-numeric: tabular-nums;
+}
+.cv2-frame__count em { font-style: normal; color: rgb(255 255 255 / 0.55); padding: 0 5px; }
+
+/* dots → thin progress bars, bottom-left (JS still toggles w-6/w-2 + colors) */
+.cv2-frame__dots {
+    position: absolute;
+    left: 16px; bottom: 20px;
+    z-index: 20;
+    display: flex;
+    /* 16px, not 6px: the bars are 8px wide, so this puts them on a 24px pitch —
+       exactly what the transparent hit pads below need in order to reach WCAG
+       2.2's 24x24 minimum without a pad overlapping its neighbour and stealing
+       the tap. The bars themselves are unchanged. */
+    gap: 16px;
+    /* the row sits on the club's own artwork, which can be anything — a ground
+       of its own keeps the bars readable and stops them competing with an
+       advertisement's small print underneath */
+    padding: 7px 10px;
+    border-radius: 999px;
+    background: rgb(6 8 5 / 0.34);
+    -webkit-backdrop-filter: blur(4px);
+    backdrop-filter: blur(4px);
+}
+.cv2-frame__dots [data-hero-dot] {
+    position: relative;
+    height: 4px;
+    border-radius: 999px;
+    transition: width .4s var(--cv2-ease), background-color .3s ease;
+    box-shadow: 0 1px 3px rgb(0 0 0 / 0.4);
+}
+/* A 4px-tall, 8px-wide bar is a 32px² target; this pad makes it 24x30 without
+   changing anything you can see. */
+.cv2-frame__dots [data-hero-dot]::after {
+    content: "";
+    position: absolute;
+    inset: -13px -8px;
+}
+
+/* ══ HERO 3-UP — Advertisements | Banner | Upcoming events ═════════════════
+   Multi-tenant hero: every pane is club data (no hard-coded copy). The centre
+   banner poster-frame sets the band height on desktop; the side panes stretch
+   to match. Below lg everything stacks: banner → events → ads. */
+.cv2-hero3 {
+    display: grid;
+    gap: 1.1rem;
+    padding: clamp(1.5rem, 3vw, 2.5rem) 0 clamp(1.8rem, 3.5vw, 2.8rem);
+    position: relative;
+    z-index: 2;
+}
+.cv2-hero3__main { order: 1; }
+.cv2-hero3__events { order: 2; }
+.cv2-hero3__ads { order: 3; }
+@media (min-width: 1024px) {
+    .cv2-hero3 {
+        grid-template-columns: minmax(220px, 3.1fr) minmax(0, 6.4fr) minmax(260px, 3.4fr);
+        align-items: stretch;
+        gap: 1.25rem;
+    }
+    .cv2-hero3__ads { order: 1; }
+    .cv2-hero3__main { order: 2; }
+    .cv2-hero3__events { order: 3; }
+    /* centre frame fills the row; its stage abandons the fixed 16:5 box and
+       shows the full banner via object-contain over the blur fill */
+    .cv2-hero3__main .cv2-frame { height: 100%; display: flex; }
+    .cv2-frame__stage--fill { flex: 1 1 auto; height: 100%; aspect-ratio: auto; min-height: 420px; }
+    .cv2-adframe--fill { flex: 1 1 auto; display: flex; }
+    .cv2-adframe--fill .cv2-adframe__stage { flex: 1 1 auto; aspect-ratio: auto; min-height: 0; }
+}
+.cv2-hero3__ads, .cv2-hero3__events { display: flex; flex-direction: column; min-width: 0; }
+/* EVERY hero pane must be allowed to shrink. `.cv2-hero3__main` was missing from
+   the rule above, so it kept a grid item's default `min-width:auto`. The banner
+   stage combines `aspect-ratio:16/5` with a `min-height` (170px ≤640px), which
+   gives that item a min-content width of ~544px — so on phones the single-column
+   track blew out to 558px inside a ~371px viewport, and the site-wide
+   `overflow-x:hidden` guard silently CLIPPED the hero instead of scrolling
+   (the banner, events pane and ad were all cut off at the right edge). */
+.cv2-hero3 > * { min-width: 0; }
+/* ...and cap the poster stages. `aspect-ratio: 16/5` + `min-height` inflates the
+   used WIDTH: once min-height wins over the ratio-derived height, the browser
+   re-derives width = min-height × ratio (170 × 3.2 = 544px), which is wider than
+   a phone column — so the banner/ad overflowed and the overflow-x guard clipped
+   it. Capping to the column keeps the height and letterboxes over the blur fill,
+   exactly as the desktop treatment already does. */
+.cv2-frame__stage, .cv2-adframe__stage { max-width: 100%; }
+
+/* pane header — tiny azure label + optional "view all" */
+.cv2-panehead {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.6rem;
+    margin-bottom: 0.6rem;
+}
+.cv2-panehead__label {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    font-family: var(--cv2-font-ui);
+    font-size: 10.5px;
+    font-weight: 600;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: rgb(var(--c-gold));
+}
+.cv2-panehead__label span[aria-hidden] { font-size: 8px; }
+.cv2-panehead__link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-family: var(--cv2-font-ui);
+    font-size: 10.5px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: rgb(var(--c-muted));
+    transition: color .25s ease;
+}
+.cv2-panehead__link:hover { color: rgb(var(--c-gold)); }
+.cv2-panehead__link span[aria-hidden] { display: inline-block; transition: transform .3s var(--cv2-spring); }
+.cv2-panehead__link:hover span[aria-hidden] { transform: translateX(4px); }
+
+/* events pane — compact rows: square thumb + title + meta (max 3 shown) */
+.cv2-evlist { display: flex; flex-direction: column; gap: 0.7rem; flex: 1 1 auto; }
+.cv2-ev {
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+    padding: 0.6rem;
+    border: 1px solid rgb(var(--c-line));
+    border-radius: var(--cv-r, 12px);
+    background: rgb(var(--c-panel) / 0.8);
+    -webkit-backdrop-filter: blur(6px);
+            backdrop-filter: blur(6px);
+    transition: transform .35s var(--cv2-ease), border-color .35s var(--cv2-ease), box-shadow .35s var(--cv2-ease);
+    min-width: 0;
+}
+.cv2-ev:hover {
+    transform: translateY(-2px);
+    border-color: rgb(var(--c-gold) / 0.5);
+    box-shadow: 0 14px 32px -16px rgb(var(--c-gold) / 0.4);
+}
+.cv2-ev:nth-child(n+2) { display: none; }   /* pane shows ONLY the soonest event — View all covers the rest */
+.cv2-ev__media {
+    position: relative;
+    width: 86px; height: 86px;
+    flex: none;
+    overflow: hidden;
+    border-radius: var(--cv-r-sm, 8px);
+    background: rgb(var(--c-navy));
+}
+/* contain, NOT cover: the media plate is square in the list (86x86) and a tall
+   175px+ block in the hero pane, while event photos are 4:3 — cover was cutting
+   the picture on every one. White backing (not the plate's navy) is by request;
+   it sits on the IMG, so the navy plate still shows behind the date chip when an
+   event has no photo. */
+.cv2-ev__media img {
+    position: absolute; inset: 0;
+    width: 100%; height: 100%;
+    object-fit: contain;
+    background: #fff;
+    transition: transform .6s var(--cv2-ease);
+}
+.cv2-ev:hover .cv2-ev__media img { transform: scale(1.07); }
+.cv2-ev__date {
+    position: absolute;
+    left: 0; bottom: 0; right: 0;
+    display: flex;
+    align-items: baseline;
+    justify-content: center;
+    gap: 0.3rem;
+    padding: 0.18rem 0.3rem;
+    background: linear-gradient(150deg, rgb(var(--c-gold)), rgb(var(--c-gold-light)));
+    color: rgb(var(--c-on-gold));
+    font-family: var(--cv2-font-ui);
+}
+.cv2-ev__date b { font-size: 13px; font-weight: 800; line-height: 1; }
+.cv2-ev__date span { font-size: 8.5px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; }
+.cv2-ev__body { min-width: 0; display: flex; flex-direction: column; gap: 0.3rem; }
+.cv2-ev__title {
+    font-family: "Helvetica Neue", Arial, "Segoe UI", sans-serif;
+    font-size: 0.92rem;
+    font-weight: 700;
+    line-height: 1.25;
+    color: rgb(var(--c-ink));
+    display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden;
+    transition: color .25s ease;
+}
+.cv2-ev:hover .cv2-ev__title { color: rgb(var(--c-gold)); }
+.cv2-ev__meta {
+    font-family: var(--cv2-font-ui);
+    font-size: 10.5px;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    color: rgb(var(--c-muted));
+    display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden;
+}
+/* pane-sized empty state — fills the column so the band stays balanced */
+.cv2-empty--pane { flex: 1 1 auto; justify-content: center; padding: 1.6rem 1rem; }
+
+/* ══ Illustrated "No Upcoming Events" card — events pane only. A dedicated
+   component, NOT .cv2-empty (that stays the plain dashed one-liner used by
+   the newsletter/meetings empty states elsewhere on this page — don't touch
+   it). This pane lives on the hero's night-sky band, which is always dark in
+   BOTH site modes, so the card borrows the same whisper-glass treatment as
+   .cv2-hero .cv2-empty instead of a light card; the illustration's fills are
+   hardcoded Meridian hex (--m-gold/--m-gold-light/--m-gold-deep/--m-ink/
+   --m-paper) for the same reason inline SVG can't react to the mode toggle
+   elsewhere on this page. Narrow column (~260-340px desktop) -> stacked
+   layout, small art, NOT warm-modern's side-by-side sm:flex-row. */
+.cv2-empty-events {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem 1.25rem;
+    text-align: center;
+    border: 1.5px dashed rgb(255 255 255 / 0.28);
+    border-radius: 20px;
+    background: rgb(255 255 255 / 0.06);
+    -webkit-backdrop-filter: blur(8px);
+            backdrop-filter: blur(8px);
+}
+.cv2-empty-events__art { width: 100%; max-width: 132px; height: auto; }
+.cv2-empty-events__title {
+    margin-top: 0.5rem;
+    font-family: var(--m-display);
+    font-size: 1.15rem;
+    font-weight: 500;
+    letter-spacing: -0.01em;
+    color: #fff;
+}
+.cv2-empty-events__rule {
+    width: 34px;
+    height: 3px;
+    margin-top: 0.55rem;
+    border-radius: 2px;
+    background: linear-gradient(110deg, var(--m-gold), var(--m-gold-light));
+}
+.cv2-empty-events__desc {
+    margin-top: 0.6rem;
+    max-width: 24ch;
+    font-family: var(--m-body);
+    font-size: 0.78rem;
+    line-height: 1.5;
+    color: rgb(255 255 255 / 0.62);
+}
+.cv2-empty-events__cta { margin-top: 1rem; }
+
+/* scroll cue */
+.cv2-scrollcue {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    padding-bottom: 1.4rem;
+    margin-top: -0.6rem;
+    font-family: var(--cv2-font-ui);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: rgb(var(--c-muted));
+    transition: opacity .5s ease, transform .5s ease;
+}
+.cv2-scrollcue::after {
+    content: "";
+    width: 1.5px;
+    height: 30px;
+    background: linear-gradient(rgb(var(--c-gold)), rgb(var(--c-gold) / 0.05));
+    animation: cv2-cue 1.8s var(--cv2-ease) infinite;
+    transform-origin: top center;
+}
+@keyframes cv2-cue {
+    0%   { transform: scaleY(0); opacity: 0; }
+    35%  { transform: scaleY(1); opacity: 1; }
+    100% { transform: scaleY(1) translateY(10px); opacity: 0; }
+}
+.cv2-hero.is-scrolled .cv2-scrollcue { opacity: 0; transform: translateY(6px); }
+
+/* on-load choreography joins the master's civic-preload sequence */
+html.civic-preload .cv2-hero [data-onload="up"] { transform: translateY(18px); }
+
+/* ══════════════════════════════════════════════════════════════════════════
+   MARQUEE — slimmer kinetic divider (markup unchanged; visual tune only)
+   ══════════════════════════════════════════════════════════════════════════ */
+.cv-marquee { padding: 0.85rem 0; background: rgb(var(--c-surface) / 0.65); }
+
+/* ══════════════════════════════════════════════════════════════════════════
+   SECTION HEADER SYSTEM — eyebrow chip + heading + right slot
+   ══════════════════════════════════════════════════════════════════════════ */
+.cv2-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 1.1rem;
+    margin-bottom: clamp(1.8rem, 3.5vw, 2.8rem);
+}
+.cv2-head__eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.8rem;
+    font-family: var(--cv2-font-ui);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: rgb(var(--c-gold));
+}
+.cv2-head__eyebrow::before { content: "◆"; font-size: 9px; }
+.cv2-head__eyebrow::after {
+    content: "";
+    width: 44px; height: 1px;
+    background: linear-gradient(90deg, rgb(var(--c-gold) / 0.6), transparent);
+}
+.cv2-head h2 { max-width: 24ch; }
+.cv2-head__note {
+    font-family: var(--cv2-font-ui);
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: rgb(var(--c-muted));
+}
+
+/* generous, alternating section rhythm */
+.cv2-sect { position: relative; border-top: 1px solid rgb(var(--c-line)); }
+.cv2-sect > .container-x { position: relative; z-index: 2; padding-top: clamp(3.5rem, 7vw, 5.5rem); padding-bottom: clamp(3.5rem, 7vw, 5.5rem); }
+
+/* ══════════════════════════════════════════════════════════════════════════
+   2 · IMPACT — glass bento stat band
+   ══════════════════════════════════════════════════════════════════════════ */
+#numbers { background: rgb(var(--c-surface) / 0.55); }
+#numbers .container-x { padding-top: clamp(3.5rem, 7vw, 5.5rem); padding-bottom: clamp(3.5rem, 7vw, 5.5rem); }
+
+.cv2-statcols { display: grid; gap: 1.1rem; }
+@media (min-width: 1024px) {
+    .cv2-statcols { grid-template-columns: minmax(0, 1.75fr) minmax(0, 1fr); gap: 1.25rem; }
+}
+.cv2-statgrid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.1rem; height: 100%; }
+@media (max-width: 560px) { .cv2-statgrid { grid-template-columns: 1fr; } }
+
+.cv2-stat {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 0.9rem;
+    min-height: 132px;
+    padding: 1.3rem 1.4rem 1.2rem;
+    border: 1px solid rgb(var(--c-line));
+    border-radius: var(--cv-r, 12px);
+    background: rgb(var(--c-panel) / 0.8);
+    -webkit-backdrop-filter: blur(8px);
+            backdrop-filter: blur(8px);
+    box-shadow: 0 1px 2px rgb(var(--c-navy) / 0.05);
+    transition: transform .4s var(--cv2-ease), border-color .4s var(--cv2-ease), box-shadow .4s var(--cv2-ease);
+    overflow: hidden;
+}
+/* faint corner glow that brightens on hover */
+.cv2-stat::before {
+    content: "";
+    position: absolute;
+    top: -40%; right: -30%;
+    width: 75%; height: 110%;
+    background: radial-gradient(circle, rgb(var(--c-gold) / 0.09), transparent 68%);
+    opacity: 0;
+    transition: opacity .5s ease;
+    pointer-events: none;
+}
+.cv2-stat:hover {
+    transform: translateY(-4px);
+    border-color: rgb(var(--c-gold) / 0.5);
+    box-shadow: 0 18px 44px -20px rgb(var(--c-gold) / 0.4), 0 6px 18px -8px rgb(var(--c-navy) / 0.15);
+}
+.cv2-stat:hover::before { opacity: 1; }
+
+.cv2-stat__icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px; height: 40px;
+    border: 1px solid rgb(var(--c-gold) / 0.3);
+    border-radius: var(--cv-r-sm, 8px);
+    color: rgb(var(--c-gold));
+    background: rgb(var(--c-gold) / 0.08);
+    transition: transform .35s var(--cv2-spring), background-color .3s ease;
+}
+.cv2-stat__icon svg { width: 18px; height: 18px; }
+.cv2-stat:hover .cv2-stat__icon { transform: translateY(-2px) rotate(-4deg); background: rgb(var(--c-gold) / 0.14); }
+
+.cv2-stat .civic-num {
+    font-size: clamp(1.7rem, 2.6vw, 2.3rem);
+    line-height: 1;
+    white-space: nowrap;
+    color: rgb(var(--c-ink));
+}
+.cv2-stat__label {
+    margin-top: 0.45rem;
+    font-family: var(--cv2-font-ui);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: rgb(var(--c-muted));
+}
+/* growing accent underline */
+.cv2-stat__bar {
+    display: block;
+    width: 26px; height: 2px;
+    margin-top: 0.7rem;
+    border-radius: 2px;
+    background: rgb(var(--c-gold) / 0.55);
+    transition: width .45s var(--cv2-ease), background-color .3s ease;
+}
+.cv2-stat:hover .cv2-stat__bar { width: 52px; background: rgb(var(--c-gold)); }
+
+/* Members — the gradient feature tile (section focal point) */
+.cv2-stat--feature {
+    grid-column: 1 / -1;   /* the lone membership tile spans its full column */
+    justify-content: center;
+    min-height: 100%;
+    border-color: rgb(var(--c-gold) / 0.5);
+    background:
+        radial-gradient(120% 110% at 8% -12%, rgb(255 255 255 / 0.2), transparent 52%),
+        repeating-radial-gradient(circle at 112% 118%, transparent 0 34px, rgb(255 255 255 / 0.07) 34px 35.5px),
+        linear-gradient(140deg, rgb(var(--c-gold)) 0%, rgb(var(--c-gold-light)) 100%);
+    box-shadow: 0 20px 50px -22px rgb(var(--c-gold) / 0.65);
+}
+.cv2-stat--feature::before { display: none; }
+.cv2-stat--feature:hover {
+    transform: translateY(-4px);
+    border-color: rgb(var(--c-gold));
+    box-shadow: 0 26px 62px -22px rgb(var(--c-gold) / 0.8);
+}
+.cv2-stat--feature .cv2-stat__icon {
+    border-color: rgb(255 255 255 / 0.42);
+    background: rgb(255 255 255 / 0.14);
+    color: rgb(var(--c-on-gold));
+    width: 46px; height: 46px;
+}
+.cv2-stat--feature .civic-num {
+    font-size: clamp(2.8rem, 4.6vw, 3.9rem);
+    color: rgb(var(--c-on-gold));
+    text-shadow: 0 2px 12px rgb(var(--c-navy) / 0.25);
+}
+.cv2-stat--feature .cv2-stat__label { color: rgb(255 255 255 / 0.85); }
+.cv2-stat--feature .cv2-stat__bar { background: rgb(255 255 255 / 0.7); }
+.cv2-stat--feature:hover .cv2-stat__bar { background: #fff; }
+
+.cv2-group-label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.85rem;
+    font-family: var(--cv2-font-ui);
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: rgb(var(--c-ink));
+}
+.cv2-group-label span { color: rgb(var(--c-gold)); font-size: 9px; }
+
+/* ══════════════════════════════════════════════════════════════════════════
+   3 · LEADERSHIP — editorial duotone portrait tiles (existing cv-leader kept)
+   ══════════════════════════════════════════════════════════════════════════ */
+#leadership { background: rgb(var(--c-canvas)); }
+#leadership .cv-leader {
+    box-shadow: 0 2px 6px rgb(var(--c-navy) / 0.06);
+    transition: box-shadow .4s var(--cv2-ease), transform .4s var(--cv2-ease);
+}
+/* photos stay FULL COLOUR at rest (duotone removed by user request) */
+#leadership .cv-leader:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 20px 44px -18px rgb(var(--c-gold) / 0.45), inset 0 0 0 1.5px rgb(var(--c-gold));
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   4 · ABOUT + ADVERTISEMENT
+   ══════════════════════════════════════════════════════════════════════════ */
+#about { background: rgb(var(--c-surface) / 0.5); overflow: hidden; }
+.cv2-adframe {
+    position: relative;
+    padding: 8px;
+    border-radius: calc(var(--cv-r, 12px) + 6px);
+    background: rgb(var(--c-panel) / 0.75);
+    -webkit-backdrop-filter: blur(8px);
+            backdrop-filter: blur(8px);
+    border: 1px solid rgb(var(--c-line));
+    box-shadow: 0 20px 55px -24px rgb(var(--c-gold) / 0.4), 0 8px 22px -12px rgb(var(--c-navy) / 0.18);
+}
+.cv2-adframe__stage {
+    position: relative;
+    overflow: hidden;
+    border-radius: var(--cv-r, 12px);
+    aspect-ratio: 1 / 1;
+    background: #000000;
+}
+.cv2-adframe__label {
+    position: absolute;
+    top: 16px; left: 16px;
+    z-index: 20;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.3rem 0.65rem;
+    border-radius: 999px;
+    background: rgb(10 16 26 / 0.5);
+    -webkit-backdrop-filter: blur(6px);
+            backdrop-filter: blur(6px);
+    font-family: var(--cv2-font-ui);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: #fff;
+}
+.cv2-adframe__label::before { content: "◆"; font-size: 8px; color: rgb(var(--c-gold-cta)); }
+
+/* ══════════════════════════════════════════════════════════════════════════
+   5 · EVENTS + NEWSLETTERS
+   ══════════════════════════════════════════════════════════════════════════ */
+#events { background: rgb(var(--c-canvas)); }
+/* Quieter wave field: the azure recolor made the Perlin lines dominant over
+   the light band — thin them right down so the cards lead. */
+#events .cv-waves__canvas { color: rgb(var(--c-gold) / 0.10); }
+:root[data-civic-mode=dark] #events .cv-waves__canvas { color: rgb(var(--c-gold) / 0.18); }
+
+.cv2-event {
+    position: relative;
+    display: block;
+    overflow: hidden;
+    border: 1px solid rgb(var(--c-line));
+    border-radius: var(--cv-r, 12px);
+    background: rgb(var(--c-panel) / 0.85);
+    -webkit-backdrop-filter: blur(8px);
+            backdrop-filter: blur(8px);
+    box-shadow: 0 2px 8px rgb(var(--c-navy) / 0.06);
+    transition: transform .45s var(--cv2-ease), border-color .45s var(--cv2-ease), box-shadow .45s var(--cv2-ease);
+}
+.cv2-event + .cv2-event { margin-top: 1.1rem; }
+.cv2-event:hover {
+    transform: translateY(-5px);
+    border-color: rgb(var(--c-gold) / 0.5);
+    box-shadow: 0 24px 54px -22px rgb(var(--c-gold) / 0.45), 0 8px 24px -12px rgb(var(--c-navy) / 0.18);
+}
+.cv2-event__media {
+    position: relative;
+    overflow: hidden;
+    aspect-ratio: 16 / 7;
+    background: rgb(var(--c-navy));
+}
+.cv2-event__media img {
+    position: absolute; inset: 0;
+    width: 100%; height: 100%;
+    object-fit: cover;
+    transition: transform .8s var(--cv2-ease);
+}
+.cv2-event:hover .cv2-event__media img { transform: scale(1.05); }
+.cv2-event__media::after {
+    content: "";
+    position: absolute; inset: 0;
+    background: linear-gradient(to top, rgb(10 16 26 / 0.35), transparent 45%);
+    pointer-events: none;
+}
+/* calendar date chip */
+.cv2-date {
+    position: absolute;
+    top: 14px; left: 14px;
+    z-index: 3;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 54px;
+    padding: 0.5rem 0.6rem 0.45rem;
+    border-radius: var(--cv-r-sm, 8px);
+    background: linear-gradient(150deg, rgb(var(--c-gold)), rgb(var(--c-gold-light)));
+    color: rgb(var(--c-on-gold));
+    box-shadow: 0 8px 20px -8px rgb(var(--c-gold) / 0.7);
+}
+.cv2-date b {
+    font-family: "Helvetica Neue", Arial, sans-serif;
+    font-size: 20px;
+    font-weight: 800;
+    line-height: 1;
+}
+.cv2-date span {
+    margin-top: 2px;
+    font-family: var(--cv2-font-ui);
+    font-size: 9.5px;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    opacity: 0.9;
+}
+.cv2-event__body { padding: 1.35rem 1.5rem 1.45rem; }
+.cv2-event__title {
+    font-size: clamp(1.2rem, 1.8vw, 1.45rem);
+    color: rgb(var(--c-ink));
+    transition: color .3s ease;
+}
+.cv2-event:hover .cv2-event__title { color: rgb(var(--c-gold)); }
+.cv2-event__meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.4rem 1.1rem;
+    margin-top: 0.7rem;
+    font-family: var(--cv2-font-ui);
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    color: rgb(var(--c-muted));
+}
+.cv2-event__meta svg { width: 13px; height: 13px; color: rgb(var(--c-gold)); flex: none; }
+.cv2-event__meta > span { display: inline-flex; align-items: center; gap: 0.4rem; min-width: 0; }
+.cv2-event__desc {
+    margin-top: 0.85rem;
+    font-size: 0.9rem;
+    line-height: 1.65;
+    color: rgb(var(--c-muted));
+    display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; overflow: hidden;
+}
+.cv2-more {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 1.05rem;
+    font-family: var(--cv2-font-ui);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: rgb(var(--c-gold));
+}
+.cv2-more span { display: inline-block; transition: transform .3s var(--cv2-spring); }
+.cv2-event:hover .cv2-more span, .cv2-news:hover .cv2-more span { transform: translateX(5px); }
+
+/* newsletters — refined rows (single column; sits beside the meeting panel) */
+.cv2-newslist { display: grid; grid-template-columns: 1fr; gap: 0.7rem; }
+.cv2-news {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.9rem 1.05rem;
+    border: 1px solid rgb(var(--c-line));
+    border-radius: var(--cv-r, 12px);
+    background: rgb(var(--c-panel) / 0.8);
+    -webkit-backdrop-filter: blur(6px);
+            backdrop-filter: blur(6px);
+    transition: transform .35s var(--cv2-ease), border-color .35s var(--cv2-ease), box-shadow .35s var(--cv2-ease);
+}
+.cv2-news:hover {
+    transform: translateX(4px);
+    border-color: rgb(var(--c-gold) / 0.5);
+    box-shadow: 0 12px 30px -16px rgb(var(--c-gold) / 0.4);
+}
+.cv2-news__badge {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 46px; height: 46px;
+    flex: none;
+    border-radius: var(--cv-r-sm, 8px);
+    border: 1px solid rgb(var(--c-gold) / 0.3);
+    background: rgb(var(--c-gold) / 0.08);
+    font-family: var(--cv2-font-ui);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    color: rgb(var(--c-gold));
+    transition: background-color .3s ease, color .3s ease;
+}
+.cv2-news:hover .cv2-news__badge { background: rgb(var(--c-gold)); color: rgb(var(--c-on-gold)); }
+.cv2-news__title {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: rgb(var(--c-ink));
+    line-height: 1.35;
+    display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 1; overflow: hidden;
+    transition: color .3s ease;
+}
+.cv2-news:hover .cv2-news__title { color: rgb(var(--c-gold)); }
+.cv2-news__date {
+    margin-top: 0.2rem;
+    font-family: var(--cv2-font-ui);
+    font-size: 10.5px;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: rgb(var(--c-muted));
+}
+.cv2-news .cv2-more { margin: 0 0 0 auto; }
+
+/* on-brand empty states */
+.cv2-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 2.8rem 1.5rem;
+    border: 1px dashed rgb(var(--c-line-hi, var(--c-line)));
+    border-radius: var(--cv-r, 12px);
+    background: rgb(var(--c-panel) / 0.55);
+    text-align: center;
+    font-family: var(--cv2-font-ui);
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: rgb(var(--c-muted));
+}
+.cv2-empty::before { content: "◆"; color: rgb(var(--c-gold) / 0.6); font-size: 11px; }
+
+/* ══════════════════════════════════════════════════════════════════════════
+   6 · PROJECTS RING — re-lit band (arc mechanics untouched)
+   ══════════════════════════════════════════════════════════════════════════ */
+#work {
+    background:
+        radial-gradient(50% 90% at 0% 55%, rgb(var(--c-gold) / 0.08), transparent 62%),
+        radial-gradient(50% 90% at 100% 45%, rgb(var(--c-gold-cta) / 0.07), transparent 62%),
+        rgb(var(--c-surface) / 0.55);
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   7 · MEETING — one glass feature panel
+   ══════════════════════════════════════════════════════════════════════════ */
+#meet { background: rgb(var(--c-canvas)); }
+.cv2-meet {
+    position: relative;
+    display: grid;
+    gap: 2rem;
+    padding: clamp(1.6rem, 3.5vw, 2.8rem);
+    border: 1px solid rgb(var(--c-line));
+    border-radius: calc(var(--cv-r, 12px) + 6px);
+    background: rgb(var(--c-panel) / 0.78);
+    -webkit-backdrop-filter: blur(10px);
+            backdrop-filter: blur(10px);
+    box-shadow: 0 24px 60px -30px rgb(var(--c-navy) / 0.25);
+    overflow: hidden;
+}
+@media (min-width: 900px) { .cv2-meet { grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr); align-items: center; } }
+/* solo variant — no map column; fills its grid column beside the newsletters */
+.cv2-meet--solo { height: 100%; align-content: center; }
+@media (min-width: 900px) { .cv2-meet--solo { grid-template-columns: 1fr; } }
+/* faint azure sheen across the panel */
+.cv2-meet::before {
+    content: "";
+    position: absolute;
+    top: -55%; left: -18%;
+    width: 75%; height: 160%;
+    background: radial-gradient(circle, rgb(var(--c-gold) / 0.07), transparent 65%);
+    pointer-events: none;
+}
+.cv2-meet__day {
+    font-family: "Helvetica Neue", Arial, "Segoe UI", sans-serif;
+    font-size: clamp(2rem, 3.8vw, 3.2rem);
+    font-weight: 700;
+    line-height: 1.1;
+    letter-spacing: -0.015em;
+    color: rgb(var(--c-ink));
+}
+.cv2-meet__day em {
+    font-style: normal;
+    display: block;
+    color: rgb(var(--c-gold));
+}
+.cv2-meet__venue {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.6rem;
+    margin-top: 1.1rem;
+    max-width: 44ch;
+    font-size: 0.92rem;
+    line-height: 1.65;
+    color: rgb(var(--c-muted));
+}
+.cv2-meet__venue svg { width: 15px; height: 15px; margin-top: 3px; color: rgb(var(--c-gold)); flex: none; }
+.cv2-map {
+    position: relative;
+    overflow: hidden;
+    border-radius: var(--cv-r, 12px);
+    border: 1px solid rgb(var(--c-line));
+    box-shadow: 0 16px 40px -20px rgb(var(--c-gold) / 0.35);
+}
+.cv2-map iframe { display: block; width: 100%; height: 340px; border: 0; }
+
+/* ══════════════════════════════════════════════════════════════════════════
+   8 · JOIN — cinematic finale band
+   ══════════════════════════════════════════════════════════════════════════ */
+.cv2-cta {
+    position: relative;
+    overflow: hidden;
+    background:
+        radial-gradient(70% 110% at 85% 10%, rgb(var(--c-gold) / 0.5), transparent 58%),
+        radial-gradient(55% 90% at 8% 100%, rgb(var(--c-gold-cta) / 0.24), transparent 58%),
+        linear-gradient(140deg, rgb(var(--c-navy-deep)) 0%, rgb(var(--c-navy)) 55%, rgb(var(--c-navy-deep)) 100%);
+    border-top: 1px solid rgb(var(--c-gold) / 0.35);
+}
+/* concentric "ripple" rings radiating from the right edge */
+.cv2-cta::after {
+    content: "";
+    position: absolute;
+    right: -12%; top: -30%;
+    width: 60%; height: 160%;
+    background: repeating-radial-gradient(circle at 70% 50%, transparent 0 46px, rgb(255 255 255 / 0.045) 46px 47.5px);
+    pointer-events: none;
+}
+.cv2-cta > .container-x {
+    position: relative;
+    z-index: 2;
+    display: grid;
+    gap: 2.2rem;
+    padding-top: clamp(4rem, 8vw, 6.5rem);
+    padding-bottom: clamp(4rem, 8vw, 6.5rem);
+}
+@media (min-width: 900px) { .cv2-cta > .container-x { grid-template-columns: 1.25fr 0.95fr; align-items: center; } }
+.cv2-cta__eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+    font-family: var(--cv2-font-ui);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: rgb(var(--c-gold-light));
+}
+.cv2-cta__eyebrow::before { content: "◆"; font-size: 9px; color: rgb(var(--c-gold-cta)); }
+.cv2-cta h2 {
+    font-family: "Helvetica Neue", Arial, "Segoe UI", sans-serif;
+    font-size: clamp(2.4rem, 5.2vw, 4.2rem);
+    font-weight: 700;
+    line-height: 1.05;
+    letter-spacing: -0.02em;
+    color: #fff;
+}
+.cv2-cta h2 .cv2-dot { color: rgb(var(--c-gold-cta)); }
+.cv2-cta p {
+    max-width: 40ch;
+    font-size: 1rem;
+    line-height: 1.7;
+    color: rgb(255 255 255 / 0.78);
+}
+.cv2-cta__actions { display: flex; flex-wrap: wrap; gap: 0.8rem; margin-top: 1.6rem; }
+/* light primary button on the dark band */
+.cv2-btn-light {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.85rem 1.5rem;
+    border-radius: var(--cv-r-sm, 8px);
+    background: #fff;
+    color: rgb(var(--c-navy-deep));
+    font-family: var(--cv2-font-ui);
+    font-size: 12.5px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    overflow: hidden;
+    isolation: isolate;
+    transform: translate(var(--tx, 0), var(--ty, 0));
+    transition: transform .3s var(--cv2-ease), box-shadow .3s var(--cv2-ease), color .3s ease;
+    box-shadow: 0 10px 30px -12px rgb(0 0 0 / 0.5);
+}
+.cv2-btn-light span[aria-hidden] { display: inline-block; transition: transform .3s var(--cv2-spring); }
+.cv2-btn-light:hover span[aria-hidden] { transform: translateX(5px); }
+.cv2-btn-light::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background: linear-gradient(120deg, rgb(var(--c-gold-cta)), rgb(var(--c-gold)));
+    transform: scaleX(0);
+    transform-origin: left center;
+    transition: transform .35s var(--cv2-ease);
+}
+.cv2-btn-light:hover {
+    color: #fff;
+    transform: translate(calc(var(--tx, 0px)), calc(var(--ty, 0px) - 2px));
+    box-shadow: 0 16px 40px -14px rgb(var(--c-gold) / 0.7);
+}
+.cv2-btn-light:hover::before { transform: scaleX(1); }
+.cv2-btn-light:active { transform: translate(var(--tx, 0), var(--ty, 0)) scale(0.96); }
+/* ghost secondary on the band */
+.cv2-btn-ghost {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.85rem 1.5rem;
+    border: 1px solid rgb(255 255 255 / 0.35);
+    border-radius: var(--cv-r-sm, 8px);
+    color: #fff;
+    font-family: var(--cv2-font-ui);
+    font-size: 12.5px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    transition: border-color .3s ease, background-color .3s ease, transform .3s var(--cv2-ease);
+}
+.cv2-btn-ghost:hover { border-color: rgb(var(--c-gold-cta)); background: rgb(255 255 255 / 0.06); transform: translateY(-2px); }
+.cv2-btn-ghost span[aria-hidden] { display: inline-block; transition: transform .3s var(--cv2-spring); }
+.cv2-btn-ghost:hover span[aria-hidden] { transform: translateX(5px); }
+
+/* ══════════════════════════════════════════════════════════════════════════
+   RESPONSIVE
+   ══════════════════════════════════════════════════════════════════════════ */
+@media (max-width: 640px) {
+    .cv2-frame { padding: 6px; }
+    .cv2-frame__stage { min-height: 170px; }
+    .cv2-frame__controls { right: 10px; bottom: 8px; }
+    .cv2-frame__btn, .cv2-frame__count { height: 30px; }
+    .cv2-frame__btn { width: 30px; }
+    .cv2-frame__dots { left: 12px; bottom: 14px; }
+    .cv2-hero__chips { gap: 0.45rem; }
+    .cv2-shape { display: none; }
+    .cv2-map iframe { height: 260px; }
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   REDUCED MOTION — everything quiet, everything visible
+   ══════════════════════════════════════════════════════════════════════════ */
+@media (prefers-reduced-motion: reduce) {
+    .cv2-aurora::before, .cv2-aurora::after,
+    .cv2-shape, .cv2-scrollcue::after { animation: none; }
+    .cv2-stat, .cv2-stat__icon, .cv2-stat__bar,
+    .cv2-event, .cv2-event__media img, .cv2-news,
+    .cv2-chip, .cv2-frame, .cv2-frame__btn,
+    .cv2-btn-light, .cv2-btn-ghost, .cv2-more span,
+    #leadership .cv-leader { transition: none; }
+    .cv2-stat:hover, .cv2-stat--feature:hover,
+    .cv2-event:hover, .cv2-news:hover, .cv2-chip:hover,
+    .cv2-btn-light:hover, .cv2-btn-ghost:hover,
+    #leadership .cv-leader:hover { transform: none; }
+    .cv2-event:hover .cv2-event__media img { transform: none; }
+    .cv2-scrollcue { display: none; }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   MERIDIAN RESTYLE LAYER — the whole home re-cut in the reference design
+   language (rotary-meridian-bay.html): warm paper canvas, Fraunces editorial
+   serif display, Outfit body, JetBrains Mono ledger labels, royal navy +
+   antique gold, pill buttons with a gold sweep, glass/neumorphic cards, dark
+   "ledger" stat band, wavy hero exit. Appended LAST so it wins the cascade
+   over the earlier cv2 layout layer (which keeps the grids).
+   ═══════════════════════════════════════════════════════════════════════════ */
+:root {
+    --m-ink: #061634;
+    --m-royal: #0B2C6F;
+    --m-royal-lift: #123C93;
+    --m-azure: #2E6BE6;
+    --m-gold: #D4A429;
+    --m-gold-light: #F0CE72;
+    --m-gold-deep: #9C7413;
+    --m-paper: #FBFAF7;
+    --m-paper2: #F3F1EC;
+    --m-line: #E3DED3;
+    --m-slate: #5A6377;
+    --m-slate-soft: #8B93A4;
+    --m-display: 'Fraunces', 'Times New Roman', serif;
+    --m-body: 'Outfit', system-ui, -apple-system, sans-serif;
+    --m-mono: 'JetBrains Mono', ui-monospace, monospace;
+    --m-sh-sm: 0 1px 2px rgba(6,22,52,.06), 0 4px 12px rgba(6,22,52,.05);
+    --m-sh-md: 0 2px 4px rgba(6,22,52,.05), 0 12px 32px rgba(6,22,52,.08);
+    --m-sh-lg: 0 4px 8px rgba(6,22,52,.04), 0 28px 64px rgba(6,22,52,.12);
+    --m-sh-gold: 0 10px 30px rgba(212,164,41,.30);
+}
+
+main { font-family: var(--m-body); }
+
+/* Display headings -> Fraunces (same specificity as the civic-motion
+   softener, later file wins) */
+main h2.font-heading,
+main h3.font-heading {
+    font-family: var(--m-display);
+    font-weight: 400;
+    letter-spacing: -0.024em;
+    line-height: 1.06;
+    text-transform: none;
+}
+
+/* Eyebrows -> the reference's mono ledger label with a gold dash */
+.cv2-head__eyebrow {
+    gap: 0.7rem;
+    font-family: var(--m-mono);
+    font-size: 0.66rem;
+    font-weight: 400;
+    letter-spacing: 0.28em;
+    color: var(--m-gold-deep);
+}
+.cv2-head__eyebrow::before { content: ''; width: 26px; height: 1px; background: var(--m-gold); font-size: 0; }
+.cv2-head__eyebrow::after { display: none; }
+.cv2-head__note { font-family: var(--m-mono); color: var(--m-slate-soft); }
+
+/* Buttons -> Meridian pills. Existing sweep/magnet mechanics stay; only
+   geometry + colour language change. */
+main .civic-btn,
+main .civic-btn-accent,
+main .cv2-btn-light,
+main .cv2-btn-ghost {
+    border-radius: 100px;
+    font-family: var(--m-body);
+    font-size: 0.8rem;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+}
+main .civic-btn { border: 1px solid rgba(11, 44, 111, 0.22); color: var(--m-ink); }
+main .civic-btn::before { background: linear-gradient(110deg, var(--m-gold), var(--m-gold-light)); }
+main .civic-btn:hover { border-color: transparent; color: var(--m-ink); }
+main .cv2-hero .civic-btn { color: #fff; border-color: rgba(255, 255, 255, 0.35); }
+main .civic-btn-accent {
+    background: linear-gradient(110deg, var(--m-gold), var(--m-gold-light));
+    border: 0;
+    color: var(--m-ink);
+    box-shadow: var(--m-sh-gold);
+}
+main .civic-btn-accent:hover { filter: none; box-shadow: var(--m-sh-lg); }
+main .cv2-btn-light {
+    background: linear-gradient(110deg, var(--m-gold), var(--m-gold-light));
+    color: var(--m-ink);
+    box-shadow: var(--m-sh-gold);
+    padding: 1rem 2rem;
+}
+main .cv2-btn-light::before { background: var(--m-royal); }
+main .cv2-btn-light:hover { color: #fff; }
+main .cv2-btn-ghost { border: 1px solid rgba(255, 255, 255, 0.35); padding: 1rem 2rem; }
+
+/* HERO: keep the night sky; labels go mono-ledger; wavy paper exit */
+.cv2-hero { border-bottom: 0; }
+.cv2-panehead__label {
+    font-family: var(--m-mono);
+    font-size: 0.62rem;
+    font-weight: 400;
+    letter-spacing: 0.28em;
+}
+.cv2-hero .cv2-panehead__label { color: var(--m-gold-light); }
+.cv2-panehead__link { font-family: var(--m-mono); font-size: 0.6rem; letter-spacing: 0.2em; }
+.cv2-wave {
+    display: block;
+    position: absolute;
+    left: 0; right: 0; bottom: -1px;
+    z-index: 4;
+    width: 100%;
+    height: clamp(48px, 6vw, 92px);   /* fixed band, stretched via preserveAspectRatio=none */
+    pointer-events: none;
+}
+/* reserve the wave's height below the panes so it never covers the banner */
+.cv2-hero3 { padding-bottom: calc(clamp(1.2rem, 2.5vw, 2rem) + clamp(48px, 6vw, 92px)); }
+
+/* MARQUEE -> paper ticker */
+.cv-marquee { background: var(--m-paper); }
+.cv-marquee::before, .cv-marquee::after {
+    background: linear-gradient(to right, transparent, rgba(212, 164, 41, 0.55) 18%, rgba(212, 164, 41, 0.55) 82%, transparent);
+}
+.cv-marquee__item {
+    font-family: var(--m-mono) !important;
+    font-weight: 500;
+    color: rgba(6, 22, 52, 0.72);
+}
+.cv-marquee__item--accent { color: var(--m-gold-deep); text-shadow: none; }
+.cv-marquee__group--ghost .cv-marquee__item {
+    color: transparent;
+    -webkit-text-stroke: 1px rgba(6, 22, 52, 0.26);
+}
+.cv-marquee__group--ghost .cv-marquee__item--accent { -webkit-text-stroke-color: rgba(156, 116, 19, 0.7); }
+.cv-marquee__dot { color: var(--m-gold); }
+
+/* IMPACT -> neumorphic bento on warm paper (reference "club highlights") */
+#numbers {
+    position: relative;
+    background: var(--m-paper2);
+    overflow: hidden;
+}
+#numbers .container-x { position: relative; z-index: 2; }
+#numbers h2.font-heading { color: var(--m-ink); font-weight: 400; }
+/* group labels — mono ledger captions centred over each group */
+#numbers .cv2-group-label {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.6rem;
+    margin: 0 0 2.4rem;
+    font-family: var(--m-mono);
+    font-size: 0.84rem;                 /* was 0.68rem — "PROJECTS" / "MEMBERSHIP" */
+    font-weight: 400;
+    letter-spacing: 0.26em;             /* eased with the size so it doesn't sprawl */
+    text-transform: uppercase;
+    color: var(--m-slate);
+}
+#numbers .cv2-group-label span { color: var(--m-gold); font-size: 9px; }
+#numbers .cv-yearsel__native { font-family: var(--m-mono); }
+
+/* LEADERSHIP -> offset portrait grid on paper (photos stay FULL COLOUR) */
+#leadership { background: var(--m-paper); }
+#leadership .cv-leader { border: 0; border-radius: 20px; box-shadow: var(--m-sh-md); }
+#leadership .cv-leader:hover { transform: translateY(-6px); box-shadow: var(--m-sh-lg); }
+@media (min-width: 700px) {
+    #leadership .cv-leader:nth-child(even) { margin-top: clamp(1.4rem, 4vw, 3.4rem); }
+}
+.cv-leader__name {
+    font-family: var(--m-display);
+    font-weight: 500;
+    text-transform: none;
+    letter-spacing: -0.015em;
+    font-size: clamp(1.1rem, 1.5vw, 1.3rem);
+}
+.cv-leader__role {
+    font-family: var(--m-mono);
+    font-weight: 400;
+    letter-spacing: 0.16em;
+    color: var(--m-gold-light);
+}
+.cv-leader__cta { font-family: var(--m-mono); letter-spacing: 0.2em; }
+.cv-leader__bar { background: var(--m-gold); }
+
+/* MEETINGS + NEWSLETTERS -> paper gradient, white cards */
+#events { background: linear-gradient(180deg, var(--m-paper) 0%, var(--m-paper2) 100%); }
+.cv2-meet {
+    background: #fff;
+    border: 0;
+    border-radius: 26px;
+    box-shadow: var(--m-sh-lg);
+    -webkit-backdrop-filter: none;
+            backdrop-filter: none;
+}
+.cv2-meet::before { display: none; }
+.cv2-meet__day {
+    font-family: var(--m-display);
+    font-weight: 400;
+    letter-spacing: -0.03em;
+    color: var(--m-ink);
+}
+.cv2-meet__day em { color: var(--m-royal); }
+.cv2-meet__venue { color: var(--m-slate); }
+.cv2-meet__venue svg { color: var(--m-gold-deep); }
+.cv2-news {
+    background: #fff;
+    border: 0;
+    border-radius: 20px;
+    box-shadow: var(--m-sh-sm);
+    -webkit-backdrop-filter: none;
+            backdrop-filter: none;
+}
+.cv2-news:hover { transform: translateY(-3px); box-shadow: var(--m-sh-lg); border: 0; }
+.cv2-news__badge {
+    border-radius: 14px;
+    border: 1px solid var(--m-line);
+    background: var(--m-paper2);
+    color: var(--m-gold-deep);
+    font-family: var(--m-mono);
+    letter-spacing: 0.18em;
+}
+.cv2-news:hover .cv2-news__badge { background: linear-gradient(110deg, var(--m-gold), var(--m-gold-light)); color: var(--m-ink); border-color: transparent; }
+.cv2-news__title { font-family: var(--m-display); font-weight: 500; font-size: 1.04rem; letter-spacing: -0.01em; color: var(--m-ink); }
+.cv2-news:hover .cv2-news__title { color: var(--m-royal); }
+.cv2-news__date { font-family: var(--m-mono); font-size: 0.58rem; letter-spacing: 0.18em; color: var(--m-gold-deep); }
+.cv2-news .cv2-more { color: var(--m-gold-deep); }
+#events .cv2-empty { background: #fff; border-color: var(--m-line); color: var(--m-slate-soft); font-family: var(--m-mono); letter-spacing: 0.18em; border-radius: 20px; }
+#events .cv2-empty::before { color: var(--m-gold); }
+
+/* PROJECTS RING -> dark ink band */
+#work {
+    background: var(--m-ink);
+    position: relative;
+    overflow: hidden;
+}
+#work::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(70% 60% at 12% 10%, rgba(46, 107, 230, 0.22), transparent 60%);
+    pointer-events: none;
+}
+#work .container-x { position: relative; z-index: 2; }
+#work h2.font-heading { color: #fff; font-weight: 300; letter-spacing: -0.035em; }
+/* The heading is now "Our Projects" (2026-08-24) — two words that cannot wrap,
+   so the nowrap guard the old long phrase needed is gone. */
+#work .cv2-head__eyebrow { color: var(--m-gold-light); }
+#work .civic-btn { color: #fff; border-color: rgba(255, 255, 255, 0.35); }
+#work .civic-btn:hover { color: var(--m-ink); }
+
+/* JOIN -> ROYAL band (distinct from the ink Projects band above and the dark
+   footer below — three dark sections were reading as one slab) */
+.cv2-cta {
+    background:
+        radial-gradient(60% 70% at 82% 20%, rgba(212, 164, 41, 0.20), transparent 60%),
+        radial-gradient(60% 60% at 8% 90%, rgba(46, 107, 230, 0.42), transparent 62%),
+        var(--m-royal);
+    border-top: 0;
+}
+.cv2-cta::after {
+    /* gold orb, bottom right (replaces the ripple rings) */
+    right: -6%; top: auto; bottom: -20%;
+    width: 440px; height: 440px;
+    border-radius: 50%;
+    background: var(--m-gold-deep);
+    filter: blur(70px);
+    opacity: 0.42;
+}
+.cv2-cta > .container-x::before {
+    /* royal orb, top left */
+    content: '';
+    position: absolute;
+    top: -30%; left: -10%;
+    width: 520px; height: 520px;
+    border-radius: 50%;
+    background: var(--m-royal-lift);
+    filter: blur(70px);
+    opacity: 0.42;
+    pointer-events: none;
+    z-index: -1;
+}
+.cv2-cta h2 {
+    font-family: var(--m-display);
+    font-weight: 300;
+    letter-spacing: -0.035em;
+}
+.cv2-cta h2 .cv2-dot { color: var(--m-gold-light); }
+.cv2-cta__eyebrow {
+    font-family: var(--m-mono);
+    font-size: 0.66rem;
+    font-weight: 400;
+    letter-spacing: 0.28em;
+    color: var(--m-gold-light);
+    gap: 0.7rem;
+}
+.cv2-cta__eyebrow::before { content: ''; width: 26px; height: 1px; background: var(--m-gold); font-size: 0; }
+.cv2-cta p { font-family: var(--m-body); font-weight: 300; }
+
+/* hero pane cards soften into the Meridian radius language */
+.cv2-hero .cv2-frame { border-radius: 26px; }
+.cv2-hero .cv2-frame__stage { border-radius: 18px; }
+.cv2-hero .cv2-adframe { border-radius: 22px; }
+.cv2-hero .cv2-adframe__stage { border-radius: 15px; }
+.cv2-hero .cv2-ev { border-radius: 18px; }
+.cv2-hero .cv2-empty { border-radius: 20px; font-family: var(--m-mono); letter-spacing: 0.2em; }
+.cv2-ev__title { font-family: var(--m-display); font-weight: 500; letter-spacing: -0.01em; }
+.cv2-ev__meta { font-family: var(--m-mono); font-size: 0.56rem; letter-spacing: 0.14em; text-transform: uppercase; }
+.cv2-ev__date { font-family: var(--m-mono); }
+
+/* ══ SINGLE-EVENT FEATURE CARD — the pane shows one card, so it fills:
+   tall image with a corner gold date chip, serif title + mono meta below. */
+.cv2-hero3__events .cv2-ev {
+    flex: 1 1 auto;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0;
+    padding: 0.6rem;
+}
+.cv2-hero3__events .cv2-ev__media {
+    width: 100%;
+    height: auto;
+    flex: 1 1 auto;
+    min-height: 175px;
+    border-radius: 14px;
+}
+.cv2-hero3__events .cv2-ev__date {
+    left: 12px; bottom: 12px; right: auto;
+    flex-direction: column;
+    gap: 0;
+    padding: 0.5rem 0.8rem 0.45rem;
+    border-radius: 12px;
+    background: linear-gradient(110deg, var(--m-gold), var(--m-gold-light));
+    color: var(--m-ink);
+    box-shadow: 0 8px 20px rgba(6, 22, 52, 0.35);
+}
+.cv2-hero3__events .cv2-ev__date b { font-size: 19px; }
+.cv2-hero3__events .cv2-ev__date span { font-size: 8.5px; letter-spacing: 0.2em; }
+.cv2-hero3__events .cv2-ev__body { padding: 0.95rem 0.5rem 0.7rem; }
+.cv2-hero3__events .cv2-ev__title { font-size: 1.18rem; }
+/* Read more pill inside the card (whole card is the link; this is its focus) */
+.cv2-ev__more {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    align-self: flex-start;
+    margin-top: 0.8rem;
+    padding: 0.55rem 1.15rem;
+    border-radius: 100px;
+    border: 1px solid rgba(11, 44, 111, 0.22);
+    font-family: var(--m-body);
+    font-size: 0.68rem;
+    font-weight: 500;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--m-ink);
+    transition: background 0.35s var(--cv2-ease), border-color 0.35s ease, transform 0.35s var(--cv2-ease);
+}
+.cv2-ev:hover .cv2-ev__more { background: linear-gradient(110deg, var(--m-gold), var(--m-gold-light)); border-color: transparent; }
+.cv2-ev__more span { display: inline-block; transition: transform 0.3s var(--cv2-spring); }
+.cv2-ev:hover .cv2-ev__more span { transform: translateX(4px); }
+/* full-width View-all pill under the card, matching its width */
+.cv2-evall {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.6rem;
+    width: 100%;
+    margin-top: 0.8rem;
+    padding: 0.9rem 1rem;
+    border-radius: 100px;
+    border: 1px solid rgba(255, 255, 255, 0.35);
+    color: #fff;
+    font-family: var(--m-body);
+    font-size: 0.72rem;
+    font-weight: 500;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    transition: background 0.4s var(--cv2-ease), color 0.4s ease, border-color 0.4s ease, transform 0.4s var(--cv2-ease);
+}
+.cv2-evall:hover {
+    background: linear-gradient(110deg, var(--m-gold), var(--m-gold-light));
+    color: var(--m-ink);
+    border-color: transparent;
+    transform: translateY(-2px);
+}
+.cv2-evall span { display: inline-block; transition: transform 0.3s var(--cv2-spring); }
+.cv2-evall:hover span { transform: translateX(4px); }
+@media (prefers-reduced-motion: reduce) {
+    .cv2-ev__more, .cv2-ev__more span, .cv2-evall, .cv2-evall span { transition: none; }
+    .cv2-evall:hover { transform: none; }
+}
+
+/* ══ IMPACT — DIAMOND BADGE COUNTERS (user's reference image:
+   bootstrap-counter-style-91) ══════════════════════════════════════════════
+   Each stat: a white 45°-rotated diamond card, a gradient diamond CAP holding
+   the icon at the top, the bold number centred, and a matching gradient
+   RIBBON banner (notched ends) carrying the label below. Five badges, each
+   its own gradient; Members wears Rotary gold. */
+/* two labelled groups: PROJECTS (4 badges) | divider | MEMBERSHIP (1 badge) */
+#numbers .cv2-statcols {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 3.4rem;
+    padding-top: 1.6rem;
+}
+@media (min-width: 1100px) {
+    #numbers .cv2-statcols { grid-template-columns: minmax(0, 4fr) minmax(0, 1.1fr); gap: 0; }
+    #numbers .cv-stat-group:last-child { border-left: 1px solid var(--m-line); padding-left: 1.4rem; }
+    #numbers .cv2-stat--feature { grid-column: auto; }
+}
+#numbers .cv-stat-group { display: block; min-width: 0; }
+#numbers .cv2-statgrid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 3.2rem 1rem;
+    justify-items: center;
+    /* UNCLIP. The element is `cv2-statgrid cv-stat-grid`, and .cv-stat-grid
+       carries overflow:hidden (civic-motion.css:1171, shared with the rounded
+       card treatment). On this diamond layout that clipped two things the user
+       could see: the white card's 0 16px 38px shadow, cut off square at the
+       grid edge — worst on the leftmost tile and on Members, which sits alone
+       in its own grid so it is clipped on every side — and the top of any tile
+       being hover-lifted 5px. Nothing here needs clipping; the tiles are
+       transparent and the diamond is drawn by ::before. */
+    overflow: visible;
+}
+@media (min-width: 560px) { #numbers .cv-stat-group:first-child .cv2-statgrid { grid-template-columns: repeat(2, 1fr); } }
+@media (min-width: 1100px) { #numbers .cv-stat-group:first-child .cv2-statgrid { grid-template-columns: repeat(4, 1fr); } }
+/* per-badge gradients — matched to the Meridian theme (royal blues + golds) */
+#numbers .cv2-statgrid .cv2-stat:not(.cv2-stat--feature):nth-child(1) { --dia: linear-gradient(160deg, #0B2C6F, #2E6BE6); }
+#numbers .cv2-statgrid .cv2-stat:not(.cv2-stat--feature):nth-child(2) { --dia: linear-gradient(160deg, #9C7413, #D4A429); }
+#numbers .cv2-statgrid .cv2-stat:not(.cv2-stat--feature):nth-child(3) { --dia: linear-gradient(160deg, #2E6BE6, #6FA0FF); }
+#numbers .cv2-statgrid .cv2-stat:not(.cv2-stat--feature):nth-child(4) { --dia: linear-gradient(160deg, #061634, #123C93); }
+#numbers .cv2-stat--feature { --dia: linear-gradient(160deg, #C8901A, #F0CE72); }
+/* the unit */
+/* ⚠ 200px / 148px IS A CEILING, NOT A PREFERENCE — do not enlarge these.
+   statcols splits 4fr/1.1fr at 1100px, so a projects column is only ~191px wide
+   there and the tiles sit 207px apart centre to centre. The diamond's bounding
+   box is side x sqrt(2), so 148px already spans 209px — the tiles are touching
+   at that breakpoint and anything larger overlaps its neighbour (172px would
+   collide by 36px). It was invisible only because .cv-stat-grid clipped it;
+   now that the clip is gone (see the overflow note below) the collision would
+   be plainly visible. Grow the number instead by shortening the STRING —
+   `data-count-compact="inr"` renders "1.37 Cr" via fmtCompactINR() in
+   rotary-anim.js — never by growing the box. */
+#numbers .cv2-stat,
+#numbers .cv2-stat--feature {
+    position: relative;
+    width: 200px;
+    min-height: 225px;
+    background: transparent;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+    -webkit-backdrop-filter: none;
+            backdrop-filter: none;
+    padding: 0;
+    gap: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    overflow: visible;
+    transition: transform .5s var(--cv2-ease);
+}
+#numbers .cv2-stat:hover { transform: translateY(-5px); box-shadow: none; border: 0; }
+/* white diamond card */
+#numbers .cv2-stat::before {
+    content: '';
+    display: block;
+    position: absolute;
+    left: 50%; top: 50%;
+    width: 148px; height: 148px;        /* ceiling — see the sizing note above */
+    margin: -74px 0 0 -74px;
+    background: #fff;
+    border-radius: 14px;
+    transform: rotate(45deg);
+    box-shadow: 0 16px 38px rgba(6, 22, 52, 0.14);
+    transition: box-shadow .5s var(--cv2-ease);
+    opacity: 1;
+}
+#numbers .cv2-stat:hover::before { box-shadow: 0 24px 50px rgba(6, 22, 52, 0.2); }
+/* gradient diamond cap with the icon */
+#numbers .cv2-stat__icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: absolute;
+    left: 50%; top: 14px;   /* rotated corner stays INSIDE the box — clip-proof */
+    width: 64px; height: 64px;
+    margin-left: -32px;
+    border: 0;
+    border-radius: 12px;
+    transform: rotate(45deg);
+    background: var(--dia);
+    color: #fff;
+    z-index: 2;
+    box-shadow: 0 8px 18px rgba(6, 22, 52, 0.18);
+}
+#numbers .cv2-stat__icon svg { transform: rotate(-45deg); width: 24px; height: 24px; }
+/* number block */
+#numbers .cv2-stat > div {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-top: 3.6rem;
+}
+/* Total Cost is the one tile whose figure can run long — "₹13,690,417" sets at
+   ~168px in Outfit 700/1.75rem, against ~158px of diamond at the figure's line
+   box, so it spilled past the white card. It is the only ₹ tile and always the
+   2nd (HomePageBase.BuildProjectStatTiles fixes the order), the same hook the
+   gold-ribbon rule below already relies on. 1.5rem brings it to ~144px, inside
+   by ~18px. Shrinking the string beats growing the diamond — see the ceiling
+   note on .cv2-stat above. */
+#numbers .cv2-statgrid .cv2-stat:not(.cv2-stat--feature):nth-child(2) .civic-num {
+    font-size: 1.5rem;
+}
+#numbers .cv2-stat .civic-num {
+    font-family: var(--m-body);
+    font-weight: 700;
+    font-size: 1.75rem;
+    letter-spacing: -0.01em;
+    line-height: 1;
+    color: #2b2b33;
+    white-space: nowrap;
+}
+/* ribbon banner with notched ends */
+#numbers .cv2-stat__label {
+    order: 2;
+    position: relative;
+    margin-top: 1rem;
+    min-width: 176px;
+    padding: 0.6rem 1.6rem;
+    background: var(--dia);
+    color: #fff;
+    font-family: var(--m-body);
+    /* was 0.8rem — the Projects / Total Cost / Man Hours / Beneficiaries /
+       Members plates. min-width stays 176px: "Beneficiaries" at 0.95rem is
+       ~105px + 3.2rem padding, still inside the plate. */
+    font-size: 0.95rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    text-transform: none;
+    text-align: center;
+    clip-path: polygon(0 0, 100% 0, 94% 50%, 100% 100%, 0 100%, 6% 50%);
+    filter: drop-shadow(0 6px 12px rgba(6, 22, 52, 0.16));
+}
+#numbers .cv2-stat__bar { display: none; }
+/* Members inherits everything; its gold gradient is set above */
+#numbers .cv2-stat--feature .civic-num { color: #2b2b33; }
+/* the two GOLD ribbons wash out white text at their light ends (~1.5–2.3:1);
+   use ink like the theme's other gold surfaces (e.g. .cv2-ev__date) */
+#numbers .cv2-statgrid .cv2-stat:not(.cv2-stat--feature):nth-child(2) .cv2-stat__label,
+#numbers .cv2-stat--feature .cv2-stat__label { color: var(--m-ink); }
+@media (prefers-reduced-motion: reduce) {
+    #numbers .cv2-stat, #numbers .cv2-stat:hover { transition: none; transform: none; }
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   PROJECT ARC — mobile stepper arrows
+   Desktop stops the ring on hover, so a project is easy to land on. A phone
+   has no hover: the ring keeps turning while you aim, and the 2.6s post-tap
+   freeze in initArcSlider is only long enough to tap, not to choose. These
+   arrows step the ring one card at a time and end the auto-spin outright.
+   Mobile ONLY, per request — hidden by default, shown under 768px.
+   ══════════════════════════════════════════════════════════════════════════ */
+.cv-arc__nav { display: none; }
+
+@media (max-width: 767px) {
+    .cv-arc__nav {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        /* render() hands the front-most tile z-index 300 (200 + facing*100);
+           the arrows must clear that or a card will cover them mid-turn. */
+        z-index: 400;
+        width: 44px;                    /* full 44px touch target */
+        height: 44px;
+        padding: 0;
+        border: 1px solid rgba(212, 164, 41, 0.55);
+        border-radius: 100px;
+        background: rgba(6, 22, 52, 0.72);
+        -webkit-backdrop-filter: blur(6px);
+                backdrop-filter: blur(6px);
+        color: #F0CE72;
+        cursor: pointer;
+        -webkit-tap-highlight-color: transparent;
+        transition: background-color .25s var(--cv2-ease), border-color .25s var(--cv2-ease);
+    }
+    .cv-arc__nav svg { width: 22px; height: 22px; }
+    .cv-arc__nav:active { background: #D4A429; border-color: #D4A429; color: #061634; }
+    /* clear of .cv-arc's 2% edge mask, which would fade an arrow flush to the
+       viewport edge */
+    .cv-arc__nav--prev { left: 12px; }
+    .cv-arc__nav--next { right: 12px; }
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   DARK MODE for the Meridian home layer
+   ──────────────────────────────────────────────────────────────────────────
+   The bug: this layer is appended last and wins the cascade, and it painted
+   every home surface from its own :root palette (--m-paper / --m-paper2 /
+   #fff) with NO dark variant — while the headings on top of those surfaces
+   are Tailwind `text-ink`, i.e. the token --c-ink, which DOES flip to
+   near-white in dark (civic-motion.css:1227). So dark mode gave light type on
+   a still-light card: "Dignitaries & Leaders.", "Newsletters", the meeting
+   day/time/venue and "View on map" all went close to invisible, and the
+   sections themselves never darkened at all.
+
+   The fix is at the palette, not per heading: flip the surface tokens once and
+   every var(--m-…) consumer follows. Only the hardcoded #fff panels and the
+   few colours that are legible-on-white-only need naming individually below.
+
+   ⚠ --m-ink is deliberately NOT flipped. It is the brand navy and is used as a
+   SURFACE (#work's background) as well as text, so flipping it would turn the
+   dark projects band light. The handful of places where it is text on a light
+   panel are re-pointed by hand instead.
+   ══════════════════════════════════════════════════════════════════════════ */
+:root[data-civic-mode="dark"] {
+    /* aligned with the theme's own dark tokens in civic-motion.css:1227 */
+    --m-paper:  #071124;    /* was #FBFAF7 — section grounds        */
+    --m-paper2: #0C1B37;    /* was #F3F1EC                          */
+    --m-line:   #24365C;    /* was #E3DED3 — hairlines              */
+    --m-slate:  #94A0B6;    /* was #5A6377 — secondary type         */
+    --m-slate-soft: #6E7C96;
+    --m-sh-sm: 0 1px 2px rgba(0,0,0,.40), 0 4px 12px rgba(0,0,0,.34);
+    --m-sh-md: 0 2px 4px rgba(0,0,0,.36), 0 12px 32px rgba(0,0,0,.46);
+    --m-sh-lg: 0 4px 8px rgba(0,0,0,.34), 0 28px 64px rgba(0,0,0,.56);
+}
+
+/* Panels that were literal #fff. One lifted surface for all of them, so the
+   meeting panel, the newsletter rows, the empty state and the stat diamond
+   read as the same material. */
+:root[data-civic-mode="dark"] .cv2-meet,
+:root[data-civic-mode="dark"] .cv2-news,
+:root[data-civic-mode="dark"] #events .cv2-empty,
+:root[data-civic-mode="dark"] #numbers .cv2-stat::before { background: #101F3D; }
+
+/* Type that was ink-on-white and is now on those dark panels. */
+:root[data-civic-mode="dark"] .cv2-meet__day,
+:root[data-civic-mode="dark"] .cv2-news__title,
+:root[data-civic-mode="dark"] #numbers h2.font-heading { color: #E9EEF7; }
+/* EVERY stat figure, Members included. An earlier pass excluded the feature
+   tile on the assumption its number sat on the gold diamond — it does not.
+   --dia paints only the icon cap and the label ribbon; the figure sits on the
+   same ::before card as the other four, which is darkened just above. Leaving
+   it at #2b2b33 put dark type on the dark card and the Members count vanished. */
+:root[data-civic-mode="dark"] #numbers .cv2-stat .civic-num { color: #E9EEF7; }
+
+/* Golds and royals chosen for contrast against WHITE. --m-gold-deep (#9C7413)
+   and --m-royal (#0B2C6F) are both far too dark on a dark panel; step them up
+   to the light gold / azure that the rest of the dark theme uses. */
+:root[data-civic-mode="dark"] .cv2-head__eyebrow,
+:root[data-civic-mode="dark"] .cv2-news__date,
+:root[data-civic-mode="dark"] .cv2-news .cv2-more { color: var(--m-gold-light); }
+/* #6FA0FF, not --m-azure: the azure (#2E6BE6) measures only 3.39:1 on the dark
+   panel — that is the meeting TIME, one of the strings reported as unreadable,
+   so re-pointing it at the azure would not actually have fixed it. #6FA0FF is
+   the lighter blue already in this palette (the 3rd stat diamond's gradient
+   stop) and clears 4.5:1. */
+:root[data-civic-mode="dark"] .cv2-meet__day em,
+:root[data-civic-mode="dark"] .cv2-news:hover .cv2-news__title { color: #6FA0FF; }
+:root[data-civic-mode="dark"] .cv2-meet__venue svg { color: var(--m-gold); }
+
+/* Outline buttons ("View on map") are ink type in a translucent navy border —
+   invisible on a dark panel. Light type + a light border at rest; the hover
+   state fills gold via ::before, so it keeps its ink type. */
+:root[data-civic-mode="dark"] main .civic-btn {
+    color: #E9EEF7;
+    border-color: rgba(233, 238, 247, 0.30);
+}
+:root[data-civic-mode="dark"] main .civic-btn:hover { color: var(--m-ink); }
+
+/* The marquee band. Its ground is var(--m-paper), so it darkened with the rest,
+   but the Meridian layer sets its type in hardcoded navy — rgba(6,22,52,.72)
+   solid, rgba(6,22,52,.26) for the outlined ghost row — plus --m-gold-deep
+   (#9C7413) for the accent words, which is only ~3:1 on a dark ground. All four
+   re-pointed, keeping the same solid / outline / accent structure. */
+:root[data-civic-mode="dark"] .cv-marquee__item { color: rgba(233, 238, 247, 0.82); }
+:root[data-civic-mode="dark"] .cv-marquee__item--accent { color: var(--m-gold-light); }
+:root[data-civic-mode="dark"] .cv-marquee__group--ghost .cv-marquee__item {
+    color: transparent;
+    -webkit-text-stroke: 1px rgba(233, 238, 247, 0.34);
+}
+:root[data-civic-mode="dark"] .cv-marquee__group--ghost .cv-marquee__item--accent {
+    -webkit-text-stroke-color: rgba(240, 206, 114, 0.75);
+}

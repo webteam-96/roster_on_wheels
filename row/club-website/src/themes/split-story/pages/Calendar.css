@@ -1,0 +1,70 @@
+/* Split Story · Calendar — every class is spl-cal-*; kit classes are only
+   adjusted through spl-cal-* modifiers. No hidden start states. */
+
+/* ── hero controls: month switcher + filters (left), night mini-month (right) ── */
+.spl-cal-ctrl{display:grid;grid-template-columns:minmax(0,1fr);gap:clamp(20px,3vh,32px)}
+.spl-cal-side{display:grid;align-content:start;gap:clamp(16px,2.6vh,24px);min-width:0}
+@media (min-width:1000px){
+  .spl-cal-ctrl{grid-template-columns:minmax(0,1fr) minmax(0,460px);gap:clamp(32px,4vw,72px);align-items:start}
+}
+.spl-cal-switch{display:flex;align-items:center;gap:clamp(10px,1.4vw,18px);min-width:0}
+.spl-btn.spl-cal-step{flex:none;width:52px;min-height:52px;padding:0}
+.spl-btn.spl-cal-step--prev:hover .spl-ico{translate:-4px 0}
+.spl-cal-mwrap{flex:1;min-width:0}
+.spl-cal-mname{margin:0;color:#fff;font-family:var(--spl-display);font-stretch:68%;font-weight:800;font-size:clamp(32px,5vw,76px);line-height:.92;letter-spacing:-.01em;overflow-wrap:anywhere}
+.spl-cal-mname span{color:var(--spl-gold)}
+.spl-cal-scope{display:flex;flex-wrap:wrap;align-items:center;gap:10px 18px}
+
+/* the mini-month */
+.spl-cal-month{min-width:0;padding:clamp(12px,1.6vw,20px);border-radius:var(--spl-radius);background:var(--spl-night);box-shadow:var(--spl-shadow)}
+.spl-cal-week,.spl-cal-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px}
+.spl-cal-week{margin-bottom:6px;color:rgba(255,255,255,.8);font-size:.75rem;font-weight:800;line-height:1.6;text-align:center}
+.spl-cal-d{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;min-width:0;height:clamp(44px,4.4vw,54px);padding:0;border:0;border-radius:14px;background:transparent;color:rgba(255,255,255,.75);font-family:var(--spl-body);font-size:.9375rem;font-weight:700;line-height:1;font-variant-numeric:tabular-nums;cursor:pointer;transition:background-color .25s,color .25s}
+.spl-cal-d.has-dates{background:rgba(255,255,255,.08);color:#fff;font-weight:800}
+.spl-cal-d:hover{background:rgba(255,255,255,.18)}
+.spl-cal-d.is-today{box-shadow:inset 0 0 0 2px var(--spl-sky)}
+.spl-cal-d[aria-pressed="true"]{background:var(--spl-gold);color:var(--spl-night)}
+
+/* kind marks: SHAPES, so the kinds read without colour (dot / ring / square) */
+.spl-cal-marks{display:flex;align-items:center;gap:3px;height:8px}
+.spl-cal-mark{display:block;flex:none;width:7px;height:7px}
+.spl-cal-mark--birthdays{border-radius:50%;background:var(--spl-gold)}
+.spl-cal-mark--anniversaries{border:2px solid var(--spl-sky);border-radius:50%}
+.spl-cal-mark--events{border-radius:1px;background:#fff}
+.spl-cal-d[aria-pressed="true"] .spl-cal-mark--birthdays,
+.spl-cal-d[aria-pressed="true"] .spl-cal-mark--events{background:var(--spl-night)}
+.spl-cal-d[aria-pressed="true"] .spl-cal-mark--anniversaries{border-color:var(--spl-night)}
+.spl-cal-key{display:flex;flex-wrap:wrap;gap:6px 18px;margin:14px 0 0;padding:12px 4px 0;border-top:1px solid rgba(255,255,255,.18);list-style:none;color:rgba(255,255,255,.86);font-size:.8125rem;font-weight:700}
+.spl-cal-key li{display:flex;align-items:center;gap:8px}
+.spl-cal-key .spl-cal-mark{width:10px;height:10px}
+
+/* ── the story: one section per day with entries ─────────────────────────── */
+.spl-cal-day{position:relative;min-width:0;padding:clamp(36px,7vh,72px) var(--spl-gutter)}
+.spl-cal-day + .spl-cal-day{border-top:1px solid var(--spl-line)}
+@media (min-width:1000px){ .spl-cal-day{padding-inline:clamp(40px,5.5vw,96px)} }
+.spl-cal-dtitle{display:flex;flex-direction:column;gap:6px;margin:0 0 clamp(18px,3vh,28px)}
+.spl-cal-dwd{color:var(--spl-azure);font-size:.9375rem;font-weight:800;line-height:1.3}
+.spl-cal-ddate{color:var(--spl-royal);font-family:var(--spl-display);font-stretch:68%;font-weight:800;font-size:clamp(34px,4.2vw,60px);line-height:.92;letter-spacing:-.01em;overflow-wrap:anywhere}
+
+.spl-cal-people{--spl-min:170px}
+.spl-cal-pli{position:relative}
+.spl-cal-badge{position:absolute;left:10px;top:10px;z-index:3;display:grid;place-items:center;width:40px;height:40px;border-radius:50%;box-shadow:0 0 0 3px #fff;pointer-events:none}
+.spl-cal-badge svg{width:22px;height:22px}
+.spl-cal-pli--birthdays .spl-cal-badge{background:var(--spl-gold);color:var(--spl-night)}
+.spl-cal-pli--anniversaries .spl-cal-badge{background:var(--spl-royal);color:#fff}
+.spl-cal-person .spl-person-mono{font-size:clamp(48px,6vw,72px)}
+.spl-cal-people + .spl-cal-events{margin-top:clamp(24px,4vh,40px)}
+
+/* phones: the agenda — people as compact rows (circle photo + kind + name) */
+@media (max-width:599.98px){
+  .spl-cal-people{--spl-min:100%;gap:10px}
+  .spl-cal-person{flex-direction:row;align-items:center;border-radius:18px}
+  .spl-cal-person .spl-person-photo{flex:none;width:72px;margin:10px 0 10px 10px;aspect-ratio:1;border-radius:50%}
+  .spl-cal-person .spl-person-mono{font-size:30px}
+  .spl-cal-person .spl-person-body{min-width:0;padding:10px 14px}
+  .spl-cal-badge{left:4px;top:4px;width:30px;height:30px;box-shadow:0 0 0 2px #fff}
+  .spl-cal-badge svg{width:17px;height:17px}
+}
+
+/* ── closing band ───────────────────────────────────────────────────────── */
+.spl-cal-band-act{margin-top:clamp(24px,5vh,48px)}

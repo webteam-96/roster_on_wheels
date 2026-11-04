@@ -1,0 +1,58 @@
+/* LIQUID MOTION · DIRECTORS (liq-bod-) - every selector sits inside the page root or is a liq-bod- class. */
+
+/* hero controls: search + live count on one line when there is room */
+.liq-bod-tools{display:flex;flex-wrap:wrap;align-items:center;gap:14px 28px}
+.liq-bod-tools .liq-search{flex:1 1 320px}
+
+/* "Read introduction" - a liq-link that is a button */
+.liq-bod-more{padding:0;border:0;background:none;cursor:pointer;text-align:left}
+
+/* officers: the home's leadership rows, with larger arches on this page */
+.liq-bod .liq-bod-officers .liq-person{grid-template-columns:clamp(88px,17vw,248px) minmax(0,1fr)}
+.liq-bod .liq-bod-officers .liq-person__bio{max-width:62ch}
+@media (max-width:699px){ .liq-bod .liq-bod-officers .liq-person{grid-template-columns:minmax(0,1fr)} }
+.liq-bod .liq-bod-officers .liq-bod-more{margin-top:6px}
+
+/* the board: numbered arch grid, 2 / 3 / 4 columns; wide screens stagger alternate columns like the home's project pair */
+/* phones: one card per row (client, 2026-09-29) */
+.liq-bod-grid{display:grid;grid-template-columns:minmax(0,1fr);align-items:start;gap:clamp(36px,4vw,64px) clamp(14px,2.4vw,32px);margin:0;padding:0;list-style:none}
+.liq-bod-card{min-width:0}
+.liq-bod-card__pic{width:100%}
+@media (max-width:699px){ .liq-bod-card__pic{width:min(240px,70%)} }
+.liq-bod-card__meta{display:flex;align-items:baseline;gap:10px;margin:18px 0 8px;color:var(--liq-accent);font:600 12px/1.4 var(--liq-sans);letter-spacing:.14em;text-transform:uppercase}
+.liq-bod-card__n{flex:none;color:var(--liq-link);font:600 13px/1 var(--liq-display);letter-spacing:0;font-variant-numeric:tabular-nums}
+.liq-bod-card__role{min-width:0;overflow-wrap:anywhere}
+.liq-bod-card__name{margin:0;font:600 clamp(16px,1.5vw,20px)/1.22 var(--liq-display);letter-spacing:-.02em;overflow-wrap:anywhere}
+.liq-bod-card .liq-bod-more{margin-top:4px}
+@media (min-width:700px){
+  .liq-bod-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .liq-bod-card:nth-child(3n+2){margin-top:56px}
+}
+@media (min-width:1100px){
+  .liq-bod-grid{grid-template-columns:repeat(4,minmax(0,1fr))}
+  .liq-bod-card:nth-child(3n+2){margin-top:0}
+  .liq-bod-card:nth-child(even){margin-top:72px}
+}
+
+/* the introduction dialog: an ink-2 panel that floods open from the bottom like the chips and rows */
+.liq-bod-dlg{--liq-bg:var(--liq-ink-2);--liq-fg:#fff;--liq-fg-2:var(--liq-mute);--liq-line:var(--liq-ink-line);--liq-accent:var(--liq-gold);--liq-link:var(--liq-azure-hi);--liq-focus:var(--liq-gold);--liq-card:var(--liq-ink-3);
+  width:min(820px,calc(100% - 32px));max-width:none;max-height:min(88svh,920px);margin:auto;padding:0;overflow:hidden;
+  border:1px solid var(--liq-ink-line);border-radius:var(--liq-r);background:var(--liq-ink-2);color:#fff;box-shadow:0 40px 90px -30px rgba(0,0,0,.75)}
+.liq-bod-dlg::backdrop{background:rgba(10,10,15,.8);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
+.liq-bod-dlg__box{max-height:min(88svh,920px);overflow-y:auto;overscroll-behavior:contain;padding:clamp(24px,4vw,56px)}
+.liq-bod-dlg__x{position:absolute;top:14px;right:14px;z-index:2;display:grid;place-items:center;width:48px;height:48px;padding:0;border:1px solid var(--liq-ink-line);border-radius:50%;background:var(--liq-ink);color:#fff;cursor:pointer;transition:background-color .3s,color .3s,border-color .3s}
+.liq-bod-dlg__x:hover{border-color:var(--liq-gold);background:var(--liq-gold);color:var(--liq-ink)}
+.liq-bod-dlg__x .liq-ico{width:18px;height:18px}
+.liq-bod-dlg__head{display:flex;flex-wrap:wrap;align-items:flex-end;gap:18px 28px;padding-right:52px;margin-bottom:clamp(22px,3vw,36px)}
+.liq-bod-dlg__head .liq-portrait{flex:none;width:clamp(96px,20vw,150px)}
+.liq-bod-dlg__who{flex:1 1 220px;min-width:0}
+.liq-bod-dlg__who .liq-kicker{margin-bottom:12px}
+.liq-bod-dlg__name{margin:0;font:600 clamp(24px,3.4vw,42px)/1.08 var(--liq-display);letter-spacing:-.03em;overflow-wrap:anywhere}
+@media (prefers-reduced-motion:no-preference){
+  .liq-bod-dlg[open]{animation:liqBodFlood .8s var(--liq-ease)}
+  .liq-bod-dlg[open]::backdrop{animation:liqBodFade .4s ease}
+}
+@keyframes liqBodFlood{from{clip-path:circle(0% at 50% 100%)}to{clip-path:circle(150% at 50% 100%)}}
+@keyframes liqBodFade{from{opacity:0}}
+/* phones scroll natively (no Lenis): keep the page still behind the open dialog */
+html[data-theme="liquid-motion"]:has(.liq-bod-dlg[open]){overflow:hidden}

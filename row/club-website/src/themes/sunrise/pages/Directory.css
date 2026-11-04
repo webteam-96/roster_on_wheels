@@ -1,0 +1,48 @@
+/* ═════════════════════════════════════════════════════════════════════════════
+   SUNRISE · DIRECTORY — a horizon of arches (pages/Directory.jsx).
+   Tokens and the arch/chip/search pieces come from theme.css; everything here is
+   sun-dir-* or scoped under it. No hidden start states: the rise is GSAP only.
+   ═════════════════════════════════════════════════════════════════════════════ */
+
+/* ---------- the letter pill (glass, like the header) ---------- */
+.sun-dir-az{display:flex;justify-content:center;margin-bottom:clamp(36px,5vw,64px)}
+.sun-dir-az .sun-chips{
+  max-width:100%;gap:4px;padding:6px;justify-content:center;border-radius:28px;
+  border:1px solid var(--sun-line);background:var(--sun-hdr-bg);box-shadow:var(--sun-card-shadow);
+  -webkit-backdrop-filter:blur(16px) saturate(1.3);backdrop-filter:blur(16px) saturate(1.3);
+}
+.sun-dir-az .sun-chip{min-width:44px;padding:0 12px;justify-content:center;border-color:transparent;background:transparent;font:600 13px/1 var(--sun-display);letter-spacing:.02em}
+.sun-dir-az .sun-chip:hover{border-color:var(--sun-hover-line)}
+.sun-dir-az .sun-chip[aria-pressed="true"]{background:var(--sun-sunbtn);color:var(--sun-dk);border-color:transparent}
+/* wider screens: the pill stays under the header while the roster scrolls */
+@media (min-width:600px) and (min-height:540px){
+  .sun-dir-az{position:sticky;top:calc(var(--sun-hh) + 10px);z-index:5;pointer-events:none}
+  .sun-dir-az .sun-chips{pointer-events:auto}
+}
+/* phones, and a phone on its side: one row that scrolls sideways inside the pill (never the page).
+   Pinned on a 375px-tall screen, the two-row pill + the header covered half of it */
+@media (max-width:599px), (max-height:539px){
+  .sun-dir-az .sun-chips{flex-wrap:nowrap;justify-content:flex-start;overflow-x:auto;overscroll-behavior-x:contain;scrollbar-width:none}
+  /* the row fades out at its right end, so it reads as one that goes on (the pill ended cleanly on a
+     chip and the letters past it looked missing); the end padding brings the last one clear of the fade */
+  .sun-dir-az .sun-chips:has(.sun-chip:nth-child(8)){padding-right:40px;-webkit-mask-image:linear-gradient(90deg,#000 calc(100% - 40px),transparent);mask-image:linear-gradient(90deg,#000 calc(100% - 40px),transparent)}
+  .sun-dir-az .sun-chips::-webkit-scrollbar{display:none}
+  .sun-dir-az .sun-chip{flex:none}
+}
+
+/* ---------- the roster: arches over their horizon lines ---------- */
+/* five across on desktop, every portrait as wide as its column (client, 2026-09-29:
+   bigger photos, 5 in a row); four where five would be cramped, 3 tablet, 2 phone */
+.sun-dir-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:clamp(36px,4vw,56px) clamp(16px,2vw,28px)}
+@media (min-width:600px){ .sun-dir-grid{grid-template-columns:repeat(3,minmax(0,1fr))} }
+@media (min-width:900px){ .sun-dir-grid{grid-template-columns:repeat(4,minmax(0,1fr))} }
+@media (min-width:1100px){ .sun-dir-grid{grid-template-columns:repeat(5,minmax(0,1fr))} }
+/* a phone on its side: four or five across, so a portrait and its name share the 330px under the bar */
+@media (max-height:500px) and (min-width:560px){ .sun-dir-grid{grid-template-columns:repeat(4,minmax(0,1fr))} }
+@media (max-height:500px) and (min-width:800px){ .sun-dir-grid{grid-template-columns:repeat(5,minmax(0,1fr))} }
+/* a size container: the name scales with the card (cqi), so a long surname fits a narrow one */
+.sun-dir-card{display:flex;flex-direction:column;align-items:center;min-width:0;text-align:center;container-type:inline-size}
+.sun-dir-card .sun-arch{width:100%}
+.sun-dir-card__txt{min-width:0;max-width:100%}
+.sun-dir-card__name{font:600 clamp(15px,1.2vw,17px)/1.28 var(--sun-display);font-size:min(clamp(15px,1.2vw,17px),10.6cqi);letter-spacing:-.02em;color:var(--sun-ink);overflow-wrap:anywhere;text-wrap:balance}
+.sun-dir-card__work{margin-top:6px;font-size:14px;line-height:1.45;color:var(--sun-mist);overflow-wrap:anywhere}

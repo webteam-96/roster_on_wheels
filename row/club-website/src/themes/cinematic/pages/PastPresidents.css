@@ -1,0 +1,156 @@
+/* ─────────────────────────────────────────────────────────────────────────────
+   CINEMATIC · PAST PRESIDENTS — the credits roll. Every class is cin-pp-*.
+   No hidden start states: with motion off the roll, the beam and every credit
+   are visible.
+
+   One spine runs the length of the roll. Phones: the spine hugs the left edge
+   (28px column), year above name. From 760px the credits centre on it: year
+   right of 40%, the spine, portrait + name to its right. --cin-pp-yw is the
+   year column and --cin-pp-x the spine's left edge; both resolve against the
+   roll's width, which every grid below shares (no padding in between).
+   ───────────────────────────────────────────────────────────────────────────── */
+
+.cin-sec.cin-pp-body {
+  padding-top: clamp(36px, 6vw, 80px);
+  overflow-x: clip;                     /* credits slide in from the sides on wide screens */
+  background: radial-gradient(900px 620px at 50% 0, rgba(23, 69, 143, .28), transparent 70%);
+}
+
+/* film sprockets down both edges of the screen (wide only, decoration) */
+@media (min-width: 1100px) {
+  .cin-pp-body::before, .cin-pp-body::after {
+    content: ""; position: absolute; top: 48px; bottom: 48px; width: 10px; pointer-events: none;
+    background: repeating-linear-gradient(180deg, rgba(167, 179, 209, .13) 0 12px, transparent 12px 28px);
+    -webkit-mask-image: linear-gradient(180deg, transparent, #000 12%, #000 88%, transparent);
+    mask-image: linear-gradient(180deg, transparent, #000 12%, #000 88%, transparent);
+  }
+  .cin-pp-body::before { left: max(16px, calc(var(--cin-side) - 40px)); }
+  .cin-pp-body::after { right: max(16px, calc(var(--cin-side) - 40px)); }
+}
+
+/* ── the roll + its spine ── */
+.cin-pp-roll {
+  --cin-pp-x: 13px;
+  position: relative; isolation: isolate;
+  max-width: 1080px; margin-inline: auto;
+}
+.cin-pp-roll::before, .cin-pp-roll__beam {
+  position: absolute; top: 0; bottom: 0; left: var(--cin-pp-x); width: 2px; pointer-events: none;
+}
+.cin-pp-roll::before {
+  content: ""; z-index: 0;
+  background: linear-gradient(180deg, transparent, var(--cin-line-2) 48px, var(--cin-line-2) calc(100% - 48px), transparent);
+}
+.cin-pp-roll__beam {
+  z-index: 1; transform-origin: 50% 0;
+  background: linear-gradient(180deg, transparent, var(--cin-gold) 48px, var(--cin-gold) calc(100% - 140px), transparent);
+  filter: drop-shadow(0 0 6px rgba(247, 168, 27, .7));
+}
+
+/* ── a decade ── */
+.cin-pp-dec { padding-top: clamp(32px, 6vw, 72px); }
+.cin-pp-dec__head {
+  display: grid; grid-template-columns: 28px minmax(0, 1fr); grid-template-areas: "node lab" "node cnt";
+  align-items: center; padding-bottom: 10px;
+}
+.cin-pp-dec__h {
+  grid-area: lab; margin: 0 0 0 14px; min-width: 0;
+  font-stretch: var(--cin-cond); font-weight: 800; line-height: .9; font-variant-numeric: tabular-nums;
+  font-size: clamp(44px, 12vw, 64px); color: var(--cin-gold-ink); overflow-wrap: anywhere;
+}
+.cin-pp-dec__node {
+  grid-area: node; justify-self: center; position: relative; z-index: 2;
+  width: 18px; height: 18px; border-radius: 50%; border: 2px solid var(--cin-gold); background: var(--cin-night-2);
+  box-shadow: 0 0 0 5px rgba(247, 168, 27, .12);
+}
+.cin-pp-dec__n { grid-area: cnt; margin: 6px 0 0 14px; color: var(--cin-mist); font-size: 14.5px; font-weight: 600; }
+
+/* ── a credit ── */
+.cin-pp-list { list-style: none; margin: 0; padding: 0; }
+.cin-pp-row {
+  display: grid; grid-template-columns: 28px auto minmax(0, 1fr);
+  grid-template-areas: "node ph yr" "node ph who";
+  align-items: center; padding-block: 12px;
+}
+.cin-pp-row__yr {
+  grid-area: yr; align-self: end; min-width: 0; margin-left: 14px;
+  font-stretch: var(--cin-cond); font-weight: 800; line-height: 1; font-variant-numeric: tabular-nums;
+  font-size: 22px; color: var(--cin-gold-ink);
+}
+.cin-pp-row__node {
+  grid-area: node; justify-self: center; position: relative; z-index: 2;
+  width: 10px; height: 10px; border-radius: 50%; border: 2px solid var(--cin-gold); background: var(--cin-night);
+}
+.cin-pp-row__ph {
+  grid-area: ph; display: block; flex: none; margin-left: 8px;
+  width: 72px; height: 72px; border-radius: 50%; overflow: hidden;
+  background: var(--cin-night-2); box-shadow: 0 0 0 1px var(--cin-line-2);
+}
+.cin-pp-row__img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: 50% 20%; }
+.cin-pp-row__mono {
+  display: grid; place-items: center;
+  background: radial-gradient(70% 70% at 30% 20%, var(--cin-royal), #101B40);
+  font-stretch: var(--cin-cond); font-weight: 800; font-size: 26px; line-height: 1; color: var(--cin-gold);
+}
+.cin-pp-row__who { grid-area: who; align-self: start; min-width: 0; margin-left: 14px; padding-top: 4px; }
+.cin-pp-row__n {
+  margin: 0; font-stretch: var(--cin-wide); font-weight: 720; text-transform: uppercase; letter-spacing: .015em;
+  font-size: clamp(16px, 4.3vw, 18px); line-height: 1.18; color: var(--cin-ink); overflow-wrap: anywhere;
+}
+.cin-pp-row__first {
+  display: inline-block; margin: 8px 0 0; padding: 2px 10px; border-radius: 999px;
+  border: 1px solid rgba(247, 168, 27, .6); color: var(--cin-gold-ink); font-size: 13px; font-weight: 650; line-height: 1.5;
+}
+.cin-pp-row.is-first .cin-pp-row__node {
+  width: 14px; height: 14px; background: var(--cin-gold); box-shadow: 0 0 16px rgba(247, 168, 27, .75);
+}
+.cin-pp-row.is-first .cin-pp-row__ph { box-shadow: 0 0 0 2px var(--cin-gold); }
+/* narrow phones: a 15-letter surname ("CHANDRASEKHARAN") fits its line instead of losing its last letter */
+@media (max-width: 420px) {
+  .cin-pp-row__ph { width: 64px; height: 64px; }
+  .cin-pp-row__yr, .cin-pp-row__who { margin-left: 12px; }
+  .cin-pp-row__n { font-stretch: 108%; letter-spacing: 0; font-size: clamp(15px, 4.2vw, 17px); overflow-wrap: break-word; }
+}
+@media (max-width: 359px) {
+  .cin-pp-row__ph { width: 52px; height: 52px; }
+  .cin-pp-row__mono { font-size: 20px; }
+  .cin-pp-row__n { font-stretch: 100%; font-size: 14px; }
+}
+
+/* ── wide: credits centred on the spine ── */
+@media (min-width: 760px) {
+  .cin-pp-roll { --cin-pp-yw: 40%; --cin-pp-x: calc(40% + 19px); }
+
+  .cin-pp-dec__head { grid-template-columns: var(--cin-pp-yw) 40px minmax(0, 1fr); grid-template-areas: "lab node cnt"; }
+  .cin-pp-dec__h { margin: 0; padding-right: 22px; text-align: right; font-size: clamp(64px, 8vw, 128px); }
+  .cin-pp-dec__n { margin: 0 0 0 22px; }
+  @supports (-webkit-text-stroke: 1px black) {
+    .cin-pp-dec__h { color: transparent; -webkit-text-stroke: 2px var(--cin-gold-ink); }
+  }
+
+  .cin-pp-row {
+    grid-template-columns: var(--cin-pp-yw) 40px auto minmax(0, 1fr); grid-template-areas: "yr node ph who";
+    padding-block: 12px;
+  }
+  .cin-pp-row__yr { align-self: center; justify-self: end; margin-left: 0; padding-right: 22px; font-size: clamp(26px, 2.8vw, 40px); }
+  .cin-pp-row__ph { margin-left: 22px; width: 96px; height: 96px; }
+  .cin-pp-row__mono { font-size: 32px; }
+  .cin-pp-row__who { align-self: center; margin-left: 18px; padding-top: 0; }
+  .cin-pp-row__n { font-size: clamp(17px, 1.7vw, 24px); }
+}
+/* tablets: a 40% year column squeezed the names into ~250px */
+@media (min-width: 760px) and (max-width: 1099px) {
+  .cin-pp-roll { --cin-pp-yw: 26%; --cin-pp-x: calc(26% + 19px); }
+}
+
+/* ── states ── */
+.cin-pp-state { max-width: 1080px; margin: clamp(24px, 4vw, 40px) auto 0; }
+.cin-pp-state .cin-empty { margin-inline: auto; }
+
+/* ───────── light mode (html[data-cin-mode="light"]) ───────── */
+html[data-cin-mode="light"] .cin-sec.cin-pp-body { background: radial-gradient(900px 620px at 50% 0, rgba(23, 69, 143, .07), transparent 70%); }
+html[data-cin-mode="light"] .cin-pp-body::before, html[data-cin-mode="light"] .cin-pp-body::after {
+  background: repeating-linear-gradient(180deg, rgba(11, 20, 51, .1) 0 12px, transparent 12px 28px);
+}
+html[data-cin-mode="light"] .cin-pp-roll__beam { filter: none; }
+html[data-cin-mode="light"] .cin-pp-row.is-first .cin-pp-row__node { box-shadow: 0 0 0 4px rgba(247, 168, 27, .2); }

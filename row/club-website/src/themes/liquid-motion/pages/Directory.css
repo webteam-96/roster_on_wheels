@@ -1,0 +1,58 @@
+/* ─────────────────────────────────────────────────────────────────────────────
+   LIQUID MOTION · DIRECTORY (pages/Directory.jsx). Every class is liq-dir-*;
+   kit pieces are only re-tuned inside .liq-dir. Nothing starts hidden except the
+   decorative azure fill of the sticky letters (the outline always carries the glyph).
+   ───────────────────────────────────────────────────────────────────────────── */
+
+/* ── letter bar: chips + rolling count ─────────────────────────────────────── */
+.liq-dir-bar{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:16px 28px;margin:0 0 clamp(36px,5vw,64px)}
+.liq-dir .liq-dir-az{flex:1 1 420px;min-width:0;gap:6px}
+.liq-dir .liq-dir-az .liq-chip{justify-content:center;min-width:44px;padding:0 14px;font-family:var(--liq-display);font-weight:600}
+.liq-dir-count{display:flex;align-items:baseline;gap:10px;margin:0;flex:none;color:var(--liq-fg)}
+.liq-dir-count__n{font:600 clamp(28px,3vw,44px)/1 var(--liq-display);letter-spacing:-.03em}
+.liq-dir-count__t{color:var(--liq-fg-2);font:600 12.5px/1.3 var(--liq-sans);letter-spacing:.14em;text-transform:uppercase}
+
+/* ── groups ────────────────────────────────────────────────────────────────── */
+.liq-dir-list{display:grid;gap:clamp(44px,5vw,80px)}
+.liq-dir-group{display:grid;grid-template-columns:minmax(0,1fr);gap:18px;min-width:0}
+.liq-dir-letter{margin:0;line-height:1}
+.liq-dir-letter__glyph{position:relative;display:inline-block;font:800 clamp(44px,8vw,64px)/.9 var(--liq-display);letter-spacing:-.04em}
+.liq-dir-letter__line{display:block;color:transparent;-webkit-text-stroke:1.5px var(--liq-stroke)}
+.liq-dir-letter__ink{position:absolute;inset:0;color:var(--liq-stroke);clip-path:inset(100% 0 0 0)}
+
+/* ── member cards: arched portrait, name, profession ───────────────────────── */
+.liq-dir-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:clamp(32px,3.4vw,48px) clamp(16px,2vw,28px);margin:0;padding:0;list-style:none}
+.liq-dir-card{min-width:0}
+.liq-dir-card__pic{width:100%}
+.liq-dir-card__txt{min-width:0;padding-top:16px}
+.liq-dir-card__name{margin:0;color:var(--liq-fg);font:600 17px/1.3 var(--liq-display);letter-spacing:-.015em;overflow-wrap:anywhere}
+.liq-dir-card__work{margin:6px 0 0;color:var(--liq-fg-2);font-size:15px;line-height:1.45;overflow-wrap:anywhere}
+@media (hover:hover) and (prefers-reduced-motion:no-preference){
+  /* individual `scale`: the card itself is GSAP-revealed, the photo is not */
+  .liq-dir-card .liq-portrait__img{transition:scale .9s var(--liq-ease)}
+  .liq-dir-card:hover .liq-portrait__img{scale:1.06}
+}
+
+/* ── desktop: glass bar sticks under the header, letters stick in a column ── */
+@media (min-width:900px){
+  .liq-dir-bar{position:sticky;top:calc(var(--liq-hh) + 8px);z-index:3;padding:10px 20px 10px 10px;border-radius:32px;
+    background:var(--liq-bg);background:color-mix(in srgb,var(--liq-bg) 90%,transparent);
+    -webkit-backdrop-filter:blur(14px) saturate(1.3);backdrop-filter:blur(14px) saturate(1.3);
+    box-shadow:0 22px 44px -34px rgba(10,10,15,.5),inset 0 0 0 1px var(--liq-line)}
+  .liq-dir-group{grid-template-columns:clamp(130px,14vw,220px) minmax(0,1fr);align-items:start;gap:0 clamp(24px,3vw,48px)}
+  .liq-dir-letter{position:sticky;top:calc(var(--liq-hh) + 8px + var(--liq-dir-bh,64px) + 28px)}
+  .liq-dir-letter__glyph{font-size:clamp(96px,10vw,160px);line-height:.82}
+}
+
+/* ── phones: chips wrap above the list, members become rows ──────────────── */
+@media (max-width:699px){
+  .liq-dir .liq-dir-az{gap:4px}
+  .liq-dir .liq-dir-az .liq-chip{min-width:40px;padding:0 10px}
+  .liq-dir-count{order:-1}
+  .liq-dir-grid{grid-template-columns:minmax(0,1fr);gap:0;border-top:1px solid var(--liq-line)}
+  .liq-dir-card{display:grid;grid-template-columns:64px minmax(0,1fr);align-items:center;gap:16px;padding:14px 0;border-bottom:1px solid var(--liq-line)}
+  .liq-dir-card__txt{padding-top:0}
+  .liq-dir-card__name{font-size:16px}
+  .liq-dir-card__work{margin-top:4px;font-size:14.5px}
+  .liq-dir-card .liq-portrait__mono{font-size:20px}
+}

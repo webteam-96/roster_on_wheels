@@ -1,0 +1,80 @@
+/* ─────────────────────────────────────────────────────────────────────────────
+   HORIZONTAL JOURNEY · Dignitary (pages/Dignitary.jsx) — every class hj-dig-*.
+   Royal (azure for the DG) dusk hero with the portrait standing in the sky and
+   its own low sun behind the arch; the bio on paper beside a sticky heading;
+   a night band with the moon over the other leaders.
+   No hidden start states: motion (GSAP, motion allowed only) adds them.
+   Contrast: royal on white 9.2:1, azure on white 5.6:1 (13px bold kicker);
+   gold on night 8.2:1, mist on night 10.6:1, white on night 16.2:1.
+   ───────────────────────────────────────────────────────────────────────────── */
+
+.hj-dig--royal{--hj-dig-c:var(--hj-royal)}
+.hj-dig--azure{--hj-dig-c:var(--hj-azure)}
+
+/* ── hero: the portrait carries this page's sun (the kit's orb would be a second one) ── */
+.hj-dig-ph .hj-ph__orb{display:none}
+.hj-dig-port{position:relative;isolation:isolate;width:clamp(150px,44vw,210px);margin-top:clamp(14px,4vw,24px)}
+.hj-dig-port .hj-arch{position:relative;z-index:1;width:100%;max-width:none}
+/* a soft shadow where the arch meets the hill */
+.hj-dig-port::after{content:"";position:absolute;left:10%;right:10%;bottom:-10px;height:20px;border-radius:50%;background:rgba(6,14,40,.32);filter:blur(8px);z-index:0;pointer-events:none}
+/* the low sun, centred behind the arch's shoulders (no CSS translate: GSAP owns transforms here) */
+.hj-dig-sunw{position:absolute;left:8%;top:-13%;width:84%;aspect-ratio:1;z-index:0;pointer-events:none}
+.hj-dig-sun{
+  display:block;width:100%;height:100%;border-radius:50%;
+  background:radial-gradient(circle at 50% 44%,#FFFBEA 0%,#FFE7A6 38%,#FFC857 68%,#FF9F3A 100%);
+  box-shadow:0 0 46px 12px rgba(255,196,110,.5),0 0 130px 36px rgba(255,140,70,.26);
+}
+/* phones: the portrait stands above the title */
+@media (max-width:899px){ .hj-dig-ph .hj-ph__aside{order:-1} }
+@media (min-width:900px){
+  /* room above the arch for its sun and glow (the hero clips at its top edge) */
+  .hj-dig-ph .hj-ph__aside{justify-self:end;padding-top:clamp(48px,5vw,80px)}
+  .hj-dig-port{width:clamp(230px,21vw,300px);margin:0 clamp(0px,2vw,28px) 0 0}
+}
+
+/* ── the profile ───────────────────────────────────────────────────────────── */
+.hj-dig-body{display:grid;gap:24px}
+.hj-dig-head{min-width:0}
+.hj-dig-head .hj-sh{margin-bottom:0}
+.hj-dig-head .hj-kicker{color:var(--hj-dig-c)}
+.hj-dig-head .hj-h2{font-size:clamp(26px,7vw,40px);line-height:1.04}
+.hj-dig-rule{position:relative;height:40px;max-width:320px;margin-top:20px}
+.hj-dig-prose{min-width:0;max-width:68ch;font-size:clamp(17px,1.3vw,18px)}
+.hj-dig-prose--none{color:var(--hj-ink-2)}
+.hj-dig-back{margin:8px 0 0}
+@media (min-width:900px){
+  .hj-dig-body{grid-template-columns:minmax(0,1fr) minmax(0,2fr);gap:36px clamp(40px,5vw,80px);align-items:start}
+  .hj-dig-head{grid-row:span 2;position:sticky;top:calc(var(--hj-hh) + 32px)}
+  .hj-dig-head .hj-h2{font-size:clamp(26px,3vw,44px)}
+  .hj-dig-back{grid-column:2;margin:0}
+}
+
+/* ── night: the other leaders under the moon ───────────────────────────────── */
+.hj-dig-sky{position:absolute;top:calc(-1 * clamp(48px,8vw,110px));bottom:0;left:calc(50% - 50vw);width:100vw;z-index:-1;pointer-events:none}
+.hj-dig-moon{position:absolute;top:clamp(18px,4vw,48px);right:max(6%,var(--hj-gut));width:clamp(50px,10vw,140px);aspect-ratio:1}
+.hj-dig-more .hj-sh{padding-right:clamp(64px,14vw,170px)}
+
+.hj-dig-list{list-style:none;margin:0;padding:0;display:grid;gap:24px}
+.hj-dig-ld{position:relative;display:grid;grid-template-columns:96px minmax(0,1fr);gap:18px;align-items:center;min-width:0;border-radius:18px}
+.hj-dig-ld .hj-arch{width:100%;max-width:none}
+.hj-dig-ld__t{min-width:0}
+.hj-dig-ld__r{margin:0 0 6px;font:750 12.5px/1.3 var(--hj-sans);letter-spacing:.14em;text-transform:uppercase;color:var(--hj-gold);overflow-wrap:anywhere}
+.hj-dig-ld__n{margin:0;font:700 clamp(17px,1.5vw,21px)/1.25 var(--hj-disp);letter-spacing:-.015em;overflow-wrap:anywhere}
+.hj-dig-ld__n a{color:#fff;text-decoration:none;text-underline-offset:4px}
+/* the name link covers the whole card: one link per leader */
+.hj-dig-ld__n a::after{content:"";position:absolute;inset:0;z-index:2;border-radius:inherit}
+.hj-dig-ld:hover .hj-dig-ld__n a{text-decoration:underline}
+.hj-dig-ld__n a:focus-visible{outline:none}
+.hj-dig-ld:has(a:focus-visible){outline:3px solid var(--hj-gold);outline-offset:8px}
+.hj-dig-ld__bio{margin:10px 0 0;font-size:15px;line-height:1.5;color:var(--hj-mist);overflow-wrap:anywhere}
+@media (min-width:600px){
+  .hj-dig-list{grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:44px 32px;max-width:1080px}
+  .hj-dig-ld{grid-template-columns:minmax(0,1fr);align-items:start;gap:0}
+  .hj-dig-ld .hj-arch{max-width:230px}
+  .hj-dig-ld__r{margin-top:22px}
+}
+/* the arch lifts a little on hover (individual property: GSAP never writes it on the arch) */
+@media (hover:hover) and (prefers-reduced-motion:no-preference){
+  .hj-dig-ld .hj-arch{transition:translate .45s var(--hj-ease)}
+  .hj-dig-ld:hover .hj-arch{translate:0 -8px}
+}

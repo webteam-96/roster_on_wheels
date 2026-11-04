@@ -1,0 +1,59 @@
+/* PHOTO COLLAGE · NEWSLETTERS — the clipboard. Everything is under .col-news. */
+
+/* ── the latest issue on a kraft clipboard ─────────────────────────────────── */
+.col-news .col-news-feat{padding-bottom:calc(var(--col-sec) * .6)}
+.col-news-feat-in{position:relative;max-width:820px;margin:0 auto}
+.col-news-board{position:relative;padding:clamp(52px,7vw,72px) clamp(14px,3.6vw,40px) clamp(20px,3.6vw,40px);border-radius:16px;background:var(--col-kraft) var(--col-grain);box-shadow:var(--col-lift),inset 0 0 0 2px var(--col-kraft-edge);transform:rotate(calc(-1.2deg + var(--col-vel,0) * 3deg));transition:transform .7s var(--col-ease)}
+.col-news-bclip{position:absolute;z-index:2;top:-18px;left:50%;width:clamp(120px,20vw,160px);height:auto;overflow:visible;transform:translateX(-50%)}
+.col-news-bclip-wire{fill:none;stroke:#7D8597;stroke-width:6;stroke-linecap:round}
+.col-news-bclip-plate{fill:#D5D9E1;stroke:#5B6275;stroke-width:3}
+.col-news-bclip-bend{fill:none;stroke:#5B6275;stroke-width:2;opacity:.6}
+.col-news-bclip-rivet{fill:#7D8597}
+
+.col-news{--col-news-m:clamp(40px,5.4vw,58px)}
+.col-news-sheet{position:relative;display:flex;flex-direction:column;align-items:flex-start;gap:10px;min-width:0;padding:clamp(34px,4.4vw,48px) clamp(16px,3vw,32px) clamp(22px,3vw,32px) calc(var(--col-news-m) + 16px);background-color:var(--col-white);background-image:linear-gradient(90deg,rgba(212,19,103,0) var(--col-news-m),rgba(212,19,103,.5) var(--col-news-m) calc(var(--col-news-m) + 2px),rgba(212,19,103,0) calc(var(--col-news-m) + 2px)),repeating-linear-gradient(180deg,rgba(0,103,200,0) 0 31px,rgba(0,103,200,.16) 31px 32px);box-shadow:0 1px 1px rgba(28,35,64,.12),0 12px 22px -14px rgba(28,35,64,.4);color:var(--col-ink);transform:rotate(1.2deg)}
+.col-news-sheet-h{margin:0;max-width:100%}
+.col-news-kick{display:block;margin-bottom:.5em;font-family:var(--col-body);font-size:.8125rem;font-weight:800;line-height:1.3;letter-spacing:.12em;text-transform:uppercase;color:var(--col-ink)}
+.col-news-sheet-title{display:block;font-family:var(--col-hand);font-weight:700;font-size:clamp(1.9rem,4.4vw,3.1rem);line-height:1.15;overflow-wrap:anywhere}
+.col-news-sheet-date{margin:0;color:var(--col-ink-2);font-weight:600}
+.col-news .col-news-read{margin-top:8px}
+.col-news-nofile{margin:auto 0 0;color:var(--col-ink-2);font-family:var(--col-hand);font-weight:700;font-size:1.1rem}
+
+/* the year's issue count, stuck on the board's corner */
+.col-news .col-news-count{position:absolute;z-index:3;top:-58px;right:calc(-1 * min(44px, var(--col-gutter) - 6px));display:block;margin:0}
+.col-news .col-news-count .col-stk{--col-s:clamp(118px,13vw,160px)}
+
+/* ── every issue: ruled notebook cards with a paper clip (home's look) ─────── */
+.col-news .col-news-arch .col-head{max-width:980px}
+.col-news-tools{display:flex;flex-wrap:wrap;align-items:flex-end;gap:16px 28px;max-width:980px;margin:0 auto clamp(40px,6vh,64px)}
+.col-news-tools .col-search{flex:1 1 300px}
+.col-news-tools .col-count{padding-bottom:12px}
+.col-news-tools .col-filter{flex-basis:100%}
+
+.col-news-group{max-width:980px;margin:0 auto}
+.col-news-group + .col-news-group{margin-top:clamp(52px,8vh,88px)}
+.col-news-month{display:flex;flex-direction:column;align-items:flex-start;width:fit-content;max-width:100%;margin:0 0 clamp(36px,5vh,52px);font-family:var(--col-hand);font-weight:700;font-size:clamp(1.5rem,3vw,2rem);line-height:1.2;color:var(--col-ink)}
+.col-news-month .col-uline{display:block;width:calc(100% + 12px);height:12px;margin:2px 0 0 -4px}
+
+.col-news-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,300px),1fr));gap:clamp(48px,5vw,64px) clamp(28px,4vw,56px);margin:0;padding:0;list-style:none}
+.col-news-item,.col-news-move{min-width:0}
+.col-news-move{height:100%}
+.col-news-card{position:relative;display:flex;flex-direction:column;align-items:flex-start;gap:8px;height:100%;min-height:230px;padding:40px 22px 24px 64px;background-color:var(--col-white);background-image:linear-gradient(90deg,rgba(212,19,103,0) 44px,rgba(212,19,103,.5) 44px 46px,rgba(212,19,103,0) 46px),repeating-linear-gradient(180deg,rgba(0,103,200,0) 0 31px,rgba(0,103,200,.16) 31px 32px);box-shadow:var(--col-lift);color:var(--col-ink);text-decoration:none;transform:rotate(calc(var(--col-r,0deg) + var(--col-vel,0) * var(--col-k,1) * 5deg));transition:transform .7s var(--col-ease),box-shadow .35s}
+.col-news-clip{position:absolute;top:-22px;left:22px;width:26px;height:62px;overflow:visible}
+.col-news-clip path{fill:none;stroke:#7D8597;stroke-width:3;stroke-linecap:round}
+.col-news .col-news-new{position:absolute;top:12px;right:14px;transform:rotate(4deg)}
+.col-news-title{max-width:100%;font-family:var(--col-hand);font-weight:700;font-size:clamp(1.45rem,2.4vw,1.85rem);line-height:1.2;overflow-wrap:anywhere}
+.col-news-date{color:var(--col-ink-2);font-weight:600}
+.col-news-cta{display:inline-flex;align-items:center;gap:.4em;min-height:44px;margin-top:auto;padding:0 18px;border-radius:999px;background:var(--col-cran);color:#fff;font-weight:800}
+.col-news a.col-news-card:focus-visible{transform:rotate(0deg)}
+@media (hover:hover) and (pointer:fine){
+  .col-news a.col-news-card:hover{transform:translateY(-6px) rotate(0deg);box-shadow:var(--col-lift-hi)}
+  .col-news a.col-news-card:hover .col-news-cta{background:var(--col-cran-ink)}
+}
+
+/* ── phones ───────────────────────────────────────────────────────────────── */
+@media (max-width:699.98px){
+  .col-news .col-news-count{top:-46px;right:-6px}
+  .col-news .col-news-count .col-stk{--col-s:104px}
+  .col-news-card{min-height:0;padding-right:18px}
+}

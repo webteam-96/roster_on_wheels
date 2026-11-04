@@ -1,0 +1,41 @@
+/* ═════════════════════════════════════════════════════════════════════════════
+   PHOTO COLLAGE · DIRECTORY — the contact sheet.
+   A grid of small taped portrait prints (Portrait from kit.jsx) with the name
+   handwritten under each photo, and a white paper strip of kraft index tabs for
+   the first letter (sticky on wide screens). Every selector sits under .col-dir.
+   No hidden start states: the deal is JS-only (house() in Directory.jsx).
+   ═════════════════════════════════════════════════════════════════════════════ */
+
+/* the hero already ends in its own padding: the sheet starts close under it */
+.col-dir .col-dir-body{padding-top:clamp(12px,3vh,32px)}
+
+/* member faces in the head: keep the heads in frame */
+.col-dir .col-ph-print .col-print-photo img{object-position:50% 20%}
+
+/* ── the index tabs ───────────────────────────────────────────────────────── */
+.col-dir .col-dir-az{position:relative;z-index:5;display:flex;flex-wrap:wrap;align-items:center;gap:10px 18px;max-width:var(--col-max);margin:0 auto clamp(36px,6vh,60px);padding:16px clamp(12px,2vw,22px) 14px;background:var(--col-white) var(--col-grain);box-shadow:var(--col-lift)}
+.col-dir .col-dir-az-label{margin:0;font-family:var(--col-hand);font-weight:700;font-size:1.2rem;line-height:1.3;color:var(--col-ink)}
+.col-dir .col-dir-az .col-filter{gap:6px}
+.col-dir .col-dir-az .col-filter-btn{justify-content:center;min-width:44px;padding:0 10px;border:0;border-radius:9px 9px 3px 3px;background:var(--col-kraft) var(--col-grain);color:var(--col-ink);font-family:var(--col-display);font-size:1.125rem;font-weight:400;line-height:1;box-shadow:inset 0 -3px 0 var(--col-kraft-edge)}
+.col-dir .col-dir-az .col-filter-btn:hover{background-color:var(--col-gold)}
+.col-dir .col-dir-az .col-filter-btn[aria-pressed="true"]{background:var(--col-ink);color:#fff;box-shadow:0 8px 12px -8px rgba(28,35,64,.7);transform:translateY(-3px) rotate(-3deg)}
+@media (min-width:900px){
+  .col-dir .col-dir-az{position:sticky;top:14px}
+}
+@media (max-width:599.98px){
+  .col-dir .col-dir-az{gap:8px 12px}
+  .col-dir .col-dir-az .col-filter-btn{min-width:40px;padding:0 6px}
+}
+
+/* ── the sheet ────────────────────────────────────────────────────────────── */
+.col-dir .col-dir-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:clamp(30px,4vw,52px) clamp(18px,2.4vw,34px);max-width:var(--col-max);margin:0 auto;padding:14px 0 0;list-style:none}
+.col-dir .col-dir-grid > li{min-width:0}
+.col-dir .col-portrait-cap{margin-top:.55em}
+.col-dir .col-dir-name{display:block;font-family:var(--col-hand);font-size:clamp(1.05rem,1.3vw,1.2rem);font-weight:700;line-height:1.22;color:var(--col-ink);overflow-wrap:anywhere}
+.col-dir .col-dir-work{display:block;margin-top:.35em;font-family:var(--col-body);font-size:.8125rem;font-weight:600;line-height:1.35;color:var(--col-ink-2);overflow-wrap:anywhere}
+
+/* phones: ONE card per row (client, 2026-10-05), centred at a readable size; the tilts halved to ±1.5° */
+@media (max-width:599.98px){
+  .col-dir .col-dir-grid{grid-template-columns:minmax(0,280px);justify-content:center;gap:40px}
+  .col-dir .col-portrait-card{transform:rotate(calc(var(--col-r,0deg) * .5 + var(--col-vel,0) * var(--col-k,1) * 4deg))}
+}

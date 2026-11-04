@@ -1,0 +1,89 @@
+/* LIQUID MOTION · PROJECTS — every class is liq-prj-*; kit classes are only read, never redefined.
+   Nothing here hides content waiting for JS (motion.js does the entrances). */
+
+/* ── hero controls: search, avenue chips, the other filters, the live count ── */
+.liq-band.liq-prj-filters{padding-top:0}
+.liq-prj-ctl{display:grid;gap:20px;min-width:0}
+.liq-prj-tools{display:flex;flex-wrap:wrap;gap:14px 16px}
+.liq-prj-field{display:grid;gap:8px;flex:1 1 220px;max-width:340px;min-width:0}
+.liq-prj-field label{color:var(--liq-fg-2);font:600 12px/1.3 var(--liq-sans);letter-spacing:.14em;text-transform:uppercase}
+.liq-prj-sel{-webkit-appearance:none;appearance:none;width:100%;min-height:48px;padding:0 44px 0 18px;border:1px solid var(--liq-line);border-radius:999px;cursor:pointer;
+  background:var(--liq-card) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1.5 6 6.5 11 1.5' fill='none' stroke='%23A3A3B2' stroke-width='1.8'/%3E%3C/svg%3E") no-repeat right 18px center;
+  color:var(--liq-fg);font:500 15px/1.2 var(--liq-sans);text-overflow:ellipsis;transition:border-color .3s}
+.liq-prj-sel:hover:not(:disabled){border-color:var(--liq-accent)}
+.liq-prj-sel:focus-visible{outline:3px solid var(--liq-focus);outline-offset:2px}
+.liq-prj-sel:disabled{opacity:.5;cursor:not-allowed}
+/* the native list is drawn by the OS on a light ground: keep its text dark */
+.liq-prj-sel option{color:#0A0A0F;background:#fff}
+.liq-prj-sum{display:flex;flex-wrap:wrap;align-items:center;gap:6px 20px}
+.liq-prj-clear{min-height:48px}
+.liq-prj-clear:disabled{opacity:.45;cursor:default;pointer-events:none}
+
+/* ── the azure totals band ── */
+.liq-prj-stats .liq-kicker{margin-bottom:clamp(14px,2vw,22px)}
+/* the figures as glass tiles on the azure band (client, 2026-10-07): one row of equal tiles, the long all-years cost
+   a double tile; useFitNumbers then gives every number one size, the largest the longest allows */
+.liq-prj-stats .liq-stats{display:flex;gap:clamp(10px,1.2vw,16px);border-top:0}
+.liq-prj-stats .liq-stat{flex:1 1 0;display:flex;flex-direction:column-reverse;justify-content:flex-end;padding:clamp(18px,2vw,28px) clamp(16px,1.6vw,24px);
+  border:1px solid rgba(255,255,255,.28);border-radius:22px;background:linear-gradient(160deg,rgba(255,255,255,.18),rgba(255,255,255,.06))}
+.liq-prj-stats .liq-stat.is-long{flex-grow:2}
+.liq-prj-stats .liq-stat__v{margin:0 0 12px;font-size:clamp(34px,4.6vw,64px);white-space:nowrap;overflow-wrap:normal}
+/* below 1200 (five tiles a row would shrink every number): two a row, a long figure and an odd last tile take the whole row */
+@media (max-width:1199.98px){
+  .liq-prj-stats .liq-stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));grid-auto-flow:row dense}
+  .liq-prj-stats .liq-stat.is-long,.liq-prj-stats .liq-stats.is-odd .liq-stat:last-child{grid-column:span 2}
+}
+.liq-prj-nofig{max-width:56ch;margin:0;padding:18px 0;border-top:1px solid var(--liq-line);border-bottom:1px solid var(--liq-line);font-size:clamp(17px,1.4vw,20px)}
+
+
+/* ── the list ── */
+.liq-prj-list .liq-sh{margin-bottom:clamp(32px,5vw,72px)}
+.liq-prj-top{margin-bottom:clamp(20px,3vw,32px);scroll-margin-top:calc(var(--liq-hh) + 24px)}
+.liq-prj-top:empty{margin:0}
+.liq-prj-top:focus{outline:none}
+.liq-prj-top:focus-visible{outline:3px solid var(--liq-focus);outline-offset:6px;border-radius:8px}
+.liq-prj-upd{color:var(--liq-accent);font-weight:700}
+
+/* up to 12: the home's two interlocking, staggered columns (home.css is not loaded here) */
+.liq-prj-grid--stagger{--liq-prj-st:clamp(90px,14vw,230px);display:grid;grid-template-columns:repeat(2,minmax(0,1fr));align-items:start;column-gap:clamp(32px,6vw,104px);row-gap:clamp(72px,9vw,136px);padding-bottom:var(--liq-prj-st)}
+.liq-prj-grid--stagger > .liq-pcard:nth-child(even){transform:translateY(var(--liq-prj-st))}
+.liq-prj-grid--stagger:has(> .liq-pcard:only-child){padding-bottom:0}
+.liq-prj-grid--stagger .liq-pcard--port .liq-media,.liq-prj-grid--stagger .liq-pcard--port .liq-pcard__meta{width:78%;max-width:none}
+.liq-prj-grid--stagger .liq-pcard--port:nth-child(4n+2) .liq-media,.liq-prj-grid--stagger .liq-pcard--port:nth-child(4n+2) .liq-pcard__meta,
+.liq-prj-grid--stagger .liq-pcard--port:nth-child(4n+3) .liq-media,.liq-prj-grid--stagger .liq-pcard--port:nth-child(4n+3) .liq-pcard__meta{margin-left:auto}
+@media (max-width:899px){
+  .liq-prj-grid--stagger{grid-template-columns:minmax(0,1fr);padding-bottom:0}
+  .liq-prj-grid--stagger > .liq-pcard:nth-child(even){transform:none}
+  .liq-prj-grid--stagger .liq-pcard--port .liq-media{width:86%}
+  .liq-prj-grid--stagger .liq-pcard--port .liq-pcard__meta{width:auto;max-width:560px}
+  .liq-prj-grid--stagger .liq-pcard--port:nth-child(4n+2) .liq-media,.liq-prj-grid--stagger .liq-pcard--port:nth-child(4n+2) .liq-pcard__meta,
+  .liq-prj-grid--stagger .liq-pcard--port:nth-child(4n+3) .liq-media,.liq-prj-grid--stagger .liq-pcard--port:nth-child(4n+3) .liq-pcard__meta{margin-left:0}
+  .liq-prj-grid--stagger .liq-pcard--port:nth-child(even) .liq-media{margin-left:auto}
+}
+
+/* more than 12: a calm 3 / 2 / 1-column grid of landscape cards */
+.liq-prj-grid--list{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,340px),1fr));gap:clamp(48px,5vw,72px) clamp(24px,3vw,40px)}
+.liq-prj-grid--list .liq-pcard__meta{padding-top:18px}
+.liq-prj-grid--list .liq-pcard__t{font-size:clamp(19px,1.5vw,23px)}
+
+/* ── paging ── */
+.liq-prj-pager{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:14px 18px;margin-top:clamp(56px,7vw,96px);padding-top:clamp(28px,3vw,40px);border-top:1px solid var(--liq-line)}
+.liq-prj-pages{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin:0;padding:0;list-style:none}
+.liq-prj-pg{justify-content:center;min-width:44px;padding:0 14px;font-variant-numeric:tabular-nums}
+.liq-prj-gap{display:inline-grid;place-items:center;min-width:24px;height:44px;color:var(--liq-fg-2)}
+.liq-prj-pager .liq-pill:disabled{opacity:.35;cursor:default}
+.liq-prj-pager .liq-pill:disabled:hover{border-color:var(--liq-line);color:var(--liq-fg)}
+.liq-prj-pager .liq-pill:disabled .liq-ico{transform:none}
+@media (max-width:599px){
+  .liq-prj-pages{order:-1;width:100%}
+  .liq-prj-pager .liq-pill{flex:1 1 0;min-width:0}
+}
+
+/* Pinterest-style masonry (client, 2026-10-06): 4px rows, each card spans its own height (+ --liq-prj-gap), set by
+   Projects.jsx; 2 columns from 600px, 3 from 1000px, 4 from 1400px; phones one column */
+@media (min-width:600px){
+  .liq-prj-grid--masonry{--liq-prj-gap:clamp(36px,4vw,56px);grid-template-columns:repeat(2,minmax(0,1fr));grid-auto-rows:4px;row-gap:0;column-gap:clamp(20px,2.4vw,36px);align-items:start}
+  .liq-prj-grid--masonry > .liq-pcard{align-self:start}
+}
+@media (min-width:1000px){ .liq-prj-grid--masonry{grid-template-columns:repeat(3,minmax(0,1fr))} }
+@media (min-width:1400px){ .liq-prj-grid--masonry{grid-template-columns:repeat(4,minmax(0,1fr))} }

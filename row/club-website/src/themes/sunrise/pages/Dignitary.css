@@ -1,0 +1,39 @@
+/* ═════════════════════════════════════════════════════════════════════════════
+   SUNRISE · DIGNITARY (sun-dig-*). Tokens only (--sun-*), so both modes follow.
+   The profile: a side plate - the arch portrait inside the emblem's rings, in
+   front of its own sun, then office and year - beside the prose, sticky where
+   it fits the screen. No hidden start states - motion sets and clears its own.
+   ═════════════════════════════════════════════════════════════════════════════ */
+
+/* ---------- the switch (PageHero children: the row under the page head) ---------- */
+.sun-dig-switch .sun-chip{text-decoration:none}
+.sun-dig-switch .sun-chip[aria-current="page"]{background:var(--sun-sunbtn);border-color:transparent;color:var(--sun-dk)}
+
+/* ---------- the portrait, at the head of the side plate ---------- */
+/* rings + arch share one grid cell, so they centre without transforms
+   (GSAP scales them and writes translate:none inline) */
+.sun-dig-port{position:relative;display:grid;grid-template-columns:minmax(0,1fr);place-items:center;width:min(100%,360px);margin:0 auto clamp(28px,3vw,40px)}
+.sun-dig-port>*{grid-area:1/1}
+.sun-dig-port__glow{position:absolute;inset:-18%;border-radius:50%;background:var(--sun-sun-glow);pointer-events:none}
+.sun-dig-port__ring{width:100%;aspect-ratio:1;border-radius:50%;border:1px solid var(--sun-ring);pointer-events:none}
+.sun-dig-port__ring--in{width:80%;border-style:dashed;border-color:var(--sun-ring-dash)}
+.sun-dig-port .sun-arch{width:66%;margin:0}
+@media (max-width:899px){ .sun-dig-port{width:min(65%,360px)} }
+
+/* ---------- the profile ---------- */
+.sun-dig-read{display:grid;gap:28px clamp(32px,6vw,96px)}
+.sun-dig-side,.sun-dig-main{min-width:0}
+.sun-dig-side .sun-shead{margin-bottom:24px}
+.sun-dig-facts{display:grid;gap:16px;padding-top:20px;border-top:1px solid var(--sun-line)}
+.sun-dig-facts dt{font-size:12px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:var(--sun-mist)}
+.sun-dig-facts dd{margin:4px 0 0;font:600 clamp(16px,1.4vw,19px)/1.3 var(--sun-display);letter-spacing:-.02em;color:var(--sun-ink);overflow-wrap:anywhere}
+.sun-dig-prose{font-size:clamp(17px,1.25vw,19px);line-height:1.75}
+.sun-dig-back{margin-top:clamp(28px,4vw,48px)}
+@media (min-width:900px){ .sun-dig-read{grid-template-columns:minmax(0,4fr) minmax(0,8fr)} }
+/* sticky only where the plate (portrait + facts, ~630px) fits under the header; shorter screens scroll it */
+@media (min-width:900px) and (min-height:760px){
+  .sun-dig-side{position:sticky;top:calc(var(--sun-hh) + 32px);align-self:start}
+}
+
+/* ---------- more leaders (kit People/Person) ---------- */
+.sun-dig-more .sun-shead{margin-bottom:clamp(40px,6vw,80px)}

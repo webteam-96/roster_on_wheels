@@ -1,0 +1,72 @@
+/* ─────────────────────────────────────────────────────────────────────────────
+   HORIZONTAL JOURNEY · DIRECTORS (hj-bod-*) — the board as a ridge line.
+   Royal hero → turquoise valley where the two leads stand on a drawn ridge →
+   ridges fall into the paper ground → the rest of the board as small arches.
+   No hidden start states here: motion (Directors.jsx) sets and clears its own.
+
+   Contrast: ink on turquoise 6.3:1; ink on the hill (#039AA9, = 13% ink over
+   turquoise, the sample's far ridge) 5.1:1; royal labels on white 9.2:1.
+   ───────────────────────────────────────────────────────────────────────────── */
+
+/* ── hero ──────────────────────────────────────────────────────────────────── */
+/* with the leads below, the hero's front ridge is already their valley */
+.hj-bod-hero{--hj-ground:var(--hj-turq)}
+.hj-bod-find{display:flex;flex-direction:column;gap:12px;max-width:520px}
+
+/* ── the leads: turquoise valley, arches standing on one ridge ─────────────── */
+.hj-bod-lead{
+  --hj-bod-hillc:#039AA9; --hj-bod-aw:clamp(200px,66vw,280px);
+  position:relative;overflow:clip;background:var(--hj-turq);color:var(--hj-ink);--hj-focus:var(--hj-ink);
+  padding-top:clamp(24px,4vw,52px);
+}
+@media (min-width:700px){ .hj-bod-lead{--hj-bod-aw:clamp(220px,24vw,300px)} }
+
+/* phone: hill 0 / ground 0 / hill 1 / ground 1 stacked; wide: both hills share row 1
+   (their silhouettes merge into one ridge line), both grounds row 2. The leads use
+   subgrid so the arch row and the text row line up with the hill and the ground. */
+.hj-bod-leads{display:grid;grid-template-columns:minmax(0,1fr);max-width:1040px;margin:0 auto}
+.hj-bod-hill{position:relative;grid-column:1/-1;align-self:end;height:calc(var(--hj-bod-aw) * .62);margin-inline:calc(50% - 50vw);pointer-events:none}
+.hj-bod-ground{grid-column:1/-1;margin:-1px calc(50% - 50vw) 0;background:var(--hj-bod-hillc)}
+.hj-bod-lp{position:relative;z-index:1;grid-column:1;display:grid;grid-template-rows:subgrid;min-width:0;text-align:center}
+.hj-bod-hill[data-i="0"]{grid-row:1}
+.hj-bod-ground[data-i="0"]{grid-row:2}
+.hj-bod-lp[data-i="0"]{grid-row:1 / span 2}
+.hj-bod-hill[data-i="1"]{grid-row:3}
+.hj-bod-ground[data-i="1"]{grid-row:4}
+.hj-bod-lp[data-i="1"]{grid-row:3 / span 2}
+.hj-bod-lp[data-i="1"] .hj-bod-lp__ph{padding-top:clamp(40px,10vw,64px)}
+@media (min-width:700px){
+  .hj-bod-leads[data-n="2"]{grid-template-columns:repeat(2,minmax(0,1fr));column-gap:clamp(24px,4vw,64px)}
+  .hj-bod-hill[data-i="1"]{grid-row:1}
+  .hj-bod-ground[data-i="1"]{grid-row:2}
+  .hj-bod-lp[data-i="1"]{grid-row:1 / span 2;grid-column:2}
+  .hj-bod-lp[data-i="1"] .hj-bod-lp__ph{padding-top:0}
+}
+
+.hj-bod-lp__ph{display:flex;align-items:flex-end;justify-content:center;min-width:0}
+.hj-bod-lp .hj-arch{width:var(--hj-bod-aw);max-width:100%}
+.hj-bod-lp__t{min-width:0;padding:24px 0 clamp(40px,6vw,64px)}
+.hj-bod-lp__r{margin:0 0 8px;font:750 13px/1.3 var(--hj-sans);letter-spacing:.16em;text-transform:uppercase;overflow-wrap:anywhere}
+.hj-bod-lp__n{margin:0;font:700 clamp(22px,3.2vw,36px)/1.14 var(--hj-disp);letter-spacing:-.02em;text-wrap:balance;overflow-wrap:anywhere}
+
+/* the valley closes on ridges into the paper ground */
+.hj-bod-lead__end{position:relative;height:clamp(56px,9vw,120px);margin-top:-1px;background:var(--hj-bod-hillc)}
+
+/* ── the rest of the board: small arches, each on its own hill ─────────────── */
+.hj-bod-grid{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:clamp(30px,4vw,48px) clamp(14px,2.4vw,32px);align-items:start}
+/* phones: one board member per row (client, 2026-09-29) */
+@media (max-width:599px){
+  .hj-bod-grid{grid-template-columns:minmax(0,1fr);justify-items:center}
+  /* phones: each card centred - photo, role and name (client, 2026-09-29) */
+  .hj-bod-grid > li{width:min(100%,300px);display:flex;flex-direction:column;align-items:center;text-align:center}
+  .hj-bod-card__ph{margin-inline:auto;width:100%}   /* a card with initials (no photo) keeps the full arch - it shrank to its letters */
+}
+@media (min-width:720px){ .hj-bod-grid{grid-template-columns:repeat(auto-fill,minmax(200px,1fr))} }
+.hj-bod-card{min-width:0}
+.hj-bod-card__ph{position:relative;isolation:isolate;max-width:200px;padding-bottom:12px}
+/* the mound stays inside the 16px gutter (6% of a 200px arch is 12px) */
+.hj-bod-card__ph::after{content:"";position:absolute;left:-6%;right:-6%;bottom:0;height:30%;z-index:-1;border-radius:50% 50% 0 0 / 100% 100% 0 0;background:rgba(0,173,187,.18)}
+.hj-bod-card .hj-arch{max-width:none;box-shadow:0 0 0 4px #fff,0 22px 40px -22px rgba(8,30,50,.5)}
+.hj-bod-card__r{margin:18px 0 6px;font:750 12px/1.3 var(--hj-sans);letter-spacing:.14em;text-transform:uppercase;color:var(--hj-royal);overflow-wrap:anywhere}
+.hj-bod-card__n{margin:0;font:700 clamp(15.5px,1.5vw,19px)/1.25 var(--hj-disp);letter-spacing:-.015em;overflow-wrap:anywhere}
+

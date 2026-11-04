@@ -1,0 +1,44 @@
+/* ═════════════════════════════════════════════════════════════════════════════
+   SUNRISE · ABOUT (sun-ab-*) — the club's own words at first light.
+   Two columns >= 900px: the crest (sticky where it fits under the header) beside
+   the About HTML, a third and two thirds; one column on phones (crest 60% wide,
+   not sticky). Colours are --sun-* tokens only (both modes); the logo plate is
+   white in both because club logos are drawn for white.
+   ═════════════════════════════════════════════════════════════════════════════ */
+.sun-ab-story{display:grid;gap:clamp(40px,5vw,80px);align-items:start}
+/* the crest alone beside the story (client, 2026-10-05: the meeting panel is gone): a third, not 5/12 */
+@media (min-width:900px){ .sun-ab-story{grid-template-columns:minmax(0,1fr) minmax(0,2fr)} }
+.sun-ab-main{min-width:0}
+
+/* ---------- the crest: the kit Emblem (theme.css), sized for this column ---------- */
+.sun-emblem.sun-ab-crest{width:min(60%,300px)}
+@media (min-width:900px){ .sun-emblem.sun-ab-crest{width:min(100%,320px)} }
+/* it stays beside the story as it is read, only where it fits under the header
+   (84px bar + 28 + a 320px crest); shorter screens scroll it */
+/* 420px: under 500px tall the bar is 60px, so the 320px crest still fits a 932x430 phone on its side
+   (at 520 it scrolled away there and left the column empty beside eight screens of story) */
+@media (min-width:900px) and (min-height:420px){ .sun-emblem.sun-ab-crest{position:sticky;top:calc(var(--sun-hh) + 28px)} }
+
+/* ---------- the club's own words (its name as the serif lead line first) ---------- */
+.sun-ab-intro{margin-bottom:clamp(20px,2.4vw,32px)}
+.sun-ab-prose{font-size:clamp(16.5px,1.25vw,18px);line-height:1.7}
+.sun-ab-prose>:first-child{margin-top:0}
+.sun-ab-prose *{max-width:100%}
+.sun-ab-prose [style*="font-family"]{font-family:inherit!important}
+.sun-ab-prose font{color:inherit;font-family:inherit;font-size:inherit}
+.sun-ab-prose pre{white-space:pre-wrap}
+.sun-ab-prose :is(iframe,video){width:100%;height:auto;aspect-ratio:16/9;border:0;border-radius:14px}
+
+/* contact + socials, after the story */
+.sun-ab-reach{display:flex;flex-wrap:wrap;gap:28px 56px;margin-top:clamp(32px,4vw,48px);padding-top:clamp(24px,3vw,32px);border-top:1px solid var(--sun-line)}
+.sun-ab-reach>div{min-width:0;max-width:100%}
+.sun-ab-contact{margin-top:8px}
+.sun-ab-contact>div{display:flex;flex-wrap:wrap;align-items:baseline;gap:0 14px}
+.sun-ab-contact dt{min-width:4.6em;font-size:12.5px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:var(--sun-mist)}
+.sun-ab-contact dd{margin:0;min-width:0;padding-block:6px;color:var(--sun-ink);overflow-wrap:anywhere}
+.sun-ab-soc{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.sun-ab-soc a{display:grid;place-items:center;width:44px;height:44px;border-radius:50%;border:1px solid var(--sun-line);color:var(--sun-ink);transition:border-color .25s,color .25s}
+.sun-ab-soc a:hover{border-color:var(--sun-hover-line);color:var(--sun-accent)}
+.sun-ab-soc svg{width:18px;height:18px}
+
+@media (max-width:899px){ .sun-ab-story{gap:40px} }

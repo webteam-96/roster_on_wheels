@@ -1,0 +1,39 @@
+/* LIQUID MOTION · EVENT DETAIL — every class is liq-ed-*; kit classes are only read, never redefined.
+   Nothing here hides content waiting for JS (the wipe, reveals and the day roll are motion.js, motion-only). */
+
+/* loading: the hero's ink ground under the capsule, so the page doesn't flash paper */
+.liq-ed-wait{min-height:70vh;padding:calc(var(--liq-hh) + clamp(40px,6vw,96px)) 0 96px;background:var(--liq-ink);color:#fff}
+
+/* the when line under the title */
+.liq-ed-when{margin:0;color:#fff;font:600 clamp(18px,2vw,28px)/1.25 var(--liq-display);letter-spacing:-.02em;overflow-wrap:anywhere}
+
+/* ── description left, the sticky ticket right (card first in the DOM, placed by the grid) ── */
+.liq-ed-cols{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:32px;align-items:start}
+.liq-ed-main{grid-column:1 / span 7;grid-row:1;min-width:0}
+.liq-ed-card{grid-column:9 / span 4;grid-row:1}
+@media (max-width:1199px){ .liq-ed-card{grid-column:8 / span 5} }
+/* sticky only where the card fits the screen */
+@media (min-width:900px) and (min-height:720px){ .liq-ed-card{position:sticky;top:calc(var(--liq-hh) + 24px)} }
+/* one track under 900px: 12 tracks keep 11 x 32px of gaps, wider than a phone */
+@media (max-width:899px){
+  .liq-ed-cols{grid-template-columns:minmax(0,1fr);gap:48px}
+  .liq-ed-main,.liq-ed-card{grid-column:1 / -1;grid-row:auto}
+}
+
+/* the ticket: the day rolls, month + year in caps, the weekday in the serif */
+.liq-ed-plate{display:grid;grid-template-columns:auto minmax(0,1fr);align-items:end;gap:6px 16px;margin:0}
+.liq-ed-plate__d{grid-row:span 2;font:800 clamp(80px,8vw,112px)/.85 var(--liq-display);letter-spacing:-.05em}
+.liq-ed-plate__m{color:var(--liq-accent);font:600 13px/1.2 var(--liq-sans);letter-spacing:.16em;text-transform:uppercase}
+.liq-ed-plate__w{font:italic 400 clamp(22px,2vw,30px)/1.1 var(--liq-serif);overflow-wrap:anywhere}
+.liq-ed-venue{display:block}
+.liq-ed-card .liq-link{margin-top:2px}
+.liq-ed-act{display:flex;flex-wrap:wrap;gap:10px}
+
+/* ── the poster, whole: natural ratio, never cropped; opens full size ── */
+.liq-ed-poster{position:relative;display:block;width:100%;max-width:640px;margin:0 0 clamp(40px,5vw,72px);padding:0;border:0;border-radius:var(--liq-r);background:none;cursor:zoom-in}
+.liq-ed-poster:last-child{margin-bottom:0}
+.liq-ed-poster .liq-media{aspect-ratio:auto;min-height:120px;border-radius:var(--liq-r);box-shadow:0 40px 70px -44px rgba(10,10,15,.5)}
+.liq-ed-poster .liq-media img{height:auto}
+.liq-ed-poster__cue{position:absolute;right:14px;bottom:14px;display:inline-flex;align-items:center;gap:8px;min-height:36px;padding:0 14px;border-radius:999px;background:rgba(10,10,15,.8);color:#fff;font:600 12px/1 var(--liq-sans);letter-spacing:.14em;text-transform:uppercase;-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);transition:background-color .3s}
+.liq-ed-poster:hover .liq-ed-poster__cue{background:var(--liq-azure-ink)}
+

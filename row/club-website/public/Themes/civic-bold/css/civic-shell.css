@@ -1,0 +1,599 @@
+/* ============================================================================
+   civic-shell.css — Meridian restyle of the SHARED shell (top strip, sticky
+   header, mobile drawer, footer) for the civic-bold master. Loaded AFTER
+   theme.css + civic-motion.css on every civic page, so it wins the cascade.
+   CSS-only over the existing master markup — all hooks/behaviours unchanged.
+
+   Palette/type mirror civic-home.css's Meridian layer: paper #FBFAF7,
+   ink #061634, royal #0B2C6F, gold #D4A429 / #F0CE72 / #9C7413,
+   Fraunces / Outfit / JetBrains Mono (loaded from the master's fonts link).
+
+   Header colour treatment is scoped to LIGHT mode — in the visitor's dark
+   mode the token-driven dark header remains, so inner pages stay coherent.
+   ========================================================================== */
+
+/* ── TOP UTILITY STRIP → slim ink ledger bar ────────────────────────────── */
+form > .sm\:block {
+    background: #061634;
+    border-bottom: 0;
+}
+/* Bar height and type size were both at the readable floor — 40px tall with
+   10px mono contacts. Sized up on request; the controls below follow so they
+   stay proportionate in the taller bar. Tracking eases off as the type grows
+   (0.18em at 12px reads loose). */
+form > .sm\:block .container-x { height: 52px; }
+form > .sm\:block .font-mono,
+form > .sm\:block a {
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-size: 12px;
+    letter-spacing: 0.14em;
+    color: rgba(255, 255, 255, 0.6);
+}
+form > .sm\:block a:hover { color: #F0CE72; }
+/* mode toggle chip on ink */
+form > .sm\:block [data-mode-toggle] {
+    border-color: rgba(255, 255, 255, 0.22);
+    color: rgba(255, 255, 255, 0.75);
+    border-radius: 50%;
+    height: 36px;                       /* was h-8 (32px) — matches the 52px bar */
+    width: 36px;
+}
+form > .sm\:block [data-mode-toggle]:hover { border-color: #D4A429; color: #F0CE72; }
+/* year chip on ink */
+form > .sm\:block .cv-yearsel {
+    background: rgba(255, 255, 255, 0.07);
+    border-color: rgba(255, 255, 255, 0.2);
+    box-shadow: none;
+    border-radius: 100px;
+    overflow: hidden;
+    /* 40px, not 36px: civic-motion.css:400 already raises the chip to 40px on
+       coarse pointers, and this rule would otherwise shrink it back on a
+       touch tablet (the strip shows from 640px up). */
+    --yr-h: 40px;
+}
+form > .sm\:block .cv-yearsel__ico {
+    background: rgba(212, 164, 41, 0.16);
+    border-color: rgba(255, 255, 255, 0.16);
+    color: #F0CE72;
+    border-radius: 0;
+}
+form > .sm\:block .cv-yearsel:hover .cv-yearsel__ico { background: #D4A429; color: #061634; }
+form > .sm\:block .cv-yearsel__native {
+    color: #fff;
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-size: 13px;                    /* civic-motion.css:302 ships 12px */
+}
+form > .sm\:block .cv-yearsel__native option { color: #061634; background: #fff; }
+form > .sm\:block .cv-yearsel__chev { color: rgba(255, 255, 255, 0.55); }
+/* Admin Login → gold pill */
+form > .sm\:block .civic-btn-accent {
+    background: linear-gradient(110deg, #D4A429, #F0CE72);
+    border: 0;
+    border-radius: 100px;
+    color: #061634;
+    font-family: 'Outfit', system-ui, sans-serif;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    box-shadow: 0 6px 16px rgba(212, 164, 41, 0.35);
+    /* overrides the master's inline h-8 / text-[11px] utilities — a class
+       selector here outranks them, so no Tailwind rebuild is needed. */
+    height: 40px;
+    font-size: 13px;
+    padding-left: 1rem;
+    padding-right: 1rem;
+}
+form > .sm\:block .civic-btn-accent:hover { transform: translateY(-1px); filter: none; }
+
+/* ── STICKY HEADER → paper glass, IN BOTH MODES ──────────────────────────
+   These rules used to be gated behind :root:not([data-civic-mode=dark]) so the
+   header followed the tokens into dark. By request it no longer does: the club
+   logo is a fixed raster with a light background baked in, so on the dark
+   token header it read as a pale box floating on near-black. The bar, the nav
+   links, the hamburger and the submenu panel are therefore pinned to their
+   light treatment in both modes — and they must be pinned TOGETHER, because
+   --c-ink flips to near-white in dark (civic-motion.css:1227); keeping the
+   light background without also pinning the foreground would leave white nav
+   labels on white glass. The rest of the page still goes dark normally. */
+header.sticky {
+    background: rgba(251, 250, 247, 0.86);
+    -webkit-backdrop-filter: blur(20px) saturate(170%);
+            backdrop-filter: blur(20px) saturate(170%);
+    border-bottom: 1px solid #E3DED3;
+    box-shadow: 0 12px 34px rgba(6, 22, 52, 0.05);
+}
+/* the gold hairline under the bar — soften */
+header.sticky > .h-px {
+    background: linear-gradient(90deg, transparent, rgba(212, 164, 41, 0.55), transparent);
+}
+/* nav links: uniform Outfit small-caps (source labels arrive in mixed case —
+   forcing uppercase keeps the row consistent) */
+.civic-nav-link {
+    font-family: 'Outfit', system-ui, sans-serif !important;
+    font-size: 0.72rem !important;
+    font-weight: 500;
+    letter-spacing: 0.14em !important;
+    text-transform: uppercase !important;
+}
+/* pinned light in both modes — see the header note above */
+.civic-nav-link { color: #5A6377; }
+.civic-nav-link:hover,
+.civic-nav-link--active { color: #0B2C6F; }
+.civic-nav-link::after { background: #D4A429; }
+/* hamburger → round */
+[data-nav-toggle] { border-radius: 50%; }
+[data-nav-toggle] { border-color: #E3DED3; color: #061634; }
+[data-nav-toggle]:hover { border-color: #D4A429; color: #9C7413; }
+/* submenu dropdown — the emitted panel is bg-navy with text-muted items:
+   in light mode that's gray-on-royal (~2:1, unreadable) and a dark slab
+   hanging off the paper-glass bar. Restyle to paper; dark keeps tokens. */
+header nav .bg-navy {
+    background: #FBFAF7;
+    border-color: #E3DED3;
+    box-shadow: 0 18px 44px rgba(6, 22, 52, 0.14);
+}
+header nav .bg-navy a { color: #5A6377; }
+header nav .bg-navy a:hover { color: #0B2C6F; }
+
+/* ── MOBILE DRAWER → ink panel ──────────────────────────────────────────── */
+[data-nav-drawer] { background: #061634; border-left: 1px solid rgba(255, 255, 255, 0.1); }
+[data-nav-drawer] nav a,
+[data-nav-drawer] nav button {
+    font-family: 'Outfit', system-ui, sans-serif;
+    text-transform: none;
+    letter-spacing: 0.04em;
+    color: rgba(255, 255, 255, 0.85);
+}
+[data-nav-drawer] nav a:hover,
+[data-nav-drawer] nav button:hover { color: #F0CE72; }
+/* active-page row: markup emits text-gold on it, but the white rule above
+   out-specifies the utility — restore the tint so mobile keeps the
+   current-page indicator desktop has */
+[data-nav-drawer] nav a.text-gold { color: #F0CE72; }
+[data-nav-drawer] .civic-btn-accent {
+    background: linear-gradient(110deg, #D4A429, #F0CE72);
+    border: 0;
+    border-radius: 100px;
+    color: #061634;
+    font-family: 'Outfit', system-ui, sans-serif;
+    font-weight: 600;
+}
+[data-nav-drawer] [data-mode-toggle] { border-color: rgba(255, 255, 255, 0.22); color: rgba(255, 255, 255, 0.8); border-radius: 100px; }
+[data-nav-drawer] .cv-yearsel { background: rgba(255, 255, 255, 0.07); border-color: rgba(255, 255, 255, 0.2); border-radius: 100px; overflow: hidden; }
+[data-nav-drawer] .cv-yearsel__native { color: #fff; }
+[data-nav-drawer] .cv-yearsel__native option { color: #061634; background: #fff; }
+[data-nav-drawer] .cv-yearsel__ico { background: rgba(212, 164, 41, 0.16); color: #F0CE72; }
+/* close (X) button — markup's border-navy/20 + text-ink vanish on the ink
+   panel; mirror the mode-toggle chip treatment */
+[data-nav-drawer] [data-nav-close] { border-color: rgba(255, 255, 255, 0.22); color: rgba(255, 255, 255, 0.8); border-radius: 50%; }
+[data-nav-drawer] [data-nav-close]:hover { border-color: #D4A429; color: #F0CE72; }
+/* ruled structure — border-navy/10|20 hairlines are invisible on #061634 */
+[data-nav-drawer] .border-b, [data-nav-drawer] .border-t { border-color: rgba(255, 255, 255, 0.1); }
+
+/* ── FOOTER → Meridian ink with azure crown glow ────────────────────────── */
+/* !important: the markup carries bg-canvas/text utilities that out-specify a
+   bare `footer` selector — this layer is a deliberate reskin over them */
+footer {
+    position: relative;
+    background: #061634 !important;
+    border-top: 0 !important;
+    overflow: hidden;
+}
+footer::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(70% 100% at 50% 0%, rgba(46, 107, 230, 0.22), transparent 62%);
+    pointer-events: none;
+}
+footer > div { position: relative; z-index: 1; }
+footer, footer p, footer li { color: rgba(255, 255, 255, 0.62); }
+footer .text-muted, footer .text-ink:not(.cv-wordmark), footer .text-navy { color: rgba(255, 255, 255, 0.62) !important; }
+footer .border-b, footer .border-t { border-color: rgba(255, 255, 255, 0.1) !important; }
+/* giant wordmark → outlined Fraunces (reference .foot-mark) */
+footer .cv-wordmark {
+    font-family: 'Fraunces', 'Times New Roman', serif;
+    font-weight: 300;
+    letter-spacing: -0.04em;
+    text-transform: none;
+    color: transparent;
+    -webkit-text-stroke: 1px rgba(255, 255, 255, 0.22);
+}
+footer .cv-wordmark .split-char { color: inherit; }
+/* Continuous gold shimmer — the former hover fill, now auto-playing on load and
+   looping forever. Each char lights gold in turn (staggered by its --ci index,
+   set in initSplit) so a highlight sweeps across the wordmark left→right, then
+   the letter settles back to its white outline. No hover needed. */
+@keyframes cv-wordmark-wave {
+    0%   { color: transparent; -webkit-text-stroke-color: rgba(255, 255, 255, 0.22); }
+    42%  { color: #F0CE72;     -webkit-text-stroke-color: rgba(240, 206, 114, 0); }
+    64%  { color: #F0CE72;     -webkit-text-stroke-color: rgba(240, 206, 114, 0); }
+    100% { color: transparent; -webkit-text-stroke-color: rgba(255, 255, 255, 0.22); }
+}
+footer .cv-wordmark .split-char {
+    animation: cv-wordmark-wave 3.8s ease-in-out infinite;
+    animation-delay: calc(var(--ci, 0) * 0.11s);
+}
+/* Hover: stop the wave and hold the whole wordmark solid gold */
+footer .cv-wordmark:hover .split-char {
+    animation: none;
+    color: #F0CE72;
+    -webkit-text-stroke-color: transparent;
+}
+footer .cv-wordmark + .civic-eyebrow {
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-size: 0.6rem;
+    letter-spacing: 0.26em;
+    color: rgba(255, 255, 255, 0.45);
+}
+/* column headings → mono gold-light ledger captions */
+footer h3 {
+    font-family: 'JetBrains Mono', ui-monospace, monospace !important;
+    font-size: 0.62rem !important;
+    font-weight: 400;
+    letter-spacing: 0.26em !important;
+    text-transform: uppercase;
+    color: #F0CE72 !important;
+}
+/* links: soft white, gold shift on hover */
+footer a { color: rgba(255, 255, 255, 0.66) !important; transition: color .35s ease, padding-left .35s cubic-bezier(.22,1,.36,1); }
+footer a:hover { color: #F0CE72 !important; padding-left: 0.35rem; }
+footer a svg { color: currentColor; }
+/* quick-link chevrons carry text-gold/70 — a class (0,1,0) that beats the
+   element rule above; out-specify it so arrows follow the link color */
+footer a svg.text-gold\/70 { color: currentColor; }
+/* social squares: border-navy/20 is invisible on the ink footer */
+footer .border-navy\/20 { border-color: rgba(255, 255, 255, 0.14); }
+/* logo box — quiet glass instead of the navy slab */
+footer .bg-navy {
+    background: rgba(255, 255, 255, 0.06) !important;
+    border: 1px solid rgba(255, 255, 255, 0.14) !important;
+    border-radius: 14px;
+}
+/* copyright strip */
+footer > .border-t:last-child,
+footer .font-mono {
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    color: rgba(255, 255, 255, 0.4);
+    letter-spacing: 0.2em;
+    font-size: 10px;
+}
+
+/* ════════════════════════════════════════════════════════════════════════
+   INNER PAGES (civic-bold) — fixes for SHARED markup. Directory/Directors/
+   PastPresidents render the SAME .aspx under all 5 themes; these rules are
+   scoped to civic-bold (via [data-theme="civic-bold"]) so the other themes are
+   untouched. civic-shell.css loads on every civic page, so they apply here.
+   ════════════════════════════════════════════════════════════════════════ */
+
+/* Directory — member photos were a fixed 80px (h-20), leaving a big empty gap
+   at the bottom of each stretched card. Enlarge the photo (and the initials
+   fallback avatar) to fill it. Grid view only — the small list-view avatars,
+   which have no [data-dir-grid] ancestor, are left alone. */
+[data-theme="civic-bold"] [data-dir-grid] [data-dir-card] img,
+[data-theme="civic-bold"] [data-dir-grid] [data-dir-card] span[aria-hidden="true"] {
+    height: 9rem;            /* was 5rem / 80px (h-20) → 144px */
+    width: 9rem;
+    margin-top: 0.5rem;
+}
+
+/* Directors — the search button's label was invisible. Shared markup paints it
+   `bg-gold text-navy`; civic remaps gold→azure and (dark mode) text-navy→near-
+   white --c-ink, so the label vanished. Repaint the label per mode for contrast
+   (the inline SVG uses currentColor, so it follows). */
+[data-theme="civic-bold"] #directorSearchBtn { color: rgb(var(--c-on-gold)); }                        /* white on azure (light) */
+[data-theme="civic-bold"][data-civic-mode="dark"] #directorSearchBtn { color: rgb(var(--c-navy)); }   /* deep navy on sky-azure (dark) */
+
+/* Past Presidents — the year ribbon (bg-gold text-navy) read ~2.4–3:1 because
+   civic makes the chip azure and the text near-bg. Repaint the year per mode. */
+[data-theme="civic-bold"] main .spotlight-card > span.bg-gold { color: rgb(var(--c-on-gold)) !important; }                       /* white on azure (light) */
+[data-theme="civic-bold"][data-civic-mode="dark"] main .spotlight-card > span.bg-gold { color: rgb(var(--c-navy-deep)) !important; }  /* near-black on sky-azure (dark) */
+
+/* ── LITERAL-PALETTE REMAP (2026-07-29) — Meridian pass ─────────────────────
+   The token retune (civic-motion.css) recolors everything token-driven, but
+   shared markup also hardcodes Tailwind's literal blue/emerald palette
+   (calendar event chips + day dots + the civic Read-more pill, ProjectDetail's
+   two stat-icon gradients, Directory's badge rotation). Those literals ignore
+   tokens, so without this block they'd stay bright #3B82F6-family blue inside
+   the champagne shell. Mapped to royal ink + champagne gold per mode. Scoped
+   to main so the other four themes and the civic header/footer are untouched. */
+[data-theme="civic-bold"] main .bg-blue-50,
+[data-theme="civic-bold"] main .bg-blue-100 { background-color: rgba(11, 44, 111, 0.08) !important; }
+[data-theme="civic-bold"] main .text-blue-500,
+[data-theme="civic-bold"] main .text-blue-600 { color: #0B2C6F !important; }
+[data-theme="civic-bold"] main .bg-blue-500,
+[data-theme="civic-bold"] main .bg-blue-600 { background-color: #0B2C6F !important; }
+[data-theme="civic-bold"] main .from-blue-400 { --tw-gradient-from: #24509C !important; }
+[data-theme="civic-bold"] main .to-blue-600 { --tw-gradient-to: #0B2C6F !important; }
+[data-theme="civic-bold"] main .from-emerald-400 { --tw-gradient-from: #E0B44E !important; }
+[data-theme="civic-bold"] main .to-emerald-600 { --tw-gradient-to: #B08A22 !important; }
+/* ProjectDetail's Beneficiaries stat square is a literal rose gradient — the one
+   remaining off-palette chip; fold it into the royal family like its siblings */
+[data-theme="civic-bold"] main .from-rose-400 { --tw-gradient-from: #24509C !important; }
+[data-theme="civic-bold"] main .to-rose-600 { --tw-gradient-to: #0B2C6F !important; }
+[data-theme="civic-bold"] main .text-emerald-500,
+[data-theme="civic-bold"] main .text-emerald-600 { color: #9C7413 !important; }
+[data-theme="civic-bold"] main .bg-emerald-100,
+[data-theme="civic-bold"] main .bg-emerald-50 { background-color: rgba(212, 164, 41, 0.16) !important; }
+/* dark mode: royal tints vanish on ink — flip the same hooks to the gold family */
+[data-theme="civic-bold"][data-civic-mode="dark"] main .bg-blue-50,
+[data-theme="civic-bold"][data-civic-mode="dark"] main .bg-blue-100,
+[data-theme="civic-bold"][data-civic-mode="dark"] main .bg-emerald-100,
+[data-theme="civic-bold"][data-civic-mode="dark"] main .bg-emerald-50 { background-color: rgba(240, 206, 114, 0.14) !important; }
+[data-theme="civic-bold"][data-civic-mode="dark"] main .text-blue-500,
+[data-theme="civic-bold"][data-civic-mode="dark"] main .text-blue-600,
+[data-theme="civic-bold"][data-civic-mode="dark"] main .text-emerald-500,
+[data-theme="civic-bold"][data-civic-mode="dark"] main .text-emerald-600 { color: #F0CE72 !important; }
+[data-theme="civic-bold"][data-civic-mode="dark"] main .bg-blue-500,
+[data-theme="civic-bold"][data-civic-mode="dark"] main .bg-blue-600 { background-color: #D4A429 !important; }
+[data-theme="civic-bold"][data-civic-mode="dark"] main .from-blue-400 { --tw-gradient-from: #E0B44E !important; }
+[data-theme="civic-bold"][data-civic-mode="dark"] main .to-blue-600 { --tw-gradient-to: #B08A22 !important; }
+
+/* Image frames — projects/events with no photo left a flat grey slab (the img
+   onerror-hides, exposing bare bg-navy/5). A champagne parchment gradient reads
+   as a deliberate plate instead of a broken image. Sits behind real photos, so
+   frames WITH images are unaffected. */
+[data-theme="civic-bold"] main .img-zoom {
+    background: linear-gradient(140deg, #F7EEDE 0%, #F1E4CC 60%, #EADBBD 100%);
+}
+[data-theme="civic-bold"][data-civic-mode="dark"] main .img-zoom {
+    background: linear-gradient(140deg, #0E3164 0%, #0B2449 60%, #091D3B 100%);
+}
+
+/* ── reduced motion ─────────────────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+    footer a, form > .sm\:block .civic-btn-accent { transition: none; }
+    form > .sm\:block .civic-btn-accent:hover { transform: none; }
+    footer .cv-wordmark .split-char { animation: none; }   /* no looping shimmer */
+}
+
+/* ══ PAGE MASTHEAD (the breadcrumb band) — the "civic register" ══════════════
+   Second pass. The first redesign made this an ink band with a gold eyebrow, a
+   big pale title and a ghosted Rotary wheel bleeding off the right — which is
+   almost exactly what the CLASSIC theme's masthead already is, so civic looked
+   like a copy of it. This pass is deliberately the opposite on every axis:
+
+     classic: dark navy slab   → here: a light register sheet on the paper canvas
+     classic: eyebrow/title/crumb stacked flush left
+                               → here: a two-ended top line (crumb pill ⟷ tag),
+                                 with the title on its own row beneath
+     classic: bold grotesque caps
+                               → here: a light Fraunces serif in Title Case
+     classic: ghosted Rotary wheel at the right
+                               → here: an oversized OUTLINED echo of the page
+                                 name (the same outlined-Fraunces device as the
+                                 footer wordmark, so the site still coheres)
+
+   The wheel is gone on purpose: it is classic's signature, and reusing it was
+   the main reason the two read as the same band.
+
+   HOOK: `.civic-gridlines` is emitted ONLY by RotaryPage.Breadcrumb()'s civic
+   branch (verified — a single call site), so nothing here can leak to another
+   band. CSS-only over fixed code-behind markup → no rebuild needed. */
+
+/* ── GROUND — the band gets its OWN surface ──────────────────────────────────
+   It previously sat on the page's own canvas, so the masthead merged into the
+   content with no edge. It now has a warm champagne ground: distinctly separate
+   from the cool page below, and a different hue family from classic's navy slab.
+   Painted on `.civic-gridlines` (absolute inset-0, so it fills the section). The
+   compiled mask/opacity are reset here — otherwise the mask fades the colour out
+   at the top and bottom edges — and the grid texture moves to ::before, which
+   keeps that soft fade for the rules only. The band is closed by a full-bleed
+   gold rule, so the boundary with the page is explicit. */
+[data-theme="civic-bold"] .civic-gridlines {
+    --civic-line: rgba(6, 22, 52, 0.07);
+    opacity: 1;
+    -webkit-mask-image: none;
+            mask-image: none;
+    overflow: hidden;
+    background-color: #F7EEDE;
+    background-image:
+        linear-gradient(178deg, #FCF6EB 0%, #F6ECDA 58%, #F1E4CC 100%),
+        radial-gradient(70% 120% at 88% 0%, rgba(212, 164, 41, 0.18), transparent 62%);
+    border-bottom: 2px solid #D4A429;
+}
+/* the hairline rules, kept as their own masked layer */
+[data-theme="civic-bold"] .civic-gridlines::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-image: repeating-linear-gradient(to right, transparent 0, transparent calc(25% - 1px), var(--civic-line) calc(25% - 1px), var(--civic-line) 25%);
+    -webkit-mask-image: linear-gradient(180deg, transparent, #000 22%, #000 78%, transparent);
+            mask-image: linear-gradient(180deg, transparent, #000 22%, #000 78%, transparent);
+}
+
+/* the register: row 1 = [crumb pill] ............ [section tag]
+                 row 2 = the title                                    */
+[data-theme="civic-bold"] .civic-gridlines ~ .container-x {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: end;
+    column-gap: 0;                  /* 0 so the two cells' borders form one rail */
+    row-gap: clamp(0.9rem, 1.8vw, 1.35rem);
+    border-bottom-color: transparent;   /* the band's own gold rule closes it */
+    padding-top: clamp(1.2rem, 2.2vw, 1.7rem);
+    padding-bottom: clamp(1.3rem, 2.4vw, 1.9rem);
+}
+/* crumb → a fine mono rail, sitting on a hairline that spans the band */
+[data-theme="civic-bold"] .civic-gridlines ~ .container-x > nav {
+    grid-row: 1;
+    grid-column: 1;
+    justify-self: stretch;          /* stretch so its border draws the rail line */
+    border-bottom: 1px solid rgba(6, 22, 52, 0.13);
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-size: 9.5px;
+    letter-spacing: 0.2em;
+    color: rgba(6, 22, 52, 0.45);
+    padding-bottom: 0.9rem;
+}
+[data-theme="civic-bold"] .civic-gridlines ~ .container-x > nav a { color: rgba(6, 22, 52, 0.62); }
+[data-theme="civic-bold"] .civic-gridlines ~ .container-x > nav a:hover { color: #9C7413; }
+/* the "/" separators carry only .text-gold; the current page also has .break-words */
+[data-theme="civic-bold"] .civic-gridlines ~ .container-x > nav span.text-gold:not(.break-words) { color: rgba(6, 22, 52, 0.22); }
+[data-theme="civic-bold"] .civic-gridlines ~ .container-x > nav span.break-words { color: #9C7413; }
+/* The section tag ("OUR MEMBERS", "OUR LEADERSHIP", "ROLL OF HONOUR", …) is
+   removed on every page: the crumb already says where you are, so it was just
+   restating the title. Hidden here rather than blanked in each page's
+   Breadcrumb() call, so the other four themes keep theirs. With the tag gone the
+   `auto` column collapses and the crumb's border draws the full-width rail. */
+[data-theme="civic-bold"] .civic-gridlines ~ .container-x > .civic-eyebrow { display: none; }
+
+/* (kept for reference — restore by deleting the display:none rule above) */
+[data-theme="civic-bold"] .civic-gridlines ~ .container-x > .civic-eyebrow {
+    grid-row: 1;
+    grid-column: 2;
+    justify-self: stretch;          /* its border continues the same rail line */
+    text-align: right;
+    align-self: end;
+    border-bottom: 1px solid rgba(6, 22, 52, 0.13);
+    margin: 0;
+    padding-bottom: 0.9rem;
+    padding-left: 1.5rem;
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-size: 0.6rem;
+    letter-spacing: 0.26em;
+    color: #9C7413;
+}
+/* title — light Fraunces in ink, with the home's gold terminal dot */
+[data-theme="civic-bold"] .civic-gridlines ~ .container-x > h1 {
+    grid-row: 2;
+    grid-column: 1 / -1;
+    position: relative;
+    margin: 0;
+    font-family: 'Fraunces', 'Times New Roman', serif;
+    font-weight: 300;
+    text-transform: none;
+    letter-spacing: -0.035em;
+    line-height: 0.95;
+    font-size: clamp(1.9rem, 4.6vw, 3.3rem);
+    color: #061634;
+}
+[data-theme="civic-bold"] .civic-gridlines ~ .container-x > h1::after {
+    content: ".";
+    color: #D4A429;
+}
+/* ── SIGNATURE — the kinetic band ────────────────────────────────────────────
+   The page name, oversized and outlined, running edge to edge behind the solid
+   title. Built by initCivicEnhance (two identical halves, so translateX(-50%)
+   loops seamlessly) and inserted as a sibling BEFORE .container-x, so the real
+   title paints over it. Masked so it fades out under the title on the left and
+   at the right edge — the type emerges from the title rather than fighting it. */
+[data-theme="civic-bold"] .cv-mast__marq {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: clamp(0.6rem, 2vw, 1.6rem);
+    overflow: hidden;
+    pointer-events: none;
+    -webkit-mask-image: linear-gradient(90deg, transparent 2%, #000 42%, #000 86%, transparent 100%);
+            mask-image: linear-gradient(90deg, transparent 2%, #000 42%, #000 86%, transparent 100%);
+}
+[data-theme="civic-bold"] .cv-mast__track {
+    display: flex;
+    align-items: center;
+    width: max-content;
+    animation: cvMastMarq 46s linear infinite;
+}
+[data-theme="civic-bold"] .cv-mast__track span {
+    font-family: 'Fraunces', 'Times New Roman', serif;
+    font-weight: 300;
+    font-size: clamp(2.4rem, 6vw, 5rem);
+    line-height: 1;
+    letter-spacing: -0.04em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    color: transparent;
+    -webkit-text-stroke: 1px rgba(6, 22, 52, 0.13);
+}
+[data-theme="civic-bold"] .cv-mast__track i {
+    font-style: normal;
+    font-size: 0.85rem;
+    color: rgba(212, 164, 41, 0.75);
+    padding: 0 clamp(1rem, 2.4vw, 2.2rem);
+}
+@keyframes cvMastMarq { to { transform: translateX(-50%); } }
+/* keep the real title above the kinetic band */
+[data-theme="civic-bold"] .civic-gridlines ~ .container-x > h1 > .split-word { position: relative; z-index: 1; }
+@media (prefers-reduced-motion: reduce) {
+    [data-theme="civic-bold"] .cv-mast__track { animation: none; }
+}
+
+/* dark mode — a deep royal panel, lighter than the near-black page so the band
+   still reads as its own surface; same gold rule closes it */
+[data-theme="civic-bold"][data-civic-mode="dark"] .civic-gridlines {
+    --civic-line: rgba(255, 255, 255, 0.08);
+    background-color: #0C2A57;
+    background-image:
+        linear-gradient(178deg, #0E3164 0%, #0B2449 62%, #091D3B 100%),
+        radial-gradient(70% 120% at 88% 0%, rgba(212, 164, 41, 0.16), transparent 62%);
+}
+[data-theme="civic-bold"][data-civic-mode="dark"] .civic-gridlines ~ .container-x { border-bottom-color: transparent; }
+[data-theme="civic-bold"][data-civic-mode="dark"] .civic-gridlines ~ .container-x > h1 { color: #fff; }
+[data-theme="civic-bold"][data-civic-mode="dark"] .cv-mast__track span { -webkit-text-stroke-color: rgba(255, 255, 255, 0.15); }
+[data-theme="civic-bold"][data-civic-mode="dark"] .civic-gridlines ~ .container-x > .civic-eyebrow {
+    color: #F0CE72;
+    border-bottom-color: rgba(255, 255, 255, 0.14);
+}
+[data-theme="civic-bold"][data-civic-mode="dark"] .civic-gridlines ~ .container-x > nav {
+    color: rgba(255, 255, 255, 0.5);
+    border-bottom-color: rgba(255, 255, 255, 0.14);
+}
+[data-theme="civic-bold"][data-civic-mode="dark"] .civic-gridlines ~ .container-x > nav a { color: rgba(255, 255, 255, 0.7); }
+[data-theme="civic-bold"][data-civic-mode="dark"] .civic-gridlines ~ .container-x > nav a:hover { color: #F0CE72; }
+[data-theme="civic-bold"][data-civic-mode="dark"] .civic-gridlines ~ .container-x > nav span.text-gold:not(.break-words) { color: rgba(255, 255, 255, 0.26); }
+[data-theme="civic-bold"][data-civic-mode="dark"] .civic-gridlines ~ .container-x > nav span.break-words { color: #F0CE72; }
+/* Normalise the casing. Titles come from each club's own menu label, which is
+   typed inconsistently ("DIRECTORS" vs "Newsletters"), so pages of one site
+   disagreed. CSS can't lowercase-then-capitalise in one property, so the h1
+   lowercases and the first character of each word is re-capitalised — giving
+   Title Case for any tenant's data. Keyed on `.split` (added by initSplit) so
+   it only applies once the characters are wrapped and still invisible: the
+   server-rendered text never flashes in the wrong case. */
+[data-theme="civic-bold"] .civic-gridlines ~ .container-x > h1.split { text-transform: lowercase; }
+[data-theme="civic-bold"] .civic-gridlines ~ .container-x > h1.split > .split-word > .split-char:first-child { text-transform: uppercase; }
+/* narrow screens: the tag drops under the crumb rather than squeezing it */
+@media (max-width: 560px) {
+    [data-theme="civic-bold"] .civic-gridlines ~ .container-x { grid-template-columns: 1fr; row-gap: 0.9rem; }
+    [data-theme="civic-bold"] .civic-gridlines ~ .container-x > .civic-eyebrow { grid-row: 2; grid-column: 1; justify-self: start; }
+    [data-theme="civic-bold"] .civic-gridlines ~ .container-x > h1 { grid-row: 3; }
+}
+
+/* ── Directors card: make its SVG panel flip with the mode ──────────────────
+   The card in Directors.jsx paints its content panel as an inline
+   <svg><path fill="#ffffff"> with a gold seam curve. That raw white is NOT a
+   .bg-white surface, so it escapes this theme's systematic remap
+
+       .bg-white { background-color: rgb(var(--c-panel)) !important }
+       .text-navy { color: rgb(var(--c-ink)) }
+
+   which is what keeps every other card legible when the mode flips. The panel
+   therefore stayed white in dark mode while the director's name (.text-navy ->
+   --c-ink) turned near-white: white text on a white panel. The ROLE survived
+   only because it uses .text-muted, which lands mid-grey.
+
+   Point the panel at the same --c-panel token every other surface uses. CSS
+   beats the presentation attribute, --c-panel is 255 255 255 in light mode so
+   nothing changes there, and the seam path (fill="none") is left alone. */
+html[data-theme="civic-bold"] [data-director-card] svg path[fill="#ffffff"] {
+  fill: rgb(var(--c-panel));
+}
+
+/* ── Projects counter tiles: gradient surfaces must flip with the mode ──────
+   The four stat tiles on the Projects page (AllProjects.jsx) are
+   `bg-gradient-to-br from-white to-gold/[0.05]`. `from-white` is a GRADIENT STOP:
+   it sets --tw-gradient-from and paints through background-IMAGE, so it slips
+   past this theme's surface remap, which only rewrites background-COLOR:
+
+       .bg-white { background-color: rgb(var(--c-panel)) !important }
+
+   In dark mode the tile therefore stayed white while the figure (.text-navy ->
+   --c-ink) and its label (--c-muted) both went light — about 1.05 contrast on
+   the number and 2.6 on the label, i.e. unreadable.
+
+   Only the FROM stop is redefined. `to-gold/[0.05]` supplies the other end and
+   would be clobbered by a higher-specificity --tw-gradient-to. Every bare
+   `from-white` in the shared markup is paired with a `to-*`, so the from-stop
+   alone is sufficient. The translucent `from-white/70` and `from-white/40` photo
+   scrims are SEPARATE classes and are deliberately left alone. */
+html[data-theme="civic-bold"] .from-white {
+  --tw-gradient-from: rgb(var(--c-panel)) var(--tw-gradient-from-position);
+}

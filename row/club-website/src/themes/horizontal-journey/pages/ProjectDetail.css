@@ -1,0 +1,193 @@
+/* ─────────────────────────────────────────────────────────────────────────────
+   HORIZONTAL JOURNEY · Project detail (pages/ProjectDetail.jsx). Every class is
+   hj-pd-*; kit classes are only restyled UNDER a page class. No hidden start
+   states: the entrances live in the page's GSAP scene. The update dialog is
+   portalled to <body> (it must escape the pinned band), so its rules are
+   written against its own hj-pd-dlg classes, not the page wrapper.
+   ───────────────────────────────────────────────────────────────────────────── */
+
+.hj-pd-wait{min-height:60vh;display:grid;place-items:center}
+
+/* ── hero: venue + year (the band carries no photo - client) ──────────────── */
+.hj-pd-meta{display:flex;flex-wrap:wrap;gap:8px 22px;list-style:none;margin:0;padding:0;font:650 15.5px/1.35 var(--hj-sans)}
+.hj-pd-meta li{display:inline-flex;align-items:flex-start;gap:8px;min-width:0;overflow-wrap:anywhere}
+.hj-pd-meta svg{flex:none;width:18px;height:18px;margin-top:1px}
+
+/* the lead photo: first in the stop, the column's width, flat */
+.hj-pd-shot{position:relative;width:100%}
+.hj-pd-shot__frame{
+  position:relative;display:block;width:fit-content;max-width:100%;margin-inline:auto;padding:8px;border:0;border-radius:18px;background:#fff;color:var(--hj-ink);
+  box-shadow:var(--hj-shadow);cursor:zoom-in;
+}
+/* the whole photo at its own ratio (RIZO-30: a 4:3 cover showed only its middle) */
+.hj-pd-shot__frame img{display:block;width:auto;max-width:100%;margin:0 auto;height:auto;max-height:70vh;max-height:70svh;object-fit:contain;border-radius:12px;background:var(--hj-card-art)}
+.hj-pd-shot__tag{
+  position:absolute;right:18px;bottom:18px;display:inline-flex;align-items:center;gap:8px;min-height:36px;padding:0 14px;border-radius:999px;
+  background:rgba(255,255,255,.94);color:var(--hj-ink);font:750 13px/1 var(--hj-sans);box-shadow:0 6px 18px -8px rgba(6,18,60,.5);
+}
+.hj-pd-shot__tag svg{width:16px;height:16px}
+
+/* ── the stop: write-up + figures + prints, share rail beside ──────────────── */
+.hj-pd-stop{position:relative}
+.hj-pd-stop.has-ridge{padding-bottom:clamp(56px,9vw,130px)}
+.hj-pd-stop__ridge{position:absolute;left:0;right:0;bottom:-1px;height:clamp(56px,9vw,130px);pointer-events:none}
+
+.hj-pd-body{display:grid;gap:clamp(44px,6vw,72px);align-items:start}
+@media (min-width:1100px){
+  .hj-pd-body{grid-template-columns:minmax(0,1fr) 280px;column-gap:clamp(40px,4vw,72px)}
+  .hj-pd-rail{position:sticky;top:calc(var(--hj-hh) + 28px)}
+}
+.hj-pd-main{min-width:0;display:grid;gap:clamp(52px,7vw,100px)}
+.hj-pd-main .hj-sh__main{flex-basis:auto}
+.hj-pd-main .hj-kicker{color:var(--hj-azure)}
+.hj-pd-prose{max-width:70ch}
+
+/* figures: sized so every label fits its shape at 390px */
+.hj-pd-stats.hj-stats{--s:clamp(132px,34vw,178px);gap:14px}
+@media (min-width:700px){ .hj-pd-stats.hj-stats{justify-content:flex-start} }
+
+/* photographs: tilted prints with their captions */
+.hj-pd-gal{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,150px),1fr));gap:clamp(14px,2vw,26px)}
+@media (min-width:700px){ .hj-pd-gal{grid-template-columns:repeat(auto-fill,minmax(190px,1fr))} }
+.hj-pd-ph{min-width:0}
+.hj-pd-ph__b{
+  display:flex;flex-direction:column;gap:9px;width:100%;padding:7px 7px 10px;border:0;border-radius:14px;
+  background:#fff;color:var(--hj-ink);text-align:left;cursor:zoom-in;box-shadow:0 18px 36px -22px rgba(6,18,60,.55);
+  transition:rotate .35s var(--hj-ease),translate .35s var(--hj-ease);
+}
+.hj-pd-ph:nth-child(3n+1) .hj-pd-ph__b{rotate:-1.2deg}
+.hj-pd-ph:nth-child(3n+2) .hj-pd-ph__b{rotate:.9deg}
+.hj-pd-ph:nth-child(3n) .hj-pd-ph__b{rotate:-.4deg}
+.hj-pd-ph__b:hover,.hj-pd-ph__b:focus-visible{rotate:0deg;translate:0 -6px}
+.hj-pd-ph__m{display:block;aspect-ratio:4/3;border-radius:9px;overflow:hidden;background:var(--hj-card-art)}
+.hj-pd-ph__m img{display:block;width:100%;height:100%;object-fit:cover}
+.hj-pd-ph__c{
+  padding:0 4px;font:500 13.5px/1.45 var(--hj-sans);color:var(--hj-ink-2);overflow-wrap:anywhere;
+  display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:3;overflow:hidden;
+}
+
+/* share rail */
+.hj-pd-rail{
+  display:grid;gap:18px;justify-items:start;min-width:0;padding:clamp(20px,2.4vw,28px);border-radius:24px;
+  background:#fff;color:var(--hj-ink);box-shadow:0 20px 44px -30px rgba(6,18,60,.45);--hj-focus:var(--hj-ink);
+}
+.hj-pd-rail__t{margin:0;font:750 13px/1.2 var(--hj-sans);letter-spacing:.2em;text-transform:uppercase;color:var(--hj-ink-2)}
+.hj-pd-share{display:flex;flex-wrap:wrap;gap:8px;list-style:none;margin:0;padding:0}
+.hj-pd-share__b{
+  position:relative;display:grid;place-items:center;width:46px;height:46px;padding:0;border-radius:50%;
+  border:1.5px solid rgba(20,26,51,.2);background:#fff;color:var(--hj-ink);cursor:pointer;
+  transition:background-color .25s,color .25s,border-color .25s;
+}
+.hj-pd-share__b svg{width:18px;height:18px}
+.hj-pd-share__b:hover{background:var(--hj-brand,var(--hj-azure));border-color:var(--hj-brand,var(--hj-azure));color:#fff}
+.hj-pd-share__toast{
+  position:absolute;bottom:calc(100% + 8px);left:50%;translate:-50% 0;padding:4px 8px;border-radius:6px;
+  background:var(--hj-ink);color:#fff;font:700 11px/1.2 var(--hj-sans);white-space:nowrap;pointer-events:none;opacity:0;transition:opacity .2s;
+}
+.hj-pd-share__toast.is-on{opacity:1}
+
+/* ── updates: a trail of dated suns on the dusk band ───────────────────────── */
+.hj-pd-run .hj-kicker{color:var(--hj-gold)}
+.hj-pd-run__track{position:relative}
+.hj-pd-run__line{display:none}
+.hj-pd-run__list{position:relative;list-style:none;margin:0;padding:0;display:grid;gap:clamp(22px,3vw,34px);max-width:920px}
+/* the trail: a dotted path joining the suns */
+.hj-pd-run__list::before{
+  content:"";position:absolute;left:27px;top:12px;bottom:12px;width:2px;
+  background:repeating-linear-gradient(180deg,rgba(255,255,255,.6) 0 8px,transparent 8px 16px);
+}
+.hj-pd-run__it{position:relative;display:grid;grid-template-columns:56px minmax(0,1fr);gap:10px 18px;align-items:start}
+.hj-pd-run__d{grid-column:1;display:flex;flex-direction:column;align-items:center;gap:8px;margin:0}
+.hj-pd-run__sun{
+  display:grid;place-items:center;width:56px;height:56px;border-radius:50%;flex:none;
+  background:radial-gradient(circle at 50% 44%,#FFE7A6 0%,var(--hj-gold) 70%);color:var(--hj-ink);
+  font:800 19px/1 var(--hj-disp);letter-spacing:-.03em;box-shadow:0 0 0 6px var(--hj-c),0 0 26px 4px rgba(255,196,110,.35);
+}
+.hj-pd-run__when{font:750 11px/1.25 var(--hj-sans);letter-spacing:.1em;text-transform:uppercase;text-align:center}
+.hj-pd-run__it .hj-card{grid-column:2}
+.hj-pd-run .hj-card:has(.hj-pd-run__open:focus-visible){outline:3px solid #fff;outline-offset:4px}
+.hj-pd-run__open{display:inline;padding:0;border:0;background:none;color:inherit;font:inherit;letter-spacing:inherit;text-align:left;cursor:pointer}
+.hj-pd-run__open::after{content:"";position:absolute;inset:0;z-index:1}
+.hj-pd-run__open:focus-visible{outline:none}
+.hj-pd-run .hj-card:hover .hj-pd-run__tt{text-decoration:underline}
+.hj-pd-run__tt{overflow-wrap:anywhere}
+.hj-pd-run__more{display:inline-flex;align-items:center;gap:8px;margin-top:auto;padding-top:4px;font:750 13px/1.2 var(--hj-sans);color:var(--hj-azure)}
+@media (min-width:700px){
+  .hj-pd-run:not(.is-h) .hj-card{flex-direction:row}
+  .hj-pd-run:not(.is-h) .hj-card__m{width:38%;aspect-ratio:auto;min-height:170px}
+}
+
+/* sideways on wide + tall + motion (the page adds .is-h; the scene pins it) */
+.hj-pd-run.is-h{
+  display:flex;flex-direction:column;height:calc(100vh - var(--hj-hh));height:calc(100svh - var(--hj-hh));min-height:0;
+  padding:clamp(20px,4vh,48px) 0 calc(var(--hj-bandr) * .7);
+}
+.hj-pd-run.is-h .hj-band__in{flex:1;min-height:0;width:100%;max-width:none;margin:0;display:flex;flex-direction:column}
+.hj-pd-run.is-h .hj-sh{padding:0 var(--hj-gut);margin-bottom:clamp(14px,3vh,32px)}
+.hj-pd-run.is-h .hj-h2{font-size:clamp(28px,5vh,56px)}
+.hj-pd-run.is-h .hj-pd-run__track{flex:1;min-height:0;width:max-content;padding:0 var(--hj-gut)}
+.hj-pd-run.is-h .hj-pd-run__line{display:block;position:absolute;left:0;right:0;bottom:-18px;height:42%;z-index:0}
+.hj-pd-run.is-h .hj-pd-run__list{display:flex;align-items:flex-start;gap:clamp(28px,3.4vw,56px);max-width:none;height:100%;z-index:1}
+.hj-pd-run.is-h .hj-pd-run__list::before{left:0;right:0;top:27px;bottom:auto;width:auto;height:2px;background:repeating-linear-gradient(90deg,rgba(255,255,255,.6) 0 8px,transparent 8px 16px)}
+/* photo height is what the band has left after its head, the sun row, the card body and the ridge room */
+.hj-pd-run.is-h .hj-pd-run__it{
+  --mh:clamp(110px,calc(100vh - var(--hj-hh) - 560px),260px);
+  display:flex;flex-direction:column;gap:12px;width:clamp(260px,calc(var(--mh) * 1.3),340px);flex:none;
+}
+.hj-pd-run.is-h .hj-pd-run__d{flex-direction:row;gap:12px}
+.hj-pd-run.is-h .hj-pd-run__when{text-align:left}
+.hj-pd-run.is-h .hj-pd-run__it:nth-child(even) .hj-card{margin-top:4vh}
+.hj-pd-run.is-h .hj-card__m{aspect-ratio:auto;height:var(--mh)}
+.hj-pd-run.is-h .hj-pd-run__tt{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden}
+
+/* ── the update dialog (portalled to <body>) ───────────────────────────────── */
+.hj-pd-dlg{position:fixed;inset:0;z-index:150;display:flex;align-items:center;justify-content:center;padding:clamp(12px,3vw,32px);--hj-focus:var(--hj-ink)}
+.hj-pd-dlg__bg{position:absolute;inset:0;background:rgba(11,29,77,.74);-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px)}
+.hj-pd-dlg__panel{
+  position:relative;display:flex;flex-direction:column;width:min(760px,100%);max-height:min(88vh,900px);
+  border-radius:24px;background:#fff;color:var(--hj-ink);overflow:hidden;box-shadow:0 40px 90px -30px rgba(0,0,0,.6);
+  font:400 17px/1.6 var(--hj-sans);
+}
+.hj-pd-dlg__sky{position:relative;flex:none;height:92px;background:var(--hj-noise),linear-gradient(0deg,#5BA3E6 0,var(--hj-azure) 72%)}
+.hj-pd-dlg__sky .hj-rg{height:62%}
+.hj-pd-dlg__sky .hj-rg--ground{height:40%}
+.hj-pd-dlg__sun{
+  position:absolute;left:12%;bottom:24px;width:44px;height:44px;border-radius:50%;
+  background:radial-gradient(circle at 50% 44%,#FFFBEA 0%,#FFE7A6 38%,#FFC857 68%,#FF9F3A 100%);
+  box-shadow:0 0 30px 8px rgba(255,196,110,.45);
+}
+.hj-pd-dlg__x{
+  position:absolute;top:14px;right:14px;z-index:2;display:grid;place-items:center;width:46px;height:46px;padding:0;
+  border-radius:50%;border:1.5px solid rgba(255,255,255,.6);background:rgba(11,29,77,.3);color:#fff;cursor:pointer;
+}
+.hj-pd-dlg__x svg{width:20px;height:20px}
+.hj-pd-dlg__x:hover{background:rgba(11,29,77,.55)}
+.hj-pd-dlg__x:focus-visible{outline:3px solid #fff;outline-offset:2px}
+.hj-pd-dlg__body{overflow-y:auto;overscroll-behavior:contain;padding:10px clamp(18px,4vw,36px) clamp(24px,4vw,40px)}
+.hj-pd-dlg .hj-pd-dlg__body > * + *{margin-top:18px}  /* 0,2,0: beats the lists' own margin:0 below */
+.hj-pd-dlg__k{margin:0;font:750 12.5px/1.2 var(--hj-sans);letter-spacing:.2em;text-transform:uppercase;color:var(--hj-azure)}
+.hj-pd-dlg .hj-pd-dlg__body > .hj-pd-dlg__t{margin-top:8px}
+.hj-pd-dlg__t{margin:0;font:700 clamp(21px,3vw,30px)/1.2 var(--hj-disp);letter-spacing:-.02em;overflow-wrap:anywhere}
+.hj-pd-dlg__meta{color:var(--hj-ink-2);font-size:14.5px}
+.hj-pd-dlg__meta svg{color:var(--hj-azure)}
+.hj-pd-dlg__ph{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,130px),1fr));gap:8px}
+.hj-pd-dlg__ph button{display:block;width:100%;padding:0;border:0;border-radius:12px;overflow:hidden;aspect-ratio:4/3;background:var(--hj-card-art);cursor:zoom-in}
+.hj-pd-dlg__ph img{display:block;width:100%;height:100%;object-fit:cover;transition:scale .5s var(--hj-ease)}
+.hj-pd-dlg__ph button:hover img{scale:1.06}
+.hj-pd-dlg__ph button:focus-visible{outline:3px solid var(--hj-ink);outline-offset:2px}
+.hj-pd-figs{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+.hj-pd-fig{display:flex;align-items:center;gap:12px;min-width:0;padding:12px 14px;border-radius:14px;background:var(--hj-cream)}
+.hj-pd-fig__s{flex:none;width:30px;height:30px}
+.hj-pd-fig__s[data-shape="circle"]{border-radius:50%}
+.hj-pd-fig__s[data-shape="arch"]{width:24px;border-radius:50% 50% 3px 3px / 40% 40% 3px 3px}
+.hj-pd-fig__s[data-shape="square"]{width:26px;height:26px;border-radius:3px}
+.hj-pd-fig__s[data-shape="pill"]{width:36px;height:20px;border-radius:999px}
+.hj-pd-fig__n{display:block;font:700 18px/1.15 var(--hj-disp);letter-spacing:-.02em;overflow-wrap:anywhere}
+.hj-pd-fig__l{display:block;margin-top:3px;font:750 11px/1.2 var(--hj-sans);letter-spacing:.12em;text-transform:uppercase;color:var(--hj-ink-2)}
+.hj-pd-dlg__ov .hj-prose{margin-top:8px;font-size:16px}
+@media (prefers-reduced-motion:no-preference){
+  .hj-pd-dlg__panel{animation:hj-pd-in .45s var(--hj-ease)}
+  .hj-pd-dlg__bg{animation:hj-pd-fade .3s ease}
+  @keyframes hj-pd-in{from{opacity:0;translate:0 30px;scale:.97}}
+  @keyframes hj-pd-fade{from{opacity:0}}
+}

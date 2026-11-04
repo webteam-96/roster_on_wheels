@@ -1,0 +1,65 @@
+/* ─────────────────────────────────────────────────────────────────────────────
+   CINEMATIC · ABOUT — the screening notes. Page classes are cin-about-*; element
+   selectors only ever appear under one of them. Shared pieces (hero, heads,
+   buttons, person cards, empty state) are styled in ../theme.css.
+   No hidden start states: every rule here is the finished, visible look.
+   ───────────────────────────────────────────────────────────────────────────── */
+
+.cin-about-cap {
+  margin: 0 0 14px; font-size: 13.5px; font-weight: 700; line-height: 1.3; letter-spacing: .12em;
+  text-transform: uppercase; color: var(--cin-gold-ink);
+}
+
+/* ───────────── the club's words + the details rail ───────────── */
+.cin-about-notes {
+  display: grid; gap: clamp(48px, 7vw, 72px);
+  /* the page's last block: clear air above the footer (the text ran into it - client, 2026-09-28) */
+  padding: clamp(48px, 7vw, 96px) var(--cin-side) calc(var(--cin-sec-y) * 1.25);
+  background: radial-gradient(50% 40% at 100% 0%, rgba(23, 69, 143, .22), transparent 70%);
+}
+@media (min-width: 1000px) {
+  .cin-about-notes { grid-template-columns: minmax(0, 1fr) 300px; align-items: start; column-gap: clamp(56px, 7vw, 120px); }
+}
+.cin-about-story { position: relative; min-width: 0; max-width: 70ch; }
+
+/* the projector beam: draws down beside the text as it is read (wide screens) */
+.cin-about-beam { display: none; }
+@media (min-width: 1000px) {
+  .cin-about-beam {
+    display: block; position: absolute; left: calc(-1 * clamp(20px, 2.4vw, 36px)); top: 34px; bottom: 6px;
+    width: 2px; border-radius: 2px; transform-origin: 50% 0; pointer-events: none;
+    background: linear-gradient(180deg, var(--cin-gold-hi), var(--cin-gold) 40%, rgba(247, 168, 27, .12));
+    box-shadow: 0 0 18px rgba(247, 168, 27, .45);
+  }
+}
+
+/* the club's words: the shared .cin-prose (theme.css) */
+.cin-about-story .cin-empty { margin-top: 8px; }
+
+/* rail: logo plate, contact, socials */
+.cin-about-aside { display: flex; flex-direction: column; gap: 36px; min-width: 0; }
+/* tablets: the rail runs under the story, so plate and contact sit side by side, not in a 300px column */
+@media (min-width: 600px) and (max-width: 999px) {
+  .cin-about-aside { flex-direction: row; flex-wrap: wrap; align-items: center; }
+  .cin-about-box { flex: 1 1 260px; }
+}
+@media (min-width: 1000px) and (min-height: 760px) {
+  .cin-about-aside { position: sticky; top: calc(var(--cin-hh) + 32px); }
+}
+.cin-about-plate {
+  display: flex; align-items: center; justify-content: center; width: 100%; max-width: 300px; min-height: 150px;
+  padding: clamp(20px, 3vw, 32px); border-radius: var(--cin-r-lg); background: #fff;
+  box-shadow: 0 0 0 1px rgba(247, 168, 27, .35), 0 30px 80px -34px rgba(247, 168, 27, .5);
+}
+.cin-about-plate:not(:has(img)) { display: none; }
+.cin-about-plate img { display: block; width: auto; height: auto; max-width: 100%; max-height: 220px; object-fit: contain; }
+.cin-about-box { min-width: 0; }
+.cin-about-contact { margin: 0; display: grid; gap: 14px; }
+.cin-about-contact > div { min-width: 0; padding-top: 12px; border-top: 1px solid var(--cin-line); }
+.cin-about-contact dt { font-size: 14px; color: var(--cin-mist); }
+.cin-about-contact dd { margin: 2px 0 0; font-weight: 600; overflow-wrap: anywhere; }
+
+/* ───────── light mode (html[data-cin-mode="light"]) ───────── */
+html[data-cin-mode="light"] .cin-about-notes { background: radial-gradient(50% 40% at 100% 0%, rgba(23, 69, 143, .08), transparent 70%); }
+html[data-cin-mode="light"] .cin-about-beam { box-shadow: none; }
+html[data-cin-mode="light"] .cin-about-plate { box-shadow: 0 0 0 1px rgba(247, 168, 27, .45), 0 30px 70px -40px var(--cin-shadow); }

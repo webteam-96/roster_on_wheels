@@ -1,0 +1,35 @@
+/* ─────────────────────────────────────────────────────────────────────────────
+   Theme 8 · Projects page "Current year projects / All years projects" switch
+   (ScopeSwitch in _shared/kit.jsx). Two pill buttons in the page head; the chosen
+   one is filled with the theme's accent. Outlines use currentColor, so the switch
+   reads on a dark or a light page head alike (client, 2026-10-06).
+   ───────────────────────────────────────────────────────────────────────────── */
+.t8-scope{--sc-accent:#F7A81B;--sc-accent-fg:#0B1433;display:flex;flex-direction:column;gap:8px;margin-top:clamp(14px,2.4vh,22px)}
+.t8-scope__btns{display:flex;flex-wrap:wrap;gap:8px}
+.t8-scope__btn{display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:0 18px;border:2px solid currentColor;border-radius:999px;
+  background:transparent;color:inherit;font:inherit;font-size:.9375rem;font-weight:800;line-height:1.1;letter-spacing:normal;text-transform:none;cursor:pointer;
+  opacity:.82;transition:background-color .25s,color .25s,border-color .25s,opacity .25s}
+.t8-scope__btn:hover{opacity:1}
+.t8-scope__btn[aria-pressed="true"]{opacity:1;border-color:var(--sc-accent);background:var(--sc-accent);color:var(--sc-accent-fg)}
+.t8-scope__yr{font-weight:600;opacity:.75;font-size:.8125rem}
+.t8-scope__note{margin:0;font-size:.875rem;font-weight:600;opacity:.8}
+.t8-scope__btn:focus-visible{outline:3px solid var(--sc-accent);outline-offset:3px}
+
+html[data-theme="cinematic"] .t8-scope{--sc-accent:var(--cin-gold);--sc-accent-fg:#0B1433;font-family:var(--cin-sans)}
+html[data-theme="cinematic"][data-cin-mode="light"] .t8-scope{--sc-accent:var(--cin-royal);--sc-accent-fg:#fff}
+html[data-theme="split-story"] .t8-scope{--sc-accent:var(--spl-gold);--sc-accent-fg:var(--spl-night);font-family:var(--spl-body)}
+html[data-theme="liquid-motion"] .t8-scope{--sc-accent:var(--liq-gold);--sc-accent-fg:var(--liq-ink);font-family:var(--liq-sans)}
+html[data-theme="horizontal-journey"] .t8-scope{--sc-accent:var(--hj-gold);--sc-accent-fg:var(--hj-ink);font-family:var(--hj-sans)}
+html[data-theme="photo-collage"] .t8-scope{--sc-accent:var(--col-cran);--sc-accent-fg:#fff;font-family:var(--col-body)}
+html[data-theme="sunrise"] .t8-scope{--sc-accent:var(--sun-accent);--sc-accent-fg:#13183A;font-family:var(--sun-sans)}
+html[data-theme="sunrise"][data-sun-mode="light"] .t8-scope{--sc-accent-fg:#fff}
+
+/* phones: the two buttons share one row - the year label is dropped (the header year picker shows it) */
+@media (max-width:479.98px){
+  .t8-scope__btns{flex-wrap:nowrap}
+  .t8-scope__btn{flex:1 1 0;justify-content:center;min-width:0;padding:0 10px;font-size:.84375rem;text-align:center}
+  .t8-scope__yr{display:none}
+}
+/* small phones: both labels on one line each (390px: "Current year projects" wrapped) */
+.t8-scope__btn{white-space:nowrap}
+@media (max-width:420px){.t8-scope__btn{padding:0 12px;font-size:.875rem}}

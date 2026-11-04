@@ -1,0 +1,64 @@
+/* SUNRISE · PROJECTS (sun-prj-*). Tokens and components come from theme.css;
+   this file only places them. Mode colours are tokens, so both modes follow. */
+
+/* the figures, first row under the page head (client, 2026-10-07: no hairline under the scope switch, figures as tiles):
+   one row of equal tiles across the page, a long figure (the all-years cost) gets a double tile; useFitNumbers
+   then gives every number one size, the largest at which the longest fits its tile */
+.sun-prj-figs{padding-top:clamp(20px,2.6vw,32px)}
+.sun-prj-figs .sun-prj-stats{display:flex;gap:clamp(10px,1.2vw,16px)}
+.sun-prj-stats .sun-stat{flex:1 1 0;padding:clamp(16px,1.8vw,24px) clamp(16px,1.6vw,22px);border:1px solid var(--sun-line);border-radius:20px;
+  background:color-mix(in srgb,var(--sun-win-bg) 55%,transparent);container-type:normal}
+.sun-prj-stats .sun-stat.is-long{flex-grow:2}
+.sun-prj-stats .sun-stat__num,.sun-prj-stats .sun-stat--long .sun-stat__num{font-size:clamp(30px,3.6vw,54px);white-space:nowrap;overflow-wrap:normal}
+.sun-prj-stats .sun-stat__label{margin-top:8px}
+/* below 1200 (five tiles a row would shrink every number): two tiles a row, a long figure takes the whole row, an odd last tile fills its row */
+@media (max-width:1199.98px){
+  .sun-prj-figs .sun-prj-stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));grid-auto-flow:row dense}
+  .sun-prj-stats .sun-stat.is-long,.sun-prj-stats.is-odd .sun-stat:last-child{grid-column:span 2}
+}
+.sun-prj-stats.is-loading .sun-stat__num{animation:sun-prj-wait 1.2s ease-in-out infinite alternate}
+@keyframes sun-prj-wait{from{opacity:.35}to{opacity:1}}
+
+/* filters: avenue chips, then the selects + search + count on one wrapping row */
+.sun-prj-bar{display:grid;gap:18px;padding-top:clamp(28px,4vw,48px)}
+.sun-prj-tools{align-items:flex-end}
+.sun-prj-field{display:flex;flex-direction:column;gap:6px;min-width:0;flex:0 1 240px}
+.sun-prj-field label{font-size:12px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:var(--sun-mist)}
+.sun-prj-field .sun-select{width:100%;min-width:0;text-overflow:ellipsis}
+.sun-prj-field .sun-select:disabled{opacity:.55;cursor:not-allowed}
+.sun-prj-search{flex:1 1 260px;max-width:460px}
+.sun-prj-clear{margin-left:auto;min-height:48px}
+.sun-prj-clear:disabled{opacity:.45;cursor:default;pointer-events:none}
+
+/* the cards' photos (client, 2026-10-05: no blur, the whole photo): each frame takes its
+   photo's own ratio (Card ratio="auto"), so nothing is cropped and there is no blurred fill.
+   A very tall portrait is capped and contained on the frame's own ground; no hover zoom
+   (a scale crops). Every selector outranks theme.css's .sun-card rules, whichever loads last. */
+.sun-prj-grid .sun-card__img img{display:block;height:auto;max-height:min(520px,70svh);object-fit:contain}
+/* photos of different shapes make cards of different heights: each card ends with its own text
+   (stretched to the row's tallest, a landscape card was mostly empty above its Read more) */
+.sun-grid.sun-prj-grid{align-items:start}
+.sun-prj-grid .sun-card:hover .sun-card__img img{scale:none}
+/* no photo, or one that failed (SafeImg leaves the frame empty): the 4:3 sunrise ground */
+.sun-prj-grid .sun-card__img:empty{aspect-ratio:4/3}
+
+/* the updates count on a card ("3 updates") */
+.sun-prj-upd{align-self:flex-start;display:inline-flex;align-items:center;gap:8px;min-height:26px;padding:2px 12px;border-radius:999px;
+  border:1px solid var(--sun-hover-line);font-size:12px;font-weight:600;letter-spacing:.08em;color:var(--sun-ink)}
+.sun-prj-upd::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--sun-accent);box-shadow:0 0 8px 1px var(--sun-hover-line)}
+
+.sun-prj-more{display:flex;flex-direction:column;align-items:center;gap:14px;margin-top:clamp(32px,4vw,56px);text-align:center}
+
+@media (max-width:599px){
+  .sun-prj-field{flex-basis:100%}
+  .sun-prj-search{flex-basis:100%}
+  .sun-prj-count{margin-left:0;min-height:0}
+}
+/* a phone on its side: two across, each photo held to most of the screen (one 612px card was two screens tall) */
+@media (max-height:500px){
+  .sun-grid.sun-prj-grid{grid-template-columns:repeat(auto-fill,minmax(min(100%,240px),1fr))}
+  .sun-prj-grid .sun-card__img img{max-height:60svh}
+}
+/* masonry (client, 2026-10-06; Projects.jsx sets each card's span): 8px rows, the gap is in the span.
+   Only once the spans are set (.is-masonry) - before that, a card one 8px row tall would overlap */
+.sun-grid.sun-prj-grid.is-masonry{grid-auto-rows:8px;row-gap:0}

@@ -1,0 +1,18 @@
+/* Split Story · Events (spl-ev-*). The split, panel, timeline, band and states are kit pieces in theme.css. */
+
+/* the next event's tag turns gold (night text on gold) */
+.spl-ev-next > .spl-tag{background:var(--spl-gold);color:var(--spl-night)}
+
+/* time · venue under the title */
+.spl-ev-meta{display:flex;flex-wrap:wrap;align-items:flex-start;gap:4px 18px;margin:0 0 10px;color:var(--spl-night);font-weight:700;line-height:1.45}
+.spl-ev-time{flex:none;color:var(--spl-royal);font-weight:800}
+.spl-ev-venue{display:flex;align-items:flex-start;gap:8px;min-width:0;overflow-wrap:anywhere}
+.spl-ev-venue .spl-ico{width:18px;height:18px;margin-top:.12em;color:var(--spl-azure)}
+.spl-ev-venue > span{min-width:0}
+
+.spl-ev-actions{display:flex;flex-wrap:wrap;gap:10px 12px;margin-top:18px}
+.spl-ev-meet-actions{display:flex;flex-wrap:wrap;gap:12px;margin-top:clamp(24px,4vh,40px)}
+
+@media (max-width:599.98px){
+  .spl-ev-actions .spl-btn{flex:1 1 auto}
+}

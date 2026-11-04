@@ -1,0 +1,452 @@
+/* ═════════════════════════════════════════════════════════════════════════════
+   PHOTO COLLAGE (theme 8 · G) — the club's year as a crafted scrapbook.
+   Ported from Theme8-Samples/G-collage-parallax. Every class starts with col-,
+   every token is --col-*, every element selector sits under
+   html[data-theme="photo-collage"] (this sheet arrives with the theme's chunk
+   and must never touch another theme).
+
+   Palette   paper #FCF9F3 · ink #1C2340 · ink-2 #4A4F66 · white prints
+             cranberry #D41367 · azure #0067C8 · royal #17458F · violet #901F93
+             gold #F7A81B · turquoise #00ADBB · kraft #DDC6A0 · cran-ink #B80F58
+   Type      Shrikhand (display) · Figtree (body/UI) · Kalam (handwriting)
+   Contrast  ink on paper 14.7 · ink-2 on paper 7.7 · ink on kraft 9.3 (labels on
+             kraft use ink, not ink-2) · cranberry on paper 4.9 = LARGE display
+             only; small cranberry text uses --col-cran-ink (5.4 worst grain) ·
+             white on cranberry 5.1 · white on royal 9.2 · ink on gold 7.8 ·
+             ink on turquoise 5.7. Photo-filled type multiplies the photo by its
+             tint, so no pixel is lighter than the tint.
+   Motion    Hidden start states only from JS (motion.js); CSS never hides.
+   ═════════════════════════════════════════════════════════════════════════════ */
+
+/* ── 1. tokens + base ─────────────────────────────────────────────────────── */
+html[data-theme="photo-collage"]{
+  --col-paper:#FCF9F3; --col-ink:#1C2340; --col-ink-2:#4A4F66; --col-white:#FFFFFF;
+  --col-cran:#D41367; --col-cran-ink:#B80F58; --col-azure:#0067C8; --col-royal:#17458F; --col-violet:#901F93;
+  --col-gold:#F7A81B; --col-turq:#00ADBB; --col-kraft:#DDC6A0; --col-kraft-edge:#B99B6B; --col-photo-bg:#E9E3D8;
+  --col-display:"Shrikhand",Georgia,"Times New Roman",serif;
+  --col-body:"Figtree",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --col-hand:"Kalam","Segoe Print","Bradley Hand",cursive;
+  --col-gutter:clamp(16px,4vw,56px);
+  --col-sec:clamp(72px,12vh,144px);
+  --col-max:1240px;
+  --col-vel:0;
+  --col-ease:cubic-bezier(.2,.7,.2,1);
+  --col-lift:0 1px 1px rgba(28,35,64,.10),0 6px 12px -4px rgba(28,35,64,.18),0 24px 44px -20px rgba(28,35,64,.40);
+  --col-lift-hi:0 2px 2px rgba(28,35,64,.1),0 34px 60px -24px rgba(28,35,64,.5);
+  --col-grain:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .36 0 0 0 0 .29 0 0 0 0 .2 0 0 0 .11 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  scroll-behavior:auto;
+  background:var(--col-paper);
+}
+html[data-theme="photo-collage"] body{margin:0;background:var(--col-paper) var(--col-grain);color:var(--col-ink);font-family:var(--col-body);font-size:1.0625rem;line-height:1.65;-webkit-font-smoothing:antialiased}
+html[data-theme="photo-collage"].col-menu-open,html[data-theme="photo-collage"].col-locked{overflow:hidden}
+html[data-theme="photo-collage"] :focus-visible{outline:3px solid var(--col-azure);outline-offset:3px}
+html[data-theme="photo-collage"] .col-on-dark :focus-visible{outline-color:var(--col-gold)}
+html[data-theme="photo-collage"] .col-menu :focus-visible{outline-color:#fff}
+html[data-theme="photo-collage"] #main:focus{outline:none}
+html[data-theme="photo-collage"] ::selection{background:rgba(247,168,27,.5);color:var(--col-ink)}
+html[data-theme="photo-collage"] #main :is(h1,h2,h3){text-wrap:balance}
+html[data-theme="photo-collage"] #main p{text-wrap:pretty}
+.col-sr{position:absolute!important;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
+.col-skip{position:absolute;left:16px;top:-80px;z-index:200;padding:12px 18px;border-radius:999px;background:var(--col-gold);color:var(--col-ink);font-weight:800;text-decoration:none}
+.col-skip:focus{top:12px}
+.col-main{display:block;min-height:60vh}
+
+/* layout helpers */
+.col-sec{position:relative;padding:var(--col-sec) var(--col-gutter);overflow-x:clip}
+.col-wrap{max-width:var(--col-max);margin:0 auto}
+
+/* ── 2. drawing, photo type, tape ─────────────────────────────────────────── */
+/* hand-drawn strokes: pathLength=1, drawn by default; JS animates dashoffset 1.02 -> 0 */
+.col-svg{overflow:visible}
+.col-draw{fill:none;stroke:var(--col-cran);stroke-width:3;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:1 2}
+
+/* photo-filled type: photo multiplied by the tint, clipped to the letters */
+.col-pt{color:var(--col-tint,var(--col-cran))}
+@supports ((-webkit-background-clip:text) or (background-clip:text)){
+  /* speed (2026-10-05): the photo only once the title nears the screen (data-pt-in, set by usePhotoTypeLazy) -
+     a CSS background is never lazy, and every title on a page used to fetch a multi-MB photo at once */
+  .col-pt.is-img:not([data-pt-in]){background-image:linear-gradient(var(--col-tint),var(--col-tint)) !important}
+  .col-pt.is-img{background-image:linear-gradient(var(--col-tint),var(--col-tint)),var(--col-img);background-blend-mode:multiply;background-size:cover;background-position:50% 50%;background-repeat:no-repeat;-webkit-background-clip:text;background-clip:text;color:transparent;-webkit-text-fill-color:transparent}
+}
+
+/* washi tape */
+.col-tape{--col-tc:0 173 187;position:absolute;z-index:3;top:-12px;left:var(--col-tl,50%);width:clamp(52px,38%,124px);height:24px;transform:translateX(-50%) rotate(var(--col-tr,-4deg));background:repeating-linear-gradient(-45deg,rgb(var(--col-tc) / .8) 0 7px,rgb(var(--col-tc) / .62) 7px 14px);mix-blend-mode:multiply;clip-path:polygon(0 0,100% 0,97% 20%,100% 40%,97% 60%,100% 80%,97% 100%,0 100%,3% 80%,0 60%,3% 40%,0 20%);pointer-events:none}
+.col-tape.is-cran{--col-tc:212 19 103}
+.col-tape.is-gold{--col-tc:247 168 27}
+.col-tape.is-azure{--col-tc:0 103 200}
+
+/* ── 3. header ────────────────────────────────────────────────────────────── */
+/* two rows (2026-10-05): .col-hd-top = logo + contact / year / admin (+ burger); .col-nav = the menu strip */
+.col-hd{position:relative;z-index:40}
+.col-hd-top{display:flex;align-items:center;gap:8px clamp(8px,1.4vw,20px);padding:12px var(--col-gutter)}
+.col-hd-util{display:flex;align-items:center;gap:8px clamp(8px,1.2vw,16px);margin-left:auto;min-width:0}
+.col-hd-contact{display:none;margin:0;padding:0;list-style:none}
+.col-hd-contact a{display:inline-flex;align-items:center;gap:7px;min-height:44px;color:var(--col-ink);font-size:.9375rem;font-weight:700;text-decoration:none;white-space:nowrap}
+.col-hd-contact a:hover{text-decoration:underline;text-decoration-color:var(--col-cran);text-decoration-thickness:2px;text-underline-offset:4px}
+.col-hd-ico{flex:none;width:18px;height:18px;color:var(--col-cran)}
+.col-hd-admin{display:none;align-items:center;min-height:44px;padding:0 20px;border-radius:999px;background:var(--col-ink);color:#fff;font-size:.9375rem;font-weight:800;text-decoration:none;white-space:nowrap}
+.col-hd-admin:hover,.col-hd-admin:focus-visible{background:var(--col-cran)}
+.col-brand{display:flex;align-items:center;gap:10px;flex:none;min-width:0;min-height:44px;margin-right:auto;color:var(--col-ink);text-decoration:none}
+.col-brand img{display:block;width:auto;height:clamp(32px,3.4vw,44px);max-width:min(46vw,300px);object-fit:contain}
+.col-brand-name{max-width:16ch;font-family:var(--col-display);font-size:clamp(1rem,1.6vw,1.2rem);line-height:1.1}
+.col-nav{display:none}
+.col-nav-list{display:flex;width:max-content;margin:0;padding:0;list-style:none}
+.col-nav-item{position:relative;display:flex;align-items:center}
+.col-nav-link{position:relative;display:flex;align-items:center;gap:4px;min-height:44px;padding:0 10px;border:0;background:none;color:var(--col-ink);font:inherit;font-size:.9375rem;font-weight:700;line-height:1.2;text-decoration:none;white-space:nowrap;cursor:pointer}
+.col-nav-link .col-uline{position:absolute;left:8px;bottom:5px;width:calc(100% - 16px);height:9px}
+.col-nav-link .col-draw{stroke-dashoffset:1.02;transition:stroke-dashoffset .45s cubic-bezier(.65,0,.35,1)}
+.col-nav-link:hover .col-draw,.col-nav-link:focus-visible .col-draw,.col-nav-link[aria-current="page"] .col-draw,.col-nav-item.is-here > .col-nav-link .col-draw{stroke-dashoffset:0}
+.col-nav-tog{display:grid;place-items:center;width:30px;min-height:44px;margin-left:-8px;padding:0;border:0;border-radius:8px;background:none;color:var(--col-ink);cursor:pointer}
+.col-chev{width:12px;height:12px;fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round;transition:transform .25s}
+.col-nav-item[data-open] .col-chev{transform:rotate(180deg)}
+.col-sub{position:absolute;top:calc(100% - 2px);left:0;z-index:5;display:none;min-width:230px;max-width:320px;margin:0;padding:20px 10px 10px;list-style:none;background:var(--col-white);box-shadow:var(--col-lift);transform:rotate(-1deg)}
+.col-nav-item:hover > .col-sub,.col-nav-item[data-open] > .col-sub{display:block}
+.col-nav-item:nth-last-child(-n+3) > .col-sub{left:auto;right:0;transform:rotate(1deg)}
+.col-sub ul{margin:0;padding:0;list-style:none}
+.col-sub .col-tape{top:-10px;width:78px;height:20px}
+.col-sub a{display:flex;align-items:center;min-height:42px;padding:6px 12px;border-radius:6px;color:var(--col-ink);font-size:.9375rem;font-weight:700;line-height:1.3;text-decoration:none}
+.col-sub a:hover,.col-sub a[aria-current="page"]{background:rgba(247,168,27,.24)}
+.col-year{display:block;flex:none}
+.col-year-select{appearance:none;-webkit-appearance:none;min-height:44px;max-width:150px;padding:0 32px 0 14px;border:2px solid var(--col-ink);border-radius:999px;background:var(--col-white) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5l5 5 5-5' fill='none' stroke='%231C2340' stroke-width='2'/%3E%3C/svg%3E") no-repeat right 12px center/12px 8px;color:var(--col-ink);font:inherit;font-size:.875rem;font-weight:800;cursor:pointer}
+.col-burger{display:inline-flex;align-items:center;justify-content:center;gap:10px;flex:none;min-width:44px;min-height:44px;padding:0 14px;border:0;border-radius:999px;background:var(--col-ink);color:#fff;font:inherit;font-size:.875rem;font-weight:800;cursor:pointer}
+.col-burger-bars{display:grid;gap:4px}
+.col-burger-bars i{display:block;width:18px;height:2px;border-radius:2px;background:currentColor}
+@media (max-width:479.98px){ .col-burger-text{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap} .col-burger{padding:0 13px} }
+@media (max-width:359.98px){ .col-brand img{height:26px} .col-year-select{max-width:118px;padding:0 26px 0 10px;background-position:right 9px center} }
+@media (min-width:1024px){
+  .col-hd-top{padding-block:14px}
+  .col-brand img{height:clamp(48px,4.2vw,62px);max-width:min(36vw,360px)}
+  .col-hd-admin{display:inline-flex}
+  /* row 2: the whole width for the menu, on an ink strip; the drawn underline turns gold */
+  .col-nav{display:block;padding:0 var(--col-gutter);background:var(--col-ink)}
+  .col-nav-list{margin:0 auto}
+  .col-nav-link,.col-nav-tog{min-height:52px;color:#fff}
+  .col-nav-link .col-draw{stroke:var(--col-gold)}
+  .col-nav-link:hover,.col-nav-link:focus-visible,.col-nav-link[aria-current="page"],.col-nav-item.is-here > .col-nav-link{color:var(--col-gold)}
+  .col-hd:not(.is-compact) .col-burger{display:none}
+  /* compact = the club's menu is too long even for its own row: the burger takes over, the
+     nav stays laid out (invisible) so it can still be measured */
+  .col-hd.is-compact .col-nav{position:absolute;top:0;left:0;width:100%;height:0;overflow:hidden;visibility:hidden;pointer-events:none}
+}
+@media (min-width:1280px){ .col-hd-contact{display:flex;gap:4px 20px} }
+
+/* mobile menu */
+.col-menu{position:fixed;inset:0;z-index:100;display:flex;flex-direction:column;padding:12px var(--col-gutter) 40px;background:var(--col-cran) var(--col-grain);color:#fff;overflow-y:auto;overscroll-behavior:contain}
+.col-menu[hidden]{display:none}
+.col-menu-top{display:flex;justify-content:flex-end}
+.col-menu-close{display:inline-flex;align-items:center;gap:8px;min-width:44px;min-height:44px;padding:0 18px;border:2px solid rgba(255,255,255,.75);border-radius:999px;background:transparent;color:#fff;font:inherit;font-weight:800;cursor:pointer}
+.col-menu-list{margin:clamp(12px,4vh,40px) 0 0;padding:0;list-style:none}
+.col-menu-list > li{overflow:hidden}
+.col-menu-list a,.col-menu-list .col-menu-label{display:block;padding:4px 0 8px;color:#fff;font-family:var(--col-display);font-size:clamp(28px,8vw,56px);line-height:1.12;text-decoration:none;overflow-wrap:anywhere}
+.col-menu-list a[aria-current="page"]{text-decoration:underline 3px;text-underline-offset:10px}
+.col-menu-sub{margin:0 0 10px;padding:0 0 0 clamp(14px,3vw,24px);list-style:none;border-left:3px solid rgba(255,255,255,.4)}
+.col-menu-sub a{padding:6px 0;font-family:var(--col-body);font-size:clamp(1.05rem,3.6vw,1.35rem);font-weight:700;line-height:1.3}
+.col-menu-sub a[aria-current="page"]{text-underline-offset:6px;text-decoration-thickness:2px}
+.col-menu-foot{display:flex;flex-wrap:wrap;gap:12px;margin-top:auto;padding-top:32px}
+.col-menu-admin{display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:0 20px;border:2px solid rgba(255,255,255,.75);border-radius:999px;color:#fff;font-weight:800;text-decoration:none}
+.col-menu-admin:hover{background:#fff;color:var(--col-cran-ink)}
+
+/* ── 4. footer ────────────────────────────────────────────────────────────── */
+.col-foot{position:relative;margin-top:24px;padding:clamp(48px,8vh,72px) var(--col-gutter) 22px;background:var(--col-royal);color:#fff}
+.col-foot-edge{position:absolute;left:0;bottom:calc(100% - 1px);display:block;width:100%;height:18px}
+.col-foot-edge path{fill:var(--col-royal)}
+.col-foot-top,.col-foot-mid,.col-foot-bottom{max-width:var(--col-max);margin:0 auto}
+/* row 1: logo · visitor counter · socials (one row from 700px; stacked and centred on phones) */
+.col-foot-top{display:flex;flex-direction:column;align-items:center;gap:24px}
+.col-foot-vc{width:min(100%,340px)}
+.col-foot-vc:empty{display:none}
+@media (min-width:700px){ .col-foot-top{flex-direction:row;justify-content:space-between;gap:28px} .col-foot-vc{flex:0 1 340px;min-width:190px} .col-socials{flex:none;justify-content:flex-end} }
+@media (min-width:700px){ .col-foot .col-foot-logo{flex:0 1 auto;min-width:0} }
+@media (min-width:700px) and (max-width:1023.98px){ .col-foot .col-foot-logo{max-width:250px;padding:10px 16px} .col-foot .col-foot-logo img{max-height:84px} }
+.col-foot-club{display:flex;align-items:center;gap:16px;min-width:0}
+/* the logo on a white plate that takes the logo's own shape (a wide lockup no longer shrinks into a square) - client, 2026-09-29 */
+.col-foot-logo{display:grid;place-items:center;flex:none;max-width:min(100%,380px);padding:12px 20px;border-radius:18px;background:var(--col-white)}
+/* the plate hugs the logo: the image sets the size (wide lockups hit the width cap, square crests the height cap) */
+.col-foot-logo img{display:block;width:auto;height:auto;max-width:min(100%,336px);max-height:110px;object-fit:contain}
+.col-foot-name{margin:0;font-family:var(--col-display);font-size:clamp(1.35rem,2.4vw,2rem);line-height:1.12;overflow-wrap:anywhere}
+.col-foot-dist{margin:.2em 0 0;font-weight:600}
+.col-socials{display:flex;flex-wrap:wrap;gap:10px;margin:0;padding:0;list-style:none}
+.col-socials a{display:grid;place-items:center;width:48px;height:48px;border-radius:50%;background:rgba(255,255,255,.14);color:#fff}
+.col-socials a:hover{background:var(--col-gold);color:var(--col-ink)}
+.col-socials svg{width:22px;height:22px}
+.col-foot-mid{display:grid;gap:28px;margin-top:36px}
+.col-foot-meet{display:grid;gap:14px 28px;margin:0}
+.col-foot-meet dt{font-size:.8125rem;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:#D5DDF0}
+.col-foot-meet dd{margin:.15em 0 0;font-weight:600;line-height:1.45;overflow-wrap:anywhere}
+.col-foot-meet .is-day dd{font-family:var(--col-display);font-weight:400;font-size:1.5rem;line-height:1.2}
+.col-foot-meet .is-time dd{font-family:var(--col-hand);font-weight:700;font-size:1.3rem}
+.col-foot-meet a{display:inline-block;padding:2px 0;color:#fff;text-underline-offset:4px}
+.col-foot-bottom{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px 24px;margin-top:32px;padding-top:16px;border-top:1px solid rgba(255,255,255,.3);font-size:.9375rem}
+.col-foot-bottom p{margin:0}
+.col-foot-bottom a{display:inline-block;padding:3px 0;color:#fff;text-underline-offset:4px}
+.col-admin{display:inline-flex;align-items:center;min-height:44px;padding:0 18px;border:2px solid rgba(255,255,255,.75);border-radius:999px;color:#fff;font-weight:800;text-decoration:none}
+.col-admin:hover{background:#fff;color:var(--col-royal)}
+@media (min-width:760px){
+  .col-foot-mid{grid-template-columns:minmax(0,1fr) minmax(260px,340px);align-items:end}
+  .col-foot-meet{grid-template-columns:auto auto minmax(0,1fr)}
+}
+/* the shared visitor card, grounded in the royal band */
+html[data-theme="photo-collage"] .rv-vc{--rv-bg1:#23559F;--rv-bg2:var(--col-royal);--rv-edge:rgba(247,168,27,.42);--rv-today:var(--col-gold);--rv-rule:rgba(255,255,255,.22);--rv-label:#D5DDF0;font-family:var(--col-body)}
+
+/* ── 5. shared components (kit.jsx) ───────────────────────────────────────── */
+/* section heading */
+.col-head{position:relative;display:flex;flex-wrap:wrap;align-items:flex-end;gap:4px clamp(10px,2vw,22px);max-width:var(--col-max);margin:0 auto clamp(28px,6vh,64px)}
+.col-head.is-center{justify-content:center;text-align:center}
+.col-head-title{width:fit-content;max-width:100%;margin:0 -.14em -.1em;padding:.04em .14em .1em;font-family:var(--col-display);font-weight:400;font-size:clamp(2.4rem,9vw,6.5rem);line-height:1.06;letter-spacing:-.005em;overflow-wrap:break-word}
+.col-head-arrow{flex:none;width:clamp(54px,6vw,86px);height:auto;margin-bottom:.4em}
+.col-head-kick{flex-basis:100%;margin:.2em 0 0;font-family:var(--col-hand);font-size:clamp(1.1rem,1.7vw,1.4rem);line-height:1.4;color:var(--col-ink-2)}
+
+/* links + buttons */
+.col-link{display:inline-flex;align-items:center;gap:.35em;min-height:44px;color:var(--col-cran-ink);font-weight:800;text-decoration:underline 2px;text-underline-offset:5px}
+.col-link:hover{text-decoration-thickness:3px}
+/* cran-ink on kraft is ~3.9:1 (fails AA for small text): on tags and memos links are ink, underlined in cranberry */
+.col-tag .col-link,.col-memo .col-link{color:var(--col-ink);text-decoration-color:var(--col-cran-ink)}
+.col-btn{display:inline-flex;align-items:center;justify-content:center;gap:.5em;min-height:48px;padding:0 24px;border:2px solid transparent;border-radius:999px;background:var(--col-cran);color:#fff;font:inherit;font-weight:800;line-height:1.2;text-align:center;text-decoration:none;box-shadow:0 10px 20px -12px rgba(212,19,103,.8);cursor:pointer}
+.col-btn:hover{background:var(--col-cran-ink)}
+.col-btn.is-ink{background:var(--col-ink);box-shadow:0 10px 20px -12px rgba(28,35,64,.8)}
+.col-btn.is-ink:hover{background:#2C355A}
+.col-btn.is-ghost{border-color:var(--col-ink);background:transparent;color:var(--col-ink);box-shadow:none}
+.col-btn.is-ghost:hover{background:var(--col-ink);color:#fff}
+.col-btn[disabled],.col-btn[aria-disabled="true"]{opacity:.5;cursor:not-allowed}
+.col-circled{position:relative;white-space:nowrap}
+.col-circled .col-svg{position:absolute;left:-9%;top:-30%;width:118%;height:160%;pointer-events:none}
+mark.col-hl{padding:0 .08em;color:inherit;background:linear-gradient(rgba(247,168,27,0) 56%,rgba(247,168,27,.62) 56%,rgba(247,168,27,.62) 92%,rgba(247,168,27,0) 92%) no-repeat 0 0/100% 100%}
+
+/* chip */
+.col-chip{display:inline-block;padding:3px 10px;border-radius:999px;background:var(--col-ink);color:#fff;font-size:.75rem;font-weight:800;line-height:1.5;letter-spacing:.04em;text-transform:uppercase}
+.col-chip.is-cran{background:var(--col-cran-ink)} .col-chip.is-azure{background:var(--col-azure)} .col-chip.is-royal{background:var(--col-royal)} .col-chip.is-violet{background:var(--col-violet)}
+.col-chip.is-gold{background:var(--col-gold);color:var(--col-ink)} .col-chip.is-turq{background:var(--col-turq);color:var(--col-ink)} .col-chip.is-kraft{background:var(--col-kraft);color:var(--col-ink)}
+
+/* the print (polaroid). .col-print owns tilt + velocity sway + hover; wrappers take the tweens */
+.col-print-move,.col-print-fl{position:relative}
+.col-print{position:relative;display:block;background:var(--col-white);padding:clamp(7px,.8vw,12px) clamp(7px,.8vw,12px) 0;box-shadow:var(--col-lift);color:var(--col-ink);text-decoration:none;transform:rotate(calc(var(--col-r,0deg) + var(--col-vel,0) * var(--col-k,1) * 7deg));transition:transform .7s var(--col-ease),box-shadow .35s}
+.col-print-photo{position:relative;overflow:hidden;aspect-ratio:4/3;background:var(--col-photo-bg)}
+.col-print-photo::before{content:"";position:absolute;inset:0;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%231C2340' stroke-width='1.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='5' width='18' height='14' rx='1'/%3E%3Ccircle cx='9' cy='10' r='1.6'/%3E%3Cpath d='M4 17l5-5 4 4 3-3 4 4'/%3E%3C/svg%3E") center/22% no-repeat;opacity:.22}
+.col-print-photo img{position:absolute;inset:0;z-index:1;width:100%;height:100%;object-fit:cover}
+.col-print-photo.is-natural img{position:relative;height:auto}
+.col-print-photo.is-natural{aspect-ratio:auto;min-height:120px}
+.col-print-photo::after{content:"";position:absolute;inset:0;z-index:2;background:linear-gradient(125deg,rgba(255,255,255,.2),rgba(255,255,255,0) 38%);pointer-events:none}
+.col-print-cap{margin:0;padding:.5em .15em .7em;font-family:var(--col-hand);font-weight:700;font-size:clamp(1.05rem,1.35vw,1.3rem);line-height:1.25;color:var(--col-ink);overflow-wrap:anywhere}
+.col-print:not(:has(.col-print-cap)){padding-bottom:clamp(7px,.8vw,12px)}
+@media (hover:hover) and (pointer:fine){
+  a.col-print:hover{transform:translateY(-6px) rotate(calc(var(--col-r,0deg) * .3)) scale(1.03);box-shadow:var(--col-lift-hi)}
+}
+
+/* portrait */
+.col-portrait{position:relative}
+.col-portrait-card{position:relative;padding:10px 10px 12px;background:var(--col-white);box-shadow:var(--col-lift);transform:rotate(calc(var(--col-r,0deg) + var(--col-vel,0) * var(--col-k,1) * 6deg));transition:transform .7s var(--col-ease)}
+.col-portrait-img{display:block;width:100%;aspect-ratio:4/5;object-fit:cover;object-position:50% 18%;background:var(--col-photo-bg)}
+.col-portrait-ph{display:block}
+.col-portrait-mono{display:grid;place-items:center;background:var(--col-kraft) var(--col-grain);color:var(--col-ink);font-family:var(--col-display);font-size:clamp(2.2rem,5vw,3.6rem);line-height:1}
+.col-portrait-cap{margin:.5em 0 0;font-family:var(--col-hand);font-weight:700;font-size:1.1rem;line-height:1.25;text-align:center;overflow-wrap:anywhere}
+
+/* paper note, memo, tag */
+.col-note{position:relative;padding:10px 12px 4px;background:var(--col-paper) var(--col-grain)}
+.col-memo{position:relative;width:min(100%,420px)}
+.col-memo-in{position:relative;padding:34px clamp(20px,3vw,30px) 26px;background:var(--col-kraft) var(--col-grain);box-shadow:var(--col-lift);transform:rotate(-2deg)}
+.col-memo-title{margin:0;font-family:var(--col-hand);font-weight:700;font-size:1.5rem;line-height:1.2;color:var(--col-ink)}
+.col-ticks{display:grid;gap:10px;margin:14px 0 0;padding:0;list-style:none}
+.col-ticks li{display:grid;grid-template-columns:26px minmax(0,1fr);gap:10px;align-items:start;font-weight:600;line-height:1.45;color:var(--col-ink);overflow-wrap:anywhere}
+.col-ticks .col-svg{width:26px;height:26px}
+.col-ticks .col-draw{stroke:var(--col-royal);stroke-width:3.2}
+.col-tag-wrap{position:relative;width:min(100%,560px);margin:0 auto;padding-top:92px;filter:drop-shadow(0 2px 1px rgba(28,35,64,.16)) drop-shadow(0 22px 26px rgba(28,35,64,.2))}
+.col-tag-wrap.no-string{padding-top:0}
+.col-tag-string{position:absolute;left:50%;top:0;z-index:2;width:40px;height:112px;margin-left:-20px}
+.col-tag-string .col-draw{stroke:var(--col-ink);stroke-width:2.2}
+.col-tag{position:relative;padding:62px clamp(20px,5vw,48px) 36px;background:var(--col-kraft) var(--col-grain);color:var(--col-ink);clip-path:polygon(18% 0,82% 0,100% 13%,100% 100%,0 100%,0 13%);transform-origin:50% 22px}
+.col-tag::before{content:"";position:absolute;left:50%;top:12px;width:22px;height:22px;margin-left:-11px;border-radius:50%;background:var(--col-paper);box-shadow:0 0 0 5px var(--col-kraft-edge)}
+
+/* stickers (StatRow) */
+.col-stickers{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:clamp(14px,2.6vw,36px) clamp(12px,3vw,48px);max-width:1180px;margin:0 auto;padding:0;list-style:none}
+.col-stk{--col-s:clamp(140px,19vw,250px);width:var(--col-s)}
+.col-stk.is-xl{--col-s:clamp(200px,27vw,340px)}
+.col-stk.is-wide{--col-s:clamp(260px,32vw,400px)}
+.col-stk-card{position:relative;display:grid;place-content:center;justify-items:center;aspect-ratio:1;container-type:inline-size;color:var(--col-fg);text-align:center;transform:rotate(calc(var(--col-t,0deg) + var(--col-vel,0) * var(--col-k,1) * 10deg));transition:transform .7s var(--col-ease)}
+.is-wide .col-stk-card{aspect-ratio:2/1}
+.col-stk-shape{position:absolute;inset:0;width:100%;height:100%;overflow:visible;filter:drop-shadow(0 1.5px 1px rgba(28,35,64,.22)) drop-shadow(0 14px 16px rgba(28,35,64,.2))}
+.col-sh{fill:var(--col-c);stroke:var(--col-white);stroke-width:7;stroke-linejoin:round}
+/* the figure never outgrows its sticker, however long a club's total is */
+.col-stk-num{position:relative;margin:0;font-family:var(--col-display);font-size:min(20cqi,calc(105cqi / var(--col-len,4)));line-height:1;letter-spacing:-.01em;word-spacing:.12em;font-variant-numeric:tabular-nums;white-space:nowrap}
+.is-wide .col-stk-num{font-size:min(12cqi,calc(112cqi / var(--col-len,4)))} /* 112: a long figure ("LKR 9,869,474") clears the pill's round ends */
+.col-stk-label{position:relative;max-width:72cqi;margin:.45em 0 0;font-size:max(13px,6.4cqi);font-weight:800;line-height:1.2;letter-spacing:.06em;text-transform:uppercase}
+.is-wide .col-stk-label{font-size:max(13px,4.2cqi)}
+@media (hover:hover) and (pointer:fine){ .col-stk-card:hover{transform:rotate(0deg) scale(1.06)} }
+@media (min-width:900px){ .col-stk:nth-child(2){margin-top:12vh} .col-stk:nth-child(3){margin-top:-6vh} .col-stk:nth-child(5){margin-top:8vh} }
+@media (max-width:599.98px){ .col-stk{--col-s:clamp(136px,42vw,200px)} .col-stk.is-xl{--col-s:min(74vw,300px)} .col-stk.is-wide{--col-s:min(88vw,360px)} }
+
+/* paper cut-outs (positions come from the context: page hero, home hero) */
+.col-cuts{position:absolute;inset:0;z-index:0;pointer-events:none}
+.col-cut{position:absolute;z-index:0;filter:drop-shadow(0 2px 1px rgba(28,35,64,.18)) drop-shadow(0 8px 12px rgba(28,35,64,.14));pointer-events:none}
+.col-cut-in{display:block;width:100%;height:100%}
+.col-cut.is-dot{width:clamp(58px,8vw,130px);aspect-ratio:1} .col-cut.is-dot .col-cut-in{border-radius:50%;background:var(--col-gold)}
+.col-cut.is-arch{width:clamp(64px,7vw,120px);aspect-ratio:2/1} .col-cut.is-arch .col-cut-in{border-radius:999px 999px 0 0;background:var(--col-cran)}
+.col-cut.is-star{width:clamp(40px,4.4vw,78px);aspect-ratio:1} .col-cut.is-star .col-cut-in{background:var(--col-turq);clip-path:polygon(50% 0,61% 39%,100% 50%,61% 61%,50% 100%,39% 61%,0 50%,39% 39%)}
+.col-cut.is-wave{width:clamp(90px,10vw,170px);aspect-ratio:17/4} .col-cut.is-wave svg{display:block;width:100%;height:100%;overflow:visible}
+.col-cut.is-wave path{fill:none;stroke:var(--col-azure);stroke-width:9;stroke-linecap:round}
+
+/* ── 6. page hero (PageHero) ──────────────────────────────────────────────── */
+.col-ph{position:relative;padding:clamp(16px,3.5vh,40px) var(--col-gutter) clamp(36px,7vh,80px);overflow:clip}
+.col-ph::before{content:"";position:absolute;inset:0;background:radial-gradient(55% 60% at 22% 20%,rgba(255,255,255,.9),rgba(255,255,255,0) 70%),radial-gradient(40% 50% at 88% 90%,rgba(247,168,27,.12),rgba(247,168,27,0) 70%);pointer-events:none}
+.col-ph-in{position:relative;z-index:2;display:grid;gap:clamp(28px,5vw,64px);max-width:var(--col-max);margin:0 auto}
+.col-ph-copy{min-width:0}
+.col-crumbs ol{display:flex;flex-wrap:wrap;align-items:center;margin:0;padding:0;list-style:none;font-size:.9375rem;font-weight:700;color:var(--col-ink-2)}
+.col-crumbs li{display:inline-flex;align-items:center;min-width:0}
+.col-crumbs li + li::before{content:"/";margin:0 .55em;color:var(--col-cran-ink);font-weight:800}
+.col-crumbs a{display:inline-flex;align-items:center;min-height:32px;color:var(--col-ink);text-decoration:underline 2px;text-decoration-color:rgba(212,19,103,.45);text-underline-offset:4px}
+.col-crumbs a:hover{text-decoration-color:var(--col-cran)}
+.col-crumbs [aria-current="page"]{overflow-wrap:anywhere}
+.col-ph-kick{margin:clamp(12px,2.4vh,24px) 0 0;font-family:var(--col-hand);font-weight:700;font-size:clamp(1.1rem,1.8vw,1.45rem);line-height:1.35;color:var(--col-ink-2)}
+.col-ph-titlerow{display:flex;flex-wrap:wrap;align-items:flex-end;gap:4px clamp(10px,2vw,22px);margin-top:clamp(4px,1vh,10px)}
+.col-ph-title{width:fit-content;max-width:100%;margin:0 -.14em -.08em;padding:.04em .14em .1em;font-family:var(--col-display);font-weight:400;font-size:clamp(2.6rem,10.5vw,7rem);line-height:1.06;letter-spacing:-.005em;overflow-wrap:break-word}
+.col-ph-arrow{flex:none;width:clamp(50px,5.5vw,80px);height:auto;margin-bottom:.5em}
+.col-ph-lead{max-width:56ch;margin:clamp(14px,2.4vh,24px) 0 0;font-size:clamp(1.08rem,1.5vw,1.3rem);font-weight:600;line-height:1.5;color:var(--col-ink-2)}
+.col-ph-tools{display:grid;gap:16px;margin-top:clamp(20px,3.5vh,36px)}
+.col-ph-prints{position:relative;margin:0;padding:0;list-style:none}
+.col-ph .col-cut.is-dot{right:6%;top:8%}
+.col-ph .col-cut.is-arch{left:-18px;bottom:14%}
+.col-ph .col-cut.is-star{right:34%;bottom:10%}
+.col-ph .col-cut.is-wave{display:none}
+/* the prints are dealt in a staggered row, edges only just touching: a caption
+   (a director's name, a photo title) is never cut off by its neighbour */
+.col-ph-prints{display:flex;justify-content:center;align-items:flex-start;width:100%}
+.col-ph-print{flex:0 0 34%;min-width:0;margin:0 -1%}
+.col-ph-print.is-1{margin-top:22px;z-index:1}
+.col-ph-print.is-2{margin-top:6px}
+.col-ph-print:only-child{flex-basis:min(62%,300px)}
+.col-ph-print:first-child:nth-last-child(2),.col-ph-print:first-child:nth-last-child(2) ~ .col-ph-print{flex-basis:46%}
+@media (max-width:899.98px){
+  .col-ph-prints{max-width:520px;margin:0 auto}
+  /* on a phone the head is short: the cut-outs sit in its bottom padding, clear of the words */
+  .col-ph .col-cut.is-dot{top:-20px;right:-16px}
+  .col-ph .col-cut.is-arch{left:-14px;bottom:0}
+  .col-ph .col-cut.is-star{right:7%;bottom:4px}
+}
+@media (min-width:900px){
+  .col-ph.has-prints .col-ph-in{grid-template-columns:minmax(0,7fr) minmax(0,5fr);align-items:center}
+  .col-ph-prints{padding:8px 0 28px}
+  .col-ph-print.is-1{margin-top:52px}
+  .col-ph-print.is-2{margin-top:14px}
+  .col-ph .col-cut.is-wave{display:block;left:40%;bottom:6%}
+  /* no prints: the title can run across the whole row, so the star drops into the bottom padding */
+  .col-ph:not(.has-prints) .col-cut.is-star{right:7%;bottom:8%}
+}
+
+/* ── 7. filters, search, counts ───────────────────────────────────────────── */
+.col-filter{display:flex;flex-wrap:wrap;gap:10px}
+.col-filter-btn{display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:0 16px;border:2px solid var(--col-ink);border-radius:999px;background:var(--col-white);color:var(--col-ink);font:inherit;font-size:.9375rem;font-weight:800;line-height:1.2;cursor:pointer;transition:background .2s,color .2s,transform .3s var(--col-ease)}
+.col-filter-btn:hover{background:rgba(247,168,27,.25)}
+.col-filter-btn[aria-pressed="true"]{background:var(--col-ink);color:#fff;transform:rotate(-2deg)}
+.col-filter-n{display:inline-grid;place-items:center;min-width:24px;height:24px;padding:0 6px;border-radius:999px;background:var(--col-kraft);color:var(--col-ink);font-size:.75rem}
+.col-filter-btn[aria-pressed="true"] .col-filter-n{background:var(--col-gold)}
+.col-search{max-width:520px}
+.col-search-label{display:block;margin:0 0 6px;font-family:var(--col-hand);font-weight:700;font-size:1.2rem;line-height:1.3;color:var(--col-ink)}
+.col-search-box{position:relative;display:flex;align-items:center;min-height:52px;padding:0 6px 0 46px;border:2px solid var(--col-ink);border-radius:4px;background:var(--col-white);box-shadow:4px 4px 0 var(--col-kraft);transform:rotate(-.6deg)}
+.col-search-box:focus-within{outline:3px solid var(--col-azure);outline-offset:3px}
+.col-search-ico{position:absolute;left:14px;top:50%;width:22px;height:22px;margin-top:-11px;fill:none;stroke:var(--col-ink-2);stroke-width:2.4;stroke-linecap:round}
+.col-search input{flex:1;min-width:0;min-height:48px;padding:0;border:0;background:transparent;color:var(--col-ink);font:inherit;font-size:1.0625rem;font-weight:600}
+.col-search input:focus{outline:none}
+.col-search input::placeholder{color:#6B6F82;opacity:1}
+.col-search input::-webkit-search-cancel-button{display:none}
+.col-search-clear{display:grid;place-items:center;flex:none;width:40px;height:40px;border:0;border-radius:50%;background:transparent;color:var(--col-ink);font:inherit;font-weight:800;cursor:pointer}
+.col-search-clear:hover{background:rgba(247,168,27,.3)}
+.col-count{margin:0;font-family:var(--col-hand);font-weight:700;font-size:1.2rem;line-height:1.35;color:var(--col-ink-2)}
+
+/* ── 8. states ────────────────────────────────────────────────────────────── */
+.col-empty,.col-notfound{display:flex;justify-content:center;padding:clamp(24px,5vh,48px) 0}
+.col-empty-in,.col-notfound-in{position:relative;width:min(100%,520px);padding:40px clamp(22px,5vw,44px) 32px;background:var(--col-kraft) var(--col-grain);box-shadow:var(--col-lift);color:var(--col-ink);text-align:center;transform:rotate(-1.5deg)}
+.col-empty-frame{display:block;width:64px;height:72px;margin:0 auto 12px;fill:none;stroke:var(--col-ink);stroke-width:2.5;stroke-dasharray:6 5;stroke-linecap:round;stroke-linejoin:round;opacity:.7}
+.col-empty-title,.col-notfound-title{margin:0;font-family:var(--col-hand);font-weight:700;font-size:clamp(1.5rem,3vw,1.9rem);line-height:1.2}
+.col-empty-msg,.col-notfound-msg{max-width:42ch;margin:.6em auto 0;font-weight:600;line-height:1.55}
+.col-empty-act{margin-top:18px}
+.col-notfound-in{background:var(--col-white);clip-path:polygon(0 3%,6% 0,14% 2%,24% 0,33% 3%,45% 1%,56% 3%,68% 0,79% 2%,90% 0,100% 3%,100% 100%,0 100%);transform:rotate(1.2deg)}
+.col-notfound-mark{margin:0 0 6px;font-family:var(--col-display);font-size:clamp(4rem,12vw,6.5rem);line-height:1;color:var(--col-cran)}
+.col-notfound .col-btn{margin-top:20px}
+/* the torn edge is a clip-path, so the tape sits on the paper instead of over its edge (it would be clipped away) */
+.col-notfound-in .col-tape{top:14px}
+.col-loading{padding:clamp(24px,5vh,48px) 0}
+.col-loading ul{display:flex;justify-content:center;gap:clamp(12px,3vw,32px);margin:0;padding:0;list-style:none}
+.col-loading li{width:clamp(90px,18vw,180px);padding:8px 8px 34px;background:var(--col-white);box-shadow:var(--col-lift);transform:rotate(var(--col-r))}
+.col-loading i{display:block;aspect-ratio:4/5;background:var(--col-photo-bg)}
+@media (prefers-reduced-motion:no-preference){
+  .col-loading i{animation:col-develop 1.4s ease-in-out infinite alternate;animation-delay:calc(var(--col-i,0) * .2s)}
+}
+@keyframes col-develop{from{background:#E9E3D8}to{background:#D6C9B2}}
+
+/* reduced motion: hover/underline/sway transitions off too (JS already creates no animations) */
+@media (prefers-reduced-motion:reduce){
+  html[data-theme="photo-collage"] *,html[data-theme="photo-collage"] *::before,html[data-theme="photo-collage"] *::after{transition:none!important}
+}
+
+/* the shared PhotoLightbox (portalled to <body>, .pdm-*): a white print on the ink table,
+   a handwritten caption on a paper strip, paper-toned controls */
+html[data-theme="photo-collage"] .pdm-lb__bg{background:rgba(28,35,64,.94)}
+html[data-theme="photo-collage"] .pdm-lb__img{max-height:calc(100vh - 13rem);max-height:calc(100dvh - 13rem);border:clamp(6px,1vw,12px) solid var(--col-white);border-radius:2px;background:var(--col-white)}
+/* (13rem keeps a tall photo clear of the caption strip + counter under it) */
+html[data-theme="photo-collage"] .pdm-lb__btn{border:2px solid var(--col-ink);background:var(--col-paper);color:var(--col-ink);-webkit-backdrop-filter:none;backdrop-filter:none}
+html[data-theme="photo-collage"] .pdm-lb__btn:hover{background:var(--col-gold)}
+html[data-theme="photo-collage"] .pdm-lb :focus-visible{outline:3px solid var(--col-gold);outline-offset:3px}
+html[data-theme="photo-collage"] .pdm-lb__cap{border:0;border-radius:2px;background:var(--col-paper);color:var(--col-ink);font-family:var(--col-hand);font-size:1.1rem;font-weight:700;line-height:1.35;transform:translateX(-50%) rotate(-1deg);-webkit-backdrop-filter:none;backdrop-filter:none}
+html[data-theme="photo-collage"] .pdm-lb__count{border:0;background:var(--col-kraft);color:var(--col-ink);font-weight:800;-webkit-backdrop-filter:none;backdrop-filter:none}
+
+/* ── 9. SHARED FALLBACK PAGES ─────────────────────────────────────────────────
+   Pages this theme has not redesigned (sister clubs, youth partners, the
+   single-club legacy pages) render classic Tailwind markup inside this shell.
+   A light touch: paper ground, this theme's type and ink, the classic navy
+   breadcrumb band turned into a paper page head. Layout is never changed. */
+html[data-theme="photo-collage"] #main section.-mt-24{margin-top:0;background:transparent;color:var(--col-ink)}
+html[data-theme="photo-collage"] #main section.-mt-24 > .aurora,
+html[data-theme="photo-collage"] #main section.-mt-24 > .pointer-events-none{display:none}
+html[data-theme="photo-collage"] #main section.-mt-24 > .container-x{padding-top:clamp(20px,4vh,48px);padding-bottom:clamp(16px,3vh,32px)}
+html[data-theme="photo-collage"] #main section.-mt-24 h1{font-family:var(--col-display);font-weight:400;font-size:clamp(2.4rem,8vw,5rem);line-height:1.08;letter-spacing:0;color:var(--col-cran-ink)}
+html[data-theme="photo-collage"] #main section.-mt-24 nav{color:var(--col-ink-2);font-weight:700}
+html[data-theme="photo-collage"] #main section.-mt-24 nav a{display:inline-flex;align-items:center;min-height:32px;color:var(--col-ink);text-decoration:underline 2px rgba(212,19,103,.45);text-underline-offset:4px}
+html[data-theme="photo-collage"] #main section.-mt-24 nav .text-white{color:var(--col-ink)}
+html[data-theme="photo-collage"] #main section.-mt-24 nav svg{color:var(--col-cran-ink)}
+html[data-theme="photo-collage"] #main .label-eyebrow{background:none;-webkit-text-fill-color:currentColor;color:var(--col-ink-2);font-family:var(--col-hand);font-size:1.2rem;font-weight:700;letter-spacing:0;text-transform:none}
+html[data-theme="photo-collage"] #main .bg-canvas{background-color:transparent}
+html[data-theme="photo-collage"] #main .font-heading{font-family:var(--col-body)}
+html[data-theme="photo-collage"] #main h2.font-heading{font-family:var(--col-display);font-weight:400;letter-spacing:0}
+html[data-theme="photo-collage"] #main .text-navy,html[data-theme="photo-collage"] #main .text-ink{color:var(--col-ink)}
+html[data-theme="photo-collage"] #main .text-muted{color:var(--col-ink-2)}
+html[data-theme="photo-collage"] #main .text-gold-cta,html[data-theme="photo-collage"] #main .group:hover .group-hover\:text-gold-cta{color:var(--col-cran-ink)}
+html[data-theme="photo-collage"] #main .shadow-card{box-shadow:var(--col-lift)}
+html[data-theme="photo-collage"] #main .rounded-2xl.bg-white{border-radius:3px}
+html[data-theme="photo-collage"] #main .bg-navy{background-color:var(--col-royal)}
+/* rotary-anim's lightbox (fallback galleries) */
+html[data-theme="photo-collage"] .rotary-lightbox{position:fixed;inset:0;z-index:210;display:flex;align-items:center;justify-content:center;background:rgba(28,35,64,.94)}
+html[data-theme="photo-collage"] .rotary-lightbox img{max-width:92vw;max-height:88vh;border:10px solid #fff;box-shadow:0 20px 60px rgba(0,0,0,.6)}
+html[data-theme="photo-collage"] .rotary-lightbox__close{position:absolute;top:14px;right:18px;width:48px;height:48px;font-size:40px;line-height:1;color:#fff;background:none;border:0;cursor:pointer}
+
+/* the head's one count card (PageHero card={{value, label}}, e.g. Directory's members) - client, 2026-09-29 */
+.col-ph-count{position:relative;display:grid;justify-items:center;gap:4px;width:min(100%,260px);margin:0 auto;padding:30px 24px 26px;background:var(--col-white);box-shadow:var(--col-lift);transform:rotate(-3deg);text-align:center}
+.col-ph-count b{font-family:var(--col-display);font-weight:400;font-size:clamp(3.2rem,6vw,5rem);line-height:1;color:var(--col-cran-ink)}
+.col-ph-count span{font-family:var(--col-hand);font-weight:700;font-size:1.3rem;line-height:1.2;color:var(--col-ink-2)}
+
+/* counters in ONE straight row (client, 2026-09-29): /projects totals and a project's "By the numbers" -
+   no wrap, no staggered drops, each sticker sized to share the row; phones: two to a row */
+:is(.col-pj-totals,.col-pjd-nums,.col-home-numbers) .col-stickers{flex-wrap:nowrap;align-items:center}
+:is(.col-pj-totals,.col-pjd-nums,.col-home-numbers) .col-stk{--col-s:clamp(110px,14vw,200px);flex:0 1 auto;margin-top:0!important}
+:is(.col-pj-totals,.col-pjd-nums,.col-home-numbers) .col-stk.is-wide{--col-s:clamp(170px,22vw,320px)}
+@media (max-width:699.98px){
+  :is(.col-pj-totals,.col-pjd-nums,.col-home-numbers) .col-stickers{flex-wrap:wrap}
+  :is(.col-pj-totals,.col-pjd-nums,.col-home-numbers) .col-stk{--col-s:min(42vw,170px)}
+  :is(.col-pj-totals,.col-pjd-nums,.col-home-numbers) .col-stk.is-wide{--col-s:min(86vw,320px)}
+}
+
+/* header menu in capitals, its dropdowns included (client, 2026-10-01) */
+html[data-theme="photo-collage"] .col-nav{text-transform:uppercase;letter-spacing:.04em}
+/* ...but the dropdown items in title case (client, 2026-10-01) */
+html[data-theme="photo-collage"] .col-nav .col-sub{text-transform:capitalize;letter-spacing:normal}
+
+.col-menu-admin .col-hd-ico{color:currentColor}
+
+/* responsive pass (2026-10-05) */
+/* a long club email in the phone menu wraps instead of running off a 280px screen */
+.col-menu-admin{max-width:100%;overflow-wrap:anywhere}
+/* the shared visitor card shrinks its labels to 8.5px on phones - keep them readable, let them wrap */
+html[data-theme="photo-collage"] .rv-vc{--rv-lab:11px}
+html[data-theme="photo-collage"] .rv-vc .rv-vc__l{font-size:11px;white-space:normal;line-height:1.25}
+/* a very long figure (the all-years cost) gets a double-width cell, so the row's one shared size stays large (2026-10-06) */
+:is(.col-pj-totals,.col-pjd-nums,.col-home-numbers) .col-stk.is-wide.is-long{--col-s:clamp(260px,32vw,460px)}
+.col-stk.is-long .col-stk-card{aspect-ratio:2.6/1}
+@media (max-width:699.98px){ :is(.col-pj-totals,.col-pjd-nums,.col-home-numbers) .col-stk.is-wide.is-long{--col-s:min(92vw,380px)} }

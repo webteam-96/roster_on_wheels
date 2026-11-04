@@ -1,0 +1,80 @@
+/* ─────────────────────────────────────────────────────────────────────────────
+   HORIZONTAL JOURNEY · DIRECTORY (pages/Directory.jsx)
+   Turquoise sky + search; arch portraits standing on tinted hills; long rosters
+   in letter chapters, each opened by a sun rising out of its own ridge.
+   Every class is hj-dir-*; kit classes are only touched under .hj-dir.
+   No hidden start states here - motion sets and clears its own.
+   ───────────────────────────────────────────────────────────────────────────── */
+
+/* chapter colour per letter (cards, letter suns, hills) */
+:is(.hj-dir-card,.hj-dir-grp)[data-tone="cran"]{--hj-c:var(--hj-cran);--hj-fg:#fff}
+:is(.hj-dir-card,.hj-dir-grp)[data-tone="gold"]{--hj-c:var(--hj-gold);--hj-fg:var(--hj-ink)}
+:is(.hj-dir-card,.hj-dir-grp)[data-tone="azure"]{--hj-c:var(--hj-azure);--hj-fg:#fff}
+:is(.hj-dir-card,.hj-dir-grp)[data-tone="turq"]{--hj-c:var(--hj-turq);--hj-fg:var(--hj-ink)}
+:is(.hj-dir-card,.hj-dir-grp)[data-tone="violet"]{--hj-c:var(--hj-violet);--hj-fg:#fff}
+:is(.hj-dir-card,.hj-dir-grp)[data-tone="royal"]{--hj-c:var(--hj-royal);--hj-fg:#fff}
+
+/* ── hero: search + count; the member figure on the right (wide only) ──────── */
+.hj-dir-tools{display:flex;flex-wrap:wrap;align-items:center;gap:12px 22px}
+.hj-dir-tools .hj-search{flex:1 1 300px}
+@media (max-width:899px){ .hj-dir .hj-ph__aside{display:none} }
+
+/* ── A–Z bar: sticky under the header; one scrolling row below 900px ────────── */
+.hj-dir-az{
+  position:sticky;top:var(--hj-hh);z-index:20;
+  margin:0 calc(-1 * var(--hj-gut)) clamp(28px,4vw,48px);padding:10px var(--hj-gut);
+  background:rgba(255,255,255,.94);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);
+  box-shadow:0 1px 0 var(--hj-line);
+}
+.hj-dir-az .hj-chips{gap:6px}
+.hj-dir-az .hj-chipbtn{justify-content:center;min-width:44px;padding:0 12px;font-family:var(--hj-disp);font-weight:700}
+@media (max-width:899px){
+  /* padding + equal negative margin keep the focus ring inside the scroller */
+  .hj-dir-az .hj-chips{flex-wrap:nowrap;overflow-x:auto;overscroll-behavior-x:contain;scrollbar-width:thin;padding:7px;margin:-7px}
+  .hj-dir-az .hj-chipbtn{flex:none}
+}
+
+/* ── letter chapter: a sun with the letter, rising out of its ridge ─────────── */
+.hj-dir-grp + .hj-dir-grp{margin-top:clamp(40px,6vw,76px)}
+/* clipped top/bottom only (a rising sun never shows below the ridge); its glow may spill sideways */
+.hj-dir-grp__hd{
+  position:relative;isolation:isolate;overflow-x:visible;overflow-y:clip;display:flex;align-items:flex-end;gap:16px;
+  padding:24px 0 34px;margin-bottom:clamp(18px,3vw,30px);
+}
+.hj-dir-grp__t{margin:0;position:relative;z-index:0}
+.hj-dir-grp__sun{
+  display:grid;place-items:center;width:clamp(58px,6vw,76px);aspect-ratio:1;border-radius:50%;
+  background:var(--hj-c);color:var(--hj-fg);font:800 clamp(26px,3vw,36px)/1 var(--hj-disp);letter-spacing:-.03em;
+  box-shadow:0 0 0 7px color-mix(in srgb,var(--hj-c) 20%,transparent),0 0 26px 2px color-mix(in srgb,var(--hj-c) 26%,transparent);
+}
+.hj-dir-grp__n{position:relative;z-index:2;margin:0 0 10px;font:750 12.5px/1.2 var(--hj-sans);letter-spacing:.16em;text-transform:uppercase;color:var(--hj-ink-2)}
+/* the hill is in FRONT of the sun, so the sun rises from behind it */
+.hj-dir-grp__hill{position:absolute;left:0;right:0;bottom:0;height:44px;z-index:1;pointer-events:none}
+
+/* ── member cards: an arch standing on its own tinted hill ──────────────────── */
+.hj-dir-grid{
+  --hj-dir-a:clamp(130px,36vw,170px);   /* bigger portraits (client, 2026-09-29; was 92-120px) */
+  list-style:none;margin:0;padding:0;display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:clamp(22px,3vw,36px) clamp(14px,2vw,28px);
+}
+/* phones: one member per row, centred (client, 2026-09-29) */
+@media (max-width:599px){ .hj-dir-grid{grid-template-columns:minmax(0,1fr);justify-items:center} .hj-dir-card{width:min(100%,300px)} }
+
+.hj-dir-card{
+  position:relative;isolation:isolate;min-width:0;display:flex;flex-direction:column;align-items:center;
+  padding:0 10px 20px;text-align:center;color:var(--hj-ink);
+}
+/* the hill: starts under the arch's shoulders, crest rounded like a ridge */
+.hj-dir-card::before{
+  content:"";position:absolute;z-index:-1;left:0;right:0;bottom:0;top:calc(var(--hj-dir-a) * .8);
+  background:color-mix(in srgb,var(--hj-c,var(--hj-turq)) 12%,#fff);
+  border-radius:50% 50% 18px 18px / 36px 36px 18px 18px;
+}
+.hj-dir-card__a{flex:none}
+.hj-dir-card .hj-arch{width:var(--hj-dir-a);max-width:none}
+.hj-dir-card .hj-arch__mono{
+  background:linear-gradient(180deg,color-mix(in srgb,var(--hj-c) 80%,#fff),var(--hj-c));color:var(--hj-fg);
+  font-size:clamp(24px,2.4vw,32px);
+}
+.hj-dir-card__n{margin:14px 0 0;max-width:100%;font:700 clamp(15px,3.9vw,18px)/1.25 var(--hj-disp);letter-spacing:-.015em;overflow-wrap:anywhere;text-wrap:balance}
+.hj-dir-card__w{margin:6px 0 0;max-width:100%;font:600 14px/1.4 var(--hj-sans);color:var(--hj-ink-2);overflow-wrap:anywhere}

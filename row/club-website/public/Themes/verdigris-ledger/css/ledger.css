@@ -1,0 +1,1146 @@
+/* ══════════════════════════════════════════════════════════════════════
+   The Verdigris Ledger — HOME layout (namespaced .vl-*). Loaded AFTER
+   theme.css (fonts + palette tokens + shared components). These classes only
+   appear in HomeVerdigrisLedger.aspx. A "public account book of service":
+   peacock-teal ink on eucalyptus sea-paper, marigold rationed to a few strikes.
+   Bold-editorial composition — a bound ledger: a fixed folio rail down the left,
+   ruled account paper behind the masthead, two peacock "posting" bands (the
+   audited totals + the join call), and duotone project plates that ink up on hover.
+   ══════════════════════════════════════════════════════════════════════ */
+/* TOKENS ARE DECLARED ON <html>, NOT ON .vl-home. The master stamps
+   data-theme="verdigris-ledger" on the root element, and custom properties only
+   inherit DOWNWARD — so a token block scoped to .vl-home is invisible to the top
+   strip, header and footer (which the master renders OUTSIDE MainContent) and to
+   EVERY inner page, which has no .vl-home at all. When .vl-strip* first used
+   var(--mono)/var(--marigold)/var(--ease) they were all invalid at computed-value
+   time: the bar rendered in Newsreader serif, the Admin pill lost its gradient
+   entirely, and its glare sweep snapped instead of animating.
+   theme.css declares none of these names, so document scope collides with nothing. */
+html[data-theme="verdigris-ledger"],.vl-home{
+  --peacock:#3A0E3C; --peacock-2:#2A0A2C; --sea:#F0ECF5; --surface:#F5F1F8; --sunken:#E6DEEC;
+  --ink:#1E0A20; --muted:#574A5C; --marigold:#901F93; --burnt:#6E1770;
+  --verdigris:#B98FC0; --pine:#5E1660; --border:#D8CEE2; --hairline:#E0D8E8;
+  --band-ink:#F0ECF5; --band-muted:#C6BCD0; --band-line:#5A2A5C;
+  --serif:"Newsreader",Georgia,serif; --grotesk:"Bricolage Grotesque","Segoe UI",sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,monospace;
+  --ease:cubic-bezier(.2,.7,.2,1);
+}
+/* presentation stays on the home wrapper only — putting background/colour on <html>
+   would repaint every inner page */
+.vl-home{
+  color:var(--ink); font-family:var(--serif); background:var(--sea);
+  position:relative; overflow-x:clip;
+}
+.vl-home ::selection{background:var(--marigold);color:#1E0A20;}
+.vl-wrap{max-width:1240px;margin:0 auto;padding-inline:clamp(20px,5vw,64px);}
+
+/* ── shared atoms ───────────────────────────────────────────────────── */
+.vl-eyebrow{font-family:var(--mono);font-size:.74rem;text-transform:uppercase;letter-spacing:.18em;
+  color:var(--burnt);font-weight:500;display:inline-flex;align-items:center;gap:.6rem;}
+.vl-eyebrow .no{color:#1E0A20;background:var(--marigold);font-weight:600;
+  padding:.12em .5em;border-radius:3px;letter-spacing:.06em;font-size:.9em;}
+.vl-h2{font-family:var(--grotesk);font-weight:800;font-size:clamp(1.95rem,3.6vw,3.1rem);
+  letter-spacing:-.028em;line-height:1.0;color:var(--ink);margin:.75rem 0 0;max-width:22ch;}
+.vl-gloss{font-family:var(--serif);font-style:italic;color:var(--muted);max-width:58ch;font-size:1.1rem;margin-top:.75rem;}
+.vl-sec{padding-block:clamp(3.4rem,6vw,6rem);}
+.vl-sec-head{margin-bottom:clamp(1.8rem,3vw,2.8rem);}
+
+/* a marigold gesture: a struck word */
+.vl-strike{position:relative;white-space:nowrap;}
+.vl-strike::after{content:"";position:absolute;left:-.04em;right:-.04em;bottom:.04em;height:.13em;
+  background:var(--marigold);transform:scaleX(0);transform-origin:left;
+  transition:transform .7s var(--ease) .15s;border-radius:1px;}
+.is-visible .vl-strike::after,.vl-strike.is-visible::after{transform:scaleX(1);}
+
+/* section rule between sea-paper sections */
+.vl-rule{height:1px;background:var(--hairline);}
+
+/* ══ LEDGER RAIL · fixed left folio spine ════════════════════════════════
+   Marigold scroll-depth fill + active section marker (ledger.js toggles .on
+   and sets --vl-progress). Numbers always; the active folio's label unfurls on
+   the widest screens where the gutter has room. Pointer-transparent + desktop-only. */
+.vl-rail{position:fixed;left:clamp(10px,1.5vw,22px);top:50%;transform:translateY(-50%);z-index:40;
+  display:none;gap:.85rem;align-items:stretch;pointer-events:none;}
+@media(min-width:1280px){.vl-rail{display:flex;}}
+.vl-rail__track{position:relative;width:2px;border-radius:2px;background:var(--border);flex:none;overflow:hidden;}
+.vl-rail__fill{position:absolute;inset:0;transform-origin:top;transform:scaleY(var(--vl-progress,0));
+  background:linear-gradient(var(--marigold),var(--burnt));}
+.vl-rail__index{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;justify-content:center;gap:.6rem;}
+.vl-rail__index li{display:flex;align-items:center;gap:.55rem;font-family:var(--mono);color:var(--muted);
+  opacity:.45;transition:opacity .35s var(--ease),color .35s;}
+.vl-rail__no{font-size:.6rem;font-weight:600;letter-spacing:.08em;font-variant-numeric:tabular-nums;}
+.vl-rail__lb{font-size:.6rem;text-transform:uppercase;letter-spacing:.12em;white-space:nowrap;
+  max-width:0;opacity:0;overflow:hidden;transform:translateX(-4px);
+  transition:max-width .45s var(--ease),opacity .3s,transform .45s var(--ease);}
+.vl-rail__index li.on{opacity:1;color:var(--pine);}
+.vl-rail__index li.on .vl-rail__no{color:#1E0A20;background:var(--marigold);border-radius:3px;padding:.1em .32em;}
+@media(min-width:1536px){.vl-rail__index li.on .vl-rail__lb{max-width:140px;opacity:1;transform:none;}}
+
+/* ══ HERO · masthead on ruled account paper + peacock ledger card ════════ */
+.vl-hero{position:relative;isolation:isolate;
+  padding-top:clamp(3.2rem,5vw,5.8rem);padding-bottom:clamp(3.8rem,6.5vw,7.2rem);
+  display:grid;gap:clamp(2.2rem,4vw,4.8rem);grid-template-columns:1fr;align-items:center;}
+@media(min-width:960px){.vl-hero{grid-template-columns:minmax(0,1.12fr) minmax(350px,.88fr);}}
+.vl-hero__lede,.vl-card{position:relative;z-index:1;}
+/* faint ruled ledger paper behind the masthead */
+.vl-hero__paper{position:absolute;inset:-1rem clamp(-20px,-2vw,-8px);z-index:0;pointer-events:none;
+  background:
+    linear-gradient(var(--marigold),var(--marigold)) left top/2px 100% no-repeat,
+    repeating-linear-gradient(to bottom,transparent 0,transparent 33px,var(--hairline) 33px,var(--hairline) 34px);
+  opacity:.5;
+  -webkit-mask-image:linear-gradient(to bottom,transparent,#000 12%,#000 80%,transparent);
+          mask-image:linear-gradient(to bottom,transparent,#000 12%,#000 80%,transparent);}
+.vl-hero__eyebrow{font-family:var(--mono);font-size:.78rem;text-transform:uppercase;letter-spacing:.16em;color:var(--burnt);}
+.vl-hero__head{font-family:var(--grotesk);font-weight:800;font-size:clamp(2.9rem,6.9vw,6.8rem);
+  letter-spacing:-.035em;line-height:.93;color:var(--ink);margin:1.2rem 0 0;max-width:14ch;text-wrap:balance;}
+.vl-hero__mission{font-family:var(--serif);font-size:clamp(1.18rem,1.5vw,1.55rem);line-height:1.55;
+  color:var(--muted);max-width:52ch;margin:1.7rem 0 0;}
+.vl-hero__meta{margin-top:1.8rem;display:flex;flex-wrap:wrap;align-items:center;gap:.8rem 1.6rem;
+  font-family:var(--mono);font-size:.76rem;letter-spacing:.04em;color:var(--muted);text-transform:uppercase;}
+.vl-hero__meta a{color:var(--pine);text-decoration:none;border-bottom:1px solid var(--marigold);padding-bottom:2px;transition:color .3s;}
+.vl-hero__meta a:hover{color:var(--burnt);}
+
+/* peacock ledger card — the headline ₹ tally (metrics live in the counter band) */
+.vl-card{background:linear-gradient(160deg,#3A0E3C 0%,#48154A 55%,#2A0A2C 100%);
+  color:var(--band-ink);border-radius:8px;padding:clamp(1.7rem,2.5vw,2.5rem);
+  box-shadow:0 28px 66px -26px rgba(30,10,32,.62);position:relative;overflow:hidden;
+  border:1px solid rgba(185,143,192,.16);}
+.vl-card::before{content:"";position:absolute;right:-44px;top:-44px;width:220px;height:220px;
+  border-radius:50%;background:radial-gradient(circle,rgba(185,143,192,.24),transparent 70%);pointer-events:none;}
+.vl-card__stamp{position:absolute;top:1.4rem;right:1.3rem;z-index:2;font-family:var(--mono);font-weight:600;
+  font-size:.64rem;letter-spacing:.22em;text-transform:uppercase;color:var(--marigold);
+  border:1.5px solid var(--marigold);border-radius:4px;padding:.34rem .6rem;opacity:.85;
+  transform:rotate(-7deg);}
+.vl-card__eyebrow{font-family:var(--mono);font-size:.72rem;text-transform:uppercase;letter-spacing:.14em;
+  color:var(--band-muted);display:flex;flex-direction:column;gap:.2rem;position:relative;max-width:60%;}
+.vl-card__eyebrow b{color:var(--marigold);font-weight:600;}
+.vl-card__big{font-family:var(--grotesk);font-weight:800;font-size:clamp(3.3rem,6vw,5.2rem);line-height:.9;
+  letter-spacing:-.038em;color:#fff;margin-top:1.5rem;font-variant-numeric:tabular-nums;position:relative;}
+.vl-card__biglb{font-family:var(--serif);font-style:italic;color:var(--band-muted);font-size:1.02rem;margin-top:.4rem;position:relative;}
+.vl-card__rule{height:2px;width:3.5rem;background:var(--marigold);margin:1.3rem 0;position:relative;}
+.vl-card__folio{list-style:none;margin:0;padding:0;position:relative;}
+.vl-card__folio li{display:flex;align-items:baseline;justify-content:space-between;gap:1rem;
+  padding:.5rem 0;border-bottom:1px dotted rgba(198,188,208,.28);}
+.vl-card__folio li:last-child{border-bottom:0;}
+.vl-card__folio span{font-family:var(--mono);font-size:.66rem;text-transform:uppercase;letter-spacing:.12em;color:var(--band-muted);}
+.vl-card__folio b{font-family:var(--serif);font-weight:600;font-size:.98rem;color:var(--band-ink);}
+.vl-card__foot{font-family:var(--mono);font-size:.66rem;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--band-muted);margin-top:1.1rem;position:relative;}
+
+/* ══ 01 · THE PLATES · banner slider mounted as a ledger plate ══════════ */
+.vl-plate-mount{margin:0;background:linear-gradient(150deg,#3A0E3C,#2A0A2C);border-radius:8px;
+  padding:clamp(.6rem,1vw,.9rem);border:1px solid var(--border);
+  box-shadow:0 24px 58px -30px rgba(30,10,32,.55);}
+.vl-plate{position:relative;width:100%;aspect-ratio:21/9;min-height:220px;overflow:hidden;
+  border-radius:4px;background:#2A0A2C;}
+.vl-plate img{display:block;}
+.vl-nav{position:absolute;top:50%;transform:translateY(-50%);z-index:20;height:44px;width:44px;
+  display:flex;align-items:center;justify-content:center;border:0;cursor:pointer;
+  font-family:var(--grotesk);font-size:1.5rem;line-height:1;color:#fff;
+  background:rgba(58,14,60,.5);backdrop-filter:blur(3px);border-radius:3px;
+  transition:background .3s var(--ease),color .3s;}
+.vl-nav:hover{background:var(--marigold);color:#1E0A20;}
+.vl-nav--prev{left:14px;} .vl-nav--next{right:14px;}
+.vl-plate-cap{display:flex;align-items:center;gap:.9rem;padding:.75rem .5rem .25rem;
+  font-family:var(--mono);color:var(--band-muted);}
+.vl-plate-cap__no{font-size:.66rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:#1E0A20;
+  background:var(--marigold);padding:.24rem .55rem;border-radius:3px;flex:none;}
+.vl-plate-cap__tx{font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;min-width:0;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.vl-plate-cap__dots{margin-left:auto;display:flex;gap:.5rem;flex:none;}
+@media(max-width:680px){.vl-plate{aspect-ratio:3/2;} .vl-nav{height:38px;width:38px;font-size:1.2rem;}
+  .vl-plate-cap__tx{display:none;} .vl-plate-cap__dots{margin-left:0;}}
+
+/* the shared full-bleed peacock band (used by JOIN; the counter band overrides it) */
+.vl-band{width:100vw;margin-left:calc(50% - 50vw);background:linear-gradient(150deg,#3A0E3C,#2A0A2C);
+  color:var(--band-ink);}
+
+/* ══ 02 · AUDITED TOTALS · light "posting" band (kept full-bleed, ruled paper) ══ */
+.vl-band--counter{background:linear-gradient(180deg,#F5F1F8,#E6DEEC);color:var(--ink);
+  border-block:1px solid var(--hairline);position:relative;overflow:hidden;padding-block:clamp(3.4rem,6vw,5.6rem);}
+.vl-band--counter::before{content:"";position:absolute;inset:0;pointer-events:none;opacity:.7;
+  background:repeating-linear-gradient(to bottom,transparent 0,transparent 47px,var(--hairline) 47px,var(--hairline) 48px);}
+.vl-stats{list-style:none;margin:0;padding:0;position:relative;z-index:1;
+  display:grid;gap:clamp(.8rem,1.5vw,1.2rem);grid-template-columns:repeat(2,1fr);}
+@media(min-width:720px){.vl-stats{grid-template-columns:repeat(5,1fr);}}
+/* 2-col phones: an odd trailing tile (5 posted figures) rules off a full-width row */
+@media(max-width:719.98px){.vl-stats > .vl-stat:last-child:nth-child(odd){grid-column:1 / -1;}}
+.vl-stat{display:flex;flex-direction:column;gap:.6rem;
+  padding:clamp(1.4rem,2.4vw,2rem) clamp(1.15rem,1.9vw,1.6rem);
+  background:#fff;border:1px solid var(--border);border-radius:6px;position:relative;overflow:hidden;
+  transition:transform .4s var(--ease),box-shadow .4s var(--ease),border-color .3s;}
+.vl-stat::after{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--marigold);
+  transform:scaleY(0);transform-origin:top;transition:transform .55s var(--ease) .1s;}
+.vl-stat.is-visible::after{transform:scaleY(1);}
+.vl-stat:hover{transform:translateY(-4px);box-shadow:0 18px 38px -22px rgba(30,10,32,.35);border-color:var(--pine);}
+.vl-stat__ic{color:var(--burnt);height:26px;display:flex;align-items:center;}
+.vl-stat__ic svg{height:24px;width:24px;}
+.vl-stat__n{font-family:var(--grotesk);font-weight:800;font-size:clamp(2.2rem,3.6vw,3.2rem);line-height:.95;
+  letter-spacing:-.03em;color:var(--peacock);font-variant-numeric:tabular-nums;}
+/* long-figure step-downs: full-amount ₹ figures (--sm ≥1 lakh, --xs ≥1 crore) keep to one line */
+.vl-stat__n.vl-stat__n--sm{font-size:clamp(1.7rem,2.8vw,2.5rem);}
+.vl-stat__n.vl-stat__n--xs{font-size:clamp(1.2rem,2vw,1.9rem);}
+.vl-stat__lb{font-family:var(--mono);font-size:.68rem;text-transform:uppercase;letter-spacing:.12em;color:var(--burnt);}
+.vl-stats__foot{font-family:var(--serif);font-style:italic;color:var(--muted);font-size:1.05rem;
+  max-width:60ch;margin:clamp(1.4rem,2.4vw,2rem) 0 0;position:relative;}
+
+/* ══ 03 · SIGNATORIES · dignitaries & leaders ═══════════════════════════ */
+/* FIXED column counts, deliberately not auto-fit/auto-fill. GetLeaders returns 2, 3
+   or 4 cards depending on whether the club's BOD has President/Secretary rows, and
+   auto-fit collapses its unused tracks — two leaders would then stretch across the
+   whole row and the 4:5 plate would blow them up into ~680px slabs. Capping the max
+   instead (minmax(228px,320px)) mis-counts the other way: the repetition count is
+   computed from the DEFINITE max, so 1112px of wrap fits only 3 tracks and the 4th
+   dignitary wrapped onto a second row. Explicit counts do the right thing for 2, 3
+   and 4 cards alike. */
+.vl-sign-grid{display:grid;gap:clamp(1rem,2vw,1.5rem);grid-template-columns:1fr;}
+@media(min-width:560px){.vl-sign-grid{grid-template-columns:repeat(2,minmax(0,1fr));}}
+@media(min-width:1024px){.vl-sign-grid{grid-template-columns:repeat(4,minmax(0,1fr));}}
+/* ── the card: ivory surface, peacock masthead band, circular conic-ring avatar.
+   Executive-profile redesign 2026-07-23. ─────────────────────────────────── */
+.vl-sign{position:relative;display:flex;flex-direction:column;isolation:isolate;
+  border:1px solid var(--border);border-radius:16px;background:#fff;overflow:hidden;
+  box-shadow:0 1px 2px rgba(30,10,32,.04),0 10px 28px -18px rgba(30,10,32,.16);
+  --spot-color:rgba(144,31,147,.07);--spot-size:240px;
+  transition:transform .5s var(--ease),box-shadow .5s var(--ease),border-color .35s;}
+/* NOTE: .vl-sign::before is INTENTIONALLY UNDECLARED — the article also carries
+   .spotlight-card, whose theme.css ::before paints the cursor-aware glow (fed
+   --spot-x/--spot-y by rotary-anim.js; recolored plum via --spot-color above).
+   Declaring .vl-sign::before would cascade into the SAME pseudo and wreck it;
+   the marigold top rule lives on .vl-sign__top::before instead. */
+/* entrance: a KEYFRAME with fill:backwards, not a transition — the per-card stagger
+   delays below would otherwise also delay every hover lift. The card's resting
+   styles ARE the final frame, so once the animation ends no filled value is left
+   behind to block the :hover transform. */
+.vl-sign.reveal{opacity:1;transform:none;filter:none;}
+.vl-sign.reveal:not(.is-visible){opacity:0;transition:none;}
+.vl-sign.reveal.is-visible{animation:vlSignIn .8s var(--ease) backwards;}
+.vl-sign-grid .vl-sign:nth-child(2){animation-delay:.1s;}
+.vl-sign-grid .vl-sign:nth-child(3){animation-delay:.2s;}
+.vl-sign-grid .vl-sign:nth-child(4){animation-delay:.3s;}
+@keyframes vlSignIn{
+  from{opacity:0;transform:translateY(30px) scale(.96);filter:blur(8px);}
+  55%{filter:blur(0);}
+  to{opacity:1;transform:none;filter:none;}}
+/* hover lift — MUST stay AFTER the .vl-sign.reveal{transform:none} reset above:
+   both are (0,2,0), so file order is what lets the lift win while at rest the
+   reset still cancels theme.css's .reveal translate. */
+.vl-sign:hover{transform:perspective(900px) rotateX(1.5deg) translateY(-8px) scale(1.02);
+  border-color:var(--verdigris);
+  box-shadow:0 2px 4px rgba(30,10,32,.05),0 34px 60px -24px rgba(30,10,32,.42),
+             0 0 0 1px rgba(185,143,192,.35);}
+/* masthead: dark peacock band (top 80px only — layered backgrounds, all sized
+   100% 80px) with faint ruled ledger lines and a verdigris glow. The avatar ring
+   below overlaps its bottom edge. */
+.vl-sign__top{position:relative;display:flex;justify-content:center;padding:16px 0 0;
+  background:
+    radial-gradient(130px 64px at 76% 12%,rgba(185,143,192,.32),transparent 70%) top/100% 80px no-repeat,
+    repeating-linear-gradient(to bottom,transparent 0,transparent 12px,rgba(240,236,245,.07) 12px,rgba(240,236,245,.07) 13px) top/100% 80px no-repeat,
+    linear-gradient(160deg,#3A0E3C 0%,#48154A 55%,#2A0A2C 100%) top/100% 80px no-repeat;}
+/* the marigold rule that writes itself across the card head on hover (kept from
+   the old card). pointer-events:none is load-bearing — it sits ABOVE the whole-card
+   link overlay (z-index 3 vs 2), so without it the top 4px would swallow clicks. */
+.vl-sign__top::before{content:"";position:absolute;left:0;right:0;top:0;height:4px;z-index:3;
+  pointer-events:none;background:linear-gradient(90deg,var(--marigold),var(--verdigris));
+  transform:scaleX(0);transform-origin:left;transition:transform .55s var(--ease);}
+.vl-sign:hover .vl-sign__top::before{transform:scaleX(1);}
+/* glass shine that sweeps across the masthead band on hover */
+.vl-sign__top::after{content:"";position:absolute;left:0;top:0;width:100%;height:80px;z-index:2;
+  pointer-events:none;
+  background:linear-gradient(105deg,transparent 38%,rgba(255,255,255,.16) 48%,rgba(255,255,255,.05) 57%,transparent 65%);
+  background-size:220% 100%;background-position:130% 0;transition:background-position .9s var(--ease);}
+.vl-sign:hover .vl-sign__top::after{background-position:-30% 0;}
+/* frosted-glass office seal, top-right of the band. pointer-events:none is
+   load-bearing here too — z-index:4 sits above the whole-card link overlay (z2),
+   so without it the pill is a dead click zone on every card. */
+.vl-sign__seal{position:absolute;right:.8rem;top:.8rem;z-index:4;pointer-events:none;font-family:var(--mono);
+  font-size:.58rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:#fff;
+  background:rgba(255,255,255,.13);border:1px solid rgba(255,255,255,.28);
+  -webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);
+  padding:.3rem .6rem;border-radius:999px;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.25),0 4px 10px rgba(30,10,32,.3);}
+/* avatar: rotating conic marigold→verdigris→pine ring, a white gap ring, then the
+   portrait — the "double border". The drop shadow floats it off the band edge.
+   The ::before is an OVERSIZED square (inset:-28%) so rotating it never shows a
+   corner; padding:4px is what exposes the gradient as a ring. */
+.vl-sign__ring{position:relative;z-index:1;width:clamp(104px,26vw,128px);aspect-ratio:1/1;
+  border-radius:50%;padding:4px;overflow:hidden;flex:none;
+  box-shadow:0 16px 26px -12px rgba(30,10,32,.5);
+  transition:transform .5s var(--ease),box-shadow .5s var(--ease);}
+.vl-sign__ring::before{content:"";position:absolute;inset:-28%;z-index:-1;
+  background:conic-gradient(from 210deg,var(--marigold),var(--verdigris) 35%,var(--pine) 68%,var(--marigold));}
+.vl-sign:hover .vl-sign__ring{transform:translateY(-3px) scale(1.04);
+  box-shadow:0 22px 34px -14px rgba(30,10,32,.55);}
+.vl-sign:hover .vl-sign__ring::before{animation:vlRingSpin 5s linear infinite;}
+@keyframes vlRingSpin{to{transform:rotate(1turn);}}
+.vl-sign__ava{position:relative;z-index:1;width:100%;height:100%;border-radius:50%;
+  border:3px solid #fff;object-fit:cover;object-position:center 20%;background:var(--sunken);
+  filter:grayscale(.18) contrast(1.03);transition:filter .5s var(--ease);}
+.vl-sign:hover .vl-sign__ava{filter:none;}
+/* body: centered executive hierarchy — name focal, role badge, mono year line */
+.vl-sign__body{padding:16px 20px 20px;display:flex;flex-direction:column;align-items:center;
+  text-align:center;gap:8px;flex:1;}
+.vl-sign__name{font-family:var(--grotesk);font-weight:800;font-size:1.16rem;line-height:1.18;
+  letter-spacing:-.015em;color:var(--ink);overflow-wrap:anywhere;margin:0;}
+/* GROTESK, not mono (2026-07-21): IBM Plex Mono read as code here, not as a title */
+.vl-sign__role{font-family:var(--grotesk);font-size:.66rem;font-weight:650;
+  text-transform:uppercase;letter-spacing:.08em;line-height:1.4;color:var(--burnt);
+  background:rgba(144,31,147,.07);border:1px solid rgba(144,31,147,.16);
+  padding:.34em .9em;border-radius:12px;max-width:100%;overflow-wrap:anywhere;}
+/* centered "signature" rule above the foot link — draws to full width on hover.
+   margin-top:auto pins the divider + link to the card foot across the row. */
+.vl-sign__ink{display:block;height:2px;width:44px;margin-top:auto;border-radius:2px;
+  background:linear-gradient(90deg,var(--marigold),var(--pine));transform-origin:center;
+  transform:scaleX(.5);opacity:.55;transition:transform .5s var(--ease),opacity .3s;}
+.vl-sign:hover .vl-sign__ink{transform:scaleX(1);opacity:1;}
+.vl-sign__link{font-family:var(--grotesk);font-size:.74rem;font-weight:700;
+  letter-spacing:.05em;text-transform:uppercase;color:var(--pine);text-decoration:none;
+  display:inline-flex;align-items:center;gap:.4rem;padding-top:2px;transition:color .3s;}
+.vl-sign__link::before{content:"";position:absolute;inset:0;z-index:2;} /* whole card is the hit area */
+.vl-sign__link em{font-style:normal;transition:transform .3s var(--ease);}
+.vl-sign:hover .vl-sign__link{color:var(--burnt);}
+.vl-sign:hover .vl-sign__link em{transform:translateX(4px);}
+/* keyboard: the focus ring wraps the WHOLE card via the overlay pseudo */
+.vl-sign__link:focus-visible{outline:none;}
+.vl-sign__link:focus-visible::before{outline:2px solid var(--marigold);outline-offset:-3px;border-radius:16px;}
+
+/* ══ 04 · THE REGISTER · featured-first project plates ══════════════════ */
+.vl-reg-grid{display:grid;gap:clamp(1.1rem,2vw,1.7rem);grid-template-columns:repeat(auto-fill,minmax(270px,1fr));}
+/* first entry runs large: two columns + a side-by-side media/body split */
+@media(min-width:760px){
+  .vl-reg-grid{grid-template-columns:repeat(2,1fr);}
+  .vl-reg-grid .vl-card-p:first-child{grid-column:1 / -1;flex-direction:row;}
+  .vl-reg-grid .vl-card-p:first-child .vl-card-p__media{width:52%;aspect-ratio:auto;}
+  .vl-reg-grid .vl-card-p:first-child .vl-card-p__body{width:48%;justify-content:center;padding:clamp(1.4rem,2.5vw,2.2rem);}
+  .vl-reg-grid .vl-card-p:first-child .vl-card-p__ti{font-size:clamp(1.3rem,2vw,1.7rem);}
+  .vl-reg-grid .vl-card-p:first-child .vl-card-p__no{font-size:4.5rem;}
+}
+@media(min-width:1040px){.vl-reg-grid{grid-template-columns:repeat(3,1fr);}
+  .vl-reg-grid .vl-card-p:first-child .vl-card-p__media{width:58%;}
+  .vl-reg-grid .vl-card-p:first-child .vl-card-p__body{width:42%;}}
+.vl-card-p{display:flex;flex-direction:column;border:1px solid var(--border);border-radius:6px;
+  background:var(--surface);overflow:hidden;transition:transform .45s var(--ease),box-shadow .45s var(--ease),border-color .3s;}
+.vl-card-p:hover{transform:translateY(-5px);box-shadow:0 22px 44px -24px rgba(30,10,32,.46);border-color:var(--pine);}
+.vl-card-p__media{position:relative;aspect-ratio:16/10;overflow:hidden;isolation:isolate;flex:none;
+  background:linear-gradient(150deg,#3A0E3C,#5A1A5C 60%,#B98FC0);}
+.vl-card-p__media img{width:100%;height:100%;object-fit:cover;display:block;
+  mix-blend-mode:luminosity;filter:grayscale(1) contrast(1.05) brightness(.98);opacity:.94;
+  transition:transform .6s var(--ease),filter .6s var(--ease),mix-blend-mode .1s;}
+.vl-card-p:hover .vl-card-p__media img{transform:scale(1.06);filter:grayscale(0) contrast(1.02);mix-blend-mode:normal;opacity:1;}
+.vl-card-p__no{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  font-family:var(--grotesk);font-weight:800;font-size:3rem;color:rgba(255,255,255,.14);letter-spacing:.05em;}
+.vl-card-p__rec{position:absolute;left:0;top:0;font-family:var(--mono);font-size:.66rem;font-weight:600;
+  letter-spacing:.1em;color:#1E0A20;background:var(--marigold);padding:.28rem .6rem;border-bottom-right-radius:4px;z-index:2;}
+.vl-card-p__body{padding:1.1rem 1.2rem 1.3rem;display:flex;flex-direction:column;gap:.5rem;flex:1;}
+.vl-card-p__av{font-family:var(--mono);font-size:.62rem;text-transform:uppercase;letter-spacing:.12em;color:var(--burnt);}
+.vl-card-p__ti{font-family:var(--grotesk);font-weight:700;font-size:1.14rem;line-height:1.18;letter-spacing:-.01em;color:var(--ink);}
+.vl-card-p__wr{font-family:var(--serif);font-size:.95rem;line-height:1.5;color:var(--muted);}
+.vl-card-p__go{font-family:var(--mono);font-size:.64rem;text-transform:uppercase;letter-spacing:.08em;color:var(--pine);
+  margin-top:auto;padding-top:.4rem;opacity:0;transform:translateX(-6px);transition:opacity .35s var(--ease),transform .35s var(--ease);}
+.vl-card-p:hover .vl-card-p__go{opacity:1;transform:none;}
+.vl-reg-more{margin-top:2rem;}
+.vl-reg-more a{font-family:var(--mono);font-size:.82rem;letter-spacing:.03em;color:var(--pine);
+  text-decoration:none;border-bottom:1px solid var(--marigold);padding-bottom:3px;}
+.vl-reg-more a:hover{color:var(--burnt);}
+
+/* on-brand empty panel */
+.vl-empty{border:1px dashed var(--pine);border-radius:6px;background:var(--sunken);
+  padding:clamp(2rem,4vw,3.2rem);text-align:center;}
+.vl-empty h3{font-family:var(--grotesk);font-weight:700;font-size:1.3rem;color:var(--ink);margin:0 0 .5rem;}
+.vl-empty p{font-family:var(--serif);color:var(--muted);max-width:46ch;margin:0 auto;}
+.vl-empty .m{font-family:var(--mono);font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;color:var(--burnt);margin-top:1rem;}
+
+/* ══ 04 · ADVERTISEMENT & UPCOMING EVENTS · plate + schedule ════════════ */
+/* stretch: the events column matches the advertisement plate's height */
+.vl-notice{display:grid;gap:clamp(2rem,4vw,3rem);grid-template-columns:1fr;align-items:stretch;}
+@media(min-width:900px){.vl-notice{grid-template-columns:minmax(0,.65fr) minmax(0,1.35fr);}}
+.vl-notice>div{display:flex;flex-direction:column;min-width:0;}
+.vl-notice .vl-events{flex:1;}
+.vl-notice .vl-event{height:100%;align-items:stretch;}
+.vl-notice .vl-event__media{height:100%;min-height:220px;}
+.vl-notice .vl-event__body{justify-content:center;}
+
+/* column headings — each half of a two-up section carries its OWN heading; the
+   notice-board and standing-order sections share this same treatment */
+/* min-height so a column head carrying a pill lines its rule up with one that has
+   only an h2 — otherwise the two halves of a two-up section sit at different heights */
+.vl-colhead{position:relative;display:flex;align-items:center;justify-content:space-between;gap:1rem;
+  min-height:56px;border-bottom:3px solid var(--ink);padding-bottom:.7rem;margin-bottom:1.3rem;}
+/* a marigold tab laid over the head of the ledger rule */
+.vl-colhead::after{content:"";position:absolute;left:0;bottom:-3px;width:72px;height:3px;background:var(--marigold);}
+.vl-colhead h2{font-family:var(--grotesk);font-weight:800;font-size:clamp(1.35rem,2.2vw,1.8rem);
+  letter-spacing:-.02em;color:var(--ink);margin:0;line-height:1.1;}
+/* :not(.vl-pill) — the pill below brings its own everything and must not inherit
+   the old underline treatment */
+.vl-colhead a:not(.vl-pill){font-family:var(--mono);font-size:.72rem;text-transform:uppercase;letter-spacing:.14em;
+  color:var(--pine);text-decoration:none;border-bottom:1px solid var(--marigold);padding-bottom:2px;flex:none;}
+.vl-colhead a:not(.vl-pill):hover{color:var(--burnt);}
+
+/* ══ PILL BUTTON — the "View all" / "Get directions" control ════════════
+   Replaces the hairline-underlined mono link, which read as an afterthought.
+   Idle: a white pill with the arrow in a marigold-tinted disc. Hover: a marigold
+   gradient wipes in from the left, a diagonal glare sweeps across it (the React
+   Bits "glare hover" gesture) and the arrow slides. Pure CSS, no JS, no new
+   Tailwind classes. ::before/::after sit at z-index:-1 INSIDE the pill's own
+   stacking context (isolation:isolate), so they cover its background but stay
+   under the label. */
+.vl-pill{position:relative;isolation:isolate;overflow:hidden;flex:none;
+  display:inline-flex;align-items:center;gap:.55rem;padding:.42rem .5rem .42rem .95rem;
+  border:1px solid var(--border);border-radius:999px;background:#fff;text-decoration:none;
+  font-family:var(--grotesk);font-size:.78rem;font-weight:700;letter-spacing:.045em;
+  text-transform:uppercase;color:var(--pine);white-space:nowrap;
+  box-shadow:0 1px 3px rgba(30,10,32,.06);
+  transition:color .35s var(--ease),border-color .35s,box-shadow .35s var(--ease),transform .35s var(--ease);}
+.vl-pill::before{content:"";position:absolute;inset:0;z-index:-1;
+  background:linear-gradient(120deg,var(--marigold),var(--pine));
+  transform:translateX(-101%);transition:transform .45s var(--ease);}
+.vl-pill::after{content:"";position:absolute;top:0;bottom:0;left:-50%;width:38%;z-index:-1;
+  transform:skewX(-20deg);
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.55),transparent);
+  transition:left .6s var(--ease);}
+.vl-pill:hover,.vl-pill:focus-visible{color:#fff;border-color:transparent;transform:translateY(-2px);
+  box-shadow:0 14px 26px -14px rgba(144,31,147,.8);}
+.vl-pill:hover::before,.vl-pill:focus-visible::before{transform:none;}
+.vl-pill:hover::after{left:120%;}
+.vl-pill:focus-visible{outline:2px solid var(--marigold);outline-offset:3px;}
+.vl-pill__ar{display:flex;align-items:center;justify-content:center;width:24px;height:24px;flex:none;
+  border-radius:50%;background:rgba(144,31,147,.12);color:var(--marigold);font-size:.9rem;line-height:1;
+  transition:background .35s,color .35s,transform .35s var(--ease);}
+.vl-pill:hover .vl-pill__ar{background:rgba(255,255,255,.22);color:#fff;transform:translateX(3px);}
+
+/* ══ 05 · STANDING ORDER · meeting + events ═════════════════════════════ */
+.vl-order{display:grid;gap:clamp(2rem,4vw,3.4rem);grid-template-columns:1fr;}
+@media(min-width:840px){.vl-order{grid-template-columns:minmax(0,.85fr) minmax(0,1.15fr);}}
+/* Meeting information: three fact rows + a directions pill. The embedded map was
+   removed by request; the panel is a flex column that STRETCHES (the .vl-order grid
+   already stretches its children), with the pill pushed to the foot by margin-top:auto
+   so this column ends level with the newsletters list beside it. */
+.vl-meet{display:flex;flex-direction:column;}
+/* space-between spreads the slack BETWEEN the rows rather than dumping it all
+   above the pill, so the column reads as evenly filled next to the newsletters list */
+.vl-meet__panel{flex:1;display:flex;flex-direction:column;justify-content:space-between;gap:.85rem;}
+.vl-meet__row{display:flex;align-items:center;gap:1rem;
+  padding:1rem 1.15rem;border:1px solid var(--border);border-radius:14px;background:#fff;
+  box-shadow:0 1px 3px rgba(30,10,32,.05);
+  transition:transform .3s var(--ease),border-color .3s,box-shadow .3s;}
+.vl-meet__row:hover{transform:translateY(-2px);border-color:var(--verdigris);
+  box-shadow:0 14px 30px -20px rgba(30,10,32,.45);}
+.vl-meet__ic{display:flex;align-items:center;justify-content:center;width:44px;height:44px;flex:none;
+  border-radius:13px;background:rgba(144,31,147,.1);color:var(--marigold);}
+.vl-meet__ic svg{width:21px;height:21px;}
+.vl-meet__tx{display:flex;flex-direction:column;gap:.22rem;min-width:0;}
+.vl-meet__tx .lb{font-family:var(--mono);font-size:.6rem;font-weight:600;letter-spacing:.16em;
+  text-transform:uppercase;color:var(--burnt);}
+.vl-meet__tx b{font-family:var(--grotesk);font-weight:700;font-size:1.05rem;line-height:1.3;
+  color:var(--ink);overflow-wrap:anywhere;}
+.vl-meet__go{align-self:flex-start;margin-top:auto;}
+/* the single NEXT upcoming event — one feature card: image plate carrying a torn-off
+   date chip, then kicker + title + when/where + a calendar link */
+.vl-events{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:.85rem;}
+.vl-event{position:relative;display:grid;grid-template-columns:1fr;gap:1.1rem;
+  background:#fff;border:1px solid var(--border);border-radius:16px;padding:.9rem;
+  box-shadow:0 1px 3px rgba(30,10,32,.05);
+  transition:transform .35s var(--ease),box-shadow .35s,border-color .3s;}
+@media(min-width:560px){.vl-event{grid-template-columns:minmax(200px,260px) 1fr;align-items:center;}}
+.vl-event:hover{transform:translateY(-3px);border-color:var(--verdigris);box-shadow:0 20px 40px -24px rgba(30,10,32,.5);}
+.vl-event__media{position:relative;width:100%;height:180px;border-radius:12px;overflow:hidden;flex:none;
+  background:linear-gradient(150deg,#3A0E3C,#5A1A5C 60%,#901F93);color:rgba(255,255,255,.85);
+  display:flex;align-items:center;justify-content:center;}
+.vl-event__glyph{width:42px;height:42px;}
+/* contain, NOT cover: the plate is portrait-ish (260x180, and taller inside a
+   .vl-notice) while event photos are 4:3, so cover was cutting ~46% off the
+   sides. White backing by request, set on the IMG so the plum plate still shows
+   behind the calendar glyph when an event has no photo. */
+.vl-event__media img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;
+  background:#fff;transition:transform .6s var(--ease);}
+.vl-event:hover .vl-event__media img{transform:scale(1.05);}
+/* the date chip: a small white plate torn off the corner of the image */
+.vl-event__chip{position:absolute;left:.7rem;top:.7rem;z-index:2;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;min-width:3.15rem;padding:.42rem .5rem .34rem;
+  background:#fff;border-radius:10px;box-shadow:0 6px 18px rgba(30,10,32,.4);
+  border-top:3px solid var(--marigold);}
+.vl-event__chip b{font-family:var(--grotesk);font-weight:800;font-size:1.32rem;line-height:1;
+  letter-spacing:-.02em;color:var(--ink);font-variant-numeric:tabular-nums;}
+.vl-event__chip i{font-style:normal;font-family:var(--mono);font-size:.56rem;font-weight:600;
+  letter-spacing:.14em;text-transform:uppercase;color:var(--burnt);margin-top:.16rem;}
+.vl-event__body{display:flex;flex-direction:column;gap:.5rem;min-width:0;padding-block:.3rem;}
+.vl-event__kicker{font-family:var(--mono);font-size:.6rem;font-weight:600;letter-spacing:.16em;
+  text-transform:uppercase;color:var(--marigold);}
+.vl-event__title{font-family:var(--grotesk);font-weight:700;font-size:clamp(1.15rem,1.7vw,1.45rem);
+  line-height:1.22;letter-spacing:-.01em;color:var(--ink);overflow-wrap:anywhere;}
+.vl-event__meta{font-family:var(--mono);font-size:.78rem;letter-spacing:.04em;color:var(--muted);
+  display:flex;align-items:center;gap:.55rem;min-width:0;overflow-wrap:anywhere;}
+.vl-event__meta svg{width:14px;height:14px;flex:none;color:var(--marigold);}
+.vl-event__meta--date{color:#6A3E86;font-weight:600;text-transform:uppercase;}
+.vl-event__go{margin-top:.35rem;align-self:flex-start;font-family:var(--mono);font-size:.66rem;
+  font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--pine);text-decoration:none;
+  display:inline-flex;align-items:center;gap:.45rem;transition:color .3s;}
+.vl-event__go::before{content:"";position:absolute;inset:0;z-index:1;} /* whole card is the hit area */
+.vl-event__go span{transition:transform .3s var(--ease);}
+.vl-event:hover .vl-event__go{color:var(--burnt);}
+.vl-event:hover .vl-event__go span{transform:translateX(4px);}
+.vl-event.next{border-color:rgba(144,31,147,.45);}
+/* no dated events: one centred panel, not a two-up card with an empty image plate */
+.vl-event--empty{grid-template-columns:1fr !important;justify-items:center;align-content:center;
+  text-align:center;gap:.55rem;padding:clamp(1.8rem,4vw,3rem) 1.4rem;
+  background:var(--surface);border-style:dashed;border-color:var(--verdigris);box-shadow:none;}
+.vl-event--empty:hover{transform:none;box-shadow:none;border-color:var(--verdigris);}
+/* flat duotone calendar+plant illustration replacing the old icon-circle glyph;
+   its own two-ellipse backdrop does the "soft circle behind it" job the icon
+   circle used to, so no wrapper is needed */
+.vl-event__empty-art{width:168px;height:auto;margin-bottom:.1rem;}
+.vl-event--empty .vl-event__title{font-size:1.18rem;}
+/* the empty-state sentence is prose, not ledger data — mono made it read as a code dump */
+.vl-event--empty .vl-event__meta{font-family:var(--grotesk);font-size:.92rem;font-weight:500;
+  letter-spacing:0;color:var(--muted);}
+/* rule + CTA reuse existing components (.vl-card__rule, .vl-pill) instead of new
+   ones; margins trimmed since .vl-event--empty's own grid gap already spaces the stack */
+.vl-event--empty .vl-card__rule{margin:0;}
+.vl-event--empty .vl-pill{margin-top:.3rem;}
+
+/* ══ 06 · DISPATCHES & NOTICES · newsletters + advertisement ════════════ */
+.vl-dispatch{display:grid;gap:clamp(2rem,4vw,3rem);grid-template-columns:1fr;align-items:start;}
+@media(min-width:900px){.vl-dispatch{grid-template-columns:minmax(0,1.4fr) minmax(0,.6fr);}}
+/* newsletters-only variant (advertisement moved to the 04 notice board) */
+.vl-dispatch--solo{grid-template-columns:1fr !important;max-width:880px;}
+.vl-sub{font-family:var(--mono);font-size:.72rem;text-transform:uppercase;letter-spacing:.14em;
+  color:var(--burnt);display:flex;align-items:center;justify-content:space-between;gap:1rem;margin-bottom:1.1rem;}
+.vl-sub a{color:var(--pine);text-decoration:none;border-bottom:1px solid var(--marigold);padding-bottom:2px;}
+.vl-sub a:hover{color:var(--burnt);}
+.vl-news{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:.7rem;}
+.vl-news a{display:flex;align-items:center;gap:1rem;padding:.9rem 1.1rem;border:1px solid var(--border);
+  border-radius:6px;background:var(--surface);text-decoration:none;
+  transition:transform .35s var(--ease),box-shadow .35s var(--ease),border-color .3s;}
+.vl-news a:hover{transform:translateY(-2px);box-shadow:0 14px 32px -20px rgba(30,10,32,.4);border-color:var(--pine);}
+.vl-news__ic{flex-shrink:0;height:46px;width:38px;border-radius:3px;background:var(--peacock);color:var(--band-ink);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  font-family:var(--mono);font-size:.54rem;font-weight:600;letter-spacing:.06em;gap:.15rem;border:1px solid var(--pine);}
+.vl-news__ic svg{height:15px;width:15px;}
+.vl-news__tx{min-width:0;flex:1;}
+.vl-news__ti{font-family:var(--grotesk);font-weight:700;font-size:1rem;line-height:1.2;color:var(--ink);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.vl-news__dt{font-family:var(--mono);font-size:.68rem;letter-spacing:.04em;color:var(--muted);margin-top:.2rem;}
+.vl-news__go{flex-shrink:0;font-family:var(--mono);font-size:.66rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--burnt);}
+/* advertisement poster plate (shared [data-hero] slider) */
+.vl-ad{position:relative;width:100%;aspect-ratio:454/518;overflow:hidden;border-radius:16px;
+  border:1px solid var(--border);background:linear-gradient(160deg,#3A0E3C,#2A0A2C);
+  box-shadow:0 22px 55px -30px rgba(30,10,32,.55);
+  transition:transform .4s var(--ease),box-shadow .4s var(--ease),border-color .3s;}
+.vl-ad:hover{transform:translateY(-3px);border-color:var(--verdigris);
+  box-shadow:0 30px 62px -30px rgba(30,10,32,.7);}
+.vl-ad a,.vl-ad img{display:block;height:100%;width:100%;}
+/* NOTE: do NOT add `position:relative` to `.vl-ad a` — it out-specifies the slide's
+   Tailwind `absolute inset-0`, drops every slide back into normal flow and pushes the
+   visible one out of the plate (the ad renders blank). The slide is already positioned,
+   so it is the containing block .vl-ad__fill's inset:0 resolves against. */
+/* CONTAIN, not cover: club posters come in whatever ratio the club uploaded, and
+   cover was silently cropping their edges. A blurred cover copy fills the letterbox
+   so the plate still reads full-bleed. */
+.vl-ad__fill{position:absolute;inset:0;object-fit:cover;
+  filter:blur(26px) saturate(1.15) brightness(.92);transform:scale(1.16);}
+.vl-ad__img{position:relative;z-index:1;object-fit:contain;}
+/* the slider dots sit over the poster's foot — a short scrim keeps them legible */
+.vl-ad::after{content:"";position:absolute;left:0;right:0;bottom:0;height:52px;z-index:10;
+  pointer-events:none;background:linear-gradient(to top,rgba(26,10,28,.38),transparent);}
+
+/* ── slider dots: touch target + legibility (banner plate AND ad plate) ──────
+   The painted dot is 8px, far under the ~44px touch guidance. A transparent
+   ::after grows only the HIT area — the dot keeps the w-2/w-6/bg-gold classes
+   rotary-anim.js toggles on it, so none of this may live on the class attr.
+   The row gap MUST stay >= 2x that inset: overlapping hit areas would let the
+   later dot swallow the visible half of the one before it. */
+.vl-home [data-hero-dot]{position:relative;}
+.vl-home [data-hero-dot]::after{content:"";position:absolute;inset:-11px;}
+.vl-home .vl-plate-cap__dots,.vl-home .vl-dots{gap:22px;}
+/* the ad row sits on the artwork itself (the plate caption has its own scrim),
+   so it carries a translucent pill of its own */
+.vl-home .vl-dots{padding:.3rem .7rem;border-radius:999px;
+  background:rgba(26,10,28,.42);backdrop-filter:blur(3px);}
+
+/* ══ 07 · JOIN · full-bleed MARIGOLD band ═══════════════════════════════
+   The band used to be the same peacock as the footer directly beneath it, so the
+   page ended in one undifferentiated dark slab. Marigold separates the two and
+   bookends the page against the marquee ticker up top, which is the same colour. */
+.vl-band--join{background:linear-gradient(135deg,#901F93 0%,#7A1A7D 46%,#5A1160 100%);
+  position:relative;overflow:hidden;}
+/* the faint ruled account paper, carried over from the counter band */
+.vl-band--join::before{content:"";position:absolute;inset:0;pointer-events:none;opacity:.55;
+  background:repeating-linear-gradient(to bottom,transparent 0,transparent 47px,rgba(255,255,255,.09) 47px,rgba(255,255,255,.09) 48px);}
+.vl-band--join > .vl-wrap{position:relative;z-index:1;}
+.vl-band--join .vl-join h2{color:#fff;}
+.vl-band--join .vl-join .g{color:rgba(255,255,255,.84);}
+/* the marigold strike would vanish on a marigold ground. Needs the extra class to
+   out-specify `.vl-join .vl-strike::after`, which is declared further down. */
+.vl-band--join .vl-join .vl-strike::after{background:#fff;}
+.vl-band--join .vl-btn--pri{background:#fff;color:#2A0A2C;}
+.vl-band--join .vl-btn--pri:hover{background:#F7ECF8;color:#1A0A20;}
+.vl-band--join .vl-btn--sec{color:#fff;border-color:rgba(255,255,255,.48);}
+.vl-band--join .vl-btn--sec::before{background:rgba(255,255,255,.18);}
+
+.vl-join{display:grid;gap:clamp(2rem,4vw,3rem);grid-template-columns:1fr;align-items:center;
+  padding-block:clamp(3.6rem,6vw,6rem);}
+@media(min-width:900px){.vl-join{grid-template-columns:minmax(0,1.2fr) minmax(0,.8fr);}}
+.vl-join__eyebrow{font-family:var(--mono);font-size:.76rem;text-transform:uppercase;letter-spacing:.16em;color:var(--band-muted);}
+.vl-join h2{font-family:var(--grotesk);font-weight:800;font-size:clamp(2.1rem,3.8vw,3.6rem);
+  letter-spacing:-.03em;line-height:1.02;color:var(--band-ink);margin:.9rem 0 0;max-width:16ch;}
+.vl-join .g{font-family:var(--serif);color:var(--band-muted);max-width:52ch;margin:1.3rem 0 0;font-size:1.1rem;line-height:1.55;}
+.vl-join .vl-strike::after{background:var(--marigold);}
+.vl-cta{display:flex;flex-direction:column;gap:.9rem;}
+.vl-btn{font-family:var(--grotesk);font-size:.98rem;font-weight:700;letter-spacing:.005em;text-decoration:none;
+  padding:1rem 1.4rem;border-radius:3px;display:inline-flex;align-items:center;justify-content:space-between;gap:.8rem;
+  min-height:52px;position:relative;overflow:hidden;border:1px solid transparent;transition:color .3s;}
+.vl-btn span{position:relative;z-index:1;}
+.vl-btn::after{content:"→";position:relative;z-index:1;font-size:1.1rem;}
+.vl-btn--pri{background:var(--marigold);color:#fff;font-weight:600;}
+.vl-btn--pri:hover{background:#A83AAB;color:#fff;}
+.vl-btn--sec{background:transparent;color:var(--band-ink);border-color:var(--band-line);}
+.vl-btn--sec::before{content:"";position:absolute;inset:0;background:rgba(185,143,192,.16);transform:scaleX(0);transform-origin:left;transition:transform .35s var(--ease);}
+.vl-btn--sec:hover::before{transform:scaleX(1);}
+.vl-join__note{font-family:var(--mono);font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;color:var(--band-muted);margin-top:1.6rem;}
+
+/* desktop menu: bump the compiled theme.css size (user call 2026-07-14) — this
+   sheet loads after theme.css, so the later equal-specificity rule wins */
+.ledger-nav-link{font-size:14px;}
+
+/* ══ TOP STRIP (site-wide for this theme) ══════════════════════════════
+   Peacock bar above the header: contact chips on the left, then the year picker
+   and the admin button. Same "later sheet, equal specificity" trick as
+   .ledger-nav-link — these beat the compiled Tailwind utilities with no rebuild. */
+/* --strip-h drives the chip, the year select and the admin pill so all three are
+   EXACTLY the same height — they were 35.6 / 29.2 / 32.5px when each sized itself
+   off its own padding. Change it here, not per control. */
+.vl-strip{--strip-h:38px;
+  display:flex;align-items:center;justify-content:space-between;gap:1rem;
+  min-height:60px;padding-block:.6rem;}
+/* NO flex-wrap: between ~640 and ~830px the two chips wrapped onto a second row and
+   the bar doubled in height. They shrink and ellipsise instead (min-width:0 all the
+   way down the chain is what lets the text-overflow actually fire). */
+.vl-strip__left{display:flex;align-items:center;gap:.55rem;min-width:0;flex:1 1 auto;}
+/* a chip per contact — reads as a control, not as body text on a dark bar */
+.vl-strip__c{box-sizing:border-box;height:var(--strip-h);
+  display:inline-flex;align-items:center;gap:.6rem;min-width:0;max-width:100%;flex:0 1 auto;
+  padding:0 1rem 0 .32rem;border-radius:999px;text-decoration:none;
+  background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.14);
+  font-family:var(--mono);font-size:13.5px;letter-spacing:.02em;color:rgba(255,255,255,.92);
+  transition:background .3s,border-color .3s,color .3s;}
+.vl-strip__c:hover{background:rgba(255,255,255,.15);border-color:rgba(255,255,255,.36);color:#fff;}
+.vl-strip__ci{display:flex;align-items:center;justify-content:center;width:28px;height:28px;flex:none;
+  border-radius:50%;background:var(--marigold);color:#fff;}
+.vl-strip__ci svg{width:14px;height:14px;}
+.vl-strip__cv{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+
+.vl-strip__right{display:flex;align-items:center;gap:.65rem;flex:none;}
+.vl-strip__year{display:inline-flex;align-items:center;gap:.65rem;font-family:var(--mono);
+  font-size:11.5px;font-weight:600;letter-spacing:.18em;text-transform:uppercase;
+  color:rgba(255,255,255,.55);cursor:pointer;}
+.vl-strip__year-lb{white-space:nowrap;}
+@media(max-width:900px){.vl-strip__year-lb{display:none;}}
+.vl-strip__year-field{position:relative;display:inline-flex;align-items:center;}
+/* height + zero vertical padding (not padding-derived height) so it matches the
+   admin pill exactly; a select centres its own text within an explicit height */
+.vl-strip__year select{box-sizing:border-box;height:var(--strip-h);
+  appearance:none;-webkit-appearance:none;-moz-appearance:none;cursor:pointer;
+  font-family:var(--mono);font-size:14px;font-weight:600;letter-spacing:.04em;text-transform:none;
+  color:#fff;background:rgba(255,255,255,.09);border:1px solid rgba(255,255,255,.22);
+  border-radius:999px;padding:0 2.3rem 0 1.1rem;line-height:normal;
+  transition:background .25s,border-color .25s;}
+.vl-strip__year select:hover{background:rgba(255,255,255,.16);border-color:rgba(255,255,255,.44);}
+.vl-strip__year select:focus-visible{outline:none;border-color:var(--marigold);
+  box-shadow:0 0 0 3px rgba(144,31,147,.45);}
+.vl-strip__year select option{color:#1A0A1C;background:#fff;}
+.vl-strip__chev{position:absolute;right:.85rem;width:.9rem;height:.9rem;
+  pointer-events:none;color:rgba(255,255,255,.7);}
+/* solid marigold pill with the same glare sweep as .vl-pill */
+.vl-strip__admin{position:relative;isolation:isolate;overflow:hidden;
+  box-sizing:border-box;height:var(--strip-h);
+  display:inline-flex;align-items:center;gap:.55rem;padding:0 1.25rem;
+  border-radius:999px;text-decoration:none;
+  font-family:var(--mono);font-size:12.5px;font-weight:700;letter-spacing:.13em;text-transform:uppercase;
+  color:#fff;background:linear-gradient(120deg,var(--marigold),#6E1770);
+  box-shadow:0 6px 16px -9px rgba(144,31,147,.95);
+  transition:transform .3s var(--ease),box-shadow .3s var(--ease);}
+.vl-strip__admin svg{width:15px;height:15px;flex:none;}
+.vl-strip__admin::after{content:"";position:absolute;top:0;bottom:0;left:-50%;width:40%;z-index:-1;
+  transform:skewX(-20deg);
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.45),transparent);
+  transition:left .6s var(--ease);}
+.vl-strip__admin:hover{transform:translateY(-2px);box-shadow:0 12px 24px -10px rgba(144,31,147,1);}
+.vl-strip__admin:hover::after{left:120%;}
+.vl-strip__admin:focus-visible{outline:2px solid #fff;outline-offset:2px;}
+
+/* ══ FOOTER (site-wide for this theme, not just Home) ═══════════════════
+   These ride the same "later sheet, equal specificity" trick as .ledger-nav-link,
+   so they beat the compiled Tailwind utilities without a CSS rebuild. */
+/* the mark now stands alone — the club name and tagline under it were dropped */
+.vl-foot-logo{height:clamp(84px,8.5vw,124px);width:auto;max-width:100%;object-fit:contain;display:block;}
+/* copyright + "Powered by" line — grotesk, not mono (Bricolage's lightest cut is 500) */
+.vl-foot-colophon{font-family:var(--grotesk);font-size:12.5px;font-weight:500;letter-spacing:.01em;}
+/* narrow the logo column so the two link columns get the room they need */
+@media(min-width:768px){.vl-foot-grid{grid-template-columns:minmax(180px,.72fr) minmax(0,2.28fr);}}
+/* 1fr + auto: the links block absorbs the slack and Connect is pushed out to the
+   right edge, so the row spans the footer instead of bunching up on the left */
+@media(min-width:640px){.vl-foot-cols{grid-template-columns:minmax(0,1fr) minmax(0,auto);}}
+/* Quick links in TWO columns, filled top-down. The row count is set inline by the
+   master (ceil(n/2)); auto-flow:column then spills into exactly one second column.
+   max-width keeps the two columns near each other inside that wide 1fr track. */
+.vl-foot-links{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);
+  column-gap:clamp(1.25rem,3vw,2.5rem);row-gap:.6rem;max-width:30rem;}
+/* phones: one column — two columns of tiny mono links is unreadable at 360px */
+@media(max-width:639.98px){.vl-foot-links{grid-auto-flow:row;grid-template-rows:none !important;}}
+
+/* ══ THEME-WIDE CONTRAST CORRECTIONS (2026-07-23) ═══════════════════════════
+   Inner pages share the classic-blue markup, but verdigris remaps gold to the
+   dark magenta #901F93 — so every "dark text on gold" pairing that reads fine
+   on classic (navy on #F5A623) collapses to dark-on-dark here. ledger.css is
+   linked by the MASTER, so these run on every verdigris page. Selectors target
+   the PAIRING (both classes), never text-navy alone. */
+/* year ribbons / chips: bg-gold + text-navy → white text (PastPresidents etc.) */
+.bg-gold.text-navy{color:#fff;}
+/* project-card "Read More" hover: bg turns magenta — keep the label white */
+.group:hover .group-hover\:bg-gold.group-hover\:text-navy{color:#fff;}
+.hover\:bg-gold.hover\:text-navy:hover{color:#fff;}
+/* stats-bar icon chips (AllProjects): ochre→magenta gradient + plum icon was
+   unreadable — repaint magenta→pine with a white icon */
+.from-gold.to-gold-light.text-navy{color:#fff;background-image:linear-gradient(135deg,#901F93,#5E1660);}
+/* initials avatars (photo-less past presidents): magenta monogram on the plum
+   gradient was invisible — use the theme's light lilac */
+.from-navy.text-gold,.from-navy.to-navy-deep.text-gold{color:#B98FC0;}
+
+/* reveal piggybacks the shared .reveal / .is-visible observer (no extra JS needed) */
+
+@media (max-width:600px){
+  .vl-hero__head{font-size:clamp(2.5rem,10.5vw,3.6rem);}
+  .vl-stat__n{font-size:2.1rem;}
+  .vl-card__stamp{top:1rem;right:1rem;}
+}
+@media (prefers-reduced-motion: reduce){
+  .vl-strike::after{transition:none !important;transform:scaleX(1);}
+  .vl-card-p,.vl-card-p__media img,.vl-btn--sec::before,.vl-sign,.vl-sign__ava,.vl-news a,
+  .vl-sign__ink,.vl-card-p__go,.vl-rail__index li,.vl-rail__lb,.vl-stat,.vl-stat::after,
+  .vl-sign__ring,.vl-sign__ring::before,.vl-sign__top::before,.vl-sign__top::after,
+  .vl-sign__link em,.vl-event,.vl-event__media img,.vl-event__go span,
+  .vl-ad{transition:none !important;animation:none !important;}
+  .vl-sign.reveal.is-visible{animation:none !important;}
+  .vl-sign__top::before{transform:scaleX(1);}
+  .vl-card-p__go{opacity:1;transform:none;}
+  .vl-sign__ink{transform:scaleX(1);opacity:1;}
+  .vl-stat::after{transform:scaleY(1);}
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   UX-INDIA-STYLED SECTIONS  (requested: "copy exact look" of ux-india.org
+   for the banner / counter+marquee / community deck). Dark #1A0A1C grounds,
+   brand orange #901F93, the site's 8-colour card palette. Scoped behind
+   modifier classes so the original Verdigris Ledger styling stays intact.
+   ══════════════════════════════════════════════════════════════════════ */
+
+/* ── 01 · FULL-WIDTH BANNER — break the plate out of .vl-wrap to 100vw ── */
+/* Banner is the first section: NO white space above or below — the plate sits
+   flush between the header hairline and the counter band. */
+.vl-wrap > .vl-sec[data-vl-section="banner"]{padding-block:0;}
+/* white ground: a non-16:5 banner letterboxes onto clean white, not a blur fill */
+.vl-plate-mount--full{width:100vw;margin:0 0 0 calc(50% - 50vw);border:0;border-radius:0;
+  padding:0;background:#fff;box-shadow:none;position:relative;}
+/* 8:3 (2.667) was the fixed banner box, but clubs do NOT upload 8:3 — a common
+   996x596 poster is 1.67, and object-cover threw away 37% of its height (the top
+   and bottom of the artwork). HomeVerdigrisLedger.jsx publishes the SHOWING
+   slide's own ratio as --vl-plate-r, so the plate takes the image's shape and
+   nothing is cropped. 8/3 stays as the fallback for a plate with no measurement
+   yet (and for the Web Forms build, which sets no custom property).
+
+   The plate is full-bleed (100vw), so a 1.67 image at full width would be
+   ~1130px tall — one and a half screens. Cap the HEIGHT at 82vh and derive the
+   WIDTH from the ratio instead (width = height x ratio): a tall banner then
+   letterboxes against the plate's own white at the sides rather than being cut
+   or swallowing the page. A wide banner still fills 100vw, exactly as before. */
+.vl-plate-mount--full .vl-plate{aspect-ratio:var(--vl-plate-r, 8/3);height:auto;min-height:0;
+  border-radius:0;background:#fff;
+  width:min(100%, calc(82vh * var(--vl-plate-r, 2.667)));margin-inline:auto;
+  transition:aspect-ratio .45s var(--ease), width .45s var(--ease);}
+@media(prefers-reduced-motion:reduce){.vl-plate-mount--full .vl-plate{transition:none;}}
+/* object-cover fills the box edge-to-edge; mild crop is expected and acceptable. */
+.vl-plate-mount--full .vl-plate img{width:100%;height:100%;}
+.vl-plate-mount--full .vl-plate-cap{position:absolute;left:0;right:0;bottom:0;z-index:20;margin:0;
+  padding:1.1rem clamp(20px,5vw,64px);color:#F0ECF5;
+  background:linear-gradient(to top,rgba(26,10,28,.85),rgba(26,10,28,.08) 88%,transparent);}
+.vl-plate-mount--full .vl-nav{height:48px;width:48px;}
+/* Restates the ratio only to out-specify the base `@media(max-width:680px){.vl-plate
+   {aspect-ratio:3/2}}` at ledger.css:151 — must be kept in step with the rule above. */
+@media(max-width:680px){.vl-plate-mount--full .vl-plate{aspect-ratio:var(--vl-plate-r, 8/3);height:auto;min-height:0;}}
+
+/* ── 02 · COUNTER — ux-india dark restyle (scoped by .vl-band--ux) ── */
+.vl-band--counter.vl-band--ux{background:#1A0A1C;color:#F0ECF5;border-block:0;}
+.vl-band--counter.vl-band--ux::before{display:none;}
+.vl-band--ux .vl-sec-head{text-align:center;}
+.vl-band--ux .vl-eyebrow{color:#901F93;justify-content:center;}
+.vl-band--ux .vl-eyebrow .no{background:#901F93;color:#1A0A1C;}
+.vl-band--ux .vl-h2{color:#fff;margin-inline:auto;}
+.vl-band--ux .vl-stats{gap:0;}
+.vl-band--ux .vl-stat{background:transparent;border:0;border-radius:0;
+  padding:clamp(1rem,2vw,1.6rem) clamp(.75rem,1.4vw,1.5rem);align-items:center;text-align:center;}
+.vl-band--ux .vl-stat::after{display:none;}
+.vl-band--ux .vl-stat:hover{transform:none;box-shadow:none;}
+.vl-band--ux .vl-stat__ic{display:none;}
+/* 5-up row (Total Cost tile added): full-amount figures, so long ones step down to stay on
+   one line; nowrap so a ₹ figure can NEVER wrap and knock the row out of alignment */
+/* Give the counter band's row more room on wide screens (the shared 1240 wrap leaves ~340px
+   of dead margin each side at 1920) so every figure can run BIG and the 11-digit ₹ all-years
+   cost still clears the column dividers. Large screens only — mobile/tablet keep the 1240 wrap. */
+@media(min-width:1280px){ .vl-band--ux > .vl-wrap{max-width:1640px;} }
+.vl-band--ux .vl-stat__n{font-family:var(--serif);font-weight:500;font-size:clamp(2.6rem,5vw,4.4rem);
+  line-height:1;color:#fff;letter-spacing:-.015em;white-space:nowrap;}
+.vl-band--ux .vl-stat__n--sm{font-size:clamp(2.1rem,3.8vw,3.4rem);}
+.vl-band--ux .vl-stat__n--xs{font-size:clamp(1.6rem,2.9vw,2.7rem);}
+/* --xxs: the "All years" aggregate can be 10–11 digits (₹ billions) — smaller than the rest so
+   even a 15-char figure clears the column dividers with a gutter (VlSizeClass ≥10 digits). */
+.vl-band--ux .vl-stat__n--xxs{font-size:clamp(1.35rem,2.05vw,2.1rem);}
+.vl-band--ux .vl-stat__lb{color:rgba(240,236,245,.55);letter-spacing:.16em;font-size:.74rem;}
+.vl-band--ux .vl-stats__foot{color:rgba(240,236,245,.5);text-align:center;margin-inline:auto;}
+@media(min-width:720px){.vl-band--ux .vl-stat + .vl-stat{border-left:1px solid rgba(255,255,255,.1);}}
+
+/* Counter band's OWN year picker (separate from the header year select): centred
+   under the heading, styled for the dark band. Defaults to "All years". */
+.vl-band--ux .vl-sec-head--counter{display:flex;flex-direction:column;align-items:center;gap:1.05rem;}
+.vl-count-year{display:inline-flex;align-items:center;gap:.6rem;font-family:var(--mono);
+  font-size:11px;text-transform:uppercase;letter-spacing:.16em;color:rgba(240,236,245,.55);}
+.vl-count-year__lb{white-space:nowrap;}
+.vl-count-year__field{position:relative;display:inline-flex;align-items:center;}
+.vl-count-year select{appearance:none;-webkit-appearance:none;-moz-appearance:none;cursor:pointer;
+  font-family:var(--mono);font-size:13px;font-weight:600;letter-spacing:.02em;text-transform:none;
+  color:#fff;background:rgba(255,255,255,.09);border:1px solid rgba(255,255,255,.24);border-radius:4px;
+  padding:.5rem 2.1rem .5rem .85rem;line-height:1;transition:border-color .2s,background .2s;}
+.vl-count-year select:hover{background:rgba(255,255,255,.14);border-color:rgba(255,255,255,.42);}
+.vl-count-year select:focus-visible{outline:none;border-color:var(--marigold);
+  box-shadow:0 0 0 3px rgba(144,31,147,.4);}
+.vl-count-year select option{color:#1A0A1C;background:#fff;}
+.vl-count-year__chev{position:absolute;right:.72rem;top:50%;width:.85rem;height:.85rem;
+  transform:translateY(-50%);pointer-events:none;color:rgba(255,255,255,.72);}
+
+/* ── 02b · MARQUEE — full-bleed orange ticker (serif, seamless -50% loop) ── */
+.vl-marquee{width:100vw;margin-left:calc(50% - 50vw);background:#901F93;color:#fff;
+  overflow:hidden;padding-block:.9rem;}
+.vl-marquee__row{display:flex;overflow:hidden;}
+.vl-marquee__track{display:flex;flex:none;align-items:center;will-change:transform;
+  animation:vl-marq 76s linear infinite;}
+.vl-marquee:hover .vl-marquee__track{animation-play-state:paused;}
+.vl-marquee__group{display:flex;flex:none;align-items:center;}
+.vl-marquee__item{font-family:var(--serif);font-size:clamp(1.05rem,1.9vw,1.7rem);
+  letter-spacing:.01em;padding:0 1.15rem;flex:none;white-space:nowrap;}
+.vl-marquee__dot{flex:none;opacity:.7;font-size:.55em;align-self:center;}
+@keyframes vl-marq{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+@media(prefers-reduced-motion:reduce){.vl-marquee__track{animation:none;}
+  .vl-marquee__row{overflow-x:auto;}}
+
+/* ── 04 · THE COMMUNITY — dark section + click-to-reveal project card deck ── */
+.vl-band--community{background:#1A0A1C;color:#F0ECF5;padding-block:clamp(3.6rem,6vw,6rem);}
+.vl-comm{max-width:1240px;margin:0 auto;padding-inline:clamp(20px,5vw,64px);text-align:center;}
+.vl-comm__eyebrow{font-family:var(--mono);font-size:.8rem;text-transform:uppercase;letter-spacing:.24em;
+  color:#901F93;font-weight:600;display:inline-block;}
+.vl-comm__head{font-family:var(--serif);font-weight:500;color:#fff;
+  font-size:clamp(2.1rem,5.2vw,4rem);line-height:1.05;letter-spacing:-.01em;margin:.9rem 0 0;}
+/* bright orchid accent — the theme magenta (#901F93) was too dark to read on the
+   near-black community band; this tint keeps the hue but lifts it clear of the bg */
+.vl-comm__head .ac{color:#E081E6;font-style:italic;}
+.vl-comm__hint{font-family:var(--serif);color:rgba(240,236,245,.5);margin:.85rem 0 0;font-size:1.02rem;}
+.vl-comm:not(.is-open) [data-hint-open]{display:none;}
+.vl-comm.is-open [data-hint-closed]{display:none;}
+
+/* --ch grew with the card blurb (title alone left a hole above the button) */
+.vl-deck{--cw:280px;--ch:412px;position:relative;margin:clamp(2.4rem,5vw,3.6rem) auto 0;
+  min-height:var(--ch);cursor:pointer;}
+.vl-deck__track{display:flex;justify-content:center;align-items:flex-start;}
+.vl-deck:focus-visible{outline:2px solid #901F93;outline-offset:8px;border-radius:24px;}
+.vl-tcard{flex:0 0 var(--cw);width:var(--cw);min-height:var(--ch);box-sizing:border-box;
+  margin-left:calc(-1 * var(--cw));border-radius:24px;padding:24px;
+  background:var(--cbg,#fff);color:var(--cfg,#1A0A1C);text-align:left;text-decoration:none;
+  box-shadow:0 8px 32px rgba(0,0,0,.4);display:flex;flex-direction:column;
+  transform:translate(var(--dx,0),var(--dy,0)) rotate(var(--rot,0deg));transform-origin:center bottom;
+  transition:transform .55s var(--ease),margin .55s var(--ease),box-shadow .35s;}
+.vl-tcard:first-child{margin-left:0;}
+/* 8-colour palette, cycling (matches ux-india's card deck) */
+.vl-tcard:nth-child(8n+1){--cbg:#901F93;--cfg:#fff;}
+.vl-tcard:nth-child(8n+2){--cbg:#C6BCD0;--cfg:#1A0A1C;}
+.vl-tcard:nth-child(8n+3){--cbg:#B9A0D8;--cfg:#1A0A1C;}
+.vl-tcard:nth-child(8n+4){--cbg:#E7D3ED;--cfg:#1A0A1C;}
+.vl-tcard:nth-child(8n+5){--cbg:#6A3E86;--cfg:#fff;}
+.vl-tcard:nth-child(8n+6){--cbg:#7A6FB5;--cfg:#fff;}
+.vl-tcard:nth-child(8n+7){--cbg:#fff;--cfg:#1A0A1C;}
+.vl-tcard:nth-child(8n+8){--cbg:#C9A5CE;--cfg:#1A0A1C;}
+/* collapsed: front card upright, the rest fan right showing coloured edges */
+.vl-comm:not(.is-open) .vl-tcard{z-index:1;}
+.vl-comm:not(.is-open) .vl-tcard:nth-child(1){--rot:-4deg;--dx:-8px;z-index:60;}
+.vl-comm:not(.is-open) .vl-tcard:nth-child(2){--rot:-1deg;--dx:8px;--dy:-6px;z-index:50;}
+.vl-comm:not(.is-open) .vl-tcard:nth-child(3){--rot:2deg;--dx:22px;--dy:-10px;z-index:40;}
+.vl-comm:not(.is-open) .vl-tcard:nth-child(4){--rot:4deg;--dx:36px;--dy:-6px;z-index:30;}
+.vl-comm:not(.is-open) .vl-tcard:nth-child(5){--rot:6deg;--dx:50px;--dy:-2px;z-index:20;}
+.vl-comm:not(.is-open) .vl-tcard:nth-child(n+6){--rot:8deg;--dx:64px;--dy:2px;z-index:10;}
+/* open: the cards fan into ONE full-bleed horizontal ROW that auto-scrolls — the
+   ux-india "The Community" deck. Once the set overflows the viewport, JS clones it and
+   the track runs a seamless -50% marquee (each card owns a 20px right margin, so the
+   two halves line up exactly); it pauses on hover. A set that already fits just sits
+   centred. Reduced-motion falls back to a static wrapped grid (every card reachable). */
+.vl-comm.is-open .vl-deck{cursor:default;width:100vw;overflow:hidden;
+  margin:clamp(2.4rem,5vw,3.6rem) 0 0 calc(50% - 50vw);padding-block:8px 22px;}
+/* stretch (the collapsed fan uses flex-start) so the blurbs, which run to different
+   lengths, still leave every card in the open row the same height */
+.vl-comm.is-open .vl-deck__track{flex-wrap:nowrap;justify-content:center;width:max-content;
+  margin-inline:auto;will-change:transform;align-items:stretch;}
+/* when the row will scroll it's left-aligned up front, so appending the loop clones
+   never shifts the cards; JS advances it by exactly one set (--marq-shift px) */
+.vl-comm.is-open.is-scroll .vl-deck__track{justify-content:flex-start;margin-inline:0;}
+.vl-comm.is-open .vl-deck__track.is-marquee{animation:vl-deck-marq var(--marq-dur,30s) linear infinite;}
+.vl-comm.is-open .vl-deck:hover .vl-deck__track.is-marquee{animation-play-state:paused;}
+.vl-comm.is-open .vl-tcard{margin-left:0;margin-right:20px;transform:none;}
+.vl-comm.is-open .vl-tcard:hover{transform:translateY(-8px);box-shadow:0 16px 44px rgba(0,0,0,.5);}
+@keyframes vl-deck-marq{from{transform:translateX(0)}to{transform:translateX(calc(-1 * var(--marq-shift,50%)))}}
+@media(prefers-reduced-motion:reduce){
+  .vl-comm.is-open .vl-deck{overflow:visible;}
+  .vl-comm.is-open .vl-deck__track{flex-wrap:wrap;justify-content:center;width:auto;margin-inline:0;gap:20px;}
+  .vl-comm.is-open .vl-tcard{margin-right:0;}
+}
+/* card body: project image plate + title + read-more pill (bottom-pinned) */
+.vl-tcard__media{display:block;height:150px;border-radius:14px;overflow:hidden;flex:none;
+  background:rgba(0,0,0,.16);}
+.vl-tcard__media img{width:100%;height:100%;object-fit:cover;display:block;}
+/* overflow-wrap:anywhere because club-entered titles can be one unbroken token
+   (e.g. "testttttttt…"), which otherwise runs straight off the card edge */
+.vl-tcard__title{font-family:var(--grotesk);font-weight:700;font-size:1.06rem;line-height:1.3;
+  letter-spacing:-.01em;margin:.95rem 0 .5rem;overflow-wrap:anywhere;
+  display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;}
+/* the blurb: fills the gap the title used to leave, and margin-bottom:auto keeps
+   the Read-more pill pinned to the foot of every card whatever the text length */
+.vl-tcard__desc{font-family:var(--serif);font-size:.92rem;line-height:1.45;margin:0 0 auto;
+  opacity:.9;display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden;
+  overflow-wrap:anywhere;}
+.vl-tcard__btn{display:inline-flex;align-items:center;gap:.4rem;align-self:flex-start;margin-top:1.1rem;
+  padding:.5rem 1rem;border-radius:999px;background:rgba(0,0,0,.16);
+  font-family:var(--mono);font-size:.68rem;font-weight:600;text-transform:uppercase;letter-spacing:.12em;
+  transition:background .3s,color .3s;}
+.vl-tcard:hover .vl-tcard__btn{background:#1A0A1C;color:#fff;}
+.vl-tcard__q{font-family:var(--serif);font-size:1.04rem;line-height:1.45;margin:0 0 auto;}
+.vl-tcard__foot{display:flex;align-items:center;gap:.7rem;margin-top:1.4rem;}
+.vl-tcard__ava{width:44px;height:44px;border-radius:50%;object-fit:cover;flex:none;
+  background:rgba(0,0,0,.14);}
+.vl-tcard__meta{display:flex;flex-direction:column;min-width:0;}
+.vl-tcard__name{font-family:var(--grotesk);font-weight:700;font-size:.95rem;line-height:1.2;}
+.vl-tcard__role{font-family:var(--mono);font-size:.6rem;text-transform:uppercase;letter-spacing:.1em;
+  opacity:.72;margin-top:3px;}
+.vl-comm__collapse{margin:clamp(1.8rem,3vw,2.4rem) auto 0;display:none;cursor:pointer;
+  font-family:var(--mono);font-size:.72rem;letter-spacing:.16em;text-transform:uppercase;
+  color:#F0ECF5;background:transparent;border:1px solid rgba(255,255,255,.3);border-radius:999px;
+  padding:.7rem 1.7rem;transition:background .3s,border-color .3s,color .3s;}
+.vl-comm.is-open .vl-comm__collapse{display:inline-block;}
+.vl-comm__collapse:hover{background:rgba(144,31,147,.14);border-color:#901F93;color:#fff;}
+@media(prefers-reduced-motion:reduce){.vl-tcard{transition:none;}}
+
+/* ══════════════════════════════════════════════════════════════════════
+   DIRECTORY grid cards — verdigris only (2026-07-27, by request):
+     (1) tighter card — kill the empty-profession dead space + oversized pad,
+     (2) larger portrait (80 → 108px) with a plum ring + soft float shadow,
+     (3) the hover lift becomes an always-on, staggered CONTINUOUS float
+         (entrance is forced opacity-only here so the float owns the
+         transform — no fight with theme.css `.reveal` translateY).
+   Every selector carries html[data-theme="verdigris-ledger"], so the SHARED
+   Directory.aspx markup renders unchanged on classic-blue / civic / madras.
+   Scoped to [data-dir-grid] so the horizontal list-view cards are untouched.
+   ══════════════════════════════════════════════════════════════════════ */
+html[data-theme="verdigris-ledger"] [data-dir-grid] [data-dir-card]{
+  padding:1.15rem 1rem 1.05rem;          /* was px-5 py-6 (20px / 24px) */
+  border-color:rgba(144,31,147,.12);
+  justify-content:center;                /* balance any grid-stretch space top/bottom */
+  --spot-color:rgba(144,31,147,.06);
+  animation:vlDirFloat 5.4s ease-in-out infinite;
+}
+/* entrance = opacity only so the continuous float below owns transform */
+html[data-theme="verdigris-ledger"] [data-dir-grid] [data-dir-card].reveal{transform:none;}
+/* column-phased stagger → the grid rises as a gentle wave, not 16 loose bobs */
+html[data-theme="verdigris-ledger"] [data-dir-grid] [data-dir-card]:nth-child(4n+2){animation-delay:.45s;}
+html[data-theme="verdigris-ledger"] [data-dir-grid] [data-dir-card]:nth-child(4n+3){animation-delay:.9s;}
+html[data-theme="verdigris-ledger"] [data-dir-grid] [data-dir-card]:nth-child(4n){animation-delay:1.35s;}
+@keyframes vlDirFloat{0%,100%{transform:translateY(0);}50%{transform:translateY(-7px);}}
+
+/* portrait: bigger + plum ring + float shadow. Covers BOTH the photo <img>
+   and the photo-less initials <span> (both h-20 w-20 in the shared markup). */
+html[data-theme="verdigris-ledger"] [data-dir-grid] [data-dir-card] > img,
+html[data-theme="verdigris-ledger"] [data-dir-grid] [data-dir-card] > span.inline-flex{
+  width:6.75rem;height:6.75rem;          /* 108px, was 80px */
+  box-shadow:0 0 0 3px #fff,0 0 0 6px rgba(144,31,147,.28),0 12px 26px rgba(58,14,60,.16);
+  --tw-ring-shadow:0 0 0 0 transparent;  /* neutralise Tailwind's ring var */
+  transition:box-shadow .3s var(--ease,ease);
+}
+/* photo-less initials monogram: bump it to match the larger disc */
+html[data-theme="verdigris-ledger"] [data-dir-grid] [data-dir-card] > span.inline-flex{font-size:1.6rem;}
+
+/* tightened name / profession spacing */
+html[data-theme="verdigris-ledger"] [data-dir-grid] [data-dir-card] > h3{margin-top:.85rem;color:#3A0E3C;}
+html[data-theme="verdigris-ledger"] [data-dir-grid] [data-dir-card] > p{margin-top:.3rem;min-height:0;}
+
+/* hover: hold a brighter, more-lifted state (float keeps running underneath;
+   the extra glow + border read as the interactive response) */
+html[data-theme="verdigris-ledger"] [data-dir-grid] [data-dir-card]:hover{
+  box-shadow:0 20px 44px rgba(58,14,60,.22);
+  border-color:rgba(144,31,147,.42);
+}
+html[data-theme="verdigris-ledger"] [data-dir-grid] [data-dir-card]:hover > img,
+html[data-theme="verdigris-ledger"] [data-dir-grid] [data-dir-card]:hover > span.inline-flex{
+  box-shadow:0 0 0 3px #fff,0 0 0 7px rgba(144,31,147,.5),0 14px 30px rgba(144,31,147,.28);
+}
+@media (prefers-reduced-motion:reduce){
+  html[data-theme="verdigris-ledger"] [data-dir-grid] [data-dir-card]{animation:none !important;transform:none !important;}
+}
+
+/* ── SMALL-LAPTOP NAV FIT (1024-1279) ───────────────────────────────────
+   The header nav switches at lg (1024) instead of xl (1280) so small laptops
+   and landscape tablets get the real nav bar, not a hamburger. At 1024 the
+   full-size links need MORE room than the header has and the row wraps to two
+   lines (measured: 9 links = 2 rows at 1024, 1 row from 1152). Tightening the
+   type and padding across that band buys the ~90px needed, so the row stays on
+   ONE line at 1024 with the header height unchanged (73px).
+   Bounded to 1279.98px: at xl and above the links return to full size.
+   `flex-wrap` on the nav remains the safety net — a club with a longer menu
+   than Gurgaon's nine items wraps gracefully instead of overflowing. */
+@media (min-width:1024px) and (max-width:1279.98px){
+  html[data-theme="verdigris-ledger"] header nav a.ledger-nav-link{
+    font-size:11px;letter-spacing:.02em;padding-left:.45rem;padding-right:.45rem;}
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   PAGE HEAD · "THE COVER PLATE"  (.vl-ph*)   — verdigris-only breadcrumb
+   Emitted ONLY by the IsVerdigrisLedger branch of RotaryPage.Breadcrumb();
+   ledger.css is linked ONLY by SiteVerdigrisLedger.Master. Double
+   containment — every selector needs a .vl-ph* class no other branch prints.
+
+   A ledger's PAGES are pale; its COVER is dark, cloth-bound and stamped.
+   The inner pages open on the cover plate: deep plum ground, a soft magenta
+   bloom, the faint ruling of the boards showing through, the trail set in a
+   glass plate, and the title stamped in ivory over it. Rich and high-contrast
+   on purpose — the pale editorial band read as unfinished.
+
+   Sits under a solid sticky header (normal flow, no -mt-24).
+   ══════════════════════════════════════════════════════════════════════ */
+/* The plate is built from FOUR stacked background layers (top painted first),
+   not extra elements — so ::before and ::after stay free for the texture and
+   the closing edge:
+     1  magenta bloom, upper right   — the light source
+     2  pine counter-bloom, lower left — stops the left half going dead flat
+     3  a violet lift across the top   — keeps the crumb plate off a black ground
+     4  the base diagonal, light plum -> near-black bottom-right
+   `isolation:isolate` keeps .vl-ph__mark's z-index:-1 contained to this band.
+   The inset box-shadow is a 1px catch-light on the top edge — the single
+   cheapest thing that makes a dark surface read as MATERIAL rather than a
+   filled rectangle. */
+.vl-ph{position:relative;isolation:isolate;overflow:hidden;color:var(--band-ink);
+  background:
+    radial-gradient(115% 135% at 86% -18%, rgba(158,36,161,.50) 0%, rgba(158,36,161,0) 58%),
+    radial-gradient(95% 130% at -8% 112%, rgba(94,22,96,.55) 0%, rgba(94,22,96,0) 62%),
+    linear-gradient(180deg, rgba(120,40,128,.22) 0%, rgba(120,40,128,0) 42%),
+    linear-gradient(128deg, #45114A 0%, #300C33 46%, #1D0621 100%);
+  box-shadow:inset 0 1px 0 rgba(240,236,245,.12);}
+/* the boards' faint ruling + a vignette that pulls the eye to the type, and a
+   whisper of grain. The grain is doing real work: large, low-contrast dark
+   gradients BAND badly on 6-bit and cheap panels, and a little noise is what
+   dithers it away. Inline SVG data-URI = no request, nothing external. */
+.vl-ph::before{content:"";position:absolute;inset:0;pointer-events:none;
+  background:
+    repeating-linear-gradient(to bottom,rgba(240,236,245,.045) 0 1px,transparent 1px 34px),
+    radial-gradient(120% 100% at 30% 50%, rgba(0,0,0,0) 42%, rgba(0,0,0,.30) 100%),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='3'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)' opacity='.38'/%3E%3C/svg%3E");
+  background-size:auto,auto,160px 160px;
+  opacity:.9;mix-blend-mode:soft-light;}
+/* the closing edge — a light rule that fades out, so the plate ENDS instead of
+   just stopping against the page. Reads as the lip of the cover board. */
+.vl-ph::after{content:"";position:absolute;left:0;right:0;bottom:0;height:1px;
+  pointer-events:none;
+  background:linear-gradient(90deg,rgba(185,143,192,0) 0%,rgba(185,143,192,.55) 22%,
+             rgba(158,36,161,.75) 52%,rgba(185,143,192,0) 100%);}
+/* the embossed wheel, barely there */
+.vl-ph__mark{position:absolute;right:2.5rem;top:50%;translate:0 -50%;z-index:-1;
+  width:13rem;height:13rem;opacity:.06;pointer-events:none;
+  filter:grayscale(1) brightness(3);}
+.vl-ph__in{position:relative;padding-block:clamp(1.5rem,3.2vw,2.6rem);}
+
+/* ── the trail, set in a glass plate ─────────────────────────────────── */
+/* real glass: a top-lit gradient fill (not a flat tint), a hairline that is
+   brighter on top than bottom, an inner catch-light, and an outer shadow so the
+   plate sits ABOVE the ground rather than being cut into it. */
+.vl-ph__crumbs{list-style:none;margin:0;display:inline-flex;flex-wrap:wrap;
+  align-items:center;padding:.44rem 1.05rem;
+  background:linear-gradient(180deg,rgba(240,236,245,.13),rgba(240,236,245,.05));
+  border:1px solid rgba(240,236,245,.18);border-top-color:rgba(240,236,245,.28);
+  border-radius:999px;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.14),0 6px 18px rgba(0,0,0,.28);
+  font-family:var(--mono);font-size:11px;font-weight:500;line-height:1.5;
+  letter-spacing:.12em;text-transform:uppercase;color:var(--band-muted);
+  animation:vlPhIn .6s var(--ease) both;}
+.vl-ph__crumbs li{display:inline-flex;align-items:center;min-width:0;}
+/* a small lilac lozenge, not a slash — the slash is civic-bold's idiom */
+.vl-ph__crumbs li+li::before{content:"";flex:none;width:4px;height:4px;border-radius:50%;
+  background:var(--verdigris);opacity:.55;margin:0 .7em;}
+.vl-ph__crumbs a{color:inherit;text-decoration:none;
+  transition:color .3s var(--ease);}
+.vl-ph__crumbs a:hover{color:#fff;}
+.vl-ph__crumbs a:focus-visible{outline:2px solid var(--verdigris);outline-offset:3px;border-radius:3px;}
+/* the current page: ivory, and allowed to truncate rather than wrap the plate */
+.vl-ph__here{color:#F5F1F8;font-weight:600;max-width:46vw;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+
+/* ── title ───────────────────────────────────────────────────────────────
+   Stamped in the DISPLAY face — this is the cover, not the interior. The
+   eyebrow/kicker that used to sit above it was removed by request
+   (2026-07-27), so the plate reads crumb -> title and this margin is the only
+   gap that matters. */
+/* #FFF9FD rather than flat --band-ink: a hair of warmth reads as ink catching
+   light on a dark board. The shadow is depth, not a glow — kept tight and dark
+   so the letterforms stay crisp at display sizes. */
+.vl-ph__title{margin:clamp(.95rem,2vw,1.4rem) 0 0;font-family:var(--grotesk);font-weight:800;
+  font-size:clamp(2rem,1.15rem + 3.4vw,3.5rem);line-height:1.04;
+  letter-spacing:-.025em;color:#FFF9FD;
+  text-shadow:0 1px 1px rgba(20,4,22,.35),0 12px 34px rgba(20,4,22,.28);
+  max-width:24ch;text-wrap:balance;overflow-wrap:break-word;
+  animation:vlPhIn .7s var(--ease) .12s both;}
+/* the accent is the one lit object on the plate — it gets a real bloom */
+.vl-ph__rule{display:block;height:3px;width:clamp(60px,8vw,104px);
+  margin-top:clamp(1rem,2.2vw,1.5rem);border-radius:2px;
+  background:linear-gradient(90deg,#D9B5DE 0%,var(--verdigris) 38%,#9E24A1 100%);
+  box-shadow:0 0 18px rgba(158,36,161,.55);
+  transform-origin:left;animation:vlPhRule .8s var(--ease) .18s both;}
+
+@keyframes vlPhIn{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:none;}}
+@keyframes vlPhRule{from{transform:scaleX(0);}to{transform:scaleX(1);}}
+
+@media(max-width:639.98px){
+  .vl-ph__mark{display:none;}
+  .vl-ph__crumbs{font-size:10px;letter-spacing:.1em;padding:.38rem .8rem;}
+  .vl-ph__crumbs li+li::before{margin:0 .55em;}
+  .vl-ph__here{max-width:52vw;}
+  .vl-ph__title{max-width:none;line-height:1.08;}
+}
+/* resting styles ARE the keyframes' final frame, so animation:none lands on
+   the finished state — nothing is left invisible or at scale 0 */
+@media(prefers-reduced-motion:reduce){
+  .vl-ph__crumbs,.vl-ph__title,.vl-ph__rule{animation:none !important;}
+  .vl-ph__crumbs a{transition:none !important;}
+}
+
+/* ── Project deck on phones: steerable row (see ledger.js isManual) ────────
+   Under 680px the fan-out drops the marquee and becomes a native snap
+   scroller with arrows, so a card can be reached by swipe or button instead
+   of waiting for the loop to bring it round. 680px must match MOBILE_MAX. */
+/* NO scroll-behavior:smooth here. Measured in Chrome: any smooth scroll on this
+   container — CSS scroll-behavior OR scrollBy({behavior:"smooth"}) — is cancelled
+   and the deck snaps straight back to 0. A plain (instant) scrollBy lands
+   correctly every time, and with card-sized steps + snap it reads fine. */
+.vl-comm.is-open.is-manual .vl-deck{overflow-x:auto;overflow-y:hidden;
+  -webkit-overflow-scrolling:touch;scrollbar-width:none;}
+.vl-comm.is-open.is-manual.is-taken .vl-deck{scroll-snap-type:x mandatory;}
+.vl-comm.is-open.is-manual .vl-deck::-webkit-scrollbar{display:none;}
+/* Snap only AFTER the hand-off: while the row is still drifting, mandatory snap
+   would fight the per-frame scrollLeft nudge and yank it back. */
+.vl-comm.is-open.is-manual.is-taken .vl-tcard{scroll-snap-align:center;}
+.vl-deck__nav{display:flex;justify-content:center;gap:14px;margin-top:1.2rem;}
+.vl-deck__arrow{width:44px;height:44px;display:inline-flex;align-items:center;justify-content:center;
+  cursor:pointer;border:1px solid rgba(240,236,245,.28);border-radius:50%;background:transparent;
+  color:#F0ECF5;font-size:1.15rem;line-height:1;
+  transition:background .2s ease,border-color .2s ease,color .2s ease;}
+.vl-deck__arrow:hover,.vl-deck__arrow:focus-visible{background:rgba(144,31,147,.22);
+  border-color:#901F93;color:#fff;}

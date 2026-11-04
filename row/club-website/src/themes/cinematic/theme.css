@@ -1,0 +1,886 @@
+/* ─────────────────────────────────────────────────────────────────────────────
+   CINEMATIC — tokens, base, shell, shared components, fallback-page restyle.
+   Every selector is scoped to html[data-theme="cinematic"] or carries the cin-
+   prefix, so nothing leaks onto another theme.
+
+   One family, three widths: Archivo expanded (125%) for titles, normal (100%)
+   for reading, condensed (62%) for figures and times.
+
+   Contrast (WCAG 2.x, flat colours):
+     ink  #F3F5FB on night #070B1A 18.0:1   mist #A7B3D1 on night 9.3:1
+     mist on night-2 #0D1633 8.5:1          gold #F7A81B on night 9.9:1
+     night on gold (gold buttons) 9.9:1     ink on royal #17458F 8.4:1
+     gold on royal 4.6:1 (large text only)  mist is NEVER placed on royal (4.4:1)
+   ───────────────────────────────────────────────────────────────────────────── */
+
+html[data-theme="cinematic"] {
+  --cin-night: #070B1A;
+  --cin-night-2: #0D1633;
+  --cin-night-3: #0A1026;
+  --cin-deep: #050816;
+  --cin-royal: #17458F;
+  --cin-royal-2: #123673;
+  --cin-gold: #F7A81B;
+  --cin-gold-hi: #FFBE45;
+  --cin-ink: #F3F5FB;
+  --cin-mist: #A7B3D1;
+  --cin-line: rgba(167, 179, 209, .18);
+  --cin-line-2: rgba(167, 179, 209, .32);
+  --cin-glow: rgba(247, 168, 27, .45);
+  --cin-gold-ink: #F7A81B;             /* gold used as TEXT (the light mode darkens it; fills keep --cin-gold) */
+  --cin-on-gold: #070B1A;              /* text ON a gold fill */
+  --cin-hdr-bg: rgba(7, 11, 26, .82);
+  --cin-pop-bg: rgba(13, 22, 51, .97); /* dropdowns */
+  --cin-field-bg: rgba(13, 22, 51, .7);
+  --cin-shadow: rgba(0, 0, 0, .7);
+
+  --cin-sans: "Archivo", "Segoe UI", system-ui, -apple-system, sans-serif;
+  --cin-wide: 125%;
+  --cin-cond: 62%;
+
+  /* the header: row 1 (lockup + tools) and, from 900px, row 2 (the menu) - see the header section */
+  --cin-bar-h: 64px;                   /* 72px from 600px: room for the bigger lockup (client, 2026-09-28) */
+  --cin-rail-h: 48px;
+  --cin-hh: var(--cin-bar-h);
+  --cin-pad: clamp(16px, 4vw, 56px);
+  --cin-side: max(var(--cin-pad), calc(50% - 660px));
+  --cin-sec-y: clamp(56px, min(10vw, 14svh), 150px);
+  --cin-r-sm: 12px;
+  --cin-r: 18px;
+  --cin-r-lg: 24px;
+  --cin-ease: cubic-bezier(.16, 1, .3, 1);
+
+  color-scheme: dark;
+  background: var(--cin-night);
+  scroll-behavior: auto;               /* Lenis / ScrollTrigger own scrolling */
+  -webkit-text-size-adjust: 100%;
+}
+@media (min-width: 600px) {
+  html[data-theme="cinematic"] { --cin-bar-h: 88px; }
+}
+@media (min-width: 900px) {
+  html[data-theme="cinematic"] { --cin-hh: calc(var(--cin-bar-h) + 1px + var(--cin-rail-h)); }
+}
+/* a club menu too long for its row: the burger takes over and the row folds away */
+html[data-theme="cinematic"]:has(.cin-hdr.is-crowded) { --cin-hh: var(--cin-bar-h); }
+
+/* ───────────────────────────── light mode ─────────────────────────────
+   html[data-cin-mode="light"] (the switch in the header; client, 2026-09-28). The same token
+   names with daylight values, so every rule that reads a token follows. Gold stays the FILL
+   colour (buttons, bars, pills); gold used as TEXT reads --cin-gold-ink, a bronze that holds
+   AA on paper. Contrast: ink #0B1433 on paper #F3F5FA 17:1 · mist #4A5677 on paper 6.6:1,
+   on white 7.2:1 · gold-ink #9A5B00 on paper 4.9:1 · on-gold #0B1433 on gold 9.4:1.
+   ───────────────────────────────────────────────────────────────────── */
+html[data-theme="cinematic"][data-cin-mode="light"] {
+  --cin-night: #F3F5FA;
+  --cin-night-2: #FFFFFF;
+  --cin-night-3: #E8ECF5;
+  --cin-deep: #E2E7F1;
+  --cin-ink: #0B1433;
+  --cin-mist: #4A5677;
+  --cin-line: rgba(11, 20, 51, .12);
+  --cin-line-2: rgba(11, 20, 51, .24);
+  --cin-glow: rgba(247, 168, 27, .3);
+  --cin-gold-ink: #9A5B00;
+  --cin-on-gold: #0B1433;
+  --cin-hdr-bg: #FFFFFF;               /* opaque: a see-through white header went grey over the footer */
+  --cin-pop-bg: #FFFFFF;
+  --cin-field-bg: #FFFFFF;
+  --cin-shadow: rgba(11, 20, 51, .18);
+  color-scheme: only light;
+}
+/* Night islands: in the light mode these stay the dark "screens" they were designed as - the
+   footer, the ad popup and the royal poster panels (newsletter tiles, the events "Next up" ticket
+   and its stub on the event page, the regular-meeting card, the home's upcoming-event card and the
+   where-we-meet clapperboard) - so they carry the dark values locally. Keep this list and the
+   :not(:is(...)) lists in the light block at the end of this file the same. */
+html[data-theme="cinematic"][data-cin-mode="light"] :is(.cin-foot, .cin-dlg__panel, .cin-panel, .cin-ev-ticket, .cin-evd-stub, .cin-ev-meet, .cin-next__card, .cin-slate) {
+  --cin-night: #070B1A;
+  --cin-night-2: #0D1633;
+  --cin-night-3: #0A1026;
+  --cin-deep: #050816;
+  --cin-ink: #F3F5FB;
+  --cin-mist: #A7B3D1;
+  --cin-line: rgba(167, 179, 209, .18);
+  --cin-line-2: rgba(167, 179, 209, .32);
+  --cin-glow: rgba(247, 168, 27, .45);
+  --cin-gold-ink: #F7A81B;
+  --cin-on-gold: #070B1A;
+  --cin-pop-bg: rgba(13, 22, 51, .97);
+  --cin-field-bg: rgba(13, 22, 51, .7);
+  --cin-shadow: rgba(0, 0, 0, .7);
+  color: var(--cin-ink);
+  color-scheme: dark;
+}
+html[data-theme="cinematic"][data-cin-mode="light"] body::after { opacity: .035; }
+
+html[data-theme="cinematic"] body {
+  margin: 0;
+  background: var(--cin-night);
+  color: var(--cin-ink);
+  font-family: var(--cin-sans);
+  font-size: 17px;
+  line-height: 1.6;
+  font-weight: 400;
+  font-stretch: 100%;
+  -webkit-font-smoothing: antialiased;
+}
+/* film grain: under the header (z 100) and footer (z 60) so neither logo is tinted */
+html[data-theme="cinematic"] body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 50;
+  opacity: .06;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+html[data-theme="cinematic"] ::selection { background: var(--cin-gold); color: var(--cin-on-gold); }
+html[data-theme="cinematic"] :focus-visible { outline: 3px solid var(--cin-gold-ink); outline-offset: 3px; }
+html[data-theme="cinematic"] main:focus { outline: none; }
+
+.cin-sr {
+  position: absolute !important; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+}
+.cin-ico { width: 1.1em; height: 1.1em; flex: none; }
+.cin-ch-mask { padding-block: .12em; margin-block: -.12em; }
+
+.cin-skip {
+  position: absolute; left: 16px; top: -120px; z-index: 400;
+  background: var(--cin-gold); color: var(--cin-on-gold); font-weight: 700;
+  padding: 12px 18px; border-radius: var(--cin-r-sm); text-decoration: none;
+}
+.cin-skip:focus { top: 12px; }
+
+/* ───────────────────────────── header ─────────────────────────────
+   Two rows (client, 2026-09-28):
+     row 1 .cin-hdr__bar   the club lockup | year · Admin login · light/dark · (burger)
+     row 2 .cin-hdr__rail  the club's menu across the full width, from 900px
+   Below 900px - or when the club's menu does not fit its row - the burger opens the
+   full-screen menu, which also carries the year and Admin login on phones.
+   The header's height is --cin-hh (tokens above); pins, stickies and the hero read it. */
+.cin-hdr {
+  position: sticky; top: 0; z-index: 100; height: var(--cin-hh);
+  display: flex; flex-direction: column;
+  background: var(--cin-hdr-bg); border-bottom: 1px solid var(--cin-line);
+  -webkit-backdrop-filter: blur(14px) saturate(1.4); backdrop-filter: blur(14px) saturate(1.4);
+}
+.cin-hdr__bar {
+  flex: none; height: var(--cin-bar-h);
+  display: flex; align-items: center; gap: 12px; padding: 0 var(--cin-side);
+}
+/* the club lockup, bigger (client, 2026-09-28); in the light mode it sits straight on the white header, no edge */
+.cin-brand {
+  flex: 0 1 auto; display: flex;   /* shrinks only when the bar runs out (a 280px Fold cover screen) - the logo is contained, never cropped */ align-items: center; justify-content: center;
+  background: #fff; border-radius: var(--cin-r-sm); padding: 4px 12px;
+  min-height: 76px; min-width: 60px; max-width: min(50vw, 400px);
+}
+.cin-brand__img { height: 70px; width: auto; max-width: 100%; object-fit: contain; }   /* 70px (client, 2026-09-29) */
+@media (max-width: 599px) {
+  .cin-brand { padding: 2px 6px; min-height: 50px; max-width: 54vw; }
+  .cin-brand__img { height: 46px; }
+}
+
+/* row 1, right: year · Admin login · light/dark · burger */
+.cin-hdr__end { display: flex; align-items: center; gap: 10px; margin-left: auto; }
+.cin-year { display: none; }
+.cin-select {
+  -webkit-appearance: none; appearance: none; cursor: pointer;
+  height: 44px; padding: 0 38px 0 16px; border-radius: 999px; border: 1px solid var(--cin-line-2);
+  background: var(--cin-field-bg) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5 6 6.5 11 1.5' fill='none' stroke='%23F7A81B' stroke-width='1.8'/%3E%3C/svg%3E") no-repeat right 15px center;
+  font: inherit; font-size: 14.5px; font-weight: 600; color: var(--cin-ink);
+}
+html[data-cin-mode="light"] .cin-select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5 6 6.5 11 1.5' fill='none' stroke='%239A5B00' stroke-width='1.8'/%3E%3C/svg%3E");
+}
+html[data-cin-mode="light"] :is(.cin-foot, .cin-panel) .cin-select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5 6 6.5 11 1.5' fill='none' stroke='%23F7A81B' stroke-width='1.8'/%3E%3C/svg%3E");
+}
+.cin-select:hover { border-color: rgba(247, 168, 27, .7); }
+.cin-select option { background: var(--cin-night-2); color: var(--cin-ink); }
+
+.cin-hdr__admin {
+  display: none; align-items: center; gap: 8px; height: 44px; padding: 0 18px; flex: none;
+  border-radius: 999px; border: 1px solid var(--cin-line-2); color: var(--cin-ink);
+  font-size: 14.5px; font-weight: 600; text-decoration: none; white-space: nowrap;
+  transition: border-color .25s, color .25s, background-color .25s;
+}
+.cin-hdr__admin .cin-ico, .cin-hdr__admin svg { width: 14px; height: 14px; color: var(--cin-gold-ink); }
+.cin-hdr__admin:hover { border-color: var(--cin-gold); background: var(--cin-gold); color: var(--cin-on-gold); }
+.cin-hdr__admin:hover svg { color: currentColor; }
+
+/* the light/dark switch: a sun in the dark mode, a moon in the light one */
+.cin-mode {
+  display: inline-grid; place-items: center; width: 44px; height: 44px; flex: none; padding: 0;
+  border-radius: 50%; border: 1px solid var(--cin-line-2); background: transparent; color: var(--cin-gold-ink); cursor: pointer;
+  transition: border-color .25s, background-color .25s;
+}
+.cin-mode:hover { border-color: var(--cin-gold); background: rgba(247, 168, 27, .12); }
+.cin-mode__ico { width: 20px; height: 20px; overflow: visible; }
+.cin-mode__disc { fill: currentColor; r: 5; transition: r .55s var(--cin-ease); }
+.cin-mode__bite { cx: 30px; cy: -6px; transition: cx .55s var(--cin-ease), cy .55s var(--cin-ease); }
+.cin-mode__rays { fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; transform-origin: 12px 12px; transition: opacity .35s, transform .55s var(--cin-ease); }
+html[data-cin-mode="light"] .cin-mode__disc { r: 8.5; }
+html[data-cin-mode="light"] .cin-mode__bite { cx: 18px; cy: 6px; }
+html[data-cin-mode="light"] .cin-mode__rays { opacity: 0; transform: rotate(-60deg) scale(.5); }
+@media (prefers-reduced-motion: reduce) {
+  .cin-mode__disc, .cin-mode__bite, .cin-mode__rays { transition: none; }
+}
+
+.cin-burger {
+  display: inline-grid; place-items: center; width: 48px; height: 48px; flex: none;
+  border-radius: 50%; border: 1px solid var(--cin-line-2); background: transparent; cursor: pointer;
+}
+.cin-burger:hover { border-color: rgba(247, 168, 27, .7); }
+.cin-burger__bars { position: relative; width: 20px; height: 10px; }
+.cin-burger__bars i {
+  position: absolute; left: 0; right: 0; height: 2px; border-radius: 2px; background: var(--cin-ink);
+  transition: transform .35s cubic-bezier(.7, 0, .2, 1);
+}
+.cin-burger__bars i:first-child { top: 0; }
+.cin-burger__bars i:last-child { bottom: 0; }
+.cin-burger[aria-expanded="true"] .cin-burger__bars i:first-child { transform: translateY(4px) rotate(45deg); }
+.cin-burger[aria-expanded="true"] .cin-burger__bars i:last-child { transform: translateY(-4px) rotate(-45deg); }
+
+/* row 2: the club's menu, left-aligned under the lockup */
+.cin-hdr__rail { display: none; }
+.cin-nav { position: relative; height: 100%; min-width: 0; }
+.cin-nav__list { display: flex; align-items: stretch; height: 100%; width: max-content; margin: 0 auto; padding: 0; list-style: none; }   /* centred (client, 2026-09-29) */
+.cin-nav__list > li { position: relative; display: flex; align-items: center; }
+.cin-nav__top {
+  display: flex; align-items: center; gap: 4px; min-height: 44px; padding: 0 12px;
+  font: inherit; font-size: 16px; font-weight: 500; color: var(--cin-mist);   /* 16px (client, 2026-10-01; was 18px) */
+  text-decoration: none; white-space: nowrap; background: none; border: 0; cursor: pointer;
+  transition: color .25s;
+}
+.cin-nav__top[aria-current="page"], .cin-nav__top.is-current, .cin-nav__grp.is-open > .cin-nav__top { color: var(--cin-ink); }
+.cin-nav__top[aria-current="page"], .cin-nav__top.is-current { box-shadow: inset 0 -2px 0 var(--cin-gold); }
+.cin-nav.has-ind .cin-nav__top { box-shadow: none; }
+.cin-nav__btn .cin-ico--chev, .cin-nav__toggle .cin-ico--chev { width: 14px; height: 14px; transition: transform .3s var(--cin-ease); }
+.cin-nav__grp.is-open .cin-ico--chev { transform: rotate(180deg); }
+.cin-nav__grp > a.cin-nav__top { padding-right: 2px; }
+.cin-nav__toggle {
+  display: grid; place-items: center; width: 28px; min-height: 44px; margin-right: 4px;
+  padding: 0; border: 0; background: none; color: var(--cin-mist); cursor: pointer;
+}
+.cin-nav__toggle:hover { color: var(--cin-gold-ink); }
+.cin-nav__sub {
+  display: none; position: absolute; top: 100%; left: 0; z-index: 5; min-width: 220px; max-width: 320px;
+  margin: 0; padding: 8px; list-style: none;
+  background: var(--cin-pop-bg); border: 1px solid var(--cin-line); border-radius: var(--cin-r);
+  box-shadow: 0 24px 60px -20px var(--cin-shadow);
+}
+.cin-nav__grp.is-open > .cin-nav__sub { display: block; }
+.cin-nav__sub a {
+  display: flex; align-items: center; min-height: 44px; padding: 8px 14px; border-radius: 10px;
+  color: var(--cin-mist); text-decoration: none; font-size: 15.5px; line-height: 1.3;
+}
+.cin-nav__sub a[aria-current="page"] { color: var(--cin-ink); background: rgba(23, 69, 143, .45); }
+html[data-cin-mode="light"] .cin-nav__sub a[aria-current="page"] { background: rgba(23, 69, 143, .09); }
+.cin-nav__ind {
+  position: absolute; left: 0; bottom: 4px; width: 1px; height: 2px; background: var(--cin-gold);
+  transform-origin: 0 50%; opacity: 0; pointer-events: none; box-shadow: 0 0 12px rgba(247, 168, 27, .8);
+}
+html[data-cin-mode="light"] .cin-nav__ind { box-shadow: none; }
+
+@media (min-width: 600px) { .cin-year { display: block; } }
+@media (min-width: 760px) { .cin-hdr__admin { display: inline-flex; } }
+@media (min-width: 900px) {
+  .cin-hdr__rail {
+    display: block; flex: none; height: var(--cin-rail-h); padding: 0 var(--cin-side);
+    border-top: 1px solid var(--cin-line);
+  }
+  .cin-burger { display: none; }
+  /* a club menu too long for one line: the row folds away (still laid out, so it is re-measured) and the burger takes over */
+  .cin-hdr.is-crowded .cin-hdr__rail { height: 0; overflow: hidden; visibility: hidden; border-top: 0; }
+  .cin-hdr.is-crowded .cin-burger { display: inline-grid; }
+}
+
+/* ───────────────────────────── mobile menu ───────────────────────────── */
+.cin-menu {
+  position: fixed; inset: 0; z-index: 90; overflow-y: auto; overscroll-behavior: contain;
+  padding: calc(var(--cin-hh) + 48px) var(--cin-side) 48px;
+  background: radial-gradient(90% 60% at 100% 0%, rgba(23, 69, 143, .55), transparent 70%), var(--cin-night);
+  display: flex; flex-direction: column; gap: 36px;
+}
+html[data-cin-mode="light"] .cin-menu { background: radial-gradient(90% 60% at 100% 0%, rgba(23, 69, 143, .14), transparent 70%), var(--cin-night); }
+.cin-menu[hidden] { display: none; }
+.cin-menu__list, .cin-menu__sub { list-style: none; margin: 0; padding: 0; }
+.cin-menu__top {
+  display: flex; align-items: center; min-height: 48px; padding: 4px 0; text-decoration: none;
+  font-stretch: 118%; font-weight: 700; font-size: clamp(24px, 6.4vw, 40px); line-height: 1.1; letter-spacing: -.01em;
+  color: var(--cin-ink); overflow-wrap: anywhere;
+}
+.cin-menu__label { color: var(--cin-mist); }
+.cin-menu__top[aria-current="page"] { color: var(--cin-gold-ink); }
+
+.cin-menu__sub { margin: 0 0 12px; padding-left: 18px; border-left: 2px solid var(--cin-royal); }
+.cin-menu__sub a {
+  display: flex; align-items: center; min-height: 44px; font-size: 18px; font-weight: 500;
+  color: var(--cin-mist); text-decoration: none; overflow-wrap: anywhere;
+}
+.cin-menu__sub a[aria-current="page"] { color: var(--cin-gold-ink); }
+.cin-menu__end { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 16px 28px; }
+.cin-menu__year { display: flex; flex-direction: column; gap: 8px; font-size: 14px; color: var(--cin-mist); }
+.cin-menu__year .cin-select { height: 48px; }
+.cin-menu__admin { display: inline-flex; align-items: center; min-height: 48px; color: var(--cin-mist); font-size: 16px; }
+.cin-menu__admin:hover { color: var(--cin-gold-ink); }
+/* the header already shows the year (from 600px) and Admin login (from 760px) */
+@media (min-width: 600px) { .cin-menu__year { display: none; } }
+@media (min-width: 760px) { .cin-menu__admin { display: none; } }
+
+/* ───────────────────────────── main + footer ───────────────────────────── */
+.cin-main { display: block; position: relative; min-height: 60vh; }
+html[data-theme="cinematic"] section[id] { scroll-margin-top: var(--cin-hh); }
+
+.cin-foot {
+  position: relative; z-index: 60;
+  padding: 56px var(--cin-side) 36px; background: var(--cin-deep); border-top: 1px solid var(--cin-line);
+}
+.cin-foot__row { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 28px 40px; }
+.cin-foot__row--base { margin-top: 40px; padding-top: 28px; border-top: 1px solid var(--cin-line); align-items: flex-end; }
+.cin-foot__club { display: flex; align-items: center; gap: 18px; min-width: 0; }
+.cin-foot__logo { flex: none; width: 136px; height: 136px; border-radius: 22px; background: #fff; padding: 8px; object-fit: contain; box-shadow: 0 18px 50px -24px rgba(247, 168, 27, .45); }
+@media (max-width: 599px) { .cin-foot__logo { width: 104px; height: 104px; border-radius: 18px; } }
+.cin-foot__grid { display: grid; gap: 36px 56px; grid-template-columns: minmax(0, 1fr); }
+@media (min-width: 760px) {
+  .cin-foot__grid { grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); }
+  .cin-foot__side { grid-column: 1 / -1; }
+}
+@media (min-width: 1140px) {
+  .cin-foot__grid { grid-template-columns: minmax(0, 1.3fr) minmax(0, 1.15fr) minmax(0, .85fr); }
+  .cin-foot__side { grid-column: auto; }
+}
+.cin-foot__club { align-items: flex-start; }
+.cin-foot__id .cin-socials { margin-top: 16px; }
+.cin-foot__h { margin: 4px 0 14px; font-size: 13px; font-weight: 700; letter-spacing: .18em; text-transform: uppercase; color: var(--cin-gold-ink); }
+.cin-foot__links { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 24px; }
+.cin-foot__links a {
+  display: inline-flex; align-items: center; gap: 10px; min-height: 40px; color: var(--cin-ink); text-decoration: none;
+  font-size: 15px; line-height: 1.3; overflow-wrap: anywhere; transition: color .25s;
+}
+.cin-foot__links a::before { content: ""; flex: none; width: 6px; height: 6px; border-radius: 50%; background: var(--cin-line-2); transition: background-color .25s, scale .25s; }
+.cin-foot__links a:hover, .cin-foot__links a[aria-current] { color: var(--cin-gold-ink); }
+.cin-foot__links a:hover::before { background: var(--cin-gold); scale: 1.4; }
+.cin-foot__side { display: flex; flex-direction: column; align-items: flex-start; gap: 14px; }
+.cin-foot__id { min-width: 0; }
+.cin-foot__name { margin: 0; font-stretch: 115%; font-weight: 720; font-size: clamp(18px, 2vw, 24px); line-height: 1.15; overflow-wrap: anywhere; text-wrap: balance; }
+/* phones + tablets: name + district beside the logo, the social row under both at full width (no orphan icon) */
+@media (max-width: 1139px) {
+  .cin-foot__club { display: grid; grid-template-columns: auto minmax(0, 1fr); column-gap: 18px; }
+  .cin-foot__logo { grid-row: span 2; }
+  .cin-foot__id { display: contents; }
+  .cin-foot__name { align-self: end; }
+  .cin-foot__meta { align-self: start; }
+  .cin-foot__name:last-of-type { grid-row: span 2; align-self: center; }
+  .cin-foot__id .cin-socials { grid-column: 1 / -1; }
+  .cin-foot__club:has(.cin-foot__logo[data-wide]) { grid-template-columns: minmax(0, 1fr); row-gap: 16px; }
+  .cin-foot__club:has(.cin-foot__logo[data-wide]) .cin-foot__logo { grid-row: auto; justify-self: start; }
+}
+/* a wide lockup (a club without its own square logo) keeps its shape instead of shrinking into the square,
+   and the name sits under it */
+.cin-foot__logo[data-wide] { width: auto; max-width: min(100%, 260px); height: 88px; padding: 10px 16px; }
+.cin-foot__club:has(.cin-foot__logo[data-wide]) { flex-direction: column; }
+.cin-foot__meta { margin: 4px 0 0; color: var(--cin-mist); font-size: 15px; overflow-wrap: anywhere; }
+.cin-foot__vc { max-width: 380px; }
+/* footer contact: phone + email above the visitor count (client, 2026-09-29) */
+.cin-foot__contact { min-width: 0; }
+.cin-foot__cl { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
+.cin-foot__cl a { display: inline-flex; align-items: center; gap: 12px; min-height: 40px; color: var(--cin-ink); text-decoration: none; font-size: 15px; overflow-wrap: anywhere; transition: color .25s; }
+.cin-foot__cl a:hover { color: var(--cin-gold-ink); }
+.cin-foot__cl svg { flex: none; width: 18px; height: 18px; fill: var(--cin-gold); }
+html[data-theme="cinematic"] .cin-foot__vc .rv-vc { --rv-lab: 12px; }
+html[data-theme="cinematic"] .cin-foot__vc .rv-vc__l { white-space: normal; line-height: 1.25; }
+.cin-foot__legal { margin: 0; color: var(--cin-mist); font-size: 14px; }
+.cin-foot__legal a { display: inline-block; padding-block: 4px; margin-block: -4px; color: var(--cin-ink); text-underline-offset: 3px; }
+.cin-foot__legal a:hover { color: var(--cin-gold-ink); }
+.cin-foot__legal--by { margin-left: auto; text-align: right; }   /* Powered by: right side (client, 2026-09-25) */
+/* phones: the copyright and "Powered by" centred, one under the other (client, 2026-09-28) */
+@media (max-width: 599px) {
+  .cin-foot__row--base { flex-direction: column; align-items: center; gap: 10px; text-align: center; }
+  .cin-foot__legal--by { margin-left: 0; text-align: center; }
+}
+
+.cin-socials { display: flex; flex-wrap: wrap; gap: 10px; list-style: none; margin: 0; padding: 0; }
+.cin-socials a {
+  display: grid; place-items: center; width: 48px; height: 48px; border-radius: 50%;
+  border: 1px solid var(--cin-line); color: var(--cin-ink); transition: border-color .25s, color .25s;
+}
+.cin-socials a:hover { border-color: var(--cin-gold); color: var(--cin-gold-ink); }
+.cin-socials svg { width: 19px; height: 19px; }
+
+/* shared visitor counter, on this theme's footer ground */
+html[data-theme="cinematic"] .rv-vc {
+  --rv-bg1: #122047; --rv-bg2: var(--cin-deep); --rv-edge: rgba(247, 168, 27, .30);
+  --rv-today: var(--cin-gold-ink); --rv-total: var(--cin-ink); --rv-label: var(--cin-mist);
+  --rv-rule: var(--cin-line); font-family: var(--cin-sans);
+  box-shadow: 0 14px 32px rgba(0, 0, 0, .35);
+}
+
+/* ───────────────────────────── layout primitives ───────────────────────────── */
+.cin-sec { position: relative; padding: var(--cin-sec-y) var(--cin-side); }
+.cin-wrap { padding-inline: var(--cin-side); }
+.cin-h2 {
+  margin: 0; font-stretch: 125%; font-weight: 760; font-size: clamp(30px, 4.6vw, 66px); line-height: 1.02;
+  letter-spacing: -.015em; text-wrap: balance; overflow-wrap: anywhere; color: var(--cin-ink);
+}
+.cin-shead { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 16px 24px; margin-bottom: clamp(28px, 4vw, 48px); }
+.cin-shead__main { min-width: 0; max-width: 100%; }
+.cin-shead__lede { margin: 14px 0 0; max-width: 60ch; color: var(--cin-mist); }
+.cin-shead__act { flex: none; }
+
+/* ───────────────────────────── page hero ───────────────────────────── */
+.cin-phero {
+  position: relative; isolation: isolate; overflow: hidden;
+  padding: clamp(18px, 2.6vw, 38px) var(--cin-side) clamp(24px, 3vw, 44px);   /* a slim band (client, 2026-09-25) */
+  background:
+    radial-gradient(70% 90% at 100% 0%, rgba(23, 69, 143, .5), transparent 65%),
+    radial-gradient(50% 70% at 0% 100%, rgba(247, 168, 27, .10), transparent 70%),
+    var(--cin-night);
+}
+.cin-phero__back { position: absolute; inset: 0; z-index: -1; overflow: hidden; }
+.cin-phero__back img {
+  position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover;
+  filter: blur(36px) saturate(1.3) brightness(.7); transform: scale(1.2); opacity: .55;
+}
+.cin-phero__back::after {
+  content: ""; position: absolute; inset: 0;
+  background: linear-gradient(180deg, rgba(7, 11, 26, .55), rgba(7, 11, 26, .72) 55%, var(--cin-night));
+}
+.cin-phero__in { position: relative; max-width: 1100px; }
+.cin-phero__eyebrow { margin: 12px 0 0; color: var(--cin-gold-ink); font-weight: 650; font-size: 15px; letter-spacing: .02em; }
+/* --lw (longest word, set inline by PageHero) caps the size so a long word never breaks mid-letter */
+.cin-phero__title {
+  margin: 10px 0 0; font-stretch: 125%; font-weight: 800; text-transform: uppercase;
+  font-size: min(clamp(28px, 5.4vw, 76px), calc(min(88vw, 1100px) / (var(--lw, 8) * .95))); line-height: .95; letter-spacing: -.01em;
+  overflow-wrap: anywhere; text-wrap: balance;
+}
+.cin-phero__eyebrow + .cin-phero__title { margin-top: 6px; }
+.cin-phero.is-long .cin-phero__title {
+  font-size: min(clamp(24px, 3.6vw, 50px), calc(min(88vw, 1100px) / (var(--lw, 8) * .76))); line-height: 1.05; text-transform: none; font-stretch: 118%;
+}
+.cin-phero__lede { margin: clamp(10px, 1.4vw, 16px) 0 0; max-width: 60ch; color: var(--cin-mist); font-size: clamp(16px, 1.4vw, 19px); }
+.cin-phero__meta { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 20px; margin-top: clamp(14px, 1.8vw, 22px); }
+.cin-phero__beam {
+  position: absolute; left: 0; right: 0; bottom: 0; height: 2px; pointer-events: none;
+  background: linear-gradient(90deg, transparent, var(--cin-gold) 30%, var(--cin-gold-hi) 50%, var(--cin-gold) 70%, transparent);
+  box-shadow: 0 0 24px 2px rgba(247, 168, 27, .5); transform-origin: 50% 50%;
+}
+
+.cin-crumbs ol { display: flex; flex-wrap: wrap; align-items: center; gap: 2px 0; list-style: none; margin: 0; padding: 0; font-size: 14px; }
+.cin-crumbs li { display: inline-flex; align-items: center; color: var(--cin-mist); min-width: 0; }
+.cin-crumbs li + li::before { content: "/"; margin: 0 10px; color: var(--cin-gold-ink); }
+.cin-crumbs a { display: inline-flex; align-items: center; min-height: 32px; color: var(--cin-mist); text-underline-offset: 3px; }
+.cin-crumbs a:hover { color: var(--cin-ink); }
+.cin-crumbs [aria-current="page"] { color: var(--cin-ink); font-weight: 600; overflow-wrap: anywhere; }
+/* phones: the current crumb repeats the big title below - one line, so the "/" never hangs alone */
+@media (max-width: 599px) {
+  .cin-crumbs ol { flex-wrap: nowrap; }
+  .cin-crumbs li { flex: none; }
+  .cin-crumbs li:last-child { flex: 0 1 auto; }
+  .cin-crumbs [aria-current="page"] { display: block; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+}
+
+/* ───────────────────────────── buttons, pills, chips ───────────────────────────── */
+.cin-btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 10px;
+  min-height: 48px; padding: 0 26px; border-radius: 999px; border: 0;
+  font: inherit; font-size: 15.5px; font-weight: 650; line-height: 1.2; text-decoration: none;
+  white-space: nowrap; cursor: pointer; transition: background-color .25s, border-color .25s, color .25s;
+}
+.cin-btn--sm { min-height: 44px; padding: 0 20px; font-size: 14.5px; }
+.cin-btn--gold { background: var(--cin-gold); color: var(--cin-on-gold); }
+.cin-btn--gold:hover { background: var(--cin-gold-hi); }
+.cin-btn--line { border: 1.5px solid rgba(243, 245, 251, .36); color: var(--cin-ink); background: transparent; }
+.cin-btn--line:hover { border-color: var(--cin-gold); color: var(--cin-gold-ink); }
+.cin-btn--text { min-height: 44px; padding: 0; border-radius: 0; background: none; color: var(--cin-gold-ink); }
+.cin-btn--text:hover { color: var(--cin-gold-hi); }
+.cin-btn--text .cin-ico { transition: transform .3s var(--cin-ease); }
+.cin-btn--text:hover .cin-ico { transform: translateX(4px); }
+
+.cin-pill {
+  display: inline-block; padding: 3px 11px; border-radius: 999px; background: var(--cin-royal);
+  color: var(--cin-ink); font-size: 13.5px; font-weight: 600; line-height: 1.5;
+}
+
+.cin-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.cin-chip {
+  display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 18px;
+  border-radius: 999px; border: 1px solid var(--cin-line-2); background: rgba(13, 22, 51, .6);
+  font: inherit; font-size: 14.5px; font-weight: 600; color: var(--cin-mist); cursor: pointer;
+  transition: color .2s, border-color .2s, background-color .2s;
+}
+.cin-chip:hover { color: var(--cin-ink); border-color: rgba(247, 168, 27, .6); }
+.cin-chip[aria-pressed="true"] { background: var(--cin-gold); border-color: var(--cin-gold); color: var(--cin-on-gold); }
+.cin-chip__n { font-stretch: var(--cin-cond); font-weight: 800; font-size: 15px; font-variant-numeric: tabular-nums; opacity: .85; }
+
+.cin-search { position: relative; display: flex; align-items: center; width: 100%; max-width: 440px; }
+.cin-search input {
+  width: 100%; height: 52px; padding: 0 48px 0 48px; border-radius: 999px;
+  border: 1px solid var(--cin-line-2); background: rgba(13, 22, 51, .7);
+  font: inherit; font-size: 16px; color: var(--cin-ink);
+}
+.cin-search input::placeholder { color: var(--cin-mist); opacity: 1; }
+.cin-search input:hover { border-color: rgba(247, 168, 27, .5); }
+.cin-search input::-webkit-search-cancel-button { display: none; }
+.cin-search__ico { position: absolute; left: 18px; width: 18px; height: 18px; color: var(--cin-gold-ink); pointer-events: none; }
+.cin-search__clear {
+  position: absolute; right: 4px; display: grid; place-items: center; width: 44px; height: 44px;
+  border: 0; border-radius: 50%; background: none; color: var(--cin-mist); cursor: pointer;
+}
+.cin-search__clear:hover { color: var(--cin-ink); }
+.cin-search__clear svg { width: 16px; height: 16px; }
+
+.cin-count { margin: 0; color: var(--cin-mist); font-size: 15px; }
+
+/* ───────────────────────────── figures + dates ───────────────────────────── */
+.cin-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(150px, 100%), 1fr)); gap: 28px 20px; margin: 0; }
+.cin-stat { display: flex; flex-direction: column-reverse; min-width: 0; padding-top: 16px; border-top: 1px solid var(--cin-line); }
+.cin-stat__v {
+  margin: 0; font-stretch: var(--cin-cond); font-weight: 800; line-height: .95; white-space: nowrap;
+  font-size: clamp(38px, 5vw, 68px); color: var(--cin-gold-ink); font-variant-numeric: tabular-nums;
+}
+.cin-stat__l { margin-top: 8px; font-size: 14.5px; font-weight: 600; color: var(--cin-ink); }
+/* phones: two figures a row, not one per screen */
+@media (max-width: 599px) {
+  .cin-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px 16px; }
+  .cin-stat__v { font-size: clamp(26px, 8.6vw, 38px); }
+}
+
+.cin-date { display: inline-flex; align-items: center; gap: 12px; line-height: 1; }
+.cin-date__d { font-stretch: var(--cin-cond); font-weight: 800; font-size: clamp(44px, 5vw, 64px); color: var(--cin-gold-ink); font-variant-numeric: tabular-nums; }
+.cin-date__my { display: flex; flex-direction: column; gap: 4px; font-stretch: var(--cin-wide); font-weight: 700; font-size: 14px; text-transform: uppercase; letter-spacing: .04em; }
+.cin-date__wd { color: var(--cin-mist); font-weight: 500; text-transform: none; letter-spacing: 0; font-stretch: 100%; }
+
+/* ───────────────────────────── cards ───────────────────────────── */
+/* film frame */
+.cin-card { position: relative; min-width: 0; list-style: none; }
+.cin-card__media { position: relative; overflow: hidden; border-radius: var(--cin-r); background: var(--cin-night-2); transition: box-shadow .35s; }
+.cin-card__media img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.cin-card__blank {
+  position: absolute; inset: 0;
+  background:
+    radial-gradient(60% 60% at 50% 50%, rgba(23, 69, 143, .6), transparent 70%),
+    repeating-linear-gradient(90deg, transparent 0 18px, rgba(167, 179, 209, .12) 18px 28px) top / 100% 14px no-repeat,
+    repeating-linear-gradient(90deg, transparent 0 18px, rgba(167, 179, 209, .12) 18px 28px) bottom / 100% 14px no-repeat,
+    var(--cin-night-2);
+}
+.cin-card:hover .cin-card__media { box-shadow: 0 0 0 2px var(--cin-gold), 0 24px 60px -20px var(--cin-glow); }
+.cin-card:has(a:focus-visible) { outline: 3px solid var(--cin-gold); outline-offset: 6px; border-radius: 20px; }
+.cin-card__body { padding-top: 16px; max-width: 46ch; }
+.cin-card__meta { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; font-size: 13.5px; color: var(--cin-mist); }
+.cin-card__t {
+  margin: 10px 0 0; font-stretch: 110%; font-weight: 700; font-size: clamp(18px, 1.5vw, 21px); line-height: 1.22;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; overflow-wrap: anywhere;
+}
+.cin-card__meta + .cin-card__t { margin-top: 10px; }
+.cin-card__body > .cin-card__t:first-child { margin-top: 0; }
+.cin-card__t a { color: inherit; text-decoration: none; }
+.cin-card__t a::after { content: ""; position: absolute; inset: 0; border-radius: var(--cin-r); }
+.cin-card__t a:focus-visible { outline: none; }
+.cin-card__x {
+  margin: 8px 0 0; font-size: 15px; line-height: 1.5; color: var(--cin-mist);
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; overflow-wrap: anywhere;
+}
+.cin-card--grid .cin-card__media { aspect-ratio: 4 / 3; }
+/* whole photo: contained (never cropped) over a blurred, dimmed copy that fills the frame */
+.cin-card--whole .cin-card__media img.cin-card__fill {
+  position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover;
+  filter: blur(22px) saturate(1.2) brightness(.55); transform: scale(1.18);
+}
+.cin-card--whole .cin-card__media img.cin-card__pic { position: relative; object-fit: contain; }
+.cin-card--grid .cin-card__body { max-width: none; }
+.cin-card--reel { --ar: 1.333; flex: none; width: calc(var(--h, 300px) * var(--ar)); max-width: 82vw; }
+/* phones: a portrait photo no longer makes a sliver of a card - the frame has a floor, the photo is letterboxed */
+@media (max-width: 899px) { .cin-card--reel { min-width: min(70vw, 280px); } }
+.cin-card--reel .cin-card__media { height: var(--h, 300px); }
+
+/* reel row: native scroll-snap on phones; reel() pins it on wide screens */
+.cin-track { --h: min(58vw, 380px, 48svh); display: flex; gap: clamp(16px, 2vw, 32px); list-style: none; margin: 0; padding: 0; }
+@media (max-width: 899px) {
+  .cin-track {
+    overflow-x: auto; scroll-snap-type: x mandatory; overscroll-behavior-x: contain;
+    margin-inline: calc(var(--cin-side) * -1); padding: 4px var(--cin-side) 16px; scroll-padding-inline: var(--cin-side);
+    scrollbar-width: thin; scrollbar-color: var(--cin-royal) transparent;
+  }
+  .cin-track > * { scroll-snap-align: start; }
+}
+/* phones: one project per row, full width, the whole photo (client, 2026-09-28) */
+@media (max-width: 599px) {
+  .cin-track { flex-direction: column; gap: 36px; overflow: visible; scroll-snap-type: none; margin-inline: 0; padding: 0; }
+  .cin-card--reel { width: 100%; min-width: 0; max-width: none; }
+  .cin-card--reel .cin-card__media { height: auto; aspect-ratio: 4 / 3; }
+}
+@media (min-width: 900px) { .cin-track { --h: 300px; flex-wrap: wrap; row-gap: 44px; } }
+.cin-reel { overflow-x: clip; }
+.cin-reel__bar { display: none; position: relative; height: 2px; background: var(--cin-line); margin-top: 22px; }
+.cin-reel__bar > span { position: absolute; inset: 0; background: var(--cin-gold); transform-origin: 0 50%; }
+.cin-reel.is-reel { padding-block: 0; }
+.cin-reel.is-reel .cin-reel__stage {
+  height: calc(100vh - var(--cin-hh)); height: calc(100svh - var(--cin-hh));
+  display: flex; flex-direction: column; justify-content: center; padding-block: 24px;
+}
+.cin-reel.is-reel .cin-track { --h: clamp(220px, calc(100svh - var(--cin-hh) - 360px), 540px); flex-wrap: nowrap; width: max-content; }
+.cin-reel.is-reel .cin-reel__bar { display: block; }
+
+/* royal panel tile */
+.cin-panel {
+  position: relative; overflow: hidden; list-style: none; border-radius: var(--cin-r-lg); min-height: 240px; min-width: 0;
+  padding: clamp(24px, 3vw, 40px); display: flex; flex-direction: column; justify-content: space-between; gap: 28px;
+  background: radial-gradient(110% 90% at 100% 0%, rgba(23, 69, 143, .95), rgba(23, 69, 143, 0) 62%), var(--cin-night-2);
+  border: 1px solid var(--cin-line);
+}
+.cin-panel__t { margin: 0; font-stretch: 118%; font-weight: 750; font-size: clamp(22px, 2.5vw, 36px); line-height: 1.08; letter-spacing: -.01em; overflow-wrap: anywhere; }
+.cin-panel__date { margin: 10px 0 0; color: var(--cin-mist); font-size: 15px; }
+.cin-panel__foot { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 18px; }
+.cin-panel__kick { margin-bottom: 18px; }
+
+/* leader card */
+.cin-pcard { perspective: 1000px; list-style: none; min-width: 0; }
+.cin-pcard__in {
+  position: relative; height: 100%; border-radius: var(--cin-r-lg); padding: 12px;
+  background: linear-gradient(160deg, #122047, #0B1230 60%); border: 1px solid var(--cin-line);
+  display: grid; grid-template-columns: 38% 1fr; gap: 16px; align-items: start; transform-style: preserve-3d;
+  transition: border-color .3s;
+}
+.cin-pcard:hover .cin-pcard__in { border-color: rgba(247, 168, 27, .45); }
+.cin-pcard__photo { position: relative; aspect-ratio: 4 / 5; border-radius: 16px; overflow: hidden; background: #101B40; }
+.cin-pcard__img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: 50% 20%; }
+.cin-pcard__mono {
+  display: grid; place-items: center; width: 100%; height: 100%;
+  background: radial-gradient(70% 70% at 30% 20%, var(--cin-royal), #101B40);
+  font-stretch: var(--cin-wide); font-weight: 800; font-size: clamp(34px, 5vw, 56px); color: var(--cin-gold);
+}
+.cin-pcard__txt { padding: 4px 4px 6px 0; min-width: 0; }
+.cin-pcard__role { margin: 0; font-size: 13.5px; font-weight: 650; color: var(--cin-gold-ink); line-height: 1.3; overflow-wrap: anywhere; }
+.cin-pcard__name { margin: 6px 0 0; font-stretch: 112%; font-weight: 720; font-size: clamp(18px, 1.6vw, 22px); line-height: 1.15; overflow-wrap: anywhere; }
+.cin-pcard__name a { color: inherit; text-decoration: none; }
+.cin-pcard__name a::after { content: ""; position: absolute; inset: 0; border-radius: var(--cin-r-lg); z-index: 1; }
+.cin-pcard__name a:focus-visible { outline: none; }
+.cin-pcard:has(a:focus-visible) .cin-pcard__in { outline: 3px solid var(--cin-gold); outline-offset: 4px; }
+.cin-pcard__bio {
+  margin: 10px 0 0; font-size: 14.5px; line-height: 1.5; color: var(--cin-mist); overflow-wrap: anywhere;
+  display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden;
+}
+@media (min-width: 600px) and (min-height: 501px) {
+  .cin-pcard__in { display: block; padding: 12px 12px 22px; }
+  .cin-pcard__txt { padding: 18px 8px 0; }
+}
+
+/* ───────────────────────────── admin rich HTML ─────────────────────────────
+   The club's own HTML (about, bios, descriptions), rendered as Gold renders it.
+   Pasted Word/editor markup carries inline colours, fonts and white
+   backgrounds written for a light page; on night they would vanish, so colour,
+   background and family are taken back here (sizes and alignment stay). Pages
+   pass the HTML through demoteH1() so the hero keeps the only <h1>. */
+.cin-prose { min-width: 0; font-size: clamp(17px, 1.25vw, 18.5px); line-height: 1.75; color: var(--cin-ink); overflow-wrap: anywhere; }
+.cin-prose * { color: inherit !important; background: transparent !important; font-family: inherit !important; max-width: 100%; }
+.cin-prose > * + *, .cin-prose p + p { margin-top: 1.1em; }
+.cin-prose pre { white-space: pre-wrap; }
+@media (max-width: 760px) {
+  .cin-prose, .cin-prose * { text-align: left !important; text-align-last: auto !important; }
+  .cin-prose :is([style*="center"], [align="center"]) { text-align: center !important; }
+}
+.cin-prose iframe { width: 100%; border: 0; border-radius: var(--cin-r-sm); }
+.cin-prose :is(h1, h2, h3, h4, h5, h6) { font-stretch: var(--cin-wide); font-weight: 760; line-height: 1.12; letter-spacing: -.01em; text-wrap: balance; }
+.cin-prose > :is(h1, h2, h3, h4, h5, h6):not(:first-child) { margin-top: 1.7em; }
+.cin-prose :is(h1, h2) { font-size: clamp(22px, 2.2vw, 30px); }
+.cin-prose h3 { font-size: clamp(19px, 1.7vw, 24px); }
+.cin-prose :is(h4, h5, h6) { font-size: 1.08em; }
+.cin-prose :is(strong, b) { font-weight: 700; }
+.cin-prose a { color: var(--cin-gold-ink) !important; text-decoration: underline; text-underline-offset: 3px; }
+.cin-prose a:hover { color: var(--cin-gold-hi) !important; }
+.cin-prose :is(ul, ol) { padding-left: 1.4em; }
+.cin-prose ul { list-style: disc; }
+.cin-prose ol { list-style: decimal; }
+.cin-prose li + li { margin-top: .4em; }
+.cin-prose li::marker { color: var(--cin-gold-ink); }
+.cin-prose img { height: auto; border-radius: var(--cin-r-sm); }
+.cin-prose table { display: block; overflow-x: auto; border-collapse: collapse; }
+.cin-prose :is(td, th) { padding: 6px 12px; border: 1px solid var(--cin-line); vertical-align: top; }
+.cin-prose blockquote { margin-inline: 0; padding-left: 1.1em; border-left: 3px solid var(--cin-gold); }
+.cin-prose hr { border: 0; border-top: 1px solid var(--cin-line); }
+
+/* ───────────────────────────── the shared photo viewer ─────────────────────────────
+   PhotoLightbox (portalled to <body>, its own <style> injected in the page) on
+   this theme's night; html[data-theme] outranks its single-class rules. */
+html[data-theme="cinematic"] .pdm-lb__bg { background: rgba(5, 8, 22, .95); }
+html[data-theme="cinematic"] .pdm-lb__img { border-radius: var(--cin-r); box-shadow: 0 0 0 1px rgba(247, 168, 27, .25), 0 40px 120px -40px var(--cin-glow); }
+html[data-theme="cinematic"] .pdm-lb__btn { border-color: var(--cin-line-2); background: rgba(13, 22, 51, .85); color: var(--cin-ink); }
+html[data-theme="cinematic"] .pdm-lb__btn:hover { border-color: var(--cin-gold); background: rgba(13, 22, 51, .95); color: var(--cin-gold); }
+html[data-theme="cinematic"] .pdm-lb__btn:focus-visible { outline: 3px solid var(--cin-gold); outline-offset: 3px; }
+html[data-theme="cinematic"] .pdm-lb__count {
+  font-family: var(--cin-sans); font-stretch: var(--cin-cond); font-weight: 800; font-size: 16px; letter-spacing: .08em;
+  color: var(--cin-gold); background: rgba(7, 11, 26, .85); border-color: var(--cin-line-2);
+}
+html[data-theme="cinematic"] .pdm-lb__cap { font-family: var(--cin-sans); font-size: 14.5px; color: var(--cin-ink); background: rgba(13, 22, 51, .92); border-color: var(--cin-line); }
+
+/* ───────────────────────────── states ───────────────────────────── */
+.cin-empty {
+  display: flex; flex-direction: column; align-items: flex-start; gap: 14px; max-width: 640px;
+  padding: clamp(28px, 4vw, 48px); border-radius: var(--cin-r-lg);
+  border: 1px dashed var(--cin-line-2); background: rgba(13, 22, 51, .55);
+}
+.cin-empty__ico { position: relative; width: 56px; height: 56px; border-radius: 50%; border: 2px solid var(--cin-gold); }
+.cin-empty__ico::before, .cin-empty__ico::after { content: ""; position: absolute; background: rgba(247, 168, 27, .6); }
+.cin-empty__ico::before { left: 50%; top: 6px; bottom: 6px; width: 1px; }
+.cin-empty__ico::after { top: 50%; left: 6px; right: 6px; height: 1px; }
+.cin-empty__ico span { position: absolute; inset: 14px; border-radius: 50%; border: 1px solid rgba(247, 168, 27, .5); }
+.cin-empty__t { margin: 0; font-stretch: 118%; font-weight: 720; font-size: clamp(20px, 2.2vw, 28px); line-height: 1.15; }
+.cin-empty__m { margin: 0; color: var(--cin-mist); max-width: 52ch; }
+
+.cin-nf { display: flex; flex-direction: column; align-items: flex-start; gap: 24px; padding: var(--cin-sec-y) var(--cin-side); }
+.cin-nf__leader {
+  position: relative; width: clamp(120px, 18vw, 180px); aspect-ratio: 1; border-radius: 50%;
+  border: 3px solid var(--cin-gold); box-shadow: 0 0 60px rgba(247, 168, 27, .25);
+  background:
+    linear-gradient(var(--cin-gold), var(--cin-gold)) center / 2px 100% no-repeat,
+    linear-gradient(var(--cin-gold), var(--cin-gold)) center / 100% 2px no-repeat;
+}
+.cin-nf__leader span { position: absolute; inset: 18%; border-radius: 50%; border: 2px solid rgba(247, 168, 27, .55); }
+.cin-nf__m { margin: 0; max-width: 52ch; color: var(--cin-mist); font-size: clamp(17px, 1.6vw, 20px); }
+
+.cin-loading { display: flex; justify-content: center; padding: clamp(48px, 8vw, 96px) var(--cin-side); }
+.cin-loading__reel { display: flex; gap: 10px; }
+.cin-loading__reel i {
+  display: block; width: clamp(44px, 7vw, 72px); aspect-ratio: 4 / 3; border-radius: 8px;
+  background: var(--cin-night-2); border: 1px solid var(--cin-line);
+  animation: cin-flicker 1.4s ease-in-out infinite;
+}
+.cin-loading__reel i:nth-child(2) { animation-delay: .12s; }
+.cin-loading__reel i:nth-child(3) { animation-delay: .24s; }
+.cin-loading__reel i:nth-child(4) { animation-delay: .36s; }
+.cin-loading__reel i:nth-child(5) { animation-delay: .48s; }
+@keyframes cin-flicker { 0%, 100% { background: var(--cin-night-2); } 50% { background: var(--cin-royal); border-color: rgba(247, 168, 27, .5); } }
+
+/* ───────────────────────────── shared fallback pages ─────────────────────────────
+   Pages this theme has not redesigned (sister clubs, the single-club legacy
+   pages) render the classic Tailwind markup inside this shell. Recolour its
+   vocabulary for the night ground; layout classes are left alone. Theme pages
+   never use these utility classes. */
+html[data-theme="cinematic"] .cin-main .\-mt-24 { margin-top: 0; }
+html[data-theme="cinematic"] .cin-main .\-mt-24 > .container-x { padding-top: clamp(40px, 7vw, 88px); padding-bottom: clamp(28px, 4vw, 44px); }
+html[data-theme="cinematic"] .cin-main .\-mt-24 nav a { display: inline-flex; align-items: center; min-height: 32px; }   /* shared crumbs: 24px+ targets */
+html[data-theme="cinematic"] .cin-main .from-navy-deep.bg-gradient-to-br {
+  background: radial-gradient(70% 90% at 100% 0%, rgba(23, 69, 143, .5), transparent 65%), var(--cin-night);
+  border-bottom: 2px solid var(--cin-gold);
+}
+html[data-theme="cinematic"] .cin-main .font-heading { font-family: var(--cin-sans); font-stretch: 118%; }
+html[data-theme="cinematic"] .cin-main .bg-canvas,
+html[data-theme="cinematic"] .cin-main .bg-gray-50 { background-color: transparent; }
+html[data-theme="cinematic"] .cin-main .bg-white { background-color: var(--cin-night-2); }
+html[data-theme="cinematic"] .cin-main .bg-navy\/5 { background-color: rgba(243, 245, 251, .05); }
+html[data-theme="cinematic"] .cin-main :is(.text-navy, .text-ink, .text-gray-900, .text-gray-800) { color: var(--cin-ink); }
+html[data-theme="cinematic"] .cin-main :is(.text-muted, .text-gray-500, .text-gray-600, .text-gray-700) { color: var(--cin-mist); }
+html[data-theme="cinematic"] .cin-main :is(.text-gold, .text-gold-cta) { color: var(--cin-gold-ink); }
+html[data-theme="cinematic"] .cin-main :is(.bg-gold, .from-gold) :is(.text-navy, .text-white),
+html[data-theme="cinematic"] .cin-main :is(.bg-gold, .from-gold):is(.text-navy, .text-white) { color: var(--cin-on-gold); }
+html[data-theme="cinematic"] .cin-main :is(.border-gray-100, .border-gray-200, .border-navy\/5, .border-navy\/10) { border-color: var(--cin-line); }
+html[data-theme="cinematic"] .cin-main :is(.shadow-card, .shadow-lg, .hover\:shadow-cardHover:hover) { box-shadow: 0 0 0 1px var(--cin-line), 0 20px 50px -24px rgba(0, 0, 0, .6); }
+html[data-theme="cinematic"] .cin-main .prose { color: var(--cin-ink); }
+html[data-theme="cinematic"] .cin-main .prose a { color: var(--cin-gold-ink); }
+
+@media (prefers-reduced-motion: reduce) {
+  html[data-theme="cinematic"] *, html[data-theme="cinematic"] *::before, html[data-theme="cinematic"] *::after { transition: none !important; }
+  .cin-loading__reel i { animation: none; }
+}
+@media (min-width: 600px) and (max-height: 500px) {
+  html[data-theme="cinematic"] { --cin-sec-y: 52px; }
+}
+
+/* ───────── light mode (html[data-cin-mode="light"]) ───────── */
+/* main + footer to here. Component overrides sit in :where() so they only just outrank the base rule:
+   every state (hover, aria-pressed) and every page-level rule still wins over them. The :not(...) keeps
+   the night islands' insides exactly dark; control edges and link hovers are mixed from tokens, so an
+   island added later still gets a light-on-dark value there. The footer, the ad popup and the royal
+   panels need nothing here (islands). */
+html[data-cin-mode="light"] :where(.cin-phero) {
+  background:
+    radial-gradient(70% 90% at 100% 0%, rgba(23, 69, 143, .12), transparent 65%),
+    radial-gradient(50% 70% at 0% 100%, rgba(247, 168, 27, .12), transparent 70%),
+    var(--cin-night);
+}
+html[data-cin-mode="light"] :where(.cin-phero__back img) { filter: blur(36px) saturate(1.3); }
+html[data-cin-mode="light"] .cin-phero__back::after {
+  background: linear-gradient(180deg, rgba(243, 245, 250, .84), rgba(243, 245, 250, .92) 55%, var(--cin-night));
+}
+html[data-cin-mode="light"] .cin-phero__back img { opacity: .32; }
+html[data-cin-mode="light"] .cin-phero__beam { box-shadow: 0 0 12px rgba(247, 168, 27, .3); }
+
+html[data-cin-mode="light"] :where(.cin-btn--line:not(:is(.cin-foot, .cin-dlg__panel, .cin-panel, .cin-ev-ticket, .cin-evd-stub, .cin-ev-meet, .cin-next__card, .cin-slate) *)) { border-color: color-mix(in srgb, var(--cin-ink) 50%, transparent); }
+html[data-cin-mode="light"] .cin-btn--text:hover:not(:is(.cin-foot, .cin-dlg__panel, .cin-panel, .cin-ev-ticket, .cin-evd-stub, .cin-ev-meet, .cin-next__card, .cin-slate) *) { color: color-mix(in srgb, var(--cin-gold-ink) 78%, var(--cin-ink)); }
+html[data-cin-mode="light"] :where(.cin-pill:not(:is(.cin-foot, .cin-dlg__panel, .cin-panel, .cin-ev-ticket, .cin-evd-stub, .cin-ev-meet, .cin-next__card, .cin-slate) *)) { background: rgba(23, 69, 143, .14); }
+html[data-cin-mode="light"] :where(.cin-chip) { background: var(--cin-night-2); border-color: color-mix(in srgb, var(--cin-ink) 50%, transparent); }
+html[data-cin-mode="light"] :where(.cin-search input) { background: var(--cin-field-bg); border-color: color-mix(in srgb, var(--cin-ink) 50%, transparent); }
+
+html[data-cin-mode="light"] :where(.cin-card__blank) {
+  background:
+    radial-gradient(60% 60% at 50% 50%, rgba(23, 69, 143, .14), transparent 70%),
+    repeating-linear-gradient(90deg, transparent 0 18px, rgba(11, 20, 51, .1) 18px 28px) top / 100% 14px no-repeat,
+    repeating-linear-gradient(90deg, transparent 0 18px, rgba(11, 20, 51, .1) 18px 28px) bottom / 100% 14px no-repeat,
+    var(--cin-night-3);
+}
+html[data-cin-mode="light"] .cin-card--whole .cin-card__media img.cin-card__fill { filter: blur(22px) saturate(1.1) brightness(1.12); transform: scale(1.4); opacity: .55; }
+/* the portrait's navy ground and the gold-on-royal monogram stay: they read as the avatar */
+html[data-cin-mode="light"] :where(.cin-pcard__in) { background: var(--cin-night-2); box-shadow: 0 18px 44px -30px var(--cin-shadow); }
+
+html[data-cin-mode="light"] .cin-prose a:hover:not(:is(.cin-foot, .cin-dlg__panel, .cin-panel, .cin-ev-ticket, .cin-evd-stub, .cin-ev-meet, .cin-next__card, .cin-slate) *) { color: color-mix(in srgb, var(--cin-gold-ink) 78%, var(--cin-ink)) !important; }
+
+html[data-cin-mode="light"] :where(.cin-empty) { background: var(--cin-night-2); }
+html[data-cin-mode="light"] .cin-nf__leader { box-shadow: 0 0 36px rgba(247, 168, 27, .16); }
+@keyframes cin-flicker-light { 0%, 100% { background: var(--cin-night-2); } 50% { background: rgba(23, 69, 143, .16); border-color: rgba(154, 91, 0, .45); } }
+@media (prefers-reduced-motion: no-preference) {
+  html[data-cin-mode="light"] .cin-loading__reel i { animation-name: cin-flicker-light; }
+}
+
+html[data-cin-mode="light"] .cin-main .bg-navy\/5 { background-color: rgba(11, 20, 51, .05); }
+html[data-cin-mode="light"] .cin-main :is(.shadow-card, .shadow-lg, .hover\:shadow-cardHover:hover) { box-shadow: 0 0 0 1px var(--cin-line), 0 20px 50px -24px var(--cin-shadow); }
+
+/* focus rings: gold on paper is 1.8:1, the bronze holds 3:1 (as the global :focus-visible above) */
+html[data-cin-mode="light"] .cin-card:has(a:focus-visible),
+html[data-cin-mode="light"] .cin-pcard:has(a:focus-visible) .cin-pcard__in { outline-color: var(--cin-gold-ink); }
+/* a hero photo under the paper scrim can pull the bronze eyebrow below 4.5:1; a deeper bronze holds it */
+html[data-cin-mode="light"] .cin-phero:has(.cin-phero__back) .cin-phero__eyebrow { color: color-mix(in srgb, var(--cin-gold-ink) 78%, var(--cin-ink)); }
+/* dark screens outside the night-island list: the photo viewer (portalled to <body>, dark scrim, its
+   buttons and caption read --cin-ink) and the shared fallback crumb band (hardcoded text-white on
+   var(--cin-night)) - both carry the dark values locally, as the islands above do */
+html[data-cin-mode="light"] :is(.pdm-lb, .cin-main .from-navy-deep.bg-gradient-to-br) {
+  --cin-night: #070B1A;
+  --cin-night-2: #0D1633;
+  --cin-night-3: #0A1026;
+  --cin-deep: #050816;
+  --cin-ink: #F3F5FB;
+  --cin-mist: #A7B3D1;
+  --cin-line: rgba(167, 179, 209, .18);
+  --cin-line-2: rgba(167, 179, 209, .32);
+  --cin-glow: rgba(247, 168, 27, .45);
+  --cin-gold-ink: #F7A81B;
+  --cin-on-gold: #070B1A;
+  --cin-field-bg: rgba(13, 22, 51, .7);
+  --cin-shadow: rgba(0, 0, 0, .7);
+  color-scheme: dark;
+}
+html[data-cin-mode="light"] .cin-hdr { -webkit-backdrop-filter: none; backdrop-filter: none; }
+/* 5 · image wells: an unlit pale frame while a photo loads (plain white read as a broken image) */
+html[data-cin-mode="light"] .cin-card__media { background: var(--cin-deep); }
+
+/* header menu in capitals, its dropdowns included (client, 2026-10-01) */
+html[data-theme="cinematic"] .cin-nav{text-transform:uppercase;letter-spacing:.04em}
+/* ...but the dropdown items in title case (client, 2026-10-01) */
+html[data-theme="cinematic"] .cin-nav .cin-nav__sub{text-transform:capitalize;letter-spacing:normal}
+
+/* Hover looks only where there IS a hover (2026-10-06). On a phone a touched link keeps :hover after the tap, and
+   these hovers wear the same gold as the current page - so a menu item the finger touched (e.g. Events, under
+   Calendar) looked active too. Touch screens now show gold on the current page only. */
+@media (hover: hover) and (pointer: fine) {
+  .cin-nav__top:hover { color: var(--cin-ink); }
+  .cin-nav__sub a:hover { color: var(--cin-ink); background: rgba(23, 69, 143, .45); }
+  html[data-cin-mode="light"] .cin-nav__sub a:hover { background: rgba(23, 69, 143, .09); }
+  a.cin-menu__top:hover { color: var(--cin-gold-hi); }
+  html[data-cin-mode="light"] a.cin-menu__top:hover { color: var(--cin-gold-ink); }
+  .cin-menu__sub a:hover { color: var(--cin-gold-ink); }
+}
+/* a very long figure (the all-years cost) gets a double-width cell, so the row's one shared size stays large (2026-10-06) */
+.cin-stats{grid-auto-flow:row dense}
+.cin-stat.is-long{grid-column:span 2}

@@ -1,0 +1,79 @@
+/* Split Story · Project detail — every class is spl-pd-*; kit classes are only
+   extended through .spl-pd-* modifiers. No hidden start states (the iris/wipe
+   and the dialog's iris are set from JS and skipped under reduced motion). */
+
+html[data-theme="split-story"].spl-pd-locked{overflow:hidden}
+
+/* ── hero extras ────────────────────────────────────────────────────────── */
+.spl-pd-hero-actions{display:flex;flex-wrap:wrap;align-items:center;gap:12px 24px}
+.spl-pd-hero-actions .spl-back{color:#fff}
+
+/* ── the project: facts + write-up ──────────────────────────────────────── */
+.spl-pd-cap{margin:0 0 clamp(20px,3vh,32px);color:var(--spl-azure);font-size:.9375rem;font-weight:800;line-height:1.45}
+.spl-pd-facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,150px),1fr));gap:18px 28px;margin:0 0 clamp(32px,6vh,56px)}
+.spl-pd-facts > div{min-width:0;padding-top:10px;border-top:3px solid var(--spl-night)}
+.spl-pd-facts > .is-long{grid-column:1/-1}
+.spl-pd-facts dt{color:var(--spl-muted);font-size:.875rem;font-weight:800}
+.spl-pd-facts dd{margin:4px 0 0;color:var(--spl-royal);font-family:var(--spl-display);font-stretch:78%;font-weight:800;font-size:clamp(22px,2.2vw,30px);line-height:1.1;overflow-wrap:anywhere}
+.spl-pd-facts .is-long dd{color:var(--spl-night);font-family:var(--spl-body);font-stretch:100%;font-weight:700;font-size:clamp(1.05rem,1.3vw,1.2rem);line-height:1.45}
+.spl-pd-prose{max-width:none}
+.spl-pd-prose img{max-width:100%}
+.spl-pd-none{max-width:56ch;margin:0;padding:18px 22px;border-radius:var(--spl-radius-sm);background:var(--spl-mist);color:var(--spl-muted);font-weight:600}
+
+/* ── updates (kit Timeline) ─────────────────────────────────────────────── */
+.spl-pd-upds .spl-tl-photo{max-width:min(100%,520px)}
+.spl-pd-upds .spl-tl-photo.is-portrait{max-width:min(64%,340px)}
+.spl-pd-upds .spl-tag{margin-bottom:4px}
+.spl-pd-upd-open{margin-top:12px}
+.spl-pd-more{margin-top:clamp(28px,5vh,48px);padding-left:clamp(44px,5vw,64px)}
+
+/* ── photos: numbered frames, the first one leads ───────────────────────── */
+.spl-pd-sheet{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,200px),1fr));gap:clamp(12px,1.6vw,20px);margin:0;padding:0;list-style:none}
+.spl-pd-shot{min-width:0}
+.spl-pd-shot.is-lead{grid-column:1/-1}
+.spl-pd-shot-btn{position:relative;display:block;width:100%;padding:0;border:0;border-radius:var(--spl-radius-sm);background:none;cursor:zoom-in}
+.spl-pd-shot-frame{display:block;aspect-ratio:4/3;overflow:hidden;border-radius:var(--spl-radius-sm);background:var(--spl-mist) radial-gradient(circle at 100% 0,transparent 37%,rgba(23,69,143,.16) 37.5%,rgba(23,69,143,.16) 38.5%,transparent 39%);transition:box-shadow .3s}
+.spl-pd-shot.is-lead .spl-pd-shot-frame{aspect-ratio:16/9}
+.spl-pd-shot-frame img{width:100%;height:100%;object-fit:cover}
+.spl-pd-shot-n{position:absolute;left:12px;top:12px;display:inline-grid;place-items:center;min-width:40px;height:30px;padding:0 10px;border-radius:999px;background:rgba(11,35,80,.78);color:#fff;font-family:var(--spl-display);font-stretch:72%;font-weight:800;font-size:1.05rem;line-height:1;font-variant-numeric:tabular-nums;transition:background-color .25s,color .25s}
+.spl-pd-shot-btn:hover .spl-pd-shot-n,.spl-pd-shot-btn:focus-visible .spl-pd-shot-n{background:var(--spl-gold);color:var(--spl-night)}
+.spl-pd-shot-btn:hover .spl-pd-shot-frame{box-shadow:0 0 0 3px var(--spl-gold)}
+.spl-pd-shot-cap{margin:8px 2px 0;color:var(--spl-muted);font-size:.875rem;line-height:1.45;overflow-wrap:anywhere}
+
+/* ── the gold band: share row + way back ────────────────────────────────── */
+.spl-pd-share{display:flex;flex-wrap:wrap;gap:14px;margin:clamp(24px,5vh,48px) 0 0;padding:0;list-style:none}
+.spl-pd-share li{position:relative}
+.spl-pd-sh{display:grid;place-items:center;width:56px;height:56px;padding:0;border:2px solid var(--spl-night);border-radius:50%;background:transparent;color:var(--spl-night);cursor:pointer;transition:background-color .25s,color .25s}
+.spl-pd-sh:hover{background:var(--spl-night);color:var(--spl-gold)}
+.spl-pd-sh svg{width:22px;height:22px}
+.spl-pd-sh-toast{position:absolute;left:50%;top:calc(100% + 6px);z-index:2;padding:2px 10px;border-radius:999px;background:var(--spl-night);color:#fff;font-size:.75rem;font-weight:800;white-space:nowrap;transform:translateX(-50%);opacity:0;transition:opacity .25s;pointer-events:none}
+.spl-pd-sh-toast.is-on{opacity:1}
+.spl-pd-band-actions{display:flex;flex-wrap:wrap;gap:12px;margin-top:clamp(28px,5vh,48px)}
+
+/* ── the update dialog (portalled to <body>) ────────────────────────────── */
+.spl-pd-dlg{position:fixed;inset:0;z-index:150;display:grid;place-items:center;padding:clamp(12px,3vw,40px)}
+.spl-pd-dlg-bg{position:absolute;inset:0;background:rgba(11,35,80,.78)}
+.spl-pd-dlg-panel{position:relative;width:min(900px,100%);max-height:100%;overflow:auto;overscroll-behavior:contain;border-radius:var(--spl-radius);background:#fff;color:var(--spl-night);box-shadow:var(--spl-shadow)}
+.spl-pd-dlg-head{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:start;gap:8px 16px;padding:clamp(20px,3vw,36px);background:var(--spl-royal);color:#fff}
+.spl-pd-dlg-eyebrow{grid-column:1;align-self:center;margin:0;color:var(--spl-gold);font-size:.9375rem;font-weight:800}
+.spl-pd-dlg-x{grid-column:2;grid-row:1;display:inline-flex;align-items:center;gap:8px;min-width:44px;min-height:44px;padding:0 18px;border:2px solid rgba(255,255,255,.65);border-radius:999px;background:transparent;color:#fff;font-family:var(--spl-body);font-weight:800;cursor:pointer}
+.spl-pd-dlg-x:hover{border-color:#fff;background:#fff;color:var(--spl-royal)}
+.spl-pd-dlg-title{grid-column:1/-1;margin:4px 0 0;font-family:var(--spl-display);font-stretch:70%;font-weight:800;font-size:clamp(30px,4vw,52px);line-height:.95;overflow-wrap:anywhere}
+.spl-pd-dlg-meta{grid-column:1/-1;margin:6px 0 0;color:rgba(255,255,255,.86);font-weight:700;overflow-wrap:anywhere}
+.spl-pd-dlg-body{display:grid;gap:clamp(20px,3vh,32px);padding:clamp(20px,3vw,36px)}
+.spl-pd-dlg-pics{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,140px),1fr));gap:10px;margin:0;padding:0;list-style:none}
+.spl-pd-dlg-pic{display:block;width:100%;aspect-ratio:4/3;padding:0;overflow:hidden;border:0;border-radius:14px;background:var(--spl-mist);cursor:zoom-in}
+.spl-pd-dlg-pic img{width:100%;height:100%;object-fit:cover;transition:transform .4s var(--spl-ease)}
+.spl-pd-dlg-pic:hover img{transform:scale(1.05)}
+.spl-pd-dlg-figs{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,150px),1fr));gap:16px 24px;margin:0}
+.spl-pd-dlg-figs > div{min-width:0;padding-top:10px;border-top:3px solid var(--spl-night)}
+.spl-pd-dlg-figs dt{color:var(--spl-muted);font-size:.875rem;font-weight:800}
+.spl-pd-dlg-figs dd{margin:4px 0 0;color:var(--spl-royal);font-family:var(--spl-display);font-stretch:70%;font-weight:800;font-size:clamp(28px,3vw,40px);line-height:1;overflow-wrap:anywhere;font-variant-numeric:tabular-nums}
+.spl-pd-dlg-prose{max-width:none}
+.spl-pd-dlg-prose img{max-width:100%}
+
+/* Impact: every figure in one row (client, 2026-10-05); phones two a row. The number scales to its card (cqi). */
+@media (min-width:600px){ .spl-stack.is-grid.is-row{grid-template-columns:none;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr)} }
+@media (max-width:599.98px){ .spl-stack.is-grid.is-row{grid-template-columns:repeat(2,minmax(0,1fr))} }
+.spl-stack.is-grid.is-row .spl-stat{min-height:clamp(140px,16vw,200px);padding:clamp(14px,1.6vw,24px)}
+.spl-stack.is-grid.is-row .spl-stat-label{font-size:clamp(.95rem,1.3vw,1.25rem)}

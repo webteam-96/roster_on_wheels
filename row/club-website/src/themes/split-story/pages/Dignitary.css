@@ -1,0 +1,29 @@
+/* Split Story · Dignitary (spl-dig-). Kit classes are not restyled here.
+   The portrait: 4:5 frame (iris-open from JS) over a royal plate that peeks out
+   right and below, carrying the sample's sky orbit + gold dot. Everything stays
+   inside the column (no negative offsets), so 390px phones never scroll sideways.
+   No hidden start states: motion sets them from JS; reduced motion shows all. */
+
+.spl-dig-figure{position:relative;width:min(100%,440px);margin:0 0 clamp(40px,7vh,72px);padding:0 0 clamp(18px,3vw,32px)}
+.spl-dig-plate{position:absolute;left:16%;top:14%;right:0;bottom:0;overflow:hidden;border-radius:var(--spl-radius);background:var(--spl-royal)}
+.spl-dig-orbit{position:absolute;right:-34%;bottom:-38%;width:92%;aspect-ratio:1;border:1.5px solid rgba(60,196,255,.6);border-radius:50%}
+.spl-dig-orbit i{position:absolute;left:50%;top:-8px;width:16px;height:16px;margin-left:-8px;border-radius:50%;background:var(--spl-gold)}
+
+.spl-dig-portrait{position:relative;z-index:1;width:84%;aspect-ratio:4/5;overflow:hidden;border-radius:var(--spl-radius);background:var(--spl-mist);box-shadow:var(--spl-shadow);container-type:inline-size}
+.spl-dig-img{display:block;width:100%;height:100%;object-fit:cover;object-position:50% 22%}
+.spl-dig-mono{display:grid;place-items:center;background:var(--spl-night);color:var(--spl-gold);font-family:var(--spl-display);font-stretch:68%;font-weight:800;font-size:38cqi;line-height:1}
+
+.spl-dig-bio{min-width:0}
+.spl-dig-actions{display:flex;flex-wrap:wrap;gap:12px;margin-top:clamp(28px,5vh,44px)}
+
+.spl-dig-more{--spl-min:190px}
+@media (max-width:599.98px){
+  .spl-dig-figure{width:min(100%,360px)}
+  .spl-dig-more{--spl-min:150px}
+}
+
+/* "More leaders" cards: photo, designation, name, Read more - the button sits at the foot of every card (2026-10-06) */
+.spl-dig-more .spl-person-body{display:flex;flex-direction:column;align-items:flex-start;flex:1}
+.spl-dig-more .spl-person-name{margin-bottom:16px}
+.spl-dig-more > li{display:flex}
+.spl-dig-more > li > .spl-person{flex:1}
