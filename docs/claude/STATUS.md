@@ -418,3 +418,22 @@ ow\_local\ (git-ignored, check-ignore proven); row-build deleted. _mysql-row (ol
     in node. NOT run end to end in the browser.
   - Left as-is (follow-up): API DTO defaults Country = "India" (ClubDtos, DistrictDtos, MemberDetailDto, address and
     family DTOs, Club model, DistrictService fallback).
+
+## 2026-11-02: test host layout switched to website at /, admin at /admin (user: "switch to /admin and rebuild it")
+- Admin: basePath from NEXT_PUBLIC_BASE_PATH (next.config.mjs); src/lib/basePath.ts (withBase, stripBase, adminUrl)
+  applied to every hand-built root URL (window.location/open, fetch to own routes, <a href>, /public images, brand
+  logos, copy links, checkout return URL) and to browser-path comparisons (FeatureGate, loaders, returnTo).
+- IIS: root-site.web.config (website at the root, media rewrite to /api, /login -> /admin/login) and
+  admin-app.web.config (admin as the "admin" application) replace admin-site / site-app. README updated.
+- Proof: admin tsc 0, vitest 131/131, build with NEXT_PUBLIC_BASE_PATH=/admin; deploy copy served locally:
+  /admin/login 200, its CSS 200, /admin/brand logo 200, /admin/clubs/new 200, 0 unprefixed /_next refs.
+  Copied to _local/deploy/web/admin with admin-app.web.config.
+- BLOCKED: the website build (Next 16.4.0) ends with "SecurityFatalError: Your version of Next.js is affected by a
+  known security vulnerability" (twice); pages compile but the build exits 1, so it was NOT put in the deploy
+  folder. Needs a Next.js upgrade decision. Club sites not rebuilt (their /login link is redirected by the root rule).
+- Server settings to change: FrontendUrl and Brand__Domains__AdminOrigin = https://test.rosteronwheels.com/admin.
+- 2026-11-02 later (user: "upgrade nextjs in current checkout and rebuild"): row/website next + eslint-config-next
+  16.4.0 -> 16.4.3 (npm audit: critical, unauthenticated RCE in image optimization / `use cache`, Server Actions DoS;
+  fixed in 16.4.3). Prod audit 0 vulnerabilities. Website rebuilt for the site root (no base path, Login ->
+  https://test.rosteronwheels.com/admin/login): build exit 0; deploy copy served locally: / and 5 pages 200, CSS 200.
+  Now in _local/deploy/web/root with root-site.web.config; old _local/deploy/web/site (/site build) removed.

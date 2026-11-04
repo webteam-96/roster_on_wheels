@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { Calendar, MapPin, ArrowRight } from "@/components/icons";
+import { withBase } from "@/lib/basePath";
 
 /**
  * Home "International Upcoming Event" — light-register feature card:
@@ -15,7 +16,7 @@ export function HighlightCards() {
           {/* Photo — parallax under the media grade */}
           <div className="media-grade relative min-h-[300px] lg:min-h-[480px]">
             <Image
-              src="/images/event-colombo-hd.jpg"
+              src={withBase("/images/event-colombo-hd.jpg")}
               alt="Colombo skyline at night: Sri Lanka Rotary Institute 2026 host city"
               fill
               sizes="(max-width: 1024px) 100vw, 55vw"
@@ -30,7 +31,7 @@ export function HighlightCards() {
             <div className="absolute bottom-5 left-5 right-5 flex items-end justify-between gap-4">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
-                src="/images/srilanka-institute-2026.png"
+                src={withBase("/images/srilanka-institute-2026.png")}
                 alt=""
                 aria-hidden
                 className="h-auto w-[150px]"

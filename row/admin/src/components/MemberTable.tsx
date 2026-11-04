@@ -23,6 +23,7 @@ import {
 import { MoreHorizontal, Pencil, Trash2, User, Shield, ShieldOff } from "@/components/icons";
 import Image from "next/image";
 import Link from "next/link";
+import { withBase } from "@/lib/basePath";
 
 interface MemberTableProps {
   members: MemberListItem[];
@@ -88,7 +89,7 @@ export default function MemberTable({
             const isAdmin = roles.includes("Admin");
 
             return (
-              <TableRow key={member.id} className="cursor-pointer hover:bg-primary/5 transition-colors" onClick={() => window.location.href = `/members/edit/${member.id}`}>
+              <TableRow key={member.id} className="cursor-pointer hover:bg-primary/5 transition-colors" onClick={() => window.location.href = withBase(`/members/edit/${member.id}`)}>
                 <TableCell>
                   <div className="relative h-8 w-8 overflow-hidden rounded-full bg-muted">
                     {photoUrl ? (

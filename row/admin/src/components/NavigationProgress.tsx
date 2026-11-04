@@ -23,6 +23,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
+import { stripBase } from "@/lib/basePath";
 
 // Safety net: if pathname/searchParams haven't changed after this long, hide.
 const SAFETY_TIMEOUT_MS = 4000;
@@ -76,7 +77,7 @@ export default function NavigationProgress() {
 
       const url = new URL(anchor.href);
       // Same URL (incl. hash-only / query-only no-ops) → no route change.
-      if (url.pathname === pathname && url.search === window.location.search) {
+      if (stripBase(url.pathname) === pathname && url.search === window.location.search) {
         return;
       }
       start();

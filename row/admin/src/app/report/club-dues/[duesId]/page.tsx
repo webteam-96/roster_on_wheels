@@ -7,6 +7,7 @@ import { fileTimestamp, toLocalDateParts } from "@/lib/dateUtils";
 
 import { appLocale, currencySymbol } from "@/lib/appFormat";
 import { SkeletonRows } from "@/components/row/AppKit";
+import { withBase } from "@/lib/basePath";
 interface ReportClub {
   clubDuesClubId: number;
   clubName: string | null;
@@ -207,7 +208,7 @@ export default function ClubDuesReportPage() {
       <div className="border-b border-[color:var(--row-line)] bg-white">
         <div className="max-w-7xl mx-auto px-4 py-3">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/brand/row-logo.png" alt="Roster On Wheels" className="h-12 object-contain" />
+          <img src={withBase("/brand/row-logo.png")} alt="Roster On Wheels" className="h-12 object-contain" />
         </div>
       </div>
       <div className="bg-azure text-white">

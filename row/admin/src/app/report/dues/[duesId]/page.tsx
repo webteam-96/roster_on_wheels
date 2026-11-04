@@ -7,6 +7,7 @@ import { fileTimestamp } from "@/lib/dateUtils";
 
 import { formatMoney } from "@/lib/currency";
 import { SkeletonRows } from "@/components/row/AppKit";
+import { withBase } from "@/lib/basePath";
 interface ReportMember {
   memberName: string | null;
   categoryType: string | null;
@@ -166,7 +167,7 @@ export default function PublicDuesReportPage() {
       {/* Logo on a light bar: the transparent mark, never a white plate on blue. */}
       <div className="border-b border-[color:var(--row-line)] bg-white">
         <div className="max-w-7xl mx-auto px-4 py-3">
-          <img src="/brand/row-logo.png" alt="Roster On Wheels" className="h-12 object-contain" />
+          <img src={withBase("/brand/row-logo.png")} alt="Roster On Wheels" className="h-12 object-contain" />
         </div>
       </div>
       <div className="bg-azure text-white">

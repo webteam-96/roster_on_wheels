@@ -9,6 +9,7 @@ import { Separator } from "@/components/ui/separator";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 import DashboardSwitcher from "./DashboardSwitcher";
+import { withBase } from "@/lib/basePath";
 
 // ROW "Fellowship": a light rail; azure (Rotary Royal Blue) marks the selected item.
 // Single shared sidebar for every dashboard shell (District / Club / AG / RI-Director).
@@ -67,7 +68,7 @@ export default function Sidebar({
       {/* Logo */}
       <div className="px-5 pt-6 pb-4 border-b border-[color:var(--row-line)]">
         <Image
-          src="/brand/row-logo.png"
+          src={withBase("/brand/row-logo.png")}
           alt="Roster On Wheels"
           width={220}
           height={95}

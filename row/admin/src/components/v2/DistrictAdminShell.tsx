@@ -61,6 +61,7 @@ import ScopePicker from "@/components/dashboard/ScopePicker";
 import DistrictAdminTopbarStatus from "@/components/dashboard/DistrictAdminTopbarStatus";
 import { useComingSoonModules } from "@/hooks/useComingSoonModules";
 import { DISTRICT_ADMIN_NAV } from "@/app/district-admin-dashboard/nav";
+import { withBase } from "@/lib/basePath";
 
 const SIDEBAR_BG = "#EDF4FB";
 const ACTIVE_BG = "#17458F";
@@ -176,7 +177,7 @@ function DistrictAdminShellInner({
       {/* Logo */}
       <div className="px-5 py-5 border-b border-[color:var(--row-line)]">
         <Image
-          src="/brand/row-logo.png"
+          src={withBase("/brand/row-logo.png")}
           alt="Roster On Wheels"
           width={220}
           height={95}

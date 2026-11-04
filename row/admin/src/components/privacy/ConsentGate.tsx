@@ -16,6 +16,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useBrand, useFeature } from "@/contexts/BrandContext";
 import { acceptConsent, getConsentStatus } from "@/services/api";
 import { getErrorMessage } from "@/lib/errors";
+import { withBase } from "@/lib/basePath";
 
 export default function ConsentGate() {
   const enabled = useFeature("privacy.enabled");
@@ -77,10 +78,10 @@ export default function ConsentGate() {
           <DialogDescription className="pt-2 text-sm leading-relaxed text-slate-700">{t("body")}</DialogDescription>
         </DialogHeader>
         <div className="flex flex-wrap gap-4 text-sm">
-          <a href={brand.legal.privacyUrl} target="_blank" rel="noopener noreferrer" className="font-medium text-primary underline-offset-2 hover:underline">
+          <a href={withBase(brand.legal.privacyUrl)} target="_blank" rel="noopener noreferrer" className="font-medium text-primary underline-offset-2 hover:underline">
             {t("privacyPolicy")}
           </a>
-          <a href={brand.legal.termsUrl} target="_blank" rel="noopener noreferrer" className="font-medium text-primary underline-offset-2 hover:underline">
+          <a href={withBase(brand.legal.termsUrl)} target="_blank" rel="noopener noreferrer" className="font-medium text-primary underline-offset-2 hover:underline">
             {t("terms")}
           </a>
         </div>

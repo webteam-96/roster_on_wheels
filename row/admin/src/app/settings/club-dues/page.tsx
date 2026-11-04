@@ -15,6 +15,7 @@ import { Plus, Search, Power, PowerOff, FileSpreadsheet, Trash2 } from "@/compon
 
 import { appLocale, currencySymbol } from "@/lib/appFormat";
 import { ListPageSkeleton } from "@/components/row/AppKit";
+import { BASE_PATH } from "@/lib/basePath";
 interface ClubDuesRow {
   id: number;
   districtNumber?: string;
@@ -159,7 +160,7 @@ export default function ClubDuesListPage() {
                     <td className="px-4 py-3">
                       <div className="flex justify-end gap-1.5">
                         <Button size="sm" onClick={() => router.push(`/settings/club-dues/${r.id}/clubs`)}>Clubs</Button>
-                        <Button size="sm" variant="outline" onClick={() => { navigator.clipboard.writeText(`${window.location.origin}/report/club-dues/${r.id}`); setSuccess("Report link copied."); }} title="Copy public report link">Report link</Button>
+                        <Button size="sm" variant="outline" onClick={() => { navigator.clipboard.writeText(`${window.location.origin}${BASE_PATH}/report/club-dues/${r.id}`); setSuccess("Report link copied."); }} title="Copy public report link">Report link</Button>
                         <Button size="sm" variant="outline" onClick={() => router.push(`/settings/club-dues/create?edit=${r.id}`)}>Edit</Button>
                         <Button size="sm" variant="outline" onClick={() => onToggle(r.id)} title={r.isActive ? "Deactivate" : "Activate"}>
                           {r.isActive

@@ -5,6 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 import { getFeatures, type PlatformFeature } from "@/services/api";
 import DashboardTabSkeleton from "@/components/dashboard/DashboardSkeleton";
+import { stripBase } from "@/lib/basePath";
 
 // Platform module switches (api/Services/FeatureGate.cs). A skipped module, or a flagged one that is off, has every
 // link to it hidden and its pages send the user to the role home ("/admin"). The API refuses its calls too.
@@ -81,7 +82,7 @@ export default function FeatureGate({ children }: { children: React.ReactNode })
   useEffect(() => {
     const hide = () =>
       document.querySelectorAll<HTMLAnchorElement>("a[href]").forEach((a) => {
-        const off = a.origin === window.location.origin && isBlocked(a.pathname, patterns);
+        const off = a.origin === window.location.origin && isBlocked(stripBase(a.pathname), patterns);
         if (off) {
           a.style.display = "none";
           a.dataset.featureOff = "1";

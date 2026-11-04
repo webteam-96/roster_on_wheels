@@ -5,15 +5,32 @@ the API is reached through the same host under `/api` (plus its media folders), 
 site. Club websites need their own host names (one IIS site serves every club host). Database: `row_production`.
 
 Ready-to-copy folders (made on the developer machine, not in git): `E:\websites\row\_local\deploy\`
-- `web\admin\` = the frontend for test.rosteronwheels.com (Next.js standalone; its `web.config` is this folder's
-  `admin-site.web.config`); `web\club-websites\` = the club sites (Next.js standalone + its `web.config`).
-  Each is its own IIS site.
+- `web\root\` = the ROW public website, copied into the site root (its `web.config` is `root-site.web.config`);
+  `web\admin\` = the admin panel, copied into the `admin` folder of the site root (its `web.config` is
+  `admin-app.web.config`); `web\club-websites\` = the club sites (Next.js standalone + its `web.config`, own IIS site).
 - `api\` = the API (dotnet publish, Release); `api\sql\` holds the MySQL Workbench scripts (`sql\README.txt`).
   ASP.NET Core serves no file from it.
 The browser-side code in `web\admin\` and `web\club-websites\` is built for `https://test.rosteronwheels.com`; a different
 host means rebuilding them.
 
-> **CURRENT LAYOUT (2026-10-30, Plesk):** site root `D:\Inetpub\vhosts\rosteronwheels.com\test.rosteronwheels.com\`
+> **CURRENT LAYOUT (2026-11-02, Plesk): website at `/`, admin at `/admin`, API at `/api`.** One host,
+> `https://test.rosteronwheels.com`, site root `D:\Inetpub\vhosts\rosteronwheels.com\test.rosteronwheels.com\`:
+>
+> | Path | Folder in the site root | What it is | web.config (from this folder) |
+> |---|---|---|---|
+> | `/` (everything not below) | the root itself | ROW public website (`row/website`, Next.js standalone) | `root-site.web.config` |
+> | `/admin/...` | `admin` (Plesk: Virtual Directories > admin > **Mark as application**, No Managed Code) | admin panel, built with `NEXT_PUBLIC_BASE_PATH=/admin` | `admin-app.web.config` |
+> | `/api/...` | `api` (marked as application, as before) | .NET API | the API's own |
+>
+> The root web.config also rewrites `/uploads`, `/Documents`, `/tempdocument` to the API and redirects `/login` to
+> `/admin/login` (old links). Its `inheritInChildApplications="false"` keeps the website's Node handler out of
+> `admin` and `api`. API environment variables to change for this layout: `FrontendUrl` and
+> `Brand__Domains__AdminOrigin` = `https://test.rosteronwheels.com/admin` (links in emails, pay and report links).
+> Builds: admin `NEXT_PUBLIC_BASE_PATH=/admin NEXT_PUBLIC_API_URL=https://test.rosteronwheels.com`; website
+> `NEXT_PUBLIC_ADMIN_LOGIN_URL=https://test.rosteronwheels.com/admin/login`, no `SITE_BASE_PATH`. In Git Bash set
+> `MSYS_NO_PATHCONV=1`, or "/admin" is turned into a Windows path.
+>
+> **PREVIOUS LAYOUT (2026-10-30, Plesk, replaced 2026-11-02):** site root `D:\Inetpub\vhosts\rosteronwheels.com\test.rosteronwheels.com\`
 > holds the admin frontend files (contents of `web\admin`, with its `web.config`); the API is the `api` folder in that
 > root, marked as an application in Plesk (Websites & Domains > Virtual Directories > api > Mark as application, .NET:
 > No Managed Code). `/api/...` goes straight to it; `/uploads`, `/Documents`, `/tempdocument` are rewritten to it by the

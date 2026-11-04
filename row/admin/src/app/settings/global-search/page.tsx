@@ -14,6 +14,7 @@ import {
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { globalSearchAll, type GlobalSearchResult, type GlobalSearchRow } from "@/services/api";
 import Pagination from "@/components/Pagination";
+import { withBase } from "@/lib/basePath";
 
 type ResultRow = GlobalSearchRow & { type: "zone" | "district" | "club" };
 
@@ -120,10 +121,10 @@ export default function GlobalSearchPage() {
 
     if (row.type === "club") {
       selectScope({ clubId: row.id });
-      window.location.assign("/club-admin-dashboard");
+      window.location.assign(withBase("/club-admin-dashboard"));
     } else {
       selectScope({ districtId: row.id });
-      window.location.assign("/district-admin-dashboard");
+      window.location.assign(withBase("/district-admin-dashboard"));
     }
   };
 

@@ -17,6 +17,7 @@ import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import SearchBox from "@/components/SearchBox";
 import { ListPageSkeleton } from "@/components/row/AppKit";
+import { withBase, BASE_PATH } from "@/lib/basePath";
 
 interface MembershipDuesItem {
   id: number;
@@ -64,7 +65,7 @@ export default function ClubMembershipDuesPage() {
   useEffect(() => { fetchData(); }, [fetchData]);
 
   const handleCopyUrl = (item: MembershipDuesItem) => {
-    const url = `${window.location.origin}/pay/dues/${item.id}`;
+    const url = `${window.location.origin}${BASE_PATH}/pay/dues/${item.id}`;
     navigator.clipboard.writeText(url);
     setSuccessMessage("URL copied to clipboard.");
   };
@@ -184,7 +185,7 @@ export default function ClubMembershipDuesPage() {
                     {/* View | Copy URL */}
                     <TableCell className="text-center">
                       <div className="flex items-center justify-center gap-1 text-sm">
-                        <button onClick={() => window.open(`/pay/dues/${item.id}`, "_blank")}
+                        <button onClick={() => window.open(withBase(`/pay/dues/${item.id}`), "_blank")}
                           className="text-blue-600 hover:text-blue-800 hover:underline">View</button>
                         <span className="text-muted-foreground">|</span>
                         <button onClick={() => handleCopyUrl(item)}
@@ -213,7 +214,7 @@ export default function ClubMembershipDuesPage() {
                     {/* Report Link */}
                     <TableCell className="text-center">
                       <button onClick={() => {
-                        const url = `${window.location.origin}/report/dues/${item.id}`;
+                        const url = `${window.location.origin}${BASE_PATH}/report/dues/${item.id}`;
                         navigator.clipboard.writeText(url);
                         setSuccessMessage("Report link copied.");
                       }} className="text-sm text-blue-600 hover:text-blue-800 hover:underline">

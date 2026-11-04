@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import PolicyPageLayout from "@/components/public/PolicyPageLayout";
 import { merchantFrom } from "@/lib/merchantInfo";
 import { getServerBrand, telHref } from "@/lib/brand";
+import { withBase } from "@/lib/basePath";
 
 export async function generateMetadata(): Promise<Metadata> {
   const brand = await getServerBrand();
@@ -119,7 +120,7 @@ export default async function ContactUsPage() {
         <p>
           All payments on this platform are processed by <strong>Cashfree
           Payments India Pvt. Ltd.</strong> Refunds and chargebacks are governed by the{" "}
-          <a href="/refunds-and-cancellations">Refunds &amp; Cancellations</a>{" "}
+          <a href={withBase("/refunds-and-cancellations")}>Refunds &amp; Cancellations</a>{" "}
           policy. Disputes that cannot be resolved by writing to the above
           contacts may be escalated to Cashfree&apos;s grievance redressal
           channel as published on{" "}

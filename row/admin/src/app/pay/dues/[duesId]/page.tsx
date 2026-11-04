@@ -17,6 +17,7 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { AlertCircle, CheckCircle2, Loader2, Upload, Clock, XCircle } from "@/components/icons";
+import { withBase, BASE_PATH } from "@/lib/basePath";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
@@ -355,7 +356,7 @@ export default function MembershipDuesPaymentPage() {
           cashfree.checkout({
             paymentSessionId: result.paymentSessionId,
             redirectTarget: "_self",
-            returnUrl: `${window.location.origin}/pay/dues/${duesId}/thank-you?orderId=${result.orderId}&paymentId=${result.paymentId}`,
+            returnUrl: `${window.location.origin}${BASE_PATH}/pay/dues/${duesId}/thank-you?orderId=${result.orderId}&paymentId=${result.paymentId}`,
           });
         };
         document.head.appendChild(script);
@@ -450,7 +451,7 @@ export default function MembershipDuesPaymentPage() {
           <CardContent className="pt-6">
             <div className="flex flex-col items-center text-center mb-4">
               <img
-                src={duesInfo.purposeLogo ? `${API_BASE_URL}${duesInfo.purposeLogo}` : "/brand/row-mark.png"}
+                src={duesInfo.purposeLogo ? `${API_BASE_URL}${duesInfo.purposeLogo}` : withBase("/brand/row-mark.png")}
                 alt="Logo"
                 className="h-40 sm:h-56 w-auto max-w-full object-contain rounded mb-2"
               />

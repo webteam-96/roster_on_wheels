@@ -37,6 +37,7 @@ import ErrorAlert from "@/components/ErrorAlert";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import ClubAdminShell from "@/components/v2/ClubAdminShell";
 import { useSyncClubIdFromUrl } from "@/hooks/useSyncClubIdFromUrl";
+import { withBase, BASE_PATH } from "@/lib/basePath";
 
 interface MembershipDuesItem {
   id: number;
@@ -108,13 +109,13 @@ export default function ClubMembershipDuesV2Page() {
   }, [searchInput, search]);
 
   const handleCopyUrl = (item: MembershipDuesItem) => {
-    const url = `${window.location.origin}/pay/dues/${item.id}`;
+    const url = `${window.location.origin}${BASE_PATH}/pay/dues/${item.id}`;
     navigator.clipboard.writeText(url);
     setSuccessMessage("URL copied to clipboard.");
   };
 
   const handleCopyReportLink = (item: MembershipDuesItem) => {
-    const url = `${window.location.origin}/report/dues/${item.id}`;
+    const url = `${window.location.origin}${BASE_PATH}/report/dues/${item.id}`;
     navigator.clipboard.writeText(url);
     setSuccessMessage("Report link copied.");
   };
@@ -354,7 +355,7 @@ export default function ClubMembershipDuesV2Page() {
                             <div className="inline-flex items-center gap-2 text-xs">
                               <button
                                 type="button"
-                                onClick={() => window.open(`/pay/dues/${item.id}`, "_blank")}
+                                onClick={() => window.open(withBase(`/pay/dues/${item.id}`), "_blank")}
                                 className="inline-flex items-center gap-1 text-blue-600 hover:text-blue-800 hover:underline"
                                 title="Open payment page"
                               >

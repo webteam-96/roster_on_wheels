@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
 import Image from "next/image";
+import { withBase, stripBase } from "@/lib/basePath";
 
 export default function RouteLoadingIndicator() {
   const [loading, setLoading] = useState(false);
@@ -31,7 +32,7 @@ export default function RouteLoadingIndicator() {
         anchor.target !== "_blank"
       ) {
         const url = new URL(anchor.href);
-        if (url.pathname !== pathname) {
+        if (stripBase(url.pathname) !== pathname) {
           handleRouteChangeStart();
         }
       }
@@ -72,7 +73,7 @@ export default function RouteLoadingIndicator() {
       <div className="fixed inset-0 z-[99] flex items-center justify-center bg-background">
         <div className="flex flex-col items-center gap-3">
           <Image
-            src="/brand/row-mark.png"
+            src={withBase("/brand/row-mark.png")}
             alt="Loading"
             width={64}
             height={64}

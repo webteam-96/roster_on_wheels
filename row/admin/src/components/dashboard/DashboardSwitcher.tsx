@@ -7,6 +7,7 @@ import { ArrowLeftRight, Check, ChevronUp, Building2, Search } from "@/component
 import { resolveDashboardLanding, getDistrictAllClubsForAdmin, type DashboardEntry } from "@/services/api";
 import { useAuth } from "@/contexts/AuthContext";
 import RotaryLoader from "@/components/RotaryLoader";
+import { withBase } from "@/lib/basePath";
 
 // Wave 9C: bump cache key so old-shape (no scope fields) entries don't leak.
 const CACHE_KEY = "dashboard_available_v2";
@@ -121,7 +122,7 @@ export default function DashboardSwitcher({ currentKind, onNavigate }: Dashboard
     try { localStorage.setItem("da_active_club", JSON.stringify({ id: club.clubId, name: club.clubName })); } catch { /* ignore */ }
     auth.selectScope({ clubId: club.clubId });
     // Hard-navigate — crossing into the club-admin dashboard needs a fresh mount.
-    window.location.assign("/club-admin-dashboard");
+    window.location.assign(withBase("/club-admin-dashboard"));
   };
 
   // Portal target — only available client-side after mount.

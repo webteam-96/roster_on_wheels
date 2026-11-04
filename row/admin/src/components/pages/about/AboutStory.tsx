@@ -1,12 +1,13 @@
 import Image from "next/image";
+import { withBase } from "@/lib/basePath";
 
 type Tile = { src: string; label: string };
 
 const TILES: Tile[] = [
-  { src: "/images/whoweare/wwa-medical.jpg", label: "Medical Camps" },
-  { src: "/images/whoweare/wwa-tree.jpg", label: "Tree Plantation" },
-  { src: "/images/whoweare/wwa-youth.jpg", label: "Youth Leadership" },
-  { src: "/images/whoweare/wwa-community.jpg", label: "Community Service" },
+  { src: withBase("/images/whoweare/wwa-medical.jpg"), label: "Medical Camps" },
+  { src: withBase("/images/whoweare/wwa-tree.jpg"), label: "Tree Plantation" },
+  { src: withBase("/images/whoweare/wwa-youth.jpg"), label: "Youth Leadership" },
+  { src: withBase("/images/whoweare/wwa-community.jpg"), label: "Community Service" },
 ];
 
 /**

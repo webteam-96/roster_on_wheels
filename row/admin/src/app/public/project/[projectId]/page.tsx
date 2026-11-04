@@ -19,6 +19,7 @@ import RotaryLoader from "@/components/RotaryLoader";
 
 import { appLocale } from "@/lib/appFormat";
 import { ListPageSkeleton } from "@/components/row/AppKit";
+import { withBase } from "@/lib/basePath";
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
 interface PublicPhoto {
@@ -177,7 +178,7 @@ export default function PublicProjectPage() {
         <div className="max-w-5xl mx-auto px-4 py-3 flex items-center gap-3">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src="/brand/row-logo.png"
+            src={withBase("/brand/row-logo.png")}
             alt="Roster On Wheels"
             className="h-14 object-contain"
           />

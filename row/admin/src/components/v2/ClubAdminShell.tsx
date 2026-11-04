@@ -62,6 +62,7 @@ import ComingSoonStub from "@/components/dashboard/ComingSoonStub";
 import ScopePicker from "@/components/dashboard/ScopePicker";
 import { useComingSoonModules } from "@/hooks/useComingSoonModules";
 import { CLUB_ADMIN_NAV } from "@/app/club-admin-dashboard/nav";
+import { withBase } from "@/lib/basePath";
 
 const SIDEBAR_BG = "#EDF4FB";
 const ACTIVE_BG = "#17458F";
@@ -176,7 +177,7 @@ function ClubAdminShellInner({
       {/* Logo */}
       <div className="px-5 py-5 border-b border-[color:var(--row-line)]">
         <Image
-          src="/brand/row-logo.png"
+          src={withBase("/brand/row-logo.png")}
           alt="Roster On Wheels"
           width={220}
           height={95}

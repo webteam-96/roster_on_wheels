@@ -1,3 +1,5 @@
+import { withBase } from "@/lib/basePath";
+
 /**
  * Instance brand: everything on screen that differs from one instance to another
  * (name, logos, support contacts, locale defaults, legal links, feature flags).
@@ -95,10 +97,10 @@ export const DEFAULT_BRAND: Brand = {
   productName: "Roster On Wheels",
   shortName: "ROW",
   // ROW logo shipped with the portal: on a white card for dark backgrounds, transparent for light ones.
-  logoUrl: "/brand/row-logo-inverse.png", // all-white reversed lockup for dark surfaces
-  logoDarkUrl: "/brand/row-logo.png",
+  logoUrl: withBase("/brand/row-logo-inverse.png"), // all-white reversed lockup for dark surfaces
+  logoDarkUrl: withBase("/brand/row-logo.png"),
   faviconUrl: "",
-  openGraphImageUrl: "/brand/row-logo-badge.png",
+  openGraphImageUrl: withBase("/brand/row-logo-badge.png"),
   support: {
     email: "",
     phones: [],
@@ -143,10 +145,11 @@ export function mergeBrand(partial: Partial<Brand> | null | undefined): Brand {
     instanceCode: nonEmpty(partial.instanceCode, DEFAULT_BRAND.instanceCode),
     productName: nonEmpty(partial.productName, DEFAULT_BRAND.productName),
     shortName: nonEmpty(partial.shortName, DEFAULT_BRAND.shortName),
-    logoUrl: nonEmpty(partial.logoUrl, DEFAULT_BRAND.logoUrl),
-    logoDarkUrl: nonEmpty(partial.logoDarkUrl, nonEmpty(partial.logoUrl, DEFAULT_BRAND.logoDarkUrl)),
-    faviconUrl: nonEmpty(partial.faviconUrl, DEFAULT_BRAND.faviconUrl),
-    openGraphImageUrl: nonEmpty(partial.openGraphImageUrl, DEFAULT_BRAND.openGraphImageUrl),
+    // Image paths are used as plain src/href, so a root path ("/brand/...") needs the base path (served under /admin).
+    logoUrl: withBase(nonEmpty(partial.logoUrl, DEFAULT_BRAND.logoUrl)),
+    logoDarkUrl: withBase(nonEmpty(partial.logoDarkUrl, nonEmpty(partial.logoUrl, DEFAULT_BRAND.logoDarkUrl))),
+    faviconUrl: withBase(nonEmpty(partial.faviconUrl, DEFAULT_BRAND.faviconUrl)),
+    openGraphImageUrl: withBase(nonEmpty(partial.openGraphImageUrl, DEFAULT_BRAND.openGraphImageUrl)),
     support: pick(DEFAULT_BRAND.support, partial.support),
     locale: pick(DEFAULT_BRAND.locale, partial.locale),
     legal: pick(DEFAULT_BRAND.legal, partial.legal),

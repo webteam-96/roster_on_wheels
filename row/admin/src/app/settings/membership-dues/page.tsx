@@ -25,6 +25,7 @@ import SearchBox from "@/components/SearchBox";
 
 import { appLocale } from "@/lib/appFormat";
 import { ListPageSkeleton } from "@/components/row/AppKit";
+import { withBase, BASE_PATH } from "@/lib/basePath";
 interface MembershipDuesItem {
   id: number;
   districtNumber?: string;
@@ -96,7 +97,7 @@ export default function MembershipDuesPage() {
   };
 
   const handleCopyUrl = (item: MembershipDuesItem) => {
-    const url = `${window.location.origin}/pay/dues/${item.id}`;
+    const url = `${window.location.origin}${BASE_PATH}/pay/dues/${item.id}`;
     navigator.clipboard.writeText(url);
     setSuccessMessage("URL copied to clipboard.");
   };
@@ -259,7 +260,7 @@ export default function MembershipDuesPage() {
                     <TableCell className="text-center">
                       <div className="flex items-center justify-center gap-1 text-sm">
                         <button onClick={() => {
-                          window.open(`/pay/dues/${item.id}`, "_blank");
+                          window.open(withBase(`/pay/dues/${item.id}`), "_blank");
                         }}
                           className="text-blue-600 hover:text-blue-800 hover:underline">View</button>
                         <span className="text-muted-foreground">|</span>
@@ -281,7 +282,7 @@ export default function MembershipDuesPage() {
                     {/* Report — opens the public dues report page (which has its own Download button) */}
                     <TableCell className="text-center">
                       <button
-                        onClick={() => window.open(`${window.location.origin}/report/dues/${item.id}`, "_blank", "noopener,noreferrer")}
+                        onClick={() => window.open(`${window.location.origin}${BASE_PATH}/report/dues/${item.id}`, "_blank", "noopener,noreferrer")}
                         title="Open dues report"
                         className="inline-flex items-center justify-center">
                         <FileSpreadsheet className="h-5 w-5 text-red-600 hover:text-red-800 cursor-pointer" />
@@ -291,7 +292,7 @@ export default function MembershipDuesPage() {
                     {/* Report Link */}
                     <TableCell className="text-center">
                       <button onClick={() => {
-                        const url = `${window.location.origin}/report/dues/${item.id}`;
+                        const url = `${window.location.origin}${BASE_PATH}/report/dues/${item.id}`;
                         navigator.clipboard.writeText(url);
                         setSuccessMessage("Report link copied.");
                       }} className="text-sm text-blue-600 hover:text-blue-800 hover:underline">

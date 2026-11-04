@@ -40,6 +40,7 @@ import { fmtInr, fmtInrShort } from "@/components/dashboard/formatters";
 import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
 import { ListPageSkeleton } from "@/components/row/AppKit";
+import { withBase, BASE_PATH } from "@/lib/basePath";
 
 interface DuesSetup {
   id: number;
@@ -140,7 +141,7 @@ export default function ClubAdminMembershipDuesPage() {
   };
 
   const handleCopyUrl = (item: DuesSetup) => {
-    const url = `${window.location.origin}/pay/dues/${item.id}`;
+    const url = `${window.location.origin}${BASE_PATH}/pay/dues/${item.id}`;
     navigator.clipboard.writeText(url);
     setSuccessMessage("URL copied to clipboard.");
   };
@@ -377,7 +378,7 @@ export default function ClubAdminMembershipDuesPage() {
                     <div className="flex items-center justify-center gap-1 text-xs">
                       <button
                         type="button"
-                        onClick={() => window.open(`/pay/dues/${item.id}`, "_blank")}
+                        onClick={() => window.open(withBase(`/pay/dues/${item.id}`), "_blank")}
                         className="text-blue-600 hover:underline"
                       >
                         View
@@ -411,7 +412,7 @@ export default function ClubAdminMembershipDuesPage() {
                     <button
                       type="button"
                       onClick={() => {
-                        const url = `${window.location.origin}/report/dues/${item.id}`;
+                        const url = `${window.location.origin}${BASE_PATH}/report/dues/${item.id}`;
                         navigator.clipboard.writeText(url);
                         setSuccessMessage("Report link copied.");
                       }}

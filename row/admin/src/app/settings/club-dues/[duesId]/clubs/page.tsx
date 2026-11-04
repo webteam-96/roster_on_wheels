@@ -20,6 +20,7 @@ import { ArrowLeft, RefreshCw, Download, Bell, Link2, Check, Receipt, Pencil, Sp
 import { appLocale, currencySymbol } from "@/lib/appFormat";
 import { ListPageSkeleton } from "@/components/row/AppKit";
 import Pagination from "@/components/Pagination";
+import { BASE_PATH } from "@/lib/basePath";
 interface AccountBreakdown {
   fkRouteAccountId: number;
   accountLabel: string | null;
@@ -132,7 +133,7 @@ export default function ClubDuesClubsPage() {
 
   const copyReportLink = async () => {
     try {
-      const url = `${window.location.origin}/report/club-dues/${duesId}`;
+      const url = `${window.location.origin}${BASE_PATH}/report/club-dues/${duesId}`;
       await navigator.clipboard.writeText(url);
       setSuccess("Report link copied.");
     } catch { setError("Failed to copy report link."); }

@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import { withBase } from "@/lib/basePath";
 
 interface RotaryLoaderProps {
   size?: "sm" | "md" | "lg";
@@ -20,7 +21,7 @@ export default function RotaryLoader({ size = "md", className = "", label }: Rot
   return (
     <span className={`inline-flex items-center gap-2 ${className}`}>
       <Image
-        src="/brand/row-mark.png"
+        src={withBase("/brand/row-mark.png")}
         alt="Loading"
         width={width}
         height={height}

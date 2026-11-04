@@ -2,6 +2,7 @@
 import PolicyPageLayout from "@/components/public/PolicyPageLayout";
 import { merchantFrom } from "@/lib/merchantInfo";
 import { getServerBrand } from "@/lib/brand";
+import { withBase } from "@/lib/basePath";
 
 export async function generateMetadata(): Promise<Metadata> {
   const brand = await getServerBrand();
@@ -69,7 +70,7 @@ export default async function AboutPage() {
         <h2>Get in Touch</h2>
         <p>
           Sign in with the credentials provided by your Club Secretary, or
-          reach the team via the <a href="/contact-us">Contact Us</a> page.
+          reach the team via the <a href={withBase("/contact-us")}>Contact Us</a> page.
         </p>
       </section>
     </PolicyPageLayout>

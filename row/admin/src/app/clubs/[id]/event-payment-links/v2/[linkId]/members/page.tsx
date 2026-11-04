@@ -34,6 +34,7 @@ import { useSyncClubIdFromUrl } from "@/hooks/useSyncClubIdFromUrl";
 
 import { currencySymbol } from "@/lib/appFormat";
 import { SkeletonRows } from "@/components/row/AppKit";
+import { stripBase } from "@/lib/basePath";
 interface EventMember {
   id: number;
   memberName?: string;
@@ -67,7 +68,7 @@ export default function EventMembersV2Page() {
 
   // returnTo for outbound links from this page (offline payment route)
   const outboundReturnTo = typeof window !== "undefined"
-    ? encodeURIComponent(window.location.pathname + window.location.search)
+    ? encodeURIComponent(stripBase(window.location.pathname) + window.location.search)
     : encodeURIComponent(`/clubs/${clubId}/event-payment-links/v2/${linkId}/members`);
 
   const [activeTab, setActiveTab] = useState("paid");

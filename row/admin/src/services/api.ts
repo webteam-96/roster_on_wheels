@@ -167,7 +167,7 @@ api.interceptors.response.use(
     const isAuthEndpoint = error.config?.url?.startsWith("/api/auth/");
     if (error.response?.status === 401 && typeof window !== "undefined" && !isAuthEndpoint) {
       localStorage.removeItem("auth_token");
-      window.location.href = "/login";
+      window.location.href = withBase("/login");
     }
     return Promise.reject(error);
   }
@@ -6831,6 +6831,7 @@ import type {
   MeetingDuty, PublicVolunteerSheet, SaveMeetingDuty, SaveSpeaker, SaveVolunteerSheet, Speaker, VolunteerSheet,
   VolunteerSheetListItem, VolunteerTargets,
 } from "@/types/volunteers";
+import { withBase } from "@/lib/basePath";
 
 const sheetsBase = (clubId: number) => `/api/clubs/${clubId}/volunteer-sheets`;
 

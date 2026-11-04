@@ -55,6 +55,7 @@ import {
 } from "@/lib/projectStats";
 
 import { currencySymbol } from "@/lib/appFormat";
+import { withBase } from "@/lib/basePath";
 const PAGE_SIZE = 50;
 
 /* Search pacing. Both exist because one project search costs the API a scan across
@@ -782,7 +783,7 @@ function useFreshnessProbe(onChanged: () => void) {
       const now = Date.now();
       if (now - lastRun < PROBE_THROTTLE_MS) return;
       lastRun = now;
-      fetch("/site-data/projects-freshness", { cache: "no-store" })
+      fetch(withBase("/site-data/projects-freshness"), { cache: "no-store" })
         .then((r) => (r.ok ? r.json() : null))
         .then((d) => {
           if (!cancelled && d?.changed) cb.current();

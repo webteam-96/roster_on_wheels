@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight } from "@/components/icons";
 import { SpotlightCard } from "@/components/motion/SpotlightCard";
+import { withBase } from "@/lib/basePath";
 
 const POINTS = [
   "We connect passionate individuals",
@@ -42,7 +43,7 @@ export function AboutSection() {
             className="media-grade min-h-[320px] rounded-[24px] ring-1 ring-navy-950/10 sm:col-span-2 lg:col-span-7 lg:row-span-2 lg:min-h-[520px]"
           >
             <Image
-              src="/images/about-hero.jpg"
+              src={withBase("/images/about-hero.jpg")}
               alt="Rotarians serving their community"
               fill
               sizes="(max-width: 1024px) 100vw, 58vw"
@@ -126,7 +127,7 @@ export function AboutSection() {
             className="media-grade min-h-[200px] rounded-2xl ring-1 ring-navy-950/10 lg:col-span-3"
           >
             <Image
-              src="/images/whoweare/wwa-community.jpg"
+              src={withBase("/images/whoweare/wwa-community.jpg")}
               alt="Community service in action"
               fill
               sizes="(max-width: 1024px) 100vw, 25vw"

@@ -23,6 +23,7 @@ import SearchBox from "@/components/SearchBox";
 
 import { appLocale } from "@/lib/appFormat";
 import { ListPageSkeleton } from "@/components/row/AppKit";
+import { withBase, BASE_PATH } from "@/lib/basePath";
 interface PaymentLink {
   id: number;
   formType: number;
@@ -86,7 +87,7 @@ export default function EventPaymentLinksPage() {
   };
 
   const handleCopyUrl = (item: PaymentLink) => {
-    const url = `${window.location.origin}/pay/${item.id}`;
+    const url = `${window.location.origin}${BASE_PATH}/pay/${item.id}`;
     navigator.clipboard.writeText(url);
     setSuccessMessage("URL copied to clipboard.");
   };
@@ -239,7 +240,7 @@ export default function EventPaymentLinksPage() {
                     {/* View | Copy URL */}
                     <TableCell className="text-center">
                       <div className="flex items-center justify-center gap-1 text-sm">
-                        <button onClick={() => window.open(`/pay/${item.id}`, "_blank")}
+                        <button onClick={() => window.open(withBase(`/pay/${item.id}`), "_blank")}
                           className="text-blue-600 hover:text-blue-800 hover:underline">View</button>
                         <span className="text-muted-foreground">|</span>
                         <button onClick={() => handleCopyUrl(item)}
@@ -268,7 +269,7 @@ export default function EventPaymentLinksPage() {
                     {/* Report Link */}
                     <TableCell className="text-center">
                       <button onClick={() => {
-                        const url = `${window.location.origin}/report/${item.id}`;
+                        const url = `${window.location.origin}${BASE_PATH}/report/${item.id}`;
                         navigator.clipboard.writeText(url);
                         setSuccessMessage("Report link copied.");
                       }} className="text-sm text-blue-600 hover:text-blue-800 hover:underline">

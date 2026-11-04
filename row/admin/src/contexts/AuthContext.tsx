@@ -8,6 +8,7 @@ import type {
   DistrictScopeDto,
   ClubScopeDto,
 } from "@/types/scope";
+import { withBase } from "@/lib/basePath";
 
 interface SelectScopeArgs {
   clubId?: number | null;
@@ -198,7 +199,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setSelectedDistrictId(null);
     setSelectedZoneId(null);
     if (timerRef.current) clearInterval(timerRef.current);
-    window.location.href = "/login";
+    window.location.href = withBase("/login");
   }, []);
 
   const resetSessionTimer = useCallback(() => {

@@ -18,6 +18,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useAuth } from "@/contexts/AuthContext";
 import DashboardSwitcher from "@/components/dashboard/DashboardSwitcher";
 import { cn } from "@/lib/utils";
+import { withBase } from "@/lib/basePath";
 
 const SIDEBAR_BG = "#EDF4FB";
 const ACTIVE_BG = "#17458F";
@@ -60,7 +61,7 @@ export default function GoalOversightShell({
       {/* Logo */}
       <div className="px-5 py-5 border-b border-[color:var(--row-line)]">
         <Image
-          src="/brand/row-logo.png"
+          src={withBase("/brand/row-logo.png")}
           alt="Roster On Wheels"
           width={220}
           height={95}

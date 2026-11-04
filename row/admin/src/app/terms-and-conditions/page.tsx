@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import PolicyPageLayout from "@/components/public/PolicyPageLayout";
 import { merchantFrom } from "@/lib/merchantInfo";
 import { getServerBrand, hostOf } from "@/lib/brand";
+import { withBase } from "@/lib/basePath";
 
 export async function generateMetadata(): Promise<Metadata> {
   const brand = await getServerBrand();
@@ -27,8 +28,8 @@ export default async function TermsPage() {
           By accessing, browsing, registering an account, signing in, or
           making a payment on the Platform, you confirm that you have read,
           understood, and agreed to be bound by these Terms together with our{" "}
-          <a href="/privacy-policy">Privacy Policy</a> and{" "}
-          <a href="/refunds-and-cancellations">Refunds &amp; Cancellations</a>{" "}
+          <a href={withBase("/privacy-policy")}>Privacy Policy</a> and{" "}
+          <a href={withBase("/refunds-and-cancellations")}>Refunds &amp; Cancellations</a>{" "}
           policy. If you do not agree, please do not use the Platform.
         </p>
       </section>
@@ -101,7 +102,7 @@ export default async function TermsPage() {
         <h3>5.4 Refunds</h3>
         <p>
           Refunds are governed by our{" "}
-          <a href="/refunds-and-cancellations">Refunds &amp; Cancellations</a>{" "}
+          <a href={withBase("/refunds-and-cancellations")}>Refunds &amp; Cancellations</a>{" "}
           policy. Please read it carefully before making a payment.
         </p>
       </section>
@@ -215,7 +216,7 @@ export default async function TermsPage() {
         <p>
           Questions about these Terms? Write to us at{" "}
           <a href={`mailto:${MERCHANT.email}`}>{MERCHANT.email}</a> or visit{" "}
-          our <a href="/contact-us">Contact Us</a> page.
+          our <a href={withBase("/contact-us")}>Contact Us</a> page.
         </p>
       </section>
     </PolicyPageLayout>

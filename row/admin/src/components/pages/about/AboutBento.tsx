@@ -1,6 +1,7 @@
 import Image from "next/image";
 
 import { appLocale } from "@/lib/appFormat";
+import { withBase } from "@/lib/basePath";
 const TICKER = [
   "Service Above Self",
   "Uniting Clubs",
@@ -53,7 +54,7 @@ export function AboutBento() {
             className="media-grade relative min-h-[260px] rounded-[24px] ring-1 ring-navy-950/10 sm:col-span-2 lg:col-span-5"
           >
             <Image
-              src="/images/about-hero.jpg"
+              src={withBase("/images/about-hero.jpg")}
               alt="Rotary volunteers preparing food and supplies for community distribution"
               fill
               priority

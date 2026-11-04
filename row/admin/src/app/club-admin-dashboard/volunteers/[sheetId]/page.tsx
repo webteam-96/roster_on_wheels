@@ -26,6 +26,7 @@ import {
 import { hoursEntries, toRows, toSlots, typedTotal, type SlotRow } from "@/lib/volunteers";
 import type { SheetStatus, VolunteerSheet, VolunteerTargets } from "@/types/volunteers";
 import type { RotaryYear } from "@/types/rotaryYear";
+import { BASE_PATH } from "@/lib/basePath";
 
 const SELECT = "h-10 w-full rounded-md border border-input bg-background px-3 text-sm";
 const message = (err: any, fallback: string) => err?.response?.data?.message || fallback;
@@ -170,7 +171,7 @@ export default function VolunteerSheetPage() {
     }
   };
 
-  const link = sheet ? `${window.location.origin}/public/volunteer/${sheet.publicToken}` : "";
+  const link = sheet ? `${window.location.origin}${BASE_PATH}/public/volunteer/${sheet.publicToken}` : "";
 
   return (
     <div className="space-y-5 p-6">

@@ -35,6 +35,7 @@ import ErrorAlert from "@/components/ErrorAlert";
 
 import { appLocale } from "@/lib/appFormat";
 import { ListPageSkeleton } from "@/components/row/AppKit";
+import { withBase, BASE_PATH } from "@/lib/basePath";
 interface EventPaymentLinkRow {
   id: number;
   formType: number;
@@ -234,7 +235,7 @@ export default function ClubAdminPaymentLinksPage() {
                 </tr>
               ) : filtered.map((item) => {
                 const reportUrl = typeof window !== "undefined"
-                  ? `${window.location.origin}/report/${item.id}`
+                  ? `${window.location.origin}${BASE_PATH}/report/${item.id}`
                   : `/report/${item.id}`;
                 const sheetUrl = item.googleSheetId
                   ? `https://docs.google.com/spreadsheets/d/${item.googleSheetId}`
@@ -275,7 +276,7 @@ export default function ClubAdminPaymentLinksPage() {
                       <div className="flex items-center justify-center gap-1.5">
                         <button
                           type="button"
-                          onClick={() => window.open(`/report/${item.id}`, "_blank")}
+                          onClick={() => window.open(withBase(`/report/${item.id}`), "_blank")}
                           className="inline-flex items-center gap-0.5 text-xs text-blue-600 hover:text-blue-800 hover:underline"
                           aria-label="Open report"
                         >

@@ -20,6 +20,7 @@ import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import SearchBox from "@/components/SearchBox";
 import { ListPageSkeleton } from "@/components/row/AppKit";
+import { withBase, BASE_PATH } from "@/lib/basePath";
 
 interface PaymentLink {
   id: number;
@@ -124,10 +125,10 @@ export default function DistrictEventPaymentLinksPage() {
 
                     <TableCell className="text-center">
                       <div className="flex items-center justify-center gap-1">
-                        <button onClick={() => window.open(`/report/${item.id}`, "_blank")}
+                        <button onClick={() => window.open(withBase(`/report/${item.id}`), "_blank")}
                           className="text-sm text-blue-600 hover:text-blue-800 hover:underline">View</button>
                         <span className="text-muted-foreground">|</span>
-                        <button onClick={() => { navigator.clipboard.writeText(`${window.location.origin}/report/${item.id}`); setSuccessMessage("Report link copied."); }}
+                        <button onClick={() => { navigator.clipboard.writeText(`${window.location.origin}${BASE_PATH}/report/${item.id}`); setSuccessMessage("Report link copied."); }}
                           className="text-sm text-blue-600 hover:text-blue-800 hover:underline">Copy</button>
                       </div>
                     </TableCell>

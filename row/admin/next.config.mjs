@@ -17,6 +17,9 @@ function apiImagePattern() {
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   output: "standalone",
+  // Served under a sub-path when NEXT_PUBLIC_BASE_PATH is set at build time (test host: "/admin", the IIS
+  // application "admin"). Code that builds root URLs by hand uses withBase() from src/lib/basePath.ts.
+  ...(process.env.NEXT_PUBLIC_BASE_PATH ? { basePath: process.env.NEXT_PUBLIC_BASE_PATH.replace(/\/+$/, "") } : {}),
   experimental: {
     missingSuspenseWithCSRBailout: false,
   },

@@ -16,6 +16,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { CalendarDays, MapPin } from "@/components/icons";
+import { withBase } from "@/lib/basePath";
 
 const when = (i: PublicInvite) => {
   const time = i.meetingFromTime ? `${i.meetingFromTime}${i.meetingToTime ? ` to ${i.meetingToTime}` : ""}` : "";
@@ -62,7 +63,7 @@ export default function InvitePage() {
       <header className="border-b border-slate-200 bg-white">
         <div className="mx-auto flex h-16 max-w-xl items-center px-4">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/brand/row-logo.png" alt="ROW" className="h-10 object-contain" />
+          <img src={withBase("/brand/row-logo.png")} alt="ROW" className="h-10 object-contain" />
         </div>
       </header>
 
@@ -129,8 +130,8 @@ export default function InvitePage() {
 
       <footer className="border-t border-slate-200 bg-white">
         <nav className="mx-auto flex max-w-xl justify-center gap-6 px-4 py-4 text-xs text-slate-500">
-          <a href="/terms-and-conditions" className="hover:text-slate-800">Terms of Service</a>
-          <a href="/privacy-policy" className="hover:text-slate-800">Privacy Policy</a>
+          <a href={withBase("/terms-and-conditions")} className="hover:text-slate-800">Terms of Service</a>
+          <a href={withBase("/privacy-policy")} className="hover:text-slate-800">Privacy Policy</a>
         </nav>
       </footer>
     </div>

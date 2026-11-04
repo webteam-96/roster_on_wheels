@@ -1,6 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
+import { withBase } from "@/lib/basePath";
 
 /**
  * Official ROW masterbrand lockup (905×295 PNG).
@@ -25,7 +26,7 @@ export function Logo({
       aria-label="ROW: Home"
     >
       <Image
-        src={tone === "brand" ? "/brand/row-logo.png" : "/brand/row-logo-inverse.png"}
+        src={withBase(tone === "brand" ? "/brand/row-logo.png" : "/brand/row-logo-inverse.png")}
         alt="ROW"
         width={905}
         height={295}

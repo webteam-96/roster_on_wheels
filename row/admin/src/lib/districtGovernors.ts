@@ -1,3 +1,4 @@
+import { withBase } from "@/lib/basePath";
 // Client for the District Governors roster. The admin API only exposes DGs
 // per-club, so the fan-out + assembly happens server-side in
 // src/app/(site)/site-data/district-governors/route.ts; this just fetches that one endpoint.
@@ -24,7 +25,7 @@ const ALLOWED_PHOTO_HOSTS = ["portal.example.org", "example.org"];
 export async function getGovernors(yearId?: number): Promise<ApiGovernor[]> {
   try {
     const q = yearId !== undefined ? `?yearId=${yearId}` : "";
-    const res = await fetch(`/site-data/district-governors${q}`, {
+    const res = await fetch(withBase(`/site-data/district-governors${q}`), {
       headers: { Accept: "application/json" },
     });
     if (!res.ok) return [];

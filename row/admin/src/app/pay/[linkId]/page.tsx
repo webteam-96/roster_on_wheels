@@ -16,6 +16,7 @@ import {
 import { AlertCircle, CheckCircle2, Loader2 } from "@/components/icons";
 
 import { currencySymbol } from "@/lib/appFormat";
+import { withBase, BASE_PATH } from "@/lib/basePath";
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
 // Build a hidden form and submit it as POST. Used to send the proxy params in
@@ -314,7 +315,7 @@ export default function PublicPaymentPage() {
           cashfree.checkout({
             paymentSessionId: result.paymentSessionId,
             redirectTarget: "_self",
-            returnUrl: `${window.location.origin}/pay/${linkId}/thank-you?orderId=${result.orderId}&memberPaymentId=${result.memberPaymentId}`,
+            returnUrl: `${window.location.origin}${BASE_PATH}/pay/${linkId}/thank-you?orderId=${result.orderId}&memberPaymentId=${result.memberPaymentId}`,
           });
         };
         document.head.appendChild(script);
@@ -355,7 +356,7 @@ export default function PublicPaymentPage() {
         <Card className="mb-6">
           <CardContent className="pt-6">
             <div className="flex items-center gap-4 mb-4">
-              <img src={eventLink.purposeLogo ? `${API_BASE_URL}${eventLink.purposeLogo}` : "/brand/row-mark.png"} alt="Logo" className="h-16 w-16 object-contain rounded" />
+              <img src={eventLink.purposeLogo ? `${API_BASE_URL}${eventLink.purposeLogo}` : withBase("/brand/row-mark.png")} alt="Logo" className="h-16 w-16 object-contain rounded" />
               <div>
                 <h1 className="text-2xl font-bold text-primary">{eventLink.title}</h1>
                 {eventLink.description && <p className="text-muted-foreground mt-1">{eventLink.description}</p>}

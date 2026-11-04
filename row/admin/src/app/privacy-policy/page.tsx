@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import PolicyPageLayout from "@/components/public/PolicyPageLayout";
 import { merchantFrom } from "@/lib/merchantInfo";
 import { getServerBrand } from "@/lib/brand";
+import { withBase } from "@/lib/basePath";
 
 export async function generateMetadata(): Promise<Metadata> {
   const brand = await getServerBrand();
@@ -26,7 +27,7 @@ export default async function PrivacyPolicyPage() {
         <p>
           The <strong>Data Fiduciary</strong> under the DPDPA, 2023 for the
           purposes of this Platform is {MERCHANT.legalName}. Our contact
-          details are listed in the <a href="/contact-us">Contact Us</a> page
+          details are listed in the <a href={withBase("/contact-us")}>Contact Us</a> page
           and our Grievance Officer is identified there as well.
         </p>
       </section>
@@ -211,7 +212,7 @@ export default async function PrivacyPolicyPage() {
           For any grievance regarding the processing of your personal data,
           please write to our Grievance Officer at{" "}
           <a href={`mailto:${MERCHANT.privacyEmail}`}>{MERCHANT.privacyEmail}</a>.
-          See the <a href="/contact-us">Contact Us</a> page for full details.
+          See the <a href={withBase("/contact-us")}>Contact Us</a> page for full details.
         </p>
       </section>
     </PolicyPageLayout>

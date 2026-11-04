@@ -2,6 +2,7 @@
 import PolicyPageLayout from "@/components/public/PolicyPageLayout";
 import { merchantFrom } from "@/lib/merchantInfo";
 import { getServerBrand } from "@/lib/brand";
+import { withBase } from "@/lib/basePath";
 
 export async function generateMetadata(): Promise<Metadata> {
   const brand = await getServerBrand();
@@ -177,7 +178,7 @@ export default async function RefundsPage() {
         <p>
           Refund queries: <a href={`mailto:${MERCHANT.email}`}>{MERCHANT.email}</a>{" "}
           · Phone: <a href={`tel:${MERCHANT.phone.replace(/[^+\d]/g, "")}`}>{MERCHANT.phone}</a>{" "}
-          · See full contact details on the <a href="/contact-us">Contact Us</a> page.
+          · See full contact details on the <a href={withBase("/contact-us")}>Contact Us</a> page.
         </p>
       </section>
     </PolicyPageLayout>

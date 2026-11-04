@@ -37,6 +37,7 @@ import ErrorAlert from "@/components/ErrorAlert";
 import Pagination from "@/components/Pagination";
 import { useSyncClubIdFromUrl } from "@/hooks/useSyncClubIdFromUrl";
 import { SkeletonRows } from "@/components/row/AppKit";
+import { stripBase } from "@/lib/basePath";
 
 function fundChipStyle(name: string): string {
   const n = (name || "").toLowerCase();
@@ -85,7 +86,7 @@ export function TrfV2View({ clubId: propClubId, embedded = false, yearId: global
   // returnTo for the add/edit links — the CURRENT page URL. Embedded on the Foundation
   // tab → returns to Foundation; on the standalone route → returns here (with ?from=cmr).
   const returnTo = typeof window !== "undefined"
-    ? encodeURIComponent(window.location.pathname + window.location.search)
+    ? encodeURIComponent(stripBase(window.location.pathname) + window.location.search)
     : encodeURIComponent(`/clubs/${clubId}/trf/v2`);
 
   const cmrQuery = isFromCmrMonth

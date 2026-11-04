@@ -12,6 +12,7 @@
 import type { ReactNode } from "react";
 import { Lock, ShieldCheck, BadgeCheck } from "@/components/icons";
 import { useBrand } from "@/contexts/BrandContext";
+import { withBase } from "@/lib/basePath";
 
 const NAVY = "#17458F";
 const NAVY_DARK = "#0B3F7A";
@@ -32,7 +33,7 @@ export default function PayPageShell({ title, wide, children }: { title?: ReactN
       <header className="w-full border-b border-[color:var(--row-line)] bg-white text-foreground">
         <div className="flex h-16 sm:h-20 items-center gap-3 sm:gap-4 px-4 sm:px-8">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/brand/row-logo.png" alt="ROW" className="h-10 sm:h-14 object-contain shrink-0" />
+          <img src={withBase("/brand/row-logo.png")} alt="ROW" className="h-10 sm:h-14 object-contain shrink-0" />
           <div className="flex-1 min-w-0 text-center">
             {title && <span className="font-semibold text-sm sm:text-lg truncate block">{title}</span>}
           </div>

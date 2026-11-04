@@ -11,6 +11,7 @@ import {
 import Image from "next/image";
 import { AppleIcon } from "@/components/icons/SocialIcons";
 import { PageBanner } from "@/components/site/PageBanner";
+import { withBase } from "@/lib/basePath";
 
 // Official store listings (final links supplied by the client).
 const STORE_LINKS = {
@@ -150,7 +151,7 @@ export function DownloadApp() {
                 className="pointer-events-none absolute left-1/2 top-1/2 h-64 w-64 -translate-x-1/2 -translate-y-1/2 rounded-full bg-white/60 blur-3xl"
               />
               <Image
-                src="/images/download-app-phone.png"
+                src={withBase("/images/download-app-phone.png")}
                 alt="The ROW app home screen on a phone"
                 width={608}
                 height={942}

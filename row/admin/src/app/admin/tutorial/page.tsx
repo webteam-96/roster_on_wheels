@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowLeft, PlayCircle, BookOpen, Sparkles } from "@/components/icons";
+import { withBase } from "@/lib/basePath";
 
 export const metadata: Metadata = {
   title: "Tutorials | ROW",
@@ -29,7 +30,7 @@ export default function TutorialPage() {
               <div className="mb-8 sm:mb-10 flex flex-col items-center gap-4">
                 <div className="relative">
                   <Image
-                    src="/brand/row-logo.png"
+                    src={withBase("/brand/row-logo.png")}
                     alt="ROW"
                     width={320}
                     height={100}

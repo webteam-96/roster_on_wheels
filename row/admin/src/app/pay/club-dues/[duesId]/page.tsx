@@ -10,6 +10,7 @@ import RotaryLoader from "@/components/RotaryLoader";
 
 import { appLocale, currencySymbol } from "@/lib/appFormat";
 import { ListPageSkeleton } from "@/components/row/AppKit";
+import { withBase } from "@/lib/basePath";
 declare global { interface Window { Razorpay?: any } }
 
 function PayInner() {
@@ -74,7 +75,7 @@ function PayInner() {
               razorpaySignature: r.razorpay_signature,
             });
             if (v.isSuccess) {
-              window.location.href = `/pay/club-dues/${duesId}/thank-you?paid=1&amount=${v.amount ?? ""}&club=${encodeURIComponent(v.memberName || data.clubName || "")}`;
+              window.location.href = withBase(`/pay/club-dues/${duesId}/thank-you?paid=1&amount=${v.amount ?? ""}&club=${encodeURIComponent(v.memberName || data.clubName || "")}`);
             } else { setErr("Payment could not be verified."); setPaying(false); }
           } catch { setErr("Payment verification failed."); setPaying(false); }
         },

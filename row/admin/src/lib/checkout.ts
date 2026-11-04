@@ -5,11 +5,12 @@
  * runs in the browser, so no gateway script is ever loaded here.
  */
 import type { CheckoutSession, CheckoutStatus, CheckoutUrls } from "@/types/payments";
+import { withBase } from "@/lib/basePath";
 
 /** The return and cancel URLs for a pay page, with our order id added by the API as ?orderId=. */
 export function checkoutUrls(returnPath: string, cancelPath?: string): CheckoutUrls {
   const origin = typeof window !== "undefined" ? window.location.origin : "";
-  return { returnUrl: `${origin}${returnPath}`, cancelUrl: `${origin}${cancelPath ?? window.location.pathname}` };
+  return { returnUrl: `${origin}${withBase(returnPath)}`, cancelUrl: `${origin}${cancelPath ?? window.location.pathname}` };
 }
 
 /** Pull the session out of an API response that carries it under `checkout` (or is the session itself). */

@@ -19,6 +19,7 @@ import EmailTokenChips, { CLUB_DUES_RECEIPT_TOKENS, CLUB_DUES_REMINDER_TOKENS } 
 
 import { appLocale, currencySymbol } from "@/lib/appFormat";
 import { ListPageSkeleton } from "@/components/row/AppKit";
+import { withBase } from "@/lib/basePath";
 // forwardedRef-capable dynamic import so we can reach the Quill editor to insert tokens at the cursor.
 const ReactQuill = dynamic(async () => {
   const { default: RQ } = await import("react-quill-new");
@@ -442,7 +443,7 @@ function ClubsSection({ duesId, onSuccess, onError }: { duesId: number; onSucces
           </SelectContent>
         </Select>
         <Button variant="outline" size="sm" onClick={load}><RefreshCw className="mr-2 h-4 w-4" />Refresh</Button>
-        <Button variant="outline" size="sm" onClick={() => window.open(`/report/club-dues/${duesId}`, "_blank")} title="Open the public report for this campaign">
+        <Button variant="outline" size="sm" onClick={() => window.open(withBase(`/report/club-dues/${duesId}`), "_blank")} title="Open the public report for this campaign">
           <FileText className="mr-2 h-4 w-4" />Report
         </Button>
         <div className="flex-1" />

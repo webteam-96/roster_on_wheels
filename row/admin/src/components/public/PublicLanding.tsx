@@ -44,6 +44,7 @@ import {
 } from "@/components/icons";
 import PublicHeader from "./PublicHeader";
 import PublicFooter from "./PublicFooter";
+import { withBase } from "@/lib/basePath";
 
 const BRAND_NAVY = "#17458f";
 const BRAND_GOLD = "#F7A81B";
@@ -214,7 +215,7 @@ export default function PublicLanding() {
             <div className="hidden lg:flex items-center justify-center">
               <div className="relative">
                 <Image
-                  src="/brand/row-logo-inverse.png"
+                  src={withBase("/brand/row-logo-inverse.png")}
                   alt="ROW emblem"
                   width={420}
                   height={420}
