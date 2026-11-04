@@ -67,6 +67,8 @@ host means rebuilding them.
 | `Brand__Domains__AdminOrigin` / `Brand__Domains__ApiBase` | `https://test.rosteronwheels.com` |
 | `FrontendUrl`, `BackendUrl`, `PublicFrontend__BaseUrl`, `Api__BaseUrl` | `https://test.rosteronwheels.com` |
 | `BackgroundJobs__Enabled` | `false` for the test (see 5) |
+| `Translation__Provider`, `Translation__ApiKey` | translation provider and key; unset = English only, nothing sent. Self-hosted, no key: run `install-libretranslate.ps1`, then `libretranslate` and `Translation__ApiUrl=http://127.0.0.1:5100` |
+| `Payments__TaxPercent` | tax added to wallet and default website prices; unset = 0 |
 | `Payments__Provider` | `simulated` to test payments without a gateway; unset = off |
 | `Payments__AllowSimulatedInProduction` | `true` is required as well on this host. A simulated payment marks real rows paid and sends real receipts: remove both settings before go-live |
 | `Meetings__ReminderJob`, `DailyStatsReport__Enabled` | `false` for the test |

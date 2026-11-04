@@ -748,7 +748,7 @@ public class ClubWebsitesController : ControllerBase
                 await LogAction(conn, id, "PleskSubdomainDeleteFailed", ex.Message, userId);
                 // ABORT — don't touch DB. User can click Delete again to retry, or use Force Clean Plesk.
                 return BadRequest(new {
-                    message = $"Plesk delete failed — portal record preserved. Click Delete again to retry, or use 'Force Clean Plesk' button if the subdomain still exists in Plesk. Error: {ex.Message}",
+                    message = $"Plesk delete failed — portal record preserved. Click Delete again to retry, or use 'Force Clean Plesk' button if the subdomain still exists in Plesk. Details are in the server log.",
                     pleskFailed = true
                 });
             }
@@ -1239,9 +1239,7 @@ public class ClubWebsitesController : ControllerBase
     {
         var gw = (gatewayType ?? "normal").Trim().ToLowerInvariant();
         if (gw != "normal" && gw != "route") return "Invalid payment gateway.";
-        if (gstPercent < 0 || gstPercent > 100) return "GST% must be between 0 and 100.";
-        if (gstPercent == 0m && gw != "route")
-            return "GST 0% requires the Razorpay Route gateway.";
+        if (gstPercent < 0 || gstPercent > 100) return "Tax % must be between 0 and 100.";
         if (gw == "route" && !await HasActiveGlobalRouteAccountAsync(conn))
             return "No club-website Route account is selected yet. Choose one at the top of the Pricing & Reminders tab first.";
         return null;
@@ -1494,7 +1492,7 @@ public class ClubWebsitesController : ControllerBase
         int userId = GetUserId();
         if (userId <= 0) return Unauthorized(new { message = "Not signed in." });
         if (req.NewAmount < 0 || req.RenewalAmount < 0) return BadRequest(new { message = "Amounts cannot be negative." });
-        if (req.GstPercent < 0 || req.GstPercent > 100) return BadRequest(new { message = "GST% must be between 0 and 100." });
+        if (req.GstPercent < 0 || req.GstPercent > 100) return BadRequest(new { message = "Tax % must be between 0 and 100." });
         var otp = (req.Otp ?? "").Trim();
         if (otp.Length != 6) return BadRequest(new { message = "Enter the 6-digit OTP." });
 

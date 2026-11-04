@@ -208,6 +208,39 @@ try:
         st, s = simulate(tk, "paid")
         check(f"{flow}: pay settles", st == 200 and sql(table_check) == "1", str(s)[:200])
 
+    # Real pricing: amounts come from the price tables and member counts, tax from Payments:TaxPercent (default 0)
+    st, q = call("GET", "/api/wallet/quote?creditType=Email&amount=1000", SA)
+    check("wallet quote: no built-in tax", st == 200 and float(q["gstAmount"]) == 0 and float(q["totalAmount"]) == 1000, str(q)[:160])
+    site_club = sql("SELECT c.pk_club_id FROM club_master c WHERE c.isdeleted=0 AND c.fk_district_id>0 "
+                    "AND c.pk_club_id NOT IN (SELECT fk_club_id FROM club_websites) ORDER BY c.pk_club_id LIMIT 1")
+    st, q = call("GET", f"/api/website-billing/quote?clubId={site_club}", SA)
+    check("website quote: price with no built-in tax", st == 200 and float(q["gstAmount"]) == 0 and float(q["totalAmount"]) == float(q["baseAmount"]) > 0, str(q)[:200])
+    st, o = call("POST", "/api/website-billing/create-order", SA, {"clubId": int(site_club), "subdomainInput": "e2epayreal", "reminderDays": 15, "returnPath": "/club-admin-dashboard/website-purchase"})
+    check("website order: created at the quoted price", st == 200 and float(o["totalAmount"]) == float(q["totalAmount"]), str(o)[:200])
+    if st == 200:
+        tokens.append(o["checkout"]["token"])
+        real_site_order = o["websiteOrderId"]
+        st, s2 = simulate(o["checkout"]["token"], "paid")
+        check("website order: session charges the quoted price", st == 200 and float(s2["amount"]) == float(q["totalAmount"]), str(s2)[:160])
+        check("website order: paid", sql(f"SELECT PaymentStatus FROM club_website_orders WHERE pk_id={real_site_order}") == "PAID")
+    dues_club = sql("SELECT m.fk_club_id FROM club_members m JOIN club_master c ON c.pk_club_id=m.fk_club_id "
+                    "WHERE m.isdeleted=0 AND c.isdeleted=0 AND c.fk_district_id>0 GROUP BY m.fk_club_id HAVING COUNT(*)>=5 ORDER BY m.fk_club_id LIMIT 1")
+    dues_district = sql(f"SELECT fk_district_id FROM club_master WHERE pk_club_id={dues_club}")
+    dues = sql(f"INSERT INTO club_dues (fk_district_id, RotaryYear, Purpose, DefaultPerMemberRate, OnlineSurchargePercent, RateModel, ModeOfPayment, IsActive, isdeleted) "
+               f"VALUES ({dues_district},'2026-27','e2e-pay',5,10,0,1,1,0); SELECT LAST_INSERT_ID()")
+    payload = b64(json.dumps({"d": int(dues), "c": int(dues_club)}, separators=(",", ":")).encode())
+    pay_token = payload + "." + b64(hmac.new(SECRET.encode(), payload.encode(), hashlib.sha256).digest())
+    st, o = call("POST", f"/api/public/club-dues/{dues}/pay?token={pay_token}", None, {"fkClubId": int(dues_club)})
+    check("club dues: order created", st == 200 and o.get("checkout"), str(o)[:240])
+    if st == 200 and o.get("checkout"):
+        tokens.append(o["checkout"]["token"])
+        unpaid = int(sql(f"SELECT COUNT(*) FROM club_dues_members WHERE fk_club_dues_id={dues} AND fk_club_id={dues_club} AND isdeleted=0 AND IsHonorary=0"))
+        expected = round(unpaid * 5.5, 2)
+        st, s2 = simulate(o["checkout"]["token"], "paid")
+        check(f"club dues: charged members x rate + online surcharge ({unpaid} x 5.50)", st == 200 and unpaid > 0 and float(s2["amount"]) == expected, str(s2)[:160])
+        check("club dues: payment settled", sql(f"SELECT COUNT(*) FROM club_dues_payments WHERE fk_club_dues_id={dues} AND IsPaid=1") == "1")
+        check("club dues: members marked paid", sql(f"SELECT COUNT(*) FROM club_dues_members WHERE fk_club_dues_id={dues} AND fk_club_id={dues_club} AND isdeleted=0 AND IsHonorary=0 AND IsPaid=1") == str(unpaid))
+
     # Vendor accounts work without a gateway
     sql("INSERT INTO cashfree_otp (otp_code, purpose, is_used, expiry_date, created_date) VALUES ('914273','CASHFREE_KYC',0,DATE_ADD(NOW(), INTERVAL 5 MINUTE),NOW())")
     st, k = call("POST", "/api/cashfree-kyc/verify-and-save", SA, {"otp": "914273", "vendorId": "e2epay1", "email": "e2e@example.org", "phone": "5550100", "accountHolder": "e2e-pay", "accountNumber": "000123456789", "ifsc": "E2EP0000001", "name": "e2e-pay", "pan": "AAAAA0000A"})
@@ -236,8 +269,12 @@ finally:
     quiet("DELETE r FROM event_payment_registrations r JOIN event_payment_links l ON l.pk_id=r.fk_payment_link_id WHERE l.Title='e2e-pay'")
     quiet("DELETE FROM event_payment_links WHERE Title='e2e-pay'")
     quiet("DELETE p FROM club_dues_payments p JOIN club_dues d ON d.pk_club_dues_id=p.fk_club_dues_id WHERE d.Purpose='e2e-pay'")
+    quiet("DELETE ap FROM club_dues_member_account_payments ap JOIN club_dues_members m ON m.pk_club_dues_member_id=ap.fk_club_dues_member_id JOIN club_dues d ON d.pk_club_dues_id=m.fk_club_dues_id WHERE d.Purpose='e2e-pay'")
+    quiet("DELETE m FROM club_dues_members m JOIN club_dues d ON d.pk_club_dues_id=m.fk_club_dues_id WHERE d.Purpose='e2e-pay'")
+    quiet("DELETE x FROM club_dues_clubs x JOIN club_dues d ON d.pk_club_dues_id=x.fk_club_dues_id WHERE d.Purpose='e2e-pay'")
     quiet("DELETE FROM club_dues WHERE Purpose='e2e-pay'")
-    quiet("DELETE FROM club_website_orders WHERE Subdomain='e2e-pay'")
+    quiet("DELETE FROM club_website_orders WHERE Subdomain='e2e-pay' OR Subdomain LIKE '%e2epayreal%'")
+    quiet("DELETE FROM club_websites WHERE Subdomain='e2e-pay' OR Subdomain LIKE '%e2epayreal%'")
     quiet("DELETE FROM cashfree_kyc WHERE vendor_id='e2epay1'")
 
 print(f"\n{'ALL PASS' if fails == 0 else str(fails) + ' FAILED'}")

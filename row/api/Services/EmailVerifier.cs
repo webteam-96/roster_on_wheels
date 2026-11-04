@@ -34,7 +34,7 @@ public static class EmailVerifier
                 .ToList();
             if (mxHosts.Count == 0) return new(false, $"No MX records for domain '{domain}'.");
         }
-        catch (Exception ex) { return new(true, $"MX lookup inconclusive: {ex.Message}"); } // accept-all on DNS failure
+        catch (Exception) { return new(true, "MX lookup inconclusive."); } // accept-all on DNS failure
 
         // 3. Detect accept-all: probe with a guaranteed-fake mailbox first
         var fakeEmail = $"__nope_{Guid.NewGuid():N}@{domain}";

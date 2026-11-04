@@ -70,8 +70,6 @@ public class RotaryOrgSyncController : ControllerBase
             return StatusCode(500, new
             {
                 message = "Ping failed — see server logs for details.",
-                error = ex.Message,
-                type = ex.GetType().Name,
             });
         }
     }

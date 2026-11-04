@@ -3,12 +3,12 @@
 /**
  * SuperAdmin › Club Websites › Pricing & Reminders (per Rotary year).
  * --------------------------------------------------------------------------
- * Set a per-club price (Amount + GST %) and payment gateway (Razorpay Normal or
+ * Set a per-club price (Amount + Tax %) and payment gateway (Razorpay Normal or
  * Razorpay Route), per Rotary year, for one club or a whole district (batch). Then
  * bulk-send buy/renew reminders (email) carrying an encrypted pay link to
  * each club's current-year President + Secretary.
  *
- * Rule: GST 0% requires the Route gateway with an active linked account (enforced here
+ * Rule: the Route gateway needs an active linked account (enforced here
  * and on the server). The reminder link's amount is always re-resolved server-side.
  */
 
@@ -61,7 +61,7 @@ type EditState = {
 };
 
 const emptyEdit: EditState = {
-  open: false, mode: "single", baseAmount: "14999", renewalAmount: "10999", gstPercent: "18",
+  open: false, mode: "single", baseAmount: "14999", renewalAmount: "10999", gstPercent: "0",
   gatewayType: "normal",
 };
 
@@ -116,7 +116,7 @@ export default function PricingRemindersTab() {
   const openDefaultEdit = () => {
     setDefNew(String(defPricing?.newAmount ?? 14999));
     setDefRenewal(String(defPricing?.renewalAmount ?? 10999));
-    setDefGst(String(defPricing?.gstPercent ?? 18));
+    setDefGst(String(defPricing?.gstPercent ?? 0));
     setDefOtp(""); setDefOtpSent(false); setDefOtpInfo("");
     setDefOpen(true);
   };
@@ -124,7 +124,7 @@ export default function PricingRemindersTab() {
   const sendDefaultOtp = async () => {
     const n = Number(defNew), r = Number(defRenewal), g = Number(defGst);
     if ([n, r, g].some((x) => Number.isNaN(x)) || n < 0 || r < 0 || g < 0 || g > 100) {
-      setErrorMessage("Enter valid amounts and a GST% between 0 and 100 before sending the OTP."); return;
+      setErrorMessage("Enter valid amounts and a tax % between 0 and 100 before sending the OTP."); return;
     }
     setDefSendingOtp(true); setErrorMessage(null);
     try {
@@ -139,7 +139,7 @@ export default function PricingRemindersTab() {
   const saveDefaultPricing = async () => {
     const n = Number(defNew), r = Number(defRenewal), g = Number(defGst);
     if ([n, r, g].some((x) => Number.isNaN(x)) || n < 0 || r < 0 || g < 0 || g > 100) {
-      setErrorMessage("Enter valid amounts and a GST% between 0 and 100."); return;
+      setErrorMessage("Enter valid amounts and a tax % between 0 and 100."); return;
     }
     if (defOtp.trim().length !== 6) { setErrorMessage("Enter the 6-digit OTP."); return; }
     setDefSaving(true); setErrorMessage(null);
@@ -277,7 +277,7 @@ export default function PricingRemindersTab() {
       open: true, mode: "single", clubId: r.clubId, clubName: r.clubName, orderType: r.orderType,
       baseAmount: String(r.baseAmount ?? 10999),
       renewalAmount: String(r.renewalAmount ?? r.baseAmount ?? 10999),
-      gstPercent: String(r.gstPercent ?? 18),
+      gstPercent: String(r.gstPercent ?? 0),
       gatewayType: (r.gatewayType === "route" ? "route" : "normal"),
     });
   };
@@ -295,17 +295,15 @@ export default function PricingRemindersTab() {
     });
   };
 
-  // GST 0% => gateway must be Route. The Route account itself is the single global one below.
-  const gst0 = useMemo(() => Number(edit.gstPercent) === 0, [edit.gstPercent]);
+  // The Route account is the single global one below.
   const editValid = useMemo(() => {
     const base = Number(edit.baseAmount), renewal = Number(edit.renewalAmount), gst = Number(edit.gstPercent);
     if (Number.isNaN(base) || base < 0) return false;
     if (Number.isNaN(renewal) || renewal < 0) return false;
     if (Number.isNaN(gst) || gst < 0 || gst > 100) return false;
     if (edit.gatewayType === "route" && !routeAccountId) return false;   // a global Route account must be selected
-    if (gst0 && edit.gatewayType !== "route") return false;
     return true;
-  }, [edit, gst0, routeAccountId]);
+  }, [edit, routeAccountId]);
 
   const persistRoute = async (accId: string, all: boolean) => {
     setSavingRoute(true); setErrorMessage(null);
@@ -516,7 +514,7 @@ export default function PricingRemindersTab() {
               <th className="text-left px-3 py-2.5 font-medium">Club</th>
               <th className="text-left px-3 py-2.5 font-medium">Type</th>
               <th className="text-right px-3 py-2.5 font-medium">Amount</th>
-              <th className="text-right px-3 py-2.5 font-medium">GST%</th>
+              <th className="text-right px-3 py-2.5 font-medium">Tax %</th>
               <th className="text-right px-3 py-2.5 font-medium">Total</th>
               <th className="text-left px-3 py-2.5 font-medium">Gateway</th>
               <th className="text-left px-3 py-2.5 font-medium">President / Secretary</th>
@@ -587,7 +585,7 @@ export default function PricingRemindersTab() {
             </DialogTitle>
             {edit.mode === "batch" && defPricing && (
               <p className="text-xs text-slate-500 mt-1">
-                Pre-filled with the system default: New <span className="font-medium text-slate-700">{inr(defPricing.newAmount)}</span> · Renewal <span className="font-medium text-slate-700">{inr(defPricing.renewalAmount)}</span> (+{defPricing.gstPercent}% GST). Change below to override for this district.
+                Pre-filled with the system default: New <span className="font-medium text-slate-700">{inr(defPricing.newAmount)}</span> · Renewal <span className="font-medium text-slate-700">{inr(defPricing.renewalAmount)}</span> (+{defPricing.gstPercent}% tax). Change below to override for this district.
               </p>
             )}
           </DialogHeader>
@@ -601,18 +599,18 @@ export default function PricingRemindersTab() {
             <div className="grid grid-cols-2 gap-3">
               {showNew && (
               <div className="space-y-1">
-                <Label className="text-xs text-slate-500">New Amount (₹, excl. GST)</Label>
+                <Label className="text-xs text-slate-500">New amount (excl. tax)</Label>
                 <Input type="number" min={0} value={edit.baseAmount} onChange={(e) => setEdit((s) => ({ ...s, baseAmount: e.target.value }))} />
               </div>
               )}
               {showRenewal && (
               <div className="space-y-1">
-                <Label className="text-xs text-slate-500">Renewal Amount (₹, excl. GST)</Label>
+                <Label className="text-xs text-slate-500">Renewal amount (excl. tax)</Label>
                 <Input type="number" min={0} value={edit.renewalAmount} onChange={(e) => setEdit((s) => ({ ...s, renewalAmount: e.target.value }))} />
               </div>
               )}
               <div className="space-y-1">
-                <Label className="text-xs text-slate-500">GST %</Label>
+                <Label className="text-xs text-slate-500">Tax %</Label>
                 <Input type="number" min={0} max={100} value={edit.gstPercent} onChange={(e) => setEdit((s) => ({ ...s, gstPercent: e.target.value }))} />
               </div>
             </div>
@@ -626,11 +624,10 @@ export default function PricingRemindersTab() {
               >
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="normal" disabled={gst0}>Razorpay Normal</SelectItem>
+                  <SelectItem value="normal" >Razorpay Normal</SelectItem>
                   <SelectItem value="route">Razorpay Route</SelectItem>
                 </SelectContent>
               </Select>
-              {gst0 && <p className="text-xs text-amber-600">GST 0% requires the Route gateway.</p>}
               {edit.gatewayType === "route" && !routeAccountId && (
                 <p className="text-xs text-red-600">Select the club-website Route account at the top of this tab first.</p>
               )}
@@ -673,15 +670,15 @@ export default function PricingRemindersTab() {
             <p className="text-xs text-slate-500">These prices apply to every club that has no district- or club-specific override. Saving requires an OTP sent to the authorised approver.</p>
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1">
-                <Label className="text-xs text-slate-500">New Amount (₹, excl. GST)</Label>
+                <Label className="text-xs text-slate-500">New amount (excl. tax)</Label>
                 <Input type="number" min={0} value={defNew} onChange={(e) => setDefNew(e.target.value)} />
               </div>
               <div className="space-y-1">
-                <Label className="text-xs text-slate-500">Renewal Amount (₹, excl. GST)</Label>
+                <Label className="text-xs text-slate-500">Renewal amount (excl. tax)</Label>
                 <Input type="number" min={0} value={defRenewal} onChange={(e) => setDefRenewal(e.target.value)} />
               </div>
               <div className="space-y-1">
-                <Label className="text-xs text-slate-500">GST %</Label>
+                <Label className="text-xs text-slate-500">Tax %</Label>
                 <Input type="number" min={0} max={100} value={defGst} onChange={(e) => setDefGst(e.target.value)} />
               </div>
             </div>

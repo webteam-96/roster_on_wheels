@@ -1706,7 +1706,7 @@ const uiStrings = <String>{
   'I Agree',
   'I Agree & Continue',
   'I accept the district\'s grant rules',
-  'IFSC',
+  'Bank code',
   'INACTIVE',
   'INR',
   'INSTAGRAM',

@@ -17,6 +17,9 @@ without touching the modules. Read `ROW-CHANGES.md` (2026-11-04). Local test: AP
 `python -I kb/tools/payments_simulated_e2e.py <api> 3317 <db>`. Team: district themes are with the owner and a designer;
 Events and QR with another developer. Work on the production DB is allowed; do not disturb anything else.
 
+**2026-11-04, localization service:** see `ROW-CHANGES.md`. The hold on translation work is lifted. Provider key still to come. Test:
+`python -I kb/tools/localization_e2e.py <api> 3317 <db>` with the settings in its header.
+
 ## Ground rules (from the user)
 
 - `row/` is the project. `reference/` (RIZones) is copy-source only: never run it or connect to its servers.

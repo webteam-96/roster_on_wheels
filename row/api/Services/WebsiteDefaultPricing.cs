@@ -24,7 +24,7 @@ public static class WebsiteDefaultPricing
     {
         decimal cfgNew = config.GetValue("Razorpay:WebsitePrice", 14999m);
         decimal cfgRenewal = config.GetValue("Razorpay:WebsiteRenewalPrice", cfgNew);
-        decimal cfgGst = config.GetValue("Razorpay:GstPercent", 18m);
+        decimal cfgGst = config.GetValue("Payments:TaxPercent", 0m);
 
         var rows = (await conn.QueryAsync<dynamic>(
             "SELECT SettingKey AS settingKey, SettingValue AS settingValue FROM system_settings WHERE SettingKey IN (@A, @B, @C)",

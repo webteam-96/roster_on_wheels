@@ -261,7 +261,7 @@ export default function PublicWalletPayPage() {
               <dd className="tabular-nums text-slate-700">{inr(quote.baseAmount)}</dd>
             </div>
             <div className="flex justify-between gap-3">
-              <dt className="text-slate-500">GST{gstPct != null ? ` (${gstPct}%)` : ""}</dt>
+              <dt className="text-slate-500">Tax{gstPct != null ? ` (${gstPct}%)` : ""}</dt>
               <dd className="tabular-nums text-slate-700">{inr(quote.gstAmount)}</dd>
             </div>
           </dl>
@@ -514,7 +514,7 @@ export default function PublicWalletPayPage() {
                             <dd className="tabular-nums text-slate-700">{inr(quote.baseAmount)}</dd>
                           </div>
                           <div className="flex justify-between gap-3">
-                            <dt className="text-slate-600">GST{gstPct != null ? ` (${gstPct}%)` : ""}</dt>
+                            <dt className="text-slate-600">Tax{gstPct != null ? ` (${gstPct}%)` : ""}</dt>
                             <dd className="tabular-nums text-slate-700">{inr(quote.gstAmount)}</dd>
                           </div>
                         </dl>

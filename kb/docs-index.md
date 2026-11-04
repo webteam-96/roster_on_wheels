@@ -76,7 +76,7 @@ open the file for the text. Do not edit by hand.
 
 ## row (49 documents)
 
-- **row/HANDOFF.md** (12 KB)
+- **row/HANDOFF.md** (13 KB)
   - ROW: session handoff (read this first)
   -   Ground rules (from the user)
   -   Done on 2026-10-19
@@ -111,7 +111,7 @@ open the file for the text. Do not edit by hand.
   -   Configuration (set per server as environment variables; never commit values)
   -   Checks
   -   Refreshing from a newer RIZones copy
-- **row/ROW-CHANGES.md** (65 KB)
+- **row/ROW-CHANGES.md** (70 KB)
   - ROW changes to consider later
   -   Security and privacy
   -   Providers
@@ -137,7 +137,7 @@ open the file for the text. Do not edit by hand.
   -   2026-10-23: Skipped modules removed, 10 new spec modules, security fixes
   -   2026-10-23 (part 2): security and read review, time zones, planning mode, escalation, rebranding
   -   2026-10-28: Build spec completion (plan `docs/superpowers/plans/2026-10-28-build-spec-completion.md`)
-  - … 1 more headings
+  - … 3 more headings
 - **row/STATUS-REPORT.md** (6 KB)
   - ROW status report (updated 2026-10-23, evening)
   -   Done (verified on a local copy of production, `row_prod_copy`)

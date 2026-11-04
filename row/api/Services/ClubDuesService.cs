@@ -1104,7 +1104,7 @@ own separate approval request.</p>
     private static string BuildAccountLabel(string? name, string? last4, string? ifsc)
     {
         var maskedNumber = string.IsNullOrWhiteSpace(last4) ? "••••----" : $"••••{last4}";
-        var ifscPart = string.IsNullOrWhiteSpace(ifsc) ? "IFSC N/A" : $"IFSC {ifsc}";
+        var ifscPart = string.IsNullOrWhiteSpace(ifsc) ? "Bank code N/A" : $"Bank code {ifsc}";
         var namePart = string.IsNullOrWhiteSpace(name) ? "" : $" — {name}";
         return $"{maskedNumber} · {ifscPart}{namePart}";
     }
@@ -1459,7 +1459,7 @@ own separate approval request.</p>
         var rows = new List<string>();
         if (!string.IsNullOrWhiteSpace(bankName)) rows.Add($"Bank: <b>{bankName}</b>");
         if (!string.IsNullOrWhiteSpace(acctNo)) rows.Add($"A/C No.: <b>{acctNo}</b>");
-        if (!string.IsNullOrWhiteSpace(ifsc)) rows.Add($"IFSC: <b>{ifsc}</b>");
+        if (!string.IsNullOrWhiteSpace(ifsc)) rows.Add($"Bank code: <b>{ifsc}</b>");
         if (rows.Count == 0) return "";
         return $@"<div style='margin-top:14px;padding:12px 14px;border:1px solid #D5DEE8;border-radius:6px;background:#F7F9FC;font-family:Figtree, Arial,sans-serif'>
 <p style='margin:0 0 6px;font-weight:bold'>To pay offline, transfer to:</p>{string.Join("<br/>", rows)}</div>";

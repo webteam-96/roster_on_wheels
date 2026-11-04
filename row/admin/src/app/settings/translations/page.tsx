@@ -15,6 +15,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import ErrorAlert from "@/components/ErrorAlert";
 import { ArrowLeft } from "@/components/icons";
 import ProtectedRoute from "@/components/ProtectedRoute";
+import TranslationMemoryPanel from "@/components/i18n/TranslationMemoryPanel";
 import common from "../../../../messages/en/common.json";
 import errors from "../../../../messages/en/errors.json";
 import payments from "../../../../messages/en/payments.json";
@@ -181,6 +182,8 @@ export default function TranslationsPage() {
             </CardContent>
           </Card>
         )}
+
+        <TranslationMemoryPanel locale={locale} />
 
         <ErrorAlert open={!!errorMessage} title="Error" description={errorMessage || ""} onOk={() => setErrorMessage(null)} />
       </div>

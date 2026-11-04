@@ -446,3 +446,12 @@ Done (with proof):
 - Payments: see row/ROW-CHANGES.md 2026-11-04. Proof: payments_simulated_e2e all pass, browser run, builds and tests.
 - row_production: 2 additive scripts applied (tables present, Country default NULL; 31,753 clubs, 0 dues, 0 links).
 NOT done / NOT verified: nothing uploaded by Claude (server files, env settings, Brevo key, test logins remain with the user); simulated flow in the app on a device; dashboard wallet and website return notices in a browser; create-order for club dues and website against real pricing (their settlement is tested from a stored session).
+
+## 2026-11-04: localization service
+Asked: study localization services and start the work. Done and proven: see row/ROW-CHANGES.md. Applied to row_production: additive tables only.
+NOT verified: Machine translations panel by eye (its API is tested); a real provider; the app's language switch on a device against the new endpoint.
+Found while comparing with the RIZones app: OMS page 7 says the app has a Goal Overview screen; it was removed with Goal Setting Roles. Not corrected in OMS yet.
+
+## 2026-11-04: go-live checks
+Asked: security check, untested payment paths, India leftovers, load test, app language test on an emulator, self-hosted translation, commit and push. Details: row/ROW-CHANGES.md.
+NOT done: production SQL for the 3 new migrations (automatic safety check refused the write; owner to run or approve). LibreTranslate is not on the server (no access; script not run there). App payments on a device. A real card gateway.

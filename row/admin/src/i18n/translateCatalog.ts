@@ -3,8 +3,8 @@ import { postTranslate } from "@/i18n/postTranslate";
 
 /**
  * Machine-translate a message catalog (English source) into any target locale,
- * for locales that have no static message files. Placeholders like {name} are
- * protected across translation; messages with ICU plural/select are left in
+ * for locales that have no static message files. The API's localization service protects
+ * placeholders like {name}; messages with ICU plural/select are left in
  * English (machine translation would break their structure). Results are cached
  * in localStorage per locale, so a language is translated once per string, ever.
  *
@@ -12,8 +12,6 @@ import { postTranslate } from "@/i18n/postTranslate";
  */
 
 const CACHE_PREFIX = "i18n:mt:v1:";
-const MASK_OPEN = "";
-const MASK_CLOSE = "";
 const COMPLEX_ICU = /\{[^{}]+,\s*(plural|select|selectordinal)\b/;
 const HAS_LETTER = /\p{L}/u;
 
@@ -30,20 +28,6 @@ function collectLeaves(node: Messages, out: Leaf[]): void {
 /** True when a string should be translated (has letters, not a complex ICU message). */
 function translatable(s: string): boolean {
   return HAS_LETTER.test(s) && !COMPLEX_ICU.test(s);
-}
-
-function mask(s: string): { masked: string; tokens: string[] } {
-  const tokens: string[] = [];
-  const masked = s.replace(/\{[^{}]+\}/g, (m) => {
-    const i = tokens.length;
-    tokens.push(m);
-    return `${MASK_OPEN}${i}${MASK_CLOSE}`;
-  });
-  return { masked, tokens };
-}
-
-function unmask(s: string, tokens: string[]): string {
-  return s.replace(new RegExp(`${MASK_OPEN}(\\d+)${MASK_CLOSE}`, "g"), (_, i) => tokens[Number(i)] ?? "");
 }
 
 function loadCache(locale: string): Record<string, string> {
@@ -85,13 +69,12 @@ export async function translateCatalog(english: Messages, targetLocale: string):
     );
 
     if (needed.length > 0) {
-      const masks = needed.map(mask);
-      const res = await postTranslate({ target: targetLocale, source: "en", q: masks.map((m) => m.masked) });
+      const res = await postTranslate({ target: targetLocale, source: "en", q: needed });
       if (res.ok) {
         const { translations } = (await res.json()) as { translations: string[] };
         needed.forEach((original, i) => {
           const t = translations?.[i];
-          cache[original] = typeof t === "string" && t ? unmask(t, masks[i].tokens) : original;
+          if (typeof t === "string" && t && t !== original) cache[original] = t; // English is asked for again next visit
         });
         saveCache(targetLocale, cache);
       }

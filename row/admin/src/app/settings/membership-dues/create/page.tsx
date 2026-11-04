@@ -539,7 +539,7 @@ function CreateEditMembershipDuesPage() {
         if ((modeOfPayment === "2" || modeOfPayment === "3") && sendBankDetails) {
           if (!bankName.trim()) return "Bank Name is required when sending bank details in receipt.";
           if (!accountNumber.trim()) return "Account Number is required when sending bank details in receipt.";
-          if (!ifscCode.trim()) return "IFSC Code is required when sending bank details in receipt.";
+          if (!ifscCode.trim()) return "Bank code is required when sending bank details in receipt.";
         }
         return null;
       case 1: // Fee Types + Default Amounts
@@ -1020,8 +1020,8 @@ function CreateEditMembershipDuesPage() {
                       <Input value={accountNumber} onChange={e => setAccountNumber(e.target.value)} placeholder="Account number" />
                     </div>
                     <div>
-                      <Label>IFSC Code <span className="text-destructive">*</span></Label>
-                      <Input value={ifscCode} onChange={e => setIfscCode(e.target.value)} placeholder="IFSC code" />
+                      <Label>Bank code <span className="text-destructive">*</span></Label>
+                      <Input value={ifscCode} onChange={e => setIfscCode(e.target.value)} placeholder="IFSC, SWIFT or routing number" />
                     </div>
                   </div>
                 )}
@@ -1245,7 +1245,7 @@ function CreateEditMembershipDuesPage() {
                                 {k.accountHolder && (k.accountNumber || k.ifsc) && <span> · </span>}
                                 {k.accountNumber && <span>A/C {k.accountNumber}</span>}
                                 {k.accountNumber && k.ifsc && <span> · </span>}
-                                {k.ifsc && <span>IFSC {k.ifsc}</span>}
+                                {k.ifsc && <span>Bank code {k.ifsc}</span>}
                               </div>
                             )}
                           </div>
@@ -1329,7 +1329,7 @@ function CreateEditMembershipDuesPage() {
                           {vendor.accountHolder && (vendor.accountNumber || vendor.ifsc) && <span> · </span>}
                           {vendor.accountNumber && <span>A/C {vendor.accountNumber}</span>}
                           {vendor.accountNumber && vendor.ifsc && <span> · </span>}
-                          {vendor.ifsc && <span>IFSC {vendor.ifsc}</span>}
+                          {vendor.ifsc && <span>Bank code {vendor.ifsc}</span>}
                         </div>
                       )}
                     </div>

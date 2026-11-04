@@ -909,13 +909,13 @@ function CreateEditPaymentLinkPage() {
     <Card>
       <CardHeader>
         <div className="flex items-center justify-between flex-wrap gap-3">
-          <CardTitle>Vendor Splits ({amountType === "1" ? "Amount ₹" : "Percentage %"})</CardTitle>
+          <CardTitle>Vendor Splits ({amountType === "1" ? "Amount" : "Percentage %"})</CardTitle>
           <div className="flex flex-wrap items-center gap-2">
             <Label className="text-sm">Amount Type:</Label>
             <Select value={amountType} onValueChange={setAmountType}>
               <SelectTrigger className="w-44"><SelectValue /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="1">Amount (Fixed ₹)</SelectItem>
+                <SelectItem value="1">Fixed amount</SelectItem>
                 <SelectItem value="2">Percentage (%)</SelectItem>
               </SelectContent>
             </Select>
@@ -930,7 +930,7 @@ function CreateEditPaymentLinkPage() {
             <TableHeader>
               <TableRow>
                 <TableHead>Registration</TableHead>
-                <TableHead>{amountType === "1" ? "Amount (₹)" : "Total %"}</TableHead>
+                <TableHead>{amountType === "1" ? "Amount" : "Total %"}</TableHead>
                 <TableHead>Assigned</TableHead>
                 <TableHead>Remaining</TableHead>
                 <TableHead>Status</TableHead>
@@ -999,7 +999,7 @@ function CreateEditPaymentLinkPage() {
                   <TableRow>
                     <TableHead>Registration Type</TableHead>
                     <TableHead>{amountType === "1" ? "Registration Amount" : "Total %"}</TableHead>
-                    <TableHead>{amountType === "1" ? "Split Amount (₹)" : "Split Percentage (%)"}</TableHead>
+                    <TableHead>{amountType === "1" ? "Split amount" : "Split Percentage (%)"}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>

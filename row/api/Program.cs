@@ -52,6 +52,10 @@ builder.Services.AddRateLimiter(o =>
     o.AddPolicy("join-form", ctx => System.Threading.RateLimiting.RateLimitPartition.GetFixedWindowLimiter(
         ctx.Connection.RemoteIpAddress?.ToString() ?? "unknown",
         _ => new System.Threading.RateLimiting.FixedWindowRateLimiterOptions { PermitLimit = 8, Window = TimeSpan.FromMinutes(10) }));
+    // UI translation (I18nController): 120 batches a minute per IP; a visitor's new text also has a daily share.
+    o.AddPolicy("translate", ctx => System.Threading.RateLimiting.RateLimitPartition.GetFixedWindowLimiter(
+        ctx.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+        _ => new System.Threading.RateLimiting.FixedWindowRateLimiterOptions { PermitLimit = 120, Window = TimeSpan.FromMinutes(1) }));
     // Anonymous calendar feeds (MeetingsController, [EnableRateLimiting("feed")]): calendar apps poll every few minutes at most.
     o.AddPolicy("feed", ctx => System.Threading.RateLimiting.RateLimitPartition.GetFixedWindowLimiter(
         ctx.Connection.RemoteIpAddress?.ToString() ?? "unknown",
@@ -374,6 +378,7 @@ builder.Services.AddScoped<TenantRenewalService>(); // build spec 3.5 renewal re
 // S5 (build spec 3.3, 3.16): server texts through ASP.NET Core localization, translations kept in server_strings.
 builder.Services.AddLocalization();
 builder.Services.AddSingleton<Microsoft.Extensions.Localization.IStringLocalizerFactory, RotaryApi.Services.Localization.DbStringLocalizerFactory>();
+builder.Services.AddSingleton<RotaryApi.Services.Localization.LocalizationService>();
 var translationProvider = RotaryApi.Services.Localization.StringTranslationBackgroundService.Provider(builder.Configuration);
 RotaryApi.Services.Localization.ServerStrings.QueueEnabled = translationProvider != "none";
 if (translationProvider != "none") builder.Services.AddHostedService<RotaryApi.Services.Localization.StringTranslationBackgroundService>();

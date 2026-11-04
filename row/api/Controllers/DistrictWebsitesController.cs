@@ -404,7 +404,7 @@ public class DistrictWebsitesController : ControllerBase
             {
                 await LogAction(conn, id, "PleskSubdomainDeleteFailed", ex.Message, userId);
                 return BadRequest(new {
-                    message = $"Plesk delete failed — portal record preserved. Click Delete again to retry, or use 'Force Clean Subdomain' from Plesk Tools. Error: {ex.Message}",
+                    message = $"Plesk delete failed — portal record preserved. Click Delete again to retry, or use 'Force Clean Subdomain' from Plesk Tools. Details are in the server log.",
                     pleskFailed = true
                 });
             }

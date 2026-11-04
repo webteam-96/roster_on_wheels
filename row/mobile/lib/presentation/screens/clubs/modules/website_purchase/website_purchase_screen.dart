@@ -882,7 +882,7 @@ class _PriceCard extends StatelessWidget {
         children: [
           _row('Base amount', inr(quote.baseAmount)),
           const SizedBox(height: 6),
-          _row('GST (${quote.gstPercent}%)', inr(quote.gstAmount)),
+          _row('Tax (${quote.gstPercent}%)', inr(quote.gstAmount)),
           const Divider(height: 18),
           _row('Total payable', inr(quote.totalAmount), bold: true),
         ],

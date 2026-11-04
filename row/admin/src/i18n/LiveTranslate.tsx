@@ -3,7 +3,7 @@
 import { useEffect } from "react";
 import { useLocaleControl } from "@/i18n/IntlProvider";
 import { isMachineTranslated } from "@/i18n/config";
-import { postTranslate } from "@/i18n/postTranslate";
+import { dropCacheIfCorrected, postTranslate } from "@/i18n/postTranslate";
 
 /**
  * Runtime UI translator for ANY world language.
@@ -15,7 +15,7 @@ import { postTranslate } from "@/i18n/postTranslate";
  *
  * - Static locales (en + the hand-translated ones) and the dev pseudo-locale are
  *   left to next-intl; this does nothing for them.
- * - Text is batched to /api/i18n/translate (the pluggable MT provider) and cached
+ * - Text is batched to the API's localization service and cached
  *   in localStorage per locale, so each phrase is translated once, ever.
  * - A MutationObserver re-applies after client navigation / React re-renders.
  * - Placeholders are translated too; numbers, code, inputs and [data-no-translate]
@@ -45,14 +45,19 @@ export default function LiveTranslate() {
     if (!isMachineTranslated(locale)) return; // English / pseudo: message files cover it
 
     let cancelled = false;
-    const cacheKey = `i18n:dom:v2:${locale}`; // v2: v1 entries may hold undecoded HTML entities
+    const cacheKey = `i18n:dom:v3:${locale}`; // v3: earlier entries may hold English saved while no provider was set
     const cache: Record<string, string> = (() => {
       try { return JSON.parse(localStorage.getItem(cacheKey) || "{}"); } catch { return {}; }
     })();
     const touched = new Map<Text, string>();        // node -> English original (for restore)
     const placeholders = new Map<HTMLElement, string>(); // el -> English placeholder
 
-    const persist = () => { try { localStorage.setItem(cacheKey, JSON.stringify(cache)); } catch { /* quota */ } };
+    // Only real translations are saved: text that stayed English is asked for again next visit.
+    const persist = () => {
+      try {
+        localStorage.setItem(cacheKey, JSON.stringify(Object.fromEntries(Object.entries(cache).filter(([k, v]) => k !== v))));
+      } catch { /* quota */ }
+    };
 
     async function translate(texts: string[]): Promise<void> {
       const miss = Array.from(new Set(texts.filter((t) => cache[t] === undefined)));
@@ -126,7 +131,11 @@ export default function LiveTranslate() {
       timer = setTimeout(() => { void pass(); }, 250);
     });
 
-    void pass();
+    void dropCacheIfCorrected().then((dropped) => {
+      if (cancelled) return;
+      if (dropped) Object.keys(cache).forEach((k) => delete cache[k]);
+      void pass();
+    });
     observer.observe(document.body, { subtree: true, childList: true, characterData: true });
 
     return () => {

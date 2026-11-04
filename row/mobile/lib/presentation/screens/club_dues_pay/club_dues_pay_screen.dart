@@ -436,7 +436,7 @@ class _ClubDuesPayScreenState extends State<ClubDuesPayScreen> {
           const SizedBox(height: 10),
           row('Bank', d.offlineBankName),
           row('Account No.', d.offlineAccountNumber),
-          row('IFSC', d.offlineIfscCode),
+          row('Bank code', d.offlineIfscCode),
         ],
       ),
     );

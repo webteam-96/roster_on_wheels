@@ -76,7 +76,7 @@ class _WalletTopupScreenState extends State<WalletTopupScreen> {
 
   // Product minimums (business rule; the server's technical floor is lower, so
   // we do not use the quote's minAmount for this).
-  double _minFor(String type) => type == WalletCreditType.email ? 500 : 1000;
+  double _minFor(String type) => type == WalletCreditType.email ? 10 : 1000;
 
   // Amount the field is pre-filled with (the "default selected" quick chip).
   double _defaultFor(String type) =>
@@ -457,7 +457,7 @@ class _WalletTopupScreenState extends State<WalletTopupScreen> {
           ),
           const SizedBox(height: 8),
           Text(
-            'Credits are valid for 1 year from purchase. GST is charged on top of the credit amount.',
+            'Credits are valid for 1 year from purchase.',
             style: _jk(10, FontWeight.w500, AppColors.textMuted),
           ),
         ],
@@ -630,7 +630,7 @@ class _QuoteCard extends StatelessWidget {
       );
     }
     final pct =
-        q.baseAmount > 0 ? (q.gstAmount / q.baseAmount * 100).round() : 18;
+        q.baseAmount > 0 ? (q.gstAmount / q.baseAmount * 100).round() : 0;
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
@@ -645,7 +645,7 @@ class _QuoteCard extends StatelessWidget {
           const SizedBox(height: 6),
           _row('Amount', inr(q.baseAmount)),
           const SizedBox(height: 4),
-          _row('GST ($pct%)', inr(q.gstAmount)),
+          _row('Tax ($pct%)', inr(q.gstAmount)),
           const Divider(height: 16),
           _row('Total payable', inr(q.totalAmount), bold: true),
         ],

@@ -38,7 +38,7 @@ function loadRazorpayScript(): Promise<boolean> {
 const inr = (n: number) => `${currencySymbol()}${Number(n || 0).toLocaleString(appLocale(), { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 const fmtDate = (s?: string | null) => (s ? new Date(s).toLocaleDateString(appLocale(), { day: "2-digit", month: "short", year: "numeric" }) : "–");
 
-export default function WebsitePurchasePage() {
+function WebsitePurchasePageBody() {
   const { selectedClubId } = useAuth();
   const router = useRouter();
 
@@ -177,7 +177,6 @@ export default function WebsitePurchasePage() {
 
   return (
     <div className="max-w-2xl mx-auto p-6 space-y-6">
-      <CheckoutReturnNotice onPaid={loadQuote} />
       <div>
         <h1 className="text-2xl font-bold text-azure">{isRenewal ? "Renew Club Website" : "Buy Club Website"}</h1>
         <p className="text-sm text-slate-500">
@@ -197,7 +196,7 @@ export default function WebsitePurchasePage() {
         )}
         <div className="flex justify-between"><span className="text-slate-600">New expiry after payment</span><span className="font-medium">{fmtDate(quote.newEndDate)}</span></div>
         <div className="flex justify-between"><span className="text-slate-600">Website ({quote.validityMonths} months)</span><span>{inr(quote.baseAmount)}</span></div>
-        <div className="flex justify-between"><span className="text-slate-600">GST ({quote.gstPercent}%)</span><span>{inr(quote.gstAmount)}</span></div>
+        <div className="flex justify-between"><span className="text-slate-600">Tax ({quote.gstPercent}%)</span><span>{inr(quote.gstAmount)}</span></div>
         <div className="flex justify-between border-t pt-1.5 font-semibold text-azure"><span>Total payable</span><span>{inr(quote.totalAmount)}</span></div>
       </div>
 
@@ -306,7 +305,7 @@ export default function WebsitePurchasePage() {
               {busy ? "Processing…" : `Pay ${inr(quote.totalAmount)}`}
             </button>
           </div>
-          <p className="text-xs text-slate-400">Valid for {quote.validityMonths} months from payment. GST is charged on top.</p>
+          <p className="text-xs text-slate-400">Valid for {quote.validityMonths} months from payment.</p>
         </div>
       )}
 
@@ -337,5 +336,22 @@ export default function WebsitePurchasePage() {
         </div>
       )}
     </div>
+  );
+}
+
+// The notice sits above the body: the body swaps its whole screen while loading and once the site is active,
+// which would remove the notice just after payment. A paid return remounts the body so it loads the new state.
+export default function WebsitePurchasePage() {
+  const [paidCount, setPaidCount] = useState(0);
+  return (
+    <>
+      <div className="max-w-2xl mx-auto px-6 pt-6 empty:hidden">
+        <CheckoutReturnNotice onPaid={() => {
+          setPaidCount((n) => n + 1);
+          window.dispatchEvent(new Event("rc-website-provisioning-started"));
+        }} />
+      </div>
+      <WebsitePurchasePageBody key={paidCount} />
+    </>
   );
 }

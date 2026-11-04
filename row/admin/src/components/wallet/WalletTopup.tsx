@@ -1,16 +1,15 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { getClubCreditBalance, getDistrictCreditBalance, createWalletTopupOrder, verifyWalletTopup } from "@/services/api";
+import { getClubCreditBalance, getDistrictCreditBalance, createWalletTopupOrder, verifyWalletTopup, walletQuote } from "@/services/api";
 
 import { appLocale, currencySymbol } from "@/lib/appFormat";
 import { checkoutReturnPath, sessionFrom, startCheckout } from "@/lib/checkout";
 import CheckoutReturnNotice from "@/components/payments/CheckoutReturnNotice";
 // Client-side pricing MIRRORS the server (server is authoritative on the actual credit + charge).
 const PRICING = {
-  Email: { rate: 0.3, min: 500, label: "Email" },
+  Email: { rate: 0.3, min: 10, label: "Email" },
 } as const;
-const GST_PERCENT = 18;
 
 type CreditType = "Email";
 type Scope = "club" | "district";
@@ -36,14 +35,24 @@ export default function WalletTopup({ scope, clubId, districtId }: { scope: Scop
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [gst, setGst] = useState(0);
 
   const scopeId = scope === "club" ? clubId : districtId;
   const cfg = PRICING[creditType];
   const amt = parseFloat(amount) || 0;
   const belowMin = amt < cfg.min;
   const credits = amt > 0 ? Math.floor(amt / cfg.rate) : 0;
-  const gst = Math.round(amt * GST_PERCENT) / 100;
   const total = amt + gst;
+
+  // The server sets the tax, so the screen shows the same total the checkout charges.
+  useEffect(() => {
+    if (belowMin) { setGst(0); return; }
+    let stale = false;
+    const timer = setTimeout(() => {
+      walletQuote(creditType, amt).then((q) => { if (!stale) setGst(Number(q?.gstAmount ?? 0)); }).catch(() => {});
+    }, 300);
+    return () => { stale = true; clearTimeout(timer); };
+  }, [amt, belowMin, creditType]);
 
   const loadBalance = useCallback(async () => {
     if (!scopeId) return;
@@ -155,7 +164,7 @@ export default function WalletTopup({ scope, clubId, districtId }: { scope: Scop
         <div className="rounded-lg bg-gray-50 border border-gray-200 p-4 text-sm space-y-1.5">
           <div className="flex justify-between"><span className="text-gray-600">Credits you'll receive</span><span className="font-semibold">{credits.toLocaleString(appLocale())} {creditType}</span></div>
           <div className="flex justify-between"><span className="text-gray-600">Amount</span><span>{inr(amt)}</span></div>
-          <div className="flex justify-between"><span className="text-gray-600">GST ({GST_PERCENT}%)</span><span>{inr(gst)}</span></div>
+          <div className="flex justify-between"><span className="text-gray-600">Tax</span><span>{inr(gst)}</span></div>
           <div className="flex justify-between border-t border-gray-200 pt-1.5 font-semibold text-azure"><span>Total payable</span><span>{inr(total)}</span></div>
         </div>
 
@@ -170,7 +179,7 @@ export default function WalletTopup({ scope, clubId, districtId }: { scope: Scop
         >
           {busy ? "Processing…" : `Pay ${inr(total)}`}
         </button>
-        <p className="text-xs text-gray-400">Credits are valid for 1 year from purchase. GST is charged on top of the credit amount.</p>
+        <p className="text-xs text-gray-400">Credits are valid for 1 year from purchase.</p>
       </div>
     </div>
   );

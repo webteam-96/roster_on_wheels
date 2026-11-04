@@ -1552,6 +1552,28 @@ export async function saveI18nOverride(locale: string, namespace: string, key: s
   return (await api.put(`/api/i18n/${encodeURIComponent(locale)}/${encodeURIComponent(namespace)}/${encodeURIComponent(key)}`, { text, reviewed })).data;
 }
 
+export interface TranslationMemoryRow { hash: string; source: string; text: string; provider: string | null; isOverride: boolean; updatedAt: string; }
+export interface TranslationMemoryPage {
+  rows: TranslationMemoryRow[];
+  total: number;
+  provider: string;
+  configured: boolean;
+  monthChars: number;
+  monthlyLimit: number;
+}
+
+export async function getTranslationMemory(params: { locale: string; search?: string; correctionsOnly?: boolean; page: number; pageSize: number }): Promise<TranslationMemoryPage> {
+  return (await api.get("/api/i18n/memory", { params })).data;
+}
+
+export async function saveTranslationCorrection(locale: string, source: string, text: string): Promise<void> {
+  await api.put("/api/i18n/memory", { locale, source, text });
+}
+
+export async function deleteTranslationMemory(locale: string, hash: string): Promise<void> {
+  await api.delete(`/api/i18n/memory/${encodeURIComponent(locale)}/${hash}`);
+}
+
 export async function deleteI18nOverride(locale: string, namespace: string, key: string) {
   await api.delete(`/api/i18n/${encodeURIComponent(locale)}/${encodeURIComponent(namespace)}/${encodeURIComponent(key)}`);
 }
@@ -7294,7 +7316,7 @@ export async function getCommOptOuts(scope: CommsScope, id: number): Promise<Com
   return (await api.get(`${commsBase(scope, id)}/opt-outs`)).data;
 }
 
-/** Machine translation through the admin's own route (app/api/i18n/translate); untranslatable text comes back as is. */
+/** Machine translation through the API's localization service; untranslatable text comes back as is. */
 export async function machineTranslate(target: string, texts: string[]): Promise<string[]> {
   const res = await postTranslate({ target, source: "en", q: texts });
   if (!res.ok) throw new Error("Translation failed");

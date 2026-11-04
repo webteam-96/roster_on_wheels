@@ -640,3 +640,38 @@ modules. The 2026-10-26 gate "payments after the Stripe meeting" is lifted for t
   `-down` script), applied to `row_prod_copy` and `row_production` on 2026-11-04.
 - **Checks:** `kb/tools/payments_simulated_e2e.py` all pass; browser run of an event payment to its thank-you page; dotnet
   build 0 errors; admin tsc 0, vitest 131/131; app analyze 0 errors, tests 61/61. A real phone run of the app flow is not done.
+
+## 2026-11-04: Localization service
+
+One translation service in the API for web, app and server texts (`api/Services/Localization/LocalizationService.cs`).
+It replaces the admin's own translate route and the second provider client in the background worker.
+
+- **Order per text:** skip what must not be sent, translation memory (`translation_memory`, corrections win), provider, English.
+- **Protected:** product and Rotary terms (`Translation__ProtectedTerms` adds more), `{placeholders}`, emails, links and tags are
+  sent as `XQ0X` tokens (tested live: this shape survives machine translation, `⟦0⟧` does not). A lost token keeps the English.
+- **Never sent:** text that is only an email, link, number or protected term. Text over 5,000 characters stays English.
+- **Limits:** `Translation__MonthlyCharLimit` (default 450,000, under DeepL's free 500,000), `Translation__VisitorDailyChars`
+  (default 200,000, shared by signed-out visitors), 120 batches a minute per IP. Past a limit new text stays English; memory still answers.
+- **Failures:** 8-second timeout, no retry, 30-second pause after a failure, English shown. The server-text worker no longer gives up on an outage.
+- **Corrections:** Settings > Translations > Machine translations (SuperAdmin, audited). `GET api/i18n/memory/version` makes web and app drop saved translations.
+- **Fixed:** web and app saved English as if translated, so turning a provider on later changed nothing; requests were chunked, which some servers refuse.
+- **Settings:** `Translation__Provider` (none, deepl, libretranslate, google, mymemory), `Translation__ApiUrl`, `Translation__ApiKey`. Old `TRANSLATE_*` admin settings are gone. Default none: English, nothing sent.
+- **Database:** `database/maintenance/2026-11-04-translation-memory.sql` (with `-down`).
+- **Checks:** `kb/tools/localization_e2e.py` all pass against a local fake provider; browser run of the sign-in page in French; admin tsc 0, vitest 125/125 (6 tests of the removed route gone); app analyze 0 errors, tests 61/61.
+- **Open:** no real provider key tested. The web translator walks the page, so names shown on screen can reach the provider and the memory table; the app sends only text from its code. Needs an owner decision before real member data is translated.
+
+## 2026-11-04: Go-live checks: security, payments, load, self-hosted translation
+
+- **Security check:** `security_guards` and `scope_read_guard` pass. Exception text no longer reaches clients from the Rotary.org ping, Plesk delete, Cashfree calls, the district terminated-members warning or the email verifier.
+- **Bug fixed, club dues could not settle:** `club_dues_member_account_payments` was used by the code but never created, in the schema or any database. Online and offline settlement failed. `database/maintenance/2026-11-04-club-dues-member-account-payments.sql`. **Must be run on production before dues are collected.**
+- **Tax:** the built-in 18% is gone. `Payments:TaxPercent` sets wallet and default website tax (default 0); the rule that 0% needs the Razorpay Route gateway is gone; new pricing rows default to 0 (`2026-11-04-website-pricing-tax-default.sql`). JSON and column names keep `gst` so stored data and older apps still work.
+- **Wording:** IFSC is "Bank code", PAN is an optional "Tax ID" with no Indian format check, GST is "Tax", and the rupee signs and Cashfree India footer line are gone from payment screens. Column and field names are unchanged.
+- **Wallet minimum:** web and app now agree with the server's 10. The web wallet shows the server's tax.
+- **Website purchase:** the "Payment received" notice was lost when the page reloaded after payment; it now stays.
+- **Club list:** the page query is about 4x faster at the database (`club_websites` join rewritten, same rows; index `idx_club_list_name` in `2026-11-04-club-list-index.sql`), but the API call did not get faster: about 0.6 s alone, p95 1.2 s with 5 users, 3.3 s with 25 (local Debug build). The SQL is about 0.2 s of that; the rest is not traced yet.
+- **Self-hosted translation:** `deploy/iis/install-libretranslate.ps1`. Tested locally on Windows with all 8 languages, on real text and in the app on an emulator. `kb/tools/translation_quality.py` checks real text.
+- **Translation fix:** a language with no model on the server no longer pauses translation for everyone.
+- **Quality warning:** LibreTranslate is good on sentences but often wrong on short labels, worst in Korean and Japanese. Correct them in Settings > Translations.
+- **Load test:** every other route measured stays under 1 s at p95 with 25 users at once.
+- **New tools:** `kb/tools/load_test.py`; real-price cases in `payments_simulated_e2e.py`.
+- **Open:** website default prices are still 14,999 and 10,999 from `Razorpay:WebsitePrice`, now shown as US$. Translation languages on the server are 8, while the app offers 30 and the web more; the others stay English.

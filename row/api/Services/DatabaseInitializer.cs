@@ -746,6 +746,7 @@ public partial class DatabaseInitializer
                 await CreateIndexIfNotExists(connection, "district_master", "idx_district_zone", "CREATE INDEX idx_district_zone ON district_master (fk_zone_id, isdeleted)");
                 await CreateIndexIfNotExists(connection, "district_master", "idx_district_active", "CREATE INDEX idx_district_active ON district_master (isdeleted, IsActive)");
                 await CreateIndexIfNotExists(connection, "club_master", "idx_club_active", "CREATE INDEX idx_club_active ON club_master (isdeleted, IsActive)");
+                await CreateIndexIfNotExists(connection, "club_master", "idx_club_list_name", "CREATE INDEX idx_club_list_name ON club_master (isdeleted, ClubName)");
                 await CreateIndexIfNotExists(connection, "club_master", "idx_club_district", "CREATE INDEX idx_club_district ON club_master (fk_district_id, isdeleted)");
                 await CreateIndexIfNotExists(connection, "club_members", "idx_club_members_club", "CREATE INDEX idx_club_members_club ON club_members (fk_club_id, isdeleted)");
                 await CreateIndexIfNotExists(connection, "club_members", "idx_club_members_member", "CREATE INDEX idx_club_members_member ON club_members (fk_member_master_profile_id, isdeleted)");
@@ -3461,7 +3462,7 @@ public partial class DatabaseInitializer
                         fk_year_id INT NOT NULL,
                         BaseAmount DECIMAL(12,2) NOT NULL,
                         RenewalAmount DECIMAL(12,2) NULL,
-                        GstPercent DECIMAL(5,2) NOT NULL DEFAULT 18.00,
+                        GstPercent DECIMAL(5,2) NOT NULL DEFAULT 0.00,
                         GatewayType VARCHAR(20) NOT NULL DEFAULT 'normal',
                         fk_route_account_id INT NULL,
                         modified_by INT NULL,
@@ -5187,6 +5188,8 @@ public partial class DatabaseInitializer
                 await EnsureVisitTablesAsync(connection);
                 // Hosted checkout and connected payment accounts: DatabaseInitializer.Payments.cs.
                 await EnsurePaymentCheckoutTablesAsync(connection);
+                // Translation memory: DatabaseInitializer.Localization.cs.
+                await EnsureTranslationMemoryTablesAsync(connection);
                 // Escalation ladder, target celebration, Foundation giving link: DatabaseInitializer.Escalation.cs.
                 await EnsureEscalationCelebrationSchemaAsync(connection);
                 // Planning mode and cut-over (ROW build spec 3.1): DatabaseInitializer.Planning.cs.

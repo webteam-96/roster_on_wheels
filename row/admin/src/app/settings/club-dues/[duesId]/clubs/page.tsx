@@ -557,7 +557,7 @@ function SplitDialog({ duesId, club, isOnline, routeAccounts, onClose, onDone, o
           <Select value={row.routeAccountId} onValueChange={(v) => update(i, "routeAccountId", v)}>
             <SelectTrigger className="flex-1"><SelectValue placeholder="Select account" /></SelectTrigger>
             <SelectContent>
-              {routeAccounts.map((a) => <SelectItem key={a.id} value={String(a.id)}>••••{a.bankAccountLast4 || "----"} · IFSC {a.bankIfsc || "N/A"}: {a.name}</SelectItem>)}
+              {routeAccounts.map((a) => <SelectItem key={a.id} value={String(a.id)}>••••{a.bankAccountLast4 || "----"} · Bank code {a.bankIfsc || "N/A"}: {a.name}</SelectItem>)}
             </SelectContent>
           </Select>
           <div className="w-24"><Input type="number" value={row.value} onChange={(e) => update(i, "value", e.target.value)} placeholder={amountType === "2" ? "%" : currencySymbol()} /></div>

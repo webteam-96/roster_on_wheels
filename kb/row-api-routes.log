@@ -801,6 +801,11 @@ Mapped {api/clubs/{clubId:int}/invite-prompts, Post}
 Mapped {api/clubs/{clubId:int}/invite-prompts/{id:int}/send, Post}
 Mapped {api/clubs/{clubId:int}/invite-prompts/{id:int}, Delete}
 Mapped {api/clubs/{clubId:int}/invite-link, Get}
+Mapped {api/i18n/translate, Post}
+Mapped {api/i18n/memory/version, Get}
+Mapped {api/i18n/memory, Get}
+Mapped {api/i18n/memory, Put}
+Mapped {api/i18n/memory/{locale}/{hash}, Delete}
 Mapped {api/i18n/{locale}, Get}
 Mapped {api/i18n/{locale}/{ns}/{key}, Put}
 Mapped {api/i18n/{locale}/{ns}/{key}, Delete}

@@ -146,7 +146,7 @@ export default function PublicFooter() {
           </p>
           {usesCashfree && (
             <p className="text-[11px] text-white/70">
-              Payments powered by Cashfree Payments India Pvt. Ltd. · INR (₹) only
+              Payments are processed securely by our payment provider
             </p>
           )}
         </div>

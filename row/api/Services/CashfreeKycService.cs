@@ -469,7 +469,7 @@ public class CashfreeKycService : ICashfreeKycService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Cashfree API {Method} {Endpoint} failed", method, endpoint);
-            return (false, "", ex.Message);
+            return (false, "", "The payment provider could not be reached.");
         }
     }
 
@@ -582,7 +582,7 @@ public class CashfreeKycService : ICashfreeKycService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Cashfree GET vendor {VendorId} failed", vendorId);
-            return (false, "", ex.Message);
+            return (false, "", "The payment provider could not be reached.");
         }
     }
 }

@@ -5,8 +5,10 @@ using System.Text.RegularExpressions;
 using Dapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using MySqlConnector;
 using RotaryApi.Services;
+using RotaryApi.Services.Localization;
 
 namespace RotaryApi.Controllers;
 
@@ -25,10 +27,12 @@ public class I18nController : ControllerBase
     private static readonly Regex Key = new(@"^[A-Za-z0-9_-]+(\.[A-Za-z0-9_-]+)*$", RegexOptions.Compiled);
     private readonly IAuditLogService _auditLog;
     private readonly string _connectionString;
+    private readonly LocalizationService _localization;
 
-    public I18nController(IAuditLogService auditLog, IConfiguration configuration)
+    public I18nController(IAuditLogService auditLog, IConfiguration configuration, LocalizationService localization)
     {
         _auditLog = auditLog;
+        _localization = localization;
         _connectionString = configuration.GetConnectionString("DefaultConnection")!;
     }
 
@@ -37,6 +41,73 @@ public class I18nController : ControllerBase
 
     private bool IsSuperAdmin() => (User.FindFirst("roles")?.Value ?? "").Contains("SuperAdmin");
     private int GetCurrentMemberId() => int.Parse(User.FindFirst("memberId")?.Value ?? "0");
+
+    public record TranslateRequest(string? Target, string? Source, List<string>? Q);
+    public record CorrectionDto(string? Locale, string? Source, string? Text);
+
+    /// <summary>
+    /// UI text for web and app. Anonymous for the sign-in and public pages: visitors get a smaller batch and a daily
+    /// share of new text, cached text is free. Failures come back as the English text.
+    /// </summary>
+    [HttpPost("translate")]
+    [AllowAnonymous]
+    [EnableRateLimiting("translate")]
+    public async Task<IActionResult> Translate([FromBody] TranslateRequest req, CancellationToken ct)
+    {
+        var target = (req.Target ?? "").Trim();
+        var signedIn = User.Identity?.IsAuthenticated == true;
+        var texts = (req.Q ?? new()).Take(signedIn ? LocalizationService.MaxBatch : LocalizationService.VisitorMaxBatch).ToList();
+        if (!Locale.IsMatch(target) || texts.Count == 0 || (req.Source ?? "en") != "en") return Ok(new { translations = texts });
+        return Ok(new { translations = await _localization.TranslateAsync(target, texts, signedIn, ct) });
+    }
+
+    /// <summary>Clients drop their saved translations when this changes (a correction was saved or removed).</summary>
+    [HttpGet("memory/version")]
+    [AllowAnonymous]
+    [EnableRateLimiting("feed")]
+    public async Task<IActionResult> MemoryVersion() => Ok(new { version = await _localization.MemoryVersionAsync() });
+
+    [HttpGet("memory")]
+    public async Task<IActionResult> Memory([FromQuery] string? locale, [FromQuery] string? search, [FromQuery] bool correctionsOnly = false,
+        [FromQuery] int page = 1, [FromQuery] int pageSize = 25)
+    {
+        if (!IsSuperAdmin()) return StatusCode(403, new { message = "Only SuperAdmin can read translations." });
+        if (locale == null || !Locale.IsMatch(locale)) return BadRequest(new { message = "Invalid locale." });
+        var (rows, total) = await _localization.SearchAsync(locale, search?.Trim(), correctionsOnly, Math.Max(page, 1), Math.Clamp(pageSize, 1, 100));
+        return Ok(new
+        {
+            rows, total,
+            provider = _localization.Provider,
+            configured = _localization.Configured,
+            monthChars = await _localization.MonthCharsAsync(),
+            monthlyLimit = _localization.MonthlyLimit,
+        });
+    }
+
+    [HttpPut("memory")]
+    public async Task<IActionResult> SaveCorrection([FromBody] CorrectionDto dto)
+    {
+        if (!IsSuperAdmin()) return StatusCode(403, new { message = "Only SuperAdmin can edit translations." });
+        var source = dto.Source ?? "";
+        var text = dto.Text?.Trim() ?? "";
+        if (dto.Locale == null || !Locale.IsMatch(dto.Locale)) return BadRequest(new { message = "Invalid locale." });
+        if (source.Length is 0 or > 5000 || text.Length is 0 or > 5000) return BadRequest(new { message = "Text is required (5000 characters at most)." });
+        if (!await _localization.SaveCorrectionAsync(dto.Locale, source, text, GetCurrentMemberId()))
+            return BadRequest(new { message = "Keep every {placeholder}, link and email of the English text." });
+        await _auditLog.LogAsync(GetCurrentMemberId(), "UPDATE", "translation_memory", null, dto.Locale, new { dto.Locale, source, text }, HttpContext);
+        return NoContent();
+    }
+
+    [HttpDelete("memory/{locale}/{hash}")]
+    public async Task<IActionResult> DeleteMemory(string locale, string hash)
+    {
+        if (!IsSuperAdmin()) return StatusCode(403, new { message = "Only SuperAdmin can edit translations." });
+        if (!Locale.IsMatch(locale) || !Regex.IsMatch(hash, "^[a-f0-9]{64}$")) return BadRequest(new { message = "Invalid request." });
+        var source = await _localization.DeleteAsync(locale, hash);
+        if (source == null) return NotFound(new { message = "No such translation." });
+        await _auditLog.LogAsync(GetCurrentMemberId(), "DELETE", "translation_memory", null, locale, new { locale, source }, HttpContext);
+        return NoContent();
+    }
 
     [HttpGet("{locale}")]
     [AllowAnonymous]

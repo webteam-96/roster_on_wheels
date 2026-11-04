@@ -646,7 +646,7 @@ function CreateClubDuesInner() {
                 {routeAccounts
                   .filter((a) => String(a.id) === row.routeAccountId || !rows.some((rr, idx) => idx !== i && rr.routeAccountId === String(a.id)))
                   .map((a) => {
-                  const bank = `••••${a.bankAccountLast4 || "----"} · IFSC ${a.bankIfsc || "N/A"}`;
+                  const bank = `••••${a.bankAccountLast4 || "----"} · Bank code ${a.bankIfsc || "N/A"}`;
                   return (
                     <SelectItem key={a.id} value={String(a.id)} className="py-2">
                       <div className="flex flex-col items-start gap-0.5 text-left leading-tight">
@@ -725,7 +725,7 @@ function CreateClubDuesInner() {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="space-y-2"><Label>Bank name</Label><Input value={bankName} onChange={(e) => setBankName(e.target.value)} placeholder="e.g. HDFC Bank" /></div>
                 <div className="space-y-2"><Label>Account no.</Label><Input value={accountNumber} onChange={(e) => setAccountNumber(e.target.value)} placeholder="e.g. 50100XXXXXX" /></div>
-                <div className="space-y-2"><Label>IFSC</Label><Input value={ifsc} onChange={(e) => setIfsc(e.target.value)} placeholder="e.g. HDFC0001234" /></div>
+                <div className="space-y-2"><Label>Bank code</Label><Input value={ifsc} onChange={(e) => setIfsc(e.target.value)} placeholder="IFSC, SWIFT or routing number" /></div>
               </div>
             )}
           </div>
@@ -794,7 +794,7 @@ function CreateClubDuesInner() {
                       {routeAccounts
                         .filter((a) => String(a.id) === row.routeAccountId || !vendorRows.some((rr, idx) => idx !== i && rr.routeAccountId === String(a.id)))
                         .map((a) => {
-                        const bank = `••••${a.bankAccountLast4 || "----"} · IFSC ${a.bankIfsc || "N/A"}`;
+                        const bank = `••••${a.bankAccountLast4 || "----"} · Bank code ${a.bankIfsc || "N/A"}`;
                         return (
                           <SelectItem key={a.id} value={String(a.id)} className="py-2">
                             <div className="flex flex-col items-start gap-0.5 text-left leading-tight">
@@ -844,7 +844,7 @@ function CreateClubDuesInner() {
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div className="space-y-2"><Label>Bank name</Label><Input value={bankName} onChange={(e) => setBankName(e.target.value)} placeholder="e.g. HDFC Bank" /></div>
                   <div className="space-y-2"><Label>Account no.</Label><Input value={accountNumber} onChange={(e) => setAccountNumber(e.target.value)} placeholder="e.g. 50100XXXXXX" /></div>
-                  <div className="space-y-2"><Label>IFSC</Label><Input value={ifsc} onChange={(e) => setIfsc(e.target.value)} placeholder="e.g. HDFC0001234" /></div>
+                  <div className="space-y-2"><Label>Bank code</Label><Input value={ifsc} onChange={(e) => setIfsc(e.target.value)} placeholder="IFSC, SWIFT or routing number" /></div>
                 </div>
               )}
             </div>

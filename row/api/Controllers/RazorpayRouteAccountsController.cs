@@ -206,7 +206,7 @@ public class RazorpayRouteAccountsController : ControllerBase
         if (string.IsNullOrWhiteSpace(req.LegalBusinessName)) return BadRequest(new { message = "Account name is required." });
         if (string.IsNullOrWhiteSpace(req.Email)) return BadRequest(new { message = "Contact email is required." });
         if (string.IsNullOrWhiteSpace(req.BankAccountNumber)) return BadRequest(new { message = "Settlement account number is required." });
-        if (string.IsNullOrWhiteSpace(req.BankIfsc)) return BadRequest(new { message = "Settlement IFSC is required." });
+        if (string.IsNullOrWhiteSpace(req.BankIfsc)) return BadRequest(new { message = "Settlement bank code is required." });
 
         var name = string.IsNullOrWhiteSpace(req.Name) ? req.LegalBusinessName!.Trim() : req.Name!.Trim();
 

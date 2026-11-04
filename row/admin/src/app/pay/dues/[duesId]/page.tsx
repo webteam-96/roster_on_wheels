@@ -629,7 +629,7 @@ export default function MembershipDuesPaymentPage() {
                       <p className="font-semibold">Bank Details for Offline Payment:</p>
                       <p>Bank: {duesStatus.offlineBankName}</p>
                       {duesStatus.offlineAccountNumber && <p>A/C: {duesStatus.offlineAccountNumber}</p>}
-                      {duesStatus.offlineIfscCode && <p>IFSC: {duesStatus.offlineIfscCode}</p>}
+                      {duesStatus.offlineIfscCode && <p>Bank code: {duesStatus.offlineIfscCode}</p>}
                     </div>
                   )}
 
@@ -787,7 +787,7 @@ export default function MembershipDuesPaymentPage() {
                   <p className="font-semibold">Bank Details:</p>
                   <p>Bank: {duesStatus.offlineBankName}</p>
                   {duesStatus.offlineAccountNumber && <p>A/C: {duesStatus.offlineAccountNumber}</p>}
-                  {duesStatus.offlineIfscCode && <p>IFSC: {duesStatus.offlineIfscCode}</p>}
+                  {duesStatus.offlineIfscCode && <p>Bank code: {duesStatus.offlineIfscCode}</p>}
                 </div>
               )}
 

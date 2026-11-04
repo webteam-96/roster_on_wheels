@@ -106,9 +106,7 @@ public class ClubService : IClubService
             FROM club_master c
             JOIN district_master d ON d.pk_district_id = c.fk_district_id
             LEFT JOIN club_websites cw
-                ON cw.fk_club_id = c.pk_club_id
-               AND cw.isdeleted = 0
-               AND cw.pk_id = (
+                ON cw.pk_id = (
                    SELECT MAX(cw2.pk_id) FROM club_websites cw2
                    WHERE cw2.fk_club_id = c.pk_club_id AND cw2.isdeleted = 0
                )

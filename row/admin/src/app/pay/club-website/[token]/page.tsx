@@ -265,7 +265,7 @@ export default function PublicClubWebsitePayPage() {
             <dd className="tabular-nums text-slate-700">{inr(info.baseAmount)}</dd>
           </div>
           <div className="flex justify-between gap-3">
-            <dt className="text-slate-500">GST ({info.gstPercent}%)</dt>
+            <dt className="text-slate-500">Tax ({info.gstPercent}%)</dt>
             <dd className="tabular-nums text-slate-700">{inr(info.gstAmount)}</dd>
           </div>
         </dl>
@@ -417,7 +417,7 @@ export default function PublicClubWebsitePayPage() {
                     <dd className="tabular-nums text-slate-700">{inr(info.baseAmount)}</dd>
                   </div>
                   <div className="flex justify-between gap-3">
-                    <dt className="text-slate-600">GST ({info.gstPercent}%)</dt>
+                    <dt className="text-slate-600">Tax ({info.gstPercent}%)</dt>
                     <dd className="tabular-nums text-slate-700">{inr(info.gstAmount)}</dd>
                   </div>
                 </dl>

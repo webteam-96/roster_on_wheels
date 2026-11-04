@@ -37,7 +37,6 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 import SearchBox from "@/components/SearchBox";
 import { ListPageSkeleton } from "@/components/row/AppKit";
 
-const PAN_REGEX = /^[A-Z]{5}[0-9]{4}[A-Z]{1}$/;
 
 function getStatusBadgeVariant(status: string): "default" | "destructive" | "secondary" | "outline" {
   switch (status) {
@@ -143,10 +142,8 @@ export default function CashfreeKycPage() {
     if (!formAccountNumber.trim()) return "Account Number is required.";
     if (!formConfirmAccountNumber.trim()) return "Please confirm the Account Number.";
     if (formAccountNumber !== formConfirmAccountNumber) return "Account Numbers do not match.";
-    if (!formIfsc.trim()) return "IFSC Code is required.";
-    if (!formName.trim()) return "Name on PAN Card is required.";
-    if (!formPan.trim()) return "PAN Number is required.";
-    if (!PAN_REGEX.test(formPan.trim().toUpperCase())) return "Invalid PAN format. Expected: ABCDE1234F";
+    if (!formIfsc.trim()) return "Bank code is required.";
+    if (!formName.trim()) return "Name on bank account is required.";
     return null;
   };
 
@@ -358,9 +355,9 @@ export default function CashfreeKycPage() {
                       <TableHead className="text-base font-semibold">Name</TableHead>
                       <TableHead className="text-base font-semibold">Email</TableHead>
                       <TableHead className="text-base font-semibold">Mobile</TableHead>
-                      <TableHead className="text-base font-semibold">PAN</TableHead>
+                      <TableHead className="text-base font-semibold">Tax ID</TableHead>
                       <TableHead className="text-base font-semibold">Account No</TableHead>
-                      <TableHead className="text-base font-semibold">IFSC</TableHead>
+                      <TableHead className="text-base font-semibold">Bank code</TableHead>
                       <TableHead className="text-base font-semibold text-center">Status</TableHead>
                       <TableHead className="text-base font-semibold text-center">Active</TableHead>
                       <TableHead className="w-12"></TableHead>
@@ -488,7 +485,7 @@ export default function CashfreeKycPage() {
                 )}
               </div>
               <div className="space-y-2">
-                <Label>IFSC Code<span className="text-destructive ml-1">*</span></Label>
+                <Label>Bank code (IFSC, SWIFT or routing)<span className="text-destructive ml-1">*</span></Label>
                 <Input
                   value={formIfsc}
                   onChange={(e) => setFormIfsc(e.target.value.toUpperCase())}
@@ -496,7 +493,7 @@ export default function CashfreeKycPage() {
                 />
               </div>
               <div className="space-y-2">
-                <Label>Name on PAN Card<span className="text-destructive ml-1">*</span></Label>
+                <Label>Name on bank account<span className="text-destructive ml-1">*</span></Label>
                 <Input
                   value={formName}
                   onChange={(e) => setFormName(e.target.value)}
@@ -504,16 +501,12 @@ export default function CashfreeKycPage() {
                 />
               </div>
               <div className="space-y-2">
-                <Label>PAN Number<span className="text-destructive ml-1">*</span></Label>
+                <Label>Tax ID (optional)</Label>
                 <Input
                   value={formPan}
                   onChange={(e) => setFormPan(e.target.value.toUpperCase())}
-                  placeholder="e.g. ABCDE1234F"
-                  maxLength={10}
+                  maxLength={30}
                 />
-                {formPan && !PAN_REGEX.test(formPan) && (
-                  <p className="text-destructive text-sm">Invalid PAN format. Expected: ABCDE1234F</p>
-                )}
               </div>
             </div>
             <DialogFooter>
@@ -597,11 +590,11 @@ export default function CashfreeKycPage() {
                     <p className="font-medium">{viewDetail.accountNumber}</p>
                   </div>
                   <div>
-                    <p className="text-muted-foreground">IFSC</p>
+                    <p className="text-muted-foreground">Bank code</p>
                     <p className="font-medium">{viewDetail.ifsc}</p>
                   </div>
                   <div>
-                    <p className="text-muted-foreground">PAN</p>
+                    <p className="text-muted-foreground">Tax ID</p>
                     <p className="font-medium">{viewDetail.pan}</p>
                   </div>
                   <div>

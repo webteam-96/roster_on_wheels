@@ -311,8 +311,8 @@ export default function RazorpayRouteAccountsPage() {
             <DialogHeader><DialogTitle>Add Route account</DialogTitle></DialogHeader>
             <div className="space-y-4">
               <p className="text-xs text-slate-500">
-                Creates the linked account on Razorpay with its PAN/GST and settlement bank. Pick the business type
-                that matches the PAN; address is generic-filled. Any remaining KYC (documents) is finished in the
+                Creates the linked account with its tax details and settlement bank. Pick the business type
+                that matches the tax ID; address is generic-filled. Any remaining KYC (documents) is finished in the
                 Razorpay dashboard.
               </p>
               <Field label="Account name *">
@@ -332,27 +332,23 @@ export default function RazorpayRouteAccountsPage() {
                       <SelectContent>{BUSINESS_TYPES.map((t) => <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>)}</SelectContent>
                     </Select>
                   </Field>
-                  <Field label="Business PAN">
-                    <Input value={form.pan} onChange={(e) => set("pan", e.target.value.toUpperCase().slice(0, 10))} placeholder="ABCDT1234E" className="font-mono" />
+                  <Field label="Business tax ID (optional)">
+                    <Input value={form.pan} onChange={(e) => set("pan", e.target.value.toUpperCase().slice(0, 30))} className="font-mono" />
                   </Field>
-                  <Field label="GST (optional)">
-                    <Input value={form.gst} onChange={(e) => set("gst", e.target.value.toUpperCase().slice(0, 15))} className="font-mono" />
+                  <Field label="Sales tax number (optional)">
+                    <Input value={form.gst} onChange={(e) => set("gst", e.target.value.toUpperCase().slice(0, 30))} className="font-mono" />
                   </Field>
-                  <Field label="Name on PAN / GST document">
+                  <Field label="Name on tax document">
                     <Input value={form.nameOnDocument} onChange={(e) => set("nameOnDocument", e.target.value)} placeholder="Defaults to the account name" />
                   </Field>
                 </div>
-                <p className="text-[11px] text-slate-400">
-                  The PAN must match the business type: a company PAN (4th letter C) for private/public limited, an
-                  individual PAN (4th letter P) for individual/proprietorship, etc.
-                </p>
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <Field label="Settlement account no. *">
                   <Input value={form.bankAccountNumber} onChange={(e) => set("bankAccountNumber", e.target.value.replace(/\s/g, ""))} />
                 </Field>
-                <Field label="IFSC *">
+                <Field label="Bank code (IFSC, SWIFT or routing) *">
                   <Input value={form.bankIfsc} onChange={(e) => set("bankIfsc", e.target.value.toUpperCase())} className="font-mono" />
                 </Field>
               </div>
@@ -439,7 +435,7 @@ export default function RazorpayRouteAccountsPage() {
                   />
                 </div>
                 <div className="space-y-1">
-                  <Label className="text-xs text-slate-500">Settlement IFSC</Label>
+                  <Label className="text-xs text-slate-500">Settlement bank code</Label>
                   <Input
                     value={edit.bankIfsc}
                     onChange={(e) => setEdit((s) => s && { ...s, bankIfsc: e.target.value.toUpperCase() })}

@@ -850,6 +850,7 @@ CREATE TABLE `club_master` (
   UNIQUE KEY `ClubRotaryId` (`ClubRotaryId`),
   KEY `idx_club_active` (`isdeleted`,`IsActive`),
   KEY `idx_club_district` (`fk_district_id`,`isdeleted`),
+  KEY `idx_club_list_name` (`isdeleted`,`ClubName`),
   CONSTRAINT `club_master_ibfk_1` FOREIGN KEY (`fk_district_id`) REFERENCES `district_master` (`pk_district_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -1196,7 +1197,7 @@ CREATE TABLE `club_website_pricing` (
   `fk_year_id` int NOT NULL,
   `BaseAmount` decimal(12,2) NOT NULL,
   `RenewalAmount` decimal(12,2) DEFAULT NULL,
-  `GstPercent` decimal(5,2) NOT NULL DEFAULT '18.00',
+  `GstPercent` decimal(5,2) NOT NULL DEFAULT '0.00',
   `GatewayType` varchar(20) NOT NULL DEFAULT 'normal',
   `fk_route_account_id` int DEFAULT NULL,
   `modified_by` int DEFAULT NULL,
@@ -12143,6 +12144,21 @@ CREATE TABLE IF NOT EXISTS club_website_visits (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Hosted checkout and connected payment accounts (2026-11-04).
+CREATE TABLE club_dues_member_account_payments (
+    pk_id BIGINT NOT NULL AUTO_INCREMENT,
+    fk_club_dues_member_id INT NOT NULL,
+    fk_route_account_id INT NOT NULL DEFAULT 0,
+    fk_payment_id INT NULL,
+    IsPaid TINYINT(1) NOT NULL DEFAULT 0,
+    PaidDate DATETIME NULL,
+    created_date DATETIME NOT NULL,
+    modified_date DATETIME NULL,
+    isdeleted TINYINT(1) NOT NULL DEFAULT 0,
+    PRIMARY KEY (pk_id),
+    UNIQUE KEY uq_club_dues_member_account (fk_club_dues_member_id, fk_route_account_id),
+    KEY ix_club_dues_member_account_payment (fk_payment_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 CREATE TABLE payment_checkout_sessions (
     pk_id BIGINT NOT NULL AUTO_INCREMENT,
     session_token CHAR(64) NOT NULL,
@@ -12179,4 +12195,33 @@ CREATE TABLE payment_accounts (
     created_date DATETIME NOT NULL,
     PRIMARY KEY (pk_id),
     UNIQUE KEY uq_payment_account_owner (owner_type, owner_id, gateway)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Translation memory, usage and corrections version (2026-11-04).
+CREATE TABLE translation_memory (
+    source_hash CHAR(64) NOT NULL,
+    target_lang VARCHAR(20) NOT NULL,
+    source_text TEXT NOT NULL,
+    translated_text TEXT NOT NULL,
+    provider VARCHAR(30) NULL,
+    is_override TINYINT(1) NOT NULL DEFAULT 0,
+    updated_by INT NULL,
+    created_at DATETIME NOT NULL,
+    updated_at DATETIME NOT NULL,
+    PRIMARY KEY (source_hash, target_lang),
+    KEY ix_translation_memory_lang (target_lang, is_override, updated_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE translation_usage (
+    usage_month CHAR(7) NOT NULL,
+    provider VARCHAR(30) NOT NULL,
+    chars_sent BIGINT NOT NULL DEFAULT 0,
+    requests BIGINT NOT NULL DEFAULT 0,
+    PRIMARY KEY (usage_month, provider)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE translation_memory_version (
+    id TINYINT NOT NULL,
+    version BIGINT NOT NULL,
+    PRIMARY KEY (id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

@@ -51,7 +51,7 @@ public class WalletService : IWalletService
         var p = _config.GetSection("Razorpay:Pricing");
         return (p.GetValue("EmailRatePaise", 30), p.GetValue("EmailMinAmount", 500m));
     }
-    private int GstPercent() => _config.GetValue("Razorpay:GstPercent", 18);
+    private int GstPercent() => _config.GetValue("Payments:TaxPercent", 0);
 
     private record Priced(bool Ok, string? Error, int Credits, decimal Min, long BasePaise,
         decimal BaseAmount, decimal Gst, decimal Total, long TotalPaise, int RatePaise);
@@ -63,7 +63,7 @@ public class WalletService : IWalletService
             return new Priced(false, "Invalid credit type.", 0, 0, 0, baseAmount, 0, 0, 0, 0);
         var (ratePaise, min) = PricingFor(creditType);
         if (baseAmount < min)
-            return new Priced(false, $"Minimum top-up for {creditType} is ₹{min:0}.", 0, min, 0, baseAmount, 0, 0, 0, ratePaise);
+            return new Priced(false, $"Minimum top-up for {creditType} is {Brand.Money(min)}.", 0, min, 0, baseAmount, 0, 0, 0, ratePaise);
 
         long basePaise = (long)Math.Round(baseAmount * 100m, MidpointRounding.AwayFromZero);
         int credits = (int)(basePaise / ratePaise);                       // floor; GST excluded

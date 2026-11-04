@@ -1277,7 +1277,7 @@ public class DistrictAdminDashboardService : IDistrictAdminDashboardService
         }
         catch (Exception ex)
         {
-            return new DistrictAdminLiveTerminatedResponse { Warning = $"Failed to fetch {club.ClubName} from Rotary.org: {ex.Message}" };
+            return new DistrictAdminLiveTerminatedResponse { Warning = $"Failed to fetch {club.ClubName} from Rotary.org." };
         }
 
         try { await RotaryOrgTerminatedCacheHelper.UpsertAsync(conn, rotaryOrgClubId, list); }

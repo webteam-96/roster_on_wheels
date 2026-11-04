@@ -114,3 +114,5 @@ The dated results below are kept as history and still mention the NestJS edition
 
 Not yet tested anywhere: real sends (Brevo, Meta WhatsApp, FCM, Rotary.org, Plesk), Payments, load,
 the report / goal-setting SQL against a real database with production-like data.
+
+New 2026-11-04: `payments_simulated_e2e.py` (API with `Payments__Provider=simulated`), `localization_e2e.py` (settings in its header).
