@@ -156,6 +156,7 @@ public class PublicMembershipDuesController : ControllerBase
         }
     }
 
+    [EnableRateLimiting("payment-status")]
     [HttpGet("{id}/verify-payment")]
     public async Task<ActionResult> VerifyPayment(int id, [FromQuery] string orderId, [FromQuery] int paymentId)
     {

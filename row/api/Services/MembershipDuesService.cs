@@ -2784,34 +2784,42 @@ public class MembershipDuesService : IMembershipDuesService
 
     public async Task<VerifyPaymentResponseDto> VerifyPaymentAsync(int duesId, string orderId, int paymentId)
     {
-        if (_checkout.Enabled)
+        // Same answer for a bad format, a wrong order or a row that is not this dues': only the matching order learns anything.
+        var unknown = new VerifyPaymentResponseDto { IsSuccess = false, OrderStatus = "PENDING" };
+        if (!System.Text.RegularExpressions.Regex.IsMatch(orderId ?? "", $@"^DUES{duesId}_\d{{20}}\z")) return unknown;
+
+        using var conn = GetConnection();
+        var row = await conn.QueryFirstOrDefaultAsync<dynamic>(@"
+            SELECT p.IsPaid, p.Amount, p.PaymentDate, m.MemberName, p.FeeType, md.Fees1Text, md.Fees2Text, md.Fees3Text
+            FROM membership_dues_payments p
+            JOIN member_master_profile m ON p.fk_member_profile_id = m.pk_member_master_profile_id
+            JOIN membership_dues md ON p.fk_membership_dues_id = md.pk_membership_dues_id
+            WHERE p.pk_id=@Id AND p.fk_membership_dues_id=@DuesId AND p.TransactionId=@OrderId AND p.isdeleted=0",
+            new { Id = paymentId, DuesId = duesId, OrderId = orderId });
+        if (row == null) return unknown;
+
+        VerifyPaymentResponseDto Paid(DateTime? paidOn) => new()
         {
-            // A hosted gateway settles on the server; the thank-you page only reads the result.
-            using var read = GetConnection();
-            var row = await read.QueryFirstOrDefaultAsync<dynamic>(@"
-                SELECT p.IsPaid, p.Amount, p.PaymentDate, m.MemberName, p.FeeType, md.Fees1Text, md.Fees2Text, md.Fees3Text
-                FROM membership_dues_payments p
-                JOIN member_master_profile m ON p.fk_member_profile_id = m.pk_member_master_profile_id
-                JOIN membership_dues md ON p.fk_membership_dues_id = md.pk_membership_dues_id
-                WHERE p.pk_id=@Id AND p.fk_membership_dues_id=@DuesId AND p.TransactionId=@OrderId",
-                new { Id = paymentId, DuesId = duesId, OrderId = orderId });
-            if (row == null || Convert.ToInt32(row.IsPaid) == 0)
-                return new VerifyPaymentResponseDto { IsSuccess = false, OrderStatus = "PENDING" };
-            return new VerifyPaymentResponseDto
+            IsSuccess = true,
+            OrderStatus = "PAID",
+            MemberName = row.MemberName,
+            Amount = row.Amount,
+            PaymentDate = paidOn,
+            RegistrationType = (int)row.FeeType switch
             {
-                IsSuccess = true, OrderStatus = "PAID", MemberName = row.MemberName, Amount = row.Amount, PaymentDate = row.PaymentDate,
-                RegistrationType = (int)row.FeeType switch
-                {
-                    1 => (string?)row.Fees1Text ?? "Annual",
-                    2 => (string?)row.Fees2Text ?? "Semi-Annual 1",
-                    3 => (string?)row.Fees3Text ?? "Semi-Annual 2",
-                    _ => "Dues"
-                }
-            };
-        }
+                1 => (string?)row.Fees1Text ?? "Annual",
+                2 => (string?)row.Fees2Text ?? "Semi-Annual 1",
+                3 => (string?)row.Fees3Text ?? "Semi-Annual 2",
+                _ => "Dues"
+            }
+        };
+
+        if (Convert.ToInt32(row.IsPaid) == 1) return Paid((DateTime?)row.PaymentDate);
+        // A hosted gateway settles on the server; the thank-you page only reads the result.
+        if (_checkout.Enabled) return unknown;
 
         var cf = _config.GetSection("CashfreePayment");
-        var request = new HttpRequestMessage(HttpMethod.Get, $"{cf["BaseUrl"]}orders/{orderId}");
+        var request = new HttpRequestMessage(HttpMethod.Get, $"{cf["BaseUrl"]}orders/{Uri.EscapeDataString(orderId!)}");
         request.Headers.Add("x-client-id", cf["ClientId"]);
         request.Headers.Add("x-client-secret", cf["ClientSecret"]);
         request.Headers.Add("x-api-version", cf["ApiVersion"]);
@@ -2824,15 +2832,14 @@ public class MembershipDuesService : IMembershipDuesService
 
         var order = JsonSerializer.Deserialize<JsonElement>(body);
         var status = order.GetProperty("order_status").GetString();
+        if (status != "PAID") return new VerifyPaymentResponseDto { IsSuccess = false, OrderStatus = status };
 
-        using var conn = GetConnection();
-        if (status == "PAID")
+        var marked = await conn.ExecuteAsync(@"
+            UPDATE membership_dues_payments SET IsPaid=1, IsOnline=1, PaymentStatus='PAID', PaidSource='Page', PaymentDate=NOW()
+            WHERE pk_id=@Id AND TransactionId=@OrderId AND IsPaid=0",
+            new { Id = paymentId, OrderId = orderId });
+        if (marked > 0)
         {
-            await conn.ExecuteAsync(@"
-                UPDATE membership_dues_payments SET IsPaid=1, IsOnline=1, PaymentStatus='PAID', PaidSource='Page', PaymentDate=NOW()
-                WHERE pk_id=@Id AND IsPaid=0",
-                new { Id = paymentId });
-
             // Send receipt email (fire-and-forget)
             _ = Task.Run(async () =>
             {
@@ -2852,35 +2859,8 @@ public class MembershipDuesService : IMembershipDuesService
                 try { await RefreshSettlementsAsync(duesId); }
                 catch { /* non-critical */ }
             });
-
-            var paymentInfo = await conn.QueryFirstOrDefaultAsync<dynamic>(@"
-                SELECT m.MemberName, p.Amount, p.FeeType,
-                       md.Fees1Text, md.Fees2Text, md.Fees3Text
-                FROM membership_dues_payments p
-                JOIN member_master_profile m ON p.fk_member_profile_id = m.pk_member_master_profile_id
-                JOIN membership_dues md ON p.fk_membership_dues_id = md.pk_membership_dues_id
-                WHERE p.pk_id=@Id", new { Id = paymentId });
-
-            var feeLabel = paymentInfo != null ? ((int)paymentInfo.FeeType switch
-            {
-                1 => (string?)paymentInfo.Fees1Text ?? "Annual",
-                2 => (string?)paymentInfo.Fees2Text ?? "Semi-Annual 1",
-                3 => (string?)paymentInfo.Fees3Text ?? "Semi-Annual 2",
-                _ => "Dues"
-            }) : "Dues";
-
-            return new VerifyPaymentResponseDto
-            {
-                IsSuccess = true,
-                OrderStatus = "PAID",
-                MemberName = paymentInfo?.MemberName,
-                Amount = paymentInfo?.Amount,
-                RegistrationType = feeLabel,
-                PaymentDate = DateTime.Now
-            };
         }
-
-        return new VerifyPaymentResponseDto { IsSuccess = false, OrderStatus = status };
+        return Paid(DateTime.Now);
     }
 
     public async Task HandleWebhookAsync(string payload)

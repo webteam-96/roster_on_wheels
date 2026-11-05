@@ -95,6 +95,7 @@ public class PublicEventPaymentController : ControllerBase
         }
     }
 
+    [EnableRateLimiting("payment-status")]
     [HttpGet("{linkId}/verify-payment")]
     public async Task<ActionResult> VerifyPayment(int linkId, [FromQuery] string orderId, [FromQuery] int memberPaymentId)
     {

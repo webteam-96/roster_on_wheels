@@ -1471,11 +1471,12 @@ public class EventPaymentLinkService : IEventPaymentLinkService
         var cfOrderId = orderResponse.GetProperty("cf_order_id").ToString();
         var paymentSessionId = orderResponse.GetProperty("payment_session_id").GetString()!;
 
-        // Save Cashfree order details
+        // Save Cashfree order details. CfOrderId keeps OUR order id: the return page sends it, the webhook echoes it,
+        // and it is the only id Cashfree's REST calls accept (see the same note in MembershipDuesService).
         await conn.ExecuteAsync(@"
-            UPDATE event_payment_members SET CfOrderId=@CfOrderId, PaymentSessionId=@SessionId, PaymentStatus='ACTIVE', OrderSplitsJson=@SplitsJson
+            UPDATE event_payment_members SET CfOrderId=@OrderId, PaymentSessionId=@SessionId, PaymentStatus='ACTIVE', OrderSplitsJson=@SplitsJson
             WHERE pk_id=@Id",
-            new { CfOrderId = cfOrderId, SessionId = paymentSessionId, Id = memberPaymentId, SplitsJson = splitsJson });
+            new { OrderId = orderId, SessionId = paymentSessionId, Id = memberPaymentId, SplitsJson = splitsJson });
 
         // Build signed proxy URL (same proxy as MembershipDuesService — shared across all payment flows).
         var proxy = CashfreeGatewayProxy.Build(
@@ -1520,27 +1521,35 @@ public class EventPaymentLinkService : IEventPaymentLinkService
 
     public async Task<VerifyPaymentResponseDto> VerifyPaymentAsync(int linkId, string orderId, int memberPaymentId)
     {
-        if (_checkout.Enabled)
+        // Same answer for a bad format, a wrong order or a row that is not this link's: only the matching order learns anything.
+        var unknown = new VerifyPaymentResponseDto { IsSuccess = false, OrderStatus = "PENDING" };
+        if (!System.Text.RegularExpressions.Regex.IsMatch(orderId ?? "", $@"^EVT{linkId}_\d{{20}}\z")) return unknown;
+
+        using var conn = GetConnection();
+        var row = await conn.QueryFirstOrDefaultAsync<dynamic>(@"
+            SELECT pm.IsPaid, pm.MemberName, pm.Amount, pm.PaymentDate, r.RegistrationName
+            FROM event_payment_members pm
+            LEFT JOIN event_payment_registrations r ON pm.fk_registration_id = r.pk_id
+            WHERE pm.pk_id=@Id AND pm.fk_payment_link_id=@LinkId AND pm.CfOrderId=@OrderId",
+            new { Id = memberPaymentId, LinkId = linkId, OrderId = orderId });
+        if (row == null) return unknown;
+
+        VerifyPaymentResponseDto Paid(DateTime? paidOn) => new()
         {
-            // A hosted gateway settles on the server; the thank-you page only reads the result.
-            using var read = GetConnection();
-            var row = await read.QueryFirstOrDefaultAsync<dynamic>(@"
-                SELECT pm.IsPaid, pm.MemberName, pm.Amount, pm.PaymentDate, r.RegistrationName
-                FROM event_payment_members pm
-                LEFT JOIN event_payment_registrations r ON pm.fk_registration_id = r.pk_id
-                WHERE pm.pk_id=@Id AND pm.fk_payment_link_id=@LinkId AND pm.CfOrderId=@OrderId",
-                new { Id = memberPaymentId, LinkId = linkId, OrderId = orderId });
-            if (row == null || Convert.ToInt32(row.IsPaid) == 0)
-                return new VerifyPaymentResponseDto { IsSuccess = false, OrderStatus = "PENDING" };
-            return new VerifyPaymentResponseDto
-            {
-                IsSuccess = true, OrderStatus = "PAID", MemberName = row.MemberName, Amount = row.Amount,
-                RegistrationType = row.RegistrationName, PaymentDate = row.PaymentDate
-            };
-        }
+            IsSuccess = true,
+            OrderStatus = "PAID",
+            MemberName = row.MemberName,
+            Amount = row.Amount,
+            RegistrationType = row.RegistrationName,
+            PaymentDate = paidOn
+        };
+
+        if (Convert.ToInt32(row.IsPaid) == 1) return Paid((DateTime?)row.PaymentDate);
+        // A hosted gateway settles on the server; the thank-you page only reads the result.
+        if (_checkout.Enabled) return unknown;
 
         var cf = _config.GetSection("CashfreePayment");
-        var request = new HttpRequestMessage(HttpMethod.Get, $"{cf["BaseUrl"]}orders/{orderId}");
+        var request = new HttpRequestMessage(HttpMethod.Get, $"{cf["BaseUrl"]}orders/{Uri.EscapeDataString(orderId!)}");
         request.Headers.Add("x-client-id", cf["ClientId"]);
         request.Headers.Add("x-client-secret", cf["ClientSecret"]);
         request.Headers.Add("x-api-version", cf["ApiVersion"]);
@@ -1553,15 +1562,14 @@ public class EventPaymentLinkService : IEventPaymentLinkService
 
         var order = JsonSerializer.Deserialize<JsonElement>(body);
         var status = order.GetProperty("order_status").GetString();
+        if (status != "PAID") return new VerifyPaymentResponseDto { IsSuccess = false, OrderStatus = status };
 
-        using var conn = GetConnection();
-        if (status == "PAID")
+        var marked = await conn.ExecuteAsync(@"
+            UPDATE event_payment_members SET IsPaid=1, IsOnline=1, PaymentStatus='PAID', PaidSource='Page', PaymentDate=NOW()
+            WHERE pk_id=@Id AND CfOrderId=@OrderId AND IsPaid=0",
+            new { Id = memberPaymentId, OrderId = orderId });
+        if (marked > 0)
         {
-            await conn.ExecuteAsync(@"
-                UPDATE event_payment_members SET IsPaid=1, IsOnline=1, PaymentStatus='PAID', PaidSource='Page', PaymentDate=NOW()
-                WHERE pk_id=@Id AND IsPaid=0",
-                new { Id = memberPaymentId });
-
             // Send thank you email
             try { await SendReceiptEmailAsync(memberPaymentId); } catch { /* non-critical */ }
 
@@ -1577,24 +1585,8 @@ public class EventPaymentLinkService : IEventPaymentLinkService
             {
                 try { await RefreshEventSettlementsAsync(linkId); } catch { }
             });
-
-            var member = await conn.QueryFirstOrDefaultAsync<dynamic>(@"
-                SELECT pm.MemberName, pm.Amount, r.RegistrationName FROM event_payment_members pm
-                LEFT JOIN event_payment_registrations r ON pm.fk_registration_id = r.pk_id
-                WHERE pm.pk_id=@Id", new { Id = memberPaymentId });
-
-            return new VerifyPaymentResponseDto
-            {
-                IsSuccess = true,
-                OrderStatus = "PAID",
-                MemberName = member?.MemberName,
-                Amount = member?.Amount,
-                RegistrationType = member?.RegistrationName,
-                PaymentDate = DateTime.Now
-            };
         }
-
-        return new VerifyPaymentResponseDto { IsSuccess = false, OrderStatus = status };
+        return Paid(DateTime.Now);
     }
 
     public async Task HandleWebhookAsync(string payload)
