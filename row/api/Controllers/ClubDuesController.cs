@@ -320,6 +320,16 @@ public class ClubDuesController : ControllerBase
     }
 
     // ── Export + pay link ──────────────────────────────────────────
+    // District-wide paid and unpaid summary: Super Admin and the campaign's district admins (was anonymous under api/public/club-dues).
+    [HttpGet("{id}/report")]
+    public async Task<ActionResult> Report(int id)
+    {
+        if (!IsSuperAdmin() && !await IsDistrictAdminForDuesAsync(GetUserId(), id)) return Denied();
+        var r = await _service.GetPublicReportAsync(id);
+        if (r == null) return NotFound(new { message = "Not found." });
+        return Ok(r);
+    }
+
     [HttpGet("{id}/export")]
     public async Task<ActionResult> Export(int id)
     {

@@ -289,13 +289,10 @@ export default function DistrictCitationPage() {
 
   const loadAofList = async (index: number, activityId: string) => {
     const act = activities.find((a: any) => String(a.id) === activityId);
-    console.log("loadAofList called", { index, activityId, act, activitiesLen: activities.length });
     if (!act) return;
     const moduleKey = getModuleKeyFromActivity(act.activityName);
-    console.log("loadAofList moduleKey:", moduleKey);
     try {
       const list = await getCitationAreaOfFocus(moduleKey);
-      console.log("loadAofList result:", list);
       setSubItemData(prev => ({ ...prev, [index]: { aofList: list } }));
     } catch (err) { console.error("loadAofList error:", err); }
   };

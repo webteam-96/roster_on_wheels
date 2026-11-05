@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
-import { getPublicEventReport } from "@/services/api";
+import { getEventReport } from "@/services/api";
 import { fileTimestamp } from "@/lib/dateUtils";
 
 import { appLocale } from "@/lib/appFormat";
@@ -130,7 +130,7 @@ export default function PublicReportPage() {
   useEffect(() => {
     if (!linkId) return;
     setLoading(true);
-    getPublicEventReport(linkId)
+    getEventReport(linkId)
       .then((res) => setData(res))
       .catch(() => setError("Failed to load report data."))
       .finally(() => setLoading(false));

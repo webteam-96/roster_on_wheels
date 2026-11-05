@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
-import { getPublicMembershipDuesReport, exportPublicMembershipDuesReport } from "@/services/api";
+import { getMembershipDuesReport, exportMembershipDuesReport } from "@/services/api";
 import { fileTimestamp } from "@/lib/dateUtils";
 
 import { formatMoney } from "@/lib/currency";
@@ -77,7 +77,7 @@ function fmtDate(val: string | null | undefined): string {
 // green/red Status highlighting) that the SuperAdmin/Club Admin "Download
 // Report" export produces, instead of building a plain CSV client-side.
 async function downloadXlsx(duesId: number, purpose: string | null) {
-  const blob = await exportPublicMembershipDuesReport(duesId);
+  const blob = await exportMembershipDuesReport(duesId);
   const url = URL.createObjectURL(new Blob([blob]));
   const link = document.createElement("a");
   link.href = url;
@@ -113,7 +113,7 @@ export default function PublicDuesReportPage() {
   useEffect(() => {
     if (!duesId) return;
     setLoading(true);
-    getPublicMembershipDuesReport(duesId)
+    getMembershipDuesReport(duesId)
       .then((res) => setData(res))
       .catch(() => setError("Failed to load report data."))
       .finally(() => setLoading(false));

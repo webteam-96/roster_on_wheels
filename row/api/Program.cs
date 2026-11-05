@@ -67,6 +67,10 @@ builder.Services.AddRateLimiter(o =>
     // Public reads marked [EnableRateLimiting("public-read")]: 600 a minute per IP. Over the limit a site shows its default language.
     // shortcut: the public sites call from their server, so one site server shares one bucket; partition by the visitor IP
     // the site forwards once sites run behind a shared server at real load.
+    // Pay page member search (PublicMembershipDuesController): 60 a minute per IP, enough to type a name.
+    o.AddPolicy("member-search", ctx => System.Threading.RateLimiting.RateLimitPartition.GetFixedWindowLimiter(
+        ctx.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+        _ => new System.Threading.RateLimiting.FixedWindowRateLimiterOptions { PermitLimit = 60, Window = TimeSpan.FromMinutes(1) }));
     o.AddPolicy("public-read", ctx => System.Threading.RateLimiting.RateLimitPartition.GetFixedWindowLimiter(
         ctx.Connection.RemoteIpAddress?.ToString() ?? "unknown",
         _ => new System.Threading.RateLimiting.FixedWindowRateLimiterOptions { PermitLimit = 600, Window = TimeSpan.FromMinutes(1) }));
@@ -128,20 +132,13 @@ builder.Services.AddCors(options =>
             // parent domains. District directories live at {districtNumber}club.example.org,
             // club websites at {clubSubdomain}.portal.example.org, etc. — too many to hard-code,
             // so we accept any host that ends with one of these parents.
-            //
-            // localhost / 127.0.0.1 (any port) is also allowed so the web team can develop
-            // locally against the live API. This is an internal-team trade-off — anyone
-            // running a browser page at localhost can call the production API. Remove these
-            // two lines if you want production-only origins.
             policy.SetIsOriginAllowed(origin =>
                   {
                       if (string.IsNullOrEmpty(origin)) return false;
                       if (!Uri.TryCreate(origin, UriKind.Absolute, out var u)) return false;
                       if (u.Scheme != "https" && u.Scheme != "http") return false;
                       var host = u.Host.ToLowerInvariant();
-                      return RotaryApi.Services.Brand.IsOwnHost(host)
-                          || host == "localhost"
-                          || host == "127.0.0.1";
+                      return RotaryApi.Services.Brand.IsOwnHost(host);
                   })
                   .AllowAnyHeader()
                   .AllowAnyMethod();

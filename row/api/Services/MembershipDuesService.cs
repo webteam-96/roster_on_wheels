@@ -96,7 +96,10 @@ public class MembershipDuesService : IMembershipDuesService
             new { ClubId = clubId, DistrictId = districtId, Search = $"%{search}%", Year = year });
 
         foreach (var item in results)
+        {
             item.UnpaidCount = item.MemberCount - item.PaidCount;
+            item.PayKey = PayKey(item.Id);
+        }
 
         return results;
     }
@@ -290,7 +293,7 @@ public class MembershipDuesService : IMembershipDuesService
             if (clubId > 0)
             {
                 var frontendUrl = _config["FrontendUrl"] ?? "http://localhost:3000";
-                var payUrl = $"{frontendUrl}/pay/dues/{duesId}";
+                var payUrl = $"{frontendUrl}/pay/dues/{duesId}?k={PayKey(duesId)}";
                 var weblinkId = await conn.ExecuteScalarAsync<int>(@"
                     INSERT INTO weblinks (fk_club_id, Title, Writeup, LogoPath, LinkType, LinkUrl, Level, IsActive, created_by, created_date)
                     VALUES (@ClubId, @Title, @Desc, @Logo, 'URL', @Url, 0, 1, @UserId, NOW());
@@ -2108,7 +2111,7 @@ public class MembershipDuesService : IMembershipDuesService
         if (unpaidRows.Length == 0) return; // nothing to remind
 
         var frontendUrl = _config["FrontendUrl"] ?? "http://localhost:3000";
-        var payUrl = $"{frontendUrl}/pay/dues/{(int)data.DuesId}";
+        var payUrl = $"{frontendUrl}/pay/dues/{(int)data.DuesId}?k={PayKey((int)data.DuesId)}";
         var remarkHtml = string.IsNullOrWhiteSpace(remark) ? "" : $"<p style='margin-top:16px;padding:12px;background:#F7F9FC;border-left:4px solid #17458F;'><strong>Remark:</strong> {remark}</p>";
 
         var subject = (string?)data.EmailReminderSubject ?? "Club Dues - Payment Reminder";
@@ -2175,7 +2178,7 @@ public class MembershipDuesService : IMembershipDuesService
             new { DuesId = duesId });
 
         var frontendUrl = _config["FrontendUrl"] ?? "http://localhost:3000";
-        var payUrl = $"{frontendUrl}/pay/dues/{duesId}";
+        var payUrl = $"{frontendUrl}/pay/dues/{duesId}?k={PayKey(duesId)}";
         var remarkHtml = string.IsNullOrWhiteSpace(remark) ? "" : $"<p style='margin-top:16px;padding:12px;background:#F7F9FC;border-left:4px solid #17458F;'><strong>Remark:</strong> {remark}</p>";
         var subject = (string?)dues.EmailReminderSubject ?? "Club Dues - Payment Reminder";
         int sentCount = 0;
@@ -2340,6 +2343,8 @@ public class MembershipDuesService : IMembershipDuesService
         return dues;
     }
 
+    private string PayKey(int duesId) => MobileDuesAccessToken.PayLinkKey(duesId, _config["JwtSettings:Secret"] ?? "");
+
     public async Task<IEnumerable<dynamic>> SearchMembersAsync(int duesId, string? query)
     {
         using var conn = GetConnection();
@@ -2352,15 +2357,16 @@ public class MembershipDuesService : IMembershipDuesService
         // the public payment page. Matches the dashboard KPI + member list
         // handling (added 2026-07-09).
         return await conn.QueryAsync<dynamic>(@"
-            SELECT m.pk_member_master_profile_id AS MemberId, m.MemberName, m.EmailId, m.PrimaryMobileNumber
+            SELECT m.pk_member_master_profile_id AS MemberId, m.MemberName, c.ClubName
             FROM club_members cm
             JOIN member_master_profile m ON cm.fk_member_master_profile_id = m.pk_member_master_profile_id
+            JOIN club_master c ON c.pk_club_id = cm.fk_club_id
             WHERE cm.fk_club_id=@ClubId AND cm.IsActive=1 AND cm.isdeleted=0 AND m.isdeleted=0
               AND COALESCE(cm.IsHonoraryMember, 0) = 0
-              AND (@Query IS NULL OR m.MemberName LIKE @Search OR m.PrimaryMobileNumber LIKE @Search OR m.EmailId LIKE @Search)
+              AND m.MemberName LIKE @Search
             ORDER BY m.MemberName
             LIMIT 50",
-            new { ClubId = clubId, Query = query, Search = $"%{query}%" });
+            new { ClubId = clubId, Search = $"%{query?.Replace("\\", "\\\\").Replace("%", "\\%").Replace("_", "\\_")}%" });
     }
 
     public async Task<object?> GetMemberDuesStatusAsync(int duesId, int memberProfileId)
@@ -2493,12 +2499,13 @@ public class MembershipDuesService : IMembershipDuesService
 
     public async Task<bool> SendPaymentOtpAsync(int duesId, SendOtpRequestDto dto)
     {
-        var otp = new Random().Next(100000, 999999).ToString();
+        var otp = System.Security.Cryptography.RandomNumberGenerator.GetInt32(100000, 1000000).ToString();
         using var conn = GetConnection();
 
-        // Resolve email/mobile from member profile
-        var email = dto.Email;
-        var mobile = dto.Mobile;
+        // The code goes only to the email on the member's record, never to an address the caller supplies:
+        // a verified code opens that member's dues.
+        if (dto.MemberProfileId is not > 0) throw new ArgumentException("Choose your name first.");
+        string? email = null, mobile = null;
         int? memberCountryId = null;
         if (dto.MemberProfileId.HasValue && dto.MemberProfileId > 0)
         {
@@ -2507,8 +2514,8 @@ public class MembershipDuesService : IMembershipDuesService
                 new { Id = dto.MemberProfileId });
             if (member != null)
             {
-                if (string.IsNullOrWhiteSpace(email)) email = (string?)member.EmailId;
-                if (string.IsNullOrWhiteSpace(mobile)) mobile = (string?)member.PrimaryMobileNumber;
+                email = (string?)member.EmailId;
+                mobile = (string?)member.PrimaryMobileNumber;
                 memberCountryId = member.CountryId == null ? null : (int?)member.CountryId;
             }
         }
@@ -2548,8 +2555,7 @@ public class MembershipDuesService : IMembershipDuesService
 
         using var conn = GetConnection();
 
-        var email = dto.Email;
-        var mobile = dto.Mobile;
+        string? email = null, mobile = null;
         if (dto.MemberProfileId.HasValue && dto.MemberProfileId > 0)
         {
             var member = await conn.QueryFirstOrDefaultAsync<dynamic>(
@@ -2557,15 +2563,15 @@ public class MembershipDuesService : IMembershipDuesService
                 new { Id = dto.MemberProfileId });
             if (member != null)
             {
-                if (string.IsNullOrWhiteSpace(email)) email = (string?)member.EmailId;
-                if (string.IsNullOrWhiteSpace(mobile)) mobile = (string?)member.PrimaryMobileNumber;
+                email = (string?)member.EmailId;
+                mobile = (string?)member.PrimaryMobileNumber;
             }
         }
 
         var valid = await conn.ExecuteScalarAsync<int>(@"
             SELECT COUNT(*) FROM event_payment_otp
             WHERE fk_payment_link_id=@LinkId AND OtpCode=@Code AND ExpiresAt > NOW() AND IsVerified=0
-              AND ((@Email IS NOT NULL AND Email=@Email) OR (@Mobile IS NOT NULL AND Mobile=@Mobile))",
+              AND Email=@Email",
             new { LinkId = duesId, Code = dto.OtpCode, Email = email, Mobile = mobile });
 
         if (valid > 0)
@@ -2573,7 +2579,7 @@ public class MembershipDuesService : IMembershipDuesService
             await conn.ExecuteAsync(@"
                 UPDATE event_payment_otp SET IsVerified=1
                 WHERE fk_payment_link_id=@LinkId AND OtpCode=@Code
-                  AND ((@Email IS NOT NULL AND Email=@Email) OR (@Mobile IS NOT NULL AND Mobile=@Mobile))",
+                  AND Email=@Email",
                 new { LinkId = duesId, Code = dto.OtpCode, Email = email, Mobile = mobile });
             return true;
         }

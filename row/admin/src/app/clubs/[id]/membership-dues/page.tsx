@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useEffect, useMemo } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { getMembershipDuesList, exportMembershipDuesReport, getClub } from "@/services/api";
+import { getMembershipDuesList, exportMembershipDuesReport, getClub, duesPayPath } from "@/services/api";
 import { fileTimestamp } from "@/lib/dateUtils";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -65,7 +65,7 @@ export default function ClubMembershipDuesPage() {
   useEffect(() => { fetchData(); }, [fetchData]);
 
   const handleCopyUrl = (item: MembershipDuesItem) => {
-    const url = `${window.location.origin}${BASE_PATH}/pay/dues/${item.id}`;
+    const url = `${window.location.origin}${BASE_PATH}${duesPayPath(item)}`;
     navigator.clipboard.writeText(url);
     setSuccessMessage("URL copied to clipboard.");
   };
@@ -185,7 +185,7 @@ export default function ClubMembershipDuesPage() {
                     {/* View | Copy URL */}
                     <TableCell className="text-center">
                       <div className="flex items-center justify-center gap-1 text-sm">
-                        <button onClick={() => window.open(withBase(`/pay/dues/${item.id}`), "_blank")}
+                        <button onClick={() => window.open(withBase(duesPayPath(item)), "_blank")}
                           className="text-blue-600 hover:text-blue-800 hover:underline">View</button>
                         <span className="text-muted-foreground">|</span>
                         <button onClick={() => handleCopyUrl(item)}

@@ -167,7 +167,9 @@ api.interceptors.response.use(
     const isAuthEndpoint = error.config?.url?.startsWith("/api/auth/");
     if (error.response?.status === 401 && typeof window !== "undefined" && !isAuthEndpoint) {
       localStorage.removeItem("auth_token");
-      window.location.href = withBase("/login");
+      // Report links send the reader back to the report after sign-in.
+      const here = stripBase(window.location.pathname);
+      window.location.href = withBase(here.startsWith("/report/") ? `/login?returnUrl=${encodeURIComponent(here)}` : "/login");
     }
     return Promise.reject(error);
   }
@@ -3615,7 +3617,11 @@ export async function getPublicEventClubs(linkId: number, districtId: number) {
   const res = await publicApi.get(`/api/public/event-payment/${linkId}/districts/${districtId}/clubs`);
   return res.data;
 }
-export async function searchPublicEventMembers(linkId: number, params: { districtId?: number; clubId?: number; query?: string }) {
+/** Path of an event pay link. The key (from the link list) is what lets the page search members. */
+export function eventPayPath(item: { id: number; payKey?: string | null }) {
+  return `/pay/${item.id}${item.payKey ? `?k=${encodeURIComponent(item.payKey)}` : ""}`;
+}
+export async function searchPublicEventMembers(linkId: number, params: { districtId?: number; clubId?: number; query?: string; k: string }) {
   const res = await publicApi.get(`/api/public/event-payment/${linkId}/search-members`, { params });
   return res.data;
 }
@@ -3628,8 +3634,8 @@ export async function verifyPublicEventOtp(linkId: number, data: { email?: strin
   return res.data;
 }
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export async function createPublicEventOrder(linkId: number, data: any) {
-  const res = await publicApi.post(`/api/public/event-payment/${linkId}/create-order`, data);
+export async function createPublicEventOrder(linkId: number, data: any, payerToken: string) {
+  const res = await publicApi.post(`/api/public/event-payment/${linkId}/create-order`, data, { headers: { "X-Payer-Token": payerToken } });
   return res.data;
 }
 export async function verifyPublicEventPayment(linkId: number, orderId: string, memberPaymentId: number) {
@@ -3639,8 +3645,8 @@ export async function verifyPublicEventPayment(linkId: number, orderId: string, 
   return res.data;
 }
 
-export async function getPublicEventReport(linkId: number) {
-  const res = await publicApi.get(`/api/public/event-payment/${linkId}/report`);
+export async function getEventReport(linkId: number) {
+  const res = await api.get(`/api/event-payment-links/${linkId}/report`);
   return res.data;
 }
 
@@ -3764,12 +3770,16 @@ export async function getPublicMembershipDues(id: number) {
   const res = await publicApi.get(`/api/public/membership-dues/${id}`);
   return res.data;
 }
-export async function searchMembershipDuesMembers(id: number, query?: string) {
-  const res = await publicApi.get(`/api/public/membership-dues/${id}/search-members`, { params: { query } });
+/** Path of a dues pay link. The key (from the dues list) is what lets the page search members. */
+export function duesPayPath(item: { id: number; payKey?: string | null }) {
+  return `/pay/dues/${item.id}${item.payKey ? `?k=${encodeURIComponent(item.payKey)}` : ""}`;
+}
+export async function searchMembershipDuesMembers(id: number, query: string, k: string) {
+  const res = await publicApi.get(`/api/public/membership-dues/${id}/search-members`, { params: { query, k } });
   return res.data;
 }
-export async function getMemberDuesStatus(id: number, memberProfileId: number) {
-  const res = await publicApi.get(`/api/public/membership-dues/${id}/member/${memberProfileId}/status`);
+export async function getMemberDuesStatus(id: number, memberProfileId: number, token: string) {
+  const res = await publicApi.get(`/api/public/membership-dues/${id}/member/${memberProfileId}/status`, { params: { token } });
   return res.data;
 }
 export async function sendMembershipDuesOtp(id: number, data: any) {
@@ -3804,20 +3814,16 @@ export async function simulateCheckout(token: string, outcome: "paid" | "failed"
   return res.data;
 }
 
-export async function createMembershipDuesPaymentOrder(id: number, data: any) {
-  const res = await publicApi.post(`/api/public/membership-dues/${id}/pay`, data);
+export async function createMembershipDuesPaymentOrder(id: number, data: any, payerToken: string) {
+  const res = await publicApi.post(`/api/public/membership-dues/${id}/pay`, data, { headers: { "X-Payer-Token": payerToken } });
   return res.data;
 }
 export async function verifyMembershipDuesPayment(id: number, orderId: string, paymentId: number) {
   const res = await publicApi.get(`/api/public/membership-dues/${id}/verify-payment`, { params: { orderId, paymentId } });
   return res.data;
 }
-export async function getPublicMembershipDuesReport(id: number) {
-  const res = await publicApi.get(`/api/public/membership-dues/${id}/report`);
-  return res.data;
-}
-export async function exportPublicMembershipDuesReport(id: number) {
-  const res = await publicApi.get(`/api/public/membership-dues/${id}/report/export`, { responseType: "blob" });
+export async function getMembershipDuesReport(id: number) {
+  const res = await api.get(`/api/membership-dues/${id}/report`);
   return res.data;
 }
 export async function exportMembershipDuesReport(duesId: number) {
@@ -6637,8 +6643,8 @@ export async function verifyPublicClubDuesPayment(id: number, body: { paymentId:
   const res = await publicApi.post(`/api/public/club-dues/${id}/verify-payment`, body);
   return res.data;
 }
-export async function getPublicClubDuesReport(id: number) {
-  const res = await publicApi.get(`/api/public/club-dues/${id}/report`);
+export async function getClubDuesReport(id: number) {
+  const res = await api.get(`/api/club-dues/${id}/report`);
   return res.data;
 }
 
@@ -6877,7 +6883,7 @@ import type {
   MeetingDuty, PublicVolunteerSheet, SaveMeetingDuty, SaveSpeaker, SaveVolunteerSheet, Speaker, VolunteerSheet,
   VolunteerSheetListItem, VolunteerTargets,
 } from "@/types/volunteers";
-import { withBase } from "@/lib/basePath";
+import { stripBase, withBase } from "@/lib/basePath";
 
 const sheetsBase = (clubId: number) => `/api/clubs/${clubId}/volunteer-sheets`;
 

@@ -30,9 +30,23 @@ def token(member_id, roles="SuperAdmin"):
     return f"{signing}.{b64(hmac.new(SECRET.encode(), signing.encode(), hashlib.sha256).digest())}"
 
 
-def call(method, path, tok=None, body=None):
+def payer_token(dues_id, member_id):
+    """The token verify-otp issues (MobileDuesAccessToken), so this script need not read an email."""
+    payload = b64(json.dumps({"d": dues_id, "m": member_id, "e": int(time.time()) + 600}).encode())
+    return f"{payload}.{b64(hmac.new(SECRET.encode(), payload.encode(), hashlib.sha256).digest())}"
+
+
+def event_payer_token(link_id, email):
+    """A guest's token from verify-otp (EventPayerToken)."""
+    payload = b64(json.dumps({"l": link_id, "m": 0, "a": email, "e": int(time.time()) + 600}).encode())
+    return f"{payload}.{b64(hmac.new(SECRET.encode(), ('event-payer:' + payload).encode(), hashlib.sha256).digest())}"
+
+
+def call(method, path, tok=None, body=None, payer=None):
     data = json.dumps(body).encode() if body is not None else None
     headers = {"Content-Type": "application/json"}
+    if payer:
+        headers["X-Payer-Token"] = payer
     if tok:
         headers["Authorization"] = f"Bearer {tok}"
     req = urllib.request.Request(API + path, data=data, method=method, headers=headers)
@@ -157,7 +171,7 @@ try:
     # Membership dues: order, thank-you read, settlement report rows
     md = sql(f"INSERT INTO membership_dues (fk_club_id, fk_district_id, RotaryYear, Purpose, OnlineSurchargePercent, IsActive, isdeleted) VALUES ({club},{district},'2026-27','e2e-pay',0,1,0); SELECT LAST_INSERT_ID();")
     fee = sql(f"INSERT INTO membership_dues_member_fees (fk_membership_dues_id, fk_member_profile_id, AnnualAmount, Semi1Amount, Semi2Amount, isdeleted) VALUES ({md},{member},120,60,60,0); SELECT LAST_INSERT_ID();")
-    st, o = call("POST", f"/api/public/membership-dues/{md}/pay", None, {"fkMemberProfileId": int(member), "feeType": 1})
+    st, o = call("POST", f"/api/public/membership-dues/{md}/pay", None, {"feeType": 1}, payer_token(int(md), int(member)))
     check("membership dues: order returns a session", st == 200 and o.get("checkout"), str(o)[:200])
     tokens.append(o["checkout"]["token"])
     st, v = call("GET", f"/api/public/membership-dues/{md}/verify-payment?orderId={o['orderId']}&paymentId={o['paymentId']}")
@@ -172,20 +186,20 @@ try:
     st2, _ = call("POST", f"/api/membership-dues/{md}/settlement-refresh", SA)
     rows = sql(f"SELECT COUNT(*), SUM(Amount) FROM membership_dues_settlements WHERE fk_payment_id={o['paymentId']}")
     check("membership dues: settlement rows, once", st == 200 and st2 == 200 and rows == "1\t120.00", rows)
-    st, o2 = call("POST", f"/api/public/membership-dues/{md}/pay", None, {"fkMemberProfileId": int(member), "feeType": 1})
+    st, o2 = call("POST", f"/api/public/membership-dues/{md}/pay", None, {"feeType": 1}, payer_token(int(md), int(member)))
     check("membership dues: cannot pay twice", st >= 400, str(o2)[:120])
 
     # Event payment link
     ev = sql(f"INSERT INTO event_payment_links (Title, fk_club_id, IsActive, isdeleted) VALUES ('e2e-pay',{club},1,0); SELECT LAST_INSERT_ID();")
     reg = sql(f"INSERT INTO event_payment_registrations (fk_payment_link_id, RegistrationName, Amount) VALUES ({ev},'e2e-pay',75); SELECT LAST_INSERT_ID();")
     body = {"memberName": "e2e-pay", "mobile": "5550100", "email": "e2e@example.org", "fkRegistrationId": int(reg)}
-    st, o = call("POST", f"/api/public/event-payment/{ev}/create-order", None, body)
+    st, o = call("POST", f"/api/public/event-payment/{ev}/create-order", None, body, event_payer_token(int(ev), body["email"]))
     check("event link: order returns a session", st == 200 and o.get("checkout"), str(o)[:200])
     tokens.append(o["checkout"]["token"])
     mp = o["memberPaymentId"]
     st, s = simulate(o["checkout"]["token"], "failed")
     check("event link: decline leaves it unpaid", sql(f"SELECT IsPaid FROM event_payment_members WHERE pk_id={mp}") == "0")
-    st, o = call("POST", f"/api/public/event-payment/{ev}/create-order", None, body)
+    st, o = call("POST", f"/api/public/event-payment/{ev}/create-order", None, body, event_payer_token(int(ev), body["email"]))
     check("event link: retry after a decline works", st == 200 and o.get("checkout") and o["memberPaymentId"] == mp, str(o)[:200])
     tokens.append(o["checkout"]["token"])
     st, s = simulate(o["checkout"]["token"], "paid")

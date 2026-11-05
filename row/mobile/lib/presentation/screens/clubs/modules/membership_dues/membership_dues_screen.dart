@@ -182,6 +182,12 @@ class _MembershipDuesScreenState extends State<MembershipDuesScreen> {
       ? Brand.current.adminOrigin
       : ApiConstants.baseUrl.replaceFirst(RegExp(r'/API/?$', caseSensitive: false), '');
 
+  /// Pay link of a dues row; its key (from the dues list) lets the page search members.
+  String _payUrl(dynamic due) {
+    final key = due['payKey']?.toString() ?? '';
+    return '$_webOrigin/pay/dues/${due['id']}${key.isEmpty ? '' : '?k=$key'}';
+  }
+
   // ALL setups for the club (every year) — one fetch drives both the list and
   // the year dropdown, so the dropdown can only ever show years that actually
   // have a setup, and can never disagree with what's displayed.
@@ -515,7 +521,7 @@ class _MembershipDuesScreenState extends State<MembershipDuesScreen> {
     final id = due['id'] as int?;
     if (id == null) return const SizedBox.shrink();
     final sheetId = (due['googleSheetId']?.toString() ?? '').trim();
-    final payUrl = '$_webOrigin/pay/dues/$id';
+    final payUrl = _payUrl(due);
     final reportUrl = '$_webOrigin/report/dues/$id';
     final sheetUrl = 'https://docs.google.com/spreadsheets/d/$sheetId';
     return PopupMenuButton<String>(
@@ -756,7 +762,7 @@ class _MembershipDuesScreenState extends State<MembershipDuesScreen> {
                     icon: Icons.payments_outlined,
                     label: 'Pay Now',
                     onPressed: () =>
-                        _launch('$_webOrigin/pay/dues/${due['id']}'),
+                        _launch(_payUrl(due)),
                   ),
                 ),
               ],

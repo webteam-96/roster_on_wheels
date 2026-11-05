@@ -30,6 +30,8 @@ public class CreateEventFoodPreferenceDto
 public class EventPaymentLinkListDto
 {
     public int Id { get; set; }
+    /// <summary>Key the pay link carries (?k=); managers see it in this list to copy the link.</summary>
+    public string? PayKey { get; set; }
     public int FormType { get; set; }
     public string? DistrictNumber { get; set; }
     public string? ClubName { get; set; }
@@ -368,9 +370,7 @@ public class PublicMemberSearchDto
 {
     public int MemberProfileId { get; set; }
     public string? MemberName { get; set; }
-    public string? MaskedMobile { get; set; }
-    public string? MaskedEmail { get; set; }
-    public bool IsPaid { get; set; }
+    public string? ClubName { get; set; }
 }
 
 public class SendOtpRequestDto

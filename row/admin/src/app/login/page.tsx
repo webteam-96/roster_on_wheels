@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { safeReturnPath } from "@/lib/returnUrl";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Eye, EyeOff } from "@/components/icons";
@@ -17,6 +18,7 @@ import ChangePasswordDialog from "@/components/ChangePasswordDialog";
 
 export default function LoginPage() {
   const router = useRouter();
+  const returnPath = () => safeReturnPath(new URLSearchParams(window.location.search).get("returnUrl"));
   const { login } = useAuth();
 
   const [identifier, setIdentifier] = useState("");
@@ -93,7 +95,7 @@ export default function LoginPage() {
           // Resolver failed — fall back to the flat-role hint so login still lands sensibly.
           if (response.roles.includes("SuperAdmin")) landingRoute = "/settings/global-search";
         }
-        router.push(landingRoute);
+        router.push(returnPath() ?? landingRoute);
       }
     } catch {
       setError("Invalid credentials. Please try again.");
@@ -190,7 +192,7 @@ export default function LoginPage() {
         open={showChangePassword}
         onClose={() => {
           setShowChangePassword(false);
-          router.push("/admin");
+          router.push(returnPath() ?? "/admin");
         }}
       />
     </div>

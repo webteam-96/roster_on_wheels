@@ -54,7 +54,8 @@ public interface IEventPaymentLinkService
     Task<IEnumerable<PublicClubDto>> GetClubsForDistrictAsync(int linkId, int districtId);
     Task<IEnumerable<PublicMemberSearchDto>> SearchMembersForLinkAsync(int linkId, int? districtId, int? clubId, string? query);
     Task<bool> SendPaymentOtpAsync(int linkId, SendOtpRequestDto dto);
-    Task<bool> VerifyOtpAsync(int linkId, VerifyOtpRequestDto dto);
+    /// <summary>The payer's EventPayerToken when the code is right, else null.</summary>
+    Task<string?> VerifyOtpAsync(int linkId, VerifyOtpRequestDto dto);
     Task<PaymentSessionResponseDto> CreatePaymentOrderAsync(int linkId, PublicPaymentSubmitDto dto);
     Task<VerifyPaymentResponseDto> VerifyPaymentAsync(int linkId, string orderId, int memberPaymentId);
     Task SettleOnlineAsync(int memberPaymentId, string gatewayPaymentId);

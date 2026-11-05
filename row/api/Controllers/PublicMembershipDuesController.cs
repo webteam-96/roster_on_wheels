@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using RotaryApi.DTOs;
 using RotaryApi.Services;
 
@@ -25,9 +26,15 @@ public class PublicMembershipDuesController : ControllerBase
         return Ok(result);
     }
 
+    // The pay page's "find your name" step, anonymous by design: it needs the key only the real pay link carries, a
+    // typed name, and answers id and name only (the OTP goes to the email on record, so the page needs no contact details).
+    [EnableRateLimiting("member-search")]
     [HttpGet("{id}/search-members")]
-    public async Task<ActionResult> SearchMembers(int id, [FromQuery] string? query)
+    public async Task<ActionResult> SearchMembers(int id, [FromQuery] string? query, [FromQuery] string? k)
     {
+        if (!MobileDuesAccessToken.IsPayLinkKey(k, id, _config["JwtSettings:Secret"] ?? ""))
+            return StatusCode(403, new { message = "This payment link is out of date. Ask your club for the current link." });
+        if (string.IsNullOrWhiteSpace(query) || query.Trim().Length < 2) return Ok(Array.Empty<object>());
         var result = await _service.SearchMembersAsync(id, query);
         return Ok(result);
     }
@@ -53,14 +60,19 @@ public class PublicMembershipDuesController : ControllerBase
         return Ok(new { memberId, duesId = id, status });
     }
 
+    // Holds the member's contact details and fees, so it needs the token verify-otp issued for this dues and member.
     [HttpGet("{id}/member/{memberProfileId}/status")]
-    public async Task<ActionResult> GetMemberDuesStatus(int id, int memberProfileId)
+    public async Task<ActionResult> GetMemberDuesStatus(int id, int memberProfileId, [FromQuery] string? token)
     {
+        if (!MobileDuesAccessToken.TryVerify(token, _config["JwtSettings:Secret"] ?? "", out var payload, out _)
+            || payload == null || payload.DuesId != id || payload.MemberId != memberProfileId)
+            return Unauthorized(new { message = "Verify the code sent to your email first." });
         var result = await _service.GetMemberDuesStatusAsync(id, memberProfileId);
         if (result == null) return NotFound(new { message = "Member dues status not found." });
         return Ok(result);
     }
 
+    [EnableRateLimiting("auth")]
     [HttpPost("{id}/send-otp")]
     public async Task<ActionResult> SendOtp(int id, [FromBody] SendOtpRequestDto dto)
     {
@@ -75,13 +87,17 @@ public class PublicMembershipDuesController : ControllerBase
         }
     }
 
+    [EnableRateLimiting("auth")]
     [HttpPost("{id}/verify-otp")]
     public async Task<ActionResult> VerifyOtp(int id, [FromBody] VerifyOtpRequestDto dto)
     {
         try
         {
             var result = await _service.VerifyOtpAsync(id, dto);
-            return Ok(new { success = result, message = result ? "OTP verified." : "Invalid or expired OTP." });
+            var token = result && dto.MemberProfileId is > 0
+                ? MobileDuesAccessToken.Generate(id, dto.MemberProfileId.Value, _config["JwtSettings:Secret"] ?? "", 1)
+                : null;
+            return Ok(new { success = result, message = result ? "OTP verified." : "Invalid or expired OTP.", token });
         }
         catch (Exception ex) when (ex is InvalidOperationException or ArgumentException)
         {
@@ -89,9 +105,21 @@ public class PublicMembershipDuesController : ControllerBase
         }
     }
 
+    // Who pays comes from this token (verify-otp, or the app's signed link), never from the request.
+    private bool TryPayer(int duesId, out int memberId)
+    {
+        memberId = 0;
+        if (!MobileDuesAccessToken.TryVerify(Request.Headers["X-Payer-Token"].ToString(), _config["JwtSettings:Secret"] ?? "", out var payload, out _)
+            || payload == null || payload.DuesId != duesId || payload.MemberId <= 0) return false;
+        memberId = payload.MemberId;
+        return true;
+    }
+
     [HttpPost("{id}/pay")]
     public async Task<ActionResult> CreatePaymentOrder(int id, [FromBody] PublicDuesPaymentSubmitDto dto)
     {
+        if (!TryPayer(id, out var payer)) return Unauthorized(new { message = "Verify the code sent to your email first." });
+        dto.FkMemberProfileId = payer;
         try
         {
             var result = await _service.CreatePaymentOrderAsync(id, dto);
@@ -106,6 +134,8 @@ public class PublicMembershipDuesController : ControllerBase
     [HttpPost("{id}/offline-payment")]
     public async Task<ActionResult> SubmitOfflinePayment(int id, [FromForm] RecordOfflineDuesPaymentDto dto, IFormFile? attachment)
     {
+        if (!TryPayer(id, out var payer)) return Unauthorized(new { message = "Verify the code sent to your email first." });
+        dto.FkMemberProfileId = payer;
         if (attachment != null && attachment.Length > 0)
         {
             var allowedExtensions = new[] { ".pdf", ".jpg", ".jpeg", ".png", ".gif", ".webp", ".bmp", ".svg" };
@@ -153,38 +183,6 @@ public class PublicMembershipDuesController : ControllerBase
         catch (Exception ex) when (ex is InvalidOperationException or ArgumentException)
         {
             return BadRequest(new { message = ex.Message });
-        }
-    }
-
-    [HttpGet("{id}/report")]
-    public async Task<ActionResult> GetPublicReport(int id)
-    {
-        var result = await _service.GetPublicReportAsync(id);
-        if (result == null) return NotFound(new { message = "Club dues not found." });
-        return Ok(result);
-    }
-
-    // Same XLSX the SuperAdmin/Club Admin "Download Report" export produces —
-    // exposed here (no auth) so the public Report Link page's Download button
-    // gives an identical file instead of building its own simplified CSV.
-    [HttpGet("{id}/report/export")]
-    public async Task<ActionResult> ExportPublicReport(int id)
-    {
-        try
-        {
-            var bytes = await _service.ExportMembersCsvAsync(id);
-            var ts = DateTime.Now.ToString("ddMMyyyy_HHmmss");
-            return File(bytes,
-                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                $"membership_dues_report_{id}_{ts}.xlsx");
-        }
-        catch (KeyNotFoundException ex)
-        {
-            return NotFound(new { message = ex.Message });
-        }
-        catch (Exception ex) when (ex is InvalidOperationException or ArgumentException)
-        {
-            return StatusCode(500, new { message = $"Failed to export: {ex.Message}" });
         }
     }
 }

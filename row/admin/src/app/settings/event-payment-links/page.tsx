@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useCallback, useEffect } from "react";
-import { getEventPaymentLinks, deleteEventPaymentLink, toggleEventPaymentLinkActive, exportEventMembers, createGoogleSheetForLink, deleteGoogleSheetForLink, refreshEventSettlements, getEventSettlementReport } from "@/services/api";
+import { eventPayPath, getEventPaymentLinks, deleteEventPaymentLink, toggleEventPaymentLinkActive, exportEventMembers, createGoogleSheetForLink, deleteGoogleSheetForLink, refreshEventSettlements, getEventSettlementReport } from "@/services/api";
 import { fileTimestamp } from "@/lib/dateUtils";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -87,7 +87,7 @@ export default function EventPaymentLinksPage() {
   };
 
   const handleCopyUrl = (item: PaymentLink) => {
-    const url = `${window.location.origin}${BASE_PATH}/pay/${item.id}`;
+    const url = `${window.location.origin}${BASE_PATH}${eventPayPath(item)}`;
     navigator.clipboard.writeText(url);
     setSuccessMessage("URL copied to clipboard.");
   };
@@ -240,7 +240,7 @@ export default function EventPaymentLinksPage() {
                     {/* View | Copy URL */}
                     <TableCell className="text-center">
                       <div className="flex items-center justify-center gap-1 text-sm">
-                        <button onClick={() => window.open(withBase(`/pay/${item.id}`), "_blank")}
+                        <button onClick={() => window.open(withBase(eventPayPath(item)), "_blank")}
                           className="text-blue-600 hover:text-blue-800 hover:underline">View</button>
                         <span className="text-muted-foreground">|</span>
                         <button onClick={() => handleCopyUrl(item)}

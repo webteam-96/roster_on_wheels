@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using RotaryApi.DTOs;
 using RotaryApi.Services;
 
@@ -9,18 +10,12 @@ namespace RotaryApi.Controllers;
 public class PublicEventPaymentController : ControllerBase
 {
     private readonly IEventPaymentLinkService _service;
+    private readonly IConfiguration _config;
 
-    public PublicEventPaymentController(IEventPaymentLinkService service)
+    public PublicEventPaymentController(IEventPaymentLinkService service, IConfiguration config)
     {
         _service = service;
-    }
-
-    [HttpGet("{linkId}/report")]
-    public async Task<ActionResult> GetPublicReport(int linkId)
-    {
-        var result = await _service.GetPublicReportAsync(linkId);
-        if (result == null) return NotFound(new { message = "Payment link not found." });
-        return Ok(result);
+        _config = config;
     }
 
     [HttpGet("{linkId}")]
@@ -38,13 +33,19 @@ public class PublicEventPaymentController : ControllerBase
         return Ok(result);
     }
 
+    // The pay page's "find your name" step, anonymous by design: same rules as the dues search.
+    [EnableRateLimiting("member-search")]
     [HttpGet("{linkId}/search-members")]
-    public async Task<ActionResult> SearchMembers(int linkId, [FromQuery] int? districtId, [FromQuery] int? clubId, [FromQuery] string? query)
+    public async Task<ActionResult> SearchMembers(int linkId, [FromQuery] int? districtId, [FromQuery] int? clubId, [FromQuery] string? query, [FromQuery] string? k)
     {
+        if (!MobileDuesAccessToken.IsPayLinkKey(k, linkId, _config["JwtSettings:Secret"] ?? "", MobileDuesAccessToken.EventLinkKind))
+            return StatusCode(403, new { message = "This payment link is out of date. Ask your club for the current link." });
+        if (string.IsNullOrWhiteSpace(query) || query.Trim().Length < 2) return Ok(Array.Empty<object>());
         var result = await _service.SearchMembersForLinkAsync(linkId, districtId, clubId, query);
         return Ok(result);
     }
 
+    [EnableRateLimiting("auth")]
     [HttpPost("{linkId}/send-otp")]
     public async Task<ActionResult> SendOtp(int linkId, [FromBody] SendOtpRequestDto dto)
     {
@@ -59,13 +60,14 @@ public class PublicEventPaymentController : ControllerBase
         }
     }
 
+    [EnableRateLimiting("auth")]
     [HttpPost("{linkId}/verify-otp")]
     public async Task<ActionResult> VerifyOtp(int linkId, [FromBody] VerifyOtpRequestDto dto)
     {
         try
         {
-            var result = await _service.VerifyOtpAsync(linkId, dto);
-            return Ok(new { success = result, message = result ? "OTP verified." : "Invalid or expired OTP." });
+            var token = await _service.VerifyOtpAsync(linkId, dto);
+            return Ok(new { success = token != null, message = token != null ? "OTP verified." : "Invalid or expired OTP.", token });
         }
         catch (Exception ex) when (ex is InvalidOperationException or ArgumentException)
         {
@@ -76,6 +78,12 @@ public class PublicEventPaymentController : ControllerBase
     [HttpPost("{linkId}/create-order")]
     public async Task<ActionResult> CreatePaymentOrder(int linkId, [FromBody] PublicPaymentSubmitDto dto)
     {
+        // Who pays comes from the verify-otp token, never from the request. A member's name and contacts come from their record.
+        if (!EventPayerToken.TryVerify(Request.Headers["X-Payer-Token"].ToString(), linkId, _config["JwtSettings:Secret"] ?? "", out var memberId, out var email))
+            return Unauthorized(new { message = "Verify the code sent to your email first." });
+        dto.FkMemberProfileId = memberId > 0 ? memberId : null;
+        dto.Email = memberId > 0 ? null : email;
+        if (memberId > 0) { dto.MemberName = null; dto.Mobile = null; }
         try
         {
             var result = await _service.CreatePaymentOrderAsync(linkId, dto);

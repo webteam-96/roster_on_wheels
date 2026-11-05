@@ -32,7 +32,7 @@ import {
 import RotaryLoader from "@/components/RotaryLoader";
 import { useAuth } from "@/contexts/AuthContext";
 import { useClubAdminCache } from "@/contexts/ClubAdminDashboardCacheContext";
-import { getMembershipDuesList, exportMembershipDuesReport, getRotaryYears } from "@/services/api";
+import { getMembershipDuesList, exportMembershipDuesReport, getRotaryYears, duesPayPath } from "@/services/api";
 import { fileTimestamp } from "@/lib/dateUtils";
 import SectionHeader from "@/components/dashboard/SectionHeader";
 import KpiCard from "@/components/dashboard/KpiCard";
@@ -141,7 +141,7 @@ export default function ClubAdminMembershipDuesPage() {
   };
 
   const handleCopyUrl = (item: DuesSetup) => {
-    const url = `${window.location.origin}${BASE_PATH}/pay/dues/${item.id}`;
+    const url = `${window.location.origin}${BASE_PATH}${duesPayPath(item)}`;
     navigator.clipboard.writeText(url);
     setSuccessMessage("URL copied to clipboard.");
   };
@@ -378,7 +378,7 @@ export default function ClubAdminMembershipDuesPage() {
                     <div className="flex items-center justify-center gap-1 text-xs">
                       <button
                         type="button"
-                        onClick={() => window.open(withBase(`/pay/dues/${item.id}`), "_blank")}
+                        onClick={() => window.open(withBase(duesPayPath(item)), "_blank")}
                         className="text-blue-600 hover:underline"
                       >
                         View

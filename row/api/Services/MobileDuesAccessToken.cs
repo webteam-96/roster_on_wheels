@@ -97,6 +97,17 @@ public static class MobileDuesAccessToken
         return true;
     }
 
+    // Key on a dues pay link (?k=). Dues ids are sequential, so the id alone must not open the member search.
+    public static string PayLinkKey(int id, string secret, string kind = "pay-link") =>
+        Base64UrlEncode(Sign($"{kind}:{id}", secret))[..22];
+
+    public static bool IsPayLinkKey(string? key, int id, string secret, string kind = "pay-link") =>
+        !string.IsNullOrEmpty(key) && CryptographicOperations.FixedTimeEquals(
+            Encoding.UTF8.GetBytes(key), Encoding.UTF8.GetBytes(PayLinkKey(id, secret, kind)));
+
+    // Event payment links have their own id sequence, so they get their own key.
+    public const string EventLinkKind = "event-link";
+
     private static byte[] Sign(string payloadB64, string secret)
     {
         using var hmac = new HMACSHA256(Encoding.UTF8.GetBytes(secret));

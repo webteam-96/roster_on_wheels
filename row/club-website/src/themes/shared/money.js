@@ -162,5 +162,5 @@ export function demo() {
 }
 
 if (typeof process !== 'undefined' && process.argv && /money\.js$/.test(process.argv[1] || '')) {
-  console.log(demo())
+  demo() // throws on a failed check
 }

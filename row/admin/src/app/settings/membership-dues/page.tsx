@@ -1,7 +1,7 @@
 ﻿"use client";
 
 import { useState, useCallback, useEffect, useMemo } from "react";
-import { getMembershipDuesList, deleteMembershipDues, toggleMembershipDuesActive, createMembershipDuesGoogleSheet, deleteMembershipDuesGoogleSheet, refreshMembershipDuesSettlements, getMembershipDuesSettlementReport, bulkMembershipDuesReminderEmail } from "@/services/api";
+import { duesPayPath, getMembershipDuesList, deleteMembershipDues, toggleMembershipDuesActive, createMembershipDuesGoogleSheet, deleteMembershipDuesGoogleSheet, refreshMembershipDuesSettlements, getMembershipDuesSettlementReport, bulkMembershipDuesReminderEmail } from "@/services/api";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import {
@@ -97,7 +97,7 @@ export default function MembershipDuesPage() {
   };
 
   const handleCopyUrl = (item: MembershipDuesItem) => {
-    const url = `${window.location.origin}${BASE_PATH}/pay/dues/${item.id}`;
+    const url = `${window.location.origin}${BASE_PATH}${duesPayPath(item)}`;
     navigator.clipboard.writeText(url);
     setSuccessMessage("URL copied to clipboard.");
   };
@@ -260,7 +260,7 @@ export default function MembershipDuesPage() {
                     <TableCell className="text-center">
                       <div className="flex items-center justify-center gap-1 text-sm">
                         <button onClick={() => {
-                          window.open(withBase(`/pay/dues/${item.id}`), "_blank");
+                          window.open(withBase(duesPayPath(item)), "_blank");
                         }}
                           className="text-blue-600 hover:text-blue-800 hover:underline">View</button>
                         <span className="text-muted-foreground">|</span>

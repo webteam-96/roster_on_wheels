@@ -43,8 +43,16 @@ def token(member_id, roles):
     return f"{signing}.{b64(hmac.new(SECRET.encode(), signing.encode(), hashlib.sha256).digest())}"
 
 
-def call(method, path, tok=None, body=None):
+def payer_token(dues_id, member_id):
+    """The token verify-otp issues (MobileDuesAccessToken), so this script need not read an email."""
+    payload = b64(json.dumps({"d": dues_id, "m": member_id, "e": int(time.time()) + 600}).encode())
+    return f"{payload}.{b64(hmac.new(SECRET.encode(), payload.encode(), hashlib.sha256).digest())}"
+
+
+def call(method, path, tok=None, body=None, payer=None):
     headers = {"Content-Type": "application/json"}
+    if payer:
+        headers["X-Payer-Token"] = payer
     if tok:
         headers["Authorization"] = f"Bearer {tok}"
     data = json.dumps(body).encode() if body is not None else None
@@ -332,7 +340,7 @@ try:
     # ── Dues collection off while planning ────────────────────────────────────────────────────────────────────
     sql(f"INSERT INTO membership_dues (fk_district_id, fk_club_id, RotaryYear) VALUES ({district}, {club_a}, '{current_label}')")
     dues_id = one(f"SELECT MAX(pk_membership_dues_id) FROM membership_dues WHERE fk_club_id={club_a}")
-    r = call("POST", f"/api/public/membership-dues/{dues_id}/pay", None, {"fkMemberProfileId": pe, "feeType": 1})
+    r = call("POST", f"/api/public/membership-dues/{dues_id}/pay", None, {"feeType": 1}, payer_token(int(dues_id), int(pe)))
     check("current-year dues cannot be collected while planning", r[0] == 400 and "collection is off" in msg(r), r)
 
     # ── Launchpad ─────────────────────────────────────────────────────────────────────────────────────────────
@@ -381,7 +389,7 @@ try:
     check("after cut-over the outgoing year is archived (409)", r[0] == 409 and "archived" in msg(r), r)
     r = call("PUT", f"{bod}/{officer_id}", t_pe, {"memberId": pe, "designationId": int(des["Club President"]), "yearId": nxt})
     check("the new president edits the new year as club admin", r[0] == 200, r)
-    r = call("POST", f"/api/public/membership-dues/{dues_id}/pay", None, {"fkMemberProfileId": pe, "feeType": 1})
+    r = call("POST", f"/api/public/membership-dues/{dues_id}/pay", None, {"feeType": 1}, payer_token(int(dues_id), int(pe)))
     check("dues collection is on again after cut-over", "collection is off" not in msg(r), r)
     r = call("GET", "/api/dashboard/resolve-landing", token(pe, "Admin"))
     check("the new president lands on the club dashboard", r[0] == 200 and r[1].get("route") == "/club-admin-dashboard", r)

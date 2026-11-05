@@ -1,5 +1,6 @@
 "use client";
 
+import { currencySymbol } from "@/lib/appFormat";
 import { useState, useEffect, useRef } from "react";
 import DateField from "@/components/DateField";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
@@ -60,6 +61,7 @@ interface DuesInfo {
 interface SearchMember {
   memberId: number;
   memberName: string;
+  clubName?: string;
   emailId?: string;
   primaryMobileNumber?: string;
 }
@@ -98,20 +100,6 @@ interface MemberDuesStatus {
 
 type Step = "search" | "otp" | "fees" | "payment" | "offline" | "paying";
 
-// Mask mobile: "7700900123" -> "77****0123"
-function maskMobile(mobile?: string): string {
-  if (!mobile || mobile.length < 6) return mobile || "";
-  return mobile.slice(0, 2) + "****" + mobile.slice(-4);
-}
-
-// Mask email: "support@example.org" -> "con****@example.org"
-function maskEmail(email?: string): string {
-  if (!email) return "";
-  const atIdx = email.indexOf("@");
-  if (atIdx < 3) return email;
-  return email.slice(0, 3) + "****" + email.slice(atIdx);
-}
-
 export default function MembershipDuesPaymentPage() {
   const params = useParams();
   const router = useRouter();
@@ -125,6 +113,8 @@ export default function MembershipDuesPaymentPage() {
   const tokenMemberId = Number(searchParams?.get("memberId") ?? "");
   const tokenValue = searchParams?.get("token") ?? "";
   const fromMobile = (searchParams?.get("from") ?? "") === "mobile";
+  // The thank-you and cancel pages come back here without the link's key, so the tab remembers it.
+  const urlKey = searchParams?.get("k") ?? "";
 
   const [duesInfo, setDuesInfo] = useState<DuesInfo | null>(null);
   const [loading, setLoading] = useState(true);
@@ -144,6 +134,8 @@ export default function MembershipDuesPaymentPage() {
   const [otpCode, setOtpCode] = useState("");
   const [otpVerifying, setOtpVerifying] = useState(false);
   const [otpError, setOtpError] = useState<string | null>(null);
+  // Proof of who pays: from verify-otp, or the app's signed link. The API takes the member from it.
+  const [payerToken, setPayerToken] = useState(tokenValue);
 
   // Fee selection
   const [duesStatus, setDuesStatus] = useState<MemberDuesStatus | null>(null);
@@ -241,25 +233,30 @@ export default function MembershipDuesPaymentPage() {
     setSearching(true);
     const handle = setTimeout(async () => {
       try {
-        const data = await searchMembershipDuesMembers(duesId, q);
+        let linkKey = urlKey;
+        try {
+          if (urlKey) sessionStorage.setItem(`pay-key-${duesId}`, urlKey);
+          else linkKey = sessionStorage.getItem(`pay-key-${duesId}`) ?? "";
+        } catch { /* no storage: the URL's key is all there is */ }
+        const data = await searchMembershipDuesMembers(duesId, q, linkKey);
         const mapped = (Array.isArray(data) ? data : []).map((m: any) => ({
           memberId: m.memberId ?? m.MemberId,
           memberName: m.memberName ?? m.MemberName ?? "",
-          emailId: m.emailId ?? m.EmailId ?? "",
-          primaryMobileNumber: m.primaryMobileNumber ?? m.PrimaryMobileNumber ?? "",
+          clubName: m.clubName ?? m.ClubName ?? "",
         }));
         setSearchResults(mapped);
         setDropdownOpen(mapped.length > 0);
-      } catch {
+      } catch (err: any) {
         setSearchResults([]);
         setDropdownOpen(false);
+        if (err?.response?.status === 403) setError(err.response.data?.message || "This payment link is out of date.");
       } finally {
         setSearching(false);
       }
     }, 300);
 
     return () => clearTimeout(handle);
-  }, [memberSearchQuery, duesId, selectedMember]);
+  }, [memberSearchQuery, duesId, selectedMember, urlKey]);
 
   // Click outside to close the dropdown.
   useEffect(() => {
@@ -280,8 +277,6 @@ export default function MembershipDuesPaymentPage() {
     try {
       const result = await sendMembershipDuesOtp(duesId, {
         memberProfileId: selectedMember.memberId,
-        email: selectedMember.emailId,
-        mobile: selectedMember.primaryMobileNumber,
       });
       if (result.success) {
         setStep("otp");
@@ -301,15 +296,14 @@ export default function MembershipDuesPaymentPage() {
       const result = await verifyMembershipDuesOtp(duesId, {
         otpCode,
         memberProfileId: selectedMember.memberId,
-        email: selectedMember.emailId,
-        mobile: selectedMember.primaryMobileNumber,
       });
       if (result.success) {
         // OTP verified - fetch dues status
+        setPayerToken(result.token);
         setFeesLoading(true);
         setStep("fees");
         try {
-          const status = await getMemberDuesStatus(duesId, selectedMember.memberId);
+          const status = await getMemberDuesStatus(duesId, selectedMember.memberId, result.token);
           setDuesStatus(status);
           // Auto-select if only one available unpaid fee
           const unpaidFees = (status.availableFees || []).filter((f: FeeOption) => f.isAvailable && !f.isPaid && !f.isPending && !f.isRejected);
@@ -332,11 +326,8 @@ export default function MembershipDuesPaymentPage() {
     setSubmitting(true);
     setSubmitError(null);
     try {
-      const payload = {
-        fkMemberProfileId: selectedMember.memberId,
-        feeType: selectedFee.feeType,
-      };
-      const result = await createMembershipDuesPaymentOrder(duesId, payload);
+      const payload = { feeType: selectedFee.feeType };
+      const result = await createMembershipDuesPaymentOrder(duesId, payload, payerToken);
       setStep("paying");
       if (sessionFrom(result)) { startCheckout(result); return; }
 
@@ -382,7 +373,6 @@ export default function MembershipDuesPaymentPage() {
     setSubmitError(null);
     try {
       const formData = new FormData();
-      formData.append("fkMemberProfileId", String(selectedMember.memberId));
       formData.append("feeType", String(selectedFee.feeType));
       formData.append("transactionType", txnType);
       if (givenTo) formData.append("givenTo", givenTo);
@@ -395,6 +385,7 @@ export default function MembershipDuesPaymentPage() {
 
       const response = await fetch(`${API_BASE_URL}/api/public/membership-dues/${duesId}/offline-payment`, {
         method: "POST",
+        headers: { "X-Payer-Token": payerToken },
         body: formData,
       });
       if (!response.ok) {
@@ -541,7 +532,8 @@ export default function MembershipDuesPaymentPage() {
                         >
                           <p className="font-medium text-sm">{m.memberName}</p>
                           <p className="text-xs text-muted-foreground">
-                            {maskMobile(m.primaryMobileNumber)} | {maskEmail(m.emailId)}
+                            {m.clubName}
+                            {searchResults.filter(o => o.memberName === m.memberName).length > 1 && ` | Member ID ${m.memberId}`}
                           </p>
                         </button>
                       ))}
@@ -654,7 +646,7 @@ export default function MembershipDuesPaymentPage() {
                             <div className="flex flex-wrap items-center justify-between gap-3">
                               <div>
                                 <p className="font-medium">{fee.label}</p>
-                                <p className="text-lg font-semibold">&#8377;{fee.offlineAmount}</p>
+                                <p className="text-lg font-semibold">{currencySymbol()}{fee.offlineAmount}</p>
                               </div>
                               <div className="flex flex-col items-end gap-1">
                                 {fee.isPaid && (
@@ -738,7 +730,7 @@ export default function MembershipDuesPaymentPage() {
                           {submitting ? (
                             <><Loader2 className="h-4 w-4 animate-spin mr-2" />Processing...</>
                           ) : (
-                            `Pay Online - \u20B9${selectedFee.offlineAmount} + Payment Gateway Charges`
+                            `Pay Online - ${currencySymbol()}${selectedFee.offlineAmount} + Payment Gateway Charges`
                           )}
                         </Button>
                       )}
@@ -777,7 +769,7 @@ export default function MembershipDuesPaymentPage() {
                 <div className="p-3 bg-blue-50 rounded-lg border border-blue-200 space-y-1">
                   <p className="font-medium text-blue-800">Member: {selectedMember?.memberName}</p>
                   <p className="font-medium text-blue-800">Fee: {selectedFee.label}</p>
-                  <p className="text-lg font-semibold text-blue-800">Amount: &#8377;{selectedFee.offlineAmount}</p>
+                  <p className="text-lg font-semibold text-blue-800">Amount: {currencySymbol()}{selectedFee.offlineAmount}</p>
                 </div>
               )}
 

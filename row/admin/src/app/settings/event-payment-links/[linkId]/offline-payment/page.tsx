@@ -144,7 +144,6 @@ function OfflinePaymentContent() {
         if (editPaymentId) {
           try {
             const payment = await getMemberPaymentDetail(editPaymentId);
-            console.log("Edit payment data:", JSON.stringify(payment));
             if (payment) {
               // API returns PascalCase from Dapper dynamic
               setSelectedRegistrationId(String(payment.FkRegistrationId || payment.fkRegistrationId || ""));

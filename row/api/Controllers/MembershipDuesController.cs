@@ -530,6 +530,17 @@ public class MembershipDuesController : ControllerBase
 
     // ── Export ───────────────────────────────────────────────────
 
+    // The report page's data: the campaign's managers only (was anonymous under api/public/membership-dues).
+    [HttpGet("{id}/report")]
+    public async Task<ActionResult> GetReport(int id)
+    {
+        if (!IsSuperAdminOrAdmin()) return StatusCode(403, new { message = "Access denied." });
+        if (!await ManagesDuesAsync(id)) return Denied();
+        var result = await _service.GetPublicReportAsync(id);
+        if (result == null) return NotFound(new { message = "Club dues not found." });
+        return Ok(result);
+    }
+
     [HttpGet("{id}/export")]
     public async Task<ActionResult> ExportMembers(int id)
     {

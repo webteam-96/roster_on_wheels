@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import {
   getPublicEventLink, getPublicEventClubs, searchPublicEventMembers,
   sendPublicEventOtp, verifyPublicEventOtp, createPublicEventOrder,
@@ -85,9 +85,7 @@ interface EventLink {
 interface SearchMember {
   memberProfileId: number;
   memberName?: string;
-  maskedMobile?: string;
-  maskedEmail?: string;
-  isPaid?: boolean;
+  clubName?: string;
 }
 
 interface Club {
@@ -99,6 +97,7 @@ type Step = "details" | "otp" | "form" | "paying";
 
 export default function PublicPaymentPage() {
   const params = useParams();
+  const searchParams = useSearchParams();
   const router = useRouter();
   const linkId = Number(params.linkId);
 
@@ -106,6 +105,8 @@ export default function PublicPaymentPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [step, setStep] = useState<Step>("details");
+  // Proof of who pays, from verify-otp. The API takes the payer from it.
+  const [payerToken, setPayerToken] = useState("");
 
   // Standard form - member search
   const [selectedDistrictId, setSelectedDistrictId] = useState("");
@@ -188,13 +189,21 @@ export default function PublicPaymentPage() {
       try {
         const clubId = eventLink?.fkClubId || (selectedClubId ? Number(selectedClubId) : undefined);
         const districtId = selectedDistrictId ? Number(selectedDistrictId) : (eventLink?.fkDistrictMasterId || undefined);
-        const data = await searchPublicEventMembers(linkId, { districtId, clubId, query: q });
+        // The thank-you page comes back here without the link's key, so the tab remembers it.
+        const urlKey = searchParams?.get("k") ?? "";
+        let linkKey = urlKey;
+        try {
+          if (urlKey) sessionStorage.setItem(`event-key-${linkId}`, urlKey);
+          else linkKey = sessionStorage.getItem(`event-key-${linkId}`) ?? "";
+        } catch { /* no storage: the URL's key is all there is */ }
+        const data = await searchPublicEventMembers(linkId, { districtId, clubId, query: q, k: linkKey });
         const arr = Array.isArray(data) ? data : [];
         setSearchResults(arr);
         setDropdownOpen(arr.length > 0);
-      } catch {
+      } catch (err: any) {
         setSearchResults([]);
         setDropdownOpen(false);
+        if (err?.response?.status === 403) setError(err.response.data?.message || "This payment link is out of date.");
       } finally {
         setSearching(false);
       }
@@ -256,6 +265,7 @@ export default function PublicPaymentPage() {
       }
       const result = await verifyPublicEventOtp(linkId, { email, mobile, otpCode, memberProfileId });
       if (result.success) {
+        setPayerToken(result.token);
         setOtpVerified(true);
         setStep("form");
       } else {
@@ -285,17 +295,14 @@ export default function PublicPaymentPage() {
         fkDesignationId: selectedDesigId ? Number(selectedDesigId) : null,
       };
 
-      if (eventLink?.formType === 1 && selectedMember) {
-        payload.fkMemberProfileId = selectedMember.memberProfileId;
-      } else {
+      if (eventLink?.formType !== 1) {
         payload.memberName = personalName;
         payload.mobile = personalMobile;
-        payload.email = personalEmail;
         payload.districtNumber = personalDistrict;
         payload.clubName = personalClub;
       }
 
-      const result = await createPublicEventOrder(linkId, payload);
+      const result = await createPublicEventOrder(linkId, payload, payerToken);
       setStep("paying");
       if (sessionFrom(result)) { startCheckout(result); return; }
 
@@ -437,7 +444,7 @@ export default function PublicPaymentPage() {
                             }
                           }}
                           onFocus={() => { if (searchResults.length > 0) setDropdownOpen(true); }}
-                          placeholder="Start typing name or mobile…"
+                          placeholder="Start typing your name…"
                           className="pr-9"
                           autoComplete="off"
                         />
@@ -450,30 +457,20 @@ export default function PublicPaymentPage() {
                               <button
                                 type="button"
                                 key={m.memberProfileId}
-                                disabled={m.isPaid}
                                 onClick={() => {
-                                  if (m.isPaid) return;
                                   setSelectedMember(m);
                                   setMemberSearchQuery(m.memberName ?? "");
                                   setDropdownOpen(false);
                                 }}
                                 className={`block w-full text-left px-3 py-2 transition-colors border-b last:border-b-0 ${
-                                  m.isPaid
-                                    ? "opacity-60 cursor-not-allowed bg-gray-50"
-                                    : selectedMember?.memberProfileId === m.memberProfileId
-                                      ? "bg-primary/5 hover:bg-primary/10"
-                                      : "hover:bg-primary/10"
+                                  selectedMember?.memberProfileId === m.memberProfileId ? "bg-primary/5 hover:bg-primary/10" : "hover:bg-primary/10"
                                 }`}
                               >
-                                <div className="flex items-center justify-between gap-2">
-                                  <div className="min-w-0">
-                                    <p className="font-medium text-sm truncate">{m.memberName}</p>
-                                    <p className="text-xs text-muted-foreground truncate">{m.maskedMobile} | {m.maskedEmail}</p>
-                                  </div>
-                                  {m.isPaid && (
-                                    <span className="text-[10px] font-medium text-green-700 bg-green-100 px-2 py-0.5 rounded whitespace-nowrap">Already Paid</span>
-                                  )}
-                                </div>
+                                <p className="font-medium text-sm truncate">{m.memberName}</p>
+                                <p className="text-xs text-muted-foreground truncate">
+                                  {m.clubName}
+                                  {searchResults.filter(o => o.memberName === m.memberName).length > 1 && ` | Member ID ${m.memberProfileId}`}
+                                </p>
                               </button>
                             ))}
                           </div>
@@ -517,7 +514,7 @@ export default function PublicPaymentPage() {
                     </div>
                   )}
                   {eventLink.isPersonalClub && <div><Label>Club Name</Label><Input value={personalClub} onChange={e => setPersonalClub(e.target.value)} placeholder="Club name" /></div>}
-                  <Button onClick={handleSendOtp} disabled={otpSending || (!personalMobile && !personalEmail)} className="w-full">
+                  <Button onClick={handleSendOtp} disabled={otpSending || !personalEmail} className="w-full">
                     {otpSending ? <><Loader2 className="h-4 w-4 animate-spin mr-2" />Sending OTP...</> : "Send OTP & Continue"}
                   </Button>
                 </>

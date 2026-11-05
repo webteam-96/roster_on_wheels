@@ -124,8 +124,10 @@ public class EventPaymentLinkService : IEventPaymentLinkService
 
         sql += " ORDER BY l.created_date DESC";
 
-        return await conn.QueryAsync<EventPaymentLinkListDto>(sql,
-            new { ClubId = clubId, DistrictId = districtId, Search = $"%{search}%" });
+        var links = (await conn.QueryAsync<EventPaymentLinkListDto>(sql,
+            new { ClubId = clubId, DistrictId = districtId, Search = $"%{search}%" })).ToList();
+        foreach (var link in links) link.PayKey = PayKey(link.Id);
+        return links;
     }
 
     public async Task<EventPaymentLinkDetailDto?> GetPaymentLinkDetailAsync(int linkId)
@@ -257,7 +259,7 @@ public class EventPaymentLinkService : IEventPaymentLinkService
         if (clubId > 0)
         {
             var frontendUrl = _config["FrontendUrl"] ?? "http://localhost:3000";
-            var payUrl = $"{frontendUrl}/pay/{linkId}";
+            var payUrl = $"{frontendUrl}/pay/{linkId}?k={PayKey(linkId)}";
             var weblinkId = await conn.ExecuteScalarAsync<int>(@"
                 INSERT INTO weblinks (fk_club_id, Title, Writeup, LogoPath, LinkType, LinkUrl, Level, IsActive, created_by, created_date)
                 VALUES (@ClubId, @Title, @Desc, @Logo, 'URL', @Url, 0, 1, @UserId, NOW());
@@ -359,7 +361,7 @@ public class EventPaymentLinkService : IEventPaymentLinkService
             if (clubId > 0)
             {
                 var frontendUrl = _config["FrontendUrl"] ?? "http://localhost:3000";
-                var payUrl = $"{frontendUrl}/pay/{linkId}";
+                var payUrl = $"{frontendUrl}/pay/{linkId}?k={PayKey(linkId)}";
                 var weblinkId = await conn.ExecuteScalarAsync<int>(@"
                     INSERT INTO weblinks (fk_club_id, Title, Writeup, LogoPath, LinkType, LinkUrl, Level, IsActive, created_by, created_date)
                     VALUES (@ClubId, @Title, @Desc, @Logo, 'URL', @Url, 0, 1, @UserId, NOW());
@@ -1053,7 +1055,7 @@ public class EventPaymentLinkService : IEventPaymentLinkService
 
         var subject = (string?)member.EmailReminderSubject ?? "Payment Reminder";
         var frontendUrl = _config["FrontendUrl"] ?? "http://localhost:3000";
-        var payUrl = $"{frontendUrl}/pay/{member.fk_payment_link_id}";
+        var payUrl = $"{frontendUrl}/pay/{member.fk_payment_link_id}?k={PayKey((int)member.fk_payment_link_id)}";
         var body = BuildReminderBody(member, payUrl, extraRemark);
         await _emailService.SendGenericEmailAsync((string)member.Email, subject, body);
     }
@@ -1065,7 +1067,7 @@ public class EventPaymentLinkService : IEventPaymentLinkService
         if (link == null) return;
 
         var frontendUrl = _config["FrontendUrl"] ?? "http://localhost:3000";
-        var payUrl = $"{frontendUrl}/pay/{linkId}";
+        var payUrl = $"{frontendUrl}/pay/{linkId}?k={PayKey(linkId)}";
         var subject = link.EmailReminderSubject ?? "Payment Reminder";
         var regAmount = link.Registrations.FirstOrDefault()?.Amount ?? 0;
         var remarkHtml = string.IsNullOrWhiteSpace(extraRemark) ? "" : $"<p style='margin-top:16px;padding:12px;background:#F7F9FC;border-left:4px solid #17458F;'><strong>Remark:</strong> {extraRemark}</p>";
@@ -1204,25 +1206,44 @@ public class EventPaymentLinkService : IEventPaymentLinkService
             new { DistrictId = districtId });
     }
 
+    private string PayKey(int linkId) =>
+        MobileDuesAccessToken.PayLinkKey(linkId, _config["JwtSettings:Secret"] ?? "", MobileDuesAccessToken.EventLinkKind);
+
+    // The email an OTP may go to: on a member form (FormType 1) only the one on the member's record, because a verified
+    // code acts as that member; on a guest form the payer's own, as they have no record. Null when there is none.
+    private static async Task<(string? Email, string? Mobile, int MemberId)> OtpAddressAsync(MySqlConnection conn, int linkId, int? memberProfileId, string? email, string? mobile)
+    {
+        var formType = await conn.ExecuteScalarAsync<int?>(
+            "SELECT FormType FROM event_payment_links WHERE pk_id=@Id AND isdeleted=0", new { Id = linkId })
+            ?? throw new ArgumentException("Payment link not found.");
+        if (formType != 1) return (string.IsNullOrWhiteSpace(email) ? null : email.Trim(), mobile, 0);
+        if (memberProfileId is not > 0) throw new ArgumentException("Choose your name first.");
+        var member = await conn.QueryFirstOrDefaultAsync<dynamic>(
+            "SELECT EmailId, PrimaryMobileNumber FROM member_master_profile WHERE pk_member_master_profile_id=@Id AND isdeleted=0",
+            new { Id = memberProfileId });
+        return member == null ? (null, null, 0) : ((string?)member.EmailId, (string?)member.PrimaryMobileNumber, memberProfileId.Value);
+    }
+
     public async Task<IEnumerable<PublicMemberSearchDto>> SearchMembersForLinkAsync(int linkId, int? districtId, int? clubId, string? query)
     {
         using var conn = GetConnection();
-        var sql = @"SELECT m.pk_member_master_profile_id AS MemberProfileId, m.MemberName,
-                CONCAT(LEFT(m.PrimaryMobileNumber,3), '****', RIGHT(m.PrimaryMobileNumber,3)) AS MaskedMobile,
-                CONCAT(LEFT(m.EmailId,3), '****', SUBSTRING_INDEX(m.EmailId,'@',-1)) AS MaskedEmail,
-                CASE WHEN EXISTS(SELECT 1 FROM event_payment_members pm WHERE pm.fk_payment_link_id=@LinkId AND pm.fk_member_profile_id=m.pk_member_master_profile_id AND pm.IsPaid=1 AND pm.isdeleted=0) THEN 1 ELSE 0 END AS IsPaid
+        var link = await conn.QueryFirstOrDefaultAsync<(int? ClubId, int? DistrictId)>(
+            "SELECT fk_club_id, fk_district_master_id FROM event_payment_links WHERE pk_id=@Id AND isdeleted=0", new { Id = linkId });
+        // A link for one club or district searches only there, whatever the request asks; a link for all districts needs a choice.
+        if (link.ClubId > 0) { clubId = link.ClubId; districtId = null; }
+        else if (link.DistrictId > 0 && !(clubId > 0)) districtId = link.DistrictId;
+        if (!(clubId > 0) && !(districtId > 0)) return Enumerable.Empty<PublicMemberSearchDto>();
+        var sql = @"SELECT DISTINCT m.pk_member_master_profile_id AS MemberProfileId, m.MemberName, c.ClubName
             FROM member_master_profile m
             JOIN club_members cm ON m.pk_member_master_profile_id = cm.fk_member_master_profile_id AND cm.IsActive=1 AND cm.isdeleted=0
             JOIN club_master c ON cm.fk_club_id = c.pk_club_id
-            WHERE m.isdeleted=0";
-        if (clubId.HasValue && clubId > 0)
-            sql += " AND cm.fk_club_id = @ClubId";
-        else if (districtId.HasValue && districtId > 0)
-            sql += " AND c.fk_district_id = @DistrictId";
-        if (!string.IsNullOrWhiteSpace(query))
-            sql += " AND (m.MemberName LIKE @Query OR m.PrimaryMobileNumber LIKE @Query OR m.EmailId LIKE @Query)";
-        sql += " LIMIT 50";
-        return await conn.QueryAsync<PublicMemberSearchDto>(sql, new { LinkId = linkId, ClubId = clubId, DistrictId = districtId, Query = $"%{query}%" });
+            WHERE m.isdeleted=0 AND m.MemberName LIKE @Query";
+        if (clubId > 0) sql += " AND cm.fk_club_id = @ClubId";
+        if (districtId > 0) sql += " AND c.fk_district_id = @DistrictId";
+        if (link.DistrictId > 0 && clubId > 0) sql += " AND c.fk_district_id = @LinkDistrict";
+        sql += " ORDER BY m.MemberName LIMIT 50";
+        var like = query?.Replace("\\", "\\\\").Replace("%", "\\%").Replace("_", "\\_");
+        return await conn.QueryAsync<PublicMemberSearchDto>(sql, new { ClubId = clubId, DistrictId = districtId, LinkDistrict = link.DistrictId, Query = $"%{like}%" });
     }
 
     public async Task<bool> SendPaymentOtpAsync(int linkId, SendOtpRequestDto dto)
@@ -1230,22 +1251,8 @@ public class EventPaymentLinkService : IEventPaymentLinkService
         var otp = System.Security.Cryptography.RandomNumberGenerator.GetInt32(100000, 1000000).ToString();
         using var conn = GetConnection();
 
-        // If memberProfileId provided, look up actual email and mobile
-        var email = dto.Email;
-        var mobile = dto.Mobile;
-        int? memberCountryId = null;
-        if (dto.MemberProfileId.HasValue && dto.MemberProfileId > 0)
-        {
-            var member = await conn.QueryFirstOrDefaultAsync<dynamic>(
-                "SELECT EmailId, PrimaryMobileNumber, fk_primary_country_id AS CountryId FROM member_master_profile WHERE pk_member_master_profile_id=@Id",
-                new { Id = dto.MemberProfileId });
-            if (member != null)
-            {
-                if (string.IsNullOrWhiteSpace(email)) email = (string?)member.EmailId;
-                if (string.IsNullOrWhiteSpace(mobile)) mobile = (string?)member.PrimaryMobileNumber;
-                memberCountryId = member.CountryId == null ? null : (int?)member.CountryId;
-            }
-        }
+        var (email, mobile, _) = await OtpAddressAsync(conn, linkId, dto.MemberProfileId, dto.Email, dto.Mobile);
+        if (string.IsNullOrWhiteSpace(email)) return false; // the code goes by email only
 
         await conn.ExecuteAsync(@"
             INSERT INTO event_payment_otp (fk_payment_link_id, Email, Mobile, OtpCode, ExpiresAt)
@@ -1276,42 +1283,30 @@ public class EventPaymentLinkService : IEventPaymentLinkService
         return emailSent;
     }
 
-    public async Task<bool> VerifyOtpAsync(int linkId, VerifyOtpRequestDto dto)
+    public async Task<string?> VerifyOtpAsync(int linkId, VerifyOtpRequestDto dto)
     {
 
         using var conn = GetConnection();
 
-        // Resolve email/mobile from member profile if needed
-        var email = dto.Email;
-        var mobile = dto.Mobile;
-        if (dto.MemberProfileId.HasValue && dto.MemberProfileId > 0)
-        {
-            var member = await conn.QueryFirstOrDefaultAsync<dynamic>(
-                "SELECT EmailId, PrimaryMobileNumber FROM member_master_profile WHERE pk_member_master_profile_id=@Id",
-                new { Id = dto.MemberProfileId });
-            if (member != null)
-            {
-                if (string.IsNullOrWhiteSpace(email)) email = (string?)member.EmailId;
-                if (string.IsNullOrWhiteSpace(mobile)) mobile = (string?)member.PrimaryMobileNumber;
-            }
-        }
+        var (email, _, memberId) = await OtpAddressAsync(conn, linkId, dto.MemberProfileId, dto.Email, dto.Mobile);
+        if (string.IsNullOrWhiteSpace(email)) return null;
 
         var valid = await conn.ExecuteScalarAsync<int>(@"
             SELECT COUNT(*) FROM event_payment_otp
             WHERE fk_payment_link_id=@LinkId AND OtpCode=@Code AND ExpiresAt > NOW() AND IsVerified=0
-              AND ((@Email IS NOT NULL AND Email=@Email) OR (@Mobile IS NOT NULL AND Mobile=@Mobile))",
-            new { LinkId = linkId, Code = dto.OtpCode, Email = email, Mobile = mobile });
+              AND Email=@Email",
+            new { LinkId = linkId, Code = dto.OtpCode, Email = email });
 
         if (valid > 0)
         {
             await conn.ExecuteAsync(@"
                 UPDATE event_payment_otp SET IsVerified=1
                 WHERE fk_payment_link_id=@LinkId AND OtpCode=@Code
-                  AND ((@Email IS NOT NULL AND Email=@Email) OR (@Mobile IS NOT NULL AND Mobile=@Mobile))",
-                new { LinkId = linkId, Code = dto.OtpCode, Email = email, Mobile = mobile });
-            return true;
+                  AND Email=@Email",
+                new { LinkId = linkId, Code = dto.OtpCode, Email = email });
+            return EventPayerToken.Generate(linkId, memberId, email, _config["JwtSettings:Secret"] ?? "");
         }
-        return false;
+        return null;
     }
 
     public async Task<PaymentSessionResponseDto> CreatePaymentOrderAsync(int linkId, PublicPaymentSubmitDto dto)
@@ -1343,9 +1338,9 @@ public class EventPaymentLinkService : IEventPaymentLinkService
             SELECT pk_id, IsPaid FROM event_payment_members
             WHERE fk_payment_link_id=@LinkId AND
               ((@MemberId IS NOT NULL AND fk_member_profile_id=@MemberId) OR
-               (@MemberId IS NULL AND Mobile=@Mobile))
+               (@MemberId IS NULL AND Email=@Email))
               AND isdeleted=0 ORDER BY created_date DESC LIMIT 1",
-            new { LinkId = linkId, MemberId = dto.FkMemberProfileId, dto.Mobile });
+            new { LinkId = linkId, MemberId = dto.FkMemberProfileId, dto.Email });
 
         if (existingMember != null && (bool)existingMember.IsPaid)
             throw new InvalidOperationException("You have already paid for this event.");

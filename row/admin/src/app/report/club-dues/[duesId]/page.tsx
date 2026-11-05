@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
-import { getPublicClubDuesReport } from "@/services/api";
+import { getClubDuesReport } from "@/services/api";
 import { fileTimestamp, toLocalDateParts } from "@/lib/dateUtils";
 
 import { appLocale, currencySymbol } from "@/lib/appFormat";
@@ -167,7 +167,7 @@ export default function ClubDuesReportPage() {
   useEffect(() => {
     if (!duesId) return;
     setLoading(true);
-    getPublicClubDuesReport(duesId)
+    getClubDuesReport(duesId)
       .then((res) => setData(res))
       .catch((e: any) => setError(e?.response?.data?.message || "Failed to load report data."))
       .finally(() => setLoading(false));

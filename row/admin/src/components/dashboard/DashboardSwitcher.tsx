@@ -237,10 +237,6 @@ export default function DashboardSwitcher({ currentKind, onNavigate }: Dashboard
       if (root && path.includes(root)) return;
       if (trigger && path.includes(trigger)) return;
       if (portal && path.includes(portal)) return;
-      if (typeof window !== "undefined" && (window as unknown as { __DASH_DEBUG__?: boolean }).__DASH_DEBUG__) {
-        // eslint-disable-next-line no-console
-        console.log("[DashboardSwitcher] outside-click close", { target });
-      }
       setOpen(false);
     }
     document.addEventListener("mousedown", handleClick);

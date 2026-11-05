@@ -9,7 +9,7 @@ machine. The fake translator prefixes "ES:" and drops the placeholder of any tex
 translation is refused. Local copies only: it sets one club admin's PrimaryLanguage to Spanish for the run and puts it
 back, and deletes the reset tokens and server_strings rows it made.
 """
-import json, os, subprocess, sys, threading, time, urllib.error, urllib.request
+import re, json, os, subprocess, sys, threading, time, urllib.error, urllib.request
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 API, PORT, DB = sys.argv[1].rstrip('/'), sys.argv[2], sys.argv[3]
@@ -69,7 +69,8 @@ class Translate(BaseHTTPRequestHandler):
         req = json.loads(body(self) or b"{}")
         asked.append(req)
         q = req.get("q", "")
-        text = ("ES:" + q.replace("{0}", "")) if q.startswith("Dear ") else ("ES:" + q)
+        # "Dear ..." comes back without its value token: the service must refuse that translation.
+        text = ("ES:" + re.sub(r"XQ\d+X", "", q)) if q.startswith("Dear ") else ("ES:" + q)
         answer(self, 200, {"translatedText": text})
 
     def log_message(self, *args):
@@ -134,7 +135,7 @@ try:
           html[:300])
     sent_text = " ".join(a.get("q", "") for a in asked)
     check("the provider saw no name, email or link", name not in sent_text and email not in sent_text and "token=" not in sent_text)
-    check("the provider got only placeholders for values", any("{0}" in a.get("q", "") for a in asked))
+    check("the provider got only tokens for values", any("XQ0X" in a.get("q", "") for a in asked))
 finally:
     restore = "NULL" if was_lang == "NULL" else "'" + was_lang.replace("'", "''") + "'"
     sql(f"UPDATE member_master_profile SET PrimaryLanguage = {restore} WHERE pk_member_master_profile_id = {member}")

@@ -312,6 +312,16 @@ public class EventPaymentLinksController : ControllerBase
 
     // ── Members (Paid/Unpaid) ─────────────────────────────────────
 
+    // Payers' names, emails and mobiles: the link's managers only (was anonymous under api/public/event-payment).
+    [HttpGet("{linkId}/report")]
+    public async Task<ActionResult> GetReport(int linkId)
+    {
+        if (!IsSuperAdminOrAdmin() || !await CanReadLinkAsync(linkId)) return StatusCode(403, new { message = "Access denied." });
+        var result = await _service.GetPublicReportAsync(linkId);
+        if (result == null) return NotFound(new { message = "Payment link not found." });
+        return Ok(result);
+    }
+
     [HttpGet("{linkId}/members")]
     public async Task<ActionResult> GetMembers(int linkId, [FromQuery] bool isPaid = false, [FromQuery] string? search = null)
     {

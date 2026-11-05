@@ -87,13 +87,4 @@ public class PublicClubDuesController : ControllerBase
         try { await _service.HandleWebhookAsync(payload, sig); return Ok(); }
         catch (UnauthorizedAccessException) { return Unauthorized(); }
     }
-
-    // Public report (no token) — district-wide club paid/unpaid summary.
-    [HttpGet("{id}/report")]
-    public async Task<ActionResult> Report(int id)
-    {
-        var r = await _service.GetPublicReportAsync(id);
-        if (r == null) return NotFound(new { message = "Not found." });
-        return Ok(r);
-    }
 }

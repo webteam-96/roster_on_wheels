@@ -27,6 +27,7 @@ import {
 import RotaryLoader from "@/components/RotaryLoader";
 import {
   getMembershipDuesList, exportMembershipDuesReport, getClub,
+  duesPayPath,
 } from "@/services/api";
 import { fileTimestamp } from "@/lib/dateUtils";
 import { useAuth } from "@/contexts/AuthContext";
@@ -109,7 +110,7 @@ export default function ClubMembershipDuesV2Page() {
   }, [searchInput, search]);
 
   const handleCopyUrl = (item: MembershipDuesItem) => {
-    const url = `${window.location.origin}${BASE_PATH}/pay/dues/${item.id}`;
+    const url = `${window.location.origin}${BASE_PATH}${duesPayPath(item)}`;
     navigator.clipboard.writeText(url);
     setSuccessMessage("URL copied to clipboard.");
   };
@@ -355,7 +356,7 @@ export default function ClubMembershipDuesV2Page() {
                             <div className="inline-flex items-center gap-2 text-xs">
                               <button
                                 type="button"
-                                onClick={() => window.open(withBase(`/pay/dues/${item.id}`), "_blank")}
+                                onClick={() => window.open(withBase(duesPayPath(item)), "_blank")}
                                 className="inline-flex items-center gap-1 text-blue-600 hover:text-blue-800 hover:underline"
                                 title="Open payment page"
                               >

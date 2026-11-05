@@ -4,6 +4,8 @@ namespace RotaryApi.DTOs;
 public class MembershipDuesListDto
 {
     public int Id { get; set; }
+    /// <summary>Key the pay link carries (?k=); managers see it in this list to copy the link.</summary>
+    public string? PayKey { get; set; }
     public string? DistrictNumber { get; set; }
     public string? ClubName { get; set; }
     public string? RotaryYear { get; set; }
