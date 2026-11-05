@@ -4,7 +4,8 @@
 Environment: ROW_E2E_FAKE_BREVO_PORT (default 5198). Start the API with Brevo__ApiUrl=http://127.0.0.1:<port>/v3/smtp/email
 and Brevo__ApiKey=<anything>: mail goes to real member addresses of the copy, but only to the fake Brevo server this
 script runs. Local copies only, never production. Adds dues and event links titled 'e2e-fresh-link', removes them at the
-end. Restart the API before a rerun: the IP limit (10 per 10 minutes) and the address cap live in its memory.
+end. Restart the API before a rerun: the IP limit (10 per 10 minutes) lives in its memory. The address cap counts email_log,
+so this script clears its own member's rows for this mail at the start.
 """
 import json, os, re, subprocess, sys, threading, time, urllib.error, urllib.parse, urllib.request
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
@@ -114,6 +115,7 @@ def event(form):
         VALUES ('{TITLE}',{club},{form},1,0); SELECT LAST_INSERT_ID();""")
 
 
+sql(f"DELETE FROM email_log WHERE recipient_email='{email}' AND subject='Your new payment link - ROW'")
 live, closed = dues(1), dues(0)
 member_form, guest_form = event(1), event(2)
 missing = int(sql("SELECT COALESCE(MAX(pk_membership_dues_id),0) + 1000 FROM membership_dues"))

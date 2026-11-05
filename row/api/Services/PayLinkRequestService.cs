@@ -1,6 +1,5 @@
 using System.Net;
 using Dapper;
-using Microsoft.Extensions.Caching.Memory;
 using MySqlConnector;
 
 namespace RotaryApi.Services;
@@ -10,17 +9,15 @@ namespace RotaryApi.Services;
 public sealed class PayLinkRequestService
 {
     private const int MaxPerAddressPerHour = 3;
-    private static readonly object CapLock = new();
+    private const string Subject = "Your new payment link - ROW";
 
     private readonly IConfiguration _config;
     private readonly IEmailService _email;
-    private readonly IMemoryCache _cache;
 
-    public PayLinkRequestService(IConfiguration config, IEmailService email, IMemoryCache cache)
+    public PayLinkRequestService(IConfiguration config, IEmailService email)
     {
         _config = config;
         _email = email;
-        _cache = cache;
     }
 
     public async Task RequestAsync(string kind, int id, string email)
@@ -63,28 +60,22 @@ public sealed class PayLinkRequestService
               AND (@DistrictId IS NULL OR c.fk_district_id=@DistrictId)
               AND (@IsDues=0 OR COALESCE(cm.IsHonoraryMember, 0)=0)
             LIMIT 1", new { Email = email, ClubId = clubId, DistrictId = districtId, IsDues = isDues ? 1 : 0 });
-        if (string.IsNullOrWhiteSpace(onRecord) || !TakeAddressSlot(onRecord)) return;
+        if (string.IsNullOrWhiteSpace(onRecord)) return;
+
+        // Stops anyone rotating IPs to flood one member's inbox. EmailService logs every send to email_log before it goes,
+        // so this count survives restarts and is shared by every API process.
+        // shortcut: two requests at the same instant can both pass, so a burst may go one or two over; the IP limit bounds it. Take a row lock if that ever matters.
+        var sentLastHour = await conn.ExecuteScalarAsync<int>(
+            "SELECT COUNT(*) FROM email_log WHERE recipient_email=@To AND subject=@Subject AND sent_at > DATE_SUB(NOW(), INTERVAL 1 HOUR)",
+            new { To = onRecord, Subject });
+        if (sentLastHour >= MaxPerAddressPerHour) return;
 
         var url = (_config["FrontendUrl"] ?? "http://localhost:3000").TrimEnd('/') + path;
-        await _email.SendGenericEmailAsync(onRecord, "Your new payment link - ROW", $@"{EmailService.EMAIL_HEADER}
+        await _email.SendGenericEmailAsync(onRecord, Subject, $@"{EmailService.EMAIL_HEADER}
             <h2 style='color: #17458F; margin-top: 0;'>Your new payment link</h2>
             <p>Use this link for <strong>{WebUtility.HtmlEncode(title)}</strong>:</p>
             <p><a href='{url}' style='color:#17458F;'>{url}</a></p>
             <p style='color:#64748B;'>Someone asked for this link using your email address. If it was not you, ignore this email.</p>
         {EmailService.EMAIL_FOOTER}");
-    }
-
-    // Stops anyone rotating IPs to flood one member's inbox.
-    // shortcut: the count lives in this process and resets on restart, move it to the database if the API ever runs on several servers.
-    private bool TakeAddressSlot(string address)
-    {
-        var key = "pay-link-request:" + address.Trim().ToLowerInvariant();
-        lock (CapLock)
-        {
-            var used = _cache.Get<int>(key);
-            if (used >= MaxPerAddressPerHour) return false;
-            _cache.Set(key, used + 1, TimeSpan.FromHours(1));
-            return true;
-        }
     }
 }
