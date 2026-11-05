@@ -7,8 +7,7 @@ Works in both payment modes and tells them apart by ROW_E2E_LEGACY_CASHFREE:
 - 1: the API runs with Payments__Provider unset and CashfreePayment__BaseUrl=http://127.0.0.1:<port>/ (default port 5396),
   and this script answers there as a fake Cashfree that says every order is PAID, which is the attacker's best case.
 Local copies only, never production. Adds rows titled 'e2e-paid-order', soft-deletes the member fees' parents at the end.
-The status route allows 30 calls a minute per IP, so the last check spends that allowance: restart the API or wait a minute
-before a rerun.
+The status route allows 30 calls a minute per IP. The last check spends that allowance, then waits a minute to give it back.
 """
 import json, os, secrets, subprocess, sys, threading, time, urllib.error, urllib.parse, urllib.request
 from http.server import BaseHTTPRequestHandler, HTTPServer
@@ -185,6 +184,7 @@ try:
     # Rate limit.
     codes = [dues_verify("nope", v_pk)[0] for _ in range(35)]
     check("status route is limited: 429 within 35 more calls", 429 in codes, codes[-3:])
+    time.sleep(61)  # give the allowance back: the next script in the suite uses this route
 finally:
     time.sleep(2)  # fire-and-forget work on the settled rows
     sql(f"DELETE FROM membership_dues_payments WHERE pk_id IN ({v_pk},{p_pk},{o_pk})")
