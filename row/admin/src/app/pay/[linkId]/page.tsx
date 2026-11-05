@@ -104,6 +104,7 @@ export default function PublicPaymentPage() {
   const [eventLink, setEventLink] = useState<EventLink | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [linkOutOfDate, setLinkOutOfDate] = useState(false);
   const [step, setStep] = useState<Step>("details");
   // Proof of who pays, from verify-otp. The API takes the payer from it.
   const [payerToken, setPayerToken] = useState("");
@@ -203,7 +204,7 @@ export default function PublicPaymentPage() {
       } catch (err: any) {
         setSearchResults([]);
         setDropdownOpen(false);
-        if (err?.response?.status === 403) setError(err.response.data?.message || "This payment link is out of date.");
+        if (err?.response?.status === 403) { setLinkOutOfDate(true); setError(err.response.data?.message || "This payment link is out of date."); }
       } finally {
         setSearching(false);
       }
@@ -350,6 +351,11 @@ export default function PublicPaymentPage() {
           <CardContent className="pt-6 text-center">
             <AlertCircle className="h-12 w-12 text-destructive mx-auto mb-4" />
             <h3 className="text-lg font-semibold">{error || "Payment link not found"}</h3>
+            {linkOutOfDate && (
+              <a href={withBase(`/pay/fresh-link?kind=event&id=${linkId}`)} className="mt-3 inline-block text-sm underline">
+                Email me a new link
+              </a>
+            )}
           </CardContent>
         </Card>
       </div>

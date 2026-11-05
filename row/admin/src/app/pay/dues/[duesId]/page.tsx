@@ -119,6 +119,7 @@ export default function MembershipDuesPaymentPage() {
   const [duesInfo, setDuesInfo] = useState<DuesInfo | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [linkOutOfDate, setLinkOutOfDate] = useState(false);
   const [step, setStep] = useState<Step>("search");
 
   // Member search (smart autocomplete: debounced + dropdown)
@@ -249,7 +250,7 @@ export default function MembershipDuesPaymentPage() {
       } catch (err: any) {
         setSearchResults([]);
         setDropdownOpen(false);
-        if (err?.response?.status === 403) setError(err.response.data?.message || "This payment link is out of date.");
+        if (err?.response?.status === 403) { setLinkOutOfDate(true); setError(err.response.data?.message || "This payment link is out of date."); }
       } finally {
         setSearching(false);
       }
@@ -413,6 +414,11 @@ export default function MembershipDuesPaymentPage() {
           <CardContent className="pt-6 text-center">
             <AlertCircle className="h-12 w-12 text-destructive mx-auto mb-4" />
             <h3 className="text-lg font-semibold">{error || "Payment link not found"}</h3>
+            {linkOutOfDate && (
+              <a href={withBase(`/pay/fresh-link?kind=dues&id=${duesId}`)} className="mt-3 inline-block text-sm underline">
+                Email me a new link
+              </a>
+            )}
           </CardContent>
         </Card>
       </div>

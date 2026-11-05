@@ -71,6 +71,10 @@ builder.Services.AddRateLimiter(o =>
     o.AddPolicy("member-search", ctx => System.Threading.RateLimiting.RateLimitPartition.GetFixedWindowLimiter(
         ctx.Connection.RemoteIpAddress?.ToString() ?? "unknown",
         _ => new System.Threading.RateLimiting.FixedWindowRateLimiterOptions { PermitLimit = 60, Window = TimeSpan.FromMinutes(1) }));
+    // Request a fresh pay link: 10 per IP per 10 minutes. Each address also has a cap (PayLinkRequestService).
+    o.AddPolicy("pay-link-request", ctx => System.Threading.RateLimiting.RateLimitPartition.GetFixedWindowLimiter(
+        ctx.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+        _ => new System.Threading.RateLimiting.FixedWindowRateLimiterOptions { PermitLimit = 10, Window = TimeSpan.FromMinutes(10) }));
     o.AddPolicy("public-read", ctx => System.Threading.RateLimiting.RateLimitPartition.GetFixedWindowLimiter(
         ctx.Connection.RemoteIpAddress?.ToString() ?? "unknown",
         _ => new System.Threading.RateLimiting.FixedWindowRateLimiterOptions { PermitLimit = 600, Window = TimeSpan.FromMinutes(1) }));
@@ -339,6 +343,7 @@ builder.Services.AddScoped<IWeblinkService, WeblinkService>();
 builder.Services.AddScoped<ISubGroupService, SubGroupService>();
 builder.Services.AddScoped<IEventPaymentLinkService, EventPaymentLinkService>();
 builder.Services.AddScoped<IMembershipDuesService, MembershipDuesService>();
+builder.Services.AddScoped<PayLinkRequestService>();
 builder.Services.AddScoped<IClubDuesService, ClubDuesService>();
 builder.Services.AddSingleton<IGoogleSheetsService, GoogleSheetsService>();
 builder.Services.AddScoped<ICreditManagementService, CreditManagementService>();

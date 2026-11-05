@@ -3774,6 +3774,11 @@ export async function getPublicMembershipDues(id: number) {
 export function duesPayPath(item: { id: number; payKey?: string | null }) {
   return `/pay/dues/${item.id}${item.payKey ? `?k=${encodeURIComponent(item.payKey)}` : ""}`;
 }
+/** Always answers the same way, so it says nothing about who is a member. */
+export async function requestFreshPayLink(kind: string, id: number, email: string) {
+  const res = await publicApi.post(`/api/public/pay-link-request`, { kind, id, email });
+  return res.data as { message: string };
+}
 export async function searchMembershipDuesMembers(id: number, query: string, k: string) {
   const res = await publicApi.get(`/api/public/membership-dues/${id}/search-members`, { params: { query, k } });
   return res.data;
