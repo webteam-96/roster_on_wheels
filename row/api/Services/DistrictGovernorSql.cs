@@ -31,6 +31,14 @@ public static class DistrictGovernorSql
     public const string Mobile =
         "CASE WHEN m.pk_member_master_profile_id IS NULL THEN g.mobile_number ELSE m.PrimaryMobileNumber END";
 
+    // For anonymous routes. A governor who is a member follows that member's "all clubs" flags; a non-member's contacts
+    // were entered for this card, so they have no flags to follow.
+    public const string PublicEmail =
+        "CASE WHEN m.pk_member_master_profile_id IS NULL THEN g.email WHEN m.ShowEmailInAllClubs = 1 THEN m.EmailId END";
+
+    public const string PublicMobile =
+        "CASE WHEN m.pk_member_master_profile_id IS NULL THEN g.mobile_number WHEN m.ShowPhoneInAllClubs = 1 THEN m.PrimaryMobileNumber END";
+
     /// <summary>
     /// Servable photo URL. Member photos keep their existing /Documents/directory/ handling;
     /// a non-member photo is stored filename-only and is prefixed with <see cref="PhotoFolder"/>.

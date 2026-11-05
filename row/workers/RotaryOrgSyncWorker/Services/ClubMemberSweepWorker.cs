@@ -2083,9 +2083,9 @@ public class ClubMemberSweepWorker
             {
                 memberId = await conn.ExecuteScalarAsync<int>(@"
                     INSERT INTO member_master_profile
-                        (MemberName, RotaryId, EmailId, SecondaryEmailId, PrimaryMobileNumber, SecondaryMobileNumber, BirthDate, Gender, PrimaryLanguage, IsYouth, fk_primary_country_id, fk_secondary_country_id, IsPersonalDetailsVisible, created_date, isdeleted)
+                        (ShowPhoneInAllClubs, ShowEmailInAllClubs, MemberName, RotaryId, EmailId, SecondaryEmailId, PrimaryMobileNumber, SecondaryMobileNumber, BirthDate, Gender, PrimaryLanguage, IsYouth, fk_primary_country_id, fk_secondary_country_id, IsPersonalDetailsVisible, created_date, isdeleted)
                     VALUES
-                        (@Name, @Rid, @Email, @SecondaryEmail, @Phone, @SecondaryPhone, @Dob, @Gender, @Lang, @IsYouth, @CountryId, @SecondaryCountryId, 1, NOW(), 0);
+                        (0, 0, @Name, @Rid, @Email, @SecondaryEmail, @Phone, @SecondaryPhone, @Dob, @Gender, @Lang, @IsYouth, @CountryId, @SecondaryCountryId, 1, NOW(), 0);
                     SELECT LAST_INSERT_ID();",
                     new
                     {

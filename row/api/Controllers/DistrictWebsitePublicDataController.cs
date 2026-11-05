@@ -354,7 +354,7 @@ public class DistrictWebsitePublicDataController : ControllerBase
                    'District Governor'                             AS designation,
                    g.description                                   AS description,
                    {RotaryApi.Services.DistrictGovernorSql.Photo} AS photoPath,
-                   {RotaryApi.Services.DistrictGovernorSql.Email} AS email
+                   {RotaryApi.Services.DistrictGovernorSql.PublicEmail} AS email
             FROM district_governors g
             {RotaryApi.Services.DistrictGovernorSql.JoinMember}
             WHERE g.fk_district_id = @D AND g.fk_year_id = @Y AND g.isdeleted = 0 LIMIT 1", new { D = districtId, Y = y });

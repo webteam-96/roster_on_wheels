@@ -656,7 +656,7 @@ public class MemberService : IMemberService
                     IsYouth, MemberIntroduction,
                     Facebook, Instagram, LinkedIn, Twitter, Youtube, Website,
                     RotaryId, DonorRecognition, FamilyPhotoPath, IsFamilyDetailsVisible,
-                    created_by, created_date, isdeleted
+                    created_by, created_date, isdeleted, ShowPhoneInAllClubs, ShowEmailInAllClubs
                 ) VALUES (
                     @MemberName, @ProfilePhotoPath, @FkPrimaryCountryId, @PrimaryMobileNumber,
                     @EmailId, @BirthDate, @AnniversaryDate, @BloodGroup,
@@ -665,7 +665,7 @@ public class MemberService : IMemberService
                     @IsYouth, @MemberIntroduction,
                     @Facebook, @Instagram, @LinkedIn, @Twitter, @Youtube, @Website,
                     @RotaryId, @DonorRecognition, @FamilyPhotoPath, @IsFamilyDetailsVisible,
-                    0, NOW(), 0
+                    0, NOW(), 0, 0, 0
                 );
                 SELECT LAST_INSERT_ID();",
                 new {

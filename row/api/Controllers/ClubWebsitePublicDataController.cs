@@ -540,6 +540,12 @@ public class ClubWebsitePublicDataController : ControllerBase
 
         var target = DateTime.TryParse(date, out var d) ? d.Date : DateTime.Today;
 
+        // This route is anonymous: who has a birthday or anniversary is for signed-in members of the club, not the public.
+        var viewer = MemberPrivacyHelper.GetViewerMemberId(User);
+        var showNames = UserPermissionHelper.IsSuperAdmin(User) || (viewer != null && await conn.ExecuteScalarAsync<int>(
+            "SELECT COUNT(*) FROM club_members WHERE fk_club_id=@ClubId AND fk_member_master_profile_id=@Viewer AND IsActive=1 AND isdeleted=0",
+            new { ClubId = clubId, Viewer = viewer }) > 0);
+
         // Match by month+day so any year of birth/anniversary is matched against the requested date.
         var birthdays = (await conn.QueryAsync<BirthdayRow>(@"
             SELECT m.pk_member_master_profile_id AS MemberId,
@@ -556,8 +562,9 @@ public class ClubWebsitePublicDataController : ControllerBase
               AND m.isdeleted = 0
               AND m.BirthDate IS NOT NULL
               AND MONTH(m.BirthDate) = @M AND DAY(m.BirthDate) = @D
+              AND @ShowNames
             ORDER BY m.MemberName",
-            new { ClubId = clubId, M = target.Month, D = target.Day })).ToList();
+            new { ClubId = clubId, M = target.Month, D = target.Day, ShowNames = showNames })).ToList();
 
         var anniversaries = (await conn.QueryAsync<AnniversaryRow>(@"
             SELECT m.pk_member_master_profile_id AS MemberId,
@@ -574,8 +581,9 @@ public class ClubWebsitePublicDataController : ControllerBase
               AND m.isdeleted = 0
               AND m.AnniversaryDate IS NOT NULL
               AND MONTH(m.AnniversaryDate) = @M AND DAY(m.AnniversaryDate) = @D
+              AND @ShowNames
             ORDER BY m.MemberName",
-            new { ClubId = clubId, M = target.Month, D = target.Day })).ToList();
+            new { ClubId = clubId, M = target.Month, D = target.Day, ShowNames = showNames })).ToList();
 
         // Events whose EventDate is on the target date (only published + not expired).
         var events = (await conn.QueryAsync<dynamic>(@"
@@ -1414,8 +1422,8 @@ public class ClubWebsitePublicDataController : ControllerBase
                    {DistrictGovernorSql.Name}                                               AS MemberName,
                    {DistrictGovernorSql.Photo}                                              AS ProfilePhoto,
                    g.description                                                            AS Description,
-                   {DistrictGovernorSql.Mobile}                                             AS MobileNumber,
-                   {DistrictGovernorSql.Email}                                              AS Email,
+                   {DistrictGovernorSql.PublicMobile}                                       AS MobileNumber,
+                   {DistrictGovernorSql.PublicEmail}                                        AS Email,
                    'District Governor'                                                      AS Designation
             FROM district_governors g
             JOIN rotary_year_master y ON y.pk_year_id = g.fk_year_id

@@ -802,8 +802,8 @@ public class RotaryOrgManualSyncController : ControllerBase
             await ReleaseSoftDeletedMobileAsync(conn, phone, excludeId: 0);
             memberId = await conn.ExecuteScalarAsync<int>(@"
                 INSERT INTO member_master_profile
-                    (MemberName, RotaryId, EmailId, PrimaryMobileNumber, BirthDate, Gender, PrimaryLanguage, IsYouth, IsPersonalDetailsVisible, created_date, isdeleted)
-                VALUES (@Name, @Rid, @Email, @Phone, @Dob, @Gender, @Lang, @IsYouth, 1, NOW(), 0);
+                    (MemberName, RotaryId, EmailId, PrimaryMobileNumber, BirthDate, Gender, PrimaryLanguage, IsYouth, IsPersonalDetailsVisible, created_date, isdeleted, ShowPhoneInAllClubs, ShowEmailInAllClubs)
+                VALUES (@Name, @Rid, @Email, @Phone, @Dob, @Gender, @Lang, @IsYouth, 1, NOW(), 0, 0, 0);
                 SELECT LAST_INSERT_ID();",
                 new
                 {
