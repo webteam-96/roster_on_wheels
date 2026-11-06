@@ -848,11 +848,7 @@ public class BodSyncWorker
 
     private static string GenerateTempPassword()
     {
-        const string upper = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-        var rnd = new Random();
-        var chars = new char[8];
-        for (int i = 0; i < 8; i++) chars[i] = upper[rnd.Next(upper.Length)];
-        return new string(chars);
+        return System.Security.Cryptography.RandomNumberGenerator.GetString("ABCDEFGHIJKLMNOPQRSTUVWXYZ", 8);
     }
 
     // Ensure a Rotary year row exists; create it (IsCurrent=0) if missing. Keeps both lookup

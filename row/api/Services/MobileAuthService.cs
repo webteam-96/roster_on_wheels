@@ -365,8 +365,7 @@ public class MobileAuthService : IMobileAuthService
     // ══════════════════════════════════════════════════════════════
     private static string GenerateOtp()
     {
-        var random = new Random();
-        return random.Next(100000, 1000000).ToString();
+        return System.Security.Cryptography.RandomNumberGenerator.GetInt32(100000, 1000000).ToString();
     }
 
     private string GenerateMobileJwtToken(

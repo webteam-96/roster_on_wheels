@@ -1122,12 +1122,7 @@ public class DistrictModulesController : ControllerBase
 
     private static string GenerateTempPassword()
     {
-        const string upper = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-        var random = new Random();
-        var password = new char[8];
-        for (int i = 0; i < 8; i++)
-            password[i] = upper[random.Next(upper.Length)];
-        return new string(password);
+        return System.Security.Cryptography.RandomNumberGenerator.GetString("ABCDEFGHIJKLMNOPQRSTUVWXYZ", 8);
     }
 
     // ══════════════════════════════════════════════════════════════════════
