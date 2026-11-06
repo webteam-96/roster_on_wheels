@@ -90,10 +90,10 @@ public sealed class PaymentCheckoutService
         var provider = config["Payments:Provider"]?.Trim().ToLowerInvariant();
         if (string.IsNullOrEmpty(provider)) return;
 
-        // A simulated payment marks real rows paid, so it runs in Development only. No setting overrides this.
-        if (provider == SimulatedPaymentGateway.GatewayCode && !env.IsDevelopment())
+        // A simulated payment marks real rows paid, so it runs in Development and Staging only. No setting overrides this.
+        if (provider == SimulatedPaymentGateway.GatewayCode && !env.IsDevelopment() && !env.IsStaging())
         {
-            logger.LogError("Payments:Provider=simulated is ignored outside Development.");
+            logger.LogError("Payments:Provider=simulated is ignored in {Environment}.", env.EnvironmentName);
             return;
         }
         _gateway = gateways.FirstOrDefault(g => g.Code == provider);

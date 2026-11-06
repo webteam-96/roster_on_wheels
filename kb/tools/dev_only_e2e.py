@@ -1,16 +1,25 @@
-"""Test features work only in Development. Production ignores them even when they are switched on in settings.
+"""Which test features each environment allows. Production ignores them even when they are switched on in settings.
 
     python -I kb/tools/dev_only_e2e.py <api_base> <mysql_port> <database>
-JWT secret from ROW_E2E_JWT_SECRET. The suite runs it against a Development API with Payments__Provider=simulated.
-Set ROW_E2E_EXPECT_PRODUCTION=1 against an API started with ASPNETCORE_ENVIRONMENT=Production, Payments__Provider=simulated,
+
+              simulator   API docs   detailed errors
+Development   yes         yes        yes
+Staging       yes         no         no
+Production    no          no         no
+
+JWT secret from ROW_E2E_JWT_SECRET. The suite runs it against a Development API with Payments__Provider=simulated. Set
+ROW_E2E_EXPECT=staging or production against an API started with that ASPNETCORE_ENVIRONMENT, Payments__Provider=simulated,
 Payments__AllowSimulatedInProduction=true and Swagger__Enabled=true. Local copies only. Rows titled 'e2e-devonly' are removed.
+It renames a table for one request to cause a server error, and renames it back.
 """
 import base64, hashlib, hmac, json, os, secrets, subprocess, sys, time, urllib.error, urllib.request
 
 API, PORT, DB = sys.argv[1].rstrip('/'), sys.argv[2], sys.argv[3]
 assert "production" not in DB, "local copies only"
 SECRET = os.environ['ROW_E2E_JWT_SECRET']
-PRODUCTION = os.environ.get("ROW_E2E_EXPECT_PRODUCTION") == "1"
+EXPECT = os.environ.get("ROW_E2E_EXPECT", "development")
+assert EXPECT in ("development", "staging", "production")
+SIMULATOR, DOCS, DETAILS = EXPECT != "production", EXPECT == "development", EXPECT == "development"
 MYSQL = r"C:\Program Files\MySQL\MySQL Server 8.4\bin\mysql.exe"
 fails = 0
 
@@ -45,7 +54,7 @@ def call(method, path, body=None, headers=None):
         return e.code, e.read()
 
 
-print("expecting:", "Production, test features switched on in settings" if PRODUCTION else "Development")
+print("expecting:", EXPECT)
 club, member = sql("""SELECT cm.fk_club_id, cm.fk_member_master_profile_id FROM club_members cm JOIN club_master c ON c.pk_club_id=cm.fk_club_id AND c.isdeleted=0
     JOIN member_master_profile m ON m.pk_member_master_profile_id=cm.fk_member_master_profile_id AND m.isdeleted=0
     WHERE cm.IsActive=1 AND cm.isdeleted=0 AND COALESCE(cm.IsHonoraryMember,0)=0 LIMIT 1""").split()
@@ -59,20 +68,31 @@ session = sql(f"""INSERT INTO payment_checkout_sessions (session_token,gateway,f
 
 try:
     code, out = call("POST", f"/api/public/membership-dues/{dues}/pay", {"feeType": 1}, {"X-Payer-Token": payer(int(dues), int(member))})
-    if PRODUCTION:
-        check("simulated payment refused in Production", code == 400 and b"not available yet" in out, (code, out[:160]))
+    if SIMULATOR:
+        check("simulated payment works", code == 200 and json.loads(out).get("checkout"), (code, out[:160]))
     else:
-        check("simulated payment works in Development", code == 200 and json.loads(out).get("checkout"), (code, out[:160]))
+        check("simulated payment refused", code == 400 and b"not available yet" in out, (code, out[:160]))
 
     code, out = call("POST", f"/api/public/payments/checkout/{token}/simulate", {"outcome": "cancelled"})
-    if PRODUCTION:
-        check("a simulated session cannot be completed in Production", code == 404, (code, out[:120]))
-        check("and the session is untouched", sql(f"SELECT status FROM payment_checkout_sessions WHERE pk_id={session}") == "open")
+    if SIMULATOR:
+        check("a simulated session can be completed", code == 200, (code, out[:120]))
     else:
-        check("a simulated session can be completed in Development", code == 200, (code, out[:120]))
+        check("a simulated session cannot be completed", code == 404, (code, out[:120]))
+        check("and the session is untouched", sql(f"SELECT status FROM payment_checkout_sessions WHERE pk_id={session}") == "open")
 
     code, _ = call("GET", "/swagger/index.html")
-    check("API docs: " + ("404 in Production" if PRODUCTION else "served in Development"), code == (404 if PRODUCTION else 200), code)
+    check("API docs " + ("served" if DOCS else "404"), code == (200 if DOCS else 404), code)
+
+    sql("RENAME TABLE event_payment_otp TO event_payment_otp_e2e_hidden")
+    try:
+        code, out = call("POST", f"/api/public/membership-dues/{dues}/send-otp", {"memberProfileId": int(member)})
+    finally:
+        sql("RENAME TABLE event_payment_otp_e2e_hidden TO event_payment_otp")
+    check("a server error answers 500", code == 500, (code, out[:160]))
+    if DETAILS:
+        check("the error shows its detail", b"event_payment_otp" in out, out[:160])
+    else:
+        check("the error shows no detail", b"event_payment_otp" not in out and b"MySql" not in out and b"Something went wrong" in out, out[:160])
 finally:
     sql(f"DELETE FROM payment_checkout_sessions WHERE pk_id={session}")
     sql(f"DELETE FROM payment_checkout_sessions WHERE merchant_order_id LIKE 'DUES{dues}\\_%'")
