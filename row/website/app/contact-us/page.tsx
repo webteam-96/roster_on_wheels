@@ -32,7 +32,8 @@ export default function ContactUs() {
         <section className={s.reach} id="call-or-email-us" aria-labelledby="call-or-email-us-title">
           <h2 className={s.reachTitle} id="call-or-email-us-title">Call or email us</h2>
           <ul className={s.cards}>
-            <li className={`kcard ${s.card}`} data-c="azure" data-reveal style={{ "--tilt": "-1deg" } as CSSProperties}>
+            {PHONES.length > 0 && (
+<li className={`kcard ${s.card}`} data-c="azure" data-reveal style={{ "--tilt": "-1deg" } as CSSProperties}>
               <span className={s.badge} aria-hidden="true">
                 <svg className="ico" viewBox="0 0 24 24">
                   <rect x="6.5" y="2.5" width="11" height="19" rx="3" />
@@ -51,6 +52,7 @@ export default function ContactUs() {
                 ))}
               </ul>
             </li>
+)}
             <li className={`kcard ${s.card}`} data-c="cream" data-reveal style={{ "--tilt": "1deg" } as CSSProperties}>
               <span className={s.badge} aria-hidden="true">
                 <svg className="ico" viewBox="0 0 24 24">

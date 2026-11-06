@@ -639,7 +639,7 @@ export default function PublicImageInitiativeAddPage() {
         <Section icon={IndianRupee} title="Financial & Impact" number={4}>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             <div className="space-y-1.5">
-              <Req>Project Cost (&#8377;)</Req>
+              <Req>Project Cost ({currencySymbol()})</Req>
               <Input type="number" value={projectCost} onChange={(e) => setProjectCost(e.target.value)} placeholder="0" min="0" />
             </div>
             <div className="space-y-1.5">

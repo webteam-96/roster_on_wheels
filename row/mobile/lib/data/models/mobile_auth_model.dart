@@ -91,6 +91,7 @@ class MobileOtpRequestResult {
 }
 
 class MobileVerifyOtpResult {
+  final bool mustChangePassword;
   final String token;
   final DateTime expiresAt;
   final int memberId;
@@ -106,6 +107,7 @@ class MobileVerifyOtpResult {
   final List<ZoneScopeModel> accessibleZones;
 
   const MobileVerifyOtpResult({
+    this.mustChangePassword = false,
     required this.token,
     required this.expiresAt,
     required this.memberId,
@@ -123,6 +125,7 @@ class MobileVerifyOtpResult {
 
   factory MobileVerifyOtpResult.fromJson(Map<String, dynamic> j) =>
       MobileVerifyOtpResult(
+        mustChangePassword: j['mustChangePassword'] as bool? ?? false,
         token: j['token']?.toString() ?? '',
         expiresAt: DateTime.tryParse(j['expiresAt']?.toString() ?? '') ??
             DateTime.now().add(const Duration(hours: 8)),

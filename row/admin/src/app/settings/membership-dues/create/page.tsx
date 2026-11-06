@@ -1159,7 +1159,7 @@ function CreateEditMembershipDuesPage() {
                 <TableHeader>
                   <TableRow>
                     <TableHead>Fee Type</TableHead>
-                    <TableHead>Total ({"\u20B9"})</TableHead>
+                    <TableHead>Total ({currencySymbol()})</TableHead>
                     {addedVendorIds.map(kycId => {
                       const vendor = kycVendors.find(k => k.id === kycId);
                       const vendorName = vendor?.name || vendorSplits.find(s => s.fkKycId === kycId)?.vendorName || "";
@@ -1194,22 +1194,22 @@ function CreateEditMembershipDuesPage() {
                       <TableRow key={ft.type}>
                         <TableCell className="font-medium">{ft.label}</TableCell>
                         <TableCell>
-                          {"\u20B9"}{onlineTotal.toFixed(2)}
-                          <span className="block text-[10px] text-muted-foreground">Base: {"\u20B9"}{feeAmount.toFixed(2)}</span>
+                          {currencySymbol()}{onlineTotal.toFixed(2)}
+                          <span className="block text-[10px] text-muted-foreground">Base: {currencySymbol()}{feeAmount.toFixed(2)}</span>
                         </TableCell>
                         {addedVendorIds.map(kycId => {
                           const split = vendorSplits.find(s => s.fkFeeType === ft.type && s.fkKycId === kycId);
                           return (
                             <TableCell key={kycId}>
-                              {split ? (amountType === "1" ? `\u20B9${split.splitAmount.toFixed(2)}` : `${split.splitAmount.toFixed(2)}%`) : "-"}
+                              {split ? (amountType === "1" ? `${currencySymbol()}${split.splitAmount.toFixed(2)}` : `${split.splitAmount.toFixed(2)}%`) : "-"}
                             </TableCell>
                           );
                         })}
                         <TableCell className="text-green-600 font-medium">
-                          {amountType === "1" ? `\u20B9${assigned.toFixed(2)}` : `${assigned.toFixed(2)}%`}
+                          {amountType === "1" ? `${currencySymbol()}${assigned.toFixed(2)}` : `${assigned.toFixed(2)}%`}
                         </TableCell>
                         <TableCell className={`font-medium ${balance > 0 ? "text-red-600" : "text-green-600"}`}>
-                          {amountType === "1" ? `\u20B9${balance.toFixed(2)}` : `${balance.toFixed(2)}%`}
+                          {amountType === "1" ? `${currencySymbol()}${balance.toFixed(2)}` : `${balance.toFixed(2)}%`}
                         </TableCell>
                       </TableRow>
                     );
@@ -1857,7 +1857,7 @@ function CreateEditMembershipDuesPage() {
                             })}
                             {/* Balance */}
                             <TableCell className={Math.abs(balance) > 0.01 ? "text-red-600 font-medium" : "text-green-600 font-medium"}>
-                              {amountType === "1" ? `\u20B9${balance.toFixed(2)}` : `${balance.toFixed(2)}%`}
+                              {amountType === "1" ? `${currencySymbol()}${balance.toFixed(2)}` : `${balance.toFixed(2)}%`}
                             </TableCell>
                             {/* Status */}
                             <TableCell>

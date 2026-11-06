@@ -1,5 +1,6 @@
 "use client";
 
+import { currencySymbol } from "@/lib/appFormat";
 import { useState, useEffect } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { getTrfYears, getClub } from "@/services/api";
@@ -91,7 +92,7 @@ function DuesIcon() {
       <path d="M4 18h36" className="stroke-primary" strokeWidth="2" />
       <rect x="8" y="28" width="12" height="4" rx="1" className="fill-primary/20 stroke-primary" strokeWidth="1" />
       <circle cx="38" cy="36" r="8" className="fill-primary/10 stroke-primary" strokeWidth="2" />
-      <text x="38" y="40" textAnchor="middle" className="fill-primary" fontSize="10" fontWeight="bold">&#8377;</text>
+      <text x="38" y="40" textAnchor="middle" className="fill-primary" fontSize="10" fontWeight="bold">{currencySymbol()}</text>
     </svg>
   );
 }

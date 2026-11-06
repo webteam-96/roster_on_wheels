@@ -191,12 +191,12 @@ public class WebsiteBillingService : IWebsiteBillingService
             // stored full host ("club.example.org") must not include it or it double-appends.
             dto.CurrentSubdomain = WebsiteDomainHelper.BareSubdomain((string?)existing.Subdomain);
             dto.CurrentEndDate = curEnd;
-            dto.NewEndDate = NewEndFrom(curEnd, months);
+            dto.NewEndDate = DateTime.SpecifyKind(NewEndFrom(curEnd, months), DateTimeKind.Unspecified); // a plain date, without the server clock's offset
         }
         else
         {
             dto.OrderType = "New";
-            dto.NewEndDate = DateTime.Today.AddMonths(months);
+            dto.NewEndDate = DateTime.SpecifyKind(DateTime.Today.AddMonths(months), DateTimeKind.Unspecified);
         }
 
         // An active paid site with > renewal window days left can't be purchased/renewed yet.

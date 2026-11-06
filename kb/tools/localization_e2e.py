@@ -105,6 +105,8 @@ try:
     check("translates through the provider", tr(["Members"]) == ["FR Members"])
     n = len(received)
     check("second ask comes from memory, no provider call", tr(["Members"]) == ["FR Members"] and len(received) == n)
+    st, r = call("POST", "/api/i18n/translate", MEMBER, {"target": "fr", "source": "en", "q": ["Members"]})
+    check("an ordinary signed-in member can translate", st == 200 and r["translations"] == ["FR Members"], f"{st} {r}")
     check("memory row stored", sql("SELECT translated_text, provider, is_override FROM translation_memory WHERE source_text='Members'") == "FR Members\tlibretranslate\t0")
     check("usage counted", int(sql("SELECT SUM(chars_sent) FROM translation_usage")) >= 7)
     check("English target sends nothing", tr(["Hello there"], target="en") == ["Hello there"] and len(received) == n)

@@ -34,9 +34,11 @@ const passwordChecks: PasswordCheck[] = [
 interface ChangePasswordDialogProps {
   open: boolean;
   onClose: () => void;
+  /** Temporary password: the only way out is to change it or sign out. */
+  required?: boolean;
 }
 
-export default function ChangePasswordDialog({ open, onClose }: ChangePasswordDialogProps) {
+export default function ChangePasswordDialog({ open, onClose, required = false }: ChangePasswordDialogProps) {
   const { logout } = useAuth();
   const [showSuccess, setShowSuccess] = useState(false);
 
@@ -114,7 +116,7 @@ export default function ChangePasswordDialog({ open, onClose }: ChangePasswordDi
   }
 
   return (
-    <AlertDialog open={open} onOpenChange={(isOpen) => { if (!isOpen) { resetForm(); onClose(); } }}>
+    <AlertDialog open={open} onOpenChange={(isOpen) => { if (!isOpen && !required) { resetForm(); onClose(); } }}>
       <AlertDialogContent className="max-w-md">
         <AlertDialogHeader>
           <AlertDialogTitle>Change Password</AlertDialogTitle>
@@ -234,10 +236,10 @@ export default function ChangePasswordDialog({ open, onClose }: ChangePasswordDi
             <Button
               type="button"
               variant="outline"
-              onClick={() => { resetForm(); onClose(); }}
+              onClick={() => { resetForm(); if (required) logout(); else onClose(); }}
               disabled={isLoading}
             >
-              Cancel
+              {required ? "Sign out" : "Cancel"}
             </Button>
             <Button
               type="submit"

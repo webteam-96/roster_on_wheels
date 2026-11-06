@@ -172,6 +172,11 @@ api.interceptors.response.use(
       const here = stripBase(window.location.pathname);
       window.location.href = withBase(here.startsWith("/report/") ? `/login?returnUrl=${encodeURIComponent(here)}` : "/login");
     }
+    // A temporary-password session outside the sign-in page's change dialog (reload, typed address).
+    if (error.response?.data?.code === "PASSWORD_CHANGE_REQUIRED" && typeof window !== "undefined" && !window.location.pathname.endsWith("/login")) {
+      localStorage.removeItem("auth_token");
+      window.location.href = withBase("/login");
+    }
     return Promise.reject(error);
   }
 );

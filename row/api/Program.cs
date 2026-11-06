@@ -463,6 +463,24 @@ app.Use((ctx, next) =>
     return next();
 });
 
+// Security headers on every API answer, and plain http goes to https outside local runs.
+app.Use((ctx, next) =>
+{
+    var headers = ctx.Response.Headers;
+    headers["X-Content-Type-Options"] = "nosniff";
+    headers["X-Frame-Options"] = "SAMEORIGIN";
+    headers["Referrer-Policy"] = "strict-origin-when-cross-origin";
+    headers["Content-Security-Policy"] = "frame-ancestors 'self'; object-src 'self'; base-uri 'none'";
+    if (app.Environment.IsProduction() && !ctx.Request.IsHttps && !RotaryApi.Services.TemporaryPasswordGuard.IsLocal(ctx))
+    {
+        ctx.Response.StatusCode = StatusCodes.Status308PermanentRedirect;
+        headers.Location = $"https://{ctx.Request.Host}{ctx.Request.PathBase}{ctx.Request.Path}{ctx.Request.QueryString}";
+        return Task.CompletedTask;
+    }
+    if (ctx.Request.IsHttps) headers["Strict-Transport-Security"] = "max-age=31536000";
+    return next();
+});
+
 // Startup banner — tells the morning admin which background services are
 // armed without having to grep the codebase. Visible in stdout / Plesk log
 // the moment the API binds its port.
@@ -744,6 +762,7 @@ app.UseMiddleware<RotaryApi.Services.FeatureGateMiddleware>(); // skipped / swit
 app.UseRateLimiter();
 app.UseAuthentication();
 app.UseAuthorization();
+app.UseMiddleware<RotaryApi.Services.TemporaryPasswordGuard>(); // a temporary password opens only the password change
 app.UseMiddleware<RotaryApi.Services.ScopeWriteGuardMiddleware>(); // club/district writes need a role for that club/district
 app.UseMiddleware<RotaryApi.Services.TrialLockMiddleware>(); // build spec 3.5: an ended trial locks its district out
 app.UseMiddleware<RotaryApi.Services.PlanningWriteGuardMiddleware>(); // planning districts: current year is read-only

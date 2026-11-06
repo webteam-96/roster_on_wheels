@@ -56,7 +56,8 @@ public class ScopeWriteGuardMiddleware
         {
             var rule = RoleOnly.FirstOrDefault(r => path.Equals(r.Prefix, StringComparison.OrdinalIgnoreCase)
                 || path.StartsWith(r.Prefix + "/", StringComparison.OrdinalIgnoreCase));
-            if (rule.Roles != null)
+            // i18n/translate only reads UI text: every signed-in web and app user needs it. The rest of i18n is SuperAdmin.
+            if (rule.Roles != null && !path.Equals("/api/i18n/translate", StringComparison.OrdinalIgnoreCase))
             {
                 var member = int.TryParse(ctx.User.FindFirst("memberId")?.Value, out var mid) ? mid : 0;
                 if (member <= 0 || !await HasAnyRoleAsync(member, rule.Roles))

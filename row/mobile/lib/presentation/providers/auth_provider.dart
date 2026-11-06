@@ -731,6 +731,24 @@ class AuthProvider extends ChangeNotifier {
 
   /// Signs in with email + password and stores the same mobile session the OTP
   /// flow used (device session, scopes, 90-day mobile JWT).
+  ({String token, String email, String password})? _temporarySession;
+  bool get mustChangePassword => _temporarySession != null;
+
+  /// Changes the temporary password, then signs in with the new one.
+  Future<bool> changeTemporaryPassword({required String newPassword, required String confirmPassword}) async {
+    final temp = _temporarySession;
+    if (temp == null) return false;
+    await _storage.write(key: AppConstants.tokenKey, value: temp.token);
+    final changed = await changePassword(
+      currentPassword: temp.password,
+      newPassword: newPassword,
+      confirmPassword: confirmPassword,
+    );
+    await _storage.delete(key: AppConstants.tokenKey);
+    if (!changed) return false;
+    return login(email: temp.email, password: newPassword);
+  }
+
   Future<bool> login({required String email, required String password}) async {
     _isLoading = true;
     _error = null;
@@ -752,7 +770,14 @@ class AuthProvider extends ChangeNotifier {
         requiresAuth: false,
       );
       if (response.isSuccess && response.data != null) {
-        await _saveSession(MobileVerifyOtpResult.fromJson(response.data!));
+        final result = MobileVerifyOtpResult.fromJson(response.data!);
+        if (result.mustChangePassword) {
+          // Temporary password: no saved session until it is changed.
+          _temporarySession = (token: result.token, email: email, password: password);
+        } else {
+          _temporarySession = null;
+          await _saveSession(result);
+        }
         _isLoading = false;
         notifyListeners();
         return true;

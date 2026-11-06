@@ -86,15 +86,16 @@ public class MobileAuthService : IMobileAuthService
         await TrialLock.RefuseIfLockedAsync(conn, memberId); // build spec 3.5: an ended trial locks the district out
         await conn.ExecuteAsync("sp_auth_update_success_login", new { p_CredId = credId }, commandType: CommandType.StoredProcedure);
 
+        bool isTemporary = cred.IsTemporaryPassword != null && Convert.ToBoolean(cred.IsTemporaryPassword);
         return await IssueSessionAsync(conn, memberId, null, "member", new MobileVerifyOtpDto
         {
             Imei = dto.Imei, DeviceToken = dto.DeviceToken, DeviceName = dto.DeviceName, AppVersion = dto.AppVersion,
-        });
+        }, isTemporary);
     }
 
     // Login guards, device session and the mobile JWT, shared by OTP and password sign-in.
     private async Task<MobileVerifyOtpResponse> IssueSessionAsync(
-        MySqlConnection conn, int memberId, int? familyMemberId, string loginType, MobileVerifyOtpDto dto)
+        MySqlConnection conn, int memberId, int? familyMemberId, string loginType, MobileVerifyOtpDto dto, bool mustChangePassword = false)
     {
 
         // Non-sync cascade login guard — deny if the member's only club went non-sync
@@ -246,10 +247,11 @@ public class MobileAuthService : IMobileAuthService
             loginType == "family" ? "family" : "member",
             familyMemberId,
             dto.Imei,
-            expiresAtUtc);
+            expiresAtUtc, mustChangePassword);
 
         return new MobileVerifyOtpResponse
         {
+            MustChangePassword = mustChangePassword,
             Token = token,
             ExpiresAt = expiresAtUtc,
             MemberId = memberId,
@@ -375,7 +377,7 @@ public class MobileAuthService : IMobileAuthService
     private string GenerateMobileJwtToken(
         int memberId, string name, string email, List<string> roles,
         string memberType, int? familyMemberId, string? imei,
-        DateTime expiresAtUtc)
+        DateTime expiresAtUtc, bool mustChangePassword = false)
     {
         var jwtSettings = _configuration.GetSection("JwtSettings");
         var secret = jwtSettings["Secret"]!;
@@ -397,6 +399,9 @@ public class MobileAuthService : IMobileAuthService
 
         if (!string.IsNullOrWhiteSpace(imei))
             claims.Add(new Claim("imei", imei));
+
+        if (mustChangePassword)
+            claims.Add(new Claim(TemporaryPasswordGuard.Claim, "1"));
 
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secret));
         var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);

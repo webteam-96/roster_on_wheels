@@ -145,7 +145,11 @@ public class MembershipDuesController : ControllerBase
             await _service.DeleteAsync(id, GetUserId());
             return Ok(new { message = "Club dues deleted." });
         }
-        catch (Exception ex) when (ex is InvalidOperationException or ArgumentException)
+        catch (InvalidOperationException ex)
+        {
+            return Conflict(new { message = ex.Message });
+        }
+        catch (ArgumentException ex)
         {
             return StatusCode(500, new { message = $"Failed to delete club dues: {ex.Message}" });
         }

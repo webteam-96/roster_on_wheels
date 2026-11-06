@@ -70,6 +70,8 @@ public class ClubService : IClubService
                 ZoneId = zoneId
             });
 
+        page = Math.Max(page, 1);
+        pageSize = Math.Max(pageSize, 1);
         var offset = (page - 1) * pageSize;
 
         var dataSql = $@"
@@ -397,6 +399,8 @@ public class ClubService : IClubService
         // membership in THIS club; anyone else falls under the AllClubs flags.
         var viewerSharesClub = await MemberPrivacyHelper.ViewerSharesClubAsync(connection, viewerMemberId, clubId);
 
+        page = Math.Max(page, 1);
+        pageSize = Math.Max(pageSize, 1);
         var offset = (page - 1) * pageSize;
 
         // Trim whitespace — the mobile app was sending `test+` which decodes to
@@ -1262,6 +1266,8 @@ public class ClubService : IClubService
         using var connection = CreateConnection();
         await connection.OpenAsync();
 
+        page = Math.Max(page, 1);
+        pageSize = Math.Max(pageSize, 1);
         var offset = (page - 1) * pageSize;
 
         using var multi = await connection.QueryMultipleAsync(

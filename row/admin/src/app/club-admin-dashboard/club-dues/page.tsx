@@ -17,7 +17,7 @@ import SuccessAlert from "@/components/SuccessAlert";
 import ErrorAlert from "@/components/ErrorAlert";
 import { Link2, RefreshCw } from "@/components/icons";
 
-import { appLocale, currencySymbol } from "@/lib/appFormat";
+import { appLocale, currencySymbol, defaultCurrency } from "@/lib/appFormat";
 import { ListPageSkeleton } from "@/components/row/AppKit";
 declare global { interface Window { Razorpay?: any } }
 
@@ -108,7 +108,7 @@ function ClubDuesCard({ club, onSuccess, onError }: { club: OfficerClub; onSucce
         key: res.keyId,
         order_id: res.razorpayOrderId,
         amount: res.amountPaise,
-        currency: "INR",
+        currency: defaultCurrency(),
         name: data?.purpose || "District Dues",
         description: `${data?.clubName || club.clubName}: District ${data?.districtNumber || club.districtNumber}`,
         prefill: { name: res.customerName || "", email: res.customerEmail || "", contact: res.customerPhone || "" },

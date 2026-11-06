@@ -36,7 +36,8 @@ export default function SiteFooter() {
         </nav>
         {/* Contact Us page details (V2 doc) */}
         <ul className="footer__contact">
-          <li>
+          {PHONES.length > 0 && (
+<li>
             <span className="footer__ico" aria-hidden="true">
               <svg viewBox="0 0 24 24"><rect x="6.5" y="2.5" width="11" height="19" rx="3" /><path d="M10.5 18h3" /></svg>
             </span>
@@ -47,6 +48,7 @@ export default function SiteFooter() {
               ))}
             </span>
           </li>
+)}
           <li>
             <span className="footer__ico" aria-hidden="true">
               <svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="3" /><path d="M4 7.5l8 6 8-6" /></svg>

@@ -77,8 +77,8 @@ export default async function TermsPage() {
         <h2>5. Payments</h2>
         <h3>5.1 Currency &amp; Pricing</h3>
         <p>
-          All payments on the Platform are denominated and processed in{" "}
-          <strong>Indian Rupees (INR / ₹)</strong>. Exact amounts, applicable
+          Payments on the Platform are processed in the currency shown on the
+          payment confirmation screen. Exact amounts, applicable
           taxes, and the recipient (Rotary club, district, project, or The
           Rotary Foundation) are displayed on the payment confirmation screen
           before you authorise the transaction.

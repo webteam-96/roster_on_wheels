@@ -4,13 +4,12 @@ import React, { useState, useEffect, useMemo } from "react";
 import DateField from "@/components/DateField";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator, DropdownMenuLabel } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -18,13 +17,14 @@ import ErrorAlert from "@/components/ErrorAlert";
 import SuccessAlert from "@/components/SuccessAlert";
 import RotaryLoader from "@/components/RotaryLoader";
 import ProtectedRoute from "@/components/ProtectedRoute";
+import Pagination from "@/components/Pagination";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import WebsiteTrainingAppointmentsTab from "./WebsiteTrainingAppointmentsTab";
 import TrainingAvailabilityTab from "./TrainingAvailabilityTab";
 import {
   ArrowLeft, Plus, Pencil, Trash2, Power, PowerOff, Send, FileText, Download,
-  CheckCircle2, Clock, AlertTriangle, XCircle, Globe, Settings as SettingsIcon,
-  RotateCw, Server, Loader2, Lock, Wrench, ChevronDown, Zap, Sparkles,
+  AlertTriangle, XCircle, Globe, Settings as SettingsIcon,
+  RotateCw, Server, Loader2, Lock, Wrench, ChevronDown, Zap, MoreHorizontal, Search,
 } from "@/components/icons";
 import {
   getDistricts, getThemes,
@@ -42,7 +42,7 @@ import {
 import { exportToCSV } from "@/utils/csvExport";
 
 import { appLocale, currencySymbol } from "@/lib/appFormat";
-import { ListPageSkeleton } from "@/components/row/AppKit";
+import { ListPageSkeleton, PageHeader, SearchField, SkeletonRows } from "@/components/row/AppKit";
 type Row = {
   id: number; clubId: number; clubName: string; clubRotaryId: string;
   districtNumber: string; subdomain: string; clientDomain: string | null;
@@ -113,14 +113,19 @@ function toVisitUrl(raw: string | null | undefined, parentDomain?: string): stri
   return `https://${host}`;
 }
 
+const PAGE_SIZE = 25;
+const LIST_HEAD ="whitespace-nowrap text-[13px] font-semibold text-[#64748B]";
+const STATUS_PILL = "inline-flex items-center whitespace-nowrap rounded-[8px] px-2 py-0.5 text-[12px] font-semibold";
+
+// Brand neutrals by default; gold and red only where someone has to act.
 function statusBadge(status: string, daysLeft: number) {
-  if (status === "Expired") return <Badge variant="destructive"><XCircle className="mr-1 h-3 w-3" />Expired</Badge>;
-  if (status === "ActivationFailed") return <Badge variant="destructive"><AlertTriangle className="mr-1 h-3 w-3" />Activation Failed</Badge>;
-  if (status === "Inactive") return <Badge variant="secondary"><Clock className="mr-1 h-3 w-3" />Inactive</Badge>;
+  if (status === "Expired") return <span className={`${STATUS_PILL} bg-red-100 text-red-800`}>Expired</span>;
+  if (status === "ActivationFailed") return <span className={`${STATUS_PILL} bg-red-100 text-red-800`}>Activation Failed</span>;
+  if (status === "Inactive") return <span className={`${STATUS_PILL} bg-[#EDF4FB] text-[#64748B]`}>Inactive</span>;
   if (status === "Active") {
-    if (daysLeft <= 7) return <Badge className="bg-red-600"><AlertTriangle className="mr-1 h-3 w-3" />Active · {daysLeft}d</Badge>;
-    if (daysLeft <= 30) return <Badge className="bg-amber-500"><AlertTriangle className="mr-1 h-3 w-3" />Active · {daysLeft}d</Badge>;
-    return <Badge className="bg-green-600"><CheckCircle2 className="mr-1 h-3 w-3" />Active · {daysLeft}d</Badge>;
+    if (daysLeft <= 7) return <span className={`${STATUS_PILL} bg-red-100 text-red-800`}>Active · {daysLeft}d</span>;
+    if (daysLeft <= 30) return <span className={`${STATUS_PILL} bg-[#FFC65C] text-[#1B2C42]`}>Active · {daysLeft}d</span>;
+    return <span className={`${STATUS_PILL} bg-[#CFE2F6] text-[#0B3F7A]`}>Active · {daysLeft}d</span>;
   }
   return <Badge variant="outline">{status}</Badge>;
 }
@@ -131,6 +136,8 @@ export default function ClubWebsitesPage() {
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [districtFilter, setDistrictFilter] = useState<string>("");
   const [search, setSearch] = useState("");
+  const [page, setPage] = useState(1);
+  useEffect(() => { setPage(1); }, [search, statusFilter, districtFilter]);
   const [districts, setDistricts] = useState<any[]>([]);
   const [clubs, setClubs] = useState<any[]>([]);
   const [themes, setThemes] = useState<any[]>([]);
@@ -657,6 +664,11 @@ export default function ClubWebsitesPage() {
       r.districtNumber?.toLowerCase().includes(q));
   }, [rows, search]);
 
+  const totalPages = Math.max(1, Math.ceil(filteredRows.length / PAGE_SIZE));
+  // Clamped: deleting the last row of the last page must not leave an empty page.
+  const currentPage = Math.min(page, totalPages);
+  const pagedRows = filteredRows.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
+
   const expiringSoon = rows.filter(r => r.status === "Active" && r.daysLeft >= 0 && r.daysLeft <= 30).length;
   const expired = rows.filter(r => r.status === "Expired").length;
   const active = rows.filter(r => r.status === "Active").length;
@@ -761,69 +773,86 @@ export default function ClubWebsitesPage() {
           </div>
         )}
 
-        <div className="flex items-center justify-between gap-3 flex-wrap">
-          <div className="flex items-center gap-3">
-            <Button variant="outline" size="icon" asChild>
-              <Link href="/settings"><ArrowLeft className="h-4 w-4" /></Link>
-            </Button>
-            <div>
-              <h2 className="text-2xl font-bold tracking-tight text-primary">Club Websites</h2>
-              <p className="text-muted-foreground text-base">Manage club website subscriptions, templates & renewals</p>
+        <PageHeader
+          eyebrow={
+            <Link href="/settings" className="inline-flex items-center gap-1.5 hover:text-[#1B2C42]">
+              <ArrowLeft className="h-3.5 w-3.5" />Settings
+            </Link>
+          }
+          title="Club Websites"
+          description="Subscriptions, templates and renewals."
+          actions={
+            <>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" title="Advanced Plesk and IIS tools">
+                    {recyclingPools ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Wrench className="mr-2 h-4 w-4" />}
+                    Tools<ChevronDown className="ml-2 h-3 w-3" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56">
+                  <DropdownMenuItem onClick={doTestPlesk}>
+                    <Server className="mr-2 h-4 w-4" />Test Connection
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={doListPleskSubdomains}>
+                    <Globe className="mr-2 h-4 w-4" />List All Subdomains
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => runDiag("list-subdomains")}>
+                    <AlertTriangle className="mr-2 h-4 w-4" />Raw XML Diagnostic
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={doRecycleAllPools}
+                    disabled={recyclingPools}
+                    title="Recycle every IIS app pool whose name contains the parent domain. Use AFTER a code deploy so all pools pick up the new build in one shot. Theme/banner/project changes auto-refresh. Don't need this."
+                  >
+                    <RotateCw className="mr-2 h-4 w-4" />{recyclingPools ? "Recycling all pools…" : "Recycle All Pools"}
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={doForceCleanPlesk} className="text-red-600 focus:text-red-700">
+                    <Trash2 className="mr-2 h-4 w-4" />Force Clean Subdomain
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+              <Button variant="outline" onClick={openSettings}>
+                <SettingsIcon className="mr-2 h-4 w-4" />Settings
+              </Button>
+              <Button onClick={openAdd}>
+                <Plus className="mr-2 h-4 w-4" />Add Website
+              </Button>
+            </>
+          }
+        />
+
+        {/* Colour only when a count needs attention: a zero stays quiet. */}
+        <dl className="grid grid-cols-2 gap-px overflow-hidden rounded-[20px] border border-[color:var(--row-line)] bg-[color:var(--row-line)] lg:grid-cols-4">
+          {[
+            { label: "Total", value: rows.length, alert: "" },
+            { label: "Active", value: active, alert: "" },
+            { label: "Expiring in 30 days", value: expiringSoon, alert: "text-amber-800" },
+            { label: "Expired", value: expired, alert: "text-red-800" },
+          ].map((s) => (
+            <div key={s.label} className="bg-[#FCFDFE] px-6 py-4">
+              <dt className="text-[13px] text-[#64748B]">{s.label}</dt>
+              <dd className={`mt-1 font-display text-[26px] font-semibold leading-none tabular-nums ${s.value > 0 && s.alert ? s.alert : "text-[#1B2C42]"}`}>
+                {loading ? "–" : s.value}
+              </dd>
             </div>
-          </div>
-          <div className="flex gap-2 flex-wrap">
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="outline" title="Advanced Plesk tools">
-                  <Wrench className="mr-2 h-4 w-4" />Plesk Tools<ChevronDown className="ml-2 h-3 w-3" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56">
-                <DropdownMenuItem onClick={doTestPlesk}>
-                  <Server className="mr-2 h-4 w-4" />Test Connection
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={doListPleskSubdomains}>
-                  <Globe className="mr-2 h-4 w-4" />List All Subdomains
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => runDiag("list-subdomains")}>
-                  <AlertTriangle className="mr-2 h-4 w-4" />Raw XML Diagnostic
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={doForceCleanPlesk} className="text-red-600 focus:text-red-700">
-                  <Trash2 className="mr-2 h-4 w-4" />Force Clean Subdomain
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-            <Button variant="outline" onClick={openSettings}>
-              <SettingsIcon className="mr-2 h-4 w-4" />Settings ({defaultReminderDays}d · .{parentDomain})
-            </Button>
-            <Button
-              variant="outline"
-              onClick={doRecycleAllPools}
-              disabled={recyclingPools}
-              title="Recycle every IIS app pool whose name contains the parent domain. Use AFTER a code deploy so all pools pick up the new build in one shot. Theme/banner/project changes auto-refresh. Don't need this."
-            >
-              {recyclingPools
-                ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Recycling all pools…</>
-                : <><RotateCw className="mr-2 h-4 w-4" />Recycle All Pools</>}
-            </Button>
-            <Button onClick={openAdd}>
-              <Plus className="mr-2 h-4 w-4" />Add Website
-            </Button>
-          </div>
-        </div>
+          ))}
+        </dl>
 
-        <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
-          <Card><CardContent className="p-4"><p className="text-xs text-muted-foreground">Total</p><p className="text-xl font-bold">{rows.length}</p></CardContent></Card>
-          <Card><CardContent className="p-4"><p className="text-xs text-muted-foreground">Active</p><p className="text-xl font-bold text-green-600">{active}</p></CardContent></Card>
-          <Card><CardContent className="p-4"><p className="text-xs text-muted-foreground">Expiring (≤30d)</p><p className="text-xl font-bold text-amber-600">{expiringSoon}</p></CardContent></Card>
-          <Card><CardContent className="p-4"><p className="text-xs text-muted-foreground">Expired</p><p className="text-xl font-bold text-red-600">{expired}</p></CardContent></Card>
-        </div>
-
-        <Card>
-          <CardContent className="p-4 grid grid-cols-1 md:grid-cols-4 gap-3">
+        <section className="overflow-hidden rounded-[20px] border border-[color:var(--row-line)] bg-[#FCFDFE]">
+          <div className="flex flex-wrap items-center gap-3 px-6 py-4">
+            <div className="w-full sm:w-72" onKeyDown={(e) => e.key === "Enter" && loadRows()}>
+              <SearchField
+                label="Search club or subdomain"
+                placeholder="Search club or subdomain"
+                value={search}
+                onChange={setSearch}
+                icon={<Search className="h-4 w-4" />}
+              />
+            </div>
             <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger><SelectValue placeholder="Status" /></SelectTrigger>
+              <SelectTrigger className="h-11 w-full rounded-[12px] sm:w-44" aria-label="Filter by status"><SelectValue placeholder="Status" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Status</SelectItem>
                 <SelectItem value="Active">Active</SelectItem>
@@ -833,7 +862,7 @@ export default function ClubWebsitesPage() {
               </SelectContent>
             </Select>
             <Select value={districtFilter || "all"} onValueChange={(v) => setDistrictFilter(v === "all" ? "" : v)}>
-              <SelectTrigger><SelectValue placeholder="District" /></SelectTrigger>
+              <SelectTrigger className="h-11 w-full rounded-[12px] sm:w-44" aria-label="Filter by district"><SelectValue placeholder="District" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Districts</SelectItem>
                 {districts.map((d: any) => (
@@ -841,25 +870,30 @@ export default function ClubWebsitesPage() {
                 ))}
               </SelectContent>
             </Select>
-            <Input placeholder="Search club / subdomain..." value={search} onChange={(e) => setSearch(e.target.value)} onKeyDown={(e) => e.key === "Enter" && loadRows()} />
-            <Button variant="outline" onClick={exportExcel} disabled={filteredRows.length === 0}>
-              <Download className="mr-2 h-4 w-4" />Export Excel
-            </Button>
-            <Button variant="outline" onClick={exportThirdPartyDomains} disabled={filteredRows.length === 0} title="Export report focused on Third party Domains (all rows)">
-              <Download className="mr-2 h-4 w-4" />Export Third party Domains
-            </Button>
-          </CardContent>
-        </Card>
+            <div className="flex items-center gap-3 sm:ml-auto">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" className="h-11" disabled={filteredRows.length === 0}>
+                    <Download className="mr-2 h-4 w-4" />Export<ChevronDown className="ml-2 h-3 w-3" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56">
+                  <DropdownMenuItem onClick={exportExcel}>Export Excel</DropdownMenuItem>
+                  <DropdownMenuItem onClick={exportThirdPartyDomains} title="Export report focused on Third party Domains (all rows)">
+                    Export Third party Domains
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+          </div>
 
-        {/* Bulk Start-Trial toolbar — visible only when at least 1 row is selected. */}
-        {selectedIds.size > 0 && (
-          <Card className="border-amber-300 bg-amber-50/60">
-            <CardContent className="p-3 flex flex-wrap items-center gap-3">
-              <Sparkles className="h-5 w-5 text-amber-600" />
-              <div className="text-sm">
-                <span className="font-semibold">{selectedIds.size}</span> selected · Start a trial period and notify President + Secretary
+          {/* Bulk Start-Trial toolbar — visible only when at least 1 row is selected. */}
+          {selectedIds.size > 0 && (
+            <div className="flex flex-wrap items-center gap-3 border-t border-[color:var(--row-line)] bg-[#EDF4FB] px-6 py-3">
+              <div className="text-sm text-[#1B2C42]">
+                <span className="font-semibold">{selectedIds.size}</span> selected. Start a trial period and notify President + Secretary.
               </div>
-              <div className="flex items-center gap-2 ml-auto">
+              <div className="flex items-center gap-2 sm:ml-auto">
                 <Label className="text-xs whitespace-nowrap">Trial Period (days)</Label>
                 <Input
                   type="number"
@@ -877,158 +911,172 @@ export default function ClubWebsitesPage() {
                   Clear
                 </Button>
               </div>
-            </CardContent>
-          </Card>
-        )}
+            </div>
+          )}
 
-        <Card>
-          <CardContent className="p-0 overflow-x-auto">
-            {loading ? (
-              <div className="flex justify-center py-20"><ListPageSkeleton /></div>
-            ) : filteredRows.length === 0 ? (
-              <div className="text-center py-20 text-muted-foreground">No websites found.</div>
-            ) : (
-              <Table>
-                <TableHeader><TableRow>
-                  <TableHead className="w-10">
-                    <Checkbox
-                      checked={filteredRows.length > 0 && filteredRows.every(r => selectedIds.has(r.id))}
-                      onCheckedChange={(checked) => {
-                        if (checked) {
-                          setSelectedIds(new Set(filteredRows.map(r => r.id)));
-                        } else {
-                          setSelectedIds(new Set());
-                        }
-                      }}
-                      aria-label="Select all"
-                    />
-                  </TableHead>
-                  <TableHead>District</TableHead><TableHead>Club</TableHead>
-                  <TableHead>Subdomain</TableHead><TableHead>Template</TableHead>
-                  <TableHead>Start</TableHead><TableHead>End</TableHead>
-                  <TableHead>Status</TableHead><TableHead className="w-56">Actions</TableHead>
-                </TableRow></TableHeader>
-                <TableBody>
-                  {filteredRows.map(r => {
-                    // Phase 4 kill-switch: row is "chain inactive" when its club, district, or zone is inactive.
-                    const chainInactive = r.chainActive === 0;
-                    const inactiveTitle = chainInactive ? "Inactive: reactivate from Clubs/Districts page" : undefined;
-                    const subUrl = toVisitUrl(r.subdomain, parentDomain);
-                    const clientUrl = r.clientDomain ? toVisitUrl(r.clientDomain) : null;
-                    return (
-                    <TableRow key={r.id} className={selectedIds.has(r.id) ? "bg-muted/40" : undefined}>
-                      <TableCell>
-                        <Checkbox
-                          checked={selectedIds.has(r.id)}
-                          onCheckedChange={(checked) => {
-                            setSelectedIds(prev => {
-                              const next = new Set(prev);
-                              if (checked) next.add(r.id); else next.delete(r.id);
-                              return next;
-                            });
-                          }}
-                          aria-label={`Select ${r.clubName}`}
-                        />
-                      </TableCell>
-                      <TableCell className="font-medium">D{r.districtNumber}</TableCell>
-                      <TableCell>
-                        <div className="flex flex-wrap items-center gap-2">
-                          <div className="font-medium">{r.clubName}</div>
-                          {chainInactive && <Badge variant="destructive">Inactive</Badge>}
-                        </div>
-                        <div className="text-xs text-muted-foreground">{r.clubRotaryId}</div>
-                      </TableCell>
-                      <TableCell>
-                        {subUrl ? (
+          {loading ? (
+            <div className="border-t border-[color:var(--row-line)] px-6 py-4"><SkeletonRows rows={6} /></div>
+          ) : filteredRows.length === 0 ? (
+            <div className="border-t border-[color:var(--row-line)] py-20 text-center text-[15px] text-[#64748B]">No websites found.</div>
+          ) : (
+            <Table className="text-[14px]">
+              <TableHeader className="bg-[#EDF4FB]"><TableRow className="hover:bg-transparent">
+                <TableHead className="w-10 pl-6">
+                  <Checkbox
+                    checked={pagedRows.length > 0 && pagedRows.every(r => selectedIds.has(r.id))}
+                    onCheckedChange={(checked) => {
+                      // This page only: bulk trial emails each selected club, so never tick rows the admin cannot see.
+                      setSelectedIds(prev => {
+                        const next = new Set(prev);
+                        pagedRows.forEach(r => { if (checked) next.add(r.id); else next.delete(r.id); });
+                        return next;
+                      });
+                    }}
+                    aria-label="Select all on this page"
+                  />
+                </TableHead>
+                <TableHead className={LIST_HEAD}>District</TableHead>
+                <TableHead className={LIST_HEAD}>Club</TableHead>
+                <TableHead className={LIST_HEAD}>Address</TableHead>
+                <TableHead className={LIST_HEAD}>Template</TableHead>
+                <TableHead className={LIST_HEAD}>Term</TableHead>
+                <TableHead className={LIST_HEAD}>Status</TableHead>
+                <TableHead className={`${LIST_HEAD} pr-6 text-right`}>Actions</TableHead>
+              </TableRow></TableHeader>
+              <TableBody>
+                {pagedRows.map(r => {
+                  // Phase 4 kill-switch: row is "chain inactive" when its club, district, or zone is inactive.
+                  const chainInactive = r.chainActive === 0;
+                  const subUrl = toVisitUrl(r.subdomain, parentDomain);
+                  const clientUrl = r.clientDomain ? toVisitUrl(r.clientDomain) : null;
+                  const isPaid = !!r.isPurchased || (r.amountPaid != null && r.amountPaid > 0) || !!(r.transactionId && r.transactionId.trim());
+                  const trialLabel = r.daysLeft > 0 ? `${r.daysLeft}d left` : (r.daysLeft === 0 ? "ends today" : "expired");
+                  const rowBusy = !!busyId && busyId.startsWith(`${r.id}-`);
+                  return (
+                  <TableRow key={r.id} className={selectedIds.has(r.id) ? "bg-[#EDF4FB]" : "hover:bg-[#EDF4FB]/70"}>
+                    <TableCell className="pl-6">
+                      <Checkbox
+                        checked={selectedIds.has(r.id)}
+                        onCheckedChange={(checked) => {
+                          setSelectedIds(prev => {
+                            const next = new Set(prev);
+                            if (checked) next.add(r.id); else next.delete(r.id);
+                            return next;
+                          });
+                        }}
+                        aria-label={`Select ${r.clubName}`}
+                      />
+                    </TableCell>
+                    <TableCell className="font-semibold tabular-nums text-[#1B2C42]">D{r.districtNumber}</TableCell>
+                    <TableCell>
+                      <div className="flex flex-wrap items-center gap-2">
+                        <div className="font-semibold text-[#1B2C42]">{r.clubName}</div>
+                        {chainInactive && <Badge variant="destructive">Inactive</Badge>}
+                      </div>
+                      <div className="text-[13px] tabular-nums text-[#64748B]">{r.clubRotaryId}</div>
+                    </TableCell>
+                    <TableCell className="max-w-[320px]">
+                      {subUrl ? (
+                        <a
+                          href={subUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="block truncate text-[#17458F] hover:underline"
+                          title={`Open ${subUrl} in new tab`}
+                        >
+                          {subUrl.replace(/^https:\/\//, "")}
+                        </a>
+                      ) : (
+                        <span className="text-[#64748B]">{r.subdomain}</span>
+                      )}
+                      {/* Imported rows often repeat the subdomain as the client domain: show it only when it differs. */}
+                      {r.clientDomain && clientUrl !== subUrl && (
+                        clientUrl ? (
                           <a
-                            href={subUrl}
+                            href={clientUrl}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="font-mono text-xs text-blue-600 hover:text-blue-800 hover:underline inline-flex items-center"
-                            title={`Open ${subUrl} in new tab`}
+                            className="block truncate text-[13px] text-[#64748B] hover:text-[#17458F] hover:underline"
+                            title={`Open ${clientUrl} in new tab`}
                           >
-                            <Globe className="inline h-3 w-3 mr-1" />{r.subdomain}
+                            {clientUrl.replace(/^https:\/\//, "")}
                           </a>
                         ) : (
-                          <span className="font-mono text-xs text-muted-foreground">{r.subdomain}</span>
-                        )}
-                        {r.clientDomain && (
-                          <div>
-                            {clientUrl ? (
-                              <a
-                                href={clientUrl}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="font-mono text-xs text-muted-foreground hover:text-blue-600 hover:underline"
-                                title={`Open ${clientUrl} in new tab`}
-                              >
-                                {r.clientDomain}
-                              </a>
-                            ) : (
-                              <span className="font-mono text-xs text-muted-foreground">{r.clientDomain}</span>
-                            )}
-                          </div>
-                        )}
-                      </TableCell>
-                      <TableCell className="text-xs">{r.themeName || "–"}</TableCell>
-                      <TableCell className="text-xs">{r.startDate ? new Date(r.startDate).toLocaleDateString(appLocale()) : "–"}</TableCell>
-                      <TableCell className="text-xs">{r.endDate ? new Date(r.endDate).toLocaleDateString(appLocale()) : "–"}</TableCell>
-                      <TableCell>
-                        <div className="flex flex-col items-start gap-1">
-                          {statusBadge(r.status, r.daysLeft)}
-                          {(() => {
-                            const isPaid = !!r.isPurchased || (r.amountPaid != null && r.amountPaid > 0) || !!(r.transactionId && r.transactionId.trim());
-                            if (isPaid) {
-                              return <Badge variant="outline" className="text-[10px] border-emerald-300 text-emerald-700">Purchased</Badge>;
-                            }
-                            const daysLabel = r.daysLeft > 0 ? `${r.daysLeft}d left` : (r.daysLeft === 0 ? "ends today" : "expired");
-                            return <Badge variant="outline" className="text-[10px] border-amber-300 text-amber-700">Trial · {daysLabel}</Badge>;
-                          })()}
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex gap-1 flex-wrap">
-                          <Button size="sm" variant="outline" className="h-7" onClick={() => openEdit(r)} title="Edit website details"><Pencil className="h-3 w-3" /></Button>
-                          <Button size="sm" variant="outline" className="h-7" onClick={() => doToggle(r)} disabled={busyId === `${r.id}-toggle` || chainInactive} title={chainInactive ? inactiveTitle : (r.status === "Active" ? "Deactivate website" : "Activate website (creates subdomain in Plesk + sends welcome email)")}>
-                            {busyId === `${r.id}-toggle` ? <Loader2 className="h-3 w-3 animate-spin" /> : r.status === "Active" ? <PowerOff className="h-3 w-3" /> : <Power className="h-3 w-3" />}
-                          </Button>
-                          {r.status === "ActivationFailed" && (
-                            <>
-                              <Button size="sm" variant="default" className="h-7 bg-blue-600 hover:bg-blue-700" onClick={() => doRetry(r.id)} disabled={busyId === `${r.id}-retry` || chainInactive} title={chainInactive ? inactiveTitle : "Retry Plesk activation"}>
-                                {busyId === `${r.id}-retry` ? <Loader2 className="h-3 w-3 animate-spin" /> : <RotateCw className="h-3 w-3" />}
-                              </Button>
-                              <Button size="sm" variant="outline" className="h-7 text-amber-700" onClick={() => doForceActivate(r.id)} disabled={busyId === `${r.id}-force` || chainInactive} title={chainInactive ? inactiveTitle : "Force Activate (skip Plesk: manual setup required)"}>
-                                {busyId === `${r.id}-force` ? <Loader2 className="h-3 w-3 animate-spin" /> : <AlertTriangle className="h-3 w-3" />}
-                              </Button>
-                            </>
-                          )}
-                          {r.status === "Active" && (
-                            <Button size="sm" variant="outline" className="h-7 text-green-700" onClick={() => doRetrySsl(r.id)} disabled={busyId === `${r.id}-ssl` || chainInactive} title={chainInactive ? inactiveTitle : "Re-apply wildcard SSL certificate in Plesk (use if site shows 'not secure')"}>
-                              {busyId === `${r.id}-ssl` ? <Loader2 className="h-3 w-3 animate-spin" /> : <Lock className="h-3 w-3" />}
+                          <span className="block truncate text-[13px] text-[#64748B]">{r.clientDomain}</span>
+                        )
+                      )}
+                    </TableCell>
+                    <TableCell className="text-[#1B2C42]">{r.themeName || "–"}</TableCell>
+                    <TableCell className="whitespace-nowrap text-[13px] tabular-nums text-[#64748B]">
+                      <div>{r.startDate ? new Date(r.startDate).toLocaleDateString(appLocale()) : "–"}</div>
+                      <div>{r.endDate ? new Date(r.endDate).toLocaleDateString(appLocale()) : "–"}</div>
+                    </TableCell>
+                    <TableCell>
+                      {statusBadge(r.status, r.daysLeft)}
+                      <div className="mt-1 whitespace-nowrap text-[12px] text-[#64748B]">{isPaid ? "Purchased" : `Trial · ${trialLabel}`}</div>
+                    </TableCell>
+                    <TableCell className="pr-6">
+                      <div className="flex justify-end gap-1">
+                        <Button size="icon" variant="ghost" className="h-9 w-9" onClick={() => openEdit(r)} title="Edit website details" aria-label={`Edit ${r.clubName}`}>
+                          <Pencil className="h-4 w-4" />
+                        </Button>
+                        <DropdownMenu modal={false}>
+                          <DropdownMenuTrigger asChild>
+                            <Button size="icon" variant="ghost" className="h-9 w-9" title="More actions" aria-label={`More actions for ${r.clubName}`}>
+                              {rowBusy ? <Loader2 className="h-4 w-4 animate-spin" /> : <MoreHorizontal className="h-4 w-4" />}
                             </Button>
-                          )}
-                          <Button size="sm" variant="outline" className="h-7" onClick={() => doReminder(r.id)} disabled={busyId === `${r.id}-rem` || r.status !== "Active" || chainInactive} title={chainInactive ? inactiveTitle : (r.status !== "Active" ? "Send reminder (only available for Active websites)" : "Send renewal reminder email to Pres/Sec now")}>
-                            {busyId === `${r.id}-rem` ? <Loader2 className="h-3 w-3 animate-spin" /> : <Send className="h-3 w-3" />}
-                          </Button>
-                          <Button size="sm" variant="outline" className="h-7" onClick={() => viewLogs(r.id)} title="View activity log (all changes, activations, reminders)">
-                            <FileText className="h-3 w-3" />
-                          </Button>
-                          <Button size="sm" variant="ghost" className="h-7 text-red-600" onClick={() => doDelete(r.id)} disabled={busyId === `${r.id}-del` || chainInactive} title={chainInactive ? inactiveTitle : "Delete website: removes from Plesk + portal"}>
-                            {busyId === `${r.id}-del` ? <Loader2 className="h-3 w-3 animate-spin" /> : <Trash2 className="h-3 w-3" />}
-                          </Button>
-                          <Button size="sm" variant="ghost" className="h-7 text-red-400" onClick={() => doDeleteDbOnly(r.id)} disabled={busyId === `${r.id}-del` || chainInactive} title={chainInactive ? inactiveTitle : "Delete portal record only (keep Plesk subdomain intact)"}>
-                            <XCircle className="h-3 w-3" />
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                    );
-                  })}
-                </TableBody>
-              </Table>
-            )}
-          </CardContent>
-        </Card>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end" className="w-64">
+                            {chainInactive && (
+                              <DropdownMenuLabel className="text-xs font-normal text-[#64748B]">Inactive: reactivate from Clubs/Districts page</DropdownMenuLabel>
+                            )}
+                            <DropdownMenuItem onClick={() => doToggle(r)} disabled={rowBusy || chainInactive} title={r.status === "Active" ? "Deactivate website" : "Activate website (creates subdomain in Plesk + sends welcome email)"}>
+                              {r.status === "Active" ? <><PowerOff className="mr-2 h-4 w-4" />Deactivate website</> : <><Power className="mr-2 h-4 w-4" />Activate website</>}
+                            </DropdownMenuItem>
+                            {r.status === "ActivationFailed" && (
+                              <>
+                                <DropdownMenuItem onClick={() => doRetry(r.id)} disabled={rowBusy || chainInactive} title="Retry Plesk activation">
+                                  <RotateCw className="mr-2 h-4 w-4" />Retry activation
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => doForceActivate(r.id)} disabled={rowBusy || chainInactive} title="Force Activate (skip Plesk: manual setup required)">
+                                  <AlertTriangle className="mr-2 h-4 w-4" />Force activate
+                                </DropdownMenuItem>
+                              </>
+                            )}
+                            {r.status === "Active" && (
+                              <DropdownMenuItem onClick={() => doRetrySsl(r.id)} disabled={rowBusy || chainInactive} title="Re-apply wildcard SSL certificate in Plesk (use if site shows 'not secure')">
+                                <Lock className="mr-2 h-4 w-4" />Re-apply SSL
+                              </DropdownMenuItem>
+                            )}
+                            <DropdownMenuItem onClick={() => doReminder(r.id)} disabled={rowBusy || r.status !== "Active" || chainInactive} title="Send renewal reminder email to Pres/Sec now (Active websites only)">
+                              <Send className="mr-2 h-4 w-4" />Send renewal reminder
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => viewLogs(r.id)} title="View activity log (all changes, activations, reminders)">
+                              <FileText className="mr-2 h-4 w-4" />View activity log
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem onClick={() => doDeleteDbOnly(r.id)} disabled={rowBusy || chainInactive} className="text-red-600 focus:text-red-700" title="Delete portal record only (keep Plesk subdomain intact)">
+                              <XCircle className="mr-2 h-4 w-4" />Delete portal record only
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => doDelete(r.id)} disabled={rowBusy || chainInactive} className="text-red-600 focus:text-red-700" title="Delete website: removes from Plesk + portal">
+                              <Trash2 className="mr-2 h-4 w-4" />Delete website
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
+          )}
+          {!loading && filteredRows.length > 0 && (
+            <div className="border-t border-[color:var(--row-line)] px-6 py-4">
+              <Pagination page={currentPage} totalPages={totalPages} totalCount={filteredRows.length} pageSize={PAGE_SIZE} onPageChange={setPage} />
+            </div>
+          )}
+        </section>
 
         {/* Add / Edit Dialog */}
         <Dialog open={editOpen} onOpenChange={setEditOpen}>

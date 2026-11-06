@@ -1,5 +1,6 @@
 "use client";
 
+import { currencySymbol } from "@/lib/appFormat";
 import { useState, useEffect } from "react";
 import { useParams, useSearchParams, useRouter } from "next/navigation";
 import { verifyMembershipDuesPayment } from "@/services/api";
@@ -119,7 +120,7 @@ export default function MembershipDuesThankYouPage() {
                 {result.amount != null && (
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Amount</span>
-                    <span className="font-semibold text-green-700">&#8377;{result.amount.toFixed(2)}</span>
+                    <span className="font-semibold text-green-700">{currencySymbol()}{result.amount.toFixed(2)}</span>
                   </div>
                 )}
                 {result.paymentDate && (

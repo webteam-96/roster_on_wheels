@@ -306,7 +306,7 @@ export default function MembershipDuesMembersPage() {
 
   const formatCurrency = (val: number | undefined) => {
     if (val === undefined || val === null) return "-";
-    return `\u20B9${val.toLocaleString(appLocale(), { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    return `${currencySymbol()}${val.toLocaleString(appLocale(), { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
   };
 
   const rowBgClass = (m: DuesMember) => {
@@ -319,7 +319,7 @@ export default function MembershipDuesMembersPage() {
     if (!vendors || vendors.length === 0) return "-";
     return vendors.map(v => {
       const name = v.vendorName || (v.vendorId?.length > 10 ? v.vendorId.substring(0, 10) + "..." : v.vendorId);
-      return `${name}: \u20B9${v.amount}`;
+      return `${name}: ${currencySymbol()}${v.amount}`;
     }).join(", ");
   };
 
@@ -327,7 +327,7 @@ export default function MembershipDuesMembersPage() {
     if (!vendors || vendors.length === 0) return <span className="text-muted-foreground">-</span>;
     const displayText = vendors.map(v => {
       const name = v.vendorName || (v.vendorId?.length > 10 ? v.vendorId.substring(0, 10) + "..." : v.vendorId);
-      return `${name}: \u20B9${v.amount}`;
+      return `${name}: ${currencySymbol()}${v.amount}`;
     }).join(", ");
 
     if (vendors.length <= 2 && displayText.length <= 30) {
@@ -347,7 +347,7 @@ export default function MembershipDuesMembersPage() {
               {vendors.map((v, i) => (
                 <div key={i} className="flex justify-between gap-3">
                   <span>{v.vendorName || v.vendorId}{v.isDefault ? " (Default)" : ""}</span>
-                  <span className="font-medium">{`\u20B9${v.amount}`}</span>
+                  <span className="font-medium">{`${currencySymbol()}${v.amount}`}</span>
                 </div>
               ))}
             </div>

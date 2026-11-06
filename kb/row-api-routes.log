@@ -175,6 +175,7 @@ Mapped {api/club-dues/officer/{duesId}/offline-accounts, Get}
 Mapped {api/club-dues/{id}/reminder, Post}
 Mapped {api/club-dues/{id}/clubs/{clubId}/reminder, Post}
 Mapped {api/club-dues/test-email, Post}
+Mapped {api/club-dues/{id}/report, Get}
 Mapped {api/club-dues/{id}/export, Get}
 Mapped {api/club-dues/{id}/clubs/{clubId}/pay-link, Get}
 Mapped {api/club-dues/{id}/create-google-sheet, Post}
@@ -718,6 +719,7 @@ Mapped {api/event-payment-links/{linkId}/vendor-splits, Post}
 Mapped {api/event-payment-links/{linkId}/designations, Get}
 Mapped {api/event-payment-links/{linkId}/designations, Post}
 Mapped {api/event-payment-links/{linkId}/designations/{desigId}, Delete}
+Mapped {api/event-payment-links/{linkId}/report, Get}
 Mapped {api/event-payment-links/{linkId}/members, Get}
 Mapped {api/event-payment-links/{linkId}/members/offline-payment, Post}
 Mapped {api/event-payment-links/member-payment/{memberPaymentId}, Get}
@@ -878,6 +880,7 @@ Mapped {api/membership-dues/{id}/members/{memberFeeId}/reminder-email, Post}
 Mapped {api/membership-dues/{id}/bulk-reminder-email, Post}
 Mapped {api/membership-dues/{id}/settlement-refresh, Post}
 Mapped {api/membership-dues/{id}/settlement-report, Get}
+Mapped {api/membership-dues/{id}/report, Get}
 Mapped {api/membership-dues/{id}/export, Get}
 Mapped {api/membership-dues/{id}/create-google-sheet, Post}
 Mapped {api/membership-dues/{id}/delete-google-sheet, Delete}
@@ -1121,14 +1124,12 @@ Mapped {api/public/club-dues/{id}/offline-payment, Post}
 Mapped {api/public/club-dues/{id}/offline-accounts, Get}
 Mapped {api/public/club-dues/{id}/verify-payment, Post}
 Mapped {api/public/club-dues/webhook, Post}
-Mapped {api/public/club-dues/{id}/report, Get}
 Mapped {api/public/club-website/{token}, Get}
 Mapped {api/public/club-website/{token}/check-subdomain, Get}
 Mapped {api/public/club-website/{token}/create-order, Post}
 Mapped {api/public/club-website/{token}/verify, Post}
 Mapped {api/public/dues-approval/{token}, Get}
 Mapped {api/public/dues-approval/{token}, Post}
-Mapped {api/public/event-payment/{linkId}/report, Get}
 Mapped {api/public/event-payment/{linkId}, Get}
 Mapped {api/public/event-payment/{linkId}/districts/{districtId}/clubs, Get}
 Mapped {api/public/event-payment/{linkId}/search-members, Get}
@@ -1152,10 +1153,9 @@ Mapped {api/public/membership-dues/{id}/pay, Post}
 Mapped {api/public/membership-dues/{id}/offline-payment, Post}
 Mapped {api/public/membership-dues/{id}/verify-payment, Get}
 Mapped {api/public/membership-dues/webhook, Post}
-Mapped {api/public/membership-dues/{id}/report, Get}
-Mapped {api/public/membership-dues/{id}/report/export, Get}
 Mapped {api/public/ocv-live-documents, Get}
 Mapped {api/public/ocv-live-documents/word, Get}
+Mapped {api/public/pay-link-request, Post}
 Mapped {api/public/payments/checkout/{token}, Get}
 Mapped {api/public/payments/checkout/{token}/simulate, Post}
 Mapped {api/public/projects/{id}, Get}

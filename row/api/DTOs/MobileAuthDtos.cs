@@ -54,6 +54,7 @@ public class MobileRequestOtpResponse
 
 public class MobileVerifyOtpResponse
 {
+    public bool MustChangePassword { get; set; } // signed in with a temporary password: only the password change works
     public string Token { get; set; } = "";
     public DateTime ExpiresAt { get; set; }
     public int MemberId { get; set; }

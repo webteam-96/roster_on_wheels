@@ -16,7 +16,8 @@ export const DEMO_HREF = "/contact-us#book-a-free-demo";
 export const DEMO_LABEL = "Book a free demo";
 
 // Contact Us page details (V2 doc).
-export const PHONES = ["+91 84240 64369", "+91 89287 55144"] as const;
+// Comma-separated at build time. Empty hides the phone blocks.
+export const PHONES = (process.env.NEXT_PUBLIC_SITE_PHONES ?? "").split(",").map((p) => p.trim()).filter(Boolean);
 export const EMAIL = "support@rosteronwheels.com";
 
 // ROW app store pages (from the current rosteronwheels.com).

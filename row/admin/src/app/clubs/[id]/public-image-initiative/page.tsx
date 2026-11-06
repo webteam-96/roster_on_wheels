@@ -36,7 +36,7 @@ import RotaryLoader from "@/components/RotaryLoader";
 import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";
 
-import { appLocale } from "@/lib/appFormat";
+import { appLocale, currencySymbol } from "@/lib/appFormat";
 import { ListPageSkeleton } from "@/components/row/AppKit";
 const AGREE_MESSAGE = `The data I will enter is for a Public Image Initiative conducted by my club. E.g., Hoardings, Marathons, Rotary Stories on News Papers / Radio / TV ads, etc.
 
@@ -365,7 +365,7 @@ export default function PublicImageInitiativePage() {
                     <TableHead className="text-base font-semibold">Category</TableHead>
                     <TableHead className="text-base font-semibold">Date</TableHead>
                     <TableHead className="text-base font-semibold">Location</TableHead>
-                    <TableHead className="text-base font-semibold text-right">Cost (&#8377;)</TableHead>
+                    <TableHead className="text-base font-semibold text-right">Cost ({currencySymbol()})</TableHead>
                     {canManage && (
                       <TableHead className="w-12"></TableHead>
                     )}

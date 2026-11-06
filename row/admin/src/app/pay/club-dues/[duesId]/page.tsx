@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import RotaryLoader from "@/components/RotaryLoader";
 
-import { appLocale, currencySymbol } from "@/lib/appFormat";
+import { appLocale, currencySymbol, defaultCurrency } from "@/lib/appFormat";
 import { ListPageSkeleton } from "@/components/row/AppKit";
 import { withBase } from "@/lib/basePath";
 import { sessionFrom, startCheckout } from "@/lib/checkout";
@@ -64,7 +64,7 @@ function PayInner() {
         key: res.keyId,
         order_id: res.razorpayOrderId,
         amount: res.amountPaise,
-        currency: "INR",
+        currency: defaultCurrency(),
         name: data.purpose || "District Dues",
         description: `${data.clubName}: District ${data.districtNumber}`,
         prefill: { name: res.customerName || "", email: res.customerEmail || "", contact: res.customerPhone || "" },

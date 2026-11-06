@@ -1,6 +1,6 @@
 "use client";
 
-import { usePathname } from "next/navigation";
+import { useSelectedLayoutSegments } from "next/navigation";
 import AppHeader from "@/components/AppHeader";
 import FeatureGate from "@/components/FeatureGate";
 import RoleGate from "@/components/RoleGate";
@@ -40,7 +40,9 @@ function isBareRoute(pathname: string): boolean {
 }
 
 export default function RootShell({ children }: { children: React.ReactNode }) {
-  const pathname = usePathname();
+  // From the route tree, not usePathname: under the "/admin" base path, the routes in app/admin get a different
+  // pathname on the server and in the browser (the prefix is removed twice), which breaks hydration.
+  const pathname = "/" + useSelectedLayoutSegments().filter((s) => !s.startsWith("(")).join("/");
   if (isSiteRoute(pathname) || isBareRoute(pathname)) return <>{children}</>;
   return (
     <>

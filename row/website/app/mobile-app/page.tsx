@@ -80,7 +80,7 @@ const profileArt = (
       </g>
       <Txt x={68} y={83} t="Neha Patil" size={10} anchor="middle" />
       <Txt x={68} y={95} t="Chartered Accountant" size={7} anchor="middle" weight={500} op={0.6} />
-      {[[106, "neha@example.com"], [130, "+91 98201 55123"]].map(([y, t]) => (
+      {[[106, "neha@example.com"], [130, "+1 555 0123"]].map(([y, t]) => (
         <g key={String(y)}>
           <rect x="16" y={Number(y)} width="104" height="18" rx="7" fill={C.cream2} />
           <Txt x={24} y={Number(y) + 12} t={String(t)} size={7.5} weight={500} op={0.7} />

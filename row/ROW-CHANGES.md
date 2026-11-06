@@ -675,3 +675,15 @@ It replaces the admin's own translate route and the second provider client in th
 - **Load test:** every other route measured stays under 1 s at p95 with 25 users at once.
 - **New tools:** `kb/tools/load_test.py`; real-price cases in `payments_simulated_e2e.py`.
 - **Open:** website default prices are still 14,999 and 10,999 from `Razorpay:WebsitePrice`, now shown as US$. Translation languages on the server are 8, while the app offers 30 and the web more; the others stay English.
+
+## 2026-11-05: Fixes from the live test
+
+- **Translation refused for signed-in users:** the SuperAdmin-only rule on `/api/i18n` also blocked `/api/i18n/translate`. Now open to everyone signed in.
+- **Temporary password:** a session opened with one can only change it (`TemporaryPasswordGuard`, token claim `mustChangePassword`). The web dialog cannot be dismissed. The app now asks for a new password at sign-in (new `mustChangePassword` in the mobile login answer).
+- **Rupee signs:** the ones written as `&#8377;` and `₹` on dues, event and project pages now use the configured currency. Terms page no longer names rupees.
+- **Security headers:** HSTS, X-Frame-Options, X-Content-Type-Options, Referrer-Policy and CSP on the API and the three Next.js apps. Plain http redirects to https (API in code, root and admin in `web.config`).
+- **Paid dues:** membership dues with a payment cannot be deleted (409). Club dues and event links still can.
+- **Public site phones:** now `NEXT_PUBLIC_SITE_PHONES` at build time, empty hides the phone blocks.
+- **Smaller:** `/api/clubs` paging no longer 500s on a negative page; website quote dates carry no server offset; hydration errors on `/admin/admin*` fixed (`RootShell` reads the route tree, because `usePathname` removes the base path twice there).
+- **New test:** `kb/tools/go_live_fixes_e2e.py`.
+

@@ -605,6 +605,9 @@ public class MembershipDuesService : IMembershipDuesService
     public async Task DeleteAsync(int duesId, int userId)
     {
         using var conn = GetConnection();
+        var paid = await conn.ExecuteScalarAsync<int>(
+            "SELECT COUNT(*) FROM membership_dues_payments WHERE fk_membership_dues_id=@Id AND IsPaid=1 AND isdeleted=0", new { Id = duesId });
+        if (paid > 0) throw new InvalidOperationException("These dues have payments, so they cannot be deleted. Turn them off instead.");
         await conn.ExecuteAsync("UPDATE membership_dues SET isdeleted=1, modified_by=@UserId, modified_date=NOW() WHERE pk_membership_dues_id=@Id", new { Id = duesId, UserId = userId });
         await conn.ExecuteAsync("UPDATE membership_dues_vendors SET isdeleted=1 WHERE fk_membership_dues_id=@Id", new { Id = duesId });
         await conn.ExecuteAsync("UPDATE membership_dues_member_fees SET isdeleted=1 WHERE fk_membership_dues_id=@Id", new { Id = duesId });

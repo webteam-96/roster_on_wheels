@@ -130,7 +130,7 @@ const helpArt = (
         <Card x={Number(x)} y={Number(y)} w={180} h={58} r={18}>
           <IconTile x={12} y={12} size={34} fill={String(c)} stroke={String(st)}>{icon}</IconTile>
           <text className={s.word} x="58" y="27">{word}</text>
-          <Txt x={58} y={43} t={word === "email" ? "support@rosteronwheels.com" : "+91 84240 64369"} size={8} weight={500} op={0.6} />
+          <Txt x={58} y={43} t={word === "email" ? "support@rosteronwheels.com" : "+1 555 0100"} size={8} weight={500} op={0.6} />
         </Card>
       </g>
     ))}

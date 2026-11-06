@@ -190,7 +190,7 @@ public class AuthService : IAuthService
 
         // Generate JWT
         var expiryMinutes = int.Parse(_configuration["JwtSettings:ExpiryMinutes"] ?? "480");
-        var token = GenerateJwtToken(memberId, memberName, email, roles);
+        var token = GenerateJwtToken(memberId, memberName, email, roles, isTemporary);
 
         // Build full scope data so the web client can render the dashboard switcher
         // and route to the right club/district without extra round-trips.
@@ -497,7 +497,7 @@ public class AuthService : IAuthService
         return (items, totalCount);
     }
 
-    private string GenerateJwtToken(int memberId, string name, string email, List<string> roles)
+    private string GenerateJwtToken(int memberId, string name, string email, List<string> roles, bool mustChangePassword = false)
     {
         var jwtSettings = _configuration.GetSection("JwtSettings");
         var secret = jwtSettings["Secret"]!;
@@ -512,6 +512,7 @@ public class AuthService : IAuthService
             new("email", email),
             new("roles", string.Join(",", roles))
         };
+        if (mustChangePassword) claims.Add(new Claim(TemporaryPasswordGuard.Claim, "1"));
 
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secret));
         var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);

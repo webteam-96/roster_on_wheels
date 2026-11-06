@@ -38,11 +38,50 @@ class _LoginScreenState extends State<LoginScreen> {
     final auth = context.read<AuthProvider>();
     final success = await auth.login(email: _emailCtrl.text.trim(), password: _passwordCtrl.text);
     if (!mounted) return;
-    if (success) {
+    if (success && auth.mustChangePassword) {
+      await _changeTemporaryPassword(auth);
+    } else if (success) {
       context.go(RouteNames.welcome);
     } else {
       SnackbarUtils.showError(context, auth.error ?? 'Sign-in failed.');
     }
+  }
+
+  Future<void> _changeTemporaryPassword(AuthProvider auth) async {
+    final newCtrl = TextEditingController();
+    final confirmCtrl = TextEditingController();
+    final done = await showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialog) => AlertDialog(
+        title: const Text('Set a new password'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text('You signed in with a temporary password. Use at least 8 characters with an uppercase letter, a lowercase letter, a digit and a special character.'),
+            TextField(key: const Key('newPassword'), controller: newCtrl, obscureText: true, decoration: const InputDecoration(labelText: 'New password')),
+            TextField(key: const Key('confirmPassword'), controller: confirmCtrl, obscureText: true, decoration: const InputDecoration(labelText: 'Confirm password')),
+          ],
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(dialog, false), child: const Text('Cancel')),
+          TextButton(
+            onPressed: () async {
+              final ok = await auth.changeTemporaryPassword(newPassword: newCtrl.text, confirmPassword: confirmCtrl.text);
+              if (ok) {
+                if (dialog.mounted) Navigator.pop(dialog, true);
+              } else if (mounted) {
+                SnackbarUtils.showError(context, auth.error ?? 'Could not change the password.');
+              }
+            },
+            child: const Text('Change password'),
+          ),
+        ],
+      ),
+    );
+    newCtrl.dispose();
+    confirmCtrl.dispose();
+    if (done == true && mounted) context.go(RouteNames.welcome);
   }
 
   @override

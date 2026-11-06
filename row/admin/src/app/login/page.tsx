@@ -189,6 +189,7 @@ export default function LoginPage() {
       </Card>
 
       <ChangePasswordDialog
+        required
         open={showChangePassword}
         onClose={() => {
           setShowChangePassword(false);
