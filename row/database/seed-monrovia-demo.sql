@@ -2,7 +2,7 @@
 -- Creates an active zone -> district -> club chain, a few members, and a demo
 -- SuperAdmin (naren@kaizeninfotech.com). The SuperAdmin role + password are set by
 -- the API's DatabaseInitializer on startup when Brand:SuperAdminEmail matches that email
--- (default bootstrap password: Admin@123, flagged temporary).
+-- (its first password comes from Bootstrap__SuperAdminPassword, 12+ characters, flagged temporary).
 -- Rerunnable: clears its own rows first. Load with:
 --   mysql -u root -P 3306 `row` < row/database/seed-monrovia-demo.sql
 SET @now = NOW();
@@ -42,7 +42,7 @@ INSERT INTO club_master (fk_district_id, ClubRotaryId, ClubName, City, State, Is
 VALUES (@district, 'RC-MONROVIA-03', 'Rotary Club of Monrovia Central', 'Monrovia', 'Montserrado', 1, 0, @now);
 SET @club3 = LAST_INSERT_ID();
 
--- Demo SuperAdmin (role + Admin@123 credential are set by the API on startup).
+-- Demo SuperAdmin (the API sets its role on startup, and its first password from Bootstrap__SuperAdminPassword).
 INSERT INTO member_master_profile (MemberName, EmailId, PrimaryMobileNumber, isdeleted, created_date)
 VALUES ('Naren (Demo SuperAdmin)', 'naren@kaizeninfotech.com', '770000001', 0, @now);
 SET @admin = LAST_INSERT_ID();

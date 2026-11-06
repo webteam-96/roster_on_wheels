@@ -163,6 +163,7 @@ api.interceptors.request.use((config) => {
 api.interceptors.response.use(
   (response) => response,
   (error) => {
+    ensureErrorMessage(error);
     if (isNetworkError(error)) notifyNetworkError();
     const isAuthEndpoint = error.config?.url?.startsWith("/api/auth/");
     if (error.response?.status === 401 && typeof window !== "undefined" && !isAuthEndpoint) {
@@ -179,6 +180,7 @@ api.interceptors.response.use(
 publicApi.interceptors.response.use(
   (response) => response,
   (error) => {
+    ensureErrorMessage(error);
     if (isNetworkError(error)) notifyNetworkError();
     return Promise.reject(error);
   }
@@ -6888,6 +6890,7 @@ import type {
   MeetingDuty, PublicVolunteerSheet, SaveMeetingDuty, SaveSpeaker, SaveVolunteerSheet, Speaker, VolunteerSheet,
   VolunteerSheetListItem, VolunteerTargets,
 } from "@/types/volunteers";
+import { ensureErrorMessage } from "@/lib/apiError";
 import { stripBase, withBase } from "@/lib/basePath";
 
 const sheetsBase = (clubId: number) => `/api/clubs/${clubId}/volunteer-sheets`;
