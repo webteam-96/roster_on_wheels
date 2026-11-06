@@ -184,6 +184,12 @@ try:
     # Rate limit.
     codes = [dues_verify("nope", v_pk)[0] for _ in range(35)]
     check("status route is limited: 429 within 35 more calls", 429 in codes, codes[-3:])
+    req = urllib.request.Request(API + "/api/public/club-dues/1/verify-payment", data=b"{}", method="POST", headers={"Content-Type": "application/json"})
+    try:
+        club_code = urllib.request.urlopen(req, timeout=30).status
+    except urllib.error.HTTPError as e:
+        club_code = e.code
+    check("club dues verify-payment shares the limit: 429 now", club_code == 429, club_code)
     time.sleep(61)  # give the allowance back: the next script in the suite uses this route
 finally:
     time.sleep(2)  # fire-and-forget work on the settled rows

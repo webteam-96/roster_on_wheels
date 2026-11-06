@@ -75,7 +75,7 @@ builder.Services.AddRateLimiter(o =>
     o.AddPolicy("pay-link-request", ctx => System.Threading.RateLimiting.RateLimitPartition.GetFixedWindowLimiter(
         ctx.Connection.RemoteIpAddress?.ToString() ?? "unknown",
         _ => new System.Threading.RateLimiting.FixedWindowRateLimiterOptions { PermitLimit = 10, Window = TimeSpan.FromMinutes(10) }));
-    // Payment result on the thank-you pages: 30 a minute per IP. The page asks once.
+    // Payment result on the thank-you pages, and the club dues checkout callback: 30 a minute per IP. Each asks once.
     o.AddPolicy("payment-status", ctx => System.Threading.RateLimiting.RateLimitPartition.GetFixedWindowLimiter(
         ctx.Connection.RemoteIpAddress?.ToString() ?? "unknown",
         _ => new System.Threading.RateLimiting.FixedWindowRateLimiterOptions { PermitLimit = 30, Window = TimeSpan.FromMinutes(1) }));

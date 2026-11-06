@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using RotaryApi.DTOs;
 using RotaryApi.Services;
 
@@ -71,6 +72,7 @@ public class PublicClubDuesController : ControllerBase
     }
 
     // Razorpay checkout callback — verifies the payment signature (no token needed).
+    [EnableRateLimiting("payment-status")]
     [HttpPost("{id}/verify-payment")]
     public async Task<ActionResult> VerifyPayment(int id, [FromBody] ClubDuesVerifyDto dto)
     {
