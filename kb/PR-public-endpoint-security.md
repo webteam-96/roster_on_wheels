@@ -116,3 +116,5 @@ Clean copy of this branch, on a throwaway copy of the local database. No real mo
 9. **Check `Admin@123`:** with production access, make sure no live account uses it. Anyone who did must use forgot-password.
 
 **Rollback:** redeploy the previous build. There is no schema change to undo. Pay links with a key still open their page, but the previous build ignores the key.
+
+🤖 Generated with [Claude Code](https://claude.com/claude-code)
