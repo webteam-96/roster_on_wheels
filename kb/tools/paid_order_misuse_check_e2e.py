@@ -75,9 +75,9 @@ try:
     run = subprocess.run([MYSQL, "-uroot", "-h127.0.0.1", f"-P{PORT}", DB, "--batch"], input=source, capture_output=True, text=True, encoding="utf-8")
     check("the script runs", run.returncode == 0, run.stderr)
     out = checks(run.stdout)
-    check("all six checks answer", len(out) == 6, len(out))
+    check("all seven checks answer", len(out) == 7, len(out))
     print(run.stdout[:1500])
-    summary, wrong, dupes, by_page, by_webhook, bursts = out
+    summary, wrong, dupes, by_page, by_webhook, bursts, all_webhook = out
 
 
     def lists(section, pk):
@@ -95,6 +95,13 @@ try:
     check("check 3 skips a row with a settlement", not lists(by_page, settled))
     check("check 4 finds webhook rows with no settlement", lists(by_webhook, forged))
     check("check 5 finds a burst", "2026-01-15 10:30" in bursts and f"\t{dues}\t" in bursts, bursts)
+    check("check 6 lists every webhook row, settled or not", lists(all_webhook, forged) and lists(all_webhook, twin_a))
+    settled_hook = pay(own(), "Webhook", webhook=1)
+    sql(f"INSERT INTO membership_dues_settlements (fk_membership_dues_id,fk_payment_id,Amount,SettlementStatus,SettlementUtr) VALUES ({dues},{settled_hook},100,'SUCCESS','UTR1')")
+    again = checks(subprocess.run([MYSQL, "-uroot", "-h127.0.0.1", f"-P{PORT}", DB, "--batch"], input=source, capture_output=True, text=True, encoding="utf-8").stdout)
+    check("check 6 shows the settlement next to the row", any(l.startswith(f"dues	{settled_hook}	") and "UTR1" in l for l in again[6].splitlines()) and not lists(again[4], settled_hook), again[6][:300])
+    before = sql("CHECKSUM TABLE membership_dues_payments, event_payment_members, membership_dues_settlements, event_payment_settlements")
+    check("check 6 skips rows marked another way", not lists(all_webhook, suspect))
     check("results hold no names", "MemberName" not in run.stdout)
     check("no table changed", sql("CHECKSUM TABLE membership_dues_payments, event_payment_members, membership_dues_settlements, event_payment_settlements") == before)
 finally:

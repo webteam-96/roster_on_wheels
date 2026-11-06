@@ -123,3 +123,25 @@ FROM event_payment_members
 WHERE IsPaid = 1 AND IsOnline = 1 AND PaidSource = 'Page' AND COALESCE(isdeleted, 0) = 0
 GROUP BY fk_payment_link_id, DATE_FORMAT(PaymentDate, '%Y-%m-%d %H:%i') HAVING COUNT(*) >= 5
 ORDER BY rows_marked DESC;
+
+-- CHECK 6: every payment marked PAID by a webhook, for comparing with Cashfree's settlement report. Not only suspects.
+-- Take the report for the same dates and match on order_id for dues. A row with no matching payment in Cashfree, or a
+-- different amount, is the finding. settled_amount and settlement_utr are what this database recorded, for cross-checking.
+-- On RIZones, event rows store Cashfree's numeric id while real webhooks carry our EVT... id, so a real webhook could not
+-- match an event row. Treat any event row listed there as suspicious until Cashfree confirms it.
+SELECT 'dues' AS flow, p.pk_id, p.fk_membership_dues_id AS campaign_id, p.fk_member_profile_id AS member_id,
+       p.TransactionId AS order_id, p.CfOrderId AS gateway_id, p.Amount, p.PaymentDate, p.WebhookReceivedDate,
+       SUM(CASE WHEN s.SettlementStatus = 'SUCCESS' THEN s.Amount END) AS settled_amount, MAX(s.SettlementUtr) AS settlement_utr
+FROM membership_dues_payments p
+LEFT JOIN membership_dues_settlements s ON s.fk_payment_id = p.pk_id
+WHERE p.IsPaid = 1 AND p.IsOnline = 1 AND p.PaidSource = 'Webhook' AND COALESCE(p.isdeleted, 0) = 0
+GROUP BY p.pk_id, p.fk_membership_dues_id, p.fk_member_profile_id, p.TransactionId, p.CfOrderId, p.Amount, p.PaymentDate, p.WebhookReceivedDate
+UNION ALL
+SELECT 'event', p.pk_id, p.fk_payment_link_id, p.fk_member_profile_id,
+       NULL, p.CfOrderId, p.Amount, p.PaymentDate, p.WebhookReceivedDate,
+       SUM(CASE WHEN s.SettlementStatus = 'SUCCESS' THEN s.Amount END), MAX(s.SettlementUtr)
+FROM event_payment_members p
+LEFT JOIN event_payment_settlements s ON s.fk_member_payment_id = p.pk_id
+WHERE p.IsPaid = 1 AND p.IsOnline = 1 AND p.PaidSource = 'Webhook' AND COALESCE(p.isdeleted, 0) = 0
+GROUP BY p.pk_id, p.fk_payment_link_id, p.fk_member_profile_id, p.CfOrderId, p.Amount, p.PaymentDate, p.WebhookReceivedDate
+ORDER BY PaymentDate DESC;
