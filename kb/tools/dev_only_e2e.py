@@ -2,10 +2,10 @@
 
     python -I kb/tools/dev_only_e2e.py <api_base> <mysql_port> <database>
 
-              simulator   API docs   detailed errors
-Development   yes         yes        yes
-Staging       yes         no         no
-Production    no          no         no
+              simulator   API docs   detailed errors   demo password
+Development   yes         yes        yes               allowed
+Staging       yes         no         no                allowed
+Production    no          no         no                refused
 
 JWT secret from ROW_E2E_JWT_SECRET. The suite runs it against a Development API with Payments__Provider=simulated. Set
 ROW_E2E_EXPECT=staging or production against an API started with that ASPNETCORE_ENVIRONMENT, Payments__Provider=simulated,
@@ -20,6 +20,9 @@ SECRET = os.environ['ROW_E2E_JWT_SECRET']
 EXPECT = os.environ.get("ROW_E2E_EXPECT", "development")
 assert EXPECT in ("development", "staging", "production")
 SIMULATOR, DOCS, DETAILS = EXPECT != "production", EXPECT == "development", EXPECT == "development"
+BANNED = EXPECT == "production"
+# Bcrypt of the demo password that is already public in this repo's docs. Used only to prove Production refuses it.
+DEMO_PASSWORD, DEMO_HASH = "Admin@123", "$2b$10$grNI842PqfhrQmPwfPAWn.DbboJiLjpsY5cjnY/ndNjh8b6zeavC."
 MYSQL = r"C:\Program Files\MySQL\MySQL Server 8.4\bin\mysql.exe"
 fails = 0
 
@@ -66,6 +69,7 @@ token = "e2edevonly" + secrets.token_hex(8)
 session = sql(f"""INSERT INTO payment_checkout_sessions (session_token,gateway,flow,flow_ref,merchant_order_id,amount,currency,description,return_url,cancel_url,status,expires_at,created_date)
     VALUES ('{token}','simulated','membership_dues',0,'e2e-devonly-{token}',1,'USD','e2e','http://x/','http://x/','open',DATE_ADD(NOW(), INTERVAL 1 HOUR),NOW()); SELECT LAST_INSERT_ID();""")
 
+demo = None
 try:
     code, out = call("POST", f"/api/public/membership-dues/{dues}/pay", {"feeType": 1}, {"X-Payer-Token": payer(int(dues), int(member))})
     if SIMULATOR:
@@ -93,12 +97,44 @@ try:
         check("the error shows its detail", b"event_payment_otp" in out, out[:160])
     else:
         check("the error shows no detail", b"event_payment_otp" not in out and b"MySql" not in out and b"Something went wrong" in out, out[:160])
+    # The published demo password. Production refuses it at every door, even when it is really this member's password.
+    demo_email = f"demo.{secrets.token_hex(4)}@example.invalid"
+    demo = sql(f"INSERT INTO member_master_profile (MemberName, EmailId) VALUES ('e2e-devonly', '{demo_email}'); SELECT LAST_INSERT_ID();")
+    sql(f"INSERT INTO club_members (fk_club_id, fk_member_master_profile_id, IsActive, isdeleted) VALUES ({club},{demo},1,0)")
+    sql(f"INSERT INTO member_credentials (fk_member_master_profile_id, PasswordHash, IsTemporaryPassword) VALUES ({demo}, '{DEMO_HASH}', 0)")
+    # Web sign-in is for admins, so without this role every attempt fails for another reason.
+    sql(f"INSERT INTO member_roles (fk_member_master_profile_id, fk_role_id, fk_district_id, fk_club_id, IsActive, isdeleted, created_date) VALUES ({demo}, 2, {district}, {club}, 1, 0, NOW())")
+    code, out = call("POST", "/api/auth/login", {"identifier": demo_email, "email": demo_email, "password": DEMO_PASSWORD})
+    check("demo password, web sign-in: " + ("refused as a wrong password" if BANNED else "allowed"),
+          (code == 401 and b"permission" not in out) if BANNED else code == 200, (code, out[:120]))
+    code, out = call("POST", "/api/mobile/auth/login", {"email": demo_email, "password": DEMO_PASSWORD})
+    check("demo password, app sign-in: " + ("refused" if BANNED else "allowed"), code == (401 if BANNED else 200), (code, out[:120]))
+
+
+    def reset_to(password):
+        tok = secrets.token_urlsafe(24)
+        sql(f"INSERT INTO password_reset_tokens (fk_member_master_profile_id, Token, ExpiryDate) VALUES ({demo}, '{tok}', NOW() + INTERVAL 1 HOUR)")
+        return call("POST", "/api/auth/reset-password", {"token": tok, "newPassword": password, "confirmPassword": password})
+
+
+    if BANNED:
+        code, out = reset_to(DEMO_PASSWORD)
+        check("demo password cannot be set by reset", code == 400 and b"not allowed" in out, (code, out[:120]))
+    good = "Row-" + secrets.token_urlsafe(12) + "9a"
+    code, out = reset_to(good)
+    check("any other password can be set", code == 200, (code, out[:120]))
+    code, out = call("POST", "/api/auth/login", {"identifier": demo_email, "email": demo_email, "password": good})
+    check("and signs in", code == 200, (code, out[:120]))
 finally:
     sql(f"DELETE FROM payment_checkout_sessions WHERE pk_id={session}")
     sql(f"DELETE FROM payment_checkout_sessions WHERE merchant_order_id LIKE 'DUES{dues}\\_%'")
     sql(f"DELETE FROM membership_dues_payments WHERE fk_membership_dues_id={dues}")
     sql(f"DELETE FROM membership_dues_member_fees WHERE pk_id={fee}")
     sql(f"DELETE FROM membership_dues WHERE pk_membership_dues_id={dues}")
+    if demo:
+        sql(f"UPDATE club_members SET isdeleted=1, IsActive=0 WHERE fk_member_master_profile_id={demo}")
+        sql(f"UPDATE member_roles SET isdeleted=1, IsActive=0 WHERE fk_member_master_profile_id={demo}")
+        sql(f"UPDATE member_master_profile SET isdeleted=1 WHERE pk_member_master_profile_id={demo}")
 
 print("ALL PASS" if not fails else f"{fails} FAILED")
 sys.exit(1 if fails else 0)

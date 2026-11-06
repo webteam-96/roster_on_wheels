@@ -17,9 +17,11 @@ public class AuthService : IAuthService
     private readonly IConfiguration _configuration;
     private readonly IEmailService _emailService;
     private readonly ILogger<AuthService> _logger;
+    private readonly IHostEnvironment _environment;
 
-    public AuthService(IConfiguration configuration, IEmailService emailService, ILogger<AuthService> logger)
+    public AuthService(IConfiguration configuration, IEmailService emailService, ILogger<AuthService> logger, IHostEnvironment environment)
     {
+        _environment = environment;
         _connectionString = configuration.GetConnectionString("DefaultConnection")!;
         _configuration = configuration;
         _emailService = emailService;
@@ -124,7 +126,7 @@ public class AuthService : IAuthService
         }
 
         // Verify password
-        if (!BCrypt.Net.BCrypt.Verify(request.Password, passwordHash))
+        if (BannedPasswords.Refused(_environment, request.Password) || !BCrypt.Net.BCrypt.Verify(request.Password, passwordHash))
         {
             // Increment failed attempts
             failedAttempts++;
@@ -377,6 +379,8 @@ public class AuthService : IAuthService
         int tokenId = (int)tokenRecord.Id;
         int memberId = (int)tokenRecord.MemberId;
 
+        if (BannedPasswords.Refused(_environment, request.NewPassword)) throw new ArgumentException(BannedPasswords.Message);
+
         // Hash new password
         var newHash = BCrypt.Net.BCrypt.HashPassword(request.NewPassword);
 
@@ -431,6 +435,7 @@ public class AuthService : IAuthService
             throw new ArgumentException("New password must be different from the current password.");
 
         ValidatePasswordComplexity(request.NewPassword);
+        if (BannedPasswords.Refused(_environment, request.NewPassword)) throw new ArgumentException(BannedPasswords.Message);
 
         // Update hash
         var newHash = BCrypt.Net.BCrypt.HashPassword(request.NewPassword);

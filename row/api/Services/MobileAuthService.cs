@@ -22,11 +22,15 @@ public class MobileAuthService : IMobileAuthService
     private const int MobileJwtDays = 90;
     private const int OtpExpiryMinutes = 5;
 
+    private readonly IHostEnvironment _environment;
+
     public MobileAuthService(
         IConfiguration configuration,
         IEmailService emailService,
-        ILogger<MobileAuthService> logger)
+        ILogger<MobileAuthService> logger,
+        IHostEnvironment environment)
     {
+        _environment = environment;
         _configuration = configuration;
         _emailService = emailService;
         _logger = logger;
@@ -70,7 +74,7 @@ public class MobileAuthService : IMobileAuthService
         if (failed >= 5 && lockoutEnd != null && lockoutEnd > DateTime.UtcNow)
             throw new UnauthorizedAccessException("Account is locked due to multiple failed login attempts. Please try again later.");
 
-        if (!BCrypt.Net.BCrypt.Verify(dto.Password, (string)cred.PasswordHash))
+        if (BannedPasswords.Refused(_environment, dto.Password) || !BCrypt.Net.BCrypt.Verify(dto.Password, (string)cred.PasswordHash))
         {
             failed++;
             await conn.ExecuteAsync("sp_auth_update_failed_login",
