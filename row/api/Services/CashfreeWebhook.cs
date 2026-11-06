@@ -14,7 +14,8 @@ public static class CashfreeWebhook
     }
 
     /// <summary>
-    /// Cashfree signs base64(HMAC-SHA256(timestamp + raw body)) with the client secret. Until
+    /// Cashfree signs base64(HMAC-SHA256(timestamp + raw body)) with the client secret, with nothing between the two: that
+    /// is its SDK (PGVerifyWebhookSignature) and its code samples; a "timestamp.payload" pseudo-code in its docs is wrong. Until
     /// Payments:Webhook:EnforceSignature is on, a bad signature is only logged: the check still has to be proven
     /// against real webhooks, which reach us through a relay outside this repo.
     /// </summary>

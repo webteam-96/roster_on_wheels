@@ -173,6 +173,24 @@ try:
             code = post(path, oid, signed=True)
             check(f"{name}: enforced, right signature, Cashfree confirms, row is paid", code == 200 and paid(table, pk) == "1", (code, paid(table, pk)))
 
+    if LEGACY and ENFORCE:
+        # Fixed vector, computed with Node using the formula in Cashfree's SDK (PGVerifyWebhookSignature, api.ts):
+        # base64(HMAC-SHA256(timestamp + rawBody)) with the client secret. Cashfree's docs publish no vector of their own.
+        body = b'{"data":{"order":{"order_id":"DUES0_1","order_status":"PAID"}}}'
+
+
+        def raw(signature):
+            req = urllib.request.Request(API + DUES, data=body, method="POST", headers={"Content-Type": "application/json", "x-webhook-timestamp": "1617695238078", "x-webhook-signature": signature})
+            try:
+                with urllib.request.urlopen(req, timeout=30) as r:
+                    return r.status
+            except urllib.error.HTTPError as e:
+                return e.code
+
+
+        check("signature vector: timestamp + raw body is accepted", raw("WsjeK04wKn8bCIOyQ2oM32BRce1ZUBZAkcNxtoGToO0=") == 200)
+        check("signature vector: the timestamp.body form is refused", raw("VNW5GAvEOoQ8GzHZkZgRwFaTYXzyncZ3h4z0i5iplPc=") == 401)
+
     # Club dues: its own Razorpay webhook checks a signature and refuses without one.
     check("club dues: forged webhook refused", post("/api/public/club-dues/webhook", "order_x") == 401)
 finally:
