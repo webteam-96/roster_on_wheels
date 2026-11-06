@@ -1,5 +1,7 @@
 # Separate repo with credentials — not part of this project
 /reference/
+# The list of secrets to rotate: names and places only, but no reason to publish it
+/kb/secrets-to-rotate.md
 
 node_modules/
 .next/
