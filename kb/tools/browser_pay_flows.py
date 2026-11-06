@@ -84,6 +84,7 @@ def next_step(page):
 
 def login(page):
     page.goto(f"{UI}/login", wait_until="networkidle", timeout=240000)
+    page.wait_for_selector('input[type="email"]', timeout=240000)  # a cold dev server compiles the page first
     page.fill('input[type="email"]', admin_email)
     page.fill('input[type="password"]', PASSWORD)
     page.click('button[type="submit"]')
