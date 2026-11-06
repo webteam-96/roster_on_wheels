@@ -181,9 +181,8 @@ def dues_flow(ctx):
         check("the report lists the payer", rows.count() >= 1, text[:300])
         row_text = rows.first.inner_text() if rows.count() else ""
         check("the payer's row says Paid", "Paid" in row_text and "Unpaid" not in row_text, row_text[:200])
-        check("the report totals one paid member and the amount", "Fully Paid: 1" in text.replace("
-", " ") and "Total Collected: $100" in text.replace("
-", " "), text[:300])
+        flat = " ".join(text.split())
+        check("the report totals one paid member and the amount", "Fully Paid: 1" in flat and "Total Collected: $100" in flat, flat[:300])
         shot(page, "r8_dues_report")
     except (PWTimeout, Exception):
         check("dues flow finished", False, next((l for l in traceback.format_exc().splitlines() if "Error" in l or "Timeout" in l), "")[:300] + " | " + traceback.format_exc()[-260:])
