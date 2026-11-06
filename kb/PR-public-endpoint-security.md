@@ -49,6 +49,14 @@ ROW will take payments through Stripe only, so the Cashfree and Razorpay code in
 - `MySqlConnector` 2.6.2, `System.Security.Cryptography.Pkcs` 10.0.14, MailKit and MimeKit 4.18.1 in `RotaryOrgSyncWorker`, Next.js security upgrade.
 - CORS no longer allows localhost outside Development.
 
+**Fixes from the live test** (details in `row/ROW-CHANGES.md`, 2026-11-05)
+- A session opened with a temporary password can only change that password, on web and app.
+- Membership dues with a payment cannot be deleted (409).
+- `/api/i18n/translate` is open to every signed-in user.
+- Security headers on the API and the Next.js apps, and plain http redirects to https.
+- Rupee signs on dues, event and project pages use the configured currency.
+- Public site phones come from `NEXT_PUBLIC_SITE_PHONES`; empty hides them.
+
 **No schema changes.** The branch adds no tables or columns.
 
 ## Changes people will notice
@@ -78,6 +86,7 @@ Clean copy of this branch, on a throwaway copy of the local database. No real mo
 
 ## Not tested
 
+- **The live-test fixes together with this branch, end to end.** With them included: API build 0 errors, admin and website `tsc` pass, Vitest 145/145. `kb/tools/go_live_fixes_e2e.py`, `smoke_all` and the browser click-through were not rerun on this combined code. Run them before merging.
 - **The phone app.** The `_payUrl` change and the text changes were not run on a device.
 - **A real domain.** CORS, HTTPS and pay links were not checked on the test host or any live host.
 - **A real payment.** Stripe is not built, and the simulator is the only gateway tested.
@@ -92,7 +101,7 @@ Clean copy of this branch, on a throwaway copy of the local database. No real mo
 - Stripe is planned, not built: `kb/stripe-plan.md`.
 - The repo is public, and business documents, a staff email and a server IP are already on `main`. Decide whether to make it private.
 - `kb/rebuild.sh` was not run, so generated `kb/` files may lag behind.
-- `Program.cs` holds another session's uncommitted HTTPS redirect, not in this branch, covering Production only. Extend it to Staging when that work lands.
+- The API's HTTPS redirect in `Program.cs` covers Production only, so a Staging test host does not get it from the API.
 
 ## Deploy steps
 
