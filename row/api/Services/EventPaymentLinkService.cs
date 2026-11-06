@@ -1589,8 +1589,15 @@ public class EventPaymentLinkService : IEventPaymentLinkService
         return Paid(DateTime.Now);
     }
 
-    public async Task HandleWebhookAsync(string payload)
+    public async Task HandleWebhookAsync(string payload, string? signature, string? timestamp)
     {
+        CashfreeWebhook.CheckSignature(_config, _logger, payload, signature, timestamp);
+        // With a hosted gateway the money does not go through Cashfree, so a Cashfree webhook cannot be about a real payment.
+        if (_checkout.Enabled)
+        {
+            _logger.LogWarning("Event webhook ignored: Payments:Provider is {Gateway}, not Cashfree.", _checkout.GatewayCode);
+            return;
+        }
         try
         {
             var data = JsonSerializer.Deserialize<JsonElement>(payload);
@@ -1600,21 +1607,25 @@ public class EventPaymentLinkService : IEventPaymentLinkService
             var orderId = order.GetProperty("order_id").GetString();
             var status = order.GetProperty("order_status").GetString();
 
-            if (status == "PAID")
+            if (status == "PAID" && !string.IsNullOrWhiteSpace(orderId))
             {
                 using var conn = GetConnection();
-                await conn.ExecuteAsync(@"
+                var memberPayment = await conn.QueryFirstOrDefaultAsync<dynamic>(
+                    "SELECT pk_id, fk_payment_link_id, Amount, IsPaid FROM event_payment_members WHERE CfOrderId=@OrderId ORDER BY pk_id DESC LIMIT 1", new { OrderId = orderId });
+                if (memberPayment == null || Convert.ToInt32(memberPayment.IsPaid) == 1) return;
+
+                // The payload proves nothing: Cashfree itself must confirm this order and amount.
+                if (!await CashfreeWebhook.OrderConfirmsAsync(_config, _httpClient, _logger, orderId!, (decimal)memberPayment.Amount)) return;
+
+                int mpId = (int)memberPayment.pk_id;
+                int mpLinkId = (int)memberPayment.fk_payment_link_id;
+                var marked = await conn.ExecuteAsync(@"
                     UPDATE event_payment_members SET IsPaid=1, IsOnline=1, PaymentStatus='PAID', PaidSource='Webhook', PaymentDate=NOW(),
                     IsWebhookReceived=1, WebhookReceivedDate=NOW()
-                    WHERE CfOrderId=@OrderId AND IsPaid=0",
-                    new { OrderId = orderId });
-
-                var memberPayment = await conn.QueryFirstOrDefaultAsync<dynamic>(
-                    "SELECT pk_id, fk_payment_link_id FROM event_payment_members WHERE CfOrderId=@OrderId", new { OrderId = orderId });
-                if (memberPayment != null)
+                    WHERE pk_id=@Id AND CfOrderId=@OrderId AND IsPaid=0",
+                    new { Id = mpId, OrderId = orderId });
+                if (marked > 0)
                 {
-                    int mpId = (int)memberPayment.pk_id;
-                    int mpLinkId = (int)memberPayment.fk_payment_link_id;
                     try { await SendReceiptEmailAsync(mpId); } catch { }
                     // Append to Google Sheet (fire-and-forget)
                     _ = Task.Run(async () =>
@@ -1630,6 +1641,7 @@ public class EventPaymentLinkService : IEventPaymentLinkService
                 }
             }
         }
+        catch (CashfreeWebhook.LookupFailedException) { throw; }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Webhook processing failed");

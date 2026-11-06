@@ -47,7 +47,7 @@ public interface IMembershipDuesService
     Task<bool> VerifyOtpAsync(int duesId, VerifyOtpRequestDto dto);
     Task<DuesPaymentSessionResponseDto> CreatePaymentOrderAsync(int duesId, PublicDuesPaymentSubmitDto dto);
     Task<VerifyPaymentResponseDto> VerifyPaymentAsync(int duesId, string orderId, int paymentId);
-    Task HandleWebhookAsync(string payload);
+    Task HandleWebhookAsync(string payload, string? signature, string? timestamp);
 
     // Shared mark-paid path for ONLINE dues payments. Used by the Cashfree webhook and
     // by MembershipDuesReconciliationBackgroundService when the webhook never arrived,

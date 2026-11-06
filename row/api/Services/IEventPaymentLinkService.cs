@@ -59,7 +59,7 @@ public interface IEventPaymentLinkService
     Task<PaymentSessionResponseDto> CreatePaymentOrderAsync(int linkId, PublicPaymentSubmitDto dto);
     Task<VerifyPaymentResponseDto> VerifyPaymentAsync(int linkId, string orderId, int memberPaymentId);
     Task SettleOnlineAsync(int memberPaymentId, string gatewayPaymentId);
-    Task HandleWebhookAsync(string payload);
+    Task HandleWebhookAsync(string payload, string? signature, string? timestamp);
     Task<PublicReportDto?> GetPublicReportAsync(int linkId);
     Task<string> CreateGoogleSheetForLinkAsync(int linkId);
     Task DeleteGoogleSheetForLinkAsync(int linkId);

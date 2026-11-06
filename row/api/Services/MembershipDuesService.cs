@@ -2863,8 +2863,15 @@ public class MembershipDuesService : IMembershipDuesService
         return Paid(DateTime.Now);
     }
 
-    public async Task HandleWebhookAsync(string payload)
+    public async Task HandleWebhookAsync(string payload, string? signature, string? timestamp)
     {
+        CashfreeWebhook.CheckSignature(_config, _logger, payload, signature, timestamp);
+        // With a hosted gateway the money does not go through Cashfree, so a Cashfree webhook cannot be about a real payment.
+        if (_checkout.Enabled)
+        {
+            _logger.LogWarning("Dues webhook ignored: Payments:Provider is {Gateway}, not Cashfree.", _checkout.GatewayCode);
+            return;
+        }
         try
         {
             var data = JsonSerializer.Deserialize<JsonElement>(payload);
@@ -2900,35 +2907,27 @@ public class MembershipDuesService : IMembershipDuesService
                 return;
             }
 
-            var paymentId = await ResolveDuesPaymentIdAsync(orderId);
-            if (paymentId == null)
+            using var conn = GetConnection();
+            var row = await conn.QueryFirstOrDefaultAsync<(int PkId, decimal Amount, bool IsPaid)>(
+                "SELECT pk_id, Amount, IsPaid FROM membership_dues_payments WHERE TransactionId=@OrderId AND isdeleted=0 ORDER BY pk_id DESC LIMIT 1",
+                new { OrderId = orderId });
+            if (row.PkId == 0)
             {
                 _logger.LogWarning("Dues webhook for order {OrderId} matched NO membership_dues_payments row — payment left unpaid.", orderId);
                 return;
             }
+            if (row.IsPaid) return;
 
-            await MarkOnlineDuesPaymentPaidAsync(paymentId.Value, "Webhook", viaWebhook: true, requireActiveStatus: false);
+            // The payload proves nothing: Cashfree itself must confirm this order and amount.
+            if (!await CashfreeWebhook.OrderConfirmsAsync(_config, _httpClient, _logger, orderId, row.Amount)) return;
+
+            await MarkOnlineDuesPaymentPaidAsync(row.PkId, "Webhook", viaWebhook: true, requireActiveStatus: false);
         }
+        catch (CashfreeWebhook.LookupFailedException) { throw; }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Webhook processing failed");
         }
-    }
-
-    // Maps a Cashfree order identifier back to our payment row.
-    //
-    // Cashfree sends us the MERCHANT order_id ("DUES105_..."), which lives in
-    // TransactionId. CfOrderId is also checked so that rows written before
-    // TransactionId was persisted — and any legacy row that stored the merchant id
-    // in CfOrderId — still resolve. Both columns are unique per order in practice.
-    internal async Task<int?> ResolveDuesPaymentIdAsync(string cashfreeOrderId)
-    {
-        using var conn = GetConnection();
-        return await conn.ExecuteScalarAsync<int?>(@"
-            SELECT pk_id FROM membership_dues_payments
-            WHERE (TransactionId=@OrderId OR CfOrderId=@OrderId) AND isdeleted=0
-            ORDER BY pk_id DESC LIMIT 1",
-            new { OrderId = cashfreeOrderId });
     }
 
     // The ONE place an online membership-dues payment flips to paid.

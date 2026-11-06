@@ -117,9 +117,11 @@ public class PublicEventPaymentController : ControllerBase
         var payload = await reader.ReadToEndAsync();
         try
         {
-            await _service.HandleWebhookAsync(payload);
+            await _service.HandleWebhookAsync(payload, Request.Headers["x-webhook-signature"].ToString(), Request.Headers["x-webhook-timestamp"].ToString());
             return Ok();
         }
+        catch (UnauthorizedAccessException) { return Unauthorized(); }
+        catch (CashfreeWebhook.LookupFailedException) { return StatusCode(502); } // Cashfree retries; the row is still unpaid
         catch (Exception ex) when (ex is InvalidOperationException or ArgumentException)
         {
             return BadRequest(new { message = ex.Message });
