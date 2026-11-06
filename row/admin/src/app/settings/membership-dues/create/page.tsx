@@ -226,7 +226,7 @@ function CreateEditMembershipDuesPage() {
   const [onlineSurchargePercent, setOnlineSurchargePercent] = useState("2.95");
 
   // Section 5: Vendor Splits
-  const [amountType, setAmountType] = useState(""); // 1=Amount, 2=Percentage
+  const [amountType, setAmountType] = useState(SPLITS_ON ? "" : "1"); // 1=Amount, 2=Percentage
   const [defaultPercentage, setDefaultPercentage] = useState("2.95");
   const [kycVendors, setKycVendors] = useState<KycItem[]>([]);
   const [vendorSplits, setVendorSplits] = useState<VendorSplit[]>([]);
@@ -777,7 +777,8 @@ function CreateEditMembershipDuesPage() {
         setTimeout(() => router.push(redirectUrl), 1500);
       }
     } catch (err: any) {
-      setErrorMessage(err?.response?.data?.message || err?.response?.data || "Failed to save Club Dues.");
+      const data = err?.response?.data;
+      setErrorMessage(data?.message || (typeof data === "string" ? data : "Failed to save Club Dues."));
     } finally { setSaving(false); }
   };
 
