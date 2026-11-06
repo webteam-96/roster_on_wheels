@@ -3,8 +3,8 @@ simulator, the report shows paid. Saves a screenshot on any failure.
 
     python kb/tools/browser_pay_flows.py <ui_base> <api_base> <mysql_port> <database> <screenshot_dir>
 
-Environment: ROW_E2E_PASSWORD, ROW_E2E_PASSWORD_HASH (bcrypt of it, set on the admin of the copy). Needs Playwright, the admin
-running against the API, and the API with ASPNETCORE_ENVIRONMENT=Staging, Payments__Provider=simulated,
+Environment: ROW_E2E_PASSWORD, ROW_E2E_PASSWORD_HASH (bcrypt of it, set on the admin of the copy). Needs Playwright, a
+production build of the admin (on a cold `next dev` the first page can stay on its loading skeleton), and the API with ASPNETCORE_ENVIRONMENT=Staging, Payments__Provider=simulated,
 Brand__Domains__AllowedOriginSuffixes__0=127.0.0.1, FrontendUrl=<ui_base>, Brevo__ApiUrl pointing at this script's fake Brevo
 (http://127.0.0.1:5198/v3/smtp/email). Throwaway copies only: it replaces the admin's password and renames no one.
 """
@@ -84,7 +84,7 @@ def next_step(page):
 
 def login(page):
     page.goto(f"{UI}/login", wait_until="networkidle", timeout=240000)
-    page.wait_for_selector('input[type="email"]', timeout=240000)  # a cold dev server compiles the page first
+    page.wait_for_selector('input[type="email"]', timeout=120000)
     page.fill('input[type="email"]', admin_email)
     page.fill('input[type="password"]', PASSWORD)
     page.click('button[type="submit"]')
