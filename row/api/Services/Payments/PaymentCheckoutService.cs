@@ -90,11 +90,10 @@ public sealed class PaymentCheckoutService
         var provider = config["Payments:Provider"]?.Trim().ToLowerInvariant();
         if (string.IsNullOrEmpty(provider)) return;
 
-        // A simulated payment marks real rows paid, so production needs a second, explicit setting.
-        if (provider == SimulatedPaymentGateway.GatewayCode && env.IsProduction()
-            && !config.GetValue("Payments:AllowSimulatedInProduction", false))
+        // A simulated payment marks real rows paid, so it runs in Development only. No setting overrides this.
+        if (provider == SimulatedPaymentGateway.GatewayCode && !env.IsDevelopment())
         {
-            logger.LogError("Payments:Provider=simulated is refused in Production without Payments:AllowSimulatedInProduction.");
+            logger.LogError("Payments:Provider=simulated is ignored outside Development.");
             return;
         }
         _gateway = gateways.FirstOrDefault(g => g.Code == provider);

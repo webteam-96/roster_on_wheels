@@ -697,8 +697,8 @@ if (!string.IsNullOrEmpty(pathBase))
 {
     app.UsePathBase(pathBase);
 }
-// API docs only in Development (or Swagger:Enabled=true): no public endpoint map in production.
-if (app.Environment.IsDevelopment() || builder.Configuration.GetValue<bool>("Swagger:Enabled"))
+// API docs only in Development: no public endpoint map in production.
+if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI(c =>
