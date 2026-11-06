@@ -103,6 +103,10 @@ try:
     if not had_row:
         sql(f"INSERT INTO tenant_subscriptions (fk_district_id, fk_club_id, edition_code) SELECT {district}, 0, code FROM edition_catalogue ORDER BY code LIMIT 1")
     who = sign(member, "Member")
+    # The lock is cached for 2 minutes per member (TrialLock). An earlier script's request as this member would hide the
+    # lock-out from this check, so empty the cache the way the product does: extending a trial clears it.
+    s, _ = call("POST", f"/api/tenants/{district}/trial", sa)
+    check("Super Admin can extend a trial (clears the lock cache)", s == 200, s)
     sql(f"UPDATE tenant_subscriptions SET trial_ends = CURDATE() - INTERVAL 1 DAY WHERE fk_district_id={district} AND fk_club_id=0")
     s, b = call("GET", "/api/ri-codes", who)
     check("a member of a district whose trial ended is locked out", s == 403 and b.get("code") == "trial_expired", (s, b))
