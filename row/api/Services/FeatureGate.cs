@@ -20,6 +20,18 @@ public static class FeatureGate
 
     public static readonly Feature[] All =
     {
+        // ROW takes payments through PaymentCheckoutService only (Stripe, and the simulator for testing). The Cashfree
+        // and Razorpay code came with the RIZones port and stays in place for now, off for good.
+        new("legacy_gateways", "Cashfree and Razorpay", Kind.Skipped,
+            new[]
+            {
+                @"^/api/cashfree-kyc(/|$)",
+                @"^/api/admin/razorpay-route-accounts(/|$)",
+                @"^/api/admin/club-websites/pricing/route-account$",
+                @"^/api/public/(membership-dues|event-payment|club-dues)/webhook$",
+                @"^/api/(wallet|website-billing)/webhook$",
+            },
+            new[] { @"^/settings/cashfree-kyc(/|$)", @"^/settings/razorpay-route-accounts(/|$)" }),
         new("ocv", "OCV / Governor visit", Kind.Flagged,
             new[] { @"^/api/clubs/\d+/ocv-gov(/|$)", @"/ocv-documents(/|$)", @"^/api/public/ocv-live-documents(/|$)", @"/district-report/ocv-gov(/|$)" },
             new[] { @"/ocv-gov(/|$)" }),

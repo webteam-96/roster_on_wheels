@@ -29,7 +29,7 @@ const cards = [
   },
   {
     title: "District Dues",
-    description: "District-wise district dues collection (Razorpay)",
+    description: "District-wise district dues collection",
     icon: Building2,
     href: "/settings/club-dues",
   },

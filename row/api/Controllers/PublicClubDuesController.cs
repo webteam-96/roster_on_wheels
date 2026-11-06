@@ -50,8 +50,8 @@ public class PublicClubDuesController : ControllerBase
     public async Task<ActionResult> Pay(int id, [FromQuery] string? token, [FromBody] PublicClubDuesPaymentSubmitDto dto)
     {
         if (!ValidToken(token, id, dto.FkClubId, out var error)) return Unauthorized(new { message = error });
-        var result = await _service.CreatePaymentOrderAsync(id, dto);
-        return Ok(result);
+        try { return Ok(await _service.CreatePaymentOrderAsync(id, dto)); }
+        catch (InvalidOperationException ex) { return BadRequest(new { message = ex.Message }); }
     }
 
     [HttpPost("{id}/offline-payment")]

@@ -203,7 +203,8 @@ export default function PricingRemindersTab() {
           getClubWebsitePricingYears(),
           getDistricts(1, 9999, undefined, 1),
           getRazorpayRouteAccounts(true),
-          getClubWebsiteRouteAccount(),
+          // Off on ROW (FeatureGate legacy_gateways).
+          Promise.resolve({ routeAccountId: null, routeAll: false }),
         ]);
         setYears(yr || []);
         const cur = (yr || []).find((y) => y.isCurrent) || (yr || [])[0];
@@ -413,7 +414,7 @@ export default function PricingRemindersTab() {
       )}
 
       {/* One global Route account for ALL club-website Route payments */}
-      <div className="rounded-[20px] border border-slate-200 bg-white p-4">
+      <div className="hidden rounded-[20px] border border-slate-200 bg-white p-4">
         <div className="flex flex-wrap items-end gap-3">
           <div className="space-y-1">
             <Label className="text-xs text-slate-500">Club-website Route account</Label>
@@ -516,7 +517,7 @@ export default function PricingRemindersTab() {
               <th className="text-right px-3 py-2.5 font-medium">Amount</th>
               <th className="text-right px-3 py-2.5 font-medium">Tax %</th>
               <th className="text-right px-3 py-2.5 font-medium">Total</th>
-              <th className="text-left px-3 py-2.5 font-medium">Gateway</th>
+              <th className="hidden text-left px-3 py-2.5 font-medium">Gateway</th>
               <th className="text-left px-3 py-2.5 font-medium">President / Secretary</th>
               <th className="text-right px-3 py-2.5 font-medium">
                 Copy links
@@ -548,7 +549,7 @@ export default function PricingRemindersTab() {
                 <td className="px-3 py-2 text-right font-medium whitespace-nowrap">
                   {inr(r.orderType === "Renewal" ? r.renewalTotalAmount : r.totalAmount)}
                 </td>
-                <td className="px-3 py-2">
+                <td className="hidden px-3 py-2">
                   <span className={`text-xs ${(routeAll || r.gatewayType === "route") ? "text-indigo-700" : "text-slate-600"}`}>{gatewayLabel(r)}</span>
                 </td>
                 <td className="px-3 py-2 text-xs text-slate-600">
@@ -616,7 +617,7 @@ export default function PricingRemindersTab() {
             </div>
               );
             })()}
-            <div className="space-y-1">
+            <div className="hidden space-y-1">
               <Label className="text-xs text-slate-500">Payment gateway</Label>
               <Select
                 value={edit.gatewayType}

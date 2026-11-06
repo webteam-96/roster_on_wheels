@@ -48,6 +48,9 @@ function insertQuillToken(ref: React.MutableRefObject<any>, setter: (fn: (v: str
 
 const STEP_LABELS = ["Basic Info", "Payment & Split", "Club List", "Images & Email"];
 
+// Vendor splits are Razorpay Route's model, off on ROW: a club's money will go to its own Stripe account.
+const SPLITS_ON = false as boolean;
+
 interface VendorRow { routeAccountId: string; value: string }
 
 function CreateClubDuesInner() {
@@ -711,7 +714,7 @@ function CreateClubDuesInner() {
               <Label>Offline per-member Rate ({currencySymbol()})<span className="text-destructive ml-1">*</span></Label>
               <Input type="number" value={offlineRate} onChange={(e) => setOfflineRate(e.target.value)} placeholder="e.g. 100" />
             </div>
-            {renderVendorSection("Offline Split", offlineVendorRows, updateOfflineRow, addOfflineRow, removeOfflineRow, offlineFilledRows, offlineSplitTotal, offlineSplitOk, offlineRate)}
+            {SPLITS_ON && renderVendorSection("Offline Split", offlineVendorRows, updateOfflineRow, addOfflineRow, removeOfflineRow, offlineFilledRows, offlineSplitTotal, offlineSplitOk, offlineRate)}
             <div className="space-y-2 max-w-md">
               <Label>Approver email: District Treasurer</Label>
               <Input type="email" value={approverEmail} onChange={(e) => setApproverEmail(e.target.value)} placeholder="treasurer@example.com" />
@@ -737,7 +740,7 @@ function CreateClubDuesInner() {
               <Label>Online per-member Rate ({currencySymbol()})<span className="text-destructive ml-1">*</span></Label>
               <Input type="number" value={onlineRate} onChange={(e) => setOnlineRate(e.target.value)} placeholder="e.g. 103" />
             </div>
-            {renderVendorSection("Online Split (Razorpay Route)", onlineVendorRows, updateOnlineRow, addOnlineRow, removeOnlineRow, onlineFilledRows, onlineSplitTotal, onlineSplitOk, onlineRate)}
+            {SPLITS_ON && renderVendorSection("Online Split (Razorpay Route)", onlineVendorRows, updateOnlineRow, addOnlineRow, removeOnlineRow, onlineFilledRows, onlineSplitTotal, onlineSplitOk, onlineRate)}
           </div>
         )}
       </CardContent>
@@ -775,7 +778,7 @@ function CreateClubDuesInner() {
           </div>
         )}
 
-        {isOnline && (
+        {SPLITS_ON && isOnline && (
           <div>
             <h3 className="font-semibold text-base mb-2">Online Split (Razorpay Route)</h3>
             <div className="space-y-3 rounded-md border p-3">

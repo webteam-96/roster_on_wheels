@@ -41,6 +41,10 @@ interface KycItem { id: number; vendorId: string; name: string; status: string; 
 interface DistrictItem { id: number; districtNumber: string; }
 interface ClubItem { id: number; clubName: string; }
 
+// Vendor splits are Cashfree's model, off on ROW: a club's money will go to its own Stripe account.
+const SPLITS_ON = false;
+const SPLIT_STEP = 3;
+
 const STEP_LABELS = [
   "Basic Info",
   "Form Fields",
@@ -372,6 +376,7 @@ function CreateEditPaymentLinkPage() {
         if (registrations.length === 0) return "Please add at least one registration type.";
         return null;
       case 3: // Vendor Splits
+        if (!SPLITS_ON) return null;
         for (const reg of registrations) {
           const regSplits = vendorSplits.filter(s => s.fkRegistrationTempId === reg.tempId);
           if (regSplits.length === 0) return `Please add at least one vendor split for "${reg.registrationName}".`;
@@ -395,11 +400,11 @@ function CreateEditPaymentLinkPage() {
   const handleNext = () => {
     const err = validateStep(currentStep);
     if (err) { setErrorMessage(err); return; }
-    if (currentStep < totalSteps - 1) setCurrentStep(currentStep + 1);
+    if (currentStep < totalSteps - 1) setCurrentStep(!SPLITS_ON && currentStep === SPLIT_STEP - 1 ? SPLIT_STEP + 1 : currentStep + 1);
   };
 
   const handleBack = () => {
-    if (currentStep > 0) setCurrentStep(currentStep - 1);
+    if (currentStep > 0) setCurrentStep(!SPLITS_ON && currentStep === SPLIT_STEP + 1 ? SPLIT_STEP - 1 : currentStep - 1);
   };
 
   // Final submit — builds FormData and sends everything at once
@@ -1230,20 +1235,20 @@ function CreateEditPaymentLinkPage() {
             <h2 className="text-2xl font-bold tracking-tight text-primary">
               {isEdit ? "Edit Payment Link" : "Create Payment Link"}
             </h2>
-            <p className="text-muted-foreground text-base">Step {currentStep + 1} of {totalSteps}</p>
+            <p className="text-muted-foreground text-base">Step {!SPLITS_ON && currentStep > SPLIT_STEP ? currentStep : currentStep + 1} of {SPLITS_ON ? totalSteps : totalSteps - 1}</p>
           </div>
         </div>
 
         {/* Step Indicator */}
         <div className="flex items-center gap-2 mb-6 flex-wrap">
           {STEP_LABELS.map((s, i) => (
-            <div key={i} className="flex flex-wrap items-center gap-2">
+            <div key={i} className={`flex flex-wrap items-center gap-2 ${!SPLITS_ON && i === SPLIT_STEP ? "hidden" : ""}`}>
               <div className={`flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium ${
                 i < currentStep ? "bg-green-600 text-white" :
                 i === currentStep ? "bg-primary text-primary-foreground" :
                 "bg-muted text-muted-foreground"
               }`}>
-                {i < currentStep ? <Check className="h-4 w-4" /> : i + 1}
+                {i < currentStep ? <Check className="h-4 w-4" /> : !SPLITS_ON && i > SPLIT_STEP ? i : i + 1}
               </div>
               <span className={`text-sm hidden md:inline ${i === currentStep ? "font-medium" : "text-muted-foreground"}`}>{s}</span>
               {i < STEP_LABELS.length - 1 && <div className="w-8 h-[2px] bg-muted" />}

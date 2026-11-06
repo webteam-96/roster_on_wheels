@@ -2588,6 +2588,7 @@ public class MembershipDuesService : IMembershipDuesService
 
     public async Task<DuesPaymentSessionResponseDto> CreatePaymentOrderAsync(int duesId, PublicDuesPaymentSubmitDto dto)
     {
+        if (!_checkout.Enabled) throw new InvalidOperationException(LegacyGateways.NoGatewayMessage);
         await PlanningAccess.EnsureDuesCollectableAsync(_connStr, false, duesId);
         using var conn = GetConnection();
 
@@ -2816,7 +2817,7 @@ public class MembershipDuesService : IMembershipDuesService
 
         if (Convert.ToInt32(row.IsPaid) == 1) return Paid((DateTime?)row.PaymentDate);
         // A hosted gateway settles on the server; the thank-you page only reads the result.
-        if (_checkout.Enabled) return unknown;
+        if (_checkout.Enabled || !LegacyGateways.Enabled) return unknown;
 
         var cf = _config.GetSection("CashfreePayment");
         var request = new HttpRequestMessage(HttpMethod.Get, $"{cf["BaseUrl"]}orders/{Uri.EscapeDataString(orderId!)}");
@@ -3659,6 +3660,8 @@ public class MembershipDuesService : IMembershipDuesService
                               Amount = splitAmount, SettlementId = $"sim_{(int)p.PaymentId}" });
             return;
         }
+
+        if (!LegacyGateways.Enabled) return;
 
         // Get all paid payments with CfOrderId for this duesId
         var payments = await conn.QueryAsync<dynamic>(@"

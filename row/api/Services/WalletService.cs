@@ -86,6 +86,7 @@ public class WalletService : IWalletService
     // ── create order ───────────────────────────────────────────────────────
     public async Task<CreateTopupOrderResponseDto> CreateTopupOrderAsync(CreateTopupOrderDto dto, int userId)
     {
+        if (!_checkout.Enabled) throw new InvalidOperationException(LegacyGateways.NoGatewayMessage);
         var scope = (dto.Scope ?? "").ToLowerInvariant();
         if (scope != "club" && scope != "district")
             throw new InvalidOperationException("Invalid scope.");
@@ -218,7 +219,7 @@ public class WalletService : IWalletService
         if (!alreadyCredited)
         {
             // A hosted gateway settles on the server; verify only reports the result.
-            if (_checkout.Enabled)
+            if (_checkout.Enabled || !LegacyGateways.Enabled)
                 return new VerifyTopupResponseDto { IsSuccess = false, Message = "Payment not completed." };
             if (!RazorpayGatewayProxy.VerifyPaymentSignature(_config, dto.RazorpayOrderId, dto.RazorpayPaymentId, dto.RazorpaySignature))
                 return new VerifyTopupResponseDto { IsSuccess = false, Message = "Payment signature verification failed." };

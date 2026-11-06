@@ -398,11 +398,11 @@ if (enableBackgroundJobs) builder.Services.AddHostedService<InvitePromptBackgrou
 // they also wait for the 'meetings' feature to be on.
 if (builder.Configuration.GetValue("Meetings:ReminderJob", enableBackgroundJobs)) builder.Services.AddHostedService<MeetingReminderBackgroundService>();
 if (enableBackgroundJobs) builder.Services.AddHostedService<RotaryYearRolloverBackgroundService>();
-if (enableBackgroundJobs) builder.Services.AddHostedService<RazorpaySettlementSyncBackgroundService>();
+if (enableBackgroundJobs && RotaryApi.Services.Payments.LegacyGateways.Enabled) builder.Services.AddHostedService<RazorpaySettlementSyncBackgroundService>();
 // Cashfree dues reconciliation — safety net for webhooks that never arrive.
 // Additionally gated by MembershipDuesReconciliation:Enabled (default false), so it is
 // safe to deploy switched off and turn on from appsettings without a code change.
-if (enableBackgroundJobs) builder.Services.AddHostedService<MembershipDuesReconciliationBackgroundService>();
+if (enableBackgroundJobs && RotaryApi.Services.Payments.LegacyGateways.Enabled) builder.Services.AddHostedService<MembershipDuesReconciliationBackgroundService>();
 if (enableBackgroundJobs) builder.Services.AddHostedService<RotaryApi.Services.RotaryOrg.ClubCacheRefreshBackgroundService>();
 
 // Firebase push notifications (announcement)

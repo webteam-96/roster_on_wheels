@@ -3346,9 +3346,9 @@ export async function getTrfContributionsByMonth(clubId: number, yearId: number,
 }
 
 // Cashfree KYC
+// Off on ROW (FeatureGate legacy_gateways): the create forms get no vendor accounts.
 export async function getCashfreeKycList(): Promise<CashfreeKyc[]> {
-  const res = await api.get('/api/cashfree-kyc');
-  return res.data;
+  return [];
 }
 export async function sendCashfreeOtp(): Promise<{ message: string }> {
   const res = await api.post('/api/cashfree-kyc/send-otp');
@@ -5594,9 +5594,9 @@ export interface RazorpayRouteAccount {
   createdDate: string; modifiedDate: string | null;
   accountNumber?: string | null; beneficiaryName?: string | null; ifsc?: string | null;
 }
-export async function getRazorpayRouteAccounts(activeOnly = false): Promise<RazorpayRouteAccount[]> {
-  const { data } = await api.get(`/api/admin/razorpay-route-accounts`, { params: { activeOnly } });
-  return data;
+// Off on ROW (FeatureGate legacy_gateways).
+export async function getRazorpayRouteAccounts(_activeOnly = false): Promise<RazorpayRouteAccount[]> {
+  return [];
 }
 // Sends a 6-digit OTP to the logged-in SuperAdmin's own email; required before create.
 export async function sendRazorpayRouteOtp(): Promise<{ success: boolean; email: string }> {

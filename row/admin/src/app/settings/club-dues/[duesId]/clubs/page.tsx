@@ -339,10 +339,10 @@ export default function ClubDuesClubsPage() {
                           {r.lastOfflinePaymentId && <Button size="sm" variant="ghost" onClick={() => setEditOffline({ club: r, paymentId: r.lastOfflinePaymentId! })} title="Edit offline payment"><Pencil className="h-4 w-4" /></Button>}
                           {r.hasPendingApproval && <Button size="sm" onClick={() => setApproveFor(r)}>Review</Button>}
                           {r.lastPaidPaymentId && <Button size="sm" variant="ghost" onClick={() => receipt(r)} title="Send receipt"><Receipt className="h-4 w-4" /></Button>}
-                          <Button size="sm" variant="ghost" onClick={() => setSplitFor({ club: r, isOnline: true })} title={r.hasClubVendorSplit ? "Per-club online split" : "Set per-club online split"}>
+                          <Button size="sm" variant="ghost" className="hidden" onClick={() => setSplitFor({ club: r, isOnline: true })} title={r.hasClubVendorSplit ? "Per-club online split" : "Set per-club online split"}>
                             <Split className={`h-4 w-4 ${r.hasClubVendorSplit ? "text-primary" : ""}`} />
                           </Button>
-                          <Button size="sm" variant="ghost" onClick={() => setSplitFor({ club: r, isOnline: false })} title={r.hasClubVendorSplit ? "Per-club offline split" : "Set per-club offline split"}>
+                          <Button size="sm" variant="ghost" className="hidden" onClick={() => setSplitFor({ club: r, isOnline: false })} title={r.hasClubVendorSplit ? "Per-club offline split" : "Set per-club offline split"}>
                             <Split className={`h-4 w-4 rotate-90 ${r.hasClubVendorSplit ? "text-primary" : ""}`} />
                           </Button>
                           <Button size="sm" variant="ghost" onClick={() => copyLink(r)} title="Copy 3-hour pay link"><Link2 className="h-4 w-4" /></Button>

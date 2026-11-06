@@ -138,6 +138,10 @@ const computeDefaultAccountAmount = (
 
 // Rotary years fetched from API
 
+// Vendor splits are Cashfree's model, off on ROW: a club's money will go to its own Stripe account.
+const SPLITS_ON = false;
+const SPLIT_STEP = 2;
+
 const STEP_LABELS = [
   "Basic Info & Payment",
   "Fee Types & Amounts",
@@ -553,6 +557,7 @@ function CreateEditMembershipDuesPage() {
       }
       case 2: // Vendor Splits — validated against the ONLINE (surcharge-inflated) total
       {
+        if (!SPLITS_ON) return null;
         if (!amountType) return "Please select an Amount Type.";
         for (const ft of enabledFeeTypes) {
           const assigned = vendorSplits.filter(s => s.fkFeeType === ft.type).reduce((sum, s) => sum + s.splitAmount, 0);
@@ -567,6 +572,7 @@ function CreateEditMembershipDuesPage() {
       }
       case 3: // Member List - validate balances
       {
+        if (!SPLITS_ON) return null;
         if (isEdit) {
           const balErr = validateEditMemberBalances();
           if (balErr) return balErr;
@@ -748,11 +754,11 @@ function CreateEditMembershipDuesPage() {
       setSaving(false);
     }
 
-    if (currentStep < totalSteps - 1) setCurrentStep(currentStep + 1);
+    if (currentStep < totalSteps - 1) setCurrentStep(!SPLITS_ON && !isAdminEdit && currentStep === SPLIT_STEP - 1 ? SPLIT_STEP + 1 : currentStep + 1);
   };
 
   const handleBack = () => {
-    if (currentStep > 0) setCurrentStep(currentStep - 1);
+    if (currentStep > 0) setCurrentStep(!SPLITS_ON && !isAdminEdit && currentStep === SPLIT_STEP + 1 ? SPLIT_STEP - 1 : currentStep - 1);
   };
 
   // Submit (final save from step 5)
@@ -2434,13 +2440,13 @@ function CreateEditMembershipDuesPage() {
         {/* Step Indicator */}
         <div className="flex items-center gap-2 mb-6 flex-wrap">
           {activeStepLabels.map((s, i) => (
-            <div key={i} className="flex flex-wrap items-center gap-2">
+            <div key={i} className={`flex flex-wrap items-center gap-2 ${!SPLITS_ON && s === "Vendor Splits" ? "hidden" : ""}`}>
               <div className={`flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium ${
                 i < currentStep ? "bg-green-600 text-white" :
                 i === currentStep ? "bg-primary text-primary-foreground" :
                 "bg-muted text-muted-foreground"
               }`}>
-                {i < currentStep ? <Check className="h-4 w-4" /> : i + 1}
+                {i < currentStep ? <Check className="h-4 w-4" /> : !SPLITS_ON && !isAdminEdit && i > SPLIT_STEP ? i : i + 1}
               </div>
               <span className={`text-sm hidden md:inline ${i === currentStep ? "font-medium" : "text-muted-foreground"}`}>{s}</span>
               {i < activeStepLabels.length - 1 && <div className="w-8 h-[2px] bg-muted" />}

@@ -364,7 +364,7 @@ class _WebsitePurchaseScreenState extends State<WebsitePurchaseScreen> {
               _PriceCard(quote: q, inr: _inr),
               const SizedBox(height: 8),
               Text(
-                'You’ll complete the payment on a secure Razorpay checkout. '
+                'You’ll complete the payment on a secure checkout page. '
                 'Setup runs in the background afterwards: we’ll email you when '
                 'your website is live.',
                 style: AppTextStyles.caption.copyWith(color: AppColors.textMuted),

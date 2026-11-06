@@ -255,10 +255,6 @@ try:
         check("club dues: payment settled", sql(f"SELECT COUNT(*) FROM club_dues_payments WHERE fk_club_dues_id={dues} AND IsPaid=1") == "1")
         check("club dues: members marked paid", sql(f"SELECT COUNT(*) FROM club_dues_members WHERE fk_club_dues_id={dues} AND fk_club_id={dues_club} AND isdeleted=0 AND IsHonorary=0 AND IsPaid=1") == str(unpaid))
 
-    # Vendor accounts work without a gateway
-    sql("INSERT INTO cashfree_otp (otp_code, purpose, is_used, expiry_date, created_date) VALUES ('914273','CASHFREE_KYC',0,DATE_ADD(NOW(), INTERVAL 5 MINUTE),NOW())")
-    st, k = call("POST", "/api/cashfree-kyc/verify-and-save", SA, {"otp": "914273", "vendorId": "e2epay1", "email": "e2e@example.org", "phone": "5550100", "accountHolder": "e2e-pay", "accountNumber": "000123456789", "ifsc": "E2EP0000001", "name": "e2e-pay", "pan": "AAAAA0000A"})
-    check("vendor account saved locally", st == 200 and sql("SELECT status FROM cashfree_kyc WHERE vendor_id='e2epay1'") == "ACTIVE", str(k)[:200])
 finally:
     def quiet(q):
         try:
@@ -289,7 +285,6 @@ finally:
     quiet("DELETE FROM club_dues WHERE Purpose='e2e-pay'")
     quiet("DELETE FROM club_website_orders WHERE Subdomain='e2e-pay' OR Subdomain LIKE '%e2epayreal%'")
     quiet("DELETE FROM club_websites WHERE Subdomain='e2e-pay' OR Subdomain LIKE '%e2epayreal%'")
-    quiet("DELETE FROM cashfree_kyc WHERE vendor_id='e2epay1'")
 
 print(f"\n{'ALL PASS' if fails == 0 else str(fails) + ' FAILED'}")
 sys.exit(1 if fails else 0)

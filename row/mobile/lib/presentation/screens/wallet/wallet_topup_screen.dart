@@ -450,7 +450,7 @@ class _WalletTopupScreenState extends State<WalletTopupScreen> {
                   : Text(
                       (!belowMin && q != null && !q.hasError && q.totalAmount > 0)
                           ? 'Pay ${_inr(q.totalAmount)} with Razorpay'
-                          : 'Pay with Razorpay',
+                          : 'Pay online',
                       style: _jk(13.5, FontWeight.w800, Colors.white),
                     ),
             ),

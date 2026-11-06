@@ -113,7 +113,7 @@ export default function WalletReportsTab() {
       ...(showCredits ? [{ key: "creditsPurchased", label: "Credits Purchased" }] : []),
       { key: "settlementAmount", label: "Settlement Amount" },
       { key: "settlementDate", label: "Settlement Date" },
-      { key: "razorpayTransactionId", label: "Razorpay Transaction ID" },
+      { key: "razorpayTransactionId", label: "Transaction ID" },
       { key: "presidentName", label: isDistrict ? "District Governor" : "President" },
       { key: "presidentMobile", label: isDistrict ? "District Governor Mobile" : "President Mobile" },
       { key: "presidentEmail", label: isDistrict ? "District Governor Email" : "President Email" },
@@ -198,7 +198,7 @@ export default function WalletReportsTab() {
                 {showCredits && <th className="px-3 py-2.5 text-right whitespace-nowrap">Credits</th>}
                 <th className="px-3 py-2.5 text-right whitespace-nowrap">Settlement Amt</th>
                 <th className="px-3 py-2.5 text-left whitespace-nowrap">Settlement Date</th>
-                <th className="px-3 py-2.5 text-left whitespace-nowrap">Razorpay Txn ID</th>
+                <th className="px-3 py-2.5 text-left whitespace-nowrap">Transaction ID</th>
                 <th className="px-3 py-2.5 text-left whitespace-nowrap">{isDistrict ? "District Governor" : "President"}</th>
                 {!isDistrict && <th className="px-3 py-2.5 text-left whitespace-nowrap">Secretary</th>}
                 <th className="px-3 py-2.5 text-left whitespace-nowrap">Settles In</th>

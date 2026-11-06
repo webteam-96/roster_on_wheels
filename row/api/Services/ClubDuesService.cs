@@ -1668,6 +1668,7 @@ own separate approval request.</p>
 
     public async Task<ClubDuesPaymentSessionResponseDto> CreatePaymentOrderAsync(int duesId, PublicClubDuesPaymentSubmitDto dto)
     {
+        if (!_checkout.Enabled) throw new InvalidOperationException(LegacyGateways.NoGatewayMessage);
         await PlanningAccess.EnsureDuesCollectableAsync(_connStr, true, duesId);
         using var conn = GetConnection();
         await SyncClubsAndMembersInternalAsync(conn, duesId, 0, null);
@@ -1801,7 +1802,7 @@ own separate approval request.</p>
         if (Convert.ToInt32(payment.IsPaid) == 0)
         {
             // A hosted gateway settles on the server; verify only reports the result.
-            if (_checkout.Enabled)
+            if (_checkout.Enabled || !LegacyGateways.Enabled)
                 return new VerifyPaymentResponseDto { IsSuccess = false, OrderStatus = "PENDING" };
             if (!RazorpayGatewayProxy.VerifyPaymentSignature(_config, dto.RazorpayOrderId, dto.RazorpayPaymentId, dto.RazorpaySignature))
                 return new VerifyPaymentResponseDto { IsSuccess = false, OrderStatus = "SIGNATURE_FAILED" };

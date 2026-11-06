@@ -256,6 +256,7 @@ public class WebsiteBillingService : IWebsiteBillingService
     // ── create order ─────────────────────────────────────────────────────────
     public async Task<CreateWebsiteOrderResponseDto> CreateOrderAsync(CreateWebsiteOrderDto dto, int userId, int? yearId = null)
     {
+        if (!_checkout.Enabled) throw new InvalidOperationException(LegacyGateways.NoGatewayMessage);
         if (dto.ClubId <= 0) throw new InvalidOperationException("ClubId required.");
         int months = ValidityMonths();
 
@@ -440,7 +441,7 @@ public class WebsiteBillingService : IWebsiteBillingService
         if (!alreadyPaid)
         {
             // A hosted gateway settles on the server; verify only reports the result.
-            if (_checkout.Enabled)
+            if (_checkout.Enabled || !LegacyGateways.Enabled)
                 return new VerifyWebsiteOrderResponseDto { IsSuccess = false, Message = "Payment not completed." };
             if (!RazorpayGatewayProxy.VerifyPaymentSignature(_config, dto.RazorpayOrderId, dto.RazorpayPaymentId, dto.RazorpaySignature))
             {

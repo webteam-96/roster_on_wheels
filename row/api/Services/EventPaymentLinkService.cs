@@ -1311,6 +1311,7 @@ public class EventPaymentLinkService : IEventPaymentLinkService
 
     public async Task<PaymentSessionResponseDto> CreatePaymentOrderAsync(int linkId, PublicPaymentSubmitDto dto)
     {
+        if (!_checkout.Enabled) throw new InvalidOperationException(LegacyGateways.NoGatewayMessage);
         using var conn = GetConnection();
 
         // Resolve member details from profile if needed
@@ -1546,7 +1547,7 @@ public class EventPaymentLinkService : IEventPaymentLinkService
 
         if (Convert.ToInt32(row.IsPaid) == 1) return Paid((DateTime?)row.PaymentDate);
         // A hosted gateway settles on the server; the thank-you page only reads the result.
-        if (_checkout.Enabled) return unknown;
+        if (_checkout.Enabled || !LegacyGateways.Enabled) return unknown;
 
         var cf = _config.GetSection("CashfreePayment");
         var request = new HttpRequestMessage(HttpMethod.Get, $"{cf["BaseUrl"]}orders/{Uri.EscapeDataString(orderId!)}");
@@ -1997,6 +1998,8 @@ public class EventPaymentLinkService : IEventPaymentLinkService
                               SId = $"sim_{(int)p.pk_id}" });
             return;
         }
+        if (!LegacyGateways.Enabled) return;
+
         var paidPayments = await conn.QueryAsync<dynamic>(@"
             SELECT pk_id, CfOrderId FROM event_payment_members
             WHERE fk_payment_link_id=@LinkId AND IsPaid=1 AND IsOnline=1 AND CfOrderId IS NOT NULL AND CfOrderId != '' AND isdeleted=0",

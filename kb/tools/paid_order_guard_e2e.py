@@ -4,8 +4,8 @@
 
 Works in both payment modes and tells them apart by ROW_E2E_LEGACY_CASHFREE:
 - unset: the API runs with Payments__Provider=simulated (the smoke suite's setting).
-- 1: the API runs with Payments__Provider unset and CashfreePayment__BaseUrl=http://127.0.0.1:<port>/ (default port 5396),
-  and this script answers there as a fake Cashfree that says every order is PAID, which is the attacker's best case.
+- 1: the API runs with Payments__Provider unset and CashfreePayment__BaseUrl=http://127.0.0.1:<port>/ (default port 5396).
+  This script answers there as a fake Cashfree that says every order is PAID, and checks it is never asked.
 Local copies only, never production. Adds rows titled 'e2e-paid-order', soft-deletes the member fees' parents at the end.
 The status route allows 30 calls a minute per IP. The last check spends that allowance, then waits a minute to give it back.
 """
@@ -170,16 +170,13 @@ try:
     code, body = event_verify(evp_oid, evp_pk)
     check("the event payer's own paid order still reads as paid", body["isSuccess"] is True, body)
 
-    if LEGACY:
-        gateway_calls.clear()
-        code, body = dues_verify(v_oid, v_pk)
-        check("legacy dues: the row's own order settles it", body["isSuccess"] is True and dues_paid(v_pk) == "1", body)
-        check("legacy dues: the gateway was asked for that order only", gateway_calls and gateway_calls[0] == f"/orders/{v_oid}", gateway_calls)
-        code, body = event_verify(ev_oid, ev_pk)
-        check("legacy event: the row's own order settles it", body["isSuccess"] is True and event_paid(ev_pk) == "1", body)
-    else:
-        code, body = dues_verify(v_oid, v_pk)
-        check("hosted gateway: the status route never settles, even its own order", body["isSuccess"] is False and dues_paid(v_pk) == "0", body)
+    # With or without a gateway set, the status route only reads: it never settles a row, not even with its own order.
+    gateway_calls.clear()
+    code, body = dues_verify(v_oid, v_pk)
+    check("dues: the status route never settles, even its own order", body["isSuccess"] is False and dues_paid(v_pk) == "0", body)
+    code, body = event_verify(ev_oid, ev_pk)
+    check("event: the status route never settles, even its own order", body["isSuccess"] is False and event_paid(ev_pk) == "0", body)
+    check("nothing reached the old gateway", gateway_calls == [], gateway_calls)
 
     # Rate limit.
     codes = [dues_verify("nope", v_pk)[0] for _ in range(35)]

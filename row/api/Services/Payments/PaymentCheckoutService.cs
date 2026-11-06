@@ -64,6 +64,16 @@ public static class SimulatedSettlements
     }
 }
 
+/// <summary>
+/// The Cashfree and Razorpay code paths, kept but never run on ROW. No setting turns them on: order creation refuses
+/// without a checkout gateway, status routes only read, and their background jobs are not started.
+/// </summary>
+public static class LegacyGateways
+{
+    public static readonly bool Enabled = false;
+    public const string NoGatewayMessage = "Online payments are not available yet.";
+}
+
 /// <summary>Picks the configured gateway and stores each session. Payments:Provider unset = the seam is off.</summary>
 public sealed class PaymentCheckoutService
 {
